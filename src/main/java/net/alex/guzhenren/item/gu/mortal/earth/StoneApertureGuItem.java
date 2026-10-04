@@ -45,21 +45,21 @@ public class StoneApertureGuItem extends ConsumedGuItem {
         super(properties, spec);
     }
 
-    public static int stoneTarget(@NotNull ApertureStatus primary, @NotNull ApertureStatus secondary) {
+    public static int stoneTarget(@NotNull ApertureStatus primary, @NotNull ApertureStatus second) {
         if (primary == ApertureStatus.NORMAL) return ApertureData.PRIMARY;
-        if (secondary == ApertureStatus.NORMAL) return ApertureData.SECONDARY;
+        if (second == ApertureStatus.NORMAL) return ApertureData.SECOND;
         return NO_TARGET;
     }
 
     private static int targetOf(Player player) {
         ApertureData data = ApertureService.get(player);
         int primary = data.firstIndex();
-        int secondary = data.secondIndex();
+        int second = data.secondIndex();
         int target = stoneTarget(
                 primary < 0 ? ApertureStatus.DEAD : ApertureService.status(player, primary),
-                secondary < 0 ? ApertureStatus.DEAD : ApertureService.status(player, secondary));
+                second < 0 ? ApertureStatus.DEAD : ApertureService.status(player, second));
         if (target == NO_TARGET) return NO_TARGET;
-        return target == ApertureData.SECONDARY ? Math.max(secondary, 0) : Math.max(primary, 0);
+        return target == ApertureData.SECOND ? Math.max(second, 0) : Math.max(primary, 0);
     }
 
     @Override

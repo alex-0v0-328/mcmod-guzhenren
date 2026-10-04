@@ -20,12 +20,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The container behind one aperture's [空窍] store, paged because the store itself is uncapped.
+ * The container behind one aperture's [空窍] store, paged because the store outgrows one screen: up to
+ * {@code ApertureStorageService.MAX_LOAD} load, at least one per Gu.
  *
  * <p>Extends {@link net.minecraft.world.inventory.AbstractContainerMenu}. 54 slots per page; the Vital Gu
  * [本命蛊] slot sits outside the pager, past {@code imageWidth}. The save trigger is a container
- * listener ({@code page.addListener(c -> save())}), not an override of {@code slotsChanged} -- that
+ * listener ({@code page.addListener(container -> save())}), not an override of {@code slotsChanged} -- that
  * override is never called because {@code AbstractContainerMenu} is not a {@code ContainerListener}.
+ *
+ * <p>{@code countPages} counts the pages that hold every stored Gu plus one free slot, so a full page
+ * still leaves an empty one for the next Gu.
  *
  * <p>⚠ It has to reload after the day-rollover walk, or an open menu saves its stale view back and
  * resurrects a Gu that starved a moment earlier.
@@ -40,6 +44,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     public static final int COLS = 9;
     public static final int ROWS = 6;
+    public static final int INVENTORY_ROWS = 3;
     public static final int PAGE_SIZE = COLS * ROWS;
     public static final int VITAL_SLOT = PAGE_SIZE + 36;
     public static final int BUTTON_PREV = 0;
@@ -72,7 +77,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
                         STORAGE_X + col * SLOT, STORAGE_Y + row * SLOT));
             }
         }
-        for (int row = 0; row < 3; row++) {
+        for (int row = 0; row < INVENTORY_ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
                 addSlot(new Slot(inventory, col + row * COLS + 9,
                         STORAGE_X + col * SLOT, INVENTORY_Y + row * SLOT));

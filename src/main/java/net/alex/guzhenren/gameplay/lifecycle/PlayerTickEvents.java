@@ -4,7 +4,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.pool.DeathQiEffect;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
-import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageTick;
 import net.alex.guzhenren.gameplay.body.BodyAttackService;
@@ -73,7 +73,7 @@ public final class PlayerTickEvents {
         ApertureNourishService.tickNourish(player);
         MindService.regenStep(player);
         SelfRelianceGuItem.tryAutoUse(player);
-        ApertureService.tickPressure(player);
+        AperturePressureService.tick(player);
         checkLethalState(player);
     }
 
@@ -127,8 +127,8 @@ public final class PlayerTickEvents {
     private static void checkLethalState(ServerPlayer player) {
         if (player.isCreative() || player.isSpectator()) return;
 
-        if (ApertureService.pressureFull(player)) {
-            if (!ApertureNourishService.convertPetrifiedPressure(player)) ApertureService.detonatePressure(player);
+        if (AperturePressureService.isFull(player)) {
+            if (!ApertureNourishService.convertPetrifiedPressure(player)) AperturePressureService.detonate(player);
             return;
         }
         if (BodyService.get(player).isExhausted()) {

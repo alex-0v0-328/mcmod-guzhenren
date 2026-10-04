@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.hud;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
+import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
@@ -90,7 +91,7 @@ public final class PlayerStatsHud implements LayeredDraw.Layer {
             Component pressure = aperture.pressure() == Aperture.PRESSURE_COUNTDOWN_START
                     && aperture.pressureDeadlineTick() > 0L
                     ? Component.translatable("guzhenren.hud.aperture_pressure_cd", aperture.pressure(),
-                    ModDisplayText.countdown(ApertureService.pressureRemainingTicks(player)))
+                    ModDisplayText.countdown(AperturePressureService.getRemainingTicks(player)))
                     : Component.translatable("guzhenren.hud.aperture_pressure", aperture.pressure());
             line(graphics, font, y, pressure);
         }

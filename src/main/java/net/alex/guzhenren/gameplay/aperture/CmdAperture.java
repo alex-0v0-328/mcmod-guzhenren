@@ -62,23 +62,24 @@ public final class CmdAperture {
                 .then(Commands.literal("base")
                         .then(baseSetNode())
                         .then(baseNode("add", ApertureService::addBaseEssence))
-                        .then(baseNode("sub", (p, i, v) -> ApertureService.addBaseEssence(p, i, -v))))
+                        .then(baseNode("sub",
+                                (player, index, value) -> ApertureService.addBaseEssence(player, index, -value))))
                 .then(Commands.literal("current")
                         .then(longNode("set", ApertureEssenceService::set))
                         .then(longNode("add",
-                                (p, i, v) -> ApertureEssenceService.set(p, i,
-                                        ApertureService.aperture(p, i).currentEssence() + v)))
+                                (player, index, value) -> ApertureEssenceService.set(player, index,
+                                        ApertureService.aperture(player, index).currentEssence() + value)))
                         .then(longNode("sub",
-                                (p, i, v) -> ApertureEssenceService.set(p, i,
-                                        ApertureService.aperture(p, i).currentEssence() - v))))
+                                (player, index, value) -> ApertureEssenceService.set(player, index,
+                                        ApertureService.aperture(player, index).currentEssence() - value))))
                 .then(Commands.literal("distilled")
                         .then(longNode("set", ApertureEssenceService::setDistilled))
                         .then(longNode("add",
-                                (p, i, v) -> ApertureEssenceService.setDistilled(p, i,
-                                        ApertureService.aperture(p, i).distilledEssence() + v)))
+                                (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
+                                        ApertureService.aperture(player, index).distilledEssence() + value)))
                         .then(longNode("sub",
-                                (p, i, v) -> ApertureEssenceService.setDistilled(p, i,
-                                        ApertureService.aperture(p, i).distilledEssence() - v))))
+                                (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
+                                        ApertureService.aperture(player, index).distilledEssence() - value))))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
                         context -> ModCommandSupport.applyOnAwakened(context, ApertureEssenceService::refill)));
     }
@@ -97,7 +98,7 @@ public final class CmdAperture {
         String refused = index == ApertureData.PRIMARY
                 ? ModCommandSupport.FAILED_UNAWAKENED : FAILED_INDEX;
         return ModCommandSupport.applyIf(context,
-                ModCommandSupport.AWAKENED.and(p -> index < ApertureService.get(p).count()),
+                ModCommandSupport.AWAKENED.and(player -> index < ApertureService.get(player).count()),
                 refused, player -> operation.apply(player, index));
     }
 
@@ -174,7 +175,8 @@ public final class CmdAperture {
                             ? ModCommandSupport.FAILED_EXTREME
                             : FAILED_INDEX;
                     return ModCommandSupport.applyIfResult(context,
-                            ModCommandSupport.AWAKENED.and(p -> index < ApertureService.get(p).count()), refused,
+                            ModCommandSupport.AWAKENED.and(player -> index < ApertureService.get(player).count()),
+                            refused,
                             player -> ApertureService.setBaseEssence(player, index, value));
                 }));
     }

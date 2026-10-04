@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Essence [真元]: pools, distilled reserves, regen, and the Liquor Worm's [酒虫] phases. Spending
- * cascades PRIMARY then SECONDARY, gains fill PRIMARY; {@code regenStep} banks the fractional remainder
+ * cascades PRIMARY then SECOND, gains fill PRIMARY; {@code regenStep} banks the fractional remainder
  * per aperture in unsynced {@code ESSENCE_CARRY}.
  *
  * <p>⚠ Gates ask {@code spendable()}, never a no-index {@code currentEssence()} (PRIMARY alone, and
@@ -38,30 +38,34 @@ public final class ApertureEssenceService {
     public static final long BASE_REGEN_PER_DAY = 100L;
     public static final int REGEN_INTERVAL_TICKS = Ticks.SECOND;
 
-    public static long regenPerDay(@NotNull Aperture a) {
-        return BASE_REGEN_PER_DAY * a.talent().getRegenRate() * a.rank().getRankBase()
-                * a.stage().getEssenceMultiplier();
+    public static long regenPerDay(@NotNull Aperture aperture) {
+        return BASE_REGEN_PER_DAY * aperture.talent().getRegenRate() * aperture.rank().getRankBase()
+                * aperture.stage().getEssenceMultiplier();
     }
 
-    public static double regenPerTick(@NotNull Aperture a) { return regenPerDay(a) / (double) Ticks.DAY; }
+    public static double regenPerTick(@NotNull Aperture aperture) { return regenPerDay(aperture) / (double) Ticks.DAY; }
 
     public static final long DISTILLED_RATE = 2L;
 
-    public static long currentEssence(@NotNull Player p) { return ApertureService.aperture(p).currentEssence(); }
+    public static long currentEssence(@NotNull Player player) {
+        return ApertureService.aperture(player).currentEssence();
+    }
 
-    public static long maxEssence(@NotNull Player p) { return ApertureService.aperture(p).maxEssence(); }
+    public static long maxEssence(@NotNull Player player) { return ApertureService.aperture(player).maxEssence(); }
 
-    public static long distilledEssence(@NotNull Player p) { return ApertureService.aperture(p).distilledEssence(); }
+    public static long distilledEssence(@NotNull Player player) {
+        return ApertureService.aperture(player).distilledEssence();
+    }
 
-    public static long totalDistilled(@NotNull Player p) {
+    public static long totalDistilled(@NotNull Player player) {
         long total = 0L;
-        ApertureData data = ApertureService.get(p);
+        ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) total += data.get(i).distilledEssence();
         return total;
     }
 
-    public static long spendable(@NotNull Player p) {
-        ApertureData data = ApertureService.get(p);
+    public static long spendable(@NotNull Player player) {
+        ApertureData data = ApertureService.get(player);
         long total = 0L;
         for (int i = 0; i < data.count(); i++) {
             total += data.get(i).currentEssence() + data.get(i).distilledEssence() * DISTILLED_RATE;
@@ -69,23 +73,23 @@ public final class ApertureEssenceService {
         return total;
     }
 
-    public static boolean isDistilling(@NotNull Player p) { return p.hasEffect(ModEffects.LIQUOR_WORM); }
+    public static boolean isDistilling(@NotNull Player player) { return player.hasEffect(ModEffects.LIQUOR_WORM); }
 
-    public static boolean isChoked(@NotNull Player p) { return p.hasEffect(ModEffects.DEATH_QI); }
+    public static boolean isChoked(@NotNull Player player) { return player.hasEffect(ModEffects.DEATH_QI); }
 
     public static double essenceQiBonus(@NotNull Player player) {
         MobEffectInstance effect = player.getEffect(ModEffects.ESSENCE_QI);
         return effect == null ? 0.0 : EssenceQiEffect.bonus(effect.getAmplifier());
     }
 
-    public static void add(@NotNull ServerPlayer p, long d) {
-        long left = d;
-        ApertureData data = ApertureService.get(p);
+    public static void add(@NotNull ServerPlayer player, long delta) {
+        long left = delta;
+        ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count() && left > 0L; i++) {
             Aperture aperture = data.get(i);
             long room = Math.max(0L, aperture.maxEssence() - aperture.currentEssence());
             long given = Math.min(left, room);
-            if (given > 0L) set(p, i, aperture.currentEssence() + given);
+            if (given > 0L) set(player, i, aperture.currentEssence() + given);
             left -= given;
         }
     }
@@ -101,11 +105,13 @@ public final class ApertureEssenceService {
         }
     }
 
-    public static void addDistilled(@NotNull ServerPlayer p, long d) {
-        setDistilled(p, LongMath.saturatedAdd(distilledEssence(p), d));
+    public static void addDistilled(@NotNull ServerPlayer player, long delta) {
+        setDistilled(player, LongMath.saturatedAdd(distilledEssence(player), delta));
     }
 
-    public static void setDistilled(@NotNull ServerPlayer p, long v) { setDistilled(p, ApertureService.PRIMARY, v); }
+    public static void setDistilled(@NotNull ServerPlayer player, long value) {
+        setDistilled(player, ApertureData.PRIMARY, value);
+    }
 
     public static void setDistilled(@NotNull ServerPlayer player, int index, long value) {
         ApertureService.set(player, index,
@@ -113,8 +119,8 @@ public final class ApertureEssenceService {
     }
 
     //region the three phases of a Liquor Worm [酒虫]
-    public static boolean canDistill(@NotNull Player p) {
-        ApertureData data = ApertureService.get(p);
+    public static boolean canDistill(@NotNull Player player) {
+        ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) {
             if (!data.get(i).distilling()) return true;
         }
@@ -189,37 +195,35 @@ public final class ApertureEssenceService {
         }
 
         double bonus = essenceQiBonus(player);
+        for (int index = 0; index < data.count(); index++) {
+            regenAperture(player, data.get(index), index, carry, bonus);
+        }
+    }
 
-        for (int i = 0; i < data.count(); i++) {
-            if (ApertureService.status(player, i) != ApertureStatus.NORMAL) {
-                carry[i] = 0.0F;
-                continue;
-            }
+    private static void regenAperture(ServerPlayer player, Aperture aperture, int index, float[] carry, double bonus) {
+        if (ApertureService.status(player, index) != ApertureStatus.NORMAL) {
+            carry[index] = 0.0F;
+            return;
+        }
+        boolean distilling = aperture.distilling();
+        long current = distilling ? aperture.distilledEssence() : aperture.currentEssence();
+        if (current >= aperture.maxEssence()) {
+            carry[index] = 0.0F;
+            return;
+        }
 
-            Aperture aperture = data.get(i);
-            boolean distilling = aperture.distilling();
-            long current = distilling ? aperture.distilledEssence() : aperture.currentEssence();
+        double perStep = PathTimeFlowService.perStep(player,
+                regenPerTick(aperture) * REGEN_INTERVAL_TICKS * (1.0 + bonus));
+        if (perStep <= 0.0) return;
+        double total = carry[index] + perStep;
+        long whole = (long) total;
+        carry[index] = (float) (total - whole);
+        if (whole <= 0L) return;
 
-            if (current >= aperture.maxEssence()) {
-                carry[i] = 0.0F;
-                continue;
-            }
-
-            double perStep = PathTimeFlowService.perStep(player,
-                    regenPerTick(aperture) * REGEN_INTERVAL_TICKS * (1.0 + bonus));
-            if (perStep <= 0.0) continue;
-
-            double total = carry[i] + perStep;
-            long whole = (long) total;
-
-            carry[i] = (float) (total - whole);
-            if (whole <= 0L) continue;
-
-            if (distilling) {
-                setDistilled(player, i, current + whole);
-            } else {
-                set(player, i, current + whole);
-            }
+        if (distilling) {
+            setDistilled(player, index, current + whole);
+        } else {
+            set(player, index, current + whole);
         }
     }
 }

@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import java.util.List;
-import net.alex.guzhenren.Ticks;
 import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.body.BodyHealthService;
@@ -13,21 +12,16 @@ import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
-import net.alex.guzhenren.registry.damage.ModDamageTypes;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * The only writer of the Aperture [空窍] attachment: awakening [开窍], rank [转数], stage [阶段], talent
  * [资质] and paths [流派]. Static service; most writes route through {@code store}, which also fires
- * {@link BodyHealthService#refresh} and {@link EpicFightIntegration#refresh} (pressure writes excepted).
+ * {@link BodyHealthService#refresh} and {@link EpicFightIntegration#refresh}; pressure writes, in
+ * {@link AperturePressureService}, skip it.
  *
  * <p>⚠ The body-physique/base-essence invariant is enforced here ({@code enforce}); the concrete
  * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
@@ -37,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>{@link #status(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
  * Half-Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
  *
- * <p>{@link #openSecondary} is the only opener of a second aperture: Grade-A at 8/10, this rank's
+ * <p>{@link #openSecond} is the only opener of a second aperture: Grade-A at 8/10, this rank's
  * first stage and a full pool. Works with NO aperture at all -- the lone second aperture then IS the
  * whole list until Hope Gu inserts the first one ahead of it. A higher-rank Second Aperture Gu
  * overwrites what is already there, back to the first stage, while the bound paths stay -- the Vital
@@ -54,8 +48,6 @@ public final class ApertureService {
 
     private ApertureService() {}
 
-    public static final int PRIMARY = ApertureData.PRIMARY;
-    private static final int PRESSURE_PER_MINUTE = 2;
     public static final long TALENT_MARK_TOTAL = 1000L;
     public static final long TALENT_HUMAN_QI = 100L;
 
@@ -76,172 +68,95 @@ public final class ApertureService {
         }
     }
 
-    public static @NotNull ApertureData get(@NotNull Player p) { return p.getData(ModAttachments.APERTURE); }
+    public static @NotNull ApertureData get(@NotNull Player player) { return player.getData(ModAttachments.APERTURE); }
 
-    public static @NotNull Aperture aperture(@NotNull Player p) { return get(p).primary(); }
+    public static @NotNull Aperture aperture(@NotNull Player player) { return get(player).primary(); }
 
-    public static @NotNull Aperture aperture(@NotNull Player p, int i) { return get(p).get(i); }
+    public static @NotNull Aperture aperture(@NotNull Player player, int i) { return get(player).get(i); }
 
-    public static boolean isAwakened(@NotNull Player p) { return get(p).isAwakened(); }
+    public static boolean isAwakened(@NotNull Player player) { return get(player).isAwakened(); }
 
-    public static boolean hasAperture(@NotNull Player p) { return get(p).hasAperture(); }
+    public static boolean hasAperture(@NotNull Player player) { return get(player).hasAperture(); }
 
-    public static @NotNull ApertureStatus status(@NotNull Player p, int index) {
-        Aperture aperture = aperture(p, index);
-        if (BodyService.isZombieOrHalfZombie(p) || aperture.petrified()) return ApertureStatus.DEAD;
+    public static @NotNull ApertureStatus status(@NotNull Player player, int index) {
+        Aperture aperture = aperture(player, index);
+        if (BodyService.isZombieOrHalfZombie(player) || aperture.petrified()) return ApertureStatus.DEAD;
         return ApertureStatus.NORMAL;
     }
 
-    public static @NotNull ApertureStatus status(@NotNull Player p) { return status(p, PRIMARY); }
-
-    public static @NotNull Talent talent(@NotNull Player p) { return aperture(p).talent(); }
-
-    public static @NotNull Rank rank(@NotNull Player p) { return aperture(p).rank(); }
-
-    public static @NotNull Rank healthRank(@NotNull Player p) {
-        return get(p).isAwakened() ? aperture(p).rank() : Rank.NONE;
+    public static @NotNull ApertureStatus status(@NotNull Player player) {
+        return status(player, ApertureData.PRIMARY);
     }
 
-    public static @NotNull Stage stage(@NotNull Player p) { return aperture(p).stage(); }
+    public static @NotNull Talent talent(@NotNull Player player) { return aperture(player).talent(); }
 
-    public static void setRank(@NotNull ServerPlayer p, @NotNull Rank v) { setRank(p, PRIMARY, v); }
+    public static @NotNull Rank rank(@NotNull Player player) { return aperture(player).rank(); }
 
-    public static void setRank(@NotNull ServerPlayer p, int index, @NotNull Rank v) {
-        set(p, index, aperture(p, index).withRank(v));
+    public static @NotNull Rank healthRank(@NotNull Player player) {
+        return get(player).isAwakened() ? aperture(player).rank() : Rank.NONE;
     }
 
-    public static void setStage(@NotNull ServerPlayer p, @NotNull Stage v) { setStage(p, PRIMARY, v); }
+    public static @NotNull Stage stage(@NotNull Player player) { return aperture(player).stage(); }
 
-    public static void setStage(@NotNull ServerPlayer p, int index, @NotNull Stage v) {
-        set(p, index, aperture(p, index).withStage(v));
+    public static void setRank(@NotNull ServerPlayer player, @NotNull Rank value) {
+        setRank(player, ApertureData.PRIMARY, value);
     }
 
-    public static void addBaseEssence(@NotNull ServerPlayer p, int index, int d) {
-        setBaseEssence(p, index, aperture(p, index).baseEssence() + d);
+    public static void setRank(@NotNull ServerPlayer player, int index, @NotNull Rank value) {
+        set(player, index, aperture(player, index).withRank(value));
     }
 
-    public static void setTalent(@NotNull ServerPlayer p, int index, @NotNull Talent v) {
-        setBaseEssence(p, index, Talent.randomPercent(v));
+    public static void setStage(@NotNull ServerPlayer player, @NotNull Stage value) {
+        setStage(player, ApertureData.PRIMARY, value);
     }
 
-    public static void setPrimaryPath(@NotNull ServerPlayer p, int index, @Nullable GuPath v) {
-        Aperture aperture = aperture(p, index);
-        if (aperture.primaryPath() == v) return;
-        set(p, index, aperture.withPrimaryPath(v));
+    public static void setStage(@NotNull ServerPlayer player, int index, @NotNull Stage value) {
+        set(player, index, aperture(player, index).withStage(value));
     }
 
-    public static void setSecondaryPath(@NotNull ServerPlayer p, int index, @Nullable GuPath v) {
-        Aperture aperture = aperture(p, index);
-        if (aperture.secondaryPath() == v) return;
-        set(p, index, aperture.withSecondaryPath(v));
+    public static void addBaseEssence(@NotNull ServerPlayer player, int index, int delta) {
+        setBaseEssence(player, index, aperture(player, index).baseEssence() + delta);
     }
 
-    public static void shiftRank(@NotNull ServerPlayer p, int index, int d) {
-        setRank(p, index, aperture(p, index).rank().shift(d));
+    public static void setTalent(@NotNull ServerPlayer player, int index, @NotNull Talent value) {
+        setBaseEssence(player, index, Talent.randomPercent(value));
     }
 
-    public static void shiftStage(@NotNull ServerPlayer p, int d) { shiftStage(p, PRIMARY, d); }
-
-    public static void shiftStage(@NotNull ServerPlayer p, int index, int d) {
-        setStage(p, index, aperture(p, index).stage().shift(d));
+    public static void setPrimaryPath(@NotNull ServerPlayer player, int index, @Nullable GuPath value) {
+        Aperture aperture = aperture(player, index);
+        if (aperture.primaryPath() == value) return;
+        set(player, index, aperture.withPrimaryPath(value));
     }
 
-    public static void shiftTalent(@NotNull ServerPlayer p, int index, int d) {
-        setTalent(p, index, aperture(p, index).talent().shift(d));
+    public static void setSecondaryPath(@NotNull ServerPlayer player, int index, @Nullable GuPath value) {
+        Aperture aperture = aperture(player, index);
+        if (aperture.secondaryPath() == value) return;
+        set(player, index, aperture.withSecondaryPath(value));
     }
 
-    public static void setPressure(@NotNull ServerPlayer player, int index, int value) {
-        Aperture current = aperture(player, index);
-        if (!BodyService.isExtreme(player) || index != PRIMARY) return;
-        long deadline = value == Aperture.PRESSURE_COUNTDOWN_START ? current.pressureDeadlineTick() : 0L;
-        if (value == Aperture.PRESSURE_COUNTDOWN_START && deadline == 0L) {
-            deadline = player.level().getGameTime() + Ticks.HALF_MINUTE;
-        }
-        if (current.pressure() == value && current.pressureDeadlineTick() == deadline) return;
-        setPressureState(player, index, value, deadline);
+    public static void shiftRank(@NotNull ServerPlayer player, int index, int delta) {
+        setRank(player, index, aperture(player, index).rank().shift(delta));
     }
 
-    public static void relievePressure(@NotNull ServerPlayer player, int amount) {
-        Aperture current = aperture(player, PRIMARY);
-        if (!BodyService.isExtreme(player)) return;
-        setPressure(player, PRIMARY, Math.max(0, current.pressure() - amount));
+    public static void shiftStage(@NotNull ServerPlayer player, int delta) {
+        shiftStage(player, ApertureData.PRIMARY, delta);
     }
 
-    public static void tickPressure(@NotNull ServerPlayer player) {
-        Aperture aperture = aperture(player, PRIMARY);
-        if (!BodyService.isExtreme(player) || aperture.pressure() >= Aperture.MAX_PRESSURE) return;
-
-        if (aperture.pressure() < Aperture.PRESSURE_COUNTDOWN_START) {
-            if (player.tickCount % Ticks.MINUTE != 0) return;
-            int next = Math.min(Aperture.PRESSURE_COUNTDOWN_START,
-                    aperture.pressure() + PRESSURE_PER_MINUTE);
-            long deadline = next == Aperture.PRESSURE_COUNTDOWN_START
-                    ? player.level().getGameTime() + Ticks.HALF_MINUTE : 0L;
-            setPressureState(player, PRIMARY, next, deadline);
-            return;
-        }
-
-        long deadline = aperture.pressureDeadlineTick();
-        if (deadline == 0L) {
-            setPressureState(player, PRIMARY, Aperture.PRESSURE_COUNTDOWN_START,
-                    player.level().getGameTime() + Ticks.HALF_MINUTE);
-            return;
-        }
-        if (player.level().getGameTime() >= deadline) setPressure(player, PRIMARY, Aperture.MAX_PRESSURE);
+    public static void shiftStage(@NotNull ServerPlayer player, int index, int delta) {
+        setStage(player, index, aperture(player, index).stage().shift(delta));
     }
 
-    public static boolean pressureFull(@NotNull Player player) {
-        Aperture aperture = aperture(player, PRIMARY);
-        return BodyService.isExtreme(player) && aperture.pressure() >= Aperture.MAX_PRESSURE;
+    public static void shiftTalent(@NotNull ServerPlayer player, int index, int delta) {
+        setTalent(player, index, aperture(player, index).talent().shift(delta));
     }
 
-    public static long pressureRemainingTicks(@NotNull Player player) {
-        Aperture aperture = aperture(player, PRIMARY);
-        if (!BodyService.isExtreme(player) || aperture.pressure() != Aperture.PRESSURE_COUNTDOWN_START
-                || aperture.pressureDeadlineTick() <= 0L) return 0L;
-        return Math.max(0L, aperture.pressureDeadlineTick() - player.level().getGameTime());
+    public static void setBaseEssence(@NotNull ServerPlayer player, int value) {
+        setBaseEssence(player, ApertureData.PRIMARY, value);
     }
 
-    public static void detonatePressure(@NotNull ServerPlayer player) {
-        Aperture aperture = aperture(player);
-        ExtremePhysique physique = BodyService.extremePhysique(player);
-        int radius = pressureExplosionRadius(aperture.rank(), physique);
-        double x = player.getX();
-        double y = player.getY();
-        double z = player.getZ();
-        setPressure(player, PRIMARY, 0);
-        DamageSource source = ModDamageTypes.source(player, ModDamageTypes.APERTURE_PRESSURE_EXPLOSION);
-        player.level().explode(null, source, null, x, y, z, 0.0F, false, Level.ExplosionInteraction.NONE);
-        AperturePressureExplosionTask.start((ServerLevel) player.level(), x, y, z, radius, physique);
-
-        DamageSource disaster = ModDamageTypes.source(player, ModDamageTypes.TEN_EXTREME_DISASTER);
-        double radiusSquared = radius * (double) radius;
-        AABB bounds = new AABB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius);
-        for (Entity entity : player.level().getEntities(player, bounds, Entity::isAlive)) {
-            if (entity.distanceToSqr(x, y, z) <= radiusSquared) entity.hurt(disaster, 10_000.0F);
-        }
-        if (!player.isDeadOrDying()) player.hurt(source, Float.MAX_VALUE);
-    }
-
-    private static int pressureExplosionRadius(Rank rank, ExtremePhysique physique) {
-        int base = 16 * (Math.clamp(rank.ordinal(), Rank.LOWEST.ordinal(), Rank.HIGHEST.ordinal()) + 1);
-        return physique == ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL ? base + 16 : base;
-    }
-
-    private static void setPressureState(ServerPlayer player, int index, int value, long deadline) {
-        Aperture current = aperture(player, index);
-        if (!BodyService.isExtreme(player) || index != PRIMARY
-                || (current.pressure() == value && current.pressureDeadlineTick() == deadline)) return;
-        player.setData(ModAttachments.APERTURE,
-                get(player).with(index, current.withPressureAndDeadline(value, deadline)));
-    }
-
-    public static void setBaseEssence(@NotNull ServerPlayer p, int v) { setBaseEssence(p, PRIMARY, v); }
-
-    public static boolean setBaseEssence(@NotNull ServerPlayer p, int index, int v) {
-        int next = Math.clamp(v, Aperture.MIN_BASE, Aperture.MAX_BASE);
-        if (index == get(p).firstIndex() && next == Aperture.MAX_BASE && !BodyService.isExtreme(p)) return false;
-        return set(p, index, aperture(p, index).withBaseEssence(next));
+    public static boolean setBaseEssence(@NotNull ServerPlayer player, int index, int value) {
+        int clamped = Math.clamp(value, Aperture.MIN_BASE, Aperture.MAX_BASE);
+        return set(player, index, aperture(player, index).withBaseEssence(clamped));
     }
 
     public static void awaken(@NotNull ServerPlayer player) { open(player, Aperture.opened()); }
@@ -250,9 +165,9 @@ public final class ApertureService {
         open(player, Aperture.openedAt(baseEssence));
     }
 
-    public static void openSecondary(@NotNull ServerPlayer player, @NotNull Rank rank) {
+    public static void openSecond(@NotNull ServerPlayer player, @NotNull Rank rank) {
         ApertureData data = get(player);
-        Aperture opened = Aperture.secondaryOpened(rank);
+        Aperture opened = Aperture.secondOpened(rank);
         int index = data.secondIndex();
         if (index < 0) {
             store(player, data.opened(opened));
@@ -284,18 +199,20 @@ public final class ApertureService {
         return true;
     }
 
-    private static void store(ServerPlayer p, ApertureData data) {
-        p.setData(ModAttachments.APERTURE, data);
-        BodyHealthService.refresh(p);
-        EpicFightIntegration.refresh(p);
+    private static void store(ServerPlayer player, ApertureData data) {
+        player.setData(ModAttachments.APERTURE, data);
+        BodyHealthService.refresh(player);
+        EpicFightIntegration.refresh(player);
     }
 
     private static Aperture enforce(@NotNull Player player, int index, @NotNull Aperture aperture) {
-        if (index != get(player).firstIndex()) return aperture.baseEssence() == Aperture.MAX_BASE
-                ? aperture.withBaseEssence(Aperture.MAX_BASE - 1).withPressure(0) : aperture;
-        if (BodyService.isExtreme(player)) {
+        if (index == get(player).firstIndex() && BodyService.isExtreme(player)) {
             return aperture.baseEssence() == Aperture.MAX_BASE ? aperture : aperture.withBaseEssence(Aperture.MAX_BASE);
         }
+        return capBelowMaxBase(aperture);
+    }
+
+    private static Aperture capBelowMaxBase(Aperture aperture) {
         return aperture.baseEssence() == Aperture.MAX_BASE
                 ? aperture.withBaseEssence(Aperture.MAX_BASE - 1).withPressure(0) : aperture;
     }

@@ -9,14 +9,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The day-rollover walk over Gu held inside apertures, both the stored ones and each Vital Gu [本命蛊].
- * Called from the heartbeat once a day with the elapsed day count; forwards to {@link
- * TendedGuItem#tickInContainer} per refined Gu and reports starvation through {@link TendedGuItem#starved}.
+ * The walk over Gu held inside apertures, both the stored ones and each Vital Gu [本命蛊]. Called from
+ * every heartbeat with the day count elapsed since the last one -- zero on most seconds, when a refined Gu
+ * still pays its own upkeep; forwards to {@link TendedGuItem#tickInContainer} per refined Gu and reports
+ * starvation through {@link TendedGuItem#starved}.
  *
  * <p>⚠ Every reader asks {@code refined()} first: an unrefined Gu's hunger is zero, and zero is also
- * what starvation looks like -- drop the test and the first rollover eats every wild Gu. ⚠ The Vital
- * slot write-back ({@code setVital}) runs EVEN WHEN nothing changed -- a single slot has no list for
- * the store loop's whole-list path to cover. ⚠ Imports {@code item/**} on purpose; do not "fix" it.
+ * what starvation looks like -- drop the test and the first rollover eats every wild Gu. Like the store's
+ * list, the Vital slot is written back ({@code setVital}) only when the walk changed it. ⚠ Imports
+ * {@code item/**} on purpose; do not "fix" it.
  *
  * @author Alex
  * @version 1.0.0

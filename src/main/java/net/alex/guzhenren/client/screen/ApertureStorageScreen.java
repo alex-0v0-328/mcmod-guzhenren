@@ -29,8 +29,10 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     private static final int PAGE_BUTTON_W = 16;
     private static final int PAGE_BUTTON_H = 14;
     private static final int PAGE_LABEL_W = 40;
-    private static final int VITAL_LEFT = 178;
-    private static final int VITAL_RIGHT = 210;
+    private static final int SLOT_SIZE = 16;
+    private static final int VITAL_PADDING = 8;
+    private static final int VITAL_LEFT = ApertureStorageMenu.VITAL_X - VITAL_PADDING;
+    private static final int VITAL_RIGHT = ApertureStorageMenu.VITAL_X + SLOT_SIZE + VITAL_PADDING;
     private static final int VITAL_BOTTOM = 44;
     private static final String VITAL_KEY = "guzhenren.menu.vital";
     private static final int BACK_W = 16;
@@ -47,92 +49,89 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     }
 
     @Override
-    protected void renderBg(@NotNull GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+    protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
-        g.fill(x, y, x + imageWidth, y + imageHeight, ModPalette.PANEL_FILL);
-        g.renderOutline(x, y, imageWidth, imageHeight, ModPalette.BORDER);
-        g.fill(x + 7, y + 15, x + imageWidth - 7, y + 16, ModPalette.APERTURE);
+        graphics.fill(x, y, x + imageWidth, y + imageHeight, ModPalette.PANEL_FILL);
+        graphics.renderOutline(x, y, imageWidth, imageHeight, ModPalette.BORDER);
+        graphics.fill(x + 7, y + 15, x + imageWidth - 7, y + 16, ModPalette.APERTURE);
 
-        for (int row = 0; row < ApertureStorageMenu.ROWS; row++) {
-            for (int col = 0; col < ApertureStorageMenu.COLS; col++) {
-                int sx = x + ApertureStorageMenu.STORAGE_X + col * ApertureStorageMenu.SLOT;
-                int sy = y + ApertureStorageMenu.STORAGE_Y + row * ApertureStorageMenu.SLOT;
-                g.fill(sx, sy, sx + 16, sy + 16, ModPalette.SLOT_FILL);
-            }
-        }
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < ApertureStorageMenu.COLS; col++) {
-                int sx = x + ApertureStorageMenu.STORAGE_X + col * ApertureStorageMenu.SLOT;
-                int sy = y + ApertureStorageMenu.INVENTORY_Y + row * ApertureStorageMenu.SLOT;
-                g.fill(sx, sy, sx + 16, sy + 16, ModPalette.SLOT_FILL);
-            }
-        }
-        for (int col = 0; col < ApertureStorageMenu.COLS; col++) {
-            int sx = x + ApertureStorageMenu.STORAGE_X + col * ApertureStorageMenu.SLOT;
-            g.fill(sx, y + ApertureStorageMenu.HOTBAR_Y, sx + 16, y + ApertureStorageMenu.HOTBAR_Y + 16,
-                    ModPalette.SLOT_FILL);
-        }
-        renderVital(g, x, y);
+        int left = x + ApertureStorageMenu.STORAGE_X;
+        fillSlotGrid(graphics, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
+        fillSlotGrid(graphics, left, y + ApertureStorageMenu.INVENTORY_Y, ApertureStorageMenu.INVENTORY_ROWS);
+        fillSlotGrid(graphics, left, y + ApertureStorageMenu.HOTBAR_Y, 1);
+        renderVital(graphics, x, y);
     }
 
-    private void renderVital(GuiGraphics g, int x, int y) {
-        g.fill(x + VITAL_LEFT, y, x + VITAL_RIGHT, y + VITAL_BOTTOM, ModPalette.PANEL_FILL);
-        g.renderOutline(x + VITAL_LEFT, y, VITAL_RIGHT - VITAL_LEFT, VITAL_BOTTOM, ModPalette.BORDER);
-        g.fill(x + VITAL_LEFT + 4, y + 15, x + VITAL_RIGHT - 4, y + 16, ModPalette.APERTURE);
+    private void fillSlotGrid(GuiGraphics graphics, int left, int top, int rows) {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < ApertureStorageMenu.COLS; col++) {
+                fillSlot(graphics, left + col * ApertureStorageMenu.SLOT, top + row * ApertureStorageMenu.SLOT);
+            }
+        }
+    }
+
+    private void fillSlot(GuiGraphics graphics, int x, int y) {
+        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, ModPalette.SLOT_FILL);
+    }
+
+    private void renderVital(GuiGraphics graphics, int x, int y) {
+        graphics.fill(x + VITAL_LEFT, y, x + VITAL_RIGHT, y + VITAL_BOTTOM, ModPalette.PANEL_FILL);
+        graphics.renderOutline(x + VITAL_LEFT, y, VITAL_RIGHT - VITAL_LEFT, VITAL_BOTTOM, ModPalette.BORDER);
+        graphics.fill(x + VITAL_LEFT + 4, y + 15, x + VITAL_RIGHT - 4, y + 16, ModPalette.APERTURE);
 
         Component label = Component.translatable(VITAL_KEY);
         int width = VITAL_RIGHT - VITAL_LEFT;
-        g.drawString(font, label, x + VITAL_LEFT + (width - font.width(label)) / 2, y + 5,
+        graphics.drawString(font, label, x + VITAL_LEFT + (width - font.width(label)) / 2, y + 5,
                 ModPalette.APERTURE, false);
-        g.fill(x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y,
-                x + ApertureStorageMenu.VITAL_X + 16, y + ApertureStorageMenu.VITAL_Y + 16,
-                ModPalette.SLOT_FILL);
+        fillSlot(graphics, x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y);
     }
 
     @Override
-    protected void renderLabels(@NotNull GuiGraphics g, int mouseX, int mouseY) {
-        g.drawString(font, title, titleLabelX, titleLabelY, ModPalette.APERTURE, false);
-        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);
+    protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.APERTURE, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);
     }
 
     @Override
-    public void render(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        super.render(g, mouseX, mouseY, partialTick);
-        renderPager(g, mouseX, mouseY);
-        renderTooltip(g, mouseX, mouseY);
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+        renderPager(graphics, mouseX, mouseY);
+        renderTooltip(graphics, mouseX, mouseY);
     }
 
-    private void renderPager(GuiGraphics g, int mouseX, int mouseY) {
-        renderBack(g, mouseX, mouseY);
-        renderPageButton(g, mouseX, mouseY, prevX(), pagerBottomY(), menu.pageIndex() > 0, "<");
-        renderPageButton(g, mouseX, mouseY, nextX(), pagerBottomY(), menu.pageIndex() + 1 < menu.pageCount(), ">");
+    private void renderPager(GuiGraphics graphics, int mouseX, int mouseY) {
+        renderBack(graphics, mouseX, mouseY);
+        renderPageButton(graphics, mouseX, mouseY, prevX(), pagerBottomY(), menu.pageIndex() > 0, "<");
+        renderPageButton(graphics, mouseX, mouseY, nextX(), pagerBottomY(),
+                menu.pageIndex() + 1 < menu.pageCount(), ">");
 
         Component page = Component.literal((menu.pageIndex() + 1) + " / " + menu.pageCount());
-        g.drawString(font, page, labelX() + (PAGE_LABEL_W - font.width(page)) / 2,
+        graphics.drawString(font, page, labelX() + (PAGE_LABEL_W - font.width(page)) / 2,
                 pagerBottomY() + (PAGE_BUTTON_H - font.lineHeight) / 2 + 1, ModPalette.TEXT, false);
 
         Component load = Component.translatable(LOAD_KEY, menu.load(), ApertureStorageService.MAX_LOAD);
-        g.drawString(font, load, leftPos + imageWidth - font.width(load), pagerBottomY() + 1,
+        graphics.drawString(font, load, leftPos + imageWidth - font.width(load), pagerBottomY() + 1,
                 ModPalette.APERTURE, false);
     }
 
-    private void renderPageButton(GuiGraphics g, int mouseX, int mouseY, int x, int y, boolean live, String glyph) {
-        boolean hover = live && inButton(mouseX, mouseY, x, y);
-        g.fill(x, y, x + PAGE_BUTTON_W, y + PAGE_BUTTON_H,
+    private void renderPageButton(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, boolean live,
+                                  String glyph) {
+        boolean hover = live && inButton(mouseX, mouseY, x, y, PAGE_BUTTON_W);
+        graphics.fill(x, y, x + PAGE_BUTTON_W, y + PAGE_BUTTON_H,
                 live ? (hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE) : ModPalette.BUTTON_DEAD);
-        g.drawString(font, glyph, x + (PAGE_BUTTON_W - font.width(glyph)) / 2,
+        graphics.drawString(font, glyph, x + (PAGE_BUTTON_W - font.width(glyph)) / 2,
                 y + (PAGE_BUTTON_H - font.lineHeight) / 2 + 1, live ? ModPalette.TEXT : ModPalette.BUTTON_IDLE,
                 false);
     }
 
-    private void renderBack(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderBack(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = backX();
         int y = pagerY();
-        boolean hover = inButton(mouseX, mouseY, x);
-        g.fill(x, y, x + BACK_W, y + PAGE_BUTTON_H,
+        boolean hover = inBackButton(mouseX, mouseY);
+        graphics.fill(x, y, x + BACK_W, y + PAGE_BUTTON_H,
                 hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE);
-        g.drawString(font, BACK_GLYPH, x + (BACK_W - font.width(BACK_GLYPH)) / 2,
+        graphics.drawString(font, BACK_GLYPH, x + (BACK_W - font.width(BACK_GLYPH)) / 2,
                 y + (PAGE_BUTTON_H - font.lineHeight) / 2 + 1, ModPalette.TEXT, false);
     }
 
@@ -148,22 +147,26 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
 
     private int nextX() { return labelX() + PAGE_LABEL_W; }
 
-    private boolean inButton(double mx, double my, int x) {
-        return inButton(mx, my, x, pagerY());
+    private boolean inBackButton(double mouseX, double mouseY) {
+        return inButton(mouseX, mouseY, backX(), pagerY(), BACK_W);
     }
 
-    private boolean inButton(double mx, double my, int x, int y) {
-        return mx >= x && mx < x + PAGE_BUTTON_W && my >= y && my < y + PAGE_BUTTON_H;
+    private boolean inPageButton(double mouseX, double mouseY, int x) {
+        return inButton(mouseX, mouseY, x, pagerBottomY(), PAGE_BUTTON_W);
+    }
+
+    private boolean inButton(double mouseX, double mouseY, int x, int y, int width) {
+        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + PAGE_BUTTON_H;
     }
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            if (inButton(mx, my, backX())) return clickBack();
-            if (inButton(mx, my, prevX(), pagerBottomY())) return clickPage(ApertureStorageMenu.BUTTON_PREV);
-            if (inButton(mx, my, nextX(), pagerBottomY())) return clickPage(ApertureStorageMenu.BUTTON_NEXT);
+            if (inBackButton(mouseX, mouseY)) return clickBack();
+            if (inPageButton(mouseX, mouseY, prevX())) return clickPage(ApertureStorageMenu.BUTTON_PREV);
+            if (inPageButton(mouseX, mouseY, nextX())) return clickPage(ApertureStorageMenu.BUTTON_NEXT);
         }
-        return super.mouseClicked(mx, my, button);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private boolean clickBack() {
@@ -173,9 +176,9 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     }
 
     private boolean clickPage(int id) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.gameMode == null) return false;
-        mc.gameMode.handleInventoryButtonClick(menu.containerId, id);
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.gameMode == null) return false;
+        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
         return true;
     }
 }

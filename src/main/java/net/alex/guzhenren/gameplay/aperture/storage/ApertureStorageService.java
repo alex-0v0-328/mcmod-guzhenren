@@ -42,29 +42,35 @@ public final class ApertureStorageService {
 
     public static final int MAX_LOAD = 256;
 
-    public static @NotNull ApertureStorage get(@NotNull Player p) { return p.getData(ModAttachments.APERTURE_STORAGE); }
-
-    public static @NotNull List<ItemStack> items(@NotNull Player p, int aperture) { return get(p).get(aperture); }
-
-    public static @NotNull List<ItemStack> page(@NotNull Player p, int aperture, int from, int size) {
-        return get(p).page(aperture, from, size);
+    public static @NotNull ApertureStorage get(@NotNull Player player) {
+        return player.getData(ModAttachments.APERTURE_STORAGE);
     }
 
-    public static boolean pageMatches(@NotNull Player p, int aperture, int from, @NotNull List<ItemStack> page) {
-        return get(p).matchesPage(aperture, from, page);
+    public static @NotNull List<ItemStack> items(@NotNull Player player, int aperture) {
+        return get(player).get(aperture);
     }
 
-    public static int count(@NotNull Player p, int aperture) { return get(p).count(aperture); }
+    public static @NotNull List<ItemStack> page(@NotNull Player player, int aperture, int from, int size) {
+        return get(player).page(aperture, from, size);
+    }
 
-    public static @NotNull ItemStack vital(@NotNull Player p, int aperture) { return get(p).getVital(aperture); }
+    public static boolean pageMatches(@NotNull Player player, int aperture, int from, @NotNull List<ItemStack> page) {
+        return get(player).matchesPage(aperture, from, page);
+    }
 
-    public static int load(@NotNull Player p, int aperture) { return load(p, get(p), aperture); }
+    public static int count(@NotNull Player player, int aperture) { return get(player).count(aperture); }
 
-    public static int maxStackSize(@NotNull Player p, int aperture, int currentLoad,
+    public static @NotNull ItemStack vital(@NotNull Player player, int aperture) {
+        return get(player).getVital(aperture);
+    }
+
+    public static int load(@NotNull Player player, int aperture) { return load(player, get(player), aperture); }
+
+    public static int maxStackSize(@NotNull Player player, int aperture, int currentLoad,
             @NotNull ItemStack current, @NotNull ItemStack incoming) {
         if (!(incoming.getItem() instanceof MortalGuItem gu)) return 0;
 
-        Rank holder = ApertureService.aperture(p, aperture).rank();
+        Rank holder = ApertureService.aperture(player, aperture).rank();
         int limit = Math.max(MAX_LOAD, currentLoad);
         int existingCount = 0;
         if (!current.isEmpty()) {
@@ -75,35 +81,35 @@ public final class ApertureStorageService {
         return Math.min(incoming.getMaxStackSize(), existingCount + freeLoad / costPerItem(holder, gu));
     }
 
-    public static void set(@NotNull ServerPlayer p, int aperture, @NotNull List<ItemStack> items) {
-        ApertureStorage current = get(p);
+    public static void set(@NotNull ServerPlayer player, int aperture, @NotNull List<ItemStack> items) {
+        ApertureStorage current = get(player);
         ApertureStorage next = current.with(aperture, items);
-        if (exceedsLoad(load(p, current, aperture), load(p, next, aperture))) return;
+        if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return;
 
-        p.setData(ModAttachments.APERTURE_STORAGE, next);
+        player.setData(ModAttachments.APERTURE_STORAGE, next);
     }
 
-    public static boolean setVital(@NotNull ServerPlayer p, int aperture, @NotNull ItemStack stack) {
-        ApertureStorage current = get(p);
+    public static boolean setVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
+        ApertureStorage current = get(player);
         ApertureStorage next = current.withVital(aperture, stack);
-        if (exceedsLoad(load(p, current, aperture), load(p, next, aperture))) return false;
+        if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return false;
 
-        p.setData(ModAttachments.APERTURE_STORAGE, next);
-        if (stack.getItem() instanceof GuItem gu) ApertureService.setPrimaryPath(p, aperture, gu.path());
+        player.setData(ModAttachments.APERTURE_STORAGE, next);
+        if (stack.getItem() instanceof GuItem gu) ApertureService.setPrimaryPath(player, aperture, gu.path());
         return true;
     }
 
-    public static boolean setPage(@NotNull ServerPlayer p, int aperture, int from, @NotNull List<ItemStack> page) {
-        ApertureStorage current = get(p);
+    public static boolean setPage(@NotNull ServerPlayer player, int aperture, int from, @NotNull List<ItemStack> page) {
+        ApertureStorage current = get(player);
         ApertureStorage next = current.withPage(aperture, from, page);
-        if (exceedsLoad(load(p, current, aperture), load(p, next, aperture))) return false;
+        if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return false;
 
-        p.setData(ModAttachments.APERTURE_STORAGE, next);
+        player.setData(ModAttachments.APERTURE_STORAGE, next);
         return true;
     }
 
-    private static int load(Player p, ApertureStorage storage, int aperture) {
-        Rank holder = ApertureService.aperture(p, aperture).rank();
+    private static int load(Player player, ApertureStorage storage, int aperture) {
+        Rank holder = ApertureService.aperture(player, aperture).rank();
         int total = 0;
         if (aperture >= 0 && aperture < storage.byAperture().size()) {
             total += load(holder, storage.byAperture().get(aperture));
@@ -114,8 +120,8 @@ public final class ApertureStorageService {
         return total;
     }
 
-    public static void shiftForFirstAperture(@NotNull ServerPlayer p) {
-        p.setData(ModAttachments.APERTURE_STORAGE, get(p).shiftRight());
+    public static void shiftForFirstAperture(@NotNull ServerPlayer player) {
+        player.setData(ModAttachments.APERTURE_STORAGE, get(player).shiftRight());
     }
 
     private static int load(Rank holder, List<ItemStack> stacks) {

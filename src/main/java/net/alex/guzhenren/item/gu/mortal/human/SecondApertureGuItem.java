@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.item.gu.OneShotGuItem
- * @see ApertureService#openSecondary
+ * @see ApertureService#openSecond
  * @since 1.0.0
  */
 
@@ -45,7 +45,7 @@ public class SecondApertureGuItem extends OneShotGuItem {
 
     @Override
     protected int useApply(ServerPlayer player, ItemStack stack) {
-        ApertureService.openSecondary(player, rank());
+        ApertureService.openSecond(player, rank());
         return 1;
     }
 }

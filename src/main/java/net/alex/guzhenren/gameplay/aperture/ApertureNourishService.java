@@ -62,6 +62,8 @@ public final class ApertureNourishService {
     public static final int BASE_LOSS_MAX = 5;
     public static final long IMPACT_COST_PER_RANK_BASE = 1_200L;
     public static final int CONVERTED_PRESSURE = 90;
+    private static final int STAGE_UP_PRESSURE_RELIEF = 20;
+    private static final int IMPACT_PRESSURE_RELIEF = 50;
     private static final String STARVED = "guzhenren.nourish.starved";
     private static final String STAGE_UP = "guzhenren.nourish.stage_up";
     private static final String IMPACT_POOR = "guzhenren.impact.poor";
@@ -72,53 +74,57 @@ public final class ApertureNourishService {
 
     public enum Outcome { SUCCESS, HOLD, DROP_STAGE, DROP_BASE }
 
-    public static @NotNull ApertureNourishData get(@NotNull Player p) { return p.getData(ModAttachments.APERTURE_NOURISH); }
-
-    public static boolean isCultivating(@NotNull Player p) { return get(p).cultivating(); }
-
-    public static float fraction(@NotNull Player p, int index) {
-        return ApertureService.aperture(p, index).nourishProgress() / (float) ApertureNourishData.FULL;
+    public static @NotNull ApertureNourishData get(@NotNull Player player) {
+        return player.getData(ModAttachments.APERTURE_NOURISH);
     }
 
-    public static int targetIndex(@NotNull Player p) {
-        int count = ApertureService.get(p).count();
-        return count == 0 ? ApertureData.PRIMARY : Math.clamp(get(p).target(), ApertureData.PRIMARY, count - 1);
+    public static boolean isCultivating(@NotNull Player player) { return get(player).cultivating(); }
+
+    public static float fraction(@NotNull Player player, int index) {
+        return ApertureService.aperture(player, index).nourishProgress() / (float) ApertureNourishData.FULL;
+    }
+
+    public static int targetIndex(@NotNull Player player) {
+        int count = ApertureService.get(player).count();
+        return count == 0 ? ApertureData.PRIMARY : Math.clamp(get(player).target(), ApertureData.PRIMARY, count - 1);
     }
 
     //region what the screen asks
-    public static boolean canNourish(@NotNull Player p, int index) {
-        if (!ApertureService.hasAperture(p) || isCultivating(p)) return false;
-        if (index < 0 || index >= ApertureService.get(p).count()) return false;
-        if (ApertureService.status(p, index) != ApertureStatus.NORMAL) return false;
-        return !atCeiling(p, index)
-                && ApertureService.aperture(p, index).nourishProgress() < ApertureNourishData.FULL;
+    public static boolean canNourish(@NotNull Player player, int index) {
+        if (!ApertureService.hasAperture(player) || isCultivating(player)) return false;
+        if (index < 0 || index >= ApertureService.get(player).count()) return false;
+        if (ApertureService.status(player, index) != ApertureStatus.NORMAL) return false;
+        return !atCeiling(player, index)
+                && ApertureService.aperture(player, index).nourishProgress() < ApertureNourishData.FULL;
     }
 
-    public static boolean canImpact(@NotNull Player p) {
-        Aperture a = ApertureService.aperture(p);
-        return ApertureService.isAwakened(p) && !isCultivating(p)
-                && ApertureService.status(p) == ApertureStatus.NORMAL
-                && a.nourishProgress() >= ApertureNourishData.FULL
-                && a.stage() == Stage.HIGHEST && a.rank() != Rank.HIGHEST;
+    public static boolean canImpact(@NotNull Player player) {
+        Aperture aperture = ApertureService.aperture(player);
+        return ApertureService.isAwakened(player) && !isCultivating(player)
+                && ApertureService.status(player) == ApertureStatus.NORMAL
+                && aperture.nourishProgress() >= ApertureNourishData.FULL
+                && aperture.stage() == Stage.HIGHEST && aperture.rank() != Rank.HIGHEST;
     }
 
-    public static boolean atCeiling(@NotNull Player p, int index) {
-        Aperture a = ApertureService.aperture(p, index);
-        return a.second() ? a.stage() == Stage.HIGHEST
-                : a.rank() == Rank.HIGHEST && a.stage() == Stage.HIGHEST;
+    public static boolean atCeiling(@NotNull Player player, int index) {
+        Aperture aperture = ApertureService.aperture(player, index);
+        return aperture.second() ? aperture.stage() == Stage.HIGHEST
+                : aperture.rank() == Rank.HIGHEST && aperture.stage() == Stage.HIGHEST;
     }
     //endregion
 
-    public static long costPerSecond(@NotNull Player p, int index) {
-        long max = ApertureService.aperture(p, index).maxEssence();
+    public static long costPerSecond(@NotNull Player player, int index) {
+        long max = ApertureService.aperture(player, index).maxEssence();
         return Math.max(1L, (max + COST_DIVISOR - 1) / COST_DIVISOR);
     }
 
-    public static long impactCost(@NotNull Player p) {
-        return IMPACT_COST_PER_RANK_BASE * ApertureService.aperture(p).rank().getRankBase();
+    public static long impactCost(@NotNull Player player) {
+        return IMPACT_COST_PER_RANK_BASE * ApertureService.aperture(player).rank().getRankBase();
     }
 
-    public static boolean canAffordImpact(@NotNull Player p) { return PrimevalStoneItem.canAfford(p, impactCost(p)); }
+    public static boolean canAffordImpact(@NotNull Player player) {
+        return PrimevalStoneItem.canAfford(player, impactCost(player));
+    }
 
     public static void start(@NotNull ServerPlayer player, int index) {
         if (!canNourish(player, index)) return;
@@ -135,7 +141,7 @@ public final class ApertureNourishService {
     public static void shiftTargetForInsertedFirst(@NotNull ServerPlayer player) {
         ApertureNourishData data = get(player);
         if (data.cultivating() && data.target() == ApertureData.PRIMARY) {
-            store(player, data.withTarget(ApertureData.SECONDARY));
+            store(player, data.withTarget(ApertureData.SECOND));
         }
     }
 
@@ -155,20 +161,25 @@ public final class ApertureNourishService {
                 || atCeiling(player, target)) { cancel(player); return false; }
 
         player.setDeltaMovement(Vec3.ZERO);
-
-        long cost = costPerSecond(player, target);
-        if (!pay(player, cost)) {
-            long now = player.level().getGameTime();
-            ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
-            if (starving.starvedOut(now)) {
-                store(player, starving.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
-                player.displayClientMessage(Component.translatable(STARVED), true);
-                return false;
-            }
-            store(player, starving);
+        if (!pay(player, costPerSecond(player, target))) {
+            starve(player, data);
             return false;
         }
+        return advanceProgress(player, data, target);
+    }
 
+    private static void starve(ServerPlayer player, ApertureNourishData data) {
+        long now = player.level().getGameTime();
+        ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
+        if (starving.starvedOut(now)) {
+            store(player, starving.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
+            say(player, STARVED);
+            return;
+        }
+        store(player, starving);
+    }
+
+    private static boolean advanceProgress(ServerPlayer player, ApertureNourishData data, int target) {
         Aperture aperture = ApertureService.aperture(player, target);
         Aperture fed = aperture.withNourishProgress(aperture.nourishProgress() + PERCENT_PER_SECOND);
         if (fed.nourishProgress() < ApertureNourishData.FULL) {
@@ -184,9 +195,11 @@ public final class ApertureNourishService {
             return false;
         }
         ApertureService.set(player, target, fed.withStage(stage.shift(1)).withNourishProgress(0));
-        if (!ApertureService.aperture(player, target).second()) ApertureService.relievePressure(player, 20);
+        if (!ApertureService.aperture(player, target).second()) {
+            AperturePressureService.relieve(player, STAGE_UP_PRESSURE_RELIEF);
+        }
         store(player, ApertureNourishData.DEFAULT);
-        player.displayClientMessage(Component.translatable(STAGE_UP), true);
+        say(player, STAGE_UP);
         return false;
     }
 
@@ -203,7 +216,7 @@ public final class ApertureNourishService {
         if (aperture.petrified()) return;
         ApertureService.set(player, index, aperture.withStage(Stage.HIGHEST)
                 .withNourishProgress(0).withPetrified(true));
-        ApertureService.setPressure(player, index, 0);
+        AperturePressureService.set(player, index, 0);
         store(player, ApertureNourishData.DEFAULT);
     }
 
@@ -211,12 +224,12 @@ public final class ApertureNourishService {
         Aperture aperture = ApertureService.aperture(player);
         if (!aperture.petrified() || aperture.rank() == Rank.HIGHEST) return false;
 
-        ApertureService.set(player, ApertureService.PRIMARY, aperture
+        ApertureService.set(player, ApertureData.PRIMARY, aperture
                 .withRank(aperture.rank().shift(1))
                 .withStage(Stage.LOWEST)
                 .withNourishProgress(0)
                 .withPetrified(false));
-        ApertureService.setPressure(player, ApertureService.PRIMARY, CONVERTED_PRESSURE);
+        AperturePressureService.set(player, ApertureData.PRIMARY, CONVERTED_PRESSURE);
         store(player, ApertureNourishData.DEFAULT);
         say(player, IMPACT_SUCCESS);
         return true;
@@ -226,7 +239,7 @@ public final class ApertureNourishService {
     //region striking the wall
     public static void impactWall(@NotNull ServerPlayer player) {
         if (!canImpact(player)) return;
-        Aperture a = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.aperture(player);
         long cost = impactCost(player);
         if (!player.hasInfiniteMaterials() && !PrimevalStoneItem.spend(player, cost)) {
             player.displayClientMessage(Component.translatable(IMPACT_POOR, cost), true);
@@ -238,27 +251,27 @@ public final class ApertureNourishService {
 
         switch (outcome) {
             case SUCCESS -> {
-                ApertureService.setRank(player, a.rank().shift(1));
+                ApertureService.setRank(player, aperture.rank().shift(1));
                 ApertureService.setStage(player, Stage.LOWEST);
-                ApertureService.relievePressure(player, 50);
+                AperturePressureService.relieve(player, IMPACT_PRESSURE_RELIEF);
                 say(player, IMPACT_SUCCESS);
             }
             case HOLD -> say(player, IMPACT_HOLD);
             case DROP_STAGE -> {
-                ApertureService.setStage(player, a.stage().shift(-1));
+                ApertureService.setStage(player, aperture.stage().shift(-1));
                 say(player, IMPACT_DROP_STAGE);
             }
             case DROP_BASE -> {
-                int loss = Math.min(a.baseEssence() - Aperture.MIN_BASE,
+                int loss = Math.min(aperture.baseEssence() - Aperture.MIN_BASE,
                         BASE_LOSS_MIN + player.getRandom().nextInt(BASE_LOSS_MAX - BASE_LOSS_MIN + 1));
                 if (loss > 0) {
-                    ApertureService.setBaseEssence(player, a.baseEssence() - loss);
+                    ApertureService.setBaseEssence(player, aperture.baseEssence() - loss);
                     say(player, IMPACT_DROP_BASE);
                 }
             }
         }
-        ApertureService.set(player, ApertureService.PRIMARY,
-                ApertureService.aperture(player, ApertureService.PRIMARY).withNourishProgress(0));
+        ApertureService.set(player, ApertureData.PRIMARY,
+                ApertureService.aperture(player, ApertureData.PRIMARY).withNourishProgress(0));
         store(player, ApertureNourishData.DEFAULT);
     }
 
@@ -275,7 +288,11 @@ public final class ApertureNourishService {
     }
     //endregion
 
-    private static void say(ServerPlayer p, String key) { p.displayClientMessage(Component.translatable(key), true); }
+    private static void say(ServerPlayer player, String key) {
+        player.displayClientMessage(Component.translatable(key), true);
+    }
 
-    private static void store(ServerPlayer p, ApertureNourishData d) { p.setData(ModAttachments.APERTURE_NOURISH, d); }
+    private static void store(ServerPlayer player, ApertureNourishData data) {
+        player.setData(ModAttachments.APERTURE_NOURISH, data);
+    }
 }

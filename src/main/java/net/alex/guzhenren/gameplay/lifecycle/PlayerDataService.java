@@ -6,6 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
+import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.aperture.storage.PendingVitalPenalties;
@@ -136,7 +137,7 @@ public final class PlayerDataService {
 
     public static void onRespawn(@NotNull ServerPlayer player) {
         BodyService.revive(player);
-        if (ApertureService.pressureFull(player)) ApertureService.setPressure(player, ApertureService.PRIMARY, 0);
+        if (AperturePressureService.isFull(player)) AperturePressureService.set(player, ApertureData.PRIMARY, 0);
         if (BodyService.get(player).isExhausted()) {
             BodyService.setLifespan(player, BodyData.DEFAULT_LIFESPAN);
         }

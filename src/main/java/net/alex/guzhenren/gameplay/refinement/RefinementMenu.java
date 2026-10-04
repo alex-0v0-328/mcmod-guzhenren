@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.refinement;
 
 import java.util.List;
 import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.path.GuPath;
@@ -527,8 +528,8 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
 
     private static void inherit(ServerPlayer server, ItemStack made, TendedGuItem gu) {
-        GuItem.bind(made, server, ApertureService.PRIMARY);
-        ApertureService.setPrimaryPath(server, ApertureService.PRIMARY, gu.path());
+        GuItem.bind(made, server, ApertureData.PRIMARY);
+        ApertureService.setPrimaryPath(server, ApertureData.PRIMARY, gu.path());
     }
 
     private int freeOutputSlots() {
