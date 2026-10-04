@@ -2,7 +2,6 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.TendedGuItem;
@@ -29,7 +28,8 @@ import org.jetbrains.annotations.NotNull;
  * override is never called because {@code AbstractContainerMenu} is not a {@code ContainerListener}.
  *
  * <p>{@code countPages} counts the pages that hold every stored Gu plus one free slot, so a full page
- * still leaves an empty one for the next Gu.
+ * still leaves an empty one for the next Gu. Binding a Vital Gu here only marks the stack;
+ * {@code ApertureStorageService.setVital} then sets the aperture's primary path.
  *
  * <p>⚠ It has to reload after the day-rollover walk, or an open menu saves its stale view back and
  * resurrects a Gu that starved a moment earlier.
@@ -160,10 +160,9 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         }
 
         ItemStack bound = vital.getItem(0);
-        if (!bound.isEmpty() && bound.getItem() instanceof GuItem gu
+        if (!bound.isEmpty() && bound.getItem() instanceof GuItem
                 && (!GuItem.isVital(bound) || GuItem.boundAperture(bound) != aperture)) {
             GuItem.bind(bound, server, aperture);
-            ApertureService.setPrimaryPath(server, aperture, gu.path());
         }
         if (!same(bound, ApertureStorageService.vital(server, aperture))) {
             if (!ApertureStorageService.setVital(server, aperture, bound.copy())) {

@@ -18,6 +18,8 @@ import net.minecraft.world.item.ItemStack;
  * <p>⚠ Uses {@code ItemStack.OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
  * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its
  * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
+ * ⚠ {@link #view} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
+ * before changing it.
  *
  * <p>{@link #shiftRight} makes room for a first aperture inserted ahead of a lone second one: every
  * stored list and the Vital Gu slot moves one position up. A Vital Gu bound by the component default
@@ -59,6 +61,10 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
     public List<ItemStack> get(int aperture) {
         return aperture >= 0 && aperture < byAperture.size()
                 ? Collections.unmodifiableList(copyStacks(byAperture.get(aperture))) : List.of();
+    }
+
+    public List<ItemStack> view(int aperture) {
+        return aperture >= 0 && aperture < byAperture.size() ? byAperture.get(aperture) : List.of();
     }
 
     public ItemStack getVital(int aperture) {

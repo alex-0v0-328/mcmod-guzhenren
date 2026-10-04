@@ -50,6 +50,10 @@ public final class ApertureStorageService {
         return get(player).get(aperture);
     }
 
+    public static @NotNull List<ItemStack> view(@NotNull Player player, int aperture) {
+        return get(player).view(aperture);
+    }
+
     public static @NotNull List<ItemStack> page(@NotNull Player player, int aperture, int from, int size) {
         return get(player).page(aperture, from, size);
     }
