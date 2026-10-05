@@ -26,69 +26,43 @@ import org.joml.Vector3f;
 
 /**
  * The reusable shockwave ring [激波环] for speed- and force-feel feedback: Alex's {@link #FRAME_COUNT}
- * hand-drawn rings (pinned by the L2 ring-texture test against the datagen'd sprite lists, so a
- * redraw that adds or drops frames goes red instead of silently clipping) played in sprite-list
- * order, one particle per drop. Both trails go through {@code RingConeEmitter} and bloom
- * small-to-large where they were planted: the dash trail rides {@code shockwave_ring} along the
- * dash path (hidden from the dashing player's own first-person view -- the trail is for
- * third-person and bystanders, Alex 2026-09-20), the punch trail rides {@code impact_ring} along
- * the punch ray from the strike point. The particle JSON's sprite order IS the playback order,
- * and each frame's world size derives from its own canvas width
- * ({@link RingGeometry#scaleForWidth(int)}), so growth direction lives in exactly one place. The
- * quad size lerps toward the next frame every tick ({@link #getQuadSize(float)} lerps toward
- * {@link #nextQuadSize}, the next frame's half-span), so the bloom reads smooth instead of
- * stepping (the 3px↔8px jump alone is ×2.6).
+ * hand-drawn rings played in sprite-list order, one particle per drop (the L2 ring-texture test pins the
+ * count against the datagen'd sprite lists). Both trails go through {@code RingConeEmitter} and bloom
+ * small-to-large where they were planted: the dash trail rides {@code shockwave_ring} along the dash path,
+ * the punch trail rides {@code impact_ring} along the punch ray. Each frame's world size derives from its own
+ * canvas width ({@link RingGeometry#scaleForWidth(int)}), and the quad size lerps toward the next frame every
+ * tick ({@link #nextQuadSize}), so the bloom reads smooth instead of stepping.
  *
- * <p>{@link Orientation} controls how the ring quad is oriented in the world, per particle type,
- * chosen by the provider: {@link Orientation#GROUND} lays the quad flat in the world XZ plane
- * (rotating XZ corners by the camera quaternion was the 2026-09-19 bug -- it pitched the quad with
- * the view and sank its leading edge under the terrain). {@link Orientation#FACING_MOTION} builds
- * the ring plane perpendicular to the spawn velocity, tilting toward the camera only
- * when that plane would be perfectly edge-on (a sideways dash seen from the front -- Alex's
- * 2026-09-19 spec: keep the ring perpendicular to the motion, opening toward the camera by
- * {@link RingGeometry#MIN_OPENING_DEGREES} when it runs parallel to the screen). New
- * callers register a type in {@code ModParticles}, list the rings in the datagen provider, and map
- * the type to {@link #ground(SpriteSet)}, {@link #facingMotion(SpriteSet)} or
- * {@link #dashTrail(SpriteSet)}.
+ * <p>{@link Orientation} is chosen per particle type by the provider: {@link Orientation#GROUND} lays the
+ * quad flat in the world XZ plane, never rotated by the camera; {@link Orientation#FACING_MOTION} builds the
+ * ring plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the camera by
+ * {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
+ * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
+ * {@link #facingMotion(SpriteSet)} or {@link #dashTrail(SpriteSet)}.
  *
- * <p>{@link #spawnDirection} keeps the spawn velocity as the FACING_MOTION ring normal; GROUND
- * ignores it. {@link #dashTrail} is true for the dash-trail particles created by
- * {@link #dashTrail(SpriteSet)}: the same facing-motion ring as {@link #facingMotion(SpriteSet)},
- * but skipped by the dasher's own first-person camera. {@link #noteLocalDash(int)} is called when
- * the local player fires a dash: their own cone stays first-person-hidden by arming
- * {@link #DASH_SELF_HIDE_TICKS} -- how long the local player's own dash cone stays hidden in first
- * person, in ticks: the burst length plus one ring life including its linger (Alex, 2026-09-20: the
- * dash trail is for third-person and bystanders). {@code ownDashHiddenNow} bounds both ends of the
- * remaining-window comparison -- a world change resets the client player's tickCount and would
- * otherwise pin the hide on for ages.
+ * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
+ * trail is for third-person and bystanders (Alex, 2026-09-20). {@link #noteLocalDash(int)} arms
+ * {@link #DASH_SELF_HIDE_TICKS} -- the burst length plus one ring life including its linger -- and
+ * {@code ownDashHiddenNow} bounds both ends of the window, because a world change resets the client
+ * player's tickCount.
  *
- * <p>{@link #RING_LINGER_TICKS} extra ticks let a ring hold its final frame before despawning --
- * without it a ring dies the very tick it reaches full size and the completed bloom never reads;
- * both planted trails linger. {@link #tick()} advances the frame with the post-increment
- * {@code age} -- the constructor plants frame 0 for the spawn render, and the guard reads the age
- * after the increment so the last frame (index {@code FRAME_COUNT - 1}) is applied exactly once and
- * never overstepped (mixing the two sides was the off-by-one that crashed the first dash); once the
- * ring lingers past its last frame, the clamped index simply holds the final sprite. In
- * {@code applyFrame}, the denominator is {@code FRAME_COUNT - 1}, NOT {@code lifetime - 1}:
- * {@link SpriteSet#get} maps to sprite {@code i * (n-1) / j}, and only the frame count lands
- * exactly on frames 0..n-1 once {@code lingerTicks} decouples the lifetime from it.
+ * <p>⚠ {@link #RING_LINGER_TICKS} lets a ring hold its last frame before despawning, or the completed
+ * bloom never reads. ⚠ {@link #tick()} reads the age AFTER the increment, so the last frame is applied
+ * exactly once and never overstepped; mixing the two sides is an off-by-one crash. ⚠ In
+ * {@code applyFrame} the denominator is {@code FRAME_COUNT - 1}, NOT {@code lifetime - 1}: only the frame
+ * count lands exactly on frames 0..n-1 once the linger decouples the lifetime from it.
  *
- * <p>It renders through {@link #ADDITIVE_GLOW} -- additive, two-sided, full bright -- because the
- * one-pixel stroke in the art is pure white and all but disappears on an alpha-blended sheet
- * (2026-09-19 runClient feedback); {@code SRC_ALPHA}/{@code ONE} makes it emit instead of blend,
- * and masked depth writes keep the ground-lying quad from z-fighting. 1.21.1 has no {@code end()}
- * hook on {@link ParticleRenderType}, so nothing in {@code ADDITIVE_GLOW} may leak to the next
- * type: every vanilla type re-sets blend and depth mask in its own {@code begin}, culling is never
- * touched (the quad is emitted two-sided instead of disabling cull), and the atlas filter is left
- * at the vanilla default. In that {@code begin}, the deprecated {@code TextureAtlas.LOCATION_PARTICLES}
- * atlas id is bound because vanilla's own particle render types bind it too and there is no
- * replacement.
+ * <p>⚠ It renders through {@link #ADDITIVE_GLOW} -- additive, two-sided, full bright -- because the
+ * one-pixel white stroke all but disappears on an alpha-blended sheet. 1.21.1 has no {@code end()} hook on
+ * {@link ParticleRenderType}, so nothing in it may leak to the next type: blend and depth mask are re-set by
+ * every vanilla {@code begin}, culling is never touched (the quad is emitted two-sided instead), and the
+ * atlas filter stays at the vanilla default. The deprecated {@code TextureAtlas.LOCATION_PARTICLES} id is
+ * bound because vanilla's own particle types bind it and there is no replacement.
  *
- * <p>{@link #render} emits the quad as two proper quads with opposite winding (8 vertices) so it
- * shows from above and below without touching the global cull state, which no vanilla
- * {@code begin} restores. {@code QUADS} groups vertices four-by-four -- a six-vertex triangle
- * style would land as degenerate quads -- and corner UVs stay pinned to their corners on the
- * reversed side.
+ * <p>{@link #render} emits two quads with opposite winding (8 vertices), so the ring shows from both sides
+ * without touching the global cull state; {@code QUADS} groups vertices four by four, and corner UVs stay
+ * pinned to their corners on the reversed side. Its history (the 2026-09-19 sinking and invisible rings,
+ * the first-dash crash) is in the wiki's 《激波环与粒子》.
  *
  * @author Alex
  * @version 1.0.0
@@ -121,18 +95,18 @@ public final class RingParticle extends TextureSheetParticle {
     private static int localDashHiddenUntilTick = Integer.MIN_VALUE;
     private final SpriteSet sprites;
     private final Orientation orientation;
-    private final boolean dashTrail;
+    private final boolean dashTrailRing;
     private final Vec3 spawnDirection;
     private float nextQuadSize;
 
     private RingParticle(ClientLevel level, double x, double y, double z,
                          double xSpeed, double ySpeed, double zSpeed,
-                         SpriteSet sprites, Orientation orientation, boolean dashTrail,
+                         SpriteSet sprites, Orientation orientation, boolean dashTrailRing,
                          int lingerTicks) {
         super(level, x, y, z);
         this.sprites = sprites;
         this.orientation = orientation;
-        this.dashTrail = dashTrail;
+        this.dashTrailRing = dashTrailRing;
         this.spawnDirection = new Vec3(xSpeed, ySpeed, zSpeed);
         this.lifetime = FRAME_COUNT + lingerTicks;
         this.hasPhysics = false;
@@ -140,12 +114,6 @@ public final class RingParticle extends TextureSheetParticle {
         this.yd = ySpeed;
         this.zd = zSpeed;
         applyFrame(0);
-    }
-
-    public static ParticleProvider<SimpleParticleType> ground(SpriteSet sprites) {
-        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
-                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.GROUND, false, 0);
     }
 
     public static ParticleProvider<SimpleParticleType> facingMotion(SpriteSet sprites) {
@@ -196,7 +164,7 @@ public final class RingParticle extends TextureSheetParticle {
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-        if (this.dashTrail && ownDashHiddenNow()) return;
+        if (this.dashTrailRing && ownDashHiddenNow()) return;
         float size = this.getQuadSize(partialTick);
         Vector3f look = camera.getLookVector();
         Vector3f[] corners = this.orientation == Orientation.FACING_MOTION
@@ -218,11 +186,11 @@ public final class RingParticle extends TextureSheetParticle {
 
     private void emitQuad(VertexConsumer buffer, Vector3f a, float au, float av,
                           Vector3f b, float bu, float bv, Vector3f c, float cu, float cv,
-                          Vector3f d, float du, float dv) {
+                          Vector3f delta, float du, float dv) {
         emitVertex(buffer, a, au, av);
         emitVertex(buffer, b, bu, bv);
         emitVertex(buffer, c, cu, cv);
-        emitVertex(buffer, d, du, dv);
+        emitVertex(buffer, delta, du, dv);
     }
 
     private static boolean ownDashHiddenNow() {
@@ -233,9 +201,9 @@ public final class RingParticle extends TextureSheetParticle {
         return remaining > 0 && remaining <= DASH_SELF_HIDE_TICKS;
     }
 
-    private void emitVertex(VertexConsumer buffer, Vector3f corner, float u, float v) {
+    private void emitVertex(VertexConsumer buffer, Vector3f corner, float u, float value) {
         buffer.addVertex(corner.x(), corner.y(), corner.z())
-                .setUv(u, v)
+                .setUv(u, value)
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
                 .setLight(LightTexture.FULL_BRIGHT);
     }

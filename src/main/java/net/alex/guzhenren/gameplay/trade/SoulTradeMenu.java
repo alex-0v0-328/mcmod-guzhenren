@@ -42,10 +42,10 @@ public class SoulTradeMenu extends AbstractContainerMenu {
     public static final int ROWS_Y = 20;
     public static final int ROW_H = 22;
     public static final int INVENTORY_X = 8;
+    public static final int INVENTORY_COLS = 9;
+    public static final int INVENTORY_ROWS = 3;
     private static final int INVENTORY_LABEL_GAP = 14;
     private static final int HOTBAR_GAP = 4;
-    private static final int INVENTORY_COLS = 9;
-    private static final int INVENTORY_ROWS = 3;
     private static final int INVENTORY_SLOTS = INVENTORY_COLS * INVENTORY_ROWS;
     private static final String SHORT = "guzhenren.menu.soul_trade.short";
     private static final String NO_ROOM = "guzhenren.menu.soul_trade.no_room";

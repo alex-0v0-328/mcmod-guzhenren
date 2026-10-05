@@ -6,7 +6,7 @@ import net.alex.guzhenren.entity.BearEntity;
 import net.alex.guzhenren.entity.BearSpecies;
 import net.alex.guzhenren.entity.BoarGuEntity;
 import net.alex.guzhenren.entity.HopeGuEntity;
-import net.alex.guzhenren.entity.RhinocerosBeetleGuEntity;
+import net.alex.guzhenren.entity.CrashGuEntity;
 import net.alex.guzhenren.entity.TigerEntity;
 import net.alex.guzhenren.entity.WildBoarEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTrader;
@@ -66,14 +66,14 @@ public final class ModEntityTypes {
             registerBoarGu("black_boar_gu_entity", ModItems.BLACK_BOAR_GU);
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> FLOWER_BOAR_GU_ENTITY =
             registerBoarGu("flower_boar_gu_entity", ModItems.FLOWER_BOAR_GU);
-    public static final DeferredHolder<EntityType<?>, EntityType<RhinocerosBeetleGuEntity>> HORIZONTAL_CRASH_GU_ENTITY =
-            registerBeetle("horizontal_crash_gu_entity", ModItems.HORIZONTAL_CRASH_GU);
-    public static final DeferredHolder<EntityType<?>, EntityType<RhinocerosBeetleGuEntity>> VERTICAL_CRASH_GU_ENTITY =
-            registerBeetle("vertical_crash_gu_entity", ModItems.VERTICAL_CRASH_GU);
-    public static final DeferredHolder<EntityType<?>, EntityType<RhinocerosBeetleGuEntity>> CHARGING_CRASH_GU_4_ENTITY =
-            registerBeetle("charging_crash_gu_4_entity", ModItems.CHARGING_CRASH_GU_4);
-    public static final DeferredHolder<EntityType<?>, EntityType<RhinocerosBeetleGuEntity>> CHARGING_CRASH_GU_5_ENTITY =
-            registerBeetle("charging_crash_gu_5_entity", ModItems.CHARGING_CRASH_GU_5);
+    public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> HORIZONTAL_CRASH_GU_ENTITY =
+            registerCrashGu("horizontal_crash_gu_entity", ModItems.HORIZONTAL_CRASH_GU);
+    public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> VERTICAL_CRASH_GU_ENTITY =
+            registerCrashGu("vertical_crash_gu_entity", ModItems.VERTICAL_CRASH_GU);
+    public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> CHARGING_CRASH_GU_4_ENTITY =
+            registerCrashGu("charging_crash_gu_4_entity", ModItems.CHARGING_CRASH_GU_4);
+    public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> CHARGING_CRASH_GU_5_ENTITY =
+            registerCrashGu("charging_crash_gu_5_entity", ModItems.CHARGING_CRASH_GU_5);
     public static final DeferredHolder<EntityType<?>, EntityType<WildBoarEntity>> WILD_BOAR =
             ENTITY_TYPES.register("wild_boar", () -> EntityType.Builder
                     .of(WildBoarEntity::new, MobCategory.CREATURE)
@@ -129,10 +129,10 @@ public final class ModEntityTypes {
                 .build(name));
     }
 
-    private static DeferredHolder<EntityType<?>, EntityType<RhinocerosBeetleGuEntity>> registerBeetle(
+    private static DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> registerCrashGu(
             String name, Supplier<Item> caughtGu) {
         return ENTITY_TYPES.register(name, () -> EntityType.Builder
-                .<RhinocerosBeetleGuEntity>of((type, level) -> new RhinocerosBeetleGuEntity(type, level, caughtGu),
+                .<CrashGuEntity>of((type, level) -> new CrashGuEntity(type, level, caughtGu),
                         MobCategory.AMBIENT)
                 .sized(MOTE_WIDTH, MOTE_HEIGHT)
                 .clientTrackingRange(TRACKING_CHUNKS)

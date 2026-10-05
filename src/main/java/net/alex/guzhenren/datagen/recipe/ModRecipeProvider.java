@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.refinement.GuRecipe;
-import net.alex.guzhenren.gameplay.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -89,17 +88,17 @@ public class ModRecipeProvider extends RecipeProvider {
 
     private static void read(ResourceLocation id, Map<Character, SizedIngredient> key, String[] pattern,
                              List<SizedIngredient> ingredients, List<Integer> slots) {
-        if (pattern.length != RefinementMenu.GRID_ROWS) {
-            throw new IllegalArgumentException(id + " needs " + RefinementMenu.GRID_ROWS + " pattern rows");
+        if (pattern.length != GuRecipe.GRID_ROWS) {
+            throw new IllegalArgumentException(id + " needs " + GuRecipe.GRID_ROWS + " pattern rows");
         }
         for (int row = 0; row < pattern.length; row++) {
             String line = pattern[row];
-            if (line.length() != RefinementMenu.GRID_COLS) {
+            if (line.length() != GuRecipe.GRID_COLS) {
                 throw new IllegalArgumentException(id + " row " + row + " is not "
-                        + RefinementMenu.GRID_COLS + " cells wide");
+                        + GuRecipe.GRID_COLS + " cells wide");
             }
             for (int col = 0; col < line.length(); col++) {
-                cell(id, key, line.charAt(col), RefinementMenu.slotAt(row, col), ingredients, slots);
+                cell(id, key, line.charAt(col), GuRecipe.slotAt(row, col), ingredients, slots);
             }
         }
     }

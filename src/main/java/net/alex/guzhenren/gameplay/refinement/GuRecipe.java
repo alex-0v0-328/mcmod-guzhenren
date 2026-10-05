@@ -49,6 +49,15 @@ public record GuRecipe(List<SizedIngredient> ingredients, List<Integer> slots, L
 
     public static final int WINDOW_TICKS = 5 * Ticks.SECOND;
     public static final int GAP_TICKS = 2 * Ticks.SECOND;
+    public static final int GRID_COLS = 5;
+    public static final int GRID_ROWS = 5;
+    public static final int RING_SIZE = 12;
+    public static final int CORE_COLS = 3;
+    public static final int CORE_ROWS = 3;
+    public static final int CORE_SIZE = CORE_COLS * CORE_ROWS;
+    public static final int INPUT_SIZE = RING_SIZE + CORE_SIZE;
+    private static final int[] RING_COLS = { 1, 2, 3, 0, 4, 0, 4, 0, 4, 1, 2, 3 };
+    private static final int[] RING_ROWS = { 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4 };
 
     public GuRecipe {
         if (essencePerSecond < 0L) throw new IllegalArgumentException("essencePerSecond must be non-negative");
@@ -175,6 +184,20 @@ public record GuRecipe(List<SizedIngredient> ingredients, List<Integer> slots, L
         NonNullList<Ingredient> list = NonNullList.create();
         for (SizedIngredient need : ingredients) list.add(need.ingredient());
         return list;
+    }
+    //endregion
+
+    //region the grid -- a 5x5 with its four corners cut away: outer ring [外圈] 12 around inner ring [内圈] 9
+    public static int ringCol(int index) { return RING_COLS[index]; }
+
+    public static int ringRow(int index) { return RING_ROWS[index]; }
+
+    public static int slotAt(int row, int col) {
+        for (int i = 0; i < RING_SIZE; i++) {
+            if (RING_ROWS[i] == row && RING_COLS[i] == col) return i;
+        }
+        if (row < 1 || row > CORE_ROWS || col < 1 || col > CORE_COLS) return -1;
+        return RING_SIZE + (row - 1) * CORE_COLS + (col - 1);
     }
     //endregion
 

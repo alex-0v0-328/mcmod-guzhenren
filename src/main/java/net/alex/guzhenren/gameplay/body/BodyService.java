@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link #setExtremePhysique} posts an {@link ExtremePhysiqueChangedEvent} (the aperture reconciles its
  * talent paths, base essence and pressure). ⚠ {@code setExtremePhysique} does not check awakening: a
  * caller setting a physique other than {@code NONE} gates on it -- the command through
- * {@code ModCommandSupport.AWAKENED}, awakening by opening the aperture first.
+ * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first.
  *
  * @author Alex
  * @version 1.0.0

@@ -31,9 +31,11 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 /**
  * The English strings, written as an aligned table.
  *
- * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider} for {@code en_us}. Every
- * entry takes the registered object or the enum constant, never a raw key string, so a renamed
- * registration cannot leave a key behind pointing at nothing. The value column aligns per
+ * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider} for {@code en_us}. Items,
+ * blocks, effects, entities and enum constants are added through the registered object or the constant,
+ * never a raw key string, so a renamed registration cannot leave a key behind pointing at nothing; the
+ * interface, command and message strings have no object and are added by their key. Past 300 lines on
+ * purpose: it is a data table, one line per string. The value column aligns per
  * {@code add*()} method to that method's longest key.
  *
  * <p>In {@link #addItemKeys}, one {@code addBlock} entry names the Spirit Spring block, its
@@ -70,6 +72,8 @@ public class EnUsLanguageProvider extends LanguageProvider {
     private void addDisplayKeys() {
         add("guzhenren.display.realm", "%s %s");
         add("guzhenren.display.realm_title", "%s %s");
+        add("guzhenren.display.detail", " [%s]");
+        add("guzhenren.display.brilliance_rate", "%s thoughts/s");
         add("guzhenren.display.aptitude_line", "%s [%s]");
         add("guzhenren.display.gu_line", "%s %s %s");
         add("guzhenren.display.gu", "Gu");
@@ -203,11 +207,8 @@ public class EnUsLanguageProvider extends LanguageProvider {
         add("guzhenren.command.info.capacity", "Bearing:     %s / %s jin");
         add("guzhenren.command.info.attack", "Base Attack: %s");
         add("guzhenren.command.info.brilliance", "Brilliance:  %s");
-        add("guzhenren.command.info.brilliance_rate", "%s thoughts/s");
         add("guzhenren.command.info.mind", "Mind Ocean:");
         add("guzhenren.command.info.mind_entry", "  %s  %s / %s");
-
-        add("guzhenren.command.info.detail", " [%s]");
 
         add("guzhenren.command.travel.entered", "Sent %s into %s");
         add("guzhenren.command.travel.exited", "Returned %s from the anchored dimension");

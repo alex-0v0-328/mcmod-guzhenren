@@ -1,9 +1,9 @@
 package net.alex.guzhenren.client.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.refinement.GuRecipe;
 import net.alex.guzhenren.gameplay.refinement.GuRecipeInput;
@@ -18,7 +18,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -48,8 +47,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private static final int SLOT = RefinementMenu.SLOT;
     private static final int GRID_SLOT = RefinementMenu.GRID_SLOT;
-    private static final int CELL = 16;
-    private static final int INVENTORY_COLS = 9;
+    static final int CELL = 16;
     private static final int CRAFT_X = 140;
     private static final int CRAFT_Y = 76;
     private static final int CRAFT_W = 52;
@@ -64,13 +62,12 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private static final int RECIPE_H = 20;
     private static final int LEGEND_Y = 142;
     private static final int CORE_FILL = 0x4DFFFFFF;
-    private static final int LEGEND_TEXT = 0xFFA0A0A0;
+    static final int LEGEND_TEXT = 0xFFA0A0A0;
     private static final int SHORT_RED = 0x99FF5555;
     private static final int TRACK = 0x33000000;
     private static final int BAR_WINDOW = 0xFF81C784;
     private static final int BAR_GAP = 0x6681C784;
     private static final int BAR_SHORT = 0xFFFF5555;
-    private static final int PICK_FILL = 0xF0000000;
     private static final int GHOST_OVERLAY = 0x1AFFFFFF;
     private static final float GHOST_ALPHA = 0.35F;
     private static final int POOL_X = 18;
@@ -87,32 +84,13 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private static final String RECIPE_KEY = "guzhenren.menu.refinement.recipes";
     private static final String SELECTED_KEY = "guzhenren.menu.refinement.selected";
     private static final String EXTRA_KEY = "guzhenren.menu.refinement.extra";
-    private static final String PICK_TITLE_KEY = "guzhenren.menu.refinement.pick.title";
-    private static final String PICK_AUTO_KEY = "guzhenren.menu.refinement.pick.auto";
-    private static final String PICK_EMPTY_KEY = "guzhenren.menu.refinement.pick.empty";
-    private static final String PICK_NEEDS_KEY = "guzhenren.menu.refinement.pick.needs";
-    private static final String PICK_ITEM_KEY = "guzhenren.menu.refinement.pick.item";
-    private static final String PICK_WINDOWS_KEY = "guzhenren.menu.refinement.pick.windows";
-    private static final String PICK_STONES_KEY = "guzhenren.menu.refinement.pick.stones";
-    private static final String PICK_COST_KEY = "guzhenren.menu.refinement.pick.cost";
-    private static final String PICK_SOUL_KEY = "guzhenren.menu.refinement.pick.soul";
-    private static final String PICK_CHANCE_KEY = "guzhenren.menu.refinement.pick.chance";
-    private static final String PICK_SUCCESS_KEY = "guzhenren.menu.refinement.pick.success";
-    private static final int PICK_W = 200;
-    private static final int PICK_PAD = 6;
-    private static final int PICK_HEADER_H = 14;
-    private static final int PICK_ROW_H = 20;
-    private static final int PICK_MAX_ROWS = 5;
-    private static final float PICK_Z = 500.0F;
-    private static final String STONE_SEPARATOR = " · ";
     private static final int BACK_W = 16;
     private static final int BACK_H = 14;
     private static final String BACK_GLYPH = "<-";
     private static final int TITLE_X_WITH_BACK = 32;
     private static final int MARGIN = 18;
     private static final int HEADER_H = 20;
-    private boolean picking;
-    private int pickScroll;
+    private final RecipePicker picker = new RecipePicker();
 
     public RefinementScreen(RefinementMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -124,55 +102,57 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     @Override
-    protected void renderBg(@NotNull GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+    protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
-        g.fill(x, y, x + imageWidth, y + imageHeight, ModPalette.PANEL_FILL);
-        g.renderOutline(x, y, imageWidth, imageHeight, ModPalette.BORDER);
-        g.fill(x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, y + HEADER_H + 1, ModPalette.REFINEMENT);
+        graphics.fill(x, y, x + imageWidth, y + imageHeight, ModPalette.PANEL_FILL);
+        graphics.renderOutline(x, y, imageWidth, imageHeight, ModPalette.BORDER);
+        graphics.fill(x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, y + HEADER_H + 1, ModPalette.REFINEMENT);
 
-        drawInput(g, x, y);
-        drawCell(g, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y, ModPalette.SLOT_FILL);
-        drawCells(g, x + RefinementMenu.OUTPUT_X, y + RefinementMenu.OUTPUT_Y,
+        drawInput(graphics, x, y);
+        drawCell(graphics, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y, ModPalette.SLOT_FILL);
+        drawCells(graphics, x + RefinementMenu.OUTPUT_X, y + RefinementMenu.OUTPUT_Y,
                 RefinementMenu.OUTPUT_COLS, RefinementMenu.OUTPUT_ROWS, GRID_SLOT, ModPalette.SLOT_FILL);
-        drawCells(g, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.INVENTORY_Y,
-                INVENTORY_COLS, 3, SLOT, ModPalette.SLOT_FILL);
-        drawCells(g, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.HOTBAR_Y,
-                INVENTORY_COLS, 1, SLOT, ModPalette.SLOT_FILL);
-        drawBar(g, x, y);
+        drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.INVENTORY_Y,
+                RefinementMenu.INVENTORY_COLS, 3, SLOT, ModPalette.SLOT_FILL);
+        drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.HOTBAR_Y,
+                RefinementMenu.INVENTORY_COLS, 1, SLOT, ModPalette.SLOT_FILL);
+        drawBar(graphics, x, y);
     }
 
     //region the two rings -- the 内圈 is marked by a brighter cell and an accent frame around the block
-    private void drawInput(GuiGraphics g, int x, int y) {
-        for (int i = 0; i < RefinementMenu.RING_SIZE; i++) {
-            drawCell(g, x + RefinementMenu.ringX(i), y + RefinementMenu.ringY(i), ModPalette.SLOT_FILL);
+    private void drawInput(GuiGraphics graphics, int x, int y) {
+        for (int i = 0; i < GuRecipe.RING_SIZE; i++) {
+            drawCell(graphics, x + RefinementMenu.ringX(i), y + RefinementMenu.ringY(i), ModPalette.SLOT_FILL);
         }
-        drawCells(g, x + RefinementMenu.coreX(0), y + RefinementMenu.coreY(0),
-                RefinementMenu.CORE_COLS, RefinementMenu.CORE_ROWS, GRID_SLOT, CORE_FILL);
-        g.renderOutline(x + RefinementMenu.coreX(0) - 3, y + RefinementMenu.coreY(0) - 3,
-                (RefinementMenu.CORE_COLS - 1) * GRID_SLOT + CELL + 6,
-                (RefinementMenu.CORE_ROWS - 1) * GRID_SLOT + CELL + 6, ModPalette.REFINEMENT);
+        drawCells(graphics, x + RefinementMenu.coreX(0), y + RefinementMenu.coreY(0),
+                GuRecipe.CORE_COLS, GuRecipe.CORE_ROWS, GRID_SLOT, CORE_FILL);
+        graphics.renderOutline(x + RefinementMenu.coreX(0) - 3, y + RefinementMenu.coreY(0) - 3,
+                (GuRecipe.CORE_COLS - 1) * GRID_SLOT + CELL + 6,
+                (GuRecipe.CORE_ROWS - 1) * GRID_SLOT + CELL + 6, ModPalette.REFINEMENT);
     }
 
-    private void drawCells(GuiGraphics g, int x, int y, int cols, int rows, int pitch, int fill) {
+    private void drawCells(GuiGraphics graphics, int x, int y, int cols, int rows, int pitch, int fill) {
         for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) drawCell(g, x + col * pitch, y + row * pitch, fill);
+            for (int col = 0; col < cols; col++) drawCell(graphics, x + col * pitch, y + row * pitch, fill);
         }
     }
 
-    private void drawCell(GuiGraphics g, int x, int y, int fill) { g.fill(x, y, x + CELL, y + CELL, fill); }
+    private void drawCell(GuiGraphics graphics, int x, int y, int fill) {
+        graphics.fill(x, y, x + CELL, y + CELL, fill);
+    }
     //endregion
 
     //region the phase bar -- it empties over the 5s window, then over the 2s gap
-    private void drawBar(GuiGraphics g, int x, int y) {
+    private void drawBar(GuiGraphics graphics, int x, int y) {
         int bx = x + BAR_X;
         int by = y + BAR_Y;
-        g.fill(bx, by, bx + BAR_W, by + BAR_H, TRACK);
+        graphics.fill(bx, by, bx + BAR_W, by + BAR_H, TRACK);
         if (!menu.running()) return;
 
         int span = menu.inWindow() ? GuRecipe.WINDOW_TICKS : GuRecipe.GAP_TICKS;
         int filled = BAR_W * menu.phaseLeft() / span;
-        g.fill(bx, by, bx + filled, by + BAR_H, barColour());
+        graphics.fill(bx, by, bx + filled, by + BAR_H, barColour());
     }
 
     private int barColour() {
@@ -182,42 +162,42 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //endregion
 
     @Override
-    protected void renderLabels(@NotNull GuiGraphics g, int mouseX, int mouseY) {
-        g.drawString(font, title, titleLabelX, titleLabelY, ModPalette.REFINEMENT, false);
-        g.drawString(font, statusLine(), RefinementMenu.INPUT_X, LEGEND_Y,
+    protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.REFINEMENT, false);
+        graphics.drawString(font, statusLine(), RefinementMenu.INPUT_X, LEGEND_Y,
                 statusColour(), false);
-        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);
-        renderGhosts(g);
-        renderPools(g);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);
+        renderGhosts(graphics);
+        renderPools(graphics);
     }
 
     //region the pools -- all three ride the synced attachments, so none of them needs a packet
-    private void renderPools(GuiGraphics g) {
+    private void renderPools(GuiGraphics graphics) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
         long maxEssence = ApertureEssenceService.maxEssence(player);
         int unit = 0;
-        drawPool(g, unit++, ApertureEssenceService.currentEssence(player), maxEssence, ModPalette.APERTURE);
+        drawPool(graphics, unit++, ApertureEssenceService.currentEssence(player), maxEssence, ModPalette.APERTURE);
 
         long distilled = ApertureEssenceService.distilledEssence(player);
-        if (distilled > 0L) drawPool(g, unit++, distilled, maxEssence, ModPalette.DISTILLED_FILL);
+        if (distilled > 0L) drawPool(graphics, unit++, distilled, maxEssence, ModPalette.DISTILLED_FILL);
 
         SoulData soul = SoulService.get(player);
-        drawPool(g, unit, soul.currentSoul(), soul.maxSoul(), ModPalette.SOUL);
+        drawPool(graphics, unit, soul.currentSoul(), soul.maxSoul(), ModPalette.SOUL);
     }
 
-    private void drawPool(GuiGraphics g, int unit, long value, long max, int fill) {
+    private void drawPool(GuiGraphics graphics, int unit, long value, long max, int fill) {
         int y = POOL_Y + unit * POOL_STRIDE;
         Component reading = Component.translatable(POOL_KEY, value, max);
-        g.drawString(font, reading, POOL_X + POOL_W - font.width(reading), y, LEGEND_TEXT, false);
+        graphics.drawString(font, reading, POOL_X + POOL_W - font.width(reading), y, LEGEND_TEXT, false);
 
         int barY = y + font.lineHeight;
-        g.fill(POOL_X, barY, POOL_X + POOL_W, barY + POOL_H, TRACK);
+        graphics.fill(POOL_X, barY, POOL_X + POOL_W, barY + POOL_H, TRACK);
         if (max <= 0L || value <= 0L) return;
 
         int filled = (int) Math.min(POOL_W, POOL_W * value / max);
-        g.fill(POOL_X, barY, POOL_X + filled, barY + POOL_H, fill);
+        graphics.fill(POOL_X, barY, POOL_X + filled, barY + POOL_H, fill);
     }
     //endregion
 
@@ -225,7 +205,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private Component statusLine() {
         if (menu.running()) {
             int shown = menu.stage() + 1;
-            int seconds = (menu.phaseLeft() + 19) / 20;
+            int seconds = (menu.phaseLeft() + Ticks.SECOND - 1) / Ticks.SECOND;
             return menu.inWindow()
                     ? Component.translatable(WINDOW_KEY, shown, menu.stages(), seconds,
                     menu.stonesIn(), menu.stonesNeeded())
@@ -256,21 +236,22 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //endregion
 
     @Override
-    public void render(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         knownCache = null;
-        super.render(g, mouseX, mouseY, partialTick);
-        renderCraft(g, mouseX, mouseY);
-        renderRecipe(g, mouseX, mouseY);
-        renderBack(g, mouseX, mouseY);
-        if (picking) {
-            renderPicker(g, mouseX, mouseY);
+        super.render(graphics, mouseX, mouseY, partialTick);
+        renderCraft(graphics, mouseX, mouseY);
+        renderRecipe(graphics, mouseX, mouseY);
+        renderBack(graphics, mouseX, mouseY);
+        if (picker.isOpen()) {
+            picker.render(graphics, font, known(), menu.selected(), leftPos, topPos, imageWidth, imageHeight, mouseX,
+                    mouseY);
             return;
         }
-        renderTooltip(g, mouseX, mouseY);
+        renderTooltip(graphics, mouseX, mouseY);
     }
 
     //region the cells a picked 蛊方 still wants -- drawn from renderLabels, so the carried item stays on top
-    private void renderGhosts(GuiGraphics g) {
+    private void renderGhosts(GuiGraphics graphics) {
         GuRecipe recipe = selectedRecipe();
         if (recipe == null || menu.running()) return;
 
@@ -283,32 +264,32 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
             if (!grid.getItem(slot).isEmpty()) continue;
 
             ItemStack shown = option(recipe.ingredients().get(n));
-            if (!shown.isEmpty()) drawGhost(g, shown, missing[n], slot);
+            if (!shown.isEmpty()) drawGhost(graphics, shown, missing[n], slot);
         }
     }
 
-    private void drawGhost(GuiGraphics g, ItemStack shown, int count, int slot) {
+    private void drawGhost(GuiGraphics graphics, ItemStack shown, int count, int slot) {
         int x = slotX(slot);
         int y = slotY(slot);
 
-        g.setColor(1.0F, 1.0F, 1.0F, GHOST_ALPHA);
-        g.renderFakeItem(shown, x, y);
-        g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        g.fill(RenderType.guiGhostRecipeOverlay(), x, y, x + CELL, y + CELL, GHOST_OVERLAY);
-        g.renderItemDecorations(font, shown, x, y, count > 1 ? String.valueOf(count) : null);
+        graphics.setColor(1.0F, 1.0F, 1.0F, GHOST_ALPHA);
+        graphics.renderFakeItem(shown, x, y);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        graphics.fill(RenderType.guiGhostRecipeOverlay(), x, y, x + CELL, y + CELL, GHOST_OVERLAY);
+        graphics.renderItemDecorations(font, shown, x, y, count > 1 ? String.valueOf(count) : null);
     }
 
     private static int slotX(int slot) {
-        return slot < RefinementMenu.RING_SIZE ? RefinementMenu.ringX(slot)
-                : RefinementMenu.coreX((slot - RefinementMenu.RING_SIZE) % RefinementMenu.CORE_COLS);
+        return slot < GuRecipe.RING_SIZE ? RefinementMenu.ringX(slot)
+                : RefinementMenu.coreX((slot - GuRecipe.RING_SIZE) % GuRecipe.CORE_COLS);
     }
 
     private static int slotY(int slot) {
-        return slot < RefinementMenu.RING_SIZE ? RefinementMenu.ringY(slot)
-                : RefinementMenu.coreY((slot - RefinementMenu.RING_SIZE) / RefinementMenu.CORE_COLS);
+        return slot < GuRecipe.RING_SIZE ? RefinementMenu.ringY(slot)
+                : RefinementMenu.coreY((slot - GuRecipe.RING_SIZE) / GuRecipe.CORE_COLS);
     }
 
-    private static ItemStack option(SizedIngredient need) {
+    static ItemStack option(SizedIngredient need) {
         ItemStack[] options = need.ingredient().getItems();
         if (options.length == 0) return ItemStack.EMPTY;
         return options[(int) (Util.getMillis() / 1000L % options.length)];
@@ -316,7 +297,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //endregion
 
     //region the 炼制 button -- three states off the ritual, and 停止 while it runs
-    private void renderCraft(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderCraft(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = craftX();
         int y = craftY();
         boolean stopping = menu.running();
@@ -324,15 +305,15 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         boolean shortOfEssence = !stopping && clickable() && !menu.affords();
         boolean hover = live && inCraft(mouseX, mouseY);
 
-        g.fill(x, y, x + CRAFT_W, y + CRAFT_H,
+        graphics.fill(x, y, x + CRAFT_W, y + CRAFT_H,
                 live ? (hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE) : ModPalette.BUTTON_DEAD);
         if (live || shortOfEssence) {
-            g.renderOutline(x, y, CRAFT_W, CRAFT_H,
+            graphics.renderOutline(x, y, CRAFT_W, CRAFT_H,
                     stopping ? BAR_SHORT : live ? ModPalette.REFINEMENT : SHORT_RED);
         }
 
         Component label = Component.translatable(stopping ? STOP_KEY : CRAFT_KEY);
-        g.drawString(font, label, x + (CRAFT_W - font.width(label)) / 2,
+        graphics.drawString(font, label, x + (CRAFT_W - font.width(label)) / 2,
                 y + (CRAFT_H - font.lineHeight) / 2 + 1, live ? ModPalette.TEXT : ModPalette.BUTTON_IDLE, false);
     }
 
@@ -342,25 +323,25 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private int craftY() { return topPos + CRAFT_Y; }
 
-    private boolean inCraft(double mx, double my) {
-        return mx >= craftX() && mx < craftX() + CRAFT_W
-                && my >= craftY() && my < craftY() + CRAFT_H;
+    private boolean inCraft(double mouseX, double mouseY) {
+        return mouseX >= craftX() && mouseX < craftX() + CRAFT_W
+                && mouseY >= craftY() && mouseY < craftY() + CRAFT_H;
     }
     //endregion
 
     //region the 蛊方 button -- dead while the ritual runs, because the grid is locked anyway
-    private void renderRecipe(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderRecipe(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = recipeX();
         int y = recipeY();
         boolean live = !menu.running();
         boolean hover = live && inRecipe(mouseX, mouseY);
 
-        g.fill(x, y, x + RECIPE_W, y + RECIPE_H,
+        graphics.fill(x, y, x + RECIPE_W, y + RECIPE_H,
                 live ? (hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE) : ModPalette.BUTTON_DEAD);
-        if (live) g.renderOutline(x, y, RECIPE_W, RECIPE_H, ModPalette.REFINEMENT);
+        if (live) graphics.renderOutline(x, y, RECIPE_W, RECIPE_H, ModPalette.REFINEMENT);
 
         Component label = Component.translatable(RECIPE_KEY);
-        g.drawString(font, label, x + (RECIPE_W - font.width(label)) / 2,
+        graphics.drawString(font, label, x + (RECIPE_W - font.width(label)) / 2,
                 y + (RECIPE_H - font.lineHeight) / 2 + 1, live ? ModPalette.TEXT : ModPalette.BUTTON_IDLE, false);
     }
 
@@ -368,116 +349,9 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private int recipeY() { return topPos + RECIPE_Y; }
 
-    private boolean inRecipe(double mx, double my) {
-        return mx >= recipeX() && mx < recipeX() + RECIPE_W
-                && my >= recipeY() && my < recipeY() + RECIPE_H;
-    }
-    //endregion
-
-    //region the picker -- rows windowed whole like the info panel's modal; PICK_Z clears the item layers
-    private void renderPicker(GuiGraphics g, int mouseX, int mouseY) {
-        g.pose().pushPose();
-        g.pose().translate(0.0F, 0.0F, PICK_Z);
-        drawPicker(g, mouseX, mouseY);
-        g.pose().popPose();
-    }
-
-    private void drawPicker(GuiGraphics g, int mouseX, int mouseY) {
-        List<RecipeHolder<GuRecipe>> known = known();
-        int rows = known.size() + 1;
-        int visible = Math.min(PICK_MAX_ROWS, rows);
-        pickScroll = Mth.clamp(pickScroll, 0, rows - visible);
-
-        int x0 = pickLeft();
-        int y0 = pickTop(visible);
-        int h = pickHeight(visible);
-
-        g.fill(x0, y0, x0 + PICK_W, y0 + h, PICK_FILL);
-        g.renderOutline(x0, y0, PICK_W, h, ModPalette.BORDER);
-        g.drawString(font, Component.translatable(PICK_TITLE_KEY), x0 + PICK_PAD,
-                y0 + (PICK_HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
-        g.fill(x0 + PICK_PAD, y0 + PICK_HEADER_H, x0 + PICK_W - PICK_PAD, y0 + PICK_HEADER_H + 1,
-                ModPalette.BORDER);
-
-        int hovered = -1;
-        for (int i = 0; i < visible; i++) {
-            int row = pickScroll + i;
-            int ry = pickRowY(y0, i);
-            if (mouseX >= x0 && mouseX < x0 + PICK_W && mouseY >= ry && mouseY < ry + PICK_ROW_H) {
-                g.fill(x0 + 1, ry, x0 + PICK_W - 1, ry + PICK_ROW_H, ModPalette.BUTTON_IDLE);
-                hovered = row;
-            }
-            if (row - 1 == menu.selected()) g.renderOutline(x0 + 1, ry, PICK_W - 2, PICK_ROW_H,
-                    ModPalette.REFINEMENT);
-            drawPickRow(g, known, row, x0, ry);
-        }
-        if (hovered >= 1) g.renderComponentTooltip(font, details(known.get(hovered - 1).value()), mouseX, mouseY);
-    }
-
-    private void drawPickRow(GuiGraphics g, List<RecipeHolder<GuRecipe>> known, int row, int x0, int y) {
-        int textY = y + (PICK_ROW_H - font.lineHeight) / 2;
-        if (row == 0) {
-            Component auto = Component.translatable(known.isEmpty() ? PICK_EMPTY_KEY : PICK_AUTO_KEY);
-            g.drawString(font, auto, x0 + PICK_PAD, textY, ModPalette.TEXT, false);
-            return;
-        }
-        GuRecipe recipe = known.get(row - 1).value();
-        ItemStack icon = result(recipe);
-        g.renderFakeItem(icon, x0 + PICK_PAD, y + (PICK_ROW_H - CELL) / 2);
-        g.drawString(font, icon.getHoverName(), x0 + PICK_PAD + CELL + 4, textY, ModPalette.TEXT, false);
-
-        Component rate = Component.translatable(PICK_CHANCE_KEY, recipe.baseSuccess());
-        g.drawString(font, rate, x0 + PICK_W - PICK_PAD - font.width(rate), textY, LEGEND_TEXT, false);
-    }
-
-    private List<Component> details(GuRecipe recipe) {
-        List<Component> lines = new ArrayList<>();
-        lines.add(resultName(recipe));
-        lines.add(Component.translatable(PICK_NEEDS_KEY));
-        for (SizedIngredient need : recipe.ingredients()) {
-            lines.add(Component.translatable(PICK_ITEM_KEY, need.count(), option(need).getHoverName()));
-        }
-        lines.add(Component.translatable(PICK_WINDOWS_KEY, recipe.windowCount(), recipe.totalSeconds()));
-        lines.add(Component.translatable(PICK_STONES_KEY, stoneList(recipe)));
-        lines.add(Component.translatable(PICK_COST_KEY, recipe.essencePerSecond()));
-        lines.add(Component.translatable(PICK_SOUL_KEY, recipe.soulPerSecond()));
-        lines.add(Component.translatable(PICK_SUCCESS_KEY, recipe.baseSuccess()));
-        return lines;
-    }
-
-    private static String stoneList(GuRecipe recipe) {
-        StringBuilder text = new StringBuilder();
-        for (int i = 0; i < recipe.windowCount(); i++) {
-            if (i > 0) text.append(STONE_SEPARATOR);
-            text.append(recipe.stonesFor(i));
-        }
-        return text.toString();
-    }
-
-    private int pickHeight(int visible) { return PICK_HEADER_H + PICK_PAD * 2 + visible * PICK_ROW_H; }
-
-    private int pickLeft() { return leftPos + (imageWidth - PICK_W) / 2; }
-
-    private int pickTop(int visible) { return topPos + (imageHeight - pickHeight(visible)) / 2; }
-
-    private int pickRowY(int y0, int i) { return y0 + PICK_HEADER_H + PICK_PAD + i * PICK_ROW_H; }
-
-    private void clickPicker(double mx, double my) {
-        List<RecipeHolder<GuRecipe>> known = known();
-        int visible = Math.min(PICK_MAX_ROWS, known.size() + 1);
-        int x0 = pickLeft();
-        int y0 = pickTop(visible);
-
-        for (int i = 0; i < visible; i++) {
-            int ry = pickRowY(y0, i);
-            if (mx < x0 || mx >= x0 + PICK_W || my < ry || my >= ry + PICK_ROW_H) continue;
-
-            int row = pickScroll + i;
-            send(row == 0 ? RefinementMenu.BUTTON_CLEAR_RECIPE
-                    : RefinementMenu.BUTTON_RECIPE_BASE + row - 1);
-            break;
-        }
-        picking = false;
+    private boolean inRecipe(double mouseX, double mouseY) {
+        return mouseX >= recipeX() && mouseX < recipeX() + RECIPE_W
+                && mouseY >= recipeY() && mouseY < recipeY() + RECIPE_H;
     }
     //endregion
 
@@ -498,19 +372,19 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         return index >= 0 && index < known.size() ? known.get(index).value() : null;
     }
 
-    private static ItemStack result(GuRecipe recipe) {
+    static ItemStack result(GuRecipe recipe) {
         return recipe.results().isEmpty() ? ItemStack.EMPTY : recipe.results().getFirst();
     }
 
     private static Component resultName(GuRecipe recipe) { return result(recipe).getHoverName(); }
     //endregion
 
-    private void renderBack(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderBack(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = backX();
         int y = backY();
         boolean hover = inBack(mouseX, mouseY);
-        g.fill(x, y, x + BACK_W, y + BACK_H, hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE);
-        g.drawString(font, BACK_GLYPH, x + (BACK_W - font.width(BACK_GLYPH)) / 2,
+        graphics.fill(x, y, x + BACK_W, y + BACK_H, hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE);
+        graphics.drawString(font, BACK_GLYPH, x + (BACK_W - font.width(BACK_GLYPH)) / 2,
                 y + (BACK_H - font.lineHeight) / 2 + 1, ModPalette.TEXT, false);
     }
 
@@ -518,46 +392,48 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private int backY() { return topPos + 4; }
 
-    private boolean inBack(double mx, double my) {
-        return mx >= backX() && mx < backX() + BACK_W && my >= backY() && my < backY() + BACK_H;
+    private boolean inBack(double mouseX, double mouseY) {
+        return mouseX >= backX() && mouseX < backX() + BACK_W && mouseY >= backY() && mouseY < backY() + BACK_H;
     }
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
-        if (picking) {
-            if (button == 0) clickPicker(mx, my);
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (picker.isOpen()) {
+            if (button == 0) {
+                int chosen = picker.click(mouseX, mouseY, known(), leftPos, topPos, imageWidth, imageHeight);
+                if (chosen != RecipePicker.NO_BUTTON) send(chosen);
+            }
             return true;
         }
         if (button == 0) {
-            if (inBack(mx, my)) return clickBack();
-            if (inRecipe(mx, my) && !menu.running()) return openPicker();
-            if (inCraft(mx, my) && menu.running()) return send(RefinementMenu.BUTTON_STOP);
-            if (inCraft(mx, my) && clickable()) return send(RefinementMenu.BUTTON_CRAFT);
+            if (inBack(mouseX, mouseY)) return clickBack();
+            if (inRecipe(mouseX, mouseY) && !menu.running()) return openPicker();
+            if (inCraft(mouseX, mouseY) && menu.running()) return send(RefinementMenu.BUTTON_STOP);
+            if (inCraft(mouseX, mouseY) && clickable()) return send(RefinementMenu.BUTTON_CRAFT);
         }
-        return super.mouseClicked(mx, my, button);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double dx, double dy) {
-        if (!picking) return super.mouseScrolled(mx, my, dx, dy);
-        if (dy != 0.0) pickScroll = Math.max(0, pickScroll - (int) Math.signum(dy));
+    public boolean mouseScrolled(double mouseX, double mouseY, double dx, double dy) {
+        if (!picker.isOpen()) return super.mouseScrolled(mouseX, mouseY, dx, dy);
+        picker.scroll(dy);
         return true;
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!picking) return super.keyPressed(keyCode, scanCode, modifiers);
+        if (!picker.isOpen()) return super.keyPressed(keyCode, scanCode, modifiers);
 
         if (keyCode == InputConstants.KEY_ESCAPE
                 || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode)) {
-            picking = false;
+            picker.close();
         }
         return true;
     }
 
     private boolean openPicker() {
-        picking = true;
-        pickScroll = 0;
+        picker.open();
         return true;
     }
 

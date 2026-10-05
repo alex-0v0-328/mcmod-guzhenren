@@ -11,12 +11,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * A tiger; the orange and white coats register as two entity types sharing this class (they differ
@@ -24,19 +19,20 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *
  * <p>Combat swipes at arm's length (hit frame at tick 8) and pounces across three to eight blocks:
  * {@link #tickHeavyAttack} fires the leap impulse at tick 12 with the direction locked at that
- * moment -- {@link #startAction} resets that lock for each new pounce, so a stale direction from
+ * moment -- {@link #onBeginAction} resets that lock for each new pounce, so a stale direction from
  * the previous pounce is never reused -- and the landing hit is a swept-body test over the flight
  * window. The leap locks on the first tick at or after the leap frame, so an unticked frame cannot
  * skip the lock; a leap that could no longer reach the landing window is dropped, and a wall that
- * stops the leap ends the pounce early without a hit. {@link #heavyKeepsMomentum} keeps the leap's
+ * stops the leap ends the pounce early without a hit. {@link #keepsMomentum} keeps the leap's
  * horizontal momentum from the leap tick through the landing window while gravity supplies the
  * vertical arc: the velocity is re-applied each tick inside that window so the arc covers the
- * locked distance instead of bleeding off to drag, and past the window {@code tickAction} zeroes
+ * locked distance instead of bleeding off to drag, and past the window the base action tick zeroes
  * the horizontal velocity, so the tiger never slides beyond it. Vanilla has no tiger sounds, so the
  * ocelot family stands in at a lowered pitch; the roar reuses the polar bear warning slightly
  * deepened.
  *
- * <p>{@link #pickDaytimeAmbient}: tigers only sit; they have no roll or scratch animations.
+ * <p>{@link #pickDaytimeAmbient}: tigers only sit; they have no roll or scratch animations, so
+ * {@link #actionAnimation} maps those poses to the idle loop.
  */
 
 public final class TigerEntity extends BeastEntity {
@@ -52,7 +48,6 @@ public final class TigerEntity extends BeastEntity {
     public static final int DEATH_REMOVE_TICK = 32;
     public static final double POUNCE_MIN_DISTANCE = 3.0D;
     public static final double POUNCE_MAX_DISTANCE = 8.0D;
-    public static final double POUNCE_REACH = 2.5D;
     public static final float SWIPE_DAMAGE = 8.0F;
     public static final float POUNCE_DAMAGE = 12.0F;
     public static final double MAX_HEALTH = 48.0D;
@@ -62,7 +57,6 @@ public final class TigerEntity extends BeastEntity {
     private static final double POUNCE_MIN_SPEED = 0.6D;
     private static final double POUNCE_MAX_SPEED = 1.3D;
 
-    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private Vec3 pounceDirection = Vec3.ZERO;
     private Vec3 pounceLastPosition = Vec3.ZERO;
     private double pounceSpeed;
@@ -132,10 +126,9 @@ public final class TigerEntity extends BeastEntity {
     }
 
     @Override
-    public boolean startAction(Action next) {
-        boolean started = super.startAction(next);
-        if (started && next == Action.ATTACK_HEAVY) this.pounceDirection = Vec3.ZERO;
-        return started;
+    protected void onBeginAction(Action next) {
+        super.onBeginAction(next);
+        if (next == Action.ATTACK_HEAVY) this.pounceDirection = Vec3.ZERO;
     }
 
     @Override
@@ -164,15 +157,15 @@ public final class TigerEntity extends BeastEntity {
             return;
         }
         Vec3 current = this.position();
-        if (this.heavyKeepsMomentum(ticks)) {
+        if (this.keepsMomentum(ticks)) {
             Vec3 velocity = this.getDeltaMovement();
             this.setDeltaMovement(this.pounceDirection.x * this.pounceSpeed, velocity.y,
                     this.pounceDirection.z * this.pounceSpeed);
         }
-        if (!this.heavyHit && ticks < POUNCE_WINDOW_END_TICKS && target != null
+        if (!this.hitSettled && ticks < POUNCE_WINDOW_END_TICKS && target != null
                 && this.canAttackTarget(target)
                 && this.sweptHit(target, this.pounceLastPosition, current)) {
-            this.heavyHit = true;
+            this.hitSettled = true;
             this.applyAttack(target, this.heavyDamage(), 1.0D, 0.2D, this.pounceDirection);
         }
         this.pounceLastPosition = current;
@@ -180,13 +173,24 @@ public final class TigerEntity extends BeastEntity {
     }
 
     @Override
-    protected boolean heavyKeepsMomentum(long ticks) {
+    protected boolean keepsMomentum(long ticks) {
         return ticks >= POUNCE_LEAP_TICK && ticks < POUNCE_WINDOW_END_TICKS;
     }
 
     @Override
     protected Action pickDaytimeAmbient(double roll) {
         return Action.SIT;
+    }
+
+    @Override
+    protected String heavyAttackAnimation() { return "animation.attack_pounce"; }
+
+    @Override
+    protected RawAnimation actionAnimation(Action action) {
+        if (action == Action.ROLL || action == Action.BACK_SCRATCH) {
+            return RawAnimation.begin().thenLoop("animation.idle");
+        }
+        return super.actionAnimation(action);
     }
 
     @Override
@@ -211,38 +215,4 @@ public final class TigerEntity extends BeastEntity {
 
     @Override
     public float getVoicePitch() { return 0.8F; }
-
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new BeastAnimationController<>(this, this::animationState,
-                this::action, this::actionTicks, this::actionSequence));
-    }
-
-    private PlayState animationState(AnimationState<TigerEntity> state) {
-        return switch (this.action()) {
-            case SIT -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.sit"));
-            case LIE_DOWN -> state.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.lie_down"));
-            case LIE -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.lie"));
-            case SLEEP -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.sleep"));
-            case GET_UP -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.get_up"));
-            case ROAR -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.roar"));
-            case ATTACK_SWIPE -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.attack_swipe"));
-            case ATTACK_HEAVY -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.attack_pounce"));
-            case HURT_LEFT -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.hurt_left"));
-            case HURT_RIGHT -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.hurt_right"));
-            case DEATH -> state.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.death"));
-            case ROLL, BACK_SCRATCH -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.idle"));
-            case IDLE -> {
-                if (!state.isMoving()) yield state.setAndContinue(RawAnimation.begin().thenLoop("animation.idle"));
-                yield state.setAndContinue(this.pursuing()
-                        ? RawAnimation.begin().thenLoop("animation.run")
-                        : RawAnimation.begin().thenLoop("animation.walk"));
-            }
-        };
-    }
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.cache;
-    }
 }

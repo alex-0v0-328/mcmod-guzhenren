@@ -1,6 +1,7 @@
 package net.alex.guzhenren.display;
 
 import java.util.Locale;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.Talent;
@@ -133,11 +134,11 @@ public final class ModDisplayText {
     }
 
     public static String countdown(long remainingTicks) {
-        long seconds = (Math.max(0L, remainingTicks) + 19L) / 20L;
+        long seconds = (Math.max(0L, remainingTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
         return String.format(Locale.ROOT, "%02d:%02d", seconds / 60L, seconds % 60L);
     }
 
-    private static String years(double v) { return String.format(Locale.ROOT, "%.2f", v); }
+    private static String years(double value) { return String.format(Locale.ROOT, "%.2f", value); }
 
     public static String pool(long current, long max) { return current + "/" + max; }
 
@@ -176,18 +177,18 @@ public final class ModDisplayText {
         line.append(Component.translatable(readingKey, strengthNumber(reading)));
     }
 
-    private static Component strengthNumber(int n) {
-        if (n < 100) return belowHundred(n, false);
-        Component h = Component.translatable("guzhenren.display.strength.num_hundreds." + (n / 100));
-        int rest = n % 100;
+    private static Component strengthNumber(int count) {
+        if (count < 100) return belowHundred(count, false);
+        Component h = Component.translatable("guzhenren.display.strength.num_hundreds." + (count / 100));
+        int rest = count % 100;
         if (rest == 0) return h;
         String join = rest < 10 ? "guzhenren.display.strength.num_join_zero" : "guzhenren.display.strength.num_join";
         return Component.translatable(join, h, belowHundred(rest, true));
     }
 
-    private static Component belowHundred(int n, boolean led) {
-        int tens = n / 10;
-        int units = n % 10;
+    private static Component belowHundred(int count, boolean led) {
+        int tens = count / 10;
+        int units = count % 10;
         Component t = tens == 0 ? null : Component.translatable(led && tens == 1
                 ? "guzhenren.display.strength.num_tens_led.1"
                 : "guzhenren.display.strength.num_tens." + tens);

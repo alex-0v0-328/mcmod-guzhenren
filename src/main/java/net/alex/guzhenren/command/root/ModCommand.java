@@ -1,4 +1,4 @@
-package net.alex.guzhenren.command;
+package net.alex.guzhenren.command.root;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -21,7 +21,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  * The root of {@code /guzhenren} (alias {@code /gzr}), assembling every subcommand under it.
  *
  * <p>Registers the literal {@code guzhenren} with permission level 2, then attaches the eight root
- * branches ({@link net.alex.guzhenren.command.CmdInfo}, {@code CmdAwaken}, {@code CmdReset},
+ * branches ({@link net.alex.guzhenren.command.root.CmdInfo}, {@code CmdAwaken}, {@code CmdReset},
  * {@code CmdAperture}, {@code CmdBody}, {@code CmdSoul}, {@code CmdPath}, {@code CmdMind}) -- all
  * attachment-data commands. The
  * {@code gzr} alias is a {@code redirect} to that root, so everything typed after it parses into a

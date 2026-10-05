@@ -1,6 +1,7 @@
 package net.alex.guzhenren.entity.ai;
 
 import java.util.EnumSet;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.RestingFlyingGuEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,12 +42,12 @@ public class LandRestGoal extends Goal {
     private static final double TOUCHDOWN_SPEED = 0.1D;
     private static final double TOUCHDOWN_DEPTH = 0.5D;
     private static final int GROUND_SCAN_DEPTH = 64;
-    private static final int REST_TICKS = 160;
+    private static final int REST_TICKS = 8 * Ticks.SECOND;
     private static final int REST_JITTER_TICKS = 41;
     private static final int LOOK_AROUND_ROLL = 80;
     private static final int LOOK_YAW_SPREAD = 181;
     private static final int LOOK_YAW_CENTER = 90;
-    private static final int LANDING_TIMEOUT_TICKS = 600;
+    private static final int LANDING_TIMEOUT_TICKS = 30 * Ticks.SECOND;
     private final RestingFlyingGuEntity gu;
     private Vec3 landingSpot = Vec3.ZERO;
     private int restRemaining;

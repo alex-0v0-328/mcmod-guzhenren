@@ -29,7 +29,7 @@ public final class CmdAwaken {
 
     public static ArgumentBuilder<CommandSourceStack, ?> node() {
         return ModCommandSupport.withTargets(Commands.literal("awaken"),
-                context -> ModCommandSupport.applyIf(context, ModCommandSupport.AWAKENED.negate(),
+                context -> ModCommandSupport.applyIf(context, AwakenedGate.AWAKENED.negate(),
                         ModCommandSupport.FAILED_AWAKENED, CmdAwaken::awaken));
     }
 

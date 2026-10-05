@@ -31,8 +31,10 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 /**
  * The Chinese strings, written as an aligned table beside the English one.
  *
- * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider} for {@code zh_cn}. Every
- * entry takes the registered object or the enum constant, never a raw key string. The value column
+ * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider} for {@code zh_cn}. Items,
+ * blocks, effects, entities and enum constants are added through the registered object or the constant,
+ * never a raw key string; the interface, command and message strings are added by their key. Past 300
+ * lines on purpose: it is a data table, one line per string. The value column
  * aligns per {@code add*()} method to that method's longest key.
  *
  * <p>⚠ These renderings are the authority, not a translation of the English. Deriving either side
@@ -81,6 +83,8 @@ public class ZhCnLanguageProvider extends LanguageProvider {
     private void addDisplayKeys() {
         add("guzhenren.display.realm", "%s%s");
         add("guzhenren.display.realm_title", "%s%s");
+        add("guzhenren.display.detail", " [%s]");
+        add("guzhenren.display.brilliance_rate", "每秒%s个念头");
         add("guzhenren.display.aptitude_line", "%s [%s]");
         add("guzhenren.display.gu_line", "%s%s%s");
         add("guzhenren.display.gu", "蛊虫");
@@ -213,11 +217,8 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         add("guzhenren.command.info.capacity", "肉身承受  %s / %s斤");
         add("guzhenren.command.info.attack", "基础攻击力  %s");
         add("guzhenren.command.info.brilliance", "才情  %s");
-        add("guzhenren.command.info.brilliance_rate", "每秒%s个念头");
         add("guzhenren.command.info.mind", "脑海");
         add("guzhenren.command.info.mind_entry", "  %s  %s / %s");
-
-        add("guzhenren.command.info.detail", " [%s]");
 
         add("guzhenren.command.travel.entered", "已将 %s 送入%s");
         add("guzhenren.command.travel.exited", "已将 %s 送出锚定维度");

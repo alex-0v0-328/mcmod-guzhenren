@@ -50,40 +50,23 @@ public class RefinementMenu extends AbstractContainerMenu {
     public static final int SLOT = 18;
     public static final int GRID_SLOT = 22;
 
-    //region the input -- a 5x5 with its four corners cut away: outer ring [外圈] 12 around inner ring [内圈] 9
-    public static final int GRID_COLS = 5;
-    public static final int GRID_ROWS = 5;
-    public static final int RING_SIZE = 12;
-    public static final int CORE_COLS = 3;
-    public static final int CORE_ROWS = 3;
-    public static final int CORE_SIZE = CORE_COLS * CORE_ROWS;
-    public static final int INPUT_SIZE = RING_SIZE + CORE_SIZE;
-    private static final int[] RING_COLS = { 1, 2, 3, 0, 4, 0, 4, 0, 4, 1, 2, 3 };
-    private static final int[] RING_ROWS = { 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4 };
+    //region the input on screen -- the grid's shape is GuRecipe's; this only places it
     public static final int INPUT_X = 18;
     public static final int INPUT_Y = 28;
 
-    public static int ringX(int index) { return INPUT_X + RING_COLS[index] * GRID_SLOT; }
+    public static int ringX(int index) { return INPUT_X + GuRecipe.ringCol(index) * GRID_SLOT; }
 
-    public static int ringY(int index) { return INPUT_Y + RING_ROWS[index] * GRID_SLOT; }
+    public static int ringY(int index) { return INPUT_Y + GuRecipe.ringRow(index) * GRID_SLOT; }
 
     public static int coreX(int col) { return INPUT_X + (col + 1) * GRID_SLOT; }
 
     public static int coreY(int row) { return INPUT_Y + (row + 1) * GRID_SLOT; }
-
-    public static int slotAt(int row, int col) {
-        for (int i = 0; i < RING_SIZE; i++) {
-            if (RING_ROWS[i] == row && RING_COLS[i] == col) return i;
-        }
-        if (row < 1 || row > CORE_ROWS || col < 1 || col > CORE_COLS) return -1;
-        return RING_SIZE + (row - 1) * CORE_COLS + (col - 1);
-    }
     //endregion
 
     public static final int OUTPUT_COLS = 2;
     public static final int OUTPUT_ROWS = 2;
     public static final int OUTPUT_SIZE = OUTPUT_COLS * OUTPUT_ROWS;
-    public static final int STONE_SLOT = INPUT_SIZE;
+    public static final int STONE_SLOT = GuRecipe.INPUT_SIZE;
     public static final int OUTPUT_START = STONE_SLOT + 1;
     public static final int INVENTORY_START = OUTPUT_START + OUTPUT_SIZE;
     public static final int BUTTON_CRAFT = 0;
@@ -97,7 +80,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     public static final int INVENTORY_X = 52;
     public static final int INVENTORY_Y = 229;
     public static final int HOTBAR_Y = 287;
-    private static final int INVENTORY_COLS = 9;
+    public static final int INVENTORY_COLS = 9;
     private static final int OPENING_PERCENT = 40;
     private static final int DATA_READY = 0;
     private static final int DATA_AFFORD = 1;
@@ -115,7 +98,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     private static final String FAILED_NOT_AWAKENED = "guzhenren.menu.refinement.not_awakened";
     private static final String STOPPED = "guzhenren.menu.refinement.stopped";
     private final Player player;
-    private final SimpleContainer input = new SimpleContainer(INPUT_SIZE);
+    private final SimpleContainer input = new SimpleContainer(GuRecipe.INPUT_SIZE);
     private final SimpleContainer supply = new SimpleContainer(1);
     private final SimpleContainer output = new SimpleContainer(OUTPUT_SIZE);
     private final ContainerData craftData = new SimpleContainerData(DATA_SIZE);
@@ -127,12 +110,13 @@ public class RefinementMenu extends AbstractContainerMenu {
         super(ModMenus.REFINEMENT_MENU.get(), id);
         this.player = inventory.player;
 
-        for (int i = 0; i < RING_SIZE; i++) {
+        for (int i = 0; i < GuRecipe.RING_SIZE; i++) {
             addSlot(new RingSlot(input, i, ringX(i), ringY(i)));
         }
-        for (int row = 0; row < CORE_ROWS; row++) {
-            for (int col = 0; col < CORE_COLS; col++) {
-                addSlot(new CoreSlot(input, RING_SIZE + row * CORE_COLS + col, coreX(col), coreY(row)));
+        for (int row = 0; row < GuRecipe.CORE_ROWS; row++) {
+            for (int col = 0; col < GuRecipe.CORE_COLS; col++) {
+                int index = GuRecipe.RING_SIZE + row * GuRecipe.CORE_COLS + col;
+                addSlot(new CoreSlot(input, index, coreX(col), coreY(row)));
             }
         }
         addSlot(new SupplySlot(supply, 0, STONE_X, STONE_Y));
@@ -231,7 +215,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     private void fill(GuRecipe recipe) {
         for (int n = 0; n < recipe.ingredients().size(); n++) {
             int slot = recipe.slots().get(n);
-            if (slot < 0 || slot >= INPUT_SIZE) continue;
+            if (slot < 0 || slot >= GuRecipe.INPUT_SIZE) continue;
 
             SizedIngredient need = recipe.ingredients().get(n);
             ItemStack held = input.getItem(slot);
@@ -355,7 +339,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         boolean moved = index < INVENTORY_START
                 ? moveItemStackTo(stack, INVENTORY_START, slots.size(), true)
                 : moveItemStackTo(stack, STONE_SLOT, STONE_SLOT + 1, false)
-                || moveItemStackTo(stack, 0, INPUT_SIZE, false);
+                || moveItemStackTo(stack, 0, GuRecipe.INPUT_SIZE, false);
         if (!moved) return ItemStack.EMPTY;
 
         if (stack.isEmpty()) {

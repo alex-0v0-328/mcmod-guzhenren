@@ -6,7 +6,6 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.refinement.RefinementMenu;
-import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
@@ -23,6 +22,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Registers the client-intent payloads and handles each of them on the server. Every payload in this
@@ -47,8 +47,13 @@ public final class ModPayloads {
 
     private static final String VERSION = "1";
 
-    private static boolean inTyh(ServerPlayer player) {
-        return player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
+    private static @Nullable ServerPlayer outsideTyh(IPayloadContext context) {
+        return context.player() instanceof ServerPlayer player
+                && !player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN) ? player : null;
+    }
+
+    private static boolean hasAperture(ServerPlayer player, int index) {
+        return index >= 0 && index < ApertureService.get(player).count();
     }
 
     private static final String STORAGE_TITLE = "guzhenren.menu.aperture_storage";
@@ -72,9 +77,8 @@ public final class ModPayloads {
     }
 
     private static void nourishAperture(NourishAperturePayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) return;
-        if (inTyh(player)) return;
-        if (payload.aperture() < 0 || payload.aperture() >= ApertureService.get(player).count()) return;
+        ServerPlayer player = outsideTyh(context);
+        if (player == null || !hasAperture(player, payload.aperture())) return;
 
         switch (payload.action()) {
             case START -> ApertureNourishService.start(player, payload.aperture());
@@ -83,33 +87,29 @@ public final class ModPayloads {
     }
 
     private static void impactApertureWall(ImpactApertureWallPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) return;
-        if (inTyh(player)) return;
-        ApertureNourishService.impactWall(player);
+        ServerPlayer player = outsideTyh(context);
+        if (player != null) ApertureNourishService.impactWall(player);
     }
 
     private static void dash(DashPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) return;
-        if (inTyh(player)) return;
+        ServerPlayer player = outsideTyh(context);
+        if (player == null) return;
 
         int vertical = payload.vertical();
         int horizontal = payload.horizontal();
         if (vertical < -1 || vertical > 1 || horizontal < -1 || horizontal > 1
-                || (vertical == 0 && horizontal == 0) || !Float.isFinite(payload.yRot())) return;
-        if (player.getMainHandItem().getItem() instanceof MortalGuItem) return;
+                || !Float.isFinite(payload.yRot())) return;
+        if (!DashPayload.canDash(player.getMainHandItem(), vertical, horizontal,
+                player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU), player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
+                player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
         if (ApertureNourishService.isCultivating(player)) return;
-        if (horizontal != 0 && !player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU)
-                && !player.hasEffect(ModEffects.CHARGING_CRASH_GU)) return;
-        if (vertical != 0 && !player.hasEffect(ModEffects.VERTICAL_CRASH_GU)
-                && !player.hasEffect(ModEffects.CHARGING_CRASH_GU)) return;
 
         EpicFightIntegration.dash(player, vertical, payload.yRot());
     }
 
     private static void openRefinement(OpenRefinementPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) return;
-        if (inTyh(player)) return;
-        if (!ApertureService.isAwakened(player)) return;
+        ServerPlayer player = outsideTyh(context);
+        if (player == null || !ApertureService.isAwakened(player)) return;
 
         player.openMenu(new SimpleMenuProvider(
                 (id, inventory, p) -> new RefinementMenu(id, inventory),
@@ -117,21 +117,17 @@ public final class ModPayloads {
     }
 
     private static void setSecondaryPath(SetSecondaryPathPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) return;
-        if (inTyh(player)) return;
-
+        ServerPlayer player = outsideTyh(context);
         int aperture = payload.aperture();
-        if (aperture < 0 || aperture >= ApertureService.get(player).count()) return;
+        if (player == null || !hasAperture(player, aperture)) return;
 
         ApertureService.setSecondaryPath(player, aperture, payload.path());
     }
 
     private static void openStorage(OpenApertureStoragePayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) return;
-        if (inTyh(player)) return;
-
+        ServerPlayer player = outsideTyh(context);
         int aperture = payload.aperture();
-        if (aperture < 0 || aperture >= ApertureService.get(player).count()) return;
+        if (player == null || !hasAperture(player, aperture)) return;
 
         player.openMenu(new SimpleMenuProvider(
                 (id, inventory, p) -> new ApertureStorageMenu(id, inventory, aperture, 0),

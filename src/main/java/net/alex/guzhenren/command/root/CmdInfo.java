@@ -1,4 +1,4 @@
-package net.alex.guzhenren.command;
+package net.alex.guzhenren.command.root;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -6,6 +6,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import java.util.List;
 import java.util.function.Function;
+import net.alex.guzhenren.command.ModCommandFeedback;
+import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
@@ -25,6 +27,9 @@ import net.minecraft.server.level.ServerPlayer;
  *
  * <p>⚠ The target list hangs off each section, so the bare command means the sender and a name after
  * it means that player. Lifting the target a level up would change what the bare form does.
+ *
+ * <p>{@code line} is one exhaustive switch over the sealed {@code InfoModel.Entry}, past 40 lines on
+ * purpose: a new row does not compile until it has its line here and in the panel.
  *
  * @author Alex
  * @version 1.0.0
@@ -72,7 +77,7 @@ public final class CmdInfo {
             case InfoModel.Blank ignored -> Component.empty();
             case InfoModel.Realm e -> key("realm", ModDisplayText.realmTitle(e.aperture()));
             case InfoModel.Status e -> key("aperture_status", enumName(e.status().getTranslationKey()));
-            case InfoModel.Talent e -> talent(e);
+            case InfoModel.TalentRow e -> talent(e);
             case InfoModel.Essence e -> key("essence", e.aperture().currentEssence(), e.aperture().maxEssence());
             case InfoModel.Distilled e -> key("distilled", e.aperture().distilledEssence(),
                     e.aperture().maxEssence());
@@ -103,16 +108,17 @@ public final class CmdInfo {
                     key("wisdom_path_achieve_entry", enumName(e.tag().getTranslationKey()), e.amount());
 
             case InfoModel.BrillianceRow e -> key("brilliance", enumName(e.brilliance().getTranslationKey()))
-                    .append(muted(key("brilliance_rate", e.brilliance().getThoughtsPerSecond())));
+                    .append(muted(Component.translatable("guzhenren.display.brilliance_rate",
+                            e.brilliance().getThoughtsPerSecond())));
             case InfoModel.MindHeader ignored -> key("mind");
             case InfoModel.MindRow e -> key("mind_entry", enumName(e.type().getTranslationKey()),
                     e.pool().current(), e.pool().max());
         };
     }
 
-    private static MutableComponent talent(InfoModel.Talent e) {
-        MutableComponent talent = ModDisplayText.talent(e.aperture());
-        if (e.awakened()) talent.append(muted(ModDisplayText.baseFraction(e.aperture().baseEssence())));
+    private static MutableComponent talent(InfoModel.TalentRow event) {
+        MutableComponent talent = ModDisplayText.talent(event.aperture());
+        if (event.awakened()) talent.append(muted(ModDisplayText.baseFraction(event.aperture().baseEssence())));
         return key("talent", talent);
     }
 
@@ -128,6 +134,6 @@ public final class CmdInfo {
     private static MutableComponent none() { return Component.translatable("guzhenren.display.none"); }
 
     private static MutableComponent muted(Object value) {
-        return Component.translatable(PREFIX + "detail", value).withStyle(ChatFormatting.DARK_GRAY);
+        return Component.translatable("guzhenren.display.detail", value).withStyle(ChatFormatting.DARK_GRAY);
     }
 }

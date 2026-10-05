@@ -9,12 +9,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * A bear, one entity type per {@link BearSpecies}.
@@ -45,7 +39,6 @@ public final class BearEntity extends BeastEntity {
     private static final double FOLLOW_RANGE_BLOCKS = 16.0D;
     private static final double MOVEMENT_SPEED = 0.25D;
 
-    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final BearSpecies species;
 
     public BearEntity(EntityType<? extends BearEntity> type, Level level, BearSpecies species) {
@@ -121,8 +114,8 @@ public final class BearEntity extends BeastEntity {
 
     @Override
     protected void tickHeavyAttack(long ticks) {
-        if (ticks >= REAR_HIT_TICK && !this.heavyHit) {
-            this.heavyHit = true;
+        if (ticks >= REAR_HIT_TICK && !this.hitSettled) {
+            this.hitSettled = true;
             LivingEntity target = this.actionTarget;
             if (target != null && this.canAttackTarget(target) && this.distanceTo(target) <= REAR_REACH
                     && this.hasLineOfSight(target)) {
@@ -137,6 +130,9 @@ public final class BearEntity extends BeastEntity {
         if (roll < 0.5D) return Action.SIT;
         return roll < 0.75D ? Action.ROLL : Action.BACK_SCRATCH;
     }
+
+    @Override
+    protected String heavyAttackAnimation() { return "animation.attack_rear"; }
 
     @Override
     protected SoundEvent roarSound() { return SoundEvents.POLAR_BEAR_WARNING; }
@@ -157,39 +153,4 @@ public final class BearEntity extends BeastEntity {
 
     @Override
     protected SoundEvent getDeathSound() { return SoundEvents.POLAR_BEAR_DEATH; }
-
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new BeastAnimationController<>(this, this::animationState,
-                this::action, this::actionTicks, this::actionSequence));
-    }
-
-    private PlayState animationState(AnimationState<BearEntity> state) {
-        return switch (this.action()) {
-            case SIT -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.sit"));
-            case LIE_DOWN -> state.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.lie_down"));
-            case LIE -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.lie"));
-            case SLEEP -> state.setAndContinue(RawAnimation.begin().thenLoop("animation.sleep"));
-            case GET_UP -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.get_up"));
-            case ROLL -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.roll"));
-            case BACK_SCRATCH -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.back_scratch"));
-            case ROAR -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.roar"));
-            case ATTACK_SWIPE -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.attack_swipe"));
-            case ATTACK_HEAVY -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.attack_rear"));
-            case HURT_LEFT -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.hurt_left"));
-            case HURT_RIGHT -> state.setAndContinue(RawAnimation.begin().thenPlay("animation.hurt_right"));
-            case DEATH -> state.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.death"));
-            case IDLE -> {
-                if (!state.isMoving()) yield state.setAndContinue(RawAnimation.begin().thenLoop("animation.idle"));
-                yield state.setAndContinue(this.pursuing()
-                        ? RawAnimation.begin().thenLoop("animation.run")
-                        : RawAnimation.begin().thenLoop("animation.walk"));
-            }
-        };
-    }
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.cache;
-    }
 }

@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
-import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -24,8 +23,8 @@ import net.minecraft.util.StringRepresentable;
 /**
  * The shared pieces every subcommand is built from: target resolution, gating, and feedback. Provides
  * the {@code withTargets} wrapper hanging {@code [targets]} off a literal, the {@code apply}/{@code
- * applyIf} runners iterating per target, the {@code sourceAwakened} predicate used by {@code
- * requires()}, and {@code refreshCommands} re-sending the command tree after a gate flip; also the
+ * applyIf} runners iterating per target (one loop, in {@code applyIfResult}), and {@code refreshCommands}
+ * re-sending the command tree after a gate flip; also the
  * shared verb builders ({@code enumSetNode}, {@code longNode}, {@code counter}, {@code enumCounter}).
  *
  * <p>{@code enumCounter} is the set/add/sub triple behind one enum argument; the amount is read as
@@ -51,12 +50,6 @@ public final class ModCommandSupport {
     public static final String FAILED_UNAWAKENED = "guzhenren.command.failed.unawakened";
     public static final String FAILED_EXTREME = "guzhenren.command.failed.extreme_physique_required";
     public static final Predicate<ServerPlayer> ANYONE = player -> true;
-    public static final Predicate<ServerPlayer> AWAKENED = ApertureService::isAwakened;
-
-    public static boolean sourceAwakened(CommandSourceStack source) {
-        return !(source.getEntity() instanceof ServerPlayer player) || ApertureService.isAwakened(player);
-    }
-
     public static void refreshCommands(ServerPlayer player) {
         MinecraftServer server = player.getServer();
         if (server != null) server.getCommands().sendCommands(player);
@@ -128,33 +121,12 @@ public final class ModCommandSupport {
         return applyIf(context, ANYONE, null, operation);
     }
 
-    public static int applyOnAwakened(CommandContext<CommandSourceStack> context, PlayerOperation operation)
-            throws CommandSyntaxException {
-        return applyIf(context, AWAKENED, FAILED_UNAWAKENED, operation);
-    }
-
     public static int applyIf(CommandContext<CommandSourceStack> context, Predicate<ServerPlayer> allowed,
                               String refusedKey, PlayerOperation operation) throws CommandSyntaxException {
-        CommandSourceStack source = context.getSource();
-        List<ServerPlayer> refused = new ArrayList<>();
-        int updated = 0;
-
-        for (ServerPlayer player : targets(context)) {
-            if (!allowed.test(player)) {
-                refused.add(player);
-                continue;
-            }
+        return applyIfResult(context, allowed, refusedKey, player -> {
             operation.apply(player);
-            updated++;
-        }
-
-        if (!refused.isEmpty()) {
-            ModCommandFeedback.failure(source, Component.translatable(refusedKey, names(refused)));
-        }
-        if (updated > 0) {
-            ModCommandFeedback.success(source, Component.translatable("guzhenren.command.updated", updated));
-        }
-        return updated;
+            return true;
+        });
     }
 
     public static int applyIfResult(CommandContext<CommandSourceStack> context, Predicate<ServerPlayer> allowed,

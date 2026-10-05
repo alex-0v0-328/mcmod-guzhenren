@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import java.util.function.Predicate;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
+import net.alex.guzhenren.gameplay.aperture.AwakenedGate;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,7 +47,7 @@ public final class CmdBody {
                         player -> true, null))
                 .then(Commands.literal("extreme")
                         .then(enumAction("set", ExtremePhysique.settable(), BodyService::setExtremePhysique,
-                                value -> true, ModCommandSupport.AWAKENED,
+                                value -> true, AwakenedGate.AWAKENED,
                                 ModCommandSupport.FAILED_UNAWAKENED)));
     }
 

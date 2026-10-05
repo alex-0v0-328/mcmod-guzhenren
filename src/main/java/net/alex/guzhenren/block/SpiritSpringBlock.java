@@ -1,6 +1,7 @@
 package net.alex.guzhenren.block;
 
 import java.util.List;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SpiritSpringBlock extends LiquidBlock {
 
-    public static final int PRODUCTION_INTERVAL_TICKS = 100;
+    public static final int PRODUCTION_INTERVAL_TICKS = 5 * Ticks.SECOND;
     public static final int STONES_PER_PRODUCTION = 64;
     public static final double NEARBY_STONES_CAP_RADIUS = 4.0;
     public static final int NEARBY_STONES_CAP = STONES_PER_PRODUCTION;

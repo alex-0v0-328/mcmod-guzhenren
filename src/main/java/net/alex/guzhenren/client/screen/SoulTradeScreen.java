@@ -62,41 +62,42 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     }
 
     @Override
-    protected void renderBg(@NotNull GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+    protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = this.leftPos;
         int y = this.topPos;
-        g.fill(x, y, x + this.imageWidth, y + this.imageHeight, ModPalette.PANEL_FILL);
-        g.renderOutline(x, y, this.imageWidth, this.imageHeight, ModPalette.BORDER);
+        graphics.fill(x, y, x + this.imageWidth, y + this.imageHeight, ModPalette.PANEL_FILL);
+        graphics.renderOutline(x, y, this.imageWidth, this.imageHeight, ModPalette.BORDER);
 
         List<SoulTradeOffer> offers = this.menu.offers();
         for (int i = 0; i < offers.size(); i++) {
             int rowY = y + rowY(i);
-            g.fill(x + ROW_X, rowY, x + ROW_X + ROW_W, rowY + ROW_FILL_H, ROW_FILL);
-            drawButton(g, x + BUTTON_X, rowY + ICON_PAD, this.affordable(offers.get(i)),
+            graphics.fill(x + ROW_X, rowY, x + ROW_X + ROW_W, rowY + ROW_FILL_H, ROW_FILL);
+            drawButton(graphics, x + BUTTON_X, rowY + ICON_PAD, this.affordable(offers.get(i)),
                     this.inButton(i, mouseX, mouseY));
         }
         int inventoryY = y + SoulTradeMenu.inventoryY(offers.size());
         int hotbarY = y + SoulTradeMenu.hotbarY(offers.size());
-        for (int col = 0; col < 9; col++) {
+        for (int col = 0; col < SoulTradeMenu.INVENTORY_COLS; col++) {
             int cellX = x + SoulTradeMenu.INVENTORY_X + col * SoulTradeMenu.SLOT;
-            for (int row = 0; row < 3; row++) {
+            for (int row = 0; row < SoulTradeMenu.INVENTORY_ROWS; row++) {
                 int cellY = inventoryY + row * SoulTradeMenu.SLOT;
-                g.fill(cellX, cellY, cellX + CELL, cellY + CELL, ModPalette.SLOT_FILL);
+                graphics.fill(cellX, cellY, cellX + CELL, cellY + CELL, ModPalette.SLOT_FILL);
             }
-            g.fill(cellX, hotbarY, cellX + CELL, hotbarY + CELL, ModPalette.SLOT_FILL);
+            graphics.fill(cellX, hotbarY, cellX + CELL, hotbarY + CELL, ModPalette.SLOT_FILL);
         }
     }
 
-    private static void drawButton(GuiGraphics g, int x, int y, boolean affordable, boolean hover) {
+    private static void drawButton(GuiGraphics graphics, int x, int y, boolean affordable, boolean hover) {
         int fill = hover ? ModPalette.BUTTON_HOVER : affordable ? ModPalette.BUTTON_IDLE : ModPalette.BUTTON_DEAD;
-        g.fill(x, y, x + BUTTON_W, y + BUTTON_H, fill);
-        g.renderOutline(x, y, BUTTON_W, BUTTON_H, affordable ? ModPalette.BORDER : SHORT_OUTLINE);
+        graphics.fill(x, y, x + BUTTON_W, y + BUTTON_H, fill);
+        graphics.renderOutline(x, y, BUTTON_W, BUTTON_H, affordable ? ModPalette.BORDER : SHORT_OUTLINE);
     }
 
     @Override
-    protected void renderLabels(@NotNull GuiGraphics g, int mouseX, int mouseY) {
-        g.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, ModPalette.TREASURE_YELLOW_HEAVEN, false);
-        g.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY,
+    protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY,
+                ModPalette.TREASURE_YELLOW_HEAVEN, false);
+        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY,
                 ModPalette.TEXT, false);
 
         List<ItemStack> bag = this.bag();
@@ -108,53 +109,53 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
             for (int n = 0; n < costs.size(); n++) {
                 ItemCost cost = costs.get(n);
                 int iconX = COST_X + n * COST_STRIDE;
-                g.renderFakeItem(cost.itemStack(), iconX, iconY);
+                graphics.renderFakeItem(cost.itemStack(), iconX, iconY);
                 boolean enough = SoulTradeOffer.held(bag, cost) >= cost.count();
-                drawCount(g, iconX, iconY, cost.count(), enough ? ModPalette.TEXT : SHORT_RED);
+                drawCount(graphics, iconX, iconY, cost.count(), enough ? ModPalette.TEXT : SHORT_RED);
             }
-            g.drawString(this.font, ARROW, ARROW_X, iconY + 4, ModPalette.TEXT, false);
+            graphics.drawString(this.font, ARROW, ARROW_X, iconY + 4, ModPalette.TEXT, false);
 
             ItemStack result = offer.result();
-            g.renderFakeItem(result, RESULT_X, iconY);
-            drawCount(g, RESULT_X, iconY, result.getCount(), ModPalette.TEXT);
+            graphics.renderFakeItem(result, RESULT_X, iconY);
+            drawCount(graphics, RESULT_X, iconY, result.getCount(), ModPalette.TEXT);
 
             Component label = Component.translatable(TRADE_KEY);
             int labelColour = offer.affordable(bag) ? ModPalette.TEXT : SHORT_RED;
-            g.drawString(this.font, label, BUTTON_X + (BUTTON_W - this.font.width(label)) / 2, iconY + 4,
+            graphics.drawString(this.font, label, BUTTON_X + (BUTTON_W - this.font.width(label)) / 2, iconY + 4,
                     labelColour, false);
         }
     }
 
-    private void drawCount(GuiGraphics g, int x, int y, int count, int colour) {
+    private void drawCount(GuiGraphics graphics, int x, int y, int count, int colour) {
         if (count <= 1) return;
 
         String text = String.valueOf(count);
-        g.pose().pushPose();
-        g.pose().translate(0.0F, 0.0F, COUNT_Z);
-        g.drawString(this.font, text, x + COUNT_RIGHT - this.font.width(text), y + COUNT_TOP, colour, true);
-        g.pose().popPose();
+        graphics.pose().pushPose();
+        graphics.pose().translate(0.0F, 0.0F, COUNT_Z);
+        graphics.drawString(this.font, text, x + COUNT_RIGHT - this.font.width(text), y + COUNT_TOP, colour, true);
+        graphics.pose().popPose();
     }
 
     @Override
-    public void render(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        super.render(g, mouseX, mouseY, partialTick);
-        if (this.menu.getCarried().isEmpty()) this.renderOfferTooltip(g, mouseX, mouseY);
-        this.renderTooltip(g, mouseX, mouseY);
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+        if (this.menu.getCarried().isEmpty()) this.renderOfferTooltip(graphics, mouseX, mouseY);
+        this.renderTooltip(graphics, mouseX, mouseY);
     }
 
-    private void renderOfferTooltip(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderOfferTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         List<SoulTradeOffer> offers = this.menu.offers();
         for (int i = 0; i < offers.size(); i++) {
             int iconY = this.topPos + rowY(i) + ICON_PAD;
             List<ItemCost> costs = offers.get(i).costs();
             for (int n = 0; n < costs.size(); n++) {
                 if (this.over(this.leftPos + COST_X + n * COST_STRIDE, iconY, mouseX, mouseY)) {
-                    g.renderTooltip(this.font, costs.get(n).itemStack(), mouseX, mouseY);
+                    graphics.renderTooltip(this.font, costs.get(n).itemStack(), mouseX, mouseY);
                     return;
                 }
             }
             if (this.over(this.leftPos + RESULT_X, iconY, mouseX, mouseY)) {
-                g.renderTooltip(this.font, offers.get(i).result(), mouseX, mouseY);
+                graphics.renderTooltip(this.font, offers.get(i).result(), mouseX, mouseY);
                 return;
             }
         }

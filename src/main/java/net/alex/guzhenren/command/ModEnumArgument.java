@@ -28,7 +28,7 @@ import net.minecraft.util.StringRepresentable;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.command.ModCommand
+ * @see net.alex.guzhenren.command.root.ModCommand
  * @since 1.0.0
  */
 

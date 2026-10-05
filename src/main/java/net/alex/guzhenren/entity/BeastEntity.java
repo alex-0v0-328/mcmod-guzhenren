@@ -1,111 +1,67 @@
 package net.alex.guzhenren.entity;
 
 import java.util.EnumSet;
+import java.util.List;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.Mth;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * Server-authoritative action state machine shared by the big beast entities (bears, tigers).
+ * The big beasts (bears, tigers): the {@link ActionEntity} state machine with a swipe and a heavy attack, a
+ * first-lock roar, directional hurt poses and the night-sleep / daytime-rest ambient chain.
  *
- * <p>Mirrors {@link WildBoarEntity}'s contract: every pose is a synchronized {@link Action} with a
- * server game-time start and a monotonic sequence, so late trackers replay one-shot actions from
- * their first frame. {@link #action} exposes the current one, including one-shot actions for late
- * trackers; {@link #actionTicks} is the elapsed server game ticks since that start; and
- * {@link #actionSequence} is the monotonic sequence used to distinguish repeated actions of one
- * type. Damage lands on animation hit frames, never on contact. Subclasses supply the timing
- * constants, the attack selection and the heavy-attack physics; this base supplies target
- * validation, directional hurt poses, the roar-on-first-lock rule, the night-sleep / daytime-rest
- * ambient chain, death timing and persistence.
+ * <p>Subclasses supply the timing constants: {@link #swipeHitTick} is the tick at which the swipe's hit frame
+ * lands; {@link #swipeActionTicks} the tick at which the swipe ends; {@link #roarActionTicks} the length of the
+ * first-lock roar; {@link #lieDownActionTicks} the lie-down transition into lie/sleep; {@link #getUpActionTicks}
+ * the get-up transition back to idle. The attack: {@link #swipeDamage} and {@link #heavyDamage} are the flat
+ * damage before armor; {@link #swipeKnockback} and {@link #swipeUpward} the swipe's knockback;
+ * {@link #tickHeavyAttack} advances the heavy attack, hit frames and movement physics included.
+ * {@link #huntsActively} says whether the beast seeks targets on its own or only retaliates;
+ * {@link #pickDaytimeAmbient} picks the daytime ambient action, with relative weights;
+ * {@link #cullExtraHeight} and {@link #cullHorizontalInflate} extend the render culling box so rearing poses
+ * and tail sweeps are not clipped; {@link #heavyAttackAnimation} names the heavy attack's animation.
  *
- * <p>The timing constants: {@link #swipeHitTick} is the tick at which the swipe's hit frame lands;
- * {@link #swipeActionTicks} the tick at which the swipe action ends and the pose returns to idle;
- * {@link #roarActionTicks} the length of the first-lock roar; {@link #lieDownActionTicks} the length
- * of the lie-down transition into lie/sleep; {@link #getUpActionTicks} the length of the get-up
- * transition back to idle; and {@link #deathRemoveTick} the death-tick at which the corpse is
- * removed, covering the full death animation. The attack selection: {@link #chooseAttack} selects
- * and starts an attack against the current target, called while idle; {@link #swipeDamage} and
- * {@link #heavyDamage} are the flat damage, before armor; {@link #swipeKnockback} and
- * {@link #swipeUpward} are the swipe's horizontal and upward knockback. The heavy-attack physics:
- * {@link #tickHeavyAttack} advances the heavy attack, with hit frames and movement physics living
- * there; {@link #heavyKeepsMomentum} says whether the heavy attack keeps its horizontal momentum at
- * a given tick (pounce flight) -- false by default. {@link #huntsActively} says whether the beast
- * seeks targets on its own or only retaliates; {@link #pursuitSpeed} is the movement-speed
- * multiplier applied to the pursuit navigation; {@link #pickDaytimeAmbient} picks the daytime
- * ambient action this beast may take, with relative weights. {@link #cullExtraHeight} and
- * {@link #cullHorizontalInflate} extend the render culling box (extra height, and symmetric
- * horizontal inflation) so rearing poses and tail sweeps are not clipped.
+ * <p>{@link HuntGoal} is registered unconditionally: {@code registerGoals} runs inside the {@code Mob}
+ * constructor, before subclass fields like the bear species are assigned, so the temperament check happens
+ * at tick time. A beast that becomes engaged in an ambient pose is snapped straight out of it without a
+ * get-up transition.
  *
- * <p>{@link #startAction} starts a server action: attacks refuse to start while another attack is
- * in progress or under cooldown, and the target is captured immediately so a new attacker cannot
- * redirect an in-progress attack.
+ * <p>In {@link #setTarget}, the first lock of an engagement is announced by the roar; it never interrupts a
+ * running action. In {@link #reactToHurt}, a running hurt pose is never restarted: it outlasts vanilla's
+ * 10-tick damage window, so restarting it would let steady hits stun-lock the beast out of every attack.
+ * {@link #directionalHurt} picks the hurt pose from the attacker's bearing: an attacker on this beast's left
+ * side knocks the head to the beast's right, playing {@code hurt_right}, and vice versa.
  *
- * <p>In {@link #registerGoals}, {@link HuntGoal} is registered unconditionally: {@code registerGoals}
- * runs inside the {@code Mob} constructor, before subclass fields like the bear species are
- * assigned, so the temperament check must happen at tick time.
+ * <p>{@link #rollAmbient} picks and starts an ambient action after a completed wander; nothing happens on a
+ * miss. In {@link HuntGoal#canUse}, any awake, non-combat pose notices prey -- including sitting, lying,
+ * rolling and scratching; only actual sleep, the get-up transition and ongoing combat skip hunting.
+ * {@link RestGoal} holds navigation still while the beast sits, lies, sleeps, rolls or scratches.
  *
- * <p>In {@link #customServerAiStep}, a beast that becomes engaged while in an ambient pose is
- * snapped straight out of it without a get-up transition. In {@link #tickAction}, {@code DEATH} and
- * {@code IDLE} are both no-ops there: death is advanced by {@code tickDeath} and remains
- * synchronized until removal.
- *
- * <p>In {@link #validateTarget}, a completed hit still needs its recovery pose, even when that hit
- * killed the target.
- *
- * <p>{@link #sweptHit} is the shared swept-body hit test for lunging attacks (tiger pounce).
- * {@link #canStartLunge} is the collision-and-ground scan ahead of a lunging attack; it refuses
- * walls and ledges.
- *
- * <p>In {@link #setTarget}, the first lock of an engagement is announced by the roar; it never
- * interrupts a running action. In {@link #hurt}, a running hurt pose is never restarted: it
- * outlasts vanilla's 10-tick damage window, so restarting it would let steady hits stun-lock the
- * beast out of every attack. {@link #directionalHurt} picks the hurt pose from the attacker's
- * bearing: an attacker on this beast's left side knocks the head to the beast's right, playing
- * {@code hurt_right}, and vice versa.
- *
- * <p>{@link #rollAmbient} picks and starts an ambient action after a completed wander; nothing
- * happens on a miss.
- *
- * <p>{@link HuntGoal} is the active target search for hunting species: the nearest valid player or
- * prey animal. In {@link HuntGoal#canUse}, any awake, non-combat pose notices prey -- including
- * sitting, lying, rolling and scratching; only actual sleep, the get-up transition and ongoing
- * combat skip hunting. {@link RestGoal} holds navigation still while the beast sits, lies, sleeps,
- * rolls or scratches.
- *
- * <p>{@link Action} is the set of synchronized poses: the ordinal is the wire id, and subclasses
- * map the poses onto their animation set. {@link Action#isAmbient} marks the rest poses
- * (sit/lie/sleep/roll/scratch) that combat engagement interrupts.
+ * <p>Past 300 lines on purpose: the fourteen poses, their animations, the ambient chain and the two
+ * beast-only goals belong to this layer.
  */
 
-public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
+public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
     public static final int SWIPE_COOLDOWN_TICKS = 20;
     public static final int HEAVY_COOLDOWN_TICKS = 80;
-    public static final int ATTACK_RECOVERY_TICKS = 10;
     public static final int HURT_ACTION_TICKS = 11;
-    public static final int SIGHT_LOSS_TICKS = 100;
     public static final int SIT_ACTION_TICKS = 160;
     public static final int LIE_ACTION_TICKS = 80;
     public static final int ROLL_ACTION_TICKS = 74;
@@ -113,31 +69,25 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
     public static final double SWIPE_REACH = 2.5D;
     private static final double AMBIENT_REST_CHANCE = 0.35D;
     private static final double NIGHT_LIE_DOWN_CHANCE = 0.5D;
+    private static final int NIGHT_START_TICK = 13000;
+    private static final int NIGHT_END_TICK = 23000;
+    private static final Action[] ACTIONS = Action.values();
 
-    private static final EntityDataAccessor<Byte> DATA_ACTION = SynchedEntityData.defineId(
-            BeastEntity.class, EntityDataSerializers.BYTE);
-    private static final EntityDataAccessor<Long> DATA_ACTION_START = SynchedEntityData.defineId(
-            BeastEntity.class, EntityDataSerializers.LONG);
-    private static final EntityDataAccessor<Integer> DATA_ACTION_SEQUENCE = SynchedEntityData.defineId(
-            BeastEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_SWIPE_COOLDOWN = SynchedEntityData.defineId(
             BeastEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_HEAVY_COOLDOWN = SynchedEntityData.defineId(
             BeastEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> DATA_PURSUING = SynchedEntityData.defineId(
-            BeastEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final Cooldown SWIPE = new Cooldown(DATA_SWIPE_COOLDOWN, SWIPE_COOLDOWN_TICKS, "BeastSwipeCooldown");
+    private static final Cooldown HEAVY = new Cooldown(DATA_HEAVY_COOLDOWN, HEAVY_COOLDOWN_TICKS, "BeastHeavyCooldown");
+    private static final List<Cooldown> COOLDOWNS = List.of(SWIPE, HEAVY);
 
-    @Nullable
-    protected LivingEntity actionTarget;
-    protected boolean heavyHit;
-    private int lostSightTicks;
-    private int recoveryTicks;
     private long ambientEndGameTime = Long.MIN_VALUE;
 
-    protected BeastEntity(net.minecraft.world.entity.EntityType<? extends BeastEntity> type, Level level) {
+    protected BeastEntity(EntityType<? extends BeastEntity> type, Level level) {
         super(type, level);
     }
 
+    //region subclass hooks
     protected abstract int swipeHitTick();
 
     protected abstract int swipeActionTicks();
@@ -148,23 +98,17 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
 
     protected abstract int getUpActionTicks();
 
-    protected abstract int deathRemoveTick();
-
     protected abstract float swipeDamage();
 
     protected abstract float heavyDamage();
 
+    protected abstract double swipeKnockback();
+
+    protected abstract double swipeUpward();
+
     protected abstract boolean huntsActively();
 
-    protected abstract double pursuitSpeed();
-
-    protected abstract void chooseAttack(LivingEntity target);
-
     protected abstract void tickHeavyAttack(long ticks);
-
-    protected boolean heavyKeepsMomentum(long ticks) {
-        return false;
-    }
 
     protected abstract Action pickDaytimeAmbient(double roll);
 
@@ -172,148 +116,85 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
 
     protected abstract float roarPitch();
 
+    protected abstract SoundEvent stepSound();
+
     protected abstract double cullExtraHeight();
 
     protected abstract double cullHorizontalInflate();
 
+    protected abstract String heavyAttackAnimation();
+    //endregion
+
+    //region action set
     @Override
-    protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new CombatGoal(this));
-        this.goalSelector.addGoal(2, new HuntGoal(this));
-        this.goalSelector.addGoal(4, new RestGoal(this));
-        this.goalSelector.addGoal(6, new WanderGoal(this));
-        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-    }
+    protected Action[] actionValues() { return ACTIONS; }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(DATA_ACTION, Action.IDLE.id());
-        builder.define(DATA_ACTION_START, 0L);
-        builder.define(DATA_ACTION_SEQUENCE, 0);
-        builder.define(DATA_SWIPE_COOLDOWN, 0);
-        builder.define(DATA_HEAVY_COOLDOWN, 0);
-        builder.define(DATA_PURSUING, false);
-    }
+    protected Action idleAction() { return Action.IDLE; }
 
-    public Action action() {
-        return Action.fromId(this.entityData.get(DATA_ACTION));
-    }
+    @Override
+    protected Action alertAction() { return Action.ROAR; }
 
-    public long actionTicks() {
-        if (this.action() == Action.IDLE) return 0L;
-        long elapsed = this.level().getGameTime() - this.entityData.get(DATA_ACTION_START);
-        return Math.max(0L, elapsed);
-    }
+    @Override
+    protected Action deathAction() { return Action.DEATH; }
 
-    public int actionSequence() {
-        return this.entityData.get(DATA_ACTION_SEQUENCE);
-    }
+    @Override
+    protected List<Cooldown> cooldowns() { return COOLDOWNS; }
+
+    @Override
+    protected Cooldown cooldownOf(Action attack) { return attack == Action.ATTACK_SWIPE ? SWIPE : HEAVY; }
+
+    @Override
+    protected String recoverySaveKey() { return "BeastRecoveryTicks"; }
 
     public int swipeCooldown() {
-        return this.entityData.get(DATA_SWIPE_COOLDOWN);
+        return this.cooldown(SWIPE);
     }
 
     public int heavyCooldown() {
-        return this.entityData.get(DATA_HEAVY_COOLDOWN);
+        return this.cooldown(HEAVY);
     }
+    //endregion
 
-    public boolean pursuing() {
-        return this.entityData.get(DATA_PURSUING);
-    }
-
-    public boolean startAction(Action next) {
-        if (this.level().isClientSide() || next == null || this.isDeadOrDying() || this.action().isAttack()) {
-            return false;
-        }
-        if (next.isAttack() && (this.recoveryTicks > 0 || !this.canAttackTarget(this.getTarget())
-                || next == Action.ATTACK_SWIPE && this.swipeCooldown() > 0
-                || next == Action.ATTACK_HEAVY && this.heavyCooldown() > 0)) return false;
-        return this.startActionInternal(next, true);
-    }
-
-    private boolean startActionInternal(Action next, boolean applyCooldown) {
-        if (next == Action.IDLE && this.action() == Action.IDLE) return false;
-        if (next.isAttack()) {
-            LivingEntity target = this.getTarget();
-            this.actionTarget = target;
-            this.heavyHit = false;
-            if (target != null) this.faceDirection(this.directionTo(target));
-            if (applyCooldown) {
-                if (next == Action.ATTACK_SWIPE) this.setSwipeCooldown(SWIPE_COOLDOWN_TICKS);
-                else this.setHeavyCooldown(HEAVY_COOLDOWN_TICKS);
-            }
-        } else if (next != Action.ROAR) {
-            this.actionTarget = null;
-        }
-        if (next == Action.ROAR) this.playSound(this.roarSound(), 1.0F, this.roarPitch());
-        this.ambientEndGameTime = next == Action.SIT
-                ? this.level().getGameTime() + SIT_ACTION_TICKS : Long.MIN_VALUE;
-        this.entityData.set(DATA_ACTION, next.id());
-        this.entityData.set(DATA_ACTION_START, this.level().getGameTime());
-        this.entityData.set(DATA_ACTION_SEQUENCE, this.actionSequence() + 1);
-        this.getNavigation().stop();
-        return true;
-    }
-
-    protected void finishAction() {
-        Action current = this.action();
-        if (current != Action.IDLE && current != Action.DEATH) {
-            this.recoveryTicks = current.isAttack() ? ATTACK_RECOVERY_TICKS : 0;
-            this.actionTarget = null;
-            this.ambientEndGameTime = Long.MIN_VALUE;
-            this.entityData.set(DATA_ACTION, Action.IDLE.id());
-            this.entityData.set(DATA_ACTION_START, this.level().getGameTime());
-            this.entityData.set(DATA_ACTION_SEQUENCE, this.actionSequence() + 1);
-        }
-    }
-
-    private void setActionWithoutTarget(Action next) {
-        this.actionTarget = null;
-        this.ambientEndGameTime = Long.MIN_VALUE;
-        this.entityData.set(DATA_ACTION, next.id());
-        this.entityData.set(DATA_ACTION_START, this.level().getGameTime());
-        this.entityData.set(DATA_ACTION_SEQUENCE, this.actionSequence() + 1);
-        this.getNavigation().stop();
+    @Override
+    protected void registerSpeciesGoals() {
+        this.goalSelector.addGoal(2, new HuntGoal(this));
+        this.goalSelector.addGoal(4, new RestGoal(this));
     }
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
-        if (this.isDeadOrDying()) return;
-        this.tickCooldowns();
-        this.validateTarget();
-        this.entityData.set(DATA_PURSUING, this.getTarget() != null);
-        Action current = this.action();
-        if (this.getTarget() != null && current.isAmbient()) {
-            this.finishAction();
-            current = this.action();
-        }
-        if (current != Action.IDLE) {
-            this.tickAction(current);
-        } else if (this.recoveryTicks == 0 && this.getTarget() != null) {
-            LivingEntity target = this.getTarget();
-            if (this.canAttackTarget(target)) this.chooseAttack(target);
-        }
+    protected void onBeginAction(Action next) {
+        if (next.isAttack() && this.actionTarget != null) this.faceDirection(this.directionTo(this.actionTarget));
+        if (next == Action.ROAR) this.playSound(this.roarSound(), 1.0F, this.roarPitch());
+        this.ambientEndGameTime = next == Action.SIT
+                ? this.level().getGameTime() + SIT_ACTION_TICKS : Long.MIN_VALUE;
     }
 
-    private void tickAction(Action current) {
-        long ticks = this.actionTicks();
-        if (!this.heavyKeepsMomentum(ticks)) {
-            this.stopInPlace();
-            this.setZza(0.0F);
-            Vec3 velocity = this.getDeltaMovement();
-            this.setDeltaMovement(0.0D, velocity.y, 0.0D);
-        }
+    @Override
+    protected void onActionCleared() {
+        this.ambientEndGameTime = Long.MIN_VALUE;
+    }
+
+    @Override
+    protected boolean facesTargetInAction() {
+        return this.action() == Action.ROAR;
+    }
+
+    //region action timing
+    @Override
+    protected void tickAction(Action current, long ticks) {
+        if (current.isAmbient()) this.tickAmbientAction(current, ticks);
+        else this.tickCombatAction(current, ticks);
+    }
+
+    private void tickCombatAction(Action current, long ticks) {
         switch (current) {
             case ROAR -> {
                 if (ticks >= this.roarActionTicks()) this.finishAction();
             }
             case ATTACK_SWIPE -> {
-                if (ticks >= this.swipeHitTick() && !this.heavyHit) {
-                    this.heavyHit = true;
+                if (ticks >= this.swipeHitTick() && !this.hitSettled) {
+                    this.hitSettled = true;
                     this.performSwipe();
                 }
                 if (ticks >= this.swipeActionTicks()) this.finishAction();
@@ -322,23 +203,27 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
             case HURT_LEFT, HURT_RIGHT -> {
                 if (ticks >= HURT_ACTION_TICKS) this.finishAction();
             }
+            default -> {}
+        }
+    }
+
+    private void tickAmbientAction(Action current, long ticks) {
+        switch (current) {
             case SIT -> {
                 if (this.level().getGameTime() >= this.ambientEndGameTime) this.finishAction();
             }
             case LIE_DOWN -> {
                 if (ticks >= this.lieDownActionTicks()) {
-                    this.setActionWithoutTarget(Action.LIE);
+                    this.switchAction(Action.LIE);
                     this.ambientEndGameTime = this.level().getGameTime() + LIE_ACTION_TICKS;
                 }
             }
             case LIE -> {
-                if (!this.isNightTime()) this.startActionInternal(Action.GET_UP, false);
-                else if (this.level().getGameTime() >= this.ambientEndGameTime) {
-                    this.setActionWithoutTarget(Action.SLEEP);
-                }
+                if (!this.isNightTime()) this.beginAction(Action.GET_UP, false);
+                else if (this.level().getGameTime() >= this.ambientEndGameTime) this.switchAction(Action.SLEEP);
             }
             case SLEEP -> {
-                if (!this.isNightTime()) this.startActionInternal(Action.GET_UP, false);
+                if (!this.isNightTime()) this.beginAction(Action.GET_UP, false);
             }
             case GET_UP -> {
                 if (ticks >= this.getUpActionTicks()) this.finishAction();
@@ -349,7 +234,7 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
             case BACK_SCRATCH -> {
                 if (ticks >= BACK_SCRATCH_ACTION_TICKS) this.finishAction();
             }
-            case DEATH, IDLE -> {}
+            default -> {}
         }
     }
 
@@ -361,155 +246,31 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
                 this.directionOrFacing(target));
     }
 
-    protected abstract double swipeKnockback();
-
-    protected abstract double swipeUpward();
-
-    protected boolean sweptHit(LivingEntity target, Vec3 from, Vec3 to) {
-        AABB targetBox = target.getBoundingBox();
-        double halfWidth = this.getBbWidth() * 0.5D;
-        AABB contact = new AABB(targetBox.minX - halfWidth, targetBox.minY - this.getBbHeight(),
-                targetBox.minZ - halfWidth, targetBox.maxX + halfWidth, targetBox.maxY,
-                targetBox.maxZ + halfWidth);
-        return this.hasLineOfSight(target) && (contact.contains(from) || contact.contains(to)
-                || contact.clip(from, to).isPresent());
-    }
-
-    protected void applyAttack(LivingEntity target, float damage, double horizontalStrength,
-                               double upward, Vec3 direction) {
-        Vec3 oldMovement = target.getDeltaMovement();
-        if (!target.hurt(this.damageSources().mobAttack(this), damage)) return;
-        double resistance = target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
-        double scale = Mth.clamp(1.0D - resistance, 0.0D, 1.0D);
-        target.setDeltaMovement(direction.x * horizontalStrength * scale,
-                oldMovement.y + upward * scale, direction.z * horizontalStrength * scale);
-        target.hasImpulse = true;
-        target.hurtMarked = true;
-    }
-
-    private void tickCooldowns() {
-        if (this.swipeCooldown() > 0) this.entityData.set(DATA_SWIPE_COOLDOWN, this.swipeCooldown() - 1);
-        if (this.heavyCooldown() > 0) this.entityData.set(DATA_HEAVY_COOLDOWN, this.heavyCooldown() - 1);
-        if (this.recoveryTicks > 0) this.recoveryTicks--;
-    }
-
-    private void setSwipeCooldown(int ticks) {
-        this.entityData.set(DATA_SWIPE_COOLDOWN, Mth.clamp(ticks, 0, SWIPE_COOLDOWN_TICKS));
-    }
-
-    private void setHeavyCooldown(int ticks) {
-        this.entityData.set(DATA_HEAVY_COOLDOWN, Mth.clamp(ticks, 0, HEAVY_COOLDOWN_TICKS));
-    }
-
-    private void validateTarget() {
-        LivingEntity target = this.getTarget();
-        if (target == null) {
-            this.lostSightTicks = 0;
-            if (this.action() == Action.ROAR || (this.action().isAttack() && !this.heavyHit)) this.finishAction();
-            return;
-        }
-        if (!this.canAttackTarget(target)) {
-            this.setTarget(null);
-            this.lostSightTicks = 0;
-            if (this.action() == Action.ROAR || (this.action().isAttack() && !this.heavyHit)) this.finishAction();
-            return;
-        }
-        if (this.hasLineOfSight(target)) {
-            this.lostSightTicks = 0;
-        } else if (++this.lostSightTicks >= SIGHT_LOSS_TICKS) {
-            this.setTarget(null);
-            this.lostSightTicks = 0;
-            if (this.action() == Action.ROAR || (this.action().isAttack() && !this.heavyHit)) this.finishAction();
-        }
-    }
-
-    protected boolean canAttackTarget(@Nullable LivingEntity target) {
-        if (target == null || target == this || target.isRemoved() || !target.isAlive() || !target.isAttackable()) {
-            return false;
-        }
-        double range = this.getAttributeValue(Attributes.FOLLOW_RANGE);
-        if (target.level() != this.level() || this.isAlliedTo(target)
-                || this.distanceToSqr(target) > range * range) return false;
-        return !(target instanceof Player player
-                && (player.isSpectator() || player.isCreative() || this.level().getDifficulty() == Difficulty.PEACEFUL));
-    }
-
-    protected boolean canStartLunge(LivingEntity target, double maxDistance) {
-        if (!this.canAttackTarget(target) || !this.onGround() || !this.hasLineOfSight(target)) return false;
-        Vec3 direction = this.directionTo(target);
-        double distance = Math.min(maxDistance, this.distanceTo(target));
-        for (double step = 0.3D; step <= distance; step += 0.3D) {
-            Vec3 offset = direction.scale(step);
-            if (!this.level().noCollision(this, this.getBoundingBox().move(offset))
-                    || !this.hasGroundAhead(this.position().add(offset))) return false;
-        }
-        return true;
-    }
-
-    protected boolean hasGroundAhead(Vec3 position) {
-        double radius = this.getBbWidth() * 0.45D;
-        for (double x : new double[] { -radius, radius }) {
-            for (double z : new double[] { -radius, radius }) {
-                net.minecraft.core.BlockPos below = net.minecraft.core.BlockPos.containing(
-                        position.x + x, position.y - 0.15D, position.z + z);
-                if (!this.level().loadedAndEntityCanStandOn(below, this)) return false;
-            }
-        }
-        return true;
-    }
-
-    protected Vec3 directionTo(@Nullable Entity target) {
-        if (target == null) return Vec3.ZERO;
-        Vec3 delta = target.position().subtract(this.position());
-        Vec3 horizontal = new Vec3(delta.x, 0.0D, delta.z);
-        return horizontal.lengthSqr() < 1.0E-8D ? Vec3.ZERO : horizontal.normalize();
-    }
-
-    protected Vec3 directionOrFacing(@Nullable Entity target) {
-        Vec3 direction = this.directionTo(target);
-        if (direction.lengthSqr() > 0.0D) return direction;
-        float radians = this.getYRot() * ((float)Math.PI / 180.0F);
-        return new Vec3(-Mth.sin(radians), 0.0D, Mth.cos(radians));
-    }
-
-    protected void faceDirection(Vec3 direction) {
-        if (direction.lengthSqr() == 0.0D) return;
-        float yaw = (float)(Mth.atan2(direction.z, direction.x) * 180.0D / Math.PI) - 90.0F;
-        this.setYRot(yaw);
-        this.setYHeadRot(yaw);
-        this.setYBodyRot(yaw);
-    }
-
     private boolean isNightTime() {
-        long dayTime = this.level().getDayTime() % 24000L;
-        return dayTime >= 13000L && dayTime <= 23000L;
+        long dayTime = this.level().getDayTime() % Ticks.DAY;
+        return dayTime >= NIGHT_START_TICK && dayTime <= NIGHT_END_TICK;
     }
+    //endregion
 
+    //region engagement
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         LivingEntity previous = this.getTarget();
         super.setTarget(target);
         if (target != null && previous == null && !this.level().isClientSide() && !this.isDeadOrDying()
                 && (this.action() == Action.IDLE || this.action().isAmbient())) {
-            this.setActionWithoutTarget(Action.ROAR);
+            this.switchAction(Action.ROAR);
         }
     }
 
     @Override
-    public boolean hurt(net.minecraft.world.damagesource.@NotNull DamageSource source, float amount) {
-        boolean accepted = super.hurt(source, amount);
-        if (!accepted || this.level().isClientSide() || this.isDeadOrDying()) return accepted;
-        LivingEntity attacker = resolveAttacker(source);
-        if (this.canAttackTarget(attacker)) {
-            this.setTarget(attacker);
-            this.lostSightTicks = 0;
-        }
+    protected void reactToHurt(@Nullable LivingEntity attacker) {
+        if (attacker != null && this.canAttackTarget(attacker)) this.lockTarget(attacker);
         Action current = this.action();
         if (!current.isAttack() && current != Action.DEATH && current != Action.ROAR
                 && current != Action.HURT_LEFT && current != Action.HURT_RIGHT) {
-            this.setActionWithoutTarget(this.directionalHurt(attacker));
+            this.switchAction(this.directionalHurt(attacker));
         }
-        return true;
     }
 
     private Action directionalHurt(@Nullable Entity attacker) {
@@ -521,89 +282,24 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
         double leftness = dx * Math.cos(radians) + dz * Math.sin(radians);
         return leftness > 0.0D ? Action.HURT_RIGHT : Action.HURT_LEFT;
     }
+    //endregion
 
-    @Nullable
-    private LivingEntity resolveAttacker(net.minecraft.world.damagesource.DamageSource source) {
-        Entity sourceEntity = source.getEntity();
-        Entity direct = source.getDirectEntity();
-        if (direct instanceof Projectile projectile && projectile.getOwner() instanceof LivingEntity owner) {
-            return owner;
+    @Override
+    protected void onWanderComplete() {
+        this.rollAmbient();
+    }
+
+    private void rollAmbient() {
+        if (!this.isIdle() || this.getTarget() != null || this.isDeadOrDying() || !this.onGround()) return;
+        if (this.isNightTime()) {
+            if (this.random.nextDouble() < NIGHT_LIE_DOWN_CHANCE) this.beginAction(Action.LIE_DOWN, false);
+            return;
         }
-        if (sourceEntity instanceof LivingEntity living) return living;
-        return direct instanceof LivingEntity living ? living : null;
-    }
-
-    @Override
-    public boolean doHurtTarget(@NotNull Entity target) {
-        return false;
-    }
-
-    @Override
-    public void die(net.minecraft.world.damagesource.@NotNull DamageSource source) {
-        boolean wasDead = this.dead;
-        super.die(source);
-        if (this.dead && !wasDead) {
-            this.setTarget(null);
-            this.actionTarget = null;
-            this.recoveryTicks = 0;
-            this.setDeltaMovement(Vec3.ZERO);
-            this.getNavigation().stop();
-            this.entityData.set(DATA_ACTION, Action.DEATH.id());
-            this.entityData.set(DATA_ACTION_START, this.level().getGameTime());
-            this.entityData.set(DATA_ACTION_SEQUENCE, this.actionSequence() + 1);
-        }
-    }
-
-    @Override
-    protected void tickDeath() {
-        this.deathTime++;
-        this.setDeltaMovement(Vec3.ZERO);
-        if (this.deathTime >= this.deathRemoveTick() && !this.level().isClientSide() && !this.isRemoved()) {
-            this.level().broadcastEntityEvent(this, (byte)60);
-            this.remove(Entity.RemovalReason.KILLED);
-        }
-    }
-
-    @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putInt("BeastSwipeCooldown", this.swipeCooldown());
-        tag.putInt("BeastHeavyCooldown", this.heavyCooldown());
-        tag.putInt("BeastRecoveryTicks", this.recoveryTicks);
-    }
-
-    @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        this.setTarget(null);
-        this.actionTarget = null;
-        this.heavyHit = false;
-        this.lostSightTicks = 0;
-        this.recoveryTicks = 0;
-        this.ambientEndGameTime = Long.MIN_VALUE;
-        this.setDeltaMovement(Vec3.ZERO);
-        this.getNavigation().stop();
-        this.entityData.set(DATA_ACTION, Action.IDLE.id());
-        this.entityData.set(DATA_ACTION_START, this.level().getGameTime());
-        this.entityData.set(DATA_ACTION_SEQUENCE, this.actionSequence() + 1);
-        this.setSwipeCooldown(Mth.clamp(tag.getInt("BeastSwipeCooldown"), 0, SWIPE_COOLDOWN_TICKS));
-        this.setHeavyCooldown(Mth.clamp(tag.getInt("BeastHeavyCooldown"), 0, HEAVY_COOLDOWN_TICKS));
-        this.recoveryTicks = Mth.clamp(tag.getInt("BeastRecoveryTicks"), 0, ATTACK_RECOVERY_TICKS);
-        this.entityData.set(DATA_PURSUING, false);
-        if (this.getHealth() <= 0.0F) {
-            this.entityData.set(DATA_ACTION, Action.DEATH.id());
-            this.entityData.set(DATA_ACTION_START, this.level().getGameTime() - this.deathTime);
-        }
-    }
-
-    @Override
-    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
-        return false;
-    }
-
-    @Override
-    protected int getBaseExperienceReward() {
-        return 1 + this.random.nextInt(3);
+        double roll = this.random.nextDouble();
+        if (roll >= AMBIENT_REST_CHANCE) return;
+        Action pick = this.pickDaytimeAmbient(roll / AMBIENT_REST_CHANCE);
+        if (pick == null) return;
+        this.beginAction(pick, false);
     }
 
     @Override
@@ -613,60 +309,32 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
-    protected void playStepSound(net.minecraft.core.@NotNull BlockPos pos,
-                                 net.minecraft.world.level.block.state.@NotNull BlockState block) {
+    protected void playStepSound(@NotNull BlockPos pos, @NotNull BlockState block) {
         this.playSound(this.stepSound(), 0.15F, 1.0F);
     }
 
-    protected abstract SoundEvent stepSound();
+    @Override
+    protected String animationPrefix() { return "animation."; }
 
-    private void rollAmbient() {
-        if (this.action() != Action.IDLE || this.getTarget() != null || this.isDeadOrDying() || !this.onGround()) {
-            return;
-        }
-        if (this.isNightTime()) {
-            if (this.random.nextDouble() < NIGHT_LIE_DOWN_CHANCE) this.startActionInternal(Action.LIE_DOWN, false);
-            return;
-        }
-        double roll = this.random.nextDouble();
-        if (roll >= AMBIENT_REST_CHANCE) return;
-        Action pick = this.pickDaytimeAmbient(roll / AMBIENT_REST_CHANCE);
-        if (pick == null) return;
-        this.startActionInternal(pick, false);
-    }
-
-    private static final class CombatGoal extends Goal {
-
-        private final BeastEntity beast;
-
-        private CombatGoal(BeastEntity beast) {
-            this.beast = beast;
-            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-        }
-
-        @Override
-        public boolean canUse() {
-            return this.beast.getTarget() != null || !this.beast.action().loops();
-        }
-
-        @Override
-        public boolean requiresUpdateEveryTick() {
-            return true;
-        }
-
-        @Override
-        public void tick() {
-            LivingEntity target = this.beast.getTarget();
-            if (this.beast.action() == Action.IDLE && target != null) {
-                this.beast.getLookControl().setLookAt(target, 30.0F, 30.0F);
-                this.beast.getNavigation().moveTo(target, this.beast.pursuitSpeed());
-            } else {
-                this.beast.getNavigation().stop();
-                if (target != null && this.beast.action() == Action.ROAR) {
-                    this.beast.faceDirection(this.beast.directionTo(target));
-                }
-            }
-        }
+    @Override
+    protected RawAnimation actionAnimation(Action action) {
+        RawAnimation clip = RawAnimation.begin();
+        return switch (action) {
+            case IDLE -> clip.thenLoop("animation.idle");
+            case SIT -> clip.thenLoop("animation.sit");
+            case LIE_DOWN -> clip.thenPlayAndHold("animation.lie_down");
+            case LIE -> clip.thenLoop("animation.lie");
+            case SLEEP -> clip.thenLoop("animation.sleep");
+            case GET_UP -> clip.thenPlay("animation.get_up");
+            case ROLL -> clip.thenPlay("animation.roll");
+            case BACK_SCRATCH -> clip.thenPlay("animation.back_scratch");
+            case ROAR -> clip.thenPlay("animation.roar");
+            case ATTACK_SWIPE -> clip.thenPlay("animation.attack_swipe");
+            case ATTACK_HEAVY -> clip.thenPlay(this.heavyAttackAnimation());
+            case HURT_LEFT -> clip.thenPlay("animation.hurt_left");
+            case HURT_RIGHT -> clip.thenPlay("animation.hurt_right");
+            case DEATH -> clip.thenPlayAndHold("animation.death");
+        };
     }
 
     private static final class HuntGoal extends Goal {
@@ -737,35 +405,8 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
-    private static final class WanderGoal extends WaterAvoidingRandomStrollGoal {
-
-        private final BeastEntity beast;
-
-        private WanderGoal(BeastEntity beast) {
-            super(beast, 1.0D);
-            this.beast = beast;
-        }
-
-        @Override
-        public boolean canUse() {
-            return this.beast.action() == Action.IDLE && this.beast.getTarget() == null && super.canUse();
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.beast.action() == Action.IDLE && this.beast.getTarget() == null
-                    && super.canContinueToUse();
-        }
-
-        @Override
-        public void stop() {
-            boolean completed = !this.beast.getNavigation().isInProgress();
-            super.stop();
-            if (completed) this.beast.rollAmbient();
-        }
-    }
-
-    public enum Action {
+    /** The synchronized poses; {@link #isAmbient} marks the rest poses that combat engagement interrupts. */
+    public enum Action implements ActionEntity.ActionFlags {
 
         IDLE(true, false, false),
         SIT(true, false, true),
@@ -792,17 +433,13 @@ public abstract class BeastEntity extends PathfinderMob implements GeoEntity {
             this.ambient = ambient;
         }
 
+        @Override
         public boolean loops() { return this.loop; }
 
+        @Override
         public boolean isAttack() { return this.attack; }
 
+        @Override
         public boolean isAmbient() { return this.ambient; }
-
-        private byte id() { return (byte)this.ordinal(); }
-
-        private static Action fromId(byte id) {
-            Action[] actions = values();
-            return id >= 0 && id < actions.length ? actions[id] : IDLE;
-        }
     }
 }

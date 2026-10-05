@@ -59,8 +59,8 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 public final class EpicFightIntegration {
 
     private static final ResourceLocation STAMINA_MODIFIER = Guzhenren.id("epic_fight_stamina");
-    private static AnimationManager.AnimationAccessor<DodgeAnimation> DASH_FORWARD;
-    private static AnimationManager.AnimationAccessor<DodgeAnimation> DASH_BACKWARD;
+    private static AnimationManager.AnimationAccessor<DodgeAnimation> dashForward;
+    private static AnimationManager.AnimationAccessor<DodgeAnimation> dashBackward;
 
     private EpicFightIntegration() {}
 
@@ -72,10 +72,10 @@ public final class EpicFightIntegration {
 
     public static void onAnimationRegistry(AnimationManager.AnimationRegistryEvent event) {
         event.newBuilder(Guzhenren.MOD_ID, builder -> {
-            DASH_FORWARD = builder.nextAccessor("biped/skill/dash_forward", accessor ->
+            dashForward = builder.nextAccessor("biped/skill/dash_forward", accessor ->
                     new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED)
                             .setResourceLocation("epicfight", "biped/skill/step_forward"));
-            DASH_BACKWARD = builder.nextAccessor("biped/skill/dash_backward", accessor ->
+            dashBackward = builder.nextAccessor("biped/skill/dash_backward", accessor ->
                     new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED)
                             .setResourceLocation("epicfight", "biped/skill/step_backward"));
         });
@@ -87,7 +87,7 @@ public final class EpicFightIntegration {
         if (!EpicFightSkills.STEP.get().isExecutableState(patch)) return;
 
         AnimationManager.AnimationAccessor<DodgeAnimation> animation = vertical < 0
-                ? DASH_BACKWARD : DASH_FORWARD;
+                ? dashBackward : dashForward;
         if (animation == null) return;
         patch.playAnimationSynchronized(animation, 0.0F);
         patch.setModelYRot(yRot, true);

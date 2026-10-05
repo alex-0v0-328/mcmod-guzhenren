@@ -61,6 +61,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)
 public final class RingConeEmitter {
 
+    private static final double MIN_DIRECTION_LENGTH_SQR = 1.0E-6D;
     private static final int DASH_MAX_RINGS = 8;
     private static final int DASH_MAX_TICKS = 25;
     private static final int DASH_IDLE_LIMIT = 3;
@@ -76,13 +77,13 @@ public final class RingConeEmitter {
 
     public static void dashCone(ServerPlayer player, Vec3 motionDirection) {
         if (DASH_BURSTS.containsKey(player.getUUID())) return;
-        if (motionDirection.lengthSqr() < 1.0E-6D) return;
+        if (motionDirection.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
         DASH_BURSTS.put(player.getUUID(), new DashBurst(motionDirection.normalize(),
                 DASH_MAX_TICKS, player.position(), 0.0D, DASH_MAX_RINGS, 0));
     }
 
     public static void punchCone(ServerPlayer player, Vec3 look, Vec3 strikePoint) {
-        if (look.lengthSqr() < 1.0E-6D) return;
+        if (look.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
         PUNCH_BURSTS.put(player.getUUID(), new PunchBurst(look.normalize(), PUNCH_MAX_RINGS, strikePoint));
     }
 

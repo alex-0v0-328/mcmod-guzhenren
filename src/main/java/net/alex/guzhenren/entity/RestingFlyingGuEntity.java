@@ -12,6 +12,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * A flying Gu [飞行蛊] with a shared flight, landing and rest lifecycle.
@@ -20,6 +24,9 @@ import org.jetbrains.annotations.NotNull;
  * client can select the correct steady animation after spawning, tracking or loading an entity. The
  * server triggers the concrete entity's one-shot transition animation when a phase transition needs
  * one; a newly tracked or loaded client only selects the synchronized steady state.
+ *
+ * <p>The GeckoLib side is shared too: one {@code main} controller, the idle, fly, lift and land
+ * animations, and the lift and land triggers fired on take-off and landing.
  *
  * <p>{@link #takeOff}: only a resting Gu has closed its wing cases; an aborted landing is still in
  * the flight pose.
@@ -33,7 +40,15 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public abstract class RestingFlyingGuEntity extends FlyingGuEntity {
+public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements GeoEntity {
+
+    protected static final String MAIN = "main";
+    protected static final int TRANSITION_TICKS = 5;
+    protected static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("animation.idle");
+    protected static final RawAnimation FLY_ANIM = RawAnimation.begin().thenLoop("animation.fly");
+    protected static final RawAnimation LIFT_ANIM = RawAnimation.begin().thenPlay("animation.lift");
+    protected static final RawAnimation LAND_ANIM = RawAnimation.begin().thenPlay("animation.land");
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public static final double FLEE_RANGE = 6.0D;
     public static final double ESCAPE_RANGE = 10.0D;
@@ -112,9 +127,12 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity {
         entityData.set(DATA_WANTS_TO_LAND, wantsToLand);
     }
 
-    protected abstract void playLandingAnimation();
+    protected void playLandingAnimation() { triggerAnim(MAIN, "land"); }
 
-    protected abstract void playTakeoffAnimation();
+    protected void playTakeoffAnimation() { triggerAnim(MAIN, "lift"); }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }
 
     public enum FlightPhase {
 

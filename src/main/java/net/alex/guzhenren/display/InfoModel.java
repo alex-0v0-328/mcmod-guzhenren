@@ -73,7 +73,7 @@ public final class InfoModel {
 
     public record Status(ApertureStatus status) implements Entry {}
 
-    public record Talent(Aperture aperture, boolean awakened) implements Entry {}
+    public record TalentRow(Aperture aperture, boolean awakened) implements Entry {}
 
     public record Essence(Aperture aperture) implements Entry {}
 
@@ -151,7 +151,7 @@ public final class InfoModel {
     private static void apertureBlock(List<Row> rows, Aperture aperture, boolean awakened, int indent,
                                       int index, boolean pressure, boolean extreme, ApertureStatus status) {
         rows.add(new Row(indent, new Realm(aperture)));
-        rows.add(new Row(indent, new Talent(aperture, awakened)));
+        rows.add(new Row(indent, new TalentRow(aperture, awakened)));
         if (awakened) {
             rows.add(new Row(indent, new Status(status)));
             rows.add(new Row(indent, new Essence(aperture)));

@@ -1,7 +1,7 @@
 package net.alex.guzhenren.client;
 
 /**
- * The one palette of the client surfaces: the six domain accent colors and the chrome that several
+ * The one palette of the client surfaces: the seven domain accent colors and the chrome that several
  * screens and HUDs mean by the same name. A color belongs here only when two or more surfaces share
  * it; a single surface's own look stays a local constant.
  *

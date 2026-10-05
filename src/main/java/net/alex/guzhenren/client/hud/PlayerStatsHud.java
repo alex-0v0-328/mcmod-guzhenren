@@ -67,19 +67,7 @@ public final class PlayerStatsHud implements LayeredDraw.Layer {
         line(graphics, font, y, ModDisplayText.hudHeader(aperture, body));
         y += TEXT_HEIGHT + ROW_GAP;
 
-        if (ApertureService.hasAperture(player)) {
-            for (int i = 0; i < data.count(); i++) {
-                Aperture pool = data.get(i);
-                bar(graphics, font, y, pool.currentEssence(), pool.maxEssence(), ModPalette.APERTURE);
-                y += BAR_HEIGHT + ROW_GAP;
-
-                if (pool.distilledEssence() > 0L) {
-                    bar(graphics, font, y, pool.distilledEssence(), pool.maxEssence(),
-                            ModPalette.DISTILLED_FILL);
-                    y += BAR_HEIGHT + ROW_GAP;
-                }
-            }
-        }
+        if (ApertureService.hasAperture(player)) y = essenceBars(graphics, font, y, data);
 
         bar(graphics, font, y, soul.currentSoul(), soul.maxSoul(), ModPalette.SOUL);
         y += BAR_HEIGHT + GROUP_GAP;
@@ -87,14 +75,29 @@ public final class PlayerStatsHud implements LayeredDraw.Layer {
         line(graphics, font, y, Component.translatable("guzhenren.hud.lifespan", ModDisplayText.hudLifespan(body)));
         y += TEXT_HEIGHT + ROW_GAP;
 
-        if (BodyService.isExtreme(player)) {
-            Component pressure = aperture.pressure() == Aperture.PRESSURE_COUNTDOWN_START
-                    && aperture.pressureDeadlineTick() > 0L
-                    ? Component.translatable("guzhenren.hud.aperture_pressure_cd", aperture.pressure(),
-                    ModDisplayText.countdown(AperturePressureService.getRemainingTicks(player)))
-                    : Component.translatable("guzhenren.hud.aperture_pressure", aperture.pressure());
-            line(graphics, font, y, pressure);
+        if (BodyService.isExtreme(player)) line(graphics, font, y, pressure(player, aperture));
+    }
+
+    private static int essenceBars(GuiGraphics graphics, Font font, int top, ApertureData data) {
+        int y = top;
+        for (int i = 0; i < data.count(); i++) {
+            Aperture pool = data.get(i);
+            bar(graphics, font, y, pool.currentEssence(), pool.maxEssence(), ModPalette.APERTURE);
+            y += BAR_HEIGHT + ROW_GAP;
+
+            if (pool.distilledEssence() > 0L) {
+                bar(graphics, font, y, pool.distilledEssence(), pool.maxEssence(), ModPalette.DISTILLED_FILL);
+                y += BAR_HEIGHT + ROW_GAP;
+            }
         }
+        return y;
+    }
+
+    private static Component pressure(LocalPlayer player, Aperture aperture) {
+        return aperture.pressure() == Aperture.PRESSURE_COUNTDOWN_START && aperture.pressureDeadlineTick() > 0L
+                ? Component.translatable("guzhenren.hud.aperture_pressure_cd", aperture.pressure(),
+                ModDisplayText.countdown(AperturePressureService.getRemainingTicks(player)))
+                : Component.translatable("guzhenren.hud.aperture_pressure", aperture.pressure());
     }
 
     private static void line(GuiGraphics graphics, Font font, int y, Component text) {

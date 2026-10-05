@@ -37,7 +37,7 @@ public final class CmdAperture {
 
     public static ArgumentBuilder<CommandSourceStack, ?> node() {
         LiteralArgumentBuilder<CommandSourceStack> root =
-                Commands.literal("aperture").requires(ModCommandSupport::sourceAwakened);
+                Commands.literal("aperture").requires(AwakenedGate::sourceAwakened);
         ArgumentBuilder<CommandSourceStack, ?> indexed = Commands.argument(ARG_APERTURE,
                 IntegerArgumentType.integer(1, ApertureData.MAX_APERTURES));
 
@@ -81,7 +81,7 @@ public final class CmdAperture {
                                 (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
                                         ApertureService.aperture(player, index).distilledEssence() - value))))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
-                        context -> ModCommandSupport.applyOnAwakened(context, ApertureEssenceService::refill)));
+                        context -> AwakenedGate.applyOnAwakened(context, ApertureEssenceService::refill)));
     }
 
     //region builders
@@ -98,7 +98,7 @@ public final class CmdAperture {
         String refused = index == ApertureData.PRIMARY
                 ? ModCommandSupport.FAILED_UNAWAKENED : FAILED_INDEX;
         return ModCommandSupport.applyIf(context,
-                ModCommandSupport.AWAKENED.and(player -> index < ApertureService.get(player).count()),
+                AwakenedGate.AWAKENED.and(player -> index < ApertureService.get(player).count()),
                 refused, player -> operation.apply(player, index));
     }
 
@@ -175,7 +175,7 @@ public final class CmdAperture {
                             ? ModCommandSupport.FAILED_EXTREME
                             : FAILED_INDEX;
                     return ModCommandSupport.applyIfResult(context,
-                            ModCommandSupport.AWAKENED.and(player -> index < ApertureService.get(player).count()),
+                            AwakenedGate.AWAKENED.and(player -> index < ApertureService.get(player).count()),
                             refused,
                             player -> ApertureService.setBaseEssence(player, index, value));
                 }));

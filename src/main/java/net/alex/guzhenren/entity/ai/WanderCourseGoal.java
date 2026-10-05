@@ -1,5 +1,6 @@
 package net.alex.guzhenren.entity.ai;
 
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.RestingFlyingGuEntity;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.phys.Vec3;
@@ -19,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 public class WanderCourseGoal extends WaterAvoidingRandomFlyingGoal {
 
     private static final double SPEED_MODIFIER = 1.0D;
-    private static final int RECOURSE_TICKS = 100;
+    private static final int RECOURSE_TICKS = 5 * Ticks.SECOND;
     private static final int LANDING_ROLL_SIDES = 10;
     private final RestingFlyingGuEntity gu;
     private int courseTicks;
