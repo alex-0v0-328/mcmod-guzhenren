@@ -4,7 +4,7 @@ package net.alex.guzhenren.particle;
  * The even-spacing accumulator behind the planted dash trail: how far into this tick's movement
  * segment the next rings drop. Distance-based rather than tick-based because the server-side dodge
  * movement arrives in uneven chunks (Epic Fight locks movement and lets the animation drive it),
- * so a per-tick drop clusters the rings at the start and end of the path (Alex, 2026-09-20);
+ * so a per-tick drop clusters the rings at the start and end of the path;
  * spacing by measured travel keeps the trail uniform across windups, jumps and wall truncations.
  * {@link #SPACING} is the distance between two neighboring rings on the dash path, in blocks.
  *

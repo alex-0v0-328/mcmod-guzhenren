@@ -16,8 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Vital Gu [本命蛊] that died while their owner was offline, waiting for the owner's next login (Alex,
- * 2026-09-24). An offline player's attachments cannot be written, so the lost stack waits here, in the
+ * Vital Gu [本命蛊] that died while their owner was offline, waiting for the owner's next login. An
+ * offline player's attachments cannot be written, so the lost stack waits here, in the
  * overworld's data storage, until {@link VitalLossService} charges it
  * through the same penalty an online owner pays.
  *

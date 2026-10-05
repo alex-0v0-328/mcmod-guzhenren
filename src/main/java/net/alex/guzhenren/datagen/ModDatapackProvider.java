@@ -29,7 +29,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  *
  * <p>Extends {@link net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider}. Builds damage
  * types and the wild-spawn biome modifiers in one {@code RegistrySetBuilder}; the dimensions and the
- * Spirit Spring [元泉] worldgen belong to the sibling mod Gu World (the spring's since 2026-10-02). The
+ * Spirit Spring [元泉] worldgen belong to the sibling mod Gu World. The
  * tag providers take {@code getRegistryProvider()} from this instance, not the plain lookup, so the tag
  * pass sees the types this run generates.
  *

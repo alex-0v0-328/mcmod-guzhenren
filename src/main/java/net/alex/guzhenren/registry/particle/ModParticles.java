@@ -16,7 +16,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * {@code textures/particle/} as Alex's hand-drawn finals.
  *
  * <p>{@link #SHOCKWAVE_RING} is the dash trail: rings listed small-to-large, each blooming in place
- * where it was dropped along the dash path (planted, Alex 2026-09-20), hidden from the dashing
+ * where it was dropped along the dash path (planted), hidden from the dashing
  * player's own first-person camera -- the trail is for third-person and bystanders.
  * {@link #IMPACT_RING} is the punch trail: the same rings listed small-to-large, planted along the
  * punch ray from the strike point behind the target.

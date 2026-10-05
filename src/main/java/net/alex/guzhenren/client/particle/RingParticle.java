@@ -41,7 +41,7 @@ import org.joml.Vector3f;
  * {@link #facingMotion(SpriteSet)} or {@link #dashTrail(SpriteSet)}.
  *
  * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
- * trail is for third-person and bystanders (Alex, 2026-09-20). {@link #noteLocalDash(int)} arms
+ * trail is for third-person and bystanders. {@link #noteLocalDash(int)} arms
  * {@link #DASH_SELF_HIDE_TICKS} -- the burst length plus one ring life including its linger -- and
  * {@code ownDashHiddenNow} bounds both ends of the window, because a world change resets the client
  * player's tickCount.
@@ -61,8 +61,7 @@ import org.joml.Vector3f;
  *
  * <p>{@link #render} emits two quads with opposite winding (8 vertices), so the ring shows from both sides
  * without touching the global cull state; {@code QUADS} groups vertices four by four, and corner UVs stay
- * pinned to their corners on the reversed side. Its history (the 2026-09-19 sinking and invisible rings,
- * the first-dash crash) is in the wiki's 《激波环与粒子》.
+ * pinned to their corners on the reversed side.
  *
  * @author Alex
  * @version 1.0.0

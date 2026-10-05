@@ -15,10 +15,10 @@ import org.joml.Vector3f;
  * half-span multiplier for a frame drawn on a canvas that wide). A direction shorter than
  * {@link #MIN_DIRECTION_LENGTH} is treated as "no direction" and falls back to GROUND.
  *
- * <p>{@link #MIN_OPENING_DEGREES} is the minimum opening toward the camera, in degrees (Alex,
- * 2026-09-19): a ring perpendicular to a motion that runs sideways across the view is perfectly
+ * <p>{@link #MIN_OPENING_DEGREES} is the minimum opening toward the camera, in degrees: a ring
+ * perpendicular to a motion that runs sideways across the view is perfectly
  * edge-on and invisible, so the normal is tilted toward the camera enough to keep the arc legible.
- * 5° was the first try -- at that angle the big early frames of a sideways dash render as a
+ * At 5° the big early frames of a sideways dash render as a
  * 0.19-block sliver and the trail reads small-to-large; 30° keeps the largest frame ~1.1 blocks
  * wide even edge-on. Rings already facing the viewer (punch, forward dash) sit far above the
  * threshold and are never touched.

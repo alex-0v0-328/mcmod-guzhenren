@@ -14,20 +14,19 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * The server-side cone trail behind the shockwave ring [激波环] (Alex, 2026-09-20 planted-trail
- * spec): each ring blooms in place from smallest to largest where it was born.
+ * The server-side cone trail behind the shockwave ring [激波环]: each ring blooms in place
+ * from smallest to largest where it was born.
  *
  * <p>{@link #dashCone} plants the dash trail along the path, one ring every
  * {@link RingTrailSpacing#SPACING} blocks of ACTUAL travel -- the server-side dodge movement
  * arrives in uneven chunks (Epic Fight locks movement and lets the animation drive it), so a
- * per-tick drop clusters the rings at the start and end of the path (Alex, 2026-09-20), while
+ * per-tick drop clusters the rings at the start and end of the path, while
  * spacing by measured travel stays uniform across windups, jumps and wall truncations. The ring at
  * the dash start appears first and the one near the end last, up to {@link #DASH_MAX_RINGS} rings
  * (~16 blocks of path). {@link #punchCone} replays the same planted logic on a fixed ray: the ring
  * at the strike point (the victim's hitbox center) appears first, then one per tick every
  * {@link RingTrailSpacing#SPACING} blocks behind the target -- up to {@link #PUNCH_MAX_RINGS}
- * rings, a long tail running ~16 blocks past the strike point (Alex, 2026-09-20: "the rings behind
- * spread over a very long distance"). The ring velocity is only a facing-normal carrier
+ * rings, a long tail running ~16 blocks past the strike point. The ring velocity is only a facing-normal carrier
  * ({@link #RING_NORMAL_DRIFT}, blocks per tick): a zero vector would trip {@code RingGeometry}'s
  * no-direction fallback and lay the ring flat, and over the ring's whole life the drift moves it
  * under a quarter block, which reads as stationary. Both {@link DashBurst#tick} and
@@ -36,9 +35,9 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  *
  * <p>{@link #DASH_BURSTS} and {@link #PUNCH_BURSTS} hold one active burst per effect per player, on
  * separate maps so a dash trail and a punch trail coexist (charging-crash play mixes the two): a
- * retrigger while a dash burst is alive (a second payload inside the window) used to replay the
- * whole trail -- Alex's 2026-09-19 "the cone plays twice" report -- so a dash inside its own window
- * is now skipped instead of replacing it, while a punch retrigger restarts the punch trail. The
+ * retrigger while a dash burst is alive (a second payload inside the window) would replay the
+ * whole trail, so a dash inside its own window is skipped instead of replacing it, while a punch
+ * retrigger restarts the punch trail. The
  * {@link Burst} interface's {@code tick} drops one tick's ring(s) and returns the next state, or
  * null once the burst is spent. {@link DashBurst} positions each ring along the tick's movement
  * segment so even a chunked dodge spreads them evenly, and ends when the ring budget is spent, the

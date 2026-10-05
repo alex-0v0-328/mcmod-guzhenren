@@ -13,7 +13,7 @@ import net.minecraft.world.item.trading.ItemCost;
  * picks model and texture separately, because one soul look may stand for many NPCs.
  *
  * <p>{@link #offers()} is built on demand: the enum is loaded while entity types register, before any item
- * exists. {@code TEST_TRADE_GU_IMMORTAL} is the first, test-only trader (Alex, 2026-09-29): ten primeval
+ * exists. {@code TEST_TRADE_GU_IMMORTAL} is the first, test-only trader: ten primeval
  * stones for 64 porkchops, and three stacks of dirt for one White Boar Gu, handed over wild like a caught Gu.
  *
  * @author Alex

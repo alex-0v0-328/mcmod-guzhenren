@@ -9,7 +9,7 @@ import net.neoforged.neoforge.common.data.ParticleDescriptionProvider;
 /**
  * Generates {@code assets/guzhenren/particles/*.json}: the sprite list per particle type, in
  * playback order. Both trails list the rings smallest-to-largest (every ring blooms where it
- * is born, Alex 2026-09-20): the dash trail plants them along the path, the punch trail plants
+ * is born): the dash trail plants them along the path, the punch trail plants
  * them along the punch ray from the strike point. The type split is semantic: the dash trail
  * hides from the dasher's own first-person camera, the punch cone does not.
  *

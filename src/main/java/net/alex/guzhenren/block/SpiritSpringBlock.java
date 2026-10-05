@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * ({@link SpiritSpringFluid.Source}) re-arms it, because a settled
  * source receives no scheduled ticks on its own.
  *
- * <p>⚠ The five constants below are Alex's picks (2026-09-14, player gate 2026-09-23), not silent
+ * <p>⚠ The five constants below are Alex's picks, not silent
  * tunables: one stack of primeval stones every 100 ticks per source, never exhausting, pausing
  * while the cap radius already holds a full stack, and producing only while a living non-spectator
  * player is within 128 blocks -- the natural-mob-spawn horizon, via vanilla

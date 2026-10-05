@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ The row button stays live when the bag cannot pay: the refusal has to reach the server so the soul can
  * shake its head, and the server is the only judge anyway. Before settling, everything that will later fall
  * back into the bag -- the cursor stack of this menu and the player's 2x2 crafting grid -- joins the room check
- * ({@link SoulTradeOffer}); a refusal for room tells the player to make space first (Alex, 2026-09-29).
+ * ({@link SoulTradeOffer}); a refusal for room tells the player to make space first.
  *
  * <p>The menu closes once the trader dies or the player is more than {@code TRADE_RANGE} away.
  *

@@ -14,7 +14,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  * The charging shape grades its icon by rank because it spans ranks four and five.
  *
  * <p>{@link #DASH_COORD_SCALE} is the multiplier on Epic Fight's dodge coordinate vector: one number
- * shared by the whole Crash Gu family, 4.5 since 2026-09-19. It lives here rather than in the EF
+ * shared by the whole Crash Gu family, 4.5. It lives here rather than in the EF
  * bridge so the spec stays readable (and pinnable in pure tests) without Epic Fight on the classpath.
  *
  * @author Alex

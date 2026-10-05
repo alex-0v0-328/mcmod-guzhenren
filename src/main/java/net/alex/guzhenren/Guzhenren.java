@@ -28,7 +28,7 @@ import org.slf4j.Logger;
  * (attachments, data components, effects, fluid types, fluids, blocks, entities, items, creative
  * tabs, menus, particles, recipes, criterion triggers) to the mod event bus in the order NeoForge
  * requires. Worldgen features live in the sibling mod Gu World, which places the Spirit Spring
- * [元泉] block registered here (2026-10-02).
+ * [元泉] block registered here.
  *
  * @author Alex
  * @version 1.0.0

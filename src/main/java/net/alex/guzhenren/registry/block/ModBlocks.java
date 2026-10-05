@@ -14,7 +14,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * Every block in the mod. The properties line copies vanilla water block-for-block (replaceable,
  * no collision, 100 blast resistance, destroyed by pistons, no loot table) so the Spirit Spring
- * [元泉] feels native, plus lava's full 15 light level -- Alex's pick (2026-09-14): the spring is
+ * [元泉] feels native, plus lava's full 15 light level -- Alex's pick: the spring is
  * a glowstone-bright safe zone where monsters cannot spawn. The BlockItem is registered in
  * {@link net.alex.guzhenren.registry.item.ModItems} so the creative tab's single item walk
  * still sees it.

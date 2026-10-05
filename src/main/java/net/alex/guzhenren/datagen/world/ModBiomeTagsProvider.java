@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.level.biome.Biome}.
  * Populates the hope, boar and rhinoceros beetle Gu tags from one shared list of 39 land biomes (the
- * sibling mod Gu World keeps a copy for the Spirit Spring [元泉] since 2026-10-02), the wild boar tag
+ * sibling mod Gu World keeps a copy for the Spirit Spring [元泉]), the wild boar tag
  * from the five forest biomes where it naturally occurs, the bear tag from every forest-family biome
  * (12), and the tiger tag from the three jungle biomes.
  * Must NOT collapse to {@code #minecraft:is_overworld} because that carries the

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ {@code tickAging}'s returned day count can far exceed one and drives three day-clock walks --
  * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link PathTimeFlowService#scale}
- * like every other thing he spends -- hastened means FASTER; hand-rolling the rate once ran it
+ * like every other thing he spends -- hastened means FASTER; a hand-rolled rate runs it
  * BACKWARDS, into a pure longevity buff. ⚠ The anchor is {@code dayTime}, not {@code gameTime} (so
  * {@code /time add} still ages him): time running backwards re-anchors and bills nothing -- one
  * {@code <} is the whole guard, BOTH clocks share it.

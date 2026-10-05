@@ -34,14 +34,14 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * teleport -- drops the flight grant.
  *
  * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
- * for (Alex, 2026-09-29). Attacks on it stay canceled like every other attack.
+ * for. Attacks on it stay canceled like every other attack.
  *
  * <p>⚠ A canceled toss goes back into the bag through {@link #stowTossed}, which never drops. Putting it back
  * with {@code placeItemBackInInventory} dropped whatever did not fit, the drop fired this toss event again, and a
  * full bag recursed until the server crashed -- a cursor stack or the 2x2 crafting grid falling back on a
  * closing screen was enough. What does not fit now stays out as an item that hovers without gravity where it
  * was dropped, so it never falls into the void and can be picked up once there is room; it despawns like any
- * dropped item, and the player is told the bag is full (Alex, 2026-09-29).
+ * dropped item, and the player is told the bag is full.
  *
  * @author Alex
  * @version 1.0.0

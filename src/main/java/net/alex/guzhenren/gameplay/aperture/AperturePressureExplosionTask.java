@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The block side of the ten-extreme pressure explosion [空窍压力爆炸]: the crater is carved over
  * several server ticks instead of one, so the largest blast (Great Strength True Martial [大力真武体],
- * radius 112) no longer freezes the world. Interior blocks go out silently ({@code UPDATE_CLIENTS}
+ * radius 112) does not freeze the world. Interior blocks go out silently ({@code UPDATE_CLIENTS}
  * only, no drops); one deferred neighbor pass over the rim [球壳边缘] keeps sand, fluids and torches
  * from floating. The shell [壳] walks center-outwards and each column's radius carries a per-explosion
  * jitter [噪声扰动]. The crater floor is physique-specific: layered ice [分层冰] for Northern Dark

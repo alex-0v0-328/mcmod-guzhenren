@@ -30,7 +30,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * meant to be worn TOGETHER get one effect each (the two Watch Gu, so their rates add). Every effect uses
  * the white effect color, including effects granted by Gu materials.
  *
- * <p>⚠ Since 2026-08-14 every effect is built through {@code instance}, which sets
+ * <p>⚠ Every effect is built through {@code instance}, which sets
  * {@code showParticles=false, showIcon=true}; the color only feeds the {@link MobEffect} ctor.
  *
  * @author Alex
