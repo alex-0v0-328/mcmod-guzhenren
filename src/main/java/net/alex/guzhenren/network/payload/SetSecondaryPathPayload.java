@@ -2,8 +2,8 @@ package net.alex.guzhenren.network.payload;
 
 import io.netty.buffer.ByteBuf;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.ModStreamCodecs;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.serialization.ModStreamCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>A payload carrying only an aperture index and a nullable {@link GuPath}
  * -- no other player data. The server handler in {@link net.alex.guzhenren.network.ModPayloads}
  * writes the choice through the aperture service. The path travels as its ordinal plus one (zero =
- * unset) via {@link net.alex.guzhenren.serialization.ModStreamCodecs#ofNullableEnum}.
+ * unset) via {@link net.alex.guzhenren.core.ModStreamCodecs#ofNullableEnum}.
  *
  * <p>⚠ It is a payload only because the screen that sends it has no menu behind it. Anything inside a
  * container sends its intent over vanilla's own channels instead.

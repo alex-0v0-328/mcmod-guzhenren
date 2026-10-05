@@ -2,7 +2,7 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import com.mojang.serialization.Codec;
 import java.util.Arrays;
-import net.alex.guzhenren.NamedEnum;
+import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**

@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.path.qi;
 
 import com.google.common.math.LongMath;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.core.Holder;

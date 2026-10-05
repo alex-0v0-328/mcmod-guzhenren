@@ -1,6 +1,6 @@
 package net.alex.guzhenren.effect.pool;
 
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.minecraft.world.effect.MobEffect;

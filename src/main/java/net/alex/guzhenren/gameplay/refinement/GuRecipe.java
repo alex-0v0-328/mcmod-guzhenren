@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import java.util.Comparator;
 import java.util.List;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.recipe.ModRecipes;
 import net.minecraft.core.HolderLookup;

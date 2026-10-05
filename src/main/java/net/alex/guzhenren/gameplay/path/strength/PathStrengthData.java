@@ -9,7 +9,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import net.alex.guzhenren.serialization.ModStreamCodecs;
+import net.alex.guzhenren.core.ModStreamCodecs;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 

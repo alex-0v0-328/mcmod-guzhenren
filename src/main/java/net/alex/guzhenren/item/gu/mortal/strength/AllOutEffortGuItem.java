@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.strength;
 
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyAttackService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;

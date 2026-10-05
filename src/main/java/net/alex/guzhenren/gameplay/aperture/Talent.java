@@ -3,8 +3,8 @@ package net.alex.guzhenren.gameplay.aperture;
 import com.mojang.serialization.Codec;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
-import net.alex.guzhenren.NamedEnum;
-import net.alex.guzhenren.WeightedPick;
+import net.alex.guzhenren.core.NamedEnum;
+import net.alex.guzhenren.core.WeightedPick;
 import net.minecraft.util.StringRepresentable;
 
 /**

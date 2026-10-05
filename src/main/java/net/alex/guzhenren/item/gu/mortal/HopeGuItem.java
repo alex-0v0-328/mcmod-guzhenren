@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal;
 
-import net.alex.guzhenren.Ticks;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.item.gu.GuSpec;

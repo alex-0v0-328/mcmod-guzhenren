@@ -1,8 +1,8 @@
 package net.alex.guzhenren.gameplay.path.qi;
 
 import com.mojang.serialization.Codec;
-import net.alex.guzhenren.NamedEnum;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.NamedEnum;
+import net.alex.guzhenren.core.Ticks;
 import net.minecraft.util.StringRepresentable;
 
 /**

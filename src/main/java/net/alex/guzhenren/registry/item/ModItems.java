@@ -1,7 +1,7 @@
 package net.alex.guzhenren.registry.item;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.effect.timed.DragonpillCricketGuEffect;

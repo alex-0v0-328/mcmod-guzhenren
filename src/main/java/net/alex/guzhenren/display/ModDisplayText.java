@@ -1,4 +1,4 @@
-package net.alex.guzhenren.ui.display;
+package net.alex.guzhenren.display;
 
 import java.util.Locale;
 import net.alex.guzhenren.gameplay.aperture.Aperture;

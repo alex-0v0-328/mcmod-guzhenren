@@ -1,4 +1,4 @@
-package net.alex.guzhenren;
+package net.alex.guzhenren.core;
 
 /**
  * Every unit of time this mod speaks, in ticks.

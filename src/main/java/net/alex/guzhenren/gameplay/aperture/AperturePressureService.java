@@ -1,6 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture;
 
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.registry.attachment.ModAttachments;

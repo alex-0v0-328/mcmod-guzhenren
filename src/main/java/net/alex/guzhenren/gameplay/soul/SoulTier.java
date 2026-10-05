@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.soul;
 
 import com.mojang.serialization.Codec;
-import net.alex.guzhenren.NamedEnum;
+import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.gameplay.aperture.Title;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;

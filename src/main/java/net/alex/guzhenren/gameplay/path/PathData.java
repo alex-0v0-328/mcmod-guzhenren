@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import net.alex.guzhenren.serialization.ModStreamCodecs;
+import net.alex.guzhenren.core.ModStreamCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**

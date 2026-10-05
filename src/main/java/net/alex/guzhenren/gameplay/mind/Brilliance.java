@@ -1,8 +1,8 @@
 package net.alex.guzhenren.gameplay.mind;
 
 import com.mojang.serialization.Codec;
-import net.alex.guzhenren.NamedEnum;
-import net.alex.guzhenren.WeightedPick;
+import net.alex.guzhenren.core.NamedEnum;
+import net.alex.guzhenren.core.WeightedPick;
 import net.minecraft.util.StringRepresentable;
 
 /**

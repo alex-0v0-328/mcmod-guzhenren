@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu;
 
 import java.util.List;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;

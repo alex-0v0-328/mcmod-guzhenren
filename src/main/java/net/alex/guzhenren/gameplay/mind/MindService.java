@@ -2,7 +2,7 @@ package net.alex.guzhenren.gameplay.mind;
 
 import com.google.common.math.LongMath;
 import java.util.Map;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;

@@ -1,6 +1,6 @@
 package net.alex.guzhenren.effect.timed;
 
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.AttackContributor;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.world.effect.MobEffect;

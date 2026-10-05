@@ -3,7 +3,7 @@ package net.alex.guzhenren.gameplay.aperture;
 import com.google.common.math.LongMath;
 import java.util.Arrays;
 import java.util.List;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.pool.EssenceQiEffect;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;

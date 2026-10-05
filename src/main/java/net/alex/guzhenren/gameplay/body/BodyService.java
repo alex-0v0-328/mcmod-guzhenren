@@ -3,7 +3,7 @@ package net.alex.guzhenren.gameplay.body;
 import com.google.common.math.LongMath;
 import java.math.BigInteger;
 import java.util.EnumSet;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;

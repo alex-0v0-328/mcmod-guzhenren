@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.body;
 
 import com.mojang.serialization.Codec;
-import net.alex.guzhenren.NamedEnum;
+import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**

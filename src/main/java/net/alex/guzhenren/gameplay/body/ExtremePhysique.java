@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import net.alex.guzhenren.NamedEnum;
+import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.minecraft.util.StringRepresentable;
 

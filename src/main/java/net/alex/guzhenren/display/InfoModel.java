@@ -1,4 +1,4 @@
-package net.alex.guzhenren.ui.display;
+package net.alex.guzhenren.display;
 
 import java.util.ArrayList;
 import java.util.List;

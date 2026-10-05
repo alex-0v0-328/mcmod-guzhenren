@@ -2,14 +2,14 @@ package net.alex.guzhenren.item;
 
 import java.util.List;
 import java.util.UUID;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.item.ModDataComponents;
-import net.alex.guzhenren.ui.display.ModDisplayText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

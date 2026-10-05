@@ -1,6 +1,6 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
-import net.alex.guzhenren.NamedEnum;
+import net.alex.guzhenren.core.NamedEnum;
 
 /**
  * The family a beast strength [兽力] belongs to: the two boars share one bracket, the bear owns the other.

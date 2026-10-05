@@ -1,4 +1,4 @@
-package net.alex.guzhenren.serialization;
+package net.alex.guzhenren.core;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;

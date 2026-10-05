@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.hud;
 
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
@@ -9,7 +10,6 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.alex.guzhenren.ui.display.ModDisplayText;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;

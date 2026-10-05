@@ -1,7 +1,7 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;

@@ -1,7 +1,7 @@
 package net.alex.guzhenren.entity;
 
 import java.util.function.Supplier;
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.EntityType;

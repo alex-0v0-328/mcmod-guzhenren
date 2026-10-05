@@ -2,8 +2,8 @@ package net.alex.guzhenren.network.payload;
 
 import io.netty.buffer.ByteBuf;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.ModStreamCodecs;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
-import net.alex.guzhenren.serialization.ModStreamCodecs;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

@@ -1,4 +1,4 @@
-package net.alex.guzhenren;
+package net.alex.guzhenren.core;
 
 import java.util.Locale;
 import net.minecraft.util.StringRepresentable;

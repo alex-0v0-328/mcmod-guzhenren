@@ -1,7 +1,7 @@
 package net.alex.guzhenren.datagen.lang;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.NamedEnum;
+import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
 import net.alex.guzhenren.gameplay.aperture.EssenceColor;
 import net.alex.guzhenren.gameplay.aperture.Rank;

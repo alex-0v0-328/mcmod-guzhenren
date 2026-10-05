@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.liquor;
 
-import net.alex.guzhenren.Ticks;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.item.gu.GuSpec;
