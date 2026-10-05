@@ -47,7 +47,7 @@ public final class AperturePressureService {
     private static final float DISASTER_DAMAGE = 10_000.0F;
 
     public static void set(@NotNull ServerPlayer player, int index, int value) {
-        Aperture current = ApertureService.aperture(player, index);
+        Aperture current = ApertureService.getAperture(player, index);
         if (!BodyService.isExtreme(player) || index != ApertureData.PRIMARY) return;
         long deadline = value == Aperture.PRESSURE_COUNTDOWN_START ? current.pressureDeadlineTick() : 0L;
         if (value == Aperture.PRESSURE_COUNTDOWN_START && deadline == 0L) {
@@ -58,13 +58,13 @@ public final class AperturePressureService {
     }
 
     public static void relieve(@NotNull ServerPlayer player, int amount) {
-        Aperture current = ApertureService.aperture(player, ApertureData.PRIMARY);
+        Aperture current = ApertureService.getAperture(player, ApertureData.PRIMARY);
         if (!BodyService.isExtreme(player)) return;
         set(player, ApertureData.PRIMARY, Math.max(0, current.pressure() - amount));
     }
 
     public static void tick(@NotNull ServerPlayer player) {
-        Aperture aperture = ApertureService.aperture(player, ApertureData.PRIMARY);
+        Aperture aperture = ApertureService.getAperture(player, ApertureData.PRIMARY);
         if (!BodyService.isExtreme(player) || aperture.pressure() >= Aperture.MAX_PRESSURE) return;
 
         if (aperture.pressure() < Aperture.PRESSURE_COUNTDOWN_START) {
@@ -87,19 +87,19 @@ public final class AperturePressureService {
     }
 
     public static boolean isFull(@NotNull Player player) {
-        Aperture aperture = ApertureService.aperture(player, ApertureData.PRIMARY);
+        Aperture aperture = ApertureService.getAperture(player, ApertureData.PRIMARY);
         return BodyService.isExtreme(player) && aperture.pressure() >= Aperture.MAX_PRESSURE;
     }
 
     public static long getRemainingTicks(@NotNull Player player) {
-        Aperture aperture = ApertureService.aperture(player, ApertureData.PRIMARY);
+        Aperture aperture = ApertureService.getAperture(player, ApertureData.PRIMARY);
         if (!BodyService.isExtreme(player) || aperture.pressure() != Aperture.PRESSURE_COUNTDOWN_START
                 || aperture.pressureDeadlineTick() <= 0L) return 0L;
         return Math.max(0L, aperture.pressureDeadlineTick() - player.level().getGameTime());
     }
 
     public static void detonate(@NotNull ServerPlayer player) {
-        Aperture aperture = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.getAperture(player);
         ExtremePhysique physique = BodyService.getExtremePhysique(player);
         int radius = getExplosionRadius(aperture.rank(), physique);
         double x = player.getX();
@@ -126,7 +126,7 @@ public final class AperturePressureService {
     }
 
     private static void setState(ServerPlayer player, int index, int value, long deadline) {
-        Aperture current = ApertureService.aperture(player, index);
+        Aperture current = ApertureService.getAperture(player, index);
         if (!BodyService.isExtreme(player) || index != ApertureData.PRIMARY
                 || (current.pressure() == value && current.pressureDeadlineTick() == deadline)) return;
         player.setData(ModAttachments.APERTURE,

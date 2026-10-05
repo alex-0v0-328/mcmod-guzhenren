@@ -129,7 +129,7 @@ public final class InfoModel {
 
     public static List<Row> aperture(Player player) {
         ApertureData data = ApertureService.get(player);
-        ApertureStatus status = ApertureService.status(player);
+        ApertureStatus status = ApertureService.getStatus(player);
         List<Row> rows = new ArrayList<>();
 
         if (data.count() <= 1) {
@@ -142,7 +142,7 @@ public final class InfoModel {
         for (int i = 0; i < data.count(); i++) {
             rows.add(new Row(0, new ApertureIndex(i + 1, i)));
             apertureBlock(rows, data.get(i), true, INDENT, i, !data.get(i).second(),
-                    BodyService.isExtreme(player), ApertureService.status(player, i));
+                    BodyService.isExtreme(player), ApertureService.getStatus(player, i));
             if (i < data.count() - 1) rows.add(new Row(0, new Blank()));
         }
         return rows;

@@ -71,7 +71,7 @@ public final class PlayerDataService {
     }
 
     private static void migratePhysique(@NotNull ServerPlayer player) {
-        Aperture aperture = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.getAperture(player);
         ExtremePhysique legacy = aperture.legacyExtremePhysique();
         if (!BodyService.isExtreme(player) && legacy != null && legacy != ExtremePhysique.NONE) {
             BodyService.setExtremePhysique(player, legacy);
@@ -79,7 +79,7 @@ public final class PlayerDataService {
             ApertureService.set(player, ApertureData.PRIMARY, aperture.withBaseEssence(Aperture.MAX_BASE - 1)
                     .withPressure(0));
         }
-        aperture = ApertureService.aperture(player);
+        aperture = ApertureService.getAperture(player);
         if (aperture.legacyExtremePhysique() != null) {
             ApertureService.set(player, ApertureData.PRIMARY, aperture.clearLegacyExtremePhysique());
         }

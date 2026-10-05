@@ -58,7 +58,7 @@ public final class PlayerStatsHud implements LayeredDraw.Layer {
         if (player.isSpectator() || minecraft.getDebugOverlay().showDebugScreen()) return;
 
         Font font = minecraft.font;
-        Aperture aperture = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.getAperture(player);
         ApertureData data = ApertureService.get(player);
         SoulData soul = SoulService.get(player);
         BodyData body = BodyService.get(player);

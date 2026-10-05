@@ -65,7 +65,7 @@ public final class ModDisplayText {
     public static MutableComponent hudAptitude(Aperture aperture, BodyData body) {
         if (aperture.talent() == Talent.NONE) return talent(aperture);
 
-        Component detail = aperture.talent() == Talent.EXTREME && body.isExtreme()
+        Component detail = aperture.talent() == Talent.TEN_EXTREMES && body.isExtreme()
                 ? Component.translatable(body.extremePhysique().getTranslationKey())
                 : baseFraction(aperture.baseEssence());
         return Component.translatable("guzhenren.display.aptitude_line", talent(aperture), detail);

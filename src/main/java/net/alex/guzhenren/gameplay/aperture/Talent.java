@@ -11,7 +11,7 @@ import net.minecraft.util.StringRepresentable;
  * Aptitude [资质], derived from the aperture's base essence and never stored beside it.
  *
  * <p>Closed vocabulary enum: regen rate, Epic Fight stamina percentage and the roll weights all live here. {@code NONE}
- * is outside the settable range; {@code shift(int)} clamps at {@code EXTREME..FOURTH}. No sibling mod
+ * is outside the settable range; {@code shift(int)} clamps at {@code TEN_EXTREMES..FOURTH}. No sibling mod
  * may add a grade.
  *
  * <p>⚠ The constants run HIGH to LOW, so {@code shift(+1)} is {@code ordinal - 1}. Reading the direction
@@ -25,7 +25,7 @@ import net.minecraft.util.StringRepresentable;
 
 public enum Talent implements NamedEnum {
 
-    EXTREME(100, 100, 10, 20, 50),
+    TEN_EXTREMES(100, 100, 10, 20, 50),
     FIRST(80, 99, 20, 8, 20),
     SECOND(60, 79, 30, 4, 20),
     THIRD(40, 59, 30, 2, 10),
@@ -34,7 +34,7 @@ public enum Talent implements NamedEnum {
     NONE(0, 0, 0, 0, 0);
 
     public static final Codec<Talent> CODEC = StringRepresentable.fromEnum(Talent::values);
-    public static final Talent HIGHEST = EXTREME;
+    public static final Talent HIGHEST = TEN_EXTREMES;
     public static final Talent LOWEST = FOURTH;
     private final int minPercent;
     private final int maxPercent;

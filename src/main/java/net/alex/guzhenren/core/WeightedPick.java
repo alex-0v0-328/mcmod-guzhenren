@@ -9,7 +9,7 @@ import java.util.random.RandomGenerator;
  * The one weighted roll behind birth-graded enums: walk the values, spend the roll, return where it lands.
  *
  * <p>Weights come from a {@code ToIntFunction} so each enum keeps its own weight column. The filtered
- * overload skips values before weighing (the normal-talent roll excludes {@code EXTREME}); a total of
+ * overload skips values before weighing (the normal-talent roll excludes {@code TEN_EXTREMES}); a total of
  * zero throws from {@code nextInt(0)}, exactly as before the roll was centralized here.
  *
  * @author Alex

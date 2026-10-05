@@ -51,13 +51,13 @@ public final class PrimevalStoneSupply {
 
     //region the stone top-up [元石补给] -- one line, so two callers cannot drift apart
     public static boolean needsTopUp(Player player) {
-        long max = ApertureEssenceService.maxEssence(player);
-        return max > 0L && ApertureEssenceService.currentEssence(player) * 100L < max * REFILL_BELOW_PERCENT;
+        long max = ApertureEssenceService.getMaxEssence(player);
+        return max > 0L && ApertureEssenceService.getCurrentEssence(player) * 100L < max * REFILL_BELOW_PERCENT;
     }
 
     public static long topUpDeficit(Player player) {
-        return ApertureEssenceService.maxEssence(player) * REFILL_UP_TO_PERCENT / 100L
-                - ApertureEssenceService.currentEssence(player);
+        return ApertureEssenceService.getMaxEssence(player) * REFILL_UP_TO_PERCENT / 100L
+                - ApertureEssenceService.getCurrentEssence(player);
     }
 
     public static void topUp(ServerPlayer player) {

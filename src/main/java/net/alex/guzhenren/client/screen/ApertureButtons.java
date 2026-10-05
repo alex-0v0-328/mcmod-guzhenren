@@ -55,9 +55,9 @@ final class ApertureButtons {
             buttons.add(new StackButton(aperture, IMPACT, KEY_IMPACT, 0));
             return withStorage(aperture, buttons, step);
         }
-        if (!ApertureNourishService.atCeiling(player, aperture)) {
+        if (!ApertureNourishService.isAtCeiling(player, aperture)) {
             String key = isRunning(player, aperture) ? KEY_NOURISH_STOP
-                    : ApertureService.aperture(player, aperture).second() ? KEY_NOURISH_SECOND : KEY_NOURISH;
+                    : ApertureService.getAperture(player, aperture).second() ? KEY_NOURISH_SECOND : KEY_NOURISH;
             buttons.add(new StackButton(aperture, NOURISH, key, 0));
             return withStorage(aperture, buttons, step);
         }
@@ -85,7 +85,7 @@ final class ApertureButtons {
                         : ModPalette.BUTTON_DEAD;
                 graphics.fill(x0, top, x1, bottom, fill);
                 if (running) {
-                    int done = x0 + Math.round((x1 - x0) * ApertureNourishService.fraction(player, button.aperture()));
+                    int done = x0 + Math.round((x1 - x0) * ApertureNourishService.getFraction(player, button.aperture()));
                     graphics.fill(x0, top, done, bottom, PROGRESS);
                 }
                 graphics.renderOutline(x0, top, x1 - x0, PlayerInfoScreen.BTN_H,
@@ -107,7 +107,7 @@ final class ApertureButtons {
             case NOURISH -> {
                 if (isRunning(player, button.aperture())) {
                     PacketDistributor.sendToServer(new NourishAperturePayload(
-                            NourishAperturePayload.Action.CANCEL, ApertureNourishService.targetIndex(player)));
+                            NourishAperturePayload.Action.CANCEL, ApertureNourishService.getTargetIndex(player)));
                 } else if (ApertureNourishService.canNourish(player, button.aperture())) {
                     PacketDistributor.sendToServer(new NourishAperturePayload(
                             NourishAperturePayload.Action.START, button.aperture()));
@@ -124,7 +124,7 @@ final class ApertureButtons {
     }
 
     private static boolean isRunning(LocalPlayer player, int aperture) {
-        return ApertureNourishService.isCultivating(player) && ApertureNourishService.targetIndex(player) == aperture;
+        return ApertureNourishService.isCultivating(player) && ApertureNourishService.getTargetIndex(player) == aperture;
     }
 
     private static List<StackButton> withStorage(int aperture, List<StackButton> buttons, int top) {

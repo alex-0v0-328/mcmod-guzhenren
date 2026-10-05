@@ -61,7 +61,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
     //region the passive heartbeat -- 5% essence and the minting chain
     @Override
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {
-        ApertureEssenceService.add(player, ApertureEssenceService.maxEssence(player) * ESSENCE_REGEN_PERCENT / 100);
+        ApertureEssenceService.add(player, ApertureEssenceService.getMaxEssence(player) * ESSENCE_REGEN_PERCENT / 100);
         mintStones(player, stack);
     }
 
@@ -109,8 +109,8 @@ public class TreasureLotusGuItem extends TendedGuItem {
             left -= storeInElder(inventory.getItem(slot), left);
         }
         for (int aperture = 0; aperture < ApertureData.MAX_APERTURES && left > 0; aperture++) {
-            List<ItemStack> storedItems = new ArrayList<>(ApertureStorageService.items(player, aperture));
-            ItemStack vital = ApertureStorageService.vital(player, aperture);
+            List<ItemStack> storedItems = new ArrayList<>(ApertureStorageService.getItems(player, aperture));
+            ItemStack vital = ApertureStorageService.getVital(player, aperture);
             boolean storedChanged = false;
             for (ItemStack stored : storedItems) {
                 if (left <= 0) break;

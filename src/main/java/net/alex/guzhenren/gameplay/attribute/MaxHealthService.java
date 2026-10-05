@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Max health as a transient {@link AttributeModifier} derived from {@code ApertureService.healthRank}:
+ * Max health as a transient {@link AttributeModifier} derived from {@code ApertureService.getHealthRank}:
  * the FIRST aperture's rank only -- unawakened reads mortal, a lone second aperture never boosts it.
  * Static service; {@link AttributeEvents} refreshes it on every {@code ApertureChangedEvent} (pressure
  * writes post none), plus login, clone and reset (a modifier does not ride a clone); keyed to the rank's
@@ -38,7 +38,7 @@ public final class MaxHealthService {
         AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
         if (instance == null) return;
 
-        int target = ApertureService.healthRank(player).getMaxHealth();
+        int target = ApertureService.getHealthRank(player).getMaxHealth();
         double bonus = target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D;
         TransientModifiers.swap(instance, MODIFIER_ID, bonus);
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());

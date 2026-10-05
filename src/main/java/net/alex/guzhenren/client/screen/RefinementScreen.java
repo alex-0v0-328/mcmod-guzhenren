@@ -176,11 +176,11 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        long maxEssence = ApertureEssenceService.maxEssence(player);
+        long maxEssence = ApertureEssenceService.getMaxEssence(player);
         int unit = 0;
-        drawPool(graphics, unit++, ApertureEssenceService.currentEssence(player), maxEssence, ModPalette.APERTURE);
+        drawPool(graphics, unit++, ApertureEssenceService.getCurrentEssence(player), maxEssence, ModPalette.APERTURE);
 
-        long distilled = ApertureEssenceService.distilledEssence(player);
+        long distilled = ApertureEssenceService.getDistilledEssence(player);
         if (distilled > 0L) drawPool(graphics, unit++, distilled, maxEssence, ModPalette.DISTILLED_FILL);
 
         SoulData soul = SoulService.get(player);

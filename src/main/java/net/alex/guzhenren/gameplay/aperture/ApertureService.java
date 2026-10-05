@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * different ten-extreme physique, then resets the first aperture's base essence to match -- the full
  * base for a physique, one below for none, which also empties the pressure.
  *
- * <p>{@link #status(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
+ * <p>{@link #getStatus(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
  * Half-Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
  *
  * <p>{@link #openSecond} is the only opener of a second aperture: Grade-A at 8/10, this rank's
@@ -53,7 +53,7 @@ public final class ApertureService {
     public static final long TALENT_MARK_TOTAL = 1000L;
     public static final long TALENT_HUMAN_QI = 100L;
 
-    static long talentMarksPerPath(ExtremePhysique physique) {
+    static long getTalentMarksPerPath(ExtremePhysique physique) {
         int paths = physique.getTalentPaths().size();
         return paths == 0 ? 0L : TALENT_MARK_TOTAL / paths;
     }
@@ -61,7 +61,7 @@ public final class ApertureService {
     public static void syncTalentMarks(@NotNull ServerPlayer player) {
         ExtremePhysique current = BodyService.getExtremePhysique(player);
         for (ExtremePhysique physique : ExtremePhysique.values()) {
-            long expected = physique == current ? talentMarksPerPath(physique) : 0L;
+            long expected = physique == current ? getTalentMarksPerPath(physique) : 0L;
             for (GuPath path : physique.getTalentPaths()) {
                 if (PathService.getMark(player, path, MarkTag.EXTREME_PHYSIQUE) != expected) {
                     PathService.setMark(player, path, MarkTag.EXTREME_PHYSIQUE, expected);
@@ -72,40 +72,40 @@ public final class ApertureService {
 
     public static @NotNull ApertureData get(@NotNull Player player) { return player.getData(ModAttachments.APERTURE); }
 
-    public static @NotNull Aperture aperture(@NotNull Player player) { return get(player).primary(); }
+    public static @NotNull Aperture getAperture(@NotNull Player player) { return get(player).primary(); }
 
-    public static @NotNull Aperture aperture(@NotNull Player player, int i) { return get(player).get(i); }
+    public static @NotNull Aperture getAperture(@NotNull Player player, int i) { return get(player).get(i); }
 
     public static boolean isAwakened(@NotNull Player player) { return get(player).isAwakened(); }
 
     public static boolean hasAperture(@NotNull Player player) { return get(player).hasAperture(); }
 
-    public static @NotNull ApertureStatus status(@NotNull Player player, int index) {
-        Aperture aperture = aperture(player, index);
+    public static @NotNull ApertureStatus getStatus(@NotNull Player player, int index) {
+        Aperture aperture = getAperture(player, index);
         if (BodyService.isZombieOrHalfZombie(player) || aperture.petrified()) return ApertureStatus.DEAD;
         return ApertureStatus.NORMAL;
     }
 
-    public static @NotNull ApertureStatus status(@NotNull Player player) {
-        return status(player, ApertureData.PRIMARY);
+    public static @NotNull ApertureStatus getStatus(@NotNull Player player) {
+        return getStatus(player, ApertureData.PRIMARY);
     }
 
-    public static @NotNull Talent talent(@NotNull Player player) { return aperture(player).talent(); }
+    public static @NotNull Talent getTalent(@NotNull Player player) { return getAperture(player).talent(); }
 
-    public static @NotNull Rank rank(@NotNull Player player) { return aperture(player).rank(); }
+    public static @NotNull Rank getRank(@NotNull Player player) { return getAperture(player).rank(); }
 
-    public static @NotNull Rank healthRank(@NotNull Player player) {
-        return get(player).isAwakened() ? aperture(player).rank() : Rank.NONE;
+    public static @NotNull Rank getHealthRank(@NotNull Player player) {
+        return get(player).isAwakened() ? getAperture(player).rank() : Rank.NONE;
     }
 
-    public static @NotNull Stage stage(@NotNull Player player) { return aperture(player).stage(); }
+    public static @NotNull Stage getStage(@NotNull Player player) { return getAperture(player).stage(); }
 
     public static void setRank(@NotNull ServerPlayer player, @NotNull Rank value) {
         setRank(player, ApertureData.PRIMARY, value);
     }
 
     public static void setRank(@NotNull ServerPlayer player, int index, @NotNull Rank value) {
-        set(player, index, aperture(player, index).withRank(value));
+        set(player, index, getAperture(player, index).withRank(value));
     }
 
     public static void setStage(@NotNull ServerPlayer player, @NotNull Stage value) {
@@ -113,11 +113,11 @@ public final class ApertureService {
     }
 
     public static void setStage(@NotNull ServerPlayer player, int index, @NotNull Stage value) {
-        set(player, index, aperture(player, index).withStage(value));
+        set(player, index, getAperture(player, index).withStage(value));
     }
 
     public static void addBaseEssence(@NotNull ServerPlayer player, int index, int delta) {
-        setBaseEssence(player, index, aperture(player, index).baseEssence() + delta);
+        setBaseEssence(player, index, getAperture(player, index).baseEssence() + delta);
     }
 
     public static void setTalent(@NotNull ServerPlayer player, int index, @NotNull Talent value) {
@@ -125,19 +125,19 @@ public final class ApertureService {
     }
 
     public static void setPrimaryPath(@NotNull ServerPlayer player, int index, @Nullable GuPath value) {
-        Aperture aperture = aperture(player, index);
+        Aperture aperture = getAperture(player, index);
         if (aperture.primaryPath() == value) return;
         set(player, index, aperture.withPrimaryPath(value));
     }
 
     public static void setSecondaryPath(@NotNull ServerPlayer player, int index, @Nullable GuPath value) {
-        Aperture aperture = aperture(player, index);
+        Aperture aperture = getAperture(player, index);
         if (aperture.secondaryPath() == value) return;
         set(player, index, aperture.withSecondaryPath(value));
     }
 
     public static void shiftRank(@NotNull ServerPlayer player, int index, int delta) {
-        setRank(player, index, aperture(player, index).rank().shift(delta));
+        setRank(player, index, getAperture(player, index).rank().shift(delta));
     }
 
     public static void shiftStage(@NotNull ServerPlayer player, int delta) {
@@ -145,11 +145,11 @@ public final class ApertureService {
     }
 
     public static void shiftStage(@NotNull ServerPlayer player, int index, int delta) {
-        setStage(player, index, aperture(player, index).stage().shift(delta));
+        setStage(player, index, getAperture(player, index).stage().shift(delta));
     }
 
     public static void shiftTalent(@NotNull ServerPlayer player, int index, int delta) {
-        setTalent(player, index, aperture(player, index).talent().shift(delta));
+        setTalent(player, index, getAperture(player, index).talent().shift(delta));
     }
 
     public static void setBaseEssence(@NotNull ServerPlayer player, int value) {
@@ -158,7 +158,7 @@ public final class ApertureService {
 
     public static boolean setBaseEssence(@NotNull ServerPlayer player, int index, int value) {
         int clamped = Math.clamp(value, Aperture.MIN_BASE, Aperture.MAX_BASE);
-        return set(player, index, aperture(player, index).withBaseEssence(clamped));
+        return set(player, index, getAperture(player, index).withBaseEssence(clamped));
     }
 
     public static void awaken(@NotNull ServerPlayer player) { open(player, Aperture.opened()); }
@@ -189,7 +189,7 @@ public final class ApertureService {
         } else {
             store(player, data.opened(aperture));
         }
-        if (aperture.talent() == Talent.EXTREME) {
+        if (aperture.talent() == Talent.TEN_EXTREMES) {
             BodyService.setExtremePhysique(player, ExtremePhysique.randomTenExtreme());
         }
     }
@@ -224,7 +224,7 @@ public final class ApertureService {
         if (!isAwakened(player)) return;
 
         int base = after == ExtremePhysique.NONE ? Aperture.MAX_BASE - 1 : Aperture.MAX_BASE;
-        Aperture updated = aperture(player).withBaseEssence(base);
+        Aperture updated = getAperture(player).withBaseEssence(base);
         if (after == ExtremePhysique.NONE) updated = updated.withPressure(0);
         set(player, ApertureData.PRIMARY, updated);
     }
@@ -241,7 +241,7 @@ public final class ApertureService {
         if (paths.isEmpty()) return;
 
         PathQiService.add(player, QiKind.HUMAN, sign * TALENT_HUMAN_QI);
-        long marks = sign * talentMarksPerPath(physique);
+        long marks = sign * getTalentMarksPerPath(physique);
         for (GuPath path : paths) PathService.addMark(player, path, MarkTag.EXTREME_PHYSIQUE, marks);
     }
 }

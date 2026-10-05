@@ -80,11 +80,11 @@ public final class ApertureNourishService {
 
     public static boolean isCultivating(@NotNull Player player) { return get(player).cultivating(); }
 
-    public static float fraction(@NotNull Player player, int index) {
-        return ApertureService.aperture(player, index).nourishProgress() / (float) ApertureNourishData.FULL;
+    public static float getFraction(@NotNull Player player, int index) {
+        return ApertureService.getAperture(player, index).nourishProgress() / (float) ApertureNourishData.FULL;
     }
 
-    public static int targetIndex(@NotNull Player player) {
+    public static int getTargetIndex(@NotNull Player player) {
         int count = ApertureService.get(player).count();
         return count == 0 ? ApertureData.PRIMARY : Math.clamp(get(player).target(), ApertureData.PRIMARY, count - 1);
     }
@@ -93,33 +93,33 @@ public final class ApertureNourishService {
     public static boolean canNourish(@NotNull Player player, int index) {
         if (!ApertureService.hasAperture(player) || isCultivating(player)) return false;
         if (index < 0 || index >= ApertureService.get(player).count()) return false;
-        if (ApertureService.status(player, index) != ApertureStatus.NORMAL) return false;
-        return !atCeiling(player, index)
-                && ApertureService.aperture(player, index).nourishProgress() < ApertureNourishData.FULL;
+        if (ApertureService.getStatus(player, index) != ApertureStatus.NORMAL) return false;
+        return !isAtCeiling(player, index)
+                && ApertureService.getAperture(player, index).nourishProgress() < ApertureNourishData.FULL;
     }
 
     public static boolean canImpact(@NotNull Player player) {
-        Aperture aperture = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.getAperture(player);
         return ApertureService.isAwakened(player) && !isCultivating(player)
-                && ApertureService.status(player) == ApertureStatus.NORMAL
+                && ApertureService.getStatus(player) == ApertureStatus.NORMAL
                 && aperture.nourishProgress() >= ApertureNourishData.FULL
                 && aperture.stage() == Stage.HIGHEST && aperture.rank() != Rank.HIGHEST;
     }
 
-    public static boolean atCeiling(@NotNull Player player, int index) {
-        Aperture aperture = ApertureService.aperture(player, index);
+    public static boolean isAtCeiling(@NotNull Player player, int index) {
+        Aperture aperture = ApertureService.getAperture(player, index);
         return aperture.second() ? aperture.stage() == Stage.HIGHEST
                 : aperture.rank() == Rank.HIGHEST && aperture.stage() == Stage.HIGHEST;
     }
     //endregion
 
-    public static long costPerSecond(@NotNull Player player, int index) {
-        long max = ApertureService.aperture(player, index).maxEssence();
+    public static long getCostPerSecond(@NotNull Player player, int index) {
+        long max = ApertureService.getAperture(player, index).maxEssence();
         return Math.max(1L, (max + COST_DIVISOR - 1) / COST_DIVISOR);
     }
 
     public static long impactCost(@NotNull Player player) {
-        return IMPACT_COST_PER_RANK_BASE * ApertureService.aperture(player).rank().getRankBase();
+        return IMPACT_COST_PER_RANK_BASE * ApertureService.getAperture(player).rank().getRankBase();
     }
 
     public static boolean canAffordImpact(@NotNull Player player) {
@@ -156,12 +156,12 @@ public final class ApertureNourishService {
         ApertureNourishData data = get(player);
         if (!data.cultivating()) return false;
         if (!ApertureService.hasAperture(player)) { cancel(player); return false; }
-        int target = targetIndex(player);
-        if (ApertureService.status(player, target) != ApertureStatus.NORMAL
-                || atCeiling(player, target)) { cancel(player); return false; }
+        int target = getTargetIndex(player);
+        if (ApertureService.getStatus(player, target) != ApertureStatus.NORMAL
+                || isAtCeiling(player, target)) { cancel(player); return false; }
 
         player.setDeltaMovement(Vec3.ZERO);
-        if (!pay(player, costPerSecond(player, target))) {
+        if (!pay(player, getCostPerSecond(player, target))) {
             starve(player, data);
             return false;
         }
@@ -180,7 +180,7 @@ public final class ApertureNourishService {
     }
 
     private static boolean advanceProgress(ServerPlayer player, ApertureNourishData data, int target) {
-        Aperture aperture = ApertureService.aperture(player, target);
+        Aperture aperture = ApertureService.getAperture(player, target);
         Aperture fed = aperture.withNourishProgress(aperture.nourishProgress() + PERCENT_PER_SECOND);
         if (fed.nourishProgress() < ApertureNourishData.FULL) {
             ApertureService.set(player, target, fed);
@@ -195,7 +195,7 @@ public final class ApertureNourishService {
             return false;
         }
         ApertureService.set(player, target, fed.withStage(stage.shift(1)).withNourishProgress(0));
-        if (!ApertureService.aperture(player, target).second()) {
+        if (!ApertureService.getAperture(player, target).second()) {
             AperturePressureService.relieve(player, STAGE_UP_PRESSURE_RELIEF);
         }
         store(player, ApertureNourishData.DEFAULT);
@@ -212,7 +212,7 @@ public final class ApertureNourishService {
 
     //region Stone Aperture Gu [石窍蛊] -- straight to this rank's peak, and never further
     public static void petrify(@NotNull ServerPlayer player, int index) {
-        Aperture aperture = ApertureService.aperture(player, index);
+        Aperture aperture = ApertureService.getAperture(player, index);
         if (aperture.petrified()) return;
         ApertureService.set(player, index, aperture.withStage(Stage.HIGHEST)
                 .withNourishProgress(0).withPetrified(true));
@@ -221,7 +221,7 @@ public final class ApertureNourishService {
     }
 
     public static boolean convertPetrifiedPressure(@NotNull ServerPlayer player) {
-        Aperture aperture = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.getAperture(player);
         if (!aperture.petrified() || aperture.rank() == Rank.HIGHEST) return false;
 
         ApertureService.set(player, ApertureData.PRIMARY, aperture
@@ -239,7 +239,7 @@ public final class ApertureNourishService {
     //region striking the wall
     public static void impactWall(@NotNull ServerPlayer player) {
         if (!canImpact(player)) return;
-        Aperture aperture = ApertureService.aperture(player);
+        Aperture aperture = ApertureService.getAperture(player);
         long cost = impactCost(player);
         if (!player.hasInfiniteMaterials() && !PrimevalStoneSupply.spend(player, cost)) {
             player.displayClientMessage(Component.translatable(IMPACT_POOR, cost), true);
@@ -271,7 +271,7 @@ public final class ApertureNourishService {
             }
         }
         ApertureService.set(player, ApertureData.PRIMARY,
-                ApertureService.aperture(player, ApertureData.PRIMARY).withNourishProgress(0));
+                ApertureService.getAperture(player, ApertureData.PRIMARY).withNourishProgress(0));
         store(player, ApertureNourishData.DEFAULT);
     }
 

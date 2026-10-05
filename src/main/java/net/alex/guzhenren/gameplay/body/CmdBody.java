@@ -4,7 +4,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import java.util.function.Predicate;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
-import net.alex.guzhenren.gameplay.aperture.AwakenedGate;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,8 +15,8 @@ import net.minecraft.util.StringRepresentable;
  *
  * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, lifespan and age. The
  * path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a
- * mortal ages and changes form too -- except {@code extreme set}, which needs an awakened target.
- *
+ * mortal ages and changes form too -- except {@code extreme set}, which needs an awakened target. That gate
+ * comes in through {@link #node} from the command root, so the body package never names the aperture package.
  *
  * @author Alex
  * @version 1.0.0
@@ -29,16 +28,16 @@ public final class CmdBody {
 
     private CmdBody() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> node(Predicate<ServerPlayer> awakened) {
         return Commands.literal("body")
-                .then(physique())
+                .then(physique(awakened))
                 .then(ModCommandSupport.enumSetNode("race", Race.values(),
                         BodyService::setRace, ModCommandSupport.ANYONE, null))
                 .then(ModCommandSupport.counter("lifespan", BodyService::setLifespan, BodyService::addLifespan))
                 .then(ModCommandSupport.counter("age", BodyService::setAge, BodyService::addAge));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> physique() {
+    private static ArgumentBuilder<CommandSourceStack, ?> physique(Predicate<ServerPlayer> awakened) {
         return Commands.literal("physique")
                 .then(enumAction("add", Physique.values(), BodyService::addPhysique,
                         value -> value != Physique.EXTREME, player -> true,
@@ -47,7 +46,7 @@ public final class CmdBody {
                         player -> true, null))
                 .then(Commands.literal("extreme")
                         .then(enumAction("set", ExtremePhysique.settable(), BodyService::setExtremePhysique,
-                                value -> true, AwakenedGate.AWAKENED,
+                                value -> true, awakened,
                                 ModCommandSupport.FAILED_UNAWAKENED)));
     }
 

@@ -95,13 +95,13 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         load(pageIndex);
     }
 
-    public int pageIndex() { return pageData.get(DATA_PAGE); }
+    public int getPageIndex() { return pageData.get(DATA_PAGE); }
 
-    public int pageCount() { return Math.max(1, pageData.get(DATA_PAGES)); }
+    public int getPageCount() { return Math.max(1, pageData.get(DATA_PAGES)); }
 
-    public int load() { return pageData.get(DATA_LOAD); }
+    public int getLoad() { return pageData.get(DATA_LOAD); }
 
-    public int aperture() { return aperture; }
+    public int getAperture() { return aperture; }
 
     private int countPages() {
         int count = ApertureStorageService.count(player, aperture);
@@ -111,7 +111,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     //region paging
     @Override
     public boolean clickMenuButton(@NotNull Player who, int id) {
-        int current = pageIndex();
+        int current = getPageIndex();
         int next = switch (id) {
             case BUTTON_PREV -> current - 1;
             case BUTTON_NEXT -> current + 1;
@@ -126,7 +126,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     }
 
     public void reload() {
-        load(pageIndex());
+        load(getPageIndex());
         broadcastChanges();
     }
 
@@ -138,11 +138,11 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         pageData.set(DATA_LOAD, ApertureStorageService.load(player, aperture));
 
         int from = at * PAGE_SIZE;
-        List<ItemStack> items = ApertureStorageService.page(player, aperture, from, PAGE_SIZE);
+        List<ItemStack> items = ApertureStorageService.getPage(player, aperture, from, PAGE_SIZE);
         for (int i = 0; i < PAGE_SIZE; i++) {
             page.setItem(i, i < items.size() ? items.get(i) : ItemStack.EMPTY);
         }
-        vital.setItem(0, ApertureStorageService.vital(player, aperture).copy());
+        vital.setItem(0, ApertureStorageService.getVital(player, aperture).copy());
         loading = false;
     }
 
@@ -151,10 +151,10 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         List<ItemStack> window = new ArrayList<>(PAGE_SIZE);
         for (int i = 0; i < PAGE_SIZE; i++) window.add(page.getItem(i).copy());
-        int from = pageIndex() * PAGE_SIZE;
-        if (!ApertureStorageService.pageMatches(server, aperture, from, window)) {
+        int from = getPageIndex() * PAGE_SIZE;
+        if (!ApertureStorageService.matchesPage(server, aperture, from, window)) {
             if (!ApertureStorageService.setPage(server, aperture, from, window)) {
-                load(pageIndex());
+                load(getPageIndex());
                 return;
             }
         }
@@ -164,9 +164,9 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
                 && (!GuItem.isVital(bound) || GuItem.boundAperture(bound) != aperture)) {
             GuItem.bind(bound, server, aperture);
         }
-        if (!same(bound, ApertureStorageService.vital(server, aperture))) {
+        if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
             if (!ApertureStorageService.setVital(server, aperture, bound.copy())) {
-                load(pageIndex());
+                load(getPageIndex());
                 return;
             }
         }
@@ -220,12 +220,12 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         public boolean mayPlace(@NotNull ItemStack stack) {
             return stack.getItem() instanceof MortalGuItem
                     && (hasItem()
-                    || ApertureStorageService.maxStackSize(player, aperture, load(), getItem(), stack) > 0);
+                    || ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0);
         }
 
         @Override
         public int getMaxStackSize(@NotNull ItemStack stack) {
-            return ApertureStorageService.maxStackSize(player, aperture, load(), getItem(), stack);
+            return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack);
         }
     }
 

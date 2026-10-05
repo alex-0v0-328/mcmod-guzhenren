@@ -114,7 +114,7 @@ public final class EpicFightIntegration {
     private static int staminaMaxPercent(ServerPlayer player) {
         ExtremePhysique physique = BodyService.getExtremePhysique(player);
         return physique == ExtremePhysique.NONE
-                ? ApertureService.talent(player).getStaminaMaxPercent()
+                ? ApertureService.getTalent(player).getStaminaMaxPercent()
                 : physique.getStaminaMaxPercent();
     }
 

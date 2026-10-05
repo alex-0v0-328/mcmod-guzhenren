@@ -52,8 +52,8 @@ public class StoneApertureGuItem extends ConsumedGuItem {
         int primary = data.firstIndex();
         int second = data.secondIndex();
         int target = stoneTarget(
-                primary < 0 ? ApertureStatus.DEAD : ApertureService.status(player, primary),
-                second < 0 ? ApertureStatus.DEAD : ApertureService.status(player, second));
+                primary < 0 ? ApertureStatus.DEAD : ApertureService.getStatus(player, primary),
+                second < 0 ? ApertureStatus.DEAD : ApertureService.getStatus(player, second));
         if (target == NO_TARGET) return NO_TARGET;
         return target == ApertureData.SECOND ? Math.max(second, 0) : Math.max(primary, 0);
     }
@@ -62,7 +62,7 @@ public class StoneApertureGuItem extends ConsumedGuItem {
     protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
         int target = targetOf(player);
         if (target == NO_TARGET) return new Refusal(FAILED_UNAVAILABLE);
-        return stageUpGate(ApertureService.aperture(player, target));
+        return stageUpGate(ApertureService.getAperture(player, target));
     }
 
     @Override

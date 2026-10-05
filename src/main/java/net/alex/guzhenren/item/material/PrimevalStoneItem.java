@@ -44,7 +44,7 @@ public class PrimevalStoneItem extends GuMaterialItem {
     @Override
     protected @Nullable Refusal gate(Player player, ItemStack stack) {
         if (!ApertureService.hasAperture(player)) return new Refusal(FAILED_UNAWAKENED);
-        return ApertureEssenceService.currentEssence(player) >= ApertureEssenceService.maxEssence(player)
+        return ApertureEssenceService.getCurrentEssence(player) >= ApertureEssenceService.getMaxEssence(player)
                 ? new Refusal(FAILED_FULL) : null;
     }
 
@@ -56,7 +56,7 @@ public class PrimevalStoneItem extends GuMaterialItem {
     }
 
     public int used(Player player, ItemStack stack) {
-        long deficit = ApertureEssenceService.maxEssence(player) - ApertureEssenceService.currentEssence(player);
+        long deficit = ApertureEssenceService.getMaxEssence(player) - ApertureEssenceService.getCurrentEssence(player);
         return (int) Math.min(stack.getCount(), (deficit + essence - 1) / essence);
     }
 }

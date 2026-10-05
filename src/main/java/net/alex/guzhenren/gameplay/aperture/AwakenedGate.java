@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * The awakening [开窍] gate every command that needs an aperture shares: {@link #AWAKENED} refuses a target
- * per player (data protection), {@link #sourceAwakened} hides a subtree in {@code requires()} (presentation
+ * per player (data protection), {@link #isSourceAwakened} hides a subtree in {@code requires()} (presentation
  * only), and {@link #applyOnAwakened} runs an operation on the awakened targets alone.
  *
  * <p>It lives with the aperture, not in the command framework, so the framework stays below every feature.
@@ -28,7 +28,7 @@ public final class AwakenedGate {
 
     public static final Predicate<ServerPlayer> AWAKENED = ApertureService::isAwakened;
 
-    public static boolean sourceAwakened(CommandSourceStack source) {
+    public static boolean isSourceAwakened(CommandSourceStack source) {
         return !(source.getEntity() instanceof ServerPlayer player) || ApertureService.isAwakened(player);
     }
 

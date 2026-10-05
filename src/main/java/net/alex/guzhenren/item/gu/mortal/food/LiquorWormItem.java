@@ -40,7 +40,7 @@ public class LiquorWormItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
-        if (ApertureService.rank(player) != rank()) {
+        if (ApertureService.getRank(player) != rank()) {
             return new Refusal(FAILED_RANK, Component.translatable(rank().getTranslationKey()));
         }
         return ApertureEssenceService.canDistill(player) ? null : new Refusal(FAILED_DISTILLING);

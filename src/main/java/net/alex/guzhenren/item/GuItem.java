@@ -70,7 +70,7 @@ public abstract class GuItem extends Item {
     public static final int USE_SAME_TICKS = Ticks.HALF_SECOND;
     public static final int USE_SLOW_TICKS = Ticks.SECOND;
 
-    protected int rankGap(Player player) { return ApertureService.rank(player).ordinal() - rank.ordinal(); }
+    protected int rankGap(Player player) { return ApertureService.getRank(player).ordinal() - rank.ordinal(); }
 
     protected int useChargeByGap(Player player) {
         int gap = rankGap(player);

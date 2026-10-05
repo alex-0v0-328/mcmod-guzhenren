@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * every heartbeat with the day count elapsed since the last one -- zero on most seconds, when a refined Gu
  * still pays its own upkeep; forwards to {@link GuUpkeep#tickInContainer} per refined Gu and reports
  * starvation through {@link TendedGuItem#starved}. The store is walked through
- * {@code ApertureStorageService.view} without copying it: only a refined Gu is copied before its tick, and the
+ * {@code ApertureStorageService.getView} without copying it: only a refined Gu is copied before its tick, and the
  * list is copied only once a Gu changed.
  *
  * <p>⚠ Every reader asks {@code refined()} first: an unrefined Gu's hunger is zero, and zero is also
@@ -41,7 +41,7 @@ public final class ApertureStorageTick {
     }
 
     private static void tickStore(ServerPlayer player, int aperture, long days) {
-        List<ItemStack> stored = ApertureStorageService.view(player, aperture);
+        List<ItemStack> stored = ApertureStorageService.getView(player, aperture);
         List<ItemStack> next = null;
         for (int i = 0; i < stored.size(); i++) {
             ItemStack original = stored.get(i);
@@ -50,7 +50,7 @@ public final class ApertureStorageTick {
             ItemStack stack = original.copy();
             boolean starved = GuUpkeep.tickInContainer(player, stack, days);
             if (starved) TendedGuItem.starved(player, stack);
-            if (!starved && !changed(original, stack)) continue;
+            if (!starved && !hasChanged(original, stack)) continue;
 
             if (next == null) next = new ArrayList<>(stored);
             next.set(i, starved ? ItemStack.EMPTY : stack);
@@ -59,7 +59,7 @@ public final class ApertureStorageTick {
     }
 
     private static void tickVital(ServerPlayer player, int aperture, long days) {
-        ItemStack stack = ApertureStorageService.vital(player, aperture);
+        ItemStack stack = ApertureStorageService.getVital(player, aperture);
         if (!(stack.getItem() instanceof TendedGuItem)) return;
 
         ItemStack before = stack.copy();
@@ -68,10 +68,10 @@ public final class ApertureStorageTick {
             TendedGuItem.starved(player, stack);
             return;
         }
-        if (changed(before, stack)) ApertureStorageService.setVital(player, aperture, stack);
+        if (hasChanged(before, stack)) ApertureStorageService.setVital(player, aperture, stack);
     }
 
-    private static boolean changed(ItemStack before, ItemStack after) {
+    private static boolean hasChanged(ItemStack before, ItemStack after) {
         return before.getCount() != after.getCount()
                 || !ItemStack.isSameItemSameComponents(before, after);
     }

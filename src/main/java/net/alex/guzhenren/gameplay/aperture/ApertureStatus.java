@@ -10,7 +10,7 @@ import net.minecraft.util.StringRepresentable;
  * <p>Closed vocabulary enum. NORMAL is a living aperture; DEAD [死窍] covers zombie [僵], half-zombie
  * [半僵] and stone apertures [石窍] -- no natural regen, nourishing or striking.
  *
- * <p>⚠ The derivation lives on {@code ApertureService#status}, not here -- enums in this package are
+ * <p>⚠ The derivation lives on {@code ApertureService#getStatus}, not here -- enums in this package are
  * vocabulary, and the check every gate wants is {@code status == NORMAL}.
  *
  * @author Alex

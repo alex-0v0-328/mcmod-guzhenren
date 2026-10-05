@@ -592,7 +592,7 @@ public class EnUsLanguageProvider extends LanguageProvider {
     }
 
     private void addTalent() {
-        add(Talent.EXTREME, "Ten-Extremes Aptitude");
+        add(Talent.TEN_EXTREMES, "Ten-Extremes Aptitude");
         add(Talent.FIRST, "Grade-A Aptitude");
         add(Talent.SECOND, "Grade-B Aptitude");
         add(Talent.THIRD, "Grade-C Aptitude");

@@ -604,7 +604,7 @@ public class ZhCnLanguageProvider extends LanguageProvider {
     }
 
     private void addTalent() {
-        add(Talent.EXTREME, "十绝天资");
+        add(Talent.TEN_EXTREMES, "十绝天资");
         add(Talent.FIRST, "甲等资质");
         add(Talent.SECOND, "乙等资质");
         add(Talent.THIRD, "丙等资质");

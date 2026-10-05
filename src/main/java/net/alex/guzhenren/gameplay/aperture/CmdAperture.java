@@ -37,7 +37,7 @@ public final class CmdAperture {
 
     public static ArgumentBuilder<CommandSourceStack, ?> node() {
         LiteralArgumentBuilder<CommandSourceStack> root =
-                Commands.literal("aperture").requires(AwakenedGate::sourceAwakened);
+                Commands.literal("aperture").requires(AwakenedGate::isSourceAwakened);
         ArgumentBuilder<CommandSourceStack, ?> indexed = Commands.argument(ARG_APERTURE,
                 IntegerArgumentType.integer(1, ApertureData.MAX_APERTURES));
 
@@ -68,24 +68,24 @@ public final class CmdAperture {
                         .then(longNode("set", ApertureEssenceService::set))
                         .then(longNode("add",
                                 (player, index, value) -> ApertureEssenceService.set(player, index,
-                                        ApertureService.aperture(player, index).currentEssence() + value)))
+                                        ApertureService.getAperture(player, index).currentEssence() + value)))
                         .then(longNode("sub",
                                 (player, index, value) -> ApertureEssenceService.set(player, index,
-                                        ApertureService.aperture(player, index).currentEssence() - value))))
+                                        ApertureService.getAperture(player, index).currentEssence() - value))))
                 .then(Commands.literal("distilled")
                         .then(longNode("set", ApertureEssenceService::setDistilled))
                         .then(longNode("add",
                                 (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
-                                        ApertureService.aperture(player, index).distilledEssence() + value)))
+                                        ApertureService.getAperture(player, index).distilledEssence() + value)))
                         .then(longNode("sub",
                                 (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
-                                        ApertureService.aperture(player, index).distilledEssence() - value))))
+                                        ApertureService.getAperture(player, index).distilledEssence() - value))))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
                         context -> AwakenedGate.applyOnAwakened(context, ApertureEssenceService::refill)));
     }
 
     //region builders
-    private static int apertureOf(CommandContext<CommandSourceStack> context) {
+    private static int getApertureIndex(CommandContext<CommandSourceStack> context) {
         boolean indexed = context.getNodes().stream()
                 .anyMatch(node -> node.getNode().getName().equals(ARG_APERTURE));
         return indexed ? IntegerArgumentType.getInteger(context, ARG_APERTURE) - 1
@@ -94,7 +94,7 @@ public final class CmdAperture {
 
     private static int applyOnAperture(CommandContext<CommandSourceStack> context, Indexed operation)
             throws CommandSyntaxException {
-        int index = apertureOf(context);
+        int index = getApertureIndex(context);
         String refused = index == ApertureData.PRIMARY
                 ? ModCommandSupport.FAILED_UNAWAKENED : FAILED_INDEX;
         return ModCommandSupport.applyIf(context,
@@ -170,7 +170,7 @@ public final class CmdAperture {
                         IntegerArgumentType.integer(-Aperture.MAX_BASE, Aperture.MAX_BASE)),
                 context -> {
                     int value = IntegerArgumentType.getInteger(context, ModCommandSupport.ARG_VALUE);
-                    int index = apertureOf(context);
+                    int index = getApertureIndex(context);
                     String refused = index == ApertureData.PRIMARY
                             ? ModCommandSupport.FAILED_EXTREME
                             : FAILED_INDEX;

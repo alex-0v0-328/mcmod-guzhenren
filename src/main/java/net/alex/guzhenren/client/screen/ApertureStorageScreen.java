@@ -102,15 +102,15 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
 
     private void renderPager(GuiGraphics graphics, int mouseX, int mouseY) {
         renderBack(graphics, mouseX, mouseY);
-        renderPageButton(graphics, mouseX, mouseY, prevX(), pagerBottomY(), menu.pageIndex() > 0, "<");
+        renderPageButton(graphics, mouseX, mouseY, prevX(), pagerBottomY(), menu.getPageIndex() > 0, "<");
         renderPageButton(graphics, mouseX, mouseY, nextX(), pagerBottomY(),
-                menu.pageIndex() + 1 < menu.pageCount(), ">");
+                menu.getPageIndex() + 1 < menu.getPageCount(), ">");
 
-        Component page = Component.literal((menu.pageIndex() + 1) + " / " + menu.pageCount());
+        Component page = Component.literal((menu.getPageIndex() + 1) + " / " + menu.getPageCount());
         graphics.drawString(font, page, labelX() + (PAGE_LABEL_W - font.width(page)) / 2,
                 pagerBottomY() + (PAGE_BUTTON_H - font.lineHeight) / 2 + 1, ModPalette.TEXT, false);
 
-        Component load = Component.translatable(LOAD_KEY, menu.load(), ApertureStorageService.MAX_LOAD);
+        Component load = Component.translatable(LOAD_KEY, menu.getLoad(), ApertureStorageService.MAX_LOAD);
         graphics.drawString(font, load, leftPos + imageWidth - font.width(load), pagerBottomY() + 1,
                 ModPalette.APERTURE, false);
     }

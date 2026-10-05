@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>Extends {@link net.alex.guzhenren.client.hud.HotbarHud}. Registered above
  * {@code VanillaGuiLayers.AIR_LEVEL}. Reads the cultivation fraction from
- * {@link ApertureNourishService#fraction} and swaps to a red
+ * {@link ApertureNourishService#getFraction} and swaps to a red
  * fill when starving.
  *
  * <p>⚠ It is a separate layer from the charge bar on purpose: that one reads only the held item, and
@@ -50,12 +50,12 @@ public final class NourishHud extends HotbarHud {
         int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
         int y = barTop(minecraft);
 
-        int target = ApertureNourishService.targetIndex(player);
-        drawBar(graphics, x, y, ApertureNourishService.fraction(player, target),
+        int target = ApertureNourishService.getTargetIndex(player);
+        drawBar(graphics, x, y, ApertureNourishService.getFraction(player, target),
                 starving ? FILL_STARVING : ModPalette.APERTURE);
 
         drawLabel(graphics, minecraft, x, y,
                 Component.translatable(starving ? STARVING : CAPTION,
-                        ApertureService.aperture(player, target).nourishProgress()));
+                        ApertureService.getAperture(player, target).nourishProgress()));
     }
 }
