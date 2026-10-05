@@ -2,21 +2,19 @@ package net.alex.guzhenren.gameplay.path.strength;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
 
 /**
- * {@code /gzr path strength}: reads and writes the beast and human strengths a body holds.
+ * {@code /gzr path strength}: writes the beast and human strengths a body holds; {@code /gzr info}
+ * reads them.
  *
  * <p>Offers {@code grant}/{@code revoke}/{@code clear} for beast strengths and
- * {@code set}/{@code add}/{@code sub} for human strengths. All writes delegate to
- * {@link PathStrengthService}, which is also the one funnel
- * that refreshes the attack modifier.
+ * {@code set}/{@code add}/{@code sub} for human strengths, read from an {@code int} argument so the
+ * {@code (int)} narrowing is exact. All writes delegate to {@link PathStrengthService}, which is also the
+ * one funnel that refreshes the attack modifier.
  *
  * @author Alex
  * @version 1.0.0
@@ -51,30 +49,9 @@ public final class CmdStrength {
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> humanStrength() {
-        return Commands.literal("human")
-                .then(ModEnumArgument.arg(ARG_KIND, HumanStrength.values())
-                        .then(countNode("set", PathStrengthService::setHumanStrength))
-                        .then(countNode("add", PathStrengthService::addHumanStrength))
-                        .then(countNode("sub", (p, k, v) -> PathStrengthService.addHumanStrength(p, k, -v))));
-    }
-
-    private static ArgumentBuilder<CommandSourceStack, ?> countNode(String literal, HumanStrengthOperation operation) {
-        return Commands.literal(literal).then(ModCommandSupport.withTargets(
-                Commands.argument(ModCommandSupport.ARG_VALUE, IntegerArgumentType.integer()),
-                context -> {
-                    HumanStrength kind = kindOf(context);
-                    int value = IntegerArgumentType.getInteger(context, ModCommandSupport.ARG_VALUE);
-                    return ModCommandSupport.apply(context, player -> operation.apply(player, kind, value));
-                }));
-    }
-
-    private static HumanStrength kindOf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        return ModEnumArgument.get(context, ARG_KIND, HumanStrength.values());
-    }
-
-    @FunctionalInterface
-    private interface HumanStrengthOperation {
-
-        void apply(ServerPlayer player, HumanStrength kind, int value);
+        return Commands.literal("human").then(ModCommandSupport.enumCounter(ARG_KIND, HumanStrength.values(),
+                IntegerArgumentType.integer(),
+                (player, kind, amount) -> PathStrengthService.setHumanStrength(player, kind, (int) amount),
+                (player, kind, amount) -> PathStrengthService.addHumanStrength(player, kind, (int) amount)));
     }
 }

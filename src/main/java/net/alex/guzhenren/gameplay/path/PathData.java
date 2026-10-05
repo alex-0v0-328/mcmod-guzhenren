@@ -12,7 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
  * Path [流派] progress, sparse: a path missing from the map is simply one nobody has walked.
  *
  * <p>Immutable record attachment keyed {@code path_data}; {@link
- * PathService} is the only writer. Each value is a
+ * PathService} is the only runtime writer. Each value is a
  * {@link PathEntry}. ⚠ A default {@link PathEntry} (no attainment, no marks) is pruned out of the map
  * entirely, so a path that has been fully revoked simply disappears -- do not read "absent" as
  * "never touched".

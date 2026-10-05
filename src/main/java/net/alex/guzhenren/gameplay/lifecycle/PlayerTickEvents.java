@@ -7,7 +7,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageTick;
-import net.alex.guzhenren.gameplay.body.BodyAttackService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.mind.MindService;
@@ -67,7 +67,7 @@ public final class PlayerTickEvents {
         pinUndeadHunger(player);
         PathQiService.syncEffects(player);
         tickDeathQi(player);
-        BodyAttackService.refresh(player);
+        AttackDamageService.refresh(player);
         BodyService.tickLifespan(player);
         ApertureEssenceService.regenStep(player);
         ApertureNourishService.tickNourish(player);
@@ -100,9 +100,9 @@ public final class PlayerTickEvents {
 
     private static void tickHalfZombie(ServerPlayer player) {
         if (BodyService.isHalfZombie(player)) {
-            if (PathQiService.current(player, QiKind.DEATH) > 0L) {
+            if (PathQiService.getCurrent(player, QiKind.DEATH) > 0L) {
                 BodyService.turnZombie(player, BodyService.get(player).zombieTier());
-            } else if (BodyService.halfZombieRanOut(player)) {
+            } else if (BodyService.hasHalfZombieRunOut(player)) {
                 BodyService.removePhysique(player, Physique.HALF_ZOMBIE);
             }
         }
@@ -115,7 +115,7 @@ public final class PlayerTickEvents {
             return;
         }
         player.addEffect(ModEffects.instance(ModEffects.HALF_ZOMBIE,
-                Math.max(1, (int) BodyService.halfZombieTicksLeft(player))));
+                Math.max(1, (int) BodyService.getHalfZombieTicksLeft(player))));
     }
 
     private static void closeDistilling(ServerPlayer player) {

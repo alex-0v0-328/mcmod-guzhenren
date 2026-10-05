@@ -10,11 +10,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * {@code /gzr body}: reads and writes body [肉身] state -- physiques, race, lifespan and age.
+ * {@code /gzr body}: writes body [肉身] state -- physiques, race, lifespan and age; {@code /gzr info}
+ * reads it.
  *
  * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, lifespan and age. The
  * path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a
- * mortal ages and changes form too.
+ * mortal ages and changes form too -- except {@code extreme set}, which needs an awakened target.
  *
  *
  * @author Alex

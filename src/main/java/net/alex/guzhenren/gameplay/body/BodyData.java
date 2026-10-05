@@ -188,13 +188,13 @@ public record BodyData(
         return halfZombieEndTick != UNTRACKED && now < halfZombieEndTick + RELAPSE_WINDOW_TICKS;
     }
 
-    public BodyData withPhysiques(Set<Physique> v) {
-        return new BodyData(v, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
+    public BodyData withPhysiques(Set<Physique> value) {
+        return new BodyData(value, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
                 deathQiLifespanLost, halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData withExtremePhysique(ExtremePhysique v) {
-        return new BodyData(physiques, v, race, ageParts, lifespanParts, lastDayIndex, deathQiLifespanLost,
+    public BodyData withExtremePhysique(ExtremePhysique physique) {
+        return new BodyData(physiques, physique, race, ageParts, lifespanParts, lastDayIndex, deathQiLifespanLost,
                 halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
@@ -207,44 +207,44 @@ public record BodyData(
                 deathQiLifespanLost, UNTRACKED, NO_ZOMBIE_TIER, lastBilledTick);
     }
 
-    public BodyData withRace(Race v) {
-        return new BodyData(physiques, extremePhysique, v, ageParts, lifespanParts, lastDayIndex,
+    public BodyData withRace(Race race) {
+        return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
                 deathQiLifespanLost, halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData withAgeParts(long v) {
-        return new BodyData(physiques, extremePhysique, race, v, lifespanParts, lastDayIndex,
+    public BodyData withAgeParts(long value) {
+        return new BodyData(physiques, extremePhysique, race, value, lifespanParts, lastDayIndex,
                 deathQiLifespanLost, halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData withLifespanParts(long v) {
-        return new BodyData(physiques, extremePhysique, race, ageParts, v, lastDayIndex,
+    public BodyData withLifespanParts(long value) {
+        return new BodyData(physiques, extremePhysique, race, ageParts, value, lastDayIndex,
                 deathQiLifespanLost, halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData withLastDayIndex(long v) {
-        return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, v,
+    public BodyData withLastDayIndex(long value) {
+        return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, value,
                 deathQiLifespanLost, halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData withDeathQiLifespanLost(long v) {
-        return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, v,
+    public BodyData withDeathQiLifespanLost(long value) {
+        return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, value,
                 halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData withHalfZombieEndTick(long v) {
+    public BodyData withHalfZombieEndTick(long value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
-                deathQiLifespanLost, v, zombieTier, lastBilledTick);
+                deathQiLifespanLost, value, zombieTier, lastBilledTick);
     }
 
-    public BodyData withZombieTier(int v) {
+    public BodyData withZombieTier(int value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
-                deathQiLifespanLost, halfZombieEndTick, v, lastBilledTick);
+                deathQiLifespanLost, halfZombieEndTick, value, lastBilledTick);
     }
 
-    public BodyData withLastBilledTick(long v) {
+    public BodyData withLastBilledTick(long value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
-                deathQiLifespanLost, halfZombieEndTick, zombieTier, v);
+                deathQiLifespanLost, halfZombieEndTick, zombieTier, value);
     }
 
     public BodyData lived(long parts, long billedTick) {

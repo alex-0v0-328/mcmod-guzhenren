@@ -12,8 +12,8 @@ import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
+import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
-import net.alex.guzhenren.gameplay.mind.WisdomType;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.MarkTag;
@@ -744,9 +744,9 @@ public class ZhCnLanguageProvider extends LanguageProvider {
     }
 
     private void addWisdomType() {
-        add(WisdomType.THOUGHTS, "念");
-        add(WisdomType.WILLS, "意");
-        add(WisdomType.EMOTIONS, "情");
+        add(MindPoolType.THOUGHTS, "念");
+        add(MindPoolType.WILLS, "意");
+        add(MindPoolType.EMOTIONS, "情");
     }
 
     private void addBrilliance() {

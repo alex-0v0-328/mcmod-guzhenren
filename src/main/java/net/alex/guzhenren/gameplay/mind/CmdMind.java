@@ -6,15 +6,15 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr mind}: reads and writes the thought [念] pools.
+ * {@code /gzr mind}: writes brilliance [才情] and the three mind pools; {@code /gzr info} reads them.
  *
  * <p>Offers graded set/up/down for brilliance [才情] and delegates to
- * {@link CmdWisdom} for the three wisdom pools. All of
+ * {@link CmdMindPool} for the three wisdom pools. All of
  * {@code /gzr mind} is ungated -- a mortal thinks too.
  *
  * @author Alex
  * @version 1.0.0
- * @see CmdWisdom
+ * @see CmdMindPool
  * @since 1.0.0
  */
 
@@ -25,7 +25,7 @@ public final class CmdMind {
     public static ArgumentBuilder<CommandSourceStack, ?> node() {
         return Commands.literal("mind")
                 .then(brilliance())
-                .then(CmdWisdom.node());
+                .then(CmdMindPool.node());
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> brilliance() {

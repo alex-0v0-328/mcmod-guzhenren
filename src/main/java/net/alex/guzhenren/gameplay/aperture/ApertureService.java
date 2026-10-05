@@ -3,7 +3,6 @@ package net.alex.guzhenren.gameplay.aperture;
 import java.util.List;
 import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
-import net.alex.guzhenren.gameplay.body.BodyHealthService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.GuPath;
@@ -14,19 +13,23 @@ import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The only writer of the Aperture [空窍] attachment: awakening [开窍], rank [转数], stage [阶段], talent
- * [资质] and paths [流派]. Static service; most writes route through {@code store}, which also fires
- * {@link BodyHealthService#refresh} and {@link EpicFightIntegration#refresh}; pressure writes, in
- * {@link AperturePressureService}, skip it.
+ * The only runtime writer of the Aperture [空窍] attachment: awakening [开窍], rank [转数], stage [阶段], talent
+ * [资质] and paths [流派]. Static service; most writes route through {@code store}, which posts an
+ * {@link ApertureChangedEvent} (the max-health modifier refreshes) and calls
+ * {@link EpicFightIntegration#refresh}; pressure writes, in {@link AperturePressureService}, skip it.
  *
  * <p>⚠ The body-physique/base-essence invariant is enforced here ({@code enforce}); the concrete
  * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
  * holder -- it appends; the caller gates. ⚠ {@code reconcileTalentPaths} (ten-extreme Dao marks plus
  * human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
+ * {@link #onExtremePhysiqueChanged} runs it, through {@link ApertureEvents}, whenever the body stores a
+ * different ten-extreme physique, then resets the first aperture's base essence to match -- the full
+ * base for a physique, one below for none, which also empties the pressure.
  *
  * <p>{@link #status(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
  * Half-Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
@@ -57,11 +60,11 @@ public final class ApertureService {
     }
 
     public static void syncTalentMarks(@NotNull ServerPlayer player) {
-        ExtremePhysique current = BodyService.extremePhysique(player);
+        ExtremePhysique current = BodyService.getExtremePhysique(player);
         for (ExtremePhysique physique : ExtremePhysique.values()) {
             long expected = physique == current ? talentMarksPerPath(physique) : 0L;
             for (GuPath path : physique.getTalentPaths()) {
-                if (PathService.mark(player, path, MarkTag.EXTREME_PHYSIQUE) != expected) {
+                if (PathService.getMark(player, path, MarkTag.EXTREME_PHYSIQUE) != expected) {
                     PathService.setMark(player, path, MarkTag.EXTREME_PHYSIQUE, expected);
                 }
             }
@@ -201,7 +204,7 @@ public final class ApertureService {
 
     private static void store(ServerPlayer player, ApertureData data) {
         player.setData(ModAttachments.APERTURE, data);
-        BodyHealthService.refresh(player);
+        NeoForge.EVENT_BUS.post(new ApertureChangedEvent(player));
         EpicFightIntegration.refresh(player);
     }
 
@@ -217,9 +220,19 @@ public final class ApertureService {
                 ? aperture.withBaseEssence(Aperture.MAX_BASE - 1).withPressure(0) : aperture;
     }
 
+    public static void onExtremePhysiqueChanged(@NotNull ServerPlayer player, @NotNull ExtremePhysique before,
+                                                @NotNull ExtremePhysique after) {
+        reconcileTalentPaths(player, before, after);
+        if (!isAwakened(player)) return;
+
+        int base = after == ExtremePhysique.NONE ? Aperture.MAX_BASE - 1 : Aperture.MAX_BASE;
+        Aperture updated = aperture(player).withBaseEssence(base);
+        if (after == ExtremePhysique.NONE) updated = updated.withPressure(0);
+        set(player, ApertureData.PRIMARY, updated);
+    }
+
     //    TODO(refactor): extract a coordinator once cross-domain grant rules reach 3; TWO exist today.
-    public static void reconcileTalentPaths(@NotNull ServerPlayer player, @NotNull ExtremePhysique before,
-                                            @NotNull ExtremePhysique after) {
+    private static void reconcileTalentPaths(ServerPlayer player, ExtremePhysique before, ExtremePhysique after) {
         if (before == after) return;
         grantTalentPaths(player, before, -1);
         grantTalentPaths(player, after, 1);

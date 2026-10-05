@@ -12,7 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only writer of Qi [气] holdings, and where their MobEffects are rebuilt from the pool. Static
+ * The only runtime writer of Qi [气] holdings, and where their MobEffects are rebuilt from the pool. Static
  * service; every {@code store} also runs {@code syncEffects}, rebuilding the four qi MobEffects.
  *
  * <p>⚠ Those effects are a PROJECTION, never the truth -- the heartbeat rebuilds them, so milk and
@@ -33,35 +33,38 @@ public final class PathQiService {
     private PathQiService() {}
 
     private static final int EFFECT_REFRESH_TICKS = 2 * Ticks.SECOND;
+    private static final int DEATH_QI_EFFECT_TICKS = 10 * EFFECT_REFRESH_TICKS;
 
-    public static @NotNull PathQiData get(@NotNull Player p) { return p.getData(ModAttachments.PATH_QI); }
+    public static @NotNull PathQiData get(@NotNull Player player) { return player.getData(ModAttachments.PATH_QI); }
 
-    public static long current(@NotNull Player p, @NotNull QiKind kind) { return get(p).current(kind, now(p)); }
-
-    public static void add(@NotNull ServerPlayer p, @NotNull QiKind kind, long delta) {
-        set(p, kind, LongMath.saturatedAdd(current(p, kind), delta));
+    public static long getCurrent(@NotNull Player player, @NotNull QiKind kind) {
+        return get(player).current(kind, now(player));
     }
 
-    public static void set(@NotNull ServerPlayer p, @NotNull QiKind kind, long value) {
+    public static void add(@NotNull ServerPlayer player, @NotNull QiKind kind, long delta) {
+        set(player, kind, LongMath.saturatedAdd(getCurrent(player, kind), delta));
+    }
+
+    public static void set(@NotNull ServerPlayer player, @NotNull QiKind kind, long value) {
         long amount = Math.max(0L, value);
         long holdEnd = 0L;
         if (kind.isTimed() && amount > 0L) {
-            holdEnd = now(p) + kind.holdTicks(Math.max(0, QiKind.tierOf(amount)));
+            holdEnd = now(player) + kind.holdTicks(Math.max(0, QiKind.tierOf(amount)));
         }
-        store(p, get(p).with(kind, new PathQiEntry(amount, holdEnd)));
+        store(player, get(player).with(kind, new PathQiEntry(amount, holdEnd)));
     }
 
-    private static long now(Player p) { return p.level().getGameTime(); }
+    private static long now(Player player) { return player.level().getGameTime(); }
 
-    private static void store(ServerPlayer p, PathQiData data) {
-        long now = now(p);
+    private static void store(ServerPlayer player, PathQiData data) {
+        long now = now(player);
         PathQiData pruned = data;
         for (QiKind kind : QiKind.values()) {
             if (data.get(kind) != null && data.current(kind, now) <= 0L) pruned = pruned.without(kind);
         }
-        if (pruned.equals(get(p))) return;
-        p.setData(ModAttachments.PATH_QI, pruned);
-        syncEffects(p);
+        if (pruned.equals(get(player))) return;
+        player.setData(ModAttachments.PATH_QI, pruned);
+        syncEffects(player);
     }
 
     //region effect projection -- the store is the truth, the MobEffect is its display
@@ -100,7 +103,7 @@ public final class PathQiService {
             return;
         }
         if (current == null || current.getDuration() < EFFECT_REFRESH_TICKS) {
-            player.addEffect(ModEffects.instance(ModEffects.DEATH_QI, 10 * EFFECT_REFRESH_TICKS, 0));
+            player.addEffect(ModEffects.instance(ModEffects.DEATH_QI, DEATH_QI_EFFECT_TICKS, 0));
         }
     }
     //endregion

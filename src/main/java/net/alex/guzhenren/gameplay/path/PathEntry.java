@@ -49,9 +49,9 @@ public record PathEntry(GuAttainment attainment, Map<MarkTag, Long> marks) {
 
     public long mark(MarkTag tag) { return marks.getOrDefault(tag, 0L); }
 
-    public PathEntry withAttainment(GuAttainment v) { return new PathEntry(v, marks); }
+    public PathEntry withAttainment(GuAttainment attainment) { return new PathEntry(attainment, marks); }
 
-    public PathEntry withMark(MarkTag t, long v) { return new PathEntry(attainment, set(marks, t, v)); }
+    public PathEntry withMark(MarkTag tag, long value) { return new PathEntry(attainment, set(marks, tag, value)); }
 
     public boolean isDefault() { return attainment == GuAttainment.NONE && marks.isEmpty(); }
 

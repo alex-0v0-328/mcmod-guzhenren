@@ -6,7 +6,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr soul}: reads and writes the soul [魂魄] pool independently of the body [肉身].
+ * {@code /gzr soul}: writes the soul [魂魄] pool independently of the body [肉身]; {@code /gzr info} reads it.
  *
  * <p>Offers set/add/sub for the current and maximum soul, plus a refill action. A mortal has a soul,
  * so the entire branch is ungated.

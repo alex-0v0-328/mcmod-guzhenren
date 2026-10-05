@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only writer of Path [流派] progress: attainment and Dao marks [道痕].
+ * The only runtime writer of Path [流派] progress: attainment and Dao marks [道痕].
  *
  * <p>Static service over the {@code path_data} attachment; reads take {@link Player}, writes take
  * {@link ServerPlayer}. Every write names a {@link MarkTag}; the command path writes {@code NATURAL}
@@ -30,35 +30,38 @@ public final class PathService {
 
     public static @NotNull PathData get(@NotNull Player player) { return player.getData(ModAttachments.PATH); }
 
-    public static @NotNull PathEntry entry(@NotNull Player p, @NotNull GuPath path) { return get(p).get(path); }
-
-    public static @NotNull GuAttainment attainment(@NotNull Player p, @NotNull GuPath path) {
-        return entry(p, path).attainment();
+    public static @NotNull PathEntry getEntry(@NotNull Player player, @NotNull GuPath path) {
+        return get(player).get(path);
     }
 
-    public static long mark(@NotNull Player p, @NotNull GuPath path, @NotNull MarkTag t) {
-        return entry(p, path).mark(t);
+    public static @NotNull GuAttainment getAttainment(@NotNull Player player, @NotNull GuPath path) {
+        return getEntry(player, path).attainment();
     }
 
-    public static @NotNull Map<GuPath, PathEntry> visibleEntries(@NotNull Player player) {
+    public static long getMark(@NotNull Player player, @NotNull GuPath path, @NotNull MarkTag tag) {
+        return getEntry(player, path).mark(tag);
+    }
+
+    public static @NotNull Map<GuPath, PathEntry> getVisibleEntries(@NotNull Player player) {
         return get(player).entries();
     }
 
-    private static void store(ServerPlayer p, PathData data) { p.setData(ModAttachments.PATH, data); }
+    private static void store(ServerPlayer player, PathData data) { player.setData(ModAttachments.PATH, data); }
 
-    public static void setMark(@NotNull ServerPlayer p, @NotNull GuPath path, @NotNull MarkTag tag, long v) {
-        store(p, get(p).with(path, entry(p, path).withMark(tag, v)));
+    public static void setMark(@NotNull ServerPlayer player, @NotNull GuPath path, @NotNull MarkTag tag, long value) {
+        store(player, get(player).with(path, getEntry(player, path).withMark(tag, value)));
     }
 
-    public static void addMark(@NotNull ServerPlayer p, @NotNull GuPath path, @NotNull MarkTag tag, long delta) {
-        setMark(p, path, tag, LongMath.saturatedAdd(mark(p, path, tag), delta));
+    public static void addMark(@NotNull ServerPlayer player, @NotNull GuPath path, @NotNull MarkTag tag, long delta) {
+        setMark(player, path, tag, LongMath.saturatedAdd(getMark(player, path, tag), delta));
     }
 
-    public static void shiftAttainment(@NotNull ServerPlayer p, @NotNull GuPath path, int delta) {
-        setAttainment(p, path, attainment(p, path).shift(delta));
+    public static void shiftAttainment(@NotNull ServerPlayer player, @NotNull GuPath path, int delta) {
+        setAttainment(player, path, getAttainment(player, path).shift(delta));
     }
 
-    public static void setAttainment(@NotNull ServerPlayer p, @NotNull GuPath path, @NotNull GuAttainment attainment) {
-        store(p, get(p).with(path, entry(p, path).withAttainment(attainment)));
+    public static void setAttainment(@NotNull ServerPlayer player, @NotNull GuPath path,
+                                     @NotNull GuAttainment attainment) {
+        store(player, get(player).with(path, getEntry(player, path).withAttainment(attainment)));
     }
 }

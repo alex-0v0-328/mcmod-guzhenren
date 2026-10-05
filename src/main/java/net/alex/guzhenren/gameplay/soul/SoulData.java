@@ -8,7 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 /**
  * Soul [魂魄], the one pool that is lethal at the bottom. Immutable record attachment keyed {@code
- * soul_data}; {@link SoulService} is the only writer; the
+ * soul_data}; {@link SoulService} is the only runtime writer; the
  * compact ctor floors {@code maxSoul} at zero and clamps {@code currentSoul} to {@code [0, max]}.
  *
  * <p>⚠ The cap is STORED rather than derived, because nothing else determines it -- compare Epic Fight
@@ -46,9 +46,9 @@ public record SoulData(long maxSoul, long currentSoul) {
 
     public boolean isCollapsed() { return currentSoul <= 0L; }
 
-    public SoulData withMaxSoul(long v) { return new SoulData(v, currentSoul); }
+    public SoulData withMaxSoul(long value) { return new SoulData(value, currentSoul); }
 
-    public SoulData withCurrentSoul(long v) { return new SoulData(maxSoul, v); }
+    public SoulData withCurrentSoul(long value) { return new SoulData(maxSoul, value); }
 
     public SoulData refilled() { return new SoulData(maxSoul, maxSoul); }
 

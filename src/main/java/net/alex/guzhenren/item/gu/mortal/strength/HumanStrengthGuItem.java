@@ -40,7 +40,7 @@ public class HumanStrengthGuItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
-        return PathStrengthService.humanStrength(player, kind) >= kind.getMaxLayers()
+        return PathStrengthService.getHumanStrength(player, kind) >= kind.getMaxLayers()
                 ? new Refusal(FAILED_LAYERS_FULL, Component.literal(String.valueOf(kind.getMaxLayers())))
                 : null;
     }

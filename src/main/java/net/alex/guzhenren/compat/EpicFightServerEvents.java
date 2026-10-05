@@ -1,7 +1,7 @@
 package net.alex.guzhenren.compat;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.body.BodyAttackService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +25,7 @@ import yesman.epicfight.world.gamerule.EpicFightGameRules;
  * (or with a fist-category weapon; an empty hand resolves to FIST too) opens the punch shockwave
  * trail at the struck target's hitbox center -- rings planting along the punch ray behind the
  * target, each blooming small-to-large in place -- when the attack panel has reached
- * {@link BodyAttackService#IMPACT_RING_ATTACK_THRESHOLD}. The panel is read as-is, so weapon damage
+ * {@link AttackDamageService#IMPACT_RING_ATTACK_THRESHOLD}. The panel is read as-is, so weapon damage
  * only rides along for fist-category items.
  */
 
@@ -49,7 +49,7 @@ public final class EpicFightServerEvents {
         if (patch.getHoldingItemCapability(InteractionHand.MAIN_HAND).getWeaponCategory()
                 != CapabilityItem.WeaponCategories.FIST) return;
         AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (attack == null || !BodyAttackService.showsImpactRing(attack.getValue())) return;
+        if (attack == null || !AttackDamageService.showsImpactRing(attack.getValue())) return;
 
         RingConeEmitter.punchCone(player, player.getLookAngle(),
                 event.getEntity().getBoundingBox().getCenter());

@@ -45,7 +45,7 @@ public class ZombieGuItem extends TendedGuItem {
 
     @Override
     protected void payout(ServerPlayer player, ItemStack stack) {
-        if (BodyService.wouldRelapse(player)) {
+        if (BodyService.isWithinRelapseWindow(player)) {
             BodyService.turnZombie(player, rung());
             return;
         }

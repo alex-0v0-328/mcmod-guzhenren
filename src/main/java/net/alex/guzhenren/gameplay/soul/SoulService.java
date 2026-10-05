@@ -7,7 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only writer of Soul [魂魄], the one pool whose bottom is lethal. Static service; the compact ctor
+ * The only runtime writer of Soul [魂魄], the one pool whose bottom is lethal. Static service; the compact ctor
  * of {@link SoulData} already clamps current to {@code [0, max]}, so this service is mostly a
  * pass-through -- but it owns the {@code revive} and {@code refill} shapes the lifecycle needs.
  *
@@ -29,23 +29,27 @@ public final class SoulService {
 
     public static @NotNull SoulData get(@NotNull Player player) { return player.getData(ModAttachments.SOUL); }
 
-    public static void setMax(@NotNull ServerPlayer p, long v) { store(p, get(p).withMaxSoul(v)); }
-
-    public static void addMax(@NotNull ServerPlayer p, long delta) {
-        setMax(p, LongMath.saturatedAdd(get(p).maxSoul(), delta));
+    public static void setMax(@NotNull ServerPlayer player, long value) {
+        store(player, get(player).withMaxSoul(value));
     }
 
-    public static void setCurrent(@NotNull ServerPlayer p, long v) { store(p, get(p).withCurrentSoul(v)); }
-
-    public static void addCurrent(@NotNull ServerPlayer p, long delta) {
-        setCurrent(p, LongMath.saturatedAdd(get(p).currentSoul(), delta));
+    public static void addMax(@NotNull ServerPlayer player, long delta) {
+        setMax(player, LongMath.saturatedAdd(get(player).maxSoul(), delta));
     }
 
-    public static void refill(@NotNull ServerPlayer p) { store(p, get(p).refilled()); }
+    public static void setCurrent(@NotNull ServerPlayer player, long value) {
+        store(player, get(player).withCurrentSoul(value));
+    }
 
-    public static void revive(@NotNull ServerPlayer p) { store(p, get(p).revived()); }
+    public static void addCurrent(@NotNull ServerPlayer player, long delta) {
+        setCurrent(player, LongMath.saturatedAdd(get(player).currentSoul(), delta));
+    }
 
-    private static void store(ServerPlayer p, SoulData data) { p.setData(ModAttachments.SOUL, data); }
+    public static void refill(@NotNull ServerPlayer player) { store(player, get(player).refilled()); }
+
+    public static void revive(@NotNull ServerPlayer player) { store(player, get(player).revived()); }
+
+    private static void store(ServerPlayer player, SoulData data) { player.setData(ModAttachments.SOUL, data); }
 
     public static boolean consume(@NotNull ServerPlayer player, long amount) {
         if (amount <= 0L) return true;

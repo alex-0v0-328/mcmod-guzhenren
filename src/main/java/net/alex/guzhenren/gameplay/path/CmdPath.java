@@ -10,7 +10,6 @@ import net.alex.guzhenren.gameplay.path.qi.CmdQi;
 import net.alex.guzhenren.gameplay.path.strength.CmdStrength;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
 
 /**
  * {@code /gzr path}: writes attainment [造诣] and marks [道痕], and carries the qi and strength
@@ -37,18 +36,17 @@ public final class CmdPath {
 
     public static ArgumentBuilder<CommandSourceStack, ?> node() {
         return Commands.literal("path")
-                .then(marks(PathService::setMark, PathService::addMark))
+                .then(marks())
                 .then(attainment())
                 .then(CmdQi.node())
                 .then(CmdStrength.node());
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> marks(TallyOperation set, TallyOperation add) {
-        return Commands.literal("marks")
-                .then(ModEnumArgument.arg(ARG_PATH, GuPath.values())
-                        .then(countNode("set", set))
-                        .then(countNode("add", add))
-                        .then(countNode("sub", (player, path, tag, value) -> add.apply(player, path, tag, -value))));
+    private static ArgumentBuilder<CommandSourceStack, ?> marks() {
+        return Commands.literal("marks").then(ModCommandSupport.enumCounter(ARG_PATH, GuPath.values(),
+                LongArgumentType.longArg(),
+                (player, path, amount) -> PathService.setMark(player, path, MarkTag.NATURAL, amount),
+                (player, path, amount) -> PathService.addMark(player, path, MarkTag.NATURAL, amount)));
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> attainment() {
@@ -69,17 +67,6 @@ public final class CmdPath {
     }
 
     //region builders
-    private static ArgumentBuilder<CommandSourceStack, ?> countNode(String literal, TallyOperation operation) {
-        return Commands.literal(literal).then(ModCommandSupport.withTargets(
-                Commands.argument(ModCommandSupport.ARG_VALUE, LongArgumentType.longArg()),
-                context -> {
-                    GuPath path = pathOf(context);
-                    long value = LongArgumentType.getLong(context, ModCommandSupport.ARG_VALUE);
-                    return ModCommandSupport.apply(context,
-                            player -> operation.apply(player, path, MarkTag.NATURAL, value));
-                }));
-    }
-
     private static ArgumentBuilder<CommandSourceStack, ?> attainmentShift(String literal, int delta) {
         return ModCommandSupport.withTargets(Commands.literal(literal), context -> {
             GuPath path = pathOf(context);
@@ -91,10 +78,4 @@ public final class CmdPath {
         return ModEnumArgument.get(context, ARG_PATH, GuPath.values());
     }
     //endregion
-
-    @FunctionalInterface
-    private interface TallyOperation {
-
-        void apply(ServerPlayer player, GuPath path, MarkTag tag, long value);
-    }
 }

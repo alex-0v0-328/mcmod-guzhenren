@@ -212,7 +212,7 @@ public final class ApertureEssenceService {
             return;
         }
 
-        double perStep = PathTimeFlowService.perStep(player,
+        double perStep = PathTimeFlowService.scale(player,
                 regenPerTick(aperture) * REGEN_INTERVAL_TICKS * (1.0 + bonus));
         if (perStep <= 0.0) return;
         double total = carry[index] + perStep;

@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * {@code /gzr aperture [1..2]}: reads and writes one aperture [空窍] of the holder.
+ * {@code /gzr aperture [1..2]}: writes one aperture [空窍] of the holder; {@code /gzr info} reads it.
  *
  * <p>Guarded by a {@code requires(sourceAwakened)} gate (presentation only) AND an
  * {@code applyOnAperture} per-target gate (data protection). An optional integer index right after the

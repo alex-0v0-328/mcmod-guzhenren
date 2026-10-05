@@ -19,19 +19,19 @@ import net.minecraft.util.StringRepresentable;
  * @since 1.0.0
  */
 
-public enum WisdomType implements NamedEnum {
+public enum MindPoolType implements NamedEnum {
 
     THOUGHTS(50_000L, true),
     WILLS(12L, false),
     EMOTIONS(8L, false);
 
-    public static final Codec<WisdomType> CODEC = StringRepresentable.fromEnum(WisdomType::values);
+    public static final Codec<MindPoolType> CODEC = StringRepresentable.fromEnum(MindPoolType::values);
     public static final long BURST_NUMERATOR = 6L;
     public static final long BURST_DENOMINATOR = 5L;
     private final long defaultCapacity;
     private final boolean burstable;
 
-    WisdomType(long defaultCapacity, boolean burstable) {
+    MindPoolType(long defaultCapacity, boolean burstable) {
         this.defaultCapacity = defaultCapacity;
         this.burstable = burstable;
     }

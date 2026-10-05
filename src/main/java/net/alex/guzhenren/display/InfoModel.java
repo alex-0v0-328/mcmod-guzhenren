@@ -7,18 +7,19 @@ import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
-import net.alex.guzhenren.gameplay.body.BodyAttackService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
+import net.alex.guzhenren.gameplay.body.BodyStrengthService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindPool;
+import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
-import net.alex.guzhenren.gameplay.mind.WisdomType;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEntry;
 import net.alex.guzhenren.gameplay.path.PathService;
@@ -123,7 +124,7 @@ public final class InfoModel {
 
     public record MindHeader() implements Entry {}
 
-    public record MindRow(WisdomType type, MindPool pool) implements Entry {}
+    public record MindRow(MindPoolType type, MindPool pool) implements Entry {}
     //endregion
 
     public static List<Row> aperture(Player player) {
@@ -175,9 +176,9 @@ public final class InfoModel {
         rows.add(new Row(0, new RaceRow(body.race())));
         rows.add(new Row(0, new Lifespan(body.lifespanYears(), body.ageYears())));
         if (!strength.isEmpty() && strength.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
-            rows.add(new Row(0, new CapacityRow(PathStrengthService.usableJin(player), strength.totalJin())));
+            rows.add(new Row(0, new CapacityRow(BodyStrengthService.getUsableJin(player), strength.totalJin())));
         }
-        double attackBonus = BodyAttackService.bonus(player);
+        double attackBonus = AttackDamageService.getBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {
             rows.add(new Row(0, new AttackRow(attackBonus)));
         }
@@ -203,7 +204,7 @@ public final class InfoModel {
     }
 
     private static void timePathAchieve(List<Row> rows, Player player) {
-        int rate = PathTimeFlowService.rate(player);
+        int rate = PathTimeFlowService.getRate(player);
         if (rate <= PathTimeFlowService.NORMAL_RATE) return;
 
         rows.add(new Row(0, new TimePathAchieveHeader()));
@@ -211,7 +212,7 @@ public final class InfoModel {
     }
 
     private static void paths(List<Row> rows, Player player) {
-        Map<GuPath, PathEntry> paths = PathService.visibleEntries(player);
+        Map<GuPath, PathEntry> paths = PathService.getVisibleEntries(player);
 
         rows.add(new Row(0, new PathsHeader(paths.isEmpty())));
         paths.forEach((path, entry) -> rows.add(new Row(INDENT, new PathRow(path, entry))));
@@ -220,7 +221,7 @@ public final class InfoModel {
     private static void qiPathAchieve(List<Row> rows, Player player) {
         List<Row> held = new ArrayList<>();
         for (QiKind kind : QiKind.values()) {
-            long amount = PathQiService.current(player, kind);
+            long amount = PathQiService.getCurrent(player, kind);
             if (amount > 0L) held.add(new Row(INDENT, new QiKindRow(kind, amount)));
         }
         if (held.isEmpty()) return;
@@ -247,9 +248,9 @@ public final class InfoModel {
 
     private static void wisdomPathAchieve(List<Row> rows, Player player) {
         List<Row> held = new ArrayList<>();
-        long natural = MindService.naturalThoughts(player);
+        long natural = MindService.getNaturalThoughts(player);
         if (natural > 0L) held.add(new Row(INDENT, new ThoughtTagRow(ThoughtTag.NATURAL, natural)));
-        MindService.taggedThoughts(player).forEach((tag, amount) -> {
+        MindService.getTaggedThoughts(player).forEach((tag, amount) -> {
             if (amount > 0L) held.add(new Row(INDENT, new ThoughtTagRow(tag, amount)));
         });
         if (held.isEmpty()) return;
@@ -264,7 +265,7 @@ public final class InfoModel {
 
         rows.add(new Row(0, new BrillianceRow(mind.brilliance())));
         rows.add(new Row(0, new MindHeader()));
-        for (WisdomType type : WisdomType.values()) {
+        for (MindPoolType type : MindPoolType.values()) {
             rows.add(new Row(0, new MindRow(type, mind.pool(type))));
         }
         return rows;

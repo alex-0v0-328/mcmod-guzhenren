@@ -290,7 +290,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         if (player instanceof ServerPlayer server) {
-            for (int step = PathTimeFlowService.steps(server); step > 0 && running != null; step--) {
+            for (int step = PathTimeFlowService.getSteps(server); step > 0 && running != null; step--) {
                 advance(server);
             }
             craftData.set(DATA_AFFORD, pending != null && affords(server, pending) ? 1 : 0);
@@ -397,7 +397,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     //region settling -- nothing is consumed until here, so failure can take half and wound the rest
     private void settle(ServerPlayer server, GuRecipe recipe) {
         int chance = Math.min(FULL_SUCCESS, recipe.baseSuccess()
-                + PathService.attainment(server, GuPath.REFINEMENT).getRefinementBonus());
+                + PathService.getAttainment(server, GuPath.REFINEMENT).getRefinementBonus());
         if (server.getRandom().nextInt(FULL_SUCCESS) >= chance) {
             fail(server, LOST_ROLL);
             return;

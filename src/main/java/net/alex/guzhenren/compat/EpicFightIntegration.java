@@ -5,7 +5,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.body.BodyAttackService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.particle.RingConeEmitter;
@@ -112,7 +112,7 @@ public final class EpicFightIntegration {
     }
 
     private static int staminaMaxPercent(ServerPlayer player) {
-        ExtremePhysique physique = BodyService.extremePhysique(player);
+        ExtremePhysique physique = BodyService.getExtremePhysique(player);
         return physique == ExtremePhysique.NONE
                 ? ApertureService.talent(player).getStaminaMaxPercent()
                 : physique.getStaminaMaxPercent();
@@ -128,7 +128,7 @@ public final class EpicFightIntegration {
 
     private static void onComboAttack(ComboAttackEvent event) {
         ServerPlayer player = event.getPlayerPatch().getOriginal();
-        if (player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) BodyAttackService.refresh(player);
+        if (player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
     }
 
     private static void onSetTarget(SetTargetEvent event) {

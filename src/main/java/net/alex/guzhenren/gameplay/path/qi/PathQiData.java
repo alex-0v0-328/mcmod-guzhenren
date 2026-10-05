@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Qi [气] holdings, sparse: a kind missing from the map is simply one the player is not holding.
  * Immutable record attachment keyed {@code qi_data}; {@link
- * PathQiService} is the only writer. Each {@link
+ * PathQiService} is the only runtime writer. Each {@link
  * PathQiEntry} is a time anchor, not a running total; {@code current(kind, now)} derives the live amount.
  *
  * <p>⚠ Every read takes the current tick: an entry anchors a moment, not a balance, and a reader

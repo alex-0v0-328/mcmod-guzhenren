@@ -8,7 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * One thought [念] pool of one {@link WisdomType}; leaf record nested inside {@link MindData};
+ * One mind pool of one {@link MindPoolType}; leaf record nested inside {@link MindData};
  * immutable, standard {@code DEFAULT}-codec-stream shape.
  *
  * <p>⚠ Not self-clamping: only some wisdom types may burst past their cap, so the clamp lives in {@link
@@ -43,17 +43,17 @@ public record MindPool(long current, long max, boolean bufferUsed) {
         bufferUsed = bufferUsed || current > max;
     }
 
-    public static MindPool of(WisdomType type) { return new MindPool(0L, type.getDefaultCapacity(), false); }
+    public static MindPool of(MindPoolType type) { return new MindPool(0L, type.getDefaultCapacity(), false); }
 
     public long burstAt() {
-        return LongMath.saturatedMultiply(max / WisdomType.BURST_DENOMINATOR, WisdomType.BURST_NUMERATOR);
+        return LongMath.saturatedMultiply(max / MindPoolType.BURST_DENOMINATOR, MindPoolType.BURST_NUMERATOR);
     }
 
     public boolean isOverflowing() { return current > burstAt(); }
 
-    public MindPool withCurrent(long v) { return new MindPool(v, max, bufferUsed); }
+    public MindPool withCurrent(long value) { return new MindPool(value, max, bufferUsed); }
 
-    public MindPool withMax(long v) { return new MindPool(current, v, bufferUsed); }
+    public MindPool withMax(long value) { return new MindPool(current, value, bufferUsed); }
 
     public MindPool slept() {
         long restored = bufferUsed && current < max ? current + (max - current) / 2 : Math.max(current, max);

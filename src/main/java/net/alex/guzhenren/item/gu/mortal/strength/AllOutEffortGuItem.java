@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.strength;
 
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.body.BodyAttackService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Three rungs register against this one
  * class (三转..五转). The payout stamps a marker effect and calls
- * {@link BodyAttackService#refresh}; the lift itself is read
+ * {@link AttackDamageService#refresh}; the lift itself is read
  * back by the strength service, so attack still comes out of one formula.
  *
  * <p>⚠ Its effect is a marker carrying no {@code AttributeModifier}. A modifier would be a second
@@ -45,6 +45,6 @@ public class AllOutEffortGuItem extends TendedGuItem {
     @Override
     protected void payout(ServerPlayer player, ItemStack stack) {
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT, effectSeconds * Ticks.SECOND, tier()));
-        BodyAttackService.refresh(player);
+        AttackDamageService.refresh(player);
     }
 }

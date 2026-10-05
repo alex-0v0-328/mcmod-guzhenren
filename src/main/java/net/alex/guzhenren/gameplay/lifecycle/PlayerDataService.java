@@ -10,15 +10,15 @@ import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.aperture.storage.PendingVitalPenalties;
-import net.alex.guzhenren.gameplay.body.BodyAttackService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
-import net.alex.guzhenren.gameplay.body.BodyHealthService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
+import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
-import net.alex.guzhenren.gameplay.mind.WisdomType;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
@@ -42,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The one cross-domain lifecycle service: birth, sleep, death, clone, respawn, and a full reset. It is
  * the single place that decides what a clone inherits; every domain service re-runs on join/clone/reset.
+ * Birth, clone and reset write whole attachments here, past the domain services, which are the only
+ * runtime writers.
  *
  * <p>⚠ The {@code Player} (not {@code ServerPlayer}) signature on {@code copy}/{@code onBirth}/{@code
  * resetAll} is the one carve-out from read-{@code Player}/write-{@code ServerPlayer}: during {@code
@@ -75,8 +77,8 @@ public final class PlayerDataService {
         if (!player.getData(ModAttachments.BORN)) onBirth(player);
         migratePhysique(player);
         ApertureService.syncTalentMarks(player);
-        BodyHealthService.refresh(player);
-        BodyAttackService.refresh(player);
+        MaxHealthService.refresh(player);
+        AttackDamageService.refresh(player);
         EpicFightIntegration.refresh(player);
     }
 
@@ -119,8 +121,8 @@ public final class PlayerDataService {
             copy(from, to);
         }
         if (to instanceof ServerPlayer server) {
-            BodyHealthService.refresh(server);
-            BodyAttackService.refresh(server);
+            MaxHealthService.refresh(server);
+            AttackDamageService.refresh(server);
             EpicFightIntegration.refresh(server);
         }
     }
@@ -155,8 +157,8 @@ public final class PlayerDataService {
         owner.sendSystemMessage(Component.translatable(VITAL_LOST, stack.getHoverName()));
 
         SoulService.setCurrent(owner, SoulService.get(owner).currentSoul() / 2L);
-        for (WisdomType type : WisdomType.values()) {
-            MindService.setCurrent(owner, type, MindService.current(owner, type) / 2L);
+        for (MindPoolType type : MindPoolType.values()) {
+            MindService.setCurrent(owner, type, MindService.getCurrent(owner, type) / 2L);
         }
         owner.hurt(ModDamageTypes.source(owner, ModDamageTypes.VITAL_GU_LOST), owner.getHealth() * 0.8F);
 
@@ -206,8 +208,8 @@ public final class PlayerDataService {
                 BodyData.DEFAULT.withLastDayIndex(BodyService.get(player).lastDayIndex()));
 
         if (player instanceof ServerPlayer server) {
-            BodyHealthService.refresh(server);
-            BodyAttackService.refresh(server);
+            MaxHealthService.refresh(server);
+            AttackDamageService.refresh(server);
             EpicFightIntegration.refresh(server);
         }
     }

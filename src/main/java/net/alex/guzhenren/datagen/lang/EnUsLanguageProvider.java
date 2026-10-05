@@ -12,8 +12,8 @@ import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
+import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
-import net.alex.guzhenren.gameplay.mind.WisdomType;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.MarkTag;
@@ -732,9 +732,9 @@ public class EnUsLanguageProvider extends LanguageProvider {
     }
 
     private void addWisdomType() {
-        add(WisdomType.THOUGHTS, "Thoughts");
-        add(WisdomType.WILLS, "Wills");
-        add(WisdomType.EMOTIONS, "Emotions");
+        add(MindPoolType.THOUGHTS, "Thoughts");
+        add(MindPoolType.WILLS, "Wills");
+        add(MindPoolType.EMOTIONS, "Emotions");
     }
 
     private void addBrilliance() {

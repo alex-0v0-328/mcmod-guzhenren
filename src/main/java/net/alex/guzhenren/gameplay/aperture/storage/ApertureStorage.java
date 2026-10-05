@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
  * The Gu kept inside each Aperture [空窍], including the Vital Gu [本命蛊] bound to that aperture.
  * Immutable record attachment keyed {@code aperture_storage}; serialized but NOT synced -- every reader
  * is server-side and the menu reads it through slot channels; {@link
- * ApertureStorageService} is the only writer.
+ * ApertureStorageService} is the only runtime writer.
  *
  * <p>⚠ Uses {@code ItemStack.OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
  * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its

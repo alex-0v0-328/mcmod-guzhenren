@@ -10,7 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 /**
  * Nourishing the Aperture [温养空窍]: whether a run is going, and which aperture it feeds. Immutable
  * record attachment keyed {@code nourish_data}; {@link
- * ApertureNourishService} is the only writer; progress
+ * ApertureNourishService} is the only runtime writer; progress
  * percent and the petrified latch live on {@link Aperture} itself.
  *
  * <p>⚠ {@code starvedSinceTick} defaults to {@code NOT_STARVED} (-1), never {@code 0} -- zero is a real

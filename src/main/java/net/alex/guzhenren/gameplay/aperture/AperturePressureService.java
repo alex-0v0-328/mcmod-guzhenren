@@ -100,7 +100,7 @@ public final class AperturePressureService {
 
     public static void detonate(@NotNull ServerPlayer player) {
         Aperture aperture = ApertureService.aperture(player);
-        ExtremePhysique physique = BodyService.extremePhysique(player);
+        ExtremePhysique physique = BodyService.getExtremePhysique(player);
         int radius = getExplosionRadius(aperture.rank(), physique);
         double x = player.getX();
         double y = player.getY();

@@ -35,13 +35,13 @@ public class LifeQiItem extends QiMaterialItem {
 
     @Override
     protected int apply(ServerPlayer player, ItemStack stack) {
-        long death = PathQiService.current(player, QiKind.DEATH);
+        long death = PathQiService.getCurrent(player, QiKind.DEATH);
         if (death <= 0L) return super.apply(player, stack);
 
         long remainder = qiAmount() - Math.min(qiAmount(), death);
         PathQiService.add(player, QiKind.DEATH, -qiAmount());
         if (remainder > 0L) PathQiService.add(player, QiKind.LIFE, remainder);
-        if (PathQiService.current(player, QiKind.DEATH) <= 0L) {
+        if (PathQiService.getCurrent(player, QiKind.DEATH) <= 0L) {
             double refund = BodyService.refundDeathQiDebt(player,
                     DeathQiEffect.REFUND_NUMERATOR, DeathQiEffect.REFUND_DENOMINATOR);
             if (refund > 0.0) inform(player, CURED, refund);

@@ -16,7 +16,7 @@ import net.minecraft.network.codec.StreamCodec;
 /**
  * Strength [力道]: the beast and human strengths a player has refined into themselves. Immutable record
  * attachment keyed {@code strength_data}; {@link
- * PathStrengthService} is the only writer. A {@code Set}
+ * PathStrengthService} is the only runtime writer. A {@code Set}
  * of {@link BeastStrength} plus a sparse {@code Map} of {@link HumanStrength} layer counts, ctor-capped.
  *
  * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code

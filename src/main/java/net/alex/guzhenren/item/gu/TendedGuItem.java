@@ -171,7 +171,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         clock.bind(player, stack);
         stack.set(ModDataComponents.REFINED_AT.get(), cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
         applyPostRefineCooldown(player.getCooldowns(), this,
-                PathTimeFlowService.waited(player, POST_REFINE_COOLDOWN_TICKS));
+                PathTimeFlowService.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
     }
     //endregion
 
@@ -247,7 +247,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private long mostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
         if (guPaced(player)) {
-            return Math.min(pool, PathTimeFlowService.perStep(player, clock.essencePerHungerPoint()));
+            return Math.min(pool, PathTimeFlowService.scale(player, clock.essencePerHungerPoint()));
         }
         return poolPacedStep(player, pool, elapsed);
     }
@@ -260,7 +260,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private static long poolPacedStep(ServerPlayer player, long pool, int elapsed) {
         int stepIndex = (elapsed % Ticks.SECOND) / POOL_PACED_STEP_TICKS;
-        return Math.min(pool, PathTimeFlowService.perStep(player, pool / (POOL_PACED_STEPS + 1 - stepIndex)));
+        return Math.min(pool, PathTimeFlowService.scale(player, pool / (POOL_PACED_STEPS + 1 - stepIndex)));
     }
 
     private void pour(ServerPlayer player, ItemStack stack, int amount) {
@@ -291,7 +291,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     private static long gameTime(ServerPlayer player) { return player.server.overworld().getGameTime(); }
 
     private static long cooldownStamp(ServerPlayer player, int window) {
-        return gameTime(player) - (window - PathTimeFlowService.waited(player, window));
+        return gameTime(player) - (window - PathTimeFlowService.shortenWait(player, window));
     }
 
     static int stampCooldownLeft(long now, @Nullable Long stamp, int window) {
@@ -327,7 +327,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     @Override
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         super.spend(player, stack, count);
-        int left = Math.max(PathTimeFlowService.waited(player, spec.itemCooldownTicks()),
+        int left = Math.max(PathTimeFlowService.shortenWait(player, spec.itemCooldownTicks()),
                 cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()), POST_REFINE_COOLDOWN_TICKS));
         if (left > 0) player.getCooldowns().addCooldown(this, left);
     }

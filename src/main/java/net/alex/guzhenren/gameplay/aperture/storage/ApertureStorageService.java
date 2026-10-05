@@ -5,7 +5,6 @@ import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
-import net.alex.guzhenren.gameplay.body.BodyHealthService;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
@@ -15,13 +14,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only writer of what an Aperture [空窍] holds, including the Vital Gu [本命蛊] bound to each.
+ * The only runtime writer of what an Aperture [空窍] holds, including the Vital Gu [本命蛊] bound to each.
  * {@code setVital} also rewrites the aperture's primary path via {@link ApertureService#setPrimaryPath}
  * -- binding a Gu IS what sets primary path [主修] (the store is not synced; the aperture is).
  *
  * <p>⚠ Reaches into {@code item/} on purpose ({@link GuItem}) -- binding a Vital Gu reads that Gu's
  * declared path; do not "fix" those imports. ⚠ Writes NEVER go through {@code ApertureService.store}:
- * {@link BodyHealthService#refresh} hangs off that. ⚠
+ * the {@code ApertureChangedEvent} and its max-health refresh hang off that. ⚠
  * {@code setPrimaryPath} no-ops when unchanged; keep the call, or a rebind loses the path.
  *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of

@@ -2,6 +2,7 @@ package net.alex.guzhenren.command;
 
 import com.google.common.math.LongMath;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -25,7 +26,11 @@ import net.minecraft.util.StringRepresentable;
  * the {@code withTargets} wrapper hanging {@code [targets]} off a literal, the {@code apply}/{@code
  * applyIf} runners iterating per target, the {@code sourceAwakened} predicate used by {@code
  * requires()}, and {@code refreshCommands} re-sending the command tree after a gate flip; also the
- * shared verb builders ({@code enumSetNode}, {@code longNode}, {@code counter}).
+ * shared verb builders ({@code enumSetNode}, {@code longNode}, {@code counter}, {@code enumCounter}).
+ *
+ * <p>{@code enumCounter} is the set/add/sub triple behind one enum argument; the amount is read as
+ * any {@code Number} so an {@code int} argument narrows back exactly. Its {@code sub} negates plainly,
+ * unlike {@code counter}, which saturates.
  *
  * <p>⚠ Anything that flips the answer of a {@code requires()} predicate has to ask this class to
  * refresh the command tree, or the client keeps the tree it was last sent.
@@ -84,6 +89,26 @@ public final class ModCommandSupport {
                 .then(longNode("set", set))
                 .then(longNode("add", add))
                 .then(longNode("sub", (player, value) -> add.apply(player, LongMath.saturatedSubtract(0L, value))));
+    }
+
+    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumCounter(
+            String argument, E[] values, ArgumentType<? extends Number> amountType,
+            EnumCountOperation<E> set, EnumCountOperation<E> add) {
+        return ModEnumArgument.arg(argument, values)
+                .then(enumCountNode("set", argument, values, amountType, set))
+                .then(enumCountNode("add", argument, values, amountType, add))
+                .then(enumCountNode("sub", argument, values, amountType,
+                        (player, value, amount) -> add.apply(player, value, -amount)));
+    }
+
+    private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumCountNode(
+            String literal, String argument, E[] values, ArgumentType<? extends Number> amountType,
+            EnumCountOperation<E> operation) {
+        return Commands.literal(literal).then(withTargets(Commands.argument(ARG_VALUE, amountType), context -> {
+            E value = ModEnumArgument.get(context, argument, values);
+            long amount = context.getArgument(ARG_VALUE, Number.class).longValue();
+            return apply(context, player -> operation.apply(player, value, amount));
+        }));
     }
 
     public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumSetNode(
@@ -183,6 +208,12 @@ public final class ModCommandSupport {
     public interface EnumOperation<E extends Enum<E>> {
 
         void apply(ServerPlayer player, E value);
+    }
+
+    @FunctionalInterface
+    public interface EnumCountOperation<E extends Enum<E>> {
+
+        void apply(ServerPlayer player, E value, long amount);
     }
 
     @FunctionalInterface

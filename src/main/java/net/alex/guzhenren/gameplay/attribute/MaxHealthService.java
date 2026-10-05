@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.body;
+package net.alex.guzhenren.gameplay.attribute;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -12,25 +12,23 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Max health as a transient {@link AttributeModifier} derived from {@code ApertureService.healthRank}:
  * the FIRST aperture's rank only -- unawakened reads mortal, a lone second aperture never boosts it.
- * Static service; fires from
- * {@code ApertureService.store} on every aperture write, plus login, clone and reset (a modifier does
- * not ride a clone); keyed to the rank's {@code getMaxHealth()} minus vanilla's 20 -- mortal reads 0.
+ * Static service; {@link AttributeEvents} refreshes it on every {@code ApertureChangedEvent} (pressure
+ * writes post none), plus login, clone and reset (a modifier does not ride a clone); keyed to the rank's
+ * {@code getMaxHealth()} minus vanilla's 20 -- mortal reads 0.
  *
- * <p>⚠ The modifier MUST stay transient: a permanent one is saved into attribute NBT and then fights
- * the next login. ⚠ {@code refresh} is a no-op when the bonus has not moved -- it runs on every
- * aperture write, so skipping the check would re-issue the modifier twice a second. ⚠ Lowering the cap
- * must also clamp current health down; {@link BodyAttackService} needs no clamp (attack has no "current").
+ * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ Lowering the cap must also
+ * clamp current health down; {@link AttackDamageService} needs no clamp (attack has no "current").
  *
  * @author Alex
  * @version 1.0.0
- * @see BodyAttackService
+ * @see AttackDamageService
  * @see ApertureService
  * @since 1.0.0
  */
 
-public final class BodyHealthService {
+public final class MaxHealthService {
 
-    private BodyHealthService() {}
+    private MaxHealthService() {}
 
     public static final double VANILLA_MAX_HEALTH = 20.0D;
     private static final ResourceLocation MODIFIER_ID =
@@ -42,7 +40,7 @@ public final class BodyHealthService {
 
         int target = ApertureService.healthRank(player).getMaxHealth();
         double bonus = target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D;
-        BodyAttackService.swapTransientModifier(instance, MODIFIER_ID, bonus);
+        TransientModifiers.swap(instance, MODIFIER_ID, bonus);
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
     }
 }

@@ -147,7 +147,7 @@ public final class ApertureNourishService {
 
     //region nourishing [温养] -- the second that the heartbeat bills
     public static void tickNourish(@NotNull ServerPlayer player) {
-        for (int second = PathTimeFlowService.steps(player); second > 0; second--) {
+        for (int second = PathTimeFlowService.getSteps(player); second > 0; second--) {
             if (!nourishSecond(player)) return;
         }
     }

@@ -12,9 +12,10 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * Mind [脑海]: the brilliance [才情] and the three thought [念] pools it drives. Immutable record
- * attachment keyed {@code mind_data}; {@link MindService}
- * is the only writer; missing {@link WisdomType} pools are filled with {@link MindPool#of} by the ctor.
+ * Mind [脑海]: the brilliance [才情] and the three pools it drives -- thoughts [念], wills [意] and emotions
+ * [情]. Immutable record attachment keyed {@code mind_data}; {@link MindService} is the only runtime writer
+ * ({@code PlayerDataService} resets and copies it whole); missing {@link MindPoolType} pools are filled with
+ * {@link MindPool#of} by the ctor.
  *
  * <p>⚠ Brilliance lives here rather than in its own attachment because it IS the regen rate of these
  * pools; kept apart, the rate and the pools it drives could drift. ⚠ The compact constructor rescales
@@ -28,25 +29,25 @@ import net.minecraft.network.codec.StreamCodec;
  * @since 1.0.0
  */
 
-public record MindData(Brilliance brilliance, Map<WisdomType, MindPool> pools, Map<ThoughtTag, Long> taggedThoughts) {
+public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools, Map<ThoughtTag, Long> taggedThoughts) {
 
     public static final MindData DEFAULT = new MindData(Brilliance.ORDINARY, Map.of(), Map.of());
     public static final Codec<MindData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Brilliance.CODEC.optionalFieldOf("brilliance", Brilliance.ORDINARY).forGetter(MindData::brilliance),
-            Codec.unboundedMap(WisdomType.CODEC, MindPool.CODEC)
+            Codec.unboundedMap(MindPoolType.CODEC, MindPool.CODEC)
                     .optionalFieldOf("pools", Map.of()).forGetter(MindData::pools),
             Codec.unboundedMap(ThoughtTag.CODEC, Codec.LONG)
                     .optionalFieldOf("tagged_thoughts", Map.of()).forGetter(MindData::taggedThoughts)
     ).apply(instance, MindData::new));
     public static final StreamCodec<ByteBuf, MindData> STREAM_CODEC = StreamCodec.composite(
             ModStreamCodecs.ofEnum(Brilliance.class), MindData::brilliance,
-            ModStreamCodecs.enumMap(WisdomType.class, MindPool.STREAM_CODEC), MindData::pools,
+            ModStreamCodecs.enumMap(MindPoolType.class, MindPool.STREAM_CODEC), MindData::pools,
             ModStreamCodecs.enumMap(ThoughtTag.class, ByteBufCodecs.VAR_LONG), MindData::taggedThoughts,
             MindData::new);
 
     public MindData {
-        Map<WisdomType, MindPool> dense = new EnumMap<>(WisdomType.class);
-        for (WisdomType type : WisdomType.values()) {
+        Map<MindPoolType, MindPool> dense = new EnumMap<>(MindPoolType.class);
+        for (MindPoolType type : MindPoolType.values()) {
             dense.put(type, pools.getOrDefault(type, MindPool.of(type)));
         }
         pools = Collections.unmodifiableMap(dense);
@@ -59,7 +60,7 @@ public record MindData(Brilliance brilliance, Map<WisdomType, MindPool> pools, M
                 tagDense.put(tag, amount);
             }
         }
-        long thoughtsCurrent = dense.get(WisdomType.THOUGHTS).current();
+        long thoughtsCurrent = dense.get(MindPoolType.THOUGHTS).current();
         BigInteger sum = BigInteger.ZERO;
         for (long amount : tagDense.values()) sum = sum.add(BigInteger.valueOf(amount));
         if (sum.compareTo(BigInteger.valueOf(thoughtsCurrent)) > 0) {
@@ -76,14 +77,14 @@ public record MindData(Brilliance brilliance, Map<WisdomType, MindPool> pools, M
 
     public static MindData newborn() { return new MindData(Brilliance.randomBrilliance(), Map.of(), Map.of()); }
 
-    public MindPool pool(WisdomType type) { return pools.get(type); }
+    public MindPool pool(MindPoolType type) { return pools.get(type); }
 
     public boolean isOverflowing() { return pools.values().stream().anyMatch(MindPool::isOverflowing); }
 
-    public MindData withBrilliance(Brilliance v) { return new MindData(v, pools, taggedThoughts); }
+    public MindData withBrilliance(Brilliance brilliance) { return new MindData(brilliance, pools, taggedThoughts); }
 
-    public MindData with(WisdomType type, MindPool pool) {
-        Map<WisdomType, MindPool> next = new EnumMap<>(WisdomType.class);
+    public MindData with(MindPoolType type, MindPool pool) {
+        Map<MindPoolType, MindPool> next = new EnumMap<>(MindPoolType.class);
         next.putAll(pools);
         next.put(type, pool);
         return new MindData(brilliance, next, taggedThoughts);
@@ -98,7 +99,7 @@ public record MindData(Brilliance brilliance, Map<WisdomType, MindPool> pools, M
     }
 
     public MindData emptied() {
-        Map<WisdomType, MindPool> next = new EnumMap<>(WisdomType.class);
+        Map<MindPoolType, MindPool> next = new EnumMap<>(MindPoolType.class);
         pools.forEach((type, pool) -> next.put(type, pool.emptied()));
         return new MindData(brilliance, next, Map.of());
     }
