@@ -1,7 +1,7 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.effect.AttackContributor;
+import net.alex.guzhenren.gameplay.attribute.AttackContributor;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
@@ -11,13 +11,13 @@ import net.minecraft.world.effect.MobEffectCategory;
  *
  * <p>Timed effects own their truth on vanilla's {@link net.minecraft.world.effect.MobEffect} timer —
  * unlike pool effects, they are not rebuilt every heartbeat. The bonus goes through {@link
- * net.alex.guzhenren.effect.AttackContributor} so the attack total stays one number.
+ * net.alex.guzhenren.gameplay.attribute.AttackContributor} so the attack total stays one number.
  *
  * <p>A timed buff alters nothing permanently.
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.effect.AttackContributor
+ * @see net.alex.guzhenren.gameplay.attribute.AttackContributor
  * @since 1.0.0
  */
 

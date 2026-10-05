@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal;
+package net.alex.guzhenren.item.gu.mortal.heaven;
 
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.item.gu.GuSpec;

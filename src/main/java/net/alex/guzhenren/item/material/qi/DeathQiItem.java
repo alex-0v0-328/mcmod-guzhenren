@@ -26,8 +26,8 @@ import net.minecraft.world.item.ItemStack;
 
 public class DeathQiItem extends QiMaterialItem {
 
-    public DeathQiItem(Properties properties, Rank rank) {
-        super(properties, rank, QiKind.DEATH);
+    public DeathQiItem(Properties properties, Rank rank, long essenceCost) {
+        super(properties, rank, QiKind.DEATH, essenceCost);
     }
 
     @Override

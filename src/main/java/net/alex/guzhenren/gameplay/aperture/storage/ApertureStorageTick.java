@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
+import net.alex.guzhenren.item.gu.GuUpkeep;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The walk over Gu held inside apertures, both the stored ones and each Vital Gu [本命蛊]. Called from
  * every heartbeat with the day count elapsed since the last one -- zero on most seconds, when a refined Gu
- * still pays its own upkeep; forwards to {@link TendedGuItem#tickInContainer} per refined Gu and reports
+ * still pays its own upkeep; forwards to {@link GuUpkeep#tickInContainer} per refined Gu and reports
  * starvation through {@link TendedGuItem#starved}. The store is walked through
  * {@code ApertureStorageService.view} without copying it: only a refined Gu is copied before its tick, and the
  * list is copied only once a Gu changed.
@@ -47,7 +48,7 @@ public final class ApertureStorageTick {
             if (!(original.getItem() instanceof TendedGuItem gu) || !gu.refined(original)) continue;
 
             ItemStack stack = original.copy();
-            boolean starved = TendedGuItem.tickInContainer(player, stack, days);
+            boolean starved = GuUpkeep.tickInContainer(player, stack, days);
             if (starved) TendedGuItem.starved(player, stack);
             if (!starved && !changed(original, stack)) continue;
 
@@ -62,7 +63,7 @@ public final class ApertureStorageTick {
         if (!(stack.getItem() instanceof TendedGuItem)) return;
 
         ItemStack before = stack.copy();
-        if (TendedGuItem.tickInContainer(player, stack, days)) {
+        if (GuUpkeep.tickInContainer(player, stack, days)) {
             ApertureStorageService.setVital(player, aperture, ItemStack.EMPTY);
             TendedGuItem.starved(player, stack);
             return;

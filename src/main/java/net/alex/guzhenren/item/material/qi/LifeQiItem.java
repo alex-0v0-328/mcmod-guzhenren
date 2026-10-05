@@ -1,6 +1,5 @@
 package net.alex.guzhenren.item.material.qi;
 
-import net.alex.guzhenren.effect.pool.DeathQiEffect;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
@@ -16,8 +15,9 @@ import net.minecraft.world.item.ItemStack;
  * Qi first; only the excess reaches the Life Qi pool. When Death Qi clears to zero the lifespan [寿元]
  * refund is handled by {@link BodyService#refundDeathQiDebt}.
  *
- * <p>⚠ Only clearing that debt outright refunds any of the burnt lifespan [寿元]; paying it partway
- * down refunds nothing at all. The asymmetry is deliberate.
+ * <p>⚠ Only clearing that debt outright refunds any of the burnt lifespan [寿元] -- {@code
+ * DEATH_QI_REFUND_NUMERATOR / DEATH_QI_REFUND_DENOMINATOR} of it; paying it partway down refunds nothing
+ * at all. The asymmetry is deliberate.
  *
  * @author Alex
  * @version 1.0.0
@@ -28,9 +28,11 @@ import net.minecraft.world.item.ItemStack;
 public class LifeQiItem extends QiMaterialItem {
 
     private static final String CURED = "guzhenren.item.death_qi_cured";
+    public static final int DEATH_QI_REFUND_NUMERATOR = 3;
+    public static final int DEATH_QI_REFUND_DENOMINATOR = 4;
 
-    public LifeQiItem(Properties properties, Rank rank) {
-        super(properties, rank, QiKind.LIFE);
+    public LifeQiItem(Properties properties, Rank rank, long essenceCost) {
+        super(properties, rank, QiKind.LIFE, essenceCost);
     }
 
     @Override
@@ -43,7 +45,7 @@ public class LifeQiItem extends QiMaterialItem {
         if (remainder > 0L) PathQiService.add(player, QiKind.LIFE, remainder);
         if (PathQiService.getCurrent(player, QiKind.DEATH) <= 0L) {
             double refund = BodyService.refundDeathQiDebt(player,
-                    DeathQiEffect.REFUND_NUMERATOR, DeathQiEffect.REFUND_DENOMINATOR);
+                    DEATH_QI_REFUND_NUMERATOR, DEATH_QI_REFUND_DENOMINATOR);
             if (refund > 0.0) inform(player, CURED, refund);
         }
         return 1;

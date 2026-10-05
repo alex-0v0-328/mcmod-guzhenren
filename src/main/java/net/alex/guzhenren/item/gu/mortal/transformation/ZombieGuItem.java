@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.zombie;
+package net.alex.guzhenren.item.gu.mortal.transformation;
 
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.BodyService;

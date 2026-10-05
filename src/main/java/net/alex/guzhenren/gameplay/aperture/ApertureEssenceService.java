@@ -4,7 +4,6 @@ import com.google.common.math.LongMath;
 import java.util.Arrays;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.effect.pool.EssenceQiEffect;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -38,6 +37,7 @@ public final class ApertureEssenceService {
 
     public static final long BASE_REGEN_PER_DAY = 100L;
     public static final int REGEN_INTERVAL_TICKS = Ticks.SECOND;
+    private static final double[] ESSENCE_QI_REGEN_BONUS = { 0.20, 0.40, 0.60, 0.80, 1.00 };
 
     public static long regenPerDay(@NotNull Aperture aperture) {
         return BASE_REGEN_PER_DAY * aperture.talent().getRegenRate() * aperture.rank().getRankBase()
@@ -80,7 +80,8 @@ public final class ApertureEssenceService {
 
     public static double essenceQiBonus(@NotNull Player player) {
         MobEffectInstance effect = player.getEffect(ModEffects.ESSENCE_QI);
-        return effect == null ? 0.0 : EssenceQiEffect.bonus(effect.getAmplifier());
+        return effect == null ? 0.0
+                : ESSENCE_QI_REGEN_BONUS[Math.clamp(effect.getAmplifier(), 0, ESSENCE_QI_REGEN_BONUS.length - 1)];
     }
 
     public static void add(@NotNull ServerPlayer player, long delta) {

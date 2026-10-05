@@ -161,7 +161,7 @@ public record GuRecipe(List<SizedIngredient> ingredients, List<Integer> slots, L
     public @NotNull RecipeType<?> getType() { return ModRecipes.REFINEMENT.get(); }
 
     @Override
-    public @NotNull ItemStack assemble(@NotNull GuRecipeInput in, HolderLookup.@NotNull Provider r) {
+    public @NotNull ItemStack assemble(@NotNull GuRecipeInput input, HolderLookup.@NotNull Provider registries) {
         return first().copy();
     }
 

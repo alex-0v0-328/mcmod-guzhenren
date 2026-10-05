@@ -1,9 +1,9 @@
 package net.alex.guzhenren.effect.pool;
 
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.effect.PeriodicEffect;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -24,17 +24,12 @@ import net.minecraft.world.entity.LivingEntity;
  * @since 1.0.0
  */
 
-public class LifeQiEffect extends MobEffect {
+public class LifeQiEffect extends PeriodicEffect {
 
     public static final int HEAL_INTERVAL_TICKS = Ticks.HALF_SECOND;
 
     public LifeQiEffect(MobEffectCategory category, int color) {
-        super(category, color);
-    }
-
-    @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return duration % HEAL_INTERVAL_TICKS == 0;
+        super(category, color, HEAL_INTERVAL_TICKS);
     }
 
     @Override

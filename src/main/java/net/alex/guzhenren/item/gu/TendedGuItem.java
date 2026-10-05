@@ -5,40 +5,38 @@ import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.gameplay.lifecycle.VitalLossService;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
-import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A tended Gu [需照顾]: wild, then refined [炼化], then fed and used, all on one shared state record. The
  * middle class between {@link MortalGuItem} and every leaf that needs feeding: a leaf answers
- * {@code payoutGate} / {@code payout} plus any limit it bends; owns the charge ladder, channeling [灌注],
- * hunger/health billing, cooldown stamps, and the container day-rollover walk.
+ * {@code payoutGate} / {@code payout} plus any limit it bends; owns the charge ladder, channeling [灌注]
+ * and hunger/health billing. Meals are {@link GuMeal}, cooldown stamps {@link GuCooldowns}, the
+ * day-rollover walk {@link GuUpkeep}.
  *
- * <p>⚠ The billing step runs decay, then auto-feed, then warn. Nothing in the code makes that order
- * look load-bearing, and swapping any two of them changes which Gu survive a day.
+ * <p>Still past 300 lines on purpose: what is left is the vanilla {@code Item} overrides and the template
+ * hooks every leaf overrides, and channeling is this item's own {@code onUseTick}, reading and writing ten
+ * of its members -- pulled out, all of them would have to open up.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
- * the very first click. ⚠ {@link #cooldownStamp}: stamped BACK by the share a hastened clock has
- * already served, because the stamp is read again long after the form has ended -- scaling the window
- * on the way out would recompute a live cooldown.
+ * the very first click. Healing from food reuses the hunger rate: one health point costs what one hunger
+ * point does ({@code GuSpec.unitsPerHunger}).
  *
  * @author Alex
  * @version 1.0.0
@@ -79,21 +77,23 @@ public abstract class TendedGuItem extends MortalGuItem {
     //endregion
 
     //region state
-    public static RefinedGuState state(ItemStack s) {
-        return s.getOrDefault(ModDataComponents.REFINED_GU_STATE.get(), RefinedGuState.WILD);
+    public static RefinedGuState state(ItemStack stack) {
+        return stack.getOrDefault(ModDataComponents.REFINED_GU_STATE.get(), RefinedGuState.WILD);
     }
 
-    private void store(ItemStack stack, RefinedGuState s) {
-        stack.set(ModDataComponents.REFINED_GU_STATE.get(), new RefinedGuState(s.refined(),
-                Math.min(s.refineProgress(), refineCost()),
-                Math.min(s.investedEssence(), spec.essencePerRound()),
-                s.hunger(),
-                Math.clamp(s.damageTaken(), 0, maxHealth())));
+    private void store(ItemStack stack, RefinedGuState state) {
+        stack.set(ModDataComponents.REFINED_GU_STATE.get(), new RefinedGuState(state.refined(),
+                Math.min(state.refineProgress(), refineCost()),
+                Math.min(state.investedEssence(), spec.essencePerRound()),
+                state.hunger(),
+                Math.clamp(state.damageTaken(), 0, maxHealth())));
     }
 
     public boolean refined(ItemStack stack) { return state(stack).refined(); }
 
-    public boolean hungry(ServerPlayer p, ItemStack s) { return refined(s) && clock.hungry(p, s); }
+    public boolean hungry(ServerPlayer player, ItemStack stack) {
+        return refined(stack) && clock.hungry(player, stack);
+    }
     //endregion
 
     //region Gu health [蛊虫生命值] -- stored as damage TAKEN, so an untouched 野生 Gu reads as full
@@ -122,34 +122,19 @@ public abstract class TendedGuItem extends MortalGuItem {
         store(stack, s.withDamageTaken(Math.max(0, s.damageTaken() - amount)));
     }
 
-    record Meal(int items, int gained, int eaten) {}
-
-    static Meal portion(int count, int need, int per, int units) {
-        int items = Math.min(count, need * per / units);
-        int gained = items * units / per;
-        return new Meal(items, gained, gained <= 0 ? 0 : (gained * per + units - 1) / units);
-    }
-
     private void healFrom(ServerPlayer player, ItemStack stack, ItemStack food) {
         int units = feedUnits(food);
         int hurt = state(stack).damageTaken();
         if (units <= 0 || hurt <= 0) return;
 
-        Meal meal = portion(food.getCount(), hurt, spec.unitsPerHealth(), units);
+        GuMeal meal = GuMeal.portion(food.getCount(), hurt, spec.unitsPerHunger(), units);
         if (meal.gained() <= 0) return;
 
         if (!player.hasInfiniteMaterials()) {
-            returnEmptyContainers(player, food, meal.eaten());
+            GuMeal.returnEmptyContainers(player, food, meal.eaten());
             food.shrink(meal.eaten());
         }
         heal(stack, meal.gained());
-    }
-
-    public static void returnEmptyContainers(ServerPlayer player, ItemStack food, int eaten) {
-        if (!food.hasCraftingRemainingItem()) return;
-
-        ItemStack empties = food.getCraftingRemainingItem().copyWithCount(eaten);
-        if (!player.getInventory().add(empties)) player.drop(empties, false);
     }
     //endregion
 
@@ -169,8 +154,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     public void bornRefined(ServerPlayer player, ItemStack stack) {
         store(stack, new RefinedGuState(true, refineCost(), 0, 0, state(stack).damageTaken()));
         clock.bind(player, stack);
-        stack.set(ModDataComponents.REFINED_AT.get(), cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
-        applyPostRefineCooldown(player.getCooldowns(), this,
+        stack.set(ModDataComponents.REFINED_AT.get(), GuCooldowns.cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
+        GuCooldowns.applyPostRefineCooldown(player.getCooldowns(), this,
                 PathTimeFlowService.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
     }
     //endregion
@@ -196,7 +181,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         if (!spec.channels()) return;
 
         if (holdingFood(player, stack)) eat(player, stack);
-        drawFromOffhandStones(player);
+        PrimevalStoneSupply.fillFromOffhand(player);
         int take = stepAmount(player, stack, elapsed);
         if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
             player.stopUsingItem();
@@ -206,7 +191,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     private void refineTick(ServerPlayer player, ItemStack stack, int elapsed) {
-        drawFromOffhandStones(player);
+        PrimevalStoneSupply.fillFromOffhand(player);
         int left = refineCost() - state(stack).refineProgress();
         int take = (int) Math.min(left, poured(player, elapsed));
         if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
@@ -221,17 +206,6 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private int stepTicks(Player player) {
         return guPaced(player) ? GU_PACED_STEP_TICKS : POOL_PACED_STEP_TICKS;
-    }
-
-    private void drawFromOffhandStones(ServerPlayer player) {
-        ItemStack offhand = player.getOffhandItem();
-        if (!(offhand.getItem() instanceof PrimevalStoneItem stone)) return;
-
-        int used = stone.used(player, offhand);
-        if (used <= 0) return;
-
-        ApertureEssenceService.add(player, stone.essence() * used);
-        if (!player.hasInfiniteMaterials()) offhand.shrink(used);
     }
 
     private int stepAmount(ServerPlayer player, ItemStack stack, int elapsed) {
@@ -280,7 +254,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     private void grant(ServerPlayer player, ItemStack stack) {
         payout(player, stack);
         if (spec.effectCooldownTicks() > 0) {
-            stack.set(ModDataComponents.USED_AT.get(), cooldownStamp(player, spec.effectCooldownTicks()));
+            stack.set(ModDataComponents.USED_AT.get(), GuCooldowns.cooldownStamp(player, spec.effectCooldownTicks()));
         }
     }
     //endregion
@@ -288,35 +262,14 @@ public abstract class TendedGuItem extends MortalGuItem {
     //region the long cooldown -- vanilla draws the sweep, the stack's stamp is the truth
     private static final String FAILED_COOLDOWN = "guzhenren.item.failed.gu_cooldown";
 
-    private static long gameTime(ServerPlayer player) { return player.server.overworld().getGameTime(); }
-
-    private static long cooldownStamp(ServerPlayer player, int window) {
-        return gameTime(player) - (window - PathTimeFlowService.shortenWait(player, window));
-    }
-
-    static int stampCooldownLeft(long now, @Nullable Long stamp, int window) {
-        if (stamp == null || window <= 0) return 0;
-
-        long elapsed = now - stamp;
-        return elapsed < 0L || elapsed >= window ? 0 : (int) (window - elapsed);
-    }
-
-    static void applyPostRefineCooldown(ItemCooldowns cooldowns, Item item, int wanted) {
-        if (!cooldowns.isOnCooldown(item)) cooldowns.addCooldown(item, wanted);
-    }
-
-    private int cooldownLeft(Player player, @Nullable Long stamp, int window) {
-        MinecraftServer server = player.getServer();
-        return server == null ? 0 : stampCooldownLeft(server.overworld().getGameTime(), stamp, window);
-    }
-
-    private int useCooldownLeft(Player p, ItemStack s) {
-        return cooldownLeft(p, s.get(ModDataComponents.USED_AT.get()), spec.effectCooldownTicks());
+    private int useCooldownLeft(Player player, ItemStack stack) {
+        return GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.USED_AT.get()), spec.effectCooldownTicks());
     }
 
     private @Nullable Refusal cooldownRefusal(Player player, ItemStack stack) {
         int left = Math.max(allowsUseDuringEffectCooldown() ? 0 : useCooldownLeft(player, stack),
-                cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()), POST_REFINE_COOLDOWN_TICKS));
+                GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()),
+                        POST_REFINE_COOLDOWN_TICKS));
         if (left <= 0) return null;
 
         if (player instanceof ServerPlayer server) server.getCooldowns().addCooldown(this, left);
@@ -328,7 +281,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         super.spend(player, stack, count);
         int left = Math.max(PathTimeFlowService.shortenWait(player, spec.itemCooldownTicks()),
-                cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()), POST_REFINE_COOLDOWN_TICKS));
+                GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()),
+                        POST_REFINE_COOLDOWN_TICKS));
         if (left > 0) player.getCooldowns().addCooldown(this, left);
     }
     //endregion
@@ -424,7 +378,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected int hungerCostMultiplier(Player player, ItemStack stack) { return 1; }
 
     protected final int effectCooldownLeft(Player player, ItemStack stack) {
-        return cooldownLeft(player, stack.get(ModDataComponents.USED_AT.get()), spec.effectCooldownTicks());
+        return GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.USED_AT.get()), spec.effectCooldownTicks());
     }
 
     public final boolean autoUse(ServerPlayer player, ItemStack stack) {
@@ -511,34 +465,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region the day clock -- three containers bill through here, on either clock
-    public static boolean tickInContainer(ServerPlayer player, ItemStack stack, long days) {
-        return tickOne(player, stack, days, true);
-    }
-
-    private static boolean tickOne(ServerPlayer player, ItemStack stack, long days, boolean autoFeeds) {
-        if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.refined(stack)) return false;
-
-        gu.payOwnUpkeep(player, stack);
-        if (gu.clock.starves(player, stack, days)) return true;
-
-        if (autoFeeds && gu.autoFeed(player, stack)) return false;
-        if (gu.clock.hungry(player, stack)) gu.clock.warn(player, stack, days);
-        return false;
-    }
-
+    //region the day clock -- GuUpkeep walks the containers; a leaf may pay its own upkeep
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
-
-    public static void tickCarried(ServerPlayer player, long days) {
-        Inventory inventory = player.getInventory();
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (tickOne(player, stack, days, false)) {
-                inventory.setItem(slot, ItemStack.EMPTY);
-                starved(player, stack);
-            }
-        }
-    }
 
     public boolean autoFeed(ServerPlayer player, ItemStack stack) {
         if (!clock.hungry(player, stack)) return false;
@@ -557,22 +485,20 @@ public abstract class TendedGuItem extends MortalGuItem {
         player.sendSystemMessage(Component.translatable(key, stack.getHoverName()));
     }
 
-    public static void announceHungry(ServerPlayer p, ItemStack s) { announce(p, s, MSG_HUNGRY); }
+    public static void announceHungry(ServerPlayer player, ItemStack stack) { announce(player, stack, MSG_HUNGRY); }
 
     private static void died(ServerPlayer holder, ItemStack stack, String key) {
         announce(holder, stack, key);
         UUID uuid = owner(stack);
         if (uuid == null) return;
 
-        ServerPlayer owner = holder.server.getPlayerList().getPlayer(uuid);
-        if (owner != null) VitalLossService.onVitalGuLost(owner, stack);
-        else VitalLossService.recordOfflineVitalLoss(holder.server, uuid, stack);
+        NeoForge.EVENT_BUS.post(new VitalGuLostEvent(holder.server, uuid, stack));
     }
 
-    public static void starved(ServerPlayer holder, ItemStack s) { died(holder, s, MSG_STARVED); }
+    public static void starved(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_STARVED); }
 
-    public static void exhausted(ServerPlayer holder, ItemStack s) { died(holder, s, MSG_EXHAUSTED); }
+    public static void exhausted(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_EXHAUSTED); }
 
-    public static void ruined(ServerPlayer holder, ItemStack s) { died(holder, s, MSG_RUINED); }
+    public static void ruined(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_RUINED); }
     //endregion
 }

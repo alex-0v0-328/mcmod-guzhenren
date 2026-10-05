@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.body;
 
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -28,7 +29,7 @@ public final class UndeadService {
 
     private UndeadService() {}
 
-    public static final int DEATH_QI_YEAR_INTERVAL_TICKS = 120;
+    public static final int DEATH_QI_YEAR_INTERVAL_TICKS = 6 * Ticks.SECOND;
     public static final long DEATH_QI_YEARS_PER_INTERVAL = 1L;
     public static final float DEATH_QI_HEALTH_FLOOR = 2.0F;
     public static final float DEATH_QI_HEALTH_PER_HEARTBEAT = 1.0F;

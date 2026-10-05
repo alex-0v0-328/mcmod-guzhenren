@@ -13,7 +13,7 @@ import net.alex.guzhenren.gameplay.body.UndeadService;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.GuUpkeep;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,7 +55,7 @@ public final class PlayerTickEvents {
         if (player.tickCount % HEARTBEAT_TICKS != 0) return;
 
         long days = BodyService.tickAging(player);
-        TendedGuItem.tickCarried(player, days);
+        GuUpkeep.tickCarried(player, days);
         ApertureStorageTick.tickStored(player, days);
 
         if (days > 0L && player.containerMenu instanceof ApertureStorageMenu menu) menu.reload();

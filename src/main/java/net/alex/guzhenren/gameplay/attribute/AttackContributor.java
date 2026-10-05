@@ -1,6 +1,5 @@
-package net.alex.guzhenren.effect;
+package net.alex.guzhenren.gameplay.attribute;
 
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 
 /**
  * The one seam anything adds attack damage through, so the body panel and a real hit stay one number.

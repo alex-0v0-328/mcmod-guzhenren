@@ -1,14 +1,13 @@
 package net.alex.guzhenren.gameplay.path.time;
 
 import com.google.common.math.LongMath;
-import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The only door the player's own clock [自身时间] is hastened through; Time Path [宙道] is all that comes
- * to it. {@code getRate()} walks {@code getActiveEffects()} for every {@link TimeRateUpEffect}, flooring at 1.
+ * to it. {@code getRate()} walks {@code getActiveEffects()} for every {@link TimeRateContributor}, flooring at 1.
  *
  * <p>⚠ THREE verbs leave this class and a caller uses ONE: {@code shortenWait}, {@code scale}, {@code
  * getSteps}; doing arithmetic on {@code getRate()} at a call site is how 寿元 once aged BACKWARDS -- only
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see TimeRateUpEffect
+ * @see TimeRateContributor
  * @since 1.0.0
  */
 
@@ -37,10 +36,9 @@ public final class PathTimeFlowService {
 
     public static int getRate(@NotNull Player player) {
         int rate = 0;
-        // TODO(refactor): restore a contributor interface when a second time-flow effect class exists.
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (instance.getEffect().value() instanceof TimeRateUpEffect effect) {
-                rate += effect.timeRate(instance.getAmplifier());
+            if (instance.getEffect().value() instanceof TimeRateContributor contributor) {
+                rate += contributor.timeRate(instance.getAmplifier());
             }
         }
         //   TODO(宙道造诣): a grade term joins HERE, so that no caller has to learn about it.

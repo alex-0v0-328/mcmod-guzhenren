@@ -15,24 +15,24 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
-import net.alex.guzhenren.item.gu.mortal.HopeGuItem;
-import net.alex.guzhenren.item.gu.mortal.LifespanGuItem;
-import net.alex.guzhenren.item.gu.mortal.PrimevalElderGuItem;
-import net.alex.guzhenren.item.gu.mortal.RelicsGuItem;
-import net.alex.guzhenren.item.gu.mortal.VitalityLeafGuItem;
 import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
+import net.alex.guzhenren.item.gu.mortal.food.LiquorWormItem;
+import net.alex.guzhenren.item.gu.mortal.heaven.LifespanGuItem;
+import net.alex.guzhenren.item.gu.mortal.heaven.RelicsGuItem;
+import net.alex.guzhenren.item.gu.mortal.human.HopeGuItem;
 import net.alex.guzhenren.item.gu.mortal.human.SecondApertureGuItem;
-import net.alex.guzhenren.item.gu.mortal.liquor.LiquorWormItem;
 import net.alex.guzhenren.item.gu.mortal.soul.GutsGuItem;
+import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.WatchGuItem;
+import net.alex.guzhenren.item.gu.mortal.transformation.ZombieGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.CasualGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.MaliciousThoughtGuItem;
 import net.alex.guzhenren.item.gu.mortal.wood.TreasureLotusGuItem;
-import net.alex.guzhenren.item.gu.mortal.zombie.ZombieGuItem;
+import net.alex.guzhenren.item.gu.mortal.wood.VitalityLeafGuItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
 import net.alex.guzhenren.item.material.LiquorItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
@@ -76,6 +76,7 @@ public final class ModItems {
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Guzhenren.MOD_ID);
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
+    private static final long[] QI_ESSENCE_COST = { 50L, 500L, 5_000L, 50_000L, 500_000L };
 
     private static Item.Properties tendedProperties() { return new Item.Properties().stacksTo(1); }
 
@@ -512,15 +513,15 @@ public final class ModItems {
     public static final DeferredItem<Item> STRENGTH_QI_5 =
             registerQiMaterial("strength_qi_5", Rank.FIVE, QiKind.STRENGTH);
     public static final DeferredItem<Item> LIFE_QI_1 = ITEMS.register("life_qi_1",
-            () -> new LifeQiItem(qiProperties(), Rank.ONE));
+            () -> new LifeQiItem(qiProperties(), Rank.ONE, qiEssenceCost(Rank.ONE)));
     public static final DeferredItem<Item> LIFE_QI_2 = ITEMS.register("life_qi_2",
-            () -> new LifeQiItem(qiProperties(), Rank.TWO));
+            () -> new LifeQiItem(qiProperties(), Rank.TWO, qiEssenceCost(Rank.TWO)));
     public static final DeferredItem<Item> LIFE_QI_3 = ITEMS.register("life_qi_3",
-            () -> new LifeQiItem(qiProperties(), Rank.THREE));
+            () -> new LifeQiItem(qiProperties(), Rank.THREE, qiEssenceCost(Rank.THREE)));
     public static final DeferredItem<Item> LIFE_QI_4 = ITEMS.register("life_qi_4",
-            () -> new LifeQiItem(qiProperties(), Rank.FOUR));
+            () -> new LifeQiItem(qiProperties(), Rank.FOUR, qiEssenceCost(Rank.FOUR)));
     public static final DeferredItem<Item> LIFE_QI_5 = ITEMS.register("life_qi_5",
-            () -> new LifeQiItem(qiProperties(), Rank.FIVE));
+            () -> new LifeQiItem(qiProperties(), Rank.FIVE, qiEssenceCost(Rank.FIVE)));
     public static final DeferredItem<Item> ESSENCE_QI_1 =
             registerQiMaterial("essence_qi_1", Rank.ONE, QiKind.ESSENCE);
     public static final DeferredItem<Item> ESSENCE_QI_2 =
@@ -532,11 +533,13 @@ public final class ModItems {
     public static final DeferredItem<Item> ESSENCE_QI_5 =
             registerQiMaterial("essence_qi_5", Rank.FIVE, QiKind.ESSENCE);
     public static final DeferredItem<Item> DEATH_QI_5 = ITEMS.register("death_qi_5",
-            () -> new DeathQiItem(qiProperties(), Rank.FIVE));
+            () -> new DeathQiItem(qiProperties(), Rank.FIVE, qiEssenceCost(Rank.FIVE)));
 
     private static DeferredItem<Item> registerQiMaterial(String id, Rank rank, QiKind kind) {
-        return ITEMS.register(id, () -> new QiMaterialItem(qiProperties(), rank, kind));
+        return ITEMS.register(id, () -> new QiMaterialItem(qiProperties(), rank, kind, qiEssenceCost(rank)));
     }
+
+    private static long qiEssenceCost(Rank rank) { return QI_ESSENCE_COST[rank.ordinal() - Rank.ONE.ordinal()]; }
 
     private static Item.Properties qiProperties() { return new Item.Properties().stacksTo(64); }
     //endregion

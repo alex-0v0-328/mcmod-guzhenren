@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.attribute;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.effect.AttackContributor;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.BodyStrengthService;

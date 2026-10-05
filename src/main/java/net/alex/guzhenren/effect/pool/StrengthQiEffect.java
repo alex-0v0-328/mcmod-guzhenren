@@ -1,6 +1,6 @@
 package net.alex.guzhenren.effect.pool;
 
-import net.alex.guzhenren.effect.AttackContributor;
+import net.alex.guzhenren.gameplay.attribute.AttackContributor;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -10,7 +10,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  * PathQiData}, which adds attack damage while held.
  *
  * <p>Pool effects are rebuilt every heartbeat by {@code PathQiService.syncEffects}, so milk cannot cure
- * them. It contributes via {@link net.alex.guzhenren.effect.AttackContributor}, not an attribute
+ * them. It contributes via {@link net.alex.guzhenren.gameplay.attribute.AttackContributor}, not an attribute
  * modifier, so the body panel and a dealt hit stay one number.
  *
  * <p>⚠ The {@code ATTACK_BONUS} ladder {0.25, 1, 4, 16, 64} must be exactly representable as a
@@ -18,7 +18,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.effect.AttackContributor
+ * @see net.alex.guzhenren.gameplay.attribute.AttackContributor
  * @since 1.0.0
  */
 

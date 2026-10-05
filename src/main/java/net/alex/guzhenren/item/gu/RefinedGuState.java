@@ -48,20 +48,20 @@ public record RefinedGuState(boolean refined, int refineProgress, int investedEs
     }
 
     //region the with* copies -- five components run past 120, so these are blocks
-    public RefinedGuState withRefine(int v) {
-        return new RefinedGuState(refined, v, investedEssence, hunger, damageTaken);
+    public RefinedGuState withRefine(int value) {
+        return new RefinedGuState(refined, value, investedEssence, hunger, damageTaken);
     }
 
-    public RefinedGuState withInvested(int v) {
-        return new RefinedGuState(refined, refineProgress, v, hunger, damageTaken);
+    public RefinedGuState withInvested(int value) {
+        return new RefinedGuState(refined, refineProgress, value, hunger, damageTaken);
     }
 
-    public RefinedGuState withHunger(int v) {
-        return new RefinedGuState(refined, refineProgress, investedEssence, v, damageTaken);
+    public RefinedGuState withHunger(int value) {
+        return new RefinedGuState(refined, refineProgress, investedEssence, value, damageTaken);
     }
 
-    public RefinedGuState withDamageTaken(int v) {
-        return new RefinedGuState(refined, refineProgress, investedEssence, hunger, v);
+    public RefinedGuState withDamageTaken(int value) {
+        return new RefinedGuState(refined, refineProgress, investedEssence, hunger, value);
     }
     //endregion
 }

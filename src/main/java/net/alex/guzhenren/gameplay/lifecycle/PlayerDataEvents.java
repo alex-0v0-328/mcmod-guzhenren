@@ -1,6 +1,7 @@
 package net.alex.guzhenren.gameplay.lifecycle;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.item.gu.VitalGuLostEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
@@ -11,7 +12,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 
 /**
  * The player lifecycle moments — login, death, clone, respawn, sleep — each forwarded to {@link
- * PlayerDataService}. This file holds no decisions of its own; a
+ * PlayerDataService}, and a Vital Gu's death ({@code VitalGuLostEvent}) forwarded to {@link VitalLossService}.
+ * This file holds no decisions of its own; a
  * handler that starts deciding for itself is how two of them disagree about what a respawn keeps.
  * {@code keepInventory} is read off the {@link net.minecraft.server.MinecraftServer}'s game rules,
  * never {@code level()}, and passed into {@code onClone} -- the single place a death-copy and a reset
@@ -61,4 +63,7 @@ public final class PlayerDataEvents {
 
         PlayerDataService.onSleepComplete(player);
     }
+
+    @SubscribeEvent
+    public static void onVitalGuLost(VitalGuLostEvent event) { VitalLossService.onVitalGuLost(event); }
 }

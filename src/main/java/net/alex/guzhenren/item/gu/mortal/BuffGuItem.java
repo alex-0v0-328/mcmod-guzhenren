@@ -14,8 +14,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The shared class behind every instant-buff Gu; the effect holder and its length come from registration.
  *
- * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Three Gu register against this one
- * class (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊); the payout simply adds the effect and returns. The gate is
+ * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Eight Gu register against this one class -- the
+ * three beast buffs (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊), the four Crash Gu and the Hardship Strength Gu; the
+ * payout simply adds the effect and returns. The gate is
  * always open here because the refusal "effect already running" lives in the base's own check.
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a class does not mean sharing a larder.

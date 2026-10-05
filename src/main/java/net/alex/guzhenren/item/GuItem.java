@@ -66,11 +66,11 @@ public abstract class GuItem extends Item {
     public record Refusal(String key, Object... args) {}
 
     //region charge [蓄力] -- paced by the holder's rank against this item's own, never by the stage
-    public static final int USE_FAST_TICKS = 5;
+    public static final int USE_FAST_TICKS = Ticks.SECOND / 4;
     public static final int USE_SAME_TICKS = Ticks.HALF_SECOND;
-    public static final int USE_SLOW_TICKS = 20;
+    public static final int USE_SLOW_TICKS = Ticks.SECOND;
 
-    protected int rankGap(Player p) { return ApertureService.rank(p).ordinal() - rank.ordinal(); }
+    protected int rankGap(Player player) { return ApertureService.rank(player).ordinal() - rank.ordinal(); }
 
     protected int useChargeByGap(Player player) {
         int gap = rankGap(player);
@@ -80,19 +80,19 @@ public abstract class GuItem extends Item {
     //endregion
 
     //region Vital Gu
-    public static @Nullable UUID owner(ItemStack s) { return s.get(ModDataComponents.VITAL_OWNER.get()); }
+    public static @Nullable UUID owner(ItemStack stack) { return stack.get(ModDataComponents.VITAL_OWNER.get()); }
 
-    public static boolean isVital(ItemStack s) { return s.has(ModDataComponents.VITAL_OWNER.get()); }
+    public static boolean isVital(ItemStack stack) { return stack.has(ModDataComponents.VITAL_OWNER.get()); }
 
-    public static boolean isVitalOf(ItemStack s, Player p) { return p.getUUID().equals(owner(s)); }
+    public static boolean isVitalOf(ItemStack stack, Player player) { return player.getUUID().equals(owner(stack)); }
 
-    public static int boundAperture(ItemStack s) {
-        return s.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
+    public static int boundAperture(ItemStack stack) {
+        return stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
     }
 
-    public static void bind(ItemStack s, Player p, int aperture) {
-        s.set(ModDataComponents.VITAL_OWNER.get(), p.getUUID());
-        s.set(ModDataComponents.VITAL_APERTURE.get(), aperture);
+    public static void bind(ItemStack stack, Player player, int aperture) {
+        stack.set(ModDataComponents.VITAL_OWNER.get(), player.getUUID());
+        stack.set(ModDataComponents.VITAL_APERTURE.get(), aperture);
     }
     //endregion
 

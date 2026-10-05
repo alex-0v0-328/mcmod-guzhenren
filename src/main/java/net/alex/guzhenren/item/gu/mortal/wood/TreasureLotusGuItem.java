@@ -7,7 +7,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
-import net.alex.guzhenren.item.gu.mortal.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;

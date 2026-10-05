@@ -124,7 +124,7 @@ public final class GuSpec {
 
     public int itemCooldownTicks() { return itemCooldownTicks; }
 
-    public int unitsPerHealth() { return unitsPerHunger; }
+    public int unitsPerHunger() { return unitsPerHunger; }
 
     public GuClock buildClock() {
         if (maxHunger > 0) {

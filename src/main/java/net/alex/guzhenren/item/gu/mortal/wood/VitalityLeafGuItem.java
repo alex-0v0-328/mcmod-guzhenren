@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal;
+package net.alex.guzhenren.item.gu.mortal.wood;
 
 import net.alex.guzhenren.effect.timed.VitalityLeafEffect;
 import net.alex.guzhenren.item.gu.GuSpec;

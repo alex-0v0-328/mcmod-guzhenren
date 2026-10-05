@@ -1,10 +1,10 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.effect.PeriodicEffect;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
@@ -26,18 +26,13 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public class CasualThoughtEffect extends MobEffect {
+public class CasualThoughtEffect extends PeriodicEffect {
 
     public static final int DURATION_TICKS = 10 * Ticks.SECOND;
     private static final int[][] RANGES = { { 1, 100 }, { 100, 200 } };
 
     public CasualThoughtEffect(MobEffectCategory category, int color) {
-        super(category, color);
-    }
-
-    @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return duration % Ticks.SECOND == 0;
+        super(category, color, Ticks.SECOND);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package net.alex.guzhenren.effect.timed;
 
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.path.time.TimeRateContributor;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
@@ -12,11 +12,11 @@ import net.minecraft.world.effect.MobEffectCategory;
  *
  * @author Alex
  * @version 1.0.0
- * @see PathTimeFlowService
+ * @see TimeRateContributor
  * @since 1.0.0
  */
 
-public class TimeRateUpEffect extends MobEffect {
+public class TimeRateUpEffect extends MobEffect implements TimeRateContributor {
 
     private final int ratePerLayer;
     private final int maxLayers;
@@ -29,5 +29,6 @@ public class TimeRateUpEffect extends MobEffect {
 
     public int nextAmplifier(int amplifier) { return Math.clamp(amplifier + 1, 0, maxLayers - 1); }
 
+    @Override
     public int timeRate(int amplifier) { return ratePerLayer * Math.clamp(amplifier + 1, 1, maxLayers); }
 }

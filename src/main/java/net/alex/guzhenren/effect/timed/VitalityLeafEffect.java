@@ -1,7 +1,7 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
-import net.minecraft.world.effect.MobEffect;
+import net.alex.guzhenren.effect.PeriodicEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -20,18 +20,13 @@ import net.minecraft.world.entity.LivingEntity;
  * @since 1.0.0
  */
 
-public class VitalityLeafEffect extends MobEffect {
+public class VitalityLeafEffect extends PeriodicEffect {
 
     public static final int HEAL_INTERVAL_TICKS = Ticks.HALF_SECOND;
     public static final int DURATION_TICKS = 64 * HEAL_INTERVAL_TICKS;
 
     public VitalityLeafEffect(MobEffectCategory category, int color) {
-        super(category, color);
-    }
-
-    @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return duration % HEAL_INTERVAL_TICKS == 0;
+        super(category, color, HEAL_INTERVAL_TICKS);
     }
 
     @Override

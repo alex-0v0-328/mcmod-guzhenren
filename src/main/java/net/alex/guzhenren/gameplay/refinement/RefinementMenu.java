@@ -1,18 +1,12 @@
 package net.alex.guzhenren.gameplay.refinement;
 
 import java.util.List;
-import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
-import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.TendedGuItem;
-import net.alex.guzhenren.item.gu.mortal.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.ChatFormatting;
@@ -34,14 +28,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The refinement [炼蛊] container: the ring grid, the ritual's clock, and the settlement.
+ * The refinement [炼蛊] container: the ring grid, the recipe [蛊方] behind the button, and the clock of
+ * the {@link RefinementRitual} it owns.
  *
- * <p>The menu IS the clock -- its {@code broadcastChanges} runs every tick, so closing the window
- * aborts by construction and lifting the state out would need an abort path that does not exist. The
- * 5×5 grid (corners cut), the primeval stone slot, and the 2×2 output are transient; no attachment involved.
+ * <p>The menu IS the clock -- its {@code broadcastChanges} runs every tick and advances the ritual, so
+ * closing the window aborts by construction. The 5×5 grid (corners cut), the primeval stone slot, and the
+ * 2×2 output are transient; no attachment involved.
  *
- * <p>⚠ The ritual lives in the menu deliberately. The grid locks while it runs, nothing is consumed
- * until the last tick, and the client reads every live figure through {@link
+ * <p>⚠ The ritual is owned by the menu deliberately, never lifted into a service: the grid locks while it
+ * runs, and the client reads every live figure through {@link
  * net.minecraft.world.inventory.ContainerData} (ten ints) because it cannot match a recipe itself.
  *
  * @author Alex
@@ -103,43 +98,30 @@ public class RefinementMenu extends AbstractContainerMenu {
     public static final int INVENTORY_Y = 229;
     public static final int HOTBAR_Y = 287;
     private static final int INVENTORY_COLS = 9;
-    private static final int FAILURE_HEALTH_DIVISOR = 4;
-    private static final int FULL_SUCCESS = 100;
     private static final int OPENING_PERCENT = 40;
-    private static final int CURRENT_PER_MAX_SOUL = 10;
     private static final int DATA_READY = 0;
     private static final int DATA_AFFORD = 1;
-    private static final int DATA_RUNNING = 2;
-    private static final int DATA_STAGE = 3;
-    private static final int DATA_STAGES = 4;
-    private static final int DATA_PHASE_LEFT = 5;
-    private static final int DATA_IN_WINDOW = 6;
-    private static final int DATA_STONES_IN = 7;
-    private static final int DATA_STONES_NEEDED = 8;
+    static final int DATA_RUNNING = 2;
+    static final int DATA_STAGE = 3;
+    static final int DATA_STAGES = 4;
+    static final int DATA_PHASE_LEFT = 5;
+    static final int DATA_IN_WINDOW = 6;
+    static final int DATA_STONES_IN = 7;
+    static final int DATA_STONES_NEEDED = 8;
     private static final int DATA_SELECTED = 9;
     private static final int DATA_SIZE = 10;
     private static final String FAILED_ESSENCE = "guzhenren.menu.refinement.essence";
     private static final String FAILED_NO_ROOM = "guzhenren.menu.refinement.no_room";
     private static final String FAILED_NOT_AWAKENED = "guzhenren.menu.refinement.not_awakened";
-    private static final String LOST_STONES = "guzhenren.menu.refinement.lost_stones";
-    private static final String LOST_ESSENCE = "guzhenren.menu.refinement.lost_essence";
-    private static final String LOST_ROLL = "guzhenren.menu.refinement.lost_roll";
-    private static final String ELDER_SPENT = "guzhenren.menu.refinement.elder_spent";
     private static final String STOPPED = "guzhenren.menu.refinement.stopped";
     private final Player player;
     private final SimpleContainer input = new SimpleContainer(INPUT_SIZE);
     private final SimpleContainer supply = new SimpleContainer(1);
     private final SimpleContainer output = new SimpleContainer(OUTPUT_SIZE);
     private final ContainerData craftData = new SimpleContainerData(DATA_SIZE);
+    private final RefinementRitual ritual = new RefinementRitual(input, supply, output, craftData, this::refresh);
     private @Nullable GuRecipe pending;
     private int selectedIndex = -1;
-    private @Nullable GuRecipe running;
-    private int @Nullable [] claimed;
-    private int stage;
-    private int phaseLeft;
-    private boolean inWindow;
-    private int stonesThisWindow;
-    private int secondCounter;
 
     public RefinementMenu(int id, Inventory inventory) {
         super(ModMenus.REFINEMENT_MENU.get(), id);
@@ -218,7 +200,7 @@ public class RefinementMenu extends AbstractContainerMenu {
 
     private boolean select(int index) {
         MinecraftServer server = player.getServer();
-        if (server == null || running != null) return false;
+        if (server == null || ritual.isRunning()) return false;
 
         List<RecipeHolder<GuRecipe>> known = GuRecipe.known(server.getRecipeManager());
         selectedIndex = index >= 0 && index < known.size() ? index : -1;
@@ -229,7 +211,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
 
     private void refresh() {
-        if (!(player instanceof ServerPlayer) || running != null) return;
+        if (!(player instanceof ServerPlayer) || ritual.isRunning()) return;
 
         pending = match();
         craftData.set(DATA_READY, pending != null ? 1 : 0);
@@ -286,190 +268,21 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
     //endregion
 
-    //region the ritual -- the menu is its own clock, because ServerPlayer.tick() broadcasts every tick
+    //region the ritual's clock -- the menu ticks it, because ServerPlayer.tick() broadcasts every tick
     @Override
     public void broadcastChanges() {
         if (player instanceof ServerPlayer server) {
-            for (int step = PathTimeFlowService.getSteps(server); step > 0 && running != null; step--) {
-                advance(server);
+            for (int step = PathTimeFlowService.getSteps(server); step > 0 && ritual.isRunning(); step--) {
+                ritual.advance(server);
             }
             craftData.set(DATA_AFFORD, pending != null && affords(server, pending) ? 1 : 0);
         }
         super.broadcastChanges();
     }
 
-    private void advance(ServerPlayer server) {
-        GuRecipe recipe = running;
-        if (recipe == null) return;
-
-        if (++secondCounter >= Ticks.SECOND) {
-            secondCounter = 0;
-            if (recipe.essencePerSecond() > 0
-                    && !ApertureEssenceService.consume(server, recipe.essencePerSecond())) {
-                fail(server, LOST_ESSENCE);
-                return;
-            }
-            burnSoul(server, recipe.soulPerSecond());
-        }
-        if (inWindow) gatherStones(server, recipe);
-        refillFromSupply(server);
-
-        if (--phaseLeft > 0) {
-            publishRun(recipe);
-            return;
-        }
-        if (!inWindow) {
-            stage++;
-            inWindow = true;
-            stonesThisWindow = 0;
-            phaseLeft = GuRecipe.WINDOW_TICKS;
-            publishRun(recipe);
-            return;
-        }
-        if (stonesThisWindow < recipe.stonesFor(stage)) {
-            fail(server, LOST_STONES);
-            return;
-        }
-        if (stage + 1 >= recipe.windowCount()) {
-            settle(server, recipe);
-            return;
-        }
-        inWindow = false;
-        phaseLeft = GuRecipe.GAP_TICKS;
-        publishRun(recipe);
-    }
-
-    private void gatherStones(ServerPlayer server, GuRecipe recipe) {
-        int wanted = recipe.stonesFor(stage) - stonesThisWindow;
-        if (wanted <= 0) return;
-
-        stonesThisWindow += takeStones(wanted);
-        ItemStack held = supply.getItem(0);
-        if (!(held.getItem() instanceof PrimevalElderGuItem)) return;
-        if (stonesThisWindow >= recipe.stonesFor(stage)) return;
-
-        say(server, ELDER_SPENT, ChatFormatting.RED);
-        if (!server.getInventory().add(held.copy())) server.drop(held.copy(), false);
-        supply.setItem(0, ItemStack.EMPTY);
-    }
-
-    private int takeStones(int wanted) {
-        if (wanted <= 0) return 0;
-
-        ItemStack held = supply.getItem(0);
-        if (held.getItem() instanceof PrimevalStoneItem) {
-            int taken = Math.min(wanted, held.getCount());
-            held.shrink(taken);
-            supply.setChanged();
-            return taken;
-        }
-        return held.getItem() instanceof PrimevalElderGuItem vault
-                ? vault.drawStones(held, wanted) : 0;
-    }
     //endregion
 
-    //region soul [魂魄] -- current first, then maxSoul at a tenth the rate, which is what kills him
-    private static void burnSoul(ServerPlayer server, long amount) {
-        if (amount <= 0L || SoulService.consume(server, amount)) return;
-
-        long owed = amount - SoulService.get(server).currentSoul();
-        SoulService.setCurrent(server, 0L);
-
-        long fromMax = (owed + CURRENT_PER_MAX_SOUL - 1) / CURRENT_PER_MAX_SOUL;
-        SoulService.setMax(server, Math.max(0L, SoulService.get(server).maxSoul() - fromMax));
-    }
-    //endregion
-
-    //region the stone top-up [元石补给] -- only ever what the window did not want
-    private void refillFromSupply(ServerPlayer server) {
-        if (!PrimevalStoneItem.needsTopUp(server)) return;
-
-        long perStone = PrimevalStoneItem.essencePerStone();
-        long missing = PrimevalStoneItem.topUpDeficit(server);
-        if (perStone <= 0L || missing <= 0L) return;
-
-        int wanted = (int) Math.min(Integer.MAX_VALUE, (missing + perStone - 1) / perStone);
-        int drawn = takeStones(wanted);
-        if (drawn > 0) ApertureEssenceService.add(server, drawn * perStone);
-    }
-    //endregion
-
-    //region settling -- nothing is consumed until here, so failure can take half and wound the rest
-    private void settle(ServerPlayer server, GuRecipe recipe) {
-        int chance = Math.min(FULL_SUCCESS, recipe.baseSuccess()
-                + PathService.getAttainment(server, GuPath.REFINEMENT).getRefinementBonus());
-        if (server.getRandom().nextInt(FULL_SUCCESS) >= chance) {
-            fail(server, LOST_ROLL);
-            return;
-        }
-        int[] taken = claimed;
-        boolean vital = taken != null && eatsVital(taken);
-        if (taken != null) {
-            for (int i = 0; i < taken.length; i++) {
-                if (taken[i] > 0) input.removeItem(i, taken[i]);
-            }
-        }
-        deliver(server, recipe, vital);
-        stop();
-        refresh();
-    }
-
-    private void fail(ServerPlayer server, String key) {
-        int[] taken = claimed;
-        if (taken != null) {
-            for (int i = 0; i < taken.length; i++) {
-                if (taken[i] > 0) spoil(server, i, taken[i]);
-            }
-        }
-        say(server, key, ChatFormatting.RED);
-        stop();
-        refresh();
-    }
-
-    private void spoil(ServerPlayer server, int slot, int taken) {
-        ItemStack stack = input.getItem(slot);
-        if (stack.isEmpty()) return;
-
-        if (stack.getItem() instanceof TendedGuItem gu) {
-            if (gu.damageKills(server, stack, gu.maxHealth() / FAILURE_HEALTH_DIVISOR)) {
-                input.setItem(slot, ItemStack.EMPTY);
-            }
-            return;
-        }
-        if (stack.getItem() instanceof MortalGuItem) return;
-
-        input.removeItem(slot, (taken + 1) / 2);
-    }
-
-    private void stop() {
-        running = null;
-        claimed = null;
-        stage = 0;
-        phaseLeft = 0;
-        inWindow = false;
-        stonesThisWindow = 0;
-        secondCounter = 0;
-        craftData.set(DATA_RUNNING, 0);
-        craftData.set(DATA_STAGE, 0);
-        craftData.set(DATA_STAGES, 0);
-        craftData.set(DATA_PHASE_LEFT, 0);
-        craftData.set(DATA_IN_WINDOW, 0);
-        craftData.set(DATA_STONES_IN, 0);
-        craftData.set(DATA_STONES_NEEDED, 0);
-    }
-
-    private void publishRun(GuRecipe recipe) {
-        craftData.set(DATA_RUNNING, 1);
-        craftData.set(DATA_STAGE, stage);
-        craftData.set(DATA_STAGES, recipe.windowCount());
-        craftData.set(DATA_PHASE_LEFT, phaseLeft);
-        craftData.set(DATA_IN_WINDOW, inWindow ? 1 : 0);
-        craftData.set(DATA_STONES_IN, stonesThisWindow);
-        craftData.set(DATA_STONES_NEEDED, recipe.stonesFor(stage));
-    }
-    //endregion
-
-    //region 炼制 -- the button only STARTS it now; the outcome lands 26 seconds later
+    //region 炼制 -- the button only STARTS it; the outcome lands after every window and gap has run
     @Override
     public boolean clickMenuButton(@NotNull Player who, int id) {
         if (who != player) return false;
@@ -480,16 +293,16 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
 
     private boolean abort() {
-        if (!(player instanceof ServerPlayer server) || running == null) return false;
+        if (!(player instanceof ServerPlayer server) || !ritual.isRunning()) return false;
 
         say(server, STOPPED, ChatFormatting.RED);
-        stop();
+        ritual.stop();
         refresh();
         return true;
     }
 
     private boolean begin() {
-        if (!(player instanceof ServerPlayer server) || running != null) return false;
+        if (!(player instanceof ServerPlayer server) || ritual.isRunning()) return false;
         if (!ApertureService.isAwakened(server)) return refuse(server, FAILED_NOT_AWAKENED);
 
         GuRecipe recipe = match();
@@ -500,36 +313,8 @@ public class RefinementMenu extends AbstractContainerMenu {
         int[] taken = recipe.claim(GuRecipeInput.of(input));
         if (taken == null) return false;
 
-        running = recipe;
-        claimed = taken;
-        stage = 0;
-        inWindow = true;
-        stonesThisWindow = 0;
-        secondCounter = 0;
-        phaseLeft = GuRecipe.WINDOW_TICKS;
-        publishRun(recipe);
+        ritual.start(recipe, taken);
         return true;
-    }
-
-    private void deliver(ServerPlayer server, GuRecipe recipe, boolean vital) {
-        boolean sole = recipe.guResultCount() == 1;
-        int slot = 0;
-
-        for (ItemStack stack : recipe.results()) {
-            ItemStack made = stack.copy();
-            if (made.getItem() instanceof TendedGuItem gu) {
-                gu.bornRefined(server, made);
-                if (vital && sole) inherit(server, made, gu);
-            }
-            while (slot < OUTPUT_SIZE && !output.getItem(slot).isEmpty()) slot++;
-            if (slot >= OUTPUT_SIZE) return;
-            output.setItem(slot, made);
-        }
-    }
-
-    private static void inherit(ServerPlayer server, ItemStack made, TendedGuItem gu) {
-        GuItem.bind(made, server, ApertureData.PRIMARY);
-        ApertureService.setPrimaryPath(server, ApertureData.PRIMARY, gu.path());
     }
 
     private int freeOutputSlots() {
@@ -540,14 +325,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         return free;
     }
 
-    private boolean eatsVital(int[] taken) {
-        for (int i = 0; i < taken.length; i++) {
-            if (taken[i] > 0 && GuItem.isVital(input.getItem(i))) return true;
-        }
-        return false;
-    }
-
-    private static void say(ServerPlayer who, String key, ChatFormatting colour, Object... args) {
+    static void say(ServerPlayer who, String key, ChatFormatting colour, Object... args) {
         who.displayClientMessage(Component.translatable(key, args).withStyle(colour), true);
     }
 
@@ -560,7 +338,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     @Override
     public void removed(@NotNull Player who) {
         super.removed(who);
-        stop();
+        ritual.stop();
         clearContainer(who, input);
         clearContainer(who, supply);
         clearContainer(who, output);
@@ -598,11 +376,11 @@ public class RefinementMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return running == null && !(stack.getItem() instanceof MortalGuItem);
+            return !ritual.isRunning() && !(stack.getItem() instanceof MortalGuItem);
         }
 
         @Override
-        public boolean mayPickup(@NotNull Player who) { return running == null; }
+        public boolean mayPickup(@NotNull Player who) { return !ritual.isRunning(); }
     }
 
     private class CoreSlot extends Slot {
@@ -611,12 +389,12 @@ public class RefinementMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (running != null || !(stack.getItem() instanceof MortalGuItem)) return false;
+            if (ritual.isRunning() || !(stack.getItem() instanceof MortalGuItem)) return false;
             return !GuItem.isVital(stack) || GuItem.isVitalOf(stack, player);
         }
 
         @Override
-        public boolean mayPickup(@NotNull Player who) { return running == null; }
+        public boolean mayPickup(@NotNull Player who) { return !ritual.isRunning(); }
     }
 
     private class SupplySlot extends Slot {

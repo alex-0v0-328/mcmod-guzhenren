@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal;
+package net.alex.guzhenren.item.gu.mortal.human;
 
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.core.Ticks;

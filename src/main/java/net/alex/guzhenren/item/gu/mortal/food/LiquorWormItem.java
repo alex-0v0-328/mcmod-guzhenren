@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.liquor;
+package net.alex.guzhenren.item.gu.mortal.food;
 
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;

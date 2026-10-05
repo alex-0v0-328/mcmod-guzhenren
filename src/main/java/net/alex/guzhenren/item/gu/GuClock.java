@@ -50,7 +50,7 @@ public sealed interface GuClock {
     //region 饱食条 -- the boars, Human Jun [人力钧力流], Flower Boar and All-Out Effort
     record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse) implements GuClock {
 
-        private static RefinedGuState state(ItemStack s) { return TendedGuItem.state(s); }
+        private static RefinedGuState state(ItemStack stack) { return TendedGuItem.state(stack); }
 
         private void setHunger(ItemStack stack, int value) {
             RefinedGuState s = state(stack);
@@ -91,11 +91,11 @@ public sealed interface GuClock {
             int room = max - hunger(stack);
             if (room <= 0) return false;
 
-            TendedGuItem.Meal meal = TendedGuItem.portion(food.getCount(), room, unitsPerHunger, units);
+            GuMeal meal = GuMeal.portion(food.getCount(), room, unitsPerHunger, units);
             if (meal.gained() <= 0) return false;
 
             if (!player.hasInfiniteMaterials()) {
-                TendedGuItem.returnEmptyContainers(player, food, meal.eaten());
+                GuMeal.returnEmptyContainers(player, food, meal.eaten());
                 food.shrink(meal.eaten());
             }
             setHunger(stack, hunger(stack) + meal.gained());

@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal;
+package net.alex.guzhenren.item.gu.mortal.space;
 
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
@@ -46,14 +46,12 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     //region the vault
-    public long capacity() { return capacity; }
-
     public static long stored(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.STORED_STONES.get(), 0L);
     }
 
-    private void setStored(ItemStack stack, long v) {
-        stack.set(ModDataComponents.STORED_STONES.get(), Math.clamp(v, 0L, capacity));
+    private void setStored(ItemStack stack, long value) {
+        stack.set(ModDataComponents.STORED_STONES.get(), Math.clamp(value, 0L, capacity));
     }
 
     @Override
@@ -62,7 +60,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     @Override
     protected boolean holdingFood(Player player, ItemStack stack) { return false; }
 
-    private static boolean isStone(ItemStack s) { return s.is(ModItems.PRIMEVAL_STONE.get()); }
+    private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
     //endregion
 
     //region depositing -- the plain right click, free and instant

@@ -1,10 +1,10 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.effect.PeriodicEffect;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
@@ -25,19 +25,14 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public class MaliciousThoughtEffect extends MobEffect {
+public class MaliciousThoughtEffect extends PeriodicEffect {
 
     public static final int DURATION_TICKS = 12 * Ticks.SECOND;
     private final long[] evilPerSecond;
 
     public MaliciousThoughtEffect(MobEffectCategory category, int color, long[] evilPerSecond) {
-        super(category, color);
+        super(category, color, Ticks.SECOND);
         this.evilPerSecond = evilPerSecond;
-    }
-
-    @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return duration % Ticks.SECOND == 0;
     }
 
     @Override

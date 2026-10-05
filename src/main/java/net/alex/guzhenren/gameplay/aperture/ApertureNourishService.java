@@ -2,7 +2,7 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
-import net.alex.guzhenren.item.material.PrimevalStoneItem;
+import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Nourishing the Aperture [温养空窍] and striking its wall [冲刷窍壁] -- the only way a rank rises.
  * Static service; progress and the petrified latch live on each {@link Aperture}; the strike cost goes
- * through {@link PrimevalStoneItem#spend(ServerPlayer, long)} (essence first, then stones).
+ * through {@link PrimevalStoneSupply#spend(ServerPlayer, long)} (essence first, then stones).
  *
  * <p>⚠ The wall is the PRIMARY aperture's alone -- a second aperture nourishes but never strikes; its
  * only rank-up is a higher-rank Second Aperture Gu. ⚠ A rank-up MUST also set the stage back to {@code
@@ -123,7 +123,7 @@ public final class ApertureNourishService {
     }
 
     public static boolean canAffordImpact(@NotNull Player player) {
-        return PrimevalStoneItem.canAfford(player, impactCost(player));
+        return PrimevalStoneSupply.canAfford(player, impactCost(player));
     }
 
     public static void start(@NotNull ServerPlayer player, int index) {
@@ -205,7 +205,7 @@ public final class ApertureNourishService {
 
     private static boolean pay(ServerPlayer player, long cost) {
         if (player.hasInfiniteMaterials()) return true;
-        PrimevalStoneItem.topUp(player);
+        PrimevalStoneSupply.topUp(player);
         return ApertureEssenceService.consume(player, cost);
     }
     //endregion
@@ -241,7 +241,7 @@ public final class ApertureNourishService {
         if (!canImpact(player)) return;
         Aperture aperture = ApertureService.aperture(player);
         long cost = impactCost(player);
-        if (!player.hasInfiniteMaterials() && !PrimevalStoneItem.spend(player, cost)) {
+        if (!player.hasInfiniteMaterials() && !PrimevalStoneSupply.spend(player, cost)) {
             player.displayClientMessage(Component.translatable(IMPACT_POOR, cost), true);
             return;
         }

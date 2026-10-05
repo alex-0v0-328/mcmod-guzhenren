@@ -4,10 +4,8 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
-import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -37,9 +35,7 @@ import org.jetbrains.annotations.Nullable;
 public class StoneApertureGuItem extends ConsumedGuItem {
 
     public static final int NO_TARGET = -1;
-    private static final String FAILED_RANK_MISMATCH = "guzhenren.item.failed.rank_mismatch";
     private static final String FAILED_UNAVAILABLE = "guzhenren.item.failed.aperture_unavailable";
-    private static final String FAILED_STAGE_PEAK = "guzhenren.item.failed.stage_peak";
 
     public StoneApertureGuItem(Properties properties, GuSpec spec) {
         super(properties, spec);
@@ -66,11 +62,7 @@ public class StoneApertureGuItem extends ConsumedGuItem {
     protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
         int target = targetOf(player);
         if (target == NO_TARGET) return new Refusal(FAILED_UNAVAILABLE);
-        if (ApertureService.aperture(player, target).rank() != rank()) {
-            return new Refusal(FAILED_RANK_MISMATCH, Component.translatable(rank().getTranslationKey()));
-        }
-        return ApertureService.aperture(player, target).stage() == Stage.HIGHEST
-                ? new Refusal(FAILED_STAGE_PEAK) : null;
+        return stageUpGate(ApertureService.aperture(player, target));
     }
 
     @Override

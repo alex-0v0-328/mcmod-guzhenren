@@ -1,7 +1,7 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
-import net.minecraft.world.effect.MobEffect;
+import net.alex.guzhenren.effect.PeriodicEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -18,18 +18,13 @@ import net.minecraft.world.entity.LivingEntity;
  * @since 1.0.0
  */
 
-public final class SelfRelianceGuEffect extends MobEffect {
+public final class SelfRelianceGuEffect extends PeriodicEffect {
 
     private static final float HEAL_CAP_BASE = 0.5F;
     private static final float HEAL_CAP_TIER_STEP = 0.1F;
 
     public SelfRelianceGuEffect(MobEffectCategory category, int color) {
-        super(category, color);
-    }
-
-    @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return duration % Ticks.SECOND == 0;
+        super(category, color, Ticks.SECOND);
     }
 
     @Override

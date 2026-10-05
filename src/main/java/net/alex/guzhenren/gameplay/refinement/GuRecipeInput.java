@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
  * What the refinement [炼蛊] grid is holding, in the shape the recipe manager wants to see it.
  *
  * <p>Implements {@link net.minecraft.world.item.crafting.RecipeInput} as an immutable snapshot of the
- * grid's slots. Built from a {@link net.minecraft.world.Container} via {@code of()}, which copies each
- * stack out so the recipe match never sees a live mutation.
+ * grid's slots. Built from a {@link net.minecraft.world.Container} via {@code of()}, which copies the
+ * slot LIST but hands out the live stacks: a recipe match reads them and must never change one.
  *
  * @author Alex
  * @version 1.0.0
