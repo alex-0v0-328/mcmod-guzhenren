@@ -1,12 +1,10 @@
-package net.alex.guzhenren.gameplay.aperture.storage;
+package net.alex.guzhenren.gameplay.lifecycle;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import net.alex.guzhenren.gameplay.lifecycle.PlayerDataService;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -20,17 +18,17 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Vital Gu [本命蛊] that died while their owner was offline, waiting for the owner's next login (Alex,
  * 2026-09-24). An offline player's attachments cannot be written, so the lost stack waits here, in the
- * overworld's data storage, until {@link PlayerDataService} charges it
+ * overworld's data storage, until {@link VitalLossService} charges it
  * through the same penalty an online owner pays.
  *
- * <p>⚠ The only server-level store in the mod and the one mutable class in this package -- every other
- * data class here is an immutable attachment record. ⚠ One entry per lost Gu, first in first out; the
+ * <p>⚠ The only server-level store in the mod and its one mutable player-state class -- every other
+ * piece of player state is an immutable attachment record. ⚠ One entry per lost Gu, first in first out; the
  * service settles one per heartbeat, so the second 80% hurt is not swallowed by the first one's hurt
  * cooldown.
  *
  * @author Alex
  * @version 1.0.0
- * @see PlayerDataService
+ * @see VitalLossService
  * @since 1.0.0
  */
 

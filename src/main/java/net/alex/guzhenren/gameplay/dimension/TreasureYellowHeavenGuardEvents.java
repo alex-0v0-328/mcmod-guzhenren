@@ -12,6 +12,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
@@ -59,10 +60,6 @@ public final class TreasureYellowHeavenGuardEvents {
         return entity.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
     }
 
-    private static boolean inTyh(Player player) {
-        return player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
-    }
-
     @SubscribeEvent
     public static void onBreakBlock(BlockEvent.BreakEvent event) {
         if (inTyh(event.getPlayer())) {
@@ -79,35 +76,23 @@ public final class TreasureYellowHeavenGuardEvents {
     }
 
     @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getLevel().isClientSide()) return;
-        if (inTyh(event.getEntity())) {
-            event.setCanceled(true);
-        }
-    }
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) { cancelInTyh(event); }
 
     @SubscribeEvent
-    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
-        if (event.getLevel().isClientSide()) return;
-        if (inTyh(event.getEntity())) {
-            event.setCanceled(true);
-        }
-    }
+    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) { cancelInTyh(event); }
 
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (event.getLevel().isClientSide()) return;
-        if (inTyh(event.getEntity()) && !tradesWith(event.getTarget())) {
-            event.setCanceled(true);
-        }
+        if (!tradesWith(event.getTarget())) cancelInTyh(event);
     }
 
     @SubscribeEvent
     public static void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        if (event.getLevel().isClientSide()) return;
-        if (inTyh(event.getEntity()) && !tradesWith(event.getTarget())) {
-            event.setCanceled(true);
-        }
+        if (!tradesWith(event.getTarget())) cancelInTyh(event);
+    }
+
+    private static <E extends PlayerInteractEvent & ICancellableEvent> void cancelInTyh(E event) {
+        if (!event.getLevel().isClientSide() && inTyh(event.getEntity())) event.setCanceled(true);
     }
 
     public static boolean tradesWith(Entity target) {

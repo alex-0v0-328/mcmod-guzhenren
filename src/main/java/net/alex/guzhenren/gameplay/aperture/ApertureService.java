@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import java.util.List;
-import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
@@ -20,8 +19,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The only runtime writer of the Aperture [空窍] attachment: awakening [开窍], rank [转数], stage [阶段], talent
  * [资质] and paths [流派]. Static service; most writes route through {@code store}, which posts an
- * {@link ApertureChangedEvent} (the max-health modifier refreshes) and calls
- * {@link EpicFightIntegration#refresh}; pressure writes, in {@link AperturePressureService}, skip it.
+ * {@link ApertureChangedEvent} (the max-health modifier and Epic Fight's stamina refresh); pressure
+ * writes, in {@link AperturePressureService}, skip it.
  *
  * <p>⚠ The body-physique/base-essence invariant is enforced here ({@code enforce}); the concrete
  * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
@@ -205,7 +204,6 @@ public final class ApertureService {
     private static void store(ServerPlayer player, ApertureData data) {
         player.setData(ModAttachments.APERTURE, data);
         NeoForge.EVENT_BUS.post(new ApertureChangedEvent(player));
-        EpicFightIntegration.refresh(player);
     }
 
     private static Aperture enforce(@NotNull Player player, int index, @NotNull Aperture aperture) {

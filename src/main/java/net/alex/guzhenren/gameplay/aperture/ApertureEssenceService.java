@@ -22,7 +22,8 @@ import org.jetbrains.annotations.NotNull;
  * distilling empties it). ⚠ {@code consume} burns distilled 1:2 first (rounded UP), then the pool. ⚠
  * The distilling truth is the per-aperture {@code distilling} flag, not the effect. ⚠ Any path that
  * SKIPS a regen step (choke, DEAD [死窍]) must zero that carry; {@code isChoked} outranks everything.
- * {@link #cascadeTake} is the pure seam the unit tests pin for that cascade.
+ * {@link #cascadeTake} is the pure seam the unit tests pin for that cascade. {@link #closeDistilling}
+ * is the heartbeat's step that settles a distilling whose Liquor Worm effect ended early.
  *
  * @author Alex
  * @version 1.0.0
@@ -135,6 +136,10 @@ public final class ApertureEssenceService {
             ApertureService.set(player, i, aperture.withCurrentEssence(0L).withDistilling(true));
             return;
         }
+    }
+
+    public static void closeDistilling(@NotNull ServerPlayer player) {
+        if (totalDistilled(player) > 0L && !isDistilling(player)) endDistilling(player);
     }
 
     public static void endDistilling(@NotNull ServerPlayer player) {

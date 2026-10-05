@@ -1,6 +1,7 @@
 package net.alex.guzhenren.compat;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.server.level.ServerLevel;
@@ -18,8 +19,9 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 /**
- * Sets Epic Fight's per-level skill-retention rule for every loaded server level, and opens the
- * punch shockwave trail on a heavy fist landing.
+ * Sets Epic Fight's per-level skill-retention rule for every loaded server level, re-reads the stamina
+ * modifier whenever the apertures change ({@code ApertureChangedEvent}), and opens the punch shockwave
+ * trail on a heavy fist landing.
  *
  * <p>{@link #onIncomingDamage}: a landed attack from an Epic-Fight-mode player punching bare-handed
  * (or with a fist-category weapon; an empty hand resolves to FIST too) opens the punch shockwave
@@ -39,6 +41,11 @@ public final class EpicFightServerEvents {
         for (ServerLevel level : event.getServer().getAllLevels()) {
             EpicFightGameRules.KEEP_SKILLS.setRuleValue(level, true);
         }
+    }
+
+    @SubscribeEvent
+    public static void onApertureChanged(ApertureChangedEvent event) {
+        EpicFightIntegration.refresh(event.getPlayer());
     }
 
     @SubscribeEvent

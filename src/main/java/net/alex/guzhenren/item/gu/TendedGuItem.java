@@ -5,7 +5,7 @@ import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.gameplay.lifecycle.PlayerDataService;
+import net.alex.guzhenren.gameplay.lifecycle.VitalLossService;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -565,8 +565,8 @@ public abstract class TendedGuItem extends MortalGuItem {
         if (uuid == null) return;
 
         ServerPlayer owner = holder.server.getPlayerList().getPlayer(uuid);
-        if (owner != null) PlayerDataService.onVitalGuLost(owner, stack);
-        else PlayerDataService.recordOfflineVitalLoss(holder.server, uuid, stack);
+        if (owner != null) VitalLossService.onVitalGuLost(owner, stack);
+        else VitalLossService.recordOfflineVitalLoss(holder.server, uuid, stack);
     }
 
     public static void starved(ServerPlayer holder, ItemStack s) { died(holder, s, MSG_STARVED); }

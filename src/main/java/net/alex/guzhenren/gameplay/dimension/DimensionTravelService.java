@@ -3,7 +3,6 @@ package net.alex.guzhenren.gameplay.dimension;
 import java.util.Objects;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData.ReturnPoint;
-import net.alex.guzhenren.gameplay.lifecycle.PlayerDataService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>{@link #isInside} answers whether the player is currently in the given dimension; {@link #enter}
  * snapshots the player's original location and flying state before teleporting there, returning
  * {@code false} instead when they are already inside the dimension or the target level could not be
- * resolved. Death clears the record through {@link PlayerDataService}.
+ * resolved. Death clears the record through {@link net.alex.guzhenren.gameplay.lifecycle.PlayerDataService}.
  *
  * <p>{@link #exit} restores the snapshot: if a return point exists, the player is teleported back to it
  * and resumes flying only if they were flying on entry and can still fly without the grant, returning
@@ -123,10 +122,6 @@ public final class DimensionTravelService {
 
     public static void clear(@NotNull Player player) {
         player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.DEFAULT);
-    }
-
-    public static void clear(@NotNull ServerPlayer player) {
-        clear((Player) player);
     }
 
     public static void ensureFlight(@NotNull ServerPlayer player) {

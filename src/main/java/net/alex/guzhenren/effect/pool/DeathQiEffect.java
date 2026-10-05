@@ -11,10 +11,10 @@ import net.minecraft.world.effect.MobEffectCategory;
  *
  * <p>Pool effects are rebuilt every heartbeat by {@code PathQiService.syncEffects}, so milk cannot cure
  * them. A {@link net.minecraft.world.effect.MobEffect} has no expiry hook, so the burning runs on the
- * heartbeat in {@code PlayerTickEvents.tickDeathQi}, settling the debt by reading the level.
+ * heartbeat in {@code UndeadService.tickDeathQi}, which also holds its numbers, settling the debt by
+ * reading the level.
  *
- * <p>⚠ {@code YEAR_INTERVAL_TICKS} is 120 = 6 × 20 — it must be a multiple of the heartbeat's 20, or the burning
- * silently stops. Life Qi [生气] pays 死气 down 1:1; clearing to 0 refunds {@code REFUND_NUMERATOR / REFUND_DENOMINATOR}.
+ * <p>Life Qi [生气] pays 死气 down 1:1; clearing to 0 refunds {@code REFUND_NUMERATOR / REFUND_DENOMINATOR}.
  *
  * @author Alex
  * @version 1.0.0
@@ -24,10 +24,6 @@ import net.minecraft.world.effect.MobEffectCategory;
 
 public class DeathQiEffect extends MobEffect {
 
-    public static final int YEAR_INTERVAL_TICKS = 120;
-    public static final long YEARS_PER_INTERVAL = 1L;
-    public static final float HEALTH_FLOOR = 2.0F;
-    public static final float HEALTH_PER_HEARTBEAT = 1.0F;
     public static final int REFUND_NUMERATOR = 3;
     public static final int REFUND_DENOMINATOR = 4;
 

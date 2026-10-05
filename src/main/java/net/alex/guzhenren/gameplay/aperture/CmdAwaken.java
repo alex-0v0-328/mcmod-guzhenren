@@ -2,7 +2,6 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
-import net.alex.guzhenren.gameplay.lifecycle.CmdReset;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,7 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
  *
  * @author Alex
  * @version 1.0.0
- * @see CmdReset
+ * @see net.alex.guzhenren.gameplay.lifecycle.CmdReset
  * @since 1.0.0
  */
 

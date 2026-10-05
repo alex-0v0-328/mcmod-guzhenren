@@ -1,6 +1,5 @@
 package net.alex.guzhenren.gameplay.lifecycle;
 
-import java.util.UUID;
 import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -9,7 +8,6 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
-import net.alex.guzhenren.gameplay.aperture.storage.PendingVitalPenalties;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
@@ -17,7 +15,6 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
-import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
@@ -27,11 +24,7 @@ import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
-import net.alex.guzhenren.registry.damage.ModDamageTypes;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -55,9 +48,7 @@ import org.jetbrains.annotations.NotNull;
  * loose per aperture, each at its own rank, at the corpse; keepInventory deaths keep the apertures
  * and drop nothing.
  *
- * <p>{@link #settleOfflineVitalLoss} waits out vanilla's 60-tick spawn invulnerability, which would
- * swallow the 80% hurt, and settles one lost Gu per heartbeat so the next hurt clears the 10-tick
- * hurt cooldown.
+ * <p>Losing a Vital Gu [本命蛊] is charged by {@link VitalLossService}.
  *
  * @author Alex
  * @version 1.0.0
@@ -67,9 +58,6 @@ import org.jetbrains.annotations.NotNull;
  */
 
 public final class PlayerDataService {
-
-    private static final String VITAL_LOST = "guzhenren.item.gu.vital_lost";
-    public static final int OFFLINE_VITAL_SETTLE_AFTER_TICKS = 60;
 
     private PlayerDataService() {}
 
@@ -153,43 +141,18 @@ public final class PlayerDataService {
         PathQiService.set(player, QiKind.DEATH, 0L);
     }
 
-    public static void onVitalGuLost(@NotNull ServerPlayer owner, @NotNull ItemStack stack) {
-        owner.sendSystemMessage(Component.translatable(VITAL_LOST, stack.getHoverName()));
-
-        SoulService.setCurrent(owner, SoulService.get(owner).currentSoul() / 2L);
-        for (MindPoolType type : MindPoolType.values()) {
-            MindService.setCurrent(owner, type, MindService.getCurrent(owner, type) / 2L);
-        }
-        owner.hurt(ModDamageTypes.source(owner, ModDamageTypes.VITAL_GU_LOST), owner.getHealth() * 0.8F);
-
-        int bound = stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
-        ApertureService.setPrimaryPath(owner, bound, null);
-    }
-
-    public static void recordOfflineVitalLoss(@NotNull MinecraftServer server, @NotNull UUID owner,
-            @NotNull ItemStack stack) {
-        PendingVitalPenalties.get(server).record(owner, stack);
-    }
-
-    public static void settleOfflineVitalLoss(@NotNull ServerPlayer player) {
-        if (player.tickCount <= OFFLINE_VITAL_SETTLE_AFTER_TICKS) return;
-
-        ItemStack lost = PendingVitalPenalties.get(player.server).poll(player.getUUID());
-        if (lost != null) onVitalGuLost(player, lost);
-    }
-
-    private static void copy(@NotNull Player from, @NotNull Player to) {
-        to.setData(ModAttachments.APERTURE, from.getData(ModAttachments.APERTURE));
-        to.setData(ModAttachments.APERTURE_STORAGE, from.getData(ModAttachments.APERTURE_STORAGE).copy());
-        to.setData(ModAttachments.BODY, from.getData(ModAttachments.BODY));
-        to.setData(ModAttachments.SOUL, from.getData(ModAttachments.SOUL));
-        to.setData(ModAttachments.PATH, from.getData(ModAttachments.PATH));
-        to.setData(ModAttachments.PATH_QI, from.getData(ModAttachments.PATH_QI));
-        to.setData(ModAttachments.PATH_STRENGTH, from.getData(ModAttachments.PATH_STRENGTH));
-        to.setData(ModAttachments.MIND, from.getData(ModAttachments.MIND));
-        to.setData(ModAttachments.APERTURE_NOURISH, from.getData(ModAttachments.APERTURE_NOURISH));
-        to.setData(ModAttachments.DIMENSION_RETURN, from.getData(ModAttachments.DIMENSION_RETURN));
-        to.setData(ModAttachments.BORN, from.getData(ModAttachments.BORN));
+    private static void copy(@NotNull Player from, @NotNull Player player) {
+        player.setData(ModAttachments.APERTURE, from.getData(ModAttachments.APERTURE));
+        player.setData(ModAttachments.APERTURE_STORAGE, from.getData(ModAttachments.APERTURE_STORAGE).copy());
+        player.setData(ModAttachments.BODY, from.getData(ModAttachments.BODY));
+        player.setData(ModAttachments.SOUL, from.getData(ModAttachments.SOUL));
+        player.setData(ModAttachments.PATH, from.getData(ModAttachments.PATH));
+        player.setData(ModAttachments.PATH_QI, from.getData(ModAttachments.PATH_QI));
+        player.setData(ModAttachments.PATH_STRENGTH, from.getData(ModAttachments.PATH_STRENGTH));
+        player.setData(ModAttachments.MIND, from.getData(ModAttachments.MIND));
+        player.setData(ModAttachments.APERTURE_NOURISH, from.getData(ModAttachments.APERTURE_NOURISH));
+        player.setData(ModAttachments.DIMENSION_RETURN, from.getData(ModAttachments.DIMENSION_RETURN));
+        player.setData(ModAttachments.BORN, from.getData(ModAttachments.BORN));
     }
 
     public static void resetAll(@NotNull Player player) {
