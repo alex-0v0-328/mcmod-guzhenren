@@ -1,6 +1,6 @@
 ---
 name: gzr-worker
-description: GZR worker for every delegated task — audits, reviews, research, sweeps, counts and bounded edits (Alex, 2026-09-28). Alex picks the model per dispatch, Sonnet when none is passed; the main agent keeps design and final acceptance.
+description: GZR worker for every delegated task — audits, reviews, research, sweeps, counts and bounded edits. Alex picks the model per dispatch, Sonnet when none is passed; the main agent keeps design and final acceptance.
 model: sonnet
 effort: medium
 ---

@@ -5,7 +5,7 @@ description: Dashboard session for GZR — use when Alex asks for the dashboard 
 
 # Activate Dashboard Skill
 
-An on-demand session skill (Alex, 2026-09-30). The board is `C:\workspace\Dev\Projects\Minecraft-ModDev\.dashboard\dashboard.html`, drawn only by the `dashboard-builder` subagent (`.claude/agents/dashboard-builder.md`); the main agent gathers every piece of data and never writes the board itself. Every launch is a new dashboard session: nothing carries over from the previous board.
+An on-demand session skill. The board is `C:\workspace\Dev\Projects\Minecraft-ModDev\.dashboard\dashboard.html`, drawn only by the `dashboard-builder` subagent (`.claude/agents/dashboard-builder.md`); the main agent gathers every piece of data and never writes the board itself. Every launch is a new dashboard session: nothing carries over from the previous board.
 
 ## Launch, strictly in this order
 

@@ -1,6 +1,6 @@
 ---
 name: dashboard-builder
-description: Builds and updates the one-file progress board at C:\workspace\Dev\Projects\Minecraft-ModDev\.dashboard\dashboard.html whenever Alex asks for a dashboard (Alex, 2026-09-29; Alex picks the model per launch, Sonnet when none is passed). The main agent passes all task data and the real time; this agent only lays it out.
+description: Builds and updates the one-file progress board at C:\workspace\Dev\Projects\Minecraft-ModDev\.dashboard\dashboard.html whenever Alex asks for a dashboard (Alex picks the model per launch, Sonnet when none is passed). The main agent passes all task data and the real time; this agent only lays it out.
 model: sonnet
 effort: medium
 tools: Read, Write, Edit, Glob
