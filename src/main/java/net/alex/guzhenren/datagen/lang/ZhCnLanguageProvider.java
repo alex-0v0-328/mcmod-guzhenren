@@ -426,6 +426,7 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         add("itemGroup.guzhenren.mortal_gu", "凡蛊");
         add("itemGroup.guzhenren.gu_material", "蛊材");
         add("itemGroup.guzhenren.strength_mortal_gu", "力道凡蛊");
+        add("itemGroup.guzhenren.wood_mortal_gu", "木道凡蛊");
 
         add("guzhenren.item.failed.awakened", "你已开窍");
         add("guzhenren.item.failed.unawakened", "你未开窍");

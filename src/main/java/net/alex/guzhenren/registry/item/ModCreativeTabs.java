@@ -17,17 +17,19 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import static net.alex.guzhenren.gameplay.path.GuPath.STRENGTH;
+import static net.alex.guzhenren.gameplay.path.GuPath.WOOD;
 
 /**
  * The creative tabs, filled by dispatching on the item's class and path.
  *
- * <p>DeferredRegister holder: three tabs ({@code mortal_gu}, {@code gu_material},
- * {@code strength_mortal_gu}), populated by predicates over {@link MortalGuItem},
- * {@link GuMaterialItem}, and {@link GuPath#STRENGTH}. An item extending neither middle class lands in
- * no tab at all -- except the Spirit Spring [元泉] BlockItem, routed into the material tab
+ * <p>DeferredRegister holder: four tabs ({@code mortal_gu}, {@code gu_material},
+ * {@code strength_mortal_gu}, {@code wood_mortal_gu}), populated by predicates over {@link MortalGuItem},
+ * {@link GuMaterialItem}, and the path: {@link GuPath#STRENGTH} and {@link GuPath#WOOD} Gu each leave the
+ * mortal Gu tab for their own, while wood path Gu materials stay with the materials. An item extending neither
+ * middle class lands in no tab at all -- except the Spirit Spring [元泉] BlockItem, routed into the material tab
  * explicitly.
  *
- * <p>⚠ That miss is silent: nothing fails and nothing warns, the item simply never appears. The three
+ * <p>⚠ That miss is silent: nothing fails and nothing warns, the item simply never appears. The four
  * tab constants stay unused by the language provider (it has no creative-tab overload).
  *
  * @author Alex
@@ -63,8 +65,14 @@ public final class ModCreativeTabs {
                     .title(Component.translatable("itemGroup.guzhenren.strength_mortal_gu"))
                     .icon(() -> new ItemStack(ModItems.FLOWER_BOAR_GU.get()))
                     .withTabsBefore(Guzhenren.id("mortal_gu"))
-                    .displayItems((parameters, output) -> accept(output,
-                            item -> item instanceof MortalGuItem gu && gu.path() == STRENGTH))
+                    .displayItems((parameters, output) -> accept(output, item -> belongsInPathTab(item, STRENGTH)))
+                    .build());
+    public static final Supplier<CreativeModeTab> WOOD_MORTAL_GU = CREATIVE_MODE_TABS.register(
+            "wood_mortal_gu", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.guzhenren.wood_mortal_gu"))
+                    .icon(() -> new ItemStack(ModItems.VITALITY_LEAF_GU.get()))
+                    .withTabsBefore(Guzhenren.id("strength_mortal_gu"))
+                    .displayItems((parameters, output) -> accept(output, item -> belongsInPathTab(item, WOOD)))
                     .build());
 
     private static void accept(CreativeModeTab.Output output, Predicate<Item> accepted) {
@@ -74,7 +82,13 @@ public final class ModCreativeTabs {
         }
     }
 
-    static boolean belongsInMortalGu(Item item) { return item instanceof MortalGuItem gu && gu.path() != STRENGTH; }
+    static boolean belongsInMortalGu(Item item) {
+        return item instanceof MortalGuItem gu && gu.path() != STRENGTH && gu.path() != WOOD;
+    }
+
+    static boolean belongsInPathTab(Item item, GuPath path) {
+        return item instanceof MortalGuItem gu && gu.path() == path;
+    }
 
     static boolean belongsInGuMaterial(Item item) {
         return item instanceof GuMaterialItem

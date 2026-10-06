@@ -415,6 +415,7 @@ public class EnUsLanguageProvider extends LanguageProvider {
         add("itemGroup.guzhenren.mortal_gu", "Mortal Gu");
         add("itemGroup.guzhenren.gu_material", "Gu Material");
         add("itemGroup.guzhenren.strength_mortal_gu", "Strength Mortal Gu");
+        add("itemGroup.guzhenren.wood_mortal_gu", "Wood Mortal Gu");
 
         add("guzhenren.item.failed.awakened", "You have already awakened");
         add("guzhenren.item.failed.unawakened", "You have NOT awakened");
