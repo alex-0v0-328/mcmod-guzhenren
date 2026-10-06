@@ -12,27 +12,42 @@ import net.alex.guzhenren.client.screen.ApertureStorageScreen;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
+import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.payload.DashPayload;
+import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
+import net.alex.guzhenren.registry.item.ModItems;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.alex.guzhenren.registry.particle.ModParticles;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.GrassColor;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /**
@@ -43,7 +58,10 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * {@link net.alex.guzhenren.client.hud.ChargeHud},
  * {@link net.alex.guzhenren.client.hud.NourishHud}), the key mapping for the B panel, the menu
  * screens for the three containers, the shockwave-ring particle provider, the entity renderers
- * ({@link ModEntityRenderers}) and the Spirit Spring fluid's translucent render layer.
+ * ({@link ModEntityRenderers}), the Spirit Spring fluid's translucent render layer, and the Nine Leaf Vitality
+ * Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
+ * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at
+ * the lower half for both halves; its harvested item has no color handler and keeps its own PNG.
  *
  * @author Alex
  * @version 1.0.0
@@ -75,7 +93,31 @@ public final class ClientEvents {
         event.enqueueWork(() -> {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.SPIRIT_SPRING.get(), RenderType.translucent());
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_SPIRIT_SPRING.get(), RenderType.translucent());
+            ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
+                    ClientEvents::pickedStage);
         });
+    }
+
+    private static float pickedStage(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity,
+                                     int seed) {
+        if (!(stack.getItem() instanceof NineLeafVitalityGrassItem grass)) return 0.0F;
+        if (level != null) return grass.pickedStage(stack, level.getGameTime());
+        if (entity != null) return grass.pickedStage(stack, entity.level().getGameTime());
+        return Minecraft.getInstance().level != null
+                ? grass.pickedStage(stack, Minecraft.getInstance().level.getGameTime())
+                : 0.0F;
+    }
+
+    @SubscribeEvent
+    public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
+        event.register(ClientEvents::grassColor, ModBlocks.INTIMATE_GRASS.get());
+    }
+
+    private static int grassColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,
+                                  int tintIndex) {
+        if (level == null || pos == null) return GrassColor.getDefaultColor();
+        boolean upper = state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER;
+        return BiomeColors.getAverageGrassColor(level, upper ? pos.below() : pos);
     }
 
     @SubscribeEvent

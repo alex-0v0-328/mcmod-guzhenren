@@ -360,6 +360,7 @@ public class EnUsLanguageProvider extends LanguageProvider {
         addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_LOTUS_GU, "Heavenly Essence Treasure Lotus Gu");
         addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU, "Heavenly Essence Treasure Monarch Lotus Gu");
         addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU, "Heavenly Essence Treasure King Lotus Gu");
+        addItem(ModItems.NINE_LEAF_VITALITY_GRASS, "Nine Leaf Vitality Grass");
         addItem(ModItems.SECOND_WATCH_GU, "Second Watch Gu");
         addItem(ModItems.THIRD_WATCH_GU, "Third Watch Gu");
         addItem(ModItems.MALICIOUS_THOUGHT_GU_2, "Malicious Thought Gu II");
@@ -389,6 +390,10 @@ public class EnUsLanguageProvider extends LanguageProvider {
         addItem(ModItems.BITTER_LIQUOR, "Bitter Liquor");
         addItem(ModItems.SPICY_LIQUOR, "Spicy Liquor");
         addBlock(ModBlocks.SPIRIT_SPRING, "Spirit Spring");
+        addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS, "Nine Leaf Vitality Grass");
+        addBlock(ModBlocks.INTIMATE_GRASS, "Intimate Grass");
+        addItem(ModItems.INTIMATE_GRASS_BUNDLE, "Intimate Grass Bundle");
+        addItem(ModItems.MOON_ORCHID_PETALS, "Moon Orchid Petals");
 
         addItem(ModItems.SWORD_QI_1, "Sword Qi I");
         addItem(ModItems.SWORD_QI_2, "Sword Qi II");
@@ -439,11 +444,15 @@ public class EnUsLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.zombie_already", "Already a zombie, nothing left to turn");
         add("guzhenren.item.failed.gu_starving", "This Gu is too hungry - feed it first");
         add("guzhenren.item.failed.no_use", "This Gu needs no use");
+        add("guzhenren.item.failed.no_leaves", "No Vitality Leaf left - the next grows in %s s");
+        add("guzhenren.item.failed.leaves_full", "All nine Vitality Leaves have grown");
         add("guzhenren.item.gu.invested", "Invested %s/%s");
         add("guzhenren.item.gu.refine_progress", "Refined %s/%s");
         add("guzhenren.item.gu.refine_cost", "Refine %s");
         add("guzhenren.item.gu.hunger_progress", "Fed %s/%s");
         add("guzhenren.item.gu.stored_stones", "Stored %s/%s");
+        add("guzhenren.item.gu.leaves", "Vitality Leaves %s/%s");
+        add("guzhenren.item.gu.next_leaf", "Next leaf in %s s");
         add("guzhenren.item.gu.lifespan_gained", "Lifespan +%s years");
         add("guzhenren.item.gu.hungry", "Your %s is hungry");
         add("guzhenren.item.gu.starved", "Your %s starved to death");

@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "guzhenren:item/nine_leaf_vitality_grass_half",
+      "predicate": {
+        "guzhenren:picked": 0.5
+      }
+    },
+    {
+      "model": "guzhenren:item/nine_leaf_vitality_grass_empty",
+      "predicate": {
+        "guzhenren:picked": 1.0
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "guzhenren:item/nine_leaf_vitality_grass_full"
+  }
+}

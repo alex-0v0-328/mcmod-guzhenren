@@ -371,6 +371,7 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_LOTUS_GU, "天元宝莲");
         addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU, "天元宝君莲");
         addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU, "天元宝王莲");
+        addItem(ModItems.NINE_LEAF_VITALITY_GRASS, "九叶生机草");
         addItem(ModItems.SECOND_WATCH_GU, "两更蛊");
         addItem(ModItems.THIRD_WATCH_GU, "三更蛊");
         addItem(ModItems.MALICIOUS_THOUGHT_GU_2, "二转恶念蛊");
@@ -400,6 +401,10 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         addItem(ModItems.BITTER_LIQUOR, "苦酒");
         addItem(ModItems.SPICY_LIQUOR, "辣酒");
         addBlock(ModBlocks.SPIRIT_SPRING, "元泉");
+        addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS, "九叶生机草");
+        addBlock(ModBlocks.INTIMATE_GRASS, "知心草");
+        addItem(ModItems.INTIMATE_GRASS_BUNDLE, "知心草束");
+        addItem(ModItems.MOON_ORCHID_PETALS, "月兰花瓣");
 
         addItem(ModItems.SWORD_QI_1, "一转剑气");
         addItem(ModItems.SWORD_QI_2, "二转剑气");
@@ -450,12 +455,16 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.zombie_already", "彻底转变为了僵尸");
         add("guzhenren.item.failed.gu_starving", "蛊已太饿，需先喂食");
         add("guzhenren.item.failed.no_use", "此蛊无需使用");
+        add("guzhenren.item.failed.no_leaves", "生机叶已摘光，下一片需 %s 秒");
+        add("guzhenren.item.failed.leaves_full", "生机叶已满九片");
 
         add("guzhenren.item.gu.invested", "已投入 %s/%s");
         add("guzhenren.item.gu.refine_progress", "炼化 %s/%s");
         add("guzhenren.item.gu.refine_cost", "炼化 %s");
         add("guzhenren.item.gu.hunger_progress", "饱食 %s/%s");
         add("guzhenren.item.gu.stored_stones", "存石 %s/%s");
+        add("guzhenren.item.gu.leaves", "生机叶 %s/%s");
+        add("guzhenren.item.gu.next_leaf", "下一片需 %s 秒");
         add("guzhenren.item.gu.lifespan_gained", "寿元 +%s 年");
         add("guzhenren.item.gu.hungry", "%s饿了");
         add("guzhenren.item.gu.starved", "%s饿死了");

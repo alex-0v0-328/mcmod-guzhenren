@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.item.gu.RefinedGuState;
+import net.alex.guzhenren.item.gu.mortal.wood.LeafGrowth;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -16,7 +17,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * The item components this mod adds, for state belonging to one particular stack.
  *
  * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE},
- * {@code STORED_STONES}, {@code REFINED_AT}, {@code AWAKEN_BASE}, {@code USED_AT} and {@code HEAL_BANK}. A
+ * {@code STORED_STONES}, {@code REFINED_AT}, {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK} and
+ * {@link LeafGrowth}. A
  * component here is for state that not every tended Gu shares; anything all of them carry belongs on the shared state
  * record instead.
  *
@@ -67,6 +69,10 @@ public final class ModDataComponents {
             DATA_COMPONENTS.registerComponentType("heal_bank", builder -> builder
                     .persistent(Codec.INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
+            DATA_COMPONENTS.registerComponentType("leaf_growth", builder -> builder
+                    .persistent(LeafGrowth.CODEC)
+                    .networkSynchronized(LeafGrowth.STREAM_CODEC));
 
     public static void register(IEventBus modEventBus) {
         DATA_COMPONENTS.register(modEventBus);

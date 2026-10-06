@@ -31,6 +31,7 @@ import net.alex.guzhenren.item.gu.mortal.time.WatchGuItem;
 import net.alex.guzhenren.item.gu.mortal.transformation.ZombieGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.CasualGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.MaliciousThoughtGuItem;
+import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.item.gu.mortal.wood.TreasureLotusGuItem;
 import net.alex.guzhenren.item.gu.mortal.wood.VitalityLeafGuItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
@@ -313,6 +314,13 @@ public final class ModItems {
                     .refine(8_000_000).costPerUse(0)));
     //endregion
 
+    //region Nine Leaf Vitality Grass [九叶生机草] -- wood path; nine Vitality Leaf Gu, one regrown every 3 minutes
+    // or grown at once for 80 essence
+    public static final DeferredItem<Item> NINE_LEAF_VITALITY_GRASS = ITEMS.register("nine_leaf_vitality_grass",
+            () -> new NineLeafVitalityGrassItem(tendedProperties(), 3 * Ticks.MINUTE, 80,
+                    GuSpec.of(Rank.THREE, GuPath.WOOD).refine(80_000).costPerUse(0)));
+    //endregion
+
     //region Zombie Gu [僵尸蛊] -- Transformation Path [变化道]; a timed Half-Zombie [半生半僵], and a 5-minute
     // window that makes it permanent
     public static final DeferredItem<Item> ROAMING_ZOMBIE_GU = ITEMS.register("roaming_zombie_gu",
@@ -466,6 +474,13 @@ public final class ModItems {
             () -> new LiquorItem(new Item.Properties()));
     public static final DeferredItem<Item> SPIRIT_SPRING = ITEMS.register("spirit_spring",
             () -> new BlockItem(ModBlocks.SPIRIT_SPRING.get(), new Item.Properties()));
+    //endregion
+
+    //region Herb materials [草木蛊材] -- pure Gu material, wood path rank I; only a hoe takes them from the plant
+    public static final DeferredItem<Item> INTIMATE_GRASS_BUNDLE = ITEMS.register("intimate_grass_bundle",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD));
+    public static final DeferredItem<Item> MOON_ORCHID_PETALS = ITEMS.register("moon_orchid_petals",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD));
     //endregion
 
     //region Human Aperture [人窍] -- pure Gu material, ranks I..V; a wiped death drops one per aperture

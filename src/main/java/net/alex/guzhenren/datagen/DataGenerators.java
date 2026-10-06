@@ -14,6 +14,8 @@ import net.alex.guzhenren.datagen.item.ModItemTagsProvider;
 import net.alex.guzhenren.datagen.lang.EnUsLanguageProvider;
 import net.alex.guzhenren.datagen.lang.ZhCnLanguageProvider;
 import net.alex.guzhenren.datagen.lang.ZhTwLanguageProvider;
+import net.alex.guzhenren.datagen.loot.ModBlockLootProvider;
+import net.alex.guzhenren.datagen.loot.ModLootModifierProvider;
 import net.alex.guzhenren.datagen.loot.WildBoarLootProvider;
 import net.alex.guzhenren.datagen.particle.ModParticleDescriptionProvider;
 import net.alex.guzhenren.datagen.recipe.ModRecipeProvider;
@@ -84,8 +86,13 @@ public final class DataGenerators {
         generator.addProvider(event.includeServer(), new ModRecipeProvider(packOutput, lookupProvider));
 
         generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Set.of(), List.of(
-                new LootTableProvider.SubProviderEntry(WildBoarLootProvider::new, LootContextParamSets.ENTITY)),
+                new LootTableProvider.SubProviderEntry(WildBoarLootProvider::new, LootContextParamSets.ENTITY),
+                new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK),
+                new LootTableProvider.SubProviderEntry(registries -> new ModLootModifierProvider.Subtables(),
+                        LootContextParamSets.BLOCK)),
                 lookupProvider));
+
+        generator.addProvider(event.includeServer(), new ModLootModifierProvider(packOutput, lookupProvider));
 
         generator.addProvider(event.includeServer(),
                 new ModAdvancementProvider(packOutput, lookupProvider, existingFileHelper));
