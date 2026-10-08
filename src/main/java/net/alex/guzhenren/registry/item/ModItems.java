@@ -483,6 +483,11 @@ public final class ModItems {
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD));
     //endregion
 
+    //region Earth materials [土道蛊材] -- pure Gu material, earth path rank I; no natural source yet
+    public static final DeferredItem<Item> ROTTEN_FROZEN_MUD = ITEMS.register("rotten_frozen_mud",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
+    //endregion
+
     //region Human Aperture [人窍] -- pure Gu material, ranks I..V; a wiped death drops one per aperture
     public static final DeferredItem<Item> HUMAN_APERTURE_1 = registerHumanAperture("human_aperture_1", Rank.ONE);
     public static final DeferredItem<Item> HUMAN_APERTURE_2 = registerHumanAperture("human_aperture_2", Rank.TWO);

@@ -394,6 +394,7 @@ public class EnUsLanguageProvider extends LanguageProvider {
         addBlock(ModBlocks.INTIMATE_GRASS, "Intimate Grass");
         addItem(ModItems.INTIMATE_GRASS_BUNDLE, "Intimate Grass Bundle");
         addItem(ModItems.MOON_ORCHID_PETALS, "Moon Orchid Petals");
+        addItem(ModItems.ROTTEN_FROZEN_MUD, "Rotten Frozen Mud");
 
         addItem(ModItems.SWORD_QI_1, "Sword Qi I");
         addItem(ModItems.SWORD_QI_2, "Sword Qi II");

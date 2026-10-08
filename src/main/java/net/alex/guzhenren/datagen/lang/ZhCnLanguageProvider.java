@@ -405,6 +405,7 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         addBlock(ModBlocks.INTIMATE_GRASS, "知心草");
         addItem(ModItems.INTIMATE_GRASS_BUNDLE, "知心草束");
         addItem(ModItems.MOON_ORCHID_PETALS, "月兰花瓣");
+        addItem(ModItems.ROTTEN_FROZEN_MUD, "腐泥冻土");
 
         addItem(ModItems.SWORD_QI_1, "一转剑气");
         addItem(ModItems.SWORD_QI_2, "二转剑气");

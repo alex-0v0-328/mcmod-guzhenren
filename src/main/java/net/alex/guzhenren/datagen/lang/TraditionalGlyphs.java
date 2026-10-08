@@ -35,7 +35,7 @@ import java.util.Map;
 
 public final class TraditionalGlyphs {
 
-    private static final String PAIRS = "万萬 两兩 个個 为為 云雲 亚亞 亿億 体體 余餘 储儲 僵殭 兰蘭 养養 兽獸 内內 击擊 "
+    private static final String PAIRS = "万萬 两兩 个個 为為 云雲 亚亞 亿億 体體 余餘 储儲 僵殭 兰蘭 养養 兽獸 内內 冻凍 击擊 "
             + "创創 剑劍 动動 华華 压壓 变變 叶葉 头頭 宝寶 寿壽 将將 尸屍 层層 岁歲 巅巔 "
             + "师師 开開 强強 彻徹 态態 恶惡 悬懸 担擔 择擇 损損 数數 断斷 无無 时時 旷曠 "
             + "晓曉 机機 杀殺 枣棗 梦夢 横橫 气氣 没沒 泽澤 测測 温溫 满滿 灾災 点點 炼煉 "
@@ -49,9 +49,9 @@ public final class TraditionalGlyphs {
             + "偷催元先光入全八六共具再冥冰凡出初利刷力功加包化北十千升半卓卸厚及取受口"
             + "古可名君味命品四因圈土在地基境墨壁外多大天太央失奴妙存宇宗宙定家小尚峰已"
             + "希常年底度影律心必念息情意成或所才打承投掉提摘撞攻放效散料斤新方族日易是普"
-            + "晶智暗更月有望木未本杏材束板果格棕森止正此武死每毒毛民水求泉法波洲派流浮海"
+            + "晶智暗更月有望木未本杏材束板果格棕森止正此武死每毒毛民水求泉法波泥洲派流浮海"
             + "火炎炸然煌熊爆片牛物率王玩瓣甜生用甲界病痕瘟白百的直真眼知石秒空窗竭符第等精"
-            + "紫美羽老而耗肉背自至色花苦草荒荔莽菇落虎蛋蛐血行衍衰被裂解豕象赤赴越足跳身"
+            + "紫美羽老而耗肉背腐自至色花苦草荒荔莽菇落虎蛋蛐血行衍衰被裂解豕象赤赴越足跳身"
             + "辣送逍通速造道遭酒酸醒重野金雪零雷需青面音食香高鬼魁魂魄魔黑";
     private static final Map<String, String> TOKENS = tokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
