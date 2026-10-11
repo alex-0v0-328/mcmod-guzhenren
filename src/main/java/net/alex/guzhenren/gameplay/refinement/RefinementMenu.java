@@ -105,6 +105,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     private final RefinementRitual ritual = new RefinementRitual(input, supply, output, craftData, this::refresh);
     private @Nullable GuRecipe pending;
     private int selectedIndex = -1;
+    private long advancedAt = Long.MIN_VALUE;
 
     public RefinementMenu(int id, Inventory inventory) {
         super(ModMenus.REFINEMENT_MENU.get(), id);
@@ -232,6 +233,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         for (int i = 0; i < inventory.getContainerSize() && wanted > 0; i++) {
             ItemStack from = inventory.getItem(i);
             if (from.isEmpty() || !need.ingredient().test(from)) continue;
+            if (GuItem.isVital(from) && !GuItem.isVitalOf(from, player)) continue;
 
             ItemStack held = input.getItem(slot);
             if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, from)) continue;
@@ -252,12 +254,16 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
     //endregion
 
-    //region the ritual's clock -- the menu ticks it, because ServerPlayer.tick() broadcasts every tick
+    //region the ritual's clock -- once per game tick: ServerPlayer.tick() broadcasts every tick, and every click again
     @Override
     public void broadcastChanges() {
         if (player instanceof ServerPlayer server) {
-            for (int step = PathTimeFlowService.getSteps(server); step > 0 && ritual.isRunning(); step--) {
-                ritual.advance(server);
+            long now = server.serverLevel().getGameTime();
+            if (now != advancedAt) {
+                advancedAt = now;
+                for (int step = PathTimeFlowService.getSteps(server); step > 0 && ritual.isRunning(); step--) {
+                    ritual.advance(server);
+                }
             }
             craftData.set(DATA_AFFORD, pending != null && affords(server, pending) ? 1 : 0);
         }
