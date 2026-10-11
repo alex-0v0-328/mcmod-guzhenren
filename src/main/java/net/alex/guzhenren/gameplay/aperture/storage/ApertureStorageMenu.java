@@ -237,7 +237,10 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         public boolean mayPlace(@NotNull ItemStack stack) {
             if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.refined(stack)) return false;
             if (!gu.canBeVital()) return false;
-            return !GuItem.isVital(stack) || GuItem.isVitalOf(stack, player);
+            if (GuItem.isVital(stack) && !GuItem.isVitalOf(stack, player)) return false;
+            // Admit by the load after the swap: a refused setVital in save() reloads the slot but cannot
+            // take back the copy vanilla already moved to the cursor or hotbar.
+            return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0;
         }
 
         @Override
