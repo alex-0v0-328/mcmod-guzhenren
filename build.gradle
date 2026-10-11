@@ -109,14 +109,14 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             sourceSet = sourceSets.gametest
-            gameDirectory = project.file('run-gametest')
+            gameDirectory = project.file(providers.gradleProperty('gameTestDir').getOrElse('run-gametest'))
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         data {
             data()
 
-            gameDirectory = project.file('run-data')
+            gameDirectory = project.file(providers.gradleProperty('dataGameDir').getOrElse('run-data'))
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
@@ -167,10 +167,10 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
-// Gu World, the sibling project at ../guworld (or -PguWorldDir), supplies every dimension, terrain
+// Gu World, the sibling project at ../mcmod-guworld (or -PguWorldDir), supplies every dimension, terrain
 // and biome. Its built jar joins the runs as a mod, the GameTest server included, while this mod never
 // compiles against it. An unbuilt sibling (or CI, which has none) simply adds nothing.
-def guWorldLibs = file(providers.gradleProperty('guWorldDir').getOrElse('../guworld') + '/build/libs')
+def guWorldLibs = file(providers.gradleProperty('guWorldDir').getOrElse('../mcmod-guworld') + '/build/libs')
 
 dependencies {
     compileOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')

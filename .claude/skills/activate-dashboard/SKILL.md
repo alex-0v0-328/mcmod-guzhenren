@@ -5,15 +5,15 @@ description: Dashboard session for GZR — use when Alex asks for the dashboard 
 
 # Activate Dashboard Skill
 
-An on-demand session skill. The board is `C:\workspace\Dev\Projects\Minecraft-ModDev\.dashboard\dashboard.html`, drawn only by the `dashboard-builder` subagent (`.claude/agents/dashboard-builder.md`); the main agent gathers every piece of data and never writes the board itself. Every launch is a new dashboard session: nothing carries over from the previous board.
+An on-demand session skill. The board is `/home/haotianwu/Workspace/Projects/.dashboard/dashboard.html`, drawn only by the `dashboard-builder` subagent (`.claude/agents/dashboard-builder.md`); the main agent gathers every piece of data and never writes the board itself. Every launch is a new dashboard session: nothing carries over from the previous board.
 
 ## Launch, strictly in this order
 
 Never skip steps 1 and 2 to launch early.
 
-1. **Clear.** Delete the previous `dashboard.html` (regenerable output). Keep `.dashboard\memory\style.md`: it holds Alex's standing style preferences, not session data.
-2. **Prepare.** Gather this session's data: the settled goals, one entry each; the progress they imply; the outputs so far; `now` from the real clock (`Get-Date -Format 'yyyy-MM-dd HH:mm:ss'`). Ask Alex for the builder's model in one question-tool call (alex-constitution › SubAgent collaboration); if `style.md` is missing, the same call also asks for theme (dark or light), density (dense or spacious) and primary color, and the answers go with the `BUILD`.
-3. **Launch.** Dispatch `BUILD` to the builder in the background on the picked model, then open the board once with `Start-Process '<board path>'`. The page reloads itself every 10 s.
+1. **Clear.** Delete the previous `dashboard.html` (regenerable output). Keep `.dashboard/memory/style.md`: it holds Alex's standing style preferences, not session data.
+2. **Prepare.** Gather this session's data: the settled goals, one entry each; the progress they imply; the outputs so far; `now` from the real clock (`date '+%Y-%m-%d %H:%M:%S'`). Ask Alex for the builder's model in one question-tool call (alex-constitution › SubAgent collaboration); if `style.md` is missing, the same call also asks for theme (dark or light), density (dense or spacious) and primary color, and the answers go with the `BUILD`.
+3. **Launch.** Dispatch `BUILD` to the builder in the background on the picked model, then open the board once with `xdg-open '<board path>'`. The page reloads itself every 10 s.
 
 ## The three areas
 
