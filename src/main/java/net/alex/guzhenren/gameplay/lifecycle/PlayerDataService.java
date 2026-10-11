@@ -66,9 +66,12 @@ public final class PlayerDataService {
         migratePhysique(player);
         ApertureService.syncTalentMarks(player);
         MaxHealthService.refresh(player);
+        MaxHealthService.restoreCarried(player);
         AttackDamageService.refresh(player);
         EpicFightIntegration.refresh(player);
     }
+
+    public static void onLogout(@NotNull ServerPlayer player) { MaxHealthService.carry(player); }
 
     private static void migratePhysique(@NotNull ServerPlayer player) {
         Aperture aperture = ApertureService.getAperture(player);
@@ -110,6 +113,7 @@ public final class PlayerDataService {
         }
         if (to instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);
+            server.setHealth(wasDeath ? server.getMaxHealth() : from.getHealth());
             AttackDamageService.refresh(server);
             EpicFightIntegration.refresh(server);
         }

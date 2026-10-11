@@ -11,7 +11,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 
 /**
- * The player lifecycle moments — login, death, clone, respawn, sleep — each forwarded to {@link
+ * The player lifecycle moments — login, logout, death, clone, respawn, sleep — each forwarded to {@link
  * PlayerDataService}, and a Vital Gu's death ({@code VitalGuLostEvent}) forwarded to {@link VitalLossService}.
  * This file holds no decisions of its own; a
  * handler that starts deciding for itself is how two of them disagree about what a respawn keeps.
@@ -38,6 +38,11 @@ public final class PlayerDataEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             PlayerDataService.onJoin(player);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) PlayerDataService.onLogout(player);
     }
 
     @SubscribeEvent

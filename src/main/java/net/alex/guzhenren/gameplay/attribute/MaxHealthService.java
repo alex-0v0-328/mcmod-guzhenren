@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.attribute;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -18,6 +19,12 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ Lowering the cap must also
  * clamp current health down; {@link AttackDamageService} needs no clamp (attack has no "current").
+ *
+ * <p>⚠ Vanilla restores health before this modifier exists -- the saved health on load, the old player's
+ * on a clone -- and clamps it to 20. {@link #carry} records the health at logout ({@code HEALTH_CARRY}) and
+ * {@link #restoreCarried} puts it back after the login refresh, only when the load left exactly 20 under a
+ * higher carry, so a crash's stale carry never overrides a real lower health. A clone hands the old
+ * player's health over in {@code PlayerDataService.onClone}, and a respawn starts full.
  *
  * @author Alex
  * @version 1.0.0
@@ -42,5 +49,14 @@ public final class MaxHealthService {
         double bonus = target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D;
         TransientModifiers.swap(instance, MODIFIER_ID, bonus);
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
+    }
+
+    public static void carry(@NotNull ServerPlayer player) {
+        player.setData(ModAttachments.HEALTH_CARRY, player.getHealth());
+    }
+
+    public static void restoreCarried(@NotNull ServerPlayer player) {
+        float carried = player.getData(ModAttachments.HEALTH_CARRY);
+        if (carried > VANILLA_MAX_HEALTH && player.getHealth() == (float) VANILLA_MAX_HEALTH) player.setHealth(carried);
     }
 }

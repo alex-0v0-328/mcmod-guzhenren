@@ -27,9 +27,9 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * Every data attachment this mod puts on a player.
  *
  * <p>DeferredRegister holder: the ten record attachments (immutable, written only through their
- * service) plus the two scratch fields ({@code ESSENCE_CARRY}, {@code BORN}). {@link #registerSynced}
- * saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY}); {@link #registerSaved} only
- * saves it; {@code ESSENCE_CARRY} is neither saved nor synced.
+ * service) plus the three scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY}).
+ * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
+ * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
  * {@code qi} and {@code strength} as subpackages of path. A constant is its record's class name without
@@ -94,6 +94,8 @@ public final class ModAttachments {
 
     //region Lifecycle [生命周期]
     public static final Supplier<AttachmentType<Boolean>> BORN = registerSaved("born_flag", Boolean.FALSE, Codec.BOOL);
+    public static final Supplier<AttachmentType<Float>> HEALTH_CARRY =
+            registerSaved("health_carry", 0.0F, Codec.FLOAT);
     //endregion
 
     public static void register(IEventBus modEventBus) {
