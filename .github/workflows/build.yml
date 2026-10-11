@@ -22,12 +22,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # This is needed to be able to run ./gradlew below
-      # You can run `git update-index --chmod +x gradlew` then remove this step.
-      - name: Make Gradle wrapper executable
-        working-directory: guzhenren-template-1.21.1
-        run: chmod +x ./gradlew
-
       - name: Download Epic Fight
         working-directory: guzhenren-template-1.21.1
         run: |

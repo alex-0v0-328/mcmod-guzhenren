@@ -1,9 +1,14 @@
 root = true
 
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
 [*.java]
 max_line_length = 120
 
-# 成员之间空一行（Alex, 2026-09-28；取代 2026-09-04 的"方法间不空行"）
+# 成员之间空一行（Alex 定）
 ij_java_blank_lines_around_method = 1
 ij_java_blank_lines_around_method_in_interface = 1
 
@@ -27,7 +32,7 @@ ij_java_keep_simple_blocks_in_one_line = true
 ij_java_keep_simple_classes_in_one_line = true
 
 # 单行花括号内侧留一个空格：{ return x; }、{ 50, 20, 15 }、new int[] { 1, 2 }、enum E { A, B }；空的 {} 不加
-# 键名以 IDEA 导出为准（spaces_ 复数；2026-09-28 探针证实单数写法不生效）
+# 键名以 IDEA 导出为准（spaces_ 复数；单数写法不生效）
 # spaces_within_braces 保持 false：设为 true 会把空的 {} 也写成 { }；有内容的块由下一行负责
 ij_java_spaces_within_braces = false
 ij_java_spaces_inside_block_braces_when_body_is_present = true
