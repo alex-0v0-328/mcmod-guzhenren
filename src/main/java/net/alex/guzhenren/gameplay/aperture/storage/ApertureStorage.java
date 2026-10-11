@@ -22,8 +22,12 @@ import net.minecraft.world.item.ItemStack;
  * before changing it.
  *
  * <p>{@link #shiftRight} makes room for a first aperture inserted ahead of a lone second one: every
- * stored list and the Vital Gu slot moves one position up. A Vital Gu bound by the component default
- * (aperture 0) is pinned to 1 explicitly, or it would silently follow the new first aperture.
+ * stored list and the Vital Gu slot moves one position up. The Vital Gu that moves is the second
+ * aperture's, so it is pinned to kind {@code SECOND} explicitly: one bound by the component default
+ * ({@code PRIMARY}) would otherwise read as the new first aperture's.
+ *
+ * <p>{@link #tokens} holds, per aperture kind, the token of the one current Vital Gu: an aperture has one
+ * Vital Gu, so a replaced one whose copy still carries the mark is not it ({@code GuItem.isCurrentVital}).
  *
  * @author Alex
  * @version 1.0.0
@@ -32,14 +36,16 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 
-public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> vital) {
+public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> vital, List<Long> tokens) {
 
-    public static final ApertureStorage DEFAULT = new ApertureStorage(List.of(), List.of());
+    public static final ApertureStorage DEFAULT = new ApertureStorage(List.of(), List.of(), List.of());
     public static final Codec<ApertureStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ItemStack.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
                     .forGetter(ApertureStorage::byAperture),
             ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("vital", List.of())
-                    .forGetter(ApertureStorage::vital)
+                    .forGetter(ApertureStorage::vital),
+            Codec.LONG.listOf().optionalFieldOf("vital_tokens", List.of())
+                    .forGetter(ApertureStorage::tokens)
     ).apply(instance, ApertureStorage::new));
 
     public ApertureStorage {
@@ -56,6 +62,11 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
                 vital.subList(0, Math.min(vital.size(), ApertureData.MAX_APERTURES)));
         while (!bound.isEmpty() && bound.getLast().isEmpty()) bound.removeLast();
         vital = Collections.unmodifiableList(bound);
+        tokens = List.copyOf(tokens.subList(0, Math.min(tokens.size(), ApertureData.MAX_APERTURES)));
+    }
+
+    public ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> vital) {
+        this(byAperture, vital, List.of());
     }
 
     public List<ItemStack> get(int aperture) {
@@ -107,7 +118,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<List<ItemStack>> next = new ArrayList<>(byAperture);
         while (next.size() <= aperture) next.add(List.of());
         next.set(aperture, items);
-        return new ApertureStorage(next, vital);
+        return new ApertureStorage(next, vital, tokens);
     }
 
     public ApertureStorage withPage(int aperture, int from, List<ItemStack> page) {
@@ -119,7 +130,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         while (all.size() < from + page.size()) all.add(ItemStack.EMPTY);
         for (int i = 0; i < page.size(); i++) all.set(from + i, page.get(i));
         next.set(aperture, all);
-        return new ApertureStorage(next, vital);
+        return new ApertureStorage(next, vital, tokens);
     }
 
     public ApertureStorage withVital(int aperture, ItemStack stack) {
@@ -128,7 +139,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> next = new ArrayList<>(vital);
         while (next.size() <= aperture) next.add(ItemStack.EMPTY);
         next.set(aperture, stack);
-        return new ApertureStorage(byAperture, next);
+        return new ApertureStorage(byAperture, next, tokens);
     }
 
     public ApertureStorage shiftRight() {
@@ -141,7 +152,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> bound = new ArrayList<>();
         bound.add(ItemStack.EMPTY);
         for (ItemStack stack : vital) bound.add(rebound(stack));
-        return new ApertureStorage(items, bound);
+        return new ApertureStorage(items, bound, tokens);
     }
 
     private static ItemStack rebound(ItemStack stack) {
@@ -152,7 +163,18 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return copy;
     }
 
-    public ApertureStorage copy() { return new ApertureStorage(byAperture, vital); }
+    public long getToken(int kind) { return kind >= 0 && kind < tokens.size() ? tokens.get(kind) : 0L; }
+
+    public ApertureStorage withToken(int kind, long token) {
+        if (kind < 0 || kind >= ApertureData.MAX_APERTURES) return this;
+
+        List<Long> next = new ArrayList<>(tokens);
+        while (next.size() <= kind) next.add(0L);
+        next.set(kind, token);
+        return new ApertureStorage(byAperture, vital, next);
+    }
+
+    public ApertureStorage copy() { return new ApertureStorage(byAperture, vital, tokens); }
 
     private static List<ItemStack> copyStacks(List<ItemStack> stacks) {
         List<ItemStack> copies = new ArrayList<>(stacks.size());

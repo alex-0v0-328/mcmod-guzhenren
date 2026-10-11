@@ -131,6 +131,6 @@ public final class ModPayloads {
 
         player.openMenu(new SimpleMenuProvider(
                 (id, inventory, p) -> new ApertureStorageMenu(id, inventory, aperture, 0),
-                Component.translatable(STORAGE_TITLE)));
+                Component.translatable(STORAGE_TITLE)), buffer -> buffer.writeVarInt(aperture));
     }
 }

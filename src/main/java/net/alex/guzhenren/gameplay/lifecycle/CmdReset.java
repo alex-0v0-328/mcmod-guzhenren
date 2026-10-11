@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.lifecycle;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.gameplay.aperture.CmdAwaken;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +31,7 @@ public final class CmdReset {
     }
 
     private static void reset(ServerPlayer player) {
+        ApertureStorageMenu.closeFor(player);
         PlayerDataService.resetAll(player);
         ModCommandSupport.refreshCommands(player);
     }

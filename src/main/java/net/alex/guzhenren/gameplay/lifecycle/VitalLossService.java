@@ -5,6 +5,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
+import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.VitalGuLostEvent;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -47,6 +48,8 @@ public final class VitalLossService {
     }
 
     private static void charge(ServerPlayer owner, ItemStack stack) {
+        if (!GuItem.isCurrentVital(stack, owner)) return;
+
         owner.sendSystemMessage(Component.translatable(VITAL_LOST, stack.getHoverName()));
 
         SoulService.setCurrent(owner, SoulService.get(owner).currentSoul() / 2L);
@@ -56,8 +59,9 @@ public final class VitalLossService {
         owner.hurt(ModDamageTypes.source(owner, ModDamageTypes.VITAL_GU_LOST),
                 owner.getHealth() * LOST_HEALTH_FRACTION);
 
-        int bound = stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
-        ApertureService.setPrimaryPath(owner, bound, null);
+        int kind = stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
+        int bound = ApertureService.get(owner).indexOf(kind);
+        if (bound >= 0) ApertureService.setPrimaryPath(owner, bound, null);
     }
 
     public static void settleOfflineVitalLoss(@NotNull ServerPlayer player) {

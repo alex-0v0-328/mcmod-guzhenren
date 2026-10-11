@@ -16,7 +16,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * The item components this mod adds, for state belonging to one particular stack.
  *
- * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE},
+ * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE}, {@code VITAL_TOKEN},
  * {@code STORED_STONES}, {@code REFINED_AT}, {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK} and
  * {@link LeafGrowth}. A
  * component here is for state that not every tended Gu shares; anything all of them carry belongs on the shared state
@@ -49,6 +49,10 @@ public final class ModDataComponents {
             DATA_COMPONENTS.registerComponentType("vital_aperture", builder -> builder
                     .persistent(Codec.INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final Supplier<DataComponentType<Long>> VITAL_TOKEN =
+            DATA_COMPONENTS.registerComponentType("vital_token", builder -> builder
+                    .persistent(Codec.LONG)
+                    .networkSynchronized(ByteBufCodecs.VAR_LONG));
     public static final Supplier<DataComponentType<Long>> STORED_STONES =
             DATA_COMPONENTS.registerComponentType("stored_stones", builder -> builder
                     .persistent(Codec.LONG)

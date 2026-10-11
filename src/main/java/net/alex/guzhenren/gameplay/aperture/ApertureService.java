@@ -130,6 +130,19 @@ public final class ApertureService {
         set(player, index, aperture.withPrimaryPath(value));
     }
 
+    public static int inheritVital(@NotNull ServerPlayer player, @NotNull List<Integer> eatenKinds,
+                                   @Nullable GuPath path) {
+        ApertureData data = get(player);
+        int heir = -1;
+        for (int kind : eatenKinds) {
+            int index = data.indexOf(kind);
+            if (heir < 0) heir = index;
+            else if (index >= 0 && index != heir) setPrimaryPath(player, index, null);
+        }
+        if (heir >= 0) setPrimaryPath(player, heir, path);
+        return heir;
+    }
+
     public static void setSecondaryPath(@NotNull ServerPlayer player, int index, @Nullable GuPath value) {
         Aperture aperture = getAperture(player, index);
         if (aperture.secondaryPath() == value) return;

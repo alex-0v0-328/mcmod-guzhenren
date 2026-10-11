@@ -13,9 +13,10 @@ import org.jetbrains.annotations.NotNull;
  * The walk over Gu held inside apertures, both the stored ones and each Vital Gu [本命蛊]. Called from
  * every heartbeat with the day count elapsed since the last one -- zero on most seconds, when a refined Gu
  * still pays its own upkeep; forwards to {@link GuUpkeep#tickInContainer} per refined Gu and reports
- * starvation through {@link TendedGuItem#starved}. The store is walked through
- * {@code ApertureStorageService.getView} without copying it: only a refined Gu is copied before its tick, and the
- * list is copied only once a Gu changed.
+ * starvation through {@link TendedGuItem#starved}. Each stored Gu is read from the live store
+ * ({@code ApertureStorageService.getView}) and written back on its own right after its tick: a Gu's upkeep may
+ * write the store itself (the Treasure Lotus mints stones into a stored Primeval Elder Gu), and a walk that
+ * wrote one snapshot back at the end would erase that.
  *
  * <p>⚠ Every reader asks {@code refined()} first: an unrefined Gu's hunger is zero, and zero is also
  * what starvation looks like -- drop the test and the first rollover eats every wild Gu. Like the store's
@@ -41,10 +42,8 @@ public final class ApertureStorageTick {
     }
 
     private static void tickStore(ServerPlayer player, int aperture, long days) {
-        List<ItemStack> stored = ApertureStorageService.getView(player, aperture);
-        List<ItemStack> next = null;
-        for (int i = 0; i < stored.size(); i++) {
-            ItemStack original = stored.get(i);
+        for (int i = 0; i < ApertureStorageService.count(player, aperture); i++) {
+            ItemStack original = ApertureStorageService.getView(player, aperture).get(i);
             if (!(original.getItem() instanceof TendedGuItem gu) || !gu.refined(original)) continue;
 
             ItemStack stack = original.copy();
@@ -52,10 +51,10 @@ public final class ApertureStorageTick {
             if (starved) TendedGuItem.starved(player, stack);
             if (!starved && !hasChanged(original, stack)) continue;
 
-            if (next == null) next = new ArrayList<>(stored);
+            List<ItemStack> next = new ArrayList<>(ApertureStorageService.getView(player, aperture));
             next.set(i, starved ? ItemStack.EMPTY : stack);
+            ApertureStorageService.set(player, aperture, next);
         }
-        if (next != null) ApertureStorageService.set(player, aperture, next);
     }
 
     private static void tickVital(ServerPlayer player, int aperture, long days) {

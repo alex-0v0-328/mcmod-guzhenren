@@ -21,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>⚠ Reaches into {@code item/} on purpose ({@link GuItem}) -- binding a Vital Gu reads that Gu's
  * declared path; do not "fix" those imports. ⚠ Writes NEVER go through {@code ApertureService.store}:
  * the {@code ApertureChangedEvent} and its max-health refresh hang off that. ⚠
- * {@code setPrimaryPath} no-ops when unchanged; keep the call, or a rebind loses the path.
+ * {@code setPrimaryPath} no-ops when unchanged; keep the call, or a rebind loses the path. A Vital Gu
+ * becomes its aperture's one current Vital Gu when it lands in the slot ({@code setVital}) or a refinement
+ * passes the binding on ({@link #adoptVital}): its token replaces the kind's token in the store.
  *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of
  * {@link ApertureData#insertFirst}: when Hope Gu opens
@@ -98,8 +100,19 @@ public final class ApertureStorageService {
         if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return false;
 
         player.setData(ModAttachments.APERTURE_STORAGE, next);
+        adoptVital(player, aperture, stack);
         if (stack.getItem() instanceof GuItem gu) ApertureService.setPrimaryPath(player, aperture, gu.path());
         return true;
+    }
+
+    public static long getVitalToken(@NotNull Player player, int kind) { return get(player).getToken(kind); }
+
+    public static void adoptVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
+        long token = GuItem.token(stack);
+        int kind = ApertureService.get(player).kindAt(aperture);
+        if (token != 0L && GuItem.isVitalOf(stack, player) && token != getVitalToken(player, kind)) {
+            player.setData(ModAttachments.APERTURE_STORAGE, get(player).withToken(kind, token));
+        }
     }
 
     public static boolean setPage(@NotNull ServerPlayer player, int aperture, int from, @NotNull List<ItemStack> page) {

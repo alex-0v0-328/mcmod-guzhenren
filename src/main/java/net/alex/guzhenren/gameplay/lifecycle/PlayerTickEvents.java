@@ -58,7 +58,7 @@ public final class PlayerTickEvents {
         GuUpkeep.tickCarried(player, days);
         ApertureStorageTick.tickStored(player, days);
 
-        if (days > 0L && player.containerMenu instanceof ApertureStorageMenu menu) menu.reload();
+        if (player.containerMenu instanceof ApertureStorageMenu menu) menu.refresh();
         VitalLossService.settleOfflineVitalLoss(player);
 
         ApertureEssenceService.closeDistilling(player);

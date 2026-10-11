@@ -35,9 +35,8 @@ public final class ModMenus {
     public static final DeferredRegister<MenuType<?>> MENUS =
             DeferredRegister.create(Registries.MENU, Guzhenren.MOD_ID);
     public static final DeferredHolder<MenuType<?>, MenuType<ApertureStorageMenu>> APERTURE_STORAGE_MENU =
-            MENUS.register("aperture_storage_menu", () -> new MenuType<>(
-                    (id, inventory) -> new ApertureStorageMenu(id, inventory, 0, 0),
-                    FeatureFlags.DEFAULT_FLAGS));
+            MENUS.register("aperture_storage_menu", () -> IMenuTypeExtension.create(
+                    (id, inventory, buffer) -> new ApertureStorageMenu(id, inventory, buffer.readVarInt(), 0)));
     public static final DeferredHolder<MenuType<?>, MenuType<RefinementMenu>> REFINEMENT_MENU =
             MENUS.register("refinement_menu", () -> new MenuType<>(
                     RefinementMenu::new,

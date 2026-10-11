@@ -1,9 +1,11 @@
 package net.alex.guzhenren.gameplay.refinement;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
@@ -29,6 +31,11 @@ import org.jetbrains.annotations.Nullable;
  * <p>Nothing is consumed until the settlement: success takes the claimed inputs and fills the output; failure
  * takes half of each material and wounds each Gu by a quarter of its health. Every live figure is published
  * into the menu's {@link ContainerData}, because the client cannot match a recipe itself.
+ *
+ * <p>A sole Gu result inherits the Vital Gu [本命蛊] it ate: bound to that Gu's aperture by kind, never
+ * position. When it ate two, the first in slot order whose aperture still exists wins and the other
+ * aperture loses its primary path
+ * ({@link ApertureService#inheritVital}).
  *
  * <p>Soul is paid from the current pool first, then from {@code maxSoul} at a tenth of the rate, which is
  * what kills. Within a window the supply slot feeds the stones first; outside the window it only tops the
@@ -201,13 +208,13 @@ final class RefinementRitual {
             return;
         }
         int[] taken = claimed;
-        boolean vital = taken != null && eatsVital(taken);
+        List<Integer> eatenVitals = taken == null ? List.of() : eatenVitalKinds(server, taken);
         if (taken != null) {
             for (int i = 0; i < taken.length; i++) {
                 if (taken[i] > 0) input.removeItem(i, taken[i]);
             }
         }
-        deliver(server, recipe, vital);
+        deliver(server, recipe, eatenVitals);
         stop();
         onEnd.run();
     }
@@ -239,7 +246,7 @@ final class RefinementRitual {
         input.removeItem(slot, (taken + 1) / 2);
     }
 
-    private void deliver(ServerPlayer server, GuRecipe recipe, boolean vital) {
+    private void deliver(ServerPlayer server, GuRecipe recipe, List<Integer> eatenVitals) {
         boolean sole = recipe.guResultCount() == 1;
         int slot = 0;
 
@@ -247,7 +254,7 @@ final class RefinementRitual {
             ItemStack made = stack.copy();
             if (made.getItem() instanceof TendedGuItem gu) {
                 gu.bornRefined(server, made);
-                if (vital && sole) inherit(server, made, gu);
+                if (!eatenVitals.isEmpty() && sole) inherit(server, made, gu, eatenVitals);
             }
             while (slot < RefinementMenu.OUTPUT_SIZE && !output.getItem(slot).isEmpty()) slot++;
             if (slot >= RefinementMenu.OUTPUT_SIZE) return;
@@ -255,16 +262,21 @@ final class RefinementRitual {
         }
     }
 
-    private static void inherit(ServerPlayer server, ItemStack made, TendedGuItem gu) {
-        GuItem.bind(made, server, ApertureData.PRIMARY);
-        ApertureService.setPrimaryPath(server, ApertureData.PRIMARY, gu.path());
+    private static void inherit(ServerPlayer server, ItemStack made, TendedGuItem gu, List<Integer> eatenVitals) {
+        int heir = ApertureService.inheritVital(server, eatenVitals, gu.path());
+        if (heir < 0) return;
+
+        GuItem.bind(made, server, heir);
+        ApertureStorageService.adoptVital(server, heir, made);
     }
 
-    private boolean eatsVital(int[] taken) {
+    private List<Integer> eatenVitalKinds(ServerPlayer server, int[] taken) {
+        List<Integer> kinds = new ArrayList<>();
         for (int i = 0; i < taken.length; i++) {
-            if (taken[i] > 0 && GuItem.isVital(input.getItem(i))) return true;
+            ItemStack stack = input.getItem(i);
+            if (taken[i] > 0 && GuItem.isCurrentVital(stack, server)) kinds.add(GuItem.boundAperture(stack));
         }
-        return false;
+        return kinds;
     }
     //endregion
 

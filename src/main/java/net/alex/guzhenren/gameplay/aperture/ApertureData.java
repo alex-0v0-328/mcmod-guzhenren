@@ -20,6 +20,10 @@ import net.minecraft.network.codec.StreamCodec;
  * primary" is {@link #primary}, which falls back to a lone second aperture. {@code isAwakened} means
  * "has the FIRST aperture" -- Hope Gu, the refinement gate and the command gates all read it.
  *
+ * <p>A position moves when Hope Gu inserts the first aperture ahead of a lone second one; a kind
+ * ({@code PRIMARY} the first, {@code SECOND} the second) never does. Anything that outlives the insert --
+ * a Vital Gu's binding -- names its aperture by kind, and {@link #indexOf} / {@link #kindAt} convert.
+ *
  * <p>⚠ {@code with(index, aperture)} REFUSES to grow the list -- only {@code opened}/{@code insertFirst}
  * append -- the mirror of {@link ApertureStorage#with}, which GROWS to reach its index; deliberately
  * opposite. ⚠ {@code MAX_APERTURES} caps the {@code STREAM_CODEC} list too: longer is silently
@@ -72,6 +76,10 @@ public record ApertureData(List<Aperture> apertures) {
         for (int i = 0; i < apertures.size(); i++) if (apertures.get(i).second()) return i;
         return -1;
     }
+
+    public int indexOf(int kind) { return kind == SECOND ? secondIndex() : firstIndex(); }
+
+    public int kindAt(int index) { return get(index).second() ? SECOND : PRIMARY; }
 
     public ApertureData opened(Aperture aperture) {
         if (isFull()) return this;

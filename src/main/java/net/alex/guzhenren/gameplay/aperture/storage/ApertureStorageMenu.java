@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.TendedGuItem;
@@ -31,8 +32,21 @@ import org.jetbrains.annotations.NotNull;
  * still leaves an empty one for the next Gu. Binding a Vital Gu here only marks the stack;
  * {@code ApertureStorageService.setVital} then sets the aperture's primary path.
  *
- * <p>⚠ It has to reload after the day-rollover walk, or an open menu saves its stale view back and
- * resurrects a Gu that starved a moment earlier.
+ * <p>⚠ The heartbeat calls {@code refresh} after the upkeep walk: any second can heal, feed or fill a
+ * stored Gu, and an open menu that saved its stale view back would undo it -- or resurrect a Gu that
+ * starved a moment earlier.
+ *
+ * <p>⚠ {@link VitalSlot#mayPlace} admits a Gu by the load after the swap, mouse and number key alike: a
+ * refused {@code setVital} in {@code save} reloads the slot but cannot take back the copy vanilla already
+ * moved to the cursor or hotbar, which would duplicate the old Vital Gu and lose the new one.
+ *
+ * <p>An aperture has one Vital Gu. Binding a new one makes the replaced one an ordinary Gu: its token no
+ * longer matches the store, and {@link #releaseFormer} strips the mark from the copy vanilla just moved to
+ * the cursor or into the bag.
+ *
+ * <p>⚠ A command that rewrites the store under an open menu ({@code /gzr reset}, {@code /gzr awaken}) calls
+ * {@link #closeFor} first: before the next heartbeat refresh, a click or the close would save the stale window
+ * back over the reset or into the shifted indices.
  *
  * @author Alex
  * @version 1.0.0
@@ -95,6 +109,10 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         load(pageIndex);
     }
 
+    public static void closeFor(@NotNull ServerPlayer player) {
+        if (player.containerMenu instanceof ApertureStorageMenu) player.closeContainer();
+    }
+
     public int getPageIndex() { return pageData.get(DATA_PAGE); }
 
     public int getPageCount() { return Math.max(1, pageData.get(DATA_PAGES)); }
@@ -125,9 +143,24 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         return true;
     }
 
-    public void reload() {
+    public void refresh() {
+        if (!(player instanceof ServerPlayer server) || matchesStore(server)) return;
+
         load(getPageIndex());
         broadcastChanges();
+    }
+
+    private boolean matchesStore(ServerPlayer server) {
+        return ApertureStorageService.matchesPage(server, aperture, getPageIndex() * PAGE_SIZE, window())
+                && same(vital.getItem(0), ApertureStorageService.getVital(server, aperture))
+                && getLoad() == ApertureStorageService.load(server, aperture)
+                && pageData.get(DATA_PAGES) == countPages();
+    }
+
+    private List<ItemStack> window() {
+        List<ItemStack> window = new ArrayList<>(PAGE_SIZE);
+        for (int i = 0; i < PAGE_SIZE; i++) window.add(page.getItem(i).copy());
+        return window;
     }
 
     private void load(int index) {
@@ -149,8 +182,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     private void save() {
         if (loading || !(player instanceof ServerPlayer server)) return;
 
-        List<ItemStack> window = new ArrayList<>(PAGE_SIZE);
-        for (int i = 0; i < PAGE_SIZE; i++) window.add(page.getItem(i).copy());
+        List<ItemStack> window = window();
         int from = getPageIndex() * PAGE_SIZE;
         if (!ApertureStorageService.matchesPage(server, aperture, from, window)) {
             if (!ApertureStorageService.setPage(server, aperture, from, window)) {
@@ -161,18 +193,31 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         ItemStack bound = vital.getItem(0);
         if (!bound.isEmpty() && bound.getItem() instanceof GuItem
-                && (!GuItem.isVital(bound) || GuItem.boundAperture(bound) != aperture)) {
+                && (!GuItem.isCurrentVital(bound, server) || GuItem.boundIndex(bound, server) != aperture)) {
             GuItem.bind(bound, server, aperture);
         }
         if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
+            int kind = ApertureService.get(server).kindAt(aperture);
+            long former = ApertureStorageService.getVitalToken(server, kind);
             if (!ApertureStorageService.setVital(server, aperture, bound.copy())) {
                 load(getPageIndex());
                 return;
+            }
+            if (former != 0L && former != ApertureStorageService.getVitalToken(server, kind)) {
+                releaseFormer(server, former);
             }
         }
 
         pageData.set(DATA_PAGES, countPages());
         pageData.set(DATA_LOAD, ApertureStorageService.load(server, aperture));
+    }
+
+    private void releaseFormer(ServerPlayer server, long token) {
+        if (GuItem.token(getCarried()) == token) GuItem.unbind(getCarried());
+        Inventory inventory = server.getInventory();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            if (GuItem.token(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
+        }
     }
 
     private static boolean same(ItemStack first, ItemStack second) {
@@ -238,8 +283,6 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
             if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.refined(stack)) return false;
             if (!gu.canBeVital()) return false;
             if (GuItem.isVital(stack) && !GuItem.isVitalOf(stack, player)) return false;
-            // Admit by the load after the swap: a refused setVital in save() reloads the slot but cannot
-            // take back the copy vanilla already moved to the cursor or hotbar.
             return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0;
         }
 

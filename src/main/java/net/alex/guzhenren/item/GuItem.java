@@ -7,6 +7,7 @@ import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -31,6 +32,12 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link Item} to add the four right-click templates a leaf fills: plain use, sneak use,
  * charge pacing, and Vital Gu [本命蛊] binding. The charge duration is paced by the gap between the
  * holder's rank and the item's own via {@code useChargeByGap}, never by the stage.
+ *
+ * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
+ * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
+ * the Gu sits: {@code bind} stores the kind of the holder's index, {@code boundIndex} maps it back. An
+ * aperture has one Vital Gu: {@code bind} also stamps a fresh token, and only the stack whose token the
+ * store holds for that kind is the current one ({@code isCurrentVital}); a replaced one is harmless.
  *
  * <p>⚠ The four hooks ({@code gate}, {@code apply}, {@code useDurationTicks}, {@code hasSneakUse}) are
  * re-read in both {@code use} and {@code finishUsingItem}, so leaving or entering a crouch mid-charge
@@ -90,9 +97,29 @@ public abstract class GuItem extends Item {
         return stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
     }
 
-    public static void bind(ItemStack stack, Player player, int aperture) {
+    public static int boundIndex(ItemStack stack, Player owner) {
+        return ApertureService.get(owner).indexOf(boundAperture(stack));
+    }
+
+    public static long token(ItemStack stack) { return stack.getOrDefault(ModDataComponents.VITAL_TOKEN.get(), 0L); }
+
+    public static boolean isCurrentVital(ItemStack stack, ServerPlayer owner) {
+        long token = token(stack);
+        return token != 0L && isVitalOf(stack, owner)
+                && token == ApertureStorageService.getVitalToken(owner, boundAperture(stack));
+    }
+
+    public static void bind(ItemStack stack, ServerPlayer player, int index) {
+        long token = player.getRandom().nextLong();
         stack.set(ModDataComponents.VITAL_OWNER.get(), player.getUUID());
-        stack.set(ModDataComponents.VITAL_APERTURE.get(), aperture);
+        stack.set(ModDataComponents.VITAL_APERTURE.get(), ApertureService.get(player).kindAt(index));
+        stack.set(ModDataComponents.VITAL_TOKEN.get(), token == 0L ? 1L : token);
+    }
+
+    public static void unbind(ItemStack stack) {
+        stack.remove(ModDataComponents.VITAL_OWNER.get());
+        stack.remove(ModDataComponents.VITAL_APERTURE.get());
+        stack.remove(ModDataComponents.VITAL_TOKEN.get());
     }
     //endregion
 

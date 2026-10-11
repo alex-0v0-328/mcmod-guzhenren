@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,6 +35,7 @@ public final class CmdAwaken {
     }
 
     private static void awaken(ServerPlayer player) {
+        ApertureStorageMenu.closeFor(player);
         ApertureService.awaken(player);
         ModCommandSupport.refreshCommands(player);
     }
