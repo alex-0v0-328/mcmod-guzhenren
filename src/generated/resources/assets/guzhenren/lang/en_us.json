@@ -335,6 +335,7 @@
   "guzhenren.item.failed.aperture_unavailable": "No usable aperture remains",
   "guzhenren.item.failed.awakened": "You have already awakened",
   "guzhenren.item.failed.beast_strength_held": "You already hold the %s's strength",
+  "guzhenren.item.failed.buff_stronger": "A stronger %s effect is still running",
   "guzhenren.item.failed.elder_gu_empty": "This Gu holds no Primeval Stones",
   "guzhenren.item.failed.elder_gu_full": "This Gu is full of Primeval Stones",
   "guzhenren.item.failed.elder_gu_no_stones": "You carry no Primeval Stones to store",

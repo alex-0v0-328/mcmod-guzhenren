@@ -283,6 +283,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         int left = Math.max(PathTimeFlowService.shortenWait(player, spec.itemCooldownTicks()),
                 GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()),
                         POST_REFINE_COOLDOWN_TICKS));
+        if (!allowsUseDuringEffectCooldown()) left = Math.max(left, useCooldownLeft(player, stack));
         if (left > 0) player.getCooldowns().addCooldown(this, left);
     }
     //endregion

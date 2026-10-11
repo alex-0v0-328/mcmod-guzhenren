@@ -335,6 +335,7 @@
   "guzhenren.item.failed.aperture_unavailable": "沒有可以作用的空竅",
   "guzhenren.item.failed.awakened": "你已開竅",
   "guzhenren.item.failed.beast_strength_held": "已有%s之力",
+  "guzhenren.item.failed.buff_stronger": "更強的%s效果未散",
   "guzhenren.item.failed.elder_gu_empty": "蠱中無元石",
   "guzhenren.item.failed.elder_gu_full": "蠱中元石已滿",
   "guzhenren.item.failed.elder_gu_no_stones": "身上無元石可存",

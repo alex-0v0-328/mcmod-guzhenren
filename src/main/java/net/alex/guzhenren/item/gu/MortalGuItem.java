@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
+ *
+ * <p>⚠ A Vital Gu refuses the Q-key drop in {@link #onDroppedByPlayer}, but the client has already emptied
+ * the hotbar slot by then: the refusal marks the server's remote copy of that slot stale, so the next
+ * broadcast puts the Gu back on screen.
  *
  * @author Alex
  * @version 1.0.0
@@ -112,5 +117,13 @@ public abstract class MortalGuItem extends GuItem {
     //endregion
 
     @Override
-    public boolean onDroppedByPlayer(@NotNull ItemStack stack, @NotNull Player player) { return !isVital(stack); }
+    public boolean onDroppedByPlayer(@NotNull ItemStack stack, @NotNull Player player) {
+        if (!isVital(stack)) return true;
+
+        if (player instanceof ServerPlayer server) {
+            server.inventoryMenu.setRemoteSlot(InventoryMenu.USE_ROW_SLOT_START + server.getInventory().selected,
+                    ItemStack.EMPTY);
+        }
+        return false;
+    }
 }

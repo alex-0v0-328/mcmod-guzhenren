@@ -442,6 +442,7 @@ public class EnUsLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.elder_gu_no_stones", "You carry no Primeval Stones to store");
         add("guzhenren.item.failed.gu_cooldown", "This Gu needs another %s seconds");
         add("guzhenren.item.failed.all_out_active", "The all-out effort has not yet passed");
+        add("guzhenren.item.failed.buff_stronger", "A stronger %s effect is still running");
         add("guzhenren.item.failed.zombie_already", "Already a zombie, nothing left to turn");
         add("guzhenren.item.failed.gu_starving", "This Gu is too hungry - feed it first");
         add("guzhenren.item.failed.no_use", "This Gu needs no use");

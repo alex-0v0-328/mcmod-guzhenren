@@ -453,6 +453,7 @@ public class ZhCnLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.elder_gu_no_stones", "身上无元石可存");
         add("guzhenren.item.failed.gu_cooldown", "此蛊尚需 %s 秒");
         add("guzhenren.item.failed.all_out_active", "全力以赴蛊效果未散");
+        add("guzhenren.item.failed.buff_stronger", "更强的%s效果未散");
         add("guzhenren.item.failed.zombie_already", "彻底转变为了僵尸");
         add("guzhenren.item.failed.gu_starving", "蛊已太饿，需先喂食");
         add("guzhenren.item.failed.no_use", "此蛊无需使用");

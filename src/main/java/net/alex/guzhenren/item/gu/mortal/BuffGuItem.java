@@ -16,8 +16,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Eight Gu register against this one class -- the
  * three beast buffs (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊), the four Crash Gu and the Hardship Strength Gu; the
- * payout simply adds the effect and returns. The gate is
- * always open here because the refusal "effect already running" lives in the base's own check.
+ * payout simply adds the effect and returns. The gate refuses only while a stronger copy of the same
+ * effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running copy is refreshed.
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a class does not mean sharing a larder.
  *
@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 public class BuffGuItem extends TendedGuItem {
 
     private static final int COOLDOWN_HUNGER_MULTIPLIER = 2;
+    private static final String FAILED_STRONGER = "guzhenren.item.failed.buff_stronger";
     private final Holder<MobEffect> buff;
     private final int durationTicks;
     private final int amplifier;
@@ -47,7 +48,11 @@ public class BuffGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+        MobEffectInstance current = player.getEffect(buff);
+        return current != null && current.getAmplifier() > amplifier
+                ? new Refusal(FAILED_STRONGER, buff.value().getDisplayName()) : null;
+    }
 
     @Override
     protected void payout(ServerPlayer player, ItemStack stack) {
