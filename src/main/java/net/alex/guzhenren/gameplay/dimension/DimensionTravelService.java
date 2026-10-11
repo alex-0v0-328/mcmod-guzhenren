@@ -4,6 +4,7 @@ import java.util.Objects;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData.ReturnPoint;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>{@link #isInside} answers whether the player is currently in the given dimension; {@link #enter}
  * snapshots the player's original location and flying state before teleporting there, returning
  * {@code false} instead when they are already inside the dimension or the target level could not be
- * resolved. Death clears the record through {@link net.alex.guzhenren.gameplay.lifecycle.PlayerDataService}.
+ * resolved. Entering one anchored dimension from inside another keeps the first snapshot, so the exit
+ * still leads back to where the trip began. Death clears the record through
+ * {@link net.alex.guzhenren.gameplay.lifecycle.PlayerDataService}.
  *
  * <p>{@link #exit} restores the snapshot: if a return point exists, the player is teleported back to it
  * and resumes flying only if they were flying on entry and can still fly without the grant, returning
@@ -73,12 +76,14 @@ public final class DimensionTravelService {
             return false;
         }
 
-        ReturnPoint point = new ReturnPoint(
-                player.level().dimension(),
-                player.getX(), player.getY(), player.getZ(),
-                player.getYRot(), player.getXRot(),
-                player.getAbilities().flying);
-        player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.of(point));
+        if (!ModDimensions.ANCHORED_DIMENSIONS.containsKey(player.level().dimension())) {
+            ReturnPoint point = new ReturnPoint(
+                    player.level().dimension(),
+                    player.getX(), player.getY(), player.getZ(),
+                    player.getYRot(), player.getXRot(),
+                    player.getAbilities().flying);
+            player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.of(point));
+        }
 
         player.teleportTo(target, spawn.x, spawn.y, spawn.z, player.getYRot(), player.getXRot());
         ensureFlight(player);

@@ -21,8 +21,9 @@ import org.jetbrains.annotations.Nullable;
  * several server ticks instead of one, so the largest blast (Great Strength True Martial [大力真武体],
  * radius 112) does not freeze the world. Interior blocks go out silently ({@code UPDATE_CLIENTS}
  * only, no drops); one deferred neighbor pass over the rim [球壳边缘] keeps sand, fluids and torches
- * from floating. The shell [壳] walks center-outwards and each column's radius carries a per-explosion
- * jitter [噪声扰动]. The crater floor is physique-specific: layered ice [分层冰] for Northern Dark
+ * from floating; unbreakable blocks (bedrock, barriers, portal frames) stay, so a blast at the bottom
+ * of the world never opens the void. The shell [壳] walks center-outwards and each column's radius
+ * carries a per-explosion jitter [噪声扰动]. The crater floor is physique-specific: layered ice [分层冰] for Northern Dark
  * Ice Soul, magma and lava for Blazing Glory, scattered gold for Myriad Gold; Northern Dark Ice Soul
  * also converts the surface soil of an outer ring [雪化环带] to snow. Entity damage, self-damage and
  * the pressure reset stay in {@link AperturePressureService#detonate} -- they resolve at tick zero.
@@ -294,7 +295,7 @@ public final class AperturePressureExplosionTask {
         if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()),
                 SectionPos.blockToSectionCoord(pos.getZ()))) return;
         BlockState state = level.getBlockState(pos);
-        if (state.isAir()) return;
+        if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0F) return;
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
         if (isRim(pos)) rim.add(pos.asLong());
     }

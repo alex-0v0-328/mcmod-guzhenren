@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture;
 
+import com.google.common.math.LongMath;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -66,20 +67,14 @@ public final class CmdAperture {
                                 (player, index, value) -> ApertureService.addBaseEssence(player, index, -value))))
                 .then(Commands.literal("current")
                         .then(longNode("set", ApertureEssenceService::set))
-                        .then(longNode("add",
-                                (player, index, value) -> ApertureEssenceService.set(player, index,
-                                        ApertureService.getAperture(player, index).currentEssence() + value)))
-                        .then(longNode("sub",
-                                (player, index, value) -> ApertureEssenceService.set(player, index,
-                                        ApertureService.getAperture(player, index).currentEssence() - value))))
+                        .then(longNode("add", CmdAperture::addCurrentEssence))
+                        .then(longNode("sub", (player, index, value) ->
+                                addCurrentEssence(player, index, LongMath.saturatedSubtract(0L, value)))))
                 .then(Commands.literal("distilled")
                         .then(longNode("set", ApertureEssenceService::setDistilled))
-                        .then(longNode("add",
-                                (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
-                                        ApertureService.getAperture(player, index).distilledEssence() + value)))
-                        .then(longNode("sub",
-                                (player, index, value) -> ApertureEssenceService.setDistilled(player, index,
-                                        ApertureService.getAperture(player, index).distilledEssence() - value))))
+                        .then(longNode("add", CmdAperture::addDistilledEssence))
+                        .then(longNode("sub", (player, index, value) ->
+                                addDistilledEssence(player, index, LongMath.saturatedSubtract(0L, value)))))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
                         context -> AwakenedGate.applyOnAwakened(context, ApertureEssenceService::refill)));
     }
@@ -181,4 +176,14 @@ public final class CmdAperture {
                 }));
     }
     //endregion
+
+    private static void addCurrentEssence(ServerPlayer player, int index, long value) {
+        long current = ApertureService.getAperture(player, index).currentEssence();
+        ApertureEssenceService.set(player, index, LongMath.saturatedAdd(current, value));
+    }
+
+    private static void addDistilledEssence(ServerPlayer player, int index, long value) {
+        long distilled = ApertureService.getAperture(player, index).distilledEssence();
+        ApertureEssenceService.setDistilled(player, index, LongMath.saturatedAdd(distilled, value));
+    }
 }
