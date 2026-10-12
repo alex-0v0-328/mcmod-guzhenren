@@ -15,6 +15,7 @@ import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
@@ -27,9 +28,10 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * Every data attachment this mod puts on a player.
  *
  * <p>DeferredRegister holder: the ten record attachments (immutable, written only through their
- * service) plus the three scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY}).
- * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
- * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced.
+ * service) plus the four scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
+ * {@code BURST}). {@link #registerSynced} saves an attachment and syncs it to its owner alone
+ * ({@code OWNER_ONLY}); {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor
+ * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞].
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
  * {@code qi} and {@code strength} as subpackages of path. A constant is its record's class name without
@@ -90,6 +92,11 @@ public final class ModAttachments {
     //region Dimension return [维度往返]
     public static final Supplier<AttachmentType<DimensionReturnData>> DIMENSION_RETURN =
             registerSaved("dimension_return", DimensionReturnData.DEFAULT, DimensionReturnData.CODEC);
+    //endregion
+
+    //region Flight [飞行]
+    public static final Supplier<AttachmentType<Boolean>> BURST =
+            registerSynced("burst_flag", Boolean.TRUE, Codec.BOOL, ByteBufCodecs.BOOL);
     //endregion
 
     //region Lifecycle [生命周期]

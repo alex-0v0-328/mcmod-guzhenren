@@ -5,6 +5,7 @@ import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
+import net.alex.guzhenren.gameplay.flight.FlightService;
 import net.alex.guzhenren.gameplay.refinement.RefinementMenu;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
@@ -12,6 +13,7 @@ import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
+import net.alex.guzhenren.network.payload.ToggleBurstPayload;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.network.chat.Component;
@@ -28,8 +30,9 @@ import org.jetbrains.annotations.Nullable;
  * Registers the client-intent payloads and handles each of them on the server. Every payload in this
  * mod is a client intent -- a B-panel button or movement input that attachment sync cannot carry
  * upstream; none carries player data, and downstream player data always travels as synced state. This
- * class wires the six payloads to their server-side handlers: the two containers, the secondary path,
- * and the three cultivation actions.
+ * class wires the seven payloads to their server-side handlers: the two containers, the secondary path,
+ * the three cultivation actions and the burst [疾飞] toggle. Every handler but the burst toggle refuses
+ * inside the Treasure Yellow Heaven ({@link #outsideTyh}), where flight and burst are what remains.
  *
  * <p>⚠ This is where a forged payload lands, so a gate that only grays out a button is not a gate:
  * every refusal has to exist here as well as on the screen.
@@ -74,6 +77,8 @@ public final class ModPayloads {
                 ModPayloads::impactApertureWall);
         registrar.playToServer(DashPayload.TYPE, DashPayload.STREAM_CODEC,
                 ModPayloads::dash);
+        registrar.playToServer(ToggleBurstPayload.TYPE, ToggleBurstPayload.STREAM_CODEC,
+                ModPayloads::toggleBurst);
     }
 
     private static void nourishAperture(NourishAperturePayload payload, IPayloadContext context) {
@@ -105,6 +110,10 @@ public final class ModPayloads {
         if (ApertureNourishService.isCultivating(player)) return;
 
         EpicFightIntegration.dash(player, vertical, payload.yRot());
+    }
+
+    private static void toggleBurst(ToggleBurstPayload payload, IPayloadContext context) {
+        if (context.player() instanceof ServerPlayer player) FlightService.toggleBurst(player);
     }
 
     private static void openRefinement(OpenRefinementPayload payload, IPayloadContext context) {

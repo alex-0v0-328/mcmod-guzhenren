@@ -1,0 +1,64 @@
+package net.alex.guzhenren.client.event;
+
+import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.flight.FlightService;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+
+/**
+ * The local player's burst [疾飞] beyond its speed, which {@code net.alex.guzhenren.mixin.PlayerMixin} and
+ * {@code LocalPlayerMixin} scale.
+ *
+ * <p>{@link #onClientTick} jumps the way vanilla's creative double jump does when a burst starts on the ground.
+ * It runs before the player ticks and after the tick's packets, so it sees the synced burst mark and the abilities
+ * that turned flying on together, and the player leaves the ground before the landing check at the end of
+ * {@code LocalPlayer#aiStep} could end the flight.
+ *
+ * <p>{@link #onComputeFovModifier} widens the view while the local player flies a burst, multiplying the vanilla
+ * modifier (already widened by flying and sprinting) by {@link #getFovFactor}: {@link #FOV_WIDENING} more, eased
+ * toward none by the vanilla FOV Effects slider the same way NeoForge eases the vanilla modifier, so a player who
+ * turned FOV effects off sees no widening here either. Vanilla eases the view toward each new modifier over a few
+ * ticks, so it widens and narrows smoothly; Minecraft caps the total widening, sprint and flight included.
+ *
+ * @author Alex
+ * @version 1.0.0
+ * @see net.alex.guzhenren.gameplay.flight.FlightService
+ * @since 1.0.0
+ */
+
+@EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)
+public final class BurstEvents {
+
+    private BurstEvents() {}
+
+    private static final double FOV_WIDENING = 0.15D;
+    private static boolean wasBursting;
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Pre event) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        boolean bursting = player != null && FlightService.isBursting(player);
+        if (bursting && !wasBursting && player.onGround()) player.jumpFromGround();
+        wasBursting = bursting;
+    }
+
+    @SubscribeEvent
+    public static void onComputeFovModifier(ComputeFovModifierEvent event) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Player player = event.getPlayer();
+        if (player == minecraft.player && player.getAbilities().flying && FlightService.isBursting(player)) {
+            event.setNewFovModifier(event.getNewFovModifier()
+                    * getFovFactor(minecraft.options.fovEffectScale().get()));
+        }
+    }
+
+    public static float getFovFactor(double effectScale) {
+        return (float) (1.0D + FOV_WIDENING * effectScale);
+    }
+}
