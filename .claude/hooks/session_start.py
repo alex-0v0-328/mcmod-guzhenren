@@ -28,7 +28,7 @@ SKILLS = CLAUDE_DIR / 'skills'
 USER_CLAUDE_DIR = Path.home() / '.claude'
 ALWAYS_ON = ['alex-constitution', 'i-have-adhd']
 SOURCE = 'mcmod-guzhenren'
-SIBLINGS = ['mcmod-guworld', 'mcmod-camera-shift', 'mcmod-burst-flight']
+SIBLINGS = ['mcmod-guworld']
 FRONTMATTER = re.compile(r'\A---[^\S\r\n]*\r?\n.*?\r?\n---[^\S\r\n]*(?:\r?\n|\Z)', re.S)
 
 
