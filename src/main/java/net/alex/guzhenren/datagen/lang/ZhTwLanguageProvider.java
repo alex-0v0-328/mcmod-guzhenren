@@ -1,12 +1,13 @@
 package net.alex.guzhenren.datagen.lang;
 
 import net.minecraft.data.PackOutput;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The Traditional Chinese [繁中] strings, derived from the Simplified table.
  *
  * <p>Extends {@link net.alex.guzhenren.datagen.lang.ZhCnLanguageProvider} for {@code zh_tw}. The two
- * differ in glyphs only, so this class adds no entry of its own: it overrides {@link #add} and
+ * differ in glyphs only, so this class adds no entry of its own: it overrides {@link #add(String, String)} and
  * passes every value through {@link net.alex.guzhenren.datagen.lang.TraditionalGlyphs#convert}.
  * Every {@code add*()} of {@link net.neoforged.neoforge.common.data.LanguageProvider} funnels into
  * that one method, items, blocks and enum keys alike.
@@ -28,7 +29,7 @@ public class ZhTwLanguageProvider extends ZhCnLanguageProvider {
     }
 
     @Override
-    public void add(String key, String value) {
+    public void add(@NotNull String key, @NotNull String value) {
         super.add(key, TraditionalGlyphs.convert(value));
     }
 }

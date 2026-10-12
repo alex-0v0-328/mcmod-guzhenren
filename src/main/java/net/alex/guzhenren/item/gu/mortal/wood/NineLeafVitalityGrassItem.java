@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,7 +125,8 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
         super.appendHoverText(stack, context, tooltip, flag);
         if (!refined(stack)) return;
 
-        long now = context.level() != null ? context.level().getGameTime() : growth(stack).settledAt();
+        Level level = context.level();
+        long now = level != null ? level.getGameTime() : growth(stack).settledAt();
         int leaves = leaves(stack, now);
         tooltip.add(Component.translatable(TOOLTIP_LEAVES, leaves, LeafGrowth.MAX_LEAVES)
                 .withStyle(ChatFormatting.GRAY));
