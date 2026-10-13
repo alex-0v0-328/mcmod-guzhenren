@@ -245,7 +245,7 @@ tasks.named('test', Test) {
                     '玩家向/蛊真人MOD 1.0.0 蛊材、蛊虫与炼蛊.md',
                     '玩家向/蛊真人MOD 1.0.0 角色.md',
                     '玩家向/蛊真人MOD 1.0.0 总表.md',
-                    '开发向/工程/测试集.md'
+                    '开发向/维护说明.md'
             ].collect { new File(wikiRoot, it) })
             inputs.files(fileTree('src/test'))
         }
