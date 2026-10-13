@@ -31,7 +31,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * {@code !level.isClientSide()} so action is taken exactly once per interaction.
  *
  * <p>In {@link #onPlayerTick}, leaving by any route -- exit, vanilla {@code /tp}, another mod's
- * teleport -- drops the flight grant.
+ * teleport -- drops the flight grant, unless the player stands in another anchored dimension that grants
+ * flight.
  *
  * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
  * for. Attacks on it stay canceled like every other attack.
@@ -146,7 +147,7 @@ public final class TreasureYellowHeavenGuardEvents {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!inTyh(player)) {
-            if (!ModDimensions.ANCHORED_DIMENSIONS.containsKey(player.level().dimension())) {
+            if (!ModDimensions.isFlightGranted(player.level().dimension())) {
                 DimensionTravelService.revokeFlight(player);
             }
             return;

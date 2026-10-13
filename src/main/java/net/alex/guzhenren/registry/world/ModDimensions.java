@@ -20,15 +20,23 @@ import net.minecraft.world.phys.Vec3;
  * <p>{@link AnchoredDimension} is an anchored dimension: {@code /guworld enter} may target it, and a
  * player inside is expected to leave through {@code /guworld exit} so the recorded return point is
  * used. {@link AnchoredDimension#level} is the dimension's level key, {@link AnchoredDimension#spawn}
- * the fixed entry point every entrant arrives at, and {@link AnchoredDimension#rank} the dimension's
- * 转 (6..9: 6-7 blessed land [福地], 8-9 grotto-heaven [洞天]).
+ * the fixed entry point every entrant arrives at, {@link AnchoredDimension#arrival} how they arrive there,
+ * and {@link AnchoredDimension#rank} the dimension's 转 (6..9: 6-7 blessed land [福地], 8-9 grotto-heaven
+ * [洞天]; 0 for a region of the mortal world, which has none).
+ *
+ * <p>{@link Arrival#FLIGHT} lands the entrant on the spawn itself and grants flight for the stay.
+ * {@link Arrival#SURFACE} lands them on top of the spawn's column -- the highest block that blocks motion
+ * or holds a fluid, so the spawn's y is unused -- and grants no flight. {@link #isFlightGranted} answers
+ * whether a level is an anchored dimension whose stay grants flight.
  *
  * <p>{@link #ANCHORED_DIMENSIONS} is the anchored dimension allow-list, by level key. Treasure
- * Yellow Heaven is a rank-8 grotto-heaven; future Blessed Land / Grotto-Heaven dimensions register
- * here.
+ * Yellow Heaven is a rank-8 grotto-heaven reached in flight; the Southern Border [南疆] is a region of the
+ * mortal world, entered on foot at the surface above its origin. Future Blessed Land / Grotto-Heaven
+ * dimensions register here.
  *
- * <p>⚠ {@link #TREASURE_YELLOW_HEAVEN} spells out Gu World's namespace because this mod cannot reach
- * that mod's id constant. Renaming the dimension there means renaming it here too, or entering it fails.
+ * <p>⚠ {@link #TREASURE_YELLOW_HEAVEN} and {@link #SOUTHERN_BORDER} spell out Gu World's namespace because
+ * this mod cannot reach that mod's id constant. Renaming a dimension there means renaming it here too, or
+ * entering it fails.
  *
  * @author Alex
  * @version 1.0.0
@@ -42,10 +50,21 @@ public final class ModDimensions {
     public static final ResourceKey<Level> TREASURE_YELLOW_HEAVEN = ResourceKey.create(
             Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "treasure_yellow_heaven"));
     public static final Vec3 TREASURE_YELLOW_HEAVEN_SPAWN = new Vec3(0.5, 64.0, 0.5);
+    public static final ResourceKey<Level> SOUTHERN_BORDER = ResourceKey.create(
+            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "southern_border"));
 
-    public record AnchoredDimension(ResourceKey<Level> level, Vec3 spawn, int rank) {}
+    public enum Arrival { FLIGHT, SURFACE }
+
+    public record AnchoredDimension(ResourceKey<Level> level, Vec3 spawn, Arrival arrival, int rank) {}
 
     public static final Map<ResourceKey<Level>, AnchoredDimension> ANCHORED_DIMENSIONS = Map.of(
             TREASURE_YELLOW_HEAVEN,
-            new AnchoredDimension(TREASURE_YELLOW_HEAVEN, TREASURE_YELLOW_HEAVEN_SPAWN, 8));
+            new AnchoredDimension(TREASURE_YELLOW_HEAVEN, TREASURE_YELLOW_HEAVEN_SPAWN, Arrival.FLIGHT, 8),
+            SOUTHERN_BORDER,
+            new AnchoredDimension(SOUTHERN_BORDER, new Vec3(0.5, 0.0, 0.5), Arrival.SURFACE, 0));
+
+    public static boolean isFlightGranted(ResourceKey<Level> level) {
+        AnchoredDimension dimension = ANCHORED_DIMENSIONS.get(level);
+        return dimension != null && dimension.arrival() == Arrival.FLIGHT;
+    }
 }

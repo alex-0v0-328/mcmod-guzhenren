@@ -5,6 +5,8 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData.ReturnPoint;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.world.ModDimensions;
+import net.alex.guzhenren.registry.world.ModDimensions.AnchoredDimension;
+import net.alex.guzhenren.registry.world.ModDimensions.Arrival;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +32,13 @@ import org.jetbrains.annotations.NotNull;
  * still leads back to where the trip began. Death clears the record through
  * {@link net.alex.guzhenren.gameplay.lifecycle.PlayerDataService}.
  *
+ * <p>{@link #getArrival} is where {@link #enter} lands the player: a {@code FLIGHT} arrival on the spawn
+ * itself, which grants flight and starts the player flying; a {@code SURFACE} arrival on top of the spawn's
+ * column, which revokes any grant carried in from a flight dimension. {@code Level.getHeight} reads an
+ * unloaded chunk as the bottom of the world, so the column's chunk is loaded first, and generated on the
+ * server thread if it never was: the first entry to a fresh spot stalls the server for the few chunks
+ * that takes.
+ *
  * <p>{@link #exit} restores the snapshot: if a return point exists, the player is teleported back to it
  * and resumes flying only if they were flying on entry and can still fly without the grant, returning
  * {@code true}; if no record exists, the player is sent to the Overworld shared spawn as a fallback
@@ -40,9 +50,10 @@ import org.jetbrains.annotations.NotNull;
  * mods, so writing it leaked survival flight whenever a player left without a matching restore.
  * Transient keeps the grant out of the save file. {@link #ensureFlight} re-grants the permission each
  * tick without forcing {@code flying} on, so the player may choose to hover or stop flying freely while
- * inside an anchored dimension; {@link #revokeFlight} drops the grant, and {@code flying} with it unless
+ * inside a flight dimension; {@link #revokeFlight} drops the grant, and {@code flying} with it unless
  * something else still lets the player fly, each tick while the player is outside every anchored
- * dimension, so leaving by any route -- exit, vanilla {@code /tp}, another mod's teleport -- revokes it.
+ * dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another mod's
+ * teleport -- revokes it.
  *
  * <p>{@link #rescueIfBelowVoid} teleports the player back to the given spawn if they have fallen below
  * the current level's minimum build height, returning {@code true} if a rescue teleport happened.
@@ -63,15 +74,13 @@ public final class DimensionTravelService {
         return player.level().dimension().equals(Objects.requireNonNull(dimension, "dimension"));
     }
 
-    public static boolean enter(@NotNull ServerPlayer player, @NotNull ResourceKey<Level> dimension,
-            @NotNull Vec3 spawn) {
-        Objects.requireNonNull(dimension, "dimension");
-        Objects.requireNonNull(spawn, "spawn");
-        if (isInside(player, dimension)) {
+    public static boolean enter(@NotNull ServerPlayer player, @NotNull AnchoredDimension destination) {
+        Objects.requireNonNull(destination, "destination");
+        if (isInside(player, destination.level())) {
             return false;
         }
 
-        ServerLevel target = player.server.getLevel(dimension);
+        ServerLevel target = player.server.getLevel(destination.level());
         if (target == null) {
             return false;
         }
@@ -85,11 +94,29 @@ public final class DimensionTravelService {
             player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.of(point));
         }
 
-        player.teleportTo(target, spawn.x, spawn.y, spawn.z, player.getYRot(), player.getXRot());
-        ensureFlight(player);
-        player.getAbilities().flying = true;
-        player.onUpdateAbilities();
+        Vec3 arrival = getArrival(target, destination);
+        player.teleportTo(target, arrival.x, arrival.y, arrival.z, player.getYRot(), player.getXRot());
+        if (destination.arrival() == Arrival.FLIGHT) {
+            ensureFlight(player);
+            player.getAbilities().flying = true;
+            player.onUpdateAbilities();
+        } else {
+            revokeFlight(player);
+            player.fallDistance = 0.0F;
+        }
         return true;
+    }
+
+    public static @NotNull Vec3 getArrival(@NotNull ServerLevel level, @NotNull AnchoredDimension destination) {
+        Vec3 spawn = destination.spawn();
+        if (destination.arrival() == Arrival.FLIGHT) {
+            return spawn;
+        }
+
+        BlockPos column = BlockPos.containing(spawn);
+        level.getChunkAt(column);
+        return new Vec3(spawn.x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, column.getX(), column.getZ()),
+                spawn.z);
     }
 
     public static boolean exit(@NotNull ServerPlayer player) {

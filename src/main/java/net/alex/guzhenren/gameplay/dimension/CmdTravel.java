@@ -23,7 +23,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 
 /**
  * {@code /guworld enter <dimension> [targets]} and {@code /guworld exit [targets]}: admin travel to
@@ -68,20 +67,19 @@ public final class CmdTravel {
         CommandSourceStack source = context.getSource();
         ResourceLocation id = ResourceLocationArgument.getId(context, ARG_DIMENSION);
         ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, id);
-        ModDimensions.AnchoredDimension entry = ModDimensions.ANCHORED_DIMENSIONS.get(dimension);
-        if (entry == null) {
+        ModDimensions.AnchoredDimension destination = ModDimensions.ANCHORED_DIMENSIONS.get(dimension);
+        if (destination == null) {
             ModCommandFeedback.failure(source,
                     Component.translatable("guzhenren.command.travel.unknown_dimension", id));
             return 0;
         }
-        Vec3 spawn = entry.spawn();
         Component name = Component.translatable(Util.makeDescriptionId("dimension", id));
 
         List<ServerPlayer> refused = new ArrayList<>();
         List<ServerPlayer> sent = new ArrayList<>();
         for (ServerPlayer player : ModCommandSupport.targets(context)) {
             if (DimensionTravelService.isInside(player, dimension)
-                    || !DimensionTravelService.enter(player, dimension, spawn)) {
+                    || !DimensionTravelService.enter(player, destination)) {
                 refused.add(player);
             } else {
                 sent.add(player);
