@@ -1,9 +1,9 @@
 ---
-name: session-close
-description: Session close for GZR — use when Alex says the goal is done, e.g. "目标已经完成，清理临时文件和环境，如果没有推送就调用推送skill". Cleans up what this task left behind, then ships anything not yet pushed through the commit-push skill.
+name: exit-session
+description: Exit session for GZR — use when Alex says the goal is done, e.g. "目标已经完成，清理临时文件和环境，如果没有推送就调用推送skill". Cleans up what this task left behind, then ships anything not yet pushed through the commit-push skill.
 ---
 
-# Session Close Skill
+# Exit Session Skill
 
 Runs when Alex declares the goal done. Every step runs without an ask; only the `commit-push` skill's commit-message pick waits for him.
 

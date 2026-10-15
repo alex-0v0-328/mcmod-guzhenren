@@ -1,6 +1,6 @@
 ---
 name: commit-push
-description: GitHub commit and push for GZR — use when Alex asks to commit, push, 提交并推送 or 走提交流程, when he brings a red GitHub Actions run, or when the session-close skill finds unshipped work. Runs the whole flow through the push; picking the commit message is the only question.
+description: GitHub commit and push for GZR — use when Alex asks to commit, push, 提交并推送 or 走提交流程, when he brings a red GitHub Actions run, or when the exit-session skill finds unshipped work. Runs the whole flow through the push; picking the commit message is the only question.
 ---
 
 # GitHub Commit and Push Skill
