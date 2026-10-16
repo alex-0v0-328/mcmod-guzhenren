@@ -38,6 +38,90 @@
     "minecraft:beach",
     "minecraft:snowy_beach",
     "minecraft:stony_shore",
-    "minecraft:mushroom_fields"
+    "minecraft:mushroom_fields",
+    {
+      "id": "guworld:forest",
+      "required": false
+    },
+    {
+      "id": "guworld:birch_forest",
+      "required": false
+    },
+    {
+      "id": "guworld:dark_forest",
+      "required": false
+    },
+    {
+      "id": "guworld:forested_plateau",
+      "required": false
+    },
+    {
+      "id": "guworld:cloud_forest",
+      "required": false
+    },
+    {
+      "id": "guworld:peach_grove",
+      "required": false
+    },
+    {
+      "id": "guworld:karst_peak_forest",
+      "required": false
+    },
+    {
+      "id": "guworld:danxia",
+      "required": false
+    },
+    {
+      "id": "guworld:bamboo_jungle",
+      "required": false
+    },
+    {
+      "id": "guworld:rainforest",
+      "required": false
+    },
+    {
+      "id": "guworld:taiga",
+      "required": false
+    },
+    {
+      "id": "guworld:misty_mountains",
+      "required": false
+    },
+    {
+      "id": "guworld:sandstone_pillars",
+      "required": false
+    },
+    {
+      "id": "guworld:plains",
+      "required": false
+    },
+    {
+      "id": "guworld:meadow",
+      "required": false
+    },
+    {
+      "id": "guworld:windswept_hills",
+      "required": false
+    },
+    {
+      "id": "guworld:stony_peaks",
+      "required": false
+    },
+    {
+      "id": "guworld:plateau",
+      "required": false
+    },
+    {
+      "id": "guworld:hot_springs",
+      "required": false
+    },
+    {
+      "id": "guworld:orchid_swamp",
+      "required": false
+    },
+    {
+      "id": "guworld:zhangshiyan_cliffs",
+      "required": false
+    }
   ]
 }
