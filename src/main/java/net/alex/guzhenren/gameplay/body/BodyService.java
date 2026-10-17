@@ -2,7 +2,6 @@ package net.alex.guzhenren.gameplay.body;
 
 import com.google.common.math.LongMath;
 import java.math.BigInteger;
-import java.util.EnumSet;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
@@ -34,7 +33,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>In {@link #clampParts}, the intermediate {@code BigInteger} products are kept exact rather than
  * clamped early, because a later signed addition or fraction can bring them back into range.
  *
- * <p>Physique and undead writes post a {@link PhysiqueChangedEvent} (the attack modifier refreshes);
+ * <p>Physique and undead writes go through {@link #storePhysique}, which posts a {@link PhysiqueChangedEvent}
+ * (the attack modifier refreshes);
  * {@link #setExtremePhysique} posts an {@link ExtremePhysiqueChangedEvent} (the aperture reconciles its
  * talent paths, base essence and pressure). ⚠ {@code setExtremePhysique} does not check awakening: a
  * caller setting a physique other than {@code NONE} gates on it -- the command through
@@ -111,25 +111,13 @@ public final class BodyService {
     //endregion
 
     //region Physique [体质]
-    private static EnumSet<Physique> copyPhysiques(BodyData body) {
-        EnumSet<Physique> next = EnumSet.noneOf(Physique.class);
-        next.addAll(body.physiques());
-        return next;
-    }
-
     public static void addPhysique(@NotNull ServerPlayer player, @NotNull Physique physique) {
-        if (physique == Physique.EXTREME) return;
-
         BodyData body = get(player);
-        EnumSet<Physique> next = copyPhysiques(body);
-        if (physique == Physique.ZOMBIE) next.remove(Physique.HALF_ZOMBIE);
-        if (physique == Physique.HALF_ZOMBIE) next.remove(Physique.ZOMBIE);
-        if (!next.add(physique)) return;
+        if (physique == Physique.EXTREME || body.hasPhysique(physique)) return;
 
-        BodyData updated = body.withPhysiques(next);
+        BodyData updated = (physique == Physique.HALF_ZOMBIE ? body.without(Physique.ZOMBIE) : body).with(physique);
         if (physique == Physique.ZOMBIE) updated = updated.withLifespanParts(BodyData.parts(BodyData.ZOMBIE_LIFESPAN));
-        store(player, updated);
-        NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
+        storePhysique(player, updated);
     }
 
     public static void removePhysique(@NotNull ServerPlayer player, @NotNull Physique physique) {
@@ -137,16 +125,8 @@ public final class BodyService {
             setExtremePhysique(player, ExtremePhysique.NONE);
             return;
         }
-
         BodyData body = get(player);
-        if (!body.hasPhysique(physique)) return;
-
-        EnumSet<Physique> next = copyPhysiques(body);
-        next.remove(physique);
-        BodyData updated = body.withPhysiques(next);
-        if (!updated.isZombieOrHalfZombie()) updated = updated.withZombieTier(BodyData.NO_ZOMBIE_TIER);
-        store(player, updated);
-        NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
+        if (body.hasPhysique(physique)) storePhysique(player, body.without(physique));
     }
 
     public static void setExtremePhysique(@NotNull ServerPlayer player, @NotNull ExtremePhysique physique) {
@@ -158,30 +138,22 @@ public final class BodyService {
         NeoForge.EVENT_BUS.post(new ExtremePhysiqueChangedEvent(player, before, physique));
     }
 
-    public static void revive(@NotNull ServerPlayer player) {
-        store(player, get(player).revived());
-        NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
-    }
+    public static void revive(@NotNull ServerPlayer player) { storePhysique(player, get(player).revived()); }
 
     public static void enterHalfZombie(@NotNull ServerPlayer player, int tier, int durationTicks) {
-        BodyData body = get(player);
-        EnumSet<Physique> next = copyPhysiques(body);
-        next.remove(Physique.ZOMBIE);
-        next.add(Physique.HALF_ZOMBIE);
-        store(player, body.withPhysiques(next)
+        storePhysique(player, get(player).without(Physique.ZOMBIE).with(Physique.HALF_ZOMBIE)
                 .withHalfZombieEndTick(getGameTime(player) + durationTicks)
                 .withZombieTier(tier));
-        NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
     }
 
     public static void turnZombie(@NotNull ServerPlayer player, int tier) {
-        BodyData body = get(player);
-        EnumSet<Physique> next = copyPhysiques(body);
-        next.remove(Physique.HALF_ZOMBIE);
-        next.add(Physique.ZOMBIE);
-        store(player, body.withPhysiques(next)
+        storePhysique(player, get(player).with(Physique.ZOMBIE)
                 .withLifespanParts(BodyData.parts(BodyData.ZOMBIE_LIFESPAN))
                 .withZombieTier(tier));
+    }
+
+    private static void storePhysique(ServerPlayer player, BodyData data) {
+        store(player, data);
         NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
     }
 

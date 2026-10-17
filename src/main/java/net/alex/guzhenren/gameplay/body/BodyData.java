@@ -18,7 +18,10 @@ import org.jetbrains.annotations.NotNull;
  * Body [肉身] state: cumulative physiques, race, age and lifespan. Immutable record attachment keyed
  * {@code body_data}; {@link BodyService} is the only
  * writer. The concrete Ten-Extreme physique belongs here; the aperture stores only its base-essence
- * value. Zombie and half-zombie are mutually exclusive; Extreme may coexist with either one.
+ * value. Zombie and half-zombie are mutually exclusive; Extreme may coexist with either one. The constructor drops
+ * half-zombie whenever zombie is present, so {@link #with with(ZOMBIE)} needs no removal first, while
+ * {@code with(HALF_ZOMBIE)} must follow {@code without(ZOMBIE)}; it also clears the zombie tier once neither is
+ * left.
  *
  * <p>⚠ Ten components, so the {@code STREAM_CODEC} is handwritten and the encoder mirrors the decoder
  * order exactly. ⚠ The time anchors default to {@code UNTRACKED} (-1), never {@code 0}: zero is a real
@@ -155,12 +158,18 @@ public record BodyData(
     }
 
     public BodyData revived() {
-        EnumSet<Physique> next = EnumSet.noneOf(Physique.class);
-        next.addAll(physiques);
-        next.remove(Physique.ZOMBIE);
-        next.remove(Physique.HALF_ZOMBIE);
-        return new BodyData(next, extremePhysique, race, ageParts, lifespanParts, lastDayIndex,
-                deathQiLifespanLost, UNTRACKED, NO_ZOMBIE_TIER, lastBilledTick);
+        return without(Physique.ZOMBIE).without(Physique.HALF_ZOMBIE).withHalfZombieEndTick(UNTRACKED);
+    }
+
+    public BodyData with(Physique physique) { return withPhysiques(getChanged(physique, true)); }
+
+    public BodyData without(Physique physique) { return withPhysiques(getChanged(physique, false)); }
+
+    private Set<Physique> getChanged(Physique physique, boolean present) {
+        EnumSet<Physique> next = physiques.isEmpty() ? EnumSet.noneOf(Physique.class) : EnumSet.copyOf(physiques);
+        if (present) next.add(physique);
+        else next.remove(physique);
+        return next;
     }
 
     public BodyData withRace(Race race) {
