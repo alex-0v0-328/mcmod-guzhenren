@@ -261,14 +261,14 @@ public abstract class TendedGuItem extends MortalGuItem {
     //region the long cooldown -- vanilla draws the sweep, the stack's stamp is the truth
     private static final String FAILED_COOLDOWN = "guzhenren.item.failed.gu_cooldown";
 
-    private int useCooldownLeft(Player player, ItemStack stack) {
-        return GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.USED_AT.get()), spec.effectCooldownTicks());
+    private int postRefineCooldownLeft(Player player, ItemStack stack) {
+        Long refinedAt = stack.get(ModDataComponents.REFINED_AT.get());
+        return GuCooldowns.cooldownLeft(player, refinedAt, POST_REFINE_COOLDOWN_TICKS);
     }
 
     private @Nullable Refusal cooldownRefusal(Player player, ItemStack stack) {
-        int left = Math.max(allowsUseDuringEffectCooldown() ? 0 : useCooldownLeft(player, stack),
-                GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()),
-                        POST_REFINE_COOLDOWN_TICKS));
+        int left = Math.max(allowsUseDuringEffectCooldown() ? 0 : effectCooldownLeft(player, stack),
+                postRefineCooldownLeft(player, stack));
         if (left <= 0) return null;
 
         if (player instanceof ServerPlayer server) server.getCooldowns().addCooldown(this, left);
@@ -280,9 +280,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         super.spend(player, stack, count);
         int left = Math.max(TimeFlow.shortenWait(player, spec.itemCooldownTicks()),
-                GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()),
-                        POST_REFINE_COOLDOWN_TICKS));
-        if (!allowsUseDuringEffectCooldown()) left = Math.max(left, useCooldownLeft(player, stack));
+                postRefineCooldownLeft(player, stack));
+        if (!allowsUseDuringEffectCooldown()) left = Math.max(left, effectCooldownLeft(player, stack));
         if (left > 0) player.getCooldowns().addCooldown(this, left);
     }
     //endregion

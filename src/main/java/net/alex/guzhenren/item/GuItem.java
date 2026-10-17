@@ -93,6 +93,10 @@ public abstract class GuItem extends Item {
 
     public static boolean isVitalOf(ItemStack stack, Player player) { return player.getUUID().equals(owner(stack)); }
 
+    public static boolean isForeignVital(ItemStack stack, Player player) {
+        return isVital(stack) && !isVitalOf(stack, player);
+    }
+
     public static int boundAperture(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
     }
@@ -147,11 +151,18 @@ public abstract class GuItem extends Item {
     protected boolean feedsFromOffhand() { return false; }
     //endregion
 
-    private InteractionResultHolder<ItemStack> refused(ServerPlayer player, Refusal refusal, ItemStack stack) {
-        if (player != null) refuse(player, refusal.key(), refusal.args());
-        return feedsFromOffhand()
-                ? InteractionResultHolder.consume(stack)
-                : InteractionResultHolder.fail(stack);
+    private @Nullable Refusal getRefusal(Player player, ItemStack stack, boolean sneak) {
+        return sneak ? sneakGate(player, stack) : gate(player, stack);
+    }
+
+    private void refuse(Player player, Refusal refusal) {
+        if (player instanceof ServerPlayer server) refuse(server, refusal.key(), refusal.args());
+    }
+
+    private void runUse(Player player, ItemStack stack, boolean sneak) {
+        if (player instanceof ServerPlayer server) {
+            spend(server, stack, sneak ? sneakApply(server, stack) : apply(server, stack));
+        }
     }
 
     @Override
@@ -161,17 +172,16 @@ public abstract class GuItem extends Item {
         boolean sneak = isSneakUse(player, stack);
         if (!sneak && !hasUse()) return super.use(level, player, hand);
 
-        Refusal refusal = sneak ? sneakGate(player, stack) : gate(player, stack);
+        Refusal refusal = getRefusal(player, stack, sneak);
         if (refusal != null) {
-            return refused(player instanceof ServerPlayer server ? server : null, refusal, stack);
+            refuse(player, refusal);
+            return feedsFromOffhand() ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
         }
         if (useDurationTicks(player, stack) > 0) {
             player.startUsingItem(hand);
             return InteractionResultHolder.consume(stack);
         }
-        if (player instanceof ServerPlayer server) {
-            spend(server, stack, sneak ? sneakApply(server, stack) : apply(server, stack));
-        }
+        runUse(player, stack, sneak);
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
     }
 
@@ -182,13 +192,11 @@ public abstract class GuItem extends Item {
         if (!(entity instanceof Player player)) return stack;
 
         boolean sneak = isSneakUse(player, stack);
-        Refusal refusal = sneak ? sneakGate(player, stack) : gate(player, stack);
+        Refusal refusal = getRefusal(player, stack, sneak);
         if (refusal != null) {
-            if (player instanceof ServerPlayer server) refuse(server, refusal.key(), refusal.args());
-            return stack;
-        }
-        if (player instanceof ServerPlayer server) {
-            spend(server, stack, sneak ? sneakApply(server, stack) : apply(server, stack));
+            refuse(player, refusal);
+        } else {
+            runUse(player, stack, sneak);
         }
         return stack;
     }

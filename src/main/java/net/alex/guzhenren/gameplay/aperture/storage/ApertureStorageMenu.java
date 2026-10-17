@@ -282,7 +282,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         public boolean mayPlace(@NotNull ItemStack stack) {
             if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.refined(stack)) return false;
             if (!gu.canBeVital()) return false;
-            if (GuItem.isVital(stack) && !GuItem.isVitalOf(stack, player)) return false;
+            if (GuItem.isForeignVital(stack, player)) return false;
             return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0;
         }
 

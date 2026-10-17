@@ -233,7 +233,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         for (int i = 0; i < inventory.getContainerSize() && wanted > 0; i++) {
             ItemStack from = inventory.getItem(i);
             if (from.isEmpty() || !need.ingredient().test(from)) continue;
-            if (GuItem.isVital(from) && !GuItem.isVitalOf(from, player)) continue;
+            if (GuItem.isForeignVital(from, player)) continue;
 
             ItemStack held = input.getItem(slot);
             if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, from)) continue;
@@ -380,7 +380,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
             if (ritual.isRunning() || !(stack.getItem() instanceof MortalGuItem)) return false;
-            return !GuItem.isVital(stack) || GuItem.isVitalOf(stack, player);
+            return !GuItem.isForeignVital(stack, player);
         }
 
         @Override
@@ -395,7 +395,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         public boolean mayPlace(@NotNull ItemStack stack) {
             boolean fuel = stack.getItem() instanceof PrimevalStoneItem
                     || stack.getItem() instanceof PrimevalElderGuItem;
-            return fuel && (!GuItem.isVital(stack) || GuItem.isVitalOf(stack, player));
+            return fuel && !GuItem.isForeignVital(stack, player);
         }
     }
 
