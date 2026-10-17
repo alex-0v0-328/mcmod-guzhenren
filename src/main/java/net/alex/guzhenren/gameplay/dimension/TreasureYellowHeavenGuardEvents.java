@@ -1,6 +1,7 @@
 package net.alex.guzhenren.gameplay.dimension;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.TossedItems;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.ChatFormatting;
@@ -8,10 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -37,12 +35,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
  * for. Attacks on it stay canceled like every other attack.
  *
- * <p>⚠ A canceled toss goes back into the bag through {@link #stowTossed}, which never drops. Putting it back
- * with {@code placeItemBackInInventory} dropped whatever did not fit, the drop fired this toss event again, and a
- * full bag recursed until the server crashed -- a cursor stack or the 2x2 crafting grid falling back on a
- * closing screen was enough. What does not fit now stays out as an item that hovers without gravity where it
- * was dropped, so it never falls into the void and can be picked up once there is room; it despawns like any
- * dropped item, and the player is told the bag is full.
+ * <p>⚠ A toss goes back into the bag through {@link TossedItems#stow}, which never drops; what does not fit
+ * hovers where it was dropped and despawns like any dropped item, and the player is told the bag is full.
  *
  * @author Alex
  * @version 1.0.0
@@ -113,19 +107,12 @@ public final class TreasureYellowHeavenGuardEvents {
         if (event.getPlayer().level().isClientSide()) return;
         if (!inTyh(event.getPlayer())) return;
 
-        if (stowTossed(event.getPlayer(), event.getEntity())) event.setCanceled(true);
-    }
-
-    public static boolean stowTossed(Player player, ItemEntity tossed) {
-        ItemStack rest = tossed.getItem().copy();
-        player.getInventory().add(rest);
-        if (rest.isEmpty()) return true;
-
-        tossed.setItem(rest);
-        tossed.setNoGravity(true);
-        tossed.setDeltaMovement(Vec3.ZERO);
+        Player player = event.getPlayer();
+        if (TossedItems.stow(player, event.getEntity())) {
+            event.setCanceled(true);
+            return;
+        }
         player.displayClientMessage(Component.translatable(INVENTORY_FULL).withStyle(ChatFormatting.RED), true);
-        return false;
     }
 
     @SubscribeEvent

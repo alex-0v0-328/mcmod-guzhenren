@@ -1,7 +1,8 @@
 package net.alex.guzhenren.item;
 
 import net.alex.guzhenren.Guzhenren;
-import net.minecraft.world.item.ItemStack;
+import net.alex.guzhenren.core.TossedItems;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
@@ -12,7 +13,9 @@ import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
  *
  * <p>Only {@link net.alex.guzhenren.item.GuItem#isVital} stacks are refused. This handler must
  * hand the stack back into the inventory: vanilla's {@link net.neoforged.neoforge.event.entity.item.ItemTossEvent}
- * removes the entity before posting, so canceling alone deletes the item instead of saving it.
+ * removes the entity before posting, so canceling alone deletes the item instead of saving it. It hands it
+ * back through {@link TossedItems#stow}, which never drops; a Vital Gu that does not fit hovers where it was
+ * dropped and never despawns, so a full bag can neither crash the server nor lose it.
  *
  * @author Alex
  * @version 1.0.0
@@ -27,10 +30,13 @@ public final class ItemTossEvents {
 
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
-        ItemStack stack = event.getEntity().getItem();
-        if (!GuItem.isVital(stack)) return;
+        ItemEntity tossed = event.getEntity();
+        if (!GuItem.isVital(tossed.getItem())) return;
 
-        event.setCanceled(true);
-        event.getPlayer().getInventory().placeItemBackInInventory(stack);
+        if (TossedItems.stow(event.getPlayer(), tossed)) {
+            event.setCanceled(true);
+        } else {
+            tossed.setUnlimitedLifetime();
+        }
     }
 }
