@@ -338,17 +338,20 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected int useChargeTicks(Player player, ItemStack stack) { return useChargeByGap(player); }
 
     protected int drive(ServerPlayer player, ItemStack stack) {
-        ApertureEssenceService.consume(player, spec.essencePerRound());
-        boolean drivenOnAnEmptyBar = clock.spendWasForced(stack, hungerCostMultiplier(player, stack));
-        grant(player, stack);
-
-        if (drivenOnAnEmptyBar && !player.hasInfiniteMaterials()) {
-            exhausted(player, stack);
-            return 1;
-        }
+        if (spendAndGrant(player, stack)) return 1;
         eat(player, stack);
         if (hungry(player, stack)) clock.warn(player, stack, 1L);
         return 0;
+    }
+
+    protected final boolean spendAndGrant(ServerPlayer player, ItemStack stack) {
+        ApertureEssenceService.consume(player, spec.essencePerRound());
+        boolean drivenOnAnEmptyBar = clock.spendWasForced(stack, hungerCostMultiplier(player, stack));
+        grant(player, stack);
+        if (!drivenOnAnEmptyBar || player.hasInfiniteMaterials()) return false;
+
+        exhausted(player, stack);
+        return true;
     }
 
     @Override

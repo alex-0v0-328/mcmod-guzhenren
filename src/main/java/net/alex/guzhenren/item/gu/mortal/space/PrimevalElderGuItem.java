@@ -54,12 +54,6 @@ public class PrimevalElderGuItem extends TendedGuItem {
         stack.set(ModDataComponents.STORED_STONES.get(), Math.clamp(value, 0L, capacity));
     }
 
-    @Override
-    protected int feedUnits(ItemStack food) { return isStone(food) ? 1 : 0; }
-
-    @Override
-    protected boolean holdingFood(Player player, ItemStack stack) { return false; }
-
     private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
     //endregion
 

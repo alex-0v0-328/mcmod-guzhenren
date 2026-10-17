@@ -11,7 +11,9 @@ import net.minecraft.world.item.ItemStack;
  * {@link OneShotGuItem} and a plain tended Gu), so the Vital [本命] slot asks {@code canBeVital}
  * rather than testing the class.
  *
- * <p>⚠ Binding one would lose it, and bill its owner, on the very first click.
+ * <p>⚠ Binding one would lose it, and bill its owner, on the very first click. ⚠ It never eats on its way out:
+ * {@code drive} only spends and grants ({@code spendAndGrant}), and the sneak use skips the base's eat-first,
+ * so no food goes into a stack that is gone after the click.
  *
  * @author Alex
  * @version 1.0.0
@@ -31,7 +33,10 @@ public abstract class ConsumedGuItem extends TendedGuItem {
 
     @Override
     protected int drive(ServerPlayer player, ItemStack stack) {
-        super.drive(player, stack);
+        spendAndGrant(player, stack);
         return 1;
     }
+
+    @Override
+    protected int sneakApply(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
 }
