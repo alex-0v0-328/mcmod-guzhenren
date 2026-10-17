@@ -4,7 +4,7 @@ import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -93,7 +93,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     @Override
     protected int useChargeTicks(Player player, ItemStack stack) {
         return isSneakUse(player, stack)
-                ? PathTimeFlowService.shortenWait(player, GROW_CHARGE_TICKS)
+                ? TimeFlow.shortenWait(player, GROW_CHARGE_TICKS)
                 : super.useChargeTicks(player, stack);
     }
     //endregion

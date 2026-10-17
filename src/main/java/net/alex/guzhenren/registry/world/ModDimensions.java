@@ -21,8 +21,10 @@ import net.minecraft.world.phys.Vec3;
  * player inside is expected to leave through {@code /guworld exit} so the recorded return point is
  * used. {@link AnchoredDimension#level} is the dimension's level key, {@link AnchoredDimension#spawn}
  * the fixed entry point every entrant arrives at, {@link AnchoredDimension#arrival} how they arrive there,
- * and {@link AnchoredDimension#rank} the dimension's 转 (6..9: 6-7 blessed land [福地], 8-9 grotto-heaven
- * [洞天]; 0 for a region of the mortal world, which has none).
+ * {@link AnchoredDimension#rank} the dimension's 转 (6..9: 6-7 blessed land [福地], 8-9 grotto-heaven
+ * [洞天]; 0 for a region of the mortal world, which has none), and {@link AnchoredDimension#timeRate} how fast
+ * time runs inside against the overworld, multiplied into the clock of every player there
+ * ({@code TimeFlow#getWorldRate}); below 1 it runs slower. Every rate is 1 until Alex sets one.
  *
  * <p>{@link Arrival#FLIGHT} lands the entrant on the spawn itself and grants flight for the stay.
  * {@link Arrival#SURFACE} lands them on top of the spawn's column -- the highest block that blocks motion
@@ -55,13 +57,13 @@ public final class ModDimensions {
 
     public enum Arrival { FLIGHT, SURFACE }
 
-    public record AnchoredDimension(ResourceKey<Level> level, Vec3 spawn, Arrival arrival, int rank) {}
+    public record AnchoredDimension(ResourceKey<Level> level, Vec3 spawn, Arrival arrival, int rank, double timeRate) {}
 
     public static final Map<ResourceKey<Level>, AnchoredDimension> ANCHORED_DIMENSIONS = Map.of(
             TREASURE_YELLOW_HEAVEN,
-            new AnchoredDimension(TREASURE_YELLOW_HEAVEN, TREASURE_YELLOW_HEAVEN_SPAWN, Arrival.FLIGHT, 8),
+            new AnchoredDimension(TREASURE_YELLOW_HEAVEN, TREASURE_YELLOW_HEAVEN_SPAWN, Arrival.FLIGHT, 8, 1.0),
             SOUTHERN_BORDER,
-            new AnchoredDimension(SOUTHERN_BORDER, new Vec3(0.5, 0.0, 0.5), Arrival.SURFACE, 0));
+            new AnchoredDimension(SOUTHERN_BORDER, new Vec3(0.5, 0.0, 0.5), Arrival.SURFACE, 0, 1.0));
 
     public static boolean isFlightGranted(ResourceKey<Level> level) {
         AnchoredDimension dimension = ANCHORED_DIMENSIONS.get(level);

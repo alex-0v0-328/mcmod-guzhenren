@@ -1,6 +1,6 @@
 package net.alex.guzhenren.effect.timed;
 
-import net.alex.guzhenren.gameplay.path.time.TimeRateContributor;
+import net.alex.guzhenren.gameplay.clock.TimeRateContributor;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 

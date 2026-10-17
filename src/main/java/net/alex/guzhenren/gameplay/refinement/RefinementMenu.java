@@ -3,7 +3,7 @@ package net.alex.guzhenren.gameplay.refinement;
 import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
@@ -261,7 +261,7 @@ public class RefinementMenu extends AbstractContainerMenu {
             long now = server.serverLevel().getGameTime();
             if (now != advancedAt) {
                 advancedAt = now;
-                for (int step = PathTimeFlowService.getSteps(server); step > 0 && ritual.isRunning(); step--) {
+                for (int step = TimeFlow.getSteps(server); step > 0 && ritual.isRunning(); step--) {
                     ritual.advance(server);
                 }
             }

@@ -8,8 +8,8 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -81,8 +81,8 @@ public abstract class GuItem extends Item {
 
     protected int useChargeByGap(Player player) {
         int gap = rankGap(player);
-        if (gap > 0) return PathTimeFlowService.shortenWait(player, USE_FAST_TICKS);
-        return PathTimeFlowService.shortenWait(player, gap == 0 ? USE_SAME_TICKS : USE_SLOW_TICKS);
+        if (gap > 0) return TimeFlow.shortenWait(player, USE_FAST_TICKS);
+        return TimeFlow.shortenWait(player, gap == 0 ? USE_SAME_TICKS : USE_SLOW_TICKS);
     }
     //endregion
 
@@ -235,7 +235,7 @@ public abstract class GuItem extends Item {
     protected int cooldownTicks(ItemStack stack) { return COOLDOWN_TICKS; }
 
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
-        player.getCooldowns().addCooldown(this, PathTimeFlowService.shortenWait(player, cooldownTicks(stack)));
+        player.getCooldowns().addCooldown(this, TimeFlow.shortenWait(player, cooldownTicks(stack)));
         if (count > 0 && !player.hasInfiniteMaterials()) stack.shrink(count);
     }
 }

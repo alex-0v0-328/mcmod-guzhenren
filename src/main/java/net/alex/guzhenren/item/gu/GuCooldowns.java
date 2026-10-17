@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu;
 
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -14,7 +14,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ {@link #cooldownStamp}: stamped BACK by the share a hastened clock has already served, because the
  * stamp is read again long after the form has ended -- scaling the window on the way out would recompute a
- * live cooldown.
+ * live cooldown. A slowed clock stamps FORWARD, so {@link #stampCooldownLeft} counts a stamp ahead of now as
+ * long as the slowest clock ({@code TimeFlow.MIN_RATE}) could stretch the window; a stamp beyond that came from
+ * another world and reads as no cooldown.
  *
  * @author Alex
  * @version 1.0.0
@@ -28,14 +30,14 @@ final class GuCooldowns {
 
     static long cooldownStamp(ServerPlayer player, int window) {
         long gameTime = player.server.overworld().getGameTime();
-        return gameTime - (window - PathTimeFlowService.shortenWait(player, window));
+        return gameTime - (window - TimeFlow.shortenWait(player, window));
     }
 
     static int stampCooldownLeft(long now, @Nullable Long stamp, int window) {
         if (stamp == null || window <= 0) return 0;
 
-        long elapsed = now - stamp;
-        return elapsed < 0L || elapsed >= window ? 0 : (int) (window - elapsed);
+        long left = window - (now - stamp);
+        return left <= 0L || left > TimeFlow.shortenWait(TimeFlow.MIN_RATE, window) ? 0 : (int) left;
     }
 
     static int cooldownLeft(Player player, @Nullable Long stamp, int window) {

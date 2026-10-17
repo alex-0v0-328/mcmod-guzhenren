@@ -4,10 +4,11 @@ import com.google.common.math.LongMath;
 import java.math.BigInteger;
 import java.util.EnumSet;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.clock.Beat;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.MarkTag;
 import net.alex.guzhenren.gameplay.path.PathService;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * {@code lastBilledTick} and bills lifespan every heartbeat instead of once a day.
  *
  * <p>⚠ {@code tickAging}'s returned day count can far exceed one and drives three day-clock walks --
- * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link PathTimeFlowService#scale}
+ * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link TimeFlow#scale}
  * like every other thing he spends -- hastened means FASTER; a hand-rolled rate runs it
  * BACKWARDS, into a pure longevity buff. ⚠ The anchor is {@code dayTime}, not {@code gameTime} (so
  * {@code /time add} still ages him): time running backwards re-anchors and bills nothing -- one
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see PathTimeFlowService
+ * @see TimeFlow
  * @see PhysiqueChangedEvent
  * @since 1.0.0
  */
@@ -261,7 +262,7 @@ public final class BodyService {
     }
 
     //region 寿元的钟 -- billed on the heartbeat, because 宙道 changes how fast he spends it
-    public static void tickLifespan(@NotNull ServerPlayer player) {
+    public static void tickLifespan(@NotNull ServerPlayer player, @NotNull Beat beat) {
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
@@ -273,7 +274,7 @@ public final class BodyService {
             store(player, body.withLastBilledTick(now));
             return;
         }
-        long lived = PathTimeFlowService.scale(player, getElapsedParts(now - body.lastBilledTick()));
+        long lived = beat.scale(getElapsedParts(now - body.lastBilledTick()));
         if (lived <= 0L) return;
 
         store(player, body.lived(lived, now));

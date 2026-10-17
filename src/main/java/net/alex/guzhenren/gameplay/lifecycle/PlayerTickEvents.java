@@ -10,6 +10,8 @@ import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageTick;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.UndeadService;
+import net.alex.guzhenren.gameplay.clock.Beat;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
@@ -25,7 +27,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * The one-second heartbeat: a straight run of ordered steps that most of the player's state depends
  * on. Every step runs inside {@code tickCount % HEARTBEAT_TICKS == 0}, and most read what an earlier one
  * just wrote — aging feeds the day-clock walks, {@code syncEffects} feeds {@code tickDeathQi} and
- * {@code regenStep}, {@code tickHalfZombie} feeds attack and regen. {@link
+ * {@code regenStep}, {@code tickHalfZombie} feeds attack and regen. The beat reads the clock once, into a
+ * {@link Beat}, and every time-scaled step runs on that one reading. {@link
  * PlayerDataService} owns the lifecycle; this file owns the cadence, and every step but
  * {@code checkLethalState} lives in its domain's service. {@code checkLethalState} stays here because the
  * order of the four deaths is a rule across domains.
@@ -54,9 +57,9 @@ public final class PlayerTickEvents {
 
         if (player.tickCount % HEARTBEAT_TICKS != 0) return;
 
-        long days = BodyService.tickAging(player);
-        GuUpkeep.tickCarried(player, days);
-        ApertureStorageTick.tickStored(player, days);
+        Beat beat = new Beat(BodyService.tickAging(player), TimeFlow.getRate(player), player.getRandom());
+        GuUpkeep.tickCarried(player, beat.days());
+        ApertureStorageTick.tickStored(player, beat.days());
 
         if (player.containerMenu instanceof ApertureStorageMenu menu) menu.refresh();
         VitalLossService.settleOfflineVitalLoss(player);
@@ -67,10 +70,10 @@ public final class PlayerTickEvents {
         PathQiService.syncEffects(player);
         UndeadService.tickDeathQi(player);
         AttackDamageService.refresh(player);
-        BodyService.tickLifespan(player);
-        ApertureEssenceService.regenStep(player);
-        ApertureNourishService.tickNourish(player);
-        MindService.regenStep(player);
+        BodyService.tickLifespan(player, beat);
+        ApertureEssenceService.regenStep(player, beat);
+        ApertureNourishService.tickNourish(player, beat);
+        MindService.regenStep(player, beat);
         SelfRelianceGuItem.tryAutoUse(player);
         AperturePressureService.tick(player);
         checkLethalState(player);

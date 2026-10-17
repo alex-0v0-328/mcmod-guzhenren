@@ -4,7 +4,8 @@ import com.google.common.math.LongMath;
 import java.util.Arrays;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.Beat;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Alex
  * @version 1.0.0
  * @see ApertureService
- * @see PathTimeFlowService
+ * @see TimeFlow
  * @since 1.0.0
  */
 
@@ -44,7 +45,9 @@ public final class ApertureEssenceService {
                 * aperture.stage().getEssenceMultiplier();
     }
 
-    public static double getRegenPerTick(@NotNull Aperture aperture) { return getRegenPerDay(aperture) / (double) Ticks.DAY; }
+    public static double getRegenPerTick(@NotNull Aperture aperture) {
+        return getRegenPerDay(aperture) / (double) Ticks.DAY;
+    }
 
     public static final long DISTILLED_RATE = 2L;
 
@@ -52,7 +55,9 @@ public final class ApertureEssenceService {
         return ApertureService.getAperture(player).currentEssence();
     }
 
-    public static long getMaxEssence(@NotNull Player player) { return ApertureService.getAperture(player).maxEssence(); }
+    public static long getMaxEssence(@NotNull Player player) {
+        return ApertureService.getAperture(player).maxEssence();
+    }
 
     public static long getDistilledEssence(@NotNull Player player) {
         return ApertureService.getAperture(player).distilledEssence();
@@ -191,7 +196,7 @@ public final class ApertureEssenceService {
         return takes;
     }
 
-    public static void regenStep(@NotNull ServerPlayer player) {
+    public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
         ApertureData data = ApertureService.get(player);
         float[] carry = player.getData(ModAttachments.ESSENCE_CARRY);
 
@@ -202,11 +207,12 @@ public final class ApertureEssenceService {
 
         double bonus = getEssenceQiBonus(player);
         for (int index = 0; index < data.count(); index++) {
-            regenAperture(player, data.get(index), index, carry, bonus);
+            regenAperture(player, beat, data.get(index), index, carry, bonus);
         }
     }
 
-    private static void regenAperture(ServerPlayer player, Aperture aperture, int index, float[] carry, double bonus) {
+    private static void regenAperture(
+            ServerPlayer player, Beat beat, Aperture aperture, int index, float[] carry, double bonus) {
         if (ApertureService.getStatus(player, index) != ApertureStatus.NORMAL) {
             carry[index] = 0.0F;
             return;
@@ -218,8 +224,7 @@ public final class ApertureEssenceService {
             return;
         }
 
-        double perStep = PathTimeFlowService.scale(player,
-                getRegenPerTick(aperture) * REGEN_INTERVAL_TICKS * (1.0 + bonus));
+        double perStep = beat.scale(getRegenPerTick(aperture) * REGEN_INTERVAL_TICKS * (1.0 + bonus));
         if (perStep <= 0.0) return;
         double total = carry[index] + perStep;
         long whole = (long) total;

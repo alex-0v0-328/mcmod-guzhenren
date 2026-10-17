@@ -5,7 +5,7 @@ import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -155,7 +155,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         clock.bind(player, stack);
         stack.set(ModDataComponents.REFINED_AT.get(), GuCooldowns.cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
         GuCooldowns.applyPostRefineCooldown(player.getCooldowns(), this,
-                PathTimeFlowService.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
+                TimeFlow.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
     }
     //endregion
 
@@ -220,7 +220,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private long mostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
         if (guPaced(player)) {
-            return Math.min(pool, PathTimeFlowService.scale(player, clock.essencePerHungerPoint()));
+            return Math.min(pool, TimeFlow.scale(player, clock.essencePerHungerPoint()));
         }
         return poolPacedStep(player, pool, elapsed);
     }
@@ -233,7 +233,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private static long poolPacedStep(ServerPlayer player, long pool, int elapsed) {
         int stepIndex = (elapsed % Ticks.SECOND) / POOL_PACED_STEP_TICKS;
-        return Math.min(pool, PathTimeFlowService.scale(player, pool / (POOL_PACED_STEPS + 1 - stepIndex)));
+        return Math.min(pool, TimeFlow.scale(player, pool / (POOL_PACED_STEPS + 1 - stepIndex)));
     }
 
     private void pour(ServerPlayer player, ItemStack stack, int amount) {
@@ -279,7 +279,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     @Override
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         super.spend(player, stack, count);
-        int left = Math.max(PathTimeFlowService.shortenWait(player, spec.itemCooldownTicks()),
+        int left = Math.max(TimeFlow.shortenWait(player, spec.itemCooldownTicks()),
                 GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.REFINED_AT.get()),
                         POST_REFINE_COOLDOWN_TICKS));
         if (!allowsUseDuringEffectCooldown()) left = Math.max(left, useCooldownLeft(player, stack));

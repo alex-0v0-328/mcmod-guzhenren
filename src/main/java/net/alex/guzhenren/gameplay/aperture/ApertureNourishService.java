@@ -1,7 +1,8 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.Beat;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.network.chat.Component;
@@ -48,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Alex
  * @version 1.0.0
  * @see ApertureService
- * @see PathTimeFlowService
+ * @see TimeFlow
  * @since 1.0.0
  */
 
@@ -146,8 +147,8 @@ public final class ApertureNourishService {
     }
 
     //region nourishing [温养] -- the second that the heartbeat bills
-    public static void tickNourish(@NotNull ServerPlayer player) {
-        for (int second = PathTimeFlowService.getSteps(player); second > 0; second--) {
+    public static void tickNourish(@NotNull ServerPlayer player, @NotNull Beat beat) {
+        for (int second = beat.getSteps(); second > 0; second--) {
             if (!nourishSecond(player)) return;
         }
     }

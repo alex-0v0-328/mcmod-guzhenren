@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.body.BodyStrengthService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindPool;
@@ -28,7 +29,6 @@ import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.minecraft.network.chat.Component;
@@ -204,8 +204,8 @@ public final class InfoModel {
     }
 
     private static void timePathAchieve(List<Row> rows, Player player) {
-        int rate = PathTimeFlowService.getRate(player);
-        if (rate <= PathTimeFlowService.NORMAL_RATE) return;
+        int rate = TimeFlow.getSelfRate(player);
+        if (rate <= TimeFlow.NORMAL_RATE) return;
 
         rows.add(new Row(0, new TimePathAchieveHeader()));
         rows.add(new Row(INDENT, new TimeRateUpRow(rate)));

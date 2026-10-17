@@ -4,7 +4,7 @@ import com.google.common.math.LongMath;
 import java.util.Map;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.path.time.PathTimeFlowService;
+import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -114,14 +114,14 @@ public final class MindService {
         set(player, type, new MindPool(cap, cap, false));
     }
 
-    public static void regenStep(@NotNull ServerPlayer player) {
+    public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
         if (!thinksThisStep(player)) return;
 
         MindPool thoughts = getPool(player, MindPoolType.THOUGHTS);
         if (thoughts.current() >= thoughts.max()) return;
 
-        long grown = LongMath.saturatedAdd(thoughts.current(),
-                PathTimeFlowService.scale(player, getBrilliance(player).getThoughtsPerSecond()));
+        long gained = beat.scale(getBrilliance(player).getThoughtsPerSecond());
+        long grown = LongMath.saturatedAdd(thoughts.current(), gained);
         setCurrent(player, MindPoolType.THOUGHTS, Math.min(grown, thoughts.max()));
     }
 
