@@ -31,7 +31,9 @@ import net.minecraft.world.level.Level;
  *
  * <p>{@code enter} only accepts dimensions listed in {@link ModDimensions#ANCHORED_DIMENSIONS} -- an
  * anchored dimension is one the player is meant to leave through us, with the return point recorded
- * by {@link DimensionTravelService}. Vanilla dimension hops stay with vanilla {@code /execute in}.
+ * by {@link DimensionTravelService}. Vanilla dimension hops stay with vanilla {@code /execute in}. A listed
+ * dimension whose level this server does not have (Gu World is not installed) is refused with its own message.
+ * ⚠ A translation argument must be a component, number or string: the id goes in as text.
  * {@code exit} takes no dimension: the player leaves whichever anchored dimension they are inside.
  *
  * @author Alex
@@ -69,9 +71,14 @@ public final class CmdTravel {
         ResourceLocation id = ResourceLocationArgument.getId(context, ARG_DIMENSION);
         ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, id);
         ModDimensions.AnchoredDimension destination = ModDimensions.ANCHORED_DIMENSIONS.get(dimension);
-        if (destination == null || source.getServer().getLevel(dimension) == null) {
+        if (destination == null) {
             ModCommandFeedback.failure(source,
-                    Component.translatable("guzhenren.command.travel.unknown_dimension", id));
+                    Component.translatable("guzhenren.command.travel.unknown_dimension", id.toString()));
+            return 0;
+        }
+        if (source.getServer().getLevel(dimension) == null) {
+            ModCommandFeedback.failure(source,
+                    Component.translatable("guzhenren.command.travel.missing_dimension", id.toString()));
             return 0;
         }
         Component name = Component.translatable(Util.makeDescriptionId("dimension", id));

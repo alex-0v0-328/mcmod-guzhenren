@@ -81,6 +81,7 @@
   "guzhenren.command.travel.already_inside": "%s is already inside %s",
   "guzhenren.command.travel.entered": "Sent %s into %s",
   "guzhenren.command.travel.exited": "Returned %s from the anchored dimension",
+  "guzhenren.command.travel.missing_dimension": "%s is not loaded on this server",
   "guzhenren.command.travel.not_inside": "%s is not inside an anchored dimension",
   "guzhenren.command.travel.unknown_dimension": "%s is not an anchored dimension",
   "guzhenren.command.unknown_value": "Unknown value: %s",

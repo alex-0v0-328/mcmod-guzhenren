@@ -257,6 +257,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.command.travel.not_inside",
                 "%s is not inside an anchored dimension", "%s 不在任何锚定维度内");
         add("guzhenren.command.travel.unknown_dimension",         "%s is not an anchored dimension", "%s 不是锚定维度");
+        add("guzhenren.command.travel.missing_dimension",
+                "%s is not loaded on this server", "%s 未在此服务器加载", "%s 未在此伺服器載入");
     }
     //endregion
 

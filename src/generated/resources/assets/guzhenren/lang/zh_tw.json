@@ -81,6 +81,7 @@
   "guzhenren.command.travel.already_inside": "%s 已經在%s內",
   "guzhenren.command.travel.entered": "已將 %s 送入%s",
   "guzhenren.command.travel.exited": "已將 %s 送出錨定維度",
+  "guzhenren.command.travel.missing_dimension": "%s 未在此伺服器載入",
   "guzhenren.command.travel.not_inside": "%s 不在任何錨定維度內",
   "guzhenren.command.travel.unknown_dimension": "%s 不是錨定維度",
   "guzhenren.command.unknown_value": "未知的取值：%s",
