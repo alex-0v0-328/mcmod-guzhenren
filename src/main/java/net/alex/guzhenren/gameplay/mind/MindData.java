@@ -14,8 +14,9 @@ import net.minecraft.network.codec.StreamCodec;
 /**
  * Mind [脑海]: the brilliance [才情] and the three pools it drives -- thoughts [念], wills [意] and emotions
  * [情]. Immutable record attachment keyed {@code mind_data}; {@link MindService} is the only runtime writer
- * ({@code PlayerDataService} resets and copies it whole); missing {@link MindPoolType} pools are filled with
- * {@link MindPool#of} by the ctor.
+ * ({@code PlayerDataService} resets it whole); missing {@link MindPoolType} pools are filled with
+ * {@link MindPool#of} by the ctor. {@link #isOverflowing} asks only the burstable pools: a pool that can never
+ * pass its cap can never shatter the mind.
  *
  * <p>⚠ Brilliance lives here rather than in its own attachment because it IS the regen rate of these
  * pools; kept apart, the rate and the pools it drives could drift. ⚠ The compact constructor rescales
@@ -79,7 +80,10 @@ public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools,
 
     public MindPool pool(MindPoolType type) { return pools.get(type); }
 
-    public boolean isOverflowing() { return pools.values().stream().anyMatch(MindPool::isOverflowing); }
+    public boolean isOverflowing() {
+        return pools.entrySet().stream()
+                .anyMatch(entry -> entry.getKey().isBurstable() && entry.getValue().isOverflowing());
+    }
 
     public MindData withBrilliance(Brilliance brilliance) { return new MindData(brilliance, pools, taggedThoughts); }
 
