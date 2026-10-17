@@ -36,7 +36,9 @@ import org.jetbrains.annotations.NotNull;
  * {@link #setExtremePhysique} posts an {@link ExtremePhysiqueChangedEvent} (the aperture reconciles its
  * talent paths, base essence and pressure). ⚠ {@code setExtremePhysique} does not check awakening: a
  * caller setting a physique other than {@code NONE} gates on it -- the command through
- * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first.
+ * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first. ⚠ A half-zombie form that runs
+ * out keeps its end tick: a Zombie Gu used within {@code RELAPSE_WINDOW_TICKS} after it turns the body
+ * permanently 僵 ({@link #isWithinRelapseWindow}); only {@link #revive} clears it.
  *
  * @author Alex
  * @version 1.0.0
@@ -137,9 +139,7 @@ public final class BodyService {
         EnumSet<Physique> next = copyPhysiques(body);
         next.remove(physique);
         BodyData updated = body.withPhysiques(next);
-        if (!updated.isZombieOrHalfZombie()) {
-            updated = updated.withHalfZombieEndTick(BodyData.UNTRACKED).withZombieTier(BodyData.NO_ZOMBIE_TIER);
-        }
+        if (!updated.isZombieOrHalfZombie()) updated = updated.withZombieTier(BodyData.NO_ZOMBIE_TIER);
         store(player, updated);
         NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
     }
