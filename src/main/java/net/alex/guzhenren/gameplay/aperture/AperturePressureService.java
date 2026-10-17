@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
  * then arms a {@code COUNTDOWN_TICKS} deadline; at the deadline the pressure is full ({@link #isFull}) and
  * the heartbeat's lethal check calls {@link #detonate}. {@link #detonate} settles entity damage and the
  * self-kill at tick zero and hands the crater to {@link AperturePressureExplosionTask}: the radius is
- * {@code EXPLOSION_RADIUS_PER_RANK} per rank, plus {@code GREAT_STRENGTH_RADIUS_BONUS} for Great Strength
- * True Martial [大力真武体], 112 at rank five.
+ * {@code EXPLOSION_RADIUS_PER_RANK} times the rank's ordinal plus one (32 at rank one, 96 at rank five), plus
+ * {@code GREAT_STRENGTH_RADIUS_BONUS} for Great Strength True Martial [大力真武体], 112 at most.
  *
  * <p>⚠ Pressure writes go straight to the attachment, not through {@code ApertureService.store}: they
  * change neither rank nor stage, so health and Epic Fight need no refresh.
