@@ -19,8 +19,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.damagesource.DamageType}.
  * All six mod damage types carry the same six bypass tags (armor, effects, enchantments, resistance,
- * shield, no knockback) but deliberately NOT {@code BYPASSES_INVULNERABILITY} -- creative stays
- * unkillable. The aperture pressure explosion also carries {@code IS_EXPLOSION}. Takes the datapack
+ * shield, no knockback). Only the four lethal checks -- lifespan exhausted, soul collapse, mind ocean
+ * shattered and the pressure explosion -- also carry {@code BYPASSES_INVULNERABILITY}, so a Totem of Undying
+ * cannot cancel them; the heartbeat deals them only after skipping creative and spectator players. The
+ * Ten Extreme disaster and the Vital Gu loss stay without it: the disaster hits every entity in the blast and
+ * the loss is a fraction of health, so the tag would only reach creative players and invulnerable entities.
+ * The aperture pressure explosion and the disaster also carry {@code IS_EXPLOSION}. Takes the datapack
  * provider's registry lookup so it sees the types generated this run.
  *
  * @author Alex
@@ -45,6 +49,10 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
         unstoppable(DamageTypeTags.BYPASSES_RESISTANCE);
         unstoppable(DamageTypeTags.BYPASSES_SHIELD);
         unstoppable(DamageTypeTags.NO_KNOCKBACK);
+        tag(DamageTypeTags.BYPASSES_INVULNERABILITY).add(ModDamageTypes.LIFESPAN_EXHAUSTED,
+                ModDamageTypes.SOUL_COLLAPSE,
+                ModDamageTypes.MIND_OCEAN_SHATTERED,
+                ModDamageTypes.APERTURE_PRESSURE_EXPLOSION);
         tag(DamageTypeTags.IS_EXPLOSION).add(ModDamageTypes.APERTURE_PRESSURE_EXPLOSION,
                 ModDamageTypes.TEN_EXTREME_DISASTER);
     }
