@@ -5,14 +5,15 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.BearEntity;
 import net.alex.guzhenren.entity.BearSpecies;
 import net.alex.guzhenren.entity.BoarGuEntity;
-import net.alex.guzhenren.entity.HopeGuEntity;
 import net.alex.guzhenren.entity.CrashGuEntity;
+import net.alex.guzhenren.entity.HopeGuEntity;
 import net.alex.guzhenren.entity.TigerEntity;
 import net.alex.guzhenren.entity.WildBoarEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTrader;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
@@ -53,13 +54,7 @@ public final class ModEntityTypes {
     private static final float SOUL_TRADER_WIDTH = 0.6F;
     private static final float SOUL_TRADER_HEIGHT = 1.95F;
     public static final DeferredHolder<EntityType<?>, EntityType<HopeGuEntity>> HOPE_GU_ENTITY =
-            ENTITY_TYPES.register("hope_gu_entity", () -> EntityType.Builder
-                    .<HopeGuEntity>of((type, level) ->
-                                    new HopeGuEntity(type, level, ModItems.HOPE_GU),
-                            MobCategory.AMBIENT)
-                    .sized(MOTE_WIDTH, MOTE_HEIGHT)
-                    .clientTrackingRange(TRACKING_CHUNKS)
-                    .build("hope_gu_entity"));
+            registerMote("hope_gu_entity", (type, level) -> new HopeGuEntity(type, level, ModItems.HOPE_GU));
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> WHITE_BOAR_GU_ENTITY =
             registerBoarGu("white_boar_gu_entity", ModItems.WHITE_BOAR_GU);
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> BLACK_BOAR_GU_ENTITY =
@@ -75,11 +70,7 @@ public final class ModEntityTypes {
     public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> CHARGING_CRASH_GU_5_ENTITY =
             registerCrashGu("charging_crash_gu_5_entity", ModItems.CHARGING_CRASH_GU_5);
     public static final DeferredHolder<EntityType<?>, EntityType<WildBoarEntity>> WILD_BOAR =
-            ENTITY_TYPES.register("wild_boar", () -> EntityType.Builder
-                    .of(WildBoarEntity::new, MobCategory.CREATURE)
-                    .sized(WILD_BOAR_WIDTH, WILD_BOAR_HEIGHT)
-                    .clientTrackingRange(TRACKING_CHUNKS)
-                    .build("wild_boar"));
+            register("wild_boar", WildBoarEntity::new, MobCategory.CREATURE, WILD_BOAR_WIDTH, WILD_BOAR_HEIGHT);
     public static final DeferredHolder<EntityType<?>, EntityType<BearEntity>> BROWN_BEAR =
             registerBear(BearSpecies.BROWN);
     public static final DeferredHolder<EntityType<?>, EntityType<BearEntity>> ASIAN_BLACK_BEAR =
@@ -89,26 +80,28 @@ public final class ModEntityTypes {
     public static final DeferredHolder<EntityType<?>, EntityType<BearEntity>> ALBINO_BEAR =
             registerBear(BearSpecies.ALBINO);
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> TIGER =
-            ENTITY_TYPES.register("tiger", () -> EntityType.Builder
-                    .of(TigerEntity::new, MobCategory.CREATURE)
-                    .sized(TIGER_WIDTH, TIGER_HEIGHT)
-                    .clientTrackingRange(TRACKING_CHUNKS)
-                    .build("tiger"));
+            register("tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> WHITE_TIGER =
-            ENTITY_TYPES.register("white_tiger", () -> EntityType.Builder
-                    .of(TigerEntity::new, MobCategory.CREATURE)
-                    .sized(TIGER_WIDTH, TIGER_HEIGHT)
-                    .clientTrackingRange(TRACKING_CHUNKS)
-                    .build("white_tiger"));
+            register("white_tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
     public static final DeferredHolder<EntityType<?>, EntityType<SoulTraderEntity>> TEST_TRADE_GU_IMMORTAL =
             registerSoulTrader(SoulTrader.TEST_TRADE_GU_IMMORTAL);
 
-    private static DeferredHolder<EntityType<?>, EntityType<BearEntity>> registerBear(BearSpecies species) {
-        return ENTITY_TYPES.register(species.id(), () -> EntityType.Builder
-                .<BearEntity>of((type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE)
-                .sized(BEAR_WIDTH, BEAR_HEIGHT)
+    private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register(
+            String id, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height) {
+        return ENTITY_TYPES.register(id, () -> EntityType.Builder.of(factory, category)
+                .sized(width, height)
                 .clientTrackingRange(TRACKING_CHUNKS)
-                .build(species.id()));
+                .build(id));
+    }
+
+    private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> registerMote(
+            String id, EntityType.EntityFactory<T> factory) {
+        return register(id, factory, MobCategory.AMBIENT, MOTE_WIDTH, MOTE_HEIGHT);
+    }
+
+    private static DeferredHolder<EntityType<?>, EntityType<BearEntity>> registerBear(BearSpecies species) {
+        return register(species.id(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
+                BEAR_WIDTH, BEAR_HEIGHT);
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<SoulTraderEntity>> registerSoulTrader(SoulTrader trader) {
@@ -121,22 +114,13 @@ public final class ModEntityTypes {
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> registerBoarGu(
-            String name, Supplier<Item> caughtGu) {
-        return ENTITY_TYPES.register(name, () -> EntityType.Builder
-                .<BoarGuEntity>of((type, level) -> new BoarGuEntity(type, level, caughtGu), MobCategory.AMBIENT)
-                .sized(MOTE_WIDTH, MOTE_HEIGHT)
-                .clientTrackingRange(TRACKING_CHUNKS)
-                .build(name));
+            String id, Supplier<Item> caughtGu) {
+        return registerMote(id, (type, level) -> new BoarGuEntity(type, level, caughtGu));
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> registerCrashGu(
-            String name, Supplier<Item> caughtGu) {
-        return ENTITY_TYPES.register(name, () -> EntityType.Builder
-                .<CrashGuEntity>of((type, level) -> new CrashGuEntity(type, level, caughtGu),
-                        MobCategory.AMBIENT)
-                .sized(MOTE_WIDTH, MOTE_HEIGHT)
-                .clientTrackingRange(TRACKING_CHUNKS)
-                .build(name));
+            String id, Supplier<Item> caughtGu) {
+        return registerMote(id, (type, level) -> new CrashGuEntity(type, level, caughtGu));
     }
 
     public static void register(IEventBus modEventBus) {
