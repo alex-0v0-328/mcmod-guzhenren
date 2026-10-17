@@ -5,6 +5,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.body.PhysiqueChangedEvent;
 import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -19,7 +20,9 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
  * health-based Hardship Strength Gu capacity before vanilla reads attack damage.
  *
  * <p>⚠ Left to the heartbeat alone the attack row would lag by up to a second, which is visible on
- * the panel.
+ * the panel. ⚠ NeoForge posts the three effect events BEFORE the effect map changes, so
+ * {@code refreshAttack} queues the refresh as a {@link TickTask} that runs once the tick's work is done;
+ * refreshing inside the event would read the effects as they were.
  *
  * @author Alex
  * @version 1.0.0
@@ -58,6 +61,7 @@ public final class AttributeEvents {
     }
 
     private static void refreshAttack(LivingEntity entity) {
-        if (entity instanceof ServerPlayer player) AttackDamageService.refresh(player);
+        if (!(entity instanceof ServerPlayer player)) return;
+        player.server.tell(new TickTask(player.server.getTickCount(), () -> AttackDamageService.refresh(player)));
     }
 }
