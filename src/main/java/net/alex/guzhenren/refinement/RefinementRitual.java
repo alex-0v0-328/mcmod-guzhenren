@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.refinement;
+package net.alex.guzhenren.refinement;
 
 import java.util.ArrayList;
 import java.util.List;

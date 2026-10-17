@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * {@code false} instead when they are already inside the dimension or the target level could not be
  * resolved. Entering one anchored dimension from inside another keeps the first snapshot, so the exit
  * still leads back to where the trip began. Death clears the record through
- * {@link net.alex.guzhenren.gameplay.lifecycle.PlayerDataService}.
+ * {@link net.alex.guzhenren.lifecycle.PlayerDataService}.
  *
  * <p>{@link #getArrival} is where {@link #enter} lands the player: a {@code FLIGHT} arrival on the spawn
  * itself, which grants flight and starts the player flying; a {@code SURFACE} arrival on top of the spawn's

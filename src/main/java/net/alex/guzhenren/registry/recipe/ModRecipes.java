@@ -1,7 +1,7 @@
 package net.alex.guzhenren.registry.recipe;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.refinement.GuRecipe;
+import net.alex.guzhenren.refinement.GuRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;

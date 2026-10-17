@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.lifecycle;
+package net.alex.guzhenren.lifecycle;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

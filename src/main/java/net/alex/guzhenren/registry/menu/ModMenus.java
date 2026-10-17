@@ -2,7 +2,7 @@ package net.alex.guzhenren.registry.menu;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
-import net.alex.guzhenren.gameplay.refinement.RefinementMenu;
+import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.gameplay.trade.SoulTradeMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.flag.FeatureFlags;

@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 /**
  * Drives the world-level background work that outlives the player who caused it: the staged
  * pressure-explosion [空窍压力爆炸] craters. Unlike the one-second heartbeat in {@link
- * net.alex.guzhenren.gameplay.lifecycle.PlayerTickEvents} these runs every server tick and keeps running
+ * net.alex.guzhenren.lifecycle.PlayerTickEvents} these runs every server tick and keeps running
  * after the player died -- the crater finishes on its own. The task list is wiped when the server
  * stops, so a singleplayer world switch never carries stale level references.
  *

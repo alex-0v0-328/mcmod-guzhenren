@@ -3,7 +3,6 @@ package net.alex.guzhenren.gameplay.aperture;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
-import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Nourishing the Aperture [温养空窍] and striking its wall [冲刷窍壁] -- the only way a rank rises.
  * Static service; progress and the petrified latch live on each {@link Aperture}; the strike cost goes
- * through {@link PrimevalStoneSupply#spend(ServerPlayer, long)} (essence first, then stones).
+ * through the {@link StonePurse} the entry point sets (essence first, then stones).
  *
  * <p>⚠ The wall is the PRIMARY aperture's alone -- a second aperture nourishes but never strikes; its
  * only rank-up is a higher-rank Second Aperture Gu. ⚠ A rank-up MUST also set the stage back to {@code
@@ -72,8 +71,11 @@ public final class ApertureNourishService {
     private static final String IMPACT_HOLD = "guzhenren.impact.hold";
     private static final String IMPACT_DROP_STAGE = "guzhenren.impact.drop_stage";
     private static final String IMPACT_DROP_BASE = "guzhenren.impact.drop_base";
+    private static StonePurse stones;
 
     public enum Outcome { SUCCESS, HOLD, DROP_STAGE, DROP_BASE }
+
+    public static void setStonePurse(@NotNull StonePurse purse) { stones = purse; }
 
     public static @NotNull ApertureNourishData get(@NotNull Player player) {
         return player.getData(ModAttachments.APERTURE_NOURISH);
@@ -124,7 +126,7 @@ public final class ApertureNourishService {
     }
 
     public static boolean canAffordImpact(@NotNull Player player) {
-        return PrimevalStoneSupply.canAfford(player, impactCost(player));
+        return stones.canAfford().test(player, impactCost(player));
     }
 
     public static void start(@NotNull ServerPlayer player, int index) {
@@ -206,7 +208,7 @@ public final class ApertureNourishService {
 
     private static boolean pay(ServerPlayer player, long cost) {
         if (player.hasInfiniteMaterials()) return true;
-        PrimevalStoneSupply.topUp(player);
+        stones.topUp().accept(player);
         return ApertureEssenceService.consume(player, cost);
     }
     //endregion
@@ -242,7 +244,7 @@ public final class ApertureNourishService {
         if (!canImpact(player)) return;
         Aperture aperture = ApertureService.getAperture(player);
         long cost = impactCost(player);
-        if (!player.hasInfiniteMaterials() && !PrimevalStoneSupply.spend(player, cost)) {
+        if (!player.hasInfiniteMaterials() && !stones.spend().test(player, cost)) {
             player.displayClientMessage(Component.translatable(IMPACT_POOR, cost), true);
             return;
         }

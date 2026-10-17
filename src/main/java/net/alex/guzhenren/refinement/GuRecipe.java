@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.refinement;
+package net.alex.guzhenren.refinement;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;

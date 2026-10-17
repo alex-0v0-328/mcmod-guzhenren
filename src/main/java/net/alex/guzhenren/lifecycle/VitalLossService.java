@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.lifecycle;
+package net.alex.guzhenren.lifecycle;
 
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;

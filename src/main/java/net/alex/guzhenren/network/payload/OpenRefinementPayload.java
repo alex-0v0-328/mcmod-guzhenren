@@ -2,7 +2,7 @@ package net.alex.guzhenren.network.payload;
 
 import io.netty.buffer.ByteBuf;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.refinement.RefinementMenu;
+import net.alex.guzhenren.refinement.RefinementMenu;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;

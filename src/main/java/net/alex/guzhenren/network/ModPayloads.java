@@ -6,7 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.flight.FlightService;
-import net.alex.guzhenren.gameplay.refinement.RefinementMenu;
+import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;

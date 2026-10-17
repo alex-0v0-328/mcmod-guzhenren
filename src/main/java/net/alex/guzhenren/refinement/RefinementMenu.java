@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.refinement;
+package net.alex.guzhenren.refinement;
 
 import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;

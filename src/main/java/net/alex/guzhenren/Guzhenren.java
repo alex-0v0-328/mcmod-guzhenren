@@ -2,6 +2,9 @@ package net.alex.guzhenren;
 
 import com.mojang.logging.LogUtils;
 import net.alex.guzhenren.compat.EpicFightIntegration;
+import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
+import net.alex.guzhenren.gameplay.aperture.StonePurse;
+import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.block.ModBlocks;
@@ -27,8 +30,9 @@ import org.slf4j.Logger;
  * {@link ResourceLocation} creation. The constructor wires thirteen {@code DeferredRegister} holders
  * (attachments, data components, effects, fluid types, fluids, blocks, entities, items, creative
  * tabs, menus, particles, recipes, criterion triggers) to the mod event bus in the order NeoForge
- * requires. Worldgen features live in the sibling mod Gu World, which places the Spirit Spring
- * [元泉] block registered here.
+ * requires. It also hands the aperture's nourishing the {@code StonePurse} built on the item side's
+ * {@code PrimevalStoneSupply}, so the gameplay packages never depend on the item package. Worldgen features
+ * live in the sibling mod Gu World, which places the Spirit Spring [元泉] block registered here.
  *
  * @author Alex
  * @version 1.0.0
@@ -57,6 +61,8 @@ public class Guzhenren {
         ModParticles.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCriteriaTriggers.register(modEventBus);
+        ApertureNourishService.setStonePurse(new StonePurse(
+                PrimevalStoneSupply::canAfford, PrimevalStoneSupply::topUp, PrimevalStoneSupply::spend));
         modEventBus.addListener(EpicFightIntegration::onAnimationRegistry);
         EpicFightIntegration.initialize();
     }

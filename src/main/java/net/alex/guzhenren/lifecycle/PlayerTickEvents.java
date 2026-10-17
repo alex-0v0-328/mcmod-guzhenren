@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.lifecycle;
+package net.alex.guzhenren.lifecycle;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
