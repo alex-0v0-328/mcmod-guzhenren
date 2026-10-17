@@ -6,9 +6,9 @@ import java.util.Map;
 /**
  * The Simplified-to-Traditional glyph table behind {@code zh_tw}.
  *
- * <p>Traditional Chinese [繁中] differs from {@code zh_cn} in glyphs only, never in wording, so
- * {@link net.alex.guzhenren.datagen.lang.ZhTwLanguageProvider} derives every value through
- * {@link #convert} instead of keeping a third hand-written table. The glyphs follow the Taiwan
+ * <p>Traditional Chinese [繁中] mostly differs from {@code zh_cn} in glyphs only, so
+ * {@link net.alex.guzhenren.datagen.lang.ModLanguageProvider} derives the {@code zh_tw} value of every entry
+ * that writes no Traditional rendering of its own through {@link #convert}. The glyphs follow the Taiwan
  * standard (OpenCC {@code s2tw}, so 為 and not 爲); vocabulary stays as written (OpenCC
  * {@code s2twp} would turn 信息 into 資訊, which is a different word).
  *
@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.datagen.lang.ZhTwLanguageProvider
+ * @see net.alex.guzhenren.datagen.lang.ModLanguageProvider
  * @since 1.0.0
  */
 

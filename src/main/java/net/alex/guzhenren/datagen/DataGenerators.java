@@ -11,9 +11,7 @@ import net.alex.guzhenren.datagen.damage.ModDamageTypeTagsProvider;
 import net.alex.guzhenren.datagen.entity.ModEntityTypeTagsProvider;
 import net.alex.guzhenren.datagen.item.ModItemModelProvider;
 import net.alex.guzhenren.datagen.item.ModItemTagsProvider;
-import net.alex.guzhenren.datagen.lang.EnUsLanguageProvider;
-import net.alex.guzhenren.datagen.lang.ZhCnLanguageProvider;
-import net.alex.guzhenren.datagen.lang.ZhTwLanguageProvider;
+import net.alex.guzhenren.datagen.lang.ModLanguageProvider;
 import net.alex.guzhenren.datagen.loot.ModBlockLootProvider;
 import net.alex.guzhenren.datagen.loot.ModLootModifierProvider;
 import net.alex.guzhenren.datagen.loot.WildBoarLootProvider;
@@ -57,9 +55,9 @@ public final class DataGenerators {
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-        generator.addProvider(event.includeClient(), new EnUsLanguageProvider(packOutput));
-        generator.addProvider(event.includeClient(), new ZhCnLanguageProvider(packOutput));
-        generator.addProvider(event.includeClient(), new ZhTwLanguageProvider(packOutput));
+        for (ModLanguageProvider.Language language : ModLanguageProvider.Language.values()) {
+            generator.addProvider(event.includeClient(), new ModLanguageProvider(packOutput, language));
+        }
 
         generator.addProvider(event.includeClient(), new ModItemModelProvider(packOutput, existingFileHelper));
 
