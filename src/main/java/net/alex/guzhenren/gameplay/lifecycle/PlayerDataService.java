@@ -10,7 +10,6 @@ import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
@@ -59,7 +58,6 @@ public final class PlayerDataService {
 
     public static void onJoin(@NotNull ServerPlayer player) {
         if (!player.getData(ModAttachments.BORN)) onBirth(player);
-        migratePhysique(player);
         ApertureService.syncTalentMarks(player);
         MaxHealthService.refresh(player);
         MaxHealthService.restoreCarried(player);
@@ -68,21 +66,6 @@ public final class PlayerDataService {
     }
 
     public static void onLogout(@NotNull ServerPlayer player) { MaxHealthService.carry(player); }
-
-    private static void migratePhysique(@NotNull ServerPlayer player) {
-        Aperture aperture = ApertureService.getAperture(player);
-        ExtremePhysique legacy = aperture.legacyExtremePhysique();
-        if (!BodyService.isExtreme(player) && legacy != null && legacy != ExtremePhysique.NONE) {
-            BodyService.setExtremePhysique(player, legacy);
-        } else if (!BodyService.isExtreme(player) && aperture.baseEssence() == Aperture.MAX_BASE) {
-            ApertureService.set(player, ApertureData.PRIMARY, aperture.withBaseEssence(Aperture.MAX_BASE - 1)
-                    .withPressure(0));
-        }
-        aperture = ApertureService.getAperture(player);
-        if (aperture.legacyExtremePhysique() != null) {
-            ApertureService.set(player, ApertureData.PRIMARY, aperture.clearLegacyExtremePhysique());
-        }
-    }
 
     public static void onBirth(@NotNull Player player) {
         player.setData(ModAttachments.MIND, MindData.newborn());

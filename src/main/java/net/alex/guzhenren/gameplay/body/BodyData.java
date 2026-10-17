@@ -1,23 +1,17 @@
 package net.alex.guzhenren.gameplay.body;
 
 import com.google.common.math.LongMath;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.Decoder;
-import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import net.alex.guzhenren.core.ModStreamCodecs;
 import net.alex.guzhenren.core.Ticks;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -63,8 +57,8 @@ public record BodyData(
     public static long parts(long years) { return LongMath.saturatedMultiply(years, PARTS_PER_YEAR); }
 
     private static final Codec<Set<Physique>> PHYSIQUES_CODEC = Physique.CODEC.listOf()
-            .xmap(BodyData::normalizePhysiques, ArrayList::new);
-    private static final Codec<BodyData> CURRENT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            .xmap(Set::copyOf, ArrayList::new);
+    public static final Codec<BodyData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             PHYSIQUES_CODEC.optionalFieldOf("physiques", Set.of()).forGetter(BodyData::physiques),
             ExtremePhysique.CODEC.optionalFieldOf("extreme_physique", ExtremePhysique.NONE)
                     .forGetter(BodyData::extremePhysique),
@@ -77,28 +71,6 @@ public record BodyData(
             Codec.INT.optionalFieldOf("zombie_tier", NO_ZOMBIE_TIER).forGetter(BodyData::zombieTier),
             Codec.LONG.optionalFieldOf("last_billed_tick", UNTRACKED).forGetter(BodyData::lastBilledTick)
     ).apply(instance, BodyData::new));
-    private static final Codec<BodyData> LEGACY_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            LegacyLifeForm.CODEC.optionalFieldOf("life_form", LegacyLifeForm.ALIVE).forGetter(data ->
-                    data.hasPhysique(Physique.ZOMBIE) ? LegacyLifeForm.ZOMBIE
-                            : data.hasPhysique(Physique.HALF_ZOMBIE) ? LegacyLifeForm.HALF_ZOMBIE
-                            : LegacyLifeForm.ALIVE),
-            Race.CODEC.optionalFieldOf("race", Race.HUMAN).forGetter(BodyData::race),
-            Codec.LONG.optionalFieldOf("age_parts", parts(DEFAULT_AGE)).forGetter(BodyData::ageParts),
-            Codec.LONG.optionalFieldOf("lifespan_parts", parts(DEFAULT_LIFESPAN)).forGetter(BodyData::lifespanParts),
-            Codec.LONG.optionalFieldOf("last_day_index", UNTRACKED).forGetter(BodyData::lastDayIndex),
-            Codec.LONG.optionalFieldOf("death_qi_lifespan_lost", 0L).forGetter(BodyData::deathQiLifespanLost),
-            Codec.LONG.optionalFieldOf("half_zombie_end_tick", UNTRACKED).forGetter(BodyData::halfZombieEndTick),
-            Codec.INT.optionalFieldOf("zombie_tier", NO_ZOMBIE_TIER).forGetter(BodyData::zombieTier),
-            Codec.LONG.optionalFieldOf("last_billed_tick", UNTRACKED).forGetter(BodyData::lastBilledTick)
-    ).apply(instance, BodyData::fromLegacy));
-    private static final Decoder<BodyData> DECODER = new Decoder<>() {
-        @Override
-        public <T> DataResult<Pair<BodyData, T>> decode(DynamicOps<T> ops, T input) {
-            return ops.getMap(input).flatMap(map ->
-                    (map.get("life_form") != null ? LEGACY_CODEC : CURRENT_CODEC).decode(ops, input));
-        }
-    };
-    public static final Codec<BodyData> CODEC = Codec.of(CURRENT_CODEC, DECODER);
     private static final StreamCodec<ByteBuf, Set<Physique>> PHYSIQUES = ModStreamCodecs.enumSet(Physique.class);
     private static final StreamCodec<ByteBuf, ExtremePhysique> EXTREME =
             ModStreamCodecs.ofEnum(ExtremePhysique.class);
@@ -146,22 +118,6 @@ public record BodyData(
         if (!normalized.contains(Physique.ZOMBIE) && !normalized.contains(Physique.HALF_ZOMBIE)) {
             zombieTier = NO_ZOMBIE_TIER;
         }
-    }
-
-    private static Set<Physique> normalizePhysiques(List<Physique> values) {
-        return Set.copyOf(values);
-    }
-
-    private static BodyData fromLegacy(LegacyLifeForm form, Race race, long ageParts, long lifespanParts,
-                                       long lastDayIndex, long deathQiLifespanLost, long halfZombieEndTick,
-                                       int zombieTier, long lastBilledTick) {
-        Set<Physique> physiques = switch (form) {
-            case ZOMBIE -> Set.of(Physique.ZOMBIE);
-            case HALF_ZOMBIE -> Set.of(Physique.HALF_ZOMBIE);
-            case ALIVE, DEAD -> Set.of();
-        };
-        return new BodyData(physiques, ExtremePhysique.NONE, race, ageParts, lifespanParts, lastDayIndex,
-                deathQiLifespanLost, halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
     public boolean isExhausted() { return lifespanParts <= 0L; }
@@ -251,18 +207,5 @@ public record BodyData(
         return new BodyData(physiques, extremePhysique, race, LongMath.saturatedAdd(ageParts, parts),
                 LongMath.saturatedSubtract(lifespanParts, parts),
                 lastDayIndex, deathQiLifespanLost, halfZombieEndTick, zombieTier, billedTick);
-    }
-
-    private enum LegacyLifeForm implements StringRepresentable {
-
-        ALIVE,
-        DEAD,
-        ZOMBIE,
-        HALF_ZOMBIE;
-
-        private static final Codec<LegacyLifeForm> CODEC = StringRepresentable.fromEnum(LegacyLifeForm::values);
-
-        @Override
-        public @NotNull String getSerializedName() { return name().toLowerCase(); }
     }
 }
