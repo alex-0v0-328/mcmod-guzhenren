@@ -5,6 +5,7 @@ import net.alex.guzhenren.item.gu.VitalGuLostEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -16,8 +17,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
  * This file holds no decisions of its own; a
  * handler that starts deciding for itself is how two of them disagree about what a respawn keeps.
  * {@code keepInventory} is read off the {@link net.minecraft.server.MinecraftServer}'s game rules,
- * never {@code level()}, and passed into {@code onClone} -- the single place a death-copy and a reset
- * are settled.
+ * never {@code level()}, and passed into {@code onClone} -- the single place a death's reset is settled.
+ * {@code onClone} runs at {@code LOW} priority, after NeoForge has copied the inherited attachments onto
+ * the clone, so a reset is never copied over.
  *
  * <p>⚠ {@code onWakeUp} guards on {@code wakeImmediately} / {@code updateLevel} / {@code
  * isSleepingLongEnough} — it is an edge, not a level, so watching the tick handler would double-fire.
@@ -45,7 +47,7 @@ public final class PlayerDataEvents {
         if (event.getEntity() instanceof ServerPlayer player) PlayerDataService.onLogout(player);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onClone(PlayerEvent.Clone event) {
         MinecraftServer server = event.getOriginal().getServer();
         boolean keepInventory = server != null

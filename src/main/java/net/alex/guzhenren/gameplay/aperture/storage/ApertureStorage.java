@@ -174,8 +174,6 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return new ApertureStorage(byAperture, vital, next);
     }
 
-    public ApertureStorage copy() { return new ApertureStorage(byAperture, vital, tokens); }
-
     private static List<ItemStack> copyStacks(List<ItemStack> stacks) {
         List<ItemStack> copies = new ArrayList<>(stacks.size());
         for (ItemStack stack : stacks) copies.add(stack.copy());

@@ -4,24 +4,17 @@ import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
-import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindService;
-import net.alex.guzhenren.gameplay.path.PathData;
-import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
-import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -30,18 +23,21 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The one cross-domain lifecycle service: birth, sleep, death, clone, respawn, and a full reset. It is
- * the single place that decides what a clone inherits; every domain service re-runs on join/clone/reset.
- * Birth, clone and reset write whole attachments here, past the domain services, which are the only
- * runtime writers.
+ * The one cross-domain lifecycle service: birth, sleep, death, clone, respawn, and a full reset. A clone
+ * inherits every attachment {@link ModAttachments} registers as inherited -- NeoForge copies them -- and this
+ * is the single place that decides what a death takes back: a death that wipes resets them all
+ * ({@link #resetAll}), a keepInventory death only the return point. Every domain service re-runs on
+ * join/clone/reset. Birth and reset write whole attachments here, past the domain services, which are the
+ * only runtime writers.
  *
- * <p>⚠ The {@code Player} (not {@code ServerPlayer}) signature on {@code copy}/{@code onBirth}/{@code
+ * <p>⚠ The {@code Player} (not {@code ServerPlayer}) signature on {@code onClone}/{@code onBirth}/{@code
  * resetAll} is the one carve-out from read-{@code Player}/write-{@code ServerPlayer}: during {@code
- * PlayerEvent.Clone} the fresh entity is typed {@code Player}; never widen a domain service. ⚠ {@code
- * copy} must carry {@code BORN} or the next login re-rolls brilliance. ⚠ A new death needs an {@code
+ * PlayerEvent.Clone} the fresh entity is typed {@code Player}; never widen a domain service. ⚠ {@code BORN}
+ * stays inherited, or the next login re-rolls brilliance. ⚠ A new death needs an {@code
  * onRespawn} line; its un-fire returns BARE values (soul 1, mind 0), on which the lethal check never fires.
  *
  * <p>{@link #dropHumanApertures}: a death that wipes the apertures shakes one Human Aperture [人窍]
@@ -100,16 +96,11 @@ public final class PlayerDataService {
     }
 
     public static void onClone(@NotNull Player from, @NotNull Player to, boolean wasDeath, boolean keepInventory) {
-        if (wasDeath) {
-            if (!keepInventory) {
-                dropHumanApertures(from);
-                resetAll(to);
-            } else {
-                copy(from, to);
-                to.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.DEFAULT);
-            }
-        } else {
-            copy(from, to);
+        if (wasDeath && !keepInventory) {
+            dropHumanApertures(from);
+            resetAll(to);
+        } else if (wasDeath) {
+            to.removeData(ModAttachments.DIMENSION_RETURN);
         }
         if (to instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);
@@ -145,34 +136,12 @@ public final class PlayerDataService {
         PathQiService.set(player, QiKind.DEATH, 0L);
     }
 
-    private static void copy(@NotNull Player from, @NotNull Player player) {
-        player.setData(ModAttachments.APERTURE, from.getData(ModAttachments.APERTURE));
-        player.setData(ModAttachments.APERTURE_STORAGE, from.getData(ModAttachments.APERTURE_STORAGE).copy());
-        player.setData(ModAttachments.BODY, from.getData(ModAttachments.BODY));
-        player.setData(ModAttachments.SOUL, from.getData(ModAttachments.SOUL));
-        player.setData(ModAttachments.PATH, from.getData(ModAttachments.PATH));
-        player.setData(ModAttachments.PATH_QI, from.getData(ModAttachments.PATH_QI));
-        player.setData(ModAttachments.PATH_STRENGTH, from.getData(ModAttachments.PATH_STRENGTH));
-        player.setData(ModAttachments.MIND, from.getData(ModAttachments.MIND));
-        player.setData(ModAttachments.APERTURE_NOURISH, from.getData(ModAttachments.APERTURE_NOURISH));
-        player.setData(ModAttachments.DIMENSION_RETURN, from.getData(ModAttachments.DIMENSION_RETURN));
-        player.setData(ModAttachments.BORN, from.getData(ModAttachments.BORN));
-    }
-
     public static void resetAll(@NotNull Player player) {
-        player.setData(ModAttachments.APERTURE, ApertureData.DEFAULT);
-        player.setData(ModAttachments.APERTURE_STORAGE, ApertureStorage.DEFAULT);
-        player.setData(ModAttachments.SOUL, SoulData.DEFAULT);
-        player.setData(ModAttachments.PATH, PathData.DEFAULT);
-        player.setData(ModAttachments.PATH_QI, PathQiData.DEFAULT);
-        player.setData(ModAttachments.PATH_STRENGTH, PathStrengthData.DEFAULT);
-        player.setData(ModAttachments.ESSENCE_CARRY, new float[ApertureData.MAX_APERTURES]);
-        player.setData(ModAttachments.APERTURE_NOURISH, ApertureNourishData.DEFAULT);
-        player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.DEFAULT);
+        long lastDayIndex = BodyService.get(player).lastDayIndex();
+        for (AttachmentType<?> type : ModAttachments.getInherited()) player.removeData(type);
+        player.removeData(ModAttachments.ESSENCE_CARRY);
+        player.setData(ModAttachments.BODY, BodyData.DEFAULT.withLastDayIndex(lastDayIndex));
         onBirth(player);
-
-        player.setData(ModAttachments.BODY,
-                BodyData.DEFAULT.withLastDayIndex(BodyService.get(player).lastDayIndex()));
 
         if (player instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);

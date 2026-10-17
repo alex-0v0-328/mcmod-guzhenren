@@ -1,6 +1,8 @@
 package net.alex.guzhenren.registry.attachment;
 
 import com.mojang.serialization.Codec;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
@@ -33,6 +35,13 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * ({@code OWNER_ONLY}); {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor
  * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞].
  *
+ * <p>Every attachment the two helpers register is inherited: NeoForge copies it to every clone, a death
+ * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
+ * attachment is carried and reset by being registered here, nowhere else. {@code BURST} and
+ * {@code HEALTH_CARRY} are built by hand because a death must not carry them (a respawn would still be
+ * bursting); {@code ESSENCE_CARRY} is unsaved, so no clone carries it. ⚠ {@code BORN} stays inherited, or
+ * the next login re-rolls brilliance.
+ *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
  * {@code qi} and {@code strength} as subpackages of path. A constant is its record's class name without
  * {@code Data} ({@code PathQiData} is {@code PATH_QI}). Never give an attachment the bare domain word --
@@ -52,6 +61,7 @@ public final class ModAttachments {
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Guzhenren.MOD_ID);
     private static final BiPredicate<IAttachmentHolder, ServerPlayer> OWNER_ONLY =
             (holder, viewer) -> holder == viewer;
+    private static final List<Supplier<AttachmentType<?>>> INHERITED = new ArrayList<>();
 
     //region Aperture [空窍]
     public static final Supplier<AttachmentType<ApertureData>> APERTURE =
@@ -95,29 +105,46 @@ public final class ModAttachments {
     //endregion
 
     //region Flight [飞行]
-    public static final Supplier<AttachmentType<Boolean>> BURST =
-            registerSynced("burst_flag", Boolean.TRUE, Codec.BOOL, ByteBufCodecs.BOOL);
+    public static final Supplier<AttachmentType<Boolean>> BURST = ATTACHMENT_TYPES.register(
+            "burst_flag", () -> AttachmentType.builder(() -> Boolean.TRUE)
+                    .serialize(Codec.BOOL)
+                    .sync(OWNER_ONLY, ByteBufCodecs.BOOL)
+                    .build());
     //endregion
 
     //region Lifecycle [生命周期]
     public static final Supplier<AttachmentType<Boolean>> BORN = registerSaved("born_flag", Boolean.FALSE, Codec.BOOL);
-    public static final Supplier<AttachmentType<Float>> HEALTH_CARRY =
-            registerSaved("health_carry", 0.0F, Codec.FLOAT);
+    public static final Supplier<AttachmentType<Float>> HEALTH_CARRY = ATTACHMENT_TYPES.register(
+            "health_carry", () -> AttachmentType.builder(() -> 0.0F).serialize(Codec.FLOAT).build());
     //endregion
 
     public static void register(IEventBus modEventBus) {
         ATTACHMENT_TYPES.register(modEventBus);
     }
 
+    public static List<AttachmentType<?>> getInherited() {
+        return INHERITED.stream().map(Supplier::get).toList();
+    }
+
     private static <T> Supplier<AttachmentType<T>> registerSynced(
             String id, T defaultValue, Codec<T> codec, StreamCodec<? super RegistryFriendlyByteBuf, T> streamCodec) {
-        return ATTACHMENT_TYPES.register(id, () -> AttachmentType.builder(() -> defaultValue)
+        return registerInherited(id, () -> AttachmentType.builder(() -> defaultValue)
                 .serialize(codec)
+                .copyOnDeath()
                 .sync(OWNER_ONLY, streamCodec)
                 .build());
     }
 
     private static <T> Supplier<AttachmentType<T>> registerSaved(String id, T defaultValue, Codec<T> codec) {
-        return ATTACHMENT_TYPES.register(id, () -> AttachmentType.builder(() -> defaultValue).serialize(codec).build());
+        return registerInherited(id, () -> AttachmentType.builder(() -> defaultValue)
+                .serialize(codec)
+                .copyOnDeath()
+                .build());
+    }
+
+    private static <T> Supplier<AttachmentType<T>> registerInherited(String id, Supplier<AttachmentType<T>> type) {
+        Supplier<AttachmentType<T>> holder = ATTACHMENT_TYPES.register(id, type);
+        INHERITED.add(holder::get);
+        return holder;
     }
 }
