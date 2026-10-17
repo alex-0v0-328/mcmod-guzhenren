@@ -1,6 +1,5 @@
 package net.alex.guzhenren.compat;
 
-import java.util.Objects;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.WildGuEntity;
@@ -108,7 +107,8 @@ public final class EpicFightIntegration {
             instance.addTransientModifier(new AttributeModifier(STAMINA_MODIFIER, bonus,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
         }
-        Objects.requireNonNull(EpicFightCapabilities.getServerPlayerPatch(player)).clampMaxAttributes();
+        ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
+        if (patch != null) patch.clampMaxAttributes();
     }
 
     private static int staminaMaxPercent(ServerPlayer player) {

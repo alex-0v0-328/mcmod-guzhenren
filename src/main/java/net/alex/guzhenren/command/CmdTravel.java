@@ -69,7 +69,7 @@ public final class CmdTravel {
         ResourceLocation id = ResourceLocationArgument.getId(context, ARG_DIMENSION);
         ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, id);
         ModDimensions.AnchoredDimension destination = ModDimensions.ANCHORED_DIMENSIONS.get(dimension);
-        if (destination == null) {
+        if (destination == null || source.getServer().getLevel(dimension) == null) {
             ModCommandFeedback.failure(source,
                     Component.translatable("guzhenren.command.travel.unknown_dimension", id));
             return 0;

@@ -7,6 +7,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.registry.particle.ModParticles;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -45,7 +46,9 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * {@link #DASH_IDLE_SPEED_SQR} squared horizontal speed (0.05 blocks/tick counts as still), or the
  * {@link #DASH_MAX_TICKS} safety cap runs out. {@link #DASH_RING_HEIGHT} is the dash ring's spawn
  * height above the feet, the standing ring's mid-body (max radius 1.1). {@link PunchBurst} plants
- * the same logic on the fixed ray described above.
+ * the same logic on the fixed ray described above. A player's bursts are dropped on logout and on a dimension
+ * change ({@link #forget}): a dash burst measures travel from a position in one level, and carried into another it
+ * would lay its rings along the line between the two.
  *
  * <p>Future speed- or force-feel actions call the {@code dashCone}/{@code punchCone} entry points
  * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
@@ -91,8 +94,7 @@ public final class RingConeEmitter {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (player.isRemoved() || player.isDeadOrDying()
                 || !(player.level() instanceof ServerLevel level)) {
-            DASH_BURSTS.remove(player.getUUID());
-            PUNCH_BURSTS.remove(player.getUUID());
+            forget(player);
             return;
         }
         tickBurst(DASH_BURSTS, player, level);
@@ -100,9 +102,16 @@ public final class RingConeEmitter {
     }
 
     @SubscribeEvent
-    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        DASH_BURSTS.remove(event.getEntity().getUUID());
-        PUNCH_BURSTS.remove(event.getEntity().getUUID());
+    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) { forget(event.getEntity()); }
+
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        forget(event.getEntity());
+    }
+
+    private static void forget(Player player) {
+        DASH_BURSTS.remove(player.getUUID());
+        PUNCH_BURSTS.remove(player.getUUID());
     }
 
     private static void tickBurst(Map<UUID, Burst> bursts, ServerPlayer player, ServerLevel level) {
