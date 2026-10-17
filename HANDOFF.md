@@ -9,6 +9,7 @@
 - 两个仓库编译通过；中间提交 `0f37809` 单独检出后也能编译。
 - `runData` 与改动前逐字节一致：语言表合并、注册类精简都不改生成结果。只新增了 `data/minecraft/tags/damage_type/bypasses_invulnerability.json`（四种致死伤害无视图腾）。
 - 开服冒烟（GZR 加 Gu World，临时游戏目录）：三个维度加载、南疆强制加载 81 个区块、`/guzhenren` 命令树完整、正常停服，没有报错。
+- 不带 Gu World 开服：`/guworld enter guworld:southern_border` 回"未在此服务器加载"，`/guworld enter minecraft:the_nether` 回"不是锚定维度"，都不再抛异常。
 
 云端跑不了：L1 / L2 JUnit、GameTest、客户端。本地按顺序做：
 
@@ -41,6 +42,7 @@
    - `TendedGuItem.spendAndGrant` 新增；`PrimevalElderGuItem` 不再覆盖 `feedUnits`、`holdingFood`。
    - `GuItem.isForeignVital` 新增。
    - `ModDataComponents`、`ModEntityTypes`、`ModCreativeTabs` 的注册写法变了，常量名不变。
+   - `/guworld enter` 的目标维度未加载时改用新键 `guzhenren.command.travel.missing_dimension`，不再借用 `unknown_dimension`。
 4. 把结果报告给 Alex，等 Alex 合并。
 
 ## 二、wiki 修改建议
@@ -51,7 +53,7 @@
    - 总倍率 = 自身倍率 × 世界倍率。
    - 自身倍率：两更、三更等宙道效果相加，最低 1。
    - 世界倍率：维度的 `timeRate` × 区域 `TimeFlowArea`，可以低于 1（时间变慢）。目前所有维度都是 1，区域只留了接口，离线补算也只留了接口。
-   - 总倍率下限 `TimeFlow.MIN_RATE` = 0.125，这个数值待 Alex 拍板。
+   - 总倍率下限 `TimeFlow.MIN_RATE` = 0.125（八分之一）。
    - 小数倍率用随机进位，期望值精确；整数倍率不掷随机，结果与以前完全一致。
    - 心跳每秒只读一次时钟（`Beat`），真元、念、寿元、温养都用这一次的读数。
 2. **寿元**
@@ -66,19 +68,17 @@
 8. **蛊的喂食**：元老蛊取石时不再吃掉取出的元石；闲情蛊、恶念蛊这类一次性蛊被消耗前不再吃副手食物。
 9. **攻击力刷新**：药水效果增减后当 tick 生效，不再要等下一次心跳。
 10. **存档**：空窍体质和 `life_form` 的旧格式迁移已删除。
-11. **维护说明**
+11. **维度传送命令** `/guworld enter`：目标不是锚定维度时提示"不是锚定维度"；目标是锚定维度但本服没有加载（没装 Gu World）时提示"未在此服务器加载"。
+12. **维护说明**
     - 包结构：`lifecycle`、`refinement` 成为顶层包；命令全部平铺在 `command`；时钟在 `gameplay.clock`；`core.TossedItems`；`StonePurse`。
     - 依赖方向：gameplay 不再依赖 command、lifecycle、refinement；对 item 的依赖只剩空窍储物一处。
-    - 语言表：一个文件、三列，繁中留空就自动转换。
+    - 语言表：一个文件、三列，繁中留空就自动转换；只有用词不同时才手写繁中（如"服务器加载"写成"伺服器載入"）。转换表 `TraditionalGlyphs` 遇到没收录的字会让 `runData` 失败，新文案里的新字要先加进表里。
     - 附件继承：在 `ModAttachments` 注册处声明。
 
 ## 三、待办
 
 1. 空窍储物 `gameplay.aperture.storage` 与 `item` 的双向依赖，留到本地有测试时拆：首个空窍插入改为事件，储物的逐秒结算和菜单上移到组合层。
-2. 待 Alex 定的数值与文案：
-   - `TimeFlow.MIN_RATE`（0.125）。
-   - 目标维度未加载时 `/guworld enter` 的专用提示（现在借用"不是锚定维度"）。
-3. 审查发现、本分支没做的（多数需要客户端或本地测试验证）：
+2. 审查发现、本分支没做的（多数需要客户端或本地测试验证）：
    - GUI 公共控件基类，四个容器界面共用，约少 120–160 行。
    - 实体：`RestGoal` / `GrazeGoal` 合并、`strikeTarget` 提取、冷却改为服务端私有状态（现在每 tick 同步给所有追踪者）、追击寻路节流。
    - 超过 300 行的类拆分：`TendedGuItem`（504 行）、`ModItems`（570 行）、`AperturePressureExplosionTask`（319 行，顺便核对每 tick 方块预算）。
@@ -86,4 +86,4 @@
    - 崩溃后残留的 `HEALTH_CARRY` 可能回血。
    - 切换十绝体命令可反复刷人道气；`awaken(0)` 会生成坏空窍。
    - 命名规则 3：大量读方法不以动词开头。
-4. Gu World 的语言表也可以改成同样的三列单表，与 GZR 一致。
+3. Gu World 的语言表也可以改成同样的三列单表，与 GZR 一致。
