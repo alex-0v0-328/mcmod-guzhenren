@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.command;
 
 import com.google.common.math.LongMath;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -7,8 +7,16 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.alex.guzhenren.command.AwakenedGate;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
+import net.alex.guzhenren.gameplay.aperture.Aperture;
+import net.alex.guzhenren.gameplay.aperture.ApertureData;
+import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.aperture.Stage;
+import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;

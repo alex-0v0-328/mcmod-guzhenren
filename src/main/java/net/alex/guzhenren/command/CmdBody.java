@@ -1,9 +1,13 @@
-package net.alex.guzhenren.gameplay.body;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import java.util.function.Predicate;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
+import net.alex.guzhenren.gameplay.body.BodyService;
+import net.alex.guzhenren.gameplay.body.ExtremePhysique;
+import net.alex.guzhenren.gameplay.body.Physique;
+import net.alex.guzhenren.gameplay.body.Race;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;

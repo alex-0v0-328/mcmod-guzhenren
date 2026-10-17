@@ -1,7 +1,9 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import net.alex.guzhenren.command.AwakenedGate;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -20,7 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.lifecycle.CmdReset
+ * @see net.alex.guzhenren.command.CmdReset
  * @since 1.0.0
  */
 

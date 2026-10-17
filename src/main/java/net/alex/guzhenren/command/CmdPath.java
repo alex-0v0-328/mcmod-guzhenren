@@ -1,13 +1,17 @@
-package net.alex.guzhenren.gameplay.path;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.alex.guzhenren.command.CmdQi;
+import net.alex.guzhenren.command.CmdStrength;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
-import net.alex.guzhenren.gameplay.path.qi.CmdQi;
-import net.alex.guzhenren.gameplay.path.strength.CmdStrength;
+import net.alex.guzhenren.gameplay.path.GuAttainment;
+import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.path.MarkTag;
+import net.alex.guzhenren.gameplay.path.PathService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 

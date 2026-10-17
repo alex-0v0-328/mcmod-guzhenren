@@ -1,9 +1,12 @@
-package net.alex.guzhenren.gameplay.path.strength;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.command.ModEnumArgument;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 

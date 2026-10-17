@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.dimension;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.command.ModCommandFeedback;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;

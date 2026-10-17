@@ -1,9 +1,9 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import java.util.function.Predicate;
-import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 

@@ -1,8 +1,10 @@
-package net.alex.guzhenren.gameplay.mind;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.mind.MindPoolType;
+import net.alex.guzhenren.gameplay.mind.MindService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 

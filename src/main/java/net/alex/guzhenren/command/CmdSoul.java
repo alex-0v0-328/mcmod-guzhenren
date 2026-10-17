@@ -1,7 +1,8 @@
-package net.alex.guzhenren.gameplay.soul;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 

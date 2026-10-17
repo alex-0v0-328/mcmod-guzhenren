@@ -1,8 +1,10 @@
-package net.alex.guzhenren.gameplay.path.qi;
+package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.ModCommandSupport;
+import net.alex.guzhenren.gameplay.path.qi.PathQiService;
+import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
