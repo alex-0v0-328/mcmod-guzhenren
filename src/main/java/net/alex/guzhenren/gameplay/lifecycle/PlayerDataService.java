@@ -58,6 +58,7 @@ public final class PlayerDataService {
 
     public static void onJoin(@NotNull ServerPlayer player) {
         if (!player.getData(ModAttachments.BORN)) onBirth(player);
+        BodyService.skipOfflineLifespan(player);
         ApertureService.syncTalentMarks(player);
         MaxHealthService.refresh(player);
         MaxHealthService.restoreCarried(player);

@@ -20,7 +20,9 @@ import org.jetbrains.annotations.NotNull;
  * The only runtime writer of Body [肉身] state, and the home of every physique [体质] transition. Static
  * service; owns two clocks with two anchors: {@link #tickAging} keeps {@code lastDayIndex} and counts
  * DAYS for the three Gu-hunger walks and nothing else; {@link #tickLifespan} keeps
- * {@code lastBilledTick} and bills lifespan every heartbeat instead of once a day.
+ * {@code lastBilledTick} and bills lifespan every heartbeat instead of once a day. Lifespan bills online time
+ * only: {@link #skipOfflineLifespan} un-anchors the bill on login, so the first heartbeat re-anchors and bills
+ * nothing for the time away, while the day clock still counts the days away for the Gu-hunger walks.
  *
  * <p>⚠ {@code tickAging}'s returned day count can far exceed one and drives three day-clock walks --
  * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link TimeFlow#scale}
@@ -38,7 +40,10 @@ import org.jetbrains.annotations.NotNull;
  * caller setting a physique other than {@code NONE} gates on it -- the command through
  * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first. ⚠ A half-zombie form that runs
  * out keeps its end tick: a Zombie Gu used within {@code RELAPSE_WINDOW_TICKS} after it turns the body
- * permanently 僵 ({@link #isWithinRelapseWindow}); only {@link #revive} clears it.
+ * permanently 僵 ({@link #isWithinRelapseWindow}); only {@link #revive} clears it. ⚠ Lifespan across the
+ * three stages, human, half-zombie and zombie: entering half-zombie freezes it (an undead body is never billed)
+ * and leaving it only thaws it; turning fully 僵, from a human or from half-zombie, sets it to
+ * {@code ZOMBIE_LIFESPAN}, and that year stays when the form ends.
  *
  * @author Alex
  * @version 1.0.0
@@ -278,6 +283,10 @@ public final class BodyService {
         if (lived <= 0L) return;
 
         store(player, body.lived(lived, now));
+    }
+
+    public static void skipOfflineLifespan(@NotNull ServerPlayer player) {
+        store(player, get(player).withLastBilledTick(BodyData.UNTRACKED));
     }
 
     public static long getElapsedParts(long elapsedTicks) {
