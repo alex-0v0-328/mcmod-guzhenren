@@ -56,7 +56,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>DeferredRegister holder: the {@link GuSpec} chain on each registration, or the spec helper its family
  * shares, IS the truth. A figure
  * written down anywhere else is a copy of it, and when the two disagree this file is the one that is
- * right. One line per item, plus the PNG and both lang keys.
+ * right. One line per item, plus the PNG and both lang keys. Past 300 lines on purpose: it is a data table, and
+ * splitting it would scatter the one place the numbers live.
  *
  * <p>⚠ The registration id mirrors the Java name (and the PNG); a rank ladder is numbered
  * ({@code sword_qi_1..5}), but an item with its own fiction name keeps that name ({@code blood_wight_gu}).

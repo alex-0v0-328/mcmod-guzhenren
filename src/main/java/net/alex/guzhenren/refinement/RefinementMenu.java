@@ -23,7 +23,6 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +36,11 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ The ritual is owned by the menu deliberately, never lifted into a service: the grid locks while it
  * runs, and the client reads every live figure through {@link
- * net.minecraft.world.inventory.ContainerData} (ten ints) because it cannot match a recipe itself.
+ * net.minecraft.world.inventory.ContainerData} (ten ints) because it cannot match a recipe itself. Picking a recipe
+ * fills the grid from the bag through {@link RecipeAutofill}.
+ *
+ * <p>Past 300 lines on purpose: the slot layout, the slot rules, the recipe behind the button and the ritual's
+ * clock all guard the same grid, which locks while the ritual runs.
  *
  * @author Alex
  * @version 1.0.0
@@ -190,7 +193,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         List<RecipeHolder<GuRecipe>> known = GuRecipe.known(server.getRecipeManager());
         selectedIndex = index >= 0 && index < known.size() ? index : -1;
         craftData.set(DATA_SELECTED, selectedIndex + 1);
-        if (selectedIndex >= 0) fill(known.get(selectedIndex).value());
+        if (selectedIndex >= 0) RecipeAutofill.fill(known.get(selectedIndex).value(), input, player);
         refresh();
         return true;
     }
@@ -209,48 +212,6 @@ public class RefinementMenu extends AbstractContainerMenu {
     private static long threshold(GuRecipe recipe) {
         long essence = recipe.essenceToFinish();
         return essence / 100L * OPENING_PERCENT + essence % 100L * OPENING_PERCENT / 100L;
-    }
-    //endregion
-
-    //region autofill [自动填充] -- picking a 蛊方 pulls what the bag can cover into the cells it names
-    private void fill(GuRecipe recipe) {
-        for (int n = 0; n < recipe.ingredients().size(); n++) {
-            int slot = recipe.slots().get(n);
-            if (slot < 0 || slot >= GuRecipe.INPUT_SIZE) continue;
-
-            SizedIngredient need = recipe.ingredients().get(n);
-            ItemStack held = input.getItem(slot);
-            if (!held.isEmpty() && !need.ingredient().test(held)) continue;
-
-            int wanted = need.count() - held.getCount();
-            if (wanted > 0) draw(need, slot, wanted);
-        }
-    }
-
-    private void draw(SizedIngredient need, int slot, int wanted) {
-        Inventory inventory = player.getInventory();
-
-        for (int i = 0; i < inventory.getContainerSize() && wanted > 0; i++) {
-            ItemStack from = inventory.getItem(i);
-            if (from.isEmpty() || !need.ingredient().test(from)) continue;
-            if (GuItem.isForeignVital(from, player)) continue;
-
-            ItemStack held = input.getItem(slot);
-            if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, from)) continue;
-
-            int move = Math.min(Math.min(wanted, from.getCount()),
-                    from.getMaxStackSize() - held.getCount());
-            if (move <= 0) continue;
-
-            if (held.isEmpty()) {
-                input.setItem(slot, from.split(move));
-            } else {
-                held.grow(move);
-                from.shrink(move);
-                input.setChanged();
-            }
-            wanted -= move;
-        }
     }
     //endregion
 

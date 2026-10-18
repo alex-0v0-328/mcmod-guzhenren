@@ -45,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
  * tables. ☠ The two tables split at different points, and only the Ten-Extremes one can never lose
  * base.
  *
+ * <p>Just past 300 lines: nourishing and the wall strike share the stone purse and the progress a strike resets.
+ *
  * @author Alex
  * @version 1.0.0
  * @see ApertureService

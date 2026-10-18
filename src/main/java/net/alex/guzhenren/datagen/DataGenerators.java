@@ -53,8 +53,12 @@ public final class DataGenerators {
         DataGenerator generator = event.getGenerator();
         PackOutput packOutput = generator.getPackOutput();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
-        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+        addClientProviders(event, generator, packOutput, existingFileHelper);
+        addServerProviders(event, generator, packOutput, existingFileHelper);
+    }
 
+    private static void addClientProviders(GatherDataEvent event, DataGenerator generator, PackOutput packOutput,
+                                           ExistingFileHelper existingFileHelper) {
         for (ModLanguageProvider.Language language : ModLanguageProvider.Language.values()) {
             generator.addProvider(event.includeClient(), new ModLanguageProvider(packOutput, language));
         }
@@ -65,7 +69,11 @@ public final class DataGenerators {
 
         generator.addProvider(event.includeClient(),
                 new ModParticleDescriptionProvider(packOutput, existingFileHelper));
+    }
 
+    private static void addServerProviders(GatherDataEvent event, DataGenerator generator, PackOutput packOutput,
+                                           ExistingFileHelper existingFileHelper) {
+        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
         ModDatapackProvider datapackProvider = generator.addProvider(event.includeServer(),
                 new ModDatapackProvider(packOutput, lookupProvider));
 

@@ -41,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider}. Items, blocks, effects, entities and enum
  * constants are added through the registered object or the constant, never a raw key string, so a renamed
  * registration cannot leave a key behind pointing at nothing; the interface, command and message strings have no
- * object and are added by their key. Past 300 lines on purpose: it is a data table, one line per string. The value
+ * object and are added by their key. Past 300 lines, and its sections past 40, on purpose: it is a data table, one
+ * line per string. The value
  * columns align per {@code add*()} method; an entry too long for the line wraps its two renderings onto the next.
  *
  * <p>⚠ Both renderings are the authority, not a translation of each other. Deriving either side from the other is how
