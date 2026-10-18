@@ -10,6 +10,7 @@
 - `runData` 与改动前逐字节一致：语言表合并、注册类精简都不改生成结果。只新增了 `data/minecraft/tags/damage_type/bypasses_invulnerability.json`（四种致死伤害无视图腾）。
 - 开服冒烟（GZR 加 Gu World，临时游戏目录）：三个维度加载、南疆强制加载 81 个区块、`/guzhenren` 命令树完整、正常停服，没有报错。
 - 不带 Gu World 开服：`/guworld enter guworld:southern_border` 回"未在此服务器加载"，`/guworld enter minecraft:the_nether` 回"不是锚定维度"，都不再抛异常。
+- 第二轮重构（界面共用件、实体、长类拆分、两个 bug 修复）编译通过，`runData` 逐字节不变。
 
 云端跑不了：L1 / L2 JUnit、GameTest、客户端。本地按顺序做：
 
@@ -43,7 +44,27 @@
    - `GuItem.isForeignVital` 新增。
    - `ModDataComponents`、`ModEntityTypes`、`ModCreativeTabs` 的注册写法变了，常量名不变。
    - `/guworld enter` 的目标维度未加载时改用新键 `guzhenren.command.travel.missing_dimension`，不再借用 `unknown_dimension`。
-4. 把结果报告给 Alex，等 Alex 合并。
+   - `MaxHealthService.restoreCarried` 恢复后移除 `HEALTH_CARRY`（`removeData`），不再保留到下次登录。
+   - `ApertureService.awaken(player, 0)` 改为随机掷一次资质，不再开出底数为 0 的空窍。
+   - 实体：
+     - `ActionEntity.Cooldown` 变为 `(maxTicks, saveKey)`；攻击冷却不再是 `SynchedEntityData`，存档键不变。
+     - `ActionEntity.strikeTarget(reach, damage, knockback, upward)` 新增，取代 `BeastEntity.performSwipe`、`WildBoarEntity.performToss` 和熊的重击判定。
+     - `BeastEntity.RestGoal`、`WildBoarEntity.GrazeGoal` 删除，改用 `entity.ai.StandStillGoal`。
+     - `CombatGoal` 追击按原版近战节奏重算路径（见第二节）。
+   - 空窍压力爆炸：
+     - 按列的计算移到 `gameplay.aperture.CraterShape`：`getColumnJitter`、`getColumnRadius`、`getColumnFloorY`、`getIceTier`、`getGoldTier`、`isLavaColumn`、`isGoldColumn`、`isPowderSnowColumn`。
+     - `ringOuterRadius` 改名为 `getRingOuterRadius`，新增 `getRingReach`。
+     - `BLOCK_BUDGET` 改为 16,384。
+   - 客户端界面：
+     - 新增 `Widgets`（面板、格子、按钮、返回键、命中判定、容器按钮）、`RecipeGhosts`、`PoolBars`。
+     - `RefinementScreen.result` / `option` 改为 `RecipeGhosts.getResult` / `getOption`。
+     - `RefinementScreen.CELL` 改为 `Widgets.CELL`，`LEGEND_TEXT` 移到 `ModPalette`。
+     - `ModPalette` 新增 `MODAL_FILL`、`LEGEND_TEXT`、`SHORT`、`SHORT_OUTLINE`。
+     - `InfoRowRenderer.getRows`、`getApertureGroups` 接手 `PlayerInfoScreen` 原来的行构建。
+   - `RefinementMenu` 的自动填充移到 `refinement.RecipeAutofill.fill(recipe, input, player)`。
+   - `DataGenerators.gatherData` 拆成客户端、服务端两组，顺序不变。
+4. 进客户端看四个界面（B 面板各标签、空窍储物翻页和返回键、炼蛊的按钮、虚影和池条、魂魄交易）和两个弹窗。界面改成共用 `Widgets` 后应当像素不变，云端看不了。
+5. 把结果报告给 Alex，等 Alex 合并。
 
 ## 二、wiki 修改建议
 
@@ -69,21 +90,20 @@
 9. **攻击力刷新**：药水效果增减后当 tick 生效，不再要等下一次心跳。
 10. **存档**：空窍体质和 `life_form` 的旧格式迁移已删除。
 11. **维度传送命令** `/guworld enter`：目标不是锚定维度时提示"不是锚定维度"；目标是锚定维度但本服没有加载（没装 Gu World）时提示"未在此服务器加载"。
-12. **维护说明**
+12. **离线血量**：超过 20 的血量只在正常退出到下次登录之间保留；会话中途崩溃时，读档最多恢复到 20，不会再被更早一次退出时的血量补满。
+13. **希望蛊**：没掷出底数就使用时，开窍时补掷一次资质。
+14. **野兽追击**：熊、虎、野猪追击时按原版近战怪的节奏重算路径：目标在动时每 4–10 tick 一次，超过 16 格再加 5、超过 32 格再加 10，寻路失败再加 15；做完动作停下后立即重算。
+15. **空窍压力自爆挖坑**：每 tick 每阶段最多处理 16,384 个方块位置，半径 112 的坑（约 590 万个位置）约 18 秒成形，不再卡服。
+16. **维护说明**
     - 包结构：`lifecycle`、`refinement` 成为顶层包；命令全部平铺在 `command`；时钟在 `gameplay.clock`；`core.TossedItems`；`StonePurse`。
     - 依赖方向：gameplay 不再依赖 command、lifecycle、refinement；对 item 的依赖只剩空窍储物一处。
     - 语言表：一个文件、三列，繁中留空就自动转换；只有用词不同时才手写繁中（如"服务器加载"写成"伺服器載入"）。转换表 `TraditionalGlyphs` 遇到没收录的字会让 `runData` 失败，新文案里的新字要先加进表里。
     - 附件继承：在 `ModAttachments` 注册处声明。
+    - 界面：所有界面共用 `client.screen.Widgets`；两个以上界面共用的颜色才进 `ModPalette`。
+    - 实体：休息、吃草这类"站着不动"的姿势共用 `entity.ai.StandStillGoal`；命中帧打击走 `ActionEntity.strikeTarget`；攻击冷却只在服务端。
+    - 超过 300 行而不拆的类，在类 Javadoc 里写明原因：`ModItems`、`ModLanguageProvider`（数据表）、`RefinementScreen`、`PlayerInfoScreen`、`RefinementMenu`、`ApertureNourishService`、`TendedGuItem`、`ActionEntity`、`BeastEntity`。
 
 ## 三、待办
 
-1. 空窍储物 `gameplay.aperture.storage` 与 `item` 的双向依赖，留到本地有测试时拆：首个空窍插入改为事件，储物的逐秒结算和菜单上移到组合层。
-2. 审查发现、本分支没做的（多数需要客户端或本地测试验证）：
-   - GUI 公共控件基类，四个容器界面共用，约少 120–160 行。
-   - 实体：`RestGoal` / `GrazeGoal` 合并、`strikeTarget` 提取、冷却改为服务端私有状态（现在每 tick 同步给所有追踪者）、追击寻路节流。
-   - 超过 300 行的类拆分：`TendedGuItem`（504 行）、`ModItems`（570 行）、`AperturePressureExplosionTask`（319 行，顺便核对每 tick 方块预算）。
-   - `ApertureStorageTick` 可能的 O(N²) 复制。
-   - 崩溃后残留的 `HEALTH_CARRY` 可能回血。
-   - 切换十绝体命令可反复刷人道气；`awaken(0)` 会生成坏空窍。
-   - 命名规则 3：大量读方法不以动词开头。
-3. Gu World 的语言表也可以改成同样的三列单表，与 GZR 一致。
+1. 空窍储物 `gameplay.aperture.storage` 与 `item` 的双向依赖，留到本地有测试时拆：首个空窍插入改为事件，储物的逐秒结算和菜单上移到组合层。同一处的 `ApertureStorageTick` 每改一格就复制整页列表（O(N²)），拆的时候一起改成整页写回一次，但要保留"蛊自己的维护可能写入储物"那条约束。
+2. 命名规则 3（方法名以动词开头）：约两三百个名词或形容词开头的方法（如 `maxEssence`、`talent`、`refilled`、`action`、`cooldown`），在本地用 IDEA 的重命名重构处理，测试会一起跟着改。记录类自动生成的组件访问器不算。
