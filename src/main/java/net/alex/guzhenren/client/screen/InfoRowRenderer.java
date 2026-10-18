@@ -1,16 +1,22 @@
 package net.alex.guzhenren.client.screen;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * The B panel's text for each {@link InfoModel} entry: a label on the left, an optional value on the right,
  * and, for the secondary-path row, a click that opens the {@link PathPicker}. A header row has no value and
  * takes the tab's accent colour; the mind header returns {@code null} because its tab title already says it.
+ *
+ * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line; {@link #getApertureGroups}
+ * splits the aperture tab into one group per aperture, blanks dropped, for the two-column layout.
  *
  * <p>{@link #draw} is one exhaustive switch over the sealed {@code InfoModel.Entry}, past 40 lines on
  * purpose: a new row does not compile until it has its line here and in {@code /gzr info}. ⚠ The model owns
@@ -27,6 +33,45 @@ import org.jetbrains.annotations.Nullable;
 final class InfoRowRenderer {
 
     private InfoRowRenderer() {}
+
+    static List<ScreenRow> getRows(List<InfoModel.Row> model) {
+        List<ScreenRow> rows = new ArrayList<>(model.size());
+        for (int i = 0; i < model.size(); i++) {
+            InfoModel.Row row = model.get(i);
+            ScreenRow drawn = draw(row.indent(), row.entry());
+            if (drawn == null) continue;
+
+            ScreenRow partner = row.entry() instanceof InfoModel.PathRow ? getPathPartner(model, i + 1) : null;
+            if (partner != null) {
+                rows.add(new ScreenRow(row.indent(), drawn.label(), partner.label()));
+                i++;
+            } else {
+                rows.add(drawn);
+            }
+        }
+        return rows;
+    }
+
+    static List<List<ScreenRow>> getApertureGroups(Player player) {
+        List<List<ScreenRow>> groups = new ArrayList<>();
+        List<ScreenRow> current = null;
+        for (InfoModel.Row modelRow : InfoModel.aperture(player)) {
+            if (modelRow.entry() instanceof InfoModel.Blank) continue;
+            ScreenRow drawn = draw(modelRow.indent(), modelRow.entry());
+            if (drawn == null) continue;
+            if (modelRow.entry() instanceof InfoModel.ApertureIndex || current == null) {
+                current = new ArrayList<>();
+                groups.add(current);
+            }
+            current.add(drawn);
+        }
+        return groups;
+    }
+
+    private static @Nullable ScreenRow getPathPartner(List<InfoModel.Row> model, int index) {
+        if (index >= model.size() || !(model.get(index).entry() instanceof InfoModel.PathRow second)) return null;
+        return draw(model.get(index).indent(), second);
+    }
 
     static @Nullable ScreenRow draw(int indent, InfoModel.Entry entry) {
         return switch (entry) {

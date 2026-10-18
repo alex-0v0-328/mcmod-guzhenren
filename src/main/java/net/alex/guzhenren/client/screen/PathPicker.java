@@ -28,7 +28,6 @@ final class PathPicker {
     private static final int CELL_W = 84;
     private static final int CELL_H = 14;
     private static final int PAD = 8;
-    private static final int FILL = 0xF0000000;
     private boolean open;
     private int aperture = ApertureData.PRIMARY;
 
@@ -48,8 +47,7 @@ final class PathPicker {
         int w = width();
         int h = height();
 
-        graphics.fill(x0, y0, x0 + w, y0 + h, FILL);
-        graphics.renderOutline(x0, y0, w, h, ModPalette.BORDER);
+        Widgets.drawPanel(graphics, x0, y0, w, h, ModPalette.MODAL_FILL);
         graphics.drawString(font, Component.translatable("guzhenren.screen.pick.title"),
                 x0 + PAD, y0 + (PlayerInfoScreen.HEADER_H - font.lineHeight) / 2, accent, false);
         graphics.fill(x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD, y0 + PlayerInfoScreen.HEADER_H + 1,
@@ -58,8 +56,9 @@ final class PathPicker {
         for (int i = 0; i < count(); i++) {
             int cx = x0 + PAD + (i % COLS) * CELL_W;
             int cy = y0 + PAD + PlayerInfoScreen.HEADER_H + (i / COLS) * CELL_H;
-            boolean hover = mouseX >= cx && mouseX < cx + CELL_W && mouseY >= cy && mouseY < cy + CELL_H;
-            if (hover) graphics.fill(cx, cy, cx + CELL_W, cy + CELL_H, PlayerInfoScreen.ROW_HOVER);
+            if (Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) {
+                graphics.fill(cx, cy, cx + CELL_W, cy + CELL_H, PlayerInfoScreen.ROW_HOVER);
+            }
             graphics.drawString(font, ModDisplayText.path(path(i)), cx + 3,
                     cy + (CELL_H - font.lineHeight) / 2, ModPalette.TEXT, false);
         }
@@ -71,7 +70,7 @@ final class PathPicker {
         for (int i = 0; i < count(); i++) {
             int cx = x0 + (i % COLS) * CELL_W;
             int cy = y0 + (i / COLS) * CELL_H;
-            if (mouseX < cx || mouseX >= cx + CELL_W || mouseY < cy || mouseY >= cy + CELL_H) continue;
+            if (!Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) continue;
 
             PacketDistributor.sendToServer(new SetSecondaryPathPayload(aperture, path(i)));
             open = false;

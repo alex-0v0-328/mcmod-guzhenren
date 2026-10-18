@@ -37,7 +37,6 @@ final class RecipePicker {
     private static final int ROW_H = 20;
     private static final int MAX_ROWS = 5;
     private static final float Z = 500.0F;
-    private static final int FILL = 0xF0000000;
     private static final String STONE_SEPARATOR = " · ";
     private static final String TITLE_KEY = "guzhenren.menu.refinement.pick.title";
     private static final String AUTO_KEY = "guzhenren.menu.refinement.pick.auto";
@@ -83,7 +82,7 @@ final class RecipePicker {
 
         for (int i = 0; i < visible; i++) {
             int rowY = rowY(y0, i);
-            if (mouseX < x0 || mouseX >= x0 + W || mouseY < rowY || mouseY >= rowY + ROW_H) continue;
+            if (!Widgets.isOver(mouseX, mouseY, x0, rowY, W, ROW_H)) continue;
 
             int row = scroll + i;
             return row == 0 ? RefinementMenu.BUTTON_CLEAR_RECIPE : RefinementMenu.BUTTON_RECIPE_BASE + row - 1;
@@ -101,8 +100,7 @@ final class RecipePicker {
         int y0 = top(panelTop, panelH, visible);
         int h = height(visible);
 
-        graphics.fill(x0, y0, x0 + W, y0 + h, FILL);
-        graphics.renderOutline(x0, y0, W, h, ModPalette.BORDER);
+        Widgets.drawPanel(graphics, x0, y0, W, h, ModPalette.MODAL_FILL);
         graphics.drawString(font, Component.translatable(TITLE_KEY), x0 + PAD,
                 y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
         graphics.fill(x0 + PAD, y0 + HEADER_H, x0 + W - PAD, y0 + HEADER_H + 1, ModPalette.BORDER);
@@ -111,7 +109,7 @@ final class RecipePicker {
         for (int i = 0; i < visible; i++) {
             int row = scroll + i;
             int rowY = rowY(y0, i);
-            if (mouseX >= x0 && mouseX < x0 + W && mouseY >= rowY && mouseY < rowY + ROW_H) {
+            if (Widgets.isOver(mouseX, mouseY, x0, rowY, W, ROW_H)) {
                 graphics.fill(x0 + 1, rowY, x0 + W - 1, rowY + ROW_H, ModPalette.BUTTON_IDLE);
                 hovered = row;
             }
@@ -132,21 +130,21 @@ final class RecipePicker {
             return;
         }
         GuRecipe recipe = known.get(row - 1).value();
-        ItemStack icon = RefinementScreen.result(recipe);
-        graphics.renderFakeItem(icon, x0 + PAD, y + (ROW_H - RefinementScreen.CELL) / 2);
-        graphics.drawString(font, icon.getHoverName(), x0 + PAD + RefinementScreen.CELL + 4, textY, ModPalette.TEXT,
+        ItemStack icon = RecipeGhosts.getResult(recipe);
+        graphics.renderFakeItem(icon, x0 + PAD, y + (ROW_H - Widgets.CELL) / 2);
+        graphics.drawString(font, icon.getHoverName(), x0 + PAD + Widgets.CELL + 4, textY, ModPalette.TEXT,
                 false);
 
         Component rate = Component.translatable(CHANCE_KEY, recipe.baseSuccess());
-        graphics.drawString(font, rate, x0 + W - PAD - font.width(rate), textY, RefinementScreen.LEGEND_TEXT, false);
+        graphics.drawString(font, rate, x0 + W - PAD - font.width(rate), textY, ModPalette.LEGEND_TEXT, false);
     }
 
     private static List<Component> details(GuRecipe recipe) {
         List<Component> lines = new ArrayList<>();
-        lines.add(RefinementScreen.result(recipe).getHoverName());
+        lines.add(RecipeGhosts.getResult(recipe).getHoverName());
         lines.add(Component.translatable(NEEDS_KEY));
         for (SizedIngredient need : recipe.ingredients()) {
-            lines.add(Component.translatable(ITEM_KEY, need.count(), RefinementScreen.option(need).getHoverName()));
+            lines.add(Component.translatable(ITEM_KEY, need.count(), RecipeGhosts.getOption(need).getHoverName()));
         }
         lines.add(Component.translatable(WINDOWS_KEY, recipe.windowCount(), recipe.totalSeconds()));
         lines.add(Component.translatable(STONES_KEY, stoneList(recipe)));

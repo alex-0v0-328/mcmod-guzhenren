@@ -22,7 +22,11 @@ public final class ModPalette {
     public static final int REFINEMENT = 0xFF81C784;
     public static final int TREASURE_YELLOW_HEAVEN = 0xFFF4D35E;
     public static final int PANEL_FILL = 0xBF000000;
+    public static final int MODAL_FILL = 0xF0000000;
     public static final int BORDER = 0x66FFFFFF;
+    public static final int LEGEND_TEXT = 0xFFA0A0A0;
+    public static final int SHORT = 0xFFFF5555;
+    public static final int SHORT_OUTLINE = 0x99FF5555;
     public static final int SLOT_FILL = 0x33FFFFFF;
     public static final int TEXT = 0xFFFFFFFF;
     public static final int BUTTON_IDLE = 0x33FFFFFF;

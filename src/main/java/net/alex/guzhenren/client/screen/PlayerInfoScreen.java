@@ -35,6 +35,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ A plain screen with no menu behind it: no container channel to send an intent over.
  *
+ * <p>Past 300 lines on purpose: the tabs, the rows, the scroll bar and the aperture columns are one layout that
+ * reads the same edges ({@code contentLeft}, {@code valueRight}, {@code tabLeft}) as the panel resizes.
+ *
  * @author Alex
  * @version 1.0.0
  * @see InfoModel
@@ -103,8 +106,7 @@ public final class PlayerInfoScreen extends Screen {
         int right = leftPos + panelW;
         int accent = ACCENT[activeTab];
 
-        graphics.fill(leftPos, topPos, right, topPos + panelH, ModPalette.PANEL_FILL);
-        graphics.renderOutline(leftPos, topPos, panelW, panelH, ModPalette.BORDER);
+        Widgets.drawPanel(graphics, leftPos, topPos, panelW, panelH, ModPalette.PANEL_FILL);
 
         graphics.drawString(font, Component.translatable(TAB_KEYS[activeTab]),
                 leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
@@ -116,7 +118,8 @@ public final class PlayerInfoScreen extends Screen {
         if (player == null) return;
 
         if (activeTab == TAB_APERTURE && twoApertures(player)) {
-            renderApertureColumns(graphics, player, apertureGroups(player), mouseX, mouseY, accent);
+            List<List<ScreenRow>> groups = InfoRowRenderer.getApertureGroups(player);
+            renderApertureColumns(graphics, player, groups, mouseX, mouseY, accent);
         } else {
             renderRows(graphics, rows(player), mouseX, mouseY, accent);
             renderBottomButtons(graphics, mouseX, mouseY);
@@ -142,7 +145,7 @@ public final class PlayerInfoScreen extends Screen {
 
     private void drawRow(GuiGraphics graphics, ScreenRow row, int x0, int x1, int y, int mouseX, int mouseY,
                          int accent) {
-        if (mouseY >= y - 1 && mouseY < y + LINE_H - 1 && mouseX >= x0 - 2 && mouseX < x1 + 2) {
+        if (Widgets.isOver(mouseX, mouseY, x0 - 2, y - 1, x1 - x0 + 4, LINE_H)) {
             graphics.fill(x0 - 2, y - 1, x1 + 2, y + LINE_H - 1, ROW_HOVER);
             if (row.click() != null) hoverClick = row.click();
         }
@@ -156,22 +159,6 @@ public final class PlayerInfoScreen extends Screen {
     //region aperture columns -- two apertures render side by side, left first right second
     private static boolean twoApertures(LocalPlayer player) {
         return ApertureService.get(player).count() == 2;
-    }
-
-    private List<List<ScreenRow>> apertureGroups(LocalPlayer player) {
-        List<List<ScreenRow>> groups = new ArrayList<>();
-        List<ScreenRow> current = null;
-        for (InfoModel.Row modelRow : InfoModel.aperture(player)) {
-            if (modelRow.entry() instanceof InfoModel.Blank) continue;
-            ScreenRow drawn = InfoRowRenderer.draw(modelRow.indent(), modelRow.entry());
-            if (drawn == null) continue;
-            if (modelRow.entry() instanceof InfoModel.ApertureIndex || current == null) {
-                current = new ArrayList<>();
-                groups.add(current);
-            }
-            current.add(drawn);
-        }
-        return groups;
     }
 
     private void renderApertureColumns(GuiGraphics graphics, LocalPlayer player, List<List<ScreenRow>> groups,
@@ -236,7 +223,7 @@ public final class PlayerInfoScreen extends Screen {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || activeTab != TAB_APERTURE || !ApertureService.hasAperture(player)) return false;
         List<ApertureButtons.ColumnButton> buttons = twoApertures(player)
-                ? columnButtons(player, apertureGroups(player)) : bottomButtons(player);
+                ? columnButtons(player, InfoRowRenderer.getApertureGroups(player)) : bottomButtons(player);
         for (ApertureButtons.ColumnButton b : buttons) {
             if (!ApertureButtons.inBox(mouseX, mouseY, b.x0(), b.x1(), b.top())) continue;
             if (ApertureButtons.click(player, b)) onClose();
@@ -305,10 +292,8 @@ public final class PlayerInfoScreen extends Screen {
             if (hover) graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, ROW_HOVER);
             if (active) graphics.fill(x0 - 2, y0, x0, y0 + TAB_H, ACCENT[i]);
 
-            Component label = Component.translatable(TAB_KEYS[i]);
             int color = active ? 0xFF101010 : live ? TAB_TEXT_IDLE : TAB_TEXT_DEAD;
-            graphics.drawString(font, label, x0 + (TAB_W - font.width(label)) / 2,
-                    y0 + (TAB_H - font.lineHeight) / 2 + 1, color, false);
+            Widgets.drawCentered(graphics, font, Component.translatable(TAB_KEYS[i]), x0, y0, TAB_W, TAB_H, color);
         }
     }
 
@@ -324,7 +309,7 @@ public final class PlayerInfoScreen extends Screen {
     private int tabTop(int i) { return topPos + CONTENT_TOP + i * (TAB_H + TAB_GAP); }
 
     private boolean inTab(double mouseX, double mouseY, int i) {
-        return mouseX >= tabLeft() && mouseX < tabLeft() + TAB_W && mouseY >= tabTop(i) && mouseY < tabTop(i) + TAB_H;
+        return Widgets.isOver(mouseX, mouseY, tabLeft(), tabTop(i), TAB_W, TAB_H);
     }
 
     @Override
@@ -371,34 +356,12 @@ public final class PlayerInfoScreen extends Screen {
     public boolean isPauseScreen() { return false; }
 
     private List<ScreenRow> rows(LocalPlayer player) {
-        List<InfoModel.Row> model = switch (activeTab) {
+        return InfoRowRenderer.getRows(switch (activeTab) {
             case TAB_BODY -> InfoModel.body(player);
             case TAB_SOUL -> InfoModel.soul(player);
             case TAB_PATH -> InfoModel.pathAchieve(player);
             case TAB_MIND -> InfoModel.mind(player);
             default -> InfoModel.aperture(player);
-        };
-
-        List<ScreenRow> rows = new ArrayList<>(model.size());
-        for (int i = 0; i < model.size(); i++) {
-            InfoModel.Row row = model.get(i);
-            if (activeTab == TAB_PATH && row.entry() instanceof InfoModel.PathRow first) {
-                ScreenRow left = InfoRowRenderer.draw(row.indent(), first);
-                if (left == null) continue;
-                ScreenRow right = i + 1 < model.size()
-                        && model.get(i + 1).entry() instanceof InfoModel.PathRow second
-                        ? InfoRowRenderer.draw(model.get(i + 1).indent(), second) : null;
-                if (right != null) {
-                    rows.add(new ScreenRow(row.indent(), left.label(), right.label()));
-                    i++;
-                } else {
-                    rows.add(left);
-                }
-                continue;
-            }
-            ScreenRow drawn = InfoRowRenderer.draw(row.indent(), row.entry());
-            if (drawn != null) rows.add(drawn);
-        }
-        return rows;
+        });
     }
 }

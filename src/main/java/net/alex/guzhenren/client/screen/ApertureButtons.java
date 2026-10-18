@@ -85,7 +85,8 @@ final class ApertureButtons {
                         : ModPalette.BUTTON_DEAD;
                 graphics.fill(x0, top, x1, bottom, fill);
                 if (running) {
-                    int done = x0 + Math.round((x1 - x0) * ApertureNourishService.getFraction(player, button.aperture()));
+                    float fraction = ApertureNourishService.getFraction(player, button.aperture());
+                    int done = x0 + Math.round((x1 - x0) * fraction);
                     graphics.fill(x0, top, done, bottom, PROGRESS);
                 }
                 graphics.renderOutline(x0, top, x1 - x0, PlayerInfoScreen.BTN_H,
@@ -120,11 +121,12 @@ final class ApertureButtons {
     }
 
     static boolean inBox(double mouseX, double mouseY, int x0, int x1, int top) {
-        return mouseX >= x0 && mouseX < x1 && mouseY >= top && mouseY < top + PlayerInfoScreen.BTN_H;
+        return Widgets.isOver(mouseX, mouseY, x0, top, x1 - x0, PlayerInfoScreen.BTN_H);
     }
 
     private static boolean isRunning(LocalPlayer player, int aperture) {
-        return ApertureNourishService.isCultivating(player) && ApertureNourishService.getTargetIndex(player) == aperture;
+        return ApertureNourishService.isCultivating(player)
+                && ApertureNourishService.getTargetIndex(player) == aperture;
     }
 
     private static List<StackButton> withStorage(int aperture, List<StackButton> buttons, int top) {
