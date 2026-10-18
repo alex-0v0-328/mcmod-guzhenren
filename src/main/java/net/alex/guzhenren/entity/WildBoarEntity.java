@@ -1,11 +1,8 @@
 package net.alex.guzhenren.entity;
 
-import java.util.EnumSet;
 import java.util.List;
+import net.alex.guzhenren.entity.ai.StandStillGoal;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -15,7 +12,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -30,9 +26,8 @@ import software.bernie.geckolib.animation.RawAnimation;
  * <p>A first provocation plays the alert; later hits play the hurt pose. The charge locks its direction only
  * after its wind-up, so the boar keeps facing the target until then; in {@link #tickCharge}, the swept-body
  * test checks the actual path, not the diagonal broad-phase rectangle, and a wall, a ledge or a hit ends the
- * run. After a completed wander the boar sometimes grazes ({@link GrazeGoal}).
- *
- * <p>Just past 300 lines through its timing constants and the graze goal.
+ * run. After a completed wander the boar sometimes grazes, held in place by a {@link StandStillGoal}; the graze
+ * ends after {@link #GRAZE_ACTION_TICKS} or as soon as the boar has a target.
  */
 
 public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
@@ -63,13 +58,8 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
     private static final double GRAZE_CHANCE = 0.25D;
     private static final Action[] ACTIONS = Action.values();
 
-    private static final EntityDataAccessor<Integer> DATA_CHARGE_COOLDOWN = SynchedEntityData.defineId(
-            WildBoarEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DATA_TOSS_COOLDOWN = SynchedEntityData.defineId(
-            WildBoarEntity.class, EntityDataSerializers.INT);
-    private static final Cooldown CHARGE =
-            new Cooldown(DATA_CHARGE_COOLDOWN, CHARGE_COOLDOWN_TICKS, "WildBoarChargeCooldown");
-    private static final Cooldown TOSS = new Cooldown(DATA_TOSS_COOLDOWN, TOSS_COOLDOWN_TICKS, "WildBoarTossCooldown");
+    private static final Cooldown CHARGE = new Cooldown(CHARGE_COOLDOWN_TICKS, "WildBoarChargeCooldown");
+    private static final Cooldown TOSS = new Cooldown(TOSS_COOLDOWN_TICKS, "WildBoarTossCooldown");
     private static final List<Cooldown> COOLDOWNS = List.of(CHARGE, TOSS);
 
     private Vec3 chargeDirection = Vec3.ZERO;
@@ -127,7 +117,7 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
 
     @Override
     protected void registerSpeciesGoals() {
-        this.goalSelector.addGoal(4, new GrazeGoal(this));
+        this.goalSelector.addGoal(4, new StandStillGoal(this, () -> this.action() == Action.GRAZE));
     }
 
     @Override
@@ -180,8 +170,7 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
             }
             case ATTACK_TOSS -> {
                 if (ticks >= TOSS_HIT_TICK && !this.hitSettled) {
-                    this.hitSettled = true;
-                    this.performToss();
+                    this.strikeTarget(TOSS_REACH, TOSS_DAMAGE, TOSS_KNOCKBACK, TOSS_UPWARD);
                 }
                 if (ticks >= TOSS_ACTION_END_TICKS) this.finishAction();
             }
@@ -221,13 +210,6 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
         if (this.horizontalCollision || end.distanceToSqr(start) < movement.lengthSqr() * 0.99D) {
             this.hitSettled = true;
         }
-    }
-
-    private void performToss() {
-        LivingEntity target = this.actionTarget;
-        if (target == null || !this.canAttackTarget(target) || this.distanceTo(target) > TOSS_REACH
-                || !this.hasLineOfSight(target)) return;
-        this.applyAttack(target, TOSS_DAMAGE, TOSS_KNOCKBACK, TOSS_UPWARD, this.directionOrFacing(target));
     }
 
     @Override
@@ -302,35 +284,5 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
 
         @Override
         public boolean isAttack() { return this.attack; }
-    }
-
-    private static final class GrazeGoal extends Goal {
-
-        private final WildBoarEntity boar;
-
-        private GrazeGoal(WildBoarEntity boar) {
-            this.boar = boar;
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-        }
-
-        @Override
-        public boolean canUse() {
-            return this.boar.action() == Action.GRAZE && this.boar.getTarget() == null;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.canUse() && this.boar.actionTicks() < GRAZE_ACTION_TICKS;
-        }
-
-        @Override
-        public void tick() {
-            this.boar.getNavigation().stop();
-        }
-
-        @Override
-        public void stop() {
-            if (this.boar.action() == Action.GRAZE) this.boar.finishAction();
-        }
     }
 }

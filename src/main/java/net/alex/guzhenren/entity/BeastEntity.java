@@ -1,13 +1,10 @@
 package net.alex.guzhenren.entity;
 
-import java.util.EnumSet;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.entity.ai.StandStillGoal;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -50,11 +47,11 @@ import software.bernie.geckolib.animation.RawAnimation;
  *
  * <p>{@link #rollAmbient} picks and starts an ambient action after a completed wander; nothing happens on a
  * miss. In {@link HuntGoal#canUse}, any awake, non-combat pose notices prey -- including sitting, lying,
- * rolling and scratching; only actual sleep, the get-up transition and ongoing combat skip hunting.
- * {@link RestGoal} holds navigation still while the beast sits, lies, sleeps, rolls or scratches.
+ * rolling and scratching; only actual sleep, the get-up transition and ongoing combat skip hunting. A
+ * {@link StandStillGoal} holds navigation still while the beast sits, lies, sleeps, rolls or scratches.
  *
- * <p>Past 300 lines on purpose: the fourteen poses, their animations, the ambient chain and the two
- * beast-only goals belong to this layer.
+ * <p>Past 300 lines on purpose: the fourteen poses, their animations, the ambient chain and the beast-only
+ * hunt goal belong to this layer.
  */
 
 public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
@@ -73,12 +70,8 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     private static final int NIGHT_END_TICK = 23000;
     private static final Action[] ACTIONS = Action.values();
 
-    private static final EntityDataAccessor<Integer> DATA_SWIPE_COOLDOWN = SynchedEntityData.defineId(
-            BeastEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DATA_HEAVY_COOLDOWN = SynchedEntityData.defineId(
-            BeastEntity.class, EntityDataSerializers.INT);
-    private static final Cooldown SWIPE = new Cooldown(DATA_SWIPE_COOLDOWN, SWIPE_COOLDOWN_TICKS, "BeastSwipeCooldown");
-    private static final Cooldown HEAVY = new Cooldown(DATA_HEAVY_COOLDOWN, HEAVY_COOLDOWN_TICKS, "BeastHeavyCooldown");
+    private static final Cooldown SWIPE = new Cooldown(SWIPE_COOLDOWN_TICKS, "BeastSwipeCooldown");
+    private static final Cooldown HEAVY = new Cooldown(HEAVY_COOLDOWN_TICKS, "BeastHeavyCooldown");
     private static final List<Cooldown> COOLDOWNS = List.of(SWIPE, HEAVY);
 
     private long ambientEndGameTime = Long.MIN_VALUE;
@@ -159,7 +152,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     @Override
     protected void registerSpeciesGoals() {
         this.goalSelector.addGoal(2, new HuntGoal(this));
-        this.goalSelector.addGoal(4, new RestGoal(this));
+        this.goalSelector.addGoal(4, new StandStillGoal(this, () -> this.action().isAmbient()));
     }
 
     @Override
@@ -194,8 +187,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
             }
             case ATTACK_SWIPE -> {
                 if (ticks >= this.swipeHitTick() && !this.hitSettled) {
-                    this.hitSettled = true;
-                    this.performSwipe();
+                    this.strikeTarget(SWIPE_REACH, this.swipeDamage(), this.swipeKnockback(), this.swipeUpward());
                 }
                 if (ticks >= this.swipeActionTicks()) this.finishAction();
             }
@@ -236,14 +228,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
             }
             default -> {}
         }
-    }
-
-    private void performSwipe() {
-        LivingEntity target = this.actionTarget;
-        if (target == null || !this.canAttackTarget(target) || this.distanceTo(target) > SWIPE_REACH
-                || !this.hasLineOfSight(target)) return;
-        this.applyAttack(target, this.swipeDamage(), this.swipeKnockback(), this.swipeUpward(),
-                this.directionOrFacing(target));
     }
 
     private boolean isNightTime() {
@@ -377,31 +361,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
                 }
             }
             if (best != null) this.beast.setTarget(best);
-        }
-    }
-
-    private static final class RestGoal extends Goal {
-
-        private final BeastEntity beast;
-
-        private RestGoal(BeastEntity beast) {
-            this.beast = beast;
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-        }
-
-        @Override
-        public boolean canUse() {
-            return this.beast.action().isAmbient() && this.beast.getTarget() == null;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.canUse();
-        }
-
-        @Override
-        public void tick() {
-            this.beast.getNavigation().stop();
         }
     }
 

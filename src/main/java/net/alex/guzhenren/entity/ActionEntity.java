@@ -1,5 +1,7 @@
 package net.alex.guzhenren.entity;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.EnumSet;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
@@ -42,9 +44,11 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * <p>Every pose is a synchronized action {@code A} with a server game-time start and a monotonic sequence, so
  * late trackers replay one-shot actions from their first frame: {@link #action} is the current one,
  * {@link #actionTicks} the elapsed server game ticks since its start, and {@link #actionSequence} tells
- * repeated actions of one type apart. Damage lands on animation hit frames, never on contact. Each attack has
- * its own {@link Cooldown}, which starts with the attack; a finished attack adds
- * {@link #ATTACK_RECOVERY_TICKS} before the next one.
+ * repeated actions of one type apart. Damage lands on animation hit frames, never on contact:
+ * {@link #strikeTarget} settles the hit and lands it only on a target still in reach and in sight. Each attack
+ * has its own {@link Cooldown}, which starts with the attack; a finished attack adds
+ * {@link #ATTACK_RECOVERY_TICKS} before the next one. Cooldowns and recovery are server-only counts: no client
+ * reads them, so they are saved but never synchronized.
  *
  * <p>The subclass supplies the action set ({@link #actionValues}, with {@link #idleAction}, the target-keeping
  * {@link #alertAction} and {@link #deathAction}), its cooldowns and save keys, the attack choice
@@ -60,7 +64,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * running alert and an unsettled attack; a settled hit still plays its recovery pose, even when it killed
  * the target.
  *
- * <p>{@link CombatGoal} pursues the target while idle and holds still otherwise; {@link WanderGoal} strolls
+ * <p>{@link CombatGoal} pursues the target while idle and holds still otherwise. It re-paths on vanilla's melee
+ * rhythm ({@code MeleeAttackGoal}): every 4 to 10 ticks while the target keeps moving, 5 or 10 more beyond 16 or 32
+ * blocks, 15 more after a failed path, and at once when an action has stopped the walk. {@link WanderGoal} strolls
  * while idle and untargeted and calls {@link #onWanderComplete} after a completed walk. A save keeps only the
  * cooldowns and the recovery; every load starts idle, or dead.
  *
@@ -84,6 +90,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
             ActionEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private final Object2IntMap<Cooldown> cooldownTicks = new Object2IntOpenHashMap<>();
     @Nullable
     protected LivingEntity actionTarget;
     protected boolean hitSettled;
@@ -158,7 +165,6 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         builder.define(DATA_ACTION, id(this.idleAction()));
         builder.define(DATA_ACTION_START, 0L);
         builder.define(DATA_ACTION_SEQUENCE, 0);
-        for (Cooldown cooldown : this.cooldowns()) builder.define(cooldown.data(), 0);
         builder.define(DATA_PURSUING, false);
     }
 
@@ -188,7 +194,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     protected int cooldown(Cooldown cooldown) {
-        return this.entityData.get(cooldown.data());
+        return this.cooldownTicks.getInt(cooldown);
     }
 
     public boolean startAction(A next) {
@@ -278,13 +284,13 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private void tickCooldowns() {
         for (Cooldown cooldown : this.cooldowns()) {
             int ticks = this.cooldown(cooldown);
-            if (ticks > 0) this.entityData.set(cooldown.data(), ticks - 1);
+            if (ticks > 0) this.cooldownTicks.put(cooldown, ticks - 1);
         }
         if (this.recoveryTicks > 0) this.recoveryTicks--;
     }
 
     private void setCooldown(Cooldown cooldown, int ticks) {
-        this.entityData.set(cooldown.data(), Mth.clamp(ticks, 0, cooldown.maxTicks()));
+        this.cooldownTicks.put(cooldown, Mth.clamp(ticks, 0, cooldown.maxTicks()));
     }
 
     private void validateTarget() {
@@ -347,6 +353,14 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
                 targetBox.maxZ + halfWidth);
         return this.hasLineOfSight(target) && (contact.contains(from) || contact.contains(to)
                 || contact.clip(from, to).isPresent());
+    }
+
+    protected void strikeTarget(double reach, float damage, double horizontalStrength, double upward) {
+        this.hitSettled = true;
+        LivingEntity target = this.actionTarget;
+        if (target == null || !this.canAttackTarget(target) || this.distanceTo(target) > reach
+                || !this.hasLineOfSight(target)) return;
+        this.applyAttack(target, damage, horizontalStrength, upward, this.directionOrFacing(target));
     }
 
     protected void applyAttack(LivingEntity target, float damage, double horizontalStrength,
@@ -500,12 +514,14 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         default boolean isAmbient() { return false; }
     }
 
-    /** One attack's synchronized cooldown: its data slot, the length it starts at, and its save key. */
-    protected record Cooldown(EntityDataAccessor<Integer> data, int maxTicks, String saveKey) {}
+    /** One attack's cooldown: the length it starts at and its save key. */
+    protected record Cooldown(int maxTicks, String saveKey) {}
 
     private static final class CombatGoal extends Goal {
 
         private final ActionEntity<?> mob;
+        private @Nullable Vec3 pathedTo;
+        private int repathTicks;
 
         private CombatGoal(ActionEntity<?> mob) {
             this.mob = mob;
@@ -523,17 +539,37 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         }
 
         @Override
+        public void start() {
+            this.pathedTo = null;
+            this.repathTicks = 0;
+        }
+
+        @Override
         public void tick() {
             LivingEntity target = this.mob.getTarget();
             if (this.mob.isIdle() && target != null) {
                 this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
-                this.mob.getNavigation().moveTo(target, this.mob.pursuitSpeed());
+                this.chase(target);
             } else {
                 this.mob.getNavigation().stop();
+                this.start();
                 if (target != null && this.mob.facesTargetInAction()) {
                     this.mob.faceDirection(this.mob.directionTo(target));
                 }
             }
+        }
+
+        private void chase(LivingEntity target) {
+            this.repathTicks = Math.max(this.repathTicks - 1, 0);
+            if (this.repathTicks > 0) return;
+            if (this.pathedTo != null && target.distanceToSqr(this.pathedTo) < 1.0D
+                    && this.mob.getRandom().nextFloat() >= 0.05F) return;
+
+            this.pathedTo = target.position();
+            double distance = this.mob.distanceToSqr(target);
+            this.repathTicks = 4 + this.mob.getRandom().nextInt(7)
+                    + (distance > 1024.0D ? 10 : distance > 256.0D ? 5 : 0);
+            if (!this.mob.getNavigation().moveTo(target, this.mob.pursuitSpeed())) this.repathTicks += 15;
         }
     }
 

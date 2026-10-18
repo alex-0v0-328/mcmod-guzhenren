@@ -114,14 +114,7 @@ public final class BearEntity extends BeastEntity {
 
     @Override
     protected void tickHeavyAttack(long ticks) {
-        if (ticks >= REAR_HIT_TICK && !this.hitSettled) {
-            this.hitSettled = true;
-            LivingEntity target = this.actionTarget;
-            if (target != null && this.canAttackTarget(target) && this.distanceTo(target) <= REAR_REACH
-                    && this.hasLineOfSight(target)) {
-                this.applyAttack(target, this.heavyDamage(), 0.5D, 0.0D, this.directionOrFacing(target));
-            }
-        }
+        if (ticks >= REAR_HIT_TICK && !this.hitSettled) this.strikeTarget(REAR_REACH, this.heavyDamage(), 0.5D, 0.0D);
         if (ticks >= REAR_END_TICKS) this.finishAction();
     }
 
