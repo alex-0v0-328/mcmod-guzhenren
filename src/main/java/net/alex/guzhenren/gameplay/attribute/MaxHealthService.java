@@ -22,8 +22,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ Vanilla restores health before this modifier exists -- the saved health on load, the old player's
  * on a clone -- and clamps it to 20. {@link #carry} records the health at logout ({@code HEALTH_CARRY}) and
- * {@link #restoreCarried} puts it back after the login refresh, only when the load left exactly 20 under a
- * higher carry, so a crash's stale carry never overrides a real lower health. A clone hands the old
+ * {@link #restoreCarried} takes it back after the login refresh, only when the load left exactly 20 under a
+ * higher carry. A carry lives from one logout to the next login and no longer: a session that ends in a crash
+ * writes none, so its save loads at most 20 instead of an older session's health. A clone hands the old
  * player's health over in {@code PlayerDataService.onClone}, and a respawn starts full.
  *
  * @author Alex
@@ -56,7 +57,9 @@ public final class MaxHealthService {
     }
 
     public static void restoreCarried(@NotNull ServerPlayer player) {
-        float carried = player.getData(ModAttachments.HEALTH_CARRY);
-        if (carried > VANILLA_MAX_HEALTH && player.getHealth() == (float) VANILLA_MAX_HEALTH) player.setHealth(carried);
+        Float carried = player.removeData(ModAttachments.HEALTH_CARRY);
+        if (carried != null && carried > VANILLA_MAX_HEALTH && player.getHealth() == (float) VANILLA_MAX_HEALTH) {
+            player.setHealth(carried);
+        }
     }
 }

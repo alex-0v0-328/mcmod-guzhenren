@@ -24,8 +24,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ The body-physique/base-essence invariant is enforced here ({@code enforce}); the concrete
  * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
- * holder -- it appends; the caller gates. ⚠ {@code reconcileTalentPaths} (ten-extreme Dao marks plus
- * human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
+ * holder -- it appends; the caller gates. A base essence of zero (a Hope Gu that never rolled one) rolls a
+ * fresh talent instead of opening an aperture with no base. ⚠ {@code reconcileTalentPaths} (ten-extreme Dao
+ * marks plus human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
  * {@link #onExtremePhysiqueChanged} runs it, through {@link ApertureEvents}, whenever the body stores a
  * different ten-extreme physique, then resets the first aperture's base essence to match -- the full
  * base for a physique, one below for none, which also empties the pressure.
@@ -177,7 +178,7 @@ public final class ApertureService {
     public static void awaken(@NotNull ServerPlayer player) { open(player, Aperture.opened()); }
 
     public static void awaken(@NotNull ServerPlayer player, int baseEssence) {
-        open(player, Aperture.openedAt(baseEssence));
+        open(player, baseEssence > 0 ? Aperture.openedAt(baseEssence) : Aperture.opened());
     }
 
     public static void openSecond(@NotNull ServerPlayer player, @NotNull Rank rank) {
