@@ -26,6 +26,7 @@ On every message, unless a task says otherwise, sort what you know before produc
 The main agent runs on the current session's model and effort, and owns goals, scope, priorities, decomposition, integration and final acceptance; subagents do exactly what was delegated.
 
 - Every delegation, the project's own agents included, starts with the main agent offering Alex the subagent's model as question-tool options; wait for his pick. Effort is the agent definition's.
+- Exception: in a `/teams` run, Alex's one startup confirmation covers every dispatch within its scope, Codex's included, until the run ends.
 - Delegate through the worker agent the project's `CLAUDE.md` names, on the picked model; a built-in agent type only when there is none or for tools it lacks.
 - Sweeps, counts, mechanical checks and research suit delegation; judgment and design stay with the main agent. Don't redo delegated work. Alex doesn't see subagent reports: relay what matters.
 - A dispatch states goal, context, allowed and forbidden paths, delivery format, acceptance criteria.

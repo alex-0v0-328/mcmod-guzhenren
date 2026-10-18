@@ -45,6 +45,7 @@ repo/
 
 ### Agent tooling: local-only, kept out of the repository (Alex, 2026-09-19; rules layer added 2026-09-22; Kimi and AGENTS.md dropped, reference/ split 2026-09-30; CLAUDE.md, subagents and skills tracked for cloud sessions 2026-10-01) ###
 .claude/settings.local.json
+.env.local
 reference/
 rules/
 
