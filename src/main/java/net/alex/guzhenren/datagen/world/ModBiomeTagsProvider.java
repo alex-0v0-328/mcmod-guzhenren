@@ -28,12 +28,13 @@ import org.jetbrains.annotations.Nullable;
  * Must NOT collapse to {@code #minecraft:is_overworld} because that carries the
  * oceans, whose surface sits at sea level.
  *
- * <p>The Southern Border [南疆] has Gu World's own biomes, in no vanilla tag, so each tag also names the Southern
- * Border biomes of the kind it lists, by id and as optional entries: the tags still load without Gu World. The wild
- * Gu tags take all 21 land biomes ({@link #SOUTHERN_BORDER_LAND}), the wild boar the eight forests, the bear those,
- * the two jungles, the taiga, the misty mountains and the sandstone pillars, the tiger the two jungles.
+ * <p>The Southern Border [南疆] draws on Gu World's own biomes, in no vanilla tag, so each tag also names those
+ * biomes of the kind it lists, by id and as optional entries: the tags still load without Gu World. The wild Gu tags
+ * take all 18 land biomes ({@link #SOUTHERN_BORDER_LAND}), the wild boar the four forests, the bear those, the three
+ * jungles and the emerald peaks, the tiger the three jungles.
  *
- * <p>⚠ These are Gu World's biome ids ({@code Replicas}, {@code Ports} and {@code SouthernBorderBiomes} there):
+ * <p>⚠ These are Gu World's biome ids ({@code Replicas}, {@code Ports} and {@code BiomeSettings} there, placed by
+ * {@code BiomeLayout}):
  * renaming one there means renaming it here in the same task.
  *
  * @author Alex
@@ -66,14 +67,15 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
             Biomes.JUNGLE,
             Biomes.SPARSE_JUNGLE,
             Biomes.BAMBOO_JUNGLE);
-    private static final List<String> SOUTHERN_BORDER_FORESTS = List.of("forest", "birch_forest", "dark_forest",
-            "forested_plateau", "cloud_forest", "peach_grove", "karst_peak_forest", "danxia");
-    private static final List<String> SOUTHERN_BORDER_JUNGLES = List.of("bamboo_jungle", "rainforest");
+    private static final List<String> SOUTHERN_BORDER_FORESTS = List.of("forested_plateau", "cloud_forest",
+            "peach_grove", "misty_mountains");
+    private static final List<String> SOUTHERN_BORDER_JUNGLES = List.of("bamboo_sea", "rainforest",
+            "jungle_mountains");
     private static final List<String> SOUTHERN_BORDER_WOODS = getJoined(SOUTHERN_BORDER_FORESTS,
-            SOUTHERN_BORDER_JUNGLES, List.of("taiga", "misty_mountains", "sandstone_pillars"));
+            SOUTHERN_BORDER_JUNGLES, List.of("emerald_peaks"));
     private static final List<String> SOUTHERN_BORDER_LAND = getJoined(SOUTHERN_BORDER_WOODS, List.of("plains",
-            "meadow", "windswept_hills", "stony_peaks", "plateau", "hot_springs", "orchid_swamp",
-            "zhangshiyan_cliffs"));
+            "plateau", "hot_springs", "orchid_swamp", "alpine_meadow", "rocky_peaks", "painted_mountains",
+            "granite_cliffs", "zhangshiyan_cliffs", "karst_peak_forest"));
     private static final List<ResourceKey<Biome>> LAND_SPAWN_BIOMES = List.of(
             Biomes.PLAINS,
             Biomes.SUNFLOWER_PLAINS,
