@@ -1,6 +1,7 @@
 package net.alex.guzhenren.registry.block;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.block.DecorativeHopperBlock;
 import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.world.effect.MobEffects;
@@ -34,6 +35,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>{@link #INTIMATE_GRASS} is the two-block Intimate Grass [知心草], vanilla tall grass in shape, properties and
  * biome tint, without a BlockItem; its loot table gives an Intimate Grass Bundle [知心草束] to a hoe only.
  *
+ * <p>{@link #DECORATIVE_HOPPER} is the structure-template stand-in for vanilla hoppers: hopper properties,
+ * no BlockItem and no loot, so mining it yields nothing; builders place hoppers and swap them in with
+ * {@code /fill ... replace}.
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
@@ -61,6 +66,9 @@ public final class ModBlocks {
                     BlockBehaviour.Properties.ofFullCopy(Blocks.DANDELION)));
     public static final DeferredBlock<DoublePlantBlock> INTIMATE_GRASS = BLOCKS.register("intimate_grass",
             () -> new DoublePlantBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.TALL_GRASS)));
+
+    public static final DeferredBlock<DecorativeHopperBlock> DECORATIVE_HOPPER = BLOCKS.register("decorative_hopper",
+            () -> new DecorativeHopperBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.HOPPER).noLootTable()));
 
     public static void register(IEventBus modEventBus) { BLOCKS.register(modEventBus); }
 }

@@ -443,6 +443,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addBlock(ModBlocks.SPIRIT_SPRING,                            "Spirit Spring", "元泉");
         addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS,                 "Nine Leaf Vitality Grass", "九叶生机草");
         addBlock(ModBlocks.INTIMATE_GRASS,                           "Intimate Grass", "知心草");
+        addBlock(ModBlocks.DECORATIVE_HOPPER,                        "Decorative Hopper", "装饰漏斗");
         addItem(ModItems.INTIMATE_GRASS_BUNDLE,                      "Intimate Grass Bundle", "知心草束");
         addItem(ModItems.MOON_ORCHID_PETALS,                         "Moon Orchid Petals", "月兰花瓣");
         addItem(ModItems.ROTTEN_FROZEN_MUD,                          "Rotten Frozen Mud", "腐泥冻土");
