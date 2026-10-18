@@ -18,15 +18,17 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The block side of the ten-extreme pressure explosion [空窍压力爆炸]: the crater is carved over
- * several server ticks instead of one, so the largest blast (Great Strength True Martial [大力真武体],
- * radius 112) does not freeze the world. Interior blocks go out silently ({@code UPDATE_CLIENTS}
+ * many server ticks instead of one, {@link #BLOCK_BUDGET} positions a tick in each phase, so the largest blast
+ * (Great Strength True Martial [大力真武体], radius 112, some 5.9 million positions) opens over about 18 seconds
+ * instead of freezing the world. Interior blocks go out silently ({@code UPDATE_CLIENTS}
  * only, no drops); one deferred neighbor pass over the rim [球壳边缘] keeps sand, fluids and torches
  * from floating; unbreakable blocks (bedrock, barriers, portal frames) stay, so a blast at the bottom
  * of the world never opens the void. The shell [壳] walks center-outwards and each column's radius
- * carries a per-explosion jitter [噪声扰动]. The crater floor is physique-specific: layered ice [分层冰] for Northern Dark
- * Ice Soul, magma and lava for Blazing Glory, scattered gold for Myriad Gold; Northern Dark Ice Soul
- * also converts the surface soil of an outer ring [雪化环带] to snow. Entity damage, self-damage and
- * the pressure reset stay in {@link AperturePressureService#detonate} -- they resolve at tick zero.
+ * carries a per-explosion jitter [噪声扰动], read from {@link CraterShape}. The crater floor is
+ * physique-specific: layered ice [分层冰] for Northern Dark Ice Soul, magma and lava for Blazing Glory, scattered
+ * gold for Myriad Gold; Northern Dark Ice Soul also converts the surface soil of an outer ring [雪化环带] to snow.
+ * Entity damage, self-damage and the pressure reset stay in {@link AperturePressureService#detonate} -- they
+ * resolve at tick zero.
  *
  * @author Alex
  * @version 1.0.0
@@ -48,16 +50,7 @@ public final class AperturePressureExplosionTask {
     }
 
     private static final List<AperturePressureExplosionTask> ACTIVE = new ArrayList<>();
-    private static final int BLOCK_BUDGET = 65_536;
-    private static final double NOISE_FLOOR = 0.9D;
-    private static final double NOISE_RANGE = 0.1D;
-    private static final int RING_MIN = 8;
-    private static final double RING_NOISE_RANGE = 8.0D;
-    private static final double LAVA_SHARE = 0.025D;
-    private static final double GOLD_SHARE = 0.0125D;
-    private static final double POWDER_SNOW_SHARE = 0.05D;
-    private static final int BLUE_ICE_THRESHOLD = -32;
-    private static final int GOLD_ORE_THRESHOLD = 32;
+    private static final int BLOCK_BUDGET = 16_384;
     private final ServerLevel level;
     private final double x;
     private final double y;
@@ -84,51 +77,6 @@ public final class AperturePressureExplosionTask {
     public static void tickAll() { ACTIVE.removeIf(AperturePressureExplosionTask::tick); }
 
     public static void clear() { ACTIVE.clear(); }
-
-    static double getColumnJitter(int blockX, int blockZ, long seed) {
-        long hash = blockX * 0x9E3779B97F4A7C15L ^ blockZ * 0xC2B2AE3D27D4EB4FL ^ seed;
-        hash ^= hash >>> 30;
-        hash *= 0xBF58476D1CE4E5B9L;
-        hash ^= hash >>> 27;
-        hash *= 0x94D049BB133111EBL;
-        hash ^= hash >>> 31;
-        return (hash & 0xFFFFFL) * (NOISE_RANGE / 0x10_0000L);
-    }
-
-    static double getColumnRadius(int radius, int blockX, int blockZ, long seed) {
-        return radius * (NOISE_FLOOR + getColumnJitter(blockX, blockZ, seed));
-    }
-
-    static int getColumnFloorY(double centerY, double columnRadius, double horizontalSquared) {
-        return (int) Math.ceil(centerY - Math.sqrt(columnRadius * columnRadius - horizontalSquared) - 0.5D) - 1;
-    }
-
-    static int getIceTier(int floorY) {
-        if (floorY < BLUE_ICE_THRESHOLD) return 2;
-        return floorY < 0 ? 1 : 0;
-    }
-
-    static int getGoldTier(int floorY) {
-        if (floorY < 0) return 0;
-        return floorY < GOLD_ORE_THRESHOLD ? 1 : 2;
-    }
-
-    static boolean isLavaColumn(int blockX, int blockZ, long seed) {
-        return getColumnJitter(blockX, blockZ, seed ^ 0x5DEECE66DL) < LAVA_SHARE;
-    }
-
-    static boolean isGoldColumn(int blockX, int blockZ, long seed) {
-        return getColumnJitter(blockX, blockZ, seed ^ 0x2545F4914F6CDD1DL) < GOLD_SHARE;
-    }
-
-    static boolean isPowderSnowColumn(int blockX, int blockZ, long seed) {
-        return getColumnJitter(blockX, blockZ, seed ^ 0x9E3779B9L) >= POWDER_SNOW_SHARE;
-    }
-
-    static double ringOuterRadius(int radius, int blockX, int blockZ, long seed) {
-        return radius + RING_MIN
-                + getColumnJitter(blockX, blockZ, seed ^ 0xC2B2AE3DL) / NOISE_RANGE * RING_NOISE_RANGE;
-    }
 
     private boolean tick() {
         if (phase == Phase.CLEAR && tickClear()) {
@@ -172,12 +120,12 @@ public final class AperturePressureExplosionTask {
             int i = floorCursor++;
             int blockX = Mth.floor(x) - radius + i % side;
             int blockZ = Mth.floor(z) - radius + i / side;
-            double localRadius = getColumnRadius(radius, blockX, blockZ, seed);
+            double localRadius = CraterShape.getColumnRadius(radius, blockX, blockZ, seed);
             double dx = blockX + 0.5D - x;
             double dz = blockZ + 0.5D - z;
             double horizontalSquared = dx * dx + dz * dz;
             if (horizontalSquared > localRadius * localRadius) continue;
-            int floorY = getColumnFloorY(y, localRadius, horizontalSquared);
+            int floorY = CraterShape.getColumnFloorY(y, localRadius, horizontalSquared);
             if (floorY < level.getMinBuildHeight() || floorY >= level.getMaxBuildHeight()) continue;
             BlockPos floorPos = new BlockPos(blockX, floorY, blockZ);
             if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(floorPos.getX()),
@@ -194,7 +142,7 @@ public final class AperturePressureExplosionTask {
 
     private boolean tickRing() {
         int budget = BLOCK_BUDGET;
-        int outer = radius + RING_MIN + (int) Math.ceil(RING_NOISE_RANGE);
+        int outer = CraterShape.getRingReach(radius);
         int side = 2 * outer + 1;
         while (budget > 0 && ringCursor < side * side) {
             int i = ringCursor++;
@@ -203,9 +151,9 @@ public final class AperturePressureExplosionTask {
             double dx = blockX + 0.5D - x;
             double dz = blockZ + 0.5D - z;
             double horizontalSquared = dx * dx + dz * dz;
-            double localRadius = getColumnRadius(radius, blockX, blockZ, seed);
+            double localRadius = CraterShape.getColumnRadius(radius, blockX, blockZ, seed);
             if (horizontalSquared <= localRadius * localRadius) continue;
-            double ringOuter = ringOuterRadius(radius, blockX, blockZ, seed);
+            double ringOuter = CraterShape.getRingOuterRadius(radius, blockX, blockZ, seed);
             if (horizontalSquared >= ringOuter * ringOuter) continue;
             if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(blockX),
                     SectionPos.blockToSectionCoord(blockZ))) continue;
@@ -213,7 +161,8 @@ public final class AperturePressureExplosionTask {
             if (surfaceY < level.getMinBuildHeight()) continue;
             BlockPos surfacePos = new BlockPos(blockX, surfaceY, blockZ);
             if (!isSoilSurface(level.getBlockState(surfacePos))) continue;
-            Block snow = isPowderSnowColumn(blockX, blockZ, seed) ? Blocks.POWDER_SNOW : Blocks.SNOW_BLOCK;
+            boolean powder = CraterShape.isPowderSnowColumn(blockX, blockZ, seed);
+            Block snow = powder ? Blocks.POWDER_SNOW : Blocks.SNOW_BLOCK;
             level.setBlock(surfacePos, snow.defaultBlockState(), Block.UPDATE_CLIENTS);
             rim.add(surfacePos.asLong());
             budget--;
@@ -232,16 +181,16 @@ public final class AperturePressureExplosionTask {
 
     private @Nullable Block getFloorBlockAt(int blockX, int floorY, int blockZ) {
         return switch (physique) {
-            case NORTHERN_DARK_ICE_SOUL -> switch (getIceTier(floorY)) {
+            case NORTHERN_DARK_ICE_SOUL -> switch (CraterShape.getIceTier(floorY)) {
                 case 2 -> Blocks.BLUE_ICE;
                 case 1 -> Blocks.PACKED_ICE;
                 default -> Blocks.ICE;
             };
             case BLAZING_GLORY_LIGHTNING_BRILLIANCE ->
-                    isLavaColumn(blockX, blockZ, seed) ? Blocks.LAVA : Blocks.MAGMA_BLOCK;
+                    CraterShape.isLavaColumn(blockX, blockZ, seed) ? Blocks.LAVA : Blocks.MAGMA_BLOCK;
             case MYRIAD_GOLD_WONDROUS_ESSENCE -> {
-                if (!isGoldColumn(blockX, blockZ, seed)) yield null;
-                yield switch (getGoldTier(floorY)) {
+                if (!CraterShape.isGoldColumn(blockX, blockZ, seed)) yield null;
+                yield switch (CraterShape.getGoldTier(floorY)) {
                     case 0 -> Blocks.DEEPSLATE_GOLD_ORE;
                     case 1 -> Blocks.GOLD_ORE;
                     default -> Blocks.GOLD_BLOCK;
@@ -313,7 +262,7 @@ public final class AperturePressureExplosionTask {
         double dx = blockX + 0.5D - x;
         double dy = blockY + 0.5D - y;
         double dz = blockZ + 0.5D - z;
-        double localRadius = getColumnRadius(radius, blockX, blockZ, seed);
+        double localRadius = CraterShape.getColumnRadius(radius, blockX, blockZ, seed);
         return dx * dx + dy * dy + dz * dz > localRadius * localRadius;
     }
 }
