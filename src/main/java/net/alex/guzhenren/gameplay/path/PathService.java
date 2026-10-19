@@ -46,7 +46,9 @@ public final class PathService {
         return get(player).entries();
     }
 
-    private static void store(ServerPlayer player, PathData data) { player.setData(ModAttachments.PATH, data); }
+    private static void store(ServerPlayer player, PathData data) {
+        ModAttachments.setIfChanged(player, ModAttachments.PATH, data);
+    }
 
     public static void setMark(@NotNull ServerPlayer player, @NotNull GuPath path, @NotNull MarkTag tag, long value) {
         store(player, get(player).with(path, getEntry(player, path).withMark(tag, value)));

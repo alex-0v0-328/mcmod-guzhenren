@@ -298,6 +298,6 @@ public final class ApertureNourishService {
     }
 
     private static void store(ServerPlayer player, ApertureNourishData data) {
-        player.setData(ModAttachments.APERTURE_NOURISH, data);
+        ModAttachments.setIfChanged(player, ModAttachments.APERTURE_NOURISH, data);
     }
 }

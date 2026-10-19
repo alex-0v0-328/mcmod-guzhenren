@@ -216,7 +216,7 @@ public final class ApertureService {
     }
 
     private static void store(ServerPlayer player, ApertureData data) {
-        player.setData(ModAttachments.APERTURE, data);
+        ModAttachments.setIfChanged(player, ModAttachments.APERTURE, data);
         NeoForge.EVENT_BUS.post(new ApertureChangedEvent(player));
     }
 

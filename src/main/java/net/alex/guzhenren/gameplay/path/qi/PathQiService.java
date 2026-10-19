@@ -62,9 +62,7 @@ public final class PathQiService {
         for (QiKind kind : QiKind.values()) {
             if (data.get(kind) != null && data.current(kind, now) <= 0L) pruned = pruned.without(kind);
         }
-        if (pruned.equals(get(player))) return;
-        player.setData(ModAttachments.PATH_QI, pruned);
-        syncEffects(player);
+        if (ModAttachments.setIfChanged(player, ModAttachments.PATH_QI, pruned)) syncEffects(player);
     }
 
     //region effect projection -- the store is the truth, the MobEffect is its display

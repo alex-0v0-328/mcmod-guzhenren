@@ -80,7 +80,9 @@ public final class BodyService {
 
     public static long getGameTime(@NotNull Player player) { return player.level().getGameTime(); }
 
-    private static void store(ServerPlayer player, BodyData data) { player.setData(ModAttachments.BODY, data); }
+    private static void store(ServerPlayer player, BodyData data) {
+        ModAttachments.setIfChanged(player, ModAttachments.BODY, data);
+    }
 
     //region lifespan and age [寿元与年龄] -- ⚠ every caller speaks YEARS; only this file knows parts
     public static void setAge(@NotNull ServerPlayer player, long years) {

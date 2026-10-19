@@ -43,7 +43,7 @@ public final class PathStrengthService {
     public static void clear(@NotNull ServerPlayer player) { store(player, PathStrengthData.DEFAULT); }
 
     private static void store(ServerPlayer player, PathStrengthData data) {
-        player.setData(ModAttachments.PATH_STRENGTH, data);
+        ModAttachments.setIfChanged(player, ModAttachments.PATH_STRENGTH, data);
         NeoForge.EVENT_BUS.post(new StrengthChangedEvent(player));
     }
 

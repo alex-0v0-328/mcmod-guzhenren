@@ -68,8 +68,7 @@ public final class MindService {
     }
 
     public static void setCurrent(@NotNull ServerPlayer player, @NotNull MindPoolType type, long value) {
-        MindPool pool = getPool(player, type);
-        set(player, type, pool.withCurrent(type.isBurstable() ? value : Math.min(value, pool.max())));
+        store(player, withCurrent(get(player), type, value));
     }
 
     public static void addCurrent(@NotNull ServerPlayer player, @NotNull MindPoolType type, long delta) {
@@ -78,11 +77,14 @@ public final class MindService {
 
     public static void addThoughts(@NotNull ServerPlayer player, long amount, @NotNull ThoughtTag tag) {
         if (amount <= 0L) return;
-        setCurrent(player, MindPoolType.THOUGHTS,
-                LongMath.saturatedAdd(getCurrent(player, MindPoolType.THOUGHTS), amount));
+        MindData data = get(player);
+        MindData added = withCurrent(data, MindPoolType.THOUGHTS,
+                LongMath.saturatedAdd(data.pool(MindPoolType.THOUGHTS).current(), amount));
         if (tag != ThoughtTag.NATURAL) {
-            store(player, get(player).withTagged(tag, LongMath.saturatedAdd(getTaggedAmount(player, tag), amount)));
+            long tagged = added.taggedThoughts().getOrDefault(tag, 0L);
+            added = added.withTagged(tag, LongMath.saturatedAdd(tagged, amount));
         }
+        store(player, added);
     }
 
     public static void setMax(@NotNull ServerPlayer player, @NotNull MindPoolType type, long value) {
@@ -95,11 +97,18 @@ public final class MindService {
 
     public static void empty(@NotNull ServerPlayer player) { store(player, get(player).emptied()); }
 
+    private static MindData withCurrent(MindData data, MindPoolType type, long value) {
+        MindPool pool = data.pool(type);
+        return data.with(type, pool.withCurrent(type.isBurstable() ? value : Math.min(value, pool.max())));
+    }
+
     private static void set(ServerPlayer player, MindPoolType type, MindPool pool) {
         store(player, get(player).with(type, pool));
     }
 
-    private static void store(ServerPlayer player, MindData data) { player.setData(ModAttachments.MIND, data); }
+    private static void store(ServerPlayer player, MindData data) {
+        ModAttachments.setIfChanged(player, ModAttachments.MIND, data);
+    }
 
     public static void setBrilliance(@NotNull ServerPlayer player, @NotNull Brilliance brilliance) {
         store(player, get(player).withBrilliance(brilliance));

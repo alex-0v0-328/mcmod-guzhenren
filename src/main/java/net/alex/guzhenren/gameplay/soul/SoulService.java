@@ -49,7 +49,9 @@ public final class SoulService {
 
     public static void revive(@NotNull ServerPlayer player) { store(player, get(player).revived()); }
 
-    private static void store(ServerPlayer player, SoulData data) { player.setData(ModAttachments.SOUL, data); }
+    private static void store(ServerPlayer player, SoulData data) {
+        ModAttachments.setIfChanged(player, ModAttachments.SOUL, data);
+    }
 
     public static boolean consume(@NotNull ServerPlayer player, long amount) {
         if (amount <= 0L) return true;

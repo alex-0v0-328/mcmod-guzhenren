@@ -35,6 +35,10 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * ({@code OWNER_ONLY}); {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor
  * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞].
  *
+ * <p>{@link #setIfChanged} is how a service stores its record: NeoForge sends a synced attachment to its owner on
+ * every {@code setData}, equal or not, so a store that changes nothing writes and sends nothing. The records compare
+ * by value, so equal means the client already holds it.
+ *
  * <p>Every attachment the two helpers register is inherited: NeoForge copies it to every clone, a death
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
  * attachment is carried and reset by being registered here, nowhere else. {@code BURST} and
@@ -124,6 +128,12 @@ public final class ModAttachments {
 
     public static List<AttachmentType<?>> getInherited() {
         return INHERITED.stream().map(Supplier::get).toList();
+    }
+
+    public static <T> boolean setIfChanged(ServerPlayer player, Supplier<AttachmentType<T>> type, T data) {
+        if (data.equals(player.getData(type))) return false;
+        player.setData(type, data);
+        return true;
     }
 
     private static <T> Supplier<AttachmentType<T>> registerSynced(
