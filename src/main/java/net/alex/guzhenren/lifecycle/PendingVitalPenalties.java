@@ -21,8 +21,9 @@ import org.jetbrains.annotations.Nullable;
  * overworld's data storage, until {@link VitalLossService} charges it
  * through the same penalty an online owner pays.
  *
- * <p>⚠ The only server-level store in the mod and its one mutable player-state class -- every other
- * piece of player state is an immutable attachment record. ⚠ One entry per lost Gu, first in first out; the
+ * <p>⚠ The mod's only server-level store of player state and its one mutable player-state class -- every
+ * other piece of player state is an immutable attachment record (the other server-level store, the running
+ * pressure-explosion craters, holds world state). ⚠ One entry per lost Gu, first in first out; the
  * service settles one per heartbeat, so the second 80% hurt is not swallowed by the first one's hurt
  * cooldown.
  *

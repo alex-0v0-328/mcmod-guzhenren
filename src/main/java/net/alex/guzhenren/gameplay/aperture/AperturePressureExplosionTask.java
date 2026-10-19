@@ -1,12 +1,15 @@
 package net.alex.guzhenren.gameplay.aperture;
 
+import com.google.common.base.Enums;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import java.util.ArrayList;
-import java.util.List;
+import net.alex.guzhenren.gameplay.aperture.AperturePressureExplosions.TickBudget;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Block;
@@ -18,19 +21,30 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The block side of the ten-extreme pressure explosion [空窍压力爆炸]: the crater is carved over
- * many server ticks instead of one. Every active blast shares one budget a tick, {@link #TICK_BUDGET_NANOS} (10 of
- * the tick's 50 ms), the clock read every {@link #CLOCK_CHECK_INTERVAL} positions, so the largest blast (Great
- * Strength True Martial [大力真武体], radius 112, some 5.9 million positions) opens as fast as the server allows,
- * tens of seconds, without dropping the tick rate. A cleared block a full block inside the smallest column radius
- * ({@code CraterShape.getMinColumnRadius}) skips the rim test: none of its neighbors can lie outside. Interior
- * blocks go out silently ({@code UPDATE_CLIENTS} only, no drops); one deferred neighbor pass over the rim [球壳边缘] keeps sand, fluids and torches
- * from floating; unbreakable blocks (bedrock, barriers, portal frames) stay, so a blast at the bottom
- * of the world never opens the void. The shell [壳] walks center-outwards and each column's radius
- * carries a per-explosion jitter [噪声扰动], read from {@link CraterShape}. The crater floor is
+ * many server ticks instead of one, under the per-tick time budget every active blast shares
+ * ({@link AperturePressureExplosions}), so the largest blast (Great Strength True Martial [大力真武体], radius 112,
+ * some 5.9 million positions) opens as fast as the server allows, tens of seconds, without dropping the tick
+ * rate. A blast starts carving only once every chunk it touches is loaded, and holds them loaded until it is done
+ * ({@link CraterChunkTicket}), so a crater finishes with no player near. A cleared block a full block inside the
+ * smallest column radius ({@code CraterShape.getMinColumnRadius}) skips the rim test: none of its neighbors can lie
+ * outside. Interior blocks go out silently ({@code UPDATE_CLIENTS} only, no drops); one deferred neighbor pass over
+ * the rim [球壳边缘] keeps sand, fluids and torches from floating; unbreakable blocks (bedrock, barriers, portal
+ * frames) stay, so a blast at the bottom of the world never opens the void. The shell [壳] walks center-outwards and
+ * each column's radius carries a per-explosion jitter [噪声扰动], read from {@link CraterShape}. The crater floor is
  * physique-specific: layered ice [分层冰] for Northern Dark Ice Soul, magma and lava for Blazing Glory, scattered
  * gold for Myriad Gold; Northern Dark Ice Soul also converts the surface soil of an outer ring [雪化环带] to snow.
  * Entity damage, self-damage and the pressure reset stay in {@link AperturePressureService#detonate} -- they
  * resolve at tick zero.
+ *
+ * <p>A blast survives a server stop: {@link #save} writes its center, radius, seed, physique, phase, every cursor
+ * and the rim list into its level's {@link AperturePressureExplosions}; the level is the blast's dimension.
+ * {@link #load} rebuilds the shell in progress instead of reading it -- the shell is a pure function of the center,
+ * radius, seed and build height, and {@code shellDistance} already counts the shell being walked -- so the restored
+ * blast carves exactly what the stopped one had left. The rim list is saved whole: which rim blocks were cleared,
+ * not air or unbreakable already, cannot be told from the world afterwards.
+ *
+ * <p>Past 300 lines on purpose: the save format writes and reads every cursor the four phases advance, so it stays
+ * beside them.
  *
  * @author Alex
  * @version 1.0.0
@@ -41,21 +55,20 @@ import org.jetbrains.annotations.Nullable;
 public final class AperturePressureExplosionTask {
 
     private AperturePressureExplosionTask(@NotNull ServerLevel level, double x, double y, double z, int radius,
-                                  @NotNull ExtremePhysique physique) {
+                                  long seed, @NotNull ExtremePhysique physique) {
         this.level = level;
         this.x = x;
         this.y = y;
         this.z = z;
         this.radius = radius;
-        this.seed = level.random.nextLong();
+        this.seed = seed;
         this.physique = physique;
         double inner = Math.max(0.0D, CraterShape.getMinColumnRadius(radius) - 1.0D);
         this.innerSquared = inner * inner;
+        int reach = (getNextAfterFloor() == Phase.RING ? CraterShape.getRingReach(radius) : radius) + 1;
+        this.chunks = new CraterChunkTicket(level, Mth.floor(x), Mth.floor(z), reach, seed);
     }
 
-    private static final List<AperturePressureExplosionTask> ACTIVE = new ArrayList<>();
-    private static final long TICK_BUDGET_NANOS = 10_000_000L;
-    private static final int CLOCK_CHECK_INTERVAL = 256;
     private static final Direction[] DIRECTIONS = Direction.values();
     private final ServerLevel level;
     private final double x;
@@ -65,6 +78,7 @@ public final class AperturePressureExplosionTask {
     private final long seed;
     private final ExtremePhysique physique;
     private final double innerSquared;
+    private final CraterChunkTicket chunks;
     private final LongArrayList shell = new LongArrayList();
     private final LongArrayList rim = new LongArrayList();
     private int shellDistance;
@@ -78,24 +92,63 @@ public final class AperturePressureExplosionTask {
 
     public static void start(@NotNull ServerLevel level, double x, double y, double z, int radius,
                              @NotNull ExtremePhysique physique) {
-        ACTIVE.add(new AperturePressureExplosionTask(level, x, y, z, radius, physique));
+        AperturePressureExplosions.get(level).add(
+                new AperturePressureExplosionTask(level, x, y, z, radius, level.random.nextLong(), physique));
     }
 
-    public static void tickAll() {
-        if (ACTIVE.isEmpty()) return;
-        TickBudget budget = new TickBudget(System.nanoTime() + TICK_BUDGET_NANOS);
-        ACTIVE.removeIf(task -> task.tick(budget));
+    static @Nullable AperturePressureExplosionTask load(ServerLevel level, CompoundTag tag) {
+        ExtremePhysique physique = ExtremePhysique.CODEC
+                .parse(NbtOps.INSTANCE, StringTag.valueOf(tag.getString("physique"))).result().orElse(null);
+        Phase phase = Enums.getIfPresent(Phase.class, tag.getString("phase")).orNull();
+        int radius = tag.getInt("radius");
+        if (physique == null || phase == null || radius < 0) return null;
+
+        AperturePressureExplosionTask task = new AperturePressureExplosionTask(level, tag.getDouble("x"),
+                tag.getDouble("y"), tag.getDouble("z"), radius, tag.getLong("seed"), physique);
+        task.phase = phase;
+        task.shellDistance = tag.getInt("shell_distance");
+        if (phase == Phase.CLEAR && task.shellDistance > 0) {
+            task.shellDistance--;
+            task.fillShell();
+        }
+        task.shellIndex = tag.getInt("shell_index");
+        task.floorCursor = tag.getInt("floor_cursor");
+        task.ringCursor = tag.getInt("ring_cursor");
+        task.rim.addElements(0, tag.getLongArray("rim"));
+        task.rimIndex = tag.getInt("rim_index");
+        return task;
     }
 
-    public static void clear() { ACTIVE.clear(); }
+    CompoundTag save() {
+        CompoundTag tag = new CompoundTag();
+        tag.putDouble("x", x);
+        tag.putDouble("y", y);
+        tag.putDouble("z", z);
+        tag.putInt("radius", radius);
+        tag.putLong("seed", seed);
+        tag.putString("physique", physique.getSerializedName());
+        tag.putString("phase", phase.name());
+        tag.putInt("shell_distance", shellDistance);
+        tag.putInt("shell_index", shellIndex);
+        tag.putInt("floor_cursor", floorCursor);
+        tag.putInt("ring_cursor", ringCursor);
+        tag.putLongArray("rim", rim.toLongArray());
+        tag.putInt("rim_index", rimIndex);
+        return tag;
+    }
 
-    private boolean tick(TickBudget budget) {
+    boolean tick(TickBudget budget) {
+        if (!chunks.isLoaded()) return false;
+
         if (phase == Phase.CLEAR && tickClear(budget)) {
             phase = hasFloor() ? Phase.FLOOR : getNextAfterFloor();
         }
         if (phase == Phase.FLOOR && tickFloor(budget)) phase = getNextAfterFloor();
         if (phase == Phase.RING && tickRing(budget)) phase = Phase.RIM;
-        return phase == Phase.RIM && tickRim(budget);
+        if (phase != Phase.RIM || !tickRim(budget)) return false;
+
+        chunks.release();
+        return true;
     }
 
     private Phase getNextAfterFloor() {
@@ -271,22 +324,5 @@ public final class AperturePressureExplosionTask {
         double dz = blockZ + 0.5D - z;
         double localRadius = CraterShape.getColumnRadius(radius, blockX, blockZ, seed);
         return dx * dx + dy * dy + dz * dz > localRadius * localRadius;
-    }
-
-    private static final class TickBudget {
-
-        private final long deadline;
-        private int sinceClockCheck;
-        private boolean spent;
-
-        private TickBudget(long deadline) { this.deadline = deadline; }
-
-        private boolean hasTime() {
-            if (spent) return false;
-            if (++sinceClockCheck < CLOCK_CHECK_INTERVAL) return true;
-            sinceClockCheck = 0;
-            spent = System.nanoTime() >= deadline;
-            return !spent;
-        }
     }
 }
