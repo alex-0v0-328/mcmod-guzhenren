@@ -44,6 +44,10 @@ import org.jetbrains.annotations.Nullable;
  * Attainment [气道造诣], ...) is a label plus its rows, never a value; attainment [造诣] and Dao
  * marks [道痕] belong to the path-attainment list [流派造诣]. Do not widen {@code Entry}.
  *
+ * <p>Every entry compares by value, which is what lets the B panel keep the text it built for the last frame while
+ * the rows are unchanged; {@link StrengthPathBranchRow} therefore carries the data and words its reading on demand
+ * instead of holding a {@code Component}, which has no equality.
+ *
  * <p>⚠ In {@link ApertureIndex}, {@code number} is the display ordinal (1 = first aperture, 2 =
  * second), while {@code index} is the real list position -- a lone second aperture shows number 2
  * but lives at index 0.
@@ -104,7 +108,14 @@ public final class InfoModel {
     public record StrengthPathAchieveHeader() implements Entry {}
 
     public record StrengthPathBranchRow(StrengthPathBranch branch, int totalJin,
-                                        Component reading) implements Entry {}
+                                        PathStrengthData data) implements Entry {
+
+        public Component reading() {
+            return branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM
+                    ? ModDisplayText.beastStrengthLine(data)
+                    : ModDisplayText.humanStrengthLine(data);
+        }
+    }
 
     public record TimePathAchieveHeader() implements Entry {}
 
@@ -236,13 +247,11 @@ public final class InfoModel {
 
         rows.add(new Row(0, new StrengthPathAchieveHeader()));
         if (data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)) {
-            rows.add(new Row(INDENT,
-                    new StrengthPathBranchRow(StrengthPathBranch.BEAST_STRENGTH_PHANTOM, 0,
-                            ModDisplayText.beastStrengthLine(data))));
+            rows.add(new Row(INDENT, new StrengthPathBranchRow(StrengthPathBranch.BEAST_STRENGTH_PHANTOM, 0, data)));
         }
         if (data.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
             rows.add(new Row(INDENT, new StrengthPathBranchRow(StrengthPathBranch.HUMAN_JUN_STRENGTH,
-                    data.totalJin(), ModDisplayText.humanStrengthLine(data))));
+                    data.totalJin(), data)));
         }
     }
 

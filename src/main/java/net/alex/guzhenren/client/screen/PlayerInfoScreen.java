@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.screen;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
@@ -31,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * content comes from {@link InfoModel}, shared with {@code /gzr
  * info}, so the two surfaces cannot diverge; {@link InfoRowRenderer} turns each entry into the panel's
  * label and value, {@link ApertureButtons} are the buttons under each aperture, and {@link PathPicker} is
- * the secondary-path grid that opens over the panel.
+ * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}, every box before any
+ * text, and {@link InfoRowCache} keeps the rows of the last frame while the model is unchanged.
  *
  * <p>⚠ A plain screen with no menu behind it: no container channel to send an intent over.
  *
@@ -62,13 +64,13 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_TEXT_DEAD = 0xFF6A6A6A;
     private static final int[] ACCENT = { ModPalette.APERTURE, ModPalette.BODY, ModPalette.SOUL,
             ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
-    private static final String[] TAB_KEYS = {
-            "guzhenren.screen.tab.aperture",
-            "guzhenren.screen.tab.body",
-            "guzhenren.screen.tab.soul",
-            "guzhenren.screen.tab.path",
-            "guzhenren.screen.tab.mind",
-            "guzhenren.screen.tab.refinement",
+    private static final Component[] TAB_TITLES = {
+            Component.translatable("guzhenren.screen.tab.aperture"),
+            Component.translatable("guzhenren.screen.tab.body"),
+            Component.translatable("guzhenren.screen.tab.soul"),
+            Component.translatable("guzhenren.screen.tab.path"),
+            Component.translatable("guzhenren.screen.tab.mind"),
+            Component.translatable("guzhenren.screen.tab.refinement"),
     };
     static final int BTN_H = 20;
     static final int BTN_GAP = 4;
@@ -89,6 +91,7 @@ public final class PlayerInfoScreen extends Screen {
     private @Nullable InfoRowRenderer.Click hoverClick;
     private int scrollRow;
     private final PathPicker picker = new PathPicker();
+    private final InfoRowCache rowCache = new InfoRowCache();
 
     public PlayerInfoScreen() { super(Component.translatable("guzhenren.screen.info.title")); }
 
@@ -103,128 +106,175 @@ public final class PlayerInfoScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
-        int right = leftPos + panelW;
         int accent = ACCENT[activeTab];
-
-        Widgets.drawPanel(graphics, leftPos, topPos, panelW, panelH, ModPalette.PANEL_FILL);
-
-        graphics.drawString(font, Component.translatable(TAB_KEYS[activeTab]),
-                leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
-        graphics.fill(leftPos + PAD, topPos + HEADER_H, right - PAD, topPos + HEADER_H + 1, DIVIDER);
-
-        renderTabs(graphics, mouseX, mouseY);
-
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return;
-
-        if (activeTab == TAB_APERTURE && twoApertures(player)) {
-            List<List<ScreenRow>> groups = InfoRowRenderer.getApertureGroups(player);
-            renderApertureColumns(graphics, player, groups, mouseX, mouseY, accent);
-        } else {
-            renderRows(graphics, rows(player), mouseX, mouseY, accent);
-            renderBottomButtons(graphics, mouseX, mouseY);
-        }
-        if (picker.isOpen()) picker.render(graphics, font, leftPos, topPos, panelW, panelH, mouseX, mouseY, accent);
-    }
-
-    private void renderRows(GuiGraphics graphics, List<ScreenRow> rows, int mouseX, int mouseY, int accent) {
-        int visible = visibleRows();
-        int hidden = Math.max(0, rows.size() - visible);
-        scrollRow = Mth.clamp(scrollRow, 0, hidden);
-
-        int valueRight = valueRight();
-        int rowLeft = contentLeft();
-        int y = contentTop();
+        Content content = player == null ? Content.EMPTY : getContent(player);
         hoverClick = null;
-        for (int i = scrollRow; i < Math.min(rows.size(), scrollRow + visible); i++) {
-            drawRow(graphics, rows.get(i), rowLeft, valueRight, y, mouseX, mouseY, accent);
-            y += LINE_H;
+
+        GuiBatch.draw(graphics, () -> {
+            fillFrame(graphics, mouseX, mouseY);
+            if (player != null) fillContent(graphics, content, player, mouseX, mouseY, accent);
+            drawFrameTexts(graphics, accent);
+            if (player != null) drawContentTexts(graphics, content, accent);
+        });
+        if (player != null && picker.isOpen()) {
+            picker.render(graphics, font, leftPos, topPos, panelW, panelH, mouseX, mouseY, accent);
         }
-        if (hidden > 0) renderScrollBar(graphics, rows.size(), visible, accent);
     }
 
-    private void drawRow(GuiGraphics graphics, ScreenRow row, int x0, int x1, int y, int mouseX, int mouseY,
-                         int accent) {
-        if (Widgets.isOver(mouseX, mouseY, x0 - 2, y - 1, x1 - x0 + 4, LINE_H)) {
-            graphics.fill(x0 - 2, y - 1, x1 + 2, y + LINE_H - 1, ROW_HOVER);
-            if (row.click() != null) hoverClick = row.click();
+    private Content getContent(LocalPlayer player) {
+        if (activeTab == TAB_APERTURE && twoApertures(player)) {
+            List<List<ScreenRow>> groups = rowCache.getApertureGroups(InfoModel.aperture(player));
+            return new Content(true, List.of(), groups, columnButtons(player, groups), 0);
         }
+        List<ScreenRow> rows = rowCache.getRows(getModel(player));
+        List<ApertureButtons.ColumnButton> buttons = bottomButtons(player);
+        int rowsBottom = contentBottom() - buttons.size() * (BTN_H + BTN_GAP);
+        int visible = Math.max(0, (rowsBottom - contentTop()) / LINE_H);
+        scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, rows.size() - visible));
+        return new Content(false, rows, List.of(), buttons, visible);
+    }
+
+    private List<InfoModel.Row> getModel(LocalPlayer player) {
+        return switch (activeTab) {
+            case TAB_BODY -> InfoModel.body(player);
+            case TAB_SOUL -> InfoModel.soul(player);
+            case TAB_PATH -> InfoModel.pathAchieve(player);
+            case TAB_MIND -> InfoModel.mind(player);
+            default -> InfoModel.aperture(player);
+        };
+    }
+
+    //region the two passes -- every box first, then every text, so one batch holds each kind
+    private void fillFrame(GuiGraphics graphics, int mouseX, int mouseY) {
+        Widgets.drawPanel(graphics, leftPos, topPos, panelW, panelH, ModPalette.PANEL_FILL);
+        graphics.fill(leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, topPos + HEADER_H + 1, DIVIDER);
+        for (int i = 0; i < TAB_TITLES.length; i++) {
+            boolean active = i == activeTab;
+            int x0 = tabLeft();
+            int y0 = tabTop(i);
+            boolean hover = tabLive(i) && !active && inTab(mouseX, mouseY, i);
+
+            graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, active ? ACCENT[i] : TAB_IDLE);
+            if (hover) graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, ROW_HOVER);
+            if (active) graphics.fill(x0 - 2, y0, x0, y0 + TAB_H, ACCENT[i]);
+        }
+    }
+
+    private void fillContent(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY,
+                             int accent) {
+        if (content.columns()) {
+            int divider = contentLeft() + columnWidth() + COL_GAP / 2;
+            graphics.fill(divider, contentTop(), divider + 1, contentBottom(), DIVIDER);
+        }
+        eachRow(content, (row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
+        if (!content.columns() && content.rows().size() > content.visible()) {
+            renderScrollBar(graphics, content.rows().size(), content.visible(), accent);
+        }
+        for (ApertureButtons.ColumnButton b : content.buttons()) {
+            ApertureButtons.fill(graphics, player, b, mouseX, mouseY, accent);
+        }
+    }
+
+    private void drawFrameTexts(GuiGraphics graphics, int accent) {
+        graphics.drawString(font, TAB_TITLES[activeTab],
+                leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
+        for (int i = 0; i < TAB_TITLES.length; i++) {
+            int color = i == activeTab ? 0xFF101010 : tabLive(i) ? TAB_TEXT_IDLE : TAB_TEXT_DEAD;
+            Widgets.drawCentered(graphics, font, TAB_TITLES[i], tabLeft(), tabTop(i), TAB_W, TAB_H, color);
+        }
+    }
+
+    private void drawContentTexts(GuiGraphics graphics, Content content, int accent) {
+        eachRow(content, (row, x0, x1, y) -> drawRowText(graphics, row, x0, x1, y, accent));
+        for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.drawLabel(graphics, font, b);
+    }
+
+    private void eachRow(Content content, RowVisitor visitor) {
+        if (!content.columns()) {
+            int end = Math.min(content.rows().size(), scrollRow + content.visible());
+            int y = contentTop();
+            for (int i = scrollRow; i < end; i++) {
+                visitor.visit(content.rows().get(i), contentLeft(), valueRight(), y);
+                y += LINE_H;
+            }
+            return;
+        }
+        int colW = columnWidth();
+        for (int c = 0; c < content.groups().size(); c++) {
+            int x0 = contentLeft() + c * (colW + COL_GAP);
+            int y = contentTop();
+            for (ScreenRow row : content.groups().get(c)) {
+                visitor.visit(row, x0, x0 + colW, y);
+                y += LINE_H;
+            }
+        }
+    }
+
+    private void fillRowHover(GuiGraphics graphics, ScreenRow row, int x0, int x1, int y, int mouseX, int mouseY) {
+        if (!Widgets.isOver(mouseX, mouseY, x0 - 2, y - 1, x1 - x0 + 4, LINE_H)) return;
+
+        graphics.fill(x0 - 2, y - 1, x1 + 2, y + LINE_H - 1, ROW_HOVER);
+        if (row.click() != null) hoverClick = row.click();
+    }
+
+    private void drawRowText(GuiGraphics graphics, ScreenRow row, int x0, int x1, int y, int accent) {
         int labelColor = row.value() == null ? accent : ModPalette.TEXT;
         graphics.drawString(font, row.label(), x0 + row.indent(), y, labelColor, false);
         if (row.value() != null) {
             graphics.drawString(font, row.value(), x1 - font.width(row.value()), y, ModPalette.TEXT, false);
         }
     }
+    //endregion
 
     //region aperture columns -- two apertures render side by side, left first right second
     private static boolean twoApertures(LocalPlayer player) {
         return ApertureService.get(player).count() == 2;
     }
 
-    private void renderApertureColumns(GuiGraphics graphics, LocalPlayer player, List<List<ScreenRow>> groups,
-                                       int mouseX, int mouseY, int accent) {
-        int colW = (valueRight() - contentLeft() - COL_GAP) / 2;
-        int divider = contentLeft() + colW + COL_GAP / 2;
-        graphics.fill(divider, contentTop(), divider + 1, contentBottom(), DIVIDER);
-        hoverClick = null;
-        for (int c = 0; c < groups.size(); c++) {
-            int x0 = contentLeft() + c * (colW + COL_GAP);
-            int x1 = x0 + colW;
-            int y = contentTop();
-            for (ScreenRow row : groups.get(c)) {
-                drawRow(graphics, row, x0, x1, y, mouseX, mouseY, accent);
-                y += LINE_H;
-            }
-        }
-        for (ApertureButtons.ColumnButton b : columnButtons(player, groups)) {
-            ApertureButtons.draw(graphics, font, player, b, mouseX, mouseY, accent);
-        }
-    }
+    private int columnWidth() { return (valueRight() - contentLeft() - COL_GAP) / 2; }
     //endregion
 
     //region per-aperture buttons -- where each stack sits; what a button is and does is ApertureButtons
+    private boolean lacksButtons(LocalPlayer player) {
+        return activeTab != TAB_APERTURE || !ApertureService.hasAperture(player);
+    }
+
     private List<ApertureButtons.ColumnButton> bottomButtons(LocalPlayer player) {
-        List<ApertureButtons.ColumnButton> buttons = new ArrayList<>();
-        if (!ApertureService.hasAperture(player)) return buttons;
+        if (twoApertures(player) || lacksButtons(player)) return List.of();
+
         List<ApertureButtons.StackButton> stack = ApertureButtons.stack(player, ApertureData.PRIMARY);
+        List<ApertureButtons.ColumnButton> buttons = new ArrayList<>(stack.size());
         int base = contentBottom() - stack.size() * (BTN_H + BTN_GAP) + BTN_GAP;
-        for (ApertureButtons.StackButton b : stack) {
-            buttons.add(new ApertureButtons.ColumnButton(b.aperture(), b.kind(), b.key(), contentLeft(),
-                    valueRight(), base + b.top()));
-        }
+        place(buttons, stack, contentLeft(), valueRight(), base);
         return buttons;
     }
 
     private List<ApertureButtons.ColumnButton> columnButtons(LocalPlayer player, List<List<ScreenRow>> groups) {
+        if (lacksButtons(player)) return List.of();
+
         List<ApertureButtons.ColumnButton> buttons = new ArrayList<>();
-        if (!ApertureService.hasAperture(player)) return buttons;
-        int colW = (valueRight() - contentLeft() - COL_GAP) / 2;
+        int colW = columnWidth();
         for (int c = 0; c < groups.size(); c++) {
             int x0 = contentLeft() + c * (colW + COL_GAP);
             int base = contentTop() + (groups.get(c).size() + 1) * LINE_H;
-            for (ApertureButtons.StackButton b : ApertureButtons.stack(player, c)) {
-                buttons.add(new ApertureButtons.ColumnButton(b.aperture(), b.kind(), b.key(), x0, x0 + colW,
-                        base + b.top()));
-            }
+            place(buttons, ApertureButtons.stack(player, c), x0, x0 + colW, base);
         }
         return buttons;
     }
 
-    private void renderBottomButtons(GuiGraphics graphics, int mouseX, int mouseY) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || activeTab != TAB_APERTURE || twoApertures(player)
-                || !ApertureService.hasAperture(player)) return;
-        for (ApertureButtons.ColumnButton b : bottomButtons(player)) {
-            ApertureButtons.draw(graphics, font, player, b, mouseX, mouseY, ACCENT[activeTab]);
+    private static void place(List<ApertureButtons.ColumnButton> buttons, List<ApertureButtons.StackButton> stack,
+                              int x0, int x1, int base) {
+        for (ApertureButtons.StackButton b : stack) {
+            buttons.add(new ApertureButtons.ColumnButton(b.aperture(), b.kind(), b.label(), x0, x1, base + b.top()));
         }
     }
 
     private boolean clickApertureButtons(double mouseX, double mouseY) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || activeTab != TAB_APERTURE || !ApertureService.hasAperture(player)) return false;
-        List<ApertureButtons.ColumnButton> buttons = twoApertures(player)
-                ? columnButtons(player, InfoRowRenderer.getApertureGroups(player)) : bottomButtons(player);
-        for (ApertureButtons.ColumnButton b : buttons) {
+        if (player == null) return false;
+
+        for (ApertureButtons.ColumnButton b : getContent(player).buttons()) {
             if (!ApertureButtons.inBox(mouseX, mouseY, b.x0(), b.x1(), b.top())) continue;
             if (ApertureButtons.click(player, b)) onClose();
             return true;
@@ -248,17 +298,6 @@ public final class PlayerInfoScreen extends Screen {
 
     private int edgeRight() { return tabLeft() - PAD; }
 
-    private int bottomButtonCount() {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || activeTab != TAB_APERTURE || twoApertures(player)
-                || !ApertureService.hasAperture(player)) return 0;
-        return ApertureButtons.stack(player, ApertureData.PRIMARY).size();
-    }
-
-    private int rowsBottom() { return contentBottom() - bottomButtonCount() * (BTN_H + BTN_GAP); }
-
-    private int visibleRows() { return Math.max(0, (rowsBottom() - contentTop()) / LINE_H); }
-
     private void renderScrollBar(GuiGraphics graphics, int total, int visible, int accent) {
         int x0 = tabLeft() - SCROLL_GAP;
         int top = contentTop();
@@ -279,23 +318,6 @@ public final class PlayerInfoScreen extends Screen {
         return true;
     }
     //endregion
-
-    private void renderTabs(GuiGraphics graphics, int mouseX, int mouseY) {
-        for (int i = 0; i < TAB_KEYS.length; i++) {
-            boolean active = i == activeTab;
-            boolean live = tabLive(i);
-            int x0 = tabLeft();
-            int y0 = tabTop(i);
-            boolean hover = live && !active && inTab(mouseX, mouseY, i);
-
-            graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, active ? ACCENT[i] : TAB_IDLE);
-            if (hover) graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, ROW_HOVER);
-            if (active) graphics.fill(x0 - 2, y0, x0, y0 + TAB_H, ACCENT[i]);
-
-            int color = active ? 0xFF101010 : live ? TAB_TEXT_IDLE : TAB_TEXT_DEAD;
-            Widgets.drawCentered(graphics, font, Component.translatable(TAB_KEYS[i]), x0, y0, TAB_W, TAB_H, color);
-        }
-    }
 
     private boolean tabLive(int tab) {
         if (tab != TAB_REFINEMENT) return true;
@@ -324,7 +346,7 @@ public final class PlayerInfoScreen extends Screen {
                 picker.open(hoverClick.aperture());
                 return true;
             }
-            for (int i = 0; i < TAB_KEYS.length; i++) {
+            for (int i = 0; i < TAB_TITLES.length; i++) {
                 if (!inTab(mouseX, mouseY, i) || !tabLive(i)) continue;
                 if (i == TAB_REFINEMENT) {
                     PacketDistributor.sendToServer(OpenRefinementPayload.INSTANCE);
@@ -355,13 +377,14 @@ public final class PlayerInfoScreen extends Screen {
     @Override
     public boolean isPauseScreen() { return false; }
 
-    private List<ScreenRow> rows(LocalPlayer player) {
-        return InfoRowRenderer.getRows(switch (activeTab) {
-            case TAB_BODY -> InfoModel.body(player);
-            case TAB_SOUL -> InfoModel.soul(player);
-            case TAB_PATH -> InfoModel.pathAchieve(player);
-            case TAB_MIND -> InfoModel.mind(player);
-            default -> InfoModel.aperture(player);
-        });
+    private interface RowVisitor {
+
+        void visit(ScreenRow row, int x0, int x1, int y);
+    }
+
+    private record Content(boolean columns, List<ScreenRow> rows, List<List<ScreenRow>> groups,
+                           List<ApertureButtons.ColumnButton> buttons, int visible) {
+
+        static final Content EMPTY = new Content(false, List.of(), List.of(), List.of(), 0);
     }
 }

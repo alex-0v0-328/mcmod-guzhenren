@@ -1,0 +1,61 @@
+package net.alex.guzhenren.client.screen;
+
+import java.util.List;
+import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.refinement.GuRecipe;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The Gu Recipes [蛊方] the client knows, sorted once and kept: {@link GuRecipe#known} sorts every recipe by id, which
+ * the refinement screen and its picker would otherwise pay for on every frame.
+ *
+ * <p>The list is rebuilt when the client level's {@link RecipeManager} is a different one, and dropped on
+ * {@link RecipesUpdatedEvent} because the manager keeps its identity while a reload swaps the recipes inside it, and
+ * on logout. Client thread only.
+ *
+ * @author Alex
+ * @version 1.0.0
+ * @see RefinementScreen
+ * @since 1.0.0
+ */
+
+@EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)
+public final class KnownRecipes {
+
+    private KnownRecipes() {}
+
+    private static @Nullable RecipeManager source;
+    private static List<RecipeHolder<GuRecipe>> cached = List.of();
+
+    static List<RecipeHolder<GuRecipe>> get() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) return List.of();
+
+        RecipeManager recipes = level.getRecipeManager();
+        if (recipes != source) {
+            cached = GuRecipe.known(recipes);
+            source = recipes;
+        }
+        return cached;
+    }
+
+    @SubscribeEvent
+    public static void onRecipesUpdated(RecipesUpdatedEvent event) { forget(); }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) { forget(); }
+
+    private static void forget() {
+        source = null;
+        cached = List.of();
+    }
+}

@@ -11,7 +11,6 @@ import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -77,7 +76,7 @@ public final class CmdInfo {
             case InfoModel.Blank ignored -> Component.empty();
             case InfoModel.Realm e -> key("realm", ModDisplayText.realmTitle(e.aperture()));
             case InfoModel.Status e -> key("aperture_status", enumName(e.status().getTranslationKey()));
-            case InfoModel.TalentRow e -> talent(e);
+            case InfoModel.TalentRow e -> key("talent", ModDisplayText.talentLine(e.aperture(), e.awakened()));
             case InfoModel.Essence e -> key("essence", e.aperture().currentEssence(), e.aperture().maxEssence());
             case InfoModel.Distilled e -> key("distilled", e.aperture().distilledEssence(),
                     e.aperture().maxEssence());
@@ -88,7 +87,7 @@ public final class CmdInfo {
             case InfoModel.PhysiqueRow e -> key("physique", ModDisplayText.physique(e.physique(), e.extremePhysique()));
             case InfoModel.RaceRow e -> key("race", enumName(e.race().getTranslationKey()));
             case InfoModel.Soul e -> key("soul", e.soul().currentSoul(), e.soul().maxSoul())
-                    .append(muted(enumName(e.soul().tier().getTranslationKey())));
+                    .append(ModDisplayText.detail(enumName(e.soul().tier().getTranslationKey())));
             case InfoModel.Lifespan e -> key("lifespan", ModDisplayText.lifespan(e.lifespan(), e.age()));
             case InfoModel.PathsHeader e -> header(e.empty());
             case InfoModel.PathRow e -> ModDisplayText.pathLine(e.path(), e.entry());
@@ -108,7 +107,7 @@ public final class CmdInfo {
                     key("wisdom_path_achieve_entry", enumName(e.tag().getTranslationKey()), e.amount());
 
             case InfoModel.BrillianceRow e -> key("brilliance", enumName(e.brilliance().getTranslationKey()))
-                    .append(muted(Component.translatable("guzhenren.display.brilliance_rate",
+                    .append(ModDisplayText.detail(Component.translatable("guzhenren.display.brilliance_rate",
                             e.brilliance().getThoughtsPerSecond())));
             case InfoModel.MindHeader ignored -> key("mind");
             case InfoModel.MindRow e -> key("mind_entry", enumName(e.type().getTranslationKey()),
@@ -116,24 +115,12 @@ public final class CmdInfo {
         };
     }
 
-    private static MutableComponent talent(InfoModel.TalentRow event) {
-        MutableComponent talent = ModDisplayText.talent(event.aperture());
-        if (event.awakened()) talent.append(muted(ModDisplayText.baseFraction(event.aperture().baseEssence())));
-        return key("talent", talent);
-    }
-
     private static MutableComponent header(boolean empty) {
         MutableComponent line = key("paths");
-        return empty ? line.append("  ").append(none()) : line;
+        return empty ? line.append("  ").append(ModDisplayText.none()) : line;
     }
 
     private static MutableComponent key(String id, Object... args) { return Component.translatable(PREFIX + id, args); }
 
     private static MutableComponent enumName(String key) { return Component.translatable(key); }
-
-    private static MutableComponent none() { return Component.translatable("guzhenren.display.none"); }
-
-    private static MutableComponent muted(Object value) {
-        return Component.translatable("guzhenren.display.detail", value).withStyle(ChatFormatting.DARK_GRAY);
-    }
 }

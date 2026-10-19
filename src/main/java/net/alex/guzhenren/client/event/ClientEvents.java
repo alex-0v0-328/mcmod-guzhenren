@@ -40,6 +40,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
@@ -62,7 +63,8 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * ({@link ModEntityRenderers}), the Spirit Spring fluid's translucent render layer, and the Nine Leaf Vitality
  * Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
  * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at
- * the lower half for both halves; its harvested item has no color handler and keeps its own PNG.
+ * the lower half for both halves; its harvested item has no color handler and keeps its own PNG. On logout it
+ * clears {@link DashInput}'s remembered key states.
  *
  * @author Alex
  * @version 1.0.0
@@ -143,6 +145,9 @@ public final class ClientEvents {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         ModEntityRenderers.register(event);
     }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) { DashInput.reset(); }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 
@@ -25,6 +26,9 @@ import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
  * toward none by the vanilla FOV Effects slider the same way NeoForge eases the vanilla modifier, so a player who
  * turned FOV effects off sees no widening here either. Vanilla eases the view toward each new modifier over a few
  * ticks, so it widens and narrows smoothly; Minecraft caps the total widening, sprint and flight included.
+ *
+ * <p>{@link #onLoggingOut} clears {@link #wasBursting}, so a burst that was running when the player left does not
+ * make the next world's first burst look like a continuation.
  *
  * @author Alex
  * @version 1.0.0
@@ -47,6 +51,9 @@ public final class BurstEvents {
         if (bursting && !wasBursting && player.onGround()) player.jumpFromGround();
         wasBursting = bursting;
     }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) { wasBursting = false; }
 
     @SubscribeEvent
     public static void onComputeFovModifier(ComputeFovModifierEvent event) {

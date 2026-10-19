@@ -4,7 +4,8 @@ package net.alex.guzhenren.client.input;
  * Pure double-tap detection over client ticks, kept free of game state so plain JUnit covers it.
  *
  * <p>{@link #press} reports a double tap when the previous press came at most {@link #windowTicks} ticks earlier,
- * then forgets both, so a third quick press starts a new pair instead of toggling again.
+ * then forgets both, so a third quick press starts a new pair instead of toggling again. {@link #reset} forgets a
+ * press that is waiting for its partner.
  *
  * @author Alex
  * @version 1.0.0
@@ -30,4 +31,6 @@ public final class DoubleTap {
         lastPressTicks = ticks;
         return false;
     }
+
+    public void reset() { lastPressTicks = NONE; }
 }

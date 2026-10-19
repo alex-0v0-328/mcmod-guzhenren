@@ -5,7 +5,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
  * {@code VanillaGuiLayers.AIR_LEVEL}. Reads the held item's {@code getUseDuration} and
  * {@code chargeFraction} from {@link net.alex.guzhenren.item.GuItem}; if the item provides its own
  * fraction the bar reads that, otherwise it falls back to the vanilla remaining-ticks ratio.
+ *
+ * <p>{@link #isShowing} is the one test of "a charged Gu use is running", also read by {@link NourishHud} to stack
+ * its bar above this one.
  *
  * <p>⚠ Any Gu whose use has a duration gets this for free, so adding a charged Gu needs no change here.
  * Whenever a leaf class's caption reads {@code a / b}, that class owes a {@code chargeFraction} over
@@ -32,19 +34,22 @@ public final class ChargeHud extends HotbarHud {
 
     private ChargeHud() {}
 
+    static boolean isShowing(Minecraft minecraft, LocalPlayer player) {
+        if (minecraft.options.hideGui || player.isSpectator() || !player.isUsingItem()) return false;
+
+        ItemStack stack = player.getUseItem();
+        return stack.getItem() instanceof GuItem && stack.getUseDuration(player) > 0;
+    }
+
     @Override
     public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker delta) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
-        if (player == null || minecraft.options.hideGui || player.isSpectator()) return;
-        if (!player.isUsingItem()) return;
+        if (player == null || !isShowing(minecraft, player)) return;
 
         ItemStack stack = player.getUseItem();
-        if (!(stack.getItem() instanceof GuItem gu)) return;
-
+        GuItem gu = (GuItem) stack.getItem();
         int total = stack.getUseDuration(player);
-        if (total <= 0) return;
-
         int remaining = player.getUseItemRemainingTicks();
         Float own = gu.chargeFraction(stack, remaining);
         float progress = own != null ? own : 1.0F - remaining / (float) total;
@@ -52,11 +57,6 @@ public final class ChargeHud extends HotbarHud {
         int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
         int y = barTop(minecraft);
 
-        drawBar(graphics, x, y, progress, gu.chargeColor(stack, remaining));
-
-        Component label = gu.chargeCaption(stack, remaining);
-        if (label == null) return;
-
-        drawLabel(graphics, minecraft, x, y, label);
+        draw(graphics, minecraft, x, y, progress, gu.chargeColor(stack, remaining), gu.chargeCaption(stack, remaining));
     }
 }

@@ -19,7 +19,8 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * mode, turns the camera's forward yaw by the direction, and sends {@link DashPayload}.
  *
  * <p>{@link #shouldStartDash}: a fresh Alt press starts a dash, and so does a fresh direction press while
- * Alt is still held -- the edges, never the held state, or every tick would dash again.
+ * Alt is still held -- the edges, never the held state, or every tick would dash again. {@link #reset} forgets the
+ * remembered key states, which the client calls on logout so the next world does not read a held key as an edge.
  *
  * @author Alex
  * @version 1.0.0
@@ -62,6 +63,14 @@ public final class DashInput {
         previousLeft = left;
         previousRight = right;
         previousAlt = alt;
+    }
+
+    public static void reset() {
+        previousUp = false;
+        previousDown = false;
+        previousLeft = false;
+        previousRight = false;
+        previousAlt = false;
     }
 
     public static boolean shouldStartDash(boolean alt, boolean previousAlt, boolean directionPressed) {

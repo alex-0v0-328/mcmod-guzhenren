@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
+import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
@@ -32,7 +33,7 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     private static final int VITAL_LEFT = ApertureStorageMenu.VITAL_X - VITAL_PADDING;
     private static final int VITAL_RIGHT = ApertureStorageMenu.VITAL_X + Widgets.CELL + VITAL_PADDING;
     private static final int VITAL_BOTTOM = 44;
-    private static final String VITAL_KEY = "guzhenren.menu.vital";
+    private static final Component VITAL = Component.translatable("guzhenren.menu.vital");
     private static final int TITLE_X_WITH_BACK = 26;
     private static final String LOAD_KEY = "guzhenren.menu.aperture_load";
     private static final Component PREV = Component.literal("<");
@@ -50,14 +51,17 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
-        Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
-        graphics.fill(x + 7, y + 15, x + imageWidth - 7, y + 16, ModPalette.APERTURE);
+        GuiBatch.draw(graphics, () -> {
+            Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
+            graphics.fill(x + 7, y + 15, x + imageWidth - 7, y + 16, ModPalette.APERTURE);
 
-        int left = x + ApertureStorageMenu.STORAGE_X;
-        fillSlotGrid(graphics, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
-        fillSlotGrid(graphics, left, y + ApertureStorageMenu.INVENTORY_Y, ApertureStorageMenu.INVENTORY_ROWS);
-        fillSlotGrid(graphics, left, y + ApertureStorageMenu.HOTBAR_Y, 1);
-        renderVital(graphics, x, y);
+            int left = x + ApertureStorageMenu.STORAGE_X;
+            fillSlotGrid(graphics, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
+            fillSlotGrid(graphics, left, y + ApertureStorageMenu.INVENTORY_Y, ApertureStorageMenu.INVENTORY_ROWS);
+            fillSlotGrid(graphics, left, y + ApertureStorageMenu.HOTBAR_Y, 1);
+            fillVital(graphics, x, y);
+            renderVitalLabel(graphics, x, y);
+        });
     }
 
     private void fillSlotGrid(GuiGraphics graphics, int left, int top, int rows) {
@@ -65,16 +69,17 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
                 ModPalette.SLOT_FILL);
     }
 
-    private void renderVital(GuiGraphics graphics, int x, int y) {
+    private void fillVital(GuiGraphics graphics, int x, int y) {
         Widgets.drawPanel(graphics, x + VITAL_LEFT, y, VITAL_RIGHT - VITAL_LEFT, VITAL_BOTTOM, ModPalette.PANEL_FILL);
         graphics.fill(x + VITAL_LEFT + 4, y + 15, x + VITAL_RIGHT - 4, y + 16, ModPalette.APERTURE);
-
-        Component label = Component.translatable(VITAL_KEY);
-        int width = VITAL_RIGHT - VITAL_LEFT;
-        graphics.drawString(font, label, x + VITAL_LEFT + (width - font.width(label)) / 2, y + 5,
-                ModPalette.APERTURE, false);
         Widgets.drawCell(graphics, x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y,
                 ModPalette.SLOT_FILL);
+    }
+
+    private void renderVitalLabel(GuiGraphics graphics, int x, int y) {
+        int width = VITAL_RIGHT - VITAL_LEFT;
+        graphics.drawString(font, VITAL, x + VITAL_LEFT + (width - font.width(VITAL)) / 2, y + 5,
+                ModPalette.APERTURE, false);
     }
 
     @Override

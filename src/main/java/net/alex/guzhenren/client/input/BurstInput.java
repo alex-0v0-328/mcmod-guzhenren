@@ -9,6 +9,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -22,7 +23,7 @@ import org.lwjgl.glfw.GLFW;
  * {@link #DOUBLE_TAP_TICKS} is vanilla's window for its own double taps (forward to sprint, jump to fly), counted in
  * client ticks ({@link #ticks}). Presses with a screen open do not count. A double tap is sent only to end a burst
  * or when {@link FlightService#getGrant} allows one on the synced state, so a player with no flying Gu sends
- * nothing; the server decides again.
+ * nothing; the server decides again. Logging out forgets a first tap that was waiting for its second.
  *
  * @author Alex
  * @version 1.0.0
@@ -43,6 +44,9 @@ public final class BurstInput {
     public static void onClientTick(ClientTickEvent.Post event) {
         ticks++;
     }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) { DOUBLE_TAP.reset(); }
 
     @SubscribeEvent
     public static void onKey(InputEvent.Key event) {

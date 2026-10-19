@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
+import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.refinement.GuRecipe;
@@ -9,7 +10,6 @@ import net.alex.guzhenren.refinement.RefinementMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
  * {@link RefinementMenu}. Draws the 5×5 grid (corners cut), the craft
  * button in three states, the phase bar, the stone slot, and the recipe picker modal. Ghosts for
  * missing ingredients ({@link RecipeGhosts}) and the pool readings ({@link PoolBars}) are drawn from
- * {@code renderLabels} so the carried item paints last; the buttons and cells are the package's {@link Widgets}. The
- * picker
- * modal translates Z to 500 to stay above slot items. In {@link #mouseClicked(double, double, int)},
- * the open picker swallows every click; only the left button acts on it.
+ * {@code renderLabels} so the carried item paints last; the buttons and cells are the package's {@link Widgets}, the
+ * whole background in one {@link GuiBatch}. The recipe table the screen and its picker read is {@link KnownRecipes},
+ * sorted once rather than per frame. The picker modal translates Z to 500 to stay above slot items. In
+ * {@link #mouseClicked(double, double, int)}, the open picker swallows every click; only the left button acts on it.
  *
  * <p>⚠ Every cell position comes from the menu's own helpers, so a drawn cell and the real slot
  * cannot drift apart. Two different pitches are in play; do not reuse the inventory's for the grid.
@@ -86,18 +86,20 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
-        Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
-        graphics.fill(x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, y + HEADER_H + 1, ModPalette.REFINEMENT);
+        GuiBatch.draw(graphics, () -> {
+            Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
+            graphics.fill(x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, y + HEADER_H + 1, ModPalette.REFINEMENT);
 
-        drawInput(graphics, x, y);
-        Widgets.drawCell(graphics, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y, ModPalette.SLOT_FILL);
-        Widgets.drawCells(graphics, x + RefinementMenu.OUTPUT_X, y + RefinementMenu.OUTPUT_Y,
-                RefinementMenu.OUTPUT_COLS, RefinementMenu.OUTPUT_ROWS, GRID_SLOT, ModPalette.SLOT_FILL);
-        Widgets.drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.INVENTORY_Y,
-                RefinementMenu.INVENTORY_COLS, 3, SLOT, ModPalette.SLOT_FILL);
-        Widgets.drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.HOTBAR_Y,
-                RefinementMenu.INVENTORY_COLS, 1, SLOT, ModPalette.SLOT_FILL);
-        drawBar(graphics, x, y);
+            drawInput(graphics, x, y);
+            Widgets.drawCell(graphics, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y, ModPalette.SLOT_FILL);
+            Widgets.drawCells(graphics, x + RefinementMenu.OUTPUT_X, y + RefinementMenu.OUTPUT_Y,
+                    RefinementMenu.OUTPUT_COLS, RefinementMenu.OUTPUT_ROWS, GRID_SLOT, ModPalette.SLOT_FILL);
+            Widgets.drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.INVENTORY_Y,
+                    RefinementMenu.INVENTORY_COLS, 3, SLOT, ModPalette.SLOT_FILL);
+            Widgets.drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.HOTBAR_Y,
+                    RefinementMenu.INVENTORY_COLS, 1, SLOT, ModPalette.SLOT_FILL);
+            drawBar(graphics, x, y);
+        });
     }
 
     //region the two rings -- the 内圈 is marked by a brighter cell and an accent frame around the block
@@ -178,14 +180,13 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        knownCache = null;
         super.render(graphics, mouseX, mouseY, partialTick);
         renderCraft(graphics, mouseX, mouseY);
         renderRecipe(graphics, mouseX, mouseY);
         Widgets.drawBack(graphics, font, backX(), backY(), mouseX, mouseY);
         if (picker.isOpen()) {
-            picker.render(graphics, font, known(), menu.selected(), leftPos, topPos, imageWidth, imageHeight, mouseX,
-                    mouseY);
+            picker.render(graphics, font, KnownRecipes.get(), menu.selected(), leftPos, topPos, imageWidth,
+                    imageHeight, mouseX, mouseY);
             return;
         }
         renderTooltip(graphics, mouseX, mouseY);
@@ -245,19 +246,9 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //endregion
 
     //region the 蛊方 a player may attempt -- the client holds the whole synced table, so it needs no packet
-    private @Nullable List<RecipeHolder<GuRecipe>> knownCache;
-
-    private List<RecipeHolder<GuRecipe>> known() {
-        if (knownCache == null) {
-            ClientLevel level = Minecraft.getInstance().level;
-            knownCache = level == null ? List.of() : GuRecipe.known(level.getRecipeManager());
-        }
-        return knownCache;
-    }
-
     private @Nullable GuRecipe selectedRecipe() {
         int index = menu.selected();
-        List<RecipeHolder<GuRecipe>> known = known();
+        List<RecipeHolder<GuRecipe>> known = KnownRecipes.get();
         return index >= 0 && index < known.size() ? known.get(index).value() : null;
     }
 
@@ -271,7 +262,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (picker.isOpen()) {
             if (button == 0) {
-                int chosen = picker.click(mouseX, mouseY, known(), leftPos, topPos, imageWidth, imageHeight);
+                int chosen = picker.click(mouseX, mouseY, KnownRecipes.get(), leftPos, topPos, imageWidth, imageHeight);
                 if (chosen != RecipePicker.NO_BUTTON) send(chosen);
             }
             return true;

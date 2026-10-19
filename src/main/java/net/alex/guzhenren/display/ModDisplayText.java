@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEntry;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +24,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The single source for shared wording: a phrase built at a call site is one that will eventually
  * word the same fact differently somewhere else. If two surfaces say a thing, the sentence belongs in
- * this file. Brackets ({@code [无]}, {@code [太日阳莽体]}) are baked into the lang value, never assembled here.
+ * this file. Brackets ({@code [无]}, {@code [太日阳莽体]}) are baked into the lang value, never assembled here:
+ * {@link #none} is the {@code [无]}, {@link #detail} wraps a muted aside, {@link #talentLine} is a talent with its
+ * base fraction. {@link #countdownSeconds} is the whole second a countdown shows, for a caller that caches the
+ * text per second.
  *
  * <p>⚠ Two decimals on lifespan, not one ({@link #lifespan(double, double)}): a hundredth of a year is
  * twelve real seconds at ordinary speed, the coarsest step the eye still reads as movement; a tenth
@@ -58,6 +62,18 @@ public final class ModDisplayText {
         return Component.translatable(aperture.talent().getTranslationKey());
     }
 
+    public static MutableComponent talentLine(Aperture aperture, boolean awakened) {
+        MutableComponent line = talent(aperture);
+        if (awakened) line.append(detail(baseFraction(aperture.baseEssence())));
+        return line;
+    }
+
+    public static MutableComponent none() { return Component.translatable("guzhenren.display.none"); }
+
+    public static MutableComponent detail(Object value) {
+        return Component.translatable("guzhenren.display.detail", value).withStyle(ChatFormatting.DARK_GRAY);
+    }
+
     public static MutableComponent hudHeader(Aperture aperture, BodyData body) {
         return realmTitle(aperture).append(GAP).append(hudAptitude(aperture, body));
     }
@@ -77,7 +93,7 @@ public final class ModDisplayText {
     }
 
     public static MutableComponent physiqueValue(@Nullable Physique physique, ExtremePhysique extremePhysique) {
-        if (physique == null) return Component.translatable("guzhenren.display.none");
+        if (physique == null) return none();
 
         MutableComponent value = Component.translatable(physique.getTranslationKey());
         if (physique == Physique.EXTREME) {
@@ -103,9 +119,7 @@ public final class ModDisplayText {
     }
 
     public static MutableComponent path(@Nullable GuPath path) {
-        return path == null
-                ? Component.translatable("guzhenren.display.none")
-                : Component.translatable(path.getTranslationKey());
+        return path == null ? none() : Component.translatable(path.getTranslationKey());
     }
 
     public static Component apertureName(int number) {
@@ -133,8 +147,13 @@ public final class ModDisplayText {
                 String.format(Locale.ROOT, "%.0f", body.ageYears()));
     }
 
-    public static String countdown(long remainingTicks) {
-        long seconds = (Math.max(0L, remainingTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
+    public static String countdown(long remainingTicks) { return clock(countdownSeconds(remainingTicks)); }
+
+    public static long countdownSeconds(long remainingTicks) {
+        return (Math.max(0L, remainingTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
+    }
+
+    public static String clock(long seconds) {
         return String.format(Locale.ROOT, "%02d:%02d", seconds / 60L, seconds % 60L);
     }
 

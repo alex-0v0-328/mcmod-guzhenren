@@ -15,7 +15,8 @@ import net.minecraft.world.entity.player.Player;
  * them needs a packet; a refinement spends essence and soul every second, and the bars show it.
  *
  * <p>Drawn from the screen's {@code renderLabels}, so coordinates are panel-relative. {@link #TRACK} is the empty
- * bar, shared with the screen's phase bar.
+ * bar, shared with the screen's phase bar. Each of the three readings keeps its text until its value or maximum
+ * moves, so a still pool builds nothing per frame.
  *
  * @author Alex
  * @version 1.0.0
@@ -34,6 +35,8 @@ final class PoolBars {
     private static final int TOP = 156;
     private static final int STRIDE = 19;
     private static final String KEY = "guzhenren.menu.refinement.pool";
+    private static final int UNITS = 3;
+    private static final Reading[] READINGS = new Reading[UNITS];
 
     static void draw(GuiGraphics graphics, Font font, Player player) {
         long maxEssence = ApertureEssenceService.getMaxEssence(player);
@@ -50,7 +53,7 @@ final class PoolBars {
 
     private static void drawPool(GuiGraphics graphics, Font font, int unit, long value, long max, int fill) {
         int y = TOP + unit * STRIDE;
-        Component reading = Component.translatable(KEY, value, max);
+        Component reading = reading(unit, value, max);
         graphics.drawString(font, reading, X + WIDTH - font.width(reading), y, ModPalette.LEGEND_TEXT, false);
 
         int barY = y + font.lineHeight;
@@ -60,4 +63,15 @@ final class PoolBars {
         int filled = (int) Math.min(WIDTH, WIDTH * value / max);
         graphics.fill(X, barY, X + filled, barY + HEIGHT, fill);
     }
+
+    private static Component reading(int unit, long value, long max) {
+        Reading cached = READINGS[unit];
+        if (cached == null || cached.value() != value || cached.max() != max) {
+            cached = new Reading(value, max, Component.translatable(KEY, value, max));
+            READINGS[unit] = cached;
+        }
+        return cached.text();
+    }
+
+    private record Reading(long value, long max, Component text) {}
 }

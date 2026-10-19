@@ -7,7 +7,6 @@ import net.alex.guzhenren.display.ModDisplayText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * takes the tab's accent colour; the mind header returns {@code null} because its tab title already says it.
  *
  * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line; {@link #getApertureGroups}
- * splits the aperture tab into one group per aperture, blanks dropped, for the two-column layout.
+ * splits the aperture tab's model into one group per aperture, blanks dropped, for the two-column layout.
  *
  * <p>{@link #draw} is one exhaustive switch over the sealed {@code InfoModel.Entry}, past 40 lines on
  * purpose: a new row does not compile until it has its line here and in {@code /gzr info}. ⚠ The model owns
@@ -52,10 +51,10 @@ final class InfoRowRenderer {
         return rows;
     }
 
-    static List<List<ScreenRow>> getApertureGroups(Player player) {
+    static List<List<ScreenRow>> getApertureGroups(List<InfoModel.Row> model) {
         List<List<ScreenRow>> groups = new ArrayList<>();
         List<ScreenRow> current = null;
-        for (InfoModel.Row modelRow : InfoModel.aperture(player)) {
+        for (InfoModel.Row modelRow : model) {
             if (modelRow.entry() instanceof InfoModel.Blank) continue;
             ScreenRow drawn = draw(modelRow.indent(), modelRow.entry());
             if (drawn == null) continue;
@@ -80,7 +79,8 @@ final class InfoRowRenderer {
             case InfoModel.Realm e -> new ScreenRow(indent, label("realm"), ModDisplayText.realmTitle(e.aperture()));
             case InfoModel.Status e -> new ScreenRow(indent, label("aperture_status"),
                     name(e.status().getTranslationKey()));
-            case InfoModel.TalentRow e -> new ScreenRow(indent, label("talent"), talent(e));
+            case InfoModel.TalentRow e -> new ScreenRow(indent, label("talent"),
+                    ModDisplayText.talentLine(e.aperture(), e.awakened()));
             case InfoModel.Essence e -> new ScreenRow(indent, label("essence"), Component.literal(
                     ModDisplayText.pool(e.aperture().currentEssence(), e.aperture().maxEssence())));
             case InfoModel.Distilled e -> new ScreenRow(indent, label("distilled"), Component.literal(
@@ -92,9 +92,10 @@ final class InfoRowRenderer {
             case InfoModel.PathChoice e -> e.primary()
                     ? new ScreenRow(indent, label("primary_path"), ModDisplayText.path(e.path()))
                     : new ScreenRow(indent, label("secondary_path"),
-                    detail(Component.translatable("guzhenren.screen.pick.hint")).copy().append(e.path() == null
-                            ? none().withStyle(ChatFormatting.DARK_GRAY)
-                            : detail(ModDisplayText.path(e.path()))),
+                    ModDisplayText.detail(Component.translatable("guzhenren.screen.pick.hint"))
+                            .append(e.path() == null
+                                    ? ModDisplayText.none().withStyle(ChatFormatting.DARK_GRAY)
+                                    : ModDisplayText.detail(ModDisplayText.path(e.path()))),
                     new Click(e.aperture()));
 
             case InfoModel.PhysiqueRow e -> new ScreenRow(indent, label("physique"),
@@ -102,10 +103,11 @@ final class InfoRowRenderer {
             case InfoModel.RaceRow e -> new ScreenRow(indent, label("race"), name(e.race().getTranslationKey()));
             case InfoModel.Soul e -> new ScreenRow(indent, label("soul"),
                     Component.literal(ModDisplayText.pool(e.soul().currentSoul(), e.soul().maxSoul()))
-                            .append(detail(name(e.soul().tier().getTranslationKey()))));
+                            .append(ModDisplayText.detail(name(e.soul().tier().getTranslationKey()))));
             case InfoModel.Lifespan e -> new ScreenRow(indent, label("lifespan"),
                     ModDisplayText.lifespan(e.lifespan(), e.age()));
-            case InfoModel.PathsHeader e -> new ScreenRow(indent, label("paths"), e.empty() ? none() : null);
+            case InfoModel.PathsHeader e ->
+                    new ScreenRow(indent, label("paths"), e.empty() ? ModDisplayText.none() : null);
             case InfoModel.PathRow e ->
                     new ScreenRow(indent, ModDisplayText.pathLine(e.path(), e.entry()), Component.empty());
             case InfoModel.QiPathAchieveHeader ignored -> new ScreenRow(indent, label("qi_path_achieve"), null);
@@ -128,7 +130,7 @@ final class InfoRowRenderer {
                     Component.literal(String.valueOf(e.amount())));
 
             case InfoModel.BrillianceRow e -> new ScreenRow(indent, label("brilliance"),
-                    name(e.brilliance().getTranslationKey()).append(detail(Component.translatable(
+                    name(e.brilliance().getTranslationKey()).append(ModDisplayText.detail(Component.translatable(
                             "guzhenren.display.brilliance_rate", e.brilliance().getThoughtsPerSecond()))));
             case InfoModel.MindHeader ignored -> null;
             case InfoModel.MindRow e -> new ScreenRow(indent, name(e.type().getTranslationKey()),
@@ -136,21 +138,9 @@ final class InfoRowRenderer {
         };
     }
 
-    private static MutableComponent talent(InfoModel.TalentRow event) {
-        MutableComponent talent = ModDisplayText.talent(event.aperture());
-        if (event.awakened()) talent.append(detail(ModDisplayText.baseFraction(event.aperture().baseEssence())));
-        return talent;
-    }
-
     private static MutableComponent name(String key) { return Component.translatable(key); }
 
     private static Component label(String name) { return Component.translatable("guzhenren.screen.label." + name); }
-
-    private static MutableComponent none() { return Component.translatable("guzhenren.display.none"); }
-
-    private static Component detail(Component value) {
-        return Component.translatable("guzhenren.display.detail", value).withStyle(ChatFormatting.DARK_GRAY);
-    }
 
     record ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click) {
 

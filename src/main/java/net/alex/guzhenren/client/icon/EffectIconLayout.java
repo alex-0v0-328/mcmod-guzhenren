@@ -14,9 +14,10 @@ import org.jetbrains.annotations.NotNull;
  * and the one abstract seam -- which texture this instance wears.
  *
  * <p>Implements {@link net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions}.
- * The two default render methods (HUD and inventory) both delegate to {@code textureFor}, so a new
- * effect icon strategy is one class implementing that seam. All icons are 16×16, centered with a 1px
- * inset.
+ * The two default render methods (HUD and inventory) both delegate to {@code locationFor}, so a new
+ * effect icon strategy is one class implementing that seam, and it hands back a {@code ResourceLocation} it built
+ * ahead of time, because the render methods run once per icon per frame. {@code textureFor} is the same texture as
+ * a path string. All icons are 16×16, centered with a 1px inset.
  *
  * @author Alex
  * @version 1.0.0
@@ -35,10 +36,12 @@ interface EffectIconLayout extends IClientMobEffectExtensions {
 
     String textureFor(MobEffectInstance instance);
 
+    ResourceLocation locationFor(MobEffectInstance instance);
+
+    static ResourceLocation locationOf(String texture) { return Guzhenren.id("textures/" + texture + ".png"); }
+
     private void draw(GuiGraphics g, MobEffectInstance instance, int x, int y) {
-        ResourceLocation texture = Guzhenren.id(
-                "textures/" + textureFor(instance) + ".png");
-        g.blit(texture, x, y, 0, 0.0F, 0.0F, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+        g.blit(locationFor(instance), x, y, 0, 0.0F, 0.0F, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
     }
 
     @Override
