@@ -12,9 +12,10 @@ import net.minecraft.network.chat.Component;
  * a bordered panel, item cells, a text button in its live, hovered and dead fills, the {@code <-} back button
  * that returns to the B panel, the hit test behind every button, and the container button click.
  *
- * <p>{@link #drawButton} centers its label one pixel below the middle, the same for every button that uses it;
- * a button laid out otherwise draws its own label. A dead button keeps its label readable in the idle fill's
- * colour.
+ * <p>A button is two calls, {@link #fillButton} and {@link #drawButtonLabel}, so a screen draws every button
+ * fill before any label inside one {@link net.alex.guzhenren.client.GuiBatch}; the back button splits the same
+ * way. The label sits centered one pixel below the middle, the same for every button that uses it; a button laid
+ * out otherwise draws its own label. A dead button keeps its label readable in the idle fill's colour.
  *
  * @author Alex
  * @version 1.0.0
@@ -46,9 +47,12 @@ final class Widgets {
         graphics.fill(x, y, x + CELL, y + CELL, fill);
     }
 
-    static void drawButton(GuiGraphics graphics, Font font, Component label, int x, int y, int width, int height,
-                           boolean live, boolean hover) {
+    static void fillButton(GuiGraphics graphics, int x, int y, int width, int height, boolean live, boolean hover) {
         graphics.fill(x, y, x + width, y + height, getButtonFill(live, hover));
+    }
+
+    static void drawButtonLabel(GuiGraphics graphics, Font font, Component label, int x, int y, int width, int height,
+                                boolean live) {
         drawCentered(graphics, font, label, x, y, width, height, live ? ModPalette.TEXT : ModPalette.BUTTON_IDLE);
     }
 
@@ -62,8 +66,12 @@ final class Widgets {
                 colour, false);
     }
 
-    static void drawBack(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY) {
-        drawButton(graphics, font, BACK, x, y, BACK_W, BACK_H, true, isOverBack(mouseX, mouseY, x, y));
+    static void fillBack(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+        fillButton(graphics, x, y, BACK_W, BACK_H, true, isOverBack(mouseX, mouseY, x, y));
+    }
+
+    static void drawBackLabel(GuiGraphics graphics, Font font, int x, int y) {
+        drawButtonLabel(graphics, font, BACK, x, y, BACK_W, BACK_H, true);
     }
 
     static boolean isOverBack(double mouseX, double mouseY, int x, int y) {

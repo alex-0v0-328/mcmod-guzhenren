@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
+import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -15,6 +16,9 @@ import org.jetbrains.annotations.Nullable;
  * The secondary-path [副流派] picker the B panel opens over itself: a grid of every path plus "none",
  * centred on the panel. A click on a cell sends {@link SetSecondaryPathPayload} for the aperture it was
  * opened for; a click anywhere else, Esc or B closes it without a choice.
+ *
+ * <p>It draws in one {@link GuiBatch}. The hovered cell's fill stays in the cell loop rather than before every
+ * name: a long English name ("Transformation Path") runs into the next cell, whose hover fill is drawn over it.
  *
  * @author Alex
  * @version 1.0.0
@@ -47,21 +51,23 @@ final class PathPicker {
         int w = width();
         int h = height();
 
-        Widgets.drawPanel(graphics, x0, y0, w, h, ModPalette.MODAL_FILL);
-        graphics.drawString(font, Component.translatable("guzhenren.screen.pick.title"),
-                x0 + PAD, y0 + (PlayerInfoScreen.HEADER_H - font.lineHeight) / 2, accent, false);
-        graphics.fill(x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD, y0 + PlayerInfoScreen.HEADER_H + 1,
-                PlayerInfoScreen.DIVIDER);
+        GuiBatch.draw(graphics, () -> {
+            Widgets.drawPanel(graphics, x0, y0, w, h, ModPalette.MODAL_FILL);
+            graphics.fill(x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD,
+                    y0 + PlayerInfoScreen.HEADER_H + 1, PlayerInfoScreen.DIVIDER);
+            graphics.drawString(font, Component.translatable("guzhenren.screen.pick.title"),
+                    x0 + PAD, y0 + (PlayerInfoScreen.HEADER_H - font.lineHeight) / 2, accent, false);
 
-        for (int i = 0; i < count(); i++) {
-            int cx = x0 + PAD + (i % COLS) * CELL_W;
-            int cy = y0 + PAD + PlayerInfoScreen.HEADER_H + (i / COLS) * CELL_H;
-            if (Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) {
-                graphics.fill(cx, cy, cx + CELL_W, cy + CELL_H, PlayerInfoScreen.ROW_HOVER);
+            for (int i = 0; i < count(); i++) {
+                int cx = x0 + PAD + (i % COLS) * CELL_W;
+                int cy = y0 + PAD + PlayerInfoScreen.HEADER_H + (i / COLS) * CELL_H;
+                if (Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) {
+                    graphics.fill(cx, cy, cx + CELL_W, cy + CELL_H, PlayerInfoScreen.ROW_HOVER);
+                }
+                graphics.drawString(font, ModDisplayText.path(path(i)), cx + 3,
+                        cy + (CELL_H - font.lineHeight) / 2, ModPalette.TEXT, false);
             }
-            graphics.drawString(font, ModDisplayText.path(path(i)), cx + 3,
-                    cy + (CELL_H - font.lineHeight) / 2, ModPalette.TEXT, false);
-        }
+        });
     }
 
     void click(double mouseX, double mouseY, int panelLeft, int panelTop, int panelW, int panelH) {

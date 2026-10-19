@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
  * button in three states, the phase bar, the stone slot, and the recipe picker modal. Ghosts for
  * missing ingredients ({@link RecipeGhosts}) and the pool readings ({@link PoolBars}) are drawn from
  * {@code renderLabels} so the carried item paints last; the buttons and cells are the package's {@link Widgets}, the
- * whole background in one {@link GuiBatch}. The recipe table the screen and its picker read is {@link KnownRecipes},
+ * whole background in one {@link GuiBatch} and the three buttons in another, every fill and outline before any
+ * label (each label fits inside its outline). The recipe table the screen and its picker read is {@link KnownRecipes},
  * sorted once rather than per frame. The picker modal translates Z to 500 to stay above slot items. In
  * {@link #mouseClicked(double, double, int)}, the open picker swallows every click; only the left button acts on it.
  *
@@ -181,9 +182,14 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        renderCraft(graphics, mouseX, mouseY);
-        renderRecipe(graphics, mouseX, mouseY);
-        Widgets.drawBack(graphics, font, backX(), backY(), mouseX, mouseY);
+        GuiBatch.draw(graphics, () -> {
+            fillCraft(graphics, mouseX, mouseY);
+            fillRecipe(graphics, mouseX, mouseY);
+            Widgets.fillBack(graphics, backX(), backY(), mouseX, mouseY);
+            drawCraftLabel(graphics);
+            drawRecipeLabel(graphics);
+            Widgets.drawBackLabel(graphics, font, backX(), backY());
+        });
         if (picker.isOpen()) {
             picker.render(graphics, font, KnownRecipes.get(), menu.selected(), leftPos, topPos, imageWidth,
                     imageHeight, mouseX, mouseY);
@@ -198,21 +204,27 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     //region the 炼制 button -- three states off the ritual, and 停止 while it runs
-    private void renderCraft(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void fillCraft(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = craftX();
         int y = craftY();
         boolean stopping = menu.running();
-        boolean live = stopping || (clickable() && menu.affords());
+        boolean live = craftLive();
         boolean shortOfEssence = !stopping && clickable() && !menu.affords();
         boolean hover = live && inCraft(mouseX, mouseY);
 
-        Component label = Component.translatable(stopping ? STOP_KEY : CRAFT_KEY);
-        Widgets.drawButton(graphics, font, label, x, y, CRAFT_W, CRAFT_H, live, hover);
+        Widgets.fillButton(graphics, x, y, CRAFT_W, CRAFT_H, live, hover);
         if (live || shortOfEssence) {
             graphics.renderOutline(x, y, CRAFT_W, CRAFT_H,
                     stopping ? ModPalette.SHORT : live ? ModPalette.REFINEMENT : ModPalette.SHORT_OUTLINE);
         }
     }
+
+    private void drawCraftLabel(GuiGraphics graphics) {
+        Component label = Component.translatable(menu.running() ? STOP_KEY : CRAFT_KEY);
+        Widgets.drawButtonLabel(graphics, font, label, craftX(), craftY(), CRAFT_W, CRAFT_H, craftLive());
+    }
+
+    private boolean craftLive() { return menu.running() || (clickable() && menu.affords()); }
 
     private boolean clickable() { return menu.ready() && !menu.running(); }
 
@@ -226,14 +238,19 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //endregion
 
     //region the 蛊方 button -- dead while the ritual runs, because the grid is locked anyway
-    private void renderRecipe(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void fillRecipe(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = recipeX();
         int y = recipeY();
         boolean live = !menu.running();
         boolean hover = live && inRecipe(mouseX, mouseY);
 
-        Widgets.drawButton(graphics, font, Component.translatable(RECIPE_KEY), x, y, RECIPE_W, RECIPE_H, live, hover);
+        Widgets.fillButton(graphics, x, y, RECIPE_W, RECIPE_H, live, hover);
         if (live) graphics.renderOutline(x, y, RECIPE_W, RECIPE_H, ModPalette.REFINEMENT);
+    }
+
+    private void drawRecipeLabel(GuiGraphics graphics) {
+        Widgets.drawButtonLabel(graphics, font, Component.translatable(RECIPE_KEY), recipeX(), recipeY(), RECIPE_W,
+                RECIPE_H, !menu.running());
     }
 
     private int recipeX() { return leftPos + RECIPE_X; }

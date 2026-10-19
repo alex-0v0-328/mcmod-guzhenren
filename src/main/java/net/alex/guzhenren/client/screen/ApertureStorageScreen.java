@@ -16,7 +16,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>Extends {@link net.minecraft.client.gui.screens.inventory.AbstractContainerScreen} for
  * {@link ApertureStorageMenu}. Draws 54 slots per page, prev/next pager
  * buttons, and the Vital Gu [本命蛊] slot past the right edge of the panel. A back button ({@code <-})
- * closes the container first, then opens the B panel. All drawing is {@code g.fill}, no textures.
+ * closes the container first, then opens the B panel. All drawing is {@code g.fill}, no textures; the
+ * background and the pager are one {@link GuiBatch} each, fills before text.
  *
  * @author Alex
  * @version 1.0.0
@@ -96,23 +97,33 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     }
 
     private void renderPager(GuiGraphics graphics, int mouseX, int mouseY) {
-        Widgets.drawBack(graphics, font, backX(), pagerY(), mouseX, mouseY);
-        renderPageButton(graphics, mouseX, mouseY, prevX(), menu.getPageIndex() > 0, PREV);
-        renderPageButton(graphics, mouseX, mouseY, nextX(), menu.getPageIndex() + 1 < menu.getPageCount(), NEXT);
+        boolean prevLive = menu.getPageIndex() > 0;
+        boolean nextLive = menu.getPageIndex() + 1 < menu.getPageCount();
+        GuiBatch.draw(graphics, () -> {
+            Widgets.fillBack(graphics, backX(), pagerY(), mouseX, mouseY);
+            fillPageButton(graphics, mouseX, mouseY, prevX(), prevLive);
+            fillPageButton(graphics, mouseX, mouseY, nextX(), nextLive);
 
-        Component page = Component.literal((menu.getPageIndex() + 1) + " / " + menu.getPageCount());
-        Widgets.drawCentered(graphics, font, page, labelX(), pagerBottomY(), PAGE_LABEL_W, PAGE_BUTTON_H,
-                ModPalette.TEXT);
+            Widgets.drawBackLabel(graphics, font, backX(), pagerY());
+            drawPageGlyph(graphics, prevX(), prevLive, PREV);
+            drawPageGlyph(graphics, nextX(), nextLive, NEXT);
+            Component page = Component.literal((menu.getPageIndex() + 1) + " / " + menu.getPageCount());
+            Widgets.drawCentered(graphics, font, page, labelX(), pagerBottomY(), PAGE_LABEL_W, PAGE_BUTTON_H,
+                    ModPalette.TEXT);
 
-        Component load = Component.translatable(LOAD_KEY, menu.getLoad(), ApertureStorageService.MAX_LOAD);
-        graphics.drawString(font, load, leftPos + imageWidth - font.width(load), pagerBottomY() + 1,
-                ModPalette.APERTURE, false);
+            Component load = Component.translatable(LOAD_KEY, menu.getLoad(), ApertureStorageService.MAX_LOAD);
+            graphics.drawString(font, load, leftPos + imageWidth - font.width(load), pagerBottomY() + 1,
+                    ModPalette.APERTURE, false);
+        });
     }
 
-    private void renderPageButton(GuiGraphics graphics, int mouseX, int mouseY, int x, boolean live,
-                                  Component glyph) {
+    private void fillPageButton(GuiGraphics graphics, int mouseX, int mouseY, int x, boolean live) {
         boolean hover = live && inPageButton(mouseX, mouseY, x);
-        Widgets.drawButton(graphics, font, glyph, x, pagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live, hover);
+        Widgets.fillButton(graphics, x, pagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live, hover);
+    }
+
+    private void drawPageGlyph(GuiGraphics graphics, int x, boolean live, Component glyph) {
+        Widgets.drawButtonLabel(graphics, font, glyph, x, pagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live);
     }
 
     private int pagerY() { return topPos + 3; }

@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.refinement.GuRecipe;
 import net.alex.guzhenren.refinement.RefinementMenu;
@@ -21,6 +22,10 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  * <p>{@link #click} returns the menu button the chosen row stands for -- clear for "automatic", or the
  * recipe's index past {@code BUTTON_RECIPE_BASE} -- and the screen sends it. ⚠ It is drawn {@link #Z} out so
  * it clears the item layers below it.
+ *
+ * <p>It draws in one {@link GuiBatch}, in three passes that keep each row's own order: every fill, then every
+ * result icon (an item flushes on its own), then every text. Rows never overlap, so only the order within a row
+ * shows. The hover tooltip draws after the batch: a tooltip runs a batch of its own, and batches never nest.
  *
  * @author Alex
  * @version 1.0.0
@@ -98,31 +103,46 @@ final class RecipePicker {
 
         int x0 = left(panelLeft, panelW);
         int y0 = top(panelTop, panelH, visible);
-        int h = height(visible);
+        int hovered = hoveredRow(x0, y0, visible, mouseX, mouseY);
 
-        Widgets.drawPanel(graphics, x0, y0, W, h, ModPalette.MODAL_FILL);
-        graphics.drawString(font, Component.translatable(TITLE_KEY), x0 + PAD,
-                y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
-        graphics.fill(x0 + PAD, y0 + HEADER_H, x0 + W - PAD, y0 + HEADER_H + 1, ModPalette.BORDER);
-
-        int hovered = -1;
-        for (int i = 0; i < visible; i++) {
-            int row = scroll + i;
-            int rowY = rowY(y0, i);
-            if (Widgets.isOver(mouseX, mouseY, x0, rowY, W, ROW_H)) {
-                graphics.fill(x0 + 1, rowY, x0 + W - 1, rowY + ROW_H, ModPalette.BUTTON_IDLE);
-                hovered = row;
-            }
-            if (row - 1 == selected) graphics.renderOutline(x0 + 1, rowY, W - 2, ROW_H, ModPalette.REFINEMENT);
-            drawRow(graphics, font, known, row, x0, rowY);
-        }
+        GuiBatch.draw(graphics, () -> {
+            fillFrame(graphics, selected, hovered, x0, y0, visible);
+            for (int i = 0; i < visible; i++) drawIcon(graphics, known, scroll + i, x0, rowY(y0, i));
+            graphics.drawString(font, Component.translatable(TITLE_KEY), x0 + PAD,
+                    y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
+            for (int i = 0; i < visible; i++) drawText(graphics, font, known, scroll + i, x0, rowY(y0, i));
+        });
         if (hovered >= 1) {
             graphics.renderComponentTooltip(font, details(known.get(hovered - 1).value()), mouseX, mouseY);
         }
     }
 
-    private static void drawRow(GuiGraphics graphics, Font font, List<RecipeHolder<GuRecipe>> known, int row, int x0,
-                                int y) {
+    private int hoveredRow(int x0, int y0, int visible, int mouseX, int mouseY) {
+        for (int i = 0; i < visible; i++) {
+            if (Widgets.isOver(mouseX, mouseY, x0, rowY(y0, i), W, ROW_H)) return scroll + i;
+        }
+        return -1;
+    }
+
+    private void fillFrame(GuiGraphics graphics, int selected, int hovered, int x0, int y0, int visible) {
+        Widgets.drawPanel(graphics, x0, y0, W, height(visible), ModPalette.MODAL_FILL);
+        graphics.fill(x0 + PAD, y0 + HEADER_H, x0 + W - PAD, y0 + HEADER_H + 1, ModPalette.BORDER);
+        for (int i = 0; i < visible; i++) {
+            int row = scroll + i;
+            int rowY = rowY(y0, i);
+            if (row == hovered) graphics.fill(x0 + 1, rowY, x0 + W - 1, rowY + ROW_H, ModPalette.BUTTON_IDLE);
+            if (row - 1 == selected) graphics.renderOutline(x0 + 1, rowY, W - 2, ROW_H, ModPalette.REFINEMENT);
+        }
+    }
+
+    private static void drawIcon(GuiGraphics graphics, List<RecipeHolder<GuRecipe>> known, int row, int x0, int y) {
+        if (row == 0) return;
+        ItemStack icon = RecipeGhosts.getResult(known.get(row - 1).value());
+        graphics.renderFakeItem(icon, x0 + PAD, y + (ROW_H - Widgets.CELL) / 2);
+    }
+
+    private static void drawText(GuiGraphics graphics, Font font, List<RecipeHolder<GuRecipe>> known, int row, int x0,
+                                 int y) {
         int textY = y + (ROW_H - font.lineHeight) / 2;
         if (row == 0) {
             Component auto = Component.translatable(known.isEmpty() ? EMPTY_KEY : AUTO_KEY);
@@ -130,10 +150,8 @@ final class RecipePicker {
             return;
         }
         GuRecipe recipe = known.get(row - 1).value();
-        ItemStack icon = RecipeGhosts.getResult(recipe);
-        graphics.renderFakeItem(icon, x0 + PAD, y + (ROW_H - Widgets.CELL) / 2);
-        graphics.drawString(font, icon.getHoverName(), x0 + PAD + Widgets.CELL + 4, textY, ModPalette.TEXT,
-                false);
+        graphics.drawString(font, RecipeGhosts.getResult(recipe).getHoverName(), x0 + PAD + Widgets.CELL + 4, textY,
+                ModPalette.TEXT, false);
 
         Component rate = Component.translatable(CHANCE_KEY, recipe.baseSuccess());
         graphics.drawString(font, rate, x0 + W - PAD - font.width(rate), textY, ModPalette.LEGEND_TEXT, false);

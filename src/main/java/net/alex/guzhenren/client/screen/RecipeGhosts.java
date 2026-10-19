@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
+import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.refinement.GuRecipe;
 import net.alex.guzhenren.refinement.GuRecipeInput;
 import net.alex.guzhenren.refinement.RefinementMenu;
@@ -19,6 +20,9 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  * <p>⚠ {@link #draw} runs from the screen's {@code renderLabels}: coordinates are panel-relative, and the carried
  * item still paints over the ghosts. A cell that already holds anything gets no ghost.
  *
+ * <p>The ghosts draw in one {@link GuiBatch}, in three passes -- every faded item, every overlay, every count --
+ * which keeps each cell's own order; the grid's cells sit 22 apart and never overlap, so only that order shows.
+ *
  * @author Alex
  * @version 1.0.0
  * @see RefinementScreen
@@ -34,14 +38,19 @@ final class RecipeGhosts {
 
     static void draw(GuiGraphics graphics, Font font, GuRecipe recipe, GuRecipeInput grid) {
         int[] missing = recipe.shortfall(grid);
+        ItemStack[] shown = new ItemStack[missing.length];
+        boolean any = false;
         for (int n = 0; n < missing.length; n++) {
             int slot = recipe.slots().get(n);
             if (missing[n] <= 0 || slot < 0 || slot >= grid.size()) continue;
             if (!grid.getItem(slot).isEmpty()) continue;
 
-            ItemStack shown = getOption(recipe.ingredients().get(n));
-            if (!shown.isEmpty()) drawGhost(graphics, font, shown, missing[n], slot);
+            ItemStack option = getOption(recipe.ingredients().get(n));
+            if (option.isEmpty()) continue;
+            shown[n] = option;
+            any = true;
         }
+        if (any) GuiBatch.draw(graphics, () -> drawGhosts(graphics, font, recipe, shown, missing));
     }
 
     static ItemStack getOption(SizedIngredient need) {
@@ -54,15 +63,27 @@ final class RecipeGhosts {
         return recipe.results().isEmpty() ? ItemStack.EMPTY : recipe.results().getFirst();
     }
 
-    private static void drawGhost(GuiGraphics graphics, Font font, ItemStack shown, int count, int slot) {
-        int x = getSlotX(slot);
-        int y = getSlotY(slot);
-
+    private static void drawGhosts(GuiGraphics graphics, Font font, GuRecipe recipe, ItemStack[] shown,
+                                   int[] missing) {
         graphics.setColor(1.0F, 1.0F, 1.0F, ALPHA);
-        graphics.renderFakeItem(shown, x, y);
+        for (int n = 0; n < shown.length; n++) {
+            if (shown[n] == null) continue;
+            int slot = recipe.slots().get(n);
+            graphics.renderFakeItem(shown[n], getSlotX(slot), getSlotY(slot));
+        }
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        graphics.fill(RenderType.guiGhostRecipeOverlay(), x, y, x + Widgets.CELL, y + Widgets.CELL, OVERLAY);
-        graphics.renderItemDecorations(font, shown, x, y, count > 1 ? String.valueOf(count) : null);
+        for (int n = 0; n < shown.length; n++) {
+            if (shown[n] == null) continue;
+            int x = getSlotX(recipe.slots().get(n));
+            int y = getSlotY(recipe.slots().get(n));
+            graphics.fill(RenderType.guiGhostRecipeOverlay(), x, y, x + Widgets.CELL, y + Widgets.CELL, OVERLAY);
+        }
+        for (int n = 0; n < shown.length; n++) {
+            if (shown[n] == null) continue;
+            int slot = recipe.slots().get(n);
+            graphics.renderItemDecorations(font, shown[n], getSlotX(slot), getSlotY(slot),
+                    missing[n] > 1 ? String.valueOf(missing[n]) : null);
+        }
     }
 
     private static int getSlotX(int slot) {
