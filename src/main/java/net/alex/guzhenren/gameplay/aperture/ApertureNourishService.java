@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Nourishing the Aperture [温养空窍] and striking its wall [冲刷窍壁] -- the only way a rank rises.
@@ -20,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * LOWEST}, or a "二转巅峰" squares the essence cap. ⚠ The strike zeroes progress win or lose; charge
  * BEFORE rolling. ⚠ A hastened clock bills MORE seconds per heartbeat ({@link #tickNourish}, {@code
  * steps}), never a bigger second -- scaling the progress and the price instead would round the
- * round's length off the pool it is defined to cost.
+ * round's length off the pool it is defined to cost. A billed second writes the target aperture once:
+ * {@code pay} leaves it unwritten ({@link ApertureEssenceService#consumeDeferred}) and the progress lands
+ * with the essence it cost.
  *
  * <p>{@link #IMPACT_COST_PER_RANK_BASE}: one strike costs one and a half of a Ten-Extremes peak pool,
  * so no pool can ever hold it. {@link #CONVERTED_PRESSURE} is where the pressure gauge lands after a
@@ -166,11 +169,12 @@ public final class ApertureNourishService {
                 || isAtCeiling(player, target)) { cancel(player); return false; }
 
         player.setDeltaMovement(Vec3.ZERO);
-        if (!pay(player, getCostPerSecond(player, target))) {
+        Aperture paid = pay(player, getCostPerSecond(player, target), target);
+        if (paid == null) {
             starve(player, data);
             return false;
         }
-        return advanceProgress(player, data, target);
+        return advanceProgress(player, data, target, paid);
     }
 
     private static void starve(ServerPlayer player, ApertureNourishData data) {
@@ -184,8 +188,8 @@ public final class ApertureNourishService {
         store(player, starving);
     }
 
-    private static boolean advanceProgress(ServerPlayer player, ApertureNourishData data, int target) {
-        Aperture aperture = ApertureService.getAperture(player, target);
+    private static boolean advanceProgress(ServerPlayer player, ApertureNourishData data, int target,
+                                           Aperture aperture) {
         Aperture fed = aperture.withNourishProgress(aperture.nourishProgress() + PERCENT_PER_SECOND);
         if (fed.nourishProgress() < ApertureNourishData.FULL) {
             ApertureService.set(player, target, fed);
@@ -208,10 +212,10 @@ public final class ApertureNourishService {
         return false;
     }
 
-    private static boolean pay(ServerPlayer player, long cost) {
-        if (player.hasInfiniteMaterials()) return true;
+    private static @Nullable Aperture pay(ServerPlayer player, long cost, int target) {
+        if (player.hasInfiniteMaterials()) return ApertureService.getAperture(player, target);
         stones.topUp().accept(player);
-        return ApertureEssenceService.consume(player, cost);
+        return ApertureEssenceService.consumeDeferred(player, cost, target);
     }
     //endregion
 

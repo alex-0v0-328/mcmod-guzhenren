@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Essence [真元]: pools, distilled reserves, regen, and the Liquor Worm's [酒虫] phases. Spending
@@ -24,6 +25,11 @@ import org.jetbrains.annotations.NotNull;
  * SKIPS a regen step (choke, DEAD [死窍]) must zero that carry; {@code isChoked} outranks everything.
  * {@link #cascadeTake} is the pure seam the unit tests pin for that cascade. {@link #closeDistilling}
  * is the heartbeat's step that settles a distilling whose Liquor Worm effect ended early.
+ *
+ * <p>{@code consume} writes each aperture it draws from once, distilled and pool together.
+ * {@link #consumeDeferred} pays the same cascade but leaves aperture {@code index} unwritten and returns it as
+ * the payment leaves it ({@code null} when the pools cannot pay), so a caller that changes that aperture too
+ * lands both in one synced write.
  *
  * @author Alex
  * @version 1.0.0
@@ -170,10 +176,28 @@ public final class ApertureEssenceService {
         ApertureData data = ApertureService.get(player);
         long[][] plan = cascadeTake(amount, data.apertures());
         for (int i = 0; i < plan.length; i++) {
-            if (plan[i][0] > 0L) setDistilled(player, i, data.get(i).distilledEssence() - plan[i][0]);
-            if (plan[i][1] > 0L) set(player, i, data.get(i).currentEssence() - plan[i][1]);
+            if (plan[i][0] > 0L || plan[i][1] > 0L) ApertureService.set(player, i, taken(data.get(i), plan[i]));
         }
         return true;
+    }
+
+    public static @Nullable Aperture consumeDeferred(@NotNull ServerPlayer player, long amount, int index) {
+        ApertureData data = ApertureService.get(player);
+        if (amount <= 0L) return data.get(index);
+        if (spendable(player) < amount) return null;
+
+        long[][] plan = cascadeTake(amount, data.apertures());
+        for (int i = 0; i < plan.length; i++) {
+            if (i != index && (plan[i][0] > 0L || plan[i][1] > 0L)) {
+                ApertureService.set(player, i, taken(data.get(i), plan[i]));
+            }
+        }
+        return index < plan.length ? taken(data.get(index), plan[index]) : data.get(index);
+    }
+
+    private static Aperture taken(Aperture aperture, long[] take) {
+        return aperture.withDistilledEssence(aperture.distilledEssence() - take[0])
+                .withCurrentEssence(aperture.currentEssence() - take[1]);
     }
 
     public static long[][] cascadeTake(long amount, @NotNull List<Aperture> apertures) {
