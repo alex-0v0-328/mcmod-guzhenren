@@ -161,9 +161,8 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     //region channeling [灌注] -- Human Jun [人力钧力流] and the boars
     private static final int CHANNEL_MAX_TICKS = 72_000;
-    private static final int GU_PACED_STEP_TICKS = 1;
-    private static final int POOL_PACED_STEP_TICKS = 5;
-    private static final int POOL_PACED_STEPS = Ticks.SECOND / POOL_PACED_STEP_TICKS;
+    private static final int STEP_TICKS = 5;
+    private static final int STEPS_PER_SECOND = Ticks.SECOND / STEP_TICKS;
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack,
@@ -171,7 +170,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         if (!(entity instanceof ServerPlayer player)) return;
 
         int elapsed = CHANNEL_MAX_TICKS - remaining;
-        if (elapsed < 0 || elapsed % stepTicks(player) != 0) return;
+        if (elapsed < 0 || elapsed % STEP_TICKS != 0) return;
 
         if (!refined(stack)) {
             refineTick(player, stack, elapsed);
@@ -203,10 +202,6 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private boolean guPaced(Player player) { return rankGap(player) > 0; }
 
-    private int stepTicks(Player player) {
-        return guPaced(player) ? GU_PACED_STEP_TICKS : POOL_PACED_STEP_TICKS;
-    }
-
     private int stepAmount(ServerPlayer player, ItemStack stack, int elapsed) {
         long pool = ApertureEssenceService.spendable(player);
         if (pool < ESSENCE_FLOOR) return 0;
@@ -220,7 +215,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private long mostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
         if (guPaced(player)) {
-            return Math.min(pool, TimeFlow.scale(player, clock.essencePerHungerPoint()));
+            return Math.min(pool, TimeFlow.scale(player, (long) clock.essencePerHungerPoint() * STEP_TICKS));
         }
         return poolPacedStep(player, pool, elapsed);
     }
@@ -232,8 +227,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     private static long poolPacedStep(ServerPlayer player, long pool, int elapsed) {
-        int stepIndex = (elapsed % Ticks.SECOND) / POOL_PACED_STEP_TICKS;
-        return Math.min(pool, TimeFlow.scale(player, pool / (POOL_PACED_STEPS + 1 - stepIndex)));
+        int stepIndex = (elapsed % Ticks.SECOND) / STEP_TICKS;
+        return Math.min(pool, TimeFlow.scale(player, pool / (STEPS_PER_SECOND + 1 - stepIndex)));
     }
 
     private void pour(ServerPlayer player, ItemStack stack, int amount) {
