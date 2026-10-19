@@ -21,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * DAYS for the three Gu-hunger walks and nothing else; {@link #tickLifespan} keeps
  * {@code lastBilledTick} and bills lifespan every heartbeat instead of once a day. Lifespan bills online time
  * only: {@link #skipOfflineLifespan} un-anchors the bill on login, so the first heartbeat re-anchors and bills
- * nothing for the time away, while the day clock still counts the days away for the Gu-hunger walks.
+ * nothing for the time away, while the day clock still counts the days away for the Gu-hunger walks. The
+ * per-heartbeat bill writes the synced BODY once a second per player; that small packet is the accepted price of
+ * exact Time Path [宙道] scaling and an on-time exhaustion check, so the bill is not batched.
  *
  * <p>⚠ {@code tickAging}'s returned day count can far exceed one and drives three day-clock walks --
  * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link TimeFlow#scale}
