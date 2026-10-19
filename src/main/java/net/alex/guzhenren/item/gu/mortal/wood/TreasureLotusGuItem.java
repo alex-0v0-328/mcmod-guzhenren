@@ -109,16 +109,8 @@ public class TreasureLotusGuItem extends TendedGuItem {
             left -= storeInElder(inventory.getItem(slot), left);
         }
         for (int aperture = 0; aperture < ApertureData.MAX_APERTURES && left > 0; aperture++) {
-            List<ItemStack> storedItems = new ArrayList<>(ApertureStorageService.getItems(player, aperture));
             ItemStack vital = ApertureStorageService.getVital(player, aperture);
-            boolean storedChanged = false;
-            for (ItemStack stored : storedItems) {
-                if (left <= 0) break;
-                int moved = storeInElder(stored, left);
-                storedChanged |= moved > 0;
-                left -= moved;
-            }
-            if (storedChanged) ApertureStorageService.set(player, aperture, storedItems);
+            left = fillStoredElders(player, aperture, left);
             boolean vitalChanged = false;
             if (left > 0) {
                 int moved = storeInElder(vital, left);
@@ -127,6 +119,22 @@ public class TreasureLotusGuItem extends TendedGuItem {
             }
             if (vitalChanged) ApertureStorageService.setVital(player, aperture, vital);
         }
+        return left;
+    }
+
+    private int fillStoredElders(ServerPlayer player, int aperture, int amount) {
+        if (ApertureStorageService.getView(player, aperture).stream()
+                .noneMatch(stored -> stored.getItem() instanceof PrimevalElderGuItem)) return amount;
+        int left = amount;
+        List<ItemStack> storedItems = new ArrayList<>(ApertureStorageService.getItems(player, aperture));
+        boolean storedChanged = false;
+        for (ItemStack stored : storedItems) {
+            if (left <= 0) break;
+            int moved = storeInElder(stored, left);
+            storedChanged |= moved > 0;
+            left -= moved;
+        }
+        if (storedChanged) ApertureStorageService.set(player, aperture, storedItems);
         return left;
     }
 

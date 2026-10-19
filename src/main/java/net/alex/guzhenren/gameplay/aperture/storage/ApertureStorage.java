@@ -2,9 +2,11 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.RandomAccess;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -20,6 +22,11 @@ import net.minecraft.world.item.ItemStack;
  * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
  * ⚠ {@link #view} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
  * before changing it.
+ *
+ * <p>A record owns its stacks. Lists from outside are deep-copied on construction, while {@link #with},
+ * {@link #withPage}, {@link #withVital} and {@link #shiftRight} hand the next record the stacks this one already
+ * holds (the private {@code OwnedStacks}) and copy only a stack that is new at its position, so writing one changed
+ * slot back costs one copy instead of the whole store.
  *
  * <p>{@link #shiftRight} makes room for a first aperture inserted ahead of a lone second one: every
  * stored list and the Vital Gu slot moves one position up. The Vital Gu that moves is the second
@@ -51,17 +58,16 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
     public ApertureStorage {
         List<List<ItemStack>> kept = new ArrayList<>();
         for (int i = 0; i < Math.min(byAperture.size(), ApertureData.MAX_APERTURES); i++) {
-            List<ItemStack> items = copyStacks(byAperture.get(i));
+            List<ItemStack> items = own(byAperture.get(i), Integer.MAX_VALUE);
             while (!items.isEmpty() && items.getLast().isEmpty()) items.removeLast();
-            kept.add(Collections.unmodifiableList(items));
+            kept.add(new OwnedStacks(items));
         }
         while (!kept.isEmpty() && kept.getLast().isEmpty()) kept.removeLast();
         byAperture = Collections.unmodifiableList(kept);
 
-        List<ItemStack> bound = copyStacks(
-                vital.subList(0, Math.min(vital.size(), ApertureData.MAX_APERTURES)));
+        List<ItemStack> bound = own(vital, ApertureData.MAX_APERTURES);
         while (!bound.isEmpty() && bound.getLast().isEmpty()) bound.removeLast();
-        vital = Collections.unmodifiableList(bound);
+        vital = new OwnedStacks(bound);
         tokens = List.copyOf(tokens.subList(0, Math.min(tokens.size(), ApertureData.MAX_APERTURES)));
     }
 
@@ -117,7 +123,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
         List<List<ItemStack>> next = new ArrayList<>(byAperture);
         while (next.size() <= aperture) next.add(List.of());
-        next.set(aperture, items);
+        next.set(aperture, keepOwned(view(aperture), items));
         return new ApertureStorage(next, vital, tokens);
     }
 
@@ -129,7 +135,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> all = new ArrayList<>(next.get(aperture));
         while (all.size() < from + page.size()) all.add(ItemStack.EMPTY);
         for (int i = 0; i < page.size(); i++) all.set(from + i, page.get(i));
-        next.set(aperture, all);
+        next.set(aperture, keepOwned(view(aperture), all));
         return new ApertureStorage(next, vital, tokens);
     }
 
@@ -139,7 +145,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> next = new ArrayList<>(vital);
         while (next.size() <= aperture) next.add(ItemStack.EMPTY);
         next.set(aperture, stack);
-        return new ApertureStorage(byAperture, next, tokens);
+        return new ApertureStorage(byAperture, keepOwned(vital, next), tokens);
     }
 
     public ApertureStorage shiftRight() {
@@ -152,7 +158,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> bound = new ArrayList<>();
         bound.add(ItemStack.EMPTY);
         for (ItemStack stack : vital) bound.add(rebound(stack));
-        return new ApertureStorage(items, bound, tokens);
+        return new ApertureStorage(items, new OwnedStacks(bound), tokens);
     }
 
     private static ItemStack rebound(ItemStack stack) {
@@ -178,5 +184,33 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> copies = new ArrayList<>(stacks.size());
         for (ItemStack stack : stacks) copies.add(stack.copy());
         return copies;
+    }
+
+    private static List<ItemStack> own(List<ItemStack> stacks, int limit) {
+        List<ItemStack> head = stacks.size() > limit ? stacks.subList(0, limit) : stacks;
+        if (stacks instanceof OwnedStacks) return new ArrayList<>(head);
+        return copyStacks(head);
+    }
+
+    private static OwnedStacks keepOwned(List<ItemStack> owned, List<ItemStack> incoming) {
+        List<ItemStack> stacks = new ArrayList<>(incoming.size());
+        for (int i = 0; i < incoming.size(); i++) {
+            ItemStack stack = incoming.get(i);
+            stacks.add(i < owned.size() && owned.get(i) == stack ? stack : stack.copy());
+        }
+        return new OwnedStacks(stacks);
+    }
+
+    private static final class OwnedStacks extends AbstractList<ItemStack> implements RandomAccess {
+
+        private final List<ItemStack> stacks;
+
+        private OwnedStacks(List<ItemStack> stacks) { this.stacks = stacks; }
+
+        @Override
+        public ItemStack get(int index) { return stacks.get(index); }
+
+        @Override
+        public int size() { return stacks.size(); }
     }
 }
