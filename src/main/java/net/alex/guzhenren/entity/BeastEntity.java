@@ -32,7 +32,9 @@ import software.bernie.geckolib.animation.RawAnimation;
  * {@link #huntsActively} says whether the beast seeks targets on its own or only retaliates;
  * {@link #pickDaytimeAmbient} picks the daytime ambient action, with relative weights;
  * {@link #cullExtraHeight} and {@link #cullHorizontalInflate} extend the render culling box so rearing poses
- * and tail sweeps are not clipped; {@link #heavyAttackAnimation} names the heavy attack's animation.
+ * and tail sweeps are not clipped, recomputed only when the body's bounding box is replaced;
+ * {@link #heavyAttackAnimation} names the heavy attack's animation. {@link #canSwipe} is the swipe's shared
+ * precondition: in reach, off cooldown and in sight.
  *
  * <p>{@link HuntGoal} is registered unconditionally: {@code registerGoals} runs inside the {@code Mob}
  * constructor, before subclass fields like the bear species are assigned, so the temperament check happens
@@ -49,6 +51,7 @@ import software.bernie.geckolib.animation.RawAnimation;
  * miss. In {@link HuntGoal#canUse}, any awake, non-combat pose notices prey -- including sitting, lying,
  * rolling and scratching; only actual sleep, the get-up transition and ongoing combat skip hunting. A
  * {@link StandStillGoal} holds navigation still while the beast sits, lies, sleeps, rolls or scratches.
+ * {@link HuntGoal} scans every ten ticks, staggered by entity id so neighboring beasts do not scan together.
  *
  * <p>Past 300 lines on purpose: the fourteen poses, their animations, the ambient chain and the beast-only
  * hunt goal belong to this layer.
@@ -75,6 +78,8 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     private static final List<Cooldown> COOLDOWNS = List.of(SWIPE, HEAVY);
 
     private long ambientEndGameTime = Long.MIN_VALUE;
+    private @Nullable AABB cullSource;
+    private AABB cullBox;
 
     protected BeastEntity(EntityType<? extends BeastEntity> type, Level level) {
         super(type, level);
@@ -288,8 +293,18 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
     @Override
     public @NotNull AABB getBoundingBoxForCulling() {
-        AABB box = super.getBoundingBoxForCulling().inflate(this.cullHorizontalInflate());
-        return box.setMaxY(box.maxY + this.cullExtraHeight());
+        AABB source = super.getBoundingBoxForCulling();
+        if (source != this.cullSource) {
+            AABB box = source.inflate(this.cullHorizontalInflate());
+            this.cullBox = box.setMaxY(box.maxY + this.cullExtraHeight());
+            this.cullSource = source;
+        }
+        return this.cullBox;
+    }
+
+    protected boolean canSwipe(LivingEntity target) {
+        return this.distanceTo(target) <= SWIPE_REACH && this.swipeCooldown() == 0
+                && this.getSensing().hasLineOfSight(target);
     }
 
     @Override
@@ -346,14 +361,15 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
         @Override
         public void tick() {
-            if (this.beast.tickCount % SCAN_INTERVAL_TICKS != 0) return;
+            if ((this.beast.tickCount + this.beast.getId()) % SCAN_INTERVAL_TICKS != 0) return;
             double range = this.beast.getAttributeValue(Attributes.FOLLOW_RANGE);
             AABB box = this.beast.getBoundingBox().inflate(range);
             LivingEntity best = null;
             double bestDistance = Double.MAX_VALUE;
             for (LivingEntity candidate : this.beast.level().getEntitiesOfClass(LivingEntity.class, box,
                     entity -> (entity instanceof Player || entity.getType().is(ModEntityTypeTags.PREDATOR_PREY))
-                            && this.beast.canAttackTarget(entity) && this.beast.hasLineOfSight(entity))) {
+                            && this.beast.canAttackTarget(entity)
+                            && this.beast.getSensing().hasLineOfSight(entity))) {
                 double distance = this.beast.distanceToSqr(candidate);
                 if (distance < bestDistance) {
                     bestDistance = distance;

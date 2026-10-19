@@ -103,8 +103,7 @@ public final class BearEntity extends BeastEntity {
 
     @Override
     protected void chooseAttack(LivingEntity target) {
-        if (this.distanceTo(target) > SWIPE_REACH || this.swipeCooldown() > 0
-                || !this.hasLineOfSight(target)) return;
+        if (!this.canSwipe(target)) return;
         if (this.heavyCooldown() == 0 && this.random.nextDouble() < REAR_CHANCE) {
             this.startAction(Action.ATTACK_HEAVY);
         } else {

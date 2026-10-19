@@ -48,7 +48,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * height above the feet, the standing ring's mid-body (max radius 1.1). {@link PunchBurst} plants
  * the same logic on the fixed ray described above. A player's bursts are dropped on logout and on a dimension
  * change ({@link #forget}): a dash burst measures travel from a position in one level, and carried into another it
- * would lay its rings along the line between the two.
+ * would lay its rings along the line between the two. The per-player tick returns at once while both maps
+ * are empty.
  *
  * <p>Future speed- or force-feel actions call the {@code dashCone}/{@code punchCone} entry points
  * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
@@ -91,6 +92,7 @@ public final class RingConeEmitter {
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (DASH_BURSTS.isEmpty() && PUNCH_BURSTS.isEmpty()) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (player.isRemoved() || player.isDeadOrDying()
                 || !(player.level() instanceof ServerLevel level)) {

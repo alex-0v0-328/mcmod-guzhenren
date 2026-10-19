@@ -147,11 +147,11 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
     @Override
     protected void chooseAttack(LivingEntity target) {
         double distance = this.distanceTo(target);
-        if (distance <= TOSS_REACH && this.tossCooldown() == 0 && this.hasLineOfSight(target)) {
-            this.beginAction(Action.ATTACK_TOSS, true);
+        if (distance <= TOSS_REACH && this.tossCooldown() == 0 && this.getSensing().hasLineOfSight(target)) {
+            this.startAction(Action.ATTACK_TOSS);
         } else if (distance >= CHARGE_MIN_DISTANCE && distance <= CHARGE_MAX_DISTANCE && this.chargeCooldown() == 0
                 && this.canStartLunge(target, CHARGE_SCAN_DISTANCE)) {
-            this.beginAction(Action.ATTACK_CHARGE, true);
+            this.startAction(Action.ATTACK_CHARGE);
         }
     }
 

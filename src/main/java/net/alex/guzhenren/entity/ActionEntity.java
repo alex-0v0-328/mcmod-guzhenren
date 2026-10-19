@@ -62,7 +62,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * cannot redirect an attack already in progress. {@link #hitSettled} marks the running attack's hit as
  * resolved, landed or missed. In {@link #validateTarget}, a target lost to range, sight or the rules ends a
  * running alert and an unsettled attack; a settled hit still plays its recovery pose, even when it killed
- * the target.
+ * the target. Sight checks go through the mob's sensing, which caches one answer per target per tick; only
+ * {@link #sweptHit} casts a fresh ray, because a charge moves the body before it tests. After a refusal
+ * {@link #canStartLunge} sweeps the lunge path again only after {@link #LUNGE_RECHECK_TICKS} ticks, and the
+ * cooldown map holds only running cooldowns, so an idle mob skips {@link #tickCooldowns} entirely.
  *
  * <p>{@link CombatGoal} pursues the target while idle and holds still otherwise. It re-paths on vanilla's melee
  * rhythm ({@code MeleeAttackGoal}): every 4 to 10 ticks while the target keeps moving, 5 or 10 more beyond 16 or 32
@@ -79,6 +82,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     public static final int ATTACK_RECOVERY_TICKS = 10;
     public static final int SIGHT_LOSS_TICKS = 5 * Ticks.SECOND;
+    private static final int LUNGE_RECHECK_TICKS = 5;
 
     private static final EntityDataAccessor<Byte> DATA_ACTION = SynchedEntityData.defineId(
             ActionEntity.class, EntityDataSerializers.BYTE);
@@ -96,6 +100,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     protected boolean hitSettled;
     private int lostSightTicks;
     private int recoveryTicks;
+    private long nextLungeCheckTime;
 
     protected ActionEntity(EntityType<? extends ActionEntity<A>> type, Level level) {
         super(type, level);
@@ -282,21 +287,26 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     private void tickCooldowns() {
-        for (Cooldown cooldown : this.cooldowns()) {
-            int ticks = this.cooldown(cooldown);
-            if (ticks > 0) this.cooldownTicks.put(cooldown, ticks - 1);
+        if (!this.cooldownTicks.isEmpty()) {
+            for (Cooldown cooldown : this.cooldowns()) {
+                int ticks = this.cooldown(cooldown);
+                if (ticks > 1) this.cooldownTicks.put(cooldown, ticks - 1);
+                else if (ticks == 1) this.cooldownTicks.removeInt(cooldown);
+            }
         }
         if (this.recoveryTicks > 0) this.recoveryTicks--;
     }
 
     private void setCooldown(Cooldown cooldown, int ticks) {
-        this.cooldownTicks.put(cooldown, Mth.clamp(ticks, 0, cooldown.maxTicks()));
+        int clamped = Mth.clamp(ticks, 0, cooldown.maxTicks());
+        if (clamped > 0) this.cooldownTicks.put(cooldown, clamped);
+        else this.cooldownTicks.removeInt(cooldown);
     }
 
     private void validateTarget() {
         LivingEntity target = this.getTarget();
         if (target != null && this.canAttackTarget(target)) {
-            if (this.hasLineOfSight(target)) {
+            if (this.getSensing().hasLineOfSight(target)) {
                 this.lostSightTicks = 0;
                 return;
             }
@@ -322,7 +332,16 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     protected boolean canStartLunge(LivingEntity target, double maxDistance) {
-        if (!this.canAttackTarget(target) || !this.onGround() || !this.hasLineOfSight(target)) return false;
+        long now = this.level().getGameTime();
+        if (now < this.nextLungeCheckTime) return false;
+        if (this.isLungePathClear(target, maxDistance)) return true;
+        this.nextLungeCheckTime = now + LUNGE_RECHECK_TICKS;
+        return false;
+    }
+
+    private boolean isLungePathClear(LivingEntity target, double maxDistance) {
+        if (!this.canAttackTarget(target) || !this.onGround()
+                || !this.getSensing().hasLineOfSight(target)) return false;
         Vec3 direction = this.directionTo(target);
         double distance = Math.min(maxDistance, this.distanceTo(target));
         for (double step = 0.3D; step <= distance; step += 0.3D) {
@@ -335,13 +354,13 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     protected boolean hasGroundAhead(Vec3 position) {
         double radius = this.getBbWidth() * 0.45D;
-        for (double x : new double[] { -radius, radius }) {
-            for (double z : new double[] { -radius, radius }) {
-                BlockPos below = BlockPos.containing(position.x + x, position.y - 0.15D, position.z + z);
-                if (!this.level().loadedAndEntityCanStandOn(below, this)) return false;
-            }
-        }
-        return true;
+        return this.canStandOn(position, -radius, -radius) && this.canStandOn(position, -radius, radius)
+                && this.canStandOn(position, radius, -radius) && this.canStandOn(position, radius, radius);
+    }
+
+    private boolean canStandOn(Vec3 position, double offsetX, double offsetZ) {
+        BlockPos below = BlockPos.containing(position.x + offsetX, position.y - 0.15D, position.z + offsetZ);
+        return this.level().loadedAndEntityCanStandOn(below, this);
     }
 
     /** The swept-body hit test for moving attacks: the body's path from {@code from} to {@code to} meets the target. */
@@ -359,7 +378,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         this.hitSettled = true;
         LivingEntity target = this.actionTarget;
         if (target == null || !this.canAttackTarget(target) || this.distanceTo(target) > reach
-                || !this.hasLineOfSight(target)) return;
+                || !this.getSensing().hasLineOfSight(target)) return;
         this.applyAttack(target, damage, horizontalStrength, upward, this.directionOrFacing(target));
     }
 

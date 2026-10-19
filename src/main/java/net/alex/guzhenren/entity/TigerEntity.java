@@ -117,7 +117,7 @@ public final class TigerEntity extends BeastEntity {
     @Override
     protected void chooseAttack(LivingEntity target) {
         double distance = this.distanceTo(target);
-        if (distance <= SWIPE_REACH && this.swipeCooldown() == 0 && this.hasLineOfSight(target)) {
+        if (this.canSwipe(target)) {
             this.startAction(Action.ATTACK_SWIPE);
         } else if (distance >= POUNCE_MIN_DISTANCE && distance <= POUNCE_MAX_DISTANCE
                 && this.heavyCooldown() == 0 && this.canStartLunge(target, POUNCE_MAX_DISTANCE)) {

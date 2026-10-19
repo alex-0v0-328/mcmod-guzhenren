@@ -24,9 +24,11 @@ import net.minecraft.world.phys.Vec3;
  * of the spot and a direct drive finishes the descent: {@link #tickLanding} settles for the spot rather than
  * on it, aiming just below the surface so the drive ends in a collision, which is what sets {@code onGround}
  * for a Gu that never falls; only touchdown starts the 160 to 200 tick rest with cleared motion and occasional
- * heading changes. {@link #canUse} lets the goal pick a rest back up directly for a Gu loaded mid-rest, which
- * carries no landing request, so it resumes a fresh rest without replaying its landing. Unsafe ground, a
- * stalled landing or a failed navigation target aborts through {@link RestingFlyingGuEntity#takeOff()} --
+ * heading changes. A landing whose navigation has ended short of the spot scans again at most every
+ * {@link #RETARGET_INTERVAL_TICKS} ticks. {@link #canUse} lets the goal pick a rest back up directly for a
+ * Gu loaded mid-rest, which carries no landing request, so it resumes a fresh rest without replaying its
+ * landing. Unsafe ground, a stalled landing or a failed navigation target aborts through
+ * {@link RestingFlyingGuEntity#takeOff()} --
  * {@link #stop} also takes off whenever a threat interrupts rest, even when its escape path cannot start --
  * so the goal cannot wedge the entity in a non-flying phase.
  *
@@ -48,10 +50,12 @@ public class LandRestGoal extends Goal {
     private static final int LOOK_YAW_SPREAD = 181;
     private static final int LOOK_YAW_CENTER = 90;
     private static final int LANDING_TIMEOUT_TICKS = 30 * Ticks.SECOND;
+    private static final int RETARGET_INTERVAL_TICKS = 10;
     private final RestingFlyingGuEntity gu;
     private Vec3 landingSpot = Vec3.ZERO;
     private int restRemaining;
     private int landingTicks;
+    private int retargetTicks;
 
     public LandRestGoal(RestingFlyingGuEntity gu) {
         this.gu = gu;
@@ -100,6 +104,7 @@ public class LandRestGoal extends Goal {
 
     private void tickLanding() {
         landingTicks++;
+        if (retargetTicks > 0) retargetTicks--;
         if (gu.onGround()) {
             gu.getNavigation().stop();
             gu.setDeltaMovement(Vec3.ZERO);
@@ -111,7 +116,7 @@ public class LandRestGoal extends Goal {
             gu.getNavigation().stop();
             Vec3 drive = landingSpot.subtract(0.0D, TOUCHDOWN_DEPTH, 0.0D).subtract(gu.position());
             gu.setDeltaMovement(drive.normalize().scale(TOUCHDOWN_SPEED));
-        } else if (gu.getNavigation().isDone() && !retargetGround()) {
+        } else if (gu.getNavigation().isDone() && retargetTicks <= 0 && !retargetGround()) {
             gu.takeOff();
         }
     }
@@ -132,6 +137,7 @@ public class LandRestGoal extends Goal {
     }
 
     private boolean retargetGround() {
+        retargetTicks = RETARGET_INTERVAL_TICKS;
         BlockPos.MutableBlockPos surface = gu.blockPosition().mutable();
         int lowest = Math.max(gu.level().getMinBuildHeight(), surface.getY() - GROUND_SCAN_DEPTH);
         while (surface.getY() > lowest && isOpen(surface.below())) surface.move(Direction.DOWN);

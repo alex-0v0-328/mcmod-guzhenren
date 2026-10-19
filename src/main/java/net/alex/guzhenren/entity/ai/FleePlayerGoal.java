@@ -19,7 +19,8 @@ import org.jetbrains.annotations.Nullable;
  * started from. The escape point uses {@link AirAndWaterRandomPos} because the normal ground-only
  * random position helper returns no point for a flying mob in open air. A resting or landing Gu
  * takes off before the escape navigation starts, so a threat cannot leave the entity stuck in a
- * ground phase.
+ * ground phase. A search that finds no course, a course toward the threat or no path, and a
+ * {@link #tick} repath that fails, back off for 10 to 20 ticks before the next attempt.
  *
  * @author Alex
  * @version 1.0.0
@@ -32,9 +33,12 @@ public class FleePlayerGoal extends Goal {
     private static final int ESCAPE_HORIZONTAL_RANGE = 16;
     private static final int ESCAPE_VERTICAL_RANGE = 7;
     private static final float ESCAPE_CONE_ANGLE = (float) (Math.PI / 2);
+    private static final int RETRY_MIN_TICKS = 10;
+    private static final int RETRY_JITTER_TICKS = 11;
     private final RestingFlyingGuEntity gu;
     private @Nullable Player threat;
     private @Nullable Vec3 escapeCourse;
+    private long retryTime;
 
     public FleePlayerGoal(RestingFlyingGuEntity gu) {
         this.gu = gu;
@@ -43,14 +47,18 @@ public class FleePlayerGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (gu.level().getGameTime() < retryTime) return false;
         threat = nearestThreat(gu);
         if (threat == null) return false;
         escapeCourse = courseAwayFromThreat(threat);
-        if (escapeCourse == null) return false;
+        if (escapeCourse == null) return backOff();
         boolean courseCloserToThreat = threat.distanceToSqr(escapeCourse.x, escapeCourse.y, escapeCourse.z)
                 < threat.distanceToSqr(gu);
-        if (courseCloserToThreat) return false;
-        return gu.getNavigation().createPath(escapeCourse.x, escapeCourse.y, escapeCourse.z, 0) != null;
+        if (courseCloserToThreat) return backOff();
+        if (gu.getNavigation().createPath(escapeCourse.x, escapeCourse.y, escapeCourse.z, 0) == null) {
+            return backOff();
+        }
+        return true;
     }
 
     @Override
@@ -78,9 +86,16 @@ public class FleePlayerGoal extends Goal {
 
     @Override
     public void tick() {
-        if (threat == null || !gu.getNavigation().isDone()) return;
+        if (threat == null || !gu.getNavigation().isDone() || gu.level().getGameTime() < retryTime) return;
         Vec3 course = courseAwayFromThreat(threat);
-        if (course != null) gu.getNavigation().moveTo(course.x, course.y, course.z, FLEE_SPEED_MODIFIER);
+        if (course == null || !gu.getNavigation().moveTo(course.x, course.y, course.z, FLEE_SPEED_MODIFIER)) {
+            backOff();
+        }
+    }
+
+    private boolean backOff() {
+        retryTime = gu.level().getGameTime() + RETRY_MIN_TICKS + gu.getRandom().nextInt(RETRY_JITTER_TICKS);
+        return false;
     }
 
     private @Nullable Vec3 courseAwayFromThreat(@NotNull Player threat) {
