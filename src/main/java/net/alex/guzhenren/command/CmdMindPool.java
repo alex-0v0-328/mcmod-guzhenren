@@ -38,20 +38,12 @@ public final class CmdMindPool {
 
     private static ArgumentBuilder<CommandSourceStack, ?> cell(MindPoolType type) {
         return Commands.literal(type.getSerializedName())
-                .then(Commands.literal("current")
-                        .then(ModCommandSupport.longNode("set",
-                                (player, value) -> MindService.setCurrent(player, type, value)))
-                        .then(ModCommandSupport.longNode("add",
-                                (player, value) -> MindService.addCurrent(player, type, value)))
-                        .then(ModCommandSupport.longNode("sub",
-                                (player, value) -> MindService.addCurrent(player, type, -value))))
-                .then(Commands.literal("max")
-                        .then(ModCommandSupport.longNode("set",
-                                (player, value) -> MindService.setMax(player, type, value)))
-                        .then(ModCommandSupport.longNode("add",
-                                (player, value) -> MindService.addMax(player, type, value)))
-                        .then(ModCommandSupport.longNode("sub",
-                                (player, value) -> MindService.addMax(player, type, -value))))
+                .then(ModCommandSupport.counter("current",
+                        (player, value) -> MindService.setCurrent(player, type, value),
+                        (player, value) -> MindService.addCurrent(player, type, value)))
+                .then(ModCommandSupport.counter("max",
+                        (player, value) -> MindService.setMax(player, type, value),
+                        (player, value) -> MindService.addMax(player, type, value)))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
                         context -> ModCommandSupport.apply(context, player -> MindService.refill(player, type))));
     }
