@@ -26,7 +26,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>Extends {@link net.minecraft.world.inventory.AbstractContainerMenu}. 54 slots per page; the Vital Gu
  * [本命蛊] slot sits outside the pager, past {@code imageWidth}. The save trigger is a container
  * listener ({@code page.addListener(container -> save())}), not an override of {@code slotsChanged} -- that
- * override is never called because {@code AbstractContainerMenu} is not a {@code ContainerListener}.
+ * override is never called because {@code AbstractContainerMenu} is not a {@code ContainerListener}. ⚠ It
+ * saves on every changed slot, not once per click: the slots admit a Gu by {@code getLoad()}, which only a save
+ * refreshes, so a deferred save would let one shift-click or drag over-fill the page and lose the refused Gu.
  *
  * <p>{@code countPages} counts the pages that hold every stored Gu plus one free slot, so a full page
  * still leaves an empty one for the next Gu. Binding a Vital Gu here only marks the stack;

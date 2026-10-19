@@ -25,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
  * becomes its aperture's one current Vital Gu when it lands in the slot ({@code setVital}) or a refinement
  * passes the binding on ({@link #adoptVital}): its token replaces the kind's token in the store.
  *
+ * <p>A write is refused only when it ends above both {@code MAX_LOAD} and the load it started from, so an
+ * over-full store (a rank that fell) can still be emptied; {@code exceedsLoad} counts the starting load only
+ * when the result is over the cap.
+ *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of
  * {@link ApertureData#insertFirst}: when Hope Gu opens
  * the first aperture ahead of a lone second one, every stored list and the Vital Gu slot slides up
@@ -89,7 +93,7 @@ public final class ApertureStorageService {
     public static void set(@NotNull ServerPlayer player, int aperture, @NotNull List<ItemStack> items) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.with(aperture, items);
-        if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return;
+        if (exceedsLoad(player, current, next, aperture)) return;
 
         player.setData(ModAttachments.APERTURE_STORAGE, next);
     }
@@ -97,7 +101,7 @@ public final class ApertureStorageService {
     public static boolean setVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.withVital(aperture, stack);
-        if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return false;
+        if (exceedsLoad(player, current, next, aperture)) return false;
 
         player.setData(ModAttachments.APERTURE_STORAGE, next);
         adoptVital(player, aperture, stack);
@@ -118,7 +122,7 @@ public final class ApertureStorageService {
     public static boolean setPage(@NotNull ServerPlayer player, int aperture, int from, @NotNull List<ItemStack> page) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.withPage(aperture, from, page);
-        if (exceedsLoad(load(player, current, aperture), load(player, next, aperture))) return false;
+        if (exceedsLoad(player, current, next, aperture)) return false;
 
         player.setData(ModAttachments.APERTURE_STORAGE, next);
         return true;
@@ -146,7 +150,10 @@ public final class ApertureStorageService {
         return total;
     }
 
-    private static boolean exceedsLoad(int current, int next) { return next > Math.max(MAX_LOAD, current); }
+    private static boolean exceedsLoad(Player player, ApertureStorage current, ApertureStorage next, int aperture) {
+        int after = load(player, next, aperture);
+        return after > MAX_LOAD && after > load(player, current, aperture);
+    }
 
     private static int getCost(Rank holder, ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof MortalGuItem gu)) return 0;
