@@ -18,10 +18,12 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The block side of the ten-extreme pressure explosion [空窍压力爆炸]: the crater is carved over
- * many server ticks instead of one, {@link #BLOCK_BUDGET} positions a tick in each phase, so the largest blast
- * (Great Strength True Martial [大力真武体], radius 112, some 5.9 million positions) opens over about 18 seconds
- * instead of freezing the world. Interior blocks go out silently ({@code UPDATE_CLIENTS}
- * only, no drops); one deferred neighbor pass over the rim [球壳边缘] keeps sand, fluids and torches
+ * many server ticks instead of one. Every active blast shares one budget a tick, {@link #TICK_BUDGET_NANOS} (10 of
+ * the tick's 50 ms), the clock read every {@link #CLOCK_CHECK_INTERVAL} positions, so the largest blast (Great
+ * Strength True Martial [大力真武体], radius 112, some 5.9 million positions) opens as fast as the server allows,
+ * tens of seconds, without dropping the tick rate. A cleared block a full block inside the smallest column radius
+ * ({@code CraterShape.getMinColumnRadius}) skips the rim test: none of its neighbors can lie outside. Interior
+ * blocks go out silently ({@code UPDATE_CLIENTS} only, no drops); one deferred neighbor pass over the rim [球壳边缘] keeps sand, fluids and torches
  * from floating; unbreakable blocks (bedrock, barriers, portal frames) stay, so a blast at the bottom
  * of the world never opens the void. The shell [壳] walks center-outwards and each column's radius
  * carries a per-explosion jitter [噪声扰动], read from {@link CraterShape}. The crater floor is
@@ -47,10 +49,14 @@ public final class AperturePressureExplosionTask {
         this.radius = radius;
         this.seed = level.random.nextLong();
         this.physique = physique;
+        double inner = Math.max(0.0D, CraterShape.getMinColumnRadius(radius) - 1.0D);
+        this.innerSquared = inner * inner;
     }
 
     private static final List<AperturePressureExplosionTask> ACTIVE = new ArrayList<>();
-    private static final int BLOCK_BUDGET = 16_384;
+    private static final long TICK_BUDGET_NANOS = 10_000_000L;
+    private static final int CLOCK_CHECK_INTERVAL = 256;
+    private static final Direction[] DIRECTIONS = Direction.values();
     private final ServerLevel level;
     private final double x;
     private final double y;
@@ -58,6 +64,7 @@ public final class AperturePressureExplosionTask {
     private final int radius;
     private final long seed;
     private final ExtremePhysique physique;
+    private final double innerSquared;
     private final LongArrayList shell = new LongArrayList();
     private final LongArrayList rim = new LongArrayList();
     private int shellDistance;
@@ -74,17 +81,21 @@ public final class AperturePressureExplosionTask {
         ACTIVE.add(new AperturePressureExplosionTask(level, x, y, z, radius, physique));
     }
 
-    public static void tickAll() { ACTIVE.removeIf(AperturePressureExplosionTask::tick); }
+    public static void tickAll() {
+        if (ACTIVE.isEmpty()) return;
+        TickBudget budget = new TickBudget(System.nanoTime() + TICK_BUDGET_NANOS);
+        ACTIVE.removeIf(task -> task.tick(budget));
+    }
 
     public static void clear() { ACTIVE.clear(); }
 
-    private boolean tick() {
-        if (phase == Phase.CLEAR && tickClear()) {
+    private boolean tick(TickBudget budget) {
+        if (phase == Phase.CLEAR && tickClear(budget)) {
             phase = hasFloor() ? Phase.FLOOR : getNextAfterFloor();
         }
-        if (phase == Phase.FLOOR && tickFloor()) phase = getNextAfterFloor();
-        if (phase == Phase.RING && tickRing()) phase = Phase.RIM;
-        return phase == Phase.RIM && tickRim();
+        if (phase == Phase.FLOOR && tickFloor(budget)) phase = getNextAfterFloor();
+        if (phase == Phase.RING && tickRing(budget)) phase = Phase.RIM;
+        return phase == Phase.RIM && tickRim(budget);
     }
 
     private Phase getNextAfterFloor() {
@@ -98,9 +109,8 @@ public final class AperturePressureExplosionTask {
         };
     }
 
-    private boolean tickClear() {
-        int budget = BLOCK_BUDGET;
-        while (budget > 0) {
+    private boolean tickClear(TickBudget budget) {
+        while (budget.hasTime()) {
             if (shellIndex >= shell.size()) {
                 if (shellDistance > radius) return true;
                 fillShell();
@@ -108,15 +118,13 @@ public final class AperturePressureExplosionTask {
                 continue;
             }
             clearOne(BlockPos.of(shell.getLong(shellIndex++)));
-            budget--;
         }
         return false;
     }
 
-    private boolean tickFloor() {
-        int budget = BLOCK_BUDGET;
+    private boolean tickFloor(TickBudget budget) {
         int side = 2 * radius + 1;
-        while (budget > 0 && floorCursor < side * side) {
+        while (floorCursor < side * side && budget.hasTime()) {
             int i = floorCursor++;
             int blockX = Mth.floor(x) - radius + i % side;
             int blockZ = Mth.floor(z) - radius + i / side;
@@ -135,16 +143,14 @@ public final class AperturePressureExplosionTask {
             Block block = getFloorBlockAt(blockX, floorY, blockZ);
             if (block == null) continue;
             level.setBlock(floorPos, block.defaultBlockState(), Block.UPDATE_CLIENTS);
-            budget--;
         }
         return floorCursor >= side * side;
     }
 
-    private boolean tickRing() {
-        int budget = BLOCK_BUDGET;
+    private boolean tickRing(TickBudget budget) {
         int outer = CraterShape.getRingReach(radius);
         int side = 2 * outer + 1;
-        while (budget > 0 && ringCursor < side * side) {
+        while (ringCursor < side * side && budget.hasTime()) {
             int i = ringCursor++;
             int blockX = Mth.floor(x) - outer + i % side;
             int blockZ = Mth.floor(z) - outer + i / side;
@@ -165,16 +171,13 @@ public final class AperturePressureExplosionTask {
             Block snow = powder ? Blocks.POWDER_SNOW : Blocks.SNOW_BLOCK;
             level.setBlock(surfacePos, snow.defaultBlockState(), Block.UPDATE_CLIENTS);
             rim.add(surfacePos.asLong());
-            budget--;
         }
         return ringCursor >= side * side;
     }
 
-    private boolean tickRim() {
-        int budget = BLOCK_BUDGET;
-        while (budget > 0 && rimIndex < rim.size()) {
+    private boolean tickRim(TickBudget budget) {
+        while (rimIndex < rim.size() && budget.hasTime()) {
             level.updateNeighborsAt(BlockPos.of(rim.getLong(rimIndex++)), Blocks.AIR);
-            budget--;
         }
         return rimIndex >= rim.size();
     }
@@ -250,7 +253,11 @@ public final class AperturePressureExplosionTask {
     }
 
     private boolean isRim(BlockPos pos) {
-        for (Direction direction : Direction.values()) {
+        double dx = pos.getX() + 0.5D - x;
+        double dy = pos.getY() + 0.5D - y;
+        double dz = pos.getZ() + 0.5D - z;
+        if (dx * dx + dy * dy + dz * dz < innerSquared) return false;
+        for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = pos.relative(direction);
             if (neighbor.getY() >= level.getMinBuildHeight() && neighbor.getY() < level.getMaxBuildHeight()
                     && isOutsideSphere(neighbor.getX(), neighbor.getY(), neighbor.getZ())) return true;
@@ -264,5 +271,22 @@ public final class AperturePressureExplosionTask {
         double dz = blockZ + 0.5D - z;
         double localRadius = CraterShape.getColumnRadius(radius, blockX, blockZ, seed);
         return dx * dx + dy * dy + dz * dz > localRadius * localRadius;
+    }
+
+    private static final class TickBudget {
+
+        private final long deadline;
+        private int sinceClockCheck;
+        private boolean spent;
+
+        private TickBudget(long deadline) { this.deadline = deadline; }
+
+        private boolean hasTime() {
+            if (spent) return false;
+            if (++sinceClockCheck < CLOCK_CHECK_INTERVAL) return true;
+            sinceClockCheck = 0;
+            spent = System.nanoTime() >= deadline;
+            return !spent;
+        }
     }
 }

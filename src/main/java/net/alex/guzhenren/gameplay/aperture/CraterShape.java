@@ -41,6 +41,8 @@ final class CraterShape {
         return (hash & 0xFFFFFL) * (NOISE_RANGE / 0x10_0000L);
     }
 
+    static double getMinColumnRadius(int radius) { return radius * NOISE_FLOOR; }
+
     static double getColumnRadius(int radius, int blockX, int blockZ, long seed) {
         return radius * (NOISE_FLOOR + getColumnJitter(blockX, blockZ, seed));
     }
