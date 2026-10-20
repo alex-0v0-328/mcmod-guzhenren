@@ -43,16 +43,31 @@ logs/
 repo/
 !**/src/**/repo/
 
-### Agent tooling: local-only, kept out of the repository (Alex, 2026-09-19; rules layer added 2026-09-22; Kimi and AGENTS.md dropped, reference/ split 2026-09-30; CLAUDE.md, subagents and skills tracked for cloud sessions 2026-10-01) ###
-.claude/settings.local.json
+### Claude Code config, local-only in both repositories: the rules file, .claude/, personal instructions and the .mcp.json IDEA writes ###
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/
+/.mcp.json
+
+### Codex config, local-only in both repositories: AGENTS.md (opencode reads it too), its personal override and .codex/ ###
+/AGENTS.md
+/AGENTS.override.md
+/.codex/
+
+### opencode config, local-only in both repositories: opencode.json, a second config file and .opencode/ ###
+/opencode.json
+/opencode.jsonc
+/.opencode/
+
+### Agent tooling: local-only, kept out of the repository ###
 .env.local
 reference/
 rules/
 
-### Local-only tool scripts: everything under tools/ stays untracked; the four legacy tracked tools were untracked 2026-09-23 (Alex, 2026-09-20; updated 2026-09-23) ###
+### Local-only tool scripts: everything under tools/ stays untracked ###
 tools/
 
-### Local-only tests: every test layer under src/test stays out of GitHub (Alex, 2026-09-27) ###
+### Local-only tests: every test layer under src/test stays out of GitHub ###
 src/test/
 
 ### Python export tools ###
