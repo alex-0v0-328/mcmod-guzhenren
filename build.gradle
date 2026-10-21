@@ -34,8 +34,8 @@ sourceSets {
     gametest {
         java.srcDirs = ['src/test/game/java']
         resources.srcDirs = ['src/test/game/resources']
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
     }
 }
 
