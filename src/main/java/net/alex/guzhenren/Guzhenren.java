@@ -2,14 +2,19 @@ package net.alex.guzhenren;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
 /**
  * Mod entry point: builds every registry holder and hands them to the mod event bus.
  *
  * <p>Holds the {@code MOD_ID} constant and the {@link #id} helper used across the codebase for
- * {@link ResourceLocation} creation.
+ * {@link ResourceLocation} creation. The constructor takes the mod event bus from the loading context
+ * Forge injects and wires each {@code DeferredRegister} holder to it in the order Forge requires.
+ * Worldgen features live in the sibling mod Gu World, which places the Spirit Spring [元泉] block
+ * registered here.
  *
  * @author Alex
  * @version 1.0.0
@@ -22,9 +27,9 @@ public class Guzhenren {
     public static final String MOD_ID = "guzhenren";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static ResourceLocation id(String path) { return new ResourceLocation(MOD_ID, path); }
+    public static ResourceLocation id(String path) { return ResourceLocation.fromNamespaceAndPath(MOD_ID, path); }
 
-    public Guzhenren() {
-        LOGGER.info("Guzhenren loaded");
+    public Guzhenren(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
     }
 }
