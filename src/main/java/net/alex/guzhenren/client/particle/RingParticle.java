@@ -50,7 +50,7 @@ import org.joml.Vector3f;
  * bloom never reads. ⚠ {@link #tick()} reads the age AFTER the increment, so the last frame is applied
  * exactly once and never overstepped; mixing the two sides is an off-by-one crash. ⚠ In
  * {@code applyFrame} the denominator is {@code FRAME_COUNT - 1}, NOT {@code lifetime - 1}: only the frame
- * count lands exactly on frames 0..n-1 once the linger decouples the lifetime from it.
+ * count lands exactly on frames 0 to n-1 once the linger decouples the lifetime from it.
  *
  * <p>⚠ It renders through {@link #ADDITIVE_GLOW} -- additive, two-sided, full bright -- because the
  * one-pixel white stroke all but disappears on an alpha-blended sheet. 1.21.1 has no {@code end()} hook on

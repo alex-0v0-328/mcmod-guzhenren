@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * the next rank's Stone Aperture Gu to enter the cycle again. Only while a next rank exists; at the
  * last rank it answers {@code false} and the caller detonates.
  *
- * <p>{@link #resolve} is the seam the unit tests pin: a roll of {@code 0..99} against the two outcome
+ * <p>{@link #resolve} is the seam the unit tests pin: a roll of {@code 0} to {@code 99} against the two outcome
  * tables. ☠ The two tables split at different points, and only the Ten-Extremes one can never lose
  * base.
  *

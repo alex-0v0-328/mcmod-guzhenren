@@ -10,7 +10,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  * Hardship Strength Gu [苦力蛊] effect: the timed carrier -- the bonus itself is read from the
  * holder's health fraction, not from here.
  *
- * <p>This class carries only the duration and the icon; the 0..120 capacity bonus is computed in
+ * <p>This class carries only the duration and the icon; the 0 to 120 capacity bonus is computed in
  * {@link BodyStrengthService#getCapacity} off missing
  * health, so the effect staying present IS what keeps that ramp alive.
  *

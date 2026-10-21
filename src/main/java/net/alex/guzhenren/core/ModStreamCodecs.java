@@ -56,7 +56,7 @@ public final class ModStreamCodecs {
 
     private static <E extends Enum<E>> E byOrdinal(Class<E> type, E[] values, int ordinal) {
         if (ordinal < 0 || ordinal >= values.length) {
-            throw new DecoderException(type.getSimpleName() + " ordinal " + ordinal + " is outside 0.."
+            throw new DecoderException(type.getSimpleName() + " ordinal " + ordinal + " is outside 0 to "
                     + (values.length - 1));
         }
         return values[ordinal];

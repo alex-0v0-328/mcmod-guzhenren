@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * The shared class behind every zombie Gu [僵尸蛊]; the form's length comes from registration.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Nine Gu register against this one
- * class (二转..五转). The gate refuses only "already 僵"; the payout delegates to
+ * class (二转至五转). The gate refuses only "already 僵"; the payout delegates to
  * {@link BodyService} to enter half-zombie or, on a
  * relapse, turn permanently 僵.
  *

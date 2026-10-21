@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
  * Title [称号], derived from the rank [转数] and never stored.
  *
  * <p>Closed vocabulary enum: the only place the mortal-versus-immortal distinction still lives today.
- * {@code fromRank} maps {@code NONE} -> {@code MORTAL}, {@code ONE..FIVE} -> {@code GU_MASTER},
- * {@code SIX..NINE} -> {@code GU_IMMORTAL}. No sibling mod may add a title.
+ * {@code fromRank} maps {@code NONE} -> {@code MORTAL}, {@code ONE} to {@code FIVE} -> {@code GU_MASTER},
+ * {@code SIX} to {@code NINE} -> {@code GU_IMMORTAL}. No sibling mod may add a title.
  *
  * <p>⚠ Storing it would create a second answer that the rank could then contradict. The mortal's word
  * belongs to this enum alone, which is why {@link Rank#NONE} translates to the empty string.

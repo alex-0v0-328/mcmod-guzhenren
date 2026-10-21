@@ -16,8 +16,8 @@ import org.jetbrains.annotations.Nullable;
  * fits. Leaf record nested inside {@link ApertureData}; immutable; thirteen active components hold rank,
  * stage, essence, paths, distilled essence, pressure, cultivation latches and the second-aperture flag.
  *
- * <p>⚠ {@code baseEssence} clamps to {@code [MIN_BASE, MAX_BASE]} (20..100) when positive; {@code 0} is
- * reserved for {@code NONE} and {@code 1..19} is a hole, not a value. ⚠ The two {@link GuPath} fields
+ * <p>⚠ {@code baseEssence} clamps to {@code [MIN_BASE, MAX_BASE]} (20 to 100) when positive; {@code 0} is
+ * reserved for {@code NONE} and {@code 1} to {@code 19} is a hole, not a value. ⚠ The two {@link GuPath} fields
  * are the ONLY active nullables in the data model ({@code writeNullableEnum}). ⚠ {@code second} marks the
  * aperture opened by a Second Aperture Gu, not by Hope Gu -- the LIST position is the awakening order, the
  * flag is the identity.

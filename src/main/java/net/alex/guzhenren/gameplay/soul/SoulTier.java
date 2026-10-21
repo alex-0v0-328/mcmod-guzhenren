@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The tier a soul [魂魄] reads as, derived from its cap and never stored.
  *
- * <p>Closed vocabulary enum: the nine rungs ({@code 1 .. 1e10}) are read-only labels for display; the
+ * <p>Closed vocabulary enum: the nine rungs ({@code 1} to {@code 1e10}) are read-only labels for display; the
  * {@code SoulData} cap is the source of truth. No sibling mod may add a tier.
  *
  * @author Alex

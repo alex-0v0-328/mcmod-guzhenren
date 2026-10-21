@@ -66,7 +66,7 @@ public record GuRecipe(List<SizedIngredient> ingredients, List<Integer> slots, L
             throw new IllegalArgumentException("windows must be non-negative");
         }
         if (baseSuccess < 0 || baseSuccess > 100) {
-            throw new IllegalArgumentException("baseSuccess must be 0..100");
+            throw new IllegalArgumentException("baseSuccess must be 0 to 100");
         }
         if (ingredients.size() != slots.size()) {
             throw new IllegalArgumentException("every ingredient owns exactly one cell of the grid");

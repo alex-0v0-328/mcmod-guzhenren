@@ -60,7 +60,8 @@ import org.jetbrains.annotations.Nullable;
  * splitting it would scatter the one place the numbers live.
  *
  * <p>⚠ The registration id mirrors the Java name (and the PNG); a rank ladder is numbered
- * ({@code sword_qi_1..5}), but an item with its own fiction name keeps that name ({@code blood_wight_gu}).
+ * ({@code sword_qi_1} to {@code sword_qi_5}), but an item with its own fiction name keeps that name
+ * ({@code blood_wight_gu}).
  *
  * <p>{@link #SPIRIT_SPRING} is the spring's {@code BlockItem}: same key as the block, answers to
  * the block's lang entry, and its icon is the fluid's still strip (see
@@ -489,7 +490,7 @@ public final class ModItems {
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
     //endregion
 
-    //region Human Aperture [人窍] -- pure Gu material, ranks I..V; a wiped death drops one per aperture
+    //region Human Aperture [人窍] -- pure Gu material, ranks I to V; a wiped death drops one per aperture
     public static final DeferredItem<Item> HUMAN_APERTURE_1 = registerHumanAperture("human_aperture_1", Rank.ONE);
     public static final DeferredItem<Item> HUMAN_APERTURE_2 = registerHumanAperture("human_aperture_2", Rank.TWO);
     public static final DeferredItem<Item> HUMAN_APERTURE_3 = registerHumanAperture("human_aperture_3", Rank.THREE);
@@ -512,7 +513,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Qi Path [气道] materials -- 21, ranks I..V
+    //region Qi Path [气道] materials -- 21, ranks I to V
     public static final DeferredItem<Item> SWORD_QI_1 =
             registerQiMaterial("sword_qi_1", Rank.ONE, QiKind.SWORD);
     public static final DeferredItem<Item> SWORD_QI_2 =

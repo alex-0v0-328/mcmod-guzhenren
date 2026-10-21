@@ -15,10 +15,10 @@ import net.minecraft.world.level.ChunkPos;
  *
  * <p>One ticket per chunk at level 33, {@code FULL} but not ticking: the blocks are readable and writable while the
  * chunk's mobs, block entities and scheduled ticks stay asleep, so a forced crater costs the load and the memory, not
- * tick time. Radius 16..112 holds ≈9..256 chunks for the tens of seconds the crater takes. {@link #isLoaded} adds the
- * tickets on its first call and asks {@code getChunkNow}, never {@code hasChunk}: the latter only reads the ticket
- * level and turns true before the chunk has finished loading. It latches once every chunk is in, because held chunks
- * never unload.
+ * tick time. Radius 16 to 112 holds ≈9 to 256 chunks for the tens of seconds the crater takes. {@link #isLoaded}
+ * adds the tickets on its first call and asks {@code getChunkNow}, never {@code hasChunk}: the latter only reads the
+ * ticket level and turns true before the chunk has finished loading. It latches once every chunk is in, because held
+ * chunks never unload.
  *
  * <p>⚠ The ticket key is the explosion's seed: two craters over one chunk hold two tickets, so the first to finish
  * never unloads the other's chunks. ⚠ Tickets are never saved -- the server drops them on stop -- so a restored

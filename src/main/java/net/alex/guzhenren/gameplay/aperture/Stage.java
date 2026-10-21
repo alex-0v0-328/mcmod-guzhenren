@@ -10,7 +10,7 @@ import net.minecraft.util.StringRepresentable;
  *
  * <p>Closed vocabulary enum: the multiplier lives here and the formula lives on the record, so the cap
  * has exactly one expression. {@code NONE} is outside the settable range; {@code shift(int)} clamps at
- * {@code INIT..PEAK}. No sibling mod may add a stage.
+ * {@code INIT} to {@code PEAK}. No sibling mod may add a stage.
  *
  * <p>⚠ A second place that multiplies is a second answer -- do not re-declare the multiplier at a call
  * site. {@code NONE}'s multiplier is {@code 0}, which is the mortal's empty pool, not a fallback.

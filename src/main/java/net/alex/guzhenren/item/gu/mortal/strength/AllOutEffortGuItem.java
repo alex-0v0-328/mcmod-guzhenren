@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
  * All-Out Effort Gu [全力以赴蛊]: for a while, the body's carrying limit [承受上限] stops applying.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Three rungs register against this one
- * class (三转..五转). The payout stamps a marker effect and calls
+ * class (三转至五转). The payout stamps a marker effect and calls
  * {@link AttackDamageService#refresh}; the lift itself is read
  * back by the strength service, so attack still comes out of one formula.
  *

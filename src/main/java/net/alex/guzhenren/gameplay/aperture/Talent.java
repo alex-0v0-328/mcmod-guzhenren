@@ -11,11 +11,11 @@ import net.minecraft.util.StringRepresentable;
  * Aptitude [资质], derived from the aperture's base essence and never stored beside it.
  *
  * <p>Closed vocabulary enum: regen rate, Epic Fight stamina percentage and the roll weights all live here. {@code NONE}
- * is outside the settable range; {@code shift(int)} clamps at {@code TEN_EXTREMES..FOURTH}. No sibling mod
+ * is outside the settable range; {@code shift(int)} clamps at {@code TEN_EXTREMES} to {@code FOURTH}. No sibling mod
  * may add a grade.
  *
  * <p>⚠ The constants run HIGH to LOW, so {@code shift(+1)} is {@code ordinal - 1}. Reading the direction
- * off the declaration order is exactly how that gets reversed by accident. {@code 1..19} is a hole, not
+ * off the declaration order is exactly how that gets reversed by accident. {@code 1} to {@code 19} is a hole, not
  * a value ({@code fromPercent} -> {@code NONE}).
  *
  * @author Alex
