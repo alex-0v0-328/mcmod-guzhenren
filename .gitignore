@@ -1,0 +1,79 @@
+### Gradle ###
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/**/out/
+
+.run/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.eclipse/
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/**/bin/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Minecraft Modding ###
+run/
+run-gametest/
+run-data/
+!**/src/**/run/
+logs/
+!**/src/**/logs/
+**/src/generated/**/.cache/
+repo/
+!**/src/**/repo/
+
+### Claude Code config, local-only in both repositories: the rules file, .claude/, personal instructions and the .mcp.json IDEA writes ###
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/
+/.mcp.json
+
+### Codex config, local-only in both repositories: AGENTS.md (opencode reads it too), its personal override and .codex/ ###
+/AGENTS.md
+/AGENTS.override.md
+/.codex/
+
+### opencode config, local-only in both repositories: opencode.json, a second config file and .opencode/ ###
+/opencode.json
+/opencode.jsonc
+/.opencode/
+
+### Agent tooling: local-only, kept out of the repository ###
+.env.local
+reference/
+rules/
+
+### Local-only tool scripts: everything under tools/ stays untracked ###
+tools/
+
+### Local-only tests: every test layer under src/test stays out of GitHub ###
+src/test/
+
+### Python export tools ###
+__pycache__/
+*.py[cod]
+
+### Forge port: module specs and the test pack jars stay local ###
+/port/
+/pack/
