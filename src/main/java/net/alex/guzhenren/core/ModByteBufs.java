@@ -1,10 +1,13 @@
 package net.alex.guzhenren.core;
 
 import io.netty.handler.codec.DecoderException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +17,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Provides {@code writeEnum}/{@code readEnum} (ordinal round-trip), {@code writeNullableEnum}/{@code
  * readNullableEnum} (ordinal + 1, zero = unset), {@code writeEnumMap}/{@code readEnumMap}, and {@code
- * writeEnumSet}/{@code readEnumSet}. Used by the player-data sync packets and the client-intent packets.
+ * writeEnumSet}/{@code readEnumSet}. Every record that travels writes itself through these from its own
+ * {@code encode}/{@code decode}.
+ *
+ * <p>⚠ Loader-neutral on purpose: only {@link FriendlyByteBuf}'s VarInt and the JDK's functional types,
+ * never a loader's codec types, so this file and every record that calls it stay identical between the
+ * NeoForge 1.21.1 mainline and the Forge 1.20.1 port. A collection is its VarInt size, then each element.
  *
  * <p>⚠ A nullable enum travels as its ordinal plus one, with zero meaning unset. No enum here has a
  * NONE constant to lean on, so this is where "has not chosen" becomes representable on the wire -- it
@@ -23,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Decoding rejects an out-of-range ordinal with a {@code DecoderException} ({@link #byOrdinal}):
  * the client-intent packets read enums through these helpers and a forged packet can carry any VarInt,
  * so it fails as a malformed packet that disconnects the sender with a readable reason instead of a bare
- * {@code ArrayIndexOutOfBoundsException}. Vanilla {@link FriendlyByteBuf#readEnum} does not check.
+ * {@code ArrayIndexOutOfBoundsException}.
  *
  * @author Alex
  * @version 1.0.0
@@ -52,21 +60,35 @@ public final class ModByteBufs {
     }
 
     public static <K extends Enum<K>, V> void writeEnumMap(
-            @NotNull FriendlyByteBuf buf, Map<K, V> map, FriendlyByteBuf.Writer<V> value) {
-        buf.writeMap(map, ModByteBufs::writeEnum, value);
+            @NotNull FriendlyByteBuf buf, Map<K, V> map, BiConsumer<FriendlyByteBuf, V> value) {
+        buf.writeVarInt(map.size());
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            writeEnum(buf, entry.getKey());
+            value.accept(buf, entry.getValue());
+        }
     }
 
     public static <K extends Enum<K>, V> Map<K, V> readEnumMap(
-            @NotNull FriendlyByteBuf buf, Class<K> key, FriendlyByteBuf.Reader<V> value) {
-        return buf.readMap(HashMap::new, b -> readEnum(b, key), value);
+            @NotNull FriendlyByteBuf buf, Class<K> key, Function<FriendlyByteBuf, V> value) {
+        int size = buf.readVarInt();
+        Map<K, V> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            K k = readEnum(buf, key);
+            map.put(k, value.apply(buf));
+        }
+        return map;
     }
 
-    public static <E extends Enum<E>> void writeEnumSet(@NotNull FriendlyByteBuf buf, Set<E> set) {
-        buf.writeCollection(set, ModByteBufs::writeEnum);
+    public static <E extends Enum<E>> void writeEnumSet(@NotNull FriendlyByteBuf buf, Collection<E> set) {
+        buf.writeVarInt(set.size());
+        for (E e : set) writeEnum(buf, e);
     }
 
     public static <E extends Enum<E>> Set<E> readEnumSet(@NotNull FriendlyByteBuf buf, Class<E> type) {
-        return buf.readCollection(HashSet::new, b -> readEnum(b, type));
+        int size = buf.readVarInt();
+        Set<E> set = new HashSet<>();
+        for (int i = 0; i < size; i++) set.add(readEnum(buf, type));
+        return set;
     }
 
     private static <E extends Enum<E>> E byOrdinal(Class<E> type, E[] values, int ordinal) {

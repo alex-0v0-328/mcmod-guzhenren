@@ -1,16 +1,14 @@
 package net.alex.guzhenren.gameplay.aperture.storage;
 
-import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.RandomAccess;
+import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -19,8 +17,7 @@ import net.minecraft.world.item.ItemStack;
  * is server-side and the menu reads it through slot channels; {@code
  * ApertureStorageService} is the only runtime writer.
  *
- * <p>⚠ Uses {@code OPTIONAL_STACK}, which writes an empty stack as an empty compound tag and every other stack
- * through {@code ItemStack.CODEC}: an interior empty is a real slot position, only TRAILING
+ * <p>⚠ Uses {@link ItemStacks#OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
  * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its
  * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
  * ⚠ {@link #view} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
@@ -50,24 +47,10 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
     public static final String VITAL_APERTURE_TAG = "guzhenren:vital_aperture";
     public static final ApertureStorage DEFAULT = new ApertureStorage(List.of(), List.of(), List.of());
-    private static final Codec<ItemStack> EMPTY_STACK = CompoundTag.CODEC.flatXmap(
-            tag -> {
-                if (tag.isEmpty()) return DataResult.success(ItemStack.EMPTY);
-                return DataResult.error(() -> "Not an empty stack marker: " + tag);
-            },
-            stack -> {
-                if (stack.isEmpty()) return DataResult.success(new CompoundTag());
-                return DataResult.error(() -> "Not an empty stack: " + stack);
-            });
-    private static final Codec<ItemStack> OPTIONAL_STACK = Codec.either(EMPTY_STACK, ItemStack.CODEC).xmap(
-            either -> either.map(empty -> empty, stack -> stack),
-            stack -> stack.isEmpty()
-                    ? Either.<ItemStack, ItemStack>left(stack)
-                    : Either.<ItemStack, ItemStack>right(stack));
     public static final Codec<ApertureStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            OPTIONAL_STACK.listOf().listOf().optionalFieldOf("by_aperture", List.of())
+            ItemStacks.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
                     .forGetter(ApertureStorage::byAperture),
-            OPTIONAL_STACK.listOf().optionalFieldOf("vital", List.of())
+            ItemStacks.OPTIONAL_CODEC.listOf().optionalFieldOf("vital", List.of())
                     .forGetter(ApertureStorage::vital),
             Codec.LONG.listOf().optionalFieldOf("vital_tokens", List.of())
                     .forGetter(ApertureStorage::tokens)
@@ -131,7 +114,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
             ItemStack current = from + i < stored.size() ? stored.get(from + i) : ItemStack.EMPTY;
             ItemStack wanted = page.get(i);
             if (wanted.getCount() != current.getCount()
-                    || !ItemStack.isSameItemSameTags(wanted, current)) return false;
+                    || !ItemStacks.sameItemSameData(wanted, current)) return false;
         }
         return true;
     }

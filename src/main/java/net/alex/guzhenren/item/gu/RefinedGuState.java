@@ -2,6 +2,8 @@ package net.alex.guzhenren.item.gu;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The per-stack state a tended Gu [需照顾] carries: how far refined, how well fed, how badly hurt.
@@ -29,6 +31,19 @@ public record RefinedGuState(boolean refined, int refineProgress, int investedEs
             Codec.INT.optionalFieldOf("hunger", 0).forGetter(RefinedGuState::hunger),
             Codec.INT.optionalFieldOf("damage_taken", 0).forGetter(RefinedGuState::damageTaken)
     ).apply(instance, RefinedGuState::new));
+
+    public static @NotNull RefinedGuState decode(@NotNull FriendlyByteBuf buf) {
+        return new RefinedGuState(buf.readBoolean(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                buf.readVarInt());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull RefinedGuState value) {
+        buf.writeBoolean(value.refined());
+        buf.writeVarInt(value.refineProgress());
+        buf.writeVarInt(value.investedEssence());
+        buf.writeVarInt(value.hunger());
+        buf.writeVarInt(value.damageTaken());
+    }
 
     public RefinedGuState {
         refineProgress = Math.max(0, refineProgress);

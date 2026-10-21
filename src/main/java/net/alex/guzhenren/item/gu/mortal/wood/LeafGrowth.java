@@ -2,7 +2,9 @@ package net.alex.guzhenren.item.gu.mortal.wood;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The leaves on one Nine Leaf Vitality Grass [九叶生机草]: how many were left when the stack was last written,
@@ -38,6 +40,15 @@ public record LeafGrowth(int leaves, long settledAt) {
             Codec.INT.optionalFieldOf("leaves", MAX_LEAVES).forGetter(LeafGrowth::leaves),
             Codec.LONG.optionalFieldOf("settled_at", 0L).forGetter(LeafGrowth::settledAt)
     ).apply(instance, LeafGrowth::new));
+
+    public static @NotNull LeafGrowth decode(@NotNull FriendlyByteBuf buf) {
+        return new LeafGrowth(buf.readVarInt(), buf.readVarLong());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull LeafGrowth value) {
+        buf.writeVarInt(value.leaves());
+        buf.writeVarLong(value.settledAt());
+    }
 
     public LeafGrowth {
         leaves = Mth.clamp(leaves, 0, MAX_LEAVES);
