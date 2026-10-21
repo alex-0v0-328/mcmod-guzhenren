@@ -2,8 +2,8 @@ package net.alex.guzhenren.gameplay.dimension;
 
 import java.util.Objects;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData.ReturnPoint;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.alex.guzhenren.registry.world.ModDimensions.AnchoredDimension;
 import net.alex.guzhenren.registry.world.ModDimensions.Arrival;
@@ -91,7 +91,7 @@ public final class DimensionTravelService {
                     player.getX(), player.getY(), player.getZ(),
                     player.getYRot(), player.getXRot(),
                     player.getAbilities().flying);
-            player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.of(point));
+            PlayerData.get(player).setDimensionReturn(DimensionReturnData.of(point));
         }
 
         Vec3 arrival = getArrival(target, destination);
@@ -120,7 +120,7 @@ public final class DimensionTravelService {
     }
 
     public static boolean exit(@NotNull ServerPlayer player) {
-        DimensionReturnData data = player.getData(ModAttachments.DIMENSION_RETURN);
+        DimensionReturnData data = PlayerData.get(player).dimensionReturn();
         if (data.isPresent()) {
             ReturnPoint point = data.point().orElseThrow();
             ServerLevel target = player.server.getLevel(point.level());
@@ -153,7 +153,7 @@ public final class DimensionTravelService {
     }
 
     public static void clear(@NotNull Player player) {
-        player.setData(ModAttachments.DIMENSION_RETURN, DimensionReturnData.DEFAULT);
+        PlayerData.get(player).setDimensionReturn(DimensionReturnData.DEFAULT);
     }
 
     public static void ensureFlight(@NotNull ServerPlayer player) {

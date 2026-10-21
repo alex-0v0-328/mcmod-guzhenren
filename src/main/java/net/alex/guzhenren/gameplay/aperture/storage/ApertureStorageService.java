@@ -2,12 +2,13 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.List;
 
+import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -48,7 +49,7 @@ public final class ApertureStorageService {
     public static final int MAX_LOAD = 256;
 
     public static @NotNull ApertureStorage get(@NotNull Player player) {
-        return player.getData(ModAttachments.APERTURE_STORAGE);
+        return PlayerData.get(player).apertureStorage();
     }
 
     public static @NotNull List<ItemStack> getItems(@NotNull Player player, int aperture) {
@@ -83,7 +84,7 @@ public final class ApertureStorageService {
         int limit = Math.max(MAX_LOAD, currentLoad);
         int existingCount = 0;
         if (!current.isEmpty()) {
-            if (ItemStack.isSameItemSameComponents(current, incoming)) existingCount = current.getCount();
+            if (ItemStacks.sameItemSameData(current, incoming)) existingCount = current.getCount();
             else currentLoad -= getCost(holder, current);
         }
         int freeLoad = Math.max(0, limit - currentLoad);
@@ -95,7 +96,7 @@ public final class ApertureStorageService {
         ApertureStorage next = current.with(aperture, items);
         if (exceedsLoad(player, current, next, aperture)) return;
 
-        player.setData(ModAttachments.APERTURE_STORAGE, next);
+        PlayerData.get(player).setApertureStorage(next);
     }
 
     public static boolean setVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
@@ -103,7 +104,7 @@ public final class ApertureStorageService {
         ApertureStorage next = current.withVital(aperture, stack);
         if (exceedsLoad(player, current, next, aperture)) return false;
 
-        player.setData(ModAttachments.APERTURE_STORAGE, next);
+        PlayerData.get(player).setApertureStorage(next);
         adoptVital(player, aperture, stack);
         if (stack.getItem() instanceof GuItem gu) ApertureService.setPrimaryPath(player, aperture, gu.path());
         return true;
@@ -115,7 +116,7 @@ public final class ApertureStorageService {
         long token = GuItem.token(stack);
         int kind = ApertureService.get(player).kindAt(aperture);
         if (token != 0L && GuItem.isVitalOf(stack, player) && token != getVitalToken(player, kind)) {
-            player.setData(ModAttachments.APERTURE_STORAGE, get(player).withToken(kind, token));
+            PlayerData.get(player).setApertureStorage(get(player).withToken(kind, token));
         }
     }
 
@@ -124,7 +125,7 @@ public final class ApertureStorageService {
         ApertureStorage next = current.withPage(aperture, from, page);
         if (exceedsLoad(player, current, next, aperture)) return false;
 
-        player.setData(ModAttachments.APERTURE_STORAGE, next);
+        PlayerData.get(player).setApertureStorage(next);
         return true;
     }
 
@@ -141,7 +142,7 @@ public final class ApertureStorageService {
     }
 
     public static void shiftForFirstAperture(@NotNull ServerPlayer player) {
-        player.setData(ModAttachments.APERTURE_STORAGE, get(player).shiftRight());
+        PlayerData.get(player).setApertureStorage(get(player).shiftRight());
     }
 
     private static int load(Rank holder, List<ItemStack> stacks) {

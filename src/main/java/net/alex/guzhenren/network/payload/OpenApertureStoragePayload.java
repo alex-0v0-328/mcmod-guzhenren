@@ -1,9 +1,8 @@
 package net.alex.guzhenren.network.payload;
 
-import io.netty.buffer.ByteBuf;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
-import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +27,16 @@ public record OpenApertureStoragePayload(int aperture) implements CustomPacketPa
 
     public static final Type<OpenApertureStoragePayload> TYPE = new Type<>(
             Guzhenren.id("open_aperture_storage"));
-    public static final StreamCodec<ByteBuf, OpenApertureStoragePayload> STREAM_CODEC =
-            ByteBufCodecs.VAR_INT.map(OpenApertureStoragePayload::new, OpenApertureStoragePayload::aperture);
+    public static final StreamCodec<FriendlyByteBuf, OpenApertureStoragePayload> STREAM_CODEC =
+            StreamCodec.of(OpenApertureStoragePayload::encode, OpenApertureStoragePayload::decode);
+
+    public static @NotNull OpenApertureStoragePayload decode(@NotNull FriendlyByteBuf buf) {
+        return new OpenApertureStoragePayload(buf.readVarInt());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull OpenApertureStoragePayload value) {
+        buf.writeVarInt(value.aperture());
+    }
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }

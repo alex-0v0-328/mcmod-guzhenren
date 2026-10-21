@@ -2,7 +2,7 @@ package net.alex.guzhenren.gameplay.path;
 
 import com.google.common.math.LongMath;
 import java.util.Map;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ public final class PathService {
 
     private PathService() {}
 
-    public static @NotNull PathData get(@NotNull Player player) { return player.getData(ModAttachments.PATH); }
+    public static @NotNull PathData get(@NotNull Player player) { return PlayerData.get(player).path(); }
 
     public static @NotNull PathEntry getEntry(@NotNull Player player, @NotNull GuPath path) {
         return get(player).get(path);
@@ -47,7 +47,7 @@ public final class PathService {
     }
 
     private static void store(ServerPlayer player, PathData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.PATH, data);
+        PlayerData.get(player).setPath(data);
     }
 
     public static void setMark(@NotNull ServerPlayer player, @NotNull GuPath path, @NotNull MarkTag tag, long value) {

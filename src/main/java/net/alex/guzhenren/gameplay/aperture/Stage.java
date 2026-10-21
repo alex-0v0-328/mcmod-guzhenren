@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.aperture;
 import com.mojang.serialization.Codec;
 import java.util.Arrays;
 import net.alex.guzhenren.core.NamedEnum;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
@@ -40,7 +41,7 @@ public enum Stage implements NamedEnum {
     public int getEssenceMultiplier() { return essenceMultiplier; }
 
     public Stage shift(int delta) {
-        return values()[Math.clamp(ordinal() + delta, LOWEST.ordinal(), HIGHEST.ordinal())];
+        return values()[Mth.clamp(ordinal() + delta, LOWEST.ordinal(), HIGHEST.ordinal())];
     }
 
     public static Stage[] settable() { return Arrays.copyOfRange(values(), LOWEST.ordinal(), HIGHEST.ordinal() + 1); }

@@ -3,27 +3,25 @@ package net.alex.guzhenren.gameplay.body;
 import com.google.common.math.LongMath;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
-import net.alex.guzhenren.core.ModStreamCodecs;
+import net.alex.guzhenren.core.ModByteBufs;
 import net.alex.guzhenren.core.Ticks;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Body [肉身] state: cumulative physiques, race, age and lifespan. Immutable record attachment keyed
- * {@code body_data}; {@link BodyService} is the only
+ * {@code body_data}; {@code BodyService} is the only
  * writer. The concrete Ten-Extreme physique belongs here; the aperture stores only its base-essence
  * value. Zombie and half-zombie are mutually exclusive; Extreme may coexist with either one. The constructor drops
  * half-zombie whenever zombie is present, so {@link #with with(ZOMBIE)} needs no removal first, while
  * {@code with(HALF_ZOMBIE)} must follow {@code without(ZOMBIE)}; it also clears the zombie tier once neither is
  * left.
  *
- * <p>⚠ Ten components, so the {@code STREAM_CODEC} is handwritten and the encoder mirrors the decoder
+ * <p>⚠ Ten components, so {@code encode}/{@code decode} are handwritten and the encoder mirrors the decoder
  * order exactly. ⚠ The time anchors default to {@code UNTRACKED} (-1), never {@code 0}: zero is a real
  * game time. ⚠ Every caller speaks YEARS; only this file knows parts exist.
  *
@@ -74,40 +72,32 @@ public record BodyData(
             Codec.INT.optionalFieldOf("zombie_tier", NO_ZOMBIE_TIER).forGetter(BodyData::zombieTier),
             Codec.LONG.optionalFieldOf("last_billed_tick", UNTRACKED).forGetter(BodyData::lastBilledTick)
     ).apply(instance, BodyData::new));
-    private static final StreamCodec<ByteBuf, Set<Physique>> PHYSIQUES = ModStreamCodecs.enumSet(Physique.class);
-    private static final StreamCodec<ByteBuf, ExtremePhysique> EXTREME =
-            ModStreamCodecs.ofEnum(ExtremePhysique.class);
-    private static final StreamCodec<ByteBuf, Race> RACE = ModStreamCodecs.ofEnum(Race.class);
-    public static final StreamCodec<ByteBuf, BodyData> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public @NotNull BodyData decode(@NotNull ByteBuf buf) {
-            return new BodyData(
-                    PHYSIQUES.decode(buf),
-                    EXTREME.decode(buf),
-                    RACE.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_INT.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf));
-        }
+    public static @NotNull BodyData decode(@NotNull FriendlyByteBuf buf) {
+        return new BodyData(
+                ModByteBufs.readEnumSet(buf, Physique.class),
+                ModByteBufs.readEnum(buf, ExtremePhysique.class),
+                ModByteBufs.readEnum(buf, Race.class),
+                buf.readVarLong(),
+                buf.readVarLong(),
+                buf.readVarLong(),
+                buf.readVarLong(),
+                buf.readVarLong(),
+                buf.readVarInt(),
+                buf.readVarLong());
+    }
 
-        @Override
-        public void encode(@NotNull ByteBuf buf, @NotNull BodyData value) {
-            PHYSIQUES.encode(buf, value.physiques());
-            EXTREME.encode(buf, value.extremePhysique());
-            RACE.encode(buf, value.race());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.ageParts());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.lifespanParts());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.lastDayIndex());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.deathQiLifespanLost());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.halfZombieEndTick());
-            ByteBufCodecs.VAR_INT.encode(buf, value.zombieTier());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.lastBilledTick());
-        }
-    };
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull BodyData value) {
+        ModByteBufs.writeEnumSet(buf, value.physiques());
+        ModByteBufs.writeEnum(buf, value.extremePhysique());
+        ModByteBufs.writeEnum(buf, value.race());
+        buf.writeVarLong(value.ageParts());
+        buf.writeVarLong(value.lifespanParts());
+        buf.writeVarLong(value.lastDayIndex());
+        buf.writeVarLong(value.deathQiLifespanLost());
+        buf.writeVarLong(value.halfZombieEndTick());
+        buf.writeVarInt(value.zombieTier());
+        buf.writeVarLong(value.lastBilledTick());
+    }
 
     public BodyData {
         EnumSet<Physique> normalized = EnumSet.noneOf(Physique.class);

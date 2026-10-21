@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.item.gu.GuUpkeep;
 import net.alex.guzhenren.item.gu.TendedGuItem;
@@ -72,6 +73,6 @@ public final class ApertureStorageTick {
 
     private static boolean hasChanged(ItemStack before, ItemStack after) {
         return before.getCount() != after.getCount()
-                || !ItemStack.isSameItemSameComponents(before, after);
+                || !ItemStacks.sameItemSameData(before, after);
     }
 }

@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.path;
 
 import com.mojang.serialization.Codec;
 import net.alex.guzhenren.core.NamedEnum;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
@@ -46,7 +47,7 @@ public enum GuAttainment implements NamedEnum {
 
     public int getRefinementBonus() { return refinementBonus; }
 
-    public GuAttainment shift(int delta) { return values()[Math.clamp(ordinal() + delta, 0, values().length - 1)]; }
+    public GuAttainment shift(int delta) { return values()[Mth.clamp(ordinal() + delta, 0, values().length - 1)]; }
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.path.attainment."; }

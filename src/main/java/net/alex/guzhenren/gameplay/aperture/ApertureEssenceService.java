@@ -6,9 +6,10 @@ import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,7 @@ public final class ApertureEssenceService {
     public static double getEssenceQiBonus(@NotNull Player player) {
         MobEffectInstance effect = player.getEffect(ModEffects.ESSENCE_QI);
         return effect == null ? 0.0
-                : ESSENCE_QI_REGEN_BONUS[Math.clamp(effect.getAmplifier(), 0, ESSENCE_QI_REGEN_BONUS.length - 1)];
+                : ESSENCE_QI_REGEN_BONUS[Mth.clamp(effect.getAmplifier(), 0, ESSENCE_QI_REGEN_BONUS.length - 1)];
     }
 
     public static void add(@NotNull ServerPlayer player, long delta) {
@@ -222,7 +223,7 @@ public final class ApertureEssenceService {
 
     public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
         ApertureData data = ApertureService.get(player);
-        float[] carry = player.getData(ModAttachments.ESSENCE_CARRY);
+        float[] carry = PlayerData.get(player).essenceCarry();
 
         if (isChoked(player)) {
             Arrays.fill(carry, 0.0F);

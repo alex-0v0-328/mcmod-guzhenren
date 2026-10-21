@@ -39,7 +39,8 @@ public final class ModDataComponents {
     public static final DeferredRegister.DataComponents DATA_COMPONENTS =
             DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, Guzhenren.MOD_ID);
     public static final Supplier<DataComponentType<RefinedGuState>> REFINED_GU_STATE =
-            register("refined_gu_state", RefinedGuState.CODEC, RefinedGuState.STREAM_CODEC);
+            register("refined_gu_state", RefinedGuState.CODEC,
+                    StreamCodec.of(RefinedGuState::encode, RefinedGuState::decode));
     public static final Supplier<DataComponentType<UUID>> VITAL_OWNER =
             register("vital_owner", UUIDUtil.CODEC, UUIDUtil.STREAM_CODEC);
     public static final Supplier<DataComponentType<Integer>> VITAL_APERTURE = registerInt("vital_aperture");
@@ -50,7 +51,7 @@ public final class ModDataComponents {
     public static final Supplier<DataComponentType<Long>> USED_AT = registerLong("used_at");
     public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");
     public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
-            register("leaf_growth", LeafGrowth.CODEC, LeafGrowth.STREAM_CODEC);
+            register("leaf_growth", LeafGrowth.CODEC, StreamCodec.of(LeafGrowth::encode, LeafGrowth::decode));
 
     public static void register(IEventBus modEventBus) {
         DATA_COMPONENTS.register(modEventBus);

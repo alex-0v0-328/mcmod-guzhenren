@@ -2,6 +2,7 @@ package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.PeriodicEffect;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -29,7 +30,7 @@ public final class SelfRelianceGuEffect extends PeriodicEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        int tier = Math.clamp(amplifier - 1, 0, 2);
+        int tier = Mth.clamp(amplifier - 1, 0, 2);
         float limit = entity.getMaxHealth() * (HEAL_CAP_BASE + tier * HEAL_CAP_TIER_STEP);
         if (entity.getHealth() < limit) entity.heal(Math.min(tier + 1.0F, limit - entity.getHealth()));
         return true;

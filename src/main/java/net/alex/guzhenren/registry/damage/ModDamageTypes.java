@@ -35,7 +35,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> VITAL_GU_LOST = key("vital_gu_lost");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
-        return new DamageSource(entity.registryAccess()
+        return new DamageSource(entity.level().registryAccess()
                 .registryOrThrow(Registries.DAMAGE_TYPE)
                 .getHolderOrThrow(type));
     }

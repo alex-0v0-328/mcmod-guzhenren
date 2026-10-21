@@ -1,6 +1,7 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.gameplay.clock.TimeRateContributor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
@@ -27,8 +28,8 @@ public class TimeRateUpEffect extends MobEffect implements TimeRateContributor {
         this.maxLayers = maxLayers;
     }
 
-    public int nextAmplifier(int amplifier) { return Math.clamp(amplifier + 1, 0, maxLayers - 1); }
+    public int nextAmplifier(int amplifier) { return Mth.clamp(amplifier + 1, 0, maxLayers - 1); }
 
     @Override
-    public int timeRate(int amplifier) { return ratePerLayer * Math.clamp(amplifier + 1, 1, maxLayers); }
+    public int timeRate(int amplifier) { return ratePerLayer * Mth.clamp(amplifier + 1, 1, maxLayers); }
 }

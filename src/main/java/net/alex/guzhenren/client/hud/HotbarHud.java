@@ -7,6 +7,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -52,7 +53,7 @@ abstract class HotbarHud implements LayeredDraw.Layer {
         GuiBatch.draw(g, () -> {
             g.fill(x - 1, y - 1, x + BAR_WIDTH + 1, y + BAR_HEIGHT + 1, ModPalette.BAR_BORDER);
             g.fill(x, y, x + BAR_WIDTH, y + BAR_HEIGHT, ModPalette.BAR_TRACK);
-            g.fill(x, y, x + Math.round(BAR_WIDTH * Math.clamp(fraction, 0.0F, 1.0F)), y + BAR_HEIGHT, fill);
+            g.fill(x, y, x + Math.round(BAR_WIDTH * Mth.clamp(fraction, 0.0F, 1.0F)), y + BAR_HEIGHT, fill);
             if (label != null) {
                 g.drawString(mc.font, label, x + (BAR_WIDTH - mc.font.width(label)) / 2,
                         y - TEXT_GAP - mc.font.lineHeight, ModPalette.TEXT, true);

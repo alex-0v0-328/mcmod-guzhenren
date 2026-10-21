@@ -1,16 +1,17 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The Aperture [空窍] attachment: a mortal has none, and awakening [开窍] is what puts one here. Immutable
- * record attachment keyed {@code aperture_data}, synced {@code OWNER_ONLY}, written only by {@link
+ * record attachment keyed {@code aperture_data}, synced {@code OWNER_ONLY}, written only by {@code
  * ApertureService}; holds up to {@code MAX_APERTURES}
  * (2) {@link Aperture} entries -- an empty list IS the "no aperture at all" state.
  *
@@ -25,7 +26,7 @@ import net.minecraft.network.codec.StreamCodec;
  *
  * <p>⚠ {@code with(index, aperture)} REFUSES to grow the list -- only {@code opened}/{@code insertFirst}
  * append -- the mirror of {@link ApertureStorage#with}, which GROWS to reach its index; deliberately
- * opposite. ⚠ {@code MAX_APERTURES} caps the {@code STREAM_CODEC} list too: longer is silently
+ * opposite. ⚠ {@code MAX_APERTURES} caps the {@code encode}/{@code decode} list too: longer is silently
  * truncated on sync. ⚠ Decoding heals old saves: any entry at list position 1 is marked {@code second},
  * because pre-flag saves implied it by position alone.
  *
@@ -44,14 +45,30 @@ public record ApertureData(List<Aperture> apertures) {
     public static final ApertureData DEFAULT = new ApertureData(List.of());
     public static final Codec<ApertureData> CODEC = Aperture.CODEC.listOf()
             .xmap(ApertureData::healed, ApertureData::apertures);
-    public static final StreamCodec<ByteBuf, ApertureData> STREAM_CODEC =
-            Aperture.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_APERTURES))
-                    .map(ApertureData::new, ApertureData::apertures);
 
     public ApertureData {
         apertures = apertures.size() <= MAX_APERTURES
                 ? List.copyOf(apertures)
                 : List.copyOf(apertures.subList(0, MAX_APERTURES));
+    }
+
+    public static @NotNull ApertureData decode(@NotNull FriendlyByteBuf buf) {
+        int size = buf.readVarInt();
+        if (size > MAX_APERTURES) throw new DecoderException("Value too big (" + size + " > " + MAX_APERTURES + ")");
+
+        List<Aperture> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) list.add(Aperture.decode(buf));
+        return new ApertureData(list);
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull ApertureData value) {
+        List<Aperture> list = value.apertures();
+        if (list.size() > MAX_APERTURES) {
+            throw new EncoderException("Value too big (" + list.size() + " > " + MAX_APERTURES + ")");
+        }
+
+        buf.writeVarInt(list.size());
+        for (Aperture aperture : list) Aperture.encode(buf, aperture);
     }
 
     public Aperture get(int i) { return i >= 0 && i < apertures.size() ? apertures.get(i) : Aperture.NONE; }
@@ -92,7 +109,7 @@ public record ApertureData(List<Aperture> apertures) {
         if (isFull() || firstIndex() >= 0) return opened(aperture);
 
         List<Aperture> next = new ArrayList<>(apertures);
-        next.addFirst(aperture);
+        next.add(0, aperture);
         return new ApertureData(next);
     }
 

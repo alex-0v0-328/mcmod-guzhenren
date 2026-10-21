@@ -1,6 +1,8 @@
 package net.alex.guzhenren.client.input;
 
 import net.alex.guzhenren.client.particle.RingParticle;
+import net.alex.guzhenren.network.ClientIntents;
+import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.client.Minecraft;
@@ -8,13 +10,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /**
  * The Crash Gu dash [横冲 / 直撞] on the client: holding Alt and pressing a movement key starts one. The
- * direction keys give a vertical and a horizontal step; {@link DashPayload#canDash} decides whether the worn
+ * direction keys give a vertical and a horizontal step; {@link ClientIntents#canDash} decides whether the worn
  * Crash Gu effects allow it, the same rule the server checks again. A dash switches Epic Fight into its own
  * mode, turns the camera's forward yaw by the direction, and sends {@link DashPayload}.
  *
@@ -51,7 +52,7 @@ public final class DashInput {
         if (canDash && minecraft.screen == null && shouldStartDash(alt, previousAlt, pressed)) {
             int vertical = up == down ? 0 : up ? 1 : -1;
             int horizontal = left == right ? 0 : left ? 1 : -1;
-            if (DashPayload.canDash(mainHand, vertical, horizontal,
+            if (ClientIntents.canDash(mainHand, vertical, horizontal,
                     player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
                     player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
                     player.hasEffect(ModEffects.CHARGING_CRASH_GU))) {
@@ -85,7 +86,7 @@ public final class DashInput {
                     float yRot = Mth.wrapDegrees(cameraYRot
                             - (DASH_YAW_CROSS * horizontal * (1 - Math.abs(vertical))
                             + DASH_YAW_DIAGONAL * vertical * horizontal));
-                    PacketDistributor.sendToServer(new DashPayload(vertical, horizontal, yRot));
+                    ModNetwork.sendToServer(new DashPayload(vertical, horizontal, yRot));
                     RingParticle.noteLocalDash(player.tickCount);
                 });
     }

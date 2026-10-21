@@ -2,12 +2,11 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import java.util.Optional;
-import net.alex.guzhenren.core.ModStreamCodecs;
+import net.alex.guzhenren.core.ModByteBufs;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
  * are the ONLY active nullables in the data model ({@code writeNullableEnum}). ⚠ {@code second} marks the
  * aperture opened by a Second Aperture Gu, not by Hope Gu -- the LIST position is the awakening order, the
  * flag is the identity.
- * ⚠ The stream codec is handwritten (composite caps at 6).
+ * ⚠ The buffer codec ({@code encode}/{@code decode}) is handwritten.
  *
  * @author Alex
  * @version 1.0.0
@@ -73,52 +72,46 @@ public record Aperture(
                        nourishProgress, petrified, distilling, second) ->
             new Aperture(rank, stage, base, essence, primary.orElse(null), secondary.orElse(null), distilled,
                     pressure, deadline, nourishProgress, petrified, distilling, second)));
-    private static final StreamCodec<ByteBuf, Rank> RANK = ModStreamCodecs.ofEnum(Rank.class);
-    private static final StreamCodec<ByteBuf, Stage> STAGE = ModStreamCodecs.ofEnum(Stage.class);
-    public static final StreamCodec<ByteBuf, Aperture> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public @NotNull Aperture decode(@NotNull ByteBuf buf) {
-            return new Aperture(
-                    RANK.decode(buf),
-                    STAGE.decode(buf),
-                    ByteBufCodecs.VAR_INT.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ModStreamCodecs.readNullableEnum(buf, GuPath.class),
-                    ModStreamCodecs.readNullableEnum(buf, GuPath.class),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_INT.decode(buf),
-                    ByteBufCodecs.VAR_LONG.decode(buf),
-                    ByteBufCodecs.VAR_INT.decode(buf),
-                    ByteBufCodecs.BOOL.decode(buf),
-                    ByteBufCodecs.BOOL.decode(buf),
-                    ByteBufCodecs.BOOL.decode(buf));
-        }
+    public static @NotNull Aperture decode(@NotNull FriendlyByteBuf buf) {
+        return new Aperture(
+                ModByteBufs.readEnum(buf, Rank.class),
+                ModByteBufs.readEnum(buf, Stage.class),
+                buf.readVarInt(),
+                buf.readVarLong(),
+                ModByteBufs.readNullableEnum(buf, GuPath.class),
+                ModByteBufs.readNullableEnum(buf, GuPath.class),
+                buf.readVarLong(),
+                buf.readVarInt(),
+                buf.readVarLong(),
+                buf.readVarInt(),
+                buf.readBoolean(),
+                buf.readBoolean(),
+                buf.readBoolean());
+    }
 
-        @Override
-        public void encode(@NotNull ByteBuf buf, @NotNull Aperture value) {
-            RANK.encode(buf, value.rank());
-            STAGE.encode(buf, value.stage());
-            ByteBufCodecs.VAR_INT.encode(buf, value.baseEssence());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.currentEssence());
-            ModStreamCodecs.writeNullableEnum(buf, value.primaryPath());
-            ModStreamCodecs.writeNullableEnum(buf, value.secondaryPath());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.distilledEssence());
-            ByteBufCodecs.VAR_INT.encode(buf, value.pressure());
-            ByteBufCodecs.VAR_LONG.encode(buf, value.pressureDeadlineTick());
-            ByteBufCodecs.VAR_INT.encode(buf, value.nourishProgress());
-            ByteBufCodecs.BOOL.encode(buf, value.petrified());
-            ByteBufCodecs.BOOL.encode(buf, value.distilling());
-            ByteBufCodecs.BOOL.encode(buf, value.second());
-        }
-    };
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull Aperture value) {
+        ModByteBufs.writeEnum(buf, value.rank());
+        ModByteBufs.writeEnum(buf, value.stage());
+        buf.writeVarInt(value.baseEssence());
+        buf.writeVarLong(value.currentEssence());
+        ModByteBufs.writeNullableEnum(buf, value.primaryPath());
+        ModByteBufs.writeNullableEnum(buf, value.secondaryPath());
+        buf.writeVarLong(value.distilledEssence());
+        buf.writeVarInt(value.pressure());
+        buf.writeVarLong(value.pressureDeadlineTick());
+        buf.writeVarInt(value.nourishProgress());
+        buf.writeBoolean(value.petrified());
+        buf.writeBoolean(value.distilling());
+        buf.writeBoolean(value.second());
+    }
 
     public Aperture {
-        baseEssence = baseEssence <= 0 ? 0 : Math.clamp(baseEssence, MIN_BASE, MAX_BASE);
-        currentEssence = Math.clamp(currentEssence, 0L, maxEssence(rank, stage, baseEssence));
-        distilledEssence = Math.clamp(distilledEssence, 0L, maxEssence(rank, stage, baseEssence));
-        pressure = Math.clamp(pressure, 0, MAX_PRESSURE);
+        baseEssence = baseEssence <= 0 ? 0 : Mth.clamp(baseEssence, MIN_BASE, MAX_BASE);
+        currentEssence = Math.min(maxEssence(rank, stage, baseEssence), Math.max(currentEssence, 0L));
+        distilledEssence = Math.min(maxEssence(rank, stage, baseEssence), Math.max(distilledEssence, 0L));
+        pressure = Mth.clamp(pressure, 0, MAX_PRESSURE);
         pressureDeadlineTick = pressure == PRESSURE_COUNTDOWN_START ? Math.max(0L, pressureDeadlineTick) : 0L;
-        nourishProgress = Math.clamp(nourishProgress, 0, ApertureNourishData.FULL);
+        nourishProgress = Mth.clamp(nourishProgress, 0, ApertureNourishData.FULL);
         if (secondaryPath != null && secondaryPath == primaryPath) secondaryPath = null;
     }
 

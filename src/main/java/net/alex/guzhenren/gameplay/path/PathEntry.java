@@ -3,13 +3,12 @@ package net.alex.guzhenren.gameplay.path;
 import com.google.common.math.LongMath;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import net.alex.guzhenren.core.ModStreamCodecs;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.alex.guzhenren.core.ModByteBufs;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * One Path's [流派] standing: its attainment grade, plus the tagged tallies that got it there.
@@ -36,13 +35,20 @@ public record PathEntry(GuAttainment attainment, Map<MarkTag, Long> marks) {
             GuAttainment.CODEC.optionalFieldOf("attainment", GuAttainment.NONE).forGetter(PathEntry::attainment),
             TAGS.optionalFieldOf("marks", Map.of()).forGetter(PathEntry::marks)
     ).apply(instance, PathEntry::new));
-    public static final StreamCodec<ByteBuf, PathEntry> STREAM_CODEC = StreamCodec.composite(
-            ModStreamCodecs.ofEnum(GuAttainment.class), PathEntry::attainment,
-            ModStreamCodecs.enumMap(MarkTag.class, ByteBufCodecs.VAR_LONG), PathEntry::marks,
-            PathEntry::new);
 
     public PathEntry {
         marks = normalized(marks);
+    }
+
+    public static @NotNull PathEntry decode(@NotNull FriendlyByteBuf buf) {
+        return new PathEntry(
+                ModByteBufs.readEnum(buf, GuAttainment.class),
+                ModByteBufs.readEnumMap(buf, MarkTag.class, FriendlyByteBuf::readVarLong));
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull PathEntry value) {
+        ModByteBufs.writeEnum(buf, value.attainment());
+        ModByteBufs.writeEnumMap(buf, value.marks(), FriendlyByteBuf::writeVarLong);
     }
 
     public long markTotal() { return sum(marks); }

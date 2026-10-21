@@ -2,6 +2,7 @@ package net.alex.guzhenren.effect.pool;
 
 import net.alex.guzhenren.gameplay.attribute.AttackContributor;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
@@ -32,6 +33,6 @@ public class StrengthQiEffect extends MobEffect implements AttackContributor {
 
     @Override
     public double attackBonus(int amplifier) {
-        return ATTACK_BONUS[Math.clamp(amplifier, 0, ATTACK_BONUS.length - 1)];
+        return ATTACK_BONUS[Mth.clamp(amplifier, 0, ATTACK_BONUS.length - 1)];
     }
 }

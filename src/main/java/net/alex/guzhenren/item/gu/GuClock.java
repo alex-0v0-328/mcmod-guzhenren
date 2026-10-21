@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu;
 
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -54,7 +55,7 @@ public sealed interface GuClock {
 
         private void setHunger(ItemStack stack, int value) {
             RefinedGuState s = state(stack);
-            stack.set(ModDataComponents.REFINED_GU_STATE.get(), s.withHunger(Math.clamp(value, 0, max)));
+            stack.set(ModDataComponents.REFINED_GU_STATE.get(), s.withHunger(Mth.clamp(value, 0, max)));
         }
 
         private int hunger(ItemStack stack) { return state(stack).hunger(); }

@@ -2,15 +2,14 @@ package net.alex.guzhenren.item.gu;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The per-stack state a tended Gu [需照顾] carries: how far refined, how well fed, how badly hurt.
  *
- * <p>An immutable record stored on the {@code REFINED_GU_STATE} data component. Its five fields fit
- * the composite stream codec. The compact constructor clamps every field to {@code >= 0}.
+ * <p>An immutable record stored on the {@code REFINED_GU_STATE} data component. The compact constructor
+ * clamps every field to {@code >= 0}.
  *
  * <p>⚠ Stores damage taken rather than health remaining, so a wild Gu's zero already reads as
  * undamaged. Turning that around would need a special case in every reader.
@@ -32,13 +31,19 @@ public record RefinedGuState(boolean refined, int refineProgress, int investedEs
             Codec.INT.optionalFieldOf("hunger", 0).forGetter(RefinedGuState::hunger),
             Codec.INT.optionalFieldOf("damage_taken", 0).forGetter(RefinedGuState::damageTaken)
     ).apply(instance, RefinedGuState::new));
-    public static final StreamCodec<ByteBuf, RefinedGuState> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.BOOL, RefinedGuState::refined,
-            ByteBufCodecs.VAR_INT, RefinedGuState::refineProgress,
-            ByteBufCodecs.VAR_INT, RefinedGuState::investedEssence,
-            ByteBufCodecs.VAR_INT, RefinedGuState::hunger,
-            ByteBufCodecs.VAR_INT, RefinedGuState::damageTaken,
-            RefinedGuState::new);
+
+    public static @NotNull RefinedGuState decode(@NotNull FriendlyByteBuf buf) {
+        return new RefinedGuState(buf.readBoolean(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                buf.readVarInt());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull RefinedGuState value) {
+        buf.writeBoolean(value.refined());
+        buf.writeVarInt(value.refineProgress());
+        buf.writeVarInt(value.investedEssence());
+        buf.writeVarInt(value.hunger());
+        buf.writeVarInt(value.damageTaken());
+    }
 
     public RefinedGuState {
         refineProgress = Math.max(0, refineProgress);

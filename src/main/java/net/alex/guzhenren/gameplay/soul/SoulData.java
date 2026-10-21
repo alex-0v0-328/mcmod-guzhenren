@@ -2,13 +2,12 @@ package net.alex.guzhenren.gameplay.soul;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Soul [魂魄], the one pool that is lethal at the bottom. Immutable record attachment keyed {@code
- * soul_data}; {@link SoulService} is the only runtime writer; the
+ * soul_data}; {@code SoulService} is the only runtime writer; the
  * compact ctor floors {@code maxSoul} at zero and clamps {@code currentSoul} to {@code [0, max]}.
  *
  * <p>⚠ The cap is STORED rather than derived, because nothing else determines it -- compare Epic Fight
@@ -32,14 +31,19 @@ public record SoulData(long maxSoul, long currentSoul) {
             Codec.LONG.optionalFieldOf("max_soul", DEFAULT_MAX_SOUL).forGetter(SoulData::maxSoul),
             Codec.LONG.optionalFieldOf("current_soul", DEFAULT_MAX_SOUL).forGetter(SoulData::currentSoul)
     ).apply(instance, SoulData::new));
-    public static final StreamCodec<ByteBuf, SoulData> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_LONG, SoulData::maxSoul,
-            ByteBufCodecs.VAR_LONG, SoulData::currentSoul,
-            SoulData::new);
 
     public SoulData {
         maxSoul = Math.max(0L, maxSoul);
-        currentSoul = Math.clamp(currentSoul, 0L, maxSoul);
+        currentSoul = Math.min(maxSoul, Math.max(currentSoul, 0L));
+    }
+
+    public static @NotNull SoulData decode(@NotNull FriendlyByteBuf buf) {
+        return new SoulData(buf.readVarLong(), buf.readVarLong());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull SoulData value) {
+        buf.writeVarLong(value.maxSoul());
+        buf.writeVarLong(value.currentSoul());
     }
 
     public SoulTier tier() { return SoulTier.fromSoul(maxSoul); }

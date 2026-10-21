@@ -2,7 +2,7 @@ package net.alex.guzhenren.gameplay.attribute;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -53,11 +53,11 @@ public final class MaxHealthService {
     }
 
     public static void carry(@NotNull ServerPlayer player) {
-        player.setData(ModAttachments.HEALTH_CARRY, player.getHealth());
+        PlayerData.get(player).setHealthCarry(player.getHealth());
     }
 
     public static void restoreCarried(@NotNull ServerPlayer player) {
-        Float carried = player.removeData(ModAttachments.HEALTH_CARRY);
+        Float carried = PlayerData.get(player).takeHealthCarry();
         if (carried != null && carried > VANILLA_MAX_HEALTH && player.getHealth() == (float) VANILLA_MAX_HEALTH) {
             player.setHealth(carried);
         }

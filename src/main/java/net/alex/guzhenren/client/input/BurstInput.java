@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.input;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.flight.FlightService;
+import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.ToggleBurstPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -12,7 +13,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -65,7 +65,7 @@ public final class BurstInput {
 
         if (DOUBLE_TAP.press(ticks)
                 && (FlightService.isBursting(player) || FlightService.getGrant(player).allowsBurst())) {
-            PacketDistributor.sendToServer(ToggleBurstPayload.INSTANCE);
+            ModNetwork.sendToServer(ToggleBurstPayload.INSTANCE);
         }
     }
 }

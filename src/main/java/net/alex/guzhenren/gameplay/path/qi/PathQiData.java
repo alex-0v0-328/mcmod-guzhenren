@@ -1,18 +1,18 @@
 package net.alex.guzhenren.gameplay.path.qi;
 
 import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import net.alex.guzhenren.core.ModStreamCodecs;
+import net.alex.guzhenren.core.ModByteBufs;
 import net.alex.guzhenren.core.Ticks;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Qi [气] holdings, sparse: a kind missing from the map is simply one the player is not holding.
- * Immutable record attachment keyed {@code qi_data}; {@link
+ * Immutable record attachment keyed {@code qi_data}; {@code
  * PathQiService} is the only runtime writer. Each {@link
  * PathQiEntry} is a time anchor, not a running total; {@code current(kind, now)} derives the live amount.
  *
@@ -32,13 +32,19 @@ public record PathQiData(Map<QiKind, PathQiEntry> entries) {
     public static final PathQiData DEFAULT = new PathQiData(Map.of());
     public static final Codec<PathQiData> CODEC = Codec.unboundedMap(QiKind.CODEC, PathQiEntry.CODEC)
             .xmap(PathQiData::new, PathQiData::entries);
-    public static final StreamCodec<ByteBuf, PathQiData> STREAM_CODEC =
-            ModStreamCodecs.enumMap(QiKind.class, PathQiEntry.STREAM_CODEC).map(PathQiData::new, PathQiData::entries);
 
     public PathQiData {
         Map<QiKind, PathQiEntry> copy = new EnumMap<>(QiKind.class);
         copy.putAll(entries);
         entries = Collections.unmodifiableMap(copy);
+    }
+
+    public static @NotNull PathQiData decode(@NotNull FriendlyByteBuf buf) {
+        return new PathQiData(ModByteBufs.readEnumMap(buf, QiKind.class, PathQiEntry::decode));
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull PathQiData value) {
+        ModByteBufs.writeEnumMap(buf, value.entries(), PathQiEntry::encode);
     }
 
     public @Nullable PathQiEntry get(QiKind kind) { return entries.get(kind); }
@@ -51,7 +57,7 @@ public record PathQiData(Map<QiKind, PathQiEntry> entries) {
         long elapsedSeconds = (now - entry.holdEndTick()) / Ticks.SECOND;
         int tier = Math.max(0, QiKind.tierOf(entry.amount()));
         long rate = QiKind.decayPerSecond(tier);
-        long decaySeconds = Math.ceilDiv(entry.amount(), rate);
+        long decaySeconds = -Math.floorDiv(-entry.amount(), rate);
         if (elapsedSeconds >= decaySeconds) return 0L;
         return entry.amount() - rate * elapsedSeconds;
     }

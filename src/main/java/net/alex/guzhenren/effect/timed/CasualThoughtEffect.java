@@ -5,6 +5,7 @@ import net.alex.guzhenren.effect.PeriodicEffect;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public class CasualThoughtEffect extends PeriodicEffect {
     @Override
     public boolean applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
         if (entity instanceof ServerPlayer player) {
-            int index = Math.clamp(amplifier, 0, RANGES.length - 1);
+            int index = Mth.clamp(amplifier, 0, RANGES.length - 1);
             int amount = player.getRandom().nextIntBetweenInclusive(RANGES[index][0], RANGES[index][1]);
             MindService.addThoughts(player, amount, ThoughtTag.NATURAL);
         }

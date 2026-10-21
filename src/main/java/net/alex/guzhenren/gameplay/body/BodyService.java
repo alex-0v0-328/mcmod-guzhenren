@@ -5,10 +5,10 @@ import java.math.BigInteger;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.MarkTag;
 import net.alex.guzhenren.gameplay.path.PathService;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -62,7 +62,7 @@ public final class BodyService {
         return server.overworld().getDayTime() / Ticks.DAY;
     }
 
-    public static @NotNull BodyData get(@NotNull Player player) { return player.getData(ModAttachments.BODY); }
+    public static @NotNull BodyData get(@NotNull Player player) { return PlayerData.get(player).body(); }
 
     public static boolean isZombie(@NotNull Player player) { return get(player).isZombie(); }
 
@@ -83,7 +83,7 @@ public final class BodyService {
     public static long getGameTime(@NotNull Player player) { return player.level().getGameTime(); }
 
     private static void store(ServerPlayer player, BodyData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.BODY, data);
+        PlayerData.get(player).setBody(data);
     }
 
     //region lifespan and age [寿元与年龄] -- ⚠ every caller speaks YEARS; only this file knows parts

@@ -3,15 +3,14 @@ package net.alex.guzhenren.gameplay.mind;
 import com.google.common.math.LongMath;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * One mind pool of one {@link MindPoolType}; leaf record nested inside {@link MindData};
  * immutable, standard {@code DEFAULT}-codec-stream shape.
  *
- * <p>⚠ Not self-clamping: only some wisdom types may burst past their cap, so the clamp lives in {@link
+ * <p>⚠ Not self-clamping: only some wisdom types may burst past their cap, so the clamp lives in {@code
  * MindService} and every write passes through there. ⚠
  * {@code burstAt()} divides before multiplying ({@code max / DENOM * NUMER}) and saturates the final
  * product, preserving the intended floor-before-multiply ratio without overflow; it never falls below
@@ -32,16 +31,21 @@ public record MindPool(long current, long max, boolean bufferUsed) {
             Codec.LONG.optionalFieldOf("max", 0L).forGetter(MindPool::max),
             Codec.BOOL.optionalFieldOf("buffer_used", false).forGetter(MindPool::bufferUsed)
     ).apply(instance, MindPool::new));
-    public static final StreamCodec<ByteBuf, MindPool> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_LONG, MindPool::current,
-            ByteBufCodecs.VAR_LONG, MindPool::max,
-            ByteBufCodecs.BOOL, MindPool::bufferUsed,
-            MindPool::new);
 
     public MindPool {
         current = Math.max(0L, current);
         max = Math.max(0L, max);
         bufferUsed = bufferUsed || current > max;
+    }
+
+    public static @NotNull MindPool decode(@NotNull FriendlyByteBuf buf) {
+        return new MindPool(buf.readVarLong(), buf.readVarLong(), buf.readBoolean());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull MindPool value) {
+        buf.writeVarLong(value.current());
+        buf.writeVarLong(value.max());
+        buf.writeBoolean(value.bufferUsed());
     }
 
     public static MindPool of(MindPoolType type) { return new MindPool(0L, type.getDefaultCapacity(), false); }

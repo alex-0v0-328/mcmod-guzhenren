@@ -35,9 +35,9 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * ({@code OWNER_ONLY}); {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor
  * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞].
  *
- * <p>{@link #setIfChanged} is how a service stores its record: NeoForge sends a synced attachment to its owner on
- * every {@code setData}, equal or not, so a store that changes nothing writes and sends nothing. The records compare
- * by value, so equal means the client already holds it.
+ * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
+ * synced attachment to its owner on every {@code setData}, equal or not, so a store that changes nothing writes and
+ * sends nothing. The records compare by value, so equal means the client already holds it.
  *
  * <p>Every attachment the two helpers register is inherited: NeoForge copies it to every clone, a death
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
@@ -69,38 +69,46 @@ public final class ModAttachments {
 
     //region Aperture [空窍]
     public static final Supplier<AttachmentType<ApertureData>> APERTURE =
-            registerSynced("aperture_data", ApertureData.DEFAULT, ApertureData.CODEC, ApertureData.STREAM_CODEC);
+            registerSynced("aperture_data", ApertureData.DEFAULT, ApertureData.CODEC,
+                    StreamCodec.of(ApertureData::encode, ApertureData::decode));
     public static final Supplier<AttachmentType<float[]>> ESSENCE_CARRY = ATTACHMENT_TYPES.register(
             "essence_carry", () -> AttachmentType.builder(
                     () -> new float[ApertureData.MAX_APERTURES]).build());
     public static final Supplier<AttachmentType<ApertureStorage>> APERTURE_STORAGE =
             registerSaved("aperture_storage", ApertureStorage.DEFAULT, ApertureStorage.CODEC);
     public static final Supplier<AttachmentType<ApertureNourishData>> APERTURE_NOURISH = registerSynced(
-            "nourish_data", ApertureNourishData.DEFAULT, ApertureNourishData.CODEC, ApertureNourishData.STREAM_CODEC);
+            "nourish_data", ApertureNourishData.DEFAULT, ApertureNourishData.CODEC,
+            StreamCodec.of(ApertureNourishData::encode, ApertureNourishData::decode));
     //endregion
 
     //region Body [肉身]
     public static final Supplier<AttachmentType<BodyData>> BODY =
-            registerSynced("body_data", BodyData.DEFAULT, BodyData.CODEC, BodyData.STREAM_CODEC);
+            registerSynced("body_data", BodyData.DEFAULT, BodyData.CODEC,
+                    StreamCodec.of(BodyData::encode, BodyData::decode));
     //endregion
 
     //region Soul [魂魄]
     public static final Supplier<AttachmentType<SoulData>> SOUL =
-            registerSynced("soul_data", SoulData.DEFAULT, SoulData.CODEC, SoulData.STREAM_CODEC);
+            registerSynced("soul_data", SoulData.DEFAULT, SoulData.CODEC,
+                    StreamCodec.of(SoulData::encode, SoulData::decode));
     //endregion
 
     //region Path [流派]
     public static final Supplier<AttachmentType<PathData>> PATH =
-            registerSynced("path_data", PathData.DEFAULT, PathData.CODEC, PathData.STREAM_CODEC);
+            registerSynced("path_data", PathData.DEFAULT, PathData.CODEC,
+                    StreamCodec.of(PathData::encode, PathData::decode));
     public static final Supplier<AttachmentType<PathStrengthData>> PATH_STRENGTH = registerSynced(
-            "strength_data", PathStrengthData.DEFAULT, PathStrengthData.CODEC, PathStrengthData.STREAM_CODEC);
+            "strength_data", PathStrengthData.DEFAULT, PathStrengthData.CODEC,
+            StreamCodec.of(PathStrengthData::encode, PathStrengthData::decode));
     public static final Supplier<AttachmentType<PathQiData>> PATH_QI =
-            registerSynced("qi_data", PathQiData.DEFAULT, PathQiData.CODEC, PathQiData.STREAM_CODEC);
+            registerSynced("qi_data", PathQiData.DEFAULT, PathQiData.CODEC,
+                    StreamCodec.of(PathQiData::encode, PathQiData::decode));
     //endregion
 
     //region Mind [脑海]
     public static final Supplier<AttachmentType<MindData>> MIND =
-            registerSynced("mind_data", MindData.DEFAULT, MindData.CODEC, MindData.STREAM_CODEC);
+            registerSynced("mind_data", MindData.DEFAULT, MindData.CODEC,
+                    StreamCodec.of(MindData::encode, MindData::decode));
     //endregion
 
     //region Dimension return [维度往返]
@@ -128,12 +136,6 @@ public final class ModAttachments {
 
     public static List<AttachmentType<?>> getInherited() {
         return INHERITED.stream().map(Supplier::get).toList();
-    }
-
-    public static <T> boolean setIfChanged(ServerPlayer player, Supplier<AttachmentType<T>> type, T data) {
-        if (data.equals(player.getData(type))) return false;
-        player.setData(type, data);
-        return true;
     }
 
     private static <T> Supplier<AttachmentType<T>> registerSynced(

@@ -5,6 +5,7 @@ import net.alex.guzhenren.effect.PeriodicEffect;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public class MaliciousThoughtEffect extends PeriodicEffect {
     @Override
     public boolean applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
         if (entity instanceof ServerPlayer player) {
-            int index = Math.clamp(amplifier, 0, evilPerSecond.length - 1);
+            int index = Mth.clamp(amplifier, 0, evilPerSecond.length - 1);
             MindService.addThoughts(player, evilPerSecond[index], ThoughtTag.EVIL);
         }
         return true;

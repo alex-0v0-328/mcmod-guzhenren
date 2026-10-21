@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.core.WeightedPick;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
@@ -61,7 +62,7 @@ public enum Talent implements NamedEnum {
     public int getStaminaMaxPercent() { return staminaMaxPercent; }
 
     public Talent shift(int delta) {
-        return values()[Math.clamp(ordinal() - delta, HIGHEST.ordinal(), LOWEST.ordinal())];
+        return values()[Mth.clamp(ordinal() - delta, HIGHEST.ordinal(), LOWEST.ordinal())];
     }
 
     public static Talent[] settable() { return Arrays.copyOfRange(values(), HIGHEST.ordinal(), LOWEST.ordinal() + 1); }

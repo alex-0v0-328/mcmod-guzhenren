@@ -2,14 +2,13 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import net.alex.guzhenren.core.Ticks;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Nourishing the Aperture [温养空窍]: whether a run is going, and which aperture it feeds. Immutable
- * record attachment keyed {@code nourish_data}; {@link
+ * record attachment keyed {@code nourish_data}; {@code
  * ApertureNourishService} is the only runtime writer; progress
  * percent and the petrified latch live on {@link Aperture} itself.
  *
@@ -36,11 +35,16 @@ public record ApertureNourishData(boolean cultivating, int target, long starvedS
             Codec.LONG.optionalFieldOf("starved_since_tick", NOT_STARVED)
                     .forGetter(ApertureNourishData::starvedSinceTick)
     ).apply(instance, ApertureNourishData::new));
-    public static final StreamCodec<ByteBuf, ApertureNourishData> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.BOOL, ApertureNourishData::cultivating,
-            ByteBufCodecs.VAR_INT, ApertureNourishData::target,
-            ByteBufCodecs.VAR_LONG, ApertureNourishData::starvedSinceTick,
-            ApertureNourishData::new);
+
+    public static @NotNull ApertureNourishData decode(@NotNull FriendlyByteBuf buf) {
+        return new ApertureNourishData(buf.readBoolean(), buf.readVarInt(), buf.readVarLong());
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull ApertureNourishData value) {
+        buf.writeBoolean(value.cultivating());
+        buf.writeVarInt(value.target());
+        buf.writeVarLong(value.starvedSinceTick());
+    }
 
     public boolean isStarving() { return starvedSinceTick != NOT_STARVED; }
 

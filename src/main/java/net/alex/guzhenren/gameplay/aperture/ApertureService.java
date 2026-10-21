@@ -4,13 +4,14 @@ import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.MarkTag;
 import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +72,7 @@ public final class ApertureService {
         }
     }
 
-    public static @NotNull ApertureData get(@NotNull Player player) { return player.getData(ModAttachments.APERTURE); }
+    public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).aperture(); }
 
     public static @NotNull Aperture getAperture(@NotNull Player player) { return get(player).primary(); }
 
@@ -171,7 +172,7 @@ public final class ApertureService {
     }
 
     public static boolean setBaseEssence(@NotNull ServerPlayer player, int index, int value) {
-        int clamped = Math.clamp(value, Aperture.MIN_BASE, Aperture.MAX_BASE);
+        int clamped = Mth.clamp(value, Aperture.MIN_BASE, Aperture.MAX_BASE);
         return set(player, index, getAperture(player, index).withBaseEssence(clamped));
     }
 
@@ -216,7 +217,7 @@ public final class ApertureService {
     }
 
     private static void store(ServerPlayer player, ApertureData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.APERTURE, data);
+        PlayerData.get(player).setAperture(data);
         NeoForge.EVENT_BUS.post(new ApertureChangedEvent(player));
     }
 

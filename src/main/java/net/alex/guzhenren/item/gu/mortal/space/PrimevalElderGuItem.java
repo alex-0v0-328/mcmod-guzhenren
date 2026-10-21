@@ -51,7 +51,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     private void setStored(ItemStack stack, long value) {
-        stack.set(ModDataComponents.STORED_STONES.get(), Math.clamp(value, 0L, capacity));
+        stack.set(ModDataComponents.STORED_STONES.get(), Math.min(capacity, Math.max(value, 0L)));
     }
 
     private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
@@ -147,13 +147,13 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     public int drawStones(ItemStack stack, int wanted) {
-        int taken = (int) Math.clamp(wanted, 0, stored(stack));
+        int taken = (int) Math.min(stored(stack), Math.max(wanted, 0L));
         if (taken > 0) setStored(stack, stored(stack) - taken);
         return taken;
     }
 
     public int storeStones(ItemStack stack, int amount) {
-        int room = (int) Math.clamp(amount, 0, capacity - stored(stack));
+        int room = (int) Math.min(capacity - stored(stack), Math.max(amount, 0L));
         if (room > 0) setStored(stack, stored(stack) + room);
         return room;
     }

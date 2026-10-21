@@ -94,7 +94,7 @@ public final class TimeFlow {
 
     //region the arithmetic alone -- a rate rather than a player, so it can be asserted without a world
     public static int shortenWait(double rate, int ticks) {
-        return ticks <= 0 ? ticks : Math.clamp((long) (ticks / rate), 1, Integer.MAX_VALUE);
+        return ticks <= 0 ? ticks : (int) Math.min(Integer.MAX_VALUE, Math.max((long) (ticks / rate), 1L));
     }
 
     public static long scale(double rate, long amount, @NotNull RandomSource random) {

@@ -2,20 +2,19 @@ package net.alex.guzhenren.gameplay.path.strength;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import net.alex.guzhenren.core.ModStreamCodecs;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.alex.guzhenren.core.ModByteBufs;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Strength [力道]: the beast and human strengths a player has refined into themselves. Immutable record
- * attachment keyed {@code strength_data}; {@link
+ * attachment keyed {@code strength_data}; {@code
  * PathStrengthService} is the only runtime writer. A {@code Set}
  * of {@link BeastStrength} plus a sparse {@code Map} of {@link HumanStrength} layer counts, ctor-capped.
  *
@@ -39,10 +38,6 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
             Codec.unboundedMap(HumanStrength.CODEC, Codec.INT).optionalFieldOf("human_strength", Map.of())
                     .forGetter(PathStrengthData::humanStrength)
     ).apply(instance, (beasts, humanStrength) -> new PathStrengthData(Set.copyOf(beasts), humanStrength)));
-    public static final StreamCodec<ByteBuf, PathStrengthData> STREAM_CODEC = StreamCodec.composite(
-            ModStreamCodecs.enumSet(BeastStrength.class), PathStrengthData::beasts,
-            ModStreamCodecs.enumMap(HumanStrength.class, ByteBufCodecs.VAR_INT), PathStrengthData::humanStrength,
-            PathStrengthData::new);
 
     public PathStrengthData {
         EnumSet<BeastStrength> takenBeasts = EnumSet.noneOf(BeastStrength.class);
@@ -54,6 +49,17 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
             if (count != null && count > 0) pruned.put(kind, Math.min(count, kind.getMaxLayers()));
         });
         humanStrength = Collections.unmodifiableMap(pruned);
+    }
+
+    public static @NotNull PathStrengthData decode(@NotNull FriendlyByteBuf buf) {
+        return new PathStrengthData(
+                ModByteBufs.readEnumSet(buf, BeastStrength.class),
+                ModByteBufs.readEnumMap(buf, HumanStrength.class, FriendlyByteBuf::readVarInt));
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull PathStrengthData value) {
+        ModByteBufs.writeEnumSet(buf, value.beasts());
+        ModByteBufs.writeEnumMap(buf, value.humanStrength(), FriendlyByteBuf::writeVarInt);
     }
 
     public boolean has(BeastStrength beast) { return beasts.contains(beast); }

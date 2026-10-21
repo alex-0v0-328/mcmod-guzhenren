@@ -141,7 +141,7 @@ public final class PlayerStatsHud implements LayeredDraw.Layer {
 
     private static Bar bar(int y, long current, long max, int fill) {
         int track = BAR_WIDTH - 2;
-        int filled = max <= 0L ? 0 : Math.clamp(Math.round(track * (current / (double) max)), 0, track);
+        int filled = max <= 0L ? 0 : (int) Math.min(track, Math.max(Math.round(track * (current / (double) max)), 0L));
         return new Bar(y, filled, fill, ModDisplayText.pool(current, max));
     }
 

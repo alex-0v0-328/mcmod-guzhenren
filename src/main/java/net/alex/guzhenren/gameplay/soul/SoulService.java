@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.soul;
 
 import com.google.common.math.LongMath;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ public final class SoulService {
 
     private SoulService() {}
 
-    public static @NotNull SoulData get(@NotNull Player player) { return player.getData(ModAttachments.SOUL); }
+    public static @NotNull SoulData get(@NotNull Player player) { return PlayerData.get(player).soul(); }
 
     public static void setMax(@NotNull ServerPlayer player, long value) {
         store(player, get(player).withMaxSoul(value));
@@ -50,7 +50,7 @@ public final class SoulService {
     public static void revive(@NotNull ServerPlayer player) { store(player, get(player).revived()); }
 
     private static void store(ServerPlayer player, SoulData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.SOUL, data);
+        PlayerData.get(player).setSoul(data);
     }
 
     public static boolean consume(@NotNull ServerPlayer player, long amount) {

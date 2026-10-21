@@ -1,8 +1,8 @@
 package net.alex.guzhenren.gameplay.flight;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  * player fly, so a survival player falls when the effect runs out. Creative and the Treasure Yellow Heaven bring
  * their own flight, so a burst needs no modifier of its own.
  *
- * <p>{@link #startBurst} marks the burst ({@code ModAttachments.BURST}, synced to its owner) before turning flying
+ * <p>{@link #startBurst} marks the burst ({@code PlayerData#setBurst}, synced to its owner) before turning flying
  * on, so the client sees the mark first and a player standing on the ground jumps before its landing check can end
  * the flight ({@code net.alex.guzhenren.client.event.BurstEvents}). {@link #tick} runs every server tick: it
  * refreshes the Gu flight, then ends a burst once the player stops flying (the client landed, or vanilla's double
@@ -89,7 +89,7 @@ public final class FlightService {
     }
 
     public static boolean isBursting(@NotNull Player player) {
-        return player.hasData(ModAttachments.BURST);
+        return PlayerData.get(player).burst();
     }
 
     public static void toggleBurst(@NotNull ServerPlayer player) {
@@ -104,14 +104,14 @@ public final class FlightService {
         if (!getGrant(player).allowsBurst()) return false;
 
         refreshGuFlight(player);
-        player.setData(ModAttachments.BURST, true);
+        PlayerData.get(player).setBurst(true);
         player.getAbilities().flying = true;
         player.onUpdateAbilities();
         return true;
     }
 
     public static void stopBurst(@NotNull ServerPlayer player) {
-        player.removeData(ModAttachments.BURST);
+        PlayerData.get(player).setBurst(false);
         if (!player.mayFly()) player.getAbilities().flying = false;
         player.onUpdateAbilities();
     }

@@ -3,10 +3,11 @@ package net.alex.guzhenren.gameplay.aperture;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * {@code EXPLOSION_RADIUS_PER_RANK} times the rank's ordinal plus one (32 at rank one, 96 at rank five), plus
  * {@code GREAT_STRENGTH_RADIUS_BONUS} for Great Strength True Martial [大力真武体], 112 at most.
  *
- * <p>⚠ Pressure writes go straight to the attachment, not through {@code ApertureService.store}: they
+ * <p>⚠ Pressure writes go straight to {@code PlayerData}, not through {@code ApertureService.store}: they
  * change neither rank nor stage, so health and Epic Fight need no refresh.
  *
  * @author Alex
@@ -120,7 +121,7 @@ public final class AperturePressureService {
     }
 
     private static int getExplosionRadius(Rank rank, ExtremePhysique physique) {
-        int rankStep = Math.clamp(rank.ordinal(), Rank.LOWEST.ordinal(), Rank.HIGHEST.ordinal()) + 1;
+        int rankStep = Mth.clamp(rank.ordinal(), Rank.LOWEST.ordinal(), Rank.HIGHEST.ordinal()) + 1;
         int radius = EXPLOSION_RADIUS_PER_RANK * rankStep;
         return physique == ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL ? radius + GREAT_STRENGTH_RADIUS_BONUS : radius;
     }
@@ -129,7 +130,7 @@ public final class AperturePressureService {
         Aperture current = ApertureService.getAperture(player, index);
         if (!BodyService.isExtreme(player) || index != ApertureData.PRIMARY
                 || (current.pressure() == value && current.pressureDeadlineTick() == deadline)) return;
-        player.setData(ModAttachments.APERTURE,
+        PlayerData.get(player).setAperture(
                 ApertureService.get(player).with(index, current.withPressureAndDeadline(value, deadline)));
     }
 }

@@ -3,9 +3,10 @@ package net.alex.guzhenren.gameplay.aperture;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +84,7 @@ public final class ApertureNourishService {
     public static void setStonePurse(@NotNull StonePurse purse) { stones = purse; }
 
     public static @NotNull ApertureNourishData get(@NotNull Player player) {
-        return player.getData(ModAttachments.APERTURE_NOURISH);
+        return PlayerData.get(player).nourish();
     }
 
     public static boolean isCultivating(@NotNull Player player) { return get(player).cultivating(); }
@@ -94,7 +95,7 @@ public final class ApertureNourishService {
 
     public static int getTargetIndex(@NotNull Player player) {
         int count = ApertureService.get(player).count();
-        return count == 0 ? ApertureData.PRIMARY : Math.clamp(get(player).target(), ApertureData.PRIMARY, count - 1);
+        return count == 0 ? ApertureData.PRIMARY : Mth.clamp(get(player).target(), ApertureData.PRIMARY, count - 1);
     }
 
     //region what the screen asks
@@ -302,6 +303,6 @@ public final class ApertureNourishService {
     }
 
     private static void store(ServerPlayer player, ApertureNourishData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.APERTURE_NOURISH, data);
+        PlayerData.get(player).setNourish(data);
     }
 }

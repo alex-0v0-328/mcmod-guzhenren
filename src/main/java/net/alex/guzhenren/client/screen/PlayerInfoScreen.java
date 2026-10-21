@@ -10,6 +10,7 @@ import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,7 +18,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -349,7 +349,7 @@ public final class PlayerInfoScreen extends Screen {
             for (int i = 0; i < TAB_TITLES.length; i++) {
                 if (!inTab(mouseX, mouseY, i) || !tabLive(i)) continue;
                 if (i == TAB_REFINEMENT) {
-                    PacketDistributor.sendToServer(OpenRefinementPayload.INSTANCE);
+                    ModNetwork.sendToServer(OpenRefinementPayload.INSTANCE);
                 } else {
                     activeTab = i;
                     scrollRow = 0;

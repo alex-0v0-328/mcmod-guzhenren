@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.RandomAccess;
+import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -14,10 +15,10 @@ import net.minecraft.world.item.ItemStack;
 /**
  * The Gu kept inside each Aperture [空窍], including the Vital Gu [本命蛊] bound to that aperture.
  * Immutable record attachment keyed {@code aperture_storage}; serialized but NOT synced -- every reader
- * is server-side and the menu reads it through slot channels; {@link
+ * is server-side and the menu reads it through slot channels; {@code
  * ApertureStorageService} is the only runtime writer.
  *
- * <p>⚠ Uses {@code ItemStack.OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
+ * <p>⚠ Uses {@link ItemStacks#OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
  * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its
  * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
  * ⚠ {@link #view} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
@@ -47,9 +48,9 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
     public static final ApertureStorage DEFAULT = new ApertureStorage(List.of(), List.of(), List.of());
     public static final Codec<ApertureStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ItemStack.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
+            ItemStacks.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
                     .forGetter(ApertureStorage::byAperture),
-            ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("vital", List.of())
+            ItemStacks.OPTIONAL_CODEC.listOf().optionalFieldOf("vital", List.of())
                     .forGetter(ApertureStorage::vital),
             Codec.LONG.listOf().optionalFieldOf("vital_tokens", List.of())
                     .forGetter(ApertureStorage::tokens)
@@ -59,14 +60,14 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<List<ItemStack>> kept = new ArrayList<>();
         for (int i = 0; i < Math.min(byAperture.size(), ApertureData.MAX_APERTURES); i++) {
             List<ItemStack> items = own(byAperture.get(i), Integer.MAX_VALUE);
-            while (!items.isEmpty() && items.getLast().isEmpty()) items.removeLast();
+            while (!items.isEmpty() && items.get(items.size() - 1).isEmpty()) items.remove(items.size() - 1);
             kept.add(new OwnedStacks(items));
         }
-        while (!kept.isEmpty() && kept.getLast().isEmpty()) kept.removeLast();
+        while (!kept.isEmpty() && kept.get(kept.size() - 1).isEmpty()) kept.remove(kept.size() - 1);
         byAperture = Collections.unmodifiableList(kept);
 
         List<ItemStack> bound = own(vital, ApertureData.MAX_APERTURES);
-        while (!bound.isEmpty() && bound.getLast().isEmpty()) bound.removeLast();
+        while (!bound.isEmpty() && bound.get(bound.size() - 1).isEmpty()) bound.remove(bound.size() - 1);
         vital = new OwnedStacks(bound);
         tokens = List.copyOf(tokens.subList(0, Math.min(tokens.size(), ApertureData.MAX_APERTURES)));
     }
@@ -113,7 +114,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
             ItemStack current = from + i < stored.size() ? stored.get(from + i) : ItemStack.EMPTY;
             ItemStack wanted = page.get(i);
             if (wanted.getCount() != current.getCount()
-                    || !ItemStack.isSameItemSameComponents(wanted, current)) return false;
+                    || !ItemStacks.sameItemSameData(wanted, current)) return false;
         }
         return true;
     }

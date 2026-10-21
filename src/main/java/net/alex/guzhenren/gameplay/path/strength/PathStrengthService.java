@@ -1,6 +1,6 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.NeoForge;
@@ -23,7 +23,7 @@ public final class PathStrengthService {
     private PathStrengthService() {}
 
     public static @NotNull PathStrengthData get(@NotNull Player player) {
-        return player.getData(ModAttachments.PATH_STRENGTH);
+        return PlayerData.get(player).strength();
     }
 
     public static boolean has(@NotNull Player player, @NotNull BeastStrength beast) { return get(player).has(beast); }
@@ -43,7 +43,7 @@ public final class PathStrengthService {
     public static void clear(@NotNull ServerPlayer player) { store(player, PathStrengthData.DEFAULT); }
 
     private static void store(ServerPlayer player, PathStrengthData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.PATH_STRENGTH, data);
+        PlayerData.get(player).setStrength(data);
         NeoForge.EVENT_BUS.post(new StrengthChangedEvent(player));
     }
 

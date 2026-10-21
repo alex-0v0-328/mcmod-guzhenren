@@ -2,7 +2,7 @@ package net.alex.guzhenren.gameplay.path.qi;
 
 import com.google.common.math.LongMath;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,7 +35,7 @@ public final class PathQiService {
     private static final int EFFECT_REFRESH_TICKS = 2 * Ticks.SECOND;
     private static final int DEATH_QI_EFFECT_TICKS = 10 * EFFECT_REFRESH_TICKS;
 
-    public static @NotNull PathQiData get(@NotNull Player player) { return player.getData(ModAttachments.PATH_QI); }
+    public static @NotNull PathQiData get(@NotNull Player player) { return PlayerData.get(player).qi(); }
 
     public static long getCurrent(@NotNull Player player, @NotNull QiKind kind) {
         return get(player).current(kind, now(player));
@@ -62,7 +62,7 @@ public final class PathQiService {
         for (QiKind kind : QiKind.values()) {
             if (data.get(kind) != null && data.current(kind, now) <= 0L) pruned = pruned.without(kind);
         }
-        if (ModAttachments.setIfChanged(player, ModAttachments.PATH_QI, pruned)) syncEffects(player);
+        if (PlayerData.get(player).setQi(pruned)) syncEffects(player);
     }
 
     //region effect projection -- the store is the truth, the MobEffect is its display

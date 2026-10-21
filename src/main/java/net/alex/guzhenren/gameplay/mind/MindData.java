@@ -2,18 +2,17 @@ package net.alex.guzhenren.gameplay.mind;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import net.alex.guzhenren.core.ModStreamCodecs;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.alex.guzhenren.core.ModByteBufs;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Mind [脑海]: the brilliance [才情] and the three pools it drives -- thoughts [念], wills [意] and emotions
- * [情]. Immutable record attachment keyed {@code mind_data}; {@link MindService} is the only runtime writer
+ * [情]. Immutable record attachment keyed {@code mind_data}; {@code MindService} is the only runtime writer
  * ({@code PlayerDataService} resets it whole); missing {@link MindPoolType} pools are filled with
  * {@link MindPool#of} by the ctor. {@link #isOverflowing} asks only the burstable pools: a pool that can never
  * pass its cap can never shatter the mind.
@@ -40,11 +39,6 @@ public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools,
             Codec.unboundedMap(ThoughtTag.CODEC, Codec.LONG)
                     .optionalFieldOf("tagged_thoughts", Map.of()).forGetter(MindData::taggedThoughts)
     ).apply(instance, MindData::new));
-    public static final StreamCodec<ByteBuf, MindData> STREAM_CODEC = StreamCodec.composite(
-            ModStreamCodecs.ofEnum(Brilliance.class), MindData::brilliance,
-            ModStreamCodecs.enumMap(MindPoolType.class, MindPool.STREAM_CODEC), MindData::pools,
-            ModStreamCodecs.enumMap(ThoughtTag.class, ByteBufCodecs.VAR_LONG), MindData::taggedThoughts,
-            MindData::new);
 
     public MindData {
         Map<MindPoolType, MindPool> dense = new EnumMap<>(MindPoolType.class);
@@ -74,6 +68,19 @@ public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools,
             tagDense = scaled;
         }
         taggedThoughts = tagDense.isEmpty() ? Map.of() : Collections.unmodifiableMap(tagDense);
+    }
+
+    public static @NotNull MindData decode(@NotNull FriendlyByteBuf buf) {
+        return new MindData(
+                ModByteBufs.readEnum(buf, Brilliance.class),
+                ModByteBufs.readEnumMap(buf, MindPoolType.class, MindPool::decode),
+                ModByteBufs.readEnumMap(buf, ThoughtTag.class, FriendlyByteBuf::readVarLong));
+    }
+
+    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull MindData value) {
+        ModByteBufs.writeEnum(buf, value.brilliance());
+        ModByteBufs.writeEnumMap(buf, value.pools(), MindPool::encode);
+        ModByteBufs.writeEnumMap(buf, value.taggedThoughts(), FriendlyByteBuf::writeVarLong);
     }
 
     public static MindData newborn() { return new MindData(Brilliance.randomBrilliance(), Map.of(), Map.of()); }

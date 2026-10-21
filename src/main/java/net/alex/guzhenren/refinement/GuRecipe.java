@@ -177,7 +177,7 @@ public record GuRecipe(List<SizedIngredient> ingredients, List<Integer> slots, L
     @Override
     public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) { return first(); }
 
-    private ItemStack first() { return results.isEmpty() ? ItemStack.EMPTY : results.getFirst(); }
+    private ItemStack first() { return results.isEmpty() ? ItemStack.EMPTY : results.get(0); }
 
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {

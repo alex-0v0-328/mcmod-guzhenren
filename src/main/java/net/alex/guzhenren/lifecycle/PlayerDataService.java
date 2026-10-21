@@ -10,27 +10,27 @@ import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
+import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The one cross-domain lifecycle service: birth, sleep, death, clone, respawn, and a full reset. A clone
- * inherits every attachment {@link ModAttachments} registers as inherited -- NeoForge copies them -- and this
+ * inherits every value {@link PlayerData} keeps -- the loader copies them -- and this
  * is the single place that decides what a death takes back: a death that wipes resets them all
  * ({@link #resetAll}), a keepInventory death only the return point. Every domain service re-runs on
- * join/clone/reset. Birth and reset write whole attachments here, past the domain services, which are the
+ * join/clone/reset. Birth and reset write whole values here, past the domain services, which are the
  * only runtime writers.
  *
  * <p>⚠ The {@code Player} (not {@code ServerPlayer}) signature on {@code onClone}/{@code onBirth}/{@code
@@ -57,7 +57,7 @@ public final class PlayerDataService {
     private PlayerDataService() {}
 
     public static void onJoin(@NotNull ServerPlayer player) {
-        if (!player.getData(ModAttachments.BORN)) onBirth(player);
+        if (!PlayerData.get(player).born()) onBirth(player);
         BodyService.skipOfflineLifespan(player);
         ApertureService.syncTalentMarks(player);
         MaxHealthService.refresh(player);
@@ -69,8 +69,9 @@ public final class PlayerDataService {
     public static void onLogout(@NotNull ServerPlayer player) { MaxHealthService.carry(player); }
 
     public static void onBirth(@NotNull Player player) {
-        player.setData(ModAttachments.MIND, MindData.newborn());
-        player.setData(ModAttachments.BORN, true);
+        PlayerData data = PlayerData.get(player);
+        data.setMind(MindData.newborn());
+        data.setBorn(true);
     }
 
     public static void onSleepComplete(@NotNull ServerPlayer player) {
@@ -84,7 +85,7 @@ public final class PlayerDataService {
             dropHumanApertures(from);
             resetAll(to);
         } else if (wasDeath) {
-            to.removeData(ModAttachments.DIMENSION_RETURN);
+            PlayerData.get(to).setDimensionReturn(DimensionReturnData.DEFAULT);
         }
         if (to instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);
@@ -95,7 +96,7 @@ public final class PlayerDataService {
     }
 
     private static void dropHumanApertures(@NotNull Player from) {
-        ApertureData data = from.getData(ModAttachments.APERTURE);
+        ApertureData data = PlayerData.get(from).aperture();
         for (int i = 0; i < data.count(); i++) {
             Item drop = ModItems.getHumanAperture(data.get(i).rank());
             if (drop == null) continue;
@@ -122,9 +123,10 @@ public final class PlayerDataService {
 
     public static void resetAll(@NotNull Player player) {
         long lastDayIndex = BodyService.get(player).lastDayIndex();
-        for (AttachmentType<?> type : ModAttachments.getInherited()) player.removeData(type);
-        player.removeData(ModAttachments.ESSENCE_CARRY);
-        player.setData(ModAttachments.BODY, BodyData.DEFAULT.withLastDayIndex(lastDayIndex));
+        PlayerData data = PlayerData.get(player);
+        data.resetCarriedOnDeath();
+        data.resetEssenceCarry();
+        data.setBody(BodyData.DEFAULT.withLastDayIndex(lastDayIndex));
         onBirth(player);
 
         if (player instanceof ServerPlayer server) {

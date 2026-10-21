@@ -85,7 +85,7 @@ public abstract class TendedGuItem extends MortalGuItem {
                 Math.min(state.refineProgress(), refineCost()),
                 Math.min(state.investedEssence(), spec.essencePerRound()),
                 state.hunger(),
-                Math.clamp(state.damageTaken(), 0, maxHealth())));
+                Mth.clamp(state.damageTaken(), 0, maxHealth())));
     }
 
     public boolean refined(ItemStack stack) { return state(stack).refined(); }

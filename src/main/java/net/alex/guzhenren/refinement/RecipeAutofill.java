@@ -1,5 +1,6 @@
 package net.alex.guzhenren.refinement;
 
+import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.item.GuItem;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -47,7 +48,7 @@ final class RecipeAutofill {
             if (GuItem.isForeignVital(from, player)) continue;
 
             ItemStack held = input.getItem(slot);
-            if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, from)) continue;
+            if (!held.isEmpty() && !ItemStacks.sameItemSameData(held, from)) continue;
 
             int move = Math.min(Math.min(wanted, from.getCount()),
                     from.getMaxStackSize() - held.getCount());

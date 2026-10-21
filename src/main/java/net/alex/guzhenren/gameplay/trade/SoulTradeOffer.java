@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.trade;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ItemStacks;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -111,7 +112,7 @@ public record SoulTradeOffer(List<ItemCost> costs, ItemStack result) {
     private static boolean overflows(List<ItemStack> items, ItemStack stack) {
         for (ItemStack held : items) {
             if (stack.isEmpty()) return false;
-            if (held.isEmpty() || !ItemStack.isSameItemSameComponents(held, stack)) continue;
+            if (held.isEmpty() || !ItemStacks.sameItemSameData(held, stack)) continue;
 
             int moved = Math.min(held.getMaxStackSize() - held.getCount(), stack.getCount());
             if (moved <= 0) continue;

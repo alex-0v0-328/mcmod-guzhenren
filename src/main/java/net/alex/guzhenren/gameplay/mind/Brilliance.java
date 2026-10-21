@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.mind;
 import com.mojang.serialization.Codec;
 import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.core.WeightedPick;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
@@ -44,7 +45,7 @@ public enum Brilliance implements NamedEnum {
     public int getWeight() { return weight; }
 
     public Brilliance shift(int delta) {
-        return values()[Math.clamp(ordinal() + delta, LOWEST.ordinal(), HIGHEST.ordinal())];
+        return values()[Mth.clamp(ordinal() + delta, LOWEST.ordinal(), HIGHEST.ordinal())];
     }
 
     public static Brilliance randomBrilliance() { return WeightedPick.pick(values(), brilliance -> brilliance.weight); }

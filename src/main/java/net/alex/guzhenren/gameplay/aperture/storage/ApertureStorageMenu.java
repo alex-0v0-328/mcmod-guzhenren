@@ -2,12 +2,14 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -167,7 +169,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     private void load(int index) {
         loading = true;
-        int at = Math.clamp(index, 0, countPages() - 1);
+        int at = Mth.clamp(index, 0, countPages() - 1);
         pageData.set(DATA_PAGE, at);
         pageData.set(DATA_PAGES, countPages());
         pageData.set(DATA_LOAD, ApertureStorageService.load(player, aperture));
@@ -224,7 +226,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     private static boolean same(ItemStack first, ItemStack second) {
         return first.getCount() == second.getCount()
-                && ItemStack.isSameItemSameComponents(first, second);
+                && ItemStacks.sameItemSameData(first, second);
     }
     //endregion
 

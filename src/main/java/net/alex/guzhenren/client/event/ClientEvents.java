@@ -13,7 +13,7 @@ import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
-import net.alex.guzhenren.network.payload.DashPayload;
+import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -154,7 +154,7 @@ public final class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
         ItemStack mainHand = minecraft.player.getMainHandItem();
-        boolean canDash = DashPayload.canDash(mainHand);
+        boolean canDash = ClientIntents.canDash(mainHand);
         if (!canDash) {
             EpicFightCapabilities.getLocalPlayerPatchAsOptional(minecraft.player)
                     .filter(yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch::isEpicFightMode)

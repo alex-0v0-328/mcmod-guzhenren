@@ -5,7 +5,7 @@ import java.util.Map;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
-import net.alex.guzhenren.registry.attachment.ModAttachments;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ public final class MindService {
         return !BodyService.isZombie(player) || player.tickCount % ZOMBIE_THOUGHT_INTERVAL_TICKS == 0;
     }
 
-    public static @NotNull MindData get(@NotNull Player player) { return player.getData(ModAttachments.MIND); }
+    public static @NotNull MindData get(@NotNull Player player) { return PlayerData.get(player).mind(); }
 
     public static @NotNull MindPool getPool(@NotNull Player player, @NotNull MindPoolType type) {
         return get(player).pool(type);
@@ -107,7 +107,7 @@ public final class MindService {
     }
 
     private static void store(ServerPlayer player, MindData data) {
-        ModAttachments.setIfChanged(player, ModAttachments.MIND, data);
+        PlayerData.get(player).setMind(data);
     }
 
     public static void setBrilliance(@NotNull ServerPlayer player, @NotNull Brilliance brilliance) {
