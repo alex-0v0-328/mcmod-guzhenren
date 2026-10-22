@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.RandomAccess;
 import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
+import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -45,7 +46,6 @@ import net.minecraft.world.item.ItemStack;
 
 public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> vital, List<Long> tokens) {
 
-    public static final String VITAL_APERTURE_TAG = "guzhenren:vital_aperture";
     public static final ApertureStorage DEFAULT = new ApertureStorage(List.of(), List.of(), List.of());
     public static final Codec<ApertureStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ItemStacks.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
@@ -166,7 +166,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         if (stack.isEmpty()) return stack;
 
         ItemStack copy = stack.copy();
-        copy.getOrCreateTag().putInt(VITAL_APERTURE_TAG, ApertureData.SECOND);
+        ModDataComponents.set(copy, ModDataComponents.VITAL_APERTURE, ApertureData.SECOND);
         return copy;
     }
 

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "guzhenren:item/seven_fragrances_liquor_worm"
+  }
+}

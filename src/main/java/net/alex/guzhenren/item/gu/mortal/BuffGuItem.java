@@ -1,0 +1,83 @@
+package net.alex.guzhenren.item.gu.mortal;
+
+import java.util.function.Supplier;
+import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The shared class behind every instant-buff Gu; the effect holder and its length come from registration.
+ *
+ * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Eight Gu register against this one class -- the
+ * three beast buffs (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊), the four Crash Gu and the Hardship Strength Gu; the
+ * payout simply adds the effect and returns. The gate refuses only while a stronger copy of the same
+ * effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running copy is refreshed.
+ *
+ * <p>⚠ Each of them still declares its own feed tag. Sharing a class does not mean sharing a larder.
+ *
+ * @author Alex
+ * @version 1.0.0
+ * @see net.alex.guzhenren.item.gu.TendedGuItem
+ * @since 1.0.0
+ */
+
+public class BuffGuItem extends TendedGuItem {
+
+    private static final int COOLDOWN_HUNGER_MULTIPLIER = 2;
+    private static final String FAILED_STRONGER = "guzhenren.item.failed.buff_stronger";
+    private final Supplier<? extends MobEffect> buff;
+    private final int durationTicks;
+    private final int amplifier;
+
+    public BuffGuItem(Properties properties, Supplier<? extends MobEffect> buff, int durationTicks, GuSpec spec) {
+        this(properties, buff, durationTicks, 0, spec);
+    }
+
+    public BuffGuItem(Properties properties, Supplier<? extends MobEffect> buff, int durationTicks, int amplifier,
+                      GuSpec spec) {
+        super(properties, spec);
+        this.buff = buff;
+        this.durationTicks = durationTicks;
+        this.amplifier = amplifier;
+    }
+
+    @Override
+    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+        MobEffectInstance current = ModEffects.get(player, buff);
+        return current != null && current.getAmplifier() > amplifier
+                ? new Refusal(FAILED_STRONGER, buff.get().getDisplayName()) : null;
+    }
+
+    @Override
+    protected void payout(ServerPlayer player, ItemStack stack) {
+        MobEffectInstance current = ModEffects.get(player, buff);
+        if (current != null && amplifier < current.getAmplifier()) return;
+
+        int duration = current == null ? durationTicks : nextDuration(current.getDuration(),
+                current.getAmplifier(), durationTicks, amplifier, effectCooldownLeft(player, stack) > 0);
+        if (current != null) ModEffects.remove(player, buff);
+        player.addEffect(ModEffects.instance(buff, duration, amplifier));
+    }
+
+    static int nextDuration(int currentDuration, int currentAmplifier, int addedDuration, int addedAmplifier,
+                            boolean accumulates) {
+        if (addedAmplifier < currentAmplifier) return currentDuration;
+        if (addedAmplifier > currentAmplifier) return addedDuration;
+        if (!accumulates) return Math.max(currentDuration, addedDuration);
+        return (int) Math.min(Integer.MAX_VALUE, (long) currentDuration + addedDuration);
+    }
+
+    @Override
+    protected boolean allowsUseDuringEffectCooldown() { return true; }
+
+    @Override
+    protected int hungerCostMultiplier(Player player, ItemStack stack) {
+        return effectCooldownLeft(player, stack) > 0 ? COOLDOWN_HUNGER_MULTIPLIER : 1;
+    }
+}

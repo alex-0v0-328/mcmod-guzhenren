@@ -1,0 +1,115 @@
+{
+  "values": [
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "minecraft:meadow",
+    "minecraft:cherry_grove",
+    "minecraft:flower_forest",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "minecraft:dark_forest",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:windswept_forest",
+    "minecraft:taiga",
+    "minecraft:snowy_taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:grove",
+    "minecraft:savanna",
+    "minecraft:savanna_plateau",
+    "minecraft:windswept_savanna",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:bamboo_jungle",
+    "minecraft:desert",
+    "minecraft:badlands",
+    "minecraft:wooded_badlands",
+    "minecraft:eroded_badlands",
+    "minecraft:snowy_plains",
+    "minecraft:ice_spikes",
+    "minecraft:snowy_slopes",
+    "minecraft:frozen_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:stony_peaks",
+    "minecraft:windswept_hills",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:beach",
+    "minecraft:snowy_beach",
+    "minecraft:stony_shore",
+    "minecraft:mushroom_fields",
+    {
+      "id": "guworld:forested_plateau",
+      "required": false
+    },
+    {
+      "id": "guworld:cloud_forest",
+      "required": false
+    },
+    {
+      "id": "guworld:peach_grove",
+      "required": false
+    },
+    {
+      "id": "guworld:misty_mountains",
+      "required": false
+    },
+    {
+      "id": "guworld:bamboo_sea",
+      "required": false
+    },
+    {
+      "id": "guworld:rainforest",
+      "required": false
+    },
+    {
+      "id": "guworld:jungle_mountains",
+      "required": false
+    },
+    {
+      "id": "guworld:emerald_peaks",
+      "required": false
+    },
+    {
+      "id": "guworld:plains",
+      "required": false
+    },
+    {
+      "id": "guworld:plateau",
+      "required": false
+    },
+    {
+      "id": "guworld:hot_springs",
+      "required": false
+    },
+    {
+      "id": "guworld:orchid_swamp",
+      "required": false
+    },
+    {
+      "id": "guworld:alpine_meadow",
+      "required": false
+    },
+    {
+      "id": "guworld:rocky_peaks",
+      "required": false
+    },
+    {
+      "id": "guworld:painted_mountains",
+      "required": false
+    },
+    {
+      "id": "guworld:granite_cliffs",
+      "required": false
+    },
+    {
+      "id": "guworld:zhangshiyan_cliffs",
+      "required": false
+    },
+    {
+      "id": "guworld:karst_peak_forest",
+      "required": false
+    }
+  ]
+}

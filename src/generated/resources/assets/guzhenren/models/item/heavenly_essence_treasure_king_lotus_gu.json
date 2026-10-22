@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "guzhenren:item/heavenly_essence_treasure_king_lotus_gu"
+  }
+}

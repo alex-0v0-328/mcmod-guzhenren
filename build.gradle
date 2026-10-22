@@ -114,7 +114,12 @@ dependencies {
     if (providers.gradleProperty('serverRun').isPresent()) {
         devExcluded += client_only_mods.split(',')*.trim().findAll { it }
     }
-    fileTree(dir: 'pack/mods', include: '*.jar').findAll { jar -> !devExcluded.any { jar.name.startsWith(it) } }.each { jar ->
+    // -PdataRun keeps only the mod's hard dependencies: the pack's other mods are noise to data generation,
+    // and some (client UI mods) fail to construct without a client.
+    def dataRun = providers.gradleProperty('dataRun').isPresent()
+    fileTree(dir: 'pack/mods', include: '*.jar').findAll { jar ->
+        !devExcluded.any { jar.name.startsWith(it) } && (!dataRun || jar.name in [epic_fight_jar, geckolib_jar])
+    }.each { jar ->
         runtimeOnly fg.deobf("blank:${jar.name - '.jar'}:0")
     }
 

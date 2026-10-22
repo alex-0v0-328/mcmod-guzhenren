@@ -1,12 +1,17 @@
 package net.alex.guzhenren.network;
 
+import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.network.packet.PlayerDataSyncPacket;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The mod's one network channel, {@code guzhenren:main}, and the packets registered on it.
@@ -46,5 +51,11 @@ public final class ModNetwork {
 
     public static void sendToServer(Object packet) {
         CHANNEL.sendToServer(packet);
+    }
+
+    /** Opens a menu on the player's client, handing it {@code extraData} to rebuild its client side from. */
+    public static void openMenu(@NotNull ServerPlayer player, @NotNull MenuProvider provider,
+                                @NotNull Consumer<FriendlyByteBuf> extraData) {
+        NetworkHooks.openScreen(player, provider, extraData);
     }
 }

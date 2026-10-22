@@ -1,0 +1,19 @@
+{
+  "values": [
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:bamboo_jungle",
+    {
+      "id": "guworld:bamboo_sea",
+      "required": false
+    },
+    {
+      "id": "guworld:rainforest",
+      "required": false
+    },
+    {
+      "id": "guworld:jungle_mountains",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "guzhenren:block/intimate_grass_bottom"
+    },
+    "half=upper": {
+      "model": "guzhenren:block/intimate_grass_top"
+    }
+  }
+}
