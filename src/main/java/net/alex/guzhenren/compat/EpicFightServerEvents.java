@@ -3,6 +3,7 @@ package net.alex.guzhenren.compat;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.lifecycle.PlayerRefreshedEvent;
 import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,7 +21,8 @@ import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 /**
  * Sets Epic Fight's per-level skill-retention rule for every loaded server level, re-reads the stamina
- * modifier whenever the apertures change ({@code ApertureChangedEvent}), and opens the punch shockwave
+ * modifier whenever the apertures change ({@code ApertureChangedEvent}) or the lifecycle rebuilds a player's
+ * derived attributes ({@code PlayerRefreshedEvent}), and opens the punch shockwave
  * trail on a heavy fist landing.
  *
  * <p>{@link #onIncomingDamage}: a landed attack from an Epic-Fight-mode player punching bare-handed
@@ -45,6 +47,11 @@ public final class EpicFightServerEvents {
 
     @SubscribeEvent
     public static void onApertureChanged(ApertureChangedEvent event) {
+        EpicFightIntegration.refresh(event.getPlayer());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRefreshed(PlayerRefreshedEvent event) {
         EpicFightIntegration.refresh(event.getPlayer());
     }
 

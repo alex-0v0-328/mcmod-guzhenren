@@ -3,16 +3,11 @@ package net.alex.guzhenren.particle;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.registry.particle.ModParticles;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * The server-side cone trail behind the shockwave ring [激波环]: each ring blooms in place
@@ -61,7 +56,6 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * @since 1.0.0
  */
 
-@EventBusSubscriber(modid = Guzhenren.MOD_ID)
 public final class RingConeEmitter {
 
     private static final double MIN_DIRECTION_LENGTH_SQR = 1.0E-6D;
@@ -90,10 +84,9 @@ public final class RingConeEmitter {
         PUNCH_BURSTS.put(player.getUUID(), new PunchBurst(look.normalize(), PUNCH_MAX_RINGS, strikePoint));
     }
 
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
+    /** Advances the player's bursts by one tick; {@code RingConeEvents} calls it at the end of each player tick. */
+    public static void tick(ServerPlayer player) {
         if (DASH_BURSTS.isEmpty() && PUNCH_BURSTS.isEmpty()) return;
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (player.isRemoved() || player.isDeadOrDying()
                 || !(player.level() instanceof ServerLevel level)) {
             forget(player);
@@ -103,15 +96,8 @@ public final class RingConeEmitter {
         tickBurst(PUNCH_BURSTS, player, level);
     }
 
-    @SubscribeEvent
-    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) { forget(event.getEntity()); }
-
-    @SubscribeEvent
-    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        forget(event.getEntity());
-    }
-
-    private static void forget(Player player) {
+    /** Drops the player's bursts; on logout and on a dimension change ({@code RingConeEvents}). */
+    public static void forget(Player player) {
         DASH_BURSTS.remove(player.getUUID());
         PUNCH_BURSTS.remove(player.getUUID());
     }

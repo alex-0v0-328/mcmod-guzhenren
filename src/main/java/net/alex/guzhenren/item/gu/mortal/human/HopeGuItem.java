@@ -1,6 +1,5 @@
 package net.alex.guzhenren.item.gu.mortal.human;
 
-import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Talent;
@@ -77,7 +76,7 @@ public class HopeGuItem extends MortalGuItem {
         ApertureService.awaken(player, rolledBase(stack));
         ModCriteriaTriggers.USED_HOPE_GU.get().trigger(player);
         stack.remove(ModDataComponents.AWAKEN_BASE.get());
-        ModCommandSupport.refreshCommands(player);
+        player.server.getCommands().sendCommands(player);
         return 1;
     }
 

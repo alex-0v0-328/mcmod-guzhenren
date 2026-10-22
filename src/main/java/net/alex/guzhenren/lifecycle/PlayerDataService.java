@@ -1,6 +1,6 @@
 package net.alex.guzhenren.lifecycle;
 
-import net.alex.guzhenren.compat.EpicFightIntegration;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
@@ -63,7 +63,7 @@ public final class PlayerDataService {
         MaxHealthService.refresh(player);
         MaxHealthService.restoreCarried(player);
         AttackDamageService.refresh(player);
-        EpicFightIntegration.refresh(player);
+        ModEvents.post(new PlayerRefreshedEvent(player));
     }
 
     public static void onLogout(@NotNull ServerPlayer player) { MaxHealthService.carry(player); }
@@ -91,7 +91,7 @@ public final class PlayerDataService {
             MaxHealthService.refresh(server);
             server.setHealth(wasDeath ? server.getMaxHealth() : from.getHealth());
             AttackDamageService.refresh(server);
-            EpicFightIntegration.refresh(server);
+            ModEvents.post(new PlayerRefreshedEvent(server));
         }
     }
 
@@ -132,7 +132,7 @@ public final class PlayerDataService {
         if (player instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);
             AttackDamageService.refresh(server);
-            EpicFightIntegration.refresh(server);
+            ModEvents.post(new PlayerRefreshedEvent(server));
         }
     }
 }
