@@ -3,6 +3,7 @@ package net.alex.guzhenren;
 import com.mojang.logging.LogUtils;
 import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.registry.capability.ModCapabilities;
+import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -34,6 +35,7 @@ public class Guzhenren {
 
     public Guzhenren(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
+        ModEffects.register(modEventBus);
         ModCapabilities.register(modEventBus);
         ModNetwork.register();
     }

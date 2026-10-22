@@ -1,0 +1,67 @@
+package net.alex.guzhenren.gameplay.attribute;
+
+import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
+import net.alex.guzhenren.gameplay.body.PhysiqueChangedEvent;
+import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
+import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+/**
+ * Every moment the two attribute modifiers are recomputed outside the heartbeat. The mod's own writers
+ * post {@link PhysiqueChangedEvent}, {@link StrengthChangedEvent} and {@link ApertureChangedEvent};
+ * vanilla's effect events and {@code onAttack} cover the rest. {@code onAttack} refreshes the
+ * health-based Hardship Strength Gu capacity before vanilla reads attack damage.
+ *
+ * <p>⚠ Left to the heartbeat alone the attack row would lag by up to a second, which is visible on
+ * the panel. ⚠ Forge posts the three effect events BEFORE the effect map changes, so
+ * {@code refreshAttack} queues the refresh as a {@link TickTask} that runs once the tick's work is done;
+ * refreshing inside the event would read the effects as they were.
+ *
+ * @author Alex
+ * @version 1.0.0
+ * @see AttackDamageService
+ * @see MaxHealthService
+ * @since 1.0.0
+ */
+
+@Mod.EventBusSubscriber(modid = Guzhenren.MOD_ID)
+public final class AttributeEvents {
+
+    private AttributeEvents() {}
+
+    @SubscribeEvent
+    public static void onPhysiqueChanged(PhysiqueChangedEvent event) { AttackDamageService.refresh(event.getPlayer()); }
+
+    @SubscribeEvent
+    public static void onStrengthChanged(StrengthChangedEvent event) { AttackDamageService.refresh(event.getPlayer()); }
+
+    @SubscribeEvent
+    public static void onApertureChanged(ApertureChangedEvent event) { MaxHealthService.refresh(event.getPlayer()); }
+
+    @SubscribeEvent
+    public static void onEffectAdded(MobEffectEvent.Added event) { refreshAttack(event.getEntity()); }
+
+    @SubscribeEvent
+    public static void onEffectRemoved(MobEffectEvent.Remove event) { refreshAttack(event.getEntity()); }
+
+    @SubscribeEvent
+    public static void onEffectExpired(MobEffectEvent.Expired event) { refreshAttack(event.getEntity()); }
+
+    @SubscribeEvent
+    public static void onAttack(AttackEntityEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player
+                && ModEffects.has(player, ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
+    }
+
+    private static void refreshAttack(LivingEntity entity) {
+        if (!(entity instanceof ServerPlayer player)) return;
+        player.server.tell(new TickTask(player.server.getTickCount(), () -> AttackDamageService.refresh(player)));
+    }
+}

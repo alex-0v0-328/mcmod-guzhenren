@@ -28,8 +28,8 @@ sourceSets {
     pureTest {
         java.srcDirs = ['src/test/pure/java']
         resources.srcDirs = ['src/test/pure/resources']
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
     }
     gametest {
         java.srcDirs = ['src/test/game/java']
@@ -129,6 +129,7 @@ tasks.register('pureTest', Test) {
     testClassesDirs = sourceSets.pureTest.output.classesDirs
     classpath = sourceSets.pureTest.runtimeClasspath
     useJUnitPlatform()
+    systemProperty 'gzr.projectDir', projectDir.absolutePath
 }
 tasks.named('check') { dependsOn 'pureTest' }
 

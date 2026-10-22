@@ -1,0 +1,178 @@
+package net.alex.guzhenren.gameplay.dimension;
+
+import java.util.Objects;
+import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.dimension.DimensionReturnData.ReturnPoint;
+import net.alex.guzhenren.gameplay.flight.FlightAbility;
+import net.alex.guzhenren.registry.world.ModDimensions;
+import net.alex.guzhenren.registry.world.ModDimensions.AnchoredDimension;
+import net.alex.guzhenren.registry.world.ModDimensions.Arrival;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Generic anchored-dimension travel service. A single {@link DimensionReturnData} attachment stores the
+ * one return point for the one anchored dimension a player may be inside at a time.
+ *
+ * <p>{@link #isInside} answers whether the player is currently in the given dimension; {@link #enter}
+ * snapshots the player's original location and flying state before teleporting there, returning
+ * {@code false} instead when they are already inside the dimension or the target level could not be
+ * resolved. Entering one anchored dimension from inside another keeps the first snapshot, so the exit
+ * still leads back to where the trip began. Death clears the record through
+ * {@link net.alex.guzhenren.lifecycle.PlayerDataService}.
+ *
+ * <p>{@link #getArrival} is where {@link #enter} lands the player: a {@code FLIGHT} arrival on the spawn
+ * itself, which grants flight and starts the player flying; a {@code SURFACE} arrival on top of the spawn's
+ * column, which revokes any grant carried in from a flight dimension. {@code Level.getHeight} reads an
+ * unloaded chunk as the bottom of the world, so the column's chunk is loaded first, and generated on the
+ * server thread if it never was: the first entry to a fresh spot stalls the server for the few chunks
+ * that takes.
+ *
+ * <p>{@link #exit} restores the snapshot: if a return point exists, the player is teleported back to it
+ * and resumes flying only if they were flying on entry and can still fly without the grant, returning
+ * {@code true}; if no record exists, the player is sent to the Overworld shared spawn as a fallback
+ * instead, returning {@code false}. Both paths revoke the flight grant and clear the record ({@link
+ * #clear(Player)} is safe to call even when no record is present).
+ *
+ * <p>⚠ Flight inside is a {@link FlightAbility} source, never a raw write to
+ * {@code Abilities.mayfly}: the raw field is saved with the player and shared with game modes and other
+ * mods, so writing it leaked survival flight whenever a player left without a matching restore.
+ * The source is held in memory, which keeps the grant out of the save file. {@link #ensureFlight} re-grants the
+ * permission each tick without forcing {@code flying} on, so the player may choose to hover or stop flying
+ * freely while inside a flight dimension; {@link #revokeFlight} drops the grant, and {@code flying} with it unless
+ * something else still lets the player fly, each tick while the player is outside every anchored
+ * dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another mod's
+ * teleport -- revokes it.
+ *
+ * <p>{@link #rescueIfBelowVoid} teleports the player back to the given spawn if they have fallen below
+ * the current level's minimum build height, returning {@code true} if a rescue teleport happened.
+ *
+ * @author Alex
+ * @version 1.0.0
+ * @see DimensionReturnData
+ * @since 1.0.0
+ */
+
+public final class DimensionTravelService {
+
+    private DimensionTravelService() {}
+
+    private static final ResourceLocation FLIGHT_MODIFIER_ID = Guzhenren.id("anchored_dimension_flight");
+
+    public static boolean isInside(@NotNull Player player, @NotNull ResourceKey<Level> dimension) {
+        return player.level().dimension().equals(Objects.requireNonNull(dimension, "dimension"));
+    }
+
+    public static boolean enter(@NotNull ServerPlayer player, @NotNull AnchoredDimension destination) {
+        Objects.requireNonNull(destination, "destination");
+        if (isInside(player, destination.level())) {
+            return false;
+        }
+
+        ServerLevel target = player.server.getLevel(destination.level());
+        if (target == null) {
+            return false;
+        }
+
+        if (!ModDimensions.ANCHORED_DIMENSIONS.containsKey(player.level().dimension())) {
+            ReturnPoint point = new ReturnPoint(
+                    player.level().dimension(),
+                    player.getX(), player.getY(), player.getZ(),
+                    player.getYRot(), player.getXRot(),
+                    player.getAbilities().flying);
+            PlayerData.get(player).setDimensionReturn(DimensionReturnData.of(point));
+        }
+
+        Vec3 arrival = getArrival(target, destination);
+        player.teleportTo(target, arrival.x, arrival.y, arrival.z, player.getYRot(), player.getXRot());
+        if (destination.arrival() == Arrival.FLIGHT) {
+            ensureFlight(player);
+            player.getAbilities().flying = true;
+            player.onUpdateAbilities();
+        } else {
+            revokeFlight(player);
+            player.fallDistance = 0.0F;
+        }
+        return true;
+    }
+
+    public static @NotNull Vec3 getArrival(@NotNull ServerLevel level, @NotNull AnchoredDimension destination) {
+        Vec3 spawn = destination.spawn();
+        if (destination.arrival() == Arrival.FLIGHT) {
+            return spawn;
+        }
+
+        BlockPos column = BlockPos.containing(spawn);
+        level.getChunkAt(column);
+        return new Vec3(spawn.x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, column.getX(), column.getZ()),
+                spawn.z);
+    }
+
+    public static boolean exit(@NotNull ServerPlayer player) {
+        DimensionReturnData data = PlayerData.get(player).dimensionReturn();
+        if (data.isPresent()) {
+            ReturnPoint point = data.point().orElseThrow();
+            ServerLevel target = player.server.getLevel(point.level());
+            boolean used = target != null;
+            if (used) {
+                player.teleportTo(target, point.x(), point.y(), point.z(), point.yaw(), point.pitch());
+                revokeFlight(player);
+                player.getAbilities().flying = point.flying() && FlightAbility.mayFly(player);
+                player.fallDistance = 0.0F;
+                player.onUpdateAbilities();
+            } else {
+                fallbackToOverworldSpawn(player);
+            }
+            clear(player);
+            return used;
+        }
+
+        fallbackToOverworldSpawn(player);
+        clear(player);
+        return false;
+    }
+
+    private static void fallbackToOverworldSpawn(@NotNull ServerPlayer player) {
+        ServerLevel overworld = player.server.overworld();
+        BlockPos spawn = overworld.getSharedSpawnPos();
+        player.teleportTo(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                player.getYRot(), player.getXRot());
+        revokeFlight(player);
+        player.fallDistance = 0.0F;
+    }
+
+    public static void clear(@NotNull Player player) {
+        PlayerData.get(player).setDimensionReturn(DimensionReturnData.DEFAULT);
+    }
+
+    public static void ensureFlight(@NotNull ServerPlayer player) {
+        if (!FlightAbility.has(player, FLIGHT_MODIFIER_ID)) FlightAbility.grant(player, FLIGHT_MODIFIER_ID);
+    }
+
+    public static void revokeFlight(@NotNull ServerPlayer player) {
+        if (!FlightAbility.revoke(player, FLIGHT_MODIFIER_ID)) return;
+        if (player.getAbilities().flying && !FlightAbility.mayFly(player)) {
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+        }
+    }
+
+    public static boolean rescueIfBelowVoid(@NotNull ServerPlayer player, @NotNull Vec3 spawn) {
+        if (player.getY() < player.level().getMinBuildHeight()) {
+            player.teleportTo((ServerLevel) player.level(), spawn.x, spawn.y, spawn.z,
+                    player.getYRot(), player.getXRot());
+            player.fallDistance = 0.0F;
+            return true;
+        }
+        return false;
+    }
+}
