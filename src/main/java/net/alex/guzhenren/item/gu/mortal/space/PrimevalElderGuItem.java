@@ -47,11 +47,11 @@ public class PrimevalElderGuItem extends TendedGuItem {
 
     //region the vault
     public static long stored(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.STORED_STONES.get(), 0L);
+        return ModDataComponents.getOrDefault(stack, ModDataComponents.STORED_STONES, 0L);
     }
 
     private void setStored(ItemStack stack, long value) {
-        stack.set(ModDataComponents.STORED_STONES.get(), Math.min(capacity, Math.max(value, 0L)));
+        ModDataComponents.set(stack, ModDataComponents.STORED_STONES, Math.min(capacity, Math.max(value, 0L)));
     }
 
     private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
@@ -95,7 +95,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
             if (!isStone(stones)) continue;
 
             int move = Math.min(stones.getCount(), wanted - taken);
-            if (!player.hasInfiniteMaterials()) stones.shrink(move);
+            if (!player.getAbilities().instabuild) stones.shrink(move);
             taken += move;
         }
         setStored(stack, stored(stack) + wanted);

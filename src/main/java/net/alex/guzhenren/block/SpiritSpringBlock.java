@@ -51,23 +51,23 @@ public class SpiritSpringBlock extends LiquidBlock {
     }
 
     @Override
-    protected void onPlace(@NotNull BlockState state, @NotNull Level level,
-                           @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving) {
+    public void onPlace(@NotNull BlockState state, @NotNull Level level,
+                        @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         scheduleProduction(level, pos);
     }
 
     @Override
-    protected void neighborChanged(@NotNull BlockState state, @NotNull Level level,
-                                   @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos,
-                                   boolean isMoving) {
+    public void neighborChanged(@NotNull BlockState state, @NotNull Level level,
+                                @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos,
+                                boolean isMoving) {
         super.neighborChanged(state, level, pos, block, fromPos, isMoving);
         scheduleProduction(level, pos);
     }
 
     @Override
-    protected void tick(@NotNull BlockState state, ServerLevel level,
-                        @NotNull BlockPos pos, @NotNull RandomSource random) {
+    public void tick(@NotNull BlockState state, ServerLevel level,
+                     @NotNull BlockPos pos, @NotNull RandomSource random) {
         if (!level.getFluidState(pos).isSource()) return;
         boolean playerNear = level.hasNearbyAlivePlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                 PRODUCTION_PLAYER_RANGE);

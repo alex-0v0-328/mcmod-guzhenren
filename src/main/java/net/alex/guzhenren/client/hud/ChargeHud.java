@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * The bar drawn over the hotbar while a charged Gu use is running.
  *
  * <p>Extends {@link net.alex.guzhenren.client.hud.HotbarHud}. Registered above
- * {@code VanillaGuiLayers.AIR_LEVEL}. Reads the held item's {@code getUseDuration} and
+ * {@code VanillaGuiLayers.AIR_LEVEL}. Reads the held item's {@code chargeDuration} and
  * {@code chargeFraction} from {@link net.alex.guzhenren.item.GuItem}; if the item provides its own
  * fraction the bar reads that, otherwise it falls back to the vanilla remaining-ticks ratio.
  *
@@ -38,7 +38,7 @@ public final class ChargeHud extends HotbarHud {
         if (minecraft.options.hideGui || player.isSpectator() || !player.isUsingItem()) return false;
 
         ItemStack stack = player.getUseItem();
-        return stack.getItem() instanceof GuItem && stack.getUseDuration(player) > 0;
+        return stack.getItem() instanceof GuItem gu && gu.chargeDuration(stack, player) > 0;
     }
 
     @Override
@@ -49,7 +49,7 @@ public final class ChargeHud extends HotbarHud {
 
         ItemStack stack = player.getUseItem();
         GuItem gu = (GuItem) stack.getItem();
-        int total = stack.getUseDuration(player);
+        int total = gu.chargeDuration(stack, player);
         int remaining = player.getUseItemRemainingTicks();
         Float own = gu.chargeFraction(stack, remaining);
         float progress = own != null ? own : 1.0F - remaining / (float) total;

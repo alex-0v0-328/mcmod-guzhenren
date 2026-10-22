@@ -68,21 +68,21 @@ public class HopeGuItem extends MortalGuItem {
         if (remaining != RITUAL_TICKS || !(entity instanceof ServerPlayer)) return;
         if (rolledBase(stack) > 0) return;
 
-        stack.set(ModDataComponents.AWAKEN_BASE.get(), Talent.randomPercent(Talent.randomTalent()));
+        ModDataComponents.set(stack, ModDataComponents.AWAKEN_BASE, Talent.randomPercent(Talent.randomTalent()));
     }
 
     @Override
     protected final int apply(ServerPlayer player, ItemStack stack) {
         ApertureService.awaken(player, rolledBase(stack));
         ModCriteriaTriggers.USED_HOPE_GU.get().trigger(player);
-        stack.remove(ModDataComponents.AWAKEN_BASE.get());
+        ModDataComponents.remove(stack, ModDataComponents.AWAKEN_BASE);
         player.server.getCommands().sendCommands(player);
         return 1;
     }
 
     //region the ritual bar
     private static int rolledBase(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.AWAKEN_BASE.get(), 0);
+        return ModDataComponents.getOrDefault(stack, ModDataComponents.AWAKEN_BASE, 0);
     }
 
     private static int filledTicks(int remaining) { return Math.min(RITUAL_TICKS - remaining, FILLING_TICKS); }

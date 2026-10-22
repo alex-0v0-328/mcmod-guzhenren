@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Alex
  * @version 1.0.0
  * @see PendingVitalPenalties
- * @see PlayerTickEvents
+ * @see Heartbeat
  * @since 1.0.0
  */
 
@@ -59,7 +59,7 @@ public final class VitalLossService {
         owner.hurt(ModDamageTypes.source(owner, ModDamageTypes.VITAL_GU_LOST),
                 owner.getHealth() * LOST_HEALTH_FRACTION);
 
-        int kind = stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
+        int kind = ModDataComponents.getOrDefault(stack, ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
         int bound = ApertureService.get(owner).indexOf(kind);
         if (bound >= 0) ApertureService.setPrimaryPath(owner, bound, null);
     }

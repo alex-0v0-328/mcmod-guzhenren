@@ -55,7 +55,7 @@ public sealed interface GuClock {
 
         private void setHunger(ItemStack stack, int value) {
             RefinedGuState s = state(stack);
-            stack.set(ModDataComponents.REFINED_GU_STATE.get(), s.withHunger(Mth.clamp(value, 0, max)));
+            ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
         }
 
         private int hunger(ItemStack stack) { return state(stack).hunger(); }
@@ -73,7 +73,7 @@ public sealed interface GuClock {
                 return false;
             }
             setHunger(stack, 0);
-            return !player.hasInfiniteMaterials();
+            return !player.getAbilities().instabuild;
         }
 
         @Override
@@ -95,7 +95,7 @@ public sealed interface GuClock {
             GuMeal meal = GuMeal.portion(food.getCount(), room, unitsPerHunger, units);
             if (meal.gained() <= 0) return false;
 
-            if (!player.hasInfiniteMaterials()) {
+            if (!player.getAbilities().instabuild) {
                 GuMeal.returnEmptyContainers(player, food, meal.eaten());
                 food.shrink(meal.eaten());
             }

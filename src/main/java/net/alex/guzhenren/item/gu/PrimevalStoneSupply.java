@@ -81,7 +81,7 @@ public final class PrimevalStoneSupply {
         if (used <= 0) return;
 
         ApertureEssenceService.add(player, stone.essence() * used);
-        if (!player.hasInfiniteMaterials()) offhand.shrink(used);
+        if (!player.getAbilities().instabuild) offhand.shrink(used);
     }
 
     private static int draw(ServerPlayer player, int wanted) {

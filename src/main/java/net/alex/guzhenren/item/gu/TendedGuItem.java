@@ -77,11 +77,11 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     //region state
     public static RefinedGuState state(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.REFINED_GU_STATE.get(), RefinedGuState.WILD);
+        return ModDataComponents.getOrDefault(stack, ModDataComponents.REFINED_GU_STATE, RefinedGuState.WILD);
     }
 
     private void store(ItemStack stack, RefinedGuState state) {
-        stack.set(ModDataComponents.REFINED_GU_STATE.get(), new RefinedGuState(state.refined(),
+        ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, new RefinedGuState(state.refined(),
                 Math.min(state.refineProgress(), refineCost()),
                 Math.min(state.investedEssence(), spec.essencePerRound()),
                 state.hunger(),
@@ -129,7 +129,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         GuMeal meal = GuMeal.portion(food.getCount(), hurt, spec.unitsPerHunger(), units);
         if (meal.gained() <= 0) return;
 
-        if (!player.hasInfiniteMaterials()) {
+        if (!player.getAbilities().instabuild) {
             GuMeal.returnEmptyContainers(player, food, meal.eaten());
             food.shrink(meal.eaten());
         }
@@ -153,7 +153,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     public void bornRefined(ServerPlayer player, ItemStack stack) {
         store(stack, new RefinedGuState(true, refineCost(), 0, 0, state(stack).damageTaken()));
         clock.bind(player, stack);
-        stack.set(ModDataComponents.REFINED_AT.get(), GuCooldowns.cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
+        ModDataComponents.set(stack, ModDataComponents.REFINED_AT,
+                GuCooldowns.cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
         GuCooldowns.applyPostRefineCooldown(player.getCooldowns(), this,
                 TimeFlow.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
     }
@@ -248,7 +249,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     private void grant(ServerPlayer player, ItemStack stack) {
         payout(player, stack);
         if (spec.effectCooldownTicks() > 0) {
-            stack.set(ModDataComponents.USED_AT.get(), GuCooldowns.cooldownStamp(player, spec.effectCooldownTicks()));
+            ModDataComponents.set(stack, ModDataComponents.USED_AT,
+                    GuCooldowns.cooldownStamp(player, spec.effectCooldownTicks()));
         }
     }
     //endregion
@@ -257,7 +259,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     private static final String FAILED_COOLDOWN = "guzhenren.item.failed.gu_cooldown";
 
     private int postRefineCooldownLeft(Player player, ItemStack stack) {
-        Long refinedAt = stack.get(ModDataComponents.REFINED_AT.get());
+        Long refinedAt = ModDataComponents.get(stack, ModDataComponents.REFINED_AT);
         return GuCooldowns.cooldownLeft(player, refinedAt, POST_REFINE_COOLDOWN_TICKS);
     }
 
@@ -342,7 +344,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         ApertureEssenceService.consume(player, spec.essencePerRound());
         boolean drivenOnAnEmptyBar = clock.spendWasForced(stack, hungerCostMultiplier(player, stack));
         grant(player, stack);
-        if (!drivenOnAnEmptyBar || player.hasInfiniteMaterials()) return false;
+        if (!drivenOnAnEmptyBar || player.getAbilities().instabuild) return false;
 
         exhausted(player, stack);
         return true;
@@ -375,7 +377,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected int hungerCostMultiplier(Player player, ItemStack stack) { return 1; }
 
     protected final int effectCooldownLeft(Player player, ItemStack stack) {
-        return GuCooldowns.cooldownLeft(player, stack.get(ModDataComponents.USED_AT.get()), spec.effectCooldownTicks());
+        return GuCooldowns.cooldownLeft(player, ModDataComponents.get(stack, ModDataComponents.USED_AT),
+                spec.effectCooldownTicks());
     }
 
     public final boolean autoUse(ServerPlayer player, ItemStack stack) {
@@ -417,9 +420,9 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
-                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
+                                 @NotNull TooltipFlag flag) {
+        super.appendTooltip(stack, level, tooltip, flag);
         if (state(stack).damageTaken() <= 0) return;
 
         tooltip.add(Component.translatable(TOOLTIP_HEALTH, health(stack), maxHealth())

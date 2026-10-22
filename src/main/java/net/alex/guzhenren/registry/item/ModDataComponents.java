@@ -12,8 +12,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The item components this mod adds, for state belonging to one particular stack.
@@ -25,6 +28,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *
  * <p>⚠ Game-clock timestamps default to {@code 0}, which is a real game time -- judge {@code null},
  * never {@code 0}, or a fresh world reads "already used".
+ *
+ * <p>⚠ A version seam: callers read and write through {@link #get}, {@link #getOrDefault}, {@link #set}, {@link #has}
+ * and {@link #remove} only, never the stack's own data API, so they stay identical between this NeoForge 1.21.1
+ * mainline (data components) and the Forge 1.20.1 port (item NBT).
  *
  * @author Alex
  * @version 1.0.0
@@ -55,6 +62,33 @@ public final class ModDataComponents {
 
     public static void register(IEventBus modEventBus) {
         DATA_COMPONENTS.register(modEventBus);
+    }
+
+    public static <T> @Nullable T get(@NotNull ItemStack stack, @NotNull Supplier<DataComponentType<T>> key) {
+        return stack.get(key.get());
+    }
+
+    public static <T> T getOrDefault(@NotNull ItemStack stack, @NotNull Supplier<DataComponentType<T>> key,
+                                     T fallback) {
+        return stack.getOrDefault(key.get(), fallback);
+    }
+
+    public static boolean has(@NotNull ItemStack stack, @NotNull Supplier<? extends DataComponentType<?>> key) {
+        return stack.has(key.get());
+    }
+
+    /** Stores {@code value}; {@code null} removes the component. */
+    public static <T> void set(@NotNull ItemStack stack, @NotNull Supplier<DataComponentType<T>> key,
+                               @Nullable T value) {
+        if (value == null) {
+            stack.remove(key.get());
+        } else {
+            stack.set(key.get(), value);
+        }
+    }
+
+    public static void remove(@NotNull ItemStack stack, @NotNull Supplier<? extends DataComponentType<?>> key) {
+        stack.remove(key.get());
     }
 
     private static <T> Supplier<DataComponentType<T>> register(

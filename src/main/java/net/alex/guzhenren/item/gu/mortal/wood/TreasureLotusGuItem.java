@@ -84,18 +84,18 @@ public class TreasureLotusGuItem extends TendedGuItem {
             bank %= stonesPerHealth;
         }
         if (state(stack).damageTaken() > 0) {
-            stack.set(ModDataComponents.HEAL_BANK.get(), bank);
+            ModDataComponents.set(stack, ModDataComponents.HEAL_BANK, bank);
         } else {
             clearHealBank(stack);
         }
     }
 
     private int bankOf(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.HEAL_BANK.get(), 0);
+        return ModDataComponents.getOrDefault(stack, ModDataComponents.HEAL_BANK, 0);
     }
 
     private void clearHealBank(ItemStack stack) {
-        stack.remove(ModDataComponents.HEAL_BANK.get());
+        ModDataComponents.remove(stack, ModDataComponents.HEAL_BANK);
     }
 
     private void giveStones(ServerPlayer player, int amount) {

@@ -87,9 +87,13 @@ public abstract class GuItem extends Item {
     //endregion
 
     //region Vital Gu
-    public static @Nullable UUID owner(ItemStack stack) { return stack.get(ModDataComponents.VITAL_OWNER.get()); }
+    public static @Nullable UUID owner(ItemStack stack) {
+        return ModDataComponents.get(stack, ModDataComponents.VITAL_OWNER);
+    }
 
-    public static boolean isVital(ItemStack stack) { return stack.has(ModDataComponents.VITAL_OWNER.get()); }
+    public static boolean isVital(ItemStack stack) {
+        return ModDataComponents.has(stack, ModDataComponents.VITAL_OWNER);
+    }
 
     public static boolean isVitalOf(ItemStack stack, Player player) { return player.getUUID().equals(owner(stack)); }
 
@@ -98,14 +102,16 @@ public abstract class GuItem extends Item {
     }
 
     public static int boundAperture(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.VITAL_APERTURE.get(), ApertureData.PRIMARY);
+        return ModDataComponents.getOrDefault(stack, ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
     }
 
     public static int boundIndex(ItemStack stack, Player owner) {
         return ApertureService.get(owner).indexOf(boundAperture(stack));
     }
 
-    public static long token(ItemStack stack) { return stack.getOrDefault(ModDataComponents.VITAL_TOKEN.get(), 0L); }
+    public static long token(ItemStack stack) {
+        return ModDataComponents.getOrDefault(stack, ModDataComponents.VITAL_TOKEN, 0L);
+    }
 
     public static boolean isCurrentVital(ItemStack stack, ServerPlayer owner) {
         long token = token(stack);
@@ -115,15 +121,15 @@ public abstract class GuItem extends Item {
 
     public static void bind(ItemStack stack, ServerPlayer player, int index) {
         long token = player.getRandom().nextLong();
-        stack.set(ModDataComponents.VITAL_OWNER.get(), player.getUUID());
-        stack.set(ModDataComponents.VITAL_APERTURE.get(), ApertureService.get(player).kindAt(index));
-        stack.set(ModDataComponents.VITAL_TOKEN.get(), token == 0L ? 1L : token);
+        ModDataComponents.set(stack, ModDataComponents.VITAL_OWNER, player.getUUID());
+        ModDataComponents.set(stack, ModDataComponents.VITAL_APERTURE, ApertureService.get(player).kindAt(index));
+        ModDataComponents.set(stack, ModDataComponents.VITAL_TOKEN, token == 0L ? 1L : token);
     }
 
     public static void unbind(ItemStack stack) {
-        stack.remove(ModDataComponents.VITAL_OWNER.get());
-        stack.remove(ModDataComponents.VITAL_APERTURE.get());
-        stack.remove(ModDataComponents.VITAL_TOKEN.get());
+        ModDataComponents.remove(stack, ModDataComponents.VITAL_OWNER);
+        ModDataComponents.remove(stack, ModDataComponents.VITAL_APERTURE);
+        ModDataComponents.remove(stack, ModDataComponents.VITAL_TOKEN);
     }
     //endregion
 
@@ -207,10 +213,21 @@ public abstract class GuItem extends Item {
         return crouching(player) && hasSneakUse(player, stack);
     }
 
-    @Override
-    public final int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
+    /**
+     * How long {@code entity} charges this item, in ticks.
+     *
+     * <p>⚠ A version seam: the loader asks through {@link #getUseDuration}, whose arguments differ between the
+     * NeoForge 1.21.1 mainline and the Forge 1.20.1 port (which has no entity there and sets the real duration when
+     * the use starts); anything that needs the real total, such as the charge bar, asks here.
+     */
+    public final int chargeDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         if (!hasUse()) return super.getUseDuration(stack, entity);
         return entity instanceof Player player ? useDurationTicks(player, stack) : 0;
+    }
+
+    @Override
+    public final int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
+        return chargeDuration(stack, entity);
     }
 
     @Override
@@ -219,8 +236,20 @@ public abstract class GuItem extends Item {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
-                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+    public final void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                      @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+        appendTooltip(stack, context.level(), tooltip, flag);
+    }
+
+    /**
+     * The tooltip lines of this item, each class adding its own after {@code super}.
+     *
+     * <p>⚠ A version seam: the NeoForge 1.21.1 mainline and Forge 1.20.1 hand {@code appendHoverText} different
+     * context arguments, so the base class takes them, passes on the level the tooltip is drawn for ({@code null}
+     * when there is none), and subclasses fill this.
+     */
+    protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
+                                 @NotNull TooltipFlag flag) {
         tooltip.add(ModDisplayText.guLine(rank, path, kindKey()).withStyle(ChatFormatting.GRAY));
     }
 
@@ -244,6 +273,6 @@ public abstract class GuItem extends Item {
 
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         player.getCooldowns().addCooldown(this, TimeFlow.shortenWait(player, cooldownTicks(stack)));
-        if (count > 0 && !player.hasInfiniteMaterials()) stack.shrink(count);
+        if (count > 0 && !player.getAbilities().instabuild) stack.shrink(count);
     }
 }
