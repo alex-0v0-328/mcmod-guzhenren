@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Alex
  * @version 1.0.0
  * @see PendingVitalPenalties
- * @see PlayerTickEvents
+ * @see Heartbeat
  * @since 1.0.0
  */
 

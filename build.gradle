@@ -125,7 +125,7 @@ dependencies {
 
     pureTestImplementation platform("org.junit:junit-bom:${junit_version}")
     pureTestImplementation 'org.junit.jupiter:junit-jupiter'
-    pureTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    pureTestImplementation 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.register('pureTest', Test) {
