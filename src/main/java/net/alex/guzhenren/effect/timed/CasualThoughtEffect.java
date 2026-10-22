@@ -34,7 +34,7 @@ public class CasualThoughtEffect extends PeriodicEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+    protected void onPulse(@NotNull LivingEntity entity, int amplifier) {
         if (entity instanceof ServerPlayer player) {
             int index = Mth.clamp(amplifier, 0, RANGES.length - 1);
             int amount = player.getRandom().nextIntBetweenInclusive(RANGES[index][0], RANGES[index][1]);

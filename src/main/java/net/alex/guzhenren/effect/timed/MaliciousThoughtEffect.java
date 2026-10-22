@@ -37,7 +37,7 @@ public class MaliciousThoughtEffect extends PeriodicEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+    protected void onPulse(@NotNull LivingEntity entity, int amplifier) {
         if (entity instanceof ServerPlayer player) {
             int index = Mth.clamp(amplifier, 0, evilPerSecond.length - 1);
             MindService.addThoughts(player, evilPerSecond[index], ThoughtTag.EVIL);

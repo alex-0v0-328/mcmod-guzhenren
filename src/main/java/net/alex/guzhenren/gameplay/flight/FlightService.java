@@ -9,9 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,13 +29,13 @@ import org.jetbrains.annotations.NotNull;
  * the effect runs out. Creative and the Treasure Yellow Heaven bring their own flight, so a burst needs no source of
  * its own.
  *
- * <p>{@link #startBurst} marks the burst ({@code PlayerData#setBurst}, synced to its owner) before turning flying
- * on, so the client sees the mark first and a player standing on the ground jumps before its landing check can end
- * the flight ({@code net.alex.guzhenren.client.event.BurstEvents}). {@link #tick} runs every server tick: it
- * refreshes the Gu flight, then ends a burst once the player stops flying (the client landed, or vanilla's double
- * jump turned flying off) or loses the burst grant. {@link #stopBurst} drops the mark; a player something still lets
- * fly keeps flying at normal speed, anyone else falls. It always resends the abilities: a client that turned flying
- * back on with vanilla's double jump in the tick before would otherwise keep flying unauthorized.
+ * <p>{@link #startBurst} marks the burst ({@code PlayerData#setBurst}, synced to its owner) before turning flying on,
+ * so the client sees the mark first and a player standing on the ground jumps before its landing check can end the
+ * flight ({@code net.alex.guzhenren.client.event.BurstEvents}). {@link #tick} runs every server tick ({@link
+ * FlightEvents}): it refreshes the Gu flight, then ends a burst once the player stops flying (the client landed, or
+ * vanilla's double jump turned flying off) or loses the burst grant. {@link #stopBurst} drops the mark; a player
+ * something still lets fly keeps flying at normal speed, anyone else falls. It always resends the abilities: a client
+ * that turned flying back on with vanilla's double jump in the tick before would otherwise keep flying unauthorized.
  *
  * <p>⚠ The speed is never written to {@code Abilities}, which the game saves: only the client scales its own flight
  * ({@code net.alex.guzhenren.mixin.PlayerMixin} and {@code LocalPlayerMixin}), reading the synced mark; the server
@@ -56,7 +53,6 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-@Mod.EventBusSubscriber(modid = Guzhenren.MOD_ID)
 public final class FlightService {
 
     private FlightService() {}
@@ -117,11 +113,6 @@ public final class FlightService {
         if (isBursting(player) && (!player.getAbilities().flying || !getGrant(player).allowsBurst())) {
             stopBurst(player);
         }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && event.player instanceof ServerPlayer player) tick(player);
     }
 
     private static void refreshGuFlight(ServerPlayer player) {

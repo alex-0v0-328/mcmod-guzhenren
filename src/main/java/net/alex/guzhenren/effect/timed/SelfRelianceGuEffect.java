@@ -5,6 +5,7 @@ import net.alex.guzhenren.effect.PeriodicEffect;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Self Reliance Gu [自力更生蛊] effect: a slow self-heal that only mends what sits below its grade's limit.
@@ -29,7 +30,7 @@ public final class SelfRelianceGuEffect extends PeriodicEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    protected void onPulse(@NotNull LivingEntity entity, int amplifier) {
         int tier = Mth.clamp(amplifier - 1, 0, 2);
         float limit = entity.getMaxHealth() * (HEAL_CAP_BASE + tier * HEAL_CAP_TIER_STEP);
         if (entity.getHealth() < limit) entity.heal(Math.min(tier + 1.0F, limit - entity.getHealth()));

@@ -6,13 +6,14 @@ import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Life Qi [生气] effect — a pool projection of the 生气 held in {@link
  * PathQiData}, which heals the holder periodically.
  *
  * <p>Pool effects are rebuilt every heartbeat by {@code PathQiService.syncEffects}, so milk cannot cure
- * them — the pool is the truth. The heal runs on vanilla's own {@code applyEffectTick} cadence
+ * them — the pool is the truth. The heal runs on the {@link PeriodicEffect} pulse cadence
  * ({@code HEAL_INTERVAL_TICKS} = {@link Ticks#HALF_SECOND}), healing {@code amplifier + 1} HP each pulse.
  *
  * <p>⚠ 生气 does NOT refuse when 死气 is present: it pays 死气 down 1:1 first, and only the excess
@@ -33,7 +34,7 @@ public class LifeQiEffect extends PeriodicEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    protected void onPulse(@NotNull LivingEntity entity, int amplifier) {
         entity.heal(amplifier + 1.0F);
     }
 }

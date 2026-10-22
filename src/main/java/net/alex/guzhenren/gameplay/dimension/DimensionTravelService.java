@@ -43,15 +43,14 @@ import org.jetbrains.annotations.NotNull;
  * instead, returning {@code false}. Both paths revoke the flight grant and clear the record ({@link
  * #clear(Player)} is safe to call even when no record is present).
  *
- * <p>⚠ Flight inside is a {@link FlightAbility} source, never a raw write to
- * {@code Abilities.mayfly}: the raw field is saved with the player and shared with game modes and other
- * mods, so writing it leaked survival flight whenever a player left without a matching restore.
- * The source is held in memory, which keeps the grant out of the save file. {@link #ensureFlight} re-grants the
- * permission each tick without forcing {@code flying} on, so the player may choose to hover or stop flying
- * freely while inside a flight dimension; {@link #revokeFlight} drops the grant, and {@code flying} with it unless
- * something else still lets the player fly, each tick while the player is outside every anchored
- * dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another mod's
- * teleport -- revokes it.
+ * <p>⚠ Flight inside is a {@link FlightAbility} source, never a raw write to {@code Abilities.mayfly}: the raw field is
+ * saved with the player and shared with game modes and other mods, so writing it leaked survival flight whenever a
+ * player left without a matching restore. A {@link FlightAbility} source is never saved, which keeps the grant out of
+ * the save file. {@link #ensureFlight} re-grants the permission each tick without forcing {@code flying} on, so the
+ * player may choose to hover or stop flying freely while inside a flight dimension; {@link #revokeFlight} drops the
+ * grant, and {@code flying} with it unless something else still lets the player fly, each tick while the player is
+ * outside every anchored dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another
+ * mod's teleport -- revokes it.
  *
  * <p>{@link #rescueIfBelowVoid} teleports the player back to the given spawn if they have fallen below
  * the current level's minimum build height, returning {@code true} if a rescue teleport happened.

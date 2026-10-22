@@ -16,6 +16,9 @@ import net.minecraft.world.entity.LivingEntity;
  * quietly stops happening. ⚠ The aftermath is a punishment -- milk or {@code /effect clear} skipping it
  * is the intended design, NOT a gap.
  *
+ * <p>⚠ A version seam: this class answers the loader's per-tick callbacks, so its subclasses carry no tick code
+ * and stay identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port.
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0

@@ -114,6 +114,7 @@ public final class ModEffects {
 
     /** Vanilla effects this mod applies, held the same way as its own. */
     public static final Supplier<MobEffect> VANILLA_WEAKNESS = () -> MobEffects.WEAKNESS;
+    public static final Supplier<MobEffect> VANILLA_CONFUSION = () -> MobEffects.CONFUSION;
 
     public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration) {
         return new MobEffectInstance(effect.get(), duration, 0, false, false, true);
