@@ -222,6 +222,7 @@ tasks.register('pureTest', Test) {
     testClassesDirs = sourceSets.pureTest.output.classesDirs
     classpath = sourceSets.pureTest.runtimeClasspath
     useJUnitPlatform()
+    systemProperty 'gzr.projectDir', projectDir.absolutePath
     testLogging {
         events 'failed'
         exceptionFormat = 'full'

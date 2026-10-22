@@ -7,8 +7,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.item.GuItem;
-import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.gameplay.path.GuPath;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -19,8 +18,9 @@ import org.jetbrains.annotations.NotNull;
  * {@code setVital} also rewrites the aperture's primary path via {@link ApertureService#setPrimaryPath}
  * -- binding a Gu IS what sets primary path [主修] (the store is not synced; the aperture is).
  *
- * <p>⚠ Reaches into {@code item/} on purpose ({@link GuItem}) -- binding a Vital Gu reads that Gu's
- * declared path; do not "fix" those imports. ⚠ Writes NEVER go through {@code ApertureService.store}:
+ * <p>Knows the Gu it holds only through the {@link StoredGu} the entry point sets ({@link #setStoredGu}), so the
+ * aperture does not depend on the item package; binding a Vital Gu reads that Gu's declared path from it.
+ * ⚠ Writes NEVER go through {@code ApertureService.store}:
  * the {@code ApertureChangedEvent} and its max-health refresh hang off that. ⚠
  * {@code setPrimaryPath} no-ops when unchanged; keep the call, or a rebind loses the path. A Vital Gu
  * becomes its aperture's one current Vital Gu when it lands in the slot ({@code setVital}) or a refinement
@@ -43,6 +43,12 @@ import org.jetbrains.annotations.NotNull;
  */
 
 public final class ApertureStorageService {
+
+    private static StoredGu storedGu;
+
+    public static void setStoredGu(@NotNull StoredGu gu) { storedGu = gu; }
+
+    static StoredGu storedGu() { return storedGu; }
 
     private ApertureStorageService() {}
 
@@ -78,7 +84,8 @@ public final class ApertureStorageService {
 
     public static int getMaxStackSize(@NotNull Player player, int aperture, int currentLoad,
             @NotNull ItemStack current, @NotNull ItemStack incoming) {
-        if (!(incoming.getItem() instanceof MortalGuItem gu)) return 0;
+        Rank incomingRank = storedGu.rank(incoming);
+        if (incomingRank == null) return 0;
 
         Rank holder = ApertureService.getAperture(player, aperture).rank();
         int limit = Math.max(MAX_LOAD, currentLoad);
@@ -88,7 +95,7 @@ public final class ApertureStorageService {
             else currentLoad -= getCost(holder, current);
         }
         int freeLoad = Math.max(0, limit - currentLoad);
-        return Math.min(incoming.getMaxStackSize(), existingCount + freeLoad / getCostPerItem(holder, gu));
+        return Math.min(incoming.getMaxStackSize(), existingCount + freeLoad / getCostPerItem(holder, incomingRank));
     }
 
     public static void set(@NotNull ServerPlayer player, int aperture, @NotNull List<ItemStack> items) {
@@ -106,16 +113,17 @@ public final class ApertureStorageService {
 
         PlayerData.get(player).setApertureStorage(next);
         adoptVital(player, aperture, stack);
-        if (stack.getItem() instanceof GuItem gu) ApertureService.setPrimaryPath(player, aperture, gu.path());
+        GuPath path = storedGu.path(stack);
+        if (path != null) ApertureService.setPrimaryPath(player, aperture, path);
         return true;
     }
 
     public static long getVitalToken(@NotNull Player player, int kind) { return get(player).getToken(kind); }
 
     public static void adoptVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
-        long token = GuItem.token(stack);
+        long token = storedGu.token(stack);
         int kind = ApertureService.get(player).kindAt(aperture);
-        if (token != 0L && GuItem.isVitalOf(stack, player) && token != getVitalToken(player, kind)) {
+        if (token != 0L && storedGu.isVitalOf(stack, player) && token != getVitalToken(player, kind)) {
             PlayerData.get(player).setApertureStorage(get(player).withToken(kind, token));
         }
     }
@@ -157,13 +165,14 @@ public final class ApertureStorageService {
     }
 
     private static int getCost(Rank holder, ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof MortalGuItem gu)) return 0;
+        Rank rank = stack.isEmpty() ? null : storedGu.rank(stack);
+        if (rank == null) return 0;
 
-        return getCostPerItem(holder, gu) * stack.getCount();
+        return getCostPerItem(holder, rank) * stack.getCount();
     }
 
-    private static int getCostPerItem(Rank holder, MortalGuItem gu) {
-        int gap = gu.rank().ordinal() - holder.ordinal();
+    private static int getCostPerItem(Rank holder, Rank gu) {
+        int gap = gu.ordinal() - holder.ordinal();
         return gap < 0 ? 1 : gap == 0 ? 2 : 2 << gap;
     }
 }

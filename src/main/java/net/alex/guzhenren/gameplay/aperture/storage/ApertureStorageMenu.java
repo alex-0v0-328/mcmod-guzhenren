@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.item.GuItem;
-import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -196,10 +193,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         }
 
         ItemStack bound = vital.getItem(0);
-        if (!bound.isEmpty() && bound.getItem() instanceof GuItem
-                && (!GuItem.isCurrentVital(bound, server) || GuItem.boundIndex(bound, server) != aperture)) {
-            GuItem.bind(bound, server, aperture);
-        }
+        if (!bound.isEmpty()) ApertureStorageService.storedGu().bindVital(bound, server, aperture);
         if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
             int kind = ApertureService.get(server).kindAt(aperture);
             long former = ApertureStorageService.getVitalToken(server, kind);
@@ -217,10 +211,11 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     }
 
     private void releaseFormer(ServerPlayer server, long token) {
-        if (GuItem.token(getCarried()) == token) GuItem.unbind(getCarried());
+        StoredGu gu = ApertureStorageService.storedGu();
+        if (gu.token(getCarried()) == token) gu.unbind(getCarried());
         Inventory inventory = server.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (GuItem.token(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
+            if (gu.token(inventory.getItem(i)) == token) gu.unbind(inventory.getItem(i));
         }
     }
 
@@ -267,7 +262,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return stack.getItem() instanceof MortalGuItem
+            return ApertureStorageService.storedGu().rank(stack) != null
                     && (hasItem()
                     || ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0);
         }
@@ -284,9 +279,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.refined(stack)) return false;
-            if (!gu.canBeVital()) return false;
-            if (GuItem.isForeignVital(stack, player)) return false;
+            if (!ApertureStorageService.storedGu().canBeVital(stack, player)) return false;
             return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0;
         }
 
