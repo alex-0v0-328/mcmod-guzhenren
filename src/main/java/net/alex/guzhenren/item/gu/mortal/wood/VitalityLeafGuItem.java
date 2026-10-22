@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * A one-shot Gu that grants the vitality effect [生机叶], refusing while one it granted is still running.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.OneShotGuItem}. The gate checks
- * {@code hasEffect(VITALITY_LEAF)} so a re-use while the effect runs is a refusal, not a refresh;
+ * {@code ModEffects.has(VITALITY_LEAF)} so a re-use while the effect runs is a refusal, not a refresh;
  * {@code apply} hands the effect holder and its duration to
  * {@link net.alex.guzhenren.registry.effect.ModEffects#instance}.
  *
@@ -33,7 +33,7 @@ public class VitalityLeafGuItem extends OneShotGuItem {
 
     @Override
     protected @Nullable Refusal useGate(Player player, ItemStack stack) {
-        return player.hasEffect(ModEffects.VITALITY_LEAF) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
+        return ModEffects.has(player, ModEffects.VITALITY_LEAF) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
     }
 
     @Override

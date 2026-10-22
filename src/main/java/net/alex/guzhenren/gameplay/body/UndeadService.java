@@ -48,7 +48,7 @@ public final class UndeadService {
 
     private static void projectHalfZombie(ServerPlayer player) {
         if (!BodyService.isHalfZombie(player)) {
-            if (player.hasEffect(ModEffects.HALF_ZOMBIE)) player.removeEffect(ModEffects.HALF_ZOMBIE);
+            if (ModEffects.has(player, ModEffects.HALF_ZOMBIE)) ModEffects.remove(player, ModEffects.HALF_ZOMBIE);
             return;
         }
         player.addEffect(ModEffects.instance(ModEffects.HALF_ZOMBIE,
@@ -65,7 +65,7 @@ public final class UndeadService {
     }
 
     public static void tickDeathQi(@NotNull ServerPlayer player) {
-        if (!player.hasEffect(ModEffects.DEATH_QI) || BodyService.isZombie(player)) return;
+        if (!ModEffects.has(player, ModEffects.DEATH_QI) || BodyService.isZombie(player)) return;
 
         if (player.tickCount % DEATH_QI_YEAR_INTERVAL_TICKS == 0) {
             BodyService.drainByDeathQi(player, DEATH_QI_YEARS_PER_INTERVAL);

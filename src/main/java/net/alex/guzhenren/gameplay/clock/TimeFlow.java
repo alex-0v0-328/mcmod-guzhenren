@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.clock;
 import com.google.common.math.LongMath;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -60,7 +61,7 @@ public final class TimeFlow {
     public static int getSelfRate(@NotNull Player player) {
         int rate = 0;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (instance.getEffect().value() instanceof TimeRateContributor contributor) {
+            if (ModEffects.effectOf(instance) instanceof TimeRateContributor contributor) {
                 rate += contributor.timeRate(instance.getAmplifier());
             }
         }

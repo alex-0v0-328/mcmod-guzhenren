@@ -1,10 +1,10 @@
 package net.alex.guzhenren.item.gu.mortal.wisdom;
 
+import java.util.function.Supplier;
 import net.alex.guzhenren.effect.timed.CasualThoughtEffect;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.player.Player;
@@ -27,9 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class CasualGuItem extends ConsumedGuItem {
 
-    private final Holder<MobEffect> effect;
+    private final Supplier<? extends MobEffect> effect;
 
-    public CasualGuItem(Properties properties, Holder<MobEffect> effect, GuSpec spec) {
+    public CasualGuItem(Properties properties, Supplier<? extends MobEffect> effect, GuSpec spec) {
         super(properties, spec);
         this.effect = effect;
     }

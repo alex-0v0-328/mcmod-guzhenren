@@ -86,12 +86,14 @@ public final class ApertureEssenceService {
         return total;
     }
 
-    public static boolean isDistilling(@NotNull Player player) { return player.hasEffect(ModEffects.LIQUOR_WORM); }
+    public static boolean isDistilling(@NotNull Player player) {
+        return ModEffects.has(player, ModEffects.LIQUOR_WORM);
+    }
 
-    public static boolean isChoked(@NotNull Player player) { return player.hasEffect(ModEffects.DEATH_QI); }
+    public static boolean isChoked(@NotNull Player player) { return ModEffects.has(player, ModEffects.DEATH_QI); }
 
     public static double getEssenceQiBonus(@NotNull Player player) {
-        MobEffectInstance effect = player.getEffect(ModEffects.ESSENCE_QI);
+        MobEffectInstance effect = ModEffects.get(player, ModEffects.ESSENCE_QI);
         return effect == null ? 0.0
                 : ESSENCE_QI_REGEN_BONUS[Mth.clamp(effect.getAmplifier(), 0, ESSENCE_QI_REGEN_BONUS.length - 1)];
     }

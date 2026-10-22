@@ -4,7 +4,6 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
@@ -16,6 +15,9 @@ import net.minecraft.world.entity.LivingEntity;
  * {@link MobEffect} has no expiry hook. Changing how that last tick is recognized is how the penalty
  * quietly stops happening. ⚠ The aftermath is a punishment -- milk or {@code /effect clear} skipping it
  * is the intended design, NOT a gap.
+ *
+ * <p>⚠ A version seam: this class answers the loader's per-tick callbacks, so its subclasses carry no tick code
+ * and stay identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port.
  *
  * @author Alex
  * @version 1.0.0
@@ -37,7 +39,7 @@ public abstract class AftermathEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        entity.addEffect(ModEffects.instance(MobEffects.WEAKNESS, AFTERMATH_TICKS));
+        entity.addEffect(ModEffects.instance(ModEffects.VANILLA_WEAKNESS, AFTERMATH_TICKS));
         return true;
     }
 }

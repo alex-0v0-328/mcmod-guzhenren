@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.body;
 
 import com.google.common.math.LongMath;
 import java.math.BigInteger;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
@@ -12,7 +13,6 @@ import net.alex.guzhenren.gameplay.path.PathService;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -139,7 +139,7 @@ public final class BodyService {
         if (before == physique) return;
 
         store(player, body.withExtremePhysique(physique));
-        NeoForge.EVENT_BUS.post(new ExtremePhysiqueChangedEvent(player, before, physique));
+        ModEvents.post(new ExtremePhysiqueChangedEvent(player, before, physique));
     }
 
     public static void revive(@NotNull ServerPlayer player) { storePhysique(player, get(player).revived()); }
@@ -158,7 +158,7 @@ public final class BodyService {
 
     private static void storePhysique(ServerPlayer player, BodyData data) {
         store(player, data);
-        NeoForge.EVENT_BUS.post(new PhysiqueChangedEvent(player));
+        ModEvents.post(new PhysiqueChangedEvent(player));
     }
 
     public static boolean isWithinRelapseWindow(@NotNull Player player) {

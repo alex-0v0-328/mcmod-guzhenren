@@ -1,6 +1,7 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import java.util.List;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
@@ -13,7 +14,6 @@ import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -218,7 +218,7 @@ public final class ApertureService {
 
     private static void store(ServerPlayer player, ApertureData data) {
         PlayerData.get(player).setAperture(data);
-        NeoForge.EVENT_BUS.post(new ApertureChangedEvent(player));
+        ModEvents.post(new ApertureChangedEvent(player));
     }
 
     private static Aperture enforce(@NotNull Player player, int index, @NotNull Aperture aperture) {

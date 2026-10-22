@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu;
 
 import java.util.List;
 import java.util.UUID;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
@@ -18,7 +19,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -489,7 +489,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         UUID uuid = owner(stack);
         if (uuid == null) return;
 
-        NeoForge.EVENT_BUS.post(new VitalGuLostEvent(holder.server, uuid, stack));
+        ModEvents.post(new VitalGuLostEvent(holder.server, uuid, stack));
     }
 
     public static void starved(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_STARVED); }

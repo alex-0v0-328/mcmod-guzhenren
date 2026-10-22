@@ -5,13 +5,12 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.minecraft.core.HolderLookup;
+import net.alex.guzhenren.core.ModSavedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,15 +32,13 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public final class PendingVitalPenalties extends SavedData {
+public final class PendingVitalPenalties extends ModSavedData {
 
     private static final String NAME = "guzhenren_pending_vital_penalties";
-    private static final SavedData.Factory<PendingVitalPenalties> FACTORY =
-            new SavedData.Factory<>(PendingVitalPenalties::new, PendingVitalPenalties::load);
     private final Map<UUID, Deque<ItemStack>> pending = new HashMap<>();
 
     public static @NotNull PendingVitalPenalties get(@NotNull MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, NAME);
+        return ModSavedData.get(server.overworld(), NAME, PendingVitalPenalties::new, PendingVitalPenalties::load);
     }
 
     public void record(@NotNull UUID owner, @NotNull ItemStack stack) {
@@ -67,27 +64,25 @@ public final class PendingVitalPenalties extends SavedData {
     }
 
     @Override
-    public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+    protected void write(@NotNull CompoundTag tag, @NotNull StackIo stacks) {
         ListTag entries = new ListTag();
         pending.forEach((owner, queue) -> {
             for (ItemStack stack : queue) {
                 CompoundTag entry = new CompoundTag();
                 entry.putUUID("owner", owner);
-                entry.put("stack", stack.save(registries));
+                entry.put("stack", stacks.save(stack));
                 entries.add(entry);
             }
         });
         tag.put("pending", entries);
-        return tag;
     }
 
-    public static @NotNull PendingVitalPenalties load(@NotNull CompoundTag tag,
-            HolderLookup.@NotNull Provider registries) {
+    public static @NotNull PendingVitalPenalties load(@NotNull CompoundTag tag, @NotNull StackIo stacks) {
         PendingVitalPenalties data = new PendingVitalPenalties();
         ListTag entries = tag.getList("pending", Tag.TAG_COMPOUND);
         for (int i = 0; i < entries.size(); i++) {
             CompoundTag entry = entries.getCompound(i);
-            ItemStack stack = ItemStack.parseOptional(registries, entry.getCompound("stack"));
+            ItemStack stack = stacks.load(entry.getCompound("stack"));
             if (stack.isEmpty() || !entry.hasUUID("owner")) continue;
 
             data.pending.computeIfAbsent(entry.getUUID("owner"), key -> new ArrayDeque<>()).addLast(stack);

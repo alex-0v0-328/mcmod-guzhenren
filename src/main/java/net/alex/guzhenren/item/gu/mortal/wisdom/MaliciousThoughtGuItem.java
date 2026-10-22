@@ -1,12 +1,12 @@
 package net.alex.guzhenren.item.gu.mortal.wisdom;
 
+import java.util.function.Supplier;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtEffect;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.player.Player;
@@ -32,10 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class MaliciousThoughtGuItem extends ConsumedGuItem {
 
-    private final Holder<MobEffect> effect;
+    private final Supplier<? extends MobEffect> effect;
     private final long immediateThoughts;
 
-    public MaliciousThoughtGuItem(Properties properties, Holder<MobEffect> effect, long immediateThoughts,
+    public MaliciousThoughtGuItem(Properties properties, Supplier<? extends MobEffect> effect, long immediateThoughts,
                                   GuSpec spec) {
         super(properties, spec);
         this.effect = effect;

@@ -3,17 +3,12 @@ package net.alex.guzhenren.gameplay.flight;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
+import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.NeoForgeMod;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,20 +22,20 @@ import org.jetbrains.annotations.NotNull;
  * sprinting doubling it again as in creative, toggled by double-tapping sprint
  * ({@code net.alex.guzhenren.client.input.BurstInput}).
  *
- * <p>Flight from a Gu is a transient modifier on NeoForge's {@code creative_flight} attribute
- * ({@link #GU_FLIGHT_MODIFIER_ID}), never {@code Abilities#mayfly}, which the game saves and game modes share: it
- * never takes away flight the game mode or the anchored dimension granted. {@link #refreshGuFlight} adds it while
- * a Gu grants flight and, once none does, removes it and turns flying off unless something else still lets the
- * player fly, so a survival player falls when the effect runs out. Creative and the Treasure Yellow Heaven bring
- * their own flight, so a burst needs no modifier of its own.
+ * <p>Flight from a Gu is a {@link FlightAbility} source ({@link #GU_FLIGHT_MODIFIER_ID}), never a raw write to
+ * {@code Abilities#mayfly}, which the game saves and game modes share: it never takes away flight the game mode or
+ * the anchored dimension granted. {@link #refreshGuFlight} grants it while a Gu grants flight and, once none does,
+ * revokes it and turns flying off unless something else still lets the player fly, so a survival player falls when
+ * the effect runs out. Creative and the Treasure Yellow Heaven bring their own flight, so a burst needs no source of
+ * its own.
  *
- * <p>{@link #startBurst} marks the burst ({@code PlayerData#setBurst}, synced to its owner) before turning flying
- * on, so the client sees the mark first and a player standing on the ground jumps before its landing check can end
- * the flight ({@code net.alex.guzhenren.client.event.BurstEvents}). {@link #tick} runs every server tick: it
- * refreshes the Gu flight, then ends a burst once the player stops flying (the client landed, or vanilla's double
- * jump turned flying off) or loses the burst grant. {@link #stopBurst} drops the mark; a player something still lets
- * fly keeps flying at normal speed, anyone else falls. It always resends the abilities: a client that turned flying
- * back on with vanilla's double jump in the tick before would otherwise keep flying unauthorized.
+ * <p>{@link #startBurst} marks the burst ({@code PlayerData#setBurst}, synced to its owner) before turning flying on,
+ * so the client sees the mark first and a player standing on the ground jumps before its landing check can end the
+ * flight ({@code net.alex.guzhenren.client.event.BurstEvents}). {@link #tick} runs every server tick ({@link
+ * FlightEvents}): it refreshes the Gu flight, then ends a burst once the player stops flying (the client landed, or
+ * vanilla's double jump turned flying off) or loses the burst grant. {@link #stopBurst} drops the mark; a player
+ * something still lets fly keeps flying at normal speed, anyone else falls. It always resends the abilities: a client
+ * that turned flying back on with vanilla's double jump in the tick before would otherwise keep flying unauthorized.
  *
  * <p>⚠ The speed is never written to {@code Abilities}, which the game saves: only the client scales its own flight
  * ({@code net.alex.guzhenren.mixin.PlayerMixin} and {@code LocalPlayerMixin}), reading the synced mark; the server
@@ -48,9 +43,9 @@ import org.jetbrains.annotations.NotNull;
  * it a sprinting burst trips the vanilla server's "moved too quickly" check and rubber-bands. At 3 a sprinting burst
  * covers ≈60 blocks a second, ≈3.75 chunks of new terrain, close to an elytra dive.
  *
- * <p>The mark is saved, so a player who logs out midair still bursts on return, and NeoForge resends it on login,
- * respawn and dimension change; death drops it. Leaving the End through its exit portal keeps it but resets the game
- * mode, which turns a survival player's flying off, so the first tick ends the burst.
+ * <p>The mark is saved, so a player who logs out midair still bursts on return, and the player-data sync resends it on
+ * login, respawn and dimension change; death drops it. Leaving the End through its exit portal keeps it but resets
+ * the game mode, which turns a survival player's flying off, so the first tick ends the burst.
  *
  * @author Alex
  * @version 1.0.0
@@ -58,15 +53,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-@EventBusSubscriber(modid = Guzhenren.MOD_ID)
 public final class FlightService {
 
     private FlightService() {}
 
     public static final float BURST_MULTIPLIER = 3.0F;
     private static final ResourceLocation GU_FLIGHT_MODIFIER_ID = Guzhenren.id("gu_flight");
-    private static final AttributeModifier GU_FLIGHT_MODIFIER = new AttributeModifier(GU_FLIGHT_MODIFIER_ID, 1.0D,
-            AttributeModifier.Operation.ADD_VALUE);
 
     public static @NotNull FlightGrant getGrant(@NotNull Player player) {
         if (!player.isAlive() || player.isSpectator() || player.isPassenger() || player.isSleeping()) {
@@ -81,7 +73,7 @@ public final class FlightService {
     public static @NotNull FlightGrant getGuGrant(@NotNull Player player) {
         FlightGrant grant = FlightGrant.NONE;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (instance.getEffect().value() instanceof FlightContributor contributor) {
+            if (ModEffects.effectOf(instance) instanceof FlightContributor contributor) {
                 grant = FlightGrant.getStrongest(grant, contributor.getFlightGrant(instance.getAmplifier()));
             }
         }
@@ -112,7 +104,7 @@ public final class FlightService {
 
     public static void stopBurst(@NotNull ServerPlayer player) {
         PlayerData.get(player).setBurst(false);
-        if (!player.mayFly()) player.getAbilities().flying = false;
+        if (!FlightAbility.mayFly(player)) player.getAbilities().flying = false;
         player.onUpdateAbilities();
     }
 
@@ -123,23 +115,16 @@ public final class FlightService {
         }
     }
 
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (event.getEntity() instanceof ServerPlayer player) tick(player);
-    }
-
     private static void refreshGuFlight(ServerPlayer player) {
-        AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
-        if (flight == null) return;
         boolean granted = getGuGrant(player).allowsFlight();
-        if (granted == flight.hasModifier(GU_FLIGHT_MODIFIER_ID)) return;
+        if (granted == FlightAbility.has(player, GU_FLIGHT_MODIFIER_ID)) return;
 
         if (granted) {
-            flight.addTransientModifier(GU_FLIGHT_MODIFIER);
+            FlightAbility.grant(player, GU_FLIGHT_MODIFIER_ID);
             return;
         }
-        flight.removeModifier(GU_FLIGHT_MODIFIER_ID);
-        if (!player.mayFly()) player.getAbilities().flying = false;
+        FlightAbility.revoke(player, GU_FLIGHT_MODIFIER_ID);
+        if (!FlightAbility.mayFly(player)) player.getAbilities().flying = false;
         player.onUpdateAbilities();
     }
 }

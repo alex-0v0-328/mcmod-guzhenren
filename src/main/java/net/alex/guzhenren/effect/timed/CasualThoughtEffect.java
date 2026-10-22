@@ -18,9 +18,6 @@ import org.jetbrains.annotations.NotNull;
  * the rank's tier, and the {@code RANGES} table widens with it. Thoughts land through {@link
  * MindService#addThoughts} tagged {@code NATURAL}.
  *
- * <p>⚠ {@code applyEffectTick} must {@code return true} — returning false lets vanilla remove the
- * effect on the spot.
- *
  * @author Alex
  * @version 1.0.0
  * @see MindService
@@ -37,12 +34,11 @@ public class CasualThoughtEffect extends PeriodicEffect {
     }
 
     @Override
-    public boolean applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+    protected void onPulse(@NotNull LivingEntity entity, int amplifier) {
         if (entity instanceof ServerPlayer player) {
             int index = Mth.clamp(amplifier, 0, RANGES.length - 1);
             int amount = player.getRandom().nextIntBetweenInclusive(RANGES[index][0], RANGES[index][1]);
             MindService.addThoughts(player, amount, ThoughtTag.NATURAL);
         }
-        return true;
     }
 }

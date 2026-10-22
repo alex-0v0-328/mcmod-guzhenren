@@ -214,7 +214,7 @@ public final class ApertureNourishService {
     }
 
     private static @Nullable Aperture pay(ServerPlayer player, long cost, int target) {
-        if (player.hasInfiniteMaterials()) return ApertureService.getAperture(player, target);
+        if (player.getAbilities().instabuild) return ApertureService.getAperture(player, target);
         stones.topUp().accept(player);
         return ApertureEssenceService.consumeDeferred(player, cost, target);
     }
@@ -251,7 +251,7 @@ public final class ApertureNourishService {
         if (!canImpact(player)) return;
         Aperture aperture = ApertureService.getAperture(player);
         long cost = impactCost(player);
-        if (!player.hasInfiniteMaterials() && !stones.spend().test(player, cost)) {
+        if (!player.getAbilities().instabuild && !stones.spend().test(player, cost)) {
             player.displayClientMessage(Component.translatable(IMPACT_POOR, cost), true);
             return;
         }

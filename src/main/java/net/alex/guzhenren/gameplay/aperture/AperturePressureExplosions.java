@@ -2,13 +2,12 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.HolderLookup;
+import net.alex.guzhenren.core.ModSavedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public final class AperturePressureExplosions extends SavedData {
+public final class AperturePressureExplosions extends ModSavedData {
 
     private AperturePressureExplosions() {}
 
@@ -46,8 +45,7 @@ public final class AperturePressureExplosions extends SavedData {
     private final List<AperturePressureExplosionTask> tasks = new ArrayList<>();
 
     public static @NotNull AperturePressureExplosions get(@NotNull ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(
-                new SavedData.Factory<>(AperturePressureExplosions::new, (tag, registries) -> load(level, tag)), NAME);
+        return ModSavedData.get(level, NAME, AperturePressureExplosions::new, (tag, stacks) -> load(level, tag));
     }
 
     public static void tickAll(@NotNull MinecraftServer server) { tickAll(server, TICK_BUDGET_NANOS); }
@@ -70,11 +68,10 @@ public final class AperturePressureExplosions extends SavedData {
     public boolean isEmpty() { return tasks.isEmpty(); }
 
     @Override
-    public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+    protected void write(@NotNull CompoundTag tag, @NotNull StackIo stacks) {
         ListTag entries = new ListTag();
         for (AperturePressureExplosionTask task : tasks) entries.add(task.save());
         tag.put("explosions", entries);
-        return tag;
     }
 
     void add(AperturePressureExplosionTask task) {

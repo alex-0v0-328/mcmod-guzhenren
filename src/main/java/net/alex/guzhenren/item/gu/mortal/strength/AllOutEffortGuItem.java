@@ -39,7 +39,7 @@ public class AllOutEffortGuItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
-        return player.hasEffect(ModEffects.ALL_OUT_EFFORT) ? new Refusal(FAILED_ALREADY_UNLEASHED) : null;
+        return ModEffects.has(player, ModEffects.ALL_OUT_EFFORT) ? new Refusal(FAILED_ALREADY_UNLEASHED) : null;
     }
 
     @Override

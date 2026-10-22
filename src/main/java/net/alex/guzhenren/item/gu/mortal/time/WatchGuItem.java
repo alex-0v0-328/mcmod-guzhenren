@@ -1,10 +1,10 @@
 package net.alex.guzhenren.item.gu.mortal.time;
 
+import java.util.function.Supplier;
 import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -30,12 +30,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class WatchGuItem extends ConsumedGuItem {
 
-    private final Holder<MobEffect> form;
+    private final Supplier<? extends MobEffect> form;
     private final int effectTicks;
 
-    public WatchGuItem(Properties properties, Holder<MobEffect> form, int effectTicks, GuSpec spec) {
+    public WatchGuItem(Properties properties, Supplier<? extends MobEffect> form, int effectTicks, GuSpec spec) {
         super(properties, spec);
-        if (!(form.value() instanceof TimeRateUpEffect)) throw new IllegalArgumentException("watch gu needs a TimeRateUpEffect");
+        if (!(form.get() instanceof TimeRateUpEffect)) throw new IllegalArgumentException("watch gu needs a TimeRateUpEffect");
         this.form = form;
         this.effectTicks = effectTicks;
     }
@@ -45,8 +45,8 @@ public class WatchGuItem extends ConsumedGuItem {
 
     @Override
     protected void payout(ServerPlayer player, ItemStack stack) {
-        MobEffectInstance current = player.getEffect(form);
-        TimeRateUpEffect effect = (TimeRateUpEffect) form.value();
+        MobEffectInstance current = ModEffects.get(player, form);
+        TimeRateUpEffect effect = (TimeRateUpEffect) form.get();
         int amplifier = effect.nextAmplifier(current == null ? -1 : current.getAmplifier());
         player.addEffect(ModEffects.instance(form, effectTicks, amplifier));
     }

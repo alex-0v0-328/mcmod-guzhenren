@@ -84,8 +84,9 @@ public final class ClientIntents {
         if (!outsideTyh(player)) return;
         if (vertical < -1 || vertical > 1 || horizontal < -1 || horizontal > 1 || !Float.isFinite(yRot)) return;
         if (!canDash(player.getMainHandItem(), vertical, horizontal,
-                player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU), player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
-                player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
+                ModEffects.has(player, ModEffects.HORIZONTAL_CRASH_GU),
+                ModEffects.has(player, ModEffects.VERTICAL_CRASH_GU),
+                ModEffects.has(player, ModEffects.CHARGING_CRASH_GU))) return;
         if (ApertureNourishService.isCultivating(player)) return;
         EpicFightIntegration.dash(player, vertical, yRot);
     }

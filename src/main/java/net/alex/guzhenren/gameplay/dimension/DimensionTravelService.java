@@ -4,6 +4,7 @@ import java.util.Objects;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData.ReturnPoint;
+import net.alex.guzhenren.gameplay.flight.FlightAbility;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.alex.guzhenren.registry.world.ModDimensions.AnchoredDimension;
 import net.alex.guzhenren.registry.world.ModDimensions.Arrival;
@@ -12,13 +13,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,15 +43,14 @@ import org.jetbrains.annotations.NotNull;
  * instead, returning {@code false}. Both paths revoke the flight grant and clear the record ({@link
  * #clear(Player)} is safe to call even when no record is present).
  *
- * <p>⚠ Flight inside is a transient {@code CREATIVE_FLIGHT} modifier, never the raw
- * {@code Abilities.mayfly}: the raw field is saved with the player and shared with game modes and other
- * mods, so writing it leaked survival flight whenever a player left without a matching restore.
- * Transient keeps the grant out of the save file. {@link #ensureFlight} re-grants the permission each
- * tick without forcing {@code flying} on, so the player may choose to hover or stop flying freely while
- * inside a flight dimension; {@link #revokeFlight} drops the grant, and {@code flying} with it unless
- * something else still lets the player fly, each tick while the player is outside every anchored
- * dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another mod's
- * teleport -- revokes it.
+ * <p>⚠ Flight inside is a {@link FlightAbility} source, never a raw write to {@code Abilities.mayfly}: the raw field is
+ * saved with the player and shared with game modes and other mods, so writing it leaked survival flight whenever a
+ * player left without a matching restore. A {@link FlightAbility} source is never saved, which keeps the grant out of
+ * the save file. {@link #ensureFlight} re-grants the permission each tick without forcing {@code flying} on, so the
+ * player may choose to hover or stop flying freely while inside a flight dimension; {@link #revokeFlight} drops the
+ * grant, and {@code flying} with it unless something else still lets the player fly, each tick while the player is
+ * outside every anchored dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another
+ * mod's teleport -- revokes it.
  *
  * <p>{@link #rescueIfBelowVoid} teleports the player back to the given spawn if they have fallen below
  * the current level's minimum build height, returning {@code true} if a rescue teleport happened.
@@ -128,7 +125,7 @@ public final class DimensionTravelService {
             if (used) {
                 player.teleportTo(target, point.x(), point.y(), point.z(), point.yaw(), point.pitch());
                 revokeFlight(player);
-                player.getAbilities().flying = point.flying() && player.mayFly();
+                player.getAbilities().flying = point.flying() && FlightAbility.mayFly(player);
                 player.fallDistance = 0.0F;
                 player.onUpdateAbilities();
             } else {
@@ -157,17 +154,12 @@ public final class DimensionTravelService {
     }
 
     public static void ensureFlight(@NotNull ServerPlayer player) {
-        AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
-        if (flight != null && !flight.hasModifier(FLIGHT_MODIFIER_ID)) {
-            flight.addTransientModifier(new AttributeModifier(FLIGHT_MODIFIER_ID, 1.0D,
-                    AttributeModifier.Operation.ADD_VALUE));
-        }
+        if (!FlightAbility.has(player, FLIGHT_MODIFIER_ID)) FlightAbility.grant(player, FLIGHT_MODIFIER_ID);
     }
 
     public static void revokeFlight(@NotNull ServerPlayer player) {
-        AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
-        if (flight == null || !flight.removeModifier(FLIGHT_MODIFIER_ID)) return;
-        if (player.getAbilities().flying && !player.mayFly()) {
+        if (!FlightAbility.revoke(player, FLIGHT_MODIFIER_ID)) return;
+        if (player.getAbilities().flying && !FlightAbility.mayFly(player)) {
             player.getAbilities().flying = false;
             player.onUpdateAbilities();
         }

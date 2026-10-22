@@ -53,9 +53,9 @@ public final class DashInput {
             int vertical = up == down ? 0 : up ? 1 : -1;
             int horizontal = left == right ? 0 : left ? 1 : -1;
             if (ClientIntents.canDash(mainHand, vertical, horizontal,
-                    player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
-                    player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
-                    player.hasEffect(ModEffects.CHARGING_CRASH_GU))) {
+                    ModEffects.has(player, ModEffects.HORIZONTAL_CRASH_GU),
+                    ModEffects.has(player, ModEffects.VERTICAL_CRASH_GU),
+                    ModEffects.has(player, ModEffects.CHARGING_CRASH_GU))) {
                 send(player, vertical, horizontal);
             }
         }

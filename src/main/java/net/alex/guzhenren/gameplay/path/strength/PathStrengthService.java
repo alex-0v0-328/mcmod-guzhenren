@@ -1,9 +1,9 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,7 +44,7 @@ public final class PathStrengthService {
 
     private static void store(ServerPlayer player, PathStrengthData data) {
         PlayerData.get(player).setStrength(data);
-        NeoForge.EVENT_BUS.post(new StrengthChangedEvent(player));
+        ModEvents.post(new StrengthChangedEvent(player));
     }
 
     public static void setHumanStrength(@NotNull ServerPlayer player, @NotNull HumanStrength kind, int value) {

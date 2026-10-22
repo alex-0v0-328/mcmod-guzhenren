@@ -4,6 +4,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.PeriodicEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The timed healing of the Vitality Leaf Gu [生机叶蛊]: heals one HP every half-second for 64 pulses
@@ -30,8 +31,7 @@ public class VitalityLeafEffect extends PeriodicEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    protected void onPulse(@NotNull LivingEntity entity, int amplifier) {
         entity.heal(1.0F);
-        return true;
     }
 }

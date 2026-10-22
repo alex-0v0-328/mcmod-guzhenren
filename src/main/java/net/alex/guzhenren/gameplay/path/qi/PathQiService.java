@@ -1,10 +1,10 @@
 package net.alex.guzhenren.gameplay.path.qi;
 
 import com.google.common.math.LongMath;
+import java.util.function.Supplier;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -74,13 +74,13 @@ public final class PathQiService {
         syncDeath(player, now);
     }
 
-    private static void syncGraded(ServerPlayer player, QiKind kind, Holder<MobEffect> effect, long now) {
+    private static void syncGraded(ServerPlayer player, QiKind kind, Supplier<? extends MobEffect> effect, long now) {
         PathQiData data = get(player);
         int tier = data.holding(kind, now) ? QiKind.tierOf(data.current(kind, now)) : -1;
-        MobEffectInstance current = player.getEffect(effect);
+        MobEffectInstance current = ModEffects.get(player, effect);
 
         if (tier < 0) {
-            if (current != null) player.removeEffect(effect);
+            if (current != null) ModEffects.remove(player, effect);
             return;
         }
 
@@ -95,9 +95,9 @@ public final class PathQiService {
 
     private static void syncDeath(ServerPlayer player, long now) {
         boolean present = get(player).current(QiKind.DEATH, now) > 0L;
-        MobEffectInstance current = player.getEffect(ModEffects.DEATH_QI);
+        MobEffectInstance current = ModEffects.get(player, ModEffects.DEATH_QI);
         if (!present) {
-            if (current != null) player.removeEffect(ModEffects.DEATH_QI);
+            if (current != null) ModEffects.remove(player, ModEffects.DEATH_QI);
             return;
         }
         if (current == null || current.getDuration() < EFFECT_REFRESH_TICKS) {
