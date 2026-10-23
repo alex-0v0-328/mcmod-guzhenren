@@ -36,19 +36,19 @@ public class ZombieGuItem extends TendedGuItem {
         this.halfZombieTicks = halfZombieTicks;
     }
 
-    private int rung() { return rank().ordinal() - Rank.TWO.ordinal(); }
+    private int getRung() { return getRank().ordinal() - Rank.TWO.ordinal(); }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return BodyService.isZombie(player) ? new Refusal(FAILED_ALREADY_ZOMBIE) : null;
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
+    protected void payOut(ServerPlayer player, ItemStack stack) {
         if (BodyService.isWithinRelapseWindow(player)) {
-            BodyService.turnZombie(player, rung());
+            BodyService.turnZombie(player, getRung());
             return;
         }
-        BodyService.enterHalfZombie(player, rung(), halfZombieTicks);
+        BodyService.enterHalfZombie(player, getRung(), halfZombieTicks);
     }
 }

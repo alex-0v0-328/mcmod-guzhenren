@@ -66,9 +66,9 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     //region what a leaf must answer
-    protected abstract @Nullable Refusal payoutGate(Player player, ItemStack stack);
+    protected abstract @Nullable Refusal checkPayoutGate(Player player, ItemStack stack);
 
-    protected abstract void payout(ServerPlayer player, ItemStack stack);
+    protected abstract void payOut(ServerPlayer player, ItemStack stack);
 
     protected int feedUnits(ItemStack food) { return spec.feedUnits(food); }
 
@@ -76,46 +76,46 @@ public abstract class TendedGuItem extends MortalGuItem {
     //endregion
 
     //region state
-    public static RefinedGuState state(ItemStack stack) {
+    public static RefinedGuState getState(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.REFINED_GU_STATE, RefinedGuState.WILD);
     }
 
     private void store(ItemStack stack, RefinedGuState state) {
         ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, new RefinedGuState(state.refined(),
-                Math.min(state.refineProgress(), refineCost()),
-                Math.min(state.investedEssence(), spec.essencePerRound()),
+                Math.min(state.refineProgress(), getRefineCost()),
+                Math.min(state.investedEssence(), spec.getEssencePerRound()),
                 state.hunger(),
-                Mth.clamp(state.damageTaken(), 0, maxHealth())));
+                Mth.clamp(state.damageTaken(), 0, getMaxHealth())));
     }
 
-    public boolean refined(ItemStack stack) { return state(stack).refined(); }
+    public boolean isRefined(ItemStack stack) { return getState(stack).refined(); }
 
-    public boolean hungry(ServerPlayer player, ItemStack stack) {
-        return refined(stack) && clock.hungry(player, stack);
+    public boolean isHungry(ServerPlayer player, ItemStack stack) {
+        return isRefined(stack) && clock.isHungry(player, stack);
     }
     //endregion
 
     //region Gu health [蛊虫生命值] -- stored as damage TAKEN, so an untouched 野生 Gu reads as full
     public static final int HEALTH_PER_RANK = 12;
 
-    public int maxHealth() { return HEALTH_PER_RANK; }
+    public int getMaxHealth() { return HEALTH_PER_RANK; }
 
-    public int health(ItemStack stack) { return maxHealth() - state(stack).damageTaken(); }
+    public int getHealth(ItemStack stack) { return getMaxHealth() - getState(stack).damageTaken(); }
 
-    public boolean damageKills(ServerPlayer holder, ItemStack stack, int amount) {
+    public boolean takeDamage(ServerPlayer holder, ItemStack stack, int amount) {
         if (amount <= 0) return false;
 
-        RefinedGuState s = state(stack);
-        int taken = Math.min(maxHealth(), s.damageTaken() + amount);
+        RefinedGuState s = getState(stack);
+        int taken = Math.min(getMaxHealth(), s.damageTaken() + amount);
         store(stack, s.withDamageTaken(taken));
-        if (taken < maxHealth() || isVital(stack)) return false;
+        if (taken < getMaxHealth() || isVital(stack)) return false;
 
-        ruined(holder, stack);
+        ruin(holder, stack);
         return true;
     }
 
     protected void heal(ItemStack stack, int amount) {
-        RefinedGuState s = state(stack);
+        RefinedGuState s = getState(stack);
         if (amount <= 0 || !s.refined()) return;
 
         store(stack, s.withDamageTaken(Math.max(0, s.damageTaken() - amount)));
@@ -123,10 +123,10 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private void healFrom(ServerPlayer player, ItemStack stack, ItemStack food) {
         int units = feedUnits(food);
-        int hurt = state(stack).damageTaken();
+        int hurt = getState(stack).damageTaken();
         if (units <= 0 || hurt <= 0) return;
 
-        GuMeal meal = GuMeal.portion(food.getCount(), hurt, spec.unitsPerHunger(), units);
+        GuMeal meal = GuMeal.createPortion(food.getCount(), hurt, spec.getUnitsPerHunger(), units);
         if (meal.gained() <= 0) return;
 
         if (!player.getAbilities().instabuild) {
@@ -141,20 +141,20 @@ public abstract class TendedGuItem extends MortalGuItem {
     public static final int POST_REFINE_COOLDOWN_TICKS = Ticks.SECOND;
 
     private void refineStep(ServerPlayer player, ItemStack stack, int invest) {
-        RefinedGuState s = state(stack);
+        RefinedGuState s = getState(stack);
         int next = s.refineProgress() + invest;
-        if (next < refineCost()) {
+        if (next < getRefineCost()) {
             store(stack, s.withRefine(next));
             return;
         }
-        bornRefined(player, stack);
+        refineAtBirth(player, stack);
     }
 
-    public void bornRefined(ServerPlayer player, ItemStack stack) {
-        store(stack, new RefinedGuState(true, refineCost(), 0, 0, state(stack).damageTaken()));
+    public void refineAtBirth(ServerPlayer player, ItemStack stack) {
+        store(stack, new RefinedGuState(true, getRefineCost(), 0, 0, getState(stack).damageTaken()));
         clock.bind(player, stack);
         ModDataComponents.set(stack, ModDataComponents.REFINED_AT,
-                GuCooldowns.cooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
+                GuCooldowns.createCooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
         GuCooldowns.applyPostRefineCooldown(player.getCooldowns(), this,
                 TimeFlow.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
     }
@@ -173,13 +173,13 @@ public abstract class TendedGuItem extends MortalGuItem {
         int elapsed = CHANNEL_MAX_TICKS - remaining;
         if (elapsed < 0 || elapsed % STEP_TICKS != 0) return;
 
-        if (!refined(stack)) {
+        if (!isRefined(stack)) {
             refineTick(player, stack, elapsed);
             return;
         }
-        if (!spec.channels()) return;
+        if (!spec.isChanneled()) return;
 
-        if (holdingFood(player, stack)) eat(player, stack);
+        if (isHoldingFood(player, stack)) eat(player, stack);
         PrimevalStoneSupply.fillFromOffhand(player);
         int take = stepAmount(player, stack, elapsed);
         if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
@@ -191,66 +191,67 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private void refineTick(ServerPlayer player, ItemStack stack, int elapsed) {
         PrimevalStoneSupply.fillFromOffhand(player);
-        int left = refineCost() - state(stack).refineProgress();
-        int take = (int) Math.min(left, poured(player, elapsed));
+        int left = getRefineCost() - getState(stack).refineProgress();
+        int take = (int) Math.min(left, getPoured(player, elapsed));
         if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
             player.stopUsingItem();
             return;
         }
         refineStep(player, stack, take);
-        if (refined(stack)) player.stopUsingItem();
+        if (isRefined(stack)) player.stopUsingItem();
     }
 
-    private boolean guPaced(Player player) { return rankGap(player) > 0; }
+    private boolean isGuPaced(Player player) { return getRankGap(player) > 0; }
 
     private int stepAmount(ServerPlayer player, ItemStack stack, int elapsed) {
         long pool = ApertureEssenceService.getSpendable(player);
         if (pool < ESSENCE_FLOOR) return 0;
 
-        int round = spec.essencePerRound();
-        int leftInThisRound = round - state(stack).investedEssence() % round;
-        long thisStep = Math.min(mostThisStepMaySpend(player, pool, elapsed), clock.essenceAboveHungerFloor(stack));
+        int round = spec.getEssencePerRound();
+        int leftInThisRound = round - getState(stack).investedEssence() % round;
+        long thisStep = Math.min(getMostThisStepMaySpend(player, pool, elapsed),
+                clock.getEssenceAboveHungerFloor(stack));
 
         return (int) Math.min(thisStep, leftInThisRound);
     }
 
-    private long mostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
-        if (guPaced(player)) {
-            return Math.min(pool, TimeFlow.scale(player, (long) clock.essencePerHungerPoint() * STEP_TICKS));
+    private long getMostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
+        if (isGuPaced(player)) {
+            return Math.min(pool, TimeFlow.scale(player, (long) clock.getEssencePerHungerPoint() * STEP_TICKS));
         }
-        return poolPacedStep(player, pool, elapsed);
+        return getPoolPacedStep(player, pool, elapsed);
     }
 
-    private long poured(ServerPlayer player, int elapsed) {
+    private long getPoured(ServerPlayer player, int elapsed) {
         long pool = ApertureEssenceService.getSpendable(player);
         if (pool < ESSENCE_FLOOR) return 0L;
-        return guPaced(player) ? pool : poolPacedStep(player, pool, elapsed);
+        return isGuPaced(player) ? pool : getPoolPacedStep(player, pool, elapsed);
     }
 
-    private static long poolPacedStep(ServerPlayer player, long pool, int elapsed) {
+    private static long getPoolPacedStep(ServerPlayer player, long pool, int elapsed) {
         int stepIndex = (elapsed % Ticks.SECOND) / STEP_TICKS;
         return Math.min(pool, TimeFlow.scale(player, pool / (STEPS_PER_SECOND + 1 - stepIndex)));
     }
 
     private void pour(ServerPlayer player, ItemStack stack, int amount) {
-        int pouredBefore = state(stack).investedEssence();
+        int pouredBefore = getState(stack).investedEssence();
         int pouredAfter = pouredBefore + amount;
 
         clock.billHungerForEssence(stack, pouredBefore, pouredAfter);
-        store(stack, state(stack).withInvested(pouredAfter));
+        store(stack, getState(stack).withInvested(pouredAfter));
 
-        if (pouredAfter >= spec.essencePerRound()) {
+        if (pouredAfter >= spec.getEssencePerRound()) {
             grant(player, stack);
-            store(stack, state(stack).withInvested(0));
-            if (payoutGate(player, stack) != null) player.stopUsingItem();
+            store(stack, getState(stack).withInvested(0));
+            if (checkPayoutGate(player, stack) != null) player.stopUsingItem();
         }
     }
 
     private void grant(ServerPlayer player, ItemStack stack) {
-        payout(player, stack);
-        if (spec.effectCooldownTicks() > 0) {
+        payOut(player, stack);
+        if (spec.getEffectCooldownTicks() > 0) {
             ModDataComponents.set(stack, ModDataComponents.USED_AT,
-                    GuCooldowns.cooldownStamp(player, spec.effectCooldownTicks()));
+                    GuCooldowns.createCooldownStamp(player, spec.getEffectCooldownTicks()));
         }
     }
     //endregion
@@ -260,11 +261,11 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     private int postRefineCooldownLeft(Player player, ItemStack stack) {
         Long refinedAt = ModDataComponents.get(stack, ModDataComponents.REFINED_AT);
-        return GuCooldowns.cooldownLeft(player, refinedAt, POST_REFINE_COOLDOWN_TICKS);
+        return GuCooldowns.getCooldownLeft(player, refinedAt, POST_REFINE_COOLDOWN_TICKS);
     }
 
-    private @Nullable Refusal cooldownRefusal(Player player, ItemStack stack) {
-        int left = Math.max(allowsUseDuringEffectCooldown() ? 0 : effectCooldownLeft(player, stack),
+    private @Nullable Refusal checkCooldown(Player player, ItemStack stack) {
+        int left = Math.max(canUseDuringEffectCooldown() ? 0 : getEffectCooldownLeft(player, stack),
                 postRefineCooldownLeft(player, stack));
         if (left <= 0) return null;
 
@@ -276,43 +277,43 @@ public abstract class TendedGuItem extends MortalGuItem {
     @Override
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         super.spend(player, stack, count);
-        int left = Math.max(TimeFlow.shortenWait(player, spec.itemCooldownTicks()),
+        int left = Math.max(TimeFlow.shortenWait(player, spec.getItemCooldownTicks()),
                 postRefineCooldownLeft(player, stack));
-        if (!allowsUseDuringEffectCooldown()) left = Math.max(left, effectCooldownLeft(player, stack));
+        if (!canUseDuringEffectCooldown()) left = Math.max(left, getEffectCooldownLeft(player, stack));
         if (left > 0) player.getCooldowns().addCooldown(this, left);
     }
     //endregion
 
     //region the clicks
     @Override
-    protected boolean feedsFromOffhand() { return true; }
+    protected boolean canFeedFromOffhand() { return true; }
 
     @Override
-    protected final @Nullable Refusal gate(Player player, ItemStack stack) {
-        if (holdingFood(player, stack)) return null;
-        if (!refined(stack)) {
-            return essenceGate(player, Math.min(ESSENCE_FLOOR, refineCost()), FAILED_REFINE_ESSENCE);
+    protected final @Nullable Refusal checkGate(Player player, ItemStack stack) {
+        if (isHoldingFood(player, stack)) return null;
+        if (!isRefined(stack)) {
+            return checkEssenceGate(player, Math.min(ESSENCE_FLOOR, getRefineCost()), FAILED_REFINE_ESSENCE);
         }
-        Refusal poor = essenceGate(player, useThreshold(stack), FAILED_ESSENCE);
+        Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
         if (poor != null) return poor;
 
-        if (spec.channels() && clock.essenceAboveHungerFloor(stack) <= 0) return new Refusal(FAILED_STARVING);
+        if (spec.isChanneled() && clock.getEssenceAboveHungerFloor(stack) <= 0) return new Refusal(FAILED_STARVING);
 
-        Refusal cooling = cooldownRefusal(player, stack);
-        return cooling != null ? cooling : useGate(player, stack);
+        Refusal cooling = checkCooldown(player, stack);
+        return cooling != null ? cooling : checkUseGate(player, stack);
     }
 
     protected long useThreshold(ItemStack stack) {
-        return spec.channels() ? ESSENCE_FLOOR : spec.essencePerRound();
+        return spec.isChanneled() ? ESSENCE_FLOOR : spec.getEssencePerRound();
     }
 
     @Override
-    protected @Nullable Refusal useGate(Player player, ItemStack stack) { return payoutGate(player, stack); }
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) { return checkPayoutGate(player, stack); }
 
     @Override
     protected final int apply(ServerPlayer player, ItemStack stack) {
-        if (!refined(stack)) return 0;
-        if (holdingFood(player, stack) && !crouching(player)) {
+        if (!isRefined(stack)) return 0;
+        if (isHoldingFood(player, stack) && !isCrouching(player)) {
             eat(player, stack);
             return 0;
         }
@@ -321,71 +322,71 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     @Override
     protected int useApply(ServerPlayer player, ItemStack stack) {
-        return spec.channels() ? 0 : drive(player, stack);
+        return spec.isChanneled() ? 0 : drive(player, stack);
     }
 
     @Override
     protected final int useDurationTicks(Player player, ItemStack stack) {
-        if (!refined(stack)) return CHANNEL_MAX_TICKS;
-        if (holdingFood(player, stack) && !crouching(player)) return 0;
-        return spec.channels() ? CHANNEL_MAX_TICKS : useChargeTicks(player, stack);
+        if (!isRefined(stack)) return CHANNEL_MAX_TICKS;
+        if (isHoldingFood(player, stack) && !isCrouching(player)) return 0;
+        return spec.isChanneled() ? CHANNEL_MAX_TICKS : useChargeTicks(player, stack);
     }
 
     protected int useChargeTicks(Player player, ItemStack stack) { return useChargeByGap(player); }
 
     protected int drive(ServerPlayer player, ItemStack stack) {
-        if (spendAndGrant(player, stack)) return 1;
+        if (trySpendAndGrant(player, stack)) return 1;
         eat(player, stack);
-        if (hungry(player, stack)) clock.warn(player, stack, 1L);
+        if (isHungry(player, stack)) clock.warn(player, stack, 1L);
         return 0;
     }
 
-    protected final boolean spendAndGrant(ServerPlayer player, ItemStack stack) {
-        ApertureEssenceService.consume(player, spec.essencePerRound());
-        boolean drivenOnAnEmptyBar = clock.spendWasForced(stack, hungerCostMultiplier(player, stack));
+    protected final boolean trySpendAndGrant(ServerPlayer player, ItemStack stack) {
+        ApertureEssenceService.consume(player, spec.getEssencePerRound());
+        boolean drivenOnAnEmptyBar = clock.isSpendForced(stack, getHungerCostMultiplier(player, stack));
         grant(player, stack);
         if (!drivenOnAnEmptyBar || player.getAbilities().instabuild) return false;
 
-        exhausted(player, stack);
+        exhaust(player, stack);
         return true;
     }
 
     @Override
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return holdingFood(player, stack); }
+    protected boolean hasSneakUse(Player player, ItemStack stack) { return isHoldingFood(player, stack); }
 
     @Override
-    protected @Nullable Refusal sneakGate(Player player, ItemStack stack) {
-        Refusal poor = essenceGate(player, useThreshold(stack), FAILED_ESSENCE);
+    protected @Nullable Refusal checkSneakGate(Player player, ItemStack stack) {
+        Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
         if (poor != null) return poor;
 
-        Refusal cooling = cooldownRefusal(player, stack);
-        return cooling != null ? cooling : payoutGate(player, stack);
+        Refusal cooling = checkCooldown(player, stack);
+        return cooling != null ? cooling : checkPayoutGate(player, stack);
     }
 
     @Override
     protected int sneakApply(ServerPlayer player, ItemStack stack) {
         eat(player, stack);
-        return spec.channels() ? 0 : drive(player, stack);
+        return spec.isChanneled() ? 0 : drive(player, stack);
     }
 
-    protected boolean holdingFood(Player player, ItemStack stack) {
-        return refined(stack) && feedUnits(player.getOffhandItem()) > 0;
+    protected boolean isHoldingFood(Player player, ItemStack stack) {
+        return isRefined(stack) && feedUnits(player.getOffhandItem()) > 0;
     }
 
-    protected boolean allowsUseDuringEffectCooldown() { return false; }
+    protected boolean canUseDuringEffectCooldown() { return false; }
 
-    protected int hungerCostMultiplier(Player player, ItemStack stack) { return 1; }
+    protected int getHungerCostMultiplier(Player player, ItemStack stack) { return 1; }
 
-    protected final int effectCooldownLeft(Player player, ItemStack stack) {
-        return GuCooldowns.cooldownLeft(player, ModDataComponents.get(stack, ModDataComponents.USED_AT),
-                spec.effectCooldownTicks());
+    protected final int getEffectCooldownLeft(Player player, ItemStack stack) {
+        return GuCooldowns.getCooldownLeft(player, ModDataComponents.get(stack, ModDataComponents.USED_AT),
+                spec.getEffectCooldownTicks());
     }
 
-    public final boolean autoUse(ServerPlayer player, ItemStack stack) {
-        if (!refined(stack) || spec.channels() || player.getCooldowns().isOnCooldown(this)) return false;
-        if (essenceGate(player, useThreshold(stack), FAILED_ESSENCE) != null
-                || cooldownRefusal(player, stack) != null
-                || useGate(player, stack) != null) return false;
+    public final boolean tryAutoUse(ServerPlayer player, ItemStack stack) {
+        if (!isRefined(stack) || spec.isChanneled() || player.getCooldowns().isOnCooldown(this)) return false;
+        if (checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE) != null
+                || checkCooldown(player, stack) != null
+                || checkUseGate(player, stack) != null) return false;
         spend(player, stack, useApply(player, stack));
         return true;
     }
@@ -393,88 +394,88 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected void eat(ServerPlayer player, ItemStack stack) {
         ItemStack food = player.getOffhandItem();
         healFrom(player, stack, food);
-        clock.eat(this, player, stack, food);
+        clock.tryEat(this, player, stack, food);
     }
     //endregion
 
     //region display
     @Override
     public Component chargeCaption(ItemStack stack, int remainingTicks) {
-        if (!refined(stack)) return refineCaption(state(stack).refineProgress());
-        return spec.channels()
-                ? Component.translatable(CAPTION_CHANNELING, state(stack).investedEssence(),
-                spec.essencePerRound())
+        if (!isRefined(stack)) return refineCaption(getState(stack).refineProgress());
+        return spec.isChanneled()
+                ? Component.translatable(CAPTION_CHANNELING, getState(stack).investedEssence(),
+                spec.getEssencePerRound())
                 : Component.translatable(CAPTION_USING_PLAIN);
     }
 
     @Override
     public @Nullable Float chargeFraction(ItemStack stack, int remainingTicks) {
-        if (!refined(stack)) return refineFraction(stack);
-        if (!spec.channels()) return null;
-        return state(stack).investedEssence() / (float) spec.essencePerRound();
+        if (!isRefined(stack)) return refineFraction(stack);
+        if (!spec.isChanneled()) return null;
+        return getState(stack).investedEssence() / (float) spec.getEssencePerRound();
     }
 
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        return refined(stack) ? super.getName(stack) : ModDisplayText.wild(super.getName(stack));
+        return isRefined(stack) ? super.getName(stack) : ModDisplayText.wild(super.getName(stack));
     }
 
     @Override
     protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
                                  @NotNull TooltipFlag flag) {
         super.appendTooltip(stack, level, tooltip, flag);
-        if (state(stack).damageTaken() <= 0) return;
+        if (getState(stack).damageTaken() <= 0) return;
 
-        tooltip.add(Component.translatable(TOOLTIP_HEALTH, health(stack), maxHealth())
+        tooltip.add(Component.translatable(TOOLTIP_HEALTH, getHealth(stack), getMaxHealth())
                 .withStyle(ChatFormatting.GRAY));
     }
 
     @Override
-    protected @Nullable MutableComponent progressLine(ItemStack stack) {
-        if (!refined(stack)) {
-            return Component.translatable(TOOLTIP_REFINE, state(stack).refineProgress(), refineCost());
+    protected @Nullable MutableComponent formatProgressLine(ItemStack stack) {
+        if (!isRefined(stack)) {
+            return Component.translatable(TOOLTIP_REFINE, getState(stack).refineProgress(), getRefineCost());
         }
-        if (spec.channels()) {
-            return Component.translatable(TOOLTIP_INVESTED, state(stack).investedEssence(),
-                    spec.essencePerRound());
+        if (spec.isChanneled()) {
+            return Component.translatable(TOOLTIP_INVESTED, getState(stack).investedEssence(),
+                    spec.getEssencePerRound());
         }
         return clock instanceof GuClock.HungerBar bar
-                ? Component.translatable(TOOLTIP_HUNGER, state(stack).hunger(), bar.max())
+                ? Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max())
                 : null;
     }
 
     @Override
     public boolean isBarVisible(@NotNull ItemStack stack) {
-        return refined(stack) ? clock.barVisible(stack) : state(stack).refineProgress() > 0;
+        return isRefined(stack) ? clock.isBarVisible(stack) : getState(stack).refineProgress() > 0;
     }
 
     @Override
-    public int getBarWidth(@NotNull ItemStack stack) { return Math.round(barFraction(stack) * 13.0F); }
+    public int getBarWidth(@NotNull ItemStack stack) { return Math.round(getBarFraction(stack) * 13.0F); }
 
     @Override
     public int getBarColor(@NotNull ItemStack stack) {
-        return Mth.hsvToRgb(barFraction(stack) / 3.0F, 1.0F, 1.0F);
+        return Mth.hsvToRgb(getBarFraction(stack) / 3.0F, 1.0F, 1.0F);
     }
 
-    private float barFraction(ItemStack stack) {
-        return refined(stack) ? clock.barFraction(stack) : refineFraction(stack);
+    private float getBarFraction(ItemStack stack) {
+        return isRefined(stack) ? clock.getBarFraction(stack) : refineFraction(stack);
     }
 
     private float refineFraction(ItemStack stack) {
-        return refineCost() <= 0 ? 0.0F : state(stack).refineProgress() / (float) refineCost();
+        return getRefineCost() <= 0 ? 0.0F : getState(stack).refineProgress() / (float) getRefineCost();
     }
     //endregion
 
     //region the day clock -- GuUpkeep walks the containers; a leaf may pay its own upkeep
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
 
-    public boolean autoFeed(ServerPlayer player, ItemStack stack) {
-        if (!clock.hungry(player, stack)) return false;
+    public boolean tryAutoFeed(ServerPlayer player, ItemStack stack) {
+        if (!clock.isHungry(player, stack)) return false;
 
         Inventory inventory = player.getInventory();
         boolean ate = false;
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            if (clock.eat(this, player, stack, inventory.getItem(slot))) ate = true;
+            if (clock.tryEat(this, player, stack, inventory.getItem(slot))) ate = true;
         }
         return ate;
     }
@@ -487,18 +488,18 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     public static void announceHungry(ServerPlayer player, ItemStack stack) { announce(player, stack, MSG_HUNGRY); }
 
-    private static void died(ServerPlayer holder, ItemStack stack, String key) {
+    private static void announceDeath(ServerPlayer holder, ItemStack stack, String key) {
         announce(holder, stack, key);
-        UUID uuid = owner(stack);
+        UUID uuid = getOwner(stack);
         if (uuid == null) return;
 
         ModEvents.post(new VitalGuLostEvent(holder.server, uuid, stack));
     }
 
-    public static void starved(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_STARVED); }
+    public static void starve(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_STARVED); }
 
-    public static void exhausted(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_EXHAUSTED); }
+    public static void exhaust(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_EXHAUSTED); }
 
-    public static void ruined(ServerPlayer holder, ItemStack stack) { died(holder, stack, MSG_RUINED); }
+    public static void ruin(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_RUINED); }
     //endregion
 }

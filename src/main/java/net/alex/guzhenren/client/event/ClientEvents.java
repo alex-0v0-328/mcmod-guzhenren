@@ -104,10 +104,10 @@ public final class ClientEvents {
     private static float pickedStage(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity,
                                      int seed) {
         if (!(stack.getItem() instanceof NineLeafVitalityGrassItem grass)) return 0.0F;
-        if (level != null) return grass.pickedStage(stack, level.getGameTime());
-        if (entity != null) return grass.pickedStage(stack, entity.level().getGameTime());
+        if (level != null) return grass.getPickedStage(stack, level.getGameTime());
+        if (entity != null) return grass.getPickedStage(stack, entity.level().getGameTime());
         return Minecraft.getInstance().level != null
-                ? grass.pickedStage(stack, Minecraft.getInstance().level.getGameTime())
+                ? grass.getPickedStage(stack, Minecraft.getInstance().level.getGameTime())
                 : 0.0F;
     }
 

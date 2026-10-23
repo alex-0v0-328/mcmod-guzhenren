@@ -37,12 +37,12 @@ public class BeastStrengthGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return PathStrengthService.has(player, beast)
                 ? new Refusal(FAILED_STRENGTH_HELD, Component.translatable(beast.getTranslationKey()))
                 : null;
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) { PathStrengthService.grant(player, beast); }
+    protected void payOut(ServerPlayer player, ItemStack stack) { PathStrengthService.grant(player, beast); }
 }

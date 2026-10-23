@@ -34,5 +34,5 @@ public class DeathQiItem extends QiMaterialItem {
     protected int useDurationTicks(Player player, ItemStack stack) { return 0; }
 
     @Override
-    protected long essenceCost() { return 0L; }
+    protected long getEssenceCost() { return 0L; }
 }

@@ -177,9 +177,9 @@ final class RefinementRitual {
     }
 
     private void refillFromSupply(ServerPlayer server) {
-        if (!PrimevalStoneSupply.needsTopUp(server)) return;
+        if (!PrimevalStoneSupply.isTopUpNeeded(server)) return;
 
-        long perStone = PrimevalStoneSupply.essencePerStone();
+        long perStone = PrimevalStoneSupply.getEssencePerStone();
         long missing = PrimevalStoneSupply.topUpDeficit(server);
         if (perStone <= 0L || missing <= 0L) return;
 
@@ -236,7 +236,7 @@ final class RefinementRitual {
         if (stack.isEmpty()) return;
 
         if (stack.getItem() instanceof TendedGuItem gu) {
-            if (gu.damageKills(server, stack, gu.maxHealth() / FAILURE_HEALTH_DIVISOR)) {
+            if (gu.takeDamage(server, stack, gu.getMaxHealth() / FAILURE_HEALTH_DIVISOR)) {
                 input.setItem(slot, ItemStack.EMPTY);
             }
             return;
@@ -253,7 +253,7 @@ final class RefinementRitual {
         for (ItemStack stack : recipe.results()) {
             ItemStack made = stack.copy();
             if (made.getItem() instanceof TendedGuItem gu) {
-                gu.bornRefined(server, made);
+                gu.refineAtBirth(server, made);
                 if (!eatenVitals.isEmpty() && sole) inherit(server, made, gu, eatenVitals);
             }
             while (slot < RefinementMenu.OUTPUT_SIZE && !output.getItem(slot).isEmpty()) slot++;
@@ -263,7 +263,7 @@ final class RefinementRitual {
     }
 
     private static void inherit(ServerPlayer server, ItemStack made, TendedGuItem gu, List<Integer> eatenVitals) {
-        int heir = ApertureService.inheritVital(server, eatenVitals, gu.path());
+        int heir = ApertureService.inheritVital(server, eatenVitals, gu.getPath());
         if (heir < 0) return;
 
         GuItem.bind(made, server, heir);
@@ -274,7 +274,7 @@ final class RefinementRitual {
         List<Integer> kinds = new ArrayList<>();
         for (int i = 0; i < taken.length; i++) {
             ItemStack stack = input.getItem(i);
-            if (taken[i] > 0 && GuItem.isCurrentVital(stack, server)) kinds.add(GuItem.boundAperture(stack));
+            if (taken[i] > 0 && GuItem.isCurrentVital(stack, server)) kinds.add(GuItem.getBoundAperture(stack));
         }
         return kinds;
     }

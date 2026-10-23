@@ -65,7 +65,7 @@ public class Guzhenren {
         ModRecipes.register(modEventBus);
         ModCriteriaTriggers.register(modEventBus);
         ApertureNourishService.setStonePurse(new StonePurse(
-                PrimevalStoneSupply::canAfford, PrimevalStoneSupply::topUp, PrimevalStoneSupply::spend));
+                PrimevalStoneSupply::canAfford, PrimevalStoneSupply::topUp, PrimevalStoneSupply::trySpend));
         ApertureStorageService.setStoredGu(new StoredGuItems());
         modEventBus.addListener(EpicFightIntegration::onAnimationRegistry);
         EpicFightIntegration.initialize();

@@ -41,10 +41,10 @@ public class WatchGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
+    protected void payOut(ServerPlayer player, ItemStack stack) {
         MobEffectInstance current = ModEffects.get(player, form);
         TimeRateUpEffect effect = (TimeRateUpEffect) form.get();
         int amplifier = effect.nextAmplifier(current == null ? -1 : current.getAmplifier());

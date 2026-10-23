@@ -17,10 +17,10 @@ import org.jetbrains.annotations.Nullable;
  * never struck again.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.ConsumedGuItem}, so it is tended, never feeds and
- * is taken by its own use. Three rungs register against this one class. {@link #stoneTarget} is the
+ * is taken by its own use. Three rungs register against this one class. {@link #getStoneTarget} is the
  * pure seam the unit tests pin: the target is the PRIMARY aperture whenever it is NORMAL; only a
  * dead or stoned primary passes the Gu on, and only to a NORMAL second aperture; nobody usable
- * answers {@code NO_TARGET}. {@link #targetOf} maps that seam onto real list positions: a lone
+ * answers {@code NO_TARGET}. {@link #getTargetOf} maps that seam onto real list positions: a lone
  * second aperture lives at position 0, and a missing slot counts as DEAD. A rank mismatch on the
  * primary does NOT pass it on -- the fall-through is for a lost aperture, not for a wrong rank. The
  * gate refuses no usable target, a rank mismatch on the target, and a target already at the peak
@@ -41,17 +41,17 @@ public class StoneApertureGuItem extends ConsumedGuItem {
         super(properties, spec);
     }
 
-    public static int stoneTarget(@NotNull ApertureStatus primary, @NotNull ApertureStatus second) {
+    public static int getStoneTarget(@NotNull ApertureStatus primary, @NotNull ApertureStatus second) {
         if (primary == ApertureStatus.NORMAL) return ApertureData.PRIMARY;
         if (second == ApertureStatus.NORMAL) return ApertureData.SECOND;
         return NO_TARGET;
     }
 
-    private static int targetOf(Player player) {
+    private static int getTargetOf(Player player) {
         ApertureData data = ApertureService.get(player);
         int primary = data.getFirstIndex();
         int second = data.getSecondIndex();
-        int target = stoneTarget(
+        int target = getStoneTarget(
                 primary < 0 ? ApertureStatus.DEAD : ApertureService.getStatus(player, primary),
                 second < 0 ? ApertureStatus.DEAD : ApertureService.getStatus(player, second));
         if (target == NO_TARGET) return NO_TARGET;
@@ -59,15 +59,15 @@ public class StoneApertureGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
-        int target = targetOf(player);
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+        int target = getTargetOf(player);
         if (target == NO_TARGET) return new Refusal(FAILED_UNAVAILABLE);
-        return stageUpGate(ApertureService.getAperture(player, target));
+        return checkStageUpGate(ApertureService.getAperture(player, target));
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
-        int target = targetOf(player);
+    protected void payOut(ServerPlayer player, ItemStack stack) {
+        int target = getTargetOf(player);
         if (target != NO_TARGET) ApertureNourishService.petrify(player, target);
     }
 }

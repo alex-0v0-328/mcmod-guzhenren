@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Sits between {@link GuItem} and three branches: {@link OneShotGuItem} (refining IS the use, stacks,
  * no state), {@link TendedGuItem} (refined then fed and used, carries {@link RefinedGuState}), and the Hope
  * Gu [希望蛊], which opens an aperture and is neither. The constructor runs {@link GuSpec#validate} so a
- * typo in the numbers fails at startup, naming the Gu. {@link #stageUpGate} is the one check a stage-raising Gu runs: the
- * aperture's rank must be the Gu's own, and its stage below the peak.
+ * typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the one check a stage-raising Gu
+ * runs: the aperture's rank must be the Gu's own, and its stage below the peak.
  *
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
@@ -56,31 +56,31 @@ public abstract class MortalGuItem extends GuItem {
     protected final GuSpec spec;
 
     protected MortalGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec.rank(), spec.path());
+        super(properties, spec.getRank(), spec.getPath());
         this.spec = spec;
-        spec.validate(rank().name() + " " + getClass().getSimpleName());
+        spec.validate(getRank().name() + " " + getClass().getSimpleName());
     }
 
     @Override
-    protected String kindKey() { return KIND_KEY; }
+    protected String getKindKey() { return KIND_KEY; }
 
-    public int refineCost() { return spec.refineCost(); }
+    public int getRefineCost() { return spec.getRefineCost(); }
 
     //region refining [炼化] -- every Gu answers it, and only the price differs
-    protected final @Nullable Refusal essenceGate(Player player, long required, String key) {
+    protected final @Nullable Refusal checkEssenceGate(Player player, long required, String key) {
         if (required <= 0) return null;
         return ApertureEssenceService.getSpendable(player) < required ? new Refusal(key) : null;
     }
 
-    protected final @Nullable Refusal stageUpGate(Aperture aperture) {
-        if (aperture.rank() != rank()) {
-            return new Refusal(FAILED_RANK_MISMATCH, Component.translatable(rank().getTranslationKey()));
+    protected final @Nullable Refusal checkStageUpGate(Aperture aperture) {
+        if (aperture.rank() != getRank()) {
+            return new Refusal(FAILED_RANK_MISMATCH, Component.translatable(getRank().getTranslationKey()));
         }
         return aperture.stage() == Stage.HIGHEST ? new Refusal(FAILED_STAGE_PEAK) : null;
     }
 
     protected final void payRefineCost(ServerPlayer player) {
-        if (refineCost() > 0) ApertureEssenceService.consume(player, refineCost());
+        if (getRefineCost() > 0) ApertureEssenceService.consume(player, getRefineCost());
     }
     //endregion
 
@@ -88,7 +88,7 @@ public abstract class MortalGuItem extends GuItem {
     @Override
     protected final boolean hasUse() { return true; }
 
-    protected @Nullable Refusal useGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) { return null; }
 
     protected int useApply(ServerPlayer player, ItemStack stack) { return 0; }
     //endregion
@@ -97,8 +97,8 @@ public abstract class MortalGuItem extends GuItem {
     protected final Component refineCaptionPlain() { return Component.translatable(CAPTION_REFINING_PLAIN); }
 
     protected final Component refineCaption(int invested) {
-        return refineCost() > 0
-                ? Component.translatable(CAPTION_REFINING, invested, refineCost())
+        return getRefineCost() > 0
+                ? Component.translatable(CAPTION_REFINING, invested, getRefineCost())
                 : refineCaptionPlain();
     }
 
@@ -106,15 +106,15 @@ public abstract class MortalGuItem extends GuItem {
     protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
                                  @NotNull TooltipFlag flag) {
         super.appendTooltip(stack, level, tooltip, flag);
-        StrengthPathBranch branch = spec.strengthPathBranch();
-        if (path() == GuPath.STRENGTH && branch != StrengthPathBranch.NORMAL) {
+        StrengthPathBranch branch = spec.getStrengthPathBranch();
+        if (getPath() == GuPath.STRENGTH && branch != StrengthPathBranch.NORMAL) {
             tooltip.add(Component.translatable(branch.getTranslationKey()).withStyle(ChatFormatting.GRAY));
         }
-        MutableComponent line = progressLine(stack);
+        MutableComponent line = formatProgressLine(stack);
         if (line != null) tooltip.add(line.withStyle(ChatFormatting.GRAY));
     }
 
-    protected @Nullable MutableComponent progressLine(ItemStack stack) { return null; }
+    protected @Nullable MutableComponent formatProgressLine(ItemStack stack) { return null; }
     //endregion
 
     @Override

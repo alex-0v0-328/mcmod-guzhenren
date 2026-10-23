@@ -43,12 +43,12 @@ public class MaliciousThoughtGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
+    protected void payOut(ServerPlayer player, ItemStack stack) {
         MindService.addThoughts(player, immediateThoughts, ThoughtTag.EVIL);
-        int amplifier = tier() - 1;
+        int amplifier = getTier() - 1;
         player.addEffect(ModEffects.instance(effect, MaliciousThoughtEffect.DURATION_TICKS, amplifier));
     }
 }

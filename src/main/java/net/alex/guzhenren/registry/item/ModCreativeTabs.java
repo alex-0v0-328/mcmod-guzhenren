@@ -74,11 +74,11 @@ public final class ModCreativeTabs {
     }
 
     static boolean belongsInMortalGu(Item item) {
-        return item instanceof MortalGuItem gu && gu.path() != STRENGTH && gu.path() != WOOD;
+        return item instanceof MortalGuItem gu && gu.getPath() != STRENGTH && gu.getPath() != WOOD;
     }
 
     static boolean belongsInPathTab(Item item, GuPath path) {
-        return item instanceof MortalGuItem gu && gu.path() == path;
+        return item instanceof MortalGuItem gu && gu.getPath() == path;
     }
 
     static boolean belongsInGuMaterial(Item item) {

@@ -25,16 +25,16 @@ public final class StoredGuItems implements StoredGu {
 
     @Override
     public @Nullable Rank getRank(@NotNull ItemStack stack) {
-        return stack.getItem() instanceof MortalGuItem gu ? gu.rank() : null;
+        return stack.getItem() instanceof MortalGuItem gu ? gu.getRank() : null;
     }
 
     @Override
     public @Nullable GuPath getPath(@NotNull ItemStack stack) {
-        return stack.getItem() instanceof GuItem gu ? gu.path() : null;
+        return stack.getItem() instanceof GuItem gu ? gu.getPath() : null;
     }
 
     @Override
-    public long getToken(@NotNull ItemStack stack) { return GuItem.token(stack); }
+    public long getToken(@NotNull ItemStack stack) { return GuItem.getToken(stack); }
 
     @Override
     public boolean isVitalOf(@NotNull ItemStack stack, @NotNull Player player) {

@@ -108,23 +108,23 @@ public final class GuSpec {
     //endregion
 
     //region what the base classes read
-    public Rank rank() { return rank; }
+    public Rank getRank() { return rank; }
 
-    public GuPath path() { return path; }
+    public GuPath getPath() { return path; }
 
-    public StrengthPathBranch strengthPathBranch() { return strengthPathBranch; }
+    public StrengthPathBranch getStrengthPathBranch() { return strengthPathBranch; }
 
-    public int refineCost() { return refineCost; }
+    public int getRefineCost() { return refineCost; }
 
-    public int essencePerRound() { return essencePerRound; }
+    public int getEssencePerRound() { return essencePerRound; }
 
-    public boolean channels() { return channels; }
+    public boolean isChanneled() { return channels; }
 
-    public int effectCooldownTicks() { return effectCooldownTicks; }
+    public int getEffectCooldownTicks() { return effectCooldownTicks; }
 
-    public int itemCooldownTicks() { return itemCooldownTicks; }
+    public int getItemCooldownTicks() { return itemCooldownTicks; }
 
-    public int unitsPerHunger() { return unitsPerHunger; }
+    public int getUnitsPerHunger() { return unitsPerHunger; }
 
     public GuClock buildClock() {
         if (maxHunger > 0) {

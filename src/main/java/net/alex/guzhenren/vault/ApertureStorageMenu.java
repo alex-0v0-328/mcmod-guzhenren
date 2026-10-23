@@ -208,16 +208,16 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     private static void bindVital(ItemStack stack, ServerPlayer player, int aperture) {
         if (stack.getItem() instanceof GuItem
-                && (!GuItem.isCurrentVital(stack, player) || GuItem.boundIndex(stack, player) != aperture)) {
+                && (!GuItem.isCurrentVital(stack, player) || GuItem.getBoundIndex(stack, player) != aperture)) {
             GuItem.bind(stack, player, aperture);
         }
     }
 
     private void releaseFormer(ServerPlayer server, long token) {
-        if (GuItem.token(getCarried()) == token) GuItem.unbind(getCarried());
+        if (GuItem.getToken(getCarried()) == token) GuItem.unbind(getCarried());
         Inventory inventory = server.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (GuItem.token(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
+            if (GuItem.getToken(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
         }
     }
 
@@ -320,7 +320,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         public int getMaxStackSize() { return 1; }
 
         private static boolean canBeVital(ItemStack stack, Player player) {
-            return stack.getItem() instanceof TendedGuItem gu && gu.refined(stack) && gu.canBeVital()
+            return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack) && gu.canBeVital()
                     && !GuItem.isForeignVital(stack, player);
         }
     }

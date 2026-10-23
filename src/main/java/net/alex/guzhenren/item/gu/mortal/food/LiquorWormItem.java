@@ -39,16 +39,16 @@ public class LiquorWormItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
-        if (ApertureService.getRank(player) != rank()) {
-            return new Refusal(FAILED_RANK, Component.translatable(rank().getTranslationKey()));
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+        if (ApertureService.getRank(player) != getRank()) {
+            return new Refusal(FAILED_RANK, Component.translatable(getRank().getTranslationKey()));
         }
         return ApertureEssenceService.canDistill(player) ? null : new Refusal(FAILED_DISTILLING);
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
+    protected void payOut(ServerPlayer player, ItemStack stack) {
         ApertureEssenceService.beginDistilling(player);
-        player.addEffect(ModEffects.instance(ModEffects.LIQUOR_WORM, Ticks.DAY, tier()));
+        player.addEffect(ModEffects.instance(ModEffects.LIQUOR_WORM, Ticks.DAY, getTier()));
     }
 }

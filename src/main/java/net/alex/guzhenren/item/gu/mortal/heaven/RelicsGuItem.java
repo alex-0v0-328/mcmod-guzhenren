@@ -29,8 +29,8 @@ public class RelicsGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected @Nullable Refusal useGate(Player player, ItemStack stack) {
-        return stageUpGate(ApertureService.getAperture(player));
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+        return checkStageUpGate(ApertureService.getAperture(player));
     }
 
     @Override
