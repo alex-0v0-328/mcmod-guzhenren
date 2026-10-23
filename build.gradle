@@ -88,11 +88,12 @@ mixin {
 
 jarJar.enable()
 
-// Gu World's mc1.20.1 worktree, the sibling project at ../mcmod-guworld-mc1.20.1 (or -PguWorldDir), supplies every
+// Gu World's mc1.20.1 worktree, the sibling project at ../mcmod-guworld-forge-1.20.1 (or -PguWorldDir), supplies every
 // dimension, terrain and biome. Its built jar joins every run as a mod, the GameTest server included, while this mod
 // never compiles against it. The jar is SRG-named, so it loads remapped through fg.deobf, as the pack jars below do. An
 // unbuilt sibling (or CI, which has none) simply adds nothing; build it with ./gradlew build -x test there.
-def guWorldLibs = file(providers.gradleProperty('guWorldDir').getOrElse('../mcmod-guworld-mc1.20.1') + '/build/libs')
+def guWorldLibs = file(providers.gradleProperty('guWorldDir').getOrElse('../mcmod-guworld-forge-1.20.1')
+        + '/build/libs')
 def guWorldJar = fileTree(dir: guWorldLibs, include: 'guworld-*.jar', excludes: ['*-sources.jar']).files.find()
 
 repositories {
