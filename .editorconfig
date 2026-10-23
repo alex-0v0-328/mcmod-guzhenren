@@ -1,0 +1,44 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+[*.java]
+max_line_length = 120
+
+# 成员之间空一行（Alex 定）
+ij_java_blank_lines_around_method = 1
+ij_java_blank_lines_around_method_in_interface = 1
+
+# 类型开括号后空一行（嵌套类型同样）；匿名类紧贴；方法体第一行不空
+ij_java_blank_lines_after_class_header = 1
+ij_java_blank_lines_after_anonymous_class_header = 0
+ij_java_blank_lines_before_method_body = 0
+
+# 字段/常量之间不空行，连成一块
+ij_java_blank_lines_around_field = 0
+ij_java_blank_lines_around_field_in_interface = 0
+
+# 已有的空行最多保留 1 行；右花括号前不留空行
+ij_java_keep_blank_lines_in_code = 1
+ij_java_keep_blank_lines_in_declarations = 1
+ij_java_keep_blank_lines_before_right_brace = 0
+
+# 单行方法体、代码块保持一行；空类型体写成 {}
+ij_java_keep_simple_methods_in_one_line = true
+ij_java_keep_simple_blocks_in_one_line = true
+ij_java_keep_simple_classes_in_one_line = true
+
+# 单行花括号内侧留一个空格：{ return x; }、{ 50, 20, 15 }、new int[] { 1, 2 }、enum E { A, B }；空的 {} 不加
+# 键名以 IDEA 导出为准（spaces_ 复数；单数写法不生效）
+# spaces_within_braces 保持 false：设为 true 会把空的 {} 也写成 { }；有内容的块由下一行负责
+ij_java_spaces_within_braces = false
+ij_java_spaces_inside_block_braces_when_body_is_present = true
+ij_java_spaces_within_array_initializer_braces = true
+ij_java_space_before_array_initializer_left_brace = true
+ij_java_space_inside_one_line_enum_braces = true
+
+# 单行 javadoc 保持一行
+ij_java_doc_do_not_wrap_if_one_line = true
