@@ -8,7 +8,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
  * {@link AttackDamageService} and {@link MaxHealthService}, {@code ADD_MULTIPLIED_BASE} for the Epic Fight
- * stamina cap ({@code compat.EpicFightIntegration}).
+ * stamina cap ({@code compat.EpicFightIntegration}). The shared callers take the three-argument {@link #swap},
+ * which adds; the operation names differ between game versions, so only this seam and the loader-side
+ * integration spell one out.
  *
  * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
  * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #holds} that modifier, or holds none
@@ -25,6 +27,10 @@ import org.jetbrains.annotations.NotNull;
 public final class TransientModifiers {
 
     private TransientModifiers() {}
+
+    public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount) {
+        swap(instance, id, amount, AttributeModifier.Operation.ADD_VALUE);
+    }
 
     public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
             @NotNull AttributeModifier.Operation operation) {
