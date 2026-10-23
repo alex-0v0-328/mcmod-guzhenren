@@ -4,9 +4,9 @@ name: Build
 # sync merge carries across from running on the wrong line.
 on:
   push:
-    branches: [mc1.20.1]
+    branches: [forge-1.20.1]
   pull_request:
-    branches: [mc1.20.1]
+    branches: [forge-1.20.1]
 
 jobs:
   build:
