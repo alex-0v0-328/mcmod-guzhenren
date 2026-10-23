@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 
 /**
  * The trading NPCs of the Treasure Yellow Heaven [宝黄天]. Each registers its own entity type under
@@ -25,8 +24,8 @@ import net.minecraft.world.item.trading.ItemCost;
 public enum SoulTrader {
 
     TEST_TRADE_GU_IMMORTAL("test_trade_gu_immortal", () -> List.of(
-            SoulTradeOffer.of(new ItemStack(Items.PORKCHOP, 64), new ItemCost(ModItems.PRIMEVAL_STONE, 10)),
-            SoulTradeOffer.of(new ItemStack(ModItems.WHITE_BOAR_GU.get()), new ItemCost(Items.DIRT, 192))));
+            SoulTradeOffer.of(new ItemStack(Items.PORKCHOP, 64), TradeCost.of(ModItems.PRIMEVAL_STONE.get(), 10)),
+            SoulTradeOffer.of(new ItemStack(ModItems.WHITE_BOAR_GU.get()), TradeCost.of(Items.DIRT, 192))));
 
     private final String id;
     private final Supplier<List<SoulTradeOffer>> offers;

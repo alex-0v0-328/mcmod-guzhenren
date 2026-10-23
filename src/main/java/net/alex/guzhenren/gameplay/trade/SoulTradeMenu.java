@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -53,8 +53,8 @@ public class SoulTradeMenu extends AbstractContainerMenu {
     private final @Nullable SoulTraderEntity trader;
     private final List<SoulTradeOffer> offers;
 
-    public SoulTradeMenu(int id, Inventory inventory, RegistryFriendlyByteBuf data) {
-        this(id, inventory, null, SoulTradeOffer.LIST_STREAM_CODEC.decode(data));
+    public SoulTradeMenu(int id, Inventory inventory, FriendlyByteBuf data) {
+        this(id, inventory, null, SoulTradeOffer.decodeList(data));
     }
 
     public SoulTradeMenu(int id, Inventory inventory, SoulTraderEntity trader) {
@@ -79,8 +79,8 @@ public class SoulTradeMenu extends AbstractContainerMenu {
         }
     }
 
-    public static void writeOffers(RegistryFriendlyByteBuf buffer, List<SoulTradeOffer> offers) {
-        SoulTradeOffer.LIST_STREAM_CODEC.encode(buffer, offers);
+    public static void writeOffers(FriendlyByteBuf buffer, List<SoulTradeOffer> offers) {
+        SoulTradeOffer.encodeList(buffer, offers);
     }
 
     public static int inventoryY(int offerCount) { return ROWS_Y + offerCount * ROW_H + INVENTORY_LABEL_GAP; }

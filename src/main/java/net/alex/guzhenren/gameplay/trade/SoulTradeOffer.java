@@ -4,25 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ItemStacks;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.trading.ItemCost;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * One trade a soul trader offers: the costs taken from the player's bag, and the result handed back.
  *
- * <p>Costs are vanilla {@link ItemCost}s because their count is not capped at a stack -- a price of three
- * stacks of dirt is one cost of 192 -- and because they already travel over the network. Only the 36 main
- * inventory slots ({@link Inventory#items}) pay and receive; armor and the offhand never do.
+ * <p>Costs are {@link TradeCost}s, whose count is not capped at a stack. Only the 36 main inventory slots
+ * ({@link Inventory#items}) pay and receive; armor and the offhand never do. An offer travels through its own
+ * {@link #encode}/{@link #decode}.
  *
  * <p>{@link #settle(NonNullList, List)} is all or nothing: it pays and stows on copies and writes back only when
- * both succeed, and then only the slots whose contents changed, so untouched stacks keep their identity. The trade is also refused unless everything that will later fall back into the
- * bag still fits afterward -- the stack on the cursor and the 2x2 crafting grid, passed as {@code returning}.
- * Inside the Treasure Yellow Heaven [宝黄天] such a return has nowhere else to go.
+ * both succeed, and then only the slots whose contents changed, so untouched stacks keep their identity. The trade
+ * is also refused unless everything that will later fall back into the bag still fits afterward -- the stack on
+ * the cursor and the 2x2 crafting grid, passed as {@code returning}. Inside the Treasure Yellow Heaven [宝黄天] such
+ * a return has nowhere else to go.
  *
  * @author Alex
  * @version 1.0.0
@@ -30,28 +28,46 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public record SoulTradeOffer(List<ItemCost> costs, ItemStack result) {
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, SoulTradeOffer> STREAM_CODEC = StreamCodec.composite(
-            ItemCost.STREAM_CODEC.apply(ByteBufCodecs.list()), SoulTradeOffer::costs,
-            ItemStack.STREAM_CODEC, SoulTradeOffer::result,
-            SoulTradeOffer::new);
-    public static final StreamCodec<RegistryFriendlyByteBuf, List<SoulTradeOffer>> LIST_STREAM_CODEC =
-            STREAM_CODEC.apply(ByteBufCodecs.list());
+public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
 
     public SoulTradeOffer {
         costs = List.copyOf(costs);
         result = result.copy();
     }
 
-    public static SoulTradeOffer of(ItemStack result, ItemCost... costs) {
+    public static SoulTradeOffer of(ItemStack result, TradeCost... costs) {
         return new SoulTradeOffer(List.of(costs), result);
+    }
+
+    public void encode(@NotNull FriendlyByteBuf buf) {
+        buf.writeVarInt(costs.size());
+        for (TradeCost cost : costs) cost.encode(buf);
+        ItemStacks.writeStack(buf, result);
+    }
+
+    public static SoulTradeOffer decode(@NotNull FriendlyByteBuf buf) {
+        int size = buf.readVarInt();
+        List<TradeCost> costs = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) costs.add(TradeCost.decode(buf));
+        return new SoulTradeOffer(costs, ItemStacks.readStack(buf));
+    }
+
+    public static void encodeList(@NotNull FriendlyByteBuf buf, List<SoulTradeOffer> offers) {
+        buf.writeVarInt(offers.size());
+        for (SoulTradeOffer offer : offers) offer.encode(buf);
+    }
+
+    public static List<SoulTradeOffer> decodeList(@NotNull FriendlyByteBuf buf) {
+        int size = buf.readVarInt();
+        List<SoulTradeOffer> offers = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) offers.add(decode(buf));
+        return offers;
     }
 
     @Override
     public @NotNull ItemStack result() { return result.copy(); }
 
-    public static int held(List<ItemStack> items, ItemCost cost) {
+    public static int held(List<ItemStack> items, TradeCost cost) {
         int count = 0;
         for (ItemStack stack : items) {
             if (!stack.isEmpty() && cost.test(stack)) count += stack.getCount();
@@ -60,7 +76,7 @@ public record SoulTradeOffer(List<ItemCost> costs, ItemStack result) {
     }
 
     public boolean affordable(List<ItemStack> items) {
-        for (ItemCost cost : costs) {
+        for (TradeCost cost : costs) {
             if (held(items, cost) < cost.count()) return false;
         }
         return true;
@@ -74,7 +90,7 @@ public record SoulTradeOffer(List<ItemCost> costs, ItemStack result) {
 
     public Outcome settle(NonNullList<ItemStack> items, List<ItemStack> returning) {
         List<ItemStack> after = copies(items);
-        for (ItemCost cost : costs) {
+        for (TradeCost cost : costs) {
             if (!take(after, cost)) return Outcome.SHORT;
         }
         if (overflows(after, result.copy())) return Outcome.NO_ROOM;
@@ -96,7 +112,7 @@ public record SoulTradeOffer(List<ItemCost> costs, ItemStack result) {
         return copies;
     }
 
-    private static boolean take(List<ItemStack> items, ItemCost cost) {
+    private static boolean take(List<ItemStack> items, TradeCost cost) {
         int wanted = cost.count();
         for (ItemStack stack : items) {
             if (wanted <= 0) break;

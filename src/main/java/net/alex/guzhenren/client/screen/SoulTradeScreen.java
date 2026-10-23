@@ -5,13 +5,13 @@ import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.gameplay.trade.SoulTradeMenu;
 import net.alex.guzhenren.gameplay.trade.SoulTradeOffer;
+import net.alex.guzhenren.gameplay.trade.TradeCost;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.trading.ItemCost;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -107,9 +107,9 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
         for (int i = 0; i < offers.size(); i++) {
             SoulTradeOffer offer = offers.get(i);
             int iconY = rowY(i) + ICON_PAD;
-            List<ItemCost> costs = offer.costs();
+            List<TradeCost> costs = offer.costs();
             for (int n = 0; n < costs.size(); n++) {
-                ItemCost cost = costs.get(n);
+                TradeCost cost = costs.get(n);
                 int iconX = COST_X + n * COST_STRIDE;
                 graphics.renderFakeItem(cost.itemStack(), iconX, iconY);
                 drawCount(graphics, iconX, iconY, cost.count(), this.enough[i][n] ? ModPalette.TEXT : ModPalette.SHORT);
@@ -148,7 +148,7 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
         List<SoulTradeOffer> offers = this.menu.offers();
         for (int i = 0; i < offers.size(); i++) {
             int iconY = this.topPos + rowY(i) + ICON_PAD;
-            List<ItemCost> costs = offers.get(i).costs();
+            List<TradeCost> costs = offers.get(i).costs();
             for (int n = 0; n < costs.size(); n++) {
                 if (this.over(this.leftPos + COST_X + n * COST_STRIDE, iconY, mouseX, mouseY)) {
                     graphics.renderTooltip(this.font, costs.get(n).itemStack(), mouseX, mouseY);
@@ -185,7 +185,7 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
         List<ItemStack> bag = this.bag();
         List<SoulTradeOffer> offers = this.menu.offers();
         for (int i = 0; i < offers.size(); i++) {
-            List<ItemCost> costs = offers.get(i).costs();
+            List<TradeCost> costs = offers.get(i).costs();
             boolean all = true;
             for (int n = 0; n < costs.size(); n++) {
                 this.enough[i][n] = SoulTradeOffer.held(bag, costs.get(n)) >= costs.get(n).count();
