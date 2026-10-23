@@ -70,49 +70,75 @@ public final class CmdInfo {
         return Command.SINGLE_SUCCESS;
     }
 
+    // ⚠ Java 17 has no pattern switch, and the Forge 1.20.1 port compiles this file for Java 17: the compiler no
+    // longer checks this chain covers the sealed InfoModel.Entry, so a new Entry record needs its branch here.
     private static Component line(InfoModel.Entry entry) {
-        return switch (entry) {
-            case InfoModel.ApertureIndex e -> ModDisplayText.apertureName(e.number());
-            case InfoModel.Blank ignored -> Component.empty();
-            case InfoModel.Realm e -> key("realm", ModDisplayText.realmTitle(e.aperture()));
-            case InfoModel.Status e -> key("aperture_status", enumName(e.status().getTranslationKey()));
-            case InfoModel.TalentRow e -> key("talent", ModDisplayText.talentLine(e.aperture(), e.awakened()));
-            case InfoModel.Essence e -> key("essence", e.aperture().currentEssence(), e.aperture().maxEssence());
-            case InfoModel.Distilled e -> key("distilled", e.aperture().distilledEssence(),
-                    e.aperture().maxEssence());
-            case InfoModel.Pressure e -> key("pressure", e.aperture().pressure(), Aperture.MAX_PRESSURE);
-            case InfoModel.PathChoice e -> key(e.primary() ? "primary_path" : "secondary_path",
-                    ModDisplayText.path(e.path()));
+        if (entry instanceof InfoModel.ApertureIndex e) return ModDisplayText.apertureName(e.number());
+        if (entry instanceof InfoModel.Blank) return Component.empty();
+        if (entry instanceof InfoModel.Realm e) return key("realm", ModDisplayText.realmTitle(e.aperture()));
+        if (entry instanceof InfoModel.Status e) {
+            return key("aperture_status", enumName(e.status().getTranslationKey()));
+        }
+        if (entry instanceof InfoModel.TalentRow e) {
+            return key("talent", ModDisplayText.talentLine(e.aperture(), e.awakened()));
+        }
+        if (entry instanceof InfoModel.Essence e) {
+            return key("essence", e.aperture().currentEssence(), e.aperture().maxEssence());
+        }
+        if (entry instanceof InfoModel.Distilled e) {
+            return key("distilled", e.aperture().distilledEssence(), e.aperture().maxEssence());
+        }
+        if (entry instanceof InfoModel.Pressure e) {
+            return key("pressure", e.aperture().pressure(), Aperture.MAX_PRESSURE);
+        }
+        if (entry instanceof InfoModel.PathChoice e) {
+            return key(e.primary() ? "primary_path" : "secondary_path", ModDisplayText.path(e.path()));
+        }
 
-            case InfoModel.PhysiqueRow e -> key("physique", ModDisplayText.physique(e.physique(), e.extremePhysique()));
-            case InfoModel.RaceRow e -> key("race", enumName(e.race().getTranslationKey()));
-            case InfoModel.Soul e -> key("soul", e.soul().currentSoul(), e.soul().maxSoul())
+        if (entry instanceof InfoModel.PhysiqueRow e) {
+            return key("physique", ModDisplayText.physique(e.physique(), e.extremePhysique()));
+        }
+        if (entry instanceof InfoModel.RaceRow e) return key("race", enumName(e.race().getTranslationKey()));
+        if (entry instanceof InfoModel.Soul e) {
+            return key("soul", e.soul().currentSoul(), e.soul().maxSoul())
                     .append(ModDisplayText.detail(enumName(e.soul().tier().getTranslationKey())));
-            case InfoModel.Lifespan e -> key("lifespan", ModDisplayText.lifespan(e.lifespan(), e.age()));
-            case InfoModel.PathsHeader e -> header(e.empty());
-            case InfoModel.PathRow e -> ModDisplayText.pathLine(e.path(), e.entry());
-            case InfoModel.QiPathAchieveHeader ignored -> key("qi_path_achieve");
-            case InfoModel.QiKindRow e ->
-                    key("qi_path_achieve_entry", enumName(e.kind().getTranslationKey()), e.amount());
-            case InfoModel.TimePathAchieveHeader ignored -> key("time_path_achieve");
-            case InfoModel.TimeRateUpRow e -> key("time_rate_up_entry", ModDisplayText.timeRateUp(e.rate()));
-            case InfoModel.StrengthPathAchieveHeader ignored -> key("strength_path_achieve");
-            case InfoModel.StrengthPathBranchRow e -> key("strength_path_achieve_entry",
+        }
+        if (entry instanceof InfoModel.Lifespan e) {
+            return key("lifespan", ModDisplayText.lifespan(e.lifespan(), e.age()));
+        }
+        if (entry instanceof InfoModel.PathsHeader e) return header(e.empty());
+        if (entry instanceof InfoModel.PathRow e) return ModDisplayText.pathLine(e.path(), e.entry());
+        if (entry instanceof InfoModel.QiPathAchieveHeader) return key("qi_path_achieve");
+        if (entry instanceof InfoModel.QiKindRow e) {
+            return key("qi_path_achieve_entry", enumName(e.kind().getTranslationKey()), e.amount());
+        }
+        if (entry instanceof InfoModel.TimePathAchieveHeader) return key("time_path_achieve");
+        if (entry instanceof InfoModel.TimeRateUpRow e) {
+            return key("time_rate_up_entry", ModDisplayText.timeRateUp(e.rate()));
+        }
+        if (entry instanceof InfoModel.StrengthPathAchieveHeader) return key("strength_path_achieve");
+        if (entry instanceof InfoModel.StrengthPathBranchRow e) {
+            return key("strength_path_achieve_entry",
                     ModDisplayText.strengthLabel(enumName(e.branch().getTranslationKey()), e.totalJin()),
                     e.reading());
-            case InfoModel.CapacityRow e -> key("capacity", e.usable(), e.total());
-            case InfoModel.AttackRow e -> key("attack", ModDisplayText.attackBonus(e.bonus()));
-            case InfoModel.WisdomPathAchieveHeader ignored -> key("wisdom_path_achieve");
-            case InfoModel.ThoughtTagRow e ->
-                    key("wisdom_path_achieve_entry", enumName(e.tag().getTranslationKey()), e.amount());
+        }
+        if (entry instanceof InfoModel.CapacityRow e) return key("capacity", e.usable(), e.total());
+        if (entry instanceof InfoModel.AttackRow e) return key("attack", ModDisplayText.attackBonus(e.bonus()));
+        if (entry instanceof InfoModel.WisdomPathAchieveHeader) return key("wisdom_path_achieve");
+        if (entry instanceof InfoModel.ThoughtTagRow e) {
+            return key("wisdom_path_achieve_entry", enumName(e.tag().getTranslationKey()), e.amount());
+        }
 
-            case InfoModel.BrillianceRow e -> key("brilliance", enumName(e.brilliance().getTranslationKey()))
+        if (entry instanceof InfoModel.BrillianceRow e) {
+            return key("brilliance", enumName(e.brilliance().getTranslationKey()))
                     .append(ModDisplayText.detail(Component.translatable("guzhenren.display.brilliance_rate",
                             e.brilliance().getThoughtsPerSecond())));
-            case InfoModel.MindHeader ignored -> key("mind");
-            case InfoModel.MindRow e -> key("mind_entry", enumName(e.type().getTranslationKey()),
-                    e.pool().current(), e.pool().max());
-        };
+        }
+        if (entry instanceof InfoModel.MindHeader) return key("mind");
+        if (entry instanceof InfoModel.MindRow e) {
+            return key("mind_entry", enumName(e.type().getTranslationKey()), e.pool().current(), e.pool().max());
+        }
+        throw new IllegalArgumentException("Unhandled info entry " + entry);
     }
 
     private static MutableComponent header(boolean empty) {
