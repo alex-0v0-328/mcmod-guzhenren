@@ -49,8 +49,8 @@ public class StoneApertureGuItem extends ConsumedGuItem {
 
     private static int targetOf(Player player) {
         ApertureData data = ApertureService.get(player);
-        int primary = data.firstIndex();
-        int second = data.secondIndex();
+        int primary = data.getFirstIndex();
+        int second = data.getSecondIndex();
         int target = stoneTarget(
                 primary < 0 ? ApertureStatus.DEAD : ApertureService.getStatus(player, primary),
                 second < 0 ? ApertureStatus.DEAD : ApertureService.getStatus(player, second));

@@ -16,18 +16,18 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>List order is the awakening order, and the FIRST aperture is whatever is not flagged
  * {@code second}: a Second Aperture Gu may open before Hope Gu ever does, so the only reader of "the
- * primary" is {@link #primary}, which falls back to a lone second aperture. {@code isAwakened} means
+ * primary" is {@link #getPrimary}, which falls back to a lone second aperture. {@code isAwakened} means
  * "has the FIRST aperture" -- Hope Gu, the refinement gate and the command gates all read it.
  *
  * <p>A position moves when Hope Gu inserts the first aperture ahead of a lone second one; a kind
  * ({@code PRIMARY} the first, {@code SECOND} the second) never does. Anything that outlives the insert --
- * a Vital Gu's binding -- names its aperture by kind, and {@link #indexOf} / {@link #kindAt} convert.
+ * a Vital Gu's binding -- names its aperture by kind, and {@link #indexOf} / {@link #getKindAt} convert.
  *
- * <p>⚠ {@code with(index, aperture)} REFUSES to grow the list -- only {@code opened}/{@code insertFirst}
+ * <p>⚠ {@code with(index, aperture)} REFUSES to grow the list -- only {@code withOpened}/{@code insertFirst}
  * append -- the mirror of {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with}, which GROWS
  * to reach its index; deliberately opposite. ⚠ {@code MAX_APERTURES} caps the {@code encode}/{@code decode}
- * list too: longer is silently truncated on sync. ⚠ Decoding heals old saves: any entry at list position 1 is marked {@code second},
- * because pre-flag saves implied it by position alone.
+ * list too: longer is silently truncated on sync. ⚠ Decoding heals old saves: any entry at list position 1 is
+ * marked {@code second}, because pre-flag saves implied it by position alone.
  *
  * @author Alex
  * @version 1.0.0
@@ -43,7 +43,7 @@ public record ApertureData(List<Aperture> apertures) {
     public static final int SECOND = 1;
     public static final ApertureData DEFAULT = new ApertureData(List.of());
     public static final Codec<ApertureData> CODEC = Aperture.CODEC.listOf()
-            .xmap(ApertureData::healed, ApertureData::apertures);
+            .xmap(ApertureData::heal, ApertureData::apertures);
 
     public ApertureData {
         apertures = apertures.size() <= MAX_APERTURES
@@ -72,31 +72,31 @@ public record ApertureData(List<Aperture> apertures) {
 
     public Aperture get(int i) { return i >= 0 && i < apertures.size() ? apertures.get(i) : Aperture.NONE; }
 
-    public Aperture primary() { return get(PRIMARY); }
+    public Aperture getPrimary() { return get(PRIMARY); }
 
     public int count() { return apertures.size(); }
 
     public boolean hasAperture() { return !apertures.isEmpty(); }
 
-    public boolean isAwakened() { return firstIndex() >= 0; }
+    public boolean isAwakened() { return getFirstIndex() >= 0; }
 
     public boolean isFull() { return apertures.size() >= MAX_APERTURES; }
 
-    public int firstIndex() {
+    public int getFirstIndex() {
         for (int i = 0; i < apertures.size(); i++) if (!apertures.get(i).second()) return i;
         return -1;
     }
 
-    public int secondIndex() {
+    public int getSecondIndex() {
         for (int i = 0; i < apertures.size(); i++) if (apertures.get(i).second()) return i;
         return -1;
     }
 
-    public int indexOf(int kind) { return kind == SECOND ? secondIndex() : firstIndex(); }
+    public int indexOf(int kind) { return kind == SECOND ? getSecondIndex() : getFirstIndex(); }
 
-    public int kindAt(int index) { return get(index).second() ? SECOND : PRIMARY; }
+    public int getKindAt(int index) { return get(index).second() ? SECOND : PRIMARY; }
 
-    public ApertureData opened(Aperture aperture) {
+    public ApertureData withOpened(Aperture aperture) {
         if (isFull()) return this;
 
         List<Aperture> next = new ArrayList<>(apertures);
@@ -105,7 +105,7 @@ public record ApertureData(List<Aperture> apertures) {
     }
 
     public ApertureData insertFirst(Aperture aperture) {
-        if (isFull() || firstIndex() >= 0) return opened(aperture);
+        if (isFull() || getFirstIndex() >= 0) return withOpened(aperture);
 
         List<Aperture> next = new ArrayList<>(apertures);
         next.add(0, aperture);
@@ -120,7 +120,7 @@ public record ApertureData(List<Aperture> apertures) {
         return new ApertureData(next);
     }
 
-    private static ApertureData healed(List<Aperture> list) {
+    private static ApertureData heal(List<Aperture> list) {
         List<Aperture> fixed = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
             Aperture aperture = list.get(i);

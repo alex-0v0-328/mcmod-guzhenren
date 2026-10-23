@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * passes the binding on ({@link #adoptVital}): its token replaces the kind's token in the store.
  *
  * <p>A write is refused only when it ends above both {@code MAX_LOAD} and the load it started from, so an
- * over-full store (a rank that fell) can still be emptied; {@code exceedsLoad} counts the starting load only
+ * over-full store (a rank that fell) can still be emptied; {@code isOverLoad} counts the starting load only
  * when the result is over the cap. {@link #setSlot} writes one stored Gu back, the per-second settle's write.
  *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of
@@ -60,15 +60,15 @@ public final class ApertureStorageService {
     }
 
     public static @NotNull List<ItemStack> getView(@NotNull Player player, int aperture) {
-        return get(player).view(aperture);
+        return get(player).getView(aperture);
     }
 
     public static @NotNull List<ItemStack> getPage(@NotNull Player player, int aperture, int from, int size) {
-        return get(player).page(aperture, from, size);
+        return get(player).getPage(aperture, from, size);
     }
 
-    public static boolean matchesPage(@NotNull Player player, int aperture, int from, @NotNull List<ItemStack> page) {
-        return get(player).matchesPage(aperture, from, page);
+    public static boolean isSamePage(@NotNull Player player, int aperture, int from, @NotNull List<ItemStack> page) {
+        return get(player).isSamePage(aperture, from, page);
     }
 
     public static int count(@NotNull Player player, int aperture) { return get(player).count(aperture); }
@@ -79,11 +79,11 @@ public final class ApertureStorageService {
 
     public static int load(@NotNull Player player, int aperture) { return load(player, get(player), aperture); }
 
-    public static boolean canStore(@NotNull ItemStack stack) { return storedGu.rank(stack) != null; }
+    public static boolean canStore(@NotNull ItemStack stack) { return storedGu.getRank(stack) != null; }
 
     public static int getMaxStackSize(@NotNull Player player, int aperture, int currentLoad,
             @NotNull ItemStack current, @NotNull ItemStack incoming) {
-        Rank incomingRank = storedGu.rank(incoming);
+        Rank incomingRank = storedGu.getRank(incoming);
         if (incomingRank == null) return 0;
 
         Rank holder = ApertureService.getAperture(player, aperture).rank();
@@ -100,7 +100,7 @@ public final class ApertureStorageService {
     public static void set(@NotNull ServerPlayer player, int aperture, @NotNull List<ItemStack> items) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.with(aperture, items);
-        if (exceedsLoad(player, current, next, aperture)) return;
+        if (isOverLoad(player, current, next, aperture)) return;
 
         PlayerData.get(player).setApertureStorage(next);
     }
@@ -108,7 +108,7 @@ public final class ApertureStorageService {
     public static void setSlot(@NotNull ServerPlayer player, int aperture, int index, @NotNull ItemStack stack) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.withSlot(aperture, index, stack);
-        if (exceedsLoad(player, current, next, aperture)) return;
+        if (isOverLoad(player, current, next, aperture)) return;
 
         PlayerData.get(player).setApertureStorage(next);
     }
@@ -116,11 +116,11 @@ public final class ApertureStorageService {
     public static boolean setVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.withVital(aperture, stack);
-        if (exceedsLoad(player, current, next, aperture)) return false;
+        if (isOverLoad(player, current, next, aperture)) return false;
 
         PlayerData.get(player).setApertureStorage(next);
         adoptVital(player, aperture, stack);
-        GuPath path = storedGu.path(stack);
+        GuPath path = storedGu.getPath(stack);
         if (path != null) ApertureService.setPrimaryPath(player, aperture, path);
         return true;
     }
@@ -128,8 +128,8 @@ public final class ApertureStorageService {
     public static long getVitalToken(@NotNull Player player, int kind) { return get(player).getToken(kind); }
 
     public static void adoptVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
-        long token = storedGu.token(stack);
-        int kind = ApertureService.get(player).kindAt(aperture);
+        long token = storedGu.getToken(stack);
+        int kind = ApertureService.get(player).getKindAt(aperture);
         if (token != 0L && storedGu.isVitalOf(stack, player) && token != getVitalToken(player, kind)) {
             PlayerData.get(player).setApertureStorage(get(player).withToken(kind, token));
         }
@@ -138,7 +138,7 @@ public final class ApertureStorageService {
     public static boolean setPage(@NotNull ServerPlayer player, int aperture, int from, @NotNull List<ItemStack> page) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.withPage(aperture, from, page);
-        if (exceedsLoad(player, current, next, aperture)) return false;
+        if (isOverLoad(player, current, next, aperture)) return false;
 
         PlayerData.get(player).setApertureStorage(next);
         return true;
@@ -166,13 +166,13 @@ public final class ApertureStorageService {
         return total;
     }
 
-    private static boolean exceedsLoad(Player player, ApertureStorage current, ApertureStorage next, int aperture) {
+    private static boolean isOverLoad(Player player, ApertureStorage current, ApertureStorage next, int aperture) {
         int after = load(player, next, aperture);
         return after > MAX_LOAD && after > load(player, current, aperture);
     }
 
     private static int getCost(Rank holder, ItemStack stack) {
-        Rank rank = stack.isEmpty() ? null : storedGu.rank(stack);
+        Rank rank = stack.isEmpty() ? null : storedGu.getRank(stack);
         if (rank == null) return 0;
 
         return getCostPerItem(holder, rank) * stack.getCount();

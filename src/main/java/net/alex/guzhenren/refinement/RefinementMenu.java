@@ -197,7 +197,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
 
     private static boolean affords(Player who, GuRecipe recipe) {
-        return ApertureEssenceService.spendable(who) >= threshold(recipe);
+        return ApertureEssenceService.getSpendable(who) >= threshold(recipe);
     }
 
     private static long threshold(GuRecipe recipe) {

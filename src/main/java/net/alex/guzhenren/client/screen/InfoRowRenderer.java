@@ -114,13 +114,13 @@ final class InfoRowRenderer {
         @Override
         public ScreenRow visit(InfoModel.Essence entry) {
             return new ScreenRow(indent, label("essence"), Component.literal(
-                    ModDisplayText.pool(entry.aperture().currentEssence(), entry.aperture().maxEssence())));
+                    ModDisplayText.pool(entry.aperture().currentEssence(), entry.aperture().getMaxEssence())));
         }
 
         @Override
         public ScreenRow visit(InfoModel.Distilled entry) {
             return new ScreenRow(indent, label("distilled"), Component.literal(
-                    ModDisplayText.pool(entry.aperture().distilledEssence(), entry.aperture().maxEssence())));
+                    ModDisplayText.pool(entry.aperture().distilledEssence(), entry.aperture().getMaxEssence())));
         }
 
         @Override

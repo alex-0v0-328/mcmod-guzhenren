@@ -107,12 +107,12 @@ public final class CmdInfo {
 
         @Override
         public Component visit(InfoModel.Essence entry) {
-            return key("essence", entry.aperture().currentEssence(), entry.aperture().maxEssence());
+            return key("essence", entry.aperture().currentEssence(), entry.aperture().getMaxEssence());
         }
 
         @Override
         public Component visit(InfoModel.Distilled entry) {
-            return key("distilled", entry.aperture().distilledEssence(), entry.aperture().maxEssence());
+            return key("distilled", entry.aperture().distilledEssence(), entry.aperture().getMaxEssence());
         }
 
         @Override

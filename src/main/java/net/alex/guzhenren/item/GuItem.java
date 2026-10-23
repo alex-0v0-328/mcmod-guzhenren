@@ -123,7 +123,7 @@ public abstract class GuItem extends Item {
     public static void bind(ItemStack stack, ServerPlayer player, int index) {
         long token = player.getRandom().nextLong();
         ModDataComponents.set(stack, ModDataComponents.VITAL_OWNER, player.getUUID());
-        ModDataComponents.set(stack, ModDataComponents.VITAL_APERTURE, ApertureService.get(player).kindAt(index));
+        ModDataComponents.set(stack, ModDataComponents.VITAL_APERTURE, ApertureService.get(player).getKindAt(index));
         ModDataComponents.set(stack, ModDataComponents.VITAL_TOKEN, token == 0L ? 1L : token);
     }
 

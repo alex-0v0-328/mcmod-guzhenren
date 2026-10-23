@@ -59,7 +59,7 @@ public final class ModDisplayText {
     }
 
     public static MutableComponent talent(Aperture aperture) {
-        return Component.translatable(aperture.talent().getTranslationKey());
+        return Component.translatable(aperture.getTalent().getTranslationKey());
     }
 
     public static MutableComponent talentLine(Aperture aperture, boolean awakened) {
@@ -79,9 +79,9 @@ public final class ModDisplayText {
     }
 
     public static MutableComponent hudAptitude(Aperture aperture, BodyData body) {
-        if (aperture.talent() == Talent.NONE) return talent(aperture);
+        if (aperture.getTalent() == Talent.NONE) return talent(aperture);
 
-        Component detail = aperture.talent() == Talent.TEN_EXTREMES && body.isExtreme()
+        Component detail = aperture.getTalent() == Talent.TEN_EXTREMES && body.isExtreme()
                 ? Component.translatable(body.extremePhysique().getTranslationKey())
                 : baseFraction(aperture.baseEssence());
         return Component.translatable("guzhenren.display.aptitude_line", talent(aperture), detail);

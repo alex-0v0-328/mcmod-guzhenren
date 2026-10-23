@@ -64,7 +64,7 @@ public class QiMaterialItem extends GuMaterialItem {
     @Override
     protected @Nullable Refusal gate(Player player, ItemStack stack) {
         if (player.isUsingItem() && player.getUseItem() == stack) return null;
-        return essenceCost() > 0 && ApertureEssenceService.spendable(player) < essenceCost()
+        return essenceCost() > 0 && ApertureEssenceService.getSpendable(player) < essenceCost()
                 ? new Refusal(FAILED_ESSENCE)
                 : null;
     }

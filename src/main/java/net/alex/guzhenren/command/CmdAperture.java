@@ -7,9 +7,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.alex.guzhenren.command.AwakenedGate;
-import net.alex.guzhenren.command.ModCommandSupport;
-import net.alex.guzhenren.command.ModEnumArgument;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
@@ -57,11 +54,11 @@ public final class CmdAperture {
     }
 
     private static void attachWrites(ArgumentBuilder<CommandSourceStack, ?> parent) {
-        parent.then(graded("rank", Rank.settable(),
+        parent.then(graded("rank", Rank.getSettable(),
                 ApertureService::setRank, ApertureService::shiftRank))
-                .then(graded("stage", Stage.settable(),
+                .then(graded("stage", Stage.getSettable(),
                         ApertureService::setStage, ApertureService::shiftStage))
-                .then(graded("talent", Talent.settable(),
+                .then(graded("talent", Talent.getSettable(),
                         ApertureService::setTalent, ApertureService::shiftTalent))
                 .then(essence());
     }

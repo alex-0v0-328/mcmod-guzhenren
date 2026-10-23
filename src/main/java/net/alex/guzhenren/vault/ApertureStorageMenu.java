@@ -148,7 +148,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     }
 
     private boolean matchesStore(ServerPlayer server) {
-        return ApertureStorageService.matchesPage(server, aperture, getPageIndex() * PAGE_SIZE, window())
+        return ApertureStorageService.isSamePage(server, aperture, getPageIndex() * PAGE_SIZE, window())
                 && same(vital.getItem(0), ApertureStorageService.getVital(server, aperture))
                 && getLoad() == ApertureStorageService.load(server, aperture)
                 && pageData.get(DATA_PAGES) == countPages();
@@ -181,7 +181,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         List<ItemStack> window = window();
         int from = getPageIndex() * PAGE_SIZE;
-        if (!ApertureStorageService.matchesPage(server, aperture, from, window)) {
+        if (!ApertureStorageService.isSamePage(server, aperture, from, window)) {
             if (!ApertureStorageService.setPage(server, aperture, from, window)) {
                 load(getPageIndex());
                 return;
@@ -191,7 +191,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         ItemStack bound = vital.getItem(0);
         if (!bound.isEmpty()) bindVital(bound, server, aperture);
         if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
-            int kind = ApertureService.get(server).kindAt(aperture);
+            int kind = ApertureService.get(server).getKindAt(aperture);
             long former = ApertureStorageService.getVitalToken(server, kind);
             if (!ApertureStorageService.setVital(server, aperture, bound.copy())) {
                 load(getPageIndex());

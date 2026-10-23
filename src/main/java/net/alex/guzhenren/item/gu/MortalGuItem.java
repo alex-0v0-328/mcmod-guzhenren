@@ -69,7 +69,7 @@ public abstract class MortalGuItem extends GuItem {
     //region refining [炼化] -- every Gu answers it, and only the price differs
     protected final @Nullable Refusal essenceGate(Player player, long required, String key) {
         if (required <= 0) return null;
-        return ApertureEssenceService.spendable(player) < required ? new Refusal(key) : null;
+        return ApertureEssenceService.getSpendable(player) < required ? new Refusal(key) : null;
     }
 
     protected final @Nullable Refusal stageUpGate(Aperture aperture) {

@@ -121,7 +121,7 @@ public final class PrimevalStoneSupply {
     }
 
     public static boolean canAfford(Player player, long cost) {
-        return ApertureEssenceService.spendable(player) + worthOnHand(player) >= cost;
+        return ApertureEssenceService.getSpendable(player) + worthOnHand(player) >= cost;
     }
 
     public static boolean spend(ServerPlayer player, long cost) {
@@ -129,7 +129,7 @@ public final class PrimevalStoneSupply {
         long each = essencePerStone();
         if (each <= 0L || !canAfford(player, cost)) return false;
 
-        long fromPool = Math.min(ApertureEssenceService.spendable(player), cost);
+        long fromPool = Math.min(ApertureEssenceService.getSpendable(player), cost);
         ApertureEssenceService.consume(player, fromPool);
 
         long owed = cost - fromPool;

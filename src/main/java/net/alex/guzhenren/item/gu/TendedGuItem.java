@@ -204,7 +204,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     private boolean guPaced(Player player) { return rankGap(player) > 0; }
 
     private int stepAmount(ServerPlayer player, ItemStack stack, int elapsed) {
-        long pool = ApertureEssenceService.spendable(player);
+        long pool = ApertureEssenceService.getSpendable(player);
         if (pool < ESSENCE_FLOOR) return 0;
 
         int round = spec.essencePerRound();
@@ -222,7 +222,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     private long poured(ServerPlayer player, int elapsed) {
-        long pool = ApertureEssenceService.spendable(player);
+        long pool = ApertureEssenceService.getSpendable(player);
         if (pool < ESSENCE_FLOOR) return 0L;
         return guPaced(player) ? pool : poolPacedStep(player, pool, elapsed);
     }

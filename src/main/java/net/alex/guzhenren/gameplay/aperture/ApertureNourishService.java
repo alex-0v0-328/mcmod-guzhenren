@@ -123,16 +123,16 @@ public final class ApertureNourishService {
     //endregion
 
     public static long getCostPerSecond(@NotNull Player player, int index) {
-        long max = ApertureService.getAperture(player, index).maxEssence();
+        long max = ApertureService.getAperture(player, index).getMaxEssence();
         return Math.max(1L, (max + COST_DIVISOR - 1) / COST_DIVISOR);
     }
 
-    public static long impactCost(@NotNull Player player) {
+    public static long getImpactCost(@NotNull Player player) {
         return IMPACT_COST_PER_RANK_BASE * ApertureService.getAperture(player).rank().getRankBase();
     }
 
     public static boolean canAffordImpact(@NotNull Player player) {
-        return stones.canAfford().test(player, impactCost(player));
+        return stones.canAfford().test(player, getImpactCost(player));
     }
 
     public static void start(@NotNull ServerPlayer player, int index) {
@@ -181,7 +181,7 @@ public final class ApertureNourishService {
     private static void starve(ServerPlayer player, ApertureNourishData data) {
         long now = player.level().getGameTime();
         ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
-        if (starving.starvedOut(now)) {
+        if (starving.hasStarvedOut(now)) {
             store(player, starving.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
             ActionBar.inform(player, STARVED);
             return;
@@ -250,7 +250,7 @@ public final class ApertureNourishService {
     public static void impactWall(@NotNull ServerPlayer player) {
         if (!canImpact(player)) return;
         Aperture aperture = ApertureService.getAperture(player);
-        long cost = impactCost(player);
+        long cost = getImpactCost(player);
         if (!player.getAbilities().instabuild && !stones.spend().test(player, cost)) {
             ActionBar.inform(player, IMPACT_POOR, cost);
             return;

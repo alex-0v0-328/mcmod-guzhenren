@@ -75,7 +75,7 @@ public final class PlayerStatsHud {
     private Layout getLayout(LocalPlayer player) {
         ApertureData data = ApertureService.get(player);
         BodyData body = BodyService.get(player);
-        boolean counting = body.isExtreme() && isCountingDown(data.primary());
+        boolean counting = body.isExtreme() && isCountingDown(data.getPrimary());
         long seconds = counting
                 ? ModDisplayText.countdownSeconds(AperturePressureService.getRemainingTicks(player))
                 : NO_COUNTDOWN;
@@ -93,7 +93,7 @@ public final class PlayerStatsHud {
 
     private static Layout build(Key key) {
         ApertureData data = key.data();
-        Aperture aperture = data.primary();
+        Aperture aperture = data.getPrimary();
         List<Bar> bars = new ArrayList<>();
         List<Line> lines = new ArrayList<>();
 
@@ -118,11 +118,11 @@ public final class PlayerStatsHud {
         int y = top;
         for (int i = 0; i < data.count(); i++) {
             Aperture pool = data.get(i);
-            bars.add(bar(y, pool.currentEssence(), pool.maxEssence(), ModPalette.APERTURE));
+            bars.add(bar(y, pool.currentEssence(), pool.getMaxEssence(), ModPalette.APERTURE));
             y += BAR_HEIGHT + ROW_GAP;
 
             if (pool.distilledEssence() > 0L) {
-                bars.add(bar(y, pool.distilledEssence(), pool.maxEssence(), ModPalette.DISTILLED_FILL));
+                bars.add(bar(y, pool.distilledEssence(), pool.getMaxEssence(), ModPalette.DISTILLED_FILL));
                 y += BAR_HEIGHT + ROW_GAP;
             }
         }

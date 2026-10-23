@@ -317,9 +317,9 @@ public final class InfoModel {
         List<Row> rows = new ArrayList<>();
 
         if (data.count() <= 1) {
-            boolean second = data.primary().second();
+            boolean second = data.getPrimary().second();
             rows.add(new Row(0, new ApertureIndex(second ? 2 : 1, 0)));
-            apertureBlock(rows, data.primary(), data.hasAperture(), 0, ApertureData.PRIMARY, !second,
+            apertureBlock(rows, data.getPrimary(), data.hasAperture(), 0, ApertureData.PRIMARY, !second,
                     BodyService.isExtreme(player), status);
             return rows;
         }

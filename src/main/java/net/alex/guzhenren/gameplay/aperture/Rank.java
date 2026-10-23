@@ -60,7 +60,7 @@ public enum Rank implements NamedEnum {
         return values()[Mth.clamp(ordinal() + delta, LOWEST.ordinal(), HIGHEST.ordinal())];
     }
 
-    public static Rank[] settable() { return Arrays.copyOfRange(values(), LOWEST.ordinal(), HIGHEST.ordinal() + 1); }
+    public static Rank[] getSettable() { return Arrays.copyOfRange(values(), LOWEST.ordinal(), HIGHEST.ordinal() + 1); }
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.aperture.rank."; }

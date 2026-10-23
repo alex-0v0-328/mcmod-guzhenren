@@ -38,7 +38,7 @@ public class SecondApertureGuItem extends OneShotGuItem {
     @Override
     protected @Nullable Refusal useGate(Player player, ItemStack stack) {
         ApertureData data = ApertureService.get(player);
-        int index = data.secondIndex();
+        int index = data.getSecondIndex();
         return index >= 0 && data.get(index).rank().ordinal() >= rank().ordinal()
                 ? new Refusal(FAILED_SECOND_RANK) : null;
     }
