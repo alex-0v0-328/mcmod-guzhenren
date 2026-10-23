@@ -278,7 +278,10 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private void tickCurrentAction(A current) {
         long ticks = this.actionTicks();
         if (!this.keepsMomentum(ticks)) {
-            this.stopInPlace();
+            this.getNavigation().stop();
+            this.setXxa(0.0F);
+            this.setYya(0.0F);
+            this.setSpeed(0.0F);
             this.setZza(0.0F);
             Vec3 velocity = this.getDeltaMovement();
             this.setDeltaMovement(0.0D, velocity.y, 0.0D);
