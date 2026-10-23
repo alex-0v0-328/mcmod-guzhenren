@@ -13,11 +13,9 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +24,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The top-left HUD readout: the realm line, then one bar per pool.
  *
- * <p>Implements {@link net.minecraft.client.gui.LayeredDraw.Layer}; registered above
- * {@code VanillaGuiLayers.HOTBAR} in
+ * <p>Registered above the vanilla hotbar layer in
  * {@link net.alex.guzhenren.client.event.ClientEvents}. Draws the title line (realm + title + aptitude), then
  * bars in order: essence, distilled, soul, gap, lifespan/age and pressure text. Hidden with
  * {@code hideGui}, in spectator, and under F3. Every phrase comes from
@@ -45,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public final class PlayerStatsHud implements LayeredDraw.Layer {
+public final class PlayerStatsHud {
 
     public static final PlayerStatsHud INSTANCE = new PlayerStatsHud();
 
@@ -62,8 +59,8 @@ public final class PlayerStatsHud implements LayeredDraw.Layer {
     private @Nullable Key cachedKey;
     private Layout layout = new Layout(List.of(), List.of());
 
-    @Override
-    public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker delta) {
+    /** Draws the readout for the frame; the loader's HUD layer calls it, see {@code ClientEvents}. */
+    public void render(@NotNull GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
         if (player == null || minecraft.options.hideGui) return;

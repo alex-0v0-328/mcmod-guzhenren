@@ -5,9 +5,9 @@ import net.alex.guzhenren.client.ModPalette;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-abstract class HotbarHud implements LayeredDraw.Layer {
+abstract class HotbarHud {
 
     static final int BAR_WIDTH = 182;
     static final int BAR_HEIGHT = 5;
@@ -38,6 +38,9 @@ abstract class HotbarHud implements LayeredDraw.Layer {
     static final int MIN_SHIFT = 59;
     static final int CREATIVE_LIFT = 14;
     static final int STACK_GAP = 3;
+
+    /** Draws this bar for the frame; the loader's HUD layer calls it, see {@code ClientEvents}. */
+    public abstract void render(@NotNull GuiGraphics graphics);
 
     static int barTop(Minecraft minecraft) {
         Gui gui = minecraft.gui;

@@ -4,7 +4,6 @@ import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * The bar drawn over the hotbar while the aperture is being nourished [温养空窍].
  *
  * <p>Extends {@link net.alex.guzhenren.client.hud.HotbarHud}. Registered above
- * {@code VanillaGuiLayers.AIR_LEVEL}. Reads the cultivation fraction from
+ * the vanilla air-level layer. Reads the cultivation fraction from
  * {@link ApertureNourishService#getFraction} and swaps to a red
  * fill when starving.
  *
@@ -41,7 +40,7 @@ public final class NourishHud extends HotbarHud {
     private static final int FILL_STARVING = 0xFFE57373;
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker delta) {
+    public void render(@NotNull GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
         if (player == null || minecraft.options.hideGui || player.isSpectator()) return;
