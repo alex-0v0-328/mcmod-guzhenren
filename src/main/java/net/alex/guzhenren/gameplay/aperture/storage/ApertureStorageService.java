@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.List;
-
 import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -28,17 +27,17 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>A write is refused only when it ends above both {@code MAX_LOAD} and the load it started from, so an
  * over-full store (a rank that fell) can still be emptied; {@code exceedsLoad} counts the starting load only
- * when the result is over the cap.
+ * when the result is over the cap. {@link #setSlot} writes one stored Gu back, the per-second settle's write.
  *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of
- * {@link ApertureData#insertFirst}: when Hope Gu opens
- * the first aperture ahead of a lone second one, every stored list and the Vital Gu slot slides up
- * one position.
+ * {@link ApertureData#insertFirst}: when Hope Gu opens the first aperture ahead of a lone second one, the
+ * aperture posts a {@code FirstApertureInsertedEvent} and {@link ApertureStorageEvents} slides every stored list
+ * and the Vital Gu slot up one position.
  *
  * @author Alex
  * @version 1.0.0
  * @see ApertureService
- * @see ApertureStorageTick
+ * @see net.alex.guzhenren.vault.ApertureStorageTick
  * @since 1.0.0
  */
 
@@ -47,8 +46,6 @@ public final class ApertureStorageService {
     private static StoredGu storedGu;
 
     public static void setStoredGu(@NotNull StoredGu gu) { storedGu = gu; }
-
-    static StoredGu storedGu() { return storedGu; }
 
     private ApertureStorageService() {}
 
@@ -82,6 +79,8 @@ public final class ApertureStorageService {
 
     public static int load(@NotNull Player player, int aperture) { return load(player, get(player), aperture); }
 
+    public static boolean canStore(@NotNull ItemStack stack) { return storedGu.rank(stack) != null; }
+
     public static int getMaxStackSize(@NotNull Player player, int aperture, int currentLoad,
             @NotNull ItemStack current, @NotNull ItemStack incoming) {
         Rank incomingRank = storedGu.rank(incoming);
@@ -101,6 +100,14 @@ public final class ApertureStorageService {
     public static void set(@NotNull ServerPlayer player, int aperture, @NotNull List<ItemStack> items) {
         ApertureStorage current = get(player);
         ApertureStorage next = current.with(aperture, items);
+        if (exceedsLoad(player, current, next, aperture)) return;
+
+        PlayerData.get(player).setApertureStorage(next);
+    }
+
+    public static void setSlot(@NotNull ServerPlayer player, int aperture, int index, @NotNull ItemStack stack) {
+        ApertureStorage current = get(player);
+        ApertureStorage next = current.withSlot(aperture, index, stack);
         if (exceedsLoad(player, current, next, aperture)) return;
 
         PlayerData.get(player).setApertureStorage(next);

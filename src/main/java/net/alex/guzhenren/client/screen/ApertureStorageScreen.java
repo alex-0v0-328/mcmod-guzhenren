@@ -2,8 +2,8 @@ package net.alex.guzhenren.client.screen;
 
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
+import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;

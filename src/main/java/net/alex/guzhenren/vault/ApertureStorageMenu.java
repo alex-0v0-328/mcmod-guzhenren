@@ -1,10 +1,13 @@
-package net.alex.guzhenren.gameplay.aperture.storage;
+package net.alex.guzhenren.vault;
 
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
+import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -186,7 +189,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         }
 
         ItemStack bound = vital.getItem(0);
-        if (!bound.isEmpty()) ApertureStorageService.storedGu().bindVital(bound, server, aperture);
+        if (!bound.isEmpty()) bindVital(bound, server, aperture);
         if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
             int kind = ApertureService.get(server).kindAt(aperture);
             long former = ApertureStorageService.getVitalToken(server, kind);
@@ -203,12 +206,18 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         pageData.set(DATA_LOAD, ApertureStorageService.load(server, aperture));
     }
 
+    private static void bindVital(ItemStack stack, ServerPlayer player, int aperture) {
+        if (stack.getItem() instanceof GuItem
+                && (!GuItem.isCurrentVital(stack, player) || GuItem.boundIndex(stack, player) != aperture)) {
+            GuItem.bind(stack, player, aperture);
+        }
+    }
+
     private void releaseFormer(ServerPlayer server, long token) {
-        StoredGu gu = ApertureStorageService.storedGu();
-        if (gu.token(getCarried()) == token) gu.unbind(getCarried());
+        if (GuItem.token(getCarried()) == token) GuItem.unbind(getCarried());
         Inventory inventory = server.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (gu.token(inventory.getItem(i)) == token) gu.unbind(inventory.getItem(i));
+            if (GuItem.token(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
         }
     }
 
@@ -286,7 +295,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return ApertureStorageService.storedGu().rank(stack) != null
+            return ApertureStorageService.canStore(stack)
                     && (hasItem()
                     || ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0);
         }
@@ -303,11 +312,16 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (!ApertureStorageService.storedGu().canBeVital(stack, player)) return false;
+            if (!canBeVital(stack, player)) return false;
             return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0;
         }
 
         @Override
         public int getMaxStackSize() { return 1; }
+
+        private static boolean canBeVital(ItemStack stack, Player player) {
+            return stack.getItem() instanceof TendedGuItem gu && gu.refined(stack) && gu.canBeVital()
+                    && !GuItem.isForeignVital(stack, player);
+        }
     }
 }
