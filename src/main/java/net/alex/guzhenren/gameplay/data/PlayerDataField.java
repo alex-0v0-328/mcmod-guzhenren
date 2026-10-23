@@ -1,5 +1,7 @@
 package net.alex.guzhenren.gameplay.data;
 
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.body.BodyData;
@@ -26,70 +28,41 @@ import net.minecraft.network.FriendlyByteBuf;
  */
 
 public enum PlayerDataField {
-    APERTURE {
-        @Override public Object get(PlayerData data) { return data.aperture; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { ApertureData.encode(buf, (ApertureData) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return ApertureData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.aperture = (ApertureData) value; }
-    },
-    NOURISH {
-        @Override public Object get(PlayerData data) { return data.nourish; }
-        @Override public void write(FriendlyByteBuf buf, Object value) {
-            ApertureNourishData.encode(buf, (ApertureNourishData) value);
-        }
-        @Override public Object read(FriendlyByteBuf buf) { return ApertureNourishData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.nourish = (ApertureNourishData) value; }
-    },
-    BODY {
-        @Override public Object get(PlayerData data) { return data.body; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { BodyData.encode(buf, (BodyData) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return BodyData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.body = (BodyData) value; }
-    },
-    SOUL {
-        @Override public Object get(PlayerData data) { return data.soul; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { SoulData.encode(buf, (SoulData) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return SoulData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.soul = (SoulData) value; }
-    },
-    PATH {
-        @Override public Object get(PlayerData data) { return data.path; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { PathData.encode(buf, (PathData) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return PathData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.path = (PathData) value; }
-    },
-    STRENGTH {
-        @Override public Object get(PlayerData data) { return data.strength; }
-        @Override public void write(FriendlyByteBuf buf, Object value) {
-            PathStrengthData.encode(buf, (PathStrengthData) value);
-        }
-        @Override public Object read(FriendlyByteBuf buf) { return PathStrengthData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.strength = (PathStrengthData) value; }
-    },
-    QI {
-        @Override public Object get(PlayerData data) { return data.qi; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { PathQiData.encode(buf, (PathQiData) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return PathQiData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.qi = (PathQiData) value; }
-    },
-    MIND {
-        @Override public Object get(PlayerData data) { return data.mind; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { MindData.encode(buf, (MindData) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return MindData.decode(buf); }
-        @Override public void set(PlayerData data, Object value) { data.mind = (MindData) value; }
-    },
-    BURST {
-        @Override public Object get(PlayerData data) { return data.burst; }
-        @Override public void write(FriendlyByteBuf buf, Object value) { buf.writeBoolean((Boolean) value); }
-        @Override public Object read(FriendlyByteBuf buf) { return buf.readBoolean(); }
-        @Override public void set(PlayerData data, Object value) { data.burst = (Boolean) value; }
-    };
+    APERTURE(new Wire<>(data -> data.aperture, (data, value) -> data.aperture = value,
+            ApertureData::encode, ApertureData::decode)),
+    NOURISH(new Wire<>(data -> data.nourish, (data, value) -> data.nourish = value,
+            ApertureNourishData::encode, ApertureNourishData::decode)),
+    BODY(new Wire<>(data -> data.body, (data, value) -> data.body = value, BodyData::encode, BodyData::decode)),
+    SOUL(new Wire<>(data -> data.soul, (data, value) -> data.soul = value, SoulData::encode, SoulData::decode)),
+    PATH(new Wire<>(data -> data.path, (data, value) -> data.path = value, PathData::encode, PathData::decode)),
+    STRENGTH(new Wire<>(data -> data.strength, (data, value) -> data.strength = value,
+            PathStrengthData::encode, PathStrengthData::decode)),
+    QI(new Wire<>(data -> data.qi, (data, value) -> data.qi = value, PathQiData::encode, PathQiData::decode)),
+    MIND(new Wire<>(data -> data.mind, (data, value) -> data.mind = value, MindData::encode, MindData::decode)),
+    BURST(new Wire<Boolean>(data -> data.burst, (data, value) -> data.burst = value,
+            FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean));
 
-    public abstract Object get(PlayerData data);
+    private final Wire<?> wire;
 
-    public abstract void write(FriendlyByteBuf buf, Object value);
+    PlayerDataField(Wire<?> wire) { this.wire = wire; }
 
-    public abstract Object read(FriendlyByteBuf buf);
+    public Object get(PlayerData data) { return wire.get().apply(data); }
 
-    public abstract void set(PlayerData data, Object value);
+    public void write(FriendlyByteBuf buf, Object value) { wire.write(buf, value); }
+
+    public Object read(FriendlyByteBuf buf) { return wire.read().apply(buf); }
+
+    public void set(PlayerData data, Object value) { wire.set(data, value); }
+
+    /** One field's accessors and wire form, typed; the untyped packet value is cast back here only. */
+    private record Wire<T>(Function<PlayerData, T> get, BiConsumer<PlayerData, T> store,
+                           BiConsumer<FriendlyByteBuf, T> encode, Function<FriendlyByteBuf, T> read) {
+
+        void write(FriendlyByteBuf buf, Object value) { encode.accept(buf, cast(value)); }
+
+        void set(PlayerData data, Object value) { store.accept(data, cast(value)); }
+
+        @SuppressWarnings("unchecked")
+        private T cast(Object value) { return (T) value; }
+    }
 }

@@ -3,11 +3,11 @@ package net.alex.guzhenren.registry.item;
 import com.mojang.serialization.Codec;
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.NbtCodecs;
 import net.alex.guzhenren.item.gu.RefinedGuState;
 import net.alex.guzhenren.item.gu.mortal.wood.LeafGrowth;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -59,9 +59,7 @@ public final class ModDataComponents {
         if (tag == null) return null;
         Tag encoded = tag.get(key.name());
         if (encoded == null) return null;
-        return key.codec().parse(NbtOps.INSTANCE, encoded)
-                .resultOrPartial(error -> Guzhenren.LOGGER.error("Cannot read item data {}: {}", key.name(), error))
-                .orElse(null);
+        return NbtCodecs.decode(key.codec(), encoded, "read item data", key.name()).orElse(null);
     }
 
     public static <T> T getOrDefault(@NotNull ItemStack stack, @NotNull Key<T> key, T fallback) {
@@ -80,8 +78,7 @@ public final class ModDataComponents {
             remove(stack, key);
             return;
         }
-        key.codec().encodeStart(NbtOps.INSTANCE, value)
-                .resultOrPartial(error -> Guzhenren.LOGGER.error("Cannot write item data {}: {}", key.name(), error))
+        NbtCodecs.encode(key.codec(), value, "write item data", key.name())
                 .ifPresent(encoded -> stack.getOrCreateTag().put(key.name(), encoded));
     }
 

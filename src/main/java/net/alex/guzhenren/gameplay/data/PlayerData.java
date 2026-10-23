@@ -2,7 +2,10 @@ package net.alex.guzhenren.gameplay.data;
 
 import com.mojang.serialization.Codec;
 import java.util.Arrays;
-import net.alex.guzhenren.Guzhenren;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import net.alex.guzhenren.core.NbtCodecs;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
@@ -17,7 +20,6 @@ import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.packet.PlayerDataSyncPacket;
 import net.alex.guzhenren.registry.capability.ModCapabilities;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -48,6 +50,29 @@ import org.jetbrains.annotations.Nullable;
  */
 
 public final class PlayerData {
+
+    /** The ten record values {@link #save} writes, in tag order; the two flags follow as plain booleans. */
+    private static final List<Saved<?>> SAVED = List.of(
+            new Saved<>("aperture_data", ApertureData.CODEC, ApertureData.DEFAULT,
+                    data -> data.aperture, (data, value) -> data.aperture = value),
+            new Saved<>("aperture_storage", ApertureStorage.CODEC, ApertureStorage.DEFAULT,
+                    data -> data.apertureStorage, (data, value) -> data.apertureStorage = value),
+            new Saved<>("nourish_data", ApertureNourishData.CODEC, ApertureNourishData.DEFAULT,
+                    data -> data.nourish, (data, value) -> data.nourish = value),
+            new Saved<>("body_data", BodyData.CODEC, BodyData.DEFAULT,
+                    data -> data.body, (data, value) -> data.body = value),
+            new Saved<>("soul_data", SoulData.CODEC, SoulData.DEFAULT,
+                    data -> data.soul, (data, value) -> data.soul = value),
+            new Saved<>("path_data", PathData.CODEC, PathData.DEFAULT,
+                    data -> data.path, (data, value) -> data.path = value),
+            new Saved<>("strength_data", PathStrengthData.CODEC, PathStrengthData.DEFAULT,
+                    data -> data.strength, (data, value) -> data.strength = value),
+            new Saved<>("qi_data", PathQiData.CODEC, PathQiData.DEFAULT,
+                    data -> data.qi, (data, value) -> data.qi = value),
+            new Saved<>("mind_data", MindData.CODEC, MindData.DEFAULT,
+                    data -> data.mind, (data, value) -> data.mind = value),
+            new Saved<>("dimension_return", DimensionReturnData.CODEC, DimensionReturnData.DEFAULT,
+                    data -> data.dimensionReturn, (data, value) -> data.dimensionReturn = value));
 
     private final Player owner;
 
@@ -100,12 +125,7 @@ public final class PlayerData {
     public boolean born() { return born; }
 
 
-    public boolean setAperture(@NotNull ApertureData value) {
-        if (value.equals(aperture)) return false;
-        aperture = value;
-        sync(PlayerDataField.APERTURE);
-        return true;
-    }
+    public boolean setAperture(@NotNull ApertureData value) { return change(PlayerDataField.APERTURE, value); }
 
     public boolean setApertureStorage(@NotNull ApertureStorage value) {
         if (value.equals(apertureStorage)) return false;
@@ -113,54 +133,19 @@ public final class PlayerData {
         return true;
     }
 
-    public boolean setNourish(@NotNull ApertureNourishData value) {
-        if (value.equals(nourish)) return false;
-        nourish = value;
-        sync(PlayerDataField.NOURISH);
-        return true;
-    }
+    public boolean setNourish(@NotNull ApertureNourishData value) { return change(PlayerDataField.NOURISH, value); }
 
-    public boolean setBody(@NotNull BodyData value) {
-        if (value.equals(body)) return false;
-        body = value;
-        sync(PlayerDataField.BODY);
-        return true;
-    }
+    public boolean setBody(@NotNull BodyData value) { return change(PlayerDataField.BODY, value); }
 
-    public boolean setSoul(@NotNull SoulData value) {
-        if (value.equals(soul)) return false;
-        soul = value;
-        sync(PlayerDataField.SOUL);
-        return true;
-    }
+    public boolean setSoul(@NotNull SoulData value) { return change(PlayerDataField.SOUL, value); }
 
-    public boolean setPath(@NotNull PathData value) {
-        if (value.equals(path)) return false;
-        path = value;
-        sync(PlayerDataField.PATH);
-        return true;
-    }
+    public boolean setPath(@NotNull PathData value) { return change(PlayerDataField.PATH, value); }
 
-    public boolean setStrength(@NotNull PathStrengthData value) {
-        if (value.equals(strength)) return false;
-        strength = value;
-        sync(PlayerDataField.STRENGTH);
-        return true;
-    }
+    public boolean setStrength(@NotNull PathStrengthData value) { return change(PlayerDataField.STRENGTH, value); }
 
-    public boolean setQi(@NotNull PathQiData value) {
-        if (value.equals(qi)) return false;
-        qi = value;
-        sync(PlayerDataField.QI);
-        return true;
-    }
+    public boolean setQi(@NotNull PathQiData value) { return change(PlayerDataField.QI, value); }
 
-    public boolean setMind(@NotNull MindData value) {
-        if (value.equals(mind)) return false;
-        mind = value;
-        sync(PlayerDataField.MIND);
-        return true;
-    }
+    public boolean setMind(@NotNull MindData value) { return change(PlayerDataField.MIND, value); }
 
     public boolean setDimensionReturn(@NotNull DimensionReturnData value) {
         if (value.equals(dimensionReturn)) return false;
@@ -168,12 +153,7 @@ public final class PlayerData {
         return true;
     }
 
-    public boolean setBurst(boolean value) {
-        if (value == burst) return false;
-        burst = value;
-        sync(PlayerDataField.BURST);
-        return true;
-    }
+    public boolean setBurst(boolean value) { return change(PlayerDataField.BURST, value); }
 
     public boolean setBorn(boolean value) {
         if (value == born) return false;
@@ -229,6 +209,14 @@ public final class PlayerData {
         for (PlayerDataField field : PlayerDataField.values()) sync(field);
     }
 
+    /** Stores {@code value} into {@code field} and sends it to the owner; {@code false} when it was already held. */
+    private boolean change(PlayerDataField field, Object value) {
+        if (value.equals(field.get(this))) return false;
+        field.set(this, value);
+        sync(field);
+        return true;
+    }
+
     private void sync(PlayerDataField field) {
         if (owner instanceof ServerPlayer player && player.connection != null) {
             ModNetwork.sendToPlayer(player, PlayerDataSyncPacket.of(field, this));
@@ -237,47 +225,31 @@ public final class PlayerData {
 
     public @NotNull CompoundTag save() {
         CompoundTag tag = new CompoundTag();
-        put(tag, "aperture_data", ApertureData.CODEC, aperture);
-        put(tag, "aperture_storage", ApertureStorage.CODEC, apertureStorage);
-        put(tag, "nourish_data", ApertureNourishData.CODEC, nourish);
-        put(tag, "body_data", BodyData.CODEC, body);
-        put(tag, "soul_data", SoulData.CODEC, soul);
-        put(tag, "path_data", PathData.CODEC, path);
-        put(tag, "strength_data", PathStrengthData.CODEC, strength);
-        put(tag, "qi_data", PathQiData.CODEC, qi);
-        put(tag, "mind_data", MindData.CODEC, mind);
-        put(tag, "dimension_return", DimensionReturnData.CODEC, dimensionReturn);
+        for (Saved<?> saved : SAVED) saved.save(this, tag);
         tag.putBoolean("burst_flag", burst);
         tag.putBoolean("born_flag", born);
         return tag;
     }
 
     public void load(@NotNull CompoundTag tag) {
-        aperture = read(tag, "aperture_data", ApertureData.CODEC, ApertureData.DEFAULT);
-        apertureStorage = read(tag, "aperture_storage", ApertureStorage.CODEC, ApertureStorage.DEFAULT);
-        nourish = read(tag, "nourish_data", ApertureNourishData.CODEC, ApertureNourishData.DEFAULT);
-        body = read(tag, "body_data", BodyData.CODEC, BodyData.DEFAULT);
-        soul = read(tag, "soul_data", SoulData.CODEC, SoulData.DEFAULT);
-        path = read(tag, "path_data", PathData.CODEC, PathData.DEFAULT);
-        strength = read(tag, "strength_data", PathStrengthData.CODEC, PathStrengthData.DEFAULT);
-        qi = read(tag, "qi_data", PathQiData.CODEC, PathQiData.DEFAULT);
-        mind = read(tag, "mind_data", MindData.CODEC, MindData.DEFAULT);
-        dimensionReturn = read(tag, "dimension_return", DimensionReturnData.CODEC, DimensionReturnData.DEFAULT);
+        for (Saved<?> saved : SAVED) saved.load(this, tag);
         burst = tag.getBoolean("burst_flag");
         born = tag.getBoolean("born_flag");
     }
 
-    private static <T> void put(CompoundTag tag, String key, Codec<T> codec, T value) {
-        codec.encodeStart(NbtOps.INSTANCE, value)
-                .resultOrPartial(error -> Guzhenren.LOGGER.error("Cannot save player data {}: {}", key, error))
-                .ifPresent(encoded -> tag.put(key, encoded));
-    }
+    /** One saved record value: its tag key, codec, fallback when missing or unreadable, and field. */
+    private record Saved<T>(String key, Codec<T> codec, T fallback,
+                            Function<PlayerData, T> get, BiConsumer<PlayerData, T> set) {
 
-    private static <T> T read(CompoundTag tag, String key, Codec<T> codec, T fallback) {
-        Tag encoded = tag.get(key);
-        if (encoded == null) return fallback;
-        return codec.parse(NbtOps.INSTANCE, encoded)
-                .resultOrPartial(error -> Guzhenren.LOGGER.error("Cannot load player data {}: {}", key, error))
-                .orElse(fallback);
+        void save(PlayerData data, CompoundTag tag) {
+            NbtCodecs.encode(codec, get.apply(data), "save player data", key)
+                    .ifPresent(encoded -> tag.put(key, encoded));
+        }
+
+        void load(PlayerData data, CompoundTag tag) {
+            Tag encoded = tag.get(key);
+            set.accept(data, encoded == null ? fallback
+                    : NbtCodecs.decode(codec, encoded, "load player data", key).orElse(fallback));
+        }
     }
 }
