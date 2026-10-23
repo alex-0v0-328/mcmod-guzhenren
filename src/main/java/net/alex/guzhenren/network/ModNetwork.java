@@ -2,7 +2,6 @@ package net.alex.guzhenren.network;
 
 import java.util.function.Consumer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -26,8 +25,9 @@ public final class ModNetwork {
 
     private ModNetwork() {}
 
-    public static void sendToServer(@NotNull CustomPacketPayload payload) {
-        PacketDistributor.sendToServer(payload);
+    /** Sends one intent record from {@code network.payload} to the server. */
+    public static void sendToServer(@NotNull Object intent) {
+        PacketDistributor.sendToServer(ModPayloads.wrap(intent));
     }
 
     public static void openMenu(@NotNull ServerPlayer player, @NotNull MenuProvider provider,

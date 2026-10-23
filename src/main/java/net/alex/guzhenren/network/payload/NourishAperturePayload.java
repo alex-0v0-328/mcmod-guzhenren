@@ -1,13 +1,10 @@
 package net.alex.guzhenren.network.payload;
 
-import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModByteBufs;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.ClientIntents.NourishAction;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,12 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public record NourishAperturePayload(NourishAction action, int aperture) implements CustomPacketPayload {
-
-    public static final Type<NourishAperturePayload> TYPE = new Type<>(
-            Guzhenren.id("nourish_aperture"));
-    public static final StreamCodec<FriendlyByteBuf, NourishAperturePayload> STREAM_CODEC =
-            StreamCodec.of(NourishAperturePayload::encode, NourishAperturePayload::decode);
+public record NourishAperturePayload(NourishAction action, int aperture) {
 
     public static @NotNull NourishAperturePayload decode(@NotNull FriendlyByteBuf buf) {
         return new NourishAperturePayload(ModByteBufs.readEnum(buf, NourishAction.class), buf.readVarInt());
@@ -41,7 +33,4 @@ public record NourishAperturePayload(NourishAction action, int aperture) impleme
         ModByteBufs.writeEnum(buf, value.action());
         buf.writeVarInt(value.aperture());
     }
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
 }

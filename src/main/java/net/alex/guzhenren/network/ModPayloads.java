@@ -1,5 +1,9 @@
 package net.alex.guzhenren.network;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
@@ -8,21 +12,29 @@ import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.ToggleBurstPayload;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Registers the seven client-intent payloads and forwards each to {@link ClientIntents}, which holds every
- * check; this file and the payload records are the only loader-specific network code besides {@link ModNetwork}.
+ * check.
+ *
+ * <p>⚠ A version seam: the intent records in {@code network.payload} are plain data with their own
+ * {@code encode}/{@code decode}, the same on both loaders. NeoForge sends only a {@link CustomPacketPayload}, so
+ * each record travels inside a {@link Carrier} whose type is registered here; {@link #wrap} finds it by the
+ * record's class. The Forge 1.20.1 port registers the same records on its {@code SimpleChannel} instead.
  *
  * @author Alex
  * @version 1.0.0
  * @see ClientIntents
- * @see net.alex.guzhenren.client.screen.PlayerInfoScreen
+ * @see ModNetwork
  * @since 1.0.0
  */
 
@@ -32,59 +44,54 @@ public final class ModPayloads {
     private ModPayloads() {}
 
     private static final String VERSION = "1";
+    private static final Map<Class<?>, CustomPacketPayload.Type<?>> TYPES = new HashMap<>();
+
+    /** One intent record on the wire, under the type registered for its class. */
+    public record Carrier<T>(@NotNull Type<Carrier<T>> type, @NotNull T intent) implements CustomPacketPayload {}
 
     @SubscribeEvent
     public static void onRegister(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(VERSION);
-        registrar.playToServer(OpenApertureStoragePayload.TYPE, OpenApertureStoragePayload.STREAM_CODEC,
-                ModPayloads::openStorage);
-        registrar.playToServer(SetSecondaryPathPayload.TYPE, SetSecondaryPathPayload.STREAM_CODEC,
-                ModPayloads::setSecondaryPath);
-        registrar.playToServer(OpenRefinementPayload.TYPE, OpenRefinementPayload.STREAM_CODEC,
-                ModPayloads::openRefinement);
-        registrar.playToServer(NourishAperturePayload.TYPE, NourishAperturePayload.STREAM_CODEC,
-                ModPayloads::nourishAperture);
-        registrar.playToServer(ImpactApertureWallPayload.TYPE, ImpactApertureWallPayload.STREAM_CODEC,
-                ModPayloads::impactApertureWall);
-        registrar.playToServer(DashPayload.TYPE, DashPayload.STREAM_CODEC,
-                ModPayloads::dash);
-        registrar.playToServer(ToggleBurstPayload.TYPE, ToggleBurstPayload.STREAM_CODEC,
-                ModPayloads::toggleBurst);
+        toServer(registrar, "open_aperture_storage", OpenApertureStoragePayload.class,
+                OpenApertureStoragePayload::encode, OpenApertureStoragePayload::decode,
+                (intent, player) -> ClientIntents.openApertureStorage(player, intent.aperture()));
+        toServer(registrar, "set_secondary_path", SetSecondaryPathPayload.class,
+                SetSecondaryPathPayload::encode, SetSecondaryPathPayload::decode,
+                (intent, player) -> ClientIntents.setSecondaryPath(player, intent.aperture(), intent.path()));
+        toServer(registrar, "open_refinement", OpenRefinementPayload.class,
+                (buf, intent) -> {}, buf -> OpenRefinementPayload.INSTANCE,
+                (intent, player) -> ClientIntents.openRefinement(player));
+        toServer(registrar, "nourish_aperture", NourishAperturePayload.class,
+                NourishAperturePayload::encode, NourishAperturePayload::decode,
+                (intent, player) -> ClientIntents.nourishAperture(player, intent.action(), intent.aperture()));
+        toServer(registrar, "impact_aperture_wall", ImpactApertureWallPayload.class,
+                (buf, intent) -> {}, buf -> ImpactApertureWallPayload.INSTANCE,
+                (intent, player) -> ClientIntents.impactApertureWall(player));
+        toServer(registrar, "dash", DashPayload.class,
+                DashPayload::encode, DashPayload::decode,
+                (intent, player) -> ClientIntents.dash(player, intent.vertical(), intent.horizontal(), intent.yRot()));
+        toServer(registrar, "toggle_burst", ToggleBurstPayload.class,
+                (buf, intent) -> {}, buf -> ToggleBurstPayload.INSTANCE,
+                (intent, player) -> ClientIntents.toggleBurst(player));
     }
 
-    private static void nourishAperture(NourishAperturePayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) {
-            ClientIntents.nourishAperture(player, payload.action(), payload.aperture());
-        }
+    private static <T> void toServer(PayloadRegistrar registrar, String id, Class<T> intentClass,
+                                     BiConsumer<FriendlyByteBuf, T> encode, Function<FriendlyByteBuf, T> decode,
+                                     BiConsumer<T, ServerPlayer> handle) {
+        CustomPacketPayload.Type<Carrier<T>> type = new CustomPacketPayload.Type<>(Guzhenren.id(id));
+        TYPES.put(intentClass, type);
+        registrar.playToServer(type,
+                StreamCodec.<FriendlyByteBuf, Carrier<T>>of((buf, carrier) -> encode.accept(buf, carrier.intent()),
+                        buf -> new Carrier<>(type, decode.apply(buf))),
+                (carrier, context) -> {
+                    if (context.player() instanceof ServerPlayer player) handle.accept(carrier.intent(), player);
+                });
     }
 
-    private static void impactApertureWall(ImpactApertureWallPayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) ClientIntents.impactApertureWall(player);
-    }
-
-    private static void dash(DashPayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) {
-            ClientIntents.dash(player, payload.vertical(), payload.horizontal(), payload.yRot());
-        }
-    }
-
-    private static void toggleBurst(ToggleBurstPayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) ClientIntents.toggleBurst(player);
-    }
-
-    private static void openRefinement(OpenRefinementPayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) ClientIntents.openRefinement(player);
-    }
-
-    private static void setSecondaryPath(SetSecondaryPathPayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) {
-            ClientIntents.setSecondaryPath(player, payload.aperture(), payload.path());
-        }
-    }
-
-    private static void openStorage(OpenApertureStoragePayload payload, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player) {
-            ClientIntents.openApertureStorage(player, payload.aperture());
-        }
+    @SuppressWarnings("unchecked")
+    static <T> CustomPacketPayload wrap(@NotNull T intent) {
+        CustomPacketPayload.Type<Carrier<T>> type = (CustomPacketPayload.Type<Carrier<T>>) TYPES.get(intent.getClass());
+        if (type == null) throw new IllegalArgumentException("not a registered intent: " + intent.getClass());
+        return new Carrier<>(type, intent);
     }
 }
