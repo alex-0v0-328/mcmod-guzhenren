@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
  * The mod's one network channel, {@code guzhenren:main}, and the packets registered on it.
  *
  * <p>Both sides must run the same {@link #VERSION}; a client with another version is refused at login.
- * Message ids follow registration order in {@link #register}.
+ * Message ids follow registration order in {@link #register}, the client intents of {@link ModPayloads} last.
  *
  * <p>⚠ Append new packets at the end of {@link #register}: inserting one shifts every later id and breaks
  * a client and server built from different revisions in a way the version check cannot see.
@@ -43,14 +43,16 @@ public final class ModNetwork {
                 .decoder(PlayerDataSyncPacket::decode)
                 .consumerMainThread(PlayerDataSyncPacket::handle)
                 .add();
+        ModPayloads.register(CHANNEL, id);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 
-    public static void sendToServer(Object packet) {
-        CHANNEL.sendToServer(packet);
+    /** Sends one intent record from {@code network.payload} to the server. */
+    public static void sendToServer(@NotNull Object intent) {
+        CHANNEL.sendToServer(intent);
     }
 
     /** Opens a menu on the player's client, handing it {@code extraData} to rebuild its client side from. */

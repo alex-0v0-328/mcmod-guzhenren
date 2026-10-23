@@ -1,6 +1,7 @@
 package net.alex.guzhenren;
 
 import com.mojang.logging.LogUtils;
+import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.StonePurse;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
@@ -69,6 +70,8 @@ public class Guzhenren {
         ApertureNourishService.setStonePurse(new StonePurse(
                 PrimevalStoneSupply::canAfford, PrimevalStoneSupply::topUp, PrimevalStoneSupply::spend));
         ApertureStorageService.setStoredGu(new StoredGuItems());
+        modEventBus.addListener(EpicFightIntegration::onAnimationRegistry);
+        EpicFightIntegration.initialize();
         ModCapabilities.register(modEventBus);
         ModNetwork.register();
     }
