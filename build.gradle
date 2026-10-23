@@ -138,6 +138,23 @@ tasks.register('pureTest', Test) {
 }
 tasks.named('check') { dependsOn 'pureTest' }
 
+// Forge's GameTest server reuses the dedicated server's world instead of building vanilla's fresh "Test Level":
+// start every run from a new superflat world, as GameTestServer.create would. Difficulty and the test game rules
+// are set in the gametest source set's GameTestServerSetup.
+tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+    doFirst {
+        def dir = file('run-gametest')
+        delete new File(dir, 'world')
+        def props = new Properties()
+        def file = new File(dir, 'server.properties')
+        if (file.exists()) file.withInputStream { props.load(it) }
+        props.setProperty('level-type', 'minecraft:flat')
+        props.setProperty('generate-structures', 'false')
+        dir.mkdirs()
+        file.withOutputStream { props.store(it, null) }
+    }
+}
+
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,

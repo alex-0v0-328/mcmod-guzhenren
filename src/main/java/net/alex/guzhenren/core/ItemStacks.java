@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +12,8 @@ import org.jetbrains.annotations.NotNull;
  * The item-stack operations whose vanilla API differs between game versions, behind one name each.
  *
  * <p>{@link #OPTIONAL_CODEC} saves a stack that may be empty, so a list keeps an empty slot in place;
- * {@link #sameItemSameData} compares item and attached data, ignoring count.
+ * {@link #sameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
+ * #readStack} carry a stack, empty or not, over the wire.
  *
  * <p>⚠ A version seam: the NeoForge 1.21.1 mainline has its own copy with the same names (data
  * components instead of item NBT). Callers use these names only, so they stay identical between the two.
@@ -43,4 +45,8 @@ public final class ItemStacks {
     public static boolean sameItemSameData(@NotNull ItemStack a, @NotNull ItemStack b) {
         return ItemStack.isSameItemSameTags(a, b);
     }
+
+    public static void writeStack(@NotNull FriendlyByteBuf buf, @NotNull ItemStack stack) { buf.writeItem(stack); }
+
+    public static @NotNull ItemStack readStack(@NotNull FriendlyByteBuf buf) { return buf.readItem(); }
 }

@@ -14,7 +14,10 @@ import net.alex.guzhenren.datagen.item.ModItemModelProvider;
 import net.alex.guzhenren.datagen.item.ModItemTagsProvider;
 import net.alex.guzhenren.datagen.lang.ModLanguageProvider;
 import net.alex.guzhenren.datagen.loot.ModBlockLootProvider;
+import net.alex.guzhenren.datagen.loot.ModLootModifierProvider;
+import net.alex.guzhenren.datagen.loot.WildBoarLootProvider;
 import net.alex.guzhenren.datagen.particle.ModParticleDescriptionProvider;
+import net.alex.guzhenren.datagen.recipe.ModRecipeProvider;
 import net.alex.guzhenren.datagen.world.ModBiomeTagsProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -90,8 +93,15 @@ public final class DataGenerators {
         generator.addProvider(event.includeServer(),
                 new ModCuriosProvider(packOutput, existingFileHelper, lookupProvider));
 
+        generator.addProvider(event.includeServer(), new ModRecipeProvider(packOutput));
+
         generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Set.of(), List.of(
-                new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK))));
+                new LootTableProvider.SubProviderEntry(WildBoarLootProvider::new, LootContextParamSets.ENTITY),
+                new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK),
+                new LootTableProvider.SubProviderEntry(ModLootModifierProvider.Subtables::new,
+                        LootContextParamSets.BLOCK))));
+
+        generator.addProvider(event.includeServer(), new ModLootModifierProvider(packOutput));
 
         generator.addProvider(event.includeServer(),
                 new ModAdvancementProvider(packOutput, lookupProvider, existingFileHelper));

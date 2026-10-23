@@ -1,0 +1,30 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#guzhenren:rhinoceros_beetle_gu_spawns",
+  "spawners": [
+    {
+      "type": "guzhenren:horizontal_crash_gu_entity",
+      "maxCount": 1,
+      "minCount": 1,
+      "weight": 4
+    },
+    {
+      "type": "guzhenren:vertical_crash_gu_entity",
+      "maxCount": 1,
+      "minCount": 1,
+      "weight": 4
+    },
+    {
+      "type": "guzhenren:charging_crash_gu_4_entity",
+      "maxCount": 1,
+      "minCount": 1,
+      "weight": 2
+    },
+    {
+      "type": "guzhenren:charging_crash_gu_5_entity",
+      "maxCount": 1,
+      "minCount": 1,
+      "weight": 1
+    }
+  ]
+}

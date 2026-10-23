@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#guzhenren:boar_gu_spawns",
+  "spawners": {
+    "type": "guzhenren:flower_boar_gu_entity",
+    "maxCount": 1,
+    "minCount": 1,
+    "weight": 4
+  }
+}

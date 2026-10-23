@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#guzhenren:wild_boar_spawns",
+  "spawners": {
+    "type": "guzhenren:wild_boar",
+    "maxCount": 3,
+    "minCount": 1,
+    "weight": 8
+  }
+}

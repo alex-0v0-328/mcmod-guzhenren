@@ -1,0 +1,52 @@
+{
+  "type": "guzhenren:refinement",
+  "base_success": 50,
+  "essence_per_second": 1,
+  "ingredients": [
+    {
+      "count": 1,
+      "item": "guzhenren:sour_liquor"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:bitter_liquor"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:liquor_worm"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:liquor_worm"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:spicy_liquor"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:sweet_liquor"
+    }
+  ],
+  "results": [
+    {
+      "count": 1,
+      "item": "guzhenren:four_flavors_liquor_worm"
+    }
+  ],
+  "slots": [
+    1,
+    5,
+    15,
+    17,
+    6,
+    10
+  ],
+  "soul_per_second": 1,
+  "windows": [
+    16,
+    16,
+    16,
+    16
+  ]
+}

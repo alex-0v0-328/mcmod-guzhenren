@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#guzhenren:tiger_spawns",
+  "spawners": {
+    "type": "guzhenren:tiger",
+    "maxCount": 1,
+    "minCount": 1,
+    "weight": 3
+  }
+}

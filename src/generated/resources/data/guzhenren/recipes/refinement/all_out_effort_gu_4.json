@@ -1,0 +1,67 @@
+{
+  "type": "guzhenren:refinement",
+  "base_success": 30,
+  "essence_per_second": 100,
+  "ingredients": [
+    {
+      "count": 4,
+      "item": "minecraft:iron_block"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:gold_block"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:gold_block"
+    },
+    {
+      "count": 4,
+      "item": "minecraft:iron_block"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:all_out_effort_gu_3"
+    },
+    {
+      "count": 4,
+      "item": "minecraft:iron_block"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:gold_block"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:gold_block"
+    },
+    {
+      "count": 4,
+      "item": "minecraft:iron_block"
+    }
+  ],
+  "results": [
+    {
+      "count": 1,
+      "item": "guzhenren:all_out_effort_gu_4"
+    }
+  ],
+  "slots": [
+    1,
+    3,
+    4,
+    5,
+    16,
+    6,
+    7,
+    8,
+    10
+  ],
+  "soul_per_second": 3,
+  "windows": [
+    64,
+    64,
+    64,
+    64
+  ]
+}

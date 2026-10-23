@@ -1,0 +1,129 @@
+package net.alex.guzhenren.registry.entity;
+
+import java.util.function.Supplier;
+import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.entity.BearEntity;
+import net.alex.guzhenren.entity.BearSpecies;
+import net.alex.guzhenren.entity.BoarGuEntity;
+import net.alex.guzhenren.entity.CrashGuEntity;
+import net.alex.guzhenren.entity.HopeGuEntity;
+import net.alex.guzhenren.entity.TigerEntity;
+import net.alex.guzhenren.entity.WildBoarEntity;
+import net.alex.guzhenren.gameplay.trade.SoulTrader;
+import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
+import net.alex.guzhenren.registry.item.ModItems;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+/**
+ * The entity types this mod registers.
+ *
+ * <p>Hope Gu, three boar Gu and four rhinoceros beetle Gu variants are naturally spawning ambient entities;
+ * the wild boar, the four bears and the two tigers are naturally spawning creatures. Hope Gu's client mote
+ * is emitted by its entity class. Each {@link SoulTrader} registers one fire-immune misc entity with no spawn
+ * rule at all: soul traders exist only through {@code /summon}.
+ * Gu capture is a bare right click and is never gated on awakening [开窍]; the wild boar has no capture path.
+ *
+ * @author Alex
+ * @version 1.0.0
+ * @see HopeGuEntity
+ * @since 1.0.0
+ */
+
+public final class ModEntityTypes {
+
+    private ModEntityTypes() {}
+
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
+            DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Guzhenren.MOD_ID);
+    private static final float MOTE_WIDTH = 0.4F;
+    private static final float MOTE_HEIGHT = 0.4F;
+    private static final int TRACKING_CHUNKS = 8;
+    private static final float WILD_BOAR_WIDTH = 1.1F;
+    private static final float WILD_BOAR_HEIGHT = 1.2F;
+    private static final float BEAR_WIDTH = 1.2F;
+    private static final float BEAR_HEIGHT = 1.4F;
+    private static final float TIGER_WIDTH = 1.3F;
+    private static final float TIGER_HEIGHT = 1.4F;
+    private static final float SOUL_TRADER_WIDTH = 0.6F;
+    private static final float SOUL_TRADER_HEIGHT = 1.95F;
+    public static final RegistryObject<EntityType<HopeGuEntity>> HOPE_GU_ENTITY =
+            registerMote("hope_gu_entity", (type, level) -> new HopeGuEntity(type, level, ModItems.HOPE_GU));
+    public static final RegistryObject<EntityType<BoarGuEntity>> WHITE_BOAR_GU_ENTITY =
+            registerBoarGu("white_boar_gu_entity", ModItems.WHITE_BOAR_GU);
+    public static final RegistryObject<EntityType<BoarGuEntity>> BLACK_BOAR_GU_ENTITY =
+            registerBoarGu("black_boar_gu_entity", ModItems.BLACK_BOAR_GU);
+    public static final RegistryObject<EntityType<BoarGuEntity>> FLOWER_BOAR_GU_ENTITY =
+            registerBoarGu("flower_boar_gu_entity", ModItems.FLOWER_BOAR_GU);
+    public static final RegistryObject<EntityType<CrashGuEntity>> HORIZONTAL_CRASH_GU_ENTITY =
+            registerCrashGu("horizontal_crash_gu_entity", ModItems.HORIZONTAL_CRASH_GU);
+    public static final RegistryObject<EntityType<CrashGuEntity>> VERTICAL_CRASH_GU_ENTITY =
+            registerCrashGu("vertical_crash_gu_entity", ModItems.VERTICAL_CRASH_GU);
+    public static final RegistryObject<EntityType<CrashGuEntity>> CHARGING_CRASH_GU_4_ENTITY =
+            registerCrashGu("charging_crash_gu_4_entity", ModItems.CHARGING_CRASH_GU_4);
+    public static final RegistryObject<EntityType<CrashGuEntity>> CHARGING_CRASH_GU_5_ENTITY =
+            registerCrashGu("charging_crash_gu_5_entity", ModItems.CHARGING_CRASH_GU_5);
+    public static final RegistryObject<EntityType<WildBoarEntity>> WILD_BOAR =
+            register("wild_boar", WildBoarEntity::new, MobCategory.CREATURE, WILD_BOAR_WIDTH, WILD_BOAR_HEIGHT);
+    public static final RegistryObject<EntityType<BearEntity>> BROWN_BEAR =
+            registerBear(BearSpecies.BROWN);
+    public static final RegistryObject<EntityType<BearEntity>> ASIAN_BLACK_BEAR =
+            registerBear(BearSpecies.ASIAN_BLACK);
+    public static final RegistryObject<EntityType<BearEntity>> AMERICAN_BLACK_BEAR =
+            registerBear(BearSpecies.AMERICAN_BLACK);
+    public static final RegistryObject<EntityType<BearEntity>> ALBINO_BEAR =
+            registerBear(BearSpecies.ALBINO);
+    public static final RegistryObject<EntityType<TigerEntity>> TIGER =
+            register("tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
+    public static final RegistryObject<EntityType<TigerEntity>> WHITE_TIGER =
+            register("white_tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
+    public static final RegistryObject<EntityType<SoulTraderEntity>> TEST_TRADE_GU_IMMORTAL =
+            registerSoulTrader(SoulTrader.TEST_TRADE_GU_IMMORTAL);
+
+    private static <T extends Entity> RegistryObject<EntityType<T>> register(
+            String id, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height) {
+        return ENTITY_TYPES.register(id, () -> EntityType.Builder.of(factory, category)
+                .sized(width, height)
+                .clientTrackingRange(TRACKING_CHUNKS)
+                .build(id));
+    }
+
+    private static <T extends Entity> RegistryObject<EntityType<T>> registerMote(
+            String id, EntityType.EntityFactory<T> factory) {
+        return register(id, factory, MobCategory.AMBIENT, MOTE_WIDTH, MOTE_HEIGHT);
+    }
+
+    private static RegistryObject<EntityType<BearEntity>> registerBear(BearSpecies species) {
+        return register(species.id(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
+                BEAR_WIDTH, BEAR_HEIGHT);
+    }
+
+    private static RegistryObject<EntityType<SoulTraderEntity>> registerSoulTrader(SoulTrader trader) {
+        return ENTITY_TYPES.register(trader.id(), () -> EntityType.Builder
+                .<SoulTraderEntity>of((type, level) -> new SoulTraderEntity(type, level, trader), MobCategory.MISC)
+                .sized(SOUL_TRADER_WIDTH, SOUL_TRADER_HEIGHT)
+                .fireImmune()
+                .clientTrackingRange(TRACKING_CHUNKS)
+                .build(trader.id()));
+    }
+
+    private static RegistryObject<EntityType<BoarGuEntity>> registerBoarGu(
+            String id, Supplier<Item> caughtGu) {
+        return registerMote(id, (type, level) -> new BoarGuEntity(type, level, caughtGu));
+    }
+
+    private static RegistryObject<EntityType<CrashGuEntity>> registerCrashGu(
+            String id, Supplier<Item> caughtGu) {
+        return registerMote(id, (type, level) -> new CrashGuEntity(type, level, caughtGu));
+    }
+
+    public static void register(IEventBus modEventBus) {
+        ENTITY_TYPES.register(modEventBus);
+    }
+}
