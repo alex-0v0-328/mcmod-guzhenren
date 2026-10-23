@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.aperture.storage;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ItemStacks;
+import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
@@ -61,7 +62,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
     public static final int INVENTORY_ROWS = 3;
     public static final int PAGE_SIZE = COLS * ROWS;
-    public static final int VITAL_SLOT = PAGE_SIZE + 36;
+    public static final int VITAL_SLOT = PAGE_SIZE + Inventory.INVENTORY_SIZE;
     public static final int BUTTON_PREV = 0;
     public static final int BUTTON_NEXT = 1;
     public static final int SLOT = 18;
@@ -92,15 +93,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
                         STORAGE_X + col * SLOT, STORAGE_Y + row * SLOT));
             }
         }
-        for (int row = 0; row < INVENTORY_ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                addSlot(new Slot(inventory, col + row * COLS + 9,
-                        STORAGE_X + col * SLOT, INVENTORY_Y + row * SLOT));
-            }
-        }
-        for (int col = 0; col < COLS; col++) {
-            addSlot(new Slot(inventory, col, STORAGE_X + col * SLOT, HOTBAR_Y));
-        }
+        MenuSlots.addPlayerInventory(this::addSlot, inventory, STORAGE_X, INVENTORY_Y, HOTBAR_Y, SLOT);
         addSlot(new VitalSlot(VITAL_X, VITAL_Y));
 
         page.addListener(container -> save());
@@ -233,24 +226,10 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player who, int index) {
-        Slot slot = slots.get(index);
-        if (!slot.hasItem()) return ItemStack.EMPTY;
-
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
         boolean toInventory = index < PAGE_SIZE || index == VITAL_SLOT;
-
-        boolean moved = toInventory
+        return MenuSlots.quickMove(slots.get(index), stack -> toInventory
                 ? moveItemStackTo(stack, PAGE_SIZE, VITAL_SLOT, true)
-                : moveItemStackTo(stack, 0, PAGE_SIZE, false);
-        if (!moved) return ItemStack.EMPTY;
-
-        if (stack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+                : moveItemStackTo(stack, 0, PAGE_SIZE, false));
     }
 
     /**

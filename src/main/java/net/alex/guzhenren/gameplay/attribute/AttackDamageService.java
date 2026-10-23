@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -84,6 +85,6 @@ public final class AttackDamageService {
     public static void refresh(@NotNull ServerPlayer player) {
         AttributeInstance instance = player.getAttribute(Attributes.ATTACK_DAMAGE);
         if (instance == null) return;
-        TransientModifiers.swap(instance, MODIFIER_ID, getBonus(player));
+        TransientModifiers.swap(instance, MODIFIER_ID, getBonus(player), AttributeModifier.Operation.ADD_VALUE);
     }
 }

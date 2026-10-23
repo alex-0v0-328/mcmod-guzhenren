@@ -6,12 +6,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The one way this mod writes an attribute: a transient {@code ADD_VALUE} modifier under a fixed id,
- * shared by {@link AttackDamageService} and {@link MaxHealthService}.
+ * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
+ * {@link AttackDamageService} and {@link MaxHealthService}, {@code ADD_MULTIPLIED_BASE} for the Epic Fight
+ * stamina cap ({@code compat.EpicFightIntegration}).
  *
  * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
- * next login. ⚠ {@link #swap} is a no-op when the amount has not moved; refreshes run on every write
- * and every heartbeat, so re-issuing the modifier each time would churn the attribute sync.
+ * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #holds} that modifier, or holds none
+ * and the amount is zero; refreshes run on every write and every heartbeat, so re-issuing the modifier each
+ * time would churn the attribute sync.
  *
  * @author Alex
  * @version 1.0.0
@@ -20,17 +22,21 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-final class TransientModifiers {
+public final class TransientModifiers {
 
     private TransientModifiers() {}
 
-    static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount) {
-        AttributeModifier held = instance.getModifier(id);
-        if (held == null ? amount == 0.0D : held.amount() == amount) return;
+    public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
+            @NotNull AttributeModifier.Operation operation) {
+        if (instance.getModifier(id) == null ? amount == 0.0D : holds(instance, id, amount, operation)) return;
 
         instance.removeModifier(id);
-        if (amount != 0.0D) {
-            instance.addTransientModifier(new AttributeModifier(id, amount, AttributeModifier.Operation.ADD_VALUE));
-        }
+        if (amount != 0.0D) instance.addTransientModifier(new AttributeModifier(id, amount, operation));
+    }
+
+    public static boolean holds(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
+            @NotNull AttributeModifier.Operation operation) {
+        AttributeModifier held = instance.getModifier(id);
+        return held != null && held.amount() == amount && held.operation() == operation;
     }
 }

@@ -148,7 +148,7 @@ public final class PlayerInfoScreen extends Screen {
     //region the two passes -- every box first, then every text, so one batch holds each kind
     private void fillFrame(GuiGraphics graphics, int mouseX, int mouseY) {
         Widgets.drawPanel(graphics, leftPos, topPos, panelW, panelH, ModPalette.PANEL_FILL);
-        graphics.fill(leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, topPos + HEADER_H + 1, DIVIDER);
+        Widgets.drawRule(graphics, leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, DIVIDER);
         for (int i = 0; i < TAB_TITLES.length; i++) {
             boolean active = i == activeTab;
             int x0 = tabLeft();

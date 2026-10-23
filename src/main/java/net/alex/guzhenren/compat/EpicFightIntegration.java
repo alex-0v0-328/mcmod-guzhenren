@@ -5,6 +5,7 @@ import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.particle.RingConeEmitter;
@@ -58,6 +59,8 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 public final class EpicFightIntegration {
 
     private static final ResourceLocation STAMINA_MODIFIER = Guzhenren.id("epic_fight_stamina");
+    private static final AttributeModifier.Operation STAMINA_OPERATION =
+            AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashForward;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashBackward;
 
@@ -98,15 +101,9 @@ public final class EpicFightIntegration {
         if (instance == null) return;
 
         double bonus = staminaMaxPercent(player) / 100.0D;
-        AttributeModifier held = instance.getModifier(STAMINA_MODIFIER);
-        if (held != null && held.amount() == bonus
-                && held.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) return;
+        if (TransientModifiers.holds(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION)) return;
 
-        instance.removeModifier(STAMINA_MODIFIER);
-        if (bonus != 0.0D) {
-            instance.addTransientModifier(new AttributeModifier(STAMINA_MODIFIER, bonus,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-        }
+        TransientModifiers.swap(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION);
         ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
         if (patch != null) patch.clampMaxAttributes();
     }

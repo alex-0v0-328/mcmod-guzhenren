@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-interface EffectIconLayout extends IClientMobEffectExtensions {
+public interface EffectIconLayout extends IClientMobEffectExtensions {
 
     int ICON_SIZE = 16;
     int CENTRE_IN_SLOT = 1;

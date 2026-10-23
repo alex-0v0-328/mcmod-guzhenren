@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.material.qi;
 
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
@@ -46,7 +47,7 @@ public class LifeQiItem extends QiMaterialItem {
         if (PathQiService.getCurrent(player, QiKind.DEATH) <= 0L) {
             double refund = BodyService.refundDeathQiDebt(player,
                     DEATH_QI_REFUND_NUMERATOR, DEATH_QI_REFUND_DENOMINATOR);
-            if (refund > 0.0) inform(player, CURED, refund);
+            if (refund > 0.0) ActionBar.inform(player, CURED, refund);
         }
         return 1;
     }

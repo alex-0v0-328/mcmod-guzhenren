@@ -125,7 +125,7 @@ final class RecipePicker {
 
     private void fillFrame(GuiGraphics graphics, int selected, int hovered, int x0, int y0, int visible) {
         Widgets.drawPanel(graphics, x0, y0, W, height(visible), ModPalette.MODAL_FILL);
-        graphics.fill(x0 + PAD, y0 + HEADER_H, x0 + W - PAD, y0 + HEADER_H + 1, ModPalette.BORDER);
+        Widgets.drawRule(graphics, x0 + PAD, y0 + HEADER_H, x0 + W - PAD, ModPalette.BORDER);
         for (int i = 0; i < visible; i++) {
             int row = scroll + i;
             int rowY = rowY(y0, i);

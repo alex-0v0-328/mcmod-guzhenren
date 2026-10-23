@@ -1,10 +1,9 @@
 package net.alex.guzhenren.gameplay.dimension;
 
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.TossedItems;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.world.ModDimensions;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -73,7 +72,7 @@ public final class TreasureYellowHeavenGuard {
         if (player.level().isClientSide() || !inside(player)) return false;
         if (TossedItems.stow(player, tossed)) return true;
 
-        player.displayClientMessage(Component.translatable(INVENTORY_FULL).withStyle(ChatFormatting.RED), true);
+        ActionBar.refuse(player, INVENTORY_FULL);
         return false;
     }
 

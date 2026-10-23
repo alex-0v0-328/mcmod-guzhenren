@@ -9,8 +9,9 @@ import net.minecraft.network.chat.Component;
 
 /**
  * The drawing pieces every screen of this package shares, all from fills and {@link ModPalette}, no textures:
- * a bordered panel, item cells, a text button in its live, hovered and dead fills, the {@code <-} back button
- * that returns to the B panel, the hit test behind every button, and the container button click.
+ * a bordered panel, a one-pixel header rule, item cells, a text button in its live, hovered and dead fills, the
+ * {@code <-} back button that returns to the B panel, the hit test behind every button, and the container button
+ * click.
  *
  * <p>A button is two calls, {@link #fillButton} and {@link #drawButtonLabel}, so a screen draws every button
  * fill before any label inside one {@link net.alex.guzhenren.client.GuiBatch}; the back button splits the same
@@ -35,6 +36,10 @@ final class Widgets {
     static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height, int fill) {
         graphics.fill(x, y, x + width, y + height, fill);
         graphics.renderOutline(x, y, width, height, ModPalette.BORDER);
+    }
+
+    static void drawRule(GuiGraphics graphics, int left, int y, int right, int color) {
+        graphics.fill(left, y, right, y + 1, color);
     }
 
     static void drawCells(GuiGraphics graphics, int x, int y, int cols, int rows, int pitch, int fill) {

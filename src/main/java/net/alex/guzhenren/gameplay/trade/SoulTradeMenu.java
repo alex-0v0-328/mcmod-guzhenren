@@ -2,15 +2,14 @@ package net.alex.guzhenren.gameplay.trade;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.registry.menu.ModMenus;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,16 +66,8 @@ public class SoulTradeMenu extends AbstractContainerMenu {
         this.trader = trader;
         this.offers = List.copyOf(offers);
 
-        int top = inventoryY(this.offers.size());
-        for (int row = 0; row < INVENTORY_ROWS; row++) {
-            for (int col = 0; col < INVENTORY_COLS; col++) {
-                addSlot(new Slot(inventory, col + row * INVENTORY_COLS + INVENTORY_COLS,
-                        INVENTORY_X + col * SLOT, top + row * SLOT));
-            }
-        }
-        for (int col = 0; col < INVENTORY_COLS; col++) {
-            addSlot(new Slot(inventory, col, INVENTORY_X + col * SLOT, hotbarY(this.offers.size())));
-        }
+        MenuSlots.addPlayerInventory(this::addSlot, inventory, INVENTORY_X, inventoryY(this.offers.size()),
+                hotbarY(this.offers.size()), SLOT);
     }
 
     public static void writeOffers(FriendlyByteBuf buffer, List<SoulTradeOffer> offers) {
@@ -96,8 +87,8 @@ public class SoulTradeMenu extends AbstractContainerMenu {
 
         SoulTradeOffer.Outcome outcome = this.offers.get(id).settle(server.getInventory(), this.returning(server));
         switch (outcome) {
-            case SHORT -> say(server, SHORT);
-            case NO_ROOM -> say(server, NO_ROOM);
+            case SHORT -> ActionBar.refuse(server, SHORT);
+            case NO_ROOM -> ActionBar.refuse(server, NO_ROOM);
             case DONE -> {}
         }
         this.trader.reactToTrade(outcome == SoulTradeOffer.Outcome.DONE);
@@ -111,28 +102,11 @@ public class SoulTradeMenu extends AbstractContainerMenu {
         return returning;
     }
 
-    private static void say(ServerPlayer who, String key) {
-        who.displayClientMessage(Component.translatable(key).withStyle(ChatFormatting.RED), true);
-    }
-
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player who, int index) {
-        Slot slot = this.slots.get(index);
-        if (!slot.hasItem()) return ItemStack.EMPTY;
-
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-        boolean moved = index < INVENTORY_SLOTS
+        return MenuSlots.quickMove(this.slots.get(index), stack -> index < INVENTORY_SLOTS
                 ? this.moveItemStackTo(stack, INVENTORY_SLOTS, this.slots.size(), false)
-                : this.moveItemStackTo(stack, 0, INVENTORY_SLOTS, false);
-        if (!moved) return ItemStack.EMPTY;
-
-        if (stack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+                : this.moveItemStackTo(stack, 0, INVENTORY_SLOTS, false));
     }
 
     @Override

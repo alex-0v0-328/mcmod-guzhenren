@@ -48,7 +48,7 @@ public final class MaxHealthService {
 
         int target = ApertureService.getHealthRank(player).getMaxHealth();
         double bonus = target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D;
-        TransientModifiers.swap(instance, MODIFIER_ID, bonus);
+        TransientModifiers.swap(instance, MODIFIER_ID, bonus, AttributeModifier.Operation.ADD_VALUE);
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
     }
 

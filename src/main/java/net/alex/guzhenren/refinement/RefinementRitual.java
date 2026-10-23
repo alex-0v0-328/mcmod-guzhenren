@@ -2,6 +2,7 @@ package net.alex.guzhenren.refinement;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -15,7 +16,6 @@ import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
-import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ContainerData;
@@ -161,7 +161,7 @@ final class RefinementRitual {
         if (!(held.getItem() instanceof PrimevalElderGuItem)) return;
         if (stonesThisWindow >= recipe.stonesFor(stage)) return;
 
-        RefinementMenu.say(server, ELDER_SPENT, ChatFormatting.RED);
+        ActionBar.refuse(server, ELDER_SPENT);
         if (!server.getInventory().add(held.copy())) server.drop(held.copy(), false);
         supply.setItem(0, ItemStack.EMPTY);
     }
@@ -226,7 +226,7 @@ final class RefinementRitual {
                 if (taken[i] > 0) spoil(server, i, taken[i]);
             }
         }
-        RefinementMenu.say(server, key, ChatFormatting.RED);
+        ActionBar.refuse(server, key);
         stop();
         onEnd.run();
     }
