@@ -5,7 +5,7 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on {@code NeoForge.EVENT_BUS} after {@link BodyService} changes a player's physiques [体质] or
+ * Posted on the game event bus after {@link BodyService} changes a player's physiques [体质] or
  * undead state -- add, remove, revive, half-zombie, zombie. Dispatch is synchronous, so a subscriber has
  * run before the write returns.
  *

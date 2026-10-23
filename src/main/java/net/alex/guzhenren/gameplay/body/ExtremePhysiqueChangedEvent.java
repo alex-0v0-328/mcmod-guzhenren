@@ -5,7 +5,7 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on {@code NeoForge.EVENT_BUS} after {@link BodyService#setExtremePhysique} stored a different
+ * Posted on the game event bus after {@link BodyService#setExtremePhysique} stored a different
  * ten-extreme physique [十绝体]; {@link #getBefore} and {@link #getAfter} always differ. Dispatch is
  * synchronous, so a subscriber has run before the write returns.
  *

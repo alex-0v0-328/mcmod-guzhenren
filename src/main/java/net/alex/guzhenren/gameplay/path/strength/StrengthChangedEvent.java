@@ -5,7 +5,7 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on {@code NeoForge.EVENT_BUS} after {@link PathStrengthService} wrote a player's beast or human
+ * Posted on the game event bus after {@link PathStrengthService} wrote a player's beast or human
  * strengths [力道]. Dispatch is synchronous, so a subscriber has run before the write returns.
  *
  * <p>The path posts and does not know who listens: the attack modifier lives above it, in

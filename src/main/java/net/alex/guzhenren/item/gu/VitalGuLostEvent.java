@@ -7,7 +7,7 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on {@code NeoForge.EVENT_BUS} when a Gu bound as someone's Vital Gu [本命蛊] dies -- starved,
+ * Posted on the game event bus when a Gu bound as someone's Vital Gu [本命蛊] dies -- starved,
  * exhausted or ruined -- wherever it was held. {@link #getOwner} may be offline; the subscriber decides
  * whether to charge the owner now or park the stack until the next login. Dispatch is synchronous.
  *
