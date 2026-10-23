@@ -70,8 +70,8 @@ public final class CmdInfo {
         return Command.SINGLE_SUCCESS;
     }
 
-    // ⚠ A version seam: Java 17 has no pattern switch, so this chain stands in for the mainline's exhaustive
-    // switch over the sealed InfoModel.Entry; a new Entry record needs its branch here.
+    // ⚠ Java 17 has no pattern switch, and the Forge 1.20.1 port compiles this file for Java 17: the compiler no
+    // longer checks this chain covers the sealed InfoModel.Entry, so a new Entry record needs its branch here.
     private static Component line(InfoModel.Entry entry) {
         if (entry instanceof InfoModel.ApertureIndex e) return ModDisplayText.apertureName(e.number());
         if (entry instanceof InfoModel.Blank) return Component.empty();
