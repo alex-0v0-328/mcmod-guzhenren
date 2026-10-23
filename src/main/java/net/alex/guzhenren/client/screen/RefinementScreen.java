@@ -88,7 +88,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         int y = topPos;
         GuiBatch.draw(graphics, () -> {
             Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
-            graphics.fill(x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, y + HEADER_H + 1, ModPalette.REFINEMENT);
+            Widgets.drawRule(graphics, x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, ModPalette.REFINEMENT);
 
             drawInput(graphics, x, y);
             Widgets.drawCell(graphics, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y, ModPalette.SLOT_FILL);

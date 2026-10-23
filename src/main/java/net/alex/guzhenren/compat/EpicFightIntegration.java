@@ -7,6 +7,7 @@ import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.particle.RingConeEmitter;
@@ -67,7 +68,7 @@ import yesman.epicfight.world.entity.eventlistener.SkillConsumeEvent;
 public final class EpicFightIntegration {
 
     private static final ResourceLocation STAMINA_MODIFIER = Guzhenren.id("epic_fight_stamina");
-    private static final UUID STAMINA_MODIFIER_ID = idOf(STAMINA_MODIFIER);
+    private static final AttributeModifier.Operation STAMINA_OPERATION = AttributeModifier.Operation.MULTIPLY_BASE;
     private static final UUID LISTENER_ID = idOf(Guzhenren.id("epic_fight_listener"));
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashForward;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashBackward;
@@ -123,15 +124,9 @@ public final class EpicFightIntegration {
         if (instance == null) return;
 
         double bonus = staminaMaxPercent(player) / 100.0D;
-        AttributeModifier held = instance.getModifier(STAMINA_MODIFIER_ID);
-        if (held != null && held.getAmount() == bonus
-                && held.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE) return;
+        if (TransientModifiers.holds(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION)) return;
 
-        instance.removeModifier(STAMINA_MODIFIER_ID);
-        if (bonus != 0.0D) {
-            instance.addTransientModifier(new AttributeModifier(STAMINA_MODIFIER_ID, STAMINA_MODIFIER.toString(),
-                    bonus, AttributeModifier.Operation.MULTIPLY_BASE));
-        }
+        TransientModifiers.swap(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION);
         ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
         if (patch != null) patch.clampMaxAttributes();
     }

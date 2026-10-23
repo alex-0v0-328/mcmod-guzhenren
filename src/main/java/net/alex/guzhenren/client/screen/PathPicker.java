@@ -53,8 +53,8 @@ final class PathPicker {
 
         GuiBatch.draw(graphics, () -> {
             Widgets.drawPanel(graphics, x0, y0, w, h, ModPalette.MODAL_FILL);
-            graphics.fill(x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD,
-                    y0 + PlayerInfoScreen.HEADER_H + 1, PlayerInfoScreen.DIVIDER);
+            Widgets.drawRule(graphics, x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD,
+                    PlayerInfoScreen.DIVIDER);
             graphics.drawString(font, Component.translatable("guzhenren.screen.pick.title"),
                     x0 + PAD, y0 + (PlayerInfoScreen.HEADER_H - font.lineHeight) / 2, accent, false);
 

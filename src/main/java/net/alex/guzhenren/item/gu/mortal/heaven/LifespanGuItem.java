@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.heaven;
 
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
@@ -36,7 +37,7 @@ public class LifespanGuItem extends OneShotGuItem {
     protected int useApply(ServerPlayer player, ItemStack stack) {
         int years = minYears + player.getRandom().nextInt(maxYears - minYears + 1);
         BodyService.addLifespan(player, years);
-        inform(player, MSG_GAINED, years);
+        ActionBar.inform(player, MSG_GAINED, years);
         return 1;
     }
 }

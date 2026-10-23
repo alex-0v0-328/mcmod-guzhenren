@@ -8,12 +8,16 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The one way this mod writes an attribute: a transient {@code ADD_VALUE} modifier under a fixed id,
- * shared by {@link AttackDamageService} and {@link MaxHealthService}.
+ * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
+ * {@link AttackDamageService} and {@link MaxHealthService}, {@code ADD_MULTIPLIED_BASE} for the Epic Fight
+ * stamina cap ({@code compat.EpicFightIntegration}). The shared callers take the three-argument {@link #swap},
+ * which adds; the operation names differ between game versions, so only this seam and the loader-side
+ * integration spell one out.
  *
  * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
- * next login. ⚠ {@link #swap} is a no-op when the amount has not moved; refreshes run on every write
- * and every heartbeat, so re-issuing the modifier each time would churn the attribute sync.
+ * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #holds} that modifier, or holds none
+ * and the amount is zero; refreshes run on every write and every heartbeat, so re-issuing the modifier each
+ * time would churn the attribute sync.
  *
  * <p>⚠ A version seam: callers name a modifier by {@link ResourceLocation} on both sides. 1.20.1 keys
  * modifiers by {@link UUID}, so {@link #uuid} derives a stable one from the id; the same id always lands
@@ -26,20 +30,29 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-final class TransientModifiers {
+public final class TransientModifiers {
 
     private TransientModifiers() {}
 
-    static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount) {
+    public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount) {
+        swap(instance, id, amount, AttributeModifier.Operation.ADDITION);
+    }
+
+    public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
+            @NotNull AttributeModifier.Operation operation) {
         UUID uuid = uuid(id);
-        AttributeModifier held = instance.getModifier(uuid);
-        if (held == null ? amount == 0.0D : held.getAmount() == amount) return;
+        if (instance.getModifier(uuid) == null ? amount == 0.0D : holds(instance, id, amount, operation)) return;
 
         instance.removeModifier(uuid);
         if (amount != 0.0D) {
-            instance.addTransientModifier(new AttributeModifier(uuid, id.toString(), amount,
-                    AttributeModifier.Operation.ADDITION));
+            instance.addTransientModifier(new AttributeModifier(uuid, id.toString(), amount, operation));
         }
+    }
+
+    public static boolean holds(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
+            @NotNull AttributeModifier.Operation operation) {
+        AttributeModifier held = instance.getModifier(uuid(id));
+        return held != null && held.getAmount() == amount && held.getOperation() == operation;
     }
 
     static @NotNull UUID uuid(@NotNull ResourceLocation id) {

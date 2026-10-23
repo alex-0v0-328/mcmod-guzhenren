@@ -5,7 +5,6 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
  * a Vital Gu's binding -- names its aperture by kind, and {@link #indexOf} / {@link #kindAt} convert.
  *
  * <p>⚠ {@code with(index, aperture)} REFUSES to grow the list -- only {@code opened}/{@code insertFirst}
- * append -- the mirror of {@link ApertureStorage#with}, which GROWS to reach its index; deliberately
- * opposite. ⚠ {@code MAX_APERTURES} caps the {@code encode}/{@code decode} list too: longer is silently
- * truncated on sync. ⚠ Decoding heals old saves: any entry at list position 1 is marked {@code second},
+ * append -- the mirror of {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with}, which GROWS
+ * to reach its index; deliberately opposite. ⚠ {@code MAX_APERTURES} caps the {@code encode}/{@code decode}
+ * list too: longer is silently truncated on sync. ⚠ Decoding heals old saves: any entry at list position 1 is marked {@code second},
  * because pre-flag saves implied it by position alone.
  *
  * @author Alex

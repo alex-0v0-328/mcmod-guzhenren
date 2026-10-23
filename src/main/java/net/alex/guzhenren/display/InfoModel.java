@@ -39,10 +39,10 @@ import org.jetbrains.annotations.Nullable;
  * Every row the B panel and the info command share: which rows, in what order, decided once.
  *
  * <p>Deciding "draw or not" here, not in a surface, is what keeps one side from printing a section
- * header with [无] beside a real Dao-mark [道痕] figure. {@code Entry} is sealed on purpose so a new
- * row is a compile error in both switches. ⚠ A named section (Strength Attainment [力道造诣], Qi
- * Attainment [气道造诣], ...) is a label plus its rows, never a value; attainment [造诣] and Dao
- * marks [道痕] belong to the path-attainment list [流派造诣]. Do not widen {@code Entry}.
+ * header with [无] beside a real Dao-mark [道痕] figure. {@code Entry} is sealed and every row kind has its
+ * {@link Visitor} method, so a new row is a compile error in both surfaces until each words it. ⚠ A named
+ * section (Strength Attainment [力道造诣], Qi Attainment [气道造诣], ...) is a label plus its rows, never a value;
+ * attainment [造诣] and Dao marks [道痕] belong to the path-attainment list [流派造诣]. Do not widen {@code Entry}.
  *
  * <p>Every entry compares by value, which is what lets the B panel keep the text it built for the last frame while
  * the rows are unchanged; {@link StrengthPathBranchRow} therefore carries the data and words its reading on demand
@@ -66,49 +66,186 @@ public final class InfoModel {
 
     public record Row(int indent, Entry entry) {}
 
-    public sealed interface Entry {}
+    public sealed interface Entry {
+
+        <T> T accept(Visitor<T> visitor);
+    }
+
+    public interface Visitor<T> {
+
+        T visit(ApertureIndex entry);
+
+        T visit(Blank entry);
+
+        T visit(Realm entry);
+
+        T visit(Status entry);
+
+        T visit(TalentRow entry);
+
+        T visit(Essence entry);
+
+        T visit(Distilled entry);
+
+        T visit(Pressure entry);
+
+        T visit(PathChoice entry);
+
+        T visit(PhysiqueRow entry);
+
+        T visit(RaceRow entry);
+
+        T visit(Soul entry);
+
+        T visit(Lifespan entry);
+
+        T visit(PathsHeader entry);
+
+        T visit(PathRow entry);
+
+        T visit(QiPathAchieveHeader entry);
+
+        T visit(QiKindRow entry);
+
+        T visit(StrengthPathAchieveHeader entry);
+
+        T visit(StrengthPathBranchRow entry);
+
+        T visit(TimePathAchieveHeader entry);
+
+        T visit(TimeRateUpRow entry);
+
+        T visit(CapacityRow entry);
+
+        T visit(AttackRow entry);
+
+        T visit(WisdomPathAchieveHeader entry);
+
+        T visit(ThoughtTagRow entry);
+
+        T visit(BrillianceRow entry);
+
+        T visit(MindHeader entry);
+
+        T visit(MindRow entry);
+    }
 
     //region Aperture
-    public record ApertureIndex(int number, int index) implements Entry {}
+    public record ApertureIndex(int number, int index) implements Entry {
 
-    public record Blank() implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record Realm(Aperture aperture) implements Entry {}
+    public record Blank() implements Entry {
 
-    public record Status(ApertureStatus status) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record TalentRow(Aperture aperture, boolean awakened) implements Entry {}
+    public record Realm(Aperture aperture) implements Entry {
 
-    public record Essence(Aperture aperture) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record Distilled(Aperture aperture) implements Entry {}
+    public record Status(ApertureStatus status) implements Entry {
 
-    public record Pressure(Aperture aperture) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record PathChoice(boolean primary, int aperture, @Nullable GuPath path) implements Entry {}
+    public record TalentRow(Aperture aperture, boolean awakened) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record Essence(Aperture aperture) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record Distilled(Aperture aperture) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record Pressure(Aperture aperture) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record PathChoice(boolean primary, int aperture, @Nullable GuPath path) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
     //endregion
 
     //region Body
-    public record PhysiqueRow(@Nullable Physique physique, ExtremePhysique extremePhysique) implements Entry {}
+    public record PhysiqueRow(@Nullable Physique physique, ExtremePhysique extremePhysique) implements Entry {
 
-    public record RaceRow(Race race) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record Soul(SoulData soul) implements Entry {}
+    public record RaceRow(Race race) implements Entry {
 
-    public record Lifespan(double lifespan, double age) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record PathsHeader(boolean empty) implements Entry {}
+    public record Soul(SoulData soul) implements Entry {
 
-    public record PathRow(GuPath path, PathEntry entry) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record QiPathAchieveHeader() implements Entry {}
+    public record Lifespan(double lifespan, double age) implements Entry {
 
-    public record QiKindRow(QiKind kind, long amount) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record StrengthPathAchieveHeader() implements Entry {}
+    public record PathsHeader(boolean empty) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record PathRow(GuPath path, PathEntry entry) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record QiPathAchieveHeader() implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record QiKindRow(QiKind kind, long amount) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record StrengthPathAchieveHeader() implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
     public record StrengthPathBranchRow(StrengthPathBranch branch, int totalJin,
                                         PathStrengthData data) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
 
         public Component reading() {
             return branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM
@@ -117,25 +254,61 @@ public final class InfoModel {
         }
     }
 
-    public record TimePathAchieveHeader() implements Entry {}
+    public record TimePathAchieveHeader() implements Entry {
 
-    public record TimeRateUpRow(int rate) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record CapacityRow(int usable, int total) implements Entry {}
+    public record TimeRateUpRow(int rate) implements Entry {
 
-    public record AttackRow(double bonus) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record WisdomPathAchieveHeader() implements Entry {}
+    public record CapacityRow(int usable, int total) implements Entry {
 
-    public record ThoughtTagRow(ThoughtTag tag, long amount) implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record AttackRow(double bonus) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record WisdomPathAchieveHeader() implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record ThoughtTagRow(ThoughtTag tag, long amount) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
     //endregion
 
     //region Mind
-    public record BrillianceRow(Brilliance brilliance) implements Entry {}
+    public record BrillianceRow(Brilliance brilliance) implements Entry {
 
-    public record MindHeader() implements Entry {}
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
 
-    public record MindRow(MindPoolType type, MindPool pool) implements Entry {}
+    public record MindHeader() implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record MindRow(MindPoolType type, MindPool pool) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
     //endregion
 
     public static List<Row> aperture(Player player) {

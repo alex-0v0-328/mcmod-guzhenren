@@ -1,10 +1,10 @@
 package net.alex.guzhenren.gameplay.aperture;
 
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -183,7 +183,7 @@ public final class ApertureNourishService {
         ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
         if (starving.starvedOut(now)) {
             store(player, starving.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
-            say(player, STARVED);
+            ActionBar.inform(player, STARVED);
             return;
         }
         store(player, starving);
@@ -209,7 +209,7 @@ public final class ApertureNourishService {
             AperturePressureService.relieve(player, STAGE_UP_PRESSURE_RELIEF);
         }
         store(player, ApertureNourishData.DEFAULT);
-        say(player, STAGE_UP);
+        ActionBar.inform(player, STAGE_UP);
         return false;
     }
 
@@ -241,7 +241,7 @@ public final class ApertureNourishService {
                 .withPetrified(false));
         AperturePressureService.set(player, ApertureData.PRIMARY, CONVERTED_PRESSURE);
         store(player, ApertureNourishData.DEFAULT);
-        say(player, IMPACT_SUCCESS);
+        ActionBar.inform(player, IMPACT_SUCCESS);
         return true;
     }
     //endregion
@@ -252,7 +252,7 @@ public final class ApertureNourishService {
         Aperture aperture = ApertureService.getAperture(player);
         long cost = impactCost(player);
         if (!player.getAbilities().instabuild && !stones.spend().test(player, cost)) {
-            player.displayClientMessage(Component.translatable(IMPACT_POOR, cost), true);
+            ActionBar.inform(player, IMPACT_POOR, cost);
             return;
         }
 
@@ -264,19 +264,19 @@ public final class ApertureNourishService {
                 ApertureService.setRank(player, aperture.rank().shift(1));
                 ApertureService.setStage(player, Stage.LOWEST);
                 AperturePressureService.relieve(player, IMPACT_PRESSURE_RELIEF);
-                say(player, IMPACT_SUCCESS);
+                ActionBar.inform(player, IMPACT_SUCCESS);
             }
-            case HOLD -> say(player, IMPACT_HOLD);
+            case HOLD -> ActionBar.inform(player, IMPACT_HOLD);
             case DROP_STAGE -> {
                 ApertureService.setStage(player, aperture.stage().shift(-1));
-                say(player, IMPACT_DROP_STAGE);
+                ActionBar.inform(player, IMPACT_DROP_STAGE);
             }
             case DROP_BASE -> {
                 int loss = Math.min(aperture.baseEssence() - Aperture.MIN_BASE,
                         BASE_LOSS_MIN + player.getRandom().nextInt(BASE_LOSS_MAX - BASE_LOSS_MIN + 1));
                 if (loss > 0) {
                     ApertureService.setBaseEssence(player, aperture.baseEssence() - loss);
-                    say(player, IMPACT_DROP_BASE);
+                    ActionBar.inform(player, IMPACT_DROP_BASE);
                 }
             }
         }
@@ -297,10 +297,6 @@ public final class ApertureNourishService {
         return Outcome.DROP_BASE;
     }
     //endregion
-
-    private static void say(ServerPlayer player, String key) {
-        player.displayClientMessage(Component.translatable(key), true);
-    }
 
     private static void store(ServerPlayer player, ApertureNourishData data) {
         PlayerData.get(player).setNourish(data);

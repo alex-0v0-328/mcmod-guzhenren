@@ -4,8 +4,6 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageTick;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.UndeadService;
@@ -17,6 +15,8 @@ import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.gu.GuUpkeep;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
+import net.alex.guzhenren.vault.ApertureStorageMenu;
+import net.alex.guzhenren.vault.ApertureStorageTick;
 import net.minecraft.server.level.ServerPlayer;
 
 /**

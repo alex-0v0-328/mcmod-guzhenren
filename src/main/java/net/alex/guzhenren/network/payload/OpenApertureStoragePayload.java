@@ -1,6 +1,6 @@
 package net.alex.guzhenren.network.payload;
 
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
+import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 

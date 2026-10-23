@@ -2,7 +2,6 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import java.util.List;
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.data.PlayerData;
@@ -39,7 +38,8 @@ import org.jetbrains.annotations.Nullable;
  * first stage and a full pool. Works with NO aperture at all -- the lone second aperture then IS the
  * whole list until Hope Gu inserts the first one ahead of it. A higher-rank Second Aperture Gu
  * overwrites what is already there, back to the first stage, while the bound paths stay -- the Vital
- * Gu holding them is untouched in storage.
+ * Gu holding them is untouched in storage. Hope Gu's first aperture, inserted ahead of a lone second one, posts
+ * a {@link FirstApertureInsertedEvent} after it is stored, so the store kept per aperture index shifts with it.
  *
  * @author Alex
  * @version 1.0.0
@@ -199,7 +199,7 @@ public final class ApertureService {
         if (data.isFull()) return;
         if (data.count() == 1 && data.get(0).second()) {
             store(player, data.insertFirst(aperture));
-            ApertureStorageService.shiftForFirstAperture(player);
+            ModEvents.post(new FirstApertureInsertedEvent(player));
             ApertureNourishService.shiftTargetForInsertedFirst(player);
         } else {
             store(player, data.opened(aperture));

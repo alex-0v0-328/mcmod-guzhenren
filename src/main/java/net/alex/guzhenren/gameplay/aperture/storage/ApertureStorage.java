@@ -128,6 +128,12 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return new ApertureStorage(next, vital, tokens);
     }
 
+    public ApertureStorage withSlot(int aperture, int index, ItemStack stack) {
+        List<ItemStack> items = new ArrayList<>(view(aperture));
+        items.set(index, stack);
+        return with(aperture, items);
+    }
+
     public ApertureStorage withPage(int aperture, int from, List<ItemStack> page) {
         if (aperture < 0 || aperture >= ApertureData.MAX_APERTURES || from < 0) return this;
 

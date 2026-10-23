@@ -1,9 +1,13 @@
-package net.alex.guzhenren.gameplay.aperture.storage;
+package net.alex.guzhenren.vault;
 
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ItemStacks;
+import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
+import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -61,7 +65,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
     public static final int INVENTORY_ROWS = 3;
     public static final int PAGE_SIZE = COLS * ROWS;
-    public static final int VITAL_SLOT = PAGE_SIZE + 36;
+    public static final int VITAL_SLOT = PAGE_SIZE + Inventory.INVENTORY_SIZE;
     public static final int BUTTON_PREV = 0;
     public static final int BUTTON_NEXT = 1;
     public static final int SLOT = 18;
@@ -92,15 +96,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
                         STORAGE_X + col * SLOT, STORAGE_Y + row * SLOT));
             }
         }
-        for (int row = 0; row < INVENTORY_ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                addSlot(new Slot(inventory, col + row * COLS + 9,
-                        STORAGE_X + col * SLOT, INVENTORY_Y + row * SLOT));
-            }
-        }
-        for (int col = 0; col < COLS; col++) {
-            addSlot(new Slot(inventory, col, STORAGE_X + col * SLOT, HOTBAR_Y));
-        }
+        MenuSlots.addPlayerInventory(this::addSlot, inventory, STORAGE_X, INVENTORY_Y, HOTBAR_Y, SLOT);
         addSlot(new VitalSlot(VITAL_X, VITAL_Y));
 
         page.addListener(container -> save());
@@ -193,7 +189,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         }
 
         ItemStack bound = vital.getItem(0);
-        if (!bound.isEmpty()) ApertureStorageService.storedGu().bindVital(bound, server, aperture);
+        if (!bound.isEmpty()) bindVital(bound, server, aperture);
         if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
             int kind = ApertureService.get(server).kindAt(aperture);
             long former = ApertureStorageService.getVitalToken(server, kind);
@@ -210,12 +206,18 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         pageData.set(DATA_LOAD, ApertureStorageService.load(server, aperture));
     }
 
+    private static void bindVital(ItemStack stack, ServerPlayer player, int aperture) {
+        if (stack.getItem() instanceof GuItem
+                && (!GuItem.isCurrentVital(stack, player) || GuItem.boundIndex(stack, player) != aperture)) {
+            GuItem.bind(stack, player, aperture);
+        }
+    }
+
     private void releaseFormer(ServerPlayer server, long token) {
-        StoredGu gu = ApertureStorageService.storedGu();
-        if (gu.token(getCarried()) == token) gu.unbind(getCarried());
+        if (GuItem.token(getCarried()) == token) GuItem.unbind(getCarried());
         Inventory inventory = server.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (gu.token(inventory.getItem(i)) == token) gu.unbind(inventory.getItem(i));
+            if (GuItem.token(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
         }
     }
 
@@ -233,24 +235,10 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player who, int index) {
-        Slot slot = slots.get(index);
-        if (!slot.hasItem()) return ItemStack.EMPTY;
-
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
         boolean toInventory = index < PAGE_SIZE || index == VITAL_SLOT;
-
-        boolean moved = toInventory
+        return MenuSlots.quickMove(slots.get(index), stack -> toInventory
                 ? moveItemStackTo(stack, PAGE_SIZE, VITAL_SLOT, true)
-                : moveItemStackTo(stack, 0, PAGE_SIZE, false);
-        if (!moved) return ItemStack.EMPTY;
-
-        if (stack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+                : moveItemStackTo(stack, 0, PAGE_SIZE, false));
     }
 
     /**
@@ -307,7 +295,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return ApertureStorageService.storedGu().rank(stack) != null
+            return ApertureStorageService.canStore(stack)
                     && (hasItem()
                     || ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0);
         }
@@ -324,11 +312,16 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (!ApertureStorageService.storedGu().canBeVital(stack, player)) return false;
+            if (!canBeVital(stack, player)) return false;
             return ApertureStorageService.getMaxStackSize(player, aperture, getLoad(), getItem(), stack) > 0;
         }
 
         @Override
         public int getMaxStackSize() { return 1; }
+
+        private static boolean canBeVital(ItemStack stack, Player player) {
+            return stack.getItem() instanceof TendedGuItem gu && gu.refined(stack) && gu.canBeVital()
+                    && !GuItem.isForeignVital(stack, player);
+        }
     }
 }

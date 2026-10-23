@@ -4,7 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.command.AwakenedGate;
 import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
+import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;

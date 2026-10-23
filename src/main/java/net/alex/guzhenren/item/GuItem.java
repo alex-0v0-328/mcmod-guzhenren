@@ -2,6 +2,7 @@ package net.alex.guzhenren.item;
 
 import java.util.List;
 import java.util.UUID;
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -162,7 +163,7 @@ public abstract class GuItem extends Item {
     }
 
     private void refuse(Player player, Refusal refusal) {
-        if (player instanceof ServerPlayer server) refuse(server, refusal.key(), refusal.args());
+        if (player instanceof ServerPlayer server) ActionBar.refuse(server, refusal.key(), refusal.args());
     }
 
     private void runUse(Player player, ItemStack stack, boolean sneak) {
@@ -261,14 +262,6 @@ public abstract class GuItem extends Item {
 
     @Override
     public boolean isFoil(@NotNull ItemStack stack) { return isVital(stack) || super.isFoil(stack); }
-
-    protected static void refuse(ServerPlayer player, String key, Object... args) {
-        player.displayClientMessage(Component.translatable(key, args).withStyle(ChatFormatting.RED), true);
-    }
-
-    protected static void inform(ServerPlayer player, String key, Object... args) {
-        player.displayClientMessage(Component.translatable(key, args), true);
-    }
 
     protected int cooldownTicks(ItemStack stack) { return COOLDOWN_TICKS; }
 

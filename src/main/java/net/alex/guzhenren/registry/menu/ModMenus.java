@@ -1,9 +1,9 @@
 package net.alex.guzhenren.registry.menu;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.trade.SoulTradeMenu;
 import net.alex.guzhenren.refinement.RefinementMenu;
+import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;

@@ -2,8 +2,8 @@ package net.alex.guzhenren.client.screen;
 
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageMenu;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
+import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -34,6 +34,9 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     private static final int VITAL_LEFT = ApertureStorageMenu.VITAL_X - VITAL_PADDING;
     private static final int VITAL_RIGHT = ApertureStorageMenu.VITAL_X + Widgets.CELL + VITAL_PADDING;
     private static final int VITAL_BOTTOM = 44;
+    private static final int HEADER_RULE_Y = 15;
+    private static final int PANEL_RULE_INSET = 7;
+    private static final int VITAL_RULE_INSET = 4;
     private static final Component VITAL = Component.translatable("guzhenren.menu.vital");
     private static final int TITLE_X_WITH_BACK = 26;
     private static final String LOAD_KEY = "guzhenren.menu.aperture_load";
@@ -54,7 +57,8 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
         int y = topPos;
         GuiBatch.draw(graphics, () -> {
             Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
-            graphics.fill(x + 7, y + 15, x + imageWidth - 7, y + 16, ModPalette.APERTURE);
+            Widgets.drawRule(graphics, x + PANEL_RULE_INSET, y + HEADER_RULE_Y, x + imageWidth - PANEL_RULE_INSET,
+                    ModPalette.APERTURE);
 
             int left = x + ApertureStorageMenu.STORAGE_X;
             fillSlotGrid(graphics, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
@@ -72,7 +76,8 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
 
     private void fillVital(GuiGraphics graphics, int x, int y) {
         Widgets.drawPanel(graphics, x + VITAL_LEFT, y, VITAL_RIGHT - VITAL_LEFT, VITAL_BOTTOM, ModPalette.PANEL_FILL);
-        graphics.fill(x + VITAL_LEFT + 4, y + 15, x + VITAL_RIGHT - 4, y + 16, ModPalette.APERTURE);
+        Widgets.drawRule(graphics, x + VITAL_LEFT + VITAL_RULE_INSET, y + HEADER_RULE_Y,
+                x + VITAL_RIGHT - VITAL_RULE_INSET, ModPalette.APERTURE);
         Widgets.drawCell(graphics, x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y,
                 ModPalette.SLOT_FILL);
     }

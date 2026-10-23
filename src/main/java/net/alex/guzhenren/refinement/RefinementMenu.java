@@ -1,6 +1,8 @@
 package net.alex.guzhenren.refinement;
 
 import java.util.List;
+import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
@@ -9,8 +11,6 @@ import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -129,15 +129,7 @@ public class RefinementMenu extends AbstractContainerMenu {
                         OUTPUT_X + col * GRID_SLOT, OUTPUT_Y + row * GRID_SLOT));
             }
         }
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < INVENTORY_COLS; col++) {
-                addSlot(new Slot(inventory, col + row * INVENTORY_COLS + 9,
-                        INVENTORY_X + col * SLOT, INVENTORY_Y + row * SLOT));
-            }
-        }
-        for (int col = 0; col < INVENTORY_COLS; col++) {
-            addSlot(new Slot(inventory, col, INVENTORY_X + col * SLOT, HOTBAR_Y));
-        }
+        MenuSlots.addPlayerInventory(this::addSlot, inventory, INVENTORY_X, INVENTORY_Y, HOTBAR_Y, SLOT);
         addDataSlots(craftData);
         input.addListener(container -> refresh());
     }
@@ -245,7 +237,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     private boolean abort() {
         if (!(player instanceof ServerPlayer server) || !ritual.isRunning()) return false;
 
-        say(server, STOPPED, ChatFormatting.RED);
+        ActionBar.refuse(server, STOPPED);
         ritual.stop();
         refresh();
         return true;
@@ -275,12 +267,8 @@ public class RefinementMenu extends AbstractContainerMenu {
         return free;
     }
 
-    static void say(ServerPlayer who, String key, ChatFormatting colour, Object... args) {
-        who.displayClientMessage(Component.translatable(key, args).withStyle(colour), true);
-    }
-
     private static boolean refuse(ServerPlayer who, String key, Object... args) {
-        say(who, key, ChatFormatting.RED, args);
+        ActionBar.refuse(who, key, args);
         return false;
     }
     //endregion
@@ -296,24 +284,10 @@ public class RefinementMenu extends AbstractContainerMenu {
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player who, int index) {
-        Slot slot = slots.get(index);
-        if (!slot.hasItem()) return ItemStack.EMPTY;
-
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-
-        boolean moved = index < INVENTORY_START
+        return MenuSlots.quickMove(slots.get(index), stack -> index < INVENTORY_START
                 ? moveItemStackTo(stack, INVENTORY_START, slots.size(), true)
                 : moveItemStackTo(stack, STONE_SLOT, STONE_SLOT + 1, false)
-                || moveItemStackTo(stack, 0, GuRecipe.INPUT_SIZE, false);
-        if (!moved) return ItemStack.EMPTY;
-
-        if (stack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+                || moveItemStackTo(stack, 0, GuRecipe.INPUT_SIZE, false));
     }
 
     @Override
