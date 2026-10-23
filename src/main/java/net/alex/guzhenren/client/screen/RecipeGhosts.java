@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen;
 
 import net.alex.guzhenren.client.GuiBatch;
+import net.alex.guzhenren.refinement.GuIngredient;
 import net.alex.guzhenren.refinement.GuRecipe;
 import net.alex.guzhenren.refinement.GuRecipeInput;
 import net.alex.guzhenren.refinement.RefinementMenu;
@@ -9,7 +10,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
 /**
  * The cells a picked Gu Recipe [蛊方] still wants, drawn into the refinement grid as faded items under the vanilla
@@ -53,7 +53,7 @@ final class RecipeGhosts {
         if (any) GuiBatch.draw(graphics, () -> drawGhosts(graphics, font, recipe, shown, missing));
     }
 
-    static ItemStack getOption(SizedIngredient need) {
+    static ItemStack getOption(GuIngredient need) {
         ItemStack[] options = need.ingredient().getItems();
         if (options.length == 0) return ItemStack.EMPTY;
         return options[(int) (Util.getMillis() / 1000L % options.length)];

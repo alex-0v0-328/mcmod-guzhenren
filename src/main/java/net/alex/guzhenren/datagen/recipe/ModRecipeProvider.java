@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.refinement.GuIngredient;
 import net.alex.guzhenren.refinement.GuRecipe;
+import net.alex.guzhenren.refinement.RefinementRecipe;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,7 +19,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,11 +50,11 @@ public class ModRecipeProvider extends RecipeProvider {
     @Override
     protected void buildRecipes(@NotNull RecipeOutput output) {
         refinement(output, ModItems.FOUR_FLAVORS_LIQUOR_WORM, 1L, 1L, 50, List.of(16, 16, 16, 16),
-                Map.of('s', SizedIngredient.of(ModItems.SOUR_LIQUOR.get(), 1),
-                        'b', SizedIngredient.of(ModItems.BITTER_LIQUOR.get(), 1),
-                        'h', SizedIngredient.of(ModItems.SPICY_LIQUOR.get(), 1),
-                        'w', SizedIngredient.of(ModItems.SWEET_LIQUOR.get(), 1),
-                        'g', SizedIngredient.of(ModItems.LIQUOR_WORM.get(), 1)),
+                Map.of('s', GuIngredient.of(ModItems.SOUR_LIQUOR.get(), 1),
+                        'b', GuIngredient.of(ModItems.BITTER_LIQUOR.get(), 1),
+                        'h', GuIngredient.of(ModItems.SPICY_LIQUOR.get(), 1),
+                        'w', GuIngredient.of(ModItems.SWEET_LIQUOR.get(), 1),
+                        'g', GuIngredient.of(ModItems.LIQUOR_WORM.get(), 1)),
                 " .s. ",
                 ".....",
                 "bg.gh",
@@ -61,9 +62,9 @@ public class ModRecipeProvider extends RecipeProvider {
                 " .w. ");
 
         refinement(output, ModItems.ALL_OUT_EFFORT_GU_4, 100L, 3L, 30, List.of(64, 64, 64, 64),
-                Map.of('I', SizedIngredient.of(Items.IRON_BLOCK, 4),
-                        'B', SizedIngredient.of(Items.GOLD_BLOCK, 2),
-                        'A', SizedIngredient.of(ModItems.ALL_OUT_EFFORT_GU_3.get(), 1)),
+                Map.of('I', GuIngredient.of(Items.IRON_BLOCK, 4),
+                        'B', GuIngredient.of(Items.GOLD_BLOCK, 2),
+                        'A', GuIngredient.of(ModItems.ALL_OUT_EFFORT_GU_3.get(), 1)),
                 " .I. ",
                 "B...B",
                 "I.A.I",
@@ -74,20 +75,20 @@ public class ModRecipeProvider extends RecipeProvider {
     //region Gu Recipe [蛊方] patterns -- one row a grid row, ' ' a cut corner, '.' an empty cell
     private static void refinement(RecipeOutput output, ItemLike result, long essencePerSecond,
                                    long soulPerSecond, int baseSuccess, List<Integer> windows,
-                                   Map<Character, SizedIngredient> key, String... pattern) {
+                                   Map<Character, GuIngredient> key, String... pattern) {
         Item item = result.asItem();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
                 Guzhenren.MOD_ID, FOLDER + BuiltInRegistries.ITEM.getKey(item).getPath());
-        List<SizedIngredient> ingredients = new ArrayList<>();
+        List<GuIngredient> ingredients = new ArrayList<>();
         List<Integer> slots = new ArrayList<>();
 
         read(id, key, pattern, ingredients, slots);
-        output.accept(id, new GuRecipe(List.copyOf(ingredients), List.copyOf(slots),
-                List.of(new ItemStack(item)), essencePerSecond, soulPerSecond, windows, baseSuccess), null);
+        output.accept(id, new RefinementRecipe(new GuRecipe(List.copyOf(ingredients), List.copyOf(slots),
+                List.of(new ItemStack(item)), essencePerSecond, soulPerSecond, windows, baseSuccess)), null);
     }
 
-    private static void read(ResourceLocation id, Map<Character, SizedIngredient> key, String[] pattern,
-                             List<SizedIngredient> ingredients, List<Integer> slots) {
+    private static void read(ResourceLocation id, Map<Character, GuIngredient> key, String[] pattern,
+                             List<GuIngredient> ingredients, List<Integer> slots) {
         if (pattern.length != GuRecipe.GRID_ROWS) {
             throw new IllegalArgumentException(id + " needs " + GuRecipe.GRID_ROWS + " pattern rows");
         }
@@ -103,8 +104,8 @@ public class ModRecipeProvider extends RecipeProvider {
         }
     }
 
-    private static void cell(ResourceLocation id, Map<Character, SizedIngredient> key, char drawn, int slot,
-                             List<SizedIngredient> ingredients, List<Integer> slots) {
+    private static void cell(ResourceLocation id, Map<Character, GuIngredient> key, char drawn, int slot,
+                             List<GuIngredient> ingredients, List<Integer> slots) {
         if (slot < 0) {
             if (drawn != OUTSIDE) throw new IllegalArgumentException(id + " draws '" + drawn + "' on a cut corner");
             return;
@@ -112,7 +113,7 @@ public class ModRecipeProvider extends RecipeProvider {
         if (drawn == OUTSIDE) throw new IllegalArgumentException(id + " leaves a real cell blank; use '.'");
         if (drawn == EMPTY) return;
 
-        SizedIngredient need = key.get(drawn);
+        GuIngredient need = key.get(drawn);
         if (need == null) throw new IllegalArgumentException(id + " has no ingredient keyed '" + drawn + "'");
 
         ingredients.add(need);

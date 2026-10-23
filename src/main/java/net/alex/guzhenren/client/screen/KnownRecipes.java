@@ -3,9 +3,9 @@ package net.alex.guzhenren.client.screen;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.refinement.GuRecipe;
+import net.alex.guzhenren.refinement.RefinementRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -15,8 +15,8 @@ import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Gu Recipes [蛊方] the client knows, sorted once and kept: {@link GuRecipe#known} sorts every recipe by id, which
- * the refinement screen and its picker would otherwise pay for on every frame.
+ * The Gu Recipes [蛊方] the client knows, sorted once and kept: {@link RefinementRecipe#known} sorts every recipe
+ * by id, which the refinement screen and its picker would otherwise pay for on every frame.
  *
  * <p>The list is rebuilt when the client level's {@link RecipeManager} is a different one, and dropped on
  * {@link RecipesUpdatedEvent} because the manager keeps its identity while a reload swaps the recipes inside it, and
@@ -34,15 +34,15 @@ public final class KnownRecipes {
     private KnownRecipes() {}
 
     private static @Nullable RecipeManager source;
-    private static List<RecipeHolder<GuRecipe>> cached = List.of();
+    private static List<GuRecipe> cached = List.of();
 
-    static List<RecipeHolder<GuRecipe>> get() {
+    static List<GuRecipe> get() {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return List.of();
 
         RecipeManager recipes = level.getRecipeManager();
         if (recipes != source) {
-            cached = GuRecipe.known(recipes);
+            cached = RefinementRecipe.known(recipes);
             source = recipes;
         }
         return cached;

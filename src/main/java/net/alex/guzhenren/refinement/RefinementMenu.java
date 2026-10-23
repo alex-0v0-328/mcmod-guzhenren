@@ -22,7 +22,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -173,15 +172,15 @@ public class RefinementMenu extends AbstractContainerMenu {
         if (server == null) return null;
 
         GuRecipeInput in = GuRecipeInput.of(input);
-        List<RecipeHolder<GuRecipe>> known = GuRecipe.known(server.getRecipeManager());
+        List<GuRecipe> known = RefinementRecipe.known(server.getRecipeManager());
         if (selectedIndex >= 0) {
             if (selectedIndex >= known.size()) return null;
 
-            GuRecipe only = known.get(selectedIndex).value();
+            GuRecipe only = known.get(selectedIndex);
             return only.claim(in) != null ? only : null;
         }
-        for (RecipeHolder<GuRecipe> held : known) {
-            if (held.value().claim(in) != null) return held.value();
+        for (GuRecipe recipe : known) {
+            if (recipe.claim(in) != null) return recipe;
         }
         return null;
     }
@@ -190,10 +189,10 @@ public class RefinementMenu extends AbstractContainerMenu {
         MinecraftServer server = player.getServer();
         if (server == null || ritual.isRunning()) return false;
 
-        List<RecipeHolder<GuRecipe>> known = GuRecipe.known(server.getRecipeManager());
+        List<GuRecipe> known = RefinementRecipe.known(server.getRecipeManager());
         selectedIndex = index >= 0 && index < known.size() ? index : -1;
         craftData.set(DATA_SELECTED, selectedIndex + 1);
-        if (selectedIndex >= 0) RecipeAutofill.fill(known.get(selectedIndex).value(), input, player);
+        if (selectedIndex >= 0) RecipeAutofill.fill(known.get(selectedIndex), input, player);
         refresh();
         return true;
     }

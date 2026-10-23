@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -265,8 +264,8 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //region the 蛊方 a player may attempt -- the client holds the whole synced table, so it needs no packet
     private @Nullable GuRecipe selectedRecipe() {
         int index = menu.selected();
-        List<RecipeHolder<GuRecipe>> known = KnownRecipes.get();
-        return index >= 0 && index < known.size() ? known.get(index).value() : null;
+        List<GuRecipe> known = KnownRecipes.get();
+        return index >= 0 && index < known.size() ? known.get(index) : null;
     }
 
     //endregion

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.refinement.GuIngredient;
 import net.alex.guzhenren.refinement.GuRecipe;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.minecraft.client.gui.Font;
@@ -11,8 +12,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
 /**
  * The Gu Recipe [蛊方] picker the refinement screen opens over itself: "automatic" first, then every known
@@ -70,7 +69,7 @@ final class RecipePicker {
         if (delta != 0.0) scroll = Math.max(0, scroll - (int) Math.signum(delta));
     }
 
-    void render(GuiGraphics graphics, Font font, List<RecipeHolder<GuRecipe>> known, int selected, int panelLeft,
+    void render(GuiGraphics graphics, Font font, List<GuRecipe> known, int selected, int panelLeft,
                 int panelTop, int panelW, int panelH, int mouseX, int mouseY) {
         graphics.pose().pushPose();
         graphics.pose().translate(0.0F, 0.0F, Z);
@@ -78,7 +77,7 @@ final class RecipePicker {
         graphics.pose().popPose();
     }
 
-    int click(double mouseX, double mouseY, List<RecipeHolder<GuRecipe>> known, int panelLeft, int panelTop,
+    int click(double mouseX, double mouseY, List<GuRecipe> known, int panelLeft, int panelTop,
               int panelW, int panelH) {
         int visible = Math.min(MAX_ROWS, known.size() + 1);
         int x0 = left(panelLeft, panelW);
@@ -95,7 +94,7 @@ final class RecipePicker {
         return NO_BUTTON;
     }
 
-    private void draw(GuiGraphics graphics, Font font, List<RecipeHolder<GuRecipe>> known, int selected,
+    private void draw(GuiGraphics graphics, Font font, List<GuRecipe> known, int selected,
                       int panelLeft, int panelTop, int panelW, int panelH, int mouseX, int mouseY) {
         int rows = known.size() + 1;
         int visible = Math.min(MAX_ROWS, rows);
@@ -113,7 +112,7 @@ final class RecipePicker {
             for (int i = 0; i < visible; i++) drawText(graphics, font, known, scroll + i, x0, rowY(y0, i));
         });
         if (hovered >= 1) {
-            graphics.renderComponentTooltip(font, details(known.get(hovered - 1).value()), mouseX, mouseY);
+            graphics.renderComponentTooltip(font, details(known.get(hovered - 1)), mouseX, mouseY);
         }
     }
 
@@ -135,13 +134,13 @@ final class RecipePicker {
         }
     }
 
-    private static void drawIcon(GuiGraphics graphics, List<RecipeHolder<GuRecipe>> known, int row, int x0, int y) {
+    private static void drawIcon(GuiGraphics graphics, List<GuRecipe> known, int row, int x0, int y) {
         if (row == 0) return;
-        ItemStack icon = RecipeGhosts.getResult(known.get(row - 1).value());
+        ItemStack icon = RecipeGhosts.getResult(known.get(row - 1));
         graphics.renderFakeItem(icon, x0 + PAD, y + (ROW_H - Widgets.CELL) / 2);
     }
 
-    private static void drawText(GuiGraphics graphics, Font font, List<RecipeHolder<GuRecipe>> known, int row, int x0,
+    private static void drawText(GuiGraphics graphics, Font font, List<GuRecipe> known, int row, int x0,
                                  int y) {
         int textY = y + (ROW_H - font.lineHeight) / 2;
         if (row == 0) {
@@ -149,7 +148,7 @@ final class RecipePicker {
             graphics.drawString(font, auto, x0 + PAD, textY, ModPalette.TEXT, false);
             return;
         }
-        GuRecipe recipe = known.get(row - 1).value();
+        GuRecipe recipe = known.get(row - 1);
         graphics.drawString(font, RecipeGhosts.getResult(recipe).getHoverName(), x0 + PAD + Widgets.CELL + 4, textY,
                 ModPalette.TEXT, false);
 
@@ -161,7 +160,7 @@ final class RecipePicker {
         List<Component> lines = new ArrayList<>();
         lines.add(RecipeGhosts.getResult(recipe).getHoverName());
         lines.add(Component.translatable(NEEDS_KEY));
-        for (SizedIngredient need : recipe.ingredients()) {
+        for (GuIngredient need : recipe.ingredients()) {
             lines.add(Component.translatable(ITEM_KEY, need.count(), RecipeGhosts.getOption(need).getHoverName()));
         }
         lines.add(Component.translatable(WINDOWS_KEY, recipe.windowCount(), recipe.totalSeconds()));
