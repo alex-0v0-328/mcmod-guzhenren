@@ -253,6 +253,51 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         return original;
     }
 
+    /**
+     * Vanilla's shift-click merge, reading each slot's limit for the stack it is offered.
+     *
+     * <p>⚠ A Gu slot's limit depends on the stack ({@code GuSlot#getMaxStackSize(ItemStack)}); 1.20.1's own merge
+     * reads only the stack-blind limit, so the vault would ignore its load cap there. This copy keeps both game
+     * versions on the per-stack limit.
+     */
+    @Override
+    protected boolean moveItemStackTo(@NotNull ItemStack stack, int start, int end, boolean reverse) {
+        boolean moved = false;
+        if (stack.isStackable()) {
+            for (int i = reverse ? end - 1 : start; !stack.isEmpty() && (reverse ? i >= start : i < end);
+                 i += reverse ? -1 : 1) {
+                Slot slot = slots.get(i);
+                ItemStack held = slot.getItem();
+                if (held.isEmpty() || !ItemStacks.sameItemSameData(stack, held)) continue;
+
+                int total = held.getCount() + stack.getCount();
+                int limit = slot.getMaxStackSize(held);
+                if (total <= limit) {
+                    stack.setCount(0);
+                    held.setCount(total);
+                    slot.setChanged();
+                    moved = true;
+                } else if (held.getCount() < limit) {
+                    stack.shrink(limit - held.getCount());
+                    held.setCount(limit);
+                    slot.setChanged();
+                    moved = true;
+                }
+            }
+        }
+        if (stack.isEmpty()) return moved;
+
+        for (int i = reverse ? end - 1 : start; reverse ? i >= start : i < end; i += reverse ? -1 : 1) {
+            Slot slot = slots.get(i);
+            if (slot.getItem().isEmpty() && slot.mayPlace(stack)) {
+                slot.setByPlayer(stack.split(Math.min(stack.getCount(), slot.getMaxStackSize(stack))));
+                slot.setChanged();
+                return true;
+            }
+        }
+        return moved;
+    }
+
     @Override
     public boolean stillValid(@NotNull Player who) { return who == player && who.isAlive(); }
 

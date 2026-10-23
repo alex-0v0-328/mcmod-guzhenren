@@ -14,12 +14,14 @@ import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.DodgeAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
@@ -34,7 +36,6 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.entity.eventlistener.BasicAttackEvent;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
-import yesman.epicfight.world.entity.eventlistener.SetTargetEvent;
 import yesman.epicfight.world.entity.eventlistener.SkillConsumeEvent;
 
 /**
@@ -87,8 +88,6 @@ public final class EpicFightIntegration {
                 EpicFightIntegration::onSkillConsume);
         listener.addEventListener(PlayerEventListener.EventType.BASIC_ATTACK_EVENT, LISTENER_ID,
                 EpicFightIntegration::onComboAttack);
-        listener.addEventListener(PlayerEventListener.EventType.SET_TARGET_EVENT, LISTENER_ID,
-                EpicFightIntegration::onSetTarget);
     }
 
     private static UUID idOf(ResourceLocation id) {
@@ -155,9 +154,13 @@ public final class EpicFightIntegration {
         if (ModEffects.has(player, ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
     }
 
-    private static void onSetTarget(SetTargetEvent event) {
-        if (event.getTarget() instanceof WildGuEntity) event.setCanceled(true);
-    }
+    /**
+     * Whether Epic Fight may not lock a player's attack target onto {@code target}: a wild Gu is never one.
+     *
+     * <p>⚠ Epic Fight 20.14 builds its set-target event as non-cancelable and assigns the target regardless, so
+     * {@code mixin.ServerPlayerPatchMixin} asks this before the assignment instead of a listener canceling it.
+     */
+    public static boolean refusesTarget(@Nullable LivingEntity target) { return target instanceof WildGuEntity; }
 
     private static Vec3 dashDirection(int vertical, float yRot) {
         float radians = (yRot + ringYawOffset(vertical)) * ((float) Math.PI / 180.0F);

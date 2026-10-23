@@ -4,8 +4,14 @@
   "package": "net.alex.guzhenren.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "guzhenren.refmap.json",
-  "mixins": [],
-  "client": [],
+  "mixins": [
+    "ServerPlayerPatchMixin"
+  ],
+  "client": [
+    "LocalPlayerMixin",
+    "MobEffectMixin",
+    "PlayerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

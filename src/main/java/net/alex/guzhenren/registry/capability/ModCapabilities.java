@@ -29,6 +29,10 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ The provider's {@link LazyOptional} is invalidated with the entity; a {@code PlayerEvent.Clone}
  * handler must {@code reviveCaps()} the original before reading it ({@code PlayerDataEvents}).
  *
+ * <p>⚠ A player who changes dimension through {@code teleportTo} is removed (caps invalidated) and revived as
+ * the same entity, and {@code reviveCaps()} cannot revive an invalidated {@link LazyOptional}: the provider
+ * rebuilds its holder around the same {@link PlayerData} on the next read instead of reporting none.
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
@@ -55,13 +59,13 @@ public final class ModCapabilities {
         if (!(event.getObject() instanceof Player player)) return;
         PlayerDataProvider provider = new PlayerDataProvider(new PlayerData(player));
         event.addCapability(PLAYER_DATA_ID, provider);
-        event.addListener(provider.holder::invalidate);
+        event.addListener(() -> provider.holder.invalidate());
     }
 
     private static final class PlayerDataProvider implements ICapabilitySerializable<CompoundTag> {
 
         private final PlayerData data;
-        private final LazyOptional<PlayerData> holder;
+        private LazyOptional<PlayerData> holder;
 
         private PlayerDataProvider(PlayerData data) {
             this.data = data;
@@ -70,6 +74,7 @@ public final class ModCapabilities {
 
         @Override
         public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+            if (!holder.isPresent()) holder = LazyOptional.of(() -> data);
             return PLAYER_DATA.orEmpty(cap, holder);
         }
 

@@ -86,7 +86,17 @@ mixin {
     config "${mod_id}.mixins.json"
 }
 
+jarJar.enable()
+
+// Gu World's Forge port, the sibling project at ../mcmod-guworld-forge (or -PguWorldDir), supplies every dimension,
+// terrain and biome. Its built jar joins every run as a mod, the GameTest server included, while this mod never
+// compiles against it. The jar is SRG-named, so it loads remapped through fg.deobf, as the pack jars below do. An
+// unbuilt sibling (or CI, which has none) simply adds nothing; build it with ./gradlew build -x test there.
+def guWorldLibs = file(providers.gradleProperty('guWorldDir').getOrElse('../mcmod-guworld-forge') + '/build/libs')
+def guWorldJar = fileTree(dir: guWorldLibs, include: 'guworld-*.jar', excludes: ['*-sources.jar']).files.find()
+
 repositories {
+    mavenCentral()
     maven {
         name = 'Illusive Soulworks maven'
         url = 'https://maven.theillusivec4.top/'
@@ -94,13 +104,19 @@ repositories {
     // The test pack's jars. They are SRG-named, so the dev run loads them remapped through
     // fg.deobf below instead of from run/mods.
     flatDir {
-        dirs 'pack/mods'
+        dirs 'pack/mods', guWorldLibs
     }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // Forge 1.20.1 ships Mixin 0.8.5 without MixinExtras, which mixin/ uses: jar-in-jar it, in the mainline's version.
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinextras_version}"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixinextras_version}")) {
+        jarJar.ranged(it, "[${mixinextras_version},)")
+    }
 
     compileOnly fg.deobf("blank:${epic_fight_jar - '.jar'}:0")
     compileOnly fg.deobf("blank:${geckolib_jar - '.jar'}:0")
@@ -114,6 +130,11 @@ dependencies {
     if (providers.gradleProperty('serverRun').isPresent()) {
         devExcluded += client_only_mods.split(',')*.trim().findAll { it }
     }
+    // The GameTest server drops FTB Quests: its dimension-change handler dereferences the quest team data that only a
+    // logged-in player has, and the tests' mock players never log in, so every test that travels would throw.
+    if (gradle.startParameter.taskNames.any { it.endsWith('runGameTestServer') }) {
+        devExcluded += ['ftb-quests']
+    }
     // -PdataRun keeps only the mod's hard dependencies: the pack's other mods are noise to data generation,
     // and some (client UI mods) fail to construct without a client.
     def dataRun = providers.gradleProperty('dataRun').isPresent()
@@ -121,6 +142,10 @@ dependencies {
         !devExcluded.any { jar.name.startsWith(it) } && (!dataRun || jar.name in [epic_fight_jar, geckolib_jar])
     }.each { jar ->
         runtimeOnly fg.deobf("blank:${jar.name - '.jar'}:0")
+    }
+
+    if (guWorldJar != null) {
+        runtimeOnly fg.deobf("blank:${guWorldJar.name - '.jar'}:0")
     }
 
     pureTestImplementation platform("org.junit:junit-bom:${junit_version}")
