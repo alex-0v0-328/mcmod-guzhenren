@@ -19,7 +19,7 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 /**
  * Writes the blockstates and models for the mod's blocks. A fluid block only needs the particle
  * model -- the liquid surface itself is drawn by the fluid renderer from the FluidType textures
- * (see {@link net.alex.guzhenren.registry.fluid.ModFluidTypes}) -- so each entry
+ * (see {@link net.alex.guzhenren.client.fluid.SpiritSpringClientExtensions}) -- so each entry
  * matches vanilla's {@code block/water} shape: a blockstate variant pointing at a model whose
  * single texture is the still strip.
  *

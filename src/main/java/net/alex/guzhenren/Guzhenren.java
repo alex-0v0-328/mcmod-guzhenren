@@ -31,14 +31,13 @@ import org.slf4j.Logger;
  * Mod entry point: builds every registry holder and hands them to the mod event bus.
  *
  * <p>Holds the {@code MOD_ID} constant and the {@link #id} helper used across the codebase for
- * {@link ResourceLocation} creation. The constructor takes the mod event bus from the loading context
- * Forge injects and wires each {@code DeferredRegister} holder to it in the order Forge requires (effects,
- * fluid types, fluids, blocks, items, creative tabs, menus, particles, criterion triggers), then the
+ * {@link ResourceLocation} creation. The constructor takes the mod event bus from the loading context Forge injects
+ * and wires each {@code DeferredRegister} holder to it in the order Forge requires (effects, fluid types, fluids,
+ * blocks, entities, items, creative tabs, menus, particles, recipes, loot modifiers, criterion triggers), then the
  * player-data capability and the network channel. It also hands the aperture's nourishing the {@code StonePurse}
- * built on the item side's {@code PrimevalStoneSupply}, and aperture storage the {@code StoredGu} built on the
- * Gu item classes ({@code StoredGuItems}), so the gameplay packages never depend on the item package.
- * Worldgen features live in the sibling mod Gu World, which places the Spirit Spring [元泉] block
- * registered here.
+ * built on the item side's {@code PrimevalStoneSupply}, and aperture storage the {@code StoredGu} built on the Gu
+ * item classes ({@code StoredGuItems}), so the gameplay packages never depend on the item package. Worldgen
+ * features live in the sibling mod Gu World, which places the Spirit Spring [元泉] block registered here.
  *
  * @author Alex
  * @version 1.0.0

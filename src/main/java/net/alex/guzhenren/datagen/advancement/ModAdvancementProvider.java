@@ -50,7 +50,6 @@ public class ModAdvancementProvider extends ForgeAdvancementProvider {
                     ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"),
                     FrameType.TASK, true, true, false)
                 .addCriterion("obtained_gu", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.HOPE_GU.get()))
-                // TODO(main agent): confirm trigger API
                 .addCriterion("used_gu", ModCriteriaTriggers.USED_HOPE_GU.get().instance())
                 .requirements(RequirementsStrategy.AND)
                 .save(saver, Guzhenren.id("first_awakening"), existingFileHelper);

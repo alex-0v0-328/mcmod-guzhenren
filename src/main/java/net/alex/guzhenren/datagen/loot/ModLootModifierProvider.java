@@ -38,7 +38,7 @@ public final class ModLootModifierProvider extends GlobalLootModifierProvider {
     @Override
     protected void start() {
         add("moon_orchid_petals", new AddTableLootModifier(new LootItemCondition[] {
-                LootTableIdCondition.builder(ResourceLocation.fromNamespaceAndPath("minecraft", "blocks/blue_orchid")).build(),
+                LootTableIdCondition.builder(ResourceLocation.withDefaultNamespace("blocks/blue_orchid")).build(),
                 ModBlockLootProvider.hasHoe().build() }, MOON_ORCHID_PETALS));
     }
 
