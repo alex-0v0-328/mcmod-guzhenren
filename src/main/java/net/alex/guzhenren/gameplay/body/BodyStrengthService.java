@@ -58,7 +58,7 @@ public final class BodyStrengthService {
     }
 
     public static int getUsableJin(@NotNull Player player) {
-        int total = PathStrengthService.get(player).totalJin();
+        int total = PathStrengthService.get(player).getTotalJin();
         return isUnleashed(player) ? total : getUsableJin(getCapacity(player), total);
     }
 

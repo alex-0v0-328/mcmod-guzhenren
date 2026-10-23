@@ -53,9 +53,9 @@ public record BodyData(
     public static final long ZOMBIE_LIFESPAN = 1L;
     public static final long RELAPSE_WINDOW_TICKS = 5L * Ticks.MINUTE;
     public static final BodyData DEFAULT = new BodyData(Set.of(), ExtremePhysique.NONE, Race.HUMAN,
-            parts(DEFAULT_AGE), parts(DEFAULT_LIFESPAN), UNTRACKED, 0L, UNTRACKED, NO_ZOMBIE_TIER, UNTRACKED);
+            toParts(DEFAULT_AGE), toParts(DEFAULT_LIFESPAN), UNTRACKED, 0L, UNTRACKED, NO_ZOMBIE_TIER, UNTRACKED);
 
-    public static long parts(long years) { return LongMath.saturatedMultiply(years, PARTS_PER_YEAR); }
+    public static long toParts(long years) { return LongMath.saturatedMultiply(years, PARTS_PER_YEAR); }
 
     private static final Codec<Set<Physique>> PHYSIQUES_CODEC = Physique.CODEC.listOf()
             .xmap(Set::copyOf, ArrayList::new);
@@ -64,8 +64,8 @@ public record BodyData(
             ExtremePhysique.CODEC.optionalFieldOf("extreme_physique", ExtremePhysique.NONE)
                     .forGetter(BodyData::extremePhysique),
             Race.CODEC.optionalFieldOf("race", Race.HUMAN).forGetter(BodyData::race),
-            Codec.LONG.optionalFieldOf("age_parts", parts(DEFAULT_AGE)).forGetter(BodyData::ageParts),
-            Codec.LONG.optionalFieldOf("lifespan_parts", parts(DEFAULT_LIFESPAN)).forGetter(BodyData::lifespanParts),
+            Codec.LONG.optionalFieldOf("age_parts", toParts(DEFAULT_AGE)).forGetter(BodyData::ageParts),
+            Codec.LONG.optionalFieldOf("lifespan_parts", toParts(DEFAULT_LIFESPAN)).forGetter(BodyData::lifespanParts),
             Codec.LONG.optionalFieldOf("last_day_index", UNTRACKED).forGetter(BodyData::lastDayIndex),
             Codec.LONG.optionalFieldOf("death_qi_lifespan_lost", 0L).forGetter(BodyData::deathQiLifespanLost),
             Codec.LONG.optionalFieldOf("half_zombie_end_tick", UNTRACKED).forGetter(BodyData::halfZombieEndTick),
@@ -127,13 +127,13 @@ public record BodyData(
 
     public double ageYears() { return ageParts / (double) PARTS_PER_YEAR; }
 
-    public double lifespanYears() { return lifespanParts / (double) PARTS_PER_YEAR; }
+    public double getLifespanYears() { return lifespanParts / (double) PARTS_PER_YEAR; }
 
-    public boolean halfZombieRanOut(long now) { return halfZombieEndTick != UNTRACKED && now >= halfZombieEndTick; }
+    public boolean hasHalfZombieRunOut(long now) { return halfZombieEndTick != UNTRACKED && now >= halfZombieEndTick; }
 
-    public long halfZombieTicksLeft(long now) { return Math.max(0L, halfZombieEndTick - now); }
+    public long getHalfZombieTicksLeft(long now) { return Math.max(0L, halfZombieEndTick - now); }
 
-    public boolean withinRelapseWindow(long now) {
+    public boolean isWithinRelapseWindow(long now) {
         return halfZombieEndTick != UNTRACKED && now < halfZombieEndTick + RELAPSE_WINDOW_TICKS;
     }
 
@@ -147,7 +147,7 @@ public record BodyData(
                 halfZombieEndTick, zombieTier, lastBilledTick);
     }
 
-    public BodyData revived() {
+    public BodyData withRevived() {
         return without(Physique.ZOMBIE).without(Physique.HALF_ZOMBIE).withHalfZombieEndTick(UNTRACKED);
     }
 
@@ -202,7 +202,7 @@ public record BodyData(
                 deathQiLifespanLost, halfZombieEndTick, zombieTier, value);
     }
 
-    public BodyData lived(long parts, long billedTick) {
+    public BodyData withLived(long parts, long billedTick) {
         return new BodyData(physiques, extremePhysique, race, LongMath.saturatedAdd(ageParts, parts),
                 LongMath.saturatedSubtract(lifespanParts, parts),
                 lastDayIndex, deathQiLifespanLost, halfZombieEndTick, zombieTier, billedTick);

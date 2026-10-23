@@ -31,7 +31,7 @@ public final class FlightAbility {
     }
 
     /** Whether the player may fly at all, from any grant: the game mode, another mod, or a source here. */
-    public static boolean mayFly(@NotNull Player player) { return player.mayFly(); }
+    public static boolean canFly(@NotNull Player player) { return player.mayFly(); }
 
     /** Grants flight from {@code source}; {@code false} when that source already held. */
     public static boolean grant(@NotNull ServerPlayer player, @NotNull ResourceLocation source) {

@@ -115,11 +115,11 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
         return Mob.createMobAttributes();
     }
 
-    public SoulTrader trader() { return this.trader; }
+    public SoulTrader getTrader() { return this.trader; }
 
-    public boolean appearing() { return this.entityData.get(DATA_APPEARING); }
+    public boolean isAppearing() { return this.entityData.get(DATA_APPEARING); }
 
-    public boolean gesturing() { return this.gestureTicks > 0; }
+    public boolean isGesturing() { return this.gestureTicks > 0; }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
@@ -140,13 +140,13 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
         if (player instanceof ServerPlayer server) {
             ModNetwork.openMenu(server, new SimpleMenuProvider(
                     (id, inventory, who) -> new SoulTradeMenu(id, inventory, this), this.getDisplayName()),
-                    buffer -> SoulTradeMenu.writeOffers(buffer, this.trader.offers()));
+                    buffer -> SoulTradeMenu.writeOffers(buffer, this.trader.getOffers()));
         }
         return InteractionResult.sidedSuccess(this.level().isClientSide());
     }
 
     public void reactToTrade(boolean traded) {
-        if (!this.isAlive() || this.gesturing() && this.reacting) return;
+        if (!this.isAlive() || this.isGesturing() && this.reacting) return;
 
         this.gesture(traded ? NOD : SHAKE, REACTION_TICKS, true);
     }
@@ -158,25 +158,25 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
         super.tick();
         if (this.level().isClientSide() || !this.isAlive()) return;
 
-        if (this.appearing() && ++this.appearTicks >= APPEAR_TICKS) this.entityData.set(DATA_APPEARING, false);
+        if (this.isAppearing() && ++this.appearTicks >= APPEAR_TICKS) this.entityData.set(DATA_APPEARING, false);
         if (this.gestureTicks > 0) this.gestureTicks--;
         if (this.tickCount % SCAN_INTERVAL == 0) this.scanForArrivals();
     }
 
     private void scanForArrivals() {
-        if (this.appearing()) return;
+        if (this.isAppearing()) return;
 
         Set<UUID> present = new HashSet<>();
         for (Player player : this.level().getEntitiesOfClass(Player.class,
-                this.getBoundingBox().inflate(BECKON_RANGE), this::beckons)) {
+                this.getBoundingBox().inflate(BECKON_RANGE), this::canBeckon)) {
             present.add(player.getUUID());
         }
         boolean arrived = !this.nearby.containsAll(present);
         this.nearby = present;
-        if (arrived && !this.gesturing()) this.gesture(BECKON, BECKON_TICKS, false);
+        if (arrived && !this.isGesturing()) this.gesture(BECKON, BECKON_TICKS, false);
     }
 
-    private boolean beckons(Player player) {
+    private boolean canBeckon(Player player) {
         return player.isAlive() && !player.isSpectator() && this.distanceToSqr(player) <= BECKON_RANGE * BECKON_RANGE;
     }
 
@@ -263,7 +263,7 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, MOVEMENT, 0, state -> {
             if (this.isDeadOrDying()) return state.setAndContinue(DISAPPEAR_ANIM);
-            if (this.opensWithAppear == null) this.opensWithAppear = this.appearing();
+            if (this.opensWithAppear == null) this.opensWithAppear = this.isAppearing();
             return state.setAndContinue(this.opensWithAppear ? APPEAR_ANIM : IDLE_ANIM);
         }));
         controllers.add(new AnimationController<>(this, GESTURE, GESTURE_TRANSITION, state -> PlayState.STOP)

@@ -105,12 +105,12 @@ public final class ModEntityTypes {
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<SoulTraderEntity>> registerSoulTrader(SoulTrader trader) {
-        return ENTITY_TYPES.register(trader.id(), () -> EntityType.Builder
+        return ENTITY_TYPES.register(trader.getId(), () -> EntityType.Builder
                 .<SoulTraderEntity>of((type, level) -> new SoulTraderEntity(type, level, trader), MobCategory.MISC)
                 .sized(SOUL_TRADER_WIDTH, SOUL_TRADER_HEIGHT)
                 .fireImmune()
                 .clientTrackingRange(TRACKING_CHUNKS)
-                .build(trader.id()));
+                .build(trader.getId()));
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> registerBoarGu(

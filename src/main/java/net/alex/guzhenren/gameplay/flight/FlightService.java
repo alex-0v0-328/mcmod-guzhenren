@@ -81,7 +81,7 @@ public final class FlightService {
     }
 
     public static boolean isBursting(@NotNull Player player) {
-        return PlayerData.get(player).burst();
+        return PlayerData.get(player).hasBurst();
     }
 
     public static void toggleBurst(@NotNull ServerPlayer player) {
@@ -93,7 +93,7 @@ public final class FlightService {
     }
 
     public static boolean startBurst(@NotNull ServerPlayer player) {
-        if (!getGrant(player).allowsBurst()) return false;
+        if (!getGrant(player).canBurst()) return false;
 
         refreshGuFlight(player);
         PlayerData.get(player).setBurst(true);
@@ -104,19 +104,19 @@ public final class FlightService {
 
     public static void stopBurst(@NotNull ServerPlayer player) {
         PlayerData.get(player).setBurst(false);
-        if (!FlightAbility.mayFly(player)) player.getAbilities().flying = false;
+        if (!FlightAbility.canFly(player)) player.getAbilities().flying = false;
         player.onUpdateAbilities();
     }
 
     public static void tick(@NotNull ServerPlayer player) {
         refreshGuFlight(player);
-        if (isBursting(player) && (!player.getAbilities().flying || !getGrant(player).allowsBurst())) {
+        if (isBursting(player) && (!player.getAbilities().flying || !getGrant(player).canBurst())) {
             stopBurst(player);
         }
     }
 
     private static void refreshGuFlight(ServerPlayer player) {
-        boolean granted = getGuGrant(player).allowsFlight();
+        boolean granted = getGuGrant(player).canFly();
         if (granted == FlightAbility.has(player, GU_FLIGHT_MODIFIER_ID)) return;
 
         if (granted) {
@@ -124,7 +124,7 @@ public final class FlightService {
             return;
         }
         FlightAbility.revoke(player, GU_FLIGHT_MODIFIER_ID);
-        if (!FlightAbility.mayFly(player)) player.getAbilities().flying = false;
+        if (!FlightAbility.canFly(player)) player.getAbilities().flying = false;
         player.onUpdateAbilities();
     }
 }

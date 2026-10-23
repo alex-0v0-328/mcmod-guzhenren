@@ -28,7 +28,7 @@ public final class PathService {
 
     private PathService() {}
 
-    public static @NotNull PathData get(@NotNull Player player) { return PlayerData.get(player).path(); }
+    public static @NotNull PathData get(@NotNull Player player) { return PlayerData.get(player).getPath(); }
 
     public static @NotNull PathEntry getEntry(@NotNull Player player, @NotNull GuPath path) {
         return get(player).get(path);

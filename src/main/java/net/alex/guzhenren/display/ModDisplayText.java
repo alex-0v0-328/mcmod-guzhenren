@@ -143,7 +143,7 @@ public final class ModDisplayText {
 
     public static MutableComponent hudLifespan(BodyData body) {
         return Component.translatable("guzhenren.display.lifespan",
-                String.format(Locale.ROOT, "%.1f", body.lifespanYears()),
+                String.format(Locale.ROOT, "%.1f", body.getLifespanYears()),
                 String.format(Locale.ROOT, "%.0f", body.ageYears()));
     }
 
@@ -169,7 +169,7 @@ public final class ModDisplayText {
 
     public static MutableComponent beastStrengthLine(PathStrengthData data) {
         MutableComponent line = Component.empty();
-        data.beastReadings().forEach((family, reading) -> line.append(beastReading(family, reading)));
+        data.getBeastReadings().forEach((family, reading) -> line.append(beastReading(family, reading)));
         return line;
     }
 
@@ -181,8 +181,8 @@ public final class ModDisplayText {
 
     public static MutableComponent humanStrengthLine(PathStrengthData data) {
         MutableComponent line = Component.empty();
-        appendFamily(line, "guzhenren.display.strength.jun_reading", data.junReading());
-        appendFamily(line, "guzhenren.display.strength.jin_reading", data.jinReading());
+        appendFamily(line, "guzhenren.display.strength.jun_reading", data.getJunReading());
+        appendFamily(line, "guzhenren.display.strength.jin_reading", data.getJinReading());
         return line;
     }
 

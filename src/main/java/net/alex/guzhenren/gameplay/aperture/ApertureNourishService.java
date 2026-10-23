@@ -84,7 +84,7 @@ public final class ApertureNourishService {
     public static void setStonePurse(@NotNull StonePurse purse) { stones = purse; }
 
     public static @NotNull ApertureNourishData get(@NotNull Player player) {
-        return PlayerData.get(player).nourish();
+        return PlayerData.get(player).getNourish();
     }
 
     public static boolean isCultivating(@NotNull Player player) { return get(player).cultivating(); }

@@ -47,7 +47,7 @@ public enum Race implements NamedEnum {
 
     Race(@Nullable GuPath talentPath) { this.talentPath = talentPath; }
 
-    public @Nullable GuPath talentPath() { return talentPath; }
+    public @Nullable GuPath getTalentPath() { return talentPath; }
 
     public boolean isVariant() { return talentPath != null; }
 

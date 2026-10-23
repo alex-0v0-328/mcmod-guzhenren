@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * One kind of Qi [气] the player is currently holding. Leaf record nested inside {@link PathQiData};
  * immutable; two components, the amount and the tick the hold ends at. The live amount is derived by
- * {@link PathQiData#current}; this record ticks nothing down itself.
+ * {@link PathQiData#getCurrent}; this record ticks nothing down itself.
  *
  * <p>⚠ A time anchor, not a running total -- nothing ticks it down, so it needs no clock of its own. ⚠
  * Re-adding does not "take the higher grade": {@code

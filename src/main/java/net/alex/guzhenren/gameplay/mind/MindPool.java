@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * MindService} and every write passes through there. ⚠
  * {@code burstAt()} divides before multiplying ({@code max / DENOM * NUMER}) and saturates the final
  * product, preserving the intended floor-before-multiply ratio without overflow; it never falls below
- * {@code max}, so a full pool is never overflowing, whatever its cap. ⚠ {@code slept()}
+ * {@code max}, so a full pool is never overflowing, whatever its cap. ⚠ {@code withSlept()}
  * restores only HALF the deficit when the buffer was used -- never reduce {@code current}.
  *
  * @author Alex
@@ -61,10 +61,10 @@ public record MindPool(long current, long max, boolean bufferUsed) {
 
     public MindPool withMax(long value) { return new MindPool(current, value, bufferUsed); }
 
-    public MindPool slept() {
+    public MindPool withSlept() {
         long restored = bufferUsed && current < max ? current + (max - current) / 2 : Math.max(current, max);
         return new MindPool(restored, max, false);
     }
 
-    public MindPool emptied() { return new MindPool(0L, max, false); }
+    public MindPool withEmptied() { return new MindPool(0L, max, false); }
 }

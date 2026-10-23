@@ -35,10 +35,10 @@ public final class PathQiService {
     private static final int EFFECT_REFRESH_TICKS = 2 * Ticks.SECOND;
     private static final int DEATH_QI_EFFECT_TICKS = 10 * EFFECT_REFRESH_TICKS;
 
-    public static @NotNull PathQiData get(@NotNull Player player) { return PlayerData.get(player).qi(); }
+    public static @NotNull PathQiData get(@NotNull Player player) { return PlayerData.get(player).getQi(); }
 
     public static long getCurrent(@NotNull Player player, @NotNull QiKind kind) {
-        return get(player).current(kind, now(player));
+        return get(player).getCurrent(kind, getNow(player));
     }
 
     public static void add(@NotNull ServerPlayer player, @NotNull QiKind kind, long delta) {
@@ -49,25 +49,25 @@ public final class PathQiService {
         long amount = Math.max(0L, value);
         long holdEnd = 0L;
         if (kind.isTimed() && amount > 0L) {
-            holdEnd = now(player) + kind.holdTicks(Math.max(0, QiKind.tierOf(amount)));
+            holdEnd = getNow(player) + kind.getHoldTicks(Math.max(0, QiKind.getTierOf(amount)));
         }
         store(player, get(player).with(kind, new PathQiEntry(amount, holdEnd)));
     }
 
-    private static long now(Player player) { return player.level().getGameTime(); }
+    private static long getNow(Player player) { return player.level().getGameTime(); }
 
     private static void store(ServerPlayer player, PathQiData data) {
-        long now = now(player);
+        long now = getNow(player);
         PathQiData pruned = data;
         for (QiKind kind : QiKind.values()) {
-            if (data.get(kind) != null && data.current(kind, now) <= 0L) pruned = pruned.without(kind);
+            if (data.get(kind) != null && data.getCurrent(kind, now) <= 0L) pruned = pruned.without(kind);
         }
         if (PlayerData.get(player).setQi(pruned)) syncEffects(player);
     }
 
     //region effect projection -- the store is the truth, the MobEffect is its display
     public static void syncEffects(@NotNull ServerPlayer player) {
-        long now = now(player);
+        long now = getNow(player);
         syncGraded(player, QiKind.STRENGTH, ModEffects.STRENGTH_QI, now);
         syncGraded(player, QiKind.LIFE, ModEffects.LIFE_QI, now);
         syncGraded(player, QiKind.ESSENCE, ModEffects.ESSENCE_QI, now);
@@ -76,7 +76,7 @@ public final class PathQiService {
 
     private static void syncGraded(ServerPlayer player, QiKind kind, Supplier<? extends MobEffect> effect, long now) {
         PathQiData data = get(player);
-        int tier = data.holding(kind, now) ? QiKind.tierOf(data.current(kind, now)) : -1;
+        int tier = data.isHolding(kind, now) ? QiKind.getTierOf(data.getCurrent(kind, now)) : -1;
         MobEffectInstance current = ModEffects.get(player, effect);
 
         if (tier < 0) {
@@ -94,7 +94,7 @@ public final class PathQiService {
     }
 
     private static void syncDeath(ServerPlayer player, long now) {
-        boolean present = get(player).current(QiKind.DEATH, now) > 0L;
+        boolean present = get(player).getCurrent(QiKind.DEATH, now) > 0L;
         MobEffectInstance current = ModEffects.get(player, ModEffects.DEATH_QI);
         if (!present) {
             if (current != null) ModEffects.remove(player, ModEffects.DEATH_QI);

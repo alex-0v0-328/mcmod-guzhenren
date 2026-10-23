@@ -57,7 +57,7 @@ public class SoulTradeMenu extends AbstractContainerMenu {
     }
 
     public SoulTradeMenu(int id, Inventory inventory, SoulTraderEntity trader) {
-        this(id, inventory, trader, trader.trader().offers());
+        this(id, inventory, trader, trader.getTrader().getOffers());
     }
 
     private SoulTradeMenu(int id, Inventory inventory, @Nullable SoulTraderEntity trader, List<SoulTradeOffer> offers) {
@@ -66,26 +66,29 @@ public class SoulTradeMenu extends AbstractContainerMenu {
         this.trader = trader;
         this.offers = List.copyOf(offers);
 
-        MenuSlots.addPlayerInventory(this::addSlot, inventory, INVENTORY_X, inventoryY(this.offers.size()),
-                hotbarY(this.offers.size()), SLOT);
+        MenuSlots.addPlayerInventory(this::addSlot, inventory, INVENTORY_X, getInventoryY(this.offers.size()),
+                getHotbarY(this.offers.size()), SLOT);
     }
 
     public static void writeOffers(FriendlyByteBuf buffer, List<SoulTradeOffer> offers) {
         SoulTradeOffer.encodeList(buffer, offers);
     }
 
-    public static int inventoryY(int offerCount) { return ROWS_Y + offerCount * ROW_H + INVENTORY_LABEL_GAP; }
+    public static int getInventoryY(int offerCount) { return ROWS_Y + offerCount * ROW_H + INVENTORY_LABEL_GAP; }
 
-    public static int hotbarY(int offerCount) { return inventoryY(offerCount) + INVENTORY_ROWS * SLOT + HOTBAR_GAP; }
+    public static int getHotbarY(int offerCount) {
+        return getInventoryY(offerCount) + INVENTORY_ROWS * SLOT + HOTBAR_GAP;
+    }
 
-    public List<SoulTradeOffer> offers() { return this.offers; }
+    public List<SoulTradeOffer> getOffers() { return this.offers; }
 
     @Override
     public boolean clickMenuButton(@NotNull Player who, int id) {
         if (who != this.player || !(who instanceof ServerPlayer server) || this.trader == null) return false;
         if (id < 0 || id >= this.offers.size()) return false;
 
-        SoulTradeOffer.Outcome outcome = this.offers.get(id).settle(server.getInventory(), this.returning(server));
+        SoulTradeOffer.Outcome outcome =
+                this.offers.get(id).settle(server.getInventory(), this.collectReturning(server));
         switch (outcome) {
             case SHORT -> ActionBar.refuse(server, SHORT);
             case NO_ROOM -> ActionBar.refuse(server, NO_ROOM);
@@ -95,7 +98,7 @@ public class SoulTradeMenu extends AbstractContainerMenu {
         return true;
     }
 
-    private List<ItemStack> returning(ServerPlayer server) {
+    private List<ItemStack> collectReturning(ServerPlayer server) {
         List<ItemStack> returning = new ArrayList<>();
         returning.add(this.getCarried());
         returning.addAll(server.inventoryMenu.getCraftSlots().getItems());

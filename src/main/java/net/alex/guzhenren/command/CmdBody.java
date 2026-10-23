@@ -2,8 +2,7 @@ package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import java.util.function.Predicate;
-import net.alex.guzhenren.command.ModCommandSupport;
-import net.alex.guzhenren.command.ModEnumArgument;
+
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
@@ -49,7 +48,7 @@ public final class CmdBody {
                 .then(enumAction("remove", Physique.values(), BodyService::removePhysique, value -> true,
                         player -> true, null))
                 .then(Commands.literal("extreme")
-                        .then(enumAction("set", ExtremePhysique.settable(), BodyService::setExtremePhysique,
+                        .then(enumAction("set", ExtremePhysique.getSettable(), BodyService::setExtremePhysique,
                                 value -> true, awakened,
                                 ModCommandSupport.FAILED_UNAWAKENED)));
     }

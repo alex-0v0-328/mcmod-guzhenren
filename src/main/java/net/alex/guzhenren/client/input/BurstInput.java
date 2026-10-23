@@ -64,7 +64,7 @@ public final class BurstInput {
         if (player == null || minecraft.screen != null || !minecraft.options.keySprint.isActiveAndMatches(key)) return;
 
         if (DOUBLE_TAP.press(ticks)
-                && (FlightService.isBursting(player) || FlightService.getGrant(player).allowsBurst())) {
+                && (FlightService.isBursting(player) || FlightService.getGrant(player).canBurst())) {
             ModNetwork.sendToServer(ToggleBurstPayload.INSTANCE);
         }
     }

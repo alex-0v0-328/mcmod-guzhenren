@@ -358,9 +358,9 @@ public final class InfoModel {
                     new PhysiqueRow(physique, body.extremePhysique()))));
         }
         rows.add(new Row(0, new RaceRow(body.race())));
-        rows.add(new Row(0, new Lifespan(body.lifespanYears(), body.ageYears())));
+        rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
         if (!strength.isEmpty() && strength.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
-            rows.add(new Row(0, new CapacityRow(BodyStrengthService.getUsableJin(player), strength.totalJin())));
+            rows.add(new Row(0, new CapacityRow(BodyStrengthService.getUsableJin(player), strength.getTotalJin())));
         }
         double attackBonus = AttackDamageService.getBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {
@@ -424,7 +424,7 @@ public final class InfoModel {
         }
         if (data.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
             rows.add(new Row(INDENT, new StrengthPathBranchRow(StrengthPathBranch.HUMAN_JUN_STRENGTH,
-                    data.totalJin(), data)));
+                    data.getTotalJin(), data)));
         }
     }
 
@@ -448,7 +448,7 @@ public final class InfoModel {
         rows.add(new Row(0, new BrillianceRow(mind.brilliance())));
         rows.add(new Row(0, new MindHeader()));
         for (MindPoolType type : MindPoolType.values()) {
-            rows.add(new Row(0, new MindRow(type, mind.pool(type))));
+            rows.add(new Row(0, new MindRow(type, mind.getPool(type))));
         }
         return rows;
     }

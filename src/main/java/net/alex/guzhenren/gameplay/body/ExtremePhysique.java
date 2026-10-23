@@ -56,7 +56,7 @@ public enum ExtremePhysique implements NamedEnum {
 
     public List<GuPath> getTalentPaths() { return talentPaths; }
 
-    public static ExtremePhysique[] settable() { return Arrays.copyOfRange(values(), 1, values().length); }
+    public static ExtremePhysique[] getSettable() { return Arrays.copyOfRange(values(), 1, values().length); }
 
     public static ExtremePhysique randomTenExtreme() {
         List<ExtremePhysique> pool = new ArrayList<>();

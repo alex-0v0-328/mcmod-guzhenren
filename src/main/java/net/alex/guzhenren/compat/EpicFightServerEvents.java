@@ -63,7 +63,7 @@ public final class EpicFightServerEvents {
         if (patch.getHoldingItemCapability(InteractionHand.MAIN_HAND).getWeaponCategory()
                 != CapabilityItem.WeaponCategories.FIST) return;
         AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (attack == null || !AttackDamageService.showsImpactRing(attack.getValue())) return;
+        if (attack == null || !AttackDamageService.isImpactRingShown(attack.getValue())) return;
 
         RingConeEmitter.punchCone(player, player.getLookAngle(),
                 event.getEntity().getBoundingBox().getCenter());

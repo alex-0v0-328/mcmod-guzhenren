@@ -42,17 +42,17 @@ public enum QiKind implements NamedEnum {
 
     public boolean isTimed() { return holdFlatTicks > 0L || holdPerTierTicks > 0L; }
 
-    public long holdTicks(int tier) {
+    public long getHoldTicks(int tier) {
         return holdFlatTicks > 0L ? holdFlatTicks : (tier + 1L) * holdPerTierTicks;
     }
 
-    public static long tierAmount(int tier) { return 10L << (2 * tier); }
+    public static long getTierAmount(int tier) { return 10L << (2 * tier); }
 
-    public static long decayPerSecond(int tier) { return 1L << tier; }
+    public static long getDecayPerSecond(int tier) { return 1L << tier; }
 
-    public static int tierOf(long amount) {
+    public static int getTierOf(long amount) {
         for (int tier = TIERS - 1; tier >= 0; tier--) {
-            if (amount >= tierAmount(tier)) return tier;
+            if (amount >= getTierAmount(tier)) return tier;
         }
         return -1;
     }

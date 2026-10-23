@@ -47,31 +47,31 @@ public final class PlayerData {
 
     public static @NotNull PlayerData get(@NotNull Player player) { return new PlayerData(player); }
 
-    public ApertureData aperture() { return owner.getData(ModAttachments.APERTURE); }
+    public ApertureData getAperture() { return owner.getData(ModAttachments.APERTURE); }
 
-    public float[] essenceCarry() { return owner.getData(ModAttachments.ESSENCE_CARRY); }
+    public float[] getEssenceCarry() { return owner.getData(ModAttachments.ESSENCE_CARRY); }
 
-    public ApertureStorage apertureStorage() { return owner.getData(ModAttachments.APERTURE_STORAGE); }
+    public ApertureStorage getApertureStorage() { return owner.getData(ModAttachments.APERTURE_STORAGE); }
 
-    public ApertureNourishData nourish() { return owner.getData(ModAttachments.APERTURE_NOURISH); }
+    public ApertureNourishData getNourish() { return owner.getData(ModAttachments.APERTURE_NOURISH); }
 
-    public BodyData body() { return owner.getData(ModAttachments.BODY); }
+    public BodyData getBody() { return owner.getData(ModAttachments.BODY); }
 
-    public SoulData soul() { return owner.getData(ModAttachments.SOUL); }
+    public SoulData getSoul() { return owner.getData(ModAttachments.SOUL); }
 
-    public PathData path() { return owner.getData(ModAttachments.PATH); }
+    public PathData getPath() { return owner.getData(ModAttachments.PATH); }
 
-    public PathStrengthData strength() { return owner.getData(ModAttachments.PATH_STRENGTH); }
+    public PathStrengthData getStrength() { return owner.getData(ModAttachments.PATH_STRENGTH); }
 
-    public PathQiData qi() { return owner.getData(ModAttachments.PATH_QI); }
+    public PathQiData getQi() { return owner.getData(ModAttachments.PATH_QI); }
 
-    public MindData mind() { return owner.getData(ModAttachments.MIND); }
+    public MindData getMind() { return owner.getData(ModAttachments.MIND); }
 
-    public DimensionReturnData dimensionReturn() { return owner.getData(ModAttachments.DIMENSION_RETURN); }
+    public DimensionReturnData getDimensionReturn() { return owner.getData(ModAttachments.DIMENSION_RETURN); }
 
-    public boolean burst() { return owner.hasData(ModAttachments.BURST); }
+    public boolean hasBurst() { return owner.hasData(ModAttachments.BURST); }
 
-    public boolean born() { return owner.getData(ModAttachments.BORN); }
+    public boolean isBorn() { return owner.getData(ModAttachments.BORN); }
 
     public boolean setAperture(@NotNull ApertureData value) { return set(ModAttachments.APERTURE, value); }
 
@@ -100,7 +100,7 @@ public final class PlayerData {
     }
 
     public boolean setBurst(boolean value) {
-        if (value == burst()) return false;
+        if (value == hasBurst()) return false;
         if (value) {
             owner.setData(ModAttachments.BURST, true);
         } else {

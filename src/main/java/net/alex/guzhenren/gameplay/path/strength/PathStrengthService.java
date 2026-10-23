@@ -23,13 +23,13 @@ public final class PathStrengthService {
     private PathStrengthService() {}
 
     public static @NotNull PathStrengthData get(@NotNull Player player) {
-        return PlayerData.get(player).strength();
+        return PlayerData.get(player).getStrength();
     }
 
     public static boolean has(@NotNull Player player, @NotNull BeastStrength beast) { return get(player).has(beast); }
 
     public static int getHumanStrength(@NotNull Player player, @NotNull HumanStrength kind) {
-        return get(player).humanStrengthCount(kind);
+        return get(player).getHumanStrengthCount(kind);
     }
 
     public static void grant(@NotNull ServerPlayer player, @NotNull BeastStrength beast) {

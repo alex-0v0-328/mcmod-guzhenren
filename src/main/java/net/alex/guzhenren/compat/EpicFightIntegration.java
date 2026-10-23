@@ -101,7 +101,7 @@ public final class EpicFightIntegration {
         if (instance == null) return;
 
         double bonus = staminaMaxPercent(player) / 100.0D;
-        if (TransientModifiers.holds(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION)) return;
+        if (TransientModifiers.hasModifier(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION)) return;
 
         TransientModifiers.swap(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION);
         ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);

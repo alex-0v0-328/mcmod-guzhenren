@@ -51,7 +51,7 @@ public class QiMaterialItem extends GuMaterialItem {
 
     public QiKind kind() { return kind; }
 
-    protected long qiAmount() { return QiKind.tierAmount(tier()); }
+    protected long qiAmount() { return QiKind.getTierAmount(tier()); }
 
     protected long essenceCost() { return essenceCost; }
 

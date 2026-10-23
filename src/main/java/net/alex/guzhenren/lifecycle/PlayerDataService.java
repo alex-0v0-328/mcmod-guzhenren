@@ -1,7 +1,6 @@
 package net.alex.guzhenren.lifecycle;
 
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
@@ -57,7 +56,7 @@ public final class PlayerDataService {
     private PlayerDataService() {}
 
     public static void onJoin(@NotNull ServerPlayer player) {
-        if (!PlayerData.get(player).born()) onBirth(player);
+        if (!PlayerData.get(player).isBorn()) onBirth(player);
         BodyService.skipOfflineLifespan(player);
         ApertureService.syncTalentMarks(player);
         MaxHealthService.refresh(player);
@@ -70,7 +69,7 @@ public final class PlayerDataService {
 
     public static void onBirth(@NotNull Player player) {
         PlayerData data = PlayerData.get(player);
-        data.setMind(MindData.newborn());
+        data.setMind(MindData.createNewborn());
         data.setBorn(true);
     }
 
@@ -96,7 +95,7 @@ public final class PlayerDataService {
     }
 
     private static void dropHumanApertures(@NotNull Player from) {
-        ApertureData data = PlayerData.get(from).aperture();
+        ApertureData data = PlayerData.get(from).getAperture();
         for (int i = 0; i < data.count(); i++) {
             Item drop = ModItems.getHumanAperture(data.get(i).rank());
             if (drop == null) continue;

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code
  * addAll} -- the {@code EnumMap(Map)} copy constructor throws on the empty maps {@code DEFAULT} uses. ⚠
  * The four layer caps (9/9/30/30) sum to exactly 9,999 jin; changing one breaks that identity. ⚠
- * {@code beastReadings()} groups by {@code BeastStrengthFamily}, not species -- two boars share one.
+ * {@code getBeastReadings()} groups by {@code BeastStrengthFamily}, not species -- two boars share one.
  *
  * @author Alex
  * @version 1.0.0
@@ -64,32 +64,32 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
 
     public boolean has(BeastStrength beast) { return beasts.contains(beast); }
 
-    public int humanStrengthCount(HumanStrength kind) { return humanStrength.getOrDefault(kind, 0); }
+    public int getHumanStrengthCount(HumanStrength kind) { return humanStrength.getOrDefault(kind, 0); }
 
     public boolean isEmpty() { return beasts.isEmpty() && humanStrength.isEmpty(); }
 
-    public PathStrengthData with(BeastStrength beast) { return rebuilt(beast, true); }
+    public PathStrengthData with(BeastStrength beast) { return rebuild(beast, true); }
 
-    public PathStrengthData without(BeastStrength beast) { return rebuilt(beast, false); }
+    public PathStrengthData without(BeastStrength beast) { return rebuild(beast, false); }
 
-    public Map<BeastStrengthFamily, Integer> beastReadings() {
+    public Map<BeastStrengthFamily, Integer> getBeastReadings() {
         Map<BeastStrengthFamily, Integer> readings = new EnumMap<>(BeastStrengthFamily.class);
         for (BeastStrength beast : beasts) readings.merge(beast.getFamily(), beast.getReading(), Integer::sum);
         return readings;
     }
 
-    public int totalJin() {
+    public int getTotalJin() {
         int total = 0;
-        for (HumanStrength kind : HumanStrength.values()) total += humanStrengthCount(kind) * kind.getJin();
+        for (HumanStrength kind : HumanStrength.values()) total += getHumanStrengthCount(kind) * kind.getJin();
         return total;
     }
 
-    public int junReading() { return reading(HumanStrength.JUN, HumanStrength.TEN_JUN); }
+    public int getJunReading() { return getReading(HumanStrength.JUN, HumanStrength.TEN_JUN); }
 
-    public int jinReading() { return reading(HumanStrength.JIN, HumanStrength.TEN_JIN); }
+    public int getJinReading() { return getReading(HumanStrength.JIN, HumanStrength.TEN_JIN); }
 
-    private int reading(HumanStrength base, HumanStrength ten) {
-        return humanStrengthCount(base) + HumanStrength.TEN_FACTOR * humanStrengthCount(ten);
+    private int getReading(HumanStrength base, HumanStrength ten) {
+        return getHumanStrengthCount(base) + HumanStrength.TEN_FACTOR * getHumanStrengthCount(ten);
     }
 
     public boolean hasPathBranch(StrengthPathBranch branch) {
@@ -107,7 +107,7 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         return new PathStrengthData(beasts, next);
     }
 
-    private PathStrengthData rebuilt(BeastStrength beast, boolean present) {
+    private PathStrengthData rebuild(BeastStrength beast, boolean present) {
         EnumSet<BeastStrength> next = EnumSet.noneOf(BeastStrength.class);
         next.addAll(beasts);
         if (present) {

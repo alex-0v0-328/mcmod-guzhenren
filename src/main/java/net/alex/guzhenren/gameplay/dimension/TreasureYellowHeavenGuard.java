@@ -43,47 +43,47 @@ public final class TreasureYellowHeavenGuard {
 
     private TreasureYellowHeavenGuard() {}
 
-    public static boolean inside(Entity entity) {
+    public static boolean isInside(Entity entity) {
         return entity.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
     }
 
-    public static boolean tradesWith(Entity target) {
+    public static boolean isSoulTrader(Entity target) {
         return target instanceof SoulTraderEntity;
     }
 
-    public static boolean refusesBreak(Player player) { return inside(player); }
+    public static boolean isBreakRefused(Player player) { return isInside(player); }
 
-    public static boolean refusesPlace(@Nullable Entity placer) {
-        return placer instanceof Player player && !player.level().isClientSide() && inside(player);
+    public static boolean isPlaceRefused(@Nullable Entity placer) {
+        return placer instanceof Player player && !player.level().isClientSide() && isInside(player);
     }
 
     /** A right click on a block or with an item ({@code target} null), or on an entity. */
-    public static boolean refusesUse(Player player, @Nullable Entity target) {
-        if (player.level().isClientSide() || !inside(player)) return false;
-        return target == null || !tradesWith(target);
+    public static boolean isUseRefused(Player player, @Nullable Entity target) {
+        if (player.level().isClientSide() || !isInside(player)) return false;
+        return target == null || !isSoulTrader(target);
     }
 
-    public static boolean refusesAttack(Player player) {
-        return !player.level().isClientSide() && inside(player);
+    public static boolean isAttackRefused(Player player) {
+        return !player.level().isClientSide() && isInside(player);
     }
 
     /** Stows a toss back into the bag; true when it went in and the toss should not happen. */
-    public static boolean takesBackToss(Player player, ItemEntity tossed) {
-        if (player.level().isClientSide() || !inside(player)) return false;
+    public static boolean tryStowToss(Player player, ItemEntity tossed) {
+        if (player.level().isClientSide() || !isInside(player)) return false;
         if (TossedItems.stow(player, tossed)) return true;
 
         ActionBar.refuse(player, INVENTORY_FULL);
         return false;
     }
 
-    public static boolean refusesDamage(LivingEntity victim, DamageSource source) {
+    public static boolean isDamageRefused(LivingEntity victim, DamageSource source) {
         if (victim.level().isClientSide()) return false;
-        if (source.getEntity() instanceof Player attacker && inside(attacker)) return true;
-        return victim instanceof Player && inside(victim) && source.is(DamageTypes.FELL_OUT_OF_WORLD);
+        if (source.getEntity() instanceof Player attacker && isInside(attacker)) return true;
+        return victim instanceof Player && isInside(victim) && source.is(DamageTypes.FELL_OUT_OF_WORLD);
     }
 
     public static void tick(ServerPlayer player) {
-        if (!inside(player)) {
+        if (!isInside(player)) {
             if (!ModDimensions.isFlightGranted(player.level().dimension())) {
                 DimensionTravelService.revokeFlight(player);
             }

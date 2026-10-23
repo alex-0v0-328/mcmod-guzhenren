@@ -138,7 +138,7 @@ public final class CmdInfo {
         @Override
         public Component visit(InfoModel.Soul entry) {
             return key("soul", entry.soul().currentSoul(), entry.soul().maxSoul())
-                    .append(ModDisplayText.detail(enumName(entry.soul().tier().getTranslationKey())));
+                    .append(ModDisplayText.detail(enumName(entry.soul().getTier().getTranslationKey())));
         }
 
         @Override

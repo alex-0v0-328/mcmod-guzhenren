@@ -19,9 +19,9 @@ public enum FlightGrant {
     FLIGHT,
     BURST;
 
-    public boolean allowsFlight() { return this != NONE; }
+    public boolean canFly() { return this != NONE; }
 
-    public boolean allowsBurst() { return this == BURST; }
+    public boolean canBurst() { return this == BURST; }
 
     public static @NotNull FlightGrant getStrongest(@NotNull FlightGrant first, @NotNull FlightGrant second) {
         return first.ordinal() >= second.ordinal() ? first : second;

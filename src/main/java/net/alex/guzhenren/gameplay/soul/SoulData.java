@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * compact ctor floors {@code maxSoul} at zero and clamps {@code currentSoul} to {@code [0, max]}.
  *
  * <p>⚠ The cap is STORED rather than derived, because nothing else determines it -- compare Epic Fight
- * stamina, whose cap the combat system owns. ⚠ {@code revived()} returns {@code 1} (not 0) and restores
+ * stamina, whose cap the combat system owns. ⚠ {@code withRevived()} returns {@code 1} (not 0) and restores
  * {@code DEFAULT_MAX_SOUL} when the cap itself was 0: a respawn may never hand back a value the lethal
  * check would fire on.
  *
@@ -46,7 +46,7 @@ public record SoulData(long maxSoul, long currentSoul) {
         buf.writeVarLong(value.currentSoul());
     }
 
-    public SoulTier tier() { return SoulTier.fromSoul(maxSoul); }
+    public SoulTier getTier() { return SoulTier.fromSoul(maxSoul); }
 
     public boolean isCollapsed() { return currentSoul <= 0L; }
 
@@ -54,9 +54,9 @@ public record SoulData(long maxSoul, long currentSoul) {
 
     public SoulData withCurrentSoul(long value) { return new SoulData(maxSoul, value); }
 
-    public SoulData refilled() { return new SoulData(maxSoul, maxSoul); }
+    public SoulData withFullSoul() { return new SoulData(maxSoul, maxSoul); }
 
-    public SoulData revived() {
+    public SoulData withRevived() {
         return new SoulData(maxSoul > 0L ? maxSoul : DEFAULT_MAX_SOUL, REVIVED_SOUL);
     }
 }

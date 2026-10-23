@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
  * cascades PRIMARY then SECOND, gains fill PRIMARY; {@code regenStep} banks the fractional remainder
  * per aperture in unsynced {@code ESSENCE_CARRY}.
  *
- * <p>⚠ Gates ask {@code getSpendable()}, never a no-index {@code getCurrentEssence()} (PRIMARY alone, and
+ * <p>⚠ Gates ask {@code spendable()}, never a no-index {@code getCurrentEssence()} (PRIMARY alone, and
  * distilling empties it). ⚠ {@code consume} burns distilled 1:2 first (rounded UP), then the pool. ⚠
  * The distilling truth is the per-aperture {@code distilling} flag, not the effect. ⚠ Any path that
  * SKIPS a regen step (choke, DEAD [死窍]) must zero that carry; {@code isChoked} outranks everything.
@@ -225,7 +225,7 @@ public final class ApertureEssenceService {
 
     public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
         ApertureData data = ApertureService.get(player);
-        float[] carry = PlayerData.get(player).essenceCarry();
+        float[] carry = PlayerData.get(player).getEssenceCarry();
 
         if (isChoked(player)) {
             Arrays.fill(carry, 0.0F);

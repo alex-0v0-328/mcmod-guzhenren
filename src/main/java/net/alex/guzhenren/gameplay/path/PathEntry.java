@@ -37,7 +37,7 @@ public record PathEntry(GuAttainment attainment, Map<MarkTag, Long> marks) {
     ).apply(instance, PathEntry::new));
 
     public PathEntry {
-        marks = normalized(marks);
+        marks = normalize(marks);
     }
 
     public static @NotNull PathEntry decode(@NotNull FriendlyByteBuf buf) {
@@ -67,7 +67,7 @@ public record PathEntry(GuAttainment attainment, Map<MarkTag, Long> marks) {
         return total;
     }
 
-    private static Map<MarkTag, Long> normalized(Map<MarkTag, Long> tags) {
+    private static Map<MarkTag, Long> normalize(Map<MarkTag, Long> tags) {
         Map<MarkTag, Long> pruned = new EnumMap<>(MarkTag.class);
         tags.forEach((tag, value) -> {
             if (value != null && value > 0L) pruned.put(tag, value);

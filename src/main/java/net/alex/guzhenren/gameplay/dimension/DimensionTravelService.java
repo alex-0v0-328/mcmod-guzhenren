@@ -117,7 +117,7 @@ public final class DimensionTravelService {
     }
 
     public static boolean exit(@NotNull ServerPlayer player) {
-        DimensionReturnData data = PlayerData.get(player).dimensionReturn();
+        DimensionReturnData data = PlayerData.get(player).getDimensionReturn();
         if (data.isPresent()) {
             ReturnPoint point = data.point().orElseThrow();
             ServerLevel target = player.server.getLevel(point.level());
@@ -125,7 +125,7 @@ public final class DimensionTravelService {
             if (used) {
                 player.teleportTo(target, point.x(), point.y(), point.z(), point.yaw(), point.pitch());
                 revokeFlight(player);
-                player.getAbilities().flying = point.flying() && FlightAbility.mayFly(player);
+                player.getAbilities().flying = point.flying() && FlightAbility.canFly(player);
                 player.fallDistance = 0.0F;
                 player.onUpdateAbilities();
             } else {
@@ -159,7 +159,7 @@ public final class DimensionTravelService {
 
     public static void revokeFlight(@NotNull ServerPlayer player) {
         if (!FlightAbility.revoke(player, FLIGHT_MODIFIER_ID)) return;
-        if (player.getAbilities().flying && !FlightAbility.mayFly(player)) {
+        if (player.getAbilities().flying && !FlightAbility.canFly(player)) {
             player.getAbilities().flying = false;
             player.onUpdateAbilities();
         }

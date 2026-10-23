@@ -157,7 +157,7 @@ final class InfoRowRenderer {
         public ScreenRow visit(InfoModel.Soul entry) {
             return new ScreenRow(indent, label("soul"),
                     Component.literal(ModDisplayText.pool(entry.soul().currentSoul(), entry.soul().maxSoul()))
-                            .append(ModDisplayText.detail(name(entry.soul().tier().getTranslationKey()))));
+                            .append(ModDisplayText.detail(name(entry.soul().getTier().getTranslationKey()))));
         }
 
         @Override

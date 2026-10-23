@@ -72,7 +72,7 @@ public final class ApertureService {
         }
     }
 
-    public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).aperture(); }
+    public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).getAperture(); }
 
     public static @NotNull Aperture getAperture(@NotNull Player player) { return get(player).getPrimary(); }
 

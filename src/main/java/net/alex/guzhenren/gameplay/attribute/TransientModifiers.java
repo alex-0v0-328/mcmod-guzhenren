@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * integration spell one out.
  *
  * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
- * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #holds} that modifier, or holds none
+ * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #hasModifier} that modifier, or holds none
  * and the amount is zero; refreshes run on every write and every heartbeat, so re-issuing the modifier each
  * time would churn the attribute sync.
  *
@@ -34,14 +34,14 @@ public final class TransientModifiers {
 
     public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
             @NotNull AttributeModifier.Operation operation) {
-        if (instance.getModifier(id) == null ? amount == 0.0D : holds(instance, id, amount, operation)) return;
+        if (instance.getModifier(id) == null ? amount == 0.0D : hasModifier(instance, id, amount, operation)) return;
 
         instance.removeModifier(id);
         if (amount != 0.0D) instance.addTransientModifier(new AttributeModifier(id, amount, operation));
     }
 
-    public static boolean holds(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
-            @NotNull AttributeModifier.Operation operation) {
+    public static boolean hasModifier(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,
+                                      @NotNull AttributeModifier.Operation operation) {
         AttributeModifier held = instance.getModifier(id);
         return held != null && held.amount() == amount && held.operation() == operation;
     }

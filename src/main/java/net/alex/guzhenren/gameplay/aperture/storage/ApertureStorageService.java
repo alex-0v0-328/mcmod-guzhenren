@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * passes the binding on ({@link #adoptVital}): its token replaces the kind's token in the store.
  *
  * <p>A write is refused only when it ends above both {@code MAX_LOAD} and the load it started from, so an
- * over-full store (a rank that fell) can still be emptied; {@code isOverLoad} counts the starting load only
+ * over-full store (a rank that fell) can still be emptied; {@code exceedsLoad} counts the starting load only
  * when the result is over the cap. {@link #setSlot} writes one stored Gu back, the per-second settle's write.
  *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of
@@ -52,7 +52,7 @@ public final class ApertureStorageService {
     public static final int MAX_LOAD = 256;
 
     public static @NotNull ApertureStorage get(@NotNull Player player) {
-        return PlayerData.get(player).apertureStorage();
+        return PlayerData.get(player).getApertureStorage();
     }
 
     public static @NotNull List<ItemStack> getItems(@NotNull Player player, int aperture) {

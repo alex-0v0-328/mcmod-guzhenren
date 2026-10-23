@@ -29,47 +29,47 @@ public final class TreasureYellowHeavenGuardEvents {
 
     @SubscribeEvent
     public static void onBreakBlock(BlockEvent.BreakEvent event) {
-        if (TreasureYellowHeavenGuard.refusesBreak(event.getPlayer())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isBreakRefused(event.getPlayer())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
-        if (TreasureYellowHeavenGuard.refusesPlace(event.getEntity())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isPlaceRefused(event.getEntity())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), null)) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isUseRefused(event.getEntity(), null)) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
-        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), null)) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isUseRefused(event.getEntity(), null)) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), event.getTarget())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isUseRefused(event.getEntity(), event.getTarget())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), event.getTarget())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isUseRefused(event.getEntity(), event.getTarget())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onAttackEntity(AttackEntityEvent event) {
-        if (TreasureYellowHeavenGuard.refusesAttack(event.getEntity())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isAttackRefused(event.getEntity())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
-        if (TreasureYellowHeavenGuard.takesBackToss(event.getPlayer(), event.getEntity())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.tryStowToss(event.getPlayer(), event.getEntity())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        if (TreasureYellowHeavenGuard.refusesDamage(event.getEntity(), event.getSource())) event.setCanceled(true);
+        if (TreasureYellowHeavenGuard.isDamageRefused(event.getEntity(), event.getSource())) event.setCanceled(true);
     }
 
     @SubscribeEvent

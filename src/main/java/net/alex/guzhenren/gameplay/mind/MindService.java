@@ -33,14 +33,14 @@ public final class MindService {
 
     public static final int ZOMBIE_THOUGHT_INTERVAL_TICKS = 5 * Ticks.SECOND;
 
-    private static boolean thinksThisStep(ServerPlayer player) {
+    private static boolean canThinkThisStep(ServerPlayer player) {
         return !BodyService.isZombie(player) || player.tickCount % ZOMBIE_THOUGHT_INTERVAL_TICKS == 0;
     }
 
-    public static @NotNull MindData get(@NotNull Player player) { return PlayerData.get(player).mind(); }
+    public static @NotNull MindData get(@NotNull Player player) { return PlayerData.get(player).getMind(); }
 
     public static @NotNull MindPool getPool(@NotNull Player player, @NotNull MindPoolType type) {
-        return get(player).pool(type);
+        return get(player).getPool(type);
     }
 
     public static long getCurrent(@NotNull Player player, @NotNull MindPoolType type) {
@@ -79,7 +79,7 @@ public final class MindService {
         if (amount <= 0L) return;
         MindData data = get(player);
         MindData added = withCurrent(data, MindPoolType.THOUGHTS,
-                LongMath.saturatedAdd(data.pool(MindPoolType.THOUGHTS).current(), amount));
+                LongMath.saturatedAdd(data.getPool(MindPoolType.THOUGHTS).current(), amount));
         if (tag != ThoughtTag.NATURAL) {
             long tagged = added.taggedThoughts().getOrDefault(tag, 0L);
             added = added.withTagged(tag, LongMath.saturatedAdd(tagged, amount));
@@ -95,10 +95,10 @@ public final class MindService {
         setMax(player, type, LongMath.saturatedAdd(getMax(player, type), delta));
     }
 
-    public static void empty(@NotNull ServerPlayer player) { store(player, get(player).emptied()); }
+    public static void empty(@NotNull ServerPlayer player) { store(player, get(player).withEmptied()); }
 
     private static MindData withCurrent(MindData data, MindPoolType type, long value) {
-        MindPool pool = data.pool(type);
+        MindPool pool = data.getPool(type);
         return data.with(type, pool.withCurrent(type.isBurstable() ? value : Math.min(value, pool.max())));
     }
 
@@ -124,7 +124,7 @@ public final class MindService {
     }
 
     public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
-        if (!thinksThisStep(player)) return;
+        if (!canThinkThisStep(player)) return;
 
         MindPool thoughts = getPool(player, MindPoolType.THOUGHTS);
         if (thoughts.current() >= thoughts.max()) return;
@@ -135,6 +135,6 @@ public final class MindService {
     }
 
     public static void onSleepComplete(@NotNull ServerPlayer player) {
-        set(player, MindPoolType.THOUGHTS, getPool(player, MindPoolType.THOUGHTS).slept());
+        set(player, MindPoolType.THOUGHTS, getPool(player, MindPoolType.THOUGHTS).withSlept());
     }
 }
