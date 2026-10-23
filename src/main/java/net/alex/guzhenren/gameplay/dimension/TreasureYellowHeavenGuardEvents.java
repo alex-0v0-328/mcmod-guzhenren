@@ -1,16 +1,7 @@
 package net.alex.guzhenren.gameplay.dimension;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.core.TossedItems;
-import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
-import net.alex.guzhenren.registry.world.ModDimensions;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
@@ -21,126 +12,68 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Server-authority guard for the Treasure Yellow Heaven [宝黄天] anchored dimension. While inside,
- * a player may only move, fly, chat, and use the exit command; every other interaction is canceled
- * here. Void damage is also canceled so the rescue handler below can return the player to spawn.
- *
- * <p>All checks are server-side. The few events that also fire on the client are guarded with
- * {@code !level.isClientSide()} so action is taken exactly once per interaction.
- *
- * <p>In {@link #onPlayerTick}, leaving by any route -- exit, vanilla {@code /tp}, another mod's
- * teleport -- drops the flight grant, unless the player stands in another anchored dimension that grants
- * flight.
- *
- * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
- * for. Attacks on it stay canceled like every other attack.
- *
- * <p>⚠ A toss goes back into the bag through {@link TossedItems#stow}, which never drops; what does not fit
- * hovers where it was dropped and despawns like any dropped item, and the player is told the bag is full.
+ * Hands each interaction inside the Treasure Yellow Heaven [宝黄天] to {@link TreasureYellowHeavenGuard} and
+ * cancels what it refuses. Loader glue only: the events differ between the NeoForge 1.21.1 mainline and the
+ * Forge 1.20.1 port, the rules behind them do not.
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.dimension.DimensionTravelService
+ * @see TreasureYellowHeavenGuard
  * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)
 public final class TreasureYellowHeavenGuardEvents {
 
-    private static final String INVENTORY_FULL = "guzhenren.dimension.treasure_yellow_heaven.inventory_full";
-
     private TreasureYellowHeavenGuardEvents() {}
-
-    private static boolean inTyh(Entity entity) {
-        return entity.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
-    }
 
     @SubscribeEvent
     public static void onBreakBlock(BlockEvent.BreakEvent event) {
-        if (inTyh(event.getPlayer())) {
-            event.setCanceled(true);
-        }
+        if (TreasureYellowHeavenGuard.refusesBreak(event.getPlayer())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
-        if (event.getLevel().isClientSide()) return;
-        if (event.getEntity() instanceof Player player && inTyh(player)) {
-            event.setCanceled(true);
-        }
+        if (TreasureYellowHeavenGuard.refusesPlace(event.getEntity())) event.setCanceled(true);
     }
 
     @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) { cancelInTyh(event); }
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), null)) event.setCanceled(true);
+    }
 
     @SubscribeEvent
-    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) { cancelInTyh(event); }
+    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), null)) event.setCanceled(true);
+    }
 
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!tradesWith(event.getTarget())) cancelInTyh(event);
+        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), event.getTarget())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        if (!tradesWith(event.getTarget())) cancelInTyh(event);
-    }
-
-    private static <E extends PlayerInteractEvent & ICancellableEvent> void cancelInTyh(E event) {
-        if (!event.getLevel().isClientSide() && inTyh(event.getEntity())) event.setCanceled(true);
-    }
-
-    public static boolean tradesWith(Entity target) {
-        return target instanceof SoulTraderEntity;
+        if (TreasureYellowHeavenGuard.refusesUse(event.getEntity(), event.getTarget())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onAttackEntity(AttackEntityEvent event) {
-        if (event.getEntity().level().isClientSide()) return;
-        if (inTyh(event.getEntity())) {
-            event.setCanceled(true);
-        }
+        if (TreasureYellowHeavenGuard.refusesAttack(event.getEntity())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
-        if (event.getPlayer().level().isClientSide()) return;
-        if (!inTyh(event.getPlayer())) return;
-
-        Player player = event.getPlayer();
-        if (TossedItems.stow(player, event.getEntity())) {
-            event.setCanceled(true);
-            return;
-        }
-        player.displayClientMessage(Component.translatable(INVENTORY_FULL).withStyle(ChatFormatting.RED), true);
+        if (TreasureYellowHeavenGuard.takesBackToss(event.getPlayer(), event.getEntity())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        if (event.getEntity().level().isClientSide()) return;
-
-        if (event.getSource().getEntity() instanceof Player attacker && inTyh(attacker)) {
-            event.setCanceled(true);
-            return;
-        }
-
-        if (event.getEntity() instanceof Player victim && inTyh(victim)
-                && event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD)) {
-            event.setCanceled(true);
-        }
+        if (TreasureYellowHeavenGuard.refusesDamage(event.getEntity(), event.getSource())) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!inTyh(player)) {
-            if (!ModDimensions.isFlightGranted(player.level().dimension())) {
-                DimensionTravelService.revokeFlight(player);
-            }
-            return;
-        }
-
-        DimensionTravelService.ensureFlight(player);
-        DimensionTravelService.rescueIfBelowVoid(player, ModDimensions.TREASURE_YELLOW_HEAVEN_SPAWN);
+        if (event.getEntity() instanceof ServerPlayer player) TreasureYellowHeavenGuard.tick(player);
     }
 }
