@@ -1,0 +1,60 @@
+name: Build
+
+# The Forge 1.20.1 branch. main (NeoForge 1.21.1) runs its own workflow; the filters keep a workflow that a
+# sync merge carries across from running on the wrong line.
+on:
+  push:
+    branches: [mc1.20.1]
+  pull_request:
+    branches: [mc1.20.1]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # The build compiles against these through fg.deobf from pack/mods, which is gitignored; CI fetches them.
+      - name: Download Epic Fight
+        run: |
+          mkdir -p pack/mods
+          epic_fight_file=epic-fight-20.14.17-mc1.20.1-forge.jar
+          epic_fight_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/KEBfkBat | jq -er --arg file "$epic_fight_file" '.files[] | select(.filename == $file) | .url')
+          curl --fail --location --retry 3 "$epic_fight_url" -o "pack/mods/$epic_fight_file"
+
+      - name: Download GeckoLib
+        run: |
+          mkdir -p pack/mods
+          geckolib_file=geckolib-forge-1.20.1-4.8.4.jar
+          geckolib_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/aC5KMoNg | jq -er --arg file "$geckolib_file" '.files[] | select(.filename == $file) | .url')
+          curl --fail --location --retry 3 "$geckolib_url" -o "pack/mods/$geckolib_file"
+
+      # The test suites are local-only (src/test is gitignored) and run through the maintainer's ship tool;
+      # this branch's GameTests and smoke tests run when it syncs from main.
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      # src/generated/resources is a committed source set, and 'build' happily packs a stale one.
+      # git diff alone would miss a provider change that ADDS a file, so this asks git status.
+      - name: Generated resources are up to date
+        run: |
+          ./gradlew runData -PdataRun
+          if [ -n "$(git status --porcelain -- src/generated)" ]; then
+            echo "::error::src/generated is stale. Run ./gradlew runData -PdataRun and commit the result."
+            git status --porcelain -- src/generated
+            git --no-pager diff -- src/generated
+            exit 1
+          fi
