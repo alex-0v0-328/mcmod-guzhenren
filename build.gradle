@@ -111,6 +111,9 @@ neoForge {
             sourceSet = sourceSets.gametest
             gameDirectory = project.file(providers.gradleProperty('gameTestDir').getOrElse('run-gametest'))
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // The run is boot-bound (mod loading outweighs the test ticks several times over), so C1-only JIT
+            // finishes sooner than tiered C2, which never pays back in a run this short.
+            jvmArgument '-XX:TieredStopAtLevel=1'
         }
 
         data {
@@ -229,6 +232,11 @@ tasks.register('pureTest', Test) {
     }
 }
 check.dependsOn pureTest
+
+// Both JUnit JVMs live for seconds and spend them loading classes: C1-only JIT starts them faster.
+tasks.withType(Test).configureEach {
+    jvmArgs '-XX:TieredStopAtLevel=1'
+}
 
 tasks.named('test', Test) {
     workingDir junitGameDir
