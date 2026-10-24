@@ -43,28 +43,25 @@ base {
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // Every test lives under src/test, one folder per layer, and none of them ships in the jar:
-//   pure    L1 'pureTest': plain JVM, no Minecraft bootstrap -- enum ladders, math seams and
-//           self-contained records. Anything touching Items.X / ModItems.X / ItemStack is L2.
-//   modded  L2 'test': modded JUnit with registries loaded but no world.
-//   game    L3 'gametest': @GameTest classes plus their scene templates, run by runGameTestServer
+//   pure    L1 'pureTest': plain JVM JUnit, nothing booted -- formulas, codecs and resource files.
+//           Anything touching a registered object (ModItems.X.get(), ItemStack, Items.X, MobEffect, an
+//           entity type) or whose class loads a registry is L2.
+//   game    L2 'gametest': @GameTest classes plus their scene templates, run by runGameTestServer
 //           on a real dedicated server. The source set joins the mod below, so dev runs still find
 //           the tests (and the /test command), while the jar task packs only 'main'.
 sourceSets {
-    test {
-        java.srcDirs = ['src/test/modded/java']
-        resources.srcDirs = ['src/test/modded/resources']
-    }
-    pureTest {
-        java.srcDirs = ['src/test/pure/java']
-        resources.srcDirs = ['src/test/pure/resources']
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
-    }
     gametest {
         java.srcDirs = ['src/test/game/java']
         resources.srcDirs = ['src/test/game/resources']
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
+    }
+    // The pure tests share the wiki table parser with the GameTests that check the item tables.
+    pureTest {
+        java.srcDirs = ['src/test/pure/java']
+        resources.srcDirs = ['src/test/pure/resources']
+        compileClasspath += sourceSets.main.output + sourceSets.gametest.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.gametest.output
     }
 }
 
@@ -111,6 +108,10 @@ neoForge {
             sourceSet = sourceSets.gametest
             gameDirectory = project.file(providers.gradleProperty('gameTestDir').getOrElse('run-gametest'))
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // -PwikiDir turns on the wiki item-table GameTests (WikiItemsGameTests), as it does pureTest's wiki gate.
+            if (providers.gradleProperty('wikiDir').isPresent()) {
+                systemProperty 'gzr.wikiDir', file(providers.gradleProperty('wikiDir').get()).absolutePath
+            }
             // The run is boot-bound (mod loading outweighs the test ticks several times over), so C1-only JIT
             // finishes sooner than tiered C2, which never pays back in a run this short.
             jvmArgument '-XX:TieredStopAtLevel=1'
@@ -153,13 +154,6 @@ neoForge {
             }
         }
     }
-
-    // Plain JUnit over the pure logic -- the derived formulas, the enum ladders and the GuSpec
-    // self-check. Anything needing a live world belongs in a GameTest instead, not here.
-    unitTest {
-        enable()
-        testedMod = mods."${mod_id}"
-    }
 }
 
 // Sets up a dependency configuration called 'localRuntime'.
@@ -178,11 +172,9 @@ def guWorldLibs = file(providers.gradleProperty('guWorldDir').getOrElse('../mcmo
 dependencies {
     compileOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
     localRuntime files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
-    testRuntimeOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
 
     compileOnly files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
     localRuntime files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
-    testImplementation files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
 
     // Curios. The ':api' classifier ships only the public packages, so an internal API cannot be
     // reached by accident. The full jar has to stay on the runtime classpath: runData loads
@@ -191,10 +183,6 @@ dependencies {
     localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
 
     localRuntime fileTree(dir: guWorldLibs, include: 'guworld-*.jar', exclude: '*-sources.jar')
-
-    testImplementation platform("org.junit:junit-bom:${junit_version}")
-    testImplementation "org.junit.jupiter:junit-jupiter"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 def junitGameDir = project.file('build/minecraft-junit')
@@ -213,34 +201,23 @@ dependencies {
     pureTestImplementation platform("org.junit:junit-bom:${junit_version}")
     pureTestImplementation "org.junit.jupiter:junit-jupiter"
     pureTestRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    // The animation and model tests parse GeckoLib's baked formats; the dash ring test loads Epic Fight's types.
+    pureTestImplementation files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
+    pureTestRuntimeOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
 }
 
 tasks.register('pureTest', Test) {
-    description = 'Runs the pure JVM test source set without booting the modded runtime.'
+    description = 'Runs the pure JVM test source set without loading the mod.'
     group = 'verification'
     workingDir junitGameDir
-    // The test process cannot start in a missing directory, and only the moddev 'test' task creates
-    // it: after a clean (Gu World's check builds this project's jar from clean) pureTest may run first.
+    // The test process cannot start in a missing directory: after a clean (Gu World's check builds this
+    // project's jar from clean) nothing else has created it.
     doFirst { junitGameDir.mkdirs() }
     testClassesDirs = sourceSets.pureTest.output.classesDirs
     classpath = sourceSets.pureTest.runtimeClasspath
     useJUnitPlatform()
-    systemProperty 'gzr.projectDir', projectDir.absolutePath
-    testLogging {
-        events 'failed'
-        exceptionFormat = 'full'
-    }
-}
-check.dependsOn pureTest
-
-// Both JUnit JVMs live for seconds and spend them loading classes: C1-only JIT starts them faster.
-tasks.withType(Test).configureEach {
+    // The JVM lives for seconds and spends them loading classes: C1-only JIT starts it faster.
     jvmArgs '-XX:TieredStopAtLevel=1'
-}
-
-tasks.named('test', Test) {
-    workingDir junitGameDir
-    useJUnitPlatform()
     systemProperty 'gzr.projectDir', projectDir.absolutePath
     if (providers.gradleProperty('wikiDir').isPresent()) {
         def configuredWikiDir = providers.gradleProperty('wikiDir').get()
@@ -264,6 +241,7 @@ tasks.named('test', Test) {
         exceptionFormat = 'full'
     }
 }
+check.dependsOn pureTest
 
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
