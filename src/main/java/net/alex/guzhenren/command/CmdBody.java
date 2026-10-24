@@ -19,7 +19,7 @@ import net.minecraft.util.StringRepresentable;
  * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, lifespan and age. The
  * path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a
  * mortal ages and changes form too -- except {@code extreme set}, which needs an awakened target. That gate
- * comes in through {@link #node} from the command root, so the body package never names the aperture package.
+ * comes in through {@link #buildNode} from the command root, so the body package never names the aperture package.
  *
  * @author Alex
  * @version 1.0.0
@@ -31,7 +31,7 @@ public final class CmdBody {
 
     private CmdBody() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node(Predicate<ServerPlayer> awakened) {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode(Predicate<ServerPlayer> awakened) {
         return Commands.literal("body")
                 .then(buildPhysique(awakened))
                 .then(ModCommandSupport.buildEnumSetNode("race", Race.values(),

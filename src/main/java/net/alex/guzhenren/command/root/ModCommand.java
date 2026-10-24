@@ -57,7 +57,7 @@ public final class ModCommand {
                         .then(CmdAwaken.buildNode())
                         .then(CmdReset.buildNode())
                         .then(CmdAperture.buildNode())
-                        .then(CmdBody.node(AwakenedGate.AWAKENED))
+                        .then(CmdBody.buildNode(AwakenedGate.AWAKENED))
                         .then(CmdSoul.buildNode())
                         .then(CmdPath.buildNode())
                         .then(CmdMind.buildNode()));

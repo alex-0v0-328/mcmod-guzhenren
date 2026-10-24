@@ -59,14 +59,14 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
     public ApertureStorage {
         List<List<ItemStack>> kept = new ArrayList<>();
         for (int i = 0; i < Math.min(byAperture.size(), ApertureData.MAX_APERTURES); i++) {
-            List<ItemStack> items = own(byAperture.get(i), Integer.MAX_VALUE);
+            List<ItemStack> items = copyOwned(byAperture.get(i), Integer.MAX_VALUE);
             while (!items.isEmpty() && items.get(items.size() - 1).isEmpty()) items.remove(items.size() - 1);
             kept.add(new OwnedStacks(items));
         }
         while (!kept.isEmpty() && kept.get(kept.size() - 1).isEmpty()) kept.remove(kept.size() - 1);
         byAperture = Collections.unmodifiableList(kept);
 
-        List<ItemStack> bound = own(vital, ApertureData.MAX_APERTURES);
+        List<ItemStack> bound = copyOwned(vital, ApertureData.MAX_APERTURES);
         while (!bound.isEmpty() && bound.get(bound.size() - 1).isEmpty()) bound.remove(bound.size() - 1);
         vital = new OwnedStacks(bound);
         tokens = List.copyOf(tokens.subList(0, Math.min(tokens.size(), ApertureData.MAX_APERTURES)));
@@ -193,7 +193,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return copies;
     }
 
-    private static List<ItemStack> own(List<ItemStack> stacks, int limit) {
+    private static List<ItemStack> copyOwned(List<ItemStack> stacks, int limit) {
         List<ItemStack> head = stacks.size() > limit ? stacks.subList(0, limit) : stacks;
         if (stacks instanceof OwnedStacks) return new ArrayList<>(head);
         return copyStacks(head);

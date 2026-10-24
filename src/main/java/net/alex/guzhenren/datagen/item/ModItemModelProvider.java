@@ -57,8 +57,8 @@ public class ModItemModelProvider extends ItemModelProvider {
     }
 
     private void registerLeafStagedItem(String name) {
-        ItemModelBuilder half = flatItem(name + "_half");
-        ItemModelBuilder empty = flatItem(name + "_empty");
+        ItemModelBuilder half = buildFlatItem(name + "_half");
+        ItemModelBuilder empty = buildFlatItem(name + "_empty");
         getBuilder(name)
                 .parent(GENERATED)
                 .texture("layer0", modLoc("item/" + name + "_full"))
@@ -66,7 +66,7 @@ public class ModItemModelProvider extends ItemModelProvider {
                 .override().predicate(NineLeafVitalityGrassItem.PICKED, LeafGrowth.PICKED_BARE).model(empty).end();
     }
 
-    private ItemModelBuilder flatItem(String name) {
+    private ItemModelBuilder buildFlatItem(String name) {
         return getBuilder(name).parent(GENERATED).texture("layer0", modLoc("item/" + name));
     }
 }
