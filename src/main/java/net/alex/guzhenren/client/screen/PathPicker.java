@@ -46,10 +46,10 @@ final class PathPicker {
 
     void render(GuiGraphics graphics, Font font, int panelLeft, int panelTop, int panelW, int panelH, int mouseX,
                 int mouseY, int accent) {
-        int x0 = left(panelLeft, panelW);
-        int y0 = top(panelTop, panelH);
-        int w = width();
-        int h = height();
+        int x0 = getLeft(panelLeft, panelW);
+        int y0 = getTop(panelTop, panelH);
+        int w = getWidth();
+        int h = getHeight();
 
         GuiBatch.draw(graphics, () -> {
             Widgets.drawPanel(graphics, x0, y0, w, h, ModPalette.MODAL_FILL);
@@ -64,21 +64,21 @@ final class PathPicker {
                 if (Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) {
                     graphics.fill(cx, cy, cx + CELL_W, cy + CELL_H, PlayerInfoScreen.ROW_HOVER);
                 }
-                graphics.drawString(font, ModDisplayText.path(path(i)), cx + 3,
+                graphics.drawString(font, ModDisplayText.formatPath(getPath(i)), cx + 3,
                         cy + (CELL_H - font.lineHeight) / 2, ModPalette.TEXT, false);
             }
         });
     }
 
     void click(double mouseX, double mouseY, int panelLeft, int panelTop, int panelW, int panelH) {
-        int x0 = left(panelLeft, panelW) + PAD;
-        int y0 = top(panelTop, panelH) + PAD + PlayerInfoScreen.HEADER_H;
+        int x0 = getLeft(panelLeft, panelW) + PAD;
+        int y0 = getTop(panelTop, panelH) + PAD + PlayerInfoScreen.HEADER_H;
         for (int i = 0; i < count(); i++) {
             int cx = x0 + (i % COLS) * CELL_W;
             int cy = y0 + (i / COLS) * CELL_H;
             if (!Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) continue;
 
-            ModNetwork.sendToServer(new SetSecondaryPathPayload(aperture, path(i)));
+            ModNetwork.sendToServer(new SetSecondaryPathPayload(aperture, getPath(i)));
             open = false;
             return;
         }
@@ -87,15 +87,15 @@ final class PathPicker {
 
     private static int count() { return GuPath.values().length + 1; }
 
-    private static @Nullable GuPath path(int index) { return index == 0 ? null : GuPath.values()[index - 1]; }
+    private static @Nullable GuPath getPath(int index) { return index == 0 ? null : GuPath.values()[index - 1]; }
 
-    private static int rows() { return (count() + COLS - 1) / COLS; }
+    private static int getRows() { return (count() + COLS - 1) / COLS; }
 
-    private static int width() { return COLS * CELL_W + PAD * 2; }
+    private static int getWidth() { return COLS * CELL_W + PAD * 2; }
 
-    private static int height() { return rows() * CELL_H + PAD * 2 + PlayerInfoScreen.HEADER_H; }
+    private static int getHeight() { return getRows() * CELL_H + PAD * 2 + PlayerInfoScreen.HEADER_H; }
 
-    private static int left(int panelLeft, int panelW) { return panelLeft + (panelW - width()) / 2; }
+    private static int getLeft(int panelLeft, int panelW) { return panelLeft + (panelW - getWidth()) / 2; }
 
-    private static int top(int panelTop, int panelH) { return panelTop + (panelH - height()) / 2; }
+    private static int getTop(int panelTop, int panelH) { return panelTop + (panelH - getHeight()) / 2; }
 }

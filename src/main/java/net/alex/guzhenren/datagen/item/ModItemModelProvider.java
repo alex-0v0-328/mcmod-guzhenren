@@ -49,14 +49,14 @@ public class ModItemModelProvider extends ItemModelProvider {
                 continue;
             }
             if (item instanceof NineLeafVitalityGrassItem) {
-                leafStagedItem(entry.getId().getPath());
+                registerLeafStagedItem(entry.getId().getPath());
                 continue;
             }
             basicItem(item);
         }
     }
 
-    private void leafStagedItem(String name) {
+    private void registerLeafStagedItem(String name) {
         ItemModelBuilder half = flatItem(name + "_half");
         ItemModelBuilder empty = flatItem(name + "_empty");
         getBuilder(name)

@@ -54,7 +54,7 @@ public final class ChargeHud extends HotbarHud {
         float progress = own != null ? own : 1.0F - remaining / (float) total;
 
         int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
-        int y = barTop(minecraft);
+        int y = getBarTop(minecraft);
 
         draw(graphics, minecraft, x, y, progress, gu.chargeColor(stack, remaining), gu.chargeCaption(stack, remaining));
     }

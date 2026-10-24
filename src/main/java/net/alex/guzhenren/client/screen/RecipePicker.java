@@ -80,12 +80,12 @@ final class RecipePicker {
     int click(double mouseX, double mouseY, List<GuRecipe> known, int panelLeft, int panelTop,
               int panelW, int panelH) {
         int visible = Math.min(MAX_ROWS, known.size() + 1);
-        int x0 = left(panelLeft, panelW);
-        int y0 = top(panelTop, panelH, visible);
+        int x0 = getLeft(panelLeft, panelW);
+        int y0 = getTop(panelTop, panelH, visible);
         open = false;
 
         for (int i = 0; i < visible; i++) {
-            int rowY = rowY(y0, i);
+            int rowY = getRowY(y0, i);
             if (!Widgets.isOver(mouseX, mouseY, x0, rowY, W, ROW_H)) continue;
 
             int row = scroll + i;
@@ -100,35 +100,35 @@ final class RecipePicker {
         int visible = Math.min(MAX_ROWS, rows);
         scroll = Mth.clamp(scroll, 0, rows - visible);
 
-        int x0 = left(panelLeft, panelW);
-        int y0 = top(panelTop, panelH, visible);
-        int hovered = hoveredRow(x0, y0, visible, mouseX, mouseY);
+        int x0 = getLeft(panelLeft, panelW);
+        int y0 = getTop(panelTop, panelH, visible);
+        int hovered = getHoveredRow(x0, y0, visible, mouseX, mouseY);
 
         GuiBatch.draw(graphics, () -> {
             fillFrame(graphics, selected, hovered, x0, y0, visible);
-            for (int i = 0; i < visible; i++) drawIcon(graphics, known, scroll + i, x0, rowY(y0, i));
+            for (int i = 0; i < visible; i++) drawIcon(graphics, known, scroll + i, x0, getRowY(y0, i));
             graphics.drawString(font, Component.translatable(TITLE_KEY), x0 + PAD,
                     y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
-            for (int i = 0; i < visible; i++) drawText(graphics, font, known, scroll + i, x0, rowY(y0, i));
+            for (int i = 0; i < visible; i++) drawText(graphics, font, known, scroll + i, x0, getRowY(y0, i));
         });
         if (hovered >= 1) {
-            graphics.renderComponentTooltip(font, details(known.get(hovered - 1)), mouseX, mouseY);
+            graphics.renderComponentTooltip(font, formatDetails(known.get(hovered - 1)), mouseX, mouseY);
         }
     }
 
-    private int hoveredRow(int x0, int y0, int visible, int mouseX, int mouseY) {
+    private int getHoveredRow(int x0, int y0, int visible, int mouseX, int mouseY) {
         for (int i = 0; i < visible; i++) {
-            if (Widgets.isOver(mouseX, mouseY, x0, rowY(y0, i), W, ROW_H)) return scroll + i;
+            if (Widgets.isOver(mouseX, mouseY, x0, getRowY(y0, i), W, ROW_H)) return scroll + i;
         }
         return -1;
     }
 
     private void fillFrame(GuiGraphics graphics, int selected, int hovered, int x0, int y0, int visible) {
-        Widgets.drawPanel(graphics, x0, y0, W, height(visible), ModPalette.MODAL_FILL);
+        Widgets.drawPanel(graphics, x0, y0, W, getHeight(visible), ModPalette.MODAL_FILL);
         Widgets.drawRule(graphics, x0 + PAD, y0 + HEADER_H, x0 + W - PAD, ModPalette.BORDER);
         for (int i = 0; i < visible; i++) {
             int row = scroll + i;
-            int rowY = rowY(y0, i);
+            int rowY = getRowY(y0, i);
             if (row == hovered) graphics.fill(x0 + 1, rowY, x0 + W - 1, rowY + ROW_H, ModPalette.BUTTON_IDLE);
             if (row - 1 == selected) graphics.renderOutline(x0 + 1, rowY, W - 2, ROW_H, ModPalette.REFINEMENT);
         }
@@ -156,7 +156,7 @@ final class RecipePicker {
         graphics.drawString(font, rate, x0 + W - PAD - font.width(rate), textY, ModPalette.LEGEND_TEXT, false);
     }
 
-    private static List<Component> details(GuRecipe recipe) {
+    private static List<Component> formatDetails(GuRecipe recipe) {
         List<Component> lines = new ArrayList<>();
         lines.add(RecipeGhosts.getResult(recipe).getHoverName());
         lines.add(Component.translatable(NEEDS_KEY));
@@ -164,14 +164,14 @@ final class RecipePicker {
             lines.add(Component.translatable(ITEM_KEY, need.count(), RecipeGhosts.getOption(need).getHoverName()));
         }
         lines.add(Component.translatable(WINDOWS_KEY, recipe.getWindowCount(), recipe.getTotalSeconds()));
-        lines.add(Component.translatable(STONES_KEY, stoneList(recipe)));
+        lines.add(Component.translatable(STONES_KEY, formatStoneList(recipe)));
         lines.add(Component.translatable(COST_KEY, recipe.essencePerSecond()));
         lines.add(Component.translatable(SOUL_KEY, recipe.soulPerSecond()));
         lines.add(Component.translatable(SUCCESS_KEY, recipe.baseSuccess()));
         return lines;
     }
 
-    private static String stoneList(GuRecipe recipe) {
+    private static String formatStoneList(GuRecipe recipe) {
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < recipe.getWindowCount(); i++) {
             if (i > 0) text.append(STONE_SEPARATOR);
@@ -180,11 +180,13 @@ final class RecipePicker {
         return text.toString();
     }
 
-    private static int height(int visible) { return HEADER_H + PAD * 2 + visible * ROW_H; }
+    private static int getHeight(int visible) { return HEADER_H + PAD * 2 + visible * ROW_H; }
 
-    private static int left(int panelLeft, int panelW) { return panelLeft + (panelW - W) / 2; }
+    private static int getLeft(int panelLeft, int panelW) { return panelLeft + (panelW - W) / 2; }
 
-    private static int top(int panelTop, int panelH, int visible) { return panelTop + (panelH - height(visible)) / 2; }
+    private static int getTop(int panelTop, int panelH, int visible) {
+        return panelTop + (panelH - getHeight(visible)) / 2;
+    }
 
-    private static int rowY(int y0, int index) { return y0 + HEADER_H + PAD + index * ROW_H; }
+    private static int getRowY(int y0, int index) { return y0 + HEADER_H + PAD + index * ROW_H; }
 }

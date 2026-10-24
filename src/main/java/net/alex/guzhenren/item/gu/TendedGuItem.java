@@ -417,7 +417,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        return isRefined(stack) ? super.getName(stack) : ModDisplayText.wild(super.getName(stack));
+        return isRefined(stack) ? super.getName(stack) : ModDisplayText.formatWild(super.getName(stack));
     }
 
     @Override

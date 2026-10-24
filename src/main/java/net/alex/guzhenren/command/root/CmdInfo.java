@@ -45,17 +45,17 @@ public final class CmdInfo {
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("info")
-                .executes(context -> print(context, InfoModel::aperture))
+                .executes(context -> print(context, InfoModel::buildApertureRows))
                 .then(ModCommandSupport.withTargets(Commands.literal("aperture"),
-                        context -> print(context, InfoModel::aperture)))
+                        context -> print(context, InfoModel::buildApertureRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("body"),
-                        context -> print(context, InfoModel::body)))
+                        context -> print(context, InfoModel::buildBodyRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("soul"),
-                        context -> print(context, InfoModel::soul)))
+                        context -> print(context, InfoModel::buildSoulRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("path"),
-                        context -> print(context, InfoModel::pathAchieve)))
+                        context -> print(context, InfoModel::buildPathAchieveRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("mind"),
-                        context -> print(context, InfoModel::mind)));
+                        context -> print(context, InfoModel::buildMindRows)));
     }
 
     private static int print(CommandContext<CommandSourceStack> context,
@@ -75,7 +75,7 @@ public final class CmdInfo {
 
     private static MutableComponent formatHeader(boolean empty) {
         MutableComponent line = translate("paths");
-        return empty ? line.append("  ").append(ModDisplayText.none()) : line;
+        return empty ? line.append("  ").append(ModDisplayText.formatNone()) : line;
     }
 
     private static MutableComponent translate(String id, Object... args) {
@@ -87,14 +87,16 @@ public final class CmdInfo {
     private static final class LineWriter implements InfoModel.Visitor<Component> {
 
         @Override
-        public Component visit(InfoModel.ApertureIndex entry) { return ModDisplayText.apertureName(entry.number()); }
+        public Component visit(InfoModel.ApertureIndex entry) {
+            return ModDisplayText.formatApertureName(entry.number());
+        }
 
         @Override
         public Component visit(InfoModel.Blank entry) { return Component.empty(); }
 
         @Override
         public Component visit(InfoModel.Realm entry) {
-            return translate("realm", ModDisplayText.realmTitle(entry.aperture()));
+            return translate("realm", ModDisplayText.formatRealmTitle(entry.aperture()));
         }
 
         @Override
@@ -104,7 +106,7 @@ public final class CmdInfo {
 
         @Override
         public Component visit(InfoModel.TalentRow entry) {
-            return translate("talent", ModDisplayText.talentLine(entry.aperture(), entry.awakened()));
+            return translate("talent", ModDisplayText.formatTalentLine(entry.aperture(), entry.awakened()));
         }
 
         @Override
@@ -124,12 +126,13 @@ public final class CmdInfo {
 
         @Override
         public Component visit(InfoModel.PathChoice entry) {
-            return translate(entry.primary() ? "primary_path" : "secondary_path", ModDisplayText.path(entry.path()));
+            return translate(entry.primary() ? "primary_path" : "secondary_path",
+                    ModDisplayText.formatPath(entry.path()));
         }
 
         @Override
         public Component visit(InfoModel.PhysiqueRow entry) {
-            return translate("physique", ModDisplayText.physique(entry.physique(), entry.extremePhysique()));
+            return translate("physique", ModDisplayText.formatPhysique(entry.physique(), entry.extremePhysique()));
         }
 
         @Override
@@ -140,19 +143,21 @@ public final class CmdInfo {
         @Override
         public Component visit(InfoModel.Soul entry) {
             return translate("soul", entry.soul().currentSoul(), entry.soul().maxSoul())
-                    .append(ModDisplayText.detail(translateEnum(entry.soul().getTier().getTranslationKey())));
+                    .append(ModDisplayText.formatDetail(translateEnum(entry.soul().getTier().getTranslationKey())));
         }
 
         @Override
         public Component visit(InfoModel.Lifespan entry) {
-            return translate("lifespan", ModDisplayText.lifespan(entry.lifespan(), entry.age()));
+            return translate("lifespan", ModDisplayText.formatLifespan(entry.lifespan(), entry.age()));
         }
 
         @Override
         public Component visit(InfoModel.PathsHeader entry) { return formatHeader(entry.empty()); }
 
         @Override
-        public Component visit(InfoModel.PathRow entry) { return ModDisplayText.pathLine(entry.path(), entry.entry()); }
+        public Component visit(InfoModel.PathRow entry) {
+            return ModDisplayText.formatPathLine(entry.path(), entry.entry());
+        }
 
         @Override
         public Component visit(InfoModel.QiPathAchieveHeader entry) { return translate("qi_path_achieve"); }
@@ -167,7 +172,7 @@ public final class CmdInfo {
 
         @Override
         public Component visit(InfoModel.TimeRateUpRow entry) {
-            return translate("time_rate_up_entry", ModDisplayText.timeRateUp(entry.rate()));
+            return translate("time_rate_up_entry", ModDisplayText.formatTimeRateUp(entry.rate()));
         }
 
         @Override
@@ -176,8 +181,9 @@ public final class CmdInfo {
         @Override
         public Component visit(InfoModel.StrengthPathBranchRow entry) {
             return translate("strength_path_achieve_entry",
-                    ModDisplayText.strengthLabel(translateEnum(entry.branch().getTranslationKey()), entry.totalJin()),
-                    entry.reading());
+                    ModDisplayText.formatStrengthLabel(translateEnum(entry.branch().getTranslationKey()),
+                            entry.totalJin()),
+                    entry.getReading());
         }
 
         @Override
@@ -187,7 +193,7 @@ public final class CmdInfo {
 
         @Override
         public Component visit(InfoModel.AttackRow entry) {
-            return translate("attack", ModDisplayText.attackBonus(entry.bonus()));
+            return translate("attack", ModDisplayText.formatAttackBonus(entry.bonus()));
         }
 
         @Override
@@ -202,7 +208,7 @@ public final class CmdInfo {
         @Override
         public Component visit(InfoModel.BrillianceRow entry) {
             return translate("brilliance", translateEnum(entry.brilliance().getTranslationKey()))
-                    .append(ModDisplayText.detail(Component.translatable("guzhenren.display.brilliance_rate",
+                    .append(ModDisplayText.formatDetail(Component.translatable("guzhenren.display.brilliance_rate",
                             entry.brilliance().getThoughtsPerSecond())));
         }
 

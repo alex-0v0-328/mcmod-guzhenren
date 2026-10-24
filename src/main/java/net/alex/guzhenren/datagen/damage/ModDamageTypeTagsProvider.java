@@ -43,12 +43,12 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
 
     @Override
     protected void addTags(HolderLookup.@NotNull Provider provider) {
-        unstoppable(DamageTypeTags.BYPASSES_ARMOR);
-        unstoppable(DamageTypeTags.BYPASSES_EFFECTS);
-        unstoppable(DamageTypeTags.BYPASSES_ENCHANTMENTS);
-        unstoppable(DamageTypeTags.BYPASSES_RESISTANCE);
-        unstoppable(DamageTypeTags.BYPASSES_SHIELD);
-        unstoppable(DamageTypeTags.NO_KNOCKBACK);
+        tagUnstoppable(DamageTypeTags.BYPASSES_ARMOR);
+        tagUnstoppable(DamageTypeTags.BYPASSES_EFFECTS);
+        tagUnstoppable(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+        tagUnstoppable(DamageTypeTags.BYPASSES_RESISTANCE);
+        tagUnstoppable(DamageTypeTags.BYPASSES_SHIELD);
+        tagUnstoppable(DamageTypeTags.NO_KNOCKBACK);
         tag(DamageTypeTags.BYPASSES_INVULNERABILITY).add(ModDamageTypes.LIFESPAN_EXHAUSTED,
                 ModDamageTypes.SOUL_COLLAPSE,
                 ModDamageTypes.MIND_OCEAN_SHATTERED,
@@ -57,7 +57,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
                 ModDamageTypes.TEN_EXTREME_DISASTER);
     }
 
-    private void unstoppable(TagKey<DamageType> tag) {
+    private void tagUnstoppable(TagKey<DamageType> tag) {
         tag(tag).add(ModDamageTypes.LIFESPAN_EXHAUSTED,
                 ModDamageTypes.SOUL_COLLAPSE,
                 ModDamageTypes.MIND_OCEAN_SHATTERED,

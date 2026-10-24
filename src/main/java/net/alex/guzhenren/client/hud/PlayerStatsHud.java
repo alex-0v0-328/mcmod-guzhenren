@@ -77,7 +77,7 @@ public final class PlayerStatsHud {
         BodyData body = BodyService.get(player);
         boolean counting = body.isExtreme() && isCountingDown(data.getPrimary());
         long seconds = counting
-                ? ModDisplayText.countdownSeconds(AperturePressureService.getRemainingTicks(player))
+                ? ModDisplayText.getCountdownSeconds(AperturePressureService.getRemainingTicks(player))
                 : NO_COUNTDOWN;
         Key key = new Key(data, body, SoulService.get(player), seconds);
         if (!key.equals(cachedKey)) {
@@ -98,48 +98,48 @@ public final class PlayerStatsHud {
         List<Line> lines = new ArrayList<>();
 
         int y = TOP;
-        lines.add(new Line(y, ModDisplayText.hudHeader(aperture, key.body())));
+        lines.add(new Line(y, ModDisplayText.formatHudHeader(aperture, key.body())));
         y += TEXT_HEIGHT + ROW_GAP;
 
-        if (data.hasAperture()) y = essenceBars(bars, y, data);
+        if (data.hasAperture()) y = addEssenceBars(bars, y, data);
 
-        bars.add(bar(y, key.soul().currentSoul(), key.soul().maxSoul(), ModPalette.SOUL));
+        bars.add(createBar(y, key.soul().currentSoul(), key.soul().maxSoul(), ModPalette.SOUL));
         y += BAR_HEIGHT + GROUP_GAP;
 
         lines.add(new Line(y,
-                Component.translatable("guzhenren.hud.lifespan", ModDisplayText.hudLifespan(key.body()))));
+                Component.translatable("guzhenren.hud.lifespan", ModDisplayText.formatHudLifespan(key.body()))));
         y += TEXT_HEIGHT + ROW_GAP;
 
-        if (key.body().isExtreme()) lines.add(new Line(y, pressure(aperture, key.seconds())));
+        if (key.body().isExtreme()) lines.add(new Line(y, formatPressure(aperture, key.seconds())));
         return new Layout(bars, lines);
     }
 
-    private static int essenceBars(List<Bar> bars, int top, ApertureData data) {
+    private static int addEssenceBars(List<Bar> bars, int top, ApertureData data) {
         int y = top;
         for (int i = 0; i < data.count(); i++) {
             Aperture pool = data.get(i);
-            bars.add(bar(y, pool.currentEssence(), pool.getMaxEssence(), ModPalette.APERTURE));
+            bars.add(createBar(y, pool.currentEssence(), pool.getMaxEssence(), ModPalette.APERTURE));
             y += BAR_HEIGHT + ROW_GAP;
 
             if (pool.distilledEssence() > 0L) {
-                bars.add(bar(y, pool.distilledEssence(), pool.getMaxEssence(), ModPalette.DISTILLED_FILL));
+                bars.add(createBar(y, pool.distilledEssence(), pool.getMaxEssence(), ModPalette.DISTILLED_FILL));
                 y += BAR_HEIGHT + ROW_GAP;
             }
         }
         return y;
     }
 
-    private static Component pressure(Aperture aperture, long seconds) {
+    private static Component formatPressure(Aperture aperture, long seconds) {
         return seconds != NO_COUNTDOWN
                 ? Component.translatable("guzhenren.hud.aperture_pressure_cd", aperture.pressure(),
-                ModDisplayText.clock(seconds))
+                ModDisplayText.formatClock(seconds))
                 : Component.translatable("guzhenren.hud.aperture_pressure", aperture.pressure());
     }
 
-    private static Bar bar(int y, long current, long max, int fill) {
+    private static Bar createBar(int y, long current, long max, int fill) {
         int track = BAR_WIDTH - 2;
         int filled = max <= 0L ? 0 : (int) Math.min(track, Math.max(Math.round(track * (current / (double) max)), 0L));
-        return new Bar(y, filled, fill, ModDisplayText.pool(current, max));
+        return new Bar(y, filled, fill, ModDisplayText.formatPool(current, max));
     }
 
     private static void draw(GuiGraphics graphics, Font font, Layout layout) {

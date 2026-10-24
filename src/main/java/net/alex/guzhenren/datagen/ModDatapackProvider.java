@@ -44,15 +44,15 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
 
     private static final RegistrySetBuilder BUILDER = new RegistrySetBuilder()
-            .add(Registries.DAMAGE_TYPE, ModDatapackProvider::damageTypes)
-            .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ModDatapackProvider::biomeModifiers);
+            .add(Registries.DAMAGE_TYPE, ModDatapackProvider::registerDamageTypes)
+            .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ModDatapackProvider::registerBiomeModifiers);
 
     public ModDatapackProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, BUILDER, Set.of(Guzhenren.MOD_ID));
     }
 
     //region Damage types [伤害类型]
-    private static void damageTypes(BootstrapContext<DamageType> context) {
+    private static void registerDamageTypes(BootstrapContext<DamageType> context) {
         context.register(ModDamageTypes.LIFESPAN_EXHAUSTED, new DamageType("guzhenren.lifespan_exhausted", 0.0F));
         context.register(ModDamageTypes.SOUL_COLLAPSE, new DamageType("guzhenren.soul_collapse", 0.0F));
         context.register(ModDamageTypes.MIND_OCEAN_SHATTERED, new DamageType("guzhenren.mind_ocean_shattered", 0.0F));
@@ -65,18 +65,21 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     //endregion
 
     //region Biome modifiers [生态修改] -- where wild entities [野生实体] spawn
-    private static final ResourceKey<BiomeModifier> SPAWN_HOPE_GU = modifier("spawn_hope_gu");
-    private static final ResourceKey<BiomeModifier> SPAWN_WHITE_BOAR_GU = modifier("spawn_white_boar_gu");
-    private static final ResourceKey<BiomeModifier> SPAWN_BLACK_BOAR_GU = modifier("spawn_black_boar_gu");
-    private static final ResourceKey<BiomeModifier> SPAWN_FLOWER_BOAR_GU = modifier("spawn_flower_boar_gu");
-    private static final ResourceKey<BiomeModifier> SPAWN_RHINOCEROS_BEETLE_GU = modifier("spawn_rhinoceros_beetle_gu");
-    private static final ResourceKey<BiomeModifier> SPAWN_WILD_BOAR = modifier("spawn_wild_boar");
-    private static final ResourceKey<BiomeModifier> SPAWN_BROWN_BEAR = modifier("spawn_brown_bear");
-    private static final ResourceKey<BiomeModifier> SPAWN_ASIAN_BLACK_BEAR = modifier("spawn_asian_black_bear");
-    private static final ResourceKey<BiomeModifier> SPAWN_AMERICAN_BLACK_BEAR = modifier("spawn_american_black_bear");
-    private static final ResourceKey<BiomeModifier> SPAWN_ALBINO_BEAR = modifier("spawn_albino_bear");
-    private static final ResourceKey<BiomeModifier> SPAWN_TIGER = modifier("spawn_tiger");
-    private static final ResourceKey<BiomeModifier> SPAWN_WHITE_TIGER = modifier("spawn_white_tiger");
+    private static final ResourceKey<BiomeModifier> SPAWN_HOPE_GU = createModifierKey("spawn_hope_gu");
+    private static final ResourceKey<BiomeModifier> SPAWN_WHITE_BOAR_GU = createModifierKey("spawn_white_boar_gu");
+    private static final ResourceKey<BiomeModifier> SPAWN_BLACK_BOAR_GU = createModifierKey("spawn_black_boar_gu");
+    private static final ResourceKey<BiomeModifier> SPAWN_FLOWER_BOAR_GU = createModifierKey("spawn_flower_boar_gu");
+    private static final ResourceKey<BiomeModifier> SPAWN_RHINOCEROS_BEETLE_GU =
+            createModifierKey("spawn_rhinoceros_beetle_gu");
+    private static final ResourceKey<BiomeModifier> SPAWN_WILD_BOAR = createModifierKey("spawn_wild_boar");
+    private static final ResourceKey<BiomeModifier> SPAWN_BROWN_BEAR = createModifierKey("spawn_brown_bear");
+    private static final ResourceKey<BiomeModifier> SPAWN_ASIAN_BLACK_BEAR =
+            createModifierKey("spawn_asian_black_bear");
+    private static final ResourceKey<BiomeModifier> SPAWN_AMERICAN_BLACK_BEAR =
+            createModifierKey("spawn_american_black_bear");
+    private static final ResourceKey<BiomeModifier> SPAWN_ALBINO_BEAR = createModifierKey("spawn_albino_bear");
+    private static final ResourceKey<BiomeModifier> SPAWN_TIGER = createModifierKey("spawn_tiger");
+    private static final ResourceKey<BiomeModifier> SPAWN_WHITE_TIGER = createModifierKey("spawn_white_tiger");
     private static final int HOPE_GU_SPAWN_WEIGHT = 8;
     private static final int HOPE_GU_PACK_MINIMUM = 1;
     private static final int HOPE_GU_PACK_MAXIMUM = 2;
@@ -98,62 +101,63 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final int BEAST_PACK_MINIMUM = 1;
     private static final int BEAST_PACK_MAXIMUM = 1;
 
-    private static void biomeModifiers(BootstrapContext<BiomeModifier> context) {
+    private static void registerBiomeModifiers(BootstrapContext<BiomeModifier> context) {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
 
-        context.register(SPAWN_HOPE_GU, spawns(biomes, ModBiomeTags.HOPE_GU_SPAWNS, spawner(
+        context.register(SPAWN_HOPE_GU, createSpawns(biomes, ModBiomeTags.HOPE_GU_SPAWNS, createSpawner(
                 ModEntityTypes.HOPE_GU_ENTITY.get(), HOPE_GU_SPAWN_WEIGHT,
                 HOPE_GU_PACK_MINIMUM, HOPE_GU_PACK_MAXIMUM)));
-        context.register(SPAWN_WHITE_BOAR_GU, boarSpawns(biomes, ModEntityTypes.WHITE_BOAR_GU_ENTITY.get()));
-        context.register(SPAWN_BLACK_BOAR_GU, boarSpawns(biomes, ModEntityTypes.BLACK_BOAR_GU_ENTITY.get()));
-        context.register(SPAWN_FLOWER_BOAR_GU, boarSpawns(biomes, ModEntityTypes.FLOWER_BOAR_GU_ENTITY.get()));
-        context.register(SPAWN_RHINOCEROS_BEETLE_GU, spawns(biomes, ModBiomeTags.RHINOCEROS_BEETLE_GU_SPAWNS,
-                beetleSpawner(ModEntityTypes.HORIZONTAL_CRASH_GU_ENTITY.get(), BEETLE_SPAWN_WEIGHT),
-                beetleSpawner(ModEntityTypes.VERTICAL_CRASH_GU_ENTITY.get(), BEETLE_SPAWN_WEIGHT),
-                beetleSpawner(ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(), BEETLE_RANK_FOUR_SPAWN_WEIGHT),
-                beetleSpawner(ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get(), BEETLE_RANK_FIVE_SPAWN_WEIGHT)));
-        context.register(SPAWN_WILD_BOAR, spawns(biomes, ModBiomeTags.WILD_BOAR_SPAWNS, spawner(
+        context.register(SPAWN_WHITE_BOAR_GU, createBoarSpawns(biomes, ModEntityTypes.WHITE_BOAR_GU_ENTITY.get()));
+        context.register(SPAWN_BLACK_BOAR_GU, createBoarSpawns(biomes, ModEntityTypes.BLACK_BOAR_GU_ENTITY.get()));
+        context.register(SPAWN_FLOWER_BOAR_GU, createBoarSpawns(biomes, ModEntityTypes.FLOWER_BOAR_GU_ENTITY.get()));
+        context.register(SPAWN_RHINOCEROS_BEETLE_GU, createSpawns(biomes, ModBiomeTags.RHINOCEROS_BEETLE_GU_SPAWNS,
+                createBeetleSpawner(ModEntityTypes.HORIZONTAL_CRASH_GU_ENTITY.get(), BEETLE_SPAWN_WEIGHT),
+                createBeetleSpawner(ModEntityTypes.VERTICAL_CRASH_GU_ENTITY.get(), BEETLE_SPAWN_WEIGHT),
+                createBeetleSpawner(ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(), BEETLE_RANK_FOUR_SPAWN_WEIGHT),
+                createBeetleSpawner(ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get(), BEETLE_RANK_FIVE_SPAWN_WEIGHT)));
+        context.register(SPAWN_WILD_BOAR, createSpawns(biomes, ModBiomeTags.WILD_BOAR_SPAWNS, createSpawner(
                 ModEntityTypes.WILD_BOAR.get(), WILD_BOAR_SPAWN_WEIGHT,
                 WILD_BOAR_PACK_MINIMUM, WILD_BOAR_PACK_MAXIMUM)));
-        context.register(SPAWN_BROWN_BEAR, beastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
+        context.register(SPAWN_BROWN_BEAR, createBeastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
                 ModEntityTypes.BROWN_BEAR.get(), BEAR_SPAWN_WEIGHT));
-        context.register(SPAWN_ASIAN_BLACK_BEAR, beastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
+        context.register(SPAWN_ASIAN_BLACK_BEAR, createBeastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
                 ModEntityTypes.ASIAN_BLACK_BEAR.get(), BEAR_SPAWN_WEIGHT));
-        context.register(SPAWN_AMERICAN_BLACK_BEAR, beastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
+        context.register(SPAWN_AMERICAN_BLACK_BEAR, createBeastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
                 ModEntityTypes.AMERICAN_BLACK_BEAR.get(), BEAR_SPAWN_WEIGHT));
-        context.register(SPAWN_ALBINO_BEAR, beastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
+        context.register(SPAWN_ALBINO_BEAR, createBeastSpawns(biomes, ModBiomeTags.BEAR_SPAWNS,
                 ModEntityTypes.ALBINO_BEAR.get(), ALBINO_BEAR_SPAWN_WEIGHT));
-        context.register(SPAWN_TIGER, beastSpawns(biomes, ModBiomeTags.TIGER_SPAWNS,
+        context.register(SPAWN_TIGER, createBeastSpawns(biomes, ModBiomeTags.TIGER_SPAWNS,
                 ModEntityTypes.TIGER.get(), TIGER_SPAWN_WEIGHT));
-        context.register(SPAWN_WHITE_TIGER, beastSpawns(biomes, ModBiomeTags.TIGER_SPAWNS,
+        context.register(SPAWN_WHITE_TIGER, createBeastSpawns(biomes, ModBiomeTags.TIGER_SPAWNS,
                 ModEntityTypes.WHITE_TIGER.get(), WHITE_TIGER_SPAWN_WEIGHT));
     }
 
-    private static ResourceKey<BiomeModifier> modifier(String id) {
+    private static ResourceKey<BiomeModifier> createModifierKey(String id) {
         return ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, Guzhenren.id(id));
     }
 
-    private static BiomeModifier spawns(HolderGetter<Biome> biomes, TagKey<Biome> where,
-                                        MobSpawnSettings.SpawnerData... spawners) {
+    private static BiomeModifier createSpawns(HolderGetter<Biome> biomes, TagKey<Biome> where,
+                                              MobSpawnSettings.SpawnerData... spawners) {
         return new BiomeModifiers.AddSpawnsBiomeModifier(biomes.getOrThrow(where), List.of(spawners));
     }
 
-    private static MobSpawnSettings.SpawnerData spawner(EntityType<?> type, int weight, int minimum, int maximum) {
+    private static MobSpawnSettings.SpawnerData createSpawner(EntityType<?> type, int weight, int minimum,
+                                                              int maximum) {
         return new MobSpawnSettings.SpawnerData(type, weight, minimum, maximum);
     }
 
-    private static MobSpawnSettings.SpawnerData beetleSpawner(EntityType<?> type, int weight) {
-        return spawner(type, weight, BEETLE_PACK_MINIMUM, BEETLE_PACK_MAXIMUM);
+    private static MobSpawnSettings.SpawnerData createBeetleSpawner(EntityType<?> type, int weight) {
+        return createSpawner(type, weight, BEETLE_PACK_MINIMUM, BEETLE_PACK_MAXIMUM);
     }
 
-    private static BiomeModifier boarSpawns(HolderGetter<Biome> biomes, EntityType<?> type) {
-        return spawns(biomes, ModBiomeTags.BOAR_GU_SPAWNS,
-                spawner(type, BOAR_SPAWN_WEIGHT, BOAR_PACK_MINIMUM, BOAR_PACK_MAXIMUM));
+    private static BiomeModifier createBoarSpawns(HolderGetter<Biome> biomes, EntityType<?> type) {
+        return createSpawns(biomes, ModBiomeTags.BOAR_GU_SPAWNS,
+                createSpawner(type, BOAR_SPAWN_WEIGHT, BOAR_PACK_MINIMUM, BOAR_PACK_MAXIMUM));
     }
 
-    private static BiomeModifier beastSpawns(HolderGetter<Biome> biomes, TagKey<Biome> where, EntityType<?> type,
-                                             int weight) {
-        return spawns(biomes, where, spawner(type, weight, BEAST_PACK_MINIMUM, BEAST_PACK_MAXIMUM));
+    private static BiomeModifier createBeastSpawns(HolderGetter<Biome> biomes, TagKey<Biome> where, EntityType<?> type,
+                                                   int weight) {
+        return createSpawns(biomes, where, createSpawner(type, weight, BEAST_PACK_MINIMUM, BEAST_PACK_MAXIMUM));
     }
     //endregion
 }

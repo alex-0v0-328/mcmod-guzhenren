@@ -7,8 +7,8 @@ import org.joml.Vector3f;
  * The pure corner geometry behind {@link RingParticle}, kept free of Minecraft client classes so
  * the pure JVM tests can pin it. Corner order is shared by both orientations:
  * {@code -u-v, -u+v, +u+v, +u-v}, where GROUND takes u=(1,0,0), v=(0,0,1) (a world-flat XZ quad,
- * built by {@link #ground}, no camera involvement so it stays horizontal) and FACING_MOTION takes
- * an orthonormal basis of the plane perpendicular to the spawn direction ({@link #facing}).
+ * built by {@link #getGround}, no camera involvement so it stays horizontal) and FACING_MOTION takes
+ * an orthonormal basis of the plane perpendicular to the spawn direction ({@link #getFacing}).
  *
  * <p>{@link #LARGEST_CANVAS} is the canvas width of the largest hand-drawn ring; every frame's
  * world size scales off it through {@link #scaleForWidth} (the {@code quadSize}
@@ -23,10 +23,10 @@ import org.joml.Vector3f;
  * wide even edge-on. Rings already facing the viewer (punch, forward dash) sit far above the
  * threshold and are never touched.
  *
- * <p>{@link #facing} builds the quad perpendicular to {@code direction} (the ring faces along it,
+ * <p>{@link #getFacing} builds the quad perpendicular to {@code direction} (the ring faces along it,
  * like a shockwave riding a dash or a punch), applying the {@link #MIN_OPENING_DEGREES} tilt
  * toward {@code cameraForward} when the ring would otherwise be edge-on. A near-zero direction
- * falls back to {@link #ground(float)}; a (near-)vertical one switches the reference axis so the
+ * falls back to {@link #getGround(float)}; a (near-)vertical one switches the reference axis so the
  * basis never degenerates -- note a vertical normal lands on the horizontal plane anyway, matching
  * GROUND. {@link #tiltTowardCamera} rotates the normal toward the camera only while it is nearly
  * perpendicular to the view (|n·v| under sin of {@link #MIN_OPENING_DEGREES} -- the edge-on case):
@@ -58,20 +58,20 @@ final class RingGeometry {
         return LARGEST_RING_SPAN * canvasWidth / (2.0F * LARGEST_CANVAS);
     }
 
-    static Vector3f[] ground(float size) {
-        return corners(new Vector3f(size, 0.0F, 0.0F), new Vector3f(0.0F, 0.0F, size));
+    static Vector3f[] getGround(float size) {
+        return getCorners(new Vector3f(size, 0.0F, 0.0F), new Vector3f(0.0F, 0.0F, size));
     }
 
-    static Vector3f[] facing(Vec3 direction, Vec3 cameraForward, float size) {
+    static Vector3f[] getFacing(Vec3 direction, Vec3 cameraForward, float size) {
         Vector3f normal = new Vector3f((float) direction.x(), (float) direction.y(), (float) direction.z());
-        if (normal.length() < MIN_DIRECTION_LENGTH) return ground(size);
+        if (normal.length() < MIN_DIRECTION_LENGTH) return getGround(size);
         normal.normalize();
         normal.set(tiltTowardCamera(normal, cameraForward));
 
         Vector3f reference = Math.abs(normal.y) > 0.99F ? FALLBACK_REFERENCE : UP;
         Vector3f u = new Vector3f(normal).cross(reference).normalize().mul(size);
         Vector3f v = new Vector3f(normal).cross(u).normalize().mul(size);
-        return corners(u, v);
+        return getCorners(u, v);
     }
 
     private static Vector3f tiltTowardCamera(Vector3f normal, Vec3 cameraForward) {
@@ -86,7 +86,7 @@ final class RingGeometry {
         return new Vector3f(view).mul(SIN_MIN_OPENING).add(sideways.mul(COS_MIN_OPENING));
     }
 
-    private static Vector3f[] corners(Vector3f u, Vector3f v) {
+    private static Vector3f[] getCorners(Vector3f u, Vector3f v) {
         return new Vector3f[] {
                 new Vector3f(u).negate().sub(v), new Vector3f(u).negate().add(v),
                 new Vector3f(u).add(v), new Vector3f(u).sub(v) };

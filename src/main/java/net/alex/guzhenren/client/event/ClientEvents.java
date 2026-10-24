@@ -97,12 +97,12 @@ public final class ClientEvents {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.SPIRIT_SPRING.get(), RenderType.translucent());
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_SPIRIT_SPRING.get(), RenderType.translucent());
             ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
-                    (ClampedItemPropertyFunction) ClientEvents::pickedStage);
+                    (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
         });
     }
 
-    private static float pickedStage(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity,
-                                     int seed) {
+    private static float getPickedStage(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity,
+                                        int seed) {
         if (!(stack.getItem() instanceof NineLeafVitalityGrassItem grass)) return 0.0F;
         if (level != null) return grass.getPickedStage(stack, level.getGameTime());
         if (entity != null) return grass.getPickedStage(stack, entity.level().getGameTime());
@@ -113,11 +113,11 @@ public final class ClientEvents {
 
     @SubscribeEvent
     public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
-        event.register(ClientEvents::grassColor, ModBlocks.INTIMATE_GRASS.get());
+        event.register(ClientEvents::getGrassColor, ModBlocks.INTIMATE_GRASS.get());
     }
 
-    private static int grassColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,
-                                  int tintIndex) {
+    private static int getGrassColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,
+                                     int tintIndex) {
         if (level == null || pos == null) return GrassColor.getDefaultColor();
         boolean upper = state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER;
         return BiomeColors.getAverageGrassColor(level, upper ? pos.below() : pos);
@@ -137,8 +137,8 @@ public final class ClientEvents {
 
     @SubscribeEvent
     public static void onRegisterParticles(RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(ModParticles.SHOCKWAVE_RING.get(), RingParticle::dashTrail);
-        event.registerSpriteSet(ModParticles.IMPACT_RING.get(), RingParticle::facingMotion);
+        event.registerSpriteSet(ModParticles.SHOCKWAVE_RING.get(), RingParticle::createDashTrail);
+        event.registerSpriteSet(ModParticles.IMPACT_RING.get(), RingParticle::createFacingMotion);
     }
 
     @SubscribeEvent

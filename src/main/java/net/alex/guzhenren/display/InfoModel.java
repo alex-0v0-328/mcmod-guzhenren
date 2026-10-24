@@ -247,10 +247,10 @@ public final class InfoModel {
         @Override
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
 
-        public Component reading() {
+        public Component getReading() {
             return branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM
-                    ? ModDisplayText.beastStrengthLine(data)
-                    : ModDisplayText.humanStrengthLine(data);
+                    ? ModDisplayText.formatBeastStrengthLine(data)
+                    : ModDisplayText.formatHumanStrengthLine(data);
         }
     }
 
@@ -311,7 +311,7 @@ public final class InfoModel {
     }
     //endregion
 
-    public static List<Row> aperture(Player player) {
+    public static List<Row> buildApertureRows(Player player) {
         ApertureData data = ApertureService.get(player);
         ApertureStatus status = ApertureService.getStatus(player);
         List<Row> rows = new ArrayList<>();
@@ -319,21 +319,21 @@ public final class InfoModel {
         if (data.count() <= 1) {
             boolean second = data.getPrimary().second();
             rows.add(new Row(0, new ApertureIndex(second ? 2 : 1, 0)));
-            apertureBlock(rows, data.getPrimary(), data.hasAperture(), 0, ApertureData.PRIMARY, !second,
+            addApertureBlock(rows, data.getPrimary(), data.hasAperture(), 0, ApertureData.PRIMARY, !second,
                     BodyService.isExtreme(player), status);
             return rows;
         }
         for (int i = 0; i < data.count(); i++) {
             rows.add(new Row(0, new ApertureIndex(i + 1, i)));
-            apertureBlock(rows, data.get(i), true, INDENT, i, !data.get(i).second(),
+            addApertureBlock(rows, data.get(i), true, INDENT, i, !data.get(i).second(),
                     BodyService.isExtreme(player), ApertureService.getStatus(player, i));
             if (i < data.count() - 1) rows.add(new Row(0, new Blank()));
         }
         return rows;
     }
 
-    private static void apertureBlock(List<Row> rows, Aperture aperture, boolean awakened, int indent,
-                                      int index, boolean pressure, boolean extreme, ApertureStatus status) {
+    private static void addApertureBlock(List<Row> rows, Aperture aperture, boolean awakened, int indent,
+                                         int index, boolean pressure, boolean extreme, ApertureStatus status) {
         rows.add(new Row(indent, new Realm(aperture)));
         rows.add(new Row(indent, new TalentRow(aperture, awakened)));
         if (awakened) {
@@ -346,7 +346,7 @@ public final class InfoModel {
         }
     }
 
-    public static List<Row> body(Player player) {
+    public static List<Row> buildBodyRows(Player player) {
         BodyData body = BodyService.get(player);
         PathStrengthData strength = PathStrengthService.get(player);
         List<Row> rows = new ArrayList<>();
@@ -373,21 +373,21 @@ public final class InfoModel {
         return !strengthEmpty || attackBonus != 0.0D;
     }
 
-    public static List<Row> soul(Player player) {
+    public static List<Row> buildSoulRows(Player player) {
         return List.of(new Row(0, new Soul(SoulService.get(player))));
     }
 
-    public static List<Row> pathAchieve(Player player) {
+    public static List<Row> buildPathAchieveRows(Player player) {
         List<Row> rows = new ArrayList<>();
-        strengthPathAchieve(rows, player);
-        timePathAchieve(rows, player);
-        qiPathAchieve(rows, player);
-        wisdomPathAchieve(rows, player);
-        paths(rows, player);
+        addStrengthPathAchieve(rows, player);
+        addTimePathAchieve(rows, player);
+        addQiPathAchieve(rows, player);
+        addWisdomPathAchieve(rows, player);
+        addPaths(rows, player);
         return rows;
     }
 
-    private static void timePathAchieve(List<Row> rows, Player player) {
+    private static void addTimePathAchieve(List<Row> rows, Player player) {
         int rate = TimeFlow.getSelfRate(player);
         if (rate <= TimeFlow.NORMAL_RATE) return;
 
@@ -395,14 +395,14 @@ public final class InfoModel {
         rows.add(new Row(INDENT, new TimeRateUpRow(rate)));
     }
 
-    private static void paths(List<Row> rows, Player player) {
+    private static void addPaths(List<Row> rows, Player player) {
         Map<GuPath, PathEntry> paths = PathService.getVisibleEntries(player);
 
         rows.add(new Row(0, new PathsHeader(paths.isEmpty())));
         paths.forEach((path, entry) -> rows.add(new Row(INDENT, new PathRow(path, entry))));
     }
 
-    private static void qiPathAchieve(List<Row> rows, Player player) {
+    private static void addQiPathAchieve(List<Row> rows, Player player) {
         List<Row> held = new ArrayList<>();
         for (QiKind kind : QiKind.values()) {
             long amount = PathQiService.getCurrent(player, kind);
@@ -414,7 +414,7 @@ public final class InfoModel {
         rows.addAll(held);
     }
 
-    private static void strengthPathAchieve(List<Row> rows, Player player) {
+    private static void addStrengthPathAchieve(List<Row> rows, Player player) {
         PathStrengthData data = PathStrengthService.get(player);
         if (data.isEmpty()) return;
 
@@ -428,7 +428,7 @@ public final class InfoModel {
         }
     }
 
-    private static void wisdomPathAchieve(List<Row> rows, Player player) {
+    private static void addWisdomPathAchieve(List<Row> rows, Player player) {
         List<Row> held = new ArrayList<>();
         long natural = MindService.getNaturalThoughts(player);
         if (natural > 0L) held.add(new Row(INDENT, new ThoughtTagRow(ThoughtTag.NATURAL, natural)));
@@ -441,7 +441,7 @@ public final class InfoModel {
         rows.addAll(held);
     }
 
-    public static List<Row> mind(Player player) {
+    public static List<Row> buildMindRows(Player player) {
         MindData mind = MindService.get(player);
         List<Row> rows = new ArrayList<>();
 

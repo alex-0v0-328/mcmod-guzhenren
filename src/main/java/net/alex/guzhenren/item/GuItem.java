@@ -251,12 +251,12 @@ public abstract class GuItem extends Item {
      */
     protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
                                  @NotNull TooltipFlag flag) {
-        tooltip.add(ModDisplayText.guLine(rank, path, getKindKey()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(ModDisplayText.formatGuLine(rank, path, getKindKey()).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        return isVital(stack) ? ModDisplayText.vital(super.getName(stack)) : super.getName(stack);
+        return isVital(stack) ? ModDisplayText.formatVital(super.getName(stack)) : super.getName(stack);
     }
 
     @Override

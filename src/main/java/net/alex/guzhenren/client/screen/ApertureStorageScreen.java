@@ -105,56 +105,56 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
         boolean prevLive = menu.getPageIndex() > 0;
         boolean nextLive = menu.getPageIndex() + 1 < menu.getPageCount();
         GuiBatch.draw(graphics, () -> {
-            Widgets.fillBack(graphics, backX(), pagerY(), mouseX, mouseY);
-            fillPageButton(graphics, mouseX, mouseY, prevX(), prevLive);
-            fillPageButton(graphics, mouseX, mouseY, nextX(), nextLive);
+            Widgets.fillBack(graphics, getBackX(), getPagerY(), mouseX, mouseY);
+            fillPageButton(graphics, mouseX, mouseY, getPrevX(), prevLive);
+            fillPageButton(graphics, mouseX, mouseY, getNextX(), nextLive);
 
-            Widgets.drawBackLabel(graphics, font, backX(), pagerY());
-            drawPageGlyph(graphics, prevX(), prevLive, PREV);
-            drawPageGlyph(graphics, nextX(), nextLive, NEXT);
+            Widgets.drawBackLabel(graphics, font, getBackX(), getPagerY());
+            drawPageGlyph(graphics, getPrevX(), prevLive, PREV);
+            drawPageGlyph(graphics, getNextX(), nextLive, NEXT);
             Component page = Component.literal((menu.getPageIndex() + 1) + " / " + menu.getPageCount());
-            Widgets.drawCentered(graphics, font, page, labelX(), pagerBottomY(), PAGE_LABEL_W, PAGE_BUTTON_H,
+            Widgets.drawCentered(graphics, font, page, getLabelX(), getPagerBottomY(), PAGE_LABEL_W, PAGE_BUTTON_H,
                     ModPalette.TEXT);
 
             Component load = Component.translatable(LOAD_KEY, menu.getLoad(), ApertureStorageService.MAX_LOAD);
-            graphics.drawString(font, load, leftPos + imageWidth - font.width(load), pagerBottomY() + 1,
+            graphics.drawString(font, load, leftPos + imageWidth - font.width(load), getPagerBottomY() + 1,
                     ModPalette.APERTURE, false);
         });
     }
 
     private void fillPageButton(GuiGraphics graphics, int mouseX, int mouseY, int x, boolean live) {
-        boolean hover = live && inPageButton(mouseX, mouseY, x);
-        Widgets.fillButton(graphics, x, pagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live, hover);
+        boolean hover = live && isInPageButton(mouseX, mouseY, x);
+        Widgets.fillButton(graphics, x, getPagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live, hover);
     }
 
     private void drawPageGlyph(GuiGraphics graphics, int x, boolean live, Component glyph) {
-        Widgets.drawButtonLabel(graphics, font, glyph, x, pagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live);
+        Widgets.drawButtonLabel(graphics, font, glyph, x, getPagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live);
     }
 
-    private int pagerY() { return topPos + 3; }
+    private int getPagerY() { return topPos + 3; }
 
-    private int pagerBottomY() { return topPos + imageHeight + 4; }
+    private int getPagerBottomY() { return topPos + imageHeight + 4; }
 
-    private int backX() { return leftPos + 7; }
+    private int getBackX() { return leftPos + 7; }
 
-    private int prevX() { return leftPos + 7; }
+    private int getPrevX() { return leftPos + 7; }
 
-    private int labelX() { return prevX() + PAGE_BUTTON_W; }
+    private int getLabelX() { return getPrevX() + PAGE_BUTTON_W; }
 
-    private int nextX() { return labelX() + PAGE_LABEL_W; }
+    private int getNextX() { return getLabelX() + PAGE_LABEL_W; }
 
-    private boolean inPageButton(double mouseX, double mouseY, int x) {
-        return Widgets.isOver(mouseX, mouseY, x, pagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H);
+    private boolean isInPageButton(double mouseX, double mouseY, int x) {
+        return Widgets.isOver(mouseX, mouseY, x, getPagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            if (Widgets.isOverBack(mouseX, mouseY, backX(), pagerY())) return Widgets.openInfo(this);
-            if (inPageButton(mouseX, mouseY, prevX())) {
+            if (Widgets.isOverBack(mouseX, mouseY, getBackX(), getPagerY())) return Widgets.openInfo(this);
+            if (isInPageButton(mouseX, mouseY, getPrevX())) {
                 return Widgets.clickMenuButton(menu.containerId, ApertureStorageMenu.BUTTON_PREV);
             }
-            if (inPageButton(mouseX, mouseY, nextX())) {
+            if (isInPageButton(mouseX, mouseY, getNextX())) {
                 return Widgets.clickMenuButton(menu.containerId, ApertureStorageMenu.BUTTON_NEXT);
             }
         }

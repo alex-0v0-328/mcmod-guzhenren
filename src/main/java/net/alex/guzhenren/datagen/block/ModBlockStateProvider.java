@@ -52,23 +52,24 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        fluidBlock(ModBlocks.SPIRIT_SPRING.get(), Guzhenren.id("block/spirit_spring_still"));
-        flowerBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS.get(), Guzhenren.id("item/nine_leaf_vitality_grass_full"));
-        doublePlantBlock(ModBlocks.INTIMATE_GRASS.get(), tintedCrossOverlay());
-        hopperBlock(ModBlocks.DECORATIVE_HOPPER.get());
+        registerFluidBlock(ModBlocks.SPIRIT_SPRING.get(), Guzhenren.id("block/spirit_spring_still"));
+        registerFlowerBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS.get(),
+                Guzhenren.id("item/nine_leaf_vitality_grass_full"));
+        registerDoublePlantBlock(ModBlocks.INTIMATE_GRASS.get(), buildTintedCrossOverlay());
+        registerHopperBlock(ModBlocks.DECORATIVE_HOPPER.get());
     }
 
-    private void fluidBlock(Block block, ResourceLocation particle) {
+    private void registerFluidBlock(Block block, ResourceLocation particle) {
         simpleBlock(block, models().getBuilder(BuiltInRegistries.BLOCK.getKey(block).getPath())
                 .texture("particle", particle));
     }
 
-    private void flowerBlock(Block block, ResourceLocation cross) {
+    private void registerFlowerBlock(Block block, ResourceLocation cross) {
         simpleBlock(block, models().cross(BuiltInRegistries.BLOCK.getKey(block).getPath(), cross)
                 .renderType("cutout"));
     }
 
-    private void hopperBlock(Block block) {
+    private void registerHopperBlock(Block block) {
         ModelFile down = models().getExistingFile(mcLoc("block/hopper"));
         ModelFile side = models().getExistingFile(mcLoc("block/hopper_side"));
         getVariantBuilder(block).forAllStates(state -> {
@@ -80,15 +81,15 @@ public class ModBlockStateProvider extends BlockStateProvider {
     }
 
     //region the double plant -- a tinted gray cross under an untinted overlay, per half
-    private void doublePlantBlock(Block block, ModelFile parent) {
-        ModelFile bottom = halfModel(block, "_bottom", parent);
-        ModelFile top = halfModel(block, "_top", parent);
+    private void registerDoublePlantBlock(Block block, ModelFile parent) {
+        ModelFile bottom = buildHalfModel(block, "_bottom", parent);
+        ModelFile top = buildHalfModel(block, "_top", parent);
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER ? top : bottom)
                 .build());
     }
 
-    private ModelFile halfModel(Block block, String suffix, ModelFile parent) {
+    private ModelFile buildHalfModel(Block block, String suffix, ModelFile parent) {
         String name = BuiltInRegistries.BLOCK.getKey(block).getPath() + suffix;
         return models().getBuilder(name).parent(parent)
                 .texture("cross", modLoc("block/" + name))
@@ -96,22 +97,22 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .renderType("cutout");
     }
 
-    private ModelFile tintedCrossOverlay() {
+    private ModelFile buildTintedCrossOverlay() {
         BlockModelBuilder model = models().getBuilder(TINTED_CROSS_OVERLAY).ao(false).texture("particle", "#cross");
-        crossPlanes(model, "#cross", GRASS_TINT);
-        crossPlanes(model, "#overlay", NO_TINT);
+        addCrossPlanes(model, "#cross", GRASS_TINT);
+        addCrossPlanes(model, "#overlay", NO_TINT);
         return model;
     }
 
-    private static void crossPlanes(BlockModelBuilder model, String texture, int tint) {
-        crossPlane(model, texture, tint, new float[] { 0.8F, 0.0F, 8.0F }, new float[] { 15.2F, 16.0F, 8.0F },
+    private static void addCrossPlanes(BlockModelBuilder model, String texture, int tint) {
+        addCrossPlane(model, texture, tint, new float[] { 0.8F, 0.0F, 8.0F }, new float[] { 15.2F, 16.0F, 8.0F },
                 Direction.NORTH, Direction.SOUTH);
-        crossPlane(model, texture, tint, new float[] { 8.0F, 0.0F, 0.8F }, new float[] { 8.0F, 16.0F, 15.2F },
+        addCrossPlane(model, texture, tint, new float[] { 8.0F, 0.0F, 0.8F }, new float[] { 8.0F, 16.0F, 15.2F },
                 Direction.WEST, Direction.EAST);
     }
 
-    private static void crossPlane(BlockModelBuilder model, String texture, int tint, float[] from, float[] to,
-                                   Direction front, Direction back) {
+    private static void addCrossPlane(BlockModelBuilder model, String texture, int tint, float[] from, float[] to,
+                                      Direction front, Direction back) {
         var element = model.element()
                 .from(from[0], from[1], from[2]).to(to[0], to[1], to[2])
                 .shade(false)

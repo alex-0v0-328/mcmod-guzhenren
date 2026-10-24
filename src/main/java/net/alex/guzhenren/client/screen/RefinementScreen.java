@@ -125,10 +125,10 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
         int span = menu.isInWindow() ? GuRecipe.WINDOW_TICKS : GuRecipe.GAP_TICKS;
         int filled = BAR_W * menu.getPhaseLeft() / span;
-        graphics.fill(bx, by, bx + filled, by + BAR_H, barColour());
+        graphics.fill(bx, by, bx + filled, by + BAR_H, getBarColor());
     }
 
-    private int barColour() {
+    private int getBarColor() {
         if (!menu.isInWindow()) return BAR_GAP;
         return menu.getStonesIn() < menu.getStonesNeeded() ? ModPalette.SHORT : BAR_WINDOW;
     }
@@ -137,8 +137,8 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     @Override
     protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.REFINEMENT, false);
-        graphics.drawString(font, statusLine(), RefinementMenu.INPUT_X, LEGEND_Y,
-                statusColour(), false);
+        graphics.drawString(font, formatStatusLine(), RefinementMenu.INPUT_X, LEGEND_Y,
+                getStatusColor(), false);
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);
         renderGhosts(graphics);
         LocalPlayer player = Minecraft.getInstance().player;
@@ -146,7 +146,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     //region the status line -- the ring legend until a 蛊方 is picked, then what that pick still wants
-    private Component statusLine() {
+    private Component formatStatusLine() {
         if (menu.isRunning()) {
             int shown = menu.getStage() + 1;
             int seconds = (menu.getPhaseLeft() + Ticks.SECOND - 1) / Ticks.SECOND;
@@ -155,21 +155,21 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
                     menu.getStonesIn(), menu.getStonesNeeded())
                     : Component.translatable(GAP_KEY, shown, menu.getStages());
         }
-        GuRecipe recipe = selectedRecipe();
+        GuRecipe recipe = getSelectedRecipe();
         if (recipe == null) return Component.translatable(LEGEND_KEY);
-        if (crowded(recipe)) return Component.translatable(EXTRA_KEY);
+        if (isCrowded(recipe)) return Component.translatable(EXTRA_KEY);
         return Component.translatable(SELECTED_KEY, RecipeGhosts.getResult(recipe).getHoverName());
     }
 
-    private int statusColour() {
+    private int getStatusColor() {
         if (menu.isRunning()) return ModPalette.TEXT;
 
-        GuRecipe recipe = selectedRecipe();
+        GuRecipe recipe = getSelectedRecipe();
         if (recipe == null) return ModPalette.LEGEND_TEXT;
-        return crowded(recipe) ? ModPalette.SHORT : ModPalette.TEXT;
+        return isCrowded(recipe) ? ModPalette.SHORT : ModPalette.TEXT;
     }
 
-    private boolean crowded(GuRecipe recipe) {
+    private boolean isCrowded(GuRecipe recipe) {
         if (menu.isReady()) return false;
 
         for (int missing : recipe.getShortfall(menu.getGrid())) {
@@ -185,10 +185,10 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         GuiBatch.draw(graphics, () -> {
             fillCraft(graphics, mouseX, mouseY);
             fillRecipe(graphics, mouseX, mouseY);
-            Widgets.fillBack(graphics, backX(), backY(), mouseX, mouseY);
+            Widgets.fillBack(graphics, getBackX(), getBackY(), mouseX, mouseY);
             drawCraftLabel(graphics);
             drawRecipeLabel(graphics);
-            Widgets.drawBackLabel(graphics, font, backX(), backY());
+            Widgets.drawBackLabel(graphics, font, getBackX(), getBackY());
         });
         if (picker.isOpen()) {
             picker.render(graphics, font, KnownRecipes.get(), menu.getSelected(), leftPos, topPos, imageWidth,
@@ -199,18 +199,18 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     private void renderGhosts(GuiGraphics graphics) {
-        GuRecipe recipe = selectedRecipe();
+        GuRecipe recipe = getSelectedRecipe();
         if (recipe != null && !menu.isRunning()) RecipeGhosts.draw(graphics, font, recipe, menu.getGrid());
     }
 
     //region the 炼制 button -- three states off the ritual, and 停止 while it runs
     private void fillCraft(GuiGraphics graphics, int mouseX, int mouseY) {
-        int x = craftX();
-        int y = craftY();
+        int x = getCraftX();
+        int y = getCraftY();
         boolean stopping = menu.isRunning();
-        boolean live = craftLive();
-        boolean shortOfEssence = !stopping && clickable() && !menu.canAfford();
-        boolean hover = live && inCraft(mouseX, mouseY);
+        boolean live = isCraftLive();
+        boolean shortOfEssence = !stopping && isClickable() && !menu.canAfford();
+        boolean hover = live && isInCraft(mouseX, mouseY);
 
         Widgets.fillButton(graphics, x, y, CRAFT_W, CRAFT_H, live, hover);
         if (live || shortOfEssence) {
@@ -221,49 +221,49 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private void drawCraftLabel(GuiGraphics graphics) {
         Component label = Component.translatable(menu.isRunning() ? STOP_KEY : CRAFT_KEY);
-        Widgets.drawButtonLabel(graphics, font, label, craftX(), craftY(), CRAFT_W, CRAFT_H, craftLive());
+        Widgets.drawButtonLabel(graphics, font, label, getCraftX(), getCraftY(), CRAFT_W, CRAFT_H, isCraftLive());
     }
 
-    private boolean craftLive() { return menu.isRunning() || (clickable() && menu.canAfford()); }
+    private boolean isCraftLive() { return menu.isRunning() || (isClickable() && menu.canAfford()); }
 
-    private boolean clickable() { return menu.isReady() && !menu.isRunning(); }
+    private boolean isClickable() { return menu.isReady() && !menu.isRunning(); }
 
-    private int craftX() { return leftPos + CRAFT_X; }
+    private int getCraftX() { return leftPos + CRAFT_X; }
 
-    private int craftY() { return topPos + CRAFT_Y; }
+    private int getCraftY() { return topPos + CRAFT_Y; }
 
-    private boolean inCraft(double mouseX, double mouseY) {
-        return Widgets.isOver(mouseX, mouseY, craftX(), craftY(), CRAFT_W, CRAFT_H);
+    private boolean isInCraft(double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, getCraftX(), getCraftY(), CRAFT_W, CRAFT_H);
     }
     //endregion
 
     //region the 蛊方 button -- dead while the ritual runs, because the grid is locked anyway
     private void fillRecipe(GuiGraphics graphics, int mouseX, int mouseY) {
-        int x = recipeX();
-        int y = recipeY();
+        int x = getRecipeX();
+        int y = getRecipeY();
         boolean live = !menu.isRunning();
-        boolean hover = live && inRecipe(mouseX, mouseY);
+        boolean hover = live && isInRecipe(mouseX, mouseY);
 
         Widgets.fillButton(graphics, x, y, RECIPE_W, RECIPE_H, live, hover);
         if (live) graphics.renderOutline(x, y, RECIPE_W, RECIPE_H, ModPalette.REFINEMENT);
     }
 
     private void drawRecipeLabel(GuiGraphics graphics) {
-        Widgets.drawButtonLabel(graphics, font, Component.translatable(RECIPE_KEY), recipeX(), recipeY(), RECIPE_W,
-                RECIPE_H, !menu.isRunning());
+        Widgets.drawButtonLabel(graphics, font, Component.translatable(RECIPE_KEY), getRecipeX(), getRecipeY(),
+                RECIPE_W, RECIPE_H, !menu.isRunning());
     }
 
-    private int recipeX() { return leftPos + RECIPE_X; }
+    private int getRecipeX() { return leftPos + RECIPE_X; }
 
-    private int recipeY() { return topPos + RECIPE_Y; }
+    private int getRecipeY() { return topPos + RECIPE_Y; }
 
-    private boolean inRecipe(double mouseX, double mouseY) {
-        return Widgets.isOver(mouseX, mouseY, recipeX(), recipeY(), RECIPE_W, RECIPE_H);
+    private boolean isInRecipe(double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, getRecipeX(), getRecipeY(), RECIPE_W, RECIPE_H);
     }
     //endregion
 
     //region the 蛊方 a player may attempt -- the client holds the whole synced table, so it needs no packet
-    private @Nullable GuRecipe selectedRecipe() {
+    private @Nullable GuRecipe getSelectedRecipe() {
         int index = menu.getSelected();
         List<GuRecipe> known = KnownRecipes.get();
         return index >= 0 && index < known.size() ? known.get(index) : null;
@@ -271,9 +271,9 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     //endregion
 
-    private int backX() { return leftPos + 11; }
+    private int getBackX() { return leftPos + 11; }
 
-    private int backY() { return topPos + 4; }
+    private int getBackY() { return topPos + 4; }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -285,10 +285,10 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
             return true;
         }
         if (button == 0) {
-            if (Widgets.isOverBack(mouseX, mouseY, backX(), backY())) return Widgets.openInfo(this);
-            if (inRecipe(mouseX, mouseY) && !menu.isRunning()) return openPicker();
-            if (inCraft(mouseX, mouseY) && menu.isRunning()) return send(RefinementMenu.BUTTON_STOP);
-            if (inCraft(mouseX, mouseY) && clickable()) return send(RefinementMenu.BUTTON_CRAFT);
+            if (Widgets.isOverBack(mouseX, mouseY, getBackX(), getBackY())) return Widgets.openInfo(this);
+            if (isInRecipe(mouseX, mouseY) && !menu.isRunning()) return openPicker();
+            if (isInCraft(mouseX, mouseY) && menu.isRunning()) return send(RefinementMenu.BUTTON_STOP);
+            if (isInCraft(mouseX, mouseY) && isClickable()) return send(RefinementMenu.BUTTON_CRAFT);
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

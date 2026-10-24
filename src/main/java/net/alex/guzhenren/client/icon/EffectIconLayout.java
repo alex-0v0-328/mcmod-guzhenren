@@ -34,14 +34,14 @@ public interface EffectIconLayout extends IClientMobEffectExtensions {
     int HUD_SLOT_Y = 3;
     int INVENTORY_SLOT_Y = 7;
 
-    String textureFor(MobEffectInstance instance);
+    String getTextureFor(MobEffectInstance instance);
 
-    ResourceLocation locationFor(MobEffectInstance instance);
+    ResourceLocation getLocationFor(MobEffectInstance instance);
 
-    static ResourceLocation locationOf(String texture) { return Guzhenren.id("textures/" + texture + ".png"); }
+    static ResourceLocation getLocationOf(String texture) { return Guzhenren.id("textures/" + texture + ".png"); }
 
     private void draw(GuiGraphics g, MobEffectInstance instance, int x, int y) {
-        g.blit(locationFor(instance), x, y, 0, 0.0F, 0.0F, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+        g.blit(getLocationFor(instance), x, y, 0, 0.0F, 0.0F, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
     }
 
     @Override

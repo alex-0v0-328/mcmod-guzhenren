@@ -53,7 +53,7 @@ final class PoolBars {
 
     private static void drawPool(GuiGraphics graphics, Font font, int unit, long value, long max, int fill) {
         int y = TOP + unit * STRIDE;
-        Component reading = reading(unit, value, max);
+        Component reading = formatReading(unit, value, max);
         graphics.drawString(font, reading, X + WIDTH - font.width(reading), y, ModPalette.LEGEND_TEXT, false);
 
         int barY = y + font.lineHeight;
@@ -64,7 +64,7 @@ final class PoolBars {
         graphics.fill(X, barY, X + filled, barY + HEIGHT, fill);
     }
 
-    private static Component reading(int unit, long value, long max) {
+    private static Component formatReading(int unit, long value, long max) {
         Reading cached = READINGS[unit];
         if (cached == null || cached.value() != value || cached.max() != max) {
             cached = new Reading(value, max, Component.translatable(KEY, value, max));

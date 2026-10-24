@@ -38,7 +38,7 @@ import org.joml.Vector3f;
  * ring plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the camera by
  * {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
  * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
- * {@link #facingMotion(SpriteSet)} or {@link #dashTrail(SpriteSet)}.
+ * {@link #createFacingMotion(SpriteSet)} or {@link #createDashTrail(SpriteSet)}.
  *
  * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
  * trail is for third-person and bystanders. {@link #noteLocalDash(int)} arms
@@ -115,13 +115,13 @@ public final class RingParticle extends TextureSheetParticle {
         applyFrame(0);
     }
 
-    public static ParticleProvider<SimpleParticleType> facingMotion(SpriteSet sprites) {
+    public static ParticleProvider<SimpleParticleType> createFacingMotion(SpriteSet sprites) {
         return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
                 new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
                         Orientation.FACING_MOTION, false, RING_LINGER_TICKS);
     }
 
-    public static ParticleProvider<SimpleParticleType> dashTrail(SpriteSet sprites) {
+    public static ParticleProvider<SimpleParticleType> createDashTrail(SpriteSet sprites) {
         return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
                 new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
                         Orientation.FACING_MOTION, true, RING_LINGER_TICKS);
@@ -163,13 +163,13 @@ public final class RingParticle extends TextureSheetParticle {
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-        if (this.dashTrailRing && ownDashHiddenNow()) return;
+        if (this.dashTrailRing && isOwnDashHiddenNow()) return;
         float size = this.getQuadSize(partialTick);
         Vector3f look = camera.getLookVector();
         Vector3f[] corners = this.orientation == Orientation.FACING_MOTION
-                ? RingGeometry.facing(this.spawnDirection,
+                ? RingGeometry.getFacing(this.spawnDirection,
                         new Vec3(look.x(), look.y(), look.z()), size)
-                : RingGeometry.ground(size);
+                : RingGeometry.getGround(size);
         Vec3 cameraPosition = camera.getPosition();
         float dx = (float) (Mth.lerp(partialTick, this.xo, this.x) - cameraPosition.x());
         float dy = (float) (Mth.lerp(partialTick, this.yo, this.y) - cameraPosition.y());
@@ -192,7 +192,7 @@ public final class RingParticle extends TextureSheetParticle {
         emitVertex(buffer, delta, du, dv);
     }
 
-    private static boolean ownDashHiddenNow() {
+    private static boolean isOwnDashHiddenNow() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null
                 || !minecraft.options.getCameraType().isFirstPerson()) return false;
