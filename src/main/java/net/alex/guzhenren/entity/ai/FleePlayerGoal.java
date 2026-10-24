@@ -48,15 +48,15 @@ public class FleePlayerGoal extends Goal {
     @Override
     public boolean canUse() {
         if (gu.level().getGameTime() < retryTime) return false;
-        threat = nearestThreat(gu);
+        threat = findNearestThreat(gu);
         if (threat == null) return false;
-        escapeCourse = courseAwayFromThreat(threat);
-        if (escapeCourse == null) return backOff();
+        escapeCourse = findCourseAwayFromThreat(threat);
+        if (escapeCourse == null) return tryBackOff();
         boolean courseCloserToThreat = threat.distanceToSqr(escapeCourse.x, escapeCourse.y, escapeCourse.z)
                 < threat.distanceToSqr(gu);
-        if (courseCloserToThreat) return backOff();
+        if (courseCloserToThreat) return tryBackOff();
         if (gu.getNavigation().createPath(escapeCourse.x, escapeCourse.y, escapeCourse.z, 0) == null) {
-            return backOff();
+            return tryBackOff();
         }
         return true;
     }
@@ -69,7 +69,7 @@ public class FleePlayerGoal extends Goal {
 
     @Override
     public void start() {
-        if (gu.phase() != RestingFlyingGuEntity.FlightPhase.FLYING) gu.takeOff();
+        if (gu.getPhase() != RestingFlyingGuEntity.FlightPhase.FLYING) gu.takeOff();
         if (escapeCourse != null) {
             gu.getNavigation().moveTo(escapeCourse.x, escapeCourse.y, escapeCourse.z, FLEE_SPEED_MODIFIER);
         }
@@ -87,24 +87,24 @@ public class FleePlayerGoal extends Goal {
     @Override
     public void tick() {
         if (threat == null || !gu.getNavigation().isDone() || gu.level().getGameTime() < retryTime) return;
-        Vec3 course = courseAwayFromThreat(threat);
+        Vec3 course = findCourseAwayFromThreat(threat);
         if (course == null || !gu.getNavigation().moveTo(course.x, course.y, course.z, FLEE_SPEED_MODIFIER)) {
-            backOff();
+            tryBackOff();
         }
     }
 
-    private boolean backOff() {
+    private boolean tryBackOff() {
         retryTime = gu.level().getGameTime() + RETRY_MIN_TICKS + gu.getRandom().nextInt(RETRY_JITTER_TICKS);
         return false;
     }
 
-    private @Nullable Vec3 courseAwayFromThreat(@NotNull Player threat) {
+    private @Nullable Vec3 findCourseAwayFromThreat(@NotNull Player threat) {
         Vec3 away = gu.position().subtract(threat.position());
         return AirAndWaterRandomPos.getPos(gu, ESCAPE_HORIZONTAL_RANGE, ESCAPE_VERTICAL_RANGE, 0,
                 away.x, away.z, ESCAPE_CONE_ANGLE);
     }
 
-    static @Nullable Player nearestThreat(RestingFlyingGuEntity gu) {
+    static @Nullable Player findNearestThreat(RestingFlyingGuEntity gu) {
         return gu.level().getNearestPlayer(gu.getX(), gu.getY(), gu.getZ(), RestingFlyingGuEntity.FLEE_RANGE,
                 FleePlayerGoal::isThreat);
     }

@@ -100,7 +100,7 @@ public final class ModEntityTypes {
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<BearEntity>> registerBear(BearSpecies species) {
-        return register(species.id(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
+        return register(species.getId(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
                 BEAR_WIDTH, BEAR_HEIGHT);
     }
 

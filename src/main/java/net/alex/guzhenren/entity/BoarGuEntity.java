@@ -29,7 +29,7 @@ public class BoarGuEntity extends RestingFlyingGuEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, MAIN, TRANSITION_TICKS, state -> switch (phase()) {
+        controllers.add(new AnimationController<>(this, MAIN, TRANSITION_TICKS, state -> switch (getPhase()) {
             case FLYING, LANDING -> state.setAndContinue(FLY_ANIM);
             case RESTING -> state.setAndContinue(IDLE_ANIM);
         }).triggerableAnim("lift", LIFT_ANIM).triggerableAnim("land", LAND_ANIM));

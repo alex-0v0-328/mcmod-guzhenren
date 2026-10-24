@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * nights lie down and sleep. Vanilla polar bear sounds stand in; the first-lock roar reuses the polar
  * bear warning sound.
  *
- * <p>{@link #huntsActively} is null-safe: {@code registerGoals} evaluates goals during the
+ * <p>{@link #isActiveHunter} is null-safe: {@code registerGoals} evaluates goals during the
  * {@code Mob} constructor, before species is set.
  */
 
@@ -48,72 +48,74 @@ public final class BearEntity extends BeastEntity {
 
     public static AttributeSupplier.Builder createAttributes(BearSpecies species) {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, species.maxHealth())
+                .add(Attributes.MAX_HEALTH, species.getMaxHealth())
                 .add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED)
                 .add(Attributes.FOLLOW_RANGE, FOLLOW_RANGE_BLOCKS);
     }
 
-    public BearSpecies species() {
+    public BearSpecies getSpecies() {
         return this.species;
     }
 
     @Override
-    protected int swipeHitTick() { return SWIPE_HIT_TICK; }
+    protected int getSwipeHitTick() { return SWIPE_HIT_TICK; }
 
     @Override
-    protected int swipeActionTicks() { return SWIPE_END_TICKS; }
+    protected int getSwipeActionTicks() { return SWIPE_END_TICKS; }
 
     @Override
-    protected int roarActionTicks() { return ROAR_TICKS; }
+    protected int getRoarActionTicks() { return ROAR_TICKS; }
 
     @Override
-    protected int lieDownActionTicks() { return LIE_DOWN_TICKS; }
+    protected int getLieDownActionTicks() { return LIE_DOWN_TICKS; }
 
     @Override
     protected int getUpActionTicks() { return GET_UP_TICKS; }
 
     @Override
-    protected int deathRemoveTick() { return DEATH_REMOVE_TICK; }
+    protected int getDeathRemoveTick() { return DEATH_REMOVE_TICK; }
 
     @Override
-    protected float swipeDamage() { return this.species.swipeDamage(); }
+    protected float getSwipeDamage() { return this.species.getSwipeDamage(); }
 
     @Override
-    protected float heavyDamage() { return this.species.rearDamage(); }
+    protected float getHeavyDamage() { return this.species.getRearDamage(); }
 
     @Override
-    protected double swipeKnockback() { return 1.0D; }
+    protected double getSwipeKnockback() { return 1.0D; }
 
     @Override
-    protected double swipeUpward() { return 0.0D; }
+    protected double getSwipeUpward() { return 0.0D; }
 
     @Override
-    protected boolean huntsActively() {
-        return this.species != null && this.species.hostile();
+    protected boolean isActiveHunter() {
+        return this.species != null && this.species.isHostile();
     }
 
     @Override
-    protected double pursuitSpeed() { return 1.4D; }
+    protected double getPursuitSpeed() { return 1.4D; }
 
     @Override
-    protected double cullExtraHeight() { return 1.3D; }
+    protected double getCullExtraHeight() { return 1.3D; }
 
     @Override
-    protected double cullHorizontalInflate() { return 0.3D; }
+    protected double getCullHorizontalInflate() { return 0.3D; }
 
     @Override
     protected void chooseAttack(LivingEntity target) {
         if (!this.canSwipe(target)) return;
-        if (this.heavyCooldown() == 0 && this.random.nextDouble() < REAR_CHANCE) {
-            this.startAction(Action.ATTACK_HEAVY);
+        if (this.getHeavyCooldown() == 0 && this.random.nextDouble() < REAR_CHANCE) {
+            this.tryStartAction(Action.ATTACK_HEAVY);
         } else {
-            this.startAction(Action.ATTACK_SWIPE);
+            this.tryStartAction(Action.ATTACK_SWIPE);
         }
     }
 
     @Override
     protected void tickHeavyAttack(long ticks) {
-        if (ticks >= REAR_HIT_TICK && !this.hitSettled) this.strikeTarget(REAR_REACH, this.heavyDamage(), 0.5D, 0.0D);
+        if (ticks >= REAR_HIT_TICK && !this.hitSettled) {
+            this.strikeTarget(REAR_REACH, this.getHeavyDamage(), 0.5D, 0.0D);
+        }
         if (ticks >= REAR_END_TICKS) this.finishAction();
     }
 
@@ -124,16 +126,16 @@ public final class BearEntity extends BeastEntity {
     }
 
     @Override
-    protected String heavyAttackAnimation() { return "animation.attack_rear"; }
+    protected String getHeavyAttackAnimation() { return "animation.attack_rear"; }
 
     @Override
-    protected SoundEvent roarSound() { return SoundEvents.POLAR_BEAR_WARNING; }
+    protected SoundEvent getRoarSound() { return SoundEvents.POLAR_BEAR_WARNING; }
 
     @Override
-    protected float roarPitch() { return 1.0F; }
+    protected float getRoarPitch() { return 1.0F; }
 
     @Override
-    protected SoundEvent stepSound() { return SoundEvents.POLAR_BEAR_STEP; }
+    protected SoundEvent getStepSound() { return SoundEvents.POLAR_BEAR_STEP; }
 
     @Override
     protected SoundEvent getAmbientSound() { return SoundEvents.POLAR_BEAR_AMBIENT; }

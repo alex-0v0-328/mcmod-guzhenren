@@ -23,17 +23,17 @@ import software.bernie.geckolib.animation.RawAnimation;
  * The big beasts (bears, tigers): the {@link ActionEntity} state machine with a swipe and a heavy attack, a
  * first-lock roar, directional hurt poses and the night-sleep / daytime-rest ambient chain.
  *
- * <p>Subclasses supply the timing constants: {@link #swipeHitTick} is the tick at which the swipe's hit frame
- * lands; {@link #swipeActionTicks} the tick at which the swipe ends; {@link #roarActionTicks} the length of the
- * first-lock roar; {@link #lieDownActionTicks} the lie-down transition into lie/sleep; {@link #getUpActionTicks}
- * the get-up transition back to idle. The attack: {@link #swipeDamage} and {@link #heavyDamage} are the flat
- * damage before armor; {@link #swipeKnockback} and {@link #swipeUpward} the swipe's knockback;
+ * <p>Subclasses supply the timing constants: {@link #getSwipeHitTick} is the tick at which the swipe's hit frame
+ * lands; {@link #getSwipeActionTicks} the tick at which the swipe ends; {@link #getRoarActionTicks} the length of the
+ * first-lock roar; {@link #getLieDownActionTicks} the lie-down transition into lie/sleep; {@link #getUpActionTicks}
+ * the get-up transition back to idle. The attack: {@link #getSwipeDamage} and {@link #getHeavyDamage} are the flat
+ * damage before armor; {@link #getSwipeKnockback} and {@link #getSwipeUpward} the swipe's knockback;
  * {@link #tickHeavyAttack} advances the heavy attack, hit frames and movement physics included.
- * {@link #huntsActively} says whether the beast seeks targets on its own or only retaliates;
+ * {@link #isActiveHunter} says whether the beast seeks targets on its own or only retaliates;
  * {@link #pickDaytimeAmbient} picks the daytime ambient action, with relative weights;
- * {@link #cullExtraHeight} and {@link #cullHorizontalInflate} extend the render culling box so rearing poses
+ * {@link #getCullExtraHeight} and {@link #getCullHorizontalInflate} extend the render culling box so rearing poses
  * and tail sweeps are not clipped, recomputed only when the body's bounding box is replaced;
- * {@link #heavyAttackAnimation} names the heavy attack's animation. {@link #canSwipe} is the swipe's shared
+ * {@link #getHeavyAttackAnimation} names the heavy attack's animation. {@link #canSwipe} is the swipe's shared
  * precondition: in reach, off cooldown and in sight.
  *
  * <p>{@link HuntGoal} is registered unconditionally: {@code registerGoals} runs inside the {@code Mob}
@@ -44,7 +44,7 @@ import software.bernie.geckolib.animation.RawAnimation;
  * <p>In {@link #setTarget}, the first lock of an engagement is announced by the roar; it never interrupts a
  * running action. In {@link #reactToHurt}, a running hurt pose is never restarted: it outlasts vanilla's
  * 10-tick damage window, so restarting it would let steady hits stun-lock the beast out of every attack.
- * {@link #directionalHurt} picks the hurt pose from the attacker's bearing: an attacker on this beast's left
+ * {@link #pickDirectionalHurt} picks the hurt pose from the attacker's bearing: an attacker on this beast's left
  * side knocks the head to the beast's right, playing {@code hurt_right}, and vice versa.
  *
  * <p>{@link #rollAmbient} picks and starts an ambient action after a completed wander; nothing happens on a
@@ -86,84 +86,84 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     }
 
     //region subclass hooks
-    protected abstract int swipeHitTick();
+    protected abstract int getSwipeHitTick();
 
-    protected abstract int swipeActionTicks();
+    protected abstract int getSwipeActionTicks();
 
-    protected abstract int roarActionTicks();
+    protected abstract int getRoarActionTicks();
 
-    protected abstract int lieDownActionTicks();
+    protected abstract int getLieDownActionTicks();
 
     protected abstract int getUpActionTicks();
 
-    protected abstract float swipeDamage();
+    protected abstract float getSwipeDamage();
 
-    protected abstract float heavyDamage();
+    protected abstract float getHeavyDamage();
 
-    protected abstract double swipeKnockback();
+    protected abstract double getSwipeKnockback();
 
-    protected abstract double swipeUpward();
+    protected abstract double getSwipeUpward();
 
-    protected abstract boolean huntsActively();
+    protected abstract boolean isActiveHunter();
 
     protected abstract void tickHeavyAttack(long ticks);
 
     protected abstract Action pickDaytimeAmbient(double roll);
 
-    protected abstract SoundEvent roarSound();
+    protected abstract SoundEvent getRoarSound();
 
-    protected abstract float roarPitch();
+    protected abstract float getRoarPitch();
 
-    protected abstract SoundEvent stepSound();
+    protected abstract SoundEvent getStepSound();
 
-    protected abstract double cullExtraHeight();
+    protected abstract double getCullExtraHeight();
 
-    protected abstract double cullHorizontalInflate();
+    protected abstract double getCullHorizontalInflate();
 
-    protected abstract String heavyAttackAnimation();
+    protected abstract String getHeavyAttackAnimation();
     //endregion
 
     //region action set
     @Override
-    protected Action[] actionValues() { return ACTIONS; }
+    protected Action[] getActionValues() { return ACTIONS; }
 
     @Override
-    protected Action idleAction() { return Action.IDLE; }
+    protected Action getIdleAction() { return Action.IDLE; }
 
     @Override
-    protected Action alertAction() { return Action.ROAR; }
+    protected Action getAlertAction() { return Action.ROAR; }
 
     @Override
-    protected Action deathAction() { return Action.DEATH; }
+    protected Action getDeathAction() { return Action.DEATH; }
 
     @Override
-    protected List<Cooldown> cooldowns() { return COOLDOWNS; }
+    protected List<Cooldown> getCooldowns() { return COOLDOWNS; }
 
     @Override
-    protected Cooldown cooldownOf(Action attack) { return attack == Action.ATTACK_SWIPE ? SWIPE : HEAVY; }
+    protected Cooldown getCooldownOf(Action attack) { return attack == Action.ATTACK_SWIPE ? SWIPE : HEAVY; }
 
     @Override
-    protected String recoverySaveKey() { return "BeastRecoveryTicks"; }
+    protected String getRecoverySaveKey() { return "BeastRecoveryTicks"; }
 
-    public int swipeCooldown() {
-        return this.cooldown(SWIPE);
+    public int getSwipeCooldown() {
+        return this.getCooldown(SWIPE);
     }
 
-    public int heavyCooldown() {
-        return this.cooldown(HEAVY);
+    public int getHeavyCooldown() {
+        return this.getCooldown(HEAVY);
     }
     //endregion
 
     @Override
     protected void registerSpeciesGoals() {
         this.goalSelector.addGoal(2, new HuntGoal(this));
-        this.goalSelector.addGoal(4, new StandStillGoal(this, () -> this.action().isAmbient()));
+        this.goalSelector.addGoal(4, new StandStillGoal(this, () -> this.getAction().isAmbient()));
     }
 
     @Override
     protected void onBeginAction(Action next) {
-        if (next.isAttack() && this.actionTarget != null) this.faceDirection(this.directionTo(this.actionTarget));
-        if (next == Action.ROAR) this.playSound(this.roarSound(), 1.0F, this.roarPitch());
+        if (next.isAttack() && this.actionTarget != null) this.faceDirection(this.getDirectionTo(this.actionTarget));
+        if (next == Action.ROAR) this.playSound(this.getRoarSound(), 1.0F, this.getRoarPitch());
         this.ambientEndGameTime = next == Action.SIT
                 ? this.level().getGameTime() + SIT_ACTION_TICKS : Long.MIN_VALUE;
     }
@@ -174,8 +174,8 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     }
 
     @Override
-    protected boolean facesTargetInAction() {
-        return this.action() == Action.ROAR;
+    protected boolean isFacingTargetInAction() {
+        return this.getAction() == Action.ROAR;
     }
 
     //region action timing
@@ -188,13 +188,14 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     private void tickCombatAction(Action current, long ticks) {
         switch (current) {
             case ROAR -> {
-                if (ticks >= this.roarActionTicks()) this.finishAction();
+                if (ticks >= this.getRoarActionTicks()) this.finishAction();
             }
             case ATTACK_SWIPE -> {
-                if (ticks >= this.swipeHitTick() && !this.hitSettled) {
-                    this.strikeTarget(SWIPE_REACH, this.swipeDamage(), this.swipeKnockback(), this.swipeUpward());
+                if (ticks >= this.getSwipeHitTick() && !this.hitSettled) {
+                    this.strikeTarget(SWIPE_REACH, this.getSwipeDamage(), this.getSwipeKnockback(),
+                            this.getSwipeUpward());
                 }
-                if (ticks >= this.swipeActionTicks()) this.finishAction();
+                if (ticks >= this.getSwipeActionTicks()) this.finishAction();
             }
             case ATTACK_HEAVY -> this.tickHeavyAttack(ticks);
             case HURT_LEFT, HURT_RIGHT -> {
@@ -210,17 +211,17 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
                 if (this.level().getGameTime() >= this.ambientEndGameTime) this.finishAction();
             }
             case LIE_DOWN -> {
-                if (ticks >= this.lieDownActionTicks()) {
+                if (ticks >= this.getLieDownActionTicks()) {
                     this.switchAction(Action.LIE);
                     this.ambientEndGameTime = this.level().getGameTime() + LIE_ACTION_TICKS;
                 }
             }
             case LIE -> {
-                if (!this.isNightTime()) this.beginAction(Action.GET_UP, false);
+                if (!this.isNightTime()) this.tryBeginAction(Action.GET_UP, false);
                 else if (this.level().getGameTime() >= this.ambientEndGameTime) this.switchAction(Action.SLEEP);
             }
             case SLEEP -> {
-                if (!this.isNightTime()) this.beginAction(Action.GET_UP, false);
+                if (!this.isNightTime()) this.tryBeginAction(Action.GET_UP, false);
             }
             case GET_UP -> {
                 if (ticks >= this.getUpActionTicks()) this.finishAction();
@@ -247,7 +248,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         LivingEntity previous = this.getTarget();
         super.setTarget(target);
         if (target != null && previous == null && !this.level().isClientSide() && !this.isDeadOrDying()
-                && (this.action() == Action.IDLE || this.action().isAmbient())) {
+                && (this.getAction() == Action.IDLE || this.getAction().isAmbient())) {
             this.switchAction(Action.ROAR);
         }
     }
@@ -255,14 +256,14 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     @Override
     protected void reactToHurt(@Nullable LivingEntity attacker) {
         if (attacker != null && this.canAttackTarget(attacker)) this.lockTarget(attacker);
-        Action current = this.action();
+        Action current = this.getAction();
         if (!current.isAttack() && current != Action.DEATH && current != Action.ROAR
                 && current != Action.HURT_LEFT && current != Action.HURT_RIGHT) {
-            this.switchAction(this.directionalHurt(attacker));
+            this.switchAction(this.pickDirectionalHurt(attacker));
         }
     }
 
-    private Action directionalHurt(@Nullable Entity attacker) {
+    private Action pickDirectionalHurt(@Nullable Entity attacker) {
         if (attacker == null) return Action.HURT_LEFT;
         double dx = attacker.getX() - this.getX();
         double dz = attacker.getZ() - this.getZ();
@@ -281,42 +282,42 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     private void rollAmbient() {
         if (!this.isIdle() || this.getTarget() != null || this.isDeadOrDying() || !this.onGround()) return;
         if (this.isNightTime()) {
-            if (this.random.nextDouble() < NIGHT_LIE_DOWN_CHANCE) this.beginAction(Action.LIE_DOWN, false);
+            if (this.random.nextDouble() < NIGHT_LIE_DOWN_CHANCE) this.tryBeginAction(Action.LIE_DOWN, false);
             return;
         }
         double roll = this.random.nextDouble();
         if (roll >= AMBIENT_REST_CHANCE) return;
         Action pick = this.pickDaytimeAmbient(roll / AMBIENT_REST_CHANCE);
         if (pick == null) return;
-        this.beginAction(pick, false);
+        this.tryBeginAction(pick, false);
     }
 
     @Override
     public @NotNull AABB getBoundingBoxForCulling() {
         AABB source = super.getBoundingBoxForCulling();
         if (source != this.cullSource) {
-            AABB box = source.inflate(this.cullHorizontalInflate());
-            this.cullBox = box.setMaxY(box.maxY + this.cullExtraHeight());
+            AABB box = source.inflate(this.getCullHorizontalInflate());
+            this.cullBox = box.setMaxY(box.maxY + this.getCullExtraHeight());
             this.cullSource = source;
         }
         return this.cullBox;
     }
 
     protected boolean canSwipe(LivingEntity target) {
-        return this.distanceTo(target) <= SWIPE_REACH && this.swipeCooldown() == 0
+        return this.distanceTo(target) <= SWIPE_REACH && this.getSwipeCooldown() == 0
                 && this.getSensing().hasLineOfSight(target);
     }
 
     @Override
     protected void playStepSound(@NotNull BlockPos pos, @NotNull BlockState block) {
-        this.playSound(this.stepSound(), 0.15F, 1.0F);
+        this.playSound(this.getStepSound(), 0.15F, 1.0F);
     }
 
     @Override
-    protected String animationPrefix() { return "animation."; }
+    protected String getAnimationPrefix() { return "animation."; }
 
     @Override
-    protected RawAnimation actionAnimation(Action action) {
+    protected RawAnimation getActionAnimation(Action action) {
         RawAnimation clip = RawAnimation.begin();
         return switch (action) {
             case IDLE -> clip.thenLoop("animation.idle");
@@ -329,7 +330,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
             case BACK_SCRATCH -> clip.thenPlay("animation.back_scratch");
             case ROAR -> clip.thenPlay("animation.roar");
             case ATTACK_SWIPE -> clip.thenPlay("animation.attack_swipe");
-            case ATTACK_HEAVY -> clip.thenPlay(this.heavyAttackAnimation());
+            case ATTACK_HEAVY -> clip.thenPlay(this.getHeavyAttackAnimation());
             case HURT_LEFT -> clip.thenPlay("animation.hurt_left");
             case HURT_RIGHT -> clip.thenPlay("animation.hurt_right");
             case DEATH -> clip.thenPlayAndHold("animation.death");
@@ -347,8 +348,8 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
         @Override
         public boolean canUse() {
-            Action action = this.beast.action();
-            return this.beast.huntsActively() && this.beast.getTarget() == null
+            Action action = this.beast.getAction();
+            return this.beast.isActiveHunter() && this.beast.getTarget() == null
                     && action != Action.SLEEP && action != Action.GET_UP && action != Action.DEATH
                     && action != Action.ROAR && !action.isAttack()
                     && action != Action.HURT_LEFT && action != Action.HURT_RIGHT;
@@ -409,7 +410,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         }
 
         @Override
-        public boolean loops() { return this.loop; }
+        public boolean isLooping() { return this.loop; }
 
         @Override
         public boolean isAttack() { return this.attack; }

@@ -35,7 +35,7 @@ public class WanderCourseGoal extends WaterAvoidingRandomFlyingGoal {
 
     @Override
     public boolean canUse() {
-        if (gu.phase() != RestingFlyingGuEntity.FlightPhase.FLYING) return false;
+        if (gu.getPhase() != RestingFlyingGuEntity.FlightPhase.FLYING) return false;
         if (gu.level().getGameTime() < retryTime) return false;
         trigger();
         if (!super.canUse()) {

@@ -40,7 +40,7 @@ public class HopeGuEntity extends FlyingGuEntity {
     }
 
     @Override
-    public boolean seeks(Player player) { return !ApertureService.isAwakened(player); }
+    public boolean isSeeking(Player player) { return !ApertureService.isAwakened(player); }
 
     @Override
     public void tick() {

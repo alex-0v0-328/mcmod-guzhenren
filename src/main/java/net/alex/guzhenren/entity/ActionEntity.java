@@ -42,28 +42,28 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * Server-authoritative action state machine shared by the wild boar and the big beasts (bears, tigers).
  *
  * <p>Every pose is a synchronized action {@code A} with a server game-time start and a monotonic sequence, so
- * late trackers replay one-shot actions from their first frame: {@link #action} is the current one,
- * {@link #actionTicks} the elapsed server game ticks since its start, and {@link #actionSequence} tells
+ * late trackers replay one-shot actions from their first frame: {@link #getAction} is the current one,
+ * {@link #getActionTicks} the elapsed server game ticks since its start, and {@link #getActionSequence} tells
  * repeated actions of one type apart. Damage lands on animation hit frames, never on contact:
  * {@link #strikeTarget} settles the hit and lands it only on a target still in reach and in sight. Each attack
  * has its own {@link Cooldown}, which starts with the attack; a finished attack adds
  * {@link #ATTACK_RECOVERY_TICKS} before the next one. Cooldowns and recovery are server-only counts: no client
  * reads them, so they are saved but never synchronized.
  *
- * <p>The subclass supplies the action set ({@link #actionValues}, with {@link #idleAction}, the target-keeping
- * {@link #alertAction} and {@link #deathAction}), its cooldowns and save keys, the attack choice
+ * <p>The subclass supplies the action set ({@link #getActionValues}, with {@link #getIdleAction}, the target-keeping
+ * {@link #getAlertAction} and {@link #getDeathAction}), its cooldowns and save keys, the attack choice
  * ({@link #chooseAttack}), every non-idle action's timing ({@link #tickAction}), the reaction to a hit
- * ({@link #reactToHurt}) and each non-idle action's animation ({@link #actionAnimation}). {@code registerGoals}
+ * ({@link #reactToHurt}) and each non-idle action's animation ({@link #getActionAnimation}). {@code registerGoals}
  * and {@code defineSynchedData} run inside the entity constructor, before subclass fields are assigned, so the
- * hooks they reach ({@link #registerSpeciesGoals}, {@link #idleAction}, {@link #cooldowns}) return constants.
+ * hooks they reach ({@link #registerSpeciesGoals}, {@link #getIdleAction}, {@link #getCooldowns}) return constants.
  *
- * <p>{@link #startAction} starts a server action: attacks refuse to start while another attack is in
+ * <p>{@link #tryStartAction} starts a server action: attacks refuse to start while another attack is in
  * progress, during recovery or under their cooldown, and the target is captured at once so a new attacker
  * cannot redirect an attack already in progress. {@link #hitSettled} marks the running attack's hit as
  * resolved, landed or missed. In {@link #validateTarget}, a target lost to range, sight or the rules ends a
  * running alert and an unsettled attack; a settled hit still plays its recovery pose, even when it killed
  * the target. Sight checks go through the mob's sensing, which caches one answer per target per tick; only
- * {@link #sweptHit} casts a fresh ray, because a charge moves the body before it tests. After a refusal
+ * {@link #isHitBySweep} casts a fresh ray, because a charge moves the body before it tests. After a refusal
  * {@link #canStartLunge} sweeps the lunge path again only after {@link #LUNGE_RECHECK_TICKS} ticks, and the
  * cooldown map holds only running cooldowns, so an idle mob skips {@link #tickCooldowns} entirely.
  *
@@ -107,23 +107,23 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     //region hooks
-    protected abstract A[] actionValues();
+    protected abstract A[] getActionValues();
 
-    protected abstract A idleAction();
+    protected abstract A getIdleAction();
 
-    protected abstract A alertAction();
+    protected abstract A getAlertAction();
 
-    protected abstract A deathAction();
+    protected abstract A getDeathAction();
 
-    protected abstract List<Cooldown> cooldowns();
+    protected abstract List<Cooldown> getCooldowns();
 
-    protected abstract Cooldown cooldownOf(A attack);
+    protected abstract Cooldown getCooldownOf(A attack);
 
-    protected abstract String recoverySaveKey();
+    protected abstract String getRecoverySaveKey();
 
-    protected abstract int deathRemoveTick();
+    protected abstract int getDeathRemoveTick();
 
-    protected abstract double pursuitSpeed();
+    protected abstract double getPursuitSpeed();
 
     protected abstract void chooseAttack(LivingEntity target);
 
@@ -131,13 +131,13 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     protected abstract void reactToHurt(@Nullable LivingEntity attacker);
 
-    protected abstract boolean facesTargetInAction();
+    protected abstract boolean isFacingTargetInAction();
 
     protected abstract void onWanderComplete();
 
-    protected abstract RawAnimation actionAnimation(A action);
+    protected abstract RawAnimation getActionAnimation(A action);
 
-    protected abstract String animationPrefix();
+    protected abstract String getAnimationPrefix();
 
     protected void registerSpeciesGoals() {}
 
@@ -145,11 +145,11 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     protected void onActionCleared() {}
 
-    protected boolean keepsMomentum(long ticks) {
+    protected boolean isKeepingMomentum(long ticks) {
         return false;
     }
 
-    protected double targetRange() {
+    protected double getTargetRange() {
         return this.getAttributeValue(Attributes.FOLLOW_RANGE);
     }
     //endregion
@@ -167,57 +167,57 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_ACTION, id(this.idleAction()));
+        builder.define(DATA_ACTION, toId(this.getIdleAction()));
         builder.define(DATA_ACTION_START, 0L);
         builder.define(DATA_ACTION_SEQUENCE, 0);
         builder.define(DATA_PURSUING, false);
     }
 
     //region action state
-    public A action() {
-        A[] actions = this.actionValues();
+    public A getAction() {
+        A[] actions = this.getActionValues();
         byte id = this.entityData.get(DATA_ACTION);
-        return id >= 0 && id < actions.length ? actions[id] : this.idleAction();
+        return id >= 0 && id < actions.length ? actions[id] : this.getIdleAction();
     }
 
-    public long actionTicks() {
+    public long getActionTicks() {
         if (this.isIdle()) return 0L;
         long elapsed = this.level().getGameTime() - this.entityData.get(DATA_ACTION_START);
         return Math.max(0L, elapsed);
     }
 
-    public int actionSequence() {
+    public int getActionSequence() {
         return this.entityData.get(DATA_ACTION_SEQUENCE);
     }
 
-    public boolean pursuing() {
+    public boolean isPursuing() {
         return this.entityData.get(DATA_PURSUING);
     }
 
     protected boolean isIdle() {
-        return this.action() == this.idleAction();
+        return this.getAction() == this.getIdleAction();
     }
 
-    protected int cooldown(Cooldown cooldown) {
+    protected int getCooldown(Cooldown cooldown) {
         return this.cooldownTicks.getInt(cooldown);
     }
 
-    public boolean startAction(A next) {
-        if (this.level().isClientSide() || next == null || this.isDeadOrDying() || this.action().isAttack()) {
+    public boolean tryStartAction(A next) {
+        if (this.level().isClientSide() || next == null || this.isDeadOrDying() || this.getAction().isAttack()) {
             return false;
         }
         if (next.isAttack() && (this.recoveryTicks > 0 || !this.canAttackTarget(this.getTarget())
-                || this.cooldown(this.cooldownOf(next)) > 0)) return false;
-        return this.beginAction(next, true);
+                || this.getCooldown(this.getCooldownOf(next)) > 0)) return false;
+        return this.tryBeginAction(next, true);
     }
 
-    protected boolean beginAction(A next, boolean applyCooldown) {
-        if (next == this.idleAction() && this.isIdle()) return false;
+    protected boolean tryBeginAction(A next, boolean applyCooldown) {
+        if (next == this.getIdleAction() && this.isIdle()) return false;
         if (next.isAttack()) {
             this.actionTarget = this.getTarget();
             this.hitSettled = false;
-            if (applyCooldown) this.setCooldown(this.cooldownOf(next), this.cooldownOf(next).maxTicks());
-        } else if (next != this.alertAction()) {
+            if (applyCooldown) this.setCooldown(this.getCooldownOf(next), this.getCooldownOf(next).maxTicks());
+        } else if (next != this.getAlertAction()) {
             this.actionTarget = null;
         }
         this.onBeginAction(next);
@@ -227,13 +227,13 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     protected void finishAction() {
-        A current = this.action();
-        if (current == this.idleAction() || current == this.deathAction()) return;
+        A current = this.getAction();
+        if (current == this.getIdleAction() || current == this.getDeathAction()) return;
         this.recoveryTicks = current.isAttack() ? ATTACK_RECOVERY_TICKS : 0;
         this.actionTarget = null;
         this.hitSettled = false;
         this.onActionCleared();
-        this.writeAction(this.idleAction(), this.level().getGameTime());
+        this.writeAction(this.getIdleAction(), this.level().getGameTime());
     }
 
     protected void switchAction(A next) {
@@ -244,12 +244,12 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     private void writeAction(A next, long start) {
-        this.entityData.set(DATA_ACTION, id(next));
+        this.entityData.set(DATA_ACTION, toId(next));
         this.entityData.set(DATA_ACTION_START, start);
-        this.entityData.set(DATA_ACTION_SEQUENCE, this.actionSequence() + 1);
+        this.entityData.set(DATA_ACTION_SEQUENCE, this.getActionSequence() + 1);
     }
 
-    private static byte id(Enum<?> action) {
+    private static byte toId(Enum<?> action) {
         return (byte) action.ordinal();
     }
     //endregion
@@ -263,12 +263,12 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         this.validateTarget();
         LivingEntity target = this.getTarget();
         this.entityData.set(DATA_PURSUING, target != null);
-        A current = this.action();
+        A current = this.getAction();
         if (target != null && current.isAmbient()) {
             this.finishAction();
-            current = this.action();
+            current = this.getAction();
         }
-        if (current != this.idleAction()) {
+        if (current != this.getIdleAction()) {
             this.tickCurrentAction(current);
         } else if (this.recoveryTicks == 0 && target != null && this.canAttackTarget(target)) {
             this.chooseAttack(target);
@@ -276,8 +276,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     private void tickCurrentAction(A current) {
-        long ticks = this.actionTicks();
-        if (!this.keepsMomentum(ticks)) {
+        long ticks = this.getActionTicks();
+        if (!this.isKeepingMomentum(ticks)) {
             this.getNavigation().stop();
             this.setXxa(0.0F);
             this.setYya(0.0F);
@@ -291,8 +291,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     private void tickCooldowns() {
         if (!this.cooldownTicks.isEmpty()) {
-            for (Cooldown cooldown : this.cooldowns()) {
-                int ticks = this.cooldown(cooldown);
+            for (Cooldown cooldown : this.getCooldowns()) {
+                int ticks = this.getCooldown(cooldown);
                 if (ticks > 1) this.cooldownTicks.put(cooldown, ticks - 1);
                 else if (ticks == 1) this.cooldownTicks.removeInt(cooldown);
             }
@@ -317,7 +317,9 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         }
         if (target != null) this.setTarget(null);
         this.lostSightTicks = 0;
-        if (this.action() == this.alertAction() || this.action().isAttack() && !this.hitSettled) this.finishAction();
+        if (this.getAction() == this.getAlertAction() || this.getAction().isAttack() && !this.hitSettled) {
+            this.finishAction();
+        }
     }
     //endregion
 
@@ -326,7 +328,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         if (target == null || target == this || target.isRemoved() || !target.isAlive() || !target.isAttackable()) {
             return false;
         }
-        double range = this.targetRange();
+        double range = this.getTargetRange();
         if (target.level() != this.level() || this.isAlliedTo(target)
                 || this.distanceToSqr(target) > range * range) return false;
         return !(target instanceof Player player
@@ -345,7 +347,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private boolean isLungePathClear(LivingEntity target, double maxDistance) {
         if (!this.canAttackTarget(target) || !this.onGround()
                 || !this.getSensing().hasLineOfSight(target)) return false;
-        Vec3 direction = this.directionTo(target);
+        Vec3 direction = this.getDirectionTo(target);
         double distance = Math.min(maxDistance, this.distanceTo(target));
         for (double step = 0.3D; step <= distance; step += 0.3D) {
             Vec3 offset = direction.scale(step);
@@ -367,7 +369,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     /** The swept-body hit test for moving attacks: the body's path from {@code from} to {@code to} meets the target. */
-    protected boolean sweptHit(LivingEntity target, Vec3 from, Vec3 to) {
+    protected boolean isHitBySweep(LivingEntity target, Vec3 from, Vec3 to) {
         AABB targetBox = target.getBoundingBox();
         double halfWidth = this.getBbWidth() * 0.5D;
         AABB contact = new AABB(targetBox.minX - halfWidth, targetBox.minY - this.getBbHeight(),
@@ -382,7 +384,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         LivingEntity target = this.actionTarget;
         if (target == null || !this.canAttackTarget(target) || this.distanceTo(target) > reach
                 || !this.getSensing().hasLineOfSight(target)) return;
-        this.applyAttack(target, damage, horizontalStrength, upward, this.directionOrFacing(target));
+        this.applyAttack(target, damage, horizontalStrength, upward, this.getDirectionOrFacing(target));
     }
 
     protected void applyAttack(LivingEntity target, float damage, double horizontalStrength,
@@ -397,15 +399,15 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         target.hurtMarked = true;
     }
 
-    protected Vec3 directionTo(@Nullable Entity target) {
+    protected Vec3 getDirectionTo(@Nullable Entity target) {
         if (target == null) return Vec3.ZERO;
         Vec3 delta = target.position().subtract(this.position());
         Vec3 horizontal = new Vec3(delta.x, 0.0D, delta.z);
         return horizontal.lengthSqr() < 1.0E-8D ? Vec3.ZERO : horizontal.normalize();
     }
 
-    protected Vec3 directionOrFacing(@Nullable Entity target) {
-        Vec3 direction = this.directionTo(target);
+    protected Vec3 getDirectionOrFacing(@Nullable Entity target) {
+        Vec3 direction = this.getDirectionTo(target);
         if (direction.lengthSqr() > 0.0D) return direction;
         float radians = this.getYRot() * ((float) Math.PI / 180.0F);
         return new Vec3(-Mth.sin(radians), 0.0D, Mth.cos(radians));
@@ -461,19 +463,19 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         this.onActionCleared();
         this.setDeltaMovement(Vec3.ZERO);
         this.getNavigation().stop();
-        this.writeAction(this.deathAction(), this.level().getGameTime());
+        this.writeAction(this.getDeathAction(), this.level().getGameTime());
     }
 
     @Override
     protected void tickDeath() {
-        HeldDeath.tick(this, this.deathRemoveTick());
+        HeldDeath.tick(this, this.getDeathRemoveTick());
     }
 
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        for (Cooldown cooldown : this.cooldowns()) tag.putInt(cooldown.saveKey(), this.cooldown(cooldown));
-        tag.putInt(this.recoverySaveKey(), this.recoveryTicks);
+        for (Cooldown cooldown : this.getCooldowns()) tag.putInt(cooldown.saveKey(), this.getCooldown(cooldown));
+        tag.putInt(this.getRecoverySaveKey(), this.recoveryTicks);
     }
 
     @Override
@@ -486,12 +488,12 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         this.onActionCleared();
         this.setDeltaMovement(Vec3.ZERO);
         this.getNavigation().stop();
-        for (Cooldown cooldown : this.cooldowns()) this.setCooldown(cooldown, tag.getInt(cooldown.saveKey()));
-        this.recoveryTicks = Mth.clamp(tag.getInt(this.recoverySaveKey()), 0, ATTACK_RECOVERY_TICKS);
+        for (Cooldown cooldown : this.getCooldowns()) this.setCooldown(cooldown, tag.getInt(cooldown.saveKey()));
+        this.recoveryTicks = Mth.clamp(tag.getInt(this.getRecoverySaveKey()), 0, ATTACK_RECOVERY_TICKS);
         this.entityData.set(DATA_PURSUING, false);
         boolean dead = this.getHealth() <= 0.0F;
         long now = this.level().getGameTime();
-        this.writeAction(dead ? this.deathAction() : this.idleAction(), dead ? now - this.deathTime : now);
+        this.writeAction(dead ? this.getDeathAction() : this.getIdleAction(), dead ? now - this.deathTime : now);
     }
 
     @Override
@@ -508,15 +510,15 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     //region animation
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new ActionAnimationController<>(this, this::animationState,
-                this::action, this::actionTicks, this::actionSequence));
+        controllers.add(new ActionAnimationController<>(this, this::handleAnimationState,
+                this::getAction, this::getActionTicks, this::getActionSequence));
     }
 
-    private PlayState animationState(AnimationState<ActionEntity<A>> state) {
-        A current = this.action();
-        if (current != this.idleAction()) return state.setAndContinue(this.actionAnimation(current));
-        String clip = !state.isMoving() ? "idle" : this.pursuing() ? "run" : "walk";
-        return state.setAndContinue(RawAnimation.begin().thenLoop(this.animationPrefix() + clip));
+    private PlayState handleAnimationState(AnimationState<ActionEntity<A>> state) {
+        A current = this.getAction();
+        if (current != this.getIdleAction()) return state.setAndContinue(this.getActionAnimation(current));
+        String clip = !state.isMoving() ? "idle" : this.isPursuing() ? "run" : "walk";
+        return state.setAndContinue(RawAnimation.begin().thenLoop(this.getAnimationPrefix() + clip));
     }
 
     @Override
@@ -528,7 +530,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     /** The flags the state machine reads from a subclass's action enum; the ordinal is the wire id. */
     public interface ActionFlags {
 
-        boolean loops();
+        boolean isLooping();
 
         boolean isAttack();
 
@@ -552,7 +554,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
         @Override
         public boolean canUse() {
-            return this.mob.getTarget() != null || !this.mob.action().loops();
+            return this.mob.getTarget() != null || !this.mob.getAction().isLooping();
         }
 
         @Override
@@ -575,8 +577,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
             } else {
                 this.mob.getNavigation().stop();
                 this.start();
-                if (target != null && this.mob.facesTargetInAction()) {
-                    this.mob.faceDirection(this.mob.directionTo(target));
+                if (target != null && this.mob.isFacingTargetInAction()) {
+                    this.mob.faceDirection(this.mob.getDirectionTo(target));
                 }
             }
         }
@@ -591,7 +593,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
             double distance = this.mob.distanceToSqr(target);
             this.repathTicks = 4 + this.mob.getRandom().nextInt(7)
                     + (distance > 1024.0D ? 10 : distance > 256.0D ? 5 : 0);
-            if (!this.mob.getNavigation().moveTo(target, this.mob.pursuitSpeed())) this.repathTicks += 15;
+            if (!this.mob.getNavigation().moveTo(target, this.mob.getPursuitSpeed())) this.repathTicks += 15;
         }
     }
 

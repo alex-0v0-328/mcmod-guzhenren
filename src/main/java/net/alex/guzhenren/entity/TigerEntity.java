@@ -23,7 +23,7 @@ import software.bernie.geckolib.animation.RawAnimation;
  * the previous pounce is never reused -- and the landing hit is a swept-body test over the flight
  * window. The leap locks on the first tick at or after the leap frame, so an unticked frame cannot
  * skip the lock; a leap that could no longer reach the landing window is dropped, and a wall that
- * stops the leap ends the pounce early without a hit. {@link #keepsMomentum} keeps the leap's
+ * stops the leap ends the pounce early without a hit. {@link #isKeepingMomentum} keeps the leap's
  * horizontal momentum from the leap tick through the landing window while gravity supplies the
  * vertical arc: the velocity is re-applied each tick inside that window so the arc covers the
  * locked distance instead of bleeding off to drag, and past the window the base action tick zeroes
@@ -32,7 +32,7 @@ import software.bernie.geckolib.animation.RawAnimation;
  * deepened.
  *
  * <p>{@link #pickDaytimeAmbient}: tigers only sit; they have no roll or scratch animations, so
- * {@link #actionAnimation} maps those poses to the idle loop.
+ * {@link #getActionAnimation} maps those poses to the idle loop.
  */
 
 public final class TigerEntity extends BeastEntity {
@@ -73,55 +73,55 @@ public final class TigerEntity extends BeastEntity {
     }
 
     @Override
-    protected int swipeHitTick() { return SWIPE_HIT_TICK; }
+    protected int getSwipeHitTick() { return SWIPE_HIT_TICK; }
 
     @Override
-    protected int swipeActionTicks() { return SWIPE_END_TICKS; }
+    protected int getSwipeActionTicks() { return SWIPE_END_TICKS; }
 
     @Override
-    protected int roarActionTicks() { return ROAR_TICKS; }
+    protected int getRoarActionTicks() { return ROAR_TICKS; }
 
     @Override
-    protected int lieDownActionTicks() { return LIE_DOWN_TICKS; }
+    protected int getLieDownActionTicks() { return LIE_DOWN_TICKS; }
 
     @Override
     protected int getUpActionTicks() { return GET_UP_TICKS; }
 
     @Override
-    protected int deathRemoveTick() { return DEATH_REMOVE_TICK; }
+    protected int getDeathRemoveTick() { return DEATH_REMOVE_TICK; }
 
     @Override
-    protected float swipeDamage() { return SWIPE_DAMAGE; }
+    protected float getSwipeDamage() { return SWIPE_DAMAGE; }
 
     @Override
-    protected float heavyDamage() { return POUNCE_DAMAGE; }
+    protected float getHeavyDamage() { return POUNCE_DAMAGE; }
 
     @Override
-    protected double swipeKnockback() { return 0.6D; }
+    protected double getSwipeKnockback() { return 0.6D; }
 
     @Override
-    protected double swipeUpward() { return 0.0D; }
+    protected double getSwipeUpward() { return 0.0D; }
 
     @Override
-    protected boolean huntsActively() { return true; }
+    protected boolean isActiveHunter() { return true; }
 
     @Override
-    protected double pursuitSpeed() { return 1.5D; }
+    protected double getPursuitSpeed() { return 1.5D; }
 
     @Override
-    protected double cullExtraHeight() { return 0.2D; }
+    protected double getCullExtraHeight() { return 0.2D; }
 
     @Override
-    protected double cullHorizontalInflate() { return 0.8D; }
+    protected double getCullHorizontalInflate() { return 0.8D; }
 
     @Override
     protected void chooseAttack(LivingEntity target) {
         double distance = this.distanceTo(target);
         if (this.canSwipe(target)) {
-            this.startAction(Action.ATTACK_SWIPE);
+            this.tryStartAction(Action.ATTACK_SWIPE);
         } else if (distance >= POUNCE_MIN_DISTANCE && distance <= POUNCE_MAX_DISTANCE
-                && this.heavyCooldown() == 0 && this.canStartLunge(target, POUNCE_MAX_DISTANCE)) {
-            this.startAction(Action.ATTACK_HEAVY);
+                && this.getHeavyCooldown() == 0 && this.canStartLunge(target, POUNCE_MAX_DISTANCE)) {
+            this.tryStartAction(Action.ATTACK_HEAVY);
         }
     }
 
@@ -143,7 +143,7 @@ public final class TigerEntity extends BeastEntity {
                 this.finishAction();
                 return;
             }
-            this.pounceDirection = this.directionOrFacing(target);
+            this.pounceDirection = this.getDirectionOrFacing(target);
             this.faceDirection(this.pounceDirection);
             this.pounceSpeed = Mth.clamp(this.distanceTo(target) / 6.0D, POUNCE_MIN_SPEED, POUNCE_MAX_SPEED);
             this.setDeltaMovement(this.pounceDirection.x * this.pounceSpeed, POUNCE_UPWARD,
@@ -157,23 +157,23 @@ public final class TigerEntity extends BeastEntity {
             return;
         }
         Vec3 current = this.position();
-        if (this.keepsMomentum(ticks)) {
+        if (this.isKeepingMomentum(ticks)) {
             Vec3 velocity = this.getDeltaMovement();
             this.setDeltaMovement(this.pounceDirection.x * this.pounceSpeed, velocity.y,
                     this.pounceDirection.z * this.pounceSpeed);
         }
         if (!this.hitSettled && ticks < POUNCE_WINDOW_END_TICKS && target != null
                 && this.canAttackTarget(target)
-                && this.sweptHit(target, this.pounceLastPosition, current)) {
+                && this.isHitBySweep(target, this.pounceLastPosition, current)) {
             this.hitSettled = true;
-            this.applyAttack(target, this.heavyDamage(), 1.0D, 0.2D, this.pounceDirection);
+            this.applyAttack(target, this.getHeavyDamage(), 1.0D, 0.2D, this.pounceDirection);
         }
         this.pounceLastPosition = current;
         if (ticks >= POUNCE_END_TICKS) this.finishAction();
     }
 
     @Override
-    protected boolean keepsMomentum(long ticks) {
+    protected boolean isKeepingMomentum(long ticks) {
         return ticks >= POUNCE_LEAP_TICK && ticks < POUNCE_WINDOW_END_TICKS;
     }
 
@@ -183,24 +183,24 @@ public final class TigerEntity extends BeastEntity {
     }
 
     @Override
-    protected String heavyAttackAnimation() { return "animation.attack_pounce"; }
+    protected String getHeavyAttackAnimation() { return "animation.attack_pounce"; }
 
     @Override
-    protected RawAnimation actionAnimation(Action action) {
+    protected RawAnimation getActionAnimation(Action action) {
         if (action == Action.ROLL || action == Action.BACK_SCRATCH) {
             return RawAnimation.begin().thenLoop("animation.idle");
         }
-        return super.actionAnimation(action);
+        return super.getActionAnimation(action);
     }
 
     @Override
-    protected SoundEvent roarSound() { return SoundEvents.POLAR_BEAR_WARNING; }
+    protected SoundEvent getRoarSound() { return SoundEvents.POLAR_BEAR_WARNING; }
 
     @Override
-    protected float roarPitch() { return 0.9F; }
+    protected float getRoarPitch() { return 0.9F; }
 
     @Override
-    protected SoundEvent stepSound() { return SoundEvents.WOLF_STEP; }
+    protected SoundEvent getStepSound() { return SoundEvents.WOLF_STEP; }
 
     @Override
     protected SoundEvent getAmbientSound() { return SoundEvents.OCELOT_AMBIENT; }

@@ -72,15 +72,15 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements Ge
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_FLIGHT_PHASE, FlightPhase.FLYING.id());
+        builder.define(DATA_FLIGHT_PHASE, FlightPhase.FLYING.getPhaseId());
         builder.define(DATA_WANTS_TO_LAND, false);
     }
 
-    public FlightPhase phase() {
+    public FlightPhase getPhase() {
         return FlightPhase.fromId(entityData.get(DATA_FLIGHT_PHASE));
     }
 
-    public boolean wantsToLand() {
+    public boolean isWantingToLand() {
         return entityData.get(DATA_WANTS_TO_LAND);
     }
 
@@ -100,28 +100,28 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements Ge
     }
 
     public void takeOff() {
-        boolean grounded = phase() == FlightPhase.RESTING;
+        boolean grounded = getPhase() == FlightPhase.RESTING;
         setPhase(FlightPhase.FLYING);
         entityData.set(DATA_WANTS_TO_LAND, false);
         if (grounded && !level().isClientSide()) playTakeoffAnimation();
     }
 
     private void setPhase(FlightPhase next) {
-        if (phase() != next) entityData.set(DATA_FLIGHT_PHASE, next.id());
+        if (getPhase() != next) entityData.set(DATA_FLIGHT_PHASE, next.getPhaseId());
     }
 
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        tag.putByte("FlightPhase", phase().id());
-        tag.putBoolean("WantsToLand", wantsToLand());
+        tag.putByte("FlightPhase", getPhase().getPhaseId());
+        tag.putBoolean("WantsToLand", isWantingToLand());
     }
 
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         FlightPhase savedPhase = FlightPhase.fromId(tag.getByte("FlightPhase"));
-        entityData.set(DATA_FLIGHT_PHASE, savedPhase.id());
+        entityData.set(DATA_FLIGHT_PHASE, savedPhase.getPhaseId());
         boolean wantsToLand = tag.getBoolean("WantsToLand");
         if (savedPhase == FlightPhase.LANDING) wantsToLand = true;
         entityData.set(DATA_WANTS_TO_LAND, wantsToLand);
@@ -140,7 +140,7 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements Ge
         LANDING,
         RESTING;
 
-        private byte id() {
+        private byte getPhaseId() {
             return (byte) ordinal();
         }
 

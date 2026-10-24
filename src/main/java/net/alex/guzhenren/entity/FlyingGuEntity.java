@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.entity.WildGuEntity}. A flying move control and flying path
  * navigation support the hover and random-flight goals. {@code seeks} is the one door: the base wants anyone,
- * a leaf narrows it; {@link #wants} is the same test used both for starting and for keeping a target,
+ * a leaf narrows it; {@link #isWanting} is the same test used both for starting and for keeping a target,
  * so a player who turns spectator or leaves is let go.
  *
  * <p>⚠ {@code isNoGravity()} is a flat true on purpose. The flying move control only clears gravity
@@ -72,18 +72,18 @@ public class FlyingGuEntity extends WildGuEntity {
     }
 
     //region who it flies toward -- the base wants anyone, a leaf narrows it
-    public boolean seeks(Player player) { return true; }
+    public boolean isSeeking(Player player) { return true; }
 
     public @Nullable Player seekTarget() {
-        return level().getNearestPlayer(getX(), getY(), getZ(), DETECT_RANGE, this::wanted);
+        return level().getNearestPlayer(getX(), getY(), getZ(), DETECT_RANGE, this::isWanted);
     }
 
-    public boolean wants(Player player) {
-        return player.level() == level() && !player.isSpectator() && seeks(player);
+    public boolean isWanting(Player player) {
+        return player.level() == level() && !player.isSpectator() && isSeeking(player);
     }
 
-    private boolean wanted(Entity entity) {
-        return entity instanceof Player player && wants(player);
+    private boolean isWanted(Entity entity) {
+        return entity instanceof Player player && isWanting(player);
     }
     //endregion
 

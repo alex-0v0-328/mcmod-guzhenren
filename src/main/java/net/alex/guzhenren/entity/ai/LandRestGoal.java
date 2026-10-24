@@ -16,7 +16,7 @@ import net.minecraft.world.phys.Vec3;
  *
  * <p>A requested landing finds the first ground below the entity, at most 64 blocks down, and takes it only
  * when vanilla pathfinding classifies it as walkable, so water, lava and damaging blocks never become a resting
- * place for a one-health Gu. {@link #retargetGround} scans down from the Gu itself rather than reading the
+ * place for a one-health Gu. {@link #tryRetargetGround} scans down from the Gu itself rather than reading the
  * column heightmap: that top can be a canopy, an overhang or a roof above the Gu, which it could never settle
  * on from below, and the scan stops as soon as it finds ground that is not {@link #isOpen} -- the
  * {@code MOTION_BLOCKING} heightmap's own test, inverted: nothing to stand on and no fluid -- so only ground a
@@ -64,33 +64,33 @@ public class LandRestGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return (gu.wantsToLand() || gu.phase() == RestingFlyingGuEntity.FlightPhase.RESTING)
-                && FleePlayerGoal.nearestThreat(gu) == null;
+        return (gu.isWantingToLand() || gu.getPhase() == RestingFlyingGuEntity.FlightPhase.RESTING)
+                && FleePlayerGoal.findNearestThreat(gu) == null;
     }
 
     @Override
     public boolean canContinueToUse() {
-        return gu.phase() != RestingFlyingGuEntity.FlightPhase.FLYING
-                && FleePlayerGoal.nearestThreat(gu) == null;
+        return gu.getPhase() != RestingFlyingGuEntity.FlightPhase.FLYING
+                && FleePlayerGoal.findNearestThreat(gu) == null;
     }
 
     @Override
     public void start() {
         restRemaining = 0;
         landingTicks = 0;
-        if (gu.phase() == RestingFlyingGuEntity.FlightPhase.RESTING) {
+        if (gu.getPhase() == RestingFlyingGuEntity.FlightPhase.RESTING) {
             restRemaining = restTicks();
             return;
         }
         gu.beginLanding();
-        if (!retargetGround()) gu.takeOff();
+        if (!tryRetargetGround()) gu.takeOff();
     }
 
     @Override
     public void stop() {
         restRemaining = 0;
         gu.getNavigation().stop();
-        if (gu.phase() != RestingFlyingGuEntity.FlightPhase.FLYING) gu.takeOff();
+        if (gu.getPhase() != RestingFlyingGuEntity.FlightPhase.FLYING) gu.takeOff();
     }
 
     @Override
@@ -98,7 +98,7 @@ public class LandRestGoal extends Goal {
 
     @Override
     public void tick() {
-        if (gu.phase() == RestingFlyingGuEntity.FlightPhase.LANDING) tickLanding();
+        if (gu.getPhase() == RestingFlyingGuEntity.FlightPhase.LANDING) tickLanding();
         else tickResting();
     }
 
@@ -116,7 +116,7 @@ public class LandRestGoal extends Goal {
             gu.getNavigation().stop();
             Vec3 drive = landingSpot.subtract(0.0D, TOUCHDOWN_DEPTH, 0.0D).subtract(gu.position());
             gu.setDeltaMovement(drive.normalize().scale(TOUCHDOWN_SPEED));
-        } else if (gu.getNavigation().isDone() && retargetTicks <= 0 && !retargetGround()) {
+        } else if (gu.getNavigation().isDone() && retargetTicks <= 0 && !tryRetargetGround()) {
             gu.takeOff();
         }
     }
@@ -136,7 +136,7 @@ public class LandRestGoal extends Goal {
         return REST_TICKS + gu.getRandom().nextInt(REST_JITTER_TICKS);
     }
 
-    private boolean retargetGround() {
+    private boolean tryRetargetGround() {
         retargetTicks = RETARGET_INTERVAL_TICKS;
         BlockPos.MutableBlockPos surface = gu.blockPosition().mutable();
         int lowest = Math.max(gu.level().getMinBuildHeight(), surface.getY() - GROUND_SCAN_DEPTH);
