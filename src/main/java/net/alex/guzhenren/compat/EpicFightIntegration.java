@@ -44,7 +44,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
  * deliberately absent. Epic Fight owns current stamina, regeneration, HUD and all ordinary consumption.
  *
  * <p>{@link #dashDirection} computes the dash motion direction as a unit vector: the payload's yRot is
- * the Epic Fight MODEL facing (a backward dodge still faces the enemy), so {@link #ringYawOffset(int)}
+ * the Epic Fight MODEL facing (a backward dodge still faces the enemy), so {@link #getRingYawOffset(int)}
  * recovers the actual motion yaw -- pinned by {@code DashRingYawTest}. The client already bakes the
  * strafe/diagonal angles (±45°/±90°) into that yaw, so the only correction left is the backward dodge
  * animation moving opposite to the model facing: every backward combination flips 180, everything else
@@ -100,7 +100,7 @@ public final class EpicFightIntegration {
         AttributeInstance instance = player.getAttribute(EpicFightAttributes.MAX_STAMINA);
         if (instance == null) return;
 
-        double bonus = staminaMaxPercent(player) / 100.0D;
+        double bonus = getStaminaMaxPercent(player) / 100.0D;
         if (TransientModifiers.hasModifier(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION)) return;
 
         TransientModifiers.swap(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION);
@@ -108,7 +108,7 @@ public final class EpicFightIntegration {
         if (patch != null) patch.clampMaxAttributes();
     }
 
-    private static int staminaMaxPercent(ServerPlayer player) {
+    private static int getStaminaMaxPercent(ServerPlayer player) {
         ExtremePhysique physique = BodyService.getExtremePhysique(player);
         return physique == ExtremePhysique.NONE
                 ? ApertureService.getTalent(player).getStaminaMaxPercent()
@@ -133,11 +133,11 @@ public final class EpicFightIntegration {
     }
 
     private static Vec3 dashDirection(int vertical, float yRot) {
-        float radians = (yRot + ringYawOffset(vertical)) * ((float) Math.PI / 180.0F);
+        float radians = (yRot + getRingYawOffset(vertical)) * ((float) Math.PI / 180.0F);
         return new Vec3(-Mth.sin(radians), 0.0D, Mth.cos(radians));
     }
 
-    static float ringYawOffset(int vertical) {
+    static float getRingYawOffset(int vertical) {
         return vertical < 0 ? 180.0F : 0.0F;
     }
 

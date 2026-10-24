@@ -71,7 +71,7 @@ public class SpiritSpringBlock extends LiquidBlock {
         if (!level.getFluidState(pos).isSource()) return;
         boolean playerNear = level.hasNearbyAlivePlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                 PRODUCTION_PLAYER_RANGE);
-        if (shouldProduce(playerNear, nearbyStones(level, pos))) {
+        if (shouldProduce(playerNear, countNearbyStones(level, pos))) {
             produceStones(level, pos, random);
         }
         scheduleProduction(level, pos);
@@ -102,7 +102,7 @@ public class SpiritSpringBlock extends LiquidBlock {
         }
     }
 
-    public static int nearbyStones(ServerLevel level, BlockPos pos) {
+    public static int countNearbyStones(ServerLevel level, BlockPos pos) {
         List<ItemEntity> drops = level.getEntitiesOfClass(ItemEntity.class,
                 new AABB(pos).inflate(NEARBY_STONES_CAP_RADIUS));
         int total = 0;

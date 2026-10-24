@@ -53,14 +53,14 @@ public final class ModCommand {
         LiteralCommandNode<CommandSourceStack> root = dispatcher.register(
                 Commands.literal("guzhenren")
                         .requires(source -> source.hasPermission(PERMISSION_LEVEL))
-                        .then(CmdInfo.node())
-                        .then(CmdAwaken.node())
-                        .then(CmdReset.node())
-                        .then(CmdAperture.node())
+                        .then(CmdInfo.buildNode())
+                        .then(CmdAwaken.buildNode())
+                        .then(CmdReset.buildNode())
+                        .then(CmdAperture.buildNode())
                         .then(CmdBody.node(AwakenedGate.AWAKENED))
-                        .then(CmdSoul.node())
-                        .then(CmdPath.node())
-                        .then(CmdMind.node()));
+                        .then(CmdSoul.buildNode())
+                        .then(CmdPath.buildNode())
+                        .then(CmdMind.buildNode()));
 
         dispatcher.register(Commands.literal("gzr")
                 .requires(source -> source.hasPermission(PERMISSION_LEVEL))

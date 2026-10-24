@@ -33,14 +33,14 @@ public final class CmdBody {
 
     public static ArgumentBuilder<CommandSourceStack, ?> node(Predicate<ServerPlayer> awakened) {
         return Commands.literal("body")
-                .then(physique(awakened))
-                .then(ModCommandSupport.enumSetNode("race", Race.values(),
+                .then(buildPhysique(awakened))
+                .then(ModCommandSupport.buildEnumSetNode("race", Race.values(),
                         BodyService::setRace, ModCommandSupport.ANYONE, null))
-                .then(ModCommandSupport.counter("lifespan", BodyService::setLifespan, BodyService::addLifespan))
-                .then(ModCommandSupport.counter("age", BodyService::setAge, BodyService::addAge));
+                .then(ModCommandSupport.buildCounter("lifespan", BodyService::setLifespan, BodyService::addLifespan))
+                .then(ModCommandSupport.buildCounter("age", BodyService::setAge, BodyService::addAge));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> physique(Predicate<ServerPlayer> awakened) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildPhysique(Predicate<ServerPlayer> awakened) {
         return Commands.literal("physique")
                 .then(enumAction("add", Physique.values(), BodyService::addPhysique,
                         value -> value != Physique.EXTREME, player -> true,
@@ -57,7 +57,7 @@ public final class CmdBody {
             String literal, E[] values, ModCommandSupport.EnumOperation<E> operation,
             Predicate<E> valueAllowed, Predicate<ServerPlayer> allowed, String refusedKey) {
         return Commands.literal(literal).then(ModCommandSupport.withTargets(
-                ModEnumArgument.arg(ModCommandSupport.ARG_VALUE, values), context -> {
+                ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, values), context -> {
                     E value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, values);
                     boolean valid = valueAllowed.test(value);
                     Predicate<ServerPlayer> gate = !valid

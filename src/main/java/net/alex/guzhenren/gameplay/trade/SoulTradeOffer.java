@@ -128,7 +128,7 @@ public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
     private static boolean isOverflowing(List<ItemStack> items, ItemStack stack) {
         for (ItemStack held : items) {
             if (stack.isEmpty()) return false;
-            if (held.isEmpty() || !ItemStacks.sameItemSameData(held, stack)) continue;
+            if (held.isEmpty() || !ItemStacks.isSameItemSameData(held, stack)) continue;
 
             int moved = Math.min(held.getMaxStackSize() - held.getCount(), stack.getCount());
             if (moved <= 0) continue;

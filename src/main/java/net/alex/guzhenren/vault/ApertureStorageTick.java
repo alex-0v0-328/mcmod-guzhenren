@@ -74,6 +74,6 @@ public final class ApertureStorageTick {
 
     private static boolean hasChanged(ItemStack before, ItemStack after) {
         return before.getCount() != after.getCount()
-                || !ItemStacks.sameItemSameData(before, after);
+                || !ItemStacks.isSameItemSameData(before, after);
     }
 }

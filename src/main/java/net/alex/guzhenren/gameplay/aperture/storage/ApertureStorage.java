@@ -114,7 +114,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
             ItemStack current = from + i < stored.size() ? stored.get(from + i) : ItemStack.EMPTY;
             ItemStack wanted = page.get(i);
             if (wanted.getCount() != current.getCount()
-                    || !ItemStacks.sameItemSameData(wanted, current)) return false;
+                    || !ItemStacks.isSameItemSameData(wanted, current)) return false;
         }
         return true;
     }

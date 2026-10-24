@@ -2,7 +2,6 @@ package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.minecraft.commands.CommandSourceStack;
@@ -28,20 +27,20 @@ public final class CmdMindPool {
 
     private CmdMindPool() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         LiteralArgumentBuilder<CommandSourceStack> wisdom = Commands.literal("wisdom");
         for (MindPoolType type : MindPoolType.values()) {
-            wisdom.then(cell(type));
+            wisdom.then(buildCell(type));
         }
         return wisdom;
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> cell(MindPoolType type) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildCell(MindPoolType type) {
         return Commands.literal(type.getSerializedName())
-                .then(ModCommandSupport.counter("current",
+                .then(ModCommandSupport.buildCounter("current",
                         (player, value) -> MindService.setCurrent(player, type, value),
                         (player, value) -> MindService.addCurrent(player, type, value)))
-                .then(ModCommandSupport.counter("max",
+                .then(ModCommandSupport.buildCounter("max",
                         (player, value) -> MindService.setMax(player, type, value),
                         (player, value) -> MindService.addMax(player, type, value)))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * The item-stack operations whose vanilla API differs between game versions, behind one name each.
  *
  * <p>{@link #OPTIONAL_CODEC} saves a stack that may be empty, so a list keeps an empty slot in place;
- * {@link #sameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
+ * {@link #isSameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
  * #readStack} carry a stack, empty or not, over the wire.
  *
  * <p>⚠ A version seam: the Forge 1.20.1 port has its own copy with the same names (item NBT instead of
@@ -30,19 +30,19 @@ public final class ItemStacks {
 
     public static final Codec<ItemStack> OPTIONAL_CODEC = ItemStack.OPTIONAL_CODEC;
 
-    public static boolean sameItemSameData(@NotNull ItemStack a, @NotNull ItemStack b) {
+    public static boolean isSameItemSameData(@NotNull ItemStack a, @NotNull ItemStack b) {
         return ItemStack.isSameItemSameComponents(a, b);
     }
 
     public static void writeStack(@NotNull FriendlyByteBuf buf, @NotNull ItemStack stack) {
-        ItemStack.OPTIONAL_STREAM_CODEC.encode(registries(buf), stack);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(getRegistries(buf), stack);
     }
 
     public static @NotNull ItemStack readStack(@NotNull FriendlyByteBuf buf) {
-        return ItemStack.OPTIONAL_STREAM_CODEC.decode(registries(buf));
+        return ItemStack.OPTIONAL_STREAM_CODEC.decode(getRegistries(buf));
     }
 
-    private static RegistryFriendlyByteBuf registries(FriendlyByteBuf buf) {
+    private static RegistryFriendlyByteBuf getRegistries(FriendlyByteBuf buf) {
         if (buf instanceof RegistryFriendlyByteBuf registries) return registries;
         throw new IllegalArgumentException("an item stack needs a RegistryFriendlyByteBuf, got " + buf.getClass());
     }

@@ -47,7 +47,7 @@ public class WatchGuItem extends ConsumedGuItem {
     protected void payOut(ServerPlayer player, ItemStack stack) {
         MobEffectInstance current = ModEffects.get(player, form);
         TimeRateUpEffect effect = (TimeRateUpEffect) form.get();
-        int amplifier = effect.nextAmplifier(current == null ? -1 : current.getAmplifier());
+        int amplifier = effect.getNextAmplifier(current == null ? -1 : current.getAmplifier());
         player.addEffect(ModEffects.instance(form, effectTicks, amplifier));
     }
 }

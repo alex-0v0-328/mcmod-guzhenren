@@ -15,10 +15,10 @@ import net.minecraft.util.StringRepresentable;
 
 /**
  * A command argument accepting one constant of an enum, spelled as a {@code word()} literal. Provides
- * a static-constants factory ({@link #arg(String, Enum[])}) and a dynamic one
- * ({@link #arg(String, Function)}) computing suggestions from what was already parsed.
+ * a static-constants factory ({@link #createArgument(String, Enum[])}) and a dynamic one
+ * ({@link #createArgument(String, Function)}) computing suggestions from what was already parsed.
  *
- * <p>⚠ The {@link #arg(String, Function)} overload's function must tolerate a nonsense earlier
+ * <p>⚠ The {@link #createArgument(String, Function)} overload's function must tolerate a nonsense earlier
  * argument: {@code word()} accepts any word.
  *
  * <p>☠ Everything typed after a redirect is parsed into a CHILD context, and {@code /gzr} is that
@@ -39,13 +39,13 @@ public final class ModEnumArgument {
     private static final DynamicCommandExceptionType UNKNOWN_VALUE = new DynamicCommandExceptionType(
             value -> Component.translatable("guzhenren.command.unknown_value", value));
 
-    public static <E extends Enum<E> & StringRepresentable> RequiredArgumentBuilder<CommandSourceStack, String> arg(
-            String name, E[] values) {
-        return arg(name, context -> values);
+    public static <E extends Enum<E> & StringRepresentable> RequiredArgumentBuilder<CommandSourceStack, String>
+            createArgument(String name, E[] values) {
+        return createArgument(name, context -> values);
     }
 
-    public static <E extends Enum<E> & StringRepresentable> RequiredArgumentBuilder<CommandSourceStack, String> arg(
-            String name, Function<CommandContext<CommandSourceStack>, E[]> offered) {
+    public static <E extends Enum<E> & StringRepresentable> RequiredArgumentBuilder<CommandSourceStack, String>
+            createArgument(String name, Function<CommandContext<CommandSourceStack>, E[]> offered) {
         return Commands.argument(name, StringArgumentType.word())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(
                         Arrays.stream(offered.apply(context)).map(StringRepresentable::getSerializedName), builder));

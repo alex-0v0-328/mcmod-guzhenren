@@ -25,7 +25,8 @@ import net.minecraft.util.StringRepresentable;
  * the {@code withTargets} wrapper hanging {@code [targets]} off a literal, the {@code apply}/{@code
  * applyIf} runners iterating per target (one loop, in {@code applyIfResult}), and {@code refreshCommands}
  * re-sending the command tree after a gate flip; also the
- * shared verb builders ({@code enumSetNode}, {@code longNode}, {@code counter}, {@code enumCounter}).
+ * shared verb builders ({@code buildEnumSetNode}, {@code buildLongNode}, {@code buildCounter},
+ * {@code buildEnumCounter}).
  *
  * <p>{@code enumCounter} is the set/add/sub triple behind one enum argument; the amount is read as
  * any {@code Number} so an {@code int} argument narrows back exactly. Its {@code sub} negates plainly,
@@ -62,11 +63,11 @@ public final class ModCommandSupport {
                 .then(Commands.argument(ARG_TARGETS, EntityArgument.players()).executes(executor));
     }
 
-    public static ArgumentBuilder<CommandSourceStack, ?> longNode(String literal, LongOperation operation) {
-        return longNode(literal, operation, ANYONE, null);
+    public static ArgumentBuilder<CommandSourceStack, ?> buildLongNode(String literal, LongOperation operation) {
+        return buildLongNode(literal, operation, ANYONE, null);
     }
 
-    public static ArgumentBuilder<CommandSourceStack, ?> longNode(
+    public static ArgumentBuilder<CommandSourceStack, ?> buildLongNode(
             String literal, LongOperation operation, Predicate<ServerPlayer> allowed, String refusedKey) {
         return Commands.literal(literal).then(withTargets(
                 Commands.argument(ARG_VALUE, LongArgumentType.longArg()),
@@ -76,25 +77,26 @@ public final class ModCommandSupport {
                 }));
     }
 
-    public static ArgumentBuilder<CommandSourceStack, ?> counter(
+    public static ArgumentBuilder<CommandSourceStack, ?> buildCounter(
             String literal, LongOperation set, LongOperation add) {
         return Commands.literal(literal)
-                .then(longNode("set", set))
-                .then(longNode("add", add))
-                .then(longNode("sub", (player, value) -> add.apply(player, LongMath.saturatedSubtract(0L, value))));
+                .then(buildLongNode("set", set))
+                .then(buildLongNode("add", add))
+                .then(buildLongNode("sub",
+                        (player, value) -> add.apply(player, LongMath.saturatedSubtract(0L, value))));
     }
 
-    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumCounter(
+    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCounter(
             String argument, E[] values, ArgumentType<? extends Number> amountType,
             EnumCountOperation<E> set, EnumCountOperation<E> add) {
-        return ModEnumArgument.arg(argument, values)
-                .then(enumCountNode("set", argument, values, amountType, set))
-                .then(enumCountNode("add", argument, values, amountType, add))
-                .then(enumCountNode("sub", argument, values, amountType,
+        return ModEnumArgument.createArgument(argument, values)
+                .then(buildEnumCountNode("set", argument, values, amountType, set))
+                .then(buildEnumCountNode("add", argument, values, amountType, add))
+                .then(buildEnumCountNode("sub", argument, values, amountType,
                         (player, value, amount) -> add.apply(player, value, -amount)));
     }
 
-    private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumCountNode(
+    private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCountNode(
             String literal, String argument, E[] values, ArgumentType<? extends Number> amountType,
             EnumCountOperation<E> operation) {
         return Commands.literal(literal).then(withTargets(Commands.argument(ARG_VALUE, amountType), context -> {
@@ -104,11 +106,11 @@ public final class ModCommandSupport {
         }));
     }
 
-    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumSetNode(
+    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumSetNode(
             String literal, E[] values, EnumOperation<E> operation,
             Predicate<ServerPlayer> allowed, String refusedKey) {
         return Commands.literal(literal).then(Commands.literal("set")
-                .then(withTargets(ModEnumArgument.arg(ARG_VALUE, values), context -> {
+                .then(withTargets(ModEnumArgument.createArgument(ARG_VALUE, values), context -> {
                     E value = ModEnumArgument.get(context, ARG_VALUE, values);
                     return applyIf(context, allowed, refusedKey, player -> operation.apply(player, value));
                 })));
@@ -135,7 +137,7 @@ public final class ModCommandSupport {
         List<ServerPlayer> refused = new ArrayList<>();
         int updated = 0;
 
-        for (ServerPlayer player : targets(context)) {
+        for (ServerPlayer player : getTargets(context)) {
             if (!allowed.test(player) || !operation.apply(player)) {
                 refused.add(player);
                 continue;
@@ -143,13 +145,15 @@ public final class ModCommandSupport {
             updated++;
         }
 
-        if (!refused.isEmpty()) ModCommandFeedback.failure(source, Component.translatable(refusedKey, names(refused)));
-        if (updated > 0) ModCommandFeedback.success(source,
+        if (!refused.isEmpty()) {
+            ModCommandFeedback.sendFailure(source, Component.translatable(refusedKey, getNames(refused)));
+        }
+        if (updated > 0) ModCommandFeedback.sendSuccess(source,
                 Component.translatable("guzhenren.command.updated", updated));
         return updated;
     }
 
-    public static Collection<ServerPlayer> targets(CommandContext<CommandSourceStack> context)
+    public static Collection<ServerPlayer> getTargets(CommandContext<CommandSourceStack> context)
             throws CommandSyntaxException {
         boolean explicit = context.getNodes().stream()
                 .anyMatch(node -> node.getNode().getName().equals(ARG_TARGETS));
@@ -159,7 +163,7 @@ public final class ModCommandSupport {
                 : List.of(context.getSource().getPlayerOrException());
     }
 
-    private static Component names(List<ServerPlayer> players) {
+    private static Component getNames(List<ServerPlayer> players) {
         return ComponentUtils.formatList(players, ServerPlayer::getDisplayName);
     }
     //endregion

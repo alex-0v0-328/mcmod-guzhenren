@@ -65,7 +65,7 @@ public final class EpicFightServerEvents {
         AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attack == null || !AttackDamageService.isImpactRingShown(attack.getValue())) return;
 
-        RingConeEmitter.punchCone(player, player.getLookAngle(),
+        RingConeEmitter.emitPunchCone(player, player.getLookAngle(),
                 event.getEntity().getBoundingBox().getCenter());
     }
 }

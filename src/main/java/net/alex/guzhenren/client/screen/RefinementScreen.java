@@ -105,11 +105,12 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //region the two rings -- the 内圈 is marked by a brighter cell and an accent frame around the block
     private void drawInput(GuiGraphics graphics, int x, int y) {
         for (int i = 0; i < GuRecipe.RING_SIZE; i++) {
-            Widgets.drawCell(graphics, x + RefinementMenu.ringX(i), y + RefinementMenu.ringY(i), ModPalette.SLOT_FILL);
+            Widgets.drawCell(graphics, x + RefinementMenu.getRingX(i), y + RefinementMenu.getRingY(i),
+                    ModPalette.SLOT_FILL);
         }
-        Widgets.drawCells(graphics, x + RefinementMenu.coreX(0), y + RefinementMenu.coreY(0),
+        Widgets.drawCells(graphics, x + RefinementMenu.getCoreX(0), y + RefinementMenu.getCoreY(0),
                 GuRecipe.CORE_COLS, GuRecipe.CORE_ROWS, GRID_SLOT, CORE_FILL);
-        graphics.renderOutline(x + RefinementMenu.coreX(0) - 3, y + RefinementMenu.coreY(0) - 3,
+        graphics.renderOutline(x + RefinementMenu.getCoreX(0) - 3, y + RefinementMenu.getCoreY(0) - 3,
                 (GuRecipe.CORE_COLS - 1) * GRID_SLOT + Widgets.CELL + 6,
                 (GuRecipe.CORE_ROWS - 1) * GRID_SLOT + Widgets.CELL + 6, ModPalette.REFINEMENT);
     }
@@ -120,16 +121,16 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         int bx = x + BAR_X;
         int by = y + BAR_Y;
         graphics.fill(bx, by, bx + BAR_W, by + BAR_H, PoolBars.TRACK);
-        if (!menu.running()) return;
+        if (!menu.isRunning()) return;
 
-        int span = menu.inWindow() ? GuRecipe.WINDOW_TICKS : GuRecipe.GAP_TICKS;
-        int filled = BAR_W * menu.phaseLeft() / span;
+        int span = menu.isInWindow() ? GuRecipe.WINDOW_TICKS : GuRecipe.GAP_TICKS;
+        int filled = BAR_W * menu.getPhaseLeft() / span;
         graphics.fill(bx, by, bx + filled, by + BAR_H, barColour());
     }
 
     private int barColour() {
-        if (!menu.inWindow()) return BAR_GAP;
-        return menu.stonesIn() < menu.stonesNeeded() ? ModPalette.SHORT : BAR_WINDOW;
+        if (!menu.isInWindow()) return BAR_GAP;
+        return menu.getStonesIn() < menu.getStonesNeeded() ? ModPalette.SHORT : BAR_WINDOW;
     }
     //endregion
 
@@ -146,13 +147,13 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     //region the status line -- the ring legend until a 蛊方 is picked, then what that pick still wants
     private Component statusLine() {
-        if (menu.running()) {
-            int shown = menu.stage() + 1;
-            int seconds = (menu.phaseLeft() + Ticks.SECOND - 1) / Ticks.SECOND;
-            return menu.inWindow()
-                    ? Component.translatable(WINDOW_KEY, shown, menu.stages(), seconds,
-                    menu.stonesIn(), menu.stonesNeeded())
-                    : Component.translatable(GAP_KEY, shown, menu.stages());
+        if (menu.isRunning()) {
+            int shown = menu.getStage() + 1;
+            int seconds = (menu.getPhaseLeft() + Ticks.SECOND - 1) / Ticks.SECOND;
+            return menu.isInWindow()
+                    ? Component.translatable(WINDOW_KEY, shown, menu.getStages(), seconds,
+                    menu.getStonesIn(), menu.getStonesNeeded())
+                    : Component.translatable(GAP_KEY, shown, menu.getStages());
         }
         GuRecipe recipe = selectedRecipe();
         if (recipe == null) return Component.translatable(LEGEND_KEY);
@@ -161,7 +162,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     private int statusColour() {
-        if (menu.running()) return ModPalette.TEXT;
+        if (menu.isRunning()) return ModPalette.TEXT;
 
         GuRecipe recipe = selectedRecipe();
         if (recipe == null) return ModPalette.LEGEND_TEXT;
@@ -169,9 +170,9 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     private boolean crowded(GuRecipe recipe) {
-        if (menu.ready()) return false;
+        if (menu.isReady()) return false;
 
-        for (int missing : recipe.shortfall(menu.grid())) {
+        for (int missing : recipe.getShortfall(menu.getGrid())) {
             if (missing > 0) return false;
         }
         return true;
@@ -190,7 +191,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
             Widgets.drawBackLabel(graphics, font, backX(), backY());
         });
         if (picker.isOpen()) {
-            picker.render(graphics, font, KnownRecipes.get(), menu.selected(), leftPos, topPos, imageWidth,
+            picker.render(graphics, font, KnownRecipes.get(), menu.getSelected(), leftPos, topPos, imageWidth,
                     imageHeight, mouseX, mouseY);
             return;
         }
@@ -199,16 +200,16 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private void renderGhosts(GuiGraphics graphics) {
         GuRecipe recipe = selectedRecipe();
-        if (recipe != null && !menu.running()) RecipeGhosts.draw(graphics, font, recipe, menu.grid());
+        if (recipe != null && !menu.isRunning()) RecipeGhosts.draw(graphics, font, recipe, menu.getGrid());
     }
 
     //region the 炼制 button -- three states off the ritual, and 停止 while it runs
     private void fillCraft(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = craftX();
         int y = craftY();
-        boolean stopping = menu.running();
+        boolean stopping = menu.isRunning();
         boolean live = craftLive();
-        boolean shortOfEssence = !stopping && clickable() && !menu.affords();
+        boolean shortOfEssence = !stopping && clickable() && !menu.canAfford();
         boolean hover = live && inCraft(mouseX, mouseY);
 
         Widgets.fillButton(graphics, x, y, CRAFT_W, CRAFT_H, live, hover);
@@ -219,13 +220,13 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     private void drawCraftLabel(GuiGraphics graphics) {
-        Component label = Component.translatable(menu.running() ? STOP_KEY : CRAFT_KEY);
+        Component label = Component.translatable(menu.isRunning() ? STOP_KEY : CRAFT_KEY);
         Widgets.drawButtonLabel(graphics, font, label, craftX(), craftY(), CRAFT_W, CRAFT_H, craftLive());
     }
 
-    private boolean craftLive() { return menu.running() || (clickable() && menu.affords()); }
+    private boolean craftLive() { return menu.isRunning() || (clickable() && menu.canAfford()); }
 
-    private boolean clickable() { return menu.ready() && !menu.running(); }
+    private boolean clickable() { return menu.isReady() && !menu.isRunning(); }
 
     private int craftX() { return leftPos + CRAFT_X; }
 
@@ -240,7 +241,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private void fillRecipe(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = recipeX();
         int y = recipeY();
-        boolean live = !menu.running();
+        boolean live = !menu.isRunning();
         boolean hover = live && inRecipe(mouseX, mouseY);
 
         Widgets.fillButton(graphics, x, y, RECIPE_W, RECIPE_H, live, hover);
@@ -249,7 +250,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     private void drawRecipeLabel(GuiGraphics graphics) {
         Widgets.drawButtonLabel(graphics, font, Component.translatable(RECIPE_KEY), recipeX(), recipeY(), RECIPE_W,
-                RECIPE_H, !menu.running());
+                RECIPE_H, !menu.isRunning());
     }
 
     private int recipeX() { return leftPos + RECIPE_X; }
@@ -263,7 +264,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     //region the 蛊方 a player may attempt -- the client holds the whole synced table, so it needs no packet
     private @Nullable GuRecipe selectedRecipe() {
-        int index = menu.selected();
+        int index = menu.getSelected();
         List<GuRecipe> known = KnownRecipes.get();
         return index >= 0 && index < known.size() ? known.get(index) : null;
     }
@@ -285,8 +286,8 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         }
         if (button == 0) {
             if (Widgets.isOverBack(mouseX, mouseY, backX(), backY())) return Widgets.openInfo(this);
-            if (inRecipe(mouseX, mouseY) && !menu.running()) return openPicker();
-            if (inCraft(mouseX, mouseY) && menu.running()) return send(RefinementMenu.BUTTON_STOP);
+            if (inRecipe(mouseX, mouseY) && !menu.isRunning()) return openPicker();
+            if (inCraft(mouseX, mouseY) && menu.isRunning()) return send(RefinementMenu.BUTTON_STOP);
             if (inCraft(mouseX, mouseY) && clickable()) return send(RefinementMenu.BUTTON_CRAFT);
         }
         return super.mouseClicked(mouseX, mouseY, button);

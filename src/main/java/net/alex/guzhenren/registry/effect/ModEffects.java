@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * {@code showParticles=false, showIcon=true}; the color only feeds the {@link MobEffect} ctor.
  *
  * <p>⚠ A version seam: callers hold an effect as {@code Supplier<? extends MobEffect>} and go through
- * {@link #has}, {@link #get}, {@link #remove}, {@link #instance} and {@link #effectOf}, never the loader's handle
+ * {@link #has}, {@link #get}, {@link #remove}, {@link #instance} and {@link #getEffectOf}, never the loader's handle
  * type, so they stay identical between this NeoForge 1.21.1 mainline ({@code Holder}) and the Forge 1.20.1 port
  * ({@code RegistryObject}, plain {@code MobEffect}).
  *
@@ -119,34 +119,34 @@ public final class ModEffects {
     public static final Supplier<MobEffect> VANILLA_CONFUSION = () -> MobEffects.CONFUSION.value();
 
     public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration) {
-        return new MobEffectInstance(holder(effect), duration, 0, false, false, true);
+        return new MobEffectInstance(getHolder(effect), duration, 0, false, false, true);
     }
 
     public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration,
                                              int amplifier) {
-        return new MobEffectInstance(holder(effect), duration, amplifier, false, false, true);
+        return new MobEffectInstance(getHolder(effect), duration, amplifier, false, false, true);
     }
 
     public static boolean has(@NotNull LivingEntity entity, @NotNull Supplier<? extends MobEffect> effect) {
-        return entity.hasEffect(holder(effect));
+        return entity.hasEffect(getHolder(effect));
     }
 
     public static @Nullable MobEffectInstance get(@NotNull LivingEntity entity,
                                                   @NotNull Supplier<? extends MobEffect> effect) {
-        return entity.getEffect(holder(effect));
+        return entity.getEffect(getHolder(effect));
     }
 
     public static boolean remove(@NotNull LivingEntity entity, @NotNull Supplier<? extends MobEffect> effect) {
-        return entity.removeEffect(holder(effect));
+        return entity.removeEffect(getHolder(effect));
     }
 
     /** The effect an instance carries; an effect class's own behavior is read off it ({@code instanceof}). */
-    public static @NotNull MobEffect effectOf(@NotNull MobEffectInstance instance) {
+    public static @NotNull MobEffect getEffectOf(@NotNull MobEffectInstance instance) {
         return instance.getEffect().value();
     }
 
     @SuppressWarnings("unchecked")
-    private static Holder<MobEffect> holder(Supplier<? extends MobEffect> effect) {
+    private static Holder<MobEffect> getHolder(Supplier<? extends MobEffect> effect) {
         if (effect instanceof Holder<?> held) return (Holder<MobEffect>) held;
         return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect.get());
     }

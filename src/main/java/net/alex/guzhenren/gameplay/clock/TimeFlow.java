@@ -61,7 +61,7 @@ public final class TimeFlow {
     public static int getSelfRate(@NotNull Player player) {
         int rate = 0;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (ModEffects.effectOf(instance) instanceof TimeRateContributor contributor) {
+            if (ModEffects.getEffectOf(instance) instanceof TimeRateContributor contributor) {
                 rate += contributor.timeRate(instance.getAmplifier());
             }
         }

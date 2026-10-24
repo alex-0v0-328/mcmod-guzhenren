@@ -37,7 +37,7 @@ final class RecipeGhosts {
     private static final float ALPHA = 0.35F;
 
     static void draw(GuiGraphics graphics, Font font, GuRecipe recipe, GuRecipeInput grid) {
-        int[] missing = recipe.shortfall(grid);
+        int[] missing = recipe.getShortfall(grid);
         ItemStack[] shown = new ItemStack[missing.length];
         boolean any = false;
         for (int n = 0; n < missing.length; n++) {
@@ -87,12 +87,12 @@ final class RecipeGhosts {
     }
 
     private static int getSlotX(int slot) {
-        return slot < GuRecipe.RING_SIZE ? RefinementMenu.ringX(slot)
-                : RefinementMenu.coreX((slot - GuRecipe.RING_SIZE) % GuRecipe.CORE_COLS);
+        return slot < GuRecipe.RING_SIZE ? RefinementMenu.getRingX(slot)
+                : RefinementMenu.getCoreX((slot - GuRecipe.RING_SIZE) % GuRecipe.CORE_COLS);
     }
 
     private static int getSlotY(int slot) {
-        return slot < GuRecipe.RING_SIZE ? RefinementMenu.ringY(slot)
-                : RefinementMenu.coreY((slot - GuRecipe.RING_SIZE) / GuRecipe.CORE_COLS);
+        return slot < GuRecipe.RING_SIZE ? RefinementMenu.getRingY(slot)
+                : RefinementMenu.getCoreY((slot - GuRecipe.RING_SIZE) / GuRecipe.CORE_COLS);
     }
 }

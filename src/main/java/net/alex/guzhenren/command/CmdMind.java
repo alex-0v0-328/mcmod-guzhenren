@@ -1,7 +1,6 @@
 package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.minecraft.commands.CommandSourceStack;
@@ -24,14 +23,14 @@ public final class CmdMind {
 
     private CmdMind() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("mind")
-                .then(brilliance())
-                .then(CmdMindPool.node());
+                .then(buildBrilliance())
+                .then(CmdMindPool.buildNode());
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> brilliance() {
-        return ModCommandSupport.enumSetNode("brilliance", Brilliance.values(), MindService::setBrilliance,
+    private static ArgumentBuilder<CommandSourceStack, ?> buildBrilliance() {
+        return ModCommandSupport.buildEnumSetNode("brilliance", Brilliance.values(), MindService::setBrilliance,
                         ModCommandSupport.ANYONE, null)
                 .then(shift("up", 1))
                 .then(shift("down", -1));

@@ -47,7 +47,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
             throw new IllegalArgumentException("every ingredient owns exactly one cell of the grid");
         }
         try {
-            long totalSeconds = exactTotalTicks(windows.size()) / Ticks.SECOND;
+            long totalSeconds = getExactTotalTicks(windows.size()) / Ticks.SECOND;
             if (Math.addExact(Math.multiplyExact(essencePerSecond, totalSeconds),
                     Math.multiplyExact(soulPerSecond, totalSeconds)) < 0L) {
                 throw new ArithmeticException("combined cost overflow");
@@ -58,19 +58,19 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
     }
 
     //region the ritual's own clock -- the window list IS the stage count
-    public int windowCount() { return windows.size(); }
+    public int getWindowCount() { return windows.size(); }
 
-    public int stonesFor(int window) { return windows.get(window); }
+    public int getStonesFor(int window) { return windows.get(window); }
 
-    public int totalSeconds() { return totalTicks() / Ticks.SECOND; }
+    public int getTotalSeconds() { return getTotalTicks() / Ticks.SECOND; }
 
-    public long essenceToFinish() { return Math.multiplyExact(essencePerSecond, totalSeconds()); }
+    public long getEssenceToFinish() { return Math.multiplyExact(essencePerSecond, getTotalSeconds()); }
 
-    public int totalTicks() {
-        return exactTotalTicks(windowCount());
+    public int getTotalTicks() {
+        return getExactTotalTicks(getWindowCount());
     }
 
-    private static int exactTotalTicks(int windows) {
+    private static int getExactTotalTicks(int windows) {
         return Math.addExact(Math.multiplyExact(windows, WINDOW_TICKS),
                 Math.multiplyExact(Math.max(0, windows - 1), GAP_TICKS));
     }
@@ -95,26 +95,26 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
         return taken;
     }
 
-    public int[] shortfall(GuRecipeInput input) {
+    public int[] getShortfall(GuRecipeInput input) {
         int[] missing = new int[ingredients.size()];
 
         for (int n = 0; n < ingredients.size(); n++) {
             GuIngredient need = ingredients.get(n);
-            ItemStack held = held(input, slots.get(n));
+            ItemStack held = getHeld(input, slots.get(n));
             int have = need.test(held) ? held.getCount() : 0;
             missing[n] = Math.max(0, need.count() - have);
         }
         return missing;
     }
 
-    private static ItemStack held(GuRecipeInput input, int slot) {
+    private static ItemStack getHeld(GuRecipeInput input, int slot) {
         return slot < 0 || slot >= input.size() ? ItemStack.EMPTY : input.getItem(slot);
     }
     //endregion
 
     //region the Gu count among the results -- the sole-Gu inheritance rule reads it
     //  TODO(炼法): rebuild the refinement-mode derivation (two axes, never one enum) once modes gain behavior.
-    public int guResultCount() {
+    public int getGuResultCount() {
         int n = 0;
         for (ItemStack stack : results) {
             if (stack.getItem() instanceof MortalGuItem) n += stack.getCount();
@@ -123,14 +123,14 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
     }
     //endregion
 
-    public ItemStack first() { return results.isEmpty() ? ItemStack.EMPTY : results.get(0); }
+    public ItemStack getFirst() { return results.isEmpty() ? ItemStack.EMPTY : results.get(0); }
 
     //region the grid -- a 5x5 with its four corners cut away: outer ring [外圈] 12 around inner ring [内圈] 9
-    public static int ringCol(int index) { return RING_COLS[index]; }
+    public static int getRingCol(int index) { return RING_COLS[index]; }
 
-    public static int ringRow(int index) { return RING_ROWS[index]; }
+    public static int getRingRow(int index) { return RING_ROWS[index]; }
 
-    public static int slotAt(int row, int col) {
+    public static int getSlotAt(int row, int col) {
         for (int i = 0; i < RING_SIZE; i++) {
             if (RING_ROWS[i] == row && RING_COLS[i] == col) return i;
         }

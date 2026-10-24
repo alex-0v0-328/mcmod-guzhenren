@@ -44,7 +44,7 @@ public final class VitalLossService {
         MinecraftServer server = event.getServer();
         ServerPlayer owner = server.getPlayerList().getPlayer(event.getOwner());
         if (owner != null) charge(owner, event.getStack());
-        else PendingVitalPenalties.get(server).record(event.getOwner(), event.getStack());
+        else PendingVitalPenalties.get(server).recordPenalty(event.getOwner(), event.getStack());
     }
 
     private static void charge(ServerPlayer owner, ItemStack stack) {

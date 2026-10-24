@@ -223,7 +223,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     private static boolean same(ItemStack first, ItemStack second) {
         return first.getCount() == second.getCount()
-                && ItemStacks.sameItemSameData(first, second);
+                && ItemStacks.isSameItemSameData(first, second);
     }
     //endregion
 
@@ -256,7 +256,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
                  i += reverse ? -1 : 1) {
                 Slot slot = slots.get(i);
                 ItemStack held = slot.getItem();
-                if (held.isEmpty() || !ItemStacks.sameItemSameData(stack, held)) continue;
+                if (held.isEmpty() || !ItemStacks.isSameItemSameData(stack, held)) continue;
 
                 int total = held.getCount() + stack.getCount();
                 int limit = slot.getMaxStackSize(held);

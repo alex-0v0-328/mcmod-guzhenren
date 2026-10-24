@@ -26,7 +26,7 @@ public class HopeGuUsedTrigger extends SimpleCriterionTrigger<HopeGuUsedTrigger.
     @Override
     public @NotNull Codec<Instance> codec() { return Instance.CODEC; }
 
-    public Criterion<Instance> criterion() { return new Criterion<>(this, new Instance(Optional.empty())); }
+    public Criterion<Instance> createCriterion() { return new Criterion<>(this, new Instance(Optional.empty())); }
 
     public void trigger(ServerPlayer player) { this.trigger(player, instance -> true); }
 

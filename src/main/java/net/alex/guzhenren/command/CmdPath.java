@@ -4,10 +4,6 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.alex.guzhenren.command.CmdQi;
-import net.alex.guzhenren.command.CmdStrength;
-import net.alex.guzhenren.command.ModCommandSupport;
-import net.alex.guzhenren.command.ModEnumArgument;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.MarkTag;
@@ -38,47 +34,48 @@ public final class CmdPath {
 
     private static final String ARG_PATH = "path";
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("path")
-                .then(marks())
-                .then(attainment())
-                .then(CmdQi.node())
-                .then(CmdStrength.node());
+                .then(buildMarks())
+                .then(buildAttainment())
+                .then(CmdQi.buildNode())
+                .then(CmdStrength.buildNode());
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> marks() {
-        return Commands.literal("marks").then(ModCommandSupport.enumCounter(ARG_PATH, GuPath.values(),
+    private static ArgumentBuilder<CommandSourceStack, ?> buildMarks() {
+        return Commands.literal("marks").then(ModCommandSupport.buildEnumCounter(ARG_PATH, GuPath.values(),
                 LongArgumentType.longArg(),
                 (player, path, amount) -> PathService.setMark(player, path, MarkTag.NATURAL, amount),
                 (player, path, amount) -> PathService.addMark(player, path, MarkTag.NATURAL, amount)));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> attainment() {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildAttainment() {
         return Commands.literal("attainment")
-                .then(ModEnumArgument.arg(ARG_PATH, GuPath.values())
+                .then(ModEnumArgument.createArgument(ARG_PATH, GuPath.values())
                         .then(Commands.literal("set")
                                 .then(ModCommandSupport.withTargets(
-                                        ModEnumArgument.arg(ModCommandSupport.ARG_VALUE, GuAttainment.values()),
+                                        ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE,
+                                                GuAttainment.values()),
                                         context -> {
-                                            GuPath path = pathOf(context);
+                                            GuPath path = getPathOf(context);
                                             GuAttainment value = ModEnumArgument.get(
                                                     context, ModCommandSupport.ARG_VALUE, GuAttainment.values());
                                             return ModCommandSupport.apply(context,
                                                     player -> PathService.setAttainment(player, path, value));
                                         })))
-                        .then(attainmentShift("up", 1))
-                        .then(attainmentShift("down", -1)));
+                        .then(buildAttainmentShift("up", 1))
+                        .then(buildAttainmentShift("down", -1)));
     }
 
     //region builders
-    private static ArgumentBuilder<CommandSourceStack, ?> attainmentShift(String literal, int delta) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildAttainmentShift(String literal, int delta) {
         return ModCommandSupport.withTargets(Commands.literal(literal), context -> {
-            GuPath path = pathOf(context);
+            GuPath path = getPathOf(context);
             return ModCommandSupport.apply(context, player -> PathService.shiftAttainment(player, path, delta));
         });
     }
 
-    private static GuPath pathOf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static GuPath getPathOf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         return ModEnumArgument.get(context, ARG_PATH, GuPath.values());
     }
     //endregion

@@ -90,7 +90,7 @@ public final class ApertureStorageService {
         int limit = Math.max(MAX_LOAD, currentLoad);
         int existingCount = 0;
         if (!current.isEmpty()) {
-            if (ItemStacks.sameItemSameData(current, incoming)) existingCount = current.getCount();
+            if (ItemStacks.isSameItemSameData(current, incoming)) existingCount = current.getCount();
             else currentLoad -= getCost(holder, current);
         }
         int freeLoad = Math.max(0, limit - currentLoad);

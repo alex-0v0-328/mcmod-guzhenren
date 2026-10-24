@@ -51,7 +51,7 @@ public class ModAdvancementProvider extends AdvancementProvider {
                     ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"),
                     AdvancementType.TASK, true, true, false)
                 .addCriterion("obtained_gu", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.HOPE_GU.get()))
-                .addCriterion("used_gu", ModCriteriaTriggers.USED_HOPE_GU.get().criterion())
+                .addCriterion("used_gu", ModCriteriaTriggers.USED_HOPE_GU.get().createCriterion())
                 .requirements(AdvancementRequirements.Strategy.AND)
                 .save(saver, Guzhenren.id("first_awakening"), existingFileHelper);
         }

@@ -163,7 +163,7 @@ final class RecipePicker {
         for (GuIngredient need : recipe.ingredients()) {
             lines.add(Component.translatable(ITEM_KEY, need.count(), RecipeGhosts.getOption(need).getHoverName()));
         }
-        lines.add(Component.translatable(WINDOWS_KEY, recipe.windowCount(), recipe.totalSeconds()));
+        lines.add(Component.translatable(WINDOWS_KEY, recipe.getWindowCount(), recipe.getTotalSeconds()));
         lines.add(Component.translatable(STONES_KEY, stoneList(recipe)));
         lines.add(Component.translatable(COST_KEY, recipe.essencePerSecond()));
         lines.add(Component.translatable(SOUL_KEY, recipe.soulPerSecond()));
@@ -173,9 +173,9 @@ final class RecipePicker {
 
     private static String stoneList(GuRecipe recipe) {
         StringBuilder text = new StringBuilder();
-        for (int i = 0; i < recipe.windowCount(); i++) {
+        for (int i = 0; i < recipe.getWindowCount(); i++) {
             if (i > 0) text.append(STONE_SEPARATOR);
-            text.append(recipe.stonesFor(i));
+            text.append(recipe.getStonesFor(i));
         }
         return text.toString();
     }

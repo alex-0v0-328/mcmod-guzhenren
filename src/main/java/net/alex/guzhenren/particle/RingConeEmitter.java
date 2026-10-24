@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
  * per-tick drop clusters the rings at the start and end of the path, while
  * spacing by measured travel stays uniform across windups, jumps and wall truncations. The ring at
  * the dash start appears first and the one near the end last, up to {@link #DASH_MAX_RINGS} rings
- * (~16 blocks of path). {@link #punchCone} replays the same planted logic on a fixed ray: the ring
+ * (~16 blocks of path). {@link #emitPunchCone} replays the same planted logic on a fixed ray: the ring
  * at the strike point (the victim's hitbox center) appears first, then one per tick every
  * {@link RingTrailSpacing#SPACING} blocks behind the target -- up to {@link #PUNCH_MAX_RINGS}
  * rings, a long tail running ~16 blocks past the strike point. The ring velocity is only a facing-normal carrier
@@ -46,7 +46,7 @@ import net.minecraft.world.phys.Vec3;
  * would lay its rings along the line between the two. The per-player tick returns at once while both maps
  * are empty.
  *
- * <p>Future speed- or force-feel actions call the {@code dashCone}/{@code punchCone} entry points
+ * <p>Future speed- or force-feel actions call the {@code dashCone}/{@code emitPunchCone} entry points
  * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
  * hitbox.
  *
@@ -79,7 +79,7 @@ public final class RingConeEmitter {
                 DASH_MAX_TICKS, player.position(), 0.0D, DASH_MAX_RINGS, 0));
     }
 
-    public static void punchCone(ServerPlayer player, Vec3 look, Vec3 strikePoint) {
+    public static void emitPunchCone(ServerPlayer player, Vec3 look, Vec3 strikePoint) {
         if (look.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
         PUNCH_BURSTS.put(player.getUUID(), new PunchBurst(look.normalize(), PUNCH_MAX_RINGS, strikePoint));
     }
@@ -129,7 +129,7 @@ public final class RingConeEmitter {
             double newCarry = carry;
             int newRingsLeft = ringsLeft;
             if (segLen > 0.0D) {
-                RingTrailSpacing.Drops drops = RingTrailSpacing.drops(carry, segLen, ringsLeft);
+                RingTrailSpacing.Drops drops = RingTrailSpacing.getDrops(carry, segLen, ringsLeft);
                 if (drops.offsets().length > 0) {
                     Vec3 segDir = new Vec3(segment.x, 0.0D, segment.z).normalize();
                     Vec3 velocity = direction.scale(RING_NORMAL_DRIFT);

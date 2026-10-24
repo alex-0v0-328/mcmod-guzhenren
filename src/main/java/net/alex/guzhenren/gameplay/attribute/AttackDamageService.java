@@ -67,7 +67,7 @@ public final class AttackDamageService {
     public static double getEffectBonus(@NotNull Player player) {
         double total = 0.0D;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (ModEffects.effectOf(instance) instanceof AttackContributor contributor) {
+            if (ModEffects.getEffectOf(instance) instanceof AttackContributor contributor) {
                 total += contributor.attackBonus(instance.getAmplifier());
             }
         }

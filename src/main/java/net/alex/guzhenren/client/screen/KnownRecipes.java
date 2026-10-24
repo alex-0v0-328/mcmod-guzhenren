@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Gu Recipes [蛊方] the client knows, sorted once and kept: {@link RefinementRecipe#known} sorts every recipe
+ * The Gu Recipes [蛊方] the client knows, sorted once and kept: {@link RefinementRecipe#getKnown} sorts every recipe
  * by id, which the refinement screen and its picker would otherwise pay for on every frame.
  *
  * <p>The list is rebuilt when the client level's {@link RecipeManager} is a different one, and dropped on
@@ -42,7 +42,7 @@ public final class KnownRecipes {
 
         RecipeManager recipes = level.getRecipeManager();
         if (recipes != source) {
-            cached = RefinementRecipe.known(recipes);
+            cached = RefinementRecipe.getKnown(recipes);
             source = recipes;
         }
         return cached;

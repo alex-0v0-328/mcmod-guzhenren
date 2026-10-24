@@ -99,7 +99,7 @@ public class ModRecipeProvider extends RecipeProvider {
                         + GuRecipe.GRID_COLS + " cells wide");
             }
             for (int col = 0; col < line.length(); col++) {
-                cell(id, key, line.charAt(col), GuRecipe.slotAt(row, col), ingredients, slots);
+                cell(id, key, line.charAt(col), GuRecipe.getSlotAt(row, col), ingredients, slots);
             }
         }
     }

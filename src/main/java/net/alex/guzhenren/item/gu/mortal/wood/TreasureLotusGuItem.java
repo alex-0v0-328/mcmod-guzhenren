@@ -149,7 +149,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
         int left = placeInto(inventory, 9, 36, produced, amount);
         left = placeInto(inventory, 0, 9, produced, left);
         ItemStack offhand = player.getOffhandItem();
-        if (left > 0 && ItemStacks.sameItemSameData(offhand, produced)
+        if (left > 0 && ItemStacks.isSameItemSameData(offhand, produced)
                 && offhand.getCount() < offhand.getMaxStackSize()) {
             int moved = Math.min(left, offhand.getMaxStackSize() - offhand.getCount());
             offhand.grow(moved);
@@ -170,7 +170,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
         int left = amount;
         for (int slot = from; slot < to && left > 0; slot++) {
             ItemStack existing = inventory.getItem(slot);
-            if (ItemStacks.sameItemSameData(existing, produced)
+            if (ItemStacks.isSameItemSameData(existing, produced)
                     && existing.getCount() < existing.getMaxStackSize()) {
                 int moved = Math.min(left, existing.getMaxStackSize() - existing.getCount());
                 existing.grow(moved);

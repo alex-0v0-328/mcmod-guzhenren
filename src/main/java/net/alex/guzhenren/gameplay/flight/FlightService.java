@@ -73,7 +73,7 @@ public final class FlightService {
     public static @NotNull FlightGrant getGuGrant(@NotNull Player player) {
         FlightGrant grant = FlightGrant.NONE;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (ModEffects.effectOf(instance) instanceof FlightContributor contributor) {
+            if (ModEffects.getEffectOf(instance) instanceof FlightContributor contributor) {
                 grant = FlightGrant.getStrongest(grant, contributor.getFlightGrant(instance.getAmplifier()));
             }
         }
