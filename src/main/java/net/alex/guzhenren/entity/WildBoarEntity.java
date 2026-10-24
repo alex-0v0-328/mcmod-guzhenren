@@ -77,47 +77,47 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
 
     //region action set
     @Override
-    protected Action[] actionValues() { return ACTIONS; }
+    protected Action[] getActionValues() { return ACTIONS; }
 
     @Override
-    protected Action idleAction() { return Action.IDLE; }
+    protected Action getIdleAction() { return Action.IDLE; }
 
     @Override
-    protected Action alertAction() { return Action.ALERT; }
+    protected Action getAlertAction() { return Action.ALERT; }
 
     @Override
-    protected Action deathAction() { return Action.DEATH; }
+    protected Action getDeathAction() { return Action.DEATH; }
 
     @Override
-    protected List<Cooldown> cooldowns() { return COOLDOWNS; }
+    protected List<Cooldown> getCooldowns() { return COOLDOWNS; }
 
     @Override
-    protected Cooldown cooldownOf(Action attack) { return attack == Action.ATTACK_CHARGE ? CHARGE : TOSS; }
+    protected Cooldown getCooldownOf(Action attack) { return attack == Action.ATTACK_CHARGE ? CHARGE : TOSS; }
 
     @Override
-    protected String recoverySaveKey() { return "WildBoarRecoveryTicks"; }
+    protected String getRecoverySaveKey() { return "WildBoarRecoveryTicks"; }
 
     @Override
-    protected int deathRemoveTick() { return DEATH_REMOVE_TICK; }
+    protected int getDeathRemoveTick() { return DEATH_REMOVE_TICK; }
 
     @Override
-    protected double pursuitSpeed() { return 1.4D; }
+    protected double getPursuitSpeed() { return 1.4D; }
 
     @Override
-    protected double targetRange() { return FOLLOW_RANGE_BLOCKS; }
+    protected double getTargetRange() { return FOLLOW_RANGE_BLOCKS; }
 
-    public int chargeCooldown() {
-        return this.cooldown(CHARGE);
+    public int getChargeCooldown() {
+        return this.getCooldown(CHARGE);
     }
 
-    public int tossCooldown() {
-        return this.cooldown(TOSS);
+    public int getTossCooldown() {
+        return this.getCooldown(TOSS);
     }
     //endregion
 
     @Override
     protected void registerSpeciesGoals() {
-        this.goalSelector.addGoal(4, new StandStillGoal(this, () -> this.action() == Action.GRAZE));
+        this.goalSelector.addGoal(4, new StandStillGoal(this, () -> this.getAction() == Action.GRAZE));
     }
 
     @Override
@@ -131,15 +131,15 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
     }
 
     @Override
-    protected boolean facesTargetInAction() {
-        return this.action() != Action.ATTACK_CHARGE || this.actionTicks() < CHARGE_WINDUP_TICKS;
+    protected boolean isFacingTargetInAction() {
+        return this.getAction() != Action.ATTACK_CHARGE || this.getActionTicks() < CHARGE_WINDUP_TICKS;
     }
 
     @Override
     protected void onWanderComplete() {
         if (this.isIdle() && this.getTarget() == null && this.random.nextDouble() < GRAZE_CHANCE
                 && !this.isDeadOrDying()) {
-            this.beginAction(Action.GRAZE, false);
+            this.tryBeginAction(Action.GRAZE, false);
         }
     }
 
@@ -147,11 +147,11 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
     @Override
     protected void chooseAttack(LivingEntity target) {
         double distance = this.distanceTo(target);
-        if (distance <= TOSS_REACH && this.tossCooldown() == 0 && this.getSensing().hasLineOfSight(target)) {
-            this.startAction(Action.ATTACK_TOSS);
-        } else if (distance >= CHARGE_MIN_DISTANCE && distance <= CHARGE_MAX_DISTANCE && this.chargeCooldown() == 0
+        if (distance <= TOSS_REACH && this.getTossCooldown() == 0 && this.getSensing().hasLineOfSight(target)) {
+            this.tryStartAction(Action.ATTACK_TOSS);
+        } else if (distance >= CHARGE_MIN_DISTANCE && distance <= CHARGE_MAX_DISTANCE && this.getChargeCooldown() == 0
                 && this.canStartLunge(target, CHARGE_SCAN_DISTANCE)) {
-            this.startAction(Action.ATTACK_CHARGE);
+            this.tryStartAction(Action.ATTACK_CHARGE);
         }
     }
 
@@ -192,7 +192,7 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
             return;
         }
         if (this.chargeDirection.lengthSqr() == 0.0D) {
-            this.chargeDirection = this.directionTo(target);
+            this.chargeDirection = this.getDirectionTo(target);
             this.faceDirection(this.chargeDirection);
         }
         Vec3 movement = this.chargeDirection.scale(CHARGE_STEP);
@@ -203,7 +203,7 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
         Vec3 start = this.position();
         this.move(MoverType.SELF, movement);
         Vec3 end = this.position();
-        if (this.sweptHit(target, start, end)) {
+        if (this.isHitBySweep(target, start, end)) {
             this.hitSettled = true;
             this.applyAttack(target, CHARGE_DAMAGE, CHARGE_KNOCKBACK, 0.0D, this.chargeDirection);
         }
@@ -217,10 +217,10 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
         boolean newlyProvoked = this.getTarget() == null;
         if (attacker != null && this.canAttackTarget(attacker)) {
             this.lockTarget(attacker);
-            if (!this.action().isAttack() && this.action() != Action.DEATH) {
+            if (!this.getAction().isAttack() && this.getAction() != Action.DEATH) {
                 this.switchAction(newlyProvoked ? Action.ALERT : Action.HURT);
             }
-        } else if (!this.action().isAttack() && this.action() != Action.ALERT) {
+        } else if (!this.getAction().isAttack() && this.getAction() != Action.ALERT) {
             this.switchAction(Action.HURT);
         }
     }
@@ -247,13 +247,13 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
     }
 
     @Override
-    protected String animationPrefix() { return ""; }
+    protected String getAnimationPrefix() { return ""; }
 
     @Override
-    protected RawAnimation actionAnimation(Action action) {
+    protected RawAnimation getActionAnimation(Action action) {
         RawAnimation clip = RawAnimation.begin();
-        if (action == Action.DEATH) return clip.thenPlayAndHold(action.animation());
-        return action.loops() ? clip.thenLoop(action.animation()) : clip.thenPlay(action.animation());
+        if (action == Action.DEATH) return clip.thenPlayAndHold(action.getAnimation());
+        return action.isLooping() ? clip.thenLoop(action.getAnimation()) : clip.thenPlay(action.getAnimation());
     }
 
     /** The synchronized poses with their animation names. */
@@ -277,10 +277,10 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
             this.attack = attack;
         }
 
-        public String animation() { return this.animation; }
+        public String getAnimation() { return this.animation; }
 
         @Override
-        public boolean loops() { return this.loop; }
+        public boolean isLooping() { return this.loop; }
 
         @Override
         public boolean isAttack() { return this.attack; }

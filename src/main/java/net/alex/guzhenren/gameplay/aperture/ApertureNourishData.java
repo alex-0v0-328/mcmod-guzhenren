@@ -48,7 +48,7 @@ public record ApertureNourishData(boolean cultivating, int target, long starvedS
 
     public boolean isStarving() { return starvedSinceTick != NOT_STARVED; }
 
-    public boolean starvedOut(long now) { return isStarving() && now - starvedSinceTick >= STARVE_GRACE_TICKS; }
+    public boolean hasStarvedOut(long now) { return isStarving() && now - starvedSinceTick >= STARVE_GRACE_TICKS; }
 
     public ApertureNourishData withCultivating(boolean value) {
         return new ApertureNourishData(value, target, starvedSinceTick);

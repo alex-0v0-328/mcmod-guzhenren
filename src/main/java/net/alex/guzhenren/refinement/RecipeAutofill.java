@@ -47,7 +47,7 @@ final class RecipeAutofill {
             if (GuItem.isForeignVital(from, player)) continue;
 
             ItemStack held = input.getItem(slot);
-            if (!held.isEmpty() && !ItemStacks.sameItemSameData(held, from)) continue;
+            if (!held.isEmpty() && !ItemStacks.isSameItemSameData(held, from)) continue;
 
             int move = Math.min(Math.min(wanted, from.getCount()),
                     from.getMaxStackSize() - held.getCount());

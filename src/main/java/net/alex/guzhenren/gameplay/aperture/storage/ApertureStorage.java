@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
  * <p>⚠ Uses {@link ItemStacks#OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
  * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its
  * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
- * ⚠ {@link #view} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
+ * ⚠ {@link #getView} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
  * before changing it.
  *
  * <p>A record owns its stacks. Lists from outside are deep-copied on construction, while {@link #with},
@@ -59,14 +59,14 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
     public ApertureStorage {
         List<List<ItemStack>> kept = new ArrayList<>();
         for (int i = 0; i < Math.min(byAperture.size(), ApertureData.MAX_APERTURES); i++) {
-            List<ItemStack> items = own(byAperture.get(i), Integer.MAX_VALUE);
+            List<ItemStack> items = copyOwned(byAperture.get(i), Integer.MAX_VALUE);
             while (!items.isEmpty() && items.get(items.size() - 1).isEmpty()) items.remove(items.size() - 1);
             kept.add(new OwnedStacks(items));
         }
         while (!kept.isEmpty() && kept.get(kept.size() - 1).isEmpty()) kept.remove(kept.size() - 1);
         byAperture = Collections.unmodifiableList(kept);
 
-        List<ItemStack> bound = own(vital, ApertureData.MAX_APERTURES);
+        List<ItemStack> bound = copyOwned(vital, ApertureData.MAX_APERTURES);
         while (!bound.isEmpty() && bound.get(bound.size() - 1).isEmpty()) bound.remove(bound.size() - 1);
         vital = new OwnedStacks(bound);
         tokens = List.copyOf(tokens.subList(0, Math.min(tokens.size(), ApertureData.MAX_APERTURES)));
@@ -81,7 +81,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
                 ? Collections.unmodifiableList(copyStacks(byAperture.get(aperture))) : List.of();
     }
 
-    public List<ItemStack> view(int aperture) {
+    public List<ItemStack> getView(int aperture) {
         return aperture >= 0 && aperture < byAperture.size() ? byAperture.get(aperture) : List.of();
     }
 
@@ -93,7 +93,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return aperture >= 0 && aperture < byAperture.size() ? byAperture.get(aperture).size() : 0;
     }
 
-    public List<ItemStack> page(int aperture, int from, int size) {
+    public List<ItemStack> getPage(int aperture, int from, int size) {
         if (aperture < 0 || aperture >= byAperture.size() || from < 0 || size <= 0) {
             return List.of();
         }
@@ -102,7 +102,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return Collections.unmodifiableList(copyStacks(stored.subList(Math.min(from, to), to)));
     }
 
-    public boolean matchesPage(int aperture, int from, List<ItemStack> page) {
+    public boolean isSamePage(int aperture, int from, List<ItemStack> page) {
         if (from < 0) return false;
         if (aperture < 0 || aperture >= byAperture.size()) {
             for (ItemStack stack : page) if (!stack.isEmpty()) return false;
@@ -114,7 +114,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
             ItemStack current = from + i < stored.size() ? stored.get(from + i) : ItemStack.EMPTY;
             ItemStack wanted = page.get(i);
             if (wanted.getCount() != current.getCount()
-                    || !ItemStacks.sameItemSameData(wanted, current)) return false;
+                    || !ItemStacks.isSameItemSameData(wanted, current)) return false;
         }
         return true;
     }
@@ -124,12 +124,12 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
         List<List<ItemStack>> next = new ArrayList<>(byAperture);
         while (next.size() <= aperture) next.add(List.of());
-        next.set(aperture, keepOwned(view(aperture), items));
+        next.set(aperture, keepOwned(getView(aperture), items));
         return new ApertureStorage(next, vital, tokens);
     }
 
     public ApertureStorage withSlot(int aperture, int index, ItemStack stack) {
-        List<ItemStack> items = new ArrayList<>(view(aperture));
+        List<ItemStack> items = new ArrayList<>(getView(aperture));
         items.set(index, stack);
         return with(aperture, items);
     }
@@ -142,7 +142,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<ItemStack> all = new ArrayList<>(next.get(aperture));
         while (all.size() < from + page.size()) all.add(ItemStack.EMPTY);
         for (int i = 0; i < page.size(); i++) all.set(from + i, page.get(i));
-        next.set(aperture, keepOwned(view(aperture), all));
+        next.set(aperture, keepOwned(getView(aperture), all));
         return new ApertureStorage(next, vital, tokens);
     }
 
@@ -164,11 +164,11 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
         List<ItemStack> bound = new ArrayList<>();
         bound.add(ItemStack.EMPTY);
-        for (ItemStack stack : vital) bound.add(rebound(stack));
+        for (ItemStack stack : vital) bound.add(markSecond(stack));
         return new ApertureStorage(items, new OwnedStacks(bound), tokens);
     }
 
-    private static ItemStack rebound(ItemStack stack) {
+    private static ItemStack markSecond(ItemStack stack) {
         if (stack.isEmpty()) return stack;
 
         ItemStack copy = stack.copy();
@@ -193,7 +193,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return copies;
     }
 
-    private static List<ItemStack> own(List<ItemStack> stacks, int limit) {
+    private static List<ItemStack> copyOwned(List<ItemStack> stacks, int limit) {
         List<ItemStack> head = stacks.size() > limit ? stacks.subList(0, limit) : stacks;
         if (stacks instanceof OwnedStacks) return new ArrayList<>(head);
         return copyStacks(head);

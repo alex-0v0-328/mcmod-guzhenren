@@ -32,9 +32,9 @@ public abstract class OneShotGuItem extends MortalGuItem {
 
     //region the one press
     @Override
-    protected final @Nullable Refusal gate(Player player, ItemStack stack) {
-        Refusal cost = essenceGate(player, refineCost(), FAILED_REFINE_ESSENCE);
-        return cost != null ? cost : useGate(player, stack);
+    protected final @Nullable Refusal checkGate(Player player, ItemStack stack) {
+        Refusal cost = checkEssenceGate(player, getRefineCost(), FAILED_REFINE_ESSENCE);
+        return cost != null ? cost : checkUseGate(player, stack);
     }
 
     @Override
@@ -47,13 +47,13 @@ public abstract class OneShotGuItem extends MortalGuItem {
     protected final int useDurationTicks(Player player, ItemStack stack) { return 0; }
 
     @Override
-    protected int cooldownTicks(ItemStack stack) { return REFINE_DONE_COOLDOWN_TICKS; }
+    protected int getCooldownTicks(ItemStack stack) { return REFINE_DONE_COOLDOWN_TICKS; }
     //endregion
 
     //region display
     @Override
-    protected @Nullable MutableComponent progressLine(ItemStack stack) {
-        return refineCost() > 0 ? Component.translatable(TOOLTIP_REFINE_COST, refineCost()) : null;
+    protected @Nullable MutableComponent formatProgressLine(ItemStack stack) {
+        return getRefineCost() > 0 ? Component.translatable(TOOLTIP_REFINE_COST, getRefineCost()) : null;
     }
     //endregion
 }

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * NeoForge 1.21.1 mainline and the Forge 1.20.1 port; {@link GuRecipe}, {@link GuIngredient} and {@link
  * GuRecipeInput} are the same on both. Nothing outside this class touches the vanilla recipe API.
  *
- * <p>⚠ A recipe index means the same thing on both sides only because {@link #known} sorts by recipe id. The
+ * <p>⚠ A recipe index means the same thing on both sides only because {@link #getKnown} sorts by recipe id. The
  * recipe manager's own order guarantees nothing at all.
  *
  * <p>⚠ The JSON matches the mainline's: an ingredient is the flat object {@code {"count": n, "item": …}}, and a
@@ -53,7 +53,7 @@ public record RefinementRecipe(ResourceLocation id, GuRecipe gu) implements Reci
     private static final int FULL_SUCCESS = 100;
 
     //region the Gu Recipe [蛊方] a player may attempt -- sorted, so an index means the same on both sides
-    public static List<GuRecipe> known(RecipeManager recipes) {
+    public static List<GuRecipe> getKnown(RecipeManager recipes) {
         return recipes.getAllRecipesFor(ModRecipes.REFINEMENT.get()).stream()
                 .sorted(Comparator.comparing(RefinementRecipe::getId))
                 .map(RefinementRecipe::gu)
@@ -81,11 +81,11 @@ public record RefinementRecipe(ResourceLocation id, GuRecipe gu) implements Reci
 
     @Override
     public @NotNull ItemStack assemble(@NotNull Container input, @NotNull RegistryAccess registries) {
-        return gu.first().copy();
+        return gu.getFirst().copy();
     }
 
     @Override
-    public @NotNull ItemStack getResultItem(@NotNull RegistryAccess registries) { return gu.first(); }
+    public @NotNull ItemStack getResultItem(@NotNull RegistryAccess registries) { return gu.getFirst(); }
 
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {

@@ -26,13 +26,13 @@ import org.jetbrains.annotations.Nullable;
 public interface StoredGu {
 
     /** The rank of a Gu the store may hold, or {@code null} when the stack is no storable Gu. */
-    @Nullable Rank rank(@NotNull ItemStack stack);
+    @Nullable Rank getRank(@NotNull ItemStack stack);
 
     /** The path of a Gu, or {@code null} when the stack is no Gu. */
-    @Nullable GuPath path(@NotNull ItemStack stack);
+    @Nullable GuPath getPath(@NotNull ItemStack stack);
 
     /** The vital binding token on a stack; {@code 0} when unbound. */
-    long token(@NotNull ItemStack stack);
+    long getToken(@NotNull ItemStack stack);
 
     boolean isVitalOf(@NotNull ItemStack stack, @NotNull Player player);
 }

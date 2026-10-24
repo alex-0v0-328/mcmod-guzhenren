@@ -27,7 +27,7 @@ public final class SoulService {
 
     private SoulService() {}
 
-    public static @NotNull SoulData get(@NotNull Player player) { return PlayerData.get(player).soul(); }
+    public static @NotNull SoulData get(@NotNull Player player) { return PlayerData.get(player).getSoul(); }
 
     public static void setMax(@NotNull ServerPlayer player, long value) {
         store(player, get(player).withMaxSoul(value));
@@ -45,9 +45,9 @@ public final class SoulService {
         setCurrent(player, LongMath.saturatedAdd(get(player).currentSoul(), delta));
     }
 
-    public static void refill(@NotNull ServerPlayer player) { store(player, get(player).refilled()); }
+    public static void refill(@NotNull ServerPlayer player) { store(player, get(player).withFullSoul()); }
 
-    public static void revive(@NotNull ServerPlayer player) { store(player, get(player).revived()); }
+    public static void revive(@NotNull ServerPlayer player) { store(player, get(player).withRevived()); }
 
     private static void store(ServerPlayer player, SoulData data) {
         PlayerData.get(player).setSoul(data);

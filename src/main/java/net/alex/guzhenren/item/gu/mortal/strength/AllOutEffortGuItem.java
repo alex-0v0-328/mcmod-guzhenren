@@ -38,13 +38,13 @@ public class AllOutEffortGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return ModEffects.has(player, ModEffects.ALL_OUT_EFFORT) ? new Refusal(FAILED_ALREADY_UNLEASHED) : null;
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT, effectSeconds * Ticks.SECOND, tier()));
+    protected void payOut(ServerPlayer player, ItemStack stack) {
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT, effectSeconds * Ticks.SECOND, getTier()));
         AttackDamageService.refresh(player);
     }
 }

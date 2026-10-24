@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link ApertureNourishService#getFraction} and swaps to a red
  * fill when starving.
  *
- * <p>While the charge bar is up too, this bar sits one {@link #stackShift} higher, so the two never overlap.
+ * <p>While the charge bar is up too, this bar sits one {@link #getStackShift} higher, so the two never overlap.
  *
  * <p>⚠ It is a separate layer from the charge bar on purpose: that one reads only the held item, and
  * grafting a player attachment into it would take away the property its own header states.
@@ -49,7 +49,7 @@ public final class NourishHud extends HotbarHud {
         ApertureNourishData nourish = ApertureNourishService.get(player);
         boolean starving = nourish.isStarving();
         int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
-        int y = barTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? stackShift(minecraft) : 0);
+        int y = getBarTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? getStackShift(minecraft) : 0);
 
         int target = ApertureNourishService.getTargetIndex(player);
         draw(graphics, minecraft, x, y, ApertureNourishService.getFraction(player, target),

@@ -27,8 +27,8 @@ import net.minecraft.server.level.ServerPlayer;
  * <p>⚠ The target list hangs off each section, so the bare command means the sender and a name after
  * it means that player. Lifting the target a level up would change what the bare form does.
  *
- * <p>{@link #line} hands each entry to {@link LineWriter}, one {@code InfoModel.Visitor} method per row kind: a new
- * row does not compile until it has its line here and in the panel.
+ * <p>{@link #formatLine} hands each entry to {@link LineWriter}, one {@code InfoModel.Visitor} method per row kind:
+ * a new row does not compile until it has its line here and in the panel.
  *
  * @author Alex
  * @version 1.0.0
@@ -43,170 +43,181 @@ public final class CmdInfo {
     private static final String PREFIX = "guzhenren.command.info.";
     private static final InfoModel.Visitor<Component> LINES = new LineWriter();
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("info")
-                .executes(context -> print(context, InfoModel::aperture))
+                .executes(context -> print(context, InfoModel::buildApertureRows))
                 .then(ModCommandSupport.withTargets(Commands.literal("aperture"),
-                        context -> print(context, InfoModel::aperture)))
+                        context -> print(context, InfoModel::buildApertureRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("body"),
-                        context -> print(context, InfoModel::body)))
+                        context -> print(context, InfoModel::buildBodyRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("soul"),
-                        context -> print(context, InfoModel::soul)))
+                        context -> print(context, InfoModel::buildSoulRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("path"),
-                        context -> print(context, InfoModel::pathAchieve)))
+                        context -> print(context, InfoModel::buildPathAchieveRows)))
                 .then(ModCommandSupport.withTargets(Commands.literal("mind"),
-                        context -> print(context, InfoModel::mind)));
+                        context -> print(context, InfoModel::buildMindRows)));
     }
 
     private static int print(CommandContext<CommandSourceStack> context,
                              Function<ServerPlayer, List<InfoModel.Row>> view) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        for (ServerPlayer player : ModCommandSupport.targets(context)) {
-            ModCommandFeedback.header(source);
+        for (ServerPlayer player : ModCommandSupport.getTargets(context)) {
+            ModCommandFeedback.sendHeader(source);
             for (InfoModel.Row row : view.apply(player)) {
-                ModCommandFeedback.detail(source, line(row.entry()));
+                ModCommandFeedback.sendDetail(source, formatLine(row.entry()));
             }
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private static Component line(InfoModel.Entry entry) { return entry.accept(LINES); }
+    private static Component formatLine(InfoModel.Entry entry) { return entry.accept(LINES); }
 
-    private static MutableComponent header(boolean empty) {
-        MutableComponent line = key("paths");
-        return empty ? line.append("  ").append(ModDisplayText.none()) : line;
+    private static MutableComponent formatHeader(boolean empty) {
+        MutableComponent line = translate("paths");
+        return empty ? line.append("  ").append(ModDisplayText.formatNone()) : line;
     }
 
-    private static MutableComponent key(String id, Object... args) { return Component.translatable(PREFIX + id, args); }
+    private static MutableComponent translate(String id, Object... args) {
+        return Component.translatable(PREFIX + id, args);
+    }
 
-    private static MutableComponent enumName(String key) { return Component.translatable(key); }
+    private static MutableComponent translateEnum(String key) { return Component.translatable(key); }
 
     private static final class LineWriter implements InfoModel.Visitor<Component> {
 
         @Override
-        public Component visit(InfoModel.ApertureIndex entry) { return ModDisplayText.apertureName(entry.number()); }
+        public Component visit(InfoModel.ApertureIndex entry) {
+            return ModDisplayText.formatApertureName(entry.number());
+        }
 
         @Override
         public Component visit(InfoModel.Blank entry) { return Component.empty(); }
 
         @Override
         public Component visit(InfoModel.Realm entry) {
-            return key("realm", ModDisplayText.realmTitle(entry.aperture()));
+            return translate("realm", ModDisplayText.formatRealmTitle(entry.aperture()));
         }
 
         @Override
         public Component visit(InfoModel.Status entry) {
-            return key("aperture_status", enumName(entry.status().getTranslationKey()));
+            return translate("aperture_status", translateEnum(entry.status().getTranslationKey()));
         }
 
         @Override
         public Component visit(InfoModel.TalentRow entry) {
-            return key("talent", ModDisplayText.talentLine(entry.aperture(), entry.awakened()));
+            return translate("talent", ModDisplayText.formatTalentLine(entry.aperture(), entry.awakened()));
         }
 
         @Override
         public Component visit(InfoModel.Essence entry) {
-            return key("essence", entry.aperture().currentEssence(), entry.aperture().maxEssence());
+            return translate("essence", entry.aperture().currentEssence(), entry.aperture().getMaxEssence());
         }
 
         @Override
         public Component visit(InfoModel.Distilled entry) {
-            return key("distilled", entry.aperture().distilledEssence(), entry.aperture().maxEssence());
+            return translate("distilled", entry.aperture().distilledEssence(), entry.aperture().getMaxEssence());
         }
 
         @Override
         public Component visit(InfoModel.Pressure entry) {
-            return key("pressure", entry.aperture().pressure(), Aperture.MAX_PRESSURE);
+            return translate("pressure", entry.aperture().pressure(), Aperture.MAX_PRESSURE);
         }
 
         @Override
         public Component visit(InfoModel.PathChoice entry) {
-            return key(entry.primary() ? "primary_path" : "secondary_path", ModDisplayText.path(entry.path()));
+            return translate(entry.primary() ? "primary_path" : "secondary_path",
+                    ModDisplayText.formatPath(entry.path()));
         }
 
         @Override
         public Component visit(InfoModel.PhysiqueRow entry) {
-            return key("physique", ModDisplayText.physique(entry.physique(), entry.extremePhysique()));
+            return translate("physique", ModDisplayText.formatPhysique(entry.physique(), entry.extremePhysique()));
         }
 
         @Override
         public Component visit(InfoModel.RaceRow entry) {
-            return key("race", enumName(entry.race().getTranslationKey()));
+            return translate("race", translateEnum(entry.race().getTranslationKey()));
         }
 
         @Override
         public Component visit(InfoModel.Soul entry) {
-            return key("soul", entry.soul().currentSoul(), entry.soul().maxSoul())
-                    .append(ModDisplayText.detail(enumName(entry.soul().tier().getTranslationKey())));
+            return translate("soul", entry.soul().currentSoul(), entry.soul().maxSoul())
+                    .append(ModDisplayText.formatDetail(translateEnum(entry.soul().getTier().getTranslationKey())));
         }
 
         @Override
         public Component visit(InfoModel.Lifespan entry) {
-            return key("lifespan", ModDisplayText.lifespan(entry.lifespan(), entry.age()));
+            return translate("lifespan", ModDisplayText.formatLifespan(entry.lifespan(), entry.age()));
         }
 
         @Override
-        public Component visit(InfoModel.PathsHeader entry) { return header(entry.empty()); }
+        public Component visit(InfoModel.PathsHeader entry) { return formatHeader(entry.empty()); }
 
         @Override
-        public Component visit(InfoModel.PathRow entry) { return ModDisplayText.pathLine(entry.path(), entry.entry()); }
+        public Component visit(InfoModel.PathRow entry) {
+            return ModDisplayText.formatPathLine(entry.path(), entry.entry());
+        }
 
         @Override
-        public Component visit(InfoModel.QiPathAchieveHeader entry) { return key("qi_path_achieve"); }
+        public Component visit(InfoModel.QiPathAchieveHeader entry) { return translate("qi_path_achieve"); }
 
         @Override
         public Component visit(InfoModel.QiKindRow entry) {
-            return key("qi_path_achieve_entry", enumName(entry.kind().getTranslationKey()), entry.amount());
+            return translate("qi_path_achieve_entry", translateEnum(entry.kind().getTranslationKey()), entry.amount());
         }
 
         @Override
-        public Component visit(InfoModel.TimePathAchieveHeader entry) { return key("time_path_achieve"); }
+        public Component visit(InfoModel.TimePathAchieveHeader entry) { return translate("time_path_achieve"); }
 
         @Override
         public Component visit(InfoModel.TimeRateUpRow entry) {
-            return key("time_rate_up_entry", ModDisplayText.timeRateUp(entry.rate()));
+            return translate("time_rate_up_entry", ModDisplayText.formatTimeRateUp(entry.rate()));
         }
 
         @Override
-        public Component visit(InfoModel.StrengthPathAchieveHeader entry) { return key("strength_path_achieve"); }
+        public Component visit(InfoModel.StrengthPathAchieveHeader entry) { return translate("strength_path_achieve"); }
 
         @Override
         public Component visit(InfoModel.StrengthPathBranchRow entry) {
-            return key("strength_path_achieve_entry",
-                    ModDisplayText.strengthLabel(enumName(entry.branch().getTranslationKey()), entry.totalJin()),
-                    entry.reading());
+            return translate("strength_path_achieve_entry",
+                    ModDisplayText.formatStrengthLabel(translateEnum(entry.branch().getTranslationKey()),
+                            entry.totalJin()),
+                    entry.getReading());
         }
 
         @Override
-        public Component visit(InfoModel.CapacityRow entry) { return key("capacity", entry.usable(), entry.total()); }
+        public Component visit(InfoModel.CapacityRow entry) {
+            return translate("capacity", entry.usable(), entry.total());
+        }
 
         @Override
         public Component visit(InfoModel.AttackRow entry) {
-            return key("attack", ModDisplayText.attackBonus(entry.bonus()));
+            return translate("attack", ModDisplayText.formatAttackBonus(entry.bonus()));
         }
 
         @Override
-        public Component visit(InfoModel.WisdomPathAchieveHeader entry) { return key("wisdom_path_achieve"); }
+        public Component visit(InfoModel.WisdomPathAchieveHeader entry) { return translate("wisdom_path_achieve"); }
 
         @Override
         public Component visit(InfoModel.ThoughtTagRow entry) {
-            return key("wisdom_path_achieve_entry", enumName(entry.tag().getTranslationKey()), entry.amount());
+            return translate("wisdom_path_achieve_entry", translateEnum(entry.tag().getTranslationKey()),
+                    entry.amount());
         }
 
         @Override
         public Component visit(InfoModel.BrillianceRow entry) {
-            return key("brilliance", enumName(entry.brilliance().getTranslationKey()))
-                    .append(ModDisplayText.detail(Component.translatable("guzhenren.display.brilliance_rate",
+            return translate("brilliance", translateEnum(entry.brilliance().getTranslationKey()))
+                    .append(ModDisplayText.formatDetail(Component.translatable("guzhenren.display.brilliance_rate",
                             entry.brilliance().getThoughtsPerSecond())));
         }
 
         @Override
-        public Component visit(InfoModel.MindHeader entry) { return key("mind"); }
+        public Component visit(InfoModel.MindHeader entry) { return translate("mind"); }
 
         @Override
         public Component visit(InfoModel.MindRow entry) {
-            return key("mind_entry", enumName(entry.type().getTranslationKey()), entry.pool().current(),
+            return translate("mind_entry", translateEnum(entry.type().getTranslationKey()), entry.pool().current(),
                     entry.pool().max());
         }
     }

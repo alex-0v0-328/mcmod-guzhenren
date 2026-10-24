@@ -72,9 +72,9 @@ public final class ApertureService {
         }
     }
 
-    public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).aperture(); }
+    public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).getAperture(); }
 
-    public static @NotNull Aperture getAperture(@NotNull Player player) { return get(player).primary(); }
+    public static @NotNull Aperture getAperture(@NotNull Player player) { return get(player).getPrimary(); }
 
     public static @NotNull Aperture getAperture(@NotNull Player player, int i) { return get(player).get(i); }
 
@@ -92,7 +92,7 @@ public final class ApertureService {
         return getStatus(player, ApertureData.PRIMARY);
     }
 
-    public static @NotNull Talent getTalent(@NotNull Player player) { return getAperture(player).talent(); }
+    public static @NotNull Talent getTalent(@NotNull Player player) { return getAperture(player).getTalent(); }
 
     public static @NotNull Rank getRank(@NotNull Player player) { return getAperture(player).rank(); }
 
@@ -164,7 +164,7 @@ public final class ApertureService {
     }
 
     public static void shiftTalent(@NotNull ServerPlayer player, int index, int delta) {
-        setTalent(player, index, getAperture(player, index).talent().shift(delta));
+        setTalent(player, index, getAperture(player, index).getTalent().shift(delta));
     }
 
     public static void setBaseEssence(@NotNull ServerPlayer player, int value) {
@@ -176,18 +176,18 @@ public final class ApertureService {
         return set(player, index, getAperture(player, index).withBaseEssence(clamped));
     }
 
-    public static void awaken(@NotNull ServerPlayer player) { open(player, Aperture.opened()); }
+    public static void awaken(@NotNull ServerPlayer player) { open(player, Aperture.createOpened()); }
 
     public static void awaken(@NotNull ServerPlayer player, int baseEssence) {
-        open(player, baseEssence > 0 ? Aperture.openedAt(baseEssence) : Aperture.opened());
+        open(player, baseEssence > 0 ? Aperture.createOpenedAt(baseEssence) : Aperture.createOpened());
     }
 
     public static void openSecond(@NotNull ServerPlayer player, @NotNull Rank rank) {
         ApertureData data = get(player);
-        Aperture opened = Aperture.secondOpened(rank);
-        int index = data.secondIndex();
+        Aperture opened = Aperture.createSecond(rank);
+        int index = data.getSecondIndex();
         if (index < 0) {
-            store(player, data.opened(opened));
+            store(player, data.withOpened(opened));
             return;
         }
         Aperture old = data.get(index);
@@ -202,15 +202,15 @@ public final class ApertureService {
             ModEvents.post(new FirstApertureInsertedEvent(player));
             ApertureNourishService.shiftTargetForInsertedFirst(player);
         } else {
-            store(player, data.opened(aperture));
+            store(player, data.withOpened(aperture));
         }
-        if (aperture.talent() == Talent.TEN_EXTREMES) {
+        if (aperture.getTalent() == Talent.TEN_EXTREMES) {
             BodyService.setExtremePhysique(player, ExtremePhysique.randomTenExtreme());
         }
     }
 
     public static boolean set(@NotNull ServerPlayer player, int index, @NotNull Aperture aperture) {
-        if (index == get(player).firstIndex() && aperture.baseEssence() == Aperture.MAX_BASE
+        if (index == get(player).getFirstIndex() && aperture.baseEssence() == Aperture.MAX_BASE
                 && !BodyService.isExtreme(player)) return false;
         store(player, get(player).with(index, enforce(player, index, aperture)));
         return true;
@@ -222,7 +222,7 @@ public final class ApertureService {
     }
 
     private static Aperture enforce(@NotNull Player player, int index, @NotNull Aperture aperture) {
-        if (index == get(player).firstIndex() && BodyService.isExtreme(player)) {
+        if (index == get(player).getFirstIndex() && BodyService.isExtreme(player)) {
             return aperture.baseEssence() == Aperture.MAX_BASE ? aperture : aperture.withBaseEssence(Aperture.MAX_BASE);
         }
         return capBelowMaxBase(aperture);

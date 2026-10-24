@@ -25,23 +25,23 @@ public final class ModCommandFeedback {
 
     private ModCommandFeedback() {}
 
-    public static void header(CommandSourceStack source) {
+    public static void sendHeader(CommandSourceStack source) {
         source.sendSuccess(() -> Component.translatable("guzhenren.command.header"), false);
     }
 
-    public static void detail(CommandSourceStack source, Component line) {
+    public static void sendDetail(CommandSourceStack source, Component line) {
         source.sendSuccess(() -> line, false);
     }
 
-    public static void success(CommandSourceStack source, Component message) {
-        source.sendSuccess(() -> tagged(message, ChatFormatting.GREEN), false);
+    public static void sendSuccess(CommandSourceStack source, Component message) {
+        source.sendSuccess(() -> formatTagged(message, ChatFormatting.GREEN), false);
     }
 
-    public static void failure(CommandSourceStack source, Component message) {
-        source.sendSuccess(() -> tagged(message, ChatFormatting.RED), false);
+    public static void sendFailure(CommandSourceStack source, Component message) {
+        source.sendSuccess(() -> formatTagged(message, ChatFormatting.RED), false);
     }
 
-    private static Component tagged(Component message, ChatFormatting color) {
+    private static Component formatTagged(Component message, ChatFormatting color) {
         return Component.translatable("guzhenren.command.tagged", message.copy().withStyle(color));
     }
 }

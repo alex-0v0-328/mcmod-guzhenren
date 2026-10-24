@@ -32,7 +32,7 @@ public class VitalityLeafGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected @Nullable Refusal useGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
         return ModEffects.has(player, ModEffects.VITALITY_LEAF) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
     }
 

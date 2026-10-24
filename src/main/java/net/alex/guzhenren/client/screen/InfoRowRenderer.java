@@ -76,9 +76,11 @@ final class InfoRowRenderer {
         return entry.accept(new EntryDrawer(indent));
     }
 
-    private static MutableComponent name(String key) { return Component.translatable(key); }
+    private static MutableComponent formatName(String key) { return Component.translatable(key); }
 
-    private static Component label(String name) { return Component.translatable("guzhenren.screen.label." + name); }
+    private static Component formatLabel(String name) {
+        return Component.translatable("guzhenren.screen.label." + name);
+    }
 
     private static final class EntryDrawer implements InfoModel.Visitor<ScreenRow> {
 
@@ -88,7 +90,7 @@ final class InfoRowRenderer {
 
         @Override
         public ScreenRow visit(InfoModel.ApertureIndex entry) {
-            return new ScreenRow(indent, ModDisplayText.apertureName(entry.number()), null);
+            return new ScreenRow(indent, ModDisplayText.formatApertureName(entry.number()), null);
         }
 
         @Override
@@ -96,31 +98,31 @@ final class InfoRowRenderer {
 
         @Override
         public ScreenRow visit(InfoModel.Realm entry) {
-            return new ScreenRow(indent, label("realm"), ModDisplayText.realmTitle(entry.aperture()));
+            return new ScreenRow(indent, formatLabel("realm"), ModDisplayText.formatRealmTitle(entry.aperture()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.Status entry) {
-            return new ScreenRow(indent, label("aperture_status"),
-                    name(entry.status().getTranslationKey()));
+            return new ScreenRow(indent, formatLabel("aperture_status"),
+                    formatName(entry.status().getTranslationKey()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.TalentRow entry) {
-            return new ScreenRow(indent, label("talent"),
-                    ModDisplayText.talentLine(entry.aperture(), entry.awakened()));
+            return new ScreenRow(indent, formatLabel("talent"),
+                    ModDisplayText.formatTalentLine(entry.aperture(), entry.awakened()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.Essence entry) {
-            return new ScreenRow(indent, label("essence"), Component.literal(
-                    ModDisplayText.pool(entry.aperture().currentEssence(), entry.aperture().maxEssence())));
+            return new ScreenRow(indent, formatLabel("essence"), Component.literal(
+                    ModDisplayText.formatPool(entry.aperture().currentEssence(), entry.aperture().getMaxEssence())));
         }
 
         @Override
         public ScreenRow visit(InfoModel.Distilled entry) {
-            return new ScreenRow(indent, label("distilled"), Component.literal(
-                    ModDisplayText.pool(entry.aperture().distilledEssence(), entry.aperture().maxEssence())));
+            return new ScreenRow(indent, formatLabel("distilled"), Component.literal(
+                    ModDisplayText.formatPool(entry.aperture().distilledEssence(), entry.aperture().getMaxEssence())));
         }
 
         @Override
@@ -133,81 +135,83 @@ final class InfoRowRenderer {
         @Override
         public ScreenRow visit(InfoModel.PathChoice entry) {
             return entry.primary()
-                    ? new ScreenRow(indent, label("primary_path"), ModDisplayText.path(entry.path()))
-                    : new ScreenRow(indent, label("secondary_path"),
-                    ModDisplayText.detail(Component.translatable("guzhenren.screen.pick.hint"))
+                    ? new ScreenRow(indent, formatLabel("primary_path"), ModDisplayText.formatPath(entry.path()))
+                    : new ScreenRow(indent, formatLabel("secondary_path"),
+                    ModDisplayText.formatDetail(Component.translatable("guzhenren.screen.pick.hint"))
                             .append(entry.path() == null
-                                    ? ModDisplayText.none().withStyle(ChatFormatting.DARK_GRAY)
-                                    : ModDisplayText.detail(ModDisplayText.path(entry.path()))),
+                                    ? ModDisplayText.formatNone().withStyle(ChatFormatting.DARK_GRAY)
+                                    : ModDisplayText.formatDetail(ModDisplayText.formatPath(entry.path()))),
                     new Click(entry.aperture()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.PhysiqueRow entry) {
-            return new ScreenRow(indent, label("physique"),
-                    ModDisplayText.physiqueValue(entry.physique(), entry.extremePhysique()));
+            return new ScreenRow(indent, formatLabel("physique"),
+                    ModDisplayText.formatPhysiqueValue(entry.physique(), entry.extremePhysique()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.RaceRow entry) {
-            return new ScreenRow(indent, label("race"), name(entry.race().getTranslationKey()));
+            return new ScreenRow(indent, formatLabel("race"), formatName(entry.race().getTranslationKey()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.Soul entry) {
-            return new ScreenRow(indent, label("soul"),
-                    Component.literal(ModDisplayText.pool(entry.soul().currentSoul(), entry.soul().maxSoul()))
-                            .append(ModDisplayText.detail(name(entry.soul().tier().getTranslationKey()))));
+            return new ScreenRow(indent, formatLabel("soul"),
+                    Component.literal(ModDisplayText.formatPool(entry.soul().currentSoul(), entry.soul().maxSoul()))
+                            .append(ModDisplayText.formatDetail(
+                                    formatName(entry.soul().getTier().getTranslationKey()))));
         }
 
         @Override
         public ScreenRow visit(InfoModel.Lifespan entry) {
-            return new ScreenRow(indent, label("lifespan"),
-                    ModDisplayText.lifespan(entry.lifespan(), entry.age()));
+            return new ScreenRow(indent, formatLabel("lifespan"),
+                    ModDisplayText.formatLifespan(entry.lifespan(), entry.age()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.PathsHeader entry) {
-            return new ScreenRow(indent, label("paths"), entry.empty() ? ModDisplayText.none() : null);
+            return new ScreenRow(indent, formatLabel("paths"), entry.empty() ? ModDisplayText.formatNone() : null);
         }
 
         @Override
         public ScreenRow visit(InfoModel.PathRow entry) {
-            return new ScreenRow(indent, ModDisplayText.pathLine(entry.path(), entry.entry()), Component.empty());
+            return new ScreenRow(indent, ModDisplayText.formatPathLine(entry.path(), entry.entry()), Component.empty());
         }
 
         @Override
         public ScreenRow visit(InfoModel.QiPathAchieveHeader entry) {
-            return new ScreenRow(indent, label("qi_path_achieve"), null);
+            return new ScreenRow(indent, formatLabel("qi_path_achieve"), null);
         }
 
         @Override
         public ScreenRow visit(InfoModel.QiKindRow entry) {
-            return new ScreenRow(indent, name(entry.kind().getTranslationKey()),
+            return new ScreenRow(indent, formatName(entry.kind().getTranslationKey()),
                     Component.literal(String.valueOf(entry.amount())));
         }
 
         @Override
         public ScreenRow visit(InfoModel.TimePathAchieveHeader entry) {
-            return new ScreenRow(indent, label("time_path_achieve"), null);
+            return new ScreenRow(indent, formatLabel("time_path_achieve"), null);
         }
 
         @Override
         public ScreenRow visit(InfoModel.TimeRateUpRow entry) {
-            return new ScreenRow(indent, label("time_rate_up"),
-                    ModDisplayText.timeRateUp(entry.rate()));
+            return new ScreenRow(indent, formatLabel("time_rate_up"),
+                    ModDisplayText.formatTimeRateUp(entry.rate()));
         }
 
         @Override
         public ScreenRow visit(InfoModel.StrengthPathAchieveHeader entry) {
-            return new ScreenRow(indent, label("strength_path_achieve"), null);
+            return new ScreenRow(indent, formatLabel("strength_path_achieve"), null);
         }
 
         @Override
         public ScreenRow visit(InfoModel.StrengthPathBranchRow entry) {
             return new ScreenRow(indent,
-                    ModDisplayText.strengthLabel(name(entry.branch().getTranslationKey()), entry.totalJin()),
-                    entry.reading());
+                    ModDisplayText.formatStrengthLabel(formatName(entry.branch().getTranslationKey()),
+                            entry.totalJin()),
+                    entry.getReading());
         }
 
         @Override
@@ -219,26 +223,27 @@ final class InfoRowRenderer {
 
         @Override
         public ScreenRow visit(InfoModel.AttackRow entry) {
-            return new ScreenRow(indent, label("attack"),
-                    Component.literal(ModDisplayText.attackBonus(entry.bonus())));
+            return new ScreenRow(indent, formatLabel("attack"),
+                    Component.literal(ModDisplayText.formatAttackBonus(entry.bonus())));
         }
 
         @Override
         public ScreenRow visit(InfoModel.WisdomPathAchieveHeader entry) {
-            return new ScreenRow(indent, label("wisdom_path_achieve"), null);
+            return new ScreenRow(indent, formatLabel("wisdom_path_achieve"), null);
         }
 
         @Override
         public ScreenRow visit(InfoModel.ThoughtTagRow entry) {
-            return new ScreenRow(indent, name(entry.tag().getTranslationKey()),
+            return new ScreenRow(indent, formatName(entry.tag().getTranslationKey()),
                     Component.literal(String.valueOf(entry.amount())));
         }
 
         @Override
         public ScreenRow visit(InfoModel.BrillianceRow entry) {
-            return new ScreenRow(indent, label("brilliance"),
-                    name(entry.brilliance().getTranslationKey()).append(ModDisplayText.detail(Component.translatable(
-                            "guzhenren.display.brilliance_rate", entry.brilliance().getThoughtsPerSecond()))));
+            return new ScreenRow(indent, formatLabel("brilliance"),
+                    formatName(entry.brilliance().getTranslationKey()).append(ModDisplayText.formatDetail(
+                            Component.translatable("guzhenren.display.brilliance_rate",
+                                    entry.brilliance().getThoughtsPerSecond()))));
         }
 
         @Override
@@ -246,8 +251,8 @@ final class InfoRowRenderer {
 
         @Override
         public ScreenRow visit(InfoModel.MindRow entry) {
-            return new ScreenRow(indent, name(entry.type().getTranslationKey()),
-                    Component.literal(ModDisplayText.pool(entry.pool().current(), entry.pool().max())));
+            return new ScreenRow(indent, formatName(entry.type().getTranslationKey()),
+                    Component.literal(ModDisplayText.formatPool(entry.pool().current(), entry.pool().max())));
         }
     }
 

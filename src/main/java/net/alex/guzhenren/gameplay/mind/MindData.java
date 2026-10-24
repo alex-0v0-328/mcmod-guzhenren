@@ -83,9 +83,9 @@ public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools,
         ModByteBufs.writeEnumMap(buf, value.taggedThoughts(), FriendlyByteBuf::writeVarLong);
     }
 
-    public static MindData newborn() { return new MindData(Brilliance.randomBrilliance(), Map.of(), Map.of()); }
+    public static MindData createNewborn() { return new MindData(Brilliance.randomBrilliance(), Map.of(), Map.of()); }
 
-    public MindPool pool(MindPoolType type) { return pools.get(type); }
+    public MindPool getPool(MindPoolType type) { return pools.get(type); }
 
     public boolean isOverflowing() {
         return pools.entrySet().stream()
@@ -109,9 +109,9 @@ public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools,
         return new MindData(brilliance, pools, next);
     }
 
-    public MindData emptied() {
+    public MindData withEmptied() {
         Map<MindPoolType, MindPool> next = new EnumMap<>(MindPoolType.class);
-        pools.forEach((type, pool) -> next.put(type, pool.emptied()));
+        pools.forEach((type, pool) -> next.put(type, pool.withEmptied()));
         return new MindData(brilliance, next, Map.of());
     }
 }

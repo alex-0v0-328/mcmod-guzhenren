@@ -27,5 +27,5 @@ public class GuMaterialItem extends GuItem {
     }
 
     @Override
-    protected String kindKey() { return KIND_KEY; }
+    protected String getKindKey() { return KIND_KEY; }
 }

@@ -49,20 +49,20 @@ public record PathQiData(Map<QiKind, PathQiEntry> entries) {
 
     public @Nullable PathQiEntry get(QiKind kind) { return entries.get(kind); }
 
-    public long current(QiKind kind, long now) {
+    public long getCurrent(QiKind kind, long now) {
         PathQiEntry entry = entries.get(kind);
         if (entry == null) return 0L;
         if (!kind.isTimed() || now < entry.holdEndTick()) return entry.amount();
 
         long elapsedSeconds = (now - entry.holdEndTick()) / Ticks.SECOND;
-        int tier = Math.max(0, QiKind.tierOf(entry.amount()));
-        long rate = QiKind.decayPerSecond(tier);
+        int tier = Math.max(0, QiKind.getTierOf(entry.amount()));
+        long rate = QiKind.getDecayPerSecond(tier);
         long decaySeconds = -Math.floorDiv(-entry.amount(), rate);
         if (elapsedSeconds >= decaySeconds) return 0L;
         return entry.amount() - rate * elapsedSeconds;
     }
 
-    public boolean holding(QiKind kind, long now) {
+    public boolean isHolding(QiKind kind, long now) {
         PathQiEntry entry = entries.get(kind);
         return entry != null && kind.isTimed() && now < entry.holdEndTick();
     }

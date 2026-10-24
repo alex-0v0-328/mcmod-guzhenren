@@ -57,7 +57,7 @@ public class CrashGuEntity extends RestingFlyingGuEntity {
         super(type, level, caughtGu);
     }
 
-    public static boolean hovers(boolean hovering, double horizontalSpeed) {
+    public static boolean isHovering(boolean hovering, double horizontalSpeed) {
         return hovering ? horizontalSpeed < HOVER_EXIT_SPEED : horizontalSpeed < HOVER_ENTER_SPEED;
     }
 
@@ -65,7 +65,7 @@ public class CrashGuEntity extends RestingFlyingGuEntity {
     public void tick() {
         super.tick();
         if (level().isClientSide()) {
-            hovering = hovers(hovering, Math.hypot(getX() - xo, getZ() - zo));
+            hovering = isHovering(hovering, Math.hypot(getX() - xo, getZ() - zo));
         }
     }
 
@@ -73,7 +73,9 @@ public class CrashGuEntity extends RestingFlyingGuEntity {
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         boolean hurt = super.hurt(source, amount);
-        if (hurt && !level().isClientSide() && isAlive() && phase() == FlightPhase.RESTING) triggerAnim(MAIN, "hurt");
+        if (hurt && !level().isClientSide() && isAlive() && getPhase() == FlightPhase.RESTING) {
+            triggerAnim(MAIN, "hurt");
+        }
         return hurt;
     }
 
@@ -93,7 +95,7 @@ public class CrashGuEntity extends RestingFlyingGuEntity {
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, MAIN, TRANSITION_TICKS, state -> {
             if (isDeadOrDying()) return state.setAndContinue(DEATH_ANIM);
-            return switch (phase()) {
+            return switch (getPhase()) {
                 case FLYING, LANDING -> state.setAndContinue(hovering ? HOVER_ANIM : FLY_ANIM);
                 case RESTING -> state.setAndContinue(IDLE_ANIM);
             };

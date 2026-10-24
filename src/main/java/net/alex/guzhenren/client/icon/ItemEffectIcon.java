@@ -27,12 +27,12 @@ public final class ItemEffectIcon implements EffectIconLayout {
 
     public ItemEffectIcon(String item) {
         this.texture = "item/" + item;
-        this.location = EffectIconLayout.locationOf(texture);
+        this.location = EffectIconLayout.getLocationOf(texture);
     }
 
     @Override
-    public String textureFor(MobEffectInstance instance) { return texture; }
+    public String getTextureFor(MobEffectInstance instance) { return texture; }
 
     @Override
-    public ResourceLocation locationFor(MobEffectInstance instance) { return location; }
+    public ResourceLocation getLocationFor(MobEffectInstance instance) { return location; }
 }

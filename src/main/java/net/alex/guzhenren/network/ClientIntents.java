@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * What the server does with each client intent: the two containers, the secondary path, the three
  * cultivation actions, the dash and the burst [疾飞] toggle. Every intent but the burst toggle refuses
- * inside the Treasure Yellow Heaven ({@link #outsideTyh}), where flight and burst are what remains.
+ * inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and burst are what remains.
  *
  * <p>Every client intent in this mod is a B-panel button or movement input that player-data sync cannot
  * carry upstream; none carries player data, and downstream player data always travels as synced state.
@@ -49,7 +49,7 @@ public final class ClientIntents {
     private static final String STORAGE_TITLE = "guzhenren.menu.aperture_storage";
     private static final String REFINEMENT_TITLE = "guzhenren.menu.refinement";
 
-    private static boolean outsideTyh(@NotNull ServerPlayer player) {
+    private static boolean isOutsideTyh(@NotNull ServerPlayer player) {
         return !player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
     }
 
@@ -69,7 +69,7 @@ public final class ClientIntents {
     }
 
     public static void nourishAperture(@NotNull ServerPlayer player, @NotNull NourishAction action, int aperture) {
-        if (!outsideTyh(player) || !hasAperture(player, aperture)) return;
+        if (!isOutsideTyh(player) || !hasAperture(player, aperture)) return;
         switch (action) {
             case START -> ApertureNourishService.start(player, aperture);
             case CANCEL -> ApertureNourishService.cancel(player);
@@ -77,11 +77,11 @@ public final class ClientIntents {
     }
 
     public static void impactApertureWall(@NotNull ServerPlayer player) {
-        if (outsideTyh(player)) ApertureNourishService.impactWall(player);
+        if (isOutsideTyh(player)) ApertureNourishService.impactWall(player);
     }
 
     public static void dash(@NotNull ServerPlayer player, int vertical, int horizontal, float yRot) {
-        if (!outsideTyh(player)) return;
+        if (!isOutsideTyh(player)) return;
         if (vertical < -1 || vertical > 1 || horizontal < -1 || horizontal > 1 || !Float.isFinite(yRot)) return;
         if (!canDash(player.getMainHandItem(), vertical, horizontal,
                 ModEffects.has(player, ModEffects.HORIZONTAL_CRASH_GU),
@@ -94,19 +94,19 @@ public final class ClientIntents {
     public static void toggleBurst(@NotNull ServerPlayer player) { FlightService.toggleBurst(player); }
 
     public static void openRefinement(@NotNull ServerPlayer player) {
-        if (!outsideTyh(player) || !ApertureService.isAwakened(player)) return;
+        if (!isOutsideTyh(player) || !ApertureService.isAwakened(player)) return;
         player.openMenu(new SimpleMenuProvider(
                 (id, inventory, p) -> new RefinementMenu(id, inventory),
                 Component.translatable(REFINEMENT_TITLE)));
     }
 
     public static void setSecondaryPath(@NotNull ServerPlayer player, int aperture, @Nullable GuPath path) {
-        if (!outsideTyh(player) || !hasAperture(player, aperture)) return;
+        if (!isOutsideTyh(player) || !hasAperture(player, aperture)) return;
         ApertureService.setSecondaryPath(player, aperture, path);
     }
 
     public static void openApertureStorage(@NotNull ServerPlayer player, int aperture) {
-        if (!outsideTyh(player) || !hasAperture(player, aperture)) return;
+        if (!isOutsideTyh(player) || !hasAperture(player, aperture)) return;
         ModNetwork.openMenu(player, new SimpleMenuProvider(
                 (id, inventory, p) -> new ApertureStorageMenu(id, inventory, aperture, 0),
                 Component.translatable(STORAGE_TITLE)), buffer -> buffer.writeVarInt(aperture));

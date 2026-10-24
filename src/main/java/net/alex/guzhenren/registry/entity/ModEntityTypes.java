@@ -100,17 +100,17 @@ public final class ModEntityTypes {
     }
 
     private static RegistryObject<EntityType<BearEntity>> registerBear(BearSpecies species) {
-        return register(species.id(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
+        return register(species.getId(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
                 BEAR_WIDTH, BEAR_HEIGHT);
     }
 
     private static RegistryObject<EntityType<SoulTraderEntity>> registerSoulTrader(SoulTrader trader) {
-        return ENTITY_TYPES.register(trader.id(), () -> EntityType.Builder
+        return ENTITY_TYPES.register(trader.getId(), () -> EntityType.Builder
                 .<SoulTraderEntity>of((type, level) -> new SoulTraderEntity(type, level, trader), MobCategory.MISC)
                 .sized(SOUL_TRADER_WIDTH, SOUL_TRADER_HEIGHT)
                 .fireImmune()
                 .clientTrackingRange(TRACKING_CHUNKS)
-                .build(trader.id()));
+                .build(trader.getId()));
     }
 
     private static RegistryObject<EntityType<BoarGuEntity>> registerBoarGu(

@@ -44,8 +44,8 @@ public class HoverNearPlayerGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return target != null && target.isAlive() && gu.wants(target)
-                && gu.distanceToSqr(target) <= detectRangeSqr();
+        return target != null && target.isAlive() && gu.isWanting(target)
+                && gu.distanceToSqr(target) <= getDetectRangeSqr();
     }
 
     @Override
@@ -81,5 +81,5 @@ public class HoverNearPlayerGoal extends Goal {
         gu.setDeltaMovement(movement.x * HOVER_DRAG, lift, movement.z * HOVER_DRAG);
     }
 
-    private double detectRangeSqr() { return FlyingGuEntity.DETECT_RANGE * FlyingGuEntity.DETECT_RANGE; }
+    private double getDetectRangeSqr() { return FlyingGuEntity.DETECT_RANGE * FlyingGuEntity.DETECT_RANGE; }
 }

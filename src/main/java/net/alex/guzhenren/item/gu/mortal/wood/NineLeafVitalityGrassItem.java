@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
  *
  * <p>⚠ A stack without the component holds nine: the grass picked from its flower, a wild one and a creative copy
- * are all full. {@link #payoutGate} answers both clicks, because {@code TendedGuItem.sneakGate} ends in it too.
+ * are all full. {@link #checkPayoutGate} answers both clicks, because {@code TendedGuItem.sneakGate} ends in it too.
  *
  * <p>⚠ The regrowth runs on the grass's own clock and is never scaled by Time Path [宙道] self-time; only the
  * holder's grow charge is shortened, like every other charge.
@@ -61,34 +61,34 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
 
     //region the leaves -- settled from the stamp on read, on either side
-    public static LeafGrowth growth(ItemStack stack) {
+    public static LeafGrowth getGrowth(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.LEAF_GROWTH, LeafGrowth.FULL);
     }
 
-    public int leaves(ItemStack stack, long now) { return growth(stack).settle(now, regrowTicks).leaves(); }
+    public int getLeaves(ItemStack stack, long now) { return getGrowth(stack).settle(now, regrowTicks).leaves(); }
 
-    public float pickedStage(ItemStack stack, long now) { return LeafGrowth.pickedStage(leaves(stack, now)); }
+    public float getPickedStage(ItemStack stack, long now) { return LeafGrowth.getPickedStage(getLeaves(stack, now)); }
 
-    private int secondsToNextLeaf(ItemStack stack, long now) {
-        return (growth(stack).ticksToNextLeaf(now, regrowTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
+    private int getSecondsToNextLeaf(ItemStack stack, long now) {
+        return (getGrowth(stack).getTicksToNextLeaf(now, regrowTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
     }
     //endregion
 
     //region both clicks -- a pick needs a leaf, a grow needs room and the essence
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         long now = player.level().getGameTime();
-        int leaves = leaves(stack, now);
+        int leaves = getLeaves(stack, now);
         if (isSneakUse(player, stack)) {
             if (leaves >= LeafGrowth.MAX_LEAVES) return new Refusal(FAILED_LEAVES_FULL);
-            return essenceGate(player, essencePerLeaf, FAILED_ESSENCE);
+            return checkEssenceGate(player, essencePerLeaf, FAILED_ESSENCE);
         }
         return leaves > 0 ? null
-                : new Refusal(FAILED_NO_LEAVES, Component.literal(String.valueOf(secondsToNextLeaf(stack, now))));
+                : new Refusal(FAILED_NO_LEAVES, Component.literal(String.valueOf(getSecondsToNextLeaf(stack, now))));
     }
 
     @Override
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return refined(stack); }
+    protected boolean hasSneakUse(Player player, ItemStack stack) { return isRefined(stack); }
 
     @Override
     protected int useChargeTicks(Player player, ItemStack stack) {
@@ -100,11 +100,11 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
 
     //region picking -- the plain right click, free
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
+    protected void payOut(ServerPlayer player, ItemStack stack) {
         long now = player.level().getGameTime();
-        if (leaves(stack, now) <= 0) return;
+        if (getLeaves(stack, now) <= 0) return;
 
-        ModDataComponents.set(stack, ModDataComponents.LEAF_GROWTH, growth(stack).pick(now, regrowTicks));
+        ModDataComponents.set(stack, ModDataComponents.LEAF_GROWTH, getGrowth(stack).pick(now, regrowTicks));
         player.getInventory().placeItemBackInInventory(new ItemStack(ModItems.VITALITY_LEAF_GU.get()));
     }
     //endregion
@@ -115,7 +115,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
         if (!ApertureEssenceService.consume(player, essencePerLeaf)) return 0;
 
         ModDataComponents.set(stack, ModDataComponents.LEAF_GROWTH,
-                growth(stack).grow(player.level().getGameTime(), regrowTicks));
+                getGrowth(stack).grow(player.level().getGameTime(), regrowTicks));
         return 0;
     }
     //endregion
@@ -124,14 +124,14 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
                                  @NotNull TooltipFlag flag) {
         super.appendTooltip(stack, level, tooltip, flag);
-        if (!refined(stack)) return;
+        if (!isRefined(stack)) return;
 
-        long now = level != null ? level.getGameTime() : growth(stack).settledAt();
-        int leaves = leaves(stack, now);
+        long now = level != null ? level.getGameTime() : getGrowth(stack).settledAt();
+        int leaves = getLeaves(stack, now);
         tooltip.add(Component.translatable(TOOLTIP_LEAVES, leaves, LeafGrowth.MAX_LEAVES)
                 .withStyle(ChatFormatting.GRAY));
         if (leaves < LeafGrowth.MAX_LEAVES) {
-            tooltip.add(Component.translatable(TOOLTIP_NEXT_LEAF, secondsToNextLeaf(stack, now))
+            tooltip.add(Component.translatable(TOOLTIP_NEXT_LEAF, getSecondsToNextLeaf(stack, now))
                     .withStyle(ChatFormatting.GRAY));
         }
     }

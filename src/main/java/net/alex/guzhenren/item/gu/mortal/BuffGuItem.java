@@ -48,25 +48,25 @@ public class BuffGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         MobEffectInstance current = ModEffects.get(player, buff);
         return current != null && current.getAmplifier() > amplifier
                 ? new Refusal(FAILED_STRONGER, buff.get().getDisplayName()) : null;
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
+    protected void payOut(ServerPlayer player, ItemStack stack) {
         MobEffectInstance current = ModEffects.get(player, buff);
         if (current != null && amplifier < current.getAmplifier()) return;
 
-        int duration = current == null ? durationTicks : nextDuration(current.getDuration(),
-                current.getAmplifier(), durationTicks, amplifier, effectCooldownLeft(player, stack) > 0);
+        int duration = current == null ? durationTicks : getNextDuration(current.getDuration(),
+                current.getAmplifier(), durationTicks, amplifier, getEffectCooldownLeft(player, stack) > 0);
         if (current != null) ModEffects.remove(player, buff);
         player.addEffect(ModEffects.instance(buff, duration, amplifier));
     }
 
-    static int nextDuration(int currentDuration, int currentAmplifier, int addedDuration, int addedAmplifier,
-                            boolean accumulates) {
+    static int getNextDuration(int currentDuration, int currentAmplifier, int addedDuration, int addedAmplifier,
+                               boolean accumulates) {
         if (addedAmplifier < currentAmplifier) return currentDuration;
         if (addedAmplifier > currentAmplifier) return addedDuration;
         if (!accumulates) return Math.max(currentDuration, addedDuration);
@@ -74,10 +74,10 @@ public class BuffGuItem extends TendedGuItem {
     }
 
     @Override
-    protected boolean allowsUseDuringEffectCooldown() { return true; }
+    protected boolean canUseDuringEffectCooldown() { return true; }
 
     @Override
-    protected int hungerCostMultiplier(Player player, ItemStack stack) {
-        return effectCooldownLeft(player, stack) > 0 ? COOLDOWN_HUNGER_MULTIPLIER : 1;
+    protected int getHungerCostMultiplier(Player player, ItemStack stack) {
+        return getEffectCooldownLeft(player, stack) > 0 ? COOLDOWN_HUNGER_MULTIPLIER : 1;
     }
 }

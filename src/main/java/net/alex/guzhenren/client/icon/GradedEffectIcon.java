@@ -39,33 +39,33 @@ public final class GradedEffectIcon implements EffectIconLayout {
         this.amplifierOffset = amplifierOffset;
         this.locations = new ResourceLocation[highestRank - lowestRank + 1];
         for (int rank = lowestRank; rank <= highestRank; rank++) {
-            locations[rank - lowestRank] = EffectIconLayout.locationOf(texture(rank));
+            locations[rank - lowestRank] = EffectIconLayout.getLocationOf(getTexture(rank));
         }
     }
 
-    public static GradedEffectIcon mobEffect(String name, int lowestRank, int highestRank) {
+    public static GradedEffectIcon createMobEffect(String name, int lowestRank, int highestRank) {
         return new GradedEffectIcon(name, "mob_effect", lowestRank, highestRank, 1);
     }
 
-    public static GradedEffectIcon item(String name, int lowestRank, int highestRank) {
+    public static GradedEffectIcon createItem(String name, int lowestRank, int highestRank) {
         return new GradedEffectIcon(name, "item", lowestRank, highestRank, 1);
     }
 
-    public static GradedEffectIcon item(String name, int lowestRank, int highestRank, int amplifierOffset) {
+    public static GradedEffectIcon createItem(String name, int lowestRank, int highestRank, int amplifierOffset) {
         return new GradedEffectIcon(name, "item", lowestRank, highestRank, amplifierOffset);
     }
 
     @Override
-    public String textureFor(MobEffectInstance instance) { return texture(rankOf(instance)); }
+    public String getTextureFor(MobEffectInstance instance) { return getTexture(getRankOf(instance)); }
 
     @Override
-    public ResourceLocation locationFor(MobEffectInstance instance) {
-        return locations[rankOf(instance) - lowestRank];
+    public ResourceLocation getLocationFor(MobEffectInstance instance) {
+        return locations[getRankOf(instance) - lowestRank];
     }
 
-    private int rankOf(MobEffectInstance instance) {
+    private int getRankOf(MobEffectInstance instance) {
         return Mth.clamp(instance.getAmplifier() + amplifierOffset, lowestRank, highestRank);
     }
 
-    private String texture(int rank) { return directory + "/" + name + "_" + rank; }
+    private String getTexture(int rank) { return directory + "/" + name + "_" + rank; }
 }

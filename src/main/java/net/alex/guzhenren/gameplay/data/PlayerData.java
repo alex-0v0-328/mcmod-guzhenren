@@ -98,31 +98,31 @@ public final class PlayerData {
                 .orElseThrow(() -> new IllegalStateException("No player data on " + player.getScoreboardName()));
     }
 
-    public ApertureData aperture() { return aperture; }
+    public ApertureData getAperture() { return aperture; }
 
-    public float[] essenceCarry() { return essenceCarry; }
+    public float[] getEssenceCarry() { return essenceCarry; }
 
-    public ApertureStorage apertureStorage() { return apertureStorage; }
+    public ApertureStorage getApertureStorage() { return apertureStorage; }
 
-    public ApertureNourishData nourish() { return nourish; }
+    public ApertureNourishData getNourish() { return nourish; }
 
-    public BodyData body() { return body; }
+    public BodyData getBody() { return body; }
 
-    public SoulData soul() { return soul; }
+    public SoulData getSoul() { return soul; }
 
-    public PathData path() { return path; }
+    public PathData getPath() { return path; }
 
-    public PathStrengthData strength() { return strength; }
+    public PathStrengthData getStrength() { return strength; }
 
-    public PathQiData qi() { return qi; }
+    public PathQiData getQi() { return qi; }
 
-    public MindData mind() { return mind; }
+    public MindData getMind() { return mind; }
 
-    public DimensionReturnData dimensionReturn() { return dimensionReturn; }
+    public DimensionReturnData getDimensionReturn() { return dimensionReturn; }
 
-    public boolean burst() { return burst; }
+    public boolean hasBurst() { return burst; }
 
-    public boolean born() { return born; }
+    public boolean isBorn() { return born; }
 
 
     public boolean setAperture(@NotNull ApertureData value) { return change(PlayerDataField.APERTURE, value); }

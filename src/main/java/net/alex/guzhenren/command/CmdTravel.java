@@ -8,8 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import net.alex.guzhenren.command.ModCommandFeedback;
-import net.alex.guzhenren.command.ModCommandSupport;
+
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.Util;
@@ -72,12 +71,12 @@ public final class CmdTravel {
         ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, id);
         ModDimensions.AnchoredDimension destination = ModDimensions.ANCHORED_DIMENSIONS.get(dimension);
         if (destination == null) {
-            ModCommandFeedback.failure(source,
+            ModCommandFeedback.sendFailure(source,
                     Component.translatable("guzhenren.command.travel.unknown_dimension", id.toString()));
             return 0;
         }
         if (source.getServer().getLevel(dimension) == null) {
-            ModCommandFeedback.failure(source,
+            ModCommandFeedback.sendFailure(source,
                     Component.translatable("guzhenren.command.travel.missing_dimension", id.toString()));
             return 0;
         }
@@ -85,7 +84,7 @@ public final class CmdTravel {
 
         List<ServerPlayer> refused = new ArrayList<>();
         List<ServerPlayer> sent = new ArrayList<>();
-        for (ServerPlayer player : ModCommandSupport.targets(context)) {
+        for (ServerPlayer player : ModCommandSupport.getTargets(context)) {
             if (DimensionTravelService.isInside(player, dimension)
                     || !DimensionTravelService.enter(player, destination)) {
                 refused.add(player);
@@ -95,12 +94,12 @@ public final class CmdTravel {
         }
 
         if (!refused.isEmpty()) {
-            ModCommandFeedback.failure(source,
-                    Component.translatable("guzhenren.command.travel.already_inside", names(refused), name));
+            ModCommandFeedback.sendFailure(source,
+                    Component.translatable("guzhenren.command.travel.already_inside", getNames(refused), name));
         }
         if (!sent.isEmpty()) {
-            ModCommandFeedback.success(source,
-                    Component.translatable("guzhenren.command.travel.entered", names(sent), name));
+            ModCommandFeedback.sendSuccess(source,
+                    Component.translatable("guzhenren.command.travel.entered", getNames(sent), name));
         }
         return sent.size();
     }
@@ -110,7 +109,7 @@ public final class CmdTravel {
         List<ServerPlayer> refused = new ArrayList<>();
         List<ServerPlayer> returned = new ArrayList<>();
 
-        for (ServerPlayer player : ModCommandSupport.targets(context)) {
+        for (ServerPlayer player : ModCommandSupport.getTargets(context)) {
             if (!ModDimensions.ANCHORED_DIMENSIONS.containsKey(player.level().dimension())) {
                 refused.add(player);
                 continue;
@@ -120,17 +119,17 @@ public final class CmdTravel {
         }
 
         if (!refused.isEmpty()) {
-            ModCommandFeedback.failure(source,
-                    Component.translatable("guzhenren.command.travel.not_inside", names(refused)));
+            ModCommandFeedback.sendFailure(source,
+                    Component.translatable("guzhenren.command.travel.not_inside", getNames(refused)));
         }
         if (!returned.isEmpty()) {
-            ModCommandFeedback.success(source,
-                    Component.translatable("guzhenren.command.travel.exited", names(returned)));
+            ModCommandFeedback.sendSuccess(source,
+                    Component.translatable("guzhenren.command.travel.exited", getNames(returned)));
         }
         return returned.size();
     }
 
-    private static Component names(List<ServerPlayer> players) {
+    private static Component getNames(List<ServerPlayer> players) {
         return ComponentUtils.formatList(players, ServerPlayer::getDisplayName);
     }
 }

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * held-item-name baseline so armor and a mount's health push the bar up instead of hiding it. All
  * drawing is {@code g.fill} plus the caption, no textures, in one {@link GuiBatch}.
  *
- * <p>Both bars can be up at once (a charged Gu held while nourishing): {@link #stackShift} lifts the second one
+ * <p>Both bars can be up at once (a charged Gu held while nourishing): {@link #getStackShift} lifts the second one
  * clear of the first's caption, so they stack instead of overlapping.
  *
  * @author Alex
@@ -42,7 +42,7 @@ abstract class HotbarHud {
     /** Draws this bar for the frame; the loader's HUD layer calls it, see {@code ClientEvents}. */
     public abstract void render(@NotNull GuiGraphics graphics);
 
-    static int barTop(Minecraft minecraft) {
+    static int getBarTop(Minecraft minecraft) {
         int shift = MIN_SHIFT;
         if (minecraft.gui instanceof ForgeGui gui) shift = Math.max(Math.max(gui.leftHeight, gui.rightHeight), MIN_SHIFT);
         int baseline = minecraft.getWindow().getGuiScaledHeight() - shift;
@@ -50,7 +50,9 @@ abstract class HotbarHud {
         return baseline - NAME_GAP - BAR_HEIGHT;
     }
 
-    static int stackShift(Minecraft minecraft) { return minecraft.font.lineHeight + TEXT_GAP + BAR_HEIGHT + STACK_GAP; }
+    static int getStackShift(Minecraft minecraft) {
+        return minecraft.font.lineHeight + TEXT_GAP + BAR_HEIGHT + STACK_GAP;
+    }
 
     static void draw(GuiGraphics g, Minecraft mc, int x, int y, float fraction, int fill, @Nullable Component label) {
         GuiBatch.draw(g, () -> {

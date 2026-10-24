@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * The per-second settle of Gu held inside apertures, both the stored ones and each Vital Gu [本命蛊]. Called from
  * every heartbeat with the day count elapsed since the last one -- zero on most seconds, when a refined Gu
  * still pays its own upkeep; forwards to {@link GuUpkeep#tickInContainer} per refined Gu and reports starvation
- * through {@link TendedGuItem#starved}. Each stored Gu is read from the live store
+ * through {@link TendedGuItem#starve}. Each stored Gu is read from the live store
  * ({@code ApertureStorageService.getView}) and its slot written back on its own right after its tick
  * ({@code ApertureStorageService.setSlot}): a Gu's upkeep may write the store itself (the Treasure Lotus mints
  * stones into a stored Primeval Elder Gu, which may itself have just paid its upkeep), and a walk that wrote one
@@ -48,7 +48,7 @@ public final class ApertureStorageTick {
 
             ItemStack stack = original.copy();
             boolean starved = GuUpkeep.tickInContainer(player, stack, days);
-            if (starved) TendedGuItem.starved(player, stack);
+            if (starved) TendedGuItem.starve(player, stack);
             if (!starved && !hasChanged(original, stack)) continue;
 
             ApertureStorageService.setSlot(player, aperture, i, starved ? ItemStack.EMPTY : stack);
@@ -62,18 +62,18 @@ public final class ApertureStorageTick {
         ItemStack before = stack.copy();
         if (GuUpkeep.tickInContainer(player, stack, days)) {
             ApertureStorageService.setVital(player, aperture, ItemStack.EMPTY);
-            TendedGuItem.starved(player, stack);
+            TendedGuItem.starve(player, stack);
             return;
         }
         if (hasChanged(before, stack)) ApertureStorageService.setVital(player, aperture, stack);
     }
 
     private static boolean isRefinedTended(ItemStack stack) {
-        return stack.getItem() instanceof TendedGuItem gu && gu.refined(stack);
+        return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack);
     }
 
     private static boolean hasChanged(ItemStack before, ItemStack after) {
         return before.getCount() != after.getCount()
-                || !ItemStacks.sameItemSameData(before, after);
+                || !ItemStacks.isSameItemSameData(before, after);
     }
 }

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * The item-stack operations whose vanilla API differs between game versions, behind one name each.
  *
  * <p>{@link #OPTIONAL_CODEC} saves a stack that may be empty, so a list keeps an empty slot in place;
- * {@link #sameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
+ * {@link #isSameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
  * #readStack} carry a stack, empty or not, over the wire.
  *
  * <p>⚠ A version seam: the NeoForge 1.21.1 mainline has its own copy with the same names (data
@@ -42,7 +42,7 @@ public final class ItemStacks {
             either -> either.map(empty -> empty, stack -> stack),
             stack -> stack.isEmpty() ? Either.left(stack) : Either.right(stack));
 
-    public static boolean sameItemSameData(@NotNull ItemStack a, @NotNull ItemStack b) {
+    public static boolean isSameItemSameData(@NotNull ItemStack a, @NotNull ItemStack b) {
         return ItemStack.isSameItemSameTags(a, b);
     }
 

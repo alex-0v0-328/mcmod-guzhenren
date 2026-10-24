@@ -1,7 +1,6 @@
 package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,10 +21,10 @@ public final class CmdSoul {
 
     private CmdSoul() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("soul")
-                .then(ModCommandSupport.counter("max", SoulService::setMax, SoulService::addMax))
-                .then(ModCommandSupport.counter("current", SoulService::setCurrent, SoulService::addCurrent))
+                .then(ModCommandSupport.buildCounter("max", SoulService::setMax, SoulService::addMax))
+                .then(ModCommandSupport.buildCounter("current", SoulService::setCurrent, SoulService::addCurrent))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
                         context -> ModCommandSupport.apply(context, SoulService::refill)));
     }

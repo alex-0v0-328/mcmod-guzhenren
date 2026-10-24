@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * next leaf, so neither a pick nor a grown leaf throws that progress away. A stamp ahead of the clock (a stack
  * moved between saves) restarts the wait instead of freezing it.
  *
- * <p>{@link #pickedStage} is the item model's three looks: full at seven leaves and up, half from one, empty at
+ * <p>{@link #getPickedStage} is the item model's three looks: full at seven leaves and up, half from one, empty at
  * none.
  *
  * @author Alex
@@ -62,7 +62,7 @@ public record LeafGrowth(int leaves, long settledAt) {
         return new LeafGrowth(leaves + (int) grown, settledAt + grown * regrowTicks);
     }
 
-    public int ticksToNextLeaf(long now, int regrowTicks) {
+    public int getTicksToNextLeaf(long now, int regrowTicks) {
         LeafGrowth settled = settle(now, regrowTicks);
         return settled.leaves >= MAX_LEAVES ? 0 : (int) (regrowTicks - (now - settled.settledAt));
     }
@@ -79,7 +79,7 @@ public record LeafGrowth(int leaves, long settledAt) {
                 : new LeafGrowth(settled.leaves + 1, settled.settledAt);
     }
 
-    public static float pickedStage(int leaves) {
+    public static float getPickedStage(int leaves) {
         if (leaves >= FULL_LOOK_FROM) return 0.0F;
         return leaves > 0 ? PICKED_HALF : PICKED_BARE;
     }

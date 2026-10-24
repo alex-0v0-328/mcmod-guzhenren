@@ -1,8 +1,6 @@
 package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import net.alex.guzhenren.command.CmdAwaken;
-import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.lifecycle.PlayerDataService;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.commands.CommandSourceStack;
@@ -26,7 +24,7 @@ public final class CmdReset {
 
     private CmdReset() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return ModCommandSupport.withTargets(Commands.literal("reset"),
                 context -> ModCommandSupport.apply(context, CmdReset::reset));
     }

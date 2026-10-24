@@ -8,7 +8,7 @@ package net.alex.guzhenren.particle;
  * spacing by measured travel keeps the trail uniform across windups, jumps and wall truncations.
  * {@link #SPACING} is the distance between two neighboring rings on the dash path, in blocks.
  *
- * <p>{@link #drops} takes the distance traveled since the last drop ({@code carry}, always
+ * <p>{@link #getDrops} takes the distance traveled since the last drop ({@code carry}, always
  * {@code < SPACING}), this tick's movement segment length ({@code segLen}), and the rings the burst
  * may still drop ({@code ringsLeft}), and returns a {@link Drops} of where on the segment the rings
  * drop, plus the new carry and remaining ring budget; {@link Drops#offsets} are the ascending
@@ -25,7 +25,7 @@ final class RingTrailSpacing {
 
     static final double SPACING = 2.0D;
 
-    static Drops drops(double carry, double segLen, int ringsLeft) {
+    static Drops getDrops(double carry, double segLen, int ringsLeft) {
         double along = SPACING - carry;
         int count = 0;
         while (count < ringsLeft && along + count * SPACING <= segLen) count++;

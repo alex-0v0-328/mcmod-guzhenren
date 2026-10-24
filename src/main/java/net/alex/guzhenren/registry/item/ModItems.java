@@ -82,54 +82,54 @@ public final class ModItems {
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
     private static final long[] QI_ESSENCE_COST = { 50L, 500L, 5_000L, 50_000L, 500_000L };
 
-    private static Item.Properties tendedProperties() { return new Item.Properties().stacksTo(1); }
+    private static Item.Properties createTendedProperties() { return new Item.Properties().stacksTo(1); }
 
-    private static Item.Properties oneShotProperties() { return new Item.Properties(); }
+    private static Item.Properties createOneShotProperties() { return new Item.Properties(); }
 
     //region One-shot Gu [一次性] -- refining IS the use; one charged press pays, lands and spends
     public static final RegistryObject<Item> HOPE_GU = ITEMS.register("hope_gu",
-            () -> new HopeGuItem(oneShotProperties().stacksTo(1), GuSpec.of(Rank.ONE, GuPath.HUMAN)));
+            () -> new HopeGuItem(createOneShotProperties().stacksTo(1), GuSpec.of(Rank.ONE, GuPath.HUMAN)));
     public static final RegistryObject<Item> VITALITY_LEAF_GU = ITEMS.register("vitality_leaf_gu",
-            () -> new VitalityLeafGuItem(oneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)));
+            () -> new VitalityLeafGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)));
     public static final RegistryObject<Item> LIFESPAN_GU = ITEMS.register("lifespan_gu",
-            () -> new LifespanGuItem(oneShotProperties(), 1, 9, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new LifespanGuItem(createOneShotProperties(), 1, 9, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final RegistryObject<Item> TENS_LIFESPAN_GU = ITEMS.register("tens_lifespan_gu",
-            () -> new LifespanGuItem(oneShotProperties(), 10, 19, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new LifespanGuItem(createOneShotProperties(), 10, 19, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final RegistryObject<Item> HUNDREDS_LIFESPAN_GU = ITEMS.register("hundreds_lifespan_gu",
-            () -> new LifespanGuItem(oneShotProperties(), 100, 199, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new LifespanGuItem(createOneShotProperties(), 100, 199, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final RegistryObject<Item> THOUSANDS_LIFESPAN_GU = ITEMS.register("thousands_lifespan_gu",
-            () -> new LifespanGuItem(oneShotProperties(), 1000, 1999, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new LifespanGuItem(createOneShotProperties(), 1000, 1999, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final RegistryObject<Item> COPPER_RELICS_GU = ITEMS.register("copper_relics_gu",
-            () -> new RelicsGuItem(oneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final RegistryObject<Item> STEEL_RELICS_GU = ITEMS.register("steel_relics_gu",
-            () -> new RelicsGuItem(oneShotProperties(), GuSpec.of(Rank.TWO, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.TWO, GuPath.HEAVEN)));
     public static final RegistryObject<Item> SILVER_RELICS_GU = ITEMS.register("silver_relics_gu",
-            () -> new RelicsGuItem(oneShotProperties(), GuSpec.of(Rank.THREE, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.THREE, GuPath.HEAVEN)));
     public static final RegistryObject<Item> GOLD_RELICS_GU = ITEMS.register("gold_relics_gu",
-            () -> new RelicsGuItem(oneShotProperties(), GuSpec.of(Rank.FOUR, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FOUR, GuPath.HEAVEN)));
     public static final RegistryObject<Item> CRYSTAL_RELICS_GU = ITEMS.register("crystal_relics_gu",
-            () -> new RelicsGuItem(oneShotProperties(), GuSpec.of(Rank.FIVE, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FIVE, GuPath.HEAVEN)));
     //endregion
 
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final RegistryObject<Item> WHITE_BOAR_GU = ITEMS.register("white_boar_gu",
-            () -> new BeastStrengthGuItem(tendedProperties(), BeastStrength.WHITE_BOAR,
+            () -> new BeastStrengthGuItem(createTendedProperties(), BeastStrength.WHITE_BOAR,
                     createBeastStrengthSpec(ModItemTags.BOAR_FEED)));
     public static final RegistryObject<Item> BLACK_BOAR_GU = ITEMS.register("black_boar_gu",
-            () -> new BeastStrengthGuItem(tendedProperties(), BeastStrength.BLACK_BOAR,
+            () -> new BeastStrengthGuItem(createTendedProperties(), BeastStrength.BLACK_BOAR,
                     createBeastStrengthSpec(ModItemTags.BOAR_FEED)));
     public static final RegistryObject<Item> BEAR_STRENGTH_GU = ITEMS.register("bear_strength_gu",
-            () -> new BeastStrengthGuItem(tendedProperties(), BeastStrength.BEAR,
+            () -> new BeastStrengthGuItem(createTendedProperties(), BeastStrength.BEAR,
                     createBeastStrengthSpec(ModItemTags.BEAR_FEED)));
     public static final RegistryObject<Item> FLOWER_BOAR_GU = ITEMS.register("flower_boar_gu",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS,
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS,
                     createBeastBuffSpec(ModItemTags.BOAR_FEED)));
     public static final RegistryObject<Item> DRAGONPILL_CRICKET_GU = ITEMS.register("dragonpill_cricket_gu",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.DRAGONPILL_CRICKET_GU,
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.DRAGONPILL_CRICKET_GU,
                     DragonpillCricketGuEffect.DURATION_TICKS, createBeastBuffSpec(ModItemTags.RABBIT_FEED)));
     public static final RegistryObject<Item> BRUTE_FORCE_LONGHORN_BEETLE_GU =
             ITEMS.register("brute_force_longhorn_beetle_gu",
-                    () -> new BuffGuItem(tendedProperties(), ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
+                    () -> new BuffGuItem(createTendedProperties(), ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
                             BruteForceLonghornBeetleGuEffect.DURATION_TICKS,
                             createBeastBuffSpec(ModItemTags.BEEF_FEED)));
 
@@ -155,49 +155,50 @@ public final class ModItems {
 
     //region Normal [基础力道] -- Strength Path Gu outside the three specialized branches
     public static final RegistryObject<Item> HORIZONTAL_CRASH_GU = ITEMS.register("horizontal_crash_gu",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.HORIZONTAL_CRASH_GU, CrashGuEffect.duration(30),
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.HORIZONTAL_CRASH_GU,
+                    CrashGuEffect.getDuration(30),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> VERTICAL_CRASH_GU = ITEMS.register("vertical_crash_gu",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.duration(30),
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.getDuration(30),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> CHARGING_CRASH_GU_4 = ITEMS.register("charging_crash_gu_4",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.duration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
+                    CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
                     .refine(800_000).costPerUse(16_000)
                     .hungerBar(12, 2).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> CHARGING_CRASH_GU_5 = ITEMS.register("charging_crash_gu_5",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.duration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
+                    CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
                     .refine(8_000_000).costPerUse(160_000)
                     .hungerBar(12, 3).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> SELF_RELIANCE_GU_2 = ITEMS.register("self_reliance_gu_2",
-            () -> new SelfRelianceGuItem(tendedProperties(), 30 * Ticks.SECOND, 1,
+            () -> new SelfRelianceGuItem(createTendedProperties(), 30 * Ticks.SECOND, 1,
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH)
                             .refine(8_000).costPerUse(160)
                             .hungerBar(12, 4).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> SELF_RELIANCE_GU_3 = ITEMS.register("self_reliance_gu_3",
-            () -> new SelfRelianceGuItem(tendedProperties(), 60 * Ticks.SECOND, 2,
+            () -> new SelfRelianceGuItem(createTendedProperties(), 60 * Ticks.SECOND, 2,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 8).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> SELF_RELIANCE_GU_4 = ITEMS.register("self_reliance_gu_4",
-            () -> new SelfRelianceGuItem(tendedProperties(), 120 * Ticks.SECOND, 3,
+            () -> new SelfRelianceGuItem(createTendedProperties(), 120 * Ticks.SECOND, 3,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(12, 12).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final RegistryObject<Item> HARDSHIP_STRENGTH_GU = ITEMS.register("hardship_strength_gu",
-            () -> new BuffGuItem(tendedProperties(), ModEffects.HARDSHIP_STRENGTH_GU,
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.HARDSHIP_STRENGTH_GU,
                     HardshipStrengthGuEffect.DURATION_TICKS,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
                             .refine(800_000).costPerUse(16_000)
@@ -207,7 +208,7 @@ public final class ModItems {
 
     //region Human Jun Strength Branch [人力钧力流] -- one round is one layer
     public static final RegistryObject<Item> JIN_STRENGTH_GU = ITEMS.register("jin_strength_gu",
-            () -> new HumanStrengthGuItem(tendedProperties(), HumanStrength.JIN,
+            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JIN,
                     GuSpec.of(Rank.ONE, GuPath.STRENGTH)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(800)
@@ -215,7 +216,7 @@ public final class ModItems {
                             .hungerBar(36, 1).essencePerHunger(300)
                             .feed(ModItemTags.JIN_FEED, 1)));
     public static final RegistryObject<Item> TENS_JIN_STRENGTH_GU = ITEMS.register("tens_jin_strength_gu",
-            () -> new HumanStrengthGuItem(tendedProperties(), HumanStrength.TEN_JIN,
+            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JIN,
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(8_000)
@@ -223,7 +224,7 @@ public final class ModItems {
                             .hungerBar(36, 2).essencePerHunger(3_000)
                             .feed(ModItemTags.JIN_FEED, 1)));
     public static final RegistryObject<Item> JUN_STRENGTH_GU = ITEMS.register("jun_strength_gu",
-            () -> new HumanStrengthGuItem(tendedProperties(), HumanStrength.JUN,
+            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JUN,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(80_000)
@@ -231,7 +232,7 @@ public final class ModItems {
                             .hungerBar(36, 4).essencePerHunger(6_000)
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
     public static final RegistryObject<Item> TENS_JUN_STRENGTH_GU = ITEMS.register("tens_jun_strength_gu",
-            () -> new HumanStrengthGuItem(tendedProperties(), HumanStrength.TEN_JUN,
+            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JUN,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(800_000)
@@ -242,21 +243,21 @@ public final class ModItems {
 
     //region Normal [基础力道] -- All-Out Effort Gu unlocks a stockpiled 9999 jin
     public static final RegistryObject<Item> ALL_OUT_EFFORT_GU_3 = ITEMS.register("all_out_effort_gu_3",
-            () -> new AllOutEffortGuItem(tendedProperties(), 60, GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+            () -> new AllOutEffortGuItem(createTendedProperties(), 60, GuSpec.of(Rank.THREE, GuPath.STRENGTH)
                     .refine(80_000)
                     .costPerUse(1_600)
                     .hungerBar(12, 4).hungerPerUse(4)
                     .feed(ModItemTags.ALL_OUT_FEED, 5)
                     .cooldown(80 * Ticks.SECOND)));
     public static final RegistryObject<Item> ALL_OUT_EFFORT_GU_4 = ITEMS.register("all_out_effort_gu_4",
-            () -> new AllOutEffortGuItem(tendedProperties(), 90, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+            () -> new AllOutEffortGuItem(createTendedProperties(), 90, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
                     .refine(800_000)
                     .costPerUse(16_000)
                     .hungerBar(12, 8).hungerPerUse(4)
                     .feed(ModItemTags.ALL_OUT_FEED, 5)
                     .cooldown(100 * Ticks.SECOND)));
     public static final RegistryObject<Item> ALL_OUT_EFFORT_GU_5 = ITEMS.register("all_out_effort_gu_5",
-            () -> new AllOutEffortGuItem(tendedProperties(), 120, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
+            () -> new AllOutEffortGuItem(createTendedProperties(), 120, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
                     .refine(8_000_000)
                     .costPerUse(160_000)
                     .hungerBar(12, 16).hungerPerUse(4)
@@ -266,81 +267,84 @@ public final class ModItems {
 
     //region Liquor Worm [酒虫] -- hunger bar 8 with 3 per use, and only its own rank can drive it
     public static final RegistryObject<Item> LIQUOR_WORM = ITEMS.register("liquor_worm",
-            () -> new LiquorWormItem(tendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
                     .refine(1_600).costPerUse(16)
                     .hungerBar(8, 1).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final RegistryObject<Item> FOUR_FLAVORS_LIQUOR_WORM = ITEMS.register("four_flavors_liquor_worm",
-            () -> new LiquorWormItem(tendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
                     .refine(16_000).costPerUse(160)
                     .hungerBar(8, 2).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final RegistryObject<Item> SEVEN_FRAGRANCES_LIQUOR_WORM = ITEMS.register(
             "seven_fragrances_liquor_worm",
-            () -> new LiquorWormItem(tendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
                     .refine(160_000).costPerUse(1_600)
                     .hungerBar(8, 4).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final RegistryObject<Item> NINE_EYES_LIQUOR_WORM = ITEMS.register("nine_eyes_liquor_worm",
-            () -> new LiquorWormItem(tendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
                     .refine(1_600_000).costPerUse(16_000)
                     .hungerBar(8, 8).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     //endregion
 
     //region Primeval Elder Gu [元老蛊] -- a vault for Primeval Stones [元石] that never needs feeding at all
     public static final RegistryObject<Item> PRIMEVAL_ELDER_GU_1 = ITEMS.register("primeval_elder_gu_1",
-            () -> new PrimevalElderGuItem(tendedProperties(), 1_000L, GuSpec.of(Rank.ONE, GuPath.SPACE)
+            () -> new PrimevalElderGuItem(createTendedProperties(), 1_000L, GuSpec.of(Rank.ONE, GuPath.SPACE)
                     .refine(16).costPerUse(0)));
     public static final RegistryObject<Item> PRIMEVAL_ELDER_GU_2 = ITEMS.register("primeval_elder_gu_2",
-            () -> new PrimevalElderGuItem(tendedProperties(), 10_000L, GuSpec.of(Rank.TWO, GuPath.SPACE)
+            () -> new PrimevalElderGuItem(createTendedProperties(), 10_000L, GuSpec.of(Rank.TWO, GuPath.SPACE)
                     .refine(160).costPerUse(0)));
     public static final RegistryObject<Item> PRIMEVAL_ELDER_GU_3 = ITEMS.register("primeval_elder_gu_3",
-            () -> new PrimevalElderGuItem(tendedProperties(), 100_000L, GuSpec.of(Rank.THREE, GuPath.SPACE)
+            () -> new PrimevalElderGuItem(createTendedProperties(), 100_000L, GuSpec.of(Rank.THREE, GuPath.SPACE)
                     .refine(1_600).costPerUse(0)));
     public static final RegistryObject<Item> PRIMEVAL_ELDER_GU_4 = ITEMS.register("primeval_elder_gu_4",
-            () -> new PrimevalElderGuItem(tendedProperties(), 1_000_000L, GuSpec.of(Rank.FOUR, GuPath.SPACE)
+            () -> new PrimevalElderGuItem(createTendedProperties(), 1_000_000L, GuSpec.of(Rank.FOUR, GuPath.SPACE)
                     .refine(16_000).costPerUse(0)));
     public static final RegistryObject<Item> PRIMEVAL_ELDER_GU_5 = ITEMS.register("primeval_elder_gu_5",
-            () -> new PrimevalElderGuItem(tendedProperties(), 100_000_000L, GuSpec.of(Rank.FIVE, GuPath.SPACE)
+            () -> new PrimevalElderGuItem(createTendedProperties(), 100_000_000L, GuSpec.of(Rank.FIVE, GuPath.SPACE)
                     .refine(160_000).costPerUse(0)));
     //endregion
 
     //region Heavenly Essence Treasure Lotus Gu [天元宝莲] -- wood path; 5% essence per second and minted stones
     public static final RegistryObject<Item> HEAVENLY_ESSENCE_TREASURE_LOTUS_GU = ITEMS.register(
             "heavenly_essence_treasure_lotus_gu",
-            () -> new TreasureLotusGuItem(tendedProperties(), 1, 100, GuSpec.of(Rank.THREE, GuPath.WOOD)
+            () -> new TreasureLotusGuItem(createTendedProperties(), 1, 100, GuSpec.of(Rank.THREE, GuPath.WOOD)
                     .refine(80_000).costPerUse(0)));
     public static final RegistryObject<Item> HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU = ITEMS.register(
             "heavenly_essence_treasure_monarch_lotus_gu",
-            () -> new TreasureLotusGuItem(tendedProperties(), 10, 1_000, GuSpec.of(Rank.FOUR, GuPath.WOOD)
+            () -> new TreasureLotusGuItem(createTendedProperties(), 10, 1_000, GuSpec.of(Rank.FOUR, GuPath.WOOD)
                     .refine(800_000).costPerUse(0)));
     public static final RegistryObject<Item> HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU = ITEMS.register(
             "heavenly_essence_treasure_king_lotus_gu",
-            () -> new TreasureLotusGuItem(tendedProperties(), 100, 10_000, GuSpec.of(Rank.FIVE, GuPath.WOOD)
+            () -> new TreasureLotusGuItem(createTendedProperties(), 100, 10_000, GuSpec.of(Rank.FIVE, GuPath.WOOD)
                     .refine(8_000_000).costPerUse(0)));
     //endregion
 
     //region Nine Leaf Vitality Grass [九叶生机草] -- wood path; nine Vitality Leaf Gu, one regrown every 3 minutes
     // or grown at once for 80 essence
     public static final RegistryObject<Item> NINE_LEAF_VITALITY_GRASS = ITEMS.register("nine_leaf_vitality_grass",
-            () -> new NineLeafVitalityGrassItem(tendedProperties(), 3 * Ticks.MINUTE, 80,
+            () -> new NineLeafVitalityGrassItem(createTendedProperties(), 3 * Ticks.MINUTE, 80,
                     GuSpec.of(Rank.THREE, GuPath.WOOD).refine(80_000).costPerUse(0)));
     //endregion
 
     //region Zombie Gu [僵尸蛊] -- Transformation Path [变化道]; a timed Half-Zombie [半生半僵], and a 5-minute
     // window that makes it permanent
     public static final RegistryObject<Item> ROAMING_ZOMBIE_GU = ITEMS.register("roaming_zombie_gu",
-            () -> new ZombieGuItem(tendedProperties(), 2 * Ticks.MINUTE, GuSpec.of(Rank.TWO, GuPath.TRANSFORMATION)
-                    .refine(8_000).costPerUse(160)
-                    .hungerBar(12, 2).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
-                    .cooldown(Ticks.SECOND)));
+            () -> new ZombieGuItem(createTendedProperties(), 2 * Ticks.MINUTE,
+                    GuSpec.of(Rank.TWO, GuPath.TRANSFORMATION)
+                            .refine(8_000).costPerUse(160)
+                            .hungerBar(12, 2).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                            .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> HAIRY_ZOMBIE_GU = ITEMS.register("hairy_zombie_gu",
-            () -> new ZombieGuItem(tendedProperties(), 4 * Ticks.MINUTE, GuSpec.of(Rank.THREE, GuPath.TRANSFORMATION)
-                    .refine(80_000).costPerUse(1_600)
-                    .hungerBar(12, 4).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
-                    .cooldown(Ticks.SECOND)));
+            () -> new ZombieGuItem(createTendedProperties(), 4 * Ticks.MINUTE,
+                    GuSpec.of(Rank.THREE, GuPath.TRANSFORMATION)
+                            .refine(80_000).costPerUse(1_600)
+                            .hungerBar(12, 4).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                            .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> HOPPING_ZOMBIE_GU = ITEMS.register("hopping_zombie_gu",
-            () -> new ZombieGuItem(tendedProperties(), 6 * Ticks.MINUTE, GuSpec.of(Rank.FOUR, GuPath.TRANSFORMATION)
-                    .refine(800_000).costPerUse(16_000)
-                    .hungerBar(12, 8).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
-                    .cooldown(Ticks.SECOND)));
+            () -> new ZombieGuItem(createTendedProperties(), 6 * Ticks.MINUTE,
+                    GuSpec.of(Rank.FOUR, GuPath.TRANSFORMATION)
+                            .refine(800_000).costPerUse(16_000)
+                            .hungerBar(12, 8).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                            .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> HEAVENLY_DEMON_ZOMBIE_GU = ITEMS.register("heavenly_demon_zombie_gu",
             ModItems::createFifthRankZombieGu);
     public static final RegistryObject<Item> NIGHTMARE_ZOMBIE_GU = ITEMS.register("nightmare_zombie_gu",
@@ -355,7 +359,7 @@ public final class ModItems {
             ModItems::createFifthRankZombieGu);
 
     private static ZombieGuItem createFifthRankZombieGu() {
-        return new ZombieGuItem(tendedProperties(), 8 * Ticks.MINUTE, GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
+        return new ZombieGuItem(createTendedProperties(), 8 * Ticks.MINUTE, GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
                 .refine(8_000_000).costPerUse(160_000)
                 .hungerBar(12, 16).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
                 .cooldown(Ticks.SECOND));
@@ -364,12 +368,12 @@ public final class ModItems {
 
     //region Watch Gu [更蛊] -- Time Path [宙道]; tended like any other, and taken by the one use it is kept for
     public static final RegistryObject<Item> SECOND_WATCH_GU = ITEMS.register("second_watch_gu",
-            () -> new WatchGuItem(tendedProperties(), ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE,
+            () -> new WatchGuItem(createTendedProperties(), ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE,
                     GuSpec.of(Rank.FOUR, GuPath.TIME)
                             .refine(100_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> THIRD_WATCH_GU = ITEMS.register("third_watch_gu",
-            () -> new WatchGuItem(tendedProperties(), ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE,
+            () -> new WatchGuItem(createTendedProperties(), ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE,
                     GuSpec.of(Rank.FIVE, GuPath.TIME)
                             .refine(1_000_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
@@ -377,28 +381,28 @@ public final class ModItems {
 
     //region Malicious Thought Gu [恶念蛊] -- Wisdom Path [智道]; a one-use flood of evil thoughts, taken by its use
     public static final RegistryObject<Item> MALICIOUS_THOUGHT_GU_2 = ITEMS.register("malicious_thought_gu_2",
-            () -> new MaliciousThoughtGuItem(tendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64L,
+            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64L,
                     GuSpec.of(Rank.TWO, GuPath.WISDOM)
                             .refine(1_000).costPerUse(0)
                             .hungerBar(8, 2).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> MALICIOUS_THOUGHT_GU_3 = ITEMS.register("malicious_thought_gu_3",
-            () -> new MaliciousThoughtGuItem(tendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 640L,
+            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 640L,
                     GuSpec.of(Rank.THREE, GuPath.WISDOM)
                             .refine(10_000).costPerUse(0)
                             .hungerBar(8, 4).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> MALICIOUS_THOUGHT_GU_4 = ITEMS.register("malicious_thought_gu_4",
-            () -> new MaliciousThoughtGuItem(tendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 6_400L,
+            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 6_400L,
                     GuSpec.of(Rank.FOUR, GuPath.WISDOM)
                             .refine(100_000).costPerUse(0)
                             .hungerBar(8, 8).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> MALICIOUS_THOUGHT_GU_5 = ITEMS.register("malicious_thought_gu_5",
-            () -> new MaliciousThoughtGuItem(tendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64_000L,
+            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64_000L,
                     GuSpec.of(Rank.FIVE, GuPath.WISDOM)
                             .refine(1_000_000).costPerUse(0)
                             .hungerBar(8, 16).hungerPerUse(0)
@@ -408,19 +412,19 @@ public final class ModItems {
 
     //region Guts Gu [胆识蛊] -- Soul Path [魂道]; a one-shot Gu that raises the soul cap
     public static final RegistryObject<Item> GUTS_GU = ITEMS.register("guts_gu",
-            () -> new GutsGuItem(oneShotProperties(), GuSpec.of(Rank.ONE, GuPath.SOUL)));
+            () -> new GutsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.SOUL)));
     //endregion
 
     //region Casual Gu [随意蛊] -- Wisdom Path [智道]; ten seconds of random thoughts, taken by its use
     public static final RegistryObject<Item> CASUAL_GU_1 = ITEMS.register("casual_gu_1",
-            () -> new CasualGuItem(tendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.ONE, GuPath.WISDOM)
+            () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.ONE, GuPath.WISDOM)
                     .refine(100)
                     .costPerUse(0)
                     .hungerBar(8, 1).hungerPerUse(0)
                     .feed(ModItemTags.CASUAL_FEED, 1)
                     .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> CASUAL_GU_2 = ITEMS.register("casual_gu_2",
-            () -> new CasualGuItem(tendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.TWO, GuPath.WISDOM)
+            () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.TWO, GuPath.WISDOM)
                     .refine(1_000)
                     .costPerUse(0)
                     .hungerBar(8, 2).hungerPerUse(0)
@@ -431,15 +435,15 @@ public final class ModItems {
     //region Stone Aperture Gu [石窍蛊] -- earth path; never feeds, taken by its use, and the aperture
     // it leaves stands on this rank's peak, petrified
     public static final RegistryObject<Item> STONE_APERTURE_GU_3 = ITEMS.register("stone_aperture_gu_3",
-            () -> new StoneApertureGuItem(tendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
+            () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
                     .refine(10_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> STONE_APERTURE_GU_4 = ITEMS.register("stone_aperture_gu_4",
-            () -> new StoneApertureGuItem(tendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
+            () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
                     .refine(100_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     public static final RegistryObject<Item> STONE_APERTURE_GU_5 = ITEMS.register("stone_aperture_gu_5",
-            () -> new StoneApertureGuItem(tendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
+            () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
                     .refine(1_000_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     //endregion
@@ -458,7 +462,7 @@ public final class ModItems {
             () -> createSecondApertureGu(Rank.FIVE));
 
     private static SecondApertureGuItem createSecondApertureGu(Rank rank) {
-        return new SecondApertureGuItem(oneShotProperties(), GuSpec.of(rank, GuPath.HUMAN));
+        return new SecondApertureGuItem(createOneShotProperties(), GuSpec.of(rank, GuPath.HUMAN));
     }
     //endregion
 
@@ -536,15 +540,15 @@ public final class ModItems {
     public static final RegistryObject<Item> STRENGTH_QI_5 =
             registerQiMaterial("strength_qi_5", Rank.FIVE, QiKind.STRENGTH);
     public static final RegistryObject<Item> LIFE_QI_1 = ITEMS.register("life_qi_1",
-            () -> new LifeQiItem(qiProperties(), Rank.ONE, qiEssenceCost(Rank.ONE)));
+            () -> new LifeQiItem(createQiProperties(), Rank.ONE, getQiEssenceCost(Rank.ONE)));
     public static final RegistryObject<Item> LIFE_QI_2 = ITEMS.register("life_qi_2",
-            () -> new LifeQiItem(qiProperties(), Rank.TWO, qiEssenceCost(Rank.TWO)));
+            () -> new LifeQiItem(createQiProperties(), Rank.TWO, getQiEssenceCost(Rank.TWO)));
     public static final RegistryObject<Item> LIFE_QI_3 = ITEMS.register("life_qi_3",
-            () -> new LifeQiItem(qiProperties(), Rank.THREE, qiEssenceCost(Rank.THREE)));
+            () -> new LifeQiItem(createQiProperties(), Rank.THREE, getQiEssenceCost(Rank.THREE)));
     public static final RegistryObject<Item> LIFE_QI_4 = ITEMS.register("life_qi_4",
-            () -> new LifeQiItem(qiProperties(), Rank.FOUR, qiEssenceCost(Rank.FOUR)));
+            () -> new LifeQiItem(createQiProperties(), Rank.FOUR, getQiEssenceCost(Rank.FOUR)));
     public static final RegistryObject<Item> LIFE_QI_5 = ITEMS.register("life_qi_5",
-            () -> new LifeQiItem(qiProperties(), Rank.FIVE, qiEssenceCost(Rank.FIVE)));
+            () -> new LifeQiItem(createQiProperties(), Rank.FIVE, getQiEssenceCost(Rank.FIVE)));
     public static final RegistryObject<Item> ESSENCE_QI_1 =
             registerQiMaterial("essence_qi_1", Rank.ONE, QiKind.ESSENCE);
     public static final RegistryObject<Item> ESSENCE_QI_2 =
@@ -556,15 +560,15 @@ public final class ModItems {
     public static final RegistryObject<Item> ESSENCE_QI_5 =
             registerQiMaterial("essence_qi_5", Rank.FIVE, QiKind.ESSENCE);
     public static final RegistryObject<Item> DEATH_QI_5 = ITEMS.register("death_qi_5",
-            () -> new DeathQiItem(qiProperties(), Rank.FIVE, qiEssenceCost(Rank.FIVE)));
+            () -> new DeathQiItem(createQiProperties(), Rank.FIVE, getQiEssenceCost(Rank.FIVE)));
 
     private static RegistryObject<Item> registerQiMaterial(String id, Rank rank, QiKind kind) {
-        return ITEMS.register(id, () -> new QiMaterialItem(qiProperties(), rank, kind, qiEssenceCost(rank)));
+        return ITEMS.register(id, () -> new QiMaterialItem(createQiProperties(), rank, kind, getQiEssenceCost(rank)));
     }
 
-    private static long qiEssenceCost(Rank rank) { return QI_ESSENCE_COST[rank.ordinal() - Rank.ONE.ordinal()]; }
+    private static long getQiEssenceCost(Rank rank) { return QI_ESSENCE_COST[rank.ordinal() - Rank.ONE.ordinal()]; }
 
-    private static Item.Properties qiProperties() { return new Item.Properties().stacksTo(64); }
+    private static Item.Properties createQiProperties() { return new Item.Properties().stacksTo(64); }
     //endregion
 
     public static void register(IEventBus modEventBus) {

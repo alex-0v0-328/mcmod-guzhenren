@@ -42,23 +42,23 @@ public final class EntityRegistrationEvents {
     @SubscribeEvent
     public static void onCreateAttributes(EntityAttributeCreationEvent event) {
         event.put(ModEntityTypes.HOPE_GU_ENTITY.get(), FlyingGuEntity.createAttributes().build());
-        event.put(ModEntityTypes.WHITE_BOAR_GU_ENTITY.get(), restingGuAttributes().build());
-        event.put(ModEntityTypes.BLACK_BOAR_GU_ENTITY.get(), restingGuAttributes().build());
-        event.put(ModEntityTypes.FLOWER_BOAR_GU_ENTITY.get(), restingGuAttributes().build());
-        event.put(ModEntityTypes.HORIZONTAL_CRASH_GU_ENTITY.get(), restingGuAttributes().build());
-        event.put(ModEntityTypes.VERTICAL_CRASH_GU_ENTITY.get(), restingGuAttributes().build());
-        event.put(ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(), restingGuAttributes().build());
-        event.put(ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get(), restingGuAttributes().build());
+        event.put(ModEntityTypes.WHITE_BOAR_GU_ENTITY.get(), createRestingGuAttributes().build());
+        event.put(ModEntityTypes.BLACK_BOAR_GU_ENTITY.get(), createRestingGuAttributes().build());
+        event.put(ModEntityTypes.FLOWER_BOAR_GU_ENTITY.get(), createRestingGuAttributes().build());
+        event.put(ModEntityTypes.HORIZONTAL_CRASH_GU_ENTITY.get(), createRestingGuAttributes().build());
+        event.put(ModEntityTypes.VERTICAL_CRASH_GU_ENTITY.get(), createRestingGuAttributes().build());
+        event.put(ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(), createRestingGuAttributes().build());
+        event.put(ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get(), createRestingGuAttributes().build());
         event.put(ModEntityTypes.WILD_BOAR.get(), WildBoarEntity.createAttributes().build());
         for (BearSpecies species : BearSpecies.values()) {
-            event.put(bearType(species), BearEntity.createAttributes(species).build());
+            event.put(createBearType(species), BearEntity.createAttributes(species).build());
         }
         event.put(ModEntityTypes.TIGER.get(), TigerEntity.createAttributes().build());
         event.put(ModEntityTypes.WHITE_TIGER.get(), TigerEntity.createAttributes().build());
         event.put(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(), SoulTraderEntity.createAttributes().build());
     }
 
-    private static EntityType<BearEntity> bearType(BearSpecies species) {
+    private static EntityType<BearEntity> createBearType(BearSpecies species) {
         return switch (species) {
             case BROWN -> ModEntityTypes.BROWN_BEAR.get();
             case ASIAN_BLACK -> ModEntityTypes.ASIAN_BLACK_BEAR.get();
@@ -67,7 +67,7 @@ public final class EntityRegistrationEvents {
         };
     }
 
-    private static AttributeSupplier.Builder restingGuAttributes() {
+    private static AttributeSupplier.Builder createRestingGuAttributes() {
         return FlyingGuEntity.createAttributes().add(Attributes.FLYING_SPEED, RESTING_GU_FLYING_SPEED);
     }
 

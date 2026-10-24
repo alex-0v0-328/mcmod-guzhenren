@@ -24,17 +24,17 @@ import org.jetbrains.annotations.Nullable;
 public final class StoredGuItems implements StoredGu {
 
     @Override
-    public @Nullable Rank rank(@NotNull ItemStack stack) {
-        return stack.getItem() instanceof MortalGuItem gu ? gu.rank() : null;
+    public @Nullable Rank getRank(@NotNull ItemStack stack) {
+        return stack.getItem() instanceof MortalGuItem gu ? gu.getRank() : null;
     }
 
     @Override
-    public @Nullable GuPath path(@NotNull ItemStack stack) {
-        return stack.getItem() instanceof GuItem gu ? gu.path() : null;
+    public @Nullable GuPath getPath(@NotNull ItemStack stack) {
+        return stack.getItem() instanceof GuItem gu ? gu.getPath() : null;
     }
 
     @Override
-    public long token(@NotNull ItemStack stack) { return GuItem.token(stack); }
+    public long getToken(@NotNull ItemStack stack) { return GuItem.getToken(stack); }
 
     @Override
     public boolean isVitalOf(@NotNull ItemStack stack, @NotNull Player player) {

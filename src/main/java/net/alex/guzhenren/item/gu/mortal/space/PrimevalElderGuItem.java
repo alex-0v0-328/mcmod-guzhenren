@@ -46,7 +46,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     //region the vault
-    public static long stored(ItemStack stack) {
+    public static long getStored(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.STORED_STONES, 0L);
     }
 
@@ -62,9 +62,9 @@ public class PrimevalElderGuItem extends TendedGuItem {
     protected long useThreshold(ItemStack stack) { return DEPOSIT_IS_FREE; }
 
     @Override
-    protected @Nullable Refusal useGate(Player player, ItemStack stack) {
-        if (stored(stack) >= capacity) return new Refusal(FAILED_FULL);
-        return depositable(player, stack) <= 0 ? new Refusal(FAILED_NO_STONES) : null;
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+        if (getStored(stack) >= capacity) return new Refusal(FAILED_FULL);
+        return getDepositable(player, stack) <= 0 ? new Refusal(FAILED_NO_STONES) : null;
     }
 
     @Override
@@ -74,8 +74,8 @@ public class PrimevalElderGuItem extends TendedGuItem {
         return 0;
     }
 
-    private int depositable(Player player, ItemStack stack) {
-        long room = capacity - stored(stack);
+    private int getDepositable(Player player, ItemStack stack) {
+        long room = capacity - getStored(stack);
         if (room <= 0) return 0;
 
         int carried = 0;
@@ -87,7 +87,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     private void deposit(ServerPlayer player, ItemStack stack) {
-        int wanted = depositable(player, stack);
+        int wanted = getDepositable(player, stack);
         Inventory inventory = player.getInventory();
 
         for (int slot = 0, taken = 0; slot < inventory.getContainerSize() && taken < wanted; slot++) {
@@ -98,18 +98,18 @@ public class PrimevalElderGuItem extends TendedGuItem {
             if (!player.getAbilities().instabuild) stones.shrink(move);
             taken += move;
         }
-        setStored(stack, stored(stack) + wanted);
+        setStored(stack, getStored(stack) + wanted);
     }
     //endregion
 
     //region withdrawing -- sneak + right click, which is this Gu's use
     @Override
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return refined(stack); }
+    protected boolean hasSneakUse(Player player, ItemStack stack) { return isRefined(stack); }
 
     @Override
-    protected @Nullable Refusal sneakGate(Player player, ItemStack stack) {
-        Refusal poor = essenceGate(player, spec.essencePerRound(), FAILED_ESSENCE);
-        return poor != null ? poor : payoutGate(player, stack);
+    protected @Nullable Refusal checkSneakGate(Player player, ItemStack stack) {
+        Refusal poor = checkEssenceGate(player, spec.getEssencePerRound(), FAILED_ESSENCE);
+        return poor != null ? poor : checkPayoutGate(player, stack);
     }
 
     @Override
@@ -121,16 +121,16 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
-        return stored(stack) <= 0 ? new Refusal(FAILED_EMPTY) : null;
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+        return getStored(stack) <= 0 ? new Refusal(FAILED_EMPTY) : null;
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
-        int taken = (int) Math.min(WITHDRAW_STONES, stored(stack));
+    protected void payOut(ServerPlayer player, ItemStack stack) {
+        int taken = (int) Math.min(WITHDRAW_STONES, getStored(stack));
         if (taken <= 0) return;
 
-        setStored(stack, stored(stack) - taken);
+        setStored(stack, getStored(stack) - taken);
         ItemStack stones = new ItemStack(ModItems.PRIMEVAL_STONE.get(), taken);
         if (player.getOffhandItem().isEmpty()) {
             player.setItemInHand(InteractionHand.OFF_HAND, stones);
@@ -143,26 +143,26 @@ public class PrimevalElderGuItem extends TendedGuItem {
     //region its own vault -- it never eats, but a wound still costs stones, on the heartbeat
     @Override
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {
-        if (refined(stack)) heal(stack, drawStones(stack, state(stack).damageTaken()));
+        if (isRefined(stack)) heal(stack, drawStones(stack, getState(stack).damageTaken()));
     }
 
     public int drawStones(ItemStack stack, int wanted) {
-        int taken = (int) Math.min(stored(stack), Math.max(wanted, 0L));
-        if (taken > 0) setStored(stack, stored(stack) - taken);
+        int taken = (int) Math.min(getStored(stack), Math.max(wanted, 0L));
+        if (taken > 0) setStored(stack, getStored(stack) - taken);
         return taken;
     }
 
     public int storeStones(ItemStack stack, int amount) {
-        int room = (int) Math.min(capacity - stored(stack), Math.max(amount, 0L));
-        if (room > 0) setStored(stack, stored(stack) + room);
+        int room = (int) Math.min(capacity - getStored(stack), Math.max(amount, 0L));
+        if (room > 0) setStored(stack, getStored(stack) + room);
         return room;
     }
     //endregion
 
     @Override
-    protected @Nullable MutableComponent progressLine(ItemStack stack) {
-        return refined(stack)
-                ? Component.translatable(TOOLTIP_STORED, stored(stack), capacity)
-                : super.progressLine(stack);
+    protected @Nullable MutableComponent formatProgressLine(ItemStack stack) {
+        return isRefined(stack)
+                ? Component.translatable(TOOLTIP_STORED, getStored(stack), capacity)
+                : super.formatProgressLine(stack);
     }
 }

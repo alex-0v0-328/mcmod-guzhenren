@@ -41,7 +41,7 @@ public final class PendingVitalPenalties extends ModSavedData {
         return ModSavedData.get(server.overworld(), NAME, PendingVitalPenalties::new, PendingVitalPenalties::load);
     }
 
-    public void record(@NotNull UUID owner, @NotNull ItemStack stack) {
+    public void recordPenalty(@NotNull UUID owner, @NotNull ItemStack stack) {
         if (stack.isEmpty()) return;
 
         pending.computeIfAbsent(owner, key -> new ArrayDeque<>()).addLast(stack.copy());

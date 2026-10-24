@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  * {@code showParticles=false, showIcon=true}; the color only feeds the {@link MobEffect} ctor.
  *
  * <p>⚠ A version seam: callers hold an effect as {@code Supplier<? extends MobEffect>} and go through
- * {@link #has}, {@link #get}, {@link #remove}, {@link #instance} and {@link #effectOf}, never the loader's handle
+ * {@link #has}, {@link #get}, {@link #remove}, {@link #instance} and {@link #getEffectOf}, never the loader's handle
  * type, so they stay identical between the NeoForge 1.21.1 mainline ({@code Holder}) and this Forge 1.20.1 port
  * ({@code RegistryObject}, plain {@code MobEffect}).
  *
@@ -139,7 +139,7 @@ public final class ModEffects {
     }
 
     /** The effect an instance carries; an effect class's own behavior is read off it ({@code instanceof}). */
-    public static @NotNull MobEffect effectOf(@NotNull MobEffectInstance instance) { return instance.getEffect(); }
+    public static @NotNull MobEffect getEffectOf(@NotNull MobEffectInstance instance) { return instance.getEffect(); }
 
     public static void register(IEventBus modEventBus) {
         MOB_EFFECTS.register(modEventBus);

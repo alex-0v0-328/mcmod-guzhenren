@@ -1,8 +1,6 @@
 package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import net.alex.guzhenren.command.AwakenedGate;
-import net.alex.guzhenren.command.ModCommandSupport;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.commands.CommandSourceStack;
@@ -30,7 +28,7 @@ public final class CmdAwaken {
 
     private CmdAwaken() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return ModCommandSupport.withTargets(Commands.literal("awaken"),
                 context -> ModCommandSupport.applyIf(context, AwakenedGate.AWAKENED.negate(),
                         ModCommandSupport.FAILED_AWAKENED, CmdAwaken::awaken));

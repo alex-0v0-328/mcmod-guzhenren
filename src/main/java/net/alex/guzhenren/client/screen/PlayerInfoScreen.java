@@ -123,25 +123,25 @@ public final class PlayerInfoScreen extends Screen {
     }
 
     private Content getContent(LocalPlayer player) {
-        if (activeTab == TAB_APERTURE && twoApertures(player)) {
-            List<List<ScreenRow>> groups = rowCache.getApertureGroups(InfoModel.aperture(player));
-            return new Content(true, List.of(), groups, columnButtons(player, groups), 0);
+        if (activeTab == TAB_APERTURE && hasTwoApertures(player)) {
+            List<List<ScreenRow>> groups = rowCache.getApertureGroups(InfoModel.buildApertureRows(player));
+            return new Content(true, List.of(), groups, buildColumnButtons(player, groups), 0);
         }
         List<ScreenRow> rows = rowCache.getRows(getModel(player));
-        List<ApertureButtons.ColumnButton> buttons = bottomButtons(player);
-        int rowsBottom = contentBottom() - buttons.size() * (BTN_H + BTN_GAP);
-        int visible = Math.max(0, (rowsBottom - contentTop()) / LINE_H);
+        List<ApertureButtons.ColumnButton> buttons = buildBottomButtons(player);
+        int rowsBottom = getContentBottom() - buttons.size() * (BTN_H + BTN_GAP);
+        int visible = Math.max(0, (rowsBottom - getContentTop()) / LINE_H);
         scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, rows.size() - visible));
         return new Content(false, rows, List.of(), buttons, visible);
     }
 
     private List<InfoModel.Row> getModel(LocalPlayer player) {
         return switch (activeTab) {
-            case TAB_BODY -> InfoModel.body(player);
-            case TAB_SOUL -> InfoModel.soul(player);
-            case TAB_PATH -> InfoModel.pathAchieve(player);
-            case TAB_MIND -> InfoModel.mind(player);
-            default -> InfoModel.aperture(player);
+            case TAB_BODY -> InfoModel.buildBodyRows(player);
+            case TAB_SOUL -> InfoModel.buildSoulRows(player);
+            case TAB_PATH -> InfoModel.buildPathAchieveRows(player);
+            case TAB_MIND -> InfoModel.buildMindRows(player);
+            default -> InfoModel.buildApertureRows(player);
         };
     }
 
@@ -151,9 +151,9 @@ public final class PlayerInfoScreen extends Screen {
         Widgets.drawRule(graphics, leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, DIVIDER);
         for (int i = 0; i < TAB_TITLES.length; i++) {
             boolean active = i == activeTab;
-            int x0 = tabLeft();
-            int y0 = tabTop(i);
-            boolean hover = tabLive(i) && !active && inTab(mouseX, mouseY, i);
+            int x0 = getTabLeft();
+            int y0 = getTabTop(i);
+            boolean hover = isTabLive(i) && !active && isInTab(mouseX, mouseY, i);
 
             graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, active ? ACCENT[i] : TAB_IDLE);
             if (hover) graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, ROW_HOVER);
@@ -164,10 +164,10 @@ public final class PlayerInfoScreen extends Screen {
     private void fillContent(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY,
                              int accent) {
         if (content.columns()) {
-            int divider = contentLeft() + columnWidth() + COL_GAP / 2;
-            graphics.fill(divider, contentTop(), divider + 1, contentBottom(), DIVIDER);
+            int divider = getContentLeft() + getColumnWidth() + COL_GAP / 2;
+            graphics.fill(divider, getContentTop(), divider + 1, getContentBottom(), DIVIDER);
         }
-        eachRow(content, (row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
+        forEachRow(content, (row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
         if (!content.columns() && content.rows().size() > content.visible()) {
             renderScrollBar(graphics, content.rows().size(), content.visible(), accent);
         }
@@ -180,30 +180,30 @@ public final class PlayerInfoScreen extends Screen {
         graphics.drawString(font, TAB_TITLES[activeTab],
                 leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
         for (int i = 0; i < TAB_TITLES.length; i++) {
-            int color = i == activeTab ? 0xFF101010 : tabLive(i) ? TAB_TEXT_IDLE : TAB_TEXT_DEAD;
-            Widgets.drawCentered(graphics, font, TAB_TITLES[i], tabLeft(), tabTop(i), TAB_W, TAB_H, color);
+            int color = i == activeTab ? 0xFF101010 : isTabLive(i) ? TAB_TEXT_IDLE : TAB_TEXT_DEAD;
+            Widgets.drawCentered(graphics, font, TAB_TITLES[i], getTabLeft(), getTabTop(i), TAB_W, TAB_H, color);
         }
     }
 
     private void drawContentTexts(GuiGraphics graphics, Content content, int accent) {
-        eachRow(content, (row, x0, x1, y) -> drawRowText(graphics, row, x0, x1, y, accent));
+        forEachRow(content, (row, x0, x1, y) -> drawRowText(graphics, row, x0, x1, y, accent));
         for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.drawLabel(graphics, font, b);
     }
 
-    private void eachRow(Content content, RowVisitor visitor) {
+    private void forEachRow(Content content, RowVisitor visitor) {
         if (!content.columns()) {
             int end = Math.min(content.rows().size(), scrollRow + content.visible());
-            int y = contentTop();
+            int y = getContentTop();
             for (int i = scrollRow; i < end; i++) {
-                visitor.visit(content.rows().get(i), contentLeft(), valueRight(), y);
+                visitor.visit(content.rows().get(i), getContentLeft(), getValueRight(), y);
                 y += LINE_H;
             }
             return;
         }
-        int colW = columnWidth();
+        int colW = getColumnWidth();
         for (int c = 0; c < content.groups().size(); c++) {
-            int x0 = contentLeft() + c * (colW + COL_GAP);
-            int y = contentTop();
+            int x0 = getContentLeft() + c * (colW + COL_GAP);
+            int y = getContentTop();
             for (ScreenRow row : content.groups().get(c)) {
                 visitor.visit(row, x0, x0 + colW, y);
                 y += LINE_H;
@@ -228,37 +228,37 @@ public final class PlayerInfoScreen extends Screen {
     //endregion
 
     //region aperture columns -- two apertures render side by side, left first right second
-    private static boolean twoApertures(LocalPlayer player) {
+    private static boolean hasTwoApertures(LocalPlayer player) {
         return ApertureService.get(player).count() == 2;
     }
 
-    private int columnWidth() { return (valueRight() - contentLeft() - COL_GAP) / 2; }
+    private int getColumnWidth() { return (getValueRight() - getContentLeft() - COL_GAP) / 2; }
     //endregion
 
     //region per-aperture buttons -- where each stack sits; what a button is and does is ApertureButtons
-    private boolean lacksButtons(LocalPlayer player) {
+    private boolean hasNoButtons(LocalPlayer player) {
         return activeTab != TAB_APERTURE || !ApertureService.hasAperture(player);
     }
 
-    private List<ApertureButtons.ColumnButton> bottomButtons(LocalPlayer player) {
-        if (twoApertures(player) || lacksButtons(player)) return List.of();
+    private List<ApertureButtons.ColumnButton> buildBottomButtons(LocalPlayer player) {
+        if (hasTwoApertures(player) || hasNoButtons(player)) return List.of();
 
-        List<ApertureButtons.StackButton> stack = ApertureButtons.stack(player, ApertureData.PRIMARY);
+        List<ApertureButtons.StackButton> stack = ApertureButtons.buildStackButtons(player, ApertureData.PRIMARY);
         List<ApertureButtons.ColumnButton> buttons = new ArrayList<>(stack.size());
-        int base = contentBottom() - stack.size() * (BTN_H + BTN_GAP) + BTN_GAP;
-        place(buttons, stack, contentLeft(), valueRight(), base);
+        int base = getContentBottom() - stack.size() * (BTN_H + BTN_GAP) + BTN_GAP;
+        place(buttons, stack, getContentLeft(), getValueRight(), base);
         return buttons;
     }
 
-    private List<ApertureButtons.ColumnButton> columnButtons(LocalPlayer player, List<List<ScreenRow>> groups) {
-        if (lacksButtons(player)) return List.of();
+    private List<ApertureButtons.ColumnButton> buildColumnButtons(LocalPlayer player, List<List<ScreenRow>> groups) {
+        if (hasNoButtons(player)) return List.of();
 
         List<ApertureButtons.ColumnButton> buttons = new ArrayList<>();
-        int colW = columnWidth();
+        int colW = getColumnWidth();
         for (int c = 0; c < groups.size(); c++) {
-            int x0 = contentLeft() + c * (colW + COL_GAP);
-            int base = contentTop() + (groups.get(c).size() + 1) * LINE_H;
-            place(buttons, ApertureButtons.stack(player, c), x0, x0 + colW, base);
+            int x0 = getContentLeft() + c * (colW + COL_GAP);
+            int base = getContentTop() + (groups.get(c).size() + 1) * LINE_H;
+            place(buttons, ApertureButtons.buildStackButtons(player, c), x0, x0 + colW, base);
         }
         return buttons;
     }
@@ -275,7 +275,7 @@ public final class PlayerInfoScreen extends Screen {
         if (player == null) return false;
 
         for (ApertureButtons.ColumnButton b : getContent(player).buttons()) {
-            if (!ApertureButtons.inBox(mouseX, mouseY, b.x0(), b.x1(), b.top())) continue;
+            if (!ApertureButtons.isInBox(mouseX, mouseY, b.x0(), b.x1(), b.top())) continue;
             if (ApertureButtons.click(player, b)) onClose();
             return true;
         }
@@ -284,23 +284,23 @@ public final class PlayerInfoScreen extends Screen {
     //endregion
 
     //region scrolling
-    private int contentTop() { return topPos + CONTENT_TOP; }
+    private int getContentTop() { return topPos + CONTENT_TOP; }
 
-    private int contentBottom() { return topPos + panelH - PAD; }
+    private int getContentBottom() { return topPos + panelH - PAD; }
 
-    private int contentLeft() { return edgeLeft() + inset(); }
+    private int getContentLeft() { return getEdgeLeft() + getInset(); }
 
-    private int valueRight() { return edgeRight() - inset(); }
+    private int getValueRight() { return getEdgeRight() - getInset(); }
 
-    private int inset() { return (edgeRight() - edgeLeft()) / CONTENT_INSET_DIVISOR; }
+    private int getInset() { return (getEdgeRight() - getEdgeLeft()) / CONTENT_INSET_DIVISOR; }
 
-    private int edgeLeft() { return leftPos + PAD; }
+    private int getEdgeLeft() { return leftPos + PAD; }
 
-    private int edgeRight() { return tabLeft() - PAD; }
+    private int getEdgeRight() { return getTabLeft() - PAD; }
 
     private void renderScrollBar(GuiGraphics graphics, int total, int visible, int accent) {
-        int x0 = tabLeft() - SCROLL_GAP;
-        int top = contentTop();
+        int x0 = getTabLeft() - SCROLL_GAP;
+        int top = getContentTop();
         int track = visible * LINE_H;
 
         graphics.fill(x0, top, x0 + SCROLL_W, top + track, DIVIDER);
@@ -319,19 +319,19 @@ public final class PlayerInfoScreen extends Screen {
     }
     //endregion
 
-    private boolean tabLive(int tab) {
+    private boolean isTabLive(int tab) {
         if (tab != TAB_REFINEMENT) return true;
 
         LocalPlayer player = Minecraft.getInstance().player;
         return player != null && ApertureService.isAwakened(player);
     }
 
-    private int tabLeft() { return leftPos + panelW - TAB_W - PAD; }
+    private int getTabLeft() { return leftPos + panelW - TAB_W - PAD; }
 
-    private int tabTop(int i) { return topPos + CONTENT_TOP + i * (TAB_H + TAB_GAP); }
+    private int getTabTop(int i) { return topPos + CONTENT_TOP + i * (TAB_H + TAB_GAP); }
 
-    private boolean inTab(double mouseX, double mouseY, int i) {
-        return Widgets.isOver(mouseX, mouseY, tabLeft(), tabTop(i), TAB_W, TAB_H);
+    private boolean isInTab(double mouseX, double mouseY, int i) {
+        return Widgets.isOver(mouseX, mouseY, getTabLeft(), getTabTop(i), TAB_W, TAB_H);
     }
 
     @Override
@@ -347,7 +347,7 @@ public final class PlayerInfoScreen extends Screen {
                 return true;
             }
             for (int i = 0; i < TAB_TITLES.length; i++) {
-                if (!inTab(mouseX, mouseY, i) || !tabLive(i)) continue;
+                if (!isInTab(mouseX, mouseY, i) || !isTabLive(i)) continue;
                 if (i == TAB_REFINEMENT) {
                     ModNetwork.sendToServer(OpenRefinementPayload.INSTANCE);
                 } else {

@@ -37,14 +37,14 @@ public abstract class WildGuEntity extends PathfinderMob {
         this.caughtGu = caughtGu;
     }
 
-    public Item caughtGu() { return caughtGu.get(); }
+    public Item getCaughtGu() { return caughtGu.get(); }
 
     //region catching -- a bare right click, ungated
     @Override
     protected @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         if (!(player instanceof ServerPlayer server)) return InteractionResult.SUCCESS;
 
-        server.getInventory().placeItemBackInInventory(new ItemStack(caughtGu()));
+        server.getInventory().placeItemBackInInventory(new ItemStack(getCaughtGu()));
         discard();
         return InteractionResult.CONSUME;
     }

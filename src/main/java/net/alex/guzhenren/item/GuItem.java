@@ -63,13 +63,13 @@ public abstract class GuItem extends Item {
         this.path = path;
     }
 
-    protected abstract String kindKey();
+    protected abstract String getKindKey();
 
-    public Rank rank() { return rank; }
+    public Rank getRank() { return rank; }
 
-    public GuPath path() { return path; }
+    public GuPath getPath() { return path; }
 
-    protected int tier() { return rank.ordinal() - Rank.ONE.ordinal(); }
+    protected int getTier() { return rank.ordinal() - Rank.ONE.ordinal(); }
 
     public record Refusal(String key, Object... args) {}
 
@@ -78,17 +78,17 @@ public abstract class GuItem extends Item {
     public static final int USE_SAME_TICKS = Ticks.HALF_SECOND;
     public static final int USE_SLOW_TICKS = Ticks.SECOND;
 
-    protected int rankGap(Player player) { return ApertureService.getRank(player).ordinal() - rank.ordinal(); }
+    protected int getRankGap(Player player) { return ApertureService.getRank(player).ordinal() - rank.ordinal(); }
 
     protected int useChargeByGap(Player player) {
-        int gap = rankGap(player);
+        int gap = getRankGap(player);
         if (gap > 0) return TimeFlow.shortenWait(player, USE_FAST_TICKS);
         return TimeFlow.shortenWait(player, gap == 0 ? USE_SAME_TICKS : USE_SLOW_TICKS);
     }
     //endregion
 
     //region Vital Gu
-    public static @Nullable UUID owner(ItemStack stack) {
+    public static @Nullable UUID getOwner(ItemStack stack) {
         return ModDataComponents.get(stack, ModDataComponents.VITAL_OWNER);
     }
 
@@ -96,34 +96,34 @@ public abstract class GuItem extends Item {
         return ModDataComponents.has(stack, ModDataComponents.VITAL_OWNER);
     }
 
-    public static boolean isVitalOf(ItemStack stack, Player player) { return player.getUUID().equals(owner(stack)); }
+    public static boolean isVitalOf(ItemStack stack, Player player) { return player.getUUID().equals(getOwner(stack)); }
 
     public static boolean isForeignVital(ItemStack stack, Player player) {
         return isVital(stack) && !isVitalOf(stack, player);
     }
 
-    public static int boundAperture(ItemStack stack) {
+    public static int getBoundAperture(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
     }
 
-    public static int boundIndex(ItemStack stack, Player owner) {
-        return ApertureService.get(owner).indexOf(boundAperture(stack));
+    public static int getBoundIndex(ItemStack stack, Player owner) {
+        return ApertureService.get(owner).indexOf(getBoundAperture(stack));
     }
 
-    public static long token(ItemStack stack) {
+    public static long getToken(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.VITAL_TOKEN, 0L);
     }
 
     public static boolean isCurrentVital(ItemStack stack, ServerPlayer owner) {
-        long token = token(stack);
+        long token = getToken(stack);
         return token != 0L && isVitalOf(stack, owner)
-                && token == ApertureStorageService.getVitalToken(owner, boundAperture(stack));
+                && token == ApertureStorageService.getVitalToken(owner, getBoundAperture(stack));
     }
 
     public static void bind(ItemStack stack, ServerPlayer player, int index) {
         long token = player.getRandom().nextLong();
         ModDataComponents.set(stack, ModDataComponents.VITAL_OWNER, player.getUUID());
-        ModDataComponents.set(stack, ModDataComponents.VITAL_APERTURE, ApertureService.get(player).kindAt(index));
+        ModDataComponents.set(stack, ModDataComponents.VITAL_APERTURE, ApertureService.get(player).getKindAt(index));
         ModDataComponents.set(stack, ModDataComponents.VITAL_TOKEN, token == 0L ? 1L : token);
     }
 
@@ -137,7 +137,7 @@ public abstract class GuItem extends Item {
     //region the hooks a leaf fills
     protected boolean hasUse() { return false; }
 
-    protected @Nullable Refusal gate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkGate(Player player, ItemStack stack) { return null; }
 
     protected int apply(ServerPlayer player, ItemStack stack) { return 0; }
 
@@ -145,7 +145,7 @@ public abstract class GuItem extends Item {
 
     protected boolean hasSneakUse(Player player, ItemStack stack) { return false; }
 
-    protected @Nullable Refusal sneakGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkSneakGate(Player player, ItemStack stack) { return null; }
 
     protected int sneakApply(ServerPlayer player, ItemStack stack) { return 0; }
 
@@ -155,11 +155,11 @@ public abstract class GuItem extends Item {
 
     public int chargeColor(ItemStack stack, int remainingTicks) { return CHARGE_COLOR_DEFAULT; }
 
-    protected boolean feedsFromOffhand() { return false; }
+    protected boolean canFeedFromOffhand() { return false; }
     //endregion
 
     private @Nullable Refusal getRefusal(Player player, ItemStack stack, boolean sneak) {
-        return sneak ? sneakGate(player, stack) : gate(player, stack);
+        return sneak ? checkSneakGate(player, stack) : checkGate(player, stack);
     }
 
     private void refuse(Player player, Refusal refusal) {
@@ -182,7 +182,7 @@ public abstract class GuItem extends Item {
         Refusal refusal = getRefusal(player, stack, sneak);
         if (refusal != null) {
             refuse(player, refusal);
-            return feedsFromOffhand() ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
+            return canFeedFromOffhand() ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
         }
         if (useDurationTicks(player, stack) > 0) {
             player.startUsingItem(hand);
@@ -208,10 +208,10 @@ public abstract class GuItem extends Item {
         return stack;
     }
 
-    public static boolean crouching(Player player) { return player.isCrouching(); }
+    public static boolean isCrouching(Player player) { return player.isCrouching(); }
 
     protected boolean isSneakUse(Player player, ItemStack stack) {
-        return crouching(player) && hasSneakUse(player, stack);
+        return isCrouching(player) && hasSneakUse(player, stack);
     }
 
     /**
@@ -252,21 +252,21 @@ public abstract class GuItem extends Item {
      */
     protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
                                  @NotNull TooltipFlag flag) {
-        tooltip.add(ModDisplayText.guLine(rank, path, kindKey()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(ModDisplayText.formatGuLine(rank, path, getKindKey()).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        return isVital(stack) ? ModDisplayText.vital(super.getName(stack)) : super.getName(stack);
+        return isVital(stack) ? ModDisplayText.formatVital(super.getName(stack)) : super.getName(stack);
     }
 
     @Override
     public boolean isFoil(@NotNull ItemStack stack) { return isVital(stack) || super.isFoil(stack); }
 
-    protected int cooldownTicks(ItemStack stack) { return COOLDOWN_TICKS; }
+    protected int getCooldownTicks(ItemStack stack) { return COOLDOWN_TICKS; }
 
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
-        player.getCooldowns().addCooldown(this, TimeFlow.shortenWait(player, cooldownTicks(stack)));
+        player.getCooldowns().addCooldown(this, TimeFlow.shortenWait(player, getCooldownTicks(stack)));
         if (count > 0 && !player.getAbilities().instabuild) stack.shrink(count);
     }
 }

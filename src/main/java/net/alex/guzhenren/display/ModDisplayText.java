@@ -25,11 +25,11 @@ import org.jetbrains.annotations.Nullable;
  * <p>The single source for shared wording: a phrase built at a call site is one that will eventually
  * word the same fact differently somewhere else. If two surfaces say a thing, the sentence belongs in
  * this file. Brackets ({@code [无]}, {@code [太日阳莽体]}) are baked into the lang value, never assembled here:
- * {@link #none} is the {@code [无]}, {@link #detail} wraps a muted aside, {@link #talentLine} is a talent with its
- * base fraction. {@link #countdownSeconds} is the whole second a countdown shows, for a caller that caches the
- * text per second.
+ * {@link #formatNone} is the {@code [无]}, {@link #formatDetail} wraps a muted aside, {@link #formatTalentLine} is a
+ * talent with its base fraction. {@link #getCountdownSeconds} is the whole second a countdown shows, for a caller
+ * that caches the text per second.
  *
- * <p>⚠ Two decimals on lifespan, not one ({@link #lifespan(double, double)}): a hundredth of a year is
+ * <p>⚠ Two decimals on lifespan, not one ({@link #formatLifespan(double, double)}): a hundredth of a year is
  * twelve real seconds at ordinary speed, the coarsest step the eye still reads as movement; a tenth
  * stands still for two minutes.
  *
@@ -45,55 +45,55 @@ public final class ModDisplayText {
 
     private static final String GAP = "  ";
 
-    public static MutableComponent realm(Aperture aperture) {
+    public static MutableComponent formatRealm(Aperture aperture) {
         return Component.translatable("guzhenren.display.realm",
                 Component.translatable(aperture.rank().getTranslationKey()),
                 Component.translatable(aperture.stage().getTranslationKey()));
     }
 
-    public static MutableComponent realmTitle(Aperture aperture) {
+    public static MutableComponent formatRealmTitle(Aperture aperture) {
         MutableComponent title = Component.translatable(Title.fromRank(aperture.rank()).getTranslationKey());
         if (aperture.rank() == Rank.NONE) return title;
 
-        return Component.translatable("guzhenren.display.realm_title", realm(aperture), title);
+        return Component.translatable("guzhenren.display.realm_title", formatRealm(aperture), title);
     }
 
-    public static MutableComponent talent(Aperture aperture) {
-        return Component.translatable(aperture.talent().getTranslationKey());
+    public static MutableComponent formatTalent(Aperture aperture) {
+        return Component.translatable(aperture.getTalent().getTranslationKey());
     }
 
-    public static MutableComponent talentLine(Aperture aperture, boolean awakened) {
-        MutableComponent line = talent(aperture);
-        if (awakened) line.append(detail(baseFraction(aperture.baseEssence())));
+    public static MutableComponent formatTalentLine(Aperture aperture, boolean awakened) {
+        MutableComponent line = formatTalent(aperture);
+        if (awakened) line.append(formatDetail(formatBaseFraction(aperture.baseEssence())));
         return line;
     }
 
-    public static MutableComponent none() { return Component.translatable("guzhenren.display.none"); }
+    public static MutableComponent formatNone() { return Component.translatable("guzhenren.display.none"); }
 
-    public static MutableComponent detail(Object value) {
+    public static MutableComponent formatDetail(Object value) {
         return Component.translatable("guzhenren.display.detail", value).withStyle(ChatFormatting.DARK_GRAY);
     }
 
-    public static MutableComponent hudHeader(Aperture aperture, BodyData body) {
-        return realmTitle(aperture).append(GAP).append(hudAptitude(aperture, body));
+    public static MutableComponent formatHudHeader(Aperture aperture, BodyData body) {
+        return formatRealmTitle(aperture).append(GAP).append(formatHudAptitude(aperture, body));
     }
 
-    public static MutableComponent hudAptitude(Aperture aperture, BodyData body) {
-        if (aperture.talent() == Talent.NONE) return talent(aperture);
+    public static MutableComponent formatHudAptitude(Aperture aperture, BodyData body) {
+        if (aperture.getTalent() == Talent.NONE) return formatTalent(aperture);
 
-        Component detail = aperture.talent() == Talent.TEN_EXTREMES && body.isExtreme()
+        Component detail = aperture.getTalent() == Talent.TEN_EXTREMES && body.isExtreme()
                 ? Component.translatable(body.extremePhysique().getTranslationKey())
-                : baseFraction(aperture.baseEssence());
-        return Component.translatable("guzhenren.display.aptitude_line", talent(aperture), detail);
+                : formatBaseFraction(aperture.baseEssence());
+        return Component.translatable("guzhenren.display.aptitude_line", formatTalent(aperture), detail);
     }
 
-    public static MutableComponent physique(@Nullable Physique physique, ExtremePhysique extremePhysique) {
+    public static MutableComponent formatPhysique(@Nullable Physique physique, ExtremePhysique extremePhysique) {
         return Component.translatable("guzhenren.display.physique_line",
-                physiqueValue(physique, extremePhysique));
+                formatPhysiqueValue(physique, extremePhysique));
     }
 
-    public static MutableComponent physiqueValue(@Nullable Physique physique, ExtremePhysique extremePhysique) {
-        if (physique == null) return none();
+    public static MutableComponent formatPhysiqueValue(@Nullable Physique physique, ExtremePhysique extremePhysique) {
+        if (physique == null) return formatNone();
 
         MutableComponent value = Component.translatable(physique.getTranslationKey());
         if (physique == Physique.EXTREME) {
@@ -103,31 +103,31 @@ public final class ModDisplayText {
         return value;
     }
 
-    public static MutableComponent guLine(Rank rank, GuPath path, String kindKey) {
+    public static MutableComponent formatGuLine(Rank rank, GuPath path, String kindKey) {
         return Component.translatable("guzhenren.display.gu_line",
                 Component.translatable(rank.getTranslationKey()),
                 Component.translatable(path.getTranslationKey()),
                 Component.translatable(kindKey));
     }
 
-    public static MutableComponent wild(Component name) {
+    public static MutableComponent formatWild(Component name) {
         return Component.translatable("guzhenren.display.wild", name);
     }
 
-    public static MutableComponent vital(Component name) {
+    public static MutableComponent formatVital(Component name) {
         return Component.translatable("guzhenren.display.vital", name);
     }
 
-    public static MutableComponent path(@Nullable GuPath path) {
-        return path == null ? none() : Component.translatable(path.getTranslationKey());
+    public static MutableComponent formatPath(@Nullable GuPath path) {
+        return path == null ? formatNone() : Component.translatable(path.getTranslationKey());
     }
 
-    public static Component apertureName(int number) {
+    public static Component formatApertureName(int number) {
         return Component.translatable("guzhenren.display.aperture_" + number);
     }
 
-    public static MutableComponent pathLine(GuPath path, PathEntry entry) {
-        MutableComponent line = path(path);
+    public static MutableComponent formatPathLine(GuPath path, PathEntry entry) {
+        MutableComponent line = formatPath(path);
         if (entry.attainment() != GuAttainment.NONE) {
             line.append(" ").append(Component.translatable(entry.attainment().getTranslationKey()));
         }
@@ -137,75 +137,77 @@ public final class ModDisplayText {
         return line;
     }
 
-    public static MutableComponent lifespan(double lifespan, double age) {
-        return Component.translatable("guzhenren.display.lifespan", years(lifespan), years(age));
+    public static MutableComponent formatLifespan(double lifespan, double age) {
+        return Component.translatable("guzhenren.display.lifespan", formatYears(lifespan), formatYears(age));
     }
 
-    public static MutableComponent hudLifespan(BodyData body) {
+    public static MutableComponent formatHudLifespan(BodyData body) {
         return Component.translatable("guzhenren.display.lifespan",
-                String.format(Locale.ROOT, "%.1f", body.lifespanYears()),
+                String.format(Locale.ROOT, "%.1f", body.getLifespanYears()),
                 String.format(Locale.ROOT, "%.0f", body.ageYears()));
     }
 
-    public static String countdown(long remainingTicks) { return clock(countdownSeconds(remainingTicks)); }
+    public static String formatCountdown(long remainingTicks) {
+        return formatClock(getCountdownSeconds(remainingTicks));
+    }
 
-    public static long countdownSeconds(long remainingTicks) {
+    public static long getCountdownSeconds(long remainingTicks) {
         return (Math.max(0L, remainingTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
     }
 
-    public static String clock(long seconds) {
+    public static String formatClock(long seconds) {
         return String.format(Locale.ROOT, "%02d:%02d", seconds / 60L, seconds % 60L);
     }
 
-    private static String years(double value) { return String.format(Locale.ROOT, "%.2f", value); }
+    private static String formatYears(double value) { return String.format(Locale.ROOT, "%.2f", value); }
 
-    public static String pool(long current, long max) { return current + "/" + max; }
+    public static String formatPool(long current, long max) { return current + "/" + max; }
 
-    public static String attackBonus(double bonus) { return "+" + bonus; }
+    public static String formatAttackBonus(double bonus) { return "+" + bonus; }
 
-    public static MutableComponent timeRateUp(int rate) {
+    public static MutableComponent formatTimeRateUp(int rate) {
         return Component.translatable("guzhenren.display.time_rate_up", rate);
     }
 
-    public static MutableComponent beastStrengthLine(PathStrengthData data) {
+    public static MutableComponent formatBeastStrengthLine(PathStrengthData data) {
         MutableComponent line = Component.empty();
-        data.beastReadings().forEach((family, reading) -> line.append(beastReading(family, reading)));
+        data.getBeastReadings().forEach((family, reading) -> line.append(formatBeastReading(family, reading)));
         return line;
     }
 
-    private static Component beastReading(BeastStrengthFamily family, int reading) {
+    private static Component formatBeastReading(BeastStrengthFamily family, int reading) {
         return Component.translatable("guzhenren.display.strength.beast_reading",
                 Component.translatable("guzhenren.display.strength.beast_number." + reading),
                 Component.translatable(family.getTranslationKey()));
     }
 
-    public static MutableComponent humanStrengthLine(PathStrengthData data) {
+    public static MutableComponent formatHumanStrengthLine(PathStrengthData data) {
         MutableComponent line = Component.empty();
-        appendFamily(line, "guzhenren.display.strength.jun_reading", data.junReading());
-        appendFamily(line, "guzhenren.display.strength.jin_reading", data.jinReading());
+        appendFamily(line, "guzhenren.display.strength.jun_reading", data.getJunReading());
+        appendFamily(line, "guzhenren.display.strength.jin_reading", data.getJinReading());
         return line;
     }
 
-    public static MutableComponent strengthLabel(MutableComponent branchName, int totalJin) {
+    public static MutableComponent formatStrengthLabel(MutableComponent branchName, int totalJin) {
         if (totalJin <= 0) return branchName;
         return branchName.append(Component.translatable("guzhenren.display.strength.jin_total", totalJin));
     }
 
     private static void appendFamily(MutableComponent line, String readingKey, int reading) {
         if (reading <= 0) return;
-        line.append(Component.translatable(readingKey, strengthNumber(reading)));
+        line.append(Component.translatable(readingKey, formatStrengthNumber(reading)));
     }
 
-    private static Component strengthNumber(int count) {
-        if (count < 100) return belowHundred(count, false);
+    private static Component formatStrengthNumber(int count) {
+        if (count < 100) return formatBelowHundred(count, false);
         Component h = Component.translatable("guzhenren.display.strength.num_hundreds." + (count / 100));
         int rest = count % 100;
         if (rest == 0) return h;
         String join = rest < 10 ? "guzhenren.display.strength.num_join_zero" : "guzhenren.display.strength.num_join";
-        return Component.translatable(join, h, belowHundred(rest, true));
+        return Component.translatable(join, h, formatBelowHundred(rest, true));
     }
 
-    private static Component belowHundred(int count, boolean led) {
+    private static Component formatBelowHundred(int count, boolean led) {
         int tens = count / 10;
         int units = count % 10;
         Component t = tens == 0 ? null : Component.translatable(led && tens == 1
@@ -216,7 +218,7 @@ public final class ModDisplayText {
         return t != null ? t : u;
     }
 
-    public static Component baseFraction(int base) {
+    public static Component formatBaseFraction(int base) {
         if (base >= 100) return Component.translatable("guzhenren.display.base_full");
         Component tens = Component.translatable("guzhenren.display.base_tens." + (base / 10));
         int units = base % 10;

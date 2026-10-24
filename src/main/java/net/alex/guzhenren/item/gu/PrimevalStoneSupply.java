@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
  * stack is stones or a Primeval Elder Gu [元老蛊] vault.
  *
  * <p>☠ A second copy of the top-up line drifts, and the pool silently clamps whatever a caller pours past
- * the cap. ☠ {@link #spend}: a lump bigger than the pool burns stones straight, never through the cap --
+ * the cap. ☠ {@link #trySpend}: a lump bigger than the pool burns stones straight, never through the cap --
  * the pool pays first, the stones cover the rest, and the change goes back into the pool.
  *
  * @author Alex
@@ -35,8 +35,8 @@ public final class PrimevalStoneSupply {
     public static final int REFILL_BELOW_PERCENT = 50;
     public static final int REFILL_UP_TO_PERCENT = 80;
 
-    public static long essencePerStone() {
-        return ModItems.PRIMEVAL_STONE.get() instanceof PrimevalStoneItem stone ? stone.essence() : 0L;
+    public static long getEssencePerStone() {
+        return ModItems.PRIMEVAL_STONE.get() instanceof PrimevalStoneItem stone ? stone.getEssence() : 0L;
     }
 
     public static int takeFrom(ItemStack source, int wanted) {
@@ -50,7 +50,7 @@ public final class PrimevalStoneSupply {
     }
 
     //region the stone top-up [元石补给] -- one line, so two callers cannot drift apart
-    public static boolean needsTopUp(Player player) {
+    public static boolean isTopUpNeeded(Player player) {
         long max = ApertureEssenceService.getMaxEssence(player);
         return max > 0L && ApertureEssenceService.getCurrentEssence(player) * 100L < max * REFILL_BELOW_PERCENT;
     }
@@ -61,13 +61,13 @@ public final class PrimevalStoneSupply {
     }
 
     public static void topUp(ServerPlayer player) {
-        if (needsTopUp(player)) pourInto(player, topUpDeficit(player));
+        if (isTopUpNeeded(player)) pourInto(player, topUpDeficit(player));
     }
     //endregion
 
     //region sourcing stones for something else -- the walk lives here, not in a service
     public static void pourInto(ServerPlayer player, long wanted) {
-        long each = essencePerStone();
+        long each = getEssencePerStone();
         if (wanted <= 0L || each <= 0L) return;
         int taken = draw(player, (int) Math.min(Integer.MAX_VALUE, (wanted + each - 1) / each));
         if (taken > 0) ApertureEssenceService.add(player, taken * each);
@@ -77,10 +77,10 @@ public final class PrimevalStoneSupply {
         ItemStack offhand = player.getOffhandItem();
         if (!(offhand.getItem() instanceof PrimevalStoneItem stone)) return;
 
-        int used = stone.used(player, offhand);
+        int used = stone.getUsableCount(player, offhand);
         if (used <= 0) return;
 
-        ApertureEssenceService.add(player, stone.essence() * used);
+        ApertureEssenceService.add(player, stone.getEssence() * used);
         if (!player.getAbilities().instabuild) offhand.shrink(used);
     }
 
@@ -107,29 +107,29 @@ public final class PrimevalStoneSupply {
     //endregion
 
     //region ☠ a lump bigger than the pool -- these stones burn straight, never through the cap
-    public static long worthOnHand(Player player) {
+    public static long getWorthOnHand(Player player) {
         long stones = 0L;
         ItemStack offhand = player.getItemInHand(InteractionHand.OFF_HAND);
-        if (offhand.getItem() instanceof PrimevalElderGuItem) stones += PrimevalElderGuItem.stored(offhand);
+        if (offhand.getItem() instanceof PrimevalElderGuItem) stones += PrimevalElderGuItem.getStored(offhand);
 
         Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
             if (stack.getItem() instanceof PrimevalStoneItem) stones += stack.getCount();
         }
-        return stones * essencePerStone();
+        return stones * getEssencePerStone();
     }
 
     public static boolean canAfford(Player player, long cost) {
-        return ApertureEssenceService.spendable(player) + worthOnHand(player) >= cost;
+        return ApertureEssenceService.getSpendable(player) + getWorthOnHand(player) >= cost;
     }
 
-    public static boolean spend(ServerPlayer player, long cost) {
+    public static boolean trySpend(ServerPlayer player, long cost) {
         if (cost <= 0L) return true;
-        long each = essencePerStone();
+        long each = getEssencePerStone();
         if (each <= 0L || !canAfford(player, cost)) return false;
 
-        long fromPool = Math.min(ApertureEssenceService.spendable(player), cost);
+        long fromPool = Math.min(ApertureEssenceService.getSpendable(player), cost);
         ApertureEssenceService.consume(player, fromPool);
 
         long owed = cost - fromPool;

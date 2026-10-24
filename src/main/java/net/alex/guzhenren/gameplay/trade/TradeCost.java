@@ -29,7 +29,7 @@ public record TradeCost(Item item, int count) {
 
     public boolean test(@NotNull ItemStack stack) { return stack.is(item); }
 
-    public ItemStack itemStack() { return new ItemStack(item); }
+    public ItemStack createItemStack() { return new ItemStack(item); }
 
     public void encode(@NotNull FriendlyByteBuf buf) {
         buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(item));

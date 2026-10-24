@@ -48,7 +48,7 @@ public class ModRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(@NotNull Consumer<FinishedRecipe> output) {
-        refinement(output, ModItems.FOUR_FLAVORS_LIQUOR_WORM.get(), 1L, 1L, 50, List.of(16, 16, 16, 16),
+        addRefinement(output, ModItems.FOUR_FLAVORS_LIQUOR_WORM.get(), 1L, 1L, 50, List.of(16, 16, 16, 16),
                 Map.of('s', GuIngredient.of(ModItems.SOUR_LIQUOR.get(), 1),
                         'b', GuIngredient.of(ModItems.BITTER_LIQUOR.get(), 1),
                         'h', GuIngredient.of(ModItems.SPICY_LIQUOR.get(), 1),
@@ -60,7 +60,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 ".....",
                 " .w. ");
 
-        refinement(output, ModItems.ALL_OUT_EFFORT_GU_4.get(), 100L, 3L, 30, List.of(64, 64, 64, 64),
+        addRefinement(output, ModItems.ALL_OUT_EFFORT_GU_4.get(), 100L, 3L, 30, List.of(64, 64, 64, 64),
                 Map.of('I', GuIngredient.of(Items.IRON_BLOCK, 4),
                         'B', GuIngredient.of(Items.GOLD_BLOCK, 2),
                         'A', GuIngredient.of(ModItems.ALL_OUT_EFFORT_GU_3.get(), 1)),
@@ -72,9 +72,9 @@ public class ModRecipeProvider extends RecipeProvider {
     }
 
     //region Gu Recipe [蛊方] patterns -- one row a grid row, ' ' a cut corner, '.' an empty cell
-    private static void refinement(Consumer<FinishedRecipe> output, ItemLike result, long essencePerSecond,
-                                   long soulPerSecond, int baseSuccess, List<Integer> windows,
-                                   Map<Character, GuIngredient> key, String... pattern) {
+    private static void addRefinement(Consumer<FinishedRecipe> output, ItemLike result, long essencePerSecond,
+                                      long soulPerSecond, int baseSuccess, List<Integer> windows,
+                                      Map<Character, GuIngredient> key, String... pattern) {
         Item item = result.asItem();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
                 Guzhenren.MOD_ID, FOLDER + ForgeRegistries.ITEMS.getKey(item).getPath());
@@ -98,13 +98,13 @@ public class ModRecipeProvider extends RecipeProvider {
                         + GuRecipe.GRID_COLS + " cells wide");
             }
             for (int col = 0; col < line.length(); col++) {
-                cell(id, key, line.charAt(col), GuRecipe.slotAt(row, col), ingredients, slots);
+                readCell(id, key, line.charAt(col), GuRecipe.getSlotAt(row, col), ingredients, slots);
             }
         }
     }
 
-    private static void cell(ResourceLocation id, Map<Character, GuIngredient> key, char drawn, int slot,
-                             List<GuIngredient> ingredients, List<Integer> slots) {
+    private static void readCell(ResourceLocation id, Map<Character, GuIngredient> key, char drawn, int slot,
+                                 List<GuIngredient> ingredients, List<Integer> slots) {
         if (slot < 0) {
             if (drawn != OUTSIDE) throw new IllegalArgumentException(id + " draws '" + drawn + "' on a cut corner");
             return;

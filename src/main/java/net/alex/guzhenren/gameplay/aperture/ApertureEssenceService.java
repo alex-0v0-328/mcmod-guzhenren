@@ -48,7 +48,7 @@ public final class ApertureEssenceService {
     private static final double[] ESSENCE_QI_REGEN_BONUS = { 0.20, 0.40, 0.60, 0.80, 1.00 };
 
     public static long getRegenPerDay(@NotNull Aperture aperture) {
-        return BASE_REGEN_PER_DAY * aperture.talent().getRegenRate() * aperture.rank().getRankBase()
+        return BASE_REGEN_PER_DAY * aperture.getTalent().getRegenRate() * aperture.rank().getRankBase()
                 * aperture.stage().getEssenceMultiplier();
     }
 
@@ -63,21 +63,21 @@ public final class ApertureEssenceService {
     }
 
     public static long getMaxEssence(@NotNull Player player) {
-        return ApertureService.getAperture(player).maxEssence();
+        return ApertureService.getAperture(player).getMaxEssence();
     }
 
     public static long getDistilledEssence(@NotNull Player player) {
         return ApertureService.getAperture(player).distilledEssence();
     }
 
-    public static long totalDistilled(@NotNull Player player) {
+    public static long getTotalDistilled(@NotNull Player player) {
         long total = 0L;
         ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) total += data.get(i).distilledEssence();
         return total;
     }
 
-    public static long spendable(@NotNull Player player) {
+    public static long getSpendable(@NotNull Player player) {
         ApertureData data = ApertureService.get(player);
         long total = 0L;
         for (int i = 0; i < data.count(); i++) {
@@ -103,7 +103,7 @@ public final class ApertureEssenceService {
         ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count() && left > 0L; i++) {
             Aperture aperture = data.get(i);
-            long room = Math.max(0L, aperture.maxEssence() - aperture.currentEssence());
+            long room = Math.max(0L, aperture.getMaxEssence() - aperture.currentEssence());
             long given = Math.min(left, room);
             if (given > 0L) set(player, i, aperture.currentEssence() + given);
             left -= given;
@@ -117,7 +117,7 @@ public final class ApertureEssenceService {
     public static void refill(@NotNull ServerPlayer player) {
         ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) {
-            ApertureService.set(player, i, data.get(i).refilled());
+            ApertureService.set(player, i, data.get(i).withFullEssence());
         }
     }
 
@@ -154,7 +154,7 @@ public final class ApertureEssenceService {
     }
 
     public static void closeDistilling(@NotNull ServerPlayer player) {
-        if (totalDistilled(player) > 0L && !isDistilling(player)) endDistilling(player);
+        if (getTotalDistilled(player) > 0L && !isDistilling(player)) endDistilling(player);
     }
 
     public static void endDistilling(@NotNull ServerPlayer player) {
@@ -174,12 +174,12 @@ public final class ApertureEssenceService {
 
     public static boolean consume(@NotNull ServerPlayer player, long amount) {
         if (amount <= 0L) return true;
-        if (spendable(player) < amount) return false;
+        if (getSpendable(player) < amount) return false;
 
         ApertureData data = ApertureService.get(player);
         long[][] plan = cascadeTake(amount, data.apertures());
         for (int i = 0; i < plan.length; i++) {
-            if (plan[i][0] > 0L || plan[i][1] > 0L) ApertureService.set(player, i, taken(data.get(i), plan[i]));
+            if (plan[i][0] > 0L || plan[i][1] > 0L) ApertureService.set(player, i, applyTake(data.get(i), plan[i]));
         }
         return true;
     }
@@ -187,18 +187,18 @@ public final class ApertureEssenceService {
     public static @Nullable Aperture consumeDeferred(@NotNull ServerPlayer player, long amount, int index) {
         ApertureData data = ApertureService.get(player);
         if (amount <= 0L) return data.get(index);
-        if (spendable(player) < amount) return null;
+        if (getSpendable(player) < amount) return null;
 
         long[][] plan = cascadeTake(amount, data.apertures());
         for (int i = 0; i < plan.length; i++) {
             if (i != index && (plan[i][0] > 0L || plan[i][1] > 0L)) {
-                ApertureService.set(player, i, taken(data.get(i), plan[i]));
+                ApertureService.set(player, i, applyTake(data.get(i), plan[i]));
             }
         }
-        return index < plan.length ? taken(data.get(index), plan[index]) : data.get(index);
+        return index < plan.length ? applyTake(data.get(index), plan[index]) : data.get(index);
     }
 
-    private static Aperture taken(Aperture aperture, long[] take) {
+    private static Aperture applyTake(Aperture aperture, long[] take) {
         return aperture.withDistilledEssence(aperture.distilledEssence() - take[0])
                 .withCurrentEssence(aperture.currentEssence() - take[1]);
     }
@@ -225,7 +225,7 @@ public final class ApertureEssenceService {
 
     public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
         ApertureData data = ApertureService.get(player);
-        float[] carry = PlayerData.get(player).essenceCarry();
+        float[] carry = PlayerData.get(player).getEssenceCarry();
 
         if (isChoked(player)) {
             Arrays.fill(carry, 0.0F);
@@ -246,7 +246,7 @@ public final class ApertureEssenceService {
         }
         boolean distilling = aperture.distilling();
         long current = distilling ? aperture.distilledEssence() : aperture.currentEssence();
-        if (current >= aperture.maxEssence()) {
+        if (current >= aperture.getMaxEssence()) {
             carry[index] = 0.0F;
             return;
         }

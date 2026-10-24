@@ -2,8 +2,7 @@ package net.alex.guzhenren.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import java.util.function.Predicate;
-import net.alex.guzhenren.command.ModCommandSupport;
-import net.alex.guzhenren.command.ModEnumArgument;
+
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
@@ -20,7 +19,7 @@ import net.minecraft.util.StringRepresentable;
  * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, lifespan and age. The
  * path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a
  * mortal ages and changes form too -- except {@code extreme set}, which needs an awakened target. That gate
- * comes in through {@link #node} from the command root, so the body package never names the aperture package.
+ * comes in through {@link #buildNode} from the command root, so the body package never names the aperture package.
  *
  * @author Alex
  * @version 1.0.0
@@ -32,16 +31,16 @@ public final class CmdBody {
 
     private CmdBody() {}
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node(Predicate<ServerPlayer> awakened) {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode(Predicate<ServerPlayer> awakened) {
         return Commands.literal("body")
-                .then(physique(awakened))
-                .then(ModCommandSupport.enumSetNode("race", Race.values(),
+                .then(buildPhysique(awakened))
+                .then(ModCommandSupport.buildEnumSetNode("race", Race.values(),
                         BodyService::setRace, ModCommandSupport.ANYONE, null))
-                .then(ModCommandSupport.counter("lifespan", BodyService::setLifespan, BodyService::addLifespan))
-                .then(ModCommandSupport.counter("age", BodyService::setAge, BodyService::addAge));
+                .then(ModCommandSupport.buildCounter("lifespan", BodyService::setLifespan, BodyService::addLifespan))
+                .then(ModCommandSupport.buildCounter("age", BodyService::setAge, BodyService::addAge));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> physique(Predicate<ServerPlayer> awakened) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildPhysique(Predicate<ServerPlayer> awakened) {
         return Commands.literal("physique")
                 .then(enumAction("add", Physique.values(), BodyService::addPhysique,
                         value -> value != Physique.EXTREME, player -> true,
@@ -49,7 +48,7 @@ public final class CmdBody {
                 .then(enumAction("remove", Physique.values(), BodyService::removePhysique, value -> true,
                         player -> true, null))
                 .then(Commands.literal("extreme")
-                        .then(enumAction("set", ExtremePhysique.settable(), BodyService::setExtremePhysique,
+                        .then(enumAction("set", ExtremePhysique.getSettable(), BodyService::setExtremePhysique,
                                 value -> true, awakened,
                                 ModCommandSupport.FAILED_UNAWAKENED)));
     }
@@ -58,7 +57,7 @@ public final class CmdBody {
             String literal, E[] values, ModCommandSupport.EnumOperation<E> operation,
             Predicate<E> valueAllowed, Predicate<ServerPlayer> allowed, String refusedKey) {
         return Commands.literal(literal).then(ModCommandSupport.withTargets(
-                ModEnumArgument.arg(ModCommandSupport.ARG_VALUE, values), context -> {
+                ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, values), context -> {
                     E value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, values);
                     boolean valid = valueAllowed.test(value);
                     Predicate<ServerPlayer> gate = !valid

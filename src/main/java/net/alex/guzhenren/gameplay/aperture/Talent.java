@@ -65,7 +65,9 @@ public enum Talent implements NamedEnum {
         return values()[Mth.clamp(ordinal() - delta, HIGHEST.ordinal(), LOWEST.ordinal())];
     }
 
-    public static Talent[] settable() { return Arrays.copyOfRange(values(), HIGHEST.ordinal(), LOWEST.ordinal() + 1); }
+    public static Talent[] getSettable() {
+        return Arrays.copyOfRange(values(), HIGHEST.ordinal(), LOWEST.ordinal() + 1);
+    }
 
     public static Talent randomTalent() { return WeightedPick.pick(values(), talent -> talent.weight); }
 

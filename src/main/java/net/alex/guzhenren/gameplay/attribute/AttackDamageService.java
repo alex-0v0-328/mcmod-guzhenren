@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link AttackContributor#attackBonus}. ⚠ The zombie bonus rides {@code BodyData.zombieTier}, NOT a
  * MobEffect (permanent 僵 has none; command tier -1 gets NO attack).
  *
- * <p>{@link #showsImpactRing(double)} tests the attack-panel value against
+ * <p>{@link #isImpactRingShown(double)} tests the attack-panel value against
  * {@link #IMPACT_RING_ATTACK_THRESHOLD}, at and above which a landed Epic Fight bare-hand/fist punch
  * spawns the shockwave ring; read as the panel number, so only fist-category
  * weapon damage ever rides along with the strength bonus.
@@ -49,7 +49,7 @@ public final class AttackDamageService {
     public static final double ZOMBIE_ATTACK_BASE = 5.0D;
     public static final double IMPACT_RING_ATTACK_THRESHOLD = 16.0D;
 
-    public static boolean showsImpactRing(double attackDamage) {
+    public static boolean isImpactRingShown(double attackDamage) {
         return attackDamage >= IMPACT_RING_ATTACK_THRESHOLD;
     }
 
@@ -67,7 +67,7 @@ public final class AttackDamageService {
     public static double getEffectBonus(@NotNull Player player) {
         double total = 0.0D;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (ModEffects.effectOf(instance) instanceof AttackContributor contributor) {
+            if (ModEffects.getEffectOf(instance) instanceof AttackContributor contributor) {
                 total += contributor.attackBonus(instance.getAmplifier());
             }
         }

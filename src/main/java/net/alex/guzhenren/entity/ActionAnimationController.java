@@ -45,9 +45,9 @@ final class ActionAnimationController<T extends GeoAnimatable> extends Animation
             this.lastPollTime = Double.NEGATIVE_INFINITY;
         }
         this.partialTick = state.getPartialTick();
-        this.transitionLength(this.action.get().loops() ? 3 : 0);
+        this.transitionLength(this.action.get().isLooping() ? 3 : 0);
         super.process(model, state, bones, snapshots, tick, crashIfBoneMissing);
-        if (!this.action.get().loops() && this.getAnimationState() == State.TRANSITIONING
+        if (!this.action.get().isLooping() && this.getAnimationState() == State.TRANSITIONING
                 && this.getCurrentAnimation() != null) {
             this.boneAnimationQueues.clear();
             super.process(model, state, bones, snapshots, tick, crashIfBoneMissing);
@@ -57,7 +57,7 @@ final class ActionAnimationController<T extends GeoAnimatable> extends Animation
     @Override
     protected double adjustTick(double tick) {
         double normalTick = super.adjustTick(tick);
-        if (this.action.get().loops()) return normalTick;
+        if (this.action.get().isLooping()) return normalTick;
         return this.getAnimationState() == State.TRANSITIONING
                 ? 0.0D : this.elapsedTicks.getAsLong() + this.partialTick;
     }

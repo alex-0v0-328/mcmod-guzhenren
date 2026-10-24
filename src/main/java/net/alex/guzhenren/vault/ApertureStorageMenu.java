@@ -148,13 +148,13 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     }
 
     private boolean matchesStore(ServerPlayer server) {
-        return ApertureStorageService.matchesPage(server, aperture, getPageIndex() * PAGE_SIZE, window())
-                && same(vital.getItem(0), ApertureStorageService.getVital(server, aperture))
+        return ApertureStorageService.isSamePage(server, aperture, getPageIndex() * PAGE_SIZE, collectWindow())
+                && isSame(vital.getItem(0), ApertureStorageService.getVital(server, aperture))
                 && getLoad() == ApertureStorageService.load(server, aperture)
                 && pageData.get(DATA_PAGES) == countPages();
     }
 
-    private List<ItemStack> window() {
+    private List<ItemStack> collectWindow() {
         List<ItemStack> window = new ArrayList<>(PAGE_SIZE);
         for (int i = 0; i < PAGE_SIZE; i++) window.add(page.getItem(i).copy());
         return window;
@@ -179,9 +179,9 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     private void save() {
         if (loading || !(player instanceof ServerPlayer server)) return;
 
-        List<ItemStack> window = window();
+        List<ItemStack> window = collectWindow();
         int from = getPageIndex() * PAGE_SIZE;
-        if (!ApertureStorageService.matchesPage(server, aperture, from, window)) {
+        if (!ApertureStorageService.isSamePage(server, aperture, from, window)) {
             if (!ApertureStorageService.setPage(server, aperture, from, window)) {
                 load(getPageIndex());
                 return;
@@ -190,8 +190,8 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         ItemStack bound = vital.getItem(0);
         if (!bound.isEmpty()) bindVital(bound, server, aperture);
-        if (!same(bound, ApertureStorageService.getVital(server, aperture))) {
-            int kind = ApertureService.get(server).kindAt(aperture);
+        if (!isSame(bound, ApertureStorageService.getVital(server, aperture))) {
+            int kind = ApertureService.get(server).getKindAt(aperture);
             long former = ApertureStorageService.getVitalToken(server, kind);
             if (!ApertureStorageService.setVital(server, aperture, bound.copy())) {
                 load(getPageIndex());
@@ -208,22 +208,22 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     private static void bindVital(ItemStack stack, ServerPlayer player, int aperture) {
         if (stack.getItem() instanceof GuItem
-                && (!GuItem.isCurrentVital(stack, player) || GuItem.boundIndex(stack, player) != aperture)) {
+                && (!GuItem.isCurrentVital(stack, player) || GuItem.getBoundIndex(stack, player) != aperture)) {
             GuItem.bind(stack, player, aperture);
         }
     }
 
     private void releaseFormer(ServerPlayer server, long token) {
-        if (GuItem.token(getCarried()) == token) GuItem.unbind(getCarried());
+        if (GuItem.getToken(getCarried()) == token) GuItem.unbind(getCarried());
         Inventory inventory = server.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (GuItem.token(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
+            if (GuItem.getToken(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
         }
     }
 
-    private static boolean same(ItemStack first, ItemStack second) {
+    private static boolean isSame(ItemStack first, ItemStack second) {
         return first.getCount() == second.getCount()
-                && ItemStacks.sameItemSameData(first, second);
+                && ItemStacks.isSameItemSameData(first, second);
     }
     //endregion
 
@@ -256,7 +256,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
                  i += reverse ? -1 : 1) {
                 Slot slot = slots.get(i);
                 ItemStack held = slot.getItem();
-                if (held.isEmpty() || !ItemStacks.sameItemSameData(stack, held)) continue;
+                if (held.isEmpty() || !ItemStacks.isSameItemSameData(stack, held)) continue;
 
                 int total = held.getCount() + stack.getCount();
                 int limit = slot.getMaxStackSize(held);
@@ -320,7 +320,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         public int getMaxStackSize() { return 1; }
 
         private static boolean canBeVital(ItemStack stack, Player player) {
-            return stack.getItem() instanceof TendedGuItem gu && gu.refined(stack) && gu.canBeVital()
+            return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack) && gu.canBeVital()
                     && !GuItem.isForeignVital(stack, player);
         }
     }

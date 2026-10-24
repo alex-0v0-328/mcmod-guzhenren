@@ -49,31 +49,31 @@ public class HopeGuItem extends MortalGuItem {
     }
 
     @Override
-    protected @Nullable Refusal useGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
         return ApertureService.isAwakened(player) ? new Refusal(FAILED_AWAKENED) : null;
     }
 
     @Override
-    protected final @Nullable Refusal gate(Player player, ItemStack stack) { return useGate(player, stack); }
+    protected final @Nullable Refusal checkGate(Player player, ItemStack stack) { return checkUseGate(player, stack); }
 
     @Override
     protected final int useDurationTicks(Player player, ItemStack stack) { return RITUAL_TICKS; }
 
     @Override
-    protected int cooldownTicks(ItemStack stack) { return REFINE_DONE_COOLDOWN_TICKS; }
+    protected int getCooldownTicks(ItemStack stack) { return REFINE_DONE_COOLDOWN_TICKS; }
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack,
                           int remaining) {
         if (remaining != RITUAL_TICKS || !(entity instanceof ServerPlayer)) return;
-        if (rolledBase(stack) > 0) return;
+        if (getRolledBase(stack) > 0) return;
 
         ModDataComponents.set(stack, ModDataComponents.AWAKEN_BASE, Talent.randomPercent(Talent.randomTalent()));
     }
 
     @Override
     protected final int apply(ServerPlayer player, ItemStack stack) {
-        ApertureService.awaken(player, rolledBase(stack));
+        ApertureService.awaken(player, getRolledBase(stack));
         ModCriteriaTriggers.USED_HOPE_GU.get().trigger(player);
         ModDataComponents.remove(stack, ModDataComponents.AWAKEN_BASE);
         player.server.getCommands().sendCommands(player);
@@ -81,20 +81,20 @@ public class HopeGuItem extends MortalGuItem {
     }
 
     //region the ritual bar
-    private static int rolledBase(ItemStack stack) {
+    private static int getRolledBase(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.AWAKEN_BASE, 0);
     }
 
-    private static int filledTicks(int remaining) { return Math.min(RITUAL_TICKS - remaining, FILLING_TICKS); }
+    private static int getFilledTicks(int remaining) { return Math.min(RITUAL_TICKS - remaining, FILLING_TICKS); }
 
-    private static int climbingBase(ItemStack stack, int remainingTicks) {
-        int rolled = rolledBase(stack);
-        return LOWEST_BASE + (rolled - LOWEST_BASE) * filledTicks(remainingTicks) / FILLING_TICKS;
+    private static int getClimbingBase(ItemStack stack, int remainingTicks) {
+        int rolled = getRolledBase(stack);
+        return LOWEST_BASE + (rolled - LOWEST_BASE) * getFilledTicks(remainingTicks) / FILLING_TICKS;
     }
 
     @Override
     public @Nullable Float chargeFraction(ItemStack stack, int remainingTicks) {
-        return rolledBase(stack) <= 0 ? 0.0F : climbingBase(stack, remainingTicks) / 100.0F;
+        return getRolledBase(stack) <= 0 ? 0.0F : getClimbingBase(stack, remainingTicks) / 100.0F;
     }
 
     @Override
@@ -106,8 +106,8 @@ public class HopeGuItem extends MortalGuItem {
 
     @Override
     public @Nullable Component chargeCaption(ItemStack stack, int remainingTicks) {
-        if (rolledBase(stack) <= 0) return null;
-        return Component.translatable(CAPTION_TENTH + climbingBase(stack, remainingTicks) / 10);
+        if (getRolledBase(stack) <= 0) return null;
+        return Component.translatable(CAPTION_TENTH + getClimbingBase(stack, remainingTicks) / 10);
     }
     //endregion
 }

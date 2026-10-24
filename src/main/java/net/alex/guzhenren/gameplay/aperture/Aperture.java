@@ -107,35 +107,35 @@ public record Aperture(
 
     public Aperture {
         baseEssence = baseEssence <= 0 ? 0 : Mth.clamp(baseEssence, MIN_BASE, MAX_BASE);
-        currentEssence = Math.min(maxEssence(rank, stage, baseEssence), Math.max(currentEssence, 0L));
-        distilledEssence = Math.min(maxEssence(rank, stage, baseEssence), Math.max(distilledEssence, 0L));
+        currentEssence = Math.min(computeMaxEssence(rank, stage, baseEssence), Math.max(currentEssence, 0L));
+        distilledEssence = Math.min(computeMaxEssence(rank, stage, baseEssence), Math.max(distilledEssence, 0L));
         pressure = Mth.clamp(pressure, 0, MAX_PRESSURE);
         pressureDeadlineTick = pressure == PRESSURE_COUNTDOWN_START ? Math.max(0L, pressureDeadlineTick) : 0L;
         nourishProgress = Mth.clamp(nourishProgress, 0, ApertureNourishData.FULL);
         if (secondaryPath != null && secondaryPath == primaryPath) secondaryPath = null;
     }
 
-    public static Aperture opened() { return openedAt(Talent.randomPercent(Talent.randomTalent())); }
+    public static Aperture createOpened() { return createOpenedAt(Talent.randomPercent(Talent.randomTalent())); }
 
-    public static Aperture openedAt(int baseEssence) {
-        long max = maxEssence(Rank.ONE, Stage.INIT, baseEssence);
+    public static Aperture createOpenedAt(int baseEssence) {
+        long max = computeMaxEssence(Rank.ONE, Stage.INIT, baseEssence);
         return new Aperture(Rank.ONE, Stage.INIT, baseEssence, max, null, null, 0L, 0, 0L, 0, false, false, false);
     }
 
-    public static Aperture secondOpened(Rank rank) {
-        long max = maxEssence(rank, Stage.INIT, SECOND_BASE);
+    public static Aperture createSecond(Rank rank) {
+        long max = computeMaxEssence(rank, Stage.INIT, SECOND_BASE);
         return new Aperture(rank, Stage.INIT, SECOND_BASE, max, null, null, 0L, 0, 0L, 0, false, false, true);
     }
 
-    public static long maxEssence(Rank rank, Stage stage, int base) {
+    public static long computeMaxEssence(Rank rank, Stage stage, int base) {
         return Math.max(0L, (long) base * stage.getEssenceMultiplier() * rank.getRankBase());
     }
 
-    public long maxEssence() { return maxEssence(rank, stage, baseEssence); }
+    public long getMaxEssence() { return computeMaxEssence(rank, stage, baseEssence); }
 
-    public Talent talent() { return Talent.fromPercent(baseEssence); }
+    public Talent getTalent() { return Talent.fromPercent(baseEssence); }
 
-    public Aperture refilled() { return withCurrentEssence(maxEssence()); }
+    public Aperture withFullEssence() { return withCurrentEssence(getMaxEssence()); }
 
     public Aperture withRank(Rank value) {
         return new Aperture(value, stage, baseEssence, currentEssence, primaryPath, secondaryPath, distilledEssence,

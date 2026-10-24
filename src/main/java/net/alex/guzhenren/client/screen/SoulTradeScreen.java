@@ -59,33 +59,33 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     public SoulTradeScreen(SoulTradeMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         this.imageWidth = WIDTH;
-        this.imageHeight = SoulTradeMenu.hotbarY(menu.offers().size()) + Widgets.CELL + BOTTOM_MARGIN;
+        this.imageHeight = SoulTradeMenu.getHotbarY(menu.getOffers().size()) + Widgets.CELL + BOTTOM_MARGIN;
         this.inventoryLabelX = SoulTradeMenu.INVENTORY_X;
-        this.inventoryLabelY = SoulTradeMenu.inventoryY(menu.offers().size()) - 10;
-        this.affordable = new boolean[menu.offers().size()];
-        this.enough = new boolean[menu.offers().size()][];
-        for (int i = 0; i < enough.length; i++) enough[i] = new boolean[menu.offers().get(i).costs().size()];
+        this.inventoryLabelY = SoulTradeMenu.getInventoryY(menu.getOffers().size()) - 10;
+        this.affordable = new boolean[menu.getOffers().size()];
+        this.enough = new boolean[menu.getOffers().size()][];
+        for (int i = 0; i < enough.length; i++) enough[i] = new boolean[menu.getOffers().get(i).costs().size()];
     }
 
     @Override
     protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = this.leftPos;
         int y = this.topPos;
-        List<SoulTradeOffer> offers = this.menu.offers();
+        List<SoulTradeOffer> offers = this.menu.getOffers();
         GuiBatch.draw(graphics, () -> {
             Widgets.drawPanel(graphics, x, y, this.imageWidth, this.imageHeight, ModPalette.PANEL_FILL);
 
             for (int i = 0; i < offers.size(); i++) {
-                int rowY = y + rowY(i);
+                int rowY = y + getRowY(i);
                 graphics.fill(x + ROW_X, rowY, x + ROW_X + ROW_W, rowY + ROW_FILL_H, ROW_FILL);
                 drawButton(graphics, x + BUTTON_X, rowY + ICON_PAD, this.affordable[i],
-                        this.inButton(i, mouseX, mouseY));
+                        this.isInButton(i, mouseX, mouseY));
             }
             int inventoryX = x + SoulTradeMenu.INVENTORY_X;
-            Widgets.drawCells(graphics, inventoryX, y + SoulTradeMenu.inventoryY(offers.size()),
+            Widgets.drawCells(graphics, inventoryX, y + SoulTradeMenu.getInventoryY(offers.size()),
                     SoulTradeMenu.INVENTORY_COLS, SoulTradeMenu.INVENTORY_ROWS, SoulTradeMenu.SLOT,
                     ModPalette.SLOT_FILL);
-            Widgets.drawCells(graphics, inventoryX, y + SoulTradeMenu.hotbarY(offers.size()),
+            Widgets.drawCells(graphics, inventoryX, y + SoulTradeMenu.getHotbarY(offers.size()),
                     SoulTradeMenu.INVENTORY_COLS, 1, SoulTradeMenu.SLOT, ModPalette.SLOT_FILL);
         });
     }
@@ -103,15 +103,15 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
         graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY,
                 ModPalette.TEXT, false);
 
-        List<SoulTradeOffer> offers = this.menu.offers();
+        List<SoulTradeOffer> offers = this.menu.getOffers();
         for (int i = 0; i < offers.size(); i++) {
             SoulTradeOffer offer = offers.get(i);
-            int iconY = rowY(i) + ICON_PAD;
+            int iconY = getRowY(i) + ICON_PAD;
             List<TradeCost> costs = offer.costs();
             for (int n = 0; n < costs.size(); n++) {
                 TradeCost cost = costs.get(n);
                 int iconX = COST_X + n * COST_STRIDE;
-                graphics.renderFakeItem(cost.itemStack(), iconX, iconY);
+                graphics.renderFakeItem(cost.createItemStack(), iconX, iconY);
                 drawCount(graphics, iconX, iconY, cost.count(), this.enough[i][n] ? ModPalette.TEXT : ModPalette.SHORT);
             }
             graphics.drawString(this.font, ARROW, ARROW_X, iconY + 4, ModPalette.TEXT, false);
@@ -145,17 +145,17 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     }
 
     private void renderOfferTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-        List<SoulTradeOffer> offers = this.menu.offers();
+        List<SoulTradeOffer> offers = this.menu.getOffers();
         for (int i = 0; i < offers.size(); i++) {
-            int iconY = this.topPos + rowY(i) + ICON_PAD;
+            int iconY = this.topPos + getRowY(i) + ICON_PAD;
             List<TradeCost> costs = offers.get(i).costs();
             for (int n = 0; n < costs.size(); n++) {
-                if (this.over(this.leftPos + COST_X + n * COST_STRIDE, iconY, mouseX, mouseY)) {
-                    graphics.renderTooltip(this.font, costs.get(n).itemStack(), mouseX, mouseY);
+                if (this.isOver(this.leftPos + COST_X + n * COST_STRIDE, iconY, mouseX, mouseY)) {
+                    graphics.renderTooltip(this.font, costs.get(n).createItemStack(), mouseX, mouseY);
                     return;
                 }
             }
-            if (this.over(this.leftPos + RESULT_X, iconY, mouseX, mouseY)) {
+            if (this.isOver(this.leftPos + RESULT_X, iconY, mouseX, mouseY)) {
                 graphics.renderTooltip(this.font, offers.get(i).result(), mouseX, mouseY);
                 return;
             }
@@ -165,40 +165,40 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            for (int i = 0; i < this.menu.offers().size(); i++) {
-                if (this.inButton(i, mouseX, mouseY)) return Widgets.clickMenuButton(this.menu.containerId, i);
+            for (int i = 0; i < this.menu.getOffers().size(); i++) {
+                if (this.isInButton(i, mouseX, mouseY)) return Widgets.clickMenuButton(this.menu.containerId, i);
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private boolean inButton(int offer, double mouseX, double mouseY) {
-        return Widgets.isOver(mouseX, mouseY, this.leftPos + BUTTON_X, this.topPos + rowY(offer) + ICON_PAD,
+    private boolean isInButton(int offer, double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, this.leftPos + BUTTON_X, this.topPos + getRowY(offer) + ICON_PAD,
                 BUTTON_W, BUTTON_H);
     }
 
-    private boolean over(int x, int y, double mouseX, double mouseY) {
+    private boolean isOver(int x, int y, double mouseX, double mouseY) {
         return Widgets.isOver(mouseX, mouseY, x, y, Widgets.CELL, Widgets.CELL);
     }
 
     private void refreshAffordable() {
-        List<ItemStack> bag = this.bag();
-        List<SoulTradeOffer> offers = this.menu.offers();
+        List<ItemStack> bag = this.collectBag();
+        List<SoulTradeOffer> offers = this.menu.getOffers();
         for (int i = 0; i < offers.size(); i++) {
             List<TradeCost> costs = offers.get(i).costs();
             boolean all = true;
             for (int n = 0; n < costs.size(); n++) {
-                this.enough[i][n] = SoulTradeOffer.held(bag, costs.get(n)) >= costs.get(n).count();
+                this.enough[i][n] = SoulTradeOffer.countHeld(bag, costs.get(n)) >= costs.get(n).count();
                 all &= this.enough[i][n];
             }
             this.affordable[i] = all;
         }
     }
 
-    private List<ItemStack> bag() {
+    private List<ItemStack> collectBag() {
         Minecraft minecraft = Minecraft.getInstance();
         return minecraft.player == null ? List.of() : minecraft.player.getInventory().items;
     }
 
-    private static int rowY(int offer) { return SoulTradeMenu.ROWS_Y + offer * SoulTradeMenu.ROW_H; }
+    private static int getRowY(int offer) { return SoulTradeMenu.ROWS_Y + offer * SoulTradeMenu.ROW_H; }
 }

@@ -36,13 +36,13 @@ public class PrimevalStoneItem extends GuMaterialItem {
         this.essence = essence;
     }
 
-    public long essence() { return essence; }
+    public long getEssence() { return essence; }
 
     @Override
     protected boolean hasUse() { return true; }
 
     @Override
-    protected @Nullable Refusal gate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkGate(Player player, ItemStack stack) {
         if (!ApertureService.hasAperture(player)) return new Refusal(FAILED_UNAWAKENED);
         return ApertureEssenceService.getCurrentEssence(player) >= ApertureEssenceService.getMaxEssence(player)
                 ? new Refusal(FAILED_FULL) : null;
@@ -50,12 +50,12 @@ public class PrimevalStoneItem extends GuMaterialItem {
 
     @Override
     protected int apply(ServerPlayer player, ItemStack stack) {
-        int used = used(player, stack);
+        int used = getUsableCount(player, stack);
         ApertureEssenceService.add(player, essence * used);
         return used;
     }
 
-    public int used(Player player, ItemStack stack) {
+    public int getUsableCount(Player player, ItemStack stack) {
         long deficit = ApertureEssenceService.getMaxEssence(player) - ApertureEssenceService.getCurrentEssence(player);
         return (int) Math.min(stack.getCount(), (deficit + essence - 1) / essence);
     }

@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
 
 /**
  * The buttons under each aperture [空窍] in the B panel: nourish [温养空窍] (or flush [冲刷窍壁] for the first
- * aperture once it can strike the wall), then storage [空窍存储]. {@link #stack} decides which buttons an
+ * aperture once it can strike the wall), then storage [空窍存储]. {@link #buildStackButtons} decides which buttons an
  * aperture shows, {@link #fill} paints one's box, {@link #drawLabel} its text and {@link #click} sends its payload;
  * the two paints are apart so the panel can draw every box before any text in one batch. Where a stack sits is the
  * panel's business. Labels are built once, not per frame.
@@ -50,7 +50,7 @@ final class ApertureButtons {
 
     record ColumnButton(int aperture, int kind, Component label, int x0, int x1, int top) {}
 
-    static List<StackButton> stack(LocalPlayer player, int aperture) {
+    static List<StackButton> buildStackButtons(LocalPlayer player, int aperture) {
         List<StackButton> buttons = new ArrayList<>();
         int step = PlayerInfoScreen.BTN_H + PlayerInfoScreen.BTN_GAP;
         if (aperture == ApertureData.PRIMARY && ApertureNourishService.canImpact(player)) {
@@ -68,7 +68,7 @@ final class ApertureButtons {
 
     static void fill(GuiGraphics graphics, LocalPlayer player, ColumnButton button, int mouseX, int mouseY,
                      int accent) {
-        boolean hover = inBox(mouseX, mouseY, button.x0(), button.x1(), button.top());
+        boolean hover = isInBox(mouseX, mouseY, button.x0(), button.x1(), button.top());
         int x0 = button.x0();
         int x1 = button.x1();
         int top = button.top();
@@ -125,7 +125,7 @@ final class ApertureButtons {
         return false;
     }
 
-    static boolean inBox(double mouseX, double mouseY, int x0, int x1, int top) {
+    static boolean isInBox(double mouseX, double mouseY, int x0, int x1, int top) {
         return Widgets.isOver(mouseX, mouseY, x0, top, x1 - x0, PlayerInfoScreen.BTN_H);
     }
 

@@ -49,15 +49,15 @@ public class TreasureLotusGuItem extends TendedGuItem {
     }
 
     @Override
-    protected boolean feedsFromOffhand() { return false; }
+    protected boolean canFeedFromOffhand() { return false; }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return new Refusal(FAILED_PASSIVE);
     }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {}
+    protected void payOut(ServerPlayer player, ItemStack stack) {}
 
     //region the passive heartbeat -- 5% essence and the minting chain
     @Override
@@ -67,7 +67,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
     }
 
     private void mintStones(ServerPlayer player, ItemStack stack) {
-        int hurt = state(stack).damageTaken();
+        int hurt = getState(stack).damageTaken();
         if (hurt > 0) {
             repairFromBank(stack, hurt);
             return;
@@ -77,20 +77,20 @@ public class TreasureLotusGuItem extends TendedGuItem {
     }
 
     private void repairFromBank(ItemStack stack, int hurt) {
-        int bank = bankOf(stack) + stonesPerSecond;
+        int bank = getBank(stack) + stonesPerSecond;
         int healed = Math.min(hurt, bank / stonesPerHealth);
         if (healed > 0) {
             heal(stack, healed);
             bank %= stonesPerHealth;
         }
-        if (state(stack).damageTaken() > 0) {
+        if (getState(stack).damageTaken() > 0) {
             ModDataComponents.set(stack, ModDataComponents.HEAL_BANK, bank);
         } else {
             clearHealBank(stack);
         }
     }
 
-    private int bankOf(ItemStack stack) {
+    private int getBank(ItemStack stack) {
         return ModDataComponents.getOrDefault(stack, ModDataComponents.HEAL_BANK, 0);
     }
 
@@ -149,7 +149,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
         int left = placeInto(inventory, 9, 36, produced, amount);
         left = placeInto(inventory, 0, 9, produced, left);
         ItemStack offhand = player.getOffhandItem();
-        if (left > 0 && ItemStacks.sameItemSameData(offhand, produced)
+        if (left > 0 && ItemStacks.isSameItemSameData(offhand, produced)
                 && offhand.getCount() < offhand.getMaxStackSize()) {
             int moved = Math.min(left, offhand.getMaxStackSize() - offhand.getCount());
             offhand.grow(moved);
@@ -170,7 +170,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
         int left = amount;
         for (int slot = from; slot < to && left > 0; slot++) {
             ItemStack existing = inventory.getItem(slot);
-            if (ItemStacks.sameItemSameData(existing, produced)
+            if (ItemStacks.isSameItemSameData(existing, produced)
                     && existing.getCount() < existing.getMaxStackSize()) {
                 int moved = Math.min(left, existing.getMaxStackSize() - existing.getCount());
                 existing.grow(moved);

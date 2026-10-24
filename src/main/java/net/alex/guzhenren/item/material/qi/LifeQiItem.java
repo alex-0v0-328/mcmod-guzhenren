@@ -41,8 +41,8 @@ public class LifeQiItem extends QiMaterialItem {
         long death = PathQiService.getCurrent(player, QiKind.DEATH);
         if (death <= 0L) return super.apply(player, stack);
 
-        long remainder = qiAmount() - Math.min(qiAmount(), death);
-        PathQiService.add(player, QiKind.DEATH, -qiAmount());
+        long remainder = getQiAmount() - Math.min(getQiAmount(), death);
+        PathQiService.add(player, QiKind.DEATH, -getQiAmount());
         if (remainder > 0L) PathQiService.add(player, QiKind.LIFE, remainder);
         if (PathQiService.getCurrent(player, QiKind.DEATH) <= 0L) {
             double refund = BodyService.refundDeathQiDebt(player,

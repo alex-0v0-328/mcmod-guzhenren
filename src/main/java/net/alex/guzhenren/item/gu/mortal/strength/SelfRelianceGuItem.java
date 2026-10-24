@@ -30,7 +30,7 @@ public final class SelfRelianceGuItem extends BuffGuItem {
         if (player.getHealth() >= player.getMaxHealth() * AUTO_USE_HEALTH_FRACTION
                 || ModEffects.has(player, ModEffects.SELF_RELIANCE_GU)) return;
         for (ItemStack stack : player.getInventory().items) {
-            if (stack.getItem() instanceof SelfRelianceGuItem item && item.autoUse(player, stack)) return;
+            if (stack.getItem() instanceof SelfRelianceGuItem item && item.tryAutoUse(player, stack)) return;
         }
     }
 }

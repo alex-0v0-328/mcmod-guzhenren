@@ -67,7 +67,7 @@ public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
     @Override
     public @NotNull ItemStack result() { return result.copy(); }
 
-    public static int held(List<ItemStack> items, TradeCost cost) {
+    public static int countHeld(List<ItemStack> items, TradeCost cost) {
         int count = 0;
         for (ItemStack stack : items) {
             if (!stack.isEmpty() && cost.test(stack)) count += stack.getCount();
@@ -75,9 +75,9 @@ public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
         return count;
     }
 
-    public boolean affordable(List<ItemStack> items) {
+    public boolean canAfford(List<ItemStack> items) {
         for (TradeCost cost : costs) {
-            if (held(items, cost) < cost.count()) return false;
+            if (countHeld(items, cost) < cost.count()) return false;
         }
         return true;
     }
@@ -89,15 +89,15 @@ public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
     }
 
     public Outcome settle(NonNullList<ItemStack> items, List<ItemStack> returning) {
-        List<ItemStack> after = copies(items);
+        List<ItemStack> after = copyAll(items);
         for (TradeCost cost : costs) {
-            if (!take(after, cost)) return Outcome.SHORT;
+            if (!tryTake(after, cost)) return Outcome.SHORT;
         }
-        if (overflows(after, result.copy())) return Outcome.NO_ROOM;
+        if (isOverflowing(after, result.copy())) return Outcome.NO_ROOM;
 
-        List<ItemStack> later = copies(after);
+        List<ItemStack> later = copyAll(after);
         for (ItemStack back : returning) {
-            if (overflows(later, back.copy())) return Outcome.NO_ROOM;
+            if (isOverflowing(later, back.copy())) return Outcome.NO_ROOM;
         }
         for (int i = 0; i < items.size(); i++) {
             ItemStack stack = after.get(i);
@@ -106,13 +106,13 @@ public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
         return Outcome.DONE;
     }
 
-    private static List<ItemStack> copies(List<ItemStack> items) {
+    private static List<ItemStack> copyAll(List<ItemStack> items) {
         List<ItemStack> copies = new ArrayList<>(items.size());
         for (ItemStack stack : items) copies.add(stack.copy());
         return copies;
     }
 
-    private static boolean take(List<ItemStack> items, TradeCost cost) {
+    private static boolean tryTake(List<ItemStack> items, TradeCost cost) {
         int wanted = cost.count();
         for (ItemStack stack : items) {
             if (wanted <= 0) break;
@@ -125,10 +125,10 @@ public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {
         return wanted <= 0;
     }
 
-    private static boolean overflows(List<ItemStack> items, ItemStack stack) {
+    private static boolean isOverflowing(List<ItemStack> items, ItemStack stack) {
         for (ItemStack held : items) {
             if (stack.isEmpty()) return false;
-            if (held.isEmpty() || !ItemStacks.sameItemSameData(held, stack)) continue;
+            if (held.isEmpty() || !ItemStacks.isSameItemSameData(held, stack)) continue;
 
             int moved = Math.min(held.getMaxStackSize() - held.getCount(), stack.getCount());
             if (moved <= 0) continue;

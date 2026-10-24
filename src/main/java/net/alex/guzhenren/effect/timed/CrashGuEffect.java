@@ -31,5 +31,5 @@ public final class CrashGuEffect extends MobEffect {
         super(category, color);
     }
 
-    public static int duration(int seconds) { return seconds * Ticks.SECOND; }
+    public static int getDuration(int seconds) { return seconds * Ticks.SECOND; }
 }

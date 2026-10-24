@@ -52,69 +52,75 @@ public final class ModEntityRenderers {
             new DefaultedEntityGeoModel<>(Guzhenren.id("tiger"), false);
     private static final HumanSoulGeoModel HUMAN_SOUL_MODEL = new HumanSoulGeoModel();
 
-    private static final ResourceLocation WHITE_BOAR_GU = texture("white_boar_gu");
-    private static final ResourceLocation BLACK_BOAR_GU = texture("black_boar_gu");
-    private static final ResourceLocation FLOWER_BOAR_GU = texture("flower_boar_gu");
-    private static final ResourceLocation CRASH_GU_SILVER = texture("crash_gu");
-    private static final ResourceLocation CRASH_GU_GOLD = texture("charging_crash_gu");
-    private static final ResourceLocation CRASH_GU_AMETHYST = texture("charging_crash_gu_5");
-    private static final ResourceLocation WILD_BOAR = texture("wild_boar");
-    private static final ResourceLocation BROWN_BEAR = texture("brown_bear");
-    private static final ResourceLocation ASIAN_BLACK_BEAR = texture("asian_black_bear");
-    private static final ResourceLocation AMERICAN_BLACK_BEAR = texture("american_black_bear");
-    private static final ResourceLocation ALBINO_BEAR = texture("albino_bear");
-    private static final ResourceLocation ORANGE_TIGER = texture("tiger");
-    private static final ResourceLocation WHITE_TIGER = texture("white_tiger");
+    private static final ResourceLocation WHITE_BOAR_GU = getTexture("white_boar_gu");
+    private static final ResourceLocation BLACK_BOAR_GU = getTexture("black_boar_gu");
+    private static final ResourceLocation FLOWER_BOAR_GU = getTexture("flower_boar_gu");
+    private static final ResourceLocation CRASH_GU_SILVER = getTexture("crash_gu");
+    private static final ResourceLocation CRASH_GU_GOLD = getTexture("charging_crash_gu");
+    private static final ResourceLocation CRASH_GU_AMETHYST = getTexture("charging_crash_gu_5");
+    private static final ResourceLocation WILD_BOAR = getTexture("wild_boar");
+    private static final ResourceLocation BROWN_BEAR = getTexture("brown_bear");
+    private static final ResourceLocation ASIAN_BLACK_BEAR = getTexture("asian_black_bear");
+    private static final ResourceLocation AMERICAN_BLACK_BEAR = getTexture("american_black_bear");
+    private static final ResourceLocation ALBINO_BEAR = getTexture("albino_bear");
+    private static final ResourceLocation ORANGE_TIGER = getTexture("tiger");
+    private static final ResourceLocation WHITE_TIGER = getTexture("white_tiger");
 
     @SubscribeEvent
     public static void register(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntityTypes.HOPE_GU_ENTITY.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.WHITE_BOAR_GU_ENTITY.get(),
-                context -> boarGu(context, WHITE_BOAR_GU));
+                context -> createBoarGuRenderer(context, WHITE_BOAR_GU));
         event.registerEntityRenderer(ModEntityTypes.BLACK_BOAR_GU_ENTITY.get(),
-                context -> boarGu(context, BLACK_BOAR_GU));
+                context -> createBoarGuRenderer(context, BLACK_BOAR_GU));
         event.registerEntityRenderer(ModEntityTypes.FLOWER_BOAR_GU_ENTITY.get(),
-                context -> boarGu(context, FLOWER_BOAR_GU));
+                context -> createBoarGuRenderer(context, FLOWER_BOAR_GU));
         event.registerEntityRenderer(ModEntityTypes.HORIZONTAL_CRASH_GU_ENTITY.get(),
-                context -> crashGu(context, CRASH_GU_SILVER));
+                context -> createCrashGuRenderer(context, CRASH_GU_SILVER));
         event.registerEntityRenderer(ModEntityTypes.VERTICAL_CRASH_GU_ENTITY.get(),
-                context -> crashGu(context, CRASH_GU_SILVER));
+                context -> createCrashGuRenderer(context, CRASH_GU_SILVER));
         event.registerEntityRenderer(ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(),
-                context -> crashGu(context, CRASH_GU_GOLD));
+                context -> createCrashGuRenderer(context, CRASH_GU_GOLD));
         event.registerEntityRenderer(ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get(),
-                context -> crashGu(context, CRASH_GU_AMETHYST));
+                context -> createCrashGuRenderer(context, CRASH_GU_AMETHYST));
         event.registerEntityRenderer(ModEntityTypes.WILD_BOAR.get(),
                 context -> new FixedTextureGeoRenderer<>(context, WILD_BOAR_MODEL, WILD_BOAR, 0.55F, false));
-        event.registerEntityRenderer(ModEntityTypes.BROWN_BEAR.get(), context -> bear(context, BROWN_BEAR));
-        event.registerEntityRenderer(ModEntityTypes.ASIAN_BLACK_BEAR.get(), context -> bear(context, ASIAN_BLACK_BEAR));
+        event.registerEntityRenderer(ModEntityTypes.BROWN_BEAR.get(),
+                context -> createBearRenderer(context, BROWN_BEAR));
+        event.registerEntityRenderer(ModEntityTypes.ASIAN_BLACK_BEAR.get(),
+                context -> createBearRenderer(context, ASIAN_BLACK_BEAR));
         event.registerEntityRenderer(ModEntityTypes.AMERICAN_BLACK_BEAR.get(),
-                context -> bear(context, AMERICAN_BLACK_BEAR));
-        event.registerEntityRenderer(ModEntityTypes.ALBINO_BEAR.get(), context -> bear(context, ALBINO_BEAR));
-        event.registerEntityRenderer(ModEntityTypes.TIGER.get(), context -> tiger(context, ORANGE_TIGER));
-        event.registerEntityRenderer(ModEntityTypes.WHITE_TIGER.get(), context -> tiger(context, WHITE_TIGER));
+                context -> createBearRenderer(context, AMERICAN_BLACK_BEAR));
+        event.registerEntityRenderer(ModEntityTypes.ALBINO_BEAR.get(),
+                context -> createBearRenderer(context, ALBINO_BEAR));
+        event.registerEntityRenderer(ModEntityTypes.TIGER.get(), context -> createTigerRenderer(context, ORANGE_TIGER));
+        event.registerEntityRenderer(ModEntityTypes.WHITE_TIGER.get(),
+                context -> createTigerRenderer(context, WHITE_TIGER));
         event.registerEntityRenderer(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(),
                 context -> new SoulTraderGeoRenderer(context, HUMAN_SOUL_MODEL, SoulTraderGeoRenderer.BLUE_TEXTURE));
     }
 
-    private static EntityRenderer<BoarGuEntity> boarGu(EntityRendererProvider.Context context,
-                                                       ResourceLocation texture) {
+    private static EntityRenderer<BoarGuEntity> createBoarGuRenderer(EntityRendererProvider.Context context,
+                                                                     ResourceLocation texture) {
         return new FixedTextureGeoRenderer<>(context, BOAR_GU_MODEL, texture, 0.2F, true).withScale(BOAR_GU_SCALE);
     }
 
-    private static EntityRenderer<CrashGuEntity> crashGu(EntityRendererProvider.Context context,
-                                                         ResourceLocation texture) {
+    private static EntityRenderer<CrashGuEntity> createCrashGuRenderer(EntityRendererProvider.Context context,
+                                                                       ResourceLocation texture) {
         return new FixedTextureGeoRenderer<>(context, CRASH_GU_MODEL, texture, 0.2F, false);
     }
 
-    private static EntityRenderer<BearEntity> bear(EntityRendererProvider.Context context, ResourceLocation texture) {
+    private static EntityRenderer<BearEntity> createBearRenderer(EntityRendererProvider.Context context,
+                                                                 ResourceLocation texture) {
         return new FixedTextureGeoRenderer<>(context, BEAR_MODEL, texture, 0.7F, false);
     }
 
-    private static EntityRenderer<TigerEntity> tiger(EntityRendererProvider.Context context, ResourceLocation texture) {
+    private static EntityRenderer<TigerEntity> createTigerRenderer(EntityRendererProvider.Context context,
+                                                                   ResourceLocation texture) {
         return new FixedTextureGeoRenderer<>(context, TIGER_MODEL, texture, 0.6F, false);
     }
 
-    private static ResourceLocation texture(String name) {
+    private static ResourceLocation getTexture(String name) {
         return Guzhenren.id("textures/entity/" + name + ".png");
     }
 }

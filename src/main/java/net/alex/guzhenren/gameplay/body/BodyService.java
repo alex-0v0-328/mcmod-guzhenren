@@ -62,7 +62,7 @@ public final class BodyService {
         return server.overworld().getDayTime() / Ticks.DAY;
     }
 
-    public static @NotNull BodyData get(@NotNull Player player) { return PlayerData.get(player).body(); }
+    public static @NotNull BodyData get(@NotNull Player player) { return PlayerData.get(player).getBody(); }
 
     public static boolean isZombie(@NotNull Player player) { return get(player).isZombie(); }
 
@@ -88,24 +88,24 @@ public final class BodyService {
 
     //region lifespan and age [寿元与年龄] -- ⚠ every caller speaks YEARS; only this file knows parts
     public static void setAge(@NotNull ServerPlayer player, long years) {
-        store(player, get(player).withAgeParts(BodyData.parts(years)));
+        store(player, get(player).withAgeParts(BodyData.toParts(years)));
     }
 
     public static void setLifespan(@NotNull ServerPlayer player, long years) {
-        store(player, get(player).withLifespanParts(BodyData.parts(years)));
+        store(player, get(player).withLifespanParts(BodyData.toParts(years)));
     }
 
     public static void addAge(@NotNull ServerPlayer player, long years) {
-        BigInteger parts = BigInteger.valueOf(get(player).ageParts()).add(yearParts(years));
+        BigInteger parts = BigInteger.valueOf(get(player).ageParts()).add(toYearParts(years));
         store(player, get(player).withAgeParts(clampParts(parts)));
     }
 
     public static void addLifespan(@NotNull ServerPlayer player, long years) {
-        BigInteger parts = BigInteger.valueOf(get(player).lifespanParts()).add(yearParts(years));
+        BigInteger parts = BigInteger.valueOf(get(player).lifespanParts()).add(toYearParts(years));
         store(player, get(player).withLifespanParts(clampParts(parts)));
     }
 
-    private static BigInteger yearParts(long years) {
+    private static BigInteger toYearParts(long years) {
         return BigInteger.valueOf(years).multiply(BigInteger.valueOf(BodyData.PARTS_PER_YEAR));
     }
 
@@ -120,7 +120,9 @@ public final class BodyService {
         if (physique == Physique.EXTREME || body.hasPhysique(physique)) return;
 
         BodyData updated = (physique == Physique.HALF_ZOMBIE ? body.without(Physique.ZOMBIE) : body).with(physique);
-        if (physique == Physique.ZOMBIE) updated = updated.withLifespanParts(BodyData.parts(BodyData.ZOMBIE_LIFESPAN));
+        if (physique == Physique.ZOMBIE) {
+            updated = updated.withLifespanParts(BodyData.toParts(BodyData.ZOMBIE_LIFESPAN));
+        }
         storePhysique(player, updated);
     }
 
@@ -142,7 +144,7 @@ public final class BodyService {
         ModEvents.post(new ExtremePhysiqueChangedEvent(player, before, physique));
     }
 
-    public static void revive(@NotNull ServerPlayer player) { storePhysique(player, get(player).revived()); }
+    public static void revive(@NotNull ServerPlayer player) { storePhysique(player, get(player).withRevived()); }
 
     public static void enterHalfZombie(@NotNull ServerPlayer player, int tier, int durationTicks) {
         storePhysique(player, get(player).without(Physique.ZOMBIE).with(Physique.HALF_ZOMBIE)
@@ -152,7 +154,7 @@ public final class BodyService {
 
     public static void turnZombie(@NotNull ServerPlayer player, int tier) {
         storePhysique(player, get(player).with(Physique.ZOMBIE)
-                .withLifespanParts(BodyData.parts(BodyData.ZOMBIE_LIFESPAN))
+                .withLifespanParts(BodyData.toParts(BodyData.ZOMBIE_LIFESPAN))
                 .withZombieTier(tier));
     }
 
@@ -162,15 +164,15 @@ public final class BodyService {
     }
 
     public static boolean isWithinRelapseWindow(@NotNull Player player) {
-        return get(player).withinRelapseWindow(getGameTime(player));
+        return get(player).isWithinRelapseWindow(getGameTime(player));
     }
 
     public static long getHalfZombieTicksLeft(@NotNull Player player) {
-        return get(player).halfZombieTicksLeft(getGameTime(player));
+        return get(player).getHalfZombieTicksLeft(getGameTime(player));
     }
 
     public static boolean hasHalfZombieRunOut(@NotNull Player player) {
-        return get(player).halfZombieRanOut(getGameTime(player));
+        return get(player).hasHalfZombieRunOut(getGameTime(player));
     }
     //endregion
 
@@ -185,7 +187,7 @@ public final class BodyService {
     }
 
     private static void grantTalent(ServerPlayer player, Race race) {
-        GuPath path = race.talentPath();
+        GuPath path = race.getTalentPath();
         if (path == null) return;
 
         PathService.setMark(player, path, MarkTag.RACE, Race.TALENT_MARKS);
@@ -193,7 +195,7 @@ public final class BodyService {
     }
 
     private static void revokeTalent(ServerPlayer player, Race race) {
-        GuPath path = race.talentPath();
+        GuPath path = race.getTalentPath();
         if (path == null) return;
 
         PathService.setMark(player, path, MarkTag.RACE, 0L);
@@ -204,14 +206,14 @@ public final class BodyService {
     //region Death Qi [死气] debt
     public static void drainByDeathQi(@NotNull ServerPlayer player, long years) {
         BodyData body = get(player);
-        BigInteger parts = BigInteger.valueOf(body.lifespanParts()).subtract(yearParts(years));
+        BigInteger parts = BigInteger.valueOf(body.lifespanParts()).subtract(toYearParts(years));
         store(player, body.withLifespanParts(clampParts(parts))
                 .withDeathQiLifespanLost(LongMath.saturatedAdd(body.deathQiLifespanLost(), years)));
     }
 
     public static double refundDeathQiDebt(@NotNull ServerPlayer player, int numerator, int denominator) {
         BodyData body = get(player);
-        BigInteger refundParts = yearParts(body.deathQiLifespanLost()).multiply(BigInteger.valueOf(numerator))
+        BigInteger refundParts = toYearParts(body.deathQiLifespanLost()).multiply(BigInteger.valueOf(numerator))
                 .divide(BigInteger.valueOf(denominator));
         store(player, body.withLifespanParts(clampParts(BigInteger.valueOf(body.lifespanParts()).add(refundParts)))
                 .withDeathQiLifespanLost(0L));
@@ -258,7 +260,7 @@ public final class BodyService {
         long lived = beat.scale(getElapsedParts(now - body.lastBilledTick()));
         if (lived <= 0L) return;
 
-        store(player, body.lived(lived, now));
+        store(player, body.withLived(lived, now));
     }
 
     public static void skipOfflineLifespan(@NotNull ServerPlayer player) {

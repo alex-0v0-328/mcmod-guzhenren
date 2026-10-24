@@ -1,13 +1,13 @@
 package net.alex.guzhenren.entity;
 
 /**
- * The four bear species. Each registers its own entity type under {@link #id()} (boar Gu precedent:
+ * The four bear species. Each registers its own entity type under {@link #getId()} (boar Gu precedent:
  * one variant, one entity type); they share the {@code bear} geometry and animation set and differ in
  * texture, temperament and stats. Only the Asian black bear hunts on its own; the rest retaliate.
  *
- * <p>{@link #id()} is the entity-type id and texture base name ({@code textures/entity/<id>.png}).
- * {@link #hostile()} says whether the species seeks targets on sight instead of only retaliating.
- * {@link #swipeDamage()} is the flat swipe damage, before armor, and {@link #rearDamage()} the flat
+ * <p>{@link #getId()} is the entity-type id and texture base name ({@code textures/entity/<id>.png}).
+ * {@link #isHostile()} says whether the species seeks targets on sight instead of only retaliating.
+ * {@link #getSwipeDamage()} is the flat swipe damage, before armor, and {@link #getRearDamage()} the flat
  * rear-up slam damage, before armor.
  */
 
@@ -32,13 +32,13 @@ public enum BearSpecies {
         this.rearDamage = rearDamage;
     }
 
-    public String id() { return this.id; }
+    public String getId() { return this.id; }
 
-    public boolean hostile() { return this.hostile; }
+    public boolean isHostile() { return this.hostile; }
 
-    public double maxHealth() { return this.maxHealth; }
+    public double getMaxHealth() { return this.maxHealth; }
 
-    public float swipeDamage() { return this.swipeDamage; }
+    public float getSwipeDamage() { return this.swipeDamage; }
 
-    public float rearDamage() { return this.rearDamage; }
+    public float getRearDamage() { return this.rearDamage; }
 }

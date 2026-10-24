@@ -7,9 +7,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.alex.guzhenren.command.AwakenedGate;
-import net.alex.guzhenren.command.ModCommandSupport;
-import net.alex.guzhenren.command.ModEnumArgument;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
@@ -44,7 +41,7 @@ public final class CmdAperture {
     private static final String ARG_APERTURE = "index";
     private static final String FAILED_INDEX = "guzhenren.command.failed.aperture_index";
 
-    public static ArgumentBuilder<CommandSourceStack, ?> node() {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         LiteralArgumentBuilder<CommandSourceStack> root =
                 Commands.literal("aperture").requires(AwakenedGate::isSourceAwakened);
         ArgumentBuilder<CommandSourceStack, ?> indexed = Commands.argument(ARG_APERTURE,
@@ -57,31 +54,31 @@ public final class CmdAperture {
     }
 
     private static void attachWrites(ArgumentBuilder<CommandSourceStack, ?> parent) {
-        parent.then(graded("rank", Rank.settable(),
+        parent.then(graded("rank", Rank.getSettable(),
                 ApertureService::setRank, ApertureService::shiftRank))
-                .then(graded("stage", Stage.settable(),
+                .then(graded("stage", Stage.getSettable(),
                         ApertureService::setStage, ApertureService::shiftStage))
-                .then(graded("talent", Talent.settable(),
+                .then(graded("talent", Talent.getSettable(),
                         ApertureService::setTalent, ApertureService::shiftTalent))
-                .then(essence());
+                .then(buildEssence());
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> essence() {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildEssence() {
         return Commands.literal("essence")
                 .then(Commands.literal("base")
-                        .then(baseSetNode())
-                        .then(baseNode("add", ApertureService::addBaseEssence))
-                        .then(baseNode("sub",
+                        .then(buildBaseSetNode())
+                        .then(buildBaseNode("add", ApertureService::addBaseEssence))
+                        .then(buildBaseNode("sub",
                                 (player, index, value) -> ApertureService.addBaseEssence(player, index, -value))))
                 .then(Commands.literal("current")
-                        .then(longNode("set", ApertureEssenceService::set))
-                        .then(longNode("add", CmdAperture::addCurrentEssence))
-                        .then(longNode("sub", (player, index, value) ->
+                        .then(buildLongNode("set", ApertureEssenceService::set))
+                        .then(buildLongNode("add", CmdAperture::addCurrentEssence))
+                        .then(buildLongNode("sub", (player, index, value) ->
                                 addCurrentEssence(player, index, LongMath.saturatedSubtract(0L, value)))))
                 .then(Commands.literal("distilled")
-                        .then(longNode("set", ApertureEssenceService::setDistilled))
-                        .then(longNode("add", CmdAperture::addDistilledEssence))
-                        .then(longNode("sub", (player, index, value) ->
+                        .then(buildLongNode("set", ApertureEssenceService::setDistilled))
+                        .then(buildLongNode("add", CmdAperture::addDistilledEssence))
+                        .then(buildLongNode("sub", (player, index, value) ->
                                 addDistilledEssence(player, index, LongMath.saturatedSubtract(0L, value)))))
                 .then(ModCommandSupport.withTargets(Commands.literal("refill"),
                         context -> AwakenedGate.applyOnAwakened(context, ApertureEssenceService::refill)));
@@ -134,7 +131,7 @@ public final class CmdAperture {
         return Commands.literal(literal)
                 .then(Commands.literal("set")
                         .then(ModCommandSupport.withTargets(
-                                ModEnumArgument.arg(ModCommandSupport.ARG_VALUE, settable), context -> {
+                                ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, settable), context -> {
                                     E value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, settable);
                                     return applyOnAperture(context,
                                             (player, aperture) -> set.apply(player, aperture, value));
@@ -148,7 +145,7 @@ public final class CmdAperture {
                 context -> applyOnAperture(context, (player, aperture) -> shift.apply(player, aperture, delta)));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> longNode(String literal, LongOp operation) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildLongNode(String literal, LongOp operation) {
         return Commands.literal(literal).then(ModCommandSupport.withTargets(
                 Commands.argument(ModCommandSupport.ARG_VALUE, LongArgumentType.longArg()),
                 context -> {
@@ -157,7 +154,7 @@ public final class CmdAperture {
                 }));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> baseNode(String literal, IntOp operation) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildBaseNode(String literal, IntOp operation) {
         return Commands.literal(literal).then(ModCommandSupport.withTargets(
                 Commands.argument(ModCommandSupport.ARG_VALUE,
                         IntegerArgumentType.integer(-Aperture.MAX_BASE, Aperture.MAX_BASE)),
@@ -167,7 +164,7 @@ public final class CmdAperture {
                 }));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> baseSetNode() {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildBaseSetNode() {
         return Commands.literal("set").then(ModCommandSupport.withTargets(
                 Commands.argument(ModCommandSupport.ARG_VALUE,
                         IntegerArgumentType.integer(-Aperture.MAX_BASE, Aperture.MAX_BASE)),

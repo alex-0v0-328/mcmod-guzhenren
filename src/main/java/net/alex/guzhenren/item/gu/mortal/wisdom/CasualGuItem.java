@@ -35,11 +35,11 @@ public class CasualGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal payoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payout(ServerPlayer player, ItemStack stack) {
-        int amplifier = tier();
+    protected void payOut(ServerPlayer player, ItemStack stack) {
+        int amplifier = getTier();
         player.addEffect(ModEffects.instance(effect, CasualThoughtEffect.DURATION_TICKS, amplifier));
     }
 }

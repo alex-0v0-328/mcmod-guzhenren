@@ -33,10 +33,10 @@ public class LiquorItem extends GuMaterialItem {
     private static final int NAUSEA_TICKS = 300;
 
     public LiquorItem(Properties properties) {
-        super(properties.food(liquor()), Rank.ONE, GuPath.FOOD);
+        super(properties.food(createFoodProperties()), Rank.ONE, GuPath.FOOD);
     }
 
-    private static FoodProperties liquor() {
+    private static FoodProperties createFoodProperties() {
         return new FoodProperties.Builder()
                 .nutrition(NUTRITION)
                 .saturationMod(SATURATION)
