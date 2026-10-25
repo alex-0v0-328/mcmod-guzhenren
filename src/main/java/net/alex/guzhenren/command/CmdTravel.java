@@ -8,6 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.registry.world.ModDimensions;
@@ -15,6 +16,7 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -25,8 +27,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 /**
- * {@code /guworld enter <dimension> [targets]} and {@code /guworld exit [targets]}: admin travel to
- * and from the mod's anchored dimensions.
+ * {@code /guworld enter <dimension> [targets]} and {@code /guworld exit [targets]}: travel to and from the mod's
+ * anchored dimensions. {@code enter} is admin-only; a bare {@code exit} is also open to any player standing in the
+ * Treasure Yellow Heaven [宝黄天], whose guard leaves him no other way out, while {@code exit <targets>} and an exit
+ * from any other anchored dimension stay admin-only. The gate reads the dimension, so the command tree must follow
+ * the player across dimensions: vanilla re-sends it on every change of level
+ * ({@code ServerPlayer#changeDimension} sends the permission level, which re-sends the commands).
  *
  * <p>{@code enter} only accepts dimensions listed in {@link ModDimensions#ANCHORED_DIMENSIONS} -- an
  * anchored dimension is one the player is meant to leave through us, with the return point recorded
@@ -55,8 +61,18 @@ public final class CmdTravel {
                         CmdTravel::enter));
     }
 
-    public static ArgumentBuilder<CommandSourceStack, ?> exitNode() {
-        return ModCommandSupport.withTargets(Commands.literal("exit"), CmdTravel::exit);
+    public static ArgumentBuilder<CommandSourceStack, ?> exitNode(Predicate<CommandSourceStack> admin) {
+        return Commands.literal("exit")
+                .requires(source -> admin.test(source) || isInsideHeaven(source))
+                .executes(CmdTravel::exit)
+                .then(Commands.argument(ModCommandSupport.ARG_TARGETS, EntityArgument.players())
+                        .requires(admin)
+                        .executes(CmdTravel::exit));
+    }
+
+    public static boolean isInsideHeaven(CommandSourceStack source) {
+        return source.getEntity() instanceof ServerPlayer player
+                && DimensionTravelService.isInside(player, ModDimensions.TREASURE_YELLOW_HEAVEN);
     }
 
     private static CompletableFuture<Suggestions> suggestAnchoredDimensions(

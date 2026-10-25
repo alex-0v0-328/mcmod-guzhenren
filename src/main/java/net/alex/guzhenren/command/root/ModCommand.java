@@ -28,8 +28,10 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  * {@code gzr} alias is a {@code redirect} to that root, so everything typed after it parses into a
  * child context.
  *
- * <p>World-environment commands live on the separate {@code guworld} root (same permission level):
- * currently {@link net.alex.guzhenren.command.CmdTravel}'s {@code enter}/{@code exit}.
+ * <p>World-environment commands live on the separate {@code guworld} root: currently
+ * {@link net.alex.guzhenren.command.CmdTravel}'s {@code enter} (permission level 2) and {@code exit}, which a player
+ * of any level may run on himself inside the Treasure Yellow Heaven [宝黄天] and only level 2 runs elsewhere or on
+ * others.
  *
  * @author Alex
  * @version 1.0.0
@@ -67,8 +69,12 @@ public final class ModCommand {
                 .redirect(root));
 
         dispatcher.register(Commands.literal("guworld")
-                .requires(source -> source.hasPermission(PERMISSION_LEVEL))
-                .then(CmdTravel.enterNode())
-                .then(CmdTravel.exitNode()));
+                .requires(source -> isAdmin(source) || CmdTravel.isInsideHeaven(source))
+                .then(CmdTravel.enterNode().requires(ModCommand::isAdmin))
+                .then(CmdTravel.exitNode(ModCommand::isAdmin)));
+    }
+
+    private static boolean isAdmin(CommandSourceStack source) {
+        return source.hasPermission(PERMISSION_LEVEL);
     }
 }
