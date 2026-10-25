@@ -517,6 +517,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.as_before_unknown_land",          "This Gu has not yet known this land", "此蛊未识此地");
         add("guzhenren.item.failed.as_before_not_land",              "This is no mountain", "此地非山");
         add("guzhenren.item.failed.as_before_not_water",             "This is no river", "此地非江");
+        add("guzhenren.item.failed.as_before_no_grief",
+                "Terrain changes are off in this world (mobGriefing)", "本世界已关闭地形改动（mobGriefing）");
         add("guzhenren.item.gu.invested",                            "Invested %s/%s", "已投入 %s/%s");
         add("guzhenren.item.gu.refine_progress",                     "Refined %s/%s", "炼化 %s/%s");
         add("guzhenren.item.gu.refine_cost",                         "Refine %s", "炼化 %s");

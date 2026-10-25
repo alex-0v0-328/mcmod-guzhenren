@@ -335,6 +335,7 @@
   "guzhenren.item.death_qi_cured": "Life Qi dispels the Death Qi -- %s years of lifespan restored",
   "guzhenren.item.failed.all_out_active": "The all-out effort has not yet passed",
   "guzhenren.item.failed.aperture_unavailable": "No usable aperture remains",
+  "guzhenren.item.failed.as_before_no_grief": "Terrain changes are off in this world (mobGriefing)",
   "guzhenren.item.failed.as_before_no_memory": "This Gu has not yet known you",
   "guzhenren.item.failed.as_before_not_land": "This is no mountain",
   "guzhenren.item.failed.as_before_not_water": "This is no river",

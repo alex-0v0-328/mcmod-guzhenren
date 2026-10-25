@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture;
 
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
  * self-kill at tick zero and hands the crater to {@link AperturePressureExplosionTask}: the radius is
  * {@code EXPLOSION_RADIUS_PER_RANK} times the rank's ordinal plus one (32 at rank one, 96 at rank five), plus
  * {@code GREAT_STRENGTH_RADIUS_BONUS} for Great Strength True Martial [大力真武体], 112 at most.
+ * The crater is carved only where {@code ModEvents.canGrief} lets the dying player change the terrain
+ * ({@code mobGriefing}); with it off, the damage and the self-kill still land.
  *
  * <p>⚠ Pressure writes go straight to {@code PlayerData}, not through {@code ApertureService.store}: they
  * change neither rank nor stage, so health and Epic Fight need no refresh.
@@ -109,7 +112,9 @@ public final class AperturePressureService {
         set(player, ApertureData.PRIMARY, 0);
         DamageSource source = ModDamageTypes.source(player, ModDamageTypes.APERTURE_PRESSURE_EXPLOSION);
         player.level().explode(null, source, null, x, y, z, 0.0F, false, Level.ExplosionInteraction.NONE);
-        AperturePressureExplosionTask.start((ServerLevel) player.level(), x, y, z, radius, physique);
+        if (ModEvents.canGrief(player.level(), player)) {
+            AperturePressureExplosionTask.start((ServerLevel) player.level(), x, y, z, radius, physique);
+        }
 
         DamageSource disaster = ModDamageTypes.source(player, ModDamageTypes.TEN_EXTREME_DISASTER);
         double radiusSquared = radius * (double) radius;

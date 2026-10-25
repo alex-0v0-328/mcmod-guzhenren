@@ -335,6 +335,7 @@
   "guzhenren.item.death_qi_cured": "死氣化解 — 回復 %s 年壽元",
   "guzhenren.item.failed.all_out_active": "全力以赴蠱效果未散",
   "guzhenren.item.failed.aperture_unavailable": "沒有可以作用的空竅",
+  "guzhenren.item.failed.as_before_no_grief": "本世界已關閉地形改動（mobGriefing）",
   "guzhenren.item.failed.as_before_no_memory": "此蠱尚未識你",
   "guzhenren.item.failed.as_before_not_land": "此地非山",
   "guzhenren.item.failed.as_before_not_water": "此地非江",

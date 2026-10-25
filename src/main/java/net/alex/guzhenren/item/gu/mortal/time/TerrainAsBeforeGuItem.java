@@ -1,6 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.time;
 
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.gameplay.rewind.ChunkMemory;
 import net.alex.guzhenren.gameplay.rewind.ChunkRewindService;
@@ -23,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
  * {@code ChunkMemory} that holds a snapshot a day old; the payout then queues every chunk of the 3×3 square that is
  * loaded, of this kind and remembered ({@code ChunkRewindService.enqueue}), one chunk restored per server tick. A
  * neighbor without a memory is skipped in silence; the center without one refuses before anything is spent.
+ * Where {@code ModEvents.canGrief} keeps the carrier from changing the terrain ({@code mobGriefing}), the Gu
+ * refuses before anything is spent.
  *
  * @author Alex
  * @version 1.0.0
@@ -33,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
 
+    private static final String FAILED_NO_GRIEF = "guzhenren.item.failed.as_before_no_grief";
     private static final String FAILED_UNKNOWN_LAND = "guzhenren.item.failed.as_before_unknown_land";
     private static final String FAILED_NOT_LAND = "guzhenren.item.failed.as_before_not_land";
     private static final String FAILED_NOT_WATER = "guzhenren.item.failed.as_before_not_water";
@@ -54,6 +58,7 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
         if (!(player instanceof ServerPlayer server)) return null;
 
         ServerLevel level = server.serverLevel();
+        if (!ModEvents.canGrief(level, server)) return new Refusal(FAILED_NO_GRIEF);
         LevelChunk center = getLoaded(level, server.chunkPosition());
         if (center == null) return new Refusal(FAILED_UNKNOWN_LAND);
         if (ChunkKind.of(level, center) != kind) {
