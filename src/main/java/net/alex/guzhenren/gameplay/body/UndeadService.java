@@ -12,11 +12,13 @@ import org.jetbrains.annotations.NotNull;
  * The heartbeat steps of the undead [僵] and of Death Qi [死气]. {@link #tickHalfZombie} turns a
  * half-zombie holding Death Qi into a zombie, lets an expired one recover, and projects the state as the
  * {@code HALF_ZOMBIE} effect; {@link #pinHunger} keeps an undead body's hunger full; {@link #tickDeathQi}
- * burns lifespan [寿元] and floors health on the living while Death Qi is held.
+ * burns lifespan [寿元] and floors health on the living while Death Qi is held. ⚠ A zombie skips that step
+ * whole -- no lifespan drain, no debt, no health floor -- not just its lifespan.
  *
- * <p>⚠ {@link #DEATH_QI_YEAR_INTERVAL_TICKS} is 120 = 6 × 20 -- it must be a multiple of the heartbeat's
- * 20, or the burning silently stops. A {@code MobEffect} has no expiry hook, so the burning runs here, on
- * the heartbeat, and the {@code DEATH_QI} effect is only its projection.
+ * <p>⚠ {@link #DEATH_QI_YEAR_INTERVAL_TICKS} is 120 = 6 × 20: a multiple of the heartbeat's 20, or the
+ * burning runs silently slower (the slower-step rule in {@link net.alex.guzhenren.lifecycle.Heartbeat}). A
+ * {@code MobEffect} has no expiry hook, so the burning runs here, on the heartbeat, and the
+ * {@code DEATH_QI} effect is only its projection.
  *
  * @author Alex
  * @version 1.0.0

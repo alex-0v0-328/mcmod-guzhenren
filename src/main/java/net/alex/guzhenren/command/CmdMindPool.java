@@ -14,8 +14,8 @@ import net.minecraft.commands.Commands;
  * each offering {@code current}/{@code max} with {@code set}/{@code add}/{@code sub}/{@code refill}.
  * All writes delegate to {@link MindService}.
  *
- * <p>⚠ They are literals rather than a single enum argument so that brilliance [才情] can sit beside
- * them as a sibling. Tidying this into one enum argument takes that away.
+ * <p>⚠ Each pool keeps its own literal rather than becoming a value of one enum argument: a settled pool name is
+ * never traded for a generic parameter.
  *
  * @author Alex
  * @version 1.0.0

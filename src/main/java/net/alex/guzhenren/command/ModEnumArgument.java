@@ -21,10 +21,16 @@ import net.minecraft.util.StringRepresentable;
  * <p>⚠ The {@link #createArgument(String, Function)} overload's function must tolerate a nonsense earlier
  * argument: {@code word()} accepts any word.
  *
+ * <p>⚠ Two enum arguments in one chain take distinct names ({@code ARG_PATH}, {@code ARG_KIND} beside
+ * {@code ModCommandSupport.ARG_VALUE}): the context keeps one argument per name, so a shared name silently
+ * leaves only the later word.
+ *
  * <p>☠ Everything typed after a redirect is parsed into a CHILD context, and {@code /gzr} is that
- * redirect -- so a read of an earlier argument must go through {@code getLastChild()} or it throws
+ * redirect. An executor already runs on that child, but a suggestion provider is handed the root context,
+ * so its read of an earlier argument must go through {@code getLastChild()} or it throws
  * {@code IllegalArgumentException}, which Brigadier does NOT catch: the suggestion list comes back
- * empty and silent. That is why {@code get} reads from the deepest context.
+ * empty and silent under {@code /gzr} while {@code /guzhenren} still fills it. That is why {@code get} reads
+ * from the deepest context, pinned by {@code ModEnumArgumentTest}.
  *
  * @author Alex
  * @version 1.0.0

@@ -34,7 +34,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>{@link #shiftTargetForInsertedFirst}: when Hope Gu inserts the first aperture at position 0, an
  * in-progress session aimed at the lone second aperture (target 0) would silently slide onto the new
  * first aperture -- move the target with its aperture. No session running, nothing to move; the next
- * {@code start} rewrites it.
+ * {@code start} rewrites it. The target stays in bounds: {@code start} refuses an index outside the list
+ * ({@link #canNourish}); with no aperture {@link #getTargetIndex} answers {@code PRIMARY}, since clamping
+ * against {@code count - 1} would give -1, and the heartbeat cancels a running session.
  *
  * <p>⚠ {@link #petrify} is the writer that sets {@code petrified}: it lands the aperture on this
  * rank's peak, zeroes the pressure gauge, and locks cultivation until a full gauge converts

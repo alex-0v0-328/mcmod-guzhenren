@@ -18,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
  * {@code second}: a Second Aperture Gu may open before Hope Gu ever does, so the only reader of "the
  * primary" is {@link #getPrimary}, which falls back to a lone second aperture. {@code isAwakened} means
  * "has the FIRST aperture" -- Hope Gu, the refinement gate and the command gates all read it.
+ * {@code hasAperture} means any aperture, a lone second one included: the HUD, the info panel, primeval
+ * stones and nourishing read it.
  *
  * <p>A position moves when Hope Gu inserts the first aperture ahead of a lone second one; a kind
  * ({@code PRIMARY} the first, {@code SECOND} the second) never does. Anything that outlives the insert --

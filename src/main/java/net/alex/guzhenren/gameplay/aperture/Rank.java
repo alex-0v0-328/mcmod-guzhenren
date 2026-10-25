@@ -13,6 +13,9 @@ import net.minecraft.util.StringRepresentable;
  * here as the single source. {@code NONE} is outside the settable range; {@code shift(int)} clamps at
  * {@code ONE} to {@code FIVE}. No sibling mod may add a rank.
  *
+ * <p>⚠ {@code maxHealth} is the player's maximum health at that rank. A tended Gu also answers
+ * {@code getMaxHealth()}, from {@code TendedGuItem.HEALTH_PER_RANK}; Gu health never moves onto this table.
+ *
  * <p>⚠ {@code NONE} translates to the empty string on purpose -- the mortal's word belongs to
  * {@link Title} alone, and a word with two owners drifts apart. {@code SIX} to {@code NINE} carry deliberate
  * zeroes (phase 3); do not "fix" them.

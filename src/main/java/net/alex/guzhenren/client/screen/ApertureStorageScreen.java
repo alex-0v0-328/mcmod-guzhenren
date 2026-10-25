@@ -14,10 +14,13 @@ import org.jetbrains.annotations.NotNull;
  * The screen for one aperture's [空窍] store, a page at a time.
  *
  * <p>Extends {@link net.minecraft.client.gui.screens.inventory.AbstractContainerScreen} for
- * {@link ApertureStorageMenu}. Draws 54 slots per page, prev/next pager
- * buttons, and the Vital Gu [本命蛊] slot past the right edge of the panel. A back button ({@code <-})
- * closes the container first, then opens the B panel. All drawing is {@code g.fill}, no textures; the
- * background and the pager are one {@link GuiBatch} each, fills before text.
+ * {@link ApertureStorageMenu}. Draws 54 slots per page, the Vital Gu [本命蛊] slot past the right edge of the
+ * panel, and a pager (prev, page label, next) under the panel's bottom-left corner. A back button
+ * ({@code <-}) at the top-left closes the container first, then opens the B panel. All drawing is
+ * {@code g.fill}, no textures; the background and the pager are one {@link GuiBatch} each, fills before text.
+ *
+ * <p>⚠ The pager stays below the panel, off the top edge where Inventory Profiles Next draws its sort buttons;
+ * only the back button sits up there, at the left.
  *
  * @author Alex
  * @version 1.0.0

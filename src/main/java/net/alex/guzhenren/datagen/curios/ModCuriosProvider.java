@@ -15,7 +15,8 @@ import top.theillusivec4.curios.api.CuriosDataProvider;
  * dependency; the full jar stays on the runtime classpath so {@code runData} can load this provider.
  *
  * <p>⚠ Curios carries equipment only, and no Gu ever goes into a Curios slot. That decision is why
- * the whole Curios footprint here is datagen.
+ * the whole Curios footprint here is datagen. The dependency is held for the equipment still to come: it is
+ * no leftover, and a cleanup does not drop it.
  *
  * @author Alex
  * @version 1.0.0

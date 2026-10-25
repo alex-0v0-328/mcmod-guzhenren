@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A tended Gu [需照顾]: wild, then refined [炼化], then fed and used, all on one shared state record. The
  * middle class between {@link MortalGuItem} and every leaf that needs feeding: a leaf answers
- * {@code payoutGate} / {@code payout} plus any limit it bends; owns the charge ladder, channeling [灌注]
+ * {@code checkPayoutGate} / {@code payOut} plus any limit it bends; owns the charge ladder, channeling [灌注]
  * and hunger/health billing. Meals are {@link GuMeal}, cooldown stamps {@link GuCooldowns}, the
  * day-rollover walk {@link GuUpkeep}.
  *
@@ -33,9 +33,34 @@ import org.jetbrains.annotations.Nullable;
  * hooks every leaf overrides, and channeling is this item's own {@code onUseTick}, reading and writing ten
  * of its members -- pulled out, all of them would have to open up.
  *
+ * <p>⚠ {@link #isHoldingFood} asks only "refined, and the offhand holds this Gu's food". It routes the gate,
+ * {@code apply}, the charge length, the channel step and {@code hasSneakUse}, so the hunger bar and the
+ * cooldowns stay out of it: inside it they would change what the same click does.
+ *
+ * <p>⚠ {@code checkCooldown} is the one cooldown gate for the plain use, the sneak use and {@link #tryAutoUse}:
+ * the larger of the effect cooldown (waived by {@code canUseDuringEffectCooldown}) and the post-refine guard. A
+ * refusal puts the ticks left back on the vanilla cooldown, so a lost sweep redraws. {@code spend} runs
+ * {@code super.spend} first and only then puts the largest of the item cooldown, the post-refine guard and the
+ * effect cooldown: {@code ItemCooldowns.addCooldown} overwrites unconditionally, so the other order would lose
+ * the long cooldown to the base's short one.
+ *
+ * <p>A use on an empty hunger bar is forced ({@code trySpendAndGrant}): the effect lands, then the Gu dies of
+ * exhaustion, and the 1 that {@code drive} returns is that death, not a payout.
+ *
+ * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS}, at two paces that stay separate. A
+ * holder above the Gu's rank is Gu-paced: a channel step pours at most
+ * {@code getEssencePerHungerPoint() * STEP_TICKS}, scaled by {@code TimeFlow}, and a refining step may pour the
+ * whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
+ * 80% of it a second at normal time flow. Each channel step eats from the offhand before it sizes the essence,
+ * because the step is capped by the essence above the hunger floor, which the meal raises.
+ *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
- * the very first click. Healing from food reuses the hunger rate: one health point costs what one hunger
- * point does ({@code GuSpec.unitsPerHunger}).
+ * the very first click. Gu health is {@link #HEALTH_PER_RANK} for every tended Gu, overridden through
+ * {@link #getMaxHealth}; it stays off {@code Rank}, whose {@code getMaxHealth} is the player's. Healing from food
+ * reuses the hunger rate: one health point costs what one hunger point does ({@code GuSpec.unitsPerHunger}).
+ *
+ * <p>{@code announceDeath} is the one death funnel ({@link #starve}, {@link #exhaust}, {@link #ruin}) and the
+ * only poster of {@link VitalGuLostEvent}; a new way for a Gu to die goes through it.
  *
  * @author Alex
  * @version 1.0.0
@@ -481,7 +506,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region the two deaths -- one funnel, two messages, and a Vital Gu's owner pays either way
+    //region the three deaths -- one funnel, three messages; a Vital Gu starves or exhausts, never ruins
     public static void announce(ServerPlayer player, ItemStack stack, String key) {
         player.sendSystemMessage(Component.translatable(key, stack.getHoverName()));
     }

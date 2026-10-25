@@ -31,16 +31,23 @@ import org.jetbrains.annotations.Nullable;
  * The abstract base of everything a Gu hand holds, covering both Gu [蛊虫] and Gu material [蛊材].
  *
  * <p>Extends {@link Item} to add the four right-click templates a leaf fills: plain use, sneak use,
- * charge pacing, and Vital Gu [本命蛊] binding. The charge duration is paced by the gap between the
+ * charge pacing, and Vital Gu [本命蛊] binding. Every gesture is a right click: there is no left-click or swing
+ * template, and none gets added. The charge duration is paced by the gap between the
  * holder's rank and the item's own via {@code useChargeByGap}, never by the stage.
+ *
+ * <p>⚠ A sneak use takes a crouch and the leaf's {@code hasSneakUse}; when the leaf answers false, the click
+ * falls back to the plain use, which is how a crouching player still refines a wild Gu. Each leaf names its own
+ * condition: a tended Gu wants its food in the offhand, the Primeval Elder Gu and the Nine Leaf Vitality Grass
+ * only being refined. The crouch is {@link #isCrouching}, the pose, never {@code isShiftKeyDown()}: that key
+ * flag is also set while a creative flyer descends, when the pose stays standing.
  *
  * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
  * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
- * the Gu sits: {@code bind} stores the kind of the holder's index, {@code boundIndex} maps it back. An
+ * the Gu sits: {@code bind} stores the kind of the holder's index, {@code getBoundIndex} maps it back. An
  * aperture has one Vital Gu: {@code bind} also stamps a fresh token, and only the stack whose token the
  * store holds for that kind is the current one ({@code isCurrentVital}); a replaced one is harmless.
  *
- * <p>⚠ The four hooks ({@code gate}, {@code apply}, {@code useDurationTicks}, {@code hasSneakUse}) are
+ * <p>⚠ The four hooks ({@code checkGate}, {@code apply}, {@code useDurationTicks}, {@code hasSneakUse}) are
  * re-read in both {@code use} and {@code finishUsingItem}, so leaving or entering a crouch mid-charge
  * switches which branch lands. A leaf wanting its own pacing overrides the hook, not the stage.
  *

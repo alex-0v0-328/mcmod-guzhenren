@@ -16,8 +16,13 @@ import net.minecraft.world.entity.LivingEntity;
  * quietly stops happening. ⚠ The aftermath is a punishment -- milk or {@code /effect clear} skipping it
  * is the intended design, NOT a gap.
  *
+ * <p>⚠ Only a penalty may ride the last tick, which milk, {@code /effect clear} and death never reach. A refund,
+ * a payback or a debt (the Liquor Worm's 1:2 return, the Death Qi lifespan bill) reads its own effect's level on
+ * the heartbeat instead.
+ *
  * <p>⚠ A version seam: this class answers the loader's per-tick callbacks, so its subclasses carry no tick code
- * and stay identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port.
+ * and stay identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port. {@code applyEffectTick}
+ * answers {@code true}: on 1.21.1 a {@code false} has vanilla remove the effect then and there.
  *
  * @author Alex
  * @version 1.0.0

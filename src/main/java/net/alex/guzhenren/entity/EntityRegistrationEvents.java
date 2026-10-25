@@ -19,11 +19,15 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  *
  * <p>Hope Gu registers {@link net.alex.guzhenren.entity.FlyingGuEntity}'s attributes; the boar Gu and
  * rhinoceros beetle Gu variants share them with the raised resting flying speed
- * ({@code RESTING_GU_FLYING_SPEED}). Flying Gu families use one surface spawn placement, the wild beasts one
- * ground placement, both on {@link net.minecraft.world.level.levelgen.Heightmap.Types#MOTION_BLOCKING_NO_LEAVES};
- * the checks themselves live in {@link SpawnRules}. Soul traders get attributes but no placement: they are
- * summoned only. Loader glue apart from the attribute table: the events differ between the NeoForge 1.21.1
- * mainline and the Forge 1.20.1 port.
+ * ({@code RESTING_GU_FLYING_SPEED}). They flee and land through path navigation, whose airborne pace scales
+ * with that attribute, and at the base flying speed they barely move; the Hope Gu's hover approach sets its
+ * velocity directly, so the base speed suits it.
+ *
+ * <p>Flying Gu families use one surface spawn placement, the wild beasts one ground placement, both on
+ * {@link net.minecraft.world.level.levelgen.Heightmap.Types#MOTION_BLOCKING_NO_LEAVES}; the checks themselves
+ * live in {@link SpawnRules}. Soul traders get attributes but no placement: they are summoned only. Loader glue
+ * apart from the attribute table: the events differ between the NeoForge 1.21.1 mainline and the Forge 1.20.1
+ * port.
  *
  * @author Alex
  * @version 1.0.0

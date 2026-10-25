@@ -33,11 +33,13 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * service) plus the four scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
  * {@code BURST}). {@link #registerSynced} saves an attachment and syncs it to its owner alone
  * ({@code OWNER_ONLY}); {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor
- * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞].
+ * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞]. A record other players
+ * must see widens its sync predicate; it never gets a downstream payload.
  *
  * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
  * synced attachment to its owner on every {@code setData}, equal or not, so a store that changes nothing writes and
- * sends nothing. The records compare by value, so equal means the client already holds it.
+ * sends nothing. The records compare by value, so equal means the client already holds it. {@code ESSENCE_CARRY}
+ * is the one attachment written in place: regen banks into the array itself, never through {@code setData}.
  *
  * <p>Every attachment the two helpers register is inherited: NeoForge copies it to every clone, a death
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
@@ -51,6 +53,12 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * {@code Data} ({@code PathQiData} is {@code PATH_QI}). Never give an attachment the bare domain word --
  * {@code qi}/{@code soul}/{@code strength} are also {@code GuPath} names. The ids are save keys: renaming
  * one loses every saved value.
+ *
+ * <p>⚠ A record's {@code CODEC} reads every field with {@code optionalFieldOf} and that field's default (the
+ * list- and map-shaped {@code ApertureData}, {@code PathData} and {@code PathQiData} in their entry records), so
+ * a save written before a field existed still loads. {@code DimensionReturnData.ReturnPoint} is the one
+ * exception, its fields required inside an optional {@code point}; a field added there still takes
+ * {@code optionalFieldOf}.
  *
  * @author Alex
  * @version 1.0.0

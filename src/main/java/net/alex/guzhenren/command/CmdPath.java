@@ -16,11 +16,13 @@ import net.minecraft.commands.Commands;
  * sub-commands. Uses {@link net.alex.guzhenren.command.ModEnumArgument} for the path argument; all
  * writes delegate to {@link PathService}.
  *
- * <p>☠ A command books NATURAL [自然] and can name no other tag -- a handwritten source tag cannot be
- * told from what a Gu laid down, and that is how a race mark was forged onto a path no race revokes.
+ * <p>☠ A command books NATURAL [自然] and can name no other tag: a handwritten source tag cannot be
+ * told from what a Gu laid down, so a forged race mark would sit on a path no race ever revokes.
  *
- * <p>☠ The verbs sit before the path word: {@code GuPath} also has {@code qi}/{@code strength}
- * constants, so a bare word argument under {@code path} would be captured by those literals.
+ * <p>☠ The literals {@code marks} and {@code attainment} come before the path word and the verbs after it
+ * ({@code /gzr path marks <path> set ...}): {@code GuPath} also has {@code qi}/{@code strength} constants, and a
+ * word argument directly under {@code path}, beside the {@code qi}/{@code strength} literals, could never be
+ * typed as those two paths.
  *
  * @author Alex
  * @version 1.0.0

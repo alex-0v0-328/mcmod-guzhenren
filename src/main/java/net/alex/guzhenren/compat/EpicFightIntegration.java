@@ -35,13 +35,14 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 /**
- * The one required Epic Fight bridge: aptitude cap, undead free skill use, attack refresh, target
+ * The server-side Epic Fight bridge (the heavy-fist hook sits in {@code EpicFightServerEvents}, the dash
+ * input in {@code DashInput}): aptitude cap, undead free skill use, attack refresh, target
  * exclusion for every {@link net.alex.guzhenren.entity.WildGuEntity}, the dash animation, and
- * the dash-side shockwave cone trigger (ring spawning lives in {@code RingConeEmitter}; the
- * heavy-fist hook is in {@code EpicFightServerEvents}).
+ * the dash-side shockwave cone trigger (ring spawning lives in {@code RingConeEmitter}).
  *
- * <p>The old GZR stamina attachment, sprint gate, jump bill, hunger exhaustion surcharge and client mixin are
- * deliberately absent. Epic Fight owns current stamina, regeneration, HUD and all ordinary consumption.
+ * <p>⚠ Epic Fight owns stamina: the current value, regeneration, the HUD and all ordinary consumption. GZR only
+ * scales the cap and waives the undead's skill cost; it keeps no stamina attachment and adds no sprint gate,
+ * jump bill, hunger exhaustion surcharge or client mixin.
  *
  * <p>{@link #dashDirection} computes the dash motion direction as a unit vector: the payload's yRot is
  * the Epic Fight MODEL facing (a backward dodge still faces the enemy), so {@link #getRingYawOffset(int)}

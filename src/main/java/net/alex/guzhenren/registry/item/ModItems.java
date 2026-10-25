@@ -85,7 +85,7 @@ public final class ModItems {
 
     private static Item.Properties createOneShotProperties() { return new Item.Properties(); }
 
-    //region One-shot Gu [一次性] -- refining IS the use; one charged press pays, lands and spends
+    //region One-shot Gu [一次性] -- refining IS the use; one instant press pays, lands and spends (Hope Gu: a ritual)
     public static final DeferredItem<Item> HOPE_GU = ITEMS.register("hope_gu",
             () -> new HopeGuItem(createOneShotProperties().stacksTo(1), GuSpec.of(Rank.ONE, GuPath.HUMAN)));
     public static final DeferredItem<Item> VITALITY_LEAF_GU = ITEMS.register("vitality_leaf_gu",

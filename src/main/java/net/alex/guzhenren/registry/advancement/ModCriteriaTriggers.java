@@ -13,6 +13,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * registry. The registration id mirrors the trigger name ({@code used_hope_gu}); advancement JSON
  * dispatches conditions by it.
  *
+ * <p>☠ A trigger registers through {@link #TRIGGERS} only: vanilla's public
+ * {@code CriteriaTriggers.register(String, ...)} parses a bare name into the {@code minecraft:} namespace.
+ *
  * @author Alex
  * @version 1.0.0
  * @see HopeGuUsedTrigger

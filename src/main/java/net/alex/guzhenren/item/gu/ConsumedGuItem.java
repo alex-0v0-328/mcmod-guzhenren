@@ -4,7 +4,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A tended Gu [需照顾] that its own use takes: cared for like any other, and gone once driven.
+ * A tended Gu [需照顾] that its own use takes [一次性消耗]: cared for like any other, and gone once driven.
+ * Not a one-shot Gu [一次性] ({@link OneShotGuItem}), whose refining is its use.
  *
  * <p>Extends {@link TendedGuItem} to override {@code drive} so it returns 1, making the base's own
  * {@code spend} shrink the stack. The third answer to "is it still there afterward" (after

@@ -18,8 +18,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: twelve saved values, two
- * in-memory carries.
+ * Everything this mod keeps on a player, read and written through one object: thirteen saved values and one
+ * in-memory carry, the essence regen remainder ({@link #getEssenceCarry}).
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; nine values reach their owner's client on change ({@code ModAttachments} syncs

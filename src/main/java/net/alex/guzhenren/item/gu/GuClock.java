@@ -8,12 +8,16 @@ import net.minecraft.world.item.ItemStack;
 /**
  * How a tended Gu [需照顾] is billed over time, and what it takes to keep one alive.
  *
- * <p>A sealed interface with two implementations: {@link HungerBar} (the boars, human-jun, buff Gu,
- * all-out-effort, liquor worm, zombies -- anyone with a bar that drains), and {@link NoClock} (primeval
- * elder Gu -- never hungry, never feeds). Built by {@link GuSpec#buildClock} at construction.
+ * <p>A sealed interface with two implementations: {@link HungerBar} (every tended Gu with a bar that drains)
+ * and {@link NoClock} (Primeval Elder Gu, Heavenly Essence Treasure Lotus Gu, Nine Leaf Vitality Grass, Watch
+ * Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuSpec#buildClock} at construction.
  *
  * <p>⚠ "Hungry" means only that the next day rollover will kill it, and the threshold is flat at 1
  * for every Gu on a bar. It must never be scaled to the size of the meal.
+ *
+ * <p>⚠ {@code HungerBar.warn} latches on {@code days > 0}: {@link GuUpkeep} runs on every heartbeat while the bar
+ * drains only on a day rollover, so without the latch the hungry message would repeat every second.
+ * {@code TendedGuItem.drive} passes 1 for its one immediate warning.
  *
  * @author Alex
  * @version 1.0.0
@@ -48,7 +52,7 @@ public sealed interface GuClock {
 
     float getBarFraction(ItemStack stack);
 
-    //region 饱食条 -- the boars, Human Jun [人力钧力流], Flower Boar and All-Out Effort
+    //region 饱食条 -- every tended Gu whose bar drains
     record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse) implements GuClock {
 
         private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
@@ -136,7 +140,7 @@ public sealed interface GuClock {
     }
     //endregion
 
-    //region 无时钟 -- the "reusable, needs no feeding" cell, representable and unbuilt
+    //region 无时钟 -- the "reusable, needs no feeding" cell
     record NoClock() implements GuClock {
 
         @Override

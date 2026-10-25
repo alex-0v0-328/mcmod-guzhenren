@@ -29,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
  *
  * <p>⚠ A stack without the component holds nine: the grass picked from its flower, a wild one and a creative copy
- * are all full. {@link #checkPayoutGate} answers both clicks, because {@code TendedGuItem.sneakGate} ends in it too.
+ * are all full. {@link #checkPayoutGate} answers both clicks, because {@code TendedGuItem.checkSneakGate} also
+ * ends in it.
  *
  * <p>⚠ The regrowth runs on the grass's own clock and is never scaled by Time Path [宙道] self-time; only the
  * holder's grow charge is shortened, like every other charge.

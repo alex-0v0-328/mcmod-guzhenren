@@ -28,9 +28,10 @@ import org.jetbrains.annotations.NotNull;
  * <p>⚠ {@code tickAging}'s returned day count can far exceed one and drives three day-clock walks --
  * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link TimeFlow#scale}
  * like every other thing he spends -- hastened means FASTER; a hand-rolled rate runs it
- * BACKWARDS, into a pure longevity buff. ⚠ The anchor is {@code dayTime}, not {@code gameTime} (so
- * {@code /time add} still ages him): time running backwards re-anchors and bills nothing -- one
- * {@code <} is the whole guard, BOTH clocks share it.
+ * BACKWARDS, into a pure longevity buff. ⚠ Both anchors are {@code dayTime}, not {@code gameTime} (so
+ * {@code /time add} still ages him): time running backwards re-anchors and bills nothing, and each clock's
+ * whole guard is one {@code <} -- {@code today < lastDayIndex} in {@code tickAging},
+ * {@code now < lastBilledTick} in {@code tickLifespan}.
  *
  * <p>In {@link #clampParts}, the intermediate {@code BigInteger} products are kept exact rather than
  * clamped early, because a later signed addition or fraction can bring them back into range.
@@ -46,6 +47,10 @@ import org.jetbrains.annotations.NotNull;
  * three stages, human, half-zombie and zombie: entering half-zombie freezes it (an undead body is never billed)
  * and leaving it only thaws it; turning fully 僵, from a human or from half-zombie, sets it to
  * {@code ZOMBIE_LIFESPAN}, and that year stays when the form ends.
+ *
+ * <p>{@link #setRace} is the second of the two cross-domain grants, beside
+ * {@code ApertureService.reconcileTalentPaths}: through {@code PathService} it revokes the old race's Dao marks
+ * and attainment and grants the new race's.
  *
  * @author Alex
  * @version 1.0.0

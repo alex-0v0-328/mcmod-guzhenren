@@ -32,6 +32,11 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
  *
+ * <p>⚠ No Gu gates on {@code isAwakened}; the essence gate ({@link #checkEssenceGate}) stands in for it and
+ * passes a zero cost. No one-shot Gu has a refine cost, so a mortal without an aperture uses the Vitality Leaf,
+ * Lifespan, Guts and Second Aperture Gu by design; the Relics Gu stop at {@link #checkStageUpGate}. The Hope Gu
+ * is the one {@code isAwakened} check, refusing a player who already has a first aperture.
+ *
  * <p>⚠ A Vital Gu refuses the Q-key drop in {@link #onDroppedByPlayer}, but the client has already emptied
  * the hotbar slot by then: the refusal marks the server's remote copy of that slot stale, so the next
  * broadcast puts the Gu back on screen.

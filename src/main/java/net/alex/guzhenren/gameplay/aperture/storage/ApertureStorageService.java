@@ -25,9 +25,10 @@ import org.jetbrains.annotations.NotNull;
  * becomes its aperture's one current Vital Gu when it lands in the slot ({@code setVital}) or a refinement
  * passes the binding on ({@link #adoptVital}): its token replaces the kind's token in the store.
  *
- * <p>A write is refused only when it ends above both {@code MAX_LOAD} and the load it started from, so an
- * over-full store (a rank that fell) can still be emptied; {@code exceedsLoad} counts the starting load only
- * when the result is over the cap. {@link #setSlot} writes one stored Gu back, the per-second settle's write.
+ * <p>{@link #load(Player, int)} counts an aperture's stored Gu and its Vital Gu together against
+ * {@code MAX_LOAD}. A write is refused only when it ends above both {@code MAX_LOAD} and the load it started
+ * from, so an over-full store (a rank that fell) can still be emptied; {@code isOverLoad} counts the starting
+ * load only when the result is over the cap. {@link #setSlot} writes one stored Gu back, the per-second settle's write.
  *
  * <p>{@link #shiftForFirstAperture} is the storage-side twin of
  * {@link ApertureData#insertFirst}: when Hope Gu opens the first aperture ahead of a lone second one, the

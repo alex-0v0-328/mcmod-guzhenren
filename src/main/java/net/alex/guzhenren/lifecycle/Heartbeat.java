@@ -22,16 +22,53 @@ import net.minecraft.server.level.ServerPlayer;
 /**
  * The one-second heartbeat: a straight run of ordered steps that most of the player's state depends
  * on. Every step runs inside {@code tickCount % HEARTBEAT_TICKS == 0}, and most read what an earlier one
- * just wrote — aging feeds the day-clock walks, {@code syncEffects} feeds {@code tickDeathQi} and
- * {@code regenStep}, {@code tickHalfZombie} feeds attack and regen. The beat reads the clock once, into a
- * {@link Beat}, and every time-scaled step runs on that one reading. {@link
- * PlayerDataService} owns the lifecycle; this class owns the cadence, and every step but
- * {@code checkLethalState} lives in its domain's service. {@code checkLethalState} stays here because the
+ * just wrote. The beat reads the clock once, into a {@link Beat}, and every time-scaled step runs on that
+ * one reading. {@link PlayerDataService} owns the lifecycle; this class owns the cadence, and every step but
+ * {@code checkLethalState} lives in its own domain. {@code checkLethalState} stays here because the
  * order of the four deaths is a rule across domains.
  *
+ * <p>The beat, in order, each step naming the step it must follow and why:
+ *
+ * <ol>
+ * <li>{@code BodyService.tickAging} and {@code TimeFlow.getRate}, read once into the {@link Beat}: every
+ * day-clock walk spends its {@code days}, and lifespan is not billed here. A rate change during the beat
+ * lands on the next one.</li>
+ * <li>{@code GuUpkeep.tickCarried} -- a day-clock walk on (1).</li>
+ * <li>{@code ApertureStorageTick.tickStored} -- a day-clock walk on (1).</li>
+ * <li>{@code ApertureStorageMenu.refresh}, for an open store -- after (3), or the menu saves its stale view
+ * back over the walk.</li>
+ * <li>{@code VitalLossService.settleOfflineVitalLoss} -- right after (2) and (3), which charge an online
+ * Vital Gu death on the spot; its soul and mind halving lands before (15) and (18).</li>
+ * <li>{@code ApertureEssenceService.closeDistilling} -- before (13): the 1:2 return lands before regen picks
+ * a pool.</li>
+ * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (8) and
+ * (10) to (15) read the form.</li>
+ * <li>{@code UndeadService.pinHunger} -- after (7), or a form that ended this beat still pins hunger.</li>
+ * <li>{@code PathQiService.syncEffects} -- rebuilds the qi effects from the pool; (10), (11) and (13) read
+ * them.</li>
+ * <li>{@code UndeadService.tickDeathQi} -- after (9) for the effect, after (7) for the zombie skip.</li>
+ * <li>{@code AttackDamageService.refresh} -- after (7) and (9): the form and the strength-qi effect are both
+ * {@code getBonus} terms.</li>
+ * <li>{@code BodyService.tickLifespan} -- after (7), since an undead body is never billed; before (18),
+ * which reads exhaustion.</li>
+ * <li>{@code ApertureEssenceService.regenStep} -- after (6), (7) and (9).</li>
+ * <li>{@code ApertureNourishService.tickNourish} -- after (13): this second's regen before this second's
+ * bill.</li>
+ * <li>{@code MindService.regenStep} -- after (7): a zombie thinks every fifth second.</li>
+ * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (13), whose essence the auto-use pays.</li>
+ * <li>{@code AperturePressureService.tick} -- the service gates its own minute step and countdown; a full
+ * gauge goes to (18).</li>
+ * <li>{@code checkLethalState} -- last.</li>
+ * </ol>
+ *
  * <p>⚠ The step ORDER is load-bearing and nothing in the code admits it: reorder nothing blind, and a
- * new step must declare which existing one it follows and why. {@code checkLethalState} runs last and
+ * new step adds a line above naming which one it follows and why. {@code checkLethalState} runs last and
  * returns after the first hit, so the four deaths have a fixed precedence: 空窍压力 → 寿元 → 魂魄 → 脑海.
+ *
+ * <p>⚠ A step slower than a second gates on {@code tickCount % N} inside the beat, N a multiple of
+ * {@code HEARTBEAT_TICKS}; any other N fires only every lcm(20, N) ticks, silently slower. Death Qi's year
+ * ({@code UndeadService.DEATH_QI_YEAR_INTERVAL_TICKS}, 120) and a zombie's thought
+ * ({@code MindService.ZOMBIE_THOUGHT_INTERVAL_TICKS}, 100) both follow it.
  *
  * @author Alex
  * @version 1.0.0
