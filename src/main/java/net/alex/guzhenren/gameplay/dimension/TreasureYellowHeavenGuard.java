@@ -18,8 +18,10 @@ import org.jetbrains.annotations.Nullable;
  * only move, fly, chat, and use the exit command; every other interaction is refused. Void damage is refused too,
  * so {@link #tick} can return the player to spawn.
  *
- * <p>All checks are server-side. The few interactions that also reach the client answer {@code false} there, so
- * the refusal happens exactly once per interaction.
+ * <p>Break, place, use and attack answer the same on both sides, since the client knows its own dimension: a
+ * refusal there stops the client predicting the interaction (no ghost block, no swing, no use animation started),
+ * and the server's own answer stays the authority, since the client still sends the packet. Toss and damage are
+ * server-side only; the toss is the one check that tells the player something, so it runs exactly once.
  *
  * <p>In {@link #tick}, leaving by any route -- exit, vanilla {@code /tp}, another mod's teleport -- drops the
  * flight grant, unless the player stands in another anchored dimension that grants flight.
@@ -54,18 +56,16 @@ public final class TreasureYellowHeavenGuard {
     public static boolean isBreakRefused(Player player) { return isInside(player); }
 
     public static boolean isPlaceRefused(@Nullable Entity placer) {
-        return placer instanceof Player player && !player.level().isClientSide() && isInside(player);
+        return placer instanceof Player player && isInside(player);
     }
 
     /** A right click on a block or with an item ({@code target} null), or on an entity. */
     public static boolean isUseRefused(Player player, @Nullable Entity target) {
-        if (player.level().isClientSide() || !isInside(player)) return false;
+        if (!isInside(player)) return false;
         return target == null || !isSoulTrader(target);
     }
 
-    public static boolean isAttackRefused(Player player) {
-        return !player.level().isClientSide() && isInside(player);
-    }
+    public static boolean isAttackRefused(Player player) { return isInside(player); }
 
     /** Stows a toss back into the bag; true when it went in and the toss should not happen. */
     public static boolean tryStowToss(Player player, ItemEntity tossed) {
