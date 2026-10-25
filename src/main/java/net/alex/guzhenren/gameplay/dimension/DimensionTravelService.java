@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * and resumes flying only if they were flying on entry and can still fly without the grant, returning
  * {@code true}; if no record exists, the player is sent to the Overworld shared spawn as a fallback
  * instead, returning {@code false}. Both paths revoke the flight grant and clear the record ({@link
- * #clear(Player)} is safe to call even when no record is present).
+ * #clear(ServerPlayer)} is safe to call even when no record is present).
  *
  * <p>⚠ Flight inside is a {@link FlightAbility} source, never a raw write to {@code Abilities.mayfly}: the raw field is
  * saved with the player and shared with game modes and other mods, so writing it leaked survival flight whenever a
@@ -149,7 +149,7 @@ public final class DimensionTravelService {
         player.fallDistance = 0.0F;
     }
 
-    public static void clear(@NotNull Player player) {
+    public static void clear(@NotNull ServerPlayer player) {
         PlayerData.get(player).setDimensionReturn(DimensionReturnData.DEFAULT);
     }
 

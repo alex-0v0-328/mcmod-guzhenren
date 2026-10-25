@@ -24,7 +24,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The container behind one aperture's [空窍] store, paged because the store outgrows one screen: up to
- * {@code ApertureStorageService.MAX_LOAD} load, at least one per Gu.
+ * {@code ApertureStorageService.MAX_LOAD} load, at least one per Gu. It stays one class past 300 lines: its slots,
+ * paging, Vital Gu binding and shift-click merge all read and write one state -- the page window, the Vital slot,
+ * the synced page and load data and the {@code loading} flag -- that a split would have to hand across classes.
  *
  * <p>Extends {@link net.minecraft.world.inventory.AbstractContainerMenu}. 54 slots per page; the Vital Gu
  * [本命蛊] slot sits outside the pager, past {@code imageWidth}. The save trigger is a container

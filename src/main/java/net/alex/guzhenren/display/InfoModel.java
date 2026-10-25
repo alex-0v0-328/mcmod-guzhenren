@@ -43,6 +43,9 @@ import org.jetbrains.annotations.Nullable;
  * {@link Visitor} method, so a new row is a compile error in both surfaces until each words it. ⚠ A named
  * section (Strength Attainment [力道造诣], Qi Attainment [气道造诣], ...) is a label plus its rows, never a value;
  * attainment [造诣] and Dao marks [道痕] belong to the path-attainment list [流派造诣]. Do not widen {@code Entry}.
+ * Sealed without a {@code permits} list, {@code Entry} takes its row records from this file alone, so the class
+ * stays whole past 300 lines: the records, their {@link Visitor} and the builders that order the rows are the one
+ * table both surfaces read.
  *
  * <p>Every entry compares by value, which is what lets the B panel keep the text it built for the last frame while
  * the rows are unchanged; {@link StrengthPathBranchRow} therefore carries the data and words its reading on demand
