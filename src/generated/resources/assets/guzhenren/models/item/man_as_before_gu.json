@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "guzhenren:item/man_as_before_gu"
+  }
+}

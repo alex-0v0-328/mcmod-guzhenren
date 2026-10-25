@@ -414,6 +414,9 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.NINE_LEAF_VITALITY_GRASS,                   "Nine Leaf Vitality Grass", "九叶生机草");
         addItem(ModItems.SECOND_WATCH_GU,                            "Second Watch Gu", "两更蛊");
         addItem(ModItems.THIRD_WATCH_GU,                             "Third Watch Gu", "三更蛊");
+        addItem(ModItems.MAN_AS_BEFORE_GU,                           "Man As Before Gu", "人如故");
+        addItem(ModItems.MOUNTAIN_AS_BEFORE_GU,                      "Mountain As Before Gu", "山如故");
+        addItem(ModItems.RIVER_AS_BEFORE_GU,                         "River As Before Gu", "江如故");
         addItem(ModItems.MALICIOUS_THOUGHT_GU_2,                     "Malicious Thought Gu II", "二转恶念蛊");
         addItem(ModItems.MALICIOUS_THOUGHT_GU_3,                     "Malicious Thought Gu III", "三转恶念蛊");
         addItem(ModItems.MALICIOUS_THOUGHT_GU_4,                     "Malicious Thought Gu IV", "四转恶念蛊");
@@ -508,6 +511,12 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.no_leaves",
                 "No Vitality Leaf left - the next grows in %s s", "生机叶已摘光，下一片需 %s 秒");
         add("guzhenren.item.failed.leaves_full",                     "All nine Vitality Leaves have grown", "生机叶已满九片");
+        add("guzhenren.item.failed.as_before_recovering",            "This Gu recovers in %s s", "此蛊力竭，需 %s 秒");
+        add("guzhenren.item.failed.as_before_no_memory",             "This Gu has not yet known you", "此蛊尚未识你");
+        add("guzhenren.item.failed.as_before_too_young",             "This Gu has not yet known a full day", "此蛊尚未满一日");
+        add("guzhenren.item.failed.as_before_unknown_land",          "This Gu has not yet known this land", "此蛊未识此地");
+        add("guzhenren.item.failed.as_before_not_land",              "This is no mountain", "此地非山");
+        add("guzhenren.item.failed.as_before_not_water",             "This is no river", "此地非江");
         add("guzhenren.item.gu.invested",                            "Invested %s/%s", "已投入 %s/%s");
         add("guzhenren.item.gu.refine_progress",                     "Refined %s/%s", "炼化 %s/%s");
         add("guzhenren.item.gu.refine_cost",                         "Refine %s", "炼化 %s");
@@ -515,6 +524,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.stored_stones",                       "Stored %s/%s", "存石 %s/%s");
         add("guzhenren.item.gu.leaves",                              "Vitality Leaves %s/%s", "生机叶 %s/%s");
         add("guzhenren.item.gu.next_leaf",                           "Next leaf in %s s", "下一片需 %s 秒");
+        add("guzhenren.item.gu.next_point",                          "Next point in %s s", "下一点需 %s 秒");
+        add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
+        add("guzhenren.item.gu.as_before_land",                      "The land is as it was a day ago", "山已如昨");
+        add("guzhenren.item.gu.as_before_water",                     "The waters are as they were a day ago", "江已如昨");
         add("guzhenren.item.gu.lifespan_gained",                     "Lifespan +%s years", "寿元 +%s 年");
         add("guzhenren.item.gu.hungry",                              "Your %s is hungry", "%s饿了");
         add("guzhenren.item.gu.starved",                             "Your %s starved to death", "%s饿死了");

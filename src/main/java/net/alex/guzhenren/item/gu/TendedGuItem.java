@@ -464,9 +464,13 @@ public abstract class TendedGuItem extends MortalGuItem {
             return Component.translatable(TOOLTIP_INVESTED, getState(stack).investedEssence(),
                     spec.getEssencePerRound());
         }
-        return clock instanceof GuClock.HungerBar bar
-                ? Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max())
-                : null;
+        if (clock instanceof GuClock.HungerBar bar) {
+            return Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max());
+        }
+        if (clock instanceof GuClock.RecoverBar bar) {
+            return Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max());
+        }
+        return null;
     }
 
     @Override

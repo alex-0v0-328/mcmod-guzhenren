@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.gu.GuUpkeep;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
+import net.alex.guzhenren.item.gu.mortal.time.AsBeforeGuItem;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.alex.guzhenren.vault.ApertureStorageTick;
@@ -38,7 +39,7 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code ApertureStorageMenu.refresh}, for an open store -- after (3), or the menu saves its stale view
  * back over the walk.</li>
  * <li>{@code VitalLossService.settleOfflineVitalLoss} -- right after (2) and (3), which charge an online
- * Vital Gu death on the spot; its soul and mind halving lands before (15) and (18).</li>
+ * Vital Gu death on the spot; its soul and mind halving lands before (15) and (19).</li>
  * <li>{@code ApertureEssenceService.closeDistilling} -- before (13): the 1:2 return lands before regen picks
  * a pool.</li>
  * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (8) and
@@ -49,15 +50,18 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code UndeadService.tickDeathQi} -- after (9) for the effect, after (7) for the zombie skip.</li>
  * <li>{@code AttackDamageService.refresh} -- after (7) and (9): the form and the strength-qi effect are both
  * {@code getBonus} terms.</li>
- * <li>{@code BodyService.tickLifespan} -- after (7), since an undead body is never billed; before (18),
+ * <li>{@code BodyService.tickLifespan} -- after (7), since an undead body is never billed; before (19),
  * which reads exhaustion.</li>
  * <li>{@code ApertureEssenceService.regenStep} -- after (6), (7) and (9).</li>
  * <li>{@code ApertureNourishService.tickNourish} -- after (13): this second's regen before this second's
  * bill.</li>
  * <li>{@code MindService.regenStep} -- after (7): a zombie thinks every fifth second.</li>
  * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (13), whose essence the auto-use pays.</li>
+ * <li>{@code AsBeforeGuItem.remember} -- after (7), (12) and (15): the body it records is this beat's settled one,
+ * the half-zombie form, lifespan exhaustion and thoughts included; before (19), so a body about to die is still
+ * remembered as it was.</li>
  * <li>{@code AperturePressureService.tick} -- the service gates its own minute step and countdown; a full
- * gauge goes to (18).</li>
+ * gauge goes to (19).</li>
  * <li>{@code checkLethalState} -- last.</li>
  * </ol>
  *
@@ -106,6 +110,7 @@ public final class Heartbeat {
         ApertureNourishService.tickNourish(player, beat);
         MindService.regenStep(player, beat);
         SelfRelianceGuItem.tryAutoUse(player);
+        AsBeforeGuItem.remember(player);
         AperturePressureService.tick(player);
         checkLethalState(player);
     }

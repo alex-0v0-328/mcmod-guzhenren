@@ -97,6 +97,15 @@ public final class MindService {
 
     public static void empty(@NotNull ServerPlayer player) { store(player, get(player).withEmptied()); }
 
+    public static void restoreThoughts(@NotNull ServerPlayer player, @NotNull Map<MindPoolType, Long> current,
+                                       @NotNull Map<ThoughtTag, Long> tagged) {
+        MindData data = get(player);
+        for (Map.Entry<MindPoolType, Long> entry : current.entrySet()) {
+            data = withCurrent(data, entry.getKey(), entry.getValue());
+        }
+        store(player, new MindData(data.brilliance(), data.pools(), tagged));
+    }
+
     private static MindData withCurrent(MindData data, MindPoolType type, long value) {
         MindPool pool = data.getPool(type);
         return data.with(type, pool.withCurrent(type.isBurstable() ? value : Math.min(value, pool.max())));

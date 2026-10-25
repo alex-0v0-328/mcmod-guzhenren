@@ -8,9 +8,18 @@ import net.minecraft.world.item.ItemStack;
 /**
  * How a tended Gu [需照顾] is billed over time, and what it takes to keep one alive.
  *
- * <p>A sealed interface with two implementations: {@link HungerBar} (every tended Gu with a bar that drains)
- * and {@link NoClock} (Primeval Elder Gu, Heavenly Essence Treasure Lotus Gu, Nine Leaf Vitality Grass, Watch
- * Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuSpec#buildClock} at construction.
+ * <p>A sealed interface with three implementations: {@link HungerBar} (every tended Gu with a bar that drains),
+ * {@link RecoverBar} (the As Before Gu [如故蛊]: a bar that refills with the world clock, never drains by the day,
+ * never eats) and {@link NoClock} (Primeval Elder Gu, Heavenly Essence Treasure Lotus Gu, Nine Leaf Vitality Grass,
+ * Watch Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuSpec#buildClock} at construction.
+ *
+ * <p>⚠ {@code RecoverBar} settles lazily from its {@code RECOVERED_AT} stamp, like {@code LeafGrowth}: {@link
+ * RecoverBar#getPoints(ItemStack, long)} derives the count at any game time without writing, {@link
+ * RecoverBar#settle} writes only a grown point (a full bar is left alone, so a carried one costs no stack write a
+ * second). The day-clock walk settles every carried one each heartbeat, so the stored count is never more than a
+ * second stale. ⚠ A full bar's stamp is stale by design, so a use that spends from a full bar must {@link
+ * RecoverBar#restart} the stamp at the spend ({@code AsBeforeGuItem.useApply}), or the next settle would hand the
+ * point straight back.
  *
  * <p>⚠ "Hungry" means only that the next day rollover will kill it, and the threshold is flat at 1
  * for every Gu on a bar. It must never be scaled to the size of the meal.
@@ -137,6 +146,102 @@ public sealed interface GuClock {
 
         @Override
         public float getBarFraction(ItemStack stack) { return getHunger(stack) / (float) max; }
+    }
+    //endregion
+
+    //region 回复条 -- refills with the world clock, never drains by the day, never eats
+    record RecoverBar(int max, int ticksPerPoint, int perUse) implements GuClock {
+
+        private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
+
+        private void setPoints(ItemStack stack, int value) {
+            RefinedGuState s = getState(stack);
+            ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
+        }
+
+        public int getPoints(ItemStack stack) { return getState(stack).hunger(); }
+
+        public int getPoints(ItemStack stack, long now) {
+            Long stamp = ModDataComponents.get(stack, ModDataComponents.RECOVERED_AT);
+            int points = getPoints(stack);
+            if (stamp == null || now < stamp || points >= max) return points;
+            return (int) Math.min(max, points + (now - stamp) / ticksPerPoint);
+        }
+
+        public int getTicksToNextPoint(ItemStack stack, long now) {
+            Long stamp = ModDataComponents.get(stack, ModDataComponents.RECOVERED_AT);
+            if (getPoints(stack, now) >= max) return 0;
+            if (stamp == null || now < stamp) return ticksPerPoint;
+            return (int) (ticksPerPoint - (now - stamp) % ticksPerPoint);
+        }
+
+        public void settle(ItemStack stack, long now) {
+            Long stamp = ModDataComponents.get(stack, ModDataComponents.RECOVERED_AT);
+            if (stamp == null || now < stamp) {
+                ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
+                return;
+            }
+            int points = getPoints(stack);
+            if (points >= max) return;
+
+            long grown = (now - stamp) / ticksPerPoint;
+            if (grown <= 0L) return;
+
+            if (points + grown >= max) {
+                setPoints(stack, max);
+                ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
+                return;
+            }
+            setPoints(stack, points + (int) grown);
+            ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, stamp + grown * ticksPerPoint);
+        }
+
+        public void restart(ItemStack stack, long now) {
+            ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
+        }
+
+        @Override
+        public void bind(ServerPlayer player, ItemStack stack) {
+            setPoints(stack, max);
+            restart(stack, player.level().getGameTime());
+        }
+
+        @Override
+        public boolean tickStarvation(ServerPlayer player, ItemStack stack, long days) {
+            settle(stack, player.level().getGameTime());
+            return false;
+        }
+
+        @Override
+        public boolean isHungry(ServerPlayer player, ItemStack stack) { return false; }
+
+        @Override
+        public void warn(ServerPlayer player, ItemStack stack, long days) {}
+
+        @Override
+        public boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) { return false; }
+
+        @Override
+        public int getEssenceAboveHungerFloor(ItemStack stack) { return Integer.MAX_VALUE; }
+
+        @Override
+        public int getEssencePerHungerPoint() { return Integer.MAX_VALUE; }
+
+        @Override
+        public void billHungerForEssence(ItemStack stack, int from, int to) {}
+
+        @Override
+        public boolean isSpendForced(ItemStack stack) {
+            boolean forced = getPoints(stack) < perUse;
+            setPoints(stack, getPoints(stack) - perUse);
+            return forced;
+        }
+
+        @Override
+        public boolean isBarVisible(ItemStack stack) { return getPoints(stack) < max; }
+
+        @Override
+        public float getBarFraction(ItemStack stack) { return getPoints(stack) / (float) max; }
     }
     //endregion
 

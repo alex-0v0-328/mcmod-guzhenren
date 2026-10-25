@@ -13,6 +13,7 @@ import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
+import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
 import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
@@ -27,6 +28,8 @@ import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
+import net.alex.guzhenren.item.gu.mortal.time.ManAsBeforeGuItem;
+import net.alex.guzhenren.item.gu.mortal.time.TerrainAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.WatchGuItem;
 import net.alex.guzhenren.item.gu.mortal.transformation.ZombieGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.CasualGuItem;
@@ -376,6 +379,24 @@ public final class ModItems {
                     GuSpec.of(Rank.FIVE, GuPath.TIME)
                             .refine(1_000_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
+    //endregion
+
+    //region As Before Gu [如故蛊] -- Time Path [宙道]; never fed, four points back one per half day of world time
+    public static final DeferredItem<Item> MAN_AS_BEFORE_GU = ITEMS.register("man_as_before_gu",
+            () -> new ManAsBeforeGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TIME)
+                    .refine(1_000_000).costPerUse(320_000)
+                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
+                    .cooldown(Ticks.SECOND)));
+    public static final DeferredItem<Item> MOUNTAIN_AS_BEFORE_GU = ITEMS.register("mountain_as_before_gu",
+            () -> new TerrainAsBeforeGuItem(createTendedProperties(), ChunkKind.LAND, GuSpec.of(Rank.FIVE, GuPath.TIME)
+                    .refine(1_000_000).costPerUse(640_000)
+                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
+                    .cooldown(Ticks.SECOND)));
+    public static final DeferredItem<Item> RIVER_AS_BEFORE_GU = ITEMS.register("river_as_before_gu",
+            () -> new TerrainAsBeforeGuItem(createTendedProperties(), ChunkKind.WATER, GuSpec.of(Rank.FIVE, GuPath.TIME)
+                    .refine(1_000_000).costPerUse(640_000)
+                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
+                    .cooldown(Ticks.SECOND)));
     //endregion
 
     //region Malicious Thought Gu [恶念蛊] -- Wisdom Path [智道]; a one-use flood of evil thoughts, taken by its use

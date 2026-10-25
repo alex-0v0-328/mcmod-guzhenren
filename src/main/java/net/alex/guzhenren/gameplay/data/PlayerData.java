@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
+import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: thirteen saved values and one
+ * Everything this mod keeps on a player, read and written through one object: fourteen saved values and one
  * in-memory carry, the essence regen remainder ({@link #getEssenceCarry}).
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
@@ -69,6 +70,8 @@ public final class PlayerData {
 
     public DimensionReturnData getDimensionReturn() { return owner.getData(ModAttachments.DIMENSION_RETURN); }
 
+    public PlayerRewindData getRewind() { return owner.getData(ModAttachments.PLAYER_REWIND); }
+
     public boolean hasBurst() { return owner.hasData(ModAttachments.BURST); }
 
     public boolean isBorn() { return owner.getData(ModAttachments.BORN); }
@@ -98,6 +101,8 @@ public final class PlayerData {
     public boolean setDimensionReturn(@NotNull DimensionReturnData value) {
         return set(ModAttachments.DIMENSION_RETURN, value);
     }
+
+    public boolean setRewind(@NotNull PlayerRewindData value) { return set(ModAttachments.PLAYER_REWIND, value); }
 
     public boolean setBurst(boolean value) {
         if (value == hasBurst()) return false;

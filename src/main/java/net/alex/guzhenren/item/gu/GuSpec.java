@@ -12,7 +12,8 @@ import org.jetbrains.annotations.Nullable;
  * One Gu's numbers, given as a builder chain at registration so that a registration reads as a table row.
  *
  * <p>The single source of truth for every Gu's numerical identity: refine cost, channel/cost-per-use,
- * hunger bar geometry, feed tags, and cooldown. Stored on {@link MortalGuItem} at
+ * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags, and
+ * cooldown. Stored on {@link MortalGuItem} at
  * construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD renderers.
  *
  * <p>⚠ {@link #validate} runs at registration and refuses to start the game, naming the Gu, when
@@ -34,6 +35,7 @@ public final class GuSpec {
     private int essencePerRound;
     private boolean channels;
     private int maxHunger;
+    private int recoverTicks;
     private int unitsPerHunger = 1;
     private int essencePerHunger;
     private int hungerPerUse = 1;
@@ -70,6 +72,12 @@ public final class GuSpec {
     public GuSpec hungerBar(int max, int unitsPerHunger) {
         this.maxHunger = max;
         this.unitsPerHunger = unitsPerHunger;
+        return this;
+    }
+
+    public GuSpec recoverBar(int max, int ticksPerPoint) {
+        this.maxHunger = max;
+        this.recoverTicks = ticksPerPoint;
         return this;
     }
 
@@ -127,6 +135,7 @@ public final class GuSpec {
     public int getUnitsPerHunger() { return unitsPerHunger; }
 
     public GuClock buildClock() {
+        if (recoverTicks > 0) return new GuClock.RecoverBar(maxHunger, recoverTicks, hungerPerUse);
         if (maxHunger > 0) {
             return new GuClock.HungerBar(maxHunger, unitsPerHunger, essencePerHunger, hungerPerUse);
         }
@@ -142,6 +151,10 @@ public final class GuSpec {
     public void validate(String id) {
         if (refineCost < 0) throw fault(id, "refine cost is negative");
         if (essencePerRound < 0) throw fault(id, "essence per round is negative");
+        if (recoverTicks > 0 && maxHunger <= 0) throw fault(id, "recovers with time but has no bar");
+        if (recoverTicks > 0 && (channels || feedTag != null)) {
+            throw fault(id, "recovers with time but channels or feeds");
+        }
 
         if (!channels) return;
 

@@ -163,6 +163,16 @@ public final class BodyService {
                 .withZombieTier(tier));
     }
 
+    public static void restoreHalfZombie(@NotNull ServerPlayer player, long ticksLeft) {
+        BodyData body = get(player);
+        if (body.isZombie()) return;
+
+        BodyData next = ticksLeft > 0L
+                ? body.with(Physique.HALF_ZOMBIE).withHalfZombieEndTick(getGameTime(player) + ticksLeft)
+                : body.without(Physique.HALF_ZOMBIE).withHalfZombieEndTick(BodyData.UNTRACKED);
+        if (!next.equals(body)) storePhysique(player, next);
+    }
+
     private static void storePhysique(ServerPlayer player, BodyData data) {
         store(player, data);
         ModEvents.post(new PhysiqueChangedEvent(player));

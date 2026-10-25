@@ -15,6 +15,8 @@ import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
+import net.alex.guzhenren.gameplay.rewind.ChunkMemory;
+import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -27,14 +29,17 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * Every data attachment this mod puts on a player.
+ * Every data attachment this mod puts on a player, and the one it puts on a chunk.
  *
- * <p>DeferredRegister holder: the ten record attachments (immutable, written only through their
+ * <p>DeferredRegister holder: the eleven record attachments (immutable, written only through their
  * service) plus the four scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
- * {@code BURST}). {@link #registerSynced} saves an attachment and syncs it to its owner alone
- * ({@code OWNER_ONLY}); {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor
- * synced. {@code BURST} counts by presence: a player who has it is bursting [疾飞]. A record other players
- * must see widens its sync predicate; it never gets a downstream payload.
+ * {@code BURST}), and {@code CHUNK_MEMORY}, the only attachment on a {@code LevelChunk} rather than a player:
+ * the land's past day for the Mountain and River As Before Gu [山如故 / 江如故], saved in the chunk's own file
+ * only while it holds something, and read and written through {@code ChunkRewindService} alone.
+ * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
+ * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced. {@code BURST} counts by
+ * presence: a player who has it is bursting [疾飞]. A record other players must see widens its sync predicate; it
+ * never gets a downstream payload.
  *
  * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
  * synced attachment to its owner on every {@code setData}, equal or not, so a store that changes nothing writes and
@@ -45,7 +50,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
  * attachment is carried and reset by being registered here, nowhere else. {@code BURST} and
  * {@code HEALTH_CARRY} are built by hand because a death must not carry them (a respawn would still be
- * bursting); {@code ESSENCE_CARRY} is unsaved, so no clone carries it. ⚠ {@code BORN} stays inherited, or
+ * bursting), and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a body that the death just
+ * ended; {@code ESSENCE_CARRY} is unsaved, so no clone carries it. ⚠ {@code BORN} stays inherited, or
  * the next login re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
@@ -122,6 +128,17 @@ public final class ModAttachments {
     //region Dimension return [维度往返]
     public static final Supplier<AttachmentType<DimensionReturnData>> DIMENSION_RETURN =
             registerSaved("dimension_return", DimensionReturnData.DEFAULT, DimensionReturnData.CODEC);
+    //endregion
+
+    //region Rewind [如故] -- saved, never synced; the chunk one lives on the chunk
+    public static final Supplier<AttachmentType<PlayerRewindData>> PLAYER_REWIND = ATTACHMENT_TYPES.register(
+            "player_rewind", () -> AttachmentType.builder(() -> PlayerRewindData.DEFAULT)
+                    .serialize(PlayerRewindData.CODEC, data -> !data.isEmpty())
+                    .build());
+    public static final Supplier<AttachmentType<ChunkMemory>> CHUNK_MEMORY = ATTACHMENT_TYPES.register(
+            "chunk_memory", () -> AttachmentType.builder(() -> ChunkMemory.EMPTY)
+                    .serialize(ChunkMemory.CODEC, memory -> !memory.isEmpty())
+                    .build());
     //endregion
 
     //region Flight [飞行]
