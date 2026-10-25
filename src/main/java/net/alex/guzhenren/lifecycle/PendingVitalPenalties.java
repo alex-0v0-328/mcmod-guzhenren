@@ -21,9 +21,9 @@ import org.jetbrains.annotations.Nullable;
  * through the same penalty an online owner pays.
  *
  * <p>⚠ The mod's only server-level store of player state and its one mutable player-state class -- every
- * other piece of player state is an immutable attachment record (the other server-level store, the running
- * pressure-explosion craters, holds world state). ⚠ One entry per lost Gu, first in first out; the
- * service settles one per heartbeat, so the second 80% hurt is not swallowed by the first one's hurt
+ * other piece of player state is an immutable attachment record (the other server-level stores hold world state:
+ * the running pressure-explosion craters and {@code EpicFightRuleSeed}). ⚠ One entry per lost Gu, first in first
+ * out; the service settles one per heartbeat, so the second 80% hurt is not swallowed by the first one's hurt
  * cooldown.
  *
  * @author Alex

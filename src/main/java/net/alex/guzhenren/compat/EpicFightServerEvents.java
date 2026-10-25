@@ -5,7 +5,6 @@ import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.lifecycle.PlayerRefreshedEvent;
 import net.alex.guzhenren.particle.RingConeEmitter;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -17,10 +16,9 @@ import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
-import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 /**
- * Sets Epic Fight's per-level skill-retention rule for every loaded server level, re-reads the stamina
+ * Seeds Epic Fight's skill-retention rule once per world ({@link EpicFightRuleSeed}), re-reads the stamina
  * modifier whenever the apertures change ({@code ApertureChangedEvent}) or the lifecycle rebuilds a player's
  * derived attributes ({@code PlayerRefreshedEvent}), and opens the punch shockwave
  * trail on a heavy fist landing.
@@ -39,11 +37,7 @@ public final class EpicFightServerEvents {
     private EpicFightServerEvents() {}
 
     @SubscribeEvent
-    public static void onServerStarted(ServerStartedEvent event) {
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            EpicFightGameRules.KEEP_SKILLS.setRuleValue(level, true);
-        }
-    }
+    public static void onServerStarted(ServerStartedEvent event) { EpicFightRuleSeed.seed(event.getServer()); }
 
     @SubscribeEvent
     public static void onApertureChanged(ApertureChangedEvent event) {
