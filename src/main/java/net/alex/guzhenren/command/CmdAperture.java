@@ -26,7 +26,8 @@ import net.minecraft.util.StringRepresentable;
  * {@code applyOnAperture} per-target gate (data protection). An optional integer index right after the
  * literal picks the aperture (1-based, default the first) -- safe next to a literal, unlike a word
  * argument. Offers graded setters for rank, stage, and talent, the essence subtree with {@code base}/
- * {@code current}/{@code distilled} and their {@code refill} where applicable.
+ * {@code current}/{@code distilled}, and {@code refill}, which fills the indexed aperture alone and every
+ * aperture when no index is given.
  *
  * @author Alex
  * @version 1.0.0
@@ -80,15 +81,18 @@ public final class CmdAperture {
                         .then(buildLongNode("add", CmdAperture::addDistilledEssence))
                         .then(buildLongNode("sub", (player, index, value) ->
                                 addDistilledEssence(player, index, LongMath.saturatedSubtract(0L, value)))))
-                .then(ModCommandSupport.withTargets(Commands.literal("refill"),
-                        context -> AwakenedGate.applyOnAwakened(context, ApertureEssenceService::refill)));
+                .then(ModCommandSupport.withTargets(Commands.literal("refill"), context -> isIndexed(context)
+                        ? applyOnAperture(context, ApertureEssenceService::refill)
+                        : AwakenedGate.applyOnAwakened(context, ApertureEssenceService::refill)));
     }
 
     //region builders
+    private static boolean isIndexed(CommandContext<CommandSourceStack> context) {
+        return context.getNodes().stream().anyMatch(node -> node.getNode().getName().equals(ARG_APERTURE));
+    }
+
     private static int getApertureIndex(CommandContext<CommandSourceStack> context) {
-        boolean indexed = context.getNodes().stream()
-                .anyMatch(node -> node.getNode().getName().equals(ARG_APERTURE));
-        return indexed ? IntegerArgumentType.getInteger(context, ARG_APERTURE) - 1
+        return isIndexed(context) ? IntegerArgumentType.getInteger(context, ARG_APERTURE) - 1
                 : ApertureData.PRIMARY;
     }
 

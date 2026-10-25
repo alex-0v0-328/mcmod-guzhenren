@@ -121,6 +121,10 @@ public final class ApertureEssenceService {
         }
     }
 
+    public static void refill(@NotNull ServerPlayer player, int index) {
+        ApertureService.set(player, index, ApertureService.getAperture(player, index).withFullEssence());
+    }
+
     public static void addDistilled(@NotNull ServerPlayer player, long delta) {
         setDistilled(player, LongMath.saturatedAdd(getDistilledEssence(player), delta));
     }
