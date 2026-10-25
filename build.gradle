@@ -80,11 +80,18 @@ neoForge {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
+        // -PclientGameDir=<dir> and -PquickPlayServer=<host:port>: tools/check.py's multiplayer smoke test boots a
+        // client in a throwaway game directory, so its mods are the classpath's alone, the same as the smoke
+        // server's, and joins that server at once. Without the properties nothing changes.
         client {
             client()
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            gameDirectory = project.file(providers.gradleProperty('clientGameDir').getOrElse('run'))
+            if (providers.gradleProperty('quickPlayServer').isPresent()) {
+                programArguments.addAll '--quickPlayMultiplayer', providers.gradleProperty('quickPlayServer').get()
+            }
         }
 
         // -PserverGameDir=<dir> swaps the game directory for a throwaway one: tools/check.py boots
