@@ -56,7 +56,8 @@ public final class ChunkRewindService {
 
     public static final int RECORD_RADIUS = 2;
     public static final int RESTORE_RADIUS = 1;
-    public static final int RESTORE_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
+    public static final int RESTORE_FLAGS =
+            Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
     private static final Deque<PendingRestore> QUEUE = new ArrayDeque<>();
 
     //region the memory on the chunk -- the version seam

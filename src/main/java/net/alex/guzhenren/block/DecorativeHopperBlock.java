@@ -70,7 +70,8 @@ public class DecorativeHopperBlock extends Block {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction direction = context.getClickedFace().getOpposite();
-        return defaultBlockState().setValue(FACING, direction.getAxis() == Direction.Axis.Y ? Direction.DOWN : direction);
+        Direction facing = direction.getAxis() == Direction.Axis.Y ? Direction.DOWN : direction;
+        return defaultBlockState().setValue(FACING, facing);
     }
 
     @Override

@@ -35,7 +35,9 @@ public class WatchGuItem extends ConsumedGuItem {
 
     public WatchGuItem(Properties properties, Supplier<? extends MobEffect> form, int effectTicks, GuSpec spec) {
         super(properties, spec);
-        if (!(form.get() instanceof TimeRateUpEffect)) throw new IllegalArgumentException("watch gu needs a TimeRateUpEffect");
+        if (!(form.get() instanceof TimeRateUpEffect)) {
+            throw new IllegalArgumentException("watch gu needs a TimeRateUpEffect");
+        }
         this.form = form;
         this.effectTicks = effectTicks;
     }
