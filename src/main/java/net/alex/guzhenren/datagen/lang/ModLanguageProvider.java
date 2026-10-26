@@ -474,6 +474,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.ESSENCE_QI_4,                               "Essence Qi IV", "四转元气");
         addItem(ModItems.ESSENCE_QI_5,                               "Essence Qi V", "五转元气");
         addItem(ModItems.DEATH_QI_5,                                 "Death Qi V", "五转死气");
+        addItem(ModItems.ADVANCEMENT_ICON,                           "Advancement Icon", "进度图标");
 
         add("itemGroup.guzhenren.mortal_gu",                         "Mortal Gu", "凡蛊");
         add("itemGroup.guzhenren.gu_material",                       "Gu Material", "蛊材");

@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
+import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
 import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
@@ -73,7 +74,8 @@ import org.jetbrains.annotations.Nullable;
  * the block's lang entry, and its icon is the fluid's still strip (see
  * {@code ModItemModelProvider}) -- no item PNG of its own. {@link #PURE_WATER_BUCKET} is the vanilla water
  * bucket's twin for the Pure Water [纯水]: it places a source, an empty bucket scoops one back, and a
- * dispenser pours it ({@code PureWaterEvents}).
+ * dispenser pours it ({@code PureWaterEvents}). {@link #ADVANCEMENT_ICON} is no game item: it carries the
+ * realm advancements' numerals ({@link AdvancementIconItem}).
  *
  * @author Alex
  * @version 1.0.0
@@ -597,6 +599,11 @@ public final class ModItems {
     private static long getQiEssenceCost(Rank rank) { return QI_ESSENCE_COST[rank.ordinal() - Rank.ONE.ordinal()]; }
 
     private static Item.Properties createQiProperties() { return new Item.Properties().stacksTo(64); }
+    //endregion
+
+    //region Advancement Icon [进度图标] -- no tab, no recipe viewer; only advancements show it
+    public static final DeferredItem<AdvancementIconItem> ADVANCEMENT_ICON = ITEMS.register("advancement_icon",
+            () -> new AdvancementIconItem(new Item.Properties().stacksTo(1)));
     //endregion
 
     public static void register(IEventBus modEventBus) {

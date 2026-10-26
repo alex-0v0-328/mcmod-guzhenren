@@ -9,6 +9,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +19,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.minecraft.data.tags.ItemTagsProvider}. Defines the feed tags ({@code boar_feed},
  * {@code bear_feed}, {@code jin_feed}, {@code liquor_feed}, etc.), the zombie feed tag, and the
- * all-out-effort feed tag. Every tag references the registered item or a vanilla item, never a raw id.
+ * all-out-effort feed tag, and hides the Advancement Icon [进度图标] from recipe viewers through the common
+ * {@code c:hidden_from_recipe_viewers} tag. Every tag references the registered item or a vanilla item, never
+ * a raw id.
  *
  * @author Alex
  * @version 1.0.0
@@ -57,5 +60,7 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModItemTags.MALICIOUS_THOUGHT_FEED).add(Items.DIRT);
 
         tag(ModItemTags.CASUAL_FEED).add(Items.WHEAT_SEEDS);
+
+        tag(Tags.Items.HIDDEN_FROM_RECIPE_VIEWERS).add(ModItems.ADVANCEMENT_ICON.get());
     }
 }

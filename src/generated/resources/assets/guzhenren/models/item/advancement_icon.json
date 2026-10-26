@@ -1,0 +1,158 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "guzhenren:item/advancement_icon_1",
+      "predicate": {
+        "minecraft:custom_model_data": 10.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_1_init",
+      "predicate": {
+        "minecraft:custom_model_data": 11.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_1_mid",
+      "predicate": {
+        "minecraft:custom_model_data": 12.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_1_upper",
+      "predicate": {
+        "minecraft:custom_model_data": 13.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_1_peak",
+      "predicate": {
+        "minecraft:custom_model_data": 14.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_2",
+      "predicate": {
+        "minecraft:custom_model_data": 20.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_2_init",
+      "predicate": {
+        "minecraft:custom_model_data": 21.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_2_mid",
+      "predicate": {
+        "minecraft:custom_model_data": 22.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_2_upper",
+      "predicate": {
+        "minecraft:custom_model_data": 23.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_2_peak",
+      "predicate": {
+        "minecraft:custom_model_data": 24.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_3",
+      "predicate": {
+        "minecraft:custom_model_data": 30.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_3_init",
+      "predicate": {
+        "minecraft:custom_model_data": 31.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_3_mid",
+      "predicate": {
+        "minecraft:custom_model_data": 32.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_3_upper",
+      "predicate": {
+        "minecraft:custom_model_data": 33.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_3_peak",
+      "predicate": {
+        "minecraft:custom_model_data": 34.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_4",
+      "predicate": {
+        "minecraft:custom_model_data": 40.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_4_init",
+      "predicate": {
+        "minecraft:custom_model_data": 41.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_4_mid",
+      "predicate": {
+        "minecraft:custom_model_data": 42.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_4_upper",
+      "predicate": {
+        "minecraft:custom_model_data": 43.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_4_peak",
+      "predicate": {
+        "minecraft:custom_model_data": 44.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_5",
+      "predicate": {
+        "minecraft:custom_model_data": 50.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_5_init",
+      "predicate": {
+        "minecraft:custom_model_data": 51.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_5_mid",
+      "predicate": {
+        "minecraft:custom_model_data": 52.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_5_upper",
+      "predicate": {
+        "minecraft:custom_model_data": 53.0
+      }
+    },
+    {
+      "model": "guzhenren:item/advancement_icon_5_peak",
+      "predicate": {
+        "minecraft:custom_model_data": 54.0
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "guzhenren:item/advancement_icon_0"
+  }
+}

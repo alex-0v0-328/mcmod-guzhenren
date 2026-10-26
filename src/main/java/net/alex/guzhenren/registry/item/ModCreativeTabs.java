@@ -29,7 +29,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * {@link GuMaterialItem}, and the path: {@link GuPath#STRENGTH} and {@link GuPath#WOOD} Gu each leave the
  * mortal Gu tab for their own, while wood path Gu materials stay with the materials. An item extending neither
  * middle class lands in no tab at all -- except the two fluid items, the Spirit Spring [元泉] BlockItem and the
- * Pure Water Bucket [纯水桶], routed into the material tab explicitly.
+ * Pure Water Bucket [纯水桶], routed into the material tab explicitly. The Advancement Icon [进度图标] stays out on
+ * purpose.
  *
  * <p>⚠ That miss is silent: nothing fails and nothing warns, the item simply never appears. The four
  * tab constants stay unused by the language provider (it has no creative-tab overload).

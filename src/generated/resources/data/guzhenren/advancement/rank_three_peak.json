@@ -14,8 +14,11 @@
       "translate": "advancements.guzhenren.rank_three_peak.description"
     },
     "icon": {
+      "components": {
+        "minecraft:custom_model_data": 34
+      },
       "count": 1,
-      "id": "guzhenren:silver_relics_gu"
+      "id": "guzhenren:advancement_icon"
     },
     "title": {
       "translate": "advancements.guzhenren.rank_three_peak.title"

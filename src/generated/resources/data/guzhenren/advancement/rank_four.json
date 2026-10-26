@@ -14,8 +14,11 @@
     },
     "frame": "goal",
     "icon": {
+      "components": {
+        "minecraft:custom_model_data": 40
+      },
       "count": 1,
-      "id": "guzhenren:gold_relics_gu"
+      "id": "guzhenren:advancement_icon"
     },
     "title": {
       "translate": "advancements.guzhenren.rank_four.title"
