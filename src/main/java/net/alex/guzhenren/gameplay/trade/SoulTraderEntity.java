@@ -3,7 +3,7 @@ package net.alex.guzhenren.gameplay.trade;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import net.alex.guzhenren.network.ModNetwork;
+import net.alex.guzhenren.core.Menus;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -138,7 +138,7 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
         if (!this.isAlive()) return InteractionResult.PASS;
 
         if (player instanceof ServerPlayer server) {
-            ModNetwork.openMenu(server, new SimpleMenuProvider(
+            Menus.open(server, new SimpleMenuProvider(
                     (id, inventory, who) -> new SoulTradeMenu(id, inventory, this), this.getDisplayName()),
                     buffer -> SoulTradeMenu.writeOffers(buffer, this.trader.getOffers()));
         }

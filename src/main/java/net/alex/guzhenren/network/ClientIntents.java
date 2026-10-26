@@ -1,6 +1,7 @@
 package net.alex.guzhenren.network;
 
 import net.alex.guzhenren.compat.EpicFightIntegration;
+import net.alex.guzhenren.core.Menus;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
@@ -107,7 +108,7 @@ public final class ClientIntents {
 
     public static void openApertureStorage(@NotNull ServerPlayer player, int aperture) {
         if (!isOutsideTyh(player) || !hasAperture(player, aperture)) return;
-        ModNetwork.openMenu(player, new SimpleMenuProvider(
+        Menus.open(player, new SimpleMenuProvider(
                 (id, inventory, p) -> new ApertureStorageMenu(id, inventory, aperture, 0),
                 Component.translatable(STORAGE_TITLE)), buffer -> buffer.writeVarInt(aperture));
     }
