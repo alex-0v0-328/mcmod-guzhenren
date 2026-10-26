@@ -593,6 +593,21 @@ public class ModLanguageProvider extends LanguageProvider {
         add("advancements.guzhenren.first_awakening.title",       "Awakening!", "开窍！");
         add("advancements.guzhenren.first_awakening.description",
                 "Use your first Hope Gu to open your first aperture", "使用你的第一只希望蛊，开出第一窍");
+        add("advancements.guzhenren.rank_two.title",              "Rank II!", "二转！");
+        add("advancements.guzhenren.rank_two.description",
+                "Advance your first aperture to Rank II", "第一窍晋升二转");
+        add("advancements.guzhenren.rank_three.title",            "Rank III!", "三转！");
+        add("advancements.guzhenren.rank_three.description",
+                "Advance your first aperture to Rank III", "第一窍晋升三转");
+        add("advancements.guzhenren.rank_three_peak.title",       "I Am Rank III Peak!", "我乃三转巅峰！");
+        add("advancements.guzhenren.rank_three_peak.description",
+                "Bring your first aperture to Rank III Peak", "第一窍达到三转巅峰");
+        add("advancements.guzhenren.rank_four.title",             "Rank IV!", "四转！");
+        add("advancements.guzhenren.rank_four.description",
+                "Advance your first aperture to Rank IV", "第一窍晋升四转");
+        add("advancements.guzhenren.rank_five.title",             "Rank V!", "五转！");
+        add("advancements.guzhenren.rank_five.description",
+                "Advance your first aperture to Rank V", "第一窍晋升五转");
     }
     //endregion
 
