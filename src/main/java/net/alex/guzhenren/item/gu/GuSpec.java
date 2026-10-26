@@ -17,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
  * construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD renderers.
  *
  * <p>⚠ {@link #validate} runs at registration and refuses to start the game, naming the Gu, when
- * the channel numbers do not divide evenly. It is the first line of defense; never route around it.
+ * the channel numbers do not divide evenly, or a food worth more than one point does not divide the bar, a use,
+ * a day and the health. It is the first line of defense; never route around it.
  *
  * @author Alex
  * @version 1.0.0
@@ -181,6 +182,7 @@ public final class GuSpec {
         if (recoverTicks > 0 && (channels || feedTag != null)) {
             throw fault(id, "recovers with time but channels or feeds");
         }
+        if (feedTag != null && feedUnits > unitsPerHunger) checkWholeMeals(id);
 
         if (!channels) return;
 
@@ -189,6 +191,21 @@ public final class GuSpec {
         if (essencePerRound % essencePerHunger != 0) {
             throw fault(id, "round %d does not divide by hunger rate %d"
                     .formatted(essencePerRound, essencePerHunger));
+        }
+    }
+
+    // GuMeal feeds whole items and never past the need, so a gap smaller than one food would stay unfillable.
+    private void checkWholeMeals(String id) {
+        if (feedUnits % unitsPerHunger != 0) {
+            throw fault(id, "food of %d units is not whole points at rate %d".formatted(feedUnits, unitsPerHunger));
+        }
+        int food = feedUnits / unitsPerHunger;
+        int[] sizes = {maxHunger, hungerPerUse, hungerPerDay, maxHealth};
+        String[] names = {"bar", "use", "day", "health"};
+        for (int i = 0; i < sizes.length; i++) {
+            if (sizes[i] % food != 0) {
+                throw fault(id, "%s %d does not divide by a food of %d".formatted(names[i], sizes[i], food));
+            }
         }
     }
 

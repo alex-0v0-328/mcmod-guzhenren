@@ -337,7 +337,7 @@ public final class ModItems {
                     .refine(80_000)
                     .costPerUse(1_600)
                     .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
-                    .feed(ModItemTags.ALL_OUT_FEED, 5)
+                    .feed(ModItemTags.ALL_OUT_FEED, 4)
                     .cooldown(80 * Ticks.SECOND)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_4 = ITEMS.register("all_out_effort_gu_4",
             () -> new AllOutEffortGuItem(createTendedProperties(), 90, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
@@ -345,7 +345,7 @@ public final class ModItems {
                     .refine(800_000)
                     .costPerUse(16_000)
                     .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
-                    .feed(ModItemTags.ALL_OUT_FEED, 5)
+                    .feed(ModItemTags.ALL_OUT_FEED, 4)
                     .cooldown(100 * Ticks.SECOND)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = ITEMS.register("all_out_effort_gu_5",
             () -> new AllOutEffortGuItem(createTendedProperties(), 120, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
@@ -353,7 +353,7 @@ public final class ModItems {
                     .refine(8_000_000)
                     .costPerUse(160_000)
                     .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192)
-                    .feed(ModItemTags.ALL_OUT_FEED, 5)
+                    .feed(ModItemTags.ALL_OUT_FEED, 4)
                     .cooldown(120 * Ticks.SECOND)));
     //endregion
 
