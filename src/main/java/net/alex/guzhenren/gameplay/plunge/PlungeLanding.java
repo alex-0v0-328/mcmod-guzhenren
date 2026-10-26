@@ -18,7 +18,8 @@ import org.jetbrains.annotations.NotNull;
  * calculator refuses every entity's damage, so mobs, players and dropped items come through whole, and keeps
  * vanilla's knockback (vanilla already leaves the plunger, the explosion's source, out). It asks
  * {@code ModEvents#canGrief} first: refused, the blast keeps every block and still knocks back and booms; allowed,
- * blocks break by vanilla blast resistance and drop like a creeper's ({@code mobExplosionDropDecay}).
+ * blocks break by vanilla blast resistance and drop like a creeper's ({@code mobExplosionDropDecay}), and TNT in the
+ * crater primes as vanilla's {@code TntBlock#wasExploded} does, so chain reactions are a kept feature.
  *
  * <p>⚠ A version seam: the two fall attributes are 1.20.5's, where 1.20.1 hard-codes a safe distance of 3 and folds
  * in jump boost, and the calculator's entity hooks ({@code shouldDamageEntity}, {@code getKnockbackMultiplier})
