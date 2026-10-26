@@ -1,4 +1,4 @@
-package net.alex.guzhenren.refinement;
+package net.alex.guzhenren.refinement.recipe;
 
 import java.util.ArrayList;
 import java.util.List;

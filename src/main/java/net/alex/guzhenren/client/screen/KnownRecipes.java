@@ -2,8 +2,8 @@ package net.alex.guzhenren.client.screen;
 
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.refinement.GuRecipe;
-import net.alex.guzhenren.refinement.RefinementRecipe;
+import net.alex.guzhenren.refinement.recipe.GuRecipe;
+import net.alex.guzhenren.refinement.recipe.RefinementRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.item.crafting.RecipeManager;

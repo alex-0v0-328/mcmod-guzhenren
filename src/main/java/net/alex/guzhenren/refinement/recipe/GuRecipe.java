@@ -1,4 +1,4 @@
-package net.alex.guzhenren.refinement;
+package net.alex.guzhenren.refinement.recipe;
 
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Alex
  * @version 1.0.0
- * @see RefinementMenu
+ * @see net.alex.guzhenren.refinement.RefinementMenu
  * @since 1.0.0
  */
 

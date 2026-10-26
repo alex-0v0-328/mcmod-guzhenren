@@ -1,10 +1,10 @@
 package net.alex.guzhenren.client.screen;
 
 import net.alex.guzhenren.client.GuiBatch;
-import net.alex.guzhenren.refinement.GuIngredient;
-import net.alex.guzhenren.refinement.GuRecipe;
-import net.alex.guzhenren.refinement.GuRecipeInput;
 import net.alex.guzhenren.refinement.RefinementMenu;
+import net.alex.guzhenren.refinement.recipe.GuIngredient;
+import net.alex.guzhenren.refinement.recipe.GuRecipe;
+import net.alex.guzhenren.refinement.recipe.GuRecipeInput;
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

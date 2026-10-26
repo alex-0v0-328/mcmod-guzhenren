@@ -2,6 +2,8 @@ package net.alex.guzhenren.refinement;
 
 import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.refinement.recipe.GuIngredient;
+import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;

@@ -1,4 +1,4 @@
-package net.alex.guzhenren.refinement;
+package net.alex.guzhenren.refinement.recipe;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
