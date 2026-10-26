@@ -11,6 +11,7 @@ import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
+import net.alex.guzhenren.network.payload.PlungePayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
@@ -25,7 +26,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Registers the seven client-intent payloads and forwards each to {@link ClientIntents}, which holds every
+ * Registers the eight client-intent payloads and forwards each to {@link ClientIntents}, which holds every
  * check, and the one server notice ({@code SkinFlashPayload}), handed to whatever the client registered for its
  * class through {@link #handleOnClient}.
  *
@@ -81,6 +82,9 @@ public final class ModPayloads {
         toServer(registrar, "toggle_second_stage", ToggleSecondStagePayload.class,
                 (buf, intent) -> {}, buf -> ToggleSecondStagePayload.INSTANCE,
                 (intent, player) -> ClientIntents.toggleSecondStage(player));
+        toServer(registrar, "plunge", PlungePayload.class,
+                (buf, intent) -> {}, buf -> PlungePayload.INSTANCE,
+                (intent, player) -> ClientIntents.plunge(player));
         toClient(registrar, "skin_flash", SkinFlashPayload.class, SkinFlashPayload::encode, SkinFlashPayload::decode);
     }
 

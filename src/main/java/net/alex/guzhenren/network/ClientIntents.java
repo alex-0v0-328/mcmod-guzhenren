@@ -6,6 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.plunge.PlungeService;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -20,8 +21,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * What the server does with each client intent: the two containers, the secondary path, the three
- * cultivation actions, the dash and the second-stage flight [二段飞行] toggle. Every intent but that toggle refuses
- * inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage are what remains.
+ * cultivation actions, the dash, the second-stage flight [二段飞行] toggle and the plunge [坠击]. Every intent but that
+ * toggle refuses inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage are
+ * what remains; the plunge's own rule refuses it there ({@code PlungeService#canStart}), which the client asks too.
  *
  * <p>Every client intent in this mod is a B-panel button or movement input that player-data sync cannot
  * carry upstream; none carries player data, and downstream player data always travels as synced state.
@@ -93,6 +95,8 @@ public final class ClientIntents {
     }
 
     public static void toggleSecondStage(@NotNull ServerPlayer player) { SecondStageService.toggle(player); }
+
+    public static void plunge(@NotNull ServerPlayer player) { PlungeService.start(player); }
 
     public static void openRefinement(@NotNull ServerPlayer player) {
         if (!isOutsideTyh(player) || !ApertureService.isAwakened(player)) return;

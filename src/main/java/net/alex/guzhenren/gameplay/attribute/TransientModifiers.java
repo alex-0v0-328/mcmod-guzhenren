@@ -1,8 +1,10 @@
 package net.alex.guzhenren.gameplay.attribute;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,7 +13,9 @@ import org.jetbrains.annotations.NotNull;
  * {@code ADD_MULTIPLIED_BASE} for the Epic Fight
  * stamina cap ({@code compat.EpicFightIntegration}). The shared callers take the three-argument {@link #swap},
  * which adds; the operation names differ between game versions, so only this seam and the loader-side
- * integration spell one out.
+ * integration spell one out. {@link #setGravityFactor} multiplies an entity's gravity (the plunge [坠击]): the
+ * attribute itself is a seam too, vanilla's {@code GRAVITY} here and Forge's entity gravity on 1.20.1, both synced
+ * to the client.
  *
  * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
  * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #hasModifier} that modifier, or holds none
@@ -39,6 +43,12 @@ public final class TransientModifiers {
 
         instance.removeModifier(id);
         if (amount != 0.0D) instance.addTransientModifier(new AttributeModifier(id, amount, operation));
+    }
+
+    /** Multiplies the entity's gravity by {@code factor} under {@code id}; a factor of 1 takes the modifier off. */
+    public static void setGravityFactor(@NotNull LivingEntity entity, @NotNull ResourceLocation id, double factor) {
+        AttributeInstance gravity = entity.getAttribute(Attributes.GRAVITY);
+        if (gravity != null) swap(gravity, id, factor - 1.0D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
     public static boolean hasModifier(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount,

@@ -121,6 +121,8 @@ public final class ModEffects {
     /** Vanilla effects this mod applies, held the same way as its own. */
     public static final Supplier<MobEffect> VANILLA_WEAKNESS = () -> MobEffects.WEAKNESS.value();
     public static final Supplier<MobEffect> VANILLA_CONFUSION = () -> MobEffects.CONFUSION.value();
+    public static final Supplier<MobEffect> VANILLA_LEVITATION = () -> MobEffects.LEVITATION.value();
+    public static final Supplier<MobEffect> VANILLA_SLOW_FALLING = () -> MobEffects.SLOW_FALLING.value();
 
     public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration) {
         return new MobEffectInstance(getHolder(effect), duration, 0, false, false, true);

@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.data;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
@@ -20,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Everything this mod keeps on a player, read and written through one object: thirteen saved values, the
- * second-stage flight [二段飞行] mark, synced but never saved, and one in-memory carry, the essence regen remainder
- * ({@link #getEssenceCarry}).
+ * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and one in-memory carry, the
+ * essence regen remainder ({@link #getEssenceCarry}).
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; nine values reach their owner's client on change ({@code ModAttachments} syncs
@@ -32,9 +33,10 @@ import org.jetbrains.annotations.Nullable;
  * NeoForge attachments; the Forge 1.20.1 port has a capability with the same public methods. Services
  * use these methods only, so they stay identical between the two.
  *
- * <p>⚠ Two values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
- * attachment exists, and a relog or a death drops it; the health carry is either stored or absent, and {@link
- * #takeHealthCarry} returns and clears it.
+ * <p>⚠ Three values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
+ * attachment exists, and a relog or a death drops it; the plunge top is {@code null} unless the player is
+ * plunging, and drops the same way; the health carry is either stored or absent, and {@link #takeHealthCarry}
+ * returns and clears it.
  *
  * @author Alex
  * @version 1.0.0
@@ -75,6 +77,10 @@ public final class PlayerData {
 
     public boolean isInSecondStage() { return owner.hasData(ModAttachments.SECOND_STAGE); }
 
+    public @Nullable Double getPlungeTopY() {
+        return owner.hasData(ModAttachments.PLUNGE) ? owner.getData(ModAttachments.PLUNGE) : null;
+    }
+
     public boolean isBorn() { return owner.getData(ModAttachments.BORN); }
 
     public boolean setAperture(@NotNull ApertureData value) { return set(ModAttachments.APERTURE, value); }
@@ -111,6 +117,16 @@ public final class PlayerData {
             owner.setData(ModAttachments.SECOND_STAGE, true);
         } else {
             owner.removeData(ModAttachments.SECOND_STAGE);
+        }
+        return true;
+    }
+
+    public boolean setPlungeTopY(@Nullable Double value) {
+        if (Objects.equals(value, getPlungeTopY())) return false;
+        if (value == null) {
+            owner.removeData(ModAttachments.PLUNGE);
+        } else {
+            owner.setData(ModAttachments.PLUNGE, value);
         }
         return true;
     }
