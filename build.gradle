@@ -113,7 +113,8 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             sourceSet = sourceSets.gametest
-            gameDirectory = project.file(providers.gradleProperty('gameTestDir').getOrElse('run-gametest'))
+            // Under build/: every IDE sync creates this directory, and tools/local_checks.py passes its own.
+            gameDirectory = project.file(providers.gradleProperty('gameTestDir').getOrElse('build/run-gametest'))
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             // -PwikiDir turns on the wiki item-table GameTests (WikiItemsGameTests), as it does pureTest's wiki gate.
             if (providers.gradleProperty('wikiDir').isPresent()) {
@@ -127,7 +128,8 @@ neoForge {
         data {
             data()
 
-            gameDirectory = project.file(providers.gradleProperty('dataGameDir').getOrElse('run-data'))
+            // Under build/ for the same reason as the GameTest directory.
+            gameDirectory = project.file(providers.gradleProperty('dataGameDir').getOrElse('build/run-data'))
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
