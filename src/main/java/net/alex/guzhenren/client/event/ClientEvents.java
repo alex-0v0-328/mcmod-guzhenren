@@ -60,11 +60,11 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * {@link net.alex.guzhenren.client.hud.ChargeHud},
  * {@link net.alex.guzhenren.client.hud.NourishHud}), the key mapping for the B panel, the menu
  * screens for the three containers, the shockwave-ring particle provider, the entity renderers
- * ({@link ModEntityRenderers}), the Spirit Spring fluid's translucent render layer, and the Nine Leaf Vitality
- * Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
- * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at
- * the lower half for both halves; its harvested item has no color handler and keeps its own PNG. On logout it
- * clears {@link DashInput}'s remembered key states.
+ * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
+ * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The
+ * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does,
+ * sampled at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. On
+ * logout it clears {@link DashInput}'s remembered key states.
  *
  * @author Alex
  * @version 1.0.0
@@ -96,6 +96,8 @@ public final class ClientEvents {
         event.enqueueWork(() -> {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.SPIRIT_SPRING.get(), RenderType.translucent());
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_SPIRIT_SPRING.get(), RenderType.translucent());
+            ItemBlockRenderTypes.setRenderLayer(ModFluids.PURE_WATER.get(), RenderType.translucent());
+            ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_PURE_WATER.get(), RenderType.translucent());
             ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
                     (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
         });

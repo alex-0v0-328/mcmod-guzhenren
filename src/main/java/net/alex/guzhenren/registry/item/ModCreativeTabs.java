@@ -14,6 +14,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -27,8 +28,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * {@code strength_mortal_gu}, {@code wood_mortal_gu}), populated by predicates over {@link MortalGuItem},
  * {@link GuMaterialItem}, and the path: {@link GuPath#STRENGTH} and {@link GuPath#WOOD} Gu each leave the
  * mortal Gu tab for their own, while wood path Gu materials stay with the materials. An item extending neither
- * middle class lands in no tab at all -- except the Spirit Spring [元泉] BlockItem, routed into the material tab
- * explicitly.
+ * middle class lands in no tab at all -- except the two fluid items, the Spirit Spring [元泉] BlockItem and the
+ * Pure Water Bucket [纯水桶], routed into the material tab explicitly.
  *
  * <p>⚠ That miss is silent: nothing fails and nothing warns, the item simply never appears. The four
  * tab constants stay unused by the language provider (it has no creative-tab overload).
@@ -83,7 +84,8 @@ public final class ModCreativeTabs {
 
     static boolean belongsInGuMaterial(Item item) {
         return item instanceof GuMaterialItem
-                || item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock;
+                || item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock
+                || item instanceof BucketItem;
     }
 
     public static void register(IEventBus modEventBus) {

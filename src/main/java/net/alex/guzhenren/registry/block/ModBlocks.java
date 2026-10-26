@@ -8,6 +8,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.FlowerBlock;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -27,6 +28,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>In {@link #SPIRIT_SPRING}, it is safe to call {@code get()} on
  * {@link net.alex.guzhenren.registry.fluid.ModFluids#SPIRIT_SPRING} here: vanilla registers FLUID
  * before BLOCK, so the holder is filled.
+ *
+ * <p>{@link #PURE_WATER} is the Pure Water [纯水] liquid block: a plain {@code LiquidBlock} on the same water
+ * properties line, without the spring's light. It has no BlockItem; the Pure Water Bucket [纯水桶] carries it.
  *
  * <p>{@link #NINE_LEAF_VITALITY_GRASS} is the Nine Leaf Vitality Grass [九叶生机草] growing in the world: a
  * dandelion-shaped flower with no BlockItem, whose loot table drops the wild Gu item of the same id. Its
@@ -56,6 +60,16 @@ public final class ModBlocks {
                     .noCollission()
                     .strength(100.0F)
                     .lightLevel(state -> 15)
+                    .pushReaction(PushReaction.DESTROY)
+                    .noLootTable()
+                    .liquid()
+                    .sound(SoundType.EMPTY)));
+    public static final DeferredBlock<LiquidBlock> PURE_WATER = BLOCKS.register("pure_water",
+            () -> new LiquidBlock(ModFluids.PURE_WATER.get(), BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WATER)
+                    .replaceable()
+                    .noCollission()
+                    .strength(100.0F)
                     .pushReaction(PushReaction.DESTROY)
                     .noLootTable()
                     .liquid()

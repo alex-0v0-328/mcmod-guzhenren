@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * differs (信息, 資訊); a glyph-only difference belongs in the glyph table, which fixes it everywhere it occurs.
  *
  * <p>In {@link #addItemKeys}, one {@code addBlock} entry names the Spirit Spring block, its BlockItem and the fluid
- * type together, since they share one description id.
+ * type together, since they share one description id; the Pure Water block and its fluid type share one likewise.
  *
  * @author Alex
  * @version 1.0.0
@@ -444,6 +444,8 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.BITTER_LIQUOR,                              "Bitter Liquor", "苦酒");
         addItem(ModItems.SPICY_LIQUOR,                               "Spicy Liquor", "辣酒");
         addBlock(ModBlocks.SPIRIT_SPRING,                            "Spirit Spring", "元泉");
+        addBlock(ModBlocks.PURE_WATER,                               "Pure Water", "纯水");
+        addItem(ModItems.PURE_WATER_BUCKET,                          "Pure Water Bucket", "纯水桶");
         addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS,                 "Nine Leaf Vitality Grass", "九叶生机草");
         addBlock(ModBlocks.INTIMATE_GRASS,                           "Intimate Grass", "知心草");
         addBlock(ModBlocks.DECORATIVE_HOPPER,                        "Decorative Hopper", "装饰漏斗");

@@ -21,8 +21,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Writes the block loot tables: the Nine Leaf Vitality Grass [九叶生机草] flower drops its wild Gu item, full of
  * leaves; the Intimate Grass [知心草] gives one Intimate Grass Bundle [知心草束] to a hoe and nothing otherwise; the
- * Spirit Spring [元泉] has no table at all. The known blocks are this mod's, so a new block without a table fails
- * {@code runData}.
+ * Spirit Spring [元泉] and the Pure Water [纯水] have no table at all. The known blocks are this mod's, so a new
+ * block without a table fails {@code runData}.
  *
  * <p>The Intimate Grass table has no {@code half} condition on purpose: the broken half drops through
  * {@code DoublePlantBlock.playerWillDestroy} with the player's tool, and the other half falls with no tool, so a hoe

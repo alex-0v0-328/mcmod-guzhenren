@@ -46,8 +46,11 @@ import net.alex.guzhenren.item.material.qi.QiMaterialItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.tags.TagKey;
+import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -68,7 +71,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>{@link #SPIRIT_SPRING} is the spring's {@code BlockItem}: same key as the block, answers to
  * the block's lang entry, and its icon is the fluid's still strip (see
- * {@code ModItemModelProvider}) -- no item PNG of its own.
+ * {@code ModItemModelProvider}) -- no item PNG of its own. {@link #PURE_WATER_BUCKET} is the vanilla water
+ * bucket's twin for the Pure Water [纯水]: it places a source, an empty bucket scoops one back, and a
+ * dispenser pours it ({@code PureWaterEvents}).
  *
  * @author Alex
  * @version 1.0.0
@@ -501,6 +506,9 @@ public final class ModItems {
             () -> new LiquorItem(new Item.Properties()));
     public static final DeferredItem<Item> SPIRIT_SPRING = ITEMS.register("spirit_spring",
             () -> new BlockItem(ModBlocks.SPIRIT_SPRING.get(), new Item.Properties()));
+    public static final DeferredItem<Item> PURE_WATER_BUCKET = ITEMS.register("pure_water_bucket",
+            () -> new BucketItem(ModFluids.PURE_WATER.get(),
+                    new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)));
     //endregion
 
     //region Herb materials [草木蛊材] -- pure Gu material, wood path rank I; only a hoe takes them from the plant
