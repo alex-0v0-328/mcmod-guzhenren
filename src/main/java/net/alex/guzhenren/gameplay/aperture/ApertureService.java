@@ -29,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * marks plus human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
  * {@link #onExtremePhysiqueChanged} runs it, through {@link ApertureEvents}, whenever the body stores a
  * different ten-extreme physique, then resets the first aperture's base essence to match -- the full
- * base for a physique, one below for none, which also empties the pressure.
+ * base for a physique, one below for none, which also empties the pressure. Setting or shifting the first
+ * aperture's talent to Ten Extremes rolls a physique the way awakening does, since the full base needs one.
  *
  * <p>{@link #getStatus(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
  * Half-Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
@@ -123,6 +124,12 @@ public final class ApertureService {
     }
 
     public static void setTalent(@NotNull ServerPlayer player, int index, @NotNull Talent value) {
+        if (value == Talent.TEN_EXTREMES && index == get(player).getFirstIndex()) {
+            if (!BodyService.isExtreme(player)) {
+                BodyService.setExtremePhysique(player, ExtremePhysique.randomTenExtreme());
+            }
+            return;
+        }
         setBaseEssence(player, index, Talent.randomPercent(value));
     }
 
