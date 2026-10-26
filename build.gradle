@@ -80,9 +80,9 @@ neoForge {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
-        // -PclientGameDir=<dir> and -PquickPlayServer=<host:port>: tools/check.py's multiplayer smoke test boots a
-        // client in a throwaway game directory, so its mods are the classpath's alone, the same as the smoke
-        // server's, and joins that server at once. Without the properties nothing changes.
+        // -PclientGameDir=<dir> and -PquickPlayServer=<host:port>: tools/local_checks.py's multiplayer smoke test
+        // boots a client in a throwaway game directory, so its mods are the classpath's alone, the same as the
+        // smoke server's, and joins that server at once. Without the properties nothing changes.
         client {
             client()
 
@@ -94,7 +94,7 @@ neoForge {
             }
         }
 
-        // -PserverGameDir=<dir> swaps the game directory for a throwaway one: tools/check.py boots
+        // -PserverGameDir=<dir> swaps the game directory for a throwaway one: tools/local_checks.py boots
         // its server smoke test there, so the pack mirror in run/mods (some of whose jars crash a
         // dedicated server) and the run/ world stay out. Without the property nothing changes.
         server {
