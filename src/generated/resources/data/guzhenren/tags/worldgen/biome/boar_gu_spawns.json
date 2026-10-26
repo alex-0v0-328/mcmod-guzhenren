@@ -110,6 +110,182 @@
     {
       "id": "guworld:karst_peak_forest",
       "required": false
+    },
+    {
+      "id": "guworld:ancient_sands",
+      "required": false
+    },
+    {
+      "id": "guworld:arid_highlands",
+      "required": false
+    },
+    {
+      "id": "guworld:badlands",
+      "required": false
+    },
+    {
+      "id": "guworld:brushland",
+      "required": false
+    },
+    {
+      "id": "guworld:bryce_canyon",
+      "required": false
+    },
+    {
+      "id": "guworld:desert",
+      "required": false
+    },
+    {
+      "id": "guworld:desert_canyon",
+      "required": false
+    },
+    {
+      "id": "guworld:desert_oasis",
+      "required": false
+    },
+    {
+      "id": "guworld:desert_spires",
+      "required": false
+    },
+    {
+      "id": "guworld:eroded_badlands",
+      "required": false
+    },
+    {
+      "id": "guworld:gravel_desert",
+      "required": false
+    },
+    {
+      "id": "guworld:hot_shrubland",
+      "required": false
+    },
+    {
+      "id": "guworld:lush_desert",
+      "required": false
+    },
+    {
+      "id": "guworld:red_oasis",
+      "required": false
+    },
+    {
+      "id": "guworld:sandstone_valley",
+      "required": false
+    },
+    {
+      "id": "guworld:white_mesa",
+      "required": false
+    },
+    {
+      "id": "guworld:wooded_badlands",
+      "required": false
+    },
+    {
+      "id": "guworld:basalt_cliffs",
+      "required": false
+    },
+    {
+      "id": "guworld:beach",
+      "required": false
+    },
+    {
+      "id": "guworld:gravel_beach",
+      "required": false
+    },
+    {
+      "id": "guworld:isles",
+      "required": false
+    },
+    {
+      "id": "guworld:jungle",
+      "required": false
+    },
+    {
+      "id": "guworld:mirage_isles",
+      "required": false
+    },
+    {
+      "id": "guworld:stony_shore",
+      "required": false
+    },
+    {
+      "id": "guworld:volcanic_crater",
+      "required": false
+    },
+    {
+      "id": "guworld:volcanic_peaks",
+      "required": false
+    },
+    {
+      "id": "guworld:white_cliffs",
+      "required": false
+    },
+    {
+      "id": "guworld:alpine_highlands",
+      "required": false
+    },
+    {
+      "id": "guworld:birch_taiga",
+      "required": false
+    },
+    {
+      "id": "guworld:cold_shrubland",
+      "required": false
+    },
+    {
+      "id": "guworld:frozen_cliffs",
+      "required": false
+    },
+    {
+      "id": "guworld:frozen_peaks",
+      "required": false
+    },
+    {
+      "id": "guworld:glacial_chasm",
+      "required": false
+    },
+    {
+      "id": "guworld:grove",
+      "required": false
+    },
+    {
+      "id": "guworld:ice_marsh",
+      "required": false
+    },
+    {
+      "id": "guworld:ice_spikes",
+      "required": false
+    },
+    {
+      "id": "guworld:shield",
+      "required": false
+    },
+    {
+      "id": "guworld:siberian_taiga",
+      "required": false
+    },
+    {
+      "id": "guworld:snowy_plains",
+      "required": false
+    },
+    {
+      "id": "guworld:snowy_shield",
+      "required": false
+    },
+    {
+      "id": "guworld:snowy_taiga",
+      "required": false
+    },
+    {
+      "id": "guworld:steppe",
+      "required": false
+    },
+    {
+      "id": "guworld:wintry_forest",
+      "required": false
+    },
+    {
+      "id": "guworld:wintry_lowlands",
+      "required": false
     }
   ]
 }

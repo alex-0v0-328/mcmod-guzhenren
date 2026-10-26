@@ -11,38 +11,6 @@
     "minecraft:old_growth_spruce_taiga",
     "minecraft:jungle",
     "minecraft:sparse_jungle",
-    "minecraft:bamboo_jungle",
-    {
-      "id": "guworld:forested_plateau",
-      "required": false
-    },
-    {
-      "id": "guworld:cloud_forest",
-      "required": false
-    },
-    {
-      "id": "guworld:peach_grove",
-      "required": false
-    },
-    {
-      "id": "guworld:misty_mountains",
-      "required": false
-    },
-    {
-      "id": "guworld:bamboo_sea",
-      "required": false
-    },
-    {
-      "id": "guworld:rainforest",
-      "required": false
-    },
-    {
-      "id": "guworld:jungle_mountains",
-      "required": false
-    },
-    {
-      "id": "guworld:emerald_peaks",
-      "required": false
-    }
+    "minecraft:bamboo_jungle"
   ]
 }

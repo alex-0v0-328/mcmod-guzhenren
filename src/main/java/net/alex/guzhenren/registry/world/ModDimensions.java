@@ -32,11 +32,12 @@ import net.minecraft.world.phys.Vec3;
  * whether a level is an anchored dimension whose stay grants flight.
  *
  * <p>{@link #ANCHORED_DIMENSIONS} is the anchored dimension allow-list, by level key. Treasure
- * Yellow Heaven is a rank-8 grotto-heaven reached in flight; the Southern Border [南疆] is a region of the
- * mortal world, entered on foot at the surface above its origin. Future Blessed Land / Grotto-Heaven
- * dimensions register here.
+ * Yellow Heaven is a rank-8 grotto-heaven reached in flight; the four regions of the mortal world, the Southern
+ * Border [南疆], the Western Desert [西漠], the Eastern Sea [东海] and the Northern Plains [北原], are entered on
+ * foot at the surface above their origin, the Eastern Sea's at sea when no island stands there. Future Blessed
+ * Land / Grotto-Heaven dimensions register here.
  *
- * <p>⚠ {@link #TREASURE_YELLOW_HEAVEN} and {@link #SOUTHERN_BORDER} spell out Gu World's namespace because
+ * <p>⚠ {@link #TREASURE_YELLOW_HEAVEN} and the four region keys spell out Gu World's namespace because
  * this mod cannot reach that mod's id constant. Renaming a dimension there means renaming it here too, or
  * entering it fails.
  *
@@ -54,6 +55,13 @@ public final class ModDimensions {
     public static final Vec3 TREASURE_YELLOW_HEAVEN_SPAWN = new Vec3(0.5, 64.0, 0.5);
     public static final ResourceKey<Level> SOUTHERN_BORDER = ResourceKey.create(
             Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "southern_border"));
+    public static final ResourceKey<Level> WESTERN_DESERT = ResourceKey.create(
+            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "western_desert"));
+    public static final ResourceKey<Level> EASTERN_SEA = ResourceKey.create(
+            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "eastern_sea"));
+    public static final ResourceKey<Level> NORTHERN_PLAINS = ResourceKey.create(
+            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "northern_plains"));
+    private static final Vec3 REGION_ORIGIN = new Vec3(0.5, 0.0, 0.5);
 
     public enum Arrival { FLIGHT, SURFACE }
 
@@ -62,8 +70,10 @@ public final class ModDimensions {
     public static final Map<ResourceKey<Level>, AnchoredDimension> ANCHORED_DIMENSIONS = Map.of(
             TREASURE_YELLOW_HEAVEN,
             new AnchoredDimension(TREASURE_YELLOW_HEAVEN, TREASURE_YELLOW_HEAVEN_SPAWN, Arrival.FLIGHT, 8, 1.0),
-            SOUTHERN_BORDER,
-            new AnchoredDimension(SOUTHERN_BORDER, new Vec3(0.5, 0.0, 0.5), Arrival.SURFACE, 0, 1.0));
+            SOUTHERN_BORDER, new AnchoredDimension(SOUTHERN_BORDER, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
+            WESTERN_DESERT, new AnchoredDimension(WESTERN_DESERT, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
+            EASTERN_SEA, new AnchoredDimension(EASTERN_SEA, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
+            NORTHERN_PLAINS, new AnchoredDimension(NORTHERN_PLAINS, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0));
 
     public static boolean isFlightGranted(ResourceKey<Level> level) {
         AnchoredDimension dimension = ANCHORED_DIMENSIONS.get(level);

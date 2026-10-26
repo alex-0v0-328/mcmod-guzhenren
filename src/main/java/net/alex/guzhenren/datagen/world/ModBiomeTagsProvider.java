@@ -1,7 +1,8 @@
 package net.alex.guzhenren.datagen.world;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.registry.world.ModBiomeTags;
@@ -28,14 +29,15 @@ import org.jetbrains.annotations.Nullable;
  * Must NOT collapse to {@code #minecraft:is_overworld} because that carries the
  * oceans, whose surface sits at sea level.
  *
- * <p>The Southern Border [南疆] draws on Gu World's own biomes, in no vanilla tag, so each tag also names those
- * biomes of the kind it lists, by id and as optional entries: the tags still load without Gu World. The wild Gu tags
- * take all 18 land biomes ({@link #SOUTHERN_BORDER_LAND}), the wild boar the four forests, the bear those, the three
- * jungles and the emerald peaks, the tiger the three jungles.
+ * <p>The four regions of Gu World, the Southern Border [南疆], the Western Desert [西漠], the Eastern Sea [东海] and
+ * the Northern Plains [北原], draw on that mod's own biomes, in no vanilla tag, so the three wild Gu tags also name
+ * each region's land biomes by id, as optional entries, a biome two regions share (the rainforest) once: the tags still
+ * load without Gu World. The wild boar, bear
+ * and tiger tags name no region biome: the regions spawn vanilla animals and wild Gu only, by Alex's decision.
  *
- * <p>⚠ These are Gu World's biome ids ({@code Replicas}, {@code Ports} and {@code BiomeSettings} there, placed by
- * {@code BiomeLayout}):
- * renaming one there means renaming it here in the same task.
+ * <p>⚠ The region lists are Gu World's biome ids, those of each region's roster ({@code Replicas}, {@code Ports}
+ * and the region packages there, placed by each region's layout): renaming or adding one there means changing it
+ * here in the same task.
  *
  * @author Alex
  * @version 1.0.0
@@ -67,15 +69,23 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
             Biomes.JUNGLE,
             Biomes.SPARSE_JUNGLE,
             Biomes.BAMBOO_JUNGLE);
-    private static final List<String> SOUTHERN_BORDER_FORESTS = List.of("forested_plateau", "cloud_forest",
-            "peach_grove", "misty_mountains");
-    private static final List<String> SOUTHERN_BORDER_JUNGLES = List.of("bamboo_sea", "rainforest",
-            "jungle_mountains");
-    private static final List<String> SOUTHERN_BORDER_WOODS = getJoined(SOUTHERN_BORDER_FORESTS,
-            SOUTHERN_BORDER_JUNGLES, List.of("emerald_peaks"));
-    private static final List<String> SOUTHERN_BORDER_LAND = getJoined(SOUTHERN_BORDER_WOODS, List.of("plains",
-            "plateau", "hot_springs", "orchid_swamp", "alpine_meadow", "rocky_peaks", "painted_mountains",
-            "granite_cliffs", "zhangshiyan_cliffs", "karst_peak_forest"));
+    private static final List<String> SOUTHERN_BORDER_LAND = List.of("forested_plateau", "cloud_forest",
+            "peach_grove", "misty_mountains", "bamboo_sea", "rainforest", "jungle_mountains", "emerald_peaks",
+            "plains", "plateau", "hot_springs", "orchid_swamp", "alpine_meadow", "rocky_peaks", "painted_mountains",
+            "granite_cliffs", "zhangshiyan_cliffs", "karst_peak_forest");
+    private static final List<String> WESTERN_DESERT_LAND = List.of("ancient_sands", "arid_highlands", "badlands",
+            "brushland", "bryce_canyon", "desert", "desert_canyon", "desert_oasis", "desert_spires", "eroded_badlands",
+            "gravel_desert", "hot_shrubland", "lush_desert", "red_oasis", "sandstone_valley", "white_mesa",
+            "wooded_badlands");
+    private static final List<String> EASTERN_SEA_LAND = List.of("basalt_cliffs", "beach", "gravel_beach", "isles",
+            "jungle", "mirage_isles", "rainforest", "stony_shore", "volcanic_crater", "volcanic_peaks",
+            "white_cliffs");
+    private static final List<String> NORTHERN_PLAINS_LAND = List.of("alpine_highlands", "birch_taiga",
+            "cold_shrubland", "frozen_cliffs", "frozen_peaks", "glacial_chasm", "grove", "ice_marsh", "ice_spikes",
+            "shield", "siberian_taiga", "snowy_plains", "snowy_shield", "snowy_taiga", "steppe", "wintry_forest",
+            "wintry_lowlands");
+    private static final List<String> REGION_LAND = getJoined(SOUTHERN_BORDER_LAND, WESTERN_DESERT_LAND,
+            EASTERN_SEA_LAND, NORTHERN_PLAINS_LAND);
     private static final List<ResourceKey<Biome>> LAND_SPAWN_BIOMES = List.of(
             Biomes.PLAINS,
             Biomes.SUNFLOWER_PLAINS,
@@ -148,25 +158,16 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
         for (ResourceKey<Biome> biome : TIGER_BIOMES) {
             tag(ModBiomeTags.TIGER_SPAWNS).add(biome);
         }
-        for (String biome : SOUTHERN_BORDER_LAND) {
+        for (String biome : REGION_LAND) {
             tag(ModBiomeTags.HOPE_GU_SPAWNS).addOptional(getGuWorldBiome(biome));
             tag(ModBiomeTags.BOAR_GU_SPAWNS).addOptional(getGuWorldBiome(biome));
             tag(ModBiomeTags.RHINOCEROS_BEETLE_GU_SPAWNS).addOptional(getGuWorldBiome(biome));
-        }
-        for (String biome : SOUTHERN_BORDER_FORESTS) {
-            tag(ModBiomeTags.WILD_BOAR_SPAWNS).addOptional(getGuWorldBiome(biome));
-        }
-        for (String biome : SOUTHERN_BORDER_WOODS) {
-            tag(ModBiomeTags.BEAR_SPAWNS).addOptional(getGuWorldBiome(biome));
-        }
-        for (String biome : SOUTHERN_BORDER_JUNGLES) {
-            tag(ModBiomeTags.TIGER_SPAWNS).addOptional(getGuWorldBiome(biome));
         }
     }
 
     @SafeVarargs
     private static List<String> getJoined(List<String>... parts) {
-        List<String> joined = new ArrayList<>();
+        Set<String> joined = new LinkedHashSet<>();
         for (List<String> part : parts) {
             joined.addAll(part);
         }
