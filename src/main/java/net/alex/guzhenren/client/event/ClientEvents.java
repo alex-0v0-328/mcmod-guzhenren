@@ -5,6 +5,7 @@ import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.hud.ChargeHud;
 import net.alex.guzhenren.client.hud.NourishHud;
 import net.alex.guzhenren.client.hud.PlayerStatsHud;
+import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.client.input.DashInput;
 import net.alex.guzhenren.client.particle.RingParticle;
 import net.alex.guzhenren.client.renderer.ModEntityRenderers;
@@ -55,11 +56,12 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers three GUI layers
- * ({@link net.alex.guzhenren.client.hud.PlayerStatsHud},
+ * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers four GUI layers
+ * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} above the vanilla camera overlays,
+ * {@link net.alex.guzhenren.client.hud.PlayerStatsHud},
  * {@link net.alex.guzhenren.client.hud.ChargeHud},
  * {@link net.alex.guzhenren.client.hud.NourishHud}), the key mapping for the B panel, the menu
- * screens for the three containers, the shockwave-ring particle provider, the entity renderers
+ * screens for the three containers, the shockwave-ring particle providers, the entity renderers
  * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
  * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The
  * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does,
@@ -83,9 +85,13 @@ public final class ClientEvents {
             Guzhenren.id("charge");
     private static final ResourceLocation NOURISH =
             Guzhenren.id("nourish");
+    private static final ResourceLocation SONIC_BOOM =
+            Guzhenren.id("sonic_boom");
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SONIC_BOOM,
+                (g, delta) -> SonicBoomHud.INSTANCE.render(g, delta));
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, CHARGE, (g, delta) -> ChargeHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
@@ -141,6 +147,8 @@ public final class ClientEvents {
     public static void onRegisterParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.SHOCKWAVE_RING.get(), RingParticle::createDashTrail);
         event.registerSpriteSet(ModParticles.IMPACT_RING.get(), RingParticle::createFacingMotion);
+        event.registerSpriteSet(ModParticles.SONIC_BOOM_RING.get(), RingParticle::createSonicBoom);
+        event.registerSpriteSet(ModParticles.BARRIER_RING.get(), RingParticle::createBarrierRing);
     }
 
     @SubscribeEvent

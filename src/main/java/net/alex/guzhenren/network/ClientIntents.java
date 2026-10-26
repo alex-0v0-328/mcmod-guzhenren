@@ -3,7 +3,7 @@ package net.alex.guzhenren.network;
 import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.flight.FlightService;
+import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.refinement.RefinementMenu;
@@ -19,8 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * What the server does with each client intent: the two containers, the secondary path, the three
- * cultivation actions, the dash and the burst [疾飞] toggle. Every intent but the burst toggle refuses
- * inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and burst are what remains.
+ * cultivation actions, the dash and the second-stage flight [二段飞行] toggle. Every intent but that toggle refuses
+ * inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage are what remains.
  *
  * <p>Every client intent in this mod is a B-panel button or movement input that player-data sync cannot
  * carry upstream; none carries player data, and downstream player data always travels as synced state.
@@ -91,7 +91,7 @@ public final class ClientIntents {
         EpicFightIntegration.dash(player, vertical, yRot);
     }
 
-    public static void toggleBurst(@NotNull ServerPlayer player) { FlightService.toggleBurst(player); }
+    public static void toggleSecondStage(@NotNull ServerPlayer player) { SecondStageService.toggle(player); }
 
     public static void openRefinement(@NotNull ServerPlayer player) {
         if (!isOutsideTyh(player) || !ApertureService.isAwakened(player)) return;

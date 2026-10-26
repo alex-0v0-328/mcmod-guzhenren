@@ -64,7 +64,7 @@ public final class RingConeEmitter {
     private static final int DASH_IDLE_LIMIT = 3;
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;
     private static final double DASH_RING_HEIGHT = 1.0D;
-    private static final double RING_NORMAL_DRIFT = 0.03D;
+    static final double RING_NORMAL_DRIFT = 0.03D;
     private static final int PUNCH_MAX_RINGS = 8;
 
     private static final Map<UUID, Burst> DASH_BURSTS = new HashMap<>();

@@ -33,12 +33,13 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  *
  * <p>DeferredRegister holder: the eleven record attachments (immutable, written only through their
  * service) plus the four scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
- * {@code BURST}), and {@code CHUNK_MEMORY}, the only attachment on a {@code LevelChunk} rather than a player:
+ * {@code SECOND_STAGE}), and {@code CHUNK_MEMORY}, the only attachment on a {@code LevelChunk} rather than a player:
  * the land's past day for the Mountain and River As Before Gu [山如故 / 江如故], saved in the chunk's own file
  * only while it holds something, and read and written through {@code ChunkRewindService} alone.
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
- * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced. {@code BURST} counts by
- * presence: a player who has it is bursting [疾飞]. A record other players must see widens its sync predicate; it
+ * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced, and
+ * {@code SECOND_STAGE} is synced but never saved: it counts by presence, a player who has it flies the second stage
+ * [二段飞行], and a relog starts outside it. A record other players must see widens its sync predicate; it
  * never gets a downstream payload.
  *
  * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
@@ -48,10 +49,10 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  *
  * <p>Every attachment the two helpers register is inherited: NeoForge copies it to every clone, a death
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
- * attachment is carried and reset by being registered here, nowhere else. {@code BURST} and
- * {@code HEALTH_CARRY} are built by hand because a death must not carry them (a respawn would still be
- * bursting), and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a body that the death just
- * ended; {@code ESSENCE_CARRY} is unsaved, so no clone carries it. ⚠ {@code BORN} stays inherited, or
+ * attachment is carried and reset by being registered here, nowhere else. {@code HEALTH_CARRY} is built by hand
+ * because a death must not carry it, and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a
+ * body that the death just ended; {@code ESSENCE_CARRY} and {@code SECOND_STAGE} are unsaved, so no clone carries
+ * them. ⚠ {@code BORN} stays inherited, or
  * the next login re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
@@ -142,9 +143,8 @@ public final class ModAttachments {
     //endregion
 
     //region Flight [飞行]
-    public static final Supplier<AttachmentType<Boolean>> BURST = ATTACHMENT_TYPES.register(
-            "burst_flag", () -> AttachmentType.builder(() -> Boolean.TRUE)
-                    .serialize(Codec.BOOL)
+    public static final Supplier<AttachmentType<Boolean>> SECOND_STAGE = ATTACHMENT_TYPES.register(
+            "second_stage_flag", () -> AttachmentType.builder(() -> Boolean.TRUE)
                     .sync(OWNER_ONLY, ByteBufCodecs.BOOL)
                     .build());
     //endregion

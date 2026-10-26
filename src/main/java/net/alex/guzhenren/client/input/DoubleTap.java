@@ -9,7 +9,7 @@ package net.alex.guzhenren.client.input;
  *
  * @author Alex
  * @version 1.0.0
- * @see BurstInput
+ * @see SecondStageInput
  * @since 1.0.0
  */
 

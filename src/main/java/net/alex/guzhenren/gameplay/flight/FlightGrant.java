@@ -3,9 +3,10 @@ package net.alex.guzhenren.gameplay.flight;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What a source lets a player do in the air, as a ladder: {@code NONE}, flight [飞行] (creative-style flight at
- * its normal speed) or burst [疾飞] (that flight at {@link FlightService#BURST_MULTIPLIER} times the speed, which
- * includes flight). {@link #getStrongest} keeps the higher rung, so several sources never add up past the top one.
+ * What a source lets a player do in the air, as a ladder: {@code NONE}, flight [飞行] (creative-style flight, which
+ * vanilla sprinting speeds up) or second-stage flight [二段飞行] (flight plus the faster stage
+ * {@link SecondStageService} runs). {@link #getStrongest} keeps the higher rung, so several sources never add up past
+ * the top one.
  *
  * @author Alex
  * @version 1.0.0
@@ -17,11 +18,11 @@ public enum FlightGrant {
 
     NONE,
     FLIGHT,
-    BURST;
+    SECOND_STAGE;
 
     public boolean canFly() { return this != NONE; }
 
-    public boolean canBurst() { return this == BURST; }
+    public boolean canFlySecondStage() { return this == SECOND_STAGE; }
 
     public static @NotNull FlightGrant getStrongest(@NotNull FlightGrant first, @NotNull FlightGrant second) {
         return first.ordinal() >= second.ordinal() ? first : second;

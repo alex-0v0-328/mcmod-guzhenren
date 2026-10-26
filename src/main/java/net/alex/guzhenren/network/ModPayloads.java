@@ -11,7 +11,7 @@ import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
-import net.alex.guzhenren.network.payload.ToggleBurstPayload;
+import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -70,9 +70,9 @@ public final class ModPayloads {
         toServer(registrar, "dash", DashPayload.class,
                 DashPayload::encode, DashPayload::decode,
                 (intent, player) -> ClientIntents.dash(player, intent.vertical(), intent.horizontal(), intent.yRot()));
-        toServer(registrar, "toggle_burst", ToggleBurstPayload.class,
-                (buf, intent) -> {}, buf -> ToggleBurstPayload.INSTANCE,
-                (intent, player) -> ClientIntents.toggleBurst(player));
+        toServer(registrar, "toggle_second_stage", ToggleSecondStagePayload.class,
+                (buf, intent) -> {}, buf -> ToggleSecondStagePayload.INSTANCE,
+                (intent, player) -> ClientIntents.toggleSecondStage(player));
     }
 
     private static <T> void toServer(PayloadRegistrar registrar, String id, Class<T> intentClass,

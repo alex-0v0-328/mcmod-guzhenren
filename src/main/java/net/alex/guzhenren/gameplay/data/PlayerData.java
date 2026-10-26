@@ -19,8 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: fourteen saved values and one
- * in-memory carry, the essence regen remainder ({@link #getEssenceCarry}).
+ * Everything this mod keeps on a player, read and written through one object: thirteen saved values, the
+ * second-stage flight [二段飞行] mark, synced but never saved, and one in-memory carry, the essence regen remainder
+ * ({@link #getEssenceCarry}).
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; nine values reach their owner's client on change ({@code ModAttachments} syncs
@@ -31,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * NeoForge attachments; the Forge 1.20.1 port has a capability with the same public methods. Services
  * use these methods only, so they stay identical between the two.
  *
- * <p>⚠ Two values are a presence underneath, a shape the methods hide: {@code burst} is on while its
- * attachment exists and a death drops it; the health carry is either stored or absent, and {@link
+ * <p>⚠ Two values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
+ * attachment exists, and a relog or a death drops it; the health carry is either stored or absent, and {@link
  * #takeHealthCarry} returns and clears it.
  *
  * @author Alex
@@ -72,7 +73,7 @@ public final class PlayerData {
 
     public PlayerRewindData getRewind() { return owner.getData(ModAttachments.PLAYER_REWIND); }
 
-    public boolean hasBurst() { return owner.hasData(ModAttachments.BURST); }
+    public boolean isInSecondStage() { return owner.hasData(ModAttachments.SECOND_STAGE); }
 
     public boolean isBorn() { return owner.getData(ModAttachments.BORN); }
 
@@ -104,12 +105,12 @@ public final class PlayerData {
 
     public boolean setRewind(@NotNull PlayerRewindData value) { return set(ModAttachments.PLAYER_REWIND, value); }
 
-    public boolean setBurst(boolean value) {
-        if (value == hasBurst()) return false;
+    public boolean setSecondStage(boolean value) {
+        if (value == isInSecondStage()) return false;
         if (value) {
-            owner.setData(ModAttachments.BURST, true);
+            owner.setData(ModAttachments.SECOND_STAGE, true);
         } else {
-            owner.removeData(ModAttachments.BURST);
+            owner.removeData(ModAttachments.SECOND_STAGE);
         }
         return true;
     }

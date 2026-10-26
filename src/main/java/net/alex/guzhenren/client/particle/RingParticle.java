@@ -27,18 +27,23 @@ import org.joml.Vector3f;
 /**
  * The reusable shockwave ring [激波环] for speed- and force-feel feedback: Alex's {@link #FRAME_COUNT}
  * hand-drawn rings played in sprite-list order, one particle per drop (the L2 ring-texture test pins the
- * count against the datagen'd sprite lists). Both trails go through {@code RingConeEmitter} and bloom
- * small-to-large where they were planted: the dash trail rides {@code shockwave_ring} along the dash path,
- * the punch trail rides {@code impact_ring} along the punch ray. Each frame's world size derives from its own
- * canvas width ({@link RingGeometry#scaleForWidth(int)}), and the quad size lerps toward the next frame every
- * tick ({@link #nextQuadSize}), so the bloom reads smooth instead of stepping.
+ * count against the datagen'd sprite lists). Every ring blooms small-to-large where it was planted: through
+ * {@code RingConeEmitter}, the dash trail rides {@code shockwave_ring} along the dash path and the punch trail
+ * rides {@code impact_ring} along the punch ray; through {@code SecondStageRingEmitter}, each entry into
+ * second-stage flight [二段飞行] opens one {@code sonic_boom_ring} [音爆环], and the flight forms
+ * {@code barrier_ring} [音障环] at its leading face while it stays fast. Each frame's world size derives from its own
+ * canvas width and the type's largest span ({@link RingGeometry#scaleForWidth(int, float)}):
+ * {@link RingGeometry#LARGEST_RING_SPAN} for the trails, {@link #SONIC_BOOM_SPAN} for the sonic boom, whose
+ * pixels read coarser for it. The quad size lerps toward the next frame every tick ({@link #nextQuadSize}), so the
+ * bloom reads smooth instead of stepping.
  *
  * <p>{@link Orientation} is chosen per particle type by the provider: {@link Orientation#GROUND} lays the
  * quad flat in the world XZ plane, never rotated by the camera; {@link Orientation#FACING_MOTION} builds the
  * ring plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the camera by
  * {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
  * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
- * {@link #createFacingMotion(SpriteSet)} or {@link #createDashTrail(SpriteSet)}.
+ * {@link #createFacingMotion(SpriteSet)}, {@link #createDashTrail(SpriteSet)},
+ * {@link #createSonicBoom(SpriteSet)} or {@link #createBarrierRing(SpriteSet)}.
  *
  * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
  * trail is for third-person and bystanders. {@link #noteLocalDash(int)} arms
@@ -47,10 +52,17 @@ import org.joml.Vector3f;
  * player's tickCount.
  *
  * <p>⚠ {@link #RING_LINGER_TICKS} lets a ring hold its last frame before despawning, or the completed
- * bloom never reads. ⚠ {@link #tick()} reads the age AFTER the increment, so the last frame is applied
- * exactly once and never overstepped; mixing the two sides is an off-by-one crash. ⚠ In
- * {@code applyFrame} the denominator is {@code FRAME_COUNT - 1}, NOT {@code lifetime - 1}: only the frame
- * count lands exactly on frames 0 to n-1 once the linger decouples the lifetime from it.
+ * bloom never reads. How a ring leaves after the bloom is its {@link Exit}: the dash and punch rings
+ * {@link Exit#HOLD} full bright, the sonic boom {@link Exit#FADE}s through the linger, and a sound
+ * barrier ring {@link Exit#SPREAD}s: over {@link #SPREAD_LINGER_TICKS} after its largest frame, half a second from
+ * the full bloom to gone, it widens to {@link #SPREAD_GROWTH} times that frame, full bright until
+ * {@link #SPREAD_FADE_START} of the way and fading out over the rest, so the rings second-stage flight leaves behind
+ * dissolve outward. Both read the exit progress ({@link RingGeometry#getExitProgress}) with the partial tick, so the
+ * fade and the spread run smooth between ticks. ⚠ {@link #tick()} reads
+ * the age AFTER the increment, so the last frame is applied exactly once and never overstepped; mixing the two
+ * sides is an off-by-one crash. ⚠ In {@code applyFrame} the denominator is {@code FRAME_COUNT - 1}, NOT
+ * {@code lifetime - 1}: only the frame count lands exactly on frames 0 to n-1 once the linger decouples the
+ * lifetime from it.
  *
  * <p>⚠ It renders through {@link #ADDITIVE_GLOW} -- additive, two-sided, full bright -- because the
  * one-pixel white stroke all but disappears on an alpha-blended sheet. 1.21.1 has no {@code end()} hook on
@@ -74,6 +86,8 @@ public final class RingParticle extends TextureSheetParticle {
 
     public enum Orientation { GROUND, FACING_MOTION }
 
+    enum Exit { HOLD, FADE, SPREAD }
+
     public static final ParticleRenderType ADDITIVE_GLOW = new ParticleRenderType() {
         @SuppressWarnings("deprecation")
         @Override
@@ -89,23 +103,31 @@ public final class RingParticle extends TextureSheetParticle {
         public String toString() { return Guzhenren.MOD_ID + ":additive_glow"; }
     };
     static final int FRAME_COUNT = 5;
+    static final float SONIC_BOOM_SPAN = 4.0F;
     private static final int RING_LINGER_TICKS = 3;
+    static final int SPREAD_LINGER_TICKS = 9;
+    static final float SPREAD_GROWTH = 4.0F;
+    static final float SPREAD_FADE_START = 0.5F;
     private static final int DASH_SELF_HIDE_TICKS = 20;
     private static int localDashHiddenUntilTick = Integer.MIN_VALUE;
     private final SpriteSet sprites;
     private final Orientation orientation;
     private final boolean dashTrailRing;
+    private final float largestSpan;
+    private final Exit exit;
     private final Vec3 spawnDirection;
     private float nextQuadSize;
 
     private RingParticle(ClientLevel level, double x, double y, double z,
                          double xSpeed, double ySpeed, double zSpeed,
                          SpriteSet sprites, Orientation orientation, boolean dashTrailRing,
-                         int lingerTicks) {
+                         float largestSpan, Exit exit, int lingerTicks) {
         super(level, x, y, z);
         this.sprites = sprites;
         this.orientation = orientation;
         this.dashTrailRing = dashTrailRing;
+        this.largestSpan = largestSpan;
+        this.exit = exit;
         this.spawnDirection = new Vec3(xSpeed, ySpeed, zSpeed);
         this.lifetime = FRAME_COUNT + lingerTicks;
         this.hasPhysics = false;
@@ -118,13 +140,28 @@ public final class RingParticle extends TextureSheetParticle {
     public static ParticleProvider<SimpleParticleType> createFacingMotion(SpriteSet sprites) {
         return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
                 new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.FACING_MOTION, false, RING_LINGER_TICKS);
+                        Orientation.FACING_MOTION, false, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD,
+                        RING_LINGER_TICKS);
     }
 
     public static ParticleProvider<SimpleParticleType> createDashTrail(SpriteSet sprites) {
         return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
                 new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.FACING_MOTION, true, RING_LINGER_TICKS);
+                        Orientation.FACING_MOTION, true, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD,
+                        RING_LINGER_TICKS);
+    }
+
+    public static ParticleProvider<SimpleParticleType> createSonicBoom(SpriteSet sprites) {
+        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
+                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
+                        Orientation.FACING_MOTION, false, SONIC_BOOM_SPAN, Exit.FADE, RING_LINGER_TICKS);
+    }
+
+    public static ParticleProvider<SimpleParticleType> createBarrierRing(SpriteSet sprites) {
+        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
+                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
+                        Orientation.FACING_MOTION, false, RingGeometry.LARGEST_RING_SPAN, Exit.SPREAD,
+                        SPREAD_LINGER_TICKS);
     }
 
     public static void noteLocalDash(int tickCount) {
@@ -149,21 +186,28 @@ public final class RingParticle extends TextureSheetParticle {
 
     private void applyFrame(int frame) {
         this.setSprite(this.sprites.get(frame, FRAME_COUNT - 1));
-        this.quadSize = RingGeometry.scaleForWidth(this.sprite.contents().width());
+        this.quadSize = RingGeometry.scaleForWidth(this.sprite.contents().width(), this.largestSpan);
         this.nextQuadSize = frame + 1 < FRAME_COUNT
                 ? RingGeometry.scaleForWidth(
-                        this.sprites.get(frame + 1, FRAME_COUNT - 1).contents().width())
+                        this.sprites.get(frame + 1, FRAME_COUNT - 1).contents().width(), this.largestSpan)
                 : this.quadSize;
     }
 
     @Override
     public float getQuadSize(float partialTick) {
-        return Mth.lerp(partialTick, this.quadSize, this.nextQuadSize);
+        float size = Mth.lerp(partialTick, this.quadSize, this.nextQuadSize);
+        return this.exit == Exit.SPREAD ? size * (1.0F + (SPREAD_GROWTH - 1.0F) * getExitProgress(partialTick)) : size;
+    }
+
+    private float getExitProgress(float partialTick) {
+        return RingGeometry.getExitProgress(this.age + partialTick, FRAME_COUNT - 1, this.lifetime - FRAME_COUNT);
     }
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
         if (this.dashTrailRing && isOwnDashHiddenNow()) return;
+        float alpha = this.exit == Exit.HOLD ? this.alpha : RingGeometry.getFadeAlpha(getExitProgress(partialTick),
+                this.exit == Exit.SPREAD ? SPREAD_FADE_START : 0.0F);
         float size = this.getQuadSize(partialTick);
         Vector3f look = camera.getLookVector();
         Vector3f[] corners = this.orientation == Orientation.FACING_MOTION
@@ -177,19 +221,19 @@ public final class RingParticle extends TextureSheetParticle {
         for (Vector3f corner : corners) {
             corner.add(dx, dy, dz);
         }
-        emitQuad(buffer, corners[0], this.getU0(), this.getV0(), corners[1], this.getU0(), this.getV1(),
+        emitQuad(buffer, alpha, corners[0], this.getU0(), this.getV0(), corners[1], this.getU0(), this.getV1(),
                 corners[2], this.getU1(), this.getV1(), corners[3], this.getU1(), this.getV0());
-        emitQuad(buffer, corners[0], this.getU0(), this.getV0(), corners[3], this.getU1(), this.getV0(),
+        emitQuad(buffer, alpha, corners[0], this.getU0(), this.getV0(), corners[3], this.getU1(), this.getV0(),
                 corners[2], this.getU1(), this.getV1(), corners[1], this.getU0(), this.getV1());
     }
 
-    private void emitQuad(VertexConsumer buffer, Vector3f a, float au, float av,
+    private void emitQuad(VertexConsumer buffer, float alpha, Vector3f a, float au, float av,
                           Vector3f b, float bu, float bv, Vector3f c, float cu, float cv,
                           Vector3f delta, float du, float dv) {
-        emitVertex(buffer, a, au, av);
-        emitVertex(buffer, b, bu, bv);
-        emitVertex(buffer, c, cu, cv);
-        emitVertex(buffer, delta, du, dv);
+        emitVertex(buffer, alpha, a, au, av);
+        emitVertex(buffer, alpha, b, bu, bv);
+        emitVertex(buffer, alpha, c, cu, cv);
+        emitVertex(buffer, alpha, delta, du, dv);
     }
 
     private static boolean isOwnDashHiddenNow() {
@@ -200,10 +244,10 @@ public final class RingParticle extends TextureSheetParticle {
         return remaining > 0 && remaining <= DASH_SELF_HIDE_TICKS;
     }
 
-    private void emitVertex(VertexConsumer buffer, Vector3f corner, float u, float value) {
+    private void emitVertex(VertexConsumer buffer, float alpha, Vector3f corner, float u, float value) {
         buffer.addVertex(corner.x(), corner.y(), corner.z())
                 .setUv(u, value)
-                .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
+                .setColor(this.rCol, this.gCol, this.bCol, alpha)
                 .setLight(LightTexture.FULL_BRIGHT);
     }
 

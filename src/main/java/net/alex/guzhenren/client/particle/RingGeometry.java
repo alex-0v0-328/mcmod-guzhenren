@@ -55,7 +55,26 @@ final class RingGeometry {
     private static final Vector3f FALLBACK_REFERENCE = new Vector3f(1.0F, 0.0F, 0.0F);
 
     static float scaleForWidth(int canvasWidth) {
-        return LARGEST_RING_SPAN * canvasWidth / (2.0F * LARGEST_CANVAS);
+        return scaleForWidth(canvasWidth, LARGEST_RING_SPAN);
+    }
+
+    /** {@link #scaleForWidth(int)} for a ring type whose largest frame spans {@code largestSpan} blocks. */
+    static float scaleForWidth(int canvasWidth, float largestSpan) {
+        return largestSpan * canvasWidth / (2.0F * LARGEST_CANVAS);
+    }
+
+    /**
+     * How far a ring is through its exit: 0 at the full bloom ({@code lastFrameAge}, partial ticks included) to 1
+     * when it despawns, {@code lingerTicks + 1} ticks later. A spreading ring grows by that share of its extra size.
+     */
+    static float getExitProgress(float age, int lastFrameAge, int lingerTicks) {
+        return Math.max(0.0F, Math.min(1.0F, (age - lastFrameAge) / (lingerTicks + 1)));
+    }
+
+    /** The alpha {@code progress} through an exit that holds full bright until {@code fadeStart}, then fades out. */
+    static float getFadeAlpha(float progress, float fadeStart) {
+        if (progress <= fadeStart) return 1.0F;
+        return Math.max(0.0F, 1.0F - (progress - fadeStart) / (1.0F - fadeStart));
     }
 
     static Vector3f[] getGround(float size) {
