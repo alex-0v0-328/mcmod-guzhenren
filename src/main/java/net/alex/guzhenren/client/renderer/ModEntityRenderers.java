@@ -1,11 +1,11 @@
 package net.alex.guzhenren.client.renderer;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.entity.BearEntity;
-import net.alex.guzhenren.entity.BoarGuEntity;
-import net.alex.guzhenren.entity.CrashGuEntity;
-import net.alex.guzhenren.entity.TigerEntity;
-import net.alex.guzhenren.entity.WildBoarEntity;
+import net.alex.guzhenren.entity.beast.BearEntity;
+import net.alex.guzhenren.entity.beast.TigerEntity;
+import net.alex.guzhenren.entity.beast.WildBoarEntity;
+import net.alex.guzhenren.entity.gu.BoarGuEntity;
+import net.alex.guzhenren.entity.gu.CrashGuEntity;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

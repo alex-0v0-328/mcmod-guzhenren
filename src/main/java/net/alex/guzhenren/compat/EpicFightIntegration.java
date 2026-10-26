@@ -2,7 +2,7 @@ package net.alex.guzhenren.compat;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
-import net.alex.guzhenren.entity.WildGuEntity;
+import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
@@ -37,7 +37,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 /**
  * The server-side Epic Fight bridge (the heavy-fist hook sits in {@code EpicFightServerEvents}, the dash
  * input in {@code DashInput}): aptitude cap, undead free skill use, attack refresh, target
- * exclusion for every {@link net.alex.guzhenren.entity.WildGuEntity}, the dash animation, and
+ * exclusion for every {@link net.alex.guzhenren.entity.gu.WildGuEntity}, the dash animation, and
  * the dash-side shockwave cone trigger (ring spawning lives in {@code RingConeEmitter}).
  *
  * <p>⚠ Epic Fight owns stamina: the current value, regeneration, the HUD and all ordinary consumption. GZR only

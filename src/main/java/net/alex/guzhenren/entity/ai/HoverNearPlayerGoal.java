@@ -1,7 +1,7 @@
 package net.alex.guzhenren.entity.ai;
 
 import java.util.EnumSet;
-import net.alex.guzhenren.entity.FlyingGuEntity;
+import net.alex.guzhenren.entity.gu.FlyingGuEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -12,12 +12,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>☠ Drives the movement vector directly and never paths -- a mote flies straight, so the navigation's
  * path cache and stuck detector would be obstacles rather than help. The target is re-read every tick via
- * {@link net.alex.guzhenren.entity.FlyingGuEntity#seekTarget}; a sine bob on {@code tickCount} gives
+ * {@link net.alex.guzhenren.entity.gu.FlyingGuEntity#seekTarget}; a sine bob on {@code tickCount} gives
  * the hover its drift.
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.entity.FlyingGuEntity
+ * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
  * @since 1.0.0
  */
 

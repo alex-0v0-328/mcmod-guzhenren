@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.beast;
 
 /**
  * The four bear species. Each registers its own entity type under {@link #getId()} (boar Gu precedent:

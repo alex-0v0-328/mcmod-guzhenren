@@ -1,6 +1,7 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.beast;
 
 import java.util.List;
+import net.alex.guzhenren.entity.ActionEntity;
 import net.alex.guzhenren.entity.ai.StandStillGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;

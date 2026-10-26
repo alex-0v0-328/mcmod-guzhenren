@@ -1,6 +1,7 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
+import net.alex.guzhenren.entity.HeldDeath;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;

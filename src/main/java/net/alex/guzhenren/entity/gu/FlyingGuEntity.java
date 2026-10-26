@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
 import net.alex.guzhenren.entity.ai.HoverNearPlayerGoal;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A wild Gu that flies: it drifts toward a player it wants, and hovers there.
  *
- * <p>Extends {@link net.alex.guzhenren.entity.WildGuEntity}. A flying move control and flying path
+ * <p>Extends {@link net.alex.guzhenren.entity.gu.WildGuEntity}. A flying move control and flying path
  * navigation support the hover and random-flight goals. {@code seeks} is the one door: the base wants anyone,
  * a leaf narrows it; {@link #isWanting} is the same test used both for starting and for keeping a target,
  * so a player who turns spectator or leaves is let go.
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.entity.WildGuEntity
+ * @see net.alex.guzhenren.entity.gu.WildGuEntity
  * @see net.alex.guzhenren.entity.ai.HoverNearPlayerGoal
  * @since 1.0.0
  */

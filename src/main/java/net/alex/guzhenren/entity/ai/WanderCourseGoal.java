@@ -1,7 +1,7 @@
 package net.alex.guzhenren.entity.ai;
 
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.entity.RestingFlyingGuEntity;
+import net.alex.guzhenren.entity.gu.RestingFlyingGuEntity;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.phys.Vec3;
 

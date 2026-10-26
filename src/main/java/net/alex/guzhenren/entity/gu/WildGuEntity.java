@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.entity.FlyingGuEntity
+ * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
  * @since 1.0.0
  */
 

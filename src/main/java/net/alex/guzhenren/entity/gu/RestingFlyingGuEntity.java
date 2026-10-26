@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
 import net.alex.guzhenren.entity.ai.FleePlayerGoal;

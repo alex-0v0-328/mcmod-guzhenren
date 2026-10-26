@@ -1,6 +1,11 @@
 package net.alex.guzhenren.entity;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.entity.beast.BearEntity;
+import net.alex.guzhenren.entity.beast.BearSpecies;
+import net.alex.guzhenren.entity.beast.TigerEntity;
+import net.alex.guzhenren.entity.beast.WildBoarEntity;
+import net.alex.guzhenren.entity.gu.FlyingGuEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.world.entity.EntityType;
@@ -17,7 +22,7 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 /**
  * Where this mod's entities declare their attributes and where they are allowed to spawn.
  *
- * <p>Hope Gu registers {@link net.alex.guzhenren.entity.FlyingGuEntity}'s attributes; the boar Gu and
+ * <p>Hope Gu registers {@link net.alex.guzhenren.entity.gu.FlyingGuEntity}'s attributes; the boar Gu and
  * rhinoceros beetle Gu variants share them with the raised resting flying speed
  * ({@code RESTING_GU_FLYING_SPEED}). They flee and land through path navigation, whose airborne pace scales
  * with that attribute, and at the base flying speed they barely move; the Hope Gu's hover approach sets its
@@ -31,7 +36,7 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.entity.FlyingGuEntity
+ * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
  * @see SpawnRules
  * @since 1.0.0
  */

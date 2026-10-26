@@ -539,7 +539,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
 
     /** One attack's cooldown: the length it starts at and its save key. */
-    protected record Cooldown(int maxTicks, String saveKey) {}
+    public record Cooldown(int maxTicks, String saveKey) {}
 
     private static final class CombatGoal extends Goal {
 

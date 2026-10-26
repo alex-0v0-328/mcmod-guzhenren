@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
 import net.minecraft.world.entity.EntityType;

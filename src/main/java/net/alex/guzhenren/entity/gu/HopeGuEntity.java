@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
 import net.alex.guzhenren.core.Ticks;
@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 /**
  * The wild Hope Gu [希望蛊]: the world's own source of an awakening [开窍].
  *
- * <p>Extends {@link net.alex.guzhenren.entity.FlyingGuEntity}. Overrides {@code seeks} to target
+ * <p>Extends {@link net.alex.guzhenren.entity.gu.FlyingGuEntity}. Overrides {@code seeks} to target
  * only the unawakened -- a cultivator drifts past. Once any player comes within {@code DETECT_RANGE},
  * a one-minute fade clock starts; the window never reopens, and walking away neither resets nor pauses
  * it. The fade tick is unserialized on purpose -- a reloaded Gu starts over, and these despawn anyway.
@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.entity.FlyingGuEntity
+ * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
  * @since 1.0.0
  */
 

@@ -14,11 +14,11 @@ import net.minecraft.world.phys.Vec3;
  * @since 1.0.0
  */
 
-final class HeldDeath {
+public final class HeldDeath {
 
     private HeldDeath() {}
 
-    static void tick(LivingEntity entity, int removeTick) {
+    public static void tick(LivingEntity entity, int removeTick) {
         entity.deathTime++;
         entity.setDeltaMovement(Vec3.ZERO);
         if (entity.deathTime >= removeTick && !entity.level().isClientSide() && !entity.isRemoved()) {
