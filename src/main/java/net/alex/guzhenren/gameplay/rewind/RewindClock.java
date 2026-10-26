@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The cadence every As Before Gu [如故蛊] memory keeps, and the arithmetic over a ring of stamped snapshots: when the
+ * The cadence the Man As Before Gu [人如故] memory keeps, and the arithmetic over a ring of stamped snapshots: when the
  * next snapshot is due, which one is "a day ago", and what a ring keeps after a new one lands.
  *
  * <p>A snapshot is taken twice a day, every {@link #INTERVAL_TICKS} of game time, and the ring keeps
@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
  * @author Alex
  * @version 1.0.0
  * @see PlayerRewindService
- * @see ChunkRewindService
  * @since 1.0.0
  */
 

@@ -563,8 +563,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.next_leaf",                           "Next leaf in %s s", "下一片需 %s 秒");
         add("guzhenren.item.gu.next_point",                          "Next point in %s s", "下一点需 %s 秒");
         add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
-        add("guzhenren.item.gu.as_before_land",                      "The land is as it was a day ago", "山已如昨");
-        add("guzhenren.item.gu.as_before_water",                     "The waters are as they were a day ago", "江已如昨");
+        add("guzhenren.item.gu.as_before_land",                      "The land is as it was first made", "山已如初");
+        add("guzhenren.item.gu.as_before_water",                     "The waters are as they were first made", "江已如初");
         add("guzhenren.item.gu.lifespan_gained",                     "Lifespan +%s years", "寿元 +%s 年");
         add("guzhenren.item.gu.hungry",                              "Your %s is hungry", "%s饿了");
         add("guzhenren.item.gu.starved",                             "Your %s starved to death", "%s饿死了");

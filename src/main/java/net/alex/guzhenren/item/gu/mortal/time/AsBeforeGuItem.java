@@ -4,7 +4,6 @@ import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
-import net.alex.guzhenren.gameplay.rewind.ChunkRewindService;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindService;
 import net.alex.guzhenren.gameplay.rewind.RewindClock;
 import net.alex.guzhenren.item.gu.GuClock;
@@ -22,18 +21,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * An As Before Gu [如故蛊]: a Time Path [宙道] Gu that puts something back the way it was a day ago. The middle
- * class of the three -- {@link ManAsBeforeGuItem} for the carrier's body, {@link TerrainAsBeforeGuItem} for the land
- * or the waters around him -- owning what they share: the bar that refills with the world clock, the memory that
- * records only while a refined one is carried, and the refusals.
+ * An As Before Gu [如故蛊]: a Time Path [宙道] Gu that puts something back the way it was. The middle class of the
+ * three -- {@link ManAsBeforeGuItem} puts the carrier's body back a day, {@link TerrainAsBeforeGuItem} puts the land
+ * or the waters around him back to the bare landform the world first generated -- owning what they share: the bar
+ * that refills with the world clock, the body's memory that records only while a refined Man As Before Gu is carried,
+ * and the refusals.
  *
  * <p>Extends {@link TendedGuItem} on a {@link GuClock.RecoverBar}: never fed, never starves, and refuses a use
  * ({@link #checkRecoverGate}) until a point has come back. {@link #remember} is the heartbeat's step: once per
- * {@code RewindClock.INTERVAL_TICKS} of game time, a carrier of a refined Man As Before Gu has his body recorded and a
- * carrier of a refined Mountain or River As Before Gu has the chunks around him recorded. Carried means the bag, an
- * aperture's store or a Vital [本命] slot.
+ * {@code RewindClock.INTERVAL_TICKS} of game time, a carrier of a refined Man As Before Gu has his body recorded.
+ * Carried means the bag, an aperture's store or a Vital [本命] slot. The land needs no memory: the seed is it.
  *
- * <p>⚠ The client never holds the memories (neither is synced), so every gate on them runs for a {@code ServerPlayer}
+ * <p>⚠ The client never holds the body's memory (it is not synced), so every gate on them runs for a {@code ServerPlayer}
  * only and the client-side gate passes; the bar's gate runs on both, since the bar rides the stack. ⚠ The bar is
  * settled on the server right before a use spends ({@link #useApply}), never in a gate: a gate runs on the client too,
  * and a client write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at the
@@ -101,9 +100,6 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
         if (now % RewindClock.INTERVAL_TICKS >= Ticks.SECOND) return;
 
         if (isCarriedRefined(player, ManAsBeforeGuItem.class)) PlayerRewindService.record(player, now);
-        if (isCarriedRefined(player, TerrainAsBeforeGuItem.class)) {
-            ChunkRewindService.recordAround(player.serverLevel(), player.chunkPosition(), now);
-        }
     }
 
     public static boolean isCarriedRefined(ServerPlayer player, Class<? extends AsBeforeGuItem> kind) {

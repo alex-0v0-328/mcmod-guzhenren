@@ -15,7 +15,6 @@ import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
-import net.alex.guzhenren.gameplay.rewind.ChunkMemory;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,13 +28,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * Every data attachment this mod puts on a player, and the one it puts on a chunk.
+ * Every data attachment this mod puts on a player.
  *
  * <p>DeferredRegister holder: the eleven record attachments (immutable, written only through their
  * service) plus the five scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
- * {@code SECOND_STAGE}, {@code PLUNGE}), and {@code CHUNK_MEMORY}, the only attachment on a {@code LevelChunk}
- * rather than a player: the land's past day for the Mountain and River As Before Gu [山如故 / 江如故], saved in the
- * chunk's own file only while it holds something, and read and written through {@code ChunkRewindService} alone.
+ * {@code SECOND_STAGE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
  * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced, and
  * {@code SECOND_STAGE} is synced but never saved: it counts by presence, a player who has it flies the second stage
@@ -132,14 +129,10 @@ public final class ModAttachments {
             registerSaved("dimension_return", DimensionReturnData.DEFAULT, DimensionReturnData.CODEC);
     //endregion
 
-    //region Rewind [如故] -- saved, never synced; the chunk one lives on the chunk
+    //region Rewind [如故] -- saved, never synced
     public static final Supplier<AttachmentType<PlayerRewindData>> PLAYER_REWIND = ATTACHMENT_TYPES.register(
             "player_rewind", () -> AttachmentType.builder(() -> PlayerRewindData.DEFAULT)
                     .serialize(PlayerRewindData.CODEC, data -> !data.isEmpty())
-                    .build());
-    public static final Supplier<AttachmentType<ChunkMemory>> CHUNK_MEMORY = ATTACHMENT_TYPES.register(
-            "chunk_memory", () -> AttachmentType.builder(() -> ChunkMemory.EMPTY)
-                    .serialize(ChunkMemory.CODEC, memory -> !memory.isEmpty())
                     .build());
     //endregion
 
