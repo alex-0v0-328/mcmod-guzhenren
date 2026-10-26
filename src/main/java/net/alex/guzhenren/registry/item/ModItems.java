@@ -8,6 +8,9 @@ import net.alex.guzhenren.effect.timed.DragonpillCricketGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.body.Bone;
+import net.alex.guzhenren.gameplay.body.Skin;
+import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
@@ -16,6 +19,7 @@ import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuType;
 import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
 import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
 import net.alex.guzhenren.item.gu.mortal.food.LiquorWormItem;
@@ -28,7 +32,10 @@ import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
+import net.alex.guzhenren.item.gu.mortal.strength.BoneGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
+import net.alex.guzhenren.item.gu.mortal.strength.SkinGuItem;
+import net.alex.guzhenren.item.gu.mortal.strength.TendonGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.ManAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.TerrainAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.WatchGuItem;
@@ -97,9 +104,11 @@ public final class ModItems {
 
     //region One-shot Gu [一次性] -- refining IS the use; one instant press pays, lands and spends (Hope Gu: a ritual)
     public static final DeferredItem<Item> HOPE_GU = ITEMS.register("hope_gu",
-            () -> new HopeGuItem(createOneShotProperties().stacksTo(1), GuSpec.of(Rank.ONE, GuPath.HUMAN)));
+            () -> new HopeGuItem(createOneShotProperties().stacksTo(1), GuSpec.of(Rank.ONE, GuPath.HUMAN)
+                    .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> VITALITY_LEAF_GU = ITEMS.register("vitality_leaf_gu",
-            () -> new VitalityLeafGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)));
+            () -> new VitalityLeafGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)
+                    .type(GuType.HEALING)));
     public static final DeferredItem<Item> LIFESPAN_GU = ITEMS.register("lifespan_gu",
             () -> new LifespanGuItem(createOneShotProperties(), 1, 9, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final DeferredItem<Item> TENS_LIFESPAN_GU = ITEMS.register("tens_lifespan_gu",
@@ -109,15 +118,20 @@ public final class ModItems {
     public static final DeferredItem<Item> THOUSANDS_LIFESPAN_GU = ITEMS.register("thousands_lifespan_gu",
             () -> new LifespanGuItem(createOneShotProperties(), 1000, 1999, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final DeferredItem<Item> COPPER_RELICS_GU = ITEMS.register("copper_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> STEEL_RELICS_GU = ITEMS.register("steel_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.TWO, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.TWO, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> SILVER_RELICS_GU = ITEMS.register("silver_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.THREE, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.THREE, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> GOLD_RELICS_GU = ITEMS.register("gold_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FOUR, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FOUR, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> CRYSTAL_RELICS_GU = ITEMS.register("crystal_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FIVE, GuPath.HEAVEN)));
+            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FIVE, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION)));
     //endregion
 
     //region Beast Strength Phantom Branch [兽力虚影流]
@@ -145,6 +159,7 @@ public final class ModItems {
     private static GuSpec createBeastStrengthSpec(TagKey<Item> feed) {
         return GuSpec.of(Rank.ONE, GuPath.STRENGTH)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
+                .type(GuType.DAO_MARK_CARVING)
                 .refine(800)
                 .channel(3_600)
                 .hungerBar(36, 1).essencePerHunger(100)
@@ -154,6 +169,7 @@ public final class ModItems {
     private static GuSpec createBeastBuffSpec(TagKey<Item> feed) {
         return GuSpec.of(Rank.ONE, GuPath.STRENGTH)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
+                .type(GuType.AMPLIFICATION)
                 .refine(800)
                 .costPerUse(16)
                 .hungerBar(12, 1).hungerPerUse(4)
@@ -166,50 +182,50 @@ public final class ModItems {
     public static final DeferredItem<Item> HORIZONTAL_CRASH_GU = ITEMS.register("horizontal_crash_gu",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.HORIZONTAL_CRASH_GU,
                     CrashGuEffect.getDuration(30),
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> VERTICAL_CRASH_GU = ITEMS.register("vertical_crash_gu",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.getDuration(30),
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_4 = ITEMS.register("charging_crash_gu_4",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+                    CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT)
                     .refine(800_000).costPerUse(16_000)
                     .hungerBar(12, 2).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = ITEMS.register("charging_crash_gu_5",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
+                    CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT)
                     .refine(8_000_000).costPerUse(160_000)
                     .hungerBar(12, 3).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = ITEMS.register("self_reliance_gu_2",
             () -> new SelfRelianceGuItem(createTendedProperties(), 30 * Ticks.SECOND, 1,
-                    GuSpec.of(Rank.TWO, GuPath.STRENGTH)
+                    GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.HEALING)
                             .refine(8_000).costPerUse(160)
                             .hungerBar(12, 4).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = ITEMS.register("self_reliance_gu_3",
             () -> new SelfRelianceGuItem(createTendedProperties(), 60 * Ticks.SECOND, 2,
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.HEALING)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 8).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = ITEMS.register("self_reliance_gu_4",
             () -> new SelfRelianceGuItem(createTendedProperties(), 120 * Ticks.SECOND, 3,
-                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.HEALING)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(12, 12).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> HARDSHIP_STRENGTH_GU = ITEMS.register("hardship_strength_gu",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.HARDSHIP_STRENGTH_GU,
                     HardshipStrengthGuEffect.DURATION_TICKS,
-                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.AMPLIFICATION)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(12, 12).hungerPerUse(4).feed(ModItemTags.POTATO_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
@@ -218,7 +234,7 @@ public final class ModItems {
     //region Human Jun Strength Branch [人力钧力流] -- one round is one layer
     public static final DeferredItem<Item> JIN_STRENGTH_GU = ITEMS.register("jin_strength_gu",
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JIN,
-                    GuSpec.of(Rank.ONE, GuPath.STRENGTH)
+                    GuSpec.of(Rank.ONE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(800)
                             .channel(3_600)
@@ -226,7 +242,7 @@ public final class ModItems {
                             .feed(ModItemTags.JIN_FEED, 1)));
     public static final DeferredItem<Item> TENS_JIN_STRENGTH_GU = ITEMS.register("tens_jin_strength_gu",
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JIN,
-                    GuSpec.of(Rank.TWO, GuPath.STRENGTH)
+                    GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(8_000)
                             .channel(36_000)
@@ -234,7 +250,7 @@ public final class ModItems {
                             .feed(ModItemTags.JIN_FEED, 1)));
     public static final DeferredItem<Item> JUN_STRENGTH_GU = ITEMS.register("jun_strength_gu",
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JUN,
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(80_000)
                             .channel(36_000)
@@ -242,7 +258,7 @@ public final class ModItems {
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
     public static final DeferredItem<Item> TENS_JUN_STRENGTH_GU = ITEMS.register("tens_jun_strength_gu",
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JUN,
-                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .refine(800_000)
                             .channel(360_000)
@@ -250,9 +266,67 @@ public final class ModItems {
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
     //endregion
 
+    //region Normal [基础力道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
+    public static final DeferredItem<Item> JADE_SKIN_GU = ITEMS.register("jade_skin_gu",
+            () -> new SkinGuItem(createTendedProperties(), Skin.JADE_SKIN, 60 * Ticks.SECOND,
+                    createTemperingSpec(Rank.ONE, 800, 16, 1, ModItemTags.JADE_SKIN_FEED)));
+    public static final DeferredItem<Item> WHITE_JADE_GU = ITEMS.register("white_jade_gu",
+            () -> new SkinGuItem(createTendedProperties(), Skin.WHITE_JADE_SKIN, 90 * Ticks.SECOND,
+                    createTemperingSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.WHITE_JADE_FEED)));
+    //endregion
+
+    //region Normal [基础力道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good
+    public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = ITEMS.register("bronze_skin_gu_1",
+            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_1, 0,
+                    createTemperingSpec(Rank.ONE, 800, 16, 1, ModItemTags.BRONZE_SKIN_FEED)));
+    public static final DeferredItem<Item> BRONZE_SKIN_GU_2 = ITEMS.register("bronze_skin_gu_2",
+            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_2, 0,
+                    createTemperingSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.BRONZE_SKIN_FEED)));
+    public static final DeferredItem<Item> BRONZE_SKIN_GU_3 = ITEMS.register("bronze_skin_gu_3",
+            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_3, 0,
+                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.BRONZE_SKIN_FEED)));
+    public static final DeferredItem<Item> ANCIENT_BRONZE_SKIN_GU = ITEMS.register("ancient_bronze_skin_gu",
+            () -> new SkinGuItem(createTendedProperties(), Skin.ANCIENT_BRONZE_SKIN, 0,
+                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ANCIENT_BRONZE_SKIN_FEED)));
+    public static final DeferredItem<Item> IRON_SKIN_GU_1 = ITEMS.register("iron_skin_gu_1",
+            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_1, 0,
+                    createTemperingSpec(Rank.ONE, 800, 16, 1, ModItemTags.IRON_SKIN_FEED)));
+    public static final DeferredItem<Item> IRON_SKIN_GU_2 = ITEMS.register("iron_skin_gu_2",
+            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_2, 0,
+                    createTemperingSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.IRON_SKIN_FEED)));
+    public static final DeferredItem<Item> IRON_SKIN_GU_3 = ITEMS.register("iron_skin_gu_3",
+            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_3, 0,
+                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.IRON_SKIN_FEED)));
+    public static final DeferredItem<Item> ESSENCE_IRON_SKIN_GU = ITEMS.register("essence_iron_skin_gu",
+            () -> new SkinGuItem(createTendedProperties(), Skin.ESSENCE_IRON_SKIN, 0,
+                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ESSENCE_IRON_SKIN_FEED)));
+    public static final DeferredItem<Item> STEEL_TENDON_GU_3 = ITEMS.register("steel_tendon_gu_3",
+            () -> new TendonGuItem(createTendedProperties(), Tendon.STEEL_TENDON_3,
+                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.STEEL_TENDON_FEED)));
+    public static final DeferredItem<Item> STEEL_TENDON_GU_4 = ITEMS.register("steel_tendon_gu_4",
+            () -> new TendonGuItem(createTendedProperties(), Tendon.STEEL_TENDON_4,
+                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.STEEL_TENDON_FEED)));
+    public static final DeferredItem<Item> IRON_BONE_GU = ITEMS.register("iron_bone_gu",
+            () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE,
+                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.IRON_BONE_FEED)));
+    public static final DeferredItem<Item> ESSENCE_IRON_BONE_GU = ITEMS.register("essence_iron_bone_gu",
+            () -> new BoneGuItem(createTendedProperties(), Bone.ESSENCE_IRON_BONE,
+                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ESSENCE_IRON_BONE_FEED)));
+
+    /** The tempering Gu's shared row shape: a 12-point hunger bar, 4 per use, one unit a food, 30 s / 1 s cooldown. */
+    private static GuSpec createTemperingSpec(Rank rank, int refine, int costPerUse, int unitsPerHunger,
+                                              TagKey<Item> feed) {
+        return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DEFENSIVE)
+                .refine(refine).costPerUse(costPerUse)
+                .hungerBar(12, unitsPerHunger).hungerPerUse(4).feed(feed, 1)
+                .cooldown(30 * Ticks.SECOND, Ticks.SECOND);
+    }
+    //endregion
+
     //region Normal [基础力道] -- All-Out Effort Gu unlocks a stockpiled 9999 jin
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_3 = ITEMS.register("all_out_effort_gu_3",
             () -> new AllOutEffortGuItem(createTendedProperties(), 60, GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+                    .type(GuType.AMPLIFICATION)
                     .refine(80_000)
                     .costPerUse(1_600)
                     .hungerBar(12, 4).hungerPerUse(4)
@@ -260,6 +334,7 @@ public final class ModItems {
                     .cooldown(80 * Ticks.SECOND)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_4 = ITEMS.register("all_out_effort_gu_4",
             () -> new AllOutEffortGuItem(createTendedProperties(), 90, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+                    .type(GuType.AMPLIFICATION)
                     .refine(800_000)
                     .costPerUse(16_000)
                     .hungerBar(12, 8).hungerPerUse(4)
@@ -267,6 +342,7 @@ public final class ModItems {
                     .cooldown(100 * Ticks.SECOND)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = ITEMS.register("all_out_effort_gu_5",
             () -> new AllOutEffortGuItem(createTendedProperties(), 120, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
+                    .type(GuType.AMPLIFICATION)
                     .refine(8_000_000)
                     .costPerUse(160_000)
                     .hungerBar(12, 16).hungerPerUse(4)
@@ -276,20 +352,22 @@ public final class ModItems {
 
     //region Liquor Worm [酒虫] -- hunger bar 8 with 3 per use, and only its own rank can drive it
     public static final DeferredItem<Item> LIQUOR_WORM = ITEMS.register("liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD).type(GuType.CULTIVATION)
                     .refine(1_600).costPerUse(16)
                     .hungerBar(8, 1).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> FOUR_FLAVORS_LIQUOR_WORM = ITEMS.register("four_flavors_liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD).type(GuType.CULTIVATION)
                     .refine(16_000).costPerUse(160)
                     .hungerBar(8, 2).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> SEVEN_FRAGRANCES_LIQUOR_WORM = ITEMS.register(
             "seven_fragrances_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
+                    .type(GuType.CULTIVATION)
                     .refine(160_000).costPerUse(1_600)
                     .hungerBar(8, 4).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> NINE_EYES_LIQUOR_WORM = ITEMS.register("nine_eyes_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
+                    .type(GuType.CULTIVATION)
                     .refine(1_600_000).costPerUse(16_000)
                     .hungerBar(8, 8).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     //endregion
@@ -297,18 +375,23 @@ public final class ModItems {
     //region Primeval Elder Gu [元老蛊] -- a vault for Primeval Stones [元石] that never needs feeding at all
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_1 = ITEMS.register("primeval_elder_gu_1",
             () -> new PrimevalElderGuItem(createTendedProperties(), 1_000L, GuSpec.of(Rank.ONE, GuPath.SPACE)
+                    .type(GuType.STORAGE)
                     .refine(16).costPerUse(0)));
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_2 = ITEMS.register("primeval_elder_gu_2",
             () -> new PrimevalElderGuItem(createTendedProperties(), 10_000L, GuSpec.of(Rank.TWO, GuPath.SPACE)
+                    .type(GuType.STORAGE)
                     .refine(160).costPerUse(0)));
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_3 = ITEMS.register("primeval_elder_gu_3",
             () -> new PrimevalElderGuItem(createTendedProperties(), 100_000L, GuSpec.of(Rank.THREE, GuPath.SPACE)
+                    .type(GuType.STORAGE)
                     .refine(1_600).costPerUse(0)));
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_4 = ITEMS.register("primeval_elder_gu_4",
             () -> new PrimevalElderGuItem(createTendedProperties(), 1_000_000L, GuSpec.of(Rank.FOUR, GuPath.SPACE)
+                    .type(GuType.STORAGE)
                     .refine(16_000).costPerUse(0)));
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_5 = ITEMS.register("primeval_elder_gu_5",
             () -> new PrimevalElderGuItem(createTendedProperties(), 100_000_000L, GuSpec.of(Rank.FIVE, GuPath.SPACE)
+                    .type(GuType.STORAGE)
                     .refine(160_000).costPerUse(0)));
     //endregion
 
@@ -316,14 +399,17 @@ public final class ModItems {
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_LOTUS_GU = ITEMS.register(
             "heavenly_essence_treasure_lotus_gu",
             () -> new TreasureLotusGuItem(createTendedProperties(), 1, 100, GuSpec.of(Rank.THREE, GuPath.WOOD)
+                    .type(GuType.CULTIVATION)
                     .refine(80_000).costPerUse(0)));
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU = ITEMS.register(
             "heavenly_essence_treasure_monarch_lotus_gu",
             () -> new TreasureLotusGuItem(createTendedProperties(), 10, 1_000, GuSpec.of(Rank.FOUR, GuPath.WOOD)
+                    .type(GuType.CULTIVATION)
                     .refine(800_000).costPerUse(0)));
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU = ITEMS.register(
             "heavenly_essence_treasure_king_lotus_gu",
             () -> new TreasureLotusGuItem(createTendedProperties(), 100, 10_000, GuSpec.of(Rank.FIVE, GuPath.WOOD)
+                    .type(GuType.CULTIVATION)
                     .refine(8_000_000).costPerUse(0)));
     //endregion
 
@@ -331,7 +417,7 @@ public final class ModItems {
     // or grown at once for 80 essence
     public static final DeferredItem<Item> NINE_LEAF_VITALITY_GRASS = ITEMS.register("nine_leaf_vitality_grass",
             () -> new NineLeafVitalityGrassItem(createTendedProperties(), 3 * Ticks.MINUTE, 80,
-                    GuSpec.of(Rank.THREE, GuPath.WOOD).refine(80_000).costPerUse(0)));
+                    GuSpec.of(Rank.THREE, GuPath.WOOD).type(GuType.HEALING).refine(80_000).costPerUse(0)));
     //endregion
 
     //region Zombie Gu [僵尸蛊] -- Transformation Path [变化道]; a timed Half-Zombie [半生半僵], and a 5-minute
@@ -378,19 +464,19 @@ public final class ModItems {
     //region Watch Gu [更蛊] -- Time Path [宙道]; tended like any other, and taken by the one use it is kept for
     public static final DeferredItem<Item> SECOND_WATCH_GU = ITEMS.register("second_watch_gu",
             () -> new WatchGuItem(createTendedProperties(), ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE,
-                    GuSpec.of(Rank.FOUR, GuPath.TIME)
+                    GuSpec.of(Rank.FOUR, GuPath.TIME).type(GuType.AMPLIFICATION)
                             .refine(100_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> THIRD_WATCH_GU = ITEMS.register("third_watch_gu",
             () -> new WatchGuItem(createTendedProperties(), ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE,
-                    GuSpec.of(Rank.FIVE, GuPath.TIME)
+                    GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.AMPLIFICATION)
                             .refine(1_000_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
     //endregion
 
     //region As Before Gu [如故蛊] -- Time Path [宙道]; never fed, four points back one per half day of world time
     public static final DeferredItem<Item> MAN_AS_BEFORE_GU = ITEMS.register("man_as_before_gu",
-            () -> new ManAsBeforeGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TIME)
+            () -> new ManAsBeforeGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.HEALING)
                     .refine(1_000_000).costPerUse(320_000)
                     .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
                     .cooldown(Ticks.SECOND)));
@@ -409,28 +495,28 @@ public final class ModItems {
     //region Malicious Thought Gu [恶念蛊] -- Wisdom Path [智道]; a one-use flood of evil thoughts, taken by its use
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_2 = ITEMS.register("malicious_thought_gu_2",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64L,
-                    GuSpec.of(Rank.TWO, GuPath.WISDOM)
+                    GuSpec.of(Rank.TWO, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(1_000).costPerUse(0)
                             .hungerBar(8, 2).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_3 = ITEMS.register("malicious_thought_gu_3",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 640L,
-                    GuSpec.of(Rank.THREE, GuPath.WISDOM)
+                    GuSpec.of(Rank.THREE, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(10_000).costPerUse(0)
                             .hungerBar(8, 4).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_4 = ITEMS.register("malicious_thought_gu_4",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 6_400L,
-                    GuSpec.of(Rank.FOUR, GuPath.WISDOM)
+                    GuSpec.of(Rank.FOUR, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(100_000).costPerUse(0)
                             .hungerBar(8, 8).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_5 = ITEMS.register("malicious_thought_gu_5",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64_000L,
-                    GuSpec.of(Rank.FIVE, GuPath.WISDOM)
+                    GuSpec.of(Rank.FIVE, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(1_000_000).costPerUse(0)
                             .hungerBar(8, 16).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
@@ -439,12 +525,13 @@ public final class ModItems {
 
     //region Guts Gu [胆识蛊] -- Soul Path [魂道]; a one-shot Gu that raises the soul cap
     public static final DeferredItem<Item> GUTS_GU = ITEMS.register("guts_gu",
-            () -> new GutsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.SOUL)));
+            () -> new GutsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.SOUL).type(GuType.CULTIVATION)));
     //endregion
 
     //region Casual Gu [随意蛊] -- Wisdom Path [智道]; ten seconds of random thoughts, taken by its use
     public static final DeferredItem<Item> CASUAL_GU_1 = ITEMS.register("casual_gu_1",
             () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.ONE, GuPath.WISDOM)
+                    .type(GuType.CULTIVATION)
                     .refine(100)
                     .costPerUse(0)
                     .hungerBar(8, 1).hungerPerUse(0)
@@ -452,6 +539,7 @@ public final class ModItems {
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> CASUAL_GU_2 = ITEMS.register("casual_gu_2",
             () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.TWO, GuPath.WISDOM)
+                    .type(GuType.CULTIVATION)
                     .refine(1_000)
                     .costPerUse(0)
                     .hungerBar(8, 2).hungerPerUse(0)
@@ -463,14 +551,17 @@ public final class ModItems {
     // it leaves stands on this rank's peak, petrified
     public static final DeferredItem<Item> STONE_APERTURE_GU_3 = ITEMS.register("stone_aperture_gu_3",
             () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
+                    .type(GuType.AMPLIFICATION)
                     .refine(10_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> STONE_APERTURE_GU_4 = ITEMS.register("stone_aperture_gu_4",
             () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
+                    .type(GuType.AMPLIFICATION)
                     .refine(100_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> STONE_APERTURE_GU_5 = ITEMS.register("stone_aperture_gu_5",
             () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
+                    .type(GuType.AMPLIFICATION)
                     .refine(1_000_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     //endregion
@@ -489,7 +580,8 @@ public final class ModItems {
             () -> createSecondApertureGu(Rank.FIVE));
 
     private static SecondApertureGuItem createSecondApertureGu(Rank rank) {
-        return new SecondApertureGuItem(createOneShotProperties(), GuSpec.of(rank, GuPath.HUMAN));
+        return new SecondApertureGuItem(createOneShotProperties(), GuSpec.of(rank, GuPath.HUMAN)
+                .type(GuType.CULTIVATION));
     }
     //endregion
 

@@ -6,6 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
+import net.alex.guzhenren.gameplay.body.SkinService;
 import net.alex.guzhenren.gameplay.body.UndeadService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
@@ -39,29 +40,31 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code ApertureStorageMenu.refresh}, for an open store -- after (3), or the menu saves its stale view
  * back over the walk.</li>
  * <li>{@code VitalLossService.settleOfflineVitalLoss} -- right after (2) and (3), which charge an online
- * Vital Gu death on the spot; its soul and mind halving lands before (15) and (19).</li>
- * <li>{@code ApertureEssenceService.closeDistilling} -- before (13): the 1:2 return lands before regen picks
+ * Vital Gu death on the spot; its soul and mind halving lands before (16) and (20).</li>
+ * <li>{@code ApertureEssenceService.closeDistilling} -- before (14): the 1:2 return lands before regen picks
  * a pool.</li>
- * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (8) and
- * (10) to (15) read the form.</li>
+ * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (9) and
+ * (11) to (16) read the form.</li>
+ * <li>{@code SkinService.tickSkin} -- sheds a jade skin [玉皮] whose time ran out and projects the worn one as its
+ * effect, a body-form projection like (7); nothing later reads the skin, which is read per hit instead.</li>
  * <li>{@code UndeadService.pinHunger} -- after (7), or a form that ended this beat still pins hunger.</li>
- * <li>{@code PathQiService.syncEffects} -- rebuilds the qi effects from the pool; (10), (11) and (13) read
+ * <li>{@code PathQiService.syncEffects} -- rebuilds the qi effects from the pool; (11), (12) and (14) read
  * them.</li>
- * <li>{@code UndeadService.tickDeathQi} -- after (9) for the effect, after (7) for the zombie skip.</li>
- * <li>{@code AttackDamageService.refresh} -- after (7) and (9): the form and the strength-qi effect are both
+ * <li>{@code UndeadService.tickDeathQi} -- after (10) for the effect, after (7) for the zombie skip.</li>
+ * <li>{@code AttackDamageService.refresh} -- after (7) and (10): the form and the strength-qi effect are both
  * {@code getBonus} terms.</li>
- * <li>{@code BodyService.tickLifespan} -- after (7), since an undead body is never billed; before (19),
+ * <li>{@code BodyService.tickLifespan} -- after (7), since an undead body is never billed; before (20),
  * which reads exhaustion.</li>
- * <li>{@code ApertureEssenceService.regenStep} -- after (6), (7) and (9).</li>
- * <li>{@code ApertureNourishService.tickNourish} -- after (13): this second's regen before this second's
+ * <li>{@code ApertureEssenceService.regenStep} -- after (6), (7) and (10).</li>
+ * <li>{@code ApertureNourishService.tickNourish} -- after (14): this second's regen before this second's
  * bill.</li>
  * <li>{@code MindService.regenStep} -- after (7): a zombie thinks every fifth second.</li>
- * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (13), whose essence the auto-use pays.</li>
- * <li>{@code AsBeforeGuItem.remember} -- after (7), (12) and (15): the body it records is this beat's settled one,
- * the half-zombie form, lifespan exhaustion and thoughts included; before (19), so a body about to die is still
+ * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (14), whose essence the auto-use pays.</li>
+ * <li>{@code AsBeforeGuItem.remember} -- after (7), (13) and (16): the body it records is this beat's settled one,
+ * the half-zombie form, lifespan exhaustion and thoughts included; before (20), so a body about to die is still
  * remembered as it was.</li>
  * <li>{@code AperturePressureService.tick} -- the service gates its own minute step and countdown; a full
- * gauge goes to (19).</li>
+ * gauge goes to (20).</li>
  * <li>{@code checkLethalState} -- last.</li>
  * </ol>
  *
@@ -101,6 +104,7 @@ public final class Heartbeat {
 
         ApertureEssenceService.closeDistilling(player);
         UndeadService.tickHalfZombie(player);
+        SkinService.tickSkin(player);
         UndeadService.pinHunger(player);
         PathQiService.syncEffects(player);
         UndeadService.tickDeathQi(player);

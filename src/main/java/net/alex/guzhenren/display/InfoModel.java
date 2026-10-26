@@ -11,9 +11,12 @@ import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.BodyStrengthService;
+import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
+import net.alex.guzhenren.gameplay.body.Skin;
+import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
 import net.alex.guzhenren.gameplay.mind.MindData;
@@ -97,6 +100,12 @@ public final class InfoModel {
         T visit(PhysiqueRow entry);
 
         T visit(RaceRow entry);
+
+        T visit(SkinRow entry);
+
+        T visit(TendonRow entry);
+
+        T visit(BoneRow entry);
 
         T visit(Soul entry);
 
@@ -197,6 +206,24 @@ public final class InfoModel {
     }
 
     public record RaceRow(Race race) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record SkinRow(Skin skin) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record TendonRow(Tendon tendon) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    public record BoneRow(Bone bone) implements Entry {
 
         @Override
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
@@ -361,6 +388,9 @@ public final class InfoModel {
                     new PhysiqueRow(physique, body.extremePhysique()))));
         }
         rows.add(new Row(0, new RaceRow(body.race())));
+        rows.add(new Row(0, new SkinRow(body.skin())));
+        rows.add(new Row(0, new TendonRow(body.tendon())));
+        rows.add(new Row(0, new BoneRow(body.bone())));
         rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
         if (!strength.isEmpty() && strength.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
             rows.add(new Row(0, new CapacityRow(BodyStrengthService.getUsableJin(player), strength.getTotalJin())));

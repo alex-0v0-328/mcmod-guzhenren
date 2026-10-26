@@ -6,6 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.attribute.KnockbackResistanceService;
 import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
@@ -62,6 +63,7 @@ public final class PlayerDataService {
         BodyService.skipOfflineLifespan(player);
         ApertureService.syncTalentMarks(player);
         MaxHealthService.refresh(player);
+        KnockbackResistanceService.refresh(player);
         MaxHealthService.restoreCarried(player);
         AttackDamageService.refresh(player);
         ModEvents.post(new PlayerRefreshedEvent(player));
@@ -90,6 +92,7 @@ public final class PlayerDataService {
         }
         if (to instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);
+            KnockbackResistanceService.refresh(server);
             server.setHealth(wasDeath ? server.getMaxHealth() : from.getHealth());
             AttackDamageService.refresh(server);
             ModEvents.post(new PlayerRefreshedEvent(server));
@@ -132,6 +135,7 @@ public final class PlayerDataService {
 
         if (player instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);
+            KnockbackResistanceService.refresh(server);
             AttackDamageService.refresh(server);
             ModEvents.post(new PlayerRefreshedEvent(server));
         }

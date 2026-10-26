@@ -7,14 +7,16 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * How much of the accumulated strength [力道] a body can actually bring to bear: the capacity [承受上限]
- * ramp. Static, read-only service; the capacity comes from the ten-extreme physique [十绝体], the
- * strength itself from {@link PathStrengthService}. {@code isUnleashed} checks 全力以赴.
+ * ramp. Static, read-only service; the capacity comes from the ten-extreme physique [十绝体] plus the
+ * tendons [筋] ({@link Tendon#getCapacityBonus}), the strength itself from {@link PathStrengthService}.
+ * {@code isUnleashed} checks 全力以赴.
  *
  * <p>⚠ {@code getUsableJin(int, int)} is a deliberate seam so the ramp is unit-testable without a {@link
  * Player} (a boundary bug once jumped 101 straight to 120; only arithmetic catches that). ⚠ The tail
  * is EARNED over {@code [capacity, capacity × LOCK_MULTIPLE]} in 20 linear steps; the lock scales WITH
  * the physique [体质] (cap 300 locks at 3000). ⚠ 兽力 sits OUTSIDE the ramp and outside 全力以赴's
- * lift -- it counts in 一猪之力, not 斤. ⚠ A mortal reads {@code ExtremePhysique.NONE} → capacity 100.
+ * lift -- it counts in 一猪之力, not 斤. ⚠ A mortal reads {@code ExtremePhysique.NONE} → capacity 100, plus
+ * steel tendons when he has them.
  *
  * <p>{@link #getHardshipCapacityBonus} adds {@link #HARDSHIP_BONUS_STEP} for every threshold in
  * {@link #HARDSHIP_HEALTH_THRESHOLDS} the health fraction is not above, top down: above 60% adds
@@ -37,7 +39,8 @@ public final class BodyStrengthService {
     private static final double[] HARDSHIP_HEALTH_THRESHOLDS = { 0.6D, 0.5D, 0.4D, 0.3D, 0.2D, 0.1D };
 
     public static int getCapacity(@NotNull Player player) {
-        int base = BodyService.getExtremePhysique(player).getStrengthCapacity();
+        int base = BodyService.getExtremePhysique(player).getStrengthCapacity()
+                + BodyService.getTendon(player).getCapacityBonus();
         if (!ModEffects.has(player, ModEffects.HARDSHIP_STRENGTH_GU)) return base;
 
         double healthFraction = (double) player.getHealth() / player.getMaxHealth();

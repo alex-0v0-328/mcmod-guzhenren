@@ -51,6 +51,8 @@ public abstract class MortalGuItem extends GuItem {
 
     public static final int REFINE_DONE_COOLDOWN_TICKS = 2 * Ticks.SECOND;
     private static final String KIND_KEY = "guzhenren.display.gu";
+    private static final String TYPE_KEY = "guzhenren.display.gu_type";
+    private static final String TYPE_BRANCH_KEY = "guzhenren.display.gu_type_branch";
     protected static final String FAILED_REFINE_ESSENCE = "guzhenren.item.failed.refine_essence";
     protected static final String FAILED_ESSENCE = "guzhenren.item.failed.essence";
     private static final String FAILED_RANK_MISMATCH = "guzhenren.item.failed.rank_mismatch";
@@ -115,11 +117,21 @@ public abstract class MortalGuItem extends GuItem {
         if (getPath() == GuPath.STRENGTH && branch != StrengthPathBranch.NORMAL) {
             tooltip.add(Component.translatable(branch.getTranslationKey()).withStyle(ChatFormatting.GRAY));
         }
+        GuType type = spec.getType();
+        if (type != null) tooltip.add(formatType(type).withStyle(ChatFormatting.GRAY));
         MutableComponent line = formatProgressLine(stack);
         if (line != null) tooltip.add(line.withStyle(ChatFormatting.GRAY));
     }
 
     protected @Nullable MutableComponent formatProgressLine(ItemStack stack) { return null; }
+
+    /** The usage type line [类型]: the type alone, or a branch after its parent ({@code 防御 · 反击}). */
+    static MutableComponent formatType(GuType type) {
+        Component name = Component.translatable(type.getTranslationKey());
+        GuType parent = type.getParent();
+        if (parent == null) return Component.translatable(TYPE_KEY, name);
+        return Component.translatable(TYPE_BRANCH_KEY, Component.translatable(parent.getTranslationKey()), name);
+    }
     //endregion
 
     @Override

@@ -3,6 +3,7 @@ package net.alex.guzhenren.network;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.network.payload.DashPayload;
@@ -11,6 +12,7 @@ import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
+import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,12 +26,17 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Registers the seven client-intent payloads and forwards each to {@link ClientIntents}, which holds every
- * check.
+ * check, and the one server notice ({@code SkinFlashPayload}), handed to whatever the client registered for its
+ * class through {@link #handleOnClient}.
  *
  * <p>⚠ A version seam: the intent records in {@code network.payload} are plain data with their own
  * {@code encode}/{@code decode}, the same on both loaders. NeoForge sends only a {@link CustomPacketPayload}, so
  * each record travels inside a {@link Carrier} whose type is registered here; {@link #wrap} finds it by the
  * record's class. The Forge 1.20.1 port registers the same records on its {@code SimpleChannel} instead.
+ *
+ * <p>⚠ A notice's client handler is looked up, never named here: this class loads on the server, and code the
+ * server may load references nothing in {@code client}. {@code ClientEvents} registers the handlers at client
+ * setup; a notice with none registered is dropped.
  *
  * @author Alex
  * @version 1.0.0
@@ -45,6 +52,7 @@ public final class ModPayloads {
 
     private static final String VERSION = "1";
     private static final Map<Class<?>, CustomPacketPayload.Type<?>> TYPES = new HashMap<>();
+    private static final Map<Class<?>, Consumer<?>> CLIENT_HANDLERS = new HashMap<>();
 
     /** One intent record on the wire, under the type registered for its class. */
     public record Carrier<T>(@NotNull Type<Carrier<T>> type, @NotNull T intent) implements CustomPacketPayload {}
@@ -73,6 +81,28 @@ public final class ModPayloads {
         toServer(registrar, "toggle_second_stage", ToggleSecondStagePayload.class,
                 (buf, intent) -> {}, buf -> ToggleSecondStagePayload.INSTANCE,
                 (intent, player) -> ClientIntents.toggleSecondStage(player));
+        toClient(registrar, "skin_flash", SkinFlashPayload.class, SkinFlashPayload::encode, SkinFlashPayload::decode);
+    }
+
+    /** Registers what the client does with a notice of {@code noticeClass}; called from client setup only. */
+    public static <T> void handleOnClient(Class<T> noticeClass, Consumer<T> handler) {
+        CLIENT_HANDLERS.put(noticeClass, handler);
+    }
+
+    private static <T> void toClient(PayloadRegistrar registrar, String id, Class<T> noticeClass,
+                                     BiConsumer<FriendlyByteBuf, T> encode, Function<FriendlyByteBuf, T> decode) {
+        CustomPacketPayload.Type<Carrier<T>> type = new CustomPacketPayload.Type<>(Guzhenren.id(id));
+        TYPES.put(noticeClass, type);
+        registrar.playToClient(type,
+                StreamCodec.<FriendlyByteBuf, Carrier<T>>of((buf, carrier) -> encode.accept(buf, carrier.intent()),
+                        buf -> new Carrier<>(type, decode.apply(buf))),
+                (carrier, context) -> dispatchToClient(noticeClass, carrier.intent()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void dispatchToClient(Class<T> noticeClass, T notice) {
+        Consumer<T> handler = (Consumer<T>) CLIENT_HANDLERS.get(noticeClass);
+        if (handler != null) handler.accept(notice);
     }
 
     private static <T> void toServer(PayloadRegistrar registrar, String id, Class<T> intentClass,

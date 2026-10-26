@@ -141,6 +141,21 @@ public final class CmdInfo {
         }
 
         @Override
+        public Component visit(InfoModel.SkinRow entry) {
+            return translate("skin", translateEnum(entry.skin().getTranslationKey()));
+        }
+
+        @Override
+        public Component visit(InfoModel.TendonRow entry) {
+            return translate("tendon", translateEnum(entry.tendon().getTranslationKey()));
+        }
+
+        @Override
+        public Component visit(InfoModel.BoneRow entry) {
+            return translate("bone", translateEnum(entry.bone().getTranslationKey()));
+        }
+
+        @Override
         public Component visit(InfoModel.Soul entry) {
             return translate("soul", entry.soul().currentSoul(), entry.soul().maxSoul())
                     .append(ModDisplayText.formatDetail(translateEnum(entry.soul().getTier().getTranslationKey())));

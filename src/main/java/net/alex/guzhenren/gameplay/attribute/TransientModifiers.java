@@ -7,7 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
- * {@link AttackDamageService} and {@link MaxHealthService}, {@code ADD_MULTIPLIED_BASE} for the Epic Fight
+ * {@link AttackDamageService}, {@link MaxHealthService} and {@link KnockbackResistanceService},
+ * {@code ADD_MULTIPLIED_BASE} for the Epic Fight
  * stamina cap ({@code compat.EpicFightIntegration}). The shared callers take the three-argument {@link #swap},
  * which adds; the operation names differ between game versions, so only this seam and the loader-side
  * integration spell one out.

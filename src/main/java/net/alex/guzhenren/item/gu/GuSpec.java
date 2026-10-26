@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
  * One Gu's numbers, given as a builder chain at registration so that a registration reads as a table row.
  *
  * <p>The single source of truth for every Gu's numerical identity: refine cost, channel/cost-per-use,
- * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags, and
- * cooldown. Stored on {@link MortalGuItem} at
+ * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags,
+ * cooldown, and the usage type [类型] ({@link GuType}, absent for a Gu that has none). Stored on {@link MortalGuItem} at
  * construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD renderers.
  *
  * <p>⚠ {@link #validate} runs at registration and refuses to start the game, naming the Gu, when
@@ -31,6 +31,7 @@ public final class GuSpec {
     private final Rank rank;
     private final GuPath path;
     private StrengthPathBranch strengthPathBranch = StrengthPathBranch.NORMAL;
+    private @Nullable GuType type;
     private int refineCost;
     private int essencePerRound;
     private boolean channels;
@@ -113,6 +114,11 @@ public final class GuSpec {
         this.strengthPathBranch = branch;
         return this;
     }
+
+    public GuSpec type(GuType type) {
+        this.type = type;
+        return this;
+    }
     //endregion
 
     //region what the base classes read
@@ -121,6 +127,8 @@ public final class GuSpec {
     public GuPath getPath() { return path; }
 
     public StrengthPathBranch getStrengthPathBranch() { return strengthPathBranch; }
+
+    public @Nullable GuType getType() { return type; }
 
     public int getRefineCost() { return refineCost; }
 

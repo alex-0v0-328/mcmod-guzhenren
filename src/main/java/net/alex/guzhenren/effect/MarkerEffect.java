@@ -18,6 +18,9 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <li>{@code ALL_OUT_EFFORT} [全力以赴] -- timed; while it runs the carrying limit [承受上限] does not
  * apply, which {@code BodyStrengthService.getUsableJin} reads. Re-using it while it runs is a refusal
  * ({@code all_out_active}).</li>
+ * <li>{@code JADE_SKIN_GU} [玉皮蛊] and {@code WHITE_JADE_GU} [白玉蛊] -- timed; project the skin [皮肤] stored
+ * on {@code BodyData} with its end tick, re-applied or removed by {@code SkinService.tickSkin} every
+ * heartbeat; the flat damage reduction reads the skin, never the effect.</li>
  * <li>{@code LIQUOR_WORM} [酒虫] -- worn while distilling; {@code ApertureEssenceService} owns the three
  * phases, so removing the effect does not end the distillation, and {@code closeDistilling} pays the 1:2
  * back by reading the level.</li>

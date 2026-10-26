@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.attribute;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
+import net.alex.guzhenren.gameplay.body.BodyTemperedEvent;
 import net.alex.guzhenren.gameplay.body.PhysiqueChangedEvent;
 import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -14,9 +15,10 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 
 /**
- * Every moment the two attribute modifiers are recomputed outside the heartbeat. The mod's own writers
- * post {@link PhysiqueChangedEvent}, {@link StrengthChangedEvent} and {@link ApertureChangedEvent};
- * vanilla's effect events and {@code onAttack} cover the rest. {@code onAttack} refreshes the
+ * Every moment the three attribute modifiers are recomputed outside the heartbeat. The mod's own writers
+ * post {@link PhysiqueChangedEvent}, {@link StrengthChangedEvent}, {@link ApertureChangedEvent} and
+ * {@link BodyTemperedEvent} (tendons move the capacity under the attack, bones the max health and the
+ * knockback resistance); vanilla's effect events and {@code onAttack} cover the rest. {@code onAttack} refreshes the
  * health-based Hardship Strength Gu capacity before vanilla reads attack damage.
  *
  * <p>⚠ Left to the heartbeat alone the attack row would lag by up to a second, which is visible on
@@ -44,6 +46,13 @@ public final class AttributeEvents {
 
     @SubscribeEvent
     public static void onApertureChanged(ApertureChangedEvent event) { MaxHealthService.refresh(event.getPlayer()); }
+
+    @SubscribeEvent
+    public static void onBodyTempered(BodyTemperedEvent event) {
+        MaxHealthService.refresh(event.getPlayer());
+        KnockbackResistanceService.refresh(event.getPlayer());
+        AttackDamageService.refresh(event.getPlayer());
+    }
 
     @SubscribeEvent
     public static void onEffectAdded(MobEffectEvent.Added event) { refreshAttack(event.getEntity()); }

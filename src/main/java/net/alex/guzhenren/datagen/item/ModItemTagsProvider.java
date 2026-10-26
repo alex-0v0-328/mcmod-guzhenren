@@ -45,6 +45,15 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModItemTags.ANVIL_FEED).add(Items.ANVIL);
         tag(ModItemTags.COBBLESTONE_FEED).add(Items.COBBLESTONE);
         tag(ModItemTags.POTATO_FEED).add(Items.POTATO);
+        tag(ModItemTags.JADE_SKIN_FEED).add(Items.EMERALD);
+        tag(ModItemTags.WHITE_JADE_FEED).add(Items.QUARTZ);
+        tag(ModItemTags.BRONZE_SKIN_FEED).add(Items.COPPER_INGOT);
+        tag(ModItemTags.ANCIENT_BRONZE_SKIN_FEED).add(Items.COPPER_BLOCK);
+        tag(ModItemTags.IRON_SKIN_FEED).add(Items.IRON_INGOT);
+        tag(ModItemTags.ESSENCE_IRON_SKIN_FEED).add(Items.IRON_BLOCK);
+        tag(ModItemTags.STEEL_TENDON_FEED).add(Items.IRON_INGOT);
+        tag(ModItemTags.IRON_BONE_FEED).add(Items.BONE);
+        tag(ModItemTags.ESSENCE_IRON_BONE_FEED).add(Items.BONE_BLOCK);
 
         tag(ModItemTags.JIN_FEED).add(Items.RAW_IRON);
         tag(ModItemTags.JIN_FEED_SMELTED).add(Items.IRON_INGOT);

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "guzhenren:item/ancient_bronze_skin_gu"
+  }
+}

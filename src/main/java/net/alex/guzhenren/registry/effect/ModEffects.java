@@ -96,6 +96,10 @@ public final class ModEffects {
     public static final DeferredHolder<MobEffect, HardshipStrengthGuEffect> HARDSHIP_STRENGTH_GU =
             MOB_EFFECTS.register("hardship_strength_gu", () -> new HardshipStrengthGuEffect(
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> JADE_SKIN_GU = MOB_EFFECTS.register(
+            "jade_skin_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> WHITE_JADE_GU = MOB_EFFECTS.register(
+            "white_jade_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
     public static final DeferredHolder<MobEffect, MarkerEffect> HALF_ZOMBIE = MOB_EFFECTS.register(

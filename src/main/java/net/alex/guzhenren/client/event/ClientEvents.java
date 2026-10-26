@@ -9,12 +9,16 @@ import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.client.input.DashInput;
 import net.alex.guzhenren.client.particle.RingParticle;
 import net.alex.guzhenren.client.renderer.ModEntityRenderers;
+import net.alex.guzhenren.client.renderer.SkinFlashLayer;
+import net.alex.guzhenren.client.renderer.SkinFlashes;
 import net.alex.guzhenren.client.screen.ApertureStorageScreen;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ClientIntents;
+import net.alex.guzhenren.network.ModPayloads;
+import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -26,8 +30,10 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -65,8 +71,10 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
  * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The
  * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does,
- * sampled at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. On
- * logout it clears {@link DashInput}'s remembered key states.
+ * sampled at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both
+ * player renderers get a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} handler
+ * with {@code ModPayloads}, which names no client class itself. On logout it clears {@link DashInput}'s
+ * remembered key states and the pending flashes.
  *
  * @author Alex
  * @version 1.0.0
@@ -106,6 +114,7 @@ public final class ClientEvents {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_PURE_WATER.get(), RenderType.translucent());
             ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
                     (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
+            ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
         });
     }
 
@@ -157,12 +166,24 @@ public final class ClientEvents {
     }
 
     @SubscribeEvent
-    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) { DashInput.reset(); }
+    public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
+        for (PlayerSkin.Model skin : event.getSkins()) {
+            PlayerRenderer renderer = event.getSkin(skin);
+            if (renderer != null) renderer.addLayer(new SkinFlashLayer(renderer, skin == PlayerSkin.Model.SLIM));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        DashInput.reset();
+        SkinFlashes.clear();
+    }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
+        SkinFlashes.prune(minecraft.player.level().getGameTime());
         ItemStack mainHand = minecraft.player.getMainHandItem();
         boolean canDash = ClientIntents.canDash(mainHand);
         if (!canDash) {

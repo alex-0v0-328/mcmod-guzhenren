@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.attribute;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,11 +12,12 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Max health as a transient {@link AttributeModifier} derived from {@code ApertureService.getHealthRank}:
- * the FIRST aperture's rank only -- unawakened reads mortal, a lone second aperture never boosts it.
- * Static service; {@link AttributeEvents} refreshes it on every {@code ApertureChangedEvent} (pressure
- * writes post none), plus login, clone and reset (a modifier does not ride a clone); keyed to the rank's
- * {@code getMaxHealth()} minus vanilla's 20 -- mortal reads 0.
+ * Max health as a transient {@link AttributeModifier}: the rank's share from {@code ApertureService.getHealthRank}
+ * -- the FIRST aperture's rank only, unawakened reads mortal, a lone second aperture never boosts it -- plus the
+ * bones' [骨] share ({@code Bone.getMaxHealthBonus}). Static service; {@link AttributeEvents} refreshes it on
+ * every {@code ApertureChangedEvent} (pressure writes post none) and {@code BodyTemperedEvent}, plus login,
+ * clone and reset (a modifier does not ride a clone); the rank's share is {@code getMaxHealth()} minus
+ * vanilla's 20 -- mortal reads 0.
  *
  * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ Lowering the cap must also
  * clamp current health down; {@link AttackDamageService} needs no clamp (attack has no "current").
@@ -47,7 +49,8 @@ public final class MaxHealthService {
         if (instance == null) return;
 
         int target = ApertureService.getHealthRank(player).getMaxHealth();
-        double bonus = target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D;
+        double bonus = (target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D)
+                + BodyService.getBone(player).getMaxHealthBonus();
         TransientModifiers.swap(instance, MODIFIER_ID, bonus);
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
     }

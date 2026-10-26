@@ -48,6 +48,14 @@ import org.jetbrains.annotations.NotNull;
  * and leaving it only thaws it; turning fully 僵, from a human or from half-zombie, sets it to
  * {@code ZOMBIE_LIFESPAN}, and that year stays when the form ends.
  *
+ * <p>The skin [皮肤] is worn through {@link #wearSkin} and shed through {@link #shedSkin}; a jade skin's end
+ * tick is {@code gameTime}, read by {@code SkinService} on the heartbeat, and {@link #revive} sheds it with the
+ * undead forms; a permanent skin keeps no end tick and stays through a respawn. Wearing posts a
+ * {@link SkinWornEvent} (the flash goes out); shedding posts nothing. The tendons [筋] and bones [骨] are
+ * tempered through {@link #temperTendon} and {@link #temperBone}, which post a {@link BodyTemperedEvent} (the
+ * attribute layer refreshes capacity, max health and knockback resistance); the gate that decides whether a
+ * grade replaces the worn one is each part's {@code canReplace}, asked by the Gu, never here.
+ *
  * <p>{@link #setRace} is the second of the two cross-domain grants, beside
  * {@code ApertureService.reconcileTalentPaths}: through {@code PathService} it revokes the old race's Dao marks
  * and attainment and grants the new race's.
@@ -188,6 +196,46 @@ public final class BodyService {
 
     public static boolean hasHalfZombieRunOut(@NotNull Player player) {
         return get(player).hasHalfZombieRunOut(getGameTime(player));
+    }
+    //endregion
+
+    //region Skin [皮肤]
+    public static @NotNull Skin getSkin(@NotNull Player player) { return get(player).skin(); }
+
+    public static boolean hasNativeSkin(@NotNull Player player) { return get(player).hasNativeSkin(); }
+
+    public static void wearSkin(@NotNull ServerPlayer player, @NotNull Skin skin, int durationTicks) {
+        long endTick = skin.isTimed() ? getGameTime(player) + durationTicks : BodyData.UNTRACKED;
+        store(player, get(player).withSkin(skin, endTick));
+        ModEvents.post(new SkinWornEvent(player, skin));
+    }
+
+    public static void shedSkin(@NotNull ServerPlayer player) {
+        store(player, get(player).withSkin(Skin.NATIVE, BodyData.UNTRACKED));
+    }
+
+    public static boolean hasSkinRunOut(@NotNull Player player) {
+        return get(player).hasSkinRunOut(getGameTime(player));
+    }
+
+    public static long getSkinTicksLeft(@NotNull Player player) {
+        return get(player).getSkinTicksLeft(getGameTime(player));
+    }
+    //endregion
+
+    //region Tendons and bones [筋骨] -- permanent, posted as one tempering so the attributes refresh
+    public static @NotNull Tendon getTendon(@NotNull Player player) { return get(player).tendon(); }
+
+    public static @NotNull Bone getBone(@NotNull Player player) { return get(player).bone(); }
+
+    public static void temperTendon(@NotNull ServerPlayer player, @NotNull Tendon tendon) {
+        store(player, get(player).withTendon(tendon));
+        ModEvents.post(new BodyTemperedEvent(player));
+    }
+
+    public static void temperBone(@NotNull ServerPlayer player, @NotNull Bone bone) {
+        store(player, get(player).withBone(bone));
+        ModEvents.post(new BodyTemperedEvent(player));
     }
     //endregion
 

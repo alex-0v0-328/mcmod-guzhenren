@@ -19,7 +19,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
  * {@code keepInventory} is read off the {@link net.minecraft.server.MinecraftServer}'s game rules,
  * never {@code level()}, and passed into {@code onClone} -- the single place a death's reset is settled.
  * {@code onClone} runs at {@code LOW} priority, after NeoForge has copied the inherited attachments onto
- * the clone, so a reset is never copied over.
+ * the clone, so a reset is never copied over. ⚠ {@code onRespawn} skips the End return ({@code isEndConquered}):
+ * vanilla fires the respawn event for that portal too, and a dimension change never resets the body.
  *
  * <p>⚠ {@code onWakeUp} guards on {@code wakeImmediately} / {@code updateLevel} / {@code
  * isSleepingLongEnough} — it is an edge, not a level, so watching the tick handler would double-fire.
@@ -57,6 +58,7 @@ public final class PlayerDataEvents {
 
     @SubscribeEvent
     public static void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.isEndConquered()) return;
         if (event.getEntity() instanceof ServerPlayer player) {
             PlayerDataService.onRespawn(player);
         }

@@ -156,6 +156,21 @@ final class InfoRowRenderer {
         }
 
         @Override
+        public ScreenRow visit(InfoModel.SkinRow entry) {
+            return new ScreenRow(indent, formatLabel("skin"), formatName(entry.skin().getTranslationKey()));
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.TendonRow entry) {
+            return new ScreenRow(indent, formatLabel("tendon"), formatName(entry.tendon().getTranslationKey()));
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.BoneRow entry) {
+            return new ScreenRow(indent, formatLabel("bone"), formatName(entry.bone().getTranslationKey()));
+        }
+
+        @Override
         public ScreenRow visit(InfoModel.Soul entry) {
             return new ScreenRow(indent, formatLabel("soul"),
                     Component.literal(ModDisplayText.formatPool(entry.soul().currentSoul(), entry.soul().maxSoul()))
