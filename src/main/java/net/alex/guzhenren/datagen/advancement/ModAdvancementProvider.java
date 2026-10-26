@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.advancements.Advancement;
@@ -16,6 +18,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +26,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The advancement tree [进度]: a root per milestone family, generated under {@code advancement/}.
  * The tree opens with the first Hope Gu [希望蛊] ritual -- obtaining it and holding the ritual to the
- * end are two AND-ed criteria ({@code obtained_gu} + {@code used_gu}).
+ * end are two AND-ed criteria ({@code obtained_gu} + {@code used_gu}). The realm [境界] chain hangs below it,
+ * one {@code reached_rank} criterion each: Rank II to Rank V, with Rank III Peak branching off Rank III.
  *
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.advancement.HopeGuUsedTrigger
+ * @see net.alex.guzhenren.advancement.RankReachedTrigger
  * @since 1.0.0
  */
 
@@ -44,7 +49,7 @@ public class ModAdvancementProvider extends AdvancementProvider {
         public void generate(HolderLookup.@NotNull Provider registries,
                              @NotNull Consumer<AdvancementHolder> saver,
                              @NotNull ExistingFileHelper existingFileHelper) {
-            Advancement.Builder.advancement()
+            AdvancementHolder awakening = Advancement.Builder.advancement()
                 .display(new ItemStack(ModItems.HOPE_GU.get()),
                     Component.translatable("advancements.guzhenren.first_awakening.title"),
                     Component.translatable("advancements.guzhenren.first_awakening.description"),
@@ -54,6 +59,30 @@ public class ModAdvancementProvider extends AdvancementProvider {
                 .addCriterion("used_gu", ModCriteriaTriggers.USED_HOPE_GU.get().createCriterion())
                 .requirements(AdvancementRequirements.Strategy.AND)
                 .save(saver, Guzhenren.id("first_awakening"), existingFileHelper);
+
+            AdvancementHolder two = realm(saver, existingFileHelper, awakening, "rank_two",
+                ModItems.STEEL_RELICS_GU.get(), AdvancementType.GOAL, Rank.TWO, Stage.LOWEST);
+            AdvancementHolder three = realm(saver, existingFileHelper, two, "rank_three",
+                ModItems.SILVER_RELICS_GU.get(), AdvancementType.GOAL, Rank.THREE, Stage.LOWEST);
+            realm(saver, existingFileHelper, three, "rank_three_peak",
+                ModItems.SILVER_RELICS_GU.get(), AdvancementType.TASK, Rank.THREE, Stage.PEAK);
+            AdvancementHolder four = realm(saver, existingFileHelper, three, "rank_four",
+                ModItems.GOLD_RELICS_GU.get(), AdvancementType.GOAL, Rank.FOUR, Stage.LOWEST);
+            realm(saver, existingFileHelper, four, "rank_five",
+                ModItems.CRYSTAL_RELICS_GU.get(), AdvancementType.GOAL, Rank.FIVE, Stage.LOWEST);
+        }
+
+        private static AdvancementHolder realm(Consumer<AdvancementHolder> saver, ExistingFileHelper existingFileHelper,
+                                               AdvancementHolder parent, String name, ItemLike icon,
+                                               AdvancementType type, Rank rank, Stage stage) {
+            return Advancement.Builder.advancement()
+                .parent(parent)
+                .display(new ItemStack(icon),
+                    Component.translatable("advancements.guzhenren." + name + ".title"),
+                    Component.translatable("advancements.guzhenren." + name + ".description"),
+                    null, type, true, true, false)
+                .addCriterion("reached_rank", ModCriteriaTriggers.REACHED_RANK.get().createCriterion(rank, stage))
+                .save(saver, Guzhenren.id(name), existingFileHelper);
         }
     }
 }

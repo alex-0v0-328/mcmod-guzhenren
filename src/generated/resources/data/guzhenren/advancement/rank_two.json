@@ -1,0 +1,30 @@
+{
+  "parent": "guzhenren:first_awakening",
+  "criteria": {
+    "reached_rank": {
+      "conditions": {
+        "rank": "two"
+      },
+      "trigger": "guzhenren:reached_rank"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.guzhenren.rank_two.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "guzhenren:steel_relics_gu"
+    },
+    "title": {
+      "translate": "advancements.guzhenren.rank_two.title"
+    }
+  },
+  "requirements": [
+    [
+      "reached_rank"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

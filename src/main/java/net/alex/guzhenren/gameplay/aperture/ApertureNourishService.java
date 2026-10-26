@@ -5,6 +5,7 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
  * steps}), never a bigger second -- scaling the progress and the price instead would round the
  * round's length off the pool it is defined to cost. A billed second writes the target aperture once:
  * {@code pay} leaves it unwritten ({@link ApertureEssenceService#consumeDeferred}) and the progress lands
- * with the essence it cost.
+ * with the essence it cost. Every stage or rank this service raises fires the realm criterion
+ * ({@code RankReachedTrigger}) once the aperture is written.
  *
  * <p>{@link #IMPACT_COST_PER_RANK_BASE}: one strike costs one and a half of a Ten-Extremes peak pool,
  * so no pool can ever hold it. {@link #CONVERTED_PRESSURE} is where the pressure gauge lands after a
@@ -209,6 +211,7 @@ public final class ApertureNourishService {
         ApertureService.set(player, target, fed.withStage(stage.shift(1)).withNourishProgress(0));
         if (!ApertureService.getAperture(player, target).second()) {
             AperturePressureService.relieve(player, STAGE_UP_PRESSURE_RELIEF);
+            reachRealm(player, target);
         }
         store(player, ApertureNourishData.DEFAULT);
         ActionBar.inform(player, STAGE_UP);
@@ -228,6 +231,7 @@ public final class ApertureNourishService {
         if (aperture.petrified()) return;
         ApertureService.set(player, index, aperture.withStage(Stage.HIGHEST)
                 .withNourishProgress(0).withPetrified(true));
+        reachRealm(player, index);
         AperturePressureService.set(player, index, 0);
         store(player, ApertureNourishData.DEFAULT);
     }
@@ -241,6 +245,7 @@ public final class ApertureNourishService {
                 .withStage(Stage.LOWEST)
                 .withNourishProgress(0)
                 .withPetrified(false));
+        reachRealm(player, ApertureData.PRIMARY);
         AperturePressureService.set(player, ApertureData.PRIMARY, CONVERTED_PRESSURE);
         store(player, ApertureNourishData.DEFAULT);
         ActionBar.inform(player, IMPACT_SUCCESS);
@@ -265,6 +270,7 @@ public final class ApertureNourishService {
             case SUCCESS -> {
                 ApertureService.setRank(player, aperture.rank().shift(1));
                 ApertureService.setStage(player, Stage.LOWEST);
+                reachRealm(player, ApertureData.PRIMARY);
                 AperturePressureService.relieve(player, IMPACT_PRESSURE_RELIEF);
                 ActionBar.inform(player, IMPACT_SUCCESS);
             }
@@ -299,6 +305,10 @@ public final class ApertureNourishService {
         return Outcome.DROP_BASE;
     }
     //endregion
+
+    private static void reachRealm(ServerPlayer player, int index) {
+        ModCriteriaTriggers.REACHED_RANK.get().trigger(player, ApertureService.getAperture(player, index));
+    }
 
     private static void store(ServerPlayer player, ApertureNourishData data) {
         PlayerData.get(player).setNourish(data);

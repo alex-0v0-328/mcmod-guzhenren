@@ -4,6 +4,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
+import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.OneShotGuItem}. The gate refuses a rank mismatch and
  * a holder already at {@link Stage#HIGHEST}; the apply
- * delegates to {@link ApertureService#shiftStage}.
+ * delegates to {@link ApertureService#shiftStage}, then fires the realm criterion.
  *
  * @author Alex
  * @version 1.0.0
@@ -36,6 +37,7 @@ public class RelicsGuItem extends OneShotGuItem {
     @Override
     protected int useApply(ServerPlayer player, ItemStack stack) {
         ApertureService.shiftStage(player, 1);
+        ModCriteriaTriggers.REACHED_RANK.get().trigger(player, ApertureService.getAperture(player));
         return 1;
     }
 }

@@ -1,0 +1,30 @@
+{
+  "parent": "guzhenren:rank_three",
+  "criteria": {
+    "reached_rank": {
+      "conditions": {
+        "rank": "four"
+      },
+      "trigger": "guzhenren:reached_rank"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.guzhenren.rank_four.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "guzhenren:gold_relics_gu"
+    },
+    "title": {
+      "translate": "advancements.guzhenren.rank_four.title"
+    }
+  },
+  "requirements": [
+    [
+      "reached_rank"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "guzhenren:rank_three",
+  "criteria": {
+    "reached_rank": {
+      "conditions": {
+        "rank": "three",
+        "stage": "peak"
+      },
+      "trigger": "guzhenren:reached_rank"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.guzhenren.rank_three_peak.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "guzhenren:silver_relics_gu"
+    },
+    "title": {
+      "translate": "advancements.guzhenren.rank_three_peak.title"
+    }
+  },
+  "requirements": [
+    [
+      "reached_rank"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
