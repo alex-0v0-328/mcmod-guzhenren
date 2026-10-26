@@ -7,7 +7,6 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.datagen.advancement.ModAdvancementProvider;
 import net.alex.guzhenren.datagen.block.ModBlockStateProvider;
 import net.alex.guzhenren.datagen.block.ModBlockTagsProvider;
-import net.alex.guzhenren.datagen.curios.ModCuriosProvider;
 import net.alex.guzhenren.datagen.damage.ModDamageTypeTagsProvider;
 import net.alex.guzhenren.datagen.entity.ModEntityTypeTagsProvider;
 import net.alex.guzhenren.datagen.fluid.ModFluidTagsProvider;
@@ -93,9 +92,6 @@ public final class DataGenerators {
 
         generator.addProvider(event.includeServer(),
                 new ModFluidTagsProvider(packOutput, lookupProvider, existingFileHelper));
-
-        generator.addProvider(event.includeServer(),
-                new ModCuriosProvider(packOutput, existingFileHelper, lookupProvider));
 
         generator.addProvider(event.includeServer(), new ModRecipeProvider(packOutput, lookupProvider));
 

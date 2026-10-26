@@ -27,14 +27,6 @@ sourceSets.main.resources {
     exclude('.cache/**')
 }
 
-repositories {
-    // Curios.
-    maven {
-        name = "Illusive Soulworks maven"
-        url = "https://maven.theillusivec4.top/"
-    }
-}
-
 base {
     archivesName = mod_id
 }
@@ -109,7 +101,7 @@ neoForge {
         // The gametest system is also enabled by default for other run configs under the /test command.
         // Its own game directory keeps the pack mirror in run/mods out: some of those jars crash a
         // dedicated server, while the mod under test and its compile-time dependencies (Epic Fight,
-        // Curios) still load from the classpath.
+        // GeckoLib) still load from the classpath.
         gameTestServer {
             type = "gameTestServer"
             sourceSet = sourceSets.gametest
@@ -184,12 +176,6 @@ dependencies {
 
     compileOnly files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
     localRuntime files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
-
-    // Curios. The ':api' classifier ships only the public packages, so an internal API cannot be
-    // reached by accident. The full jar has to stay on the runtime classpath: runData loads
-    // CuriosDataProvider from it.
-    compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}:api"
-    localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
 
     localRuntime fileTree(dir: guWorldLibs, include: 'guworld-*.jar', exclude: '*-sources.jar')
 }

@@ -11,7 +11,6 @@ This is a translation of [README.md](README.md); where the versions differ, the 
 - Epic Fight: https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod
 - GeckoLib: https://www.curseforge.com/minecraft/mc-mods/geckolib
 - JEI: https://www.curseforge.com/minecraft/mc-mods/jei
-- Curios API: https://modrinth.com/mod/curios
 
 ## Required by
 
