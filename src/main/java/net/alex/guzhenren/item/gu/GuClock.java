@@ -21,8 +21,8 @@ import net.minecraft.world.item.ItemStack;
  * RecoverBar#restart} the stamp at the spend ({@code AsBeforeGuItem.useApply}), or the next settle would hand the
  * point straight back.
  *
- * <p>⚠ "Hungry" means only that the next day rollover will kill it, and the threshold is flat at 1
- * for every Gu on a bar. It must never be scaled to the size of the meal.
+ * <p>⚠ "Hungry" means only that the next day rollover will kill it: the threshold is the bar's daily drain
+ * ({@code perDay}), never the size of a meal.
  *
  * <p>⚠ {@code HungerBar.warn} latches on {@code days > 0}: {@link GuUpkeep} runs on every heartbeat while the bar
  * drains only on a day rollover, so without the latch the hungry message would repeat every second.
@@ -62,7 +62,7 @@ public sealed interface GuClock {
     float getBarFraction(ItemStack stack);
 
     //region 饱食条 -- every tended Gu whose bar drains
-    record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse) implements GuClock {
+    record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse, int perDay) implements GuClock {
 
         private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
 
@@ -80,7 +80,7 @@ public sealed interface GuClock {
         public boolean tickStarvation(ServerPlayer player, ItemStack stack, long days) {
             if (days <= 0L) return false;
 
-            int left = getHunger(stack) - (int) Math.min(days, max);
+            int left = getHunger(stack) - (int) Math.min(days * perDay, max);
             if (left > 0) {
                 setHunger(stack, left);
                 return false;
@@ -90,7 +90,7 @@ public sealed interface GuClock {
         }
 
         @Override
-        public boolean isHungry(ServerPlayer player, ItemStack stack) { return getHunger(stack) <= HUNGRY_THRESHOLD; }
+        public boolean isHungry(ServerPlayer player, ItemStack stack) { return getHunger(stack) <= perDay; }
 
         @Override
         public void warn(ServerPlayer player, ItemStack stack, long days) {

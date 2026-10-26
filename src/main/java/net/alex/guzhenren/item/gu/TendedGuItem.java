@@ -55,9 +55,9 @@ import org.jetbrains.annotations.Nullable;
  * because the step is capped by the essence above the hunger floor, which the meal raises.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
- * the very first click. Gu health is {@link #GU_MAX_HEALTH} for every tended Gu, overridden through
- * {@link #getMaxHealth}; it stays off {@code Rank}, whose {@code getMaxHealth} is the player's. Healing from food
- * reuses the hunger rate: one health point costs what one hunger point does ({@code GuSpec.unitsPerHunger}).
+ * the very first click. Gu health is {@code GuSpec.health}, {@link #GU_MAX_HEALTH} unless the spec sets it; it
+ * stays off {@code Rank}, whose {@code getMaxHealth} is the player's. Healing from food reuses the hunger rate: one
+ * health point costs what one hunger point does ({@code GuSpec.unitsPerHunger}).
  *
  * <p>{@code announceDeath} is the one death funnel ({@link #starve}, {@link #exhaust}, {@link #ruin}) and the
  * only poster of {@link VitalGuLostEvent}; a new way for a Gu to die goes through it.
@@ -123,7 +123,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     //region Gu health [蛊虫生命值] -- stored as damage TAKEN, so an untouched 野生 Gu reads as full
     public static final int GU_MAX_HEALTH = 12;
 
-    public int getMaxHealth() { return GU_MAX_HEALTH; }
+    public int getMaxHealth() { return spec.getMaxHealth(); }
 
     public int getHealth(ItemStack stack) { return getMaxHealth() - getState(stack).damageTaken(); }
 

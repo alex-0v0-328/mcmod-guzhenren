@@ -196,38 +196,42 @@ public final class ModItems {
             () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
                     CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT)
                     .refine(800_000).costPerUse(16_000)
-                    .hungerBar(12, 2).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
+                    .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = ITEMS.register("charging_crash_gu_5",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
                     CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT)
                     .refine(8_000_000).costPerUse(160_000)
-                    .hungerBar(12, 3).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
+                    .hungerBar(36, 1).hungerPerUse(12).hungerPerDay(3).health(36).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = ITEMS.register("self_reliance_gu_2",
             () -> new SelfRelianceGuItem(createTendedProperties(), 30 * Ticks.SECOND, 1,
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.HEALING)
                             .refine(8_000).costPerUse(160)
-                            .hungerBar(12, 4).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
+                            .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
+                            .feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = ITEMS.register("self_reliance_gu_3",
             () -> new SelfRelianceGuItem(createTendedProperties(), 60 * Ticks.SECOND, 2,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.HEALING)
                             .refine(80_000).costPerUse(1_600)
-                            .hungerBar(12, 8).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
+                            .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
+                            .feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = ITEMS.register("self_reliance_gu_4",
             () -> new SelfRelianceGuItem(createTendedProperties(), 120 * Ticks.SECOND, 3,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.HEALING)
                             .refine(800_000).costPerUse(16_000)
-                            .hungerBar(12, 12).hungerPerUse(4).feed(ModItemTags.COBBLESTONE_FEED, 1)
+                            .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
+                            .feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> HARDSHIP_STRENGTH_GU = ITEMS.register("hardship_strength_gu",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.HARDSHIP_STRENGTH_GU,
                     HardshipStrengthGuEffect.DURATION_TICKS,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.AMPLIFICATION)
                             .refine(800_000).costPerUse(16_000)
-                            .hungerBar(12, 12).hungerPerUse(4).feed(ModItemTags.POTATO_FEED, 1)
+                            .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
+                            .feed(ModItemTags.POTATO_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     //endregion
 
@@ -313,12 +317,15 @@ public final class ModItems {
             () -> new BoneGuItem(createTendedProperties(), Bone.ESSENCE_IRON_BONE,
                     createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ESSENCE_IRON_BONE_FEED)));
 
-    /** The tempering Gu's shared row shape: a 12-point hunger bar, 4 per use, one unit a food, 30 s / 1 s cooldown. */
-    private static GuSpec createTemperingSpec(Rank rank, int refine, int costPerUse, int unitsPerHunger,
-                                              TagKey<Item> feed) {
+    /**
+     * The tempering Gu's shared row shape: a food is one point, and {@code scale} sizes a bar of 12 days at 4 per
+     * use and a health of 12, both times {@code scale}; 30 s / 1 s cooldown.
+     */
+    private static GuSpec createTemperingSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DEFENSIVE)
                 .refine(refine).costPerUse(costPerUse)
-                .hungerBar(12, unitsPerHunger).hungerPerUse(4).feed(feed, 1)
+                .hungerBar(12 * scale, 1).hungerPerUse(4 * scale).hungerPerDay(scale).health(12 * scale)
+                .feed(feed, 1)
                 .cooldown(30 * Ticks.SECOND, Ticks.SECOND);
     }
     //endregion
@@ -329,7 +336,7 @@ public final class ModItems {
                     .type(GuType.AMPLIFICATION)
                     .refine(80_000)
                     .costPerUse(1_600)
-                    .hungerBar(12, 4).hungerPerUse(4)
+                    .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
                     .feed(ModItemTags.ALL_OUT_FEED, 5)
                     .cooldown(80 * Ticks.SECOND)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_4 = ITEMS.register("all_out_effort_gu_4",
@@ -337,7 +344,7 @@ public final class ModItems {
                     .type(GuType.AMPLIFICATION)
                     .refine(800_000)
                     .costPerUse(16_000)
-                    .hungerBar(12, 8).hungerPerUse(4)
+                    .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                     .feed(ModItemTags.ALL_OUT_FEED, 5)
                     .cooldown(100 * Ticks.SECOND)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = ITEMS.register("all_out_effort_gu_5",
@@ -345,12 +352,12 @@ public final class ModItems {
                     .type(GuType.AMPLIFICATION)
                     .refine(8_000_000)
                     .costPerUse(160_000)
-                    .hungerBar(12, 16).hungerPerUse(4)
+                    .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192)
                     .feed(ModItemTags.ALL_OUT_FEED, 5)
                     .cooldown(120 * Ticks.SECOND)));
     //endregion
 
-    //region Liquor Worm [酒虫] -- hunger bar 8 with 3 per use, and only its own rank can drive it
+    //region Liquor Worm [酒虫] -- a hunger bar of 8 days with 3 days a use, and only its own rank can drive it
     public static final DeferredItem<Item> LIQUOR_WORM = ITEMS.register("liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD).type(GuType.CULTIVATION)
                     .refine(1_600).costPerUse(16)
@@ -358,18 +365,18 @@ public final class ModItems {
     public static final DeferredItem<Item> FOUR_FLAVORS_LIQUOR_WORM = ITEMS.register("four_flavors_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD).type(GuType.CULTIVATION)
                     .refine(16_000).costPerUse(160)
-                    .hungerBar(8, 2).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(16, 1).hungerPerUse(6).hungerPerDay(2).health(24).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> SEVEN_FRAGRANCES_LIQUOR_WORM = ITEMS.register(
             "seven_fragrances_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
                     .type(GuType.CULTIVATION)
                     .refine(160_000).costPerUse(1_600)
-                    .hungerBar(8, 4).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(32, 1).hungerPerUse(12).hungerPerDay(4).health(48).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> NINE_EYES_LIQUOR_WORM = ITEMS.register("nine_eyes_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
                     .type(GuType.CULTIVATION)
                     .refine(1_600_000).costPerUse(16_000)
-                    .hungerBar(8, 8).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(64, 1).hungerPerUse(24).hungerPerDay(8).health(96).feed(ModItemTags.LIQUOR_FEED, 1)));
     //endregion
 
     //region Primeval Elder Gu [元老蛊] -- a vault for Primeval Stones [元石] that never needs feeding at all
@@ -426,19 +433,22 @@ public final class ModItems {
             () -> new ZombieGuItem(createTendedProperties(), 2 * Ticks.MINUTE,
                     GuSpec.of(Rank.TWO, GuPath.TRANSFORMATION)
                             .refine(8_000).costPerUse(160)
-                            .hungerBar(12, 2).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                            .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24)
+                            .feed(ModItemTags.ZOMBIE_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> HAIRY_ZOMBIE_GU = ITEMS.register("hairy_zombie_gu",
             () -> new ZombieGuItem(createTendedProperties(), 4 * Ticks.MINUTE,
                     GuSpec.of(Rank.THREE, GuPath.TRANSFORMATION)
                             .refine(80_000).costPerUse(1_600)
-                            .hungerBar(12, 4).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                            .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
+                            .feed(ModItemTags.ZOMBIE_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> HOPPING_ZOMBIE_GU = ITEMS.register("hopping_zombie_gu",
             () -> new ZombieGuItem(createTendedProperties(), 6 * Ticks.MINUTE,
                     GuSpec.of(Rank.FOUR, GuPath.TRANSFORMATION)
                             .refine(800_000).costPerUse(16_000)
-                            .hungerBar(12, 8).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                            .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
+                            .feed(ModItemTags.ZOMBIE_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> HEAVENLY_DEMON_ZOMBIE_GU = ITEMS.register("heavenly_demon_zombie_gu",
             ModItems::createFifthRankZombieGu);
@@ -456,7 +466,7 @@ public final class ModItems {
     private static ZombieGuItem createFifthRankZombieGu() {
         return new ZombieGuItem(createTendedProperties(), 8 * Ticks.MINUTE, GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
                 .refine(8_000_000).costPerUse(160_000)
-                .hungerBar(12, 16).hungerPerUse(4).feed(ModItemTags.ZOMBIE_FEED, 1)
+                .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192).feed(ModItemTags.ZOMBIE_FEED, 1)
                 .cooldown(Ticks.SECOND));
     }
     //endregion
@@ -497,28 +507,28 @@ public final class ModItems {
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64L,
                     GuSpec.of(Rank.TWO, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(1_000).costPerUse(0)
-                            .hungerBar(8, 2).hungerPerUse(0)
+                            .hungerBar(16, 1).hungerPerUse(0).hungerPerDay(2).health(24)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_3 = ITEMS.register("malicious_thought_gu_3",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 640L,
                     GuSpec.of(Rank.THREE, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(10_000).costPerUse(0)
-                            .hungerBar(8, 4).hungerPerUse(0)
+                            .hungerBar(32, 1).hungerPerUse(0).hungerPerDay(4).health(48)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_4 = ITEMS.register("malicious_thought_gu_4",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 6_400L,
                     GuSpec.of(Rank.FOUR, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(100_000).costPerUse(0)
-                            .hungerBar(8, 8).hungerPerUse(0)
+                            .hungerBar(64, 1).hungerPerUse(0).hungerPerDay(8).health(96)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_5 = ITEMS.register("malicious_thought_gu_5",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64_000L,
                     GuSpec.of(Rank.FIVE, GuPath.WISDOM).type(GuType.CULTIVATION)
                             .refine(1_000_000).costPerUse(0)
-                            .hungerBar(8, 16).hungerPerUse(0)
+                            .hungerBar(128, 1).hungerPerUse(0).hungerPerDay(16).health(192)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     //endregion
@@ -542,7 +552,7 @@ public final class ModItems {
                     .type(GuType.CULTIVATION)
                     .refine(1_000)
                     .costPerUse(0)
-                    .hungerBar(8, 2).hungerPerUse(0)
+                    .hungerBar(16, 1).hungerPerUse(0).hungerPerDay(2).health(24)
                     .feed(ModItemTags.CASUAL_FEED, 1)
                     .cooldown(Ticks.SECOND)));
     //endregion
