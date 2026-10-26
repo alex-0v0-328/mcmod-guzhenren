@@ -484,21 +484,21 @@ public final class ModItems {
                             .cooldown(Ticks.SECOND)));
     //endregion
 
-    //region As Before Gu [如故蛊] -- Time Path [宙道]; never fed, four points back one per half day of world time
+    //region As Before Gu [如故蛊] -- Time Path [宙道]; never fed, four points and four health back one per half day
     public static final DeferredItem<Item> MAN_AS_BEFORE_GU = ITEMS.register("man_as_before_gu",
             () -> new ManAsBeforeGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.HEALING)
                     .refine(1_000_000).costPerUse(320_000)
-                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
+                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1).health(4)
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MOUNTAIN_AS_BEFORE_GU = ITEMS.register("mountain_as_before_gu",
             () -> new TerrainAsBeforeGuItem(createTendedProperties(), ChunkKind.LAND, GuSpec.of(Rank.FIVE, GuPath.TIME)
                     .refine(1_000_000).costPerUse(640_000)
-                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
+                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1).health(4)
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> RIVER_AS_BEFORE_GU = ITEMS.register("river_as_before_gu",
             () -> new TerrainAsBeforeGuItem(createTendedProperties(), ChunkKind.WATER, GuSpec.of(Rank.FIVE, GuPath.TIME)
                     .refine(1_000_000).costPerUse(640_000)
-                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1)
+                    .recoverBar(4, Ticks.HALF_DAY).hungerPerUse(1).health(4)
                     .cooldown(Ticks.SECOND)));
     //endregion
 

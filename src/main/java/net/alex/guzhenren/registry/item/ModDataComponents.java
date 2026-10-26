@@ -58,6 +58,7 @@ public final class ModDataComponents {
     public static final Supplier<DataComponentType<Long>> USED_AT = registerLong("used_at");
     public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");
     public static final Supplier<DataComponentType<Long>> RECOVERED_AT = registerLong("recovered_at");
+    public static final Supplier<DataComponentType<Long>> HEALED_AT = registerLong("healed_at");
     public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
             register("leaf_growth", LeafGrowth.CODEC, StreamCodec.of(LeafGrowth::encode, LeafGrowth::decode));
 

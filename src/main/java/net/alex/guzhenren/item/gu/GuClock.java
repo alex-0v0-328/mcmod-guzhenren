@@ -21,6 +21,9 @@ import net.minecraft.world.item.ItemStack;
  * RecoverBar#restart} the stamp at the spend ({@code AsBeforeGuItem.useApply}), or the next settle would hand the
  * point straight back.
  *
+ * <p>{@code RecoverBar} mends health on the same clock, one point a {@code ticksPerPoint}, from its own {@code
+ * HEALED_AT} stamp: started by the first settle that finds it hurt, removed once whole, so a whole one costs no write.
+ *
  * <p>⚠ "Hungry" means only that the next day rollover will kill it: the threshold is the bar's daily drain
  * ({@code perDay}), never the size of a meal.
  *
@@ -200,6 +203,29 @@ public sealed interface GuClock {
             ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
         }
 
+        public void settleHealth(ItemStack stack, long now) {
+            RefinedGuState s = getState(stack);
+            Long stamp = ModDataComponents.get(stack, ModDataComponents.HEALED_AT);
+            if (s.damageTaken() <= 0) {
+                if (stamp != null) ModDataComponents.remove(stack, ModDataComponents.HEALED_AT);
+                return;
+            }
+            if (stamp == null || now < stamp) {
+                ModDataComponents.set(stack, ModDataComponents.HEALED_AT, now);
+                return;
+            }
+            long grown = (now - stamp) / ticksPerPoint;
+            if (grown <= 0L) return;
+
+            int left = (int) Math.max(0L, s.damageTaken() - grown);
+            ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, s.withDamageTaken(left));
+            if (left == 0) {
+                ModDataComponents.remove(stack, ModDataComponents.HEALED_AT);
+            } else {
+                ModDataComponents.set(stack, ModDataComponents.HEALED_AT, stamp + grown * ticksPerPoint);
+            }
+        }
+
         @Override
         public void bind(ServerPlayer player, ItemStack stack) {
             setPoints(stack, max);
@@ -209,6 +235,7 @@ public sealed interface GuClock {
         @Override
         public boolean tickStarvation(ServerPlayer player, ItemStack stack, long days) {
             settle(stack, player.level().getGameTime());
+            settleHealth(stack, player.level().getGameTime());
             return false;
         }
 
