@@ -45,6 +45,10 @@ import org.jetbrains.annotations.Nullable;
  * that works only as a partner held there answers {@code hasOffhandUse} false, so it passes silently instead of
  * replacing the main-hand Gu's refusal on the action bar.
  *
+ * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu. The
+ * vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceGate} refuses on the action bar, and
+ * {@code applyInPlace} lands it. It answers whether it landed.
+ *
  * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
  * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
  * the Gu sits: {@code bind} stores the kind of the holder's index, {@code getBoundIndex} maps it back. An
@@ -169,7 +173,23 @@ public abstract class GuItem extends Item {
     protected boolean canFeedFromOffhand() { return false; }
 
     protected boolean hasOffhandUse() { return true; }
+
+    protected @Nullable Refusal checkInPlaceGate(Player player, ItemStack stack) { return checkGate(player, stack); }
+
+    protected int applyInPlace(ServerPlayer player, ItemStack stack) { return apply(player, stack); }
     //endregion
+
+    public final boolean tryUseInPlace(ServerPlayer player, ItemStack stack) {
+        if (player.getCooldowns().isOnCooldown(this)) return false;
+
+        Refusal refusal = checkInPlaceGate(player, stack);
+        if (refusal != null) {
+            refuse(player, refusal);
+            return false;
+        }
+        spend(player, stack, applyInPlace(player, stack));
+        return true;
+    }
 
     private @Nullable Refusal getRefusal(Player player, ItemStack stack, boolean sneak) {
         return sneak ? checkSneakGate(player, stack) : checkGate(player, stack);

@@ -17,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>Extends {@link TemperingGuItem}. ⚠ A timed skin takes a positive duration and a permanent skin none, checked
  * at construction. The payout writes the skin through {@link BodyService#wearSkin}, then projects it at once so
  * the HUD shows a jade skin's effect before the next heartbeat; the reduction, the timer and the flash all hang
- * off that write. An Amplify Effect Gu [功倍蛊] in the offhand multiplies a timed skin's length; a permanent skin
- * never asks it, so it is never billed there.
+ * off that write. An Amplify Effect Gu [功倍蛊] multiplies a timed skin's length; a permanent skin cannot be
+ * amplified, so it is never billed there.
  *
  * @author Alex
  * @version 1.0.0
@@ -42,12 +42,14 @@ public final class SkinGuItem extends TemperingGuItem<Skin> {
     public int getDurationTicks() { return durationTicks; }
 
     @Override
+    public boolean canBeAmplified() { return durationTicks > 0; }
+
+    @Override
     protected @NotNull Skin getWorn(Player player) { return BodyService.getSkin(player); }
 
     @Override
     protected void temper(ServerPlayer player) {
-        int ticks = durationTicks > 0 ? durationTicks * AmplifyEffectGuItem.amplify(player, this) : 0;
-        BodyService.wearSkin(player, getGrade(), ticks);
+        BodyService.wearSkin(player, getGrade(), durationTicks * AmplifyEffectGuItem.amplify(player, this));
         SkinService.tickSkin(player);
     }
 }

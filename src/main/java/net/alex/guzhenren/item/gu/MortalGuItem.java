@@ -27,7 +27,10 @@ import org.jetbrains.annotations.Nullable;
  * no state), {@link TendedGuItem} (refined then fed and used, carries {@link RefinedGuState}), and the Hope
  * Gu [希望蛊], which opens an aperture and is neither. The constructor runs {@link GuSpec#validate} so a
  * typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the one check a stage-raising Gu
- * runs: the aperture's rank must be the Gu's own, and its stage below the peak.
+ * runs: the aperture's rank must be the Gu's own, and its stage below the peak. {@link #getUseEssence} is what one
+ * use pays (a tended Gu's cost per use, a one-shot Gu's refining, nothing for a channel), and
+ * {@link #canBeAmplified} says whether an Amplify Effect Gu [功倍蛊] multiplies it; each that does asks it from its
+ * own payout.
  *
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
@@ -72,6 +75,10 @@ public abstract class MortalGuItem extends GuItem {
     protected String getKindKey() { return KIND_KEY; }
 
     public int getRefineCost() { return spec.getRefineCost(); }
+
+    public long getUseEssence() { return spec.isChanneled() ? 0L : spec.getEssencePerRound(); }
+
+    public boolean canBeAmplified() { return false; }
 
     //region refining [炼化] -- every Gu answers it, and only the price differs
     protected final @Nullable Refusal checkEssenceGate(Player player, long required, String key) {

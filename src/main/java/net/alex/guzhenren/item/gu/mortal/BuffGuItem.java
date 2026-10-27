@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * three beast buffs (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊), the four Crash Gu and the Hardship Strength Gu; the
  * payout simply adds the effect and returns. The gate refuses only while a stronger copy of the same
  * effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running copy is refreshed. An
- * Amplify Effect Gu [功倍蛊] in the offhand multiplies the length it adds.
+ * Amplify Effect Gu [功倍蛊] multiplies the length it adds.
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a class does not mean sharing a larder.
  *
@@ -75,6 +75,9 @@ public class BuffGuItem extends TendedGuItem {
         if (!accumulates) return Math.max(currentDuration, addedDuration);
         return (int) Math.min(Integer.MAX_VALUE, (long) currentDuration + addedDuration);
     }
+
+    @Override
+    public boolean canBeAmplified() { return true; }
 
     @Override
     protected boolean canUseDuringEffectCooldown() { return true; }

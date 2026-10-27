@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
  * three ×3 layers. The effect owns both its rate and layer cap.
  *
  * <p>⚠ It refuses nothing. Reusing one kind adds a capped layer and refreshes its duration; wearing
- * both kinds is the design, and their rates add. An Amplify Effect Gu [功倍蛊] in the offhand multiplies the
- * refreshed duration, not the layers.
+ * both kinds is the design, and their rates add. An Amplify Effect Gu [功倍蛊] multiplies the refreshed
+ * duration, not the layers.
  *
  * @author Alex
  * @version 1.0.0
@@ -43,6 +43,9 @@ public class WatchGuItem extends ConsumedGuItem {
         this.form = form;
         this.effectTicks = effectTicks;
     }
+
+    @Override
+    public boolean canBeAmplified() { return true; }
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }

@@ -207,6 +207,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.nourish_starving",                "Essence running dry %s%%",    "真元将尽 %s%%");
         add("guzhenren.hud.aperture_pressure",               "Aperture Pressure %s%%",      "空窍压力 %s%%");
         add("guzhenren.hud.aperture_pressure_cd",            "Aperture Pressure %s%% [%s]", "空窍压力 %s%% [%s]");
+        add("guzhenren.radial.cancel",                       "Release to cancel",           "松开取消");
+        add("guzhenren.radial.amplify_detail",
+                "×%s · %s more essence · %s hunger", "×%s · 另扣 %s 真元 · %s 饱食");
     }
     //endregion
 
@@ -548,7 +551,8 @@ public class ModLanguageProvider extends LanguageProvider {
                 "This Gu is too hungry - feed it first", "蛊已太饿，需先喂食");
         add("guzhenren.item.failed.no_use",                          "This Gu needs no use", "此蛊无需使用");
         add("guzhenren.item.failed.amplify_offhand",
-                "Hold it in the offhand while driving another Gu", "副手持握，配合其他蛊催动");
+                "Hold right-click to pick a Gu, or hold it in the offhand", "按住右键选蛊，或副手持握配合催动");
+        add("guzhenren.item.failed.amplify_no_target",               "No Gu on the hotbar to amplify", "快捷栏没有可增幅的蛊");
         add("guzhenren.item.failed.no_leaves",
                 "No Vitality Leaf left - the next grows in %s s", "生机叶已摘光，下一片需 %s 秒");
         add("guzhenren.item.failed.leaves_full",                     "All nine Vitality Leaves have grown", "生机叶已满九片");

@@ -409,11 +409,23 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     public final boolean tryAutoUse(ServerPlayer player, ItemStack stack) {
         if (!isRefined(stack) || spec.isChanneled() || player.getCooldowns().isOnCooldown(this)) return false;
-        if (checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE) != null
-                || checkCooldown(player, stack) != null
-                || checkUseGate(player, stack) != null) return false;
+        if (checkInPlaceGate(player, stack) != null) return false;
         spend(player, stack, useApply(player, stack));
         return true;
+    }
+
+    @Override
+    protected @Nullable Refusal checkInPlaceGate(Player player, ItemStack stack) {
+        Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
+        if (poor != null) return poor;
+
+        Refusal cooling = checkCooldown(player, stack);
+        return cooling != null ? cooling : checkUseGate(player, stack);
+    }
+
+    @Override
+    protected int applyInPlace(ServerPlayer player, ItemStack stack) {
+        return isRefined(stack) && !spec.isChanneled() ? useApply(player, stack) : 0;
     }
 
     protected void eat(ServerPlayer player, ItemStack stack) {

@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
@@ -85,6 +86,9 @@ public final class ModPayloads {
         toServer(registrar, "plunge", PlungePayload.class,
                 (buf, intent) -> {}, buf -> PlungePayload.INSTANCE,
                 (intent, player) -> ClientIntents.plunge(player));
+        toServer(registrar, "amplify_drive", AmplifyDrivePayload.class,
+                AmplifyDrivePayload::encode, AmplifyDrivePayload::decode,
+                (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
         toClient(registrar, "skin_flash", SkinFlashPayload.class, SkinFlashPayload::encode, SkinFlashPayload::decode);
     }
 

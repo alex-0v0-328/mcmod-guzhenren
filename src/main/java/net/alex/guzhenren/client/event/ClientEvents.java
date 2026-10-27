@@ -8,6 +8,7 @@ import net.alex.guzhenren.client.hud.PlayerStatsHud;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.client.input.DashInput;
 import net.alex.guzhenren.client.particle.RingParticle;
+import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.renderer.ModEntityRenderers;
 import net.alex.guzhenren.client.renderer.SkinFlashLayer;
 import net.alex.guzhenren.client.renderer.SkinFlashes;
@@ -62,19 +63,19 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers four GUI layers
+ * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers five GUI layers
  * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} above the vanilla camera overlays,
  * {@link net.alex.guzhenren.client.hud.PlayerStatsHud},
  * {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud}), the key mapping for the B panel, the menu
- * screens for the three containers, the shockwave-ring particle providers, the entity renderers
- * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
- * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The
- * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does,
- * sampled at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both
- * player renderers get a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} handler
- * with {@code ModPayloads}, which names no client class itself. On logout it clears {@link DashInput}'s
- * remembered key states and the pending flashes.
+ * {@link net.alex.guzhenren.client.hud.NourishHud}, and {@link RadialMenu} above the crosshair), the key mapping
+ * for the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity
+ * renderers ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the
+ * Nine Leaf Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The
+ * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled
+ * at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player
+ * renderers get a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} handler with
+ * {@code ModPayloads}, which names no client class itself. On logout it clears {@link DashInput}'s remembered key
+ * states and the pending flashes, and drops a radial-menu hold.
  *
  * @author Alex
  * @version 1.0.0
@@ -95,6 +96,8 @@ public final class ClientEvents {
             Guzhenren.id("nourish");
     private static final ResourceLocation SONIC_BOOM =
             Guzhenren.id("sonic_boom");
+    private static final ResourceLocation RADIAL_MENU =
+            Guzhenren.id("radial_menu");
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
@@ -103,6 +106,7 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, CHARGE, (g, delta) -> ChargeHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
+        event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
     }
 
     @SubscribeEvent
@@ -177,6 +181,7 @@ public final class ClientEvents {
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         DashInput.reset();
         SkinFlashes.clear();
+        RadialMenu.close();
     }
 
     @SubscribeEvent

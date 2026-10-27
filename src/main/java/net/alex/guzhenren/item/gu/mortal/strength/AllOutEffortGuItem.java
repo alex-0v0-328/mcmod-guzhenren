@@ -17,8 +17,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Three rungs register against this one
  * class (三转至五转). The payout stamps a marker effect and calls
  * {@link AttackDamageService#refresh}; the lift itself is read
- * back by the strength service, so attack still comes out of one formula. An Amplify Effect Gu [功倍蛊] in the
- * offhand multiplies its length.
+ * back by the strength service, so attack still comes out of one formula. An Amplify Effect Gu [功倍蛊] multiplies
+ * its length.
  *
  * <p>⚠ Its effect is a marker carrying no {@code AttributeModifier}. A modifier would be a second
  * source for one fact, and re-using it while it runs is a refusal.
@@ -38,6 +38,9 @@ public class AllOutEffortGuItem extends TendedGuItem {
         super(properties, spec);
         this.effectSeconds = effectSeconds;
     }
+
+    @Override
+    public boolean canBeAmplified() { return true; }
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {

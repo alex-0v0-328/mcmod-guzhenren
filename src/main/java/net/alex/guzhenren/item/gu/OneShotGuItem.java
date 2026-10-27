@@ -48,6 +48,9 @@ public abstract class OneShotGuItem extends MortalGuItem {
 
     @Override
     protected int getCooldownTicks(ItemStack stack) { return REFINE_DONE_COOLDOWN_TICKS; }
+
+    @Override
+    public long getUseEssence() { return getRefineCost(); }
     //endregion
 
     //region display
