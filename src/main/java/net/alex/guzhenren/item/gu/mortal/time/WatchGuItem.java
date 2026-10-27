@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
@@ -20,7 +21,8 @@ import org.jetbrains.annotations.Nullable;
  * three ×3 layers. The effect owns both its rate and layer cap.
  *
  * <p>⚠ It refuses nothing. Reusing one kind adds a capped layer and refreshes its duration; wearing
- * both kinds is the design, and their rates add.
+ * both kinds is the design, and their rates add. An Amplify Effect Gu [功倍蛊] in the offhand multiplies the
+ * refreshed duration, not the layers.
  *
  * @author Alex
  * @version 1.0.0
@@ -50,6 +52,6 @@ public class WatchGuItem extends ConsumedGuItem {
         MobEffectInstance current = ModEffects.get(player, form);
         TimeRateUpEffect effect = (TimeRateUpEffect) form.get();
         int amplifier = effect.getNextAmplifier(current == null ? -1 : current.getAmplifier());
-        player.addEffect(ModEffects.instance(form, effectTicks, amplifier));
+        player.addEffect(ModEffects.instance(form, effectTicks * AmplifyEffectGuItem.amplify(player, this), amplifier));
     }
 }

@@ -41,6 +41,10 @@ import org.jetbrains.annotations.Nullable;
  * only being refined. The crouch is {@link #isCrouching}, the pose, never {@code isShiftKeyDown()}: that key
  * flag is also set while a creative flyer descends, when the pose stays standing.
  *
+ * <p>Vanilla offers a click to the offhand whenever the main hand's use fails or passes, cooldown included. A leaf
+ * that works only as a partner held there answers {@code hasOffhandUse} false, so it passes silently instead of
+ * replacing the main-hand Gu's refusal on the action bar.
+ *
  * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
  * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
  * the Gu sits: {@code bind} stores the kind of the holder's index, {@code getBoundIndex} maps it back. An
@@ -163,6 +167,8 @@ public abstract class GuItem extends Item {
     public int chargeColor(ItemStack stack, int remainingTicks) { return CHARGE_COLOR_DEFAULT; }
 
     protected boolean canFeedFromOffhand() { return false; }
+
+    protected boolean hasOffhandUse() { return true; }
     //endregion
 
     private @Nullable Refusal getRefusal(Player player, ItemStack stack, boolean sneak) {
@@ -183,6 +189,7 @@ public abstract class GuItem extends Item {
     public final @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
                                                                  @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (hand == InteractionHand.OFF_HAND && !hasOffhandUse()) return InteractionResultHolder.pass(stack);
         boolean sneak = isSneakUse(player, stack);
         if (!sneak && !hasUse()) return super.use(level, player, hand);
 

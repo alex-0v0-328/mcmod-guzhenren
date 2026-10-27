@@ -453,6 +453,10 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.STONE_APERTURE_GU_3,                        "Stone Aperture Gu III", "三转石窍蛊");
         addItem(ModItems.STONE_APERTURE_GU_4,                        "Stone Aperture Gu IV", "四转石窍蛊");
         addItem(ModItems.STONE_APERTURE_GU_5,                        "Stone Aperture Gu V", "五转石窍蛊");
+        addItem(ModItems.AMPLIFY_EFFECT_GU_2,                        "Amplify Effect Gu II", "二转功倍蛊");
+        addItem(ModItems.AMPLIFY_EFFECT_GU_3,                        "Amplify Effect Gu III", "三转功倍蛊");
+        addItem(ModItems.AMPLIFY_EFFECT_GU_4,                        "Amplify Effect Gu IV", "四转功倍蛊");
+        addItem(ModItems.AMPLIFY_EFFECT_GU_5,                        "Amplify Effect Gu V", "五转功倍蛊");
         addItem(ModItems.SECOND_APERTURE_GU_1,                       "Second Aperture Gu I", "一转第二空窍蛊");
         addItem(ModItems.SECOND_APERTURE_GU_2,                       "Second Aperture Gu II", "二转第二空窍蛊");
         addItem(ModItems.SECOND_APERTURE_GU_3,                       "Second Aperture Gu III", "三转第二空窍蛊");
@@ -543,6 +547,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.gu_starving",
                 "This Gu is too hungry - feed it first", "蛊已太饿，需先喂食");
         add("guzhenren.item.failed.no_use",                          "This Gu needs no use", "此蛊无需使用");
+        add("guzhenren.item.failed.amplify_offhand",
+                "Hold it in the offhand while driving another Gu", "副手持握，配合其他蛊催动");
         add("guzhenren.item.failed.no_leaves",
                 "No Vitality Leaf left - the next grows in %s s", "生机叶已摘光，下一片需 %s 秒");
         add("guzhenren.item.failed.leaves_full",                     "All nine Vitality Leaves have grown", "生机叶已满九片");
@@ -562,6 +568,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.leaves",                              "Vitality Leaves %s/%s", "生机叶 %s/%s");
         add("guzhenren.item.gu.next_leaf",                           "Next leaf in %s s", "下一片需 %s 秒");
         add("guzhenren.item.gu.next_point",                          "Next point in %s s", "下一点需 %s 秒");
+        add("guzhenren.item.gu.amplifies",
+                "Offhand: some Gu up to its rank, effect ×%s", "副手：本转及以下部分蛊效果 ×%s");
         add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
         add("guzhenren.item.gu.as_before_land",                      "The land is as it was first made", "山已如初");
         add("guzhenren.item.gu.as_before_water",                     "The waters are as they were first made", "江已如初");

@@ -44,6 +44,7 @@ public final class ModItemTags {
     public static final TagKey<Item> ZOMBIE_FEED = key("zombie_feed");
     public static final TagKey<Item> MALICIOUS_THOUGHT_FEED = key("malicious_thought_feed");
     public static final TagKey<Item> CASUAL_FEED = key("casual_feed");
+    public static final TagKey<Item> AMPLIFY_EFFECT_FEED = key("amplify_effect_feed");
 
     private static TagKey<Item> key(String name) {
         return TagKey.create(Registries.ITEM, Guzhenren.id(name));

@@ -3,6 +3,7 @@ package net.alex.guzhenren.item.gu.mortal.wood;
 import net.alex.guzhenren.effect.timed.VitalityLeafEffect;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -15,7 +16,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link net.alex.guzhenren.item.gu.OneShotGuItem}. The gate checks
  * {@code ModEffects.has(VITALITY_LEAF)} so a re-use while the effect runs is a refusal, not a refresh;
  * {@code apply} hands the effect holder and its duration to
- * {@link net.alex.guzhenren.registry.effect.ModEffects#instance}.
+ * {@link net.alex.guzhenren.registry.effect.ModEffects#instance}. An Amplify Effect Gu [功倍蛊] in the offhand
+ * multiplies that duration, and with it the health the leaf returns.
  *
  * @author Alex
  * @version 1.0.0
@@ -38,7 +40,8 @@ public class VitalityLeafGuItem extends OneShotGuItem {
 
     @Override
     protected int useApply(ServerPlayer player, ItemStack stack) {
-        player.addEffect(ModEffects.instance(ModEffects.VITALITY_LEAF, VitalityLeafEffect.DURATION_TICKS));
+        int ticks = VitalityLeafEffect.DURATION_TICKS * AmplifyEffectGuItem.amplify(player, this);
+        player.addEffect(ModEffects.instance(ModEffects.VITALITY_LEAF, ticks));
         return 1;
     }
 }

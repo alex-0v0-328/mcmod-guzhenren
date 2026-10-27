@@ -3,6 +3,7 @@ package net.alex.guzhenren.item.gu.mortal;
 import java.util.function.Supplier;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
@@ -17,7 +18,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Eight Gu register against this one class -- the
  * three beast buffs (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊), the four Crash Gu and the Hardship Strength Gu; the
  * payout simply adds the effect and returns. The gate refuses only while a stronger copy of the same
- * effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running copy is refreshed.
+ * effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running copy is refreshed. An
+ * Amplify Effect Gu [功倍蛊] in the offhand multiplies the length it adds.
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a class does not mean sharing a larder.
  *
@@ -59,8 +61,9 @@ public class BuffGuItem extends TendedGuItem {
         MobEffectInstance current = ModEffects.get(player, buff);
         if (current != null && amplifier < current.getAmplifier()) return;
 
-        int duration = current == null ? durationTicks : getNextDuration(current.getDuration(),
-                current.getAmplifier(), durationTicks, amplifier, getEffectCooldownLeft(player, stack) > 0);
+        int added = durationTicks * AmplifyEffectGuItem.amplify(player, this);
+        int duration = current == null ? added : getNextDuration(current.getDuration(),
+                current.getAmplifier(), added, amplifier, getEffectCooldownLeft(player, stack) > 0);
         if (current != null) ModEffects.remove(player, buff);
         player.addEffect(ModEffects.instance(buff, duration, amplifier));
     }

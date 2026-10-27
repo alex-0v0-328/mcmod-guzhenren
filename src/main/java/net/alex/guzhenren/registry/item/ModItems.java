@@ -27,6 +27,7 @@ import net.alex.guzhenren.item.gu.mortal.heaven.LifespanGuItem;
 import net.alex.guzhenren.item.gu.mortal.heaven.RelicsGuItem;
 import net.alex.guzhenren.item.gu.mortal.human.HopeGuItem;
 import net.alex.guzhenren.item.gu.mortal.human.SecondApertureGuItem;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.soul.GutsGuItem;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
@@ -574,6 +575,26 @@ public final class ModItems {
                     .type(GuType.AMPLIFICATION)
                     .refine(1_000_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
+    //endregion
+
+    //region Amplify Effect Gu [功倍蛊] -- Rule Path [律道]; held in the offhand, it multiplies another Gu's effect
+    // by its rank number; a bar of 16 at 4 a use
+    public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_2 = ITEMS.register("amplify_effect_gu_2",
+            () -> createAmplifyEffectGu(Rank.TWO, 8_000, 160));
+    public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_3 = ITEMS.register("amplify_effect_gu_3",
+            () -> createAmplifyEffectGu(Rank.THREE, 80_000, 1_600));
+    public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_4 = ITEMS.register("amplify_effect_gu_4",
+            () -> createAmplifyEffectGu(Rank.FOUR, 800_000, 16_000));
+    public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_5 = ITEMS.register("amplify_effect_gu_5",
+            () -> createAmplifyEffectGu(Rank.FIVE, 8_000_000, 160_000));
+
+    private static AmplifyEffectGuItem createAmplifyEffectGu(Rank rank, int refine, int costPerUse) {
+        return new AmplifyEffectGuItem(createTendedProperties(), GuSpec.of(rank, GuPath.RULE)
+                .type(GuType.AMPLIFICATION)
+                .refine(refine).costPerUse(costPerUse)
+                .hungerBar(16, 1).hungerPerUse(4)
+                .feed(ModItemTags.AMPLIFY_EFFECT_FEED, 1));
+    }
     //endregion
 
     //region Second Aperture Gu [第二空窍蛊] -- human path; opens or upgrades the second aperture,

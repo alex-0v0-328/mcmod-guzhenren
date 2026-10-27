@@ -4,6 +4,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -16,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Three rungs register against this one
  * class (三转至五转). The payout stamps a marker effect and calls
  * {@link AttackDamageService#refresh}; the lift itself is read
- * back by the strength service, so attack still comes out of one formula.
+ * back by the strength service, so attack still comes out of one formula. An Amplify Effect Gu [功倍蛊] in the
+ * offhand multiplies its length.
  *
  * <p>⚠ Its effect is a marker carrying no {@code AttributeModifier}. A modifier would be a second
  * source for one fact, and re-using it while it runs is a refusal.
@@ -44,7 +46,8 @@ public class AllOutEffortGuItem extends TendedGuItem {
 
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT, effectSeconds * Ticks.SECOND, getTier()));
+        int ticks = effectSeconds * Ticks.SECOND * AmplifyEffectGuItem.amplify(player, this);
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT, ticks, getTier()));
         AttackDamageService.refresh(player);
     }
 }

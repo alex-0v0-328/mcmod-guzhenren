@@ -4,6 +4,7 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinService;
 import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>Extends {@link TemperingGuItem}. ⚠ A timed skin takes a positive duration and a permanent skin none, checked
  * at construction. The payout writes the skin through {@link BodyService#wearSkin}, then projects it at once so
  * the HUD shows a jade skin's effect before the next heartbeat; the reduction, the timer and the flash all hang
- * off that write.
+ * off that write. An Amplify Effect Gu [功倍蛊] in the offhand multiplies a timed skin's length; a permanent skin
+ * never asks it, so it is never billed there.
  *
  * @author Alex
  * @version 1.0.0
@@ -44,7 +46,8 @@ public final class SkinGuItem extends TemperingGuItem<Skin> {
 
     @Override
     protected void temper(ServerPlayer player) {
-        BodyService.wearSkin(player, getGrade(), durationTicks);
+        int ticks = durationTicks > 0 ? durationTicks * AmplifyEffectGuItem.amplify(player, this) : 0;
+        BodyService.wearSkin(player, getGrade(), ticks);
         SkinService.tickSkin(player);
     }
 }

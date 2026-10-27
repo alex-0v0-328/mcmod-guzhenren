@@ -70,6 +70,9 @@ public class ModItemTagsProvider extends ItemTagsProvider {
 
         tag(ModItemTags.CASUAL_FEED).add(Items.WHEAT_SEEDS);
 
+        //  TODO(placeholder): smooth stone is a placeholder food for the Amplify Effect Gu, pending Alex's real food.
+        tag(ModItemTags.AMPLIFY_EFFECT_FEED).add(Items.SMOOTH_STONE);
+
         tag(Tags.Items.HIDDEN_FROM_RECIPE_VIEWERS).add(ModItems.ADVANCEMENT_ICON.get());
     }
 }
