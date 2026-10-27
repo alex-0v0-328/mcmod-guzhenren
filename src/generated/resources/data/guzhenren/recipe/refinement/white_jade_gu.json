@@ -1,0 +1,41 @@
+{
+  "type": "guzhenren:refinement",
+  "base_success": 40,
+  "essence_per_second": 1,
+  "ingredients": [
+    {
+      "count": 1,
+      "item": "guzhenren:jade_skin_gu"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:white_boar_gu"
+    }
+  ],
+  "results": [
+    {
+      "count": 1,
+      "id": "guzhenren:white_jade_gu"
+    }
+  ],
+  "slots": [
+    [
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+      19,
+      20
+    ],
+    16
+  ],
+  "soul_per_second": 1,
+  "windows": [
+    16,
+    16,
+    16,
+    16
+  ]
+}

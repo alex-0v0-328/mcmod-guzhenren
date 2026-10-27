@@ -9,9 +9,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * One Gu recipe [蛊方]: what it eats, what it yields, and the windows the ritual runs through.
  *
- * <p>The ingredients and their cell positions are parallel lists (SHAPED and exact -- no mirroring, no
- * rotation); the window list's length IS the stage count. The data and the matching logic live here; the
- * recipe manager's side -- recipe type, serializer, the sorted listing -- lives in {@link RefinementRecipe}.
+ * <p>The ingredients and their cell groups are parallel lists (SHAPED and exact -- no mirroring, no rotation):
+ * an ingredient may sit in any cell of its own group, and the group together holds exactly its count. Groups
+ * never overlap, so a one-cell group is a plain fixed cell. The window list's length IS the stage count. The
+ * data and the matching logic live here; the recipe manager's side -- recipe type, serializer, the sorted
+ * listing -- lives in {@link RefinementRecipe}.
  *
  * @author Alex
  * @version 1.0.0
@@ -19,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List<ItemStack> results,
+public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots, List<ItemStack> results,
                        long essencePerSecond, long soulPerSecond, List<Integer> windows, int baseSuccess) {
 
     public static final int WINDOW_TICKS = 5 * Ticks.SECOND;
@@ -44,7 +46,13 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
             throw new IllegalArgumentException("baseSuccess must be 0 to 100");
         }
         if (ingredients.size() != slots.size()) {
-            throw new IllegalArgumentException("every ingredient owns exactly one cell of the grid");
+            throw new IllegalArgumentException("every ingredient owns exactly one group of cells");
+        }
+        if (slots.stream().anyMatch(List::isEmpty)) {
+            throw new IllegalArgumentException("every group holds at least one cell");
+        }
+        if (slots.stream().mapToLong(List::size).sum() != slots.stream().flatMap(List::stream).distinct().count()) {
+            throw new IllegalArgumentException("a cell belongs to one group only");
         }
         try {
             long totalSeconds = getExactTotalTicks(windows.size()) / Ticks.SECOND;
@@ -76,18 +84,24 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
     }
     //endregion
 
-    //region matching -- SHAPED and EXACT: every cell holds what its own ingredient asks for, or nothing
+    //region matching -- SHAPED and EXACT: every cell holds its group's ingredient or nothing, each group its count
     public int @Nullable [] claim(GuRecipeInput input) {
         int[] taken = new int[input.size()];
 
         for (int n = 0; n < ingredients.size(); n++) {
-            int slot = slots.get(n);
-            if (slot < 0 || slot >= input.size()) return null;
-
             GuIngredient need = ingredients.get(n);
-            if (!need.test(input.getItem(slot))) return null;
+            int held = 0;
+            for (int slot : slots.get(n)) {
+                if (slot < 0 || slot >= input.size()) return null;
 
-            taken[slot] += need.count();
+                ItemStack stack = input.getItem(slot);
+                if (stack.isEmpty()) continue;
+                if (!need.test(stack)) return null;
+
+                taken[slot] = stack.getCount();
+                held += stack.getCount();
+            }
+            if (held != need.count()) return null;
         }
         for (int i = 0; i < input.size(); i++) {
             if (input.getItem(i).getCount() != taken[i]) return null;
@@ -100,8 +114,11 @@ public record GuRecipe(List<GuIngredient> ingredients, List<Integer> slots, List
 
         for (int n = 0; n < ingredients.size(); n++) {
             GuIngredient need = ingredients.get(n);
-            ItemStack held = getHeld(input, slots.get(n));
-            int have = need.test(held) ? held.getCount() : 0;
+            int have = 0;
+            for (int slot : slots.get(n)) {
+                ItemStack held = getHeld(input, slot);
+                if (need.test(held)) have += held.getCount();
+            }
             missing[n] = Math.max(0, need.count() - have);
         }
         return missing;

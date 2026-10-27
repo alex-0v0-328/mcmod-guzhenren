@@ -1,5 +1,6 @@
 package net.alex.guzhenren.refinement.recipe;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -7,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import net.alex.guzhenren.registry.recipe.ModRecipes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -95,9 +97,14 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
                         .forGetter(GuIngredient::count)
         ).apply(i, GuIngredient::new));
 
+        // a one-cell group stays a bare number, so a fixed-cell recipe file reads the same as before groups
+        private static final Codec<List<Integer>> CELLS = Codec.either(Codec.INT, Codec.INT.listOf()).xmap(
+                either -> either.map(List::of, Function.identity()),
+                cells -> cells.size() == 1 ? Either.left(cells.get(0)) : Either.right(cells));
+
         private static final MapCodec<RefinementRecipe> CODEC = RecordCodecBuilder.<GuRecipe>mapCodec(i -> i.group(
                 NEED.listOf().fieldOf("ingredients").forGetter(GuRecipe::ingredients),
-                Codec.INT.listOf().fieldOf("slots").forGetter(GuRecipe::slots),
+                CELLS.listOf().fieldOf("slots").forGetter(GuRecipe::slots),
                 ItemStack.CODEC.listOf().fieldOf("results").forGetter(GuRecipe::results),
                 Codec.LONG.optionalFieldOf("essence_per_second", 0L).forGetter(GuRecipe::essencePerSecond),
                 Codec.LONG.optionalFieldOf("soul_per_second", 0L).forGetter(GuRecipe::soulPerSecond),
@@ -115,6 +122,7 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
                 ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list());
         private static final StreamCodec<ByteBuf, List<Integer>> INTS =
                 ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list());
+        private static final StreamCodec<ByteBuf, List<List<Integer>>> GROUPS = INTS.apply(ByteBufCodecs.list());
 
         private static final StreamCodec<RegistryFriendlyByteBuf, RefinementRecipe> STREAM_CODEC =
                 new StreamCodec<>() {
@@ -122,7 +130,7 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
                     public @NotNull RefinementRecipe decode(@NotNull RegistryFriendlyByteBuf buf) {
                         return new RefinementRecipe(new GuRecipe(
                                 NEEDS.decode(buf),
-                                INTS.decode(buf),
+                                GROUPS.decode(buf),
                                 STACKS.decode(buf),
                                 ByteBufCodecs.VAR_LONG.decode(buf),
                                 ByteBufCodecs.VAR_LONG.decode(buf),
@@ -134,7 +142,7 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
                     public void encode(@NotNull RegistryFriendlyByteBuf buf, @NotNull RefinementRecipe value) {
                         GuRecipe gu = value.gu();
                         NEEDS.encode(buf, gu.ingredients());
-                        INTS.encode(buf, gu.slots());
+                        GROUPS.encode(buf, gu.slots());
                         STACKS.encode(buf, gu.results());
                         ByteBufCodecs.VAR_LONG.encode(buf, gu.essencePerSecond());
                         ByteBufCodecs.VAR_LONG.encode(buf, gu.soulPerSecond());

@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
+import java.util.List;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
@@ -18,7 +19,8 @@ import net.minecraft.world.item.ItemStack;
  * items, cycling once a second.
  *
  * <p>⚠ {@link #draw} runs from the screen's {@code renderLabels}: coordinates are panel-relative, and the carried
- * item still paints over the ghosts. A cell that already holds anything gets no ghost.
+ * item still paints over the ghosts. A cell that already holds anything gets no ghost; an ingredient's ghost takes
+ * the first empty cell of its group.
  *
  * <p>The ghosts draw in one {@link GuiBatch}, in three passes -- every faded item, every overlay, every count --
  * which keeps each cell's own order; the grid's cells sit 22 apart and never overlap, so only that order shows.
@@ -39,18 +41,27 @@ final class RecipeGhosts {
     static void draw(GuiGraphics graphics, Font font, GuRecipe recipe, GuRecipeInput grid) {
         int[] missing = recipe.getShortfall(grid);
         ItemStack[] shown = new ItemStack[missing.length];
+        int[] at = new int[missing.length];
         boolean any = false;
         for (int n = 0; n < missing.length; n++) {
-            int slot = recipe.slots().get(n);
-            if (missing[n] <= 0 || slot < 0 || slot >= grid.size()) continue;
-            if (!grid.getItem(slot).isEmpty()) continue;
+            if (missing[n] <= 0) continue;
+            int slot = getFreeCell(recipe.slots().get(n), grid);
+            if (slot < 0) continue;
 
             ItemStack option = getOption(recipe.ingredients().get(n));
             if (option.isEmpty()) continue;
             shown[n] = option;
+            at[n] = slot;
             any = true;
         }
-        if (any) GuiBatch.draw(graphics, () -> drawGhosts(graphics, font, recipe, shown, missing));
+        if (any) GuiBatch.draw(graphics, () -> drawGhosts(graphics, font, shown, at, missing));
+    }
+
+    private static int getFreeCell(List<Integer> cells, GuRecipeInput grid) {
+        for (int slot : cells) {
+            if (slot >= 0 && slot < grid.size() && grid.getItem(slot).isEmpty()) return slot;
+        }
+        return -1;
     }
 
     static ItemStack getOption(GuIngredient need) {
@@ -63,25 +74,22 @@ final class RecipeGhosts {
         return recipe.results().isEmpty() ? ItemStack.EMPTY : recipe.results().get(0);
     }
 
-    private static void drawGhosts(GuiGraphics graphics, Font font, GuRecipe recipe, ItemStack[] shown,
-                                   int[] missing) {
+    private static void drawGhosts(GuiGraphics graphics, Font font, ItemStack[] shown, int[] at, int[] missing) {
         graphics.setColor(1.0F, 1.0F, 1.0F, ALPHA);
         for (int n = 0; n < shown.length; n++) {
             if (shown[n] == null) continue;
-            int slot = recipe.slots().get(n);
-            graphics.renderFakeItem(shown[n], getSlotX(slot), getSlotY(slot));
+            graphics.renderFakeItem(shown[n], getSlotX(at[n]), getSlotY(at[n]));
         }
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         for (int n = 0; n < shown.length; n++) {
             if (shown[n] == null) continue;
-            int x = getSlotX(recipe.slots().get(n));
-            int y = getSlotY(recipe.slots().get(n));
+            int x = getSlotX(at[n]);
+            int y = getSlotY(at[n]);
             graphics.fill(RenderType.guiGhostRecipeOverlay(), x, y, x + Widgets.CELL, y + Widgets.CELL, OVERLAY);
         }
         for (int n = 0; n < shown.length; n++) {
             if (shown[n] == null) continue;
-            int slot = recipe.slots().get(n);
-            graphics.renderItemDecorations(font, shown[n], getSlotX(slot), getSlotY(slot),
+            graphics.renderItemDecorations(font, shown[n], getSlotX(at[n]), getSlotY(at[n]),
                     missing[n] > 1 ? String.valueOf(missing[n]) : null);
         }
     }

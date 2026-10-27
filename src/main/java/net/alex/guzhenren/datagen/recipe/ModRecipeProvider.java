@@ -1,6 +1,7 @@
 package net.alex.guzhenren.datagen.recipe;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -20,13 +21,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid.
  *
  * <p>Extends {@link net.minecraft.data.recipes.RecipeProvider}. Each recipe is transcribed verbatim
  * from an ASCII drawing ({@code '.'} empty, {@code ' '} cut corner), so a wrong corner, a short row
- * or an unkeyed letter fails datagen. Output lands under {@code data/guzhenren/recipe/refinement/}.
+ * or an unkeyed letter fails datagen. A letter in {@code key} is its own ingredient in every cell it
+ * fills; a letter in {@code shared} is ONE ingredient that may sit in any of the cells drawn with it.
+ * Output lands under {@code data/guzhenren/recipe/refinement/}.
  *
  * <p>⚠ The drawing is transcribed verbatim, so a wrong corner, a short row or an unkeyed letter fails
  * datagen. The layout and every number in it are Alex's.
@@ -70,28 +74,47 @@ public class ModRecipeProvider extends RecipeProvider {
                 "I.A.I",
                 "B...B",
                 " .I. ");
+
+        addRefinement(output, ModItems.WHITE_JADE_GU, 1L, 1L, 40, List.of(16, 16, 16, 16),
+                Map.of('b', GuIngredient.of(ModItems.WHITE_BOAR_GU.get(), 1)),
+                Map.of('j', GuIngredient.of(ModItems.JADE_SKIN_GU.get(), 1)),
+                " ... ",
+                ".jjj.",
+                ".jbj.",
+                ".jjj.",
+                " ... ");
     }
 
     //region Gu Recipe [蛊方] patterns -- one row a grid row, ' ' a cut corner, '.' an empty cell
     private static void addRefinement(RecipeOutput output, ItemLike result, long essencePerSecond,
                                       long soulPerSecond, int baseSuccess, List<Integer> windows,
                                       Map<Character, GuIngredient> key, String... pattern) {
+        addRefinement(output, result, essencePerSecond, soulPerSecond, baseSuccess, windows, key, Map.of(), pattern);
+    }
+
+    private static void addRefinement(RecipeOutput output, ItemLike result, long essencePerSecond,
+                                      long soulPerSecond, int baseSuccess, List<Integer> windows,
+                                      Map<Character, GuIngredient> key, Map<Character, GuIngredient> shared,
+                                      String... pattern) {
         Item item = result.asItem();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
                 Guzhenren.MOD_ID, FOLDER + BuiltInRegistries.ITEM.getKey(item).getPath());
         List<GuIngredient> ingredients = new ArrayList<>();
-        List<Integer> slots = new ArrayList<>();
+        List<List<Integer>> slots = new ArrayList<>();
 
-        read(id, key, pattern, ingredients, slots);
-        output.accept(id, new RefinementRecipe(new GuRecipe(List.copyOf(ingredients), List.copyOf(slots),
-                List.of(new ItemStack(item)), essencePerSecond, soulPerSecond, windows, baseSuccess)), null);
+        read(id, key, shared, pattern, ingredients, slots);
+        output.accept(id, new RefinementRecipe(new GuRecipe(List.copyOf(ingredients),
+                slots.stream().map(List::copyOf).toList(), List.of(new ItemStack(item)),
+                essencePerSecond, soulPerSecond, windows, baseSuccess)), null);
     }
 
-    private static void read(ResourceLocation id, Map<Character, GuIngredient> key, String[] pattern,
-                             List<GuIngredient> ingredients, List<Integer> slots) {
+    private static void read(ResourceLocation id, Map<Character, GuIngredient> key,
+                             Map<Character, GuIngredient> shared, String[] pattern,
+                             List<GuIngredient> ingredients, List<List<Integer>> slots) {
         if (pattern.length != GuRecipe.GRID_ROWS) {
             throw new IllegalArgumentException(id + " needs " + GuRecipe.GRID_ROWS + " pattern rows");
         }
+        Map<Character, Integer> sharedAt = new HashMap<>();
         for (int row = 0; row < pattern.length; row++) {
             String line = pattern[row];
             if (line.length() != GuRecipe.GRID_COLS) {
@@ -99,25 +122,44 @@ public class ModRecipeProvider extends RecipeProvider {
                         + GuRecipe.GRID_COLS + " cells wide");
             }
             for (int col = 0; col < line.length(); col++) {
-                readCell(id, key, line.charAt(col), GuRecipe.getSlotAt(row, col), ingredients, slots);
+                char drawn = line.charAt(col);
+                int slot = GuRecipe.getSlotAt(row, col);
+                GuIngredient need = readCell(id, key, shared, drawn, slot);
+                if (need == null) continue;
+
+                Integer at = sharedAt.get(drawn);
+                if (at != null) {
+                    slots.get(at).add(slot);
+                    continue;
+                }
+                if (shared.containsKey(drawn)) sharedAt.put(drawn, ingredients.size());
+                ingredients.add(need);
+                slots.add(new ArrayList<>(List.of(slot)));
             }
+        }
+        for (char letter : shared.keySet()) {
+            if (!sharedAt.containsKey(letter)) throw new IllegalArgumentException(id + " never draws '" + letter + "'");
         }
     }
 
-    private static void readCell(ResourceLocation id, Map<Character, GuIngredient> key, char drawn, int slot,
-                                 List<GuIngredient> ingredients, List<Integer> slots) {
+    private static @Nullable GuIngredient readCell(ResourceLocation id, Map<Character, GuIngredient> key,
+                                                   Map<Character, GuIngredient> shared, char drawn, int slot) {
         if (slot < 0) {
             if (drawn != OUTSIDE) throw new IllegalArgumentException(id + " draws '" + drawn + "' on a cut corner");
-            return;
+            return null;
         }
         if (drawn == OUTSIDE) throw new IllegalArgumentException(id + " leaves a real cell blank; use '.'");
-        if (drawn == EMPTY) return;
+        if (drawn == EMPTY) return null;
 
-        GuIngredient need = key.get(drawn);
-        if (need == null) throw new IllegalArgumentException(id + " has no ingredient keyed '" + drawn + "'");
-
-        ingredients.add(need);
-        slots.add(slot);
+        GuIngredient alone = key.get(drawn);
+        GuIngredient pooled = shared.get(drawn);
+        if (alone != null && pooled != null) {
+            throw new IllegalArgumentException(id + " keys '" + drawn + "' both alone and shared");
+        }
+        if (alone == null && pooled == null) {
+            throw new IllegalArgumentException(id + " has no ingredient keyed '" + drawn + "'");
+        }
+        return alone != null ? alone : pooled;
     }
     //endregion
 }
