@@ -45,7 +45,7 @@ public final class TraditionalGlyphs {
             + "资資 赋賦 转轉 轮輪 辅輔 输輸 边邊 达達 运運 进進 选選 遥遙 钧鈞 铁鐵 铜銅 银銀 锚錨 "
             + "闭閉 间間 阳陽 阴陰 阵陣 阶階 随隨 须須 饰飾 饱飽 饿餓 魇魘 鲛鮫 黄黃 龙龍";
     private static final String PHRASES = "一只一隻 耗尽耗盡 将尽將盡 冲刷沖刷 横冲橫衝 轮回輪迴 回复回復 准大準大 "
-            + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦 松开鬆開";
+            + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦";
     private static final String UNCHANGED = "一丁七三上下不世丙中丸主乃之乙九也了二五亡交人仙以任位何作你使俗信修倍值停"
             + "偷催元先光入全八六共具再冥冰凡出初利到刷力功加包化北十千升半卓卸厚及取受口"
             + "古可名君味命品四因圈土在地基境墨壁外多大天太央失奴如妙存宇宗宙定家小尚山峰已"
@@ -55,7 +55,7 @@ public final class TraditionalGlyphs {
             + "紫美羽老而耗肉背腐自至色花苦草荒荔莽菇落虎蛋蛐血行衍衰被裂解豕象赤赴越足跳身"
             + "辣送逍通速造道遭酒酸醒重野金雪零雷需青非面音食香高鬼魁魂魄魔黑"
             + "筋骨皮原抗退限刻匿反坐增幅查治玉移防御"
-            + "副手持握配合其他部分消另扣快捷按住右";
+            + "副手持握配合其他部分快捷按住右";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

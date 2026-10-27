@@ -207,9 +207,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.nourish_starving",                "Essence running dry %s%%",    "真元将尽 %s%%");
         add("guzhenren.hud.aperture_pressure",               "Aperture Pressure %s%%",      "空窍压力 %s%%");
         add("guzhenren.hud.aperture_pressure_cd",            "Aperture Pressure %s%% [%s]", "空窍压力 %s%% [%s]");
-        add("guzhenren.radial.cancel",                       "Release to cancel",           "松开取消");
-        add("guzhenren.radial.amplify_detail",
-                "×%s · %s more essence · %s hunger", "×%s · 另扣 %s 真元 · %s 饱食");
     }
     //endregion
 

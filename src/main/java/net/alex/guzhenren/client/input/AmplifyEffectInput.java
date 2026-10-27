@@ -5,13 +5,11 @@ import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -39,7 +37,6 @@ import net.neoforged.neoforge.client.event.InputEvent;
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)
 public final class AmplifyEffectInput {
 
-    private static final String DETAIL = "guzhenren.radial.amplify_detail";
     private static final String FAILED_NO_TARGET = "guzhenren.item.failed.amplify_no_target";
 
     private AmplifyEffectInput() {}
@@ -85,12 +82,9 @@ public final class AmplifyEffectInput {
                 ItemStack target = player.getInventory().getItem(slot);
                 if (slot == player.getInventory().selected || !amplifier.canAmplify(stack, target)) continue;
 
-                MortalGuItem driven = (MortalGuItem) target.getItem();
-                Component detail = Component.translatable(DETAIL, amplifier.getMultiplier(),
-                        amplifier.getUseEssence(), amplifier.getHungerPerUse());
                 slots.add(slot);
-                entries.add(new RadialMenu.Entry(target, target.getHoverName(), detail,
-                        !player.getCooldowns().isOnCooldown(driven)));
+                entries.add(new RadialMenu.Entry(target, target.getHoverName(),
+                        !player.getCooldowns().isOnCooldown(target.getItem())));
             }
             return entries;
         }

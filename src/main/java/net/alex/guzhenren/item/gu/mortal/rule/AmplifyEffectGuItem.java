@@ -3,7 +3,6 @@ package net.alex.guzhenren.item.gu.mortal.rule;
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.item.gu.GuClock;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.TendedGuItem;
@@ -60,8 +59,6 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     }
 
     public int getMultiplier() { return getRank().ordinal(); }
-
-    public int getHungerPerUse() { return clock instanceof GuClock.HungerBar bar ? bar.perUse() : 0; }
 
     public boolean isFood(ItemStack stack) { return feedUnits(stack) > 0; }
 
