@@ -34,6 +34,7 @@ import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.BoneGuItem;
+import net.alex.guzhenren.item.gu.mortal.strength.HeavenlyMugwortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.SkinGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.TendonGuItem;
@@ -235,7 +236,7 @@ public final class ModItems {
                             .feed(ModItemTags.POTATO_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> HEAVENLY_MUGWORT_GU = ITEMS.register("heavenly_mugwort_gu",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.VANILLA_ABSORPTION, 30 * Ticks.SECOND, 3,
+            () -> new HeavenlyMugwortGuItem(createTendedProperties(), 16.0F, 30 * Ticks.SECOND,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DEFENSIVE)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)

@@ -205,6 +205,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.using",                           "Use %s/%s",                   "使用 %s/%s");
         add("guzhenren.hud.nourishing",                      "Nourishing %s%%",             "温养 %s%%");
         add("guzhenren.hud.nourish_starving",                "Essence running dry %s%%",    "真元将尽 %s%%");
+        add("guzhenren.hud.mugwort_shield",                  "Heavenly Mugwort %s / %s",    "天蓬 %s / %s");
         add("guzhenren.hud.aperture_pressure",               "Aperture Pressure %s%%",      "空窍压力 %s%%");
         add("guzhenren.hud.aperture_pressure_cd",            "Aperture Pressure %s%% [%s]", "空窍压力 %s%% [%s]");
     }
@@ -606,6 +607,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.hardship_strength_gu",                 "Hardship Strength Gu Effect", "苦力蛊效果");
         add("effect.guzhenren.jade_skin_gu",                         "Jade Skin Gu Effect", "玉皮蛊效果");
         add("effect.guzhenren.white_jade_gu",                        "White Jade Gu Effect", "白玉蛊效果");
+        add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
         add("effect.guzhenren.all_out_effort",                       "All-Out Effort Gu Effect", "全力以赴蛊效果");
         add("effect.guzhenren.half_zombie",                          "Half-Zombie Effect", "半生半僵效果");
         add("effect.guzhenren.second_watch_gu",                      "Second Watch Gu Effect", "两更蛊效果");

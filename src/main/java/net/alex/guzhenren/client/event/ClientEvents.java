@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.event;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.hud.ChargeHud;
+import net.alex.guzhenren.client.hud.MugwortShieldHud;
 import net.alex.guzhenren.client.hud.NourishHud;
 import net.alex.guzhenren.client.hud.PlayerStatsHud;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
@@ -94,6 +95,8 @@ public final class ClientEvents {
             Guzhenren.id("charge");
     private static final ResourceLocation NOURISH =
             Guzhenren.id("nourish");
+    private static final ResourceLocation MUGWORT_SHIELD =
+            Guzhenren.id("mugwort_shield");
     private static final ResourceLocation SONIC_BOOM =
             Guzhenren.id("sonic_boom");
     private static final ResourceLocation RADIAL_MENU =
@@ -106,6 +109,8 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, CHARGE, (g, delta) -> ChargeHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
+        event.registerAbove(VanillaGuiLayers.AIR_LEVEL, MUGWORT_SHIELD,
+                (g, delta) -> MugwortShieldHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
     }
 

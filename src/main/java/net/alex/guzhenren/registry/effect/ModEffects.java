@@ -100,6 +100,8 @@ public final class ModEffects {
             "jade_skin_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> WHITE_JADE_GU = MOB_EFFECTS.register(
             "white_jade_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> HEAVENLY_MUGWORT_GU = MOB_EFFECTS.register(
+            "heavenly_mugwort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
     public static final DeferredHolder<MobEffect, MarkerEffect> HALF_ZOMBIE = MOB_EFFECTS.register(
@@ -123,7 +125,6 @@ public final class ModEffects {
     public static final Supplier<MobEffect> VANILLA_CONFUSION = () -> MobEffects.CONFUSION.value();
     public static final Supplier<MobEffect> VANILLA_LEVITATION = () -> MobEffects.LEVITATION.value();
     public static final Supplier<MobEffect> VANILLA_SLOW_FALLING = () -> MobEffects.SLOW_FALLING.value();
-    public static final Supplier<MobEffect> VANILLA_ABSORPTION = () -> MobEffects.ABSORPTION.value();
 
     public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration) {
         return new MobEffectInstance(getHolder(effect), duration, 0, false, false, true);

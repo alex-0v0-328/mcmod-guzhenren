@@ -4,7 +4,8 @@
   "package": "net.alex.guzhenren.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "EntityMixin"
+    "EntityMixin",
+    "LivingEntityAccessor"
   ],
   "client": [
     "LocalPlayerMixin",

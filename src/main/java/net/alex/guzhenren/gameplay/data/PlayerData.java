@@ -6,6 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.body.BodyData;
+import net.alex.guzhenren.gameplay.body.MugwortShieldData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -20,12 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: thirteen saved values, the
+ * Everything this mod keeps on a player, read and written through one object: fourteen saved values, the
  * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and one in-memory carry, the
  * essence regen remainder ({@link #getEssenceCarry}).
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
- * whether it changed; nine values reach their owner's client on change ({@code ModAttachments} syncs
+ * whether it changed; ten values reach their owner's client on change ({@code ModAttachments} syncs
  * them {@code OWNER_ONLY}). {@link #resetCarriedOnDeath} returns every value a death carries to its
  * default.
  *
@@ -61,6 +62,8 @@ public final class PlayerData {
 
     public BodyData getBody() { return owner.getData(ModAttachments.BODY); }
 
+    public MugwortShieldData getMugwortShield() { return owner.getData(ModAttachments.MUGWORT_SHIELD); }
+
     public SoulData getSoul() { return owner.getData(ModAttachments.SOUL); }
 
     public PathData getPath() { return owner.getData(ModAttachments.PATH); }
@@ -94,6 +97,10 @@ public final class PlayerData {
     }
 
     public boolean setBody(@NotNull BodyData value) { return set(ModAttachments.BODY, value); }
+
+    public boolean setMugwortShield(@NotNull MugwortShieldData value) {
+        return set(ModAttachments.MUGWORT_SHIELD, value);
+    }
 
     public boolean setSoul(@NotNull SoulData value) { return set(ModAttachments.SOUL, value); }
 

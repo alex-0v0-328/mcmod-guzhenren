@@ -14,13 +14,13 @@ import org.jetbrains.annotations.Nullable;
  * Shared layout for the bars drawn over the hotbar: geometry, the baseline that armor and mounts move,
  * and the three-fill draw with its caption that every such bar reuses.
  *
- * <p>Package-private abstract base for {@link net.alex.guzhenren.client.hud.ChargeHud} and
- * {@link net.alex.guzhenren.client.hud.NourishHud}. The {@code barTop} method rides vanilla's
+ * <p>Package-private abstract base for {@link net.alex.guzhenren.client.hud.ChargeHud},
+ * {@link net.alex.guzhenren.client.hud.NourishHud} and {@link net.alex.guzhenren.client.hud.MugwortShieldHud}. The {@code barTop} method rides vanilla's
  * held-item-name baseline so armor and a mount's health push the bar up instead of hiding it. All
  * drawing is {@code g.fill} plus the caption, no textures, in one {@link GuiBatch}.
  *
- * <p>Both bars can be up at once (a charged Gu held while nourishing): {@link #getStackShift} lifts the second one
- * clear of the first's caption, so they stack instead of overlapping.
+ * <p>Several bars can be up at once (a charged Gu held while nourishing under a shield): {@link #getStackShift}
+ * lifts each later one clear of the one below's caption, so they stack instead of overlapping.
  *
  * @author Alex
  * @version 1.0.0

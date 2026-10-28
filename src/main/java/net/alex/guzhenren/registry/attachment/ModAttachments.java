@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.body.BodyData;
+import net.alex.guzhenren.gameplay.body.MugwortShieldData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -30,7 +31,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 /**
  * Every data attachment this mod puts on a player.
  *
- * <p>DeferredRegister holder: the eleven record attachments (immutable, written only through their
+ * <p>DeferredRegister holder: the twelve record attachments (immutable, written only through their
  * service) plus the five scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
  * {@code SECOND_STAGE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
@@ -98,6 +99,9 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<BodyData>> BODY =
             registerSynced("body_data", BodyData.DEFAULT, BodyData.CODEC,
                     StreamCodec.of(BodyData::encode, BodyData::decode));
+    public static final Supplier<AttachmentType<MugwortShieldData>> MUGWORT_SHIELD = registerSynced(
+            "mugwort_shield_data", MugwortShieldData.DEFAULT, MugwortShieldData.CODEC,
+            StreamCodec.of(MugwortShieldData::encode, MugwortShieldData::decode));
     //endregion
 
     //region Soul [魂魄]

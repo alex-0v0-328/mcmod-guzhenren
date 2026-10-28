@@ -21,6 +21,9 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <li>{@code JADE_SKIN_GU} [玉皮蛊] and {@code WHITE_JADE_GU} [白玉蛊] -- timed; project the skin [皮肤] stored
  * on {@code BodyData} with its end tick, re-applied or removed by {@code SkinService.tickSkin} every
  * heartbeat; the flat damage reduction reads the skin, never the effect.</li>
+ * <li>{@code HEAVENLY_MUGWORT_GU} [天蓬蛊] -- timed; projects the shield stored on {@code MugwortShieldData},
+ * re-applied or removed by {@code MugwortShieldService.tickShield} every heartbeat; the hit that empties the
+ * shield removes it at once.</li>
  * <li>{@code LIQUOR_WORM} [酒虫] -- worn while distilling; {@code ApertureEssenceService} owns the three
  * phases, so removing the effect does not end the distillation, and {@code closeDistilling} pays the 1:2
  * back by reading the level.</li>
