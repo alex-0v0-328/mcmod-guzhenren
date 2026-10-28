@@ -4,13 +4,15 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.world.effect.MobEffect;
+import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Which effect wears which icon: the one table both game versions read, so the client entry point only hands each
  * pair to its loader ({@code GuzhenrenClient}).
  *
- * <p>{@link #forEach} walks the table in a fixed order, one {@link EffectIconLayout} per effect handle.
+ * <p>{@link #forEach} walks the table in a fixed order, one icon per effect handle: an {@link EffectIconLayout}, or a
+ * {@link NoEffectIcon} for an effect shown without one.
  *
  * @author Alex
  * @version 1.0.0
@@ -23,7 +25,8 @@ public final class EffectIcons {
 
     private EffectIcons() {}
 
-    public static void forEach(@NotNull BiConsumer<EffectIconLayout, Supplier<? extends MobEffect>> register) {
+    public static void forEach(
+            @NotNull BiConsumer<IClientMobEffectExtensions, Supplier<? extends MobEffect>> register) {
         register.accept(GradedEffectIcon.createMobEffect("essence_qi", 1, 5), ModEffects.ESSENCE_QI);
         register.accept(GradedEffectIcon.createMobEffect("life_qi", 1, 5), ModEffects.LIFE_QI);
         register.accept(GradedEffectIcon.createMobEffect("strength_qi", 1, 5), ModEffects.STRENGTH_QI);
@@ -40,5 +43,6 @@ public final class EffectIcons {
         register.accept(GradedEffectIcon.createItem("charging_crash_gu", 4, 5), ModEffects.CHARGING_CRASH_GU);
         register.accept(new ItemEffectIcon("second_watch_gu"), ModEffects.SECOND_WATCH_GU);
         register.accept(new ItemEffectIcon("third_watch_gu"), ModEffects.THIRD_WATCH_GU);
+        register.accept(new NoEffectIcon(), ModEffects.HALF_ZOMBIE);
     }
 }
