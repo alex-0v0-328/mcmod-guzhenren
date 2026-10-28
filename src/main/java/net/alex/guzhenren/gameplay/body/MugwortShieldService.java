@@ -2,19 +2,16 @@ package net.alex.guzhenren.gameplay.body;
 
 import java.util.function.Supplier;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.mixin.LivingEntityAccessor;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Heavenly Mugwort shield [天蓬护盾]: raised by the Gu, spent by incoming damage before armor and skin, and
- * projected as the {@code HEAVENLY_MUGWORT_GU} effect on the heartbeat.
+ * The Heavenly Mugwort shield [天蓬护盾]: raised by the Gu, spent by the damage that passes the skin and the
+ * invulnerability frames, before armor, and projected as the {@code HEAVENLY_MUGWORT_GU} effect on the heartbeat.
  *
  * <p>{@link #raise} fills the shield to the Gu's points and restarts its timer; a shield still up is replaced, never
  * stacked. {@link #absorb} takes what it can of a hit and passes the rest on; the hit that empties it ends it and
@@ -23,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>The truth is {@code MugwortShieldData}, never the effect: a {@code MobEffect} has no expiry hook, and milk or
  * {@code /effect clear} removes it silently, so the heartbeat re-applies it as {@link SkinService} does a jade
  * skin. ⚠ Damage that bypasses invulnerability or effects ({@code /kill}, the void, starvation) passes untouched.
- * ⚠ The hit arrives before vanilla's invulnerability frames are checked: inside them the shield spends only on what
- * exceeds the hit already taken, so standing in fire does not drain it every tick.
+ * ⚠ The caller hands {@link #absorb} only what lands after the invulnerability frames, and a hit the shield takes
+ * whole must still start them, or standing in fire drains it every tick ({@code BodyStateEvents}).
  *
  * @author Alex
  * @version 1.0.0
@@ -35,8 +32,6 @@ import org.jetbrains.annotations.NotNull;
 public final class MugwortShieldService {
 
     private MugwortShieldService() {}
-
-    private static final int INVULNERABLE_THRESHOLD = 10;
 
     public static @NotNull MugwortShieldData get(@NotNull Player player) {
         return PlayerData.get(player).getMugwortShield();
@@ -58,8 +53,7 @@ public final class MugwortShieldService {
         if (amount <= 0.0F || !isUp(player) || !SkinService.canTurn(source)) return amount;
 
         MugwortShieldData shield = get(player);
-        float taken = Math.min(shield.points(), getLanding(player, source, amount));
-        if (taken <= 0.0F) return amount;
+        float taken = Math.min(shield.points(), amount);
         float left = shield.points() - taken;
         if (left > 0.0F) {
             PlayerData.get(player).setMugwortShield(shield.withPoints(left));
@@ -68,14 +62,6 @@ public final class MugwortShieldService {
             ModEffects.remove(player, ModEffects.HEAVENLY_MUGWORT_GU);
         }
         return amount - taken;
-    }
-
-    /** The part of {@code amount} that lands: inside invulnerability frames, only what exceeds the hit taken. */
-    private static float getLanding(LivingEntity entity, DamageSource source, float amount) {
-        if (entity.invulnerableTime <= INVULNERABLE_THRESHOLD || source.is(DamageTypeTags.BYPASSES_COOLDOWN)) {
-            return amount;
-        }
-        return Math.max(0.0F, amount - ((LivingEntityAccessor) entity).guzhenren$getLastHurt());
     }
 
     public static void tickShield(@NotNull ServerPlayer player) {
