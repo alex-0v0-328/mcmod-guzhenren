@@ -123,6 +123,7 @@ public final class ModEffects {
     public static final Supplier<MobEffect> VANILLA_CONFUSION = () -> MobEffects.CONFUSION.value();
     public static final Supplier<MobEffect> VANILLA_LEVITATION = () -> MobEffects.LEVITATION.value();
     public static final Supplier<MobEffect> VANILLA_SLOW_FALLING = () -> MobEffects.SLOW_FALLING.value();
+    public static final Supplier<MobEffect> VANILLA_ABSORPTION = () -> MobEffects.ABSORPTION.value();
 
     public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration) {
         return new MobEffectInstance(getHolder(effect), duration, 0, false, false, true);

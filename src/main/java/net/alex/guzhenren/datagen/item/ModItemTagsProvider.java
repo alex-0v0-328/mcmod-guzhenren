@@ -45,6 +45,7 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModItemTags.ANVIL_FEED).add(Items.ANVIL);
         tag(ModItemTags.COBBLESTONE_FEED).add(Items.COBBLESTONE);
         tag(ModItemTags.POTATO_FEED).add(Items.POTATO);
+        tag(ModItemTags.SMOOTH_STONE_FEED).add(Items.SMOOTH_STONE);
         tag(ModItemTags.JADE_SKIN_FEED).add(Items.EMERALD);
         tag(ModItemTags.WHITE_JADE_FEED).add(Items.QUARTZ);
         tag(ModItemTags.BRONZE_SKIN_FEED).add(Items.COPPER_INGOT);

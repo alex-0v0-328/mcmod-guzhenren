@@ -389,6 +389,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.SELF_RELIANCE_GU_3,                         "Self Reliance Gu III", "三转自力更生蛊");
         addItem(ModItems.SELF_RELIANCE_GU_4,                         "Self Reliance Gu IV", "四转自力更生蛊");
         addItem(ModItems.HARDSHIP_STRENGTH_GU,                       "Hardship Strength Gu", "苦力蛊");
+        addItem(ModItems.HEAVENLY_MUGWORT_GU,                        "Heavenly Mugwort Gu", "天蓬蛊");
         addItem(ModItems.ALL_OUT_EFFORT_GU_3,                        "All-Out Effort Gu III", "三转全力以赴蛊");
         addItem(ModItems.ALL_OUT_EFFORT_GU_4,                        "All-Out Effort Gu IV", "四转全力以赴蛊");
         addItem(ModItems.ALL_OUT_EFFORT_GU_5,                        "All-Out Effort Gu V", "五转全力以赴蛊");

@@ -28,6 +28,7 @@ public final class ModItemTags {
     public static final TagKey<Item> ANVIL_FEED = key("anvil_feed");
     public static final TagKey<Item> COBBLESTONE_FEED = key("cobblestone_feed");
     public static final TagKey<Item> POTATO_FEED = key("potato_feed");
+    public static final TagKey<Item> SMOOTH_STONE_FEED = key("smooth_stone_feed");
     public static final TagKey<Item> JADE_SKIN_FEED = key("jade_skin_feed");
     public static final TagKey<Item> WHITE_JADE_FEED = key("white_jade_feed");
     public static final TagKey<Item> BRONZE_SKIN_FEED = key("bronze_skin_feed");

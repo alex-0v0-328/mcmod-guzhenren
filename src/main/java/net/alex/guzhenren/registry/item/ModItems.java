@@ -234,6 +234,13 @@ public final class ModItems {
                             .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
                             .feed(ModItemTags.POTATO_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+    public static final DeferredItem<Item> HEAVENLY_MUGWORT_GU = ITEMS.register("heavenly_mugwort_gu",
+            () -> new BuffGuItem(createTendedProperties(), ModEffects.VANILLA_ABSORPTION, 30 * Ticks.SECOND, 3,
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DEFENSIVE)
+                            .refine(80_000).costPerUse(1_600)
+                            .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
+                            .feed(ModItemTags.SMOOTH_STONE_FEED, 1)
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     //endregion
 
     //region Human Jun Strength Branch [人力钧力流] -- one round is one layer
