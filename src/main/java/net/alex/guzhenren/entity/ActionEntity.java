@@ -94,6 +94,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
             ActionEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private @Nullable BaseLoops baseLoops;
     private final Object2IntMap<Cooldown> cooldownTicks = new Object2IntOpenHashMap<>();
     @Nullable
     protected LivingEntity actionTarget;
@@ -517,8 +518,9 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private PlayState handleAnimationState(AnimationState<ActionEntity<A>> state) {
         A current = this.getAction();
         if (current != this.getIdleAction()) return state.setAndContinue(this.getActionAnimation(current));
-        String clip = !state.isMoving() ? "idle" : this.isPursuing() ? "run" : "walk";
-        return state.setAndContinue(RawAnimation.begin().thenLoop(this.getAnimationPrefix() + clip));
+        if (this.baseLoops == null) this.baseLoops = BaseLoops.of(this.getAnimationPrefix());
+        return state.setAndContinue(!state.isMoving() ? this.baseLoops.idle()
+                : this.isPursuing() ? this.baseLoops.run() : this.baseLoops.walk());
     }
 
     @Override
@@ -540,6 +542,14 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     /** One attack's cooldown: the length it starts at and its save key. */
     public record Cooldown(int maxTicks, String saveKey) {}
+
+    private record BaseLoops(RawAnimation idle, RawAnimation walk, RawAnimation run) {
+
+        static BaseLoops of(String prefix) {
+            return new BaseLoops(RawAnimation.begin().thenLoop(prefix + "idle"),
+                    RawAnimation.begin().thenLoop(prefix + "walk"), RawAnimation.begin().thenLoop(prefix + "run"));
+        }
+    }
 
     private static final class CombatGoal extends Goal {
 
