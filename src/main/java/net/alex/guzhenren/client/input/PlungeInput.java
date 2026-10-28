@@ -3,7 +3,6 @@ package net.alex.guzhenren.client.input;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
-import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.PlungePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,6 +12,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -74,7 +74,7 @@ public final class PlungeInput {
         boolean sneakPressed = minecraft.options.keyShift.isActiveAndMatches(key);
         if (isChord(altPressed, sneakPressed, Screen.hasAltDown(), minecraft.options.keyShift.isDown())
                 && PlungeService.canStart(player)) {
-            ModNetwork.sendToServer(PlungePayload.INSTANCE);
+            PacketDistributor.sendToServer(PlungePayload.INSTANCE);
         }
     }
 }

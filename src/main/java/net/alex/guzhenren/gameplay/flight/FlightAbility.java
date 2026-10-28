@@ -12,9 +12,8 @@ import org.jetbrains.annotations.NotNull;
  * Flight granted by named sources: a Gu's flight, an anchored dimension's flight. Each source is granted and
  * revoked on its own; the player may fly while any source holds.
  *
- * <p>⚠ A version seam: callers grant, revoke and ask by source id on both sides. Here each source is a transient
- * {@code ADD_VALUE} modifier on NeoForge's creative-flight attribute, named by the source id, so it is never saved
- * and a respawn starts with none; the Forge 1.20.1 port keeps the same sources over {@code Abilities.mayfly}.
+ * <p>⚠ Callers grant, revoke and ask by source id. Each source is a transient {@code ADD_VALUE} modifier on
+ * NeoForge's creative-flight attribute, named by the source id, so it is never saved and a respawn starts with none.
  *
  * @author Alex
  * @version 1.0.0

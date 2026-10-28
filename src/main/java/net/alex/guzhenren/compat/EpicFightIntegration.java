@@ -126,7 +126,7 @@ public final class EpicFightIntegration {
 
     private static void onComboAttack(ComboAttackEvent event) {
         ServerPlayer player = event.getPlayerPatch().getOriginal();
-        if (ModEffects.has(player, ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
+        if (player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
     }
 
     private static void onSetTarget(SetTargetEvent event) {

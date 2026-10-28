@@ -12,8 +12,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * Drives {@link SecondStageRingEmitter}: the sonic boom on each {@link SecondStageStartedEvent}, the sound barrier
  * rings at the end of every player tick, and dropping their trail on logout and on a dimension change.
  *
- * <p>⚠ Loader glue only: the event types differ between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port,
- * so the handlers live here and {@link SecondStageRingEmitter} stays identical between the two.
+ * <p>The event handlers live here, the emission behind them in {@link SecondStageRingEmitter}.
  *
  * @author Alex
  * @version 1.0.0

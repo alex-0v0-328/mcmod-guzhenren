@@ -1,6 +1,5 @@
 package net.alex.guzhenren.registry.effect;
 
-import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.MarkerEffect;
 import net.alex.guzhenren.effect.pool.LifeQiEffect;
@@ -16,18 +15,14 @@ import net.alex.guzhenren.effect.timed.SelfRelianceGuEffect;
 import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
 import net.alex.guzhenren.effect.timed.VitalityLeafEffect;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Every MobEffect this mod registers, one constant per effect.
@@ -39,10 +34,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Every effect is built through {@code instance}, which sets
  * {@code showParticles=false, showIcon=true}; the color only feeds the {@link MobEffect} ctor.
  *
- * <p>⚠ A version seam: callers hold an effect as {@code Supplier<? extends MobEffect>} and go through
- * {@link #has}, {@link #get}, {@link #remove}, {@link #instance} and {@link #getEffectOf}, never the loader's handle
- * type, so they stay identical between this NeoForge 1.21.1 mainline ({@code Holder}) and the Forge 1.20.1 port
- * ({@code RegistryObject}, plain {@code MobEffect}).
+ * <p>Callers hold an effect as a {@code Holder<MobEffect>}, this mod's {@code DeferredHolder} or vanilla's
+ * {@code MobEffects} entry, and ask the entity directly ({@code hasEffect}, {@code getEffect}, {@code removeEffect}).
  *
  * @author Alex
  * @version 1.0.0
@@ -120,43 +113,12 @@ public final class ModEffects {
     public static final DeferredHolder<MobEffect, CasualThoughtEffect> CASUAL_GU = MOB_EFFECTS.register(
             "casual_gu", () -> new CasualThoughtEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
 
-    /** Vanilla effects this mod applies, held the same way as its own. */
-    public static final Supplier<MobEffect> VANILLA_WEAKNESS = () -> MobEffects.WEAKNESS.value();
-    public static final Supplier<MobEffect> VANILLA_CONFUSION = () -> MobEffects.CONFUSION.value();
-    public static final Supplier<MobEffect> VANILLA_LEVITATION = () -> MobEffects.LEVITATION.value();
-    public static final Supplier<MobEffect> VANILLA_SLOW_FALLING = () -> MobEffects.SLOW_FALLING.value();
-
-    public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration) {
-        return new MobEffectInstance(getHolder(effect), duration, 0, false, false, true);
+    public static MobEffectInstance instance(@NotNull Holder<MobEffect> effect, int duration) {
+        return new MobEffectInstance(effect, duration, 0, false, false, true);
     }
 
-    public static MobEffectInstance instance(@NotNull Supplier<? extends MobEffect> effect, int duration,
-                                             int amplifier) {
-        return new MobEffectInstance(getHolder(effect), duration, amplifier, false, false, true);
-    }
-
-    public static boolean has(@NotNull LivingEntity entity, @NotNull Supplier<? extends MobEffect> effect) {
-        return entity.hasEffect(getHolder(effect));
-    }
-
-    public static @Nullable MobEffectInstance get(@NotNull LivingEntity entity,
-                                                  @NotNull Supplier<? extends MobEffect> effect) {
-        return entity.getEffect(getHolder(effect));
-    }
-
-    public static boolean remove(@NotNull LivingEntity entity, @NotNull Supplier<? extends MobEffect> effect) {
-        return entity.removeEffect(getHolder(effect));
-    }
-
-    /** The effect an instance carries; an effect class's own behavior is read off it ({@code instanceof}). */
-    public static @NotNull MobEffect getEffectOf(@NotNull MobEffectInstance instance) {
-        return instance.getEffect().value();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Holder<MobEffect> getHolder(Supplier<? extends MobEffect> effect) {
-        if (effect instanceof Holder<?> held) return (Holder<MobEffect>) held;
-        return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect.get());
+    public static MobEffectInstance instance(@NotNull Holder<MobEffect> effect, int duration, int amplifier) {
+        return new MobEffectInstance(effect, duration, amplifier, false, false, true);
     }
 
     public static void register(IEventBus modEventBus) {

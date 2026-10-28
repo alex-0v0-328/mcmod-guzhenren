@@ -1,10 +1,10 @@
 package net.alex.guzhenren.item.gu.mortal;
 
-import java.util.function.Supplier;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -33,15 +33,15 @@ public class BuffGuItem extends TendedGuItem {
 
     private static final int COOLDOWN_HUNGER_MULTIPLIER = 2;
     private static final String FAILED_STRONGER = "guzhenren.item.failed.buff_stronger";
-    private final Supplier<? extends MobEffect> buff;
+    private final Holder<MobEffect> buff;
     private final int durationTicks;
     private final int amplifier;
 
-    public BuffGuItem(Properties properties, Supplier<? extends MobEffect> buff, int durationTicks, GuSpec spec) {
+    public BuffGuItem(Properties properties, Holder<MobEffect> buff, int durationTicks, GuSpec spec) {
         this(properties, buff, durationTicks, 0, spec);
     }
 
-    public BuffGuItem(Properties properties, Supplier<? extends MobEffect> buff, int durationTicks, int amplifier,
+    public BuffGuItem(Properties properties, Holder<MobEffect> buff, int durationTicks, int amplifier,
                       GuSpec spec) {
         super(properties, spec);
         this.buff = buff;
@@ -51,20 +51,20 @@ public class BuffGuItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
-        MobEffectInstance current = ModEffects.get(player, buff);
+        MobEffectInstance current = player.getEffect(buff);
         return current != null && current.getAmplifier() > amplifier
-                ? new Refusal(FAILED_STRONGER, buff.get().getDisplayName()) : null;
+                ? new Refusal(FAILED_STRONGER, buff.value().getDisplayName()) : null;
     }
 
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
-        MobEffectInstance current = ModEffects.get(player, buff);
+        MobEffectInstance current = player.getEffect(buff);
         if (current != null && amplifier < current.getAmplifier()) return;
 
         int added = durationTicks * AmplifyEffectGuItem.amplify(player, this);
         int duration = current == null ? added : getNextDuration(current.getDuration(),
                 current.getAmplifier(), added, amplifier, getEffectCooldownLeft(player, stack) > 0);
-        if (current != null) ModEffects.remove(player, buff);
+        if (current != null) player.removeEffect(buff);
         player.addEffect(ModEffects.instance(buff, duration, amplifier));
     }
 

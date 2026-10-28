@@ -1,6 +1,11 @@
 package net.alex.guzhenren.network.payload;
 
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Client intent: flush the aperture wall [冲刷窍壁] and take whatever the roll gives.
@@ -16,7 +21,13 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
  * @since 1.0.0
  */
 
-public record ImpactApertureWallPayload() {
+public record ImpactApertureWallPayload() implements CustomPacketPayload {
 
     public static final ImpactApertureWallPayload INSTANCE = new ImpactApertureWallPayload();
+    public static final Type<ImpactApertureWallPayload> TYPE = new Type<>(Guzhenren.id("impact_aperture_wall"));
+    public static final StreamCodec<FriendlyByteBuf, ImpactApertureWallPayload> STREAM_CODEC =
+            StreamCodec.unit(INSTANCE);
+
+    @Override
+    public @NotNull Type<ImpactApertureWallPayload> type() { return TYPE; }
 }

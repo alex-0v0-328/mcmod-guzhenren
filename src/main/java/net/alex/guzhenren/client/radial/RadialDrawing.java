@@ -19,9 +19,7 @@ import org.joml.Matrix4f;
  * flash. Sectors are quads wound like {@code GuiGraphics.fill}'s, so they face the way every other GUI fill does; a
  * disabled icon's shade sits above the item, as vanilla's cooldown overlay does. Icons cannot fade, so they shrink
  * with the ring's opacity instead.
- *
- * <p>⚠ A version seam: the sector vertices use 1.21's {@code VertexConsumer.addVertex(...).setColor}.
- *
+ * *
  * @author Alex
  * @version 1.0.0
  * @see RadialMenu

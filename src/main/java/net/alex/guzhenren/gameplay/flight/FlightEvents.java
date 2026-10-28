@@ -10,8 +10,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * Runs {@link FlightService#tick}, then {@link SecondStageService#tick}, at the end of every server player tick: the
  * Gu flight settles first, so the stage sees this tick's flight.
  *
- * <p>⚠ Loader glue only: the event types differ between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port,
- * so the handler lives here and the two services stay identical between the two.
+ * <p>The event handler lives here, the rules behind it in the two services.
  *
  * @author Alex
  * @version 1.0.0

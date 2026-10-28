@@ -81,9 +81,10 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
     }
 
     @Override
-    protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
-                                 @NotNull TooltipFlag flag) {
-        super.appendTooltip(stack, level, tooltip, flag);
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        Level level = context.level();
         if (level == null || !isRefined(stack)) return;
 
         int ticks = bar.getTicksToNextPoint(stack, level.getGameTime());

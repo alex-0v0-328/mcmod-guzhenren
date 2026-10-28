@@ -32,9 +32,8 @@ import org.jetbrains.annotations.NotNull;
  * The recipe manager's view of a {@link GuRecipe}: the vanilla {@link Recipe} it registers as, its serializer, and
  * the sorted listing every refinement caller reads.
  *
- * <p>⚠ A version seam: the recipe interface, the serializer and the recipe manager's lookup differ between the
- * NeoForge 1.21.1 mainline and the Forge 1.20.1 port; {@link GuRecipe}, {@link GuIngredient} and {@link
- * GuRecipeInput} are the same on both. Nothing outside this class touches the vanilla recipe API.
+ * <p>⚠ Nothing outside this class touches the vanilla recipe API; {@link GuRecipe}, {@link GuIngredient} and {@link
+ * GuRecipeInput} never name it.
  *
  * <p>⚠ A recipe index means the same thing on both sides only because {@link #getKnown} sorts by recipe id. The
  * recipe manager's own order guarantees nothing at all.

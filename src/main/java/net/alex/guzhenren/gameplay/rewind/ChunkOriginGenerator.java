@@ -53,8 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * run in parallel (each writes its own chunk), features one chunk after another (each writes its neighbors). The
  * result carries blocks only: no light, entities, ticks or block entities.
  *
- * <p>⚠ A version seam: {@code GenerationChunkHolder}, {@code ChunkStep} and {@code WorldGenContext} are the 1.21.1
- * generation pipeline. ⚠ The result is the seed's land under today's generator and mods: a world whose generator or
+ * <p>⚠ The generation pipeline ({@code GenerationChunkHolder}, {@code ChunkStep}, {@code WorldGenContext}) is named
+ * only here. ⚠ The result is the seed's land under today's generator and mods: a world whose generator or
  * worldgen mods changed since a chunk was made gets the new land there.
  *
  * @author Alex

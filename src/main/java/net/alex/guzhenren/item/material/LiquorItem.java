@@ -3,6 +3,7 @@ package net.alex.guzhenren.item.material;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -41,7 +42,7 @@ public class LiquorItem extends GuMaterialItem {
                 .nutrition(NUTRITION)
                 .saturationModifier(SATURATION)
                 .alwaysEdible()
-                .effect(() -> ModEffects.instance(ModEffects.VANILLA_CONFUSION, NAUSEA_TICKS), NAUSEA_CHANCE)
+                .effect(() -> ModEffects.instance(MobEffects.CONFUSION, NAUSEA_TICKS), NAUSEA_CHANCE)
                 .build();
     }
 

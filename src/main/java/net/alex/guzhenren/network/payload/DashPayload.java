@@ -1,7 +1,11 @@
 package net.alex.guzhenren.network.payload;
 
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.network.ClientIntents;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -19,15 +23,15 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public record DashPayload(int vertical, int horizontal, float yRot) {
+public record DashPayload(int vertical, int horizontal, float yRot) implements CustomPacketPayload {
 
-    public static @NotNull DashPayload decode(@NotNull FriendlyByteBuf buf) {
-        return new DashPayload(buf.readInt(), buf.readInt(), buf.readFloat());
-    }
+    public static final Type<DashPayload> TYPE = new Type<>(Guzhenren.id("dash"));
+    public static final StreamCodec<FriendlyByteBuf, DashPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT, DashPayload::vertical,
+            ByteBufCodecs.INT, DashPayload::horizontal,
+            ByteBufCodecs.FLOAT, DashPayload::yRot,
+            DashPayload::new);
 
-    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull DashPayload value) {
-        buf.writeInt(value.vertical());
-        buf.writeInt(value.horizontal());
-        buf.writeFloat(value.yRot());
-    }
+    @Override
+    public @NotNull Type<DashPayload> type() { return TYPE; }
 }

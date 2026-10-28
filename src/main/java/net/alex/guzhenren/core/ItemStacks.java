@@ -7,16 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The item-stack operations whose vanilla API differs between game versions, behind one name each.
+ * The item-stack operations several packages share, behind one name each.
  *
  * <p>{@link #OPTIONAL_CODEC} saves a stack that may be empty, so a list keeps an empty slot in place;
  * {@link #isSameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
  * #readStack} carry a stack, empty or not, over the wire.
  *
- * <p>⚠ A version seam: the Forge 1.20.1 port has its own copy with the same names (item NBT instead of
- * data components). Callers use these names only, so they stay identical between the two.
- *
- * <p>⚠ On 1.21.1 a stack only travels on a {@link RegistryFriendlyByteBuf}. Every buffer the network and menu
+ * <p>⚠ A stack only travels on a {@link RegistryFriendlyByteBuf}. Every buffer the network and menu
  * layers hand out is one; a plain {@link FriendlyByteBuf} is refused with an {@link IllegalArgumentException}.
  *
  * @author Alex

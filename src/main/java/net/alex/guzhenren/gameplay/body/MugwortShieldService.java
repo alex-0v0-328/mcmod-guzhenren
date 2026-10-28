@@ -1,8 +1,8 @@
 package net.alex.guzhenren.gameplay.body;
 
-import java.util.function.Supplier;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -59,18 +59,18 @@ public final class MugwortShieldService {
             PlayerData.get(player).setMugwortShield(shield.withPoints(left));
         } else {
             PlayerData.get(player).setMugwortShield(MugwortShieldData.DEFAULT);
-            ModEffects.remove(player, ModEffects.HEAVENLY_MUGWORT_GU);
+            player.removeEffect(ModEffects.HEAVENLY_MUGWORT_GU);
         }
         return amount - taken;
     }
 
     public static void tickShield(@NotNull ServerPlayer player) {
-        Supplier<? extends MobEffect> effect = ModEffects.HEAVENLY_MUGWORT_GU;
+        Holder<MobEffect> effect = ModEffects.HEAVENLY_MUGWORT_GU;
         if (isUp(player)) {
             player.addEffect(ModEffects.instance(effect, Math.max(1, (int) getTicksLeft(player))));
             return;
         }
         PlayerData.get(player).setMugwortShield(MugwortShieldData.DEFAULT);
-        if (ModEffects.has(player, effect)) ModEffects.remove(player, effect);
+        if (player.hasEffect(effect)) player.removeEffect(effect);
     }
 }

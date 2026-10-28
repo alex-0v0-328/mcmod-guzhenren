@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
-import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -14,6 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -69,10 +69,10 @@ public final class SecondStageInput {
 
         if (!DOUBLE_TAP.press(ticks)) return;
         if (SecondStageService.isActive(player)) {
-            ModNetwork.sendToServer(ToggleSecondStagePayload.INSTANCE);
+            PacketDistributor.sendToServer(ToggleSecondStagePayload.INSTANCE);
         } else if (SecondStageService.canEnter(player)) {
             SonicBoomHud.INSTANCE.noteRequested(player.tickCount);
-            ModNetwork.sendToServer(ToggleSecondStagePayload.INSTANCE);
+            PacketDistributor.sendToServer(ToggleSecondStagePayload.INSTANCE);
         }
     }
 }

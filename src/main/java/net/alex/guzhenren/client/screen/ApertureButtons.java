@@ -7,7 +7,6 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.network.ClientIntents;
-import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
@@ -15,6 +14,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The buttons under each aperture [空窍] in the B panel: nourish [温养空窍] (or flush [冲刷窍壁] for the first
@@ -109,18 +109,18 @@ final class ApertureButtons {
 
     static boolean click(LocalPlayer player, ColumnButton button) {
         switch (button.kind()) {
-            case IMPACT -> ModNetwork.sendToServer(ImpactApertureWallPayload.INSTANCE);
+            case IMPACT -> PacketDistributor.sendToServer(ImpactApertureWallPayload.INSTANCE);
             case NOURISH -> {
                 if (isRunning(player, button.aperture())) {
-                    ModNetwork.sendToServer(new NourishAperturePayload(
+                    PacketDistributor.sendToServer(new NourishAperturePayload(
                             ClientIntents.NourishAction.CANCEL, ApertureNourishService.getTargetIndex(player)));
                 } else if (ApertureNourishService.canNourish(player, button.aperture())) {
-                    ModNetwork.sendToServer(new NourishAperturePayload(
+                    PacketDistributor.sendToServer(new NourishAperturePayload(
                             ClientIntents.NourishAction.START, button.aperture()));
                     return true;
                 }
             }
-            default -> ModNetwork.sendToServer(new OpenApertureStoragePayload(button.aperture()));
+            default -> PacketDistributor.sendToServer(new OpenApertureStoragePayload(button.aperture()));
         }
         return false;
     }

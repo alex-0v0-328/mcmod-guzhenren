@@ -63,7 +63,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
 
     //region the leaves -- settled from the stamp on read, on either side
     public static LeafGrowth getGrowth(ItemStack stack) {
-        return ModDataComponents.getOrDefault(stack, ModDataComponents.LEAF_GROWTH, LeafGrowth.FULL);
+        return stack.getOrDefault(ModDataComponents.LEAF_GROWTH, LeafGrowth.FULL);
     }
 
     public int getLeaves(ItemStack stack, long now) { return getGrowth(stack).settle(now, regrowTicks).leaves(); }
@@ -105,7 +105,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
         long now = player.level().getGameTime();
         if (getLeaves(stack, now) <= 0) return;
 
-        ModDataComponents.set(stack, ModDataComponents.LEAF_GROWTH, getGrowth(stack).pick(now, regrowTicks));
+        stack.set(ModDataComponents.LEAF_GROWTH, getGrowth(stack).pick(now, regrowTicks));
         player.getInventory().placeItemBackInInventory(new ItemStack(ModItems.VITALITY_LEAF_GU.get()));
     }
     //endregion
@@ -115,18 +115,19 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     protected int sneakApply(ServerPlayer player, ItemStack stack) {
         if (!ApertureEssenceService.consume(player, essencePerLeaf)) return 0;
 
-        ModDataComponents.set(stack, ModDataComponents.LEAF_GROWTH,
+        stack.set(ModDataComponents.LEAF_GROWTH,
                 getGrowth(stack).grow(player.level().getGameTime(), regrowTicks));
         return 0;
     }
     //endregion
 
     @Override
-    protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
-                                 @NotNull TooltipFlag flag) {
-        super.appendTooltip(stack, level, tooltip, flag);
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         if (!isRefined(stack)) return;
 
+        Level level = context.level();
         long now = level != null ? level.getGameTime() : getGrowth(stack).settledAt();
         int leaves = getLeaves(stack, now);
         tooltip.add(Component.translatable(TOOLTIP_LEAVES, leaves, LeafGrowth.MAX_LEAVES)

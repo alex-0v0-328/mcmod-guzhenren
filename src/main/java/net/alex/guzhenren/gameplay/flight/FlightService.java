@@ -2,7 +2,6 @@ package net.alex.guzhenren.gameplay.flight;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,7 +51,7 @@ public final class FlightService {
     public static @NotNull FlightGrant getGuGrant(@NotNull Player player) {
         FlightGrant grant = FlightGrant.NONE;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (ModEffects.getEffectOf(instance) instanceof FlightContributor contributor) {
+            if (instance.getEffect().value() instanceof FlightContributor contributor) {
                 grant = FlightGrant.getStrongest(grant, contributor.getFlightGrant(instance.getAmplifier()));
             }
         }

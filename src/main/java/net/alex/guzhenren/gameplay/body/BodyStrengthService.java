@@ -41,7 +41,7 @@ public final class BodyStrengthService {
     public static int getCapacity(@NotNull Player player) {
         int base = BodyService.getExtremePhysique(player).getStrengthCapacity()
                 + BodyService.getTendon(player).getCapacityBonus();
-        if (!ModEffects.has(player, ModEffects.HARDSHIP_STRENGTH_GU)) return base;
+        if (!player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) return base;
 
         double healthFraction = (double) player.getHealth() / player.getMaxHealth();
         return base + getHardshipCapacityBonus(healthFraction);
@@ -57,7 +57,7 @@ public final class BodyStrengthService {
     }
 
     public static boolean isUnleashed(@NotNull Player player) {
-        return ModEffects.has(player, ModEffects.ALL_OUT_EFFORT);
+        return player.hasEffect(ModEffects.ALL_OUT_EFFORT);
     }
 
     public static int getUsableJin(@NotNull Player player) {

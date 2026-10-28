@@ -13,7 +13,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,9 +119,9 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     protected boolean hasOffhandUse() { return false; }
 
     @Override
-    protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
-                                 @NotNull TooltipFlag flag) {
-        super.appendTooltip(stack, level, tooltip, flag);
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         tooltip.add(Component.translatable(TOOLTIP_AMPLIFIES, getMultiplier()).withStyle(ChatFormatting.GRAY));
     }
 }

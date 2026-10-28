@@ -7,7 +7,7 @@ package net.alex.guzhenren.gameplay.plunge;
  * <p>The height is the whole fall: what the player had already fallen when the plunge started, plus the drop from
  * there to the landing ({@link #getHeight}). {@link #getDamage} is vanilla 1.21's fall damage for that height,
  * {@code ceil((height - safe fall distance) * fall damage multiplier)}, times {@link #DAMAGE_MULTIPLIER}; the two
- * attributes come from the player ({@link PlungeLanding#getFallDamage}). {@link #getCraterPower} is the vanilla
+ * attributes come from the player ({@code PlungeService#land}). {@link #getCraterPower} is the vanilla
  * explosion power of the crater: none below {@link #CRATER_MIN_HEIGHT}, {@link #MIN_POWER} at it, one more every
  * {@link #POWER_STEP} blocks, capped at {@link #MAX_POWER} from 64 blocks up -- a charged creeper's 6, a hole about
  * 5 blocks across in dirt and far less in stone, since vanilla's blast resistance decides what breaks.

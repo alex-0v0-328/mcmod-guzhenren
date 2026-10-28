@@ -1,7 +1,11 @@
 package net.alex.guzhenren.network.payload;
 
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.network.ClientIntents;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,13 +18,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public record AmplifyDrivePayload(int slot) {
+public record AmplifyDrivePayload(int slot) implements CustomPacketPayload {
 
-    public static @NotNull AmplifyDrivePayload decode(@NotNull FriendlyByteBuf buf) {
-        return new AmplifyDrivePayload(buf.readVarInt());
-    }
+    public static final Type<AmplifyDrivePayload> TYPE = new Type<>(Guzhenren.id("amplify_drive"));
+    public static final StreamCodec<FriendlyByteBuf, AmplifyDrivePayload> STREAM_CODEC =
+            StreamCodec.composite(ByteBufCodecs.VAR_INT, AmplifyDrivePayload::slot, AmplifyDrivePayload::new);
 
-    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull AmplifyDrivePayload value) {
-        buf.writeVarInt(value.slot());
-    }
+    @Override
+    public @NotNull Type<AmplifyDrivePayload> type() { return TYPE; }
 }

@@ -30,9 +30,8 @@ import org.jetbrains.annotations.Nullable;
  * them {@code OWNER_ONLY}). {@link #resetCarriedOnDeath} returns every value a death carries to its
  * default.
  *
- * <p>⚠ A version seam: the only class that touches the loader's player-data API. Here it is a view over
- * NeoForge attachments; the Forge 1.20.1 port has a capability with the same public methods. Services
- * use these methods only, so they stay identical between the two.
+ * <p>⚠ The only class that touches the attachment API: a view over NeoForge attachments. Services use these
+ * methods only.
  *
  * <p>⚠ Three values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
  * attachment exists, and a relog or a death drops it; the plunge top is {@code null} unless the player is

@@ -6,7 +6,6 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
-import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -17,6 +16,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The Amplify Effect Gu [功倍蛊] on the client: a right click with a refined one in the main hand holds the
@@ -91,7 +91,9 @@ public final class AmplifyEffectInput {
 
         @Override
         public void pick(int index) {
-            if (player.getMainHandItem() == stack) ModNetwork.sendToServer(new AmplifyDrivePayload(slots.get(index)));
+            if (player.getMainHandItem() == stack) {
+                PacketDistributor.sendToServer(new AmplifyDrivePayload(slots.get(index)));
+            }
         }
 
         @Override

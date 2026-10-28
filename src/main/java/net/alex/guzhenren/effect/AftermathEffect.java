@@ -4,6 +4,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
@@ -20,9 +21,8 @@ import net.minecraft.world.entity.LivingEntity;
  * a payback or a debt (the Liquor Worm's 1:2 return, the Death Qi lifespan bill) reads its own effect's level on
  * the heartbeat instead.
  *
- * <p>⚠ A version seam: this class answers the loader's per-tick callbacks, so its subclasses carry no tick code
- * and stay identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port. {@code applyEffectTick}
- * answers {@code true}: on 1.21.1 a {@code false} has vanilla remove the effect then and there.
+ * <p>⚠ This class answers vanilla's per-tick callbacks, so its subclasses carry no tick code. {@code applyEffectTick}
+ * answers {@code true}: a {@code false} has vanilla remove the effect then and there.
  *
  * @author Alex
  * @version 1.0.0
@@ -44,7 +44,7 @@ public abstract class AftermathEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        entity.addEffect(ModEffects.instance(ModEffects.VANILLA_WEAKNESS, AFTERMATH_TICKS));
+        entity.addEffect(ModEffects.instance(MobEffects.WEAKNESS, AFTERMATH_TICKS));
         return true;
     }
 }

@@ -1,5 +1,10 @@
 package net.alex.guzhenren.network.payload;
 
+import net.alex.guzhenren.Guzhenren;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The client-intent payload for a sprint double tap: enter second-stage flight [二段飞行], or leave it.
@@ -14,7 +19,13 @@ package net.alex.guzhenren.network.payload;
  * @since 1.0.0
  */
 
-public record ToggleSecondStagePayload() {
+public record ToggleSecondStagePayload() implements CustomPacketPayload {
 
     public static final ToggleSecondStagePayload INSTANCE = new ToggleSecondStagePayload();
+    public static final Type<ToggleSecondStagePayload> TYPE = new Type<>(Guzhenren.id("toggle_second_stage"));
+    public static final StreamCodec<FriendlyByteBuf, ToggleSecondStagePayload> STREAM_CODEC =
+            StreamCodec.unit(INSTANCE);
+
+    @Override
+    public @NotNull Type<ToggleSecondStagePayload> type() { return TYPE; }
 }

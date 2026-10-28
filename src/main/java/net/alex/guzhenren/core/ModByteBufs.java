@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,12 +18,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Provides {@code writeEnum}/{@code readEnum} (ordinal round-trip), {@code writeNullableEnum}/{@code
  * readNullableEnum} (ordinal + 1, zero = unset), {@code writeEnumMap}/{@code readEnumMap}, and {@code
- * writeEnumSet}/{@code readEnumSet}. Every record that travels writes itself through these from its own
- * {@code encode}/{@code decode}.
- *
- * <p>⚠ Loader-neutral on purpose: only {@link FriendlyByteBuf}'s VarInt and the JDK's functional types,
- * never a loader's codec types, so this file and every record that calls it stay identical between the
- * NeoForge 1.21.1 mainline and the Forge 1.20.1 port. A collection is its VarInt size, then each element.
+ * writeEnumSet}/{@code readEnumSet}; {@link #enumCodec} and {@link #nullableEnumCodec} are the first two as stream
+ * codecs, for the payloads' {@code StreamCodec.composite}. A record that syncs as an attachment or a data component
+ * writes itself through these from its own {@code encode}/{@code decode}. A collection is its VarInt size, then each
+ * element.
  *
  * <p>⚠ A nullable enum travels as its ordinal plus one, with zero meaning unset. No enum here has a
  * NONE constant to lean on, so this is where "has not chosen" becomes representable on the wire -- it
@@ -57,6 +56,14 @@ public final class ModByteBufs {
     public static <E extends Enum<E>> @Nullable E readNullableEnum(@NotNull FriendlyByteBuf buf, Class<E> type) {
         int i = buf.readVarInt();
         return i == 0 ? null : byOrdinal(type, type.getEnumConstants(), i - 1);
+    }
+
+    public static <E extends Enum<E>> @NotNull StreamCodec<FriendlyByteBuf, E> enumCodec(Class<E> type) {
+        return StreamCodec.of(ModByteBufs::writeEnum, buf -> readEnum(buf, type));
+    }
+
+    public static <E extends Enum<E>> @NotNull StreamCodec<FriendlyByteBuf, E> nullableEnumCodec(Class<E> type) {
+        return StreamCodec.of(ModByteBufs::writeNullableEnum, buf -> readNullableEnum(buf, type));
     }
 
     public static <K extends Enum<K>, V> void writeEnumMap(

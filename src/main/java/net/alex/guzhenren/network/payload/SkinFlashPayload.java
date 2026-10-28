@@ -1,8 +1,12 @@
 package net.alex.guzhenren.network.payload;
 
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModByteBufs;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public record SkinFlashPayload(int entityId, Skin skin) {
+public record SkinFlashPayload(int entityId, Skin skin) implements CustomPacketPayload {
 
-    public static @NotNull SkinFlashPayload decode(@NotNull FriendlyByteBuf buf) {
-        return new SkinFlashPayload(buf.readVarInt(), ModByteBufs.readEnum(buf, Skin.class));
-    }
+    public static final Type<SkinFlashPayload> TYPE = new Type<>(Guzhenren.id("skin_flash"));
+    public static final StreamCodec<FriendlyByteBuf, SkinFlashPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, SkinFlashPayload::entityId,
+            ModByteBufs.enumCodec(Skin.class), SkinFlashPayload::skin,
+            SkinFlashPayload::new);
 
-    public static void encode(@NotNull FriendlyByteBuf buf, @NotNull SkinFlashPayload value) {
-        buf.writeVarInt(value.entityId());
-        ModByteBufs.writeEnum(buf, value.skin());
-    }
+    @Override
+    public @NotNull Type<SkinFlashPayload> type() { return TYPE; }
 }

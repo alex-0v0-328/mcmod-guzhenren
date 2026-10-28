@@ -59,7 +59,7 @@ public final class VitalLossService {
         owner.hurt(ModDamageTypes.source(owner, ModDamageTypes.VITAL_GU_LOST),
                 owner.getHealth() * LOST_HEALTH_FRACTION);
 
-        int kind = ModDataComponents.getOrDefault(stack, ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
+        int kind = stack.getOrDefault(ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
         int bound = ApertureService.get(owner).indexOf(kind);
         if (bound >= 0) ApertureService.setPrimaryPath(owner, bound, null);
     }

@@ -1,7 +1,6 @@
 package net.alex.guzhenren.network;
 
 import net.alex.guzhenren.compat.EpicFightIntegration;
-import net.alex.guzhenren.core.Menus;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
@@ -34,9 +33,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ This is where a forged packet lands, so a gate that only grays out a button is not a gate: every
  * refusal has to exist here as well as on the screen.
- *
- * <p>⚠ Loader-neutral on purpose: no packet, context or registrar type, so this file stays identical
- * between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port; only the packet layer differs.
  *
  * @author Alex
  * @version 1.0.0
@@ -89,9 +85,9 @@ public final class ClientIntents {
         if (!isOutsideTyh(player)) return;
         if (vertical < -1 || vertical > 1 || horizontal < -1 || horizontal > 1 || !Float.isFinite(yRot)) return;
         if (!canDash(player.getMainHandItem(), vertical, horizontal,
-                ModEffects.has(player, ModEffects.HORIZONTAL_CRASH_GU),
-                ModEffects.has(player, ModEffects.VERTICAL_CRASH_GU),
-                ModEffects.has(player, ModEffects.CHARGING_CRASH_GU))) return;
+                player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
+                player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
+                player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
         if (ApertureNourishService.isCultivating(player)) return;
         EpicFightIntegration.dash(player, vertical, yRot);
     }
@@ -118,7 +114,7 @@ public final class ClientIntents {
 
     public static void openApertureStorage(@NotNull ServerPlayer player, int aperture) {
         if (!isOutsideTyh(player) || !hasAperture(player, aperture)) return;
-        Menus.open(player, new SimpleMenuProvider(
+        player.openMenu(new SimpleMenuProvider(
                 (id, inventory, p) -> new ApertureStorageMenu(id, inventory, aperture, 0),
                 Component.translatable(STORAGE_TITLE)), buffer -> buffer.writeVarInt(aperture));
     }

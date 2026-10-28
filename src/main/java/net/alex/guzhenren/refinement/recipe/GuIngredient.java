@@ -7,7 +7,7 @@ import net.minecraft.world.level.ItemLike;
 /**
  * One cell's need in a Gu Recipe [蛊方]: what may sit there, and exactly how many.
  *
- * <p>The recipe's own ingredient type, so matching reads the same on every loader; {@link RefinementRecipe}
+ * <p>The recipe's own ingredient type, independent of vanilla's {@code Ingredient}; {@link RefinementRecipe}
  * reads and writes it as the flat JSON object {@code {"count": n, "item": …}}.
  *
  * @author Alex

@@ -172,7 +172,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         if (stack.isEmpty()) return stack;
 
         ItemStack copy = stack.copy();
-        ModDataComponents.set(copy, ModDataComponents.VITAL_APERTURE, ApertureData.SECOND);
+        copy.set(ModDataComponents.VITAL_APERTURE, ApertureData.SECOND);
         return copy;
     }
 

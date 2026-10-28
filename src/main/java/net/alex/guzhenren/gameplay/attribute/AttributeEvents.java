@@ -66,7 +66,7 @@ public final class AttributeEvents {
     @SubscribeEvent
     public static void onAttack(AttackEntityEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
-                && ModEffects.has(player, ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
+                && player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
     }
 
     private static void refreshAttack(LivingEntity entity) {

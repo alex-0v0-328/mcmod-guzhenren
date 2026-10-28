@@ -30,9 +30,7 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  *
  * <p>Flying Gu families use one surface spawn placement, the wild beasts one ground placement, both on
  * {@link net.minecraft.world.level.levelgen.Heightmap.Types#MOTION_BLOCKING_NO_LEAVES}; the checks themselves
- * live in {@link SpawnRules}. Soul traders get attributes but no placement: they are summoned only. Loader glue
- * apart from the attribute table: the events differ between the NeoForge 1.21.1 mainline and the Forge 1.20.1
- * port.
+ * live in {@link SpawnRules}. Soul traders get attributes but no placement: they are summoned only.
  *
  * @author Alex
  * @version 1.0.0

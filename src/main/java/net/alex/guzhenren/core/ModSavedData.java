@@ -14,11 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * The base of every saved-data file this mod keeps on a level: a subclass writes itself into a tag
  * ({@link #write}) and is read back by the function it hands {@link #get}.
  *
- * <p>Item stacks go through the {@link StackIo} both sides receive, because writing a stack needs registry
- * context on one game version and not on the other.
- *
- * <p>⚠ A version seam: subclasses override {@link #write} only and fetch through {@link #get}, so they stay
- * identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port.
+ * <p>Item stacks go through the {@link StackIo} both sides receive, which carries the registry context writing a
+ * stack needs. Subclasses override {@link #write} only and fetch through {@link #get}.
  *
  * @author Alex
  * @version 1.0.0

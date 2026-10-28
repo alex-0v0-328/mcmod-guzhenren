@@ -102,11 +102,11 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     //region state
     public static RefinedGuState getState(ItemStack stack) {
-        return ModDataComponents.getOrDefault(stack, ModDataComponents.REFINED_GU_STATE, RefinedGuState.WILD);
+        return stack.getOrDefault(ModDataComponents.REFINED_GU_STATE, RefinedGuState.WILD);
     }
 
     private void store(ItemStack stack, RefinedGuState state) {
-        ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, new RefinedGuState(state.refined(),
+        stack.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(state.refined(),
                 Math.min(state.refineProgress(), getRefineCost()),
                 Math.min(state.investedEssence(), spec.getEssencePerRound()),
                 state.hunger(),
@@ -178,7 +178,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     public void refineAtBirth(ServerPlayer player, ItemStack stack) {
         store(stack, new RefinedGuState(true, getRefineCost(), 0, 0, getState(stack).damageTaken()));
         clock.bind(player, stack);
-        ModDataComponents.set(stack, ModDataComponents.REFINED_AT,
+        stack.set(ModDataComponents.REFINED_AT,
                 GuCooldowns.createCooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
         GuCooldowns.applyPostRefineCooldown(player.getCooldowns(), this,
                 TimeFlow.shortenWait(player, POST_REFINE_COOLDOWN_TICKS));
@@ -275,7 +275,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     private void grant(ServerPlayer player, ItemStack stack) {
         payOut(player, stack);
         if (spec.getEffectCooldownTicks() > 0) {
-            ModDataComponents.set(stack, ModDataComponents.USED_AT,
+            stack.set(ModDataComponents.USED_AT,
                     GuCooldowns.createCooldownStamp(player, spec.getEffectCooldownTicks()));
         }
     }
@@ -285,7 +285,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     private static final String FAILED_COOLDOWN = "guzhenren.item.failed.gu_cooldown";
 
     private int postRefineCooldownLeft(Player player, ItemStack stack) {
-        Long refinedAt = ModDataComponents.get(stack, ModDataComponents.REFINED_AT);
+        Long refinedAt = stack.get(ModDataComponents.REFINED_AT);
         return GuCooldowns.getCooldownLeft(player, refinedAt, POST_REFINE_COOLDOWN_TICKS);
     }
 
@@ -403,7 +403,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected int getHungerCostMultiplier(Player player, ItemStack stack) { return 1; }
 
     protected final int getEffectCooldownLeft(Player player, ItemStack stack) {
-        return GuCooldowns.getCooldownLeft(player, ModDataComponents.get(stack, ModDataComponents.USED_AT),
+        return GuCooldowns.getCooldownLeft(player, stack.get(ModDataComponents.USED_AT),
                 spec.getEffectCooldownTicks());
     }
 
@@ -458,9 +458,9 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     @Override
-    protected void appendTooltip(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
-                                 @NotNull TooltipFlag flag) {
-        super.appendTooltip(stack, level, tooltip, flag);
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         if (getState(stack).damageTaken() <= 0) return;
 
         tooltip.add(Component.translatable(TOOLTIP_HEALTH, getHealth(stack), getMaxHealth())

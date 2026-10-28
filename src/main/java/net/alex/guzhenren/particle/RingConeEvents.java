@@ -11,8 +11,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * Drives {@link RingConeEmitter}: advances a player's ring trails at the end of every player tick, and drops them
  * on logout and on a dimension change.
  *
- * <p>⚠ Loader glue only: the event types differ between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port,
- * so the handlers live here and {@link RingConeEmitter} stays identical between the two.
+ * <p>The event handlers live here, the trails behind them in {@link RingConeEmitter}.
  *
  * @author Alex
  * @version 1.0.0

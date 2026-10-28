@@ -13,8 +13,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Hands each interaction inside the Treasure Yellow Heaven [宝黄天] to {@link TreasureYellowHeavenGuard} and
- * cancels what it refuses. Loader glue only: the events differ between the NeoForge 1.21.1 mainline and the
- * Forge 1.20.1 port, the rules behind them do not.
+ * cancels what it refuses; the handlers live here, the rules there.
  *
  * @author Alex
  * @version 1.0.0

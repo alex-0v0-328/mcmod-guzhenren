@@ -17,9 +17,8 @@ import org.jetbrains.annotations.NotNull;
  * through the loader's griefing event, so a server turns them off with {@code /gamerule mobGriefing false} and a
  * protection mod can answer per entity. Damage never asks it.
  *
- * <p>⚠ A version seam: services post through {@link #post} and ask through {@link #canGrief} only, so the calling
- * lines stay identical between this NeoForge 1.21.1 mainline and the Forge 1.20.1 port; the event classes extend
- * each loader's own {@code Event}.
+ * <p>⚠ Services post through {@link #post} and ask through {@link #canGrief} only, so every terrain change passes
+ * the one griefing gate.
  *
  * @author Alex
  * @version 1.0.0

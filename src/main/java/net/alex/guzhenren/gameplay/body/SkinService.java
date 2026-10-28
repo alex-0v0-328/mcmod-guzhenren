@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.body;
 
-import java.util.function.Supplier;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -41,19 +41,19 @@ public final class SkinService {
     private static void projectSkin(ServerPlayer player) {
         Skin worn = BodyService.getSkin(player);
         for (Skin skin : Skin.values()) {
-            Supplier<? extends MobEffect> effect = getEffectOf(skin);
+            Holder<MobEffect> effect = getEffectOf(skin);
             if (effect == null) continue;
 
             if (skin == worn) {
                 player.addEffect(ModEffects.instance(effect, Math.max(1, (int) BodyService.getSkinTicksLeft(player))));
-            } else if (ModEffects.has(player, effect)) {
-                ModEffects.remove(player, effect);
+            } else if (player.hasEffect(effect)) {
+                player.removeEffect(effect);
             }
         }
     }
 
     /** The effect that projects {@code skin}, or {@code null} for a skin with no timer, which shows nothing. */
-    public static @Nullable Supplier<? extends MobEffect> getEffectOf(@NotNull Skin skin) {
+    public static @Nullable Holder<MobEffect> getEffectOf(@NotNull Skin skin) {
         return switch (skin) {
             case JADE_SKIN -> ModEffects.JADE_SKIN_GU;
             case WHITE_JADE_SKIN -> ModEffects.WHITE_JADE_GU;

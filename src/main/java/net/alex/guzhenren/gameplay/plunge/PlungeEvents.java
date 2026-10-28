@@ -15,8 +15,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * {@link PlungeService#tickLocal} at the end of the local player's; vanilla's fall damage cancelled while a plunge
  * runs, since the landing deals its own; a dimension change or a teleport ends the plunge.
  *
- * <p>⚠ Loader glue only: the event types differ between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port,
- * so the handlers live here and the service stays identical between the two.
+ * <p>The event handlers live here, the rules behind them in {@link PlungeService}.
  *
  * @author Alex
  * @version 1.0.0

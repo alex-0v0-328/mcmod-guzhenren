@@ -8,8 +8,8 @@ import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Which effect wears which icon: the one table both game versions read, so the client entry point only hands each
- * pair to its loader ({@code GuzhenrenClient}).
+ * Which effect wears which icon: one table, so the client entry point only hands each pair to NeoForge
+ * ({@code GuzhenrenClient}).
  *
  * <p>{@link #forEach} walks the table in a fixed order, one icon per effect handle: an {@link EffectIconLayout}, or a
  * {@link NoEffectIcon} for an effect shown without one.

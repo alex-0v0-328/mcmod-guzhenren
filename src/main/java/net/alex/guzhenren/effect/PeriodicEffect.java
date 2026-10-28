@@ -9,9 +9,8 @@ import org.jetbrains.annotations.NotNull;
  * An effect that pulses once every {@code intervalTicks} of its remaining duration; the subclass's
  * {@link #onPulse} is the pulse.
  *
- * <p>⚠ A version seam: this class answers the loader's per-tick callbacks ({@link #isPulseTick} decides the
- * cadence, the pulse never ends the effect early), so subclasses override {@link #onPulse} only and stay
- * identical between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port.
+ * <p>⚠ This class answers vanilla's per-tick callbacks ({@link #isPulseTick} decides the cadence, the pulse never
+ * ends the effect early), so subclasses override {@link #onPulse} only.
  *
  * @author Alex
  * @version 1.0.0

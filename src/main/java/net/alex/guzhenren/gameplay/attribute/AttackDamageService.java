@@ -8,7 +8,6 @@ import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -67,7 +66,7 @@ public final class AttackDamageService {
     public static double getEffectBonus(@NotNull Player player) {
         double total = 0.0D;
         for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (ModEffects.getEffectOf(instance) instanceof AttackContributor contributor) {
+            if (instance.getEffect().value() instanceof AttackContributor contributor) {
                 total += contributor.attackBonus(instance.getAmplifier());
             }
         }

@@ -7,8 +7,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Hands every server player's end-of-tick to {@link Heartbeat}. Loader glue only: the tick event differs
- * between the NeoForge 1.21.1 mainline and the Forge 1.20.1 port, the heartbeat behind it does not.
+ * Hands every server player's end-of-tick to {@link Heartbeat}; the event handler lives here, the heartbeat's
+ * order there.
  *
  * @author Alex
  * @version 1.0.0

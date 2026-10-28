@@ -24,9 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The container behind one aperture's [空窍] store, paged because the store outgrows one screen: up to
- * {@code ApertureStorageService.MAX_LOAD} load, at least one per Gu. It stays one class past 300 lines: its slots,
- * paging, Vital Gu binding and shift-click merge all read and write one state -- the page window, the Vital slot,
- * the synced page and load data and the {@code loading} flag -- that a split would have to hand across classes.
+ * {@code ApertureStorageService.MAX_LOAD} load, at least one per Gu. Shift-click is vanilla's merge, which reads each
+ * slot's limit for the stack it is offered ({@code GuSlot#getMaxStackSize(ItemStack)}), so the load cap holds there.
  *
  * <p>Extends {@link net.minecraft.world.inventory.AbstractContainerMenu}. 54 slots per page; the Vital Gu
  * [本命蛊] slot sits outside the pager, past {@code imageWidth}. The save trigger is a container
@@ -244,51 +243,6 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         return MenuSlots.quickMove(slots.get(index), stack -> toInventory
                 ? moveItemStackTo(stack, PAGE_SIZE, VITAL_SLOT, true)
                 : moveItemStackTo(stack, 0, PAGE_SIZE, false));
-    }
-
-    /**
-     * Vanilla's shift-click merge, reading each slot's limit for the stack it is offered.
-     *
-     * <p>⚠ A Gu slot's limit depends on the stack ({@code GuSlot#getMaxStackSize(ItemStack)}); 1.20.1's own merge
-     * reads only the stack-blind limit, so the vault would ignore its load cap there. This copy keeps both game
-     * versions on the per-stack limit.
-     */
-    @Override
-    protected boolean moveItemStackTo(@NotNull ItemStack stack, int start, int end, boolean reverse) {
-        boolean moved = false;
-        if (stack.isStackable()) {
-            for (int i = reverse ? end - 1 : start; !stack.isEmpty() && (reverse ? i >= start : i < end);
-                 i += reverse ? -1 : 1) {
-                Slot slot = slots.get(i);
-                ItemStack held = slot.getItem();
-                if (held.isEmpty() || !ItemStacks.isSameItemSameData(stack, held)) continue;
-
-                int total = held.getCount() + stack.getCount();
-                int limit = slot.getMaxStackSize(held);
-                if (total <= limit) {
-                    stack.setCount(0);
-                    held.setCount(total);
-                    slot.setChanged();
-                    moved = true;
-                } else if (held.getCount() < limit) {
-                    stack.shrink(limit - held.getCount());
-                    held.setCount(limit);
-                    slot.setChanged();
-                    moved = true;
-                }
-            }
-        }
-        if (stack.isEmpty()) return moved;
-
-        for (int i = reverse ? end - 1 : start; reverse ? i >= start : i < end; i += reverse ? -1 : 1) {
-            Slot slot = slots.get(i);
-            if (slot.getItem().isEmpty() && slot.mayPlace(stack)) {
-                slot.setByPlayer(stack.split(Math.min(stack.getCount(), slot.getMaxStackSize(stack))));
-                slot.setChanged();
-                return true;
-            }
-        }
-        return moved;
     }
 
     @Override

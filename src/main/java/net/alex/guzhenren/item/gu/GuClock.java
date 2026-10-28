@@ -71,7 +71,7 @@ public sealed interface GuClock {
 
         private void setHunger(ItemStack stack, int value) {
             RefinedGuState s = getState(stack);
-            ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
+            stack.set(ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
         }
 
         private int getHunger(ItemStack stack) { return getState(stack).hunger(); }
@@ -159,29 +159,29 @@ public sealed interface GuClock {
 
         private void setPoints(ItemStack stack, int value) {
             RefinedGuState s = getState(stack);
-            ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
+            stack.set(ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
         }
 
         public int getPoints(ItemStack stack) { return getState(stack).hunger(); }
 
         public int getPoints(ItemStack stack, long now) {
-            Long stamp = ModDataComponents.get(stack, ModDataComponents.RECOVERED_AT);
+            Long stamp = stack.get(ModDataComponents.RECOVERED_AT);
             int points = getPoints(stack);
             if (stamp == null || now < stamp || points >= max) return points;
             return (int) Math.min(max, points + (now - stamp) / ticksPerPoint);
         }
 
         public int getTicksToNextPoint(ItemStack stack, long now) {
-            Long stamp = ModDataComponents.get(stack, ModDataComponents.RECOVERED_AT);
+            Long stamp = stack.get(ModDataComponents.RECOVERED_AT);
             if (getPoints(stack, now) >= max) return 0;
             if (stamp == null || now < stamp) return ticksPerPoint;
             return (int) (ticksPerPoint - (now - stamp) % ticksPerPoint);
         }
 
         public void settle(ItemStack stack, long now) {
-            Long stamp = ModDataComponents.get(stack, ModDataComponents.RECOVERED_AT);
+            Long stamp = stack.get(ModDataComponents.RECOVERED_AT);
             if (stamp == null || now < stamp) {
-                ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
+                stack.set(ModDataComponents.RECOVERED_AT, now);
                 return;
             }
             int points = getPoints(stack);
@@ -192,37 +192,37 @@ public sealed interface GuClock {
 
             if (points + grown >= max) {
                 setPoints(stack, max);
-                ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
+                stack.set(ModDataComponents.RECOVERED_AT, now);
                 return;
             }
             setPoints(stack, points + (int) grown);
-            ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, stamp + grown * ticksPerPoint);
+            stack.set(ModDataComponents.RECOVERED_AT, stamp + grown * ticksPerPoint);
         }
 
         public void restart(ItemStack stack, long now) {
-            ModDataComponents.set(stack, ModDataComponents.RECOVERED_AT, now);
+            stack.set(ModDataComponents.RECOVERED_AT, now);
         }
 
         public void settleHealth(ItemStack stack, long now) {
             RefinedGuState s = getState(stack);
-            Long stamp = ModDataComponents.get(stack, ModDataComponents.HEALED_AT);
+            Long stamp = stack.get(ModDataComponents.HEALED_AT);
             if (s.damageTaken() <= 0) {
-                if (stamp != null) ModDataComponents.remove(stack, ModDataComponents.HEALED_AT);
+                if (stamp != null) stack.remove(ModDataComponents.HEALED_AT);
                 return;
             }
             if (stamp == null || now < stamp) {
-                ModDataComponents.set(stack, ModDataComponents.HEALED_AT, now);
+                stack.set(ModDataComponents.HEALED_AT, now);
                 return;
             }
             long grown = (now - stamp) / ticksPerPoint;
             if (grown <= 0L) return;
 
             int left = (int) Math.max(0L, s.damageTaken() - grown);
-            ModDataComponents.set(stack, ModDataComponents.REFINED_GU_STATE, s.withDamageTaken(left));
+            stack.set(ModDataComponents.REFINED_GU_STATE, s.withDamageTaken(left));
             if (left == 0) {
-                ModDataComponents.remove(stack, ModDataComponents.HEALED_AT);
+                stack.remove(ModDataComponents.HEALED_AT);
             } else {
-                ModDataComponents.set(stack, ModDataComponents.HEALED_AT, stamp + grown * ticksPerPoint);
+                stack.set(ModDataComponents.HEALED_AT, stamp + grown * ticksPerPoint);
             }
         }
 

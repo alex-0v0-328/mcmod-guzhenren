@@ -5,11 +5,11 @@ import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.network.ModNetwork;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -78,7 +78,7 @@ final class PathPicker {
             int cy = y0 + (i / COLS) * CELL_H;
             if (!Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) continue;
 
-            ModNetwork.sendToServer(new SetSecondaryPathPayload(aperture, getPath(i)));
+            PacketDistributor.sendToServer(new SetSecondaryPathPayload(aperture, getPath(i)));
             open = false;
             return;
         }

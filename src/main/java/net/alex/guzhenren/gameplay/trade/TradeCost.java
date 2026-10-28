@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * One price in a soul trade: an item, any data, and a count that is not capped at a stack -- a price of three
  * stacks of dirt is one cost of 192.
  *
- * <p>Travels as the item's registry id and the count, so it reads the same on every loader.
+ * <p>Travels as the item's registry id and the count.
  *
  * @author Alex
  * @version 1.0.0
