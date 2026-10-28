@@ -31,6 +31,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * <p>{@link #takeOff}: only a resting Gu has closed its wing cases; an aborted landing is still in
  * the flight pose.
  *
+ * <p>{@link #getMaxHeadYRot} is zero: the models turn no head bone, so the body takes every head turn whole.
+ * With the vanilla 75 degrees, a standing Gu's body trails its head by that much and a rest turn barely shows.
+ *
  * <p>{@link #readAdditionalSaveData}: goal state is not serialized. A saved landing re-arms its
  * request so the landing goal picks it up again; a saved rest is resumed by that goal directly,
  * without replaying the landing.
@@ -130,6 +133,9 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements Ge
     protected void playLandingAnimation() { triggerAnim(MAIN, "land"); }
 
     protected void playTakeoffAnimation() { triggerAnim(MAIN, "lift"); }
+
+    @Override
+    public int getMaxHeadYRot() { return 0; }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }

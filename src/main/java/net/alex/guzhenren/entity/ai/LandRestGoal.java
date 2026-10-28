@@ -24,10 +24,11 @@ import net.minecraft.world.phys.Vec3;
  * of the spot and a direct drive finishes the descent: {@link #tickLanding} settles for the spot rather than
  * on it, aiming just below the surface so the drive ends in a collision, which is what sets {@code onGround}
  * for a Gu that never falls; only touchdown starts the 160 to 200 tick rest with cleared motion and occasional
- * heading changes. A landing whose navigation has ended short of the spot scans again at most every
- * {@link #RETARGET_INTERVAL_TICKS} ticks. {@link #canUse} lets the goal pick a rest back up directly for a
- * Gu loaded mid-rest, which carries no landing request, so it resumes a fresh rest without replaying its
- * landing. Unsafe ground, a stalled landing or a failed navigation target aborts through
+ * heading changes. Nothing pulls a resting Gu down, so the rest ends with a takeoff as soon as the block under it
+ * stops holding it (broken, or turned to fluid). A landing whose navigation has ended short of the spot scans
+ * again at most every {@link #RETARGET_INTERVAL_TICKS} ticks. {@link #canUse} lets the goal pick a rest back up
+ * directly for a Gu loaded mid-rest, which carries no landing request, so it resumes a fresh rest without
+ * replaying its landing. Unsafe ground, a stalled landing or a failed navigation target aborts through
  * {@link RestingFlyingGuEntity#takeOff()} --
  * {@link #stop} also takes off whenever a threat interrupts rest, even when its escape path cannot start --
  * so the goal cannot wedge the entity in a non-flying phase.
@@ -43,6 +44,7 @@ public class LandRestGoal extends Goal {
     private static final double ARRIVAL_RANGE = 1.5D;
     private static final double TOUCHDOWN_SPEED = 0.1D;
     private static final double TOUCHDOWN_DEPTH = 0.5D;
+    private static final double GROUND_PROBE_DEPTH = 0.2D;
     private static final int GROUND_SCAN_DEPTH = 64;
     private static final int REST_TICKS = 8 * Ticks.SECOND;
     private static final int REST_JITTER_TICKS = 41;
@@ -123,13 +125,20 @@ public class LandRestGoal extends Goal {
 
     private void tickResting() {
         gu.setDeltaMovement(Vec3.ZERO);
-        if (--restRemaining <= 0) {
+        if (--restRemaining <= 0 || hasLostGround()) {
             gu.takeOff();
             return;
         }
         if (gu.getRandom().nextInt(LOOK_AROUND_ROLL) == 0) {
-            gu.setYRot(gu.getYRot() + gu.getRandom().nextInt(LOOK_YAW_SPREAD) - LOOK_YAW_CENTER);
+            float yaw = gu.getYRot() + gu.getRandom().nextInt(LOOK_YAW_SPREAD) - LOOK_YAW_CENTER;
+            gu.setYRot(yaw);
+            gu.setYBodyRot(yaw);
+            gu.setYHeadRot(yaw);
         }
+    }
+
+    private boolean hasLostGround() {
+        return isOpen(BlockPos.containing(gu.position().subtract(0.0D, GROUND_PROBE_DEPTH, 0.0D)));
     }
 
     private int restTicks() {
