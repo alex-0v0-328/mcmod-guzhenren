@@ -41,8 +41,8 @@ jobs:
         working-directory: guzhenren-template-1.21.1
         run: |
           mkdir -p run/mods
-          geckolib_file=geckolib-neoforge-1.21.1-4.9.2.jar
-          geckolib_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/tPkJmim6 | jq -er --arg file "$geckolib_file" '.files[] | select(.filename == $file) | .url')
+          geckolib_file=geckolib-neoforge-1.21.1-4.9.3.jar
+          geckolib_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/Grwn5rUB | jq -er --arg file "$geckolib_file" '.files[] | select(.filename == $file) | .url')
           curl --fail --location --retry 3 "$geckolib_url" -o "run/mods/$geckolib_file"
 
       # The test suites are local-only (src/test is gitignored) and run before every push through

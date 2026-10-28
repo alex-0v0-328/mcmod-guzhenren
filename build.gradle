@@ -174,8 +174,8 @@ dependencies {
     compileOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
     localRuntime files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
 
-    compileOnly files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
-    localRuntime files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
+    compileOnly files('run/mods/geckolib-neoforge-1.21.1-4.9.3.jar')
+    localRuntime files('run/mods/geckolib-neoforge-1.21.1-4.9.3.jar')
 
     localRuntime fileTree(dir: guWorldLibs, include: 'guworld-*.jar', exclude: '*-sources.jar')
 }
@@ -197,7 +197,7 @@ dependencies {
     pureTestImplementation "org.junit.jupiter:junit-jupiter"
     pureTestRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // The animation and model tests parse GeckoLib's baked formats; the dash ring test loads Epic Fight's types.
-    pureTestImplementation files('run/mods/geckolib-neoforge-1.21.1-4.9.2.jar')
+    pureTestImplementation files('run/mods/geckolib-neoforge-1.21.1-4.9.3.jar')
     pureTestRuntimeOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
 }
 
