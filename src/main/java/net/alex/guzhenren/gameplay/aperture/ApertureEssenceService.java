@@ -125,6 +125,16 @@ public final class ApertureEssenceService {
         ApertureService.set(player, index, ApertureService.getAperture(player, index).withFullEssence());
     }
 
+    public static void refillWithDistilled(@NotNull ServerPlayer player) {
+        for (int i = 0; i < ApertureService.get(player).count(); i++) refillWithDistilled(player, i);
+    }
+
+    public static void refillWithDistilled(@NotNull ServerPlayer player, int index) {
+        Aperture aperture = ApertureService.getAperture(player, index).withFullEssence();
+        if (aperture.distilling()) aperture = aperture.withDistilledEssence(aperture.getMaxEssence());
+        ApertureService.set(player, index, aperture);
+    }
+
     public static void addDistilled(@NotNull ServerPlayer player, long delta) {
         setDistilled(player, LongMath.saturatedAdd(getDistilledEssence(player), delta));
     }

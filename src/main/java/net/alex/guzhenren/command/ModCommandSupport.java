@@ -49,7 +49,6 @@ public final class ModCommandSupport {
     public static final String ARG_VALUE = "value";
     public static final String FAILED_AWAKENED = "guzhenren.command.failed.awakened";
     public static final String FAILED_UNAWAKENED = "guzhenren.command.failed.unawakened";
-    public static final String FAILED_EXTREME = "guzhenren.command.failed.extreme_physique_required";
     public static final Predicate<ServerPlayer> ANYONE = player -> true;
     public static void refreshCommands(ServerPlayer player) {
         MinecraftServer server = player.getServer();

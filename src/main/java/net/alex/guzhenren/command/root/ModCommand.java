@@ -3,7 +3,6 @@ package net.alex.guzhenren.command.root;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.command.AwakenedGate;
 import net.alex.guzhenren.command.CmdAperture;
 import net.alex.guzhenren.command.CmdAwaken;
 import net.alex.guzhenren.command.CmdBody;
@@ -59,7 +58,7 @@ public final class ModCommand {
                         .then(CmdAwaken.buildNode())
                         .then(CmdReset.buildNode())
                         .then(CmdAperture.buildNode())
-                        .then(CmdBody.buildNode(AwakenedGate.AWAKENED))
+                        .then(CmdBody.buildNode())
                         .then(CmdSoul.buildNode())
                         .then(CmdPath.buildNode())
                         .then(CmdMind.buildNode()));

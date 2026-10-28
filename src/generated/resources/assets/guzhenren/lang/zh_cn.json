@@ -62,7 +62,7 @@
   "entity.guzhenren.wild_boar": "野猪",
   "guzhenren.command.failed.aperture_index": "%s 没有该空窍",
   "guzhenren.command.failed.awakened": "%s 已开窍",
-  "guzhenren.command.failed.extreme_physique_required": "%s 必须使用具体的十绝体质",
+  "guzhenren.command.failed.base_extreme": "%s 未开窍或是十绝体；十绝体须用 talent 修改",
   "guzhenren.command.failed.unawakened": "%s 尚未开窍",
   "guzhenren.command.header": "[GZR]",
   "guzhenren.command.info.aperture_status": "空窍状态  %s",

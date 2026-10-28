@@ -227,8 +227,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.command.failed.awakened",                  "%s has already awakened", "%s 已开窍");
         add("guzhenren.command.failed.unawakened",                "%s has not awakened", "%s 尚未开窍");
         add("guzhenren.command.failed.aperture_index",            "%s has no aperture there", "%s 没有该空窍");
-        add("guzhenren.command.failed.extreme_physique_required",
-                "%s must use a concrete Extreme physique", "%s 必须使用具体的十绝体质");
+        add("guzhenren.command.failed.base_extreme",
+                "%s is unawakened or a Ten Extremes physique; set the latter through talent",
+                "%s 未开窍或是十绝体；十绝体须用 talent 修改");
 
         add("guzhenren.command.info.realm",                       "Realm: %s", "玩家修为  %s");
         add("guzhenren.command.info.aperture_status",             "Aperture Status: %s", "空窍状态  %s");

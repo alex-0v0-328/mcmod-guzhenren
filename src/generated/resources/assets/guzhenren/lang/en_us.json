@@ -62,7 +62,7 @@
   "entity.guzhenren.wild_boar": "Wild Boar",
   "guzhenren.command.failed.aperture_index": "%s has no aperture there",
   "guzhenren.command.failed.awakened": "%s has already awakened",
-  "guzhenren.command.failed.extreme_physique_required": "%s must use a concrete Extreme physique",
+  "guzhenren.command.failed.base_extreme": "%s is unawakened or a Ten Extremes physique; set the latter through talent",
   "guzhenren.command.failed.unawakened": "%s has not awakened",
   "guzhenren.command.header": "[GZR]",
   "guzhenren.command.info.aperture_status": "Aperture Status: %s",

@@ -4,11 +4,10 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import java.util.function.Predicate;
+import java.util.Arrays;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Bone;
-import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.Skin;
@@ -18,8 +17,6 @@ import net.alex.guzhenren.item.gu.mortal.strength.SkinGuItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.StringRepresentable;
 
 /**
  * {@code /gzr body}: writes body [肉身] state -- physiques, race, skin, tendons, bones, lifespan and age;
@@ -27,8 +24,8 @@ import net.minecraft.util.StringRepresentable;
  *
  * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, the three tempered parts, lifespan and
  * age. The path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a
- * mortal ages and changes form too -- except {@code extreme set}, which needs an awakened target. That gate
- * comes in through {@link #buildNode} from the command root, so the body package never names the aperture package.
+ * mortal ages and changes form too. The Ten Extremes physique is not written here: {@code /gzr aperture talent}
+ * owns it, because it decides the first aperture's base essence.
  *
  * <p>{@code skin set <skin> [seconds]} wears a skin the way its Gu would and projects it at once; a jade skin
  * without {@code seconds} takes its Gu's registered duration, a permanent skin ignores the figure, and
@@ -46,10 +43,12 @@ public final class CmdBody {
     private CmdBody() {}
 
     private static final String ARG_SECONDS = "seconds";
+    private static final Physique[] PHYSIQUES = Arrays.stream(Physique.values())
+            .filter(physique -> physique != Physique.EXTREME).toArray(Physique[]::new);
 
-    public static ArgumentBuilder<CommandSourceStack, ?> buildNode(Predicate<ServerPlayer> awakened) {
+    public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("body")
-                .then(buildPhysique(awakened))
+                .then(buildPhysique())
                 .then(ModCommandSupport.buildEnumSetNode("race", Race.values(),
                         BodyService::setRace, ModCommandSupport.ANYONE, null))
                 .then(buildSkin())
@@ -61,17 +60,19 @@ public final class CmdBody {
                 .then(ModCommandSupport.buildCounter("age", BodyService::setAge, BodyService::addAge));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> buildPhysique(Predicate<ServerPlayer> awakened) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildPhysique() {
         return Commands.literal("physique")
-                .then(enumAction("add", Physique.values(), BodyService::addPhysique,
-                        value -> value != Physique.EXTREME, player -> true,
-                        ModCommandSupport.FAILED_EXTREME))
-                .then(enumAction("remove", Physique.values(), BodyService::removePhysique, value -> true,
-                        player -> true, null))
-                .then(Commands.literal("extreme")
-                        .then(enumAction("set", ExtremePhysique.getSettable(), BodyService::setExtremePhysique,
-                                value -> true, awakened,
-                                ModCommandSupport.FAILED_UNAWAKENED)));
+                .then(physiqueAction("add", BodyService::addPhysique))
+                .then(physiqueAction("remove", BodyService::removePhysique));
+    }
+
+    private static ArgumentBuilder<CommandSourceStack, ?> physiqueAction(
+            String literal, ModCommandSupport.EnumOperation<Physique> operation) {
+        return Commands.literal(literal).then(ModCommandSupport.withTargets(
+                ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, PHYSIQUES), context -> {
+                    Physique value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, PHYSIQUES);
+                    return ModCommandSupport.apply(context, player -> operation.apply(player, value));
+                }));
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> buildSkin() {
@@ -109,20 +110,5 @@ public final class CmdBody {
             case WHITE_JADE_SKIN -> ((SkinGuItem) ModItems.WHITE_JADE_GU.get()).getDurationTicks();
             default -> 0;
         };
-    }
-
-    private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> enumAction(
-            String literal, E[] values, ModCommandSupport.EnumOperation<E> operation,
-            Predicate<E> valueAllowed, Predicate<ServerPlayer> allowed, String refusedKey) {
-        return Commands.literal(literal).then(ModCommandSupport.withTargets(
-                ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, values), context -> {
-                    E value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, values);
-                    boolean valid = valueAllowed.test(value);
-                    Predicate<ServerPlayer> gate = !valid
-                            ? player -> false : allowed;
-                    String key = !valid
-                            ? ModCommandSupport.FAILED_EXTREME : refusedKey;
-                    return ModCommandSupport.applyIf(context, gate, key, player -> operation.apply(player, value));
-                }));
     }
 }
