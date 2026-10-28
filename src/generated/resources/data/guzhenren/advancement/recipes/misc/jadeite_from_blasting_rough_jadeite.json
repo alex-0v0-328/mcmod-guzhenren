@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_rough_jadeite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "guzhenren:rough_jadeite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "guzhenren:jadeite_from_blasting_rough_jadeite"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_rough_jadeite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "guzhenren:jadeite_from_blasting_rough_jadeite"
+    ]
+  }
+}

@@ -488,6 +488,10 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.INTIMATE_GRASS_BUNDLE,                      "Intimate Grass Bundle", "知心草束");
         addItem(ModItems.MOON_ORCHID_PETALS,                         "Moon Orchid Petals", "月兰花瓣");
         addItem(ModItems.ROTTEN_FROZEN_MUD,                          "Rotten Frozen Mud", "腐泥冻土");
+        addItem(ModItems.JADE,                                       "Jade", "玉");
+        addItem(ModItems.ROUGH_JADE,                                 "Rough Jade", "玉原石");
+        addItem(ModItems.JADEITE,                                    "Jadeite", "翡翠");
+        addItem(ModItems.ROUGH_JADEITE,                              "Rough Jadeite", "翡翠原石");
         addItem(ModItems.STEEL_INGOT,                                "Steel Ingot", "钢锭");
         addBlock(ModBlocks.STEEL_BLOCK,                              "Steel Block", "钢块");
 

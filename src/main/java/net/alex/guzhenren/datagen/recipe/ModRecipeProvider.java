@@ -30,8 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid, and the steel's
- * blast-furnace-only ingot and its block.
+ * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid, the furnace and blast
+ * furnace recipes that cook a Gu material into another, and the steel's blast-furnace-only ingot and its block.
  *
  * <p>Extends {@link net.minecraft.data.recipes.RecipeProvider}. Each recipe is transcribed verbatim
  * from an ASCII drawing ({@code '.'} empty, {@code ' '} cut corner), so a wrong corner, a short row
@@ -92,11 +92,26 @@ public class ModRecipeProvider extends RecipeProvider {
                 ".jjj.",
                 " ... ");
 
+        addSmelting(output, ModItems.ROUGH_JADE, ModItems.JADE, 0.7F);
+        addSmelting(output, ModItems.ROUGH_JADEITE, ModItems.JADEITE, 0.7F);
+
         addBlasting(output, Items.IRON_INGOT, ModItems.STEEL_INGOT, 0.1F);
         addStorage(output, ModItems.STEEL_INGOT, ModItems.STEEL_BLOCK);
     }
 
-    //region Cooking -- vanilla's raw ore time: 5 seconds in a blast furnace
+    //region Cooking -- vanilla's raw ore times: 10 seconds in a furnace, 5 in a blast furnace
+    private static void addSmelting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {
+        String from = "_" + getItemName(input);
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
+                        10 * Ticks.SECOND)
+                .unlockedBy(getHasName(input), has(input))
+                .save(output, Guzhenren.id(getItemName(result) + "_from_smelting" + from));
+        SimpleCookingRecipeBuilder.blasting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
+                        5 * Ticks.SECOND)
+                .unlockedBy(getHasName(input), has(input))
+                .save(output, Guzhenren.id(getItemName(result) + "_from_blasting" + from));
+    }
+
     /** A blast furnace alone: steel is iron cooked once more, and an ordinary furnace cannot. */
     private static void addBlasting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {
         SimpleCookingRecipeBuilder.blasting(Ingredient.of(input), RecipeCategory.MISC, result, experience,

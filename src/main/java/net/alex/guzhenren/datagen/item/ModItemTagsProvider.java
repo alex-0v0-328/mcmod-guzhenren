@@ -47,8 +47,8 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModItemTags.COBBLESTONE_FEED).add(Items.COBBLESTONE);
         tag(ModItemTags.POTATO_FEED).add(Items.POTATO);
         tag(ModItemTags.SMOOTH_STONE_FEED).add(Items.SMOOTH_STONE);
-        tag(ModItemTags.JADE_SKIN_FEED).add(Items.EMERALD);
-        tag(ModItemTags.WHITE_JADE_FEED).add(Items.QUARTZ);
+        tag(ModItemTags.JADE_SKIN_FEED).add(ModItems.JADE.get(), ModItems.JADEITE.get());
+        tag(ModItemTags.WHITE_JADE_FEED).add(ModItems.JADE.get(), ModItems.JADEITE.get());
         tag(ModItemTags.BRONZE_SKIN_FEED).add(Items.COPPER_INGOT);
         tag(ModItemTags.IRON_SKIN_FEED).add(Items.IRON_INGOT);
         tag(ModItemTags.STEEL_TENDON_FEED).addTag(ModItemTags.INGOTS_STEEL);

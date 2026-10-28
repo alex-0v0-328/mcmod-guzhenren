@@ -665,7 +665,16 @@ public final class ModItems {
     //endregion
 
     //region Earth materials [土道蛊材] -- pure Gu material, earth path rank I; no natural source yet
+    // Rough Jade [玉原石] and Rough Jadeite [翡翠原石] smelt into Jade [玉] and Jadeite [翡翠], both jade skin Gu's food.
     public static final DeferredItem<Item> ROTTEN_FROZEN_MUD = ITEMS.register("rotten_frozen_mud",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
+    public static final DeferredItem<Item> JADE = ITEMS.register("jade",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
+    public static final DeferredItem<Item> ROUGH_JADE = ITEMS.register("rough_jade",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
+    public static final DeferredItem<Item> JADEITE = ITEMS.register("jadeite",
+            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
+    public static final DeferredItem<Item> ROUGH_JADEITE = ITEMS.register("rough_jadeite",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
     //endregion
 
