@@ -73,6 +73,3 @@ src/test/
 ### Python export tools ###
 __pycache__/
 *.py[cod]
-
-### Forge 1.20.1: the test pack jars stay local ###
-/pack/
