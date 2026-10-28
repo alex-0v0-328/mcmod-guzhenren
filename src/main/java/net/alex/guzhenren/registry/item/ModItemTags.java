@@ -2,6 +2,7 @@ package net.alex.guzhenren.registry.item;
 
 import net.alex.guzhenren.Guzhenren;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
@@ -10,7 +11,7 @@ import net.minecraft.world.item.Item;
  *
  * <p>Tag-key holder (not a DeferredRegister): each {@link TagKey} is a feed larder named after the Gu
  * family it feeds ({@code boar_feed}, {@code liquor_feed}, ...). A datapack retunes membership; the key
- * is the contract.
+ * is the contract. The {@code c:} keys are the shared convention tags other mods' steel answers to.
  *
  * @author Alex
  * @version 1.0.0
@@ -32,12 +33,9 @@ public final class ModItemTags {
     public static final TagKey<Item> JADE_SKIN_FEED = key("jade_skin_feed");
     public static final TagKey<Item> WHITE_JADE_FEED = key("white_jade_feed");
     public static final TagKey<Item> BRONZE_SKIN_FEED = key("bronze_skin_feed");
-    public static final TagKey<Item> ANCIENT_BRONZE_SKIN_FEED = key("ancient_bronze_skin_feed");
     public static final TagKey<Item> IRON_SKIN_FEED = key("iron_skin_feed");
-    public static final TagKey<Item> ESSENCE_IRON_SKIN_FEED = key("essence_iron_skin_feed");
     public static final TagKey<Item> STEEL_TENDON_FEED = key("steel_tendon_feed");
     public static final TagKey<Item> IRON_BONE_FEED = key("iron_bone_feed");
-    public static final TagKey<Item> ESSENCE_IRON_BONE_FEED = key("essence_iron_bone_feed");
     public static final TagKey<Item> JIN_FEED = key("jin_feed");
     public static final TagKey<Item> JIN_FEED_SMELTED = key("jin_feed_smelted");
     public static final TagKey<Item> LIQUOR_FEED = key("liquor_feed");
@@ -47,7 +45,14 @@ public final class ModItemTags {
     public static final TagKey<Item> CASUAL_FEED = key("casual_feed");
     public static final TagKey<Item> AMPLIFY_EFFECT_FEED = key("amplify_effect_feed");
 
+    public static final TagKey<Item> INGOTS_STEEL = commonKey("ingots/steel");
+    public static final TagKey<Item> STORAGE_BLOCKS_STEEL = commonKey("storage_blocks/steel");
+
     private static TagKey<Item> key(String name) {
         return TagKey.create(Registries.ITEM, Guzhenren.id(name));
+    }
+
+    private static TagKey<Item> commonKey(String name) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", name));
     }
 }

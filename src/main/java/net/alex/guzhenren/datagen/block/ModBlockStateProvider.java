@@ -58,6 +58,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 Guzhenren.id("item/nine_leaf_vitality_grass_full"));
         registerDoublePlantBlock(ModBlocks.INTIMATE_GRASS.get(), buildTintedCrossOverlay());
         registerHopperBlock(ModBlocks.DECORATIVE_HOPPER.get());
+        simpleBlock(ModBlocks.STEEL_BLOCK.get());
     }
 
     private void registerFluidBlock(Block block, ResourceLocation particle) {

@@ -141,11 +141,6 @@ public final class CmdInfo {
         }
 
         @Override
-        public Component visit(InfoModel.SkinRow entry) {
-            return translate("skin", translateEnum(entry.skin().getTranslationKey()));
-        }
-
-        @Override
         public Component visit(InfoModel.TendonRow entry) {
             return translate("tendon", translateEnum(entry.tendon().getTranslationKey()));
         }
@@ -153,6 +148,16 @@ public final class CmdInfo {
         @Override
         public Component visit(InfoModel.BoneRow entry) {
             return translate("bone", translateEnum(entry.bone().getTranslationKey()));
+        }
+
+        @Override
+        public Component visit(InfoModel.SkinRow entry) {
+            return translate("skin", translateEnum(entry.skin().getTranslationKey()));
+        }
+
+        @Override
+        public Component visit(InfoModel.FleshRow entry) {
+            return translate("flesh", translateEnum(entry.flesh().getTranslationKey()));
         }
 
         @Override

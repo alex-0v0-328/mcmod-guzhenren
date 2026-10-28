@@ -5,6 +5,7 @@ import net.alex.guzhenren.block.DecorativeHopperBlock;
 import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.FlowerBlock;
@@ -38,6 +39,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *
  * <p>{@link #INTIMATE_GRASS} is the two-block Intimate Grass [知心草], vanilla tall grass in shape, properties and
  * biome tint, without a BlockItem; its loot table gives an Intimate Grass Bundle [知心草束] to a hoe only.
+ *
+ * <p>{@link #STEEL_BLOCK} is the Steel Block [钢块]: a plain storage block on the iron block's properties line, so
+ * it mines, sounds and serves a beacon like one; nine Steel Ingots [钢锭] craft it and it crafts back.
  *
  * <p>{@link #DECORATIVE_HOPPER} is the structure-template stand-in for vanilla hoppers: hopper properties,
  * no BlockItem and no loot, so mining it yields nothing; builders place hoppers and swap them in with
@@ -83,6 +87,8 @@ public final class ModBlocks {
 
     public static final DeferredBlock<DecorativeHopperBlock> DECORATIVE_HOPPER = BLOCKS.register("decorative_hopper",
             () -> new DecorativeHopperBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.HOPPER).noLootTable()));
+    public static final DeferredBlock<Block> STEEL_BLOCK = BLOCKS.register("steel_block",
+            () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)));
 
     public static void register(IEventBus modEventBus) { BLOCKS.register(modEventBus); }
 }

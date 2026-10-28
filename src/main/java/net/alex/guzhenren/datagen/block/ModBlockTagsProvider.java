@@ -30,7 +30,11 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.@NotNull Provider provider) {
-        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.DECORATIVE_HOPPER.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.DECORATIVE_HOPPER.get(), ModBlocks.STEEL_BLOCK.get());
+        tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.STEEL_BLOCK.get());
+        tag(BlockTags.BEACON_BASE_BLOCKS).add(ModBlocks.STEEL_BLOCK.get());
+        tag(ModBlockTags.STORAGE_BLOCKS_STEEL).add(ModBlocks.STEEL_BLOCK.get());
+        tag(Tags.Blocks.STORAGE_BLOCKS).addTag(ModBlockTags.STORAGE_BLOCKS_STEEL);
         tag(ModBlockTags.AS_BEFORE_TERRAIN)
                 .addTags(BlockTags.BASE_STONE_OVERWORLD, BlockTags.BASE_STONE_NETHER, BlockTags.SAND,
                         BlockTags.TERRACOTTA, Tags.Blocks.SANDSTONE_UNCOLORED_BLOCKS, Tags.Blocks.SANDSTONE_RED_BLOCKS)

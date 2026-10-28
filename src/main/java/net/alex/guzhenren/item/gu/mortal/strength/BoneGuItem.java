@@ -8,8 +8,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Iron Bone Gu [铁骨蛊] and the Essence Iron Bone Gu [精铁骨蛊]: make the holder's bones [骨] iron for good;
- * the max health and knockback resistance they add are the grade's. Extends {@link TemperingGuItem}; the
+ * The Iron Bone Gu [铁骨蛊]: makes the holder's bones [骨] iron for good, in the rank registration names; the
+ * max health and knockback resistance it adds are the grade's. Extends {@link TemperingGuItem}; the
  * write is {@link BodyService#temperBone}.
  *
  * @author Alex

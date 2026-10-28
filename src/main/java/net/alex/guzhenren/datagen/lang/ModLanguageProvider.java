@@ -12,6 +12,7 @@ import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.gameplay.aperture.Title;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
+import net.alex.guzhenren.gameplay.body.Flesh;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.Skin;
@@ -244,9 +245,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.command.info.lifespan",                    "Lifespan:    %s", "玩家寿元  %s");
         add("guzhenren.command.info.physique",                    "%s", "%s");
         add("guzhenren.command.info.race",                        "Race:        %s", "种族      %s");
-        add("guzhenren.command.info.skin",                        "Skin:        %s", "皮肤      %s");
         add("guzhenren.command.info.tendon",                      "Tendons:     %s", "筋        %s");
         add("guzhenren.command.info.bone",                        "Bones:       %s", "骨        %s");
+        add("guzhenren.command.info.skin",                        "Skin:        %s", "皮        %s");
+        add("guzhenren.command.info.flesh",                       "Flesh:       %s", "肉        %s");
         add("guzhenren.command.info.wisdom_path_achieve",         "Wisdom Path Attainment:", "智道造诣");
         add("guzhenren.command.info.wisdom_path_achieve_entry",   "  %s  %s", "  %s  %s");
         add("guzhenren.command.info.qi_path_achieve",             "Qi Path Attainment:", "气道造诣");
@@ -347,9 +349,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.distilled",             "Distilled", "精炼真元");
         add("guzhenren.screen.label.physique",              "Physique", "体质");
         add("guzhenren.screen.label.race",                  "Race", "种族");
-        add("guzhenren.screen.label.skin",                  "Skin", "皮肤");
         add("guzhenren.screen.label.tendon",                "Tendons", "筋");
         add("guzhenren.screen.label.bone",                  "Bones", "骨");
+        add("guzhenren.screen.label.skin",                  "Skin", "皮");
+        add("guzhenren.screen.label.flesh",                 "Flesh", "肉");
         add("guzhenren.screen.label.wisdom_path_achieve",   "Wisdom Path Attainment", "智道造诣");
         add("guzhenren.screen.label.soul",                  "Soul", "魂魄");
         add("guzhenren.screen.label.lifespan",              "Lifespan", "寿元");
@@ -403,15 +406,15 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.BRONZE_SKIN_GU_1,                           "Bronze Skin Gu I", "一转铜皮蛊");
         addItem(ModItems.BRONZE_SKIN_GU_2,                           "Bronze Skin Gu II", "二转铜皮蛊");
         addItem(ModItems.BRONZE_SKIN_GU_3,                           "Bronze Skin Gu III", "三转铜皮蛊");
-        addItem(ModItems.ANCIENT_BRONZE_SKIN_GU,                     "Ancient Bronze Skin Gu", "古铜皮蛊");
+        addItem(ModItems.BRONZE_SKIN_GU_4,                           "Bronze Skin Gu IV", "四转铜皮蛊");
         addItem(ModItems.IRON_SKIN_GU_1,                             "Iron Skin Gu I", "一转铁皮蛊");
         addItem(ModItems.IRON_SKIN_GU_2,                             "Iron Skin Gu II", "二转铁皮蛊");
         addItem(ModItems.IRON_SKIN_GU_3,                             "Iron Skin Gu III", "三转铁皮蛊");
-        addItem(ModItems.ESSENCE_IRON_SKIN_GU,                       "Essence Iron Skin Gu", "精铁皮蛊");
+        addItem(ModItems.IRON_SKIN_GU_4,                             "Iron Skin Gu IV", "四转铁皮蛊");
         addItem(ModItems.STEEL_TENDON_GU_3,                          "Steel Tendon Gu III", "三转钢筋蛊");
         addItem(ModItems.STEEL_TENDON_GU_4,                          "Steel Tendon Gu IV", "四转钢筋蛊");
-        addItem(ModItems.IRON_BONE_GU,                               "Iron Bone Gu", "铁骨蛊");
-        addItem(ModItems.ESSENCE_IRON_BONE_GU,                       "Essence Iron Bone Gu", "精铁骨蛊");
+        addItem(ModItems.IRON_BONE_GU_3,                             "Iron Bone Gu III", "三转铁骨蛊");
+        addItem(ModItems.IRON_BONE_GU_4,                             "Iron Bone Gu IV", "四转铁骨蛊");
         addItem(ModItems.VITALITY_LEAF_GU,                           "Vitality Leaf Gu", "生机叶蛊");
         addItem(ModItems.LIFESPAN_GU,                                "Lifespan Gu", "寿蛊");
         addItem(ModItems.TENS_LIFESPAN_GU,                           "Ten-Year Lifespan Gu", "十年寿蛊");
@@ -485,6 +488,8 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.INTIMATE_GRASS_BUNDLE,                      "Intimate Grass Bundle", "知心草束");
         addItem(ModItems.MOON_ORCHID_PETALS,                         "Moon Orchid Petals", "月兰花瓣");
         addItem(ModItems.ROTTEN_FROZEN_MUD,                          "Rotten Frozen Mud", "腐泥冻土");
+        addItem(ModItems.STEEL_INGOT,                                "Steel Ingot", "钢锭");
+        addBlock(ModBlocks.STEEL_BLOCK,                              "Steel Block", "钢块");
 
         addItem(ModItems.SWORD_QI_1,                                 "Sword Qi I", "一转剑气");
         addItem(ModItems.SWORD_QI_2,                                 "Sword Qi II", "二转剑气");
@@ -701,6 +706,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addSkin();
         addTendon();
         addBone();
+        addFlesh();
     }
 
     private void addGuType() {
@@ -721,29 +727,33 @@ public class ModLanguageProvider extends LanguageProvider {
     }
 
     private void addSkin() {
-        add(Skin.NATIVE,              "Native",              "原生");
-        add(Skin.JADE_SKIN,           "Jade Skin",           "玉皮");
-        add(Skin.WHITE_JADE_SKIN,     "White Jade Skin",     "白玉皮");
-        add(Skin.BRONZE_SKIN_1,       "Bronze Skin I",       "一转铜皮");
-        add(Skin.BRONZE_SKIN_2,       "Bronze Skin II",      "二转铜皮");
-        add(Skin.BRONZE_SKIN_3,       "Bronze Skin III",     "三转铜皮");
-        add(Skin.ANCIENT_BRONZE_SKIN, "Ancient Bronze Skin", "古铜皮");
-        add(Skin.IRON_SKIN_1,         "Iron Skin I",         "一转铁皮");
-        add(Skin.IRON_SKIN_2,         "Iron Skin II",        "二转铁皮");
-        add(Skin.IRON_SKIN_3,         "Iron Skin III",       "三转铁皮");
-        add(Skin.ESSENCE_IRON_SKIN,   "Essence Iron Skin",   "精铁皮");
+        add(Skin.NATIVE,          "Original",        "原生");
+        add(Skin.JADE_SKIN,       "Jade Skin",       "玉皮");
+        add(Skin.WHITE_JADE_SKIN, "White Jade Skin", "白玉皮");
+        add(Skin.BRONZE_SKIN_1,   "Bronze Skin I",   "一转铜皮");
+        add(Skin.BRONZE_SKIN_2,   "Bronze Skin II",  "二转铜皮");
+        add(Skin.BRONZE_SKIN_3,   "Bronze Skin III", "三转铜皮");
+        add(Skin.BRONZE_SKIN_4,   "Bronze Skin IV",  "四转铜皮");
+        add(Skin.IRON_SKIN_1,     "Iron Skin I",     "一转铁皮");
+        add(Skin.IRON_SKIN_2,     "Iron Skin II",    "二转铁皮");
+        add(Skin.IRON_SKIN_3,     "Iron Skin III",   "三转铁皮");
+        add(Skin.IRON_SKIN_4,     "Iron Skin IV",    "四转铁皮");
     }
 
     private void addTendon() {
-        add(Tendon.NATIVE,         "Native",           "原生");
+        add(Tendon.NATIVE,         "Original",         "原生");
         add(Tendon.STEEL_TENDON_3, "Steel Tendon III", "三转钢筋");
         add(Tendon.STEEL_TENDON_4, "Steel Tendon IV",  "四转钢筋");
     }
 
     private void addBone() {
-        add(Bone.NATIVE,            "Native",            "原生");
-        add(Bone.IRON_BONE,         "Iron Bone",         "铁骨");
-        add(Bone.ESSENCE_IRON_BONE, "Essence Iron Bone", "精铁骨");
+        add(Bone.NATIVE,      "Original",      "原生");
+        add(Bone.IRON_BONE_3, "Iron Bone III", "三转铁骨");
+        add(Bone.IRON_BONE_4, "Iron Bone IV",  "四转铁骨");
+    }
+
+    private void addFlesh() {
+        add(Flesh.NATIVE, "Original", "原生");
     }
 
     private void addBeastStrength() {

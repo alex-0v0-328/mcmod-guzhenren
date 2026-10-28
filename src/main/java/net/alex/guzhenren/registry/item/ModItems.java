@@ -282,60 +282,73 @@ public final class ModItems {
     //region Normal [基础力道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
     public static final DeferredItem<Item> JADE_SKIN_GU = ITEMS.register("jade_skin_gu",
             () -> new SkinGuItem(createTendedProperties(), Skin.JADE_SKIN, 60 * Ticks.SECOND,
-                    createTemperingSpec(Rank.ONE, 800, 16, 1, ModItemTags.JADE_SKIN_FEED)));
+                    createJadeSkinSpec(Rank.ONE, 800, 16, 1, ModItemTags.JADE_SKIN_FEED)));
     public static final DeferredItem<Item> WHITE_JADE_GU = ITEMS.register("white_jade_gu",
             () -> new SkinGuItem(createTendedProperties(), Skin.WHITE_JADE_SKIN, 90 * Ticks.SECOND,
-                    createTemperingSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.WHITE_JADE_FEED)));
+                    createJadeSkinSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.WHITE_JADE_FEED)));
     //endregion
 
     //region Normal [基础力道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good
     public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = ITEMS.register("bronze_skin_gu_1",
             () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_1, 0,
-                    createTemperingSpec(Rank.ONE, 800, 16, 1, ModItemTags.BRONZE_SKIN_FEED)));
+                    createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.BRONZE_SKIN_FEED)));
     public static final DeferredItem<Item> BRONZE_SKIN_GU_2 = ITEMS.register("bronze_skin_gu_2",
             () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_2, 0,
-                    createTemperingSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.BRONZE_SKIN_FEED)));
+                    createTemperingSpec(Rank.TWO, 8_000, 36_000, 4, ModItemTags.BRONZE_SKIN_FEED)));
     public static final DeferredItem<Item> BRONZE_SKIN_GU_3 = ITEMS.register("bronze_skin_gu_3",
             () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_3, 0,
-                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.BRONZE_SKIN_FEED)));
-    public static final DeferredItem<Item> ANCIENT_BRONZE_SKIN_GU = ITEMS.register("ancient_bronze_skin_gu",
-            () -> new SkinGuItem(createTendedProperties(), Skin.ANCIENT_BRONZE_SKIN, 0,
-                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ANCIENT_BRONZE_SKIN_FEED)));
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.BRONZE_SKIN_FEED)));
+    public static final DeferredItem<Item> BRONZE_SKIN_GU_4 = ITEMS.register("bronze_skin_gu_4",
+            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_4, 0,
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.BRONZE_SKIN_FEED)));
     public static final DeferredItem<Item> IRON_SKIN_GU_1 = ITEMS.register("iron_skin_gu_1",
             () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_1, 0,
-                    createTemperingSpec(Rank.ONE, 800, 16, 1, ModItemTags.IRON_SKIN_FEED)));
+                    createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.IRON_SKIN_FEED)));
     public static final DeferredItem<Item> IRON_SKIN_GU_2 = ITEMS.register("iron_skin_gu_2",
             () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_2, 0,
-                    createTemperingSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.IRON_SKIN_FEED)));
+                    createTemperingSpec(Rank.TWO, 8_000, 36_000, 4, ModItemTags.IRON_SKIN_FEED)));
     public static final DeferredItem<Item> IRON_SKIN_GU_3 = ITEMS.register("iron_skin_gu_3",
             () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_3, 0,
-                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.IRON_SKIN_FEED)));
-    public static final DeferredItem<Item> ESSENCE_IRON_SKIN_GU = ITEMS.register("essence_iron_skin_gu",
-            () -> new SkinGuItem(createTendedProperties(), Skin.ESSENCE_IRON_SKIN, 0,
-                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ESSENCE_IRON_SKIN_FEED)));
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.IRON_SKIN_FEED)));
+    public static final DeferredItem<Item> IRON_SKIN_GU_4 = ITEMS.register("iron_skin_gu_4",
+            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_4, 0,
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_SKIN_FEED)));
     public static final DeferredItem<Item> STEEL_TENDON_GU_3 = ITEMS.register("steel_tendon_gu_3",
             () -> new TendonGuItem(createTendedProperties(), Tendon.STEEL_TENDON_3,
-                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.STEEL_TENDON_FEED)));
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.STEEL_TENDON_FEED)));
     public static final DeferredItem<Item> STEEL_TENDON_GU_4 = ITEMS.register("steel_tendon_gu_4",
             () -> new TendonGuItem(createTendedProperties(), Tendon.STEEL_TENDON_4,
-                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.STEEL_TENDON_FEED)));
-    public static final DeferredItem<Item> IRON_BONE_GU = ITEMS.register("iron_bone_gu",
-            () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE,
-                    createTemperingSpec(Rank.THREE, 80_000, 1_600, 8, ModItemTags.IRON_BONE_FEED)));
-    public static final DeferredItem<Item> ESSENCE_IRON_BONE_GU = ITEMS.register("essence_iron_bone_gu",
-            () -> new BoneGuItem(createTendedProperties(), Bone.ESSENCE_IRON_BONE,
-                    createTemperingSpec(Rank.FOUR, 800_000, 16_000, 12, ModItemTags.ESSENCE_IRON_BONE_FEED)));
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.STEEL_TENDON_FEED)));
+    public static final DeferredItem<Item> IRON_BONE_GU_3 = ITEMS.register("iron_bone_gu_3",
+            () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE_3,
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.IRON_BONE_FEED)));
+    public static final DeferredItem<Item> IRON_BONE_GU_4 = ITEMS.register("iron_bone_gu_4",
+            () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE_4,
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_BONE_FEED)));
 
     /**
-     * The tempering Gu's shared row shape: a food is one point, and {@code scale} sizes a bar of 12 days at 4 per
+     * The jade skin Gu's shared row shape: a food is one point, and {@code scale} sizes a bar of 12 days at 4 per
      * use and a health of 12, both times {@code scale}; 30 s / 1 s cooldown.
      */
-    private static GuSpec createTemperingSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
+    private static GuSpec createJadeSkinSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DEFENSIVE)
                 .refine(refine).costPerUse(costPerUse)
                 .hungerBar(12 * scale, 1).hungerPerUse(4 * scale).hungerPerDay(scale).health(12 * scale)
                 .feed(feed, 1)
                 .cooldown(30 * Ticks.SECOND, Ticks.SECOND);
+    }
+
+    /**
+     * The permanent tempering Gu's channeled row shape [灌注]: one round of {@code essencePerRound} eats the whole
+     * 36-point bar and tempers the part for good; a food is one point, and {@code scale} sizes a health of 12
+     * times it.
+     */
+    private static GuSpec createTemperingSpec(Rank rank, int refine, int essencePerRound, int scale,
+                                              TagKey<Item> feed) {
+        return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
+                .refine(refine).channel(essencePerRound)
+                .hungerBar(36, 1).essencePerHunger(essencePerRound / 36).health(12 * scale)
+                .feed(feed, 1);
     }
     //endregion
 
@@ -654,6 +667,13 @@ public final class ModItems {
     //region Earth materials [土道蛊材] -- pure Gu material, earth path rank I; no natural source yet
     public static final DeferredItem<Item> ROTTEN_FROZEN_MUD = ITEMS.register("rotten_frozen_mud",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH));
+    //endregion
+
+    //region Metal [金属] -- plain items like iron's: the Steel Tendon Gu's ingot from a blast furnace, its block of nine
+    public static final DeferredItem<Item> STEEL_INGOT = ITEMS.register("steel_ingot",
+            () -> new Item(new Item.Properties()));
+    public static final DeferredItem<Item> STEEL_BLOCK = ITEMS.register("steel_block",
+            () -> new BlockItem(ModBlocks.STEEL_BLOCK.get(), new Item.Properties()));
     //endregion
 
     //region Human Aperture [人窍] -- pure Gu material, ranks I to V; a wiped death drops one per aperture

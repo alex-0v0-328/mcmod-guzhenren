@@ -7,6 +7,7 @@ import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.gu.mortal.wood.LeafGrowth;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
+import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -53,6 +54,11 @@ public class ModItemModelProvider extends ItemModelProvider {
                 getBuilder(entry.getId().getPath())
                         .parent(GENERATED)
                         .texture("layer0", Guzhenren.id("block/spirit_spring_still"));
+                continue;
+            }
+            if (item instanceof BlockItem blockItem && blockItem.getBlock() == ModBlocks.STEEL_BLOCK.get()) {
+                getBuilder(entry.getId().getPath())
+                        .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + entry.getId().getPath())));
                 continue;
             }
             if (item instanceof NineLeafVitalityGrassItem) {

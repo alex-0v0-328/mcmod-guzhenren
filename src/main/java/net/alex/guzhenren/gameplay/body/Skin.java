@@ -5,8 +5,8 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The body's skin [皮肤]: native [原生], a jade skin a Strength Path defensive Gu lends for a while, or a bronze
- * [铜皮] or iron [铁皮] skin one leaves for good.
+ * The body's skin [皮]: native [原生], a jade skin a Strength Path defensive Gu lends for a while, or a bronze
+ * [铜皮] or iron [铁皮] skin, rank one to four, one leaves for good.
  *
  * <p>Closed vocabulary enum, one slot on {@code BodyData}: a player wears one skin at a time. Every skin
  * carries its family [皮系], its rank [转] and its flat damage reduction [固定减免], the points taken off every
@@ -34,11 +34,11 @@ public enum Skin implements BodyGrade<Skin> {
     BRONZE_SKIN_1(Family.BRONZE, 1, 1),
     BRONZE_SKIN_2(Family.BRONZE, 2, 2),
     BRONZE_SKIN_3(Family.BRONZE, 3, 3),
-    ANCIENT_BRONZE_SKIN(Family.BRONZE, 4, 5),
+    BRONZE_SKIN_4(Family.BRONZE, 4, 5),
     IRON_SKIN_1(Family.IRON, 1, 2),
     IRON_SKIN_2(Family.IRON, 2, 3),
     IRON_SKIN_3(Family.IRON, 3, 4),
-    ESSENCE_IRON_SKIN(Family.IRON, 4, 6);
+    IRON_SKIN_4(Family.IRON, 4, 6);
 
     /** The skin families [皮系]: only a permanent family's own higher rank replaces a worn skin of it. */
     public enum Family { NATIVE, JADE, BRONZE, IRON }
@@ -56,6 +56,7 @@ public enum Skin implements BodyGrade<Skin> {
 
     public @NotNull Family getFamily() { return family; }
 
+    @Override
     public int getRank() { return rank; }
 
     public int getDamageReduction() { return damageReduction; }

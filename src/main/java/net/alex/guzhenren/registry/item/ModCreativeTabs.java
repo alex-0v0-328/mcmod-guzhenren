@@ -29,7 +29,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * {@link GuMaterialItem}, and the path: {@link GuPath#STRENGTH} and {@link GuPath#WOOD} Gu each leave the
  * mortal Gu tab for their own, while wood path Gu materials stay with the materials. An item extending neither
  * middle class lands in no tab at all -- except the two fluid items, the Spirit Spring [元泉] BlockItem and the
- * Pure Water Bucket [纯水桶], routed into the material tab explicitly. The Advancement Icon [进度图标] stays out on
+ * Pure Water Bucket [纯水桶], and the two metal items, the Steel Ingot [钢锭] and the Steel Block [钢块], routed into
+ * the material tab explicitly. The Advancement Icon [进度图标] stays out on
  * purpose.
  *
  * <p>⚠ That miss is silent: nothing fails and nothing warns, the item simply never appears. The four
@@ -86,7 +87,8 @@ public final class ModCreativeTabs {
     static boolean belongsInGuMaterial(Item item) {
         return item instanceof GuMaterialItem
                 || item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock
-                || item instanceof BucketItem;
+                || item instanceof BucketItem
+                || item == ModItems.STEEL_INGOT.get() || item == ModItems.STEEL_BLOCK.get();
     }
 
     public static void register(IEventBus modEventBus) {

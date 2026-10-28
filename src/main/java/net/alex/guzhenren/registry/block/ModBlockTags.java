@@ -2,6 +2,7 @@ package net.alex.guzhenren.registry.block;
 
 import net.alex.guzhenren.Guzhenren;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
@@ -24,8 +25,13 @@ public final class ModBlockTags {
 
     public static final TagKey<Block> AS_BEFORE_TERRAIN = key("as_before_terrain");
     public static final TagKey<Block> AS_BEFORE_STRIPPED = key("as_before_stripped");
+    public static final TagKey<Block> STORAGE_BLOCKS_STEEL = commonKey("storage_blocks/steel");
 
     private static TagKey<Block> key(String name) {
         return TagKey.create(Registries.BLOCK, Guzhenren.id(name));
+    }
+
+    private static TagKey<Block> commonKey(String name) {
+        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", name));
     }
 }

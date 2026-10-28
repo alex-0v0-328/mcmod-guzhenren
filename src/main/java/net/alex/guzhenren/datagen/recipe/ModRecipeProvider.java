@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.alex.guzhenren.refinement.recipe.RefinementRecipe;
@@ -13,24 +14,31 @@ import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid.
+ * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid, and the steel's
+ * blast-furnace-only ingot and its block.
  *
  * <p>Extends {@link net.minecraft.data.recipes.RecipeProvider}. Each recipe is transcribed verbatim
  * from an ASCII drawing ({@code '.'} empty, {@code ' '} cut corner), so a wrong corner, a short row
  * or an unkeyed letter fails datagen. A letter in {@code key} is its own ingredient in every cell it
  * fills; a letter in {@code shared} is ONE ingredient that may sit in any of the cells drawn with it.
- * Output lands under {@code data/guzhenren/recipe/refinement/}.
+ * Refinement output lands under {@code data/guzhenren/recipe/refinement/}, cooking and storage output directly
+ * under {@code data/guzhenren/recipe/}.
  *
  * <p>⚠ The drawing is transcribed verbatim, so a wrong corner, a short row or an unkeyed letter fails
  * datagen. The layout and every number in it are Alex's.
@@ -83,7 +91,36 @@ public class ModRecipeProvider extends RecipeProvider {
                 ".jbj.",
                 ".jjj.",
                 " ... ");
+
+        addBlasting(output, Items.IRON_INGOT, ModItems.STEEL_INGOT, 0.1F);
+        addStorage(output, ModItems.STEEL_INGOT, ModItems.STEEL_BLOCK);
     }
+
+    //region Cooking -- vanilla's raw ore time: 5 seconds in a blast furnace
+    /** A blast furnace alone: steel is iron cooked once more, and an ordinary furnace cannot. */
+    private static void addBlasting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {
+        SimpleCookingRecipeBuilder.blasting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
+                        5 * Ticks.SECOND)
+                .unlockedBy(getHasName(input), has(input))
+                .save(output, Guzhenren.id(getItemName(result) + "_from_blasting_" + getItemName(input)));
+    }
+    //endregion
+
+    //region Storage -- nine ingots craft a block and the block crafts back, the way vanilla packs iron
+    private static void addStorage(RecipeOutput output, ItemLike ingot, ItemLike block) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, block)
+                .define('#', ingot)
+                .pattern("###")
+                .pattern("###")
+                .pattern("###")
+                .unlockedBy(getHasName(ingot), has(ingot))
+                .save(output, Guzhenren.id(getItemName(block)));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ingot, 9)
+                .requires(block)
+                .unlockedBy(getHasName(block), has(block))
+                .save(output, Guzhenren.id(getItemName(ingot) + "_from_" + getItemName(block)));
+    }
+    //endregion
 
     //region Gu Recipe [蛊方] patterns -- one row a grid row, ' ' a cut corner, '.' an empty cell
     private static void addRefinement(RecipeOutput output, ItemLike result, long essencePerSecond,

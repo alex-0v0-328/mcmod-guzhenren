@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "guzhenren:item/iron_bone_gu"
+    "layer0": "guzhenren:item/iron_bone_gu_3"
   }
 }

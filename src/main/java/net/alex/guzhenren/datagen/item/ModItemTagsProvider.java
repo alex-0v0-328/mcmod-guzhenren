@@ -19,7 +19,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.minecraft.data.tags.ItemTagsProvider}. Defines the feed tags ({@code boar_feed},
  * {@code bear_feed}, {@code jin_feed}, {@code liquor_feed}, etc.), the zombie feed tag, and the
- * all-out-effort feed tag, and hides the Advancement Icon [进度图标] from recipe viewers through the common
+ * all-out-effort feed tag, files the steel under the common {@code c:ingots/steel} and
+ * {@code c:storage_blocks/steel} tags the Steel Tendon Gu eats from, and hides the Advancement Icon [进度图标] from recipe viewers through the common
  * {@code c:hidden_from_recipe_viewers} tag. Every tag references the registered item or a vanilla item, never
  * a raw id.
  *
@@ -49,12 +50,14 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModItemTags.JADE_SKIN_FEED).add(Items.EMERALD);
         tag(ModItemTags.WHITE_JADE_FEED).add(Items.QUARTZ);
         tag(ModItemTags.BRONZE_SKIN_FEED).add(Items.COPPER_INGOT);
-        tag(ModItemTags.ANCIENT_BRONZE_SKIN_FEED).add(Items.COPPER_BLOCK);
         tag(ModItemTags.IRON_SKIN_FEED).add(Items.IRON_INGOT);
-        tag(ModItemTags.ESSENCE_IRON_SKIN_FEED).add(Items.IRON_BLOCK);
-        tag(ModItemTags.STEEL_TENDON_FEED).add(Items.IRON_INGOT);
-        tag(ModItemTags.IRON_BONE_FEED).add(Items.BONE);
-        tag(ModItemTags.ESSENCE_IRON_BONE_FEED).add(Items.BONE_BLOCK);
+        tag(ModItemTags.STEEL_TENDON_FEED).addTag(ModItemTags.INGOTS_STEEL);
+        tag(ModItemTags.IRON_BONE_FEED).add(Items.IRON_INGOT);
+
+        tag(ModItemTags.INGOTS_STEEL).add(ModItems.STEEL_INGOT.get());
+        tag(Tags.Items.INGOTS).addTag(ModItemTags.INGOTS_STEEL);
+        tag(ModItemTags.STORAGE_BLOCKS_STEEL).add(ModItems.STEEL_BLOCK.get());
+        tag(Tags.Items.STORAGE_BLOCKS).addTag(ModItemTags.STORAGE_BLOCKS_STEEL);
 
         tag(ModItemTags.JIN_FEED).add(Items.RAW_IRON);
         tag(ModItemTags.JIN_FEED_SMELTED).add(Items.IRON_INGOT);
