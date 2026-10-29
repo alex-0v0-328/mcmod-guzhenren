@@ -5,7 +5,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
-import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.item.gu.mortal.StateEffects;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -17,8 +17,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Four rungs register against this one class,
  * each usable only at its own rank. The payout calls
- * {@link ApertureEssenceService#beginDistilling} and stamps a
- * day-long effect; the three phases (drain, redirect, 1:2 spend) live in the service and the effect, not here.
+ * {@link ApertureEssenceService#beginDistilling} and lays a
+ * day-long path effect [流派效果] on the body, the truth of the distilling; the three phases (drain, redirect, 1:2 spend) live in the service and the effect, not here.
  *
  * <p>⚠ While it runs the ordinary pool is empty by design. Anything gating on essence must ask for the
  * spendable figure, or it will refuse everything for the whole of that stretch.
@@ -49,6 +49,6 @@ public class LiquorWormItem extends TendedGuItem {
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
         ApertureEssenceService.beginDistilling(player);
-        player.addEffect(ModEffects.instance(ModEffects.LIQUOR_WORM, Ticks.DAY, getTier()));
+        StateEffects.grantDistilling(player, this, getTier(), Ticks.DAY);
     }
 }

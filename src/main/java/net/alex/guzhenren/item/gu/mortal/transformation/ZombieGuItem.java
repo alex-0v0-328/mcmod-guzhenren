@@ -36,7 +36,7 @@ public class ZombieGuItem extends TendedGuItem {
         this.halfZombieTicks = halfZombieTicks;
     }
 
-    private int getRung() { return getRank().ordinal() - Rank.TWO.ordinal(); }
+    public int getRung() { return getRank().ordinal() - Rank.TWO.ordinal(); }
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {

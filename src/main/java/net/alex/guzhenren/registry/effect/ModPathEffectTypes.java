@@ -24,6 +24,7 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -55,6 +56,14 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link #VITALITY_LEAF} [生机叶] -- a timed heal on the body.</li>
  * <li>{@link #WATCH_RATE} [更蛊] -- a timed time rate on the body per Gu, payload the vanilla form; one layer per
  * use.</li>
+ * <li>{@link #ZOMBIE} [僵尸] -- a harmful state on the body, timed for a half-zombie and permanent for a zombie; the
+ * form itself stays on {@code BodyData}. Exclusive.</li>
+ * <li>{@link #LIQUOR_DISTILLING} [酒虫精炼] -- a timed buff on the body while true essence is distilled, payload the
+ * Gu's tier; the day it lasts is the distilling's. Exclusive.</li>
+ * <li>{@link #STONE_APERTURE} [石窍] -- a permanent buff on the aperture while one is petrified; the latch itself
+ * stays on {@code Aperture}. Exclusive.</li>
+ * <li>{@link #CASUAL_THOUGHT}, {@link #MALICIOUS_THOUGHT} [随意念 / 恶念] -- a timed state on the mind per Gu, payload
+ * the vanilla effect and its amplifier.</li>
  * </ul>
  *
  * <p>⚠ The ids are save keys: renaming one drops every saved effect of that type. ⚠ {@code BY_ID} is declared
@@ -117,6 +126,23 @@ public final class ModPathEffectTypes {
             effect -> new PathEffectType.Projection(BuiltInRegistries.MOB_EFFECT.getHolderOrThrow(
                     ResourceKey.create(Registries.MOB_EFFECT, effect.payload())), effect.layers() - 1),
             effect -> Component.translatable("guzhenren.path_effect.watch_rate", effect.layers())));
+    public static final PathEffectType<Unit> ZOMBIE = register(new PathEffectType<>(Guzhenren.id("zombie"),
+            MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE), PathEffectCategory.HARMFUL, true, null,
+            effect -> Component.translatable(effect.isPermanent() ? "guzhenren.path_effect.zombie"
+                    : "guzhenren.path_effect.half_zombie")));
+    public static final PathEffectType<Integer> LIQUOR_DISTILLING = register(PathEffectType.projecting(
+            Guzhenren.id("liquor_distilling"), Codec.INT.fieldOf("tier"), ByteBufCodecs.VAR_INT.mapStream(buf -> buf),
+            PathEffectCategory.BENEFICIAL, true,
+            effect -> new PathEffectType.Projection(ModEffects.LIQUOR_WORM, effect.payload()),
+            effect -> Component.translatable("guzhenren.path_effect.liquor_distilling")));
+    public static final PathEffectType<Unit> STONE_APERTURE = register(new PathEffectType<>(
+            Guzhenren.id("stone_aperture"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
+            PathEffectCategory.BENEFICIAL, true, null,
+            effect -> Component.translatable("guzhenren.path_effect.stone_aperture")));
+    public static final PathEffectType<TimedBuff> CASUAL_THOUGHT = registerThought("casual_thought",
+            PathEffectCategory.BENEFICIAL);
+    public static final PathEffectType<TimedBuff> MALICIOUS_THOUGHT = registerThought("malicious_thought",
+            PathEffectCategory.HARMFUL);
     public static final Codec<PathEffectType<?>> CODEC = ResourceLocation.CODEC.comapFlatMap(
             ModPathEffectTypes::lookup, PathEffectType::getId);
     public static final Codec<PathEffect<?>> EFFECT_CODEC = CODEC.dispatch(
@@ -134,6 +160,14 @@ public final class ModPathEffectTypes {
                 PathEffectCategory.BENEFICIAL, true, null,
                 effect -> Component.translatable("guzhenren.path_effect." + id,
                         Component.translatable(effect.payload().getTranslationKey()))));
+    }
+
+    private static PathEffectType<TimedBuff> registerThought(String id, PathEffectCategory category) {
+        return register(PathEffectType.projecting(Guzhenren.id(id), TimedBuff.CODEC, TimedBuff.STREAM_CODEC, category,
+                false, effect -> new PathEffectType.Projection(effect.payload().getHolder(),
+                        effect.payload().amplifier()),
+                effect -> Component.translatable("guzhenren.path_effect.timed_buff",
+                        effect.payload().getHolder().value().getDisplayName())));
     }
 
     private static <P> PathEffectType<P> register(PathEffectType<P> type) {

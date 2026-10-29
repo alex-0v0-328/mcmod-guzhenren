@@ -14,7 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * The Casual Gu [随意蛊] effect: each second for ten seconds it adds a random amount of natural
  * thoughts [念] to the mind ocean [脑海].
  *
- * <p>Timed effects own their truth on vanilla's timer. One effect, two grades — the amplifier is
+ * <p>The truth is the thought path effect [流派效果] ({@code StateEffects.grantThought}); this vanilla effect is its
+ * projection, which pulses while it shows and is put back within a second of milk. One effect, two grades — the amplifier is
  * the rank's tier, and the {@code RANGES} table widens with it. Thoughts land through {@link
  * MindService#addThoughts} tagged {@code NATURAL}.
  *

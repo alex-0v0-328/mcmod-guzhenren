@@ -24,9 +24,8 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <li>{@code HEAVENLY_MUGWORT_GU} [天蓬蛊] -- timed; projects the shield stored on {@code MugwortShieldData},
  * re-applied or removed by {@code MugwortShieldService.tickShield} every heartbeat; the hit that empties the
  * shield removes it at once.</li>
- * <li>{@code LIQUOR_WORM} [酒虫] -- worn while distilling; {@code ApertureEssenceService} owns the three
- * phases, so removing the effect does not end the distillation, and {@code closeDistilling} pays the 1:2
- * back by reading the level.</li>
+ * <li>{@code LIQUOR_WORM} [酒虫] -- the icon of the {@code LIQUOR_DISTILLING} path effect, which is the truth of
+ * the distilling; {@code closeDistilling} pays the 1:2 back once that effect is gone.</li>
  * </ul>
  *
  * <p>☠ Never hang a rule on a marker's expiry: {@link MobEffect} has no expiry hook, and milk or

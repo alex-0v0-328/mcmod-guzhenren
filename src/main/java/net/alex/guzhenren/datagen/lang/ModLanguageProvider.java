@@ -167,6 +167,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.path_effect.mugwort_shield",          "Heavenly Mugwort Shield",     "天蓬护盾");
         add("guzhenren.path_effect.vitality_leaf",           "Vitality Leaf",               "生机叶");
         add("guzhenren.path_effect.watch_rate",              "Watch Rate x%s",              "更蛊 ×%s层");
+        add("guzhenren.path_effect.zombie",                  "Zombie",                      "僵尸");
+        add("guzhenren.path_effect.half_zombie",             "Half-Zombie",                 "半僵");
+        add("guzhenren.path_effect.liquor_distilling",       "Distilling Essence",          "精炼真元");
+        add("guzhenren.path_effect.stone_aperture",          "Petrified Aperture",          "石化空窍");
         add("guzhenren.display.time_rate_up",                "x%s",                         "%s倍");
         add("guzhenren.display.wild",                        "Wild %s",                     "野生·%s");
         add("guzhenren.display.vital",                       "Vital %s",                    "本命·%s");

@@ -7,7 +7,9 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -87,7 +89,7 @@ public final class ApertureEssenceService {
     }
 
     public static boolean isDistilling(@NotNull Player player) {
-        return player.hasEffect(ModEffects.LIQUOR_WORM);
+        return PathEffectService.find(player, ModPathEffectTypes.LIQUOR_DISTILLING) != null;
     }
 
     public static boolean isChoked(@NotNull Player player) { return player.hasEffect(ModEffects.DEATH_QI); }

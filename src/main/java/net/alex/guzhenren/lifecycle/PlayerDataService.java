@@ -17,6 +17,7 @@ import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.soul.SoulService;
+import net.alex.guzhenren.item.gu.mortal.StateEffects;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -63,6 +64,7 @@ public final class PlayerDataService {
         BodyService.skipOfflineLifespan(player);
         ApertureService.syncTalentEffect(player);
         BodyService.syncRaceTalent(player);
+        StateEffects.sync(player);
         MaxHealthService.refresh(player);
         KnockbackResistanceService.refresh(player);
         MaxHealthService.restoreCarried(player);

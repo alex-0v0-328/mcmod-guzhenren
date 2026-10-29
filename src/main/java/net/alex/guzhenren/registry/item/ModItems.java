@@ -403,21 +403,25 @@ public final class ModItems {
 
     //region Liquor Worm [酒虫] -- a hunger bar of 8 days with 3 days a use, and only its own rank can drive it
     public static final DeferredItem<Item> LIQUOR_WORM = ITEMS.register("liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD).type(GuType.CULTIVATION)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
+                    .effect(EffectCarrier.BODY).type(GuType.CULTIVATION)
                     .refine(1_600).costPerUse(16)
                     .hungerBar(8, 1).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> FOUR_FLAVORS_LIQUOR_WORM = ITEMS.register("four_flavors_liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD).type(GuType.CULTIVATION)
+            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
+                    .effect(EffectCarrier.BODY).type(GuType.CULTIVATION)
                     .refine(16_000).costPerUse(160)
                     .hungerBar(16, 1).hungerPerUse(6).hungerPerDay(2).health(24).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> SEVEN_FRAGRANCES_LIQUOR_WORM = ITEMS.register(
             "seven_fragrances_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
+                    .effect(EffectCarrier.BODY)
                     .type(GuType.CULTIVATION)
                     .refine(160_000).costPerUse(1_600)
                     .hungerBar(32, 1).hungerPerUse(12).hungerPerDay(4).health(48).feed(ModItemTags.LIQUOR_FEED, 1)));
     public static final DeferredItem<Item> NINE_EYES_LIQUOR_WORM = ITEMS.register("nine_eyes_liquor_worm",
             () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
+                    .effect(EffectCarrier.BODY)
                     .type(GuType.CULTIVATION)
                     .refine(1_600_000).costPerUse(16_000)
                     .hungerBar(64, 1).hungerPerUse(24).hungerPerDay(8).health(96).feed(ModItemTags.LIQUOR_FEED, 1)));
@@ -476,6 +480,7 @@ public final class ModItems {
     public static final DeferredItem<Item> ROAMING_ZOMBIE_GU = ITEMS.register("roaming_zombie_gu",
             () -> new ZombieGuItem(createTendedProperties(), 2 * Ticks.MINUTE,
                     GuSpec.of(Rank.TWO, GuPath.TRANSFORMATION)
+                            .effect(EffectCarrier.BODY)
                             .refine(8_000).costPerUse(160)
                             .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
@@ -483,6 +488,7 @@ public final class ModItems {
     public static final DeferredItem<Item> HAIRY_ZOMBIE_GU = ITEMS.register("hairy_zombie_gu",
             () -> new ZombieGuItem(createTendedProperties(), 4 * Ticks.MINUTE,
                     GuSpec.of(Rank.THREE, GuPath.TRANSFORMATION)
+                            .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
@@ -490,6 +496,7 @@ public final class ModItems {
     public static final DeferredItem<Item> HOPPING_ZOMBIE_GU = ITEMS.register("hopping_zombie_gu",
             () -> new ZombieGuItem(createTendedProperties(), 6 * Ticks.MINUTE,
                     GuSpec.of(Rank.FOUR, GuPath.TRANSFORMATION)
+                            .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
@@ -509,6 +516,7 @@ public final class ModItems {
 
     private static ZombieGuItem createFifthRankZombieGu() {
         return new ZombieGuItem(createTendedProperties(), 8 * Ticks.MINUTE, GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
+                .effect(EffectCarrier.BODY)
                 .refine(8_000_000).costPerUse(160_000)
                 .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192).feed(ModItemTags.ZOMBIE_FEED, 1)
                 .cooldown(Ticks.SECOND));
@@ -551,28 +559,32 @@ public final class ModItems {
     //region Malicious Thought Gu [恶念蛊] -- Wisdom Path [智道]; a one-use flood of evil thoughts, taken by its use
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_2 = ITEMS.register("malicious_thought_gu_2",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64L,
-                    GuSpec.of(Rank.TWO, GuPath.WISDOM).type(GuType.CULTIVATION)
+                    GuSpec.of(Rank.TWO, GuPath.WISDOM)
+                            .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(1_000).costPerUse(0)
                             .hungerBar(16, 1).hungerPerUse(0).hungerPerDay(2).health(24)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_3 = ITEMS.register("malicious_thought_gu_3",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 640L,
-                    GuSpec.of(Rank.THREE, GuPath.WISDOM).type(GuType.CULTIVATION)
+                    GuSpec.of(Rank.THREE, GuPath.WISDOM)
+                            .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(10_000).costPerUse(0)
                             .hungerBar(32, 1).hungerPerUse(0).hungerPerDay(4).health(48)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_4 = ITEMS.register("malicious_thought_gu_4",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 6_400L,
-                    GuSpec.of(Rank.FOUR, GuPath.WISDOM).type(GuType.CULTIVATION)
+                    GuSpec.of(Rank.FOUR, GuPath.WISDOM)
+                            .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(100_000).costPerUse(0)
                             .hungerBar(64, 1).hungerPerUse(0).hungerPerDay(8).health(96)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_5 = ITEMS.register("malicious_thought_gu_5",
             () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64_000L,
-                    GuSpec.of(Rank.FIVE, GuPath.WISDOM).type(GuType.CULTIVATION)
+                    GuSpec.of(Rank.FIVE, GuPath.WISDOM)
+                            .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(1_000_000).costPerUse(0)
                             .hungerBar(128, 1).hungerPerUse(0).hungerPerDay(16).health(192)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
@@ -587,6 +599,7 @@ public final class ModItems {
     //region Casual Gu [随意蛊] -- Wisdom Path [智道]; ten seconds of random thoughts, taken by its use
     public static final DeferredItem<Item> CASUAL_GU_1 = ITEMS.register("casual_gu_1",
             () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.ONE, GuPath.WISDOM)
+                    .effect(EffectCarrier.MIND)
                     .type(GuType.CULTIVATION)
                     .refine(100)
                     .costPerUse(0)
@@ -595,6 +608,7 @@ public final class ModItems {
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> CASUAL_GU_2 = ITEMS.register("casual_gu_2",
             () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.TWO, GuPath.WISDOM)
+                    .effect(EffectCarrier.MIND)
                     .type(GuType.CULTIVATION)
                     .refine(1_000)
                     .costPerUse(0)
@@ -607,16 +621,19 @@ public final class ModItems {
     // it leaves stands on this rank's peak, petrified
     public static final DeferredItem<Item> STONE_APERTURE_GU_3 = ITEMS.register("stone_aperture_gu_3",
             () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
+                    .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
                     .refine(10_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> STONE_APERTURE_GU_4 = ITEMS.register("stone_aperture_gu_4",
             () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
+                    .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
                     .refine(100_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> STONE_APERTURE_GU_5 = ITEMS.register("stone_aperture_gu_5",
             () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
+                    .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
                     .refine(1_000_000).costPerUse(0)
                     .cooldown(Ticks.SECOND)));
