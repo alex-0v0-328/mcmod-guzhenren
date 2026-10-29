@@ -1,5 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.water;
 
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
+import net.alex.guzhenren.item.gu.mortal.TimedEffects;
 import net.alex.guzhenren.gameplay.body.MugwortShieldService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
@@ -45,7 +47,9 @@ public final class HeavenlyMugwortGuItem extends TendedGuItem {
 
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
-        MugwortShieldService.raise(player, shieldPoints, durationTicks * AmplifyEffectGuItem.amplify(player, this));
+        Amplification amplification = AmplifyEffectGuItem.bill(player, this);
+        MugwortShieldService.raise(player, shieldPoints, durationTicks * amplification.factor());
+        TimedEffects.markShieldAmplified(player, amplification);
     }
 
     @Override

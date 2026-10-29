@@ -122,7 +122,7 @@ public final class ModItems {
                     .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> VITALITY_LEAF_GU = ITEMS.register("vitality_leaf_gu",
             () -> new VitalityLeafGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)
-                    .type(GuType.HEALING)));
+                    .type(GuType.HEALING).effect(EffectCarrier.BODY)));
     public static final DeferredItem<Item> LIFESPAN_GU = ITEMS.register("lifespan_gu",
             () -> new LifespanGuItem(createOneShotProperties(), 1, 9, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
     public static final DeferredItem<Item> TENS_LIFESPAN_GU = ITEMS.register("tens_lifespan_gu",
@@ -185,6 +185,7 @@ public final class ModItems {
         return GuSpec.of(Rank.ONE, GuPath.STRENGTH)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
                 .type(GuType.AMPLIFICATION)
+                .effect(EffectCarrier.BODY)
                 .refine(800)
                 .costPerUse(16)
                 .hungerBar(12, 1).hungerPerUse(4)
@@ -197,31 +198,32 @@ public final class ModItems {
     public static final DeferredItem<Item> HORIZONTAL_CRASH_GU = ITEMS.register("horizontal_crash_gu",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.HORIZONTAL_CRASH_GU,
                     CrashGuEffect.getDuration(30),
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT)
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> VERTICAL_CRASH_GU = ITEMS.register("vertical_crash_gu",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.getDuration(30),
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT)
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_4 = ITEMS.register("charging_crash_gu_4",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT)
+                    CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
                     .refine(800_000).costPerUse(16_000)
                     .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = ITEMS.register("charging_crash_gu_5",
             () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT)
+                    CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
                     .refine(8_000_000).costPerUse(160_000)
                     .hungerBar(36, 1).hungerPerUse(12).hungerPerDay(3).health(36).feed(ModItemTags.ANVIL_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = ITEMS.register("self_reliance_gu_2",
             () -> new SelfRelianceGuItem(createTendedProperties(), 30 * Ticks.SECOND, 1,
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.HEALING)
+                            .effect(EffectCarrier.BODY)
                             .refine(8_000).costPerUse(160)
                             .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
@@ -229,6 +231,7 @@ public final class ModItems {
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = ITEMS.register("self_reliance_gu_3",
             () -> new SelfRelianceGuItem(createTendedProperties(), 60 * Ticks.SECOND, 2,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.HEALING)
+                            .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
@@ -236,6 +239,7 @@ public final class ModItems {
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = ITEMS.register("self_reliance_gu_4",
             () -> new SelfRelianceGuItem(createTendedProperties(), 120 * Ticks.SECOND, 3,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.HEALING)
+                            .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
@@ -244,6 +248,7 @@ public final class ModItems {
             () -> new BuffGuItem(createTendedProperties(), ModEffects.HARDSHIP_STRENGTH_GU,
                     HardshipStrengthGuEffect.DURATION_TICKS,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.AMPLIFICATION)
+                            .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
                             .feed(ModItemTags.POTATO_FEED, 1)
@@ -254,6 +259,7 @@ public final class ModItems {
     public static final DeferredItem<Item> HEAVENLY_MUGWORT_GU = ITEMS.register("heavenly_mugwort_gu",
             () -> new HeavenlyMugwortGuItem(createTendedProperties(), 16.0F, 30 * Ticks.SECOND,
                     GuSpec.of(Rank.THREE, GuPath.WATER).type(GuType.DEFENSIVE)
+                            .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.SMOOTH_STONE_FEED, 1)
@@ -348,6 +354,7 @@ public final class ModItems {
 
     private static GuSpec createJadeSkinSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.EARTH).type(GuType.DEFENSIVE)
+                .effect(EffectCarrier.BODY)
                 .refine(refine).costPerUse(costPerUse)
                 .hungerBar(12 * scale, 1).hungerPerUse(4 * scale).hungerPerDay(scale).health(12 * scale)
                 .feed(feed, 1)
@@ -368,6 +375,7 @@ public final class ModItems {
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_3 = ITEMS.register("all_out_effort_gu_3",
             () -> new AllOutEffortGuItem(createTendedProperties(), 60, GuSpec.of(Rank.THREE, GuPath.STRENGTH)
                     .type(GuType.AMPLIFICATION)
+                    .effect(EffectCarrier.BODY)
                     .refine(80_000)
                     .costPerUse(1_600)
                     .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
@@ -376,6 +384,7 @@ public final class ModItems {
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_4 = ITEMS.register("all_out_effort_gu_4",
             () -> new AllOutEffortGuItem(createTendedProperties(), 90, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
                     .type(GuType.AMPLIFICATION)
+                    .effect(EffectCarrier.BODY)
                     .refine(800_000)
                     .costPerUse(16_000)
                     .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
@@ -384,6 +393,7 @@ public final class ModItems {
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = ITEMS.register("all_out_effort_gu_5",
             () -> new AllOutEffortGuItem(createTendedProperties(), 120, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
                     .type(GuType.AMPLIFICATION)
+                    .effect(EffectCarrier.BODY)
                     .refine(8_000_000)
                     .costPerUse(160_000)
                     .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192)
@@ -509,11 +519,13 @@ public final class ModItems {
     public static final DeferredItem<Item> SECOND_WATCH_GU = ITEMS.register("second_watch_gu",
             () -> new WatchGuItem(createTendedProperties(), ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE,
                     GuSpec.of(Rank.FOUR, GuPath.TIME).type(GuType.AMPLIFICATION)
+                            .effect(EffectCarrier.BODY)
                             .refine(100_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
     public static final DeferredItem<Item> THIRD_WATCH_GU = ITEMS.register("third_watch_gu",
             () -> new WatchGuItem(createTendedProperties(), ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE,
                     GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.AMPLIFICATION)
+                            .effect(EffectCarrier.BODY)
                             .refine(1_000_000).costPerUse(0)
                             .cooldown(Ticks.SECOND)));
     //endregion
@@ -624,6 +636,7 @@ public final class ModItems {
     private static AmplifyEffectGuItem createAmplifyEffectGu(Rank rank, int refine, int costPerUse) {
         return new AmplifyEffectGuItem(createTendedProperties(), GuSpec.of(rank, GuPath.RULE)
                 .type(GuType.AMPLIFICATION)
+                .effect(EffectCarrier.BODY)
                 .refine(refine).costPerUse(costPerUse)
                 .hungerBar(16, 1).hungerPerUse(4)
                 .feed(ModItemTags.AMPLIFY_EFFECT_FEED, 1));

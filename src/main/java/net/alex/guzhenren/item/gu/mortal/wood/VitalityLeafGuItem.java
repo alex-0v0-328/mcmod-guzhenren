@@ -1,5 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.wood;
 
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
+import net.alex.guzhenren.item.gu.mortal.TimedEffects;
 import net.alex.guzhenren.effect.timed.VitalityLeafEffect;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
@@ -38,13 +40,14 @@ public class VitalityLeafGuItem extends OneShotGuItem {
 
     @Override
     protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
-        return player.hasEffect(ModEffects.VITALITY_LEAF) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
+        return TimedEffects.hasLeaf(player) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
     }
 
     @Override
     protected int useApply(ServerPlayer player, ItemStack stack) {
-        int ticks = VitalityLeafEffect.DURATION_TICKS * AmplifyEffectGuItem.amplify(player, this);
-        player.addEffect(ModEffects.instance(ModEffects.VITALITY_LEAF, ticks));
+        Amplification amplification = AmplifyEffectGuItem.bill(player, this);
+        TimedEffects.grantLeaf(player, this, VitalityLeafEffect.DURATION_TICKS * amplification.factor(),
+                amplification);
         return 1;
     }
 }

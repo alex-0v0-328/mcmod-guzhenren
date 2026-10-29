@@ -32,8 +32,9 @@ import org.jetbrains.annotations.Nullable;
  * applying the same source again replaces that one.
  *
  * <p>{@link #getIcon} names the vanilla effect the heartbeat projects while an instance is on, or {@code null} for
- * none. The projection is an icon and a timer only: milk and {@code /effect clear} take the icon, the next
- * heartbeat puts it back, and nothing reads it.
+ * none. A kind whose vanilla effect depends on the instance (a buff per species, an amplifier per layer) takes a
+ * projector instead, which answers a {@link Projection}. The projection is an icon, a timer and an amplifier only:
+ * milk and {@code /effect clear} take it, the next heartbeat puts it back, and no rule reads it.
  *
  * <p>⚠ {@link #getEffectCodec} is built on first use, not in the constructor: the types are constructed while
  * {@code ModPathEffectTypes} initializes, and the dispatch codec over them belongs to the same class.
@@ -54,6 +55,7 @@ public final class PathEffectType<P> {
     private final PathEffectCategory category;
     private final boolean exclusive;
     private final @Nullable Supplier<Holder<MobEffect>> icon;
+    private final @Nullable Function<PathEffect<P>, Projection> projector;
     private final Function<PathEffect<P>, Component> namer;
     private @Nullable MapCodec<PathEffect<P>> effectCodec;
 
@@ -62,12 +64,30 @@ public final class PathEffectType<P> {
                           @NotNull PathEffectCategory category, boolean exclusive,
                           @Nullable Supplier<Holder<MobEffect>> icon,
                           @NotNull Function<PathEffect<P>, Component> namer) {
+        this(id, payloadCodec, payloadStreamCodec, category, exclusive, icon,
+                icon == null ? null : effect -> new Projection(icon.get(), 0), namer);
+    }
+
+    public static <P> @NotNull PathEffectType<P> projecting(
+            @NotNull ResourceLocation id, @NotNull MapCodec<P> payloadCodec,
+            @NotNull StreamCodec<FriendlyByteBuf, P> payloadStreamCodec, @NotNull PathEffectCategory category,
+            boolean exclusive, @NotNull Function<PathEffect<P>, Projection> projector,
+            @NotNull Function<PathEffect<P>, Component> namer) {
+        return new PathEffectType<>(id, payloadCodec, payloadStreamCodec, category, exclusive, null, projector, namer);
+    }
+
+    private PathEffectType(ResourceLocation id, MapCodec<P> payloadCodec,
+                           StreamCodec<FriendlyByteBuf, P> payloadStreamCodec, PathEffectCategory category,
+                           boolean exclusive, @Nullable Supplier<Holder<MobEffect>> icon,
+                           @Nullable Function<PathEffect<P>, Projection> projector,
+                           Function<PathEffect<P>, Component> namer) {
         this.id = id;
         this.payloadCodec = payloadCodec;
         this.payloadStreamCodec = payloadStreamCodec;
         this.category = category;
         this.exclusive = exclusive;
         this.icon = icon;
+        this.projector = projector;
         this.namer = namer;
     }
 
@@ -78,6 +98,15 @@ public final class PathEffectType<P> {
     public boolean isExclusive() { return exclusive; }
 
     public @Nullable Holder<MobEffect> getIcon() { return icon == null ? null : icon.get(); }
+
+    public boolean projects() { return projector != null; }
+
+    public @Nullable Projection project(@NotNull PathEffect<P> effect) {
+        return projector == null ? null : projector.apply(effect);
+    }
+
+    /** The vanilla effect an instance shows: which one and at which amplifier; the timer is the instance's own. */
+    public record Projection(@NotNull Holder<MobEffect> effect, int amplifier) {}
 
     public @NotNull Component getName(@NotNull PathEffect<P> effect) { return namer.apply(effect); }
 

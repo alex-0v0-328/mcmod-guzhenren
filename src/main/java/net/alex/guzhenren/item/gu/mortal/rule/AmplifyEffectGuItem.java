@@ -53,6 +53,14 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
 
     private record Driving(ServerPlayer player, ItemStack amplifier) {}
 
+    /** What one billed use came to: the factor on the driven Gu's effect and the Gu that paid it, if any. */
+    public record Amplification(int factor, @Nullable AmplifyEffectGuItem gu) {
+
+        public static final Amplification NONE = new Amplification(1, null);
+
+        public boolean isAmplified() { return gu != null; }
+    }
+
     public AmplifyEffectGuItem(Properties properties, GuSpec spec) {
         super(properties, spec);
     }
@@ -67,10 +75,15 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
                 && (!(driven instanceof TendedGuItem tended) || tended.isRefined(target));
     }
 
-    public static int amplify(ServerPlayer player, MortalGuItem driven) {
+    public static int amplify(ServerPlayer player, MortalGuItem driven) { return bill(player, driven).factor(); }
+
+    public static @NotNull Amplification bill(ServerPlayer player, MortalGuItem driven) {
         ItemStack stack = driving != null && driving.player() == player ? driving.amplifier() : player.getOffhandItem();
-        if (!(stack.getItem() instanceof AmplifyEffectGuItem amplifier) || !driven.canBeAmplified()) return 1;
-        return amplifier.tryBill(player, stack, driven) ? amplifier.getMultiplier() : 1;
+        if (!(stack.getItem() instanceof AmplifyEffectGuItem amplifier) || !driven.canBeAmplified()) {
+            return Amplification.NONE;
+        }
+        return amplifier.tryBill(player, stack, driven) ? new Amplification(amplifier.getMultiplier(), amplifier)
+                : Amplification.NONE;
     }
 
     public static void driveFromHotbar(ServerPlayer player, int slot) {

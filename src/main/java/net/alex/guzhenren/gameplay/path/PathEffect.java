@@ -6,6 +6,7 @@ import java.util.Map;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * One path effect [流派效果] on a person: what works, on which carrier, from what source, carrying which Dao marks
@@ -66,6 +67,8 @@ public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, Resou
     }
 
     public @NotNull Component getName() { return type.getName(this); }
+
+    public @Nullable PathEffectType.Projection getProjection() { return type.project(this); }
 
     public PathEffect<P> withEndTick(long value) {
         return new PathEffect<>(type, carrier, source, paths, value, layers, payload);

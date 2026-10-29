@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.body;
 
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.core.Holder;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>{@link #raise} fills the shield to the Gu's points and restarts its timer; a shield still up is replaced, never
  * stacked. {@link #absorb} takes what it can of a hit and passes the rest on; the hit that empties it ends it and
  * its effect at once. {@link #tickShield} clears a shield whose time ran out and keeps the effect in step with it.
+ * Raising posts {@link MugwortShieldRaisedEvent} and the end of a shield {@link MugwortShieldDownEvent}.
  *
  * <p>The truth is {@code MugwortShieldData}, never the effect: a {@code MobEffect} has no expiry hook, and milk or
  * {@code /effect clear} removes it silently, so the heartbeat re-applies it as {@link SkinService} does a jade
@@ -47,6 +49,7 @@ public final class MugwortShieldService {
         PlayerData.get(player).setMugwortShield(
                 new MugwortShieldData(points, points, BodyService.getGameTime(player) + durationTicks));
         tickShield(player);
+        ModEvents.post(new MugwortShieldRaisedEvent(player));
     }
 
     public static float absorb(@NotNull ServerPlayer player, @NotNull DamageSource source, float amount) {
@@ -60,8 +63,17 @@ public final class MugwortShieldService {
         } else {
             PlayerData.get(player).setMugwortShield(MugwortShieldData.DEFAULT);
             player.removeEffect(ModEffects.HEAVENLY_MUGWORT_GU);
+            ModEvents.post(new MugwortShieldDownEvent(player));
         }
         return amount - taken;
+    }
+
+    public static void dismiss(@NotNull ServerPlayer player) {
+        if (get(player).endTick() == BodyData.UNTRACKED) return;
+
+        PlayerData.get(player).setMugwortShield(MugwortShieldData.DEFAULT);
+        player.removeEffect(ModEffects.HEAVENLY_MUGWORT_GU);
+        ModEvents.post(new MugwortShieldDownEvent(player));
     }
 
     public static void tickShield(@NotNull ServerPlayer player) {
@@ -70,7 +82,9 @@ public final class MugwortShieldService {
             player.addEffect(ModEffects.instance(effect, Math.max(1, (int) getTicksLeft(player))));
             return;
         }
+        boolean ran = get(player).endTick() != BodyData.UNTRACKED;
         PlayerData.get(player).setMugwortShield(MugwortShieldData.DEFAULT);
         if (player.hasEffect(effect)) player.removeEffect(effect);
+        if (ran) ModEvents.post(new MugwortShieldDownEvent(player));
     }
 }

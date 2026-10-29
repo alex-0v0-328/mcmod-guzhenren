@@ -28,6 +28,8 @@ public class TimeRateUpEffect extends MobEffect implements TimeRateContributor {
         this.maxLayers = maxLayers;
     }
 
+    public int getMaxLayers() { return maxLayers; }
+
     public int getNextAmplifier(int amplifier) { return Mth.clamp(amplifier + 1, 0, maxLayers - 1); }
 
     @Override

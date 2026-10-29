@@ -2,6 +2,7 @@ package net.alex.guzhenren.registry.effect;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -17,10 +18,16 @@ import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
+import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +47,14 @@ import org.jetbrains.annotations.Nullable;
  * body, payload the grade; exclusive, so a new grade takes the old one and its strands.</li>
  * <li>{@link #BEAST_STRENGTH} [兽力] -- a permanent buff on the body per species, payload the species.</li>
  * <li>{@link #HUMAN_STRENGTH} [人力] -- a permanent buff on the body per kind, one layer per stored layer.</li>
+ * <li>{@link #BUFF} [限时增益] -- a timed buff on the body per Gu, payload the vanilla effect and its amplifier;
+ * the beast buffs, the crashes, hardship strength, self reliance and all-out effort.</li>
+ * <li>{@link #TIMED_SKIN} [限时皮] -- the jade skin or white jade skin on the body, payload the skin; exclusive. The
+ * skin itself stays on {@code BodyData}, which projects its own icon.</li>
+ * <li>{@link #MUGWORT_SHIELD} [天蓬护盾] -- the shield on the body; its points stay on {@code MugwortShieldData}.</li>
+ * <li>{@link #VITALITY_LEAF} [生机叶] -- a timed heal on the body.</li>
+ * <li>{@link #WATCH_RATE} [更蛊] -- a timed time rate on the body per Gu, payload the vanilla form; one layer per
+ * use.</li>
  * </ul>
  *
  * <p>⚠ The ids are save keys: renaming one drops every saved effect of that type. ⚠ {@code BY_ID} is declared
@@ -78,6 +93,30 @@ public final class ModPathEffectTypes {
             ModByteBufs.enumCodec(HumanStrength.class), PathEffectCategory.BENEFICIAL, false, null,
             effect -> Component.translatable("guzhenren.path_effect.human_strength",
                     Component.translatable(effect.payload().getTranslationKey()), effect.layers())));
+    public static final PathEffectType<TimedBuff> BUFF = register(PathEffectType.projecting(Guzhenren.id("timed_buff"),
+            TimedBuff.CODEC, TimedBuff.STREAM_CODEC, PathEffectCategory.BENEFICIAL, false,
+            effect -> new PathEffectType.Projection(effect.payload().getHolder(), effect.payload().amplifier()),
+            effect -> Component.translatable("guzhenren.path_effect.timed_buff",
+                    effect.payload().getHolder().value().getDisplayName())));
+    public static final PathEffectType<Skin> TIMED_SKIN = register(new PathEffectType<>(
+            Guzhenren.id("timed_skin"), Skin.CODEC.fieldOf("skin"), ModByteBufs.enumCodec(Skin.class),
+            PathEffectCategory.BENEFICIAL, true, null,
+            effect -> Component.translatable("guzhenren.path_effect.timed_skin",
+                    Component.translatable(effect.payload().getTranslationKey()))));
+    public static final PathEffectType<Unit> MUGWORT_SHIELD = register(new PathEffectType<>(
+            Guzhenren.id("mugwort_shield"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
+            PathEffectCategory.BENEFICIAL, false, null,
+            effect -> Component.translatable("guzhenren.path_effect.mugwort_shield")));
+    public static final PathEffectType<Unit> VITALITY_LEAF = register(new PathEffectType<>(
+            Guzhenren.id("vitality_leaf"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
+            PathEffectCategory.BENEFICIAL, false, () -> ModEffects.VITALITY_LEAF,
+            effect -> Component.translatable("guzhenren.path_effect.vitality_leaf")));
+    public static final PathEffectType<ResourceLocation> WATCH_RATE = register(PathEffectType.projecting(
+            Guzhenren.id("watch_rate"), ResourceLocation.CODEC.fieldOf("form"), ResourceLocation.STREAM_CODEC.mapStream(
+                    buf -> buf), PathEffectCategory.BENEFICIAL, false,
+            effect -> new PathEffectType.Projection(BuiltInRegistries.MOB_EFFECT.getHolderOrThrow(
+                    ResourceKey.create(Registries.MOB_EFFECT, effect.payload())), effect.layers() - 1),
+            effect -> Component.translatable("guzhenren.path_effect.watch_rate", effect.layers())));
     public static final Codec<PathEffectType<?>> CODEC = ResourceLocation.CODEC.comapFlatMap(
             ModPathEffectTypes::lookup, PathEffectType::getId);
     public static final Codec<PathEffect<?>> EFFECT_CODEC = CODEC.dispatch(

@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal;
 
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinService;
@@ -49,7 +50,9 @@ public final class SkinGuItem extends TemperingGuItem<Skin> {
 
     @Override
     protected void temper(ServerPlayer player) {
-        BodyService.wearSkin(player, getGrade(), durationTicks * AmplifyEffectGuItem.amplify(player, this));
+        Amplification amplification = AmplifyEffectGuItem.bill(player, this);
+        BodyService.wearSkin(player, getGrade(), durationTicks * amplification.factor());
+        TimedEffects.markSkinAmplified(player, amplification);
         SkinService.tickSkin(player);
     }
 }

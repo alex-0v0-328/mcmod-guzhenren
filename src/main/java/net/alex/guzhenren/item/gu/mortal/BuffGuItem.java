@@ -1,13 +1,14 @@
 package net.alex.guzhenren.item.gu.mortal;
 
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
-import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -17,9 +18,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem}. Eight Gu register against this one class -- the
  * three beast buffs (花豕蛊 / 蛮力天牛蛊 / 龙丸蛐蛐蛊), the four Crash Gu and the Hardship Strength Gu; the
- * payout simply adds the effect and returns. The gate refuses only while a stronger copy of the same
- * effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running copy is refreshed. An
- * Amplify Effect Gu [功倍蛊] multiplies the length it adds.
+ * payout simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. The gate refuses only while a
+ * stronger copy of the same effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker running
+ * copy is refreshed, a stronger Gu taking the weaker one's effect and strands. An Amplify Effect Gu [功倍蛊]
+ * multiplies the length it adds and lays its Rule strands on the buff.
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a class does not mean sharing a larder.
  *
@@ -51,21 +53,21 @@ public class BuffGuItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
-        MobEffectInstance current = player.getEffect(buff);
-        return current != null && current.getAmplifier() > amplifier
+        PathEffect<TimedBuff> current = TimedEffects.findBuff(player, buff);
+        return current != null && current.payload().amplifier() > amplifier
                 ? new Refusal(FAILED_STRONGER, buff.value().getDisplayName()) : null;
     }
 
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
-        MobEffectInstance current = player.getEffect(buff);
-        if (current != null && amplifier < current.getAmplifier()) return;
+        PathEffect<TimedBuff> current = TimedEffects.findBuff(player, buff);
+        if (current != null && amplifier < current.payload().amplifier()) return;
 
-        int added = durationTicks * AmplifyEffectGuItem.amplify(player, this);
-        int duration = current == null ? added : getNextDuration(current.getDuration(),
-                current.getAmplifier(), added, amplifier, getEffectCooldownLeft(player, stack) > 0);
-        if (current != null) player.removeEffect(buff);
-        player.addEffect(ModEffects.instance(buff, duration, amplifier));
+        Amplification amplification = AmplifyEffectGuItem.bill(player, this);
+        int added = durationTicks * amplification.factor();
+        int duration = current == null ? added : getNextDuration(TimedEffects.getBuffTicksLeft(player, buff),
+                current.payload().amplifier(), added, amplifier, getEffectCooldownLeft(player, stack) > 0);
+        TimedEffects.grantBuff(player, this, buff, amplifier, duration, amplification);
     }
 
     static int getNextDuration(int currentDuration, int currentAmplifier, int addedDuration, int addedAmplifier,

@@ -1,5 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.time;
 
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
+import net.alex.guzhenren.item.gu.mortal.TimedEffects;
 import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
@@ -52,9 +54,7 @@ public class WatchGuItem extends ConsumedGuItem {
 
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
-        MobEffectInstance current = player.getEffect(form);
-        TimeRateUpEffect effect = (TimeRateUpEffect) form.value();
-        int amplifier = effect.getNextAmplifier(current == null ? -1 : current.getAmplifier());
-        player.addEffect(ModEffects.instance(form, effectTicks * AmplifyEffectGuItem.amplify(player, this), amplifier));
+        Amplification amplification = AmplifyEffectGuItem.bill(player, this);
+        TimedEffects.grantWatch(player, this, form, (long) effectTicks * amplification.factor(), amplification);
     }
 }

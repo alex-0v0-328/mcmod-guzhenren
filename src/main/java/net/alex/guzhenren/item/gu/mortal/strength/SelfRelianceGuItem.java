@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.strength;
 
+import net.alex.guzhenren.item.gu.mortal.TimedEffects;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -28,7 +29,7 @@ public final class SelfRelianceGuItem extends BuffGuItem {
 
     public static void tryAutoUse(ServerPlayer player) {
         if (player.getHealth() >= player.getMaxHealth() * AUTO_USE_HEALTH_FRACTION
-                || player.hasEffect(ModEffects.SELF_RELIANCE_GU)) return;
+                || TimedEffects.hasBuff(player, ModEffects.SELF_RELIANCE_GU)) return;
         for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof SelfRelianceGuItem item && item.tryAutoUse(player, stack)) return;
         }

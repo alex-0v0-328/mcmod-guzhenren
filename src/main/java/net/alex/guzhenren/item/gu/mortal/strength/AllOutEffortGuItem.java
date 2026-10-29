@@ -1,5 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.strength;
 
+import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
+import net.alex.guzhenren.item.gu.mortal.TimedEffects;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.item.gu.GuSpec;
@@ -44,13 +46,14 @@ public class AllOutEffortGuItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
-        return player.hasEffect(ModEffects.ALL_OUT_EFFORT) ? new Refusal(FAILED_ALREADY_UNLEASHED) : null;
+        return TimedEffects.hasBuff(player, ModEffects.ALL_OUT_EFFORT) ? new Refusal(FAILED_ALREADY_UNLEASHED) : null;
     }
 
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
-        int ticks = effectSeconds * Ticks.SECOND * AmplifyEffectGuItem.amplify(player, this);
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT, ticks, getTier()));
+        Amplification amplification = AmplifyEffectGuItem.bill(player, this);
+        int ticks = effectSeconds * Ticks.SECOND * amplification.factor();
+        TimedEffects.grantBuff(player, this, ModEffects.ALL_OUT_EFFORT, getTier(), ticks, amplification);
         AttackDamageService.refresh(player);
     }
 }

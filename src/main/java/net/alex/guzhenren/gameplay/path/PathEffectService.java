@@ -125,19 +125,25 @@ public final class PathEffectService {
         for (PathEffect<?> effect : ended) ModEvents.post(new PathEffectEndedEvent(player, effect, reason));
     }
 
-    //region icons -- the vanilla effect each kind projects, longest remaining time wins
+    //region icons -- the vanilla effect each kind projects, longest remaining time and highest amplifier win
     private static void refreshIcons(ServerPlayer player, Collection<PathEffect<?>> ended) {
         long now = getGameTime(player);
-        Map<Holder<MobEffect>, Integer> wanted = new LinkedHashMap<>();
+        Map<Holder<MobEffect>, int[]> wanted = new LinkedHashMap<>();
         for (PathEffect<?> effect : get(player).effects()) {
-            Holder<MobEffect> icon = effect.type().getIcon();
-            if (icon != null) wanted.merge(icon, getIconDuration(effect, now), PathEffectService::getLonger);
+            PathEffectType.Projection projection = effect.getProjection();
+            if (projection == null) continue;
+
+            int duration = getIconDuration(effect, now);
+            wanted.merge(projection.effect(), new int[] { duration, projection.amplifier() },
+                    (first, second) -> new int[] { getLonger(first[0], second[0]), Math.max(first[1], second[1]) });
         }
         for (PathEffect<?> effect : ended) {
-            Holder<MobEffect> icon = effect.type().getIcon();
-            if (icon != null && !wanted.containsKey(icon)) player.removeEffect(icon);
+            PathEffectType.Projection projection = effect.getProjection();
+            if (projection != null && !wanted.containsKey(projection.effect())) {
+                player.removeEffect(projection.effect());
+            }
         }
-        wanted.forEach((icon, duration) -> player.addEffect(ModEffects.instance(icon, duration)));
+        wanted.forEach((icon, shown) -> player.addEffect(ModEffects.instance(icon, shown[0], shown[1])));
     }
 
     private static int getIconDuration(PathEffect<?> effect, long now) {
