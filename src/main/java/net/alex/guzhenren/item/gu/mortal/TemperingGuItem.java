@@ -1,8 +1,10 @@
-package net.alex.guzhenren.item.gu.mortal.strength;
+package net.alex.guzhenren.item.gu.mortal;
 
 import net.alex.guzhenren.gameplay.body.BodyGrade;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.mortal.metal.BoneGuItem;
+import net.alex.guzhenren.item.gu.mortal.metal.TendonGuItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;

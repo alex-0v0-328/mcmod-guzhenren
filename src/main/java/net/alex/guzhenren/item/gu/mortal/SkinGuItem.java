@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.strength;
+package net.alex.guzhenren.item.gu.mortal;
 
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Skin;

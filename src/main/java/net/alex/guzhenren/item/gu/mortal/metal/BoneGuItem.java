@@ -1,8 +1,9 @@
-package net.alex.guzhenren.item.gu.mortal.strength;
+package net.alex.guzhenren.item.gu.mortal.metal;
 
-import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.BodyService;
+import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.mortal.TemperingGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;

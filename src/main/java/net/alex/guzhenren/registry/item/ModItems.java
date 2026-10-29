@@ -21,27 +21,27 @@ import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.GuType;
 import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
+import net.alex.guzhenren.item.gu.mortal.SkinGuItem;
 import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
 import net.alex.guzhenren.item.gu.mortal.food.LiquorWormItem;
 import net.alex.guzhenren.item.gu.mortal.heaven.LifespanGuItem;
 import net.alex.guzhenren.item.gu.mortal.heaven.RelicsGuItem;
 import net.alex.guzhenren.item.gu.mortal.human.HopeGuItem;
 import net.alex.guzhenren.item.gu.mortal.human.SecondApertureGuItem;
+import net.alex.guzhenren.item.gu.mortal.metal.BoneGuItem;
+import net.alex.guzhenren.item.gu.mortal.metal.TendonGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.soul.GutsGuItem;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.BoneGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.HeavenlyMugwortGuItem;
 import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.SkinGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.TendonGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.ManAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.TerrainAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.WatchGuItem;
 import net.alex.guzhenren.item.gu.mortal.transformation.ZombieGuItem;
+import net.alex.guzhenren.item.gu.mortal.water.HeavenlyMugwortGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.CasualGuItem;
 import net.alex.guzhenren.item.gu.mortal.wisdom.MaliciousThoughtGuItem;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
@@ -55,8 +55,8 @@ import net.alex.guzhenren.item.material.qi.LifeQiItem;
 import net.alex.guzhenren.item.material.qi.QiMaterialItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.tags.TagKey;
 import net.alex.guzhenren.registry.fluid.ModFluids;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -236,9 +236,12 @@ public final class ModItems {
                             .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
                             .feed(ModItemTags.POTATO_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+    //endregion
+
+    //region Water Path [水道] -- Heavenly Mugwort Gu [天蓬蛊]: a shield for a while
     public static final DeferredItem<Item> HEAVENLY_MUGWORT_GU = ITEMS.register("heavenly_mugwort_gu",
             () -> new HeavenlyMugwortGuItem(createTendedProperties(), 16.0F, 30 * Ticks.SECOND,
-                    GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DEFENSIVE)
+                    GuSpec.of(Rank.THREE, GuPath.WATER).type(GuType.DEFENSIVE)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.SMOOTH_STONE_FEED, 1)
@@ -280,7 +283,7 @@ public final class ModItems {
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
     //endregion
 
-    //region Normal [基础力道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
+    //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
     public static final DeferredItem<Item> JADE_SKIN_GU = ITEMS.register("jade_skin_gu",
             () -> new SkinGuItem(createTendedProperties(), Skin.JADE_SKIN, 60 * Ticks.SECOND,
                     createJadeSkinSpec(Rank.ONE, 800, 16, 1, ModItemTags.JADE_SKIN_FEED)));
@@ -289,7 +292,7 @@ public final class ModItems {
                     createJadeSkinSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.WHITE_JADE_FEED)));
     //endregion
 
-    //region Normal [基础力道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good
+    //region Metal Path [金道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good
     public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = ITEMS.register("bronze_skin_gu_1",
             () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_1, 0,
                     createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.BRONZE_SKIN_FEED)));
@@ -328,7 +331,7 @@ public final class ModItems {
                     createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_BONE_FEED)));
 
     private static GuSpec createJadeSkinSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
-        return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DEFENSIVE)
+        return GuSpec.of(rank, GuPath.EARTH).type(GuType.DEFENSIVE)
                 .refine(refine).costPerUse(costPerUse)
                 .hungerBar(12 * scale, 1).hungerPerUse(4 * scale).hungerPerDay(scale).health(12 * scale)
                 .feed(feed, 1)
@@ -337,7 +340,7 @@ public final class ModItems {
 
     private static GuSpec createTemperingSpec(Rank rank, int refine, int essencePerRound, int scale,
                                               TagKey<Item> feed) {
-        return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
+        return GuSpec.of(rank, GuPath.METAL).type(GuType.DAO_MARK_CARVING)
                 .refine(refine).channel(essencePerRound)
                 .hungerBar(36, 1).essencePerHunger(essencePerRound / 36).health(12 * scale)
                 .feed(feed, 1);

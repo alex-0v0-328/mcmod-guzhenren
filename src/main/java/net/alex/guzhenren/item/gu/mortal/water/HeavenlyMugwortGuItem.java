@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.strength;
+package net.alex.guzhenren.item.gu.mortal.water;
 
 import net.alex.guzhenren.gameplay.body.MugwortShieldService;
 import net.alex.guzhenren.item.gu.GuSpec;

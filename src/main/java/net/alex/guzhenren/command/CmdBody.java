@@ -13,7 +13,7 @@ import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinService;
 import net.alex.guzhenren.gameplay.body.Tendon;
-import net.alex.guzhenren.item.gu.mortal.strength.SkinGuItem;
+import net.alex.guzhenren.item.gu.mortal.SkinGuItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
