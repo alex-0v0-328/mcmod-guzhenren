@@ -45,9 +45,12 @@ import org.jetbrains.annotations.NotNull;
  * {@link #syncZombie} and {@link #syncStone} derive the effect from the state on the change event and on login, and
  * name the Gu by the state's rung or rank.
  *
- * <p>⚠ A zombie effect cut or removed takes the undead form with it; one that merely runs out leaves a half-zombie
- * to {@code UndeadService.tickHalfZombie}, which still turns it into a zombie if Death Qi is held. A petrified
- * aperture is never un-petrified by its effect ending; the next aperture write puts the effect back.
+ * <p>⚠ Only a half-zombie carries a zombie effect. Turning zombie for good dissipates its Transformation strands:
+ * {@link #syncZombie} runs the effect out on the spot, so it ends as an expiry and the form stays; a zombie gets none
+ * back on login or by command. A half-zombie effect cut or removed takes the undead form with it; one that merely
+ * runs out leaves the half-zombie to {@code UndeadService.tickHalfZombie}, which still turns it into a zombie if
+ * Death Qi is held. A petrified aperture is never un-petrified by its effect ending; the next aperture write puts
+ * the effect back.
  *
  * @author Alex
  * @version 1.0.0
@@ -84,19 +87,21 @@ public final class StateEffects {
 
     public static void syncZombie(@NotNull ServerPlayer player) {
         PathEffect<Unit> current = PathEffectService.find(player, ModPathEffectTypes.ZOMBIE);
-        boolean zombie = BodyService.isZombie(player);
-        if (!zombie && !BodyService.isHalfZombie(player)) {
+        if (BodyService.isZombie(player)) {
+            if (current != null) dissipate(player, current);
+            return;
+        }
+        if (!BodyService.isHalfZombie(player)) {
             if (current != null) PathEffectService.removeType(player, ModPathEffectTypes.ZOMBIE);
             return;
         }
-        if (!zombie && BodyService.hasHalfZombieRunOut(player)) return;
+        if (BodyService.hasHalfZombieRunOut(player)) return;
 
         int rung = Math.max(0, BodyService.get(player).zombieTier());
         ZombieGuItem gu = ModItems.findGu(ZombieGuItem.class, item -> item.getRung() == rung);
         if (gu == null) return;
 
-        long endTick = zombie ? PathEffect.PERMANENT
-                : PathEffectService.getGameTime(player) + BodyService.getHalfZombieTicksLeft(player);
+        long endTick = PathEffectService.getGameTime(player) + BodyService.getHalfZombieTicksLeft(player);
         ResourceLocation source = getId(gu);
         if (current != null && current.source().equals(source)) {
             if (current.endTick() != endTick) {
@@ -106,6 +111,14 @@ public final class StateEffects {
         }
         PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.ZOMBIE, source, endTick,
                 Unit.INSTANCE));
+    }
+
+    // An expiry, unlike a removal, leaves the form standing (see onEnded).
+    private static void dissipate(ServerPlayer player, PathEffect<Unit> current) {
+        long now = PathEffectService.getGameTime(player);
+        PathEffectService.update(player, ModPathEffectTypes.ZOMBIE, current.source(),
+                effect -> effect.withEndTick(now));
+        PathEffectService.tick(player);
     }
     //endregion
 

@@ -56,8 +56,8 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link #VITALITY_LEAF} [生机叶] -- a timed heal on the body.</li>
  * <li>{@link #WATCH_RATE} [更蛊] -- a timed time rate on the body per Gu, payload the vanilla form; one layer per
  * use.</li>
- * <li>{@link #ZOMBIE} [僵尸] -- a harmful state on the body, timed for a half-zombie and permanent for a zombie; the
- * form itself stays on {@code BodyData}. Exclusive.</li>
+ * <li>{@link #ZOMBIE} [僵尸] -- a harmful timed state on a half-zombie's body; turning zombie for good dissipates
+ * it, and the form itself stays on {@code BodyData}. Exclusive.</li>
  * <li>{@link #LIQUOR_DISTILLING} [酒虫精炼] -- a timed buff on the body while true essence is distilled, payload the
  * Gu's tier; the day it lasts is the distilling's. Exclusive.</li>
  * <li>{@link #STONE_APERTURE} [石窍] -- a permanent buff on the aperture while one is petrified; the latch itself
