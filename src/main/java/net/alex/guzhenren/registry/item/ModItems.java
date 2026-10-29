@@ -271,7 +271,7 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JIN,
                     GuSpec.of(Rank.ONE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
-                            .effect(EffectCarrier.BODY)
+                            .effect(EffectCarrier.BODY, 2)
                             .refine(800)
                             .channel(3_600)
                             .hungerBar(36, 1).essencePerHunger(300)
@@ -280,7 +280,7 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JIN,
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
-                            .effect(EffectCarrier.BODY)
+                            .effect(EffectCarrier.BODY, 8)
                             .refine(8_000)
                             .channel(36_000)
                             .hungerBar(36, 2).essencePerHunger(3_000)
@@ -289,19 +289,19 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JUN,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
-                            .effect(EffectCarrier.BODY)
+                            .effect(EffectCarrier.BODY, 32)
                             .refine(80_000)
-                            .channel(36_000)
-                            .hungerBar(36, 4).essencePerHunger(6_000)
+                            .channel(108_000)
+                            .hungerBar(36, 4).essencePerHunger(18_000)
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
     public static final DeferredItem<Item> TENS_JUN_STRENGTH_GU = ITEMS.register("tens_jun_strength_gu",
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JUN,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
-                            .effect(EffectCarrier.BODY)
+                            .effect(EffectCarrier.BODY, 128)
                             .refine(800_000)
-                            .channel(360_000)
-                            .hungerBar(36, 8).essencePerHunger(60_000)
+                            .channel(1_080_000)
+                            .hungerBar(36, 8).essencePerHunger(180_000)
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
     //endregion
 
@@ -640,22 +640,22 @@ public final class ModItems {
     //endregion
 
     //region Amplify Effect Gu [功倍蛊] -- Rule Path [律道]; held in the offhand, it multiplies another Gu's effect
-    // by its rank number; a bar of 16 at 4 a use
+    // by its rank number; a bar of four uses, bar and health doubling each rank
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_2 = ITEMS.register("amplify_effect_gu_2",
-            () -> createAmplifyEffectGu(Rank.TWO, 8_000, 160));
+            () -> createAmplifyEffectGu(Rank.TWO, 8_000, 160, 1));
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_3 = ITEMS.register("amplify_effect_gu_3",
-            () -> createAmplifyEffectGu(Rank.THREE, 80_000, 1_600));
+            () -> createAmplifyEffectGu(Rank.THREE, 80_000, 1_600, 2));
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_4 = ITEMS.register("amplify_effect_gu_4",
-            () -> createAmplifyEffectGu(Rank.FOUR, 800_000, 16_000));
+            () -> createAmplifyEffectGu(Rank.FOUR, 800_000, 16_000, 4));
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_5 = ITEMS.register("amplify_effect_gu_5",
-            () -> createAmplifyEffectGu(Rank.FIVE, 8_000_000, 160_000));
+            () -> createAmplifyEffectGu(Rank.FIVE, 8_000_000, 160_000, 8));
 
-    private static AmplifyEffectGuItem createAmplifyEffectGu(Rank rank, int refine, int costPerUse) {
+    private static AmplifyEffectGuItem createAmplifyEffectGu(Rank rank, int refine, int costPerUse, int scale) {
         return new AmplifyEffectGuItem(createTendedProperties(), GuSpec.of(rank, GuPath.RULE)
                 .type(GuType.AMPLIFICATION)
                 .effect(EffectCarrier.BODY)
                 .refine(refine).costPerUse(costPerUse)
-                .hungerBar(16, 1).hungerPerUse(4)
+                .hungerBar(16 * scale, 1).hungerPerUse(4 * scale).hungerPerDay(2 * scale).health(24 * scale)
                 .feed(ModItemTags.AMPLIFY_EFFECT_FEED, 1));
     }
     //endregion

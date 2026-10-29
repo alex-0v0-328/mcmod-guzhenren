@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD
  * renderers.
  *
- * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 3 at rank one,
+ * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 12 at rank one,
  * four times as many each rank); {@link #effect(EffectCarrier, long)} names them, and
  * {@link #effect(EffectCarrier, DaoMarks)} names both counters. A Gu without the call lays down no effect and
  * carries no marks -- an instant Gu, or one that only changes a number. {@link #createEffect} builds the effect a
@@ -63,7 +63,7 @@ public final class GuSpec {
     private int feedUnits;
     private int effectCooldownTicks;
     private int itemCooldownTicks;
-    private static final long DEFAULT_STRANDS = 3L;
+    private static final long DEFAULT_STRANDS = 12L;
     private static final long STRANDS_PER_RANK = 4L;
     private @Nullable EffectCarrier effectCarrier;
     private DaoMarks effectMarks = DaoMarks.NONE;

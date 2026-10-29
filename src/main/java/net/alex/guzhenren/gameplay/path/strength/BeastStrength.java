@@ -23,7 +23,7 @@ public enum BeastStrength implements NamedEnum {
 
     WHITE_BOAR(BeastStrengthFamily.BOAR, 1, 3.0D),
     BLACK_BOAR(BeastStrengthFamily.BOAR, 1, 3.0D),
-    BEAR(BeastStrengthFamily.BEAR, 1, 4.0D);
+    BEAR(BeastStrengthFamily.BEAR, 1, 5.0D);
 
     public static final Codec<BeastStrength> CODEC = StringRepresentable.fromEnum(BeastStrength::values);
     private final BeastStrengthFamily family;

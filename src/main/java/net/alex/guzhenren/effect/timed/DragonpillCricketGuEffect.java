@@ -9,7 +9,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 
 /**
  * The timed buff of the Dragonpill Cricket Gu [龙丸蛐蛐蛊]: a jump-strength lift for thirty seconds,
- * followed by a twenty-second weakness aftermath.
+ * followed by a ten-second weakness aftermath.
  *
  * <p>This one carries a real {@link net.minecraft.world.entity.ai.attributes.AttributeModifier} on
  * {@link net.minecraft.world.entity.ai.attributes.Attributes#JUMP_STRENGTH} — the one effect NOT

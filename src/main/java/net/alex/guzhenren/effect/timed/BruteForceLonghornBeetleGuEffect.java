@@ -6,7 +6,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 
 /**
  * The timed buff of the Brute Force Longhorn Beetle Gu [蛮力天牛蛊]: added attack damage for thirty
- * seconds, followed by a twenty-second weakness aftermath.
+ * seconds, followed by a ten-second weakness aftermath.
  *
  * <p>Timed effects own their truth on vanilla's timer. The attack bonus goes through {@link
  * AttackContributor}; the duration and the aftermath come from {@link AftermathEffect}.

@@ -1,30 +1,28 @@
 package net.alex.guzhenren.effect.timed;
 
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.effect.AftermathEffect;
 import net.alex.guzhenren.gameplay.attribute.AttackContributor;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * The timed buff of the Flower Boar Gu [花豕蛊]: plain added attack damage for sixty seconds, no
- * cost on the way out.
+ * The timed buff of the Flower Boar Gu [花豕蛊]: one boar's strength [一猪之力] of added attack damage for sixty
+ * seconds, followed by the weakness aftermath.
  *
- * <p>Timed effects own their truth on vanilla's {@link net.minecraft.world.effect.MobEffect} timer —
- * unlike pool effects, they are not rebuilt every heartbeat. The bonus goes through {@link
- * net.alex.guzhenren.gameplay.attribute.AttackContributor} so the attack total stays one number.
- *
- * <p>A timed buff alters nothing permanently.
+ * <p>The path effect is the buff's truth and this vanilla effect its icon and timer. The attack bonus goes through
+ * {@link AttackContributor} so the attack total stays one number; the aftermath comes from {@link AftermathEffect},
+ * the length is this class's own.
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.attribute.AttackContributor
+ * @see AttackContributor
  * @since 1.0.0
  */
 
-public class FlowerBoarGuEffect extends MobEffect implements AttackContributor {
+public class FlowerBoarGuEffect extends AftermathEffect implements AttackContributor {
 
     public static final int DURATION_TICKS = 60 * Ticks.SECOND;
-    public static final double ATTACK_BONUS = 5.0D;
+    public static final double ATTACK_BONUS = 3.0D;
 
     public FlowerBoarGuEffect(MobEffectCategory category, int color) {
         super(category, color);

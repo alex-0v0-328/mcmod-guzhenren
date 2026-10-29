@@ -8,9 +8,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
- * A thirty-second beast buff [兽力] that leaves a twenty-second weakness aftermath. Subclasses add the
- * buff itself (attack through {@code AttackContributor}, or an attribute modifier); this class owns the
- * timing and the penalty.
+ * A timed beast buff [兽力] that leaves a ten-second weakness aftermath. Subclasses add the buff itself (attack
+ * through {@code AttackContributor}, or an attribute modifier); this class owns the penalty and the thirty-second
+ * default length, which a subclass of another length hides with its own {@code DURATION_TICKS}.
  *
  * <p>The aftermath is applied on the effect's last tick ({@code duration == 1}), because a
  * {@link MobEffect} has no expiry hook. Changing how that last tick is recognized is how the penalty
@@ -32,7 +32,7 @@ import net.minecraft.world.entity.LivingEntity;
 public abstract class AftermathEffect extends MobEffect {
 
     public static final int DURATION_TICKS = 30 * Ticks.SECOND;
-    public static final int AFTERMATH_TICKS = 20 * Ticks.SECOND;
+    public static final int AFTERMATH_TICKS = 10 * Ticks.SECOND;
     private static final int LAST_TICK = 1;
 
     protected AftermathEffect(MobEffectCategory category, int color) {
