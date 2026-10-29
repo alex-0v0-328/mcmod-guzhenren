@@ -1,6 +1,7 @@
 package net.alex.guzhenren.particle;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.flight.SecondStageCrashEvent;
 import net.alex.guzhenren.gameplay.flight.SecondStageStartedEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -9,8 +10,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Drives {@link SecondStageRingEmitter}: the sonic boom on each {@link SecondStageStartedEvent}, the sound barrier
- * rings at the end of every player tick, and dropping their trail on logout and on a dimension change.
+ * Drives {@link SecondStageRingEmitter}: the sonic boom on each {@link SecondStageStartedEvent}, the crash ring on
+ * each server-side {@link SecondStageCrashEvent}, the sound barrier rings at the end of every player tick, and
+ * dropping their trail on logout and on a dimension change.
  *
  * <p>The event handlers live here, the emission behind them in {@link SecondStageRingEmitter}.
  *
@@ -28,6 +30,11 @@ public final class SecondStageRingEvents {
     @SubscribeEvent
     public static void onSecondStageStarted(SecondStageStartedEvent event) {
         SecondStageRingEmitter.sonicBoom(event.getPlayer());
+    }
+
+    @SubscribeEvent
+    public static void onSecondStageCrash(SecondStageCrashEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer player) SecondStageRingEmitter.crash(player, event.getHeading());
     }
 
     @SubscribeEvent

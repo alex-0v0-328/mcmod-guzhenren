@@ -1,24 +1,21 @@
 package net.alex.guzhenren.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Sets the local player's horizontal flight in second-stage flight [二段飞行]; client only.
+ * Hands a player's travel to the second-stage cruise [二段飞行] while the stage is on; both ends.
  *
- * <p>Two readings of the flying speed move a flying player: the horizontal one, {@code Player#getFlyingSpeed}
- * (doubled while sprinting), which {@link #guzhenren$setSecondStageFlight} replaces with
- * {@link SecondStageService#SPEED_MULTIPLIER} times the plain flying speed, so the sprint's doubling never stacks
- * on it, and the climb and descent one inside {@code LocalPlayer#aiStep}, which {@link LocalPlayerMixin} scales by
- * {@link SecondStageService#CLIMB_MULTIPLIER}, both while the synced mark is present and the player flies
- * unmounted, vanilla's own flying branch. Only the local player runs this physics, so the multiple never reaches
- * other players, the integrated server's players or the save. It wraps every
- * return of {@code Player#getFlyingSpeed} instead of adding an override to {@code LocalPlayer}, which vanilla does
- * not declare there: another mod adding the same override would clash with this required config.
+ * <p>{@link #guzhenren$cruise} cancels {@code Player#travel} whenever {@link SecondStageService#travel} moved the
+ * player: an unmounted flier with the mark, on the end that simulates it (the local player's client, and the
+ * server's own step). Vanilla's flying branch would scale the flying speed by the input and drag it at 0.91; the
+ * cruise follows the look instead, so it replaces the whole travel rather than one speed reading. Remote players on
+ * a client never travel, mark or not.
  *
  * @author Alex
  * @version 1.0.0
@@ -29,10 +26,8 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(Player.class)
 public abstract class PlayerMixin {
 
-    @ModifyReturnValue(method = "getFlyingSpeed", at = @At("RETURN"))
-    private float guzhenren$setSecondStageFlight(float speed) {
-        return (Object) this instanceof LocalPlayer player && player.getAbilities().flying && !player.isPassenger()
-                && SecondStageService.isActive(player)
-                ? player.getAbilities().getFlyingSpeed() * SecondStageService.SPEED_MULTIPLIER : speed;
+    @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
+    private void guzhenren$cruise(Vec3 travelVector, CallbackInfo ci) {
+        if (SecondStageService.travel((Player) (Object) this)) ci.cancel();
     }
 }

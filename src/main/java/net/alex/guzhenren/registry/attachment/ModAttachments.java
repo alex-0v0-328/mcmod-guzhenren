@@ -33,14 +33,15 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * Every data attachment this mod puts on a player.
  *
  * <p>DeferredRegister holder: the thirteen record attachments (immutable, written only through their
- * service) plus the five scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
- * {@code SECOND_STAGE}, {@code PLUNGE}).
+ * service) plus the six scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
+ * {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
- * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} is neither saved nor synced, and
- * {@code SECOND_STAGE} is synced but never saved: it counts by presence, a player who has it flies the second stage
- * [二段飞行], and a relog starts outside it. {@code PLUNGE} works the same way: a player who has it is plunging
- * [坠击], and its value is the top of that fall. A record other players must see widens its sync predicate; it
- * never gets a downstream payload.
+ * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} and {@code SECOND_STAGE_THROTTLE} are neither saved
+ * nor synced, each end keeping its own, and {@code SECOND_STAGE} is synced to every client that sees the player, who
+ * leans into the flight on their screens too, but never saved: it counts by presence, a player who has it flies the
+ * second stage [二段飞行], and a relog starts outside it. {@code PLUNGE} is synced to its owner the same way: a
+ * player who has it is plunging [坠击], and its value is the top of that fall. A record other players must see
+ * widens its sync predicate; it never gets a downstream payload.
  *
  * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
  * synced attachment to its owner on every {@code setData}, equal or not, so a store that changes nothing writes and
@@ -51,8 +52,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
  * attachment is carried and reset by being registered here, nowhere else. {@code HEALTH_CARRY} is built by hand
  * because a death must not carry it, and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a
- * body that the death just ended; {@code ESSENCE_CARRY}, {@code SECOND_STAGE} and {@code PLUNGE} are unsaved, so no
- * clone carries them. ⚠ {@code BORN} stays inherited, or
+ * body that the death just ended; {@code ESSENCE_CARRY}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE} and
+ * {@code PLUNGE} are unsaved, so no clone carries them. ⚠ {@code BORN} stays inherited, or
  * the next login re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
@@ -147,8 +148,10 @@ public final class ModAttachments {
     //region Flight [飞行]
     public static final Supplier<AttachmentType<Boolean>> SECOND_STAGE = ATTACHMENT_TYPES.register(
             "second_stage_flag", () -> AttachmentType.builder(() -> Boolean.TRUE)
-                    .sync(OWNER_ONLY, ByteBufCodecs.BOOL)
+                    .sync(ByteBufCodecs.BOOL)
                     .build());
+    public static final Supplier<AttachmentType<Double>> SECOND_STAGE_THROTTLE = ATTACHMENT_TYPES.register(
+            "second_stage_throttle", () -> AttachmentType.builder(() -> 0.0D).build());
     //endregion
 
     //region Plunge [坠击]

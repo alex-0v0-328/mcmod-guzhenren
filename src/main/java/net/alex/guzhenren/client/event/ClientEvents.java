@@ -17,6 +17,7 @@ import net.alex.guzhenren.client.screen.ApertureStorageScreen;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
+import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.ModPayloads;
@@ -75,7 +76,8 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled
  * at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player
  * renderers get a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} handler with
- * {@code ModPayloads}, which names no client class itself. On logout it clears {@link DashInput}'s remembered key
+ * {@code ModPayloads}, which names no client class itself, and the Epic Fight client hooks
+ * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered key
  * states and the pending flashes, and drops a radial-menu hold.
  *
  * @author Alex
@@ -124,6 +126,7 @@ public final class ClientEvents {
             ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
                     (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
+            EpicFightClientIntegration.initialize();
         });
     }
 

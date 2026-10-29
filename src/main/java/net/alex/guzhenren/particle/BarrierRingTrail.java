@@ -2,6 +2,7 @@ package net.alex.guzhenren.particle;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.gameplay.flight.SecondStageCruise;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -33,8 +34,8 @@ record BarrierRingTrail(Vec3 lastPos, double carry, double speed, int age) {
 
     static final int QUIET_TICKS = 40;
     static final double SPACING = 16.0D;
-    static final double PLAIN_FLIGHT_SPEED = 0.546D;
-    static final double BARRIER_SPEED = 3.0D * PLAIN_FLIGHT_SPEED;
+    static final double PLAIN_FLIGHT_SPEED = SecondStageCruise.PLAIN_FLIGHT_SPEED;
+    static final double BARRIER_SPEED = SecondStageCruise.BARRIER_SPEED;
     static final double HEAD_LEAD = 1.0D;
     static final double TELEPORT_DISTANCE = 16.0D;
     private static final double SMOOTHING = 0.5D;

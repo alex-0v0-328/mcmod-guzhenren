@@ -4,12 +4,12 @@
   "package": "net.alex.guzhenren.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "EntityMixin"
+    "EntityMixin",
+    "PlayerMixin"
   ],
   "client": [
     "LocalPlayerMixin",
-    "MouseHandlerMixin",
-    "PlayerMixin"
+    "MouseHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

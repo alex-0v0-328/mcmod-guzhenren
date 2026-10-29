@@ -23,13 +23,14 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Everything this mod keeps on a player, read and written through one object: fifteen saved values, the
- * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and one in-memory carry, the
- * essence regen remainder ({@link #getEssenceCarry}).
+ * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and two in-memory values, the
+ * essence regen remainder ({@link #getEssenceCarry}) and the second-stage throttle ({@link #getSecondStageThrottle}),
+ * which each end steps for itself.
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; eleven values reach their owner's client on change ({@code ModAttachments} syncs
- * them {@code OWNER_ONLY}). {@link #resetCarriedOnDeath} returns every value a death carries to its
- * default.
+ * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player).
+ * {@link #resetCarriedOnDeath} returns every value a death carries to its default.
  *
  * <p>⚠ The only class that touches the attachment API: a view over NeoForge attachments. Services use these
  * methods only.
@@ -82,6 +83,8 @@ public final class PlayerData {
 
     public boolean isInSecondStage() { return owner.hasData(ModAttachments.SECOND_STAGE); }
 
+    public double getSecondStageThrottle() { return owner.getData(ModAttachments.SECOND_STAGE_THROTTLE); }
+
     public @Nullable Double getPlungeTopY() {
         return owner.hasData(ModAttachments.PLUNGE) ? owner.getData(ModAttachments.PLUNGE) : null;
     }
@@ -130,6 +133,14 @@ public final class PlayerData {
             owner.removeData(ModAttachments.SECOND_STAGE);
         }
         return true;
+    }
+
+    public void setSecondStageThrottle(double value) {
+        if (value > 0.0D) {
+            owner.setData(ModAttachments.SECOND_STAGE_THROTTLE, value);
+        } else {
+            owner.removeData(ModAttachments.SECOND_STAGE_THROTTLE);
+        }
     }
 
     public boolean setPlungeTopY(@Nullable Double value) {

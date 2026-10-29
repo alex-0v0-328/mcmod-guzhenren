@@ -32,6 +32,10 @@ import net.minecraft.world.phys.Vec3;
  * change drop it ({@link #forget}); {@link SecondStageRingEvents} calls {@link #tick} at the end of each player
  * tick.
  *
+ * <p>{@link #crash} answers each server-side {@code SecondStageCrashEvent}: one {@code sonic_boom_ring} at mid-body
+ * against the wall ({@link #CRASH_AHEAD} blocks along the heading), facing the heading, and a vanilla explosion at
+ * {@link #CRASH_VOLUME} and {@link #CRASH_PITCH} for the impact.
+ *
  * <p>Pure feedback: no damage, no hitbox.
  *
  * @author Alex
@@ -47,6 +51,9 @@ public final class SecondStageRingEmitter {
     private static final double BOOM_BEHIND = 1.0D;
     private static final float BOOM_VOLUME = 2.0F;
     private static final float BOOM_PITCH = 1.0F;
+    private static final double CRASH_AHEAD = 0.5D;
+    private static final float CRASH_VOLUME = 1.0F;
+    private static final float CRASH_PITCH = 1.4F;
 
     private static final Map<UUID, BarrierRingTrail> TRAILS = new HashMap<>();
 
@@ -62,6 +69,16 @@ public final class SecondStageRingEmitter {
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WARDEN_SONIC_BOOM,
                 SoundSource.PLAYERS, BOOM_VOLUME, BOOM_PITCH);
         TRAILS.put(player.getUUID(), BarrierRingTrail.start(player.position()));
+    }
+
+    public static void crash(ServerPlayer player, Vec3 heading) {
+        if (!(player.level() instanceof ServerLevel level)) return;
+        Vec3 ring = player.position().add(0.0D, RING_HEIGHT, 0.0D).add(heading.scale(CRASH_AHEAD));
+        Vec3 velocity = heading.scale(RingConeEmitter.RING_NORMAL_DRIFT);
+        level.sendParticles(ModParticles.SONIC_BOOM_RING.get(), ring.x, ring.y, ring.z,
+                0, velocity.x, velocity.y, velocity.z, 1.0D);
+        level.playSound(null, ring.x, ring.y, ring.z, SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS,
+                CRASH_VOLUME, CRASH_PITCH);
     }
 
     public static void tick(ServerPlayer player) {

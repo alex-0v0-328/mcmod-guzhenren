@@ -7,11 +7,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Scales the local player's climb and descent in second-stage flight [二段飞行]; client only.
+ * Holds the local player's jump and sneak out of second-stage flight [二段飞行]; client only.
  *
- * <p>{@link #guzhenren$scaleSecondStageClimb} scales the one flying-speed reading inside {@code LocalPlayer#aiStep},
- * the vertical step taken while flying, by {@link SecondStageService#CLIMB_MULTIPLIER} while the synced mark is
- * present; {@link PlayerMixin} sets the horizontal flight.
+ * <p>{@code LocalPlayer#aiStep} adds a climb or a descent of three times the flying speed to the velocity before the
+ * travel; {@link #guzhenren$holdSecondStageAltitude} reads that flying speed as zero while the synced mark is
+ * present, so the cruise ({@link PlayerMixin}) follows the look alone and inherits no drift from the keys.
  *
  * @author Alex
  * @version 1.0.0
@@ -24,8 +24,7 @@ public abstract class LocalPlayerMixin {
 
     @ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/entity/player/Abilities;getFlyingSpeed()F"))
-    private float guzhenren$scaleSecondStageClimb(float speed) {
-        return SecondStageService.isActive((LocalPlayer) (Object) this)
-                ? speed * SecondStageService.CLIMB_MULTIPLIER : speed;
+    private float guzhenren$holdSecondStageAltitude(float speed) {
+        return SecondStageService.isActive((LocalPlayer) (Object) this) ? 0.0F : speed;
     }
 }
