@@ -14,10 +14,10 @@ import net.minecraft.world.entity.LivingEntity;
  *
  * <p>The aftermath is applied on the effect's last tick ({@code duration == 1}), because a
  * {@link MobEffect} has no expiry hook. Changing how that last tick is recognized is how the penalty
- * quietly stops happening. ⚠ The aftermath is a punishment -- milk or {@code /effect clear} skipping it
- * is the intended design, NOT a gap.
+ * quietly stops happening. ⚠ The aftermath is a punishment, and milk no longer skips it: milk cures none of this
+ * mod's effects ({@link MilkCureEvents}).
  *
- * <p>⚠ Only a penalty may ride the last tick, which milk, {@code /effect clear} and death never reach. A refund,
+ * <p>⚠ Only a penalty may ride the last tick, which {@code /effect clear} and death never reach. A refund,
  * a payback or a debt (the Liquor Worm's 1:2 return, the Death Qi lifespan bill) reads its own effect's level on
  * the heartbeat instead.
  *

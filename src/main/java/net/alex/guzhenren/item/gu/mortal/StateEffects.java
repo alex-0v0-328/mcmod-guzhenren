@@ -37,13 +37,13 @@ import org.jetbrains.annotations.NotNull;
  * that ends by itself or by command, and the effect ends with it: its strands go the moment it does. Nothing here
  * reads a mark to size anything.
  *
- * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in
- * {@code ModItems}, and its {@code GuSpec} supplies the carrier, path and strands, source the Gu's item id. The
- * thought and distilling effects are the truth of their state and the vanilla effect only their icon, timer and
- * amplifier: milk or {@code /effect clear} costs the icon until the next heartbeat. The zombie form and the petrified
- * aperture stay on {@code BodyData} and {@code Aperture}, so a command that sets them needs no call of its own:
- * {@link #syncZombie} and {@link #syncStone} derive the effect from the state on the change event and on login, and
- * name the Gu by the state's rung or rank.
+ * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in {@code ModItems},
+ * and its {@code GuSpec} supplies the carrier, path and strands, source the Gu's item id. The thought and distilling
+ * effects are the truth of their state and the vanilla effect only their icon, timer and amplifier:
+ * {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. The zombie form and the
+ * petrified aperture stay on {@code BodyData} and {@code Aperture}, so a command that sets them needs no call of its
+ * own: {@link #syncZombie} and {@link #syncStone} derive the effect from the state on the change event and on login,
+ * and name the Gu by the state's rung or rank.
  *
  * <p>⚠ Only a half-zombie carries a zombie effect. Turning zombie for good dissipates its Transformation strands:
  * {@link #syncZombie} runs the effect out on the spot, so it ends as an expiry and the form stays; a zombie gets none

@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in
  * {@code ModItems}, and its {@code GuSpec} supplies the carrier, path and strands, source the Gu's item id. The
  * buff, leaf and watch effects are the truth of their state and the vanilla effect only their icon, timer and
- * amplifier: milk or {@code /effect clear} costs the icon until the next heartbeat. A Gu's gate reads
+ * amplifier: {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. A Gu's gate reads
  * {@link #findBuff} and its kin; a rule that reads the vanilla effect (attack, carrying capacity, time flow) pauses
  * until then too. A jade skin and the shield keep their state on {@code BodyData} and
  * {@code MugwortShieldData}; their effects follow the events those post, and an effect cut, removed or run out

@@ -28,7 +28,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  * the distilling; {@code closeDistilling} pays the 1:2 back once that effect is gone.</li>
  * </ul>
  *
- * <p>☠ Never hang a rule on a marker's expiry: {@link MobEffect} has no expiry hook, and milk or
+ * <p>☠ Never hang a rule on a marker's expiry: {@link MobEffect} has no expiry hook, and
  * {@code /effect clear} removes it silently. The truth reads its own level instead. ☠ Never give a marker
  * an {@code AttributeModifier}: attack goes through {@code AttackContributor}, one formula.
  *

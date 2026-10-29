@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * or by {@link #tick}, posts a {@link PathEffectEndedEvent} after the store is written.
  *
  * <p>{@link #tick} runs on the heartbeat: it drops every timed effect whose end has passed, then re-projects the
- * icons of what is left, so milk and {@code /effect clear} cost an icon for at most a second and never an effect.
+ * icons of what is left, so {@code /effect clear} costs an icon for at most a second and never an effect.
  * A permanent effect projects an infinite icon. Each write re-projects at once, without waiting for the beat.
  *
  * <p>⚠ An effect with no marks is never stored: applying one does nothing, and cutting or changing one to none

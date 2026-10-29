@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * its effect at once. {@link #tickShield} clears a shield whose time ran out and keeps the effect in step with it.
  * Raising posts {@link MugwortShieldRaisedEvent} and the end of a shield {@link MugwortShieldDownEvent}.
  *
- * <p>The truth is {@code MugwortShieldData}, never the effect: a {@code MobEffect} has no expiry hook, and milk or
+ * <p>The truth is {@code MugwortShieldData}, never the effect: a {@code MobEffect} has no expiry hook, and
  * {@code /effect clear} removes it silently, so the heartbeat re-applies it as {@link SkinService} does a jade
  * skin. ⚠ Damage that bypasses invulnerability or effects ({@code /kill}, the void, starvation) passes untouched.
  * ⚠ The caller hands {@link #absorb} only what lands after the invulnerability frames, and a hit the shield takes

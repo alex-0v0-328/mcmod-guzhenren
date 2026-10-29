@@ -7,11 +7,10 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The timed healing of the Vitality Leaf Gu [生机叶蛊]: heals one HP every half-second for 64 pulses
- * on its own vanilla timer.
+ * The timed healing of the Vitality Leaf Gu [生机叶蛊]: heals one HP every half-second for 64 pulses.
  *
- * <p>Timed effects own their truth on vanilla's {@link net.minecraft.world.effect.MobEffect} timer —
- * unlike pool effects, they are not rebuilt every heartbeat, so milk does cure them. Re-using the
+ * <p>The truth is the leaf path effect [流派效果] ({@code TimedEffects.grantLeaf}); this vanilla effect is its
+ * projection, which pulses while it shows and is put back within a second of {@code /effect clear}. Re-using the
  * Gu while this effect runs is a refusal ({@code vitality_active}).
  *
  * <p>A timed buff alters nothing permanently.

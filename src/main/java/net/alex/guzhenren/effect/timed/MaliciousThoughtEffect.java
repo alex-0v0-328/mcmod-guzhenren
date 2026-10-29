@@ -15,11 +15,10 @@ import org.jetbrains.annotations.NotNull;
  * thoughts [恶念] to the mind ocean [脑海].
  *
  * <p>The truth is the thought path effect [流派效果] ({@code StateEffects.grantThought}); this vanilla effect is its
- * projection, which pulses while it shows and is put back within a second of milk. One effect, four grades — the amplifier is
- * the rank's tier, and the {@code evilPerSecond} table is given at registration. The immediate
- * portion lands in the Gu's payout, not here; this effect owns only the per-second drip. Thoughts
- * land through {@link MindService#addThoughts} tagged
- * {@code EVIL}.
+ * projection, which pulses while it shows and is put back within a second of {@code /effect clear}. One effect, four
+ * grades — the amplifier is the rank's tier, and the {@code evilPerSecond} table is given at registration. The
+ * immediate portion lands in the Gu's payout, not here; this effect owns only the per-second drip. Thoughts land
+ * through {@link MindService#addThoughts} tagged {@code EVIL}.
  *
  * @author Alex
  * @version 1.0.0

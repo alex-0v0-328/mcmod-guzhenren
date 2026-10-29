@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>{@link #getIcon} names the vanilla effect the heartbeat projects while an instance is on, or {@code null} for
  * none. A kind whose vanilla effect depends on the instance (a buff per species, an amplifier per layer) takes a
  * projector instead, which answers a {@link Projection}. The projection is an icon, a timer and an amplifier only:
- * milk and {@code /effect clear} take it, the next heartbeat puts it back, and no rule reads it.
+ * {@code /effect clear} takes it, the next heartbeat puts it back, and no rule reads it.
  *
  * <p>⚠ {@link #getEffectCodec} is built on first use, not in the constructor: the types are constructed while
  * {@code ModPathEffectTypes} initializes, and the dispatch codec over them belongs to the same class.
