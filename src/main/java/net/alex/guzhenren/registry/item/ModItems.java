@@ -1,5 +1,6 @@
 package net.alex.guzhenren.registry.item;
 
+import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
@@ -11,6 +12,7 @@ import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.Tendon;
+import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
@@ -62,6 +64,7 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  * shares ({@link #createJadeSkinSpec}; {@link #createTemperingSpec}, whose one channeled round [灌注] eats the
  * whole bar and tempers the part for good), IS the truth. A figure
  * written down anywhere else is a copy of it, and when the two disagree this file is the one that is
- * right. One line per item, plus the PNG and both lang keys. Past 300 lines on purpose: it is a data table, and
+ * right. {@link #findGu} finds the Gu a body state was made by, for the path effect it carries. One line per item, plus the PNG and both lang keys. Past 300 lines on purpose: it is a data table, and
  * splitting it would scatter the one place the numbers live.
  *
  * <p>⚠ The registration id mirrors the Java name (and the PNG); a rank ladder is numbered
@@ -100,6 +103,14 @@ public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Guzhenren.MOD_ID);
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
     private static final long[] QI_ESSENCE_COST = { 50L, 500L, 5_000L, 50_000L, 500_000L };
+
+    public static <T extends Item> @Nullable T findGu(Class<T> type, Predicate<T> test) {
+        for (DeferredHolder<Item, ? extends Item> entry : ITEMS.getEntries()) {
+            Item item = entry.get();
+            if (type.isInstance(item) && test.test(type.cast(item))) return type.cast(item);
+        }
+        return null;
+    }
 
     private static Item.Properties createTendedProperties() { return new Item.Properties().stacksTo(1); }
 
@@ -163,6 +174,7 @@ public final class ModItems {
         return GuSpec.of(Rank.ONE, GuPath.STRENGTH)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
                 .type(GuType.DAO_MARK_CARVING)
+                .effect(EffectCarrier.BODY)
                 .refine(800)
                 .channel(3_600)
                 .hungerBar(36, 1).essencePerHunger(100)
@@ -253,6 +265,7 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JIN,
                     GuSpec.of(Rank.ONE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
+                            .effect(EffectCarrier.BODY)
                             .refine(800)
                             .channel(3_600)
                             .hungerBar(36, 1).essencePerHunger(300)
@@ -261,6 +274,7 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JIN,
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
+                            .effect(EffectCarrier.BODY)
                             .refine(8_000)
                             .channel(36_000)
                             .hungerBar(36, 2).essencePerHunger(3_000)
@@ -269,6 +283,7 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JUN,
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
+                            .effect(EffectCarrier.BODY)
                             .refine(80_000)
                             .channel(36_000)
                             .hungerBar(36, 4).essencePerHunger(6_000)
@@ -277,6 +292,7 @@ public final class ModItems {
             () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JUN,
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
+                            .effect(EffectCarrier.BODY)
                             .refine(800_000)
                             .channel(360_000)
                             .hungerBar(36, 8).essencePerHunger(60_000)
@@ -341,6 +357,7 @@ public final class ModItems {
     private static GuSpec createTemperingSpec(Rank rank, int refine, int essencePerRound, int scale,
                                               TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.METAL).type(GuType.DAO_MARK_CARVING)
+                .effect(EffectCarrier.BODY)
                 .refine(refine).channel(essencePerRound)
                 .hungerBar(36, 1).essencePerHunger(essencePerRound / 36).health(12 * scale)
                 .feed(feed, 1);

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Posted on the game event bus after {@link BodyService#wearSkin} puts a skin [皮肤] on a player, jade or permanent; the
  * flash every watching client draws is sent by a subscriber in {@code network}, which the body cannot call
- * into without closing a dependency cycle. Shedding a skin posts nothing: nothing is drawn for it.
+ * into without closing a dependency cycle. Shedding a skin posts {@link SkinShedEvent} instead.
  *
  * @author Alex
  * @version 1.0.0

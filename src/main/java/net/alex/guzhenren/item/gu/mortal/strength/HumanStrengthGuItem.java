@@ -38,6 +38,8 @@ public class HumanStrengthGuItem extends TendedGuItem {
         this.kind = kind;
     }
 
+    public HumanStrength getKind() { return kind; }
+
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return PathStrengthService.getHumanStrength(player, kind) >= kind.getMaxLayers()

@@ -157,6 +157,11 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.effect_permanent",            "Permanent",                   "永久");
         add("guzhenren.path_effect.race_talent",             "Race Talent [%s]",            "种族天赋 [%s]");
         add("guzhenren.path_effect.extreme_physique",        "Ten-Extremes Physique [%s]",  "十绝体质 [%s]");
+        add("guzhenren.path_effect.body_skin",               "Tempered Skin [%s]",          "炼体·皮 [%s]");
+        add("guzhenren.path_effect.body_tendon",             "Tempered Tendons [%s]",       "炼体·筋 [%s]");
+        add("guzhenren.path_effect.body_bone",               "Tempered Bones [%s]",         "炼体·骨 [%s]");
+        add("guzhenren.path_effect.beast_strength",          "Beast Strength [%s]",         "兽力 [%s]");
+        add("guzhenren.path_effect.human_strength",          "Human Strength [%s] x%s",     "人力 [%s] ×%s层");
         add("guzhenren.display.time_rate_up",                "x%s",                         "%s倍");
         add("guzhenren.display.wild",                        "Wild %s",                     "野生·%s");
         add("guzhenren.display.vital",                       "Vital %s",                    "本命·%s");

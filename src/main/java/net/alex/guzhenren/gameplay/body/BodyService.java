@@ -58,7 +58,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>The skin [皮肤] is worn through {@link #wearSkin} and shed through {@link #shedSkin}; a jade skin's end
  * tick is {@code gameTime}, read by {@code SkinService} on the heartbeat, and {@link #revive} sheds it with the
  * undead forms; a permanent skin keeps no end tick and stays through a respawn. Wearing posts a
- * {@link SkinWornEvent} (the flash goes out); shedding posts nothing. The tendons [筋] and bones [骨] are
+ * {@link SkinWornEvent} (the flash goes out); shedding posts {@link SkinShedEvent}. The tendons [筋] and bones [骨] are
  * tempered through {@link #temperTendon} and {@link #temperBone}, which post a {@link BodyTemperedEvent} (the
  * attribute layer refreshes capacity, max health and knockback resistance); the gate that decides whether a
  * grade replaces the worn one is each part's {@code canReplace}, asked by the Gu, never here.
@@ -224,6 +224,7 @@ public final class BodyService {
 
     public static void shedSkin(@NotNull ServerPlayer player) {
         store(player, get(player).withSkin(Skin.NATIVE, BodyData.UNTRACKED));
+        ModEvents.post(new SkinShedEvent(player));
     }
 
     public static boolean hasSkinRunOut(@NotNull Player player) {

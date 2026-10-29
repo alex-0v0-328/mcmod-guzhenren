@@ -74,6 +74,8 @@ public abstract class MortalGuItem extends GuItem {
     @Override
     protected String getKindKey() { return KIND_KEY; }
 
+    public GuSpec getSpec() { return spec; }
+
     public int getRefineCost() { return spec.getRefineCost(); }
 
     public long getUseEssence() { return spec.isChanneled() ? 0L : spec.getEssencePerRound(); }

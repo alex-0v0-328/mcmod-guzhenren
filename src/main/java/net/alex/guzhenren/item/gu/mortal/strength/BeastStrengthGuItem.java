@@ -36,6 +36,8 @@ public class BeastStrengthGuItem extends TendedGuItem {
         this.beast = beast;
     }
 
+    public BeastStrength getBeast() { return beast; }
+
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return PathStrengthService.has(player, beast)
