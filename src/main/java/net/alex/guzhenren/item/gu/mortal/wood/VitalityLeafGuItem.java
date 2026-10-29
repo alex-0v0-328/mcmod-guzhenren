@@ -6,7 +6,6 @@ import net.alex.guzhenren.effect.timed.VitalityLeafEffect;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -15,11 +14,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A one-shot Gu that grants the vitality effect [生机叶], refusing while one it granted is still running.
  *
- * <p>Extends {@link net.alex.guzhenren.item.gu.OneShotGuItem}. The gate checks
- * {@code player.hasEffect(VITALITY_LEAF)} so a re-use while the effect runs is a refusal, not a refresh;
- * {@code apply} hands the effect holder and its duration to
- * {@link net.alex.guzhenren.registry.effect.ModEffects#instance}. An Amplify Effect Gu [功倍蛊] multiplies
- * that duration, and with it the health the leaf returns.
+ * <p>Extends {@link net.alex.guzhenren.item.gu.OneShotGuItem}. The gate checks {@link TimedEffects#hasLeaf} so a
+ * re-use while the leaf runs is a refusal, not a refresh; {@code useApply} hands its duration to
+ * {@link TimedEffects#grantLeaf}. An Amplify Effect Gu [功倍蛊] multiplies that duration, and with it the health
+ * the leaf returns.
  *
  * @author Alex
  * @version 1.0.0
