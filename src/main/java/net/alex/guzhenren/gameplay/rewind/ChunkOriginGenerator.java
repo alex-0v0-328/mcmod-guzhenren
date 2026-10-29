@@ -50,8 +50,10 @@ import org.jetbrains.annotations.Nullable;
  * <p>Features write one chunk past their own and the terrain steps read biomes one chunk out, so a square of radius
  * {@code r} decorates {@code r + 1}, shapes {@code r + 2} and lays biomes over {@code r + 3}: the 3×3 restore lays
  * out 9×9 scratch chunks. Everything after {@link #layOut} runs on {@code Util.backgroundExecutor()}; terrain steps
- * run in parallel (each writes its own chunk), features one chunk after another (each writes its neighbors). The
- * result carries blocks only: no light, entities, ticks or block entities.
+ * run in parallel (each writes its own chunk), features one chunk after another (each writes its neighbors). A
+ * {@link Region} holds the scratch chunks and the holders a {@code WorldGenRegion} reads, a scratch chunk or else an
+ * empty one; each {@link ScratchHolder} hands its one chunk to every status a step asks for and never schedules
+ * anything. The result carries blocks only: no light, entities, ticks or block entities.
  *
  * <p>⚠ The generation pipeline ({@code GenerationChunkHolder}, {@code ChunkStep}, {@code WorldGenContext}) is named
  * only here. ⚠ The result is the seed's land under today's generator and mods: a world whose generator or
@@ -74,10 +76,7 @@ public final class ChunkOriginGenerator {
     private static final List<ChunkStatus> TERRAIN_STEPS =
             List.of(ChunkStatus.BIOMES, ChunkStatus.NOISE, ChunkStatus.SURFACE, ChunkStatus.CARVERS);
 
-    /**
-     * Lays out the scratch chunks on the main thread, then generates the square of {@code radius} around
-     * {@code center} in the background. The future holds the bare land of every position in the square.
-     */
+    /** The bare land of the square of {@code radius} around {@code center}, generated in the background. */
     public static @NotNull CompletableFuture<Map<ChunkPos, ChunkAccess>> generate(@NotNull ServerLevel level,
                                                                                   @NotNull ChunkPos center,
                                                                                   int radius) {
@@ -87,10 +86,6 @@ public final class ChunkOriginGenerator {
                 .thenApplyAsync(ChunkOriginGenerator::runFeatures, Util.backgroundExecutor());
     }
 
-    /**
-     * The block the land keeps at one position: the decorated block where a decoration swapped terrain for terrain,
-     * else the bare terrain, and a stripped block turned back to the stone or deepslate around it.
-     */
     public static @NotNull BlockState keep(@NotNull BlockState bare, @NotNull BlockState decorated, int y) {
         boolean recoloured = decorated != bare && bare.is(ModBlockTags.AS_BEFORE_TERRAIN)
                 && decorated.is(ModBlockTags.AS_BEFORE_TERRAIN);
@@ -194,11 +189,9 @@ public final class ChunkOriginGenerator {
     //endregion
 
     //region the region the steps see
-    /** The scratch chunks and the holders a {@code WorldGenRegion} reads: a scratch chunk, else an empty one. */
     private record Region(WorldGenContext context, StaticCache2D<GenerationChunkHolder> cache, ChunkPos center,
                           int radius, Map<Long, ProtoChunk> scratch) {}
 
-    /** Hands its one chunk to every status a generation step asks for; never schedules anything. */
     private static final class ScratchHolder extends GenerationChunkHolder {
 
         private @Nullable ChunkAccess chunk;

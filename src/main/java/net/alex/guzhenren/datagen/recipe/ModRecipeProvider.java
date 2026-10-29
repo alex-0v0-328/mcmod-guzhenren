@@ -31,7 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid, the furnace and blast
- * furnace recipes that cook a Gu material into another, and the steel's blast-furnace-only ingot and its block.
+ * furnace recipes that cook a Gu material into another, and the steel's blast-furnace-only ingot and its block:
+ * steel is iron cooked once more, which an ordinary furnace cannot do ({@link #addBlasting}).
  *
  * <p>Extends {@link net.minecraft.data.recipes.RecipeProvider}. Each recipe is transcribed verbatim
  * from an ASCII drawing ({@code '.'} empty, {@code ' '} cut corner), so a wrong corner, a short row
@@ -112,7 +113,6 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output, Guzhenren.id(getItemName(result) + "_from_blasting" + from));
     }
 
-    /** A blast furnace alone: steel is iron cooked once more, and an ordinary furnace cannot. */
     private static void addBlasting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {
         SimpleCookingRecipeBuilder.blasting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
                         5 * Ticks.SECOND)

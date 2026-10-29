@@ -29,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * runs: the aperture's rank must be the Gu's own, and its stage below the peak. {@link #getUseEssence} is what one
  * use pays (a tended Gu's cost per use, a one-shot Gu's refining, nothing for a channel), and
  * {@link #canBeAmplified} says whether an Amplify Effect Gu [功倍蛊] multiplies it; each that does asks it from its
- * own payout.
+ * own payout. The tooltip's usage type line [类型] ({@link #formatType}) shows the type alone, or a branch after
+ * its parent ({@code 防御 · 反击}).
  *
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
@@ -131,7 +132,6 @@ public abstract class MortalGuItem extends GuItem {
 
     protected @Nullable MutableComponent formatProgressLine(ItemStack stack) { return null; }
 
-    /** The usage type line [类型]: the type alone, or a branch after its parent ({@code 防御 · 反击}). */
     static MutableComponent formatType(GuType type) {
         Component name = Component.translatable(type.getTranslationKey());
         GuType parent = type.getParent();

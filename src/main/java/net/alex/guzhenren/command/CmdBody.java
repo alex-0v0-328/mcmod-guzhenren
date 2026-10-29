@@ -31,10 +31,12 @@ import net.minecraft.server.level.ServerPlayer;
  * <p>Each part is set by family [族] and rank [转]: {@code skin set bronze_skin|iron_skin [rank]},
  * {@code tendon set steel_tendon [rank]} and {@code bone set iron_bone [rank]} take the family's lowest rank
  * when none is named; {@code skin set jade_skin|white_jade_skin [seconds]} are the only timed ones and take
- * their Gu's registered duration when none is named; {@code native} sets a part back. The rank or seconds node
- * is attached before {@code [targets]}, so a bare number reads as the figure, never as a player name. A skin is
- * worn the way its Gu would and projected at once; every write skips the Gu's replacement gate, so an operator
- * may lower a grade. The flesh [肉] has only its native grade and no node.
+ * their Gu's registered duration when none is named ({@link #getRegisteredDurationTicks}); {@code native} sets
+ * a part back. A rank picks its grade by its offset from the lowest in {@link #getTempered}'s rank order, since a
+ * family's ranks run without a gap ({@code BodyGrade}). The rank or seconds node is attached before
+ * {@code [targets]}, so a bare number reads as the figure, never as a player name. A skin is worn the way its Gu
+ * would and projected at once; every write skips the Gu's replacement gate, so an operator may lower a grade. The
+ * flesh [肉] has only its native grade and no node.
  *
  * @author Alex
  * @version 1.0.0
@@ -85,7 +87,6 @@ public final class CmdBody {
                 }));
     }
 
-    /** {@code <part> set native|<family> ...}: the native grade and each family node under one {@code set}. */
     @SafeVarargs
     private static <G extends Enum<G> & BodyGrade<G>> ArgumentBuilder<CommandSourceStack, ?> buildPart(
             String part, G nativeGrade, ModCommandSupport.EnumOperation<G> operation,
@@ -97,7 +98,6 @@ public final class CmdBody {
         return Commands.literal(part).then(set);
     }
 
-    /** {@code <family> [rank]}: one family's grades by rank, the lowest when the rank is left out. */
     private static <G extends Enum<G> & BodyGrade<G>> ArgumentBuilder<CommandSourceStack, ?> buildRanked(
             String family, List<G> grades, ModCommandSupport.EnumOperation<G> operation) {
         G lowest = grades.get(0);
@@ -113,7 +113,6 @@ public final class CmdBody {
                 context -> ModCommandSupport.apply(context, player -> operation.apply(player, lowest)));
     }
 
-    /** {@code <jade skin> [seconds]}: the only timed skins, worn for their Gu's time when none is named. */
     private static ArgumentBuilder<CommandSourceStack, ?> buildTimedSkin(Skin skin) {
         ArgumentBuilder<CommandSourceStack, ?> node = Commands.literal(skin.getSerializedName())
                 .then(ModCommandSupport.withTargets(Commands.argument(ARG_SECONDS, IntegerArgumentType.integer(0)),
@@ -123,7 +122,6 @@ public final class CmdBody {
                 player -> wearSkin(player, skin, getRegisteredDurationTicks(skin))));
     }
 
-    /** The grades a family's ranks name, in rank order; the ranks run without a gap ({@code BodyGrade}). */
     static <G extends Enum<G> & BodyGrade<G>> List<G> getTempered(G[] grades) {
         return Arrays.stream(grades).filter(grade -> !grade.isNative()).toList();
     }
@@ -143,7 +141,6 @@ public final class CmdBody {
         SkinService.tickSkin(player);
     }
 
-    /** A jade skin's time when the command names none: what its Gu registers; a permanent skin takes none. */
     static int getRegisteredDurationTicks(Skin skin) {
         return switch (skin) {
             case JADE_SKIN -> ((SkinGuItem) ModItems.JADE_SKIN_GU.get()).getDurationTicks();

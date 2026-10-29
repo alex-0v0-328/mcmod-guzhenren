@@ -382,7 +382,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         }
     }
 
-    /** The synchronized poses; {@link #isAmbient} marks the rest poses that combat engagement interrupts. */
     public enum Action implements ActionEntity.ActionFlags {
 
         IDLE(true, false, false),

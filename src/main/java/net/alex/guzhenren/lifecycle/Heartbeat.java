@@ -24,9 +24,10 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * The one-second heartbeat: a straight run of ordered steps that most of the player's state depends
- * on. Every step runs inside {@code tickCount % HEARTBEAT_TICKS == 0}, and most read what an earlier one
- * just wrote. The beat reads the clock once, into a {@link Beat}, and every time-scaled step runs on that
- * one reading. {@link PlayerDataService} owns the lifecycle; this class owns the cadence, and every step but
+ * on. Every tick of a live server player calls {@link #beat}, which gates itself: every step runs inside
+ * {@code tickCount % HEARTBEAT_TICKS == 0}, and most read what an earlier one just wrote. The beat reads the
+ * clock once, into a {@link Beat}, and every time-scaled step runs on that one reading. {@link PlayerDataService}
+ * owns the lifecycle; this class owns the cadence, and every step but
  * {@code checkLethalState} lives in its own domain. {@code checkLethalState} stays here because the
  * order of the four deaths is a rule across domains.
  *
@@ -92,7 +93,6 @@ public final class Heartbeat {
 
     public static final int HEARTBEAT_TICKS = Ticks.SECOND;
 
-    /** Runs one tick's share of the heartbeat for a live server player; every tick calls it, the beat gates itself. */
     public static void beat(ServerPlayer player) {
         if (player.isRemoved() || player.isDeadOrDying()) return;
         if (player.tickCount % HEARTBEAT_TICKS != 0) return;

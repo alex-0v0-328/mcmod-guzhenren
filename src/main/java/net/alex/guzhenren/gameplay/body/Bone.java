@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
  * four. Closed vocabulary enum, one slot on {@code BodyData}; permanent,
  * so a respawn keeps it.
  *
- * <p>Iron bones add max health and knockback resistance, read by {@code MaxHealthService} and
- * {@code KnockbackResistanceService}; the numbers are this enum's. One family, ordered by declaration: a
- * grade replaces every grade before it and nothing after ({@link #canReplace}).
+ * <p>Iron bones add max health, in health points, and knockback resistance on vanilla's 0 to 1 scale, read by
+ * {@code MaxHealthService} and {@code KnockbackResistanceService}; the numbers are this enum's. One family,
+ * ordered by declaration: a grade replaces every grade before it and nothing after ({@link #canReplace}).
  *
  * @author Alex
  * @version 1.0.0
@@ -40,10 +40,8 @@ public enum Bone implements BodyGrade<Bone> {
     @Override
     public int getRank() { return rank; }
 
-    /** The health points added to the max health attribute. */
     public double getMaxHealthBonus() { return maxHealthBonus; }
 
-    /** The knockback resistance added, on vanilla's 0 to 1 scale. */
     public double getKnockbackResistance() { return knockbackResistance; }
 
     @Override

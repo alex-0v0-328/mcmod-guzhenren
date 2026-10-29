@@ -12,10 +12,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The skin [皮肤] heartbeat and its damage rule. {@link #tickSkin} sheds a jade skin whose time has run out and
- * projects the one still worn as its Gu's effect, so the icon and timer read on the HUD; a permanent bronze or
- * iron skin has no timer and projects nothing, it reads on the body panel. {@link #reduceDamage} takes any
- * skin's flat reduction off a hit the skin can turn; a jade skin whose time ran out turns nothing in the second
- * before the heartbeat sheds it.
+ * projects the one still worn as its Gu's effect ({@link #getEffectOf}), so the icon and timer read on the HUD;
+ * a permanent bronze or iron skin has no timer and projects nothing, it reads on the body panel.
+ * {@link #reduceDamage} takes any skin's flat reduction off a hit the skin can turn; a jade skin whose time ran
+ * out turns nothing in the second before the heartbeat sheds it.
  *
  * <p>The truth is {@code BodyData.skin} with its end tick, never the effect: a {@code MobEffect} has no expiry
  * hook, and milk or {@code /effect clear} removes it silently, so the heartbeat re-applies it the way
@@ -52,7 +52,6 @@ public final class SkinService {
         }
     }
 
-    /** The effect that projects {@code skin}, or {@code null} for a skin with no timer, which shows nothing. */
     public static @Nullable Holder<MobEffect> getEffectOf(@NotNull Skin skin) {
         return switch (skin) {
             case JADE_SKIN -> ModEffects.JADE_SKIN_GU;

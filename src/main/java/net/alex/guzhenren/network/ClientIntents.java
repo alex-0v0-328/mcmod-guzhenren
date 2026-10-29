@@ -44,7 +44,6 @@ public final class ClientIntents {
 
     private ClientIntents() {}
 
-    /** The nourishing [温养] button's two actions. */
     public enum NourishAction { START, CANCEL }
 
     private static final String STORAGE_TITLE = "guzhenren.menu.aperture_storage";

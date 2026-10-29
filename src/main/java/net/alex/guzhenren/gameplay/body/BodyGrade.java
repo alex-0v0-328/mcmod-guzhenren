@@ -27,6 +27,5 @@ public interface BodyGrade<G extends BodyGrade<G>> extends NamedEnum {
 
     int getRank();
 
-    /** Whether a Gu that grants this grade may be used by a holder whose part is {@code worn}. */
     boolean canReplace(G worn);
 }

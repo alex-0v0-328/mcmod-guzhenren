@@ -11,7 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The skin flashes [皮肤闪现] this client is drawing: one per entity, started by a {@link SkinFlashPayload}
- * and fading over {@link #FADE_TICKS}. {@link SkinFlashLayer} reads them; nothing else does.
+ * and fading over {@link #FADE_TICKS}. {@link SkinFlashLayer} reads them; nothing else does. A {@link Flash}
+ * holds the skin that was put on and the client game tick it started.
  *
  * <p>Each skin family has its tint: emerald green for the jade skin [玉皮], warm white for the white jade skin
  * [白玉皮], copper for the bronze skins [铜皮], steel grey for the iron skins [铁皮]; the native skin never
@@ -37,7 +38,6 @@ public final class SkinFlashes {
     private static final int IRON_TINT = 0xB8BEC8;
     private static final Map<Integer, Flash> FLASHES = new HashMap<>();
 
-    /** One flash: the skin that was put on, and the client game tick it started. */
     public record Flash(Skin skin, long startTick) {
 
         public float getAlpha(long now, float partialTick) {

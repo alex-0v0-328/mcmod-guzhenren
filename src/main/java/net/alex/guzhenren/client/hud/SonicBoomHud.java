@@ -68,7 +68,6 @@ public final class SonicBoomHud {
         startedAt = Integer.MIN_VALUE;
     }
 
-    /** Draws the ring for the frame; the loader's HUD layer calls it, see {@code ClientEvents}. */
     public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker deltaTracker) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
@@ -96,7 +95,6 @@ public final class SonicBoomHud {
         RenderSystem.enableDepthTest();
     }
 
-    /** Ticks since the ring started, partial tick included; the ring plays only inside [0, LIFETIME_TICKS). */
     float getAge(int tickCount, float partialTick) {
         return (float) ((long) tickCount - startedAt) + partialTick;
     }

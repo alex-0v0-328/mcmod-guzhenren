@@ -50,12 +50,14 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * {@link #ATTACK_RECOVERY_TICKS} before the next one. Cooldowns and recovery are server-only counts: no client
  * reads them, so they are saved but never synchronized.
  *
- * <p>The subclass supplies the action set ({@link #getActionValues}, with {@link #getIdleAction}, the target-keeping
- * {@link #getAlertAction} and {@link #getDeathAction}), its cooldowns and save keys, the attack choice
- * ({@link #chooseAttack}), every non-idle action's timing ({@link #tickAction}), the reaction to a hit
- * ({@link #reactToHurt}) and each non-idle action's animation ({@link #getActionAnimation}). {@code registerGoals}
- * and {@code defineSynchedData} run inside the entity constructor, before subclass fields are assigned, so the
- * hooks they reach ({@link #registerSpeciesGoals}, {@link #getIdleAction}, {@link #getCooldowns}) return constants.
+ * <p>The subclass supplies the action set ({@link #getActionValues}, an {@link ActionFlags} enum whose ordinal is the
+ * wire id, with {@link #getIdleAction}, the target-keeping {@link #getAlertAction} and {@link #getDeathAction}), its
+ * cooldowns and save keys, the attack choice ({@link #chooseAttack}), every non-idle action's timing
+ * ({@link #tickAction}), the reaction to a hit ({@link #reactToHurt}) and each non-idle action's animation
+ * ({@link #getActionAnimation}). An ambient action ({@link ActionFlags#isAmbient}) is a rest pose that combat
+ * engagement interrupts. {@code registerGoals} and {@code defineSynchedData} run inside the entity constructor,
+ * before subclass fields are assigned, so the hooks they reach ({@link #registerSpeciesGoals},
+ * {@link #getIdleAction}, {@link #getCooldowns}) return constants.
  *
  * <p>{@link #tryStartAction} starts a server action: attacks refuse to start while another attack is in
  * progress, during recovery or under their cooldown, and the target is captured at once so a new attacker
@@ -63,7 +65,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * resolved, landed or missed. In {@link #validateTarget}, a target lost to range, sight or the rules ends a
  * running alert and an unsettled attack; a settled hit still plays its recovery pose, even when it killed
  * the target. Sight checks go through the mob's sensing, which caches one answer per target per tick; only
- * {@link #isHitBySweep} casts a fresh ray, because a charge moves the body before it tests. After a refusal
+ * {@link #isHitBySweep}, the swept-body test of whether a moving attack's path meets the target, casts a fresh ray,
+ * because a charge moves the body before it tests. After a refusal
  * {@link #canStartLunge} sweeps the lunge path again only after {@link #LUNGE_RECHECK_TICKS} ticks, and the
  * cooldown map holds only running cooldowns, so an idle mob skips {@link #tickCooldowns} entirely.
  *
@@ -369,7 +372,6 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         return this.level().loadedAndEntityCanStandOn(below, this);
     }
 
-    /** The swept-body hit test for moving attacks: the body's path from {@code from} to {@code to} meets the target. */
     protected boolean isHitBySweep(LivingEntity target, Vec3 from, Vec3 to) {
         AABB targetBox = target.getBoundingBox();
         double halfWidth = this.getBbWidth() * 0.5D;
@@ -529,18 +531,15 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
     //endregion
 
-    /** The flags the state machine reads from a subclass's action enum; the ordinal is the wire id. */
     public interface ActionFlags {
 
         boolean isLooping();
 
         boolean isAttack();
 
-        /** A rest pose that combat engagement interrupts. */
         default boolean isAmbient() { return false; }
     }
 
-    /** One attack's cooldown: the length it starts at and its save key. */
     public record Cooldown(int maxTicks, String saveKey) {}
 
     private record BaseLoops(RawAnimation idle, RawAnimation walk, RawAnimation run) {

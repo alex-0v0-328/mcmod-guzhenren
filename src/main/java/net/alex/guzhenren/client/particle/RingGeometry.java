@@ -10,10 +10,16 @@ import org.joml.Vector3f;
  * built by {@link #getGround}, no camera involvement so it stays horizontal) and FACING_MOTION takes
  * an orthonormal basis of the plane perpendicular to the spawn direction ({@link #getFacing}).
  *
- * <p>{@link #LARGEST_CANVAS} is the canvas width of the largest hand-drawn ring; every frame's
- * world size scales off it through {@link #scaleForWidth} (the {@code quadSize}
- * half-span multiplier for a frame drawn on a canvas that wide). A direction shorter than
- * {@link #MIN_DIRECTION_LENGTH} is treated as "no direction" and falls back to GROUND.
+ * <p>{@link #LARGEST_CANVAS} is the canvas width of the largest hand-drawn ring and {@link #LARGEST_RING_SPAN}
+ * its world span in blocks (总表 TODO acceptance: max ~2.2 blocks across); every frame's world size scales off
+ * them through {@link #scaleForWidth} (the {@code quadSize} half-span multiplier for a frame drawn on a canvas
+ * that wide), and a ring type whose largest frame spans another size passes that span as {@code largestSpan}.
+ * A direction shorter than {@link #MIN_DIRECTION_LENGTH} is treated as "no direction" and falls back to GROUND.
+ *
+ * <p>A ring's exit runs from its full bloom to its despawn: {@link #getExitProgress} goes from 0 at
+ * {@code lastFrameAge} (partial ticks included) to 1 when the ring despawns, {@code lingerTicks + 1} ticks later,
+ * and a spreading ring grows by that share of its extra size. {@link #getFadeAlpha} holds full bright through
+ * an exit until {@code fadeStart}, then fades out.
  *
  * <p>{@link #MIN_OPENING_DEGREES} is the minimum opening toward the camera, in degrees: a ring
  * perpendicular to a motion that runs sideways across the view is perfectly
@@ -45,7 +51,6 @@ final class RingGeometry {
     private RingGeometry() {}
 
     static final int LARGEST_CANVAS = 23;
-    /** World span of the largest ring, in blocks (总表 TODO acceptance: max ~2.2 blocks across). */
     static final float LARGEST_RING_SPAN = 2.2F;
     private static final float MIN_DIRECTION_LENGTH = 1.0E-4F;
     static final float MIN_OPENING_DEGREES = 30.0F;
@@ -58,20 +63,14 @@ final class RingGeometry {
         return scaleForWidth(canvasWidth, LARGEST_RING_SPAN);
     }
 
-    /** {@link #scaleForWidth(int)} for a ring type whose largest frame spans {@code largestSpan} blocks. */
     static float scaleForWidth(int canvasWidth, float largestSpan) {
         return largestSpan * canvasWidth / (2.0F * LARGEST_CANVAS);
     }
 
-    /**
-     * How far a ring is through its exit: 0 at the full bloom ({@code lastFrameAge}, partial ticks included) to 1
-     * when it despawns, {@code lingerTicks + 1} ticks later. A spreading ring grows by that share of its extra size.
-     */
     static float getExitProgress(float age, int lastFrameAge, int lingerTicks) {
         return Math.max(0.0F, Math.min(1.0F, (age - lastFrameAge) / (lingerTicks + 1)));
     }
 
-    /** The alpha {@code progress} through an exit that holds full bright until {@code fadeStart}, then fades out. */
     static float getFadeAlpha(float progress, float fadeStart) {
         if (progress <= fadeStart) return 1.0F;
         return Math.max(0.0F, 1.0F - (progress - fadeStart) / (1.0F - fadeStart));

@@ -70,7 +70,8 @@ import org.jetbrains.annotations.Nullable;
  * Every item and the only place a Gu's numbers actually live.
  *
  * <p>DeferredRegister holder: the {@link GuSpec} chain on each registration, or the spec helper its family
- * shares, IS the truth. A figure
+ * shares ({@link #createJadeSkinSpec}; {@link #createTemperingSpec}, whose one channeled round [灌注] eats the
+ * whole bar and tempers the part for good), IS the truth. A figure
  * written down anywhere else is a copy of it, and when the two disagree this file is the one that is
  * right. One line per item, plus the PNG and both lang keys. Past 300 lines on purpose: it is a data table, and
  * splitting it would scatter the one place the numbers live.
@@ -326,10 +327,6 @@ public final class ModItems {
             () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE_4,
                     createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_BONE_FEED)));
 
-    /**
-     * The jade skin Gu's shared row shape: a food is one point, and {@code scale} sizes a bar of 12 days at 4 per
-     * use and a health of 12, both times {@code scale}; 30 s / 1 s cooldown.
-     */
     private static GuSpec createJadeSkinSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DEFENSIVE)
                 .refine(refine).costPerUse(costPerUse)
@@ -338,11 +335,6 @@ public final class ModItems {
                 .cooldown(30 * Ticks.SECOND, Ticks.SECOND);
     }
 
-    /**
-     * The permanent tempering Gu's channeled row shape [灌注]: one round of {@code essencePerRound} eats the whole
-     * 36-point bar and tempers the part for good; a food is one point, and {@code scale} sizes a health of 12
-     * times it.
-     */
     private static GuSpec createTemperingSpec(Rank rank, int refine, int essencePerRound, int scale,
                                               TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)

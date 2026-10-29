@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>Closed vocabulary enum, one slot on {@code BodyData}: a player wears one skin at a time. Every skin
  * carries its family [皮系], its rank [转] and its flat damage reduction [固定减免], the points taken off every
  * hit the skin can turn ({@link #reduce}); the number is this enum's, a jade skin's duration the item
- * registration's. The jade family is the timed one ({@link #isTimed}); the others are permanent and survive a
- * respawn.
+ * registration's. The jade family is the timed one ({@link #isTimed}): the heartbeat sheds it when it runs out;
+ * the others are permanent and survive a respawn.
  *
  * <p>{@link #canReplace} is the gate: any skin goes over a native one; a permanent skin also goes over a lower
  * rank of its own family (a rank-three bronze skin over a rank-one bronze skin), never over another family's;
@@ -40,7 +40,6 @@ public enum Skin implements BodyGrade<Skin> {
     IRON_SKIN_3(Family.IRON, 3, 4),
     IRON_SKIN_4(Family.IRON, 4, 6);
 
-    /** The skin families [皮系]: only a permanent family's own higher rank replaces a worn skin of it. */
     public enum Family { NATIVE, JADE, BRONZE, IRON }
 
     public static final Codec<Skin> CODEC = StringRepresentable.fromEnum(Skin::values);
@@ -64,7 +63,6 @@ public enum Skin implements BodyGrade<Skin> {
     @Override
     public boolean isNative() { return this == NATIVE; }
 
-    /** A jade skin is worn for a while and shed by the heartbeat; every other skin stays. */
     public boolean isTimed() { return family == Family.JADE; }
 
     @Override
@@ -73,7 +71,6 @@ public enum Skin implements BodyGrade<Skin> {
         return !isTimed() && worn.family == family && worn.rank < rank;
     }
 
-    /** The damage left after this skin's flat reduction, never below zero. */
     public float reduce(float amount) { return Math.max(0.0F, amount - damageReduction); }
 
     @Override

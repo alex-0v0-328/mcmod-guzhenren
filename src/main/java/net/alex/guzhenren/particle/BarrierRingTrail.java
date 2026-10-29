@@ -9,15 +9,17 @@ import net.minecraft.world.phys.Vec3;
  * so the pure JVM tests can pin it; {@link SecondStageRingEmitter} sends what {@link #step} returns.
  *
  * <p>The entry already booms (the sonic boom ring [音爆环]), so the barrier rings keep quiet for
- * {@link #QUIET_TICKS} after it. From then on a ring forms at once if the flight is past {@link #BARRIER_SPEED},
- * three times plain creative flight at full speed ({@link #PLAIN_FLIGHT_SPEED}), and one more every
- * {@link #SPACING} blocks of actual 3D travel past it, through {@link RingTrailSpacing} like the dash trail. Below
- * the barrier nothing forms and no distance counts. The speed is the per-tick movement smoothed by
- * {@link #SMOOTHING}, since the server sees a player's moves as they arrive, sometimes two to a tick.
+ * {@link #QUIET_TICKS} after it. From then on a ring forms at once, since a fresh trail ({@link #start}) carries a
+ * full spacing, if the flight is past {@link #BARRIER_SPEED}, three times plain creative flight at full speed
+ * ({@link #PLAIN_FLIGHT_SPEED}), and one more every {@link #SPACING} blocks of actual 3D travel past it, through
+ * {@link RingTrailSpacing} like the dash trail. Below the barrier nothing forms and no distance counts. The speed is
+ * the per-tick movement smoothed by {@link #SMOOTHING}, since the server sees a player's moves as they arrive,
+ * sometimes two to a tick.
  *
- * <p>Each ring forms at the leading face, {@link #HEAD_LEAD} blocks ahead along the movement, and faces it; the
- * flier passes through it and leaves it behind. A tick's movement past {@link #TELEPORT_DISTANCE} is a teleport, not
- * flight: the trail picks up again there, its speed reset, without laying rings along the jump.
+ * <p>Each {@link Ring} forms on the path at foot level, {@link #HEAD_LEAD} blocks ahead along the movement at the
+ * leading face, and faces it; the flier passes through it and leaves it behind. A tick's movement past
+ * {@link #TELEPORT_DISTANCE} is a teleport, not flight: the trail picks up again there, its speed reset, without
+ * laying rings along the jump.
  *
  * <p>At 6 times flight speed (≈3.3 blocks a tick) a ring forms every ≈5 ticks, four a second.
  *
@@ -38,7 +40,6 @@ record BarrierRingTrail(Vec3 lastPos, double carry, double speed, int age) {
     private static final double SMOOTHING = 0.5D;
     private static final double MIN_LENGTH = 1.0E-6D;
 
-    /** A fresh trail at the entry: the first ring is due as soon as the quiet ends ({@code carry} at full spacing). */
     static BarrierRingTrail start(Vec3 position) { return new BarrierRingTrail(position, SPACING, 0.0D, 0); }
 
     Step step(Vec3 position) {
@@ -63,7 +64,6 @@ record BarrierRingTrail(Vec3 lastPos, double carry, double speed, int age) {
         return new Step(new BarrierRingTrail(position, drops.carry(), smoothed, nextAge), rings);
     }
 
-    /** One ring: its center on the path at foot level, and the direction it faces. */
     record Ring(Vec3 center, Vec3 facing) {}
 
     record Step(BarrierRingTrail next, List<Ring> rings) {}

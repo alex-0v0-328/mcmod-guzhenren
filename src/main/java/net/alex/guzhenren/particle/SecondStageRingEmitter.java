@@ -29,7 +29,8 @@ import net.minecraft.world.phys.Vec3;
  * size and fades out ({@code RingParticle}'s spread exit). At full speed that is four rings a second, each living
  * 15 ticks, ≈3 alive at once behind each flier. A trail found missing while the stage is on (a dimension change
  * dropped it) picks up where the player stands, quiet again. The trail ends with the stage; logout and a dimension
- * change drop it ({@link #forget}).
+ * change drop it ({@link #forget}); {@link SecondStageRingEvents} calls {@link #tick} at the end of each player
+ * tick.
  *
  * <p>Pure feedback: no damage, no hitbox.
  *
@@ -63,7 +64,6 @@ public final class SecondStageRingEmitter {
         TRAILS.put(player.getUUID(), BarrierRingTrail.start(player.position()));
     }
 
-    /** Advances the player's trail by one tick; {@code SecondStageRingEvents} calls it at the end of each tick. */
     public static void tick(ServerPlayer player) {
         if (!SecondStageService.isActive(player) || player.isRemoved() || player.isDeadOrDying()
                 || !(player.level() instanceof ServerLevel level)) {
@@ -84,6 +84,5 @@ public final class SecondStageRingEmitter {
         TRAILS.put(player.getUUID(), step.next());
     }
 
-    /** Drops the player's trail; on logout and on a dimension change ({@code SecondStageRingEvents}). */
     public static void forget(Player player) { TRAILS.remove(player.getUUID()); }
 }

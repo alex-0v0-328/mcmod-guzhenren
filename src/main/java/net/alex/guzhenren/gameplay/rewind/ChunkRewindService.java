@@ -27,7 +27,8 @@ import org.jetbrains.annotations.NotNull;
  * is put back, nothing cascades from it. Whatever stands in the chunk and is not bare land goes: trees, buildings,
  * placed blocks. A container that goes spills its items the vanilla way. Entities, dropped items and biomes are not
  * touched. The chunks go through {@link #enqueue} and {@link #tickQueue}, one per server tick, once generation
- * finishes in the background (one to three seconds).
+ * finishes in the background (one to three seconds); {@link #getGenerating} counts the generations still running,
+ * whose chunks are not queued yet.
  *
  * <p>⚠ No neighbor updates also means a tree cut at the square's edge keeps its outer half, leaves included, and
  * water beside a refilled hole stays still until something updates it. ⚠ The restore queue is static and
@@ -53,7 +54,6 @@ public final class ChunkRewindService {
     private static int generating;
 
     //region generating
-    /** Generates the square around {@code center} again and queues the {@code targets} inside it for restoring. */
     public static void rewindAround(@NotNull ServerLevel level, @NotNull ChunkPos center,
                                     @NotNull Collection<ChunkPos> targets) {
         if (targets.isEmpty()) return;
@@ -75,7 +75,6 @@ public final class ChunkRewindService {
                 }));
     }
 
-    /** Generations still running in the background; their chunks are not queued yet. */
     public static int getGenerating() { return generating; }
     //endregion
 

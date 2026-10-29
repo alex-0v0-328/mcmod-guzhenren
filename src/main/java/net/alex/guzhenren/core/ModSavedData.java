@@ -14,8 +14,9 @@ import org.jetbrains.annotations.NotNull;
  * The base of every saved-data file this mod keeps on a level: a subclass writes itself into a tag
  * ({@link #write}) and is read back by the function it hands {@link #get}.
  *
- * <p>Item stacks go through the {@link StackIo} both sides receive, which carries the registry context writing a
- * stack needs. Subclasses override {@link #write} only and fetch through {@link #get}.
+ * <p>Item stacks go through the {@link StackIo} both sides receive, which writes and reads one non-empty stack
+ * inside a saved-data tag with the registry context a stack needs. Subclasses override {@link #write} only and
+ * fetch through {@link #get}.
  *
  * @author Alex
  * @version 1.0.0
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class ModSavedData extends SavedData {
 
-    /** Writes and reads one non-empty item stack inside a saved-data tag. */
     public interface StackIo {
 
         @NotNull Tag save(@NotNull ItemStack stack);

@@ -14,8 +14,8 @@ import net.minecraft.world.item.component.CustomModelData;
  * through this one item. There is one picture per settable {@link Rank} and {@link Stage}: {@link Stage#NONE}
  * is the bare numeral, every other stage its stage variant. Custom model data {@code 10 × rank + stage}
  * ({@link #getModelData}; Rank III Peak is 34) picks the {@code advancement_icon_<suffix>} model and PNG
- * ({@link #getSuffix}); a stack without it shows numeral 0. It sits in no creative tab and is hidden from
- * recipe viewers.
+ * ({@link #getSuffix}: {@code 3}, {@code 3_peak}); a stack without it shows numeral 0. It sits in no creative
+ * tab and is hidden from recipe viewers.
  *
  * <p>⚠ The PNG suffixes follow the art source ({@code aseprite-gzr/numeral/}), so the middle stage is
  * {@code _mid}, not the stage's own name. {@link #icon} refuses a rank outside the settable range, which has
@@ -34,7 +34,6 @@ public final class AdvancementIconItem extends Item {
         super(properties);
     }
 
-    /** The icon stack showing {@code rank}'s numeral, in its {@code stage} variant ({@link Stage#NONE}: bare). */
     public ItemStack icon(Rank rank, Stage stage) {
         if (rank.compareTo(Rank.LOWEST) < 0 || rank.compareTo(Rank.HIGHEST) > 0) {
             throw new IllegalArgumentException("no advancement icon for " + rank);
@@ -48,7 +47,6 @@ public final class AdvancementIconItem extends Item {
         return MODEL_DATA_PER_RANK * rank.ordinal() + stage.ordinal();
     }
 
-    /** The model and PNG suffix after {@code advancement_icon_}: {@code 3}, {@code 3_peak}. */
     public static String getSuffix(Rank rank, Stage stage) {
         String numeral = String.valueOf(rank.ordinal());
         return switch (stage) {

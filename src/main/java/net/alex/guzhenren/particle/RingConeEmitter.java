@@ -43,8 +43,8 @@ import net.minecraft.world.phys.Vec3;
  * height above the feet, the standing ring's mid-body (max radius 1.1). {@link PunchBurst} plants
  * the same logic on the fixed ray described above. A player's bursts are dropped on logout and on a dimension
  * change ({@link #forget}): a dash burst measures travel from a position in one level, and carried into another it
- * would lay its rings along the line between the two. The per-player tick returns at once while both maps
- * are empty.
+ * would lay its rings along the line between the two. The per-player {@link #tick}, which {@code RingConeEvents}
+ * calls at the end of each player tick, returns at once while both maps are empty.
  *
  * <p>Future speed- or force-feel actions call the {@code dashCone}/{@code emitPunchCone} entry points
  * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
@@ -84,7 +84,6 @@ public final class RingConeEmitter {
         PUNCH_BURSTS.put(player.getUUID(), new PunchBurst(look.normalize(), PUNCH_MAX_RINGS, strikePoint));
     }
 
-    /** Advances the player's bursts by one tick; {@code RingConeEvents} calls it at the end of each player tick. */
     public static void tick(ServerPlayer player) {
         if (DASH_BURSTS.isEmpty() && PUNCH_BURSTS.isEmpty()) return;
         if (player.isRemoved() || player.isDeadOrDying()
@@ -96,7 +95,6 @@ public final class RingConeEmitter {
         tickBurst(PUNCH_BURSTS, player, level);
     }
 
-    /** Drops the player's bursts; on logout and on a dimension change ({@code RingConeEvents}). */
     public static void forget(Player player) {
         DASH_BURSTS.remove(player.getUUID());
         PUNCH_BURSTS.remove(player.getUUID());

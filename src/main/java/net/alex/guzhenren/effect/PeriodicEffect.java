@@ -26,7 +26,6 @@ public abstract class PeriodicEffect extends MobEffect {
         this.intervalTicks = intervalTicks;
     }
 
-    /** Whether the effect pulses on the tick with {@code duration} remaining. */
     public boolean isPulseTick(int duration) { return duration % intervalTicks == 0; }
 
     protected abstract void onPulse(@NotNull LivingEntity entity, int amplifier);

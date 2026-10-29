@@ -42,8 +42,9 @@ import net.minecraft.util.Mth;
  * the full base. {@code essence base} therefore stops below the full base and refuses a Ten Extremes first
  * aperture.
  *
- * <p>⚠ Readers find the chosen words by walking {@code context.getNodes()}; {@code stage} and the selector
- * literals are matched by name, so no other node in this subtree may reuse them.
+ * <p>⚠ Readers find the chosen words by walking {@code context.getNodes()} ({@link #getWordAfter}: the literal
+ * parsed right after a named node, or with {@code null} the selector literal if one was typed); {@code stage} and
+ * the selector literals are matched by name, so no other node in this subtree may reuse them.
  *
  * @author Alex
  * @version 1.0.0
@@ -209,7 +210,6 @@ public final class CmdAperture {
         return SECOND.equals(getWordAfter(context, null));
     }
 
-    /** The literal parsed right after {@code name}; with {@code null}, the selector literal if one was typed. */
     static String getWordAfter(CommandContext<CommandSourceStack> context, String name) {
         List<ParsedCommandNode<CommandSourceStack>> nodes = context.getNodes();
         for (int i = 0; i < nodes.size(); i++) {

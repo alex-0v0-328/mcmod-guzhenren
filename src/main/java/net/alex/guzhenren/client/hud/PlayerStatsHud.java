@@ -59,7 +59,6 @@ public final class PlayerStatsHud {
     private @Nullable Key cachedKey;
     private Layout layout = new Layout(List.of(), List.of());
 
-    /** Draws the readout for the frame; the loader's HUD layer calls it, see {@code ClientEvents}. */
     public void render(@NotNull GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;

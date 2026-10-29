@@ -15,9 +15,10 @@ import org.jetbrains.annotations.Nullable;
  * and the three-fill draw with its caption that every such bar reuses.
  *
  * <p>Package-private abstract base for {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud} and {@link net.alex.guzhenren.client.hud.MugwortShieldHud}. The {@code barTop} method rides vanilla's
- * held-item-name baseline so armor and a mount's health push the bar up instead of hiding it. All
- * drawing is {@code g.fill} plus the caption, no textures, in one {@link GuiBatch}.
+ * {@link net.alex.guzhenren.client.hud.NourishHud} and {@link net.alex.guzhenren.client.hud.MugwortShieldHud}.
+ * The {@code barTop} method rides vanilla's held-item-name baseline so armor and a mount's health push the bar up
+ * instead of hiding it. All drawing is {@code g.fill} plus the caption, no textures, in one {@link GuiBatch}. Each
+ * bar's {@link #render} draws it for the frame, called from the loader's HUD layer ({@code ClientEvents}).
  *
  * <p>Several bars can be up at once (a charged Gu held while nourishing under a shield): {@link #getStackShift}
  * lifts each later one clear of the one below's caption, so they stack instead of overlapping.
@@ -39,7 +40,6 @@ abstract class HotbarHud {
     static final int CREATIVE_LIFT = 14;
     static final int STACK_GAP = 3;
 
-    /** Draws this bar for the frame; the loader's HUD layer calls it, see {@code ClientEvents}. */
     public abstract void render(@NotNull GuiGraphics graphics);
 
     static int getBarTop(Minecraft minecraft) {

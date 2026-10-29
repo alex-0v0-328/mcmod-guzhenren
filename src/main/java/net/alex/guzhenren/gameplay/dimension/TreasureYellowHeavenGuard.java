@@ -27,10 +27,12 @@ import org.jetbrains.annotations.Nullable;
  * flight grant, unless the player stands in another anchored dimension that grants flight.
  *
  * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
- * for. Attacks on it stay refused like every other attack.
+ * for. Attacks on it stay refused like every other attack. {@link #isUseRefused} takes the clicked entity, or
+ * {@code null} for a right click on a block or with an item.
  *
- * <p>⚠ A toss goes back into the bag through {@link TossedItems#stow}, which never drops; what does not fit
- * hovers where it was dropped and despawns like any dropped item, and the player is told the bag is full.
+ * <p>⚠ A toss goes back into the bag through {@link TossedItems#stow}, which never drops: {@link #tryStowToss}
+ * answers {@code true} when it went in and the toss should not happen. What does not fit hovers where it was
+ * dropped and despawns like any dropped item, and the player is told the bag is full.
  *
  * @author Alex
  * @version 1.0.0
@@ -59,7 +61,6 @@ public final class TreasureYellowHeavenGuard {
         return placer instanceof Player player && isInside(player);
     }
 
-    /** A right click on a block or with an item ({@code target} null), or on an entity. */
     public static boolean isUseRefused(Player player, @Nullable Entity target) {
         if (!isInside(player)) return false;
         return target == null || !isSoulTrader(target);
@@ -67,7 +68,6 @@ public final class TreasureYellowHeavenGuard {
 
     public static boolean isAttackRefused(Player player) { return isInside(player); }
 
-    /** Stows a toss back into the bag; true when it went in and the toss should not happen. */
     public static boolean tryStowToss(Player player, ItemEntity tossed) {
         if (player.level().isClientSide() || !isInside(player)) return false;
         if (TossedItems.stow(player, tossed)) return true;

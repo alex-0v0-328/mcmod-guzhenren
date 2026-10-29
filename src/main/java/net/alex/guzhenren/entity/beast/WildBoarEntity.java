@@ -257,7 +257,6 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
         return action.isLooping() ? clip.thenLoop(action.getAnimation()) : clip.thenPlay(action.getAnimation());
     }
 
-    /** The synchronized poses with their animation names. */
     public enum Action implements ActionEntity.ActionFlags {
 
         IDLE("idle", true, false),

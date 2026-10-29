@@ -15,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The item side fills it: the mod's entry point hands {@code ApertureStorageService.setStoredGu} the one built on
  * the Gu item classes, before any player can open a store. A stack that is no Gu answers {@code null}, zero or
- * {@code false} everywhere.
+ * {@code false} everywhere; {@link #getRank} also answers {@code null} for a Gu the store may not hold, and
+ * {@link #getToken} zero for an unbound Gu.
  *
  * @author Alex
  * @version 1.0.0
@@ -25,13 +26,10 @@ import org.jetbrains.annotations.Nullable;
 
 public interface StoredGu {
 
-    /** The rank of a Gu the store may hold, or {@code null} when the stack is no storable Gu. */
     @Nullable Rank getRank(@NotNull ItemStack stack);
 
-    /** The path of a Gu, or {@code null} when the stack is no Gu. */
     @Nullable GuPath getPath(@NotNull ItemStack stack);
 
-    /** The vital binding token on a stack; {@code 0} when unbound. */
     long getToken(@NotNull ItemStack stack);
 
     boolean isVitalOf(@NotNull ItemStack stack, @NotNull Player player);
