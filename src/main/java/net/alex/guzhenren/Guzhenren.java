@@ -17,6 +17,7 @@ import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.alex.guzhenren.registry.item.ModCreativeTabs;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
+import net.alex.guzhenren.registry.loot.ModLootModifiers;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.alex.guzhenren.registry.particle.ModParticles;
 import net.alex.guzhenren.registry.recipe.ModRecipes;
@@ -29,9 +30,9 @@ import org.slf4j.Logger;
  * Mod entry point: builds every registry holder and hands them to the mod event bus.
  *
  * <p>Holds the {@code MOD_ID} constant and the {@link #id} helper used across the codebase for
- * {@link ResourceLocation} creation. The constructor wires thirteen {@code DeferredRegister} holders
+ * {@link ResourceLocation} creation. The constructor wires fourteen {@code DeferredRegister} holders
  * (attachments, data components, effects, fluid types, fluids, blocks, entities, items, creative
- * tabs, menus, particles, recipes, criterion triggers) to the mod event bus in the order NeoForge
+ * tabs, menus, particles, recipes, criterion triggers, loot modifiers) to the mod event bus in the order NeoForge
  * requires. It also hands the aperture's nourishing the {@code StonePurse} built on the item side's
  * {@code PrimevalStoneSupply}, and aperture storage the {@code StoredGu} built on the Gu item classes
  * ({@code StoredGuItems}), so the gameplay packages never depend on the item package. Worldgen features
@@ -64,6 +65,7 @@ public class Guzhenren {
         ModParticles.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCriteriaTriggers.register(modEventBus);
+        ModLootModifiers.register(modEventBus);
         ApertureNourishService.setStonePurse(new StonePurse(
                 PrimevalStoneSupply::canAfford, PrimevalStoneSupply::topUp, PrimevalStoneSupply::trySpend));
         ApertureStorageService.setStoredGu(new StoredGuItems());
