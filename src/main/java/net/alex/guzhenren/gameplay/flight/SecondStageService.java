@@ -6,6 +6,7 @@ import java.util.UUID;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.impact.ImpactCrater;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -51,10 +52,12 @@ import org.jetbrains.annotations.NotNull;
  * leaves it in place and free to be rammed the next tick. Wild Gu, allies either way round (a team, the flier's own
  * pets), anything the flier owns, spectators and armor stands are spared. A horizontal collision costs the elytra's
  * wall damage on the server, and losing at least the barrier speed in it is a crash: the throttle empties, the velocity
- * stops, a {@link SecondStageCrashEvent} goes up on that end (the server's ring and sound, the client's shake), and the
- * server ends the stage. Each end judges the crash on its own velocity, the server's a packet behind, so near the
- * barrier one end may crash while the other only pays the wall; the throttle drains the difference away within
- * {@link SecondStageCruise#COAST_TICKS}. Landing is no wall: vanilla ends flight on the ground, and the stage with it.
+ * stops, a {@link SecondStageCrashEvent} goes up on that end (the server's ring and nearby shakes, the client's own
+ * shake), and the server ends the stage and blasts a crater into the wall like a plunge's ({@link ImpactCrater#blast}
+ * at {@link SecondStageCruise#getCrashPower}, {@link #CRASH_AHEAD} blocks ahead of mid-body). Each end judges the crash
+ * on its own velocity, the server's a packet behind, so near the barrier one end may crash while the other only pays
+ * the wall; the throttle drains the difference away within {@link SecondStageCruise#COAST_TICKS}. Landing is no wall:
+ * vanilla ends flight on the ground, and the stage with it.
  *
  * <p>⚠ The speed is never written to {@code Abilities}, which the game saves. ⚠ {@link #SPEED_MULTIPLIER} stays below
  * ≈18: vanilla's "moved too quickly" check allows 10 blocks a move beyond the server's own velocity, and at an entry
@@ -76,6 +79,7 @@ public final class SecondStageService {
 
     public static final float SPEED_MULTIPLIER = 6.0F;
     private static final float WALL_BIG_SOUND_DAMAGE = 4.0F;
+    private static final double CRASH_AHEAD = 0.8D;
     private static final float RAM_VOLUME = 1.0F;
     private static final Map<UUID, Map<Integer, Long>> RAMMED = new HashMap<>();
 
@@ -160,8 +164,12 @@ public final class SecondStageService {
 
         PlayerData.get(player).setSecondStageThrottle(0.0D);
         player.setDeltaMovement(Vec3.ZERO);
-        ModEvents.post(new SecondStageCrashEvent(player, new Vec3(velocity.x, 0.0D, velocity.z).normalize()));
-        if (player instanceof ServerPlayer server) stop(server);
+        Vec3 heading = new Vec3(velocity.x, 0.0D, velocity.z).normalize();
+        ModEvents.post(new SecondStageCrashEvent(player, heading));
+        if (!(player instanceof ServerPlayer server)) return;
+        stop(server);
+        Vec3 impact = player.position().add(0.0D, player.getBbHeight() / 2.0D, 0.0D).add(heading.scale(CRASH_AHEAD));
+        ImpactCrater.blast(server, impact, SecondStageCruise.getCrashPower(lost));
     }
 
     private static void ram(ServerPlayer player, Vec3 velocity) {

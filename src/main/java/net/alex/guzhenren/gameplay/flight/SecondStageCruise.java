@@ -21,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * wall hit counts as a crash and a body in the path is rammed.
  *
  * <p>A wall costs what an elytra pays ({@link #getWallDamage}): ten points a block a tick of horizontal speed lost,
- * less three. A ram deals {@link #RAM_DAMAGE_PER_SPEED} a block a tick of the flier's speed ({@link #getRamDamage}).
+ * less three. A crash blasts a crater of {@link #getCrashPower}: {@link #CRASH_POWER_PER_SPEED} a block a tick lost,
+ * between {@link #MIN_CRASH_POWER} at the barrier and {@link #MAX_CRASH_POWER}, a TNT's, ≈3.9 for a head-on hit at
+ * full speed. A ram deals {@link #RAM_DAMAGE_PER_SPEED} a block a tick of the flier's speed ({@link #getRamDamage}).
  *
  * @author Alex
  * @version 1.0.0
@@ -40,6 +42,9 @@ public final class SecondStageCruise {
     public static final float DEFAULT_FLYING_SPEED = 0.05F;
     public static final double PLAIN_FLIGHT_SPEED = DEFAULT_FLYING_SPEED * 0.98D / 0.09D;
     public static final double BARRIER_SPEED = 3.0D * PLAIN_FLIGHT_SPEED;
+    public static final double CRASH_POWER_PER_SPEED = 1.2D;
+    public static final float MIN_CRASH_POWER = 2.0F;
+    public static final float MAX_CRASH_POWER = 4.0F;
     public static final double RAM_DAMAGE_PER_SPEED = 4.0D;
     public static final double RAM_KNOCKBACK = 2.0D;
     public static final double RAM_LIFT = 0.4D;
@@ -65,6 +70,10 @@ public final class SecondStageCruise {
     public static float getWallDamage(double lostSpeed) { return (float) (lostSpeed * 10.0D - 3.0D); }
 
     public static boolean isCrash(double lostSpeed) { return lostSpeed >= BARRIER_SPEED; }
+
+    public static float getCrashPower(double lostSpeed) {
+        return (float) Math.clamp(lostSpeed * CRASH_POWER_PER_SPEED, MIN_CRASH_POWER, MAX_CRASH_POWER);
+    }
 
     public static float getRamDamage(double speed) { return (float) (speed * RAM_DAMAGE_PER_SPEED); }
 

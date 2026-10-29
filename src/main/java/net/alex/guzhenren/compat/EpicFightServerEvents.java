@@ -3,18 +3,23 @@ package net.alex.guzhenren.compat;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.plunge.PlungeLandedEvent;
 import net.alex.guzhenren.lifecycle.PlayerRefreshedEvent;
 import net.alex.guzhenren.particle.RingConeEmitter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import yesman.epicfight.network.EpicFightNetworkManager;
+import yesman.epicfight.network.server.SPCreateTerrainFracture;
 import yesman.epicfight.registry.entries.EpicFightItems;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
@@ -23,8 +28,15 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
 /**
  * Seeds Epic Fight's skill-retention rule once per world ({@link EpicFightRuleSeed}), re-reads the stamina
  * modifier whenever the apertures change ({@code ApertureChangedEvent}) or the lifecycle rebuilds a player's
- * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, and opens the
- * punch shockwave trail on a heavy fist landing.
+ * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, opens the
+ * punch shockwave trail on a heavy fist landing, and cracks the ground under a plunge's landing.
+ *
+ * <p>{@link #onPlungeLanded}: Epic Fight's own terrain fracture, the cracked ring its meteor slam leaves, at the
+ * landing with the landing's impact power as its radius ({@code PlungeImpact#getImpactPower}, 2 to 6 blocks), sent to
+ * every client tracking the chunk. Only the packet: {@code LevelUtil#circleSlamFracture} would also deal Epic Fight's
+ * shockwave damage, and the plunge hurts nothing. The fracture is drawn on the clients alone and changes no block; it
+ * goes out before the crater, since a client draws it on the ground below the landing, which the crater removes.
+ * The explosion is the landing's sound, so the fracture's own stays off; its debris particles stay on.
  *
  * <p>{@link #onLivingDrops}: the loot modifier {@code guzhenren:no_skill_books} already strips skill books from chest
  * loot, but Epic Fight adds mob drops through its own global loot modifier, and NeoForge applies global loot
@@ -61,6 +73,14 @@ public final class EpicFightServerEvents {
     public static void onLivingDrops(LivingDropsEvent event) {
         if (event.getEntity() instanceof Player) return;
         event.getDrops().removeIf(drop -> drop.getItem().is(EpicFightItems.SKILLBOOK));
+    }
+
+    @SubscribeEvent
+    public static void onPlungeLanded(PlungeLandedEvent event) {
+        ServerPlayer player = event.getPlayer();
+        EpicFightNetworkManager.sendToAllPlayerTrackingThisChunkWithSelf(
+                new SPCreateTerrainFracture(event.getPosition(), event.getImpactPower(), true, false),
+                player.serverLevel(), new ChunkPos(BlockPos.containing(event.getPosition())));
     }
 
     @SubscribeEvent

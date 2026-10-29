@@ -6,16 +6,13 @@ import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
+import net.alex.guzhenren.gameplay.impact.ImpactCrater;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.ExplosionDamageCalculator;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,25 +40,23 @@ import org.jetbrains.annotations.NotNull;
  * where one tick carries two moves.
  *
  * <p>{@link #tick} runs every server tick ({@link PlungeEvents}). Until the landing it holds flight and the elytra
- * shut, clears levitation and slow falling again if something re-applies them, and caps the speed; a plunge cannot
- * be called off. Death, mounting, a fluid, a ladder or the heaven end it early with no crater and no extra damage
- * ({@link #stop}), and so do a dimension change and a teleport. ⚠ It lands once the player is on the ground and
- * vanilla has reset the fall distance: the server's own step lands early, but only the client's moves run vanilla's
- * fall handling ({@code ServerPlayer#checkFallDamage} is empty), which resets the distance once the client is down.
- * So the crater sits where the client landed and the fall vanilla saw is the plunge's own, cancelled while
- * {@link #isActive} holds. The landing blasts the crater at the power {@link PlungeImpact#getCraterPower} gives the
- * height, then deals {@link PlungeImpact#getDamage} of the player's safe fall distance and fall damage multiplier,
- * the attributes vanilla's {@code LivingEntity#calculateFallDamage} reads, as plain fall damage, which Feather
- * Falling, Protection and Resistance reduce as usual. A player who may fly is hurt anyway: vanilla spares them, the
- * plunge does not. Block cushions (hay, slime, beds) do not apply. The crater digs out the ground underfoot, and the
- * drop into it is an ordinary fall.
+ * shut, clears levitation and slow falling again if something re-applies them, and caps the speed; a plunge cannot be
+ * called off. Death, mounting, a fluid, a ladder or the heaven end it early with no crater and no extra damage
+ * ({@link #stop}), and so do a dimension change and a teleport. ⚠ It lands once the player is on the ground and vanilla
+ * has reset the fall distance: the server's own step lands early, but only the client's moves run vanilla's fall
+ * handling ({@code ServerPlayer#checkFallDamage} is empty), which resets the distance once the client is down. So the
+ * crater sits where the client landed and the fall vanilla saw is the plunge's own, cancelled while {@link #isActive}
+ * holds. A landing that shows ({@link PlungeImpact#getImpactPower}) first posts a {@link PlungeLandedEvent} on the
+ * whole ground, for the fracture and the shake above it; it then blasts the crater at the power
+ * {@link PlungeImpact#getCraterPower} gives the height, then deals {@link PlungeImpact#getDamage} of the player's safe
+ * fall distance and fall damage multiplier, the attributes vanilla's {@code LivingEntity#calculateFallDamage} reads, as
+ * plain fall damage, which Feather Falling, Protection and Resistance reduce as usual. A player who may fly is hurt
+ * anyway: vanilla spares them, the plunge does not. Block cushions (hay, slime, beds) do not apply. The crater digs out
+ * the ground underfoot, and the drop into it is an ordinary fall.
  *
- * <p>The crater is a vanilla explosion at the landing that breaks the ground and hurts nothing: its {@link Crater}
- * calculator refuses every entity's damage, so mobs, players and dropped items come through whole, and keeps
- * vanilla's knockback (vanilla already leaves the plunger, the explosion's source, out). It asks
- * {@code ModEvents#canGrief} first: refused, the blast keeps every block and still knocks back and booms; allowed,
- * blocks break by vanilla blast resistance and drop like a creeper's ({@code mobExplosionDropDecay}), and TNT in the
- * crater primes as vanilla's {@code TntBlock#wasExploded} does, so chain reactions are a kept feature.
+ * <p>The crater is {@link ImpactCrater#blast} at the landing: a vanilla explosion that breaks the ground by blast
+ * resistance and hurts nothing, asking {@code ModEvents#canGrief} first, and that knocks back everything but the
+ * plunger.
  *
  * <p>{@link #tickLocal} is the local player's half: it holds flight and the elytra shut and caps the speed between
  * the server's corrections, and stops the landing dead, so a slime block cannot fling the player back up.
@@ -150,23 +145,12 @@ public final class PlungeService {
         double height = PlungeImpact.getHeight(topY, player.getY());
         stop(player);
         player.setDeltaMovement(Vec3.ZERO);
+        float impact = PlungeImpact.getImpactPower(height);
+        if (impact > 0.0F) ModEvents.post(new PlungeLandedEvent(player, player.position(), impact));
         float power = PlungeImpact.getCraterPower(height);
-        if (power > 0.0F) blast(player, power);
+        if (power > 0.0F) ImpactCrater.blast(player, player.position(), power);
         int damage = PlungeImpact.getDamage(height, player.getAttributeValue(Attributes.SAFE_FALL_DISTANCE),
                 player.getAttributeValue(Attributes.FALL_DAMAGE_MULTIPLIER));
         if (damage > 0) player.hurt(player.damageSources().fall(), damage);
-    }
-
-    private static void blast(ServerPlayer player, float power) {
-        Level.ExplosionInteraction interaction = ModEvents.canGrief(player.level(), player)
-                ? Level.ExplosionInteraction.MOB : Level.ExplosionInteraction.NONE;
-        player.level().explode(player, null, new Crater(),
-                player.getX(), player.getY(), player.getZ(), power, false, interaction);
-    }
-
-    private static final class Crater extends ExplosionDamageCalculator {
-
-        @Override
-        public boolean shouldDamageEntity(Explosion explosion, Entity entity) { return false; }
     }
 }

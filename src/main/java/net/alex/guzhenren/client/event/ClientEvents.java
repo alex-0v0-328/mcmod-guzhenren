@@ -21,6 +21,7 @@ import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.ModPayloads;
+import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
@@ -67,18 +68,17 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  *
  * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers five GUI layers
  * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} above the vanilla camera overlays,
- * {@link net.alex.guzhenren.client.hud.PlayerStatsHud},
- * {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud}, and {@link RadialMenu} above the crosshair), the key mapping
- * for the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity
- * renderers ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the
- * Nine Leaf Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The
- * Intimate Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled
- * at the lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player
- * renderers get a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} handler with
- * {@code ModPayloads}, which names no client class itself, and the Epic Fight client hooks
- * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered key
- * states and the pending flashes, and drops a radial-menu hold.
+ * {@link net.alex.guzhenren.client.hud.PlayerStatsHud}, {@link net.alex.guzhenren.client.hud.ChargeHud},
+ * {@link net.alex.guzhenren.client.hud.NourishHud}, and {@link RadialMenu} above the crosshair), the key mapping for
+ * the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity renderers
+ * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
+ * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
+ * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at the
+ * lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player renderers get
+ * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} and {@code ImpactShakePayload}
+ * handlers with {@code ModPayloads}, which names no client class itself, and the Epic Fight client hooks
+ * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered key states and the pending
+ * flashes, and drops a radial-menu hold.
  *
  * @author Alex
  * @version 1.0.0
@@ -126,6 +126,7 @@ public final class ClientEvents {
             ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
                     (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
+            ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);
             EpicFightClientIntegration.initialize();
         });
     }

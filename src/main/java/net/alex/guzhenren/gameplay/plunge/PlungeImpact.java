@@ -13,6 +13,9 @@ package net.alex.guzhenren.gameplay.plunge;
  * 5 blocks across in dirt and far less in stone, since vanilla's blast resistance decides what breaks.
  *
  * <p>Between 3 and 4 blocks the fall already hurts (vanilla's safe distance is 3) but leaves no crater.
+ * {@link #getImpactPower} is how hard the landing shows, the ground fracture's radius and the shake's scale: none
+ * below {@link #IMPACT_MIN_HEIGHT}, the crater power from 4 blocks, and {@link #MIN_POWER} between, where a fall
+ * hurts but digs nothing, or where griefing is off and the crater never forms.
  *
  * @author Alex
  * @version 1.0.0
@@ -26,6 +29,7 @@ public final class PlungeImpact {
 
     public static final int DAMAGE_MULTIPLIER = 3;
     public static final double CRATER_MIN_HEIGHT = 4.0D;
+    public static final double IMPACT_MIN_HEIGHT = 3.0D;
     static final float MIN_POWER = 2.0F;
     static final float MAX_POWER = 6.0F;
     static final double POWER_STEP = 15.0D;
@@ -35,6 +39,11 @@ public final class PlungeImpact {
     public static int getDamage(double height, double safeFallDistance, double fallDamageMultiplier) {
         int vanilla = (int) Math.ceil((height - safeFallDistance) * fallDamageMultiplier);
         return Math.max(0, vanilla) * DAMAGE_MULTIPLIER;
+    }
+
+    public static float getImpactPower(double height) {
+        if (height < IMPACT_MIN_HEIGHT) return 0.0F;
+        return Math.max(MIN_POWER, getCraterPower(height));
     }
 
     public static float getCraterPower(double height) {
