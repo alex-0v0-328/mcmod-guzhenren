@@ -9,9 +9,10 @@ import net.alex.guzhenren.gameplay.aperture.Title;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
+import net.alex.guzhenren.gameplay.path.DaoMarks;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.PathEntry;
+import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.minecraft.ChatFormatting;
@@ -20,14 +21,17 @@ import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every phrase the HUD, the B panel and the info command share.
+ * Every phrase the HUD, the B panel and the Gu tooltips share.
  *
  * <p>The single source for shared wording: a phrase built at a call site is one that will eventually
  * word the same fact differently somewhere else. If two surfaces say a thing, the sentence belongs in
  * this file. Brackets ({@code [无]}, {@code [太日阳莽体]}) are baked into the lang value, never assembled here:
  * {@link #formatNone} is the {@code [无]}, {@link #formatDetail} wraps a muted aside, {@link #formatTalentLine} is a
  * talent with its base fraction. {@link #getCountdownSeconds} is the whole second a countdown shows, for a caller
- * that caches the text per second.
+ * that caches the text per second. {@link #formatMarks} words whole marks [条] and strands [丝] as two counts side
+ * by side with thousands separators, never converting one into the other, and drops a count that is zero; a caller
+ * hides the line when both are. {@link #formatEffectTime} takes the whole
+ * seconds a path effect has left, or {@code PathEffect.PERMANENT}.
  *
  * <p>⚠ Two decimals on lifespan, not one ({@link #formatLifespan(double, double)}): a hundredth of a year is
  * twelve real seconds at ordinary speed, the coarsest step the eye still reads as movement; a tenth
@@ -87,11 +91,6 @@ public final class ModDisplayText {
         return Component.translatable("guzhenren.display.aptitude_line", formatTalent(aperture), detail);
     }
 
-    public static MutableComponent formatPhysique(@Nullable Physique physique, ExtremePhysique extremePhysique) {
-        return Component.translatable("guzhenren.display.physique_line",
-                formatPhysiqueValue(physique, extremePhysique));
-    }
-
     public static MutableComponent formatPhysiqueValue(@Nullable Physique physique, ExtremePhysique extremePhysique) {
         if (physique == null) return formatNone();
 
@@ -126,15 +125,28 @@ public final class ModDisplayText {
         return Component.translatable("guzhenren.display.aperture_" + number);
     }
 
-    public static MutableComponent formatPathLine(GuPath path, PathEntry entry) {
+    public static MutableComponent formatPathLine(GuPath path, GuAttainment attainment, DaoMarks marks) {
         MutableComponent line = formatPath(path);
-        if (entry.attainment() != GuAttainment.NONE) {
-            line.append(" ").append(Component.translatable(entry.attainment().getTranslationKey()));
+        if (attainment != GuAttainment.NONE) {
+            line.append(" ").append(Component.translatable(attainment.getTranslationKey()));
         }
-        if (entry.markTotal() > 0L) {
-            line.append(Component.translatable("guzhenren.display.path_marks", entry.markTotal()));
-        }
+        if (!marks.isEmpty()) line.append(" ").append(formatMarks(marks));
         return line;
+    }
+
+    public static MutableComponent formatMarks(DaoMarks marks) {
+        String whole = formatCount(marks.marks());
+        String strands = formatCount(marks.strands());
+        if (marks.marks() == 0L) return Component.translatable("guzhenren.display.marks.strands", strands);
+        if (marks.strands() == 0L) return Component.translatable("guzhenren.display.marks.marks", whole);
+        return Component.translatable("guzhenren.display.marks.both", whole, strands);
+    }
+
+    public static String formatCount(long value) { return String.format(Locale.ROOT, "%,d", value); }
+
+    public static MutableComponent formatEffectTime(long secondsLeft) {
+        return secondsLeft == PathEffect.PERMANENT ? Component.translatable("guzhenren.display.effect_permanent")
+                : Component.literal(formatClock(secondsLeft));
     }
 
     public static MutableComponent formatLifespan(double lifespan, double age) {

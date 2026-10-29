@@ -8,7 +8,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr path qi}: writes Qi [气] holdings; {@code /gzr info} reads them.
+ * {@code /gzr path qi}: writes Qi [气] holdings; the B panel reads them.
  *
  * <p>Builds the Qi kind and its {@code set}/{@code add}/{@code sub} through
  * {@link ModCommandSupport#buildEnumCounter}. All writes delegate to

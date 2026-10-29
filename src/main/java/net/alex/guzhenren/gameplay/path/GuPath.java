@@ -15,7 +15,7 @@ import net.minecraft.util.StringRepresentable;
  *
  * @author Alex
  * @version 1.0.0
- * @see MarkTag
+ * @see EffectCarrier
  * @see GuAttainment
  * @since 1.0.0
  */

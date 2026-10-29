@@ -12,6 +12,7 @@ import net.alex.guzhenren.gameplay.body.UndeadService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.mind.MindService;
+import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.gu.GuUpkeep;
@@ -42,32 +43,35 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code ApertureStorageMenu.refresh}, for an open store -- after (3), or the menu saves its stale view
  * back over the walk.</li>
  * <li>{@code VitalLossService.settleOfflineVitalLoss} -- right after (2) and (3), which charge an online
- * Vital Gu death on the spot; its soul and mind halving lands before (16) and (20).</li>
- * <li>{@code ApertureEssenceService.closeDistilling} -- before (14): the 1:2 return lands before regen picks
+ * Vital Gu death on the spot; its soul and mind halving lands before (17) and (21).</li>
+ * <li>{@code PathEffectService.tick} -- after (5), before every step that reads a body form or a pool: drops the
+ * path effects [流派效果] whose time ran out and re-projects the icons of the rest, so this beat reads this second's
+ * effects.</li>
+ * <li>{@code ApertureEssenceService.closeDistilling} -- before (15): the 1:2 return lands before regen picks
  * a pool.</li>
- * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (9) and
- * (11) to (16) read the form.</li>
+ * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (10) and
+ * (12) to (17) read the form.</li>
  * <li>{@code SkinService.tickSkin}, then {@code MugwortShieldService.tickShield} -- shed a jade skin [玉皮] or a
  * Heavenly Mugwort shield [天蓬护盾] whose time ran out and project what is still worn as its effect, a body-form
- * projection like (7); nothing later reads either, both are read per hit instead.</li>
- * <li>{@code UndeadService.pinHunger} -- after (7), or a form that ended this beat still pins hunger.</li>
- * <li>{@code PathQiService.syncEffects} -- rebuilds the qi effects from the pool; (11), (12) and (14) read
+ * projection like (8); nothing later reads either, both are read per hit instead.</li>
+ * <li>{@code UndeadService.pinHunger} -- after (8), or a form that ended this beat still pins hunger.</li>
+ * <li>{@code PathQiService.syncEffects} -- rebuilds the qi effects from the pool; (12), (13) and (15) read
  * them.</li>
- * <li>{@code UndeadService.tickDeathQi} -- after (10) for the effect, after (7) for the zombie skip.</li>
- * <li>{@code AttackDamageService.refresh} -- after (7) and (10): the form and the strength-qi effect are both
+ * <li>{@code UndeadService.tickDeathQi} -- after (11) for the effect, after (8) for the zombie skip.</li>
+ * <li>{@code AttackDamageService.refresh} -- after (8) and (11): the form and the strength-qi effect are both
  * {@code getBonus} terms.</li>
- * <li>{@code BodyService.tickLifespan} -- after (7), since an undead body is never billed; before (20),
+ * <li>{@code BodyService.tickLifespan} -- after (8), since an undead body is never billed; before (21),
  * which reads exhaustion.</li>
- * <li>{@code ApertureEssenceService.regenStep} -- after (6), (7) and (10).</li>
- * <li>{@code ApertureNourishService.tickNourish} -- after (14): this second's regen before this second's
+ * <li>{@code ApertureEssenceService.regenStep} -- after (7), (8) and (11).</li>
+ * <li>{@code ApertureNourishService.tickNourish} -- after (15): this second's regen before this second's
  * bill.</li>
- * <li>{@code MindService.regenStep} -- after (7): a zombie thinks every fifth second.</li>
- * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (14), whose essence the auto-use pays.</li>
- * <li>{@code AsBeforeGuItem.remember} -- after (7), (13) and (16): the body it records is this beat's settled one,
- * the half-zombie form, lifespan exhaustion and thoughts included; before (20), so a body about to die is still
+ * <li>{@code MindService.regenStep} -- after (8): a zombie thinks every fifth second.</li>
+ * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (15), whose essence the auto-use pays.</li>
+ * <li>{@code AsBeforeGuItem.remember} -- after (8), (14) and (17): the body it records is this beat's settled one,
+ * the half-zombie form, lifespan exhaustion and thoughts included; before (21), so a body about to die is still
  * remembered as it was.</li>
  * <li>{@code AperturePressureService.tick} -- the service gates its own minute step and countdown; a full
- * gauge goes to (20).</li>
+ * gauge goes to (21).</li>
  * <li>{@code checkLethalState} -- last.</li>
  * </ol>
  *
@@ -104,6 +108,7 @@ public final class Heartbeat {
         if (player.containerMenu instanceof ApertureStorageMenu menu) menu.refresh();
         VitalLossService.settleOfflineVitalLoss(player);
 
+        PathEffectService.tick(player);
         ApertureEssenceService.closeDistilling(player);
         UndeadService.tickHalfZombie(player);
         SkinService.tickSkin(player);

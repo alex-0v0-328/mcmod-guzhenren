@@ -24,13 +24,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The B panel: every tab of what a player is, read straight off the synced attachments.
  *
- * <p>Extends {@link net.minecraft.client.gui.screens.Screen} (no menu behind it). Six tabs: 空窍,
- * 肉身, 魂魄, 流派造诣, 脑海, 炼蛊. The aperture tab draws one column per aperture -- a lone aperture
+ * <p>Extends {@link net.minecraft.client.gui.screens.Screen} (no menu behind it). Seven tabs: 空窍,
+ * 肉身, 魂魄, 流派, 流派造诣, 脑海, 炼蛊. The aperture tab draws one column per aperture -- a lone aperture
  * keeps the single-column layout -- and every column carries its own nourish [温养空窍] /
  * flush [冲刷窍壁] / storage [空窍存储] buttons; the storage button opens that aperture's container.
  * The refinement tab opens its container via a client-intent payload instead of drawing rows. Row
- * content comes from {@link InfoModel}, shared with {@code /gzr
- * info}, so the two surfaces cannot diverge; {@link InfoRowRenderer} turns each entry into the panel's
+ * content comes from {@link InfoModel}; {@link InfoRowRenderer} turns each entry into the panel's
  * label and value, {@link ApertureButtons} are the buttons under each aperture, and {@link PathPicker} is
  * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}, every box before any
  * text, and {@link InfoRowCache} keeps the rows of the last frame while the model is unchanged.
@@ -63,11 +62,12 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_TEXT_IDLE = 0xFFBBBBBB;
     private static final int TAB_TEXT_DEAD = 0xFF6A6A6A;
     private static final int[] ACCENT = { ModPalette.APERTURE, ModPalette.BODY, ModPalette.SOUL,
-            ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
+            ModPalette.PATH, ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
     private static final Component[] TAB_TITLES = {
             Component.translatable("guzhenren.screen.tab.aperture"),
             Component.translatable("guzhenren.screen.tab.body"),
             Component.translatable("guzhenren.screen.tab.soul"),
+            Component.translatable("guzhenren.screen.tab.paths"),
             Component.translatable("guzhenren.screen.tab.path"),
             Component.translatable("guzhenren.screen.tab.mind"),
             Component.translatable("guzhenren.screen.tab.refinement"),
@@ -77,9 +77,10 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_APERTURE = 0;
     private static final int TAB_BODY = 1;
     private static final int TAB_SOUL = 2;
-    private static final int TAB_PATH = 3;
-    private static final int TAB_MIND = 4;
-    private static final int TAB_REFINEMENT = 5;
+    private static final int TAB_PATHS = 3;
+    private static final int TAB_PATH = 4;
+    private static final int TAB_MIND = 5;
+    private static final int TAB_REFINEMENT = 6;
     private static final int SCROLL_W = 2;
     private static final int SCROLL_GAP = 5;
     private static final int COL_GAP = 16;
@@ -139,6 +140,7 @@ public final class PlayerInfoScreen extends Screen {
         return switch (activeTab) {
             case TAB_BODY -> InfoModel.buildBodyRows(player);
             case TAB_SOUL -> InfoModel.buildSoulRows(player);
+            case TAB_PATHS -> InfoModel.buildPathRows(player);
             case TAB_PATH -> InfoModel.buildPathAchieveRows(player);
             case TAB_MIND -> InfoModel.buildMindRows(player);
             default -> InfoModel.buildApertureRows(player);

@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.body.MugwortShieldData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
+import net.alex.guzhenren.gameplay.path.PathEffectData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
@@ -31,7 +32,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 /**
  * Every data attachment this mod puts on a player.
  *
- * <p>DeferredRegister holder: the twelve record attachments (immutable, written only through their
+ * <p>DeferredRegister holder: the thirteen record attachments (immutable, written only through their
  * service) plus the five scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
  * {@code SECOND_STAGE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
@@ -114,6 +115,9 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<PathData>> PATH =
             registerSynced("path_data", PathData.DEFAULT, PathData.CODEC,
                     StreamCodec.of(PathData::encode, PathData::decode));
+    public static final Supplier<AttachmentType<PathEffectData>> PATH_EFFECT = registerSynced(
+            "path_effect_data", PathEffectData.DEFAULT, PathEffectData.CODEC,
+            StreamCodec.of(PathEffectData::encode, PathEffectData::decode));
     public static final Supplier<AttachmentType<PathStrengthData>> PATH_STRENGTH = registerSynced(
             "strength_data", PathStrengthData.DEFAULT, PathStrengthData.CODEC,
             StreamCodec.of(PathStrengthData::encode, PathStrengthData::decode));

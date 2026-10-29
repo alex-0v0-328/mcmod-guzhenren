@@ -9,7 +9,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr path strength}: writes the beast and human strengths a body holds; {@code /gzr info}
+ * {@code /gzr path strength}: writes the beast and human strengths a body holds; the B panel
  * reads them.
  *
  * <p>Offers {@code grant}/{@code revoke}/{@code clear} for beast strengths and

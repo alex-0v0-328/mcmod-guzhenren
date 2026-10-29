@@ -20,9 +20,10 @@ import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
 import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
+import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.MarkTag;
+import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
@@ -126,7 +127,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.aperture_1",                  "First Aperture",              "第一空窍");
         add("guzhenren.display.aperture_2",                  "Second Aperture",             "第二空窍");
         add("guzhenren.display.physique",                    "[%s]",                        "[%s]");
-        add("guzhenren.display.physique_line",               "Physique: %s",                "体质：%s");
         add("guzhenren.display.gu_type",                     "%s",                          "%s");
         add("guzhenren.display.gu_type_branch",              "%s · %s",                     "%s · %s");
         add("guzhenren.display.lifespan",                    "%s [age %s]",                 "%s [%s岁]");
@@ -151,6 +151,12 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.base_units.8",                "Eight",                       "八");
         add("guzhenren.display.base_units.9",                "Nine",                        "九");
         add("guzhenren.display.none",                        "[NONE]",                      "[无]");
+        add("guzhenren.display.marks.both",                  "%s Marks %s Strands",         "%s条道痕 %s丝道痕");
+        add("guzhenren.display.marks.marks",                 "%s Marks",                    "%s条道痕");
+        add("guzhenren.display.marks.strands",               "%s Strands",                  "%s丝道痕");
+        add("guzhenren.display.effect_permanent",            "Permanent",                   "永久");
+        add("guzhenren.path_effect.race_talent",             "Race Talent [%s]",            "种族天赋 [%s]");
+        add("guzhenren.path_effect.extreme_physique",        "Ten-Extremes Physique [%s]",  "十绝体质 [%s]");
         add("guzhenren.display.time_rate_up",                "x%s",                         "%s倍");
         add("guzhenren.display.wild",                        "Wild %s",                     "野生·%s");
         add("guzhenren.display.vital",                       "Vital %s",                    "本命·%s");
@@ -221,7 +227,6 @@ public class ModLanguageProvider extends LanguageProvider {
 
     //region COMMAND
     private void addCommandKeys() {
-        add("guzhenren.command.header",                           "[GZR]", "[GZR]");
         add("guzhenren.command.tagged",                           "[GZR] %s", "[GZR] %s");
         add("guzhenren.command.updated",                          "Updated %s player(s)", "已更新 %s 名玩家");
         add("guzhenren.command.unknown_value",                    "Unknown value: %s", "未知的取值：%s");
@@ -232,37 +237,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.command.failed.base_extreme",
                 "%s is unawakened or a Ten Extremes physique; set the latter through talent",
                 "%s 未开窍或是十绝体；十绝体须用 talent 修改");
-
-        add("guzhenren.command.info.realm",                       "Realm: %s", "玩家修为  %s");
-        add("guzhenren.command.info.aperture_status",             "Aperture Status: %s", "空窍状态  %s");
-        add("guzhenren.command.info.talent",                      "Aptitude:    %s", "玩家天赋  %s");
-        add("guzhenren.command.info.essence",                     "Essence:     %s / %s", "玩家真元  %s / %s");
-        add("guzhenren.command.info.distilled",                   "Distilled:   %s / %s", "精炼真元  %s / %s");
-        add("guzhenren.command.info.pressure",                    "Pressure:    %s / %s%%", "空窍压力  %s / %s%%");
-        add("guzhenren.command.info.primary_path",                "Primary:     %s", "主修流派  %s");
-        add("guzhenren.command.info.secondary_path",              "Secondary:   %s", "辅修流派  %s");
-        add("guzhenren.command.info.soul",                        "Soul:        %s / %s", "玩家魂魄  %s / %s");
-        add("guzhenren.command.info.lifespan",                    "Lifespan:    %s", "玩家寿元  %s");
-        add("guzhenren.command.info.physique",                    "%s", "%s");
-        add("guzhenren.command.info.race",                        "Race:        %s", "种族      %s");
-        add("guzhenren.command.info.tendon",                      "Tendons:     %s", "筋        %s");
-        add("guzhenren.command.info.bone",                        "Bones:       %s", "骨        %s");
-        add("guzhenren.command.info.skin",                        "Skin:        %s", "皮        %s");
-        add("guzhenren.command.info.flesh",                       "Flesh:       %s", "肉        %s");
-        add("guzhenren.command.info.wisdom_path_achieve",         "Wisdom Path Attainment:", "智道造诣");
-        add("guzhenren.command.info.wisdom_path_achieve_entry",   "  %s  %s", "  %s  %s");
-        add("guzhenren.command.info.qi_path_achieve",             "Qi Path Attainment:", "气道造诣");
-        add("guzhenren.command.info.qi_path_achieve_entry",       "  %s  %s", "  %s  %s");
-        add("guzhenren.command.info.paths",                       "Paths:", "流派造诣");
-        add("guzhenren.command.info.strength_path_achieve",       "Strength Path Attainment:", "力道造诣");
-        add("guzhenren.command.info.strength_path_achieve_entry", "  %s  %s", "  %s  %s");
-        add("guzhenren.command.info.time_path_achieve",           "Time Path Attainment:", "宙道造诣");
-        add("guzhenren.command.info.time_rate_up_entry",          "  Time Rate Up  %s", "  自身时间加速  %s");
-        add("guzhenren.command.info.capacity",                    "Bearing:     %s / %s jin", "肉身承受  %s / %s斤");
-        add("guzhenren.command.info.attack",                      "Base Attack: %s", "基础攻击力  %s");
-        add("guzhenren.command.info.brilliance",                  "Brilliance:  %s", "才情  %s");
-        add("guzhenren.command.info.mind",                        "Mind Ocean:", "脑海");
-        add("guzhenren.command.info.mind_entry",                  "  %s  %s / %s", "  %s  %s / %s");
 
         add("guzhenren.command.travel.entered",                   "Sent %s into %s", "已将 %s 送入%s");
         add("guzhenren.command.travel.exited",
@@ -285,6 +259,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.tab.aperture",                "Aperture", "空窍");
         add("guzhenren.screen.tab.body",                    "Body", "肉身");
         add("guzhenren.screen.tab.soul",                    "Soul", "魂魄");
+        add("guzhenren.screen.tab.paths",                   "Paths", "流派");
         add("guzhenren.screen.tab.path",                    "Path Attainment", "流派造诣");
         add("guzhenren.screen.tab.mind",                    "Mind", "脑海");
         add("guzhenren.screen.tab.refinement",              "Refinement", "炼蛊");
@@ -357,7 +332,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.soul",                  "Soul", "魂魄");
         add("guzhenren.screen.label.lifespan",              "Lifespan", "寿元");
         add("guzhenren.screen.label.qi_path_achieve",       "Qi Path Attainment", "气道造诣");
-        add("guzhenren.screen.label.paths",                 "Paths", "流派造诣");
+        add("guzhenren.screen.label.paths",                 "Paths", "流派");
         add("guzhenren.screen.label.strength_path_achieve", "Strength Path Attainment", "力道造诣");
         add("guzhenren.screen.label.time_path_achieve",     "Time Path Attainment", "宙道造诣");
         add("guzhenren.screen.label.time_rate_up",          "Time Rate Up", "自身时间加速");
@@ -367,7 +342,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.capacity",                    "%s / %s jin", "%s / %s斤");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
-        add("guzhenren.display.path_marks",                 " Marks %s", " 道痕%s");
+        add("guzhenren.screen.label.bare_marks",            "Body Marks", "肉体道痕");
     }
     //endregion
 
@@ -695,7 +670,8 @@ public class ModLanguageProvider extends LanguageProvider {
         addPhysique();
         addRace();
         addSoulTier();
-        addMarkTag();
+        addEffectCarrier();
+        addPathEffectCategory();
         addQiKind();
         addPath();
         addAttainment();
@@ -870,10 +846,16 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ExtremePhysique.PURE_DREAM_REALITY_SEEKER,          "Pure Dream Reality Seeker",          "纯梦求真体");
     }
 
-    private void addMarkTag() {
-        add(MarkTag.NATURAL,          "Natural",               "自然");
-        add(MarkTag.RACE,             "Race",                  "种族");
-        add(MarkTag.EXTREME_PHYSIQUE, "Ten-Extremes Physique", "十绝体质");
+    private void addPathEffectCategory() {
+        add(PathEffectCategory.BENEFICIAL, "Path Buffs",   "流派增益");
+        add(PathEffectCategory.HARMFUL,    "Path Debuffs", "流派减益");
+    }
+
+    private void addEffectCarrier() {
+        add(EffectCarrier.APERTURE, "Aperture", "空窍");
+        add(EffectCarrier.BODY,     "Body",     "肉体");
+        add(EffectCarrier.SOUL,     "Soul",     "魂魄");
+        add(EffectCarrier.MIND,     "Mind",     "脑海");
     }
 
     private void addBeastStrengthFamily() {

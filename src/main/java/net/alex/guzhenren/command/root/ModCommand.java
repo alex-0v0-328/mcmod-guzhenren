@@ -20,10 +20,10 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 /**
  * The root of {@code /guzhenren} (alias {@code /gzr}), assembling every subcommand under it.
  *
- * <p>Registers the literal {@code guzhenren} with permission level 2, then attaches the eight root
- * branches ({@link net.alex.guzhenren.command.root.CmdInfo}, {@code CmdAwaken}, {@code CmdReset},
- * {@code CmdAperture}, {@code CmdBody}, {@code CmdSoul}, {@code CmdPath}, {@code CmdMind}) -- all
- * attachment-data commands. The
+ * <p>Registers the literal {@code guzhenren} with permission level 2, then attaches the seven root
+ * branches ({@code CmdAwaken}, {@code CmdReset}, {@code CmdAperture}, {@code CmdBody}, {@code CmdSoul},
+ * {@code CmdPath}, {@code CmdMind}) -- all attachment-data commands; the B panel is where a player's state is
+ * read, so no branch prints it. The
  * {@code gzr} alias is a {@code redirect} to that root, so everything typed after it parses into a
  * child context.
  *
@@ -54,7 +54,6 @@ public final class ModCommand {
         LiteralCommandNode<CommandSourceStack> root = dispatcher.register(
                 Commands.literal("guzhenren")
                         .requires(source -> source.hasPermission(PERMISSION_LEVEL))
-                        .then(CmdInfo.buildNode())
                         .then(CmdAwaken.buildNode())
                         .then(CmdReset.buildNode())
                         .then(CmdAperture.buildNode())

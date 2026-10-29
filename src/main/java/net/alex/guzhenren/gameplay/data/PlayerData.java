@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.body.MugwortShieldData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
+import net.alex.guzhenren.gameplay.path.PathEffectData;
 import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
@@ -21,12 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: fourteen saved values, the
+ * Everything this mod keeps on a player, read and written through one object: fifteen saved values, the
  * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and one in-memory carry, the
  * essence regen remainder ({@link #getEssenceCarry}).
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
- * whether it changed; ten values reach their owner's client on change ({@code ModAttachments} syncs
+ * whether it changed; eleven values reach their owner's client on change ({@code ModAttachments} syncs
  * them {@code OWNER_ONLY}). {@link #resetCarriedOnDeath} returns every value a death carries to its
  * default.
  *
@@ -67,6 +68,8 @@ public final class PlayerData {
 
     public PathData getPath() { return owner.getData(ModAttachments.PATH); }
 
+    public PathEffectData getPathEffect() { return owner.getData(ModAttachments.PATH_EFFECT); }
+
     public PathStrengthData getStrength() { return owner.getData(ModAttachments.PATH_STRENGTH); }
 
     public PathQiData getQi() { return owner.getData(ModAttachments.PATH_QI); }
@@ -104,6 +107,8 @@ public final class PlayerData {
     public boolean setSoul(@NotNull SoulData value) { return set(ModAttachments.SOUL, value); }
 
     public boolean setPath(@NotNull PathData value) { return set(ModAttachments.PATH, value); }
+
+    public boolean setPathEffect(@NotNull PathEffectData value) { return set(ModAttachments.PATH_EFFECT, value); }
 
     public boolean setStrength(@NotNull PathStrengthData value) { return set(ModAttachments.PATH_STRENGTH, value); }
 

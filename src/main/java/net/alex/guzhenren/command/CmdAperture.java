@@ -28,7 +28,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 
 /**
- * {@code /gzr aperture}: writes the holder's apertures [空窍]; {@code /gzr info} reads them.
+ * {@code /gzr aperture}: writes the holder's apertures [空窍]; the B panel reads them.
  *
  * <p>Guarded by a {@code requires(sourceAwakened)} gate (presentation only) AND a per-target gate (data
  * protection). Every value is a literal, so the tree carries its own suggestions and a word like

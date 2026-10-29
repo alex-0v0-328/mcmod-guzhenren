@@ -21,7 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * {@code /gzr body}: writes body [肉身] state -- physiques, race, tendons, bones, skin, lifespan and age;
- * {@code /gzr info} reads it.
+ * the B panel reads it.
  *
  * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, the three tempered parts, lifespan and
  * age. The path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a

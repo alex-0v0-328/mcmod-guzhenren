@@ -18,9 +18,8 @@ import org.jetbrains.annotations.Nullable;
  * splits the aperture tab's model into one group per aperture, blanks dropped, for the two-column layout.
  *
  * <p>{@link #draw} hands each entry to {@link EntryDrawer}, one {@code InfoModel.Visitor} method per row kind: a
- * new row does not compile until it has its line here and in {@code /gzr info}. ⚠ The model owns
- * the rows and their order, never the wording -- the panel puts the label in one column and the value in
- * another, the command bakes both into one key.
+ * new row does not compile until it has its line here. ⚠ The model owns the rows and their order, never the
+ * wording -- the panel puts the label in one column and the value in another.
  *
  * @author Alex
  * @version 1.0.0
@@ -196,7 +195,47 @@ final class InfoRowRenderer {
 
         @Override
         public ScreenRow visit(InfoModel.PathRow entry) {
-            return new ScreenRow(indent, ModDisplayText.formatPathLine(entry.path(), entry.entry()), Component.empty());
+            return new ScreenRow(indent,
+                    ModDisplayText.formatPathLine(entry.path(), entry.attainment(), entry.marks()),
+                    Component.empty());
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.EffectCategoryHeader entry) {
+            return new ScreenRow(indent, formatName(entry.category().getTranslationKey()), null);
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.EffectCarrierRow entry) {
+            return new ScreenRow(indent, formatName(entry.carrier().getTranslationKey()), null);
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.PathEffectRow entry) {
+            return new ScreenRow(indent, entry.effect().getName(),
+                    ModDisplayText.formatEffectTime(entry.secondsLeft()));
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.EffectMarkRow entry) {
+            return new ScreenRow(indent, ModDisplayText.formatPath(entry.path()),
+                    ModDisplayText.formatMarks(entry.marks()));
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.BareMarksHeader entry) {
+            return new ScreenRow(indent, formatLabel("bare_marks"), null);
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.BareMarkRow entry) {
+            return new ScreenRow(indent, ModDisplayText.formatPath(entry.path()),
+                    ModDisplayText.formatMarks(entry.marks()));
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.NoneRow entry) {
+            return new ScreenRow(indent, ModDisplayText.formatNone(), null);
         }
 
         @Override

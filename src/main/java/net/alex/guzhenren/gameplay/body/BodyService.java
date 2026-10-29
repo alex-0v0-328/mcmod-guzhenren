@@ -2,14 +2,21 @@ package net.alex.guzhenren.gameplay.body;
 
 import com.google.common.math.LongMath;
 import java.math.BigInteger;
+import java.util.Map;
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.MarkTag;
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathService;
+import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -57,8 +64,11 @@ import org.jetbrains.annotations.NotNull;
  * grade replaces the worn one is each part's {@code canReplace}, asked by the Gu, never here.
  *
  * <p>{@link #setRace} is the second of the two cross-domain grants, beside
- * {@code ApertureService.reconcileTalentPaths}: through {@code PathService} it revokes the old race's Dao marks
- * and attainment and grants the new race's.
+ * {@code ApertureService.reconcileTalentPaths}: it revokes the old race's talent and grants the new race's -- the
+ * attainment shift through {@code PathService}, the Dao marks as the permanent {@code RACE_TALENT} body effect
+ * through {@code PathEffectService}, ten whole marks on the race's path from {@link #RACE_TALENT_SOURCE}.
+ * {@link #syncRaceTalent} puts that effect back on login when it is missing or names another race; it never
+ * touches the attainment, which only a race change moves.
  *
  * @author Alex
  * @version 1.0.0
@@ -70,6 +80,8 @@ import org.jetbrains.annotations.NotNull;
 public final class BodyService {
 
     private BodyService() {}
+
+    public static final ResourceLocation RACE_TALENT_SOURCE = Guzhenren.id("innate/race");
 
     public static long getDayIndex(@NotNull MinecraftServer server) {
         return server.overworld().getDayTime() / Ticks.DAY;
@@ -249,11 +261,28 @@ public final class BodyService {
         grantTalent(player, race);
     }
 
+    public static void syncRaceTalent(@NotNull ServerPlayer player) {
+        Race race = getRace(player);
+        PathEffect<Race> worn = PathEffectService.find(player, ModPathEffectTypes.RACE_TALENT);
+        if (!race.isVariant()) {
+            if (worn != null) PathEffectService.removeType(player, ModPathEffectTypes.RACE_TALENT);
+            return;
+        }
+        if (worn == null || worn.payload() != race) PathEffectService.apply(player, getRaceTalent(race));
+    }
+
+    public static @NotNull PathEffect<Race> getRaceTalent(@NotNull Race race) {
+        Map<GuPath, DaoMarks> paths = race.getTalentPath() == null ? Map.of()
+                : Map.of(race.getTalentPath(), DaoMarks.ofMarks(Race.TALENT_MARKS));
+        return PathEffect.of(ModPathEffectTypes.RACE_TALENT, EffectCarrier.BODY, RACE_TALENT_SOURCE, paths,
+                PathEffect.PERMANENT, race);
+    }
+
     private static void grantTalent(ServerPlayer player, Race race) {
         GuPath path = race.getTalentPath();
         if (path == null) return;
 
-        PathService.setMark(player, path, MarkTag.RACE, Race.TALENT_MARKS);
+        PathEffectService.apply(player, getRaceTalent(race));
         PathService.shiftAttainment(player, path, Race.TALENT_SHIFT);
     }
 
@@ -261,7 +290,7 @@ public final class BodyService {
         GuPath path = race.getTalentPath();
         if (path == null) return;
 
-        PathService.setMark(player, path, MarkTag.RACE, 0L);
+        PathEffectService.removeType(player, ModPathEffectTypes.RACE_TALENT);
         PathService.shiftAttainment(player, path, -Race.TALENT_SHIFT);
     }
     //endregion

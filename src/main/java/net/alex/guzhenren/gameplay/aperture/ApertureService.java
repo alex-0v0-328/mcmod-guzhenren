@@ -1,15 +1,22 @@
 package net.alex.guzhenren.gameplay.aperture;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.MarkTag;
-import net.alex.guzhenren.gameplay.path.PathService;
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
+import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -25,8 +32,11 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ The body-physique/base-essence invariant is enforced here ({@code enforce}); the concrete
  * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
  * holder -- it appends; the caller gates. A base essence of zero (a Hope Gu that never rolled one) rolls a
- * fresh talent instead of opening an aperture with no base. ⚠ {@code reconcileTalentPaths} (ten-extreme Dao
- * marks plus human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
+ * fresh talent instead of opening an aperture with no base. ⚠ {@code reconcileTalentPaths} (the ten-extreme
+ * talent effect plus human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
+ * The talent is the permanent {@code EXTREME_PHYSIQUE} aperture effect from {@link #TALENT_SOURCE}: a thousand whole
+ * marks split evenly across the physique's talent paths; {@link #syncTalentEffect} puts it back on login when it is
+ * missing or names another physique.
  * {@link #onExtremePhysiqueChanged} runs it, through {@link ApertureEvents}, whenever the body stores a
  * different ten-extreme physique, then resets the first aperture's base essence to match -- the full
  * base for a physique, one below for none, which also empties the pressure. Setting the first aperture's
@@ -56,22 +66,29 @@ public final class ApertureService {
 
     public static final long TALENT_MARK_TOTAL = 1000L;
     public static final long TALENT_HUMAN_QI = 100L;
+    public static final ResourceLocation TALENT_SOURCE = Guzhenren.id("innate/extreme_physique");
 
     static long getTalentMarksPerPath(ExtremePhysique physique) {
         int paths = physique.getTalentPaths().size();
         return paths == 0 ? 0L : TALENT_MARK_TOTAL / paths;
     }
 
-    public static void syncTalentMarks(@NotNull ServerPlayer player) {
+    public static @NotNull PathEffect<ExtremePhysique> getTalentEffect(@NotNull ExtremePhysique physique) {
+        Map<GuPath, DaoMarks> paths = new EnumMap<>(GuPath.class);
+        DaoMarks each = DaoMarks.ofMarks(getTalentMarksPerPath(physique));
+        for (GuPath path : physique.getTalentPaths()) paths.put(path, each);
+        return PathEffect.of(ModPathEffectTypes.EXTREME_PHYSIQUE, EffectCarrier.APERTURE, TALENT_SOURCE, paths,
+                PathEffect.PERMANENT, physique);
+    }
+
+    public static void syncTalentEffect(@NotNull ServerPlayer player) {
         ExtremePhysique current = BodyService.getExtremePhysique(player);
-        for (ExtremePhysique physique : ExtremePhysique.values()) {
-            long expected = physique == current ? getTalentMarksPerPath(physique) : 0L;
-            for (GuPath path : physique.getTalentPaths()) {
-                if (PathService.getMark(player, path, MarkTag.EXTREME_PHYSIQUE) != expected) {
-                    PathService.setMark(player, path, MarkTag.EXTREME_PHYSIQUE, expected);
-                }
-            }
+        PathEffect<ExtremePhysique> worn = PathEffectService.find(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
+        if (current.getTalentPaths().isEmpty()) {
+            if (worn != null) PathEffectService.removeType(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
+            return;
         }
+        if (worn == null || worn.payload() != current) PathEffectService.apply(player, getTalentEffect(current));
     }
 
     public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).getAperture(); }
@@ -259,11 +276,13 @@ public final class ApertureService {
     }
 
     private static void grantTalentPaths(ServerPlayer player, ExtremePhysique physique, int sign) {
-        List<GuPath> paths = physique.getTalentPaths();
-        if (paths.isEmpty()) return;
+        if (physique.getTalentPaths().isEmpty()) return;
 
         PathQiService.add(player, QiKind.HUMAN, sign * TALENT_HUMAN_QI);
-        long marks = sign * getTalentMarksPerPath(physique);
-        for (GuPath path : paths) PathService.addMark(player, path, MarkTag.EXTREME_PHYSIQUE, marks);
+        if (sign > 0) {
+            PathEffectService.apply(player, getTalentEffect(physique));
+        } else {
+            PathEffectService.removeType(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
+        }
     }
 }

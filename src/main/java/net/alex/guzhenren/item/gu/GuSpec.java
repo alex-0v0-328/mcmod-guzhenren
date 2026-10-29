@@ -1,8 +1,15 @@
 package net.alex.guzhenren.item.gu;
 
+import com.google.common.math.LongMath;
+import java.util.Map;
 import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -13,12 +20,21 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The single source of truth for every Gu's numerical identity: refine cost, channel/cost-per-use,
  * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags,
- * health, cooldown, and the usage type [类型] ({@link GuType}, absent for a Gu that has none). Stored on {@link MortalGuItem} at
- * construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD renderers.
+ * health, cooldown, the usage type [类型] ({@link GuType}, absent for a Gu that has none), and the path effect
+ * [流派效果] it lays down: the carrier it works on and the Dao marks [道痕] it carries on the Gu's path.
+ * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD
+ * renderers.
+ *
+ * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 3 at rank one,
+ * four times as many each rank); {@link #effect(EffectCarrier, long)} names them, and
+ * {@link #effect(EffectCarrier, DaoMarks)} names both counters. A Gu without the call lays down no effect and
+ * carries no marks -- an instant Gu, or one that only changes a number. {@link #createEffect} builds the effect a
+ * family puts on with {@code PathEffectService.apply}.
  *
  * <p>⚠ {@link #validate} runs at registration and refuses to start the game, naming the Gu, when
  * the channel numbers do not divide evenly, or a food worth more than one point does not divide the bar, a use,
- * a day and the health. It is the first line of defense; never route around it.
+ * a day and the health, or an effect carries no marks, or a mortal Gu's effect carries whole marks [条]: a mortal
+ * Gu lays down strands only. It is the first line of defense; never route around it.
  *
  * @author Alex
  * @version 1.0.0
@@ -47,6 +63,10 @@ public final class GuSpec {
     private int feedUnits;
     private int effectCooldownTicks;
     private int itemCooldownTicks;
+    private static final long DEFAULT_STRANDS = 3L;
+    private static final long STRANDS_PER_RANK = 4L;
+    private @Nullable EffectCarrier effectCarrier;
+    private DaoMarks effectMarks = DaoMarks.NONE;
 
     private GuSpec(Rank rank, GuPath path) {
         this.rank = rank;
@@ -132,6 +152,16 @@ public final class GuSpec {
         this.type = type;
         return this;
     }
+
+    public GuSpec effect(EffectCarrier carrier) { return effect(carrier, getDefaultStrands(rank)); }
+
+    public GuSpec effect(EffectCarrier carrier, long strands) { return effect(carrier, DaoMarks.ofStrands(strands)); }
+
+    public GuSpec effect(EffectCarrier carrier, DaoMarks marks) {
+        this.effectCarrier = carrier;
+        this.effectMarks = marks;
+        return this;
+    }
     //endregion
 
     //region what the base classes read
@@ -159,6 +189,25 @@ public final class GuSpec {
 
     public int getMaxHealth() { return maxHealth; }
 
+    public @Nullable EffectCarrier getEffectCarrier() { return effectCarrier; }
+
+    public DaoMarks getEffectMarks() { return effectMarks; }
+
+    public Map<GuPath, DaoMarks> getEffectPaths() {
+        return effectCarrier == null ? Map.of() : Map.of(path, effectMarks);
+    }
+
+    public static long getDefaultStrands(Rank rank) {
+        int steps = Math.max(0, rank.ordinal() - Rank.LOWEST.ordinal());
+        return LongMath.saturatedMultiply(DEFAULT_STRANDS, LongMath.saturatedPow(STRANDS_PER_RANK, steps));
+    }
+
+    public <P> PathEffect<P> createEffect(PathEffectType<P> effectType, ResourceLocation source, long endTick,
+                                          P payload) {
+        if (effectCarrier == null) throw new IllegalStateException("Gu spec declares no effect for " + source);
+        return PathEffect.of(effectType, effectCarrier, source, getEffectPaths(), endTick, payload);
+    }
+
     public GuClock buildClock() {
         if (recoverTicks > 0) return new GuClock.RecoverBar(maxHunger, recoverTicks, hungerPerUse);
         if (maxHunger > 0) {
@@ -183,6 +232,7 @@ public final class GuSpec {
             throw fault(id, "recovers with time but channels or feeds");
         }
         if (feedTag != null && feedUnits > unitsPerHunger) checkWholeMeals(id);
+        if (effectCarrier != null) checkEffect(id);
 
         if (!channels) return;
 
@@ -191,6 +241,14 @@ public final class GuSpec {
         if (essencePerRound % essencePerHunger != 0) {
             throw fault(id, "round %d does not divide by hunger rate %d"
                     .formatted(essencePerRound, essencePerHunger));
+        }
+    }
+
+    private void checkEffect(String id) {
+        if (effectMarks.isEmpty()) throw fault(id, "lays down an effect with no marks");
+        if (rank.ordinal() <= Rank.HIGHEST.ordinal() && effectMarks.marks() > 0L) {
+            throw fault(id, "is mortal but declares %d whole marks; a mortal Gu carries strands only"
+                    .formatted(effectMarks.marks()));
         }
     }
 

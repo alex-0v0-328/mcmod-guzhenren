@@ -13,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
  * made, never rolled. {@code DRAGONMEN} is the only variant a player may become; the other ten are
  * NPC-only. No sibling mod may add a race.
  *
- * <p>⚠ A race can be changed, so both halves of that standing must be exactly revocable: the marks are
- * booked under {@code RACE} rather than {@code NATURAL}, and the attainment MOVES (a shift,
- * {@link #TALENT_SHIFT}) rather than being set, so leaving the race can undo it exactly.
+ * <p>⚠ A race can be changed, so both halves of that standing must be exactly revocable: the
+ * {@link #TALENT_MARKS} marks ride on the race's own talent effect rather than a bare pool, and the attainment
+ * MOVES (a shift, {@link #TALENT_SHIFT}) rather than being set, so leaving the race can undo it exactly.
  * {@code Race.HUMAN} is not {@link GuPath#HUMAN} [人道].
  *
  * @author Alex

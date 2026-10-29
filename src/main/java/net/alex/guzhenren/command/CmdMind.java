@@ -7,7 +7,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr mind}: writes brilliance [才情] and the three mind pools; {@code /gzr info} reads them.
+ * {@code /gzr mind}: writes brilliance [才情] and the three mind pools; the B panel reads them.
  *
  * <p>Offers graded set/up/down for brilliance [才情] and delegates to
  * {@link CmdMindPool} for the three wisdom pools. All of

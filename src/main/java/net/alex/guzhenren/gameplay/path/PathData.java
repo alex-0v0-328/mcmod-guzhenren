@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>Immutable record attachment keyed {@code path_data}; {@code
  * PathService} is the only runtime writer. Each value is a
- * {@link PathEntry}. ⚠ A default {@link PathEntry} (no attainment, no marks) is pruned out of the map
+ * {@link PathEntry}. ⚠ A default {@link PathEntry} (no attainment, no bare marks) is pruned out of the map
  * entirely, so a path that has been fully revoked simply disappears -- do not read "absent" as
  * "never touched".
  *
