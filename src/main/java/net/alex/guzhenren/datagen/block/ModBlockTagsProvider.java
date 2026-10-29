@@ -19,8 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the block tags. The Decorative Hopper [装饰漏斗] copies the hopper's tool requirement, so it joins
- * {@code mineable/pickaxe} to break at hopper speed. The As Before terrain tag holds the ground itself -- stone,
+ * Writes the block tags. The As Before terrain tag holds the ground itself -- stone,
  * soil, sand, terracotta, sandstone -- and leaves out moss, ice, snow layers and fluids, which the As Before Gu
  * [如故蛊] do not put back.
  */
@@ -38,7 +37,7 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.@NotNull Provider provider) {
-        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.DECORATIVE_HOPPER.get(), ModBlocks.STEEL_BLOCK.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.STEEL_BLOCK.get());
         tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.STEEL_BLOCK.get());
         tag(BlockTags.BEACON_BASE_BLOCKS).add(ModBlocks.STEEL_BLOCK.get());
         tag(STORAGE_BLOCKS_STEEL).add(ModBlocks.STEEL_BLOCK.get());

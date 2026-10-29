@@ -1,7 +1,6 @@
 package net.alex.guzhenren.registry.block;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.block.DecorativeHopperBlock;
 import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.world.effect.MobEffects;
@@ -43,10 +42,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>{@link #STEEL_BLOCK} is the Steel Block [钢块]: a plain storage block on the iron block's properties line, so
  * it mines, sounds and serves a beacon like one; nine Steel Ingots [钢锭] craft it and it crafts back.
  *
- * <p>{@link #DECORATIVE_HOPPER} is the structure-template stand-in for vanilla hoppers: hopper properties,
- * no BlockItem and no loot, so mining it yields nothing; builders place hoppers and swap them in with
- * {@code /fill ... replace}.
- *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
@@ -85,8 +80,6 @@ public final class ModBlocks {
     public static final DeferredBlock<DoublePlantBlock> INTIMATE_GRASS = BLOCKS.register("intimate_grass",
             () -> new DoublePlantBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.TALL_GRASS)));
 
-    public static final DeferredBlock<DecorativeHopperBlock> DECORATIVE_HOPPER = BLOCKS.register("decorative_hopper",
-            () -> new DecorativeHopperBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.HOPPER).noLootTable()));
     public static final DeferredBlock<Block> STEEL_BLOCK = BLOCKS.register("steel_block",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)));
 

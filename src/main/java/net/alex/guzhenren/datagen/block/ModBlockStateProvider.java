@@ -1,7 +1,6 @@
 package net.alex.guzhenren.datagen.block;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.block.DecorativeHopperBlock;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,9 +31,6 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
  * tint, so the parts drawn in color keep it. The later coplanar quad wins the depth test, the way the grass block's
  * side overlay does.
  *
- * <p>The Decorative Hopper [装饰漏斗] reuses vanilla's {@code block/hopper} and {@code block/hopper_side} models with
- * the hopper blockstate's rotations, so it looks exactly like the hopper it replaces.
- *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
@@ -57,7 +53,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
         registerFlowerBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS.get(),
                 Guzhenren.id("item/nine_leaf_vitality_grass_full"));
         registerDoublePlantBlock(ModBlocks.INTIMATE_GRASS.get(), buildTintedCrossOverlay());
-        registerHopperBlock(ModBlocks.DECORATIVE_HOPPER.get());
         simpleBlock(ModBlocks.STEEL_BLOCK.get());
     }
 
@@ -69,17 +64,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
     private void registerFlowerBlock(Block block, ResourceLocation cross) {
         simpleBlock(block, models().cross(BuiltInRegistries.BLOCK.getKey(block).getPath(), cross)
                 .renderType("cutout"));
-    }
-
-    private void registerHopperBlock(Block block) {
-        ModelFile down = models().getExistingFile(mcLoc("block/hopper"));
-        ModelFile side = models().getExistingFile(mcLoc("block/hopper_side"));
-        getVariantBuilder(block).forAllStates(state -> {
-            Direction facing = state.getValue(DecorativeHopperBlock.FACING);
-            return facing == Direction.DOWN
-                    ? ConfiguredModel.builder().modelFile(down).build()
-                    : ConfiguredModel.builder().modelFile(side).rotationY(((int) facing.toYRot() + 180) % 360).build();
-        });
     }
 
     //region the double plant -- a tinted gray cross under an untinted overlay, per half
