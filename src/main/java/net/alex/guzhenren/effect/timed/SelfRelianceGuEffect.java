@@ -12,11 +12,11 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>One pulse per second, healing {@code grade + 1} HP up to a limit between half and seventy
  * percent of max health by grade. The item also drives itself at the brink -- see
- * {@link net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem#tryAutoUse}.
+ * {@link net.alex.guzhenren.item.gu.mortal.strength.AutoUseModule#tryAutoUse}.
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem
+ * @see net.alex.guzhenren.item.gu.mortal.strength.AutoUseModule
  * @since 1.0.0
  */
 

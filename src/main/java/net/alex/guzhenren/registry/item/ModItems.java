@@ -4,14 +4,17 @@ import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
+import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.effect.timed.DragonpillCricketGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
+import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.Tendon;
+import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
@@ -20,35 +23,41 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.item.AdvancementIconItem;
+import net.alex.guzhenren.item.gu.ConsumedGuItem;
+import net.alex.guzhenren.item.gu.GuModule;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.GuType;
-import net.alex.guzhenren.item.gu.mortal.BuffGuItem;
-import net.alex.guzhenren.item.gu.mortal.SkinGuItem;
-import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
-import net.alex.guzhenren.item.gu.mortal.food.LiquorWormItem;
-import net.alex.guzhenren.item.gu.mortal.heaven.LifespanGuItem;
-import net.alex.guzhenren.item.gu.mortal.heaven.RelicsGuItem;
+import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.item.gu.OneShotGuItem;
+import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.mortal.RecastModule;
+import net.alex.guzhenren.item.gu.mortal.SkinModule;
+import net.alex.guzhenren.item.gu.mortal.TimedBuffModule;
+import net.alex.guzhenren.item.gu.mortal.earth.PetrifyModule;
+import net.alex.guzhenren.item.gu.mortal.food.DistillModule;
+import net.alex.guzhenren.item.gu.mortal.heaven.LifespanModule;
+import net.alex.guzhenren.item.gu.mortal.heaven.StageUpModule;
 import net.alex.guzhenren.item.gu.mortal.human.HopeGuItem;
-import net.alex.guzhenren.item.gu.mortal.human.SecondApertureGuItem;
-import net.alex.guzhenren.item.gu.mortal.metal.BoneGuItem;
-import net.alex.guzhenren.item.gu.mortal.metal.TendonGuItem;
+import net.alex.guzhenren.item.gu.mortal.human.SecondApertureModule;
+import net.alex.guzhenren.item.gu.mortal.metal.BoneModule;
+import net.alex.guzhenren.item.gu.mortal.metal.TendonModule;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
-import net.alex.guzhenren.item.gu.mortal.soul.GutsGuItem;
+import net.alex.guzhenren.item.gu.mortal.soul.SoulCapModule;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceGuItem;
+import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortModule;
+import net.alex.guzhenren.item.gu.mortal.strength.AutoUseModule;
+import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthModule;
+import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthModule;
 import net.alex.guzhenren.item.gu.mortal.time.ManAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.TerrainAsBeforeGuItem;
-import net.alex.guzhenren.item.gu.mortal.time.WatchGuItem;
-import net.alex.guzhenren.item.gu.mortal.transformation.ZombieGuItem;
+import net.alex.guzhenren.item.gu.mortal.time.WatchModule;
+import net.alex.guzhenren.item.gu.mortal.transformation.ZombieModule;
 import net.alex.guzhenren.item.gu.mortal.water.HeavenlyMugwortGuItem;
-import net.alex.guzhenren.item.gu.mortal.wisdom.CasualGuItem;
-import net.alex.guzhenren.item.gu.mortal.wisdom.MaliciousThoughtGuItem;
+import net.alex.guzhenren.item.gu.mortal.wisdom.ThoughtBurstModule;
+import net.alex.guzhenren.item.gu.mortal.wisdom.ThoughtModule;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.item.gu.mortal.wood.TreasureLotusGuItem;
-import net.alex.guzhenren.item.gu.mortal.wood.VitalityLeafGuItem;
+import net.alex.guzhenren.item.gu.mortal.wood.VitalityLeafModule;
 import net.alex.guzhenren.item.material.GuMaterialItem;
 import net.alex.guzhenren.item.material.LiquorItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
@@ -57,6 +66,7 @@ import net.alex.guzhenren.item.material.qi.LifeQiItem;
 import net.alex.guzhenren.item.material.qi.QiMaterialItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
@@ -76,8 +86,9 @@ import org.jetbrains.annotations.Nullable;
  * shares ({@link #createJadeSkinSpec}; {@link #createTemperingSpec}, whose one channeled round [灌注] eats the
  * whole bar and tempers the part for good), IS the truth. A figure
  * written down anywhere else is a copy of it, and when the two disagree this file is the one that is
- * right. {@link #findGu} finds the Gu a body state was made by, for the path effect it carries. One line per item, plus the PNG and both lang keys. Past 300 lines on purpose: it is a data table, and
- * splitting it would scatter the one place the numbers live.
+ * right. {@link #findGuWith} finds the Gu a body state was made by, through the module that made it, for the path
+ * effect it carries. One line per item, plus the PNG and both lang keys. Past 300 lines on purpose: it is a data
+ * table, and splitting it would scatter the one place the numbers live.
  *
  * <p>⚠ The registration id mirrors the Java name (and the PNG); a rank ladder is numbered
  * ({@code sword_qi_1} to {@code sword_qi_5}), but an item with its own fiction name keeps that name
@@ -112,6 +123,16 @@ public final class ModItems {
         return null;
     }
 
+    public static <M extends GuModule> @Nullable MortalGuItem findGuWith(Class<M> module, Predicate<M> test) {
+        for (DeferredHolder<Item, ? extends Item> entry : ITEMS.getEntries()) {
+            if (!(entry.get() instanceof MortalGuItem gu)) continue;
+
+            M found = gu.getModule(module);
+            if (found != null && test.test(found)) return gu;
+        }
+        return null;
+    }
+
     private static Item.Properties createTendedProperties() { return new Item.Properties().stacksTo(1); }
 
     private static Item.Properties createOneShotProperties() { return new Item.Properties(); }
@@ -121,54 +142,61 @@ public final class ModItems {
             () -> new HopeGuItem(createOneShotProperties().stacksTo(1), GuSpec.of(Rank.ONE, GuPath.HUMAN)
                     .type(GuType.CULTIVATION)));
     public static final DeferredItem<Item> VITALITY_LEAF_GU = ITEMS.register("vitality_leaf_gu",
-            () -> new VitalityLeafGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)
-                    .type(GuType.HEALING).effect(EffectCarrier.BODY)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.WOOD)
+                    .type(GuType.HEALING).effect(EffectCarrier.BODY), new VitalityLeafModule()));
     public static final DeferredItem<Item> LIFESPAN_GU = ITEMS.register("lifespan_gu",
-            () -> new LifespanGuItem(createOneShotProperties(), 1, 9, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN),
+                    new LifespanModule(1, 9)));
     public static final DeferredItem<Item> TENS_LIFESPAN_GU = ITEMS.register("tens_lifespan_gu",
-            () -> new LifespanGuItem(createOneShotProperties(), 10, 19, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN),
+                    new LifespanModule(10, 19)));
     public static final DeferredItem<Item> HUNDREDS_LIFESPAN_GU = ITEMS.register("hundreds_lifespan_gu",
-            () -> new LifespanGuItem(createOneShotProperties(), 100, 199, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN),
+                    new LifespanModule(100, 199)));
     public static final DeferredItem<Item> THOUSANDS_LIFESPAN_GU = ITEMS.register("thousands_lifespan_gu",
-            () -> new LifespanGuItem(createOneShotProperties(), 1000, 1999, GuSpec.of(Rank.ONE, GuPath.HEAVEN)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN),
+                    new LifespanModule(1000, 1999)));
     public static final DeferredItem<Item> COPPER_RELICS_GU = ITEMS.register("copper_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN)
-                    .type(GuType.CULTIVATION)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION), new StageUpModule()));
     public static final DeferredItem<Item> STEEL_RELICS_GU = ITEMS.register("steel_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.TWO, GuPath.HEAVEN)
-                    .type(GuType.CULTIVATION)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.TWO, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION), new StageUpModule()));
     public static final DeferredItem<Item> SILVER_RELICS_GU = ITEMS.register("silver_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.THREE, GuPath.HEAVEN)
-                    .type(GuType.CULTIVATION)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.THREE, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION), new StageUpModule()));
     public static final DeferredItem<Item> GOLD_RELICS_GU = ITEMS.register("gold_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FOUR, GuPath.HEAVEN)
-                    .type(GuType.CULTIVATION)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.FOUR, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION), new StageUpModule()));
     public static final DeferredItem<Item> CRYSTAL_RELICS_GU = ITEMS.register("crystal_relics_gu",
-            () -> new RelicsGuItem(createOneShotProperties(), GuSpec.of(Rank.FIVE, GuPath.HEAVEN)
-                    .type(GuType.CULTIVATION)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.FIVE, GuPath.HEAVEN)
+                    .type(GuType.CULTIVATION), new StageUpModule()));
     //endregion
 
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredItem<Item> WHITE_BOAR_GU = ITEMS.register("white_boar_gu",
-            () -> new BeastStrengthGuItem(createTendedProperties(), BeastStrength.WHITE_BOAR,
-                    createBeastStrengthSpec(ModItemTags.BOAR_FEED)));
+            () -> new TendedGuItem(createTendedProperties(), createBeastStrengthSpec(ModItemTags.BOAR_FEED),
+                    new BeastStrengthModule(BeastStrength.WHITE_BOAR)));
     public static final DeferredItem<Item> BLACK_BOAR_GU = ITEMS.register("black_boar_gu",
-            () -> new BeastStrengthGuItem(createTendedProperties(), BeastStrength.BLACK_BOAR,
-                    createBeastStrengthSpec(ModItemTags.BOAR_FEED)));
+            () -> new TendedGuItem(createTendedProperties(), createBeastStrengthSpec(ModItemTags.BOAR_FEED),
+                    new BeastStrengthModule(BeastStrength.BLACK_BOAR)));
     public static final DeferredItem<Item> BEAR_STRENGTH_GU = ITEMS.register("bear_strength_gu",
-            () -> new BeastStrengthGuItem(createTendedProperties(), BeastStrength.BEAR,
-                    createBeastStrengthSpec(ModItemTags.BEAR_FEED)));
+            () -> new TendedGuItem(createTendedProperties(), createBeastStrengthSpec(ModItemTags.BEAR_FEED),
+                    new BeastStrengthModule(BeastStrength.BEAR)));
     public static final DeferredItem<Item> FLOWER_BOAR_GU = ITEMS.register("flower_boar_gu",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS,
-                    createBeastBuffSpec(ModItemTags.BOAR_FEED)));
+            () -> new TendedGuItem(createTendedProperties(), createBeastBuffSpec(ModItemTags.BOAR_FEED),
+                    new TimedBuffModule(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),
+                    new RecastModule()));
     public static final DeferredItem<Item> DRAGONPILL_CRICKET_GU = ITEMS.register("dragonpill_cricket_gu",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.DRAGONPILL_CRICKET_GU,
-                    DragonpillCricketGuEffect.DURATION_TICKS, createBeastBuffSpec(ModItemTags.RABBIT_FEED)));
+            () -> new TendedGuItem(createTendedProperties(), createBeastBuffSpec(ModItemTags.RABBIT_FEED),
+                    new TimedBuffModule(ModEffects.DRAGONPILL_CRICKET_GU, DragonpillCricketGuEffect.DURATION_TICKS),
+                    new RecastModule()));
     public static final DeferredItem<Item> BRUTE_FORCE_LONGHORN_BEETLE_GU =
             ITEMS.register("brute_force_longhorn_beetle_gu",
-                    () -> new BuffGuItem(createTendedProperties(), ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
-                            BruteForceLonghornBeetleGuEffect.DURATION_TICKS,
-                            createBeastBuffSpec(ModItemTags.BEEF_FEED)));
+                    () -> new TendedGuItem(createTendedProperties(), createBeastBuffSpec(ModItemTags.BEEF_FEED),
+                            new TimedBuffModule(ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
+                                    BruteForceLonghornBeetleGuEffect.DURATION_TICKS),
+                            new RecastModule()));
 
     private static GuSpec createBeastStrengthSpec(TagKey<Item> feed) {
         return GuSpec.of(Rank.ONE, GuPath.STRENGTH)
@@ -196,63 +224,81 @@ public final class ModItems {
 
     //region Normal [基础力道] -- Strength Path Gu outside the three specialized branches
     public static final DeferredItem<Item> HORIZONTAL_CRASH_GU = ITEMS.register("horizontal_crash_gu",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.HORIZONTAL_CRASH_GU,
-                    CrashGuEffect.getDuration(30),
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.HORIZONTAL_CRASH_GU, CrashGuEffect.getDuration(30)),
+                    new RecastModule()));
     public static final DeferredItem<Item> VERTICAL_CRASH_GU = ITEMS.register("vertical_crash_gu",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.getDuration(30),
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(12, 1).hungerPerUse(4).feed(ModItemTags.ANVIL_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.getDuration(30)),
+                    new RecastModule()));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_4 = ITEMS.register("charging_crash_gu_4",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.getDuration(30), 3, GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
-                    .refine(800_000).costPerUse(16_000)
-                    .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24).feed(ModItemTags.ANVIL_FEED, 1)
-                    .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
+                            .refine(800_000).costPerUse(16_000)
+                            .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24).feed(ModItemTags.ANVIL_FEED, 1)
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, CrashGuEffect.getDuration(30), 3),
+                    new RecastModule()));
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = ITEMS.register("charging_crash_gu_5",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.CHARGING_CRASH_GU,
-                    CrashGuEffect.getDuration(60), 4, GuSpec.of(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
-                    .refine(8_000_000).costPerUse(160_000)
-                    .hungerBar(36, 1).hungerPerUse(12).hungerPerDay(3).health(36).feed(ModItemTags.ANVIL_FEED, 1)
-                    .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    GuSpec.of(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
+                            .refine(8_000_000).costPerUse(160_000)
+                            .hungerBar(36, 1).hungerPerUse(12).hungerPerDay(3).health(36)
+                            .feed(ModItemTags.ANVIL_FEED, 1)
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, CrashGuEffect.getDuration(60), 4),
+                    new RecastModule()));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = ITEMS.register("self_reliance_gu_2",
-            () -> new SelfRelianceGuItem(createTendedProperties(), 30 * Ticks.SECOND, 1,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
                             .refine(8_000).costPerUse(160)
                             .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.SELF_RELIANCE_GU, 30 * Ticks.SECOND, 1),
+                    new RecastModule(),
+                    new AutoUseModule(0.2F)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = ITEMS.register("self_reliance_gu_3",
-            () -> new SelfRelianceGuItem(createTendedProperties(), 60 * Ticks.SECOND, 2,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.SELF_RELIANCE_GU, 60 * Ticks.SECOND, 2),
+                    new RecastModule(),
+                    new AutoUseModule(0.2F)));
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = ITEMS.register("self_reliance_gu_4",
-            () -> new SelfRelianceGuItem(createTendedProperties(), 120 * Ticks.SECOND, 3,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.SELF_RELIANCE_GU, 120 * Ticks.SECOND, 3),
+                    new RecastModule(),
+                    new AutoUseModule(0.2F)));
     public static final DeferredItem<Item> HARDSHIP_STRENGTH_GU = ITEMS.register("hardship_strength_gu",
-            () -> new BuffGuItem(createTendedProperties(), ModEffects.HARDSHIP_STRENGTH_GU,
-                    HardshipStrengthGuEffect.DURATION_TICKS,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
                             .feed(ModItemTags.POTATO_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffModule(ModEffects.HARDSHIP_STRENGTH_GU, HardshipStrengthGuEffect.DURATION_TICKS),
+                    new RecastModule()));
     //endregion
 
     //region Water Path [水道] -- Heavenly Mugwort Gu [天蓬蛊]: a shield for a while
@@ -268,89 +314,107 @@ public final class ModItems {
 
     //region Human Jun Strength Branch [人力钧力流] -- one round is one layer
     public static final DeferredItem<Item> JIN_STRENGTH_GU = ITEMS.register("jin_strength_gu",
-            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JIN,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.ONE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 2)
                             .refine(800)
                             .channel(3_600)
                             .hungerBar(36, 1).essencePerHunger(300)
-                            .feed(ModItemTags.JIN_FEED, 1)));
+                            .feed(ModItemTags.JIN_FEED, 1),
+                    new HumanStrengthModule(HumanStrength.JIN)));
     public static final DeferredItem<Item> TENS_JIN_STRENGTH_GU = ITEMS.register("tens_jin_strength_gu",
-            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JIN,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 8)
                             .refine(8_000)
                             .channel(36_000)
                             .hungerBar(36, 2).essencePerHunger(3_000)
-                            .feed(ModItemTags.JIN_FEED, 1)));
+                            .feed(ModItemTags.JIN_FEED, 1),
+                    new HumanStrengthModule(HumanStrength.TEN_JIN)));
     public static final DeferredItem<Item> JUN_STRENGTH_GU = ITEMS.register("jun_strength_gu",
-            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.JUN,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 32)
                             .refine(80_000)
                             .channel(108_000)
                             .hungerBar(36, 4).essencePerHunger(18_000)
-                            .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
+                            .feed(ModItemTags.JIN_FEED_SMELTED, 1),
+                    new HumanStrengthModule(HumanStrength.JUN)));
     public static final DeferredItem<Item> TENS_JUN_STRENGTH_GU = ITEMS.register("tens_jun_strength_gu",
-            () -> new HumanStrengthGuItem(createTendedProperties(), HumanStrength.TEN_JUN,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 128)
                             .refine(800_000)
                             .channel(1_080_000)
                             .hungerBar(36, 8).essencePerHunger(180_000)
-                            .feed(ModItemTags.JIN_FEED_SMELTED, 1)));
+                            .feed(ModItemTags.JIN_FEED_SMELTED, 1),
+                    new HumanStrengthModule(HumanStrength.TEN_JUN)));
     //endregion
 
     //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
     public static final DeferredItem<Item> JADE_SKIN_GU = ITEMS.register("jade_skin_gu",
-            () -> new SkinGuItem(createTendedProperties(), Skin.JADE_SKIN, 60 * Ticks.SECOND,
-                    createJadeSkinSpec(Rank.ONE, 800, 16, 1, ModItemTags.JADE_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createJadeSkinSpec(Rank.ONE, 800, 16, 1, ModItemTags.JADE_SKIN_FEED),
+                    new SkinModule(Skin.JADE_SKIN, 60 * Ticks.SECOND)));
     public static final DeferredItem<Item> WHITE_JADE_GU = ITEMS.register("white_jade_gu",
-            () -> new SkinGuItem(createTendedProperties(), Skin.WHITE_JADE_SKIN, 90 * Ticks.SECOND,
-                    createJadeSkinSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.WHITE_JADE_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createJadeSkinSpec(Rank.TWO, 8_000, 160, 4, ModItemTags.WHITE_JADE_FEED),
+                    new SkinModule(Skin.WHITE_JADE_SKIN, 90 * Ticks.SECOND)));
     //endregion
 
     //region Metal Path [金道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good
     public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = ITEMS.register("bronze_skin_gu_1",
-            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_1, 0,
-                    createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.BRONZE_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.BRONZE_SKIN_FEED),
+                    new SkinModule(Skin.BRONZE_SKIN_1, 0)));
     public static final DeferredItem<Item> BRONZE_SKIN_GU_2 = ITEMS.register("bronze_skin_gu_2",
-            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_2, 0,
-                    createTemperingSpec(Rank.TWO, 8_000, 36_000, 4, ModItemTags.BRONZE_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.TWO, 8_000, 36_000, 4, ModItemTags.BRONZE_SKIN_FEED),
+                    new SkinModule(Skin.BRONZE_SKIN_2, 0)));
     public static final DeferredItem<Item> BRONZE_SKIN_GU_3 = ITEMS.register("bronze_skin_gu_3",
-            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_3, 0,
-                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.BRONZE_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.BRONZE_SKIN_FEED),
+                    new SkinModule(Skin.BRONZE_SKIN_3, 0)));
     public static final DeferredItem<Item> BRONZE_SKIN_GU_4 = ITEMS.register("bronze_skin_gu_4",
-            () -> new SkinGuItem(createTendedProperties(), Skin.BRONZE_SKIN_4, 0,
-                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.BRONZE_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.BRONZE_SKIN_FEED),
+                    new SkinModule(Skin.BRONZE_SKIN_4, 0)));
     public static final DeferredItem<Item> IRON_SKIN_GU_1 = ITEMS.register("iron_skin_gu_1",
-            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_1, 0,
-                    createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.IRON_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.ONE, 800, 3_600, 1, ModItemTags.IRON_SKIN_FEED),
+                    new SkinModule(Skin.IRON_SKIN_1, 0)));
     public static final DeferredItem<Item> IRON_SKIN_GU_2 = ITEMS.register("iron_skin_gu_2",
-            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_2, 0,
-                    createTemperingSpec(Rank.TWO, 8_000, 36_000, 4, ModItemTags.IRON_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.TWO, 8_000, 36_000, 4, ModItemTags.IRON_SKIN_FEED),
+                    new SkinModule(Skin.IRON_SKIN_2, 0)));
     public static final DeferredItem<Item> IRON_SKIN_GU_3 = ITEMS.register("iron_skin_gu_3",
-            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_3, 0,
-                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.IRON_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.IRON_SKIN_FEED),
+                    new SkinModule(Skin.IRON_SKIN_3, 0)));
     public static final DeferredItem<Item> IRON_SKIN_GU_4 = ITEMS.register("iron_skin_gu_4",
-            () -> new SkinGuItem(createTendedProperties(), Skin.IRON_SKIN_4, 0,
-                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_SKIN_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_SKIN_FEED),
+                    new SkinModule(Skin.IRON_SKIN_4, 0)));
     public static final DeferredItem<Item> STEEL_TENDON_GU_3 = ITEMS.register("steel_tendon_gu_3",
-            () -> new TendonGuItem(createTendedProperties(), Tendon.STEEL_TENDON_3,
-                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.STEEL_TENDON_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.STEEL_TENDON_FEED),
+                    new TendonModule(Tendon.STEEL_TENDON_3)));
     public static final DeferredItem<Item> STEEL_TENDON_GU_4 = ITEMS.register("steel_tendon_gu_4",
-            () -> new TendonGuItem(createTendedProperties(), Tendon.STEEL_TENDON_4,
-                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.STEEL_TENDON_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.STEEL_TENDON_FEED),
+                    new TendonModule(Tendon.STEEL_TENDON_4)));
     public static final DeferredItem<Item> IRON_BONE_GU_3 = ITEMS.register("iron_bone_gu_3",
-            () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE_3,
-                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.IRON_BONE_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.THREE, 80_000, 360_000, 8, ModItemTags.IRON_BONE_FEED),
+                    new BoneModule(Bone.IRON_BONE_3)));
     public static final DeferredItem<Item> IRON_BONE_GU_4 = ITEMS.register("iron_bone_gu_4",
-            () -> new BoneGuItem(createTendedProperties(), Bone.IRON_BONE_4,
-                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_BONE_FEED)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    createTemperingSpec(Rank.FOUR, 800_000, 3_600_000, 12, ModItemTags.IRON_BONE_FEED),
+                    new BoneModule(Bone.IRON_BONE_4)));
 
     private static GuSpec createJadeSkinSpec(Rank rank, int refine, int costPerUse, int scale, TagKey<Item> feed) {
         return GuSpec.of(rank, GuPath.EARTH).type(GuType.DEFENSIVE)
@@ -373,58 +437,68 @@ public final class ModItems {
 
     //region Normal [基础力道] -- All-Out Effort Gu unlocks a stockpiled 9999 jin
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_3 = ITEMS.register("all_out_effort_gu_3",
-            () -> new AllOutEffortGuItem(createTendedProperties(), 60, GuSpec.of(Rank.THREE, GuPath.STRENGTH)
-                    .type(GuType.AMPLIFICATION)
-                    .effect(EffectCarrier.BODY)
-                    .refine(80_000)
-                    .costPerUse(1_600)
-                    .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
-                    .feed(ModItemTags.ALL_OUT_FEED, 4)
-                    .cooldown(80 * Ticks.SECOND)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    GuSpec.of(Rank.THREE, GuPath.STRENGTH)
+                            .type(GuType.AMPLIFICATION)
+                            .effect(EffectCarrier.BODY)
+                            .refine(80_000)
+                            .costPerUse(1_600)
+                            .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
+                            .feed(ModItemTags.ALL_OUT_FEED, 4)
+                            .cooldown(80 * Ticks.SECOND),
+                    new AllOutEffortModule(60)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_4 = ITEMS.register("all_out_effort_gu_4",
-            () -> new AllOutEffortGuItem(createTendedProperties(), 90, GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
-                    .type(GuType.AMPLIFICATION)
-                    .effect(EffectCarrier.BODY)
-                    .refine(800_000)
-                    .costPerUse(16_000)
-                    .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
-                    .feed(ModItemTags.ALL_OUT_FEED, 4)
-                    .cooldown(100 * Ticks.SECOND)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    GuSpec.of(Rank.FOUR, GuPath.STRENGTH)
+                            .type(GuType.AMPLIFICATION)
+                            .effect(EffectCarrier.BODY)
+                            .refine(800_000)
+                            .costPerUse(16_000)
+                            .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
+                            .feed(ModItemTags.ALL_OUT_FEED, 4)
+                            .cooldown(100 * Ticks.SECOND),
+                    new AllOutEffortModule(90)));
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = ITEMS.register("all_out_effort_gu_5",
-            () -> new AllOutEffortGuItem(createTendedProperties(), 120, GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
-                    .type(GuType.AMPLIFICATION)
-                    .effect(EffectCarrier.BODY)
-                    .refine(8_000_000)
-                    .costPerUse(160_000)
-                    .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192)
-                    .feed(ModItemTags.ALL_OUT_FEED, 4)
-                    .cooldown(120 * Ticks.SECOND)));
+            () -> new TendedGuItem(createTendedProperties(),
+                    GuSpec.of(Rank.FIVE, GuPath.STRENGTH)
+                            .type(GuType.AMPLIFICATION)
+                            .effect(EffectCarrier.BODY)
+                            .refine(8_000_000)
+                            .costPerUse(160_000)
+                            .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192)
+                            .feed(ModItemTags.ALL_OUT_FEED, 4)
+                            .cooldown(120 * Ticks.SECOND),
+                    new AllOutEffortModule(120)));
     //endregion
 
     //region Liquor Worm [酒虫] -- a hunger bar of 8 days with 3 days a use, and only its own rank can drive it
     public static final DeferredItem<Item> LIQUOR_WORM = ITEMS.register("liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
+            () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
                     .effect(EffectCarrier.BODY).type(GuType.CULTIVATION)
                     .refine(1_600).costPerUse(16)
-                    .hungerBar(8, 1).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(8, 1).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1),
+                    new DistillModule()));
     public static final DeferredItem<Item> FOUR_FLAVORS_LIQUOR_WORM = ITEMS.register("four_flavors_liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
+            () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
                     .effect(EffectCarrier.BODY).type(GuType.CULTIVATION)
                     .refine(16_000).costPerUse(160)
-                    .hungerBar(16, 1).hungerPerUse(6).hungerPerDay(2).health(24).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(16, 1).hungerPerUse(6).hungerPerDay(2).health(24).feed(ModItemTags.LIQUOR_FEED, 1),
+                    new DistillModule()));
     public static final DeferredItem<Item> SEVEN_FRAGRANCES_LIQUOR_WORM = ITEMS.register(
             "seven_fragrances_liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
+            () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
                     .effect(EffectCarrier.BODY)
                     .type(GuType.CULTIVATION)
                     .refine(160_000).costPerUse(1_600)
-                    .hungerBar(32, 1).hungerPerUse(12).hungerPerDay(4).health(48).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(32, 1).hungerPerUse(12).hungerPerDay(4).health(48).feed(ModItemTags.LIQUOR_FEED, 1),
+                    new DistillModule()));
     public static final DeferredItem<Item> NINE_EYES_LIQUOR_WORM = ITEMS.register("nine_eyes_liquor_worm",
-            () -> new LiquorWormItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
+            () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
                     .effect(EffectCarrier.BODY)
                     .type(GuType.CULTIVATION)
                     .refine(1_600_000).costPerUse(16_000)
-                    .hungerBar(64, 1).hungerPerUse(24).hungerPerDay(8).health(96).feed(ModItemTags.LIQUOR_FEED, 1)));
+                    .hungerBar(64, 1).hungerPerUse(24).hungerPerDay(8).health(96).feed(ModItemTags.LIQUOR_FEED, 1),
+                    new DistillModule()));
     //endregion
 
     //region Primeval Elder Gu [元老蛊] -- a vault for Primeval Stones [元石] that never needs feeding at all
@@ -478,29 +552,32 @@ public final class ModItems {
     //region Zombie Gu [僵尸蛊] -- Transformation Path [变化道]; a timed Temp Zombie [临时僵尸化], and a 5-minute
     // window that makes it permanent
     public static final DeferredItem<Item> ROAMING_ZOMBIE_GU = ITEMS.register("roaming_zombie_gu",
-            () -> new ZombieGuItem(createTendedProperties(), 2 * Ticks.MINUTE,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.TWO, GuPath.TRANSFORMATION)
                             .effect(EffectCarrier.BODY)
                             .refine(8_000).costPerUse(160)
                             .hungerBar(24, 1).hungerPerUse(8).hungerPerDay(2).health(24)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ZombieModule(2 * Ticks.MINUTE)));
     public static final DeferredItem<Item> HAIRY_ZOMBIE_GU = ITEMS.register("hairy_zombie_gu",
-            () -> new ZombieGuItem(createTendedProperties(), 4 * Ticks.MINUTE,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.TRANSFORMATION)
                             .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ZombieModule(4 * Ticks.MINUTE)));
     public static final DeferredItem<Item> HOPPING_ZOMBIE_GU = ITEMS.register("hopping_zombie_gu",
-            () -> new ZombieGuItem(createTendedProperties(), 6 * Ticks.MINUTE,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.TRANSFORMATION)
                             .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ZombieModule(6 * Ticks.MINUTE)));
     public static final DeferredItem<Item> HEAVENLY_DEMON_ZOMBIE_GU = ITEMS.register("heavenly_demon_zombie_gu",
             ModItems::createFifthRankZombieGu);
     public static final DeferredItem<Item> NIGHTMARE_ZOMBIE_GU = ITEMS.register("nightmare_zombie_gu",
@@ -514,28 +591,31 @@ public final class ModItems {
     public static final DeferredItem<Item> BLOOD_WIGHT_GU = ITEMS.register("blood_wight_gu",
             ModItems::createFifthRankZombieGu);
 
-    private static ZombieGuItem createFifthRankZombieGu() {
-        return new ZombieGuItem(createTendedProperties(), 8 * Ticks.MINUTE, GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
+    private static TendedGuItem createFifthRankZombieGu() {
+        return new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
                 .effect(EffectCarrier.BODY)
                 .refine(8_000_000).costPerUse(160_000)
                 .hungerBar(192, 1).hungerPerUse(64).hungerPerDay(16).health(192).feed(ModItemTags.ZOMBIE_FEED, 1)
-                .cooldown(Ticks.SECOND));
+                .cooldown(Ticks.SECOND),
+                new ZombieModule(8 * Ticks.MINUTE));
     }
     //endregion
 
     //region Watch Gu [更蛊] -- Time Path [宙道]; tended like any other, and taken by the one use it is kept for
     public static final DeferredItem<Item> SECOND_WATCH_GU = ITEMS.register("second_watch_gu",
-            () -> new WatchGuItem(createTendedProperties(), ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE,
+            () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.TIME).type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
                             .refine(100_000).costPerUse(0)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new WatchModule(ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE)));
     public static final DeferredItem<Item> THIRD_WATCH_GU = ITEMS.register("third_watch_gu",
-            () -> new WatchGuItem(createTendedProperties(), ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE,
+            () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
                             .refine(1_000_000).costPerUse(0)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new WatchModule(ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE)));
     //endregion
 
     //region As Before Gu [如故蛊] -- Time Path [宙道]; never fed, four points and four health back one per half day
@@ -558,85 +638,105 @@ public final class ModItems {
 
     //region Malicious Thought Gu [恶念蛊] -- Wisdom Path [智道]; a one-use flood of evil thoughts, taken by its use
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_2 = ITEMS.register("malicious_thought_gu_2",
-            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64L,
+            () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.TWO, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(1_000).costPerUse(0)
                             .hungerBar(16, 1).hungerPerUse(0).hungerPerDay(2).health(24)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ThoughtBurstModule(64L, ThoughtTag.EVIL),
+                    new ThoughtModule(ModPathEffectTypes.MALICIOUS_THOUGHT, ModEffects.MALICIOUS_THOUGHT_GU, -1,
+                            MaliciousThoughtGuEffect.DURATION_TICKS)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_3 = ITEMS.register("malicious_thought_gu_3",
-            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 640L,
+            () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(10_000).costPerUse(0)
                             .hungerBar(32, 1).hungerPerUse(0).hungerPerDay(4).health(48)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ThoughtBurstModule(640L, ThoughtTag.EVIL),
+                    new ThoughtModule(ModPathEffectTypes.MALICIOUS_THOUGHT, ModEffects.MALICIOUS_THOUGHT_GU, -1,
+                            MaliciousThoughtGuEffect.DURATION_TICKS)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_4 = ITEMS.register("malicious_thought_gu_4",
-            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 6_400L,
+            () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(100_000).costPerUse(0)
                             .hungerBar(64, 1).hungerPerUse(0).hungerPerDay(8).health(96)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ThoughtBurstModule(6_400L, ThoughtTag.EVIL),
+                    new ThoughtModule(ModPathEffectTypes.MALICIOUS_THOUGHT, ModEffects.MALICIOUS_THOUGHT_GU, -1,
+                            MaliciousThoughtGuEffect.DURATION_TICKS)));
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_5 = ITEMS.register("malicious_thought_gu_5",
-            () -> new MaliciousThoughtGuItem(createTendedProperties(), ModEffects.MALICIOUS_THOUGHT_GU, 64_000L,
+            () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FIVE, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
                             .refine(1_000_000).costPerUse(0)
                             .hungerBar(128, 1).hungerPerUse(0).hungerPerDay(16).health(192)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
-                            .cooldown(Ticks.SECOND)));
+                            .cooldown(Ticks.SECOND),
+                    new ThoughtBurstModule(64_000L, ThoughtTag.EVIL),
+                    new ThoughtModule(ModPathEffectTypes.MALICIOUS_THOUGHT, ModEffects.MALICIOUS_THOUGHT_GU, -1,
+                            MaliciousThoughtGuEffect.DURATION_TICKS)));
     //endregion
 
     //region Guts Gu [胆识蛊] -- Soul Path [魂道]; a one-shot Gu that raises the soul cap
     public static final DeferredItem<Item> GUTS_GU = ITEMS.register("guts_gu",
-            () -> new GutsGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.SOUL).type(GuType.CULTIVATION)));
+            () -> new OneShotGuItem(createOneShotProperties(), GuSpec.of(Rank.ONE, GuPath.SOUL)
+                    .type(GuType.CULTIVATION), new SoulCapModule(10)));
     //endregion
 
     //region Casual Gu [随意蛊] -- Wisdom Path [智道]; ten seconds of random thoughts, taken by its use
     public static final DeferredItem<Item> CASUAL_GU_1 = ITEMS.register("casual_gu_1",
-            () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.ONE, GuPath.WISDOM)
+            () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.WISDOM)
                     .effect(EffectCarrier.MIND)
                     .type(GuType.CULTIVATION)
                     .refine(100)
                     .costPerUse(0)
                     .hungerBar(8, 1).hungerPerUse(0)
                     .feed(ModItemTags.CASUAL_FEED, 1)
-                    .cooldown(Ticks.SECOND)));
+                    .cooldown(Ticks.SECOND),
+                    new ThoughtModule(ModPathEffectTypes.CASUAL_THOUGHT, ModEffects.CASUAL_GU, 0,
+                            CasualGuEffect.DURATION_TICKS)));
     public static final DeferredItem<Item> CASUAL_GU_2 = ITEMS.register("casual_gu_2",
-            () -> new CasualGuItem(createTendedProperties(), ModEffects.CASUAL_GU, GuSpec.of(Rank.TWO, GuPath.WISDOM)
+            () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.WISDOM)
                     .effect(EffectCarrier.MIND)
                     .type(GuType.CULTIVATION)
                     .refine(1_000)
                     .costPerUse(0)
                     .hungerBar(16, 1).hungerPerUse(0).hungerPerDay(2).health(24)
                     .feed(ModItemTags.CASUAL_FEED, 1)
-                    .cooldown(Ticks.SECOND)));
+                    .cooldown(Ticks.SECOND),
+                    new ThoughtModule(ModPathEffectTypes.CASUAL_THOUGHT, ModEffects.CASUAL_GU, 0,
+                            CasualGuEffect.DURATION_TICKS)));
     //endregion
 
     //region Stone Aperture Gu [石窍蛊] -- earth path; never feeds, taken by its use, and the aperture
     // it leaves stands on this rank's peak, petrified
     public static final DeferredItem<Item> STONE_APERTURE_GU_3 = ITEMS.register("stone_aperture_gu_3",
-            () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
+            () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
                     .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
                     .refine(10_000).costPerUse(0)
-                    .cooldown(Ticks.SECOND)));
+                    .cooldown(Ticks.SECOND),
+                    new PetrifyModule()));
     public static final DeferredItem<Item> STONE_APERTURE_GU_4 = ITEMS.register("stone_aperture_gu_4",
-            () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
+            () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
                     .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
                     .refine(100_000).costPerUse(0)
-                    .cooldown(Ticks.SECOND)));
+                    .cooldown(Ticks.SECOND),
+                    new PetrifyModule()));
     public static final DeferredItem<Item> STONE_APERTURE_GU_5 = ITEMS.register("stone_aperture_gu_5",
-            () -> new StoneApertureGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
+            () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
                     .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
                     .refine(1_000_000).costPerUse(0)
-                    .cooldown(Ticks.SECOND)));
+                    .cooldown(Ticks.SECOND),
+                    new PetrifyModule()));
     //endregion
 
     //region Amplify Effect Gu [功倍蛊] -- Rule Path [律道]; held in the offhand, it multiplies another Gu's effect
@@ -673,9 +773,9 @@ public final class ModItems {
     public static final DeferredItem<Item> SECOND_APERTURE_GU_5 = ITEMS.register("second_aperture_gu_5",
             () -> createSecondApertureGu(Rank.FIVE));
 
-    private static SecondApertureGuItem createSecondApertureGu(Rank rank) {
-        return new SecondApertureGuItem(createOneShotProperties(), GuSpec.of(rank, GuPath.HUMAN)
-                .type(GuType.CULTIVATION));
+    private static OneShotGuItem createSecondApertureGu(Rank rank) {
+        return new OneShotGuItem(createOneShotProperties(), GuSpec.of(rank, GuPath.HUMAN)
+                .type(GuType.CULTIVATION), new SecondApertureModule());
     }
     //endregion
 

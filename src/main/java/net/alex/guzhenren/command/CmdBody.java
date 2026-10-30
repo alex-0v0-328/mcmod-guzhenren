@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.body.BodyGrade;
 import net.alex.guzhenren.gameplay.body.BodyService;
@@ -13,11 +14,13 @@ import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinService;
 import net.alex.guzhenren.gameplay.body.Tendon;
-import net.alex.guzhenren.item.gu.mortal.SkinGuItem;
+import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.item.gu.mortal.SkinModule;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 
 /**
  * {@code /gzr body}: writes body [肉身] state -- physiques, race, tendons, bones, skin, lifespan and age;
@@ -143,9 +146,13 @@ public final class CmdBody {
 
     static int getRegisteredDurationTicks(Skin skin) {
         return switch (skin) {
-            case JADE_SKIN -> ((SkinGuItem) ModItems.JADE_SKIN_GU.get()).getDurationTicks();
-            case WHITE_JADE_SKIN -> ((SkinGuItem) ModItems.WHITE_JADE_GU.get()).getDurationTicks();
+            case JADE_SKIN -> getDurationTicks(ModItems.JADE_SKIN_GU.get());
+            case WHITE_JADE_SKIN -> getDurationTicks(ModItems.WHITE_JADE_GU.get());
             default -> 0;
         };
+    }
+
+    private static int getDurationTicks(Item gu) {
+        return Objects.requireNonNull(((MortalGuItem) gu).getModule(SkinModule.class)).getDurationTicks();
     }
 }

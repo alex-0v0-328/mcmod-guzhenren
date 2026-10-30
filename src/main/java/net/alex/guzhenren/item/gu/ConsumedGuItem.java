@@ -23,10 +23,10 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 
-public abstract class ConsumedGuItem extends TendedGuItem {
+public class ConsumedGuItem extends TendedGuItem {
 
-    protected ConsumedGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
+    public ConsumedGuItem(Properties properties, GuSpec spec, GuModule... modules) {
+        super(properties, spec, modules);
     }
 
     @Override

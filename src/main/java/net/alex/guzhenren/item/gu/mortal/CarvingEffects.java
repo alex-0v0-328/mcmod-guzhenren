@@ -20,8 +20,8 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthGuItem;
-import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthGuItem;
+import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthModule;
+import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthModule;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -93,7 +93,7 @@ public final class CarvingEffects {
     }
 
     private static void syncBeast(ServerPlayer player, BeastStrength beast) {
-        BeastStrengthGuItem gu = ModItems.findGu(BeastStrengthGuItem.class, item -> item.getBeast() == beast);
+        MortalGuItem gu = ModItems.findGuWith(BeastStrengthModule.class, module -> module.beast() == beast);
         if (gu == null) return;
 
         ResourceLocation source = getId(gu);
@@ -109,7 +109,7 @@ public final class CarvingEffects {
     }
 
     private static void alignHuman(ServerPlayer player, HumanStrength kind) {
-        HumanStrengthGuItem gu = ModItems.findGu(HumanStrengthGuItem.class, item -> item.getKind() == kind);
+        MortalGuItem gu = ModItems.findGuWith(HumanStrengthModule.class, module -> module.kind() == kind);
         if (gu == null) return;
 
         ResourceLocation source = getId(gu);
@@ -134,8 +134,8 @@ public final class CarvingEffects {
     private static <G extends Enum<G> & BodyGrade<G>> void syncGrade(
             ServerPlayer player, PathEffectType<G> type, G grade, boolean carries) {
         PathEffect<G> worn = PathEffectService.find(player, type);
-        TemperingGuItem<?> gu = carries && !grade.isNative()
-                ? ModItems.findGu(TemperingGuItem.class, item -> item.getGrade() == grade) : null;
+        MortalGuItem gu = carries && !grade.isNative()
+                ? ModItems.findGuWith(TemperingModule.class, module -> module.getGrade() == grade) : null;
         if (gu == null) {
             if (worn != null) PathEffectService.removeType(player, type);
             return;

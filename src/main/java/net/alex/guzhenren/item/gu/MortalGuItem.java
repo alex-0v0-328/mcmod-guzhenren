@@ -8,6 +8,7 @@ import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -20,17 +21,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A mortal Gu [凡蛊]: holds the {@link GuSpec} and the essence [真元] gate, but no per-stack state.
+ * A mortal Gu [凡蛊]: holds the {@link GuSpec}, the {@link GuModule}s and the essence [真元] gate, but no per-stack
+ * state.
  *
- * <p>Sits between {@link GuItem} and three branches: {@link OneShotGuItem} (refining IS the use, stacks,
- * no state), {@link TendedGuItem} (refined then fed and used, carries {@link RefinedGuState}), and the Hope
- * Gu [希望蛊], which opens an aperture and is neither. The constructor runs {@link GuSpec#validate} so a
- * typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the one check a stage-raising Gu
- * runs: the aperture's rank must be the Gu's own, and its stage below the peak. {@link #getUseEssence} is what one
- * use pays (a tended Gu's cost per use, a one-shot Gu's refining, nothing for a channel), and
- * {@link #canBeAmplified} says whether an Amplify Effect Gu [功倍蛊] multiplies it; each that does asks it from its
- * own payout. The tooltip's usage type line [类型] ({@link #formatType}) shows the type alone, or a branch after
- * its parent ({@code 防御 · 反击}).
+ * <p>Sits between {@link GuItem} and three lifecycle hosts: {@link OneShotGuItem} (refining IS the use, stacks,
+ * no state), {@link TendedGuItem} (refined then fed and used, carries {@link RefinedGuState}) with its
+ * {@link ConsumedGuItem}, and the Hope Gu [希望蛊], which opens an aperture and is none of them. The constructor runs
+ * {@link GuSpec#validate} so a typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the
+ * one check a stage-raising Gu runs: the aperture's rank must be the Gu's own, and its stage below the peak.
+ * {@link #getUseEssence} is what one use pays (a tended Gu's cost per use, a one-shot Gu's refining, nothing for a
+ * channel), and {@link #canBeAmplified} says whether an Amplify Effect Gu [功倍蛊] multiplies it. The tooltip's usage
+ * type line [类型] ({@link #formatType}) shows the type alone, or a branch after its parent ({@code 防御 · 反击}).
+ *
+ * <p>What a Gu does is its modules, in registration order: {@link #checkModules} is the first refusal,
+ * {@link #applyModules} runs them all, and {@link #getModule} is how other code asks what a Gu does. ⚠ At most one
+ * module may be amplified, because each that is bills the Amplify Effect Gu from its own effect: the constructor
+ * refuses a second, naming the Gu.
  *
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
@@ -64,11 +70,20 @@ public abstract class MortalGuItem extends GuItem {
     private static final String CAPTION_REFINING_PLAIN = "guzhenren.hud.refining_plain";
     private static final String CAPTION_REFINING = "guzhenren.hud.refining";
     protected final GuSpec spec;
+    private final List<GuModule> modules;
 
-    protected MortalGuItem(Properties properties, GuSpec spec) {
+    protected MortalGuItem(Properties properties, GuSpec spec, GuModule... modules) {
         super(properties, spec.getRank(), spec.getPath());
         this.spec = spec;
-        spec.validate(getRank().name() + " " + getClass().getSimpleName());
+        this.modules = List.of(modules);
+        String id = getRank().name() + " " + getClass().getSimpleName()
+                + this.modules.stream().map(module -> module.getClass().getSimpleName()).toList();
+        spec.validate(id);
+        long amplified = this.modules.stream().filter(GuModule::canBeAmplified).count();
+        if (amplified > 1) {
+            throw new IllegalStateException("Gu '%s' has %d amplified modules; each would bill the Amplify Effect Gu"
+                    .formatted(id, amplified));
+        }
     }
 
     @Override
@@ -80,7 +95,35 @@ public abstract class MortalGuItem extends GuItem {
 
     public long getUseEssence() { return spec.isChanneled() ? 0L : spec.getEssencePerRound(); }
 
-    public boolean canBeAmplified() { return false; }
+    public boolean canBeAmplified() { return modules.stream().anyMatch(GuModule::canBeAmplified); }
+
+    public final int getEffectCooldownLeft(Player player, ItemStack stack) {
+        return GuCooldowns.getCooldownLeft(player, stack.get(ModDataComponents.USED_AT),
+                spec.getEffectCooldownTicks());
+    }
+
+    //region modules -- what the Gu does, asked in registration order
+    public <M extends GuModule> @Nullable M getModule(Class<M> type) {
+        for (GuModule module : modules) {
+            if (type.isInstance(module)) return type.cast(module);
+        }
+        return null;
+    }
+
+    protected final List<GuModule> getModules() { return modules; }
+
+    protected final @Nullable Refusal checkModules(Player player, ItemStack stack) {
+        for (GuModule module : modules) {
+            Refusal refusal = module.checkEffect(this, player, stack);
+            if (refusal != null) return refusal;
+        }
+        return null;
+    }
+
+    protected final void applyModules(ServerPlayer player, ItemStack stack) {
+        for (GuModule module : modules) module.applyEffect(this, player, stack);
+    }
+    //endregion
 
     //region refining [炼化] -- every Gu answers it, and only the price differs
     protected final @Nullable Refusal checkEssenceGate(Player player, long required, String key) {
@@ -88,7 +131,7 @@ public abstract class MortalGuItem extends GuItem {
         return ApertureEssenceService.getSpendable(player) < required ? new Refusal(key) : null;
     }
 
-    protected final @Nullable Refusal checkStageUpGate(Aperture aperture) {
+    public final @Nullable Refusal checkStageUpGate(Aperture aperture) {
         if (aperture.rank() != getRank()) {
             return new Refusal(FAILED_RANK_MISMATCH, Component.translatable(getRank().getTranslationKey()));
         }

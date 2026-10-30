@@ -179,7 +179,8 @@ public final class TimedEffects {
 
     private static void syncSkin(ServerPlayer player) {
         Skin skin = BodyService.getSkin(player);
-        SkinGuItem gu = skin.isTimed() ? ModItems.findGu(SkinGuItem.class, item -> item.getGrade() == skin) : null;
+        MortalGuItem gu = skin.isTimed()
+                ? ModItems.findGuWith(SkinModule.class, module -> module.getGrade() == skin) : null;
         if (gu == null) {
             PathEffectService.removeType(player, ModPathEffectTypes.TIMED_SKIN);
             return;

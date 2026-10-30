@@ -16,9 +16,8 @@ import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.earth.StoneApertureGuItem;
-import net.alex.guzhenren.item.gu.mortal.food.LiquorWormItem;
-import net.alex.guzhenren.item.gu.mortal.transformation.ZombieGuItem;
+import net.alex.guzhenren.item.gu.mortal.earth.PetrifyModule;
+import net.alex.guzhenren.item.gu.mortal.transformation.ZombieModule;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
@@ -74,7 +73,7 @@ public final class StateEffects {
                 PathEffectService.getGameTime(player) + durationTicks, TimedBuff.of(effect, amplifier)));
     }
 
-    public static void grantDistilling(@NotNull ServerPlayer player, @NotNull LiquorWormItem gu, int tier,
+    public static void grantDistilling(@NotNull ServerPlayer player, @NotNull MortalGuItem gu, int tier,
                                        long durationTicks) {
         PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.LIQUOR_DISTILLING, getId(gu),
                 PathEffectService.getGameTime(player) + durationTicks, tier));
@@ -98,7 +97,8 @@ public final class StateEffects {
         if (BodyService.hasTempZombieRunOut(player)) return;
 
         int rung = Math.max(0, BodyService.get(player).zombieTier());
-        ZombieGuItem gu = ModItems.findGu(ZombieGuItem.class, item -> item.getRung() == rung);
+        MortalGuItem gu = ModItems.findGu(MortalGuItem.class,
+                item -> item.getModule(ZombieModule.class) != null && ZombieModule.getRung(item) == rung);
         if (gu == null) return;
 
         long endTick = PathEffectService.getGameTime(player) + BodyService.getTempZombieTicksLeft(player);
@@ -141,7 +141,8 @@ public final class StateEffects {
             return;
         }
         Rank petrified = rank;
-        StoneApertureGuItem gu = ModItems.findGu(StoneApertureGuItem.class, item -> item.getRank() == petrified);
+        MortalGuItem gu = ModItems.findGu(MortalGuItem.class,
+                item -> item.getModule(PetrifyModule.class) != null && item.getRank() == petrified);
         if (gu == null || current != null && current.source().equals(getId(gu))) return;
 
         PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.STONE_APERTURE, getId(gu),

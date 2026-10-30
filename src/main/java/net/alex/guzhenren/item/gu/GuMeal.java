@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
  *
  * @author Alex
  * @version 1.0.0
- * @see GuClock
+ * @see GuHunger
  * @see TendedGuItem
  * @since 1.0.0
  */

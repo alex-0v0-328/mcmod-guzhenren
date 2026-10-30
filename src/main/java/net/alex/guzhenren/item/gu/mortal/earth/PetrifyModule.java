@@ -4,8 +4,9 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
-import net.alex.guzhenren.item.gu.ConsumedGuItem;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.GuItem.Refusal;
+import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -13,33 +14,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A Stone Aperture Gu [石窍蛊]: its target hits this rank's peak and petrifies -- never nourished,
+ * The Stone Aperture Gu's [石窍蛊] module: its target hits this rank's peak and petrifies -- never nourished,
  * never struck again.
  *
- * <p>Extends {@link net.alex.guzhenren.item.gu.ConsumedGuItem}, so it is tended, never feeds and
- * is taken by its own use. Three rungs register against this one class. {@link #getStoneTarget} is the
- * pure seam the unit tests pin: the target is the PRIMARY aperture whenever it is NORMAL; only a
- * dead or stoned primary passes the Gu on, and only to a NORMAL second aperture; nobody usable
- * answers {@code NO_TARGET}. {@link #getTargetOf} maps that seam onto real list positions: a lone
- * second aperture lives at position 0, and a missing slot counts as DEAD. A rank mismatch on the
- * primary does NOT pass it on -- the fall-through is for a lost aperture, not for a wrong rank. The
- * gate refuses no usable target, a rank mismatch on the target, and a target already at the peak
- * (that use would buy only the lock). The payout delegates to {@link ApertureNourishService#petrify}.
+ * <p>Three rungs register with it. {@link #getStoneTarget} is the pure seam the unit tests pin: the target is the
+ * PRIMARY aperture whenever it is NORMAL; only a dead or stoned primary passes the Gu on, and only to a NORMAL
+ * second aperture; nobody usable answers {@code NO_TARGET}. {@link #getTargetOf} maps that seam onto real list
+ * positions: a lone second aperture lives at position 0, and a missing slot counts as DEAD. A rank mismatch on the
+ * primary does NOT pass it on -- the fall-through is for a lost aperture, not for a wrong rank. The gate refuses no
+ * usable target, a rank mismatch on the target, and a target already at the peak (that use would buy only the
+ * lock). The payout delegates to {@link ApertureNourishService#petrify}. {@code StateEffects} finds the Gu of a
+ * petrified rank by this module.
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.ConsumedGuItem
  * @since 1.0.0
  */
 
-public class StoneApertureGuItem extends ConsumedGuItem {
+public record PetrifyModule() implements GuModule {
 
     public static final int NO_TARGET = -1;
     private static final String FAILED_UNAVAILABLE = "guzhenren.item.failed.aperture_unavailable";
-
-    public StoneApertureGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
-    }
 
     public static int getStoneTarget(@NotNull ApertureStatus primary, @NotNull ApertureStatus second) {
         if (primary == ApertureStatus.NORMAL) return ApertureData.PRIMARY;
@@ -59,14 +54,14 @@ public class StoneApertureGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
+    public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
         int target = getTargetOf(player);
         if (target == NO_TARGET) return new Refusal(FAILED_UNAVAILABLE);
-        return checkStageUpGate(ApertureService.getAperture(player, target));
+        return gu.checkStageUpGate(ApertureService.getAperture(player, target));
     }
 
     @Override
-    protected void applyEffect(ServerPlayer player, ItemStack stack) {
+    public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
         int target = getTargetOf(player);
         if (target != NO_TARGET) ApertureNourishService.petrify(player, target);
     }

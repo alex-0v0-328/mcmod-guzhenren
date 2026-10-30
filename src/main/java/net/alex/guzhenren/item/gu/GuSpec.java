@@ -22,8 +22,9 @@ import org.jetbrains.annotations.Nullable;
  * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags,
  * health, cooldown, the usage type [类型] ({@link GuType}, absent for a Gu that has none), and the path effect
  * [流派效果] it lays down: the carrier it works on and the Dao marks [道痕] it carries on the Gu's path.
- * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem}, {@link GuClock}, and the tooltip/HUD
- * renderers.
+ * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem} and the tooltip/HUD renderers, and
+ * it builds the Gu's {@link GuHunger} and {@link GuHealth}. What only one kind of Gu needs (a duration, a grade)
+ * stays on its {@link GuModule}.
  *
  * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 12 at rank one,
  * four times as many each rank); {@link #effect(EffectCarrier, long)} names them, and
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Alex
  * @version 1.0.0
  * @see MortalGuItem
- * @see GuClock
+ * @see GuHunger
  * @since 1.0.0
  */
 
@@ -187,8 +188,6 @@ public final class GuSpec {
 
     public int getFeedUnits() { return feedUnits; }
 
-    public int getMaxHealth() { return maxHealth; }
-
     public @Nullable EffectCarrier getEffectCarrier() { return effectCarrier; }
 
     public DaoMarks getEffectMarks() { return effectMarks; }
@@ -208,13 +207,15 @@ public final class GuSpec {
         return PathEffect.of(effectType, effectCarrier, source, getEffectPaths(), endTick, payload);
     }
 
-    public GuClock buildClock() {
-        if (recoverTicks > 0) return new GuClock.RecoverBar(maxHunger, recoverTicks, hungerPerUse);
+    public GuHunger buildHunger() {
+        if (recoverTicks > 0) return new GuHunger.RecoverBar(maxHunger, recoverTicks, hungerPerUse);
         if (maxHunger > 0) {
-            return new GuClock.HungerBar(maxHunger, unitsPerHunger, essencePerHunger, hungerPerUse, hungerPerDay);
+            return new GuHunger.HungerBar(maxHunger, unitsPerHunger, essencePerHunger, hungerPerUse, hungerPerDay);
         }
-        return new GuClock.NoClock();
+        return new GuHunger.NoClock();
     }
+
+    public GuHealth buildHealth() { return new GuHealth(maxHealth, unitsPerHunger); }
 
     public int feedUnits(ItemStack food) {
         return feedTag != null && food.is(feedTag) ? feedUnits : 0;

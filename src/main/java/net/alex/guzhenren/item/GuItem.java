@@ -87,7 +87,7 @@ public abstract class GuItem extends Item {
 
     public GuPath getPath() { return path; }
 
-    protected int getTier() { return rank.ordinal() - Rank.ONE.ordinal(); }
+    public int getTier() { return rank.ordinal() - Rank.ONE.ordinal(); }
 
     public record Refusal(String key, Object... args) {}
 

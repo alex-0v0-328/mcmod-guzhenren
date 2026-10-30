@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
  * @author Alex
  * @version 1.0.0
  * @see TendedGuItem
- * @see GuClock
+ * @see GuHunger
  * @since 1.0.0
  */
 
@@ -45,10 +45,10 @@ public final class GuUpkeep {
         if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.isRefined(stack)) return false;
 
         gu.payOwnUpkeep(player, stack);
-        if (gu.clock.tickStarvation(player, stack, days)) return true;
+        if (gu.hunger.tickStarvation(player, stack, days)) return true;
 
         gu.tryAutoFeed(player, stack);
-        if (gu.clock.isHungry(player, stack)) gu.clock.warn(player, stack, days);
+        if (gu.hunger.isHungry(player, stack)) gu.hunger.warn(player, stack, days);
         return false;
     }
 }

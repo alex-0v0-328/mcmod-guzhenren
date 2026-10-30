@@ -6,7 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindService;
 import net.alex.guzhenren.gameplay.rewind.RewindClock;
-import net.alex.guzhenren.item.gu.GuClock;
+import net.alex.guzhenren.item.gu.GuHunger;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.minecraft.ChatFormatting;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * that refills with the world clock, the body's memory that records only while a refined Man As Before Gu is carried,
  * and the refusals.
  *
- * <p>Extends {@link TendedGuItem} on a {@link GuClock.RecoverBar}: never fed, never starves, and refuses a use
+ * <p>Extends {@link TendedGuItem} on a {@link GuHunger.RecoverBar}: never fed, never starves, and refuses a use
  * ({@link #checkRecoverGate}) until a point has come back. {@link #remember} is the heartbeat's step: once per
  * {@code RewindClock.INTERVAL_TICKS} of game time, a carrier of a refined Man As Before Gu has his body recorded.
  * Carried means the bag, an aperture's store or a Vital [本命] slot. The land needs no memory: the seed is it.
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * only and the client-side gate passes; the bar's gate runs on both, since the bar rides the stack. ⚠ The bar is
  * settled on the server right before a use spends ({@link #performOwnUse}), never in a gate: a gate runs on the client
  * too, and a client write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at
- * the spend, since a full bar's stamp is stale ({@code GuClock.RecoverBar}).
+ * the spend, since a full bar's stamp is stale ({@code GuHunger.RecoverBar}).
  *
  * @author Alex
  * @version 1.0.0
@@ -49,18 +49,18 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
     protected static final String FAILED_RECOVERING = "guzhenren.item.failed.as_before_recovering";
     protected static final String FAILED_TOO_YOUNG = "guzhenren.item.failed.as_before_too_young";
     private static final String TOOLTIP_NEXT_POINT = "guzhenren.item.gu.next_point";
-    protected final GuClock.RecoverBar bar;
+    protected final GuHunger.RecoverBar bar;
 
     protected AsBeforeGuItem(Properties properties, GuSpec spec) {
         super(properties, spec);
-        if (!(clock instanceof GuClock.RecoverBar recover)) {
+        if (!(hunger instanceof GuHunger.RecoverBar recover)) {
             throw new IllegalArgumentException("as before gu needs a recover bar");
         }
         this.bar = recover;
     }
 
     //region the bar
-    public GuClock.RecoverBar getBar() { return bar; }
+    public GuHunger.RecoverBar getBar() { return bar; }
 
     protected final @Nullable Refusal checkRecoverGate(Player player, ItemStack stack) {
         long now = player.level().getGameTime();

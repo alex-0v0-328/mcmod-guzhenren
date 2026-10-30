@@ -3,15 +3,19 @@ package net.alex.guzhenren.item.gu;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * How a tended Gu [需照顾] is billed over time, and what it takes to keep one alive.
+ * A tended Gu's hunger [饱食]: how it is billed over time, what it takes to keep one alive, and the meals it takes
+ * from the holder's bag ({@link #eat}: every slot, offhand included; each food mends first through {@link GuHealth},
+ * then fills the bar).
  *
  * <p>A sealed interface with three implementations: {@link HungerBar} (every tended Gu with a bar that drains),
  * {@link RecoverBar} (the As Before Gu [如故蛊]: a bar that refills with the world clock, never drains by the day,
  * never eats) and {@link NoClock} (Primeval Elder Gu, Heavenly Essence Treasure Lotus Gu, Nine Leaf Vitality Grass,
- * Watch Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuSpec#buildClock} at construction.
+ * Watch Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuSpec#buildHunger} at construction.
  *
  * <p>⚠ {@code RecoverBar} settles lazily from its {@code RECOVERED_AT} stamp, like {@code LeafGrowth}: {@link
  * RecoverBar#getPoints(ItemStack, long)} derives the count at any game time without writing, {@link
@@ -38,7 +42,7 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 
-public sealed interface GuClock {
+public sealed interface GuHunger {
 
     void bind(ServerPlayer player, ItemStack stack);
 
@@ -64,8 +68,29 @@ public sealed interface GuClock {
 
     float getBarFraction(ItemStack stack);
 
+    //region the bag -- every meal mends first, then fills the bar
+    default void eat(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            ItemStack food = inventory.getItem(slot);
+            if (gu.feedUnits(food) <= 0) continue;
+
+            gu.health.mendFrom(gu, player, stack, food);
+            tryEat(gu, player, stack, food);
+        }
+    }
+
+    default boolean carriesFood(TendedGuItem gu, Player player) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            if (gu.feedUnits(inventory.getItem(slot)) > 0) return true;
+        }
+        return false;
+    }
+    //endregion
+
     //region 饱食条 -- every tended Gu whose bar drains
-    record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse, int perDay) implements GuClock {
+    record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse, int perDay) implements GuHunger {
 
         private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
 
@@ -153,7 +178,7 @@ public sealed interface GuClock {
     //endregion
 
     //region 回复条 -- refills with the world clock, never drains by the day, never eats
-    record RecoverBar(int max, int ticksPerPoint, int perUse) implements GuClock {
+    record RecoverBar(int max, int ticksPerPoint, int perUse) implements GuHunger {
 
         private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
 
@@ -273,7 +298,7 @@ public sealed interface GuClock {
     //endregion
 
     //region 无时钟 -- the "reusable, needs no feeding" cell
-    record NoClock() implements GuClock {
+    record NoClock() implements GuHunger {
 
         @Override
         public void bind(ServerPlayer player, ItemStack stack) {}
