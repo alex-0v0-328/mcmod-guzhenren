@@ -39,6 +39,10 @@ import org.jetbrains.annotations.Nullable;
  * keeps the rows of the last frame while the model is unchanged. The selected tab is the idle tab sprite with the
  * greyscale selection border over it, tinted the tab's accent; its title takes the same accent.
  *
+ * <p>The storage and refinement screens are its sub-screens: their Esc comes back here. A panel opened that way
+ * swallows Esc until the key is released, so the held key's repeats do not close it as well and one press steps
+ * back exactly one level.
+ *
  * <p>⚠ A plain screen with no menu behind it: no container channel to send an intent over.
  *
  * <p>Past 300 lines on purpose: the tabs, the rows, the scroll bar and the aperture columns are one layout that
@@ -101,8 +105,14 @@ public final class PlayerInfoScreen extends Screen {
     private int scrollRow;
     private final PathPicker picker = new PathPicker();
     private final InfoRowCache rowCache = new InfoRowCache();
+    private boolean escapeHeld;
 
-    public PlayerInfoScreen() { super(Component.translatable("guzhenren.screen.info.title")); }
+    public PlayerInfoScreen() { this(false); }
+
+    PlayerInfoScreen(boolean escapeHeld) {
+        super(Component.translatable("guzhenren.screen.info.title"));
+        this.escapeHeld = escapeHeld;
+    }
 
     @Override
     protected void init() {
@@ -377,6 +387,7 @@ public final class PlayerInfoScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (escapeHeld && keyCode == InputConstants.KEY_ESCAPE) return true;
         if (picker.isOpen() && (keyCode == InputConstants.KEY_ESCAPE
                 || ModKeyMappings.OPEN_INFO.matches(keyCode, scanCode))) {
             picker.close();
@@ -387,6 +398,12 @@ public final class PlayerInfoScreen extends Screen {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == InputConstants.KEY_ESCAPE) escapeHeld = false;
+        return super.keyReleased(keyCode, scanCode, modifiers);
     }
 
     @Override

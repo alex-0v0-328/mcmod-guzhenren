@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>Extends {@link net.minecraft.client.gui.screens.inventory.AbstractContainerScreen} for
  * {@link ApertureStorageMenu}. Draws 54 slots per page, the Vital Gu [本命蛊] slot in a side tab that juts past
  * the panel's right edge, and a pager (prev, page label, next) under the panel's bottom-left corner. A back button
- * ({@code <-}) at the top-left closes the container first, then opens the B panel. The side tab sprite is
+ * ({@code <-}) at the top-left, or Esc, closes the container first, then opens the B panel. The side tab sprite is
  * drawn over the panel's top-right corner, which its left edge overlaps by {@link #SIDE_TAB_OVERLAP} pixels so the
  * two frames join, and one header rule runs across both. The background and the pager are one {@link GuiBatch} each,
  * sprites, then fills, then text.
@@ -147,6 +148,12 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
 
     private boolean isInPageButton(double mouseX, double mouseY, int x) {
         return Widgets.isOver(mouseX, mouseY, x, getPagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == InputConstants.KEY_ESCAPE) return Widgets.openInfo(this, true);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

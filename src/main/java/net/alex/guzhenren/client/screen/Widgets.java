@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
  * The drawing pieces every screen of this package shares, drawn from the GUI sprites through a {@link SpriteBatch}:
  * the panel, the popup, item cells, a text button in its live, hovered and dead states, the {@code <-} back button
  * that returns to the B panel, and the progress bar; plus the one-pixel header rule (a fill), the hit test behind
- * every button, the container button click, and the way back to the B panel.
+ * every button, the container button click, and the way back to the B panel that the back button and Esc share.
  *
  * <p>A button is two calls, {@link #drawButton} into the sprite batch and {@link #drawButtonLabel} after it, so a
  * screen draws every sprite before any label; the back button splits the same way. The label sits centered one
@@ -110,9 +110,12 @@ final class Widgets {
         return isOver(mouseX, mouseY, x, y, BACK_W, BACK_H);
     }
 
-    static boolean openInfo(Screen from) {
+    static boolean openInfo(Screen from) { return openInfo(from, false); }
+
+    /** {@code escapeHeld}: Esc brought it here, so the panel ignores that key until it is released. */
+    static boolean openInfo(Screen from, boolean escapeHeld) {
         from.onClose();
-        Minecraft.getInstance().setScreen(new PlayerInfoScreen());
+        Minecraft.getInstance().setScreen(new PlayerInfoScreen(escapeHeld));
         return true;
     }
 

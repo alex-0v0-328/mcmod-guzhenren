@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * dead then. The recipe table the screen and its picker read is {@link KnownRecipes},
  * sorted once rather than per frame. The picker modal translates Z to 500 to stay above slot items. In
  * {@link #mouseClicked(double, double, int)}, the open picker swallows every click; only the left button acts on it.
+ * Esc closes an open picker, otherwise it goes back to the B panel like the back button.
  *
  * <p>⚠ Every cell position comes from the menu's own helpers, so a drawn cell and the real slot
  * cannot drift apart. Two different pitches are in play; do not reuse the inventory's for the grid.
@@ -300,8 +301,10 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!picker.isOpen()) return super.keyPressed(keyCode, scanCode, modifiers);
-
+        if (!picker.isOpen()) {
+            if (keyCode == InputConstants.KEY_ESCAPE) return Widgets.openInfo(this, true);
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
         if (keyCode == InputConstants.KEY_ESCAPE
                 || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode)) {
             picker.close();
