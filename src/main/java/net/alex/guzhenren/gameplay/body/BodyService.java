@@ -48,11 +48,11 @@ import org.jetbrains.annotations.NotNull;
  * {@link #setExtremePhysique} posts an {@link ExtremePhysiqueChangedEvent} (the aperture reconciles its
  * talent paths, base essence and pressure). ⚠ {@code setExtremePhysique} does not check awakening: a
  * caller setting a physique other than {@code NONE} gates on it -- the command through
- * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first. ⚠ A half-zombie form that runs
+ * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first. ⚠ A temp zombie form that runs
  * out keeps its end tick: a Zombie Gu used within {@code RELAPSE_WINDOW_TICKS} after it turns the body
  * permanently 僵 ({@link #isWithinRelapseWindow}); only {@link #revive} clears it. ⚠ Lifespan across the
- * three stages, human, half-zombie and zombie: entering half-zombie freezes it (an undead body is never billed)
- * and leaving it only thaws it; turning fully 僵, from a human or from half-zombie, sets it to
+ * three stages, human, temp zombie and zombie: entering temp zombie freezes it (an undead body is never billed)
+ * and leaving it only thaws it; turning zombie [僵尸], from a human or from temp zombie, sets it to
  * {@code ZOMBIE_LIFESPAN}, and that year stays when the form ends.
  *
  * <p>The skin [皮肤] is worn through {@link #wearSkin} and shed through {@link #shedSkin}; a jade skin's end
@@ -91,11 +91,11 @@ public final class BodyService {
 
     public static boolean isZombie(@NotNull Player player) { return get(player).isZombie(); }
 
-    public static boolean isHalfZombie(@NotNull Player player) { return get(player).isHalfZombie(); }
+    public static boolean isTempZombie(@NotNull Player player) { return get(player).isTempZombie(); }
 
-    public static boolean isZombieOrHalfZombie(@NotNull Player player) { return get(player).isZombieOrHalfZombie(); }
+    public static boolean isZombieOrTempZombie(@NotNull Player player) { return get(player).isZombieOrTempZombie(); }
 
-    public static boolean isUndead(@NotNull Player player) { return isZombieOrHalfZombie(player); }
+    public static boolean isUndead(@NotNull Player player) { return isZombieOrTempZombie(player); }
 
     public static boolean isExtreme(@NotNull Player player) { return get(player).isExtreme(); }
 
@@ -144,7 +144,7 @@ public final class BodyService {
         BodyData body = get(player);
         if (physique == Physique.EXTREME || body.hasPhysique(physique)) return;
 
-        BodyData updated = (physique == Physique.HALF_ZOMBIE ? body.without(Physique.ZOMBIE) : body).with(physique);
+        BodyData updated = (physique == Physique.TEMP_ZOMBIE ? body.without(Physique.ZOMBIE) : body).with(physique);
         if (physique == Physique.ZOMBIE) {
             updated = updated.withLifespanParts(BodyData.toParts(BodyData.ZOMBIE_LIFESPAN));
         }
@@ -171,9 +171,9 @@ public final class BodyService {
 
     public static void revive(@NotNull ServerPlayer player) { storePhysique(player, get(player).withRevived()); }
 
-    public static void enterHalfZombie(@NotNull ServerPlayer player, int tier, int durationTicks) {
-        storePhysique(player, get(player).without(Physique.ZOMBIE).with(Physique.HALF_ZOMBIE)
-                .withHalfZombieEndTick(getGameTime(player) + durationTicks)
+    public static void enterTempZombie(@NotNull ServerPlayer player, int tier, int durationTicks) {
+        storePhysique(player, get(player).without(Physique.ZOMBIE).with(Physique.TEMP_ZOMBIE)
+                .withTempZombieEndTick(getGameTime(player) + durationTicks)
                 .withZombieTier(tier));
     }
 
@@ -183,13 +183,13 @@ public final class BodyService {
                 .withZombieTier(tier));
     }
 
-    public static void restoreHalfZombie(@NotNull ServerPlayer player, long ticksLeft) {
+    public static void restoreTempZombie(@NotNull ServerPlayer player, long ticksLeft) {
         BodyData body = get(player);
         if (body.isZombie()) return;
 
         BodyData next = ticksLeft > 0L
-                ? body.with(Physique.HALF_ZOMBIE).withHalfZombieEndTick(getGameTime(player) + ticksLeft)
-                : body.without(Physique.HALF_ZOMBIE).withHalfZombieEndTick(BodyData.UNTRACKED);
+                ? body.with(Physique.TEMP_ZOMBIE).withTempZombieEndTick(getGameTime(player) + ticksLeft)
+                : body.without(Physique.TEMP_ZOMBIE).withTempZombieEndTick(BodyData.UNTRACKED);
         if (!next.equals(body)) storePhysique(player, next);
     }
 
@@ -202,12 +202,12 @@ public final class BodyService {
         return get(player).isWithinRelapseWindow(getGameTime(player));
     }
 
-    public static long getHalfZombieTicksLeft(@NotNull Player player) {
-        return get(player).getHalfZombieTicksLeft(getGameTime(player));
+    public static long getTempZombieTicksLeft(@NotNull Player player) {
+        return get(player).getTempZombieTicksLeft(getGameTime(player));
     }
 
-    public static boolean hasHalfZombieRunOut(@NotNull Player player) {
-        return get(player).hasHalfZombieRunOut(getGameTime(player));
+    public static boolean hasTempZombieRunOut(@NotNull Player player) {
+        return get(player).hasTempZombieRunOut(getGameTime(player));
     }
     //endregion
 
@@ -346,7 +346,7 @@ public final class BodyService {
         BodyData body = get(player);
 
         if (body.lastBilledTick() == BodyData.UNTRACKED || now < body.lastBilledTick()
-                || body.isZombieOrHalfZombie()) {
+                || body.isZombieOrTempZombie()) {
             store(player, body.withLastBilledTick(now));
             return;
         }

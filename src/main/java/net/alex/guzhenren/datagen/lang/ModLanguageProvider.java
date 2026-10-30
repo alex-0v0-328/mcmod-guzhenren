@@ -168,7 +168,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.path_effect.vitality_leaf",           "Vitality Leaf",               "生机叶");
         add("guzhenren.path_effect.watch_rate",              "Watch Rate x%s",              "更蛊 ×%s层");
         add("guzhenren.path_effect.zombie",                  "Zombie",                      "僵尸");
-        add("guzhenren.path_effect.half_zombie",             "Half-Zombie",                 "半僵");
+        add("guzhenren.path_effect.temp_zombie",             "Temp Zombie",                 "临时僵尸化");
         add("guzhenren.path_effect.liquor_distilling",       "Distilling Essence",          "精炼真元");
         add("guzhenren.path_effect.stone_aperture",          "Petrified Aperture",          "石化空窍");
         add("guzhenren.display.time_rate_up",                "x%s",                         "%s倍");
@@ -543,7 +543,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.bone_taken",
                 "Your bones are already %s", "骨已是%s");
         add("guzhenren.item.failed.zombie_already",
-                "Already a zombie, nothing left to turn", "彻底转变为了僵尸");
+                "Already a zombie, nothing left to turn", "已经是僵尸，无可再变");
         add("guzhenren.item.failed.gu_starving",
                 "This Gu is too hungry - feed it first", "蛊已太饿，需先喂食");
         add("guzhenren.item.failed.no_use",                          "This Gu needs no use", "此蛊无需使用");
@@ -587,7 +587,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.death_qi_cured",
                 "Life Qi dispels the Death Qi -- %s years of lifespan restored", "死气化解 — 回复 %s 年寿元");
 
-        add("effect.guzhenren.vitality_leaf",                        "Vitality Leaf Gu Effect", "生机叶蛊效果");
+        add("effect.guzhenren.vitality_leaf_gu",                     "Vitality Leaf Gu Effect", "生机叶蛊效果");
         add("effect.guzhenren.liquor_worm",                          "Liquor Worm Effect", "酒虫效果");
         add("effect.guzhenren.life_qi",                              "Life Qi Effect", "生气效果");
         add("effect.guzhenren.essence_qi",                           "Essence Qi Effect", "元气效果");
@@ -605,8 +605,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.jade_skin_gu",                         "Jade Skin Gu Effect", "玉皮蛊效果");
         add("effect.guzhenren.white_jade_gu",                        "White Jade Gu Effect", "白玉蛊效果");
         add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
-        add("effect.guzhenren.all_out_effort",                       "All-Out Effort Gu Effect", "全力以赴蛊效果");
-        add("effect.guzhenren.half_zombie",                          "Half-Zombie Effect", "半生半僵效果");
+        add("effect.guzhenren.all_out_effort_gu",                    "All-Out Effort Gu Effect", "全力以赴蛊效果");
+        add("effect.guzhenren.temp_zombie",                          "Temp Zombie Effect", "临时僵尸化效果");
         add("effect.guzhenren.second_watch_gu",                      "Second Watch Gu Effect", "两更蛊效果");
         add("effect.guzhenren.third_watch_gu",                       "Third Watch Gu Effect", "三更蛊效果");
         add("effect.guzhenren.malicious_thought_gu",                 "Malicious Thought Gu Effect", "恶念蛊效果");
@@ -811,8 +811,8 @@ public class ModLanguageProvider extends LanguageProvider {
     }
 
     private void addPhysique() {
-        add(Physique.ZOMBIE,      "Zombie",      "僵");
-        add(Physique.HALF_ZOMBIE, "Half-Zombie", "半僵");
+        add(Physique.ZOMBIE,      "Zombie",      "僵尸");
+        add(Physique.TEMP_ZOMBIE, "Temp Zombie", "临时僵尸化");
         add(Physique.EXTREME,     "Extreme",     "十绝体");
     }
 

@@ -36,7 +36,7 @@ public class SecondApertureGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         ApertureData data = ApertureService.get(player);
         int index = data.getSecondIndex();
         return index >= 0 && data.get(index).rank().ordinal() >= getRank().ordinal()
@@ -44,7 +44,7 @@ public class SecondApertureGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         ApertureService.openSecond(player, getRank());
         return 1;
     }

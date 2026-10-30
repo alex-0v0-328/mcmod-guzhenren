@@ -232,7 +232,7 @@ public final class GuSpec {
             throw fault(id, "recovers with time but channels or feeds");
         }
         if (feedTag != null && feedUnits > unitsPerHunger) checkWholeMeals(id);
-        if (effectCarrier != null) checkEffect(id);
+        if (effectCarrier != null) validateEffect(id);
 
         if (!channels) return;
 
@@ -244,7 +244,7 @@ public final class GuSpec {
         }
     }
 
-    private void checkEffect(String id) {
+    private void validateEffect(String id) {
         if (effectMarks.isEmpty()) throw fault(id, "lays down an effect with no marks");
         if (rank.ordinal() <= Rank.HIGHEST.ordinal() && effectMarks.marks() > 0L) {
             throw fault(id, "is mortal but declares %d whole marks; a mortal Gu carries strands only"

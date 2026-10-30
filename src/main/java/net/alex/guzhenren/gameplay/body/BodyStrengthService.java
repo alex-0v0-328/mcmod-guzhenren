@@ -57,7 +57,7 @@ public final class BodyStrengthService {
     }
 
     public static boolean isUnleashed(@NotNull Player player) {
-        return player.hasEffect(ModEffects.ALL_OUT_EFFORT);
+        return player.hasEffect(ModEffects.ALL_OUT_EFFORT_GU);
     }
 
     public static int getUsableJin(@NotNull Player player) {

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Every type is registered once in {@code registry.effect.ModPathEffectTypes}, the closed list the save and sync
  * codecs look ids up in; a family adds its type there and its payload record beside its own code. The payload is
- * the state only that kind needs (a shield's value, a half-zombie level, a distilling phase); a kind that needs none
+ * the state only that kind needs (a shield's value, a temp zombie level, a distilling phase); a kind that needs none
  * takes {@code Unit} with {@code MapCodec.unit}. Its {@link MapCodec} sits inline in the effect's saved object, so the
  * type picks its own field names.
  *

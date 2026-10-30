@@ -475,7 +475,7 @@ public final class ModItems {
                     GuSpec.of(Rank.THREE, GuPath.WOOD).type(GuType.HEALING).refine(80_000).costPerUse(0)));
     //endregion
 
-    //region Zombie Gu [僵尸蛊] -- Transformation Path [变化道]; a timed Half-Zombie [半生半僵], and a 5-minute
+    //region Zombie Gu [僵尸蛊] -- Transformation Path [变化道]; a timed Temp Zombie [临时僵尸化], and a 5-minute
     // window that makes it permanent
     public static final DeferredItem<Item> ROAMING_ZOMBIE_GU = ITEMS.register("roaming_zombie_gu",
             () -> new ZombieGuItem(createTendedProperties(), 2 * Ticks.MINUTE,

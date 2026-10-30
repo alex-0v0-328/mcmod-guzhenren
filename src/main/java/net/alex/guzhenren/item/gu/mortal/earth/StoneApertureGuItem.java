@@ -59,14 +59,14 @@ public class StoneApertureGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         int target = getTargetOf(player);
         if (target == NO_TARGET) return new Refusal(FAILED_UNAVAILABLE);
         return checkStageUpGate(ApertureService.getAperture(player, target));
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         int target = getTargetOf(player);
         if (target != NO_TARGET) ApertureNourishService.petrify(player, target);
     }

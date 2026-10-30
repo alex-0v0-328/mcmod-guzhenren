@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * a lower grade drops the physique first, so the re-rolled base is not forced back to full.
  *
  * <p>{@link #getStatus(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
- * Half-Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
+ * Temp Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
  *
  * <p>{@link #openSecond} is the only opener of a second aperture: Grade-A at 8/10, this rank's
  * first stage and a full pool. Works with NO aperture at all -- the lone second aperture then IS the
@@ -103,7 +103,7 @@ public final class ApertureService {
 
     public static @NotNull ApertureStatus getStatus(@NotNull Player player, int index) {
         Aperture aperture = getAperture(player, index);
-        if (BodyService.isZombieOrHalfZombie(player) || aperture.petrified()) return ApertureStatus.DEAD;
+        if (BodyService.isZombieOrTempZombie(player) || aperture.petrified()) return ApertureStatus.DEAD;
         return ApertureStatus.NORMAL;
     }
 

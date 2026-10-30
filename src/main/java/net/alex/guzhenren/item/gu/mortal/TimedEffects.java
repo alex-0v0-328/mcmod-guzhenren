@@ -3,7 +3,7 @@ package net.alex.guzhenren.item.gu.mortal;
 import java.util.HashMap;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
+import net.alex.guzhenren.effect.timed.WatchGuEffect;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.MugwortShieldDownEvent;
 import net.alex.guzhenren.gameplay.body.MugwortShieldRaisedEvent;
@@ -134,7 +134,7 @@ public final class TimedEffects {
                                   @NotNull Holder<MobEffect> form, long durationTicks,
                                   @NotNull Amplification amplification) {
         ResourceLocation source = getId(gu);
-        TimeRateUpEffect rate = (TimeRateUpEffect) form.value();
+        WatchGuEffect rate = (WatchGuEffect) form.value();
         long endTick = PathEffectService.getGameTime(player) + durationTicks;
         PathEffect<ResourceLocation> own = PathEffectService.find(player, ModPathEffectTypes.WATCH_RATE, source);
         if (own == null) {

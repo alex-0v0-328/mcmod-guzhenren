@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.wisdom;
 
-import net.alex.guzhenren.effect.timed.MaliciousThoughtEffect;
+import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
@@ -44,13 +44,13 @@ public class MaliciousThoughtGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         MindService.addThoughts(player, immediateThoughts, ThoughtTag.EVIL);
         int amplifier = getTier() - 1;
         StateEffects.grantThought(player, this, ModPathEffectTypes.MALICIOUS_THOUGHT, effect, amplifier,
-                MaliciousThoughtEffect.DURATION_TICKS);
+                MaliciousThoughtGuEffect.DURATION_TICKS);
     }
 }

@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A tended Gu [需照顾]: wild, then refined [炼化], then fed and used, all on one shared state record. The
  * middle class between {@link MortalGuItem} and every leaf that needs feeding: a leaf answers
- * {@code checkPayoutGate} / {@code payOut} plus any limit it bends; owns the charge ladder, channeling [灌注]
+ * {@code checkEffect} / {@code applyEffect} plus any limit it bends; owns the charge ladder, channeling [灌注]
  * and hunger/health billing. Meals are {@link GuMeal}, cooldown stamps {@link GuCooldowns}, the
  * day-rollover walk {@link GuUpkeep}.
  *
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
  * effect cooldown: {@code ItemCooldowns.addCooldown} overwrites unconditionally, so the other order would lose
  * the long cooldown to the base's short one.
  *
- * <p>A use on an empty hunger bar is forced ({@code trySpendAndGrant}): the effect lands, then the Gu dies of
+ * <p>A use on an empty hunger bar is forced ({@code trySpendAndApply}): the effect lands, then the Gu dies of
  * exhaustion, and the 1 that {@code drive} returns is that death, not a payout.
  *
  * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS}, at two paces that stay separate. A
@@ -94,9 +94,9 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     //region what a leaf must answer
-    protected abstract @Nullable Refusal checkPayoutGate(Player player, ItemStack stack);
+    protected abstract @Nullable Refusal checkEffect(Player player, ItemStack stack);
 
-    protected abstract void payOut(ServerPlayer player, ItemStack stack);
+    protected abstract void applyEffect(ServerPlayer player, ItemStack stack);
 
     protected int feedUnits(ItemStack food) { return spec.feedUnits(food); }
 
@@ -269,14 +269,14 @@ public abstract class TendedGuItem extends MortalGuItem {
         store(stack, getState(stack).withInvested(pouredAfter));
 
         if (pouredAfter >= spec.getEssencePerRound()) {
-            grant(player, stack);
+            applyEffectWithCooldown(player, stack);
             store(stack, getState(stack).withInvested(0));
-            if (checkPayoutGate(player, stack) != null) player.stopUsingItem();
+            if (checkEffect(player, stack) != null) player.stopUsingItem();
         }
     }
 
-    private void grant(ServerPlayer player, ItemStack stack) {
-        payOut(player, stack);
+    private void applyEffectWithCooldown(ServerPlayer player, ItemStack stack) {
+        applyEffect(player, stack);
         if (spec.getEffectCooldownTicks() > 0) {
             stack.set(ModDataComponents.USED_AT,
                     GuCooldowns.createCooldownStamp(player, spec.getEffectCooldownTicks()));
@@ -317,7 +317,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     protected boolean keepsRefusedClick() { return true; }
 
     @Override
-    protected final @Nullable Refusal checkGate(Player player, ItemStack stack) {
+    protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
         if (!isRefined(stack)) {
             return checkEssenceGate(player, Math.min(ESSENCE_FLOOR, getRefineCost()), FAILED_REFINE_ESSENCE);
         }
@@ -329,7 +329,7 @@ public abstract class TendedGuItem extends MortalGuItem {
         }
 
         Refusal cooling = checkCooldown(player, stack);
-        return cooling != null ? cooling : checkUseGate(player, stack);
+        return cooling != null ? cooling : checkOwnUse(player, stack);
     }
 
     protected long useThreshold(ItemStack stack) {
@@ -337,15 +337,15 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) { return checkPayoutGate(player, stack); }
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) { return checkEffect(player, stack); }
 
     @Override
-    protected final int apply(ServerPlayer player, ItemStack stack) {
-        return isRefined(stack) ? useApply(player, stack) : 0;
+    protected final int performUse(ServerPlayer player, ItemStack stack) {
+        return isRefined(stack) ? performOwnUse(player, stack) : 0;
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         return spec.isChanneled() ? 0 : drive(player, stack);
     }
 
@@ -359,16 +359,16 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     protected int drive(ServerPlayer player, ItemStack stack) {
         eat(player, stack);
-        if (trySpendAndGrant(player, stack)) return 1;
+        if (trySpendAndApply(player, stack)) return 1;
         eat(player, stack);
         if (isHungry(player, stack)) clock.warn(player, stack, 1L);
         return 0;
     }
 
-    protected final boolean trySpendAndGrant(ServerPlayer player, ItemStack stack) {
+    protected final boolean trySpendAndApply(ServerPlayer player, ItemStack stack) {
         ApertureEssenceService.consume(player, spec.getEssencePerRound());
         boolean drivenOnAnEmptyBar = clock.isSpendForced(stack, getHungerCostMultiplier(player, stack));
-        grant(player, stack);
+        applyEffectWithCooldown(player, stack);
         if (!drivenOnAnEmptyBar || player.getAbilities().instabuild) return false;
 
         exhaust(player, stack);
@@ -376,12 +376,12 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     @Override
-    protected final @Nullable Refusal checkTapGate(Player player, ItemStack stack) {
+    protected final @Nullable Refusal checkTapUse(Player player, ItemStack stack) {
         Refusal cooling = checkCooldown(player, stack);
-        return cooling != null ? cooling : checkTapUseGate(player, stack);
+        return cooling != null ? cooling : checkOwnTapUse(player, stack);
     }
 
-    protected @Nullable Refusal checkTapUseGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkOwnTapUse(Player player, ItemStack stack) { return null; }
 
     protected boolean canUseDuringEffectCooldown() { return false; }
 
@@ -394,23 +394,23 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     public final boolean tryAutoUse(ServerPlayer player, ItemStack stack) {
         if (!isRefined(stack) || spec.isChanneled() || player.getCooldowns().isOnCooldown(this)) return false;
-        if (checkInPlaceGate(player, stack) != null) return false;
-        spend(player, stack, useApply(player, stack));
+        if (checkInPlaceUse(player, stack) != null) return false;
+        spend(player, stack, performOwnUse(player, stack));
         return true;
     }
 
     @Override
-    protected @Nullable Refusal checkInPlaceGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkInPlaceUse(Player player, ItemStack stack) {
         Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
         if (poor != null) return poor;
 
         Refusal cooling = checkCooldown(player, stack);
-        return cooling != null ? cooling : checkUseGate(player, stack);
+        return cooling != null ? cooling : checkOwnUse(player, stack);
     }
 
     @Override
-    protected int applyInPlace(ServerPlayer player, ItemStack stack) {
-        return isRefined(stack) && !spec.isChanneled() ? useApply(player, stack) : 0;
+    protected int performInPlaceUse(ServerPlayer player, ItemStack stack) {
+        return isRefined(stack) && !spec.isChanneled() ? performOwnUse(player, stack) : 0;
     }
 
     protected void eat(ServerPlayer player, ItemStack stack) {

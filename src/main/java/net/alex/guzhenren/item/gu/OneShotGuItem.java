@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link MortalGuItem} with {@code useDurationTicks = 0} (instant) and the shared
  * two-second post-refinement cooldown. The gate checks essence against {@code refineCost};
- * {@code apply} pays the cost and fires
- * {@code useApply} in one step. Hope Gu [希望蛊] is the exception: {@code stacksTo(1)} and an 80-tick
+ * {@code performUse} pays the cost and fires
+ * {@code performOwnUse} in one step. Hope Gu [希望蛊] is the exception: {@code stacksTo(1)} and an 80-tick
  * ritual, handled by its own leaf class.
  *
  * @author Alex
@@ -32,15 +32,15 @@ public abstract class OneShotGuItem extends MortalGuItem {
 
     //region the one press
     @Override
-    protected final @Nullable Refusal checkGate(Player player, ItemStack stack) {
+    protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
         Refusal cost = checkEssenceGate(player, getRefineCost(), FAILED_REFINE_ESSENCE);
-        return cost != null ? cost : checkUseGate(player, stack);
+        return cost != null ? cost : checkOwnUse(player, stack);
     }
 
     @Override
-    protected final int apply(ServerPlayer player, ItemStack stack) {
+    protected final int performUse(ServerPlayer player, ItemStack stack) {
         payRefineCost(player);
-        return useApply(player, stack);
+        return performOwnUse(player, stack);
     }
 
     @Override

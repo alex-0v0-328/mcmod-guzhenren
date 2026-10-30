@@ -56,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link #VITALITY_LEAF} [生机叶] -- a timed heal on the body.</li>
  * <li>{@link #WATCH_RATE} [更蛊] -- a timed time rate on the body per Gu, payload the vanilla form; one layer per
  * use.</li>
- * <li>{@link #ZOMBIE} [僵尸] -- a harmful timed state on a half-zombie's body; turning zombie for good dissipates
+ * <li>{@link #ZOMBIE} [僵尸] -- a harmful timed state on a temp zombie's body; turning zombie for good dissipates
  * it, and the form itself stays on {@code BodyData}. Exclusive.</li>
  * <li>{@link #LIQUOR_DISTILLING} [酒虫精炼] -- a timed buff on the body while true essence is distilled, payload the
  * Gu's tier; the day it lasts is the distilling's. Exclusive.</li>
@@ -118,7 +118,7 @@ public final class ModPathEffectTypes {
             effect -> Component.translatable("guzhenren.path_effect.mugwort_shield")));
     public static final PathEffectType<Unit> VITALITY_LEAF = register(new PathEffectType<>(
             Guzhenren.id("vitality_leaf"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
-            PathEffectCategory.BENEFICIAL, false, () -> ModEffects.VITALITY_LEAF,
+            PathEffectCategory.BENEFICIAL, false, () -> ModEffects.VITALITY_LEAF_GU,
             effect -> Component.translatable("guzhenren.path_effect.vitality_leaf")));
     public static final PathEffectType<ResourceLocation> WATCH_RATE = register(PathEffectType.projecting(
             Guzhenren.id("watch_rate"), ResourceLocation.CODEC.fieldOf("form"), ResourceLocation.STREAM_CODEC.mapStream(
@@ -129,7 +129,7 @@ public final class ModPathEffectTypes {
     public static final PathEffectType<Unit> ZOMBIE = register(new PathEffectType<>(Guzhenren.id("zombie"),
             MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE), PathEffectCategory.HARMFUL, true, null,
             effect -> Component.translatable(effect.isPermanent() ? "guzhenren.path_effect.zombie"
-                    : "guzhenren.path_effect.half_zombie")));
+                    : "guzhenren.path_effect.temp_zombie")));
     public static final PathEffectType<Integer> LIQUOR_DISTILLING = register(PathEffectType.projecting(
             Guzhenren.id("liquor_distilling"), Codec.INT.fieldOf("tier"), ByteBufCodecs.VAR_INT.mapStream(buf -> buf),
             PathEffectCategory.BENEFICIAL, true,

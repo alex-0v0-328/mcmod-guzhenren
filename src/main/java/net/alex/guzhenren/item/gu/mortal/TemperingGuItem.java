@@ -50,12 +50,12 @@ public abstract class TemperingGuItem<G extends Enum<G> & BodyGrade<G>> extends 
     protected abstract void temper(ServerPlayer player);
 
     @Override
-    protected final @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected final @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         G worn = getWorn(player);
         return grade.canReplace(worn) ? null
                 : new Refusal(failedTakenKey, Component.translatable(worn.getTranslationKey()));
     }
 
     @Override
-    protected final void payOut(ServerPlayer player, ItemStack stack) { temper(player); }
+    protected final void applyEffect(ServerPlayer player, ItemStack stack) { temper(player); }
 }

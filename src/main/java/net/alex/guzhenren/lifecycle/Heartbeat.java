@@ -49,7 +49,7 @@ import net.minecraft.server.level.ServerPlayer;
  * effects.</li>
  * <li>{@code ApertureEssenceService.closeDistilling} -- before (15): the 1:2 return lands before regen picks
  * a pool.</li>
- * <li>{@code UndeadService.tickHalfZombie} -- may turn a half-zombie into a zombie or end the form; (10) and
+ * <li>{@code UndeadService.tickTempZombie} -- may turn a temp zombie into a zombie or end the form; (10) and
  * (12) to (17) read the form.</li>
  * <li>{@code SkinService.tickSkin}, then {@code MugwortShieldService.tickShield} -- shed a jade skin [玉皮] or a
  * Heavenly Mugwort shield [天蓬护盾] whose time ran out and project what is still worn as its effect, a body-form
@@ -68,7 +68,7 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code MindService.regenStep} -- after (8): a zombie thinks every fifth second.</li>
  * <li>{@code SelfRelianceGuItem.tryAutoUse} -- after (15), whose essence the auto-use pays.</li>
  * <li>{@code AsBeforeGuItem.remember} -- after (8), (14) and (17): the body it records is this beat's settled one,
- * the half-zombie form, lifespan exhaustion and thoughts included; before (21), so a body about to die is still
+ * the temp zombie form, lifespan exhaustion and thoughts included; before (21), so a body about to die is still
  * remembered as it was.</li>
  * <li>{@code AperturePressureService.tick} -- the service gates its own minute step and countdown; a full
  * gauge goes to (21).</li>
@@ -110,7 +110,7 @@ public final class Heartbeat {
 
         PathEffectService.tick(player);
         ApertureEssenceService.closeDistilling(player);
-        UndeadService.tickHalfZombie(player);
+        UndeadService.tickTempZombie(player);
         SkinService.tickSkin(player);
         MugwortShieldService.tickShield(player);
         UndeadService.pinHunger(player);

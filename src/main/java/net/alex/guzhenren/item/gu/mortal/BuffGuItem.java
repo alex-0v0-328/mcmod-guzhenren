@@ -52,14 +52,14 @@ public class BuffGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         PathEffect<TimedBuff> current = TimedEffects.findBuff(player, buff);
         return current != null && current.payload().amplifier() > amplifier
                 ? new Refusal(FAILED_STRONGER, buff.value().getDisplayName()) : null;
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         PathEffect<TimedBuff> current = TimedEffects.findBuff(player, buff);
         if (current != null && amplifier < current.payload().amplifier()) return;
 

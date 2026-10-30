@@ -9,9 +9,9 @@ import net.minecraft.world.food.FoodData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The heartbeat steps of the undead [僵] and of Death Qi [死气]. {@link #tickHalfZombie} turns a
- * half-zombie holding Death Qi into a zombie, lets an expired one recover, and projects the state as the
- * {@code HALF_ZOMBIE} effect; {@link #pinHunger} keeps an undead body's hunger full; {@link #tickDeathQi}
+ * The heartbeat steps of the undead [僵] and of Death Qi [死气]. {@link #tickTempZombie} turns a
+ * temp zombie holding Death Qi into a zombie, lets an expired one recover, and projects the state as the
+ * {@code TEMP_ZOMBIE} effect; {@link #pinHunger} keeps an undead body's hunger full; {@link #tickDeathQi}
  * burns lifespan [寿元] and floors health on the living while Death Qi is held. ⚠ A zombie skips that step
  * whole -- no lifespan drain, no debt, no health floor -- not just its lifespan.
  *
@@ -37,24 +37,24 @@ public final class UndeadService {
     public static final float DEATH_QI_HEALTH_PER_HEARTBEAT = 1.0F;
     private static final int FULL_HUNGER = 20;
 
-    public static void tickHalfZombie(@NotNull ServerPlayer player) {
-        if (BodyService.isHalfZombie(player)) {
+    public static void tickTempZombie(@NotNull ServerPlayer player) {
+        if (BodyService.isTempZombie(player)) {
             if (PathQiService.getCurrent(player, QiKind.DEATH) > 0L) {
                 BodyService.turnZombie(player, BodyService.get(player).zombieTier());
-            } else if (BodyService.hasHalfZombieRunOut(player)) {
-                BodyService.removePhysique(player, Physique.HALF_ZOMBIE);
+            } else if (BodyService.hasTempZombieRunOut(player)) {
+                BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
             }
         }
-        projectHalfZombie(player);
+        projectTempZombie(player);
     }
 
-    private static void projectHalfZombie(ServerPlayer player) {
-        if (!BodyService.isHalfZombie(player)) {
-            if (player.hasEffect(ModEffects.HALF_ZOMBIE)) player.removeEffect(ModEffects.HALF_ZOMBIE);
+    private static void projectTempZombie(ServerPlayer player) {
+        if (!BodyService.isTempZombie(player)) {
+            if (player.hasEffect(ModEffects.TEMP_ZOMBIE)) player.removeEffect(ModEffects.TEMP_ZOMBIE);
             return;
         }
-        player.addEffect(ModEffects.instance(ModEffects.HALF_ZOMBIE,
-                Math.max(1, (int) BodyService.getHalfZombieTicksLeft(player))));
+        player.addEffect(ModEffects.instance(ModEffects.TEMP_ZOMBIE,
+                Math.max(1, (int) BodyService.getTempZombieTicksLeft(player))));
     }
 
     public static void pinHunger(@NotNull ServerPlayer player) {

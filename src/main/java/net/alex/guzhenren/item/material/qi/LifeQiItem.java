@@ -37,9 +37,9 @@ public class LifeQiItem extends QiMaterialItem {
     }
 
     @Override
-    protected int apply(ServerPlayer player, ItemStack stack) {
+    protected int performUse(ServerPlayer player, ItemStack stack) {
         long death = PathQiService.getCurrent(player, QiKind.DEATH);
-        if (death <= 0L) return super.apply(player, stack);
+        if (death <= 0L) return super.performUse(player, stack);
 
         long remainder = getQiAmount() - Math.min(getQiAmount(), death);
         PathQiService.add(player, QiKind.DEATH, -getQiAmount());

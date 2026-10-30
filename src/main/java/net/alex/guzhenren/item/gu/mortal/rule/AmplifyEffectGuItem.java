@@ -120,10 +120,10 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return new Refusal(FAILED_OFFHAND); }
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return new Refusal(FAILED_OFFHAND); }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {}
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {}
 
     @Override
     protected long useThreshold(ItemStack stack) { return 0L; }

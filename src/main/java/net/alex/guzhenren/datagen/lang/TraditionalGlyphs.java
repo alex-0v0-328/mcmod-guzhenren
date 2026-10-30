@@ -35,7 +35,7 @@ import java.util.Map;
 
 public final class TraditionalGlyphs {
 
-    private static final String PAIRS = "万萬 两兩 个個 为為 云雲 亚亞 亿億 体體 余餘 储儲 僵殭 兰蘭 关關 养養 兽獸 内內 冻凍 击擊 "
+    private static final String PAIRS = "万萬 两兩 个個 临臨 为為 云雲 亚亞 亿億 体體 余餘 储儲 僵殭 兰蘭 关關 养養 兽獸 内內 冻凍 击擊 "
             + "创創 剑劍 动動 华華 压壓 变變 叶葉 图圖 头頭 宝寶 寿壽 将將 尸屍 层層 岁歲 巅巔 "
             + "师師 开開 强強 彻徹 态態 恶惡 悬懸 担擔 择擇 损損 数數 断斷 无無 时時 旷曠 "
             + "晋晉 晓曉 机機 杀殺 枣棗 标標 梦夢 横橫 气氣 没沒 泽澤 测測 温溫 满滿 灾災 点點 炼煉 "

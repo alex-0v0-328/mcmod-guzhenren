@@ -15,7 +15,7 @@ import net.minecraft.util.StringRepresentable;
 public enum Physique implements NamedEnum {
 
     ZOMBIE,
-    HALF_ZOMBIE,
+    TEMP_ZOMBIE,
     EXTREME;
 
     public static final Codec<Physique> CODEC = StringRepresentable.fromEnum(Physique::values);

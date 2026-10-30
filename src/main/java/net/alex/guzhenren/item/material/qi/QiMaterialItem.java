@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ A material, not a Gu: it keeps the base item's hooks, and it stacks; no progress is stored -- the
  * component is shared by the whole stack, and storing it would be the Hope Gu bug.
  *
- * <p>⚠ {@link #checkGate} skips the essence check for the stack mid-charge: {@code finishUsingItem} re-reads the
+ * <p>⚠ {@link #checkUse} skips the essence check for the stack mid-charge: {@code finishUsingItem} re-reads the
  * gate after {@link #onUseTick} has already paid the whole cost, so a full-cost check against the reduced
  * pool would refuse a paid charge and keep the essence.
  *
@@ -62,7 +62,7 @@ public class QiMaterialItem extends GuMaterialItem {
     protected int useDurationTicks(Player player, ItemStack stack) { return useChargeByGap(player); }
 
     @Override
-    protected @Nullable Refusal checkGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkUse(Player player, ItemStack stack) {
         if (player.isUsingItem() && player.getUseItem() == stack) return null;
         return getEssenceCost() > 0 && ApertureEssenceService.getSpendable(player) < getEssenceCost()
                 ? new Refusal(FAILED_ESSENCE)
@@ -90,7 +90,7 @@ public class QiMaterialItem extends GuMaterialItem {
     }
 
     @Override
-    protected int apply(ServerPlayer player, ItemStack stack) {
+    protected int performUse(ServerPlayer player, ItemStack stack) {
         PathQiService.add(player, kind, getQiAmount());
         return 1;
     }

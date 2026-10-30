@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
  * rather than testing the class.
  *
  * <p>⚠ Binding one would lose it, and bill its owner, on the very first click. ⚠ It never eats on its way out:
- * {@code drive} only spends and grants ({@code trySpendAndGrant}), skipping the base's meals before and after, so
+ * {@code drive} only spends and grants ({@code trySpendAndApply}), skipping the base's meals before and after, so
  * no food goes into a stack that is gone after the click.
  *
  * @author Alex
@@ -34,7 +34,7 @@ public abstract class ConsumedGuItem extends TendedGuItem {
 
     @Override
     protected int drive(ServerPlayer player, ItemStack stack) {
-        trySpendAndGrant(player, stack);
+        trySpendAndApply(player, stack);
         return 1;
     }
 }

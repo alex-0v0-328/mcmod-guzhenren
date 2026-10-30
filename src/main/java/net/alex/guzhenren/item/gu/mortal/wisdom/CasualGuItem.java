@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.wisdom;
 
-import net.alex.guzhenren.effect.timed.CasualThoughtEffect;
+import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.mortal.StateEffects;
@@ -37,12 +37,12 @@ public class CasualGuItem extends ConsumedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         int amplifier = getTier();
         StateEffects.grantThought(player, this, ModPathEffectTypes.CASUAL_THOUGHT, effect, amplifier,
-                CasualThoughtEffect.DURATION_TICKS);
+                CasualGuEffect.DURATION_TICKS);
     }
 }

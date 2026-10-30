@@ -2,7 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.wood;
 
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.item.gu.mortal.TimedEffects;
-import net.alex.guzhenren.effect.timed.VitalityLeafEffect;
+import net.alex.guzhenren.effect.timed.VitalityLeafGuEffect;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * A one-shot Gu that grants the vitality effect [生机叶], refusing while one it granted is still running.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.OneShotGuItem}. The gate checks {@link TimedEffects#hasLeaf} so a
- * re-use while the leaf runs is a refusal, not a refresh; {@code useApply} hands its duration to
+ * re-use while the leaf runs is a refusal, not a refresh; {@code performOwnUse} hands its duration to
  * {@link TimedEffects#grantLeaf}. An Amplify Effect Gu [功倍蛊] multiplies that duration, and with it the health
  * the leaf returns.
  *
@@ -37,14 +37,14 @@ public class VitalityLeafGuItem extends OneShotGuItem {
     public boolean canBeAmplified() { return true; }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         return TimedEffects.hasLeaf(player) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, this);
-        TimedEffects.grantLeaf(player, this, VitalityLeafEffect.DURATION_TICKS * amplification.factor(),
+        TimedEffects.grantLeaf(player, this, VitalityLeafGuEffect.DURATION_TICKS * amplification.factor(),
                 amplification);
         return 1;
     }

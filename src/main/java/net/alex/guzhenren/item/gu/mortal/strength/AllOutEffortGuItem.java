@@ -45,15 +45,17 @@ public class AllOutEffortGuItem extends TendedGuItem {
     public boolean canBeAmplified() { return true; }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
-        return TimedEffects.hasBuff(player, ModEffects.ALL_OUT_EFFORT) ? new Refusal(FAILED_ALREADY_UNLEASHED) : null;
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
+        return TimedEffects.hasBuff(player, ModEffects.ALL_OUT_EFFORT_GU)
+                ? new Refusal(FAILED_ALREADY_UNLEASHED)
+                : null;
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, this);
         int ticks = effectSeconds * Ticks.SECOND * amplification.factor();
-        TimedEffects.grantBuff(player, this, ModEffects.ALL_OUT_EFFORT, getTier(), ticks, amplification);
+        TimedEffects.grantBuff(player, this, ModEffects.ALL_OUT_EFFORT_GU, getTier(), ticks, amplification);
         AttackDamageService.refresh(player);
     }
 }

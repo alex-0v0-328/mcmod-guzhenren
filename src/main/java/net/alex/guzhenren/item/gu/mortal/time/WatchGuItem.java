@@ -2,7 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.time;
 
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.item.gu.mortal.TimedEffects;
-import net.alex.guzhenren.effect.timed.TimeRateUpEffect;
+import net.alex.guzhenren.effect.timed.WatchGuEffect;
 import net.alex.guzhenren.item.gu.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
@@ -39,8 +39,8 @@ public class WatchGuItem extends ConsumedGuItem {
 
     public WatchGuItem(Properties properties, Holder<MobEffect> form, int effectTicks, GuSpec spec) {
         super(properties, spec);
-        if (!(form.value() instanceof TimeRateUpEffect)) {
-            throw new IllegalArgumentException("watch gu needs a TimeRateUpEffect");
+        if (!(form.value() instanceof WatchGuEffect)) {
+            throw new IllegalArgumentException("watch gu needs a WatchGuEffect");
         }
         this.form = form;
         this.effectTicks = effectTicks;
@@ -50,10 +50,10 @@ public class WatchGuItem extends ConsumedGuItem {
     public boolean canBeAmplified() { return true; }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, this);
         TimedEffects.grantWatch(player, this, form, (long) effectTicks * amplification.factor(), amplification);
     }

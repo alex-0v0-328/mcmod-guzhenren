@@ -52,12 +52,12 @@ public class TreasureLotusGuItem extends TendedGuItem {
     protected boolean keepsRefusedClick() { return false; }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         return new Refusal(FAILED_PASSIVE);
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {}
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {}
 
     //region the passive heartbeat -- 5% essence and the minting chain
     @Override

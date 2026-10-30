@@ -20,12 +20,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public class VitalityLeafEffect extends PeriodicEffect {
+public class VitalityLeafGuEffect extends PeriodicEffect {
 
     public static final int HEAL_INTERVAL_TICKS = Ticks.HALF_SECOND;
     public static final int DURATION_TICKS = 64 * HEAL_INTERVAL_TICKS;
 
-    public VitalityLeafEffect(MobEffectCategory category, int color) {
+    public VitalityLeafGuEffect(MobEffectCategory category, int color) {
         super(category, color, HEAL_INTERVAL_TICKS);
     }
 

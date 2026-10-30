@@ -26,12 +26,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public class MaliciousThoughtEffect extends PeriodicEffect {
+public class MaliciousThoughtGuEffect extends PeriodicEffect {
 
     public static final int DURATION_TICKS = 12 * Ticks.SECOND;
     private final long[] evilPerSecond;
 
-    public MaliciousThoughtEffect(MobEffectCategory category, int color, long[] evilPerSecond) {
+    public MaliciousThoughtGuEffect(MobEffectCategory category, int color, long[] evilPerSecond) {
         super(category, color, Ticks.SECOND);
         this.evilPerSecond = evilPerSecond;
     }

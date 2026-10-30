@@ -41,14 +41,14 @@ public class HumanStrengthGuItem extends TendedGuItem {
     public HumanStrength getKind() { return kind; }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         return PathStrengthService.getHumanStrength(player, kind) >= kind.getMaxLayers()
                 ? new Refusal(FAILED_LAYERS_FULL, Component.literal(String.valueOf(kind.getMaxLayers())))
                 : null;
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         PathStrengthService.addHumanStrength(player, kind, LAYERS_PER_GRANT);
     }
 }

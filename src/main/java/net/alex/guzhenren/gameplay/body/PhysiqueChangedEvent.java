@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Posted on the game event bus after {@link BodyService} changes a player's physiques [体质] or
- * undead state -- add, remove, revive, half-zombie, zombie. Dispatch is synchronous, so a subscriber has
+ * undead state -- add, remove, revive, temp zombie, zombie. Dispatch is synchronous, so a subscriber has
  * run before the write returns.
  *
  * <p>The body posts and does not know who listens: the attack modifier lives above it, in

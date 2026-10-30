@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The truth is {@code BodyData.skin} with its end tick, never the effect: a {@code MobEffect} has no expiry
  * hook, and {@code /effect clear} removes it silently, so the heartbeat re-applies it the way
- * {@link UndeadService} projects the half-zombie form. ⚠ A skin gives way to nothing: damage that bypasses
+ * {@link UndeadService} projects the temp zombie form. ⚠ A skin gives way to nothing: damage that bypasses
  * invulnerability or effects ({@code /kill}, the void, starvation) passes untouched, like vanilla Resistance.
  *
  * @author Alex

@@ -45,10 +45,10 @@ import org.jetbrains.annotations.NotNull;
  * own: {@link #syncZombie} and {@link #syncStone} derive the effect from the state on the change event and on login,
  * and name the Gu by the state's rung or rank.
  *
- * <p>⚠ Only a half-zombie carries a zombie effect. Turning zombie for good dissipates its Transformation strands:
+ * <p>⚠ Only a temp zombie carries a zombie effect. Turning zombie for good dissipates its Transformation strands:
  * {@link #syncZombie} runs the effect out on the spot, so it ends as an expiry and the form stays; a zombie gets none
- * back on login or by command. A half-zombie effect cut or removed takes the undead form with it; one that merely
- * runs out leaves the half-zombie to {@code UndeadService.tickHalfZombie}, which still turns it into a zombie if
+ * back on login or by command. A temp zombie effect cut or removed takes the undead form with it; one that merely
+ * runs out leaves the temp zombie to {@code UndeadService.tickTempZombie}, which still turns it into a zombie if
  * Death Qi is held. A petrified aperture is never un-petrified by its effect ending; the next aperture write puts
  * the effect back.
  *
@@ -91,17 +91,17 @@ public final class StateEffects {
             if (current != null) dissipate(player, current);
             return;
         }
-        if (!BodyService.isHalfZombie(player)) {
+        if (!BodyService.isTempZombie(player)) {
             if (current != null) PathEffectService.removeType(player, ModPathEffectTypes.ZOMBIE);
             return;
         }
-        if (BodyService.hasHalfZombieRunOut(player)) return;
+        if (BodyService.hasTempZombieRunOut(player)) return;
 
         int rung = Math.max(0, BodyService.get(player).zombieTier());
         ZombieGuItem gu = ModItems.findGu(ZombieGuItem.class, item -> item.getRung() == rung);
         if (gu == null) return;
 
-        long endTick = PathEffectService.getGameTime(player) + BodyService.getHalfZombieTicksLeft(player);
+        long endTick = PathEffectService.getGameTime(player) + BodyService.getTempZombieTicksLeft(player);
         ResourceLocation source = getId(gu);
         if (current != null && current.source().equals(source)) {
             if (current.endTick() != endTick) {
@@ -162,7 +162,7 @@ public final class StateEffects {
         }
         ServerPlayer player = event.getPlayer();
         BodyService.removePhysique(player, Physique.ZOMBIE);
-        BodyService.removePhysique(player, Physique.HALF_ZOMBIE);
+        BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
     }
 
     private static ResourceLocation getId(MortalGuItem gu) { return BuiltInRegistries.ITEM.getKey(gu); }

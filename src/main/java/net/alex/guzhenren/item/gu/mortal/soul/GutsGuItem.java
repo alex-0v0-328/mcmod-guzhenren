@@ -28,7 +28,7 @@ public class GutsGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         SoulService.addMax(player, SOUL_BONUS);
         return 1;
     }

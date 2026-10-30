@@ -42,14 +42,14 @@ public class PrimevalStoneItem extends GuMaterialItem {
     protected boolean hasUse() { return true; }
 
     @Override
-    protected @Nullable Refusal checkGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkUse(Player player, ItemStack stack) {
         if (!ApertureService.hasAperture(player)) return new Refusal(FAILED_UNAWAKENED);
         return ApertureEssenceService.getCurrentEssence(player) >= ApertureEssenceService.getMaxEssence(player)
                 ? new Refusal(FAILED_FULL) : null;
     }
 
     @Override
-    protected int apply(ServerPlayer player, ItemStack stack) {
+    protected int performUse(ServerPlayer player, ItemStack stack) {
         int used = getUsableCount(player, stack);
         ApertureEssenceService.add(player, essence * used);
         return used;

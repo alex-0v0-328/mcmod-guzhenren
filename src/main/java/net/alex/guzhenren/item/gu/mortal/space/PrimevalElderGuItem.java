@@ -61,13 +61,13 @@ public class PrimevalElderGuItem extends TendedGuItem {
     protected boolean hasTapUse(Player player, ItemStack stack) { return isRefined(stack); }
 
     @Override
-    protected @Nullable Refusal checkTapUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkOwnTapUse(Player player, ItemStack stack) {
         if (getStored(stack) >= capacity) return new Refusal(FAILED_FULL);
         return getDepositable(player, stack) <= 0 ? new Refusal(FAILED_NO_STONES) : null;
     }
 
     @Override
-    protected int tapApply(ServerPlayer player, ItemStack stack) {
+    protected int performTapUse(ServerPlayer player, ItemStack stack) {
         deposit(player, stack);
         payOwnUpkeep(player, stack);
         return 0;
@@ -103,12 +103,12 @@ public class PrimevalElderGuItem extends TendedGuItem {
 
     //region withdrawing -- the hold, which is this Gu's use
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         return getStored(stack) <= 0 ? new Refusal(FAILED_EMPTY) : null;
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         int taken = (int) Math.min(WITHDRAW_STONES, getStored(stack));
         if (taken <= 0) return;
 

@@ -49,12 +49,12 @@ public class HopeGuItem extends MortalGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         return ApertureService.isAwakened(player) ? new Refusal(FAILED_AWAKENED) : null;
     }
 
     @Override
-    protected final @Nullable Refusal checkGate(Player player, ItemStack stack) { return checkUseGate(player, stack); }
+    protected final @Nullable Refusal checkUse(Player player, ItemStack stack) { return checkOwnUse(player, stack); }
 
     @Override
     protected final int useDurationTicks(Player player, ItemStack stack) { return RITUAL_TICKS; }
@@ -72,7 +72,7 @@ public class HopeGuItem extends MortalGuItem {
     }
 
     @Override
-    protected final int apply(ServerPlayer player, ItemStack stack) {
+    protected final int performUse(ServerPlayer player, ItemStack stack) {
         ApertureService.awaken(player, getRolledBase(stack));
         ModCriteriaTriggers.USED_HOPE_GU.get().trigger(player);
         stack.remove(ModDataComponents.AWAKEN_BASE);

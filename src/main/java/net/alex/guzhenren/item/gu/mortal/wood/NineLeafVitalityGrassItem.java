@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * also regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
  *
  * <p>⚠ A stack without the component holds nine: the grass picked from its flower, a wild one and a creative copy
- * are all full. {@link #checkPayoutGate} is the pick's gate, the tap's and its payout's; {@link #checkUseGate} is
+ * are all full. {@link #checkEffect} is the pick's gate, the tap's and its payout's; {@link #checkOwnUse} is
  * the grow's.
  *
  * <p>⚠ The regrowth runs on the grass's own clock and is never scaled by Time Path [宙道] self-time; only the
@@ -77,14 +77,14 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
 
     //region the two uses -- a pick needs a leaf, a grow needs room and the essence
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         long now = player.level().getGameTime();
         return getLeaves(stack, now) > 0 ? null
                 : new Refusal(FAILED_NO_LEAVES, Component.literal(String.valueOf(getSecondsToNextLeaf(stack, now))));
     }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         if (getLeaves(stack, player.level().getGameTime()) >= LeafGrowth.MAX_LEAVES) {
             return new Refusal(FAILED_LEAVES_FULL);
         }
@@ -95,8 +95,8 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     protected boolean hasTapUse(Player player, ItemStack stack) { return isRefined(stack); }
 
     @Override
-    protected @Nullable Refusal checkTapUseGate(Player player, ItemStack stack) {
-        return checkPayoutGate(player, stack);
+    protected @Nullable Refusal checkOwnTapUse(Player player, ItemStack stack) {
+        return checkEffect(player, stack);
     }
 
     @Override
@@ -107,10 +107,10 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
 
     //region picking -- the tap, free
     @Override
-    protected int tapApply(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
+    protected int performTapUse(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         long now = player.level().getGameTime();
         if (getLeaves(stack, now) <= 0) return;
 
@@ -121,7 +121,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
 
     //region growing -- the hold, paid from the holder's own essence
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         if (!ApertureEssenceService.consume(player, essencePerLeaf)) return 0;
 
         stack.set(ModDataComponents.LEAF_GROWTH,

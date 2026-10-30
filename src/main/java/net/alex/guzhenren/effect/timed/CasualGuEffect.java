@@ -25,12 +25,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public class CasualThoughtEffect extends PeriodicEffect {
+public class CasualGuEffect extends PeriodicEffect {
 
     public static final int DURATION_TICKS = 10 * Ticks.SECOND;
     private static final int[][] RANGES = { { 1, 100 }, { 100, 200 } };
 
-    public CasualThoughtEffect(MobEffectCategory category, int color) {
+    public CasualGuEffect(MobEffectCategory category, int color) {
         super(category, color, Ticks.SECOND);
     }
 

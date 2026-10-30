@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
  * RecoverBar#settle} writes only a grown point (a full bar is left alone, so a carried one costs no stack write a
  * second). The day-clock walk settles every carried one each heartbeat, so the stored count is never more than a
  * second stale. ⚠ A full bar's stamp is stale by design, so a use that spends from a full bar must {@link
- * RecoverBar#restart} the stamp at the spend ({@code AsBeforeGuItem.useApply}), or the next settle would hand the
+ * RecoverBar#restart} the stamp at the spend ({@code AsBeforeGuItem.performOwnUse}), or the next settle would hand the
  * point straight back.
  *
  * <p>{@code RecoverBar} mends health on the same clock, one point a {@code ticksPerPoint}, from its own {@code

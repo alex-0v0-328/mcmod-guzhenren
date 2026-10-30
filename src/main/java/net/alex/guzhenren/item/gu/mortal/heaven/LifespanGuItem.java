@@ -34,7 +34,7 @@ public class LifespanGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         int years = minYears + player.getRandom().nextInt(maxYears - minYears + 1);
         BodyService.addLifespan(player, years);
         ActionBar.inform(player, MSG_GAINED, years);

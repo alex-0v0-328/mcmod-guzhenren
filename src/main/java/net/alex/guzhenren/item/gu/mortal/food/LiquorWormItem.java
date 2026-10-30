@@ -39,7 +39,7 @@ public class LiquorWormItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         if (ApertureService.getRank(player) != getRank()) {
             return new Refusal(FAILED_RANK, Component.translatable(getRank().getTranslationKey()));
         }
@@ -47,7 +47,7 @@ public class LiquorWormItem extends TendedGuItem {
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         ApertureEssenceService.beginDistilling(player);
         StateEffects.grantDistilling(player, this, getTier(), Ticks.DAY);
     }

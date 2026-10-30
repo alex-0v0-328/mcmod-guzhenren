@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Man As Before Gu [人如故]: its carrier's body goes back to how it was a day ago -- health, hunger, effects, soul,
- * thoughts and the half-zombie form, as {@code PlayerSnapshot} lists them, and nothing else.
+ * thoughts and the temp zombie form, as {@code PlayerSnapshot} lists them, and nothing else.
  *
  * <p>Extends {@link AsBeforeGuItem}. The memory is {@code PlayerRewindService}'s ring on the carrier, recorded only
  * while a refined one is carried: a Gu that has recorded nothing refuses with {@link #FAILED_NO_MEMORY}, one carried
@@ -34,7 +34,7 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         Refusal recovering = checkRecoverGate(player, stack);
         if (recovering != null) return recovering;
         if (!(player instanceof ServerPlayer server)) return null;
@@ -45,7 +45,7 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         PlayerSnapshot snapshot = PlayerRewindService.pick(player, player.level().getGameTime());
         if (snapshot == null) return;
 

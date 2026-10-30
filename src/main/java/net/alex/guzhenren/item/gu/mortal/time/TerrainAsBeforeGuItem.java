@@ -52,7 +52,7 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
     public ChunkKind getKind() { return kind; }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         Refusal recovering = checkRecoverGate(player, stack);
         if (recovering != null) return recovering;
         if (!(player instanceof ServerPlayer server)) return null;
@@ -68,7 +68,7 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
     }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         ServerLevel level = player.serverLevel();
         ChunkPos center = player.chunkPosition();
         int radius = ChunkRewindService.RESTORE_RADIUS;

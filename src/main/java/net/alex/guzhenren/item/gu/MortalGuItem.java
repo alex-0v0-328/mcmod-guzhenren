@@ -104,9 +104,9 @@ public abstract class MortalGuItem extends GuItem {
     @Override
     protected final boolean hasUse() { return true; }
 
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) { return null; }
 
-    protected int useApply(ServerPlayer player, ItemStack stack) { return 0; }
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) { return 0; }
     //endregion
 
     //region display

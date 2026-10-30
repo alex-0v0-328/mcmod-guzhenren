@@ -17,12 +17,12 @@ import net.minecraft.world.effect.MobEffectCategory;
  * @since 1.0.0
  */
 
-public class TimeRateUpEffect extends MobEffect implements TimeRateContributor {
+public class WatchGuEffect extends MobEffect implements TimeRateContributor {
 
     private final int ratePerLayer;
     private final int maxLayers;
 
-    public TimeRateUpEffect(MobEffectCategory category, int color, int ratePerLayer, int maxLayers) {
+    public WatchGuEffect(MobEffectCategory category, int color, int ratePerLayer, int maxLayers) {
         super(category, color);
         this.ratePerLayer = ratePerLayer;
         this.maxLayers = maxLayers;

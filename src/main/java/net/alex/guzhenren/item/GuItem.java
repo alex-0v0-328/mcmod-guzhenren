@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * holder's rank and the item's own via {@code useChargeByGap}, never by the stage.
  *
  * <p>⚠ A leaf answering {@code hasTapUse} has two uses on the one click: let go within {@link #TAP_TICKS} lands
- * the tap use ({@code checkTapGate}, {@code tapApply}) in {@code releaseUsing}, a full charge lands the use, and a
+ * the tap use ({@code checkTapUse}, {@code performTapUse}) in {@code releaseUsing}, a full charge lands the use, and a
  * release in between lands neither. Its charge is never shorter than {@link #HOLD_MIN_TICKS}, so the two cannot
  * overlap; the press is refused only when both uses refuse, with the tap's reason. Only the Primeval Elder Gu and
  * the Nine Leaf Vitality Grass answer it, and only once refined, so a wild one is still refined by the hold.
@@ -47,8 +47,8 @@ import org.jetbrains.annotations.Nullable;
  * Gu but the Treasure Lotus) consumes its refusal instead, so the offhand item is not used or placed on it.
  *
  * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu. The
- * vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceGate} refuses on the action bar, and
- * {@code applyInPlace} lands it. It answers whether it landed.
+ * vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceUse} refuses on the action bar, and
+ * {@code performInPlaceUse} lands it. It answers whether it landed.
  *
  * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
  * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
@@ -56,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
  * aperture has one Vital Gu: {@code bind} also stamps a fresh token, and only the stack whose token the
  * store holds for that kind is the current one ({@code isCurrentVital}); a replaced one is harmless.
  *
- * <p>⚠ The hooks ({@code checkGate}, {@code apply}, {@code useDurationTicks}, {@code hasTapUse}) are re-read in
+ * <p>⚠ The hooks ({@code checkUse}, {@code performUse}, {@code useDurationTicks}, {@code hasTapUse}) are re-read in
  * {@code use}, {@code releaseUsing} and {@code finishUsingItem}, never cached from the press. A leaf wanting its
  * own pacing overrides the hook, not the stage.
  *
@@ -155,17 +155,17 @@ public abstract class GuItem extends Item {
     //region the hooks a leaf fills
     protected boolean hasUse() { return false; }
 
-    protected @Nullable Refusal checkGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkUse(Player player, ItemStack stack) { return null; }
 
-    protected int apply(ServerPlayer player, ItemStack stack) { return 0; }
+    protected int performUse(ServerPlayer player, ItemStack stack) { return 0; }
 
     protected int useDurationTicks(Player player, ItemStack stack) { return 0; }
 
     protected boolean hasTapUse(Player player, ItemStack stack) { return false; }
 
-    protected @Nullable Refusal checkTapGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkTapUse(Player player, ItemStack stack) { return null; }
 
-    protected int tapApply(ServerPlayer player, ItemStack stack) { return 0; }
+    protected int performTapUse(ServerPlayer player, ItemStack stack) { return 0; }
 
     public @Nullable Component chargeCaption(ItemStack stack, int remainingTicks) { return null; }
 
@@ -177,26 +177,26 @@ public abstract class GuItem extends Item {
 
     protected boolean keepsRefusedClick() { return false; }
 
-    protected @Nullable Refusal checkInPlaceGate(Player player, ItemStack stack) { return checkGate(player, stack); }
+    protected @Nullable Refusal checkInPlaceUse(Player player, ItemStack stack) { return checkUse(player, stack); }
 
-    protected int applyInPlace(ServerPlayer player, ItemStack stack) { return apply(player, stack); }
+    protected int performInPlaceUse(ServerPlayer player, ItemStack stack) { return performUse(player, stack); }
     //endregion
 
     public final boolean tryUseInPlace(ServerPlayer player, ItemStack stack) {
         if (player.getCooldowns().isOnCooldown(this)) return false;
 
-        Refusal refusal = checkInPlaceGate(player, stack);
+        Refusal refusal = checkInPlaceUse(player, stack);
         if (refusal != null) {
             refuse(player, refusal);
             return false;
         }
-        spend(player, stack, applyInPlace(player, stack));
+        spend(player, stack, performInPlaceUse(player, stack));
         return true;
     }
 
     private @Nullable Refusal getPressRefusal(Player player, ItemStack stack) {
-        Refusal refusal = checkGate(player, stack);
-        return refusal != null && hasTapUse(player, stack) ? checkTapGate(player, stack) : refusal;
+        Refusal refusal = checkUse(player, stack);
+        return refusal != null && hasTapUse(player, stack) ? checkTapUse(player, stack) : refusal;
     }
 
     private int getHoldTicks(Player player, ItemStack stack) {
@@ -209,7 +209,7 @@ public abstract class GuItem extends Item {
     }
 
     private void runUse(Player player, ItemStack stack) {
-        if (player instanceof ServerPlayer server) spend(server, stack, apply(server, stack));
+        if (player instanceof ServerPlayer server) spend(server, stack, performUse(server, stack));
     }
 
     @Override
@@ -238,7 +238,7 @@ public abstract class GuItem extends Item {
         if (!hasUse()) return super.finishUsingItem(stack, level, entity);
         if (!(entity instanceof Player player)) return stack;
 
-        Refusal refusal = checkGate(player, stack);
+        Refusal refusal = checkUse(player, stack);
         if (refusal != null) {
             refuse(player, refusal);
         } else {
@@ -253,11 +253,11 @@ public abstract class GuItem extends Item {
         if (!hasUse() || !(entity instanceof Player player) || !hasTapUse(player, stack)) return;
         if (getHoldTicks(player, stack) - remainingTicks > TAP_TICKS) return;
 
-        Refusal refusal = checkTapGate(player, stack);
+        Refusal refusal = checkTapUse(player, stack);
         if (refusal != null) {
             refuse(player, refusal);
         } else if (player instanceof ServerPlayer server) {
-            spend(server, stack, tapApply(server, stack));
+            spend(server, stack, performTapUse(server, stack));
         }
     }
 

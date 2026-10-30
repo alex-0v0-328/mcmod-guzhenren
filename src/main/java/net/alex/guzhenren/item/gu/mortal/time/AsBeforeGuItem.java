@@ -34,9 +34,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ The client never holds the body's memory (it is not synced), so every gate on them runs for a {@code ServerPlayer}
  * only and the client-side gate passes; the bar's gate runs on both, since the bar rides the stack. ⚠ The bar is
- * settled on the server right before a use spends ({@link #useApply}), never in a gate: a gate runs on the client too,
- * and a client write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at the
- * spend, since a full bar's stamp is stale ({@code GuClock.RecoverBar}).
+ * settled on the server right before a use spends ({@link #performOwnUse}), never in a gate: a gate runs on the client
+ * too, and a client write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at
+ * the spend, since a full bar's stamp is stale ({@code GuClock.RecoverBar}).
  *
  * @author Alex
  * @version 1.0.0
@@ -71,11 +71,11 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         long now = player.level().getGameTime();
         bar.settle(stack, now);
         boolean wasFull = bar.getPoints(stack) >= bar.max();
-        int result = super.useApply(player, stack);
+        int result = super.performOwnUse(player, stack);
         if (wasFull) bar.restart(stack, now);
         return result;
     }

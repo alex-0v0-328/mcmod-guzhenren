@@ -7,8 +7,8 @@ import net.minecraft.util.StringRepresentable;
 /**
  * The aperture status [空窍状态]: what an aperture [空窍] still can and cannot do, derived never stored.
  *
- * <p>Closed vocabulary enum. NORMAL is a living aperture; DEAD [死窍] covers zombie [僵], half-zombie
- * [半僵] and stone apertures [石窍] -- no natural regen, nourishing or striking.
+ * <p>Closed vocabulary enum. NORMAL is a living aperture; DEAD [死窍] covers zombie [僵尸], temp zombie
+ * [临时僵尸化] and stone apertures [石窍] -- no natural regen, nourishing or striking.
  *
  * <p>⚠ The derivation lives on {@code ApertureService#getStatus}, not here -- enums in this package are
  * vocabulary, and the check every gate wants is {@code status == NORMAL}.

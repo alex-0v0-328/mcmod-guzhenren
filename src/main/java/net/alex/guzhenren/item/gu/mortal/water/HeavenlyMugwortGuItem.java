@@ -43,10 +43,10 @@ public final class HeavenlyMugwortGuItem extends TendedGuItem {
     public int getDurationTicks() { return durationTicks; }
 
     @Override
-    protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return null; }
 
     @Override
-    protected void payOut(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, this);
         MugwortShieldService.raise(player, shieldPoints, durationTicks * amplification.factor());
         TimedEffects.markShieldAmplified(player, amplification);

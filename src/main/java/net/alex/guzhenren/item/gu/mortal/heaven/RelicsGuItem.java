@@ -30,12 +30,12 @@ public class RelicsGuItem extends OneShotGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         return checkStageUpGate(ApertureService.getAperture(player));
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         ApertureService.shiftStage(player, 1);
         ModCriteriaTriggers.REACHED_RANK.get().trigger(player, ApertureService.getAperture(player));
         return 1;
