@@ -33,11 +33,13 @@ import org.jetbrains.annotations.Nullable;
  * hooks every leaf overrides, and channeling is this item's own {@code onUseTick}, reading and writing ten
  * of its members -- pulled out, all of them would have to open up.
  *
- * <p>⚠ {@link #isHoldingFood} asks only "refined, and the offhand holds this Gu's food". It routes the gate,
- * {@code apply}, the charge length, the channel step and {@code hasSneakUse}, so the hunger bar and the
- * cooldowns stay out of it: inside it they would change what the same click does.
+ * <p>⚠ A refined Gu feeds itself from the holder's bag ({@link #eat}, every slot, offhand included): before and
+ * after each {@code drive}, on every channel step, and on the heartbeat while hungry or hurt ({@link
+ * #tryAutoFeed}). Every meal mends first and fills the bar only once whole. Food never routes a click, so there is
+ * no feeding gesture; a channeled Gu at its hunger floor is refused only when the bag holds none of its food
+ * ({@link #carriesFood}).
  *
- * <p>⚠ {@code checkCooldown} is the one cooldown gate for the plain use, the sneak use and {@link #tryAutoUse}:
+ * <p>⚠ {@code checkCooldown} is the one cooldown gate for the use, the tap use and {@link #tryAutoUse}:
  * the larger of the effect cooldown (waived by {@code canUseDuringEffectCooldown}) and the post-refine guard. A
  * refusal puts the ticks left back on the vanilla cooldown, so a lost sweep redraws. {@code spend} runs
  * {@code super.spend} first and only then puts the largest of the item cooldown, the post-refine guard and the
@@ -51,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * holder above the Gu's rank is Gu-paced: a channel step pours at most
  * {@code getEssencePerHungerPoint() * STEP_TICKS}, scaled by {@code TimeFlow}, and a refining step may pour the
  * whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
- * 80% of it a second at normal time flow. Each channel step eats from the offhand before it sizes the essence,
+ * 80% of it a second at normal time flow. Each refining or channel step tops the pool up from carried stones
+ * ({@code PrimevalStoneSupply.topUp}), and each channel step eats from the bag before it sizes the essence,
  * because the step is capped by the essence above the hunger floor, which the meal raises.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
@@ -204,8 +207,8 @@ public abstract class TendedGuItem extends MortalGuItem {
         }
         if (!spec.isChanneled()) return;
 
-        if (isHoldingFood(player, stack)) eat(player, stack);
-        PrimevalStoneSupply.fillFromOffhand(player);
+        eat(player, stack);
+        PrimevalStoneSupply.topUp(player);
         int take = stepAmount(player, stack, elapsed);
         if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
             player.stopUsingItem();
@@ -215,7 +218,7 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     private void refineTick(ServerPlayer player, ItemStack stack, int elapsed) {
-        PrimevalStoneSupply.fillFromOffhand(player);
+        PrimevalStoneSupply.topUp(player);
         int left = getRefineCost() - getState(stack).refineProgress();
         int take = (int) Math.min(left, getPoured(player, elapsed));
         if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
@@ -311,18 +314,19 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     //region the clicks
     @Override
-    protected boolean canFeedFromOffhand() { return true; }
+    protected boolean keepsRefusedClick() { return true; }
 
     @Override
     protected final @Nullable Refusal checkGate(Player player, ItemStack stack) {
-        if (isHoldingFood(player, stack)) return null;
         if (!isRefined(stack)) {
             return checkEssenceGate(player, Math.min(ESSENCE_FLOOR, getRefineCost()), FAILED_REFINE_ESSENCE);
         }
         Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
         if (poor != null) return poor;
 
-        if (spec.isChanneled() && clock.getEssenceAboveHungerFloor(stack) <= 0) return new Refusal(FAILED_STARVING);
+        if (spec.isChanneled() && clock.getEssenceAboveHungerFloor(stack) <= 0 && !carriesFood(player)) {
+            return new Refusal(FAILED_STARVING);
+        }
 
         Refusal cooling = checkCooldown(player, stack);
         return cooling != null ? cooling : checkUseGate(player, stack);
@@ -337,12 +341,7 @@ public abstract class TendedGuItem extends MortalGuItem {
 
     @Override
     protected final int apply(ServerPlayer player, ItemStack stack) {
-        if (!isRefined(stack)) return 0;
-        if (isHoldingFood(player, stack) && !isCrouching(player)) {
-            eat(player, stack);
-            return 0;
-        }
-        return useApply(player, stack);
+        return isRefined(stack) ? useApply(player, stack) : 0;
     }
 
     @Override
@@ -353,13 +352,13 @@ public abstract class TendedGuItem extends MortalGuItem {
     @Override
     protected final int useDurationTicks(Player player, ItemStack stack) {
         if (!isRefined(stack)) return CHANNEL_MAX_TICKS;
-        if (isHoldingFood(player, stack) && !isCrouching(player)) return 0;
         return spec.isChanneled() ? CHANNEL_MAX_TICKS : useChargeTicks(player, stack);
     }
 
     protected int useChargeTicks(Player player, ItemStack stack) { return useChargeByGap(player); }
 
     protected int drive(ServerPlayer player, ItemStack stack) {
+        eat(player, stack);
         if (trySpendAndGrant(player, stack)) return 1;
         eat(player, stack);
         if (isHungry(player, stack)) clock.warn(player, stack, 1L);
@@ -377,26 +376,12 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     @Override
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return isHoldingFood(player, stack); }
-
-    @Override
-    protected @Nullable Refusal checkSneakGate(Player player, ItemStack stack) {
-        Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
-        if (poor != null) return poor;
-
+    protected final @Nullable Refusal checkTapGate(Player player, ItemStack stack) {
         Refusal cooling = checkCooldown(player, stack);
-        return cooling != null ? cooling : checkPayoutGate(player, stack);
+        return cooling != null ? cooling : checkTapUseGate(player, stack);
     }
 
-    @Override
-    protected int sneakApply(ServerPlayer player, ItemStack stack) {
-        eat(player, stack);
-        return spec.isChanneled() ? 0 : drive(player, stack);
-    }
-
-    protected boolean isHoldingFood(Player player, ItemStack stack) {
-        return isRefined(stack) && feedUnits(player.getOffhandItem()) > 0;
-    }
+    protected @Nullable Refusal checkTapUseGate(Player player, ItemStack stack) { return null; }
 
     protected boolean canUseDuringEffectCooldown() { return false; }
 
@@ -429,9 +414,22 @@ public abstract class TendedGuItem extends MortalGuItem {
     }
 
     protected void eat(ServerPlayer player, ItemStack stack) {
-        ItemStack food = player.getOffhandItem();
-        healFrom(player, stack, food);
-        clock.tryEat(this, player, stack, food);
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            ItemStack food = inventory.getItem(slot);
+            if (feedUnits(food) <= 0) continue;
+
+            healFrom(player, stack, food);
+            clock.tryEat(this, player, stack, food);
+        }
+    }
+
+    private boolean carriesFood(Player player) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            if (feedUnits(inventory.getItem(slot)) > 0) return true;
+        }
+        return false;
     }
     //endregion
 
@@ -510,15 +508,8 @@ public abstract class TendedGuItem extends MortalGuItem {
     //region the day clock -- GuUpkeep walks the containers; a leaf may pay its own upkeep
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
 
-    public boolean tryAutoFeed(ServerPlayer player, ItemStack stack) {
-        if (!clock.isHungry(player, stack)) return false;
-
-        Inventory inventory = player.getInventory();
-        boolean ate = false;
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            if (clock.tryEat(this, player, stack, inventory.getItem(slot))) ate = true;
-        }
-        return ate;
+    public void tryAutoFeed(ServerPlayer player, ItemStack stack) {
+        if (clock.isHungry(player, stack) || getState(stack).damageTaken() > 0) eat(player, stack);
     }
     //endregion
 

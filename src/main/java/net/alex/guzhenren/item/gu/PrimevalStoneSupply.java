@@ -12,9 +12,9 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * The one supply line for primeval stones [元石]: every automatic draw on carried stones goes through here
- * -- the top-up line (refill below {@link #REFILL_BELOW_PERCENT}%, stop at {@link #REFILL_UP_TO_PERCENT}%),
- * paying a cost the pool cannot cover, the refinement menu's supply slot, and a tended Gu refilling from an
- * offhand stack while it channels. {@link #takeFrom} is the single way a stone leaves a stack, whether the
+ * -- the top-up line (refill below {@link #REFILL_BELOW_PERCENT}%, stop at {@link #REFILL_UP_TO_PERCENT}%), which
+ * also feeds a tended Gu's refining and channeling step by step, paying a cost the pool cannot cover, and the
+ * refinement menu's supply slot. {@link #takeFrom} is the single way a stone leaves a stack, whether the
  * stack is stones or a Primeval Elder Gu [元老蛊] vault.
  *
  * <p>☠ A second copy of the top-up line drifts, and the pool silently clamps whatever a caller pours past
@@ -71,17 +71,6 @@ public final class PrimevalStoneSupply {
         if (wanted <= 0L || each <= 0L) return;
         int taken = draw(player, (int) Math.min(Integer.MAX_VALUE, (wanted + each - 1) / each));
         if (taken > 0) ApertureEssenceService.add(player, taken * each);
-    }
-
-    public static void fillFromOffhand(ServerPlayer player) {
-        ItemStack offhand = player.getOffhandItem();
-        if (!(offhand.getItem() instanceof PrimevalStoneItem stone)) return;
-
-        int used = stone.getUsableCount(player, offhand);
-        if (used <= 0) return;
-
-        ApertureEssenceService.add(player, stone.getEssence() * used);
-        if (!player.getAbilities().instabuild) offhand.shrink(used);
     }
 
     private static int draw(ServerPlayer player, int wanted) {

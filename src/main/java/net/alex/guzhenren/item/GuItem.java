@@ -30,20 +30,21 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The abstract base of everything a Gu hand holds, covering both Gu [蛊虫] and Gu material [蛊材].
  *
- * <p>Extends {@link Item} to add the four right-click templates a leaf fills: plain use, sneak use,
- * charge pacing, and Vital Gu [本命蛊] binding. Every gesture is a right click: there is no left-click or swing
- * template, and none gets added. The charge duration is paced by the gap between the
+ * <p>Extends {@link Item} to add the four right-click templates a leaf fills: the use, the tap use, charge
+ * pacing, and Vital Gu [本命蛊] binding. Every gesture is a right click, tapped or held: there is no left-click,
+ * swing or sneak template, and none gets added. The charge duration is paced by the gap between the
  * holder's rank and the item's own via {@code useChargeByGap}, never by the stage.
  *
- * <p>⚠ A sneak use takes a crouch and the leaf's {@code hasSneakUse}; when the leaf answers false, the click
- * falls back to the plain use, which is how a crouching player still refines a wild Gu. Each leaf names its own
- * condition: a tended Gu wants its food in the offhand, the Primeval Elder Gu and the Nine Leaf Vitality Grass
- * only being refined. The crouch is {@link #isCrouching}, the pose, never {@code isShiftKeyDown()}: that key
- * flag is also set while a creative flyer descends, when the pose stays standing.
+ * <p>⚠ A leaf answering {@code hasTapUse} has two uses on the one click: let go within {@link #TAP_TICKS} lands
+ * the tap use ({@code checkTapGate}, {@code tapApply}) in {@code releaseUsing}, a full charge lands the use, and a
+ * release in between lands neither. Its charge is never shorter than {@link #HOLD_MIN_TICKS}, so the two cannot
+ * overlap; the press is refused only when both uses refuse, with the tap's reason. Only the Primeval Elder Gu and
+ * the Nine Leaf Vitality Grass answer it, and only once refined, so a wild one is still refined by the hold.
  *
  * <p>Vanilla offers a click to the offhand whenever the main hand's use fails or passes, cooldown included. A leaf
  * that works only as a partner held there answers {@code hasOffhandUse} false, so it passes silently instead of
- * replacing the main-hand Gu's refusal on the action bar.
+ * replacing the main-hand Gu's refusal on the action bar. A leaf answering {@code keepsRefusedClick} (every tended
+ * Gu but the Treasure Lotus) consumes its refusal instead, so the offhand item is not used or placed on it.
  *
  * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu. The
  * vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceGate} refuses on the action bar, and
@@ -55,9 +56,9 @@ import org.jetbrains.annotations.Nullable;
  * aperture has one Vital Gu: {@code bind} also stamps a fresh token, and only the stack whose token the
  * store holds for that kind is the current one ({@code isCurrentVital}); a replaced one is harmless.
  *
- * <p>⚠ The four hooks ({@code checkGate}, {@code apply}, {@code useDurationTicks}, {@code hasSneakUse}) are
- * re-read in both {@code use} and {@code finishUsingItem}, so leaving or entering a crouch mid-charge
- * switches which branch lands. A leaf wanting its own pacing overrides the hook, not the stage.
+ * <p>⚠ The hooks ({@code checkGate}, {@code apply}, {@code useDurationTicks}, {@code hasTapUse}) are re-read in
+ * {@code use}, {@code releaseUsing} and {@code finishUsingItem}, never cached from the press. A leaf wanting its
+ * own pacing overrides the hook, not the stage.
  *
  * @author Alex
  * @version 1.0.0
@@ -68,6 +69,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GuItem extends Item {
 
     public static final int COOLDOWN_TICKS = 2;
+    public static final int TAP_TICKS = Ticks.SECOND / 4;
+    public static final int HOLD_MIN_TICKS = Ticks.HALF_SECOND;
     public static final int CHARGE_COLOR_DEFAULT = 0xFF4FC3F7;
     private final Rank rank;
     private final GuPath path;
@@ -158,11 +161,11 @@ public abstract class GuItem extends Item {
 
     protected int useDurationTicks(Player player, ItemStack stack) { return 0; }
 
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return false; }
+    protected boolean hasTapUse(Player player, ItemStack stack) { return false; }
 
-    protected @Nullable Refusal checkSneakGate(Player player, ItemStack stack) { return null; }
+    protected @Nullable Refusal checkTapGate(Player player, ItemStack stack) { return null; }
 
-    protected int sneakApply(ServerPlayer player, ItemStack stack) { return 0; }
+    protected int tapApply(ServerPlayer player, ItemStack stack) { return 0; }
 
     public @Nullable Component chargeCaption(ItemStack stack, int remainingTicks) { return null; }
 
@@ -170,9 +173,9 @@ public abstract class GuItem extends Item {
 
     public int chargeColor(ItemStack stack, int remainingTicks) { return CHARGE_COLOR_DEFAULT; }
 
-    protected boolean canFeedFromOffhand() { return false; }
-
     protected boolean hasOffhandUse() { return true; }
+
+    protected boolean keepsRefusedClick() { return false; }
 
     protected @Nullable Refusal checkInPlaceGate(Player player, ItemStack stack) { return checkGate(player, stack); }
 
@@ -191,18 +194,22 @@ public abstract class GuItem extends Item {
         return true;
     }
 
-    private @Nullable Refusal getRefusal(Player player, ItemStack stack, boolean sneak) {
-        return sneak ? checkSneakGate(player, stack) : checkGate(player, stack);
+    private @Nullable Refusal getPressRefusal(Player player, ItemStack stack) {
+        Refusal refusal = checkGate(player, stack);
+        return refusal != null && hasTapUse(player, stack) ? checkTapGate(player, stack) : refusal;
+    }
+
+    private int getHoldTicks(Player player, ItemStack stack) {
+        int ticks = useDurationTicks(player, stack);
+        return hasTapUse(player, stack) ? Math.max(ticks, HOLD_MIN_TICKS) : ticks;
     }
 
     private void refuse(Player player, Refusal refusal) {
         if (player instanceof ServerPlayer server) ActionBar.refuse(server, refusal.key(), refusal.args());
     }
 
-    private void runUse(Player player, ItemStack stack, boolean sneak) {
-        if (player instanceof ServerPlayer server) {
-            spend(server, stack, sneak ? sneakApply(server, stack) : apply(server, stack));
-        }
+    private void runUse(Player player, ItemStack stack) {
+        if (player instanceof ServerPlayer server) spend(server, stack, apply(server, stack));
     }
 
     @Override
@@ -210,19 +217,18 @@ public abstract class GuItem extends Item {
                                                                  @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (hand == InteractionHand.OFF_HAND && !hasOffhandUse()) return InteractionResultHolder.pass(stack);
-        boolean sneak = isSneakUse(player, stack);
-        if (!sneak && !hasUse()) return super.use(level, player, hand);
+        if (!hasUse()) return super.use(level, player, hand);
 
-        Refusal refusal = getRefusal(player, stack, sneak);
+        Refusal refusal = getPressRefusal(player, stack);
         if (refusal != null) {
             refuse(player, refusal);
-            return canFeedFromOffhand() ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
+            return keepsRefusedClick() ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
         }
-        if (useDurationTicks(player, stack) > 0) {
+        if (getHoldTicks(player, stack) > 0) {
             player.startUsingItem(hand);
             return InteractionResultHolder.consume(stack);
         }
-        runUse(player, stack, sneak);
+        runUse(player, stack);
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
     }
 
@@ -232,26 +238,33 @@ public abstract class GuItem extends Item {
         if (!hasUse()) return super.finishUsingItem(stack, level, entity);
         if (!(entity instanceof Player player)) return stack;
 
-        boolean sneak = isSneakUse(player, stack);
-        Refusal refusal = getRefusal(player, stack, sneak);
+        Refusal refusal = checkGate(player, stack);
         if (refusal != null) {
             refuse(player, refusal);
         } else {
-            runUse(player, stack, sneak);
+            runUse(player, stack);
         }
         return stack;
     }
 
-    public static boolean isCrouching(Player player) { return player.isCrouching(); }
+    @Override
+    public final void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity entity,
+                                   int remainingTicks) {
+        if (!hasUse() || !(entity instanceof Player player) || !hasTapUse(player, stack)) return;
+        if (getHoldTicks(player, stack) - remainingTicks > TAP_TICKS) return;
 
-    protected boolean isSneakUse(Player player, ItemStack stack) {
-        return isCrouching(player) && hasSneakUse(player, stack);
+        Refusal refusal = checkTapGate(player, stack);
+        if (refusal != null) {
+            refuse(player, refusal);
+        } else if (player instanceof ServerPlayer server) {
+            spend(server, stack, tapApply(server, stack));
+        }
     }
 
     @Override
     public final int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         if (!hasUse()) return super.getUseDuration(stack, entity);
-        return entity instanceof Player player ? useDurationTicks(player, stack) : 0;
+        return entity instanceof Player player ? getHoldTicks(player, stack) : 0;
     }
 
     @Override

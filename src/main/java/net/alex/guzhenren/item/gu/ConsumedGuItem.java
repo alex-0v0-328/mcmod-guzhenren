@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
  * rather than testing the class.
  *
  * <p>⚠ Binding one would lose it, and bill its owner, on the very first click. ⚠ It never eats on its way out:
- * {@code drive} only spends and grants ({@code trySpendAndGrant}), and the sneak use skips the base's eat-first,
- * so no food goes into a stack that is gone after the click.
+ * {@code drive} only spends and grants ({@code trySpendAndGrant}), skipping the base's meals before and after, so
+ * no food goes into a stack that is gone after the click.
  *
  * @author Alex
  * @version 1.0.0
@@ -37,7 +37,4 @@ public abstract class ConsumedGuItem extends TendedGuItem {
         trySpendAndGrant(player, stack);
         return 1;
     }
-
-    @Override
-    protected int sneakApply(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
 }

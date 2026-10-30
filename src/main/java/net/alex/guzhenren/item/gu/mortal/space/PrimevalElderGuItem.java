@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * Primeval Elder Gu [元老蛊]: a vault for primeval stones [元石] that pays its own upkeep from the vault.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem} but declares no clock and never eats.
- * Right click deposits every stone (free); sneak + right click withdraws a stack of 64 (free). The
+ * A tapped right click deposits every carried stone (free); a held one withdraws a stack of 64 (free). The
  * stored-stones total rides {@link net.alex.guzhenren.registry.item.ModDataComponents}, not
  * {@code RefinedGuState}, because every tended Gu shares that record.
  *
@@ -37,7 +37,6 @@ public class PrimevalElderGuItem extends TendedGuItem {
     private static final String FAILED_NO_STONES = "guzhenren.item.failed.elder_gu_no_stones";
     private static final String TOOLTIP_STORED = "guzhenren.item.gu.stored_stones";
     private static final int WITHDRAW_STONES = 64;
-    private static final long DEPOSIT_IS_FREE = 0L;
     private final long capacity;
 
     public PrimevalElderGuItem(Properties properties, long capacity, GuSpec spec) {
@@ -57,18 +56,18 @@ public class PrimevalElderGuItem extends TendedGuItem {
     private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
     //endregion
 
-    //region depositing -- the plain right click, free and instant
+    //region depositing -- the tap, free
     @Override
-    protected long useThreshold(ItemStack stack) { return DEPOSIT_IS_FREE; }
+    protected boolean hasTapUse(Player player, ItemStack stack) { return isRefined(stack); }
 
     @Override
-    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+    protected @Nullable Refusal checkTapUseGate(Player player, ItemStack stack) {
         if (getStored(stack) >= capacity) return new Refusal(FAILED_FULL);
         return getDepositable(player, stack) <= 0 ? new Refusal(FAILED_NO_STONES) : null;
     }
 
     @Override
-    protected int useApply(ServerPlayer player, ItemStack stack) {
+    protected int tapApply(ServerPlayer player, ItemStack stack) {
         deposit(player, stack);
         payOwnUpkeep(player, stack);
         return 0;
@@ -102,24 +101,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region withdrawing -- sneak + right click, which is this Gu's use
-    @Override
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return isRefined(stack); }
-
-    @Override
-    protected @Nullable Refusal checkSneakGate(Player player, ItemStack stack) {
-        Refusal poor = checkEssenceGate(player, spec.getEssencePerRound(), FAILED_ESSENCE);
-        return poor != null ? poor : checkPayoutGate(player, stack);
-    }
-
-    @Override
-    protected int sneakApply(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
-
-    @Override
-    protected int useChargeTicks(Player player, ItemStack stack) {
-        return isSneakUse(player, stack) ? super.useChargeTicks(player, stack) : 0;
-    }
-
+    //region withdrawing -- the hold, which is this Gu's use
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         return getStored(stack) <= 0 ? new Refusal(FAILED_EMPTY) : null;

@@ -23,10 +23,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * {@link RadialMenu} instead of using the item, listing the hotbar Gu it can amplify; a pick sends
  * {@link AmplifyDrivePayload} with that slot, and the server checks it all again.
  *
- * <p>Food for it in the offhand leaves the click to vanilla, so the plain click still feeds it, and a wild one is
- * still refined by holding the click. A sector is listed by {@code AmplifyEffectGuItem#canAmplify} and shown
- * disabled while its Gu is on the vanilla cooldown, which would stop the drive anyway. The hold ends when the use key
- * is let go or the amplifier leaves the main hand (a number key); only the first sends the pick.
+ * <p>A wild one leaves the click to vanilla, so it is still refined by holding the click. A sector is listed by
+ * {@code AmplifyEffectGuItem#canAmplify} and shown disabled while its Gu is on the vanilla cooldown, which would stop
+ * the drive anyway. The hold ends when the use key is let go or the amplifier leaves the main hand (a number key);
+ * only the first sends the pick.
  *
  * @author Alex
  * @version 1.0.0
@@ -48,8 +48,7 @@ public final class AmplifyEffectInput {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         ItemStack stack = player.getMainHandItem();
-        if (!(stack.getItem() instanceof AmplifyEffectGuItem amplifier) || !amplifier.isRefined(stack)
-                || amplifier.isFood(player.getOffhandItem())) return;
+        if (!(stack.getItem() instanceof AmplifyEffectGuItem amplifier) || !amplifier.isRefined(stack)) return;
 
         event.setCanceled(true);
         event.setSwingHand(false);

@@ -24,13 +24,13 @@ import org.jetbrains.annotations.Nullable;
  * Nine Leaf Vitality Grass [九叶生机草]: a wood path grass that grows Vitality Leaf Gu [生机叶蛊], nine at most.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem} but declares no clock -- never eats, never starves,
- * and has no way to mend its health. Refined right click picks one leaf into the bag for free; sneak + right click
- * pays {@code essencePerLeaf} essence [真元] over a {@link #GROW_CHARGE_TICKS} charge to grow one. Leaves also
- * regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
+ * and has no way to mend its health. Once refined, a tapped right click picks one leaf into the bag for free; a
+ * held one pays {@code essencePerLeaf} essence [真元] over a {@link #GROW_CHARGE_TICKS} charge to grow one. Leaves
+ * also regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
  *
  * <p>⚠ A stack without the component holds nine: the grass picked from its flower, a wild one and a creative copy
- * are all full. {@link #checkPayoutGate} answers both clicks, because {@code TendedGuItem.checkSneakGate} also
- * ends in it.
+ * are all full. {@link #checkPayoutGate} is the pick's gate, the tap's and its payout's; {@link #checkUseGate} is
+ * the grow's.
  *
  * <p>⚠ The regrowth runs on the grass's own clock and is never scaled by Time Path [宙道] self-time; only the
  * holder's grow charge is shortened, like every other charge.
@@ -75,31 +75,40 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
     //endregion
 
-    //region both clicks -- a pick needs a leaf, a grow needs room and the essence
+    //region the two uses -- a pick needs a leaf, a grow needs room and the essence
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {
         long now = player.level().getGameTime();
-        int leaves = getLeaves(stack, now);
-        if (isSneakUse(player, stack)) {
-            if (leaves >= LeafGrowth.MAX_LEAVES) return new Refusal(FAILED_LEAVES_FULL);
-            return checkEssenceGate(player, essencePerLeaf, FAILED_ESSENCE);
-        }
-        return leaves > 0 ? null
+        return getLeaves(stack, now) > 0 ? null
                 : new Refusal(FAILED_NO_LEAVES, Component.literal(String.valueOf(getSecondsToNextLeaf(stack, now))));
     }
 
     @Override
-    protected boolean hasSneakUse(Player player, ItemStack stack) { return isRefined(stack); }
+    protected @Nullable Refusal checkUseGate(Player player, ItemStack stack) {
+        if (getLeaves(stack, player.level().getGameTime()) >= LeafGrowth.MAX_LEAVES) {
+            return new Refusal(FAILED_LEAVES_FULL);
+        }
+        return checkEssenceGate(player, essencePerLeaf, FAILED_ESSENCE);
+    }
+
+    @Override
+    protected boolean hasTapUse(Player player, ItemStack stack) { return isRefined(stack); }
+
+    @Override
+    protected @Nullable Refusal checkTapUseGate(Player player, ItemStack stack) {
+        return checkPayoutGate(player, stack);
+    }
 
     @Override
     protected int useChargeTicks(Player player, ItemStack stack) {
-        return isSneakUse(player, stack)
-                ? TimeFlow.shortenWait(player, GROW_CHARGE_TICKS)
-                : super.useChargeTicks(player, stack);
+        return TimeFlow.shortenWait(player, GROW_CHARGE_TICKS);
     }
     //endregion
 
-    //region picking -- the plain right click, free
+    //region picking -- the tap, free
+    @Override
+    protected int tapApply(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
+
     @Override
     protected void payOut(ServerPlayer player, ItemStack stack) {
         long now = player.level().getGameTime();
@@ -110,9 +119,9 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
     //endregion
 
-    //region growing -- sneak + right click, paid from the holder's own essence
+    //region growing -- the hold, paid from the holder's own essence
     @Override
-    protected int sneakApply(ServerPlayer player, ItemStack stack) {
+    protected int useApply(ServerPlayer player, ItemStack stack) {
         if (!ApertureEssenceService.consume(player, essencePerLeaf)) return 0;
 
         stack.set(ModDataComponents.LEAF_GROWTH,

@@ -49,7 +49,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
     }
 
     @Override
-    protected boolean canFeedFromOffhand() { return false; }
+    protected boolean keepsRefusedClick() { return false; }
 
     @Override
     protected @Nullable Refusal checkPayoutGate(Player player, ItemStack stack) {

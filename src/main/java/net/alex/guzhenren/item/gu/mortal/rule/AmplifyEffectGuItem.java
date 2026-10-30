@@ -22,10 +22,10 @@ import org.jetbrains.annotations.Nullable;
  * held in the offhand while a main-hand Gu pays out, or held in the main hand while the radial menu [扇形选择器]
  * drives a hotbar Gu ({@link #driveFromHotbar}).
  *
- * <p>Extends {@link TendedGuItem}: refined and fed in the main hand like any tended Gu. On the client a held right
- * click opens the radial menu instead of a use, so its own use is reached only through a sneak with food, and is
- * refused; from the offhand it does not answer the click at all, so a refused main-hand Gu keeps its own reason on
- * the action bar.
+ * <p>Extends {@link TendedGuItem}: refined in the main hand like any tended Gu, and fed from the bag around each
+ * billed use and on the day rollover. Once refined, the client turns its right click into the radial menu, so its
+ * own use never reaches the server but by a forged packet, and is refused; from the offhand it does not answer the
+ * click at all, so a refused main-hand Gu keeps its own reason on the action bar.
  *
  * <p>A Gu answers it by declaring {@code canBeAmplified} and asking {@link #amplify} from its own payout, multiplying
  * its effect's length: {@code BuffGuItem} (Self Reliance included), {@code AllOutEffortGuItem}, the timed
@@ -66,8 +66,6 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     }
 
     public int getMultiplier() { return getRank().ordinal(); }
-
-    public boolean isFood(ItemStack stack) { return feedUnits(stack) > 0; }
 
     public boolean canAmplify(ItemStack amplifier, ItemStack target) {
         return isRefined(amplifier) && target.getItem() instanceof MortalGuItem driven && driven.canBeAmplified()
@@ -110,11 +108,13 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
         if (!isRefined(stack) || driven.getRank().ordinal() > getRank().ordinal()) return false;
         if (!ApertureEssenceService.consume(player, spec.getEssencePerRound())) return false;
 
+        eat(player, stack);
         if (clock.isSpendForced(stack) && !player.getAbilities().instabuild) {
             exhaust(player, stack);
             stack.shrink(1);
             return true;
         }
+        eat(player, stack);
         if (isHungry(player, stack)) clock.warn(player, stack, 1L);
         return true;
     }
