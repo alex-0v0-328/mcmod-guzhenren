@@ -1,8 +1,8 @@
 package net.alex.guzhenren.client.event;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.client.hud.AwakeningHud;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
+import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
 import net.minecraft.world.entity.player.Player;
@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 
 /**
  * The client half of the cultivation stance [温养空窍]: it holds the player still and pulls the view in. The
- * awakening ritual [开窍仪式] holds the same stance, until its full white starts to clear.
+ * awakening ritual [开窍仪式] holds the same stance, until its flash has faded and the plaque shows.
  *
  * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. On {@code MovementInputUpdateEvent} it zeroes
  * every input axis while {@link #isHeldStill} is true; on {@code ComputeFovModifierEvent} it sets a multiplier so
@@ -59,6 +59,6 @@ public final class NourishInputEvents {
     }
 
     private static boolean isHeldStill(Player player) {
-        return ApertureNourishService.isCultivating(player) || AwakeningHud.INSTANCE.holdsStill(player);
+        return ApertureNourishService.isCultivating(player) || AwakeningRitualService.holdsStill(player);
     }
 }

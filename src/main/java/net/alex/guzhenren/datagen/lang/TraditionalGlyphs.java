@@ -18,7 +18,7 @@ import java.util.Map;
  * the longest token that matches at each position, so a phrase always beats the glyphs inside it.
  *
  * <p>⚠ A glyph with more than one Traditional form in ordinary game text (冲 沖/衝, 制 制/製, 只
- * 只/隻, 准 准/準, 复 復/複/覆, 回 回/迴, 尽 盡/儘, 喂 喂/餵, 舍 舍/捨, 游 游/遊, 斗 斗/鬥) sits in neither
+ * 只/隻, 准 准/準, 复 復/複/覆, 回 回/迴, 尽 盡/儘, 喂 喂/餵, 舍 舍/捨, 游 游/遊, 斗 斗/鬥, 周 周/週) sits in neither
  * {@link #PAIRS} nor {@link #UNCHANGED} on purpose: it converts only inside a phrase, so every new
  * use has to be decided in context. A glyph whose other form is archaic or never game text (背 is
  * 背包, not 揹包; 尸 is 屍; 万 is 萬) is filed with its usual form.
@@ -43,9 +43,9 @@ public final class TraditionalGlyphs {
             + "别別 疗療 蚀蝕 调調 隐隱 飞飛 骑騎 栏欄 键鍵 块塊 锭錠 条條 丝絲 减減 护護 "
             + "莲蓮 虚虛 虫蟲 蛊蠱 蛮蠻 装裝 见見 觉覺 识識 试試 诣詣 该該 请請 负負 败敗 质質 "
             + "资資 赋賦 转轉 轮輪 辅輔 输輸 边邊 达達 运運 进進 选選 遥遙 钧鈞 铁鐵 铜銅 银銀 锚錨 "
-            + "闭閉 间間 阳陽 阴陰 阵陣 阶階 随隨 须須 饰飾 饱飽 饿餓 魇魘 鲛鮫 黄黃 龙龍";
+            + "闭閉 间間 阳陽 阴陰 阵陣 阶階 随隨 须須 饰飾 饱飽 饿餓 魇魘 鲛鮫 黄黃 龙龍 围圍 险險 暂暫";
     private static final String PHRASES = "一只一隻 耗尽耗盡 将尽將盡 冲刷沖刷 横冲橫衝 轮回輪迴 回复回復 准大準大 "
-            + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦";
+            + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦 周围周圍";
     private static final String UNCHANGED = "一丁七三上下不世丙中丸主乃之乙九也了二五亡交人仙以任位何作你使俗信修倍值停"
             + "偷催元先光入全八六共具再冥冰凡出初利到刷力功加包化北十千升半卓卸厚及取受口"
             + "古可名君味命品四因圈土在地基境墨壁外多大天太央失奴如妙存宇宗宙定家小尚山峰已"
@@ -55,7 +55,7 @@ public final class TraditionalGlyphs {
             + "紫美羽老而耗肉背腐自至色花苦草荒荔莽菇落蓬虎蛋蛐血行衍衰被裂解豕象赤赴越足跳身"
             + "辣送逍通速造道遭酒酸醒重野金雪零雷需青非面音食香高鬼魁魂魄魔黑"
             + "筋骨皮原抗退限刻匿反坐增幅查治玉移防御翡翠"
-            + "副手持握配合其他部分快捷按住右永久益盾";
+            + "副手持握配合其他部分快捷按住右永久益盾危能";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

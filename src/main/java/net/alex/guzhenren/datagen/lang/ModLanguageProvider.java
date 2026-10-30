@@ -158,6 +158,11 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.base_units.7",                "Seven",                       "七");
         add("guzhenren.display.base_units.8",                "Eight",                       "八");
         add("guzhenren.display.base_units.9",                "Nine",                        "九");
+        add("guzhenren.display.talent_grade.first",          "Grade A",                     "甲等");
+        add("guzhenren.display.talent_grade.second",         "Grade B",                     "乙等");
+        add("guzhenren.display.talent_grade.third",          "Grade C",                     "丙等");
+        add("guzhenren.display.talent_grade.fourth",         "Grade D",                     "丁等");
+        add("guzhenren.chat.awakened",                       "%s's aptitude: %s",           "%s资质：%s");
         add("guzhenren.display.none",                        "[NONE]",                      "[无]");
         add("guzhenren.display.marks.both",                  "%s Marks %s Strands",         "%s条道痕 %s丝道痕");
         add("guzhenren.display.marks.marks",                 "%s Marks",                    "%s条道痕");
@@ -373,6 +378,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.awakened",                        "You have already awakened", "你已开窍");
         add("guzhenren.item.failed.awakening",                       "The awakening is under way", "开窍仪式进行中");
         add("guzhenren.item.failed.nourishing",                      "You are nourishing your aperture", "正在温养空窍");
+        add("guzhenren.item.failed.awakening_danger",
+                "Danger is near - you cannot awaken now", "周围有危险，暂不能开窍");
         add("guzhenren.item.failed.unawakened",                      "You have NOT awakened", "你未开窍");
         add("guzhenren.item.failed.essence_full",                    "Essence is already FULL", "真元已满");
         add("guzhenren.item.failed.rank_mismatch",                   "Wrong realm - this Gu needs %s", "境界不符 — 此蛊需%s");

@@ -106,7 +106,7 @@ public final class ApertureNourishService {
     //region what the screen asks
     public static boolean canNourish(@NotNull Player player, int index) {
         if (!ApertureService.hasAperture(player) || isCultivating(player)
-                || AwakeningRitualService.isInRitual(player)) return false;
+                || AwakeningRitualService.holdsStill(player)) return false;
         if (index < 0 || index >= ApertureService.get(player).count()) return false;
         if (ApertureService.getStatus(player, index) != ApertureStatus.NORMAL) return false;
         return !isAtCeiling(player, index)

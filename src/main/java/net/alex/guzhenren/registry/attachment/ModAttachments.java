@@ -45,7 +45,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * second stage [二段飞行], and a relog starts outside it. {@code PLUNGE} is synced to its owner the same way: a
  * player who has it is plunging [坠击], and its value is the top of that fall. {@code AWAKENING_RITUAL} counts by
  * presence too, a player who has it is in the awakening ritual [开窍仪式], and it is saved and synced to every client
- * that sees the player, who draws the Hope Gu [希望蛊] hovering before them. A record other players must see
+ * that sees the player, who draws the Hope Gu [希望蛊] hovering before them and the aptitude plaque [资质牌匾] over
+ * their head, Ten-Extremes physique included. A record other players must see
  * widens its sync predicate; it never gets a downstream payload.
  *
  * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a

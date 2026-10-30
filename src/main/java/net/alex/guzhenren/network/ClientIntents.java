@@ -82,7 +82,7 @@ public final class ClientIntents {
                 player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
                 player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
                 player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
-        if (ApertureNourishService.isCultivating(player) || AwakeningRitualService.isInRitual(player)) return;
+        if (ApertureNourishService.isCultivating(player) || AwakeningRitualService.holdsStill(player)) return;
         EpicFightIntegration.dash(player, vertical, yRot);
     }
 

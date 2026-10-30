@@ -200,10 +200,17 @@ public final class ApertureService {
         return set(player, index, getAperture(player, index).withBaseEssence(clamped));
     }
 
-    public static void awaken(@NotNull ServerPlayer player) { open(player, Aperture.createOpened()); }
+    public static void awaken(@NotNull ServerPlayer player) {
+        open(player, Aperture.createOpened(), ExtremePhysique.NONE);
+    }
 
     public static void awaken(@NotNull ServerPlayer player, int baseEssence) {
-        open(player, baseEssence > 0 ? Aperture.createOpenedAt(baseEssence) : Aperture.createOpened());
+        awaken(player, baseEssence, ExtremePhysique.NONE);
+    }
+
+    /** {@code tenExtreme} is the physique a Ten-Extremes aperture brings; {@code NONE} rolls one. */
+    public static void awaken(@NotNull ServerPlayer player, int baseEssence, @NotNull ExtremePhysique tenExtreme) {
+        open(player, baseEssence > 0 ? Aperture.createOpenedAt(baseEssence) : Aperture.createOpened(), tenExtreme);
     }
 
     public static void openSecond(@NotNull ServerPlayer player, @NotNull Rank rank) {
@@ -218,7 +225,7 @@ public final class ApertureService {
         set(player, index, opened.withPrimaryPath(old.primaryPath()).withSecondaryPath(old.secondaryPath()));
     }
 
-    private static void open(ServerPlayer player, Aperture aperture) {
+    private static void open(ServerPlayer player, Aperture aperture, ExtremePhysique tenExtreme) {
         ApertureData data = get(player);
         if (data.isFull()) return;
         if (data.count() == 1 && data.get(0).second()) {
@@ -229,7 +236,8 @@ public final class ApertureService {
             store(player, data.withOpened(aperture));
         }
         if (aperture.getTalent() == Talent.TEN_EXTREMES) {
-            BodyService.setExtremePhysique(player, ExtremePhysique.randomTenExtreme());
+            BodyService.setExtremePhysique(player,
+                    tenExtreme != ExtremePhysique.NONE ? tenExtreme : ExtremePhysique.randomTenExtreme());
         }
     }
 

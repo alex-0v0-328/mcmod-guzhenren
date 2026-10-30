@@ -18,9 +18,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.MortalGuItem} directly, not {@code OneShotGuItem}: it pays no refining
  * and runs no modules. The click rolls the aptitude [资质], takes the Gu and hands the rest to
- * {@link AwakeningRitualService}, which holds the player still and awakens them when the white peaks. A stack that
- * rolled under the old held ritual still carries that roll in {@link ModDataComponents#AWAKEN_BASE}, and the ritual
- * takes it; creative, which keeps the stack, clears it so a reset can re-roll.
+ * {@link AwakeningRitualService}, which holds the player still and awakens them when the flash peaks; danger nearby
+ * refuses the click ({@link AwakeningRitualService#isInDanger}). A stack that rolled under the old held ritual still
+ * carries that roll in {@link ModDataComponents#AWAKEN_BASE}, and the ritual takes it; creative, which keeps the
+ * stack, clears it so a reset can re-roll.
  *
  * <p>⚠ {@code stacksTo(1)}: a data component is shared by the whole stack, so stacking would give 64 copies of one
  * rolled aptitude.
@@ -37,6 +38,7 @@ public class HopeGuItem extends MortalGuItem {
     private static final String FAILED_AWAKENED = "guzhenren.item.failed.awakened";
     private static final String FAILED_AWAKENING = "guzhenren.item.failed.awakening";
     private static final String FAILED_NOURISHING = "guzhenren.item.failed.nourishing";
+    private static final String FAILED_DANGER = "guzhenren.item.failed.awakening_danger";
 
     public HopeGuItem(Properties properties, GuSpec spec) {
         super(properties, spec);
@@ -46,7 +48,8 @@ public class HopeGuItem extends MortalGuItem {
     protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         if (ApertureService.isAwakened(player)) return new Refusal(FAILED_AWAKENED);
         if (AwakeningRitualService.isInRitual(player)) return new Refusal(FAILED_AWAKENING);
-        return ApertureNourishService.isCultivating(player) ? new Refusal(FAILED_NOURISHING) : null;
+        if (ApertureNourishService.isCultivating(player)) return new Refusal(FAILED_NOURISHING);
+        return AwakeningRitualService.isInDanger(player) ? new Refusal(FAILED_DANGER) : null;
     }
 
     @Override
