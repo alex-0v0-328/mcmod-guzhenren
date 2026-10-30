@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.screen;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -19,12 +20,14 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /**
  * The buttons under each aperture [空窍] in the B panel: nourish [温养空窍] (or flush [冲刷窍壁] for the first
  * aperture once it can strike the wall), then storage [空窍存储]. {@link #buildStackButtons} decides which buttons an
- * aperture shows, {@link #fill} paints one's box, {@link #drawLabel} its text and {@link #click} sends its payload;
- * the two paints are apart so the panel can draw every box before any text in one batch. Where a stack sits is the
- * panel's business. Labels are built once, not per frame.
+ * aperture shows, {@link #draw} adds one's sprite to the panel's batch, {@link #fillProgress} lays the nourish run
+ * over it, {@link #drawLabel} draws its text and {@link #click} sends its payload; the paints are apart so the panel
+ * can draw every sprite, then every fill, then every text in one batch. Where a stack sits is the panel's business.
+ * Labels are built once, not per frame.
  *
- * <p>The nourish button shows the run's progress as a fill while it is the running target, and a click on
- * it then cancels; starting a run closes the panel. A button whose action cannot be afforded is drawn dead.
+ * <p>The nourish button is lit while it is the running target, with the run's progress as a fill inside its frame,
+ * and a click on it then cancels; starting a run closes the panel. A button whose action cannot be afforded is drawn
+ * dead.
  *
  * @author Alex
  * @version 1.0.0
@@ -40,6 +43,7 @@ final class ApertureButtons {
     static final int IMPACT = 1;
     static final int STORAGE = 2;
     private static final int PROGRESS = 0x804FC3F7;
+    private static final int BUTTON_FRAME = 2;
     private static final Component LABEL_NOURISH = Component.translatable("guzhenren.screen.nourish");
     private static final Component LABEL_NOURISH_STOP = Component.translatable("guzhenren.screen.nourish_stop");
     private static final Component LABEL_NOURISH_SECOND = Component.translatable("guzhenren.screen.nourish_second");
@@ -66,39 +70,27 @@ final class ApertureButtons {
         return withStorage(aperture, buttons, 0);
     }
 
-    static void fill(GuiGraphics graphics, LocalPlayer player, ColumnButton button, int mouseX, int mouseY,
-                     int accent) {
+    static void draw(SpriteBatch sprites, LocalPlayer player, ColumnButton button, int mouseX, int mouseY) {
         boolean hover = isInBox(mouseX, mouseY, button.x0(), button.x1(), button.top());
-        int x0 = button.x0();
-        int x1 = button.x1();
-        int top = button.top();
-        int bottom = top + PlayerInfoScreen.BTN_H;
-        switch (button.kind()) {
-            case IMPACT -> {
-                int strike = !ApertureNourishService.canAffordImpact(player) ? ModPalette.BUTTON_DEAD
-                        : hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE;
-                graphics.fill(x0, top, x1, bottom, strike);
-                graphics.renderOutline(x0, top, x1 - x0, PlayerInfoScreen.BTN_H, accent);
-            }
-            case NOURISH -> {
-                boolean running = isRunning(player, button.aperture());
-                int fill = running ? ModPalette.BUTTON_HOVER
-                        : ApertureNourishService.canNourish(player, button.aperture()) ? ModPalette.BUTTON_IDLE
-                        : ModPalette.BUTTON_DEAD;
-                graphics.fill(x0, top, x1, bottom, fill);
-                if (running) {
-                    float fraction = ApertureNourishService.getFraction(player, button.aperture());
-                    int done = x0 + Math.round((x1 - x0) * fraction);
-                    graphics.fill(x0, top, done, bottom, PROGRESS);
-                }
-                graphics.renderOutline(x0, top, x1 - x0, PlayerInfoScreen.BTN_H,
-                        running ? accent : ModPalette.BORDER);
-            }
-            default -> {
-                graphics.fill(x0, top, x1, bottom, hover ? ModPalette.BUTTON_HOVER : ModPalette.BUTTON_IDLE);
-                graphics.renderOutline(x0, top, x1 - x0, PlayerInfoScreen.BTN_H, ModPalette.BORDER);
-            }
-        }
+        boolean running = button.kind() == NOURISH && isRunning(player, button.aperture());
+        boolean live = switch (button.kind()) {
+            case IMPACT -> ApertureNourishService.canAffordImpact(player);
+            case NOURISH -> running || ApertureNourishService.canNourish(player, button.aperture());
+            default -> true;
+        };
+        boolean lit = button.kind() == NOURISH ? running : hover;
+        sprites.blit(Widgets.getButtonSprite(live, lit), button.x0(), button.top(), button.x1() - button.x0(),
+                PlayerInfoScreen.BTN_H);
+    }
+
+    static void fillProgress(GuiGraphics graphics, LocalPlayer player, ColumnButton button) {
+        if (button.kind() != NOURISH || !isRunning(player, button.aperture())) return;
+
+        int x0 = button.x0() + BUTTON_FRAME;
+        int width = button.x1() - button.x0() - BUTTON_FRAME * 2;
+        int done = x0 + Math.round(width * ApertureNourishService.getFraction(player, button.aperture()));
+        graphics.fill(x0, button.top() + BUTTON_FRAME, done, button.top() + PlayerInfoScreen.BTN_H - BUTTON_FRAME,
+                PROGRESS);
     }
 
     static void drawLabel(GuiGraphics graphics, Font font, ColumnButton button) {

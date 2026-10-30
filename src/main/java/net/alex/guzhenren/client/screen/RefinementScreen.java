@@ -2,8 +2,10 @@ package net.alex.guzhenren.client.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
@@ -12,6 +14,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,12 +23,13 @@ import org.jetbrains.annotations.Nullable;
  * The refinement [炼蛊] screen: the ring grid, the phase bar, and the recipe picker.
  *
  * <p>Extends {@link net.minecraft.client.gui.screens.inventory.AbstractContainerScreen} for
- * {@link RefinementMenu}. Draws the 5×5 grid (corners cut), the craft
- * button in three states, the phase bar, the stone slot, and the recipe picker modal. Ghosts for
+ * {@link RefinementMenu}. Draws the 5×5 grid (corners cut, the 内圈 in brighter cells inside a gold frame), the
+ * craft button in three states, the phase bar, the stone slot, and the recipe picker modal. Ghosts for
  * missing ingredients ({@link RecipeGhosts}) and the pool readings ({@link PoolBars}) are drawn from
  * {@code renderLabels} so the carried item paints last; the buttons and cells are the package's {@link Widgets}, the
- * whole background in one {@link GuiBatch} and the three buttons in another, every fill and outline before any
- * label (each label fits inside its outline). The recipe table the screen and its picker read is {@link KnownRecipes},
+ * whole background in one {@link GuiBatch} and the three buttons in another, every sprite before any label. The
+ * craft label turns red while the grid is ready but the aperture cannot pay the first second's essence; the button is
+ * dead then. The recipe table the screen and its picker read is {@link KnownRecipes},
  * sorted once rather than per frame. The picker modal translates Z to 500 to stay above slot items. In
  * {@link #mouseClicked(double, double, int)}, the open picker swallows every click; only the left button acts on it.
  *
@@ -57,9 +61,10 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private static final int RECIPE_W = 52;
     private static final int RECIPE_H = 20;
     private static final int LEGEND_Y = 142;
-    private static final int CORE_FILL = 0x4DFFFFFF;
+    private static final ResourceLocation CORE_FRAME = Guzhenren.id("core_frame");
+    private static final int CORE_FRAME_PAD = 7;
     private static final int BAR_WINDOW = 0xFF81C784;
-    private static final int BAR_GAP = 0x6681C784;
+    private static final int BAR_GAP = 0xFF415A41;
     private static final String CRAFT_KEY = "guzhenren.menu.refinement.craft";
     private static final String STOP_KEY = "guzhenren.menu.refinement.stop";
     private static final String LEGEND_KEY = "guzhenren.menu.refinement.rings";
@@ -87,45 +92,48 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         int x = leftPos;
         int y = topPos;
         GuiBatch.draw(graphics, () -> {
-            Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
+            SpriteBatch.draw(graphics, sprites -> {
+                Widgets.drawPanel(sprites, x, y, imageWidth, imageHeight);
+                drawInput(sprites, x, y);
+                Widgets.drawCell(sprites, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y);
+                Widgets.drawCells(sprites, x + RefinementMenu.OUTPUT_X, y + RefinementMenu.OUTPUT_Y,
+                        RefinementMenu.OUTPUT_COLS, RefinementMenu.OUTPUT_ROWS, GRID_SLOT);
+                Widgets.drawCells(sprites, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.INVENTORY_Y,
+                        RefinementMenu.INVENTORY_COLS, 3, SLOT);
+                Widgets.drawCells(sprites, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.HOTBAR_Y,
+                        RefinementMenu.INVENTORY_COLS, 1, SLOT);
+                drawBar(sprites, x, y);
+            });
             Widgets.drawRule(graphics, x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, ModPalette.REFINEMENT);
-
-            drawInput(graphics, x, y);
-            Widgets.drawCell(graphics, x + RefinementMenu.STONE_X, y + RefinementMenu.STONE_Y, ModPalette.SLOT_FILL);
-            Widgets.drawCells(graphics, x + RefinementMenu.OUTPUT_X, y + RefinementMenu.OUTPUT_Y,
-                    RefinementMenu.OUTPUT_COLS, RefinementMenu.OUTPUT_ROWS, GRID_SLOT, ModPalette.SLOT_FILL);
-            Widgets.drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.INVENTORY_Y,
-                    RefinementMenu.INVENTORY_COLS, 3, SLOT, ModPalette.SLOT_FILL);
-            Widgets.drawCells(graphics, x + RefinementMenu.INVENTORY_X, y + RefinementMenu.HOTBAR_Y,
-                    RefinementMenu.INVENTORY_COLS, 1, SLOT, ModPalette.SLOT_FILL);
-            drawBar(graphics, x, y);
         });
     }
 
-    //region the two rings -- the 内圈 is marked by a brighter cell and an accent frame around the block
-    private void drawInput(GuiGraphics graphics, int x, int y) {
+    //region the two rings -- the 内圈 is marked by brighter cells and a gold frame around the block
+    private static void drawInput(SpriteBatch sprites, int x, int y) {
         for (int i = 0; i < GuRecipe.RING_SIZE; i++) {
-            Widgets.drawCell(graphics, x + RefinementMenu.getRingX(i), y + RefinementMenu.getRingY(i),
-                    ModPalette.SLOT_FILL);
+            Widgets.drawCell(sprites, x + RefinementMenu.getRingX(i), y + RefinementMenu.getRingY(i));
         }
-        Widgets.drawCells(graphics, x + RefinementMenu.getCoreX(0), y + RefinementMenu.getCoreY(0),
-                GuRecipe.CORE_COLS, GuRecipe.CORE_ROWS, GRID_SLOT, CORE_FILL);
-        graphics.renderOutline(x + RefinementMenu.getCoreX(0) - 3, y + RefinementMenu.getCoreY(0) - 3,
-                (GuRecipe.CORE_COLS - 1) * GRID_SLOT + Widgets.CELL + 6,
-                (GuRecipe.CORE_ROWS - 1) * GRID_SLOT + Widgets.CELL + 6, ModPalette.REFINEMENT);
+        for (int row = 0; row < GuRecipe.CORE_ROWS; row++) {
+            for (int col = 0; col < GuRecipe.CORE_COLS; col++) {
+                Widgets.drawCell(sprites, Widgets.SLOT_CORE, x + RefinementMenu.getCoreX(col),
+                        y + RefinementMenu.getCoreY(row));
+            }
+        }
+        sprites.blit(CORE_FRAME, x + RefinementMenu.getCoreX(0) - CORE_FRAME_PAD,
+                y + RefinementMenu.getCoreY(0) - CORE_FRAME_PAD,
+                (GuRecipe.CORE_COLS - 1) * GRID_SLOT + Widgets.CELL + CORE_FRAME_PAD * 2,
+                (GuRecipe.CORE_ROWS - 1) * GRID_SLOT + Widgets.CELL + CORE_FRAME_PAD * 2);
     }
     //endregion
 
     //region the phase bar -- it empties over the 5s window, then over the 2s gap
-    private void drawBar(GuiGraphics graphics, int x, int y) {
-        int bx = x + BAR_X;
-        int by = y + BAR_Y;
-        graphics.fill(bx, by, bx + BAR_W, by + BAR_H, PoolBars.TRACK);
-        if (!menu.isRunning()) return;
-
-        int span = menu.isInWindow() ? GuRecipe.WINDOW_TICKS : GuRecipe.GAP_TICKS;
-        int filled = BAR_W * menu.getPhaseLeft() / span;
-        graphics.fill(bx, by, bx + filled, by + BAR_H, getBarColor());
+    private void drawBar(SpriteBatch sprites, int x, int y) {
+        int filled = 0;
+        if (menu.isRunning()) {
+            int span = menu.isInWindow() ? GuRecipe.WINDOW_TICKS : GuRecipe.GAP_TICKS;
+            filled = (BAR_W - 2) * menu.getPhaseLeft() / span;
+        }
+        Widgets.drawBar(sprites, x + BAR_X, y + BAR_Y, BAR_W, BAR_H, filled, getBarColor());
     }
 
     private int getBarColor() {
@@ -183,9 +191,11 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         GuiBatch.draw(graphics, () -> {
-            fillCraft(graphics, mouseX, mouseY);
-            fillRecipe(graphics, mouseX, mouseY);
-            Widgets.fillBack(graphics, getBackX(), getBackY(), mouseX, mouseY);
+            SpriteBatch.draw(graphics, sprites -> {
+                drawCraft(sprites, mouseX, mouseY);
+                drawRecipe(sprites, mouseX, mouseY);
+                Widgets.drawBack(sprites, getBackX(), getBackY(), mouseX, mouseY);
+            });
             drawCraftLabel(graphics);
             drawRecipeLabel(graphics);
             Widgets.drawBackLabel(graphics, font, getBackX(), getBackY());
@@ -204,24 +214,16 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     //region the 炼制 button -- three states off the ritual, and 停止 while it runs
-    private void fillCraft(GuiGraphics graphics, int mouseX, int mouseY) {
-        int x = getCraftX();
-        int y = getCraftY();
-        boolean stopping = menu.isRunning();
+    private void drawCraft(SpriteBatch sprites, int mouseX, int mouseY) {
         boolean live = isCraftLive();
-        boolean shortOfEssence = !stopping && isClickable() && !menu.canAfford();
         boolean hover = live && isInCraft(mouseX, mouseY);
-
-        Widgets.fillButton(graphics, x, y, CRAFT_W, CRAFT_H, live, hover);
-        if (live || shortOfEssence) {
-            graphics.renderOutline(x, y, CRAFT_W, CRAFT_H,
-                    stopping ? ModPalette.SHORT : live ? ModPalette.REFINEMENT : ModPalette.SHORT_OUTLINE);
-        }
+        Widgets.drawButton(sprites, getCraftX(), getCraftY(), CRAFT_W, CRAFT_H, live, hover);
     }
 
     private void drawCraftLabel(GuiGraphics graphics) {
         Component label = Component.translatable(menu.isRunning() ? STOP_KEY : CRAFT_KEY);
-        Widgets.drawButtonLabel(graphics, font, label, getCraftX(), getCraftY(), CRAFT_W, CRAFT_H, isCraftLive());
+        int colour = isCraftLive() ? ModPalette.TEXT : isClickable() ? ModPalette.SHORT : ModPalette.TEXT_DEAD;
+        Widgets.drawCentered(graphics, font, label, getCraftX(), getCraftY(), CRAFT_W, CRAFT_H, colour);
     }
 
     private boolean isCraftLive() { return menu.isRunning() || (isClickable() && menu.canAfford()); }
@@ -238,14 +240,10 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     //endregion
 
     //region the 蛊方 button -- dead while the ritual runs, because the grid is locked anyway
-    private void fillRecipe(GuiGraphics graphics, int mouseX, int mouseY) {
-        int x = getRecipeX();
-        int y = getRecipeY();
+    private void drawRecipe(SpriteBatch sprites, int mouseX, int mouseY) {
         boolean live = !menu.isRunning();
         boolean hover = live && isInRecipe(mouseX, mouseY);
-
-        Widgets.fillButton(graphics, x, y, RECIPE_W, RECIPE_H, live, hover);
-        if (live) graphics.renderOutline(x, y, RECIPE_W, RECIPE_H, ModPalette.REFINEMENT);
+        Widgets.drawButton(sprites, getRecipeX(), getRecipeY(), RECIPE_W, RECIPE_H, live, hover);
     }
 
     private void drawRecipeLabel(GuiGraphics graphics) {

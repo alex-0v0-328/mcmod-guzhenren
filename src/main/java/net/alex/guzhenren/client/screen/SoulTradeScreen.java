@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.screen;
 import java.util.List;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.trade.SoulTradeMenu;
 import net.alex.guzhenren.gameplay.trade.SoulTradeOffer;
 import net.alex.guzhenren.gameplay.trade.TradeCost;
@@ -16,15 +17,16 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The soul trader's screen: one row per offer -- costs, an arrow, the result and a trade button -- above the
- * player's inventory. Drawn from fills and the shared {@link ModPalette}, like the refinement screen, so it
- * needs no texture.
+ * player's inventory. Drawn from the shared {@link Widgets} sprites and {@link ModPalette}, like the refinement
+ * screen.
  *
- * <p>A cost count turns red while the bag holds less than it asks, and the button then wears the refusal
- * outline, but it stays clickable: the server judges and the soul answers with a head shake. Icons, counts and
+ * <p>A cost count turns red while the bag holds less than it asks, and the button then looks dead with a red label,
+ * but it stays clickable: the server judges and the soul answers with a head shake. Icons, counts and
  * button labels are drawn from {@code renderLabels}, so the carried item still paints over them.
  *
  * <p>The bag is counted once per frame in {@link #render}, into {@code enough} per cost and {@code affordable} per
- * offer, which the background and the labels both read; the background is one {@link GuiBatch}.
+ * offer, which the background and the labels both read; the background is one {@link GuiBatch}: the panel and cells,
+ * the row fills over the panel, then the buttons over the rows.
  *
  * @author Alex
  * @version 1.0.0
@@ -73,27 +75,26 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
         int y = this.topPos;
         List<SoulTradeOffer> offers = this.menu.getOffers();
         GuiBatch.draw(graphics, () -> {
-            Widgets.drawPanel(graphics, x, y, this.imageWidth, this.imageHeight, ModPalette.PANEL_FILL);
-
+            SpriteBatch.draw(graphics, sprites -> {
+                Widgets.drawPanel(sprites, x, y, this.imageWidth, this.imageHeight);
+                int inventoryX = x + SoulTradeMenu.INVENTORY_X;
+                Widgets.drawCells(sprites, inventoryX, y + SoulTradeMenu.getInventoryY(offers.size()),
+                        SoulTradeMenu.INVENTORY_COLS, SoulTradeMenu.INVENTORY_ROWS, SoulTradeMenu.SLOT);
+                Widgets.drawCells(sprites, inventoryX, y + SoulTradeMenu.getHotbarY(offers.size()),
+                        SoulTradeMenu.INVENTORY_COLS, 1, SoulTradeMenu.SLOT);
+            });
             for (int i = 0; i < offers.size(); i++) {
                 int rowY = y + getRowY(i);
                 graphics.fill(x + ROW_X, rowY, x + ROW_X + ROW_W, rowY + ROW_FILL_H, ROW_FILL);
-                drawButton(graphics, x + BUTTON_X, rowY + ICON_PAD, this.affordable[i],
-                        this.isInButton(i, mouseX, mouseY));
             }
-            int inventoryX = x + SoulTradeMenu.INVENTORY_X;
-            Widgets.drawCells(graphics, inventoryX, y + SoulTradeMenu.getInventoryY(offers.size()),
-                    SoulTradeMenu.INVENTORY_COLS, SoulTradeMenu.INVENTORY_ROWS, SoulTradeMenu.SLOT,
-                    ModPalette.SLOT_FILL);
-            Widgets.drawCells(graphics, inventoryX, y + SoulTradeMenu.getHotbarY(offers.size()),
-                    SoulTradeMenu.INVENTORY_COLS, 1, SoulTradeMenu.SLOT, ModPalette.SLOT_FILL);
+            SpriteBatch.draw(graphics, sprites -> {
+                for (int i = 0; i < offers.size(); i++) {
+                    boolean hover = this.isInButton(i, mouseX, mouseY);
+                    Widgets.drawButton(sprites, x + BUTTON_X, y + getRowY(i) + ICON_PAD, BUTTON_W, BUTTON_H,
+                            this.affordable[i] || hover, hover);
+                }
+            });
         });
-    }
-
-    private static void drawButton(GuiGraphics graphics, int x, int y, boolean affordable, boolean hover) {
-        int fill = hover ? ModPalette.BUTTON_HOVER : affordable ? ModPalette.BUTTON_IDLE : ModPalette.BUTTON_DEAD;
-        graphics.fill(x, y, x + BUTTON_W, y + BUTTON_H, fill);
-        graphics.renderOutline(x, y, BUTTON_W, BUTTON_H, affordable ? ModPalette.BORDER : ModPalette.SHORT_OUTLINE);
     }
 
     @Override

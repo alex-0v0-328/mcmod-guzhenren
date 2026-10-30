@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen;
 
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.path.GuPath;
@@ -17,8 +18,9 @@ import org.jetbrains.annotations.Nullable;
  * centred on the panel. A click on a cell sends {@link SetSecondaryPathPayload} for the aperture it was
  * opened for; a click anywhere else, Esc or B closes it without a choice.
  *
- * <p>It draws in one {@link GuiBatch}. The hovered cell's fill stays in the cell loop rather than before every
- * name: a long English name ("Transformation Path") runs into the next cell, whose hover fill is drawn over it.
+ * <p>It draws in one {@link GuiBatch}, the popup sprite first. The hovered cell's fill stays in the cell loop rather
+ * than before every name: a long English name ("Transformation Path") runs into the next cell, whose hover fill is
+ * drawn over it.
  *
  * @author Alex
  * @version 1.0.0
@@ -52,7 +54,7 @@ final class PathPicker {
         int h = getHeight();
 
         GuiBatch.draw(graphics, () -> {
-            Widgets.drawPanel(graphics, x0, y0, w, h, ModPalette.MODAL_FILL);
+            SpriteBatch.draw(graphics, sprites -> Widgets.drawPopup(sprites, x0, y0, w, h));
             Widgets.drawRule(graphics, x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD,
                     PlayerInfoScreen.DIVIDER);
             graphics.drawString(font, Component.translatable("guzhenren.screen.pick.title"),

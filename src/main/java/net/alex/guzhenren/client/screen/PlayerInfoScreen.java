@@ -3,9 +3,11 @@ package net.alex.guzhenren.client.screen;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -16,6 +18,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +34,10 @@ import org.jetbrains.annotations.Nullable;
  * The refinement tab opens its container via a client-intent payload instead of drawing rows. Row
  * content comes from {@link InfoModel}; {@link InfoRowRenderer} turns each entry into the panel's
  * label and value, {@link ApertureButtons} are the buttons under each aperture, and {@link PathPicker} is
- * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}, every box before any
- * text, and {@link InfoRowCache} keeps the rows of the last frame while the model is unchanged.
+ * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}: every sprite in one
+ * {@link SpriteBatch}, then the fills over them (rule, hovers, nourish progress), then every text; {@link InfoRowCache}
+ * keeps the rows of the last frame while the model is unchanged. The selected tab is the idle tab sprite with the
+ * greyscale selection border over it, tinted the tab's accent; its title takes the same accent.
  *
  * <p>⚠ A plain screen with no menu behind it: no container channel to send an intent over.
  *
@@ -58,9 +63,12 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_GAP = 4;
     static final int DIVIDER = 0x33FFFFFF;
     static final int ROW_HOVER = 0x14FFFFFF;
-    private static final int TAB_IDLE = 0x26FFFFFF;
-    private static final int TAB_TEXT_IDLE = 0xFFBBBBBB;
-    private static final int TAB_TEXT_DEAD = 0xFF6A6A6A;
+    private static final ResourceLocation TAB = Guzhenren.id("tab");
+    private static final ResourceLocation TAB_HIGHLIGHTED = Guzhenren.id("tab_highlighted");
+    private static final ResourceLocation TAB_SELECTED = Guzhenren.id("tab_selected");
+    private static final ResourceLocation TAB_DISABLED = Guzhenren.id("tab_disabled");
+    private static final ResourceLocation SCROLLER = Guzhenren.id("scroller");
+    private static final ResourceLocation SCROLLER_BACKGROUND = Guzhenren.id("scroller_background");
     private static final int[] ACCENT = { ModPalette.APERTURE, ModPalette.BODY, ModPalette.SOUL,
             ModPalette.PATH, ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
     private static final Component[] TAB_TITLES = {
@@ -81,8 +89,8 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_PATH = 4;
     private static final int TAB_MIND = 5;
     private static final int TAB_REFINEMENT = 6;
-    private static final int SCROLL_W = 2;
-    private static final int SCROLL_GAP = 5;
+    private static final int SCROLL_W = 6;
+    private static final int SCROLL_GAP = 9;
     private static final int COL_GAP = 16;
     private int leftPos;
     private int topPos;
@@ -113,8 +121,9 @@ public final class PlayerInfoScreen extends Screen {
         hoverClick = null;
 
         GuiBatch.draw(graphics, () -> {
-            fillFrame(graphics, mouseX, mouseY);
-            if (player != null) fillContent(graphics, content, player, mouseX, mouseY, accent);
+            SpriteBatch.draw(graphics, sprites -> drawSprites(sprites, content, player, mouseX, mouseY));
+            Widgets.drawRule(graphics, leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, DIVIDER);
+            if (player != null) fillContent(graphics, content, player, mouseX, mouseY);
             drawFrameTexts(graphics, accent);
             if (player != null) drawContentTexts(graphics, content, accent);
         });
@@ -147,42 +156,46 @@ public final class PlayerInfoScreen extends Screen {
         };
     }
 
-    //region the two passes -- every box first, then every text, so one batch holds each kind
-    private void fillFrame(GuiGraphics graphics, int mouseX, int mouseY) {
-        Widgets.drawPanel(graphics, leftPos, topPos, panelW, panelH, ModPalette.PANEL_FILL);
-        Widgets.drawRule(graphics, leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, DIVIDER);
-        for (int i = 0; i < TAB_TITLES.length; i++) {
-            boolean active = i == activeTab;
-            int x0 = getTabLeft();
-            int y0 = getTabTop(i);
-            boolean hover = isTabLive(i) && !active && isInTab(mouseX, mouseY, i);
+    //region the three passes -- every sprite, then every fill over them, then every text
+    private void drawSprites(SpriteBatch sprites, Content content, @Nullable LocalPlayer player, int mouseX,
+                             int mouseY) {
+        Widgets.drawPanel(sprites, leftPos, topPos, panelW, panelH);
+        for (int i = 0; i < TAB_TITLES.length; i++) drawTab(sprites, i, mouseX, mouseY);
+        if (player == null) return;
 
-            graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, active ? ACCENT[i] : TAB_IDLE);
-            if (hover) graphics.fill(x0, y0, x0 + TAB_W, y0 + TAB_H, ROW_HOVER);
-            if (active) graphics.fill(x0 - 2, y0, x0, y0 + TAB_H, ACCENT[i]);
+        if (!content.columns() && content.rows().size() > content.visible()) {
+            drawScrollBar(sprites, content.rows().size(), content.visible());
+        }
+        for (ApertureButtons.ColumnButton b : content.buttons()) {
+            ApertureButtons.draw(sprites, player, b, mouseX, mouseY);
         }
     }
 
-    private void fillContent(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY,
-                             int accent) {
+    private void drawTab(SpriteBatch sprites, int i, int mouseX, int mouseY) {
+        int x0 = getTabLeft();
+        int y0 = getTabTop(i);
+        boolean active = i == activeTab;
+        ResourceLocation tab = !isTabLive(i) ? TAB_DISABLED
+                : !active && isInTab(mouseX, mouseY, i) ? TAB_HIGHLIGHTED : TAB;
+
+        sprites.blit(tab, x0, y0, TAB_W, TAB_H);
+        if (active) sprites.blit(TAB_SELECTED, x0, y0, TAB_W, TAB_H, ACCENT[i]);
+    }
+
+    private void fillContent(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY) {
         if (content.columns()) {
             int divider = getContentLeft() + getColumnWidth() + COL_GAP / 2;
             graphics.fill(divider, getContentTop(), divider + 1, getContentBottom(), DIVIDER);
         }
         forEachRow(content, (row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
-        if (!content.columns() && content.rows().size() > content.visible()) {
-            renderScrollBar(graphics, content.rows().size(), content.visible(), accent);
-        }
-        for (ApertureButtons.ColumnButton b : content.buttons()) {
-            ApertureButtons.fill(graphics, player, b, mouseX, mouseY, accent);
-        }
+        for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.fillProgress(graphics, player, b);
     }
 
     private void drawFrameTexts(GuiGraphics graphics, int accent) {
         graphics.drawString(font, TAB_TITLES[activeTab],
                 leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
         for (int i = 0; i < TAB_TITLES.length; i++) {
-            int color = i == activeTab ? 0xFF101010 : isTabLive(i) ? TAB_TEXT_IDLE : TAB_TEXT_DEAD;
+            int color = i == activeTab ? ACCENT[i] : isTabLive(i) ? ModPalette.TEXT : ModPalette.TEXT_DEAD;
             Widgets.drawCentered(graphics, font, TAB_TITLES[i], getTabLeft(), getTabTop(i), TAB_W, TAB_H, color);
         }
     }
@@ -300,15 +313,15 @@ public final class PlayerInfoScreen extends Screen {
 
     private int getEdgeRight() { return getTabLeft() - PAD; }
 
-    private void renderScrollBar(GuiGraphics graphics, int total, int visible, int accent) {
+    private void drawScrollBar(SpriteBatch sprites, int total, int visible) {
         int x0 = getTabLeft() - SCROLL_GAP;
         int top = getContentTop();
         int track = visible * LINE_H;
 
-        graphics.fill(x0, top, x0 + SCROLL_W, top + track, DIVIDER);
+        sprites.blit(SCROLLER_BACKGROUND, x0, top, SCROLL_W, track);
         int thumb = Math.max(LINE_H, track * visible / total);
         int offset = (track - thumb) * scrollRow / Math.max(1, total - visible);
-        graphics.fill(x0, top + offset, x0 + SCROLL_W, top + offset + thumb, accent);
+        sprites.blit(SCROLLER, x0, top + offset, SCROLL_W, thumb);
     }
 
     @Override

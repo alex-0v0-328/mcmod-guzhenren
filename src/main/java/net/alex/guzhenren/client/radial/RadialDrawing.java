@@ -33,6 +33,7 @@ final class RadialDrawing {
     private static final float ICON_GROW = 0.25F;
     private static final int ARC_STEPS = 64;
     private static final double GAP = 0.025D;
+    private static final int SECTOR_FILL = 0xBF000000;
     private static final int HOVER_FILL = 0x99FFD54F;
     private static final int FLASH_FILL = 0xE6FFFFFF;
     private static final int DISABLED_SHADE = 0xA0000000;
@@ -61,7 +62,7 @@ final class RadialDrawing {
             double half = count == 1 ? Math.PI : Math.PI / count - GAP;
             double size = scale * appear;
             double push = POP * weights[i] * size;
-            int color = RadialMotion.mix(ModPalette.PANEL_FILL, HOVER_FILL, weights[i]);
+            int color = RadialMotion.mix(SECTOR_FILL, HOVER_FILL, weights[i]);
             if (i == flashIndex) color = RadialMotion.mix(color, FLASH_FILL, flash);
             fillArc(buffer, matrix, centerX + RadialLayout.x(push, angle), centerY + RadialLayout.y(push, angle),
                     RadialLayout.INNER_RADIUS * size, (RadialLayout.OUTER_RADIUS + GROW * weights[i]) * size,

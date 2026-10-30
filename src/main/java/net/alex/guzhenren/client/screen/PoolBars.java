@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen;
 
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
@@ -14,9 +15,9 @@ import net.minecraft.world.entity.player.Player;
  * soul [魂魄], each a {@code value / max} reading over a thin bar. All three ride the synced attachments, so none of
  * them needs a packet; a refinement spends essence and soul every second, and the bars show it.
  *
- * <p>Drawn from the screen's {@code renderLabels}, so coordinates are panel-relative. {@link #TRACK} is the empty
- * bar, shared with the screen's phase bar. Each of the three readings keeps its text until its value or maximum
- * moves, so a still pool builds nothing per frame.
+ * <p>Drawn from the screen's {@code renderLabels}, so coordinates are panel-relative. The bars are the shared
+ * {@link Widgets#drawBar}, one {@link SpriteBatch} each. Each of the three readings keeps its text until its value
+ * or maximum moves, so a still pool builds nothing per frame.
  *
  * @author Alex
  * @version 1.0.0
@@ -28,10 +29,9 @@ final class PoolBars {
 
     private PoolBars() {}
 
-    static final int TRACK = 0x33000000;
     private static final int X = 18;
     private static final int WIDTH = 230;
-    private static final int HEIGHT = 5;
+    private static final int HEIGHT = 6;
     private static final int TOP = 156;
     private static final int STRIDE = 19;
     private static final String KEY = "guzhenren.menu.refinement.pool";
@@ -56,12 +56,10 @@ final class PoolBars {
         Component reading = formatReading(unit, value, max);
         graphics.drawString(font, reading, X + WIDTH - font.width(reading), y, ModPalette.LEGEND_TEXT, false);
 
-        int barY = y + font.lineHeight;
-        graphics.fill(X, barY, X + WIDTH, barY + HEIGHT, TRACK);
-        if (max <= 0L || value <= 0L) return;
-
-        int filled = (int) Math.min(WIDTH, WIDTH * value / max);
-        graphics.fill(X, barY, X + filled, barY + HEIGHT, fill);
+        int inner = WIDTH - 2;
+        int filled = max <= 0L || value <= 0L ? 0 : (int) Math.min(inner, inner * value / max);
+        SpriteBatch.draw(graphics, sprites -> Widgets.drawBar(sprites, X, y + font.lineHeight, WIDTH, HEIGHT, filled,
+                fill));
     }
 
     private static Component formatReading(int unit, long value, long max) {

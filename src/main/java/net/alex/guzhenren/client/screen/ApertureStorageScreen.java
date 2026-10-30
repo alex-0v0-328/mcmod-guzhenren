@@ -1,12 +1,15 @@
 package net.alex.guzhenren.client.screen;
 
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,10 +17,12 @@ import org.jetbrains.annotations.NotNull;
  * The screen for one aperture's [空窍] store, a page at a time.
  *
  * <p>Extends {@link net.minecraft.client.gui.screens.inventory.AbstractContainerScreen} for
- * {@link ApertureStorageMenu}. Draws 54 slots per page, the Vital Gu [本命蛊] slot past the right edge of the
- * panel, and a pager (prev, page label, next) under the panel's bottom-left corner. A back button
- * ({@code <-}) at the top-left closes the container first, then opens the B panel. All drawing is
- * {@code g.fill}, no textures; the background and the pager are one {@link GuiBatch} each, fills before text.
+ * {@link ApertureStorageMenu}. Draws 54 slots per page, the Vital Gu [本命蛊] slot in a side tab that juts past
+ * the panel's right edge, and a pager (prev, page label, next) under the panel's bottom-left corner. A back button
+ * ({@code <-}) at the top-left closes the container first, then opens the B panel. The side tab sprite is
+ * drawn over the panel's top-right corner, which its left edge overlaps by {@link #SIDE_TAB_OVERLAP} pixels so the
+ * two frames join, and one header rule runs across both. The background and the pager are one {@link GuiBatch} each,
+ * sprites, then fills, then text.
  *
  * <p>⚠ The pager stays below the panel, off the top edge where Inventory Profiles Next draws its sort buttons;
  * only the back button sits up there, at the left.
@@ -33,13 +38,12 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     private static final int PAGE_BUTTON_W = 16;
     private static final int PAGE_BUTTON_H = 14;
     private static final int PAGE_LABEL_W = 40;
-    private static final int VITAL_PADDING = 8;
-    private static final int VITAL_LEFT = ApertureStorageMenu.VITAL_X - VITAL_PADDING;
-    private static final int VITAL_RIGHT = ApertureStorageMenu.VITAL_X + Widgets.CELL + VITAL_PADDING;
-    private static final int VITAL_BOTTOM = 44;
+    private static final ResourceLocation SIDE_TAB = Guzhenren.id("panel_side_tab");
+    private static final int SIDE_TAB_OVERLAP = 6;
+    private static final int SIDE_TAB_W = 40;
+    private static final int SIDE_TAB_H = 44;
     private static final int HEADER_RULE_Y = 15;
-    private static final int PANEL_RULE_INSET = 7;
-    private static final int VITAL_RULE_INSET = 4;
+    private static final int RULE_INSET = 7;
     private static final Component VITAL = Component.translatable("guzhenren.menu.vital");
     private static final int TITLE_X_WITH_BACK = 26;
     private static final String LOAD_KEY = "guzhenren.menu.aperture_load";
@@ -58,37 +62,30 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     protected void renderBg(@NotNull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
+        int sideTabX = x + imageWidth - SIDE_TAB_OVERLAP;
         GuiBatch.draw(graphics, () -> {
-            Widgets.drawPanel(graphics, x, y, imageWidth, imageHeight, ModPalette.PANEL_FILL);
-            Widgets.drawRule(graphics, x + PANEL_RULE_INSET, y + HEADER_RULE_Y, x + imageWidth - PANEL_RULE_INSET,
+            SpriteBatch.draw(graphics, sprites -> {
+                Widgets.drawPanel(sprites, x, y, imageWidth, imageHeight);
+                sprites.blit(SIDE_TAB, sideTabX, y, SIDE_TAB_W, SIDE_TAB_H);
+                int left = x + ApertureStorageMenu.STORAGE_X;
+                drawSlotGrid(sprites, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
+                drawSlotGrid(sprites, left, y + ApertureStorageMenu.INVENTORY_Y, ApertureStorageMenu.INVENTORY_ROWS);
+                drawSlotGrid(sprites, left, y + ApertureStorageMenu.HOTBAR_Y, 1);
+                Widgets.drawCell(sprites, x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y);
+            });
+            Widgets.drawRule(graphics, x + RULE_INSET, y + HEADER_RULE_Y, sideTabX + SIDE_TAB_W - RULE_INSET,
                     ModPalette.APERTURE);
-
-            int left = x + ApertureStorageMenu.STORAGE_X;
-            fillSlotGrid(graphics, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
-            fillSlotGrid(graphics, left, y + ApertureStorageMenu.INVENTORY_Y, ApertureStorageMenu.INVENTORY_ROWS);
-            fillSlotGrid(graphics, left, y + ApertureStorageMenu.HOTBAR_Y, 1);
-            fillVital(graphics, x, y);
             renderVitalLabel(graphics, x, y);
         });
     }
 
-    private void fillSlotGrid(GuiGraphics graphics, int left, int top, int rows) {
-        Widgets.drawCells(graphics, left, top, ApertureStorageMenu.COLS, rows, ApertureStorageMenu.SLOT,
-                ModPalette.SLOT_FILL);
-    }
-
-    private void fillVital(GuiGraphics graphics, int x, int y) {
-        Widgets.drawPanel(graphics, x + VITAL_LEFT, y, VITAL_RIGHT - VITAL_LEFT, VITAL_BOTTOM, ModPalette.PANEL_FILL);
-        Widgets.drawRule(graphics, x + VITAL_LEFT + VITAL_RULE_INSET, y + HEADER_RULE_Y,
-                x + VITAL_RIGHT - VITAL_RULE_INSET, ModPalette.APERTURE);
-        Widgets.drawCell(graphics, x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y,
-                ModPalette.SLOT_FILL);
+    private static void drawSlotGrid(SpriteBatch sprites, int left, int top, int rows) {
+        Widgets.drawCells(sprites, left, top, ApertureStorageMenu.COLS, rows, ApertureStorageMenu.SLOT);
     }
 
     private void renderVitalLabel(GuiGraphics graphics, int x, int y) {
-        int width = VITAL_RIGHT - VITAL_LEFT;
-        graphics.drawString(font, VITAL, x + VITAL_LEFT + (width - font.width(VITAL)) / 2, y + 5,
-                ModPalette.APERTURE, false);
+        graphics.drawString(font, VITAL, x + ApertureStorageMenu.VITAL_X + (Widgets.CELL - font.width(VITAL)) / 2,
+                y + titleLabelY, ModPalette.APERTURE, false);
     }
 
     @Override
@@ -108,9 +105,11 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
         boolean prevLive = menu.getPageIndex() > 0;
         boolean nextLive = menu.getPageIndex() + 1 < menu.getPageCount();
         GuiBatch.draw(graphics, () -> {
-            Widgets.fillBack(graphics, getBackX(), getPagerY(), mouseX, mouseY);
-            fillPageButton(graphics, mouseX, mouseY, getPrevX(), prevLive);
-            fillPageButton(graphics, mouseX, mouseY, getNextX(), nextLive);
+            SpriteBatch.draw(graphics, sprites -> {
+                Widgets.drawBack(sprites, getBackX(), getPagerY(), mouseX, mouseY);
+                drawPageButton(sprites, mouseX, mouseY, getPrevX(), prevLive);
+                drawPageButton(sprites, mouseX, mouseY, getNextX(), nextLive);
+            });
 
             Widgets.drawBackLabel(graphics, font, getBackX(), getPagerY());
             drawPageGlyph(graphics, getPrevX(), prevLive, PREV);
@@ -125,9 +124,9 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
         });
     }
 
-    private void fillPageButton(GuiGraphics graphics, int mouseX, int mouseY, int x, boolean live) {
+    private void drawPageButton(SpriteBatch sprites, int mouseX, int mouseY, int x, boolean live) {
         boolean hover = live && isInPageButton(mouseX, mouseY, x);
-        Widgets.fillButton(graphics, x, getPagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live, hover);
+        Widgets.drawButton(sprites, x, getPagerBottomY(), PAGE_BUTTON_W, PAGE_BUTTON_H, live, hover);
     }
 
     private void drawPageGlyph(GuiGraphics graphics, int x, boolean live, Component glyph) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
@@ -22,9 +23,10 @@ import net.minecraft.world.item.ItemStack;
  * recipe's index past {@code BUTTON_RECIPE_BASE} -- and the screen sends it. ⚠ It is drawn {@link #Z} out so
  * it clears the item layers below it.
  *
- * <p>It draws in one {@link GuiBatch}, in three passes that keep each row's own order: every fill, then every
- * result icon (an item flushes on its own), then every text. Rows never overlap, so only the order within a row
- * shows. The hover tooltip draws after the batch: a tooltip runs a batch of its own, and batches never nest.
+ * <p>It draws in one {@link GuiBatch}, in four passes that keep each row's own order: the popup sprite, every fill,
+ * then every result icon (an item flushes on its own), then every text. Rows never overlap, so only the order within
+ * a row shows; a row's hover fill and selection outline keep clear of the popup frame. The hover tooltip draws after
+ * the batch: a tooltip runs a batch of its own, and batches never nest.
  *
  * @author Alex
  * @version 1.0.0
@@ -37,10 +39,12 @@ final class RecipePicker {
     static final int NO_BUTTON = -1;
     private static final int W = 200;
     private static final int PAD = 6;
-    private static final int HEADER_H = 14;
+    private static final int HEADER_H = 22;
     private static final int ROW_H = 20;
     private static final int MAX_ROWS = 5;
     private static final float Z = 500.0F;
+    private static final int RULE = 0x66FFFFFF;
+    private static final int ROW_HOVER = 0x33FFFFFF;
     private static final String STONE_SEPARATOR = " · ";
     private static final String TITLE_KEY = "guzhenren.menu.refinement.pick.title";
     private static final String AUTO_KEY = "guzhenren.menu.refinement.pick.auto";
@@ -124,13 +128,15 @@ final class RecipePicker {
     }
 
     private void fillFrame(GuiGraphics graphics, int selected, int hovered, int x0, int y0, int visible) {
-        Widgets.drawPanel(graphics, x0, y0, W, getHeight(visible), ModPalette.MODAL_FILL);
-        Widgets.drawRule(graphics, x0 + PAD, y0 + HEADER_H, x0 + W - PAD, ModPalette.BORDER);
+        SpriteBatch.draw(graphics, sprites -> Widgets.drawPopup(sprites, x0, y0, W, getHeight(visible)));
+        Widgets.drawRule(graphics, x0 + PAD, y0 + HEADER_H, x0 + W - PAD, RULE);
+        int left = x0 + Widgets.FRAME;
+        int width = W - Widgets.FRAME * 2;
         for (int i = 0; i < visible; i++) {
             int row = scroll + i;
             int rowY = getRowY(y0, i);
-            if (row == hovered) graphics.fill(x0 + 1, rowY, x0 + W - 1, rowY + ROW_H, ModPalette.BUTTON_IDLE);
-            if (row - 1 == selected) graphics.renderOutline(x0 + 1, rowY, W - 2, ROW_H, ModPalette.REFINEMENT);
+            if (row == hovered) graphics.fill(left, rowY, left + width, rowY + ROW_H, ROW_HOVER);
+            if (row - 1 == selected) graphics.renderOutline(left, rowY, width, ROW_H, ModPalette.REFINEMENT);
         }
     }
 
