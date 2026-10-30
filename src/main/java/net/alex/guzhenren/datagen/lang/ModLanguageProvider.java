@@ -36,7 +36,6 @@ import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.data.PackOutput;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.jetbrains.annotations.Nullable;
@@ -46,11 +45,11 @@ import org.jetbrains.annotations.Nullable;
  * rendering and its Simplified Chinese one. The same provider runs once per {@link Language} and writes only its own
  * column, so no language can miss a key the others have.
  *
- * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider}. Items, blocks, effects, entities and enum
+ * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider}. Blocks, effects, entities and enum
  * constants are added through the registered object or the constant, never a raw key string, so a renamed
- * registration cannot leave a key behind pointing at nothing; the interface, command and message strings have no
- * object and are added by their key. Past 300 lines, and its sections past 40, on purpose: it is a data table, one
- * line per string. The value
+ * registration cannot leave a key behind pointing at nothing; items name themselves on their registration chain;
+ * the interface, command and message strings have no object and are added by their key. Past 300 lines, and its
+ * sections past 40, on purpose: it is a data table, one line per string. The value
  * columns align per {@code add*()} method; an entry too long for the line wraps its two renderings onto the next.
  *
  * <p>⚠ Both renderings are the authority, not a translation of each other. Deriving either side from the other is how
@@ -61,12 +60,12 @@ import org.jetbrains.annotations.Nullable;
  * shipping a Simplified glyph. An entry writes a fourth, Traditional rendering by hand only where the wording itself
  * differs (信息, 資訊); a glyph-only difference belongs in the glyph table, which fixes it everywhere it occurs.
  *
- * <p>In {@link #addItemKeys}, one {@code addBlock} entry names the Spirit Spring block, its BlockItem and the fluid
- * type together, since they share one description id; the Pure Water block and its fluid type share one likewise.
- *
- * <p>An item declared through {@link ItemRegistrar} carries its names on its registration chain instead of a line
- * here; {@link #addDeclaredItemKeys} writes them under the item's description id (a BlockItem's is its block's)
- * through the same column switch, so the Traditional conversion and the repeated-key check hold for them too.
+ * <p>Every item carries its names on its {@link ItemRegistrar} registration chain instead of a line here;
+ * {@link #addDeclaredItemKeys} writes them under the item's description id through the same column switch, so the
+ * Traditional conversion and the repeated-key check hold for them too. A BlockItem's description id is its
+ * block's, so the Spirit Spring's chain names its block, its BlockItem and its fluid type at once, and the Steel
+ * Block's its block and BlockItem. Only a block without a BlockItem keeps an {@code addBlock} line in
+ * {@link #addItemKeys}; the Pure Water block's names its fluid type too, sharing one description id.
  *
  * @author Alex
  * @version 1.0.0
@@ -111,10 +110,6 @@ public class ModLanguageProvider extends LanguageProvider {
 
     private void add(NamedEnum key, String english, String simplified) {
         add(key.getTranslationKey(), english, simplified);
-    }
-
-    private void addItem(Supplier<? extends Item> item, String english, String simplified) {
-        add(item.get().getDescriptionId(), english, simplified);
     }
 
     private void addBlock(Supplier<? extends Block> block, String english, String simplified) {
@@ -375,149 +370,9 @@ public class ModLanguageProvider extends LanguageProvider {
 
     //region ITEM
     private void addItemKeys() {
-        addItem(ModItems.HOPE_GU,                                    "Hope Gu", "希望蛊");
-        addItem(ModItems.COPPER_RELICS_GU,                           "Green Copper Relics Gu", "青铜舍利蛊");
-        addItem(ModItems.STEEL_RELICS_GU,                            "Red Steel Relics Gu", "赤铁舍利蛊");
-        addItem(ModItems.SILVER_RELICS_GU,                           "White Silver Relics Gu", "白银舍利蛊");
-        addItem(ModItems.GOLD_RELICS_GU,                             "Yellow Gold Relics Gu", "黄金舍利蛊");
-        addItem(ModItems.CRYSTAL_RELICS_GU,                          "Purple Crystal Relics Gu", "紫晶舍利蛊");
-        addItem(ModItems.WHITE_BOAR_GU,                              "White Boar Gu", "白豕蛊");
-        addItem(ModItems.BLACK_BOAR_GU,                              "Black Boar Gu", "黑豕蛊");
-        addItem(ModItems.FLOWER_BOAR_GU,                             "Flower Boar Gu", "花豕蛊");
-        addItem(ModItems.BEAR_STRENGTH_GU,                           "Bear Strength Gu", "熊力蛊");
-        addItem(ModItems.DRAGONPILL_CRICKET_GU,                      "Dragonpill Cricket Gu", "龙丸蛐蛐蛊");
-        addItem(ModItems.BRUTE_FORCE_LONGHORN_BEETLE_GU,             "Brute Force Longhorn Beetle Gu", "蛮力天牛蛊");
-        addItem(ModItems.HORIZONTAL_CRASH_GU,                        "Horizontal Crash Gu", "横冲蛊");
-        addItem(ModItems.VERTICAL_CRASH_GU,                          "Vertical Crash Gu", "直撞蛊");
-        addItem(ModItems.CHARGING_CRASH_GU_4,                        "Charging Crash Gu IV", "四转横冲直撞蛊");
-        addItem(ModItems.CHARGING_CRASH_GU_5,                        "Charging Crash Gu V", "五转横冲直撞蛊");
-        addItem(ModItems.SELF_RELIANCE_GU_2,                         "Self Reliance Gu II", "二转自力更生蛊");
-        addItem(ModItems.SELF_RELIANCE_GU_3,                         "Self Reliance Gu III", "三转自力更生蛊");
-        addItem(ModItems.SELF_RELIANCE_GU_4,                         "Self Reliance Gu IV", "四转自力更生蛊");
-        addItem(ModItems.HARDSHIP_STRENGTH_GU,                       "Hardship Strength Gu", "苦力蛊");
-        addItem(ModItems.HEAVENLY_MUGWORT_GU,                        "Heavenly Mugwort Gu", "天蓬蛊");
-        addItem(ModItems.ALL_OUT_EFFORT_GU_3,                        "All-Out Effort Gu III", "三转全力以赴蛊");
-        addItem(ModItems.ALL_OUT_EFFORT_GU_4,                        "All-Out Effort Gu IV", "四转全力以赴蛊");
-        addItem(ModItems.ALL_OUT_EFFORT_GU_5,                        "All-Out Effort Gu V", "五转全力以赴蛊");
-        addItem(ModItems.JIN_STRENGTH_GU,                            "Jin Strength Gu", "斤力蛊");
-        addItem(ModItems.TENS_JIN_STRENGTH_GU,                       "Ten Jin Strength Gu", "十斤力蛊");
-        addItem(ModItems.JUN_STRENGTH_GU,                            "Jun Strength Gu", "钧力蛊");
-        addItem(ModItems.TENS_JUN_STRENGTH_GU,                       "Ten Jun Strength Gu", "十钧力蛊");
-        addItem(ModItems.JADE_SKIN_GU,                               "Jade Skin Gu", "玉皮蛊");
-        addItem(ModItems.WHITE_JADE_GU,                              "White Jade Gu", "白玉蛊");
-        addItem(ModItems.BRONZE_SKIN_GU_1,                           "Bronze Skin Gu I", "一转铜皮蛊");
-        addItem(ModItems.BRONZE_SKIN_GU_2,                           "Bronze Skin Gu II", "二转铜皮蛊");
-        addItem(ModItems.BRONZE_SKIN_GU_3,                           "Bronze Skin Gu III", "三转铜皮蛊");
-        addItem(ModItems.BRONZE_SKIN_GU_4,                           "Bronze Skin Gu IV", "四转铜皮蛊");
-        addItem(ModItems.IRON_SKIN_GU_1,                             "Iron Skin Gu I", "一转铁皮蛊");
-        addItem(ModItems.IRON_SKIN_GU_2,                             "Iron Skin Gu II", "二转铁皮蛊");
-        addItem(ModItems.IRON_SKIN_GU_3,                             "Iron Skin Gu III", "三转铁皮蛊");
-        addItem(ModItems.IRON_SKIN_GU_4,                             "Iron Skin Gu IV", "四转铁皮蛊");
-        addItem(ModItems.STEEL_TENDON_GU_3,                          "Steel Tendon Gu III", "三转钢筋蛊");
-        addItem(ModItems.STEEL_TENDON_GU_4,                          "Steel Tendon Gu IV", "四转钢筋蛊");
-        addItem(ModItems.IRON_BONE_GU_3,                             "Iron Bone Gu III", "三转铁骨蛊");
-        addItem(ModItems.IRON_BONE_GU_4,                             "Iron Bone Gu IV", "四转铁骨蛊");
-        addItem(ModItems.VITALITY_LEAF_GU,                           "Vitality Leaf Gu", "生机叶蛊");
-        addItem(ModItems.LIFESPAN_GU,                                "Lifespan Gu", "寿蛊");
-        addItem(ModItems.TENS_LIFESPAN_GU,                           "Ten-Year Lifespan Gu", "十年寿蛊");
-        addItem(ModItems.HUNDREDS_LIFESPAN_GU,                       "Hundred-Year Lifespan Gu", "百年寿蛊");
-        addItem(ModItems.THOUSANDS_LIFESPAN_GU,                      "Thousand-Year Lifespan Gu", "千年寿蛊");
-        addItem(ModItems.LIQUOR_WORM,                                "Liquor Worm", "酒虫");
-        addItem(ModItems.FOUR_FLAVORS_LIQUOR_WORM,                   "Four Flavors Liquor Worm", "四味酒虫");
-        addItem(ModItems.SEVEN_FRAGRANCES_LIQUOR_WORM,               "Seven Fragrances Liquor Worm", "七香酒虫");
-        addItem(ModItems.NINE_EYES_LIQUOR_WORM,                      "Nine Eyes Liquor Worm", "九眼酒虫");
-        addItem(ModItems.ROAMING_ZOMBIE_GU,                          "Roaming Zombie Gu", "游僵蛊");
-        addItem(ModItems.HAIRY_ZOMBIE_GU,                            "Hairy Zombie Gu", "毛僵蛊");
-        addItem(ModItems.HOPPING_ZOMBIE_GU,                          "Hopping Zombie Gu", "跳僵蛊");
-        addItem(ModItems.HEAVENLY_DEMON_ZOMBIE_GU,                   "Heavenly Demon Zombie Gu", "天魔尸蛊");
-        addItem(ModItems.NIGHTMARE_ZOMBIE_GU,                        "Nightmare Zombie Gu", "梦魇尸蛊");
-        addItem(ModItems.ASURA_ZOMBIE_GU,                            "Asura Zombie Gu", "修罗尸蛊");
-        addItem(ModItems.EARTH_CHIEF_ZOMBIE_GU,                      "Earth Chief Zombie Gu", "地魁尸蛊");
-        addItem(ModItems.PLAGUE_ZOMBIE_GU,                           "Plague Zombie Gu", "病瘟尸蛊");
-        addItem(ModItems.BLOOD_WIGHT_GU,                             "Blood Wight Gu", "血鬼尸蛊");
-        addItem(ModItems.PRIMEVAL_ELDER_GU_1,                        "Primeval Elder Gu I", "一转元老蛊");
-        addItem(ModItems.PRIMEVAL_ELDER_GU_2,                        "Primeval Elder Gu II", "二转元老蛊");
-        addItem(ModItems.PRIMEVAL_ELDER_GU_3,                        "Primeval Elder Gu III", "三转元老蛊");
-        addItem(ModItems.PRIMEVAL_ELDER_GU_4,                        "Primeval Elder Gu IV", "四转元老蛊");
-        addItem(ModItems.PRIMEVAL_ELDER_GU_5,                        "Primeval Elder Gu V", "五转元老蛊");
-        addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_LOTUS_GU,         "Heavenly Essence Treasure Lotus Gu", "天元宝莲");
-        addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU,
-                "Heavenly Essence Treasure Monarch Lotus Gu", "天元宝君莲");
-        addItem(ModItems.HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU,
-                "Heavenly Essence Treasure King Lotus Gu", "天元宝王莲");
-        addItem(ModItems.NINE_LEAF_VITALITY_GRASS,                   "Nine Leaf Vitality Grass", "九叶生机草");
-        addItem(ModItems.SECOND_WATCH_GU,                            "Second Watch Gu", "两更蛊");
-        addItem(ModItems.THIRD_WATCH_GU,                             "Third Watch Gu", "三更蛊");
-        addItem(ModItems.MAN_AS_BEFORE_GU,                           "Man As Before Gu", "人如故");
-        addItem(ModItems.MOUNTAIN_AS_BEFORE_GU,                      "Mountain As Before Gu", "山如故");
-        addItem(ModItems.RIVER_AS_BEFORE_GU,                         "River As Before Gu", "江如故");
-        addItem(ModItems.MALICIOUS_THOUGHT_GU_2,                     "Malicious Thought Gu II", "二转恶念蛊");
-        addItem(ModItems.MALICIOUS_THOUGHT_GU_3,                     "Malicious Thought Gu III", "三转恶念蛊");
-        addItem(ModItems.MALICIOUS_THOUGHT_GU_4,                     "Malicious Thought Gu IV", "四转恶念蛊");
-        addItem(ModItems.MALICIOUS_THOUGHT_GU_5,                     "Malicious Thought Gu V", "五转恶念蛊");
-        addItem(ModItems.GUTS_GU,                                    "Guts Gu", "一转胆识蛊");
-        addItem(ModItems.CASUAL_GU_1,                                "Casual Gu I", "一转随意蛊");
-        addItem(ModItems.CASUAL_GU_2,                                "Casual Gu II", "二转随意蛊");
-        addItem(ModItems.STONE_APERTURE_GU_3,                        "Stone Aperture Gu III", "三转石窍蛊");
-        addItem(ModItems.STONE_APERTURE_GU_4,                        "Stone Aperture Gu IV", "四转石窍蛊");
-        addItem(ModItems.STONE_APERTURE_GU_5,                        "Stone Aperture Gu V", "五转石窍蛊");
-        addItem(ModItems.AMPLIFY_EFFECT_GU_2,                        "Amplify Effect Gu II", "二转功倍蛊");
-        addItem(ModItems.AMPLIFY_EFFECT_GU_3,                        "Amplify Effect Gu III", "三转功倍蛊");
-        addItem(ModItems.AMPLIFY_EFFECT_GU_4,                        "Amplify Effect Gu IV", "四转功倍蛊");
-        addItem(ModItems.AMPLIFY_EFFECT_GU_5,                        "Amplify Effect Gu V", "五转功倍蛊");
-        addItem(ModItems.SECOND_APERTURE_GU_1,                       "Second Aperture Gu I", "一转第二空窍蛊");
-        addItem(ModItems.SECOND_APERTURE_GU_2,                       "Second Aperture Gu II", "二转第二空窍蛊");
-        addItem(ModItems.SECOND_APERTURE_GU_3,                       "Second Aperture Gu III", "三转第二空窍蛊");
-        addItem(ModItems.SECOND_APERTURE_GU_4,                       "Second Aperture Gu IV", "四转第二空窍蛊");
-        addItem(ModItems.SECOND_APERTURE_GU_5,                       "Second Aperture Gu V", "五转第二空窍蛊");
-        addItem(ModItems.PRIMEVAL_STONE,                             "Primeval Stone", "元石");
-        addItem(ModItems.HUMAN_APERTURE_1,                           "Human Aperture I", "一转人窍");
-        addItem(ModItems.HUMAN_APERTURE_2,                           "Human Aperture II", "二转人窍");
-        addItem(ModItems.HUMAN_APERTURE_3,                           "Human Aperture III", "三转人窍");
-        addItem(ModItems.HUMAN_APERTURE_4,                           "Human Aperture IV", "四转人窍");
-        addItem(ModItems.HUMAN_APERTURE_5,                           "Human Aperture V", "五转人窍");
-        addItem(ModItems.LIQUOR,                                     "Liquor", "酒");
-        addItem(ModItems.SOUR_LIQUOR,                                "Sour Liquor", "酸酒");
-        addItem(ModItems.SWEET_LIQUOR,                               "Sweet Liquor", "甜酒");
-        addItem(ModItems.BITTER_LIQUOR,                              "Bitter Liquor", "苦酒");
-        addItem(ModItems.SPICY_LIQUOR,                               "Spicy Liquor", "辣酒");
-        addBlock(ModBlocks.SPIRIT_SPRING,                            "Spirit Spring", "元泉");
         addBlock(ModBlocks.PURE_WATER,                               "Pure Water", "纯水");
-        addItem(ModItems.PURE_WATER_BUCKET,                          "Pure Water Bucket", "纯水桶");
         addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS,                 "Nine Leaf Vitality Grass", "九叶生机草");
         addBlock(ModBlocks.INTIMATE_GRASS,                           "Intimate Grass", "知心草");
-        addItem(ModItems.INTIMATE_GRASS_BUNDLE,                      "Intimate Grass Bundle", "知心草束");
-        addItem(ModItems.MOON_ORCHID_PETALS,                         "Moon Orchid Petals", "月兰花瓣");
-        addItem(ModItems.ROTTEN_FROZEN_MUD,                          "Rotten Frozen Mud", "腐泥冻土");
-        addItem(ModItems.JADE,                                       "Jade", "玉");
-        addItem(ModItems.ROUGH_JADE,                                 "Rough Jade", "玉原石");
-        addItem(ModItems.JADEITE,                                    "Jadeite", "翡翠");
-        addItem(ModItems.ROUGH_JADEITE,                              "Rough Jadeite", "翡翠原石");
-        addItem(ModItems.STEEL_INGOT,                                "Steel Ingot", "钢锭");
-        addBlock(ModBlocks.STEEL_BLOCK,                              "Steel Block", "钢块");
-
-        addItem(ModItems.SWORD_QI_1,                                 "Sword Qi I", "一转剑气");
-        addItem(ModItems.SWORD_QI_2,                                 "Sword Qi II", "二转剑气");
-        addItem(ModItems.SWORD_QI_3,                                 "Sword Qi III", "三转剑气");
-        addItem(ModItems.SWORD_QI_4,                                 "Sword Qi IV", "四转剑气");
-        addItem(ModItems.SWORD_QI_5,                                 "Sword Qi V", "五转剑气");
-        addItem(ModItems.STRENGTH_QI_1,                              "Strength Qi I", "一转力气");
-        addItem(ModItems.STRENGTH_QI_2,                              "Strength Qi II", "二转力气");
-        addItem(ModItems.STRENGTH_QI_3,                              "Strength Qi III", "三转力气");
-        addItem(ModItems.STRENGTH_QI_4,                              "Strength Qi IV", "四转力气");
-        addItem(ModItems.STRENGTH_QI_5,                              "Strength Qi V", "五转力气");
-        addItem(ModItems.LIFE_QI_1,                                  "Life Qi I", "一转生气");
-        addItem(ModItems.LIFE_QI_2,                                  "Life Qi II", "二转生气");
-        addItem(ModItems.LIFE_QI_3,                                  "Life Qi III", "三转生气");
-        addItem(ModItems.LIFE_QI_4,                                  "Life Qi IV", "四转生气");
-        addItem(ModItems.LIFE_QI_5,                                  "Life Qi V", "五转生气");
-        addItem(ModItems.ESSENCE_QI_1,                               "Essence Qi I", "一转元气");
-        addItem(ModItems.ESSENCE_QI_2,                               "Essence Qi II", "二转元气");
-        addItem(ModItems.ESSENCE_QI_3,                               "Essence Qi III", "三转元气");
-        addItem(ModItems.ESSENCE_QI_4,                               "Essence Qi IV", "四转元气");
-        addItem(ModItems.ESSENCE_QI_5,                               "Essence Qi V", "五转元气");
-        addItem(ModItems.DEATH_QI_5,                                 "Death Qi V", "五转死气");
-        addItem(ModItems.ADVANCEMENT_ICON,                           "Advancement Icon", "进度图标");
 
         add("itemGroup.guzhenren.mortal_gu",                         "Mortal Gu", "凡蛊");
         add("itemGroup.guzhenren.gu_material",                       "Gu Material", "蛊材");

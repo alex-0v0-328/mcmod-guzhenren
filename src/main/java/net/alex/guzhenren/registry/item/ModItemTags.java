@@ -2,6 +2,7 @@ package net.alex.guzhenren.registry.item;
 
 import net.alex.guzhenren.Guzhenren;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
@@ -10,7 +11,8 @@ import net.minecraft.world.item.Item;
  *
  * <p>Tag-key holder (not a DeferredRegister): each {@link TagKey} is a feed larder named after the Gu
  * family it feeds ({@code boar_feed}, {@code liquor_feed}, ...). A datapack retunes membership; the key
- * is the contract.
+ * is the contract. {@link #INGOTS_STEEL} and {@link #STORAGE_BLOCKS_STEEL} are the loader's {@code c:} convention
+ * tags, which other mods' steel joins too, so their steel feeds the Steel Tendon Gu [钢筋蛊] as well.
  *
  * @author Alex
  * @version 1.0.0
@@ -43,8 +45,14 @@ public final class ModItemTags {
     public static final TagKey<Item> MALICIOUS_THOUGHT_FEED = key("malicious_thought_feed");
     public static final TagKey<Item> CASUAL_FEED = key("casual_feed");
     public static final TagKey<Item> AMPLIFY_EFFECT_FEED = key("amplify_effect_feed");
+    public static final TagKey<Item> INGOTS_STEEL = key("c", "ingots/steel");
+    public static final TagKey<Item> STORAGE_BLOCKS_STEEL = key("c", "storage_blocks/steel");
 
     private static TagKey<Item> key(String name) {
         return TagKey.create(Registries.ITEM, Guzhenren.id(name));
+    }
+
+    private static TagKey<Item> key(String namespace, String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
 }

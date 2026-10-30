@@ -6,7 +6,6 @@ import static net.alex.guzhenren.gameplay.path.GuPath.WOOD;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
@@ -15,8 +14,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -31,16 +28,16 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * {@code strength_mortal_gu}, {@code wood_mortal_gu}), populated by predicates over {@link MortalGuItem},
  * {@link GuMaterialItem}, and the path: {@link GuPath#STRENGTH} and {@link GuPath#WOOD} Gu each leave the
  * mortal Gu tab for their own, while wood path Gu materials stay with the materials. An item extending neither
- * middle class lands in no tab at all -- except the two fluid items, the Spirit Spring [元泉] BlockItem and the
- * Pure Water Bucket [纯水桶], and the two metal items, the Steel Ingot [钢锭] and the Steel Block [钢块], routed into
- * the material tab explicitly. The Advancement Icon [进度图标] stays out on
- * purpose.
+ * middle class lands in no tab at all, unless its {@link ItemRegistrar} chain names a {@code tab}: the two fluid
+ * items, the Spirit Spring [元泉] BlockItem and the Pure Water Bucket [纯水桶], and the two metal items, the Steel
+ * Ingot [钢锭] and the Steel Block [钢块], name the material tab that way. The Advancement Icon [进度图标] stays out
+ * on purpose.
  *
  * <p>⚠ That miss is silent: nothing fails and nothing warns, the item simply never appears. The four
  * tab constants stay unused by the language provider (it has no creative-tab overload).
  *
- * <p>An item declared through {@link ItemRegistrar} with a {@code tab} goes to that tab alone, in place of
- * the one its class would pick. The icons are lambdas, never the {@code ModItems} fields themselves: a
+ * <p>A chain's {@code tab} sends the item to that tab alone, in place of the one its class would pick. The icons
+ * are lambdas, never the {@code ModItems} fields themselves: a
  * registration naming its tab can initialize this class while {@code ModItems} is still initializing, and reading a
  * field then would capture a null icon.
  *
@@ -100,10 +97,7 @@ public final class ModCreativeTabs {
     }
 
     static boolean belongsInGuMaterial(Item item) {
-        return item instanceof GuMaterialItem
-                || item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock
-                || item instanceof BucketItem
-                || item == ModItems.STEEL_INGOT.get() || item == ModItems.STEEL_BLOCK.get();
+        return item instanceof GuMaterialItem;
     }
 
     public static void register(IEventBus modEventBus) {

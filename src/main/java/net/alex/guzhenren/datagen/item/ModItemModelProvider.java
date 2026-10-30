@@ -1,19 +1,16 @@
 package net.alex.guzhenren.datagen.item;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.gu.mortal.wood.LeafGrowth;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
-import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemModel;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
@@ -23,13 +20,15 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 /**
  * Writes an item model per registered item, in the {@link ItemModel} shape it asks for.
  *
- * <p>Extends {@link net.neoforged.neoforge.client.model.generators.ItemModelProvider}. An item declared through
- * {@link ItemRegistrar} names its shape on its registration chain, and those come first; every other registered
- * item gets the shape its class picks ({@link #getModelByClass}): the Spirit Spring [元泉] BlockItem the fluid's
- * still strip instead of an item PNG of its own, the Steel Block [钢块] its block model, the Nine Leaf Vitality
- * Grass [九叶生机草] its {@code _full} PNG overriding to {@code _half} and {@code _empty} on the {@code picked}
- * property, the Advancement Icon [进度图标] its {@code _0} PNG overriding on vanilla's {@code custom_model_data}
- * property, one model per settable rank and stage, and the rest a flat {@code basicItem}.
+ * <p>Extends {@link net.neoforged.neoforge.client.model.generators.ItemModelProvider}. Every item names its shape on
+ * its {@link ItemRegistrar} registration chain: the Spirit Spring [元泉] BlockItem the fluid's still strip instead
+ * of an item PNG of its own, the Steel Block [钢块] its block model, the Nine Leaf Vitality Grass [九叶生机草] its
+ * {@code _full} PNG overriding to {@code _half} and {@code _empty} on the {@code picked} property, the Advancement
+ * Icon [进度图标] its {@code _0} PNG overriding on vanilla's {@code custom_model_data} property, one model per
+ * settable rank and stage, and the rest a flat {@code basicItem}.
+ *
+ * <p>⚠ An item registered on {@code ModItems.ITEMS} past the chain would ship with no names, model or tags, so it
+ * fails datagen here, naming the id.
  *
  * <p>⚠ The texture existence check means a missing PNG fails datagen instead of shipping
  * as a missing-texture item nobody notices until they open the tab.
@@ -52,26 +51,14 @@ public class ModItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         ItemRegistrar registrar = ItemRegistrar.of(ModItems.ITEMS);
+        for (var entry : ModItems.ITEMS.getEntries()) {
+            if (registrar.getEntry(entry.getId()) == null) {
+                throw new IllegalStateException("Item " + entry.getId() + " registers outside ItemRegistrar");
+            }
+        }
         for (ItemRegistrar.Entry entry : registrar.getEntries()) {
             registerModel(entry.item().get(), entry.item().getId().getPath(), entry.model());
         }
-        for (var entry : ModItems.ITEMS.getEntries()) {
-            if (registrar.getEntry(entry.getId()) == null) {
-                registerModel(entry.get(), entry.getId().getPath(), getModelByClass(entry.get()));
-            }
-        }
-    }
-
-    private static ItemModel getModelByClass(Item item) {
-        if (item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock) {
-            return ItemModel.FLUID;
-        }
-        if (item instanceof BlockItem blockItem && blockItem.getBlock() == ModBlocks.STEEL_BLOCK.get()) {
-            return ItemModel.BLOCK;
-        }
-        if (item instanceof NineLeafVitalityGrassItem) return ItemModel.LEAF_STAGES;
-        if (item instanceof AdvancementIconItem) return ItemModel.NUMERALS;
-        return ItemModel.FLAT;
     }
 
     private ItemModelBuilder registerModel(Item item, String name, ItemModel model) {
