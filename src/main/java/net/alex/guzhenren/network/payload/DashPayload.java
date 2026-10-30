@@ -13,9 +13,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>Sent by the client while a matching effect is running; carries the vertical and horizontal
  * directions plus the facing they were taken at. {@link ClientIntents#canDash} is the one dash rule, read by both
- * ends: the client checks it before sending, the server again before moving the player. No Mortal Gu
- * [凡蛊] may be in the main hand, and each axis moved needs its Crash Gu effect -- the charging one
- * covers both.
+ * ends: the client checks it before sending, the server again before moving the player. Each axis moved needs
+ * its Crash Gu effect -- the charging one covers both.
  *
  * @author Alex
  * @version 1.0.0

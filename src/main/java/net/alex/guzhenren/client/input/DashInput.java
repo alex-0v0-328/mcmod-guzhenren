@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -41,7 +40,7 @@ public final class DashInput {
     private static boolean previousRight;
     private static boolean previousAlt;
 
-    public static void tick(Minecraft minecraft, LocalPlayer player, ItemStack mainHand, boolean canDash) {
+    public static void tick(Minecraft minecraft, LocalPlayer player) {
         boolean up = minecraft.options.keyUp.isDown();
         boolean down = minecraft.options.keyDown.isDown();
         boolean left = minecraft.options.keyLeft.isDown();
@@ -49,10 +48,10 @@ public final class DashInput {
         boolean pressed = up && !previousUp || down && !previousDown
                 || left && !previousLeft || right && !previousRight;
         boolean alt = Screen.hasAltDown();
-        if (canDash && minecraft.screen == null && shouldStartDash(alt, previousAlt, pressed)) {
+        if (minecraft.screen == null && shouldStartDash(alt, previousAlt, pressed)) {
             int vertical = up == down ? 0 : up ? 1 : -1;
             int horizontal = left == right ? 0 : left ? 1 : -1;
-            if (ClientIntents.canDash(mainHand, vertical, horizontal,
+            if (ClientIntents.canDash(vertical, horizontal,
                     player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
                     player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
                     player.hasEffect(ModEffects.CHARGING_CRASH_GU))) {

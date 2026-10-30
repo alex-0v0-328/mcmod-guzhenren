@@ -19,7 +19,6 @@ import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
-import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
@@ -61,7 +60,6 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
@@ -198,13 +196,6 @@ public final class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
         SkinFlashes.prune(minecraft.player.level().getGameTime());
-        ItemStack mainHand = minecraft.player.getMainHandItem();
-        boolean canDash = ClientIntents.canDash(mainHand);
-        if (!canDash) {
-            EpicFightCapabilities.getLocalPlayerPatchAsOptional(minecraft.player)
-                    .filter(yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch::isEpicFightMode)
-                    .ifPresent(patch -> patch.toVanillaMode(true));
-        }
         while (ModKeyMappings.OPEN_INFO.consumeClick()) {
             if (minecraft.screen == null
                     && !minecraft.player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN)) {
@@ -212,6 +203,6 @@ public final class ClientEvents {
             }
         }
 
-        DashInput.tick(minecraft, minecraft.player, mainHand, canDash);
+        DashInput.tick(minecraft, minecraft.player);
     }
 }

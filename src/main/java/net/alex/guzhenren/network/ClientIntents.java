@@ -6,7 +6,6 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
-import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -15,7 +14,6 @@ import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,13 +55,9 @@ public final class ClientIntents {
         return index >= 0 && index < ApertureService.get(player).count();
     }
 
-    public static boolean canDash(@NotNull ItemStack mainHand) {
-        return !(mainHand.getItem() instanceof MortalGuItem);
-    }
-
-    public static boolean canDash(@NotNull ItemStack mainHand, int vertical, int horizontal,
+    public static boolean canDash(int vertical, int horizontal,
                                   boolean horizontalCrash, boolean verticalCrash, boolean chargingCrash) {
-        if (!canDash(mainHand) || vertical == 0 && horizontal == 0) return false;
+        if (vertical == 0 && horizontal == 0) return false;
         return (horizontal == 0 || horizontalCrash || chargingCrash)
                 && (vertical == 0 || verticalCrash || chargingCrash);
     }
@@ -83,7 +77,7 @@ public final class ClientIntents {
     public static void dash(@NotNull ServerPlayer player, int vertical, int horizontal, float yRot) {
         if (!isOutsideTyh(player)) return;
         if (vertical < -1 || vertical > 1 || horizontal < -1 || horizontal > 1 || !Float.isFinite(yRot)) return;
-        if (!canDash(player.getMainHandItem(), vertical, horizontal,
+        if (!canDash(vertical, horizontal,
                 player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
                 player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
                 player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
