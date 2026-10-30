@@ -19,7 +19,8 @@ import org.joml.Matrix4f;
 
 /**
  * Draws GUI sprites ({@code textures/gui/sprites}) the way {@code GuiGraphics.blitSprite} does -- stretched, tiled or
- * nine-sliced as the sprite's {@code .mcmeta} says -- but every quad of a block goes into one buffer and one draw call.
+ * nine-sliced as the sprite's {@code .mcmeta} says, or cropped from the left for a part-full bar ({@link #blitLeft}) --
+ * but every quad of a block goes into one buffer and one draw call.
  *
  * <p>{@code blitSprite} draws each tile on its own, so a full-screen nine-slice panel with a 20-pixel centre costs a
  * few hundred draw calls a frame. {@link #draw} collects a block's quads and draws them when the block ends, after
@@ -75,6 +76,12 @@ public final class SpriteBatch {
                             addRegion(sprite, x + rx, y + ry, rw, rh, u, v, tile.width(), tile.height(), tint));
             default -> addQuad(sprite, x, y, width, height, 0.0F, 0.0F, 1.0F, 1.0F, tint);
         }
+    }
+
+    /** Draws a {@code texW} x {@code texH} sprite's leftmost {@code width} columns unscaled, whatever its scaling. */
+    public void blitLeft(ResourceLocation id, int texW, int texH, int x, int y, int width, int tint) {
+        if (width <= 0) return;
+        addRegion(sprites.getSprite(id), x, y, width, texH, 0, 0, texW, texH, tint);
     }
 
     //region geometry -- pure, so the slicing is testable without a render thread

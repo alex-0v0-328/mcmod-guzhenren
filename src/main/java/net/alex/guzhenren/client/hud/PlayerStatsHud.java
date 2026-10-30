@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -33,8 +34,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>The rows, their texts and the filled widths are a pure function of the aperture, body and soul attachments
  * plus the whole second of the pressure countdown, so {@link Layout} is rebuilt only when that {@link Key}
  * changes (the attachments are immutable records, replaced on each sync) and a quiet frame builds no text. A frame
- * draws through one {@link GuiBatch}: every bar's fills first, then all the text; no row's text lies under another
- * row's fill, so the order is invisible.
+ * draws every bar ({@link HudBar}) in one {@link SpriteBatch}, then all the text in one {@link GuiBatch}; no row's
+ * text lies under another row's bar, so the order is invisible.
  *
  * @author Alex
  * @version 1.0.0
@@ -50,8 +51,9 @@ public final class PlayerStatsHud {
 
     private static final int LEFT = 8;
     private static final int TOP = 8;
-    private static final int BAR_WIDTH = 130;
-    private static final int BAR_HEIGHT = 9;
+    static final int BAR_WIDTH = 130;
+    static final int BAR_HEIGHT = 9;
+    private static final HudBar STAT = HudBar.of("stat", BAR_WIDTH - 2, BAR_HEIGHT - 2);
     private static final int TEXT_HEIGHT = 9;
     private static final int ROW_GAP = 2;
     private static final int GROUP_GAP = 7;
@@ -68,7 +70,8 @@ public final class PlayerStatsHud {
 
         Font font = minecraft.font;
         Layout current = getLayout(player);
-        GuiBatch.draw(graphics, () -> draw(graphics, font, current));
+        SpriteBatch.draw(graphics, sprites -> drawBars(sprites, current));
+        GuiBatch.draw(graphics, () -> drawText(graphics, font, current));
     }
 
     private Layout getLayout(LocalPlayer player) {
@@ -136,21 +139,16 @@ public final class PlayerStatsHud {
     }
 
     private static Bar createBar(int y, long current, long max, int fill) {
-        int track = BAR_WIDTH - 2;
+        int track = STAT.width();
         int filled = max <= 0L ? 0 : (int) Math.min(track, Math.max(Math.round(track * (current / (double) max)), 0L));
         return new Bar(y, filled, fill, ModDisplayText.formatPool(current, max));
     }
 
-    private static void draw(GuiGraphics graphics, Font font, Layout layout) {
-        int right = LEFT + BAR_WIDTH;
-        for (Bar bar : layout.bars()) {
-            int y = bar.y();
-            graphics.fill(LEFT, y, right, y + BAR_HEIGHT, ModPalette.BAR_BORDER);
-            graphics.fill(LEFT + 1, y + 1, right - 1, y + BAR_HEIGHT - 1, ModPalette.BAR_TRACK);
-            if (bar.filled() > 0) {
-                graphics.fill(LEFT + 1, y + 1, LEFT + 1 + bar.filled(), y + BAR_HEIGHT - 1, bar.fill());
-            }
-        }
+    private static void drawBars(SpriteBatch sprites, Layout layout) {
+        for (Bar bar : layout.bars()) STAT.draw(sprites, LEFT + 1, bar.y() + 1, bar.filled(), bar.fill());
+    }
+
+    private static void drawText(GuiGraphics graphics, Font font, Layout layout) {
         for (Line line : layout.lines()) {
             graphics.drawString(font, line.text(), LEFT, line.y(), ModPalette.TEXT, true);
         }

@@ -39,6 +39,7 @@ public final class NourishHud extends HotbarHud {
     private static final String CAPTION = "guzhenren.hud.nourishing";
     private static final String STARVING = "guzhenren.hud.nourish_starving";
     private static final int FILL_STARVING = 0xFFE57373;
+    static final HudBar NOURISH = HudBar.of("nourish", BAR_WIDTH, BAR_HEIGHT);
 
     static boolean isShowing(LocalPlayer player) {
         return !player.isSpectator() && ApertureNourishService.isCultivating(player);
@@ -56,7 +57,7 @@ public final class NourishHud extends HotbarHud {
         int y = getBarTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? getStackShift(minecraft) : 0);
 
         int target = ApertureNourishService.getTargetIndex(player);
-        draw(graphics, minecraft, x, y, ApertureNourishService.getFraction(player, target),
+        draw(graphics, minecraft, NOURISH, x, y, ApertureNourishService.getFraction(player, target),
                 starving ? FILL_STARVING : ModPalette.APERTURE,
                 Component.translatable(starving ? STARVING : CAPTION,
                         ApertureService.getAperture(player, target).nourishProgress()));

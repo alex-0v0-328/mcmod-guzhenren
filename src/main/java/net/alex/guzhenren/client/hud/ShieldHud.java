@@ -45,7 +45,7 @@ public final class ShieldHud extends HotbarHud {
         int y = getBarTop(minecraft) - stacked * getStackShift(minecraft);
         for (ShieldLayer layer : ShieldService.get(player).layers()) {
             if (!layer.isUp(now) || layer.max() <= 0.0F) continue;
-            draw(graphics, minecraft, x, y, layer.points() / layer.max(), layer.type().getBarFill(),
+            draw(graphics, minecraft, HOTBAR, x, y, layer.points() / layer.max(), layer.type().getBarFill(),
                     Component.translatable(CAPTION, Component.translatable(layer.type().getTranslationKey()),
                             Mth.ceil(layer.points()), Mth.ceil(layer.max())));
             y -= getStackShift(minecraft);

@@ -37,6 +37,7 @@ public final class ChargeHud extends HotbarHud {
     private ChargeHud() {}
 
     private static final int AWAKENING_FILLING_COLOR = 0xFFCCCCCC;
+    static final HudBar AWAKENING = HudBar.of("awakening", BAR_WIDTH, BAR_HEIGHT);
 
     static boolean isShowing(Minecraft minecraft, LocalPlayer player) {
         if (minecraft.options.hideGui || player.isSpectator()) return false;
@@ -60,7 +61,8 @@ public final class ChargeHud extends HotbarHud {
         if (awakening >= 0) {
             int color = AwakeningHud.INSTANCE.isBarFull(player, partialTick) ? GuItem.CHARGE_COLOR_DEFAULT
                     : AWAKENING_FILLING_COLOR;
-            draw(graphics, minecraft, x, y, awakening / 100.0F, color, ModDisplayText.formatBaseFraction(awakening));
+            draw(graphics, minecraft, AWAKENING, x, y, awakening / 100.0F, color,
+                    ModDisplayText.formatBaseFraction(awakening));
             return;
         }
 
@@ -70,6 +72,7 @@ public final class ChargeHud extends HotbarHud {
         int remaining = player.getUseItemRemainingTicks();
         Float own = gu.chargeFraction(stack, remaining);
         float progress = own != null ? own : 1.0F - remaining / (float) total;
-        draw(graphics, minecraft, x, y, progress, gu.chargeColor(stack, remaining), gu.chargeCaption(stack, remaining));
+        draw(graphics, minecraft, HOTBAR, x, y, progress, gu.chargeColor(stack, remaining),
+                gu.chargeCaption(stack, remaining));
     }
 }
