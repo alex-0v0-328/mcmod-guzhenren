@@ -218,15 +218,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.strength.jun_reading",        "[%s Jun Strength]",           "[%s钧之力]");
 
         add("guzhenren.hud.lifespan",                        "Lifespan %s",                 "寿元 %s");
-        add("guzhenren.display.tenth.2",                     "20%%",                        "二成");
-        add("guzhenren.display.tenth.3",                     "30%%",                        "三成");
-        add("guzhenren.display.tenth.4",                     "40%%",                        "四成");
-        add("guzhenren.display.tenth.5",                     "50%%",                        "五成");
-        add("guzhenren.display.tenth.6",                     "60%%",                        "六成");
-        add("guzhenren.display.tenth.7",                     "70%%",                        "七成");
-        add("guzhenren.display.tenth.8",                     "80%%",                        "八成");
-        add("guzhenren.display.tenth.9",                     "90%%",                        "九成");
-        add("guzhenren.display.tenth.10",                    "100%%",                       "十成十");
 
         add("guzhenren.hud.refining",                        "Refine %s/%s",                "炼化 %s/%s");
         add("guzhenren.hud.refining_plain",                  "Refining",                    "炼化中");
@@ -380,6 +371,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("itemGroup.guzhenren.wood_mortal_gu",                    "Wood Mortal Gu", "木道凡蛊");
 
         add("guzhenren.item.failed.awakened",                        "You have already awakened", "你已开窍");
+        add("guzhenren.item.failed.awakening",                       "The awakening is under way", "开窍仪式进行中");
+        add("guzhenren.item.failed.nourishing",                      "You are nourishing your aperture", "正在温养空窍");
         add("guzhenren.item.failed.unawakened",                      "You have NOT awakened", "你未开窍");
         add("guzhenren.item.failed.essence_full",                    "Essence is already FULL", "真元已满");
         add("guzhenren.item.failed.rank_mismatch",                   "Wrong realm - this Gu needs %s", "境界不符 — 此蛊需%s");

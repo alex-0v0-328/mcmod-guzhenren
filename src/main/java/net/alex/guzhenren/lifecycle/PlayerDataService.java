@@ -133,6 +133,7 @@ public final class PlayerDataService {
         PlayerData data = PlayerData.get(player);
         data.resetCarriedOnDeath();
         data.resetEssenceCarry();
+        data.setAwakeningRitual(null);
         data.setBody(BodyData.DEFAULT.withLastDayIndex(lastDayIndex));
         onBirth(player);
 

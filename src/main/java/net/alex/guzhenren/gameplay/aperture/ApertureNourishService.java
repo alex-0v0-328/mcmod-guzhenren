@@ -1,6 +1,7 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
@@ -104,7 +105,8 @@ public final class ApertureNourishService {
 
     //region what the screen asks
     public static boolean canNourish(@NotNull Player player, int index) {
-        if (!ApertureService.hasAperture(player) || isCultivating(player)) return false;
+        if (!ApertureService.hasAperture(player) || isCultivating(player)
+                || AwakeningRitualService.isInRitual(player)) return false;
         if (index < 0 || index >= ApertureService.get(player).count()) return false;
         if (ApertureService.getStatus(player, index) != ApertureStatus.NORMAL) return false;
         return !isAtCeiling(player, index)

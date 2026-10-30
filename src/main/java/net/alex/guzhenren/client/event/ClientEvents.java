@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.event;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.ModKeyMappings;
+import net.alex.guzhenren.client.hud.AwakeningHud;
 import net.alex.guzhenren.client.hud.ChargeHud;
 import net.alex.guzhenren.client.hud.ShieldGlowHud;
 import net.alex.guzhenren.client.hud.ShieldHud;
@@ -65,10 +66,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers seven GUI layers
+ * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers eight GUI layers
  * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} and {@link ShieldGlowHud} above the vanilla camera overlays,
  * {@link net.alex.guzhenren.client.hud.PlayerStatsHud}, {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, and {@link RadialMenu} above the crosshair),
+ * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, {@link RadialMenu} above the crosshair, and
+ * {@link AwakeningHud} above everything),
  * the key mapping for
  * the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity renderers
  * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
@@ -105,6 +107,8 @@ public final class ClientEvents {
             Guzhenren.id("sonic_boom");
     private static final ResourceLocation RADIAL_MENU =
             Guzhenren.id("radial_menu");
+    private static final ResourceLocation AWAKENING =
+            Guzhenren.id("awakening");
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
@@ -117,6 +121,7 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, SHIELD, (g, delta) -> ShieldHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
+        event.registerAboveAll(AWAKENING, (g, delta) -> AwakeningHud.INSTANCE.render(g, delta));
     }
 
     @SubscribeEvent

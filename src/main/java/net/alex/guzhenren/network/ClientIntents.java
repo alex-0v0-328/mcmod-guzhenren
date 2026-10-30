@@ -3,6 +3,7 @@ package net.alex.guzhenren.network;
 import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
@@ -81,7 +82,7 @@ public final class ClientIntents {
                 player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
                 player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
                 player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
-        if (ApertureNourishService.isCultivating(player)) return;
+        if (ApertureNourishService.isCultivating(player) || AwakeningRitualService.isInRitual(player)) return;
         EpicFightIntegration.dash(player, vertical, yRot);
     }
 

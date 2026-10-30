@@ -1,34 +1,33 @@
 package net.alex.guzhenren.item.gu.mortal.human;
 
-import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Talent;
+import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.alex.guzhenren.registry.item.ModDataComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Hope Gu [希望蛊]: the one Gu that awakens [开窍] an aperture, rolling the aptitude [资质] as its bar fills.
+ * Hope Gu [希望蛊]: the one Gu that awakens [开窍] an aperture, through the awakening ritual [开窍仪式] a single
+ * click starts.
  *
- * <p>Extends {@link net.alex.guzhenren.item.gu.MortalGuItem} directly, not {@code OneShotGuItem},
- * because the ritual bar needs a much longer charge than the one-shot template fixes. The rolled value
- * lives in a {@link net.alex.guzhenren.registry.item.ModDataComponents} component, locked on first
- * press; awakening goes through {@link ApertureService#awaken}.
+ * <p>Extends {@link net.alex.guzhenren.item.gu.MortalGuItem} directly, not {@code OneShotGuItem}: it pays no refining
+ * and runs no modules. The click rolls the aptitude [资质], takes the Gu and hands the rest to
+ * {@link AwakeningRitualService}, which holds the player still and awakens them when the white peaks. A stack that
+ * rolled under the old held ritual still carries that roll in {@link ModDataComponents#AWAKEN_BASE}, and the ritual
+ * takes it; creative, which keeps the stack, clears it so a reset can re-roll.
  *
- * <p>⚠ One-shot in behavior but {@code stacksTo(1)}: a data component is shared by the whole stack, so
- * stacking gives 64 copies of one single aptitude. Creative clears it after use so a reset can re-roll.
+ * <p>⚠ {@code stacksTo(1)}: a data component is shared by the whole stack, so stacking would give 64 copies of one
+ * rolled aptitude.
  *
  * @author Alex
  * @version 1.0.0
+ * @see AwakeningRitualService
  * @see net.alex.guzhenren.item.gu.MortalGuItem
  * @since 1.0.0
  */
@@ -36,13 +35,8 @@ import org.jetbrains.annotations.Nullable;
 public class HopeGuItem extends MortalGuItem {
 
     private static final String FAILED_AWAKENED = "guzhenren.item.failed.awakened";
-    private static final String CAPTION_TENTH = "guzhenren.display.tenth.";
-    private static final int FILLING_TICKS = 3 * Ticks.SECOND;
-    private static final int HELD_AT_FULL_TICKS = Ticks.SECOND;
-    private static final int RITUAL_TICKS = FILLING_TICKS + HELD_AT_FULL_TICKS;
-    private static final int LOWEST_BASE = Talent.LOWEST.getMinPercent();
-    private static final int FILLING_COLOR = 0xFFCCCCCC;
-    private static final int LOCKED_COLOR = CHARGE_COLOR_DEFAULT;
+    private static final String FAILED_AWAKENING = "guzhenren.item.failed.awakening";
+    private static final String FAILED_NOURISHING = "guzhenren.item.failed.nourishing";
 
     public HopeGuItem(Properties properties, GuSpec spec) {
         super(properties, spec);
@@ -50,64 +44,25 @@ public class HopeGuItem extends MortalGuItem {
 
     @Override
     protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
-        return ApertureService.isAwakened(player) ? new Refusal(FAILED_AWAKENED) : null;
+        if (ApertureService.isAwakened(player)) return new Refusal(FAILED_AWAKENED);
+        if (AwakeningRitualService.isInRitual(player)) return new Refusal(FAILED_AWAKENING);
+        return ApertureNourishService.isCultivating(player) ? new Refusal(FAILED_NOURISHING) : null;
     }
 
     @Override
     protected final @Nullable Refusal checkUse(Player player, ItemStack stack) { return checkOwnUse(player, stack); }
 
     @Override
-    protected final int useDurationTicks(Player player, ItemStack stack) { return RITUAL_TICKS; }
+    protected final int useDurationTicks(Player player, ItemStack stack) { return 0; }
 
     @Override
     protected int getCooldownTicks(ItemStack stack) { return REFINE_DONE_COOLDOWN_TICKS; }
 
     @Override
-    public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack,
-                          int remaining) {
-        if (remaining != RITUAL_TICKS || !(entity instanceof ServerPlayer)) return;
-        if (getRolledBase(stack) > 0) return;
-
-        stack.set(ModDataComponents.AWAKEN_BASE, Talent.randomPercent(Talent.randomTalent()));
-    }
-
-    @Override
     protected final int performUse(ServerPlayer player, ItemStack stack) {
-        ApertureService.awaken(player, getRolledBase(stack));
-        ModCriteriaTriggers.USED_HOPE_GU.get().trigger(player);
+        int rolled = stack.getOrDefault(ModDataComponents.AWAKEN_BASE, 0);
         stack.remove(ModDataComponents.AWAKEN_BASE);
-        player.server.getCommands().sendCommands(player);
+        AwakeningRitualService.start(player, rolled > 0 ? rolled : Talent.randomPercent(Talent.randomTalent()));
         return 1;
     }
-
-    //region the ritual bar
-    private static int getRolledBase(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.AWAKEN_BASE, 0);
-    }
-
-    private static int getFilledTicks(int remaining) { return Math.min(RITUAL_TICKS - remaining, FILLING_TICKS); }
-
-    private static int getClimbingBase(ItemStack stack, int remainingTicks) {
-        int rolled = getRolledBase(stack);
-        return LOWEST_BASE + (rolled - LOWEST_BASE) * getFilledTicks(remainingTicks) / FILLING_TICKS;
-    }
-
-    @Override
-    public @Nullable Float chargeFraction(ItemStack stack, int remainingTicks) {
-        return getRolledBase(stack) <= 0 ? 0.0F : getClimbingBase(stack, remainingTicks) / 100.0F;
-    }
-
-    @Override
-    public int chargeColor(ItemStack stack, int remainingTicks) {
-        return isHeldAtFull(remainingTicks) ? LOCKED_COLOR : FILLING_COLOR;
-    }
-
-    private static boolean isHeldAtFull(int remainingTicks) { return remainingTicks <= HELD_AT_FULL_TICKS; }
-
-    @Override
-    public @Nullable Component chargeCaption(ItemStack stack, int remainingTicks) {
-        if (getRolledBase(stack) <= 0) return null;
-        return Component.translatable(CAPTION_TENTH + getClimbingBase(stack, remainingTicks) / 10);
-    }
-    //endregion
 }

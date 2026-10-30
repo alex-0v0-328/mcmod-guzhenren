@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link MortalGuItem} with {@code useDurationTicks = 0} (instant) and the shared
  * two-second post-refinement cooldown. The gate checks essence against {@code refineCost}, then the modules;
  * {@code performUse} pays the cost, runs every module and takes the one Gu, in one step. Hope Gu [希望蛊] is the
- * exception: {@code stacksTo(1)} and an 80-tick ritual, handled by its own leaf class.
+ * exception: {@code stacksTo(1)} and the awakening ritual [开窍仪式] its click starts, handled by its own leaf class.
  *
  * @author Alex
  * @version 1.0.0

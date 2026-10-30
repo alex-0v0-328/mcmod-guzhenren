@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
+import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitual;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ShieldData;
@@ -23,23 +24,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: fifteen saved values, the
+ * Everything this mod keeps on a player, read and written through one object: sixteen saved values, the
  * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and three in-memory values, the
  * essence regen remainder ({@link #getEssenceCarry}) and the second-stage throttle ({@link #getSecondStageThrottle}),
  * which each end steps for itself, and the shield's invulnerability window ({@link #getShieldWindow}), the server's.
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; eleven values reach their owner's client on change ({@code ModAttachments} syncs
- * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player).
- * {@link #resetCarriedOnDeath} returns every value a death carries to its default.
+ * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player), and the awakening ritual
+ * [开窍仪式] reaches every client that sees the player too. {@link #resetCarriedOnDeath} returns every value a death
+ * carries to its default.
  *
  * <p>⚠ The only class that touches the attachment API: a view over NeoForge attachments. Services use these
  * methods only.
  *
- * <p>⚠ Three values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
+ * <p>⚠ Four values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
  * attachment exists, and a relog or a death drops it; the plunge top is {@code null} unless the player is
- * plunging, and drops the same way; the health carry is either stored or absent, and {@link #takeHealthCarry}
- * returns and clears it.
+ * plunging, and drops the same way; the awakening ritual is {@code null} unless the player is in it; the health
+ * carry is either stored or absent, and {@link #takeHealthCarry} returns and clears it.
  *
  * @author Alex
  * @version 1.0.0
@@ -61,6 +63,10 @@ public final class PlayerData {
     public ApertureStorage getApertureStorage() { return owner.getData(ModAttachments.APERTURE_STORAGE); }
 
     public ApertureNourishData getNourish() { return owner.getData(ModAttachments.APERTURE_NOURISH); }
+
+    public @Nullable AwakeningRitual getAwakeningRitual() {
+        return owner.hasData(ModAttachments.AWAKENING_RITUAL) ? owner.getData(ModAttachments.AWAKENING_RITUAL) : null;
+    }
 
     public BodyData getBody() { return owner.getData(ModAttachments.BODY); }
 
@@ -102,6 +108,16 @@ public final class PlayerData {
 
     public boolean setNourish(@NotNull ApertureNourishData value) {
         return set(ModAttachments.APERTURE_NOURISH, value);
+    }
+
+    public boolean setAwakeningRitual(@Nullable AwakeningRitual value) {
+        if (Objects.equals(value, getAwakeningRitual())) return false;
+        if (value == null) {
+            owner.removeData(ModAttachments.AWAKENING_RITUAL);
+        } else {
+            owner.setData(ModAttachments.AWAKENING_RITUAL, value);
+        }
+        return true;
     }
 
     public boolean setBody(@NotNull BodyData value) { return set(ModAttachments.BODY, value); }
