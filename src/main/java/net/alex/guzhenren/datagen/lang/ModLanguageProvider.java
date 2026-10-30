@@ -418,6 +418,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.amplify_offhand",
                 "Hold right-click to pick a Gu, or hold it in the offhand", "按住右键选蛊，或副手持握配合催动");
         add("guzhenren.item.failed.amplify_no_target",               "No Gu on the hotbar to amplify", "快捷栏没有可增幅的蛊");
+        add("guzhenren.item.failed.little_light_hungry",
+                "Your Little Light Gu is too hungry to shine bright", "小光蛊太饿，放不出强光");
         add("guzhenren.item.failed.no_leaves",
                 "No Vitality Leaf left - the next grows in %s s", "生机叶已摘光，下一片需 %s 秒");
         add("guzhenren.item.failed.leaves_full",                     "All nine Vitality Leaves have grown", "生机叶已满九片");
@@ -439,6 +441,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.next_point",                          "Next point in %s s", "下一点需 %s 秒");
         add("guzhenren.item.gu.amplifies",
                 "Offhand: some Gu up to its rank, effect ×%s", "副手：本转及以下部分蛊效果 ×%s");
+        add("guzhenren.item.gu.little_light_bright",                 "Shining bright", "强光中");
+        add("guzhenren.item.gu.little_light_bright_on",              "Your Little Light Gu shines bright", "小光蛊放出强光");
+        add("guzhenren.item.gu.little_light_bright_off",             "Your Little Light Gu dims", "小光蛊收起强光");
+        add("guzhenren.item.gu.little_light_dimmed",
+                "Your Little Light Gu is hungry and dims", "小光蛊饿了，强光熄灭");
+        add("guzhenren.item.gu.killer_move_hint",
+                "Hold right-click to pick a partner Gu for a killer move", "长按右键选配合蛊，施展杀招");
         add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
         add("guzhenren.item.gu.as_before_land",                      "The land is as it was first made", "山已如初");
         add("guzhenren.item.gu.as_before_water",                     "The waters are as they were first made", "江已如初");
@@ -479,6 +488,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.third_watch_gu",                       "Third Watch Gu Effect", "三更蛊效果");
         add("effect.guzhenren.malicious_thought_gu",                 "Malicious Thought Gu Effect", "恶念蛊效果");
         add("effect.guzhenren.casual_gu",                            "Casual Gu Effect", "随意蛊效果");
+        add("effect.guzhenren.bleeding",                             "Bleeding", "流血");
     }
     //endregion
 
@@ -500,6 +510,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("entity.guzhenren.charging_crash_gu_4_entity", "Charging Crash Gu IV",   "四转横冲直撞蛊");
         add("entity.guzhenren.charging_crash_gu_5_entity", "Charging Crash Gu V",    "五转横冲直撞蛊");
         add("entity.guzhenren.test_trade_gu_immortal",     "Test Trade Gu Immortal", "测试交易蛊仙");
+        add("entity.guzhenren.moon_blade",                 "Moon Blade",             "月刃");
     }
     //endregion
 
@@ -536,6 +547,12 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.ten_extreme_disaster",
                 "%1$s was killed by a Ten-Extremes disaster", "%1$s 被十绝天灾波及而亡");
         add("death.attack.guzhenren.vital_gu_lost",               "%1$s lost their Vital Gu", "%1$s 因本命蛊死亡而亡");
+        add("death.attack.guzhenren.moon_blade",                  "%1$s was slain by %2$s's Moon Blade", "%1$s 被 %2$s 的月刃斩杀");
+        add("death.attack.guzhenren.moon_blade.item",
+                "%1$s was slain by %2$s's Moon Blade using %3$s", "%1$s 被 %2$s 用 %3$s 的月刃斩杀");
+        add("death.attack.guzhenren.bleeding",                    "%1$s bled to death", "%1$s 流血而亡");
+        add("death.attack.guzhenren.bleeding.player",
+                "%1$s bled to death whilst fighting %2$s", "%1$s 在与 %2$s 战斗时流血而亡");
     }
     //endregion
 
@@ -778,6 +795,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(GuPath.SOUND,          "Sound Path",          "音道");
         add(GuPath.LIGHT,          "Light Path",          "光道");
         add(GuPath.DARK,           "Dark Path",           "暗道");
+        add(GuPath.MOON,           "Moon Path",           "月道");
         add(GuPath.POISON,         "Poison Path",         "毒道");
         add(GuPath.STRENGTH,       "Strength Path",       "力道");
         add(GuPath.DREAM,          "Dream Path",          "梦道");

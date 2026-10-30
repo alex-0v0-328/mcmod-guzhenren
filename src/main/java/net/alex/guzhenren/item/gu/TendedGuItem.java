@@ -7,6 +7,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
+import net.alex.guzhenren.item.gu.killermove.KillerMove;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -47,7 +48,9 @@ import org.jetbrains.annotations.Nullable;
  * the long cooldown to the base's short one.
  *
  * <p>A use on an empty hunger bar is forced ({@code trySpendAndApply}): the effect lands, then the Gu dies of
- * exhaustion, and the 1 that {@code drive} returns is that death, not a payout.
+ * exhaustion, and the 1 that {@code drive} returns is that death, not a payout. {@link #billAsPartner} is the one
+ * bill for a Gu that only backs another's use (the Amplify Effect Gu [功倍蛊], a killer move's [杀招] partner): its
+ * essence, the meals around it, and on an empty bar the same death, after the use it backed.
  *
  * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS}, at two paces that stay separate. A
  * holder above the Gu's rank is Gu-paced: a channel step pours at most
@@ -78,6 +81,7 @@ public class TendedGuItem extends MortalGuItem {
     private static final String TOOLTIP_INVESTED = "guzhenren.item.gu.invested";
     private static final String TOOLTIP_HUNGER = "guzhenren.item.gu.hunger_progress";
     private static final String TOOLTIP_HEALTH = "guzhenren.item.gu.health";
+    private static final String TOOLTIP_KILLER_MOVE = "guzhenren.item.gu.killer_move_hint";
     private static final String CAPTION_CHANNELING = "guzhenren.hud.using";
     private static final String FAILED_STARVING = "guzhenren.item.failed.gu_starving";
     private static final String MSG_HUNGRY = "guzhenren.item.gu.hungry";
@@ -352,6 +356,21 @@ public class TendedGuItem extends MortalGuItem {
         return true;
     }
 
+    /** Pays one use backing another Gu's effect, with none of its own: false only when the aperture cannot. */
+    public final boolean billAsPartner(ServerPlayer player, ItemStack stack) {
+        if (!ApertureEssenceService.consume(player, spec.getEssencePerRound())) return false;
+
+        eat(player, stack);
+        if (hunger.isSpendForced(stack) && !player.getAbilities().instabuild) {
+            exhaust(player, stack);
+            stack.shrink(1);
+            return true;
+        }
+        eat(player, stack);
+        if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
+        return true;
+    }
+
     @Override
     protected final @Nullable Refusal checkTapUse(Player player, ItemStack stack) {
         Refusal cooling = checkCooldown(player, stack);
@@ -422,6 +441,9 @@ public class TendedGuItem extends MortalGuItem {
     public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
+        if (KillerMove.asRefinedMain(stack) != null) {
+            tooltip.add(Component.translatable(TOOLTIP_KILLER_MOVE).withStyle(ChatFormatting.GRAY));
+        }
         if (getState(stack).damageTaken() <= 0) return;
 
         tooltip.add(Component.translatable(TOOLTIP_HEALTH, getHealth(stack), getMaxHealth())

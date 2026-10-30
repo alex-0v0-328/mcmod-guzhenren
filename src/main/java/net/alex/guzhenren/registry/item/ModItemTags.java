@@ -45,6 +45,9 @@ public final class ModItemTags {
     public static final TagKey<Item> MALICIOUS_THOUGHT_FEED = key("malicious_thought_feed");
     public static final TagKey<Item> CASUAL_FEED = key("casual_feed");
     public static final TagKey<Item> AMPLIFY_EFFECT_FEED = key("amplify_effect_feed");
+    public static final TagKey<Item> MOONLIGHT_FEED = key("moonlight_feed");
+    public static final TagKey<Item> BLOOD_MOON_FEED = key("blood_moon_feed");
+    public static final TagKey<Item> LITTLE_LIGHT_FEED = key("little_light_feed");
     public static final TagKey<Item> INGOTS_STEEL = key("c", "ingots/steel");
     public static final TagKey<Item> STORAGE_BLOCKS_STEEL = key("c", "storage_blocks/steel");
 

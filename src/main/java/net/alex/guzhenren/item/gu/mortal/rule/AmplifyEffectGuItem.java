@@ -107,17 +107,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
 
     private boolean tryBill(ServerPlayer player, ItemStack stack, MortalGuItem driven) {
         if (!isRefined(stack) || driven.getRank().ordinal() > getRank().ordinal()) return false;
-        if (!ApertureEssenceService.consume(player, spec.getEssencePerRound())) return false;
-
-        eat(player, stack);
-        if (hunger.isSpendForced(stack) && !player.getAbilities().instabuild) {
-            exhaust(player, stack);
-            stack.shrink(1);
-            return true;
-        }
-        eat(player, stack);
-        if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
-        return true;
+        return billAsPartner(player, stack);
     }
 
     @Override

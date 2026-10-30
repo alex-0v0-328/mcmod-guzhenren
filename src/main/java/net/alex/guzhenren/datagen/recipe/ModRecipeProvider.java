@@ -93,6 +93,15 @@ public class ModRecipeProvider extends RecipeProvider {
                 ".jjj.",
                 " ... ");
 
+        addRefinement(output, ModItems.MOONGLOW_GU, 1L, 1L, 40, List.of(16, 16, 16, 16),
+                Map.of('M', GuIngredient.of(ModItems.MOONLIGHT_GU.get(), 1),
+                        'L', GuIngredient.of(ModItems.LITTLE_LIGHT_GU.get(), 1)),
+                " ... ",
+                ".....",
+                ".LML.",
+                ".....",
+                " ... ");
+
         addSmelting(output, ModItems.ROUGH_JADE, ModItems.JADE, 0.7F);
         addSmelting(output, ModItems.ROUGH_JADEITE, ModItems.JADEITE, 0.7F);
 

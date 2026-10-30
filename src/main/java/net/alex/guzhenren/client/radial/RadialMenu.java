@@ -19,13 +19,20 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The radial menu [扇形选择器]: a held input raises a ring of sectors at the screen's centre, mouse movement points
  * at one, and letting go picks it. Generic: an {@link Owner} says while the input is held, which entries to show and
- * what a pick does; the Amplify Effect Gu [功倍蛊] is the first owner. An {@link Entry} is one sector: its icon, the
- * name shown at the centre while it is pointed at, and whether a pick counts.
+ * what a pick does; the Amplify Effect Gu [功倍蛊] and a killer move's [杀招] main Gu are its owners. An
+ * {@link Entry} is one sector: its icon, the name shown at the centre while it is pointed at, and whether a pick
+ * counts.
  *
  * <p>One hold runs at a time ({@link #hold}). It opens after {@link #OPEN_DELAY_TICKS} held ticks, so a tap never
  * shows it; the entries are read once at that moment and stay fixed until release. Letting go on an enabled sector
- * calls {@link Owner#pick}; inside the inner ring, on a disabled sector or before it opened, nothing happens. With no
- * entries it calls {@link Owner#empty} once and waits out the hold. A screen opening or a logout drops the hold.
+ * calls {@link Owner#pick}; inside the inner ring or on a disabled sector nothing happens. With no entries it calls
+ * {@link Owner#empty} once and waits out the hold. Letting go with no ring open (before it opened, or after
+ * {@code empty}) calls {@link Owner#releaseUnopened}, which does nothing unless the owner says otherwise. A screen
+ * opening or a logout drops the hold with no call at all.
+ *
+ * <p>⚠ A hold also ends when {@link Owner#isHeld} turns false for any other reason, such as the owner's item leaving
+ * the hand; {@code pick} and {@code releaseUnopened} are called all the same, so an owner that sends anything checks
+ * its item is still in hand first.
  *
  * <p>⚠ While it is open the camera stands still and the walk keys still work: {@code MouseHandlerMixin} hands the
  * mouse movement that would have turned the player to {@link #steer}, in screen pixels, which moves an unseen cursor
@@ -57,6 +64,8 @@ public final class RadialMenu {
         void pick(int index);
 
         default void empty() {}
+
+        default void releaseUnopened() {}
     }
 
     private record Exit(List<Entry> entries, float[] hover, int picked, long openedAt, long startedAt) {}
@@ -151,8 +160,10 @@ public final class RadialMenu {
         int sector = getSelected();
         owner = null;
         entries = null;
-        if (shown == null) return;
-
+        if (shown == null) {
+            current.releaseUnopened();
+            return;
+        }
         boolean picked = sector != RadialLayout.NONE && shown.get(sector).enabled();
         exit = new Exit(shown, hover, picked ? sector : RadialLayout.NONE, openedAt, Util.getMillis());
         if (picked) current.pick(sector);

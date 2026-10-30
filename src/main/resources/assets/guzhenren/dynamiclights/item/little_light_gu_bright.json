@@ -1,0 +1,9 @@
+{
+	"match": {
+		"items": "guzhenren:little_light_gu",
+		"components": {
+			"guzhenren:little_light_bright": true
+		}
+	},
+	"luminance": 15
+}

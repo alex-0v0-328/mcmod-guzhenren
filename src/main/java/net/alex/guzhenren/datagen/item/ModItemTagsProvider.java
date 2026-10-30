@@ -78,5 +78,9 @@ public class ModItemTagsProvider extends ItemTagsProvider {
 
         //  TODO(placeholder): smooth stone is a placeholder food for the Amplify Effect Gu, pending Alex's real food.
         tag(ModItemTags.AMPLIFY_EFFECT_FEED).add(Items.SMOOTH_STONE);
+
+        tag(ModItemTags.MOONLIGHT_FEED).add(ModItems.MOON_ORCHID_PETALS.get());
+        tag(ModItemTags.BLOOD_MOON_FEED).add(ModItems.BLOOD_BOTTLE.get());
+        tag(ModItemTags.LITTLE_LIGHT_FEED).add(Items.GLOWSTONE_DUST);
     }
 }

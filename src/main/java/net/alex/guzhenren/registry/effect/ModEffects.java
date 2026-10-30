@@ -1,6 +1,7 @@
 package net.alex.guzhenren.registry.effect;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.effect.BleedingEffect;
 import net.alex.guzhenren.effect.MarkerEffect;
 import net.alex.guzhenren.effect.pool.LifeQiEffect;
 import net.alex.guzhenren.effect.pool.StrengthQiEffect;
@@ -112,6 +113,9 @@ public final class ModEffects {
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR, new long[] { 2L, 20L, 200L, 2_000L }));
     public static final DeferredHolder<MobEffect, CasualGuEffect> CASUAL_GU = MOB_EFFECTS.register(
             "casual_gu", () -> new CasualGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+
+    public static final DeferredHolder<MobEffect, BleedingEffect> BLEEDING = MOB_EFFECTS.register(
+            "bleeding", () -> new BleedingEffect(MobEffectCategory.HARMFUL, EFFECT_COLOR));
 
     public static MobEffectInstance instance(@NotNull Holder<MobEffect> effect, int duration) {
         return new MobEffectInstance(effect, duration, 0, false, false, true);

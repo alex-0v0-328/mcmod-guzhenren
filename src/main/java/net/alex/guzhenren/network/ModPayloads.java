@@ -9,6 +9,7 @@ import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
+import net.alex.guzhenren.network.payload.KillerMovePayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
@@ -26,7 +27,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
- * Registers the nine client-intent payloads and forwards each to {@link ClientIntents}, which holds every
+ * Registers the ten client-intent payloads and forwards each to {@link ClientIntents}, which holds every
  * check, and the two server notices ({@code SkinFlashPayload}, {@code ImpactShakePayload}), each handed to whatever
  * the client registered for its class through {@link #handleOnClient}.
  *
@@ -73,6 +74,8 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.plunge(player));
         toServer(registrar, AmplifyDrivePayload.TYPE, AmplifyDrivePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
+        toServer(registrar, KillerMovePayload.TYPE, KillerMovePayload.STREAM_CODEC,
+                (intent, player) -> ClientIntents.killerMove(player, intent.slot()));
         registrar.playToClient(SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC,
                 (notice, context) -> dispatchToClient(notice));
         registrar.playToClient(ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC,

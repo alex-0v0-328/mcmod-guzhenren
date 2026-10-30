@@ -3,6 +3,7 @@ package net.alex.guzhenren.registry.item;
 import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
@@ -40,8 +41,10 @@ import net.alex.guzhenren.item.gu.mortal.heaven.LifespanModule;
 import net.alex.guzhenren.item.gu.mortal.heaven.StageUpModule;
 import net.alex.guzhenren.item.gu.mortal.human.HopeGuItem;
 import net.alex.guzhenren.item.gu.mortal.human.SecondApertureModule;
+import net.alex.guzhenren.item.gu.mortal.light.LittleLightGuItem;
 import net.alex.guzhenren.item.gu.mortal.metal.BoneModule;
 import net.alex.guzhenren.item.gu.mortal.metal.TendonModule;
+import net.alex.guzhenren.item.gu.mortal.moon.MoonBladeModule;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.soul.SoulCapModule;
 import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
@@ -120,6 +123,7 @@ public final class ModItems {
     private static final ItemRegistrar REGISTRAR = ItemRegistrar.of(ITEMS);
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
     private static final long[] QI_ESSENCE_COST = { 50L, 500L, 5_000L, 50_000L, 500_000L };
+    private static final float MOONLIGHT_DAMAGE = 6.0F;
 
     public static <T extends Item> @Nullable T findGu(Class<T> type, Predicate<T> test) {
         for (DeferredHolder<Item, ? extends Item> entry : ITEMS.getEntries()) {
@@ -880,6 +884,45 @@ public final class ModItems {
     }
     //endregion
 
+    //region Moon Path [月道] -- Moonlight Gu [月光蛊] and Moonglow Gu [月芒蛊]: one moon blade a use, a killer
+    // move's main Gu with a Little Light Gu [小光蛊]; the Blood Moon Gu [血月蛊] below is Blood Path's
+    public static final DeferredItem<Item> MOONLIGHT_GU = REGISTRAR.item("moonlight_gu",
+            () -> createMoonBladeGu(Rank.ONE, GuPath.MOON, 800, 16, 1, ModItemTags.MOONLIGHT_FEED,
+                    MoonBladeEntity.Variant.MOON, MOONLIGHT_DAMAGE))
+            .lang("Moonlight Gu", "月光蛊").register();
+    public static final DeferredItem<Item> MOONGLOW_GU = REGISTRAR.item("moonglow_gu",
+            () -> createMoonBladeGu(Rank.TWO, GuPath.MOON, 8_000, 160, 2, ModItemTags.MOONLIGHT_FEED,
+                    MoonBladeEntity.Variant.MOON, 3 * MOONLIGHT_DAMAGE))
+            .lang("Moonglow Gu", "月芒蛊").register();
+    //endregion
+
+    //region Blood Path [血道] -- Blood Moon Gu [血月蛊]: a blood moon blade that leaves Bleeding [流血]
+    public static final DeferredItem<Item> BLOOD_MOON_GU = REGISTRAR.item("blood_moon_gu",
+            () -> createMoonBladeGu(Rank.THREE, GuPath.BLOOD, 80_000, 1_600, 4, ModItemTags.BLOOD_MOON_FEED,
+                    MoonBladeEntity.Variant.BLOOD, 9 * MOONLIGHT_DAMAGE))
+            .lang("Blood Moon Gu", "血月蛊").register();
+
+    private static TendedGuItem createMoonBladeGu(Rank rank, GuPath path, int refine, int costPerUse, int scale,
+                                                  TagKey<Item> feed, MoonBladeEntity.Variant variant, float damage) {
+        return new TendedGuItem(createTendedProperties(), GuSpec.of(rank, path).type(GuType.OFFENSIVE)
+                .refine(refine).costPerUse(costPerUse)
+                .hungerBar(12 * scale, 1).hungerPerUse(scale).hungerPerDay(scale).health(12 * scale)
+                .feed(feed, 1)
+                .cooldown(Ticks.SECOND),
+                new MoonBladeModule(variant, damage));
+    }
+    //endregion
+
+    //region Light Path [光道] -- Little Light Gu [小光蛊]: glows in the hand, shines bright on a use and eats while
+    // it does; a killer move's partner, its use cost the one it pays there
+    public static final DeferredItem<Item> LITTLE_LIGHT_GU = REGISTRAR.item("little_light_gu",
+            () -> new LittleLightGuItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.LIGHT)
+                    .refine(800).costPerUse(16)
+                    .hungerBar(12, 1).hungerPerUse(1).hungerPerDay(1)
+                    .feed(ModItemTags.LITTLE_LIGHT_FEED, 1)))
+            .lang("Little Light Gu", "小光蛊").register();
+    //endregion
+
     //region Gu materials [蛊材]
     public static final DeferredItem<Item> PRIMEVAL_STONE = REGISTRAR.item("primeval_stone",
             () -> new PrimevalStoneItem(new Item.Properties(), PRIMEVAL_STONE_ESSENCE))
@@ -934,6 +977,13 @@ public final class ModItems {
     public static final DeferredItem<Item> ROUGH_JADEITE = REGISTRAR.item("rough_jadeite",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
             .lang("Rough Jadeite", "翡翠原石").register();
+    //endregion
+
+    //region Blood materials [血道蛊材] -- pure Gu material, blood path rank I; no natural source yet
+    public static final DeferredItem<Item> BLOOD_BOTTLE = REGISTRAR.item("blood_bottle",
+            () -> new GuMaterialItem(new Item.Properties().craftRemainder(Items.GLASS_BOTTLE).stacksTo(16),
+                    Rank.ONE, GuPath.BLOOD))
+            .lang("Blood Bottle", "血瓶").register();
     //endregion
 
     //region Metal [金属] -- plain items like iron's: the Steel Tendon Gu's ingot from a blast furnace, its block of nine

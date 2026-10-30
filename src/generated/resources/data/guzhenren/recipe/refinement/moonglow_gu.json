@@ -1,0 +1,37 @@
+{
+  "type": "guzhenren:refinement",
+  "base_success": 40,
+  "essence_per_second": 1,
+  "ingredients": [
+    {
+      "count": 1,
+      "item": "guzhenren:little_light_gu"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:moonlight_gu"
+    },
+    {
+      "count": 1,
+      "item": "guzhenren:little_light_gu"
+    }
+  ],
+  "results": [
+    {
+      "count": 1,
+      "id": "guzhenren:moonglow_gu"
+    }
+  ],
+  "slots": [
+    15,
+    16,
+    17
+  ],
+  "soul_per_second": 1,
+  "windows": [
+    16,
+    16,
+    16,
+    16
+  ]
+}
