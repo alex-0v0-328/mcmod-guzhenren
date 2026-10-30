@@ -36,7 +36,8 @@ import org.jetbrains.annotations.Nullable;
  * after each {@code drive}, on every channel step, and on the heartbeat while hungry or hurt ({@link
  * #tryAutoFeed}). Every meal mends first and fills the bar only once whole. Food never routes a click, so there is
  * no feeding gesture; a channeled Gu at its hunger floor is refused only when the bag holds none of its food
- * ({@link GuHunger#carriesFood}).
+ * ({@link GuHunger#carriesFood}). ⚠ Creative ignores the floor: the bar still drains to 0 for show, and the Gu
+ * keeps channeling, as a forced use there never exhausts it.
  *
  * <p>⚠ {@code checkCooldown} is the one cooldown gate for the use, the tap use and {@link #tryAutoUse}:
  * the larger of the effect cooldown (waived by {@code canUseDuringEffectCooldown}) and the post-refine guard. A
@@ -210,9 +211,13 @@ public class TendedGuItem extends MortalGuItem {
         int round = spec.getEssencePerRound();
         int leftInThisRound = round - getState(stack).investedEssence() % round;
         long thisStep = Math.min(getMostThisStepMaySpend(player, pool, elapsed),
-                hunger.getEssenceAboveHungerFloor(stack));
+                getEssenceAboveHungerFloor(player, stack));
 
         return (int) Math.min(thisStep, leftInThisRound);
+    }
+
+    private long getEssenceAboveHungerFloor(Player player, ItemStack stack) {
+        return player.getAbilities().instabuild ? Long.MAX_VALUE : hunger.getEssenceAboveHungerFloor(stack);
     }
 
     private long getMostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
@@ -296,7 +301,7 @@ public class TendedGuItem extends MortalGuItem {
         Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
         if (poor != null) return poor;
 
-        if (spec.isChanneled() && hunger.getEssenceAboveHungerFloor(stack) <= 0 && !hunger.carriesFood(this, player)) {
+        if (spec.isChanneled() && getEssenceAboveHungerFloor(player, stack) <= 0 && !hunger.carriesFood(this, player)) {
             return new Refusal(FAILED_STARVING);
         }
 
