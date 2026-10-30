@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  * the beast buffs, the crashes, hardship strength, self reliance and all-out effort.</li>
  * <li>{@link #TIMED_SKIN} [限时皮] -- the jade skin or white jade skin on the body, payload the skin; exclusive. The
  * skin itself stays on {@code BodyData}, which projects its own icon.</li>
- * <li>{@link #MUGWORT_SHIELD} [天蓬护盾] -- the shield on the body; its points stay on {@code MugwortShieldData}.</li>
+ * <li>{@link #MUGWORT_SHIELD} [天蓬护盾] -- the shield on the body; its points stay on {@code ShieldData}.</li>
  * <li>{@link #VITALITY_LEAF} [生机叶] -- a timed heal on the body.</li>
  * <li>{@link #WATCH_RATE} [更蛊] -- a timed time rate on the body per Gu, payload the vanilla form; one layer per
  * use.</li>

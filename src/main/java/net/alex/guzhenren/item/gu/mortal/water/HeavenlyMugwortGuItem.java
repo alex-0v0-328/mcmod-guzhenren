@@ -2,7 +2,8 @@ package net.alex.guzhenren.item.gu.mortal.water;
 
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.item.gu.mortal.TimedEffects;
-import net.alex.guzhenren.gameplay.body.MugwortShieldService;
+import net.alex.guzhenren.gameplay.body.ShieldService;
+import net.alex.guzhenren.gameplay.body.ShieldType;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
@@ -16,13 +17,13 @@ import org.jetbrains.annotations.Nullable;
  * registration.
  *
  * <p>Extends {@link TendedGuItem}. Every use fills the shield to its full points and restarts its timer through
- * {@link MugwortShieldService#raise}; a shield still up is replaced, never stacked. Like a buff Gu it may be driven
+ * {@link ShieldService#raise}; a shield still up is replaced, never stacked. Like a buff Gu it may be driven
  * again inside its effect cooldown at double the hunger. An Amplify Effect Gu [功倍蛊] multiplies the length, never
  * the points.
  *
  * @author Alex
  * @version 1.0.0
- * @see MugwortShieldService
+ * @see ShieldService
  * @since 1.0.0
  */
 
@@ -48,7 +49,8 @@ public final class HeavenlyMugwortGuItem extends TendedGuItem {
     @Override
     protected void applyEffect(ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, this);
-        MugwortShieldService.raise(player, shieldPoints, durationTicks * amplification.factor());
+        ShieldService.raise(player, ShieldType.HEAVENLY_MUGWORT, shieldPoints,
+                durationTicks * amplification.factor());
         TimedEffects.markShieldAmplified(player, amplification);
     }
 

@@ -15,6 +15,7 @@ import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Flesh;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
+import net.alex.guzhenren.gameplay.body.ShieldType;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.mind.Brilliance;
@@ -238,7 +239,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.using",                           "Use %s/%s",                   "使用 %s/%s");
         add("guzhenren.hud.nourishing",                      "Nourishing %s%%",             "温养 %s%%");
         add("guzhenren.hud.nourish_starving",                "Essence running dry %s%%",    "真元将尽 %s%%");
-        add("guzhenren.hud.mugwort_shield",                  "Heavenly Mugwort %s / %s",    "天蓬 %s / %s");
+        add("guzhenren.hud.shield",                          "%s %s / %s",                  "%s %s / %s");
         add("guzhenren.hud.aperture_pressure",               "Aperture Pressure %s%%",      "空窍压力 %s%%");
         add("guzhenren.hud.aperture_pressure_cd",            "Aperture Pressure %s%% [%s]", "空窍压力 %s%% [%s]");
     }
@@ -709,6 +710,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addHumanStrength();
         addGuType();
         addSkin();
+        addShield();
         addTendon();
         addBone();
         addFlesh();
@@ -743,6 +745,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add(Skin.IRON_SKIN_2,     "Iron Skin II",    "二转铁皮");
         add(Skin.IRON_SKIN_3,     "Iron Skin III",   "三转铁皮");
         add(Skin.IRON_SKIN_4,     "Iron Skin IV",    "四转铁皮");
+    }
+
+    private void addShield() {
+        add(ShieldType.HEAVENLY_MUGWORT, "Heavenly Mugwort", "天蓬");
     }
 
     private void addTendon() {

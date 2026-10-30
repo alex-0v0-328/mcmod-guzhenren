@@ -3,7 +3,8 @@ package net.alex.guzhenren.client.event;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.hud.ChargeHud;
-import net.alex.guzhenren.client.hud.MugwortShieldHud;
+import net.alex.guzhenren.client.hud.ShieldGlowHud;
+import net.alex.guzhenren.client.hud.ShieldHud;
 import net.alex.guzhenren.client.hud.NourishHud;
 import net.alex.guzhenren.client.hud.PlayerStatsHud;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
@@ -64,10 +65,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers five GUI layers
- * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} above the vanilla camera overlays,
+ * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers seven GUI layers
+ * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} and {@link ShieldGlowHud} above the vanilla camera overlays,
  * {@link net.alex.guzhenren.client.hud.PlayerStatsHud}, {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud}, and {@link RadialMenu} above the crosshair), the key mapping for
+ * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, and {@link RadialMenu} above the crosshair),
+ * the key mapping for
  * the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity renderers
  * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
  * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
@@ -75,8 +77,8 @@ import org.jetbrains.annotations.Nullable;
  * lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player renderers get
  * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} and {@code ImpactShakePayload}
  * handlers with {@code ModPayloads}, which names no client class itself, and the Epic Fight client hooks
- * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered key states and the pending
- * flashes, and drops a radial-menu hold.
+ * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered key states, the pending
+ * flashes and the shield glow, and drops a radial-menu hold; each client tick steps the shield glow.
  *
  * @author Alex
  * @version 1.0.0
@@ -95,8 +97,10 @@ public final class ClientEvents {
             Guzhenren.id("charge");
     private static final ResourceLocation NOURISH =
             Guzhenren.id("nourish");
-    private static final ResourceLocation MUGWORT_SHIELD =
-            Guzhenren.id("mugwort_shield");
+    private static final ResourceLocation SHIELD =
+            Guzhenren.id("shield");
+    private static final ResourceLocation SHIELD_GLOW =
+            Guzhenren.id("shield_glow");
     private static final ResourceLocation SONIC_BOOM =
             Guzhenren.id("sonic_boom");
     private static final ResourceLocation RADIAL_MENU =
@@ -106,11 +110,12 @@ public final class ClientEvents {
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SONIC_BOOM,
                 (g, delta) -> SonicBoomHud.INSTANCE.render(g, delta));
+        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SHIELD_GLOW,
+                (g, delta) -> ShieldGlowHud.INSTANCE.render(g, delta));
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, CHARGE, (g, delta) -> ChargeHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
-        event.registerAbove(VanillaGuiLayers.AIR_LEVEL, MUGWORT_SHIELD,
-                (g, delta) -> MugwortShieldHud.INSTANCE.render(g));
+        event.registerAbove(VanillaGuiLayers.AIR_LEVEL, SHIELD, (g, delta) -> ShieldHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
     }
 
@@ -188,6 +193,7 @@ public final class ClientEvents {
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         DashInput.reset();
         SkinFlashes.clear();
+        ShieldGlowHud.INSTANCE.reset();
         RadialMenu.close();
     }
 
@@ -196,6 +202,7 @@ public final class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
         SkinFlashes.prune(minecraft.player.level().getGameTime());
+        ShieldGlowHud.INSTANCE.tick(minecraft.player);
         while (ModKeyMappings.OPEN_INFO.consumeClick()) {
             if (minecraft.screen == null
                     && !minecraft.player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN)) {

@@ -5,9 +5,11 @@ import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.WatchGuEffect;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.body.MugwortShieldDownEvent;
-import net.alex.guzhenren.gameplay.body.MugwortShieldRaisedEvent;
-import net.alex.guzhenren.gameplay.body.MugwortShieldService;
+import net.alex.guzhenren.gameplay.body.ShieldDownEvent;
+import net.alex.guzhenren.gameplay.body.ShieldLayer;
+import net.alex.guzhenren.gameplay.body.ShieldRaisedEvent;
+import net.alex.guzhenren.gameplay.body.ShieldService;
+import net.alex.guzhenren.gameplay.body.ShieldType;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinShedEvent;
 import net.alex.guzhenren.gameplay.body.SkinWornEvent;
@@ -47,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  * amplifier: {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. A Gu's gate reads
  * {@link #findBuff} and its kin; a rule that reads the vanilla effect (attack, carrying capacity, time flow) pauses
  * until then too. A jade skin and the shield keep their state on {@code BodyData} and
- * {@code MugwortShieldData}; their effects follow the events those post, and an effect cut, removed or run out
+ * {@code ShieldData}; their effects follow the events those post, and an effect cut, removed or run out
  * takes the state with it.
  *
  * <p>Using a Gu again while its effect runs lengthens the timer and adds no strands; a watch form stacks one layer
@@ -201,13 +203,15 @@ public final class TimedEffects {
 
     //region mugwort shield
     @SubscribeEvent
-    public static void onShieldRaised(MugwortShieldRaisedEvent event) {
+    public static void onShieldRaised(ShieldRaisedEvent event) {
+        if (event.getType() != ShieldType.HEAVENLY_MUGWORT) return;
         ServerPlayer player = event.getPlayer();
         HeavenlyMugwortGuItem gu = ModItems.findGu(HeavenlyMugwortGuItem.class, item -> true);
-        if (gu == null) return;
+        ShieldLayer layer = ShieldService.find(player, ShieldType.HEAVENLY_MUGWORT);
+        if (gu == null || layer == null) return;
 
         ResourceLocation source = getId(gu);
-        long endTick = MugwortShieldService.get(player).endTick();
+        long endTick = layer.endTick();
         if (PathEffectService.find(player, ModPathEffectTypes.MUGWORT_SHIELD, source) != null) {
             PathEffectService.update(player, ModPathEffectTypes.MUGWORT_SHIELD, source,
                     effect -> effect.withEndTick(endTick));
@@ -218,7 +222,8 @@ public final class TimedEffects {
     }
 
     @SubscribeEvent
-    public static void onShieldDown(MugwortShieldDownEvent event) {
+    public static void onShieldDown(ShieldDownEvent event) {
+        if (event.getType() != ShieldType.HEAVENLY_MUGWORT) return;
         PathEffectService.removeType(event.getPlayer(), ModPathEffectTypes.MUGWORT_SHIELD);
     }
 
@@ -236,8 +241,8 @@ public final class TimedEffects {
         PathEffect<?> effect = event.getEffect();
         if (effect.type() == ModPathEffectTypes.TIMED_SKIN && effect.payload() == BodyService.getSkin(player)) {
             BodyService.shedSkin(player);
-        } else if (effect.type() == ModPathEffectTypes.MUGWORT_SHIELD && MugwortShieldService.isUp(player)) {
-            MugwortShieldService.dismiss(player);
+        } else if (effect.type() == ModPathEffectTypes.MUGWORT_SHIELD) {
+            ShieldService.dismiss(player, ShieldType.HEAVENLY_MUGWORT);
         }
     }
 

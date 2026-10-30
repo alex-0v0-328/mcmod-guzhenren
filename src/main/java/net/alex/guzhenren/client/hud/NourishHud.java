@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * fill when starving.
  *
  * <p>While the charge bar is up too, this bar sits one {@link #getStackShift} higher, so the two never overlap;
- * {@link #isShowing} lets {@link MugwortShieldHud} stack above it the same way.
+ * {@link #isShowing} lets {@link ShieldHud} stack above it the same way.
  *
  * <p>⚠ It is a separate layer from the charge bar on purpose: that one reads only the held item, and
  * grafting a player attachment into it would take away the property its own header states.

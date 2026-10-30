@@ -6,7 +6,8 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.body.BodyData;
-import net.alex.guzhenren.gameplay.body.MugwortShieldData;
+import net.alex.guzhenren.gameplay.body.ShieldData;
+import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -23,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Everything this mod keeps on a player, read and written through one object: fifteen saved values, the
- * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and two in-memory values, the
+ * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and three in-memory values, the
  * essence regen remainder ({@link #getEssenceCarry}) and the second-stage throttle ({@link #getSecondStageThrottle}),
- * which each end steps for itself.
+ * which each end steps for itself, and the shield's invulnerability window ({@link #getShieldWindow}), the server's.
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; eleven values reach their owner's client on change ({@code ModAttachments} syncs
@@ -63,7 +64,9 @@ public final class PlayerData {
 
     public BodyData getBody() { return owner.getData(ModAttachments.BODY); }
 
-    public MugwortShieldData getMugwortShield() { return owner.getData(ModAttachments.MUGWORT_SHIELD); }
+    public ShieldData getShield() { return owner.getData(ModAttachments.SHIELD); }
+
+    public ShieldWindow getShieldWindow() { return owner.getData(ModAttachments.SHIELD_WINDOW); }
 
     public SoulData getSoul() { return owner.getData(ModAttachments.SOUL); }
 
@@ -103,9 +106,9 @@ public final class PlayerData {
 
     public boolean setBody(@NotNull BodyData value) { return set(ModAttachments.BODY, value); }
 
-    public boolean setMugwortShield(@NotNull MugwortShieldData value) {
-        return set(ModAttachments.MUGWORT_SHIELD, value);
-    }
+    public boolean setShield(@NotNull ShieldData value) { return set(ModAttachments.SHIELD, value); }
+
+    public void setShieldWindow(@NotNull ShieldWindow value) { owner.setData(ModAttachments.SHIELD_WINDOW, value); }
 
     public boolean setSoul(@NotNull SoulData value) { return set(ModAttachments.SOUL, value); }
 

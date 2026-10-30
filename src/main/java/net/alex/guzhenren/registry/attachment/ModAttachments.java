@@ -10,7 +10,8 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.body.BodyData;
-import net.alex.guzhenren.gameplay.body.MugwortShieldData;
+import net.alex.guzhenren.gameplay.body.ShieldData;
+import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -33,11 +34,12 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * Every data attachment this mod puts on a player.
  *
  * <p>DeferredRegister holder: the thirteen record attachments (immutable, written only through their
- * service) plus the six scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
- * {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}, {@code PLUNGE}).
+ * service) plus the seven scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
+ * {@code SHIELD_WINDOW}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
- * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY} and {@code SECOND_STAGE_THROTTLE} are neither saved
- * nor synced, each end keeping its own, and {@code SECOND_STAGE} is synced to every client that sees the player, who
+ * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW} and
+ * {@code SECOND_STAGE_THROTTLE} are neither saved nor synced, each end keeping its own (the server alone writes
+ * {@code SHIELD_WINDOW}), and {@code SECOND_STAGE} is synced to every client that sees the player, who
  * leans into the flight on their screens too, but never saved: it counts by presence, a player who has it flies the
  * second stage [二段飞行], and a relog starts outside it. {@code PLUNGE} is synced to its owner the same way: a
  * player who has it is plunging [坠击], and its value is the top of that fall. A record other players must see
@@ -52,8 +54,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
  * attachment is carried and reset by being registered here, nowhere else. {@code HEALTH_CARRY} is built by hand
  * because a death must not carry it, and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a
- * body that the death just ended; {@code ESSENCE_CARRY}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE} and
- * {@code PLUNGE} are unsaved, so no clone carries them. ⚠ {@code BORN} stays inherited, or
+ * body that the death just ended; {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW}, {@code SECOND_STAGE},
+ * {@code SECOND_STAGE_THROTTLE} and {@code PLUNGE} are unsaved, so no clone carries them. ⚠ {@code BORN} stays inherited, or
  * the next login re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
@@ -101,9 +103,11 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<BodyData>> BODY =
             registerSynced("body_data", BodyData.DEFAULT, BodyData.CODEC,
                     StreamCodec.of(BodyData::encode, BodyData::decode));
-    public static final Supplier<AttachmentType<MugwortShieldData>> MUGWORT_SHIELD = registerSynced(
-            "mugwort_shield_data", MugwortShieldData.DEFAULT, MugwortShieldData.CODEC,
-            StreamCodec.of(MugwortShieldData::encode, MugwortShieldData::decode));
+    public static final Supplier<AttachmentType<ShieldData>> SHIELD =
+            registerSynced("shield_data", ShieldData.DEFAULT, ShieldData.CODEC,
+                    StreamCodec.of(ShieldData::encode, ShieldData::decode));
+    public static final Supplier<AttachmentType<ShieldWindow>> SHIELD_WINDOW = ATTACHMENT_TYPES.register(
+            "shield_window", () -> AttachmentType.builder(() -> ShieldWindow.CLOSED).build());
     //endregion
 
     //region Soul [魂魄]

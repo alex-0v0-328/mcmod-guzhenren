@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * and the three-fill draw with its caption that every such bar reuses.
  *
  * <p>Package-private abstract base for {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud} and {@link net.alex.guzhenren.client.hud.MugwortShieldHud}.
+ * {@link net.alex.guzhenren.client.hud.NourishHud} and {@link net.alex.guzhenren.client.hud.ShieldHud}.
  * The {@code barTop} method rides vanilla's held-item-name baseline so armor and a mount's health push the bar up
  * instead of hiding it. All drawing is {@code g.fill} plus the caption, no textures, in one {@link GuiBatch}. Each
  * bar's {@link #render} draws it for the frame, called from the loader's HUD layer ({@code ClientEvents}).

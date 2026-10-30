@@ -6,7 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.body.MugwortShieldService;
+import net.alex.guzhenren.gameplay.body.ShieldService;
 import net.alex.guzhenren.gameplay.body.SkinService;
 import net.alex.guzhenren.gameplay.body.UndeadService;
 import net.alex.guzhenren.gameplay.clock.Beat;
@@ -51,8 +51,8 @@ import net.minecraft.server.level.ServerPlayer;
  * a pool.</li>
  * <li>{@code UndeadService.tickTempZombie} -- may turn a temp zombie into a zombie or end the form; (10) and
  * (12) to (17) read the form.</li>
- * <li>{@code SkinService.tickSkin}, then {@code MugwortShieldService.tickShield} -- shed a jade skin [玉皮] or a
- * Heavenly Mugwort shield [天蓬护盾] whose time ran out and project what is still worn as its effect, a body-form
+ * <li>{@code SkinService.tickSkin}, then {@code ShieldService.tickShield} -- shed a jade skin [玉皮] or a
+ * shield [护盾] layer whose time ran out and project what is still worn as its effect, a body-form
  * projection like (8); nothing later reads either, both are read per hit instead.</li>
  * <li>{@code UndeadService.pinHunger} -- after (8), or a form that ended this beat still pins hunger.</li>
  * <li>{@code PathQiService.syncEffects} -- rebuilds the qi effects from the pool; (12), (13) and (15) read
@@ -112,7 +112,7 @@ public final class Heartbeat {
         ApertureEssenceService.closeDistilling(player);
         UndeadService.tickTempZombie(player);
         SkinService.tickSkin(player);
-        MugwortShieldService.tickShield(player);
+        ShieldService.tickShield(player);
         UndeadService.pinHunger(player);
         PathQiService.syncEffects(player);
         UndeadService.tickDeathQi(player);

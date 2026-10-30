@@ -303,7 +303,7 @@ public final class ModItems {
 
     //region Water Path [水道] -- Heavenly Mugwort Gu [天蓬蛊]: a shield for a while
     public static final DeferredItem<Item> HEAVENLY_MUGWORT_GU = ITEMS.register("heavenly_mugwort_gu",
-            () -> new HeavenlyMugwortGuItem(createTendedProperties(), 16.0F, 30 * Ticks.SECOND,
+            () -> new HeavenlyMugwortGuItem(createTendedProperties(), 180.0F, 30 * Ticks.SECOND,
                     GuSpec.of(Rank.THREE, GuPath.WATER).type(GuType.DEFENSIVE)
                             .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)

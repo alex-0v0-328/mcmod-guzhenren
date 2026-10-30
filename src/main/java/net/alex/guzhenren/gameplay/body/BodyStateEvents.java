@@ -2,14 +2,10 @@ package net.alex.guzhenren.gameplay.body;
 
 import net.alex.guzhenren.Guzhenren;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.damagesource.CombatRules;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
@@ -17,9 +13,9 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
  * Reacts to the vanilla moments that change body [肉身] behavior: {@code onBreathe} lets an undead life
  * form breathe underwater, {@code onIncomingDamage} hands a hit to the worn skin [皮肤] for its flat reduction and
  * cancels a hit the skin turns whole, so it leaves no knockback, hurt sound or invulnerability frames behind; what
- * passes meets the Heavenly Mugwort shield [天蓬护盾] after the invulnerability frames and before armor, through
- * the hit's armor reduction ({@link #shieldThenArmor}: armor then works only on what the shield passed), so a hit
- * the shield takes whole still starts the frames as vanilla Absorption does.
+ * passes meets the shields [护盾] ({@link ShieldService#guard}) at vanilla's shield-block slot, and a hit they or
+ * their frames take whole is cancelled the same way. It runs at {@code LOW}, after the handlers that refuse a hit
+ * outright, so a refused hit spends no shield.
  * The attack refreshes on effect changes and attacks live in {@code gameplay.attribute.AttributeEvents}.
  *
  * @author Alex
@@ -41,7 +37,7 @@ public final class BodyStateEvents {
         event.setCanBreathe(true);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
@@ -53,20 +49,8 @@ public final class BodyStateEvents {
             return;
         }
         event.setAmount(reduced);
-        if (player instanceof ServerPlayer server && MugwortShieldService.isUp(server)) {
-            event.addReductionModifier(DamageContainer.Reduction.ARMOR,
-                    (container, armor) -> shieldThenArmor(server, container, armor));
+        if (player instanceof ServerPlayer server && ShieldService.guard(server, event.getContainer())) {
+            event.setCanceled(true);
         }
-    }
-
-    private static float shieldThenArmor(ServerPlayer player, DamageContainer container, float armor) {
-        DamageSource source = container.getSource();
-        float landing = container.getNewDamage();
-        float rest = MugwortShieldService.absorb(player, source, landing);
-        if (rest >= landing) return armor;
-        if (source.is(DamageTypeTags.BYPASSES_ARMOR)) return landing - rest;
-        float armored = CombatRules.getDamageAfterAbsorb(player, rest, source, player.getArmorValue(),
-                (float) player.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
-        return landing - armored;
     }
 }
