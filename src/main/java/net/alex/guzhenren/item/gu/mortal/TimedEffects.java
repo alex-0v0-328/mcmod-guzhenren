@@ -22,7 +22,7 @@ import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
-import net.alex.guzhenren.item.gu.mortal.water.HeavenlyMugwortGuItem;
+import net.alex.guzhenren.item.gu.mortal.water.ShieldModule;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
@@ -206,7 +206,7 @@ public final class TimedEffects {
     public static void onShieldRaised(ShieldRaisedEvent event) {
         if (event.getType() != ShieldType.HEAVENLY_MUGWORT) return;
         ServerPlayer player = event.getPlayer();
-        HeavenlyMugwortGuItem gu = ModItems.findGu(HeavenlyMugwortGuItem.class, item -> true);
+        MortalGuItem gu = findShieldGu(ShieldType.HEAVENLY_MUGWORT);
         ShieldLayer layer = ShieldService.find(player, ShieldType.HEAVENLY_MUGWORT);
         if (gu == null || layer == null) return;
 
@@ -227,9 +227,15 @@ public final class TimedEffects {
         PathEffectService.removeType(event.getPlayer(), ModPathEffectTypes.MUGWORT_SHIELD);
     }
 
-    public static void markShieldAmplified(@NotNull ServerPlayer player, @NotNull Amplification amplification) {
-        HeavenlyMugwortGuItem gu = ModItems.findGu(HeavenlyMugwortGuItem.class, item -> true);
+    public static void markShieldAmplified(@NotNull ServerPlayer player, @NotNull ShieldType type,
+                                           @NotNull Amplification amplification) {
+        if (type != ShieldType.HEAVENLY_MUGWORT) return;
+        MortalGuItem gu = findShieldGu(type);
         if (gu != null) markAmplified(player, ModPathEffectTypes.MUGWORT_SHIELD, getId(gu), amplification);
+    }
+
+    private static @Nullable MortalGuItem findShieldGu(ShieldType type) {
+        return ModItems.findGuWith(ShieldModule.class, module -> module.type() == type);
     }
     //endregion
 

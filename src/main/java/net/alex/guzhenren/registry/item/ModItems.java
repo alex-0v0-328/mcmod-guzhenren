@@ -12,6 +12,7 @@ import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.Bone;
+import net.alex.guzhenren.gameplay.body.ShieldType;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
@@ -52,7 +53,7 @@ import net.alex.guzhenren.item.gu.mortal.time.ManAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.TerrainAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.WatchModule;
 import net.alex.guzhenren.item.gu.mortal.transformation.ZombieModule;
-import net.alex.guzhenren.item.gu.mortal.water.HeavenlyMugwortGuItem;
+import net.alex.guzhenren.item.gu.mortal.water.ShieldModule;
 import net.alex.guzhenren.item.gu.mortal.wisdom.ThoughtBurstModule;
 import net.alex.guzhenren.item.gu.mortal.wisdom.ThoughtModule;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
@@ -303,13 +304,15 @@ public final class ModItems {
 
     //region Water Path [水道] -- Heavenly Mugwort Gu [天蓬蛊]: a shield for a while
     public static final DeferredItem<Item> HEAVENLY_MUGWORT_GU = ITEMS.register("heavenly_mugwort_gu",
-            () -> new HeavenlyMugwortGuItem(createTendedProperties(), 180.0F, 30 * Ticks.SECOND,
+            () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.WATER).type(GuType.DEFENSIVE)
                             .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
                             .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
                             .feed(ModItemTags.SMOOTH_STONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND)));
+                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new ShieldModule(ShieldType.HEAVENLY_MUGWORT, 180.0F, 30 * Ticks.SECOND),
+                    new RecastModule()));
     //endregion
 
     //region Human Jun Strength Branch [人力钧力流] -- one round is one layer
