@@ -8,6 +8,8 @@ import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.gu.mortal.wood.LeafGrowth;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
+import net.alex.guzhenren.registry.builder.ItemModel;
+import net.alex.guzhenren.registry.builder.ItemRegistrar;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -19,14 +21,15 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
- * Writes an item model per registered item, dispatching on the item's class.
+ * Writes an item model per registered item, in the {@link ItemModel} shape it asks for.
  *
- * <p>Extends {@link net.neoforged.neoforge.client.model.generators.ItemModelProvider}. Iterates every
- * registered item and calls {@code basicItem} on it, except the Spirit Spring [元泉] BlockItem,
- * whose icon is the fluid's still strip instead of an item PNG of its own, and the Nine Leaf Vitality
- * Grass [九叶生机草], whose model shows its {@code _full} PNG and overrides to {@code _half} and
- * {@code _empty} on the {@code picked} property. The Advancement Icon [进度图标] shows its {@code _0} PNG and
- * overrides on vanilla's {@code custom_model_data} property, one model per settable rank and stage.
+ * <p>Extends {@link net.neoforged.neoforge.client.model.generators.ItemModelProvider}. An item declared through
+ * {@link ItemRegistrar} names its shape on its registration chain, and those come first; every other registered
+ * item gets the shape its class picks ({@link #getModelByClass}): the Spirit Spring [元泉] BlockItem the fluid's
+ * still strip instead of an item PNG of its own, the Steel Block [钢块] its block model, the Nine Leaf Vitality
+ * Grass [九叶生机草] its {@code _full} PNG overriding to {@code _half} and {@code _empty} on the {@code picked}
+ * property, the Advancement Icon [进度图标] its {@code _0} PNG overriding on vanilla's {@code custom_model_data}
+ * property, one model per settable rank and stage, and the rest a flat {@code basicItem}.
  *
  * <p>⚠ The texture existence check means a missing PNG fails datagen instead of shipping
  * as a missing-texture item nobody notices until they open the tab.
@@ -48,42 +51,50 @@ public class ModItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
+        ItemRegistrar registrar = ItemRegistrar.of(ModItems.ITEMS);
+        for (ItemRegistrar.Entry entry : registrar.getEntries()) {
+            registerModel(entry.item().get(), entry.item().getId().getPath(), entry.model());
+        }
         for (var entry : ModItems.ITEMS.getEntries()) {
-            Item item = entry.get();
-            if (item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock) {
-                getBuilder(entry.getId().getPath())
-                        .parent(GENERATED)
-                        .texture("layer0", Guzhenren.id("block/spirit_spring_still"));
-                continue;
+            if (registrar.getEntry(entry.getId()) == null) {
+                registerModel(entry.get(), entry.getId().getPath(), getModelByClass(entry.get()));
             }
-            if (item instanceof BlockItem blockItem && blockItem.getBlock() == ModBlocks.STEEL_BLOCK.get()) {
-                getBuilder(entry.getId().getPath())
-                        .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + entry.getId().getPath())));
-                continue;
-            }
-            if (item instanceof NineLeafVitalityGrassItem) {
-                registerLeafStagedItem(entry.getId().getPath());
-                continue;
-            }
-            if (item instanceof AdvancementIconItem) {
-                registerNumeralItem(entry.getId().getPath());
-                continue;
-            }
-            basicItem(item);
         }
     }
 
-    private void registerLeafStagedItem(String name) {
+    private static ItemModel getModelByClass(Item item) {
+        if (item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SpiritSpringBlock) {
+            return ItemModel.FLUID;
+        }
+        if (item instanceof BlockItem blockItem && blockItem.getBlock() == ModBlocks.STEEL_BLOCK.get()) {
+            return ItemModel.BLOCK;
+        }
+        if (item instanceof NineLeafVitalityGrassItem) return ItemModel.LEAF_STAGES;
+        if (item instanceof AdvancementIconItem) return ItemModel.NUMERALS;
+        return ItemModel.FLAT;
+    }
+
+    private ItemModelBuilder registerModel(Item item, String name, ItemModel model) {
+        return switch (model) {
+            case FLAT -> basicItem(item);
+            case BLOCK -> getBuilder(name).parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name)));
+            case FLUID -> getBuilder(name).parent(GENERATED).texture("layer0", modLoc("block/" + name + "_still"));
+            case LEAF_STAGES -> registerLeafStagedItem(name);
+            case NUMERALS -> registerNumeralItem(name);
+        };
+    }
+
+    private ItemModelBuilder registerLeafStagedItem(String name) {
         ItemModelBuilder half = buildFlatItem(name + "_half");
         ItemModelBuilder empty = buildFlatItem(name + "_empty");
-        getBuilder(name)
+        return getBuilder(name)
                 .parent(GENERATED)
                 .texture("layer0", modLoc("item/" + name + "_full"))
                 .override().predicate(NineLeafVitalityGrassItem.PICKED, LeafGrowth.PICKED_HALF).model(half).end()
                 .override().predicate(NineLeafVitalityGrassItem.PICKED, LeafGrowth.PICKED_BARE).model(empty).end();
     }
 
-    private void registerNumeralItem(String name) {
+    private ItemModelBuilder registerNumeralItem(String name) {
         ItemModelBuilder model = getBuilder(name).parent(GENERATED).texture("layer0", modLoc("item/" + name + "_0"));
         // Ascending order: the last override whose threshold the value reaches wins.
         for (Rank rank : Rank.getSettable()) {
@@ -92,6 +103,7 @@ public class ModItemModelProvider extends ItemModelProvider {
                         .model(buildFlatItem(name + "_" + AdvancementIconItem.getSuffix(rank, stage))).end();
             }
         }
+        return model;
     }
 
     private ItemModelBuilder buildFlatItem(String name) {

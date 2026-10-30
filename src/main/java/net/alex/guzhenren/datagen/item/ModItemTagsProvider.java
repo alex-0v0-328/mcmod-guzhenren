@@ -2,6 +2,7 @@ package net.alex.guzhenren.datagen.item;
 
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.registry.builder.ItemRegistrar;
 import net.alex.guzhenren.registry.item.ModItemTags;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.HolderLookup;
@@ -26,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  * all-out-effort feed tag, files the steel under the common {@code c:ingots/steel} and
  * {@code c:storage_blocks/steel} tags the Steel Tendon Gu eats from, and hides the Advancement Icon [进度图标]
  * from recipe viewers through the common {@code c:hidden_from_recipe_viewers} tag. Every tag references the
- * registered item or a vanilla item, never a raw id.
+ * registered item or a vanilla item, never a raw id. An item declared through {@link ItemRegistrar} names its own
+ * tags on its registration chain; those are written first, each tag's members in registration order.
  *
  * @author Alex
  * @version 1.0.0
@@ -49,6 +51,10 @@ public class ModItemTagsProvider extends ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.@NotNull Provider provider) {
+        for (ItemRegistrar.Entry entry : ItemRegistrar.of(ModItems.ITEMS).getEntries()) {
+            for (TagKey<Item> tag : entry.tags()) tag(tag).add(entry.item().get());
+        }
+
         tag(ModItemTags.BOAR_FEED).add(Items.PORKCHOP);
         tag(ModItemTags.BEAR_FEED).add(Items.HONEY_BOTTLE);
         tag(ModItemTags.BEEF_FEED).add(Items.BEEF);

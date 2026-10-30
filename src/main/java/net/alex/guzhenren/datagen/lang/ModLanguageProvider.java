@@ -32,6 +32,7 @@ import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.soul.SoulTier;
 import net.alex.guzhenren.item.gu.GuType;
 import net.alex.guzhenren.registry.block.ModBlocks;
+import net.alex.guzhenren.registry.builder.ItemRegistrar;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
@@ -62,6 +63,10 @@ import org.jetbrains.annotations.Nullable;
  * <p>In {@link #addItemKeys}, one {@code addBlock} entry names the Spirit Spring block, its BlockItem and the fluid
  * type together, since they share one description id; the Pure Water block and its fluid type share one likewise.
  *
+ * <p>An item declared through {@link ItemRegistrar} carries its names on its registration chain instead of a line
+ * here; {@link #addDeclaredItemKeys} writes them under the item's description id (a BlockItem's is its block's)
+ * through the same column switch, so the Traditional conversion and the repeated-key check hold for them too.
+ *
  * @author Alex
  * @version 1.0.0
  * @see TraditionalGlyphs
@@ -86,6 +91,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addDimensionKeys();
         addCommandKeys();
         addScreenKeys();
+        addDeclaredItemKeys();
         addItemKeys();
         addEntityKeys();
         addAdvancementKeys();
@@ -112,6 +118,12 @@ public class ModLanguageProvider extends LanguageProvider {
 
     private void addBlock(Supplier<? extends Block> block, String english, String simplified) {
         add(block.get().getDescriptionId(), english, simplified);
+    }
+
+    private void addDeclaredItemKeys() {
+        for (ItemRegistrar.Entry entry : ItemRegistrar.of(ModItems.ITEMS).getEntries()) {
+            add(entry.item().get().getDescriptionId(), entry.english(), entry.simplified(), entry.traditional());
+        }
     }
 
     //region DISPLAY
