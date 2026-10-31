@@ -7,7 +7,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * Hands every server tick to {@link ChunkRewindService#tickQueue}, which restores one queued chunk per tick so a
- * Mountain or River As Before Gu [山如故 / 江如故] spreads its nine chunks over nine ticks instead of one.
+ * Mountain or River As Before Gu [山如故 / 江如故] spreads its 25 chunks over 25 ticks instead of one.
  *
  * @author Alex
  * @version 1.0.0

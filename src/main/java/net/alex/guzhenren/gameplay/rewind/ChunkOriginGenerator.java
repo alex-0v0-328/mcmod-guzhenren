@@ -48,8 +48,8 @@ import org.jetbrains.annotations.Nullable;
  * (ores, the noise's raw ore veins) comes back as the stone or deepslate it sits in.
  *
  * <p>Features write one chunk past their own and the terrain steps read biomes one chunk out, so a square of radius
- * {@code r} decorates {@code r + 1}, shapes {@code r + 2} and lays biomes over {@code r + 3}: the 3×3 restore lays
- * out 9×9 scratch chunks. Everything after {@link #layOut} runs on {@code Util.backgroundExecutor()}; terrain steps
+ * {@code r} decorates {@code r + 1}, shapes {@code r + 2} and lays biomes over {@code r + 3}: the 5×5 restore lays
+ * out 11×11 scratch chunks. Everything after {@link #layOut} runs on {@code Util.backgroundExecutor()}; terrain steps
  * run in parallel (each writes its own chunk), features one chunk after another (each writes its neighbors). A
  * {@link Region} holds the scratch chunks and the holders a {@code WorldGenRegion} reads, a scratch chunk or else an
  * empty one; each {@link ScratchHolder} hands its one chunk to every status a step asks for and never schedules

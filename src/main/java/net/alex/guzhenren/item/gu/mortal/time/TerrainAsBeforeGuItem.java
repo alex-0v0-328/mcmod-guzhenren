@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * water chunks, and each refuses when the carrier's own chunk is the other kind.
  *
  * <p>Extends {@link AsBeforeGuItem}. The gate reads the carrier's chunk alone: loaded and of this Gu's kind; the
- * payout then hands every loaded chunk of the 3×3 square that is of this kind to
+ * payout then hands every loaded chunk of the 5×5 square that is of this kind to
  * {@code ChunkRewindService.rewindAround}, which generates the square again from the seed and restores one chunk
  * per server tick. A neighbor of the other kind is skipped in silence. Where {@code ModEvents.canGrief} keeps the
  * carrier from changing the terrain ({@code mobGriefing}), the Gu refuses before anything is spent.

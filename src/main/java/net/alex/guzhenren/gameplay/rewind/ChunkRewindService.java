@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Puts the land back to its bare landform, for the Mountain and River As Before Gu [山如故 / 江如故]:
- * {@link #rewindAround} has {@link ChunkOriginGenerator} generate the {@link #RESTORE_RADIUS} square (3×3) again
+ * {@link #rewindAround} has {@link ChunkOriginGenerator} generate the {@link #RESTORE_RADIUS} square (5×5) again
  * from the seed -- terrain only, no trees, plants, lakes, snow, ice, ores or structures -- then restores each chunk
  * asked for from its scratch twin ({@link #restore}).
  *
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ No neighbor updates also means a tree cut at the square's edge keeps its outer half, leaves included, and
  * water beside a refilled hole stays still until something updates it. ⚠ The restore queue is static and
- * transient: a server stop drops what is left (at most nine chunks), a generation that finishes after its server
+ * transient: a server stop drops what is left (at most 25 chunks), a generation that finishes after its server
  * stopped is dropped, and a queued entry from an earlier server is dropped on the first tick of the next. A
  * generation that throws (a broken worldgen mod) is logged and restores nothing.
  *
@@ -47,7 +47,7 @@ public final class ChunkRewindService {
 
     private ChunkRewindService() {}
 
-    public static final int RESTORE_RADIUS = 1;
+    public static final int RESTORE_RADIUS = 2;
     public static final int RESTORE_FLAGS =
             Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
     private static final Deque<PendingRestore> QUEUE = new ArrayDeque<>();
