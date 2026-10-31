@@ -227,6 +227,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.refining_plain",                  "Refining",                    "炼化中");
         add("guzhenren.hud.using_plain",                     "Using",                       "使用中");
         add("guzhenren.hud.using",                           "Use %s/%s",                   "使用 %s/%s");
+        add("guzhenren.hud.slider.cancel",                   "Cancel",                      "取消");
+        add("guzhenren.hud.elder_gu.withdraw",               "Withdraw %s stacks (%s)",     "取出 %s 组（%s 枚）");
+        add("guzhenren.hud.elder_gu.detail",
+                "Stored %s · Bag fits %s stacks", "库存 %s · 背包可装 %s 组");
         add("guzhenren.hud.nourishing",                      "Nourishing %s%%",             "温养 %s%%");
         add("guzhenren.hud.nourish_starving",                "Essence running dry %s%%",    "真元将尽 %s%%");
         add("guzhenren.hud.shield",                          "%s %s / %s",                  "%s %s / %s");
@@ -401,6 +405,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.liquor_distilling",               "You are already distilling", "精炼未止");
         add("guzhenren.item.failed.elder_gu_empty",                  "This Gu holds no Primeval Stones", "蛊中无元石");
         add("guzhenren.item.failed.elder_gu_full",                   "This Gu is full of Primeval Stones", "蛊中元石已满");
+        add("guzhenren.item.failed.elder_gu_bag_full",               "Your bag is full", "背包已满");
         add("guzhenren.item.failed.elder_gu_no_stones",
                 "You carry no Primeval Stones to store", "身上无元石可存");
         add("guzhenren.item.failed.gu_cooldown",                     "This Gu needs another %s seconds", "此蛊尚需 %s 秒");

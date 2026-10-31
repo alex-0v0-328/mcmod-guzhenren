@@ -9,6 +9,7 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
+import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.refinement.RefinementMenu;
@@ -18,6 +19,7 @@ import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,13 +27,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * What the server does with each client intent: the two containers, the secondary path, the three
  * cultivation actions, the dash, the second-stage flight [二段飞行] toggle, the plunge [坠击], the Amplify Effect
- * Gu's [功倍蛊] radial-menu pick and a moon blade Gu's [月刃] use (the killing move [杀招] picked, or none for a
- * plain use; a cast that lands answers the caster with the Killing Move Tooltip's [杀招提示] notice). Every intent but
+ * Gu's [功倍蛊] radial-menu pick, the Primeval Elder Gu's [元老蛊] tap and slider pick, and a moon blade Gu's [月刃]
+ * use (the killing move [杀招] picked, or none for a plain use; a cast that lands answers the caster with the Killing
+ * Move Tooltip's [杀招提示] notice). Every intent but
  * that toggle refuses inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage
  * are what remains; the plunge's own rule refuses it there ({@code PlungeService#canStart}), which the client asks
  * too.
  *
- * <p>Every client intent in this mod is a B-panel button, a movement input or a radial-menu gesture that player-data
+ * <p>Every client intent in this mod is a B-panel button, a movement input or a held-input gesture that player-data
  * sync cannot carry upstream; none carries player data, and downstream player data always travels as synced state.
  * The packet layer ({@code ModPayloads}) decodes each packet and calls the matching method here with the
  * sender; this class holds every check and every effect.
@@ -50,6 +53,8 @@ public final class ClientIntents {
     private ClientIntents() {}
 
     public enum NourishAction { START, CANCEL }
+
+    public enum ElderAction { DEPOSIT, WITHDRAW }
 
     private static final String STORAGE_TITLE = "guzhenren.menu.aperture_storage";
     private static final String REFINEMENT_TITLE = "guzhenren.menu.refinement";
@@ -98,6 +103,18 @@ public final class ClientIntents {
 
     public static void amplifyDrive(@NotNull ServerPlayer player, int slot) {
         if (isOutsideTyh(player)) AmplifyEffectGuItem.driveFromHotbar(player, slot);
+    }
+
+    /** The main-hand Primeval Elder Gu's tap (its use, the deposit) or its slider pick of {@code stacks} stacks. */
+    public static void primevalElder(@NotNull ServerPlayer player, @NotNull ElderAction action, int stacks) {
+        ItemStack stack = player.getMainHandItem();
+        if (!isOutsideTyh(player) || player.isSpectator()) return;
+        if (!(stack.getItem() instanceof PrimevalElderGuItem elder)) return;
+        if (!elder.isRefined(stack)) return;
+        switch (action) {
+            case DEPOSIT -> elder.tryUseInPlace(player, stack);
+            case WITHDRAW -> elder.tryWithdraw(player, stack, stacks);
+        }
     }
 
     public static void killingMove(@NotNull ServerPlayer player, @NotNull String move) {

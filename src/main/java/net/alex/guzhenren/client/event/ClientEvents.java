@@ -20,6 +20,7 @@ import net.alex.guzhenren.client.screen.ApertureStorageScreen;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
+import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
@@ -68,11 +69,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers nine GUI layers
+ * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers ten GUI layers
  * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} and {@link ShieldGlowHud} above the vanilla camera overlays,
  * {@link net.alex.guzhenren.client.hud.PlayerStatsHud} and {@link KillingMoveTooltipHud} above the hotbar,
  * {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, {@link RadialMenu} above the crosshair, and
+ * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, {@link RadialMenu} and {@link HoldSlider}
+ * above the crosshair, and
  * {@link AwakeningHud} above everything),
  * the key mapping for
  * the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity renderers
@@ -113,6 +115,8 @@ public final class ClientEvents {
             Guzhenren.id("killing_move_tooltip");
     private static final ResourceLocation RADIAL_MENU =
             Guzhenren.id("radial_menu");
+    private static final ResourceLocation HOLD_SLIDER =
+            Guzhenren.id("hold_slider");
     private static final ResourceLocation AWAKENING =
             Guzhenren.id("awakening");
 
@@ -129,6 +133,7 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, SHIELD, (g, delta) -> ShieldHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
+        event.registerAbove(VanillaGuiLayers.CROSSHAIR, HOLD_SLIDER, (g, delta) -> HoldSlider.render(g));
         event.registerAboveAll(AWAKENING, AwakeningHud.INSTANCE::render);
     }
 
@@ -210,6 +215,7 @@ public final class ClientEvents {
         ShieldGlowHud.INSTANCE.reset();
         KillingMoveTooltipHud.INSTANCE.clear();
         RadialMenu.close();
+        HoldSlider.close();
     }
 
     @SubscribeEvent

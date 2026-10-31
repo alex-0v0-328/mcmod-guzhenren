@@ -1,5 +1,7 @@
 package net.alex.guzhenren.item.gu.mortal.space;
 
+import java.util.List;
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -7,7 +9,9 @@ import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -16,10 +20,17 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Primeval Elder Gu [元老蛊]: a vault for primeval stones [元石] that pays its own upkeep from the vault.
  *
- * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem} but declares no clock and never eats.
- * A tapped right click deposits every carried stone (free); a held one withdraws a stack of 64 (free). The
- * stored-stones total rides {@link net.alex.guzhenren.registry.item.ModDataComponents}, not
- * {@code RefinedGuState}, because every tended Gu shares that record.
+ * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem} but declares no clock and never eats. Once refined its
+ * use is the deposit: every carried stone goes in, free and with no charge, so it never shows a charge bar. The
+ * withdrawal is no item use at all: the client's hold slider ({@code PrimevalElderInput}) picks a number of stacks
+ * and {@link #tryWithdraw} lands it, free. Both answer only in the main hand; a wild one is still refined by holding
+ * the click, with its refining bar. The stored-stones total rides
+ * {@link net.alex.guzhenren.registry.item.ModDataComponents}, not {@code RefinedGuState}, because every tended Gu
+ * shares that record.
+ *
+ * <p>⚠ A withdrawal fills the 36 bag slots only, partial plain stone stacks first (a renamed one is left alone),
+ * and never past {@link #getBagRoom}: no stone goes to the offhand or the ground. The slider's top,
+ * {@link #getWithdrawableStacks}, reads the same room.
  *
  * <p>Carried in any slot, its stock is the stone supply's second source, after loose stones
  * ({@code PrimevalStoneSupply}); its own uses are free, so they never top the pool up from it.
@@ -35,11 +46,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class PrimevalElderGuItem extends TendedGuItem {
 
+    public static final int STACK = 64;
     private static final String FAILED_EMPTY = "guzhenren.item.failed.elder_gu_empty";
     private static final String FAILED_FULL = "guzhenren.item.failed.elder_gu_full";
     private static final String FAILED_NO_STONES = "guzhenren.item.failed.elder_gu_no_stones";
+    private static final String FAILED_BAG_FULL = "guzhenren.item.failed.elder_gu_bag_full";
     private static final String TOOLTIP_STORED = "guzhenren.item.gu.stored_stones";
-    private static final int WITHDRAW_STONES = 64;
     private final long capacity;
 
     public PrimevalElderGuItem(Properties properties, long capacity, GuSpec spec) {
@@ -57,23 +69,30 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
+
+    private static boolean isPlainStone(ItemStack stack) {
+        return ItemStack.isSameItemSameComponents(stack, new ItemStack(ModItems.PRIMEVAL_STONE.get()));
+    }
     //endregion
 
-    //region depositing -- the tap, free
+    //region depositing -- the use, free and with no charge
     @Override
-    protected boolean hasTapUse(Player player, ItemStack stack) { return isRefined(stack); }
+    protected boolean hasOffhandUse() { return false; }
 
     @Override
-    protected @Nullable Refusal checkOwnTapUse(Player player, ItemStack stack) {
+    protected int useChargeTicks(Player player, ItemStack stack) { return 0; }
+
+    @Override
+    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         if (getStored(stack) >= capacity) return new Refusal(FAILED_FULL);
         return getDepositable(player, stack) <= 0 ? new Refusal(FAILED_NO_STONES) : null;
     }
 
     @Override
-    protected int performTapUse(ServerPlayer player, ItemStack stack) {
+    protected void applyEffect(ServerPlayer player, ItemStack stack) {
         deposit(player, stack);
         payOwnUpkeep(player, stack);
-        return 0;
+        playPickup(player);
     }
 
     private int getDepositable(Player player, ItemStack stack) {
@@ -104,24 +123,66 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region withdrawing -- the hold, which is this Gu's use
-    @Override
-    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
-        return getStored(stack) <= 0 ? new Refusal(FAILED_EMPTY) : null;
+    //region withdrawing -- the slider's pick, free, into the bag only
+    public static int getBagRoom(Player player) {
+        int room = 0;
+        for (ItemStack slot : player.getInventory().items) {
+            if (slot.isEmpty()) room += STACK;
+            else if (isPlainStone(slot)) room += Math.max(STACK - slot.getCount(), 0);
+        }
+        return room;
     }
 
-    @Override
-    protected void applyEffect(ServerPlayer player, ItemStack stack) {
-        int taken = (int) Math.min(WITHDRAW_STONES, getStored(stack));
-        if (taken <= 0) return;
+    public static int getWithdrawableStacks(Player player, ItemStack stack) {
+        long stones = Math.min(getStored(stack), getBagRoom(player));
+        return (int) ((stones + STACK - 1) / STACK);
+    }
 
-        setStored(stack, getStored(stack) - taken);
-        ItemStack stones = new ItemStack(ModItems.PRIMEVAL_STONE.get(), taken);
-        if (player.getOffhandItem().isEmpty()) {
-            player.setItemInHand(InteractionHand.OFF_HAND, stones);
-            return;
+    /** Withdraws up to {@code stacks} stacks of 64 into the bag; false when refused or on the vanilla cooldown. */
+    public boolean tryWithdraw(ServerPlayer player, ItemStack stack, int stacks) {
+        if (stacks <= 0 || !isRefined(stack) || player.getCooldowns().isOnCooldown(this)) return false;
+        if (getStored(stack) <= 0) {
+            ActionBar.refuse(player, FAILED_EMPTY);
+            return false;
         }
-        player.getInventory().placeItemBackInInventory(stones);
+        int room = getBagRoom(player);
+        if (room <= 0) {
+            ActionBar.refuse(player, FAILED_BAG_FULL);
+            return false;
+        }
+        int taken = (int) Math.min(Math.min((long) stacks * STACK, getStored(stack)), room);
+        setStored(stack, getStored(stack) - taken);
+        fillBag(player, taken);
+        playPickup(player);
+        spend(player, stack, 0);
+        return true;
+    }
+
+    private static void fillBag(Player player, int stones) {
+        List<ItemStack> items = player.getInventory().items;
+        int left = stones;
+        for (int slot = 0; slot < items.size() && left > 0; slot++) {
+            ItemStack held = items.get(slot);
+            if (!isPlainStone(held)) continue;
+
+            int move = Math.min(STACK - held.getCount(), left);
+            if (move <= 0) continue;
+            held.grow(move);
+            left -= move;
+        }
+        for (int slot = 0; slot < items.size() && left > 0; slot++) {
+            if (!items.get(slot).isEmpty()) continue;
+
+            int move = Math.min(STACK, left);
+            items.set(slot, new ItemStack(ModItems.PRIMEVAL_STONE.get(), move));
+            left -= move;
+        }
+    }
+
+    private static void playPickup(ServerPlayer player) {
+        RandomSource random = player.getRandom();
+        float pitch = ((random.nextFloat() - random.nextFloat()) * 0.7F + 1.0F) * 2.0F;
+        player.playNotifySound(SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, pitch);
     }
     //endregion
 

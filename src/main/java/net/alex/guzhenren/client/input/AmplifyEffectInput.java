@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.radial.RadialMenu;
+import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
@@ -43,7 +44,8 @@ public final class AmplifyEffectInput {
 
     @SubscribeEvent
     public static void onInteraction(InputEvent.InteractionKeyMappingTriggered event) {
-        if (!event.isUseItem() || event.getHand() != InteractionHand.MAIN_HAND || RadialMenu.isHolding()) return;
+        if (!event.isUseItem() || event.getHand() != InteractionHand.MAIN_HAND) return;
+        if (RadialMenu.isHolding() || HoldSlider.isHolding()) return;
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;

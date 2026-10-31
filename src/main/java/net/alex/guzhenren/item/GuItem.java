@@ -38,17 +38,17 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ A leaf answering {@code hasTapUse} has two uses on the one click: let go within {@link #TAP_TICKS} lands
  * the tap use ({@code checkTapUse}, {@code performTapUse}) in {@code releaseUsing}, a full charge lands the use, and a
  * release in between lands neither. Its charge is never shorter than {@link #HOLD_MIN_TICKS}, so the two cannot
- * overlap; the press is refused only when both uses refuse, with the tap's reason. Only the Primeval Elder Gu and
- * the Nine Leaf Vitality Grass answer it, and only once refined, so a wild one is still refined by the hold.
+ * overlap; the press is refused only when both uses refuse, with the tap's reason. Only the Nine Leaf Vitality
+ * Grass answers it, and only once refined, so a wild one is still refined by the hold.
  *
  * <p>Vanilla offers a click to the offhand whenever the main hand's use fails or passes, cooldown included. A leaf
  * that works only as a partner held there answers {@code hasOffhandUse} false, so it passes silently instead of
  * replacing the main-hand Gu's refusal on the action bar. A leaf answering {@code keepsRefusedClick} (every tended
  * Gu but the Treasure Lotus) consumes its refusal instead, so the offhand item is not used or placed on it.
  *
- * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu. The
- * vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceUse} refuses on the action bar, and
- * {@code performInPlaceUse} lands it. It answers whether it landed.
+ * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu, or a
+ * Primeval Elder Gu's tap. The vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceUse}
+ * refuses on the action bar, and {@code performInPlaceUse} lands it. It answers whether it landed.
  *
  * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
  * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever

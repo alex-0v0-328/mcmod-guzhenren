@@ -15,6 +15,7 @@ import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.PlungePayload;
+import net.alex.guzhenren.network.payload.PrimevalElderPayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
@@ -28,7 +29,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
- * Registers the ten client-intent payloads and forwards each to {@link ClientIntents}, which holds every
+ * Registers the eleven client-intent payloads and forwards each to {@link ClientIntents}, which holds every
  * check, and the three server notices ({@code SkinFlashPayload}, {@code ImpactShakePayload},
  * {@code KillingMoveTooltipPayload}), each handed to whatever the client registered for its class through
  * {@link #handleOnClient}.
@@ -78,6 +79,8 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
         toServer(registrar, KillingMovePayload.TYPE, KillingMovePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.killingMove(player, intent.move(), intent.target()));
+        toServer(registrar, PrimevalElderPayload.TYPE, PrimevalElderPayload.STREAM_CODEC,
+                (intent, player) -> ClientIntents.primevalElder(player, intent.action(), intent.stacks()));
         registrar.playToClient(SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC,
                 (notice, context) -> dispatchToClient(notice));
         registrar.playToClient(ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC,

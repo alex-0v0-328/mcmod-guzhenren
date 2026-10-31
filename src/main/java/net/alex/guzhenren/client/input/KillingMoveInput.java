@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.radial.RadialMenu;
+import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMove;
@@ -106,7 +107,8 @@ public final class KillingMoveInput {
 
     @SubscribeEvent
     public static void onInteraction(InputEvent.InteractionKeyMappingTriggered event) {
-        if (!event.isUseItem() || event.getHand() != InteractionHand.MAIN_HAND || RadialMenu.isHolding()) return;
+        if (!event.isUseItem() || event.getHand() != InteractionHand.MAIN_HAND) return;
+        if (RadialMenu.isHolding() || HoldSlider.isHolding()) return;
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
