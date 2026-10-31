@@ -20,7 +20,9 @@ import net.minecraft.world.item.ItemStack;
  * rest. A channel or refining step is sized from the pool, so it tops up first ({@link #topUpFor} its floor) and then
  * pays the step. ⚠ The sources run in one order, from any bag slot, offhand included: loose stones, then each Elder
  * Gu's stock. ⚠ Stones count only for a player with an aperture to burn them through ({@link #canAfford}): the
- * essence gate stands in for {@code isAwakened}, and without the check a mortal could pay a Gu in stones.
+ * essence gate stands in for {@code isAwakened}, and without the check a mortal could pay a Gu in stones. ⚠ Creative
+ * draws no stone ({@link #draw} answers 0): the top-up pours nothing and the part of a cost the pool cannot cover goes
+ * free, as creative eats no food either; only the player's own hand moves a stone (the supply slot, nourishing).
  *
  * <p>☠ A second copy of the top-up line drifts, and the pool silently clamps whatever a caller pours past
  * the cap. ☠ {@link #trySpend}: a lump bigger than the pool burns stones straight, never through the cap --
@@ -93,6 +95,7 @@ public final class PrimevalStoneSupply {
     }
 
     private static int draw(ServerPlayer player, int wanted) {
+        if (player.getAbilities().instabuild) return 0;
         int taken = drawFrom(player, wanted, true);
         return taken + drawFrom(player, wanted - taken, false);
     }

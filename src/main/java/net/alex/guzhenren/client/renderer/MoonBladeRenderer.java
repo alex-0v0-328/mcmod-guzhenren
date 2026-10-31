@@ -18,9 +18,9 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * Draws a {@link MoonBladeEntity} as a full-bright, double-sided crescent lying in the plane of its flight line and
+ * Draws a {@link MoonBladeEntity} as one full-bright, double-sided crescent lying in the plane of its flight line and
  * the horizontal axis across it: flat to the ground when shot level, tilting with the pitch when shot up or down,
- * with the crescent's bulge leading. Two fainter copies trail behind it.
+ * with the crescent's bulge leading.
  *
  * <p>Left exactly flat, the blade would thin to a line for a shooter just above it and for anyone beside it. So the
  * whole blade, bulge included, is turned {@link #TILT_DEGREES} toward the camera about the axis perpendicular to both
@@ -45,8 +45,7 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
     private static final int FRAMES = 7;
     private static final int FULL_FRAME = 3;
     private static final float HALF_SIZE = 0.75F;
-    private static final float TRAIL_GAP = 0.5F;
-    private static final int[] TRAIL_ALPHA = {255, 128, 64};
+    private static final int COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
     private static final float TILT_DEGREES = 18.0F;
     private static final double VERTICAL = 1.0E-4D;
 
@@ -72,14 +71,10 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
         poseStack.translate(0.0F, blade.getBbHeight() / 2.0F, 0.0F);
         PoseStack.Pose pose = poseStack.last();
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(blade)));
-        for (int i = 0; i < TRAIL_ALPHA.length; i++) {
-            float back = -i * TRAIL_GAP;
-            int color = FastColor.ARGB32.color(TRAIL_ALPHA[i], 255, 255, 255);
-            vertex(consumer, pose, forward, side, normal, back - HALF_SIZE, -HALF_SIZE, color, 0.0F, bottom);
-            vertex(consumer, pose, forward, side, normal, back + HALF_SIZE, -HALF_SIZE, color, 1.0F, bottom);
-            vertex(consumer, pose, forward, side, normal, back + HALF_SIZE, HALF_SIZE, color, 1.0F, top);
-            vertex(consumer, pose, forward, side, normal, back - HALF_SIZE, HALF_SIZE, color, 0.0F, top);
-        }
+        vertex(consumer, pose, forward, side, normal, -HALF_SIZE, -HALF_SIZE, 0.0F, bottom);
+        vertex(consumer, pose, forward, side, normal, HALF_SIZE, -HALF_SIZE, 1.0F, bottom);
+        vertex(consumer, pose, forward, side, normal, HALF_SIZE, HALF_SIZE, 1.0F, top);
+        vertex(consumer, pose, forward, side, normal, -HALF_SIZE, HALF_SIZE, 0.0F, top);
         poseStack.popPose();
         super.render(blade, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
@@ -110,10 +105,10 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
     }
 
     private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, Vector3f forward, Vector3f side,
-                               Vector3f normal, float along, float across, int color, float u, float v) {
+                               Vector3f normal, float along, float across, float u, float v) {
         consumer.addVertex(pose, forward.x() * along + side.x() * across, forward.y() * along + side.y() * across,
                         forward.z() * along + side.z() * across)
-                .setColor(color)
+                .setColor(COLOR)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(LightTexture.FULL_BRIGHT)

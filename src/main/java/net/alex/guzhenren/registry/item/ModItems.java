@@ -126,6 +126,8 @@ public final class ModItems {
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
     private static final long[] QI_ESSENCE_COST = { 50L, 500L, 5_000L, 50_000L, 500_000L };
     private static final float MOONLIGHT_DAMAGE = 6.0F;
+    /** A moon blade Gu fires again after 0.1 s: the blade itself is the pacing, not a cooldown sweep. */
+    private static final int MOON_BLADE_COOLDOWN_TICKS = 2;
 
     public static <T extends Item> @Nullable T findGu(Class<T> type, Predicate<T> test) {
         for (DeferredHolder<Item, ? extends Item> entry : ITEMS.getEntries()) {
@@ -910,7 +912,7 @@ public final class ModItems {
                 .refine(refine).costPerUse(costPerUse)
                 .hungerBar(12 * scale, 1).hungerPerUse(scale).hungerPerDay(scale).health(12 * scale)
                 .feed(feed, 1)
-                .cooldown(Ticks.SECOND),
+                .cooldown(MOON_BLADE_COOLDOWN_TICKS),
                 new MoonBladeModule(variant, damage));
     }
     //endregion
