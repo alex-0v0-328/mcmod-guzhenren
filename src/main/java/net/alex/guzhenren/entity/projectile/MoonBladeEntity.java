@@ -60,6 +60,8 @@ public final class MoonBladeEntity extends Projectile {
 
     public static final float SPEED = 1.5F;
     public static final int LIFETIME_TICKS = 16;
+    /** Blocks below the eye the blade appears, so the shooter sees its face instead of its edge. */
+    private static final float SPAWN_DROP = 0.3F;
     public static final int BLEEDING_TICKS = 5 * Ticks.SECOND;
     private static final int PUFF_COUNT = 6;
     private static final DustParticleOptions BLOOD_PUFF = new DustParticleOptions(new Vector3f(0.6F, 0.05F, 0.05F),
@@ -75,7 +77,7 @@ public final class MoonBladeEntity extends Projectile {
         blade.setOwner(owner);
         blade.entityData.set(VARIANT, (byte) variant.ordinal());
         blade.damage = damage;
-        blade.setPos(owner.getX(), owner.getEyeY() - blade.getBbHeight() / 2.0F, owner.getZ());
+        blade.setPos(owner.getX(), owner.getEyeY() - SPAWN_DROP - blade.getBbHeight() / 2.0F, owner.getZ());
         blade.shootFromRotation(owner, owner.getXRot(), owner.getYRot(), 0.0F, SPEED, 0.0F);
         owner.level().addFreshEntity(blade);
         owner.level().playSound(null, owner.getX(), owner.getY(), owner.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
