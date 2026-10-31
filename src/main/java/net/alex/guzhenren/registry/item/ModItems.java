@@ -7,7 +7,6 @@ import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
-import net.alex.guzhenren.effect.timed.DragonpillCricketGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
@@ -216,11 +215,6 @@ public final class ModItems {
                     new TimedBuffModule(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),
                     new RecastModule()))
             .lang("Flower Boar Gu", "花豕蛊").register();
-    public static final DeferredItem<Item> DRAGONPILL_CRICKET_GU = REGISTRAR.item("dragonpill_cricket_gu",
-            () -> new TendedGuItem(createTendedProperties(), createBeastBuffSpec(ModItemTags.RABBIT_FEED),
-                    new TimedBuffModule(ModEffects.DRAGONPILL_CRICKET_GU, DragonpillCricketGuEffect.DURATION_TICKS),
-                    new RecastModule()))
-            .lang("Dragonpill Cricket Gu", "龙丸蛐蛐蛊").register();
     public static final DeferredItem<Item> BRUTE_FORCE_LONGHORN_BEETLE_GU =
             REGISTRAR.item("brute_force_longhorn_beetle_gu",
                     () -> new TendedGuItem(createTendedProperties(), createBeastBuffSpec(ModItemTags.BEEF_FEED),

@@ -186,7 +186,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.time_rate_up",                "x%s",                         "%s倍");
         add("guzhenren.display.wild",                        "Wild %s",                     "野生·%s");
         add("guzhenren.display.vital",                       "Vital %s",                    "本命·%s");
-        add("guzhenren.display.strength.beast_reading",      "[%s %s Strength]",            "[%s%s之力]");
+        add("guzhenren.display.strength.beast_reading",      "%s %s Strength",              "%s%s之力");
         add("guzhenren.display.strength.beast_number.1",     "One",                         "一");
         add("guzhenren.display.strength.beast_number.2",     "Two",                         "两");
         add("guzhenren.display.strength.beast_number.10",    "Ten",                         "十");
@@ -217,9 +217,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.strength.num_units.7",        "Seven",                       "七");
         add("guzhenren.display.strength.num_units.8",        "Eight",                       "八");
         add("guzhenren.display.strength.num_units.9",        "Nine",                        "九");
-        add("guzhenren.display.strength.jin_total",          "[%s Jin]",                    "[%s斤]");
-        add("guzhenren.display.strength.jin_reading",        "[%s Jin Strength]",           "[%s斤之力]");
-        add("guzhenren.display.strength.jun_reading",        "[%s Jun Strength]",           "[%s钧之力]");
+        add("guzhenren.display.strength.jin_total",          " Total: %s Jin",              " 合计：%s 斤");
+        add("guzhenren.display.strength.jin_reading",        "%s Jin Strength",             "%s斤之力");
+        add("guzhenren.display.strength.jun_reading",        "%s Jun Strength",             "%s钧之力");
 
         add("guzhenren.hud.lifespan",                        "Lifespan %s",                 "寿元 %s");
 
@@ -277,7 +277,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.tab.body",                    "Body", "肉身");
         add("guzhenren.screen.tab.soul",                    "Soul", "魂魄");
         add("guzhenren.screen.tab.paths",                   "Paths", "流派");
-        add("guzhenren.screen.tab.path",                    "Path Attainment", "流派造诣");
         add("guzhenren.screen.tab.mind",                    "Mind", "脑海");
         add("guzhenren.screen.tab.refinement",              "Refinement", "炼蛊");
         add("guzhenren.menu.aperture_storage",              "Aperture Storage", "空窍存储");
@@ -349,7 +348,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.soul",                  "Soul", "魂魄");
         add("guzhenren.screen.label.lifespan",              "Lifespan", "寿元");
         add("guzhenren.screen.label.qi_path_achieve",       "Qi Path Attainment", "气道造诣");
-        add("guzhenren.screen.label.paths",                 "Paths", "流派");
+        add("guzhenren.screen.label.dao_marks",             "Dao Marks", "道痕");
+        add("guzhenren.screen.label.effects",               "Effects", "效果");
         add("guzhenren.screen.label.strength_path_achieve", "Strength Path Attainment", "力道造诣");
         add("guzhenren.screen.label.time_path_achieve",     "Time Path Attainment", "宙道造诣");
         add("guzhenren.screen.label.time_rate_up",          "Time Rate Up", "自身时间加速");
@@ -359,7 +359,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.capacity",                    "%s / %s jin", "%s / %s斤");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
-        add("guzhenren.screen.label.bare_marks",            "Body Marks", "肉体道痕");
     }
     //endregion
 
@@ -485,7 +484,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.death_qi",                             "Death Qi Effect", "死气效果");
         add("effect.guzhenren.strength_qi",                          "Strength Qi Effect", "力气效果");
         add("effect.guzhenren.flower_boar_gu",                       "Flower Boar Gu Effect", "花豕蛊效果");
-        add("effect.guzhenren.dragonpill_cricket_gu",                "Dragonpill Cricket Gu Effect", "龙丸蛐蛐蛊效果");
         add("effect.guzhenren.brute_force_longhorn_beetle_gu",
                 "Brute Force Longhorn Beetle Gu Effect", "蛮力天牛蛊效果");
         add("effect.guzhenren.horizontal_crash_gu",                  "Horizontal Crash Gu Effect", "横冲蛊效果");
@@ -767,6 +765,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(BeastStrengthFamily.BEAR, "Bear", "熊");
     }
 
+        add(BeastStrengthFamily.OX,   "Ox",   "牛");
     private void addQiKind() {
         add(QiKind.SWORD,    "Sword Qi",    "剑气");
         add(QiKind.STRENGTH, "Strength Qi", "力气");

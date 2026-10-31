@@ -17,11 +17,10 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>Event subscriber on {@link MobEffectEvent.Remove}: a removal whose cure is {@link EffectCures#MILK} and whose
  * effect sits in this mod's namespace is canceled. Every other removal passes: another cure (a totem), a removal
- * with no cure ({@code /effect clear}, death) and every vanilla effect, the aftermath's weakness among them.
+ * with no cure ({@code /effect clear}, death) and every vanilla effect.
  *
  * @author Alex
  * @version 1.0.0
- * @see AftermathEffect
  * @since 1.0.0
  */
 

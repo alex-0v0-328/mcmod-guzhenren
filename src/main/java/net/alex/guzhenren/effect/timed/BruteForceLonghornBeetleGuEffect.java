@@ -1,25 +1,31 @@
 package net.alex.guzhenren.effect.timed;
 
-import net.alex.guzhenren.effect.AftermathEffect;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.attribute.AttackContributor;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * The timed buff of the Brute Force Longhorn Beetle Gu [蛮力天牛蛊]: added attack damage for thirty
- * seconds, followed by a ten-second weakness aftermath.
+ * The timed buff of the Brute Force Longhorn Beetle Gu [蛮力天牛蛊]: one ox's strength [一牛之力] of added attack
+ * damage for forty-five seconds, with no aftermath.
  *
- * <p>Timed effects own their truth on vanilla's timer. The attack bonus goes through {@link
- * AttackContributor}; the duration and the aftermath come from {@link AftermathEffect}.
+ * <p>The path effect is the buff's truth and this vanilla effect its icon and timer. The attack bonus goes through
+ * {@link AttackContributor} so the attack total stays one number. The ox lasts longer than the boar; that length is
+ * its trait, not a stronger bonus.
  *
  * @author Alex
  * @version 1.0.0
  * @see AttackContributor
+ * @see BeastStrengthBuff
  * @since 1.0.0
  */
 
-public class BruteForceLonghornBeetleGuEffect extends AftermathEffect implements AttackContributor {
+public class BruteForceLonghornBeetleGuEffect extends MobEffect implements AttackContributor, BeastStrengthBuff {
 
-    public static final double ATTACK_BONUS = 8.0D;
+    public static final int DURATION_TICKS = 45 * Ticks.SECOND;
+    public static final double ATTACK_BONUS = 5.0D;
 
     public BruteForceLonghornBeetleGuEffect(MobEffectCategory category, int color) {
         super(category, color);
@@ -27,4 +33,7 @@ public class BruteForceLonghornBeetleGuEffect extends AftermathEffect implements
 
     @Override
     public double attackBonus(int amplifier) { return ATTACK_BONUS; }
+
+    @Override
+    public BeastStrengthFamily getBeastFamily() { return BeastStrengthFamily.OX; }
 }

@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The B panel: every tab of what a player is, read straight off the synced attachments.
  *
- * <p>Extends {@link net.minecraft.client.gui.screens.Screen} (no menu behind it). Seven tabs: 空窍,
- * 肉身, 魂魄, 流派, 流派造诣, 脑海, 炼蛊. The aperture tab draws one column per aperture -- a lone aperture
+ * <p>Extends {@link net.minecraft.client.gui.screens.Screen} (no menu behind it). Six tabs: 空窍,
+ * 肉身, 魂魄, 流派, 脑海, 炼蛊. The aperture tab draws one column per aperture -- a lone aperture
  * keeps the single-column layout -- and every column carries its own nourish [温养空窍] /
  * flush [冲刷窍壁] / storage [空窍存储] buttons; the storage button opens that aperture's container.
  * The refinement tab opens its container via a client-intent payload instead of drawing rows. Row
@@ -74,13 +74,12 @@ public final class PlayerInfoScreen extends Screen {
     private static final ResourceLocation SCROLLER = Guzhenren.id("scroller");
     private static final ResourceLocation SCROLLER_BACKGROUND = Guzhenren.id("scroller_background");
     private static final int[] ACCENT = { ModPalette.APERTURE, ModPalette.BODY, ModPalette.SOUL,
-            ModPalette.PATH, ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
+            ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
     private static final Component[] TAB_TITLES = {
             Component.translatable("guzhenren.screen.tab.aperture"),
             Component.translatable("guzhenren.screen.tab.body"),
             Component.translatable("guzhenren.screen.tab.soul"),
             Component.translatable("guzhenren.screen.tab.paths"),
-            Component.translatable("guzhenren.screen.tab.path"),
             Component.translatable("guzhenren.screen.tab.mind"),
             Component.translatable("guzhenren.screen.tab.refinement"),
     };
@@ -90,9 +89,8 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_BODY = 1;
     private static final int TAB_SOUL = 2;
     private static final int TAB_PATHS = 3;
-    private static final int TAB_PATH = 4;
-    private static final int TAB_MIND = 5;
-    private static final int TAB_REFINEMENT = 6;
+    private static final int TAB_MIND = 4;
+    private static final int TAB_REFINEMENT = 5;
     private static final int SCROLL_W = 6;
     private static final int SCROLL_GAP = 9;
     private static final int COL_GAP = 16;
@@ -160,7 +158,6 @@ public final class PlayerInfoScreen extends Screen {
             case TAB_BODY -> InfoModel.buildBodyRows(player);
             case TAB_SOUL -> InfoModel.buildSoulRows(player);
             case TAB_PATHS -> InfoModel.buildPathRows(player);
-            case TAB_PATH -> InfoModel.buildPathAchieveRows(player);
             case TAB_MIND -> InfoModel.buildMindRows(player);
             default -> InfoModel.buildApertureRows(player);
         };
@@ -248,6 +245,10 @@ public final class PlayerInfoScreen extends Screen {
         graphics.drawString(font, row.label(), x0 + row.indent(), y, labelColor, false);
         if (row.value() != null) {
             graphics.drawString(font, row.value(), x1 - font.width(row.value()), y, ModPalette.TEXT, false);
+        }
+        int cellW = (x1 - x0 - row.indent()) / InfoModel.READINGS_PER_ROW;
+        for (int i = 0; i < row.cells().size(); i++) {
+            graphics.drawString(font, row.cells().get(i), x0 + row.indent() + i * cellW, y, ModPalette.TEXT, false);
         }
     }
     //endregion

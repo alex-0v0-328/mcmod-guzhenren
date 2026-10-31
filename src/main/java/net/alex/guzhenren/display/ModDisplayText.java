@@ -13,8 +13,7 @@ import net.alex.guzhenren.gameplay.path.DaoMarks;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
-import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
+import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -177,33 +176,26 @@ public final class ModDisplayText {
         return Component.translatable("guzhenren.display.time_rate_up", rate);
     }
 
-    public static MutableComponent formatBeastStrengthLine(PathStrengthData data) {
-        MutableComponent line = Component.empty();
-        data.getBeastReadings().forEach((family, reading) -> line.append(formatBeastReading(family, reading)));
-        return line;
+    public static MutableComponent formatStrengthReading(InfoModel.StrengthReading reading) {
+        return switch (reading) {
+            case InfoModel.BeastReading beast -> formatBeastReading(beast);
+            case InfoModel.HumanReading human -> Component.translatable(human.unit() == HumanStrength.JUN
+                    ? "guzhenren.display.strength.jun_reading" : "guzhenren.display.strength.jin_reading",
+                    formatStrengthNumber(human.count()));
+        };
     }
 
-    private static Component formatBeastReading(BeastStrengthFamily family, int reading) {
-        return Component.translatable("guzhenren.display.strength.beast_reading",
-                Component.translatable("guzhenren.display.strength.beast_number." + reading),
-                Component.translatable(family.getTranslationKey()));
-    }
-
-    public static MutableComponent formatHumanStrengthLine(PathStrengthData data) {
-        MutableComponent line = Component.empty();
-        appendFamily(line, "guzhenren.display.strength.jun_reading", data.getJunReading());
-        appendFamily(line, "guzhenren.display.strength.jin_reading", data.getJinReading());
-        return line;
+    private static MutableComponent formatBeastReading(InfoModel.BeastReading beast) {
+        MutableComponent name = Component.translatable("guzhenren.display.strength.beast_reading",
+                Component.translatable("guzhenren.display.strength.beast_number." + beast.count()),
+                Component.translatable(beast.family().getTranslationKey()));
+        if (beast.secondsLeft() == PathEffect.PERMANENT) return name;
+        return name.append(" ").append(formatEffectTime(beast.secondsLeft()));
     }
 
     public static MutableComponent formatStrengthLabel(MutableComponent branchName, int totalJin) {
         if (totalJin <= 0) return branchName;
         return branchName.append(Component.translatable("guzhenren.display.strength.jin_total", totalJin));
-    }
-
-    private static void appendFamily(MutableComponent line, String readingKey, int reading) {
-        if (reading <= 0) return;
-        line.append(Component.translatable(readingKey, formatStrengthNumber(reading)));
     }
 
     private static Component formatStrengthNumber(int count) {

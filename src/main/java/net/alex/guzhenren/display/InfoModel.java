@@ -2,6 +2,7 @@ package net.alex.guzhenren.display;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -35,12 +36,16 @@ import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
 import net.alex.guzhenren.gameplay.path.qi.QiKind;
+import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.minecraft.network.chat.Component;
+import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,18 +55,19 @@ import org.jetbrains.annotations.Nullable;
  * <p>Deciding "draw or not" here, not in the panel, is what keeps a section header with [无] from sitting beside
  * a real Dao-mark [道痕] figure. {@code Entry} is sealed and every row kind has its {@link Visitor} method, so a new
  * row is a compile error until the panel words it. ⚠ A named section (Strength Attainment [力道造诣], Qi Attainment
- * [气道造诣], ...) is a label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) lists each
- * path's attainment [造诣] and whole Dao-mark [道痕] total, then the path buffs [流派增益] and path debuffs
- * [流派减益], each grouped by carrier with every effect's time left and one row per path it carries marks on,
- * then the bare body marks [肉体道痕]. The Path Attainment tab [流派造诣] keeps the named sections, and a lone
- * [无] when it has none. Do not widen {@code Entry}.
+ * [气道造诣], ...) is a label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) has two
+ * parts: Dao marks [道痕], each path's attainment [造诣] and whole Dao-mark total with nothing per source, then
+ * effects [效果], the named attainment sections followed by the path buffs [流派增益] and path debuffs [流派减益],
+ * each grouped by carrier with every effect's time left. ⚠ A beast or human strength [兽力 / 人力] and a
+ * {@link BeastStrengthBuff} read as their strength under Strength Attainment, up to {@link #READINGS_PER_ROW} to a
+ * row, so they never also list as path buffs. Do not widen {@code Entry}.
  * Sealed without a {@code permits} list, {@code Entry} takes its row records from this file alone, so the class
  * stays whole past 300 lines: the records, their {@link Visitor} and the builders that order the rows are the one
  * table the panel reads.
  *
  * <p>Every entry compares by value, which is what lets the B panel keep the text it built for the last frame while
- * the rows are unchanged; {@link StrengthPathBranchRow} therefore carries the data and words its reading on demand
- * instead of holding a {@code Component}, which has no equality.
+ * the rows are unchanged; {@link StrengthReadingRow} therefore carries readings and never a {@code Component},
+ * which has no equality.
  *
  * <p>⚠ In {@link ApertureIndex}, {@code number} is the display ordinal (1 = first aperture, 2 =
  * second), while {@code index} is the real list position -- a lone second aperture shows number 2
@@ -78,6 +84,7 @@ public final class InfoModel {
     private InfoModel() {}
 
     public static final int INDENT = 10;
+    public static final int READINGS_PER_ROW = 3;
 
     public record Row(int indent, Entry entry) {}
 
@@ -124,6 +131,8 @@ public final class InfoModel {
 
         T visit(PathsHeader entry);
 
+        T visit(EffectsHeader entry);
+
         T visit(PathRow entry);
 
         T visit(EffectCategoryHeader entry);
@@ -132,14 +141,6 @@ public final class InfoModel {
 
         T visit(PathEffectRow entry);
 
-        T visit(EffectMarkRow entry);
-
-        T visit(BareMarksHeader entry);
-
-        T visit(BareMarkRow entry);
-
-        T visit(NoneRow entry);
-
         T visit(QiPathAchieveHeader entry);
 
         T visit(QiKindRow entry);
@@ -147,6 +148,8 @@ public final class InfoModel {
         T visit(StrengthPathAchieveHeader entry);
 
         T visit(StrengthPathBranchRow entry);
+
+        T visit(StrengthReadingRow entry);
 
         T visit(TimePathAchieveHeader entry);
 
@@ -278,6 +281,12 @@ public final class InfoModel {
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
     }
 
+    public record EffectsHeader(boolean empty) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
     public record PathRow(GuPath path, GuAttainment attainment, DaoMarks marks) implements Entry {
 
         @Override
@@ -302,30 +311,6 @@ public final class InfoModel {
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
     }
 
-    public record EffectMarkRow(GuPath path, DaoMarks marks) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record BareMarksHeader() implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record BareMarkRow(GuPath path, DaoMarks marks) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record NoneRow() implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
     public record QiPathAchieveHeader() implements Entry {
 
         @Override
@@ -344,18 +329,26 @@ public final class InfoModel {
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
     }
 
-    public record StrengthPathBranchRow(StrengthPathBranch branch, int totalJin,
-                                        PathStrengthData data) implements Entry {
+    public record StrengthPathBranchRow(StrengthPathBranch branch, int totalJin) implements Entry {
 
         @Override
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-
-        public Component getReading() {
-            return branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM
-                    ? ModDisplayText.formatBeastStrengthLine(data)
-                    : ModDisplayText.formatHumanStrengthLine(data);
-        }
     }
+
+    public record StrengthReadingRow(List<StrengthReading> readings) implements Entry {
+
+        @Override
+        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
+    }
+
+    /** One strength the body holds: {@code count} beasts of a family, or {@code count} of a human unit. */
+    public sealed interface StrengthReading {}
+
+    /** {@code secondsLeft} is {@code PathEffect.PERMANENT} for a refined beast strength. */
+    public record BeastReading(BeastStrengthFamily family, int count, long secondsLeft) implements StrengthReading {}
+
+    /** {@code unit} is {@link HumanStrength#JIN} or {@link HumanStrength#JUN}, the ten-fold kinds folded in. */
+    public record HumanReading(HumanStrength unit, int count) implements StrengthReading {}
 
     public record TimePathAchieveHeader() implements Entry {
 
@@ -487,18 +480,15 @@ public final class InfoModel {
     public static List<Row> buildPathRows(Player player) {
         List<Row> rows = new ArrayList<>();
         addPaths(rows, player);
-        for (PathEffectCategory category : PathEffectCategory.values()) addPathEffects(rows, player, category);
-        addBareMarks(rows, player);
-        return rows;
-    }
 
-    public static List<Row> buildPathAchieveRows(Player player) {
-        List<Row> rows = new ArrayList<>();
-        addStrengthPathAchieve(rows, player);
-        addTimePathAchieve(rows, player);
-        addQiPathAchieve(rows, player);
-        addWisdomPathAchieve(rows, player);
-        if (rows.isEmpty()) rows.add(new Row(0, new NoneRow()));
+        List<Row> effects = new ArrayList<>();
+        addStrengthPathAchieve(effects, player);
+        addTimePathAchieve(effects, player);
+        addQiPathAchieve(effects, player);
+        addWisdomPathAchieve(effects, player);
+        for (PathEffectCategory category : PathEffectCategory.values()) addPathEffects(effects, player, category);
+        rows.add(new Row(0, new EffectsHeader(effects.isEmpty())));
+        effects.forEach(row -> rows.add(new Row(row.indent() + INDENT, row.entry())));
         return rows;
     }
 
@@ -522,7 +512,7 @@ public final class InfoModel {
 
     private static void addPathEffects(List<Row> rows, Player player, PathEffectCategory category) {
         List<PathEffect<?>> effects = PathEffectService.getEffects(player).stream()
-                .filter(effect -> effect.type().getCategory() == category).toList();
+                .filter(effect -> effect.type().getCategory() == category && !isStrengthReading(effect)).toList();
         if (effects.isEmpty()) return;
 
         long now = PathEffectService.getGameTime(player);
@@ -534,22 +524,18 @@ public final class InfoModel {
             rows.add(new Row(INDENT, new EffectCarrierRow(carrier)));
             for (PathEffect<?> effect : carried) {
                 rows.add(new Row(2 * INDENT, new PathEffectRow(effect, getSecondsLeft(effect, now))));
-                effect.paths().forEach((path, marks) ->
-                        rows.add(new Row(3 * INDENT, new EffectMarkRow(path, marks))));
             }
         }
     }
 
-    private static void addBareMarks(List<Row> rows, Player player) {
-        List<Row> held = new ArrayList<>();
-        for (GuPath path : GuPath.values()) {
-            DaoMarks marks = PathService.getBareMarks(player, path);
-            if (!marks.isEmpty()) held.add(new Row(INDENT, new BareMarkRow(path, marks)));
-        }
-        if (held.isEmpty()) return;
+    private static boolean isStrengthReading(PathEffect<?> effect) {
+        return effect.type() == ModPathEffectTypes.BEAST_STRENGTH || effect.type() == ModPathEffectTypes.HUMAN_STRENGTH
+                || getBeastBuff(effect) != null;
+    }
 
-        rows.add(new Row(0, new BareMarksHeader()));
-        rows.addAll(held);
+    private static @Nullable BeastStrengthBuff getBeastBuff(PathEffect<?> effect) {
+        return effect.payload() instanceof TimedBuff buff
+                && buff.getHolder().value() instanceof BeastStrengthBuff beast ? beast : null;
     }
 
     static long getSecondsLeft(PathEffect<?> effect, long now) {
@@ -571,16 +557,49 @@ public final class InfoModel {
 
     private static void addStrengthPathAchieve(List<Row> rows, Player player) {
         PathStrengthData data = PathStrengthService.get(player);
-        if (data.isEmpty()) return;
+        List<StrengthReading> beasts = getBeastReadings(player, data);
+        List<StrengthReading> humans = getHumanReadings(data);
+        if (beasts.isEmpty() && humans.isEmpty()) return;
 
         rows.add(new Row(0, new StrengthPathAchieveHeader()));
-        if (data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)) {
-            rows.add(new Row(INDENT, new StrengthPathBranchRow(StrengthPathBranch.BEAST_STRENGTH_PHANTOM, 0, data)));
+        addStrengthBranch(rows, StrengthPathBranch.BEAST_STRENGTH_PHANTOM, 0, beasts);
+        addStrengthBranch(rows, StrengthPathBranch.HUMAN_JUN_STRENGTH, data.getTotalJin(), humans);
+    }
+
+    private static void addStrengthBranch(List<Row> rows, StrengthPathBranch branch, int totalJin,
+                                          List<StrengthReading> readings) {
+        if (readings.isEmpty()) return;
+
+        rows.add(new Row(INDENT, new StrengthPathBranchRow(branch, totalJin)));
+        for (int i = 0; i < readings.size(); i += READINGS_PER_ROW) {
+            List<StrengthReading> line = readings.subList(i, Math.min(readings.size(), i + READINGS_PER_ROW));
+            rows.add(new Row(2 * INDENT, new StrengthReadingRow(List.copyOf(line))));
         }
-        if (data.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
-            rows.add(new Row(INDENT, new StrengthPathBranchRow(StrengthPathBranch.HUMAN_JUN_STRENGTH,
-                    data.getTotalJin(), data)));
+    }
+
+    private static List<StrengthReading> getBeastReadings(Player player, PathStrengthData data) {
+        Map<BeastStrengthFamily, Integer> refined = data.getBeastReadings();
+        List<PathEffect<?>> effects = PathEffectService.getEffects(player);
+        long now = PathEffectService.getGameTime(player);
+        List<StrengthReading> readings = new ArrayList<>();
+        for (BeastStrengthFamily family : BeastStrengthFamily.values()) {
+            int count = refined.getOrDefault(family, 0);
+            if (count > 0) readings.add(new BeastReading(family, count, PathEffect.PERMANENT));
+            for (PathEffect<?> effect : effects) {
+                BeastStrengthBuff buff = getBeastBuff(effect);
+                if (buff != null && buff.getBeastFamily() == family) {
+                    readings.add(new BeastReading(family, 1, getSecondsLeft(effect, now)));
+                }
+            }
         }
+        return readings;
+    }
+
+    private static List<StrengthReading> getHumanReadings(PathStrengthData data) {
+        List<StrengthReading> readings = new ArrayList<>();
+        if (data.getJinReading() > 0) readings.add(new HumanReading(HumanStrength.JIN, data.getJinReading()));
+        if (data.getJunReading() > 0) readings.add(new HumanReading(HumanStrength.JUN, data.getJunReading()));
+        return readings;
     }
 
     private static void addWisdomPathAchieve(List<Row> rows, Player player) {

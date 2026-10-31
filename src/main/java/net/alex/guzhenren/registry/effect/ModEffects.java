@@ -8,7 +8,6 @@ import net.alex.guzhenren.effect.pool.StrengthQiEffect;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
-import net.alex.guzhenren.effect.timed.DragonpillCricketGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
@@ -66,9 +65,6 @@ public final class ModEffects {
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredHolder<MobEffect, FlowerBoarGuEffect> FLOWER_BOAR_GU = MOB_EFFECTS.register(
             "flower_boar_gu", () -> new FlowerBoarGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, DragonpillCricketGuEffect> DRAGONPILL_CRICKET_GU =
-            MOB_EFFECTS.register("dragonpill_cricket_gu", () -> new DragonpillCricketGuEffect(
-                    MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, BruteForceLonghornBeetleGuEffect> BRUTE_FORCE_LONGHORN_BEETLE_GU =
             MOB_EFFECTS.register("brute_force_longhorn_beetle_gu", () -> new BruteForceLonghornBeetleGuEffect(
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));

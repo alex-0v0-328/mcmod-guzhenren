@@ -14,7 +14,8 @@ import org.jetbrains.annotations.Nullable;
  * and, for the secondary-path row, a click that opens the {@link PathPicker}. A header row has no value and
  * takes the tab's accent color; the mind header returns {@code null} because its tab title already says it.
  *
- * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line; {@link #getApertureGroups}
+ * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line, and a strength reading row
+ * into {@code cells} the panel spreads over {@code InfoModel.READINGS_PER_ROW} equal columns; {@link #getApertureGroups}
  * splits the aperture tab's model into one group per aperture, blanks dropped, for the two-column layout.
  *
  * <p>{@link #draw} hands each entry to {@link EntryDrawer}, one {@code InfoModel.Visitor} method per row kind: a
@@ -186,7 +187,12 @@ final class InfoRowRenderer {
 
         @Override
         public ScreenRow visit(InfoModel.PathsHeader entry) {
-            return new ScreenRow(indent, formatLabel("paths"), entry.empty() ? ModDisplayText.formatNone() : null);
+            return new ScreenRow(indent, formatLabel("dao_marks"), entry.empty() ? ModDisplayText.formatNone() : null);
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.EffectsHeader entry) {
+            return new ScreenRow(indent, formatLabel("effects"), entry.empty() ? ModDisplayText.formatNone() : null);
         }
 
         @Override
@@ -210,28 +216,6 @@ final class InfoRowRenderer {
         public ScreenRow visit(InfoModel.PathEffectRow entry) {
             return new ScreenRow(indent, entry.effect().getName(),
                     ModDisplayText.formatEffectTime(entry.secondsLeft()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.EffectMarkRow entry) {
-            return new ScreenRow(indent, ModDisplayText.formatPath(entry.path()),
-                    ModDisplayText.formatMarks(entry.marks()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.BareMarksHeader entry) {
-            return new ScreenRow(indent, formatLabel("bare_marks"), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.BareMarkRow entry) {
-            return new ScreenRow(indent, ModDisplayText.formatPath(entry.path()),
-                    ModDisplayText.formatMarks(entry.marks()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.NoneRow entry) {
-            return new ScreenRow(indent, ModDisplayText.formatNone(), null);
         }
 
         @Override
@@ -265,8 +249,13 @@ final class InfoRowRenderer {
         public ScreenRow visit(InfoModel.StrengthPathBranchRow entry) {
             return new ScreenRow(indent,
                     ModDisplayText.formatStrengthLabel(formatName(entry.branch().getTranslationKey()),
-                            entry.totalJin()),
-                    entry.getReading());
+                            entry.totalJin()), null);
+        }
+
+        @Override
+        public ScreenRow visit(InfoModel.StrengthReadingRow entry) {
+            return new ScreenRow(indent, Component.empty(), null, null,
+                    entry.readings().stream().<Component>map(ModDisplayText::formatStrengthReading).toList());
         }
 
         @Override
@@ -311,9 +300,14 @@ final class InfoRowRenderer {
         }
     }
 
-    record ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click) {
+    record ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click,
+                     List<Component> cells) {
 
         ScreenRow(int indent, Component label, @Nullable Component value) { this(indent, label, value, null); }
+
+        ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click) {
+            this(indent, label, value, click, List.of());
+        }
     }
 
     record Click(int aperture) {}
