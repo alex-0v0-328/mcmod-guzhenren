@@ -3,6 +3,8 @@ package net.alex.guzhenren.item.gu.killingmove;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.entity.projectile.MoonBladeArc;
+import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
@@ -11,11 +13,14 @@ import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.moon.MoonBladeModule;
+import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +55,13 @@ import org.jetbrains.annotations.Nullable;
  * same use answers 1; outside a drive, or for another Gu, it always answers 1. A use the main Gu refuses (cooldown,
  * essence) never reaches the ask, so the partner stays unbilled.
  *
+ * <p>The payload also carries the entity id of the target the client had locked on [锁定目标] (Epic Fight's lock-on,
+ * or whatever its crosshair rested on within {@link #AIM_RANGE} blocks), or none. {@link #drive} checks it again
+ * ({@link #resolveTarget}: a living entity, alive, not the shooter, ahead of the eye and within
+ * {@link #AIM_CHECK_RANGE} blocks, the client's range plus slack for the latency) and sets it as the aiming context
+ * around the in-place use; {@link #getAimedTarget}, asked by the blade module while it fires, answers it, so the
+ * blade flies {@code MoonBladeArc} to it. A target that fails any check, or no target, fires the straight blade.
+ *
  * <p>A cast that landed (the partner paid, so the factor applied) answers a {@link Cast} for the Killing Move Tooltip
  * [杀招提示]: the move and each Gu it used, main first, as copies taken after the bill, or as they were before it when
  * the bill killed one ({@link Used#spent}). Anything else, a plain use included, answers {@code null}.
@@ -65,9 +77,14 @@ public final class KillingMoveService {
 
     /** The id a plain use sends: no killing move, the blade Gu alone. */
     public static final String PLAIN = "";
+    /** How far the client looks for a crosshair target: a straight blade's whole flight. */
+    public static final double AIM_RANGE = MoonBladeEntity.SPEED * MoonBladeEntity.LIFETIME_TICKS;
+    /** How far the server accepts a client's target: the aim range plus slack for a tick or two of movement. */
+    public static final double AIM_CHECK_RANGE = AIM_RANGE + 2.0D;
     private static final String FAILED_ESSENCE = "guzhenren.item.failed.essence";
     private static final int NO_SLOT = -1;
     private static @Nullable Driving driving;
+    private static @Nullable Aiming aiming;
 
     private record Partner(TendedGuItem gu, ItemStack stack, @Nullable StoreSlot stored) {}
 
@@ -83,6 +100,8 @@ public final class KillingMoveService {
             return after.isEmpty() ? new Used(before, true) : new Used(after.copy(), false);
         }
     }
+
+    private record Aiming(ServerPlayer player, LivingEntity target) {}
 
     private static final class Driving {
 
@@ -147,9 +166,40 @@ public final class KillingMoveService {
     }
 
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id) {
+        return drive(player, id, KillingMovePayload.NO_TARGET);
+    }
+
+    /** Drives the main-hand blade Gu, aimed at the client's target id ({@code KillingMovePayload.NO_TARGET} for none). */
+    public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id, int targetId) {
         ItemStack stack = player.getMainHandItem();
         TendedGuItem main = asBladeGu(stack);
         if (main == null) return null;
+        LivingEntity target = resolveTarget(player, targetId);
+        aiming = target == null ? null : new Aiming(player, target);
+        try {
+            return driveAimed(player, stack, main, id);
+        } finally {
+            aiming = null;
+        }
+    }
+
+    /** The target the blade fired inside {@link #drive} flies at, or null for a straight flight. */
+    public static @Nullable LivingEntity getAimedTarget(@NotNull ServerPlayer player) {
+        Aiming current = aiming;
+        return current != null && current.player() == player ? current.target() : null;
+    }
+
+    /** The client's target id checked again on the server; null when any check fails. */
+    public static @Nullable LivingEntity resolveTarget(@NotNull ServerPlayer player, int targetId) {
+        if (targetId == KillingMovePayload.NO_TARGET) return null;
+        if (!(player.serverLevel().getEntity(targetId) instanceof LivingEntity target)) return null;
+        if (!target.isAlive() || target == player) return null;
+        Vec3 eye = player.getEyePosition();
+        Vec3 center = target.getBoundingBox().getCenter();
+        return MoonBladeArc.isAimable(eye, player.getLookAngle(), center, AIM_CHECK_RANGE) ? target : null;
+    }
+
+    private static @Nullable Cast driveAimed(ServerPlayer player, ItemStack stack, TendedGuItem main, String id) {
         if (id.equals(PLAIN)) {
             main.tryUseInPlace(player, stack);
             return null;

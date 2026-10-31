@@ -33,8 +33,9 @@ import net.minecraft.world.phys.Vec3;
  * tick.
  *
  * <p>{@link #crash} answers each server-side {@code SecondStageCrashEvent}: one {@code sonic_boom_ring} at mid-body
- * against the wall ({@link #CRASH_AHEAD} blocks along the heading), facing the heading; the crater's explosion is
- * the impact's sound.
+ * against the surface ({@link #CRASH_AHEAD} blocks along the heading), facing the heading in three dimensions, so a
+ * dive's ring lies flat on the ground and a climb's flat under the ceiling ({@code RingGeometry#getFacing} handles
+ * the vertical normal); the crater's explosion is the impact's sound.
  *
  * <p>Pure feedback: no damage, no hitbox.
  *

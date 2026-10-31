@@ -7,15 +7,19 @@ import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.impact.ImpactCrater;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -50,13 +54,22 @@ import org.jetbrains.annotations.NotNull;
  * flight, each body once per {@link SecondStageCruise#RAM_COOLDOWN_TICKS}, the flier unslowed. Only a hit the body
  * takes shoves it, scaled down by its knockback resistance; a refused one (no PvP, invulnerable, still flinching)
  * leaves it in place and free to be rammed the next tick. Wild Gu, allies either way round (a team, the flier's own
- * pets), anything the flier owns, spectators and armor stands are spared. A horizontal collision costs the elytra's
- * wall damage on the server, and losing at least the barrier speed in it is a crash: the throttle empties, the velocity
- * stops, a {@link SecondStageCrashEvent} goes up on that end (the server's ring and nearby shakes, the client's own
- * shake), and the server ends the stage and blasts a crater into the wall like a plunge's ({@link ImpactCrater#blast}
- * at {@link SecondStageCruise#getCrashPower}, {@link #CRASH_AHEAD} blocks ahead of mid-body). Each end judges the crash
- * on its own velocity, the server's a packet behind, so near the barrier one end may crash while the other only pays
- * the wall; the throttle drains the difference away within {@link SecondStageCruise#COAST_TICKS}. Landing is no wall:
+ * pets), anything the flier owns, spectators and armor stands are spared. Also ahead of the move, past the barrier
+ * speed and where {@code ModEvents#canGrief} allows, the server shatters every fragile block
+ * ({@link SecondStageCruise#isFragile}: leaves, glass, snow and the like) with a collision shape in the box swept over
+ * the next {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} ticks ({@link #shatter}: {@code Level#destroyBlock} with
+ * drops, so the break particles and sound are vanilla's), and the flight passes through. A collision on any axis, a
+ * floor and a ceiling included, costs the elytra's wall damage on the server by the speed lost in three dimensions,
+ * and losing at least the barrier speed in it is a crash: the throttle empties, the velocity stops, a
+ * {@link SecondStageCrashEvent} goes up on that end (the server's ring and nearby shakes, the client's own shake), and
+ * the server ends the stage and blasts a crater into the wall like a plunge's ({@link ImpactCrater#blast} at
+ * {@link SecondStageCruise#getCrashPower}, {@link #CRASH_AHEAD} blocks ahead of mid-body along the flight). A
+ * collision whose one-tick sweep holds nothing but fragile blocks is no hit at all ({@link #isFragileOnly}): the
+ * client reaches glass the server's break has not arrived at yet, and with griefing refused the flier merely stops
+ * against it, so no damage, no crash and the throttle keeps draining or filling as the sprint says. Each end judges the
+ * crash on its own velocity, the server's a packet behind, so near the barrier one end may crash while the other only
+ * pays the wall; the throttle drains the difference away within {@link SecondStageCruise#COAST_TICKS}. A level flight
+ * brushing the ground collides vertically too, but loses next to no speed, so it costs nothing. Landing is no wall:
  * vanilla ends flight on the ground, and the stage with it.
  *
  * <p>⚠ The speed is never written to {@code Abilities}, which the game saves. ⚠ {@link #SPEED_MULTIPLIER} stays below
@@ -140,18 +153,55 @@ public final class SecondStageService {
         Vec3 velocity = SecondStageCruise.nextVelocity(player.getDeltaMovement(), player.getLookAngle(),
                 PlayerData.get(player).getSecondStageThrottle(),
                 SecondStageCruise.getTopSpeed(player.getAbilities().getFlyingSpeed()));
-        if (player instanceof ServerPlayer server) ram(server, velocity);
+        if (player instanceof ServerPlayer server) {
+            ram(server, velocity);
+            shatter(server, velocity);
+        }
         if (player.isFallFlying()) player.stopFallFlying();
         player.setDeltaMovement(velocity);
+        AABB swept = player.getBoundingBox().expandTowards(velocity);
         player.move(MoverType.SELF, velocity);
-        if (player.horizontalCollision) hitWall(player, velocity);
+        if ((player.horizontalCollision || player.verticalCollision) && !isFragileOnly(player.level(), swept)) {
+            hitWall(player, velocity);
+        }
         player.resetFallDistance();
         player.calculateEntityAnimation(false);
         return true;
     }
 
+    private static void shatter(ServerPlayer player, Vec3 velocity) {
+        if (velocity.length() < SecondStageCruise.BARRIER_SPEED || !ModEvents.canGrief(player.level(), player)) return;
+        AABB swept = player.getBoundingBox().expandTowards(velocity.scale(SecondStageCruise.BREAK_LOOKAHEAD_TICKS));
+        for (BlockPos pos : blocksIn(swept)) {
+            if (isFragile(player.level(), pos, player.level().getBlockState(pos))) {
+                player.level().destroyBlock(pos, true, player);
+            }
+        }
+    }
+
+    private static boolean isFragileOnly(Level level, AABB swept) {
+        boolean found = false;
+        for (BlockPos pos : blocksIn(swept)) {
+            BlockState state = level.getBlockState(pos);
+            if (state.isAir() || state.getCollisionShape(level, pos).isEmpty()) continue;
+            if (!isFragile(level, pos, state)) return false;
+            found = true;
+        }
+        return found;
+    }
+
+    private static Iterable<BlockPos> blocksIn(AABB box) {
+        return BlockPos.betweenClosed(Mth.floor(box.minX), Mth.floor(box.minY), Mth.floor(box.minZ),
+                Mth.ceil(box.maxX) - 1, Mth.ceil(box.maxY) - 1, Mth.ceil(box.maxZ) - 1);
+    }
+
+    private static boolean isFragile(Level level, BlockPos pos, BlockState state) {
+        return !state.isAir() && SecondStageCruise.isFragile(state.getBlock().getExplosionResistance())
+                && !state.getCollisionShape(level, pos).isEmpty();
+    }
+
     private static void hitWall(Player player, Vec3 velocity) {
-        double lost = velocity.horizontalDistance() - player.getDeltaMovement().horizontalDistance();
+        double lost = velocity.length() - player.getDeltaMovement().length();
         if (!player.level().isClientSide()) {
             float damage = SecondStageCruise.getWallDamage(lost);
             if (damage > 0.0F) {
@@ -164,7 +214,7 @@ public final class SecondStageService {
 
         PlayerData.get(player).setSecondStageThrottle(0.0D);
         player.setDeltaMovement(Vec3.ZERO);
-        Vec3 heading = new Vec3(velocity.x, 0.0D, velocity.z).normalize();
+        Vec3 heading = velocity.normalize();
         ModEvents.post(new SecondStageCrashEvent(player, heading));
         if (!(player instanceof ServerPlayer server)) return;
         stop(server);

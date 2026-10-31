@@ -22,6 +22,10 @@ import org.joml.Vector3f;
  * the horizontal axis across it: flat to the ground when shot level, tilting with the pitch when shot up or down,
  * with the crescent's bulge leading.
  *
+ * <p>A locked-on blade [锁定目标] banks into its turn: the whole face rolls about the flight line by the entity's
+ * {@link MoonBladeEntity#getBankDegrees}, the left edge down for a curve to the left, up to
+ * {@code MoonBladeArc.MAX_BANK_DEGREES}, so each shot leans its own way.
+ *
  * <p>Left exactly flat, the blade would thin to a line for a shooter just above it and for anyone beside it. So the
  * whole blade, bulge included, is turned {@link #TILT_DEGREES} toward the camera about the axis perpendicular to both
  * the blade's face and the line to the camera (less when the camera already sees it more squarely than that, and not
@@ -30,7 +34,8 @@ import org.joml.Vector3f;
  *
  * <p>The texture is a vertical strip of {@link #FRAMES} 16-pixel frames read by age, not a vanilla animation: the
  * crescent grows over the first three ticks, holds the full frame while it flies, and fades over the last three
- * before {@link MoonBladeEntity#LIFETIME_TICKS}. A blade that hits something vanishes on its full frame.
+ * before the blade's lifetime ({@link MoonBladeEntity#getLifetimeTicks}) runs out. A blade that hits something
+ * vanishes on its full frame.
  *
  * @author Alex
  * @version 1.0.0
@@ -54,7 +59,7 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
     @Override
     public void render(@NotNull MoonBladeEntity blade, float entityYaw, float partialTicks, PoseStack poseStack,
                        @NotNull MultiBufferSource buffer, int packedLight) {
-        int frame = getFrame(blade.tickCount);
+        int frame = getFrame(blade.tickCount, blade.getLifetimeTicks());
         float top = frame / (float) FRAMES;
         float bottom = (frame + 1) / (float) FRAMES;
 
@@ -65,6 +70,7 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
         if (side.lengthSquared() < VERTICAL) side.set(1.0F, 0.0F, 0.0F);
         side.normalize();
         Vector3f normal = forward.cross(side, new Vector3f());
+        bank(blade.getBankDegrees(), forward, side, normal);
         tiltTowardCamera(blade, partialTicks, forward, side, normal);
 
         poseStack.pushPose();
@@ -77,6 +83,14 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
         vertex(consumer, pose, forward, side, normal, -HALF_SIZE, HALF_SIZE, 0.0F, top);
         poseStack.popPose();
         super.render(blade, entityYaw, partialTicks, poseStack, buffer, packedLight);
+    }
+
+    /** Rolls the face about the flight line: a positive (left) bank lifts {@code side}, the right edge. */
+    private static void bank(float degrees, Vector3f forward, Vector3f side, Vector3f normal) {
+        if (degrees == 0.0F) return;
+        Quaternionf roll = new Quaternionf().fromAxisAngleRad(forward, (float) Math.toRadians(-degrees));
+        side.rotate(roll);
+        normal.rotate(roll);
     }
 
     private void tiltTowardCamera(MoonBladeEntity blade, float partialTicks, Vector3f forward, Vector3f side,
@@ -98,8 +112,8 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
         normal.rotate(turn);
     }
 
-    static int getFrame(int age) {
-        int fading = age - (MoonBladeEntity.LIFETIME_TICKS - 2);
+    static int getFrame(int age, int lifetime) {
+        int fading = age - (lifetime - 2);
         if (fading >= 0) return Math.min(FULL_FRAME + 1 + fading, FRAMES - 1);
         return Math.min(age, FULL_FRAME);
     }

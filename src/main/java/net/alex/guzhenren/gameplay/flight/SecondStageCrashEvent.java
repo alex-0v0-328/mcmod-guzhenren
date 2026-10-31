@@ -6,10 +6,11 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus when a second-stage flight [二段飞行] crashes into a wall, on whichever end moved the
- * player into it ({@link SecondStageService#travel}): the server's step, with a {@code ServerPlayer}, and the local
- * player's own physics, with a {@code LocalPlayer}. Listeners check which they hold. Dispatch is synchronous, so the
- * player still stands against the wall; {@link #getHeading} is the horizontal direction it was flying in.
+ * Posted on the game event bus when a second-stage flight [二段飞行] crashes into a wall, a floor or a ceiling, on
+ * whichever end moved the player into it ({@link SecondStageService#travel}): the server's step, with a
+ * {@code ServerPlayer}, and the local player's own physics, with a {@code LocalPlayer}. Listeners check which they
+ * hold. Dispatch is synchronous, so the player still stands against the surface; {@link #getHeading} is the unit
+ * direction it was flying in, pitch included, so a dive's heading points down.
  *
  * <p>Flight posts and does not know who listens: the crash ring lives in {@code net.alex.guzhenren.particle}, the
  * shake in {@code net.alex.guzhenren.client.event.SecondStageCamera}.

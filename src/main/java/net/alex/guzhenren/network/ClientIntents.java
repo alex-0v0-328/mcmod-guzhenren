@@ -9,6 +9,7 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
+import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -100,9 +101,14 @@ public final class ClientIntents {
     }
 
     public static void killingMove(@NotNull ServerPlayer player, @NotNull String move) {
+        killingMove(player, move, KillingMovePayload.NO_TARGET);
+    }
+
+    /** Drives the main-hand blade Gu at the client's locked target [锁定目标], {@code NO_TARGET} for none. */
+    public static void killingMove(@NotNull ServerPlayer player, @NotNull String move, int target) {
         if (!isOutsideTyh(player)) return;
 
-        KillingMoveService.Cast cast = KillingMoveService.drive(player, move);
+        KillingMoveService.Cast cast = KillingMoveService.drive(player, move, target);
         if (cast != null) PacketDistributor.sendToPlayer(player, KillingMoveTooltipPayload.of(cast));
     }
 

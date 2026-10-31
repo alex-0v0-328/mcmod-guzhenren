@@ -20,10 +20,17 @@ import org.jetbrains.annotations.NotNull;
  * tick (≈65 a second). {@link #BARRIER_SPEED}, three times plain flight, is where the sound barrier rings form, a
  * wall hit counts as a crash and a body in the path is rammed.
  *
- * <p>A wall costs what an elytra pays ({@link #getWallDamage}): ten points a block a tick of horizontal speed lost,
- * less three. A crash blasts a crater of {@link #getCrashPower}: {@link #CRASH_POWER_PER_SPEED} a block a tick lost,
- * between {@link #MIN_CRASH_POWER} at the barrier and {@link #MAX_CRASH_POWER}, a TNT's, ≈3.9 for a head-on hit at
- * full speed. A ram deals {@link #RAM_DAMAGE_PER_SPEED} a block a tick of the flier's speed ({@link #getRamDamage}).
+ * <p>A wall costs what an elytra pays ({@link #getWallDamage}): ten points a block a tick of speed lost, less three,
+ * the speed in three dimensions, so a floor and a ceiling are walls too. A crash blasts a crater of
+ * {@link #getCrashPower}: {@link #CRASH_POWER_PER_SPEED} a block a tick lost, between {@link #MIN_CRASH_POWER} at the
+ * barrier and {@link #MAX_CRASH_POWER}, a TNT's, ≈3.9 for a head-on hit at full speed. A ram deals
+ * {@link #RAM_DAMAGE_PER_SPEED} a block a tick of the flier's speed ({@link #getRamDamage}).
+ *
+ * <p>A fragile block ({@link #isFragile}) is one whose explosion resistance is below {@link #FRAGILE_RESISTANCE}:
+ * leaves (0.2), glass (0.3), snow (0.1), cactus (0.4), mushroom blocks (0.2), slime, honey and scaffolding (0); dirt
+ * and sand (0.5) are not. Past the barrier speed the flight shatters them instead of hitting them, the server breaking
+ * every fragile block its box sweeps over the next {@link #BREAK_LOOKAHEAD_TICKS} ticks (≈10 blocks at full speed),
+ * so the client, a packet ahead of the server, reaches air where it saw glass.
  *
  * @author Alex
  * @version 1.0.0
@@ -49,6 +56,8 @@ public final class SecondStageCruise {
     public static final double RAM_KNOCKBACK = 2.0D;
     public static final double RAM_LIFT = 0.4D;
     public static final int RAM_COOLDOWN_TICKS = 20;
+    public static final float FRAGILE_RESISTANCE = 0.5F;
+    public static final int BREAK_LOOKAHEAD_TICKS = 3;
     private static final double EMPTY = 1.0E-9D;
 
     public static double nextThrottle(double throttle, boolean sprinting) {
@@ -76,6 +85,8 @@ public final class SecondStageCruise {
     }
 
     public static float getRamDamage(double speed) { return (float) (speed * RAM_DAMAGE_PER_SPEED); }
+
+    public static boolean isFragile(float explosionResistance) { return explosionResistance < FRAGILE_RESISTANCE; }
 
     public static @NotNull Vec3 getRamPush(@NotNull Vec3 velocity) {
         return velocity.normalize().scale(RAM_KNOCKBACK).add(0.0D, RAM_LIFT, 0.0D);

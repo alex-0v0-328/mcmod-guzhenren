@@ -77,7 +77,7 @@ public final class ModPayloads {
         toServer(registrar, AmplifyDrivePayload.TYPE, AmplifyDrivePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
         toServer(registrar, KillingMovePayload.TYPE, KillingMovePayload.STREAM_CODEC,
-                (intent, player) -> ClientIntents.killingMove(player, intent.move()));
+                (intent, player) -> ClientIntents.killingMove(player, intent.move(), intent.target()));
         registrar.playToClient(SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC,
                 (notice, context) -> dispatchToClient(notice));
         registrar.playToClient(ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC,

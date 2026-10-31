@@ -8,13 +8,16 @@ import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.LivingMotions;
+import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.client.event.EpicFightClientEventHooks;
 import yesman.epicfight.api.client.event.types.entity.ModifyPlayerLivingMotionEvent;
 import yesman.epicfight.api.client.event.types.render.PrepareModelEvent;
@@ -30,6 +33,10 @@ import yesman.epicfight.api.client.event.types.render.PrepareModelEvent;
  * ({@link #onClientTick}), interpolated between ticks. The mark reaches every client that sees the flier, so others
  * see the lean too; the flier's own first-person view stays untilted. Epic Fight's own motion blend eases the
  * animation change.
+ *
+ * <p>{@link #getLockOnTarget} reads Epic Fight's lock-on [锁定目标] for the moon blade Gu [月刃]: the entity its camera
+ * is locked on, while the lock is held, read off {@code EpicFightCameraAPI} (the local player patch's own target is
+ * that same focused entity).
  *
  * <p>{@link #initialize} registers both hooks; client setup calls it once.
  *
@@ -52,6 +59,14 @@ public final class EpicFightClientIntegration {
                 EpicFightClientIntegration::onLivingMotion, Guzhenren.MOD_ID);
         EpicFightClientEventHooks.Render.PREPARE_MODEL_TO_RENDER.registerEvent(
                 EpicFightClientIntegration::onPrepareModel, Guzhenren.MOD_ID);
+    }
+
+    /** The living entity Epic Fight's camera is locked on, or null while it is not locking on. */
+    public static @Nullable LivingEntity getLockOnTarget() {
+        EpicFightCameraAPI camera = EpicFightCameraAPI.getInstance();
+        if (!camera.isLockingOnTarget()) return null;
+        LivingEntity target = camera.getFocusingEntity();
+        return target != null && target.isAlive() ? target : null;
     }
 
     @SubscribeEvent
