@@ -16,9 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The instant-buff module [限时增益]: grants a timed buff whose effect holder, length and strength come from
- * registration. Ten Gu carry it, each with a {@link RecastModule}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
- * four Crash Gu, the Hardship Strength Gu and the three Self Reliance Gu, which add an
- * {@link net.alex.guzhenren.item.gu.mortal.strength.AutoUseModule}.
+ * registration. Seven Gu carry it, each with a {@link RecastModule}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
+ * four Crash Gu and the Hardship Strength Gu.
  *
  * <p>The effect simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. The gate refuses only
  * while a stronger copy of the same effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker

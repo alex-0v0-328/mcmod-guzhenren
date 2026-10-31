@@ -1,13 +1,15 @@
 package net.alex.guzhenren.lifecycle;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceModule;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Hands every server player's end-of-tick to {@link Heartbeat}; the event handler lives here, the heartbeat's
+ * Hands every server player's end-of-tick to {@link Heartbeat}, then to the Self Reliance heal pulse
+ * ({@link SelfRelianceModule#pulse}), which runs faster than the beat; the event handler lives here, the heartbeat's
  * order there.
  *
  * @author Alex
@@ -23,6 +25,9 @@ public final class PlayerTickEvents {
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (event.getEntity() instanceof ServerPlayer player) Heartbeat.beat(player);
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+
+        Heartbeat.beat(player);
+        SelfRelianceModule.pulse(player);
     }
 }

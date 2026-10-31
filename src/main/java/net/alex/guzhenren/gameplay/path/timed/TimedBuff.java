@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * The payload of a timed buff [限时增益]: the vanilla effect it projects and the amplifier it projects at.
  *
  * <p>Stored by the effect's registry id, so a save names it; the {@link Holder} is resolved on use. The amplifier is
- * the Gu's own tier (a crash Gu's rank, a self-reliance Gu's grade), never a count of marks.
+ * the Gu's own tier (a crash Gu's rank), never a count of marks.
  *
  * @author Alex
  * @version 1.0.0

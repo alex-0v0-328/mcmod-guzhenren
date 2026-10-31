@@ -53,6 +53,7 @@ import net.alex.guzhenren.item.gu.mortal.strength.AllOutEffortModule;
 import net.alex.guzhenren.item.gu.mortal.strength.AutoUseModule;
 import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthModule;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthModule;
+import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceModule;
 import net.alex.guzhenren.item.gu.mortal.time.ManAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.TerrainAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.time.WatchModule;
@@ -290,36 +291,33 @@ public final class ModItems {
                     GuSpec.of(Rank.TWO, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
                             .refine(8_000).costPerUse(160)
-                            .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(4).health(48)
+                            .hungerBar(14, 1).hungerPerUse(0).hungerPerDay(2).health(48)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.SELF_RELIANCE_GU, 30 * Ticks.SECOND, 1),
-                    new RecastModule(),
-                    new AutoUseModule(0.2F)))
+                            .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
+                    new SelfRelianceModule(1, 0.03F, 0.2F),
+                    new AutoUseModule(0.25F)))
             .lang("Self Reliance Gu II", "二转自力更生蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = REGISTRAR.item("self_reliance_gu_3",
             () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
                             .refine(80_000).costPerUse(1_600)
-                            .hungerBar(96, 1).hungerPerUse(32).hungerPerDay(8).health(96)
+                            .hungerBar(26, 1).hungerPerUse(0).hungerPerDay(2).health(96)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.SELF_RELIANCE_GU, 60 * Ticks.SECOND, 2),
-                    new RecastModule(),
-                    new AutoUseModule(0.2F)))
+                            .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
+                    new SelfRelianceModule(2, 0.04F, 0.25F),
+                    new AutoUseModule(0.25F)))
             .lang("Self Reliance Gu III", "三转自力更生蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = REGISTRAR.item("self_reliance_gu_4",
             () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
                             .refine(800_000).costPerUse(16_000)
-                            .hungerBar(144, 1).hungerPerUse(48).hungerPerDay(12).health(144)
+                            .hungerBar(50, 1).hungerPerUse(0).hungerPerDay(2).health(144)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
-                            .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.SELF_RELIANCE_GU, 120 * Ticks.SECOND, 3),
-                    new RecastModule(),
-                    new AutoUseModule(0.2F)))
+                            .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
+                    new SelfRelianceModule(3, 0.05F, 0.3F),
+                    new AutoUseModule(0.25F)))
             .lang("Self Reliance Gu IV", "四转自力更生蛊").register();
     public static final DeferredItem<Item> HARDSHIP_STRENGTH_GU = REGISTRAR.item("hardship_strength_gu",
             () -> new TendedGuItem(createTendedProperties(),

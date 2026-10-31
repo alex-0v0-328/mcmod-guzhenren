@@ -18,6 +18,7 @@ import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
+import net.alex.guzhenren.gameplay.path.timed.SelfRelianceHeal;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
@@ -49,7 +50,9 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link #BEAST_STRENGTH} [兽力] -- a permanent buff on the body per species, payload the species.</li>
  * <li>{@link #HUMAN_STRENGTH} [人力] -- a permanent buff on the body per kind, one layer per stored layer.</li>
  * <li>{@link #BUFF} [限时增益] -- a timed buff on the body per Gu, payload the vanilla effect and its amplifier;
- * the beast buffs, the crashes, hardship strength, self reliance and all-out effort.</li>
+ * the beast buffs, the crashes, hardship strength and all-out effort.</li>
+ * <li>{@link #SELF_RELIANCE} [自力更生] -- a heal on the body until it ends itself, payload the grade, the
+ * amplify factor and the share healed toward the next hunger point. Permanent until then; exclusive.</li>
  * <li>{@link #TIMED_SKIN} [限时皮] -- the jade skin or white jade skin on the body, payload the skin; exclusive. The
  * skin itself stays on {@code BodyData}, which projects its own icon.</li>
  * <li>{@link #MUGWORT_SHIELD} [天蓬护盾] -- the shield on the body; its points stay on {@code ShieldData}.</li>
@@ -107,6 +110,12 @@ public final class ModPathEffectTypes {
             effect -> new PathEffectType.Projection(effect.payload().getHolder(), effect.payload().amplifier()),
             effect -> Component.translatable("guzhenren.path_effect.timed_buff",
                     effect.payload().getHolder().value().getDisplayName())));
+    public static final PathEffectType<SelfRelianceHeal> SELF_RELIANCE = register(PathEffectType.projecting(
+            Guzhenren.id("self_reliance"), SelfRelianceHeal.CODEC, SelfRelianceHeal.STREAM_CODEC,
+            PathEffectCategory.BENEFICIAL, true,
+            effect -> new PathEffectType.Projection(ModEffects.SELF_RELIANCE_GU, effect.payload().grade()),
+            effect -> Component.translatable("guzhenren.path_effect.timed_buff",
+                    ModEffects.SELF_RELIANCE_GU.value().getDisplayName())));
     public static final PathEffectType<Skin> TIMED_SKIN = register(new PathEffectType<>(
             Guzhenren.id("timed_skin"), Skin.CODEC.fieldOf("skin"), ModByteBufs.enumCodec(Skin.class),
             PathEffectCategory.BENEFICIAL, true, null,

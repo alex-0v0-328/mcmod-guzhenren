@@ -390,6 +390,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.human_strength_full",
                 "This strength is already at %s layers", "此力已满%s层");
         add("guzhenren.item.failed.vitality_active",                 "Vitality Leaf is still working", "生机叶效果未散");
+        add("guzhenren.item.failed.self_reliance_healthy",
+                "Your health is already at nine tenths", "生命已达九成");
+        add("guzhenren.item.failed.self_reliance_running",           "Self Reliance is still healing", "自力更生正在回复");
         add("guzhenren.item.failed.refine_essence",                  "NOT enough essence to refine", "真元不足无法炼化");
         add("guzhenren.item.failed.essence",                         "NOT enough essence", "真元不足");
         add("guzhenren.item.failed.liquor_rank",                     "Only a %s Gu Master can use this", "%s蛊师才可使用");
@@ -762,10 +765,10 @@ public class ModLanguageProvider extends LanguageProvider {
 
     private void addBeastStrengthFamily() {
         add(BeastStrengthFamily.BOAR, "Boar", "猪");
+        add(BeastStrengthFamily.OX,   "Ox",   "牛");
         add(BeastStrengthFamily.BEAR, "Bear", "熊");
     }
 
-        add(BeastStrengthFamily.OX,   "Ox",   "牛");
     private void addQiKind() {
         add(QiKind.SWORD,    "Sword Qi",    "剑气");
         add(QiKind.STRENGTH, "Strength Qi", "力气");

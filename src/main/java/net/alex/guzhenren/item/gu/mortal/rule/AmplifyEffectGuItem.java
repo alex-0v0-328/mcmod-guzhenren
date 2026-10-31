@@ -28,9 +28,10 @@ import org.jetbrains.annotations.Nullable;
  * click at all, so a refused main-hand Gu keeps its own reason on the action bar.
  *
  * <p>A Gu answers it through a module that declares {@code canBeAmplified} and asks {@link #bill} from its own
- * payout, multiplying its effect's length: {@code TimedBuffModule} (Self Reliance included),
- * {@code AllOutEffortModule}, the timed {@code SkinModule} (Jade Skin, White Jade), {@code ShieldModule} (Heavenly
- * Mugwort, its length and not its points), {@code VitalityLeafModule} and {@code WatchModule}; {@link #bill}
+ * payout, multiplying its effect's length: {@code TimedBuffModule}, {@code AllOutEffortModule}, the timed
+ * {@code SkinModule} (Jade Skin, White Jade), {@code ShieldModule} (Heavenly Mugwort, its length and not its
+ * points), {@code VitalityLeafModule} and {@code WatchModule}; {@code SelfRelianceModule} multiplies each heal
+ * pulse instead. {@link #bill}
  * answers the factor, the driving or offhand amplifier's, billed there, or 1.
  * {@link #canAmplify} is the one eligibility test (the amplifier refined, the target amplifiable, refined if tended,
  * of its rank or lower), read by the client's menu and by both server paths.

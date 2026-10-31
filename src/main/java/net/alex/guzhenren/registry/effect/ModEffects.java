@@ -11,7 +11,6 @@ import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
-import net.alex.guzhenren.effect.timed.SelfRelianceGuEffect;
 import net.alex.guzhenren.effect.timed.WatchGuEffect;
 import net.alex.guzhenren.effect.timed.VitalityLeafGuEffect;
 import net.minecraft.core.Holder;
@@ -80,9 +79,8 @@ public final class ModEffects {
     public static final DeferredHolder<MobEffect, CrashGuEffect> CHARGING_CRASH_GU =
             MOB_EFFECTS.register("charging_crash_gu", () -> new CrashGuEffect(
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, SelfRelianceGuEffect> SELF_RELIANCE_GU = MOB_EFFECTS.register(
-            "self_reliance_gu", () -> new SelfRelianceGuEffect(
-                    MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> SELF_RELIANCE_GU = MOB_EFFECTS.register(
+            "self_reliance_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, HardshipStrengthGuEffect> HARDSHIP_STRENGTH_GU =
             MOB_EFFECTS.register("hardship_strength_gu", () -> new HardshipStrengthGuEffect(
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
