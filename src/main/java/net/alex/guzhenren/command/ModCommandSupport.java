@@ -30,7 +30,7 @@ import net.minecraft.util.StringRepresentable;
  *
  * <p>{@code enumCounter} is the set/add/sub triple behind one enum argument; the amount is read as
  * any {@code Number} so an {@code int} argument narrows back exactly. Its {@code sub} negates plainly,
- * unlike {@code counter}, which saturates.
+ * unlike {@code counter}, which saturates. Its result overload reports a {@code false} write under the refusal key.
  *
  * <p>⚠ Anything that flips the answer of a {@code requires()} predicate has to ask this class to
  * refresh the command tree, or the client keeps the tree it was last sent.
@@ -88,21 +88,34 @@ public final class ModCommandSupport {
     public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCounter(
             String argument, E[] values, ArgumentType<? extends Number> amountType,
             EnumCountOperation<E> set, EnumCountOperation<E> add) {
+        return buildEnumCounter(argument, values, amountType, always(set), always(add), null);
+    }
+
+    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCounter(
+            String argument, E[] values, ArgumentType<? extends Number> amountType,
+            EnumCountResultOperation<E> set, EnumCountResultOperation<E> add, String refusedKey) {
         return ModEnumArgument.createArgument(argument, values)
-                .then(buildEnumCountNode("set", argument, values, amountType, set))
-                .then(buildEnumCountNode("add", argument, values, amountType, add))
+                .then(buildEnumCountNode("set", argument, values, amountType, set, refusedKey))
+                .then(buildEnumCountNode("add", argument, values, amountType, add, refusedKey))
                 .then(buildEnumCountNode("sub", argument, values, amountType,
-                        (player, value, amount) -> add.apply(player, value, -amount)));
+                        (player, value, amount) -> add.apply(player, value, -amount), refusedKey));
     }
 
     private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCountNode(
             String literal, String argument, E[] values, ArgumentType<? extends Number> amountType,
-            EnumCountOperation<E> operation) {
+            EnumCountResultOperation<E> operation, String refusedKey) {
         return Commands.literal(literal).then(withTargets(Commands.argument(ARG_VALUE, amountType), context -> {
             E value = ModEnumArgument.get(context, argument, values);
             long amount = context.getArgument(ARG_VALUE, Number.class).longValue();
-            return apply(context, player -> operation.apply(player, value, amount));
+            return applyIfResult(context, ANYONE, refusedKey, player -> operation.apply(player, value, amount));
         }));
+    }
+
+    private static <E extends Enum<E>> EnumCountResultOperation<E> always(EnumCountOperation<E> operation) {
+        return (player, value, amount) -> {
+            operation.apply(player, value, amount);
+            return true;
+        };
     }
 
     public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumSetNode(
@@ -189,6 +202,18 @@ public final class ModCommandSupport {
     public interface EnumCountOperation<E extends Enum<E>> {
 
         void apply(ServerPlayer player, E value, long amount);
+    }
+
+    @FunctionalInterface
+    public interface EnumResultOperation<E extends Enum<E>> {
+
+        boolean apply(ServerPlayer player, E value);
+    }
+
+    @FunctionalInterface
+    public interface EnumCountResultOperation<E extends Enum<E>> {
+
+        boolean apply(ServerPlayer player, E value, long amount);
     }
 
     @FunctionalInterface

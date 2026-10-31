@@ -15,7 +15,8 @@ import net.minecraft.commands.Commands;
  * <p>Offers {@code grant}/{@code revoke}/{@code clear} for beast strengths and
  * {@code set}/{@code add}/{@code sub} for human strengths, read from an {@code int} argument so the
  * {@code (int)} narrowing is exact. All writes delegate to {@link PathStrengthService}, which is also the
- * one funnel that refreshes the attack modifier.
+ * one funnel that refreshes the attack modifier. A {@code grant} or a rising human write the service refuses for
+ * Mark Interference [道痕互斥] reports {@code FAILED_MARK_INTERFERENCE} for that player and writes nothing.
  *
  * @author Alex
  * @version 1.0.0
@@ -28,24 +29,29 @@ public final class CmdStrength {
     private CmdStrength() {}
 
     private static final String ARG_KIND = "kind";
+    private static final String FAILED_MARK_INTERFERENCE = "guzhenren.command.failed.mark_interference";
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("strength")
                 .then(buildBeastNode("grant", PathStrengthService::grant))
-                .then(buildBeastNode("revoke", PathStrengthService::revoke))
+                .then(buildBeastNode("revoke", (player, beast) -> {
+                    PathStrengthService.revoke(player, beast);
+                    return true;
+                }))
                 .then(buildHumanStrength())
                 .then(ModCommandSupport.withTargets(Commands.literal("clear"),
                         context -> ModCommandSupport.apply(context, PathStrengthService::clear)));
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> buildBeastNode(
-            String literal, ModCommandSupport.EnumOperation<BeastStrength> operation) {
+            String literal, ModCommandSupport.EnumResultOperation<BeastStrength> operation) {
         return Commands.literal(literal).then(ModCommandSupport.withTargets(
                 ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, BeastStrength.values()),
                 context -> {
                     BeastStrength beast = ModEnumArgument.get(
                             context, ModCommandSupport.ARG_VALUE, BeastStrength.values());
-                    return ModCommandSupport.apply(context, player -> operation.apply(player, beast));
+                    return ModCommandSupport.applyIfResult(context, ModCommandSupport.ANYONE, FAILED_MARK_INTERFERENCE,
+                            player -> operation.apply(player, beast));
                 }));
     }
 
@@ -53,6 +59,7 @@ public final class CmdStrength {
         return Commands.literal("human").then(ModCommandSupport.buildEnumCounter(ARG_KIND, HumanStrength.values(),
                 IntegerArgumentType.integer(),
                 (player, kind, amount) -> PathStrengthService.setHumanStrength(player, kind, (int) amount),
-                (player, kind, amount) -> PathStrengthService.addHumanStrength(player, kind, (int) amount)));
+                (player, kind, amount) -> PathStrengthService.addHumanStrength(player, kind, (int) amount),
+                FAILED_MARK_INTERFERENCE));
     }
 }

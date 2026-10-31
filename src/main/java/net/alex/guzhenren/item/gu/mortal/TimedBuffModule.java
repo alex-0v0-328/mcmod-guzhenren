@@ -1,12 +1,15 @@
 package net.alex.guzhenren.item.gu.mortal;
 
 import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
+import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuModule;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
+import net.alex.guzhenren.item.gu.mortal.strength.MarkInterference;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
@@ -19,7 +22,8 @@ import org.jetbrains.annotations.Nullable;
  * registration. Seven Gu carry it, each with a {@link RecastModule}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
  * four Crash Gu and the Hardship Strength Gu.
  *
- * <p>The effect simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. The gate refuses only
+ * <p>The effect simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. A beast buff is first
+ * refused to a body holding Human Jun Strength ({@link MarkInterference}); beyond that the gate refuses only
  * while a stronger copy of the same effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker
  * running copy is refreshed, a stronger Gu taking the weaker one's effect and strands. Inside the Gu's effect
  * cooldown the same strength adds its length; outside it the longer length wins ({@link #getNextDuration}). An
@@ -44,6 +48,11 @@ public record TimedBuffModule(Holder<MobEffect> buff, int durationTicks, int amp
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
+        if (buff.value() instanceof BeastStrengthBuff) {
+            Refusal interference = MarkInterference.check(player, StrengthPathBranch.BEAST_STRENGTH_PHANTOM);
+            if (interference != null) return interference;
+        }
+
         PathEffect<TimedBuff> current = TimedEffects.findBuff(player, buff);
         return current != null && current.payload().amplifier() > amplifier
                 ? new Refusal(FAILED_STRONGER, buff.value().getDisplayName()) : null;

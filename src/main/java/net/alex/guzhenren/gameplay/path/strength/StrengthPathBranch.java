@@ -11,6 +11,10 @@ import net.minecraft.util.StringRepresentable;
  * strength data; Atmospheric Heaven and Earth has no implementation yet; Normal classifies every
  * other Strength Path Gu without adding another data field.
  *
+ * <p>Mark Interference [道痕互斥]: {@link #interferesWith} is symmetric, and a body holding one branch is refused
+ * any branch it interferes with. Today only Beast Strength Phantom and Human Jun Strength interfere; a new pair
+ * is one more case here.
+ *
  * @author Alex
  * @version 1.0.0
  * @see HumanStrength
@@ -26,6 +30,14 @@ public enum StrengthPathBranch implements NamedEnum {
     NORMAL;
 
     public static final Codec<StrengthPathBranch> CODEC = StringRepresentable.fromEnum(StrengthPathBranch::values);
+
+    public boolean interferesWith(StrengthPathBranch other) {
+        return switch (this) {
+            case BEAST_STRENGTH_PHANTOM -> other == HUMAN_JUN_STRENGTH;
+            case HUMAN_JUN_STRENGTH -> other == BEAST_STRENGTH_PHANTOM;
+            case ATMOSPHERIC_HEAVEN_AND_EARTH, NORMAL -> false;
+        };
+    }
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.strength.strength_path_branch."; }

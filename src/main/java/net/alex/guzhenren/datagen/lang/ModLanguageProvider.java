@@ -250,6 +250,7 @@ public class ModLanguageProvider extends LanguageProvider {
 
         add("guzhenren.command.failed.awakened",                  "%s has already awakened", "%s 已开窍");
         add("guzhenren.command.failed.unawakened",                "%s has not awakened", "%s 尚未开窍");
+        add("guzhenren.command.failed.mark_interference",         "%s: Mark Interference", "%s：力道道痕互斥");
         add("guzhenren.command.failed.aperture_index",            "%s has no aperture there", "%s 没有该空窍");
         add("guzhenren.command.failed.base_extreme",
                 "%s is unawakened or a Ten Extremes physique; set the latter through talent",
@@ -389,6 +390,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.beast_strength_held",             "You already hold the %s's strength", "已有%s之力");
         add("guzhenren.item.failed.human_strength_full",
                 "This strength is already at %s layers", "此力已满%s层");
+        add("guzhenren.item.failed.mark_interference",               "Mark Interference", "力道道痕互斥");
         add("guzhenren.item.failed.vitality_active",                 "Vitality Leaf is still working", "生机叶效果未散");
         add("guzhenren.item.failed.self_reliance_healthy",
                 "Your health is already at nine tenths", "生命已达九成");

@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.strength;
 
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuModule;
 import net.alex.guzhenren.item.gu.MortalGuItem;
@@ -14,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The human-strength module [人力]: adds one layer of one kind; the rank [转数] and the kind come from registration.
  *
- * <p>Four rungs register it (斤 / 十斤 / 钧 / 十钧). The gate refuses a holder who has maxed out that kind; the
+ * <p>Four rungs register it (斤 / 十斤 / 钧 / 十钧). The gate refuses a body that holds Beast Strength Phantom,
+ * a running beast buff included ({@link MarkInterference}), then a holder who has maxed out that kind; the
  * effect delegates to {@link PathStrengthService#addHumanStrength}. One layer per grant is fixed by
  * {@code LAYERS_PER_GRANT}.
  *
@@ -34,6 +36,9 @@ public record HumanStrengthModule(HumanStrength kind) implements GuModule {
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
+        Refusal interference = MarkInterference.check(player, StrengthPathBranch.HUMAN_JUN_STRENGTH);
+        if (interference != null) return interference;
+
         return PathStrengthService.getHumanStrength(player, kind) >= kind.getMaxLayers()
                 ? new Refusal(FAILED_LAYERS_FULL, Component.literal(String.valueOf(kind.getMaxLayers())))
                 : null;

@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.strength;
 
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuModule;
 import net.alex.guzhenren.item.gu.MortalGuItem;
@@ -14,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The beast-strength module [兽力]: grants one species' strength for good; the species comes from registration.
  *
- * <p>The gate refuses a holder who already carries that species; the effect delegates to
+ * <p>The gate refuses a body that holds Human Jun Strength ({@link MarkInterference}), then a holder who already
+ * carries that species; the effect delegates to
  * {@link PathStrengthService#grant}. A species declares its own family and worth on the enum, so adding one never
  * touches this module. {@code CarvingEffects} finds the Gu that grants a species by this module.
  *
@@ -32,6 +34,9 @@ public record BeastStrengthModule(BeastStrength beast) implements GuModule {
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
+        Refusal interference = MarkInterference.check(player, StrengthPathBranch.BEAST_STRENGTH_PHANTOM);
+        if (interference != null) return interference;
+
         return PathStrengthService.has(player, beast)
                 ? new Refusal(FAILED_STRENGTH_HELD, Component.translatable(beast.getTranslationKey()))
                 : null;

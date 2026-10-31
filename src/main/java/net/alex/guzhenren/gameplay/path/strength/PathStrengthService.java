@@ -2,19 +2,31 @@ package net.alex.guzhenren.gameplay.path.strength;
 
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectService;
+import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Strength [力道]: what has been accumulated -- beast strengths [兽力] and human strength counts. Static
  * service; every write posts a {@link StrengthChangedEvent}, which refreshes the attack modifier. How
  * much of it a body can bring to bear is {@code BodyStrengthService}.
  *
+ * <p>Mark Interference [道痕互斥] is enforced here, at the one write funnel: {@code grant} and a rising
+ * {@code setHumanStrength} write nothing and return {@code false} while {@link #getInterference} names a held
+ * branch, so neither a Gu nor a command can store both. A running {@link BeastStrengthBuff} counts as holding
+ * Beast Strength Phantom, but granting one is not a write here: beast buffs are gated at the Gu. Removals always
+ * go through.
+ *
  * @author Alex
  * @version 1.0.0
  * @see PathStrengthData
  * @see StrengthChangedEvent
+ * @see StrengthPathBranch#interferesWith
  * @since 1.0.0
  */
 
@@ -32,8 +44,24 @@ public final class PathStrengthService {
         return get(player).getHumanStrengthCount(kind);
     }
 
-    public static void grant(@NotNull ServerPlayer player, @NotNull BeastStrength beast) {
+    public static boolean holdsBranch(@NotNull Player player, @NotNull StrengthPathBranch branch) {
+        return get(player).hasPathBranch(branch)
+                || (branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM && hasBeastBuff(player));
+    }
+
+    public static @Nullable StrengthPathBranch getInterference(@NotNull Player player,
+                                                               @NotNull StrengthPathBranch branch) {
+        for (StrengthPathBranch held : StrengthPathBranch.values()) {
+            if (held.interferesWith(branch) && holdsBranch(player, held)) return held;
+        }
+        return null;
+    }
+
+    public static boolean grant(@NotNull ServerPlayer player, @NotNull BeastStrength beast) {
+        if (getInterference(player, StrengthPathBranch.BEAST_STRENGTH_PHANTOM) != null) return false;
+
         store(player, get(player).with(beast));
+        return true;
     }
 
     public static void revoke(@NotNull ServerPlayer player, @NotNull BeastStrength beast) {
@@ -47,11 +75,24 @@ public final class PathStrengthService {
         ModEvents.post(new StrengthChangedEvent(player));
     }
 
-    public static void setHumanStrength(@NotNull ServerPlayer player, @NotNull HumanStrength kind, int value) {
+    public static boolean setHumanStrength(@NotNull ServerPlayer player, @NotNull HumanStrength kind, int value) {
+        if (value > getHumanStrength(player, kind)
+                && getInterference(player, StrengthPathBranch.HUMAN_JUN_STRENGTH) != null) return false;
+
         store(player, get(player).withHumanStrength(kind, value));
+        return true;
     }
 
-    public static void addHumanStrength(@NotNull ServerPlayer player, @NotNull HumanStrength kind, int delta) {
-        setHumanStrength(player, kind, getHumanStrength(player, kind) + delta);
+    public static boolean addHumanStrength(@NotNull ServerPlayer player, @NotNull HumanStrength kind, int delta) {
+        return setHumanStrength(player, kind, getHumanStrength(player, kind) + delta);
+    }
+
+    private static boolean hasBeastBuff(Player player) {
+        for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
+            // Looked up without TimedBuff.getHolder: a saved buff whose effect is gone must not throw at a Gu gate.
+            if (effect.payload() instanceof TimedBuff buff && BuiltInRegistries.MOB_EFFECT.getOptional(buff.effect())
+                    .orElse(null) instanceof BeastStrengthBuff) return true;
+        }
+        return false;
     }
 }
