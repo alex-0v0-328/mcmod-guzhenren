@@ -416,6 +416,14 @@ public class TendedGuItem extends MortalGuItem {
     }
 
     protected void feed(ServerPlayer player, ItemStack stack) { hunger.feed(this, player, stack); }
+
+    /** Takes {@code points} off the hunger bar for a cost that is no use (a killing move's start); false when short. */
+    public final boolean takeHunger(ItemStack stack, int points) {
+        RefinedGuState state = getState(stack);
+        if (state.hunger() < points) return false;
+        store(stack, state.withHunger(state.hunger() - points));
+        return true;
+    }
     //endregion
 
     //region display

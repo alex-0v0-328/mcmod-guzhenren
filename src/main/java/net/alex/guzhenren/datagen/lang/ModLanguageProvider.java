@@ -456,6 +456,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.killing_move.partner",                   "Partner Gu: %s", "配合蛊：%s");
         add("guzhenren.item.killing_move.blade_factor",              "Moon blade damage ×%s", "月刃伤害 ×%s");
         add("guzhenren.item.killing_move.known",                     "Learned", "已学会");
+        add("guzhenren.killing_move.started",                        "Killing move on: %s", "杀招启动：%s");
+        add("guzhenren.killing_move.stopped",                        "Killing move off: %s", "杀招关闭：%s");
+        add("guzhenren.killing_move.stop",                           "Stop %s", "关闭%s");
+        add("guzhenren.item.failed.killing_move_partner_hungry",
+                "%s is too hungry to start the killing move", "%s饱食不足，杀招无法启动");
+        add("guzhenren.item.failed.killing_move_partner_missing",
+                "%s is not on you; the killing move is off", "身上没有%s，杀招关闭");
         add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
         add("guzhenren.item.gu.as_before_land",                      "The land is as it was first made", "山已如初");
         add("guzhenren.item.gu.as_before_water",                     "The waters are as they were first made", "江已如初");

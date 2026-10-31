@@ -12,6 +12,7 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
+import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.qi.PathQiService;
@@ -91,7 +92,9 @@ public final class PlayerDataService {
             dropHumanApertures(from);
             resetAll(to);
         } else if (wasDeath) {
-            PlayerData.get(to).setDimensionReturn(DimensionReturnData.DEFAULT);
+            PlayerData data = PlayerData.get(to);
+            data.setDimensionReturn(DimensionReturnData.DEFAULT);
+            data.setKillingMoves(data.getKillingMoves().withActive(KillingMoveData.NONE));
         }
         if (to instanceof ServerPlayer server) {
             MaxHealthService.refresh(server);

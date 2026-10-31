@@ -37,12 +37,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * player has learned a killing move [杀招]; {@link KillingMoveGesture} decides what the hold sends as
  * {@link KillingMovePayload}, and the server checks it all again.
  *
- * <p>A tap (let go before the ring opens, {@code RadialMenu.OPEN_DELAY_TICKS}) fires the plain blade at once, with
- * no charge. A longer hold opens one sector per usable move ({@link KillingMoveService#listUsable}: learned, with a
- * refined partner in the inventory or an aperture store), labelled with the move's name and showing its partner; a
- * pick casts it, and letting go inside the inner ring or on a disabled sector sends nothing. A hold with no usable
- * move opens nothing and sends nothing. A sector is shown disabled while the main Gu or the partner is on the vanilla
- * cooldown, either of which stops the server too.
+ * <p>A tap (let go before the ring opens, {@code RadialMenu.OPEN_DELAY_TICKS}) fires the blade at once, with no
+ * charge: the plain blade, or the cast of the move switched on. A longer hold opens one sector per usable move
+ * ({@link KillingMoveService#listUsable}: learned, with a refined partner in the inventory or an aperture store),
+ * labelled with the move's name, or "stop" and the name while it is on, and showing its partner; a pick switches the
+ * move on or off, and letting go inside the inner ring or on a disabled sector sends nothing. A hold with no usable
+ * move opens nothing and sends nothing. A sector is shown disabled while the main Gu is on the vanilla cooldown, which
+ * stops the server too.
  *
  * <p>Whatever the hold sends goes with the target the player has locked on [锁定目标] at that moment
  * ({@link #aimedTarget}): Epic Fight's lock-on when it is held ({@link EpicFightClientIntegration#getLockOnTarget}),
@@ -67,6 +68,7 @@ public final class KillingMoveInput {
 
     private static final String TOOLTIP_HINT = "guzhenren.item.gu.killing_move_hint";
     private static final String TOOLTIP_KNOWN = "guzhenren.item.killing_move.known";
+    private static final String LABEL_STOP = "guzhenren.killing_move.stop";
     private static final double AIM_SLACK = 0.5D;
 
     private KillingMoveInput() {}
@@ -161,8 +163,10 @@ public final class KillingMoveInput {
             List<RadialMenu.Entry> entries = new ArrayList<>();
             for (KillingMove move : moves) {
                 ItemStack partner = new ItemStack(move.getPartner());
-                entries.add(new RadialMenu.Entry(partner, Component.translatable(move.getTranslationKey()),
-                        mainReady && !player.getCooldowns().isOnCooldown(partner.getItem())));
+                Component name = Component.translatable(move.getTranslationKey());
+                Component label = KillingMoveService.isActive(player, move)
+                        ? Component.translatable(LABEL_STOP, name) : name;
+                entries.add(new RadialMenu.Entry(partner, label, mainReady));
             }
             return entries;
         }

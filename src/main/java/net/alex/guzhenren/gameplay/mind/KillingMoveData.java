@@ -21,17 +21,24 @@ import org.jetbrains.annotations.NotNull;
  * synced: the server re-derives it ({@code KillingMoveService.refreshStoreBacked}) and the menu reads it beside the
  * inventory it sees. It is synced but never saved, so a load or a death starts it empty until the next refresh.
  *
+ * <p>{@link #active} is the id of the move the player has switched on [启动], or {@link #NONE}: every blade the
+ * move's main Gu fires is a cast of it until the player switches it off again. It is synced, so the radial menu
+ * shows the move as one to stop, and never saved, so a relog starts with it off; a death switches it off too
+ * ({@code PlayerDataService.onClone}).
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
  */
 
-public record KillingMoveData(List<String> learned, List<String> storeBacked) {
+public record KillingMoveData(List<String> learned, List<String> storeBacked, String active) {
 
-    public static final KillingMoveData DEFAULT = new KillingMoveData(List.of(), List.of());
+    /** The {@link #active} of a player with no move switched on. */
+    public static final String NONE = "";
+    public static final KillingMoveData DEFAULT = new KillingMoveData(List.of(), List.of(), NONE);
     public static final Codec<KillingMoveData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.listOf().optionalFieldOf("learned", List.of()).forGetter(KillingMoveData::learned)
-    ).apply(instance, learned -> new KillingMoveData(learned, List.of())));
+    ).apply(instance, learned -> new KillingMoveData(learned, List.of(), NONE)));
 
     public KillingMoveData {
         learned = learned.stream().distinct().sorted().toList();
@@ -39,21 +46,30 @@ public record KillingMoveData(List<String> learned, List<String> storeBacked) {
     }
 
     public static @NotNull KillingMoveData decode(@NotNull FriendlyByteBuf buf) {
-        return new KillingMoveData(buf.readList(FriendlyByteBuf::readUtf), buf.readList(FriendlyByteBuf::readUtf));
+        return new KillingMoveData(buf.readList(FriendlyByteBuf::readUtf), buf.readList(FriendlyByteBuf::readUtf),
+                buf.readUtf());
     }
 
     public static void encode(@NotNull FriendlyByteBuf buf, @NotNull KillingMoveData value) {
         buf.writeCollection(value.learned(), FriendlyByteBuf::writeUtf);
         buf.writeCollection(value.storeBacked(), FriendlyByteBuf::writeUtf);
+        buf.writeUtf(value.active());
     }
 
     public boolean knows(@NotNull String id) { return learned.contains(id); }
 
     public boolean isStoreBacked(@NotNull String id) { return storeBacked.contains(id); }
 
+    public boolean isActive(@NotNull String id) { return !id.equals(NONE) && active.equals(id); }
+
     public KillingMoveData withLearned(@NotNull String id) {
-        return new KillingMoveData(Stream.concat(learned.stream(), Stream.of(id)).toList(), storeBacked);
+        return new KillingMoveData(Stream.concat(learned.stream(), Stream.of(id)).toList(), storeBacked, active);
     }
 
-    public KillingMoveData withStoreBacked(@NotNull List<String> ids) { return new KillingMoveData(learned, ids); }
+    public KillingMoveData withStoreBacked(@NotNull List<String> ids) {
+        return new KillingMoveData(learned, ids, active);
+    }
+
+    /** The record with {@code id} switched on, or {@link #NONE} to switch every move off. */
+    public KillingMoveData withActive(@NotNull String id) { return new KillingMoveData(learned, storeBacked, id); }
 }

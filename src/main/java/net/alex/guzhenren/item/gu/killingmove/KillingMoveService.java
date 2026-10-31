@@ -14,6 +14,7 @@ import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.moon.MoonBladeModule;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -28,8 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * Killing moves [杀招] on the server, and the one gesture that drives a moon blade Gu [月刃]: every refined one
  * ({@link #asBladeGu}: the Moonlight [月光蛊], Moonglow [月芒蛊] and Blood Moon Gu [血月蛊]) is used in place from the
  * main hand, either plainly or as a killing move's main Gu backed by a refined partner ({@link KillingMove}), for
- * one stronger use. The client's radial menu sends the move's id, or {@link #PLAIN} for a plain use (a tap);
- * {@link #drive} checks it all again.
+ * one stronger use while the move is switched on. The client's radial menu sends the move's id to switch it, or
+ * {@link #PLAIN} for a tap; {@link #drive} checks it all again.
  *
  * <p>The payload names the move, never a slot: the server picks the partner itself, first from the inventory in
  * slot order (hotbar, main inventory, then the offhand; never the main hand's own slot), then from each aperture's
@@ -42,17 +43,22 @@ import org.jetbrains.annotations.Nullable;
  * <p>A player uses only the moves they have learned ({@link #knows}): reading the move's book
  * ({@link KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death without keepInventory empties.
  *
- * <p>A plain use is the blade Gu's own in-place use ({@code tryUseInPlace}), billed and refused as that is. A
- * killing move first refuses with the essence message when the aperture and the carried primeval stones [元石]
- * together cannot pay both uses ({@code PrimevalStoneSupply.canAfford}), so the partner is never billed for a use
- * the main cannot finish; any other mismatch (a move not learned or not led by this Gu, no partner, a partner on the
- * vanilla cooldown, which is per item and so stops every candidate at once) lands nothing, silently.
+ * <p>A killing move is a switch [启动 / 关闭], not a single cast: a pick on the radial menu sends the move's id, and
+ * {@link #toggle} switches it on, or off when it was on ({@code KillingMoveData.active}, synced, never saved, and
+ * cleared by a death). Switching on finds the partner and takes {@code KillingMove#getStartHunger} off its bar at
+ * once, with no essence; a partner too hungry refuses the start, and no partner at all does nothing, silently, as the
+ * menu would not have listed the move. Switching off costs nothing. While the move is on, every tap of a main Gu it
+ * leads ({@link #PLAIN}) is a cast: the main Gu's own in-place use ({@code tryUseInPlace}), billed and refused as that
+ * is, plus the partner's {@code KillingMove#getPartnerEssence} and no hunger. The cast first refuses with the essence
+ * message when the aperture and the carried primeval stones [元石] together cannot pay both
+ * ({@code PrimevalStoneSupply.canAfford}), leaving the move on; a tap with no refined partner on the player any more
+ * refuses, switches the move off and says so. A tap with the move off, or of a main Gu the active move does not lead
+ * (a Blood Moon Gu), is the plain blade.
  *
- * <p>⚠ The partner is billed from inside the main Gu's payout: {@link #drive} sets a per-player driving context
- * around the in-place use, and {@link #getDamageFactor}, asked by the main Gu's blade, bills the partner
- * ({@code TendedGuItem#billAsPartner}: its use essence and hunger, and on an empty bar its death after the blade)
- * and answers the row's factor. The first ask spends the context, so the partner pays once and any later ask in the
- * same use answers 1; outside a drive, or for another Gu, it always answers 1. A use the main Gu refuses (cooldown,
+ * <p>⚠ The partner is billed from inside the main Gu's payout: {@link #driveAimed} sets a per-player driving context
+ * around the in-place use, and {@link #getDamageFactor}, asked by the main Gu's blade, pays the partner's essence and
+ * answers the row's factor. The first ask spends the context, so the partner pays once and any later ask in the same
+ * use answers 1; outside a drive, or for another Gu, it always answers 1. A use the main Gu refuses (cooldown,
  * essence) never reaches the ask, so the partner stays unbilled.
  *
  * <p>The payload also carries the entity id of the target the client had locked on [锁定目标] (Epic Fight's lock-on,
@@ -63,8 +69,9 @@ import org.jetbrains.annotations.Nullable;
  * blade flies {@code MoonBladeArc} to it. A target that fails any check, or no target, fires the straight blade.
  *
  * <p>A cast that landed (the partner paid, so the factor applied) answers a {@link Cast} for the Killing Move Tooltip
- * [杀招提示]: the move and each Gu it used, main first, as copies taken after the bill, or as they were before it when
- * the bill killed one ({@link Used#spent}). Anything else, a plain use included, answers {@code null}.
+ * [杀招提示]: the move and each Gu it used, main first, as copies taken after the bill ({@link Used#spent} stays for a
+ * Gu the bill killed, which a partner's essence-only bill never does). Anything else, a plain use or a switch included,
+ * answers {@code null}.
  *
  * @author Alex
  * @version 1.0.0
@@ -82,6 +89,10 @@ public final class KillingMoveService {
     /** How far the server accepts a client's target: the aim range plus slack for a tick or two of movement. */
     public static final double AIM_CHECK_RANGE = AIM_RANGE + 2.0D;
     private static final String FAILED_ESSENCE = "guzhenren.item.failed.essence";
+    private static final String FAILED_PARTNER_HUNGRY = "guzhenren.item.failed.killing_move_partner_hungry";
+    private static final String FAILED_PARTNER_MISSING = "guzhenren.item.failed.killing_move_partner_missing";
+    private static final String STARTED = "guzhenren.killing_move.started";
+    private static final String STOPPED = "guzhenren.killing_move.stopped";
     private static final int NO_SLOT = -1;
     private static @Nullable Driving driving;
     private static @Nullable Aiming aiming;
@@ -200,47 +211,82 @@ public final class KillingMoveService {
     }
 
     private static @Nullable Cast driveAimed(ServerPlayer player, ItemStack stack, TendedGuItem main, String id) {
-        if (id.equals(PLAIN)) {
+        if (!id.equals(PLAIN)) {
+            KillingMove move = KillingMove.byId(id);
+            if (move != null && move.isLedBy(main) && knows(player, move)) toggle(player, move);
+            return null;
+        }
+        KillingMove active = getActive(player);
+        if (active == null || !active.isLedBy(main)) {
             main.tryUseInPlace(player, stack);
             return null;
         }
-        KillingMove move = KillingMove.byId(id);
-        if (move == null || !move.isLedBy(main) || !knows(player, move)) return null;
-
-        Partner partner = findPartner(player, move);
-        if (partner == null || player.getCooldowns().isOnCooldown(partner.gu())) return null;
-        if (!PrimevalStoneSupply.canAfford(player, main.getUseEssence() + partner.gu().getUseEssence())) {
+        Partner partner = findPartner(player, active);
+        if (partner == null) {
+            setActive(player, KillingMoveData.NONE);
+            ActionBar.refuse(player, FAILED_PARTNER_MISSING, partnerName(active));
+            return null;
+        }
+        if (!PrimevalStoneSupply.canAfford(player, main.getUseEssence() + active.getPartnerEssence())) {
             ActionBar.refuse(player, FAILED_ESSENCE);
             return null;
         }
         ItemStack mainBefore = stack.copy();
-        Driving current = new Driving(player, main, partner, move);
+        Driving current = new Driving(player, main, partner, active);
         driving = current;
         try {
             main.tryUseInPlace(player, stack);
         } finally {
             driving = null;
         }
-        return current.billed == null ? null : new Cast(move, List.of(Used.of(mainBefore, stack), current.billed));
+        return current.billed == null ? null : new Cast(active, List.of(Used.of(mainBefore, stack), current.billed));
     }
+
+    /** The move the player has switched on, or null; a move no longer known answers null too. */
+    public static @Nullable KillingMove getActive(@NotNull Player player) {
+        KillingMoveData data = PlayerData.get(player).getKillingMoves();
+        KillingMove move = KillingMove.byId(data.active());
+        return move != null && data.knows(move.getId()) ? move : null;
+    }
+
+    public static boolean isActive(@NotNull Player player, @NotNull KillingMove move) {
+        return PlayerData.get(player).getKillingMoves().isActive(move.getId());
+    }
+
+    /** Switches the move off when it is on, otherwise on: the partner pays the start hunger, or the start is refused. */
+    public static void toggle(@NotNull ServerPlayer player, @NotNull KillingMove move) {
+        if (isActive(player, move)) {
+            setActive(player, KillingMoveData.NONE);
+            ActionBar.inform(player, STOPPED, Component.translatable(move.getTranslationKey()));
+            return;
+        }
+        Partner partner = findPartner(player, move);
+        if (partner == null) return;
+        if (!partner.gu().takeHunger(partner.stack(), move.getStartHunger())) {
+            ActionBar.refuse(player, FAILED_PARTNER_HUNGRY, partnerName(move));
+            return;
+        }
+        StoreSlot stored = partner.stored();
+        if (stored != null) ApertureStorageService.setSlot(player, stored.aperture(), stored.index(), partner.stack());
+        setActive(player, move.getId());
+        ActionBar.inform(player, STARTED, Component.translatable(move.getTranslationKey()));
+    }
+
+    private static void setActive(ServerPlayer player, String id) {
+        PlayerData data = PlayerData.get(player);
+        data.setKillingMoves(data.getKillingMoves().withActive(id));
+    }
+
+    private static Component partnerName(KillingMove move) { return move.getPartner().asItem().getDescription(); }
 
     public static float getDamageFactor(@NotNull ServerPlayer player, @NotNull MortalGuItem gu) {
         Driving current = driving;
         if (current == null || current.asked || current.player != player || current.main != gu) return 1.0F;
 
         current.asked = true;
-        Partner partner = current.partner;
-        ItemStack before = partner.stack().copy();
-        boolean billed = partner.gu().billAsPartner(player, partner.stack());
-        StoreSlot stored = partner.stored();
-        if (stored != null) {
-            ItemStack after = partner.stack().isEmpty() ? ItemStack.EMPTY : partner.stack();
-            ApertureStorageService.setSlot(player, stored.aperture(), stored.index(), after);
-            refreshStoreBacked(player);
-        }
-        if (!billed) return 1.0F;
+        if (!PrimevalStoneSupply.pay(player, current.move.getPartnerEssence())) return 1.0F;
 
-        current.billed = Used.of(before, partner.stack());
+        current.billed = Used.of(current.partner.stack(), current.partner.stack());
         return current.move.getDamageFactor();
     }
 
