@@ -119,9 +119,9 @@ public final class ClientEvents {
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SONIC_BOOM,
-                (g, delta) -> SonicBoomHud.INSTANCE.render(g, delta));
+                SonicBoomHud.INSTANCE::render);
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SHIELD_GLOW,
-                (g, delta) -> ShieldGlowHud.INSTANCE.render(g, delta));
+                ShieldGlowHud.INSTANCE::render);
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.HOTBAR, KILLING_MOVE_TOOLTIP,
                 (g, delta) -> KillingMoveTooltipHud.INSTANCE.render(g));
@@ -129,7 +129,7 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, SHIELD, (g, delta) -> ShieldHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
-        event.registerAboveAll(AWAKENING, (g, delta) -> AwakeningHud.INSTANCE.render(g, delta));
+        event.registerAboveAll(AWAKENING, AwakeningHud.INSTANCE::render);
     }
 
     @SubscribeEvent

@@ -1,7 +1,6 @@
 package net.alex.guzhenren.client.renderer;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
  * holds the skin that was put on and the client game tick it started.
  *
  * <p>Each skin family has its tint: emerald green for the jade skin [玉皮], warm white for the white jade skin
- * [白玉皮], copper for the bronze skins [铜皮], steel grey for the iron skins [铁皮]; the native skin never
+ * [白玉皮], copper for the bronze skins [铜皮], steel gray for the iron skins [铁皮]; the native skin never
  * flashes. The alpha starts at {@link #START_ALPHA} and falls linearly, so the overlay is gone after one second.
  * A flash that has faded is dropped on the next read or by the client tick's {@link #prune}; leaving the world
  * clears the table.
@@ -79,10 +78,7 @@ public final class SkinFlashes {
     }
 
     public static void prune(long now) {
-        Iterator<Flash> flashes = FLASHES.values().iterator();
-        while (flashes.hasNext()) {
-            if (flashes.next().getAlpha(now, 1.0F) <= 0.0F) flashes.remove();
-        }
+        FLASHES.values().removeIf(flash -> flash.getAlpha(now, 1.0F) <= 0.0F);
     }
 
     public static void clear() { FLASHES.clear(); }

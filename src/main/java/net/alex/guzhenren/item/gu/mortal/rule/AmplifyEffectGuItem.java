@@ -27,10 +27,10 @@ import org.jetbrains.annotations.Nullable;
  * own use never reaches the server but by a forged packet, and is refused; from the offhand it does not answer the
  * click at all, so a refused main-hand Gu keeps its own reason on the action bar.
  *
- * <p>A Gu answers it through a module that declares {@code canBeAmplified} and asks {@link #amplify} from its own
+ * <p>A Gu answers it through a module that declares {@code canBeAmplified} and asks {@link #bill} from its own
  * payout, multiplying its effect's length: {@code TimedBuffModule} (Self Reliance included),
  * {@code AllOutEffortModule}, the timed {@code SkinModule} (Jade Skin, White Jade), {@code ShieldModule} (Heavenly
- * Mugwort, its length and not its points), {@code VitalityLeafModule} and {@code WatchModule}; {@link #amplify}
+ * Mugwort, its length and not its points), {@code VitalityLeafModule} and {@code WatchModule}; {@link #bill}
  * answers the factor, the driving or offhand amplifier's, billed there, or 1.
  * {@link #canAmplify} is the one eligibility test (the amplifier refined, the target amplifiable, refined if tended,
  * of its rank or lower), read by the client's menu and by both server paths.
@@ -59,8 +59,6 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     public record Amplification(int factor, @Nullable AmplifyEffectGuItem gu) {
 
         public static final Amplification NONE = new Amplification(1, null);
-
-        public boolean isAmplified() { return gu != null; }
     }
 
     public AmplifyEffectGuItem(Properties properties, GuSpec spec) {
@@ -74,8 +72,6 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
                 && driven.getRank().ordinal() <= getRank().ordinal()
                 && (!(driven instanceof TendedGuItem tended) || tended.isRefined(target));
     }
-
-    public static int amplify(ServerPlayer player, MortalGuItem driven) { return bill(player, driven).factor(); }
 
     public static @NotNull Amplification bill(ServerPlayer player, MortalGuItem driven) {
         ItemStack stack = driving != null && driving.player() == player ? driving.amplifier() : player.getOffhandItem();
@@ -112,7 +108,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     }
 
     @Override
-    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return new Refusal(FAILED_OFFHAND); }
+    protected Refusal checkEffect(Player player, ItemStack stack) { return new Refusal(FAILED_OFFHAND); }
 
     @Override
     protected void applyEffect(ServerPlayer player, ItemStack stack) {}

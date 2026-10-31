@@ -49,8 +49,6 @@ public class QiMaterialItem extends GuMaterialItem {
         this.essenceCost = essenceCost;
     }
 
-    public QiKind getKind() { return kind; }
-
     protected long getQiAmount() { return QiKind.getTierAmount(getTier()); }
 
     protected long getEssenceCost() { return essenceCost; }

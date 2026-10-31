@@ -57,10 +57,6 @@ public final class MindService {
         return get(player).taggedThoughts();
     }
 
-    public static long getTaggedAmount(@NotNull Player player, @NotNull ThoughtTag tag) {
-        return get(player).taggedThoughts().getOrDefault(tag, 0L);
-    }
-
     public static long getNaturalThoughts(@NotNull Player player) {
         long tagged = 0L;
         for (long amount : get(player).taggedThoughts().values()) tagged = LongMath.saturatedAdd(tagged, amount);

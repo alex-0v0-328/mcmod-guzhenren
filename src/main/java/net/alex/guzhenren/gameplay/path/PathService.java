@@ -63,10 +63,6 @@ public final class PathService {
         storeBare(player, path, getBareMarks(player, path).withMarks(marks));
     }
 
-    public static void addBareMarks(@NotNull ServerPlayer player, @NotNull GuPath path, long delta) {
-        setBareMarks(player, path, LongMath.saturatedAdd(getBareMarks(player, path).marks(), delta));
-    }
-
     public static void setBareStrands(@NotNull ServerPlayer player, @NotNull GuPath path, long strands) {
         storeBare(player, path, getBareMarks(player, path).withStrands(strands));
     }

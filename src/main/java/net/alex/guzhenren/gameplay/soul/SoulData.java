@@ -34,7 +34,7 @@ public record SoulData(long maxSoul, long currentSoul) {
 
     public SoulData {
         maxSoul = Math.max(0L, maxSoul);
-        currentSoul = Math.min(maxSoul, Math.max(currentSoul, 0L));
+        currentSoul = Math.clamp(currentSoul, 0L, maxSoul);
     }
 
     public static @NotNull SoulData decode(@NotNull FriendlyByteBuf buf) {

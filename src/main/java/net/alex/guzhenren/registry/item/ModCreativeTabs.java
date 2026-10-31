@@ -49,6 +49,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * @since 1.0.0
  */
 
+@SuppressWarnings({ "Convert2MethodRef", "FunctionalExpressionCanBeFolded" })
 public final class ModCreativeTabs {
 
     private ModCreativeTabs() {}

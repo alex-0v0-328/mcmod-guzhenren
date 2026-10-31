@@ -23,27 +23,21 @@ import net.minecraft.util.StringRepresentable;
 
 public enum GuAttainment implements NamedEnum {
 
-    NONE(0, 0),
-    ORDINARY(1, 2),
-    QUASI_MASTER(2, 5),
-    MASTER(3, 10),
-    QUASI_GRANDMASTER(4, 20),
-    GRANDMASTER(5, 40),
-    QUASI_GREAT_GRANDMASTER(6, 50),
-    GREAT_GRANDMASTER(7, 70),
-    QUASI_SUPREME_GRANDMASTER(8, 80),
-    SUPREME_GRANDMASTER(9, 100);
+    NONE(0),
+    ORDINARY(2),
+    QUASI_MASTER(5),
+    MASTER(10),
+    QUASI_GRANDMASTER(20),
+    GRANDMASTER(40),
+    QUASI_GREAT_GRANDMASTER(50),
+    GREAT_GRANDMASTER(70),
+    QUASI_SUPREME_GRANDMASTER(80),
+    SUPREME_GRANDMASTER(100);
 
     public static final Codec<GuAttainment> CODEC = StringRepresentable.fromEnum(GuAttainment::values);
-    private final int level;
     private final int refinementBonus;
 
-    GuAttainment(int level, int refinementBonus) {
-        this.level = level;
-        this.refinementBonus = refinementBonus;
-    }
-
-    public int getLevel() { return level; }
+    GuAttainment(int refinementBonus) { this.refinementBonus = refinementBonus; }
 
     public int getRefinementBonus() { return refinementBonus; }
 

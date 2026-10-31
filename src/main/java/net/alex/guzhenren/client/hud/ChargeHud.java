@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * the vanilla air-level layer. Reads the held item's {@code getUseDuration} and
  * {@code chargeFraction} from {@link net.alex.guzhenren.item.GuItem}; if the item provides its own
  * fraction the bar reads that, otherwise it falls back to the vanilla remaining-ticks ratio. During the awakening
- * ritual [开窍仪式] it shows the aptitude bar instead: {@link AwakeningHud#getBarBase} climbs to the rolled base, grey
+ * ritual [开窍仪式] it shows the aptitude bar instead: {@link AwakeningHud#getBarBase} climbs to the rolled base, gray
  * while filling and the default charge color once full, captioned like the aptitude line (八成七).
  *
  * <p>{@link #isShowing} is the one test of "a charged Gu use is running", also read by {@link NourishHud} to stack

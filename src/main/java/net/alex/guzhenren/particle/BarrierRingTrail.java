@@ -12,10 +12,10 @@ import net.minecraft.world.phys.Vec3;
  * <p>The entry already booms (the sonic boom ring [音爆环]), so the barrier rings keep quiet for
  * {@link #QUIET_TICKS} after it. From then on a ring forms at once, since a fresh trail ({@link #start}) carries a
  * full spacing, if the flight is past {@link #BARRIER_SPEED}, three times plain creative flight at full speed
- * ({@link #PLAIN_FLIGHT_SPEED}), and one more every {@link #SPACING} blocks of actual 3D travel past it, through
- * {@link RingTrailSpacing} like the dash trail. Below the barrier nothing forms and no distance counts. The speed is
- * the per-tick movement smoothed by {@link #SMOOTHING}, since the server sees a player's moves as they arrive,
- * sometimes two to a tick.
+ * ({@link SecondStageCruise#PLAIN_FLIGHT_SPEED}), and one more every {@link #SPACING} blocks of actual 3D travel
+ * past it, through {@link RingTrailSpacing} like the dash trail. Below the barrier nothing forms and no distance
+ * counts. The speed is the per-tick movement smoothed by {@link #SMOOTHING}, since the server sees a player's moves
+ * as they arrive, sometimes two to a tick.
  *
  * <p>Each {@link Ring} forms on the path at foot level, {@link #HEAD_LEAD} blocks ahead along the movement at the
  * leading face, and faces it; the flier passes through it and leaves it behind. A tick's movement past
@@ -34,7 +34,6 @@ record BarrierRingTrail(Vec3 lastPos, double carry, double speed, int age) {
 
     static final int QUIET_TICKS = 40;
     static final double SPACING = 16.0D;
-    static final double PLAIN_FLIGHT_SPEED = SecondStageCruise.PLAIN_FLIGHT_SPEED;
     static final double BARRIER_SPEED = SecondStageCruise.BARRIER_SPEED;
     static final double HEAD_LEAD = 1.0D;
     static final double TELEPORT_DISTANCE = 16.0D;

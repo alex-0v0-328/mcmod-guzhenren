@@ -103,8 +103,8 @@ public final class CmdBody {
 
     private static <G extends Enum<G> & BodyGrade<G>> ArgumentBuilder<CommandSourceStack, ?> buildRanked(
             String family, List<G> grades, ModCommandSupport.EnumOperation<G> operation) {
-        G lowest = grades.get(0);
-        int maxRank = grades.get(grades.size() - 1).getRank();
+        G lowest = grades.getFirst();
+        int maxRank = grades.getLast().getRank();
         ArgumentBuilder<CommandSourceStack, ?> node = Commands.literal(family)
                 .then(ModCommandSupport.withTargets(
                         Commands.argument(ARG_RANK, IntegerArgumentType.integer(lowest.getRank(), maxRank)),

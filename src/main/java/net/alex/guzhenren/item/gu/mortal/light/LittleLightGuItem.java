@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * switch eats first like any use. It never starves it: when a point would leave the bar hungry ({@code isHungry},
  * hunger at or below the daily drain) and the bag holds none of its food, it turns bright off instead, shows {@code
  * little_light_dimmed} and keeps the point. Turning on while hungry with no food in the bag is refused. Creative
- * follows {@code TendedGuItem}: the bar still drains for show down to 0, never eats and never dims.
+ * follows {@code TendedGuItem}: the bar still drains for show, down to 0, never eats and never dims.
  *
  * @author Alex
  * @version 1.0.0

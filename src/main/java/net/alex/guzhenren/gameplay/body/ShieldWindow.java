@@ -4,7 +4,7 @@ package net.alex.guzhenren.gameplay.body;
  * The invulnerability frames a shield [护盾] last met: the largest hit it saw inside them and the tick they close.
  * Scratch attachment keyed {@code shield_window}, neither saved nor synced; {@code ShieldService} is the only writer.
  *
- * <p>Vanilla's own {@code lastHurt} cannot stand in: a hit the shield takes whole is cancelled and leaves it behind,
+ * <p>Vanilla's own {@code lastHurt} cannot stand in: a hit the shield takes whole is canceled and leaves it behind,
  * and a hit that breaks the shield leaves only what passed. Frames this record did not see read {@code lastHurt}.
  *
  * @author Alex

@@ -137,10 +137,6 @@ public final class ApertureService {
         set(player, index, getAperture(player, index).withStage(value));
     }
 
-    public static void addBaseEssence(@NotNull ServerPlayer player, int index, int delta) {
-        setBaseEssence(player, index, getAperture(player, index).baseEssence() + delta);
-    }
-
     public static void setTalent(@NotNull ServerPlayer player, int index, @NotNull Talent value) {
         if (value == Talent.TEN_EXTREMES && index == get(player).getFirstIndex()) {
             if (!BodyService.isExtreme(player)) {
@@ -177,10 +173,6 @@ public final class ApertureService {
         Aperture aperture = getAperture(player, index);
         if (aperture.secondaryPath() == value) return;
         set(player, index, aperture.withSecondaryPath(value));
-    }
-
-    public static void shiftRank(@NotNull ServerPlayer player, int index, int delta) {
-        setRank(player, index, getAperture(player, index).rank().shift(delta));
     }
 
     public static void shiftStage(@NotNull ServerPlayer player, int delta) {

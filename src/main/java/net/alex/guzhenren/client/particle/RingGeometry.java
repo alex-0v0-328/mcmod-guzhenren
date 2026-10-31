@@ -68,7 +68,7 @@ final class RingGeometry {
     }
 
     static float getExitProgress(float age, int lastFrameAge, int lingerTicks) {
-        return Math.max(0.0F, Math.min(1.0F, (age - lastFrameAge) / (lingerTicks + 1)));
+        return Math.clamp((age - lastFrameAge) / (lingerTicks + 1), 0.0F, 1.0F);
     }
 
     static float getFadeAlpha(float progress, float fadeStart) {

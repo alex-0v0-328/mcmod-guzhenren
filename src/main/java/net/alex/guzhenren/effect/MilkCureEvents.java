@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * again, so curing one only paused what it carries until the next beat; Bleeding has no state behind it.
  *
  * <p>Event subscriber on {@link MobEffectEvent.Remove}: a removal whose cure is {@link EffectCures#MILK} and whose
- * effect sits in this mod's namespace is cancelled. Every other removal passes: another cure (a totem), a removal
+ * effect sits in this mod's namespace is canceled. Every other removal passes: another cure (a totem), a removal
  * with no cure ({@code /effect clear}, death) and every vanilla effect, the aftermath's weakness among them.
  *
  * @author Alex

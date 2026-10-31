@@ -159,10 +159,6 @@ public final class ModDisplayText {
                 String.format(Locale.ROOT, "%.0f", body.ageYears()));
     }
 
-    public static String formatCountdown(long remainingTicks) {
-        return formatClock(getCountdownSeconds(remainingTicks));
-    }
-
     public static long getCountdownSeconds(long remainingTicks) {
         return (Math.max(0L, remainingTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
     }

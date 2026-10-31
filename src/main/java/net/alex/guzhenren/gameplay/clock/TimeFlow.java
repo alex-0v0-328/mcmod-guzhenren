@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>The rate is his own clock [自身时间] times the world's. {@link #getSelfRate} adds up every
  * {@link TimeRateContributor} among his active effects (the Watch Gu [更蛊] forms), flooring at 1; only the Time Path
  * [宙道] comes to it. {@link #getWorldRate} multiplies the rate of the dimension he stands in
- * ({@link ModDimensions.AnchoredDimension#timeRate}) by every {@link TimeFlowArea} added through {@link #addArea}. A
+ * ({@link ModDimensions.AnchoredDimension#timeRate()}) by every {@link TimeFlowArea} added through {@link #addArea}. A
  * world rate may run below 1, so {@link #getRate} is a {@code double}, floored at {@link #MIN_RATE} so that no wait
  * stretches without end.
  *
@@ -87,14 +87,12 @@ public final class TimeFlow {
         return scale(getRate(player), amount, player.getRandom());
     }
 
-    public static double scale(@NotNull Player player, double amount) { return scale(getRate(player), amount); }
-
     public static int getSteps(@NotNull Player player) { return getSteps(getRate(player), player.getRandom()); }
     //endregion
 
     //region the arithmetic alone -- a rate rather than a player, so it can be asserted without a world
     public static int shortenWait(double rate, int ticks) {
-        return ticks <= 0 ? ticks : (int) Math.min(Integer.MAX_VALUE, Math.max((long) (ticks / rate), 1L));
+        return ticks <= 0 ? ticks : Math.clamp((long) (ticks / rate), 1, Integer.MAX_VALUE);
     }
 
     public static long scale(double rate, long amount, @NotNull RandomSource random) {

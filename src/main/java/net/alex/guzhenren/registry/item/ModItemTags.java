@@ -48,14 +48,14 @@ public final class ModItemTags {
     public static final TagKey<Item> MOONLIGHT_FEED = key("moonlight_feed");
     public static final TagKey<Item> BLOOD_MOON_FEED = key("blood_moon_feed");
     public static final TagKey<Item> LITTLE_LIGHT_FEED = key("little_light_feed");
-    public static final TagKey<Item> INGOTS_STEEL = key("c", "ingots/steel");
-    public static final TagKey<Item> STORAGE_BLOCKS_STEEL = key("c", "storage_blocks/steel");
+    public static final TagKey<Item> INGOTS_STEEL = common("ingots/steel");
+    public static final TagKey<Item> STORAGE_BLOCKS_STEEL = common("storage_blocks/steel");
 
     private static TagKey<Item> key(String name) {
         return TagKey.create(Registries.ITEM, Guzhenren.id(name));
     }
 
-    private static TagKey<Item> key(String namespace, String path) {
-        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
+    private static TagKey<Item> common(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
     }
 }

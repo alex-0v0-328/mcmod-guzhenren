@@ -99,7 +99,7 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
         // a one-cell group stays a bare number, so a fixed-cell recipe file reads the same as before groups
         private static final Codec<List<Integer>> CELLS = Codec.either(Codec.INT, Codec.INT.listOf()).xmap(
                 either -> either.map(List::of, Function.identity()),
-                cells -> cells.size() == 1 ? Either.left(cells.get(0)) : Either.right(cells));
+                cells -> cells.size() == 1 ? Either.left(cells.getFirst()) : Either.right(cells));
 
         private static final MapCodec<RefinementRecipe> CODEC = RecordCodecBuilder.<GuRecipe>mapCodec(i -> i.group(
                 NEED.listOf().fieldOf("ingredients").forGetter(GuRecipe::ingredients),

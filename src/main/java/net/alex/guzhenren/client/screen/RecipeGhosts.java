@@ -71,7 +71,7 @@ final class RecipeGhosts {
     }
 
     static ItemStack getResult(GuRecipe recipe) {
-        return recipe.results().isEmpty() ? ItemStack.EMPTY : recipe.results().get(0);
+        return recipe.results().isEmpty() ? ItemStack.EMPTY : recipe.results().getFirst();
     }
 
     private static void drawGhosts(GuiGraphics graphics, Font font, ItemStack[] shown, int[] at, int[] missing) {

@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>{@link #canReplace} is the gate: any skin goes over a native one; a permanent skin also goes over a lower
  * rank of its own family (a rank-three bronze skin over a rank-one bronze skin), never over another family's;
- * a jade skin goes over nothing but a native skin, so neither jade Gu stacks on, replaces or extends the
+ * a jade skin goes over nothing but a native skin, so neither jade Gu stacks on, replaces, nor extends the
  * other, and no Gu replaces a jade skin before it runs out.
  *
  * @author Alex

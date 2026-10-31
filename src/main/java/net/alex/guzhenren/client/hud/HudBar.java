@@ -6,7 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 
 /**
  * A HUD progress bar drawn from two GUI sprites, {@code hud/<name>_bar_background} and {@code hud/<name>_bar_fill}:
- * a frame one pixel larger than the fill on every side, and a greyscale fill tinted with the bar's data colour.
+ * a frame one pixel larger than the fill on every side, and a grayscale fill tinted with the bar's data color.
  *
  * <p>Both sprites draw unscaled. A part-full bar shows the fill's leftmost {@code filled} columns instead of squeezing
  * the whole sprite, so the marks drawn into a fill (the awakening bar's fifths, the nourish bar's tenths) stay lined up

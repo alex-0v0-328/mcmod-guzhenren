@@ -91,7 +91,7 @@ public final class ModEntityTypes {
             registerSoulTrader(SoulTrader.TEST_TRADE_GU_IMMORTAL);
 
     public static final DeferredHolder<EntityType<?>, EntityType<MoonBladeEntity>> MOON_BLADE =
-            ENTITY_TYPES.register("moon_blade", () -> EntityType.Builder.<MoonBladeEntity>of(MoonBladeEntity::new,
+            ENTITY_TYPES.register("moon_blade", () -> EntityType.Builder.of(MoonBladeEntity::new,
                             MobCategory.MISC)
                     .sized(MOON_BLADE_SIZE, MOON_BLADE_SIZE)
                     .clientTrackingRange(PROJECTILE_TRACKING_CHUNKS)

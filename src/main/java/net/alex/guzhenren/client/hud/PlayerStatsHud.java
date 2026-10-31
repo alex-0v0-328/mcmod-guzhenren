@@ -140,7 +140,7 @@ public final class PlayerStatsHud {
 
     private static Bar createBar(int y, long current, long max, int fill) {
         int track = STAT.width();
-        int filled = max <= 0L ? 0 : (int) Math.min(track, Math.max(Math.round(track * (current / (double) max)), 0L));
+        int filled = max <= 0L ? 0 : Math.clamp(Math.round(track * (current / (double) max)), 0, track);
         return new Bar(y, filled, fill, ModDisplayText.formatPool(current, max));
     }
 

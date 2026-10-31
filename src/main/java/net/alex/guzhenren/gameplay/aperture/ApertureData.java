@@ -110,7 +110,7 @@ public record ApertureData(List<Aperture> apertures) {
         if (isFull() || getFirstIndex() >= 0) return withOpened(aperture);
 
         List<Aperture> next = new ArrayList<>(apertures);
-        next.add(0, aperture);
+        next.addFirst(aperture);
         return new ApertureData(next);
     }
 

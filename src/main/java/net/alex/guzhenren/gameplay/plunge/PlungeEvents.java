@@ -12,7 +12,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Hands the plunge [坠击] its events: {@link PlungeService#tick} at the end of every server player tick and
- * {@link PlungeService#tickLocal} at the end of the local player's; vanilla's fall damage cancelled while a plunge
+ * {@link PlungeService#tickLocal} at the end of the local player's; vanilla's fall damage canceled while a plunge
  * runs, since the landing deals its own; a dimension change or a teleport ends the plunge.
  *
  * <p>The event handlers live here, the rules behind them in {@link PlungeService}.

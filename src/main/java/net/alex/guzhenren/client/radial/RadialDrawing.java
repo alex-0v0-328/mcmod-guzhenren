@@ -12,7 +12,7 @@ import org.joml.Matrix4f;
 
 /**
  * Draws one frame of the radial menu [扇形选择器] from the state {@link RadialMenu} hands it: the sectors, then the
- * icons above them, then the pointed entry's name at the centre.
+ * icons above them, then the pointed entry's name at the center.
  *
  * <p>A sector's hover weight pushes it out by {@link #POP}, widens its rim by {@link #GROW} and enlarges its icon by
  * {@link #ICON_GROW}; its fill blends from the panel fill toward the highlight, and a picked one toward white with the

@@ -195,6 +195,7 @@ public final class SecondStageService {
                 Mth.ceil(box.maxX) - 1, Mth.ceil(box.maxY) - 1, Mth.ceil(box.maxZ) - 1);
     }
 
+    @SuppressWarnings("deprecation")
     private static boolean isFragile(Level level, BlockPos pos, BlockState state) {
         return !state.isAir() && SecondStageCruise.isFragile(state.getBlock().getExplosionResistance())
                 && !state.getCollisionShape(level, pos).isEmpty();

@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}: every sprite in one
  * {@link SpriteBatch}, then the fills over them (rule, hovers, nourish progress), then every text; {@link InfoRowCache}
  * keeps the rows of the last frame while the model is unchanged. The selected tab is the idle tab sprite with the
- * greyscale selection border over it, tinted the tab's accent; its title takes the same accent.
+ * grayscale selection border over it, tinted the tab's accent; its title takes the same accent.
  *
  * <p>The storage and refinement screens are its sub-screens: their Esc comes back here. A panel opened that way
  * swallows Esc until the key is released, so the held key's repeats do not close it as well and one press steps

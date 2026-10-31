@@ -30,7 +30,7 @@ import java.util.List;
  * block, before the freeze and helmet factors, the invulnerability frames, armor, Resistance, Protection and
  * Absorption, so the layers spend raw damage, newest first. Inside the frames it spends only on what exceeds the
  * largest hit those frames already met ({@link ShieldWindow}), so lava drains it once per frame window, not every
- * tick. A hit the layers take whole is cancelled and replayed as a block: no red flash or hurt sound, the frames
+ * tick. A hit the layers take whole is canceled and replayed as a block: no red flash or hurt sound, the frames
  * started, the shield-block sound when the hit has a source position (an attacker, a projectile, an explosion; lava,
  * fire, poison and drowning are taken silently), a melee attacker knocked {@link #ATTACKER_KNOCKBACK} back, and the
  * body knocked {@link #DEFENDER_KNOCKBACK} back unless the newest layer that took the hit is super armor [霸体]. A
@@ -42,7 +42,7 @@ import java.util.List;
  * {@code /effect clear} removes it silently, so the heartbeat re-applies them as {@link SkinService} does a jade
  * skin. ⚠ Damage that bypasses invulnerability or effects ({@code /kill}, the void, starvation) passes untouched,
  * and so does a hit a held vanilla shield blocks. ⚠ Inside the frames vanilla subtracts its own {@code lastHurt}
- * from what passes, and a cancelled hit leaves that value behind, so the rest is handed on as {@code lastHurt}
+ * from what passes, and a canceled hit leaves that value behind, so the rest is handed on as {@code lastHurt}
  * plus the rest.
  *
  * @author Alex

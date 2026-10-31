@@ -98,6 +98,4 @@ public record PathEffectData(List<PathEffect<?>> effects) {
         next.removeIf(drop);
         return new PathEffectData(next);
     }
-
-    public boolean isEmpty() { return effects.isEmpty(); }
 }

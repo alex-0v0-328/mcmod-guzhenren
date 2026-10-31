@@ -120,8 +120,6 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     public int getLoad() { return pageData.get(DATA_LOAD); }
 
-    public int getAperture() { return aperture; }
-
     private int countPages() {
         int count = ApertureStorageService.count(player, aperture);
         return count / PAGE_SIZE + 1;

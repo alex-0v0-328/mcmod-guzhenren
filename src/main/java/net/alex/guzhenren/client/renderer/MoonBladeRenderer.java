@@ -57,8 +57,8 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
     public MoonBladeRenderer(EntityRendererProvider.Context context) { super(context); }
 
     @Override
-    public void render(@NotNull MoonBladeEntity blade, float entityYaw, float partialTicks, PoseStack poseStack,
-                       @NotNull MultiBufferSource buffer, int packedLight) {
+    public void render(@NotNull MoonBladeEntity blade, float entityYaw, float partialTicks,
+                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
         int frame = getFrame(blade.tickCount, blade.getLifetimeTicks());
         float top = frame / (float) FRAMES;
         float bottom = (frame + 1) / (float) FRAMES;

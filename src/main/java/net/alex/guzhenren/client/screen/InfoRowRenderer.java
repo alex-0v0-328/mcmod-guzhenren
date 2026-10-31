@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The B panel's text for each {@link InfoModel} entry: a label on the left, an optional value on the right,
  * and, for the secondary-path row, a click that opens the {@link PathPicker}. A header row has no value and
- * takes the tab's accent colour; the mind header returns {@code null} because its tab title already says it.
+ * takes the tab's accent color; the mind header returns {@code null} because its tab title already says it.
  *
  * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line; {@link #getApertureGroups}
  * splits the aperture tab's model into one group per aperture, blanks dropped, for the two-column layout.
@@ -81,11 +81,7 @@ final class InfoRowRenderer {
         return Component.translatable("guzhenren.screen.label." + name);
     }
 
-    private static final class EntryDrawer implements InfoModel.Visitor<ScreenRow> {
-
-        private final int indent;
-
-        EntryDrawer(int indent) { this.indent = indent; }
+    private record EntryDrawer(int indent) implements InfoModel.Visitor<ScreenRow> {
 
         @Override
         public ScreenRow visit(InfoModel.ApertureIndex entry) {

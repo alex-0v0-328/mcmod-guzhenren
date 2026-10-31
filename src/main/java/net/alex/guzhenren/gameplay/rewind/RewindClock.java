@@ -41,7 +41,7 @@ public final class RewindClock {
     }
 
     public static <T> long lastTakenAt(@NotNull List<T> ring, @NotNull ToLongFunction<T> stamp) {
-        return ring.isEmpty() ? NEVER : stamp.applyAsLong(ring.get(ring.size() - 1));
+        return ring.isEmpty() ? NEVER : stamp.applyAsLong(ring.getLast());
     }
 
     public static <T> @Nullable T pick(@NotNull List<T> ring, @NotNull ToLongFunction<T> stamp, long now) {
@@ -58,7 +58,7 @@ public final class RewindClock {
             if (stamp.applyAsLong(snapshot) <= now) kept.add(snapshot);
         }
         kept.add(next);
-        while (kept.size() > RING_SIZE) kept.remove(0);
+        while (kept.size() > RING_SIZE) kept.removeFirst();
         return List.copyOf(kept);
     }
 }

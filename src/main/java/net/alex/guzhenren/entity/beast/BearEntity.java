@@ -53,10 +53,6 @@ public final class BearEntity extends BeastEntity {
                 .add(Attributes.FOLLOW_RANGE, FOLLOW_RANGE_BLOCKS);
     }
 
-    public BearSpecies getSpecies() {
-        return this.species;
-    }
-
     @Override
     protected int getSwipeHitTick() { return SWIPE_HIT_TICK; }
 

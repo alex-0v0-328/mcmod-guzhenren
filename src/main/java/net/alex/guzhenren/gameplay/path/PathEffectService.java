@@ -148,7 +148,7 @@ public final class PathEffectService {
 
     private static int getIconDuration(PathEffect<?> effect, long now) {
         if (effect.isPermanent()) return MobEffectInstance.INFINITE_DURATION;
-        return (int) Math.max(1L, Math.min(Integer.MAX_VALUE, effect.getTicksLeft(now)));
+        return Math.clamp(effect.getTicksLeft(now), 1, Integer.MAX_VALUE);
     }
 
     private static int getLonger(int first, int second) {

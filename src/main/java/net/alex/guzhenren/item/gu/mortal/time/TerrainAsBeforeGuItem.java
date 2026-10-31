@@ -49,8 +49,6 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
         this.kind = kind;
     }
 
-    public ChunkKind getKind() { return kind; }
-
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         Refusal recovering = checkRecoverGate(player, stack);

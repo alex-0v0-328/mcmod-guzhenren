@@ -123,10 +123,6 @@ public final class ApertureEssenceService {
         }
     }
 
-    public static void refill(@NotNull ServerPlayer player, int index) {
-        ApertureService.set(player, index, ApertureService.getAperture(player, index).withFullEssence());
-    }
-
     public static void refillWithDistilled(@NotNull ServerPlayer player) {
         for (int i = 0; i < ApertureService.get(player).count(); i++) refillWithDistilled(player, i);
     }

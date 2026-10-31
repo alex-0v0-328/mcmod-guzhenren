@@ -53,7 +53,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     private void setStored(ItemStack stack, long value) {
-        stack.set(ModDataComponents.STORED_STONES, Math.min(capacity, Math.max(value, 0L)));
+        stack.set(ModDataComponents.STORED_STONES, Math.clamp(value, 0L, capacity));
     }
 
     private static boolean isStone(ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }

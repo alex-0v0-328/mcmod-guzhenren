@@ -40,7 +40,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * <p>A tap (let go before the ring opens, {@code RadialMenu.OPEN_DELAY_TICKS}) fires the blade at once, with no
  * charge: the plain blade, or the cast of the move switched on. A longer hold opens one sector per usable move
  * ({@link KillingMoveService#listUsable}: learned, with a refined partner in the inventory or an aperture store),
- * labelled with the move's name, or "stop" and the name while it is on, and showing its partner; a pick switches the
+ * labeled with the move's name, or "stop" and the name while it is on, and showing its partner; a pick switches the
  * move on or off, and letting go inside the inner ring or on a disabled sector sends nothing. A hold with no usable
  * move opens nothing and sends nothing. A sector is shown disabled while the main Gu is on the vanilla cooldown, which
  * stops the server too.

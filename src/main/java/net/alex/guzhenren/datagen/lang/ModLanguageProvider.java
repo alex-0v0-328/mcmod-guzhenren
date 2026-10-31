@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
-import net.alex.guzhenren.gameplay.aperture.EssenceColor;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.gameplay.aperture.Talent;
@@ -568,7 +567,7 @@ public class ModLanguageProvider extends LanguageProvider {
                 "%1$s was slain by %2$s's Moon Blade using %3$s", "%1$s 被 %2$s 用 %3$s 的月刃斩杀");
         add("death.attack.guzhenren.bleeding",                    "%1$s bled to death", "%1$s 流血而亡");
         add("death.attack.guzhenren.bleeding.player",
-                "%1$s bled to death whilst fighting %2$s", "%1$s 在与 %2$s 战斗时流血而亡");
+                "%1$s bled to death while fighting %2$s", "%1$s 在与 %2$s 战斗时流血而亡");
     }
     //endregion
 
@@ -579,7 +578,6 @@ public class ModLanguageProvider extends LanguageProvider {
         addStage();
         addApertureStatus();
         addTalent();
-        addEssenceColor();
         addTenExtreme();
         addPhysique();
         addRace();
@@ -735,19 +733,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add(Race.DRAGONMEN,   "Dragonmen",   "龙人");
         add(Race.MUSHROOMMEN, "Mushroommen", "菇人");
         add(Race.SNOWMEN,     "Snowmen",     "雪人");
-    }
-
-    private void addEssenceColor() {
-        add(EssenceColor.NONE,           "None",           "无");
-        add(EssenceColor.GREEN_COPPER,   "Green Copper",   "青铜色");
-        add(EssenceColor.RED_STEEL,      "Red Steel",      "赤铁色");
-        add(EssenceColor.WHITE_SILVER,   "White Silver",   "白银色");
-        add(EssenceColor.YELLOW_GOLDEN,  "Yellow Gold",    "黄金色");
-        add(EssenceColor.PURPLE_CRYSTAL, "Purple Crystal", "紫晶色");
-        add(EssenceColor.GREEN_GRAPE,    "Green Grape",    "青提");
-        add(EssenceColor.RED_DATE,       "Red Date",       "红枣");
-        add(EssenceColor.WHITE_LITCHI,   "White Litchi",   "白荔");
-        add(EssenceColor.YELLOW_APRICOT, "Yellow Apricot", "黄杏");
     }
 
     private void addTenExtreme() {

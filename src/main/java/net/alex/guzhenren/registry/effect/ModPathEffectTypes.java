@@ -146,7 +146,7 @@ public final class ModPathEffectTypes {
     public static final Codec<PathEffectType<?>> CODEC = ResourceLocation.CODEC.comapFlatMap(
             ModPathEffectTypes::lookup, PathEffectType::getId);
     public static final Codec<PathEffect<?>> EFFECT_CODEC = CODEC.dispatch(
-            "type", effect -> effect.type(), type -> type.getEffectCodec());
+            "type", PathEffect::type, PathEffectType::getEffectCodec);
 
     public static @Nullable PathEffectType<?> get(@NotNull ResourceLocation id) { return BY_ID.get(id); }
 

@@ -5,11 +5,9 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.body.BodyGrade;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.BodyTemperedEvent;
-import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinShedEvent;
 import net.alex.guzhenren.gameplay.body.SkinWornEvent;
-import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.DaoMarks;
 import net.alex.guzhenren.gameplay.path.GuPath;
@@ -29,7 +27,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The body effects of the channeled dao mark carving Gu [灌注蛊]: the tempering Gu's skin, tendons and bones, the

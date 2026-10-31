@@ -308,7 +308,7 @@ public final class KillingMoveService {
         for (int slot = 0; slot < inventory.items.size(); slot++) {
             if (slot != inventory.selected && move.isBackedBy(inventory.items.get(slot))) return slot;
         }
-        return move.isBackedBy(inventory.offhand.get(0)) ? Inventory.SLOT_OFFHAND : NO_SLOT;
+        return move.isBackedBy(inventory.offhand.getFirst()) ? Inventory.SLOT_OFFHAND : NO_SLOT;
     }
 
     private static @Nullable StoreSlot findStored(ServerPlayer player, KillingMove move) {

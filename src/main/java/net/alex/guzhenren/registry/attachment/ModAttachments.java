@@ -190,7 +190,7 @@ public final class ModAttachments {
     }
 
     public static List<AttachmentType<?>> getInherited() {
-        return INHERITED.stream().map(Supplier::get).toList();
+        return INHERITED.stream().<AttachmentType<?>>map(Supplier::get).toList();
     }
 
     private static <T> Supplier<AttachmentType<T>> registerSynced(

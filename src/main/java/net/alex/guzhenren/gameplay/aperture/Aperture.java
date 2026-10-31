@@ -107,8 +107,8 @@ public record Aperture(
 
     public Aperture {
         baseEssence = baseEssence <= 0 ? 0 : Mth.clamp(baseEssence, MIN_BASE, MAX_BASE);
-        currentEssence = Math.min(computeMaxEssence(rank, stage, baseEssence), Math.max(currentEssence, 0L));
-        distilledEssence = Math.min(computeMaxEssence(rank, stage, baseEssence), Math.max(distilledEssence, 0L));
+        currentEssence = Math.clamp(currentEssence, 0L, computeMaxEssence(rank, stage, baseEssence));
+        distilledEssence = Math.clamp(distilledEssence, 0L, computeMaxEssence(rank, stage, baseEssence));
         pressure = Mth.clamp(pressure, 0, MAX_PRESSURE);
         pressureDeadlineTick = pressure == PRESSURE_COUNTDOWN_START ? Math.max(0L, pressureDeadlineTick) : 0L;
         nourishProgress = Mth.clamp(nourishProgress, 0, ApertureNourishData.FULL);

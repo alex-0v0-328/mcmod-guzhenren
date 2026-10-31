@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The secondary-path [副流派] picker the B panel opens over itself: a grid of every path plus "none",
- * centred on the panel. A click on a cell sends {@link SetSecondaryPathPayload} for the aperture it was
+ * centered on the panel. A click on a cell sends {@link SetSecondaryPathPayload} for the aperture it was
  * opened for; a click anywhere else, Esc or B closes it without a choice.
  *
  * <p>It draws in one {@link GuiBatch}, the popup sprite first. The hovered cell's fill stays in the cell loop rather

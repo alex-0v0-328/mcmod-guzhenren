@@ -2,9 +2,9 @@ package net.alex.guzhenren.client.radial;
 
 /**
  * The geometry of the radial menu [扇形选择器], kept free of any game class so plain JUnit pins it: sector 0 is
- * centred straight up and the rest follow clockwise, in GUI coordinates (x right, y down) around the menu's centre.
+ * centered straight up and the rest follow clockwise, in GUI coordinates (x right, y down) around the menu's center.
  * {@link #sectorAt} names the sector under a cursor, or {@link #NONE} inside the dead zone or with no sectors;
- * {@link #centerAngle} is a sector's centre as a clockwise angle from straight up, in radians. The ring spans
+ * {@link #centerAngle} is a sector's center as a clockwise angle from straight up, in radians. The ring spans
  * {@link #INNER_RADIUS} to {@link #OUTER_RADIUS} GUI pixels, the inner ring being the dead zone, and icons sit on
  * {@link #ICON_RADIUS}.
  *

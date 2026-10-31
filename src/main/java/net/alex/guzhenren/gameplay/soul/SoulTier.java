@@ -37,8 +37,6 @@ public enum SoulTier implements NamedEnum {
         this.minSoul = minSoul;
     }
 
-    public long getMinSoul() { return minSoul; }
-
     public static @NotNull SoulTier fromSoul(long soul) {
         SoulTier[] tiers = values();
         for (int i = tiers.length - 1; i >= 0; i--) {

@@ -40,7 +40,7 @@ public record VitalityLeafModule() implements GuModule {
     @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
-        TimedEffects.grantLeaf(player, gu, VitalityLeafGuEffect.DURATION_TICKS * amplification.factor(),
+        TimedEffects.grantLeaf(player, gu, (long) VitalityLeafGuEffect.DURATION_TICKS * amplification.factor(),
                 amplification);
     }
 }

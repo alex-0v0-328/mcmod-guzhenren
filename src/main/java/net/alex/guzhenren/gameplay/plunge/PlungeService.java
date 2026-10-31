@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
  * ({@link #stop}), and so do a dimension change and a teleport. ⚠ It lands once the player is on the ground and vanilla
  * has reset the fall distance: the server's own step lands early, but only the client's moves run vanilla's fall
  * handling ({@code ServerPlayer#checkFallDamage} is empty), which resets the distance once the client is down. So the
- * crater sits where the client landed and the fall vanilla saw is the plunge's own, cancelled while {@link #isActive}
+ * crater sits where the client landed and the fall vanilla saw is the plunge's own, canceled while {@link #isActive}
  * holds. A landing that shows ({@link PlungeImpact#getImpactPower}) first posts a {@link PlungeLandedEvent} on the
  * whole ground, for the fracture and the shake above it; it then blasts the crater at the power
  * {@link PlungeImpact#getCraterPower} gives the height, then deals {@link PlungeImpact#getDamage} of the player's safe

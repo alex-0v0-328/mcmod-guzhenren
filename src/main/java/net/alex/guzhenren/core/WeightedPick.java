@@ -25,10 +25,6 @@ public final class WeightedPick {
         return pick(values, ThreadLocalRandom.current(), value -> true, weight);
     }
 
-    public static <T> T pick(T[] values, Predicate<T> filter, ToIntFunction<T> weight) {
-        return pick(values, ThreadLocalRandom.current(), filter, weight);
-    }
-
     public static <T> T pick(T[] values, RandomGenerator random, Predicate<T> filter, ToIntFunction<T> weight) {
         int total = 0;
         for (T v : values) {

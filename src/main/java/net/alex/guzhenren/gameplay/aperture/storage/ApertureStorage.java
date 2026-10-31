@@ -60,14 +60,14 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         List<List<ItemStack>> kept = new ArrayList<>();
         for (int i = 0; i < Math.min(byAperture.size(), ApertureData.MAX_APERTURES); i++) {
             List<ItemStack> items = copyOwned(byAperture.get(i), Integer.MAX_VALUE);
-            while (!items.isEmpty() && items.get(items.size() - 1).isEmpty()) items.remove(items.size() - 1);
+            while (!items.isEmpty() && items.getLast().isEmpty()) items.removeLast();
             kept.add(new OwnedStacks(items));
         }
-        while (!kept.isEmpty() && kept.get(kept.size() - 1).isEmpty()) kept.remove(kept.size() - 1);
+        while (!kept.isEmpty() && kept.getLast().isEmpty()) kept.removeLast();
         byAperture = Collections.unmodifiableList(kept);
 
         List<ItemStack> bound = copyOwned(vital, ApertureData.MAX_APERTURES);
-        while (!bound.isEmpty() && bound.get(bound.size() - 1).isEmpty()) bound.remove(bound.size() - 1);
+        while (!bound.isEmpty() && bound.getLast().isEmpty()) bound.removeLast();
         vital = new OwnedStacks(bound);
         tokens = List.copyOf(tokens.subList(0, Math.min(tokens.size(), ApertureData.MAX_APERTURES)));
     }

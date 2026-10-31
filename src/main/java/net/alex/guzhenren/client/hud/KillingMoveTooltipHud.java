@@ -21,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Killing Move Tooltip [杀招提示]: after a killing move [杀招] lands, a panel at the screen's left edge, centred
+ * The Killing Move Tooltip [杀招提示]: after a killing move [杀招] lands, a panel at the screen's left edge, centered
  * vertically, names the move and gives each Gu it used, main first, one row: its icon, then rank, path and name, and
  * under them its hunger as a bar drawn like vanilla's durability bar (green full, red empty) with {@code x/y}. Rows
  * show the Gu as {@code KillingMoveTooltipPayload} carried them, right after the cast, never live values; a Gu the
- * cast killed draws grey with an empty bar. Registered above the hotbar, its notice handler set at client setup
+ * cast killed draws gray with an empty bar. Registered above the hotbar, its notice handler set at client setup
  * ({@code ClientEvents}).
  *
  * <p>The motion runs on the wall clock: it slides in over {@link #SLIDE_IN_MS}, easing out, stays until
@@ -92,7 +92,7 @@ public final class KillingMoveTooltipHud {
 
     static boolean isDone(long sinceCast) { return sinceCast >= SHOWN_MS + SLIDE_OUT_MS; }
 
-    private static float clamp(float value) { return Math.max(0.0F, Math.min(1.0F, value)); }
+    private static float clamp(float value) { return Math.clamp(value, 0.0F, 1.0F); }
 
     public void render(@NotNull GuiGraphics graphics) {
         KillingMoveTooltipPayload notice = shown;

@@ -214,8 +214,6 @@ public final class BodyService {
     //region Skin [皮肤]
     public static @NotNull Skin getSkin(@NotNull Player player) { return get(player).skin(); }
 
-    public static boolean hasNativeSkin(@NotNull Player player) { return get(player).hasNativeSkin(); }
-
     public static void wearSkin(@NotNull ServerPlayer player, @NotNull Skin skin, int durationTicks) {
         long endTick = skin.isTimed() ? getGameTime(player) + durationTicks : BodyData.UNTRACKED;
         store(player, get(player).withSkin(skin, endTick));

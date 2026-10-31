@@ -63,6 +63,7 @@ public final class ModByteBufs {
     }
 
     public static <E extends Enum<E>> @NotNull StreamCodec<FriendlyByteBuf, E> nullableEnumCodec(Class<E> type) {
+        //noinspection DataFlowIssue
         return StreamCodec.of(ModByteBufs::writeNullableEnum, buf -> readNullableEnum(buf, type));
     }
 

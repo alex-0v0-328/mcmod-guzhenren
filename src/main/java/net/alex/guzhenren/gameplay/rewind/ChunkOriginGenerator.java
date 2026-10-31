@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link ChunkPyramid#GENERATION_PYRAMID} with the level's own generator, so modded terrain (Gu World [蛊世界],
  * Tectonic, Terralith) comes back the way it was shaped. The scratch chunks carry no structure starts, so no
  * structure is placed and none bends the terrain: a village's hill comes back as the hill before the village.
- * Decoration ({@code FEATURES}) runs only to colour the land -- a ported cliff's granite and calcite bands and a
+ * Decoration ({@code FEATURES}) runs only to color the land -- a ported cliff's granite and calcite bands and a
  * canyon's stone columns are decorations -- and {@link #keep} lets a decorated block through only where it swaps one
  * {@link ModBlockTags#AS_BEFORE_TERRAIN} block for another; anything a decoration adds or removes (trees, plants,
  * lakes, boulders, snow, ice) falls back to the bare terrain. Every {@link ModBlockTags#AS_BEFORE_STRIPPED} block
@@ -108,6 +108,8 @@ public final class ChunkOriginGenerator {
                 scratch.put(ChunkPos.asLong(x, z), chunk);
             }
         }
+        // No step up to FEATURES posts to the main-thread mailbox.
+        //noinspection DataFlowIssue
         WorldGenContext context = new WorldGenContext(level, level.getChunkSource().getGenerator(),
                 level.getStructureManager(), level.getChunkSource().getLightEngine(), null);
         StaticCache2D<GenerationChunkHolder> cache = StaticCache2D.create(center.x, center.z,
@@ -206,7 +208,7 @@ public final class ChunkOriginGenerator {
         }
 
         @Override
-        public synchronized @Nullable ChunkAccess getChunkIfPresentUnchecked(@NotNull ChunkStatus status) {
+        public synchronized ChunkAccess getChunkIfPresentUnchecked(@NotNull ChunkStatus status) {
             if (chunk == null) chunk = blank(level, biomes, pos);
             return chunk;
         }

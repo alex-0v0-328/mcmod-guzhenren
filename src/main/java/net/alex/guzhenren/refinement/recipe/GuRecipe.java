@@ -140,7 +140,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots
     }
     //endregion
 
-    public ItemStack getFirst() { return results.isEmpty() ? ItemStack.EMPTY : results.get(0); }
+    public ItemStack getFirst() { return results.isEmpty() ? ItemStack.EMPTY : results.getFirst(); }
 
     //region the grid -- a 5x5 with its four corners cut away: outer ring [外圈] 12 around inner ring [内圈] 9
     public static int getRingCol(int index) { return RING_COLS[index]; }

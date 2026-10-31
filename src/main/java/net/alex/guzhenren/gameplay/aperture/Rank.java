@@ -9,9 +9,9 @@ import net.minecraft.util.StringRepresentable;
 /**
  * Rank [转数], the coarse measure of a cultivator, and the tables each grade carries.
  *
- * <p>Closed vocabulary enum: {@code rankBase}, {@code maxHealth} and the {@link EssenceColor} all live
- * here as the single source. {@code NONE} is outside the settable range; {@code shift(int)} clamps at
- * {@code ONE} to {@code FIVE}. No sibling mod may add a rank.
+ * <p>Closed vocabulary enum: {@code rankBase} and {@code maxHealth} both live here as the single source.
+ * {@code NONE} is outside the settable range; {@code shift(int)} clamps at {@code ONE} to {@code FIVE}. No sibling
+ * mod may add a rank.
  *
  * <p>⚠ {@code maxHealth} is the player's maximum health at that rank. A tended Gu also answers
  * {@code getMaxHealth()}, from {@code TendedGuItem.GU_MAX_HEALTH}; Gu health never moves onto this table.
@@ -28,36 +28,32 @@ import net.minecraft.util.StringRepresentable;
 
 public enum Rank implements NamedEnum {
 
-    NONE(0L, 20, EssenceColor.NONE),
-    ONE(1L, 20, EssenceColor.GREEN_COPPER),
-    TWO(10L, 40, EssenceColor.RED_STEEL),
-    THREE(100L, 60, EssenceColor.WHITE_SILVER),
-    FOUR(1_000L, 80, EssenceColor.YELLOW_GOLDEN),
-    FIVE(10_000L, 100, EssenceColor.PURPLE_CRYSTAL),
+    NONE(0L, 20),
+    ONE(1L, 20),
+    TWO(10L, 40),
+    THREE(100L, 60),
+    FOUR(1_000L, 80),
+    FIVE(10_000L, 100),
 
-    SIX(0L, 0, EssenceColor.GREEN_GRAPE),
-    SEVEN(0L, 0, EssenceColor.RED_DATE),
-    EIGHT(0L, 0, EssenceColor.WHITE_LITCHI),
-    NINE(0L, 0, EssenceColor.YELLOW_APRICOT);
+    SIX(0L, 0),
+    SEVEN(0L, 0),
+    EIGHT(0L, 0),
+    NINE(0L, 0);
 
     public static final Codec<Rank> CODEC = StringRepresentable.fromEnum(Rank::values);
     public static final Rank LOWEST = ONE;
     public static final Rank HIGHEST = FIVE;
     private final long rankBase;
     private final int maxHealth;
-    private final EssenceColor essenceColor;
 
-    Rank(long rankBase, int maxHealth, EssenceColor essenceColor) {
+    Rank(long rankBase, int maxHealth) {
         this.rankBase = rankBase;
         this.maxHealth = maxHealth;
-        this.essenceColor = essenceColor;
     }
 
     public long getRankBase() { return rankBase; }
 
     public int getMaxHealth() { return maxHealth; }
-
-    public EssenceColor getEssenceColor() { return essenceColor; }
 
     public Rank shift(int delta) {
         return values()[Mth.clamp(ordinal() + delta, LOWEST.ordinal(), HIGHEST.ordinal())];

@@ -6,7 +6,7 @@ package net.alex.guzhenren.client.radial;
  * <p>Opening: the ring grows from {@link #OPEN_FROM} to full size with a slight overshoot ({@link #getOpenScale})
  * while it fades in ({@link #getOpenAlpha}), and each sector appears {@link #STAGGER_MS} after the one before it,
  * clockwise ({@link #getAppear}). Pointing: a sector's hover weight eases toward 1 while pointed at and back to 0
- * after ({@link #approach}); it pushes the sector out, widens its rim and enlarges its icon. The name at the centre
+ * after ({@link #approach}); it pushes the sector out, widens its rim and enlarges its icon. The name at the center
  * rises in over {@link #LABEL_MS} ({@link #getLabelIn}). Leaving: a pick flashes the chosen sector white
  * ({@link #getFlash}), swells the ring to {@link #PICK_TO} and fades it after a short hold; a cancel shrinks it to
  * {@link #CANCEL_TO} while it fades ({@link #getExitScale}, {@link #getExitAlpha}, {@link #isExitDone}).

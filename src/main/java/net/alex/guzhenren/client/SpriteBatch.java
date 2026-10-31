@@ -22,11 +22,11 @@ import org.joml.Matrix4f;
  * nine-sliced as the sprite's {@code .mcmeta} says, or cropped from the left for a part-full bar ({@link #blitLeft}) --
  * but every quad of a block goes into one buffer and one draw call.
  *
- * <p>{@code blitSprite} draws each tile on its own, so a full-screen nine-slice panel with a 20-pixel centre costs a
+ * <p>{@code blitSprite} draws each tile on its own, so a full-screen nine-slice panel with a 20-pixel center costs a
  * few hundred draw calls a frame. {@link #draw} collects a block's quads and draws them when the block ends, after
  * flushing what the graphics already queued: a block lands over earlier fills and under later fills and text, and
  * inside a block a later sprite covers an earlier one. A tint multiplies the sprite's pixels, which is how a
- * greyscale sprite takes a data colour.
+ * grayscale sprite takes a data color.
  *
  * <p>The nine-slice's right column is as wide as the sprite's right border; vanilla 1.21.1 draws it at the left
  * border's width, which cuts a sprite whose two side borders differ.

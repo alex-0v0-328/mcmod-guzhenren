@@ -14,7 +14,7 @@ package net.alex.guzhenren.registry.builder;
  *
  * @author Alex
  * @version 1.0.0
- * @see ItemBuilder#model
+ * @see ItemBuilder#model(ItemModel)
  * @since 1.0.0
  */
 
