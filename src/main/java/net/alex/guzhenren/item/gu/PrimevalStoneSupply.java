@@ -5,17 +5,22 @@ import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
  * The one supply line for primeval stones [元石]: every automatic draw on carried stones goes through here
- * -- the top-up line (refill below {@link #REFILL_BELOW_PERCENT}%, stop at {@link #REFILL_UP_TO_PERCENT}%), which
- * also feeds a tended Gu's refining and channeling step by step, paying a cost the pool cannot cover, and the
- * refinement menu's supply slot. {@link #takeFrom} is the single way a stone leaves a stack, whether the
- * stack is stones or a Primeval Elder Gu [元老蛊] vault.
+ * -- the top-up line (refill below {@link #REFILL_BELOW_PERCENT}%, stop at {@link #REFILL_UP_TO_PERCENT}%), every
+ * essence payment a Gu makes ({@link #pay}), nourishing's purse, and the refinement menu's supply slot.
+ * {@link #takeFrom} is the single way a stone leaves a stack, whether the stack is stones or a Primeval Elder Gu
+ * [元老蛊] vault.
+ *
+ * <p>⚠ A Gu pays only through {@link #pay}: the top-up line first, then the cost, the pool first and stones for any
+ * rest. A channel or refining step is sized from the pool, so it tops up first ({@link #topUpFor} its floor) and then
+ * pays the step. ⚠ The sources run in one order, from any bag slot, offhand included: loose stones, then each Elder
+ * Gu's stock. ⚠ Stones count only for a player with an aperture to burn them through ({@link #canAfford}): the
+ * essence gate stands in for {@code isAwakened}, and without the check a mortal could pay a Gu in stones.
  *
  * <p>☠ A second copy of the top-up line drifts, and the pool silently clamps whatever a caller pours past
  * the cap. ☠ {@link #trySpend}: a lump bigger than the pool burns stones straight, never through the cap --
@@ -63,6 +68,20 @@ public final class PrimevalStoneSupply {
     public static void topUp(ServerPlayer player) {
         if (isTopUpNeeded(player)) pourInto(player, topUpDeficit(player));
     }
+
+    /** The top-up line, then, still short of {@code need} and the pool able to hold it, up to {@code need}. */
+    public static void topUpFor(ServerPlayer player, long need) {
+        topUp(player);
+        long missing = need - ApertureEssenceService.getSpendable(player);
+        if (missing > 0L && ApertureEssenceService.getMaxEssence(player) >= need) pourInto(player, missing);
+    }
+
+    /** What a Gu pays essence through: false, paying nothing, only when the pool and the stones together cannot. */
+    public static boolean pay(ServerPlayer player, long cost) {
+        if (cost <= 0L) return true;
+        topUp(player);
+        return trySpend(player, cost);
+    }
     //endregion
 
     //region sourcing stones for something else -- the walk lives here, not in a service
@@ -74,22 +93,18 @@ public final class PrimevalStoneSupply {
     }
 
     private static int draw(ServerPlayer player, int wanted) {
-        int left = wanted;
-        int taken = 0;
+        int taken = drawFrom(player, wanted, true);
+        return taken + drawFrom(player, wanted - taken, false);
+    }
 
-        ItemStack offhand = player.getItemInHand(InteractionHand.OFF_HAND);
-        if (offhand.getItem() instanceof PrimevalElderGuItem) {
-            int drawn = takeFrom(offhand, left);
-            taken += drawn;
-            left -= drawn;
-        }
+    private static int drawFrom(ServerPlayer player, int wanted, boolean loose) {
+        int taken = 0;
         Inventory inventory = player.getInventory();
-        for (int i = 0; i < inventory.getContainerSize() && left > 0; i++) {
+        for (int i = 0; i < inventory.getContainerSize() && taken < wanted; i++) {
             ItemStack stack = inventory.getItem(i);
-            if (!(stack.getItem() instanceof PrimevalStoneItem)) continue;
-            int drawn = takeFrom(stack, left);
-            taken += drawn;
-            left -= drawn;
+            if (loose ? stack.getItem() instanceof PrimevalStoneItem : stack.getItem() instanceof PrimevalElderGuItem) {
+                taken += takeFrom(stack, wanted - taken);
+            }
         }
         return taken;
     }
@@ -98,19 +113,19 @@ public final class PrimevalStoneSupply {
     //region ☠ a lump bigger than the pool -- these stones burn straight, never through the cap
     public static long getWorthOnHand(Player player) {
         long stones = 0L;
-        ItemStack offhand = player.getItemInHand(InteractionHand.OFF_HAND);
-        if (offhand.getItem() instanceof PrimevalElderGuItem) stones += PrimevalElderGuItem.getStored(offhand);
-
         Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
             if (stack.getItem() instanceof PrimevalStoneItem) stones += stack.getCount();
+            if (stack.getItem() instanceof PrimevalElderGuItem) stones += PrimevalElderGuItem.getStored(stack);
         }
         return stones * getEssencePerStone();
     }
 
     public static boolean canAfford(Player player, long cost) {
-        return ApertureEssenceService.getSpendable(player) + getWorthOnHand(player) >= cost;
+        long spendable = ApertureEssenceService.getSpendable(player);
+        if (spendable >= cost) return true;
+        return ApertureEssenceService.getMaxEssence(player) > 0L && spendable + getWorthOnHand(player) >= cost;
     }
 
     public static boolean trySpend(ServerPlayer player, long cost) {

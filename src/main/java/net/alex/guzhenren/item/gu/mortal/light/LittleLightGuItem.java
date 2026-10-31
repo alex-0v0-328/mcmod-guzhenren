@@ -38,10 +38,11 @@ import org.jetbrains.annotations.Nullable;
  * than a period plus {@link #STALE_TICKS} (logged out, chunk unloaded, stack in a chest) restarts instead of
  * charging the gap.
  *
- * <p>⚠ The drain never starves it: before a point would leave the bar hungry ({@code isHungry}, hunger at or
- * below the daily drain) it eats from the bag; with no food it turns bright off, shows {@code little_light_dimmed}
- * and keeps the point. Turning on while hungry with no food in the bag is refused. Creative follows {@code
- * TendedGuItem}: the bar still drains for show down to 0, never eats and never dims.
+ * <p>⚠ The drain is a drop like any other: after each point it eats from the bag back to full ({@code feed}), and the
+ * switch eats first like any use. It never starves it: when a point would leave the bar hungry ({@code isHungry},
+ * hunger at or below the daily drain) and the bag holds none of its food, it turns bright off instead, shows {@code
+ * little_light_dimmed} and keeps the point. Turning on while hungry with no food in the bag is refused. Creative
+ * follows {@code TendedGuItem}: the bar still drains for show down to 0, never eats and never dims.
  *
  * @author Alex
  * @version 1.0.0
@@ -77,12 +78,12 @@ public final class LittleLightGuItem extends TendedGuItem {
 
     @Override
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {
+        feed(player, stack);
         if (isBright(stack)) {
             turnOff(stack);
             ActionBar.inform(player, MSG_OFF);
             return 0;
         }
-        if (isHungry(player, stack)) eat(player, stack);
         stack.set(ModDataComponents.LITTLE_LIGHT_BRIGHT, true);
         ActionBar.inform(player, MSG_ON);
         return 0;
@@ -128,13 +129,13 @@ public final class LittleLightGuItem extends TendedGuItem {
             stack.set(ModDataComponents.REFINED_GU_STATE, state.withHunger(Math.max(0, state.hunger() - 1)));
             return;
         }
-        if (leavesHungry(stack)) eat(player, stack);
-        if (leavesHungry(stack)) {
+        if (leavesHungry(stack) && !hunger.carriesFood(this, player)) {
             turnOff(stack);
             ActionBar.inform(player, MSG_DIMMED);
             return;
         }
-        stack.set(ModDataComponents.REFINED_GU_STATE, getState(stack).withHunger(getState(stack).hunger() - 1));
+        stack.set(ModDataComponents.REFINED_GU_STATE, state.withHunger(Math.max(0, state.hunger() - 1)));
+        feed(player, stack);
     }
 
     private boolean leavesHungry(ItemStack stack) {

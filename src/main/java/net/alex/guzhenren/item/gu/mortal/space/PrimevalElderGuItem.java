@@ -21,6 +21,9 @@ import org.jetbrains.annotations.Nullable;
  * stored-stones total rides {@link net.alex.guzhenren.registry.item.ModDataComponents}, not
  * {@code RefinedGuState}, because every tended Gu shares that record.
  *
+ * <p>Carried in any slot, its stock is the stone supply's second source, after loose stones
+ * ({@code PrimevalStoneSupply}); its own uses are free, so they never top the pool up from it.
+ *
  * <p>⚠ Starving is unreachable for it by design -- a failed refinement is the only thing that can
  * destroy one. Do not "fix" the missing hunger bar.
  *

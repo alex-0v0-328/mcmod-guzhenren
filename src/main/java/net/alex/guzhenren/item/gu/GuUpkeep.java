@@ -7,13 +7,15 @@ import net.minecraft.world.item.ItemStack;
 /**
  * The day-rollover walk over refined tended Gu: three containers bill through here, on either clock --
  * {@link #tickInContainer} for a Gu held in an aperture, {@link #tickCarried} for every Gu in the holder's own
- * inventory; either may feed itself from the holder's bag. Each refined Gu pays its own upkeep, then its hunger
- * clock decides whether it starved; a starved carried Gu is removed and reported through
+ * inventory; either eats from the holder's bag before and after the day's drain. Each refined Gu pays its own
+ * upkeep, then its hunger clock decides whether it starved; a starved carried Gu is removed and reported through
  * {@code TendedGuItem.starve}.
  *
- * <p>⚠ The billing step runs decay, then auto-feed, then warn. Nothing in the code makes that order look
- * load-bearing, and swapping any two of them changes which Gu survive a day. The feed mends first, so a Gu whose
- * bag food all went on a wound is still warned.
+ * <p>⚠ The billing step runs the meal, decay, the meal again, then warn. Nothing in the code makes that order look
+ * load-bearing, and swapping any two of them changes which Gu survive a day. The first meal saves a Gu that went
+ * hungry while the bag was empty and found food since: a stored Gu cannot be driven, so nothing else feeds it before
+ * the drain. Both meals run only on a heartbeat that crossed a day ({@code days > 0}); each mends first, so a Gu
+ * whose bag food all went on a wound is still warned.
  *
  * @author Alex
  * @version 1.0.0
@@ -45,9 +47,10 @@ public final class GuUpkeep {
         if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.isRefined(stack)) return false;
 
         gu.payOwnUpkeep(player, stack);
+        if (days > 0L) gu.feed(player, stack);
         if (gu.hunger.tickStarvation(player, stack, days)) return true;
 
-        gu.tryAutoFeed(player, stack);
+        if (days > 0L) gu.feed(player, stack);
         if (gu.hunger.isHungry(player, stack)) gu.hunger.warn(player, stack, days);
         return false;
     }

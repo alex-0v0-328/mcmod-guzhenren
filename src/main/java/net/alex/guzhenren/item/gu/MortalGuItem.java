@@ -3,7 +3,6 @@ package net.alex.guzhenren.item.gu;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
-import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
@@ -41,7 +40,11 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
  * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
  *
- * <p>⚠ No Gu gates on {@code isAwakened}; the essence gate ({@link #checkEssenceGate}) stands in for it and
+ * <p>⚠ The essence gate ({@link #checkEssenceGate}) counts the carried stones with the pool
+ * ({@code PrimevalStoneSupply.canAfford}), on the client as on the server, and a Gu pays every cost through
+ * {@code PrimevalStoneSupply.pay}, so what the gate lets through, the payment covers.
+ *
+ * <p>⚠ No Gu gates on {@code isAwakened}; the essence gate stands in for it (stones count only with an aperture) and
  * passes a zero cost. No one-shot Gu has a refine cost, so a mortal without an aperture uses the Vitality Leaf,
  * Lifespan, Guts and Second Aperture Gu by design; the Relics Gu stop at {@link #checkStageUpGate}. The Hope Gu
  * is the one {@code isAwakened} check, refusing a player who already has a first aperture.
@@ -128,7 +131,7 @@ public abstract class MortalGuItem extends GuItem {
     //region refining [炼化] -- every Gu answers it, and only the price differs
     protected final @Nullable Refusal checkEssenceGate(Player player, long required, String key) {
         if (required <= 0) return null;
-        return ApertureEssenceService.getSpendable(player) < required ? new Refusal(key) : null;
+        return PrimevalStoneSupply.canAfford(player, required) ? null : new Refusal(key);
     }
 
     public final @Nullable Refusal checkStageUpGate(Aperture aperture) {
@@ -138,9 +141,7 @@ public abstract class MortalGuItem extends GuItem {
         return aperture.stage() == Stage.HIGHEST ? new Refusal(FAILED_STAGE_PEAK) : null;
     }
 
-    protected final void payRefineCost(ServerPlayer player) {
-        if (getRefineCost() > 0) ApertureEssenceService.consume(player, getRefineCost());
-    }
+    protected final void payRefineCost(ServerPlayer player) { PrimevalStoneSupply.pay(player, getRefineCost()); }
     //endregion
 
     //region the click -- a Gu always answers the right click, if only to be refined

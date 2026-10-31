@@ -3,9 +3,9 @@ package net.alex.guzhenren.item.gu.mortal.wood;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.TendedGuItem} but declares no clock -- never eats, never starves,
  * and has no way to mend its health. Once refined, a tapped right click picks one leaf into the bag for free; a
- * held one pays {@code essencePerLeaf} essence [真元] over a {@link #GROW_CHARGE_TICKS} charge to grow one. Leaves
+ * held one pays {@code essencePerLeaf} essence [真元] over a {@link #GROW_CHARGE_TICKS} charge to grow one, through
+ * the stone supply like any Gu use ({@code PrimevalStoneSupply.pay}), so carried stones cover a short pool. Leaves
  * also regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
  *
  * <p>⚠ A stack without the component holds nine: the grass picked from its flower, a wild one and a creative copy
@@ -122,7 +123,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     //region growing -- the hold, paid from the holder's own essence
     @Override
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {
-        if (!ApertureEssenceService.consume(player, essencePerLeaf)) return 0;
+        if (!PrimevalStoneSupply.pay(player, essencePerLeaf)) return 0;
 
         stack.set(ModDataComponents.LEAF_GROWTH,
                 getGrowth(stack).grow(player.level().getGameTime(), regrowTicks));

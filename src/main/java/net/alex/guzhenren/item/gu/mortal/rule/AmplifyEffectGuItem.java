@@ -2,9 +2,9 @@ package net.alex.guzhenren.item.gu.mortal.rule;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.TendedGuItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * drives a hotbar Gu ({@link #driveFromHotbar}).
  *
  * <p>Extends {@link TendedGuItem}: refined in the main hand like any tended Gu, and fed from the bag around each
- * billed use and on the day rollover. Once refined, the client turns its right click into the radial menu, so its
+ * billed use and around the day's drain. Once refined, the client turns its right click into the radial menu, so its
  * own use never reaches the server but by a forged packet, and is refused; from the offhand it does not answer the
  * click at all, so a refused main-hand Gu keeps its own reason on the action bar.
  *
@@ -35,10 +35,11 @@ import org.jetbrains.annotations.Nullable;
  * {@link #canAmplify} is the one eligibility test (the amplifier refined, the target amplifiable, refined if tended,
  * of its rank or lower), read by the client's menu and by both server paths.
  *
- * <p>⚠ In the offhand it stays idle and unbilled for a Gu it cannot amplify, while wild, and when the aperture
- * cannot pay its essence after the driven Gu paid its own; the driven Gu then lands unamplified. The menu's drive
- * checks the two costs together first and refuses instead. On an empty bar it is forced like any tended Gu: the
- * amplified effect lands, then it dies of exhaustion and leaves its hand.
+ * <p>⚠ In the offhand it stays idle and unbilled for a Gu it cannot amplify, while wild, and when the pool and the
+ * carried stones cannot pay its essence after the driven Gu paid its own; the driven Gu then lands unamplified. The
+ * menu's drive checks the two costs together first ({@code PrimevalStoneSupply.canAfford}) and refuses instead. On an
+ * empty bar it is forced like any tended Gu: the amplified effect lands, then it dies of exhaustion and leaves its
+ * hand.
  *
  * @author Alex
  * @version 1.0.0
@@ -93,7 +94,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
         if (!(stack.getItem() instanceof AmplifyEffectGuItem amplifier) || !amplifier.canAmplify(stack, target)) return;
 
         MortalGuItem driven = (MortalGuItem) target.getItem();
-        if (ApertureEssenceService.getSpendable(player) < amplifier.getUseEssence() + driven.getUseEssence()) {
+        if (!PrimevalStoneSupply.canAfford(player, amplifier.getUseEssence() + driven.getUseEssence())) {
             ActionBar.refuse(player, FAILED_ESSENCE);
             return;
         }

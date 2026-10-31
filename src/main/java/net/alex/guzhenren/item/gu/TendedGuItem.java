@@ -32,12 +32,15 @@ import org.jetbrains.annotations.Nullable;
  * modules answer, and channeling is this item's own {@code onUseTick}, reading and writing ten of its members --
  * pulled out, all of them would have to open up.
  *
- * <p>⚠ A refined Gu feeds itself from the holder's bag ({@link #eat}, every slot, offhand included): before and
- * after each {@code drive}, on every channel step, and on the heartbeat while hungry or hurt ({@link
- * #tryAutoFeed}). Every meal mends first and fills the bar only once whole. Food never routes a click, so there is
- * no feeding gesture; a channeled Gu at its hunger floor is refused only when the bag holds none of its food
- * ({@link GuHunger#carriesFood}). ⚠ Creative ignores the floor: the bar still drains to 0 for show, and the Gu
- * keeps channeling, as a forced use there never exhausts it.
+ * <p>⚠ A refined Gu feeds itself from the holder's bag through one meal, {@link #feed} (every slot, offhand
+ * included; it mends first, fills the bar only once whole, and runs only while the bar has room), at two moments:
+ * before a use, and right after every drop, back to full. The drops are a use ({@link #drive}), a partner's bill
+ * ({@link #billAsPartner}), each channel step, the day clock ({@link GuUpkeep}, carried or kept in an aperture,
+ * which also eats before its drain) and the Little Light Gu's bright drain; nothing else eats, so a full bar never
+ * eats just to mend. Food never routes a
+ * click, so there is no feeding gesture; a channeled Gu at its hunger floor is refused only when the bag holds none
+ * of its food ({@link GuHunger#carriesFood}). ⚠ Creative ignores the floor: the bar still drains to 0 for show, and
+ * the Gu keeps channeling, as a forced use there never exhausts it.
  *
  * <p>⚠ {@code checkCooldown} is the one cooldown gate for the use, the tap use and {@link #tryAutoUse}:
  * the larger of the effect cooldown (waived by {@code canUseDuringEffectCooldown}) and the post-refine guard. A
@@ -55,9 +58,10 @@ import org.jetbrains.annotations.Nullable;
  * holder above the Gu's rank is Gu-paced: a channel step pours at most
  * {@code getEssencePerHungerPoint() * STEP_TICKS}, scaled by {@code TimeFlow}, and a refining step may pour the
  * whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
- * 80% of it a second at normal time flow. Each refining or channel step tops the pool up from carried stones
- * ({@code PrimevalStoneSupply.topUp}), and each channel step eats from the bag before it sizes the essence,
- * because the step is capped by the essence above the hunger floor, which the meal raises.
+ * 80% of it a second at normal time flow. Every essence this Gu pays goes out through {@code
+ * PrimevalStoneSupply.pay}; a step is sized from the pool, so it first tops up to at least {@code ESSENCE_FLOOR}
+ * ({@code topUpFor}), and a channel step eats before it sizes the essence, because the step is capped by the
+ * essence above the hunger floor, which the meal raises.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
  * the very first click. Gu health is {@link GuHealth}, {@link #GU_MAX_HEALTH} unless the spec sets it.
@@ -182,21 +186,22 @@ public class TendedGuItem extends MortalGuItem {
         }
         if (!spec.isChanneled()) return;
 
-        eat(player, stack);
-        PrimevalStoneSupply.topUp(player);
+        feed(player, stack);
+        PrimevalStoneSupply.topUpFor(player, ESSENCE_FLOOR);
         int take = stepAmount(player, stack, elapsed);
-        if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
+        if (take <= 0 || !PrimevalStoneSupply.pay(player, take)) {
             player.stopUsingItem();
             return;
         }
         pour(player, stack, take);
+        feed(player, stack);
     }
 
     private void refineTick(ServerPlayer player, ItemStack stack, int elapsed) {
-        PrimevalStoneSupply.topUp(player);
+        PrimevalStoneSupply.topUpFor(player, ESSENCE_FLOOR);
         int left = getRefineCost() - getState(stack).refineProgress();
         int take = (int) Math.min(left, getPoured(player, elapsed));
-        if (take <= 0 || !ApertureEssenceService.consume(player, take)) {
+        if (take <= 0 || !PrimevalStoneSupply.pay(player, take)) {
             player.stopUsingItem();
             return;
         }
@@ -337,15 +342,15 @@ public class TendedGuItem extends MortalGuItem {
     protected int useChargeTicks(Player player, ItemStack stack) { return useChargeByGap(player); }
 
     protected int drive(ServerPlayer player, ItemStack stack) {
-        eat(player, stack);
+        feed(player, stack);
         if (trySpendAndApply(player, stack)) return 1;
-        eat(player, stack);
+        feed(player, stack);
         if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
         return 0;
     }
 
     protected final boolean trySpendAndApply(ServerPlayer player, ItemStack stack) {
-        ApertureEssenceService.consume(player, spec.getEssencePerRound());
+        PrimevalStoneSupply.pay(player, spec.getEssencePerRound());
         boolean drivenOnAnEmptyBar = hunger.isSpendForced(stack, getHungerCostMultiplier(player, stack));
         applyEffectWithCooldown(player, stack);
         if (!drivenOnAnEmptyBar || player.getAbilities().instabuild) return false;
@@ -354,17 +359,17 @@ public class TendedGuItem extends MortalGuItem {
         return true;
     }
 
-    /** Pays one use backing another Gu's effect, with none of its own: false only when the aperture cannot. */
+    /** Pays one use backing another Gu's effect, with none of its own: false only when pool and stones cannot. */
     public final boolean billAsPartner(ServerPlayer player, ItemStack stack) {
-        if (!ApertureEssenceService.consume(player, spec.getEssencePerRound())) return false;
+        if (!PrimevalStoneSupply.pay(player, spec.getEssencePerRound())) return false;
 
-        eat(player, stack);
+        feed(player, stack);
         if (hunger.isSpendForced(stack) && !player.getAbilities().instabuild) {
             exhaust(player, stack);
             stack.shrink(1);
             return true;
         }
-        eat(player, stack);
+        feed(player, stack);
         if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
         return true;
     }
@@ -410,7 +415,7 @@ public class TendedGuItem extends MortalGuItem {
         return isRefined(stack) && !spec.isChanneled() ? performOwnUse(player, stack) : 0;
     }
 
-    protected void eat(ServerPlayer player, ItemStack stack) { hunger.eat(this, player, stack); }
+    protected void feed(ServerPlayer player, ItemStack stack) { hunger.feed(this, player, stack); }
     //endregion
 
     //region display
@@ -487,10 +492,6 @@ public class TendedGuItem extends MortalGuItem {
 
     //region the day clock -- GuUpkeep walks the containers; a leaf may pay its own upkeep
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
-
-    public void tryAutoFeed(ServerPlayer player, ItemStack stack) {
-        if (hunger.isHungry(player, stack) || getState(stack).damageTaken() > 0) eat(player, stack);
-    }
     //endregion
 
     //region the three deaths -- one funnel, three messages; a Vital Gu starves or exhausts, never ruins

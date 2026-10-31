@@ -14,7 +14,8 @@ import net.minecraft.world.item.ItemStack;
  *
  * <p>⚠ Binding one would lose it, and bill its owner, on the very first click. ⚠ It never eats on its way out:
  * {@code drive} only spends and grants ({@code trySpendAndApply}), skipping the base's meals before and after, so
- * no food goes into a stack that is gone after the click.
+ * no food goes into a stack that is gone after the click. Every one costs no hunger a use, so there is no drop to
+ * eat after; it still eats around the day clock's drain like any tended Gu.
  *
  * @author Alex
  * @version 1.0.0

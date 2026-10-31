@@ -9,8 +9,11 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * A tended Gu's hunger [饱食]: how it is billed over time, what it takes to keep one alive, and the meals it takes
- * from the holder's bag ({@link #eat}: every slot, offhand included; each food mends first through {@link GuHealth},
+ * from the holder's bag ({@link #feed}: every slot, offhand included; each food mends first through {@link GuHealth},
  * then fills the bar).
+ *
+ * <p>⚠ {@link #feed} is the one meal and runs only while the bar has room ({@link #hasRoom}): a full bar never eats
+ * just to mend, so a wound waits for the next drop. When it runs is {@code TendedGuItem}'s rule, not this one's.
  *
  * <p>A sealed interface with three implementations: {@link HungerBar} (every tended Gu with a bar that drains),
  * {@link RecoverBar} (the As Before Gu [如故蛊]: a bar that refills with the world clock, never drains by the day,
@@ -54,6 +57,8 @@ public sealed interface GuHunger {
 
     boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food);
 
+    boolean hasRoom(ItemStack stack);
+
     int getEssenceAboveHungerFloor(ItemStack stack);
 
     int getEssencePerHungerPoint();
@@ -68,8 +73,10 @@ public sealed interface GuHunger {
 
     float getBarFraction(ItemStack stack);
 
-    //region the bag -- every meal mends first, then fills the bar
-    default void eat(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
+    //region the bag -- every meal mends first, then fills the bar, and only a bar with room eats
+    default void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
+        if (!hasRoom(stack)) return;
+
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack food = inventory.getItem(slot);
@@ -143,6 +150,9 @@ public sealed interface GuHunger {
             setHunger(stack, getHunger(stack) + meal.gained());
             return true;
         }
+
+        @Override
+        public boolean hasRoom(ItemStack stack) { return getHunger(stack) < max; }
 
         @Override
         public int getEssenceAboveHungerFloor(ItemStack stack) {
@@ -274,6 +284,9 @@ public sealed interface GuHunger {
         public boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) { return false; }
 
         @Override
+        public boolean hasRoom(ItemStack stack) { return false; }
+
+        @Override
         public int getEssenceAboveHungerFloor(ItemStack stack) { return Integer.MAX_VALUE; }
 
         @Override
@@ -332,6 +345,9 @@ public sealed interface GuHunger {
 
         @Override
         public boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) { return false; }
+
+        @Override
+        public boolean hasRoom(ItemStack stack) { return false; }
     }
     //endregion
 
