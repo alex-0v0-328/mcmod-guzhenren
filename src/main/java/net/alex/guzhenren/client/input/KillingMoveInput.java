@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -25,19 +24,20 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * A killing move's [杀招] main Gu on the client: once the player has learned a move it leads
- * ({@link KillingMoveService#knowsAnyLedBy}), a right click with a refined one in the main hand holds the
- * {@link RadialMenu} instead of using the item, listing the hotbar Gu that can back a learned move
- * ({@link KillingMove#find}); every gesture sends {@link KillingMovePayload}, and the server checks it all again.
- * Before that the click stays vanilla's: the main Gu charges and fires as any Gu, and blocks still open.
+ * A moon blade Gu [月刃] on the client: a right click with a refined one in the main hand
+ * ({@link KillingMoveService#asBladeGu}) holds the {@link RadialMenu} instead of using the item, whether or not the
+ * player has learned a killing move [杀招]; {@link KillingMoveGesture} decides what the hold sends as
+ * {@link KillingMovePayload}, and the server checks it all again.
  *
- * <p>A pick sends that partner's slot. Letting go before the ring opens (a tap), or at any time when it listed
- * nothing, sends {@code KillingMoveService.NONE}: the main Gu's plain use, with no charge. Letting go inside the inner
- * ring or on a disabled sector sends nothing. A sector is shown disabled while the main Gu or that partner is on the
- * vanilla cooldown, either of which stops the server too.
+ * <p>A tap (let go before the ring opens, {@code RadialMenu.OPEN_DELAY_TICKS}) fires the plain blade at once, with
+ * no charge. A longer hold opens one sector per usable move ({@link KillingMoveService#listUsable}: learned, with a
+ * refined partner in the inventory or an aperture store), labelled with the move's name and showing its partner; a
+ * pick casts it, and letting go inside the inner ring or on a disabled sector sends nothing. A hold with no usable
+ * move opens nothing and sends nothing. A sector is shown disabled while the main Gu or the partner is on the vanilla
+ * cooldown, either of which stops the server too.
  *
  * <p>A wild one leaves the click to vanilla, so it is still refined by holding the click. The hold ends when the use
- * key is let go or the main Gu leaves the main hand (a number key); only the first sends anything.
+ * key is let go or the Gu leaves the main hand (a number key); only the first sends anything.
  *
  * <p>It also writes the tooltip lines that need the player, which an item's own tooltip lacks: a refined main Gu of
  * a learned move gets the hold hint, and a killing move book [杀招书] already read gets its learned line.
@@ -63,12 +63,12 @@ public final class KillingMoveInput {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         ItemStack stack = player.getMainHandItem();
-        TendedGuItem main = KillingMove.asRefinedMain(stack);
-        if (main == null || !KillingMoveService.knowsAnyLedBy(player, main)) return;
+        TendedGuItem gu = KillingMoveService.asBladeGu(stack);
+        if (gu == null) return;
 
         event.setCanceled(true);
         event.setSwingHand(false);
-        RadialMenu.hold(new Hotbar(player, stack, main));
+        RadialMenu.hold(new Hold(player, stack, gu));
     }
 
     @SubscribeEvent
@@ -82,23 +82,24 @@ public final class KillingMoveInput {
             }
             return;
         }
-        TendedGuItem main = KillingMove.asRefinedMain(stack);
-        if (main != null && KillingMoveService.knowsAnyLedBy(player, main)) {
+        TendedGuItem gu = KillingMoveService.asBladeGu(stack);
+        if (gu != null && KillingMoveService.knowsAnyLedBy(player, gu)) {
             event.getToolTip().add(Component.translatable(TOOLTIP_HINT).withStyle(ChatFormatting.GRAY));
         }
     }
 
-    private static final class Hotbar implements RadialMenu.Owner {
+    private static final class Hold implements RadialMenu.Owner {
 
         private final LocalPlayer player;
         private final ItemStack stack;
-        private final TendedGuItem main;
-        private final List<Integer> slots = new ArrayList<>();
+        private final TendedGuItem gu;
+        private final KillingMoveGesture gesture;
 
-        private Hotbar(LocalPlayer player, ItemStack stack, TendedGuItem main) {
+        private Hold(LocalPlayer player, ItemStack stack, TendedGuItem gu) {
             this.player = player;
             this.stack = stack;
-            this.main = main;
+            this.gu = gu;
+            this.gesture = new KillingMoveGesture(this::send);
         }
 
         @Override
@@ -108,31 +109,29 @@ public final class KillingMoveInput {
 
         @Override
         public List<RadialMenu.Entry> entries() {
-            slots.clear();
+            List<KillingMove> moves = KillingMoveService.listUsable(player, gu);
+            gesture.list(moves.stream().map(KillingMove::getId).toList());
+            boolean mainReady = !player.getCooldowns().isOnCooldown(gu);
             List<RadialMenu.Entry> entries = new ArrayList<>();
-            boolean mainReady = !player.getCooldowns().isOnCooldown(main);
-            for (int slot = 0; slot < Inventory.getSelectionSize(); slot++) {
-                ItemStack partner = player.getInventory().getItem(slot);
-                KillingMove move = KillingMove.find(main, partner);
-                if (slot == player.getInventory().selected || move == null || !KillingMoveService.knows(player, move)) {
-                    continue;
-                }
-
-                slots.add(slot);
-                entries.add(new RadialMenu.Entry(partner, partner.getHoverName(),
+            for (KillingMove move : moves) {
+                ItemStack partner = new ItemStack(move.getPartner());
+                entries.add(new RadialMenu.Entry(partner, Component.translatable(move.getTranslationKey()),
                         mainReady && !player.getCooldowns().isOnCooldown(partner.getItem())));
             }
             return entries;
         }
 
         @Override
-        public void pick(int index) { send(slots.get(index)); }
+        public void pick(int index) { gesture.pick(index); }
 
         @Override
-        public void releaseUnopened() { send(KillingMoveService.NONE); }
+        public void empty() { gesture.empty(); }
 
-        private void send(int slot) {
-            if (player.getMainHandItem() == stack) PacketDistributor.sendToServer(new KillingMovePayload(slot));
+        @Override
+        public void releaseUnopened() { gesture.releaseUnopened(); }
+
+        private void send(String move) {
+            if (player.getMainHandItem() == stack) PacketDistributor.sendToServer(new KillingMovePayload(move));
         }
     }
 }

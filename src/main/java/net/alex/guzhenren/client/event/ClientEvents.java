@@ -4,6 +4,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.hud.AwakeningHud;
 import net.alex.guzhenren.client.hud.ChargeHud;
+import net.alex.guzhenren.client.hud.KillingMoveTooltipHud;
 import net.alex.guzhenren.client.hud.ShieldGlowHud;
 import net.alex.guzhenren.client.hud.ShieldHud;
 import net.alex.guzhenren.client.hud.NourishHud;
@@ -23,6 +24,7 @@ import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
+import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
@@ -66,9 +68,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers eight GUI layers
+ * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers nine GUI layers
  * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} and {@link ShieldGlowHud} above the vanilla camera overlays,
- * {@link net.alex.guzhenren.client.hud.PlayerStatsHud}, {@link net.alex.guzhenren.client.hud.ChargeHud},
+ * {@link net.alex.guzhenren.client.hud.PlayerStatsHud} and {@link KillingMoveTooltipHud} above the hotbar,
+ * {@link net.alex.guzhenren.client.hud.ChargeHud},
  * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, {@link RadialMenu} above the crosshair, and
  * {@link AwakeningHud} above everything),
  * the key mapping for
@@ -77,10 +80,11 @@ import org.jetbrains.annotations.Nullable;
  * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
  * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at the
  * lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player renderers get
- * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload} and {@code ImpactShakePayload}
- * handlers with {@code ModPayloads}, which names no client class itself, and the Epic Fight client hooks
- * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered key states, the pending
- * flashes and the shield glow, and drops a radial-menu hold; each client tick steps the shield glow.
+ * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload}, {@code ImpactShakePayload} and
+ * {@code KillingMoveTooltipPayload} handlers with {@code ModPayloads}, which names no client class itself, and the
+ * Epic Fight client hooks ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered
+ * key states, the pending flashes, the shield glow and the Killing Move Tooltip, and drops a radial-menu hold; each
+ * client tick steps the shield glow.
  *
  * @author Alex
  * @version 1.0.0
@@ -105,6 +109,8 @@ public final class ClientEvents {
             Guzhenren.id("shield_glow");
     private static final ResourceLocation SONIC_BOOM =
             Guzhenren.id("sonic_boom");
+    private static final ResourceLocation KILLING_MOVE_TOOLTIP =
+            Guzhenren.id("killing_move_tooltip");
     private static final ResourceLocation RADIAL_MENU =
             Guzhenren.id("radial_menu");
     private static final ResourceLocation AWAKENING =
@@ -117,6 +123,8 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SHIELD_GLOW,
                 (g, delta) -> ShieldGlowHud.INSTANCE.render(g, delta));
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
+        event.registerAbove(VanillaGuiLayers.HOTBAR, KILLING_MOVE_TOOLTIP,
+                (g, delta) -> KillingMoveTooltipHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, CHARGE, (g, delta) -> ChargeHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, NOURISH, (g, delta) -> NourishHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, SHIELD, (g, delta) -> ShieldHud.INSTANCE.render(g));
@@ -135,6 +143,7 @@ public final class ClientEvents {
                     (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
             ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);
+            ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
             EpicFightClientIntegration.initialize();
         });
     }
@@ -199,6 +208,7 @@ public final class ClientEvents {
         DashInput.reset();
         SkinFlashes.clear();
         ShieldGlowHud.INSTANCE.reset();
+        KillingMoveTooltipHud.INSTANCE.clear();
         RadialMenu.close();
     }
 

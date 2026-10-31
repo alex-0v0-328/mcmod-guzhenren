@@ -448,7 +448,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.little_light_dimmed",
                 "Your Little Light Gu is hungry and dims", "小光蛊饿了，强光熄灭");
         add("guzhenren.item.gu.killing_move_hint",
-                "Hold right-click to pick a partner Gu for a killing move", "长按右键选配合蛊，施展杀招");
+                "Hold right-click to pick a killing move", "长按右键选杀招");
         add("guzhenren.killing_move.km_mortal_little_light_amplify", "Little Light Amplification", "小光蛊增幅");
         add("guzhenren.item.killing_move.learned",                   "Learned the killing move %s", "学会杀招：%s");
         add("guzhenren.item.failed.killing_move_known",              "You already know %s", "已学会%s");

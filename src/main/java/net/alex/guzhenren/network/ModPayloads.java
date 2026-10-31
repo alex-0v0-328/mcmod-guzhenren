@@ -10,6 +10,7 @@ import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
+import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
@@ -28,8 +29,9 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
  * Registers the ten client-intent payloads and forwards each to {@link ClientIntents}, which holds every
- * check, and the two server notices ({@code SkinFlashPayload}, {@code ImpactShakePayload}), each handed to whatever
- * the client registered for its class through {@link #handleOnClient}.
+ * check, and the three server notices ({@code SkinFlashPayload}, {@code ImpactShakePayload},
+ * {@code KillingMoveTooltipPayload}), each handed to whatever the client registered for its class through
+ * {@link #handleOnClient}.
  *
  * <p>Each record in {@code network.payload} is its own {@link CustomPacketPayload}, with its {@code TYPE} and
  * {@code STREAM_CODEC}; callers send them through NeoForge's {@code PacketDistributor}. The handlers run on the main
@@ -75,10 +77,12 @@ public final class ModPayloads {
         toServer(registrar, AmplifyDrivePayload.TYPE, AmplifyDrivePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
         toServer(registrar, KillingMovePayload.TYPE, KillingMovePayload.STREAM_CODEC,
-                (intent, player) -> ClientIntents.killingMove(player, intent.slot()));
+                (intent, player) -> ClientIntents.killingMove(player, intent.move()));
         registrar.playToClient(SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC,
                 (notice, context) -> dispatchToClient(notice));
         registrar.playToClient(ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC,
+                (notice, context) -> dispatchToClient(notice));
+        registrar.playToClient(KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC,
                 (notice, context) -> dispatchToClient(notice));
     }
 

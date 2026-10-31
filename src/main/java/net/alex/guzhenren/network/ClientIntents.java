@@ -9,6 +9,7 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
+import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
@@ -16,16 +17,18 @@ import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * What the server does with each client intent: the two containers, the secondary path, the three
  * cultivation actions, the dash, the second-stage flight [二段飞行] toggle, the plunge [坠击], the Amplify Effect
- * Gu's [功倍蛊] radial-menu pick and a killing move's [杀招] main-Gu use (its partner's slot, or none for a plain
- * use). Every intent but that toggle refuses inside the Treasure Yellow Heaven
- * ({@link #isOutsideTyh}), where flight and its second stage are what remains; the plunge's own rule refuses it
- * there ({@code PlungeService#canStart}), which the client asks too.
+ * Gu's [功倍蛊] radial-menu pick and a moon blade Gu's [月刃] use (the killing move [杀招] picked, or none for a
+ * plain use; a cast that lands answers the caster with the Killing Move Tooltip's [杀招提示] notice). Every intent but
+ * that toggle refuses inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage
+ * are what remains; the plunge's own rule refuses it there ({@code PlungeService#canStart}), which the client asks
+ * too.
  *
  * <p>Every client intent in this mod is a B-panel button, a movement input or a radial-menu gesture that player-data
  * sync cannot carry upstream; none carries player data, and downstream player data always travels as synced state.
@@ -96,8 +99,11 @@ public final class ClientIntents {
         if (isOutsideTyh(player)) AmplifyEffectGuItem.driveFromHotbar(player, slot);
     }
 
-    public static void killingMove(@NotNull ServerPlayer player, int slot) {
-        if (isOutsideTyh(player)) KillingMoveService.drive(player, slot);
+    public static void killingMove(@NotNull ServerPlayer player, @NotNull String move) {
+        if (!isOutsideTyh(player)) return;
+
+        KillingMoveService.Cast cast = KillingMoveService.drive(player, move);
+        if (cast != null) PacketDistributor.sendToPlayer(player, KillingMoveTooltipPayload.of(cast));
     }
 
     public static void openRefinement(@NotNull ServerPlayer player) {

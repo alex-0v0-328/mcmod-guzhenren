@@ -19,9 +19,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The radial menu [扇形选择器]: a held input raises a ring of sectors at the screen's centre, mouse movement points
  * at one, and letting go picks it. Generic: an {@link Owner} says while the input is held, which entries to show and
- * what a pick does; the Amplify Effect Gu [功倍蛊] and a killing move's [杀招] main Gu are its owners. An
- * {@link Entry} is one sector: its icon, the name shown at the centre while it is pointed at, and whether a pick
- * counts.
+ * what a pick does; the Amplify Effect Gu [功倍蛊] and a moon blade Gu [月刃] (its killing moves [杀招]) are its
+ * owners. An {@link Entry} is one sector: its icon, the name shown at the centre while it is pointed at, and whether
+ * a pick counts.
  *
  * <p>One hold runs at a time ({@link #hold}). It opens after {@link #OPEN_DELAY_TICKS} held ticks, so a tap never
  * shows it; the entries are read once at that moment and stay fixed until release. Letting go on an enabled sector

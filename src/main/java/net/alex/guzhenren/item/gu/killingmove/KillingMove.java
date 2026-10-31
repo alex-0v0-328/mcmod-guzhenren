@@ -11,16 +11,16 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The closed table of killing moves [杀招]: each row names its id, the main Gu that may lead it from the main hand,
- * the one partner Gu that backs it from the hotbar, and the factor it puts on the main Gu's blade damage. A new
- * killing move is a new row, with a book [杀招书] of the same id that teaches it ({@link KillingMoveBookItem}).
+ * the one partner Gu that backs it, and the factor it puts on the main Gu's blade damage. A new killing move is a new
+ * row, with a book [杀招书] of the same id that teaches it ({@link KillingMoveBookItem}).
  *
- * <p>Both Gu are tended and count only once refined: {@link #asRefinedMain} and {@link #find} are the one
- * eligibility test, read by the client's radial menu and by {@link KillingMoveService} alike; a main and a partner
- * find the first row naming both, so two rows never share that pair. Whether the player has learned the row is
- * {@link KillingMoveService#knows}, asked on top.
+ * <p>Both Gu are tended and count only once refined: {@link #isLedBy} and {@link #isBackedBy} are the one
+ * eligibility test, read by the client's radial menu and by {@link KillingMoveService} alike. Whether the player has
+ * learned the row is {@link KillingMoveService#knows}, and where its partner may sit is the service's.
  *
- * <p>⚠ The id is a save key: the learned list stores it ({@code KillingMoveData}), and it doubles as the book's
- * item id and the name's translation key, so renaming one forgets the move for everyone who learned it.
+ * <p>⚠ The id is a save key and the payload's name for the move: the learned list stores it
+ * ({@code KillingMoveData}), and it doubles as the book's item id and the name's translation key, so renaming one
+ * forgets the move for everyone who learned it.
  *
  * @author Alex
  * @version 1.0.0
@@ -58,20 +58,14 @@ public enum KillingMove {
 
     public boolean isLedBy(Item item) { return mains.stream().anyMatch(main -> main.asItem() == item); }
 
-    public static @Nullable TendedGuItem asRefinedMain(@NotNull ItemStack stack) {
-        if (!(stack.getItem() instanceof TendedGuItem main) || !main.isRefined(stack)) return null;
-
-        for (KillingMove move : values()) {
-            if (move.isLedBy(main)) return main;
-        }
-        return null;
+    public boolean isBackedBy(@NotNull ItemStack stack) {
+        return stack.getItem() == partner.asItem() && stack.getItem() instanceof TendedGuItem backer
+                && backer.isRefined(stack);
     }
 
-    public static @Nullable KillingMove find(@NotNull Item main, @NotNull ItemStack partner) {
-        if (!(partner.getItem() instanceof TendedGuItem backer) || !backer.isRefined(partner)) return null;
-
+    public static @Nullable KillingMove byId(@NotNull String id) {
         for (KillingMove move : values()) {
-            if (move.isLedBy(main) && move.partner.asItem() == backer) return move;
+            if (move.id.equals(id)) return move;
         }
         return null;
     }

@@ -184,6 +184,8 @@ public final class GuSpec {
 
     public int getItemCooldownTicks() { return itemCooldownTicks; }
 
+    public int getMaxHunger() { return maxHunger; }
+
     public int getUnitsPerHunger() { return unitsPerHunger; }
 
     public int getFeedUnits() { return feedUnits; }

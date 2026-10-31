@@ -1,10 +1,16 @@
 package net.alex.guzhenren.item.gu.killingmove;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
+import net.alex.guzhenren.gameplay.aperture.ApertureData;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.mortal.moon.MoonBladeModule;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -14,19 +20,28 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Killing moves [杀招] on the server: a refined main Gu in the main hand driven in place, backed by a refined partner
- * from another hotbar slot ({@link KillingMove}), for one stronger use. The client's radial menu [扇形选择器] sends
- * the partner's slot, or {@link #NONE} for a plain use (a tap, or a hold with no partner listed); {@link #drive}
- * checks it all again.
+ * Killing moves [杀招] on the server, and the one gesture that drives a moon blade Gu [月刃]: every refined one
+ * ({@link #asBladeGu}: the Moonlight [月光蛊], Moonglow [月芒蛊] and Blood Moon Gu [血月蛊]) is used in place from the
+ * main hand, either plainly or as a killing move's main Gu backed by a refined partner ({@link KillingMove}), for
+ * one stronger use. The client's radial menu sends the move's id, or {@link #PLAIN} for a plain use (a tap);
+ * {@link #drive} checks it all again.
  *
- * <p>A player uses only the moves they have learned [学会] ({@link #knows}): reading the move's book
- * ({@link KillingMoveBookItem}) adds its id to the synced {@code KillingMoveData}, which a death without keepInventory
- * empties. The client asks the same question before it holds the menu at all.
+ * <p>The payload names the move, never a slot: the server picks the partner itself, first from the inventory in
+ * slot order (hotbar, main inventory, then the offhand; never the main hand's own slot), then from each aperture's
+ * store [空窍存储] in order, the Vital Gu [本命蛊] slot left out. A stored partner is billed on a copy that is written
+ * back to its slot ({@code ApertureStorageService.setSlot}), empty when the bill exhausted it. A move is usable
+ * ({@link #listUsable}) once learned [学会] and backed; the client sees the inventory but not the store, so the
+ * server keeps the store's half in the synced {@code KillingMoveData} ({@link #refreshStoreBacked}, from
+ * {@link KillingMoveEvents} and after a stored partner is billed).
  *
- * <p>A plain use is the main Gu's own in-place use ({@code tryUseInPlace}), billed and refused as that is. A killing
- * move first refuses with the essence message when the aperture cannot pay both uses together, so the partner is
- * never billed for a use the main cannot finish; any other mismatch (not a hotbar slot, the selected one, a wild or
- * wrong partner, a move not learned, a partner on the vanilla cooldown) lands nothing, silently.
+ * <p>A player uses only the moves they have learned ({@link #knows}): reading the move's book
+ * ({@link KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death without keepInventory empties.
+ *
+ * <p>A plain use is the blade Gu's own in-place use ({@code tryUseInPlace}), billed and refused as that is. A
+ * killing move first refuses with the essence message when the aperture and the carried primeval stones [元石]
+ * together cannot pay both uses ({@code PrimevalStoneSupply.canAfford}), so the partner is never billed for a use
+ * the main cannot finish; any other mismatch (a move not learned or not led by this Gu, no partner, a partner on the
+ * vanilla cooldown, which is per item and so stops every candidate at once) lands nothing, silently.
  *
  * <p>⚠ The partner is billed from inside the main Gu's payout: {@link #drive} sets a per-player driving context
  * around the in-place use, and {@link #getDamageFactor}, asked by the main Gu's blade, bills the partner
@@ -34,6 +49,10 @@ import org.jetbrains.annotations.Nullable;
  * and answers the row's factor. The first ask spends the context, so the partner pays once and any later ask in the
  * same use answers 1; outside a drive, or for another Gu, it always answers 1. A use the main Gu refuses (cooldown,
  * essence) never reaches the ask, so the partner stays unbilled.
+ *
+ * <p>A cast that landed (the partner paid, so the factor applied) answers a {@link Cast} for the Killing Move Tooltip
+ * [杀招提示]: the move and each Gu it used, main first, as copies taken after the bill, or as they were before it when
+ * the bill killed one ({@link Used#spent}). Anything else, a plain use included, answers {@code null}.
  *
  * @author Alex
  * @version 1.0.0
@@ -44,13 +63,43 @@ import org.jetbrains.annotations.Nullable;
 
 public final class KillingMoveService {
 
-    /** The slot a plain use sends: no partner, the main Gu alone. */
-    public static final int NONE = -1;
+    /** The id a plain use sends: no killing move, the blade Gu alone. */
+    public static final String PLAIN = "";
     private static final String FAILED_ESSENCE = "guzhenren.item.failed.essence";
+    private static final int NO_SLOT = -1;
     private static @Nullable Driving driving;
 
-    private record Driving(ServerPlayer player, TendedGuItem main, TendedGuItem partner, ItemStack partnerStack,
-                           KillingMove move) {}
+    private record Partner(TendedGuItem gu, ItemStack stack, @Nullable StoreSlot stored) {}
+
+    private record StoreSlot(int aperture, int index) {}
+
+    /** A cast that landed: the move and each Gu it used, main first. */
+    public record Cast(KillingMove move, List<Used> used) {}
+
+    /** One Gu of a {@link Cast}: a copy after the bill, or before it when the bill killed it ({@code spent}). */
+    public record Used(ItemStack stack, boolean spent) {
+
+        private static Used of(ItemStack before, ItemStack after) {
+            return after.isEmpty() ? new Used(before, true) : new Used(after.copy(), false);
+        }
+    }
+
+    private static final class Driving {
+
+        private final ServerPlayer player;
+        private final TendedGuItem main;
+        private final Partner partner;
+        private final KillingMove move;
+        private boolean asked;
+        private @Nullable Used billed;
+
+        private Driving(ServerPlayer player, TendedGuItem main, Partner partner, KillingMove move) {
+            this.player = player;
+            this.main = main;
+            this.partner = partner;
+            this.move = move;
+        }
+    }
 
     private KillingMoveService() {}
 
@@ -71,39 +120,108 @@ public final class KillingMoveService {
         return data.setKillingMoves(data.getKillingMoves().withLearned(move.getId()));
     }
 
-    public static void drive(@NotNull ServerPlayer player, int slot) {
+    public static @Nullable TendedGuItem asBladeGu(@NotNull ItemStack stack) {
+        return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack)
+                && gu.getModule(MoonBladeModule.class) != null ? gu : null;
+    }
+
+    /** The learned moves this main Gu leads with a partner carried or stored, in table order. */
+    public static @NotNull List<KillingMove> listUsable(@NotNull Player player, @NotNull Item main) {
+        KillingMoveData data = PlayerData.get(player).getKillingMoves();
+        List<KillingMove> usable = new ArrayList<>();
+        for (KillingMove move : KillingMove.values()) {
+            if (!move.isLedBy(main) || !data.knows(move.getId())) continue;
+            if (findCarried(player, move) != NO_SLOT || data.isStoreBacked(move.getId())) usable.add(move);
+        }
+        return usable;
+    }
+
+    public static void refreshStoreBacked(@NotNull ServerPlayer player) {
+        PlayerData data = PlayerData.get(player);
+        KillingMoveData moves = data.getKillingMoves();
+        List<String> backed = new ArrayList<>();
+        for (KillingMove move : KillingMove.values()) {
+            if (moves.knows(move.getId()) && findStored(player, move) != null) backed.add(move.getId());
+        }
+        data.setKillingMoves(moves.withStoreBacked(backed));
+    }
+
+    public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id) {
         ItemStack stack = player.getMainHandItem();
-        TendedGuItem main = KillingMove.asRefinedMain(stack);
-        if (main == null) return;
-        if (slot == NONE) {
+        TendedGuItem main = asBladeGu(stack);
+        if (main == null) return null;
+        if (id.equals(PLAIN)) {
             main.tryUseInPlace(player, stack);
-            return;
+            return null;
         }
-        if (!Inventory.isHotbarSlot(slot) || slot == player.getInventory().selected) return;
+        KillingMove move = KillingMove.byId(id);
+        if (move == null || !move.isLedBy(main) || !knows(player, move)) return null;
 
-        ItemStack partnerStack = player.getInventory().getItem(slot);
-        KillingMove move = KillingMove.find(main, partnerStack);
-        if (move == null || !knows(player, move) || player.getCooldowns().isOnCooldown(partnerStack.getItem())) return;
-
-        TendedGuItem partner = (TendedGuItem) partnerStack.getItem();
-        if (ApertureEssenceService.getSpendable(player) < main.getUseEssence() + partner.getUseEssence()) {
+        Partner partner = findPartner(player, move);
+        if (partner == null || player.getCooldowns().isOnCooldown(partner.gu())) return null;
+        if (!PrimevalStoneSupply.canAfford(player, main.getUseEssence() + partner.gu().getUseEssence())) {
             ActionBar.refuse(player, FAILED_ESSENCE);
-            return;
+            return null;
         }
-        driving = new Driving(player, main, partner, partnerStack, move);
+        ItemStack mainBefore = stack.copy();
+        Driving current = new Driving(player, main, partner, move);
+        driving = current;
         try {
             main.tryUseInPlace(player, stack);
         } finally {
             driving = null;
         }
+        return current.billed == null ? null : new Cast(move, List.of(Used.of(mainBefore, stack), current.billed));
     }
 
     public static float getDamageFactor(@NotNull ServerPlayer player, @NotNull MortalGuItem gu) {
         Driving current = driving;
-        if (current == null || current.player() != player || current.main() != gu) return 1.0F;
+        if (current == null || current.asked || current.player != player || current.main != gu) return 1.0F;
 
-        driving = null;
-        return current.partner().billAsPartner(player, current.partnerStack()) ? current.move().getDamageFactor()
-                : 1.0F;
+        current.asked = true;
+        Partner partner = current.partner;
+        ItemStack before = partner.stack().copy();
+        boolean billed = partner.gu().billAsPartner(player, partner.stack());
+        StoreSlot stored = partner.stored();
+        if (stored != null) {
+            ItemStack after = partner.stack().isEmpty() ? ItemStack.EMPTY : partner.stack();
+            ApertureStorageService.setSlot(player, stored.aperture(), stored.index(), after);
+            refreshStoreBacked(player);
+        }
+        if (!billed) return 1.0F;
+
+        current.billed = Used.of(before, partner.stack());
+        return current.move.getDamageFactor();
+    }
+
+    private static @Nullable Partner findPartner(ServerPlayer player, KillingMove move) {
+        int slot = findCarried(player, move);
+        if (slot != NO_SLOT) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            return new Partner((TendedGuItem) stack.getItem(), stack, null);
+        }
+        StoreSlot stored = findStored(player, move);
+        if (stored == null) return null;
+
+        ItemStack copy = ApertureStorageService.getView(player, stored.aperture()).get(stored.index()).copy();
+        return new Partner((TendedGuItem) copy.getItem(), copy, stored);
+    }
+
+    private static int findCarried(Player player, KillingMove move) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.items.size(); slot++) {
+            if (slot != inventory.selected && move.isBackedBy(inventory.items.get(slot))) return slot;
+        }
+        return move.isBackedBy(inventory.offhand.get(0)) ? Inventory.SLOT_OFFHAND : NO_SLOT;
+    }
+
+    private static @Nullable StoreSlot findStored(ServerPlayer player, KillingMove move) {
+        for (int aperture = 0; aperture < ApertureData.MAX_APERTURES; aperture++) {
+            List<ItemStack> view = ApertureStorageService.getView(player, aperture);
+            for (int index = 0; index < view.size(); index++) {
+                if (move.isBackedBy(view.get(index))) return new StoreSlot(aperture, index);
+            }
+        }
+        return null;
     }
 }
