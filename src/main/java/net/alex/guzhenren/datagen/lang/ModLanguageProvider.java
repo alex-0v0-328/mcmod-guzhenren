@@ -454,7 +454,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.little_light_bright_on",              "Your Little Light Gu shines bright", "小光蛊放出强光");
         add("guzhenren.item.gu.little_light_bright_off",             "Your Little Light Gu dims", "小光蛊收起强光");
         add("guzhenren.item.gu.little_light_dimmed",
-                "Your Little Light Gu is hungry and dims", "小光蛊饿了，强光熄灭");
+                "Your Little Light Gu's bright light fades", "小光蛊强光时限已到，熄灭");
         add("guzhenren.item.gu.killing_move_hint",
                 "Hold right-click to pick a killing move", "长按右键选杀招");
         add("guzhenren.killing_move.km_mortal_little_light_amplify", "Little Light Amplification", "小光蛊增幅");

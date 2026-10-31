@@ -36,8 +36,8 @@ import org.jetbrains.annotations.Nullable;
  * included; it mends first, fills the bar only once whole, and runs only while the bar has room), at two moments:
  * before a use, and right after every drop, back to full. The drops are a use ({@link #drive}), a partner's bill
  * ({@link #billAsPartner}), each channel step, the day clock ({@link GuUpkeep}, carried or kept in an aperture,
- * which also eats before its drain), the Little Light Gu's bright drain and a running effect's drain
- * ({@link #drainAboveFloor}); nothing else eats, so a full bar never eats just to mend. Food never routes a
+ * which also eats before its drain) and the Little Light Gu's switch-on; nothing else eats, so a full bar never
+ * eats just to mend. Food never routes a
  * click, so there is no feeding gesture; a channeled Gu at its hunger floor is refused only when the bag holds none
  * of its food ({@link GuHunger#carriesFood}). ⚠ Creative ignores the floor: the bar still drains to 0 for show, and
  * the Gu keeps channeling, as a forced use there never exhausts it.
@@ -432,21 +432,6 @@ public class TendedGuItem extends MortalGuItem {
         return true;
     }
 
-    /**
-     * Takes {@code points} for an effect still at work after its use (the Self Reliance heal), eating around the
-     * drop, and never below {@code floor}; true while the bar stays above it. It eats first only when the drop
-     * would reach the floor, since it may run every few ticks. Creative is always true.
-     */
-    public final boolean drainAboveFloor(ServerPlayer player, ItemStack stack, int points, int floor) {
-        if (getState(stack).hunger() - points <= floor) feed(player, stack);
-        RefinedGuState state = getState(stack);
-        int left = Math.max(Math.min(floor, state.hunger()), state.hunger() - points);
-        if (left != state.hunger()) {
-            store(stack, state.withHunger(left));
-            feed(player, stack);
-        }
-        return player.getAbilities().instabuild || getState(stack).hunger() > floor;
-    }
     //endregion
 
     //region display

@@ -21,8 +21,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE}, {@code VITAL_TOKEN},
  * {@code STORED_STONES}, {@code REFINED_AT}, {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK},
  * {@code LITTLE_LIGHT_BRIGHT} (present only while on, so a dynamic-light definition can match it),
- * {@code LITTLE_LIGHT_HELD_AT} and {@link LeafGrowth}. A component here is for state that not every tended Gu shares;
- * anything all of them carry belongs on the shared state record instead.
+ * {@code LITTLE_LIGHT_BRIGHT_UNTIL} and {@link LeafGrowth}. A component here is for state that not every tended Gu
+ * shares; anything all of them carry belongs on the shared state record instead.
  *
  * <p>⚠ Game-clock timestamps default to {@code 0}, which is a real game time -- judge {@code null},
  * never {@code 0}, or a fresh world reads "already used".
@@ -58,7 +58,8 @@ public final class ModDataComponents {
     public static final Supplier<DataComponentType<Long>> HEALED_AT = registerLong("healed_at");
     public static final Supplier<DataComponentType<Boolean>> LITTLE_LIGHT_BRIGHT =
             register("little_light_bright", Codec.BOOL, ByteBufCodecs.BOOL);
-    public static final Supplier<DataComponentType<Long>> LITTLE_LIGHT_HELD_AT = registerLong("little_light_held_at");
+    public static final Supplier<DataComponentType<Long>> LITTLE_LIGHT_BRIGHT_UNTIL =
+            registerLong("little_light_bright_until");
     public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
             register("leaf_growth", LeafGrowth.CODEC, StreamCodec.of(LeafGrowth::encode, LeafGrowth::decode));
 

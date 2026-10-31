@@ -188,6 +188,8 @@ public final class GuSpec {
 
     public int getUnitsPerHunger() { return unitsPerHunger; }
 
+    public int getHungerPerUse() { return hungerPerUse; }
+
     public int getFeedUnits() { return feedUnits; }
 
     public @Nullable EffectCarrier getEffectCarrier() { return effectCarrier; }

@@ -11,9 +11,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The closed table of killing moves [杀招]: each row names its id, the main Gu that may lead it from the main hand,
- * the one partner Gu that backs it, the factor it puts on the main Gu's blade damage, the hunger the partner pays once
- * to start the move [启动] and the essence it pays on every blade fired while the move is on. A new killing move is a
- * new row, with a book [杀招书] of the same id that teaches it ({@link KillingMoveBookItem}).
+ * the one partner Gu that backs it, the factor it puts on the main Gu's blade damage and the essence the partner pays
+ * on every blade fired while the move is on. To start the move [启动] the partner pays one use of hunger, its own
+ * spec's ({@link #getStartHunger}). A new killing move is a new row, with a book [杀招书] of the same id that teaches
+ * it ({@link KillingMoveBookItem}).
  *
  * <p>Both Gu are tended and count only once refined: {@link #isLedBy} and {@link #isBackedBy} are the one
  * eligibility test, read by the client's radial menu and by {@link KillingMoveService} alike. Whether the player has
@@ -33,25 +34,22 @@ public enum KillingMove {
 
     /**
      * Little Light Amplification [小光蛊增幅]: a Moonlight [月光蛊] or Moonglow Gu [月芒蛊] blade, twice as hard; the
-     * Little Light Gu pays 3 hunger to start and 8 essence a blade, half its own use.
+     * Little Light Gu pays its use hunger to start and 8 essence a blade, half its own use.
      */
     LITTLE_LIGHT_AMPLIFY("km_mortal_little_light_amplify", List.of(ModItems.MOONLIGHT_GU, ModItems.MOONGLOW_GU),
-            ModItems.LITTLE_LIGHT_GU, 2.0F, 3, 8);
+            ModItems.LITTLE_LIGHT_GU, 2.0F, 8);
 
     private final String id;
     private final List<ItemLike> mains;
     private final ItemLike partner;
     private final float damageFactor;
-    private final int startHunger;
     private final int partnerEssence;
 
-    KillingMove(String id, List<ItemLike> mains, ItemLike partner, float damageFactor, int startHunger,
-                int partnerEssence) {
+    KillingMove(String id, List<ItemLike> mains, ItemLike partner, float damageFactor, int partnerEssence) {
         this.id = id;
         this.mains = mains;
         this.partner = partner;
         this.damageFactor = damageFactor;
-        this.startHunger = startHunger;
         this.partnerEssence = partnerEssence;
     }
 
@@ -65,8 +63,8 @@ public enum KillingMove {
 
     public float getDamageFactor() { return damageFactor; }
 
-    /** The hunger the partner pays once when the move starts. */
-    public int getStartHunger() { return startHunger; }
+    /** The hunger the partner pays once when the move starts: one use of its own, from its spec. */
+    public int getStartHunger() { return ((TendedGuItem) partner.asItem()).getSpec().getHungerPerUse(); }
 
     /** The essence the partner pays on every blade fired while the move is on. */
     public int getPartnerEssence() { return partnerEssence; }

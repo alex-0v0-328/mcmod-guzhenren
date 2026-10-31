@@ -25,13 +25,11 @@ import org.jetbrains.annotations.Nullable;
  * {@link #HEAL_CEILING} of max health. The Self Reliance Gu carries it with an {@link AutoUseModule}.
  *
  * <p>Every {@link #PULSE_TICKS} the heal mends {@code pulseHeal} of max health, times the Amplify Effect Gu
- * [功倍蛊] factor billed at the start, never past the ceiling. Each whole {@code healedPerHunger} of max health
- * actually healed drains one hunger point from the first refined copy in the bag ({@code items} or offhand); a
- * share short of a point is dropped when the heal ends. Damage taken meanwhile is healed too.
+ * [功倍蛊] factor billed at the start, never past the ceiling. Damage taken meanwhile is healed too.
  *
- * <p>The heal ends at the ceiling, when no refined copy is carried, or when that copy's bar is down to
- * {@link #HUNGER_FLOOR} after a meal from the bag ({@code TendedGuItem.drainAboveFloor}), so it never starves the
- * Gu. The gate refuses at the ceiling and while a heal of the same or a higher grade runs; a higher grade takes a
+ * <p>⚠ One heal is one round: the use that starts it pays the spec's hunger once, like any use, and the pulses pay
+ * nothing. The heal ends at the ceiling or when no refined copy is carried in the bag ({@code items} or offhand).
+ * The gate refuses at the ceiling and while a heal of the same or a higher grade runs; a higher grade takes a
  * lower one's heal and strands.
  *
  * <p>⚠ The heal is a permanent path effect that {@link #pulse} removes, not a vanilla timer: its icon has no
@@ -44,12 +42,11 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record SelfRelianceModule(int grade, float pulseHeal, float healedPerHunger) implements GuModule {
+public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule {
 
     public static final int PULSE_TICKS = 5;
     public static final float HEAL_CEILING = 0.9F;
-    public static final int HUNGER_FLOOR = 2;
-    // Float shares of max health: three pulses of 10% must make the 30% point, not 29.99998%.
+    // Float shares of max health: a heal that stops at the ceiling must read as healed, not as 89.99998%.
     private static final float EPSILON = 1.0E-4F;
     private static final String FAILED_HEALTHY = "guzhenren.item.failed.self_reliance_healthy";
     private static final String FAILED_RUNNING = "guzhenren.item.failed.self_reliance_running";
@@ -70,7 +67,7 @@ public record SelfRelianceModule(int grade, float pulseHeal, float healedPerHung
         Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
         ResourceLocation source = BuiltInRegistries.ITEM.getKey(gu);
         PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.SELF_RELIANCE, source,
-                PathEffect.PERMANENT, new SelfRelianceHeal(grade, amplification.factor(), 0.0F)));
+                PathEffect.PERMANENT, new SelfRelianceHeal(grade, amplification.factor())));
         TimedEffects.markAmplified(player, ModPathEffectTypes.SELF_RELIANCE, source, amplification);
     }
 
@@ -86,31 +83,18 @@ public record SelfRelianceModule(int grade, float pulseHeal, float healedPerHung
             return;
         }
         SelfRelianceModule module = gu.getModule(SelfRelianceModule.class);
-        if (module == null || isHealed(player) || !gu.drainAboveFloor(player, stack, 0, HUNGER_FLOOR)) {
+        if (module == null || isHealed(player)) {
             end(player);
             return;
         }
-        float healed = heal.payload().healed() + module.mend(player, heal.payload().factor());
-        boolean fed = true;
-        while (fed && healed >= module.healedPerHunger() - EPSILON) {
-            healed -= module.healedPerHunger();
-            fed = gu.drainAboveFloor(player, stack, 1, HUNGER_FLOOR);
-        }
-        if (!fed || isHealed(player)) {
-            end(player);
-            return;
-        }
-        SelfRelianceHeal next = heal.payload().withHealed(Math.max(0.0F, healed));
-        PathEffectService.update(player, ModPathEffectTypes.SELF_RELIANCE, heal.source(),
-                effect -> effect.withPayload(next));
+        module.mend(player, heal.payload().factor());
+        if (isHealed(player)) end(player);
     }
 
-    /** Heals one pulse up to the ceiling and answers the share of max health it actually mended. */
-    private float mend(ServerPlayer player, int factor) {
+    /** Heals one pulse, never past the ceiling. */
+    private void mend(ServerPlayer player, int factor) {
         float max = player.getMaxHealth();
-        float before = player.getHealth();
-        player.heal(Math.min(pulseHeal * factor * max, max * HEAL_CEILING - before));
-        return Math.max(0.0F, player.getHealth() - before) / max;
+        player.heal(Math.min(pulseHeal * factor * max, max * HEAL_CEILING - player.getHealth()));
     }
 
     private static boolean isHealed(Player player) {

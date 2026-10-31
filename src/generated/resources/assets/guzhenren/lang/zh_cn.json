@@ -421,7 +421,7 @@
   "guzhenren.item.gu.little_light_bright": "强光中",
   "guzhenren.item.gu.little_light_bright_off": "小光蛊收起强光",
   "guzhenren.item.gu.little_light_bright_on": "小光蛊放出强光",
-  "guzhenren.item.gu.little_light_dimmed": "小光蛊饿了，强光熄灭",
+  "guzhenren.item.gu.little_light_dimmed": "小光蛊强光时限已到，熄灭",
   "guzhenren.item.gu.next_leaf": "下一片需 %s 秒",
   "guzhenren.item.gu.next_point": "下一点需 %s 秒",
   "guzhenren.item.gu.refine_cost": "炼化 %s",
