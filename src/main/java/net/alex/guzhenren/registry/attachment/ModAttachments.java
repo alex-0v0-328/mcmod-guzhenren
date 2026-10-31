@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
+import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.PathEffectData;
@@ -34,7 +35,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 /**
  * Every data attachment this mod puts on a player.
  *
- * <p>DeferredRegister holder: the fourteen record attachments (immutable, written only through their
+ * <p>DeferredRegister holder: the fifteen record attachments (immutable, written only through their
  * service) plus the seven scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
  * {@code SHIELD_WINDOW}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
@@ -145,6 +146,9 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<MindData>> MIND =
             registerSynced("mind_data", MindData.DEFAULT, MindData.CODEC,
                     StreamCodec.of(MindData::encode, MindData::decode));
+    public static final Supplier<AttachmentType<KillingMoveData>> KILLING_MOVE =
+            registerSynced("killing_move_data", KillingMoveData.DEFAULT, KillingMoveData.CODEC,
+                    StreamCodec.of(KillingMoveData::encode, KillingMoveData::decode));
     //endregion
 
     //region Dimension return [维度往返]

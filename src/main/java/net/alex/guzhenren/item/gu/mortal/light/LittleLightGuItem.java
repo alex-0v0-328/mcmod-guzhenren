@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * never {@code false}, so the definition can match it and a switched-off stack equals a fresh one.
  *
  * <p>⚠ The switch bills no essence and no hunger: {@code performOwnUse} replaces {@code drive}, and {@code
- * useThreshold} is 0. The spec's use cost is what the killer move bills this Gu as a partner. A wild one has no
+ * useThreshold} is 0. The spec's use cost is what the killing move bills this Gu as a partner. A wild one has no
  * switch, so it can only glow at 10.
  *
  * <p>⚠ The drain is one hunger point per {@link #DRAIN_TICKS} held ticks while bright and in a player's main hand

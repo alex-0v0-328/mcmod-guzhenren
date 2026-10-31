@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
+import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.PathEffectData;
@@ -24,13 +25,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: sixteen saved values, the
+ * Everything this mod keeps on a player, read and written through one object: seventeen saved values, the
  * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and three in-memory values, the
  * essence regen remainder ({@link #getEssenceCarry}) and the second-stage throttle ({@link #getSecondStageThrottle}),
  * which each end steps for itself, and the shield's invulnerability window ({@link #getShieldWindow}), the server's.
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
- * whether it changed; eleven values reach their owner's client on change ({@code ModAttachments} syncs
+ * whether it changed; twelve values reach their owner's client on change ({@code ModAttachments} syncs
  * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player), and the awakening ritual
  * [开窍仪式] reaches every client that sees the player too. {@link #resetCarriedOnDeath} returns every value a death
  * carries to its default.
@@ -86,6 +87,8 @@ public final class PlayerData {
 
     public MindData getMind() { return owner.getData(ModAttachments.MIND); }
 
+    public KillingMoveData getKillingMoves() { return owner.getData(ModAttachments.KILLING_MOVE); }
+
     public DimensionReturnData getDimensionReturn() { return owner.getData(ModAttachments.DIMENSION_RETURN); }
 
     public PlayerRewindData getRewind() { return owner.getData(ModAttachments.PLAYER_REWIND); }
@@ -137,6 +140,10 @@ public final class PlayerData {
     public boolean setQi(@NotNull PathQiData value) { return set(ModAttachments.PATH_QI, value); }
 
     public boolean setMind(@NotNull MindData value) { return set(ModAttachments.MIND, value); }
+
+    public boolean setKillingMoves(@NotNull KillingMoveData value) {
+        return set(ModAttachments.KILLING_MOVE, value);
+    }
 
     public boolean setDimensionReturn(@NotNull DimensionReturnData value) {
         return set(ModAttachments.DIMENSION_RETURN, value);

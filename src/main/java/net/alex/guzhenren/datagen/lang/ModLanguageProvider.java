@@ -374,6 +374,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("itemGroup.guzhenren.gu_material",                       "Gu Material", "蛊材");
         add("itemGroup.guzhenren.strength_mortal_gu",                "Strength Mortal Gu", "力道凡蛊");
         add("itemGroup.guzhenren.wood_mortal_gu",                    "Wood Mortal Gu", "木道凡蛊");
+        add("itemGroup.guzhenren.km_mortal",                         "Mortal Killing Moves", "凡道杀招");
 
         add("guzhenren.item.failed.awakened",                        "You have already awakened", "你已开窍");
         add("guzhenren.item.failed.awakening",                       "The awakening is under way", "开窍仪式进行中");
@@ -446,8 +447,15 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.little_light_bright_off",             "Your Little Light Gu dims", "小光蛊收起强光");
         add("guzhenren.item.gu.little_light_dimmed",
                 "Your Little Light Gu is hungry and dims", "小光蛊饿了，强光熄灭");
-        add("guzhenren.item.gu.killer_move_hint",
-                "Hold right-click to pick a partner Gu for a killer move", "长按右键选配合蛊，施展杀招");
+        add("guzhenren.item.gu.killing_move_hint",
+                "Hold right-click to pick a partner Gu for a killing move", "长按右键选配合蛊，施展杀招");
+        add("guzhenren.killing_move.km_mortal_little_light_amplify", "Little Light Amplification", "小光蛊增幅");
+        add("guzhenren.item.killing_move.learned",                   "Learned the killing move %s", "学会杀招：%s");
+        add("guzhenren.item.failed.killing_move_known",              "You already know %s", "已学会%s");
+        add("guzhenren.item.killing_move.mains",                     "Main Gu: %s", "主蛊：%s");
+        add("guzhenren.item.killing_move.partner",                   "Partner Gu: %s", "配合蛊：%s");
+        add("guzhenren.item.killing_move.blade_factor",              "Moon blade damage ×%s", "月刃伤害 ×%s");
+        add("guzhenren.item.killing_move.known",                     "Learned", "已学会");
         add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
         add("guzhenren.item.gu.as_before_land",                      "The land is as it was first made", "山已如初");
         add("guzhenren.item.gu.as_before_water",                     "The waters are as they were first made", "江已如初");
@@ -547,7 +555,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.ten_extreme_disaster",
                 "%1$s was killed by a Ten-Extremes disaster", "%1$s 被十绝天灾波及而亡");
         add("death.attack.guzhenren.vital_gu_lost",               "%1$s lost their Vital Gu", "%1$s 因本命蛊死亡而亡");
-        add("death.attack.guzhenren.moon_blade",                  "%1$s was slain by %2$s's Moon Blade", "%1$s 被 %2$s 的月刃斩杀");
+        add("death.attack.guzhenren.moon_blade",
+                "%1$s was slain by %2$s's Moon Blade", "%1$s 被 %2$s 的月刃斩杀");
         add("death.attack.guzhenren.moon_blade.item",
                 "%1$s was slain by %2$s's Moon Blade using %3$s", "%1$s 被 %2$s 用 %3$s 的月刃斩杀");
         add("death.attack.guzhenren.bleeding",                    "%1$s bled to death", "%1$s 流血而亡");

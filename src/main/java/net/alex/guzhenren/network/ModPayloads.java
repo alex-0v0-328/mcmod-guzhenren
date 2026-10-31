@@ -9,7 +9,7 @@ import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
-import net.alex.guzhenren.network.payload.KillerMovePayload;
+import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
@@ -74,8 +74,8 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.plunge(player));
         toServer(registrar, AmplifyDrivePayload.TYPE, AmplifyDrivePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
-        toServer(registrar, KillerMovePayload.TYPE, KillerMovePayload.STREAM_CODEC,
-                (intent, player) -> ClientIntents.killerMove(player, intent.slot()));
+        toServer(registrar, KillingMovePayload.TYPE, KillingMovePayload.STREAM_CODEC,
+                (intent, player) -> ClientIntents.killingMove(player, intent.slot()));
         registrar.playToClient(SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC,
                 (notice, context) -> dispatchToClient(notice));
         registrar.playToClient(ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC,

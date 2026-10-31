@@ -32,6 +32,8 @@ import net.alex.guzhenren.item.gu.GuType;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
 import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.killingmove.KillingMove;
+import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
 import net.alex.guzhenren.item.gu.mortal.RecastModule;
 import net.alex.guzhenren.item.gu.mortal.SkinModule;
 import net.alex.guzhenren.item.gu.mortal.TimedBuffModule;
@@ -884,7 +886,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Moon Path [月道] -- Moonlight Gu [月光蛊] and Moonglow Gu [月芒蛊]: one moon blade a use, a killer
+    //region Moon Path [月道] -- Moonlight Gu [月光蛊] and Moonglow Gu [月芒蛊]: one moon blade a use, a killing
     // move's main Gu with a Little Light Gu [小光蛊]; the Blood Moon Gu [血月蛊] below is Blood Path's
     public static final DeferredItem<Item> MOONLIGHT_GU = REGISTRAR.item("moonlight_gu",
             () -> createMoonBladeGu(Rank.ONE, GuPath.MOON, 800, 16, 1, ModItemTags.MOONLIGHT_FEED,
@@ -914,13 +916,21 @@ public final class ModItems {
     //endregion
 
     //region Light Path [光道] -- Little Light Gu [小光蛊]: glows in the hand, shines bright on a use and eats while
-    // it does; a killer move's partner, its use cost the one it pays there
+    // it does; a killing move's partner, its use cost the one it pays there
     public static final DeferredItem<Item> LITTLE_LIGHT_GU = REGISTRAR.item("little_light_gu",
             () -> new LittleLightGuItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.LIGHT)
                     .refine(800).costPerUse(16)
                     .hungerBar(12, 1).hungerPerUse(1).hungerPerDay(1)
                     .feed(ModItemTags.LITTLE_LIGHT_FEED, 1)))
             .lang("Little Light Gu", "小光蛊").register();
+    //endregion
+
+    //region Killing move books [杀招书] -- one per KillingMove row, same id; a read teaches it. Creative or command
+    // only for now
+    public static final DeferredItem<Item> KM_MORTAL_LITTLE_LIGHT_AMPLIFY = REGISTRAR.item(
+                    "km_mortal_little_light_amplify",
+                    () -> new KillingMoveBookItem(new Item.Properties(), KillingMove.LITTLE_LIGHT_AMPLIFY))
+            .lang("Mortal Killing Move: Little Light Amplification", "凡道杀招：小光蛊增幅").register();
     //endregion
 
     //region Gu materials [蛊材]

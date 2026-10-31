@@ -7,7 +7,7 @@ import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
-import net.alex.guzhenren.item.gu.killermove.KillerMoveService;
+import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * What the server does with each client intent: the two containers, the secondary path, the three
  * cultivation actions, the dash, the second-stage flight [二段飞行] toggle, the plunge [坠击], the Amplify Effect
- * Gu's [功倍蛊] radial-menu pick and a killer move's [杀招] main-Gu use (its partner's slot, or none for a plain
+ * Gu's [功倍蛊] radial-menu pick and a killing move's [杀招] main-Gu use (its partner's slot, or none for a plain
  * use). Every intent but that toggle refuses inside the Treasure Yellow Heaven
  * ({@link #isOutsideTyh}), where flight and its second stage are what remains; the plunge's own rule refuses it
  * there ({@code PlungeService#canStart}), which the client asks too.
@@ -96,8 +96,8 @@ public final class ClientIntents {
         if (isOutsideTyh(player)) AmplifyEffectGuItem.driveFromHotbar(player, slot);
     }
 
-    public static void killerMove(@NotNull ServerPlayer player, int slot) {
-        if (isOutsideTyh(player)) KillerMoveService.drive(player, slot);
+    public static void killingMove(@NotNull ServerPlayer player, int slot) {
+        if (isOutsideTyh(player)) KillingMoveService.drive(player, slot);
     }
 
     public static void openRefinement(@NotNull ServerPlayer player) {
