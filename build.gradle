@@ -57,6 +57,10 @@ sourceSets {
     }
 }
 
+// Inside the run closures a bare `project` resolves to Gradle's deprecated Dependencies.getProject() and a bare
+// `mod_id` to a run of that name, so they read the id from here.
+def modId = providers.gradleProperty('mod_id').get()
+
 neoForge {
     // Specify the version of NeoForge to use.
     version = project.neo_version
@@ -79,8 +83,8 @@ neoForge {
             client()
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            gameDirectory = project.file(providers.gradleProperty('clientGameDir').getOrElse('run'))
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+            gameDirectory = file(providers.gradleProperty('clientGameDir').getOrElse('run'))
             if (providers.gradleProperty('quickPlayServer').isPresent()) {
                 programArguments.addAll '--quickPlayMultiplayer', providers.gradleProperty('quickPlayServer').get()
             }
@@ -92,8 +96,8 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            gameDirectory = project.file(providers.gradleProperty('serverGameDir').getOrElse('run'))
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+            gameDirectory = file(providers.gradleProperty('serverGameDir').getOrElse('run'))
         }
 
         // This run config launches GameTestServer and runs all registered gametests, then exits.
@@ -106,8 +110,8 @@ neoForge {
             type = "gameTestServer"
             sourceSet = sourceSets.gametest
             // Under build/: every IDE sync creates this directory, and tools/local_checks.py passes its own.
-            gameDirectory = project.file(providers.gradleProperty('gameTestDir').getOrElse('build/run-gametest'))
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            gameDirectory = file(providers.gradleProperty('gameTestDir').getOrElse('build/run-gametest'))
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
             // -PwikiDir turns on the wiki item-table GameTests (WikiItemsGameTests), as it does pureTest's wiki gate.
             if (providers.gradleProperty('wikiDir').isPresent()) {
                 systemProperty 'gzr.wikiDir', file(providers.gradleProperty('wikiDir').get()).absolutePath
@@ -121,10 +125,10 @@ neoForge {
             data()
 
             // Under build/ for the same reason as the GameTest directory.
-            gameDirectory = project.file(providers.gradleProperty('dataGameDir').getOrElse('build/run-data'))
+            gameDirectory = file(providers.gradleProperty('dataGameDir').getOrElse('build/run-data'))
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+            programArguments.addAll '--mod', modId, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
 
         // applies to all the run configs above
