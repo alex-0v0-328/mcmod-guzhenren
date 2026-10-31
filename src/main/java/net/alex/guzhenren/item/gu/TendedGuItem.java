@@ -60,8 +60,9 @@ import org.jetbrains.annotations.Nullable;
  * whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
  * 80% of it a second at normal time flow. Every essence this Gu pays goes out through {@code
  * PrimevalStoneSupply.pay}; a step is sized from the pool, so it first tops up to at least {@code ESSENCE_FLOOR}
- * ({@code topUpFor}), and a channel step eats before it sizes the essence, because the step is capped by the
- * essence above the hunger floor, which the meal raises.
+ * ({@code topUpFor}; creative draws no stone, so it sizes as if the pool stood at the floor), and a channel step eats
+ * before it sizes the essence, because the step is capped by the essence above the hunger floor, which the meal
+ * raises.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
  * the very first click. Gu health is {@link GuHealth}, {@link #GU_MAX_HEALTH} unless the spec sets it.
@@ -212,7 +213,7 @@ public class TendedGuItem extends MortalGuItem {
     private boolean isGuPaced(Player player) { return getRankGap(player) > 0; }
 
     private int stepAmount(ServerPlayer player, ItemStack stack, int elapsed) {
-        long pool = ApertureEssenceService.getSpendable(player);
+        long pool = getStepPool(player);
         if (pool < ESSENCE_FLOOR) return 0;
 
         int round = spec.getEssencePerRound();
@@ -235,9 +236,15 @@ public class TendedGuItem extends MortalGuItem {
     }
 
     private long getPoured(ServerPlayer player, int elapsed) {
-        long pool = ApertureEssenceService.getSpendable(player);
+        long pool = getStepPool(player);
         if (pool < ESSENCE_FLOOR) return 0L;
         return isGuPaced(player) ? pool : getPoolPacedStep(player, pool, elapsed);
+    }
+
+    // Creative draws no stone, so its top-up never lifts a short pool to the floor; it sizes as if it had.
+    private static long getStepPool(ServerPlayer player) {
+        long pool = ApertureEssenceService.getSpendable(player);
+        return player.getAbilities().instabuild ? Math.max(pool, ESSENCE_FLOOR) : pool;
     }
 
     private static long getPoolPacedStep(ServerPlayer player, long pool, int elapsed) {
