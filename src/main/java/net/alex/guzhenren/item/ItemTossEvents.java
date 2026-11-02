@@ -2,6 +2,7 @@ package net.alex.guzhenren.item;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.TossedItems;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -31,7 +32,7 @@ public final class ItemTossEvents {
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
         ItemEntity tossed = event.getEntity();
-        if (!GuItem.isVital(tossed.getItem())) return;
+        if (!VitalGuState.isVital(tossed.getItem())) return;
 
         if (TossedItems.stow(event.getPlayer(), tossed)) {
             event.setCanceled(true);

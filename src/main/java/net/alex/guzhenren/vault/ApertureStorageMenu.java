@@ -5,7 +5,8 @@ import java.util.List;
 import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
-import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
@@ -208,17 +209,17 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
     }
 
     private static void bindVital(ItemStack stack, ServerPlayer player, int aperture) {
-        if (stack.getItem() instanceof GuItem
-                && (!GuItem.isCurrentVital(stack, player) || GuItem.getBoundIndex(stack, player) != aperture)) {
-            GuItem.bind(stack, player, aperture);
+        if (stack.getItem() instanceof MortalGuItem && (!VitalGuState.isCurrentVital(stack, player)
+                || VitalGuState.getBoundIndex(stack, player) != aperture)) {
+            VitalGuState.bind(stack, player, aperture);
         }
     }
 
     private void releaseFormer(ServerPlayer server, long token) {
-        if (GuItem.getToken(getCarried()) == token) GuItem.unbind(getCarried());
+        if (VitalGuState.getToken(getCarried()) == token) VitalGuState.unbind(getCarried());
         Inventory inventory = server.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (GuItem.getToken(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
+            if (VitalGuState.getToken(inventory.getItem(i)) == token) VitalGuState.unbind(inventory.getItem(i));
         }
     }
     //endregion
@@ -272,7 +273,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         private static boolean canBeVital(ItemStack stack, Player player) {
             return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack) && gu.canBeVital()
-                    && !GuItem.isForeignVital(stack, player);
+                    && !VitalGuState.isForeignVital(stack, player);
         }
     }
 }

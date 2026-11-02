@@ -18,8 +18,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * The item components this mod adds, for state belonging to one particular stack.
  *
- * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE}, {@code VITAL_TOKEN},
- * {@code STORED_STONES}, {@code REFINED_AT}, {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK},
+ * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE}, {@code VITAL_TOKEN}
+ * (read and written only through {@code VitalGuState}), {@code STORED_STONES}, {@code REFINED_AT},
+ * {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK},
  * {@code LITTLE_LIGHT_BRIGHT} (present only while on, so a dynamic-light definition can match it),
  * {@code LITTLE_LIGHT_BRIGHT_UNTIL}, {@code LITTLE_LIGHT_FORCED} and {@code SELF_RELIANCE_FORCED} (each present only
  * on a forced round) and {@link LeafGrowth}. A component here is for state that not every tended Gu shares; anything

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
  * the one partner Gu that backs it, the factor it puts on the main Gu's blade damage and the essence the partner pays
  * on every blade fired while the move is on. To start the move [启动] the partner pays one use of hunger, its own
  * spec's ({@link #getStartHunger}). A new killing move is a new row, with a book [杀招书] of the same id that teaches
- * it ({@link KillingMoveBookItem}).
+ * it ({@link net.alex.guzhenren.item.KillingMoveBookItem}).
  *
  * <p>Both Gu are tended and count only once refined: {@link #isLedBy} and {@link #isBackedBy} are the one
  * eligibility test, read by the client's radial menu and by {@link KillingMoveService} alike. Whether the player has

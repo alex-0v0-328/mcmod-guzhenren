@@ -10,9 +10,9 @@ import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
@@ -268,7 +268,7 @@ final class RefinementRitual {
         int heir = ApertureService.inheritVital(server, eatenVitals, gu.getPath());
         if (heir < 0) return;
 
-        GuItem.bind(made, server, heir);
+        VitalGuState.bind(made, server, heir);
         ApertureStorageService.adoptVital(server, heir, made);
     }
 
@@ -276,7 +276,9 @@ final class RefinementRitual {
         List<Integer> kinds = new ArrayList<>();
         for (int i = 0; i < taken.length; i++) {
             ItemStack stack = input.getItem(i);
-            if (taken[i] > 0 && GuItem.isCurrentVital(stack, server)) kinds.add(GuItem.getBoundAperture(stack));
+            if (taken[i] > 0 && VitalGuState.isCurrentVital(stack, server)) {
+                kinds.add(VitalGuState.getBoundAperture(stack));
+            }
         }
         return kinds;
     }

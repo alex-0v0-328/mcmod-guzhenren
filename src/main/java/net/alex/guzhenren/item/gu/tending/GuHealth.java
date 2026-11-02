@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu.tending;
 
-import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,7 +37,7 @@ public record GuHealth(int max, int unitsPerHunger) {
         RefinedGuState s = TendedGuItem.getState(stack);
         int taken = Math.min(max, s.damageTaken() + amount);
         gu.store(stack, s.withDamageTaken(taken));
-        if (taken < max || GuItem.isVital(stack)) return false;
+        if (taken < max || VitalGuState.isVital(stack)) return false;
 
         TendedGuItem.ruin(holder, stack);
         return true;

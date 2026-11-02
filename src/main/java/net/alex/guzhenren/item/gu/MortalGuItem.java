@@ -2,8 +2,11 @@ package net.alex.guzhenren.item.gu;
 
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Stage;
+import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
@@ -11,6 +14,7 @@ import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.stack.GuCooldowns;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -57,9 +61,13 @@ import org.jetbrains.annotations.Nullable;
  * Lifespan, Guts and Second Aperture Gu by design; the Relics Gu stop at {@link #checkStageUpGate}. The Hope Gu
  * is the one {@code isAwakened} check, refusing a player who already has a first aperture.
  *
- * <p>⚠ A Vital Gu refuses the Q-key drop in {@link #onDroppedByPlayer}, but the client has already emptied
- * the hotbar slot by then: the refusal marks the server's remote copy of that slot stale, so the next
- * broadcast puts the Gu back on screen.
+ * <p>The charge a use takes is paced by the gap between the holder's rank and the Gu's own
+ * ({@link #useChargeByGap}), never by the stage.
+ *
+ * <p>The Vital Gu [本命蛊] binding lives on the stack and is read and written only through {@link VitalGuState};
+ * this class shows it, as the name's mark and the glint, and keeps the Gu in hand. ⚠ A Vital Gu refuses the Q-key
+ * drop in {@link #onDroppedByPlayer}, but the client has already emptied the hotbar slot by then: the refusal marks
+ * the server's remote copy of that slot stale, so the next broadcast puts the Gu back on screen.
  *
  * @author Alex
  * @version 1.0.0
@@ -70,6 +78,9 @@ import org.jetbrains.annotations.Nullable;
 public abstract class MortalGuItem extends GuItem {
 
     public static final int REFINE_DONE_COOLDOWN_TICKS = 2 * Ticks.SECOND;
+    public static final int USE_FAST_TICKS = Ticks.SECOND / 4;
+    public static final int USE_SAME_TICKS = Ticks.HALF_SECOND;
+    public static final int USE_SLOW_TICKS = Ticks.SECOND;
     private static final String KIND_KEY = "guzhenren.display.gu";
     private static final String TYPE_KEY = "guzhenren.display.gu_type";
     private static final String TYPE_BRANCH_KEY = "guzhenren.display.gu_type_branch";
@@ -159,6 +170,16 @@ public abstract class MortalGuItem extends GuItem {
     protected final void payRefineCost(ServerPlayer player) { PrimevalStoneSupply.pay(player, getRefineCost()); }
     //endregion
 
+    //region charge [蓄力] -- paced by the holder's rank against this Gu's own, never by the stage
+    protected int getRankGap(Player player) { return ApertureService.getRank(player).ordinal() - getRank().ordinal(); }
+
+    protected int useChargeByGap(Player player) {
+        int gap = getRankGap(player);
+        if (gap > 0) return TimeFlow.shortenWait(player, USE_FAST_TICKS);
+        return TimeFlow.shortenWait(player, gap == 0 ? USE_SAME_TICKS : USE_SLOW_TICKS);
+    }
+    //endregion
+
     //region the click -- a Gu always answers the right click, if only to be refined
     @Override
     protected final boolean hasUse() { return true; }
@@ -191,6 +212,15 @@ public abstract class MortalGuItem extends GuItem {
 
     protected @Nullable MutableComponent formatProgressLine(ItemStack stack) { return null; }
 
+    @Override
+    public @NotNull Component getName(@NotNull ItemStack stack) {
+        Component name = super.getName(stack);
+        return VitalGuState.isVital(stack) ? ModDisplayText.formatVital(name) : name;
+    }
+
+    @Override
+    public boolean isFoil(@NotNull ItemStack stack) { return VitalGuState.isVital(stack) || super.isFoil(stack); }
+
     static MutableComponent formatType(GuType type) {
         Component name = Component.translatable(type.getTranslationKey());
         GuType parent = type.getParent();
@@ -201,7 +231,7 @@ public abstract class MortalGuItem extends GuItem {
 
     @Override
     public boolean onDroppedByPlayer(@NotNull ItemStack stack, @NotNull Player player) {
-        if (!isVital(stack)) return true;
+        if (!VitalGuState.isVital(stack)) return true;
 
         if (player instanceof ServerPlayer server) {
             server.inventoryMenu.setRemoteSlot(InventoryMenu.USE_ROW_SLOT_START + server.getInventory().selected,

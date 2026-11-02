@@ -1,7 +1,9 @@
-package net.alex.guzhenren.item.gu.killingmove;
+package net.alex.guzhenren.item;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.item.gu.killingmove.KillingMove;
+import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
@@ -21,6 +23,9 @@ import org.jetbrains.annotations.NotNull;
  * A killing move book [杀招书]: a right click learns [学会] its {@link KillingMove} and uses up the book, a creative
  * player's excepted ({@link ItemStack#consume}); a move already known refuses and keeps the book. Learning asks for
  * nothing else, not even an aperture.
+ *
+ * <p>Extends {@link Item} directly, not {@link GuItem}: a book has no rank or path and none of the Gu click
+ * templates. The move's rules and services stay in {@code item.gu.killingmove}.
  *
  * <p>Both sides decide from the same synced {@code KillingMoveData}, so the client's swing matches the server's
  * answer. The tooltip lists the row: its main Gu, its partner and the blade factor; whether this player knows it is

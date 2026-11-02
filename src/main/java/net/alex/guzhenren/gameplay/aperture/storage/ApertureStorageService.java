@@ -150,7 +150,7 @@ public final class ApertureStorageService {
     }
 
     public static void shiftForFirstAperture(@NotNull ServerPlayer player) {
-        PlayerData.get(player).setApertureStorage(get(player).shiftRight());
+        PlayerData.get(player).setApertureStorage(get(player).shiftRight(storedGu));
     }
 
     private static int load(Rank holder, List<ItemStack> stacks) {

@@ -14,6 +14,7 @@ import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.stack.GuCooldowns;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.GuForcedUse;
 import net.alex.guzhenren.item.gu.tending.GuHealth;
 import net.alex.guzhenren.item.gu.tending.GuHunger;
@@ -393,7 +394,7 @@ public class TendedGuItem extends MortalGuItem {
     }
 
     private boolean confirmForcedUse(ServerPlayer player, ItemStack stack) {
-        if (isVital(stack)) {
+        if (VitalGuState.isVital(stack)) {
             ActionBar.refuse(player, FAILED_VITAL_SHORT);
             return false;
         }
@@ -571,7 +572,7 @@ public class TendedGuItem extends MortalGuItem {
 
     private static void announceDeath(ServerPlayer holder, ItemStack stack, String key) {
         announce(holder, stack, key);
-        UUID uuid = getOwner(stack);
+        UUID uuid = VitalGuState.getOwner(stack);
         if (uuid == null) return;
 
         ModEvents.post(new VitalGuLostEvent(holder.server, uuid, stack));

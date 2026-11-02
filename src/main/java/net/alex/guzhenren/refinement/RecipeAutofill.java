@@ -1,7 +1,7 @@
 package net.alex.guzhenren.refinement;
 
 import java.util.List;
-import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.minecraft.world.Container;
@@ -63,7 +63,7 @@ final class RecipeAutofill {
         for (int i = 0; i < inventory.getContainerSize() && left > 0; i++) {
             ItemStack from = inventory.getItem(i);
             if (from.isEmpty() || !need.test(from)) continue;
-            if (GuItem.isForeignVital(from, player)) continue;
+            if (VitalGuState.isForeignVital(from, player)) continue;
 
             ItemStack held = input.getItem(slot);
             if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, from)) continue;

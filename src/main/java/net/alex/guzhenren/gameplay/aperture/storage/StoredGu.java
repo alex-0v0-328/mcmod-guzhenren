@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * What aperture storage needs to know about the Gu [蛊] it holds, so the aperture does not depend on the item
  * package that defines them: which stacks it may store and at what rank, a Gu's path, and the Vital Gu's binding
- * token and owner. The vault's menu and per-second settle sit above the item package
+ * token, owner and aperture kind. The vault's menu and per-second settle sit above the item package
  * ({@code net.alex.guzhenren.vault}) and ask the Gu classes themselves.
  *
  * <p>The item side fills it: the mod's entry point hands {@code ApertureStorageService.setStoredGu} the one built on
@@ -33,4 +33,6 @@ public interface StoredGu {
     long getToken(@NotNull ItemStack stack);
 
     boolean isVitalOf(@NotNull ItemStack stack, @NotNull Player player);
+
+    void setBoundAperture(@NotNull ItemStack stack, int kind);
 }

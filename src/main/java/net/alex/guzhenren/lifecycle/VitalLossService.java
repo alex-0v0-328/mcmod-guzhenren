@@ -1,14 +1,12 @@
 package net.alex.guzhenren.lifecycle;
 
-import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.VitalGuLostEvent;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,7 +46,7 @@ public final class VitalLossService {
     }
 
     private static void charge(ServerPlayer owner, ItemStack stack) {
-        if (!GuItem.isCurrentVital(stack, owner)) return;
+        if (!VitalGuState.isCurrentVital(stack, owner)) return;
 
         owner.sendSystemMessage(Component.translatable(VITAL_LOST, stack.getHoverName()));
 
@@ -59,8 +57,7 @@ public final class VitalLossService {
         owner.hurt(ModDamageTypes.source(owner, ModDamageTypes.VITAL_GU_LOST),
                 owner.getHealth() * LOST_HEALTH_FRACTION);
 
-        int kind = stack.getOrDefault(ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
-        int bound = ApertureService.get(owner).indexOf(kind);
+        int bound = VitalGuState.getBoundIndex(stack, owner);
         if (bound >= 0) ApertureService.setPrimaryPath(owner, bound, null);
     }
 

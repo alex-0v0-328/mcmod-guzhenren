@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.RandomAccess;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -30,11 +29,11 @@ import net.minecraft.world.item.ItemStack;
  *
  * <p>{@link #shiftRight} makes room for a first aperture inserted ahead of a lone second one: every
  * stored list and the Vital Gu slot moves one position up. The Vital Gu that moves is the second
- * aperture's, so it is pinned to kind {@code SECOND} explicitly: one bound by the component default
- * ({@code PRIMARY}) would otherwise read as the new first aperture's.
+ * aperture's, so it is pinned to kind {@code SECOND} explicitly, through the {@link StoredGu} the caller hands in:
+ * one bound by the component default ({@code PRIMARY}) would otherwise read as the new first aperture's.
  *
  * <p>{@link #tokens} holds, per aperture kind, the token of the one current Vital Gu: an aperture has one
- * Vital Gu, so a replaced one whose copy still carries the mark is not it ({@code GuItem.isCurrentVital}).
+ * Vital Gu, so a replaced one whose copy still carries the mark is not it ({@code VitalGuState.isCurrentVital}).
  *
  * @author Alex
  * @version 1.0.0
@@ -154,7 +153,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
         return new ApertureStorage(byAperture, keepOwned(vital, next), tokens);
     }
 
-    public ApertureStorage shiftRight() {
+    public ApertureStorage shiftRight(StoredGu storedGu) {
         if (byAperture.size() >= ApertureData.MAX_APERTURES) return this;
 
         List<List<ItemStack>> items = new ArrayList<>();
@@ -163,15 +162,15 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
         List<ItemStack> bound = new ArrayList<>();
         bound.add(ItemStack.EMPTY);
-        for (ItemStack stack : vital) bound.add(markSecond(stack));
+        for (ItemStack stack : vital) bound.add(markSecond(storedGu, stack));
         return new ApertureStorage(items, new OwnedStacks(bound), tokens);
     }
 
-    private static ItemStack markSecond(ItemStack stack) {
+    private static ItemStack markSecond(StoredGu storedGu, ItemStack stack) {
         if (stack.isEmpty()) return stack;
 
         ItemStack copy = stack.copy();
-        copy.set(ModDataComponents.VITAL_APERTURE, ApertureData.SECOND);
+        storedGu.setBoundAperture(copy, ApertureData.SECOND);
         return copy;
     }
 

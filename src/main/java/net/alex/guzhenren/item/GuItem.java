@@ -1,17 +1,12 @@
 package net.alex.guzhenren.item;
 
 import java.util.List;
-import java.util.UUID;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
-import net.alex.guzhenren.gameplay.aperture.ApertureData;
-import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
-import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,12 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The abstract base of everything a Gu hand holds, covering both Gu [蛊虫] and Gu material [蛊材].
+ * The abstract base of everything a Gu hand holds, covering both Gu [蛊虫] and Gu material [蛊材]: only what the
+ * two share, the identity (rank, path and the kind line of the tooltip), the tooltip and the right click.
  *
- * <p>Extends {@link Item} to add the four right-click templates a leaf fills: the use, the tap use, charge
- * pacing, and Vital Gu [本命蛊] binding. Every gesture is a right click, tapped or held: there is no left-click,
- * swing or sneak template, and none gets added. The charge duration is paced by the gap between the
- * holder's rank and the item's own via {@code useChargeByGap}, never by the stage.
+ * <p>Extends {@link Item} with the right-click templates a leaf fills: the use, the tap use, the charge and the
+ * in-place use. Every gesture is a right click, tapped or held: there is no left-click, swing or sneak template,
+ * and none gets added. How long a charge runs is the leaf's {@code useDurationTicks}; the Vital Gu [本命蛊] mark
+ * and the rank-gap pacing are a mortal Gu's ({@code MortalGuItem}), never a material's.
  *
  * <p>⚠ A leaf answering {@code hasTapUse} has two uses on the one click: let go within {@link #TAP_TICKS} lands
  * the tap use ({@code checkTapUse}, {@code performTapUse}) in {@code releaseUsing}, a full charge lands the use, and a
@@ -49,12 +45,6 @@ import org.jetbrains.annotations.Nullable;
  * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu, or a
  * Primeval Elder Gu's tap. The vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceUse}
  * refuses on the action bar, and {@code performInPlaceUse} lands it. It answers whether it landed.
- *
- * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
- * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
- * the Gu sits: {@code bind} stores the kind of the holder's index, {@code getBoundIndex} maps it back. An
- * aperture has one Vital Gu: {@code bind} also stamps a fresh token, and only the stack whose token the
- * store holds for that kind is the current one ({@code isCurrentVital}); a replaced one is harmless.
  *
  * <p>⚠ The hooks ({@code checkUse}, {@code performUse}, {@code useDurationTicks}, {@code hasTapUse}) are re-read in
  * {@code use}, {@code releaseUsing} and {@code finishUsingItem}, never cached from the press. A leaf wanting its
@@ -90,67 +80,6 @@ public abstract class GuItem extends Item {
     public int getTier() { return rank.ordinal() - Rank.ONE.ordinal(); }
 
     public record Refusal(String key, Object... args) {}
-
-    //region charge [蓄力] -- paced by the holder's rank against this item's own, never by the stage
-    public static final int USE_FAST_TICKS = Ticks.SECOND / 4;
-    public static final int USE_SAME_TICKS = Ticks.HALF_SECOND;
-    public static final int USE_SLOW_TICKS = Ticks.SECOND;
-
-    protected int getRankGap(Player player) { return ApertureService.getRank(player).ordinal() - rank.ordinal(); }
-
-    protected int useChargeByGap(Player player) {
-        int gap = getRankGap(player);
-        if (gap > 0) return TimeFlow.shortenWait(player, USE_FAST_TICKS);
-        return TimeFlow.shortenWait(player, gap == 0 ? USE_SAME_TICKS : USE_SLOW_TICKS);
-    }
-    //endregion
-
-    //region Vital Gu
-    public static @Nullable UUID getOwner(ItemStack stack) {
-        return stack.get(ModDataComponents.VITAL_OWNER);
-    }
-
-    public static boolean isVital(ItemStack stack) {
-        return stack.has(ModDataComponents.VITAL_OWNER);
-    }
-
-    public static boolean isVitalOf(ItemStack stack, Player player) { return player.getUUID().equals(getOwner(stack)); }
-
-    public static boolean isForeignVital(ItemStack stack, Player player) {
-        return isVital(stack) && !isVitalOf(stack, player);
-    }
-
-    public static int getBoundAperture(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.VITAL_APERTURE, ApertureData.PRIMARY);
-    }
-
-    public static int getBoundIndex(ItemStack stack, Player owner) {
-        return ApertureService.get(owner).indexOf(getBoundAperture(stack));
-    }
-
-    public static long getToken(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.VITAL_TOKEN, 0L);
-    }
-
-    public static boolean isCurrentVital(ItemStack stack, ServerPlayer owner) {
-        long token = getToken(stack);
-        return token != 0L && isVitalOf(stack, owner)
-                && token == ApertureStorageService.getVitalToken(owner, getBoundAperture(stack));
-    }
-
-    public static void bind(ItemStack stack, ServerPlayer player, int index) {
-        long token = player.getRandom().nextLong();
-        stack.set(ModDataComponents.VITAL_OWNER, player.getUUID());
-        stack.set(ModDataComponents.VITAL_APERTURE, ApertureService.get(player).getKindAt(index));
-        stack.set(ModDataComponents.VITAL_TOKEN, token == 0L ? 1L : token);
-    }
-
-    public static void unbind(ItemStack stack) {
-        stack.remove(ModDataComponents.VITAL_OWNER);
-        stack.remove(ModDataComponents.VITAL_APERTURE);
-        stack.remove(ModDataComponents.VITAL_TOKEN);
-    }
-    //endregion
 
     //region the hooks a leaf fills
     protected boolean hasUse() { return false; }
@@ -277,14 +206,6 @@ public abstract class GuItem extends Item {
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         tooltip.add(ModDisplayText.formatGuLine(rank, path, getKindKey()).withStyle(ChatFormatting.GRAY));
     }
-
-    @Override
-    public @NotNull Component getName(@NotNull ItemStack stack) {
-        return isVital(stack) ? ModDisplayText.formatVital(super.getName(stack)) : super.getName(stack);
-    }
-
-    @Override
-    public boolean isFoil(@NotNull ItemStack stack) { return isVital(stack) || super.isFoil(stack); }
 
     protected int getCooldownTicks(ItemStack stack) { return COOLDOWN_TICKS; }
 

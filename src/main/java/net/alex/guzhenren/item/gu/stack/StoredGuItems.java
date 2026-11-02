@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The item side of {@link StoredGu}: answers aperture storage's questions from the Gu item classes. A store holds
- * mortal Gu ({@link MortalGuItem}); paths, binding tokens and owners are {@link GuItem}'s.
+ * mortal Gu ({@link MortalGuItem}); paths are {@link GuItem}'s, the Vital Gu binding {@link VitalGuState}'s.
  *
  * <p>The mod's entry point hands one to {@code ApertureStorageService.setStoredGu}.
  *
@@ -35,10 +35,13 @@ public final class StoredGuItems implements StoredGu {
     }
 
     @Override
-    public long getToken(@NotNull ItemStack stack) { return GuItem.getToken(stack); }
+    public long getToken(@NotNull ItemStack stack) { return VitalGuState.getToken(stack); }
 
     @Override
     public boolean isVitalOf(@NotNull ItemStack stack, @NotNull Player player) {
-        return GuItem.isVitalOf(stack, player);
+        return VitalGuState.isVitalOf(stack, player);
     }
+
+    @Override
+    public void setBoundAperture(@NotNull ItemStack stack, int kind) { VitalGuState.setBoundAperture(stack, kind); }
 }

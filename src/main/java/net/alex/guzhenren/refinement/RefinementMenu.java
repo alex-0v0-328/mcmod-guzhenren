@@ -6,9 +6,9 @@ import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
-import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.alex.guzhenren.refinement.recipe.GuRecipeInput;
@@ -309,7 +309,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
             if (ritual.isRunning() || (stack.getItem() instanceof MortalGuItem) != core) return false;
-            return !core || !GuItem.isForeignVital(stack, player);
+            return !core || !VitalGuState.isForeignVital(stack, player);
         }
 
         @Override
@@ -324,7 +324,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         public boolean mayPlace(@NotNull ItemStack stack) {
             boolean fuel = stack.getItem() instanceof PrimevalStoneItem
                     || stack.getItem() instanceof PrimevalElderGuItem;
-            return fuel && !GuItem.isForeignVital(stack, player);
+            return fuel && !VitalGuState.isForeignVital(stack, player);
         }
     }
 

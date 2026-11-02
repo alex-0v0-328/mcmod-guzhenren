@@ -41,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link KillingMoveEvents} and after a stored partner is billed).
  *
  * <p>A player uses only the moves they have learned ({@link #knows}): reading the move's book
- * ({@link KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death without keepInventory empties.
+ * ({@link net.alex.guzhenren.item.KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death
+ * without keepInventory empties.
  *
  * <p>A killing move is a switch [启动 / 关闭], not a single cast: a pick on the radial menu sends the move's id, and
  * {@link #toggle} switches it on, or off when it was on ({@code KillingMoveData.active}, synced, never saved, and
