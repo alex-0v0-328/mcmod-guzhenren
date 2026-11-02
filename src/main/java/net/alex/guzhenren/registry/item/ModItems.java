@@ -18,7 +18,6 @@ import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
-import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
@@ -67,9 +66,6 @@ import net.alex.guzhenren.item.gu.mortal.wood.VitalityLeafModule;
 import net.alex.guzhenren.item.material.GuMaterialItem;
 import net.alex.guzhenren.item.material.LiquorItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
-import net.alex.guzhenren.item.material.qi.DeathQiItem;
-import net.alex.guzhenren.item.material.qi.LifeQiItem;
-import net.alex.guzhenren.item.material.qi.QiMaterialItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemModel;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
@@ -102,7 +98,7 @@ import org.jetbrains.annotations.Nullable;
  * the one place the numbers live.
  *
  * <p>⚠ The registration id mirrors the Java name (and the PNG); a rank ladder is numbered
- * ({@code sword_qi_1} to {@code sword_qi_5}), but an item with its own fiction name keeps that name
+ * ({@code primeval_elder_gu_1} to {@code primeval_elder_gu_5}), but an item with its own fiction name keeps that name
  * ({@code blood_wight_gu}).
  *
  * <p>{@link #SPIRIT_SPRING} is the spring's {@code BlockItem}: same key as the block, so the names on its chain
@@ -125,7 +121,6 @@ public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Guzhenren.MOD_ID);
     private static final ItemRegistrar REGISTRAR = ItemRegistrar.of(ITEMS);
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
-    private static final long[] QI_ESSENCE_COST = { 50L, 500L, 5_000L, 50_000L, 500_000L };
     private static final float MOONLIGHT_DAMAGE = 6.0F;
     /** A moon blade Gu fires again after 0.1 s: the blade itself is the pacing, not a cooldown sweep. */
     private static final int MOON_BLADE_COOLDOWN_TICKS = 2;
@@ -1027,67 +1022,6 @@ public final class ModItems {
             default -> null;
         };
     }
-    //endregion
-
-    //region Qi Path [气道] materials -- 21, ranks I to V
-    public static final DeferredItem<Item> SWORD_QI_1 =
-            registerQiMaterial("sword_qi_1", Rank.ONE, QiKind.SWORD, "Sword Qi I", "一转剑气");
-    public static final DeferredItem<Item> SWORD_QI_2 =
-            registerQiMaterial("sword_qi_2", Rank.TWO, QiKind.SWORD, "Sword Qi II", "二转剑气");
-    public static final DeferredItem<Item> SWORD_QI_3 =
-            registerQiMaterial("sword_qi_3", Rank.THREE, QiKind.SWORD, "Sword Qi III", "三转剑气");
-    public static final DeferredItem<Item> SWORD_QI_4 =
-            registerQiMaterial("sword_qi_4", Rank.FOUR, QiKind.SWORD, "Sword Qi IV", "四转剑气");
-    public static final DeferredItem<Item> SWORD_QI_5 =
-            registerQiMaterial("sword_qi_5", Rank.FIVE, QiKind.SWORD, "Sword Qi V", "五转剑气");
-    public static final DeferredItem<Item> STRENGTH_QI_1 =
-            registerQiMaterial("strength_qi_1", Rank.ONE, QiKind.STRENGTH, "Strength Qi I", "一转力气");
-    public static final DeferredItem<Item> STRENGTH_QI_2 =
-            registerQiMaterial("strength_qi_2", Rank.TWO, QiKind.STRENGTH, "Strength Qi II", "二转力气");
-    public static final DeferredItem<Item> STRENGTH_QI_3 =
-            registerQiMaterial("strength_qi_3", Rank.THREE, QiKind.STRENGTH, "Strength Qi III", "三转力气");
-    public static final DeferredItem<Item> STRENGTH_QI_4 =
-            registerQiMaterial("strength_qi_4", Rank.FOUR, QiKind.STRENGTH, "Strength Qi IV", "四转力气");
-    public static final DeferredItem<Item> STRENGTH_QI_5 =
-            registerQiMaterial("strength_qi_5", Rank.FIVE, QiKind.STRENGTH, "Strength Qi V", "五转力气");
-    public static final DeferredItem<Item> LIFE_QI_1 = REGISTRAR.item("life_qi_1",
-            () -> new LifeQiItem(createQiProperties(), Rank.ONE, getQiEssenceCost(Rank.ONE)))
-            .lang("Life Qi I", "一转生气").register();
-    public static final DeferredItem<Item> LIFE_QI_2 = REGISTRAR.item("life_qi_2",
-            () -> new LifeQiItem(createQiProperties(), Rank.TWO, getQiEssenceCost(Rank.TWO)))
-            .lang("Life Qi II", "二转生气").register();
-    public static final DeferredItem<Item> LIFE_QI_3 = REGISTRAR.item("life_qi_3",
-            () -> new LifeQiItem(createQiProperties(), Rank.THREE, getQiEssenceCost(Rank.THREE)))
-            .lang("Life Qi III", "三转生气").register();
-    public static final DeferredItem<Item> LIFE_QI_4 = REGISTRAR.item("life_qi_4",
-            () -> new LifeQiItem(createQiProperties(), Rank.FOUR, getQiEssenceCost(Rank.FOUR)))
-            .lang("Life Qi IV", "四转生气").register();
-    public static final DeferredItem<Item> LIFE_QI_5 = REGISTRAR.item("life_qi_5",
-            () -> new LifeQiItem(createQiProperties(), Rank.FIVE, getQiEssenceCost(Rank.FIVE)))
-            .lang("Life Qi V", "五转生气").register();
-    public static final DeferredItem<Item> ESSENCE_QI_1 =
-            registerQiMaterial("essence_qi_1", Rank.ONE, QiKind.ESSENCE, "Essence Qi I", "一转元气");
-    public static final DeferredItem<Item> ESSENCE_QI_2 =
-            registerQiMaterial("essence_qi_2", Rank.TWO, QiKind.ESSENCE, "Essence Qi II", "二转元气");
-    public static final DeferredItem<Item> ESSENCE_QI_3 =
-            registerQiMaterial("essence_qi_3", Rank.THREE, QiKind.ESSENCE, "Essence Qi III", "三转元气");
-    public static final DeferredItem<Item> ESSENCE_QI_4 =
-            registerQiMaterial("essence_qi_4", Rank.FOUR, QiKind.ESSENCE, "Essence Qi IV", "四转元气");
-    public static final DeferredItem<Item> ESSENCE_QI_5 =
-            registerQiMaterial("essence_qi_5", Rank.FIVE, QiKind.ESSENCE, "Essence Qi V", "五转元气");
-    public static final DeferredItem<Item> DEATH_QI_5 = REGISTRAR.item("death_qi_5",
-            () -> new DeathQiItem(createQiProperties(), Rank.FIVE, getQiEssenceCost(Rank.FIVE)))
-            .lang("Death Qi V", "五转死气").register();
-
-    private static DeferredItem<Item> registerQiMaterial(String id, Rank rank, QiKind kind, String english,
-                                                         String simplified) {
-        return REGISTRAR.item(id, () -> new QiMaterialItem(createQiProperties(), rank, kind, getQiEssenceCost(rank)))
-                .lang(english, simplified).register();
-    }
-
-    private static long getQiEssenceCost(Rank rank) { return QI_ESSENCE_COST[rank.ordinal() - Rank.ONE.ordinal()]; }
-
-    private static Item.Properties createQiProperties() { return new Item.Properties().stacksTo(64); }
     //endregion
 
     //region Advancement Icon [进度图标] -- no tab, no recipe viewer; only advancements show it

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Milk [牛奶] cures none of this mod's own effects but Bleeding [流血]. Each other one is the icon, timer, modifier or
- * pulse of a state held elsewhere -- a path effect [流派效果], a qi pool, the body -- that the heartbeat projects
+ * pulse of a state held elsewhere -- a path effect [流派效果], the body -- that the heartbeat projects
  * again, so curing one only paused what it carries until the next beat; Bleeding has no state behind it.
  *
  * <p>Event subscriber on {@link MobEffectEvent.Remove}: a removal whose cure is {@link EffectCures#MILK} and whose

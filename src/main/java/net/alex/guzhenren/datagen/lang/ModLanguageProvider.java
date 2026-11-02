@@ -24,7 +24,6 @@ import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffectCategory;
-import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
@@ -352,7 +351,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.wisdom_path_achieve",   "Wisdom Path Attainment", "智道造诣");
         add("guzhenren.screen.label.soul",                  "Soul", "魂魄");
         add("guzhenren.screen.label.lifespan",              "Lifespan", "寿元");
-        add("guzhenren.screen.label.qi_path_achieve",       "Qi Path Attainment", "气道造诣");
         add("guzhenren.screen.label.dao_marks",             "Dao Marks", "道痕");
         add("guzhenren.screen.label.effects",               "Effects", "效果");
         add("guzhenren.screen.label.strength_path_achieve", "Strength Path Attainment", "力道造诣");
@@ -484,15 +482,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.health",                              "Health %s / %s", "生命 %s / %s");
         add("guzhenren.item.gu.vital_lost",
                 "Your %s is gone -- health, soul and mind all suffer!", "本命%s死亡，你也遭受重创");
-        add("guzhenren.item.death_qi_cured",
-                "Life Qi dispels the Death Qi -- %s years of lifespan restored", "死气化解 — 回复 %s 年寿元");
 
         add("effect.guzhenren.vitality_leaf_gu",                     "Vitality Leaf Gu Effect", "生机叶蛊效果");
         add("effect.guzhenren.liquor_worm",                          "Liquor Worm Effect", "酒虫效果");
-        add("effect.guzhenren.life_qi",                              "Life Qi Effect", "生气效果");
-        add("effect.guzhenren.essence_qi",                           "Essence Qi Effect", "元气效果");
-        add("effect.guzhenren.death_qi",                             "Death Qi Effect", "死气效果");
-        add("effect.guzhenren.strength_qi",                          "Strength Qi Effect", "力气效果");
         add("effect.guzhenren.flower_boar_gu",                       "Flower Boar Gu Effect", "花豕蛊效果");
         add("effect.guzhenren.brute_force_longhorn_beetle_gu",
                 "Brute Force Longhorn Beetle Gu Effect", "蛮力天牛蛊效果");
@@ -592,7 +584,6 @@ public class ModLanguageProvider extends LanguageProvider {
         addSoulTier();
         addEffectCarrier();
         addPathEffectCategory();
-        addQiKind();
         addPath();
         addAttainment();
         addWisdomType();
@@ -774,17 +765,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add(BeastStrengthFamily.BOAR, "Boar", "猪");
         add(BeastStrengthFamily.OX,   "Ox",   "牛");
         add(BeastStrengthFamily.BEAR, "Bear", "熊");
-    }
-
-    private void addQiKind() {
-        add(QiKind.SWORD,    "Sword Qi",    "剑气");
-        add(QiKind.STRENGTH, "Strength Qi", "力气");
-        add(QiKind.LIFE,     "Life Qi",     "生气");
-        add(QiKind.ESSENCE,  "Essence Qi",  "元气");
-        add(QiKind.DEATH,    "Death Qi",    "死气");
-        add(QiKind.HUMAN,    "Human Qi",    "人气");
-        add(QiKind.HEAVEN,   "Heaven Qi",   "天气");
-        add(QiKind.EARTH,    "Earth Qi",    "地气");
     }
 
     private void addPath() {

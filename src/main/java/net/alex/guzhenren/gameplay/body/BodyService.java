@@ -294,28 +294,6 @@ public final class BodyService {
     }
     //endregion
 
-    //region Death Qi [死气] debt
-    public static void drainByDeathQi(@NotNull ServerPlayer player, long years) {
-        BodyData body = get(player);
-        BigInteger parts = BigInteger.valueOf(body.lifespanParts()).subtract(toYearParts(years));
-        store(player, body.withLifespanParts(clampParts(parts))
-                .withDeathQiLifespanLost(LongMath.saturatedAdd(body.deathQiLifespanLost(), years)));
-    }
-
-    public static double refundDeathQiDebt(@NotNull ServerPlayer player, int numerator, int denominator) {
-        BodyData body = get(player);
-        BigInteger refundParts = toYearParts(body.deathQiLifespanLost()).multiply(BigInteger.valueOf(numerator))
-                .divide(BigInteger.valueOf(denominator));
-        store(player, body.withLifespanParts(clampParts(BigInteger.valueOf(body.lifespanParts()).add(refundParts)))
-                .withDeathQiLifespanLost(0L));
-        return refundParts.doubleValue() / BodyData.PARTS_PER_YEAR;
-    }
-
-    public static void clearDeathQiDebt(@NotNull ServerPlayer player) {
-        store(player, get(player).withDeathQiLifespanLost(0L));
-    }
-    //endregion
-
     public static long tickAging(@NotNull ServerPlayer player) {
         MinecraftServer server = player.getServer();
         if (server == null) return 0L;

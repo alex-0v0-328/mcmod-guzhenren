@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>The screen still asks {@link InfoModel} for the model every frame and hands it in; the rows are rebuilt by
  * {@link InfoRowRenderer} only when the model is not equal to the one they were built from. Equality, not the
  * identity of the attachments behind it, because some rows read what no attachment holds (an effect's attack
- * bonus, the game time behind a qi reading), and those must change the frame they change. The two slots, the
+ * bonus, the game time behind an effect's time left), and those must change the frame they change. The two slots, the
  * ordinary rows and the aperture columns, are independent.
  *
  * @author Alex

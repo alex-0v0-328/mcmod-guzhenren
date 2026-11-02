@@ -18,7 +18,6 @@ import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.PathEffectData;
-import net.alex.guzhenren.gameplay.path.qi.PathQiData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
@@ -65,13 +64,13 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * the next login re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
- * {@code qi} and {@code strength} as subpackages of path. A constant is its record's class name without
- * {@code Data} ({@code PathQiData} is {@code PATH_QI}). Never give an attachment the bare domain word --
+ * {@code strength} as a subpackage of path. A constant is its record's class name without
+ * {@code Data} ({@code PathStrengthData} is {@code PATH_STRENGTH}). Never give an attachment the bare domain word --
  * {@code qi}/{@code soul}/{@code strength} are also {@code GuPath} names. The ids are save keys: renaming
  * one loses every saved value.
  *
  * <p>⚠ A record's {@code CODEC} reads every field with {@code optionalFieldOf} and that field's default (the
- * list- and map-shaped {@code ApertureData}, {@code PathData} and {@code PathQiData} in their entry records), so
+ * list- and map-shaped {@code ApertureData} and {@code PathData} in their entry records), so
  * a save written before a field existed still loads. {@code DimensionReturnData.ReturnPoint} is the one
  * exception, its fields required inside an optional {@code point}; a field added there still takes
  * {@code optionalFieldOf}.
@@ -137,9 +136,6 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<PathStrengthData>> PATH_STRENGTH = registerSynced(
             "strength_data", PathStrengthData.DEFAULT, PathStrengthData.CODEC,
             StreamCodec.of(PathStrengthData::encode, PathStrengthData::decode));
-    public static final Supplier<AttachmentType<PathQiData>> PATH_QI =
-            registerSynced("qi_data", PathQiData.DEFAULT, PathQiData.CODEC,
-                    StreamCodec.of(PathQiData::encode, PathQiData::decode));
     //endregion
 
     //region Mind [脑海]

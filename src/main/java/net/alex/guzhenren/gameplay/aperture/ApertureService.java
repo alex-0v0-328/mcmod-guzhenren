@@ -13,8 +13,6 @@ import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
-import net.alex.guzhenren.gameplay.path.qi.PathQiService;
-import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
  * holder -- it appends; the caller gates. A base essence of zero (a Hope Gu that never rolled one) rolls a
  * fresh talent instead of opening an aperture with no base. ⚠ {@code reconcileTalentPaths} (the ten-extreme
- * talent effect plus human qi) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
+ * talent effect) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
  * The talent is the permanent {@code EXTREME_PHYSIQUE} aperture effect from {@link #TALENT_SOURCE}: a thousand whole
  * marks split evenly across the physique's talent paths; {@link #syncTalentEffect} puts it back on login when it is
  * missing or names another physique.
@@ -65,7 +63,6 @@ public final class ApertureService {
     private ApertureService() {}
 
     public static final long TALENT_MARK_TOTAL = 1000L;
-    public static final long TALENT_HUMAN_QI = 100L;
     public static final ResourceLocation TALENT_SOURCE = Guzhenren.id("innate/extreme_physique");
 
     static long getTalentMarksPerPath(ExtremePhysique physique) {
@@ -278,7 +275,6 @@ public final class ApertureService {
     private static void grantTalentPaths(ServerPlayer player, ExtremePhysique physique, int sign) {
         if (physique.getTalentPaths().isEmpty()) return;
 
-        PathQiService.add(player, QiKind.HUMAN, sign * TALENT_HUMAN_QI);
         if (sign > 0) {
             PathEffectService.apply(player, getTalentEffect(physique));
         } else {

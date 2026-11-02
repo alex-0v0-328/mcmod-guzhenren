@@ -34,8 +34,6 @@ import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathService;
-import net.alex.guzhenren.gameplay.path.qi.PathQiService;
-import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
@@ -54,8 +52,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Deciding "draw or not" here, not in the panel, is what keeps a section header with [无] from sitting beside
  * a real Dao-mark [道痕] figure. {@code Entry} is sealed and every row kind has its {@link Visitor} method, so a new
- * row is a compile error until the panel words it. ⚠ A named section (Strength Attainment [力道造诣], Qi Attainment
- * [气道造诣], ...) is a label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) has two
+ * row is a compile error until the panel words it. ⚠ A named section (Strength Attainment [力道造诣], ...) is a
+ * label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) has two
  * parts: Dao marks [道痕], each path's attainment [造诣] and whole Dao-mark total with nothing per source, then
  * effects [效果], the named attainment sections followed by the path buffs [流派增益] and path debuffs [流派减益],
  * each grouped by carrier with every effect's time left. ⚠ A beast or human strength [兽力 / 人力] and a
@@ -140,10 +138,6 @@ public final class InfoModel {
         T visit(EffectCarrierRow entry);
 
         T visit(PathEffectRow entry);
-
-        T visit(QiPathAchieveHeader entry);
-
-        T visit(QiKindRow entry);
 
         T visit(StrengthPathAchieveHeader entry);
 
@@ -311,18 +305,6 @@ public final class InfoModel {
         public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
     }
 
-    public record QiPathAchieveHeader() implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record QiKindRow(QiKind kind, long amount) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
     public record StrengthPathAchieveHeader() implements Entry {
 
         @Override
@@ -484,7 +466,6 @@ public final class InfoModel {
         List<Row> effects = new ArrayList<>();
         addStrengthPathAchieve(effects, player);
         addTimePathAchieve(effects, player);
-        addQiPathAchieve(effects, player);
         addWisdomPathAchieve(effects, player);
         for (PathEffectCategory category : PathEffectCategory.values()) addPathEffects(effects, player, category);
         rows.add(new Row(0, new EffectsHeader(effects.isEmpty())));
@@ -541,18 +522,6 @@ public final class InfoModel {
     static long getSecondsLeft(PathEffect<?> effect, long now) {
         return effect.isPermanent() ? PathEffect.PERMANENT
                 : ModDisplayText.getCountdownSeconds(effect.getTicksLeft(now));
-    }
-
-    private static void addQiPathAchieve(List<Row> rows, Player player) {
-        List<Row> held = new ArrayList<>();
-        for (QiKind kind : QiKind.values()) {
-            long amount = PathQiService.getCurrent(player, kind);
-            if (amount > 0L) held.add(new Row(INDENT, new QiKindRow(kind, amount)));
-        }
-        if (held.isEmpty()) return;
-
-        rows.add(new Row(0, new QiPathAchieveHeader()));
-        rows.addAll(held);
     }
 
     private static void addStrengthPathAchieve(List<Row> rows, Player player) {

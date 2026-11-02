@@ -27,9 +27,6 @@ public final class EffectIcons {
 
     public static void forEach(
             @NotNull BiConsumer<IClientMobEffectExtensions, Supplier<? extends MobEffect>> register) {
-        register.accept(GradedEffectIcon.createMobEffect("essence_qi", 1, 5), ModEffects.ESSENCE_QI);
-        register.accept(GradedEffectIcon.createMobEffect("life_qi", 1, 5), ModEffects.LIFE_QI);
-        register.accept(GradedEffectIcon.createMobEffect("strength_qi", 1, 5), ModEffects.STRENGTH_QI);
         register.accept(GradedEffectIcon.createMobEffect("all_out_effort_gu", 3, 5), ModEffects.ALL_OUT_EFFORT_GU);
         register.accept(GradedEffectIcon.createMobEffect("liquor_worm", 1, 4), ModEffects.LIQUOR_WORM);
         register.accept(GradedEffectIcon.createItem("casual_gu", 1, 2), ModEffects.CASUAL_GU);

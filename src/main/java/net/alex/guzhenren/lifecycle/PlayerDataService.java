@@ -15,8 +15,6 @@ import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindService;
-import net.alex.guzhenren.gameplay.path.qi.PathQiService;
-import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.gu.mortal.StateEffects;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -127,8 +125,6 @@ public final class PlayerDataService {
         if (MindService.get(player).isOverflowing()) {
             MindService.empty(player);
         }
-        BodyService.clearDeathQiDebt(player);
-        PathQiService.set(player, QiKind.DEATH, 0L);
     }
 
     public static void resetAll(@NotNull Player player) {

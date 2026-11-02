@@ -219,17 +219,6 @@ final class InfoRowRenderer {
         }
 
         @Override
-        public ScreenRow visit(InfoModel.QiPathAchieveHeader entry) {
-            return new ScreenRow(indent, formatLabel("qi_path_achieve"), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.QiKindRow entry) {
-            return new ScreenRow(indent, formatName(entry.kind().getTranslationKey()),
-                    Component.literal(String.valueOf(entry.amount())));
-        }
-
-        @Override
         public ScreenRow visit(InfoModel.TimePathAchieveHeader entry) {
             return new ScreenRow(indent, formatLabel("time_path_achieve"), null);
         }

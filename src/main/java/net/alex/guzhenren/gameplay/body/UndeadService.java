@@ -1,29 +1,17 @@
 package net.alex.guzhenren.gameplay.body;
 
-import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.path.qi.PathQiService;
-import net.alex.guzhenren.gameplay.path.qi.QiKind;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.food.FoodData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The heartbeat steps of the undead [僵] and of Death Qi [死气]. {@link #tickTempZombie} turns a
- * temp zombie holding Death Qi into a zombie, lets an expired one recover, and projects the state as the
- * {@code TEMP_ZOMBIE} effect; {@link #pinHunger} keeps an undead body's hunger full; {@link #tickDeathQi}
- * burns lifespan [寿元] and floors health on the living while Death Qi is held. ⚠ A zombie skips that step
- * whole -- no lifespan drain, no debt, no health floor -- not just its lifespan.
- *
- * <p>⚠ {@link #DEATH_QI_YEAR_INTERVAL_TICKS} is 120 = 6 × 20: a multiple of the heartbeat's 20, or the
- * burning runs silently slower (the slower-step rule in {@link net.alex.guzhenren.lifecycle.Heartbeat}). A
- * {@code MobEffect} has no expiry hook, so the burning runs here, on the heartbeat, and the
- * {@code DEATH_QI} effect is only its projection.
+ * The heartbeat steps of the undead [僵]. {@link #tickTempZombie} lets an expired temp zombie recover and
+ * projects the state as the {@code TEMP_ZOMBIE} effect; {@link #pinHunger} keeps an undead body's hunger full.
  *
  * @author Alex
  * @version 1.0.0
  * @see BodyService
- * @see PathQiService
  * @since 1.0.0
  */
 
@@ -31,19 +19,11 @@ public final class UndeadService {
 
     private UndeadService() {}
 
-    public static final int DEATH_QI_YEAR_INTERVAL_TICKS = 6 * Ticks.SECOND;
-    public static final long DEATH_QI_YEARS_PER_INTERVAL = 1L;
-    public static final float DEATH_QI_HEALTH_FLOOR = 2.0F;
-    public static final float DEATH_QI_HEALTH_PER_HEARTBEAT = 1.0F;
     private static final int FULL_HUNGER = 20;
 
     public static void tickTempZombie(@NotNull ServerPlayer player) {
-        if (BodyService.isTempZombie(player)) {
-            if (PathQiService.getCurrent(player, QiKind.DEATH) > 0L) {
-                BodyService.turnZombie(player, BodyService.get(player).zombieTier());
-            } else if (BodyService.hasTempZombieRunOut(player)) {
-                BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
-            }
+        if (BodyService.isTempZombie(player) && BodyService.hasTempZombieRunOut(player)) {
+            BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
         }
         projectTempZombie(player);
     }
@@ -64,16 +44,5 @@ public final class UndeadService {
         food.setFoodLevel(FULL_HUNGER);
         food.setSaturation(FULL_HUNGER);
         food.setExhaustion(0.0F);
-    }
-
-    public static void tickDeathQi(@NotNull ServerPlayer player) {
-        if (!player.hasEffect(ModEffects.DEATH_QI) || BodyService.isZombie(player)) return;
-
-        if (player.tickCount % DEATH_QI_YEAR_INTERVAL_TICKS == 0) {
-            BodyService.drainByDeathQi(player, DEATH_QI_YEARS_PER_INTERVAL);
-        }
-        if (player.getHealth() > DEATH_QI_HEALTH_FLOOR) {
-            player.setHealth(Math.max(DEATH_QI_HEALTH_FLOOR, player.getHealth() - DEATH_QI_HEALTH_PER_HEARTBEAT));
-        }
     }
 }

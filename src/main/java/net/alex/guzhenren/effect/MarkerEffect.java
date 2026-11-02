@@ -11,10 +11,6 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <li>{@code TEMP_ZOMBIE} [临时僵尸化] -- projects the form stored on {@code BodyData};
  * {@code UndeadService.tickTempZombie} re-applies or removes it every heartbeat, so milk,
  * {@code /effect clear} and death cannot strand a player wearing a form they are no longer in.</li>
- * <li>{@code DEATH_QI} [死气] and {@code ESSENCE_QI} [元气] -- project the qi pools in {@code PathQiData}
- * and are rebuilt by {@code PathQiService.syncEffects}; {@code UndeadService.tickDeathQi} burns lifespan
- * [寿元], and {@code ApertureEssenceService.getEssenceQiBonus} lifts essence regeneration. ⚠ Death Qi
- * outranks Essence Qi: the regen step checks {@code isChoked} first and returns.</li>
  * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed; while it runs the carrying limit [承受上限] does not
  * apply, which {@code BodyStrengthService.getUsableJin} reads. Re-using it while it runs is a refusal
  * ({@code all_out_active}).</li>

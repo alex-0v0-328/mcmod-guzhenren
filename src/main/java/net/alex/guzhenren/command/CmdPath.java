@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code /gzr path}: writes attainment [造诣] and the bare Dao marks [道痕], takes path effects [流派效果] off, and
- * carries the qi and strength sub-commands. Uses {@link net.alex.guzhenren.command.ModEnumArgument} for the path
+ * carries the strength sub-command. Uses {@link net.alex.guzhenren.command.ModEnumArgument} for the path
  * argument; all writes delegate to {@link PathService} and {@link PathEffectService}.
  *
  * <p>{@code marks <path> set|add|sub <marks> [strands set|add|sub <strands>]} writes the path's bare marks on the
@@ -37,9 +37,8 @@ import org.jetbrains.annotations.Nullable;
  * a handwritten effect could not be told from one a source laid down, and nothing would ever revoke it.
  *
  * <p>☠ The literals {@code marks}, {@code attainment} and {@code effect} come before the path word and the verbs
- * after it ({@code /gzr path marks <path> set ...}): {@code GuPath} also has {@code qi}/{@code strength}
- * constants, and a word argument directly under {@code path}, beside the {@code qi}/{@code strength} literals, could
- * never be typed as those two paths.
+ * after it ({@code /gzr path marks <path> set ...}): {@code GuPath} also has a {@code strength} constant, and a word
+ * argument directly under {@code path}, beside the {@code strength} literal, could never be typed as that path.
  *
  * @author Alex
  * @version 1.0.0
@@ -60,7 +59,6 @@ public final class CmdPath {
                 .then(buildMarks())
                 .then(buildAttainment())
                 .then(buildEffect())
-                .then(CmdQi.buildNode())
                 .then(CmdStrength.buildNode());
     }
 

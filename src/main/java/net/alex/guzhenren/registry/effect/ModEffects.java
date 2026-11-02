@@ -3,8 +3,6 @@ package net.alex.guzhenren.registry.effect;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.BleedingEffect;
 import net.alex.guzhenren.effect.MarkerEffect;
-import net.alex.guzhenren.effect.pool.LifeQiEffect;
-import net.alex.guzhenren.effect.pool.StrengthQiEffect;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
@@ -52,14 +50,6 @@ public final class ModEffects {
             "vitality_leaf_gu", () -> new VitalityLeafGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> LIQUOR_WORM = MOB_EFFECTS.register(
             "liquor_worm", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, LifeQiEffect> LIFE_QI = MOB_EFFECTS.register(
-            "life_qi", () -> new LifeQiEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> ESSENCE_QI = MOB_EFFECTS.register(
-            "essence_qi", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> DEATH_QI = MOB_EFFECTS.register(
-            "death_qi", () -> new MarkerEffect(MobEffectCategory.HARMFUL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, StrengthQiEffect> STRENGTH_QI = MOB_EFFECTS.register(
-            "strength_qi", () -> new StrengthQiEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
 
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredHolder<MobEffect, FlowerBoarGuEffect> FLOWER_BOAR_GU = MOB_EFFECTS.register(

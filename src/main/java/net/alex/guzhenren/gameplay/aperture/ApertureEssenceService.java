@@ -1,18 +1,14 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import com.google.common.math.LongMath;
-import java.util.Arrays;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Gates ask {@code spendable()}, never a no-index {@code getCurrentEssence()} (PRIMARY alone, and
  * distilling empties it). ⚠ {@code consume} burns distilled 1:2 first (rounded UP), then the pool. ⚠
  * The distilling truth is the per-aperture {@code distilling} flag, not the effect. ⚠ Any path that
- * SKIPS a regen step (choke, DEAD [死窍]) must zero that carry; {@code isChoked} outranks everything.
+ * SKIPS a regen step (DEAD [死窍]) must zero that carry.
  * {@link #cascadeTake} is the pure seam the unit tests pin for that cascade. {@link #closeDistilling}
  * is the heartbeat's step that settles a distilling whose Liquor Worm effect ended early.
  *
@@ -47,7 +43,6 @@ public final class ApertureEssenceService {
 
     public static final long BASE_REGEN_PER_DAY = 100L;
     public static final int REGEN_INTERVAL_TICKS = Ticks.SECOND;
-    private static final double[] ESSENCE_QI_REGEN_BONUS = { 0.20, 0.40, 0.60, 0.80, 1.00 };
 
     public static long getRegenPerDay(@NotNull Aperture aperture) {
         return BASE_REGEN_PER_DAY * aperture.getTalent().getRegenRate() * aperture.rank().getRankBase()
@@ -90,14 +85,6 @@ public final class ApertureEssenceService {
 
     public static boolean isDistilling(@NotNull Player player) {
         return PathEffectService.find(player, ModPathEffectTypes.LIQUOR_DISTILLING) != null;
-    }
-
-    public static boolean isChoked(@NotNull Player player) { return player.hasEffect(ModEffects.DEATH_QI); }
-
-    public static double getEssenceQiBonus(@NotNull Player player) {
-        MobEffectInstance effect = player.getEffect(ModEffects.ESSENCE_QI);
-        return effect == null ? 0.0
-                : ESSENCE_QI_REGEN_BONUS[Mth.clamp(effect.getAmplifier(), 0, ESSENCE_QI_REGEN_BONUS.length - 1)];
     }
 
     public static void add(@NotNull ServerPlayer player, long delta) {
@@ -238,20 +225,13 @@ public final class ApertureEssenceService {
     public static void regenStep(@NotNull ServerPlayer player, @NotNull Beat beat) {
         ApertureData data = ApertureService.get(player);
         float[] carry = PlayerData.get(player).getEssenceCarry();
-
-        if (isChoked(player)) {
-            Arrays.fill(carry, 0.0F);
-            return;
-        }
-
-        double bonus = getEssenceQiBonus(player);
         for (int index = 0; index < data.count(); index++) {
-            regenAperture(player, beat, data.get(index), index, carry, bonus);
+            regenAperture(player, beat, data.get(index), index, carry);
         }
     }
 
     private static void regenAperture(
-            ServerPlayer player, Beat beat, Aperture aperture, int index, float[] carry, double bonus) {
+            ServerPlayer player, Beat beat, Aperture aperture, int index, float[] carry) {
         if (ApertureService.getStatus(player, index) != ApertureStatus.NORMAL) {
             carry[index] = 0.0F;
             return;
@@ -263,7 +243,7 @@ public final class ApertureEssenceService {
             return;
         }
 
-        double perStep = beat.scale(getRegenPerTick(aperture) * REGEN_INTERVAL_TICKS * (1.0 + bonus));
+        double perStep = beat.scale(getRegenPerTick(aperture) * REGEN_INTERVAL_TICKS);
         if (perStep <= 0.0) return;
         double total = carry[index] + perStep;
         long whole = (long) total;
