@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem
+ * @see net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem
  * @since 1.0.0
  */
 

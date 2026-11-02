@@ -2,8 +2,8 @@ package net.alex.guzhenren.vault;
 
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
-import net.alex.guzhenren.item.gu.GuUpkeep;
-import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.tending.GuUpkeep;
+import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;

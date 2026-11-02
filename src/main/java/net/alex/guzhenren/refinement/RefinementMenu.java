@@ -8,7 +8,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.alex.guzhenren.refinement.recipe.GuRecipeInput;

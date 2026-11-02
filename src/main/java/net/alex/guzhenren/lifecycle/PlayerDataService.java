@@ -16,7 +16,7 @@ import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
-import net.alex.guzhenren.item.gu.mortal.StateEffects;
+import net.alex.guzhenren.item.gu.mortal.module.StateEffects;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;

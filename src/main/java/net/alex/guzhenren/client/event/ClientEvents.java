@@ -22,7 +22,7 @@ import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
-import net.alex.guzhenren.item.gu.mortal.wood.NineLeafVitalityGrassItem;
+import net.alex.guzhenren.item.gu.mortal.path.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;

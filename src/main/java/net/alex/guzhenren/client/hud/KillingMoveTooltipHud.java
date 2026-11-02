@@ -5,7 +5,7 @@ import java.util.List;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMove;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;

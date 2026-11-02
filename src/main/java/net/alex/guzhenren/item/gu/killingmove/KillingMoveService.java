@@ -11,8 +11,8 @@ import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
-import net.alex.guzhenren.item.gu.TendedGuItem;
-import net.alex.guzhenren.item.gu.mortal.moon.MoonBladeModule;
+import net.alex.guzhenren.item.gu.tending.TendedGuItem;
+import net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeModule;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -76,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Alex
  * @version 1.0.0
  * @see KillingMove
- * @see net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem
+ * @see net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem
  * @since 1.0.0
  */
 

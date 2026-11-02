@@ -6,7 +6,7 @@ import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.GuItem;
-import net.alex.guzhenren.item.gu.VitalGuLostEvent;
+import net.alex.guzhenren.item.gu.tending.VitalGuLostEvent;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.network.chat.Component;

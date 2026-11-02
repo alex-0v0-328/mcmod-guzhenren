@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu;
 
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
-import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;

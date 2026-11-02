@@ -1,7 +1,7 @@
 package net.alex.guzhenren.lifecycle;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.item.gu.VitalGuLostEvent;
+import net.alex.guzhenren.item.gu.tending.VitalGuLostEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;

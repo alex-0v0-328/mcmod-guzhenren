@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.TimedEffects
+ * @see net.alex.guzhenren.item.gu.mortal.module.TimedEffects
  * @since 1.0.0
  */
 

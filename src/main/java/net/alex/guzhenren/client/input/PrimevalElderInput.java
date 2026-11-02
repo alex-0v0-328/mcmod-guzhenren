@@ -5,7 +5,7 @@ import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.dimension.TreasureYellowHeavenGuard;
-import net.alex.guzhenren.item.gu.mortal.space.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.network.ClientIntents.ElderAction;
 import net.alex.guzhenren.network.payload.PrimevalElderPayload;
 import net.minecraft.client.Minecraft;

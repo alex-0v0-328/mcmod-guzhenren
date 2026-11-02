@@ -1,6 +1,8 @@
 package net.alex.guzhenren.item.gu;
 
 import net.alex.guzhenren.item.GuItem.Refusal;
+import net.alex.guzhenren.item.gu.tending.ConsumedGuItem;
+import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;

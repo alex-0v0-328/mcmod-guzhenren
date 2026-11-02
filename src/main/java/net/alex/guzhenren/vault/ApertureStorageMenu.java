@@ -6,7 +6,7 @@ import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.GuItem;
-import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;

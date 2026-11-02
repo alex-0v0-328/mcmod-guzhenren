@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem
+ * @see net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem
  * @since 1.0.0
  */
 

@@ -6,7 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.StonePurse;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
-import net.alex.guzhenren.item.gu.StoredGuItems;
+import net.alex.guzhenren.item.gu.stack.StoredGuItems;
 import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
 import net.alex.guzhenren.registry.block.ModBlocks;

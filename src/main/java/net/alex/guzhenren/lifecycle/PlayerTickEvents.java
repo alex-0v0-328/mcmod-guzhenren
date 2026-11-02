@@ -1,7 +1,7 @@
 package net.alex.guzhenren.lifecycle;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.item.gu.mortal.strength.SelfRelianceModule;
+import net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceModule;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

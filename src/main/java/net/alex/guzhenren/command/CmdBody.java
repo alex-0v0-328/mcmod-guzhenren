@@ -15,7 +15,7 @@ import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinService;
 import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.SkinModule;
+import net.alex.guzhenren.item.gu.mortal.module.SkinModule;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

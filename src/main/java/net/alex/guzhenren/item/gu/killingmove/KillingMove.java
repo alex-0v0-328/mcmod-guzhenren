@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu.killingmove;
 
 import java.util.List;
-import net.alex.guzhenren.item.gu.TendedGuItem;
+import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;

@@ -6,7 +6,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
+import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
