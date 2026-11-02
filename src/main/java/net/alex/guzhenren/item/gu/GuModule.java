@@ -14,8 +14,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The host asks every module in order: {@link #checkEffect} refuses with the first refusal, {@link #applyEffect}
  * runs them all, {@link #canBeAmplified} and {@link #canUseDuringEffectCooldown} hold when any one does, and the
- * hunger multiplier is the largest. A module carries its own numbers (a duration, a grade); the Gu's shared numbers
- * stay on {@link GuSpec}, read through the host it is given.
+ * hunger multiplier is the largest. {@link #defersForcedDeath} lets a module whose effect needs its Gu alive keep a
+ * forced Gu to the end of its round, killing it there itself. A module carries its own numbers (a duration, a grade);
+ * the Gu's shared numbers stay on {@link GuSpec}, read through the host it is given.
  *
  * <p>⚠ A module is stateless and may be shared between Gu: per-stack state lives on the stack, per-player state in
  * the services. Other code asks what a Gu does through {@link MortalGuItem#getModule}, never through its class.
@@ -37,4 +38,6 @@ public interface GuModule {
     default boolean canUseDuringEffectCooldown() { return false; }
 
     default int getHungerCostMultiplier(MortalGuItem gu, Player player, ItemStack stack) { return 1; }
+
+    default boolean defersForcedDeath(MortalGuItem gu, ServerPlayer player, ItemStack stack) { return false; }
 }

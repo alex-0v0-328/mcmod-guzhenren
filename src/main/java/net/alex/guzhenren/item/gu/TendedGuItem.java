@@ -54,7 +54,8 @@ import org.jetbrains.annotations.Nullable;
  * is forced only on confirmation ({@link GuForcedUse}): the first {@code drive} warns in red and pays nothing, and
  * answers {@code WARNED}, on which {@code spend} puts no cooldown; the same Gu used again within five seconds is
  * forced ({@code trySpendAndApply}): the effect lands, then the Gu dies of exhaustion, and the 1 that {@code drive}
- * returns is that death, not a payout. A Vital Gu is only refused, never forced; creative is never warned and never
+ * returns is that death, not a payout; a module may defer that death to the end of its round
+ * ({@code GuModule.defersForcedDeath}). A Vital Gu is only refused, never forced; creative is never warned and never
  * dies; {@link #tryAutoUse} skips a short use in silence. {@link #billAsPartner} is the one bill for a Gu that only
  * backs another's use (the Amplify Effect Gu [功倍蛊], a killing move's [杀招] partner): its essence, the meals around
  * it, and on an empty bar the same death, after the use it backed.
@@ -393,10 +394,14 @@ public class TendedGuItem extends MortalGuItem {
         PrimevalStoneSupply.pay(player, spec.getEssencePerRound());
         boolean drivenOnAnEmptyBar = hunger.isSpendForced(stack, getHungerCostMultiplier(player, stack));
         applyEffectWithCooldown(player, stack);
-        if (!drivenOnAnEmptyBar || player.getAbilities().instabuild) return false;
+        if (!drivenOnAnEmptyBar || player.getAbilities().instabuild || defersForcedDeath(player, stack)) return false;
 
         exhaust(player, stack);
         return true;
+    }
+
+    private boolean defersForcedDeath(ServerPlayer player, ItemStack stack) {
+        return getModules().stream().anyMatch(module -> module.defersForcedDeath(this, player, stack));
     }
 
     /** Pays one use backing another Gu's effect, with none of its own: false only when pool and stones cannot. */
