@@ -3,12 +3,15 @@ package net.alex.guzhenren.client.slider;
 import com.mojang.blaze3d.platform.Window;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.SpriteBatch;
+import net.alex.guzhenren.client.hud.HudBar;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.item.GuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -38,6 +41,9 @@ import org.jetbrains.annotations.Nullable;
  * {@link #TRACK_WIDTH}-pixel track, split evenly among the {@code top + 1} values. While a hold runs no interaction
  * key reaches the world and the wheel neither scrolls the hotbar nor moves the slider.
  *
+ * <p>⚠ The track is the {@code slider} {@link HudBar} and the knob the {@code hud/slider_knob} sprite, both unscaled;
+ * {@code HudBarTexturesTest} pins them to {@link #TRACK_WIDTH}, {@link #TRACK_HEIGHT} and the knob size.
+ *
  * @author Alex
  * @version 1.0.0
  * @see RadialMenu
@@ -64,13 +70,14 @@ public final class HoldSlider {
     }
 
     public static final int TRACK_WIDTH = 120;
-    private static final int TRACK_HEIGHT = 4;
-    private static final int KNOB_WIDTH = 3;
-    private static final int KNOB_HEIGHT = 10;
+    public static final int TRACK_HEIGHT = 4;
+    public static final int KNOB_WIDTH = 3;
+    public static final int KNOB_HEIGHT = 10;
     private static final int TOP_GAP = 16;
     private static final int LINE_GAP = 3;
     private static final int END_GAP = 4;
-    private static final int TRACK_FILL = 0xBF000000;
+    private static final HudBar TRACK = HudBar.of("slider", TRACK_WIDTH, TRACK_HEIGHT);
+    private static final ResourceLocation KNOB = Guzhenren.id("hud/slider_knob");
     private static final Component CANCEL = Component.translatable("guzhenren.hud.slider.cancel");
     private static @Nullable Owner owner;
     private static int top = -1;
@@ -178,10 +185,11 @@ public final class HoldSlider {
         graphics.drawCenteredString(font, label, graphics.guiWidth() / 2, labelY, ModPalette.TEXT);
 
         int knob = left + Math.round((float) value / top * (TRACK_WIDTH - KNOB_WIDTH));
-        graphics.fill(left - 1, trackY - 1, left + TRACK_WIDTH + 1, trackY + TRACK_HEIGHT + 1, TRACK_FILL);
-        graphics.fill(left, trackY, knob, trackY + TRACK_HEIGHT, GuItem.CHARGE_COLOR_DEFAULT);
         int knobY = trackY - (KNOB_HEIGHT - TRACK_HEIGHT) / 2;
-        graphics.fill(knob, knobY, knob + KNOB_WIDTH, knobY + KNOB_HEIGHT, ModPalette.TEXT);
+        SpriteBatch.draw(graphics, sprites -> {
+            TRACK.draw(sprites, left, trackY, knob - left, GuItem.CHARGE_COLOR_DEFAULT);
+            sprites.blit(KNOB, knob, knobY, KNOB_WIDTH, KNOB_HEIGHT);
+        });
 
         int endY = trackY + TRACK_HEIGHT / 2 - font.lineHeight / 2;
         graphics.drawString(font, CANCEL, left - END_GAP - font.width(CANCEL), endY,

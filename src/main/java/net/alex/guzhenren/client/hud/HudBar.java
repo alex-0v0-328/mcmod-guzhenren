@@ -19,18 +19,19 @@ import net.minecraft.resources.ResourceLocation;
  * @version 1.0.0
  * @see HotbarHud
  * @see PlayerStatsHud
+ * @see net.alex.guzhenren.client.slider.HoldSlider
  * @since 1.0.0
  */
 
-record HudBar(ResourceLocation background, ResourceLocation fill, int width, int height) {
+public record HudBar(ResourceLocation background, ResourceLocation fill, int width, int height) {
 
-    static HudBar of(String name, int width, int height) {
+    public static HudBar of(String name, int width, int height) {
         return new HudBar(Guzhenren.id("hud/" + name + "_bar_background"), Guzhenren.id("hud/" + name + "_bar_fill"),
                 width, height);
     }
 
     /** Draws the bar with its fill's top-left corner at ({@code x}, {@code y}); {@code filled} runs 0 to width. */
-    void draw(SpriteBatch sprites, int x, int y, int filled, int tint) {
+    public void draw(SpriteBatch sprites, int x, int y, int filled, int tint) {
         sprites.blit(background, x - 1, y - 1, width + 2, height + 2);
         sprites.blitLeft(fill, width, height, x, y, Math.min(filled, width), tint);
     }
