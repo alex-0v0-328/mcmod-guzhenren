@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.path.timed;
+package net.alex.guzhenren.gameplay.path.strength;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;

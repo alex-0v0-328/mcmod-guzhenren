@@ -3,7 +3,7 @@ package net.alex.guzhenren.item.gu.mortal.path.strength;
 import java.util.List;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
-import net.alex.guzhenren.gameplay.path.timed.SelfRelianceHeal;
+import net.alex.guzhenren.gameplay.path.strength.SelfRelianceHeal;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuModule;
 import net.alex.guzhenren.item.gu.MortalGuItem;
