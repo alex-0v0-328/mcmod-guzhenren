@@ -200,6 +200,10 @@ dependencies {
     pureTestImplementation platform("org.junit:junit-bom:${junit_version}")
     pureTestImplementation "org.junit.jupiter:junit-jupiter"
     pureTestRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    // Minecraft pins slf4j strictly; ArchUnit runs on Minecraft's older slf4j-api.
+    pureTestImplementation("com.tngtech.archunit:archunit-junit5:${archunit_version}") {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
     // The animation and model tests parse GeckoLib's baked formats; the dash ring test loads Epic Fight's types.
     pureTestImplementation files('run/mods/geckolib-neoforge-1.21.1-4.9.3.jar')
     pureTestRuntimeOnly files('run/mods/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar')
