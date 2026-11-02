@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.gameplay.aperture.pressure;
 
 import net.alex.guzhenren.Guzhenren;
 import net.minecraft.core.SectionPos;

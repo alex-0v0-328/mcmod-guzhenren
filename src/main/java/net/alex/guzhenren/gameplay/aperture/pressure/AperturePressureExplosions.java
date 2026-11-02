@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.gameplay.aperture.pressure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see ServerTickEvents
+ * @see AperturePressureEvents
  * @since 1.0.0
  */
 

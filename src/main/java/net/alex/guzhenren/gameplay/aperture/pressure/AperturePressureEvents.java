@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.gameplay.aperture.pressure;
 
 import net.alex.guzhenren.Guzhenren;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -20,9 +20,9 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)
-public final class ServerTickEvents {
+public final class AperturePressureEvents {
 
-    private ServerTickEvents() {}
+    private AperturePressureEvents() {}
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {

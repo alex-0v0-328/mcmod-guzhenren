@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.aperture.pressure.AperturePressureExplosionTask;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.data.PlayerData;

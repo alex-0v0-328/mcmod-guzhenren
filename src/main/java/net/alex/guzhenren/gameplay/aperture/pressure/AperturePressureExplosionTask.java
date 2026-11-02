@@ -1,8 +1,8 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.gameplay.aperture.pressure;
 
 import com.google.common.base.Enums;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import net.alex.guzhenren.gameplay.aperture.AperturePressureExplosions.TickBudget;
+import net.alex.guzhenren.gameplay.aperture.pressure.AperturePressureExplosions.TickBudget;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * each column's radius carries a per-explosion jitter [噪声扰动], read from {@link CraterShape}. The crater floor is
  * physique-specific: layered ice [分层冰] for Northern Dark Ice Soul, magma and lava for Blazing Glory, scattered
  * gold for Myriad Gold; Northern Dark Ice Soul also converts the surface soil of an outer ring [雪化环带] to snow.
- * Entity damage, self-damage and the pressure reset stay in {@link AperturePressureService#detonate} -- they
- * resolve at tick zero.
+ * Entity damage, self-damage and the pressure reset stay in {@link
+ * net.alex.guzhenren.gameplay.aperture.AperturePressureService#detonate} -- they resolve at tick zero.
  *
  * <p>A blast survives a server stop: {@link #save} writes its center, radius, seed, physique, phase, every cursor
  * and the rim list into its level's {@link AperturePressureExplosions}; the level is the blast's dimension.
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Alex
  * @version 1.0.0
- * @see AperturePressureService#detonate(net.minecraft.server.level.ServerPlayer)
+ * @see net.alex.guzhenren.gameplay.aperture.AperturePressureService#detonate(net.minecraft.server.level.ServerPlayer)
  * @since 1.0.0
  */
 

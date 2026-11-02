@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.aperture;
+package net.alex.guzhenren.gameplay.aperture.pressure;
 
 /**
  * The shape of a pressure-explosion crater [空窍压力爆炸], column by column: pure functions of the block column, the
