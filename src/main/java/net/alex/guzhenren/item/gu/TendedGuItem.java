@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu;
 
 import java.util.List;
 import java.util.UUID;
+import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
@@ -49,15 +50,19 @@ import org.jetbrains.annotations.Nullable;
  * effect cooldown: {@code ItemCooldowns.addCooldown} overwrites unconditionally, so the other order would lose
  * the long cooldown to the base's short one.
  *
- * <p>A use on an empty hunger bar is forced ({@code trySpendAndApply}): the effect lands, then the Gu dies of
- * exhaustion, and the 1 that {@code drive} returns is that death, not a payout. {@link #billAsPartner} is the one
- * bill for a Gu that only backs another's use (the Amplify Effect Gu [功倍蛊], a killing move's [杀招] partner): its
- * essence, the meals around it, and on an empty bar the same death, after the use it backed.
+ * <p>⚠ A use short of hunger after the bag's meal ({@code GuHunger.isShortOfUse}, the hunger multiplier included)
+ * is forced only on confirmation ({@link GuForcedUse}): the first {@code drive} warns in red and pays nothing, and
+ * answers {@code WARNED}, on which {@code spend} puts no cooldown; the same Gu used again within five seconds is
+ * forced ({@code trySpendAndApply}): the effect lands, then the Gu dies of exhaustion, and the 1 that {@code drive}
+ * returns is that death, not a payout. A Vital Gu is only refused, never forced; creative is never warned and never
+ * dies; {@link #tryAutoUse} skips a short use in silence. {@link #billAsPartner} is the one bill for a Gu that only
+ * backs another's use (the Amplify Effect Gu [功倍蛊], a killing move's [杀招] partner): its essence, the meals around
+ * it, and on an empty bar the same death, after the use it backed.
  *
  * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS}, at two paces that stay separate. A
- * holder above the Gu's rank is Gu-paced: a channel step pours at most
- * {@code getEssencePerHungerPoint() * STEP_TICKS}, scaled by {@code TimeFlow}, and a refining step may pour the
- * whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
+ * holder above the Gu's rank is Gu-paced: a channel step pours at most 1/{@code STEPS_PER_ROUND} of a round, a round
+ * every {@code ROUND_TICKS} (2 seconds) scaled by {@code TimeFlow}, whatever the hunger, and a refining step may pour
+ * the whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
  * 80% of it a second at normal time flow. Every essence this Gu pays goes out through {@code
  * PrimevalStoneSupply.pay}; a step is sized from the pool, so it first tops up to at least {@code ESSENCE_FLOOR}
  * ({@code topUpFor}; creative draws no stone, so it sizes as if the pool stood at the floor), and a channel step eats
@@ -65,7 +70,7 @@ import org.jetbrains.annotations.Nullable;
  * raises.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
- * the very first click. Gu health is {@link GuHealth}, {@link #GU_MAX_HEALTH} unless the spec sets it.
+ * the very first click. Gu health is {@link GuHealth}, 4 x rank + 4 from the spec.
  *
  * <p>{@code announceDeath} is the one death funnel ({@link #starve}, {@link #exhaust}, {@link #ruin}) and the
  * only poster of {@link VitalGuLostEvent}; a new way for a Gu to die goes through it.
@@ -87,11 +92,14 @@ public class TendedGuItem extends MortalGuItem {
     private static final String TOOLTIP_HEALTH = "guzhenren.item.gu.health";
     private static final String CAPTION_CHANNELING = "guzhenren.hud.using";
     private static final String FAILED_STARVING = "guzhenren.item.failed.gu_starving";
+    private static final String FAILED_SHORT = "guzhenren.item.failed.gu_short";
+    private static final String FAILED_VITAL_SHORT = "guzhenren.item.failed.vital_gu_short";
     private static final String MSG_HUNGRY = "guzhenren.item.gu.hungry";
     private static final String MSG_STARVED = "guzhenren.item.gu.starved";
     private static final String MSG_EXHAUSTED = "guzhenren.item.gu.exhausted";
     private static final String MSG_RUINED = "guzhenren.item.gu.ruined";
     private static final int ESSENCE_FLOOR = 20;
+    protected static final int WARNED = -1;
     protected final GuHunger hunger;
     protected final GuHealth health;
 
@@ -132,8 +140,6 @@ public class TendedGuItem extends MortalGuItem {
     //endregion
 
     //region Gu health [蛊虫生命值] -- GuHealth holds the rules, stored as damage TAKEN
-    public static final int GU_MAX_HEALTH = 12;
-
     public int getMaxHealth() { return health.max(); }
 
     public int getHealth(ItemStack stack) { return health.get(stack); }
@@ -172,6 +178,8 @@ public class TendedGuItem extends MortalGuItem {
     private static final int CHANNEL_MAX_TICKS = 72_000;
     private static final int STEP_TICKS = 5;
     private static final int STEPS_PER_SECOND = Ticks.SECOND / STEP_TICKS;
+    private static final int ROUND_TICKS = 2 * Ticks.SECOND;
+    private static final int STEPS_PER_ROUND = ROUND_TICKS / STEP_TICKS;
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack,
@@ -230,7 +238,8 @@ public class TendedGuItem extends MortalGuItem {
 
     private long getMostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
         if (isGuPaced(player)) {
-            return Math.min(pool, TimeFlow.scale(player, (long) hunger.getEssencePerHungerPoint() * STEP_TICKS));
+            return Math.min(pool,
+                    TimeFlow.scale(player, Math.ceilDiv((long) spec.getEssencePerRound(), STEPS_PER_ROUND)));
         }
         return getPoolPacedStep(player, pool, elapsed);
     }
@@ -295,6 +304,8 @@ public class TendedGuItem extends MortalGuItem {
 
     @Override
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
+        if (count == WARNED) return;
+
         super.spend(player, stack, count);
         int left = Math.max(TimeFlow.shortenWait(player, spec.getItemCooldownTicks()),
                 postRefineCooldownLeft(player, stack));
@@ -350,10 +361,32 @@ public class TendedGuItem extends MortalGuItem {
 
     protected int drive(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
+        if (stopsShortUse(player, stack)) return WARNED;
         if (trySpendAndApply(player, stack)) return 1;
         feed(player, stack);
         if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
         return 0;
+    }
+
+    /** True when a use short of hunger stops here: warned, or refused outright for a Vital Gu. */
+    protected final boolean stopsShortUse(ServerPlayer player, ItemStack stack) {
+        return isShortOfUse(player, stack) && !confirmForcedUse(player, stack);
+    }
+
+    protected final boolean isShortOfUse(ServerPlayer player, ItemStack stack) {
+        return !player.getAbilities().instabuild
+                && hunger.isShortOfUse(stack, getHungerCostMultiplier(player, stack));
+    }
+
+    private boolean confirmForcedUse(ServerPlayer player, ItemStack stack) {
+        if (isVital(stack)) {
+            ActionBar.refuse(player, FAILED_VITAL_SHORT);
+            return false;
+        }
+        if (GuForcedUse.confirm(player, stack)) return true;
+
+        ActionBar.refuse(player, FAILED_SHORT);
+        return false;
     }
 
     protected final boolean trySpendAndApply(ServerPlayer player, ItemStack stack) {
@@ -371,7 +404,7 @@ public class TendedGuItem extends MortalGuItem {
         if (!PrimevalStoneSupply.pay(player, spec.getEssencePerRound())) return false;
 
         feed(player, stack);
-        if (hunger.isSpendForced(stack) && !player.getAbilities().instabuild) {
+        if (hunger.isSpendForcedAsPartner(stack) && !player.getAbilities().instabuild) {
             exhaust(player, stack);
             stack.shrink(1);
             return true;
@@ -404,6 +437,9 @@ public class TendedGuItem extends MortalGuItem {
     public final boolean tryAutoUse(ServerPlayer player, ItemStack stack) {
         if (!isRefined(stack) || spec.isChanneled() || player.getCooldowns().isOnCooldown(this)) return false;
         if (checkInPlaceUse(player, stack) != null) return false;
+
+        feed(player, stack);
+        if (isShortOfUse(player, stack)) return false;
         spend(player, stack, performOwnUse(player, stack));
         return true;
     }
@@ -510,7 +546,7 @@ public class TendedGuItem extends MortalGuItem {
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
     //endregion
 
-    //region the three deaths -- one funnel, three messages; a Vital Gu starves or exhausts, never ruins
+    //region the three deaths -- one funnel, three messages; a Vital Gu starves, exhausts only as a partner, never ruins
     public static void announce(ServerPlayer player, ItemStack stack, String key) {
         player.sendSystemMessage(Component.translatable(key, stack.getHoverName()));
     }

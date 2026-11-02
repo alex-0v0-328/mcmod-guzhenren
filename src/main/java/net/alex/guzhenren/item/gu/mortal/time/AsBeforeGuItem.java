@@ -13,12 +13,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * An As Before Gu [如故蛊]: a Time Path [宙道] Gu that puts something back the way it was. The middle class of the
@@ -27,16 +25,17 @@ import org.jetbrains.annotations.Nullable;
  * that refills with the world clock, the body's memory that records only while a refined Man As Before Gu is carried,
  * and the refusals.
  *
- * <p>Extends {@link TendedGuItem} on a {@link GuHunger.RecoverBar}: never fed, never starves, and refuses a use
- * ({@link #checkRecoverGate}) until a point has come back. {@link #remember} is the heartbeat's step: once per
- * {@code RewindClock.INTERVAL_TICKS} of game time, a carrier of a refined Man As Before Gu has his body recorded.
- * Carried means the bag, an aperture's store or a Vital [本命] slot. The land needs no memory: the seed is it.
+ * <p>Extends {@link TendedGuItem} on a {@link GuHunger.RecoverBar}: never fed, never starves, and a use short of its
+ * points is warned, then forced, like any use short of hunger ({@code TendedGuItem.drive}). {@link #remember} is the
+ * heartbeat's step: once per {@code RewindClock.INTERVAL_TICKS} of game time, a carrier of a refined Man As Before Gu
+ * has his body recorded. Carried means the bag, an aperture's store or a Vital [本命] slot. The land needs no memory:
+ * the seed is it.
  *
  * <p>⚠ The client never holds the body's memory (it is not synced), so every gate on them runs for a {@code ServerPlayer}
- * only and the client-side gate passes; the bar's gate runs on both, since the bar rides the stack. ⚠ The bar is
- * settled on the server right before a use spends ({@link #performOwnUse}), never in a gate: a gate runs on the client
- * too, and a client write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at
- * the spend, since a full bar's stamp is stale ({@code GuHunger.RecoverBar}).
+ * only and the client-side gate passes. ⚠ The bar is settled on the server right before a use is checked short and
+ * spends ({@link #performOwnUse}), never in a gate: a gate runs on the client too, and a client write to the stack is
+ * a lie the server has to undo. A spend from a full bar restarts the stamp at the spend, since a full bar's stamp is
+ * stale ({@code GuHunger.RecoverBar}).
  *
  * @author Alex
  * @version 1.0.0
@@ -46,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AsBeforeGuItem extends TendedGuItem {
 
-    protected static final String FAILED_RECOVERING = "guzhenren.item.failed.as_before_recovering";
     protected static final String FAILED_TOO_YOUNG = "guzhenren.item.failed.as_before_too_young";
     private static final String TOOLTIP_NEXT_POINT = "guzhenren.item.gu.next_point";
     protected final GuHunger.RecoverBar bar;
@@ -61,14 +59,6 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
 
     //region the bar
     public GuHunger.RecoverBar getBar() { return bar; }
-
-    protected final @Nullable Refusal checkRecoverGate(Player player, ItemStack stack) {
-        long now = player.level().getGameTime();
-        if (bar.getPoints(stack, now) >= bar.perUse()) return null;
-
-        long seconds = (bar.getTicksToNextPoint(stack, now) + Ticks.SECOND - 1) / Ticks.SECOND;
-        return new Refusal(FAILED_RECOVERING, Component.literal(String.valueOf(seconds)));
-    }
 
     @Override
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {

@@ -421,16 +421,18 @@ public class ModLanguageProvider extends LanguageProvider {
                 "Already a zombie, nothing left to turn", "已经是僵尸，无可再变");
         add("guzhenren.item.failed.gu_starving",
                 "This Gu is too hungry - feed it first", "蛊已太饿，需先喂食");
+        add("guzhenren.item.failed.gu_short",
+                "Too hungry for one use - use it again within 5 s to force it, and the Gu dies of exhaustion",
+                "饱食不足一次：5 秒内再次催动将强行使用，蛊虫随后力竭而死");
+        add("guzhenren.item.failed.vital_gu_short",
+                "Your Vital Gu is too hungry for one use and can never be forced", "本命蛊饱食不足一次，不能强行催动");
         add("guzhenren.item.failed.no_use",                          "This Gu needs no use", "此蛊无需使用");
         add("guzhenren.item.failed.amplify_offhand",
                 "Hold right-click to pick a Gu, or hold it in the offhand", "按住右键选蛊，或副手持握配合催动");
         add("guzhenren.item.failed.amplify_no_target",               "No Gu on the hotbar to amplify", "快捷栏没有可增幅的蛊");
-        add("guzhenren.item.failed.little_light_hungry",
-                "Your Little Light Gu is too hungry to shine bright", "小光蛊太饿，放不出强光");
         add("guzhenren.item.failed.no_leaves",
                 "No Vitality Leaf left - the next grows in %s s", "生机叶已摘光，下一片需 %s 秒");
         add("guzhenren.item.failed.leaves_full",                     "All nine Vitality Leaves have grown", "生机叶已满九片");
-        add("guzhenren.item.failed.as_before_recovering",            "This Gu recovers in %s s", "此蛊力竭，需 %s 秒");
         add("guzhenren.item.failed.as_before_no_memory",             "This Gu has not yet known you", "此蛊尚未识你");
         add("guzhenren.item.failed.as_before_too_young",             "This Gu has not yet known a full day", "此蛊尚未满一日");
         add("guzhenren.item.failed.as_before_unknown_land",          "This Gu has not yet known this land", "此蛊未识此地");

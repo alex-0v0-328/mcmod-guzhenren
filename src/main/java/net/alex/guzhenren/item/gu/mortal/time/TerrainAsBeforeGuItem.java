@@ -51,8 +51,6 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
 
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
-        Refusal recovering = checkRecoverGate(player, stack);
-        if (recovering != null) return recovering;
         if (!(player instanceof ServerPlayer server)) return null;
 
         ServerLevel level = server.serverLevel();

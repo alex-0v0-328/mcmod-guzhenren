@@ -35,8 +35,6 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
 
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
-        Refusal recovering = checkRecoverGate(player, stack);
-        if (recovering != null) return recovering;
         if (!(player instanceof ServerPlayer server)) return null;
 
         PlayerRewindData memory = PlayerRewindService.get(server);

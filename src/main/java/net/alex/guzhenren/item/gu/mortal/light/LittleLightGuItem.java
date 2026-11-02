@@ -10,12 +10,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Little Light Gu [小光蛊]: Light Path [光道], rank I. A tended Gu whose own use is a switch, not a payout: it glows
@@ -35,8 +33,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>⚠ {@code LITTLE_LIGHT_BRIGHT_UNTIL} is written once at the switch, never per tick, since every write resyncs
  * the slot. Only a carried stack ticks, so one left bright in a chest or on the ground goes out the moment a player
- * carries it again. Turning on while hungry with no food in the bag is refused; creative skips that gate, and its
- * meals never use the food up ({@code GuHunger}).
+ * carries it again. Creative meals never use the food up ({@code GuHunger}).
+ *
+ * <p>⚠ Turning on short of the use hunger is a forced use ({@code GuForcedUse}): the first press warns, the same Gu
+ * pressed again within five seconds turns bright for the full round, and the Gu dies of exhaustion when it goes out,
+ * by the deadline or by a press. {@code LITTLE_LIGHT_FORCED} marks that round; it is written and removed with
+ * {@code LITTLE_LIGHT_BRIGHT}, never per tick. Turning off is never gated; a Vital one short is only refused, and
+ * creative is never warned and never dies.
  *
  * @author Alex
  * @version 1.0.0
@@ -47,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 public final class LittleLightGuItem extends TendedGuItem {
 
     public static final int BRIGHT_TICKS = 2_400;
-    private static final String FAILED_HUNGRY = "guzhenren.item.failed.little_light_hungry";
     private static final String MSG_ON = "guzhenren.item.gu.little_light_bright_on";
     private static final String MSG_OFF = "guzhenren.item.gu.little_light_bright_off";
     private static final String MSG_DIMMED = "guzhenren.item.gu.little_light_dimmed";
@@ -63,23 +65,20 @@ public final class LittleLightGuItem extends TendedGuItem {
 
     //region the switch
     @Override
-    protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
-        if (isBright(stack) || player.getAbilities().instabuild) return null;
-        if (!(player instanceof ServerPlayer server) || !isHungry(server, stack)) return null;
-        return hunger.carriesFood(this, player) ? null : new Refusal(FAILED_HUNGRY);
-    }
-
-    @Override
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
         if (isBright(stack)) {
-            turnOff(stack);
             ActionBar.inform(player, MSG_OFF);
+            turnOff(player, stack);
             return 0;
         }
+        if (stopsShortUse(player, stack)) return WARNED;
+
+        boolean forced = isShortOfUse(player, stack);
         payRound(player, stack);
         stack.set(ModDataComponents.LITTLE_LIGHT_BRIGHT, true);
         stack.set(ModDataComponents.LITTLE_LIGHT_BRIGHT_UNTIL, player.level().getGameTime() + BRIGHT_TICKS);
+        if (forced) stack.set(ModDataComponents.LITTLE_LIGHT_FORCED, true);
         ActionBar.inform(player, MSG_ON);
         return 0;
     }
@@ -95,9 +94,15 @@ public final class LittleLightGuItem extends TendedGuItem {
     @Override
     protected long useThreshold(ItemStack stack) { return 0L; }
 
-    private static void turnOff(ItemStack stack) {
+    private static void turnOff(ServerPlayer player, ItemStack stack) {
+        boolean forced = stack.has(ModDataComponents.LITTLE_LIGHT_FORCED);
         stack.remove(ModDataComponents.LITTLE_LIGHT_BRIGHT);
         stack.remove(ModDataComponents.LITTLE_LIGHT_BRIGHT_UNTIL);
+        stack.remove(ModDataComponents.LITTLE_LIGHT_FORCED);
+        if (!forced || player.getAbilities().instabuild) return;
+
+        exhaust(player, stack);
+        stack.shrink(1);
     }
     //endregion
 
@@ -110,8 +115,8 @@ public final class LittleLightGuItem extends TendedGuItem {
         Long until = stack.get(ModDataComponents.LITTLE_LIGHT_BRIGHT_UNTIL);
         if (until != null && level.getGameTime() < until) return;
 
-        turnOff(stack);
         ActionBar.inform(player, MSG_DIMMED);
+        turnOff(player, stack);
     }
     //endregion
 

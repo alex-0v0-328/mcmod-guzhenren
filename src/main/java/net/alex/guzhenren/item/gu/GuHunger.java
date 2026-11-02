@@ -31,6 +31,14 @@ import net.minecraft.world.item.ItemStack;
  * <p>{@code RecoverBar} mends health on the same clock, one point a {@code ticksPerPoint}, from its own {@code
  * HEALED_AT} stamp: started by the first settle that finds it hurt, removed once whole, so a whole one costs no write.
  *
+ * <p>A channeled Gu's {@code HungerBar} bills by round progress, never by the essence numbers: {@code perRound}
+ * points a round, one at each {@code 1/perRound} of it. The step cap {@link #getEssenceAboveHungerFloor} turns the
+ * points above {@link #CHANNEL_HUNGER_FLOOR} back into essence through the round.
+ *
+ * <p>A use is short ({@link #isShortOfUse}) when the bar holds less than the use, its multiplier included; that is
+ * the question behind a forced use ({@link GuForcedUse}), and {@link #isSpendForced} spends and answers the same.
+ * A partner's bill ({@link #isSpendForcedAsPartner}) keeps the empty-bar rule.
+ *
  * <p>⚠ "Hungry" means only that the next day rollover will kill it: the threshold is the bar's daily drain
  * ({@code perDay}), never the size of a meal.
  *
@@ -61,13 +69,13 @@ public sealed interface GuHunger {
 
     int getEssenceAboveHungerFloor(ItemStack stack);
 
-    int getEssencePerHungerPoint();
-
     void billHungerForEssence(ItemStack stack, int from, int to);
 
-    boolean isSpendForced(ItemStack stack);
+    boolean isShortOfUse(ItemStack stack, int multiplier);
 
-    default boolean isSpendForced(ItemStack stack, int multiplier) { return isSpendForced(stack); }
+    boolean isSpendForced(ItemStack stack, int multiplier);
+
+    default boolean isSpendForcedAsPartner(ItemStack stack) { return isSpendForced(stack, 1); }
 
     boolean isBarVisible(ItemStack stack);
 
@@ -97,7 +105,8 @@ public sealed interface GuHunger {
     //endregion
 
     //region 饱食条 -- every tended Gu whose bar drains
-    record HungerBar(int max, int unitsPerHunger, int essencePerHunger, int perUse, int perDay) implements GuHunger {
+    record HungerBar(int max, int unitsPerHunger, int essencePerRound, int perRound, int perUse, int perDay)
+            implements GuHunger {
 
         private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
 
@@ -156,26 +165,32 @@ public sealed interface GuHunger {
 
         @Override
         public int getEssenceAboveHungerFloor(ItemStack stack) {
-            return Math.max(0, getHunger(stack) - CHANNEL_HUNGER_FLOOR) * essencePerHunger;
+            return Math.max(0, getHunger(stack) - CHANNEL_HUNGER_FLOOR) * (essencePerRound / perRound);
         }
-
-        @Override
-        public int getEssencePerHungerPoint() { return essencePerHunger; }
 
         @Override
         public void billHungerForEssence(ItemStack stack, int from, int to) {
-            setHunger(stack, getHunger(stack) - (to / essencePerHunger - from / essencePerHunger));
+            setHunger(stack, getHunger(stack) - (getRoundPoints(to) - getRoundPoints(from)));
         }
 
+        private int getRoundPoints(int invested) { return (int) ((long) invested * perRound / essencePerRound); }
+
         @Override
-        public boolean isSpendForced(ItemStack stack) {
-            return isSpendForced(stack, 1);
-        }
+        public boolean isShortOfUse(ItemStack stack, int multiplier) { return getHunger(stack) < perUse * multiplier; }
 
         @Override
         public boolean isSpendForced(ItemStack stack, int multiplier) {
-            boolean forced = getHunger(stack) <= 0;
+            boolean forced = isShortOfUse(stack, multiplier);
             setHunger(stack, getHunger(stack) - perUse * multiplier);
+            return forced;
+        }
+
+        // A partner backs a use that already passed its own gate, with no warning of its own, so only an empty bar
+        // forces it.
+        @Override
+        public boolean isSpendForcedAsPartner(ItemStack stack) {
+            boolean forced = getHunger(stack) <= 0;
+            setHunger(stack, getHunger(stack) - perUse);
             return forced;
         }
 
@@ -290,14 +305,14 @@ public sealed interface GuHunger {
         public int getEssenceAboveHungerFloor(ItemStack stack) { return Integer.MAX_VALUE; }
 
         @Override
-        public int getEssencePerHungerPoint() { return Integer.MAX_VALUE; }
-
-        @Override
         public void billHungerForEssence(ItemStack stack, int from, int to) {}
 
         @Override
-        public boolean isSpendForced(ItemStack stack) {
-            boolean forced = getPoints(stack) < perUse;
+        public boolean isShortOfUse(ItemStack stack, int multiplier) { return getPoints(stack) < perUse; }
+
+        @Override
+        public boolean isSpendForced(ItemStack stack, int multiplier) {
+            boolean forced = isShortOfUse(stack, multiplier);
             setPoints(stack, getPoints(stack) - perUse);
             return forced;
         }
@@ -329,13 +344,13 @@ public sealed interface GuHunger {
         public int getEssenceAboveHungerFloor(ItemStack stack) { return Integer.MAX_VALUE; }
 
         @Override
-        public int getEssencePerHungerPoint() { return Integer.MAX_VALUE; }
-
-        @Override
         public void billHungerForEssence(ItemStack stack, int from, int to) {}
 
         @Override
-        public boolean isSpendForced(ItemStack stack) { return false; }
+        public boolean isShortOfUse(ItemStack stack, int multiplier) { return false; }
+
+        @Override
+        public boolean isSpendForced(ItemStack stack, int multiplier) { return false; }
 
         @Override
         public boolean isBarVisible(ItemStack stack) { return false; }

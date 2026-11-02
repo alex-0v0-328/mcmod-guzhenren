@@ -20,11 +20,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The single source of truth for every Gu's numerical identity: refine cost, channel/cost-per-use,
  * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags,
- * health, cooldown, the usage type [类型] ({@link GuType}, absent for a Gu that has none), and the path effect
+ * cooldown, the usage type [类型] ({@link GuType}, absent for a Gu that has none), and the path effect
  * [流派效果] it lays down: the carrier it works on and the Dao marks [道痕] it carries on the Gu's path.
  * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem} and the tooltip/HUD renderers, and
  * it builds the Gu's {@link GuHunger} and {@link GuHealth}. What only one kind of Gu needs (a duration, a grade)
- * stays on its {@link GuModule}.
+ * stays on its {@link GuModule}. Gu health is no chain call: it is 4 x rank + 4 (8 to 24 at ranks I to V), for
+ * every Gu alike.
  *
  * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 12 at rank one,
  * four times as many each rank); {@link #effect(EffectCarrier, long)} names them, and
@@ -48,6 +49,7 @@ public final class GuSpec {
 
     private final Rank rank;
     private final GuPath path;
+    private final int maxHealth;
     private StrengthPathBranch strengthPathBranch = StrengthPathBranch.NORMAL;
     private @Nullable GuType type;
     private int refineCost;
@@ -56,10 +58,9 @@ public final class GuSpec {
     private int maxHunger;
     private int recoverTicks;
     private int unitsPerHunger = 1;
-    private int essencePerHunger;
+    private int hungerPerRound;
     private int hungerPerUse = 1;
     private int hungerPerDay = 1;
-    private int maxHealth = TendedGuItem.GU_MAX_HEALTH;
     private @Nullable TagKey<Item> feedTag;
     private int feedUnits;
     private int effectCooldownTicks;
@@ -72,6 +73,7 @@ public final class GuSpec {
     private GuSpec(Rank rank, GuPath path) {
         this.rank = rank;
         this.path = path;
+        this.maxHealth = 4 * rank.ordinal() + 4;
     }
 
     public static GuSpec of(Rank rank, GuPath path) { return new GuSpec(rank, path); }
@@ -106,8 +108,8 @@ public final class GuSpec {
         return this;
     }
 
-    public GuSpec essencePerHunger(int essence) {
-        this.essencePerHunger = essence;
+    public GuSpec hungerPerRound(int points) {
+        this.hungerPerRound = points;
         return this;
     }
 
@@ -118,11 +120,6 @@ public final class GuSpec {
 
     public GuSpec hungerPerDay(int points) {
         this.hungerPerDay = points;
-        return this;
-    }
-
-    public GuSpec health(int max) {
-        this.maxHealth = max;
         return this;
     }
 
@@ -190,6 +187,8 @@ public final class GuSpec {
 
     public int getHungerPerUse() { return hungerPerUse; }
 
+    public int getHungerPerRound() { return hungerPerRound; }
+
     public int getFeedUnits() { return feedUnits; }
 
     public @Nullable EffectCarrier getEffectCarrier() { return effectCarrier; }
@@ -214,7 +213,8 @@ public final class GuSpec {
     public GuHunger buildHunger() {
         if (recoverTicks > 0) return new GuHunger.RecoverBar(maxHunger, recoverTicks, hungerPerUse);
         if (maxHunger > 0) {
-            return new GuHunger.HungerBar(maxHunger, unitsPerHunger, essencePerHunger, hungerPerUse, hungerPerDay);
+            return new GuHunger.HungerBar(maxHunger, unitsPerHunger, essencePerRound, hungerPerRound, hungerPerUse,
+                    hungerPerDay);
         }
         return new GuHunger.NoClock();
     }
@@ -242,10 +242,10 @@ public final class GuSpec {
         if (!channels) return;
 
         if (essencePerRound == 0) throw fault(id, "channels but pours nothing");
-        if (essencePerHunger <= 0) throw fault(id, "channels but costs no hunger");
-        if (essencePerRound % essencePerHunger != 0) {
-            throw fault(id, "round %d does not divide by hunger rate %d"
-                    .formatted(essencePerRound, essencePerHunger));
+        if (hungerPerRound <= 0) throw fault(id, "channels but costs no hunger");
+        if (essencePerRound % hungerPerRound != 0) {
+            throw fault(id, "round %d does not divide by %d hunger points"
+                    .formatted(essencePerRound, hungerPerRound));
         }
     }
 

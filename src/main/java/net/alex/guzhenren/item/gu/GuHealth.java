@@ -6,8 +6,8 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * A tended Gu's health [蛊虫生命值], stored as damage TAKEN on {@link RefinedGuState}, so an untouched wild Gu reads
- * as full. Built by {@link GuSpec#buildHealth} from {@code GuSpec.health}, {@code TendedGuItem.GU_MAX_HEALTH} unless
- * the spec sets it; it stays off {@code Rank}, whose {@code getMaxHealth} is the player's.
+ * as full. Built by {@link GuSpec#buildHealth} from the Gu's rank (4 x rank + 4, so 8 to
+ * 24); it stays off {@code Rank}, whose {@code getMaxHealth} is the player's.
  *
  * <p>Food mends at the hunger rate: one health point costs what one hunger point does ({@code unitsPerHunger}), and
  * {@link #mendFrom} eats whole items only, never past the wound. A Gu at zero health is ruined
