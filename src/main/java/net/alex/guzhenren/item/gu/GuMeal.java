@@ -6,8 +6,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * One meal a tended Gu takes from a food stack: {@code items} taken off the stack, {@code gained} points
  * (hunger or health) and {@code eaten} items actually used up. {@link #createPortion} never feeds past the need,
- * and rounds the items eaten UP so a part-used item is paid for; {@link #returnEmptyContainers} hands back
- * the bucket or bottle a used-up food leaves.
+ * and rounds the items eaten UP so a part-used item is paid for; {@link #eat} takes that portion off the stack
+ * (creative eats for free) and hands back the bucket or bottle a used-up food leaves.
  *
  * @author Alex
  * @version 1.0.0
@@ -24,7 +24,19 @@ record GuMeal(int items, int gained, int eaten) {
         return new GuMeal(items, gained, gained <= 0 ? 0 : (gained * per + units - 1) / units);
     }
 
-    static void returnEmptyContainers(ServerPlayer player, ItemStack food, int eaten) {
+    /** Eats the portion of {@code food} that fills {@code need}, answering the points gained (0 when none). */
+    static int eat(ServerPlayer player, ItemStack food, int need, int per, int units) {
+        GuMeal meal = createPortion(food.getCount(), need, per, units);
+        if (meal.gained() <= 0) return 0;
+
+        if (!player.getAbilities().instabuild) {
+            returnEmptyContainers(player, food, meal.eaten());
+            food.shrink(meal.eaten());
+        }
+        return meal.gained();
+    }
+
+    private static void returnEmptyContainers(ServerPlayer player, ItemStack food, int eaten) {
         if (!food.hasCraftingRemainingItem()) return;
 
         ItemStack empties = food.getCraftingRemainingItem().copyWithCount(eaten);

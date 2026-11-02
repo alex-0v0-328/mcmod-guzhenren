@@ -8,7 +8,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
@@ -94,12 +93,12 @@ public class CrashGuEntity extends RestingFlyingGuEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, MAIN, TRANSITION_TICKS, state -> {
-            if (isDeadOrDying()) return state.setAndContinue(DEATH_ANIM);
-            return switch (getPhase()) {
-                case FLYING, LANDING -> state.setAndContinue(hovering ? HOVER_ANIM : FLY_ANIM);
-                case RESTING -> state.setAndContinue(IDLE_ANIM);
-            };
-        }).triggerableAnim("lift", LIFT_ANIM).triggerableAnim("land", LAND_ANIM).triggerableAnim("hurt", HURT_ANIM));
+        controllers.add(createMainController().triggerableAnim("hurt", HURT_ANIM));
+    }
+
+    @Override
+    protected RawAnimation getSteadyAnimation() {
+        if (isDeadOrDying()) return DEATH_ANIM;
+        return hovering && getPhase() != FlightPhase.RESTING ? HOVER_ANIM : super.getSteadyAnimation();
     }
 }

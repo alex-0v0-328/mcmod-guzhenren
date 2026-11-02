@@ -4,7 +4,6 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,9 +29,7 @@ public final class KnockbackResistanceService {
     private static final ResourceLocation MODIFIER_ID = Guzhenren.id("bone_knockback_resistance");
 
     public static void refresh(@NotNull ServerPlayer player) {
-        AttributeInstance instance = player.getAttribute(Attributes.KNOCKBACK_RESISTANCE);
-        if (instance == null) return;
-
-        TransientModifiers.swap(instance, MODIFIER_ID, BodyService.getBone(player).getKnockbackResistance());
+        TransientModifiers.swap(player, Attributes.KNOCKBACK_RESISTANCE, MODIFIER_ID,
+                BodyService.getBone(player).getKnockbackResistance());
     }
 }

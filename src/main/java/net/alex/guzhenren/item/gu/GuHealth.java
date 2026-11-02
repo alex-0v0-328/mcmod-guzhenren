@@ -13,8 +13,9 @@ import net.minecraft.world.item.ItemStack;
  * {@link #mendFrom} eats whole items only, never past the wound. A Gu at zero health is ruined
  * ({@code TendedGuItem.ruin}) unless it is a Vital Gu [本命蛊], which keeps its slot at zero.
  *
- * <p>⚠ Every write goes through the host's {@code store}, which clamps the whole state; a bare component write
- * would skip the clamp on the other fields.
+ * <p>⚠ Every health write goes through the host's {@code store}, which clamps {@code damageTaken}, except {@code
+ * RecoverBar.settleHealth}, which only shrinks an already clamped wound; the hunger bar clamps its own writes in
+ * {@code GuHunger.storeBar}.
  *
  * @author Alex
  * @version 1.0.0
@@ -51,13 +52,6 @@ public record GuHealth(int max, int unitsPerHunger) {
         int hurt = TendedGuItem.getState(stack).damageTaken();
         if (units <= 0 || hurt <= 0) return;
 
-        GuMeal meal = GuMeal.createPortion(food.getCount(), hurt, unitsPerHunger, units);
-        if (meal.gained() <= 0) return;
-
-        if (!player.getAbilities().instabuild) {
-            GuMeal.returnEmptyContainers(player, food, meal.eaten());
-            food.shrink(meal.eaten());
-        }
-        heal(gu, stack, meal.gained());
+        heal(gu, stack, GuMeal.eat(player, food, hurt, unitsPerHunger, units));
     }
 }

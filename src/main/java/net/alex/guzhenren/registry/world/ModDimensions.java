@@ -50,17 +50,12 @@ public final class ModDimensions {
 
     private ModDimensions() {}
 
-    public static final ResourceKey<Level> TREASURE_YELLOW_HEAVEN = ResourceKey.create(
-            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "treasure_yellow_heaven"));
+    public static final ResourceKey<Level> TREASURE_YELLOW_HEAVEN = createGuWorldLevel("treasure_yellow_heaven");
     public static final Vec3 TREASURE_YELLOW_HEAVEN_SPAWN = new Vec3(0.5, 64.0, 0.5);
-    public static final ResourceKey<Level> SOUTHERN_BORDER = ResourceKey.create(
-            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "southern_border"));
-    public static final ResourceKey<Level> WESTERN_DESERT = ResourceKey.create(
-            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "western_desert"));
-    public static final ResourceKey<Level> EASTERN_SEA = ResourceKey.create(
-            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "eastern_sea"));
-    public static final ResourceKey<Level> NORTHERN_PLAINS = ResourceKey.create(
-            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", "northern_plains"));
+    public static final ResourceKey<Level> SOUTHERN_BORDER = createGuWorldLevel("southern_border");
+    public static final ResourceKey<Level> WESTERN_DESERT = createGuWorldLevel("western_desert");
+    public static final ResourceKey<Level> EASTERN_SEA = createGuWorldLevel("eastern_sea");
+    public static final ResourceKey<Level> NORTHERN_PLAINS = createGuWorldLevel("northern_plains");
     private static final Vec3 REGION_ORIGIN = new Vec3(0.5, 0.0, 0.5);
 
     public enum Arrival { FLIGHT, SURFACE }
@@ -74,6 +69,10 @@ public final class ModDimensions {
             WESTERN_DESERT, new AnchoredDimension(WESTERN_DESERT, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
             EASTERN_SEA, new AnchoredDimension(EASTERN_SEA, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
             NORTHERN_PLAINS, new AnchoredDimension(NORTHERN_PLAINS, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0));
+
+    private static ResourceKey<Level> createGuWorldLevel(String path) {
+        return ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", path));
+    }
 
     public static boolean isFlightGranted(ResourceKey<Level> level) {
         AnchoredDimension dimension = ANCHORED_DIMENSIONS.get(level);

@@ -111,15 +111,11 @@ public class ModRecipeProvider extends RecipeProvider {
 
     //region Cooking -- vanilla's raw ore times: 10 seconds in a furnace, 5 in a blast furnace
     private static void addSmelting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {
-        String from = "_" + getItemName(input);
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
                         10 * Ticks.SECOND)
                 .unlockedBy(getHasName(input), has(input))
-                .save(output, Guzhenren.id(getItemName(result) + "_from_smelting" + from));
-        SimpleCookingRecipeBuilder.blasting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
-                        5 * Ticks.SECOND)
-                .unlockedBy(getHasName(input), has(input))
-                .save(output, Guzhenren.id(getItemName(result) + "_from_blasting" + from));
+                .save(output, Guzhenren.id(getItemName(result) + "_from_smelting_" + getItemName(input)));
+        addBlasting(output, input, result, experience);
     }
 
     private static void addBlasting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {

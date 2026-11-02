@@ -1,8 +1,10 @@
 package net.alex.guzhenren.client.hud;
 
-import net.alex.guzhenren.gameplay.body.BodyService;
+import java.util.EnumMap;
+import java.util.Map;
 import net.alex.guzhenren.gameplay.body.ShieldLayer;
 import net.alex.guzhenren.gameplay.body.ShieldService;
+import net.alex.guzhenren.gameplay.body.ShieldType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -31,6 +33,7 @@ public final class ShieldHud extends HotbarHud {
     private ShieldHud() {}
 
     private static final String CAPTION = "guzhenren.hud.shield";
+    private final Map<ShieldType, Caption> captions = new EnumMap<>(ShieldType.class);
 
     @Override
     public void render(@NotNull GuiGraphics graphics) {
@@ -39,16 +42,27 @@ public final class ShieldHud extends HotbarHud {
         if (player == null || minecraft.options.hideGui || player.isSpectator()) return;
         if (!ShieldService.isUp(player)) return;
 
-        long now = BodyService.getGameTime(player);
+        long now = player.level().getGameTime();
         int stacked = (ChargeHud.isShowing(minecraft, player) ? 1 : 0) + (NourishHud.isShowing(player) ? 1 : 0);
-        int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
+        int x = getBarLeft(minecraft);
         int y = getBarTop(minecraft) - stacked * getStackShift(minecraft);
         for (ShieldLayer layer : ShieldService.get(player).layers()) {
             if (!layer.isUp(now) || layer.max() <= 0.0F) continue;
             draw(graphics, minecraft, HOTBAR, x, y, layer.points() / layer.max(), layer.type().getBarFill(),
-                    Component.translatable(CAPTION, Component.translatable(layer.type().getTranslationKey()),
-                            Mth.ceil(layer.points()), Mth.ceil(layer.max())));
+                    getCaption(layer.type(), Mth.ceil(layer.points()), Mth.ceil(layer.max())));
             y -= getStackShift(minecraft);
         }
     }
+
+    private Component getCaption(ShieldType type, int points, int max) {
+        Caption cached = captions.get(type);
+        if (cached == null || cached.points() != points || cached.max() != max) {
+            cached = new Caption(points, max, Component.translatable(CAPTION,
+                    Component.translatable(type.getTranslationKey()), points, max));
+            captions.put(type, cached);
+        }
+        return cached.text();
+    }
+
+    private record Caption(int points, int max, Component text) {}
 }

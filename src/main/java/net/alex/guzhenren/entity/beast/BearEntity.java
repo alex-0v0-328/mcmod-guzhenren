@@ -2,6 +2,7 @@ package net.alex.guzhenren.entity.beast;
 
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -137,7 +138,7 @@ public final class BearEntity extends BeastEntity {
     protected SoundEvent getAmbientSound() { return SoundEvents.POLAR_BEAR_AMBIENT; }
 
     @Override
-    protected SoundEvent getHurtSound(net.minecraft.world.damagesource.@NotNull DamageSource source) {
+    protected SoundEvent getHurtSound(@NotNull DamageSource source) {
         return SoundEvents.POLAR_BEAR_HURT;
     }
 

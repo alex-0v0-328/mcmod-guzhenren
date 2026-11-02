@@ -13,7 +13,6 @@ import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModDataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -72,10 +71,9 @@ public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule
     @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
-        ResourceLocation source = BuiltInRegistries.ITEM.getKey(gu);
-        PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.SELF_RELIANCE, source,
-                PathEffect.PERMANENT, new SelfRelianceHeal(grade, amplification.factor())));
-        TimedEffects.markAmplified(player, ModPathEffectTypes.SELF_RELIANCE, source, amplification);
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.SELF_RELIANCE, PathEffect.PERMANENT,
+                new SelfRelianceHeal(grade, amplification.factor())));
+        TimedEffects.markAmplified(player, ModPathEffectTypes.SELF_RELIANCE, gu.getEffectSource(), amplification);
     }
 
     @Override
@@ -114,17 +112,18 @@ public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule
     /** Kills every forced Gu carried whose round is over. */
     private static void exhaustEndedRounds(ServerPlayer player) {
         Inventory inventory = player.getInventory();
-        for (List<ItemStack> part : List.of(inventory.items, inventory.offhand)) {
-            for (ItemStack stack : part) {
-                if (!stack.has(ModDataComponents.SELF_RELIANCE_FORCED) || isRunning(player, stack)) continue;
+        for (ItemStack stack : inventory.items) exhaustIfEnded(player, stack);
+        for (ItemStack stack : inventory.offhand) exhaustIfEnded(player, stack);
+    }
 
-                stack.remove(ModDataComponents.SELF_RELIANCE_FORCED);
-                if (player.getAbilities().instabuild) continue;
+    private static void exhaustIfEnded(ServerPlayer player, ItemStack stack) {
+        if (!stack.has(ModDataComponents.SELF_RELIANCE_FORCED) || isRunning(player, stack)) return;
 
-                TendedGuItem.exhaust(player, stack);
-                stack.shrink(1);
-            }
-        }
+        stack.remove(ModDataComponents.SELF_RELIANCE_FORCED);
+        if (player.getAbilities().instabuild) return;
+
+        TendedGuItem.exhaust(player, stack);
+        stack.shrink(1);
     }
 
     /** Heals one pulse, never past the ceiling. */
@@ -134,8 +133,8 @@ public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule
     }
 
     private static boolean isRunning(Player player, ItemStack stack) {
-        ResourceLocation source = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return PathEffectService.find(player, ModPathEffectTypes.SELF_RELIANCE, source) != null;
+        return stack.getItem() instanceof MortalGuItem gu
+                && PathEffectService.find(player, ModPathEffectTypes.SELF_RELIANCE, gu.getEffectSource()) != null;
     }
 
     private static boolean isHealed(Player player) {
@@ -144,11 +143,14 @@ public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule
 
     private static ItemStack findCarried(Player player, ResourceLocation source) {
         Inventory inventory = player.getInventory();
-        for (List<ItemStack> part : List.of(inventory.items, inventory.offhand)) {
-            for (ItemStack stack : part) {
-                if (stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack)
-                        && BuiltInRegistries.ITEM.getKey(gu).equals(source)) return stack;
-            }
+        ItemStack found = findIn(inventory.items, source);
+        return found.isEmpty() ? findIn(inventory.offhand, source) : found;
+    }
+
+    private static ItemStack findIn(List<ItemStack> stacks, ResourceLocation source) {
+        for (ItemStack stack : stacks) {
+            if (stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack)
+                    && gu.getEffectSource().equals(source)) return stack;
         }
         return ItemStack.EMPTY;
     }

@@ -55,9 +55,8 @@ public final class AwakeningGuRenderer {
         ClientLevel level = minecraft.level;
         if (level == null) return;
 
-        ItemStack gu = new ItemStack(ModItems.HOPE_GU.get());
         Vec3 view = camera.getPosition();
-        boolean drawn = false;
+        ItemStack gu = null;
         for (Player player : level.players()) {
             AwakeningRitual ritual = AwakeningRitualService.get(player);
             if (ritual == null) continue;
@@ -65,6 +64,7 @@ public final class AwakeningGuRenderer {
             float scale = AwakeningTimeline.getGuScale(elapsed) * SIZE;
             if (elapsed < 0.0F || scale <= 0.0F) continue;
 
+            if (gu == null) gu = new ItemStack(ModItems.HOPE_GU.get());
             Vec3 at = getHand(player, partialTick).lerp(ritual.anchor(), AwakeningTimeline.getFlight(elapsed))
                     .add(0.0, AwakeningTimeline.getBob(elapsed), 0.0);
             pose.pushPose();
@@ -76,9 +76,8 @@ public final class AwakeningGuRenderer {
             minecraft.getItemRenderer().renderStatic(gu, ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY, pose, BUFFERS, level, player.getId());
             pose.popPose();
-            drawn = true;
         }
-        if (!drawn) return;
+        if (gu == null) return;
 
         // The level's diffuse light shades a camera-facing quad by where the camera looks (about 75% looking level);
         // both lights on the view axis keep the Gu as bright as its icon.

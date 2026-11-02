@@ -3,13 +3,9 @@ package net.alex.guzhenren.gameplay.body;
 import it.unimi.dsi.fastutil.doubles.DoubleDoubleImmutablePair;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.mixin.LivingEntityAccessor;
-import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -61,20 +57,20 @@ public final class ShieldService {
 
     public static @NotNull ShieldData get(@NotNull Player player) { return PlayerData.get(player).getShield(); }
 
-    public static boolean isUp(@NotNull Player player) { return get(player).isUp(BodyService.getGameTime(player)); }
+    public static boolean isUp(@NotNull Player player) { return get(player).isUp(player.level().getGameTime()); }
 
     public static @Nullable ShieldLayer find(@NotNull Player player, @NotNull ShieldType type) {
         ShieldLayer layer = get(player).find(type);
-        return layer != null && layer.isUp(BodyService.getGameTime(player)) ? layer : null;
+        return layer != null && layer.isUp(player.level().getGameTime()) ? layer : null;
     }
 
     public static long getTicksLeft(@NotNull Player player, @NotNull ShieldType type) {
         ShieldLayer layer = find(player, type);
-        return layer == null ? 0L : layer.getTicksLeft(BodyService.getGameTime(player));
+        return layer == null ? 0L : layer.getTicksLeft(player.level().getGameTime());
     }
 
     public static void raise(@NotNull ServerPlayer player, @NotNull ShieldType type, float points, int durationTicks) {
-        long endTick = BodyService.getGameTime(player) + durationTicks;
+        long endTick = player.level().getGameTime() + durationTicks;
         PlayerData.get(player).setShield(get(player).raise(new ShieldLayer(type, points, points, endTick)));
         tickShield(player);
         ModEvents.post(new ShieldRaisedEvent(player, type));
@@ -89,7 +85,7 @@ public final class ShieldService {
         float hit = container.getNewDamage();
         if (hit <= 0.0F || !SkinService.canTurn(source) || player.isDamageSourceBlocked(source)) return false;
 
-        long now = BodyService.getGameTime(player);
+        long now = player.level().getGameTime();
         PlayerData data = PlayerData.get(player);
         ShieldWindow window = data.getShieldWindow();
         boolean framed = player.invulnerableTime > FRAMES_OPEN_ABOVE && !source.is(DamageTypeTags.BYPASSES_COOLDOWN);
@@ -97,7 +93,7 @@ public final class ShieldService {
         boolean up = isUp(player);
         if (!up && !tracked) return false;
 
-        float lastHurt = ((LivingEntityAccessor) player).guzhenren$getLastHurt();
+        float lastHurt = ((LastHurtView) player).guzhenren$getLastHurt();
         float prior = !framed ? 0.0F : tracked ? window.lastHit() : lastHurt;
         float due = Math.max(hit - prior, 0.0F);
         Spent spent = up ? spend(player, due) : Spent.NONE;
@@ -122,18 +118,14 @@ public final class ShieldService {
     }
 
     public static void tickShield(@NotNull ServerPlayer player) {
-        long now = BodyService.getGameTime(player);
+        long now = player.level().getGameTime();
         ShieldData shield = get(player);
         ShieldData up = shield.onlyUp(now);
         PlayerData.get(player).setShield(up);
         for (ShieldType type : ShieldType.values()) {
             ShieldLayer layer = up.find(type);
-            Holder<MobEffect> effect = type.getEffect();
-            if (layer != null) {
-                player.addEffect(ModEffects.instance(effect, Math.max(1, (int) layer.getTicksLeft(now))));
-            } else if (player.hasEffect(effect)) {
-                player.removeEffect(effect);
-            }
+            BodyService.projectMarker(player, type.getEffect(), layer != null,
+                    layer == null ? 0L : layer.getTicksLeft(now));
         }
         for (ShieldLayer layer : shield.layers()) {
             if (!layer.isUp(now)) ModEvents.post(new ShieldDownEvent(player, layer.type()));
@@ -143,7 +135,7 @@ public final class ShieldService {
     private static @NotNull Spent spend(@NotNull ServerPlayer player, float amount) {
         if (amount <= 0.0F) return Spent.NONE;
 
-        long now = BodyService.getGameTime(player);
+        long now = player.level().getGameTime();
         List<ShieldLayer> kept = new ArrayList<>();
         List<ShieldType> ended = new ArrayList<>();
         float left = amount;

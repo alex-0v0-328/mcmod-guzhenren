@@ -136,7 +136,7 @@ public class TendedGuItem extends MortalGuItem {
     public boolean isRefined(ItemStack stack) { return getState(stack).refined(); }
 
     public boolean isHungry(ServerPlayer player, ItemStack stack) {
-        return isRefined(stack) && hunger.isHungry(player, stack);
+        return isRefined(stack) && hunger.isHungry(stack);
     }
     //endregion
 
@@ -299,8 +299,8 @@ public class TendedGuItem extends MortalGuItem {
         if (left <= 0) return null;
 
         if (player instanceof ServerPlayer server) server.getCooldowns().addCooldown(this, left);
-        long seconds = (left + Ticks.SECOND - 1) / Ticks.SECOND;
-        return new Refusal(FAILED_COOLDOWN, Component.literal(String.valueOf(seconds)));
+        return new Refusal(FAILED_COOLDOWN,
+                Component.literal(String.valueOf(ModDisplayText.getCountdownSeconds(left))));
     }
 
     @Override
@@ -330,7 +330,10 @@ public class TendedGuItem extends MortalGuItem {
         if (spec.isChanneled() && getEssenceAboveHungerFloor(player, stack) <= 0 && !hunger.carriesFood(this, player)) {
             return new Refusal(FAILED_STARVING);
         }
+        return checkCooldownThenOwnUse(player, stack);
+    }
 
+    private @Nullable Refusal checkCooldownThenOwnUse(Player player, ItemStack stack) {
         Refusal cooling = checkCooldown(player, stack);
         return cooling != null ? cooling : checkOwnUse(player, stack);
     }
@@ -364,8 +367,7 @@ public class TendedGuItem extends MortalGuItem {
         feed(player, stack);
         if (stopsShortUse(player, stack)) return WARNED;
         if (trySpendAndApply(player, stack)) return 1;
-        feed(player, stack);
-        if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
+        feedAndWarn(player, stack);
         return 0;
     }
 
@@ -414,8 +416,7 @@ public class TendedGuItem extends MortalGuItem {
             stack.shrink(1);
             return true;
         }
-        feed(player, stack);
-        if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
+        feedAndWarn(player, stack);
         return true;
     }
 
@@ -452,10 +453,7 @@ public class TendedGuItem extends MortalGuItem {
     @Override
     protected @Nullable Refusal checkInPlaceUse(Player player, ItemStack stack) {
         Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
-        if (poor != null) return poor;
-
-        Refusal cooling = checkCooldown(player, stack);
-        return cooling != null ? cooling : checkOwnUse(player, stack);
+        return poor != null ? poor : checkCooldownThenOwnUse(player, stack);
     }
 
     @Override
@@ -464,6 +462,12 @@ public class TendedGuItem extends MortalGuItem {
     }
 
     protected void feed(ServerPlayer player, ItemStack stack) { hunger.feed(this, player, stack); }
+
+    /** The meal right after a drop, then the hungry warning when the next day rollover would kill it. */
+    protected final void feedAndWarn(ServerPlayer player, ItemStack stack) {
+        feed(player, stack);
+        if (isHungry(player, stack)) announce(player, stack, MSG_HUNGRY);
+    }
 
     /** Takes {@code points} off the hunger bar for a cost that is no use (a killing move's start); false when short. */
     public final boolean takeHunger(ItemStack stack, int points) {
@@ -516,13 +520,11 @@ public class TendedGuItem extends MortalGuItem {
             return Component.translatable(TOOLTIP_INVESTED, getState(stack).investedEssence(),
                     spec.getEssencePerRound());
         }
-        if (hunger instanceof GuHunger.HungerBar bar) {
-            return Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max());
-        }
-        if (hunger instanceof GuHunger.RecoverBar bar) {
-            return Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max());
-        }
-        return null;
+        return switch (hunger) {
+            case GuHunger.HungerBar bar -> Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max());
+            case GuHunger.RecoverBar bar -> Component.translatable(TOOLTIP_HUNGER, getState(stack).hunger(), bar.max());
+            case GuHunger.NoClock ignored -> null;
+        };
     }
 
     @Override
@@ -552,11 +554,9 @@ public class TendedGuItem extends MortalGuItem {
     //endregion
 
     //region the three deaths -- one funnel, three messages; a Vital Gu starves, exhausts only as a partner, never ruins
-    public static void announce(ServerPlayer player, ItemStack stack, String key) {
+    private static void announce(ServerPlayer player, ItemStack stack, String key) {
         player.sendSystemMessage(Component.translatable(key, stack.getHoverName()));
     }
-
-    public static void announceHungry(ServerPlayer player, ItemStack stack) { announce(player, stack, MSG_HUNGRY); }
 
     private static void announceDeath(ServerPlayer holder, ItemStack stack, String key) {
         announce(holder, stack, key);

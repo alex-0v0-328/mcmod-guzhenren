@@ -7,9 +7,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModByteBufs;
-import net.alex.guzhenren.gameplay.body.BodyGrade;
+import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Race;
@@ -22,6 +23,7 @@ import net.alex.guzhenren.gameplay.path.timed.SelfRelianceHeal;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -29,6 +31,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.util.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,52 +86,36 @@ public final class ModPathEffectTypes {
     private ModPathEffectTypes() {}
 
     private static final Map<ResourceLocation, PathEffectType<?>> BY_ID = new LinkedHashMap<>();
-    public static final PathEffectType<Race> RACE_TALENT = register(new PathEffectType<>(Guzhenren.id("race_talent"),
-            Race.CODEC.fieldOf("race"), ModByteBufs.enumCodec(Race.class), PathEffectCategory.BENEFICIAL, true, null,
-            effect -> Component.translatable("guzhenren.path_effect.race_talent",
-                    Component.translatable(effect.payload().getTranslationKey()))));
-    public static final PathEffectType<ExtremePhysique> EXTREME_PHYSIQUE = register(new PathEffectType<>(
-            Guzhenren.id("extreme_physique"), ExtremePhysique.CODEC.fieldOf("physique"),
-            ModByteBufs.enumCodec(ExtremePhysique.class), PathEffectCategory.BENEFICIAL, true, null,
-            effect -> Component.translatable("guzhenren.path_effect.extreme_physique",
-                    Component.translatable(effect.payload().getTranslationKey()))));
-    public static final PathEffectType<Skin> BODY_SKIN = registerGrade("body_skin", Skin.class, Skin.CODEC);
-    public static final PathEffectType<Tendon> BODY_TENDON = registerGrade("body_tendon", Tendon.class, Tendon.CODEC);
-    public static final PathEffectType<Bone> BODY_BONE = registerGrade("body_bone", Bone.class, Bone.CODEC);
-    public static final PathEffectType<BeastStrength> BEAST_STRENGTH = register(new PathEffectType<>(
-            Guzhenren.id("beast_strength"), BeastStrength.CODEC.fieldOf("beast"),
-            ModByteBufs.enumCodec(BeastStrength.class), PathEffectCategory.BENEFICIAL, false, null,
-            effect -> Component.translatable("guzhenren.path_effect.beast_strength",
-                    Component.translatable(effect.payload().getTranslationKey()))));
+    public static final PathEffectType<Race> RACE_TALENT =
+            registerNamed("race_talent", "race", Race.class, Race.CODEC, true);
+    public static final PathEffectType<ExtremePhysique> EXTREME_PHYSIQUE =
+            registerNamed("extreme_physique", "physique", ExtremePhysique.class, ExtremePhysique.CODEC, true);
+    public static final PathEffectType<Skin> BODY_SKIN =
+            registerNamed("body_skin", "grade", Skin.class, Skin.CODEC, true);
+    public static final PathEffectType<Tendon> BODY_TENDON =
+            registerNamed("body_tendon", "grade", Tendon.class, Tendon.CODEC, true);
+    public static final PathEffectType<Bone> BODY_BONE =
+            registerNamed("body_bone", "grade", Bone.class, Bone.CODEC, true);
+    public static final PathEffectType<BeastStrength> BEAST_STRENGTH =
+            registerNamed("beast_strength", "beast", BeastStrength.class, BeastStrength.CODEC, false);
     public static final PathEffectType<HumanStrength> HUMAN_STRENGTH = register(new PathEffectType<>(
             Guzhenren.id("human_strength"), HumanStrength.CODEC.fieldOf("kind"),
             ModByteBufs.enumCodec(HumanStrength.class), PathEffectCategory.BENEFICIAL, false, null,
             effect -> Component.translatable("guzhenren.path_effect.human_strength",
                     Component.translatable(effect.payload().getTranslationKey()), effect.layers())));
-    public static final PathEffectType<TimedBuff> BUFF = register(PathEffectType.projecting(Guzhenren.id("timed_buff"),
-            TimedBuff.CODEC, TimedBuff.STREAM_CODEC, PathEffectCategory.BENEFICIAL, false,
-            effect -> new PathEffectType.Projection(effect.payload().getHolder(), effect.payload().amplifier()),
-            effect -> Component.translatable("guzhenren.path_effect.timed_buff",
-                    effect.payload().getHolder().value().getDisplayName())));
+    public static final PathEffectType<TimedBuff> BUFF = registerTimedBuff("timed_buff", PathEffectCategory.BENEFICIAL);
     public static final PathEffectType<SelfRelianceHeal> SELF_RELIANCE = register(PathEffectType.projecting(
             Guzhenren.id("self_reliance"), SelfRelianceHeal.CODEC, SelfRelianceHeal.STREAM_CODEC,
             PathEffectCategory.BENEFICIAL, true,
             effect -> new PathEffectType.Projection(ModEffects.SELF_RELIANCE_GU, effect.payload().grade()),
             effect -> Component.translatable("guzhenren.path_effect.timed_buff",
                     ModEffects.SELF_RELIANCE_GU.value().getDisplayName())));
-    public static final PathEffectType<Skin> TIMED_SKIN = register(new PathEffectType<>(
-            Guzhenren.id("timed_skin"), Skin.CODEC.fieldOf("skin"), ModByteBufs.enumCodec(Skin.class),
-            PathEffectCategory.BENEFICIAL, true, null,
-            effect -> Component.translatable("guzhenren.path_effect.timed_skin",
-                    Component.translatable(effect.payload().getTranslationKey()))));
-    public static final PathEffectType<Unit> MUGWORT_SHIELD = register(new PathEffectType<>(
-            Guzhenren.id("mugwort_shield"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
-            PathEffectCategory.BENEFICIAL, false, null,
-            effect -> Component.translatable("guzhenren.path_effect.mugwort_shield")));
-    public static final PathEffectType<Unit> VITALITY_LEAF = register(new PathEffectType<>(
-            Guzhenren.id("vitality_leaf"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
-            PathEffectCategory.BENEFICIAL, false, () -> ModEffects.VITALITY_LEAF_GU,
-            effect -> Component.translatable("guzhenren.path_effect.vitality_leaf")));
+    public static final PathEffectType<Skin> TIMED_SKIN =
+            registerNamed("timed_skin", "skin", Skin.class, Skin.CODEC, true);
+    public static final PathEffectType<Unit> MUGWORT_SHIELD =
+            registerUnit("mugwort_shield", PathEffectCategory.BENEFICIAL, false, null);
+    public static final PathEffectType<Unit> VITALITY_LEAF =
+            registerUnit("vitality_leaf", PathEffectCategory.BENEFICIAL, false, () -> ModEffects.VITALITY_LEAF_GU);
     public static final PathEffectType<ResourceLocation> WATCH_RATE = register(PathEffectType.projecting(
             Guzhenren.id("watch_rate"), ResourceLocation.CODEC.fieldOf("form"), ResourceLocation.STREAM_CODEC.mapStream(
                     buf -> buf), PathEffectCategory.BENEFICIAL, false,
@@ -144,14 +131,12 @@ public final class ModPathEffectTypes {
             PathEffectCategory.BENEFICIAL, true,
             effect -> new PathEffectType.Projection(ModEffects.LIQUOR_WORM, effect.payload()),
             effect -> Component.translatable("guzhenren.path_effect.liquor_distilling")));
-    public static final PathEffectType<Unit> STONE_APERTURE = register(new PathEffectType<>(
-            Guzhenren.id("stone_aperture"), MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE),
-            PathEffectCategory.BENEFICIAL, true, null,
-            effect -> Component.translatable("guzhenren.path_effect.stone_aperture")));
-    public static final PathEffectType<TimedBuff> CASUAL_THOUGHT = registerThought("casual_thought",
-            PathEffectCategory.BENEFICIAL);
-    public static final PathEffectType<TimedBuff> MALICIOUS_THOUGHT = registerThought("malicious_thought",
-            PathEffectCategory.HARMFUL);
+    public static final PathEffectType<Unit> STONE_APERTURE =
+            registerUnit("stone_aperture", PathEffectCategory.BENEFICIAL, true, null);
+    public static final PathEffectType<TimedBuff> CASUAL_THOUGHT =
+            registerTimedBuff("casual_thought", PathEffectCategory.BENEFICIAL);
+    public static final PathEffectType<TimedBuff> MALICIOUS_THOUGHT =
+            registerTimedBuff("malicious_thought", PathEffectCategory.HARMFUL);
     public static final Codec<PathEffectType<?>> CODEC = ResourceLocation.CODEC.comapFlatMap(
             ModPathEffectTypes::lookup, PathEffectType::getId);
     public static final Codec<PathEffect<?>> EFFECT_CODEC = CODEC.dispatch(
@@ -163,15 +148,23 @@ public final class ModPathEffectTypes {
         return Collections.unmodifiableCollection(BY_ID.values());
     }
 
-    private static <G extends Enum<G> & BodyGrade<G>> PathEffectType<G> registerGrade(
-            String id, Class<G> type, Codec<G> codec) {
-        return register(new PathEffectType<>(Guzhenren.id(id), codec.fieldOf("grade"), ModByteBufs.enumCodec(type),
-                PathEffectCategory.BENEFICIAL, true, null,
+    /** A beneficial type carrying one constant in {@code field}, named by its key around that constant's name. */
+    private static <E extends Enum<E> & NamedEnum> PathEffectType<E> registerNamed(
+            String id, String field, Class<E> type, Codec<E> codec, boolean exclusive) {
+        return register(new PathEffectType<>(Guzhenren.id(id), codec.fieldOf(field), ModByteBufs.enumCodec(type),
+                PathEffectCategory.BENEFICIAL, exclusive, null,
                 effect -> Component.translatable("guzhenren.path_effect." + id,
                         Component.translatable(effect.payload().getTranslationKey()))));
     }
 
-    private static PathEffectType<TimedBuff> registerThought(String id, PathEffectCategory category) {
+    private static PathEffectType<Unit> registerUnit(String id, PathEffectCategory category, boolean exclusive,
+                                                     @Nullable Supplier<Holder<MobEffect>> icon) {
+        return register(new PathEffectType<>(Guzhenren.id(id), MapCodec.unit(Unit.INSTANCE),
+                StreamCodec.unit(Unit.INSTANCE), category, exclusive, icon,
+                effect -> Component.translatable("guzhenren.path_effect." + id)));
+    }
+
+    private static PathEffectType<TimedBuff> registerTimedBuff(String id, PathEffectCategory category) {
         return register(PathEffectType.projecting(Guzhenren.id(id), TimedBuff.CODEC, TimedBuff.STREAM_CODEC, category,
                 false, effect -> new PathEffectType.Projection(effect.payload().getHolder(),
                         effect.payload().amplifier()),

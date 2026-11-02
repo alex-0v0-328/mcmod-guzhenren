@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.registry.particle.ModParticles;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -25,9 +26,9 @@ import net.minecraft.world.phys.Vec3;
  * rings, a long tail running ~16 blocks past the strike point. The ring velocity is only a facing-normal carrier
  * ({@link #RING_NORMAL_DRIFT}, blocks per tick): a zero vector would trip {@code RingGeometry}'s
  * no-direction fallback and lay the ring flat, and over the ring's whole life the drift moves it
- * under a quarter block, which reads as stationary. Both {@link DashBurst#tick} and
- * {@link PunchBurst#tick} send the particle with count 0 and speed 1.0, handing it the exact
- * velocity, which the ring also reads as its facing normal ({@code FACING_MOTION}).
+ * under a quarter block, which reads as stationary. Every ring of this package goes out through {@link #sendRing},
+ * with count 0 and speed 1.0, handing the particle the exact velocity, which the ring also reads as its facing
+ * normal ({@code FACING_MOTION}).
  *
  * <p>{@link #DASH_BURSTS} and {@link #PUNCH_BURSTS} hold one active burst per effect per player, on
  * separate maps so a dash trail and a punch trail coexist (charging-crash play mixes the two): a
@@ -64,7 +65,7 @@ public final class RingConeEmitter {
     private static final int DASH_IDLE_LIMIT = 3;
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;
     private static final double DASH_RING_HEIGHT = 1.0D;
-    static final double RING_NORMAL_DRIFT = 0.03D;
+    private static final double RING_NORMAL_DRIFT = 0.03D;
     private static final int PUNCH_MAX_RINGS = 8;
 
     private static final Map<UUID, Burst> DASH_BURSTS = new HashMap<>();
@@ -100,6 +101,12 @@ public final class RingConeEmitter {
         PUNCH_BURSTS.remove(player.getUUID());
     }
 
+    /** Sends one ring at the point given, facing along {@code facing}, which its drift velocity carries. */
+    static void sendRing(ServerLevel level, ParticleOptions ring, double x, double y, double z, Vec3 facing) {
+        Vec3 velocity = facing.scale(RING_NORMAL_DRIFT);
+        level.sendParticles(ring, x, y, z, 0, velocity.x, velocity.y, velocity.z, 1.0D);
+    }
+
     private static void tickBurst(Map<UUID, Burst> bursts, ServerPlayer player, ServerLevel level) {
         Burst burst = bursts.get(player.getUUID());
         if (burst == null) return;
@@ -130,12 +137,10 @@ public final class RingConeEmitter {
                 RingTrailSpacing.Drops drops = RingTrailSpacing.getDrops(carry, segLen, ringsLeft);
                 if (drops.offsets().length > 0) {
                     Vec3 segDir = new Vec3(segment.x, 0.0D, segment.z).normalize();
-                    Vec3 velocity = direction.scale(RING_NORMAL_DRIFT);
                     for (double offset : drops.offsets()) {
                         Vec3 anchor = lastPos.add(segDir.scale(offset));
-                        level.sendParticles(ModParticles.SHOCKWAVE_RING.get(),
-                                anchor.x, player.getY() + DASH_RING_HEIGHT, anchor.z,
-                                0, velocity.x, velocity.y, velocity.z, 1.0D);
+                        sendRing(level, ModParticles.SHOCKWAVE_RING.get(), anchor.x, player.getY() + DASH_RING_HEIGHT,
+                                anchor.z, direction);
                     }
                 }
                 newCarry = drops.carry();
@@ -150,11 +155,9 @@ public final class RingConeEmitter {
         @Override
         public Burst tick(ServerPlayer player, ServerLevel level) {
             if (ringsLeft <= 0) return null;
-            Vec3 velocity = direction.scale(RING_NORMAL_DRIFT);
             int index = PUNCH_MAX_RINGS - ringsLeft;
             Vec3 ring = anchor.add(direction.scale(RingTrailSpacing.SPACING * index));
-            level.sendParticles(ModParticles.IMPACT_RING.get(), ring.x, ring.y, ring.z,
-                    0, velocity.x, velocity.y, velocity.z, 1.0D);
+            sendRing(level, ModParticles.IMPACT_RING.get(), ring.x, ring.y, ring.z, direction);
             return new PunchBurst(direction, ringsLeft - 1, anchor);
         }
     }

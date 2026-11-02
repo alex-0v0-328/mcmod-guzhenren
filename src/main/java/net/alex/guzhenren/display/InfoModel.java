@@ -51,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
  * Every row the B panel draws: which rows, in what order, decided once, apart from how the panel words them.
  *
  * <p>Deciding "draw or not" here, not in the panel, is what keeps a section header with [无] from sitting beside
- * a real Dao-mark [道痕] figure. {@code Entry} is sealed and every row kind has its {@link Visitor} method, so a new
+ * a real Dao-mark [道痕] figure. {@code Entry} is sealed and the panel switches over it with no default, so a new
  * row is a compile error until the panel words it. ⚠ A named section (Strength Attainment [力道造诣], ...) is a
  * label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) has two
  * parts: Dao marks [道痕], each path's attainment [造诣] and whole Dao-mark total with nothing per source, then
@@ -59,9 +59,8 @@ import org.jetbrains.annotations.Nullable;
  * each grouped by carrier with every effect's time left. ⚠ A beast or human strength [兽力 / 人力] and a
  * {@link BeastStrengthBuff} read as their strength under Strength Attainment, up to {@link #READINGS_PER_ROW} to a
  * row, so they never also list as path buffs. Do not widen {@code Entry}.
- * Sealed without a {@code permits} list, {@code Entry} takes its row records from this file alone, so the class
- * stays whole past 300 lines: the records, their {@link Visitor} and the builders that order the rows are the one
- * table the panel reads.
+ * Sealed without a {@code permits} list, {@code Entry} takes its row records from this file alone: the records and
+ * the builders that order the rows are the one table the panel reads.
  *
  * <p>Every entry compares by value, which is what lets the B panel keep the text it built for the last frame while
  * the rows are unchanged; {@link StrengthReadingRow} therefore carries readings and never a {@code Component},
@@ -86,242 +85,62 @@ public final class InfoModel {
 
     public record Row(int indent, Entry entry) {}
 
-    public sealed interface Entry {
-
-        <T> T accept(Visitor<T> visitor);
-    }
-
-    public interface Visitor<T> {
-
-        T visit(ApertureIndex entry);
-
-        T visit(Blank entry);
-
-        T visit(Realm entry);
-
-        T visit(Status entry);
-
-        T visit(TalentRow entry);
-
-        T visit(Essence entry);
-
-        T visit(Distilled entry);
-
-        T visit(Pressure entry);
-
-        T visit(PathChoice entry);
-
-        T visit(PhysiqueRow entry);
-
-        T visit(RaceRow entry);
-
-        T visit(TendonRow entry);
-
-        T visit(BoneRow entry);
-
-        T visit(SkinRow entry);
-
-        T visit(FleshRow entry);
-
-        T visit(Soul entry);
-
-        T visit(Lifespan entry);
-
-        T visit(PathsHeader entry);
-
-        T visit(EffectsHeader entry);
-
-        T visit(PathRow entry);
-
-        T visit(EffectCategoryHeader entry);
-
-        T visit(EffectCarrierRow entry);
-
-        T visit(PathEffectRow entry);
-
-        T visit(StrengthPathAchieveHeader entry);
-
-        T visit(StrengthPathBranchRow entry);
-
-        T visit(StrengthReadingRow entry);
-
-        T visit(TimePathAchieveHeader entry);
-
-        T visit(TimeRateUpRow entry);
-
-        T visit(CapacityRow entry);
-
-        T visit(AttackRow entry);
-
-        T visit(WisdomPathAchieveHeader entry);
-
-        T visit(ThoughtTagRow entry);
-
-        T visit(BrillianceRow entry);
-
-        T visit(MindHeader entry);
-
-        T visit(MindRow entry);
-    }
+    public sealed interface Entry {}
 
     //region Aperture
-    public record ApertureIndex(int number, int index) implements Entry {
+    public record ApertureIndex(int number, int index) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record Blank() implements Entry {}
 
-    public record Blank() implements Entry {
+    public record Realm(Aperture aperture) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record Status(ApertureStatus status) implements Entry {}
 
-    public record Realm(Aperture aperture) implements Entry {
+    public record TalentRow(Aperture aperture, boolean awakened) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record Essence(Aperture aperture) implements Entry {}
 
-    public record Status(ApertureStatus status) implements Entry {
+    public record Distilled(Aperture aperture) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record Pressure(Aperture aperture) implements Entry {}
 
-    public record TalentRow(Aperture aperture, boolean awakened) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record Essence(Aperture aperture) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record Distilled(Aperture aperture) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record Pressure(Aperture aperture) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record PathChoice(boolean primary, int aperture, @Nullable GuPath path) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record PathChoice(boolean primary, int aperture, @Nullable GuPath path) implements Entry {}
     //endregion
 
     //region Body
-    public record PhysiqueRow(@Nullable Physique physique, ExtremePhysique extremePhysique) implements Entry {
+    public record PhysiqueRow(@Nullable Physique physique, ExtremePhysique extremePhysique) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record RaceRow(Race race) implements Entry {}
 
-    public record RaceRow(Race race) implements Entry {
+    public record TendonRow(Tendon tendon) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record BoneRow(Bone bone) implements Entry {}
 
-    public record TendonRow(Tendon tendon) implements Entry {
+    public record SkinRow(Skin skin) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record FleshRow(Flesh flesh) implements Entry {}
 
-    public record BoneRow(Bone bone) implements Entry {
+    public record Soul(SoulData soul) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record Lifespan(double lifespan, double age) implements Entry {}
 
-    public record SkinRow(Skin skin) implements Entry {
+    public record PathsHeader(boolean empty) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record EffectsHeader(boolean empty) implements Entry {}
 
-    public record FleshRow(Flesh flesh) implements Entry {
+    public record PathRow(GuPath path, GuAttainment attainment, DaoMarks marks) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record EffectCategoryHeader(PathEffectCategory category) implements Entry {}
 
-    public record Soul(SoulData soul) implements Entry {
+    public record EffectCarrierRow(EffectCarrier carrier) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record PathEffectRow(PathEffect<?> effect, long secondsLeft) implements Entry {}
 
-    public record Lifespan(double lifespan, double age) implements Entry {
+    public record StrengthPathAchieveHeader() implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record StrengthPathBranchRow(StrengthPathBranch branch, int totalJin) implements Entry {}
 
-    public record PathsHeader(boolean empty) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record EffectsHeader(boolean empty) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record PathRow(GuPath path, GuAttainment attainment, DaoMarks marks) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record EffectCategoryHeader(PathEffectCategory category) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record EffectCarrierRow(EffectCarrier carrier) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record PathEffectRow(PathEffect<?> effect, long secondsLeft) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record StrengthPathAchieveHeader() implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record StrengthPathBranchRow(StrengthPathBranch branch, int totalJin) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record StrengthReadingRow(List<StrengthReading> readings) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record StrengthReadingRow(List<StrengthReading> readings) implements Entry {}
 
     /** One strength the body holds: {@code count} beasts of a family, or {@code count} of a human unit. */
     public sealed interface StrengthReading {}
@@ -332,61 +151,25 @@ public final class InfoModel {
     /** {@code unit} is {@link HumanStrength#JIN} or {@link HumanStrength#JUN}, the ten-fold kinds folded in. */
     public record HumanReading(HumanStrength unit, int count) implements StrengthReading {}
 
-    public record TimePathAchieveHeader() implements Entry {
+    public record TimePathAchieveHeader() implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record TimeRateUpRow(int rate) implements Entry {}
 
-    public record TimeRateUpRow(int rate) implements Entry {
+    public record CapacityRow(int usable, int total) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record AttackRow(double bonus) implements Entry {}
 
-    public record CapacityRow(int usable, int total) implements Entry {
+    public record WisdomPathAchieveHeader() implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record AttackRow(double bonus) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record WisdomPathAchieveHeader() implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record ThoughtTagRow(ThoughtTag tag, long amount) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record ThoughtTagRow(ThoughtTag tag, long amount) implements Entry {}
     //endregion
 
     //region Mind
-    public record BrillianceRow(Brilliance brilliance) implements Entry {
+    public record BrillianceRow(Brilliance brilliance) implements Entry {}
 
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record MindHeader() implements Entry {}
 
-    public record MindHeader() implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
-
-    public record MindRow(MindPoolType type, MindPool pool) implements Entry {
-
-        @Override
-        public <T> T accept(Visitor<T> visitor) { return visitor.visit(this); }
-    }
+    public record MindRow(MindPoolType type, MindPool pool) implements Entry {}
     //endregion
 
     public static List<Row> buildApertureRows(Player player) {
@@ -432,8 +215,9 @@ public final class InfoModel {
         if (body.physiques().isEmpty()) {
             rows.add(new Row(0, new PhysiqueRow(null, ExtremePhysique.NONE)));
         } else {
-            body.physiques().forEach(physique -> rows.add(new Row(0,
-                    new PhysiqueRow(physique, body.extremePhysique()))));
+            for (Physique physique : body.physiques()) {
+                rows.add(new Row(0, new PhysiqueRow(physique, body.extremePhysique())));
+            }
         }
         rows.add(new Row(0, new RaceRow(body.race())));
         rows.add(new Row(0, new TendonRow(body.tendon())));
@@ -469,7 +253,7 @@ public final class InfoModel {
         addWisdomPathAchieve(effects, player);
         for (PathEffectCategory category : PathEffectCategory.values()) addPathEffects(effects, player, category);
         rows.add(new Row(0, new EffectsHeader(effects.isEmpty())));
-        effects.forEach(row -> rows.add(new Row(row.indent() + INDENT, row.entry())));
+        for (Row row : effects) rows.add(new Row(row.indent() + INDENT, row.entry()));
         return rows;
     }
 
@@ -492,18 +276,20 @@ public final class InfoModel {
     }
 
     private static void addPathEffects(List<Row> rows, Player player, PathEffectCategory category) {
-        List<PathEffect<?>> effects = PathEffectService.getEffects(player).stream()
-                .filter(effect -> effect.type().getCategory() == category && !isStrengthReading(effect)).toList();
+        List<PathEffect<?>> effects = new ArrayList<>();
+        for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
+            if (effect.type().getCategory() == category && !isStrengthReading(effect)) effects.add(effect);
+        }
         if (effects.isEmpty()) return;
 
-        long now = PathEffectService.getGameTime(player);
+        long now = player.level().getGameTime();
         rows.add(new Row(0, new EffectCategoryHeader(category)));
         for (EffectCarrier carrier : EffectCarrier.values()) {
-            List<PathEffect<?>> carried = effects.stream().filter(effect -> effect.carrier() == carrier).toList();
-            if (carried.isEmpty()) continue;
-
-            rows.add(new Row(INDENT, new EffectCarrierRow(carrier)));
-            for (PathEffect<?> effect : carried) {
+            boolean headed = false;
+            for (PathEffect<?> effect : effects) {
+                if (effect.carrier() != carrier) continue;
+                if (!headed) rows.add(new Row(INDENT, new EffectCarrierRow(carrier)));
+                headed = true;
                 rows.add(new Row(2 * INDENT, new PathEffectRow(effect, getSecondsLeft(effect, now))));
             }
         }
@@ -549,7 +335,7 @@ public final class InfoModel {
     private static List<StrengthReading> getBeastReadings(Player player, PathStrengthData data) {
         Map<BeastStrengthFamily, Integer> refined = data.getBeastReadings();
         List<PathEffect<?>> effects = PathEffectService.getEffects(player);
-        long now = PathEffectService.getGameTime(player);
+        long now = player.level().getGameTime();
         List<StrengthReading> readings = new ArrayList<>();
         for (BeastStrengthFamily family : BeastStrengthFamily.values()) {
             int count = refined.getOrDefault(family, 0);
@@ -575,9 +361,10 @@ public final class InfoModel {
         List<Row> held = new ArrayList<>();
         long natural = MindService.getNaturalThoughts(player);
         if (natural > 0L) held.add(new Row(INDENT, new ThoughtTagRow(ThoughtTag.NATURAL, natural)));
-        MindService.getTaggedThoughts(player).forEach((tag, amount) -> {
-            if (amount > 0L) held.add(new Row(INDENT, new ThoughtTagRow(tag, amount)));
-        });
+        for (Map.Entry<ThoughtTag, Long> tagged : MindService.getTaggedThoughts(player).entrySet()) {
+            long amount = tagged.getValue();
+            if (amount > 0L) held.add(new Row(INDENT, new ThoughtTagRow(tagged.getKey(), amount)));
+        }
         if (held.isEmpty()) return;
 
         rows.add(new Row(0, new WisdomPathAchieveHeader()));

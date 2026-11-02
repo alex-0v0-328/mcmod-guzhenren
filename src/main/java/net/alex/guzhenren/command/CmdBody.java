@@ -125,11 +125,11 @@ public final class CmdBody {
                 player -> wearSkin(player, skin, getRegisteredDurationTicks(skin))));
     }
 
-    static <G extends Enum<G> & BodyGrade<G>> List<G> getTempered(G[] grades) {
+    private static <G extends Enum<G> & BodyGrade<G>> List<G> getTempered(G[] grades) {
         return Arrays.stream(grades).filter(grade -> !grade.isNative()).toList();
     }
 
-    static List<Skin> getFamily(Skin.Family family) {
+    private static List<Skin> getFamily(Skin.Family family) {
         return Arrays.stream(Skin.values()).filter(skin -> skin.getFamily() == family).toList();
     }
 
@@ -144,7 +144,7 @@ public final class CmdBody {
         SkinService.tickSkin(player);
     }
 
-    static int getRegisteredDurationTicks(Skin skin) {
+    private static int getRegisteredDurationTicks(Skin skin) {
         return switch (skin) {
             case JADE_SKIN -> getDurationTicks(ModItems.JADE_SKIN_GU.get());
             case WHITE_JADE_SKIN -> getDurationTicks(ModItems.WHITE_JADE_GU.get());

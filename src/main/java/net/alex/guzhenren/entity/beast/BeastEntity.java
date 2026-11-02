@@ -1,6 +1,7 @@
 package net.alex.guzhenren.entity.beast;
 
 import java.util.List;
+import java.util.function.Predicate;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.ActionEntity;
 import net.alex.guzhenren.entity.ai.StandStillGoal;
@@ -48,11 +49,12 @@ import software.bernie.geckolib.animation.RawAnimation;
  * {@link #pickDirectionalHurt} picks the hurt pose from the attacker's bearing: an attacker on this beast's left
  * side knocks the head to the beast's right, playing {@code hurt_right}, and vice versa.
  *
- * <p>{@link #rollAmbient} picks and starts an ambient action after a completed wander; nothing happens on a
+ * <p>{@link #onWanderComplete} picks and starts an ambient action after a completed wander; nothing happens on a
  * miss. In {@link HuntGoal#canUse}, any awake, non-combat pose notices prey -- including sitting, lying,
  * rolling and scratching; only actual sleep, the get-up transition and ongoing combat skip hunting. A
  * {@link StandStillGoal} holds navigation still while the beast sits, lies, sleeps, rolls or scratches.
- * {@link HuntGoal} scans every ten ticks, staggered by entity id so neighboring beasts do not scan together.
+ * {@link HuntGoal} scans every ten ticks, staggered by entity id so neighboring beasts do not scan together, and
+ * casts a sight ray only for a candidate nearer than the best one so far.
  *
  * <p>Past 300 lines on purpose: the fourteen poses, their animations, the ambient chain and the beast-only
  * hunt goal belong to this layer.
@@ -257,11 +259,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     @Override
     protected void reactToHurt(@Nullable LivingEntity attacker) {
         if (attacker != null && this.canAttackTarget(attacker)) this.lockTarget(attacker);
-        Action current = this.getAction();
-        if (!current.isAttack() && current != Action.DEATH && current != Action.ROAR
-                && current != Action.HURT_LEFT && current != Action.HURT_RIGHT) {
-            this.switchAction(this.pickDirectionalHurt(attacker));
-        }
+        if (!this.getAction().isCombat()) this.switchAction(this.pickDirectionalHurt(attacker));
     }
 
     private Action pickDirectionalHurt(@Nullable Entity attacker) {
@@ -277,10 +275,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
     @Override
     protected void onWanderComplete() {
-        this.rollAmbient();
-    }
-
-    private void rollAmbient() {
         if (!this.isIdle() || this.getTarget() != null || this.isDeadOrDying() || !this.onGround()) return;
         if (this.isNightTime()) {
             if (this.random.nextDouble() < NIGHT_LIE_DOWN_CHANCE) this.tryBeginAction(Action.LIE_DOWN, false);
@@ -288,9 +282,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         }
         double roll = this.random.nextDouble();
         if (roll >= AMBIENT_REST_CHANCE) return;
-        Action pick = this.pickDaytimeAmbient(roll / AMBIENT_REST_CHANCE);
-        if (pick == null) return;
-        this.tryBeginAction(pick, false);
+        this.tryBeginAction(this.pickDaytimeAmbient(roll / AMBIENT_REST_CHANCE), false);
     }
 
     @Override
@@ -342,18 +334,19 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
         private static final int SCAN_INTERVAL_TICKS = 10;
         private final BeastEntity beast;
+        private final Predicate<LivingEntity> prey;
 
         private HuntGoal(BeastEntity beast) {
             this.beast = beast;
+            this.prey = entity -> (entity instanceof Player || entity.getType().is(ModEntityTypeTags.PREDATOR_PREY))
+                    && beast.canAttackTarget(entity);
         }
 
         @Override
         public boolean canUse() {
             Action action = this.beast.getAction();
             return this.beast.isActiveHunter() && this.beast.getTarget() == null
-                    && action != Action.SLEEP && action != Action.GET_UP && action != Action.DEATH
-                    && action != Action.ROAR && !action.isAttack()
-                    && action != Action.HURT_LEFT && action != Action.HURT_RIGHT;
+                    && action != Action.SLEEP && action != Action.GET_UP && !action.isCombat();
         }
 
         @Override
@@ -368,12 +361,9 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
             AABB box = this.beast.getBoundingBox().inflate(range);
             LivingEntity best = null;
             double bestDistance = Double.MAX_VALUE;
-            for (LivingEntity candidate : this.beast.level().getEntitiesOfClass(LivingEntity.class, box,
-                    entity -> (entity instanceof Player || entity.getType().is(ModEntityTypeTags.PREDATOR_PREY))
-                            && this.beast.canAttackTarget(entity)
-                            && this.beast.getSensing().hasLineOfSight(entity))) {
+            for (LivingEntity candidate : this.beast.level().getEntitiesOfClass(LivingEntity.class, box, this.prey)) {
                 double distance = this.beast.distanceToSqr(candidate);
-                if (distance < bestDistance) {
+                if (distance < bestDistance && this.beast.getSensing().hasLineOfSight(candidate)) {
                     bestDistance = distance;
                     best = candidate;
                 }
@@ -417,5 +407,10 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
 
         @Override
         public boolean isAmbient() { return this.ambient; }
+
+        /** An attack, the roar, a hurt pose or death: a pose a hit or a sighted prey never interrupts. */
+        boolean isCombat() {
+            return this.attack || this == ROAR || this == HURT_LEFT || this == HURT_RIGHT || this == DEATH;
+        }
     }
 }

@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture.storage;
 
 import java.util.List;
-import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
@@ -91,7 +90,7 @@ public final class ApertureStorageService {
         int limit = Math.max(MAX_LOAD, currentLoad);
         int existingCount = 0;
         if (!current.isEmpty()) {
-            if (ItemStacks.isSameItemSameData(current, incoming)) existingCount = current.getCount();
+            if (ItemStack.isSameItemSameComponents(current, incoming)) existingCount = current.getCount();
             else currentLoad -= getCost(holder, current);
         }
         int freeLoad = Math.max(0, limit - currentLoad);
@@ -99,27 +98,16 @@ public final class ApertureStorageService {
     }
 
     public static void set(@NotNull ServerPlayer player, int aperture, @NotNull List<ItemStack> items) {
-        ApertureStorage current = get(player);
-        ApertureStorage next = current.with(aperture, items);
-        if (isOverLoad(player, current, next, aperture)) return;
-
-        PlayerData.get(player).setApertureStorage(next);
+        commit(player, aperture, get(player).with(aperture, items));
     }
 
     public static void setSlot(@NotNull ServerPlayer player, int aperture, int index, @NotNull ItemStack stack) {
-        ApertureStorage current = get(player);
-        ApertureStorage next = current.withSlot(aperture, index, stack);
-        if (isOverLoad(player, current, next, aperture)) return;
-
-        PlayerData.get(player).setApertureStorage(next);
+        commit(player, aperture, get(player).withSlot(aperture, index, stack));
     }
 
     public static boolean setVital(@NotNull ServerPlayer player, int aperture, @NotNull ItemStack stack) {
-        ApertureStorage current = get(player);
-        ApertureStorage next = current.withVital(aperture, stack);
-        if (isOverLoad(player, current, next, aperture)) return false;
+        if (!commit(player, aperture, get(player).withVital(aperture, stack))) return false;
 
-        PlayerData.get(player).setApertureStorage(next);
         adoptVital(player, aperture, stack);
         GuPath path = storedGu.getPath(stack);
         if (path != null) ApertureService.setPrimaryPath(player, aperture, path);
@@ -137,9 +125,13 @@ public final class ApertureStorageService {
     }
 
     public static boolean setPage(@NotNull ServerPlayer player, int aperture, int from, @NotNull List<ItemStack> page) {
-        ApertureStorage current = get(player);
-        ApertureStorage next = current.withPage(aperture, from, page);
-        if (isOverLoad(player, current, next, aperture)) return false;
+        return commit(player, aperture, get(player).withPage(aperture, from, page));
+    }
+
+    /** Stores {@code next} unless it overloads {@code aperture} past both the cap and the current load. */
+    private static boolean commit(ServerPlayer player, int aperture, ApertureStorage next) {
+        int after = load(player, next, aperture);
+        if (after > MAX_LOAD && after > load(player, get(player), aperture)) return false;
 
         PlayerData.get(player).setApertureStorage(next);
         return true;
@@ -165,11 +157,6 @@ public final class ApertureStorageService {
         int total = 0;
         for (ItemStack stack : stacks) total += getCost(holder, stack);
         return total;
-    }
-
-    private static boolean isOverLoad(Player player, ApertureStorage current, ApertureStorage next, int aperture) {
-        int after = load(player, next, aperture);
-        return after > MAX_LOAD && after > load(player, current, aperture);
     }
 
     private static int getCost(Rank holder, ItemStack stack) {

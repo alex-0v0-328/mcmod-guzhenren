@@ -46,9 +46,9 @@ final class RecipePicker {
     private static final int RULE = 0x66FFFFFF;
     private static final int ROW_HOVER = 0x33FFFFFF;
     private static final String STONE_SEPARATOR = " · ";
-    private static final String TITLE_KEY = "guzhenren.menu.refinement.pick.title";
-    private static final String AUTO_KEY = "guzhenren.menu.refinement.pick.auto";
-    private static final String EMPTY_KEY = "guzhenren.menu.refinement.pick.empty";
+    private static final Component TITLE = Component.translatable("guzhenren.menu.refinement.pick.title");
+    private static final Component AUTO = Component.translatable("guzhenren.menu.refinement.pick.auto");
+    private static final Component EMPTY = Component.translatable("guzhenren.menu.refinement.pick.empty");
     private static final String NEEDS_KEY = "guzhenren.menu.refinement.pick.needs";
     private static final String ITEM_KEY = "guzhenren.menu.refinement.pick.item";
     private static final String WINDOWS_KEY = "guzhenren.menu.refinement.pick.windows";
@@ -111,7 +111,7 @@ final class RecipePicker {
         GuiBatch.draw(graphics, () -> {
             fillFrame(graphics, selected, hovered, x0, y0, visible);
             for (int i = 0; i < visible; i++) drawIcon(graphics, known, scroll + i, x0, getRowY(y0, i));
-            graphics.drawString(font, Component.translatable(TITLE_KEY), x0 + PAD,
+            graphics.drawString(font, TITLE, x0 + PAD,
                     y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
             for (int i = 0; i < visible; i++) drawText(graphics, font, known, scroll + i, x0, getRowY(y0, i));
         });
@@ -150,8 +150,7 @@ final class RecipePicker {
                                  int y) {
         int textY = y + (ROW_H - font.lineHeight) / 2;
         if (row == 0) {
-            Component auto = Component.translatable(known.isEmpty() ? EMPTY_KEY : AUTO_KEY);
-            graphics.drawString(font, auto, x0 + PAD, textY, ModPalette.TEXT, false);
+            graphics.drawString(font, known.isEmpty() ? EMPTY : AUTO, x0 + PAD, textY, ModPalette.TEXT, false);
             return;
         }
         GuRecipe recipe = known.get(row - 1);

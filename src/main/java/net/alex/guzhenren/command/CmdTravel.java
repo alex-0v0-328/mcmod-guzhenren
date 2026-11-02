@@ -5,8 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
@@ -20,7 +18,6 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -98,54 +95,36 @@ public final class CmdTravel {
         }
         Component name = Component.translatable(Util.makeDescriptionId("dimension", id));
 
-        List<ServerPlayer> refused = new ArrayList<>();
-        List<ServerPlayer> sent = new ArrayList<>();
-        for (ServerPlayer player : ModCommandSupport.getTargets(context)) {
-            if (DimensionTravelService.isInside(player, dimension)
-                    || !DimensionTravelService.enter(player, destination)) {
-                refused.add(player);
-            } else {
-                sent.add(player);
-            }
-        }
-
-        if (!refused.isEmpty()) {
+        ModCommandSupport.Outcome outcome = ModCommandSupport.run(context,
+                player -> !DimensionTravelService.isInside(player, dimension)
+                        && DimensionTravelService.enter(player, destination));
+        if (!outcome.refused().isEmpty()) {
             ModCommandFeedback.sendFailure(source,
-                    Component.translatable("guzhenren.command.travel.already_inside", getNames(refused), name));
+                    Component.translatable("guzhenren.command.travel.already_inside", outcome.refusedNames(), name));
         }
-        if (!sent.isEmpty()) {
+        if (!outcome.done().isEmpty()) {
             ModCommandFeedback.sendSuccess(source,
-                    Component.translatable("guzhenren.command.travel.entered", getNames(sent), name));
+                    Component.translatable("guzhenren.command.travel.entered", outcome.doneNames(), name));
         }
-        return sent.size();
+        return outcome.done().size();
     }
 
     private static int exit(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
-        List<ServerPlayer> refused = new ArrayList<>();
-        List<ServerPlayer> returned = new ArrayList<>();
-
-        for (ServerPlayer player : ModCommandSupport.getTargets(context)) {
-            if (!ModDimensions.ANCHORED_DIMENSIONS.containsKey(player.level().dimension())) {
-                refused.add(player);
-                continue;
-            }
+        ModCommandSupport.Outcome outcome = ModCommandSupport.run(context, player -> {
+            if (!ModDimensions.ANCHORED_DIMENSIONS.containsKey(player.level().dimension())) return false;
             DimensionTravelService.exit(player);
-            returned.add(player);
-        }
+            return true;
+        });
 
-        if (!refused.isEmpty()) {
+        if (!outcome.refused().isEmpty()) {
             ModCommandFeedback.sendFailure(source,
-                    Component.translatable("guzhenren.command.travel.not_inside", getNames(refused)));
+                    Component.translatable("guzhenren.command.travel.not_inside", outcome.refusedNames()));
         }
-        if (!returned.isEmpty()) {
+        if (!outcome.done().isEmpty()) {
             ModCommandFeedback.sendSuccess(source,
-                    Component.translatable("guzhenren.command.travel.exited", getNames(returned)));
+                    Component.translatable("guzhenren.command.travel.exited", outcome.doneNames()));
         }
-        return returned.size();
-    }
-
-    private static Component getNames(List<ServerPlayer> players) {
-        return ComponentUtils.formatList(players, ServerPlayer::getDisplayName);
+        return outcome.done().size();
     }
 }

@@ -2,7 +2,6 @@ package net.alex.guzhenren.item.gu.mortal.wood;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
@@ -110,15 +109,15 @@ public class TreasureLotusGuItem extends TendedGuItem {
             left -= storeInElder(inventory.getItem(slot), left);
         }
         for (int aperture = 0; aperture < ApertureData.MAX_APERTURES && left > 0; aperture++) {
-            ItemStack vital = ApertureStorageService.getVital(player, aperture);
             left = fillStoredElders(player, aperture, left);
-            boolean vitalChanged = false;
-            if (left > 0) {
-                int moved = storeInElder(vital, left);
-                vitalChanged = moved > 0;
+            if (left <= 0) break;
+
+            ItemStack vital = ApertureStorageService.getVital(player, aperture);
+            int moved = storeInElder(vital, left);
+            if (moved > 0) {
+                ApertureStorageService.setVital(player, aperture, vital);
                 left -= moved;
             }
-            if (vitalChanged) ApertureStorageService.setVital(player, aperture, vital);
         }
         return left;
     }
@@ -149,7 +148,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
         int left = placeInto(inventory, 9, 36, produced, amount);
         left = placeInto(inventory, 0, 9, produced, left);
         ItemStack offhand = player.getOffhandItem();
-        if (left > 0 && ItemStacks.isSameItemSameData(offhand, produced)
+        if (left > 0 && ItemStack.isSameItemSameComponents(offhand, produced)
                 && offhand.getCount() < offhand.getMaxStackSize()) {
             int moved = Math.min(left, offhand.getMaxStackSize() - offhand.getCount());
             offhand.grow(moved);
@@ -170,7 +169,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
         int left = amount;
         for (int slot = from; slot < to && left > 0; slot++) {
             ItemStack existing = inventory.getItem(slot);
-            if (ItemStacks.isSameItemSameData(existing, produced)
+            if (ItemStack.isSameItemSameComponents(existing, produced)
                     && existing.getCount() < existing.getMaxStackSize()) {
                 int moved = Math.min(left, existing.getMaxStackSize() - existing.getCount());
                 existing.grow(moved);

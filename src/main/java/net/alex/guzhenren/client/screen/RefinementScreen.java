@@ -66,14 +66,14 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private static final int CORE_FRAME_PAD = 7;
     private static final int BAR_WINDOW = 0xFF81C784;
     private static final int BAR_GAP = 0xFF415A41;
-    private static final String CRAFT_KEY = "guzhenren.menu.refinement.craft";
-    private static final String STOP_KEY = "guzhenren.menu.refinement.stop";
-    private static final String LEGEND_KEY = "guzhenren.menu.refinement.rings";
+    private static final Component CRAFT = Component.translatable("guzhenren.menu.refinement.craft");
+    private static final Component STOP = Component.translatable("guzhenren.menu.refinement.stop");
+    private static final Component LEGEND = Component.translatable("guzhenren.menu.refinement.rings");
     private static final String WINDOW_KEY = "guzhenren.menu.refinement.window";
     private static final String GAP_KEY = "guzhenren.menu.refinement.gap";
-    private static final String RECIPE_KEY = "guzhenren.menu.refinement.recipes";
+    private static final Component RECIPES = Component.translatable("guzhenren.menu.refinement.recipes");
     private static final String SELECTED_KEY = "guzhenren.menu.refinement.selected";
-    private static final String EXTRA_KEY = "guzhenren.menu.refinement.extra";
+    private static final Component EXTRA = Component.translatable("guzhenren.menu.refinement.extra");
     private static final int TITLE_X_WITH_BACK = 32;
     private static final int MARGIN = 18;
     private static final int HEADER_H = 20;
@@ -165,8 +165,8 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
                     : Component.translatable(GAP_KEY, shown, menu.getStages());
         }
         GuRecipe recipe = getSelectedRecipe();
-        if (recipe == null) return Component.translatable(LEGEND_KEY);
-        if (isCrowded(recipe)) return Component.translatable(EXTRA_KEY);
+        if (recipe == null) return LEGEND;
+        if (isCrowded(recipe)) return EXTRA;
         return Component.translatable(SELECTED_KEY, RecipeGhosts.getResult(recipe).getHoverName());
     }
 
@@ -222,7 +222,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     private void drawCraftLabel(GuiGraphics graphics) {
-        Component label = Component.translatable(menu.isRunning() ? STOP_KEY : CRAFT_KEY);
+        Component label = menu.isRunning() ? STOP : CRAFT;
         int colour = isCraftLive() ? ModPalette.TEXT : isClickable() ? ModPalette.SHORT : ModPalette.TEXT_DEAD;
         Widgets.drawCentered(graphics, font, label, getCraftX(), getCraftY(), CRAFT_W, CRAFT_H, colour);
     }
@@ -248,7 +248,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
 
     private void drawRecipeLabel(GuiGraphics graphics) {
-        Widgets.drawButtonLabel(graphics, font, Component.translatable(RECIPE_KEY), getRecipeX(), getRecipeY(),
+        Widgets.drawButtonLabel(graphics, font, RECIPES, getRecipeX(), getRecipeY(),
                 RECIPE_W, RECIPE_H, !menu.isRunning());
     }
 

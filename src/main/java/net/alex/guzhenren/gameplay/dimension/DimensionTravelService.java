@@ -117,27 +117,19 @@ public final class DimensionTravelService {
     }
 
     public static boolean exit(@NotNull ServerPlayer player) {
-        DimensionReturnData data = PlayerData.get(player).getDimensionReturn();
-        if (data.isPresent()) {
-            ReturnPoint point = data.point().orElseThrow();
-            ServerLevel target = player.server.getLevel(point.level());
-            boolean used = target != null;
-            if (used) {
-                player.teleportTo(target, point.x(), point.y(), point.z(), point.yaw(), point.pitch());
-                revokeFlight(player);
-                player.getAbilities().flying = point.flying() && FlightAbility.canFly(player);
-                player.fallDistance = 0.0F;
-                player.onUpdateAbilities();
-            } else {
-                fallbackToOverworldSpawn(player);
-            }
-            clear(player);
-            return used;
+        ReturnPoint point = PlayerData.get(player).getDimensionReturn().point().orElse(null);
+        ServerLevel target = point == null ? null : player.server.getLevel(point.level());
+        if (target != null) {
+            player.teleportTo(target, point.x(), point.y(), point.z(), point.yaw(), point.pitch());
+            revokeFlight(player);
+            player.getAbilities().flying = point.flying() && FlightAbility.canFly(player);
+            player.fallDistance = 0.0F;
+            player.onUpdateAbilities();
+        } else {
+            fallbackToOverworldSpawn(player);
         }
-
-        fallbackToOverworldSpawn(player);
         clear(player);
-        return false;
+        return target != null;
     }
 
     private static void fallbackToOverworldSpawn(@NotNull ServerPlayer player) {

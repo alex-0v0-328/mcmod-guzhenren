@@ -1,5 +1,6 @@
 package net.alex.guzhenren.entity.projectile;
 
+import java.util.function.Predicate;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -73,7 +74,8 @@ public final class MoonBladeEntity extends Projectile {
     public static final int ARC_GRACE_TICKS = 2;
     /** The longest locked flight; {@code KillingMoveService} locks nothing past 26 blocks, 18 ticks, inside it. */
     public static final int MAX_ARC_FLIGHT_TICKS = 20;
-    public static final int NO_TARGET = -1;
+    private static final int NO_TARGET = -1;
+    private static final Variant[] VARIANTS = Variant.values();
     /** Blocks below the eye the blade appears, so the shooter sees its face instead of its edge. */
     private static final float SPAWN_DROP = 0.3F;
     public static final int BLEEDING_TICKS = 5 * Ticks.SECOND;
@@ -88,6 +90,7 @@ public final class MoonBladeEntity extends Projectile {
             SynchedEntityData.defineId(MoonBladeEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Integer> ARC_TICKS =
             SynchedEntityData.defineId(MoonBladeEntity.class, EntityDataSerializers.INT);
+    private final Predicate<Entity> hittable = this::canHitEntity;
     private float damage;
     private @Nullable Vec3 arcStart;
 
@@ -124,8 +127,7 @@ public final class MoonBladeEntity extends Projectile {
     }
 
     public Variant getVariant() {
-        Variant[] variants = Variant.values();
-        return variants[Math.floorMod(entityData.get(VARIANT), variants.length)];
+        return VARIANTS[Math.floorMod(entityData.get(VARIANT), VARIANTS.length)];
     }
 
     /** Ticks this blade lives: the straight lifetime, or the locked flight plus its grace. */
@@ -175,7 +177,7 @@ public final class MoonBladeEntity extends Projectile {
         }
         LivingEntity target = followArc();
         Vec3 motion = getDeltaMovement();
-        HitResult hit = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+        HitResult hit = ProjectileUtil.getHitResultOnMoveVector(this, hittable);
         if (hit.getType() == HitResult.Type.MISS && target != null && arrives(target, motion)) {
             hit = new EntityHitResult(target, position().add(motion));
         }

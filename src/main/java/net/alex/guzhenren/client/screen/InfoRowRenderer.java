@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
  * into {@code cells} the panel spreads over {@code InfoModel.READINGS_PER_ROW} equal columns; {@link #getApertureGroups}
  * splits the aperture tab's model into one group per aperture, blanks dropped, for the two-column layout.
  *
- * <p>{@link #draw} hands each entry to {@link EntryDrawer}, one {@code InfoModel.Visitor} method per row kind: a
- * new row does not compile until it has its line here. ⚠ The model owns the rows and their order, never the
+ * <p>{@link #draw} switches over the sealed entry with no default, one case per row kind: a new row does not compile
+ * until it has its line here. ⚠ The model owns the rows and their order, never the
  * wording -- the panel puts the label in one column and the value in another.
  *
  * @author Alex
@@ -73,7 +73,80 @@ final class InfoRowRenderer {
     }
 
     static @Nullable ScreenRow draw(int indent, InfoModel.Entry entry) {
-        return entry.accept(new EntryDrawer(indent));
+        return switch (entry) {
+            case InfoModel.ApertureIndex e ->
+                    new ScreenRow(indent, ModDisplayText.formatApertureName(e.number()), null);
+            case InfoModel.Blank ignored -> new ScreenRow(indent, Component.empty(), null);
+            case InfoModel.Realm e ->
+                    new ScreenRow(indent, formatLabel("realm"), ModDisplayText.formatRealmTitle(e.aperture()));
+            case InfoModel.Status e ->
+                    new ScreenRow(indent, formatLabel("aperture_status"), formatName(e.status().getTranslationKey()));
+            case InfoModel.TalentRow e -> new ScreenRow(indent, formatLabel("talent"),
+                    ModDisplayText.formatTalentLine(e.aperture(), e.awakened()));
+            case InfoModel.Essence e -> new ScreenRow(indent, formatLabel("essence"), Component.literal(
+                    ModDisplayText.formatPool(e.aperture().currentEssence(), e.aperture().getMaxEssence())));
+            case InfoModel.Distilled e -> new ScreenRow(indent, formatLabel("distilled"), Component.literal(
+                    ModDisplayText.formatPool(e.aperture().distilledEssence(), e.aperture().getMaxEssence())));
+            case InfoModel.Pressure e -> new ScreenRow(indent, formatLabel("aperture_pressure"),
+                    Component.literal(e.aperture().pressure() + "%"));
+            case InfoModel.PathChoice e -> e.primary()
+                    ? new ScreenRow(indent, formatLabel("primary_path"), ModDisplayText.formatPath(e.path()))
+                    : new ScreenRow(indent, formatLabel("secondary_path"),
+                    ModDisplayText.formatDetail(Component.translatable("guzhenren.screen.pick.hint"))
+                            .append(e.path() == null
+                                    ? ModDisplayText.formatNone().withStyle(ChatFormatting.DARK_GRAY)
+                                    : ModDisplayText.formatDetail(ModDisplayText.formatPath(e.path()))),
+                    new Click(e.aperture()));
+            case InfoModel.PhysiqueRow e -> new ScreenRow(indent, formatLabel("physique"),
+                    ModDisplayText.formatPhysiqueValue(e.physique(), e.extremePhysique()));
+            case InfoModel.RaceRow e -> formatNamed(indent, "race", e.race().getTranslationKey());
+            case InfoModel.TendonRow e -> formatNamed(indent, "tendon", e.tendon().getTranslationKey());
+            case InfoModel.BoneRow e -> formatNamed(indent, "bone", e.bone().getTranslationKey());
+            case InfoModel.SkinRow e -> formatNamed(indent, "skin", e.skin().getTranslationKey());
+            case InfoModel.FleshRow e -> formatNamed(indent, "flesh", e.flesh().getTranslationKey());
+            case InfoModel.Soul e -> new ScreenRow(indent, formatLabel("soul"),
+                    Component.literal(ModDisplayText.formatPool(e.soul().currentSoul(), e.soul().maxSoul()))
+                            .append(ModDisplayText.formatDetail(formatName(e.soul().getTier().getTranslationKey()))));
+            case InfoModel.Lifespan e -> new ScreenRow(indent, formatLabel("lifespan"),
+                    ModDisplayText.formatLifespan(e.lifespan(), e.age()));
+            case InfoModel.PathsHeader e ->
+                    new ScreenRow(indent, formatLabel("dao_marks"), e.empty() ? ModDisplayText.formatNone() : null);
+            case InfoModel.EffectsHeader e ->
+                    new ScreenRow(indent, formatLabel("effects"), e.empty() ? ModDisplayText.formatNone() : null);
+            case InfoModel.PathRow e -> new ScreenRow(indent,
+                    ModDisplayText.formatPathLine(e.path(), e.attainment(), e.marks()), Component.empty());
+            case InfoModel.EffectCategoryHeader e ->
+                    new ScreenRow(indent, formatName(e.category().getTranslationKey()), null);
+            case InfoModel.EffectCarrierRow e ->
+                    new ScreenRow(indent, formatName(e.carrier().getTranslationKey()), null);
+            case InfoModel.PathEffectRow e ->
+                    new ScreenRow(indent, e.effect().getName(), ModDisplayText.formatEffectTime(e.secondsLeft()));
+            case InfoModel.TimePathAchieveHeader ignored ->
+                    new ScreenRow(indent, formatLabel("time_path_achieve"), null);
+            case InfoModel.TimeRateUpRow e ->
+                    new ScreenRow(indent, formatLabel("time_rate_up"), ModDisplayText.formatTimeRateUp(e.rate()));
+            case InfoModel.StrengthPathAchieveHeader ignored ->
+                    new ScreenRow(indent, formatLabel("strength_path_achieve"), null);
+            case InfoModel.StrengthPathBranchRow e -> new ScreenRow(indent,
+                    ModDisplayText.formatStrengthLabel(formatName(e.branch().getTranslationKey()), e.totalJin()), null);
+            case InfoModel.StrengthReadingRow e ->
+                    new ScreenRow(indent, Component.empty(), null, null, formatReadings(e.readings()));
+            case InfoModel.CapacityRow e -> new ScreenRow(indent, formatLabel("body_capacity"),
+                    Component.translatable("guzhenren.screen.capacity", e.usable(), e.total()));
+            case InfoModel.AttackRow e -> new ScreenRow(indent, formatLabel("attack"),
+                    Component.literal(ModDisplayText.formatAttackBonus(e.bonus())));
+            case InfoModel.WisdomPathAchieveHeader ignored ->
+                    new ScreenRow(indent, formatLabel("wisdom_path_achieve"), null);
+            case InfoModel.ThoughtTagRow e -> new ScreenRow(indent, formatName(e.tag().getTranslationKey()),
+                    Component.literal(String.valueOf(e.amount())));
+            case InfoModel.BrillianceRow e -> new ScreenRow(indent, formatLabel("brilliance"),
+                    formatName(e.brilliance().getTranslationKey()).append(ModDisplayText.formatDetail(
+                            Component.translatable("guzhenren.display.brilliance_rate",
+                                    e.brilliance().getThoughtsPerSecond()))));
+            case InfoModel.MindHeader ignored -> null;
+            case InfoModel.MindRow e -> new ScreenRow(indent, formatName(e.type().getTranslationKey()),
+                    Component.literal(ModDisplayText.formatPool(e.pool().current(), e.pool().max())));
+        };
     }
 
     private static MutableComponent formatName(String key) { return Component.translatable(key); }
@@ -82,211 +155,14 @@ final class InfoRowRenderer {
         return Component.translatable("guzhenren.screen.label." + name);
     }
 
-    private record EntryDrawer(int indent) implements InfoModel.Visitor<ScreenRow> {
+    private static ScreenRow formatNamed(int indent, String label, String key) {
+        return new ScreenRow(indent, formatLabel(label), formatName(key));
+    }
 
-        @Override
-        public ScreenRow visit(InfoModel.ApertureIndex entry) {
-            return new ScreenRow(indent, ModDisplayText.formatApertureName(entry.number()), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Blank entry) { return new ScreenRow(indent, Component.empty(), null); }
-
-        @Override
-        public ScreenRow visit(InfoModel.Realm entry) {
-            return new ScreenRow(indent, formatLabel("realm"), ModDisplayText.formatRealmTitle(entry.aperture()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Status entry) {
-            return new ScreenRow(indent, formatLabel("aperture_status"),
-                    formatName(entry.status().getTranslationKey()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.TalentRow entry) {
-            return new ScreenRow(indent, formatLabel("talent"),
-                    ModDisplayText.formatTalentLine(entry.aperture(), entry.awakened()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Essence entry) {
-            return new ScreenRow(indent, formatLabel("essence"), Component.literal(
-                    ModDisplayText.formatPool(entry.aperture().currentEssence(), entry.aperture().getMaxEssence())));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Distilled entry) {
-            return new ScreenRow(indent, formatLabel("distilled"), Component.literal(
-                    ModDisplayText.formatPool(entry.aperture().distilledEssence(), entry.aperture().getMaxEssence())));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Pressure entry) {
-            return new ScreenRow(indent,
-                    Component.translatable("guzhenren.screen.label.aperture_pressure"), Component.literal(
-                    entry.aperture().pressure() + "%"));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.PathChoice entry) {
-            return entry.primary()
-                    ? new ScreenRow(indent, formatLabel("primary_path"), ModDisplayText.formatPath(entry.path()))
-                    : new ScreenRow(indent, formatLabel("secondary_path"),
-                    ModDisplayText.formatDetail(Component.translatable("guzhenren.screen.pick.hint"))
-                            .append(entry.path() == null
-                                    ? ModDisplayText.formatNone().withStyle(ChatFormatting.DARK_GRAY)
-                                    : ModDisplayText.formatDetail(ModDisplayText.formatPath(entry.path()))),
-                    new Click(entry.aperture()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.PhysiqueRow entry) {
-            return new ScreenRow(indent, formatLabel("physique"),
-                    ModDisplayText.formatPhysiqueValue(entry.physique(), entry.extremePhysique()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.RaceRow entry) {
-            return new ScreenRow(indent, formatLabel("race"), formatName(entry.race().getTranslationKey()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.TendonRow entry) {
-            return new ScreenRow(indent, formatLabel("tendon"), formatName(entry.tendon().getTranslationKey()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.BoneRow entry) {
-            return new ScreenRow(indent, formatLabel("bone"), formatName(entry.bone().getTranslationKey()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.SkinRow entry) {
-            return new ScreenRow(indent, formatLabel("skin"), formatName(entry.skin().getTranslationKey()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.FleshRow entry) {
-            return new ScreenRow(indent, formatLabel("flesh"), formatName(entry.flesh().getTranslationKey()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Soul entry) {
-            return new ScreenRow(indent, formatLabel("soul"),
-                    Component.literal(ModDisplayText.formatPool(entry.soul().currentSoul(), entry.soul().maxSoul()))
-                            .append(ModDisplayText.formatDetail(
-                                    formatName(entry.soul().getTier().getTranslationKey()))));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.Lifespan entry) {
-            return new ScreenRow(indent, formatLabel("lifespan"),
-                    ModDisplayText.formatLifespan(entry.lifespan(), entry.age()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.PathsHeader entry) {
-            return new ScreenRow(indent, formatLabel("dao_marks"), entry.empty() ? ModDisplayText.formatNone() : null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.EffectsHeader entry) {
-            return new ScreenRow(indent, formatLabel("effects"), entry.empty() ? ModDisplayText.formatNone() : null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.PathRow entry) {
-            return new ScreenRow(indent,
-                    ModDisplayText.formatPathLine(entry.path(), entry.attainment(), entry.marks()),
-                    Component.empty());
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.EffectCategoryHeader entry) {
-            return new ScreenRow(indent, formatName(entry.category().getTranslationKey()), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.EffectCarrierRow entry) {
-            return new ScreenRow(indent, formatName(entry.carrier().getTranslationKey()), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.PathEffectRow entry) {
-            return new ScreenRow(indent, entry.effect().getName(),
-                    ModDisplayText.formatEffectTime(entry.secondsLeft()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.TimePathAchieveHeader entry) {
-            return new ScreenRow(indent, formatLabel("time_path_achieve"), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.TimeRateUpRow entry) {
-            return new ScreenRow(indent, formatLabel("time_rate_up"),
-                    ModDisplayText.formatTimeRateUp(entry.rate()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.StrengthPathAchieveHeader entry) {
-            return new ScreenRow(indent, formatLabel("strength_path_achieve"), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.StrengthPathBranchRow entry) {
-            return new ScreenRow(indent,
-                    ModDisplayText.formatStrengthLabel(formatName(entry.branch().getTranslationKey()),
-                            entry.totalJin()), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.StrengthReadingRow entry) {
-            return new ScreenRow(indent, Component.empty(), null, null,
-                    entry.readings().stream().<Component>map(ModDisplayText::formatStrengthReading).toList());
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.CapacityRow entry) {
-            return new ScreenRow(indent,
-                    Component.translatable("guzhenren.screen.label.body_capacity"),
-                    Component.translatable("guzhenren.screen.capacity", entry.usable(), entry.total()));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.AttackRow entry) {
-            return new ScreenRow(indent, formatLabel("attack"),
-                    Component.literal(ModDisplayText.formatAttackBonus(entry.bonus())));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.WisdomPathAchieveHeader entry) {
-            return new ScreenRow(indent, formatLabel("wisdom_path_achieve"), null);
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.ThoughtTagRow entry) {
-            return new ScreenRow(indent, formatName(entry.tag().getTranslationKey()),
-                    Component.literal(String.valueOf(entry.amount())));
-        }
-
-        @Override
-        public ScreenRow visit(InfoModel.BrillianceRow entry) {
-            return new ScreenRow(indent, formatLabel("brilliance"),
-                    formatName(entry.brilliance().getTranslationKey()).append(ModDisplayText.formatDetail(
-                            Component.translatable("guzhenren.display.brilliance_rate",
-                                    entry.brilliance().getThoughtsPerSecond()))));
-        }
-
-        @Override
-        public @Nullable ScreenRow visit(InfoModel.MindHeader entry) { return null; }
-
-        @Override
-        public ScreenRow visit(InfoModel.MindRow entry) {
-            return new ScreenRow(indent, formatName(entry.type().getTranslationKey()),
-                    Component.literal(ModDisplayText.formatPool(entry.pool().current(), entry.pool().max())));
-        }
+    private static List<Component> formatReadings(List<InfoModel.StrengthReading> readings) {
+        List<Component> cells = new ArrayList<>(readings.size());
+        for (InfoModel.StrengthReading reading : readings) cells.add(ModDisplayText.formatStrengthReading(reading));
+        return cells;
     }
 
     record ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click,

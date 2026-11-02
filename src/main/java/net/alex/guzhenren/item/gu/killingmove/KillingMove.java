@@ -69,7 +69,13 @@ public enum KillingMove {
     /** The essence the partner pays on every blade fired while the move is on. */
     public int getPartnerEssence() { return partnerEssence; }
 
-    public boolean isLedBy(Item item) { return mains.stream().anyMatch(main -> main.asItem() == item); }
+    // Plain loop: the radial menu and the tooltip ask while drawing.
+    public boolean isLedBy(Item item) {
+        for (ItemLike main : mains) {
+            if (main.asItem() == item) return true;
+        }
+        return false;
+    }
 
     public boolean isBackedBy(@NotNull ItemStack stack) {
         return stack.getItem() == partner.asItem() && stack.getItem() instanceof TendedGuItem backer

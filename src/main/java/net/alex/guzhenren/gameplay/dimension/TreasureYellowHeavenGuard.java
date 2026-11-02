@@ -62,8 +62,7 @@ public final class TreasureYellowHeavenGuard {
     }
 
     public static boolean isUseRefused(Player player, @Nullable Entity target) {
-        if (!isInside(player)) return false;
-        return !isSoulTrader(target);
+        return isInside(player) && !isSoulTrader(target);
     }
 
     public static boolean isAttackRefused(Player player) { return isInside(player); }

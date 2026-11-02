@@ -143,14 +143,13 @@ public final class ApertureNourishService {
 
     public static void start(@NotNull ServerPlayer player, int index) {
         if (!canNourish(player, index)) return;
-        store(player, get(player).withCultivating(true).withTarget(index)
-                .withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
+        store(player, new ApertureNourishData(true, index, ApertureNourishData.NOT_STARVED));
     }
 
     public static void cancel(@NotNull ServerPlayer player) {
         ApertureNourishData data = get(player);
         if (!data.cultivating()) return;
-        store(player, data.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
+        store(player, data.stopped());
     }
 
     public static void shiftTargetForInsertedFirst(@NotNull ServerPlayer player) {
@@ -188,7 +187,7 @@ public final class ApertureNourishService {
         long now = player.level().getGameTime();
         ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
         if (starving.hasStarvedOut(now)) {
-            store(player, starving.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
+            store(player, starving.stopped());
             ActionBar.inform(player, STARVED);
             return;
         }
@@ -207,7 +206,7 @@ public final class ApertureNourishService {
         Stage stage = aperture.stage();
         if (stage == Stage.HIGHEST) {
             ApertureService.set(player, target, fed);
-            store(player, data.withCultivating(false).withStarvedSinceTick(ApertureNourishData.NOT_STARVED));
+            store(player, data.stopped());
             return false;
         }
         ApertureService.set(player, target, fed.withStage(stage.shift(1)).withNourishProgress(0));

@@ -80,12 +80,8 @@ public final class ApertureService {
 
     public static void syncTalentEffect(@NotNull ServerPlayer player) {
         ExtremePhysique current = BodyService.getExtremePhysique(player);
-        PathEffect<ExtremePhysique> worn = PathEffectService.find(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
-        if (current.getTalentPaths().isEmpty()) {
-            if (worn != null) PathEffectService.removeType(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
-            return;
-        }
-        if (worn == null || worn.payload() != current) PathEffectService.apply(player, getTalentEffect(current));
+        PathEffectService.sync(player, ModPathEffectTypes.EXTREME_PHYSIQUE,
+                current.getTalentPaths().isEmpty() ? null : getTalentEffect(current));
     }
 
     public static @NotNull ApertureData get(@NotNull Player player) { return PlayerData.get(player).getAperture(); }
@@ -100,7 +96,7 @@ public final class ApertureService {
 
     public static @NotNull ApertureStatus getStatus(@NotNull Player player, int index) {
         Aperture aperture = getAperture(player, index);
-        if (BodyService.isZombieOrTempZombie(player) || aperture.petrified()) return ApertureStatus.DEAD;
+        if (BodyService.isUndead(player) || aperture.petrified()) return ApertureStatus.DEAD;
         return ApertureStatus.NORMAL;
     }
 
@@ -268,17 +264,9 @@ public final class ApertureService {
     //    TODO(refactor): extract a coordinator once cross-domain grant rules reach 3; TWO exist today.
     private static void reconcileTalentPaths(ServerPlayer player, ExtremePhysique before, ExtremePhysique after) {
         if (before == after) return;
-        grantTalentPaths(player, before, -1);
-        grantTalentPaths(player, after, 1);
-    }
-
-    private static void grantTalentPaths(ServerPlayer player, ExtremePhysique physique, int sign) {
-        if (physique.getTalentPaths().isEmpty()) return;
-
-        if (sign > 0) {
-            PathEffectService.apply(player, getTalentEffect(physique));
-        } else {
+        if (!before.getTalentPaths().isEmpty()) {
             PathEffectService.removeType(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
         }
+        if (!after.getTalentPaths().isEmpty()) PathEffectService.apply(player, getTalentEffect(after));
     }
 }

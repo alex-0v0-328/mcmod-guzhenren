@@ -21,7 +21,6 @@ import net.alex.guzhenren.item.gu.mortal.transformation.ZombieModule;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
@@ -66,16 +65,16 @@ public final class StateEffects {
     public static void grantThought(@NotNull ServerPlayer player, @NotNull MortalGuItem gu,
                                     @NotNull PathEffectType<TimedBuff> type, @NotNull Holder<MobEffect> effect,
                                     int amplifier, long durationTicks) {
-        ResourceLocation source = getId(gu);
+        ResourceLocation source = gu.getEffectSource();
         PathEffectService.remove(player, other -> other.type() == type && !other.source().equals(source));
-        PathEffectService.apply(player, gu.getSpec().createEffect(type, source,
-                PathEffectService.getGameTime(player) + durationTicks, TimedBuff.of(effect, amplifier)));
+        PathEffectService.apply(player, gu.createEffect(type, player.level().getGameTime() + durationTicks,
+                TimedBuff.of(effect, amplifier)));
     }
 
     public static void grantDistilling(@NotNull ServerPlayer player, @NotNull MortalGuItem gu, int tier,
                                        long durationTicks) {
-        PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.LIQUOR_DISTILLING, getId(gu),
-                PathEffectService.getGameTime(player) + durationTicks, tier));
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.LIQUOR_DISTILLING,
+                player.level().getGameTime() + durationTicks, tier));
     }
     //endregion
 
@@ -100,21 +99,21 @@ public final class StateEffects {
                 item -> item.getModule(ZombieModule.class) != null && ZombieModule.getRung(item) == rung);
         if (gu == null) return;
 
-        long endTick = PathEffectService.getGameTime(player) + BodyService.getTempZombieTicksLeft(player);
-        ResourceLocation source = getId(gu);
+        long endTick = player.level().getGameTime() + BodyService.getTempZombieTicksLeft(player);
+        ResourceLocation source = gu.getEffectSource();
         if (current != null && current.source().equals(source)) {
             if (current.endTick() != endTick) {
-                PathEffectService.update(player, ModPathEffectTypes.ZOMBIE, source, effect -> effect.withEndTick(endTick));
+                PathEffectService.update(player, ModPathEffectTypes.ZOMBIE, source,
+                        effect -> effect.withEndTick(endTick));
             }
             return;
         }
-        PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.ZOMBIE, source, endTick,
-                Unit.INSTANCE));
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.ZOMBIE, endTick, Unit.INSTANCE));
     }
 
     // An expiry, unlike a removal, leaves the form standing (see onEnded).
     private static void dissipate(ServerPlayer player, PathEffect<Unit> current) {
-        long now = PathEffectService.getGameTime(player);
+        long now = player.level().getGameTime();
         PathEffectService.update(player, ModPathEffectTypes.ZOMBIE, current.source(),
                 effect -> effect.withEndTick(now));
         PathEffectService.tick(player);
@@ -142,10 +141,10 @@ public final class StateEffects {
         Rank petrified = rank;
         MortalGuItem gu = ModItems.findGu(MortalGuItem.class,
                 item -> item.getModule(PetrifyModule.class) != null && item.getRank() == petrified);
-        if (gu == null || current != null && current.source().equals(getId(gu))) return;
+        if (gu == null || current != null && current.source().equals(gu.getEffectSource())) return;
 
-        PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.STONE_APERTURE, getId(gu),
-                PathEffect.PERMANENT, Unit.INSTANCE));
+        PathEffectService.apply(player,
+                gu.createEffect(ModPathEffectTypes.STONE_APERTURE, PathEffect.PERMANENT, Unit.INSTANCE));
     }
     //endregion
 
@@ -164,6 +163,4 @@ public final class StateEffects {
         BodyService.removePhysique(player, Physique.ZOMBIE);
         BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
     }
-
-    private static ResourceLocation getId(MortalGuItem gu) { return BuiltInRegistries.ITEM.getKey(gu); }
 }

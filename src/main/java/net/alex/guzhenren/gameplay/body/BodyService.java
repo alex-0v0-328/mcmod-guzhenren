@@ -15,10 +15,13 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathService;
+import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,9 +96,7 @@ public final class BodyService {
 
     public static boolean isTempZombie(@NotNull Player player) { return get(player).isTempZombie(); }
 
-    public static boolean isZombieOrTempZombie(@NotNull Player player) { return get(player).isZombieOrTempZombie(); }
-
-    public static boolean isUndead(@NotNull Player player) { return isZombieOrTempZombie(player); }
+    public static boolean isUndead(@NotNull Player player) { return get(player).isZombieOrTempZombie(); }
 
     public static boolean isExtreme(@NotNull Player player) { return get(player).isExtreme(); }
 
@@ -105,10 +106,17 @@ public final class BodyService {
 
     public static @NotNull Race getRace(@NotNull Player player) { return get(player).race(); }
 
-    public static long getGameTime(@NotNull Player player) { return player.level().getGameTime(); }
-
     private static void store(ServerPlayer player, BodyData data) {
         PlayerData.get(player).setBody(data);
+    }
+
+    /** Keeps a body state's marker effect in step: shown for its ticks left, at least one, or taken off. */
+    static void projectMarker(ServerPlayer player, Holder<MobEffect> effect, boolean shown, long ticksLeft) {
+        if (shown) {
+            player.addEffect(ModEffects.instance(effect, Math.max(1, (int) ticksLeft)));
+        } else if (player.hasEffect(effect)) {
+            player.removeEffect(effect);
+        }
     }
 
     //region lifespan and age [寿元与年龄] -- ⚠ every caller speaks YEARS; only this file knows parts
@@ -173,7 +181,7 @@ public final class BodyService {
 
     public static void enterTempZombie(@NotNull ServerPlayer player, int tier, int durationTicks) {
         storePhysique(player, get(player).without(Physique.ZOMBIE).with(Physique.TEMP_ZOMBIE)
-                .withTempZombieEndTick(getGameTime(player) + durationTicks)
+                .withTempZombieEndTick(player.level().getGameTime() + durationTicks)
                 .withZombieTier(tier));
     }
 
@@ -188,7 +196,7 @@ public final class BodyService {
         if (body.isZombie()) return;
 
         BodyData next = ticksLeft > 0L
-                ? body.with(Physique.TEMP_ZOMBIE).withTempZombieEndTick(getGameTime(player) + ticksLeft)
+                ? body.with(Physique.TEMP_ZOMBIE).withTempZombieEndTick(player.level().getGameTime() + ticksLeft)
                 : body.without(Physique.TEMP_ZOMBIE).withTempZombieEndTick(BodyData.UNTRACKED);
         if (!next.equals(body)) storePhysique(player, next);
     }
@@ -199,15 +207,15 @@ public final class BodyService {
     }
 
     public static boolean isWithinRelapseWindow(@NotNull Player player) {
-        return get(player).isWithinRelapseWindow(getGameTime(player));
+        return get(player).isWithinRelapseWindow(player.level().getGameTime());
     }
 
     public static long getTempZombieTicksLeft(@NotNull Player player) {
-        return get(player).getTempZombieTicksLeft(getGameTime(player));
+        return get(player).getTempZombieTicksLeft(player.level().getGameTime());
     }
 
     public static boolean hasTempZombieRunOut(@NotNull Player player) {
-        return get(player).hasTempZombieRunOut(getGameTime(player));
+        return get(player).hasTempZombieRunOut(player.level().getGameTime());
     }
     //endregion
 
@@ -215,7 +223,7 @@ public final class BodyService {
     public static @NotNull Skin getSkin(@NotNull Player player) { return get(player).skin(); }
 
     public static void wearSkin(@NotNull ServerPlayer player, @NotNull Skin skin, int durationTicks) {
-        long endTick = skin.isTimed() ? getGameTime(player) + durationTicks : BodyData.UNTRACKED;
+        long endTick = skin.isTimed() ? player.level().getGameTime() + durationTicks : BodyData.UNTRACKED;
         store(player, get(player).withSkin(skin, endTick));
         ModEvents.post(new SkinWornEvent(player, skin));
     }
@@ -226,11 +234,11 @@ public final class BodyService {
     }
 
     public static boolean hasSkinRunOut(@NotNull Player player) {
-        return get(player).hasSkinRunOut(getGameTime(player));
+        return get(player).hasSkinRunOut(player.level().getGameTime());
     }
 
     public static long getSkinTicksLeft(@NotNull Player player) {
-        return get(player).getSkinTicksLeft(getGameTime(player));
+        return get(player).getSkinTicksLeft(player.level().getGameTime());
     }
     //endregion
 
@@ -262,12 +270,7 @@ public final class BodyService {
 
     public static void syncRaceTalent(@NotNull ServerPlayer player) {
         Race race = getRace(player);
-        PathEffect<Race> worn = PathEffectService.find(player, ModPathEffectTypes.RACE_TALENT);
-        if (!race.isVariant()) {
-            if (worn != null) PathEffectService.removeType(player, ModPathEffectTypes.RACE_TALENT);
-            return;
-        }
-        if (worn == null || worn.payload() != race) PathEffectService.apply(player, getRaceTalent(race));
+        PathEffectService.sync(player, ModPathEffectTypes.RACE_TALENT, race.isVariant() ? getRaceTalent(race) : null);
     }
 
     public static @NotNull PathEffect<Race> getRaceTalent(@NotNull Race race) {

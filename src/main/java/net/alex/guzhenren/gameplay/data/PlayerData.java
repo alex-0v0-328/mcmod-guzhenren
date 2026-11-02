@@ -64,9 +64,7 @@ public final class PlayerData {
 
     public ApertureNourishData getNourish() { return owner.getData(ModAttachments.APERTURE_NOURISH); }
 
-    public @Nullable AwakeningRitual getAwakeningRitual() {
-        return owner.hasData(ModAttachments.AWAKENING_RITUAL) ? owner.getData(ModAttachments.AWAKENING_RITUAL) : null;
-    }
+    public @Nullable AwakeningRitual getAwakeningRitual() { return find(ModAttachments.AWAKENING_RITUAL); }
 
     public BodyData getBody() { return owner.getData(ModAttachments.BODY); }
 
@@ -94,9 +92,7 @@ public final class PlayerData {
 
     public double getSecondStageThrottle() { return owner.getData(ModAttachments.SECOND_STAGE_THROTTLE); }
 
-    public @Nullable Double getPlungeTopY() {
-        return owner.hasData(ModAttachments.PLUNGE) ? owner.getData(ModAttachments.PLUNGE) : null;
-    }
+    public @Nullable Double getPlungeTopY() { return find(ModAttachments.PLUNGE); }
 
     public boolean isBorn() { return owner.getData(ModAttachments.BORN); }
 
@@ -111,13 +107,7 @@ public final class PlayerData {
     }
 
     public boolean setAwakeningRitual(@Nullable AwakeningRitual value) {
-        if (Objects.equals(value, getAwakeningRitual())) return false;
-        if (value == null) {
-            owner.removeData(ModAttachments.AWAKENING_RITUAL);
-        } else {
-            owner.setData(ModAttachments.AWAKENING_RITUAL, value);
-        }
-        return true;
+        return setOrRemove(ModAttachments.AWAKENING_RITUAL, value);
     }
 
     public boolean setBody(@NotNull BodyData value) { return set(ModAttachments.BODY, value); }
@@ -164,15 +154,7 @@ public final class PlayerData {
         }
     }
 
-    public boolean setPlungeTopY(@Nullable Double value) {
-        if (Objects.equals(value, getPlungeTopY())) return false;
-        if (value == null) {
-            owner.removeData(ModAttachments.PLUNGE);
-        } else {
-            owner.setData(ModAttachments.PLUNGE, value);
-        }
-        return true;
-    }
+    public boolean setPlungeTopY(@Nullable Double value) { return setOrRemove(ModAttachments.PLUNGE, value); }
 
     public boolean setBorn(boolean value) { return set(ModAttachments.BORN, value); }
 
@@ -186,6 +168,21 @@ public final class PlayerData {
     /** Every value a death carries back to its default, synced; the reset of a death without keepInventory. */
     public void resetCarriedOnDeath() {
         for (AttachmentType<?> type : ModAttachments.getInherited()) owner.removeData(type);
+    }
+
+    private <T> @Nullable T find(Supplier<AttachmentType<T>> type) {
+        return owner.hasData(type) ? owner.getData(type) : null;
+    }
+
+    /** Stores {@code value}, or removes the attachment for {@code null}; true when that changed it. */
+    private <T> boolean setOrRemove(Supplier<AttachmentType<T>> type, @Nullable T value) {
+        if (Objects.equals(value, find(type))) return false;
+        if (value == null) {
+            owner.removeData(type);
+        } else {
+            owner.setData(type, value);
+        }
+        return true;
     }
 
     private <T> boolean set(Supplier<AttachmentType<T>> type, T value) {

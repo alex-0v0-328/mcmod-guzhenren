@@ -54,7 +54,7 @@ public final class ChargeHud extends HotbarHud {
         LocalPlayer player = minecraft.player;
         if (player == null || !isShowing(minecraft, player)) return;
 
-        int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
+        int x = getBarLeft(minecraft);
         int y = getBarTop(minecraft);
         float partialTick = minecraft.getTimer().getGameTimeDeltaPartialTick(false);
         int awakening = AwakeningHud.INSTANCE.getBarBase(player, partialTick);

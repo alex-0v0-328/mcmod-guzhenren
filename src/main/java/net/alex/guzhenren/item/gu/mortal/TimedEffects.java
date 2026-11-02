@@ -26,7 +26,6 @@ import net.alex.guzhenren.item.gu.mortal.water.ShieldModule;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
@@ -95,23 +94,22 @@ public final class TimedEffects {
     public static int getBuffTicksLeft(@NotNull Player player, @NotNull Holder<MobEffect> effect) {
         PathEffect<TimedBuff> buff = findBuff(player, effect);
         return buff == null ? 0 : (int) Math.min(Integer.MAX_VALUE,
-                buff.getTicksLeft(PathEffectService.getGameTime(player)));
+                buff.getTicksLeft(player.level().getGameTime()));
     }
 
     public static void grantBuff(@NotNull ServerPlayer player, @NotNull MortalGuItem gu,
                                  @NotNull Holder<MobEffect> effect, int amplifier, long durationTicks,
                                  @NotNull Amplification amplification) {
-        ResourceLocation source = getId(gu);
+        ResourceLocation source = gu.getEffectSource();
         TimedBuff payload = TimedBuff.of(effect, amplifier);
-        long endTick = PathEffectService.getGameTime(player) + durationTicks;
+        long endTick = player.level().getGameTime() + durationTicks;
         PathEffect<TimedBuff> own = PathEffectService.find(player, ModPathEffectTypes.BUFF, source);
         if (own != null && own.payload().equals(payload)) {
             PathEffectService.update(player, ModPathEffectTypes.BUFF, source, buff -> buff.withEndTick(endTick));
         } else {
             PathEffectService.remove(player, other -> other.type() == ModPathEffectTypes.BUFF
                     && other.payload() instanceof TimedBuff buff && buff.effect().equals(payload.effect()));
-            PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.BUFF, source, endTick,
-                    payload));
+            PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.BUFF, endTick, payload));
         }
         markAmplified(player, ModPathEffectTypes.BUFF, source, amplification);
     }
@@ -125,23 +123,22 @@ public final class TimedEffects {
 
     public static void grantLeaf(@NotNull ServerPlayer player, @NotNull MortalGuItem gu, long durationTicks,
                                  @NotNull Amplification amplification) {
-        ResourceLocation source = getId(gu);
-        long endTick = PathEffectService.getGameTime(player) + durationTicks;
-        PathEffectService.apply(player, gu.getSpec().createEffect(
-                ModPathEffectTypes.VITALITY_LEAF, source, endTick, Unit.INSTANCE));
+        ResourceLocation source = gu.getEffectSource();
+        long endTick = player.level().getGameTime() + durationTicks;
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.VITALITY_LEAF, endTick, Unit.INSTANCE));
         markAmplified(player, ModPathEffectTypes.VITALITY_LEAF, source, amplification);
     }
 
     public static void grantWatch(@NotNull ServerPlayer player, @NotNull MortalGuItem gu,
                                   @NotNull Holder<MobEffect> form, long durationTicks,
                                   @NotNull Amplification amplification) {
-        ResourceLocation source = getId(gu);
+        ResourceLocation source = gu.getEffectSource();
         WatchGuEffect rate = (WatchGuEffect) form.value();
-        long endTick = PathEffectService.getGameTime(player) + durationTicks;
+        long endTick = player.level().getGameTime() + durationTicks;
         PathEffect<ResourceLocation> own = PathEffectService.find(player, ModPathEffectTypes.WATCH_RATE, source);
         if (own == null) {
-            PathEffectService.apply(player, gu.getSpec().createEffect(
-                    ModPathEffectTypes.WATCH_RATE, source, endTick, form.unwrapKey().orElseThrow().location()));
+            PathEffectService.apply(player, gu.createEffect(
+                    ModPathEffectTypes.WATCH_RATE, endTick, form.unwrapKey().orElseThrow().location()));
         } else {
             boolean stacks = own.layers() < rate.getNextAmplifier(own.layers() - 1) + 1;
             Map<GuPath, DaoMarks> layer = gu.getSpec().getEffectPaths();
@@ -187,7 +184,7 @@ public final class TimedEffects {
             PathEffectService.removeType(player, ModPathEffectTypes.TIMED_SKIN);
             return;
         }
-        long endTick = PathEffectService.getGameTime(player) + BodyService.getSkinTicksLeft(player);
+        long endTick = player.level().getGameTime() + BodyService.getSkinTicksLeft(player);
         PathEffect<Skin> worn = PathEffectService.find(player, ModPathEffectTypes.TIMED_SKIN);
         if (worn != null && worn.payload() == skin) {
             if (worn.endTick() != endTick) {
@@ -196,8 +193,7 @@ public final class TimedEffects {
             }
             return;
         }
-        PathEffectService.apply(player, gu.getSpec().createEffect(ModPathEffectTypes.TIMED_SKIN, getId(gu), endTick,
-                skin));
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.TIMED_SKIN, endTick, skin));
     }
     //endregion
 
@@ -210,14 +206,13 @@ public final class TimedEffects {
         ShieldLayer layer = ShieldService.find(player, ShieldType.HEAVENLY_MUGWORT);
         if (gu == null || layer == null) return;
 
-        ResourceLocation source = getId(gu);
+        ResourceLocation source = gu.getEffectSource();
         long endTick = layer.endTick();
         if (PathEffectService.find(player, ModPathEffectTypes.MUGWORT_SHIELD, source) != null) {
             PathEffectService.update(player, ModPathEffectTypes.MUGWORT_SHIELD, source,
                     effect -> effect.withEndTick(endTick));
         } else {
-            PathEffectService.apply(player, gu.getSpec().createEffect(
-                    ModPathEffectTypes.MUGWORT_SHIELD, source, endTick, Unit.INSTANCE));
+            PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.MUGWORT_SHIELD, endTick, Unit.INSTANCE));
         }
     }
 
@@ -231,7 +226,7 @@ public final class TimedEffects {
                                            @NotNull Amplification amplification) {
         if (type != ShieldType.HEAVENLY_MUGWORT) return;
         MortalGuItem gu = findShieldGu(type);
-        if (gu != null) markAmplified(player, ModPathEffectTypes.MUGWORT_SHIELD, getId(gu), amplification);
+        if (gu != null) markAmplified(player, ModPathEffectTypes.MUGWORT_SHIELD, gu.getEffectSource(), amplification);
     }
 
     private static @Nullable MortalGuItem findShieldGu(ShieldType type) {
@@ -251,6 +246,4 @@ public final class TimedEffects {
             ShieldService.dismiss(player, ShieldType.HEAVENLY_MUGWORT);
         }
     }
-
-    private static ResourceLocation getId(MortalGuItem gu) { return BuiltInRegistries.ITEM.getKey(gu); }
 }

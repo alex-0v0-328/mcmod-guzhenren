@@ -1,7 +1,9 @@
 package net.alex.guzhenren.gameplay.attribute;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -30,6 +32,13 @@ import org.jetbrains.annotations.NotNull;
 public final class TransientModifiers {
 
     private TransientModifiers() {}
+
+    /** {@link #swap(AttributeInstance, ResourceLocation, double)} on the entity's attribute; none, nothing. */
+    public static void swap(@NotNull LivingEntity entity, @NotNull Holder<Attribute> attribute,
+                            @NotNull ResourceLocation id, double amount) {
+        AttributeInstance instance = entity.getAttribute(attribute);
+        if (instance != null) swap(instance, id, amount);
+    }
 
     public static void swap(@NotNull AttributeInstance instance, @NotNull ResourceLocation id, double amount) {
         swap(instance, id, amount, AttributeModifier.Operation.ADD_VALUE);

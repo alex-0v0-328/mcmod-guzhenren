@@ -87,8 +87,7 @@ public final class LittleLightGuItem extends TendedGuItem {
         RefinedGuState state = getState(stack);
         stack.set(ModDataComponents.REFINED_GU_STATE,
                 state.withHunger(Math.max(0, state.hunger() - spec.getHungerPerUse())));
-        feed(player, stack);
-        if (isHungry(player, stack)) hunger.warn(player, stack, 1L);
+        feedAndWarn(player, stack);
     }
 
     @Override

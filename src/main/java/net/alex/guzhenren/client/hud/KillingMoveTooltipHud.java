@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.hud;
 
+import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.item.GuItem;
@@ -62,6 +63,7 @@ public final class KillingMoveTooltipHud {
     private static final int SPENT_ICON = 0x90101018;
     private static final int MIN_TEXT_ALPHA = 4;
     private @Nullable KillingMoveTooltipPayload shown;
+    private @Nullable Panel panel;
     private long castAt;
     private long enteredAt;
 
@@ -74,7 +76,10 @@ public final class KillingMoveTooltipHud {
         shown = notice;
     }
 
-    public void clear() { shown = null; }
+    public void clear() {
+        shown = null;
+        panel = null;
+    }
 
     /** How far the panel sits off screen: 0 in place, 1 fully hidden. */
     static float getOffset(long sinceEnter, long sinceCast) {
@@ -99,19 +104,20 @@ public final class KillingMoveTooltipHud {
         if (notice == null) return;
         long now = Util.getMillis();
         if (isDone(now - castAt)) {
-            shown = null;
+            clear();
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.options.hideGui || minecraft.player.isSpectator()) return;
 
         Font font = minecraft.font;
-        List<KillingMoveService.Used> used = notice.used();
-        Component title = getTitle(notice.move());
-        int width = MIN_WIDTH;
-        width = Math.max(width, 6 + font.width(title) + 4);
-        for (KillingMoveService.Used gu : used) width = Math.max(width, TEXT_X + font.width(getLine(gu.stack())) + 4);
-        int height = HEADER_HEIGHT + used.size() * ROW_HEIGHT + 2;
+        Panel current = panel;
+        if (current == null || current.notice() != notice) {
+            current = Panel.of(notice, font);
+            panel = current;
+        }
+        int width = current.width();
+        int height = HEADER_HEIGHT + current.rows().size() * ROW_HEIGHT + 2;
         int x = LEFT - Math.round((LEFT + width) * getOffset(now - enteredAt, now - castAt));
         int y = (graphics.guiHeight() - height) / 2;
         int alpha = Math.round(getAlpha(now - castAt) * 255.0F);
@@ -119,17 +125,17 @@ public final class KillingMoveTooltipHud {
         graphics.fill(x, y, x + width, y + height, fade(BACKGROUND, alpha));
         graphics.fill(x, y, x + 2, y + height, fade(ACCENT, alpha));
         graphics.fill(x + 6, y + HEADER_HEIGHT - 1, x + width - 4, y + HEADER_HEIGHT, fade(RULE, alpha));
-        if (alpha >= MIN_TEXT_ALPHA) graphics.drawString(font, title, x + 6, y + 3, fade(ModPalette.TEXT, alpha), true);
-        for (int i = 0; i < used.size(); i++) {
-            drawRow(graphics, font, used.get(i), x, y + HEADER_HEIGHT + 1 + i * ROW_HEIGHT, alpha);
+        if (alpha >= MIN_TEXT_ALPHA) {
+            graphics.drawString(font, current.title(), x + 6, y + 3, fade(ModPalette.TEXT, alpha), true);
+        }
+        for (int i = 0; i < current.rows().size(); i++) {
+            drawRow(graphics, font, current.rows().get(i), x, y + HEADER_HEIGHT + 1 + i * ROW_HEIGHT, alpha);
         }
     }
 
-    private static void drawRow(GuiGraphics graphics, Font font, KillingMoveService.Used gu, int x, int y,
-                                int alpha) {
-        ItemStack stack = gu.stack();
-        graphics.renderItem(stack, x + 6, y + 3);
-        if (gu.spent()) {
+    private static void drawRow(GuiGraphics graphics, Font font, Row row, int x, int y, int alpha) {
+        graphics.renderItem(row.stack(), x + 6, y + 3);
+        if (row.spent()) {
             graphics.pose().pushPose();
             graphics.pose().translate(0.0F, 0.0F, 200.0F);
             graphics.fill(x + 6, y + 3, x + 22, y + 19, SPENT_ICON);
@@ -137,21 +143,18 @@ public final class KillingMoveTooltipHud {
         }
         if (alpha < MIN_TEXT_ALPHA) return;
 
-        int text = fade(gu.spent() ? ModPalette.TEXT_DEAD : ModPalette.TEXT, alpha);
-        graphics.drawString(font, getLine(stack), x + TEXT_X, y + 2, text, true);
-        if (!(stack.getItem() instanceof TendedGuItem tended) || tended.getSpec().getMaxHunger() <= 0) return;
+        int text = fade(row.spent() ? ModPalette.TEXT_DEAD : ModPalette.TEXT, alpha);
+        graphics.drawString(font, row.line(), x + TEXT_X, y + 2, text, true);
+        if (row.counter() == null) return;
 
-        int max = tended.getSpec().getMaxHunger();
-        int hunger = gu.spent() ? 0 : Math.min(max, TendedGuItem.getState(stack).hunger());
-        float fraction = hunger / (float) max;
         int barY = y + 15;
         graphics.fill(x + TEXT_X, barY, x + TEXT_X + BAR_WIDTH, barY + 2, fade(0xFF000000, alpha));
-        int filled = Math.round(BAR_WIDTH * fraction);
+        int filled = Math.round(BAR_WIDTH * row.fraction());
         if (filled > 0) {
             graphics.fill(x + TEXT_X, barY, x + TEXT_X + filled, barY + 1,
-                    fade(0xFF000000 | Mth.hsvToRgb(fraction / 3.0F, 1.0F, 1.0F), alpha));
+                    fade(0xFF000000 | Mth.hsvToRgb(row.fraction() / 3.0F, 1.0F, 1.0F), alpha));
         }
-        graphics.drawString(font, hunger + "/" + max, x + TEXT_X + BAR_WIDTH + 3, y + 12, text, true);
+        graphics.drawString(font, row.counter(), x + TEXT_X + BAR_WIDTH + 3, y + 12, text, true);
     }
 
     private static Component getTitle(String id) {
@@ -168,6 +171,37 @@ public final class KillingMoveTooltipHud {
             line.append(Component.translatable(gu.getPath().getTranslationKey())).append(" ");
         }
         return line.append(stack.getHoverName());
+    }
+
+    /** One notice's text and width, measured on its first frame rather than every frame it shows. */
+    private record Panel(KillingMoveTooltipPayload notice, Component title, List<Row> rows, int width) {
+
+        static Panel of(KillingMoveTooltipPayload notice, Font font) {
+            Component title = getTitle(notice.move());
+            int width = Math.max(MIN_WIDTH, 6 + font.width(title) + 4);
+            List<Row> rows = new ArrayList<>(notice.used().size());
+            for (KillingMoveService.Used gu : notice.used()) {
+                Row row = Row.of(gu);
+                rows.add(row);
+                width = Math.max(width, TEXT_X + font.width(row.line()) + 4);
+            }
+            return new Panel(notice, title, rows, width);
+        }
+    }
+
+    /** {@code counter} is the hunger as {@code x/y}, null for a Gu without hunger, which draws no bar. */
+    private record Row(ItemStack stack, boolean spent, Component line, float fraction, @Nullable String counter) {
+
+        static Row of(KillingMoveService.Used gu) {
+            ItemStack stack = gu.stack();
+            Component line = getLine(stack);
+            if (!(stack.getItem() instanceof TendedGuItem tended) || tended.getSpec().getMaxHunger() <= 0) {
+                return new Row(stack, gu.spent(), line, 0.0F, null);
+            }
+            int max = tended.getSpec().getMaxHunger();
+            int hunger = gu.spent() ? 0 : Math.min(max, TendedGuItem.getState(stack).hunger());
+            return new Row(stack, gu.spent(), line, hunger / (float) max, hunger + "/" + max);
+        }
     }
 
     private static int fade(int argb, int alpha) {

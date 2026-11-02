@@ -3,6 +3,7 @@ package net.alex.guzhenren.item.gu.mortal.wood;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.gu.GuSpec;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
@@ -71,8 +72,8 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
 
     public float getPickedStage(ItemStack stack, long now) { return LeafGrowth.getPickedStage(getLeaves(stack, now)); }
 
-    private int getSecondsToNextLeaf(ItemStack stack, long now) {
-        return (getGrowth(stack).getTicksToNextLeaf(now, regrowTicks) + Ticks.SECOND - 1) / Ticks.SECOND;
+    private long getSecondsToNextLeaf(ItemStack stack, long now) {
+        return ModDisplayText.getCountdownSeconds(getGrowth(stack).getTicksToNextLeaf(now, regrowTicks));
     }
     //endregion
 

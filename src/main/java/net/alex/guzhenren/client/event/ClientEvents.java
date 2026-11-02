@@ -99,33 +99,21 @@ public final class ClientEvents {
 
     private ClientEvents() {}
 
-    private static final ResourceLocation PLAYER_STATS =
-            Guzhenren.id("player_stats");
-    private static final ResourceLocation CHARGE =
-            Guzhenren.id("charge");
-    private static final ResourceLocation NOURISH =
-            Guzhenren.id("nourish");
-    private static final ResourceLocation SHIELD =
-            Guzhenren.id("shield");
-    private static final ResourceLocation SHIELD_GLOW =
-            Guzhenren.id("shield_glow");
-    private static final ResourceLocation SONIC_BOOM =
-            Guzhenren.id("sonic_boom");
-    private static final ResourceLocation KILLING_MOVE_TOOLTIP =
-            Guzhenren.id("killing_move_tooltip");
-    private static final ResourceLocation RADIAL_MENU =
-            Guzhenren.id("radial_menu");
-    private static final ResourceLocation HOLD_SLIDER =
-            Guzhenren.id("hold_slider");
-    private static final ResourceLocation AWAKENING =
-            Guzhenren.id("awakening");
+    private static final ResourceLocation PLAYER_STATS = Guzhenren.id("player_stats");
+    private static final ResourceLocation CHARGE = Guzhenren.id("charge");
+    private static final ResourceLocation NOURISH = Guzhenren.id("nourish");
+    private static final ResourceLocation SHIELD = Guzhenren.id("shield");
+    private static final ResourceLocation SHIELD_GLOW = Guzhenren.id("shield_glow");
+    private static final ResourceLocation SONIC_BOOM = Guzhenren.id("sonic_boom");
+    private static final ResourceLocation KILLING_MOVE_TOOLTIP = Guzhenren.id("killing_move_tooltip");
+    private static final ResourceLocation RADIAL_MENU = Guzhenren.id("radial_menu");
+    private static final ResourceLocation HOLD_SLIDER = Guzhenren.id("hold_slider");
+    private static final ResourceLocation AWAKENING = Guzhenren.id("awakening");
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
-        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SONIC_BOOM,
-                SonicBoomHud.INSTANCE::render);
-        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SHIELD_GLOW,
-                ShieldGlowHud.INSTANCE::render);
+        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SONIC_BOOM, SonicBoomHud.INSTANCE::render);
+        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SHIELD_GLOW, ShieldGlowHud.INSTANCE::render);
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.HOTBAR, KILLING_MOVE_TOOLTIP,
                 (g, delta) -> KillingMoveTooltipHud.INSTANCE.render(g));

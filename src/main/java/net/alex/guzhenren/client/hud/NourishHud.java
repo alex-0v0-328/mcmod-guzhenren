@@ -40,6 +40,9 @@ public final class NourishHud extends HotbarHud {
     private static final String STARVING = "guzhenren.hud.nourish_starving";
     private static final int FILL_STARVING = 0xFFE57373;
     static final HudBar NOURISH = HudBar.of("nourish", BAR_WIDTH, BAR_HEIGHT);
+    private boolean captionStarving;
+    private int captionProgress = -1;
+    private Component caption = Component.empty();
 
     static boolean isShowing(LocalPlayer player) {
         return !player.isSpectator() && ApertureNourishService.isCultivating(player);
@@ -53,13 +56,21 @@ public final class NourishHud extends HotbarHud {
 
         ApertureNourishData nourish = ApertureNourishService.get(player);
         boolean starving = nourish.isStarving();
-        int x = (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2;
+        int x = getBarLeft(minecraft);
         int y = getBarTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? getStackShift(minecraft) : 0);
 
         int target = ApertureNourishService.getTargetIndex(player);
         draw(graphics, minecraft, NOURISH, x, y, ApertureNourishService.getFraction(player, target),
                 starving ? FILL_STARVING : ModPalette.APERTURE,
-                Component.translatable(starving ? STARVING : CAPTION,
-                        ApertureService.getAperture(player, target).nourishProgress()));
+                getCaption(starving, ApertureService.getAperture(player, target).nourishProgress()));
+    }
+
+    private Component getCaption(boolean starving, int progress) {
+        if (starving != captionStarving || progress != captionProgress) {
+            caption = Component.translatable(starving ? STARVING : CAPTION, progress);
+            captionStarving = starving;
+            captionProgress = progress;
+        }
+        return caption;
     }
 }

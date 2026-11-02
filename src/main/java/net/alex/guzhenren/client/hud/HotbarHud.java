@@ -44,6 +44,8 @@ abstract class HotbarHud {
 
     public abstract void render(@NotNull GuiGraphics graphics);
 
+    static int getBarLeft(Minecraft minecraft) { return (minecraft.getWindow().getGuiScaledWidth() - BAR_WIDTH) / 2; }
+
     static int getBarTop(Minecraft minecraft) {
         Gui gui = minecraft.gui;
         int shift = Math.max(Math.max(gui.leftHeight, gui.rightHeight), MIN_SHIFT);

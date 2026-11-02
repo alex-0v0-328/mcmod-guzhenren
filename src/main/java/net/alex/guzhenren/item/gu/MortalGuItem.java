@@ -5,12 +5,16 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -100,6 +104,13 @@ public abstract class MortalGuItem extends GuItem {
 
     public boolean canBeAmplified() { return modules.stream().anyMatch(GuModule::canBeAmplified); }
 
+    /** The source of every path effect this Gu lays down: its item id. */
+    public final ResourceLocation getEffectSource() { return BuiltInRegistries.ITEM.getKey(this); }
+
+    public final <P> PathEffect<P> createEffect(PathEffectType<P> type, long endTick, P payload) {
+        return spec.createEffect(type, getEffectSource(), endTick, payload);
+    }
+
     public final int getEffectCooldownLeft(Player player, ItemStack stack) {
         return GuCooldowns.getCooldownLeft(player, stack.get(ModDataComponents.USED_AT),
                 spec.getEffectCooldownTicks());
@@ -154,12 +165,10 @@ public abstract class MortalGuItem extends GuItem {
     //endregion
 
     //region display
-    protected final Component refineCaptionPlain() { return Component.translatable(CAPTION_REFINING_PLAIN); }
-
     protected final Component refineCaption(int invested) {
         return getRefineCost() > 0
                 ? Component.translatable(CAPTION_REFINING, invested, getRefineCost())
-                : refineCaptionPlain();
+                : Component.translatable(CAPTION_REFINING_PLAIN);
     }
 
     @Override

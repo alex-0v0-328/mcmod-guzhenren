@@ -14,6 +14,8 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -25,8 +27,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * server triggers the concrete entity's one-shot transition animation when a phase transition needs
  * one; a newly tracked or loaded client only selects the synchronized steady state.
  *
- * <p>The GeckoLib side is shared too: one {@code main} controller, the idle, fly, lift and land
- * animations, and the lift and land triggers fired on take-off and landing.
+ * <p>The GeckoLib side is shared too: one {@code main} controller ({@link #createMainController}) that loops
+ * {@link #getSteadyAnimation}, the idle, fly, lift and land animations, and the lift and land triggers fired on
+ * take-off and landing.
  *
  * <p>{@link #takeOff}: only a resting Gu has closed its wing cases; an aborted landing is still in
  * the flight pose.
@@ -47,10 +50,10 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements Ge
 
     protected static final String MAIN = "main";
     protected static final int TRANSITION_TICKS = 5;
-    protected static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("animation.idle");
-    protected static final RawAnimation FLY_ANIM = RawAnimation.begin().thenLoop("animation.fly");
-    protected static final RawAnimation LIFT_ANIM = RawAnimation.begin().thenPlay("animation.lift");
-    protected static final RawAnimation LAND_ANIM = RawAnimation.begin().thenPlay("animation.land");
+    private static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("animation.idle");
+    private static final RawAnimation FLY_ANIM = RawAnimation.begin().thenLoop("animation.fly");
+    private static final RawAnimation LIFT_ANIM = RawAnimation.begin().thenPlay("animation.lift");
+    private static final RawAnimation LAND_ANIM = RawAnimation.begin().thenPlay("animation.land");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public static final double FLEE_RANGE = 6.0D;
@@ -129,6 +132,19 @@ public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements Ge
         if (savedPhase == FlightPhase.LANDING) wantsToLand = true;
         entityData.set(DATA_WANTS_TO_LAND, wantsToLand);
     }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(createMainController());
+    }
+
+    protected AnimationController<RestingFlyingGuEntity> createMainController() {
+        return new AnimationController<>(this, MAIN, TRANSITION_TICKS,
+                state -> state.setAndContinue(getSteadyAnimation()))
+                .triggerableAnim("lift", LIFT_ANIM).triggerableAnim("land", LAND_ANIM);
+    }
+
+    protected RawAnimation getSteadyAnimation() { return getPhase() == FlightPhase.RESTING ? IDLE_ANIM : FLY_ANIM; }
 
     protected void playLandingAnimation() { triggerAnim(MAIN, "land"); }
 

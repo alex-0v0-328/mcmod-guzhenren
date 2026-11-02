@@ -16,7 +16,6 @@ import net.alex.guzhenren.refinement.recipe.RefinementRecipe;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -117,15 +116,15 @@ public class RefinementMenu extends AbstractContainerMenu {
         this.player = inventory.player;
 
         for (int i = 0; i < GuRecipe.RING_SIZE; i++) {
-            addSlot(new RingSlot(input, i, getRingX(i), getRingY(i)));
+            addSlot(new GridSlot(i, getRingX(i), getRingY(i), false));
         }
         for (int row = 0; row < GuRecipe.CORE_ROWS; row++) {
             for (int col = 0; col < GuRecipe.CORE_COLS; col++) {
                 int index = GuRecipe.RING_SIZE + row * GuRecipe.CORE_COLS + col;
-                addSlot(new CoreSlot(input, index, getCoreX(col), getCoreY(row)));
+                addSlot(new GridSlot(index, getCoreX(col), getCoreY(row), true));
             }
         }
-        addSlot(new SupplySlot(supply, 0, STONE_X, STONE_Y));
+        addSlot(new SupplySlot(STONE_X, STONE_Y));
         for (int row = 0; row < OUTPUT_ROWS; row++) {
             for (int col = 0; col < OUTPUT_COLS; col++) {
                 addSlot(new OutputSlot(row * OUTPUT_COLS + col,
@@ -297,27 +296,20 @@ public class RefinementMenu extends AbstractContainerMenu {
     public boolean stillValid(@NotNull Player who) { return who == player && who.isAlive(); }
 
     //region where a thing may sit -- 蛊材 outside, 蛊虫 inside, and NOTHING moves while it runs
-    private class RingSlot extends Slot {
+    /** A grid cell: the ring takes materials, the core takes the player's own Gu. */
+    private class GridSlot extends Slot {
 
-        RingSlot(Container container, int index, int x, int y) { super(container, index, x, y); }
+        private final boolean core;
 
-        @Override
-        public boolean mayPlace(@NotNull ItemStack stack) {
-            return !ritual.isRunning() && !(stack.getItem() instanceof MortalGuItem);
+        GridSlot(int index, int x, int y, boolean core) {
+            super(input, index, x, y);
+            this.core = core;
         }
 
         @Override
-        public boolean mayPickup(@NotNull Player who) { return !ritual.isRunning(); }
-    }
-
-    private class CoreSlot extends Slot {
-
-        CoreSlot(Container container, int index, int x, int y) { super(container, index, x, y); }
-
-        @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (ritual.isRunning() || !(stack.getItem() instanceof MortalGuItem)) return false;
-            return !GuItem.isForeignVital(stack, player);
+            if (ritual.isRunning() || (stack.getItem() instanceof MortalGuItem) != core) return false;
+            return !core || !GuItem.isForeignVital(stack, player);
         }
 
         @Override
@@ -326,7 +318,7 @@ public class RefinementMenu extends AbstractContainerMenu {
 
     private class SupplySlot extends Slot {
 
-        SupplySlot(Container container, int index, int x, int y) { super(container, index, x, y); }
+        SupplySlot(int x, int y) { super(supply, 0, x, y); }
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {

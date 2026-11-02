@@ -54,6 +54,7 @@ public final class ApertureEssenceService {
     }
 
     public static final long DISTILLED_RATE = 2L;
+    private static final int NO_SKIP = -1;
 
     public static long getCurrentEssence(@NotNull Player player) {
         return ApertureService.getAperture(player).currentEssence();
@@ -176,10 +177,7 @@ public final class ApertureEssenceService {
         if (getSpendable(player) < amount) return false;
 
         ApertureData data = ApertureService.get(player);
-        long[][] plan = cascadeTake(amount, data.apertures());
-        for (int i = 0; i < plan.length; i++) {
-            if (plan[i][0] > 0L || plan[i][1] > 0L) ApertureService.set(player, i, applyTake(data.get(i), plan[i]));
-        }
+        takeExcept(player, data, cascadeTake(amount, data.apertures()), NO_SKIP);
         return true;
     }
 
@@ -189,12 +187,17 @@ public final class ApertureEssenceService {
         if (getSpendable(player) < amount) return null;
 
         long[][] plan = cascadeTake(amount, data.apertures());
+        takeExcept(player, data, plan, index);
+        return index < plan.length ? applyTake(data.get(index), plan[index]) : data.get(index);
+    }
+
+    /** Writes every aperture's share of {@code plan} but {@code skipped}'s, which the caller writes itself. */
+    private static void takeExcept(ServerPlayer player, ApertureData data, long[][] plan, int skipped) {
         for (int i = 0; i < plan.length; i++) {
-            if (i != index && (plan[i][0] > 0L || plan[i][1] > 0L)) {
+            if (i != skipped && (plan[i][0] > 0L || plan[i][1] > 0L)) {
                 ApertureService.set(player, i, applyTake(data.get(i), plan[i]));
             }
         }
-        return index < plan.length ? applyTake(data.get(index), plan[index]) : data.get(index);
     }
 
     private static Aperture applyTake(Aperture aperture, long[] take) {

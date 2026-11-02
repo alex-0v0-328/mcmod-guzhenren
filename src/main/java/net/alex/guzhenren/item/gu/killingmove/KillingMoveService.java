@@ -173,14 +173,16 @@ public final class KillingMoveService {
         for (KillingMove move : KillingMove.values()) {
             if (moves.knows(move.getId()) && findStored(player, move) != null) backed.add(move.getId());
         }
-        data.setKillingMoves(moves.withStoreBacked(backed));
+        if (!backed.equals(moves.storeBacked())) data.setKillingMoves(moves.withStoreBacked(backed));
     }
 
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id) {
         return drive(player, id, KillingMovePayload.NO_TARGET);
     }
 
-    /** Drives the main-hand blade Gu, aimed at the client's target id ({@code KillingMovePayload.NO_TARGET} for none). */
+    /**
+     * Drives the main-hand blade Gu, aimed at the client's target id ({@code KillingMovePayload.NO_TARGET} for none).
+     */
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id, int targetId) {
         ItemStack stack = player.getMainHandItem();
         TendedGuItem main = asBladeGu(stack);
@@ -253,7 +255,9 @@ public final class KillingMoveService {
         return PlayerData.get(player).getKillingMoves().isActive(move.getId());
     }
 
-    /** Switches the move off when it is on, otherwise on: the partner pays the start hunger, or the start is refused. */
+    /**
+     * Switches the move off when it is on, otherwise on: the partner pays the start hunger, or the start is refused.
+     */
     public static void toggle(@NotNull ServerPlayer player, @NotNull KillingMove move) {
         if (isActive(player, move)) {
             setActive(player, KillingMoveData.NONE);

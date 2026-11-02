@@ -39,9 +39,6 @@ final class ApertureButtons {
 
     private ApertureButtons() {}
 
-    static final int NOURISH = 0;
-    static final int IMPACT = 1;
-    static final int STORAGE = 2;
     private static final int PROGRESS = 0x804FC3F7;
     private static final int BUTTON_FRAME = 2;
     private static final Component LABEL_NOURISH = Component.translatable("guzhenren.screen.nourish");
@@ -50,21 +47,23 @@ final class ApertureButtons {
     private static final Component LABEL_IMPACT = Component.translatable("guzhenren.screen.impact");
     private static final Component LABEL_STORAGE = Component.translatable("guzhenren.screen.button.storage");
 
-    record StackButton(int aperture, int kind, Component label, int top) {}
+    enum Kind { NOURISH, IMPACT, STORAGE }
 
-    record ColumnButton(int aperture, int kind, Component label, int x0, int x1, int top) {}
+    record StackButton(int aperture, Kind kind, Component label, int top) {}
+
+    record ColumnButton(int aperture, Kind kind, Component label, int x0, int x1, int top) {}
 
     static List<StackButton> buildStackButtons(LocalPlayer player, int aperture) {
         List<StackButton> buttons = new ArrayList<>();
         int step = PlayerInfoScreen.BTN_H + PlayerInfoScreen.BTN_GAP;
         if (aperture == ApertureData.PRIMARY && ApertureNourishService.canImpact(player)) {
-            buttons.add(new StackButton(aperture, IMPACT, LABEL_IMPACT, 0));
+            buttons.add(new StackButton(aperture, Kind.IMPACT, LABEL_IMPACT, 0));
             return withStorage(aperture, buttons, step);
         }
         if (!ApertureNourishService.isAtCeiling(player, aperture)) {
             Component label = isRunning(player, aperture) ? LABEL_NOURISH_STOP
                     : ApertureService.getAperture(player, aperture).second() ? LABEL_NOURISH_SECOND : LABEL_NOURISH;
-            buttons.add(new StackButton(aperture, NOURISH, label, 0));
+            buttons.add(new StackButton(aperture, Kind.NOURISH, label, 0));
             return withStorage(aperture, buttons, step);
         }
         return withStorage(aperture, buttons, 0);
@@ -72,19 +71,19 @@ final class ApertureButtons {
 
     static void draw(SpriteBatch sprites, LocalPlayer player, ColumnButton button, int mouseX, int mouseY) {
         boolean hover = isInBox(mouseX, mouseY, button.x0(), button.x1(), button.top());
-        boolean running = button.kind() == NOURISH && isRunning(player, button.aperture());
+        boolean running = button.kind() == Kind.NOURISH && isRunning(player, button.aperture());
         boolean live = switch (button.kind()) {
             case IMPACT -> ApertureNourishService.canAffordImpact(player);
             case NOURISH -> running || ApertureNourishService.canNourish(player, button.aperture());
-            default -> true;
+            case STORAGE -> true;
         };
-        boolean lit = button.kind() == NOURISH ? running : hover;
+        boolean lit = button.kind() == Kind.NOURISH ? running : hover;
         sprites.blit(Widgets.getButtonSprite(live, lit), button.x0(), button.top(), button.x1() - button.x0(),
                 PlayerInfoScreen.BTN_H);
     }
 
     static void fillProgress(GuiGraphics graphics, LocalPlayer player, ColumnButton button) {
-        if (button.kind() != NOURISH || !isRunning(player, button.aperture())) return;
+        if (button.kind() != Kind.NOURISH || !isRunning(player, button.aperture())) return;
 
         int x0 = button.x0() + BUTTON_FRAME;
         int width = button.x1() - button.x0() - BUTTON_FRAME * 2;
@@ -112,7 +111,7 @@ final class ApertureButtons {
                     return true;
                 }
             }
-            default -> PacketDistributor.sendToServer(new OpenApertureStoragePayload(button.aperture()));
+            case STORAGE -> PacketDistributor.sendToServer(new OpenApertureStoragePayload(button.aperture()));
         }
         return false;
     }
@@ -127,7 +126,7 @@ final class ApertureButtons {
     }
 
     private static List<StackButton> withStorage(int aperture, List<StackButton> buttons, int top) {
-        buttons.add(new StackButton(aperture, STORAGE, LABEL_STORAGE, top));
+        buttons.add(new StackButton(aperture, Kind.STORAGE, LABEL_STORAGE, top));
         return buttons;
     }
 }

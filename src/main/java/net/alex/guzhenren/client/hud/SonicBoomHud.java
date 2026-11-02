@@ -1,7 +1,5 @@
 package net.alex.guzhenren.client.hud;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.minecraft.client.DeltaTracker;
@@ -75,24 +73,16 @@ public final class SonicBoomHud {
 
         float age = getAge(player.tickCount, deltaTracker.getGameTimeDeltaPartialTick(false));
         if (age < 0.0F || age >= LIFETIME_TICKS) return;
-        float alpha = getAlpha(age) * minecraft.options.screenEffectScale().get().floatValue();
+        float alpha = getAlpha(age) * ScreenGlow.getEffectScale(minecraft);
         if (alpha <= 0.0F) return;
 
         int frame = getFrame(age);
         int canvas = RING_CANVASES.get(frame);
         int diameter = getDiameter(age, graphics.guiWidth(), graphics.guiHeight());
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
-        graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+        ScreenGlow.begin(graphics, alpha);
         graphics.blit(RINGS.get(frame), (graphics.guiWidth() - diameter) / 2, (graphics.guiHeight() - diameter) / 2,
                 diameter, diameter, 0.0F, 0.0F, canvas, canvas, canvas, canvas);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableBlend();
-        RenderSystem.depthMask(true);
-        RenderSystem.enableDepthTest();
+        ScreenGlow.end(graphics);
     }
 
     float getAge(int tickCount, float partialTick) {

@@ -1,8 +1,5 @@
 package net.alex.guzhenren.client.hud;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldLayer;
 import net.alex.guzhenren.gameplay.body.ShieldService;
@@ -61,7 +58,7 @@ public final class ShieldGlowHud {
             owner = player;
         }
         ShieldData next = ShieldService.get(player);
-        long now = BodyService.getGameTime(player);
+        long now = player.level().getGameTime();
         float nextPoints = next.getPoints(now);
         if (nextPoints > 0.0F && points <= 0.0F) {
             raisedAt = now;
@@ -92,23 +89,15 @@ public final class ShieldGlowHud {
         LocalPlayer player = minecraft.player;
         if (player == null || player.isSpectator()) return;
 
-        float alpha = getAlpha(BodyService.getGameTime(player), deltaTracker.getGameTimeDeltaPartialTick(false))
-                * minecraft.options.screenEffectScale().get().floatValue();
+        float alpha = getAlpha(player.level().getGameTime(), deltaTracker.getGameTimeDeltaPartialTick(false))
+                * ScreenGlow.getEffectScale(minecraft);
         if (alpha <= 0.0F) return;
 
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
-        graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+        ScreenGlow.begin(graphics, alpha);
         graphics.blit(VIGNETTE, 0, 0, -90, 0.0F, 0.0F, width, height, width, height);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableBlend();
-        RenderSystem.depthMask(true);
-        RenderSystem.enableDepthTest();
+        ScreenGlow.end(graphics);
     }
 
     private float getAlpha(long now, float partialTick) {

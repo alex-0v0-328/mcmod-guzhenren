@@ -1,7 +1,6 @@
 package net.alex.guzhenren.refinement;
 
 import java.util.List;
-import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
@@ -67,7 +66,7 @@ final class RecipeAutofill {
             if (GuItem.isForeignVital(from, player)) continue;
 
             ItemStack held = input.getItem(slot);
-            if (!held.isEmpty() && !ItemStacks.isSameItemSameData(held, from)) continue;
+            if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, from)) continue;
 
             int move = Math.min(Math.min(left, from.getCount()),
                     from.getMaxStackSize() - held.getCount());

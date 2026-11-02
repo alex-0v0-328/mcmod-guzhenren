@@ -1,17 +1,12 @@
 package net.alex.guzhenren.core;
 
-import com.mojang.serialization.Codec;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The item-stack operations several packages share, behind one name each.
- *
- * <p>{@link #OPTIONAL_CODEC} saves a stack that may be empty, so a list keeps an empty slot in place;
- * {@link #isSameItemSameData} compares item and attached data, ignoring count; {@link #writeStack} and {@link
- * #readStack} carry a stack, empty or not, over the wire.
+ * Carries an item stack, empty or not, over the wire: {@link #writeStack} and {@link #readStack}.
  *
  * <p>⚠ A stack only travels on a {@link RegistryFriendlyByteBuf}. Every buffer the network and menu
  * layers hand out is one; a plain {@link FriendlyByteBuf} is refused with an {@link IllegalArgumentException}.
@@ -24,12 +19,6 @@ import org.jetbrains.annotations.NotNull;
 public final class ItemStacks {
 
     private ItemStacks() {}
-
-    public static final Codec<ItemStack> OPTIONAL_CODEC = ItemStack.OPTIONAL_CODEC;
-
-    public static boolean isSameItemSameData(@NotNull ItemStack a, @NotNull ItemStack b) {
-        return ItemStack.isSameItemSameComponents(a, b);
-    }
 
     public static void writeStack(@NotNull FriendlyByteBuf buf, @NotNull ItemStack stack) {
         ItemStack.OPTIONAL_STREAM_CODEC.encode(getRegistries(buf), stack);

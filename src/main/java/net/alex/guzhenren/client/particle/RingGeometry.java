@@ -5,16 +5,17 @@ import org.joml.Vector3f;
 
 /**
  * The pure corner geometry behind {@link RingParticle}, kept free of Minecraft client classes so
- * the pure JVM tests can pin it. Corner order is shared by both orientations:
- * {@code -u-v, -u+v, +u+v, +u-v}, where GROUND takes u=(1,0,0), v=(0,0,1) (a world-flat XZ quad,
- * built by {@link #getGround}, no camera involvement so it stays horizontal) and FACING_MOTION takes
- * an orthonormal basis of the plane perpendicular to the spawn direction ({@link #getFacing}).
+ * the pure JVM tests can pin it. The quad is either laid flat by {@link #getGround} (the fallback when there is no
+ * direction) or set perpendicular to motion by {@link #getFacing}; both share the corner order
+ * {@code -u-v, -u+v, +u+v, +u-v}, the flat quad with u=(1,0,0), v=(0,0,1) in the world XZ plane, no camera
+ * involvement, and the perpendicular one with an orthonormal basis of the plane across the spawn direction.
  *
  * <p>{@link #LARGEST_CANVAS} is the canvas width of the largest hand-drawn ring and {@link #LARGEST_RING_SPAN}
  * its world span in blocks (总表 TODO acceptance: max ~2.2 blocks across); every frame's world size scales off
  * them through {@link #scaleForWidth} (the {@code quadSize} half-span multiplier for a frame drawn on a canvas
  * that wide), and a ring type whose largest frame spans another size passes that span as {@code largestSpan}.
- * A direction shorter than {@link #MIN_DIRECTION_LENGTH} is treated as "no direction" and falls back to GROUND.
+ * A direction shorter than {@link #MIN_DIRECTION_LENGTH} is treated as "no direction" and falls back to
+ * {@link #getGround}.
  *
  * <p>A ring's exit runs from its full bloom to its despawn: {@link #getExitProgress} goes from 0 at
  * {@code lastFrameAge} (partial ticks included) to 1 when the ring despawns, {@code lingerTicks + 1} ticks later,
@@ -34,7 +35,7 @@ import org.joml.Vector3f;
  * toward {@code cameraForward} when the ring would otherwise be edge-on. A near-zero direction
  * falls back to {@link #getGround(float)}; a (near-)vertical one switches the reference axis so the
  * basis never degenerates -- note a vertical normal lands on the horizontal plane anyway, matching
- * GROUND. {@link #tiltTowardCamera} rotates the normal toward the camera only while it is nearly
+ * {@link #getGround}. {@link #tiltTowardCamera} rotates the normal toward the camera only while it is nearly
  * perpendicular to the view (|n·v| under sin of {@link #MIN_OPENING_DEGREES} -- the edge-on case):
  * the result keeps the normal's view-perpendicular component and gains exactly
  * {@link #MIN_OPENING_DEGREES} of opening, so the adjustment is continuous and never pops. The

@@ -28,6 +28,8 @@ public class HoverNearPlayerGoal extends Goal {
     private static final double BOB_AMPLITUDE = 0.15;
     private static final double BOB_FREQUENCY = 0.15;
     private static final double HOVER_DRAG = 0.8;
+    private static final double HOVER_RANGE_SQR = FlyingGuEntity.HOVER_RANGE * FlyingGuEntity.HOVER_RANGE;
+    private static final double DETECT_RANGE_SQR = FlyingGuEntity.DETECT_RANGE * FlyingGuEntity.DETECT_RANGE;
     private final FlyingGuEntity gu;
     private @Nullable Player target;
 
@@ -45,7 +47,7 @@ public class HoverNearPlayerGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return target != null && target.isAlive() && gu.isWanting(target)
-                && gu.distanceToSqr(target) <= getDetectRangeSqr();
+                && gu.distanceToSqr(target) <= DETECT_RANGE_SQR;
     }
 
     @Override
@@ -63,7 +65,7 @@ public class HoverNearPlayerGoal extends Goal {
         gu.getLookControl().setLookAt(target);
 
         Vec3 toEye = target.getEyePosition().subtract(gu.position());
-        if (toEye.lengthSqr() > FlyingGuEntity.HOVER_RANGE * FlyingGuEntity.HOVER_RANGE) {
+        if (toEye.lengthSqr() > HOVER_RANGE_SQR) {
             approach(toEye);
             return;
         }
@@ -80,6 +82,4 @@ public class HoverNearPlayerGoal extends Goal {
         double lift = Math.sin(gu.tickCount * BOB_FREQUENCY) * BOB_AMPLITUDE;
         gu.setDeltaMovement(movement.x * HOVER_DRAG, lift, movement.z * HOVER_DRAG);
     }
-
-    private double getDetectRangeSqr() { return FlyingGuEntity.DETECT_RANGE * FlyingGuEntity.DETECT_RANGE; }
 }

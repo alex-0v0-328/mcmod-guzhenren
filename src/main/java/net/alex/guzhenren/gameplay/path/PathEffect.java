@@ -74,10 +74,6 @@ public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, Resou
         return new PathEffect<>(type, carrier, source, paths, value, layers, payload);
     }
 
-    public PathEffect<P> withPayload(P value) {
-        return new PathEffect<>(type, carrier, source, paths, endTick, layers, value);
-    }
-
     public PathEffect<P> withPaths(Map<GuPath, DaoMarks> value) {
         return new PathEffect<>(type, carrier, source, value, endTick, layers, payload);
     }

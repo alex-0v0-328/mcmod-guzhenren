@@ -6,7 +6,6 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
@@ -45,13 +44,10 @@ public final class MaxHealthService {
             Guzhenren.id("rank_max_health");
 
     public static void refresh(@NotNull ServerPlayer player) {
-        AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
-        if (instance == null) return;
-
         int target = ApertureService.getHealthRank(player).getMaxHealth();
         double bonus = (target > 0 ? target - VANILLA_MAX_HEALTH : 0.0D)
                 + BodyService.getBone(player).getMaxHealthBonus();
-        TransientModifiers.swap(instance, MODIFIER_ID, bonus);
+        TransientModifiers.swap(player, Attributes.MAX_HEALTH, MODIFIER_ID, bonus);
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
     }
 

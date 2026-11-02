@@ -42,12 +42,8 @@ public final class SkinService {
         Skin worn = BodyService.getSkin(player);
         for (Skin skin : Skin.values()) {
             Holder<MobEffect> effect = getEffectOf(skin);
-            if (effect == null) continue;
-
-            if (skin == worn) {
-                player.addEffect(ModEffects.instance(effect, Math.max(1, (int) BodyService.getSkinTicksLeft(player))));
-            } else if (player.hasEffect(effect)) {
-                player.removeEffect(effect);
+            if (effect != null) {
+                BodyService.projectMarker(player, effect, skin == worn, BodyService.getSkinTicksLeft(player));
             }
         }
     }

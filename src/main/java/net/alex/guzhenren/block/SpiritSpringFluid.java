@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -151,11 +150,7 @@ public abstract class SpiritSpringFluid extends FlowingFluid {
         @Override
         protected void randomTick(@NotNull Level level, @NotNull BlockPos pos,
                                   @NotNull FluidState state, @NotNull RandomSource random) {
-            if (!(level instanceof ServerLevel serverLevel)) return;
-            Block block = state.createLegacyBlock().getBlock();
-            if (!serverLevel.getBlockTicks().hasScheduledTick(pos, block)) {
-                serverLevel.scheduleTick(pos, block, SpiritSpringBlock.PRODUCTION_INTERVAL_TICKS);
-            }
+            ModBlocks.SPIRIT_SPRING.get().scheduleProduction(level, pos);
         }
     }
 }

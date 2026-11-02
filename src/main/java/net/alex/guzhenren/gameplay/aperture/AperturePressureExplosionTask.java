@@ -187,12 +187,9 @@ public final class AperturePressureExplosionTask {
             double horizontalSquared = dx * dx + dz * dz;
             if (horizontalSquared > localRadius * localRadius) continue;
             int floorY = CraterShape.getColumnFloorY(y, localRadius, horizontalSquared);
-            if (floorY < level.getMinBuildHeight() || floorY >= level.getMaxBuildHeight()) continue;
+            if (level.isOutsideBuildHeight(floorY) || !hasChunkAt(blockX, blockZ)) continue;
             BlockPos floorPos = new BlockPos(blockX, floorY, blockZ);
-            if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(floorPos.getX()),
-                    SectionPos.blockToSectionCoord(floorPos.getZ())) || level.getBlockState(floorPos).isAir()) {
-                continue;
-            }
+            if (level.getBlockState(floorPos).isAir()) continue;
             Block block = getFloorBlockAt(blockX, floorY, blockZ);
             if (block == null) continue;
             level.setBlock(floorPos, block.defaultBlockState(), Block.UPDATE_CLIENTS);
@@ -214,8 +211,7 @@ public final class AperturePressureExplosionTask {
             if (horizontalSquared <= localRadius * localRadius) continue;
             double ringOuter = CraterShape.getRingOuterRadius(radius, blockX, blockZ, seed);
             if (horizontalSquared >= ringOuter * ringOuter) continue;
-            if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(blockX),
-                    SectionPos.blockToSectionCoord(blockZ))) continue;
+            if (!hasChunkAt(blockX, blockZ)) continue;
             int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, blockX, blockZ) - 1;
             if (surfaceY < level.getMinBuildHeight()) continue;
             BlockPos surfacePos = new BlockPos(blockX, surfaceY, blockZ);
@@ -292,13 +288,12 @@ public final class AperturePressureExplosionTask {
     }
 
     private void addInside(int blockX, int blockY, int blockZ) {
-        if (blockY < level.getMinBuildHeight() || blockY >= level.getMaxBuildHeight()) return;
+        if (level.isOutsideBuildHeight(blockY)) return;
         if (!isOutsideSphere(blockX, blockY, blockZ)) shell.add(BlockPos.asLong(blockX, blockY, blockZ));
     }
 
     private void clearOne(BlockPos pos) {
-        if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()),
-                SectionPos.blockToSectionCoord(pos.getZ()))) return;
+        if (!hasChunkAt(pos.getX(), pos.getZ())) return;
         BlockState state = level.getBlockState(pos);
         if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0F) return;
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
@@ -312,10 +307,15 @@ public final class AperturePressureExplosionTask {
         if (dx * dx + dy * dy + dz * dz < innerSquared) return false;
         for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = pos.relative(direction);
-            if (neighbor.getY() >= level.getMinBuildHeight() && neighbor.getY() < level.getMaxBuildHeight()
+            if (!level.isOutsideBuildHeight(neighbor.getY())
                     && isOutsideSphere(neighbor.getX(), neighbor.getY(), neighbor.getZ())) return true;
         }
         return false;
+    }
+
+    private boolean hasChunkAt(int blockX, int blockZ) {
+        return level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(blockX),
+                SectionPos.blockToSectionCoord(blockZ));
     }
 
     private boolean isOutsideSphere(int blockX, int blockY, int blockZ) {

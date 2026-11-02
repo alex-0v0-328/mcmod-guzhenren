@@ -1,5 +1,8 @@
 package net.alex.guzhenren.gameplay.flight;
 
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -94,7 +97,7 @@ public final class SecondStageService {
     private static final float WALL_BIG_SOUND_DAMAGE = 4.0F;
     private static final double CRASH_AHEAD = 0.8D;
     private static final float RAM_VOLUME = 1.0F;
-    private static final Map<UUID, Map<Integer, Long>> RAMMED = new HashMap<>();
+    private static final Map<UUID, Int2LongMap> RAMMED = new HashMap<>();
 
     public static boolean isActive(@NotNull Player player) { return PlayerData.get(player).isInSecondStage(); }
 
@@ -227,13 +230,16 @@ public final class SecondStageService {
         double speed = velocity.length();
         if (speed < SecondStageCruise.BARRIER_SPEED) return;
         long now = player.level().getGameTime();
-        Map<Integer, Long> rammed = RAMMED.computeIfAbsent(player.getUUID(), id -> new HashMap<>());
-        rammed.values().removeIf(at -> now - at >= SecondStageCruise.RAM_COOLDOWN_TICKS);
+        Int2LongMap rammed = RAMMED.computeIfAbsent(player.getUUID(), id -> new Int2LongOpenHashMap());
+        for (LongIterator at = rammed.values().iterator(); at.hasNext(); ) {
+            if (now - at.nextLong() >= SecondStageCruise.RAM_COOLDOWN_TICKS) at.remove();
+        }
 
         AABB swept = player.getBoundingBox().expandTowards(velocity);
         for (LivingEntity target : player.level().getEntitiesOfClass(LivingEntity.class, swept,
                 target -> canRam(player, target))) {
-            if (rammed.putIfAbsent(target.getId(), now) != null) continue;
+            if (rammed.containsKey(target.getId())) continue;
+            rammed.put(target.getId(), now);
             if (!target.hurt(player.damageSources().playerAttack(player), SecondStageCruise.getRamDamage(speed))) {
                 rammed.remove(target.getId());
                 continue;

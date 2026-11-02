@@ -1,5 +1,6 @@
 package net.alex.guzhenren.entity.gu;
 
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.alex.guzhenren.entity.ai.HoverNearPlayerGoal;
 import net.minecraft.core.BlockPos;
@@ -50,6 +51,7 @@ public class FlyingGuEntity extends WildGuEntity {
     private static final double MOVEMENT_SPEED = 0.1;
     private static final double WANDER_SPEED = 1.0;
     private static final int TURN_RATE = 20;
+    private final Predicate<Entity> wanted = this::isWanted;
 
     public FlyingGuEntity(EntityType<? extends FlyingGuEntity> type, Level level,
                           Supplier<Item> caughtGu) {
@@ -75,7 +77,7 @@ public class FlyingGuEntity extends WildGuEntity {
     public boolean isSeeking(Player player) { return true; }
 
     public @Nullable Player seekTarget() {
-        return level().getNearestPlayer(getX(), getY(), getZ(), DETECT_RANGE, this::isWanted);
+        return level().getNearestPlayer(getX(), getY(), getZ(), DETECT_RANGE, wanted);
     }
 
     public boolean isWanting(Player player) {

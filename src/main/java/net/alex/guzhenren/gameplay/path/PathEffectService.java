@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import net.alex.guzhenren.core.ModEvents;
@@ -65,8 +66,6 @@ public final class PathEffectService {
         return get(player).find(type, source);
     }
 
-    public static long getGameTime(@NotNull Player player) { return player.level().getGameTime(); }
-
     public static void apply(@NotNull ServerPlayer player, @NotNull PathEffect<?> effect) {
         if (effect.isEmpty()) return;
 
@@ -108,8 +107,19 @@ public final class PathEffectService {
         return remove(player, effect -> effect.type() == type);
     }
 
+    /** Puts {@code wanted} on unless an effect of its type carries its payload; {@code null} takes the type off. */
+    public static <P> void sync(@NotNull ServerPlayer player, @NotNull PathEffectType<P> type,
+                                @Nullable PathEffect<P> wanted) {
+        PathEffect<P> worn = find(player, type);
+        if (wanted == null) {
+            if (worn != null) removeType(player, type);
+        } else if (worn == null || !Objects.equals(worn.payload(), wanted.payload())) {
+            apply(player, wanted);
+        }
+    }
+
     public static void tick(@NotNull ServerPlayer player) {
-        long now = getGameTime(player);
+        long now = player.level().getGameTime();
         PathEffectData data = get(player);
         List<PathEffect<?>> expired = data.effects().stream().filter(effect -> effect.hasRunOut(now)).toList();
         if (!expired.isEmpty()) store(player, data.without(effect -> effect.hasRunOut(now)));
@@ -127,7 +137,7 @@ public final class PathEffectService {
 
     //region icons -- the vanilla effect each kind projects, longest remaining time and highest amplifier win
     private static void refreshIcons(ServerPlayer player, Collection<PathEffect<?>> ended) {
-        long now = getGameTime(player);
+        long now = player.level().getGameTime();
         Map<Holder<MobEffect>, int[]> wanted = new LinkedHashMap<>();
         for (PathEffect<?> effect : get(player).effects()) {
             PathEffectType.Projection projection = effect.getProjection();

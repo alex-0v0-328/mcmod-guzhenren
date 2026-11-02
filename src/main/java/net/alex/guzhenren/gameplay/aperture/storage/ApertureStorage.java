@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.RandomAccess;
-import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
  * is server-side and the menu reads it through slot channels; {@code
  * ApertureStorageService} is the only runtime writer.
  *
- * <p>⚠ Uses {@link ItemStacks#OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
+ * <p>⚠ Uses {@link ItemStack#OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
  * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its
  * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
  * ⚠ {@link #getView} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
@@ -48,9 +47,9 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
 
     public static final ApertureStorage DEFAULT = new ApertureStorage(List.of(), List.of(), List.of());
     public static final Codec<ApertureStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ItemStacks.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
+            ItemStack.OPTIONAL_CODEC.listOf().listOf().optionalFieldOf("by_aperture", List.of())
                     .forGetter(ApertureStorage::byAperture),
-            ItemStacks.OPTIONAL_CODEC.listOf().optionalFieldOf("vital", List.of())
+            ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("vital", List.of())
                     .forGetter(ApertureStorage::vital),
             Codec.LONG.listOf().optionalFieldOf("vital_tokens", List.of())
                     .forGetter(ApertureStorage::tokens)
@@ -114,7 +113,7 @@ public record ApertureStorage(List<List<ItemStack>> byAperture, List<ItemStack> 
             ItemStack current = from + i < stored.size() ? stored.get(from + i) : ItemStack.EMPTY;
             ItemStack wanted = page.get(i);
             if (wanted.getCount() != current.getCount()
-                    || !ItemStacks.isSameItemSameData(wanted, current)) return false;
+                    || !ItemStack.isSameItemSameComponents(wanted, current)) return false;
         }
         return true;
     }

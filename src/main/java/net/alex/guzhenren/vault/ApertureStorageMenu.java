@@ -2,7 +2,6 @@ package net.alex.guzhenren.vault;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
@@ -151,7 +150,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
     private boolean matchesStore(ServerPlayer server) {
         return ApertureStorageService.isSamePage(server, aperture, getPageIndex() * PAGE_SIZE, collectWindow())
-                && isSame(vital.getItem(0), ApertureStorageService.getVital(server, aperture))
+                && ItemStack.matches(vital.getItem(0), ApertureStorageService.getVital(server, aperture))
                 && getLoad() == ApertureStorageService.load(server, aperture)
                 && pageData.get(DATA_PAGES) == countPages();
     }
@@ -192,7 +191,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
 
         ItemStack bound = vital.getItem(0);
         if (!bound.isEmpty()) bindVital(bound, server, aperture);
-        if (!isSame(bound, ApertureStorageService.getVital(server, aperture))) {
+        if (!ItemStack.matches(bound, ApertureStorageService.getVital(server, aperture))) {
             int kind = ApertureService.get(server).getKindAt(aperture);
             long former = ApertureStorageService.getVitalToken(server, kind);
             if (!ApertureStorageService.setVital(server, aperture, bound.copy())) {
@@ -221,11 +220,6 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             if (GuItem.getToken(inventory.getItem(i)) == token) GuItem.unbind(inventory.getItem(i));
         }
-    }
-
-    private static boolean isSame(ItemStack first, ItemStack second) {
-        return first.getCount() == second.getCount()
-                && ItemStacks.isSameItemSameData(first, second);
     }
     //endregion
 

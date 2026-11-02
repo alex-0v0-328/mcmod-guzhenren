@@ -66,7 +66,7 @@ public final class CmdAperture {
     static final String TEN_EXTREME = "ten_extreme:";
     static final int MAX_COMMAND_BASE = Aperture.MAX_BASE - 1;
     private static final String FAILED_INDEX = "guzhenren.command.failed.aperture_index";
-    static final String FAILED_BASE_EXTREME = "guzhenren.command.failed.base_extreme";
+    private static final String FAILED_BASE_EXTREME = "guzhenren.command.failed.base_extreme";
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("aperture").requires(AwakenedGate::isSourceAwakened)

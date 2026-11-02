@@ -62,9 +62,7 @@ public final class SecondStageRingEmitter {
         if (!(player.level() instanceof ServerLevel level)) return;
         Vec3 look = player.getLookAngle();
         Vec3 ring = player.position().add(0.0D, RING_HEIGHT, 0.0D).subtract(look.scale(BOOM_BEHIND));
-        Vec3 velocity = look.scale(RingConeEmitter.RING_NORMAL_DRIFT);
-        level.sendParticles(ModParticles.SONIC_BOOM_RING.get(), ring.x, ring.y, ring.z,
-                0, velocity.x, velocity.y, velocity.z, 1.0D);
+        RingConeEmitter.sendRing(level, ModParticles.SONIC_BOOM_RING.get(), ring.x, ring.y, ring.z, look);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WARDEN_SONIC_BOOM,
                 SoundSource.PLAYERS, BOOM_VOLUME, BOOM_PITCH);
         TRAILS.put(player.getUUID(), BarrierRingTrail.start(player.position()));
@@ -73,9 +71,7 @@ public final class SecondStageRingEmitter {
     public static void crash(ServerPlayer player, Vec3 heading) {
         if (!(player.level() instanceof ServerLevel level)) return;
         Vec3 ring = player.position().add(0.0D, RING_HEIGHT, 0.0D).add(heading.scale(CRASH_AHEAD));
-        Vec3 velocity = heading.scale(RingConeEmitter.RING_NORMAL_DRIFT);
-        level.sendParticles(ModParticles.SONIC_BOOM_RING.get(), ring.x, ring.y, ring.z,
-                0, velocity.x, velocity.y, velocity.z, 1.0D);
+        RingConeEmitter.sendRing(level, ModParticles.SONIC_BOOM_RING.get(), ring.x, ring.y, ring.z, heading);
     }
 
     public static void tick(ServerPlayer player) {
@@ -91,9 +87,8 @@ public final class SecondStageRingEmitter {
         }
         BarrierRingTrail.Step step = trail.step(player.position());
         for (BarrierRingTrail.Ring ring : step.rings()) {
-            Vec3 velocity = ring.facing().scale(RingConeEmitter.RING_NORMAL_DRIFT);
-            level.sendParticles(ModParticles.BARRIER_RING.get(), ring.center().x, ring.center().y + RING_HEIGHT,
-                    ring.center().z, 0, velocity.x, velocity.y, velocity.z, 1.0D);
+            RingConeEmitter.sendRing(level, ModParticles.BARRIER_RING.get(), ring.center().x,
+                    ring.center().y + RING_HEIGHT, ring.center().z, ring.facing());
         }
         TRAILS.put(player.getUUID(), step.next());
     }

@@ -38,6 +38,6 @@ public final class MilkCureEvents {
     }
 
     private static boolean isOwn(@NotNull Holder<MobEffect> effect) {
-        return effect.unwrapKey().map(key -> key.location().getNamespace().equals(Guzhenren.MOD_ID)).orElse(false);
+        return effect.is(key -> key.location().getNamespace().equals(Guzhenren.MOD_ID));
     }
 }

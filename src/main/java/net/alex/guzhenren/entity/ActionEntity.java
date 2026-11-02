@@ -54,10 +54,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * wire id, with {@link #getIdleAction}, the target-keeping {@link #getAlertAction} and {@link #getDeathAction}), its
  * cooldowns and save keys, the attack choice ({@link #chooseAttack}), every non-idle action's timing
  * ({@link #tickAction}), the reaction to a hit ({@link #reactToHurt}) and each non-idle action's animation
- * ({@link #getActionAnimation}). An ambient action ({@link ActionFlags#isAmbient}) is a rest pose that combat
- * engagement interrupts. {@code registerGoals} and {@code defineSynchedData} run inside the entity constructor,
- * before subclass fields are assigned, so the hooks they reach ({@link #registerSpeciesGoals},
- * {@link #getIdleAction}, {@link #getCooldowns}) return constants.
+ * ({@link #getActionAnimation}, built once per action and reused every frame). An ambient action
+ * ({@link ActionFlags#isAmbient}) is a rest pose that combat engagement interrupts. {@code registerGoals} and
+ * {@code defineSynchedData} run inside the entity constructor, before subclass fields are assigned, so the hooks
+ * they reach ({@link #registerSpeciesGoals}, {@link #getIdleAction}, {@link #getCooldowns}) return constants.
  *
  * <p>{@link #tryStartAction} starts a server action: attacks refuse to start while another attack is in
  * progress, during recovery or under their cooldown, and the target is captured at once so a new attacker
@@ -98,6 +98,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private @Nullable BaseLoops baseLoops;
+    private final RawAnimation[] actionAnimations = new RawAnimation[this.getActionValues().length];
     private final Object2IntMap<Cooldown> cooldownTicks = new Object2IntOpenHashMap<>();
     @Nullable
     protected LivingEntity actionTarget;
@@ -460,12 +461,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         boolean wasDead = this.dead;
         super.die(source);
         if (!this.dead || wasDead) return;
-        this.setTarget(null);
-        this.actionTarget = null;
+        this.clearEngagement();
         this.recoveryTicks = 0;
-        this.onActionCleared();
-        this.setDeltaMovement(Vec3.ZERO);
-        this.getNavigation().stop();
         this.writeAction(this.getDeathAction(), this.level().getGameTime());
     }
 
@@ -484,6 +481,16 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
+        this.clearEngagement();
+        for (Cooldown cooldown : this.getCooldowns()) this.setCooldown(cooldown, tag.getInt(cooldown.saveKey()));
+        this.recoveryTicks = Mth.clamp(tag.getInt(this.getRecoverySaveKey()), 0, ATTACK_RECOVERY_TICKS);
+        this.entityData.set(DATA_PURSUING, false);
+        boolean dead = this.getHealth() <= 0.0F;
+        long now = this.level().getGameTime();
+        this.writeAction(dead ? this.getDeathAction() : this.getIdleAction(), dead ? now - this.deathTime : now);
+    }
+
+    private void clearEngagement() {
         this.setTarget(null);
         this.actionTarget = null;
         this.hitSettled = false;
@@ -491,12 +498,6 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         this.onActionCleared();
         this.setDeltaMovement(Vec3.ZERO);
         this.getNavigation().stop();
-        for (Cooldown cooldown : this.getCooldowns()) this.setCooldown(cooldown, tag.getInt(cooldown.saveKey()));
-        this.recoveryTicks = Mth.clamp(tag.getInt(this.getRecoverySaveKey()), 0, ATTACK_RECOVERY_TICKS);
-        this.entityData.set(DATA_PURSUING, false);
-        boolean dead = this.getHealth() <= 0.0F;
-        long now = this.level().getGameTime();
-        this.writeAction(dead ? this.getDeathAction() : this.getIdleAction(), dead ? now - this.deathTime : now);
     }
 
     @Override
@@ -519,10 +520,19 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     private PlayState handleAnimationState(AnimationState<ActionEntity<A>> state) {
         A current = this.getAction();
-        if (current != this.getIdleAction()) return state.setAndContinue(this.getActionAnimation(current));
+        if (current != this.getIdleAction()) return state.setAndContinue(this.actionAnimation(current));
         if (this.baseLoops == null) this.baseLoops = BaseLoops.of(this.getAnimationPrefix());
         return state.setAndContinue(!state.isMoving() ? this.baseLoops.idle()
                 : this.isPursuing() ? this.baseLoops.run() : this.baseLoops.walk());
+    }
+
+    private RawAnimation actionAnimation(A action) {
+        RawAnimation animation = this.actionAnimations[action.ordinal()];
+        if (animation == null) {
+            animation = this.getActionAnimation(action);
+            this.actionAnimations[action.ordinal()] = animation;
+        }
+        return animation;
     }
 
     @Override

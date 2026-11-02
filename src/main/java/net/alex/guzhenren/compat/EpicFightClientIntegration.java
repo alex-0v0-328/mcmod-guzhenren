@@ -1,11 +1,14 @@
 package net.alex.guzhenren.compat;
 
 import com.mojang.math.Axis;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,7 +53,7 @@ import yesman.epicfight.api.client.event.types.render.PrepareModelEvent;
 public final class EpicFightClientIntegration {
 
     private static final int LEAN_TICKS = 6;
-    private static final Map<Integer, float[]> LEANS = new HashMap<>();
+    private static final Int2ObjectMap<float[]> LEANS = new Int2ObjectOpenHashMap<>();
 
     private EpicFightClientIntegration() {}
 
@@ -72,17 +75,19 @@ public final class EpicFightClientIntegration {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || minecraft.isPaused()) return;
-        for (Player player : minecraft.level.players()) {
-            if (isLeaning(player)) LEANS.computeIfAbsent(player.getId(), id -> new float[2]);
+        ClientLevel level = minecraft.level;
+        if (level == null || minecraft.isPaused()) return;
+        for (Player player : level.players()) {
+            if (isLeaning(player) && !LEANS.containsKey(player.getId())) LEANS.put(player.getId(), new float[2]);
         }
-        LEANS.entrySet().removeIf(entry -> {
+        for (ObjectIterator<Int2ObjectMap.Entry<float[]>> it = Int2ObjectMaps.fastIterator(LEANS); it.hasNext(); ) {
+            Int2ObjectMap.Entry<float[]> entry = it.next();
             float[] lean = entry.getValue();
             lean[0] = lean[1];
-            boolean leaning = minecraft.level.getEntity(entry.getKey()) instanceof Player player && isLeaning(player);
+            boolean leaning = level.getEntity(entry.getIntKey()) instanceof Player player && isLeaning(player);
             lean[1] = Mth.clamp(lean[1] + (leaning ? 1.0F : -1.0F) / LEAN_TICKS, 0.0F, 1.0F);
-            return !leaning && lean[0] == 0.0F && lean[1] == 0.0F;
-        });
+            if (!leaning && lean[0] == 0.0F && lean[1] == 0.0F) it.remove();
+        }
     }
 
     @SubscribeEvent

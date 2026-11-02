@@ -28,30 +28,26 @@ public final class GuUpkeep {
 
     private GuUpkeep() {}
 
-    public static boolean tickInContainer(ServerPlayer player, ItemStack stack, long days) {
-        return tickOne(player, stack, days);
-    }
-
     public static void tickCarried(ServerPlayer player, long days) {
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (tickOne(player, stack, days)) {
+            if (tickInContainer(player, stack, days)) {
                 inventory.setItem(slot, ItemStack.EMPTY);
                 TendedGuItem.starve(player, stack);
             }
         }
     }
 
-    private static boolean tickOne(ServerPlayer player, ItemStack stack, long days) {
+    public static boolean tickInContainer(ServerPlayer player, ItemStack stack, long days) {
         if (!(stack.getItem() instanceof TendedGuItem gu) || !gu.isRefined(stack)) return false;
 
         gu.payOwnUpkeep(player, stack);
         if (days > 0L) gu.feed(player, stack);
         if (gu.hunger.tickStarvation(player, stack, days)) return true;
 
-        if (days > 0L) gu.feed(player, stack);
-        if (gu.hunger.isHungry(player, stack)) gu.hunger.warn(player, stack, days);
+        // Runs every heartbeat while the bar drains only on a rollover: warning on any other beat would repeat it.
+        if (days > 0L) gu.feedAndWarn(player, stack);
         return false;
     }
 }

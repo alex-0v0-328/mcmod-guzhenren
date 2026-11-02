@@ -25,16 +25,8 @@ public final class UndeadService {
         if (BodyService.isTempZombie(player) && BodyService.hasTempZombieRunOut(player)) {
             BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
         }
-        projectTempZombie(player);
-    }
-
-    private static void projectTempZombie(ServerPlayer player) {
-        if (!BodyService.isTempZombie(player)) {
-            if (player.hasEffect(ModEffects.TEMP_ZOMBIE)) player.removeEffect(ModEffects.TEMP_ZOMBIE);
-            return;
-        }
-        player.addEffect(ModEffects.instance(ModEffects.TEMP_ZOMBIE,
-                Math.max(1, (int) BodyService.getTempZombieTicksLeft(player))));
+        BodyService.projectMarker(player, ModEffects.TEMP_ZOMBIE, BodyService.isTempZombie(player),
+                BodyService.getTempZombieTicksLeft(player));
     }
 
     public static void pinHunger(@NotNull ServerPlayer player) {

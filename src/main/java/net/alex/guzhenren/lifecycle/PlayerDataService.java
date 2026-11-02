@@ -64,11 +64,9 @@ public final class PlayerDataService {
         ApertureService.syncTalentEffect(player);
         BodyService.syncRaceTalent(player);
         StateEffects.sync(player);
-        MaxHealthService.refresh(player);
-        KnockbackResistanceService.refresh(player);
+        refreshBody(player);
         MaxHealthService.restoreCarried(player);
-        AttackDamageService.refresh(player);
-        ModEvents.post(new PlayerRefreshedEvent(player));
+        refreshDamage(player);
     }
 
     public static void onLogout(@NotNull ServerPlayer player) { MaxHealthService.carry(player); }
@@ -95,11 +93,9 @@ public final class PlayerDataService {
             data.setKillingMoves(data.getKillingMoves().withActive(KillingMoveData.NONE));
         }
         if (to instanceof ServerPlayer server) {
-            MaxHealthService.refresh(server);
-            KnockbackResistanceService.refresh(server);
+            refreshBody(server);
             server.setHealth(wasDeath ? server.getMaxHealth() : from.getHealth());
-            AttackDamageService.refresh(server);
-            ModEvents.post(new PlayerRefreshedEvent(server));
+            refreshDamage(server);
         }
     }
 
@@ -137,10 +133,19 @@ public final class PlayerDataService {
         onBirth(player);
 
         if (player instanceof ServerPlayer server) {
-            MaxHealthService.refresh(server);
-            KnockbackResistanceService.refresh(server);
-            AttackDamageService.refresh(server);
-            ModEvents.post(new PlayerRefreshedEvent(server));
+            refreshBody(server);
+            refreshDamage(server);
         }
+    }
+
+    private static void refreshBody(ServerPlayer player) {
+        MaxHealthService.refresh(player);
+        KnockbackResistanceService.refresh(player);
+    }
+
+    /** Re-derives attack damage, then tells the listeners the derived attributes are settled. */
+    private static void refreshDamage(ServerPlayer player) {
+        AttackDamageService.refresh(player);
+        ModEvents.post(new PlayerRefreshedEvent(player));
     }
 }

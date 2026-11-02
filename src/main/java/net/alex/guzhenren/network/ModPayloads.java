@@ -20,6 +20,7 @@ import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -81,12 +82,9 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.killingMove(player, intent.move(), intent.target()));
         toServer(registrar, PrimevalElderPayload.TYPE, PrimevalElderPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.primevalElder(player, intent.action(), intent.stacks()));
-        registrar.playToClient(SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC,
-                (notice, context) -> dispatchToClient(notice));
-        registrar.playToClient(ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC,
-                (notice, context) -> dispatchToClient(notice));
-        registrar.playToClient(KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC,
-                (notice, context) -> dispatchToClient(notice));
+        toClient(registrar, SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC);
+        toClient(registrar, ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC);
+        toClient(registrar, KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC);
     }
 
     /** Registers what the client does with a notice of {@code noticeClass}; called from client setup only. */
@@ -107,5 +105,11 @@ public final class ModPayloads {
         registrar.playToServer(type, codec, (intent, context) -> {
             if (context.player() instanceof ServerPlayer player) handle.accept(intent, player);
         });
+    }
+
+    private static <T extends CustomPacketPayload> void toClient(
+            PayloadRegistrar registrar, CustomPacketPayload.Type<T> type,
+            StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
+        registrar.playToClient(type, codec, (notice, context) -> dispatchToClient(notice));
     }
 }

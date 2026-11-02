@@ -12,8 +12,9 @@ import net.minecraft.world.item.ItemStack;
  * from the holder's bag ({@link #feed}: every slot, offhand included; each food mends first through {@link GuHealth},
  * then fills the bar).
  *
- * <p>⚠ {@link #feed} is the one meal and runs only while the bar has room ({@link #hasRoom}): a full bar never eats
- * just to mend, so a wound waits for the next drop. When it runs is {@code TendedGuItem}'s rule, not this one's.
+ * <p>⚠ {@link #feed} is the one meal and runs only while a {@code HungerBar} has room: a full bar never eats just to
+ * mend, so a wound waits for the next drop; a bar that never drains never eats. When it runs is {@code
+ * TendedGuItem}'s rule, not this one's.
  *
  * <p>A sealed interface with three implementations: {@link HungerBar} (every tended Gu with a bar that drains),
  * {@link RecoverBar} (the As Before Gu [如故蛊]: a bar that refills with the world clock, never drains by the day,
@@ -40,11 +41,8 @@ import net.minecraft.world.item.ItemStack;
  * A partner's bill ({@link #isSpendForcedAsPartner}) keeps the empty-bar rule.
  *
  * <p>⚠ "Hungry" means only that the next day rollover will kill it: the threshold is the bar's daily drain
- * ({@code perDay}), never the size of a meal.
- *
- * <p>⚠ {@code HungerBar.warn} latches on {@code days > 0}: {@link GuUpkeep} runs on every heartbeat while the bar
- * drains only on a day rollover, so without the latch the hungry message would repeat every second.
- * {@code TendedGuItem.drive} passes 1 for its one immediate warning.
+ * ({@code perDay}), never the size of a meal. Only a {@code HungerBar} is ever hungry; the warning itself is {@code
+ * TendedGuItem.feedAndWarn}'s.
  *
  * @author Alex
  * @version 1.0.0
@@ -59,13 +57,9 @@ public sealed interface GuHunger {
 
     boolean tickStarvation(ServerPlayer player, ItemStack stack, long days);
 
-    boolean isHungry(ServerPlayer player, ItemStack stack);
+    boolean isHungry(ItemStack stack);
 
-    void warn(ServerPlayer player, ItemStack stack, long days);
-
-    boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food);
-
-    boolean hasRoom(ItemStack stack);
+    void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack);
 
     int getEssenceAboveHungerFloor(ItemStack stack);
 
@@ -81,20 +75,7 @@ public sealed interface GuHunger {
 
     float getBarFraction(ItemStack stack);
 
-    //region the bag -- every meal mends first, then fills the bar, and only a bar with room eats
-    default void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
-        if (!hasRoom(stack)) return;
-
-        Inventory inventory = player.getInventory();
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            ItemStack food = inventory.getItem(slot);
-            if (gu.feedUnits(food) <= 0) continue;
-
-            gu.health.mendFrom(gu, player, stack, food);
-            tryEat(gu, player, stack, food);
-        }
-    }
-
+    //region the bag
     default boolean carriesFood(TendedGuItem gu, Player player) {
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
@@ -108,14 +89,9 @@ public sealed interface GuHunger {
     record HungerBar(int max, int unitsPerHunger, int essencePerRound, int perRound, int perUse, int perDay)
             implements GuHunger {
 
-        private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
+        private void setHunger(ItemStack stack, int value) { storeBar(stack, value, max); }
 
-        private void setHunger(ItemStack stack, int value) {
-            RefinedGuState s = getState(stack);
-            stack.set(ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
-        }
-
-        private int getHunger(ItemStack stack) { return getState(stack).hunger(); }
+        private int getHunger(ItemStack stack) { return TendedGuItem.getState(stack).hunger(); }
 
         @Override
         public void bind(ServerPlayer player, ItemStack stack) { setHunger(stack, max); }
@@ -134,34 +110,31 @@ public sealed interface GuHunger {
         }
 
         @Override
-        public boolean isHungry(ServerPlayer player, ItemStack stack) { return getHunger(stack) <= perDay; }
+        public boolean isHungry(ItemStack stack) { return getHunger(stack) <= perDay; }
 
+        // Every meal mends first, then fills the bar, and only a bar with room eats.
         @Override
-        public void warn(ServerPlayer player, ItemStack stack, long days) {
-            if (days > 0L) TendedGuItem.announceHungry(player, stack);
-        }
+        public void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
+            if (getHunger(stack) >= max) return;
 
-        @Override
-        public boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) {
-            int units = gu.feedUnits(food);
-            if (units <= 0) return false;
+            Inventory inventory = player.getInventory();
+            for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+                ItemStack food = inventory.getItem(slot);
+                if (gu.feedUnits(food) <= 0) continue;
 
-            int room = max - getHunger(stack);
-            if (room <= 0) return false;
-
-            GuMeal meal = GuMeal.createPortion(food.getCount(), room, unitsPerHunger, units);
-            if (meal.gained() <= 0) return false;
-
-            if (!player.getAbilities().instabuild) {
-                GuMeal.returnEmptyContainers(player, food, meal.eaten());
-                food.shrink(meal.eaten());
+                gu.health.mendFrom(gu, player, stack, food);
+                eat(gu, player, stack, food);
             }
-            setHunger(stack, getHunger(stack) + meal.gained());
-            return true;
         }
 
-        @Override
-        public boolean hasRoom(ItemStack stack) { return getHunger(stack) < max; }
+        private void eat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) {
+            int units = gu.feedUnits(food);
+            int room = max - getHunger(stack);
+            if (units <= 0 || room <= 0) return;
+
+            int gained = GuMeal.eat(player, food, room, unitsPerHunger, units);
+            if (gained > 0) setHunger(stack, getHunger(stack) + gained);
+        }
 
         @Override
         public int getEssenceAboveHungerFloor(ItemStack stack) {
@@ -205,14 +178,9 @@ public sealed interface GuHunger {
     //region 回复条 -- refills with the world clock, never drains by the day, never eats
     record RecoverBar(int max, int ticksPerPoint, int perUse) implements GuHunger {
 
-        private static RefinedGuState getState(ItemStack stack) { return TendedGuItem.getState(stack); }
+        private void setPoints(ItemStack stack, int value) { storeBar(stack, value, max); }
 
-        private void setPoints(ItemStack stack, int value) {
-            RefinedGuState s = getState(stack);
-            stack.set(ModDataComponents.REFINED_GU_STATE, s.withHunger(Mth.clamp(value, 0, max)));
-        }
-
-        public int getPoints(ItemStack stack) { return getState(stack).hunger(); }
+        public int getPoints(ItemStack stack) { return TendedGuItem.getState(stack).hunger(); }
 
         public int getPoints(ItemStack stack, long now) {
             Long stamp = stack.get(ModDataComponents.RECOVERED_AT);
@@ -254,7 +222,7 @@ public sealed interface GuHunger {
         }
 
         public void settleHealth(ItemStack stack, long now) {
-            RefinedGuState s = getState(stack);
+            RefinedGuState s = TendedGuItem.getState(stack);
             Long stamp = stack.get(ModDataComponents.HEALED_AT);
             if (s.damageTaken() <= 0) {
                 if (stamp != null) stack.remove(ModDataComponents.HEALED_AT);
@@ -284,22 +252,17 @@ public sealed interface GuHunger {
 
         @Override
         public boolean tickStarvation(ServerPlayer player, ItemStack stack, long days) {
-            settle(stack, player.level().getGameTime());
-            settleHealth(stack, player.level().getGameTime());
+            long now = player.level().getGameTime();
+            settle(stack, now);
+            settleHealth(stack, now);
             return false;
         }
 
         @Override
-        public boolean isHungry(ServerPlayer player, ItemStack stack) { return false; }
+        public boolean isHungry(ItemStack stack) { return false; }
 
         @Override
-        public void warn(ServerPlayer player, ItemStack stack, long days) {}
-
-        @Override
-        public boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) { return false; }
-
-        @Override
-        public boolean hasRoom(ItemStack stack) { return false; }
+        public void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack) {}
 
         @Override
         public int getEssenceAboveHungerFloor(ItemStack stack) { return Integer.MAX_VALUE; }
@@ -335,10 +298,10 @@ public sealed interface GuHunger {
         public boolean tickStarvation(ServerPlayer player, ItemStack stack, long days) { return false; }
 
         @Override
-        public boolean isHungry(ServerPlayer player, ItemStack stack) { return false; }
+        public boolean isHungry(ItemStack stack) { return false; }
 
         @Override
-        public void warn(ServerPlayer player, ItemStack stack, long days) {}
+        public void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack) {}
 
         @Override
         public int getEssenceAboveHungerFloor(ItemStack stack) { return Integer.MAX_VALUE; }
@@ -357,15 +320,14 @@ public sealed interface GuHunger {
 
         @Override
         public float getBarFraction(ItemStack stack) { return 0.0F; }
-
-        @Override
-        public boolean tryEat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) { return false; }
-
-        @Override
-        public boolean hasRoom(ItemStack stack) { return false; }
     }
     //endregion
 
     int HUNGRY_THRESHOLD = 1;
     int CHANNEL_HUNGER_FLOOR = HUNGRY_THRESHOLD + 1;
+
+    private static void storeBar(ItemStack stack, int value, int max) {
+        RefinedGuState state = TendedGuItem.getState(stack);
+        stack.set(ModDataComponents.REFINED_GU_STATE, state.withHunger(Mth.clamp(value, 0, max)));
+    }
 }

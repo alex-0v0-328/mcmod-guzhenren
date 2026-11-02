@@ -6,7 +6,6 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CasualGuEffect;
-import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
@@ -273,7 +272,7 @@ public final class ModItems {
                             .refine(80_000).costPerUse(1_600)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.HORIZONTAL_CRASH_GU, CrashGuEffect.getDuration(30)),
+                    new TimedBuffModule(ModEffects.HORIZONTAL_CRASH_GU, 30 * Ticks.SECOND),
                     new RecastModule()))
             .lang("Horizontal Crash Gu", "横冲蛊").register();
     public static final DeferredItem<Item> VERTICAL_CRASH_GU = REGISTRAR.item("vertical_crash_gu",
@@ -282,7 +281,7 @@ public final class ModItems {
                             .refine(80_000).costPerUse(1_600)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.VERTICAL_CRASH_GU, CrashGuEffect.getDuration(30)),
+                    new TimedBuffModule(ModEffects.VERTICAL_CRASH_GU, 30 * Ticks.SECOND),
                     new RecastModule()))
             .lang("Vertical Crash Gu", "直撞蛊").register();
     public static final DeferredItem<Item> CHARGING_CRASH_GU_4 = REGISTRAR.item("charging_crash_gu_4",
@@ -291,7 +290,7 @@ public final class ModItems {
                             .refine(800_000).costPerUse(16_000)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, CrashGuEffect.getDuration(30), 3),
+                    new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, 30 * Ticks.SECOND, 3),
                     new RecastModule()))
             .lang("Charging Crash Gu IV", "四转横冲直撞蛊").register();
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = REGISTRAR.item("charging_crash_gu_5",
@@ -300,7 +299,7 @@ public final class ModItems {
                             .refine(8_000_000).costPerUse(160_000)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, CrashGuEffect.getDuration(60), 4),
+                    new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, 60 * Ticks.SECOND, 4),
                     new RecastModule()))
             .lang("Charging Crash Gu V", "五转横冲直撞蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = REGISTRAR.item("self_reliance_gu_2",

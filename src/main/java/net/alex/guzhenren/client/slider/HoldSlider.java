@@ -71,7 +71,7 @@ public final class HoldSlider {
     private static final int LINE_GAP = 3;
     private static final int END_GAP = 4;
     private static final int TRACK_FILL = 0xBF000000;
-    private static final String CANCEL = "guzhenren.hud.slider.cancel";
+    private static final Component CANCEL = Component.translatable("guzhenren.hud.slider.cancel");
     private static @Nullable Owner owner;
     private static int top = -1;
     private static int heldTicks;
@@ -174,7 +174,7 @@ public final class HoldSlider {
         int trackY = labelY + font.lineHeight + LINE_GAP + (KNOB_HEIGHT - TRACK_HEIGHT) / 2;
         int detailY = trackY + TRACK_HEIGHT + (KNOB_HEIGHT - TRACK_HEIGHT) / 2 + LINE_GAP;
 
-        Component label = value > 0 ? current.label(value) : Component.translatable(CANCEL);
+        Component label = value > 0 ? current.label(value) : CANCEL;
         graphics.drawCenteredString(font, label, graphics.guiWidth() / 2, labelY, ModPalette.TEXT);
 
         int knob = left + Math.round((float) value / top * (TRACK_WIDTH - KNOB_WIDTH));
@@ -183,9 +183,8 @@ public final class HoldSlider {
         int knobY = trackY - (KNOB_HEIGHT - TRACK_HEIGHT) / 2;
         graphics.fill(knob, knobY, knob + KNOB_WIDTH, knobY + KNOB_HEIGHT, ModPalette.TEXT);
 
-        Component cancel = Component.translatable(CANCEL);
         int endY = trackY + TRACK_HEIGHT / 2 - font.lineHeight / 2;
-        graphics.drawString(font, cancel, left - END_GAP - font.width(cancel), endY,
+        graphics.drawString(font, CANCEL, left - END_GAP - font.width(CANCEL), endY,
                 value == 0 ? ModPalette.TEXT : ModPalette.LEGEND_TEXT, true);
         graphics.drawString(font, String.valueOf(top), left + TRACK_WIDTH + END_GAP, endY,
                 value == top ? ModPalette.TEXT : ModPalette.LEGEND_TEXT, true);

@@ -1,6 +1,5 @@
 package net.alex.guzhenren.vault;
 
-import net.alex.guzhenren.core.ItemStacks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.gu.GuUpkeep;
@@ -49,7 +48,7 @@ public final class ApertureStorageTick {
             ItemStack stack = original.copy();
             boolean starved = GuUpkeep.tickInContainer(player, stack, days);
             if (starved) TendedGuItem.starve(player, stack);
-            if (!starved && !hasChanged(original, stack)) continue;
+            if (!starved && ItemStack.matches(original, stack)) continue;
 
             ApertureStorageService.setSlot(player, aperture, i, starved ? ItemStack.EMPTY : stack);
         }
@@ -65,15 +64,10 @@ public final class ApertureStorageTick {
             TendedGuItem.starve(player, stack);
             return;
         }
-        if (hasChanged(before, stack)) ApertureStorageService.setVital(player, aperture, stack);
+        if (!ItemStack.matches(before, stack)) ApertureStorageService.setVital(player, aperture, stack);
     }
 
     private static boolean isRefinedTended(ItemStack stack) {
         return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack);
-    }
-
-    private static boolean hasChanged(ItemStack before, ItemStack after) {
-        return before.getCount() != after.getCount()
-                || !ItemStacks.isSameItemSameData(before, after);
     }
 }

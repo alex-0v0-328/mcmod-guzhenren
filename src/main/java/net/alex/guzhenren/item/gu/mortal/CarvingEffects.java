@@ -22,7 +22,6 @@ import net.alex.guzhenren.item.gu.mortal.strength.BeastStrengthModule;
 import net.alex.guzhenren.item.gu.mortal.strength.HumanStrengthModule;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -93,15 +92,15 @@ public final class CarvingEffects {
         MortalGuItem gu = ModItems.findGuWith(BeastStrengthModule.class, module -> module.beast() == beast);
         if (gu == null) return;
 
-        ResourceLocation source = getId(gu);
+        ResourceLocation source = gu.getEffectSource();
         boolean worn = PathEffectService.find(player, ModPathEffectTypes.BEAST_STRENGTH, source) != null;
         if (PathStrengthService.has(player, beast) == worn) return;
 
         if (worn) {
             PathEffectService.remove(player, effect -> isOf(effect, ModPathEffectTypes.BEAST_STRENGTH, source));
         } else {
-            PathEffectService.apply(player, gu.getSpec().createEffect(
-                    ModPathEffectTypes.BEAST_STRENGTH, source, PathEffect.PERMANENT, beast));
+            PathEffectService.apply(player,
+                    gu.createEffect(ModPathEffectTypes.BEAST_STRENGTH, PathEffect.PERMANENT, beast));
         }
     }
 
@@ -109,7 +108,7 @@ public final class CarvingEffects {
         MortalGuItem gu = ModItems.findGuWith(HumanStrengthModule.class, module -> module.kind() == kind);
         if (gu == null) return;
 
-        ResourceLocation source = getId(gu);
+        ResourceLocation source = gu.getEffectSource();
         int layers = PathStrengthService.getHumanStrength(player, kind);
         PathEffect<HumanStrength> worn = PathEffectService.find(player, ModPathEffectTypes.HUMAN_STRENGTH, source);
         if (layers <= 0) {
@@ -120,8 +119,8 @@ public final class CarvingEffects {
         }
         Map<GuPath, DaoMarks> layer = gu.getSpec().getEffectPaths();
         if (worn == null) {
-            PathEffectService.apply(player, withLayers(gu.getSpec().createEffect(
-                    ModPathEffectTypes.HUMAN_STRENGTH, source, PathEffect.PERMANENT, kind), layer, layers));
+            PathEffectService.apply(player, withLayers(gu.createEffect(
+                    ModPathEffectTypes.HUMAN_STRENGTH, PathEffect.PERMANENT, kind), layer, layers));
         } else if (worn.layers() != layers) {
             PathEffectService.update(player, ModPathEffectTypes.HUMAN_STRENGTH, source,
                     effect -> withLayers(effect, layer, layers));
@@ -139,7 +138,7 @@ public final class CarvingEffects {
         }
         if (worn != null && worn.payload() == grade) return;
 
-        PathEffectService.apply(player, gu.getSpec().createEffect(type, getId(gu), PathEffect.PERMANENT, grade));
+        PathEffectService.apply(player, gu.createEffect(type, PathEffect.PERMANENT, grade));
     }
 
     private static <P> PathEffect<P> withLayers(PathEffect<P> effect, Map<GuPath, DaoMarks> layer, int layers) {
@@ -147,7 +146,9 @@ public final class CarvingEffects {
         while (next.layers() < layers) next = next.addLayer(layer);
         int dropped = next.layers() - layers;
         for (int i = 0; i < dropped; i++) {
-            for (Map.Entry<GuPath, DaoMarks> entry : layer.entrySet()) next = next.cut(entry.getKey(), entry.getValue());
+            for (Map.Entry<GuPath, DaoMarks> entry : layer.entrySet()) {
+                next = next.cut(entry.getKey(), entry.getValue());
+            }
         }
         return new PathEffect<>(next.type(), next.carrier(), next.source(), next.paths(), next.endTick(), layers,
                 next.payload());
@@ -156,6 +157,4 @@ public final class CarvingEffects {
     private static boolean isOf(PathEffect<?> effect, PathEffectType<?> type, ResourceLocation source) {
         return effect.type() == type && effect.source().equals(source);
     }
-
-    private static ResourceLocation getId(MortalGuItem gu) { return BuiltInRegistries.ITEM.getKey(gu); }
 }

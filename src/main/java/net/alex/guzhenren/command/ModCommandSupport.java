@@ -23,14 +23,13 @@ import net.minecraft.util.StringRepresentable;
 /**
  * The shared pieces every subcommand is built from: target resolution, gating, and feedback. Provides
  * the {@code withTargets} wrapper hanging {@code [targets]} off a literal, the {@code apply}/{@code
- * applyIf} runners iterating per target (one loop, in {@code applyIfResult}), and {@code refreshCommands}
+ * applyIf} runners iterating per target (one loop, in {@code run}), and {@code refreshCommands}
  * re-sending the command tree after a gate flip; also the
- * shared verb builders ({@code buildEnumSetNode}, {@code buildLongNode}, {@code buildCounter},
- * {@code buildEnumCounter}).
+ * shared verb builders ({@code buildEnumSetNode}, {@code buildCounter}, {@code buildEnumCounter}).
  *
  * <p>{@code enumCounter} is the set/add/sub triple behind one enum argument; the amount is read as
  * any {@code Number} so an {@code int} argument narrows back exactly. Its {@code sub} negates plainly,
- * unlike {@code counter}, which saturates. Its result overload reports a {@code false} write under the refusal key.
+ * unlike {@code counter}, which saturates. A {@code false} write is reported under the refusal key.
  *
  * <p>⚠ Anything that flips the answer of a {@code requires()} predicate has to ask this class to
  * refresh the command tree, or the client keeps the tree it was last sent.
@@ -50,6 +49,7 @@ public final class ModCommandSupport {
     public static final String FAILED_AWAKENED = "guzhenren.command.failed.awakened";
     public static final String FAILED_UNAWAKENED = "guzhenren.command.failed.unawakened";
     public static final Predicate<ServerPlayer> ANYONE = player -> true;
+
     public static void refreshCommands(ServerPlayer player) {
         MinecraftServer server = player.getServer();
         if (server != null) server.getCommands().sendCommands(player);
@@ -62,17 +62,12 @@ public final class ModCommandSupport {
                 .then(Commands.argument(ARG_TARGETS, EntityArgument.players()).executes(executor));
     }
 
-    public static ArgumentBuilder<CommandSourceStack, ?> buildLongNode(String literal, LongOperation operation) {
-        return buildLongNode(literal, operation, ANYONE, null);
-    }
-
-    public static ArgumentBuilder<CommandSourceStack, ?> buildLongNode(
-            String literal, LongOperation operation, Predicate<ServerPlayer> allowed, String refusedKey) {
+    private static ArgumentBuilder<CommandSourceStack, ?> buildLongNode(String literal, LongOperation operation) {
         return Commands.literal(literal).then(withTargets(
                 Commands.argument(ARG_VALUE, LongArgumentType.longArg()),
                 context -> {
                     long value = LongArgumentType.getLong(context, ARG_VALUE);
-                    return applyIf(context, allowed, refusedKey, player -> operation.apply(player, value));
+                    return apply(context, player -> operation.apply(player, value));
                 }));
     }
 
@@ -83,12 +78,6 @@ public final class ModCommandSupport {
                 .then(buildLongNode("add", add))
                 .then(buildLongNode("sub",
                         (player, value) -> add.apply(player, LongMath.saturatedSubtract(0L, value))));
-    }
-
-    public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCounter(
-            String argument, E[] values, ArgumentType<? extends Number> amountType,
-            EnumCountOperation<E> set, EnumCountOperation<E> add) {
-        return buildEnumCounter(argument, values, amountType, always(set), always(add), null);
     }
 
     public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCounter(
@@ -109,13 +98,6 @@ public final class ModCommandSupport {
             long amount = context.getArgument(ARG_VALUE, Number.class).longValue();
             return applyIfResult(context, ANYONE, refusedKey, player -> operation.apply(player, value, amount));
         }));
-    }
-
-    private static <E extends Enum<E>> EnumCountResultOperation<E> always(EnumCountOperation<E> operation) {
-        return (player, value, amount) -> {
-            operation.apply(player, value, amount);
-            return true;
-        };
     }
 
     public static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumSetNode(
@@ -146,26 +128,28 @@ public final class ModCommandSupport {
     public static int applyIfResult(CommandContext<CommandSourceStack> context, Predicate<ServerPlayer> allowed,
                                     String refusedKey, ResultOperation operation) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
-        List<ServerPlayer> refused = new ArrayList<>();
-        int updated = 0;
-
-        for (ServerPlayer player : getTargets(context)) {
-            if (!allowed.test(player) || !operation.apply(player)) {
-                refused.add(player);
-                continue;
-            }
-            updated++;
-        }
-
-        if (!refused.isEmpty()) {
-            ModCommandFeedback.sendFailure(source, Component.translatable(refusedKey, getNames(refused)));
+        Outcome outcome = run(context, player -> allowed.test(player) && operation.apply(player));
+        int updated = outcome.done().size();
+        if (!outcome.refused().isEmpty()) {
+            ModCommandFeedback.sendFailure(source, Component.translatable(refusedKey, outcome.refusedNames()));
         }
         if (updated > 0) ModCommandFeedback.sendSuccess(source,
                 Component.translatable("guzhenren.command.updated", updated));
         return updated;
     }
 
-    public static Collection<ServerPlayer> getTargets(CommandContext<CommandSourceStack> context)
+    /** Runs {@code operation} on every target, splitting them by its answer. */
+    static Outcome run(CommandContext<CommandSourceStack> context, ResultOperation operation)
+            throws CommandSyntaxException {
+        List<ServerPlayer> done = new ArrayList<>();
+        List<ServerPlayer> refused = new ArrayList<>();
+        for (ServerPlayer player : getTargets(context)) {
+            (operation.apply(player) ? done : refused).add(player);
+        }
+        return new Outcome(List.copyOf(done), List.copyOf(refused));
+    }
+
+    private static Collection<ServerPlayer> getTargets(CommandContext<CommandSourceStack> context)
             throws CommandSyntaxException {
         boolean explicit = context.getNodes().stream()
                 .anyMatch(node -> node.getNode().getName().equals(ARG_TARGETS));
@@ -175,10 +159,19 @@ public final class ModCommandSupport {
                 : List.of(context.getSource().getPlayerOrException());
     }
 
-    private static Component getNames(List<ServerPlayer> players) {
-        return ComponentUtils.formatList(players, ServerPlayer::getDisplayName);
-    }
     //endregion
+
+    /** The targets an operation went through for and the ones it refused, both in target order. */
+    record Outcome(List<ServerPlayer> done, List<ServerPlayer> refused) {
+
+        Component doneNames() { return getNames(done); }
+
+        Component refusedNames() { return getNames(refused); }
+
+        private static Component getNames(List<ServerPlayer> players) {
+            return ComponentUtils.formatList(players, ServerPlayer::getDisplayName);
+        }
+    }
 
     @FunctionalInterface
     public interface PlayerOperation {
@@ -196,12 +189,6 @@ public final class ModCommandSupport {
     public interface EnumOperation<E extends Enum<E>> {
 
         void apply(ServerPlayer player, E value);
-    }
-
-    @FunctionalInterface
-    public interface EnumCountOperation<E extends Enum<E>> {
-
-        void apply(ServerPlayer player, E value, long amount);
     }
 
     @FunctionalInterface

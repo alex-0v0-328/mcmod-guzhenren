@@ -37,10 +37,8 @@ import org.joml.Vector3f;
  * pixels read coarser for it. The quad size lerps toward the next frame every tick ({@link #nextQuadSize}), so the
  * bloom reads smooth instead of stepping.
  *
- * <p>{@link Orientation} is chosen per particle type by the provider: {@link Orientation#GROUND} lays the
- * quad flat in the world XZ plane, never rotated by the camera; {@link Orientation#FACING_MOTION} builds the
- * ring plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the camera by
- * {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
+ * <p>Every ring builds its plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the
+ * camera by {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
  * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
  * {@link #createFacingMotion(SpriteSet)}, {@link #createDashTrail(SpriteSet)},
  * {@link #createSonicBoom(SpriteSet)} or {@link #createBarrierRing(SpriteSet)}.
@@ -84,8 +82,6 @@ import org.joml.Vector3f;
 
 public final class RingParticle extends TextureSheetParticle {
 
-    public enum Orientation { GROUND, FACING_MOTION }
-
     enum Exit { HOLD, FADE, SPREAD }
 
     public static final ParticleRenderType ADDITIVE_GLOW = new ParticleRenderType() {
@@ -111,7 +107,6 @@ public final class RingParticle extends TextureSheetParticle {
     private static final int DASH_SELF_HIDE_TICKS = 20;
     private static int localDashHiddenUntilTick = Integer.MIN_VALUE;
     private final SpriteSet sprites;
-    private final Orientation orientation;
     private final boolean dashTrailRing;
     private final float largestSpan;
     private final Exit exit;
@@ -120,11 +115,9 @@ public final class RingParticle extends TextureSheetParticle {
 
     private RingParticle(ClientLevel level, double x, double y, double z,
                          double xSpeed, double ySpeed, double zSpeed,
-                         SpriteSet sprites, Orientation orientation, boolean dashTrailRing,
-                         float largestSpan, Exit exit, int lingerTicks) {
+                         SpriteSet sprites, boolean dashTrailRing, float largestSpan, Exit exit, int lingerTicks) {
         super(level, x, y, z);
         this.sprites = sprites;
-        this.orientation = orientation;
         this.dashTrailRing = dashTrailRing;
         this.largestSpan = largestSpan;
         this.exit = exit;
@@ -138,30 +131,25 @@ public final class RingParticle extends TextureSheetParticle {
     }
 
     public static ParticleProvider<SimpleParticleType> createFacingMotion(SpriteSet sprites) {
-        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
-                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.FACING_MOTION, false, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD,
-                        RING_LINGER_TICKS);
+        return create(sprites, false, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD, RING_LINGER_TICKS);
     }
 
     public static ParticleProvider<SimpleParticleType> createDashTrail(SpriteSet sprites) {
-        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
-                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.FACING_MOTION, true, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD,
-                        RING_LINGER_TICKS);
+        return create(sprites, true, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD, RING_LINGER_TICKS);
     }
 
     public static ParticleProvider<SimpleParticleType> createSonicBoom(SpriteSet sprites) {
-        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
-                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.FACING_MOTION, false, SONIC_BOOM_SPAN, Exit.FADE, RING_LINGER_TICKS);
+        return create(sprites, false, SONIC_BOOM_SPAN, Exit.FADE, RING_LINGER_TICKS);
     }
 
     public static ParticleProvider<SimpleParticleType> createBarrierRing(SpriteSet sprites) {
-        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) ->
-                new RingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites,
-                        Orientation.FACING_MOTION, false, RingGeometry.LARGEST_RING_SPAN, Exit.SPREAD,
-                        SPREAD_LINGER_TICKS);
+        return create(sprites, false, RingGeometry.LARGEST_RING_SPAN, Exit.SPREAD, SPREAD_LINGER_TICKS);
+    }
+
+    private static ParticleProvider<SimpleParticleType> create(SpriteSet sprites, boolean dashTrailRing,
+                                                               float largestSpan, Exit exit, int lingerTicks) {
+        return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) -> new RingParticle(level, x, y, z, xSpeed, ySpeed,
+                zSpeed, sprites, dashTrailRing, largestSpan, exit, lingerTicks);
     }
 
     public static void noteLocalDash(int tickCount) {
@@ -210,10 +198,7 @@ public final class RingParticle extends TextureSheetParticle {
                 this.exit == Exit.SPREAD ? SPREAD_FADE_START : 0.0F);
         float size = this.getQuadSize(partialTick);
         Vector3f look = camera.getLookVector();
-        Vector3f[] corners = this.orientation == Orientation.FACING_MOTION
-                ? RingGeometry.getFacing(this.spawnDirection,
-                        new Vec3(look.x(), look.y(), look.z()), size)
-                : RingGeometry.getGround(size);
+        Vector3f[] corners = RingGeometry.getFacing(this.spawnDirection, new Vec3(look.x(), look.y(), look.z()), size);
         Vec3 cameraPosition = camera.getPosition();
         float dx = (float) (Mth.lerp(partialTick, this.xo, this.x) - cameraPosition.x());
         float dy = (float) (Mth.lerp(partialTick, this.yo, this.y) - cameraPosition.y());

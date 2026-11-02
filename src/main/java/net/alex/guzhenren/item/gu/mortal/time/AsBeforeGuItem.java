@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.time;
 
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindService;
@@ -31,11 +32,11 @@ import org.jetbrains.annotations.NotNull;
  * has his body recorded. Carried means the bag, an aperture's store or a Vital [本命] slot. The land needs no memory:
  * the seed is it.
  *
- * <p>⚠ The client never holds the body's memory (it is not synced), so every gate on them runs for a {@code ServerPlayer}
- * only and the client-side gate passes. ⚠ The bar is settled on the server right before a use is checked short and
- * spends ({@link #performOwnUse}), never in a gate: a gate runs on the client too, and a client write to the stack is
- * a lie the server has to undo. A spend from a full bar restarts the stamp at the spend, since a full bar's stamp is
- * stale ({@code GuHunger.RecoverBar}).
+ * <p>⚠ The client never holds the body's memory (it is not synced), so every gate on them runs for a {@code
+ * ServerPlayer} only and the client-side gate passes. ⚠ The bar is settled on the server right before a use is
+ * checked short and spends ({@link #performOwnUse}), never in a gate: a gate runs on the client too, and a client
+ * write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at the spend, since
+ * a full bar's stamp is stale ({@code GuHunger.RecoverBar}).
  *
  * @author Alex
  * @version 1.0.0
@@ -80,7 +81,7 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
         int ticks = bar.getTicksToNextPoint(stack, level.getGameTime());
         if (ticks <= 0) return;
 
-        tooltip.add(Component.translatable(TOOLTIP_NEXT_POINT, (ticks + Ticks.SECOND - 1) / Ticks.SECOND)
+        tooltip.add(Component.translatable(TOOLTIP_NEXT_POINT, ModDisplayText.getCountdownSeconds(ticks))
                 .withStyle(ChatFormatting.GRAY));
     }
     //endregion

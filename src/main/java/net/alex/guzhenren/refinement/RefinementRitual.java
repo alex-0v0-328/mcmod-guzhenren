@@ -87,11 +87,8 @@ final class RefinementRitual {
         running = recipe;
         claimed = taken;
         stage = 0;
-        inWindow = true;
-        stonesThisWindow = 0;
         secondCounter = 0;
-        phaseLeft = GuRecipe.WINDOW_TICKS;
-        publishRun(recipe);
+        openWindow(recipe);
     }
 
     void advance(ServerPlayer server) {
@@ -116,10 +113,7 @@ final class RefinementRitual {
         }
         if (!inWindow) {
             stage++;
-            inWindow = true;
-            stonesThisWindow = 0;
-            phaseLeft = GuRecipe.WINDOW_TICKS;
-            publishRun(recipe);
+            openWindow(recipe);
             return;
         }
         if (stonesThisWindow < recipe.getStonesFor(stage)) {
@@ -132,6 +126,13 @@ final class RefinementRitual {
         }
         inWindow = false;
         phaseLeft = GuRecipe.GAP_TICKS;
+        publishRun(recipe);
+    }
+
+    private void openWindow(GuRecipe recipe) {
+        inWindow = true;
+        stonesThisWindow = 0;
+        phaseLeft = GuRecipe.WINDOW_TICKS;
         publishRun(recipe);
     }
 
