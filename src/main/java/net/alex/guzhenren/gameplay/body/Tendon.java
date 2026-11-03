@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
  * The body's tendons [筋]: native [原生], or the steel tendons [钢筋] a Steel Tendon Gu leaves for good, rank three
  * or four. Closed vocabulary enum, one slot on {@code BodyData}; permanent, so a respawn keeps it.
  *
- * <p>Steel tendons raise the strength capacity [承受上限] the body can bring to bear, in jin [斤], which
- * {@code BodyStrengthService.getCapacity} adds to the physique's base; the number is this enum's. One family,
+ * <p>Steel tendons raise the strength capacity [承受力] the body can bring to bear, in strength points [力量点],
+ * which {@code StrengthService.getCapacity} adds to the rank's base; the number is this enum's. One family,
  * ordered by declaration: a grade replaces every grade before it and nothing after ({@link #canReplace}).
  *
  * @author Alex
@@ -22,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 public enum Tendon implements BodyGrade<Tendon> {
 
     NATIVE(0, 0),
-    STEEL_TENDON_3(3, 100),
-    STEEL_TENDON_4(4, 200);
+    STEEL_TENDON_3(3, 128),
+    STEEL_TENDON_4(4, 256);
 
     public static final Codec<Tendon> CODEC = StringRepresentable.fromEnum(Tendon::values);
     private final int rank;

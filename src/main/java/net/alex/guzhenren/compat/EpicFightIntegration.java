@@ -4,12 +4,10 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.particle.RingConeEmitter;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -22,7 +20,6 @@ import yesman.epicfight.api.animation.types.DodgeAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.event.EpicFightEventHooks;
-import yesman.epicfight.api.event.types.player.ComboAttackEvent;
 import yesman.epicfight.api.event.types.player.SetTargetEvent;
 import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
@@ -69,7 +66,6 @@ public final class EpicFightIntegration {
 
     public static void initialize() {
         EpicFightEventHooks.Player.CONSUME_SKILL.registerEvent(EpicFightIntegration::onSkillConsume, Guzhenren.MOD_ID);
-        EpicFightEventHooks.Player.COMBO_ATTACK.registerEvent(EpicFightIntegration::onComboAttack, Guzhenren.MOD_ID);
         EpicFightEventHooks.Player.SET_TARGET.registerEvent(EpicFightIntegration::onSetTarget, Guzhenren.MOD_ID);
     }
 
@@ -122,11 +118,6 @@ public final class EpicFightIntegration {
                 && BodyService.isUndead(player)) {
             event.setAmount(0.0F);
         }
-    }
-
-    private static void onComboAttack(ComboAttackEvent event) {
-        ServerPlayer player = event.getPlayerPatch().getOriginal();
-        if (player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
     }
 
     private static void onSetTarget(SetTargetEvent event) {

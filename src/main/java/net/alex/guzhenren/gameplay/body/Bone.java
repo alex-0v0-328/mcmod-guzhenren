@@ -9,8 +9,9 @@ import org.jetbrains.annotations.NotNull;
  * four. Closed vocabulary enum, one slot on {@code BodyData}; permanent,
  * so a respawn keeps it.
  *
- * <p>Iron bones add max health, in health points, and knockback resistance on vanilla's 0 to 1 scale, read by
- * {@code MaxHealthService} and {@code KnockbackResistanceService}; the numbers are this enum's. One family,
+ * <p>Iron bones add max health, in health points, knockback resistance on vanilla's 0 to 1 scale, and strength
+ * capacity [承受力] in strength points [力量点], read by {@code MaxHealthService}, {@code KnockbackResistanceService}
+ * and {@code StrengthService}; the numbers are this enum's. One family,
  * ordered by declaration: a grade replaces every grade before it and nothing after ({@link #canReplace}).
  *
  * @author Alex
@@ -22,19 +23,21 @@ import org.jetbrains.annotations.NotNull;
 
 public enum Bone implements BodyGrade<Bone> {
 
-    NATIVE(0, 0.0D, 0.0D),
-    IRON_BONE_3(3, 4.0D, 0.3D),
-    IRON_BONE_4(4, 10.0D, 0.6D);
+    NATIVE(0, 0.0D, 0.0D, 0),
+    IRON_BONE_3(3, 4.0D, 0.3D, 128),
+    IRON_BONE_4(4, 10.0D, 0.6D, 256);
 
     public static final Codec<Bone> CODEC = StringRepresentable.fromEnum(Bone::values);
     private final int rank;
     private final double maxHealthBonus;
     private final double knockbackResistance;
+    private final int capacityBonus;
 
-    Bone(int rank, double maxHealthBonus, double knockbackResistance) {
+    Bone(int rank, double maxHealthBonus, double knockbackResistance, int capacityBonus) {
         this.rank = rank;
         this.maxHealthBonus = maxHealthBonus;
         this.knockbackResistance = knockbackResistance;
+        this.capacityBonus = capacityBonus;
     }
 
     @Override
@@ -43,6 +46,8 @@ public enum Bone implements BodyGrade<Bone> {
     public double getMaxHealthBonus() { return maxHealthBonus; }
 
     public double getKnockbackResistance() { return knockbackResistance; }
+
+    public int getCapacityBonus() { return capacityBonus; }
 
     @Override
     public boolean isNative() { return this == NATIVE; }

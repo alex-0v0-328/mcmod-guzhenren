@@ -15,7 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The All-Out Effort Gu's [全力以赴蛊] module: for a while, the body's carrying limit [承受上限] stops applying.
+ * The All-Out Effort Gu's [全力以赴蛊] module: for a while, the body's carrying capacity [承受力] stops applying
+ * and every strength point [力量点] counts, at a price: each landed hit past the capacity costs the body a load
+ * [负载] ({@code StrengthService.getLoadDamage}, dealt by {@code StrengthLoadEvents}), down to one health point.
  *
  * <p>Three rungs register it (三转至五转). The effect stamps a marker effect at the Gu's tier and calls
  * {@link AttackDamageService#refresh}; the lift itself is read back by the strength service, so attack still comes

@@ -3,23 +3,25 @@ package net.alex.guzhenren.gameplay.attribute;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.body.BodyTemperedEvent;
+import net.alex.guzhenren.gameplay.body.ExtremePhysiqueChangedEvent;
 import net.alex.guzhenren.gameplay.body.PhysiqueChangedEvent;
+import net.alex.guzhenren.gameplay.body.SkinShedEvent;
+import net.alex.guzhenren.gameplay.body.SkinWornEvent;
 import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
-import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 
 /**
  * Every moment the three attribute modifiers are recomputed outside the heartbeat. The mod's own writers
- * post {@link PhysiqueChangedEvent}, {@link StrengthChangedEvent}, {@link ApertureChangedEvent} and
- * {@link BodyTemperedEvent} (tendons move the capacity under the attack, bones the max health and the
- * knockback resistance); vanilla's effect events and {@code onAttack} cover the rest. {@code onAttack} refreshes the
- * health-based Hardship Strength Gu capacity before vanilla reads attack damage.
+ * post {@link PhysiqueChangedEvent}, {@link ExtremePhysiqueChangedEvent} (the physique multiplies the strength
+ * capacity, also for a body not yet awakened, which posts no aperture event), {@link StrengthChangedEvent},
+ * {@link ApertureChangedEvent} (the rank sets the max health and the base strength capacity), {@link BodyTemperedEvent} (tendons and bones move the capacity
+ * under the attack, bones the max health and the knockback resistance) and the skin events (a worn skin adds
+ * capacity); vanilla's effect events cover the rest.
  *
  * <p>⚠ Left to the heartbeat alone the attack row would lag by up to a second, which is visible on
  * the panel. ⚠ NeoForge posts the three effect events BEFORE the effect map changes, so
@@ -42,10 +44,24 @@ public final class AttributeEvents {
     public static void onPhysiqueChanged(PhysiqueChangedEvent event) { AttackDamageService.refresh(event.getPlayer()); }
 
     @SubscribeEvent
+    public static void onExtremePhysiqueChanged(ExtremePhysiqueChangedEvent event) {
+        AttackDamageService.refresh(event.getPlayer());
+    }
+
+    @SubscribeEvent
     public static void onStrengthChanged(StrengthChangedEvent event) { AttackDamageService.refresh(event.getPlayer()); }
 
     @SubscribeEvent
-    public static void onApertureChanged(ApertureChangedEvent event) { MaxHealthService.refresh(event.getPlayer()); }
+    public static void onApertureChanged(ApertureChangedEvent event) {
+        MaxHealthService.refresh(event.getPlayer());
+        AttackDamageService.refresh(event.getPlayer());
+    }
+
+    @SubscribeEvent
+    public static void onSkinWorn(SkinWornEvent event) { AttackDamageService.refresh(event.getPlayer()); }
+
+    @SubscribeEvent
+    public static void onSkinShed(SkinShedEvent event) { AttackDamageService.refresh(event.getPlayer()); }
 
     @SubscribeEvent
     public static void onBodyTempered(BodyTemperedEvent event) {
@@ -62,12 +78,6 @@ public final class AttributeEvents {
 
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) { refreshAttack(event.getEntity()); }
-
-    @SubscribeEvent
-    public static void onAttack(AttackEntityEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player
-                && player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU)) AttackDamageService.refresh(player);
-    }
 
     private static void refreshAttack(LivingEntity entity) {
         if (!(entity instanceof ServerPlayer player)) return;

@@ -9,9 +9,9 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.body.BodyStrengthService;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Flesh;
@@ -155,6 +155,7 @@ public final class InfoModel {
 
     public record TimeRateUpRow(int rate) implements Entry {}
 
+    /** Strength points [力量点] brought to bear over the points held, beast and human together. */
     public record CapacityRow(int usable, int total) implements Entry {}
 
     public record AttackRow(double bonus) implements Entry {}
@@ -225,9 +226,8 @@ public final class InfoModel {
         rows.add(new Row(0, new SkinRow(body.skin())));
         rows.add(new Row(0, new FleshRow(body.flesh())));
         rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
-        if (!strength.isEmpty() && strength.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)) {
-            rows.add(new Row(0, new CapacityRow(BodyStrengthService.getUsableJin(player), strength.getTotalJin())));
-        }
+        int points = StrengthService.getStrengthPoints(player);
+        if (points > 0) rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player), points)));
         double attackBonus = AttackDamageService.getBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {
             rows.add(new Row(0, new AttackRow(attackBonus)));

@@ -15,10 +15,12 @@ import org.jetbrains.annotations.Nullable;
  * file owns only the {@link ResourceKey}s; the JSON is written at datagen time by a provider that does
  * not exist at runtime. {@code source(entity, type)} is the one factory.
  *
- * <p>⚠ Six types, all carrying the same six tags (five {@code BYPASSES_*} plus {@code NO_KNOCKBACK})
+ * <p>⚠ Six disaster types, all carrying the same six tags (five {@code BYPASSES_*} plus {@code NO_KNOCKBACK})
  * but deliberately NOT {@code BYPASSES_INVULNERABILITY} -- creative stays unkillable. The aperture
- * pressure explosion also carries {@code IS_EXPLOSION}. Two more are ordinary combat damage outside that set: the
- * Moon Blade [月刃], a projectile that armor stops, and Bleeding [流血], which goes past armor like poison.
+ * pressure explosion also carries {@code IS_EXPLOSION}. The overload impact [负载] a body deals itself under
+ * All-Out Effort [全力以赴] carries the same six plus {@code BYPASSES_COOLDOWN}, so every hit's load lands whole. Two
+ * more are ordinary combat damage outside that set: the Moon Blade [月刃], a projectile that armor stops, and
+ * Bleeding [流血], which goes past armor like poison.
  *
  * @author Alex
  * @version 1.0.0
@@ -35,6 +37,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> APERTURE_PRESSURE_EXPLOSION = key("aperture_pressure_explosion");
     public static final ResourceKey<DamageType> TEN_EXTREME_DISASTER = key("ten_extreme_disaster");
     public static final ResourceKey<DamageType> VITAL_GU_LOST = key("vital_gu_lost");
+    public static final ResourceKey<DamageType> OVERLOAD_IMPACT = key("overload_impact");
     public static final ResourceKey<DamageType> MOON_BLADE = key("moon_blade");
     public static final ResourceKey<DamageType> BLEEDING = key("bleeding");
 

@@ -9,10 +9,13 @@ import org.jetbrains.annotations.NotNull;
  * [铜皮] or iron [铁皮] skin, rank one to four, one leaves for good.
  *
  * <p>Closed vocabulary enum, one slot on {@code BodyData}: a player wears one skin at a time. Every skin
- * carries its family [皮系], its rank [转] and its flat damage reduction [固定减免], the points taken off every
- * hit the skin can turn ({@link #reduce}); the number is this enum's, a jade skin's duration the item
- * registration's. The jade family is the timed one ({@link #isTimed}): the heartbeat sheds it when it runs out;
- * the others are permanent and survive a respawn.
+ * carries its family [皮系], its rank [转], its flat damage reduction [固定减免], the points taken off every
+ * hit the skin can turn ({@link #reduce}), and its strength capacity bonus [承受力] in strength points, which
+ * {@code StrengthService.getCapacity} adds while the skin is worn. A jade skin adds none: the capacity is read
+ * between heartbeats while a timed skin is only shed on one, so a timed bonus would outlive the skin by up to a
+ * second. The numbers are this enum's, a jade skin's duration the item registration's. The jade family is the
+ * timed one ({@link #isTimed}): the heartbeat sheds it when it runs out; the others are permanent and survive a
+ * respawn.
  *
  * <p>{@link #canReplace} is the gate: any skin goes over a native one; a permanent skin also goes over a lower
  * rank of its own family (a rank-three bronze skin over a rank-one bronze skin), never over another family's;
@@ -28,17 +31,17 @@ import org.jetbrains.annotations.NotNull;
 
 public enum Skin implements BodyGrade<Skin> {
 
-    NATIVE(Family.NATIVE, 0, 0),
-    JADE_SKIN(Family.JADE, 1, 2),
-    WHITE_JADE_SKIN(Family.JADE, 2, 4),
-    BRONZE_SKIN_1(Family.BRONZE, 1, 1),
-    BRONZE_SKIN_2(Family.BRONZE, 2, 2),
-    BRONZE_SKIN_3(Family.BRONZE, 3, 3),
-    BRONZE_SKIN_4(Family.BRONZE, 4, 5),
-    IRON_SKIN_1(Family.IRON, 1, 2),
-    IRON_SKIN_2(Family.IRON, 2, 3),
-    IRON_SKIN_3(Family.IRON, 3, 4),
-    IRON_SKIN_4(Family.IRON, 4, 6);
+    NATIVE(Family.NATIVE, 0, 0, 0),
+    JADE_SKIN(Family.JADE, 1, 2, 0),
+    WHITE_JADE_SKIN(Family.JADE, 2, 4, 0),
+    BRONZE_SKIN_1(Family.BRONZE, 1, 1, 4),
+    BRONZE_SKIN_2(Family.BRONZE, 2, 2, 8),
+    BRONZE_SKIN_3(Family.BRONZE, 3, 3, 16),
+    BRONZE_SKIN_4(Family.BRONZE, 4, 5, 32),
+    IRON_SKIN_1(Family.IRON, 1, 2, 4),
+    IRON_SKIN_2(Family.IRON, 2, 3, 12),
+    IRON_SKIN_3(Family.IRON, 3, 4, 36),
+    IRON_SKIN_4(Family.IRON, 4, 6, 108);
 
     public enum Family { NATIVE, JADE, BRONZE, IRON }
 
@@ -46,11 +49,13 @@ public enum Skin implements BodyGrade<Skin> {
     private final Family family;
     private final int rank;
     private final int damageReduction;
+    private final int capacityBonus;
 
-    Skin(Family family, int rank, int damageReduction) {
+    Skin(Family family, int rank, int damageReduction, int capacityBonus) {
         this.family = family;
         this.rank = rank;
         this.damageReduction = damageReduction;
+        this.capacityBonus = capacityBonus;
     }
 
     public @NotNull Family getFamily() { return family; }
@@ -59,6 +64,8 @@ public enum Skin implements BodyGrade<Skin> {
     public int getRank() { return rank; }
 
     public int getDamageReduction() { return damageReduction; }
+
+    public int getCapacityBonus() { return capacityBonus; }
 
     @Override
     public boolean isNative() { return this == NATIVE; }

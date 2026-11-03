@@ -10,9 +10,9 @@ import net.minecraft.util.StringRepresentable;
  * <p>Closed vocabulary enum stored as {@code Map<HumanStrength, Integer>} on {@code PathStrengthData}.
  * {@code JUN == 30 斤} and the four layer caps sum to exactly 9,999 斤. No sibling mod may add a kind.
  *
- * <p>⚠ {@code ATTACK_PER_JIN} 0.125 is load-bearing: a kind not worth exactly {@code 0.125 × 斤} would
- * break the strength capacity ramp. What a body has accumulated and what it can bring to bear are
- * different questions; only the strength service answers the second.
+ * <p>One jin is one strength point [力量点] ({@code PathStrengthData.ATTACK_PER_POINT}); a kind not worth exactly
+ * its jin in points would break the shared settlement with beast strength. What a body has accumulated and what
+ * it can bring to bear are different questions; only {@code StrengthService} answers the second.
  *
  * @author Alex
  * @version 1.0.0
@@ -29,7 +29,6 @@ public enum HumanStrength implements NamedEnum {
 
     public static final Codec<HumanStrength> CODEC = StringRepresentable.fromEnum(HumanStrength::values);
     public static final int TEN_FACTOR = 10;
-    public static final double ATTACK_PER_JIN = 0.125D;
     private final int jin;
     private final int maxLayers;
 

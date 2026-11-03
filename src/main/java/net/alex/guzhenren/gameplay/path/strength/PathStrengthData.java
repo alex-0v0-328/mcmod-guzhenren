@@ -17,6 +17,9 @@ import org.jetbrains.annotations.NotNull;
  * attachment keyed {@code strength_data}; {@code
  * PathStrengthService} is the only runtime writer. A {@code Set}
  * of {@link BeastStrength} plus a sparse {@code Map} of {@link HumanStrength} layer counts, ctor-capped.
+ * {@link #getStrengthPoints} is the one unit both sides share: a jin of human strength is one strength point
+ * [力量点], a beast its declared points, and a point is {@link #ATTACK_PER_POINT} attack. A running beast buff adds
+ * its points at {@code PathStrengthService.getStrengthPoints}, not here: this record holds only what is permanent.
  *
  * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code
  * addAll} -- the {@code EnumMap(Map)} copy constructor throws on the empty maps {@code DEFAULT} uses. ⚠
@@ -32,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Integer> humanStrength) {
 
     public static final PathStrengthData DEFAULT = new PathStrengthData(Set.of(), Map.of());
+    public static final double ATTACK_PER_POINT = 0.125D;
     public static final Codec<PathStrengthData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BeastStrength.CODEC.listOf().optionalFieldOf("beasts", List.of())
                     .forGetter(data -> List.copyOf(data.beasts())),
@@ -83,6 +87,15 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         for (HumanStrength kind : HumanStrength.values()) total += getHumanStrengthCount(kind) * kind.getJin();
         return total;
     }
+
+    public int getBeastPoints() {
+        int total = 0;
+        for (BeastStrength beast : beasts) total += beast.getPoints();
+        return total;
+    }
+
+    /** The permanent strength points [力量点]: every jin plus every refined beast's points. */
+    public int getStrengthPoints() { return getTotalJin() + getBeastPoints(); }
 
     public int getJunReading() { return getReading(HumanStrength.JUN, HumanStrength.TEN_JUN); }
 

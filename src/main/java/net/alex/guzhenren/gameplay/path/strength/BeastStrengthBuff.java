@@ -5,8 +5,9 @@ package net.alex.guzhenren.gameplay.path.strength;
  * boar's, the Brute Force Longhorn Beetle Gu [蛮力天牛蛊] one ox's.
  *
  * <p>Implemented by the buff's vanilla effect. The B panel reads it to word the buff as its strength with a
- * countdown under Strength Attainment [力道造诣], instead of listing it as a Gu effect among the path buffs; the
- * attack it adds still goes through {@code AttackContributor}.
+ * countdown under Strength Attainment [力道造诣], instead of listing it as a Gu effect among the path buffs.
+ * {@link #getPoints} is what the buff adds to the body's strength points [力量点] while it runs, read by
+ * {@link PathStrengthService#getStrengthPoints}; it goes through the carrying capacity like every other point.
  *
  * @author Alex
  * @version 1.0.0
@@ -17,4 +18,6 @@ package net.alex.guzhenren.gameplay.path.strength;
 public interface BeastStrengthBuff {
 
     BeastStrengthFamily getBeastFamily();
+
+    int getPoints();
 }

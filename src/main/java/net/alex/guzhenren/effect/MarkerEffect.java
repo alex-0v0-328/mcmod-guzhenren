@@ -11,9 +11,12 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <li>{@code TEMP_ZOMBIE} [临时僵尸化] -- projects the form stored on {@code BodyData};
  * {@code UndeadService.tickTempZombie} re-applies or removes it every heartbeat, so milk,
  * {@code /effect clear} and death cannot strand a player wearing a form they are no longer in.</li>
- * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed; while it runs the carrying limit [承受上限] does not
- * apply, which {@code BodyStrengthService.getUsableJin} reads. Re-using it while it runs is a refusal
- * ({@code all_out_active}).</li>
+ * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed; while it runs the carrying capacity [承受力] does not
+ * apply, which {@code StrengthService.getUsablePoints} reads, and every hit past the capacity costs its own body
+ * a load [负载] ({@code StrengthLoadEvents}). Re-using it while it runs is a refusal ({@code all_out_active}).</li>
+ * <li>{@code GRIEVOUS_INJURY} [重伤] -- timed, harmful; the icon of the Hardship Strength Gu's [苦力蛊] healing
+ * ceiling, re-projected with the Hardship buff each heartbeat; the ceiling reads the Hardship effect, never
+ * this.</li>
  * <li>{@code JADE_SKIN_GU} [玉皮蛊] and {@code WHITE_JADE_GU} [白玉蛊] -- timed; project the skin [皮肤] stored
  * on {@code BodyData} with its end tick, re-applied or removed by {@code SkinService.tickSkin} every
  * heartbeat; the flat damage reduction reads the skin, never the effect.</li>
@@ -26,7 +29,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  *
  * <p>☠ Never hang a rule on a marker's expiry: {@link MobEffect} has no expiry hook, and
  * {@code /effect clear} removes it silently. The truth reads its own level instead. ☠ Never give a marker
- * an {@code AttributeModifier}: attack goes through {@code AttackContributor}, one formula.
+ * an {@code AttributeModifier}: attack goes through {@code AttackDamageService.getBonus}, one formula.
  *
  * @author Alex
  * @version 1.0.0

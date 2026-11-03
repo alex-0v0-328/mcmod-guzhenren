@@ -19,7 +19,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.damagesource.DamageType}.
  * The six disaster damage types carry the same six bypass tags (armor, effects, enchantments, resistance,
- * shield, no knockback); the Moon Blade [月刃] is only a projectile and Bleeding [流血] only bypasses armor. Only the four lethal checks -- lifespan exhausted, soul collapse, mind ocean
+ * shield, no knockback), and so does the overload impact [负载], which also bypasses the hurt cooldown so each
+ * hit's load lands; the Moon Blade [月刃] is only a projectile and Bleeding [流血] only bypasses armor. Only the
+ * four lethal checks -- lifespan exhausted, soul collapse, mind ocean
  * shattered and the pressure explosion -- also carry {@code BYPASSES_INVULNERABILITY}, so a Totem of Undying
  * cannot cancel them; the heartbeat deals them only after skipping creative and spectator players. The
  * Ten Extreme disaster and the Vital Gu loss stay without it: the disaster hits every entity in the blast and
@@ -56,6 +58,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
         tag(DamageTypeTags.IS_EXPLOSION).add(ModDamageTypes.APERTURE_PRESSURE_EXPLOSION,
                 ModDamageTypes.TEN_EXTREME_DISASTER);
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE);
+        tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.OVERLOAD_IMPACT);
         tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING);
     }
 
@@ -65,6 +68,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
                 ModDamageTypes.MIND_OCEAN_SHATTERED,
                 ModDamageTypes.APERTURE_PRESSURE_EXPLOSION,
                 ModDamageTypes.TEN_EXTREME_DISASTER,
-                ModDamageTypes.VITAL_GU_LOST);
+                ModDamageTypes.VITAL_GU_LOST,
+                ModDamageTypes.OVERLOAD_IMPACT);
     }
 }

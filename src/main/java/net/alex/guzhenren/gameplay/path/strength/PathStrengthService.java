@@ -13,8 +13,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Strength [力道]: what has been accumulated -- beast strengths [兽力] and human strength counts. Static
- * service; every write posts a {@link StrengthChangedEvent}, which refreshes the attack modifier. How
- * much of it a body can bring to bear is {@code BodyStrengthService}.
+ * service; every write posts a {@link StrengthChangedEvent}, which refreshes the attack modifier.
+ * {@link #getStrengthPoints} is the body's whole strength in points [力量点]: the permanent record plus every
+ * running {@link BeastStrengthBuff}, read off the path effects, which are the buffs' truth. How much of it a body
+ * can bring to bear is {@code gameplay.attribute.StrengthService}.
  *
  * <p>Mark Interference [道痕互斥] is enforced here, at the one write funnel: {@code grant} and a rising
  * {@code setHumanStrength} write nothing and return {@code false} while {@link #getInterference} names a held
@@ -87,12 +89,26 @@ public final class PathStrengthService {
         return setHumanStrength(player, kind, getHumanStrength(player, kind) + delta);
     }
 
+    /** Permanent points plus the points of every running beast buff. */
+    public static int getStrengthPoints(@NotNull Player player) {
+        int total = get(player).getStrengthPoints();
+        for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
+            BeastStrengthBuff buff = getBeastBuff(effect);
+            if (buff != null) total += buff.getPoints();
+        }
+        return total;
+    }
+
     private static boolean hasBeastBuff(Player player) {
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
-            // Looked up without TimedBuff.getHolder: a saved buff whose effect is gone must not throw at a Gu gate.
-            if (effect.payload() instanceof TimedBuff buff && BuiltInRegistries.MOB_EFFECT.getOptional(buff.effect())
-                    .orElse(null) instanceof BeastStrengthBuff) return true;
+            if (getBeastBuff(effect) != null) return true;
         }
         return false;
+    }
+
+    private static @Nullable BeastStrengthBuff getBeastBuff(PathEffect<?> effect) {
+        // Looked up without TimedBuff.getHolder: a saved buff whose effect is gone must not throw at a Gu gate.
+        return effect.payload() instanceof TimedBuff buff && BuiltInRegistries.MOB_EFFECT.getOptional(buff.effect())
+                .orElse(null) instanceof BeastStrengthBuff beast ? beast : null;
     }
 }

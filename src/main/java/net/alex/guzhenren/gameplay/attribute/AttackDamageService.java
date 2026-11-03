@@ -3,33 +3,29 @@ package net.alex.guzhenren.gameplay.attribute;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.body.BodyStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
-import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The only thing in the mod that touches the {@code ATTACK_DAMAGE} attribute -- {@code getBonus()} is
- * the whole sum: {@link AttackContributor} timed effects [力道], beast strengths [兽力], the usable-jin
- * ramp, and the zombie [僵] tier bonus. {@link AttributeEvents} refreshes it when a physique, a strength
- * or an effect changes; the heartbeat refreshes it every second.
+ * the whole sum: the usable strength points [力量点] ({@link StrengthService#getUsablePoints}, beast and human
+ * strength through one capacity) at {@link PathStrengthData#ATTACK_PER_POINT} each, and the zombie [僵] tier
+ * bonus. {@link AttributeEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
+ * changes; the heartbeat refreshes it every second.
  *
  * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ No effect may declare its own
- * {@code addAttributeModifier} -- {@code getBonus()} already counts it via
- * {@link AttackContributor#attackBonus}. ⚠ The zombie bonus rides {@code BodyData.zombieTier}, NOT a
+ * {@code addAttributeModifier}: every timed attack buff is strength points through the capacity, never a flat
+ * bonus, so there is no second seam. ⚠ The zombie bonus rides {@code BodyData.zombieTier}, NOT a
  * MobEffect (permanent 僵 has none; command tier -1 gets NO attack).
  *
  * @author Alex
  * @version 1.0.0
  * @see MaxHealthService
- * @see BodyStrengthService
+ * @see StrengthService
  * @since 1.0.0
  */
 
@@ -42,24 +38,8 @@ public final class AttackDamageService {
     public static final double ZOMBIE_ATTACK_BASE = 5.0D;
 
     public static double getBonus(@NotNull Player player) {
-        PathStrengthData data = PathStrengthService.get(player);
-        double total = 0.0D;
-
-        for (BeastStrength beast : BeastStrength.values()) {
-            if (data.has(beast)) total += beast.getAttackBonus();
-        }
-        return total + BodyStrengthService.getUsableJin(player) * HumanStrength.ATTACK_PER_JIN
-                + getZombieBonus(player) + getEffectBonus(player);
-    }
-
-    public static double getEffectBonus(@NotNull Player player) {
-        double total = 0.0D;
-        for (MobEffectInstance instance : player.getActiveEffects()) {
-            if (instance.getEffect().value() instanceof AttackContributor contributor) {
-                total += contributor.attackBonus(instance.getAmplifier());
-            }
-        }
-        return total;
+        return StrengthService.getUsablePoints(player) * PathStrengthData.ATTACK_PER_POINT
+                + getZombieBonus(player);
     }
 
     public static double getZombieBonus(@NotNull Player player) {

@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
  * strength capacity, the max health and the knockback resistance they feed are attribute modifiers that live
  * above the body, in {@code gameplay.attribute}, which the body cannot call into without closing a dependency
  * cycle. Dispatch is synchronous, so a subscriber has run before the write returns. A skin posts
- * {@link SkinWornEvent} instead: its reduction is read per hit and needs no refresh.
+ * {@link SkinWornEvent} and {@link SkinShedEvent} instead; its reduction is read per hit, its capacity bonus
+ * refreshes the attack off those two events.
  *
  * @author Alex
  * @version 1.0.0

@@ -359,7 +359,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.body_capacity",         "Capacity", "承受");
         add("guzhenren.screen.label.attack",                "Base Attack", "基础攻击力");
         add("guzhenren.screen.label.aperture_pressure",     "Aperture Pressure", "空窍压力");
-        add("guzhenren.screen.capacity",                    "%s / %s jin", "%s / %s斤");
+        add("guzhenren.screen.capacity",                    "%s / %s pts", "%s / %s 点");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
     }
@@ -495,6 +495,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.charging_crash_gu",                    "Charging Crash Gu Effect", "横冲直撞蛊效果");
         add("effect.guzhenren.self_reliance_gu",                     "Self Reliance Gu Effect", "自力更生蛊效果");
         add("effect.guzhenren.hardship_strength_gu",                 "Hardship Strength Gu Effect", "苦力蛊效果");
+        add("effect.guzhenren.grievous_injury",                      "Grievous Injury", "重伤");
         add("effect.guzhenren.jade_skin_gu",                         "Jade Skin Gu Effect", "玉皮蛊效果");
         add("effect.guzhenren.white_jade_gu",                        "White Jade Gu Effect", "白玉蛊效果");
         add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
@@ -563,6 +564,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.ten_extreme_disaster",
                 "%1$s was killed by a Ten-Extremes disaster", "%1$s 被十绝天灾波及而亡");
         add("death.attack.guzhenren.vital_gu_lost",               "%1$s lost their Vital Gu", "%1$s 因本命蛊死亡而亡");
+        add("death.attack.guzhenren.overload_impact",
+                "%1$s was crushed by their own strength", "%1$s 被自身力量重创而亡");
         add("death.attack.guzhenren.moon_blade",
                 "%1$s was slain by %2$s's Moon Blade", "%1$s 被 %2$s 的月刃斩杀");
         add("death.attack.guzhenren.moon_blade.item",
