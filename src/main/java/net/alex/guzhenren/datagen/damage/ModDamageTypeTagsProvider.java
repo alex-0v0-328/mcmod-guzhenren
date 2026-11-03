@@ -60,6 +60,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE);
         tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.OVERLOAD_IMPACT);
         tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING);
+        tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT);
     }
 
     private void tagUnstoppable(TagKey<DamageType> tag) {

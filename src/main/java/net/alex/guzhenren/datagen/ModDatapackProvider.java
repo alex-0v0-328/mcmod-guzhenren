@@ -64,6 +64,7 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
         context.register(ModDamageTypes.OVERLOAD_IMPACT, new DamageType("guzhenren.overload_impact", 0.0F));
         context.register(ModDamageTypes.MOON_BLADE, new DamageType("guzhenren.moon_blade", 0.1F));
         context.register(ModDamageTypes.BLEEDING, new DamageType("guzhenren.bleeding", 0.0F));
+        context.register(ModDamageTypes.AREA_IMPACT, new DamageType("guzhenren.area_impact", 0.1F));
     }
     //endregion
 

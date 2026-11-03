@@ -15,22 +15,24 @@ import org.jetbrains.annotations.NotNull;
  * read-only service above the aperture and the body, since the capacity reads both; the points themselves come
  * from {@link PathStrengthService#getStrengthPoints}.
  *
- * <p>The carrying capacity [承受力] is {@link #getBaseCapacity}: {@link #MORTAL_CAPACITY} plus
- * {@link #CAPACITY_PER_RANK} per rank [转] (16, then 24 to 56 for ranks one to five), times the physique's
- * multiplier (a ten-extreme body doubles it, the Great Strength True Martial body quadruples it), plus what the
- * worn skin, tendons and bones add -- tempering sits outside the multiplier. At rest a body uses
- * {@code min(points, capacity)} and keeps the rest; there is no overflow ramp.
+ * <p>The body's carrying capacity [承受力] is {@link #getBodyCapacity}: {@link #getBaseCapacity}, which is
+ * {@link #MORTAL_CAPACITY} plus {@link #CAPACITY_PER_RANK} per rank [转] (16, then 24 to 56 for ranks one to five)
+ * times the physique's multiplier (a ten-extreme body doubles it, the Great Strength True Martial body quadruples
+ * it), plus what the worn skin, tendons and bones add -- tempering sits outside the multiplier. A body always uses
+ * {@code min(points, capacity)} of the CURRENT capacity ({@link #getCapacity}) and keeps the rest; there is no
+ * overflow ramp.
  *
- * <p>{@link #isUnleashed} lifts the capacity: the All-Out Effort Gu [全力以赴] and the Hardship Strength Gu [苦力蛊]
- * both make every point count, read as their vanilla effects like every attribute rule (the path effect is the
- * truth and re-projects the icon each heartbeat; {@code gameplay} cannot reach {@code TimedEffects}). Only the first
- * pays for it:
+ * <p>{@link #isUnleashed} lifts the current capacity to {@code max(body capacity, points)}: the All-Out Effort Gu
+ * [全力以赴] and the Hardship Strength Gu [苦力蛊] both make every point count, read as their vanilla effects like
+ * every attribute rule (the path effect is the truth and re-projects the icon each heartbeat; {@code gameplay}
+ * cannot reach {@code TimedEffects}). Only the first pays for it:
  * {@link #getLoadDamage} is the load [负载] a hit lands on its own body while All-Out Effort runs without Hardship
- * Strength, {@link #LOAD_PER_EXCESS_POINT} health per point past the capacity, and
- * {@code StrengthLoadEvents} deals it. Hardship Strength pays with the healing ceiling instead.
+ * Strength, {@link #LOAD_PER_EXCESS_POINT} health per point past the BODY capacity, and
+ * {@code StrengthLoadEvents} deals it. Hardship Strength pays with the healing ceiling instead. ⚠ The excess reads
+ * {@link #getBodyCapacity}, never the lifted one, which would leave no excess while the lift runs.
  *
- * <p>⚠ {@code getUsablePoints(int, int)}, {@code getBaseCapacity} and {@code getLoadDamage(int)} are deliberate
- * seams so the arithmetic is unit-testable without a {@link Player}.
+ * <p>⚠ {@code getUsablePoints(int, int)}, {@code getCapacity(int, int, boolean)}, {@code getBaseCapacity} and
+ * {@code getLoadDamage(int)} are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
  *
  * @author Alex
  * @version 1.0.0
@@ -52,12 +54,21 @@ public final class StrengthService {
         return (MORTAL_CAPACITY + CAPACITY_PER_RANK * rankIndex) * physique.getCapacityMultiplier();
     }
 
-    public static int getCapacity(@NotNull Player player) {
+    public static int getBodyCapacity(@NotNull Player player) {
         BodyData body = BodyService.get(player);
         return getBaseCapacity(ApertureService.getHealthRank(player), body.extremePhysique())
                 + body.skin().getCapacityBonus()
                 + body.tendon().getCapacityBonus()
                 + body.bone().getCapacityBonus();
+    }
+
+    /** The current capacity: the body's own, lifted to the whole strength while {@link #isUnleashed}. */
+    public static int getCapacity(@NotNull Player player) {
+        return getCapacity(getBodyCapacity(player), getStrengthPoints(player), isUnleashed(player));
+    }
+
+    public static int getCapacity(int bodyCapacity, int points, boolean unleashed) {
+        return unleashed ? Math.max(bodyCapacity, points) : bodyCapacity;
     }
 
     public static int getStrengthPoints(@NotNull Player player) { return PathStrengthService.getStrengthPoints(player); }
@@ -71,15 +82,14 @@ public final class StrengthService {
     }
 
     public static int getUsablePoints(@NotNull Player player) {
-        int total = getStrengthPoints(player);
-        return isUnleashed(player) ? total : getUsablePoints(getCapacity(player), total);
+        return getUsablePoints(getCapacity(player), getStrengthPoints(player));
     }
 
     public static int getUsablePoints(int capacity, int total) { return Math.min(capacity, total); }
 
-    /** The points past the capacity, zero when nothing is. */
+    /** The points past the body capacity, zero when nothing is. */
     public static int getExcessPoints(@NotNull Player player) {
-        return Math.max(0, getStrengthPoints(player) - getCapacity(player));
+        return Math.max(0, getStrengthPoints(player) - getBodyCapacity(player));
     }
 
     /** The load one landed hit costs its own body, zero unless All-Out Effort runs without Hardship Strength. */

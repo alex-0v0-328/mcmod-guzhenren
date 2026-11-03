@@ -1,5 +1,6 @@
 package net.alex.guzhenren.compat;
 
+import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
@@ -7,35 +8,58 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
+import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import yesman.epicfight.api.animation.AnimationManager;
+import yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty;
+import yesman.epicfight.api.animation.types.AirSlashAnimation;
+import yesman.epicfight.api.animation.types.AttackAnimation;
+import yesman.epicfight.api.animation.types.ComboAttackAnimation;
+import yesman.epicfight.api.animation.types.DashAttackAnimation;
 import yesman.epicfight.api.animation.types.DodgeAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
 import yesman.epicfight.api.event.types.player.SetTargetEvent;
 import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.gameasset.Armatures;
+import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.registry.entries.EpicFightAttributes;
 import yesman.epicfight.registry.entries.EpicFightSkills;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 /**
- * The server-side Epic Fight bridge (the heavy-fist hook sits in {@code EpicFightServerEvents}, the dash
- * input in {@code DashInput}): aptitude cap, undead free skill use, attack refresh, target
- * exclusion for every {@link net.alex.guzhenren.entity.gu.WildGuEntity}, the dash animation, and
- * the dash-side shockwave cone trigger (ring spawning lives in {@code RingConeEmitter}).
+ * The server-side Epic Fight bridge (the dash input sits in {@code DashInput}): aptitude cap, undead free skill
+ * use, attack refresh, target exclusion for every {@link net.alex.guzhenren.entity.gu.WildGuEntity}, the dash
+ * animation, the dash-side shockwave cone trigger (ring spawning lives in {@code RingConeEmitter}), and the area
+ * impact trigger.
+ *
+ * <p>{@link #onAttackPhaseEnd}: when the hit window of a fist strike closes -- a combo, dash or air attack in Epic
+ * Fight mode with a fist-category primary hand (an empty hand resolves to FIST too; a bare main hand beside an
+ * offhand weapon is Epic Fight's mirror mode, which swings the offhand weapon, so no fist strike), never an innate
+ * skill, which Epic Fight builds as a plain {@code AttackAnimation} -- {@link AreaImpact#release} hits the cone
+ * along the look, sparing every target the fist already tried this phase, and each target it landed on gets the
+ * strike's own hit sound and particle, read the way Epic Fight reads them for the fist's hit. The event fires once
+ * per phase on the server, whiff or not; a phase cut short by another animation ({@code isAnimationTerminated})
+ * releases nothing.
  *
  * <p>⚠ Epic Fight owns stamina: the current value, regeneration, the HUD and all ordinary consumption. GZR only
  * scales the cap and waives the undead's skill cost; it keeps no stamina attachment and adds no sprint gate,
@@ -67,6 +91,8 @@ public final class EpicFightIntegration {
     public static void initialize() {
         EpicFightEventHooks.Player.CONSUME_SKILL.registerEvent(EpicFightIntegration::onSkillConsume, Guzhenren.MOD_ID);
         EpicFightEventHooks.Player.SET_TARGET.registerEvent(EpicFightIntegration::onSetTarget, Guzhenren.MOD_ID);
+        EpicFightEventHooks.Animation.ATTACK_PHASE_END.registerEvent(EpicFightIntegration::onAttackPhaseEnd,
+                Guzhenren.MOD_ID);
     }
 
     public static void onAnimationRegistry(AnimationManager.AnimationRegistryEvent event) {
@@ -122,6 +148,38 @@ public final class EpicFightIntegration {
 
     private static void onSetTarget(SetTargetEvent event) {
         if (event.getTarget() instanceof WildGuEntity) event.cancel();
+    }
+
+    private static void onAttackPhaseEnd(AttackPhaseEndEvent event) {
+        if (event.isAnimationTerminated()) return;
+        if (!(event.getEntityPatch() instanceof ServerPlayerPatch patch) || !patch.isEpicFightMode()) return;
+        if (!isFistStrike(event.getAnimation().get())) return;
+        if (patch.getPrimaryItemCapability().getWeaponCategory() != CapabilityItem.WeaponCategories.FIST) return;
+
+        ServerPlayer player = patch.getOriginal();
+        List<LivingEntity> landed = AreaImpact.release(player, player.getLookAngle(),
+                patch.getCurrentlyAttackTriedEntities());
+        if (landed.isEmpty()) return;
+
+        AttackAnimation.Phase phase = event.getPhase();
+        InteractionHand hand = phase.effectiveHand(patch);
+        SoundEvent sound = phase.getProperty(AttackPhaseProperty.HIT_SOUND)
+                .orElseGet(() -> patch.getWeaponHitSound(hand));
+        HitParticleType particle = phase.getProperty(AttackPhaseProperty.PARTICLE).map(DeferredHolder::get)
+                .orElseGet(() -> patch.getWeaponHitParticle(hand));
+        ServerLevel level = player.serverLevel();
+        for (LivingEntity target : landed) {
+            if (sound != null) {
+                level.playSound(null, target.getX(), target.getY(), target.getZ(), sound, target.getSoundSource(),
+                        1.0F, 1.0F);
+            }
+            particle.spawnParticleWithArgument(level, target, player);
+        }
+    }
+
+    private static boolean isFistStrike(AttackAnimation animation) {
+        return animation instanceof ComboAttackAnimation || animation instanceof DashAttackAnimation
+                || animation instanceof AirSlashAnimation;
     }
 
     private static Vec3 dashDirection(int vertical, float yRot) {

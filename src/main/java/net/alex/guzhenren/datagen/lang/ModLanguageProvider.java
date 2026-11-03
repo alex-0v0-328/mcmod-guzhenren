@@ -573,6 +573,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.bleeding",                    "%1$s bled to death", "%1$s 流血而亡");
         add("death.attack.guzhenren.bleeding.player",
                 "%1$s bled to death while fighting %2$s", "%1$s 在与 %2$s 战斗时流血而亡");
+        add("death.attack.guzhenren.area_impact",
+                "%1$s was struck down by %2$s's Area Impact", "%1$s 被 %2$s 的范围冲击打死了");
+        add("death.attack.guzhenren.area_impact.item",
+                "%1$s was struck down by %2$s's Area Impact using %3$s", "%1$s 被 %2$s 用 %3$s 的范围冲击打死了");
     }
     //endregion
 

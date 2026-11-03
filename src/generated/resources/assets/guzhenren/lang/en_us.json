@@ -17,6 +17,8 @@
   "block.guzhenren.spirit_spring": "Spirit Spring",
   "block.guzhenren.steel_block": "Steel Block",
   "death.attack.guzhenren.aperture_pressure_explosion": "%1$s died in an aperture pressure explosion",
+  "death.attack.guzhenren.area_impact": "%1$s was struck down by %2$s's Area Impact",
+  "death.attack.guzhenren.area_impact.item": "%1$s was struck down by %2$s's Area Impact using %3$s",
   "death.attack.guzhenren.bleeding": "%1$s bled to death",
   "death.attack.guzhenren.bleeding.player": "%1$s bled to death while fighting %2$s",
   "death.attack.guzhenren.lifespan_exhausted": "%1$s ran out of lifespan",

@@ -18,9 +18,10 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Six disaster types, all carrying the same six tags (five {@code BYPASSES_*} plus {@code NO_KNOCKBACK})
  * but deliberately NOT {@code BYPASSES_INVULNERABILITY} -- creative stays unkillable. The aperture
  * pressure explosion also carries {@code IS_EXPLOSION}. The overload impact [负载] a body deals itself under
- * All-Out Effort [全力以赴] carries the same six plus {@code BYPASSES_COOLDOWN}, so every hit's load lands whole. Two
- * more are ordinary combat damage outside that set: the Moon Blade [月刃], a projectile that armor stops, and
- * Bleeding [流血], which goes past armor like poison.
+ * All-Out Effort [全力以赴] carries the same six plus {@code BYPASSES_COOLDOWN}, so every hit's load lands whole. Three
+ * more are ordinary combat damage outside that set: the Moon Blade [月刃], a projectile that armor stops, Bleeding
+ * [流血], which goes past armor like poison, and the area impact [范围冲击], which armor stops and which carries only
+ * {@code NO_KNOCKBACK}, since {@code AreaImpact} shoves along the punch itself.
  *
  * @author Alex
  * @version 1.0.0
@@ -40,6 +41,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> OVERLOAD_IMPACT = key("overload_impact");
     public static final ResourceKey<DamageType> MOON_BLADE = key("moon_blade");
     public static final ResourceKey<DamageType> BLEEDING = key("bleeding");
+    public static final ResourceKey<DamageType> AREA_IMPACT = key("area_impact");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
         return new DamageSource(entity.level().registryAccess()

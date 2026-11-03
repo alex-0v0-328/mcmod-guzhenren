@@ -20,7 +20,8 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
  * <p>Reads {@link LivingDamageEvent.Post} with the player as the DIRECT entity, so only a hit of the body itself
  * that did damage counts: a swing into the air or a hit a shield turned does not, and neither does an arrow, a
  * thrown potion or a Moon Blade, which carry none of the body's strength. The load's own hit has no entity and
- * cannot feed itself.
+ * cannot feed itself. The area impact [范围冲击] is skipped too: a punch pays its load once, on the fist's own hit,
+ * however many the impact reaches.
  *
  * @author Alex
  * @version 1.0.0
@@ -38,7 +39,7 @@ public final class StrengthLoadEvents {
     @SubscribeEvent
     public static void onDamageDealt(LivingDamageEvent.Post event) {
         if (!(event.getSource().getDirectEntity() instanceof ServerPlayer player) || event.getEntity() == player) return;
-        if (event.getNewDamage() <= 0.0F) return;
+        if (event.getNewDamage() <= 0.0F || event.getSource().is(ModDamageTypes.AREA_IMPACT)) return;
 
         float before = player.getHealth();
         float load = Math.min(StrengthService.getLoadDamage(player), before - HEALTH_FLOOR);

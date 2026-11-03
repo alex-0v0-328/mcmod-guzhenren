@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * or four. Closed vocabulary enum, one slot on {@code BodyData}; permanent, so a respawn keeps it.
  *
  * <p>Steel tendons raise the strength capacity [承受力] the body can bring to bear, in strength points [力量点],
- * which {@code StrengthService.getCapacity} adds to the rank's base; the number is this enum's. One family,
+ * which {@code StrengthService.getBodyCapacity} adds to the rank's base; the number is this enum's. One family,
  * ordered by declaration: a grade replaces every grade before it and nothing after ({@link #canReplace}).
  *
  * @author Alex

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>Closed vocabulary enum, one slot on {@code BodyData}: a player wears one skin at a time. Every skin
  * carries its family [皮系], its rank [转], its flat damage reduction [固定减免], the points taken off every
  * hit the skin can turn ({@link #reduce}), and its strength capacity bonus [承受力] in strength points, which
- * {@code StrengthService.getCapacity} adds while the skin is worn. A jade skin adds none: the capacity is read
+ * {@code StrengthService.getBodyCapacity} adds while the skin is worn. A jade skin adds none: the capacity is read
  * between heartbeats while a timed skin is only shed on one, so a timed bonus would outlive the skin by up to a
  * second. The numbers are this enum's, a jade skin's duration the item registration's. The jade family is the
  * timed one ({@link #isTimed}): the heartbeat sheds it when it runs out; the others are permanent and survive a

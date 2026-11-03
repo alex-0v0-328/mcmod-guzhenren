@@ -17,6 +17,8 @@
   "block.guzhenren.spirit_spring": "元泉",
   "block.guzhenren.steel_block": "钢块",
   "death.attack.guzhenren.aperture_pressure_explosion": "%1$s 空窍压力爆炸而亡",
+  "death.attack.guzhenren.area_impact": "%1$s 被 %2$s 的范围冲击打死了",
+  "death.attack.guzhenren.area_impact.item": "%1$s 被 %2$s 用 %3$s 的范围冲击打死了",
   "death.attack.guzhenren.bleeding": "%1$s 流血而亡",
   "death.attack.guzhenren.bleeding.player": "%1$s 在与 %2$s 战斗时流血而亡",
   "death.attack.guzhenren.lifespan_exhausted": "%1$s 寿元耗尽而亡",
