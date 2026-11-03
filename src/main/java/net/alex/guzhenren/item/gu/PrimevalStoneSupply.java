@@ -1,6 +1,8 @@
 package net.alex.guzhenren.item.gu;
 
+import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
+import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -18,8 +20,12 @@ import net.minecraft.world.item.ItemStack;
  *
  * <p>⚠ A Gu pays only through {@link #pay}: the top-up line first, then the cost, the pool first and stones for any
  * rest. A channel or refining step is sized from the pool, so it tops up first ({@link #topUpFor} its floor) and then
- * pays the step. ⚠ The sources run in one order, from any bag slot, offhand included: loose stones, then each Elder
- * Gu's stock. ⚠ Stones count only for a player with an aperture to burn them through ({@link #canAfford}): the
+ * pays the step. ⚠ The sources run in one order: loose stones from any bag slot, offhand included, then each carried
+ * Elder Gu's stock, then each Elder Gu kept in aperture storage [空窍存储] (never the Vital Gu slot), by aperture and
+ * slot. A stored one is drawn on a copy and written back through {@code ApertureStorageService.setSlot}, since the
+ * view hands out the stored stacks themselves. ⚠ The client never holds the aperture storage, so its copy of
+ * {@link #canAfford} counts the carried sources alone; the server decides, and the held use syncs back to it.
+ * ⚠ Stones count only for a player with an aperture to burn them through ({@link #canAfford}): the
  * essence gate stands in for {@code isAwakened}, and without the check a mortal could pay a Gu in stones. ⚠ Creative
  * draws no stone ({@link #draw} answers 0): the top-up pours nothing and the part of a cost the pool cannot cover goes
  * free, as creative eats no food either; only the player's own hand moves a stone (the supply slot, nourishing).
@@ -97,7 +103,8 @@ public final class PrimevalStoneSupply {
     private static int draw(ServerPlayer player, int wanted) {
         if (player.getAbilities().instabuild) return 0;
         int taken = drawFrom(player, wanted, true);
-        return taken + drawFrom(player, wanted - taken, false);
+        taken += drawFrom(player, wanted - taken, false);
+        return taken + drawFromApertures(player, wanted - taken);
     }
 
     private static int drawFrom(ServerPlayer player, int wanted, boolean loose) {
@@ -107,6 +114,22 @@ public final class PrimevalStoneSupply {
             ItemStack stack = inventory.getItem(i);
             if (loose ? stack.getItem() instanceof PrimevalStoneItem : stack.getItem() instanceof PrimevalElderGuItem) {
                 taken += takeFrom(stack, wanted - taken);
+            }
+        }
+        return taken;
+    }
+
+    private static int drawFromApertures(ServerPlayer player, int wanted) {
+        int taken = 0;
+        for (int aperture = 0; aperture < ApertureData.MAX_APERTURES && taken < wanted; aperture++) {
+            for (int index = 0; index < ApertureStorageService.count(player, aperture) && taken < wanted; index++) {
+                ItemStack stored = ApertureStorageService.getView(player, aperture).get(index);
+                if (!(stored.getItem() instanceof PrimevalElderGuItem)) continue;
+                ItemStack copy = stored.copy();
+                int drawn = takeFrom(copy, wanted - taken);
+                if (drawn <= 0) continue;
+                ApertureStorageService.setSlot(player, aperture, index, copy);
+                taken += drawn;
             }
         }
         return taken;
@@ -121,6 +144,11 @@ public final class PrimevalStoneSupply {
             ItemStack stack = inventory.getItem(i);
             if (stack.getItem() instanceof PrimevalStoneItem) stones += stack.getCount();
             if (stack.getItem() instanceof PrimevalElderGuItem) stones += PrimevalElderGuItem.getStored(stack);
+        }
+        for (int aperture = 0; aperture < ApertureData.MAX_APERTURES; aperture++) {
+            for (ItemStack stack : ApertureStorageService.getView(player, aperture)) {
+                if (stack.getItem() instanceof PrimevalElderGuItem) stones += PrimevalElderGuItem.getStored(stack);
+            }
         }
         return stones * getEssencePerStone();
     }

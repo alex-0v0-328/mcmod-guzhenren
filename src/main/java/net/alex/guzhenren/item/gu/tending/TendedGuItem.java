@@ -72,11 +72,12 @@ import org.jetbrains.annotations.Nullable;
  * backs another's use (the Amplify Effect Gu [功倍蛊], a killing move's [杀招] partner): its essence, the meals around
  * it, and on an empty bar the same death, after the use it backed.
  *
- * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS}, at two paces that stay separate. A
- * holder above the Gu's rank is Gu-paced: a channel step pours at most 1/{@code STEPS_PER_ROUND} of a round, a round
- * every {@code ROUND_TICKS} (2 seconds) scaled by {@code TimeFlow}, whatever the hunger, and a refining step may pour
- * the whole pool. At the Gu's rank or below, the pool sets the pace: 1/5, 1/4, 1/3, then 1/2 of the pool per step,
- * 80% of it a second at normal time flow. Every essence this Gu pays goes out through {@code
+ * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS} (2 ticks), at two paces that stay separate.
+ * A holder above the Gu's rank is Gu-paced: a channel step pours at most 1/{@code STEPS_PER_ROUND} of a round, a
+ * round every {@code ROUND_TICKS} (8 steps, 16 ticks = 0.8 s) scaled by {@code TimeFlow}, whatever the hunger, and a
+ * refining step may pour the whole pool. At the Gu's rank or below, the pool sets the pace over the same 8-step
+ * cycle: 1/9, 1/8, ... then 1/2 of the pool per step, 8/9 of it a cycle at normal time flow. Every essence this Gu
+ * pays goes out through {@code
  * PrimevalStoneSupply.pay}; a step is sized from the pool, so it first tops up to at least {@code ESSENCE_FLOOR}
  * ({@code topUpFor}; creative draws no stone, so it sizes as if the pool stood at the floor), and a channel step eats
  * before it sizes the essence, because the step is capped by the essence above the hunger floor, which the meal
@@ -189,10 +190,9 @@ public class TendedGuItem extends MortalGuItem {
 
     //region channeling [灌注] -- Human Jun [人力钧力流] and the boars
     private static final int CHANNEL_MAX_TICKS = 72_000;
-    private static final int STEP_TICKS = 5;
-    private static final int STEPS_PER_SECOND = Ticks.SECOND / STEP_TICKS;
-    private static final int ROUND_TICKS = 2 * Ticks.SECOND;
-    private static final int STEPS_PER_ROUND = ROUND_TICKS / STEP_TICKS;
+    private static final int STEP_TICKS = 2;
+    private static final int STEPS_PER_ROUND = 8;
+    private static final int ROUND_TICKS = STEPS_PER_ROUND * STEP_TICKS;
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack,
@@ -270,8 +270,8 @@ public class TendedGuItem extends MortalGuItem {
     }
 
     private static long getPoolPacedStep(ServerPlayer player, long pool, int elapsed) {
-        int stepIndex = (elapsed % Ticks.SECOND) / STEP_TICKS;
-        return Math.min(pool, TimeFlow.scale(player, pool / (STEPS_PER_SECOND + 1 - stepIndex)));
+        int stepIndex = (elapsed % ROUND_TICKS) / STEP_TICKS;
+        return Math.min(pool, TimeFlow.scale(player, pool / (STEPS_PER_ROUND + 1 - stepIndex)));
     }
 
     private void pour(ServerPlayer player, ItemStack stack, int amount) {
