@@ -15,13 +15,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty;
 import yesman.epicfight.api.animation.types.AirSlashAnimation;
@@ -37,7 +35,6 @@ import yesman.epicfight.api.event.types.player.SetTargetEvent;
 import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.gameasset.Armatures;
-import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.registry.entries.EpicFightAttributes;
 import yesman.epicfight.registry.entries.EpicFightSkills;
 import yesman.epicfight.skill.Skill;
@@ -56,10 +53,11 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * Fight mode with a fist-category primary hand (an empty hand resolves to FIST too; a bare main hand beside an
  * offhand weapon is Epic Fight's mirror mode, which swings the offhand weapon, so no fist strike), never an innate
  * skill, which Epic Fight builds as a plain {@code AttackAnimation} -- {@link AreaImpact#release} hits the cone
- * along the look, sparing every target the fist already tried this phase, and each target it landed on gets the
- * strike's own hit sound and particle, read the way Epic Fight reads them for the fist's hit. The event fires once
- * per phase on the server, whiff or not; a phase cut short by another animation ({@code isAnimationTerminated})
- * releases nothing.
+ * along the look, sparing every target the fist already tried this phase. Every release, whiff or not, sends one
+ * area impact ring down the cone ({@link RingConeEmitter#areaImpactRing}), and each target it landed on gets the
+ * strike's own hit sound, read the way Epic Fight reads it for the fist's hit; Epic Fight's hit particle stays
+ * off the impact, the ring is its picture. The event fires once per phase on the server; a phase cut short by
+ * another animation ({@code isAnimationTerminated}) releases nothing.
  *
  * <p>⚠ Epic Fight owns stamina: the current value, regeneration, the HUD and all ordinary consumption. GZR only
  * scales the cap and waives the undead's skill cost; it keeps no stamina attachment and adds no sprint gate,
@@ -157,23 +155,20 @@ public final class EpicFightIntegration {
         if (patch.getPrimaryItemCapability().getWeaponCategory() != CapabilityItem.WeaponCategories.FIST) return;
 
         ServerPlayer player = patch.getOriginal();
-        List<LivingEntity> landed = AreaImpact.release(player, player.getLookAngle(),
-                patch.getCurrentlyAttackTriedEntities());
-        if (landed.isEmpty()) return;
+        if (!AreaImpact.isUnlocked(player)) return;
 
+        Vec3 look = player.getLookAngle();
+        RingConeEmitter.areaImpactRing(player, look, AreaImpact.RANGE);
+        List<LivingEntity> landed = AreaImpact.release(player, look, patch.getCurrentlyAttackTriedEntities());
         AttackAnimation.Phase phase = event.getPhase();
-        InteractionHand hand = phase.effectiveHand(patch);
         SoundEvent sound = phase.getProperty(AttackPhaseProperty.HIT_SOUND)
-                .orElseGet(() -> patch.getWeaponHitSound(hand));
-        HitParticleType particle = phase.getProperty(AttackPhaseProperty.PARTICLE).map(DeferredHolder::get)
-                .orElseGet(() -> patch.getWeaponHitParticle(hand));
+                .orElseGet(() -> patch.getWeaponHitSound(phase.effectiveHand(patch)));
+        if (sound == null) return;
+
         ServerLevel level = player.serverLevel();
         for (LivingEntity target : landed) {
-            if (sound != null) {
-                level.playSound(null, target.getX(), target.getY(), target.getZ(), sound, target.getSoundSource(),
-                        1.0F, 1.0F);
-            }
-            particle.spawnParticleWithArgument(level, target, player);
+            level.playSound(null, target.getX(), target.getY(), target.getZ(), sound, target.getSoundSource(),
+                    1.0F, 1.0F);
         }
     }
 

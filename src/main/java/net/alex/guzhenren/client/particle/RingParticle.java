@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -28,7 +29,8 @@ import org.joml.Vector3f;
  * The reusable shockwave ring [激波环] for speed- and force-feel feedback: Alex's {@link #FRAME_COUNT}
  * hand-drawn rings played in sprite-list order, one particle per drop (the L2 ring-texture test pins the
  * count against the datagen'd sprite lists). Every ring blooms small-to-large where it was planted: through
- * {@code RingConeEmitter}, the dash trail rides {@code shockwave_ring} along the dash path; through
+ * {@code RingConeEmitter}, the dash trail rides {@code shockwave_ring} along the dash path and each area impact
+ * [范围冲击] sends one {@code area_impact_ring} [范围冲击环] from the cone's tip; through
  * {@code SecondStageRingEmitter}, each entry into
  * second-stage flight [二段飞行] opens one {@code sonic_boom_ring} [音爆环], and the flight forms
  * {@code barrier_ring} [音障环] at its leading face while it stays fast. Each frame's world size derives from its own
@@ -40,7 +42,8 @@ import org.joml.Vector3f;
  * <p>Every ring builds its plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the
  * camera by {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
  * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
- * {@link #createDashTrail(SpriteSet)}, {@link #createSonicBoom(SpriteSet)} or {@link #createBarrierRing(SpriteSet)}.
+ * {@link #createDashTrail(SpriteSet)}, {@link #createSonicBoom(SpriteSet)}, {@link #createBarrierRing(SpriteSet)} or
+ * {@link #createAreaImpactRing(SpriteSet)}.
  *
  * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
  * trail is for third-person and bystanders. {@link #noteLocalDash(int)} arms
@@ -54,12 +57,16 @@ import org.joml.Vector3f;
  * barrier ring {@link Exit#SPREAD}s: over {@link #SPREAD_LINGER_TICKS} after its largest frame, half a second from
  * the full bloom to gone, it widens to {@link #SPREAD_GROWTH} times that frame, full bright until
  * {@link #SPREAD_FADE_START} of the way and fading out over the rest, so the rings second-stage flight leaves behind
- * dissolve outward. Both read the exit progress ({@link RingGeometry#getExitProgress}) with the partial tick, so the
- * fade and the spread run smooth between ticks. ⚠ {@link #tick()} reads
- * the age AFTER the increment, so the last frame is applied exactly once and never overstepped; mixing the two
- * sides is an off-by-one crash. ⚠ In {@code applyFrame} the denominator is {@code FRAME_COUNT - 1}, NOT
- * {@code lifetime - 1}: only the frame count lands exactly on frames 0 to n-1 once the linger decouples the
- * lifetime from it.
+ * dissolve outward. An area impact ring {@link Exit#SWEEP}s: it blooms to {@link #AREA_IMPACT_SPAN} while it
+ * travels -- it moves only for its first {@link RingConeEmitter#AREA_IMPACT_TRAVEL_TICKS} ticks, the bloom, carrying
+ * the speed that ends it at the cone's end -- then stands there and keeps widening at the bloom's own rate, one
+ * frame step a tick ({@link RingGeometry#getSweepSize}), fading out over {@link #AREA_IMPACT_LINGER_TICKS} plus one.
+ * Every other ring drifts its whole life. The fade and the
+ * spread both read the exit progress ({@link RingGeometry#getExitProgress}) with the partial tick, so they run
+ * smooth between ticks. ⚠ {@link #tick()} reads the age AFTER the increment, so the last frame is applied exactly
+ * once and never overstepped; mixing the two sides is an off-by-one crash. ⚠ In {@code applyFrame} the
+ * denominator is {@code FRAME_COUNT - 1}, NOT {@code lifetime - 1}: only the frame count lands exactly on frames 0
+ * to n-1 once the linger decouples the lifetime from it.
  *
  * <p>⚠ It renders through {@link #ADDITIVE_GLOW} -- additive, two-sided, full bright -- because the
  * one-pixel white stroke all but disappears on an alpha-blended sheet. 1.21.1 has no {@code end()} hook on
@@ -81,7 +88,7 @@ import org.joml.Vector3f;
 
 public final class RingParticle extends TextureSheetParticle {
 
-    enum Exit { HOLD, FADE, SPREAD }
+    enum Exit { HOLD, FADE, SPREAD, SWEEP }
 
     public static final ParticleRenderType ADDITIVE_GLOW = new ParticleRenderType() {
         @SuppressWarnings("deprecation")
@@ -103,48 +110,66 @@ public final class RingParticle extends TextureSheetParticle {
     static final int SPREAD_LINGER_TICKS = 9;
     static final float SPREAD_GROWTH = 4.0F;
     static final float SPREAD_FADE_START = 0.5F;
+    static final float AREA_IMPACT_SPAN = 3.5F;
+    static final int AREA_IMPACT_LINGER_TICKS = 4;
     private static final int DASH_SELF_HIDE_TICKS = 20;
+    private static final int DRIFTS_FOR_LIFE = Integer.MAX_VALUE;
     private static int localDashHiddenUntilTick = Integer.MIN_VALUE;
     private final SpriteSet sprites;
     private final boolean dashTrailRing;
     private final float largestSpan;
     private final Exit exit;
+    private final int travelTicks;
     private final Vec3 spawnDirection;
+    private final float bloomStep;
     private float nextQuadSize;
 
     private RingParticle(ClientLevel level, double x, double y, double z,
                          double xSpeed, double ySpeed, double zSpeed,
-                         SpriteSet sprites, boolean dashTrailRing, float largestSpan, Exit exit, int lingerTicks) {
+                         SpriteSet sprites, boolean dashTrailRing, float largestSpan, Exit exit, int lingerTicks,
+                         int travelTicks) {
         super(level, x, y, z);
         this.sprites = sprites;
         this.dashTrailRing = dashTrailRing;
         this.largestSpan = largestSpan;
         this.exit = exit;
+        this.travelTicks = travelTicks;
         this.spawnDirection = new Vec3(xSpeed, ySpeed, zSpeed);
         this.lifetime = FRAME_COUNT + lingerTicks;
         this.hasPhysics = false;
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
+        int firstWidth = sprites.get(0, FRAME_COUNT - 1).contents().width();
+        int lastWidth = sprites.get(FRAME_COUNT - 1, FRAME_COUNT - 1).contents().width();
+        this.bloomStep = (RingGeometry.scaleForWidth(lastWidth, largestSpan)
+                - RingGeometry.scaleForWidth(firstWidth, largestSpan)) / (FRAME_COUNT - 1);
         applyFrame(0);
     }
 
     public static ParticleProvider<SimpleParticleType> createDashTrail(SpriteSet sprites) {
-        return create(sprites, true, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD, RING_LINGER_TICKS);
+        return create(sprites, true, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD, RING_LINGER_TICKS, DRIFTS_FOR_LIFE);
     }
 
     public static ParticleProvider<SimpleParticleType> createSonicBoom(SpriteSet sprites) {
-        return create(sprites, false, SONIC_BOOM_SPAN, Exit.FADE, RING_LINGER_TICKS);
+        return create(sprites, false, SONIC_BOOM_SPAN, Exit.FADE, RING_LINGER_TICKS, DRIFTS_FOR_LIFE);
     }
 
     public static ParticleProvider<SimpleParticleType> createBarrierRing(SpriteSet sprites) {
-        return create(sprites, false, RingGeometry.LARGEST_RING_SPAN, Exit.SPREAD, SPREAD_LINGER_TICKS);
+        return create(sprites, false, RingGeometry.LARGEST_RING_SPAN, Exit.SPREAD, SPREAD_LINGER_TICKS,
+                DRIFTS_FOR_LIFE);
+    }
+
+    public static ParticleProvider<SimpleParticleType> createAreaImpactRing(SpriteSet sprites) {
+        return create(sprites, false, AREA_IMPACT_SPAN, Exit.SWEEP, AREA_IMPACT_LINGER_TICKS,
+                RingConeEmitter.AREA_IMPACT_TRAVEL_TICKS);
     }
 
     private static ParticleProvider<SimpleParticleType> create(SpriteSet sprites, boolean dashTrailRing,
-                                                               float largestSpan, Exit exit, int lingerTicks) {
+                                                               float largestSpan, Exit exit, int lingerTicks,
+                                                               int travelTicks) {
         return (type, level, x, y, z, xSpeed, ySpeed, zSpeed) -> new RingParticle(level, x, y, z, xSpeed, ySpeed,
-                zSpeed, sprites, dashTrailRing, largestSpan, exit, lingerTicks);
+                zSpeed, sprites, dashTrailRing, largestSpan, exit, lingerTicks, travelTicks);
     }
 
     public static void noteLocalDash(int tickCount) {
@@ -162,6 +187,7 @@ public final class RingParticle extends TextureSheetParticle {
             return;
         }
         applyFrame(Math.min(this.age, FRAME_COUNT - 1));
+        if (this.age > this.travelTicks) return;
         this.x += this.xd;
         this.y += this.yd;
         this.z += this.zd;
@@ -179,6 +205,9 @@ public final class RingParticle extends TextureSheetParticle {
     @Override
     public float getQuadSize(float partialTick) {
         float size = Mth.lerp(partialTick, this.quadSize, this.nextQuadSize);
+        if (this.exit == Exit.SWEEP) {
+            return RingGeometry.getSweepSize(this.age + partialTick, FRAME_COUNT - 1, size, this.bloomStep);
+        }
         return this.exit == Exit.SPREAD ? size * (1.0F + (SPREAD_GROWTH - 1.0F) * getExitProgress(partialTick)) : size;
     }
 

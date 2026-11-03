@@ -41,6 +41,11 @@ import net.minecraft.world.phys.Vec3;
  * another it would lay its rings along the line between the two. The per-player {@link #tick}, which
  * {@code RingConeEvents} calls at the end of each player tick, returns at once while the map is empty.
  *
+ * <p>{@link #areaImpactRing} is that sibling for the area impact [范围冲击]: one {@code area_impact_ring}
+ * [范围冲击环] born {@link #AREA_IMPACT_RING_START} block ahead of the eyes, carrying the speed that takes it to the
+ * cone's end in {@link #AREA_IMPACT_TRAVEL_TICKS} ticks, where the ring stops, widens and fades. That tick count is
+ * the ring's bloom (five frames, the last at age 4), so it stops as the bloom ends; pinned in {@code RingGeometryTest}.
+ *
  * <p>Future speed- or force-feel actions call the {@code dashCone} entry point
  * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
  * hitbox.
@@ -60,6 +65,8 @@ public final class RingConeEmitter {
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;
     private static final double DASH_RING_HEIGHT = 1.0D;
     private static final double RING_NORMAL_DRIFT = 0.03D;
+    public static final int AREA_IMPACT_TRAVEL_TICKS = 4;
+    private static final double AREA_IMPACT_RING_START = 1.0D;
 
     private static final Map<UUID, Burst> DASH_BURSTS = new HashMap<>();
 
@@ -70,6 +77,20 @@ public final class RingConeEmitter {
         if (motionDirection.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
         DASH_BURSTS.put(player.getUUID(), new DashBurst(motionDirection.normalize(),
                 DASH_MAX_TICKS, player.position(), 0.0D, DASH_MAX_RINGS, 0));
+    }
+
+    public static void areaImpactRing(ServerPlayer player, Vec3 axis, double reach) {
+        if (axis.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
+        Vec3 direction = axis.normalize();
+        Vec3 ring = player.getEyePosition().add(direction.scale(AREA_IMPACT_RING_START));
+        Vec3 velocity = direction.scale(getAreaImpactRingSpeed(reach));
+        player.serverLevel().sendParticles(ModParticles.AREA_IMPACT_RING.get(), ring.x, ring.y, ring.z, 0,
+                velocity.x, velocity.y, velocity.z, 1.0D);
+    }
+
+    /** Blocks per tick that carry an area impact ring from its birth to {@code reach} blocks from the eyes. */
+    public static double getAreaImpactRingSpeed(double reach) {
+        return (reach - AREA_IMPACT_RING_START) / AREA_IMPACT_TRAVEL_TICKS;
     }
 
     public static void tick(ServerPlayer player) {

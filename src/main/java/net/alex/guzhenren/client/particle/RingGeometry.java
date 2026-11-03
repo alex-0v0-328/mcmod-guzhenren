@@ -19,7 +19,8 @@ import org.joml.Vector3f;
  *
  * <p>A ring's exit runs from its full bloom to its despawn: {@link #getExitProgress} goes from 0 at
  * {@code lastFrameAge} (partial ticks included) to 1 when the ring despawns, {@code lingerTicks + 1} ticks later,
- * and a spreading ring grows by that share of its extra size. {@link #getFadeAlpha} holds full bright through
+ * and a spreading ring grows by that share of its extra size; a sweeping ring keeps growing one frame step a tick
+ * past {@code lastFrameAge} instead ({@link #getSweepSize}). {@link #getFadeAlpha} holds full bright through
  * an exit until {@code fadeStart}, then fades out.
  *
  * <p>{@link #MIN_OPENING_DEGREES} is the minimum opening toward the camera, in degrees: a ring
@@ -70,6 +71,10 @@ final class RingGeometry {
 
     static float getExitProgress(float age, int lastFrameAge, int lingerTicks) {
         return Math.clamp((age - lastFrameAge) / (lingerTicks + 1), 0.0F, 1.0F);
+    }
+
+    static float getSweepSize(float age, int lastFrameAge, float bloomSize, float step) {
+        return bloomSize + step * Math.max(0.0F, age - lastFrameAge);
     }
 
     static float getFadeAlpha(float progress, float fadeStart) {

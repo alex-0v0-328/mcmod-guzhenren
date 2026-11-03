@@ -22,6 +22,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * at each entry into second-stage flight [二段飞行]: the same rings blooming to ≈4 blocks. {@link #BARRIER_RING} is
  * the sound barrier ring [音障环] that flight forms at its leading face while it stays fast. The sonic boom fades
  * through its linger; a sound barrier ring widens to four times its largest frame as it fades.
+ * {@link #AREA_IMPACT_RING} is the area impact ring [范围冲击环]: one per area impact [范围冲击], spreading like a
+ * sound barrier ring while it travels from the cone's tip to its end, where it stops to fade.
  *
  * @author Alex
  * @version 1.0.0
@@ -41,6 +43,8 @@ public final class ModParticles {
             "sonic_boom_ring", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> BARRIER_RING = PARTICLE_TYPES.register(
             "barrier_ring", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> AREA_IMPACT_RING = PARTICLE_TYPES.register(
+            "area_impact_ring", () -> new SimpleParticleType(false));
 
     public static void register(IEventBus modEventBus) { PARTICLE_TYPES.register(modEventBus); }
 }

@@ -180,6 +180,7 @@ public final class ClientEvents {
         event.registerSpriteSet(ModParticles.SHOCKWAVE_RING.get(), RingParticle::createDashTrail);
         event.registerSpriteSet(ModParticles.SONIC_BOOM_RING.get(), RingParticle::createSonicBoom);
         event.registerSpriteSet(ModParticles.BARRIER_RING.get(), RingParticle::createBarrierRing);
+        event.registerSpriteSet(ModParticles.AREA_IMPACT_RING.get(), RingParticle::createAreaImpactRing);
     }
 
     @SubscribeEvent
