@@ -20,34 +20,28 @@ import net.minecraft.world.phys.Vec3;
  * per-tick drop clusters the rings at the start and end of the path, while
  * spacing by measured travel stays uniform across windups, jumps and wall truncations. The ring at
  * the dash start appears first and the one near the end last, up to {@link #DASH_MAX_RINGS} rings
- * (~16 blocks of path). {@link #emitPunchCone} replays the same planted logic on a fixed ray: the ring
- * at the strike point (the victim's hitbox center) appears first, then one per tick every
- * {@link RingTrailSpacing#SPACING} blocks behind the target -- up to {@link #PUNCH_MAX_RINGS}
- * rings, a long tail running ~16 blocks past the strike point. The ring velocity is only a facing-normal carrier
+ * (~16 blocks of path). The ring velocity is only a facing-normal carrier
  * ({@link #RING_NORMAL_DRIFT}, blocks per tick): a zero vector would trip {@code RingGeometry}'s
  * no-direction fallback and lay the ring flat, and over the ring's whole life the drift moves it
  * under a quarter block, which reads as stationary. Every ring of this package goes out through {@link #sendRing},
  * with count 0 and speed 1.0, handing the particle the exact velocity, which the ring also reads as its facing
  * normal ({@code FACING_MOTION}).
  *
- * <p>{@link #DASH_BURSTS} and {@link #PUNCH_BURSTS} hold one active burst per effect per player, on
- * separate maps so a dash trail and a punch trail coexist (charging-crash play mixes the two): a
+ * <p>{@link #DASH_BURSTS} holds one active burst per player: a
  * retrigger while a dash burst is alive (a second payload inside the window) would replay the
- * whole trail, so a dash inside its own window is skipped instead of replacing it, while a punch
- * retrigger restarts the punch trail. The
+ * whole trail, so a dash inside its own window is skipped instead of replacing it. The
  * {@link Burst} interface's {@code tick} drops one tick's ring(s) and returns the next state, or
  * null once the burst is spent. {@link DashBurst} positions each ring along the tick's movement
  * segment so even a chunked dodge spreads them evenly, and ends when the ring budget is spent, the
  * player stands still for {@link #DASH_IDLE_LIMIT} ticks (a dodge windup is shorter) below
  * {@link #DASH_IDLE_SPEED_SQR} squared horizontal speed (0.05 blocks/tick counts as still), or the
  * {@link #DASH_MAX_TICKS} safety cap runs out. {@link #DASH_RING_HEIGHT} is the dash ring's spawn
- * height above the feet, the standing ring's mid-body (max radius 1.1). {@link PunchBurst} plants
- * the same logic on the fixed ray described above. A player's bursts are dropped on logout and on a dimension
- * change ({@link #forget}): a dash burst measures travel from a position in one level, and carried into another it
- * would lay its rings along the line between the two. The per-player {@link #tick}, which {@code RingConeEvents}
- * calls at the end of each player tick, returns at once while both maps are empty.
+ * height above the feet, the standing ring's mid-body (max radius 1.1). A player's burst is dropped on logout and on
+ * a dimension change ({@link #forget}): a dash burst measures travel from a position in one level, and carried into
+ * another it would lay its rings along the line between the two. The per-player {@link #tick}, which
+ * {@code RingConeEvents} calls at the end of each player tick, returns at once while the map is empty.
  *
- * <p>Future speed- or force-feel actions call the {@code dashCone}/{@code emitPunchCone} entry points
+ * <p>Future speed- or force-feel actions call the {@code dashCone} entry point
  * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
  * hitbox.
  *
@@ -66,10 +60,8 @@ public final class RingConeEmitter {
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;
     private static final double DASH_RING_HEIGHT = 1.0D;
     private static final double RING_NORMAL_DRIFT = 0.03D;
-    private static final int PUNCH_MAX_RINGS = 8;
 
     private static final Map<UUID, Burst> DASH_BURSTS = new HashMap<>();
-    private static final Map<UUID, Burst> PUNCH_BURSTS = new HashMap<>();
 
     private RingConeEmitter() {}
 
@@ -80,25 +72,18 @@ public final class RingConeEmitter {
                 DASH_MAX_TICKS, player.position(), 0.0D, DASH_MAX_RINGS, 0));
     }
 
-    public static void emitPunchCone(ServerPlayer player, Vec3 look, Vec3 strikePoint) {
-        if (look.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
-        PUNCH_BURSTS.put(player.getUUID(), new PunchBurst(look.normalize(), PUNCH_MAX_RINGS, strikePoint));
-    }
-
     public static void tick(ServerPlayer player) {
-        if (DASH_BURSTS.isEmpty() && PUNCH_BURSTS.isEmpty()) return;
+        if (DASH_BURSTS.isEmpty()) return;
         if (player.isRemoved() || player.isDeadOrDying()
                 || !(player.level() instanceof ServerLevel level)) {
             forget(player);
             return;
         }
         tickBurst(DASH_BURSTS, player, level);
-        tickBurst(PUNCH_BURSTS, player, level);
     }
 
     public static void forget(Player player) {
         DASH_BURSTS.remove(player.getUUID());
-        PUNCH_BURSTS.remove(player.getUUID());
     }
 
     /** Sends one ring at the point given, facing along {@code facing}, which its drift velocity carries. */
@@ -147,18 +132,6 @@ public final class RingConeEmitter {
                 newRingsLeft = drops.ringsLeft();
             }
             return new DashBurst(direction, ticksLeft - 1, position, newCarry, newRingsLeft, idle);
-        }
-    }
-
-    private record PunchBurst(Vec3 direction, int ringsLeft, Vec3 anchor) implements Burst {
-
-        @Override
-        public Burst tick(ServerPlayer player, ServerLevel level) {
-            if (ringsLeft <= 0) return null;
-            int index = PUNCH_MAX_RINGS - ringsLeft;
-            Vec3 ring = anchor.add(direction.scale(RingTrailSpacing.SPACING * index));
-            sendRing(level, ModParticles.IMPACT_RING.get(), ring.x, ring.y, ring.z, direction);
-            return new PunchBurst(direction, ringsLeft - 1, anchor);
         }
     }
 }

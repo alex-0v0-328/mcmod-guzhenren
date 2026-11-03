@@ -27,11 +27,11 @@ import org.joml.Vector3f;
  * edge-on and invisible, so the normal is tilted toward the camera enough to keep the arc legible.
  * At 5° the big early frames of a sideways dash render as a
  * 0.19-block sliver and the trail reads small-to-large; 30° keeps the largest frame ~1.1 blocks
- * wide even edge-on. Rings already facing the viewer (punch, forward dash) sit far above the
+ * wide even edge-on. Rings already facing the viewer (forward dash) sit far above the
  * threshold and are never touched.
  *
  * <p>{@link #getFacing} builds the quad perpendicular to {@code direction} (the ring faces along it,
- * like a shockwave riding a dash or a punch), applying the {@link #MIN_OPENING_DEGREES} tilt
+ * like a shockwave riding a dash), applying the {@link #MIN_OPENING_DEGREES} tilt
  * toward {@code cameraForward} when the ring would otherwise be edge-on. A near-zero direction
  * falls back to {@link #getGround(float)}; a (near-)vertical one switches the reference axis so the
  * basis never degenerates -- note a vertical normal lands on the horizontal plane anyway, matching

@@ -28,8 +28,8 @@ import org.joml.Vector3f;
  * The reusable shockwave ring [激波环] for speed- and force-feel feedback: Alex's {@link #FRAME_COUNT}
  * hand-drawn rings played in sprite-list order, one particle per drop (the L2 ring-texture test pins the
  * count against the datagen'd sprite lists). Every ring blooms small-to-large where it was planted: through
- * {@code RingConeEmitter}, the dash trail rides {@code shockwave_ring} along the dash path and the punch trail
- * rides {@code impact_ring} along the punch ray; through {@code SecondStageRingEmitter}, each entry into
+ * {@code RingConeEmitter}, the dash trail rides {@code shockwave_ring} along the dash path; through
+ * {@code SecondStageRingEmitter}, each entry into
  * second-stage flight [二段飞行] opens one {@code sonic_boom_ring} [音爆环], and the flight forms
  * {@code barrier_ring} [音障环] at its leading face while it stays fast. Each frame's world size derives from its own
  * canvas width and the type's largest span ({@link RingGeometry#scaleForWidth(int, float)}):
@@ -40,8 +40,7 @@ import org.joml.Vector3f;
  * <p>Every ring builds its plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the
  * camera by {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
  * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
- * {@link #createFacingMotion(SpriteSet)}, {@link #createDashTrail(SpriteSet)},
- * {@link #createSonicBoom(SpriteSet)} or {@link #createBarrierRing(SpriteSet)}.
+ * {@link #createDashTrail(SpriteSet)}, {@link #createSonicBoom(SpriteSet)} or {@link #createBarrierRing(SpriteSet)}.
  *
  * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
  * trail is for third-person and bystanders. {@link #noteLocalDash(int)} arms
@@ -50,7 +49,7 @@ import org.joml.Vector3f;
  * player's tickCount.
  *
  * <p>⚠ {@link #RING_LINGER_TICKS} lets a ring hold its last frame before despawning, or the completed
- * bloom never reads. How a ring leaves after the bloom is its {@link Exit}: the dash and punch rings
+ * bloom never reads. How a ring leaves after the bloom is its {@link Exit}: the dash rings
  * {@link Exit#HOLD} full bright, the sonic boom {@link Exit#FADE}s through the linger, and a sound
  * barrier ring {@link Exit#SPREAD}s: over {@link #SPREAD_LINGER_TICKS} after its largest frame, half a second from
  * the full bloom to gone, it widens to {@link #SPREAD_GROWTH} times that frame, full bright until
@@ -128,10 +127,6 @@ public final class RingParticle extends TextureSheetParticle {
         this.yd = ySpeed;
         this.zd = zSpeed;
         applyFrame(0);
-    }
-
-    public static ParticleProvider<SimpleParticleType> createFacingMotion(SpriteSet sprites) {
-        return create(sprites, false, RingGeometry.LARGEST_RING_SPAN, Exit.HOLD, RING_LINGER_TICKS);
     }
 
     public static ParticleProvider<SimpleParticleType> createDashTrail(SpriteSet sprites) {

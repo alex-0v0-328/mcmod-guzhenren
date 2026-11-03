@@ -11,11 +11,10 @@ import net.neoforged.neoforge.common.data.ParticleDescriptionProvider;
 /**
  * Generates {@code assets/guzhenren/particles/*.json}: the sprite list per particle type, in
  * playback order. Every ring type lists the same rings smallest-to-largest ({@link #RINGS}; every ring
- * blooms where it is born): the dash trail plants them along the path, the punch trail plants
- * them along the punch ray from the strike point, second-stage flight [二段飞行] plants one sonic boom where each
- * entry starts and sound barrier rings at its leading face while it stays fast. The type split is semantic: the
- * dash trail hides from the dasher's own first-person camera, the punch cone does not, the sonic boom grows to its
- * own size and fades, and a sound barrier ring widens further as it fades.
+ * blooms where it is born): the dash trail plants them along the path, second-stage flight [二段飞行] plants one
+ * sonic boom where each entry starts and sound barrier rings at its leading face while it stays fast. The type split
+ * is semantic: the dash trail hides from the dasher's own first-person camera, the sonic boom grows to its own size
+ * and fades, and a sound barrier ring widens further as it fades.
  *
  * @author Alex
  * @version 1.0.0
@@ -36,7 +35,6 @@ public final class ModParticleDescriptionProvider extends ParticleDescriptionPro
     @Override
     protected void addDescriptions() {
         this.spriteSet(ModParticles.SHOCKWAVE_RING.get(), RINGS);
-        this.spriteSet(ModParticles.IMPACT_RING.get(), RINGS);
         this.spriteSet(ModParticles.SONIC_BOOM_RING.get(), RINGS);
         this.spriteSet(ModParticles.BARRIER_RING.get(), RINGS);
     }

@@ -178,7 +178,6 @@ public final class ClientEvents {
     @SubscribeEvent
     public static void onRegisterParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.SHOCKWAVE_RING.get(), RingParticle::createDashTrail);
-        event.registerSpriteSet(ModParticles.IMPACT_RING.get(), RingParticle::createFacingMotion);
         event.registerSpriteSet(ModParticles.SONIC_BOOM_RING.get(), RingParticle::createSonicBoom);
         event.registerSpriteSet(ModParticles.BARRIER_RING.get(), RingParticle::createBarrierRing);
     }

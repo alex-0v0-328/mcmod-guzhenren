@@ -2,34 +2,25 @@ package net.alex.guzhenren.compat;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.plunge.PlungeLandedEvent;
 import net.alex.guzhenren.lifecycle.PlayerRefreshedEvent;
-import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPCreateTerrainFracture;
 import yesman.epicfight.registry.entries.EpicFightItems;
-import yesman.epicfight.world.capabilities.EpicFightCapabilities;
-import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
-import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 /**
  * Seeds Epic Fight's skill-retention rule once per world ({@link EpicFightRuleSeed}), re-reads the stamina
  * modifier whenever the apertures change ({@code ApertureChangedEvent}) or the lifecycle rebuilds a player's
- * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, opens the
- * punch shockwave trail on a heavy fist landing, and cracks the ground under a plunge's landing.
+ * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, and cracks the
+ * ground under a plunge's landing.
  *
  * <p>{@link #onPlungeLanded}: Epic Fight's own terrain fracture, the cracked ring its meteor slam leaves, at the
  * landing with the landing's impact power as its radius ({@code PlungeImpact#getImpactPower}, 2 to 6 blocks), sent to
@@ -42,13 +33,6 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * loot, but Epic Fight adds mob drops through its own global loot modifier, and NeoForge applies global loot
  * modifiers in hash order, not pack order, so ours may run first. A player's death drops keep their books: those are
  * inventory, not loot.
- *
- * <p>{@link #onIncomingDamage}: a landed attack from an Epic-Fight-mode player punching bare-handed
- * (or with a fist-category weapon; an empty hand resolves to FIST too) opens the punch shockwave
- * trail at the struck target's hitbox center -- rings planting along the punch ray behind the
- * target, each blooming small-to-large in place -- when the attack panel has reached
- * {@link AttackDamageService#IMPACT_RING_ATTACK_THRESHOLD}. The panel is read as-is, so weapon damage
- * only rides along for fist-category items.
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)
@@ -81,19 +65,5 @@ public final class EpicFightServerEvents {
         EpicFightNetworkManager.sendToAllPlayerTrackingThisChunkWithSelf(
                 new SPCreateTerrainFracture(event.getPosition(), event.getImpactPower(), true, false),
                 player.serverLevel(), new ChunkPos(BlockPos.containing(event.getPosition())));
-    }
-
-    @SubscribeEvent
-    public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
-        ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
-        if (patch == null || !patch.isEpicFightMode()) return;
-        if (patch.getHoldingItemCapability(InteractionHand.MAIN_HAND).getWeaponCategory()
-                != CapabilityItem.WeaponCategories.FIST) return;
-        AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (attack == null || !AttackDamageService.isImpactRingShown(attack.getValue())) return;
-
-        RingConeEmitter.emitPunchCone(player, player.getLookAngle(),
-                event.getEntity().getBoundingBox().getCenter());
     }
 }
