@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The human-strength module [人力]: adds one layer of one kind; the rank [转数] and the kind come from registration.
  *
- * <p>Four rungs register it (斤 / 十斤 / 钧 / 十钧). The gate refuses a body that holds Beast Strength Phantom,
+ * <p>Five rungs register it (斤 / 十斤 / 钧 / 十钧 / 百钧). The gate refuses a body that holds Beast Strength Phantom,
  * a running beast buff included ({@link MarkInterference}), then a holder who has maxed out that kind; the
  * effect delegates to {@link PathStrengthService#addHumanStrength}. One layer per grant is fixed by
  * {@code LAYERS_PER_GRANT}.

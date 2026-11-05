@@ -679,6 +679,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(HumanStrength.TEN_JIN, "Ten Jin", "十斤");
         add(HumanStrength.JUN,     "Jun",     "钧");
         add(HumanStrength.TEN_JUN, "Ten Jun", "十钧");
+        add(HumanStrength.HUNDRED_JUN, "Hundred Jun", "百钧");
     }
 
     private void addTitle() {

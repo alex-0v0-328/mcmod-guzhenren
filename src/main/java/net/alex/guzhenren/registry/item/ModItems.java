@@ -398,6 +398,16 @@ public final class ModItems {
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1),
                     new HumanStrengthModule(HumanStrength.TEN_JUN)))
             .lang("Ten Jun Strength Gu", "十钧力蛊").register();
+    public static final DeferredItem<Item> HUNDREDS_JUN_STRENGTH_GU = REGISTRAR.item("hundreds_jun_strength_gu",
+            () -> new TendedGuItem(createTendedProperties(),
+                    createChannelSpec(Rank.FIVE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
+                            .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
+                            .effect(EffectCarrier.BODY, 512)
+                            .refine(12_800)
+                            .channel(19_200)
+                            .feed(ModItemTags.JIN_FEED_SMELTED, 1),
+                    new HumanStrengthModule(HumanStrength.HUNDRED_JUN)))
+            .lang("Hundred Jun Strength Gu", "百钧之力蛊").register();
     //endregion
 
     //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
@@ -492,7 +502,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Normal [基础力道] -- All-Out Effort Gu unlocks a stockpiled 9999 jin
+    //region Normal [基础力道] -- All-Out Effort Gu unlocks a stockpiled 99,999 jin
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_3 = REGISTRAR.item("all_out_effort_gu_3",
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.THREE, GuPath.STRENGTH)

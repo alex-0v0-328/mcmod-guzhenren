@@ -97,7 +97,10 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
     /** The permanent strength points [力量点]: every jin plus every refined beast's points. */
     public int getStrengthPoints() { return getTotalJin() + getBeastPoints(); }
 
-    public int getJunReading() { return getReading(HumanStrength.JUN, HumanStrength.TEN_JUN); }
+    public int getJunReading() {
+        return getReading(HumanStrength.JUN, HumanStrength.TEN_JUN)
+                + HumanStrength.HUNDRED_FACTOR * getHumanStrengthCount(HumanStrength.HUNDRED_JUN);
+    }
 
     public int getJinReading() { return getReading(HumanStrength.JIN, HumanStrength.TEN_JIN); }
 

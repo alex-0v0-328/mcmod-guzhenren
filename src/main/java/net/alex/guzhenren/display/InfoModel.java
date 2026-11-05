@@ -148,7 +148,7 @@ public final class InfoModel {
     /** {@code secondsLeft} is {@code PathEffect.PERMANENT} for a refined beast strength. */
     public record BeastReading(BeastStrengthFamily family, int count, long secondsLeft) implements StrengthReading {}
 
-    /** {@code unit} is {@link HumanStrength#JIN} or {@link HumanStrength#JUN}, the ten-fold kinds folded in. */
+    /** {@code unit} is {@link HumanStrength#JIN} or {@link HumanStrength#JUN}, the ten- and hundred-fold kinds folded in. */
     public record HumanReading(HumanStrength unit, int count) implements StrengthReading {}
 
     public record TimePathAchieveHeader() implements Entry {}
