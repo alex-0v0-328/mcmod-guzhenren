@@ -249,7 +249,7 @@ public final class ModItems {
                 .type(GuType.DAO_MARK_CARVING)
                 .effect(EffectCarrier.BODY)
                 .refine(800)
-                .channel(4_000)
+                .channel(1_200)
                 .feed(feed, 1);
     }
 
@@ -259,7 +259,7 @@ public final class ModItems {
                 .type(GuType.AMPLIFICATION)
                 .effect(EffectCarrier.BODY)
                 .refine(800)
-                .costPerUse(16)
+                .costPerUse(12)
                 .feed(feed, 1)
                 .cooldown(30 * Ticks.SECOND, Ticks.SECOND);
     }
@@ -269,7 +269,7 @@ public final class ModItems {
     public static final DeferredItem<Item> HORIZONTAL_CRASH_GU = REGISTRAR.item("horizontal_crash_gu",
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
-                            .refine(80_000).costPerUse(1_600)
+                            .refine(3_200).costPerUse(108)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new TimedBuffModule(ModEffects.HORIZONTAL_CRASH_GU, 30 * Ticks.SECOND),
@@ -278,7 +278,7 @@ public final class ModItems {
     public static final DeferredItem<Item> VERTICAL_CRASH_GU = REGISTRAR.item("vertical_crash_gu",
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.THREE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
-                            .refine(80_000).costPerUse(1_600)
+                            .refine(3_200).costPerUse(108)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new TimedBuffModule(ModEffects.VERTICAL_CRASH_GU, 30 * Ticks.SECOND),
@@ -287,7 +287,7 @@ public final class ModItems {
     public static final DeferredItem<Item> CHARGING_CRASH_GU_4 = REGISTRAR.item("charging_crash_gu_4",
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.FOUR, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
-                            .refine(800_000).costPerUse(16_000)
+                            .refine(6_400).costPerUse(324)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, 30 * Ticks.SECOND, 3),
@@ -296,7 +296,7 @@ public final class ModItems {
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = REGISTRAR.item("charging_crash_gu_5",
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.FIVE, GuPath.STRENGTH).type(GuType.MOVEMENT).effect(EffectCarrier.BODY)
-                            .refine(8_000_000).costPerUse(160_000)
+                            .refine(12_800).costPerUse(972)
                             .feed(ModItemTags.ANVIL_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new TimedBuffModule(ModEffects.CHARGING_CRASH_GU, 60 * Ticks.SECOND, 4),
@@ -306,7 +306,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.TWO, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
-                            .refine(8_000).costPerUse(160)
+                            .refine(1_600).costPerUse(36)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
                     new SelfRelianceModule(1, 0.03F),
@@ -316,7 +316,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.THREE, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
-                            .refine(80_000).costPerUse(1_600)
+                            .refine(3_200).costPerUse(108)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
                     new SelfRelianceModule(2, 0.04F),
@@ -326,7 +326,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.FOUR, GuPath.STRENGTH).type(GuType.HEALING)
                             .effect(EffectCarrier.BODY)
-                            .refine(800_000).costPerUse(16_000)
+                            .refine(6_400).costPerUse(324)
                             .feed(ModItemTags.COBBLESTONE_FEED, 1)
                             .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
                     new SelfRelianceModule(3, 0.05F),
@@ -336,7 +336,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.FOUR, GuPath.STRENGTH).type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(800_000).costPerUse(16_000)
+                            .refine(6_400).costPerUse(324)
                             .feed(ModItemTags.POTATO_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new TimedBuffModule(ModEffects.HARDSHIP_STRENGTH_GU, HardshipStrengthGuEffect.DURATION_TICKS),
@@ -349,7 +349,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     createRankedSpec(Rank.THREE, GuPath.WATER).type(GuType.DEFENSIVE)
                             .effect(EffectCarrier.BODY)
-                            .refine(80_000).costPerUse(1_600)
+                            .refine(3_200).costPerUse(108)
                             .feed(ModItemTags.SMOOTH_STONE_FEED, 1)
                             .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new ShieldModule(ShieldType.HEAVENLY_MUGWORT, 180.0F, 30 * Ticks.SECOND),
@@ -364,7 +364,7 @@ public final class ModItems {
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 2)
                             .refine(800)
-                            .channel(4_000)
+                            .channel(1_200)
                             .feed(ModItemTags.JIN_FEED, 1),
                     new HumanStrengthModule(HumanStrength.JIN)))
             .lang("Jin Strength Gu", "斤力蛊").register();
@@ -373,8 +373,8 @@ public final class ModItems {
                     createChannelSpec(Rank.TWO, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 8)
-                            .refine(8_000)
-                            .channel(40_000)
+                            .refine(1_600)
+                            .channel(2_400)
                             .feed(ModItemTags.JIN_FEED, 1),
                     new HumanStrengthModule(HumanStrength.TEN_JIN)))
             .lang("Ten Jin Strength Gu", "十斤力蛊").register();
@@ -383,8 +383,8 @@ public final class ModItems {
                     createChannelSpec(Rank.THREE, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 32)
-                            .refine(80_000)
-                            .channel(120_000)
+                            .refine(3_200)
+                            .channel(4_800)
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1),
                     new HumanStrengthModule(HumanStrength.JUN)))
             .lang("Jun Strength Gu", "钧力蛊").register();
@@ -393,8 +393,8 @@ public final class ModItems {
                     createChannelSpec(Rank.FOUR, GuPath.STRENGTH).type(GuType.DAO_MARK_CARVING)
                             .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
                             .effect(EffectCarrier.BODY, 128)
-                            .refine(800_000)
-                            .channel(1_200_000)
+                            .refine(6_400)
+                            .channel(9_600)
                             .feed(ModItemTags.JIN_FEED_SMELTED, 1),
                     new HumanStrengthModule(HumanStrength.TEN_JUN)))
             .lang("Ten Jun Strength Gu", "十钧力蛊").register();
@@ -403,12 +403,12 @@ public final class ModItems {
     //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while
     public static final DeferredItem<Item> JADE_SKIN_GU = REGISTRAR.item("jade_skin_gu",
             () -> new TendedGuItem(createTendedProperties(),
-                    createJadeSkinSpec(Rank.ONE, 800, 16, ModItemTags.JADE_SKIN_FEED),
+                    createJadeSkinSpec(Rank.ONE, 800, 12, ModItemTags.JADE_SKIN_FEED),
                     new SkinModule(Skin.JADE_SKIN, 60 * Ticks.SECOND)))
             .lang("Jade Skin Gu", "玉皮蛊").register();
     public static final DeferredItem<Item> WHITE_JADE_GU = REGISTRAR.item("white_jade_gu",
             () -> new TendedGuItem(createTendedProperties(),
-                    createJadeSkinSpec(Rank.TWO, 8_000, 160, ModItemTags.WHITE_JADE_FEED),
+                    createJadeSkinSpec(Rank.TWO, 1_600, 36, ModItemTags.WHITE_JADE_FEED),
                     new SkinModule(Skin.WHITE_JADE_SKIN, 90 * Ticks.SECOND)))
             .lang("White Jade Gu", "白玉蛊").register();
     //endregion
@@ -416,62 +416,62 @@ public final class ModItems {
     //region Metal Path [金道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good
     public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = REGISTRAR.item("bronze_skin_gu_1",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.ONE, 800, 4_000, ModItemTags.BRONZE_SKIN_FEED),
+                    createTemperingSpec(Rank.ONE, 800, 1_200, ModItemTags.BRONZE_SKIN_FEED),
                     new SkinModule(Skin.BRONZE_SKIN_1, 0)))
             .lang("Bronze Skin Gu I", "一转铜皮蛊").register();
     public static final DeferredItem<Item> BRONZE_SKIN_GU_2 = REGISTRAR.item("bronze_skin_gu_2",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.TWO, 8_000, 40_000, ModItemTags.BRONZE_SKIN_FEED),
+                    createTemperingSpec(Rank.TWO, 1_600, 2_400, ModItemTags.BRONZE_SKIN_FEED),
                     new SkinModule(Skin.BRONZE_SKIN_2, 0)))
             .lang("Bronze Skin Gu II", "二转铜皮蛊").register();
     public static final DeferredItem<Item> BRONZE_SKIN_GU_3 = REGISTRAR.item("bronze_skin_gu_3",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.THREE, 80_000, 400_000, ModItemTags.BRONZE_SKIN_FEED),
+                    createTemperingSpec(Rank.THREE, 3_200, 4_800, ModItemTags.BRONZE_SKIN_FEED),
                     new SkinModule(Skin.BRONZE_SKIN_3, 0)))
             .lang("Bronze Skin Gu III", "三转铜皮蛊").register();
     public static final DeferredItem<Item> BRONZE_SKIN_GU_4 = REGISTRAR.item("bronze_skin_gu_4",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.FOUR, 800_000, 4_000_000, ModItemTags.BRONZE_SKIN_FEED),
+                    createTemperingSpec(Rank.FOUR, 6_400, 9_600, ModItemTags.BRONZE_SKIN_FEED),
                     new SkinModule(Skin.BRONZE_SKIN_4, 0)))
             .lang("Bronze Skin Gu IV", "四转铜皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_1 = REGISTRAR.item("iron_skin_gu_1",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.ONE, 800, 4_000, ModItemTags.IRON_SKIN_FEED),
+                    createTemperingSpec(Rank.ONE, 800, 1_200, ModItemTags.IRON_SKIN_FEED),
                     new SkinModule(Skin.IRON_SKIN_1, 0)))
             .lang("Iron Skin Gu I", "一转铁皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_2 = REGISTRAR.item("iron_skin_gu_2",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.TWO, 8_000, 40_000, ModItemTags.IRON_SKIN_FEED),
+                    createTemperingSpec(Rank.TWO, 1_600, 2_400, ModItemTags.IRON_SKIN_FEED),
                     new SkinModule(Skin.IRON_SKIN_2, 0)))
             .lang("Iron Skin Gu II", "二转铁皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_3 = REGISTRAR.item("iron_skin_gu_3",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.THREE, 80_000, 400_000, ModItemTags.IRON_SKIN_FEED),
+                    createTemperingSpec(Rank.THREE, 3_200, 4_800, ModItemTags.IRON_SKIN_FEED),
                     new SkinModule(Skin.IRON_SKIN_3, 0)))
             .lang("Iron Skin Gu III", "三转铁皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_4 = REGISTRAR.item("iron_skin_gu_4",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.FOUR, 800_000, 4_000_000, ModItemTags.IRON_SKIN_FEED),
+                    createTemperingSpec(Rank.FOUR, 6_400, 9_600, ModItemTags.IRON_SKIN_FEED),
                     new SkinModule(Skin.IRON_SKIN_4, 0)))
             .lang("Iron Skin Gu IV", "四转铁皮蛊").register();
     public static final DeferredItem<Item> STEEL_TENDON_GU_3 = REGISTRAR.item("steel_tendon_gu_3",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.THREE, 80_000, 400_000, ModItemTags.STEEL_TENDON_FEED),
+                    createTemperingSpec(Rank.THREE, 3_200, 4_800, ModItemTags.STEEL_TENDON_FEED),
                     new TendonModule(Tendon.STEEL_TENDON_3)))
             .lang("Steel Tendon Gu III", "三转钢筋蛊").register();
     public static final DeferredItem<Item> STEEL_TENDON_GU_4 = REGISTRAR.item("steel_tendon_gu_4",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.FOUR, 800_000, 4_000_000, ModItemTags.STEEL_TENDON_FEED),
+                    createTemperingSpec(Rank.FOUR, 6_400, 9_600, ModItemTags.STEEL_TENDON_FEED),
                     new TendonModule(Tendon.STEEL_TENDON_4)))
             .lang("Steel Tendon Gu IV", "四转钢筋蛊").register();
     public static final DeferredItem<Item> IRON_BONE_GU_3 = REGISTRAR.item("iron_bone_gu_3",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.THREE, 80_000, 400_000, ModItemTags.IRON_BONE_FEED),
+                    createTemperingSpec(Rank.THREE, 3_200, 4_800, ModItemTags.IRON_BONE_FEED),
                     new BoneModule(Bone.IRON_BONE_3)))
             .lang("Iron Bone Gu III", "三转铁骨蛊").register();
     public static final DeferredItem<Item> IRON_BONE_GU_4 = REGISTRAR.item("iron_bone_gu_4",
             () -> new TendedGuItem(createTendedProperties(),
-                    createTemperingSpec(Rank.FOUR, 800_000, 4_000_000, ModItemTags.IRON_BONE_FEED),
+                    createTemperingSpec(Rank.FOUR, 6_400, 9_600, ModItemTags.IRON_BONE_FEED),
                     new BoneModule(Bone.IRON_BONE_4)))
             .lang("Iron Bone Gu IV", "四转铁骨蛊").register();
 
@@ -498,8 +498,8 @@ public final class ModItems {
                     createRankedSpec(Rank.THREE, GuPath.STRENGTH)
                             .type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(80_000)
-                            .costPerUse(1_600)
+                            .refine(3_200)
+                            .costPerUse(108)
                             .feed(ModItemTags.ALL_OUT_FEED, 1)
                             .cooldown(80 * Ticks.SECOND),
                     new AllOutEffortModule(60)))
@@ -509,8 +509,8 @@ public final class ModItems {
                     createRankedSpec(Rank.FOUR, GuPath.STRENGTH)
                             .type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(800_000)
-                            .costPerUse(16_000)
+                            .refine(6_400)
+                            .costPerUse(324)
                             .feed(ModItemTags.ALL_OUT_FEED, 1)
                             .cooldown(100 * Ticks.SECOND),
                     new AllOutEffortModule(90)))
@@ -520,8 +520,8 @@ public final class ModItems {
                     createRankedSpec(Rank.FIVE, GuPath.STRENGTH)
                             .type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(8_000_000)
-                            .costPerUse(160_000)
+                            .refine(12_800)
+                            .costPerUse(972)
                             .feed(ModItemTags.ALL_OUT_FEED, 1)
                             .cooldown(120 * Ticks.SECOND),
                     new AllOutEffortModule(120)))
@@ -532,14 +532,14 @@ public final class ModItems {
     public static final DeferredItem<Item> LIQUOR_WORM = REGISTRAR.item("liquor_worm",
             () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.FOOD)
                     .effect(EffectCarrier.BODY).type(GuType.CULTIVATION)
-                    .refine(1_600).costPerUse(16)
+                    .refine(800).costPerUse(12)
                     .hungerBar(8, 1).hungerPerUse(3).feed(ModItemTags.LIQUOR_FEED, 1),
                     new DistillModule()))
             .lang("Liquor Worm", "酒虫").register();
     public static final DeferredItem<Item> FOUR_FLAVORS_LIQUOR_WORM = REGISTRAR.item("four_flavors_liquor_worm",
             () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.FOOD)
                     .effect(EffectCarrier.BODY).type(GuType.CULTIVATION)
-                    .refine(16_000).costPerUse(160)
+                    .refine(1_600).costPerUse(36)
                     .hungerBar(16, 1).hungerPerUse(6).hungerPerDay(2).feed(ModItemTags.LIQUOR_FEED, 1),
                     new DistillModule()))
             .lang("Four Flavors Liquor Worm", "四味酒虫").register();
@@ -548,7 +548,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.FOOD)
                     .effect(EffectCarrier.BODY)
                     .type(GuType.CULTIVATION)
-                    .refine(160_000).costPerUse(1_600)
+                    .refine(3_200).costPerUse(108)
                     .hungerBar(32, 1).hungerPerUse(12).hungerPerDay(4).feed(ModItemTags.LIQUOR_FEED, 1),
                     new DistillModule()))
             .lang("Seven Fragrances Liquor Worm", "七香酒虫").register();
@@ -556,7 +556,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.FOOD)
                     .effect(EffectCarrier.BODY)
                     .type(GuType.CULTIVATION)
-                    .refine(1_600_000).costPerUse(16_000)
+                    .refine(6_400).costPerUse(324)
                     .hungerBar(64, 1).hungerPerUse(24).hungerPerDay(8).feed(ModItemTags.LIQUOR_FEED, 1),
                     new DistillModule()))
             .lang("Nine Eyes Liquor Worm", "九眼酒虫").register();
@@ -566,27 +566,27 @@ public final class ModItems {
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_1 = REGISTRAR.item("primeval_elder_gu_1",
             () -> new PrimevalElderGuItem(createTendedProperties(), 1_000L, GuSpec.of(Rank.ONE, GuPath.SPACE)
                     .type(GuType.STORAGE)
-                    .refine(16).costPerUse(0)))
+                    .refine(800).costPerUse(0)))
             .lang("Primeval Elder Gu I", "一转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_2 = REGISTRAR.item("primeval_elder_gu_2",
             () -> new PrimevalElderGuItem(createTendedProperties(), 10_000L, GuSpec.of(Rank.TWO, GuPath.SPACE)
                     .type(GuType.STORAGE)
-                    .refine(160).costPerUse(0)))
+                    .refine(1_600).costPerUse(0)))
             .lang("Primeval Elder Gu II", "二转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_3 = REGISTRAR.item("primeval_elder_gu_3",
             () -> new PrimevalElderGuItem(createTendedProperties(), 100_000L, GuSpec.of(Rank.THREE, GuPath.SPACE)
                     .type(GuType.STORAGE)
-                    .refine(1_600).costPerUse(0)))
+                    .refine(3_200).costPerUse(0)))
             .lang("Primeval Elder Gu III", "三转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_4 = REGISTRAR.item("primeval_elder_gu_4",
             () -> new PrimevalElderGuItem(createTendedProperties(), 1_000_000L, GuSpec.of(Rank.FOUR, GuPath.SPACE)
                     .type(GuType.STORAGE)
-                    .refine(16_000).costPerUse(0)))
+                    .refine(6_400).costPerUse(0)))
             .lang("Primeval Elder Gu IV", "四转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_5 = REGISTRAR.item("primeval_elder_gu_5",
             () -> new PrimevalElderGuItem(createTendedProperties(), 100_000_000L, GuSpec.of(Rank.FIVE, GuPath.SPACE)
                     .type(GuType.STORAGE)
-                    .refine(160_000).costPerUse(0)))
+                    .refine(12_800).costPerUse(0)))
             .lang("Primeval Elder Gu V", "五转元老蛊").register();
     //endregion
 
@@ -595,19 +595,19 @@ public final class ModItems {
             "heavenly_essence_treasure_lotus_gu",
             () -> new TreasureLotusGuItem(createTendedProperties(), 1, 100, GuSpec.of(Rank.THREE, GuPath.WOOD)
                     .type(GuType.CULTIVATION)
-                    .refine(80_000).costPerUse(0)))
+                    .refine(3_200).costPerUse(0)))
             .lang("Heavenly Essence Treasure Lotus Gu", "天元宝莲").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU = REGISTRAR.item(
             "heavenly_essence_treasure_monarch_lotus_gu",
             () -> new TreasureLotusGuItem(createTendedProperties(), 10, 1_000, GuSpec.of(Rank.FOUR, GuPath.WOOD)
                     .type(GuType.CULTIVATION)
-                    .refine(800_000).costPerUse(0)))
+                    .refine(6_400).costPerUse(0)))
             .lang("Heavenly Essence Treasure Monarch Lotus Gu", "天元宝君莲").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU = REGISTRAR.item(
             "heavenly_essence_treasure_king_lotus_gu",
             () -> new TreasureLotusGuItem(createTendedProperties(), 100, 10_000, GuSpec.of(Rank.FIVE, GuPath.WOOD)
                     .type(GuType.CULTIVATION)
-                    .refine(8_000_000).costPerUse(0)))
+                    .refine(12_800).costPerUse(0)))
             .lang("Heavenly Essence Treasure King Lotus Gu", "天元宝王莲").register();
     //endregion
 
@@ -615,7 +615,7 @@ public final class ModItems {
     // or grown at once for 80 essence
     public static final DeferredItem<Item> NINE_LEAF_VITALITY_GRASS = REGISTRAR.item("nine_leaf_vitality_grass",
             () -> new NineLeafVitalityGrassItem(createTendedProperties(), 3 * Ticks.MINUTE, 80,
-                    GuSpec.of(Rank.THREE, GuPath.WOOD).type(GuType.HEALING).refine(80_000).costPerUse(0)))
+                    GuSpec.of(Rank.THREE, GuPath.WOOD).type(GuType.HEALING).refine(3_200).costPerUse(0)))
             .lang("Nine Leaf Vitality Grass", "九叶生机草").model(ItemModel.LEAF_STAGES).register();
     //endregion
 
@@ -625,7 +625,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.TWO, GuPath.TRANSFORMATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(8_000).costPerUse(160)
+                            .refine(1_600).costPerUse(36)
                             .hungerBar(16, 1).hungerPerUse(6).hungerPerDay(2)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -635,7 +635,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.TRANSFORMATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(80_000).costPerUse(1_600)
+                            .refine(3_200).costPerUse(108)
                             .hungerBar(32, 1).hungerPerUse(12).hungerPerDay(4)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -645,7 +645,7 @@ public final class ModItems {
             () -> new TendedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.TRANSFORMATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(800_000).costPerUse(16_000)
+                            .refine(6_400).costPerUse(324)
                             .hungerBar(64, 1).hungerPerUse(24).hungerPerDay(8)
                             .feed(ModItemTags.ZOMBIE_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -673,7 +673,7 @@ public final class ModItems {
     private static TendedGuItem createFifthRankZombieGu() {
         return new TendedGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TRANSFORMATION)
                 .effect(EffectCarrier.BODY)
-                .refine(8_000_000).costPerUse(160_000)
+                .refine(12_800).costPerUse(972)
                 .hungerBar(128, 1).hungerPerUse(48).hungerPerDay(16).feed(ModItemTags.ZOMBIE_FEED, 1)
                 .cooldown(Ticks.SECOND),
                 new ZombieModule(8 * Ticks.MINUTE));
@@ -685,7 +685,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.TIME).type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(100_000).costPerUse(0)
+                            .refine(6_400).costPerUse(0)
                             .cooldown(Ticks.SECOND),
                     new WatchModule(ModEffects.SECOND_WATCH_GU, 5 * Ticks.MINUTE)))
             .lang("Second Watch Gu", "两更蛊").register();
@@ -693,7 +693,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.AMPLIFICATION)
                             .effect(EffectCarrier.BODY)
-                            .refine(1_000_000).costPerUse(0)
+                            .refine(12_800).costPerUse(0)
                             .cooldown(Ticks.SECOND),
                     new WatchModule(ModEffects.THIRD_WATCH_GU, 5 * Ticks.MINUTE)))
             .lang("Third Watch Gu", "三更蛊").register();
@@ -702,19 +702,19 @@ public final class ModItems {
     //region As Before Gu [如故蛊] -- Time Path [宙道]; never fed, nine points and 24 health back one per third of a day
     public static final DeferredItem<Item> MAN_AS_BEFORE_GU = REGISTRAR.item("man_as_before_gu",
             () -> new ManAsBeforeGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.TIME).type(GuType.HEALING)
-                    .refine(1_000_000).costPerUse(320_000)
+                    .refine(12_800).costPerUse(972)
                     .recoverBar(9, Ticks.DAY / 3).hungerPerUse(2)
                     .cooldown(Ticks.SECOND)))
             .lang("Man As Before Gu", "人如故").register();
     public static final DeferredItem<Item> MOUNTAIN_AS_BEFORE_GU = REGISTRAR.item("mountain_as_before_gu",
             () -> new TerrainAsBeforeGuItem(createTendedProperties(), ChunkKind.LAND, GuSpec.of(Rank.FIVE, GuPath.TIME)
-                    .refine(1_000_000).costPerUse(640_000)
+                    .refine(12_800).costPerUse(972)
                     .recoverBar(9, Ticks.DAY / 3).hungerPerUse(2)
                     .cooldown(Ticks.SECOND)))
             .lang("Mountain As Before Gu", "山如故").register();
     public static final DeferredItem<Item> RIVER_AS_BEFORE_GU = REGISTRAR.item("river_as_before_gu",
             () -> new TerrainAsBeforeGuItem(createTendedProperties(), ChunkKind.WATER, GuSpec.of(Rank.FIVE, GuPath.TIME)
-                    .refine(1_000_000).costPerUse(640_000)
+                    .refine(12_800).costPerUse(972)
                     .recoverBar(9, Ticks.DAY / 3).hungerPerUse(2)
                     .cooldown(Ticks.SECOND)))
             .lang("River As Before Gu", "江如故").register();
@@ -725,7 +725,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.TWO, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
-                            .refine(1_000).costPerUse(0)
+                            .refine(1_600).costPerUse(0)
                             .hungerBar(10, 1).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -737,7 +737,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.THREE, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
-                            .refine(10_000).costPerUse(0)
+                            .refine(3_200).costPerUse(0)
                             .hungerBar(12, 1).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -749,7 +749,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FOUR, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
-                            .refine(100_000).costPerUse(0)
+                            .refine(6_400).costPerUse(0)
                             .hungerBar(14, 1).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -761,7 +761,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(),
                     GuSpec.of(Rank.FIVE, GuPath.WISDOM)
                             .effect(EffectCarrier.MIND).type(GuType.CULTIVATION)
-                            .refine(1_000_000).costPerUse(0)
+                            .refine(12_800).costPerUse(0)
                             .hungerBar(16, 1).hungerPerUse(0)
                             .feed(ModItemTags.MALICIOUS_THOUGHT_FEED, 1)
                             .cooldown(Ticks.SECOND),
@@ -783,7 +783,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.ONE, GuPath.WISDOM)
                     .effect(EffectCarrier.MIND)
                     .type(GuType.CULTIVATION)
-                    .refine(100)
+                    .refine(800)
                     .costPerUse(0)
                     .hungerBar(8, 1).hungerPerUse(0)
                     .feed(ModItemTags.CASUAL_FEED, 1)
@@ -795,7 +795,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.TWO, GuPath.WISDOM)
                     .effect(EffectCarrier.MIND)
                     .type(GuType.CULTIVATION)
-                    .refine(1_000)
+                    .refine(1_600)
                     .costPerUse(0)
                     .hungerBar(10, 1).hungerPerUse(0)
                     .feed(ModItemTags.CASUAL_FEED, 1)
@@ -811,7 +811,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.THREE, GuPath.EARTH)
                     .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
-                    .refine(10_000).costPerUse(0)
+                    .refine(3_200).costPerUse(0)
                     .cooldown(Ticks.SECOND),
                     new PetrifyModule()))
             .lang("Stone Aperture Gu III", "三转石窍蛊").register();
@@ -819,7 +819,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.FOUR, GuPath.EARTH)
                     .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
-                    .refine(100_000).costPerUse(0)
+                    .refine(6_400).costPerUse(0)
                     .cooldown(Ticks.SECOND),
                     new PetrifyModule()))
             .lang("Stone Aperture Gu IV", "四转石窍蛊").register();
@@ -827,7 +827,7 @@ public final class ModItems {
             () -> new ConsumedGuItem(createTendedProperties(), GuSpec.of(Rank.FIVE, GuPath.EARTH)
                     .effect(EffectCarrier.APERTURE)
                     .type(GuType.AMPLIFICATION)
-                    .refine(1_000_000).costPerUse(0)
+                    .refine(12_800).costPerUse(0)
                     .cooldown(Ticks.SECOND),
                     new PetrifyModule()))
             .lang("Stone Aperture Gu V", "五转石窍蛊").register();
@@ -836,16 +836,16 @@ public final class ModItems {
     //region Amplify Effect Gu [功倍蛊] -- Rule Path [律道]; held in the offhand, it multiplies another Gu's effect
     // by its rank number; the ranked bar, paid per amplified use
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_2 = REGISTRAR.item("amplify_effect_gu_2",
-            () -> createAmplifyEffectGu(Rank.TWO, 8_000, 160))
+            () -> createAmplifyEffectGu(Rank.TWO, 1_600, 36))
             .lang("Amplify Effect Gu II", "二转功倍蛊").register();
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_3 = REGISTRAR.item("amplify_effect_gu_3",
-            () -> createAmplifyEffectGu(Rank.THREE, 80_000, 1_600))
+            () -> createAmplifyEffectGu(Rank.THREE, 3_200, 108))
             .lang("Amplify Effect Gu III", "三转功倍蛊").register();
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_4 = REGISTRAR.item("amplify_effect_gu_4",
-            () -> createAmplifyEffectGu(Rank.FOUR, 800_000, 16_000))
+            () -> createAmplifyEffectGu(Rank.FOUR, 6_400, 324))
             .lang("Amplify Effect Gu IV", "四转功倍蛊").register();
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_5 = REGISTRAR.item("amplify_effect_gu_5",
-            () -> createAmplifyEffectGu(Rank.FIVE, 8_000_000, 160_000))
+            () -> createAmplifyEffectGu(Rank.FIVE, 12_800, 972))
             .lang("Amplify Effect Gu V", "五转功倍蛊").register();
 
     private static AmplifyEffectGuItem createAmplifyEffectGu(Rank rank, int refine, int costPerUse) {
@@ -884,18 +884,18 @@ public final class ModItems {
     //region Moon Path [月道] -- Moonlight Gu [月光蛊] and Moonglow Gu [月芒蛊]: one moon blade a use, a killing
     // move's main Gu with a Little Light Gu [小光蛊]; the Blood Moon Gu [血月蛊] below is Blood Path's
     public static final DeferredItem<Item> MOONLIGHT_GU = REGISTRAR.item("moonlight_gu",
-            () -> createMoonBladeGu(Rank.ONE, GuPath.MOON, 800, 16, ModItemTags.MOONLIGHT_FEED,
+            () -> createMoonBladeGu(Rank.ONE, GuPath.MOON, 800, 12, ModItemTags.MOONLIGHT_FEED,
                     MoonBladeEntity.Variant.MOON, MOONLIGHT_DAMAGE))
             .lang("Moonlight Gu", "月光蛊").register();
     public static final DeferredItem<Item> MOONGLOW_GU = REGISTRAR.item("moonglow_gu",
-            () -> createMoonBladeGu(Rank.TWO, GuPath.MOON, 8_000, 160, ModItemTags.MOONLIGHT_FEED,
+            () -> createMoonBladeGu(Rank.TWO, GuPath.MOON, 1_600, 36, ModItemTags.MOONLIGHT_FEED,
                     MoonBladeEntity.Variant.MOON, 3 * MOONLIGHT_DAMAGE))
             .lang("Moonglow Gu", "月芒蛊").register();
     //endregion
 
     //region Blood Path [血道] -- Blood Moon Gu [血月蛊]: a blood moon blade that leaves Bleeding [流血]
     public static final DeferredItem<Item> BLOOD_MOON_GU = REGISTRAR.item("blood_moon_gu",
-            () -> createMoonBladeGu(Rank.THREE, GuPath.BLOOD, 80_000, 1_600, ModItemTags.BLOOD_MOON_FEED,
+            () -> createMoonBladeGu(Rank.THREE, GuPath.BLOOD, 3_200, 108, ModItemTags.BLOOD_MOON_FEED,
                     MoonBladeEntity.Variant.BLOOD, 9 * MOONLIGHT_DAMAGE))
             .lang("Blood Moon Gu", "血月蛊").register();
 
@@ -913,7 +913,7 @@ public final class ModItems {
     // it does; a killing move's partner, its use cost the one it pays there
     public static final DeferredItem<Item> LITTLE_LIGHT_GU = REGISTRAR.item("little_light_gu",
             () -> new LittleLightGuItem(createTendedProperties(), createRankedSpec(Rank.ONE, GuPath.LIGHT)
-                    .refine(800).costPerUse(16)
+                    .refine(800).costPerUse(12)
                     .feed(ModItemTags.LITTLE_LIGHT_FEED, 1)))
             .lang("Little Light Gu", "小光蛊").register();
     //endregion
