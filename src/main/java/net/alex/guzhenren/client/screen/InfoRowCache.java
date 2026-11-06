@@ -1,8 +1,11 @@
 package net.alex.guzhenren.client.screen;
 
+import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.client.screen.InfoRowRenderer.RowBlock;
 import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
 import net.alex.guzhenren.display.InfoModel;
+import net.minecraft.client.gui.Font;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -12,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link InfoRowRenderer} only when the model is not equal to the one they were built from. Equality, not the
  * identity of the attachments behind it, because some rows read what no attachment holds (an effect's attack
  * bonus, the game time behind an effect's time left), and those must change the frame they change. The two slots, the
- * ordinary rows and the aperture columns, are independent.
+ * ordinary rows and the aperture columns, are independent. Each slot is kept as {@link RowBlock}s measured at the
+ * rebuild, so the label and value columns cost no text measuring on an unchanged frame.
  *
  * @author Alex
  * @version 1.0.0
@@ -24,21 +28,25 @@ import org.jetbrains.annotations.Nullable;
 final class InfoRowCache {
 
     private @Nullable List<InfoModel.Row> rowsModel;
-    private List<ScreenRow> rows = List.of();
+    private RowBlock rows = RowBlock.EMPTY;
     private @Nullable List<InfoModel.Row> groupsModel;
-    private List<List<ScreenRow>> groups = List.of();
+    private List<RowBlock> groups = List.of();
 
-    List<ScreenRow> getRows(List<InfoModel.Row> model) {
+    RowBlock getRows(Font font, List<InfoModel.Row> model) {
         if (!model.equals(rowsModel)) {
-            rows = InfoRowRenderer.getRows(model);
+            rows = InfoRowRenderer.getBlock(font, InfoRowRenderer.getRows(model));
             rowsModel = model;
         }
         return rows;
     }
 
-    List<List<ScreenRow>> getApertureGroups(List<InfoModel.Row> model) {
+    List<RowBlock> getApertureGroups(Font font, List<InfoModel.Row> model) {
         if (!model.equals(groupsModel)) {
-            groups = InfoRowRenderer.getApertureGroups(model);
+            List<RowBlock> blocks = new ArrayList<>();
+            for (List<ScreenRow> group : InfoRowRenderer.getApertureGroups(model)) {
+                blocks.add(InfoRowRenderer.getBlock(font, group));
+            }
+            groups = blocks;
             groupsModel = model;
         }
         return groups;

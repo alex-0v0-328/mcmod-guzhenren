@@ -8,6 +8,7 @@ import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
+import net.alex.guzhenren.client.screen.InfoRowRenderer.RowBlock;
 import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -33,7 +34,9 @@ import org.jetbrains.annotations.Nullable;
  * flush [冲刷窍壁] / storage [空窍存储] buttons; the storage button opens that aperture's container.
  * The refinement tab opens its container via a client-intent payload instead of drawing rows. Row
  * content comes from {@link InfoModel}; {@link InfoRowRenderer} turns each entry into the panel's
- * label and value, {@link ApertureButtons} are the buttons under each aperture, and {@link PathPicker} is
+ * label and value, a value left-aligned in the column its {@link RowBlock} measured and pulled back to end at the row's
+ * right edge only when it would run past it, {@link ApertureButtons} are the buttons under each aperture, and
+ * {@link PathPicker} is
  * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}: every sprite in one
  * {@link SpriteBatch}, then the fills over them (rule, hovers, nourish progress), then every text; {@link InfoRowCache}
  * keeps the rows of the last frame while the model is unchanged. The selected tab is the idle tab sprite with the
@@ -142,15 +145,15 @@ public final class PlayerInfoScreen extends Screen {
 
     private Content getContent(LocalPlayer player) {
         if (activeTab == TAB_APERTURE && hasTwoApertures(player)) {
-            List<List<ScreenRow>> groups = rowCache.getApertureGroups(InfoModel.buildApertureRows(player));
-            return new Content(true, List.of(), groups, buildColumnButtons(player, groups), 0);
+            List<RowBlock> groups = rowCache.getApertureGroups(font, InfoModel.buildApertureRows(player));
+            return new Content(true, RowBlock.EMPTY, groups, buildColumnButtons(player, groups), 0);
         }
-        List<ScreenRow> rows = rowCache.getRows(getModel(player));
+        RowBlock block = rowCache.getRows(font, getModel(player));
         List<ApertureButtons.ColumnButton> buttons = buildBottomButtons(player);
         int rowsBottom = getContentBottom() - buttons.size() * (BTN_H + BTN_GAP);
         int visible = Math.max(0, (rowsBottom - getContentTop()) / LINE_H);
-        scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, rows.size() - visible));
-        return new Content(false, rows, List.of(), buttons, visible);
+        scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, block.rows().size() - visible));
+        return new Content(false, block, List.of(), buttons, visible);
     }
 
     private List<InfoModel.Row> getModel(LocalPlayer player) {
@@ -170,8 +173,8 @@ public final class PlayerInfoScreen extends Screen {
         for (int i = 0; i < TAB_TITLES.length; i++) drawTab(sprites, i, mouseX, mouseY);
         if (player == null) return;
 
-        if (!content.columns() && content.rows().size() > content.visible()) {
-            drawScrollBar(sprites, content.rows().size(), content.visible());
+        if (!content.columns() && content.block().rows().size() > content.visible()) {
+            drawScrollBar(sprites, content.block().rows().size(), content.visible());
         }
         for (ApertureButtons.ColumnButton b : content.buttons()) {
             ApertureButtons.draw(sprites, player, b, mouseX, mouseY);
@@ -194,7 +197,7 @@ public final class PlayerInfoScreen extends Screen {
             int divider = getContentLeft() + getColumnWidth() + COL_GAP / 2;
             graphics.fill(divider, getContentTop(), divider + 1, getContentBottom(), DIVIDER);
         }
-        forEachRow(content, (row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
+        forEachRow(content, (block, row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
         for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.fillProgress(graphics, player, b);
     }
 
@@ -208,26 +211,28 @@ public final class PlayerInfoScreen extends Screen {
     }
 
     private void drawContentTexts(GuiGraphics graphics, Content content, int accent) {
-        forEachRow(content, (row, x0, x1, y) -> drawRowText(graphics, row, x0, x1, y, accent));
+        forEachRow(content, (block, row, x0, x1, y) -> drawRowText(graphics, block, row, x0, x1, y, accent));
         for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.drawLabel(graphics, font, b);
     }
 
     private void forEachRow(Content content, RowVisitor visitor) {
         if (!content.columns()) {
-            int end = Math.min(content.rows().size(), scrollRow + content.visible());
+            RowBlock block = content.block();
+            int end = Math.min(block.rows().size(), scrollRow + content.visible());
             int y = getContentTop();
             for (int i = scrollRow; i < end; i++) {
-                visitor.visit(content.rows().get(i), getContentLeft(), getValueRight(), y);
+                visitor.visit(block, block.rows().get(i), getContentLeft(), getValueRight(), y);
                 y += LINE_H;
             }
             return;
         }
         int colW = getColumnWidth();
         for (int c = 0; c < content.groups().size(); c++) {
+            RowBlock block = content.groups().get(c);
             int x0 = getContentLeft() + c * (colW + COL_GAP);
             int y = getContentTop();
-            for (ScreenRow row : content.groups().get(c)) {
-                visitor.visit(row, x0, x0 + colW, y);
+            for (ScreenRow row : block.rows()) {
+                visitor.visit(block, row, x0, x0 + colW, y);
                 y += LINE_H;
             }
         }
@@ -240,13 +245,15 @@ public final class PlayerInfoScreen extends Screen {
         if (row.click() != null) hoverClick = row.click();
     }
 
-    private void drawRowText(GuiGraphics graphics, ScreenRow row, int x0, int x1, int y, int accent) {
+    private void drawRowText(GuiGraphics graphics, RowBlock block, ScreenRow row, int x0, int x1, int y, int accent) {
         int labelColor = row.value() == null ? accent : ModPalette.TEXT;
         graphics.drawString(font, row.label(), x0 + row.indent(), y, labelColor, false);
         if (row.value() != null) {
-            graphics.drawString(font, row.value(), x1 - font.width(row.value()), y, ModPalette.TEXT, false);
+            int left = x0 + (row.paired() ? block.pairLeft() : block.valueLeft());
+            graphics.drawString(font, row.value(), Math.min(left, x1 - font.width(row.value())), y, ModPalette.TEXT,
+                    false);
         }
-        int cellW = (x1 - x0 - row.indent()) / InfoModel.READINGS_PER_ROW;
+        int cellW = Math.min(block.cellWidth(), (x1 - x0 - row.indent()) / InfoModel.READINGS_PER_ROW);
         for (int i = 0; i < row.cells().size(); i++) {
             graphics.drawString(font, row.cells().get(i), x0 + row.indent() + i * cellW, y, ModPalette.TEXT, false);
         }
@@ -276,14 +283,14 @@ public final class PlayerInfoScreen extends Screen {
         return buttons;
     }
 
-    private List<ApertureButtons.ColumnButton> buildColumnButtons(LocalPlayer player, List<List<ScreenRow>> groups) {
+    private List<ApertureButtons.ColumnButton> buildColumnButtons(LocalPlayer player, List<RowBlock> groups) {
         if (hasNoButtons(player)) return List.of();
 
         List<ApertureButtons.ColumnButton> buttons = new ArrayList<>();
         int colW = getColumnWidth();
         for (int c = 0; c < groups.size(); c++) {
             int x0 = getContentLeft() + c * (colW + COL_GAP);
-            int base = getContentTop() + (groups.get(c).size() + 1) * LINE_H;
+            int base = getContentTop() + (groups.get(c).rows().size() + 1) * LINE_H;
             place(buttons, ApertureButtons.buildStackButtons(player, c), x0, x0 + colW, base);
         }
         return buttons;
@@ -412,12 +419,12 @@ public final class PlayerInfoScreen extends Screen {
 
     private interface RowVisitor {
 
-        void visit(ScreenRow row, int x0, int x1, int y);
+        void visit(RowBlock block, ScreenRow row, int x0, int x1, int y);
     }
 
-    private record Content(boolean columns, List<ScreenRow> rows, List<List<ScreenRow>> groups,
+    private record Content(boolean columns, RowBlock block, List<RowBlock> groups,
                            List<ApertureButtons.ColumnButton> buttons, int visible) {
 
-        static final Content EMPTY = new Content(false, List.of(), List.of(), List.of(), 0);
+        static final Content EMPTY = new Content(false, RowBlock.EMPTY, List.of(), List.of(), 0);
     }
 }

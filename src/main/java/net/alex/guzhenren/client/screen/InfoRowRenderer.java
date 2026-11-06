@@ -5,6 +5,7 @@ import java.util.List;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
@@ -14,9 +15,14 @@ import org.jetbrains.annotations.Nullable;
  * and, for the secondary-path row, a click that opens the {@link PathPicker}. A header row has no value and
  * takes the tab's accent color; the mind header returns {@code null} because its tab title already says it.
  *
- * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line, and a strength reading row
- * into {@code cells} the panel spreads over {@code InfoModel.READINGS_PER_ROW} equal columns; {@link #getApertureGroups}
- * splits the aperture tab's model into one group per aperture, blanks dropped, for the two-column layout.
+ * <p>{@link #getRows} turns a tab's model into its rows, two path rows sharing one line ({@code paired}), and a strength
+ * reading row into {@code cells}; {@link #getApertureGroups} splits the aperture tab's model into one group per
+ * aperture, blanks dropped, for the two-column layout.
+ *
+ * <p>{@link #getBlock} measures a tab's rows, or one aperture column, into a {@link RowBlock}: values start one column
+ * past the widest indented label that carries a value, the second path of a pair one column past the widest first
+ * path, and reading cells are as wide as the widest cell; each column adds a {@code VALUE_GAP} of 16 px. Widths are
+ * measured from the rows alone, never the panel, so a wide panel keeps a value next to its label.
  *
  * <p>{@link #draw} switches over the sealed entry with no default, one case per row kind: a new row does not compile
  * until it has its line here. ⚠ The model owns the rows and their order, never the
@@ -31,7 +37,25 @@ import org.jetbrains.annotations.Nullable;
 
 final class InfoRowRenderer {
 
+    private static final int VALUE_GAP = 16;
+
     private InfoRowRenderer() {}
+
+    static RowBlock getBlock(Font font, List<ScreenRow> rows) {
+        int label = 0;
+        int pair = 0;
+        int cell = 0;
+        for (ScreenRow row : rows) {
+            int width = row.indent() + font.width(row.label());
+            if (row.paired()) {
+                pair = Math.max(pair, width);
+            } else if (row.value() != null) {
+                label = Math.max(label, width);
+            }
+            for (Component c : row.cells()) cell = Math.max(cell, font.width(c));
+        }
+        return new RowBlock(rows, label + VALUE_GAP, pair + VALUE_GAP, cell + VALUE_GAP);
+    }
 
     static List<ScreenRow> getRows(List<InfoModel.Row> model) {
         List<ScreenRow> rows = new ArrayList<>(model.size());
@@ -42,7 +66,7 @@ final class InfoRowRenderer {
 
             ScreenRow partner = row.entry() instanceof InfoModel.PathRow ? getPathPartner(model, i + 1) : null;
             if (partner != null) {
-                rows.add(new ScreenRow(row.indent(), drawn.label(), partner.label()));
+                rows.add(new ScreenRow(row.indent(), drawn.label(), partner.label(), null, List.of(), true));
                 i++;
             } else {
                 rows.add(drawn);
@@ -114,7 +138,8 @@ final class InfoRowRenderer {
             case InfoModel.EffectsHeader e ->
                     new ScreenRow(indent, formatLabel("effects"), e.empty() ? ModDisplayText.formatNone() : null);
             case InfoModel.PathRow e -> new ScreenRow(indent,
-                    ModDisplayText.formatPathLine(e.path(), e.attainment(), e.marks()), Component.empty());
+                    ModDisplayText.formatPathLine(e.path(), e.attainment(), e.marks()), Component.empty(), null,
+                    List.of(), true);
             case InfoModel.EffectCategoryHeader e ->
                     new ScreenRow(indent, formatName(e.category().getTranslationKey()), null);
             case InfoModel.EffectCarrierRow e ->
@@ -130,7 +155,7 @@ final class InfoRowRenderer {
             case InfoModel.StrengthPathBranchRow e -> new ScreenRow(indent,
                     ModDisplayText.formatStrengthLabel(formatName(e.branch().getTranslationKey()), e.totalJin()), null);
             case InfoModel.StrengthReadingRow e ->
-                    new ScreenRow(indent, Component.empty(), null, null, formatReadings(e.readings()));
+                    new ScreenRow(indent, Component.empty(), null, null, formatReadings(e.readings()), false);
             case InfoModel.CapacityRow e -> new ScreenRow(indent, formatLabel("body_capacity"),
                     Component.translatable("guzhenren.screen.capacity", e.usable(), e.total(), e.capacity(),
                             e.normalCapacity()));
@@ -167,13 +192,18 @@ final class InfoRowRenderer {
     }
 
     record ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click,
-                     List<Component> cells) {
+                     List<Component> cells, boolean paired) {
 
         ScreenRow(int indent, Component label, @Nullable Component value) { this(indent, label, value, null); }
 
         ScreenRow(int indent, Component label, @Nullable Component value, @Nullable Click click) {
-            this(indent, label, value, click, List.of());
+            this(indent, label, value, click, List.of(), false);
         }
+    }
+
+    record RowBlock(List<ScreenRow> rows, int valueLeft, int pairLeft, int cellWidth) {
+
+        static final RowBlock EMPTY = new RowBlock(List.of(), 0, 0, 0);
     }
 
     record Click(int aperture) {}
