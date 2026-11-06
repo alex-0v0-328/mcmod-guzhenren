@@ -13,7 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The Hardship Strength behavior [苦力]: an auto state ({@link AutoUseBehavior}) that starts under 75% of max health
- * on a body with permanent strength points [力量点] and runs until the body is back at 75%. What it lends, tier by
+ * on a body whose permanent strength points [力量点] lend at least one point at the lightest tier -- fewer would be
+ * billed for nothing -- and runs until the body is back at 75%. What it lends, tier by
  * tier, is {@link HardshipStrength}'s.
  *
  * @author Alex
@@ -29,7 +30,9 @@ public record HardshipBehavior() implements AutoUseBehavior {
     public @NotNull PathEffectType<?> getStateType() { return ModPathEffectTypes.HARDSHIP_STRENGTH; }
 
     @Override
-    public boolean canStart(@NotNull ServerPlayer player) { return StrengthService.getPermanentPoints(player) > 0; }
+    public boolean canStart(@NotNull ServerPlayer player) {
+        return HardshipStrength.getPoints(StrengthService.getPermanentPoints(player), 1) > 0;
+    }
 
     @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
