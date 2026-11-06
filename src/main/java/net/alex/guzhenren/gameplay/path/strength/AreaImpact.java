@@ -34,9 +34,6 @@ import org.jetbrains.annotations.NotNull;
  * the type carries {@code NO_KNOCKBACK}, so vanilla's own shove away from the attacker stays off. A refused hit (no PvP, invulnerable, still flinching) moves nothing. Spared like the second stage ram, plus
  * whatever rides with the attacker: itself, allies, its own pets, wild Gu and armor stands. No block is touched.
  *
- * <p>⚠ The impact pays no load [负载]: {@code StrengthLoadEvents} skips {@code AREA_IMPACT}, so a punch costs its
- * load once, on the fist's own hit.
- *
  * @author Alex
  * @version 1.0.0
  * @see StrengthService
@@ -101,7 +98,7 @@ public final class AreaImpact {
         return landed;
     }
 
-    private static boolean canHit(ServerPlayer player, LivingEntity target) {
+    public static boolean canHit(@NotNull ServerPlayer player, @NotNull LivingEntity target) {
         return target != player && target.isAlive() && !target.isSpectator() && target.isPickable()
                 && !player.isAlliedTo(target) && !target.isAlliedTo(player)
                 && !player.isPassengerOfSameVehicle(target)

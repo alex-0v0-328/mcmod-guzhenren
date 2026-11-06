@@ -1,37 +1,40 @@
 package net.alex.guzhenren.item.gu.mortal.path.strength;
 
+import net.alex.guzhenren.gameplay.path.PathEffectType;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuBehavior;
-import net.alex.guzhenren.item.gu.tending.TendedGuItem;
+import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * The brink behavior [濒危自动催动]: its Gu drives ITSELF when the holder falls under a share of their max health.
- * The Self Reliance Gu [自力更生蛊] carries it with its {@link SelfRelianceBehavior}.
+ * The auto behavior [自动生效]: its Gu works on its own while the holder is hurt, never by hand. The Self Reliance
+ * Gu [自力更生蛊] and the Hardship Strength Gu [苦力蛊] carry one each; {@link AutoUse} starts and stops them.
  *
- * <p>{@link #tryAutoUse} is the heartbeat's call: the first refined copy in the inventory whose holder is under its
- * share fires on its own, through {@code TendedGuItem.tryAutoUse}, so it pays and is gated as a hand use would be.
- *
- * <p>⚠ The brink relies on that gate to stay quiet while its effect runs: the Self Reliance gate refuses while a
- * heal of the same or a higher grade runs, and the effect cooldown holds between starts, or it would fire every
- * heartbeat until the holder healed.
+ * <p>Each names the permanent path effect it runs ({@link #getStateType}) and its own start condition
+ * ({@link #canStart}); its {@code applyEffect} puts that effect on. A hand use is refused here with
+ * {@link #FAILED_AUTO_ONLY} and pays nothing; only {@link AutoUse}'s start gets past the gate, and no Amplify Effect
+ * Gu [功倍蛊] multiplies it.
  *
  * @author Alex
  * @version 1.0.0
- * @see SelfRelianceBehavior
+ * @see AutoUse
  * @since 1.0.0
  */
 
-public record AutoUseBehavior(float healthFraction) implements GuBehavior {
+public interface AutoUseBehavior extends GuBehavior {
 
-    public static void tryAutoUse(ServerPlayer player) {
-        for (ItemStack stack : player.getInventory().items) {
-            if (!(stack.getItem() instanceof TendedGuItem gu)) continue;
+    String FAILED_AUTO_ONLY = "guzhenren.item.failed.auto_only";
 
-            AutoUseBehavior brink = gu.getBehavior(AutoUseBehavior.class);
-            if (brink == null || player.getHealth() >= player.getMaxHealth() * brink.healthFraction()) continue;
+    @NotNull PathEffectType<?> getStateType();
 
-            if (gu.tryAutoUse(player, stack)) return;
-        }
+    boolean canStart(@NotNull ServerPlayer player);
+
+    @Override
+    default @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
+        return AutoUse.isStarting(player) ? null : new Refusal(FAILED_AUTO_ONLY);
     }
 }

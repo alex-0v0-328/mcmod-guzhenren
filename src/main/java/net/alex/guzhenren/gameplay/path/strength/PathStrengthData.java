@@ -19,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
  * of {@link BeastStrength} plus a sparse {@code Map} of {@link HumanStrength} layer counts, ctor-capped.
  * {@link #getStrengthPoints} is the one unit both sides share: a jin of human strength is one strength point
  * [力量点], a beast its declared points, and a point is {@link #ATTACK_PER_POINT} attack. A running beast buff adds
- * its points at {@code PathStrengthService.getStrengthPoints}, not here: this record holds only what is permanent.
+ * its points as a {@link StrengthAmplifier} at {@code StrengthService.getStrengthPoints}, not here: this record
+ * holds only what is permanent.
  *
  * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code
  * addAll} -- the {@code EnumMap(Map)} copy constructor throws on the empty maps {@code DEFAULT} uses. ⚠

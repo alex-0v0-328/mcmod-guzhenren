@@ -10,6 +10,7 @@ import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.BoarGuEntity;
 import net.alex.guzhenren.entity.gu.CrashGuEntity;
 import net.alex.guzhenren.entity.gu.HopeGuEntity;
+import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
 import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTrader;
@@ -59,6 +60,7 @@ public final class ModEntityTypes {
     private static final float SOUL_TRADER_HEIGHT = 1.95F;
     private static final float MOON_BLADE_SIZE = 0.8F;
     private static final float QI_WAVE_SIZE = 0.5F;
+    private static final float BEAST_CHARGE_SIZE = 0.5F;
     private static final float BEAST_PHANTOM_WIDTH = 1.0F;
     private static final float BEAST_PHANTOM_HEIGHT = 1.4F;
     private static final int BEAST_PHANTOM_UPDATE_TICKS = 20;
@@ -132,6 +134,15 @@ public final class ModEntityTypes {
                     .clientTrackingRange(PROJECTILE_TRACKING_CHUNKS)
                     .updateInterval(PROJECTILE_UPDATE_TICKS)
                     .build("qi_wave"));
+    public static final DeferredHolder<EntityType<?>, EntityType<BeastChargeEntity>> BEAST_CHARGE =
+            ENTITY_TYPES.register("beast_charge", () -> EntityType.Builder.of(BeastChargeEntity::new,
+                            MobCategory.MISC)
+                    .sized(BEAST_CHARGE_SIZE, BEAST_CHARGE_SIZE)
+                    .noSave()
+                    .fireImmune()
+                    .clientTrackingRange(PROJECTILE_TRACKING_CHUNKS)
+                    .updateInterval(PROJECTILE_UPDATE_TICKS)
+                    .build("beast_charge"));
     //endregion
 
     private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register(

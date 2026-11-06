@@ -30,8 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>A Gu answers it through a behavior that declares {@code canBeAmplified} and asks {@link #bill} from its own
  * payout, multiplying its effect's length: {@code TimedBuffBehavior}, {@code AllOutEffortBehavior}, the timed
  * {@code SkinBehavior} (Jade Skin, White Jade), {@code ShieldBehavior} (Heavenly Mugwort, its length and not its
- * points), {@code VitalityLeafBehavior} and {@code WatchBehavior}; {@code SelfRelianceBehavior} multiplies each heal
- * pulse instead. {@link #bill}
+ * points), {@code VitalityLeafBehavior} and {@code WatchBehavior}. {@link #bill}
  * answers the factor, the driving or offhand amplifier's, billed there, or 1.
  * {@link #canAmplify} is the one eligibility test (the amplifier refined, the target amplifiable, refined if tended,
  * of its rank or lower), read by the client's menu and by both server paths.

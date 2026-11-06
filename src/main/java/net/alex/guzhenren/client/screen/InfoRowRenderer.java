@@ -132,7 +132,8 @@ final class InfoRowRenderer {
             case InfoModel.StrengthReadingRow e ->
                     new ScreenRow(indent, Component.empty(), null, null, formatReadings(e.readings()));
             case InfoModel.CapacityRow e -> new ScreenRow(indent, formatLabel("body_capacity"),
-                    Component.translatable("guzhenren.screen.capacity", e.usable(), e.total()));
+                    Component.translatable("guzhenren.screen.capacity", e.usable(), e.total(), e.capacity(),
+                            e.normalCapacity()));
             case InfoModel.AttackRow e -> new ScreenRow(indent, formatLabel("attack"),
                     Component.literal(ModDisplayText.formatAttackBonus(e.bonus())));
             case InfoModel.WisdomPathAchieveHeader ignored ->

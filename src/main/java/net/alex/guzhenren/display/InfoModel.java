@@ -155,8 +155,11 @@ public final class InfoModel {
 
     public record TimeRateUpRow(int rate) implements Entry {}
 
-    /** Strength points [力量点] brought to bear over the points held, beast and human together. */
-    public record CapacityRow(int usable, int total) implements Entry {}
+    /**
+     * Strength points [力量点] brought to bear over the points held, beast and human together, beside the current
+     * carrying capacity [承受力] and the normal one it is built on.
+     */
+    public record CapacityRow(int usable, int total, int capacity, int normalCapacity) implements Entry {}
 
     public record AttackRow(double bonus) implements Entry {}
 
@@ -227,8 +230,11 @@ public final class InfoModel {
         rows.add(new Row(0, new FleshRow(body.flesh())));
         rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
         int points = StrengthService.getStrengthPoints(player);
-        if (points > 0) rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player), points)));
-        double attackBonus = AttackDamageService.getBonus(player);
+        if (points > 0) {
+            rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player), points,
+                    StrengthService.getCapacity(player), StrengthService.getNormalCapacity(player))));
+        }
+        double attackBonus = AttackDamageService.getFistBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {
             rows.add(new Row(0, new AttackRow(attackBonus)));
         }

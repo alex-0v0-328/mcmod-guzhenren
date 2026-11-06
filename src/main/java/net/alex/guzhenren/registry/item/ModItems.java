@@ -7,7 +7,6 @@ import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.effect.timed.BruteForceLonghornBeetleGuEffect;
 import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
-import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
 import net.alex.guzhenren.effect.timed.StrengthQiGuEffect;
 import net.alex.guzhenren.gameplay.aperture.Rank;
@@ -49,8 +48,8 @@ import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.soul.SoulCapBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AllOutEffortBehavior;
-import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUseBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.BeastStrengthBehavior;
+import net.alex.guzhenren.item.gu.mortal.path.strength.HardshipBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.HumanStrengthBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.time.ManAsBeforeGuItem;
@@ -644,8 +643,7 @@ public final class ModItems {
                     .costPerUse(324)
                     .feed(ModItemTags.POTATO_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
-                    new TimedBuffBehavior(ModEffects.HARDSHIP_STRENGTH_GU, HardshipStrengthGuEffect.DURATION_TICKS),
-                    new RecastBehavior()))
+                    new HardshipBehavior()))
             .lang("Hardship Strength Gu", "苦力蛊").register();
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_3 = REGISTRAR.item("all_out_effort_gu_3",
             () -> createAllOutEffortGu(Rank.THREE, 3_200, 108, 80, 60))
@@ -678,8 +676,7 @@ public final class ModItems {
                 .costPerUse(costPerUse)
                 .feed(ModItemTags.COBBLESTONE_FEED, 1)
                 .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
-                new SelfRelianceBehavior(grade, pulseHeal),
-                new AutoUseBehavior(0.25F));
+                new SelfRelianceBehavior(grade, pulseHeal));
     }
 
     private static TendedGuItem createAllOutEffortGu(Rank rank, int refine, int costPerUse, int cooldownSeconds,

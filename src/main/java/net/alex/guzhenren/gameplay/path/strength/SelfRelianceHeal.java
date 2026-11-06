@@ -2,16 +2,14 @@ package net.alex.guzhenren.gameplay.path.strength;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * The payload of a running Self Reliance heal [自力更生]: the Gu's grade and the Amplify Effect Gu [功倍蛊] factor
- * billed when it started.
+ * The payload of a running Self Reliance heal [自力更生]: the grade of the Gu that started it, the icon's amplifier.
  *
- * <p>The grade is the icon's amplifier and the gate's strength; the factor multiplies each pulse.
+ * <p>A save from before the auto rebuild also carries an Amplify Effect Gu factor; the codec ignores it.
  *
  * @author Alex
  * @version 1.0.0
@@ -19,13 +17,10 @@ import net.minecraft.network.codec.StreamCodec;
  * @since 1.0.0
  */
 
-public record SelfRelianceHeal(int grade, int factor) {
+public record SelfRelianceHeal(int grade) {
 
-    public static final MapCodec<SelfRelianceHeal> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.INT.fieldOf("grade").forGetter(SelfRelianceHeal::grade),
-            Codec.INT.optionalFieldOf("factor", 1).forGetter(SelfRelianceHeal::factor)
-    ).apply(instance, SelfRelianceHeal::new));
-    public static final StreamCodec<FriendlyByteBuf, SelfRelianceHeal> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, SelfRelianceHeal::grade, ByteBufCodecs.VAR_INT, SelfRelianceHeal::factor,
-            SelfRelianceHeal::new);
+    public static final MapCodec<SelfRelianceHeal> CODEC =
+            Codec.INT.fieldOf("grade").xmap(SelfRelianceHeal::new, SelfRelianceHeal::grade);
+    public static final StreamCodec<FriendlyByteBuf, SelfRelianceHeal> STREAM_CODEC =
+            ByteBufCodecs.VAR_INT.map(SelfRelianceHeal::new, SelfRelianceHeal::grade).mapStream(buf -> buf);
 }

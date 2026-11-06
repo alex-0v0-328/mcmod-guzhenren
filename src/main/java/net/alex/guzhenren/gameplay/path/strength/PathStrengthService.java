@@ -1,5 +1,7 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.path.PathEffect;
@@ -14,15 +16,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Strength [力道]: what has been accumulated -- beast strengths [兽力] and human strength counts. Static
  * service; every write posts a {@link StrengthChangedEvent}, which refreshes the attack modifier.
- * {@link #getStrengthPoints} is the body's whole strength in points [力量点]: the permanent record plus every
- * running {@link BeastStrengthBuff}, read off the path effects, which are the buffs' truth. How much of it a body
- * can bring to bear is {@code gameplay.attribute.StrengthService}.
+ * {@link #getBeastBuffs} reads the running timed beast buffs off the path effects, which are the buffs' truth, as
+ * {@link StrengthAmplifier}s; the whole strength and how much of it a body can bring to bear are
+ * {@code gameplay.attribute.StrengthService}, which also gates a new beast against the carrying capacity.
  *
  * <p>Mark Interference [道痕互斥] is enforced here, at the one write funnel: {@code grant} and a rising
  * {@code setHumanStrength} write nothing and return {@code false} while {@link #getInterference} names a held
  * branch, so neither a Gu nor a command can store both. A running {@link BeastStrengthBuff} counts as holding
  * Beast Strength Phantom, but granting one is not a write here: beast buffs are gated at the Gu. Removals always
- * go through.
+ * go through. ⚠ The capacity gate is the Gu's ({@code BeastStrengthBehavior}), not this funnel's: a command grant
+ * may seat a beast past the normal capacity, and the body then uses what it can carry.
  *
  * @author Alex
  * @version 1.0.0
@@ -89,14 +92,14 @@ public final class PathStrengthService {
         return setHumanStrength(player, kind, getHumanStrength(player, kind) + delta);
     }
 
-    /** Permanent points plus the points of every running beast buff. */
-    public static int getStrengthPoints(@NotNull Player player) {
-        int total = get(player).getStrengthPoints();
+    /** Every running timed beast buff as an amplifier, sourced to the Gu that granted it. */
+    public static @NotNull List<StrengthAmplifier> getBeastBuffs(@NotNull Player player) {
+        List<StrengthAmplifier> buffs = new ArrayList<>();
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
             BeastStrengthBuff buff = getBeastBuff(effect);
-            if (buff != null) total += buff.getPoints();
+            if (buff != null) buffs.add(StrengthAmplifier.beast(effect.source(), buff.getBeastFamily(), buff.getPoints()));
         }
-        return total;
+        return buffs;
     }
 
     private static boolean hasBeastBuff(Player player) {

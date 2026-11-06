@@ -1,172 +1,82 @@
 package net.alex.guzhenren.item.gu.mortal.path.strength;
 
-import java.util.List;
-import net.alex.guzhenren.gameplay.body.HardshipEvents;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
+import net.alex.guzhenren.gameplay.path.PathEffectType;
+import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.SelfRelianceHeal;
-import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.tending.TendedGuItem;
-import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
-import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
-import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
-import net.alex.guzhenren.registry.item.ModDataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * The Self Reliance behavior [自力更生]: a use starts a heal that runs until the holder is back to
- * {@link #HEAL_CEILING} of max health. The Self Reliance Gu carries it with an {@link AutoUseBehavior}.
+ * The Self Reliance behavior [自力更生]: an auto heal ({@link AutoUseBehavior}) that starts under 75% of max health
+ * and mends the holder back up to it. The state is the permanent path effect {@code ModPathEffectTypes.SELF_RELIANCE},
+ * its payload the Gu's grade.
  *
- * <p>Every {@link #PULSE_TICKS} the heal mends {@code pulseHeal} of max health, times the Amplify Effect Gu
- * [功倍蛊] factor billed at the start, never past the ceiling. Damage taken meanwhile is healed too. While the
- * Hardship Strength Gu [苦力蛊] runs, the ceiling is its lower {@link HardshipEvents#HEAL_CEILING}
- * ({@link #getCeiling}): the gate refuses there as healthy and a running round ends there, instead of pulsing
- * into heals {@code HardshipEvents.onHeal} would cancel.
+ * <p>Every {@link #PULSE_TICKS} ({@link #pulse}, from {@link AutoUse#tick}) the heal mends
+ * {@code pulseHeal × curve × max health}, never past 75%; the last pulse is cut there and the heal stops. The curve
+ * ({@link #getCurve}) is 1 at or under {@link #FULL_PULSE_BELOW} of max health and falls linearly to {@link #FLOOR}
+ * at 75%. Damage taken meanwhile is healed too.
  *
- * <p>⚠ One heal is one round: the use that starts it pays the properties' hunger once, like any use, and the pulses pay
- * nothing. The heal ends at the ceiling or when no refined copy is carried in the bag ({@code items} or offhand).
- * The gate refuses at the ceiling and while a heal of the same or a higher grade runs; a higher grade takes a
- * lower one's heal and strands.
+ * <p>A pulse that a cancelled heal leaves without effect pauses the heal; it neither ends it nor bills again. A
+ * dying body is never healed: {@link AutoUse#tick} stops the state first.
  *
- * <p>⚠ A forced use [强行催动] does not kill the Gu at once: {@link #defersForcedDeath} marks it
- * ({@code SELF_RELIANCE_FORCED}) and {@link #pulse} kills it, by exhaustion, at the first pulse that finds it carried
- * with no heal of its kind running. A marked Gu is refused meanwhile; one left in a chest keeps its mark and dies
- * when carried again. Creative is never marked.
- *
- * <p>⚠ The heal is a permanent path effect that {@link #pulse} removes, not a vanilla timer: its icon has no
- * countdown, and {@code /effect clear} costs only the icon until the next heartbeat.
+ * <p>⚠ Provisional, awaiting Alex: the curve's {@link #FULL_PULSE_BELOW} (40%) and {@link #FLOOR} (1/3).
  *
  * @author Alex
  * @version 1.0.0
- * @see AutoUseBehavior
+ * @see AutoUse
  * @see SelfRelianceHeal
  * @since 1.0.0
  */
 
-public record SelfRelianceBehavior(int grade, float pulseHeal) implements GuBehavior {
+public record SelfRelianceBehavior(int grade, float pulseHeal) implements AutoUseBehavior {
 
     public static final int PULSE_TICKS = 5;
-    public static final float HEAL_CEILING = 0.9F;
-    // Float shares of max health: a heal that stops at the ceiling must read as healed, not as 89.99998%.
-    private static final float EPSILON = 1.0E-4F;
-    private static final String FAILED_HEALTHY = "guzhenren.item.failed.self_reliance_healthy";
-    private static final String FAILED_RUNNING = "guzhenren.item.failed.self_reliance_running";
+    public static final float FULL_PULSE_BELOW = 0.40F;
+    public static final float FLOOR = 1.0F / 3.0F;
 
     @Override
-    public boolean canBeAmplified() { return true; }
+    public @NotNull PathEffectType<?> getStateType() { return ModPathEffectTypes.SELF_RELIANCE; }
 
     @Override
-    public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
-        if (stack.has(ModDataComponents.SELF_RELIANCE_FORCED)) return new Refusal(FAILED_RUNNING);
-        if (isHealed(player)) return new Refusal(FAILED_HEALTHY);
-
-        PathEffect<SelfRelianceHeal> running = PathEffectService.find(player, ModPathEffectTypes.SELF_RELIANCE);
-        return running != null && running.payload().grade() >= grade ? new Refusal(FAILED_RUNNING) : null;
-    }
+    public boolean canStart(@NotNull ServerPlayer player) { return true; }
 
     @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
-        Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
         PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.SELF_RELIANCE, PathEffect.PERMANENT,
-                new SelfRelianceHeal(grade, amplification.factor())));
-        TimedEffects.markAmplified(player, ModPathEffectTypes.SELF_RELIANCE, gu.getEffectSource(), amplification);
+                new SelfRelianceHeal(grade)));
     }
 
-    @Override
-    public boolean defersForcedDeath(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
-        if (!isRunning(player, stack)) return false;
+    public static void pulse(@NotNull ServerPlayer player) {
+        if (player.tickCount % PULSE_TICKS != 0) return;
 
-        stack.set(ModDataComponents.SELF_RELIANCE_FORCED, true);
-        return true;
-    }
-
-    public static void pulse(ServerPlayer player) {
-        if (player.tickCount % PULSE_TICKS != 0 || player.isDeadOrDying()) return;
-
-        mendOrEnd(player);
-        exhaustEndedRounds(player);
-    }
-
-    private static void mendOrEnd(ServerPlayer player) {
         PathEffect<SelfRelianceHeal> heal = PathEffectService.find(player, ModPathEffectTypes.SELF_RELIANCE);
         if (heal == null) return;
 
-        ItemStack stack = findCarried(player, heal.source());
-        if (!(stack.getItem() instanceof TendedGuItem gu)) {
-            end(player);
-            return;
+        SelfRelianceBehavior behavior = BuiltInRegistries.ITEM.get(heal.source()) instanceof MortalGuItem gu
+                ? gu.getBehavior(SelfRelianceBehavior.class) : null;
+        if (behavior != null) behavior.mend(player);
+        if (behavior == null || !AutoUse.isHurt(player)) {
+            PathEffectService.removeType(player, ModPathEffectTypes.SELF_RELIANCE);
         }
-        SelfRelianceBehavior behavior = gu.getBehavior(SelfRelianceBehavior.class);
-        if (behavior == null || isHealed(player)) {
-            end(player);
-            return;
-        }
-        behavior.mend(player, heal.payload().factor());
-        if (isHealed(player)) end(player);
     }
 
-    /** Kills every forced Gu carried whose round is over. */
-    private static void exhaustEndedRounds(ServerPlayer player) {
-        Inventory inventory = player.getInventory();
-        for (ItemStack stack : inventory.items) exhaustIfEnded(player, stack);
-        for (ItemStack stack : inventory.offhand) exhaustIfEnded(player, stack);
+    public static float getCurve(float health, float maxHealth) {
+        float full = maxHealth * FULL_PULSE_BELOW;
+        if (health <= full) return 1.0F;
+
+        float fall = Math.min(1.0F, (health - full) / (maxHealth * HardshipStrength.START_BELOW - full));
+        return 1.0F - fall * (1.0F - FLOOR);
     }
 
-    private static void exhaustIfEnded(ServerPlayer player, ItemStack stack) {
-        if (!stack.has(ModDataComponents.SELF_RELIANCE_FORCED) || isRunning(player, stack)) return;
-
-        stack.remove(ModDataComponents.SELF_RELIANCE_FORCED);
-        if (player.getAbilities().instabuild) return;
-
-        TendedGuItem.exhaust(player, stack);
-        stack.shrink(1);
-    }
-
-    /** Heals one pulse, never past the ceiling. */
-    private void mend(ServerPlayer player, int factor) {
+    private void mend(ServerPlayer player) {
         float max = player.getMaxHealth();
-        player.heal(Math.min(pulseHeal * factor * max, max * getCeiling(player) - player.getHealth()));
-    }
-
-    /** The share of max health a round heals to: the Hardship ceiling while that Gu runs, else the behavior's. */
-    public static float getCeiling(Player player) {
-        return player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU) ? Math.min(HEAL_CEILING, HardshipEvents.HEAL_CEILING)
-                : HEAL_CEILING;
-    }
-
-    private static boolean isRunning(Player player, ItemStack stack) {
-        return stack.getItem() instanceof MortalGuItem gu
-                && PathEffectService.find(player, ModPathEffectTypes.SELF_RELIANCE, gu.getEffectSource()) != null;
-    }
-
-    private static boolean isHealed(Player player) {
-        return player.getHealth() >= player.getMaxHealth() * (getCeiling(player) - EPSILON);
-    }
-
-    private static ItemStack findCarried(Player player, ResourceLocation source) {
-        Inventory inventory = player.getInventory();
-        ItemStack found = findIn(inventory.items, source);
-        return found.isEmpty() ? findIn(inventory.offhand, source) : found;
-    }
-
-    private static ItemStack findIn(List<ItemStack> stacks, ResourceLocation source) {
-        for (ItemStack stack : stacks) {
-            if (stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack)
-                    && gu.getEffectSource().equals(source)) return stack;
-        }
-        return ItemStack.EMPTY;
-    }
-
-    private static void end(ServerPlayer player) {
-        PathEffectService.removeType(player, ModPathEffectTypes.SELF_RELIANCE);
+        float health = player.getHealth();
+        player.heal(Math.min(pulseHeal * getCurve(health, max) * max, max * HardshipStrength.START_BELOW - health));
     }
 }

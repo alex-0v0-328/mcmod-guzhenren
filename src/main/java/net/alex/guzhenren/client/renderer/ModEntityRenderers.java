@@ -97,6 +97,7 @@ public final class ModEntityRenderers {
                 context -> new SoulTraderGeoRenderer(context, HUMAN_SOUL_MODEL, SoulTraderGeoRenderer.BLUE_TEXTURE));
         event.registerEntityRenderer(ModEntityTypes.MOON_BLADE.get(), MoonBladeRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.QI_WAVE.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.BEAST_CHARGE.get(), BeastPhantomRenderer::new);
     }
 
     private static EntityRenderer<BoarGuEntity> createBoarGuRenderer(EntityRendererProvider.Context context,

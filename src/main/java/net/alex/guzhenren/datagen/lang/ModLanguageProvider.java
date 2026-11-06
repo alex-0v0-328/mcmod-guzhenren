@@ -359,7 +359,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.body_capacity",         "Capacity", "承受");
         add("guzhenren.screen.label.attack",                "Base Attack", "基础攻击力");
         add("guzhenren.screen.label.aperture_pressure",     "Aperture Pressure", "空窍压力");
-        add("guzhenren.screen.capacity",                    "%s / %s pts", "%s / %s 点");
+        add("guzhenren.screen.capacity",                    "%s / %s pts, carries %s (%s at rest)",
+                "%s / %s 点，承受 %s（常态 %s）");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
     }
@@ -390,6 +391,8 @@ public class ModLanguageProvider extends LanguageProvider {
                 "The second aperture already stands at or above this rank", "第二空窍已是该转数或更高");
         add("guzhenren.item.failed.aperture_unavailable",            "No usable aperture remains", "没有可以作用的空窍");
         add("guzhenren.item.failed.beast_strength_held",             "You already hold the %s's strength", "已有%s之力");
+        add("guzhenren.item.failed.beast_strength_capacity",
+                "Your body cannot carry the %s's strength", "承受力不足以容纳%s之力");
         add("guzhenren.item.failed.human_strength_full",
                 "This strength is already at %s layers", "此力已满%s层");
         add("guzhenren.item.failed.mark_interference",               "Mark Interference", "力道道痕互斥");
@@ -397,6 +400,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.self_reliance_healthy",
                 "Your health is already at nine tenths", "生命已达九成");
         add("guzhenren.item.failed.self_reliance_running",           "Self Reliance is still healing", "自力更生正在回复");
+        add("guzhenren.item.failed.auto_only",                       "This Gu works on its own; it needs no driving",
+                "该蛊自动生效，无需催动");
         add("guzhenren.item.failed.refine_essence",                  "NOT enough essence to refine", "真元不足无法炼化");
         add("guzhenren.item.failed.essence",                         "NOT enough essence", "真元不足");
         add("guzhenren.item.failed.liquor_rank",                     "Only a %s Gu Master can use this", "%s蛊师才可使用");
@@ -496,7 +501,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.charging_crash_gu",                    "Charging Crash Gu Effect", "横冲直撞蛊效果");
         add("effect.guzhenren.self_reliance_gu",                     "Self Reliance Gu Effect", "自力更生蛊效果");
         add("effect.guzhenren.hardship_strength_gu",                 "Hardship Strength Gu Effect", "苦力蛊效果");
-        add("effect.guzhenren.grievous_injury",                      "Grievous Injury", "重伤");
         add("effect.guzhenren.jade_skin_gu",                         "Jade Skin Gu Effect", "玉皮蛊效果");
         add("effect.guzhenren.white_jade_gu",                        "White Jade Gu Effect", "白玉蛊效果");
         add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
@@ -531,6 +535,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("entity.guzhenren.test_trade_gu_immortal",     "Test Trade Gu Immortal", "测试交易蛊仙");
         add("entity.guzhenren.moon_blade",                 "Moon Blade",             "月刃");
         add("entity.guzhenren.qi_wave",                    "Qi Wave",                "气波");
+        add("entity.guzhenren.beast_charge",               "Beast Charge",           "兽力冲击");
     }
     //endregion
 
@@ -567,8 +572,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.ten_extreme_disaster",
                 "%1$s was killed by a Ten-Extremes disaster", "%1$s 被十绝天灾波及而亡");
         add("death.attack.guzhenren.vital_gu_lost",               "%1$s lost their Vital Gu", "%1$s 因本命蛊死亡而亡");
-        add("death.attack.guzhenren.overload_impact",
-                "%1$s was crushed by their own strength", "%1$s 被自身力量重创而亡");
         add("death.attack.guzhenren.moon_blade",
                 "%1$s was slain by %2$s's Moon Blade", "%1$s 被 %2$s 的月刃斩杀");
         add("death.attack.guzhenren.moon_blade.item",

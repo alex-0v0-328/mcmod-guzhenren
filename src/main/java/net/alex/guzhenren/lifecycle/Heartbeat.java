@@ -15,7 +15,7 @@ import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.gu.tending.GuUpkeep;
-import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUseBehavior;
+import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.item.gu.mortal.path.time.AsBeforeGuItem;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
@@ -60,7 +60,7 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code ApertureNourishService.tickNourish} -- after (13): this second's regen before this second's
  * bill.</li>
  * <li>{@code MindService.regenStep} -- after (8): a zombie thinks every fifth second.</li>
- * <li>{@code AutoUseBehavior.tryAutoUse} -- after (13), whose essence the auto-use pays.</li>
+ * <li>{@code AutoUse.tryStart} -- after (13), whose essence the auto-use pays.</li>
  * <li>{@code AsBeforeGuItem.remember} -- after (8), (12) and (15): the body it records is this beat's settled one,
  * the temp zombie form, lifespan exhaustion and thoughts included; before (19), so a body about to die is still
  * remembered as it was.</li>
@@ -112,7 +112,7 @@ public final class Heartbeat {
         ApertureEssenceService.regenStep(player, beat);
         ApertureNourishService.tickNourish(player, beat);
         MindService.regenStep(player, beat);
-        AutoUseBehavior.tryAutoUse(player);
+        AutoUse.tryStart(player);
         AsBeforeGuItem.remember(player);
         AperturePressureService.tick(player);
         checkLethalState(player);

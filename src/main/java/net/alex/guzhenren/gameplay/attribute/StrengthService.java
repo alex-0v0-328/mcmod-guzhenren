@@ -1,42 +1,46 @@
 package net.alex.guzhenren.gameplay.attribute;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
+import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectService;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthAmplifier;
+import net.alex.guzhenren.gameplay.path.strength.StrengthAmplifierProvider;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The strength settlement [力道结算]: how many of a body's strength points [力量点] it brings to bear. Static,
- * read-only service above the aperture and the body, since the capacity reads both; the points themselves come
- * from {@link PathStrengthService#getStrengthPoints}.
+ * read-only service above the aperture and the body, since the capacity reads both. The points come in three
+ * kinds: the permanent record ({@link PathStrengthData}: human jin and beast strengths by family), the running
+ * {@link StrengthAmplifier}s ({@link #getAmplifiers}: timed beast buffs and every path effect payload that is a
+ * {@link StrengthAmplifierProvider}), and the points a round's beast release [解放] counts past the capacity
+ * ({@link ReleaseSource}, set by the round keeper).
  *
- * <p>The body's carrying capacity [承受力] is {@link #getBodyCapacity}: {@link #getBaseCapacity}, which is
+ * <p>The normal carrying capacity [常态承受力] is {@link #getNormalCapacity}: {@link #getBaseCapacity}, which is
  * {@link #MORTAL_CAPACITY} plus {@link #CAPACITY_PER_RANK} per rank [转] (16, then 24 to 56 for ranks one to five)
- * times the physique's multiplier (a ten-extreme body doubles it, the Great Strength True Martial body quadruples
- * it), plus what the worn skin, tendons and bones add -- tempering sits outside the multiplier. A body always uses
- * {@code min(points, capacity)} of the CURRENT capacity ({@link #getCapacity}) and keeps the rest; there is no
- * overflow ramp.
+ * times the physique's multiplier, plus what the worn skin, tendons and bones add -- tempering sits outside the
+ * multiplier. The current capacity ({@link #getCapacity}) adds every amplifier's capacity bonus and, while the All-Out
+ * Effort Gu [全力以赴] runs, {@link #ALL_OUT_CAPACITY_FACTOR} minus one more normal capacities: every bonus is added on
+ * the normal capacity, never multiplied with another. A body uses {@code min(total, capacity)} of the CURRENT capacity
+ * ({@link #getUsablePoints}) plus the release extra, and keeps the rest; there is no overflow ramp and no load.
  *
- * <p>{@link #isUnleashed} lifts the current capacity to {@code max(body capacity, points)}: the All-Out Effort Gu
- * [全力以赴] and the Hardship Strength Gu [苦力蛊] both make every point count, read as their vanilla effects like
- * every attribute rule (the path effect is the truth and re-projects the icon each heartbeat; {@code gameplay}
- * cannot reach {@code TimedEffects}). Only the first pays for it:
- * {@link #getLoadDamage} is the load [负载] a hit lands on its own body while All-Out Effort runs without Hardship
- * Strength, {@link #LOAD_PER_EXCESS_POINT} health per point past the BODY capacity, and
- * {@code StrengthLoadEvents} deals it. Hardship Strength pays with the healing ceiling instead. ⚠ The excess reads
- * {@link #getBodyCapacity}, never the lifted one, which would leave no excess while the lift runs.
+ * <p>{@link #getReleasedExtra} is one beast family brought to bear in a round: its points count in full past the
+ * capacity while the rest are still cut, and a full release [全面解放] adds {@link #FULL_RELEASE_FACTOR} minus one
+ * more of the family's PERMANENT points, which no capacity limits. {@link #canAdmit} is the gate of a new permanent
+ * beast strength: the permanent beasts held plus the new one may not pass the NORMAL capacity; amplifiers and the
+ * All-Out lift admit nothing.
  *
- * <p>{@link #getPhantomBonusPoints} is the Beast Phantom [兽力虚影]: for the one hit it manifests on, the chosen
- * beast's points count in full past the capacity while the rest are still cut; it costs the body no load.
- *
- * <p>⚠ {@code getUsablePoints(int, int)}, {@code getCapacity(int, int, boolean)}, {@code getBaseCapacity},
- * {@code getPhantomBonusPoints} and {@code getLoadDamage(int)} are deliberate seams so the arithmetic is
- * unit-testable without a {@link Player}.
+ * <p>⚠ The {@code int} overloads are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
  *
  * @author Alex
  * @version 1.0.0
@@ -51,14 +55,28 @@ public final class StrengthService {
 
     public static final int MORTAL_CAPACITY = 16;
     public static final int CAPACITY_PER_RANK = 8;
-    public static final float LOAD_PER_EXCESS_POINT = 0.0625F;
+    /** All-Out Effort makes the current capacity this many normal capacities (300%). */
+    public static final int ALL_OUT_CAPACITY_FACTOR = 3;
+    /** A full release counts the released family's permanent points this many times. */
+    public static final int FULL_RELEASE_FACTOR = 3;
+    private static ReleaseSource releaseSource = (player, capacity, total) -> 0;
+
+    /** The round keeper's answer: the points a release lets past the capacity right now, zero outside a round. */
+    @FunctionalInterface
+    public interface ReleaseSource {
+
+        int getReleasedExtra(@NotNull Player player, int capacity, int total);
+    }
+
+    public static void setReleaseSource(@NotNull ReleaseSource source) { releaseSource = source; }
 
     public static int getBaseCapacity(@NotNull Rank rank, @NotNull ExtremePhysique physique) {
         int rankIndex = Math.min(rank.ordinal(), Rank.HIGHEST.ordinal());
         return (MORTAL_CAPACITY + CAPACITY_PER_RANK * rankIndex) * physique.getCapacityMultiplier();
     }
 
-    public static int getBodyCapacity(@NotNull Player player) {
+    /** The normal capacity [常态承受力]: rank, physique and tempering, nothing temporary. */
+    public static int getNormalCapacity(@NotNull Player player) {
         BodyData body = BodyService.get(player);
         return getBaseCapacity(ApertureService.getHealthRank(player), body.extremePhysique())
                 + body.skin().getCapacityBonus()
@@ -66,47 +84,78 @@ public final class StrengthService {
                 + body.bone().getCapacityBonus();
     }
 
-    /** The current capacity: the body's own, lifted to the whole strength while {@link #isUnleashed}. */
+    /** The current capacity: the normal one plus every amplifier's bonus plus the All-Out lift. */
     public static int getCapacity(@NotNull Player player) {
-        return getCapacity(getBodyCapacity(player), getStrengthPoints(player), isUnleashed(player));
+        return getCapacity(getNormalCapacity(player), getCapacityBonus(getAmplifiers(player)), isAllOut(player));
     }
 
-    public static int getCapacity(int bodyCapacity, int points, boolean unleashed) {
-        return unleashed ? Math.max(bodyCapacity, points) : bodyCapacity;
+    public static int getCapacity(int normalCapacity, int amplifierBonus, boolean allOut) {
+        return normalCapacity + amplifierBonus + (allOut ? (ALL_OUT_CAPACITY_FACTOR - 1) * normalCapacity : 0);
     }
 
-    public static int getStrengthPoints(@NotNull Player player) { return PathStrengthService.getStrengthPoints(player); }
-
-    public static boolean isUnleashed(@NotNull Player player) {
-        return player.hasEffect(ModEffects.ALL_OUT_EFFORT_GU) || isHardship(player);
+    public static int getPermanentPoints(@NotNull Player player) {
+        return PathStrengthService.get(player).getStrengthPoints();
     }
 
-    public static boolean isHardship(@NotNull Player player) {
-        return player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU);
+    /** Every running amplifier: the timed beast buffs, then every path effect payload that provides one. */
+    public static @NotNull List<StrengthAmplifier> getAmplifiers(@NotNull Player player) {
+        List<StrengthAmplifier> amplifiers = new ArrayList<>(PathStrengthService.getBeastBuffs(player));
+        int permanent = getPermanentPoints(player);
+        int normal = getNormalCapacity(player);
+        for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
+            if (!(effect.payload() instanceof StrengthAmplifierProvider provider)) continue;
+
+            StrengthAmplifier amplifier = provider.getAmplifier(player, permanent, normal);
+            if (amplifier != null) amplifiers.add(amplifier);
+        }
+        return amplifiers;
     }
 
+    public static int getAmplifierPoints(@NotNull List<StrengthAmplifier> amplifiers) {
+        int total = 0;
+        for (StrengthAmplifier amplifier : amplifiers) total += amplifier.points();
+        return total;
+    }
+
+    public static int getCapacityBonus(@NotNull List<StrengthAmplifier> amplifiers) {
+        int total = 0;
+        for (StrengthAmplifier amplifier : amplifiers) total += amplifier.capacityBonus();
+        return total;
+    }
+
+    /** The whole strength: permanent points plus every amplifier's points. */
+    public static int getStrengthPoints(@NotNull Player player) {
+        return getPermanentPoints(player) + getAmplifierPoints(getAmplifiers(player));
+    }
+
+    public static boolean isAllOut(@NotNull Player player) { return player.hasEffect(ModEffects.ALL_OUT_EFFORT_GU); }
+
+    /** What the body brings to bear right now: the cut total plus whatever the round releases past the capacity. */
     public static int getUsablePoints(@NotNull Player player) {
-        return getUsablePoints(getCapacity(player), getStrengthPoints(player));
+        int capacity = getCapacity(player);
+        int total = getStrengthPoints(player);
+        return getUsablePoints(capacity, total) + releaseSource.getReleasedExtra(player, capacity, total);
     }
 
     public static int getUsablePoints(int capacity, int total) { return Math.min(capacity, total); }
 
-    public static int getPhantomBonusPoints(int capacity, int total, int beastPoints) {
-        int beast = Math.max(0, Math.min(beastPoints, total));
-        return Math.max(0, getUsablePoints(capacity, total - beast) + beast - getUsablePoints(capacity, total));
+    /**
+     * The points one released family adds past {@code getUsablePoints(capacity, total)}: its {@code familyPoints}
+     * count in full, and a full release adds {@link #FULL_RELEASE_FACTOR} minus one more of
+     * {@code fullReleasePoints}, the family's permanent points, or zero for a plain release.
+     */
+    public static int getReleasedExtra(int capacity, int total, int familyPoints, int fullReleasePoints) {
+        int family = Math.max(0, Math.min(familyPoints, total));
+        int plain = Math.max(0, getUsablePoints(capacity, total - family) + family - getUsablePoints(capacity, total));
+        return plain + (FULL_RELEASE_FACTOR - 1) * Math.max(0, fullReleasePoints);
     }
 
-    /** The points past the body capacity, zero when nothing is. */
-    public static int getExcessPoints(@NotNull Player player) {
-        return Math.max(0, getStrengthPoints(player) - getBodyCapacity(player));
+    /** Whether the normal capacity has room for one more permanent beast strength beside those held. */
+    public static boolean canAdmit(@NotNull Player player, @NotNull BeastStrength beast) {
+        return canAdmit(getNormalCapacity(player), PathStrengthService.get(player).getBeastPoints(), beast.getPoints());
     }
 
-    /** The load one landed hit costs its own body, zero unless All-Out Effort runs without Hardship Strength. */
-    public static float getLoadDamage(@NotNull Player player) {
-        if (!player.hasEffect(ModEffects.ALL_OUT_EFFORT_GU) || isHardship(player)) return 0.0F;
-
-        return getLoadDamage(getExcessPoints(player));
+    public static boolean canAdmit(int normalCapacity, int heldBeastPoints, int newBeastPoints) {
+        return heldBeastPoints + newBeastPoints <= normalCapacity;
     }
-
-    public static float getLoadDamage(int excessPoints) { return Math.max(0, excessPoints) * LOAD_PER_EXCESS_POINT; }
 }

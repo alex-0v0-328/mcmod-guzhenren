@@ -19,8 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The instant-buff behavior [限时增益]: grants a timed buff whose effect holder, length and strength come from
- * registration. Eight Gu carry it, each with a {@link RecastBehavior}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
- * four Crash Gu, the Hardship Strength Gu and the Strength Qi Gu (力气蛊).
+ * registration. Seven Gu carry it, each with a {@link RecastBehavior}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
+ * four Crash Gu and the Strength Qi Gu (力气蛊).
  *
  * <p>The effect simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. A beast buff is first
  * refused to a body holding Human Jun Strength ({@link MarkInterference}); beyond that the gate refuses only

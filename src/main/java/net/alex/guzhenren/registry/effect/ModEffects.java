@@ -98,8 +98,6 @@ public final class ModEffects {
     public static final DeferredHolder<MobEffect, HardshipStrengthGuEffect> HARDSHIP_STRENGTH_GU =
             MOB_EFFECTS.register("hardship_strength_gu", () -> new HardshipStrengthGuEffect(
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> GRIEVOUS_INJURY = MOB_EFFECTS.register(
-            "grievous_injury", () -> new MarkerEffect(MobEffectCategory.HARMFUL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> ALL_OUT_EFFORT_GU = MOB_EFFECTS.register(
             "all_out_effort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion

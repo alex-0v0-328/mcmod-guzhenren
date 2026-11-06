@@ -5,6 +5,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty;
@@ -87,6 +89,7 @@ public final class EpicFightIntegration {
     private EpicFightIntegration() {}
 
     public static void initialize() {
+        AttackDamageService.setFistItem(EpicFightIntegration::isFistItem);
         EpicFightEventHooks.Player.CONSUME_SKILL.registerEvent(EpicFightIntegration::onSkillConsume, Guzhenren.MOD_ID);
         EpicFightEventHooks.Player.SET_TARGET.registerEvent(EpicFightIntegration::onSetTarget, Guzhenren.MOD_ID);
         EpicFightEventHooks.Animation.ATTACK_PHASE_END.registerEvent(EpicFightIntegration::onAttackPhaseEnd,
@@ -170,6 +173,12 @@ public final class EpicFightIntegration {
             level.playSound(null, target.getX(), target.getY(), target.getZ(), sound, target.getSoundSource(),
                     1.0F, 1.0F);
         }
+    }
+
+    /** Whether a held item fights as a fist in Epic Fight's eyes: its weapon category is FIST (gauntlets, wraps). */
+    public static boolean isFistItem(ItemStack stack) {
+        return EpicFightCapabilities.getItemStackCapability(stack).getWeaponCategory()
+                == CapabilityItem.WeaponCategories.FIST;
     }
 
     private static boolean isFistStrike(AttackAnimation animation) {
