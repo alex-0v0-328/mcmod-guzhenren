@@ -29,7 +29,7 @@ public class OneShotGuItem extends MortalGuItem {
         super(new Properties(), guProperties, behaviors);
     }
 
-    //region the one press
+    //region the one press [一按]
     @Override
     protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
         Refusal cost = checkEssenceGate(player, getRefineCost(), FAILED_REFINE_ESSENCE);
@@ -61,7 +61,7 @@ public class OneShotGuItem extends MortalGuItem {
     public long getUseEssence() { return getRefineCost(); }
     //endregion
 
-    //region display
+    //region display [显示]
     @Override
     protected @Nullable MutableComponent formatProgressLine(ItemStack stack) {
         return getRefineCost() > 0 ? Component.translatable(TOOLTIP_REFINE_COST, getRefineCost()) : null;

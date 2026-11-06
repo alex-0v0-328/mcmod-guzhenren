@@ -63,7 +63,7 @@ public final class LittleLightGuItem extends TendedGuItem {
         return stack.getOrDefault(ModDataComponents.LITTLE_LIGHT_BRIGHT, false);
     }
 
-    //region the switch
+    //region the switch [开关]
     @Override
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
@@ -105,7 +105,7 @@ public final class LittleLightGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region the round
+    //region the round [一轮]
     @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slot,
                               boolean selected) {

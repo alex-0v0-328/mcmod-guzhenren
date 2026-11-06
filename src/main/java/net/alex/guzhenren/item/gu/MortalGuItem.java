@@ -131,7 +131,7 @@ public abstract class MortalGuItem extends GuItem {
                 guProperties.getEffectCooldownTicks());
     }
 
-    //region behaviors -- what the Gu does, asked in registration order
+    //region behaviors [行为]
     public <M extends GuBehavior> @Nullable M getBehavior(Class<M> type) {
         for (GuBehavior behavior : behaviors) {
             if (type.isInstance(behavior)) return type.cast(behavior);
@@ -154,7 +154,7 @@ public abstract class MortalGuItem extends GuItem {
     }
     //endregion
 
-    //region refining [炼化] -- every Gu answers it, and only the price differs
+    //region refining [炼化]
     protected final @Nullable Refusal checkEssenceGate(Player player, long required, String key) {
         if (required <= 0) return null;
         return PrimevalStoneSupply.canAfford(player, required) ? null : new Refusal(key);
@@ -170,7 +170,7 @@ public abstract class MortalGuItem extends GuItem {
     protected final void payRefineCost(ServerPlayer player) { PrimevalStoneSupply.pay(player, getRefineCost()); }
     //endregion
 
-    //region charge [蓄力] -- paced by the holder's rank against this Gu's own, never by the stage
+    //region charge [蓄力]
     protected int getRankGap(Player player) { return ApertureService.getRank(player).ordinal() - getRank().ordinal(); }
 
     protected int useChargeByGap(Player player) {
@@ -180,7 +180,7 @@ public abstract class MortalGuItem extends GuItem {
     }
     //endregion
 
-    //region the click -- a Gu always answers the right click, if only to be refined
+    //region the click [点击]
     @Override
     protected final boolean hasUse() { return true; }
 
@@ -189,7 +189,7 @@ public abstract class MortalGuItem extends GuItem {
     protected int performOwnUse(ServerPlayer player, ItemStack stack) { return 0; }
     //endregion
 
-    //region display
+    //region display [显示]
     protected final Component refineCaption(int invested) {
         return getRefineCost() > 0
                 ? Component.translatable(CAPTION_REFINING, invested, getRefineCost())

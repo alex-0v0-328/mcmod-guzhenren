@@ -96,7 +96,7 @@ public final class ChunkOriginGenerator {
         return Blocks.STONE.defaultBlockState();
     }
 
-    //region laying out -- main thread
+    //region laying out [铺设]
     private static Region layOut(ServerLevel level, ChunkPos center, int radius) {
         Registry<Biome> biomes = level.registryAccess().registryOrThrow(Registries.BIOME);
         int outer = radius + BIOME_MARGIN;
@@ -123,7 +123,7 @@ public final class ChunkOriginGenerator {
     }
     //endregion
 
-    //region generating -- background
+    //region generating [生成]
     private static CompletableFuture<Region> runTerrain(Region region) {
         CompletableFuture<Void> done = CompletableFuture.completedFuture(null);
         for (ChunkStatus status : TERRAIN_STEPS) {
@@ -190,7 +190,7 @@ public final class ChunkOriginGenerator {
     }
     //endregion
 
-    //region the region the steps see
+    //region the region the steps see [步骤视野]
     private record Region(WorldGenContext context, StaticCache2D<GenerationChunkHolder> cache, ChunkPos center,
                           int radius, Map<Long, ProtoChunk> scratch) {}
 

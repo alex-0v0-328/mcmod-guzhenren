@@ -72,7 +72,7 @@ public final class TimedEffects {
 
     private TimedEffects() {}
 
-    //region buffs
+    //region buffs [增益]
     public static @Nullable PathEffect<TimedBuff> findBuff(@NotNull Player player,
                                                            @NotNull Holder<MobEffect> effect) {
         PathEffect<TimedBuff> found = null;
@@ -115,7 +115,7 @@ public final class TimedEffects {
     }
     //endregion
 
-    //region leaf and watch
+    //region leaf and watch [生机叶与更蛊]
     public static boolean hasLeaf(@NotNull Player player) {
         return PathEffectService.getEffects(player).stream().anyMatch(
                 effect -> effect.type() == ModPathEffectTypes.VITALITY_LEAF);
@@ -150,7 +150,7 @@ public final class TimedEffects {
     }
     //endregion
 
-    //region amplification
+    //region amplification [增幅]
     public static <P> void markAmplified(@NotNull ServerPlayer player, @NotNull PathEffectType<P> type,
                                          @NotNull ResourceLocation source, @NotNull Amplification amplification) {
         if (amplification.gu() == null) return;
@@ -164,7 +164,7 @@ public final class TimedEffects {
     }
     //endregion
 
-    //region jade skin
+    //region jade skin [玉皮]
     @SubscribeEvent
     public static void onSkinWorn(SkinWornEvent event) { syncSkin(event.getPlayer()); }
 
@@ -197,7 +197,7 @@ public final class TimedEffects {
     }
     //endregion
 
-    //region mugwort shield
+    //region mugwort shield [天蓬护盾]
     @SubscribeEvent
     public static void onShieldRaised(ShieldRaisedEvent event) {
         if (event.getType() != ShieldType.HEAVENLY_MUGWORT) return;

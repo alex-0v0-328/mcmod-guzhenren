@@ -103,7 +103,7 @@ public final class ApertureNourishService {
         return count == 0 ? ApertureData.PRIMARY : Mth.clamp(get(player).target(), ApertureData.PRIMARY, count - 1);
     }
 
-    //region what the screen asks
+    //region what the screen asks [界面读数]
     public static boolean canNourish(@NotNull Player player, int index) {
         if (!ApertureService.hasAperture(player) || isCultivating(player)
                 || AwakeningRitualService.holdsStill(player)) return false;
@@ -159,7 +159,7 @@ public final class ApertureNourishService {
         }
     }
 
-    //region nourishing [温养] -- the second that the heartbeat bills
+    //region nourishing [温养]
     public static void tickNourish(@NotNull ServerPlayer player, @NotNull Beat beat) {
         for (int second = beat.getSteps(); second > 0; second--) {
             if (!nourishSecond(player)) return;
@@ -226,7 +226,7 @@ public final class ApertureNourishService {
     }
     //endregion
 
-    //region Stone Aperture Gu [石窍蛊] -- straight to this rank's peak, and never further
+    //region Stone Aperture Gu [石窍蛊]
     public static void petrify(@NotNull ServerPlayer player, int index) {
         Aperture aperture = ApertureService.getAperture(player, index);
         if (aperture.petrified()) return;
@@ -254,7 +254,7 @@ public final class ApertureNourishService {
     }
     //endregion
 
-    //region striking the wall
+    //region striking the wall [冲刷窍壁]
     public static void impactWall(@NotNull ServerPlayer player) {
         if (!canImpact(player)) return;
         Aperture aperture = ApertureService.getAperture(player);

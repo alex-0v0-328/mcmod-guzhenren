@@ -55,7 +55,7 @@ public final class ModCommandSupport {
         if (server != null) server.getCommands().sendCommands(player);
     }
 
-    //region node builders
+    //region node builders [节点构造]
     public static ArgumentBuilder<CommandSourceStack, ?> withTargets(
             ArgumentBuilder<CommandSourceStack, ?> node, Command<CommandSourceStack> executor) {
         return node.executes(executor)
@@ -111,7 +111,7 @@ public final class ModCommandSupport {
     }
     //endregion
 
-    //region execution
+    //region execution [执行]
     public static int apply(CommandContext<CommandSourceStack> context, PlayerOperation operation)
             throws CommandSyntaxException {
         return applyIf(context, ANYONE, null, operation);

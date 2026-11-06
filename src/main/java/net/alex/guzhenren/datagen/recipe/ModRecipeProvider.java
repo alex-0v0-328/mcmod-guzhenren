@@ -109,7 +109,7 @@ public class ModRecipeProvider extends RecipeProvider {
         addStorage(output, ModItems.STEEL_INGOT, ModItems.STEEL_BLOCK);
     }
 
-    //region Cooking -- vanilla's raw ore times: 10 seconds in a furnace, 5 in a blast furnace
+    //region Cooking [烧炼]
     private static void addSmelting(RecipeOutput output, ItemLike input, ItemLike result, float experience) {
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(input), RecipeCategory.MISC, result, experience,
                         10 * Ticks.SECOND)
@@ -126,7 +126,7 @@ public class ModRecipeProvider extends RecipeProvider {
     }
     //endregion
 
-    //region Storage -- nine ingots craft a block and the block crafts back, the way vanilla packs iron
+    //region Storage [存储块]
     private static void addStorage(RecipeOutput output, ItemLike ingot, ItemLike block) {
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, block)
                 .define('#', ingot)
@@ -142,7 +142,7 @@ public class ModRecipeProvider extends RecipeProvider {
     }
     //endregion
 
-    //region Gu Recipe [蛊方] patterns -- one row a grid row, ' ' a cut corner, '.' an empty cell
+    //region Gu Recipe patterns [蛊方图样]
     private static void addRefinement(RecipeOutput output, ItemLike result, long essencePerSecond,
                                       long soulPerSecond, int baseSuccess, List<Integer> windows,
                                       Map<Character, GuIngredient> key, String... pattern) {

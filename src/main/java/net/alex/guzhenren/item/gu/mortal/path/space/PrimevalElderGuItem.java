@@ -38,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Starving is unreachable for it by design -- a failed refinement is the only thing that can
  * destroy one. Do not "fix" the missing hunger bar.
  *
+ * <p>It never eats, but a wound still costs stones, on the heartbeat.
+ *
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.item.gu.tending.TendedGuItem
@@ -59,7 +61,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
         this.capacity = capacity;
     }
 
-    //region the vault
+    //region the vault [元石库]
     public static long getStored(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.STORED_STONES, 0L);
     }
@@ -75,7 +77,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region depositing -- the use, free and with no charge
+    //region depositing [存入]
     @Override
     protected boolean hasOffhandUse() { return false; }
 
@@ -123,7 +125,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region withdrawing -- the slider's pick, free, into the bag only
+    //region withdrawing [取出]
     public static int getBagRoom(Player player) {
         int room = 0;
         for (ItemStack slot : player.getInventory().items) {
@@ -186,7 +188,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region its own vault -- it never eats, but a wound still costs stones, on the heartbeat
+    //region upkeep [养护]
     @Override
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {
         if (isRefined(stack)) heal(stack, drawStones(stack, getState(stack).damageTaken()));

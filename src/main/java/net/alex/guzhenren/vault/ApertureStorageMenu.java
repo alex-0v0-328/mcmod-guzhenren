@@ -125,7 +125,7 @@ public class ApertureStorageMenu extends AbstractContainerMenu {
         return count / PAGE_SIZE + 1;
     }
 
-    //region paging
+    //region paging [翻页]
     @Override
     public boolean clickMenuButton(@NotNull Player who, int id) {
         int current = getPageIndex();

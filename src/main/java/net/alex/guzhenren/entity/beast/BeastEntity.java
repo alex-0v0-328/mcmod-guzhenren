@@ -88,7 +88,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         super(type, level);
     }
 
-    //region subclass hooks
+    //region subclass hooks [子类钩子]
     protected abstract int getSwipeHitTick();
 
     protected abstract int getSwipeActionTicks();
@@ -126,7 +126,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     protected abstract String getHeavyAttackAnimation();
     //endregion
 
-    //region action set
+    //region action set [动作集]
     @Override
     protected Action[] getActionValues() { return ACTIONS; }
 
@@ -181,7 +181,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         return this.getAction() == Action.ROAR;
     }
 
-    //region action timing
+    //region action timing [动作时序]
     @Override
     protected void tickAction(Action current, long ticks) {
         if (current.isAmbient()) this.tickAmbientAction(current, ticks);
@@ -245,7 +245,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     }
     //endregion
 
-    //region engagement
+    //region engagement [交战]
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         LivingEntity previous = this.getTarget();

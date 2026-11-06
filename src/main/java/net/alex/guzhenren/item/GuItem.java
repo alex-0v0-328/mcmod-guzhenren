@@ -81,7 +81,7 @@ public abstract class GuItem extends Item {
 
     public record Refusal(String key, Object... args) {}
 
-    //region the hooks a leaf fills
+    //region the hooks a leaf fills [叶类钩子]
     protected boolean hasUse() { return false; }
 
     protected @Nullable Refusal checkUse(Player player, ItemStack stack) { return null; }

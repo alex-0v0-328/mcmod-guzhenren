@@ -78,7 +78,7 @@ public final class CmdAperture {
                 .then(buildEssence());
     }
 
-    //region rank and stage
+    //region rank and stage [转数与阶段]
     private static ArgumentBuilder<CommandSourceStack, ?> buildStage(@Nullable UnaryOperator<Rank> rank) {
         return buildGrade(STAGE, Stage.getSettable(), Stage::shift,
                 (word, stage) -> withSelector(Commands.literal(word), context -> grade(context, rank, stage)));
@@ -122,7 +122,7 @@ public final class CmdAperture {
         return Commands.literal("talent").then(set);
     }
 
-    //region essence
+    //region essence [真元]
     private static ArgumentBuilder<CommandSourceStack, ?> buildEssence() {
         return Commands.literal("essence")
                 .then(Commands.literal("current")
@@ -166,7 +166,7 @@ public final class CmdAperture {
     }
     //endregion
 
-    //region aperture selection
+    //region aperture selection [选窍]
     private static ArgumentBuilder<CommandSourceStack, ?> withSelector(
             ArgumentBuilder<CommandSourceStack, ?> node, Command<CommandSourceStack> executor) {
         return ModCommandSupport.withTargets(node, executor)

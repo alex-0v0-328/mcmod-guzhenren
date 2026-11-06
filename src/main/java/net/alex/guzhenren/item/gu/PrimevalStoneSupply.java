@@ -62,7 +62,7 @@ public final class PrimevalStoneSupply {
         return source.getItem() instanceof PrimevalElderGuItem vault ? vault.drawStones(source, wanted) : 0;
     }
 
-    //region the stone top-up [元石补给] -- one line, so two callers cannot drift apart
+    //region the stone top-up [元石补给]
     public static boolean isTopUpNeeded(Player player) {
         long max = ApertureEssenceService.getMaxEssence(player);
         return max > 0L && ApertureEssenceService.getCurrentEssence(player) * 100L < max * REFILL_BELOW_PERCENT;
@@ -92,7 +92,7 @@ public final class PrimevalStoneSupply {
     }
     //endregion
 
-    //region sourcing stones for something else -- the walk lives here, not in a service
+    //region sourcing stones [取石]
     public static void pourInto(ServerPlayer player, long wanted) {
         long each = getEssencePerStone();
         if (wanted <= 0L || each <= 0L) return;
@@ -136,7 +136,7 @@ public final class PrimevalStoneSupply {
     }
     //endregion
 
-    //region ☠ a lump bigger than the pool -- these stones burn straight, never through the cap
+    //region a lump past the pool [超池支付]
     public static long getWorthOnHand(Player player) {
         long stones = 0L;
         Inventory inventory = player.getInventory();

@@ -76,7 +76,7 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
                 .add(Attributes.FOLLOW_RANGE, FOLLOW_RANGE_BLOCKS);
     }
 
-    //region action set
+    //region action set [动作集]
     @Override
     protected Action[] getActionValues() { return ACTIONS; }
 
@@ -144,7 +144,7 @@ public final class WildBoarEntity extends ActionEntity<WildBoarEntity.Action> {
         }
     }
 
-    //region attacks
+    //region attacks [攻击]
     @Override
     protected void chooseAttack(LivingEntity target) {
         double distance = this.distanceTo(target);

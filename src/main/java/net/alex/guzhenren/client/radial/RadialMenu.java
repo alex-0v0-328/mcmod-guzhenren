@@ -86,7 +86,7 @@ public final class RadialMenu {
 
     private RadialMenu() {}
 
-    //region the hold
+    //region the hold [长按]
     public static void hold(@NotNull Owner next) {
         if (owner != null) return;
 
@@ -183,7 +183,7 @@ public final class RadialMenu {
     }
     //endregion
 
-    //region drawing
+    //region drawing [绘制]
     public static void render(@NotNull GuiGraphics graphics) {
         long now = Util.getMillis();
         float seconds = lastFrameAt == 0L ? 0.0F : Math.min(100L, now - lastFrameAt) / 1000.0F;

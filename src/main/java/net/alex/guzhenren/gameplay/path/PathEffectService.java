@@ -38,6 +38,9 @@ import org.jetbrains.annotations.Nullable;
  * removes it as {@code CUT}. ⚠ What an effect does is its family's code reading {@link #find}; this service runs no
  * effect and reads no strength from marks.
  *
+ * <p>An icon is the vanilla effect each kind projects; where several effects project the same one, the longest
+ * remaining time and the highest amplifier win.
+ *
  * @author Alex
  * @version 1.0.0
  * @see PathEffectData
@@ -135,7 +138,7 @@ public final class PathEffectService {
         for (PathEffect<?> effect : ended) ModEvents.post(new PathEffectEndedEvent(player, effect, reason));
     }
 
-    //region icons -- the vanilla effect each kind projects, longest remaining time and highest amplifier win
+    //region icons [图标]
     private static void refreshIcons(ServerPlayer player, Collection<PathEffect<?>> ended) {
         long now = player.level().getGameTime();
         Map<Holder<MobEffect>, int[]> wanted = new LinkedHashMap<>();

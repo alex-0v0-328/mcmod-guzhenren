@@ -39,7 +39,7 @@ public abstract class WildGuEntity extends PathfinderMob {
 
     public Item getCaughtGu() { return caughtGu.get(); }
 
-    //region catching -- a bare right click, ungated
+    //region catching [捕捉]
     @Override
     protected @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         if (!(player instanceof ServerPlayer server)) return InteractionResult.SUCCESS;

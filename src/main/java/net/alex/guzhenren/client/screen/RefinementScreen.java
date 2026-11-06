@@ -40,6 +40,11 @@ import org.jetbrains.annotations.Nullable;
  * <p>Just past 300 lines: the two buttons, the phase bar, the status line and the picker's input routing all read
  * the same ritual state off the menu.
  *
+ * <p>The phase bar empties over the window, then over the gap. The status line is the ring legend until a recipe is
+ * picked, then what that pick still wants. The craft button reads 停止 while the ritual runs; the recipe button is dead
+ * then, since the grid is locked anyway. The client holds the whole synced recipe table, so the picker needs no
+ * packet.
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
@@ -109,7 +114,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         });
     }
 
-    //region the two rings -- the 内圈 is marked by brighter cells and a gold frame around the block
+    //region the two rings [双圈]
     private static void drawInput(SpriteBatch sprites, int x, int y) {
         for (int i = 0; i < GuRecipe.RING_SIZE; i++) {
             Widgets.drawCell(sprites, x + RefinementMenu.getRingX(i), y + RefinementMenu.getRingY(i));
@@ -127,7 +132,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
     //endregion
 
-    //region the phase bar -- it empties over the 5s window, then over the 2s gap
+    //region the phase bar [阶段条]
     private void drawBar(SpriteBatch sprites, int x, int y) {
         int filled = 0;
         if (menu.isRunning()) {
@@ -154,7 +159,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         if (player != null) PoolBars.draw(graphics, font, player);
     }
 
-    //region the status line -- the ring legend until a 蛊方 is picked, then what that pick still wants
+    //region the status line [状态行]
     private Component formatStatusLine() {
         if (menu.isRunning()) {
             int shown = menu.getStage() + 1;
@@ -214,7 +219,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
         if (recipe != null && !menu.isRunning()) RecipeGhosts.draw(graphics, font, recipe, menu.getGrid());
     }
 
-    //region the 炼制 button -- three states off the ritual, and 停止 while it runs
+    //region the craft button [炼制按钮]
     private void drawCraft(SpriteBatch sprites, int mouseX, int mouseY) {
         boolean live = isCraftLive();
         boolean hover = live && isInCraft(mouseX, mouseY);
@@ -240,7 +245,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
     //endregion
 
-    //region the 蛊方 button -- dead while the ritual runs, because the grid is locked anyway
+    //region the recipe button [蛊方按钮]
     private void drawRecipe(SpriteBatch sprites, int mouseX, int mouseY) {
         boolean live = !menu.isRunning();
         boolean hover = live && isInRecipe(mouseX, mouseY);
@@ -261,7 +266,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     }
     //endregion
 
-    //region the 蛊方 a player may attempt -- the client holds the whole synced table, so it needs no packet
+    //region attemptable recipes [可尝试蛊方]
     private @Nullable GuRecipe getSelectedRecipe() {
         int index = menu.getSelected();
         List<GuRecipe> known = KnownRecipes.get();

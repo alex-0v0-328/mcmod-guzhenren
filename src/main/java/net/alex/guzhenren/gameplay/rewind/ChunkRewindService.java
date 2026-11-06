@@ -53,7 +53,7 @@ public final class ChunkRewindService {
     private static final Deque<PendingRestore> QUEUE = new ArrayDeque<>();
     private static int generating;
 
-    //region generating
+    //region generating [生成]
     public static void rewindAround(@NotNull ServerLevel level, @NotNull ChunkPos center,
                                     @NotNull Collection<ChunkPos> targets) {
         if (targets.isEmpty()) return;
@@ -78,7 +78,7 @@ public final class ChunkRewindService {
     public static int getGenerating() { return generating; }
     //endregion
 
-    //region restoring
+    //region restoring [还原]
     public static int restore(@NotNull ServerLevel level, @NotNull LevelChunk chunk, @NotNull ChunkAccess origin) {
         if (origin.getMinSection() != chunk.getMinSection()) return 0;
 
@@ -111,7 +111,7 @@ public final class ChunkRewindService {
     }
     //endregion
 
-    //region the queue -- one chunk a tick
+    //region the queue [队列]
     public static void enqueue(@NotNull ServerLevel level, @NotNull ChunkPos pos, @NotNull ChunkAccess origin) {
         QUEUE.addLast(new PendingRestore(level, pos, origin));
     }

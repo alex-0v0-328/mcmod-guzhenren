@@ -63,7 +63,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
         this.essencePerLeaf = essencePerLeaf;
     }
 
-    //region the leaves -- settled from the stamp on read, on either side
+    //region the leaves [叶片]
     public static LeafGrowth getGrowth(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.LEAF_GROWTH, LeafGrowth.FULL);
     }
@@ -77,7 +77,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
     //endregion
 
-    //region the two uses -- a pick needs a leaf, a grow needs room and the essence
+    //region the two uses [两种使用]
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         long now = player.level().getGameTime();
@@ -107,7 +107,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
     //endregion
 
-    //region picking -- the tap, free
+    //region picking [采摘]
     @Override
     protected int performTapUse(ServerPlayer player, ItemStack stack) { return drive(player, stack); }
 
@@ -121,7 +121,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
     //endregion
 
-    //region growing -- the hold, paid from the holder's own essence
+    //region growing [生长]
     @Override
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         if (!PrimevalStoneSupply.pay(player, essencePerLeaf)) return 0;

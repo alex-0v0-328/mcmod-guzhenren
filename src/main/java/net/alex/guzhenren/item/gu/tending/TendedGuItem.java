@@ -90,6 +90,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>{@code announceDeath} is the one death funnel ({@link #starve}, {@link #exhaust}, {@link #ruin}) and the
  * only poster of {@link VitalGuLostEvent}; a new way for a Gu to die goes through it.
  *
+ * <p>Refining is paid in instalments; what it buys is a lasting bond.
+ *
  * @author Alex
  * @version 1.0.0
  * @see GuProperties
@@ -124,7 +126,7 @@ public class TendedGuItem extends MortalGuItem {
         this.health = guProperties.buildHealth();
     }
 
-    //region what the behaviors answer -- a leaf with a lifecycle of its own overrides them
+    //region what the behaviors answer [行为应答]
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) { return checkModules(player, stack); }
 
     protected void applyEffect(ServerPlayer player, ItemStack stack) { applyModules(player, stack); }
@@ -134,7 +136,7 @@ public class TendedGuItem extends MortalGuItem {
     public boolean canBeVital() { return true; }
     //endregion
 
-    //region state
+    //region state [状态]
     public static RefinedGuState getState(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.REFINED_GU_STATE, RefinedGuState.WILD);
     }
@@ -154,7 +156,7 @@ public class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region Gu health [蛊虫生命值] -- GuHealth holds the rules, stored as damage TAKEN
+    //region Gu health [蛊虫生命值]
     public int getMaxHealth() { return health.max(); }
 
     public int getHealth(ItemStack stack) { return health.get(stack); }
@@ -166,7 +168,7 @@ public class TendedGuItem extends MortalGuItem {
     protected void heal(ItemStack stack, int amount) { health.heal(this, stack, amount); }
     //endregion
 
-    //region refining [炼化] -- paid in instalments; what it buys is a lasting bond
+    //region refining [炼化]
     public static final int POST_REFINE_COOLDOWN_TICKS = Ticks.SECOND;
 
     private void refineStep(ServerPlayer player, ItemStack stack, int invest) {
@@ -189,7 +191,7 @@ public class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region channeling [灌注] -- Human Jun [人力钧力流] and the boars
+    //region channeling [灌注]
     private static final int CHANNEL_MAX_TICKS = 72_000;
     private static final int STEP_TICKS = 2;
     private static final int STEPS_PER_ROUND = 8;
@@ -298,7 +300,7 @@ public class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region the long cooldown -- vanilla draws the sweep, the stack's stamp is the truth
+    //region the long cooldown [长冷却]
     private static final String FAILED_COOLDOWN = "guzhenren.item.failed.gu_cooldown";
 
     private int postRefineCooldownLeft(Player player, ItemStack stack) {
@@ -328,7 +330,7 @@ public class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region the clicks
+    //region the clicks [点击]
     @Override
     protected boolean keepsRefusedClick() { return true; }
 
@@ -492,7 +494,7 @@ public class TendedGuItem extends MortalGuItem {
 
     //endregion
 
-    //region display
+    //region display [显示]
     @Override
     public Component chargeCaption(ItemStack stack, int remainingTicks) {
         if (!isRefined(stack)) return refineCaption(getState(stack).refineProgress());
@@ -562,11 +564,11 @@ public class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region the day clock -- GuUpkeep walks the containers; a leaf may pay its own upkeep
+    //region the day clock [日钟]
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
     //endregion
 
-    //region the three deaths -- one funnel, three messages; a Vital Gu starves, exhausts only as a partner, never ruins
+    //region the three deaths [三种死亡]
     private static void announce(ServerPlayer player, ItemStack stack, String key) {
         player.sendSystemMessage(Component.translatable(key, stack.getHoverName()));
     }

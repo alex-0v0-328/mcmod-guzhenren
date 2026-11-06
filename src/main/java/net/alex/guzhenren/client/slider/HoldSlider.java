@@ -87,7 +87,7 @@ public final class HoldSlider {
 
     private HoldSlider() {}
 
-    //region the hold
+    //region the hold [长按]
     public static void hold(@NotNull Owner next) {
         if (owner != null || RadialMenu.isHolding()) return;
 
@@ -169,7 +169,7 @@ public final class HoldSlider {
     }
     //endregion
 
-    //region drawing -- the value's label, the track with its two ends, the owner's detail
+    //region drawing [绘制]
     public static void render(@NotNull GuiGraphics graphics) {
         Owner current = owner;
         if (current == null || !isOpen()) return;

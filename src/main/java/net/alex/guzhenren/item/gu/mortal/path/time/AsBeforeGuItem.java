@@ -58,7 +58,7 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
         this.bar = recover;
     }
 
-    //region the bar
+    //region the bar [恢复条]
     public GuHunger.RecoverBar getBar() { return bar; }
 
     @Override
@@ -86,7 +86,7 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region the memory -- the heartbeat's step, once per interval of game time
+    //region the memory [记忆]
     public static void remember(ServerPlayer player) {
         long now = player.level().getGameTime();
         if (now % RewindClock.INTERVAL_TICKS >= Ticks.SECOND) return;

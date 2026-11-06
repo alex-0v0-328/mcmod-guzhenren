@@ -153,7 +153,7 @@ final class RefinementRitual {
         craftData.set(RefinementMenu.DATA_STONES_NEEDED, 0);
     }
 
-    //region stones -- the window takes first; outside it the supply only tops the pool up
+    //region stones [元石]
     private void gatherStones(ServerPlayer server, GuRecipe recipe) {
         int wanted = recipe.getStonesFor(stage) - stonesThisWindow;
         if (wanted <= 0) return;
@@ -201,7 +201,7 @@ final class RefinementRitual {
         SoulService.setMax(server, Math.max(0L, SoulService.get(server).maxSoul() - fromMax));
     }
 
-    //region settling -- nothing is consumed until here, so failure can take half and wound the rest
+    //region settling [结算]
     private void settle(ServerPlayer server, GuRecipe recipe) {
         int chance = Math.min(FULL_SUCCESS, recipe.baseSuccess()
                 + PathService.getAttainment(server, GuPath.REFINEMENT).getRefinementBonus());

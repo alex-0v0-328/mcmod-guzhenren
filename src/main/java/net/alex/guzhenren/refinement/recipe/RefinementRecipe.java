@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
 
-    //region the Gu Recipe [蛊方] a player may attempt -- sorted, so an index means the same on both sides
+    //region attemptable recipes [可尝试蛊方]
     public static List<GuRecipe> getKnown(RecipeManager recipes) {
         return recipes.getAllRecipesFor(ModRecipes.REFINEMENT.get()).stream()
                 .sorted(Comparator.comparing(RecipeHolder::id))
@@ -55,7 +55,7 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
     }
     //endregion
 
-    //region what the recipe manager reads
+    //region what the recipe manager reads [配方管理器读取]
     @Override
     public boolean matches(@NotNull RecipeInput input, @NotNull Level level) {
         List<ItemStack> slots = new ArrayList<>(input.size());

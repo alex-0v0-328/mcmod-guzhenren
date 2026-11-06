@@ -58,7 +58,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
     @Override
     protected void applyEffect(ServerPlayer player, ItemStack stack) {}
 
-    //region the passive heartbeat -- 5% essence and the minting chain
+    //region the passive heartbeat [被动心跳]
     @Override
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {
         ApertureEssenceService.add(player, ApertureEssenceService.getMaxEssence(player) * ESSENCE_REGEN_PERCENT / 100);

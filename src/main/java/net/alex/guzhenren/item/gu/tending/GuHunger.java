@@ -78,7 +78,7 @@ public sealed interface GuHunger {
 
     float getBarFraction(ItemStack stack);
 
-    //region the bag
+    //region the bag [背包]
     default boolean carriesFood(TendedGuItem gu, Player player) {
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
@@ -88,7 +88,7 @@ public sealed interface GuHunger {
     }
     //endregion
 
-    //region 饱食条 -- every tended Gu whose bar drains
+    //region the hunger bar [饱食条]
     record HungerBar(int max, int unitsPerHunger, int essencePerRound, int perRound, int perUse, int perDay)
             implements GuHunger {
 
@@ -178,7 +178,7 @@ public sealed interface GuHunger {
     }
     //endregion
 
-    //region 回复条 -- refills with the world clock, never drains by the day, never eats
+    //region the recover bar [回复条]
     record RecoverBar(int max, int ticksPerPoint, int perUse) implements GuHunger {
 
         private void setPoints(ItemStack stack, int value) { storeBar(stack, value, max); }
@@ -291,7 +291,7 @@ public sealed interface GuHunger {
     }
     //endregion
 
-    //region 无时钟 -- the "reusable, needs no feeding" cell
+    //region no clock [无时钟]
     record NoClock() implements GuHunger {
 
         @Override

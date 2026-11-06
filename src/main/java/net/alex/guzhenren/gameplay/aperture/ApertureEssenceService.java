@@ -134,7 +134,7 @@ public final class ApertureEssenceService {
                 ApertureService.getAperture(player, index).withDistilledEssence(value));
     }
 
-    //region the three phases of a Liquor Worm [酒虫]
+    //region the Liquor Worm's three phases [酒虫三相]
     public static boolean canDistill(@NotNull Player player) {
         ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) {

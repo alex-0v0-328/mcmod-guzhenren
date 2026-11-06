@@ -131,7 +131,7 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
         this.goalSelector.addGoal(0, new LookAtPlayerGoal(this, Player.class, (float) LOOK_RANGE, 1.0F));
     }
 
-    //region trading -- a right click opens the offers; the menu settles, the soul only reacts
+    //region trading [交易]
     @Override
     protected @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         if (!this.isAlive()) return InteractionResult.PASS;
@@ -151,7 +151,7 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
     }
     //endregion
 
-    //region the soul's own clock -- appear countdown, gesture timer, and the beckon scan
+    //region the soul's own clock [魂的时钟]
     @Override
     public void tick() {
         super.tick();
@@ -186,7 +186,7 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
     }
     //endregion
 
-    //region staying put -- no travel, no push, no ride, no leash, no knockback
+    //region staying put [原地不动]
     @Override
     public void travel(@NotNull Vec3 travelVector) {}
 
@@ -212,7 +212,7 @@ public class SoulTraderEntity extends Mob implements GeoEntity {
     public boolean requiresCustomPersistence() { return true; }
     //endregion
 
-    //region harm -- only what bypasses invulnerability lands, and the soul fades instead of falling over
+    //region harm [受伤]
     @Override
     public boolean isInvulnerableTo(@NotNull DamageSource source) {
         return !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY) || super.isInvulnerableTo(source);

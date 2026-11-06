@@ -81,7 +81,7 @@ public final class GuProperties {
 
     public static GuProperties of(Rank rank, GuPath path) { return new GuProperties(rank, path); }
 
-    //region the chain -- one call per fact, so a registration reads as a table row
+    //region the chain [链]
     public GuProperties refine(int cost) {
         this.refineCost = cost;
         return this;
@@ -165,7 +165,7 @@ public final class GuProperties {
     }
     //endregion
 
-    //region what the base classes read
+    //region what the base classes read [基类读取]
     public Rank getRank() { return rank; }
 
     public GuPath getPath() { return path; }
@@ -229,7 +229,7 @@ public final class GuProperties {
     }
     //endregion
 
-    //region the startup check -- a typo here should never reach the game
+    //region the startup check [启动校验]
     public void validate(String id) {
         if (refineCost < 0) throw fault(id, "refine cost is negative");
         if (essencePerRound < 0) throw fault(id, "essence per round is negative");

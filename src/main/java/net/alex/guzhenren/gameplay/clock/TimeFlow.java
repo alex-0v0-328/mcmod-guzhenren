@@ -39,6 +39,8 @@ import org.jetbrains.annotations.NotNull;
  * A whole rate never draws from the random, so whole rates stay exact and deterministic; {@code scale(double)} keeps
  * the fraction for the caller's own carry (essence banks it in {@code ESSENCE_CARRY}).
  *
+ * <p>The arithmetic overloads take a rate rather than a player, so they are asserted without a world.
+ *
  * @author Alex
  * @version 1.0.0
  * @see TimeRateContributor
@@ -56,7 +58,7 @@ public final class TimeFlow {
 
     public static void addArea(@NotNull TimeFlowArea area) { AREAS.add(area); }
 
-    //region the rate -- his own clock [自身时间] times the world's
+    //region the rate [速率]
     public static int getSelfRate(@NotNull Player player) {
         int rate = 0;
         for (MobEffectInstance instance : player.getActiveEffects()) {
@@ -80,7 +82,7 @@ public final class TimeFlow {
     }
     //endregion
 
-    //region the three verbs
+    //region the three verbs [三个动词]
     public static int shortenWait(@NotNull Player player, int ticks) { return shortenWait(getRate(player), ticks); }
 
     public static long scale(@NotNull Player player, long amount) {
@@ -90,7 +92,7 @@ public final class TimeFlow {
     public static int getSteps(@NotNull Player player) { return getSteps(getRate(player), player.getRandom()); }
     //endregion
 
-    //region the arithmetic alone -- a rate rather than a player, so it can be asserted without a world
+    //region the arithmetic alone [纯算术]
     public static int shortenWait(double rate, int ticks) {
         return ticks <= 0 ? ticks : Math.clamp((long) (ticks / rate), 1, Integer.MAX_VALUE);
     }

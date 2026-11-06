@@ -34,6 +34,8 @@ import org.joml.Matrix4f;
  * <p>⚠ A block holds the shared {@link Tesselator} open, so nothing inside it may call a vanilla {@code blit}. Every
  * GUI sprite sits on the one GUI atlas.
  *
+ * <p>The slicing geometry is pure, so it is tested without a render thread.
+ *
  * @author Alex
  * @version 1.0.0
  * @see GuiBatch
@@ -84,7 +86,7 @@ public final class SpriteBatch {
         addRegion(sprites.getSprite(id), x, y, width, texH, 0, 0, texW, texH, tint);
     }
 
-    //region geometry -- pure, so the slicing is testable without a render thread
+    //region geometry [几何]
     static void slice(int width, int height, int texW, int texH, int left, int top, int right, int bottom,
                       Region out) {
         if (width == texW && height == texH) {

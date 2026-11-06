@@ -68,7 +68,7 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     }
     //endregion
 
-    //region Biome modifiers [生态修改] -- where wild entities [野生实体] spawn
+    //region Biome modifiers [生态修改]
     private static final ResourceKey<BiomeModifier> SPAWN_HOPE_GU = createModifierKey("spawn_hope_gu");
     private static final ResourceKey<BiomeModifier> SPAWN_WHITE_BOAR_GU = createModifierKey("spawn_white_boar_gu");
     private static final ResourceKey<BiomeModifier> SPAWN_BLACK_BOAR_GU = createModifierKey("spawn_black_boar_gu");

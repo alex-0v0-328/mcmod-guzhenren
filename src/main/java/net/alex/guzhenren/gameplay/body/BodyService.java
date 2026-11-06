@@ -73,6 +73,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link #syncRaceTalent} puts that effect back on login when it is missing or names another race; it never
  * touches the attainment, which only a race change moves.
  *
+ * <p>⚠ Every caller speaks YEARS; only this file knows lifespan parts.
+ *
  * @author Alex
  * @version 1.0.0
  * @see TimeFlow
@@ -119,7 +121,7 @@ public final class BodyService {
         }
     }
 
-    //region lifespan and age [寿元与年龄] -- ⚠ every caller speaks YEARS; only this file knows parts
+    //region lifespan and age [寿元与年龄]
     public static void setAge(@NotNull ServerPlayer player, long years) {
         store(player, get(player).withAgeParts(BodyData.toParts(years)));
     }
@@ -242,7 +244,7 @@ public final class BodyService {
     }
     //endregion
 
-    //region Tendons and bones [筋骨] -- permanent, posted as one tempering so the attributes refresh
+    //region Tendons and bones [筋骨]
     public static @NotNull Tendon getTendon(@NotNull Player player) { return get(player).tendon(); }
 
     public static @NotNull Bone getBone(@NotNull Player player) { return get(player).bone(); }
@@ -316,7 +318,7 @@ public final class BodyService {
         return elapsed;
     }
 
-    //region 寿元的钟 -- billed on the heartbeat, because 宙道 changes how fast he spends it
+    //region the lifespan clock [寿元时钟]
     public static void tickLifespan(@NotNull ServerPlayer player, @NotNull Beat beat) {
         MinecraftServer server = player.getServer();
         if (server == null) return;

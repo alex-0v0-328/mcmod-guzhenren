@@ -111,7 +111,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         super(type, level);
     }
 
-    //region hooks
+    //region hooks [钩子]
     protected abstract A[] getActionValues();
 
     protected abstract A getIdleAction();
@@ -178,7 +178,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         builder.define(DATA_PURSUING, false);
     }
 
-    //region action state
+    //region action state [动作状态]
     public A getAction() {
         A[] actions = this.getActionValues();
         byte id = this.entityData.get(DATA_ACTION);
@@ -259,7 +259,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
     //endregion
 
-    //region server tick
+    //region server tick [服务端心跳]
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
@@ -328,7 +328,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
     //endregion
 
-    //region combat geometry
+    //region combat geometry [战斗几何]
     protected boolean canAttackTarget(@Nullable LivingEntity target) {
         if (target == null || target == this || target.isRemoved() || !target.isAlive() || !target.isAttackable()) {
             return false;
@@ -426,7 +426,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
     //endregion
 
-    //region harm, death and persistence
+    //region harm, death and persistence [受伤、死亡与持久化]
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         boolean accepted = super.hurt(source, amount);
@@ -511,7 +511,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     }
     //endregion
 
-    //region animation
+    //region animation [动画]
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new ActionAnimationController<>(this, this::handleAnimationState,

@@ -69,7 +69,7 @@ public class CrashGuEntity extends RestingFlyingGuEntity {
         }
     }
 
-    //region harm -- a flinch only on the ground, and a death that plays out before removal
+    //region harm [受伤]
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         boolean hurt = super.hurt(source, amount);

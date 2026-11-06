@@ -41,7 +41,7 @@ public final class AwakeningTimeline {
     private static final float BOB_RADIANS_PER_TICK = 0.15F;
     private static final float BOB_BLOCKS = 0.08F;
 
-    //region the Hope Gu before the player
+    //region the Hope Gu's entrance [希望蛊入场]
     public static float getFlight(float elapsed) { return easeOut(progress(elapsed, 0, FLY_TICKS)); }
 
     public static float getBob(float elapsed) {
@@ -53,7 +53,7 @@ public final class AwakeningTimeline {
     }
     //endregion
 
-    //region the white flash and the plaque
+    //region the white flash and the plaque [白闪与铭牌]
     public static float getFlashAlpha(float elapsed) {
         if (elapsed < AWAKEN_TICKS) return smooth(progress(elapsed, FLASH_START_TICKS, AWAKEN_TICKS));
         return 1.0F - smooth(progress(elapsed, AWAKEN_TICKS, RELEASE_TICKS));
@@ -70,7 +70,7 @@ public final class AwakeningTimeline {
     }
     //endregion
 
-    //region the aptitude bar
+    //region the aptitude bar [资质条]
     public static boolean showsBar(float elapsed) { return elapsed >= 0.0F && elapsed < FLASH_START_TICKS; }
 
     public static boolean isBarFull(float elapsed) { return elapsed >= BAR_FILL_TICKS; }

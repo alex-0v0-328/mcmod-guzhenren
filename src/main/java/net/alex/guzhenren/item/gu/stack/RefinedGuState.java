@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>⚠ Stores damage taken rather than health remaining, so a wild Gu's zero already reads as
  * undamaged. Turning that around would need a special case in every reader.
  *
+ * <p>The {@code with*} copies are blocks, not one-liners: five components run the line past 120 columns.
+ *
  * @author Alex
  * @version 1.0.0
  * @see TendedGuItem
@@ -53,7 +55,7 @@ public record RefinedGuState(boolean refined, int refineProgress, int investedEs
         damageTaken = Math.max(0, damageTaken);
     }
 
-    //region the with* copies -- five components run past 120, so these are blocks
+    //region the with* copies [with 副本]
     public RefinedGuState withRefine(int value) {
         return new RefinedGuState(refined, value, investedEssence, hunger, damageTaken);
     }

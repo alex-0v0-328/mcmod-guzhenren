@@ -66,7 +66,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .renderType("cutout"));
     }
 
-    //region the double plant -- a tinted gray cross under an untinted overlay, per half
+    //region the double plant [双层植物]
     private void registerDoublePlantBlock(Block block, ModelFile parent) {
         ModelFile bottom = buildHalfModel(block, "_bottom", parent);
         ModelFile top = buildHalfModel(block, "_top", parent);

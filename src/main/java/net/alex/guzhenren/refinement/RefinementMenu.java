@@ -43,6 +43,10 @@ import org.jetbrains.annotations.Nullable;
  * <p>Past 300 lines on purpose: the slot layout, the slot rules, the recipe behind the button and the ritual's
  * clock all guard the same grid, which locks while the ritual runs.
  *
+ * <p>⚠ Gu materials [蛊材] sit outside, Gu [蛊虫] inside, and NOTHING moves while the ritual runs. A selected recipe is
+ * the only one {@code match()} considers. The craft button only STARTS the ritual; the outcome lands after every
+ * window and gap has run.
+ *
  * @author Alex
  * @version 1.0.0
  * @see GuRecipe
@@ -54,7 +58,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     public static final int SLOT = 18;
     public static final int GRID_SLOT = 22;
 
-    //region the input on screen -- the grid's shape is GuRecipe's; this only places it
+    //region the input on screen [输入格]
     public static final int INPUT_X = 18;
     public static final int INPUT_Y = 28;
 
@@ -136,7 +140,7 @@ public class RefinementMenu extends AbstractContainerMenu {
         input.addListener(container -> refresh());
     }
 
-    //region what the screen reads
+    //region what the screen reads [界面读数]
     public boolean isReady() { return craftData.get(DATA_READY) != 0; }
 
     public boolean canAfford() { return craftData.get(DATA_AFFORD) != 0; }
@@ -160,7 +164,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     public GuRecipeInput getGrid() { return GuRecipeInput.of(input); }
     //endregion
 
-    //region the Gu Recipe [蛊方] behind the button -- a selected one is the only one match() will consider
+    //region the selected recipe [选中蛊方]
     private @Nullable GuRecipe match() {
         MinecraftServer server = player.getServer();
         if (server == null) return null;
@@ -208,7 +212,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     }
     //endregion
 
-    //region the ritual's clock -- once per game tick: ServerPlayer.tick() broadcasts every tick, and every click again
+    //region the ritual's clock [仪式时钟]
     @Override
     public void broadcastChanges() {
         if (player instanceof ServerPlayer server) {
@@ -226,7 +230,7 @@ public class RefinementMenu extends AbstractContainerMenu {
 
     //endregion
 
-    //region 炼制 -- the button only STARTS it; the outcome lands after every window and gap has run
+    //region crafting [炼制]
     @Override
     public boolean clickMenuButton(@NotNull Player who, int id) {
         if (who != player) return false;
@@ -295,7 +299,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(@NotNull Player who) { return who == player && who.isAlive(); }
 
-    //region where a thing may sit -- 蛊材 outside, 蛊虫 inside, and NOTHING moves while it runs
+    //region where a thing may sit [放置规则]
     /** A grid cell: the ring takes materials, the core takes the player's own Gu. */
     private class GridSlot extends Slot {
 

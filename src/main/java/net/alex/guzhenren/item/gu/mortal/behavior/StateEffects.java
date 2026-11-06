@@ -61,7 +61,7 @@ public final class StateEffects {
 
     private StateEffects() {}
 
-    //region thought and distilling
+    //region thought and distilling [念与精炼]
     public static void grantThought(@NotNull ServerPlayer player, @NotNull MortalGuItem gu,
                                     @NotNull PathEffectType<TimedBuff> type, @NotNull Holder<MobEffect> effect,
                                     int amplifier, long durationTicks) {
@@ -78,7 +78,7 @@ public final class StateEffects {
     }
     //endregion
 
-    //region zombie
+    //region zombie [僵尸]
     @SubscribeEvent
     public static void onPhysiqueChanged(PhysiqueChangedEvent event) { syncZombie(event.getPlayer()); }
 
@@ -120,7 +120,7 @@ public final class StateEffects {
     }
     //endregion
 
-    //region stone aperture
+    //region stone aperture [石窍]
     @SubscribeEvent
     public static void onApertureChanged(ApertureChangedEvent event) { syncStone(event.getPlayer()); }
 

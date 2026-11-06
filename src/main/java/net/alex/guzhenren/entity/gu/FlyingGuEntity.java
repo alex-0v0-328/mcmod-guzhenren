@@ -73,7 +73,7 @@ public class FlyingGuEntity extends WildGuEntity {
         goalSelector.addGoal(1, new WaterAvoidingRandomFlyingGoal(this, WANDER_SPEED));
     }
 
-    //region who it flies toward -- the base wants anyone, a leaf narrows it
+    //region targeting [飞向目标]
     public boolean isSeeking(Player player) { return true; }
 
     public @Nullable Player seekTarget() {

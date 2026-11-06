@@ -103,7 +103,7 @@ public final class CmdPath {
                                 player -> PathEffectService.remove(player, effect -> true))));
     }
 
-    //region builders
+    //region builders [构造]
     private static ArgumentBuilder<CommandSourceStack, ?> buildStrands(@Nullable Write marks) {
         ArgumentBuilder<CommandSourceStack, ?> strands = Commands.literal(ARG_STRANDS);
         for (Write write : Write.values()) {

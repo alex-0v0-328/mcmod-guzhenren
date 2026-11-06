@@ -15,6 +15,9 @@ import org.jetbrains.annotations.Nullable;
  * data and the matching logic live here; the recipe manager's side -- recipe type, serializer, the sorted
  * listing -- lives in {@link RefinementRecipe}.
  *
+ * <p>The grid is a 5×5 with its four corners cut away: the outer ring [外圈] of 12 around the inner ring [内圈] of 9. The
+ * Gu count among the results is what the sole-Gu inheritance rule reads.
+ *
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.refinement.RefinementMenu
@@ -65,7 +68,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots
         }
     }
 
-    //region the ritual's own clock -- the window list IS the stage count
+    //region the ritual's own clock [仪式时钟]
     public int getWindowCount() { return windows.size(); }
 
     public int getStonesFor(int window) { return windows.get(window); }
@@ -84,7 +87,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots
     }
     //endregion
 
-    //region matching -- SHAPED and EXACT: every cell holds its group's ingredient or nothing, each group its count
+    //region matching [匹配]
     public int @Nullable [] claim(GuRecipeInput input) {
         int[] taken = new int[input.size()];
 
@@ -129,7 +132,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots
     }
     //endregion
 
-    //region the Gu count among the results -- the sole-Gu inheritance rule reads it
+    //region the Gu count among the results [产出蛊数]
     //  TODO(炼法): rebuild the refinement-mode derivation (two axes, never one enum) once modes gain behavior.
     public int getGuResultCount() {
         int n = 0;
@@ -142,7 +145,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots
 
     public ItemStack getFirst() { return results.isEmpty() ? ItemStack.EMPTY : results.getFirst(); }
 
-    //region the grid -- a 5x5 with its four corners cut away: outer ring [外圈] 12 around inner ring [内圈] 9
+    //region the grid [网格]
     public static int getRingCol(int index) { return RING_COLS[index]; }
 
     public static int getRingRow(int index) { return RING_ROWS[index]; }

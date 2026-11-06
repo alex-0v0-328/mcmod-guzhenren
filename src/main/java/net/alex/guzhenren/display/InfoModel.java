@@ -87,7 +87,7 @@ public final class InfoModel {
 
     public sealed interface Entry {}
 
-    //region Aperture
+    //region Aperture [空窍]
     public record ApertureIndex(int number, int index) implements Entry {}
 
     public record Blank() implements Entry {}
@@ -107,7 +107,7 @@ public final class InfoModel {
     public record PathChoice(boolean primary, int aperture, @Nullable GuPath path) implements Entry {}
     //endregion
 
-    //region Body
+    //region Body [肉身]
     public record PhysiqueRow(@Nullable Physique physique, ExtremePhysique extremePhysique) implements Entry {}
 
     public record RaceRow(Race race) implements Entry {}
@@ -165,7 +165,7 @@ public final class InfoModel {
     public record ThoughtTagRow(ThoughtTag tag, long amount) implements Entry {}
     //endregion
 
-    //region Mind
+    //region Mind [脑海]
     public record BrillianceRow(Brilliance brilliance) implements Entry {}
 
     public record MindHeader() implements Entry {}

@@ -120,7 +120,7 @@ public class ModLanguageProvider extends LanguageProvider {
         }
     }
 
-    //region DISPLAY
+    //region DISPLAY [显示]
     private void addDisplayKeys() {
         add("guzhenren.display.realm",                       "%s %s",                       "%s%s");
         add("guzhenren.display.realm_title",                 "%s %s",                       "%s%s");
@@ -238,14 +238,14 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region DIMENSION
+    //region DIMENSION [维度]
     private void addDimensionKeys() {
         add("guzhenren.dimension.treasure_yellow_heaven.inventory_full",
                 "Inventory full: what does not fit floats beside you", "背包已满，放不下的物品悬浮在身边");
     }
     //endregion
 
-    //region COMMAND
+    //region COMMAND [指令]
     private void addCommandKeys() {
         add("guzhenren.command.tagged",                           "[GZR] %s", "[GZR] %s");
         add("guzhenren.command.updated",                          "Updated %s player(s)", "已更新 %s 名玩家");
@@ -271,7 +271,7 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region SCREEN
+    //region SCREEN [界面]
     private void addScreenKeys() {
         add("key.categories.guzhenren",                     "Guzhenren", "蛊真人");
         add("key.guzhenren.open_info",                      "Open Info Panel", "打开信息面板");
@@ -365,7 +365,7 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region ITEM
+    //region ITEM [物品]
     private void addItemKeys() {
         addBlock(ModBlocks.PURE_WATER,                               "Pure Water", "纯水");
         addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS,                 "Nine Leaf Vitality Grass", "九叶生机草");
@@ -509,7 +509,7 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region ENTITY
+    //region ENTITY [实体]
     private void addEntityKeys() {
         add("entity.guzhenren.hope_gu_entity",             "Hope Gu",                "希望蛊");
         add("entity.guzhenren.white_boar_gu_entity",       "White Boar Gu",          "白豕蛊");
@@ -531,7 +531,7 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region ADVANCEMENT
+    //region ADVANCEMENT [进度]
     private void addAdvancementKeys() {
         add("advancements.guzhenren.first_awakening.title",       "Awakening!", "开窍！");
         add("advancements.guzhenren.first_awakening.description",
@@ -554,7 +554,7 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region DEATH
+    //region DEATH [死亡]
     private void addDeathMessages() {
         add("death.attack.guzhenren.lifespan_exhausted",          "%1$s ran out of lifespan", "%1$s 寿元耗尽而亡");
         add("death.attack.guzhenren.soul_collapse",               "%1$s suffered soul collapse", "%1$s 魂魄衰竭而亡");
@@ -580,7 +580,7 @@ public class ModLanguageProvider extends LanguageProvider {
     }
     //endregion
 
-    //region ENUM
+    //region ENUM [枚举]
     private void addEnumKeys() {
         addTitle();
         addRank();

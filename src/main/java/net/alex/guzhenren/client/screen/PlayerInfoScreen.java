@@ -163,7 +163,7 @@ public final class PlayerInfoScreen extends Screen {
         };
     }
 
-    //region the three passes -- every sprite, then every fill over them, then every text
+    //region the three passes [三道绘制]
     private void drawSprites(SpriteBatch sprites, Content content, @Nullable LocalPlayer player, int mouseX,
                              int mouseY) {
         Widgets.drawPanel(sprites, leftPos, topPos, panelW, panelH);
@@ -253,7 +253,7 @@ public final class PlayerInfoScreen extends Screen {
     }
     //endregion
 
-    //region aperture columns -- two apertures render side by side, left first right second
+    //region aperture columns [空窍列]
     private static boolean hasTwoApertures(LocalPlayer player) {
         return ApertureService.get(player).count() == 2;
     }
@@ -261,7 +261,7 @@ public final class PlayerInfoScreen extends Screen {
     private int getColumnWidth() { return (getValueRight() - getContentLeft() - COL_GAP) / 2; }
     //endregion
 
-    //region per-aperture buttons -- where each stack sits; what a button is and does is ApertureButtons
+    //region per-aperture buttons [空窍按钮]
     private boolean hasNoButtons(LocalPlayer player) {
         return activeTab != TAB_APERTURE || !ApertureService.hasAperture(player);
     }
@@ -309,7 +309,7 @@ public final class PlayerInfoScreen extends Screen {
     }
     //endregion
 
-    //region scrolling
+    //region scrolling [滚动]
     private int getContentTop() { return topPos + CONTENT_TOP; }
 
     private int getContentBottom() { return topPos + panelH - PAD; }
