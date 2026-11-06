@@ -29,10 +29,10 @@ import software.bernie.geckolib.util.Color;
  * picked here ({@link #getTextureLocation}), not left to the model, so the wild beasts' own textures never leak in.
  *
  * <p>Draws every {@link BeastPhantomVisual}: the phantom beside its owner and the Beast Charge [兽力冲击] alike, at
- * {@link #PHANTOM_SCALE} times the wild beast's size; the entities' culling boxes grow to match.
+ * {@link #PHANTOM_SCALE} times the wild beast's size.
  * Back-face culled like the soul traders, so the far side of the silhouette does not show through. Each fades as its
- * own {@link BeastPhantomVisual#getFade} says; the glow layer is translucent emissive, so the mask's own alpha keeps
- * the body glow faint and the fade applies to it too. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and
+ * own {@link BeastPhantomVisual#getFade} says; the glow layer is translucent emissive at {@link #GLOW_ALPHA} of the
+ * mask's own alpha, since the mask paints the whole body and at full alpha it closed the gold up to opaque. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and
  * paints the whole masked body at full strength, which buried the gold under the mask's brown. GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw. No shadow, no
  * hurt tint. The ox never manifests and falls back to the boar.
  *
@@ -45,7 +45,9 @@ import software.bernie.geckolib.util.Color;
 public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhantomVisual> extends GeoEntityRenderer<T> {
 
     /** The phantom beasts are drawn this many times the wild beasts' size. */
-    public static final float PHANTOM_SCALE = 2.0F;
+    public static final float PHANTOM_SCALE = 1.0F;
+    /** How much of the glow mask's own alpha the glow layer keeps; the mask covers the whole body. Provisional. */
+    public static final float GLOW_ALPHA = 0.25F;
 
     public BeastPhantomRenderer(EntityRendererProvider.Context context) {
         super(context, new PhantomModel<>());
@@ -124,7 +126,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
             ResourceLocation mask = Guzhenren.id("textures/entity/" + getModelName(animatable.getFamily())
                     + "_phantom_glowmask.png");
             RenderType glow = RenderType.entityTranslucentEmissive(mask);
-            int color = Color.ofARGB(animatable.getFade(partialTick), 1.0F, 1.0F, 1.0F).argbInt();
+            int color = Color.ofARGB(animatable.getFade(partialTick) * GLOW_ALPHA, 1.0F, 1.0F, 1.0F).argbInt();
             this.getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, glow,
                     bufferSource.getBuffer(glow), partialTick, LightTexture.FULL_BRIGHT, packedOverlay, color);
         }

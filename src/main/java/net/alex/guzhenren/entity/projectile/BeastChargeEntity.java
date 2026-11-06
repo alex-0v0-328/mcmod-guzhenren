@@ -60,7 +60,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     public static final int FADE_IN_TICKS = 3;
     private static final int NO_TARGET = -1;
     private static final float SPAWN_DROP = 0.3F;
-    private static final double CULL_MARGIN = 3.0D;
+    private static final double CULL_MARGIN = 1.5D;
     private static final Map<BeastStrengthFamily, RawAnimation> RUNS =
             BeastPhantomVisual.byFamily(family -> BeastPhantomVisual.getLoop(family, "run"));
     private static final EntityDataAccessor<Integer> TARGET =
