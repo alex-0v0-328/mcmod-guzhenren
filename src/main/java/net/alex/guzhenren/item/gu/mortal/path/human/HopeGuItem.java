@@ -40,8 +40,8 @@ public class HopeGuItem extends MortalGuItem {
     private static final String FAILED_NOURISHING = "guzhenren.item.failed.nourishing";
     private static final String FAILED_DANGER = "guzhenren.item.failed.awakening_danger";
 
-    public HopeGuItem(Properties properties, GuProperties guProperties) {
-        super(properties, guProperties);
+    public HopeGuItem(GuProperties guProperties) {
+        super(new Properties().stacksTo(1), guProperties);
     }
 
     @Override

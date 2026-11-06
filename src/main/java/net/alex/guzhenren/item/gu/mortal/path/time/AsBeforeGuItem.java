@@ -50,8 +50,8 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
     private static final String TOOLTIP_NEXT_POINT = "guzhenren.item.gu.next_point";
     protected final GuHunger.RecoverBar bar;
 
-    protected AsBeforeGuItem(Properties properties, GuProperties guProperties) {
-        super(properties, guProperties);
+    protected AsBeforeGuItem(GuProperties guProperties) {
+        super(guProperties);
         if (!(hunger instanceof GuHunger.RecoverBar recover)) {
             throw new IllegalArgumentException("as before gu needs a recover bar");
         }

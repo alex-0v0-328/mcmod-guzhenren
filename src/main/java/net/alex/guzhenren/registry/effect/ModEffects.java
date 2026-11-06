@@ -26,7 +26,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>DeferredRegister holder: grades that exclude each other are ONE effect with an amplifier; members
  * meant to be worn TOGETHER get one effect each (the two Watch Gu, so their rates add). Every effect uses
- * the white effect color, including effects granted by Gu materials.
+ * the white effect color, including effects granted by Gu materials. The regions follow {@code GuPath}'s order, as
+ * {@code ModItems} does.
  *
  * <p>⚠ Every effect is built through {@code instance}, which sets
  * {@code showParticles=false, showIcon=true}; the color only feeds the {@link MobEffect} ctor.
@@ -46,11 +47,31 @@ public final class ModEffects {
     public static final DeferredRegister<MobEffect> MOB_EFFECTS =
             DeferredRegister.create(Registries.MOB_EFFECT, Guzhenren.MOD_ID);
     static final int EFFECT_COLOR = 0xFFFFFF;
+    //region Time Path [宙道] -- Watch Gu [更蛊]: one effect per Gu, so both can be worn at once and their rates add
+    public static final DeferredHolder<MobEffect, WatchGuEffect> SECOND_WATCH_GU = MOB_EFFECTS.register(
+            "second_watch_gu", () -> new WatchGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR, 2, 2));
+    public static final DeferredHolder<MobEffect, WatchGuEffect> THIRD_WATCH_GU = MOB_EFFECTS.register(
+            "third_watch_gu", () -> new WatchGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR, 3, 3));
+    //endregion
+
+    //region Wood Path [木道] -- Vitality Leaf Gu [生机叶蛊]
     public static final DeferredHolder<MobEffect, VitalityLeafGuEffect> VITALITY_LEAF_GU = MOB_EFFECTS.register(
             "vitality_leaf_gu", () -> new VitalityLeafGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> LIQUOR_WORM = MOB_EFFECTS.register(
-            "liquor_worm", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
 
+    //region Water Path [水道] -- Heavenly Mugwort Gu [天蓬蛊]
+    public static final DeferredHolder<MobEffect, MarkerEffect> HEAVENLY_MUGWORT_GU = MOB_EFFECTS.register(
+            "heavenly_mugwort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
+
+    //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]
+    public static final DeferredHolder<MobEffect, MarkerEffect> JADE_SKIN_GU = MOB_EFFECTS.register(
+            "jade_skin_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> WHITE_JADE_GU = MOB_EFFECTS.register(
+            "white_jade_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
+
+    //region Strength Path [力道]
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredHolder<MobEffect, FlowerBoarGuEffect> FLOWER_BOAR_GU = MOB_EFFECTS.register(
             "flower_boar_gu", () -> new FlowerBoarGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
@@ -59,16 +80,13 @@ public final class ModEffects {
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
-    //region Normal [基础力道]
-    public static final DeferredHolder<MobEffect, MarkerEffect> ALL_OUT_EFFORT_GU = MOB_EFFECTS.register(
-            "all_out_effort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //region Normal [基础力道] -- the crashes, Self Reliance, Hardship Strength and its Grievous Injury, All-Out Effort
     public static final DeferredHolder<MobEffect, CrashGuEffect> HORIZONTAL_CRASH_GU = MOB_EFFECTS.register(
             "horizontal_crash_gu", () -> new CrashGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, CrashGuEffect> VERTICAL_CRASH_GU = MOB_EFFECTS.register(
             "vertical_crash_gu", () -> new CrashGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, CrashGuEffect> CHARGING_CRASH_GU =
-            MOB_EFFECTS.register("charging_crash_gu", () -> new CrashGuEffect(
-                    MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, CrashGuEffect> CHARGING_CRASH_GU = MOB_EFFECTS.register(
+            "charging_crash_gu", () -> new CrashGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> SELF_RELIANCE_GU = MOB_EFFECTS.register(
             "self_reliance_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, HardshipStrengthGuEffect> HARDSHIP_STRENGTH_GU =
@@ -76,32 +94,33 @@ public final class ModEffects {
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> GRIEVOUS_INJURY = MOB_EFFECTS.register(
             "grievous_injury", () -> new MarkerEffect(MobEffectCategory.HARMFUL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> JADE_SKIN_GU = MOB_EFFECTS.register(
-            "jade_skin_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> WHITE_JADE_GU = MOB_EFFECTS.register(
-            "white_jade_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
-    public static final DeferredHolder<MobEffect, MarkerEffect> HEAVENLY_MUGWORT_GU = MOB_EFFECTS.register(
-            "heavenly_mugwort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> ALL_OUT_EFFORT_GU = MOB_EFFECTS.register(
+            "all_out_effort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
     //endregion
 
-    public static final DeferredHolder<MobEffect, MarkerEffect> TEMP_ZOMBIE = MOB_EFFECTS.register(
-            "temp_zombie", () -> new MarkerEffect(MobEffectCategory.NEUTRAL, EFFECT_COLOR));
-
-    //region Watch Gu [更蛊] -- one effect per Gu, so both can be worn at once and their rates add
-    public static final DeferredHolder<MobEffect, WatchGuEffect> SECOND_WATCH_GU = MOB_EFFECTS.register(
-            "second_watch_gu", () -> new WatchGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR, 2, 2));
-    public static final DeferredHolder<MobEffect, WatchGuEffect> THIRD_WATCH_GU = MOB_EFFECTS.register(
-            "third_watch_gu", () -> new WatchGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR, 3, 3));
-    //endregion
-
+    //region Wisdom Path [智道] -- Casual Gu [随意蛊] and Malicious Thought Gu [恶念蛊]
+    public static final DeferredHolder<MobEffect, CasualGuEffect> CASUAL_GU = MOB_EFFECTS.register(
+            "casual_gu", () -> new CasualGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MaliciousThoughtGuEffect> MALICIOUS_THOUGHT_GU = MOB_EFFECTS.register(
             "malicious_thought_gu", () -> new MaliciousThoughtGuEffect(
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR, new long[] { 2L, 20L, 200L, 2_000L }));
-    public static final DeferredHolder<MobEffect, CasualGuEffect> CASUAL_GU = MOB_EFFECTS.register(
-            "casual_gu", () -> new CasualGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
 
+    //region Blood Path [血道] -- Bleeding [流血], left by the Blood Moon Gu's blade
     public static final DeferredHolder<MobEffect, BleedingEffect> BLEEDING = MOB_EFFECTS.register(
             "bleeding", () -> new BleedingEffect(MobEffectCategory.HARMFUL, EFFECT_COLOR));
+    //endregion
+
+    //region Food Path [食道] -- Liquor Worm [酒虫], shown while it distills
+    public static final DeferredHolder<MobEffect, MarkerEffect> LIQUOR_WORM = MOB_EFFECTS.register(
+            "liquor_worm", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
+
+    //region Transformation Path [变化道] -- Temp Zombie [临时僵尸化]
+    public static final DeferredHolder<MobEffect, MarkerEffect> TEMP_ZOMBIE = MOB_EFFECTS.register(
+            "temp_zombie", () -> new MarkerEffect(MobEffectCategory.NEUTRAL, EFFECT_COLOR));
+    //endregion
 
     public static MobEffectInstance instance(@NotNull Holder<MobEffect> effect, int duration) {
         return new MobEffectInstance(effect, duration, 0, false, false, true);

@@ -25,8 +25,8 @@ public class OneShotGuItem extends MortalGuItem {
 
     private static final String TOOLTIP_REFINE_COST = "guzhenren.item.gu.refine_cost";
 
-    public OneShotGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
-        super(properties, guProperties, behaviors);
+    public OneShotGuItem(GuProperties guProperties, GuBehavior... behaviors) {
+        super(new Properties(), guProperties, behaviors);
     }
 
     //region the one press

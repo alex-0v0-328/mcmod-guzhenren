@@ -86,16 +86,23 @@ public final class ModPathEffectTypes {
     private ModPathEffectTypes() {}
 
     private static final Map<ResourceLocation, PathEffectType<?>> BY_ID = new LinkedHashMap<>();
+    //region Born with [天生] -- race and extreme physique, permanent and exclusive
     public static final PathEffectType<Race> RACE_TALENT =
             registerNamed("race_talent", "race", Race.class, Race.CODEC, true);
     public static final PathEffectType<ExtremePhysique> EXTREME_PHYSIQUE =
             registerNamed("extreme_physique", "physique", ExtremePhysique.class, ExtremePhysique.CODEC, true);
+    //endregion
+
+    //region Body tempering [炼体] -- the Metal Path grades, permanent and exclusive per part
     public static final PathEffectType<Skin> BODY_SKIN =
             registerNamed("body_skin", "grade", Skin.class, Skin.CODEC, true);
     public static final PathEffectType<Tendon> BODY_TENDON =
             registerNamed("body_tendon", "grade", Tendon.class, Tendon.CODEC, true);
     public static final PathEffectType<Bone> BODY_BONE =
             registerNamed("body_bone", "grade", Bone.class, Bone.CODEC, true);
+    //endregion
+
+    //region Strength Path [力道] -- carved strength, one layer per round
     public static final PathEffectType<BeastStrength> BEAST_STRENGTH =
             registerNamed("beast_strength", "beast", BeastStrength.class, BeastStrength.CODEC, false);
     public static final PathEffectType<HumanStrength> HUMAN_STRENGTH = register(new PathEffectType<>(
@@ -103,6 +110,9 @@ public final class ModPathEffectTypes {
             ModByteBufs.enumCodec(HumanStrength.class), PathEffectCategory.BENEFICIAL, false, null,
             effect -> Component.translatable("guzhenren.path_effect.human_strength",
                     Component.translatable(effect.payload().getTranslationKey()), effect.layers())));
+    //endregion
+
+    //region Timed body effects [限时肉体效果] -- buffs, heals, skins, shields and time rates that run out
     public static final PathEffectType<TimedBuff> BUFF = registerTimedBuff("timed_buff", PathEffectCategory.BENEFICIAL);
     public static final PathEffectType<SelfRelianceHeal> SELF_RELIANCE = register(PathEffectType.projecting(
             Guzhenren.id("self_reliance"), SelfRelianceHeal.CODEC, SelfRelianceHeal.STREAM_CODEC,
@@ -122,21 +132,35 @@ public final class ModPathEffectTypes {
             effect -> new PathEffectType.Projection(BuiltInRegistries.MOB_EFFECT.getHolderOrThrow(
                     ResourceKey.create(Registries.MOB_EFFECT, effect.payload())), effect.layers() - 1),
             effect -> Component.translatable("guzhenren.path_effect.watch_rate", effect.layers())));
+    //endregion
+
+    //region Transformation Path [变化道]
     public static final PathEffectType<Unit> ZOMBIE = register(new PathEffectType<>(Guzhenren.id("zombie"),
             MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE), PathEffectCategory.HARMFUL, true, null,
             effect -> Component.translatable(effect.isPermanent() ? "guzhenren.path_effect.zombie"
                     : "guzhenren.path_effect.temp_zombie")));
+    //endregion
+
+    //region Food Path [食道]
     public static final PathEffectType<Integer> LIQUOR_DISTILLING = register(PathEffectType.projecting(
             Guzhenren.id("liquor_distilling"), Codec.INT.fieldOf("tier"), ByteBufCodecs.VAR_INT.mapStream(buf -> buf),
             PathEffectCategory.BENEFICIAL, true,
             effect -> new PathEffectType.Projection(ModEffects.LIQUOR_WORM, effect.payload()),
             effect -> Component.translatable("guzhenren.path_effect.liquor_distilling")));
+    //endregion
+
+    //region Aperture [空窍]
     public static final PathEffectType<Unit> STONE_APERTURE =
             registerUnit("stone_aperture", PathEffectCategory.BENEFICIAL, true, null);
+    //endregion
+
+    //region Mind [脑海] -- Wisdom Path thoughts
     public static final PathEffectType<TimedBuff> CASUAL_THOUGHT =
             registerTimedBuff("casual_thought", PathEffectCategory.BENEFICIAL);
     public static final PathEffectType<TimedBuff> MALICIOUS_THOUGHT =
             registerTimedBuff("malicious_thought", PathEffectCategory.HARMFUL);
+    //endregion
+
     public static final Codec<PathEffectType<?>> CODEC = ResourceLocation.CODEC.comapFlatMap(
             ModPathEffectTypes::lookup, PathEffectType::getId);
     public static final Codec<PathEffect<?>> EFFECT_CODEC = CODEC.dispatch(

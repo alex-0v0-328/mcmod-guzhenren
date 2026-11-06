@@ -54,8 +54,8 @@ public class PrimevalElderGuItem extends TendedGuItem {
     private static final String TOOLTIP_STORED = "guzhenren.item.gu.stored_stones";
     private final long capacity;
 
-    public PrimevalElderGuItem(Properties properties, long capacity, GuProperties guProperties) {
-        super(properties, guProperties);
+    public PrimevalElderGuItem(long capacity, GuProperties guProperties) {
+        super(guProperties);
         this.capacity = capacity;
     }
 

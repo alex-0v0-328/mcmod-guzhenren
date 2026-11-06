@@ -57,8 +57,8 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     private final int regrowTicks;
     private final int essencePerLeaf;
 
-    public NineLeafVitalityGrassItem(Properties properties, int regrowTicks, int essencePerLeaf, GuProperties guProperties) {
-        super(properties, guProperties);
+    public NineLeafVitalityGrassItem(int regrowTicks, int essencePerLeaf, GuProperties guProperties) {
+        super(guProperties);
         this.regrowTicks = regrowTicks;
         this.essencePerLeaf = essencePerLeaf;
     }

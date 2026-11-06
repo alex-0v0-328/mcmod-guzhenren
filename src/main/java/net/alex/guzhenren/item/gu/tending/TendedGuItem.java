@@ -35,7 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A tended Gu [需照顾]: wild, then refined [炼化], then fed and used, all on one shared state record. The
+ * A tended Gu [需照顾]: wild, then refined [炼化], then fed and used, all on one shared state record, so the
+ * host stacks it to one ({@code Item.Properties} is the host's, never the registration's). The
  * lifecycle host of every Gu that needs refining and feeding: its {@link GuBehavior}s answer {@code checkEffect} /
  * {@code applyEffect} and any limit they bend, or a leaf with a lifecycle of its own overrides them; it owns the
  * charge ladder, channeling [灌注] and billing. Hunger and the meals from the bag are {@link GuHunger}, health
@@ -117,8 +118,8 @@ public class TendedGuItem extends MortalGuItem {
     protected final GuHunger hunger;
     protected final GuHealth health;
 
-    public TendedGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
-        super(properties, guProperties, behaviors);
+    public TendedGuItem(GuProperties guProperties, GuBehavior... behaviors) {
+        super(new Properties().stacksTo(1), guProperties, behaviors);
         this.hunger = guProperties.buildHunger();
         this.health = guProperties.buildHealth();
     }

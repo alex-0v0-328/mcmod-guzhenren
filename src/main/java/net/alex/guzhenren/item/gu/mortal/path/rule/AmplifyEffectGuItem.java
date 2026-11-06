@@ -62,8 +62,8 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
         public static final Amplification NONE = new Amplification(1, null);
     }
 
-    public AmplifyEffectGuItem(Properties properties, GuProperties guProperties) {
-        super(properties, guProperties);
+    public AmplifyEffectGuItem(GuProperties guProperties) {
+        super(guProperties);
     }
 
     public int getMultiplier() { return getRank().ordinal(); }

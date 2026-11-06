@@ -55,8 +55,8 @@ public final class LittleLightGuItem extends TendedGuItem {
     private static final String MSG_DIMMED = "guzhenren.item.gu.little_light_dimmed";
     private static final String TOOLTIP_BRIGHT = "guzhenren.item.gu.little_light_bright";
 
-    public LittleLightGuItem(Properties properties, GuProperties guProperties) {
-        super(properties, guProperties);
+    public LittleLightGuItem(GuProperties guProperties) {
+        super(guProperties);
     }
 
     public static boolean isBright(ItemStack stack) {

@@ -41,8 +41,8 @@ public class TreasureLotusGuItem extends TendedGuItem {
     private final int stonesPerSecond;
     private final int stonesPerHealth;
 
-    public TreasureLotusGuItem(Properties properties, int stonesPerSecond, int stonesPerHealth, GuProperties guProperties) {
-        super(properties, guProperties);
+    public TreasureLotusGuItem(int stonesPerSecond, int stonesPerHealth, GuProperties guProperties) {
+        super(guProperties);
         this.stonesPerSecond = stonesPerSecond;
         this.stonesPerHealth = stonesPerHealth;
     }

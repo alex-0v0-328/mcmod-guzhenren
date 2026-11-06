@@ -44,8 +44,8 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
     private static final String MSG_WATER = "guzhenren.item.gu.as_before_water";
     private final ChunkKind kind;
 
-    public TerrainAsBeforeGuItem(Properties properties, ChunkKind kind, GuProperties guProperties) {
-        super(properties, guProperties);
+    public TerrainAsBeforeGuItem(ChunkKind kind, GuProperties guProperties) {
+        super(guProperties);
         this.kind = kind;
     }
 

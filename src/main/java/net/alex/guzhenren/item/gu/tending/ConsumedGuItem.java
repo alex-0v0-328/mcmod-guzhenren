@@ -29,8 +29,8 @@ import net.minecraft.world.item.ItemStack;
 
 public class ConsumedGuItem extends TendedGuItem {
 
-    public ConsumedGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
-        super(properties, guProperties, behaviors);
+    public ConsumedGuItem(GuProperties guProperties, GuBehavior... behaviors) {
+        super(guProperties, behaviors);
     }
 
     @Override

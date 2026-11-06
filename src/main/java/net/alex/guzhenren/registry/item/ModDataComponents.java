@@ -44,20 +44,33 @@ public final class ModDataComponents {
 
     public static final DeferredRegister.DataComponents DATA_COMPONENTS =
             DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, Guzhenren.MOD_ID);
+    //region Every tended Gu [养护蛊共用] -- the shared state record and the two game-clock stamps beside it
     public static final Supplier<DataComponentType<RefinedGuState>> REFINED_GU_STATE =
             register("refined_gu_state", RefinedGuState.CODEC,
                     StreamCodec.of(RefinedGuState::encode, RefinedGuState::decode));
+    public static final Supplier<DataComponentType<Long>> REFINED_AT = registerLong("refined_at");
+    public static final Supplier<DataComponentType<Long>> USED_AT = registerLong("used_at");
+    //endregion
+
+    //region Vital Gu [本命蛊] -- read and written only through VitalGuState
     public static final Supplier<DataComponentType<UUID>> VITAL_OWNER =
             register("vital_owner", UUIDUtil.CODEC, UUIDUtil.STREAM_CODEC);
     public static final Supplier<DataComponentType<Integer>> VITAL_APERTURE = registerInt("vital_aperture");
     public static final Supplier<DataComponentType<Long>> VITAL_TOKEN = registerLong("vital_token");
-    public static final Supplier<DataComponentType<Long>> STORED_STONES = registerLong("stored_stones");
-    public static final Supplier<DataComponentType<Long>> REFINED_AT = registerLong("refined_at");
-    public static final Supplier<DataComponentType<Integer>> AWAKEN_BASE = registerInt("awaken_base");
-    public static final Supplier<DataComponentType<Long>> USED_AT = registerLong("used_at");
-    public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");
+    //endregion
+
+    //region Hunger clock [饱食时钟] -- GuHunger's recover bar and healing stamps
     public static final Supplier<DataComponentType<Long>> RECOVERED_AT = registerLong("recovered_at");
     public static final Supplier<DataComponentType<Long>> HEALED_AT = registerLong("healed_at");
+    //endregion
+
+    //region One Gu's own [单只蛊专用] -- Hope Gu's awakening base, the Elder Gu's vault, the lotus's heal bank, the
+    // grass's leaves, Little Light's bright state, Self Reliance's forced round; each present only on its Gu
+    public static final Supplier<DataComponentType<Integer>> AWAKEN_BASE = registerInt("awaken_base");
+    public static final Supplier<DataComponentType<Long>> STORED_STONES = registerLong("stored_stones");
+    public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");
+    public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
+            register("leaf_growth", LeafGrowth.CODEC, StreamCodec.of(LeafGrowth::encode, LeafGrowth::decode));
     public static final Supplier<DataComponentType<Boolean>> LITTLE_LIGHT_BRIGHT =
             register("little_light_bright", Codec.BOOL, ByteBufCodecs.BOOL);
     public static final Supplier<DataComponentType<Long>> LITTLE_LIGHT_BRIGHT_UNTIL =
@@ -66,8 +79,7 @@ public final class ModDataComponents {
             register("little_light_forced", Codec.BOOL, ByteBufCodecs.BOOL);
     public static final Supplier<DataComponentType<Boolean>> SELF_RELIANCE_FORCED =
             register("self_reliance_forced", Codec.BOOL, ByteBufCodecs.BOOL);
-    public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
-            register("leaf_growth", LeafGrowth.CODEC, StreamCodec.of(LeafGrowth::encode, LeafGrowth::decode));
+    //endregion
 
     public static void register(IEventBus modEventBus) {
         DATA_COMPONENTS.register(modEventBus);

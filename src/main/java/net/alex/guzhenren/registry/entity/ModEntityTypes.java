@@ -57,6 +57,7 @@ public final class ModEntityTypes {
     private static final float MOON_BLADE_SIZE = 0.8F;
     private static final int PROJECTILE_TRACKING_CHUNKS = 4;
     private static final int PROJECTILE_UPDATE_TICKS = 10;
+    //region Gu phantoms [蛊虫幻影] -- ambient motes a bare right click captures into the Gu they carry
     public static final DeferredHolder<EntityType<?>, EntityType<HopeGuEntity>> HOPE_GU_ENTITY =
             registerMote("hope_gu_entity", (type, level) -> new HopeGuEntity(type, level, ModItems.HOPE_GU));
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> WHITE_BOAR_GU_ENTITY =
@@ -73,6 +74,9 @@ public final class ModEntityTypes {
             registerCrashGu("charging_crash_gu_4_entity", ModItems.CHARGING_CRASH_GU_4);
     public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> CHARGING_CRASH_GU_5_ENTITY =
             registerCrashGu("charging_crash_gu_5_entity", ModItems.CHARGING_CRASH_GU_5);
+    //endregion
+
+    //region Beasts [野兽] -- naturally spawning creatures; the wild boar has no capture path
     public static final DeferredHolder<EntityType<?>, EntityType<WildBoarEntity>> WILD_BOAR =
             register("wild_boar", WildBoarEntity::new, MobCategory.CREATURE, WILD_BOAR_WIDTH, WILD_BOAR_HEIGHT);
     public static final DeferredHolder<EntityType<?>, EntityType<BearEntity>> BROWN_BEAR =
@@ -87,9 +91,14 @@ public final class ModEntityTypes {
             register("tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> WHITE_TIGER =
             register("white_tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
+    //endregion
+
+    //region Soul traders [魂商] -- fire-immune misc entities with no spawn rule; {@code /summon} only
     public static final DeferredHolder<EntityType<?>, EntityType<SoulTraderEntity>> TEST_TRADE_GU_IMMORTAL =
             registerSoulTrader(SoulTrader.TEST_TRADE_GU_IMMORTAL);
+    //endregion
 
+    //region Projectiles [投射物] -- the Moon Blade [月刃]
     public static final DeferredHolder<EntityType<?>, EntityType<MoonBladeEntity>> MOON_BLADE =
             ENTITY_TYPES.register("moon_blade", () -> EntityType.Builder.of(MoonBladeEntity::new,
                             MobCategory.MISC)
@@ -97,6 +106,7 @@ public final class ModEntityTypes {
                     .clientTrackingRange(PROJECTILE_TRACKING_CHUNKS)
                     .updateInterval(PROJECTILE_UPDATE_TICKS)
                     .build("moon_blade"));
+    //endregion
 
     private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register(
             String id, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height) {

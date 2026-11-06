@@ -29,8 +29,8 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
     private static final String FAILED_NO_MEMORY = "guzhenren.item.failed.as_before_no_memory";
     private static final String MSG_RESTORED = "guzhenren.item.gu.as_before_body";
 
-    public ManAsBeforeGuItem(Properties properties, GuProperties guProperties) {
-        super(properties, guProperties);
+    public ManAsBeforeGuItem(GuProperties guProperties) {
+        super(guProperties);
     }
 
     @Override
