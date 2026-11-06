@@ -10,6 +10,7 @@ import net.alex.guzhenren.entity.gu.BoarGuEntity;
 import net.alex.guzhenren.entity.gu.CrashGuEntity;
 import net.alex.guzhenren.entity.gu.HopeGuEntity;
 import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
+import net.alex.guzhenren.entity.projectile.QiWaveEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTrader;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -28,7 +29,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>Hope Gu, three boar Gu and four rhinoceros beetle Gu variants are naturally spawning ambient entities;
  * the wild boar, the four bears and the two tigers are naturally spawning creatures. Hope Gu's client mote
  * is emitted by its entity class. Each {@link SoulTrader} registers one fire-immune misc entity with no spawn
- * rule at all: soul traders exist only through {@code /summon}. The Moon Blade [月刃] is the one projectile.
+ * rule at all: soul traders exist only through {@code /summon}. The Moon Blade [月刃] and the Qi Wave [气波] are
+ * the projectiles.
  * Gu capture is a bare right click and is never gated on awakening [开窍]; the wild boar has no capture path.
  *
  * @author Alex
@@ -55,6 +57,7 @@ public final class ModEntityTypes {
     private static final float SOUL_TRADER_WIDTH = 0.6F;
     private static final float SOUL_TRADER_HEIGHT = 1.95F;
     private static final float MOON_BLADE_SIZE = 0.8F;
+    private static final float QI_WAVE_SIZE = 0.5F;
     private static final int PROJECTILE_TRACKING_CHUNKS = 4;
     private static final int PROJECTILE_UPDATE_TICKS = 10;
     //region Gu phantoms [蛊虫幻影]
@@ -106,6 +109,13 @@ public final class ModEntityTypes {
                     .clientTrackingRange(PROJECTILE_TRACKING_CHUNKS)
                     .updateInterval(PROJECTILE_UPDATE_TICKS)
                     .build("moon_blade"));
+    public static final DeferredHolder<EntityType<?>, EntityType<QiWaveEntity>> QI_WAVE =
+            ENTITY_TYPES.register("qi_wave", () -> EntityType.Builder.of(QiWaveEntity::new,
+                            MobCategory.MISC)
+                    .sized(QI_WAVE_SIZE, QI_WAVE_SIZE)
+                    .clientTrackingRange(PROJECTILE_TRACKING_CHUNKS)
+                    .updateInterval(PROJECTILE_UPDATE_TICKS)
+                    .build("qi_wave"));
     //endregion
 
     private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register(

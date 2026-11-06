@@ -16,6 +16,7 @@ import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.PlungePayload;
 import net.alex.guzhenren.network.payload.PrimevalElderPayload;
+import net.alex.guzhenren.network.payload.QiWavePayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
@@ -80,6 +81,8 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.amplifyDrive(player, intent.slot()));
         toServer(registrar, KillingMovePayload.TYPE, KillingMovePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.killingMove(player, intent.move(), intent.target()));
+        toServer(registrar, QiWavePayload.TYPE, QiWavePayload.STREAM_CODEC,
+                (intent, player) -> ClientIntents.qiWave(player, intent.target()));
         toServer(registrar, PrimevalElderPayload.TYPE, PrimevalElderPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.primevalElder(player, intent.action(), intent.stacks()));
         toClient(registrar, SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC);

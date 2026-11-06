@@ -11,6 +11,7 @@ import net.alex.guzhenren.client.hud.NourishHud;
 import net.alex.guzhenren.client.hud.PlayerStatsHud;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.client.input.DashInput;
+import net.alex.guzhenren.client.input.QiWaveInput;
 import net.alex.guzhenren.client.particle.RingParticle;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.renderer.ModEntityRenderers;
@@ -199,6 +200,7 @@ public final class ClientEvents {
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         DashInput.reset();
+        QiWaveInput.reset();
         SkinFlashes.clear();
         ShieldGlowHud.INSTANCE.reset();
         KillingMoveTooltipHud.INSTANCE.clear();
@@ -220,5 +222,6 @@ public final class ClientEvents {
         }
 
         DashInput.tick(minecraft, minecraft.player);
+        QiWaveInput.tick(minecraft, minecraft.player);
     }
 }

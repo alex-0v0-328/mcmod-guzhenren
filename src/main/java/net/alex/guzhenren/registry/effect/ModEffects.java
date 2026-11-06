@@ -9,6 +9,7 @@ import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
+import net.alex.guzhenren.effect.timed.StrengthQiGuEffect;
 import net.alex.guzhenren.effect.timed.WatchGuEffect;
 import net.alex.guzhenren.effect.timed.VitalityLeafGuEffect;
 import net.minecraft.core.Holder;
@@ -69,6 +70,11 @@ public final class ModEffects {
             "jade_skin_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> WHITE_JADE_GU = MOB_EFFECTS.register(
             "white_jade_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    //endregion
+
+    //region Qi Path [气道]
+    public static final DeferredHolder<MobEffect, StrengthQiGuEffect> STRENGTH_QI_GU = MOB_EFFECTS.register(
+            "strength_qi_gu", () -> new StrengthQiGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
     //region Strength Path [力道]

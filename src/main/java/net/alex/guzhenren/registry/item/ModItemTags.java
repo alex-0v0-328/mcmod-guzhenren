@@ -55,6 +55,7 @@ public final class ModItemTags {
     //region Strength Path [力道]
     public static final TagKey<Item> BOAR_FEED = key("boar_feed");
     public static final TagKey<Item> BEAR_FEED = key("bear_feed");
+    public static final TagKey<Item> TIGER_FEED = key("tiger_feed");
     public static final TagKey<Item> BEEF_FEED = key("beef_feed");
     public static final TagKey<Item> IRON_FEED = key("iron_feed");
     public static final TagKey<Item> IRON_FEED_SMELTED = key("iron_feed_smelted");

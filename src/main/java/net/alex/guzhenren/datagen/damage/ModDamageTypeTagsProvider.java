@@ -57,7 +57,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
                 ModDamageTypes.APERTURE_PRESSURE_EXPLOSION);
         tag(DamageTypeTags.IS_EXPLOSION).add(ModDamageTypes.APERTURE_PRESSURE_EXPLOSION,
                 ModDamageTypes.TEN_EXTREME_DISASTER);
-        tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE);
+        tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE);
         tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.OVERLOAD_IMPACT);
         tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING);
         tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT);

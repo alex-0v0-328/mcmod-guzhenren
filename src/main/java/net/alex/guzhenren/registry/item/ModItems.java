@@ -9,6 +9,7 @@ import net.alex.guzhenren.effect.timed.CasualGuEffect;
 import net.alex.guzhenren.effect.timed.FlowerBoarGuEffect;
 import net.alex.guzhenren.effect.timed.HardshipStrengthGuEffect;
 import net.alex.guzhenren.effect.timed.MaliciousThoughtGuEffect;
+import net.alex.guzhenren.effect.timed.StrengthQiGuEffect;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ShieldType;
@@ -478,6 +479,19 @@ public final class ModItems {
     }
     //endregion
 
+    //region Qi Path [气道]
+    public static final DeferredItem<Item> STRENGTH_QI_GU = REGISTRAR.item("strength_qi_gu",
+            () -> new TendedGuItem(createRankedProperties(Rank.THREE, GuPath.QI)
+                    .effect(EffectCarrier.BODY)
+                    .refine(3_200)
+                    .costPerUse(108)
+                    .feed(ModItemTags.BEEF_FEED, 1)
+                    .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
+                    new TimedBuffBehavior(ModEffects.STRENGTH_QI_GU, StrengthQiGuEffect.DURATION_TICKS),
+                    new RecastBehavior()))
+            .lang("Strength Qi Gu", "力气蛊").register();
+    //endregion
+
     //region Light Path [光道]
     public static final DeferredItem<Item> LITTLE_LIGHT_GU = REGISTRAR.item("little_light_gu",
             () -> new LittleLightGuItem(createRankedProperties(Rank.ONE, GuPath.LIGHT)
@@ -512,17 +526,21 @@ public final class ModItems {
     //region Strength Path [力道]
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredItem<Item> WHITE_BOAR_GU = REGISTRAR.item("white_boar_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(ModItemTags.BOAR_FEED),
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.ONE, 800, 1_200, ModItemTags.BOAR_FEED),
                     new BeastStrengthBehavior(BeastStrength.WHITE_BOAR)))
             .lang("White Boar Gu", "白豕蛊").register();
     public static final DeferredItem<Item> BLACK_BOAR_GU = REGISTRAR.item("black_boar_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(ModItemTags.BOAR_FEED),
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.ONE, 800, 1_200, ModItemTags.BOAR_FEED),
                     new BeastStrengthBehavior(BeastStrength.BLACK_BOAR)))
             .lang("Black Boar Gu", "黑豕蛊").register();
     public static final DeferredItem<Item> BEAR_STRENGTH_GU = REGISTRAR.item("bear_strength_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(ModItemTags.BEAR_FEED),
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.ONE, 800, 1_200, ModItemTags.BEAR_FEED),
                     new BeastStrengthBehavior(BeastStrength.BEAR)))
             .lang("Bear Strength Gu", "熊力蛊").register();
+    public static final DeferredItem<Item> TIGER_STRENGTH_GU = REGISTRAR.item("tiger_strength_gu",
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.TWO, 1_600, 2_400, ModItemTags.TIGER_FEED),
+                    new BeastStrengthBehavior(BeastStrength.TIGER)))
+            .lang("Tiger Strength Gu", "虎力蛊").register();
     public static final DeferredItem<Item> FLOWER_BOAR_GU = REGISTRAR.item("flower_boar_gu",
             () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED),
                     new TimedBuffBehavior(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),
@@ -536,13 +554,14 @@ public final class ModItems {
                     new RecastBehavior()))
             .lang("Brute Force Longhorn Beetle Gu", "蛮力天牛蛊").register();
 
-    private static GuProperties createBeastStrengthProperties(TagKey<Item> feed) {
-        return createChannelProperties(Rank.ONE, GuPath.STRENGTH)
+    private static GuProperties createBeastStrengthProperties(Rank rank, int refine, int essencePerRound,
+                                                              TagKey<Item> feed) {
+        return createChannelProperties(rank, GuPath.STRENGTH)
                 .type(GuType.PATH_MARK_CARVING)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
                 .effect(EffectCarrier.BODY)
-                .refine(800)
-                .channel(1_200)
+                .refine(refine)
+                .channel(essencePerRound)
                 .feed(feed, 1);
     }
 

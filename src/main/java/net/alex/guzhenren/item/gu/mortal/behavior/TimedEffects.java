@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The body effects of the timed Gu [限时蛊]: the buffs (beast, crash, hardship strength, all-out effort), the
+ * The body effects of the timed Gu [限时蛊]: the buffs (beast, crash, hardship strength, all-out effort, strength qi), the
  * jade skins, the Heavenly Mugwort shield, the Vitality Leaf and the Watch Gu forms. Each is the
  * bookkeeping of a state that ends by itself, and the effect ends with it: its strands go the moment it does.
  * Nothing here reads a mark to size anything.

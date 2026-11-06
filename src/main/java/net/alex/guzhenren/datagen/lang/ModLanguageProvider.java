@@ -490,6 +490,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.flower_boar_gu",                       "Flower Boar Gu Effect", "花豕蛊效果");
         add("effect.guzhenren.brute_force_longhorn_beetle_gu",
                 "Brute Force Longhorn Beetle Gu Effect", "蛮力天牛蛊效果");
+        add("effect.guzhenren.strength_qi_gu",                       "Strength Qi Gu Effect", "力气蛊效果");
         add("effect.guzhenren.horizontal_crash_gu",                  "Horizontal Crash Gu Effect", "横冲蛊效果");
         add("effect.guzhenren.vertical_crash_gu",                    "Vertical Crash Gu Effect", "直撞蛊效果");
         add("effect.guzhenren.charging_crash_gu",                    "Charging Crash Gu Effect", "横冲直撞蛊效果");
@@ -528,6 +529,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("entity.guzhenren.charging_crash_gu_5_entity", "Charging Crash Gu V",    "五转横冲直撞蛊");
         add("entity.guzhenren.test_trade_gu_immortal",     "Test Trade Gu Immortal", "测试交易蛊仙");
         add("entity.guzhenren.moon_blade",                 "Moon Blade",             "月刃");
+        add("entity.guzhenren.qi_wave",                    "Qi Wave",                "气波");
     }
     //endregion
 
@@ -577,6 +579,10 @@ public class ModLanguageProvider extends LanguageProvider {
                 "%1$s was struck down by %2$s's Area Impact", "%1$s 被 %2$s 的范围冲击打死了");
         add("death.attack.guzhenren.area_impact.item",
                 "%1$s was struck down by %2$s's Area Impact using %3$s", "%1$s 被 %2$s 用 %3$s 的范围冲击打死了");
+        add("death.attack.guzhenren.qi_wave",
+                "%1$s was struck down by %2$s's Qi Wave", "%1$s 被 %2$s 的气波打死了");
+        add("death.attack.guzhenren.qi_wave.item",
+                "%1$s was struck down by %2$s's Qi Wave using %3$s", "%1$s 被 %2$s 用 %3$s 的气波打死了");
     }
     //endregion
 
@@ -665,6 +671,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(BeastStrength.WHITE_BOAR, "White Boar", "白豕");
         add(BeastStrength.BLACK_BOAR, "Black Boar", "黑豕");
         add(BeastStrength.BEAR,       "Bear",       "熊");
+        add(BeastStrength.TIGER,      "Tiger",      "虎");
     }
 
     private void addStrengthPathBranch() {
@@ -775,6 +782,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(BeastStrengthFamily.BOAR, "Boar", "猪");
         add(BeastStrengthFamily.OX,   "Ox",   "牛");
         add(BeastStrengthFamily.BEAR, "Bear", "熊");
+        add(BeastStrengthFamily.TIGER, "Tiger", "虎");
     }
 
     private void addPath() {

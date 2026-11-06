@@ -75,12 +75,15 @@ public final class KillingMoveInput {
     private KillingMoveInput() {}
 
     /** The entity id the blade should curve to: Epic Fight's lock-on, else the crosshair's living entity, else none. */
-    static int aimedTarget(LocalPlayer player) {
+    static int aimedTarget(LocalPlayer player) { return aimedTarget(player, KillingMoveService.AIM_RANGE); }
+
+    /** The same aim with the crosshair looking {@code range} blocks out; the lock-on is taken at any distance. */
+    static int aimedTarget(LocalPlayer player, double range) {
         LivingEntity locked = EpicFightClientIntegration.getLockOnTarget();
         if (locked != null) return locked.getId();
 
         Vec3 eye = player.getEyePosition();
-        Vec3 end = eye.add(player.getLookAngle().scale(KillingMoveService.AIM_RANGE));
+        Vec3 end = eye.add(player.getLookAngle().scale(range));
         HitResult block = player.level().clip(new ClipContext(eye, end, ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE, player));
         if (block.getType() != HitResult.Type.MISS) end = block.getLocation();

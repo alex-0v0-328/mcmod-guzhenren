@@ -42,6 +42,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> MOON_BLADE = key("moon_blade");
     public static final ResourceKey<DamageType> BLEEDING = key("bleeding");
     public static final ResourceKey<DamageType> AREA_IMPACT = key("area_impact");
+    public static final ResourceKey<DamageType> QI_WAVE = key("qi_wave");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
         return new DamageSource(entity.level().registryAccess()

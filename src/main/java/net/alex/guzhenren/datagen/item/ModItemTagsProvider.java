@@ -50,6 +50,7 @@ public class ModItemTagsProvider extends ItemTagsProvider {
 
         tag(ModItemTags.BOAR_FEED).add(Items.PORKCHOP);
         tag(ModItemTags.BEAR_FEED).add(Items.HONEY_BOTTLE);
+        tag(ModItemTags.TIGER_FEED).addTag(Tags.Items.FOODS_RAW_MEAT);
         tag(ModItemTags.BEEF_FEED).add(Items.BEEF);
         tag(ModItemTags.ANVIL_FEED).add(Items.ANVIL);
         tag(ModItemTags.COBBLESTONE_FEED).add(Items.COBBLESTONE);

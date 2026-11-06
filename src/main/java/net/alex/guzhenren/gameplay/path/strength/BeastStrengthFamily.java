@@ -20,7 +20,8 @@ public enum BeastStrengthFamily implements NamedEnum {
 
     BOAR,
     OX,
-    BEAR;
+    BEAR,
+    TIGER;
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.strength.beast_family."; }

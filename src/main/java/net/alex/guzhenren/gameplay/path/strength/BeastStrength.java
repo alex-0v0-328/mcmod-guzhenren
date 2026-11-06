@@ -9,7 +9,7 @@ import net.minecraft.util.StringRepresentable;
  *
  * <p>Closed vocabulary enum stored as {@code Set<BeastStrength>} on {@code PathStrengthData}. Each constant
  * carries its own family and point worth, so adding a beast is one constant touching neither
- * the Gu item nor the attack sum. A boar is 24 points, a bear 40; a point is worth
+ * the Gu item nor the attack sum. A boar is 24 points, a bear 40, a tiger 64; a point is worth
  * {@link PathStrengthData#ATTACK_PER_POINT} attack, the same as one jin of human strength, and goes through the
  * same carrying capacity. No sibling mod may add a species.
  *
@@ -25,7 +25,8 @@ public enum BeastStrength implements NamedEnum {
 
     WHITE_BOAR(BeastStrengthFamily.BOAR, 1, 24),
     BLACK_BOAR(BeastStrengthFamily.BOAR, 1, 24),
-    BEAR(BeastStrengthFamily.BEAR, 1, 40);
+    BEAR(BeastStrengthFamily.BEAR, 1, 40),
+    TIGER(BeastStrengthFamily.TIGER, 1, 64);
 
     public static final Codec<BeastStrength> CODEC = StringRepresentable.fromEnum(BeastStrength::values);
     private final BeastStrengthFamily family;

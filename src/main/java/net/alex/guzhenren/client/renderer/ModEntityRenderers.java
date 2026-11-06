@@ -18,7 +18,8 @@ import software.bernie.geckolib.model.GeoModel;
 /**
  * Every entity renderer this mod registers: each family's shared GeckoLib model with one fixed texture per
  * entity type, the soul traders' translucent {@code human_soul}, the Hope Gu [希望蛊] as a
- * {@link NoopRenderer} (pure particles, no model), and the Moon Blade [月刃] as a {@link MoonBladeRenderer} sprite.
+ * {@link NoopRenderer} (pure particles, no model), the Moon Blade [月刃] as a {@link MoonBladeRenderer} sprite, and the
+ * Qi Wave [气波] as another {@link NoopRenderer}.
  *
  * <p>The boar Gu's ladybug geometry is life-sized (about 0.19 by 0.28 blocks); {@link #BOAR_GU_SCALE} draws it
  * at the width of the 0.4-block hitbox without touching the exported geometry, and it keeps the vanilla death
@@ -94,6 +95,7 @@ public final class ModEntityRenderers {
         event.registerEntityRenderer(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(),
                 context -> new SoulTraderGeoRenderer(context, HUMAN_SOUL_MODEL, SoulTraderGeoRenderer.BLUE_TEXTURE));
         event.registerEntityRenderer(ModEntityTypes.MOON_BLADE.get(), MoonBladeRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.QI_WAVE.get(), NoopRenderer::new);
     }
 
     private static EntityRenderer<BoarGuEntity> createBoarGuRenderer(EntityRendererProvider.Context context,
