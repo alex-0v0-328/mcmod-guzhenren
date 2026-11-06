@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BeastPhantomVisual;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
@@ -33,8 +34,10 @@ import software.bernie.geckolib.util.Color;
  * Back-face culled like the soul traders, so the far side of the silhouette does not show through. Each fades as its
  * own {@link BeastPhantomVisual#getFade} says; the glow layer is translucent emissive at {@link #GLOW_ALPHA} of the
  * mask's own alpha, since the mask paints the whole body and at full alpha it closed the gold up to opaque. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and
- * paints the whole masked body at full strength, which buried the gold under the mask's brown. GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw. No shadow, no
- * hurt tint. The ox never manifests and falls back to the boar.
+ * paints the whole masked body at full strength, which buried the gold under the mask's brown. GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw, then
+ * tips them by {@link BeastPhantomVisual#getPitch} about a point {@link #PITCH_PIVOT} blocks above the feet, about
+ * half the beasts' model height. No shadow, no hurt tint. The ox never manifests and falls back to the boar.
+ * ⚠ {@link #PITCH_PIVOT} is provisional.
  *
  * @author Alex
  * @version 1.0.0
@@ -48,6 +51,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
     public static final float PHANTOM_SCALE = 1.0F;
     /** How much of the glow mask's own alpha the glow layer keeps; the mask covers the whole body. Provisional. */
     public static final float GLOW_ALPHA = 0.25F;
+    public static final float PITCH_PIVOT = 0.7F;
 
     public BeastPhantomRenderer(EntityRendererProvider.Context context) {
         super(context, new PhantomModel<>());
@@ -67,6 +71,12 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
                                   float partialTick, float nativeScale) {
         super.applyRotations(animatable, poseStack, ageInTicks,
                 Mth.rotLerp(partialTick, animatable.yRotO, animatable.getYRot()), partialTick, nativeScale);
+        float pitch = animatable.getPitch(partialTick);
+        if (pitch == 0.0F) return;
+
+        poseStack.translate(0.0F, PITCH_PIVOT, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(-pitch));
+        poseStack.translate(0.0F, -PITCH_PIVOT, 0.0F);
     }
 
     @Override

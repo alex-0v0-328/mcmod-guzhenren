@@ -8,7 +8,8 @@ import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * What the Beast Phantom renderer [兽力虚影] reads of anything drawn as a phantom beast: the family whose model it
- * borrows and how far it has faded in or out. The phantom beside its owner and the Beast Charge [兽力冲击] both are one.
+ * borrows, how far it has faded in or out and how far its nose is pitched down (MC's sign: down is positive). The
+ * phantom beside its owner and the Beast Charge [兽力冲击] both are one; only the charge pitches.
  *
  * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code attack_toss}), the
  * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe. {@link #getAttack} and
@@ -26,6 +27,8 @@ public interface BeastPhantomVisual {
     BeastStrengthFamily getFamily();
 
     float getFade(float partialTick);
+
+    default float getPitch(float partialTick) { return 0.0F; }
 
     static Map<BeastStrengthFamily, RawAnimation> byFamily(Function<BeastStrengthFamily, RawAnimation> animation) {
         Map<BeastStrengthFamily, RawAnimation> animations = new EnumMap<>(BeastStrengthFamily.class);
