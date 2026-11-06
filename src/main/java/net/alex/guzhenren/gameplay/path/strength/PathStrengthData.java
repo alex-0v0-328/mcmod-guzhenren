@@ -94,6 +94,12 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         return total;
     }
 
+    public int getBeastPoints(BeastStrengthFamily family) {
+        int total = 0;
+        for (BeastStrength beast : beasts) if (beast.getFamily() == family) total += beast.getPoints();
+        return total;
+    }
+
     /** The permanent strength points [力量点]: every jin plus every refined beast's points. */
     public int getStrengthPoints() { return getTotalJin() + getBeastPoints(); }
 

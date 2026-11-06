@@ -31,8 +31,12 @@ import org.jetbrains.annotations.NotNull;
  * {@code StrengthLoadEvents} deals it. Hardship Strength pays with the healing ceiling instead. ⚠ The excess reads
  * {@link #getBodyCapacity}, never the lifted one, which would leave no excess while the lift runs.
  *
- * <p>⚠ {@code getUsablePoints(int, int)}, {@code getCapacity(int, int, boolean)}, {@code getBaseCapacity} and
- * {@code getLoadDamage(int)} are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
+ * <p>{@link #getPhantomBonusPoints} is the Beast Phantom [兽力虚影]: for the one hit it manifests on, the chosen
+ * beast's points count in full past the capacity while the rest are still cut; it costs the body no load.
+ *
+ * <p>⚠ {@code getUsablePoints(int, int)}, {@code getCapacity(int, int, boolean)}, {@code getBaseCapacity},
+ * {@code getPhantomBonusPoints} and {@code getLoadDamage(int)} are deliberate seams so the arithmetic is
+ * unit-testable without a {@link Player}.
  *
  * @author Alex
  * @version 1.0.0
@@ -86,6 +90,11 @@ public final class StrengthService {
     }
 
     public static int getUsablePoints(int capacity, int total) { return Math.min(capacity, total); }
+
+    public static int getPhantomBonusPoints(int capacity, int total, int beastPoints) {
+        int beast = Math.max(0, Math.min(beastPoints, total));
+        return Math.max(0, getUsablePoints(capacity, total - beast) + beast - getUsablePoints(capacity, total));
+    }
 
     /** The points past the body capacity, zero when nothing is. */
     public static int getExcessPoints(@NotNull Player player) {
