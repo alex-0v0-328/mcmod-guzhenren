@@ -25,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
  * <p>A pulse that a cancelled heal leaves without effect pauses the heal; it neither ends it nor bills again. A
  * dying body is never healed: {@link AutoUse#tick} stops the state first.
  *
- * <p>⚠ Provisional, awaiting Alex: the curve's {@link #FULL_PULSE_BELOW} (40%) and {@link #FLOOR} (1/3).
- *
  * @author Alex
  * @version 1.0.0
  * @see AutoUse
@@ -38,7 +36,7 @@ public record SelfRelianceBehavior(int grade, float pulseHeal) implements AutoUs
 
     public static final int PULSE_TICKS = 5;
     public static final float FULL_PULSE_BELOW = 0.40F;
-    public static final float FLOOR = 1.0F / 3.0F;
+    public static final float FLOOR = 0.25F;
 
     @Override
     public @NotNull PathEffectType<?> getStateType() { return ModPathEffectTypes.SELF_RELIANCE; }

@@ -23,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
  * gains {@link #HUMAN_CAPACITY_PERCENT} of its normal capacity [常态承受力] (rounded down). With no permanent
  * points the state adds nothing.
  *
- * <p>⚠ Provisional, awaiting Alex: the five point shares 10/20/30/40/50% and the five human capacity shares
- * 100/125/150/175/200%.
+ * <p>⚠ Provisional, awaiting Alex: the five point shares 10/20/30/40/50%. The human capacity shares
+ * 100/125/150/175/200% are settled.
  *
  * <p>⚠ The bounds compare the health with {@code max * bound}, never a quotient, so a health set to exactly a bound
  * lands in the lower tier as written. {@link #HEALED_SHARE} carries the auto use's float tolerance, so a heal that
