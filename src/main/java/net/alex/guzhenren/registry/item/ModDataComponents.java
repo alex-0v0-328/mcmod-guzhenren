@@ -44,7 +44,7 @@ public final class ModDataComponents {
 
     public static final DeferredRegister.DataComponents DATA_COMPONENTS =
             DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, Guzhenren.MOD_ID);
-    //region Every tended Gu [养护蛊共用] -- the shared state record and the two game-clock stamps beside it
+    //region Every tended Gu [养护蛊共用]
     public static final Supplier<DataComponentType<RefinedGuState>> REFINED_GU_STATE =
             register("refined_gu_state", RefinedGuState.CODEC,
                     StreamCodec.of(RefinedGuState::encode, RefinedGuState::decode));
@@ -52,19 +52,19 @@ public final class ModDataComponents {
     public static final Supplier<DataComponentType<Long>> USED_AT = registerLong("used_at");
     //endregion
 
-    //region Vital Gu [本命蛊] -- read and written only through VitalGuState
+    //region Vital Gu [本命蛊]
     public static final Supplier<DataComponentType<UUID>> VITAL_OWNER =
             register("vital_owner", UUIDUtil.CODEC, UUIDUtil.STREAM_CODEC);
     public static final Supplier<DataComponentType<Integer>> VITAL_APERTURE = registerInt("vital_aperture");
     public static final Supplier<DataComponentType<Long>> VITAL_TOKEN = registerLong("vital_token");
     //endregion
 
-    //region Hunger clock [饱食时钟] -- GuHunger's recover bar and healing stamps
+    //region Hunger clock [饱食时钟]
     public static final Supplier<DataComponentType<Long>> RECOVERED_AT = registerLong("recovered_at");
     public static final Supplier<DataComponentType<Long>> HEALED_AT = registerLong("healed_at");
     //endregion
 
-    //region One Gu's own [单只蛊专用] -- Hope's awaken base, Elder vault, lotus bank, leaves, Little Light, Self Reliance
+    //region One Gu's own [单只蛊专用]
     public static final Supplier<DataComponentType<Integer>> AWAKEN_BASE = registerInt("awaken_base");
     public static final Supplier<DataComponentType<Long>> STORED_STONES = registerLong("stored_stones");
     public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");

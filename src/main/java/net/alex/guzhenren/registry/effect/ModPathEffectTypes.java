@@ -90,14 +90,14 @@ public final class ModPathEffectTypes {
     private ModPathEffectTypes() {}
 
     private static final Map<ResourceLocation, PathEffectType<?>> BY_ID = new LinkedHashMap<>();
-    //region Born with [天生] -- race and extreme physique, permanent and exclusive
+    //region Born with [天生]
     public static final PathEffectType<Race> RACE_TALENT =
             registerNamed("race_talent", "race", Race.class, Race.CODEC, true);
     public static final PathEffectType<ExtremePhysique> EXTREME_PHYSIQUE =
             registerNamed("extreme_physique", "physique", ExtremePhysique.class, ExtremePhysique.CODEC, true);
     //endregion
 
-    //region Body tempering [炼体] -- the Metal Path grades, permanent and exclusive per part
+    //region Body tempering [炼体]
     public static final PathEffectType<Skin> BODY_SKIN =
             registerNamed("body_skin", "grade", Skin.class, Skin.CODEC, true);
     public static final PathEffectType<Tendon> BODY_TENDON =
@@ -106,7 +106,7 @@ public final class ModPathEffectTypes {
             registerNamed("body_bone", "grade", Bone.class, Bone.CODEC, true);
     //endregion
 
-    //region Strength Path [力道] -- carved strength, one layer per round
+    //region Strength Path [力道]
     public static final PathEffectType<BeastStrength> BEAST_STRENGTH =
             registerNamed("beast_strength", "beast", BeastStrength.class, BeastStrength.CODEC, false);
     public static final PathEffectType<HumanStrength> HUMAN_STRENGTH = register(new PathEffectType<>(
@@ -116,7 +116,7 @@ public final class ModPathEffectTypes {
                     Component.translatable(effect.payload().getTranslationKey()), effect.layers())));
     //endregion
 
-    //region Timed body effects [限时肉体效果] -- buffs, heals, skins, shields and time rates that run out
+    //region Timed body effects [限时肉体效果]
     public static final PathEffectType<TimedBuff> BUFF = registerTimedBuff("timed_buff", PathEffectCategory.BENEFICIAL);
     public static final PathEffectType<SelfRelianceHeal> SELF_RELIANCE = register(PathEffectType.projecting(
             Guzhenren.id("self_reliance"), SelfRelianceHeal.CODEC, SelfRelianceHeal.STREAM_CODEC,
@@ -158,7 +158,7 @@ public final class ModPathEffectTypes {
             registerUnit("stone_aperture", PathEffectCategory.BENEFICIAL, true, null);
     //endregion
 
-    //region Mind [脑海] -- Wisdom Path thoughts
+    //region Mind [脑海]
     public static final PathEffectType<TimedBuff> CASUAL_THOUGHT =
             registerTimedBuff("casual_thought", PathEffectCategory.BENEFICIAL);
     public static final PathEffectType<TimedBuff> MALICIOUS_THOUGHT =

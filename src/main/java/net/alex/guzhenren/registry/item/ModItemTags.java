@@ -28,7 +28,7 @@ public final class ModItemTags {
     public static final TagKey<Item> AMPLIFY_EFFECT_FEED = key("amplify_effect_feed");
     //endregion
 
-    //region Metal Path [金道] -- body tempering larders
+    //region Metal Path [金道]
     public static final TagKey<Item> BRONZE_SKIN_FEED = key("bronze_skin_feed");
     public static final TagKey<Item> IRON_SKIN_FEED = key("iron_skin_feed");
     public static final TagKey<Item> STEEL_TENDON_FEED = key("steel_tendon_feed");
@@ -52,7 +52,7 @@ public final class ModItemTags {
     public static final TagKey<Item> MOONLIGHT_FEED = key("moonlight_feed");
     //endregion
 
-    //region Strength Path [力道] -- the beast branch's meats, the human branch's iron, and the normal Gu's larders
+    //region Strength Path [力道]
     public static final TagKey<Item> BOAR_FEED = key("boar_feed");
     public static final TagKey<Item> BEAR_FEED = key("bear_feed");
     public static final TagKey<Item> BEEF_FEED = key("beef_feed");
@@ -81,7 +81,7 @@ public final class ModItemTags {
     public static final TagKey<Item> ZOMBIE_FEED = key("zombie_feed");
     //endregion
 
-    //region Common tags [通用标签] -- the loader's c: convention, shared with other mods' steel
+    //region Common tags [通用标签]
     public static final TagKey<Item> INGOTS_STEEL = common("ingots/steel");
     public static final TagKey<Item> STORAGE_BLOCKS_STEEL = common("storage_blocks/steel");
     //endregion

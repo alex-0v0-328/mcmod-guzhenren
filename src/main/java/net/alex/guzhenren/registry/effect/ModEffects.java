@@ -47,24 +47,24 @@ public final class ModEffects {
     public static final DeferredRegister<MobEffect> MOB_EFFECTS =
             DeferredRegister.create(Registries.MOB_EFFECT, Guzhenren.MOD_ID);
     static final int EFFECT_COLOR = 0xFFFFFF;
-    //region Time Path [宙道] -- Watch Gu [更蛊]: one effect per Gu, so both can be worn at once and their rates add
+    //region Time Path [宙道]
     public static final DeferredHolder<MobEffect, WatchGuEffect> SECOND_WATCH_GU = MOB_EFFECTS.register(
             "second_watch_gu", () -> new WatchGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR, 2, 2));
     public static final DeferredHolder<MobEffect, WatchGuEffect> THIRD_WATCH_GU = MOB_EFFECTS.register(
             "third_watch_gu", () -> new WatchGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR, 3, 3));
     //endregion
 
-    //region Wood Path [木道] -- Vitality Leaf Gu [生机叶蛊]
+    //region Wood Path [木道]
     public static final DeferredHolder<MobEffect, VitalityLeafGuEffect> VITALITY_LEAF_GU = MOB_EFFECTS.register(
             "vitality_leaf_gu", () -> new VitalityLeafGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
-    //region Water Path [水道] -- Heavenly Mugwort Gu [天蓬蛊]
+    //region Water Path [水道]
     public static final DeferredHolder<MobEffect, MarkerEffect> HEAVENLY_MUGWORT_GU = MOB_EFFECTS.register(
             "heavenly_mugwort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
-    //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]
+    //region Earth Path [土道]
     public static final DeferredHolder<MobEffect, MarkerEffect> JADE_SKIN_GU = MOB_EFFECTS.register(
             "jade_skin_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> WHITE_JADE_GU = MOB_EFFECTS.register(
@@ -80,7 +80,7 @@ public final class ModEffects {
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
-    //region Normal [基础力道] -- the crashes, Self Reliance, Hardship Strength and its Grievous Injury, All-Out Effort
+    //region Normal [基础力道]
     public static final DeferredHolder<MobEffect, CrashGuEffect> HORIZONTAL_CRASH_GU = MOB_EFFECTS.register(
             "horizontal_crash_gu", () -> new CrashGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, CrashGuEffect> VERTICAL_CRASH_GU = MOB_EFFECTS.register(
@@ -99,7 +99,7 @@ public final class ModEffects {
     //endregion
     //endregion
 
-    //region Wisdom Path [智道] -- Casual Gu [随意蛊] and Malicious Thought Gu [恶念蛊]
+    //region Wisdom Path [智道]
     public static final DeferredHolder<MobEffect, CasualGuEffect> CASUAL_GU = MOB_EFFECTS.register(
             "casual_gu", () -> new CasualGuEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MaliciousThoughtGuEffect> MALICIOUS_THOUGHT_GU = MOB_EFFECTS.register(
@@ -107,17 +107,17 @@ public final class ModEffects {
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR, new long[] { 2L, 20L, 200L, 2_000L }));
     //endregion
 
-    //region Blood Path [血道] -- Bleeding [流血], left by the Blood Moon Gu's blade
+    //region Blood Path [血道]
     public static final DeferredHolder<MobEffect, BleedingEffect> BLEEDING = MOB_EFFECTS.register(
             "bleeding", () -> new BleedingEffect(MobEffectCategory.HARMFUL, EFFECT_COLOR));
     //endregion
 
-    //region Food Path [食道] -- Liquor Worm [酒虫], shown while it distills
+    //region Food Path [食道]
     public static final DeferredHolder<MobEffect, MarkerEffect> LIQUOR_WORM = MOB_EFFECTS.register(
             "liquor_worm", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
 
-    //region Transformation Path [变化道] -- Temp Zombie [临时僵尸化]
+    //region Transformation Path [变化道]
     public static final DeferredHolder<MobEffect, MarkerEffect> TEMP_ZOMBIE = MOB_EFFECTS.register(
             "temp_zombie", () -> new MarkerEffect(MobEffectCategory.NEUTRAL, EFFECT_COLOR));
     //endregion

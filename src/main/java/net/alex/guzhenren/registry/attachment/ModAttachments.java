@@ -58,10 +58,10 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
  * attachment is carried and reset by being registered here, nowhere else. {@code HEALTH_CARRY} is built by hand
  * because a death must not carry it, and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a
- * body that the death just ended, and {@code AWAKENING_RITUAL}, which a death finishes before the clone;
- * {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW}, {@code SECOND_STAGE},
- * {@code SECOND_STAGE_THROTTLE} and {@code PLUNGE} are unsaved, so no clone carries them. ⚠ {@code BORN} stays inherited, or
- * the next login re-rolls brilliance.
+ * body that the death just ended, saved and never synced, and {@code AWAKENING_RITUAL}, which a death finishes
+ * before the clone; {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}
+ * and {@code PLUNGE} are unsaved, so no clone carries them. ⚠ {@code BORN} stays inherited, or the next login
+ * re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
  * {@code strength} as a subpackage of path. A constant is its record's class name without
@@ -152,7 +152,7 @@ public final class ModAttachments {
             registerSaved("dimension_return", DimensionReturnData.DEFAULT, DimensionReturnData.CODEC);
     //endregion
 
-    //region Rewind [如故] -- saved, never synced
+    //region Rewind [如故]
     public static final Supplier<AttachmentType<PlayerRewindData>> PLAYER_REWIND = ATTACHMENT_TYPES.register(
             "player_rewind", () -> AttachmentType.builder(() -> PlayerRewindData.DEFAULT)
                     .serialize(PlayerRewindData.CODEC, data -> !data.isEmpty())
