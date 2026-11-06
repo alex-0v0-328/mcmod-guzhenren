@@ -90,9 +90,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>DeferredRegister holder: the {@link GuProperties} chain on each registration, or the family helper right
  * under its ladder, IS the truth. A figure written down anywhere else is a copy of it, and when the two disagree
- * this file is the one that is right. The two shared helpers give every family its bar: {@link
- * #createRankedProperties}, the bar, use, day and health of every Gu paid per use by its rank, and {@link
- * #createChannelProperties}, whose channeled round [灌注] bills by progress. A family helper takes the figures
+ * this file is the one that is right. The two shared helpers give every family its bar. {@link
+ * #createRankedProperties} is a Gu paid per use: a bar of 2^(rank+1) uses of {@value #HUNGER_PER_USE} plus a buffer
+ * of two days' drain of {@value #HUNGER_PER_DAY} (the buffer is below one use), so 14, 26, 50, 98, 194 from rank I
+ * to V. {@link #createChannelProperties} is a channeled Gu [灌注]: a round bills {@value #HUNGER_PER_ROUND} by its
+ * progress, never by its essence, and the bar holds one round at ranks I and II, three from rank III, plus the same
+ * buffer, so 12, 12, 32, 32. A moon blade Gu fires again after {@value #MOON_BLADE_COOLDOWN_TICKS} ticks: the blade
+ * itself is the pacing, not a cooldown sweep. A family helper takes the figures
  * that differ along the ladder as arguments, so the ladder reads as table rows; a chain spells its facts in
  * one order -- type, branch, effect, refine, essence, bar, feed, cooldown -- one call a line. {@link #findGuWith}
  * finds the Gu a body state was made by, through the behavior that made it, for the path effect it carries. One
@@ -127,7 +131,6 @@ public final class ModItems {
     private static final ItemRegistrar REGISTRAR = ItemRegistrar.of(ITEMS);
     private static final long PRIMEVAL_STONE_ESSENCE = 20L;
     private static final float MOONLIGHT_DAMAGE = 6.0F;
-    /** A moon blade Gu fires again after 0.1 s: the blade itself is the pacing, not a cooldown sweep. */
     private static final int MOON_BLADE_COOLDOWN_TICKS = 2;
     private static final int HUNGER_PER_USE = 3;
     private static final int HUNGER_PER_DAY = 1;
@@ -152,10 +155,6 @@ public final class ModItems {
     }
 
     //region Shared bars [共用饱食条] -- the two bars every tended Gu family starts from
-    /**
-     * A tended Gu paid per use: a bar of 2^(rank+1) uses of {@value #HUNGER_PER_USE} plus a buffer of two days'
-     * drain of {@value #HUNGER_PER_DAY} (the buffer is below one use), so 14, 26, 50, 98, 194 from rank I to V.
-     */
     private static GuProperties createRankedProperties(Rank rank, GuPath path) {
         return GuProperties.of(rank, path)
                 .hungerBar(3 * (2 << rank.ordinal()) + 2 * HUNGER_PER_DAY, 1)
@@ -163,10 +162,6 @@ public final class ModItems {
                 .hungerPerDay(HUNGER_PER_DAY);
     }
 
-    /**
-     * A channeled Gu [灌注]: a round bills {@value #HUNGER_PER_ROUND} by its progress, never by its essence; the bar
-     * holds one round at ranks I and II, three from rank III, plus the same two days' buffer, so 12, 12, 32, 32.
-     */
     private static GuProperties createChannelProperties(Rank rank, GuPath path) {
         int rounds = rank.compareTo(Rank.THREE) < 0 ? 1 : 3;
         return GuProperties.of(rank, path)
@@ -217,8 +212,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Rule Path [律道] -- Amplify Effect Gu [功倍蛊]: held in the offhand, it multiplies another Gu's effect
-    // by its rank number; the ranked bar, paid per amplified use
+    //region Rule Path [律道] -- Amplify Effect Gu [功倍蛊]: offhand, multiplies another Gu's effect by its rank number
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_2 = REGISTRAR.item("amplify_effect_gu_2",
             () -> createAmplifyEffectGu(Rank.TWO, 1_600, 36))
             .lang("Amplify Effect Gu II", "二转功倍蛊").register();
@@ -242,8 +236,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Space Path [空道] -- Primeval Elder Gu [元老蛊]: a vault for Primeval Stones [元石] that never needs
-    // feeding at all
+    //region Space Path [空道] -- Primeval Elder Gu [元老蛊]: a vault for Primeval Stones [元石], never fed
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_1 = REGISTRAR.item("primeval_elder_gu_1",
             () -> createPrimevalElderGu(Rank.ONE, 1_000L, 800))
             .lang("Primeval Elder Gu I", "一转元老蛊").register();
@@ -268,8 +261,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Time Path [宙道] -- Watch Gu [更蛊] tended like any other and taken by the one use it is kept for;
-    // As Before Gu [如故蛊] never fed, nine points and 24 health back one per third of a day
+    //region Time Path [宙道] -- Watch Gu [更蛊] taken by its one use; As Before Gu [如故蛊] never fed, recovers by the day
     public static final DeferredItem<Item> SECOND_WATCH_GU = REGISTRAR.item("second_watch_gu",
             () -> createWatchGu(Rank.FOUR, 6_400, ModEffects.SECOND_WATCH_GU))
             .lang("Second Watch Gu", "两更蛊").register();
@@ -306,9 +298,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Human Path [人道] -- Hope Gu [希望蛊] opens the aperture in a ritual; Second Aperture Gu [第二空窍蛊]
-    // opens or upgrades the second aperture, a free one-shot taken by its use; Grade-A at 8/10, this rank's first
-    // stage, never a physique
+    //region Human Path [人道] -- Hope Gu [希望蛊] opens the aperture; Second Aperture Gu [第二空窍蛊] opens the second
     public static final DeferredItem<Item> HOPE_GU = REGISTRAR.item("hope_gu",
             () -> new HopeGuItem(GuProperties.of(Rank.ONE, GuPath.HUMAN)
                     .type(GuType.CULTIVATION)))
@@ -336,8 +326,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Metal Path [金道] -- body tempering [炼体]: bronze and iron skins, steel tendons and iron bones for good;
-    // one channeled round eats the whole bar and tempers the part
+    //region Metal Path [金道] -- body tempering [炼体]: one channeled round tempers skin, tendon or bone for good
     public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = REGISTRAR.item("bronze_skin_gu_1",
             () -> createTemperingGu(Rank.ONE, 800, 1_200, ModItemTags.BRONZE_SKIN_FEED,
                     new SkinBehavior(Skin.BRONZE_SKIN_1, 0)))
@@ -399,9 +388,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Wood Path [木道] -- Vitality Leaf Gu [生机叶蛊] heals once; Heavenly Essence Treasure Lotus [天元宝莲]
-    // mints 5% essence per second into stones; Nine Leaf Vitality Grass [九叶生机草] regrows nine Vitality Leaf Gu, one
-    // every 3 minutes or all at once for 80 essence
+    //region Wood Path [木道] -- Vitality Leaf Gu [生机叶蛊], Treasure Lotus [天元宝莲], Nine Leaf Vitality Grass [九叶生机草]
     public static final DeferredItem<Item> VITALITY_LEAF_GU = REGISTRAR.item("vitality_leaf_gu",
             () -> new OneShotGuItem(GuProperties.of(Rank.ONE, GuPath.WOOD)
                     .type(GuType.HEALING)
@@ -450,9 +437,7 @@ public final class ModItems {
             .lang("Heavenly Mugwort Gu", "天蓬蛊").register();
     //endregion
 
-    //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊] and White Jade Gu [白玉蛊]: a defensive skin for a while;
-    // Stone Aperture Gu [石窍蛊] never feeds, is taken by its use, and the aperture it leaves stands on this rank's
-    // peak, petrified
+    //region Earth Path [土道] -- Jade Skin Gu [玉皮蛊], White Jade Gu [白玉蛊]: a skin for a while; Stone Aperture Gu [石窍蛊]
     public static final DeferredItem<Item> JADE_SKIN_GU = REGISTRAR.item("jade_skin_gu",
             () -> createJadeSkinGu(Rank.ONE, 800, 12, ModItemTags.JADE_SKIN_FEED, Skin.JADE_SKIN, 60 * Ticks.SECOND))
             .lang("Jade Skin Gu", "玉皮蛊").register();
@@ -493,8 +478,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Light Path [光道] -- Little Light Gu [小光蛊]: glows in the hand, shines bright on a use and eats while
-    // it does; a killing move's partner, its use cost the one it pays there
+    //region Light Path [光道] -- Little Light Gu [小光蛊]: glows in the hand, shines bright on a use, eats while it does
     public static final DeferredItem<Item> LITTLE_LIGHT_GU = REGISTRAR.item("little_light_gu",
             () -> new LittleLightGuItem(createRankedProperties(Rank.ONE, GuPath.LIGHT)
                     .refine(800)
@@ -503,8 +487,7 @@ public final class ModItems {
             .lang("Little Light Gu", "小光蛊").register();
     //endregion
 
-    //region Moon Path [月道] -- Moonlight Gu [月光蛊] and Moonglow Gu [月芒蛊]: one moon blade a use, a killing
-    // move's main Gu with a Little Light Gu [小光蛊]; createMoonBladeGu also builds Blood Path's Blood Moon Gu
+    //region Moon Path [月道] -- Moonlight Gu [月光蛊] and Moonglow Gu [月芒蛊]: one moon blade a use; shared with Blood Moon
     public static final DeferredItem<Item> MOONLIGHT_GU = REGISTRAR.item("moonlight_gu",
             () -> createMoonBladeGu(Rank.ONE, GuPath.MOON, 800, 12, ModItemTags.MOONLIGHT_FEED,
                     MoonBladeEntity.Variant.MOON, MOONLIGHT_DAMAGE))
@@ -527,8 +510,7 @@ public final class ModItems {
     //endregion
 
     //region Strength Path [力道] -- two branches and the normal Gu outside them
-    //region Beast Strength Phantom Branch [兽力虚影流] -- carving Gu lay a beast's strength on the body for good; the
-    // buff Gu lend it for a while
+    //region Beast Strength Phantom Branch [兽力虚影流] -- carving Gu lay a beast's strength for good, buff Gu lend it
     public static final DeferredItem<Item> WHITE_BOAR_GU = REGISTRAR.item("white_boar_gu",
             () -> new TendedGuItem(createBeastStrengthProperties(ModItemTags.BOAR_FEED),
                     new BeastStrengthBehavior(BeastStrength.WHITE_BOAR)))
@@ -609,8 +591,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Normal [基础力道] -- Strength Path Gu outside the two branches: the crashes [横冲直撞], Self Reliance
-    // [自力更生], Hardship Strength [苦力] and All-Out Effort [全力以赴], which unlocks a stockpiled 99,999 jin
+    //region Normal [基础力道] -- crashes [横冲直撞], Self Reliance [自力更生], Hardship [苦力], All-Out Effort [全力以赴]
     public static final DeferredItem<Item> HORIZONTAL_CRASH_GU = REGISTRAR.item("horizontal_crash_gu",
             () -> createCrashGu(Rank.THREE, 3_200, 108,
                     new TimedBuffBehavior(ModEffects.HORIZONTAL_CRASH_GU, 30 * Ticks.SECOND)))
@@ -696,8 +677,7 @@ public final class ModItems {
     //endregion
     //endregion
 
-    //region Wisdom Path [智道] -- Casual Gu [随意蛊]: ten seconds of random thoughts; Malicious Thought Gu [恶念蛊]: a
-    // one-use flood of evil thoughts; both taken by their use
+    //region Wisdom Path [智道] -- Casual Gu [随意蛊] and Malicious Thought Gu [恶念蛊]: thoughts, taken by their use
     public static final DeferredItem<Item> CASUAL_GU_1 = REGISTRAR.item("casual_gu_1",
             () -> createCasualGu(Rank.ONE, 800, 8))
             .lang("Casual Gu I", "一转随意蛊").register();
@@ -762,8 +742,7 @@ public final class ModItems {
             .lang("Guts Gu", "一转胆识蛊").register();
     //endregion
 
-    //region Food Path [食道] -- Liquor Worm [酒虫]: a hunger bar of 8 days with 3 days a use, and only its own rank
-    // can drive it
+    //region Food Path [食道] -- Liquor Worm [酒虫]: a bar of 8 days with 3 days a use, driven only by its own rank
     public static final DeferredItem<Item> LIQUOR_WORM = REGISTRAR.item("liquor_worm",
             () -> createLiquorWorm(Rank.ONE, 800, 12, 8, 3, 1))
             .lang("Liquor Worm", "酒虫").register();
@@ -793,8 +772,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Transformation Path [变化道] -- Zombie Gu [僵尸蛊]: a timed Temp Zombie [临时僵尸化], and a 5-minute
-    // window that makes it permanent; the six rank V Gu share one row
+    //region Transformation Path [变化道] -- Zombie Gu [僵尸蛊]: a timed Temp Zombie, permanent after a 5-minute window
     public static final DeferredItem<Item> ROAMING_ZOMBIE_GU = REGISTRAR.item("roaming_zombie_gu",
             () -> createZombieGu(Rank.TWO, 1_600, 36, 16, 6, 2, 2 * Ticks.MINUTE))
             .lang("Roaming Zombie Gu", "游僵蛊").register();
@@ -842,8 +820,7 @@ public final class ModItems {
     }
     //endregion
 
-    //region Killing move books [杀招书] -- one per KillingMove row, same id; a read teaches it. Creative or command
-    // only for now
+    //region Killing move books [杀招书] -- one per KillingMove row, same id; a read teaches it; creative or command only
     public static final DeferredItem<Item> KM_MORTAL_LITTLE_LIGHT_AMPLIFY = REGISTRAR.item(
             "km_mortal_little_light_amplify",
             () -> new KillingMoveBookItem(new Item.Properties(), KillingMove.LITTLE_LIGHT_AMPLIFY))
@@ -888,7 +865,6 @@ public final class ModItems {
     //endregion
 
     //region Earth materials [土道蛊材] -- pure Gu material, earth path rank I; no natural source yet
-    // Rough Jade [玉原石] and Rough Jadeite [翡翠原石] smelt into Jade [玉] and Jadeite [翡翠], both jade skin Gu's food.
     public static final DeferredItem<Item> ROTTEN_FROZEN_MUD = REGISTRAR.item("rotten_frozen_mud",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
             .lang("Rotten Frozen Mud", "腐泥冻土").register();

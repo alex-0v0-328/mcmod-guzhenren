@@ -72,6 +72,10 @@ import org.jetbrains.annotations.Nullable;
  * the vanilla effect and its amplifier.</li>
  * </ul>
  *
+ * <p>{@code registerNamed} builds a beneficial type carrying one enum constant in {@code field}, named by its key
+ * around that constant's name; {@code registerUnit} and {@code registerTimedBuff} build the payload-free and the
+ * timed-buff shapes.
+ *
  * <p>⚠ The ids are save keys: renaming one drops every saved effect of that type. ⚠ {@code BY_ID} is declared
  * before the constants, since each constant registers into it during class initialization.
  *
@@ -172,7 +176,6 @@ public final class ModPathEffectTypes {
         return Collections.unmodifiableCollection(BY_ID.values());
     }
 
-    /** A beneficial type carrying one constant in {@code field}, named by its key around that constant's name. */
     private static <E extends Enum<E> & NamedEnum> PathEffectType<E> registerNamed(
             String id, String field, Class<E> type, Codec<E> codec, boolean exclusive) {
         return register(new PathEffectType<>(Guzhenren.id(id), codec.fieldOf(field), ModByteBufs.enumCodec(type),

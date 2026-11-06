@@ -64,8 +64,7 @@ public final class ModDataComponents {
     public static final Supplier<DataComponentType<Long>> HEALED_AT = registerLong("healed_at");
     //endregion
 
-    //region One Gu's own [单只蛊专用] -- Hope Gu's awakening base, the Elder Gu's vault, the lotus's heal bank, the
-    // grass's leaves, Little Light's bright state, Self Reliance's forced round; each present only on its Gu
+    //region One Gu's own [单只蛊专用] -- Hope's awaken base, Elder vault, lotus bank, leaves, Little Light, Self Reliance
     public static final Supplier<DataComponentType<Integer>> AWAKEN_BASE = registerInt("awaken_base");
     public static final Supplier<DataComponentType<Long>> STORED_STONES = registerLong("stored_stones");
     public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");
