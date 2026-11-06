@@ -27,7 +27,8 @@ import software.bernie.geckolib.util.Color;
  * bear's and the tiger's -- in the translucent gold {@code <model>_phantom} texture at full brightness, and redraws
  * it with {@code <model>_phantom_glowmask} as an emissive layer for the eyes and the faint body glow.
  *
- * <p>Draws every {@link BeastPhantomVisual}: the phantom beside its owner and the Beast Charge [兽力冲击] alike.
+ * <p>Draws every {@link BeastPhantomVisual}: the phantom beside its owner and the Beast Charge [兽力冲击] alike, at
+ * {@link #PHANTOM_SCALE} times the wild beast's size; the entities' culling boxes grow to match.
  * Back-face culled like the soul traders, so the far side of the silhouette does not show through. Each fades as its
  * own {@link BeastPhantomVisual#getFade} says; the glow layer is additive and ignores alpha, so it fades by darkening
  * instead. GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw. No shadow, no
@@ -41,9 +42,13 @@ import software.bernie.geckolib.util.Color;
 
 public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhantomVisual> extends GeoEntityRenderer<T> {
 
+    /** The phantom beasts are drawn this many times the wild beasts' size. */
+    public static final float PHANTOM_SCALE = 3.0F;
+
     public BeastPhantomRenderer(EntityRendererProvider.Context context) {
         super(context, new PhantomModel<>());
         this.shadowRadius = 0.0F;
+        this.withScale(PHANTOM_SCALE);
         this.addRenderLayer(new GlowLayer<>(this));
     }
 

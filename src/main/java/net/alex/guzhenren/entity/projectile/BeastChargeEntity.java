@@ -38,13 +38,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * phantom beast of the round's family running at the lock-on target. It flies a {@link MoonBladeArc} from the muzzle to
  * the target's center, read afresh every tick, at {@link #SPEED} blocks a tick for at most {@link #MAX_FLIGHT_TICKS},
  * without gravity or drag, and passes through every other entity. When the flight runs out, or its box touches the
- * target, it bursts ({@link QiBurst#burst}) around the target; a block in the way stops it with no burst. A
- * target gone mid-flight drops the arc and the charge runs on straight until its time runs out, bursting nowhere.
+ * target, it bursts ({@link QiBurst#burst}) around the target and is gone that tick; a block in the way, or a flight
+ * that runs out with no target left, takes it away with no burst. Nothing lingers: the strike is the burst itself.
  *
- * <p>Stopped, it stays where it stopped, plays its family's attack once and fades over {@link #DISSOLVE_TICKS}.
- * It runs while it flies and faces its motion, turned by yaw alone. The server owns the burst and the damage, set
- * once by {@link #shoot}; the client copy flies the same curve from the synced target, bend and flight ticks. It is
- * never saved. ⚠ {@link #DISSOLVE_TICKS} is provisional.
+ * <p>It runs while it flies and faces its motion, turned by yaw alone, fading in over {@link #FADE_IN_TICKS}. The
+ * server owns the burst and the damage, set once by {@link #shoot}; the client copy flies the same curve from the
+ * synced target, bend and flight ticks. It is never saved.
  *
  * @author Alex
  * @version 1.0.0
@@ -58,16 +57,12 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     public static final float SPEED = 1.5F;
     public static final int MAX_FLIGHT_TICKS = 10;
     public static final int GRACE_TICKS = 2;
-    public static final int DISSOLVE_TICKS = 10;
-    private static final int FADE_IN_TICKS = 3;
+    public static final int FADE_IN_TICKS = 3;
     private static final int NO_TARGET = -1;
-    private static final int FLYING = -1;
     private static final float SPAWN_DROP = 0.3F;
-    private static final double CULL_MARGIN = 1.5D;
+    private static final double CULL_MARGIN = 4.5D;
     private static final Map<BeastStrengthFamily, RawAnimation> RUNS =
             BeastPhantomVisual.byFamily(family -> BeastPhantomVisual.getLoop(family, "run"));
-    private static final Map<BeastStrengthFamily, RawAnimation> ATTACKS =
-            BeastPhantomVisual.byFamily(family -> BeastPhantomVisual.getAttack(family, "idle"));
     private static final EntityDataAccessor<Integer> TARGET =
             SynchedEntityData.defineId(BeastChargeEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Vector3f> BEND =
@@ -75,8 +70,6 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     private static final EntityDataAccessor<Integer> FLIGHT_TICKS =
             SynchedEntityData.defineId(BeastChargeEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FAMILY =
-            SynchedEntityData.defineId(BeastChargeEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> STOPPED_AT =
             SynchedEntityData.defineId(BeastChargeEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private float damage;
@@ -109,8 +102,6 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
 
     public float getDamage() { return damage; }
 
-    public boolean isStopped() { return entityData.get(STOPPED_AT) != FLYING; }
-
     @Override
     public BeastStrengthFamily getFamily() {
         BeastStrengthFamily[] families = BeastStrengthFamily.values();
@@ -119,10 +110,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
 
     @Override
     public float getFade(float partialTick) {
-        float age = tickCount + partialTick;
-        int stoppedAt = entityData.get(STOPPED_AT);
-        float out = stoppedAt == FLYING ? 1.0F : 1.0F - (age - stoppedAt) / DISSOLVE_TICKS;
-        return Mth.clamp(Math.min(age / FADE_IN_TICKS, out), 0.0F, 1.0F);
+        return Mth.clamp((tickCount + partialTick) / FADE_IN_TICKS, 0.0F, 1.0F);
     }
 
     public @Nullable LivingEntity getTarget() {
@@ -144,18 +132,13 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         builder.define(BEND, new Vector3f());
         builder.define(FLIGHT_TICKS, 0);
         builder.define(FAMILY, BeastStrengthFamily.BOAR.ordinal());
-        builder.define(STOPPED_AT, FLYING);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (isStopped()) {
-            if (!level().isClientSide() && tickCount - entityData.get(STOPPED_AT) >= DISSOLVE_TICKS) discard();
-            return;
-        }
         if (!level().isClientSide() && tickCount > entityData.get(FLIGHT_TICKS) + GRACE_TICKS) {
-            stop();
+            discard();
             return;
         }
         LivingEntity target = followArc();
@@ -167,7 +150,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         if (hit.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hit)) {
             hitTargetOrDeflectSelf(hit);
         }
-        if (isRemoved() || isStopped()) return;
+        if (isRemoved()) return;
 
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
         face(motion);
@@ -212,12 +195,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     @Override
     protected void onHit(@NotNull HitResult result) {
         super.onHit(result);
-        if (!level().isClientSide()) stop();
-    }
-
-    private void stop() {
-        setDeltaMovement(Vec3.ZERO);
-        entityData.set(STOPPED_AT, tickCount);
+        if (!level().isClientSide()) discard();
     }
 
     @Override
@@ -236,8 +214,8 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     //region Animation [动画]
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "charge", 0, state -> state.setAndContinue(
-                (isStopped() ? ATTACKS : RUNS).get(getFamily()))));
+        controllers.add(new AnimationController<>(this, "charge", 0,
+                state -> state.setAndContinue(RUNS.get(getFamily()))));
     }
 
     @Override

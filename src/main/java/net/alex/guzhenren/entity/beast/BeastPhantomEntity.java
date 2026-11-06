@@ -58,7 +58,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     public static final double FORWARD_OFFSET = 0.5D;
     public static final double BACK_OFFSET = 1.2D;
     private static final double SEARCH_RANGE = 4.0D;
-    private static final double CULL_MARGIN = 1.5D;
+    private static final double CULL_MARGIN = 4.5D;
     private static final int NO_OWNER = -1;
     private static final EntityDataAccessor<Integer> OWNER =
             SynchedEntityData.defineId(BeastPhantomEntity.class, EntityDataSerializers.INT);
