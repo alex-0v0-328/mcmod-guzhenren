@@ -5,7 +5,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Stone Aperture Gu's [石窍蛊] module: its target hits this rank's peak and petrifies -- never nourished,
+ * The Stone Aperture Gu's [石窍蛊] behavior: its target hits this rank's peak and petrifies -- never nourished,
  * never struck again.
  *
  * <p>Three rungs register with it. {@link #getStoneTarget} is the pure seam the unit tests pin: the target is the
@@ -24,14 +24,14 @@ import org.jetbrains.annotations.Nullable;
  * primary does NOT pass it on -- the fall-through is for a lost aperture, not for a wrong rank. The gate refuses no
  * usable target, a rank mismatch on the target, and a target already at the peak (that use would buy only the
  * lock). The payout delegates to {@link ApertureNourishService#petrify}. {@code StateEffects} finds the Gu of a
- * petrified rank by this module.
+ * petrified rank by this behavior.
  *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0
  */
 
-public record PetrifyModule() implements GuModule {
+public record PetrifyBehavior() implements GuBehavior {
 
     public static final int NO_TARGET = -1;
     private static final String FAILED_UNAVAILABLE = "guzhenren.item.failed.aperture_unavailable";

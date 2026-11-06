@@ -2,7 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.path.rule;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
@@ -27,10 +27,10 @@ import org.jetbrains.annotations.Nullable;
  * own use never reaches the server but by a forged packet, and is refused; from the offhand it does not answer the
  * click at all, so a refused main-hand Gu keeps its own reason on the action bar.
  *
- * <p>A Gu answers it through a module that declares {@code canBeAmplified} and asks {@link #bill} from its own
- * payout, multiplying its effect's length: {@code TimedBuffModule}, {@code AllOutEffortModule}, the timed
- * {@code SkinModule} (Jade Skin, White Jade), {@code ShieldModule} (Heavenly Mugwort, its length and not its
- * points), {@code VitalityLeafModule} and {@code WatchModule}; {@code SelfRelianceModule} multiplies each heal
+ * <p>A Gu answers it through a behavior that declares {@code canBeAmplified} and asks {@link #bill} from its own
+ * payout, multiplying its effect's length: {@code TimedBuffBehavior}, {@code AllOutEffortBehavior}, the timed
+ * {@code SkinBehavior} (Jade Skin, White Jade), {@code ShieldBehavior} (Heavenly Mugwort, its length and not its
+ * points), {@code VitalityLeafBehavior} and {@code WatchBehavior}; {@code SelfRelianceBehavior} multiplies each heal
  * pulse instead. {@link #bill}
  * answers the factor, the driving or offhand amplifier's, billed there, or 1.
  * {@link #canAmplify} is the one eligibility test (the amplifier refined, the target amplifiable, refined if tended,
@@ -62,8 +62,8 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
         public static final Amplification NONE = new Amplification(1, null);
     }
 
-    public AmplifyEffectGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
+    public AmplifyEffectGuItem(Properties properties, GuProperties guProperties) {
+        super(properties, guProperties);
     }
 
     public int getMultiplier() { return getRank().ordinal(); }

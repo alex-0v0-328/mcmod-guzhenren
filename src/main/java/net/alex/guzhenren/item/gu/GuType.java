@@ -8,13 +8,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Closed vocabulary enum. A branch ({@link #RETALIATION}, {@link #STEED}, {@link #FLYING},
  * {@link #IDENTITY}) names its parent; a top-level type has none. A Gu carries at most one constant, set through
- * {@code GuSpec.type}, and may carry none: a lifespan Gu or a zombie Gu belongs to no usage type and shows no
+ * {@code GuProperties.type}, and may carry none: a lifespan Gu or a zombie Gu belongs to no usage type and shows no
  * line. The lifecycle (one-shot, tended, consumed) stays with the item class and never becomes a constant
  * here.
  *
  * @author Alex
  * @version 1.0.0
- * @see GuSpec
+ * @see GuProperties
  * @since 1.0.0
  */
 
@@ -33,7 +33,7 @@ public enum GuType implements NamedEnum {
     STORAGE,
     CULTIVATION,
     AMPLIFICATION,
-    DAO_MARK_CARVING;
+    PATH_MARK_CARVING;
 
     private final @Nullable GuType parent;
 

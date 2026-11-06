@@ -2,9 +2,9 @@ package net.alex.guzhenren.item.gu.mortal.path.wood;
 
 import net.alex.guzhenren.effect.timed.VitalityLeafGuEffect;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.module.TimedEffects;
+import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Vitality Leaf Gu's [生机叶蛊] module: grants the vitality effect [生机叶], refusing while one is still running.
+ * The Vitality Leaf Gu's [生机叶蛊] behavior: grants the vitality effect [生机叶], refusing while one is still running.
  *
  * <p>The gate checks {@link TimedEffects#hasLeaf} so a re-use while the leaf runs is a refusal, not a refresh; the
  * effect hands its duration to {@link TimedEffects#grantLeaf}. An Amplify Effect Gu [功倍蛊] multiplies that
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record VitalityLeafModule() implements GuModule {
+public record VitalityLeafBehavior() implements GuBehavior {
 
     private static final String FAILED_VITALITY_ACTIVE = "guzhenren.item.failed.vitality_active";
 

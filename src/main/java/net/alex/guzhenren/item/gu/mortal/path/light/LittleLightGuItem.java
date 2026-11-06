@@ -2,7 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.path.light;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * never {@code false}, so the definition can match it and a switched-off stack equals a fresh one.
  *
  * <p>⚠ The switch bills no essence: {@code performOwnUse} replaces {@code drive}, and {@code useThreshold} is 0.
- * Turning bright on is one round: it pays the spec's use hunger once, eating from the bag before and after the drop
+ * Turning bright on is one round: it pays the properties' use hunger once, eating from the bag before and after the drop
  * like any use, and stays bright for {@link #BRIGHT_TICKS} of server game time (the day clock's own ticks, not
  * scaled by self-time), held or not; a second press turns it off early and refunds nothing. The same use hunger is
  * what a killing move takes from this Gu as a partner when it starts. A wild one has no switch, so it can only glow
@@ -55,8 +55,8 @@ public final class LittleLightGuItem extends TendedGuItem {
     private static final String MSG_DIMMED = "guzhenren.item.gu.little_light_dimmed";
     private static final String TOOLTIP_BRIGHT = "guzhenren.item.gu.little_light_bright";
 
-    public LittleLightGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
+    public LittleLightGuItem(Properties properties, GuProperties guProperties) {
+        super(properties, guProperties);
     }
 
     public static boolean isBright(ItemStack stack) {
@@ -86,7 +86,7 @@ public final class LittleLightGuItem extends TendedGuItem {
     private void payRound(ServerPlayer player, ItemStack stack) {
         RefinedGuState state = getState(stack);
         stack.set(ModDataComponents.REFINED_GU_STATE,
-                state.withHunger(Math.max(0, state.hunger() - spec.getHungerPerUse())));
+                state.withHunger(Math.max(0, state.hunger() - guProperties.getHungerPerUse())));
         feedAndWarn(player, stack);
     }
 

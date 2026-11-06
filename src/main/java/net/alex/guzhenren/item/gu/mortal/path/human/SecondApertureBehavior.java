@@ -3,7 +3,7 @@ package net.alex.guzhenren.item.gu.mortal.path.human;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Second Aperture Gu's [第二空窍蛊] module: the only opener of the second aperture, human path. Its Gu is
+ * The Second Aperture Gu's [第二空窍蛊] behavior: the only opener of the second aperture, human path. Its Gu is
  * one-shot: refining and using are free and instant, it carries no state and it stacks. Five rungs register it.
  *
  * <p>The gate refuses only a second aperture already at or above the Gu's rung -- an upgrade must be
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record SecondApertureModule() implements GuModule {
+public record SecondApertureBehavior() implements GuBehavior {
 
     private static final String FAILED_SECOND_RANK = "guzhenren.item.failed.second_aperture_rank";
 

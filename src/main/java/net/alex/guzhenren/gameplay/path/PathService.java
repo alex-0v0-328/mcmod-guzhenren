@@ -9,7 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only runtime writer of Path [流派] progress: attainment and the bare Dao marks [道痕].
+ * The only runtime writer of Path [流派] progress: attainment and the bare path marks [道痕].
  *
  * <p>Static service over the {@code path_data} attachment; reads take {@link Player}, writes take
  * {@link ServerPlayer}. Bare marks are whole marks [条] and strands [丝] on the body [肉体] that do nothing; the
@@ -39,11 +39,11 @@ public final class PathService {
         return getEntry(player, path).attainment();
     }
 
-    public static @NotNull DaoMarks getBareMarks(@NotNull Player player, @NotNull GuPath path) {
+    public static @NotNull PathMarks getBareMarks(@NotNull Player player, @NotNull GuPath path) {
         return getEntry(player, path).marks();
     }
 
-    public static @NotNull DaoMarks getMarks(@NotNull Player player, @NotNull GuPath path) {
+    public static @NotNull PathMarks getMarks(@NotNull Player player, @NotNull GuPath path) {
         return getBareMarks(player, path).add(PathEffectService.getMarks(player, path));
     }
 
@@ -71,7 +71,7 @@ public final class PathService {
         setBareStrands(player, path, LongMath.saturatedAdd(getBareMarks(player, path).strands(), delta));
     }
 
-    private static void storeBare(ServerPlayer player, GuPath path, DaoMarks marks) {
+    private static void storeBare(ServerPlayer player, GuPath path, PathMarks marks) {
         store(player, get(player).with(path, getEntry(player, path).withMarks(marks)));
     }
 

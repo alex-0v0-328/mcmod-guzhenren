@@ -1,16 +1,16 @@
-package net.alex.guzhenren.item.gu.mortal.module;
+package net.alex.guzhenren.item.gu.mortal.behavior;
 
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The recast module [冷却中再催]: its Gu may be driven again inside its effect cooldown, at double the hunger. The
- * buff Gu ({@link TimedBuffModule}) and the Heavenly Mugwort Gu [天蓬蛊] carry it.
+ * The recast behavior [冷却中再催]: its Gu may be driven again inside its effect cooldown, at double the hunger. The
+ * buff Gu ({@link TimedBuffBehavior}) and the Heavenly Mugwort Gu [天蓬蛊] carry it.
  *
  * <p>Only the effect cooldown is waived; the item cooldown and the post-refine guard still hold. What a recast
- * does to the running effect (a buff adds its length, a shield refills) is the effect module's own.
+ * does to the running effect (a buff adds its length, a shield refills) is the effect behavior's own.
  *
  * @author Alex
  * @version 1.0.0
@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 
-public record RecastModule() implements GuModule {
+public record RecastBehavior() implements GuBehavior {
 
     private static final int COOLDOWN_HUNGER_MULTIPLIER = 2;
 

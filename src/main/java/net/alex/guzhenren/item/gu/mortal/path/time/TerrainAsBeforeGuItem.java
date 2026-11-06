@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.gameplay.rewind.ChunkRewindService;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -44,8 +44,8 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
     private static final String MSG_WATER = "guzhenren.item.gu.as_before_water";
     private final ChunkKind kind;
 
-    public TerrainAsBeforeGuItem(Properties properties, ChunkKind kind, GuSpec spec) {
-        super(properties, spec);
+    public TerrainAsBeforeGuItem(Properties properties, ChunkKind kind, GuProperties guProperties) {
+        super(properties, guProperties);
         this.kind = kind;
     }
 

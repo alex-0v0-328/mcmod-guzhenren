@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
  * A one-shot Gu [一次性]: refining and using are one instant act, so it carries no state and it stacks.
  *
  * <p>Extends {@link MortalGuItem} with {@code useDurationTicks = 0} (instant) and the shared
- * two-second post-refinement cooldown. The gate checks essence against {@code refineCost}, then the modules;
- * {@code performUse} pays the cost, runs every module and takes the one Gu, in one step. Hope Gu [希望蛊] is the
+ * two-second post-refinement cooldown. The gate checks essence against {@code refineCost}, then the behaviors;
+ * {@code performUse} pays the cost, runs every behavior and takes the one Gu, in one step. Hope Gu [希望蛊] is the
  * exception: {@code stacksTo(1)} and the awakening ritual [开窍仪式] its click starts, handled by its own leaf class.
  *
  * @author Alex
@@ -25,8 +25,8 @@ public class OneShotGuItem extends MortalGuItem {
 
     private static final String TOOLTIP_REFINE_COST = "guzhenren.item.gu.refine_cost";
 
-    public OneShotGuItem(Properties properties, GuSpec spec, GuModule... modules) {
-        super(properties, spec, modules);
+    public OneShotGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
+        super(properties, guProperties, behaviors);
     }
 
     //region the one press

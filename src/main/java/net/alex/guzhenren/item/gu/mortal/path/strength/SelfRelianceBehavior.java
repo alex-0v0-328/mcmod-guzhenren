@@ -6,10 +6,10 @@ import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.strength.SelfRelianceHeal;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
-import net.alex.guzhenren.item.gu.mortal.module.TimedEffects;
+import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -23,8 +23,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Self Reliance module [自力更生]: a use starts a heal that runs until the holder is back to
- * {@link #HEAL_CEILING} of max health. The Self Reliance Gu carries it with an {@link AutoUseModule}.
+ * The Self Reliance behavior [自力更生]: a use starts a heal that runs until the holder is back to
+ * {@link #HEAL_CEILING} of max health. The Self Reliance Gu carries it with an {@link AutoUseBehavior}.
  *
  * <p>Every {@link #PULSE_TICKS} the heal mends {@code pulseHeal} of max health, times the Amplify Effect Gu
  * [功倍蛊] factor billed at the start, never past the ceiling. Damage taken meanwhile is healed too. While the
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * ({@link #getCeiling}): the gate refuses there as healthy and a running round ends there, instead of pulsing
  * into heals {@code HardshipEvents.onHeal} would cancel.
  *
- * <p>⚠ One heal is one round: the use that starts it pays the spec's hunger once, like any use, and the pulses pay
+ * <p>⚠ One heal is one round: the use that starts it pays the properties' hunger once, like any use, and the pulses pay
  * nothing. The heal ends at the ceiling or when no refined copy is carried in the bag ({@code items} or offhand).
  * The gate refuses at the ceiling and while a heal of the same or a higher grade runs; a higher grade takes a
  * lower one's heal and strands.
@@ -47,12 +47,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Alex
  * @version 1.0.0
- * @see AutoUseModule
+ * @see AutoUseBehavior
  * @see SelfRelianceHeal
  * @since 1.0.0
  */
 
-public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule {
+public record SelfRelianceBehavior(int grade, float pulseHeal) implements GuBehavior {
 
     public static final int PULSE_TICKS = 5;
     public static final float HEAL_CEILING = 0.9F;
@@ -105,12 +105,12 @@ public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule
             end(player);
             return;
         }
-        SelfRelianceModule module = gu.getModule(SelfRelianceModule.class);
-        if (module == null || isHealed(player)) {
+        SelfRelianceBehavior behavior = gu.getBehavior(SelfRelianceBehavior.class);
+        if (behavior == null || isHealed(player)) {
             end(player);
             return;
         }
-        module.mend(player, heal.payload().factor());
+        behavior.mend(player, heal.payload().factor());
         if (isHealed(player)) end(player);
     }
 
@@ -137,7 +137,7 @@ public record SelfRelianceModule(int grade, float pulseHeal) implements GuModule
         player.heal(Math.min(pulseHeal * factor * max, max * getCeiling(player) - player.getHealth()));
     }
 
-    /** The share of max health a round heals to: the Hardship ceiling while that Gu runs, else the module's. */
+    /** The share of max health a round heals to: the Hardship ceiling while that Gu runs, else the behavior's. */
     public static float getCeiling(Player player) {
         return player.hasEffect(ModEffects.HARDSHIP_STRENGTH_GU) ? Math.min(HEAL_CEILING, HardshipEvents.HEAL_CEILING)
                 : HEAL_CEILING;

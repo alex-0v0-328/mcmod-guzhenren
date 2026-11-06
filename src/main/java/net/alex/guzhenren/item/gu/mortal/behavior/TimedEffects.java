@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.module;
+package net.alex.guzhenren.item.gu.mortal.behavior;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ import net.alex.guzhenren.gameplay.body.ShieldType;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinShedEvent;
 import net.alex.guzhenren.gameplay.body.SkinWornEvent;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectEndedEvent;
@@ -22,7 +22,7 @@ import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
-import net.alex.guzhenren.item.gu.mortal.path.water.ShieldModule;
+import net.alex.guzhenren.item.gu.mortal.path.water.ShieldBehavior;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  * Nothing here reads a mark to size anything.
  *
  * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in
- * {@code ModItems}, and its {@code GuSpec} supplies the carrier, path and strands, source the Gu's item id. The
+ * {@code ModItems}, and its {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. The
  * buff, leaf and watch effects are the truth of their state and the vanilla effect only their icon, timer and
  * amplifier: {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. A Gu's gate reads
  * {@link #findBuff} and its kin; a rule that reads the vanilla effect (attack, carrying capacity, time flow) pauses
@@ -141,7 +141,7 @@ public final class TimedEffects {
                     ModPathEffectTypes.WATCH_RATE, endTick, form.unwrapKey().orElseThrow().location()));
         } else {
             boolean stacks = own.layers() < rate.getNextAmplifier(own.layers() - 1) + 1;
-            Map<GuPath, DaoMarks> layer = gu.getSpec().getEffectPaths();
+            Map<GuPath, PathMarks> layer = gu.getGuProperties().getEffectPaths();
             PathEffectService.update(player, ModPathEffectTypes.WATCH_RATE, source, effect -> stacks
                     ? effect.addLayer(layer).withEndTick(endTick)
                     : effect.withEndTick(Math.max(effect.endTick(), endTick)));
@@ -155,9 +155,9 @@ public final class TimedEffects {
                                          @NotNull ResourceLocation source, @NotNull Amplification amplification) {
         if (amplification.gu() == null) return;
 
-        Map<GuPath, DaoMarks> wanted = amplification.gu().getSpec().getEffectPaths();
+        Map<GuPath, PathMarks> wanted = amplification.gu().getGuProperties().getEffectPaths();
         PathEffectService.update(player, type, source, effect -> {
-            Map<GuPath, DaoMarks> missing = new HashMap<>();
+            Map<GuPath, PathMarks> missing = new HashMap<>();
             wanted.forEach((path, marks) -> missing.put(path, marks.cut(effect.getMarks(path))));
             return effect.addMarks(missing);
         });
@@ -179,7 +179,7 @@ public final class TimedEffects {
     private static void syncSkin(ServerPlayer player) {
         Skin skin = BodyService.getSkin(player);
         MortalGuItem gu = skin.isTimed()
-                ? ModItems.findGuWith(SkinModule.class, module -> module.getGrade() == skin) : null;
+                ? ModItems.findGuWith(SkinBehavior.class, behavior -> behavior.getGrade() == skin) : null;
         if (gu == null) {
             PathEffectService.removeType(player, ModPathEffectTypes.TIMED_SKIN);
             return;
@@ -230,7 +230,7 @@ public final class TimedEffects {
     }
 
     private static @Nullable MortalGuItem findShieldGu(ShieldType type) {
-        return ModItems.findGuWith(ShieldModule.class, module -> module.type() == type);
+        return ModItems.findGuWith(ShieldBehavior.class, behavior -> behavior.type() == type);
     }
     //endregion
 

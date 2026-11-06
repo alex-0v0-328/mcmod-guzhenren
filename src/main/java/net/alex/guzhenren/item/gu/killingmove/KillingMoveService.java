@@ -12,7 +12,7 @@ import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
-import net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeModule;
+import net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeBehavior;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -66,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
  * or whatever its crosshair rested on within {@link #AIM_RANGE} blocks), or none. {@link #drive} checks it again
  * ({@link #resolveTarget}: a living entity, alive, not the shooter, ahead of the eye and within
  * {@link #AIM_CHECK_RANGE} blocks, the client's range plus slack for the latency) and sets it as the aiming context
- * around the in-place use; {@link #getAimedTarget}, asked by the blade module while it fires, answers it, so the
+ * around the in-place use; {@link #getAimedTarget}, asked by the blade behavior while it fires, answers it, so the
  * blade flies {@code MoonBladeArc} to it. A target that fails any check, or no target, fires the straight blade.
  *
  * <p>A cast that landed (the partner paid, so the factor applied) answers a {@link Cast} for the Killing Move Tooltip
@@ -153,7 +153,7 @@ public final class KillingMoveService {
 
     public static @Nullable TendedGuItem asBladeGu(@NotNull ItemStack stack) {
         return stack.getItem() instanceof TendedGuItem gu && gu.isRefined(stack)
-                && gu.getModule(MoonBladeModule.class) != null ? gu : null;
+                && gu.getBehavior(MoonBladeBehavior.class) != null ? gu : null;
     }
 
     /** The learned moves this main Gu leads with a partner carried or stored, in table order. */

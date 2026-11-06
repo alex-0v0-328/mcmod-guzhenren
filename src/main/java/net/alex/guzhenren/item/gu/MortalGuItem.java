@@ -32,21 +32,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A mortal Gu [凡蛊]: holds the {@link GuSpec}, the {@link GuModule}s and the essence [真元] gate, but no per-stack
+ * A mortal Gu [凡蛊]: holds the {@link GuProperties}, the {@link GuBehavior}s and the essence [真元] gate, but no per-stack
  * state.
  *
  * <p>Sits between {@link GuItem} and three lifecycle hosts: {@link OneShotGuItem} (refining IS the use, stacks,
  * no state), {@link TendedGuItem} (refined then fed and used, carries {@link RefinedGuState}) with its
  * {@link ConsumedGuItem}, and the Hope Gu [希望蛊], which opens an aperture and is none of them. The constructor runs
- * {@link GuSpec#validate} so a typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the
+ * {@link GuProperties#validate} so a typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the
  * one check a stage-raising Gu runs: the aperture's rank must be the Gu's own, and its stage below the peak.
  * {@link #getUseEssence} is what one use pays (a tended Gu's cost per use, a one-shot Gu's refining, nothing for a
  * channel), and {@link #canBeAmplified} says whether an Amplify Effect Gu [功倍蛊] multiplies it. The tooltip's usage
  * type line [类型] ({@link #formatType}) shows the type alone, or a branch after its parent ({@code 防御 · 反击}).
  *
- * <p>What a Gu does is its modules, in registration order: {@link #checkModules} is the first refusal,
- * {@link #applyModules} runs them all, and {@link #getModule} is how other code asks what a Gu does. ⚠ At most one
- * module may be amplified, because each that is bills the Amplify Effect Gu from its own effect: the constructor
+ * <p>What a Gu does is its behaviors, in registration order: {@link #checkModules} is the first refusal,
+ * {@link #applyModules} runs them all, and {@link #getBehavior} is how other code asks what a Gu does. ⚠ At most one
+ * behavior may be amplified, because each that is bills the Amplify Effect Gu from its own effect: the constructor
  * refuses a second, naming the Gu.
  *
  * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
@@ -71,7 +71,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Alex
  * @version 1.0.0
- * @see GuSpec
+ * @see GuProperties
  * @since 1.0.0
  */
 
@@ -91,19 +91,19 @@ public abstract class MortalGuItem extends GuItem {
     protected static final String CAPTION_USING_PLAIN = "guzhenren.hud.using_plain";
     private static final String CAPTION_REFINING_PLAIN = "guzhenren.hud.refining_plain";
     private static final String CAPTION_REFINING = "guzhenren.hud.refining";
-    protected final GuSpec spec;
-    private final List<GuModule> modules;
+    protected final GuProperties guProperties;
+    private final List<GuBehavior> behaviors;
 
-    protected MortalGuItem(Properties properties, GuSpec spec, GuModule... modules) {
-        super(properties, spec.getRank(), spec.getPath());
-        this.spec = spec;
-        this.modules = List.of(modules);
+    protected MortalGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
+        super(properties, guProperties.getRank(), guProperties.getPath());
+        this.guProperties = guProperties;
+        this.behaviors = List.of(behaviors);
         String id = getRank().name() + " " + getClass().getSimpleName()
-                + this.modules.stream().map(module -> module.getClass().getSimpleName()).toList();
-        spec.validate(id);
-        long amplified = this.modules.stream().filter(GuModule::canBeAmplified).count();
+                + this.behaviors.stream().map(behavior -> behavior.getClass().getSimpleName()).toList();
+        guProperties.validate(id);
+        long amplified = this.behaviors.stream().filter(GuBehavior::canBeAmplified).count();
         if (amplified > 1) {
-            throw new IllegalStateException("Gu '%s' has %d amplified modules; each would bill the Amplify Effect Gu"
+            throw new IllegalStateException("Gu '%s' has %d amplified behaviors; each would bill the Amplify Effect Gu"
                     .formatted(id, amplified));
         }
     }
@@ -111,46 +111,46 @@ public abstract class MortalGuItem extends GuItem {
     @Override
     protected String getKindKey() { return KIND_KEY; }
 
-    public GuSpec getSpec() { return spec; }
+    public GuProperties getGuProperties() { return guProperties; }
 
-    public int getRefineCost() { return spec.getRefineCost(); }
+    public int getRefineCost() { return guProperties.getRefineCost(); }
 
-    public long getUseEssence() { return spec.isChanneled() ? 0L : spec.getEssencePerRound(); }
+    public long getUseEssence() { return guProperties.isChanneled() ? 0L : guProperties.getEssencePerRound(); }
 
-    public boolean canBeAmplified() { return modules.stream().anyMatch(GuModule::canBeAmplified); }
+    public boolean canBeAmplified() { return behaviors.stream().anyMatch(GuBehavior::canBeAmplified); }
 
     /** The source of every path effect this Gu lays down: its item id. */
     public final ResourceLocation getEffectSource() { return BuiltInRegistries.ITEM.getKey(this); }
 
     public final <P> PathEffect<P> createEffect(PathEffectType<P> type, long endTick, P payload) {
-        return spec.createEffect(type, getEffectSource(), endTick, payload);
+        return guProperties.createEffect(type, getEffectSource(), endTick, payload);
     }
 
     public final int getEffectCooldownLeft(Player player, ItemStack stack) {
         return GuCooldowns.getCooldownLeft(player, stack.get(ModDataComponents.USED_AT),
-                spec.getEffectCooldownTicks());
+                guProperties.getEffectCooldownTicks());
     }
 
-    //region modules -- what the Gu does, asked in registration order
-    public <M extends GuModule> @Nullable M getModule(Class<M> type) {
-        for (GuModule module : modules) {
-            if (type.isInstance(module)) return type.cast(module);
+    //region behaviors -- what the Gu does, asked in registration order
+    public <M extends GuBehavior> @Nullable M getBehavior(Class<M> type) {
+        for (GuBehavior behavior : behaviors) {
+            if (type.isInstance(behavior)) return type.cast(behavior);
         }
         return null;
     }
 
-    protected final List<GuModule> getModules() { return modules; }
+    protected final List<GuBehavior> getModules() { return behaviors; }
 
     protected final @Nullable Refusal checkModules(Player player, ItemStack stack) {
-        for (GuModule module : modules) {
-            Refusal refusal = module.checkEffect(this, player, stack);
+        for (GuBehavior behavior : behaviors) {
+            Refusal refusal = behavior.checkEffect(this, player, stack);
             if (refusal != null) return refusal;
         }
         return null;
     }
 
     protected final void applyModules(ServerPlayer player, ItemStack stack) {
-        for (GuModule module : modules) module.applyEffect(this, player, stack);
+        for (GuBehavior behavior : behaviors) behavior.applyEffect(this, player, stack);
     }
     //endregion
 
@@ -200,11 +200,11 @@ public abstract class MortalGuItem extends GuItem {
     public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        StrengthPathBranch branch = spec.getStrengthPathBranch();
+        StrengthPathBranch branch = guProperties.getStrengthPathBranch();
         if (getPath() == GuPath.STRENGTH && branch != StrengthPathBranch.NORMAL) {
             tooltip.add(Component.translatable(branch.getTranslationKey()).withStyle(ChatFormatting.GRAY));
         }
-        GuType type = spec.getType();
+        GuType type = guProperties.getType();
         if (type != null) tooltip.add(formatType(type).withStyle(ChatFormatting.GRAY));
         MutableComponent line = formatProgressLine(stack);
         if (line != null) tooltip.add(line.withStyle(ChatFormatting.GRAY));

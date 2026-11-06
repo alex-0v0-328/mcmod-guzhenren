@@ -110,7 +110,7 @@ final class InfoRowRenderer {
             case InfoModel.Lifespan e -> new ScreenRow(indent, formatLabel("lifespan"),
                     ModDisplayText.formatLifespan(e.lifespan(), e.age()));
             case InfoModel.PathsHeader e ->
-                    new ScreenRow(indent, formatLabel("dao_marks"), e.empty() ? ModDisplayText.formatNone() : null);
+                    new ScreenRow(indent, formatLabel("path_marks"), e.empty() ? ModDisplayText.formatNone() : null);
             case InfoModel.EffectsHeader e ->
                     new ScreenRow(indent, formatLabel("effects"), e.empty() ? ModDisplayText.formatNone() : null);
             case InfoModel.PathRow e -> new ScreenRow(indent,

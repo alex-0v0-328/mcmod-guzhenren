@@ -4,7 +4,7 @@ import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindService;
 import net.alex.guzhenren.gameplay.rewind.PlayerSnapshot;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,8 +29,8 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
     private static final String FAILED_NO_MEMORY = "guzhenren.item.failed.as_before_no_memory";
     private static final String MSG_RESTORED = "guzhenren.item.gu.as_before_body";
 
-    public ManAsBeforeGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
+    public ManAsBeforeGuItem(Properties properties, GuProperties guProperties) {
+        super(properties, guProperties);
     }
 
     @Override

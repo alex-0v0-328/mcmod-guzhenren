@@ -15,7 +15,7 @@ import net.minecraft.network.codec.StreamCodec;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceModule
+ * @see net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior
  * @since 1.0.0
  */
 

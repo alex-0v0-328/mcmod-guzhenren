@@ -9,12 +9,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One path effect [流派效果] on a person: what works, on which carrier, from what source, carrying which Dao marks
+ * One path effect [流派效果] on a person: what works, on which carrier, from what source, carrying which path marks
  * [道痕] on which paths, until when, in how many layers, with its kind's own payload.
  *
  * <p>Immutable record kept in {@link PathEffectData}; {@link PathEffectService} is the only runtime writer. The
  * source is the Gu item's id for a Gu's effect, or an innate id for one the body was born with. {@code endTick}
- * is a game time, or {@link #PERMANENT}. {@code paths} holds each path's {@link DaoMarks}, whole marks and strands
+ * is a game time, or {@link #PERMANENT}. {@code paths} holds each path's {@link PathMarks}, whole marks and strands
  * apart; one effect may carry several paths -- an amplifier adds Rule strands to the effect it amplifies.
  *
  * <p>⚠ An effect is on exactly while it carries marks: the compact constructor prunes paths with none, and the
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  */
 
 public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, ResourceLocation source,
-                            Map<GuPath, DaoMarks> paths, long endTick, int layers, P payload) {
+                            Map<GuPath, PathMarks> paths, long endTick, int layers, P payload) {
 
     public static final long PERMANENT = -1L;
 
@@ -41,16 +41,16 @@ public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, Resou
     }
 
     public static <P> @NotNull PathEffect<P> of(@NotNull PathEffectType<P> type, @NotNull EffectCarrier carrier,
-                                                @NotNull ResourceLocation source, @NotNull Map<GuPath, DaoMarks> paths,
+                                                @NotNull ResourceLocation source, @NotNull Map<GuPath, PathMarks> paths,
                                                 long endTick, @NotNull P payload) {
         return new PathEffect<>(type, carrier, source, paths, endTick, 1, payload);
     }
 
-    public DaoMarks getMarks(GuPath path) { return paths.getOrDefault(path, DaoMarks.NONE); }
+    public PathMarks getMarks(GuPath path) { return paths.getOrDefault(path, PathMarks.NONE); }
 
-    public DaoMarks getTotal() {
-        DaoMarks total = DaoMarks.NONE;
-        for (DaoMarks marks : paths.values()) total = total.add(marks);
+    public PathMarks getTotal() {
+        PathMarks total = PathMarks.NONE;
+        for (PathMarks marks : paths.values()) total = total.add(marks);
         return total;
     }
 
@@ -74,35 +74,35 @@ public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, Resou
         return new PathEffect<>(type, carrier, source, paths, value, layers, payload);
     }
 
-    public PathEffect<P> withPaths(Map<GuPath, DaoMarks> value) {
+    public PathEffect<P> withPaths(Map<GuPath, PathMarks> value) {
         return new PathEffect<>(type, carrier, source, value, endTick, layers, payload);
     }
 
-    public PathEffect<P> addMarks(Map<GuPath, DaoMarks> added) {
-        Map<GuPath, DaoMarks> next = copy();
-        added.forEach((path, marks) -> next.merge(path, marks, DaoMarks::add));
+    public PathEffect<P> addMarks(Map<GuPath, PathMarks> added) {
+        Map<GuPath, PathMarks> next = copy();
+        added.forEach((path, marks) -> next.merge(path, marks, PathMarks::add));
         return withPaths(next);
     }
 
-    public PathEffect<P> addLayer(Map<GuPath, DaoMarks> layerMarks) {
+    public PathEffect<P> addLayer(Map<GuPath, PathMarks> layerMarks) {
         return new PathEffect<>(type, carrier, source, addMarks(layerMarks).paths, endTick,
                 layers == Integer.MAX_VALUE ? layers : layers + 1, payload);
     }
 
-    public PathEffect<P> cut(GuPath path, DaoMarks amount) {
-        Map<GuPath, DaoMarks> next = copy();
+    public PathEffect<P> cut(GuPath path, PathMarks amount) {
+        Map<GuPath, PathMarks> next = copy();
         next.put(path, getMarks(path).cut(amount));
         return withPaths(next);
     }
 
-    private Map<GuPath, DaoMarks> copy() {
-        Map<GuPath, DaoMarks> next = new EnumMap<>(GuPath.class);
+    private Map<GuPath, PathMarks> copy() {
+        Map<GuPath, PathMarks> next = new EnumMap<>(GuPath.class);
         next.putAll(paths);
         return next;
     }
 
-    private static Map<GuPath, DaoMarks> normalize(Map<GuPath, DaoMarks> paths) {
-        Map<GuPath, DaoMarks> pruned = new EnumMap<>(GuPath.class);
+    private static Map<GuPath, PathMarks> normalize(Map<GuPath, PathMarks> paths) {
+        Map<GuPath, PathMarks> pruned = new EnumMap<>(GuPath.class);
         paths.forEach((path, marks) -> {
             if (marks != null && !marks.isEmpty()) pruned.put(path, marks);
         });

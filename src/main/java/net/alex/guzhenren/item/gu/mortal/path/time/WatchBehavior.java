@@ -1,9 +1,9 @@
 package net.alex.guzhenren.item.gu.mortal.path.time;
 
 import net.alex.guzhenren.effect.timed.WatchGuEffect;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.module.TimedEffects;
+import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
 import net.minecraft.core.Holder;
@@ -12,7 +12,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Watch Gu's [更蛊] module: for a while its holder's own clock [自身时间] outruns the world's.
+ * The Watch Gu's [更蛊] behavior: for a while its holder's own clock [自身时间] outruns the world's.
  *
  * <p>Two rungs register with it: 两更蛊 reaches two ×2 layers, and 三更蛊 reaches three ×3 layers. The effect owns
  * both its rate and layer cap; a form that is not a {@link WatchGuEffect} is refused at construction.
@@ -27,9 +27,9 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 
-public record WatchModule(Holder<MobEffect> form, int effectTicks) implements GuModule {
+public record WatchBehavior(Holder<MobEffect> form, int effectTicks) implements GuBehavior {
 
-    public WatchModule {
+    public WatchBehavior {
         if (!(form.value() instanceof WatchGuEffect)) {
             throw new IllegalArgumentException("watch gu needs a WatchGuEffect");
         }

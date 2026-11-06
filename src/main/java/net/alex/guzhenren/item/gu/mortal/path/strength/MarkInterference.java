@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The Gu-side gate of Mark Interference [道痕互斥]: refuses a strength Gu whose branch interferes with one the body
- * already holds. The beast and human strength modules ask it first, and so does the timed buff module for a
+ * already holds. The beast and human strength behaviors ask it first, and so does the timed buff behavior for a
  * beast buff; the write funnel in {@link PathStrengthService} enforces the same rule, this only words it.
  *
  * @author Alex

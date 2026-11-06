@@ -3,9 +3,9 @@ package net.alex.guzhenren.item.gu.mortal.path.strength;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.module.TimedEffects;
+import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The All-Out Effort Gu's [全力以赴蛊] module: for a while, the body's carrying capacity [承受力] stops applying
+ * The All-Out Effort Gu's [全力以赴蛊] behavior: for a while, the body's carrying capacity [承受力] stops applying
  * and every strength point [力量点] counts, at a price: each landed hit past the capacity costs the body a load
  * [负载] ({@code StrengthService.getLoadDamage}, dealt by {@code StrengthLoadEvents}), down to one health point.
  *
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record AllOutEffortModule(int effectSeconds) implements GuModule {
+public record AllOutEffortBehavior(int effectSeconds) implements GuBehavior {
 
     private static final String FAILED_ALREADY_UNLEASHED = "guzhenren.item.failed.all_out_active";
 

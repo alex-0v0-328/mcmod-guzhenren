@@ -8,7 +8,7 @@ import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindService;
 import net.alex.guzhenren.gameplay.rewind.RewindClock;
 import net.alex.guzhenren.item.gu.tending.GuHunger;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -50,8 +50,8 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
     private static final String TOOLTIP_NEXT_POINT = "guzhenren.item.gu.next_point";
     protected final GuHunger.RecoverBar bar;
 
-    protected AsBeforeGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
+    protected AsBeforeGuItem(Properties properties, GuProperties guProperties) {
+        super(properties, guProperties);
         if (!(hunger instanceof GuHunger.RecoverBar recover)) {
             throw new IllegalArgumentException("as before gu needs a recover bar");
         }

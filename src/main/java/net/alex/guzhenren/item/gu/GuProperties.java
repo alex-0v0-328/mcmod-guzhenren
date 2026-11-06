@@ -3,7 +3,7 @@ package net.alex.guzhenren.item.gu;
 import com.google.common.math.LongMath;
 import java.util.Map;
 import net.alex.guzhenren.gameplay.aperture.Rank;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
@@ -24,15 +24,15 @@ import org.jetbrains.annotations.Nullable;
  * <p>The single source of truth for every Gu's numerical identity: refine cost, channel/cost-per-use,
  * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags,
  * cooldown, the usage type [类型] ({@link GuType}, absent for a Gu that has none), and the path effect
- * [流派效果] it lays down: the carrier it works on and the Dao marks [道痕] it carries on the Gu's path.
+ * [流派效果] it lays down: the carrier it works on and the path marks [道痕] it carries on the Gu's path.
  * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem} and the tooltip/HUD renderers, and
  * it builds the Gu's {@link GuHunger} and {@link GuHealth}. What only one kind of Gu needs (a duration, a grade)
- * stays on its {@link GuModule}. Gu health is no chain call: it is 4 x rank + 4 (8 to 24 at ranks I to V), for
+ * stays on its {@link GuBehavior}. Gu health is no chain call: it is 4 x rank + 4 (8 to 24 at ranks I to V), for
  * every Gu alike.
  *
  * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 12 at rank one,
  * four times as many each rank); {@link #effect(EffectCarrier, long)} names them, and
- * {@link #effect(EffectCarrier, DaoMarks)} names both counters. A Gu without the call lays down no effect and
+ * {@link #effect(EffectCarrier, PathMarks)} names both counters. A Gu without the call lays down no effect and
  * carries no marks -- an instant Gu, or one that only changes a number. {@link #createEffect} builds the effect a
  * family puts on with {@code PathEffectService.apply}.
  *
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public final class GuSpec {
+public final class GuProperties {
 
     private final Rank rank;
     private final GuPath path;
@@ -71,94 +71,94 @@ public final class GuSpec {
     private static final long DEFAULT_STRANDS = 12L;
     private static final long STRANDS_PER_RANK = 4L;
     private @Nullable EffectCarrier effectCarrier;
-    private DaoMarks effectMarks = DaoMarks.NONE;
+    private PathMarks effectMarks = PathMarks.NONE;
 
-    private GuSpec(Rank rank, GuPath path) {
+    private GuProperties(Rank rank, GuPath path) {
         this.rank = rank;
         this.path = path;
         this.maxHealth = 4 * rank.ordinal() + 4;
     }
 
-    public static GuSpec of(Rank rank, GuPath path) { return new GuSpec(rank, path); }
+    public static GuProperties of(Rank rank, GuPath path) { return new GuProperties(rank, path); }
 
     //region the chain -- one call per fact, so a registration reads as a table row
-    public GuSpec refine(int cost) {
+    public GuProperties refine(int cost) {
         this.refineCost = cost;
         return this;
     }
 
-    public GuSpec channel(int essencePerRound) {
+    public GuProperties channel(int essencePerRound) {
         this.essencePerRound = essencePerRound;
         this.channels = true;
         return this;
     }
 
-    public GuSpec costPerUse(int essence) {
+    public GuProperties costPerUse(int essence) {
         this.essencePerRound = essence;
         this.channels = false;
         return this;
     }
 
-    public GuSpec hungerBar(int max, int unitsPerHunger) {
+    public GuProperties hungerBar(int max, int unitsPerHunger) {
         this.maxHunger = max;
         this.unitsPerHunger = unitsPerHunger;
         return this;
     }
 
-    public GuSpec recoverBar(int max, int ticksPerPoint) {
+    public GuProperties recoverBar(int max, int ticksPerPoint) {
         this.maxHunger = max;
         this.recoverTicks = ticksPerPoint;
         return this;
     }
 
-    public GuSpec hungerPerRound(int points) {
+    public GuProperties hungerPerRound(int points) {
         this.hungerPerRound = points;
         return this;
     }
 
-    public GuSpec hungerPerUse(int points) {
+    public GuProperties hungerPerUse(int points) {
         this.hungerPerUse = points;
         return this;
     }
 
-    public GuSpec hungerPerDay(int points) {
+    public GuProperties hungerPerDay(int points) {
         this.hungerPerDay = points;
         return this;
     }
 
-    public GuSpec feed(TagKey<Item> tag, int units) {
+    public GuProperties feed(TagKey<Item> tag, int units) {
         this.feedTag = tag;
         this.feedUnits = units;
         return this;
     }
 
-    public GuSpec cooldown(int ticks) {
+    public GuProperties cooldown(int ticks) {
         this.effectCooldownTicks = ticks;
         this.itemCooldownTicks = ticks;
         return this;
     }
 
-    public GuSpec cooldown(int effectTicks, int itemTicks) {
+    public GuProperties cooldown(int effectTicks, int itemTicks) {
         this.effectCooldownTicks = effectTicks;
         this.itemCooldownTicks = itemTicks;
         return this;
     }
 
-    public GuSpec strengthPathBranch(StrengthPathBranch branch) {
+    public GuProperties strengthPathBranch(StrengthPathBranch branch) {
         this.strengthPathBranch = branch;
         return this;
     }
 
-    public GuSpec type(GuType type) {
+    public GuProperties type(GuType type) {
         this.type = type;
         return this;
     }
 
-    public GuSpec effect(EffectCarrier carrier) { return effect(carrier, getDefaultStrands(rank)); }
+    public GuProperties effect(EffectCarrier carrier) { return effect(carrier, getDefaultStrands(rank)); }
 
-    public GuSpec effect(EffectCarrier carrier, long strands) { return effect(carrier, DaoMarks.ofStrands(strands)); }
+    public GuProperties effect(EffectCarrier carrier, long strands) { return effect(carrier, PathMarks.ofStrands(strands)); }
 
-    public GuSpec effect(EffectCarrier carrier, DaoMarks marks) {
+    public GuProperties effect(EffectCarrier carrier, PathMarks marks) {
         this.effectCarrier = carrier;
         this.effectMarks = marks;
         return this;
@@ -196,9 +196,9 @@ public final class GuSpec {
 
     public @Nullable EffectCarrier getEffectCarrier() { return effectCarrier; }
 
-    public DaoMarks getEffectMarks() { return effectMarks; }
+    public PathMarks getEffectMarks() { return effectMarks; }
 
-    public Map<GuPath, DaoMarks> getEffectPaths() {
+    public Map<GuPath, PathMarks> getEffectPaths() {
         return effectCarrier == null ? Map.of() : Map.of(path, effectMarks);
     }
 
@@ -209,7 +209,7 @@ public final class GuSpec {
 
     public <P> PathEffect<P> createEffect(PathEffectType<P> effectType, ResourceLocation source, long endTick,
                                           P payload) {
-        if (effectCarrier == null) throw new IllegalStateException("Gu spec declares no effect for " + source);
+        if (effectCarrier == null) throw new IllegalStateException("Gu properties declare no effect for " + source);
         return PathEffect.of(effectType, effectCarrier, source, getEffectPaths(), endTick, payload);
     }
 
@@ -276,7 +276,7 @@ public final class GuSpec {
     }
 
     private static IllegalStateException fault(String id, String what) {
-        return new IllegalStateException("Gu spec for '%s' %s".formatted(id, what));
+        return new IllegalStateException("Gu properties for '%s' %s".formatted(id, what));
     }
     //endregion
 }

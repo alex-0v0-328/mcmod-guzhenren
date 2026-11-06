@@ -16,12 +16,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * One item's registration chain, opened by {@link ItemRegistrar#item} and closed by {@link #register}.
  *
- * <p>One call per fact, like {@code GuSpec}: {@link #lang} gives the English and Simplified Chinese names, plus a
+ * <p>One call per fact, like {@code GuProperties}: {@link #lang} gives the English and Simplified Chinese names, plus a
  * Traditional one only where the wording itself differs (otherwise {@code TraditionalGlyphs} converts the
  * Simplified); {@link #model} picks an {@link ItemModel} other than {@link ItemModel#FLAT}; {@link #tag} files the
  * item under item tags, each once, in call order; {@link #tab} puts it in that creative tab instead of the one its
  * class would pick. The factory is a plain {@code Supplier}, so the item's own constructor arguments, a
- * {@code GuSpec} chain among them, stay inside it untouched.
+ * {@code GuProperties} chain among them, stay inside it untouched.
  *
  * <p>⚠ {@link #register} refuses an item without names, naming the id, before the factory reaches the
  * {@code DeferredRegister}: a declared item is never left to fall back on its raw translation key.

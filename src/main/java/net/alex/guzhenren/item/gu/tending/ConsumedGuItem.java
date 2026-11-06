@@ -1,7 +1,7 @@
 package net.alex.guzhenren.item.gu.tending;
 
-import net.alex.guzhenren.item.gu.GuModule;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuBehavior;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.OneShotGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -29,8 +29,8 @@ import net.minecraft.world.item.ItemStack;
 
 public class ConsumedGuItem extends TendedGuItem {
 
-    public ConsumedGuItem(Properties properties, GuSpec spec, GuModule... modules) {
-        super(properties, spec, modules);
+    public ConsumedGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
+        super(properties, guProperties, behaviors);
     }
 
     @Override

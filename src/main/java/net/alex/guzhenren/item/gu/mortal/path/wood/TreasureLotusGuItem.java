@@ -5,7 +5,7 @@ import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -41,8 +41,8 @@ public class TreasureLotusGuItem extends TendedGuItem {
     private final int stonesPerSecond;
     private final int stonesPerHealth;
 
-    public TreasureLotusGuItem(Properties properties, int stonesPerSecond, int stonesPerHealth, GuSpec spec) {
-        super(properties, spec);
+    public TreasureLotusGuItem(Properties properties, int stonesPerSecond, int stonesPerHealth, GuProperties guProperties) {
+        super(properties, guProperties);
         this.stonesPerSecond = stonesPerSecond;
         this.stonesPerHealth = stonesPerHealth;
     }

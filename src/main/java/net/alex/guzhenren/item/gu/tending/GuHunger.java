@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu.tending;
 
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
  * <p>A sealed interface with three implementations: {@link HungerBar} (every tended Gu with a bar that drains),
  * {@link RecoverBar} (the As Before Gu [如故蛊]: a bar that refills with the world clock, never drains by the day,
  * never eats) and {@link NoClock} (Primeval Elder Gu, Heavenly Essence Treasure Lotus Gu, Nine Leaf Vitality Grass,
- * Watch Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuSpec#buildHunger} at construction.
+ * Watch Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuProperties#buildHunger} at construction.
  *
  * <p>⚠ {@code RecoverBar} settles lazily from its {@code RECOVERED_AT} stamp, like {@code LeafGrowth}: {@link
  * RecoverBar#getPoints(ItemStack, long)} derives the count at any game time without writing, {@link
@@ -49,7 +49,7 @@ import net.minecraft.world.item.ItemStack;
  *
  * @author Alex
  * @version 1.0.0
- * @see GuSpec
+ * @see GuProperties
  * @see TendedGuItem
  * @since 1.0.0
  */

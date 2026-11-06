@@ -22,7 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@code /gzr path}: writes attainment [造诣] and the bare Dao marks [道痕], takes path effects [流派效果] off, and
+ * {@code /gzr path}: writes attainment [造诣] and the bare path marks [道痕], takes path effects [流派效果] off, and
  * carries the strength sub-command. Uses {@link net.alex.guzhenren.command.ModEnumArgument} for the path
  * argument; all writes delegate to {@link PathService} and {@link PathEffectService}.
  *

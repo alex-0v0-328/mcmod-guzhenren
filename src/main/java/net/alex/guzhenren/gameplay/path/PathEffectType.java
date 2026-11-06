@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class PathEffectType<P> {
 
-    private static final Codec<Map<GuPath, DaoMarks>> PATHS = Codec.unboundedMap(GuPath.CODEC, DaoMarks.CODEC);
+    private static final Codec<Map<GuPath, PathMarks>> PATHS = Codec.unboundedMap(GuPath.CODEC, PathMarks.CODEC);
     private final ResourceLocation id;
     private final MapCodec<P> payloadCodec;
     private final StreamCodec<FriendlyByteBuf, P> payloadStreamCodec;
@@ -118,7 +118,7 @@ public final class PathEffectType<P> {
     public void encode(@NotNull FriendlyByteBuf buf, @NotNull PathEffect<P> effect) {
         ModByteBufs.writeEnum(buf, effect.carrier());
         buf.writeResourceLocation(effect.source());
-        ModByteBufs.writeEnumMap(buf, effect.paths(), DaoMarks::encode);
+        ModByteBufs.writeEnumMap(buf, effect.paths(), PathMarks::encode);
         buf.writeVarLong(effect.endTick());
         buf.writeVarInt(effect.layers());
         payloadStreamCodec.encode(buf, effect.payload());
@@ -126,7 +126,7 @@ public final class PathEffectType<P> {
 
     public @NotNull PathEffect<P> decode(@NotNull FriendlyByteBuf buf) {
         return new PathEffect<>(this, ModByteBufs.readEnum(buf, EffectCarrier.class), buf.readResourceLocation(),
-                ModByteBufs.readEnumMap(buf, GuPath.class, DaoMarks::decode), buf.readVarLong(),
+                ModByteBufs.readEnumMap(buf, GuPath.class, PathMarks::decode), buf.readVarLong(),
                 buf.readVarInt(), payloadStreamCodec.decode(buf));
     }
 

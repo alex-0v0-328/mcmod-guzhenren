@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.module;
+package net.alex.guzhenren.item.gu.mortal.behavior;
 
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
@@ -9,7 +9,7 @@ import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinShedEvent;
 import net.alex.guzhenren.gameplay.body.SkinWornEvent;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
@@ -18,8 +18,8 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.path.strength.BeastStrengthModule;
-import net.alex.guzhenren.item.gu.mortal.path.strength.HumanStrengthModule;
+import net.alex.guzhenren.item.gu.mortal.path.strength.BeastStrengthBehavior;
+import net.alex.guzhenren.item.gu.mortal.path.strength.HumanStrengthBehavior;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.resources.ResourceLocation;
@@ -28,13 +28,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * The body effects of the channeled dao mark carving Gu [灌注蛊]: the tempering Gu's skin, tendons and bones, the
+ * The body effects of the channeled path mark carving Gu [灌注蛊]: the tempering Gu's skin, tendons and bones, the
  * beast strengths and the human strength layers. Each is the bookkeeping of a state another service owns -- the
  * body's grade, the strength store -- and follows its write through the event that write posts, so the state's
  * writer, a Gu or a command alike, knows nothing of it. Nothing here reads a mark to size anything.
  *
  * <p>Event subscriber over {@link PathEffectService}; the Gu that made a state is found in {@code ModItems}, and its
- * {@code GuSpec} supplies the carrier, path and strands, source the Gu's item id. A grade is permanent, one
+ * {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. A grade is permanent, one
  * exclusive effect per part, so a new grade takes the old effect and its strands with it. A beast strength is one
  * effect per species. A human strength is one effect per kind whose layers follow the stored count.
  *
@@ -89,7 +89,7 @@ public final class CarvingEffects {
     }
 
     private static void syncBeast(ServerPlayer player, BeastStrength beast) {
-        MortalGuItem gu = ModItems.findGuWith(BeastStrengthModule.class, module -> module.beast() == beast);
+        MortalGuItem gu = ModItems.findGuWith(BeastStrengthBehavior.class, behavior -> behavior.beast() == beast);
         if (gu == null) return;
 
         ResourceLocation source = gu.getEffectSource();
@@ -105,7 +105,7 @@ public final class CarvingEffects {
     }
 
     private static void alignHuman(ServerPlayer player, HumanStrength kind) {
-        MortalGuItem gu = ModItems.findGuWith(HumanStrengthModule.class, module -> module.kind() == kind);
+        MortalGuItem gu = ModItems.findGuWith(HumanStrengthBehavior.class, behavior -> behavior.kind() == kind);
         if (gu == null) return;
 
         ResourceLocation source = gu.getEffectSource();
@@ -117,7 +117,7 @@ public final class CarvingEffects {
             }
             return;
         }
-        Map<GuPath, DaoMarks> layer = gu.getSpec().getEffectPaths();
+        Map<GuPath, PathMarks> layer = gu.getGuProperties().getEffectPaths();
         if (worn == null) {
             PathEffectService.apply(player, withLayers(gu.createEffect(
                     ModPathEffectTypes.HUMAN_STRENGTH, PathEffect.PERMANENT, kind), layer, layers));
@@ -131,7 +131,7 @@ public final class CarvingEffects {
             ServerPlayer player, PathEffectType<G> type, G grade, boolean carries) {
         PathEffect<G> worn = PathEffectService.find(player, type);
         MortalGuItem gu = carries && !grade.isNative()
-                ? ModItems.findGuWith(TemperingModule.class, module -> module.getGrade() == grade) : null;
+                ? ModItems.findGuWith(TemperingBehavior.class, behavior -> behavior.getGrade() == grade) : null;
         if (gu == null) {
             if (worn != null) PathEffectService.removeType(player, type);
             return;
@@ -141,12 +141,12 @@ public final class CarvingEffects {
         PathEffectService.apply(player, gu.createEffect(type, PathEffect.PERMANENT, grade));
     }
 
-    private static <P> PathEffect<P> withLayers(PathEffect<P> effect, Map<GuPath, DaoMarks> layer, int layers) {
+    private static <P> PathEffect<P> withLayers(PathEffect<P> effect, Map<GuPath, PathMarks> layer, int layers) {
         PathEffect<P> next = effect;
         while (next.layers() < layers) next = next.addLayer(layer);
         int dropped = next.layers() - layers;
         for (int i = 0; i < dropped; i++) {
-            for (Map.Entry<GuPath, DaoMarks> entry : layer.entrySet()) {
+            for (Map.Entry<GuPath, PathMarks> entry : layer.entrySet()) {
                 next = next.cut(entry.getKey(), entry.getValue());
             }
         }

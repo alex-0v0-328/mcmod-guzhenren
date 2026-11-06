@@ -51,7 +51,7 @@ import org.joml.Vector3f;
  *
  * @author Alex
  * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeModule
+ * @see net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeBehavior
  * @since 1.0.0
  */
 

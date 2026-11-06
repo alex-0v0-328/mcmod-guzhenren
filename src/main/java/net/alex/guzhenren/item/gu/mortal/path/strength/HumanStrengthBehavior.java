@@ -4,7 +4,7 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The human-strength module [人力]: adds one layer of one kind; the rank [转数] and the kind come from registration.
+ * The human-strength behavior [人力]: adds one layer of one kind; the rank [转数] and the kind come from registration.
  *
  * <p>Five rungs register it (斤 / 十斤 / 钧 / 十钧 / 百钧). The gate refuses a body that holds Beast Strength Phantom,
  * a running beast buff included ({@link MarkInterference}), then a holder who has maxed out that kind; the
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record HumanStrengthModule(HumanStrength kind) implements GuModule {
+public record HumanStrengthBehavior(HumanStrength kind) implements GuBehavior {
 
     private static final String FAILED_LAYERS_FULL = "guzhenren.item.failed.human_strength_full";
     private static final int LAYERS_PER_GRANT = 1;

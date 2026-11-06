@@ -8,7 +8,7 @@ import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
@@ -71,8 +71,8 @@ public final class ApertureService {
     }
 
     public static @NotNull PathEffect<ExtremePhysique> getTalentEffect(@NotNull ExtremePhysique physique) {
-        Map<GuPath, DaoMarks> paths = new EnumMap<>(GuPath.class);
-        DaoMarks each = DaoMarks.ofMarks(getTalentMarksPerPath(physique));
+        Map<GuPath, PathMarks> paths = new EnumMap<>(GuPath.class);
+        PathMarks each = PathMarks.ofMarks(getTalentMarksPerPath(physique));
         for (GuPath path : physique.getTalentPaths()) paths.put(path, each);
         return PathEffect.of(ModPathEffectTypes.EXTREME_PHYSIQUE, EffectCarrier.APERTURE, TALENT_SOURCE, paths,
                 PathEffect.PERMANENT, physique);

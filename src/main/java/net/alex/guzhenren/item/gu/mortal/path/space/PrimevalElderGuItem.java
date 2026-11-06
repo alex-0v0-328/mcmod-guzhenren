@@ -2,7 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.path.space;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -54,8 +54,8 @@ public class PrimevalElderGuItem extends TendedGuItem {
     private static final String TOOLTIP_STORED = "guzhenren.item.gu.stored_stones";
     private final long capacity;
 
-    public PrimevalElderGuItem(Properties properties, long capacity, GuSpec spec) {
-        super(properties, spec);
+    public PrimevalElderGuItem(Properties properties, long capacity, GuProperties guProperties) {
+        super(properties, guProperties);
         this.capacity = capacity;
     }
 

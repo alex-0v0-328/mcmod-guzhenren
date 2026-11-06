@@ -16,7 +16,7 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
  * The Hardship Strength Gu's [苦力蛊] price: while its effect runs, {@code onHeal} cuts every heal -- natural regen,
  * Self Reliance [自力更生], the Vitality Leaf [生机叶] and any other {@link LivingHealEvent} -- to the room under
  * {@link #HEAL_CEILING} ({@link #clampHeal}), and cancels it at or above the ceiling. Health already above the
- * ceiling is left alone. Self Reliance reads the same ceiling itself ({@code SelfRelianceModule.getCeiling}) so
+ * ceiling is left alone. Self Reliance reads the same ceiling itself ({@code SelfRelianceBehavior.getCeiling}) so
  * its round ends there instead of pulsing into cancelled heals. The Grievous Injury [重伤] marker follows the
  * Hardship effect: added with its remaining duration when it appears, removed when it is removed or runs out.
  *

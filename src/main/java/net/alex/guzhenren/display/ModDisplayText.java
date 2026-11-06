@@ -9,7 +9,7 @@ import net.alex.guzhenren.gameplay.aperture.Title;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Physique;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
@@ -124,7 +124,7 @@ public final class ModDisplayText {
         return Component.translatable("guzhenren.display.aperture_" + number);
     }
 
-    public static MutableComponent formatPathLine(GuPath path, GuAttainment attainment, DaoMarks marks) {
+    public static MutableComponent formatPathLine(GuPath path, GuAttainment attainment, PathMarks marks) {
         MutableComponent line = formatPath(path);
         if (attainment != GuAttainment.NONE) {
             line.append(" ").append(Component.translatable(attainment.getTranslationKey()));
@@ -133,7 +133,7 @@ public final class ModDisplayText {
         return line;
     }
 
-    public static MutableComponent formatMarks(DaoMarks marks) {
+    public static MutableComponent formatMarks(PathMarks marks) {
         String whole = formatCount(marks.marks());
         String strands = formatCount(marks.strands());
         if (marks.marks() == 0L) return Component.translatable("guzhenren.display.marks.strands", strands);

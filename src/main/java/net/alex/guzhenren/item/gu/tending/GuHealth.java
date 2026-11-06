@@ -1,6 +1,6 @@
 package net.alex.guzhenren.item.gu.tending;
 
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * A tended Gu's health [蛊虫生命值], stored as damage TAKEN on {@link RefinedGuState}, so an untouched wild Gu reads
- * as full. Built by {@link GuSpec#buildHealth} from the Gu's rank (4 x rank + 4, so 8 to
+ * as full. Built by {@link GuProperties#buildHealth} from the Gu's rank (4 x rank + 4, so 8 to
  * 24); it stays off {@code Rank}, whose {@code getMaxHealth} is the player's.
  *
  * <p>Food mends at the hunger rate: one health point costs what one hunger point does ({@code unitsPerHunger}), and

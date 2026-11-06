@@ -1,11 +1,11 @@
-package net.alex.guzhenren.item.gu.mortal.module;
+package net.alex.guzhenren.item.gu.mortal.behavior;
 
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.GuItem.Refusal;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
@@ -18,8 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The instant-buff module [限时增益]: grants a timed buff whose effect holder, length and strength come from
- * registration. Seven Gu carry it, each with a {@link RecastModule}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
+ * The instant-buff behavior [限时增益]: grants a timed buff whose effect holder, length and strength come from
+ * registration. Seven Gu carry it, each with a {@link RecastBehavior}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
  * four Crash Gu and the Hardship Strength Gu.
  *
  * <p>The effect simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. A beast buff is first
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * cooldown the same strength adds its length; outside it the longer length wins ({@link #getNextDuration}). An
  * Amplify Effect Gu [功倍蛊] multiplies the length it adds and lays its Rule strands on the buff.
  *
- * <p>⚠ Each of them still declares its own feed tag. Sharing a module does not mean sharing a larder.
+ * <p>⚠ Each of them still declares its own feed tag. Sharing a behavior does not mean sharing a larder.
  *
  * @author Alex
  * @version 1.0.0
@@ -37,11 +37,11 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0.0
  */
 
-public record TimedBuffModule(Holder<MobEffect> buff, int durationTicks, int amplifier) implements GuModule {
+public record TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks, int amplifier) implements GuBehavior {
 
     private static final String FAILED_STRONGER = "guzhenren.item.failed.buff_stronger";
 
-    public TimedBuffModule(Holder<MobEffect> buff, int durationTicks) { this(buff, durationTicks, 0); }
+    public TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks) { this(buff, durationTicks, 0); }
 
     @Override
     public boolean canBeAmplified() { return true; }

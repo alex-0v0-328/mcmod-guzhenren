@@ -195,10 +195,10 @@ public final class KillingMoveTooltipHud {
         static Row of(KillingMoveService.Used gu) {
             ItemStack stack = gu.stack();
             Component line = getLine(stack);
-            if (!(stack.getItem() instanceof TendedGuItem tended) || tended.getSpec().getMaxHunger() <= 0) {
+            if (!(stack.getItem() instanceof TendedGuItem tended) || tended.getGuProperties().getMaxHunger() <= 0) {
                 return new Row(stack, gu.spent(), line, 0.0F, null);
             }
-            int max = tended.getSpec().getMaxHunger();
+            int max = tended.getGuProperties().getMaxHunger();
             int hunger = gu.spent() ? 0 : Math.min(max, TendedGuItem.getState(stack).hunger());
             return new Row(stack, gu.spent(), line, hunger / (float) max, hunger + "/" + max);
         }

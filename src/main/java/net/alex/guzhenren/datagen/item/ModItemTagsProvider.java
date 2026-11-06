@@ -63,8 +63,8 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(Tags.Items.INGOTS).addTag(ModItemTags.INGOTS_STEEL);
         tag(Tags.Items.STORAGE_BLOCKS).addTag(ModItemTags.STORAGE_BLOCKS_STEEL);
 
-        tag(ModItemTags.JIN_FEED).add(Items.RAW_IRON);
-        tag(ModItemTags.JIN_FEED_SMELTED).add(Items.IRON_INGOT);
+        tag(ModItemTags.IRON_FEED).add(Items.RAW_IRON);
+        tag(ModItemTags.IRON_FEED_SMELTED).add(Items.IRON_INGOT);
 
         tag(ModItemTags.ALL_OUT_FEED).add(Items.STONE);
 

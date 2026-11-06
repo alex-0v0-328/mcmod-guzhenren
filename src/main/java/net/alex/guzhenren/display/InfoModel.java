@@ -26,7 +26,7 @@ import net.alex.guzhenren.gameplay.mind.MindPool;
 import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
@@ -51,10 +51,10 @@ import org.jetbrains.annotations.Nullable;
  * Every row the B panel draws: which rows, in what order, decided once, apart from how the panel words them.
  *
  * <p>Deciding "draw or not" here, not in the panel, is what keeps a section header with [无] from sitting beside
- * a real Dao-mark [道痕] figure. {@code Entry} is sealed and the panel switches over it with no default, so a new
+ * a real path-mark [道痕] figure. {@code Entry} is sealed and the panel switches over it with no default, so a new
  * row is a compile error until the panel words it. ⚠ A named section (Strength Attainment [力道造诣], ...) is a
  * label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) has two
- * parts: Dao marks [道痕], each path's attainment [造诣] and whole Dao-mark total with nothing per source, then
+ * parts: path marks [道痕], each path's attainment [造诣] and whole path-mark total with nothing per source, then
  * effects [效果], the named attainment sections followed by the path buffs [流派增益] and path debuffs [流派减益],
  * each grouped by carrier with every effect's time left. ⚠ A beast or human strength [兽力 / 人力] and a
  * {@link BeastStrengthBuff} read as their strength under Strength Attainment, up to {@link #READINGS_PER_ROW} to a
@@ -128,7 +128,7 @@ public final class InfoModel {
 
     public record EffectsHeader(boolean empty) implements Entry {}
 
-    public record PathRow(GuPath path, GuAttainment attainment, DaoMarks marks) implements Entry {}
+    public record PathRow(GuPath path, GuAttainment attainment, PathMarks marks) implements Entry {}
 
     public record EffectCategoryHeader(PathEffectCategory category) implements Entry {}
 

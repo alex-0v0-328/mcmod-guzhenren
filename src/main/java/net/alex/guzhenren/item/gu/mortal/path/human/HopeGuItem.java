@@ -4,7 +4,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * click starts.
  *
  * <p>Extends {@link net.alex.guzhenren.item.gu.MortalGuItem} directly, not {@code OneShotGuItem}: it pays no refining
- * and runs no modules. The click rolls the aptitude [资质], takes the Gu and hands the rest to
+ * and runs no behaviors. The click rolls the aptitude [资质], takes the Gu and hands the rest to
  * {@link AwakeningRitualService}, which holds the player still and awakens them when the flash peaks; danger nearby
  * refuses the click ({@link AwakeningRitualService#isInDanger}). A stack that rolled under the old held ritual still
  * carries that roll in {@link ModDataComponents#AWAKEN_BASE}, and the ritual takes it; creative, which keeps the
@@ -40,8 +40,8 @@ public class HopeGuItem extends MortalGuItem {
     private static final String FAILED_NOURISHING = "guzhenren.item.failed.nourishing";
     private static final String FAILED_DANGER = "guzhenren.item.failed.awakening_danger";
 
-    public HopeGuItem(Properties properties, GuSpec spec) {
-        super(properties, spec);
+    public HopeGuItem(Properties properties, GuProperties guProperties) {
+        super(properties, guProperties);
     }
 
     @Override

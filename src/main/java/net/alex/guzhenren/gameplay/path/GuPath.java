@@ -5,7 +5,7 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Every Dao path [流派] a Gu can belong to. There is no {@code NONE}; "has not chosen" is a {@code null}.
+ * Every path [流派] a Gu can belong to. There is no {@code NONE}; "has not chosen" is a {@code null}.
  *
  * <p>Closed vocabulary enum and the canonical example of the mod's closure rule: no sibling mod may
  * add a constant here. That guarantee is what lets every path-keyed store stay a plain {@code EnumMap}.

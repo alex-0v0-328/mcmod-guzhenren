@@ -1,13 +1,13 @@
 package net.alex.guzhenren.item.gu.mortal.path.strength;
 
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The brink module [濒危自动催动]: its Gu drives ITSELF when the holder falls under a share of their max health.
- * The Self Reliance Gu [自力更生蛊] carries it with its {@link SelfRelianceModule}.
+ * The brink behavior [濒危自动催动]: its Gu drives ITSELF when the holder falls under a share of their max health.
+ * The Self Reliance Gu [自力更生蛊] carries it with its {@link SelfRelianceBehavior}.
  *
  * <p>{@link #tryAutoUse} is the heartbeat's call: the first refined copy in the inventory whose holder is under its
  * share fires on its own, through {@code TendedGuItem.tryAutoUse}, so it pays and is gated as a hand use would be.
@@ -18,17 +18,17 @@ import net.minecraft.world.item.ItemStack;
  *
  * @author Alex
  * @version 1.0.0
- * @see SelfRelianceModule
+ * @see SelfRelianceBehavior
  * @since 1.0.0
  */
 
-public record AutoUseModule(float healthFraction) implements GuModule {
+public record AutoUseBehavior(float healthFraction) implements GuBehavior {
 
     public static void tryAutoUse(ServerPlayer player) {
         for (ItemStack stack : player.getInventory().items) {
             if (!(stack.getItem() instanceof TendedGuItem gu)) continue;
 
-            AutoUseModule brink = gu.getModule(AutoUseModule.class);
+            AutoUseBehavior brink = gu.getBehavior(AutoUseBehavior.class);
             if (brink == null || player.getHealth() >= player.getMaxHealth() * brink.healthFraction()) continue;
 
             if (gu.tryAutoUse(player, stack)) return;

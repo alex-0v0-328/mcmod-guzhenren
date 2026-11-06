@@ -2,13 +2,13 @@ package net.alex.guzhenren.item.gu.mortal.path.heaven;
 
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.item.gu.GuModule;
+import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Lifespan Gu's [寿蛊] module: grants lifespan [寿元], rolled between the bounds given at registration.
+ * The Lifespan Gu's [寿蛊] behavior: grants lifespan [寿元], rolled between the bounds given at registration.
  *
  * <p>The service write goes through {@link BodyService#addLifespan}. Each of the four rungs carries its own range,
  * and the name is the promise -- the roll only decides the tail.
@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 
-public record LifespanModule(int minYears, int maxYears) implements GuModule {
+public record LifespanBehavior(int minYears, int maxYears) implements GuBehavior {
 
     private static final String MSG_GAINED = "guzhenren.item.gu.lifespan_gained";
 

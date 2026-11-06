@@ -351,7 +351,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.wisdom_path_achieve",   "Wisdom Path Attainment", "智道造诣");
         add("guzhenren.screen.label.soul",                  "Soul", "魂魄");
         add("guzhenren.screen.label.lifespan",              "Lifespan", "寿元");
-        add("guzhenren.screen.label.dao_marks",             "Dao Marks", "道痕");
+        add("guzhenren.screen.label.path_marks",             "Path Marks", "道痕");
         add("guzhenren.screen.label.effects",               "Effects", "效果");
         add("guzhenren.screen.label.strength_path_achieve", "Strength Path Attainment", "力道造诣");
         add("guzhenren.screen.label.time_path_achieve",     "Time Path Attainment", "宙道造诣");
@@ -624,7 +624,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(GuType.STORAGE,          "Storage",          "存储");
         add(GuType.CULTIVATION,      "Cultivation",      "修炼");
         add(GuType.AMPLIFICATION,    "Amplification",    "增幅");
-        add(GuType.DAO_MARK_CARVING, "Dao Mark Carving", "道痕蚀刻");
+        add(GuType.PATH_MARK_CARVING, "Path Mark Carving", "道痕蚀刻");
     }
 
     private void addSkin() {

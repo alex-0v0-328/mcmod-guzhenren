@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * The closed table of killing moves [杀招]: each row names its id, the main Gu that may lead it from the main hand,
  * the one partner Gu that backs it, the factor it puts on the main Gu's blade damage and the essence the partner pays
  * on every blade fired while the move is on. To start the move [启动] the partner pays one use of hunger, its own
- * spec's ({@link #getStartHunger}). A new killing move is a new row, with a book [杀招书] of the same id that teaches
+ * properties' ({@link #getStartHunger}). A new killing move is a new row, with a book [杀招书] of the same id that teaches
  * it ({@link net.alex.guzhenren.item.KillingMoveBookItem}).
  *
  * <p>Both Gu are tended and count only once refined: {@link #isLedBy} and {@link #isBackedBy} are the one
@@ -63,8 +63,8 @@ public enum KillingMove {
 
     public float getDamageFactor() { return damageFactor; }
 
-    /** The hunger the partner pays once when the move starts: one use of its own, from its spec. */
-    public int getStartHunger() { return ((TendedGuItem) partner.asItem()).getSpec().getHungerPerUse(); }
+    /** The hunger the partner pays once when the move starts: one use of its own, from its guProperties. */
+    public int getStartHunger() { return ((TendedGuItem) partner.asItem()).getGuProperties().getHungerPerUse(); }
 
     /** The essence the partner pays on every blade fired while the move is on. */
     public int getPartnerEssence() { return partnerEssence; }

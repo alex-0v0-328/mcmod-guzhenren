@@ -36,8 +36,8 @@ public final class ModItemTags {
     public static final TagKey<Item> IRON_SKIN_FEED = key("iron_skin_feed");
     public static final TagKey<Item> STEEL_TENDON_FEED = key("steel_tendon_feed");
     public static final TagKey<Item> IRON_BONE_FEED = key("iron_bone_feed");
-    public static final TagKey<Item> JIN_FEED = key("jin_feed");
-    public static final TagKey<Item> JIN_FEED_SMELTED = key("jin_feed_smelted");
+    public static final TagKey<Item> IRON_FEED = key("iron_feed");
+    public static final TagKey<Item> IRON_FEED_SMELTED = key("iron_feed_smelted");
     public static final TagKey<Item> LIQUOR_FEED = key("liquor_feed");
     public static final TagKey<Item> ALL_OUT_FEED = key("all_out_feed");
     public static final TagKey<Item> ZOMBIE_FEED = key("zombie_feed");

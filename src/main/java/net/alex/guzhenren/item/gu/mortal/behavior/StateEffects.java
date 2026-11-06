@@ -1,4 +1,4 @@
-package net.alex.guzhenren.item.gu.mortal.module;
+package net.alex.guzhenren.item.gu.mortal.behavior;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
@@ -16,8 +16,8 @@ import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.path.earth.PetrifyModule;
-import net.alex.guzhenren.item.gu.mortal.path.transformation.ZombieModule;
+import net.alex.guzhenren.item.gu.mortal.path.earth.PetrifyBehavior;
+import net.alex.guzhenren.item.gu.mortal.path.transformation.ZombieBehavior;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * reads a mark to size anything.
  *
  * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in {@code ModItems},
- * and its {@code GuSpec} supplies the carrier, path and strands, source the Gu's item id. The thought and distilling
+ * and its {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. The thought and distilling
  * effects are the truth of their state and the vanilla effect only their icon, timer and amplifier:
  * {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. The zombie form and the
  * petrified aperture stay on {@code BodyData} and {@code Aperture}, so a command that sets them needs no call of its
@@ -96,7 +96,7 @@ public final class StateEffects {
 
         int rung = Math.max(0, BodyService.get(player).zombieTier());
         MortalGuItem gu = ModItems.findGu(MortalGuItem.class,
-                item -> item.getModule(ZombieModule.class) != null && ZombieModule.getRung(item) == rung);
+                item -> item.getBehavior(ZombieBehavior.class) != null && ZombieBehavior.getRung(item) == rung);
         if (gu == null) return;
 
         long endTick = player.level().getGameTime() + BodyService.getTempZombieTicksLeft(player);
@@ -140,7 +140,7 @@ public final class StateEffects {
         }
         Rank petrified = rank;
         MortalGuItem gu = ModItems.findGu(MortalGuItem.class,
-                item -> item.getModule(PetrifyModule.class) != null && item.getRank() == petrified);
+                item -> item.getBehavior(PetrifyBehavior.class) != null && item.getRank() == petrified);
         if (gu == null || current != null && current.source().equals(gu.getEffectSource())) return;
 
         PathEffectService.apply(player,

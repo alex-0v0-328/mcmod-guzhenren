@@ -9,7 +9,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.gameplay.path.DaoMarks;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
@@ -68,7 +68,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>{@link #setRace} is the second of the two cross-domain grants, beside
  * {@code ApertureService.reconcileTalentPaths}: it revokes the old race's talent and grants the new race's -- the
- * attainment shift through {@code PathService}, the Dao marks as the permanent {@code RACE_TALENT} body effect
+ * attainment shift through {@code PathService}, the path marks as the permanent {@code RACE_TALENT} body effect
  * through {@code PathEffectService}, ten whole marks on the race's path from {@link #RACE_TALENT_SOURCE}.
  * {@link #syncRaceTalent} puts that effect back on login when it is missing or names another race; it never
  * touches the attainment, which only a race change moves.
@@ -274,8 +274,8 @@ public final class BodyService {
     }
 
     public static @NotNull PathEffect<Race> getRaceTalent(@NotNull Race race) {
-        Map<GuPath, DaoMarks> paths = race.getTalentPath() == null ? Map.of()
-                : Map.of(race.getTalentPath(), DaoMarks.ofMarks(Race.TALENT_MARKS));
+        Map<GuPath, PathMarks> paths = race.getTalentPath() == null ? Map.of()
+                : Map.of(race.getTalentPath(), PathMarks.ofMarks(Race.TALENT_MARKS));
         return PathEffect.of(ModPathEffectTypes.RACE_TALENT, EffectCarrier.BODY, RACE_TALENT_SOURCE, paths,
                 PathEffect.PERMANENT, race);
     }

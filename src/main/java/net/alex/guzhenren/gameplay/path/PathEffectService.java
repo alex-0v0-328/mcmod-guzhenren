@@ -53,7 +53,7 @@ public final class PathEffectService {
 
     public static @NotNull List<PathEffect<?>> getEffects(@NotNull Player player) { return get(player).effects(); }
 
-    public static @NotNull DaoMarks getMarks(@NotNull Player player, @NotNull GuPath path) {
+    public static @NotNull PathMarks getMarks(@NotNull Player player, @NotNull GuPath path) {
         return get(player).getMarks(path);
     }
 
@@ -89,7 +89,7 @@ public final class PathEffectService {
     }
 
     public static <P> boolean cut(@NotNull ServerPlayer player, @NotNull PathEffectType<P> type,
-                                  @NotNull ResourceLocation source, @NotNull GuPath path, @NotNull DaoMarks amount) {
+                                  @NotNull ResourceLocation source, @NotNull GuPath path, @NotNull PathMarks amount) {
         return update(player, type, source, effect -> effect.cut(path, amount));
     }
 

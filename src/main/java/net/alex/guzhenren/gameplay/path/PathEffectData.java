@@ -71,8 +71,8 @@ public record PathEffectData(List<PathEffect<?>> effects) {
         effect.type().encode(buf, effect);
     }
 
-    public DaoMarks getMarks(GuPath path) {
-        DaoMarks total = DaoMarks.NONE;
+    public PathMarks getMarks(GuPath path) {
+        PathMarks total = PathMarks.NONE;
         for (PathEffect<?> effect : effects) total = total.add(effect.getMarks(path));
         return total;
     }

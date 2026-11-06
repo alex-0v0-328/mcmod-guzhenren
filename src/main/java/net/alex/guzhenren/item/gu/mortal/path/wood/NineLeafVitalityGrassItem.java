@@ -5,7 +5,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
-import net.alex.guzhenren.item.gu.GuSpec;
+import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -57,8 +57,8 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     private final int regrowTicks;
     private final int essencePerLeaf;
 
-    public NineLeafVitalityGrassItem(Properties properties, int regrowTicks, int essencePerLeaf, GuSpec spec) {
-        super(properties, spec);
+    public NineLeafVitalityGrassItem(Properties properties, int regrowTicks, int essencePerLeaf, GuProperties guProperties) {
+        super(properties, guProperties);
         this.regrowTicks = regrowTicks;
         this.essencePerLeaf = essencePerLeaf;
     }
