@@ -414,6 +414,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.gu_cooldown",                     "This Gu needs another %s seconds", "此蛊尚需 %s 秒");
         add("guzhenren.item.failed.all_out_active",
                 "The all-out effort has not yet passed", "全力以赴蛊效果未散");
+        add("guzhenren.item.failed.all_out_needs_branch",
+                "Must be paired with other Gu", "需搭配蛊虫使用");
         add("guzhenren.item.failed.buff_stronger",
                 "A stronger %s effect is still running", "更强的%s效果未散");
         add("guzhenren.item.failed.skin_taken",

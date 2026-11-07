@@ -357,6 +357,7 @@
   "guzhenren.impact.poor": "Flushing the wall needs %s essence",
   "guzhenren.impact.success": "Aperture Rank Up",
   "guzhenren.item.failed.all_out_active": "The all-out effort has not yet passed",
+  "guzhenren.item.failed.all_out_needs_branch": "Must be paired with other Gu",
   "guzhenren.item.failed.amplify_no_target": "No Gu on the hotbar to amplify",
   "guzhenren.item.failed.amplify_offhand": "Hold right-click to pick a Gu, or hold it in the offhand",
   "guzhenren.item.failed.aperture_unavailable": "No usable aperture remains",

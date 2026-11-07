@@ -357,6 +357,7 @@
   "guzhenren.impact.poor": "沖刷竅壁需真元 %s",
   "guzhenren.impact.success": "大境界提升",
   "guzhenren.item.failed.all_out_active": "全力以赴蠱效果未散",
+  "guzhenren.item.failed.all_out_needs_branch": "需搭配蠱蟲使用",
   "guzhenren.item.failed.amplify_no_target": "快捷欄沒有可增幅的蠱",
   "guzhenren.item.failed.amplify_offhand": "按住右鍵選蠱，或副手持握配合催動",
   "guzhenren.item.failed.aperture_unavailable": "沒有可以作用的空竅",
