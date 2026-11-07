@@ -1,6 +1,5 @@
 package net.alex.guzhenren.gameplay.attribute;
 
-import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
@@ -9,16 +8,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The only thing in the mod that touches the {@code ATTACK_DAMAGE} attribute -- {@code getBonus()} is
  * the whole sum: the usable strength points [力量点] ({@link StrengthService#getUsablePoints}, beast and human
  * strength through one capacity) at {@link PathStrengthData#ATTACK_PER_POINT} each, and the zombie [僵] tier
- * bonus. The strength counts only for a fist [拳]: the main hand empty or holding what {@link #setFistItem} names a
- * fist weapon (Epic Fight's FIST category, set by {@code compat.EpicFightIntegration}); a weapon in hand gets
- * none of it. {@link AttributeEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
+ * bonus. The strength counts only for a bare fist [拳] ({@link #isFistHand}): an empty main hand; any item in it,
+ * an Epic Fight glove [拳套] included, gets none of it, so no weapon's innate skill shares the strength path's
+ * keys. {@link AttributeEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
  * changes; the player tick refreshes it every tick, which is how a hand change takes it on or off at once, and
  * {@code TransientModifiers.swap} makes an unchanged refresh a no-op.
  *
@@ -41,15 +39,8 @@ public final class AttackDamageService {
     private static final ResourceLocation MODIFIER_ID =
             Guzhenren.id("strength_attack_damage");
     public static final double ZOMBIE_ATTACK_BASE = 5.0D;
-    private static Predicate<ItemStack> fistItem = ItemStack::isEmpty;
 
-    /** Names the held items that still count as a fist; an empty hand always does. */
-    public static void setFistItem(@NotNull Predicate<ItemStack> predicate) { fistItem = predicate; }
-
-    public static boolean isFistHand(@NotNull Player player) {
-        ItemStack held = player.getMainHandItem();
-        return held.isEmpty() || fistItem.test(held);
-    }
+    public static boolean isFistHand(@NotNull Player player) { return player.getMainHandItem().isEmpty(); }
 
     public static double getBonus(@NotNull Player player) {
         return getStrengthBonus(player) + getZombieBonus(player);
