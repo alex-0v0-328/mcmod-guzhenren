@@ -27,17 +27,18 @@ import org.jetbrains.annotations.Nullable;
  * it answers. A fist hit opens a round of {@link #ROUND_TICKS} when the last one began at least that long ago
  * ({@link BeastPhantomEvents} gates the hit); every hit inside it shares what the opening drew, and no hit re-rolls.
  *
- * <p>Only the families of the permanent beast strengths are drawn, never the ox. The opening draws
- * {@link #getDrawCount}: under Hardship Strength [苦力] the streak's count of distinct families, else one while the
- * All-Out Effort Gu [全力以赴] runs or when the opening hit's single {@link #CHANCE} roll lands, else none -- the round
- * still runs, so the next hits do not roll again. The streak counts rounds opened within {@link #STREAK_WINDOW_TICKS}
- * of the last one's end while Hardship runs, and goes back to one past that window or when Hardship stops.
+ * <p>Only the families of the permanent beast strengths are drawn, never the ox. The opening hit rolls once against
+ * {@link #getChance}: {@link #CHANCE}, or 80/90/100% while the rank three/four/five All-Out Effort Gu [全力以赴] runs
+ * ({@code StrengthSnapshot.allOutTier}). It draws {@link #getDrawCount}: under Hardship Strength [苦力] the streak's
+ * count of distinct families, else one when the roll lands, else none -- the round still runs, so the next hits do not
+ * roll again. The streak counts rounds opened within {@link #STREAK_WINDOW_TICKS} of the last one's end while Hardship
+ * runs, and goes back to one past that window or when Hardship stops.
  *
- * <p>While the round runs it releases the drawn families at once through one {@link StrengthService#getReleasedExtra}
- * over their summed points -- permanent plus any running timed beast buff of the same family -- with a full release
- * [全面解放] of every drawn family while All-Out Effort runs NOW, or of the first one when the opening roll landed.
- * The drawn set is fixed at the opening; a family the body no longer holds leaves it, and its phantom goes, the next
- * tick. Outside a round the release is zero.
+ * <p>While the round runs it fully releases [全面解放] every drawn family while All-Out Effort runs NOW, else the first
+ * one when the opening roll landed, through one {@link StrengthService#getReleasedExtra} over their summed permanent
+ * points, still cut by the current capacity; any other drawn family is only shown. The drawn set is fixed at the
+ * opening; a family the body no longer holds leaves it, and its phantom goes, the next tick. Outside a round the
+ * release is zero.
  *
  * <p>The Strength Qi Gu's [力气蛊] ranged punch keeps to the rounds ({@link #canRange}): at most one a round, at
  * least {@link #ROUND_TICKS} apart. One thrown outside a round opens one as a fist would ({@link #startRange}); one
@@ -61,6 +62,7 @@ public final class StrengthRound {
     private StrengthRound() {}
 
     public static final float CHANCE = 0.05F;
+    private static final float[] ALL_OUT_CHANCES = { 0.80F, 0.90F, 1.0F };
     public static final int ROUND_TICKS = 20;
     public static final int STREAK_WINDOW_TICKS = 20;
     private static final Map<UUID, State> ROUNDS = new HashMap<>();
@@ -92,9 +94,9 @@ public final class StrengthRound {
         if (available.isEmpty()) return 0.0F;
 
         boolean hardship = HardshipStrength.isActive(player);
-        boolean rolled = roll < CHANCE;
+        boolean rolled = roll < getChance(StrengthService.getAllOutTier(player));
         int streak = hardship ? getNextStreak(last == null ? 0 : last.streak, last == null ? now : last.start, now) : 0;
-        int count = getDrawCount(hardship, StrengthService.isAllOut(player), rolled, streak, available.size());
+        int count = getDrawCount(hardship, rolled, streak, available.size());
         List<BeastStrengthFamily> families = pickFamilies(available, count, player.getRandom());
         BeastStrengthFamily rolledFull = rolled && !families.isEmpty() ? families.getFirst() : null;
         ROUNDS.put(player.getUUID(), new State(now, families, rolledFull, streak));
@@ -154,9 +156,14 @@ public final class StrengthRound {
         return chained ? lastStreak + 1 : 1;
     }
 
-    public static int getDrawCount(boolean hardship, boolean allOut, boolean rolled, int streak, int families) {
+    public static float getChance(int allOutTier) {
+        if (allOutTier < StrengthService.ALL_OUT_LOWEST_TIER) return CHANCE;
+        return ALL_OUT_CHANCES[Math.min(allOutTier - StrengthService.ALL_OUT_LOWEST_TIER, ALL_OUT_CHANCES.length - 1)];
+    }
+
+    public static int getDrawCount(boolean hardship, boolean rolled, int streak, int families) {
         if (hardship) return Math.min(Math.max(1, streak), families);
-        return allOut || rolled ? Math.min(1, families) : 0;
+        return rolled ? Math.min(1, families) : 0;
     }
 
     public static @NotNull List<BeastStrengthFamily> getAvailableFamilies(@NotNull PathStrengthData data) {
@@ -186,23 +193,17 @@ public final class StrengthRound {
         if (!isRunning(player) || state == null || state.families.isEmpty()) return 0;
 
         return getReleasedExtra(snapshot.capacity(), snapshot.totalPoints(), state.families,
-                PathStrengthService.get(player), snapshot.beastAmplifierPoints(), snapshot.allOut(), state.rolledFull);
+                PathStrengthService.get(player), snapshot.allOut(), state.rolledFull);
     }
 
     public static int getReleasedExtra(int capacity, int total, @NotNull List<BeastStrengthFamily> families,
-                                       @NotNull PathStrengthData permanent,
-                                       @NotNull Map<BeastStrengthFamily, Integer> temporary, boolean allOut,
+                                       @NotNull PathStrengthData permanent, boolean allOut,
                                        @Nullable BeastStrengthFamily rolledFull) {
-        int familyPoints = 0;
         int fullPoints = 0;
         for (BeastStrengthFamily family : families) {
-            int held = permanent.getBeastPoints(family);
-            if (held <= 0) continue;
-
-            familyPoints += held + temporary.getOrDefault(family, 0);
-            if (allOut || family == rolledFull) fullPoints += held;
+            if (allOut || family == rolledFull) fullPoints += Math.max(0, permanent.getBeastPoints(family));
         }
-        return StrengthService.getReleasedExtra(capacity, total, familyPoints, fullPoints);
+        return StrengthService.getReleasedExtra(capacity, total, fullPoints);
     }
     //endregion
 

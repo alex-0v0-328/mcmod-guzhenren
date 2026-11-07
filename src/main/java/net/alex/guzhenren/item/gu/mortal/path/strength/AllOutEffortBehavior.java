@@ -18,14 +18,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The All-Out Effort Gu's [全力以赴蛊] behavior: for a while, the body's current carrying capacity [承受力] is
- * three normal capacities ({@code StrengthService.ALL_OUT_CAPACITY_FACTOR}), added on the normal one beside every
- * other bonus, and no load is paid.
+ * The All-Out Effort Gu's [全力以赴蛊] behavior: no effect of its own, only what it lends a strength branch for a
+ * while. A body holding the human jun [人力钧力流] or the beast phantom [兽力虚影流] branch gains 50/100/200% of its
+ * normal carrying capacity [常态承受力] for the rank three/four/five Gu ({@code StrengthService.getAllOutCapacityBonus}),
+ * added on the normal one beside every other bonus; a beast phantom round's roll rises from 5% to 80/90/100%
+ * ({@code StrengthRound.getChance}) and fully releases [全面解放] what it draws. No load is paid.
  *
  * <p>Three rungs register it (三转至五转). A body with neither a permanent beast strength nor human strength is
- * refused before any charge ({@code all_out_needs_branch}). The effect stamps a marker effect at the Gu's tier and
- * calls {@link AttackDamageService#refresh}; the lift itself is read back by the strength service, so attack still
- * comes out of one formula. An Amplify Effect Gu [功倍蛊] multiplies its length.
+ * refused before any charge ({@code all_out_needs_branch}). The effect stamps a marker effect at the Gu's tier, which
+ * the strength service and the round read, and calls {@link AttackDamageService#refresh}, so attack still comes out of
+ * one formula. An Amplify Effect Gu [功倍蛊] multiplies its length.
  *
  * <p>⚠ Its effect is a marker carrying no {@code AttributeModifier}. A modifier would be a second
  * source for one fact, and re-using it while it runs is a refusal.

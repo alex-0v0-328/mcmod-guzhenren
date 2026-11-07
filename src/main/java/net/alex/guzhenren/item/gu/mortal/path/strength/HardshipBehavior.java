@@ -5,6 +5,9 @@ import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,9 +16,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The Hardship Strength behavior [苦力]: an auto state ({@link AutoUseBehavior}) that starts under 75% of max health
- * on a body whose permanent strength points [力量点] lend at least one point at the lightest tier -- fewer would be
- * billed for nothing -- and runs until the body is back at 75%. What it lends, tier by
- * tier, is {@link HardshipStrength}'s.
+ * on a body holding a permanent human jun [人力钧力流] or beast phantom [兽力虚影流] strength whose normal capacity
+ * [常态承受力] gains at least one point at the lightest tier -- less would be billed for nothing -- and runs until the
+ * body is back at 75%. What it lends, tier by tier, is {@link HardshipStrength}'s.
  *
  * @author Alex
  * @version 1.0.0
@@ -31,7 +34,10 @@ public record HardshipBehavior() implements AutoUseBehavior {
 
     @Override
     public boolean canStart(@NotNull ServerPlayer player) {
-        return HardshipStrength.getPoints(StrengthService.getPermanentPoints(player), 1) > 0;
+        PathStrengthData data = PathStrengthService.get(player);
+        boolean branch = data.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
+                || data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM);
+        return branch && HardshipStrength.getCapacityBonus(StrengthService.getNormalCapacity(player), 1) > 0;
     }
 
     @Override

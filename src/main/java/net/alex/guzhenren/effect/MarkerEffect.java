@@ -11,9 +11,9 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <li>{@code TEMP_ZOMBIE} [临时僵尸化] -- projects the form stored on {@code BodyData};
  * {@code UndeadService.tickTempZombie} re-applies or removes it every heartbeat, so milk,
  * {@code /effect clear} and death cannot strand a player wearing a form they are no longer in.</li>
- * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed; while it runs the current carrying capacity [承受力] is
- * {@code StrengthService.ALL_OUT_CAPACITY_FACTOR} normal capacities, which {@code StrengthService.getCapacity}
- * reads. Re-using it while it runs is a refusal ({@code all_out_active}).</li>
+ * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed, at the Gu's tier; while it runs on a body holding a strength
+ * branch, {@code StrengthService.getAllOutTier} reads the tier for the capacity [承受力] lift and the round's chance.
+ * Re-using it while it runs is a refusal ({@code all_out_active}).</li>
  * <li>{@code JADE_SKIN_GU} [玉皮蛊] and {@code WHITE_JADE_GU} [白玉蛊] -- timed; project the skin [皮肤] stored
  * on {@code BodyData} with its end tick, re-applied or removed by {@code SkinService.tickSkin} every
  * heartbeat; the flat damage reduction reads the skin, never the effect.</li>
