@@ -1,9 +1,11 @@
 package net.alex.guzhenren.entity.beast;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -32,12 +34,16 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * and a further {@link #LINGER_TICKS} beside its owner, facing where the owner faces: the linger lets the next round
  * of a steady fist renew it before it goes, so it goes only {@link #getShownTicks} after the last round. Its {@link Slot} places it: the first {@link #SIDE_OFFSET} blocks
  * to the right and {@link #FORWARD_OFFSET} ahead, the second as far to the left, the third {@link #BACK_OFFSET}
- * straight behind. It plays its family's attack once, then idles.
+ * straight behind, the fourth and the fifth stacked {@link #STACK_HEIGHT} above the first and the second. It plays
+ * its family's attack once, then idles.
  *
  * <p>{@link #show} sets an owner's phantoms to a round's families: a family already up is renewed in its slot -- its
- * life starts over, nothing respawns -- a new one takes the first free slot, and any other goes. A renewal bumps a
+ * life starts over, nothing respawns -- a new one takes the first free slot ({@link #pickSlot}), and any other goes.
+ * A new horse picks first and only from {@link #SIDE_FIRST}, never the back: its head reaches some 1.6 blocks ahead
+ * at eye height and would stand in its owner's. A family that
+ * cannot manifest ({@code BeastStrengthFamily.canManifest}) is left out and takes no slot. A renewal bumps a
  * synced counter so the client restarts its own age for the fade: in over {@link #FADE_IN_TICKS}, out over the last
- * {@link #FADE_OUT_TICKS}. ⚠ {@link #LINGER_TICKS} is provisional.
+ * {@link #FADE_OUT_TICKS}. ⚠ {@link #LINGER_TICKS} and {@link #STACK_HEIGHT} are provisional.
  *
  * <p>A pure display: no collision, no hitbox for attacks or projectiles, no damage, never saved; one summoned by
  * command has no owner and goes on its first tick. Both sides place it from the owner every tick, so the client
@@ -57,6 +63,8 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     public static final double SIDE_OFFSET = 1.2D;
     public static final double FORWARD_OFFSET = 0.5D;
     public static final double BACK_OFFSET = 1.2D;
+    public static final double STACK_HEIGHT = 1.8D;
+    private static final List<Slot> SIDE_FIRST = List.of(Slot.RIGHT, Slot.LEFT, Slot.UPPER_RIGHT, Slot.UPPER_LEFT);
     private static final double SEARCH_RANGE = 4.0D;
     private static final double CULL_MARGIN = 1.5D;
     private static final int NO_OWNER = -1;
@@ -79,7 +87,9 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
 
         RIGHT,
         LEFT,
-        BACK
+        BACK,
+        UPPER_RIGHT,
+        UPPER_LEFT
     }
 
     public BeastPhantomEntity(EntityType<? extends BeastPhantomEntity> type, Level level) {
@@ -87,7 +97,8 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         this.noPhysics = true;
     }
 
-    public static void show(ServerPlayer owner, List<BeastStrengthFamily> families) {
+    public static void show(ServerPlayer owner, List<BeastStrengthFamily> drawn) {
+        List<BeastStrengthFamily> families = BeastStrengthFamily.getManifesting(drawn);
         List<BeastPhantomEntity> owned = findOwned(owner);
         EnumSet<Slot> taken = EnumSet.noneOf(Slot.class);
         for (BeastPhantomEntity phantom : owned) {
@@ -98,15 +109,22 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
             phantom.renew();
             taken.add(phantom.getSlot());
         }
-        for (BeastStrengthFamily family : families) {
+        List<BeastStrengthFamily> order = new ArrayList<>(families);
+        order.sort(Comparator.comparing(family -> family != BeastStrengthFamily.HORSE));
+        for (BeastStrengthFamily family : order) {
             if (owned.stream().anyMatch(phantom -> phantom.isAlive() && phantom.getFamily() == family)) continue;
 
-            Slot slot = Arrays.stream(Slot.values()).filter(free -> !taken.contains(free)).findFirst().orElse(null);
-            if (slot == null) return;
+            Slot slot = pickSlot(family, taken);
+            if (slot == null) continue;
 
             taken.add(slot);
             summon(owner, family, slot);
         }
+    }
+
+    public static @Nullable Slot pickSlot(@NotNull BeastStrengthFamily family, @NotNull Set<Slot> taken) {
+        List<Slot> order = family == BeastStrengthFamily.HORSE ? SIDE_FIRST : List.of(Slot.values());
+        return order.stream().filter(free -> !taken.contains(free)).findFirst().orElse(null);
     }
 
     public static BeastPhantomEntity summon(ServerPlayer owner, BeastStrengthFamily family, Slot slot) {
@@ -188,19 +206,24 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         if (owner != null) follow(owner);
     }
 
+    public static Vec3 getOffset(Slot slot) {
+        double side = switch (slot) {
+            case RIGHT, UPPER_RIGHT -> SIDE_OFFSET;
+            case LEFT, UPPER_LEFT -> -SIDE_OFFSET;
+            case BACK -> 0.0D;
+        };
+        double up = slot == Slot.UPPER_RIGHT || slot == Slot.UPPER_LEFT ? STACK_HEIGHT : 0.0D;
+        return new Vec3(side, up, slot == Slot.BACK ? -BACK_OFFSET : FORWARD_OFFSET);
+    }
+
     private void follow(Entity owner) {
         float yaw = owner.getYRot();
         double radians = Math.toRadians(yaw);
-        Slot slot = getSlot();
-        double side = switch (slot) {
-            case RIGHT -> SIDE_OFFSET;
-            case LEFT -> -SIDE_OFFSET;
-            case BACK -> 0.0D;
-        };
-        double ahead = slot == Slot.BACK ? -BACK_OFFSET : FORWARD_OFFSET;
+        Vec3 offset = getOffset(getSlot());
         Vec3 forward = new Vec3(-Math.sin(radians), 0.0D, Math.cos(radians));
         Vec3 right = new Vec3(-Math.cos(radians), 0.0D, -Math.sin(radians));
-        Vec3 position = owner.position().add(forward.scale(ahead)).add(right.scale(side));
+        Vec3 position = owner.position().add(forward.scale(offset.z)).add(right.scale(offset.x)).add(0.0D, offset.y,
+                0.0D);
         this.setPos(position);
         this.setYRot(yaw);
     }

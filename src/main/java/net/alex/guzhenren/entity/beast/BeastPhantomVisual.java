@@ -8,12 +8,14 @@ import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * What the Beast Phantom renderer [兽力虚影] reads of anything drawn as a phantom beast: the family whose model it
- * borrows, how far it has faded in or out and how far its nose is pitched down (MC's sign: down is positive). The
- * phantom beside its owner and the Beast Charge [兽力冲击] both are one; only the charge pitches.
+ * borrows, how far it has faded in or out, how far its nose is pitched down (MC's sign: down is positive) and whether
+ * it charges. The phantom beside its owner and the Beast Charge [兽力冲击] both are one; only the charge pitches and
+ * charges.
  *
  * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code attack_toss}), the
  * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe. {@link #getAttack} and
- * {@link #getLoop} hide that; the ox never shows and falls back to the boar.
+ * {@link #getLoop} hide that; the ox never shows and falls back to the boar. The horse has no
+ * animation file: it is drawn on vanilla's horse model, which poses itself ({@code HorsePhantomModel}).
  *
  * @author Alex
  * @version 1.0.0
@@ -29,6 +31,8 @@ public interface BeastPhantomVisual {
     float getFade(float partialTick);
 
     default float getPitch(float partialTick) { return 0.0F; }
+
+    default boolean isCharging() { return false; }
 
     static Map<BeastStrengthFamily, RawAnimation> byFamily(Function<BeastStrengthFamily, RawAnimation> animation) {
         Map<BeastStrengthFamily, RawAnimation> animations = new EnumMap<>(BeastStrengthFamily.class);

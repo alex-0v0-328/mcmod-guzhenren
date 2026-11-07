@@ -1,5 +1,8 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import net.alex.guzhenren.core.NamedEnum;
 
 /**
@@ -7,7 +10,14 @@ import net.alex.guzhenren.core.NamedEnum;
  * exists only as the Brute Force Longhorn Beetle Gu's [蛮力天牛蛊] timed strength.
  *
  * <p>Readings group by family rather than by species constant, so a second boar lands in the boar
- * bracket instead of opening a new one. The declaration order is the B panel's reading order.
+ * bracket instead of opening a new one. The declaration order is the B panel's reading order; the ordinal is
+ * synced to the phantoms, never saved.
+ *
+ * <p>{@link #canManifest} says whether the family takes shape as a Beast Phantom [兽力虚影] or a Beast Charge
+ * [兽力冲击]: the ox never does, and the turtle not until its model lands; a family that cannot is still drawn and
+ * released, it only shows nothing. ⚠ Flip the turtle once its GeckoLib model, textures and animations are in,
+ * and give it its own name in {@code BeastPhantomRenderer.getModelName} and {@code BeastPhantomVisual.isBareNamed}
+ * with it.
  *
  * @author Alex
  * @version 1.0.0
@@ -18,10 +28,24 @@ import net.alex.guzhenren.core.NamedEnum;
 
 public enum BeastStrengthFamily implements NamedEnum {
 
-    BOAR,
-    OX,
-    BEAR,
-    TIGER;
+    BOAR(true),
+    OX(false),
+    BEAR(true),
+    TIGER(true),
+    TURTLE(false),
+    HORSE(true);
+
+    private final boolean manifests;
+
+    BeastStrengthFamily(boolean manifests) { this.manifests = manifests; }
+
+    public boolean canManifest() { return manifests; }
+
+    public static List<BeastStrengthFamily> getManifesting(Collection<BeastStrengthFamily> families) {
+        List<BeastStrengthFamily> manifesting = new ArrayList<>();
+        for (BeastStrengthFamily family : families) if (family.canManifest()) manifesting.add(family);
+        return manifesting;
+    }
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.strength.beast_family."; }

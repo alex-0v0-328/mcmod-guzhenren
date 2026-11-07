@@ -35,9 +35,10 @@ import org.jetbrains.annotations.NotNull;
  * <p>A holder of the beast strength phantom path [兽力虚影流] throws one {@link BeastChargeEntity} for every family the
  * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}), and the punch's damage
  * is split evenly among them, so all of them landing hit as hard as one punch; under Hardship Strength [苦力] the
- * streak draws one family more a round until every phantom strikes. Everyone else, and a beast holder without a
- * permanent beast, throws one {@link QiWaveEntity}. Each one bursts ({@link QiBurst}) around where it lands, and each
- * burst rolls the area impact [范围冲击] once on its own.
+ * streak draws one family more a round until every phantom strikes. Only a family that can manifest
+ * ({@code BeastStrengthFamily.canManifest}) charges; one that cannot leaves its share to the others. Everyone else,
+ * and a beast holder without a permanent beast that manifests, throws one {@link QiWaveEntity}. Each one bursts
+ * ({@link QiBurst}) around where it lands, and each burst rolls the area impact [范围冲击] once on its own.
  *
  * @author Alex
  * @version 1.0.0
@@ -65,9 +66,11 @@ public final class QiWaveService {
                                                                        @NotNull List<BeastStrengthFamily> drawn,
                                                                        @NotNull List<BeastStrengthFamily> held,
                                                                        @NotNull RandomSource random) {
-        if (!beastPath || held.isEmpty()) return List.of();
-        if (!drawn.isEmpty()) return List.copyOf(drawn);
-        return List.of(held.get(random.nextInt(held.size())));
+        List<BeastStrengthFamily> shown = BeastStrengthFamily.getManifesting(drawn);
+        List<BeastStrengthFamily> pool = BeastStrengthFamily.getManifesting(held);
+        if (!beastPath || pool.isEmpty()) return List.of();
+        if (!shown.isEmpty()) return List.copyOf(shown);
+        return List.of(pool.get(random.nextInt(pool.size())));
     }
 
     public static @NotNull List<Projectile> fire(@NotNull ServerPlayer player, int targetId) {

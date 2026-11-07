@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.path.strength;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -98,6 +99,24 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
     public int getBeastPoints(BeastStrengthFamily family) {
         int total = 0;
         for (BeastStrength beast : beasts) if (beast.getFamily() == family) total += beast.getPoints();
+        return total;
+    }
+
+    public int getBeastCapacityBonus() {
+        int total = 0;
+        for (BeastStrength beast : beasts) total += beast.getCapacityBonus();
+        return total;
+    }
+
+    public double getBeastSprintBonus() {
+        double total = 0.0D;
+        for (BeastStrength beast : beasts) total += beast.getSprintBonus();
+        return total;
+    }
+
+    public double getBeastSprintBonus(Collection<BeastStrengthFamily> families) {
+        double total = 0.0D;
+        for (BeastStrength beast : beasts) if (families.contains(beast.getFamily())) total += beast.getSprintBonus();
         return total;
     }
 

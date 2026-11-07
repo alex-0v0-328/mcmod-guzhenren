@@ -36,8 +36,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>While the round runs it fully releases [全面解放] every drawn family while All-Out Effort runs NOW, else the first
  * one when the opening roll landed, through one {@link StrengthService#getReleasedExtra} over their summed permanent
- * points, still cut by the current capacity; any other drawn family is only shown. The drawn set is fixed at the
- * opening; a family the body no longer holds leaves it, and its phantom goes, the next tick. Outside a round the
+ * points, still cut by the current capacity; any other drawn family is only shown ({@link #getFullyReleased} names
+ * the released ones, which also lend their beasts' speed to {@code SprintSpeedService}). The drawn set is fixed at
+ * the opening; a family the body no longer holds leaves it, and its phantom goes, the next tick. Outside a round the
  * release is zero.
  *
  * <p>The Strength Qi Gu's [力气蛊] ranged punch keeps to the rounds ({@link #canRange}): at most one a round, at
@@ -200,10 +201,23 @@ public final class StrengthRound {
                                        @NotNull PathStrengthData permanent, boolean allOut,
                                        @Nullable BeastStrengthFamily rolledFull) {
         int fullPoints = 0;
-        for (BeastStrengthFamily family : families) {
-            if (allOut || family == rolledFull) fullPoints += Math.max(0, permanent.getBeastPoints(family));
+        for (BeastStrengthFamily family : getFullyReleased(families, allOut, rolledFull)) {
+            fullPoints += Math.max(0, permanent.getBeastPoints(family));
         }
         return StrengthService.getReleasedExtra(capacity, total, fullPoints);
+    }
+
+    public static @NotNull List<BeastStrengthFamily> getFullyReleased(@NotNull Player player) {
+        State state = ROUNDS.get(player.getUUID());
+        if (!isRunning(player) || state == null) return List.of();
+        return getFullyReleased(state.families, StrengthService.isAllOut(player), state.rolledFull);
+    }
+
+    public static @NotNull List<BeastStrengthFamily> getFullyReleased(@NotNull List<BeastStrengthFamily> families,
+                                                                      boolean allOut,
+                                                                      @Nullable BeastStrengthFamily rolledFull) {
+        if (allOut) return List.copyOf(families);
+        return rolledFull != null && families.contains(rolledFull) ? List.of(rolledFull) : List.of();
     }
     //endregion
 

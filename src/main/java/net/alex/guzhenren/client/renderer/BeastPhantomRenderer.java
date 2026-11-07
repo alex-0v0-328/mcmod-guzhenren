@@ -25,18 +25,23 @@ import software.bernie.geckolib.util.Color;
 
 /**
  * Draws a Beast Phantom [兽力虚影] with its family's own model and animations -- the wild boar's for the boar, the
- * bear's and the tiger's -- in the translucent gold {@code <model>_phantom} texture at full brightness, and redraws
- * it with {@code <model>_phantom_glowmask} as an emissive layer for the eyes and the faint body glow. The texture is
- * picked here ({@link #getTextureLocation}), not left to the model, so the wild beasts' own textures never leak in.
+ * bear's and the tiger's -- in the translucent {@code <model>_phantom} texture at full brightness, and redraws
+ * it with {@code <model>_phantom_glowmask}, a copy of that texture, as an emissive layer, so the body glows faintly
+ * in its own colors and the opaque eyes glow brightest. The texture is picked here ({@link #getTextureLocation}),
+ * not left to the model, so the wild beasts' own textures never leak in.
+ * The horse has no GeckoLib model: {@link #render} hands it to vanilla's horse geometry ({@link HorsePhantomModel}),
+ * drawn the same way -- yaw, pitch, fade, both layers -- rearing once beside its owner and galloping as a charge. A
+ * family that cannot manifest ({@code BeastStrengthFamily.canManifest}) draws nothing.
  *
  * <p>Draws every {@link BeastPhantomVisual}: the phantom beside its owner and the Beast Charge [兽力冲击] alike, at
  * {@link #PHANTOM_SCALE} times the wild beast's size.
  * Back-face culled like the soul traders, so the far side of the silhouette does not show through. Each fades as its
  * own {@link BeastPhantomVisual#getFade} says; the glow layer is translucent emissive at {@link #GLOW_ALPHA} of the
- * mask's own alpha, since the mask paints the whole body and at full alpha it closed the gold up to opaque. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and
- * paints the whole masked body at full strength, which buried the gold under the mask's brown. GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw, then
- * tips them by {@link BeastPhantomVisual#getPitch} about a point {@link #PITCH_PIVOT} blocks above the feet, about
- * half the beasts' model height. No shadow, no hurt tint. The ox never manifests and falls back to the boar.
+ * mask's own alpha, since the mask covers the whole body and at full alpha it closes the translucent body up to
+ * opaque. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and paints the whole masked body at full strength.
+ * GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw, then tips them by
+ * {@link BeastPhantomVisual#getPitch} about a point {@link #PITCH_PIVOT} blocks above the feet, about half the
+ * beasts' model height. No shadow, no hurt tint.
  * ⚠ {@link #PITCH_PIVOT} is provisional.
  *
  * @author Alex
@@ -53,16 +58,25 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
     public static final float GLOW_ALPHA = 0.25F;
     public static final float PITCH_PIVOT = 0.7F;
 
+    private final HorsePhantomModel horse;
+
     public BeastPhantomRenderer(EntityRendererProvider.Context context) {
         super(context, new PhantomModel<>());
         this.shadowRadius = 0.0F;
         this.withScale(PHANTOM_SCALE);
         this.addRenderLayer(new GlowLayer<>(this));
+        this.horse = new HorsePhantomModel(context);
     }
 
     @Override
     public void render(@NotNull T entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack,
                        @NotNull MultiBufferSource bufferSource, int packedLight) {
+        BeastStrengthFamily family = entity.getFamily();
+        if (!family.canManifest()) return;
+        if (family == BeastStrengthFamily.HORSE) {
+            renderHorse(entity, partialTick, poseStack, bufferSource);
+            return;
+        }
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, LightTexture.FULL_BRIGHT);
     }
 
@@ -71,13 +85,46 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
                                   float partialTick, float nativeScale) {
         super.applyRotations(animatable, poseStack, ageInTicks,
                 Mth.rotLerp(partialTick, animatable.yRotO, animatable.getYRot()), partialTick, nativeScale);
-        float pitch = animatable.getPitch(partialTick);
+        applyPitch(animatable, poseStack, partialTick);
+    }
+
+    private static void applyPitch(Entity entity, PoseStack poseStack, float partialTick) {
+        float pitch = ((BeastPhantomVisual) entity).getPitch(partialTick);
         if (pitch == 0.0F) return;
 
         poseStack.translate(0.0F, PITCH_PIVOT, 0.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(-pitch));
         poseStack.translate(0.0F, -PITCH_PIVOT, 0.0F);
     }
+
+    //region Horse [马]
+    private void renderHorse(T entity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource) {
+        float age = entity.tickCount + partialTick;
+        if (entity.isCharging()) {
+            horse.pose(0.0F, age * HorsePhantomModel.GALLOP_SWING_PER_TICK, 1.0F, age);
+        } else {
+            horse.pose(HorsePhantomModel.getRear(age), 0.0F, 0.0F, age);
+        }
+
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot())));
+        applyPitch(entity, poseStack, partialTick);
+        poseStack.scale(-PHANTOM_SCALE, -PHANTOM_SCALE, PHANTOM_SCALE);
+        poseStack.scale(HorsePhantomModel.SCALE, HorsePhantomModel.SCALE, HorsePhantomModel.SCALE);
+        poseStack.translate(0.0F, -1.501F, 0.0F);
+
+        float fade = entity.getFade(partialTick);
+        String model = getModelName(BeastStrengthFamily.HORSE);
+        RenderType body = RenderType.entityTranslucentCull(Guzhenren.id("textures/entity/" + model + "_phantom.png"));
+        horse.render(poseStack, bufferSource.getBuffer(body), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                Color.ofARGB(fade, 1.0F, 1.0F, 1.0F).argbInt());
+        RenderType glow = RenderType.entityTranslucentEmissive(
+                Guzhenren.id("textures/entity/" + model + "_phantom_glowmask.png"));
+        horse.render(poseStack, bufferSource.getBuffer(glow), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                Color.ofARGB(fade * GLOW_ALPHA, 1.0F, 1.0F, 1.0F).argbInt());
+        poseStack.popPose();
+    }
+    //endregion
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull T animatable) {
@@ -100,9 +147,10 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
 
     private static String getModelName(BeastStrengthFamily family) {
         return switch (family) {
-            case BOAR, OX -> "wild_boar";
+            case BOAR, OX, TURTLE -> "wild_boar";
             case BEAR -> "bear";
             case TIGER -> "tiger";
+            case HORSE -> "horse";
         };
     }
 

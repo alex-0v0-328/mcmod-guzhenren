@@ -543,6 +543,15 @@ public final class ModItems {
             () -> new TendedGuItem(createBeastStrengthProperties(Rank.TWO, 1_600, 2_400, ModItemTags.TIGER_FEED),
                     new BeastStrengthBehavior(BeastStrength.TIGER)))
             .lang("Tiger Strength Gu", "虎力蛊").register();
+    public static final DeferredItem<Item> STONE_TURTLE_STRENGTH_GU = REGISTRAR.item("stone_turtle_strength_gu",
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, 3_200, 4_800, ModItemTags.TURTLE_FEED),
+                    new BeastStrengthBehavior(BeastStrength.STONE_TURTLE)))
+            .lang("Stone Turtle Strength Gu", "石龟负力蛊").register();
+    public static final DeferredItem<Item> GALLOPING_HORSE_STRENGTH_GU = REGISTRAR.item(
+            "galloping_horse_strength_gu",
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, 3_200, 4_800, ModItemTags.HORSE_FEED),
+                    new BeastStrengthBehavior(BeastStrength.GALLOPING_HORSE)))
+            .lang("Galloping Horse Strength Gu", "驰马骏力蛊").register();
     public static final DeferredItem<Item> FLOWER_BOAR_GU = REGISTRAR.item("flower_boar_gu",
             () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED),
                     new TimedBuffBehavior(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),

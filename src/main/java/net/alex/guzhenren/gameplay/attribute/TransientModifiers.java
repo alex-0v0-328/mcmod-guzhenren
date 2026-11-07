@@ -13,7 +13,8 @@ import org.jetbrains.annotations.NotNull;
  * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
  * {@link AttackDamageService}, {@link MaxHealthService} and {@link KnockbackResistanceService},
  * {@code ADD_MULTIPLIED_BASE} for the Epic Fight
- * stamina cap ({@code compat.EpicFightIntegration}). The shared callers take the three-argument {@link #swap},
+ * stamina cap ({@code compat.EpicFightIntegration}), {@code ADD_MULTIPLIED_TOTAL} for the beasts' sprint speed
+ * ({@link SprintSpeedService}). The shared callers take the three-argument {@link #swap},
  * which adds. {@link #setGravityFactor} multiplies an entity's gravity (the plunge [坠击]) through vanilla's synced
  * {@code GRAVITY} attribute.
  *

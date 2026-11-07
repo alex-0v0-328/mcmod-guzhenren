@@ -39,15 +39,17 @@ import org.jetbrains.annotations.Nullable;
  * {@link StoreStrength#release} counts). It brings {@link StoreStrength#getMaxPoints} to bear, past the current
  * capacity: the fist's attack with those points ({@link AttackDamageService#getFistDamage}). On the beast phantom path
  * [兽力虚影流] it releases one held family at random, or every one under Hardship Strength [苦力], and shows their
- * phantoms beside a running round's; the ox never shows.
+ * phantoms beside a running round's; the ox and the turtle never show.
  *
  * <p>The client names the target; {@link #getTarget} keeps it only when it is alive, {@link AreaImpact#canHit},
  * ahead of the look and within {@link #MAX_TARGET_DISTANCE} blocks of the eyes, so a forged id cannot turn the strike
  * behind the player or reach across the world. With the Strength Qi Gu's [力气蛊] effect on and the target past the
  * reach (the ranged punch's own rule), in sight and open to projectiles, it strikes from afar ({@link #shoot}): one
- * Beast Charge [兽力冲击] per released family on its arc, the damage split evenly, or one tracking Qi Wave [气波] for
- * the human jun path [人力钧力流]; each bursts {@link StoreStrength#getBurstRadius} blocks around where it lands, the
- * target in full and the rest {@link QiBurst#SECONDARY_RATIO}, as a charged punch that rolls no area impact.
+ * Beast Charge [兽力冲击] per released family that can manifest on its arc, the damage split evenly, or, as the
+ * ranged punch picks them ({@code QiWaveService.getChargeFamilies}), one of a held family that can at random when
+ * none released can; one tracking Qi Wave [气波] for the human jun path [人力钧力流] and for a body holding no such
+ * family; each bursts {@link StoreStrength#getBurstRadius} blocks around where it lands, the target in full and
+ * the rest {@link QiBurst#SECONDARY_RATIO}, as a charged punch that rolls no area impact.
  * Otherwise it swings the fan ({@link #swing}): every target {@link StoreStrength#isInFan} along the level way to the
  * kept target (the look without one), in sight of the eyes and {@link AreaImpact#canHit}, nearest first until
  * {@link #MAX_TARGETS} took it, the kept one first in full and the rest {@link #SECONDARY_RATIO}, each pushed
@@ -108,7 +110,10 @@ public final class ChargedPunch {
 
         if (!released.isEmpty()) BeastPhantomEntity.show(player, getShownFamilies(player, released));
         if (target != null && isRanged(player, target)) {
-            shoot(player, target, damage, released, widened);
+            List<BeastStrengthFamily> charging = QiWaveService.getChargeFamilies(
+                    branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM, released,
+                    StrengthRound.getAvailableFamilies(data), player.getRandom());
+            shoot(player, target, damage, charging, widened);
         } else {
             swing(player, target, damage, widened);
         }
@@ -135,15 +140,15 @@ public final class ChargedPunch {
 
     //region Ranged [远程]
     private static void shoot(ServerPlayer player, LivingEntity target, float damage,
-                              List<BeastStrengthFamily> released, boolean widened) {
+                              List<BeastStrengthFamily> charging, boolean widened) {
         QiBurst.Spec burst = new QiBurst.Spec(StoreStrength.getBurstRadius(widened), ModDamageTypes.CHARGED_PUNCH,
                 false);
-        if (released.isEmpty()) {
+        if (charging.isEmpty()) {
             QiWaveEntity.track(player, target, damage, burst);
             return;
         }
-        for (BeastStrengthFamily family : released) {
-            BeastChargeEntity.shoot(player, target, damage / released.size(), family, burst);
+        for (BeastStrengthFamily family : charging) {
+            BeastChargeEntity.shoot(player, target, damage / charging.size(), family, burst);
         }
     }
     //endregion

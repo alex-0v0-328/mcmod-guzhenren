@@ -31,8 +31,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>The normal carrying capacity [常态承受力] is {@link #getNormalCapacity}: {@link #getBaseCapacity}, which is
  * {@link #MORTAL_CAPACITY} plus {@link #CAPACITY_PER_RANK} per rank [转] (16, then 24 to 56 for ranks one to five)
- * times the physique's multiplier, plus what the worn skin, tendons and bones add -- tempering sits outside the
- * multiplier. The current capacity ({@link #getCapacity}) adds every amplifier's capacity bonus (the Hardship Strength
+ * times the physique's multiplier, plus what the worn skin, tendons and bones add and what the held beasts carry
+ * (the stone turtle's {@link BeastStrength#getCapacityBonus}) -- tempering and beasts sit outside the multiplier.
+ * The current capacity ({@link #getCapacity}) adds every amplifier's capacity bonus (the Hardship Strength
  * [苦力] one among them) and, while the All-Out Effort Gu [全力以赴] runs on a body holding the human jun or the beast
  * phantom branch, {@link #getAllOutCapacityBonus}: 50/100/200% of the normal capacity for the rank three/four/five Gu,
  * read from the effect's amplifier, which is the Gu's tier ({@link #getAllOutTier}, {@link #NO_ALL_OUT} otherwise;
@@ -47,8 +48,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>{@link #getReleasedExtra} is a round's full release [全面解放], a critical hit of sorts: the released families'
  * PERMANENT points count {@link #FULL_RELEASE_FACTOR} times, every other point once, and the whole is still cut by the
  * current capacity; the extra is what that adds over the plain {@code min(total, capacity)}. {@link #canAdmit} is the
- * gate of a new permanent beast strength: the permanent beasts held plus the new one may not pass the NORMAL capacity;
- * amplifiers and the All-Out lift admit nothing.
+ * gate of a new permanent beast strength: the permanent beasts held plus the new one may not pass the NORMAL capacity,
+ * which counts a held beast's capacity bonus but not the new one's own; amplifiers and the All-Out lift admit
+ * nothing.
  *
  * <p>⚠ The {@code int} overloads are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
  *
@@ -85,13 +87,13 @@ public final class StrengthService {
         return (MORTAL_CAPACITY + CAPACITY_PER_RANK * rankIndex) * physique.getCapacityMultiplier();
     }
 
-    /** The normal capacity [常态承受力]: rank, physique and tempering, nothing temporary. */
     public static int getNormalCapacity(@NotNull Player player) {
         BodyData body = BodyService.get(player);
         return getBaseCapacity(ApertureService.getHealthRank(player), body.extremePhysique())
                 + body.skin().getCapacityBonus()
                 + body.tendon().getCapacityBonus()
-                + body.bone().getCapacityBonus();
+                + body.bone().getCapacityBonus()
+                + PathStrengthService.get(player).getBeastCapacityBonus();
     }
 
     public static int getCapacity(@NotNull Player player) { return snapshot(player).capacity(); }

@@ -42,7 +42,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * that tick ({@link MoonBladeArc#tangentAt}) as the direction it last flew; a block in the way, or a flight
  * that runs out with no target left, takes it away with no burst. Nothing lingers: the strike is the burst itself.
  *
- * <p>It plays its family's charge loop while it flies and faces its next step along the arc, yaw and pitch alike, so
+ * <p>It plays its family's charge loop while it flies (the horse, drawn on vanilla's model, gallops on the
+ * renderer's limb swing instead) and faces its next step along the arc, yaw and pitch alike, so
  * it rears on the arc's lift, dives after it and points at the target over its last stretch; it fades in over
  * {@link #FADE_IN_TICKS}. The
  * server owns the burst and the damage, set once by {@link #shoot}; the client copy flies the same curve from the
@@ -126,6 +127,9 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
 
     @Override
     public float getPitch(float partialTick) { return Mth.lerp(partialTick, xRotO, getXRot()); }
+
+    @Override
+    public boolean isCharging() { return true; }
 
     public @Nullable LivingEntity getTarget() {
         int id = entityData.get(TARGET);
