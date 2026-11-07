@@ -2,10 +2,11 @@ package net.alex.guzhenren.compat;
 
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.effect.timed.CrashGuEffect;
+import net.alex.guzhenren.effect.timed.CrashDash;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
+import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
@@ -73,6 +74,12 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * animation moving opposite to the model facing: every backward combination flips 180, everything else
  * rides the model yaw unchanged. Every Crash Gu dash moves in the yaw plane: the payload's
  * vertical/horizontal are the keyboard axes (W/S and A/D), never world-up.
+ *
+ * <p>{@code DashAnimation} scales Epic Fight's dodge coordinate vector by {@link CrashDash#getScale}, doubled
+ * while {@link StrengthService#isAllOut}. It is the one piece here that runs on the client: Epic Fight moves a player
+ * through an action animation only on the owning client ({@code PlayerPatch.shouldMoveOnCurrentSide} is false on the
+ * server, true on the {@code LocalPlayerPatch}) and posts the position to the server, so the scale reads All-Out
+ * there, from the player's own synced effect and strength data.
  *
  * @author Alex
  * @version 1.0.0
@@ -206,7 +213,8 @@ public final class EpicFightIntegration {
         @Override
         protected Vec3 getCoordVector(LivingEntityPatch<?> entityPatch,
                                       AssetAccessor<? extends DynamicAnimation> animation) {
-            return super.getCoordVector(entityPatch, animation).scale(CrashGuEffect.DASH_COORD_SCALE);
+            boolean allOut = entityPatch.getOriginal() instanceof Player player && StrengthService.isAllOut(player);
+            return super.getCoordVector(entityPatch, animation).scale(CrashDash.getScale(allOut));
         }
     }
 }
