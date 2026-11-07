@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.path.qi;
 
+import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.effect.timed.StrengthQiGuEffect;
 import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
@@ -19,7 +20,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * The Strength Qi Gu's [力气蛊] ranged punch: while its buff runs, an empty-hand punch at Epic Fight's lock-on target
@@ -32,9 +32,11 @@ import org.jetbrains.annotations.Nullable;
  * the fist: the player's attack damage, where the strength path's bonus and the round's release live, plus the release
  * the round it opened has not yet put there. No attack charge scales it; the rounds pace it.
  *
- * <p>A holder of the beast strength phantom path [兽力虚影流] throws a {@link BeastChargeEntity} of the round's first
- * drawn family, or of a held family at random ({@link #getChargeFamily}); everyone else, and a beast holder without a
- * permanent beast, throws a {@link QiWaveEntity}. Either one bursts ({@link QiBurst}) around where it lands.
+ * <p>A holder of the beast strength phantom path [兽力虚影流] throws one {@link BeastChargeEntity} for every family the
+ * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}), and the punch's damage
+ * is split evenly among them, so all of them landing hit as hard as one punch; under Hardship Strength [苦力] the
+ * streak draws one family more a round until every phantom strikes. Everyone else, and a beast holder without a
+ * permanent beast, throws one {@link QiWaveEntity}. Each one bursts ({@link QiBurst}) around where it lands.
  *
  * @author Alex
  * @version 1.0.0
@@ -58,32 +60,37 @@ public final class QiWaveService {
         return Math.sqrt(target.getBoundingBox().distanceToSqr(player.getEyePosition()));
     }
 
-    public static @Nullable BeastStrengthFamily getChargeFamily(boolean beastPath,
-                                                                @NotNull List<BeastStrengthFamily> drawn,
-                                                                @NotNull List<BeastStrengthFamily> held,
-                                                                @NotNull RandomSource random) {
-        if (!beastPath || held.isEmpty()) return null;
-        if (!drawn.isEmpty()) return drawn.getFirst();
-        return held.get(random.nextInt(held.size()));
+    public static @NotNull List<BeastStrengthFamily> getChargeFamilies(boolean beastPath,
+                                                                       @NotNull List<BeastStrengthFamily> drawn,
+                                                                       @NotNull List<BeastStrengthFamily> held,
+                                                                       @NotNull RandomSource random) {
+        if (!beastPath || held.isEmpty()) return List.of();
+        if (!drawn.isEmpty()) return List.copyOf(drawn);
+        return List.of(held.get(random.nextInt(held.size())));
     }
 
-    public static @Nullable Projectile fire(@NotNull ServerPlayer player, int targetId) {
-        if (!canPunch(player) || !TimedEffects.hasBuff(player, ModEffects.STRENGTH_QI_GU)) return null;
-        if (!(player.level().getEntity(targetId) instanceof LivingEntity target) || target == player) return null;
-        if (!target.isAlive() || !target.canBeHitByProjectile()) return null;
+    public static @NotNull List<Projectile> fire(@NotNull ServerPlayer player, int targetId) {
+        if (!canPunch(player) || !TimedEffects.hasBuff(player, ModEffects.STRENGTH_QI_GU)) return List.of();
+        if (!(player.level().getEntity(targetId) instanceof LivingEntity target) || target == player) return List.of();
+        if (!target.isAlive() || !target.canBeHitByProjectile()) return List.of();
 
-        if (!isPastReach(getBoxDistance(player, target), player.entityInteractionRange())) return null;
+        if (!isPastReach(getBoxDistance(player, target), player.entityInteractionRange())) return List.of();
         Vec3 toTarget = target.getBoundingBox().getCenter().subtract(player.getEyePosition());
-        if (toTarget.dot(player.getLookAngle()) <= 0.0D) return null;
-        if (!player.hasLineOfSight(target) || !StrengthRound.canRange(player)) return null;
+        if (toTarget.dot(player.getLookAngle()) <= 0.0D) return List.of();
+        if (!player.hasLineOfSight(target) || !StrengthRound.canRange(player)) return List.of();
 
         float gain = StrengthRound.startRange(player, player.getRandom().nextFloat());
         float damage = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE) + gain;
-        BeastStrengthFamily family = getChargeFamily(
+        List<BeastStrengthFamily> families = getChargeFamilies(
                 PathStrengthService.getHeldBranch(player) == StrengthPathBranch.BEAST_STRENGTH_PHANTOM,
                 StrengthRound.getFamilies(player),
                 StrengthRound.getAvailableFamilies(PathStrengthService.get(player)), player.getRandom());
-        return family != null ? BeastChargeEntity.shoot(player, target, damage, family)
-                : QiWaveEntity.shoot(player, target, damage);
+        if (families.isEmpty()) return List.of(QiWaveEntity.shoot(player, target, damage));
+
+        List<Projectile> charges = new ArrayList<>();
+        for (BeastStrengthFamily family : families) {
+            charges.add(BeastChargeEntity.shoot(player, target, damage / families.size(), family));
+        }
+        return charges;
     }
 }
