@@ -18,11 +18,13 @@ import net.alex.guzhenren.client.renderer.ModEntityRenderers;
 import net.alex.guzhenren.client.renderer.SkinFlashLayer;
 import net.alex.guzhenren.client.renderer.SkinFlashes;
 import net.alex.guzhenren.client.screen.ApertureStorageScreen;
+import net.alex.guzhenren.client.screen.BookletScreen;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
+import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.gu.mortal.path.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
@@ -84,8 +86,9 @@ import org.jetbrains.annotations.Nullable;
  * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at the
  * lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player renderers get
  * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload}, {@code ImpactShakePayload} and
- * {@code KillingMoveTooltipPayload} handlers with {@code ModPayloads}, which names no client class itself, and the
- * Epic Fight client hooks ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered
+ * {@code KillingMoveTooltipPayload} handlers with {@code ModPayloads}, which names no client class itself, the
+ * booklet reader ({@link BookletScreen}) with {@code BookletItem}, likewise, and the Epic Fight client hooks
+ * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered
  * key states, the pending flashes, the shield glow and the Killing Move Tooltip, and drops a radial-menu hold; each
  * client tick steps the shield glow.
  *
@@ -138,6 +141,7 @@ public final class ClientEvents {
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
             ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);
             ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
+            BookletItem.readOnClient(BookletScreen::open);
             EpicFightClientIntegration.initialize();
         });
     }

@@ -22,6 +22,8 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.item.AdvancementIconItem;
+import net.alex.guzhenren.item.Booklet;
+import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.KillingMoveBookItem;
 import net.alex.guzhenren.item.gu.tending.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.GuBehavior;
@@ -942,6 +944,12 @@ public final class ModItems {
             default -> null;
         };
     }
+    //endregion
+
+    //region Booklets [书册]
+    public static final DeferredItem<Item> GU_ATLAS_HOPE = REGISTRAR.item("gu_atlas_hope",
+            () -> new BookletItem(new Item.Properties(), Booklet.GU_ATLAS_HOPE))
+            .lang("Gu Atlas: Hope", "蛊虫图说：希望").register();
     //endregion
 
     //region Advancement Icon [进度图标]
