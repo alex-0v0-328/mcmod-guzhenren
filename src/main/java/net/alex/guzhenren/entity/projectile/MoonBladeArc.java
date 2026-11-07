@@ -14,7 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link #MIN_BEND_RATIO} to {@link #MAX_BEND_RATIO} of the chord's length, plus {@link #LIFT_RATIO} of that as a
  * lift. "Left" is the shooter's left looking along the chord. The flight takes {@link #flightTicks}, the chord at the
  * speed given, never under {@link #MIN_FLIGHT_TICKS}; the blade's position at tick {@code n} is {@link #pointAt} with
- * {@code t = n / flightTicks}.
+ * {@code t = n / flightTicks}, and {@link #tangentAt} is the curve's direction there, the derivative of
+ * {@link #pointAt} in {@code t} (a Beast Charge hands it on at its burst as the area impact's axis).
  *
  * <p>{@link #bankDegrees} is the roll the renderer gives the blade for the turn: toward the side it bends to,
  * {@link #MAX_BANK_DEGREES} at the largest bend and in proportion below it, so every shot leans a little differently.
@@ -71,6 +72,11 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         double u = 1.0D - t;
         Vec3 control = start.add(end).scale(0.5D).add(bend);
         return start.scale(u * u).add(control.scale(2.0D * u * t)).add(end.scale(t * t));
+    }
+
+    public @NotNull Vec3 tangentAt(@NotNull Vec3 end, double t) {
+        Vec3 control = start.add(end).scale(0.5D).add(bend);
+        return control.subtract(start).scale(2.0D * (1.0D - t)).add(end.subtract(control).scale(2.0D * t));
     }
 
     /** Positive rolls the blade's left edge down, for a bend to the left. */

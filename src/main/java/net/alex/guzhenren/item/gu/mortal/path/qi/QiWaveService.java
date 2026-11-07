@@ -36,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}), and the punch's damage
  * is split evenly among them, so all of them landing hit as hard as one punch; under Hardship Strength [苦力] the
  * streak draws one family more a round until every phantom strikes. Everyone else, and a beast holder without a
- * permanent beast, throws one {@link QiWaveEntity}. Each one bursts ({@link QiBurst}) around where it lands.
+ * permanent beast, throws one {@link QiWaveEntity}. Each one bursts ({@link QiBurst}) around where it lands, and each
+ * burst rolls the area impact [范围冲击] once on its own.
  *
  * @author Alex
  * @version 1.0.0

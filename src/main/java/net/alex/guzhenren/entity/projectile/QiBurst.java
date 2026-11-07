@@ -3,6 +3,7 @@ package net.alex.guzhenren.entity.projectile;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.particle.RingConeEmitter;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -19,6 +20,11 @@ import org.jetbrains.annotations.Nullable;
  * {@link AreaImpact#canHit} lets the owner hurt -- never the owner, an ally, a pet, a wild Gu or an armor stand --
  * takes the punch's damage as a Qi Wave, the locked target in full and everyone else {@link #SECONDARY_RATIO} of it.
  * A Qi Wave opens no strength round and manifests no phantom.
+ *
+ * <p>Each burst then rolls the area impact [范围冲击] once on the projectile's own random ({@link AreaImpact#rolls}),
+ * at the owner's chance; a landed roll sends the area impact ring and releases the cone from the burst point along
+ * the {@code heading} the projectile last flew, sparing every target the burst hit, while the owner stands in the
+ * burst's level. The burst itself never changes with the roll.
  *
  * <p>⚠ {@link #RADIUS} and {@link #SECONDARY_RATIO} are provisional.
  *
@@ -38,7 +44,8 @@ public final class QiBurst {
     public static float getDamage(float damage, boolean locked) { return locked ? damage : damage * SECONDARY_RATIO; }
 
     public static @NotNull List<LivingEntity> burst(@NotNull ServerPlayer owner, @NotNull Entity projectile,
-                                                    @NotNull Vec3 at, @Nullable LivingEntity locked, float damage) {
+                                                    @NotNull Vec3 at, @NotNull Vec3 heading,
+                                                    @Nullable LivingEntity locked, float damage) {
         DamageSource source = ModDamageTypes.source(projectile, owner, ModDamageTypes.QI_WAVE);
         List<LivingEntity> hit = new ArrayList<>();
         AABB area = new AABB(at, at).inflate(RADIUS);
@@ -46,6 +53,10 @@ public final class QiBurst {
                 victim -> victim.getBoundingBox().distanceToSqr(at) <= RADIUS * RADIUS
                         && AreaImpact.canHit(owner, victim))) {
             if (victim.hurt(source, getDamage(damage, victim == locked))) hit.add(victim);
+        }
+        if (owner.level() == projectile.level() && AreaImpact.rolls(owner, projectile.getRandom())) {
+            RingConeEmitter.areaImpactRing(owner.serverLevel(), at, heading, AreaImpact.RANGE);
+            AreaImpact.release(owner, at, heading, hit);
         }
         return hit;
     }

@@ -38,7 +38,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * phantom beast of the round's family running at the lock-on target. It flies a {@link MoonBladeArc} from the muzzle to
  * the target's center, read afresh every tick, at {@link #SPEED} blocks a tick for at most {@link #MAX_FLIGHT_TICKS},
  * without gravity or drag, and passes through every other entity. When the flight runs out, or its box touches the
- * target, it bursts ({@link QiBurst#burst}) around the target and is gone that tick; a block in the way, or a flight
+ * target, it bursts ({@link QiBurst#burst}) around the target and is gone that tick, handing on the arc's tangent at
+ * that tick ({@link MoonBladeArc#tangentAt}) as the direction it last flew; a block in the way, or a flight
  * that runs out with no target left, takes it away with no burst. Nothing lingers: the strike is the burst itself.
  *
  * <p>It plays its family's charge loop while it flies and faces its next step along the arc, yaw and pitch alike, so
@@ -203,7 +204,14 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         if (level().isClientSide() || !(getOwner() instanceof ServerPlayer owner)) return;
         if (!(result.getEntity() instanceof LivingEntity target)) return;
 
-        QiBurst.burst(owner, this, target.getBoundingBox().getCenter(), target, damage);
+        Vec3 at = target.getBoundingBox().getCenter();
+        QiBurst.burst(owner, this, at, getHeading(at), target, damage);
+    }
+
+    private Vec3 getHeading(Vec3 end) {
+        MoonBladeArc arc = getArc();
+        if (arc == null) return getDeltaMovement();
+        return arc.tangentAt(end, Math.min(1.0D, tickCount / (double) arc.flightTicks()));
     }
 
     @Override

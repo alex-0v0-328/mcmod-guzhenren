@@ -35,10 +35,11 @@ import org.jetbrains.annotations.NotNull;
  * multiplier. The current capacity ({@link #getCapacity}) adds every amplifier's capacity bonus (the Hardship Strength
  * [苦力] one among them) and, while the All-Out Effort Gu [全力以赴] runs on a body holding the human jun or the beast
  * phantom branch, {@link #getAllOutCapacityBonus}: 50/100/200% of the normal capacity for the rank three/four/five Gu,
- * read from the effect's amplifier, which is the Gu's tier ({@link #getAllOutTier}, {@link #NO_ALL_OUT} otherwise).
- * Every bonus is added on the normal capacity, never multiplied with another. A body uses {@code min(total, capacity)}
- * of the CURRENT capacity ({@link #getUsablePoints}) plus the release extra, and keeps the rest; there is no overflow
- * ramp and no load.
+ * read from the effect's amplifier, which is the Gu's tier ({@link #getAllOutTier}, {@link #NO_ALL_OUT} otherwise;
+ * {@link #isAllOut} is that same reading as a yes or no, for the area impact's chance and the Crash Gu dash, which
+ * reads it on the owning client from the player's own synced effect and strength data). Every bonus is added on the
+ * normal capacity, never multiplied with another. A body uses {@code min(total, capacity)} of the CURRENT capacity
+ * ({@link #getUsablePoints}) plus the release extra, and keeps the rest; there is no overflow ramp and no load.
  *
  * <p>{@link #getReleasedExtra} is a round's full release [全面解放], a critical hit of sorts: the released families'
  * PERMANENT points count {@link #FULL_RELEASE_FACTOR} times, every other point once, and the whole is still cut by the
@@ -109,6 +110,8 @@ public final class StrengthService {
         if (effect == null || PathStrengthService.getHeldBranch(player) == StrengthPathBranch.NORMAL) return NO_ALL_OUT;
         return Math.max(ALL_OUT_LOWEST_TIER, effect.getAmplifier());
     }
+
+    public static boolean isAllOut(@NotNull Player player) { return getAllOutTier(player) != NO_ALL_OUT; }
 
     public static int getPermanentPoints(@NotNull Player player) {
         return PathStrengthService.get(player).getStrengthPoints();

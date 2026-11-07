@@ -42,7 +42,8 @@ import net.minecraft.world.phys.Vec3;
  * {@code RingConeEvents} calls at the end of each player tick, returns at once while the map is empty.
  *
  * <p>{@link #areaImpactRing} is that sibling for the area impact [范围冲击]: one {@code area_impact_ring}
- * [范围冲击环] born {@link #AREA_IMPACT_RING_START} block ahead of the eyes, carrying the speed that takes it to the
+ * [范围冲击环] born {@link #AREA_IMPACT_RING_START} block ahead of the cone's origin -- the eyes for a fist strike, the
+ * burst point for a ranged punch's burst -- facing along its axis, carrying the speed that takes it to the
  * cone's end in {@link #AREA_IMPACT_TRAVEL_TICKS} ticks, where the ring stops, widens and fades. That tick count is
  * the ring's bloom (five frames, the last at age 4), so it stops as the bloom ends; pinned in {@code RingGeometryTest}.
  *
@@ -80,15 +81,19 @@ public final class RingConeEmitter {
     }
 
     public static void areaImpactRing(ServerPlayer player, Vec3 axis, double reach) {
+        areaImpactRing(player.serverLevel(), player.getEyePosition(), axis, reach);
+    }
+
+    public static void areaImpactRing(ServerLevel level, Vec3 origin, Vec3 axis, double reach) {
         if (axis.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
         Vec3 direction = axis.normalize();
-        Vec3 ring = player.getEyePosition().add(direction.scale(AREA_IMPACT_RING_START));
+        Vec3 ring = origin.add(direction.scale(AREA_IMPACT_RING_START));
         Vec3 velocity = direction.scale(getAreaImpactRingSpeed(reach));
-        player.serverLevel().sendParticles(ModParticles.AREA_IMPACT_RING.get(), ring.x, ring.y, ring.z, 0,
+        level.sendParticles(ModParticles.AREA_IMPACT_RING.get(), ring.x, ring.y, ring.z, 0,
                 velocity.x, velocity.y, velocity.z, 1.0D);
     }
 
-    /** Blocks per tick that carry an area impact ring from its birth to {@code reach} blocks from the eyes. */
+    /** Blocks per tick that carry an area impact ring from its birth to {@code reach} blocks from its origin. */
     public static double getAreaImpactRingSpeed(double reach) {
         return (reach - AREA_IMPACT_RING_START) / AREA_IMPACT_TRAVEL_TICKS;
     }

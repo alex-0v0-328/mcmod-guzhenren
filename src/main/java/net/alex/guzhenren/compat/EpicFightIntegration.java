@@ -54,12 +54,13 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * <p>{@link #onAttackPhaseEnd}: when the hit window of a fist strike closes -- a combo, dash or air attack in Epic
  * Fight mode with a fist-category primary hand (an empty hand resolves to FIST too; a bare main hand beside an
  * offhand weapon is Epic Fight's mirror mode, which swings the offhand weapon, so no fist strike), never an innate
- * skill, which Epic Fight builds as a plain {@code AttackAnimation} -- {@link AreaImpact#release} hits the cone
- * along the look, sparing every target the fist already tried this phase. Every release, whiff or not, sends one
- * area impact ring down the cone ({@link RingConeEmitter#areaImpactRing}), and each target it landed on gets the
- * strike's own hit sound, read the way Epic Fight reads it for the fist's hit; Epic Fight's hit particle stays
+ * skill, which Epic Fight builds as a plain {@code AttackAnimation} -- the area impact rolls its chance once on the
+ * player's random ({@link AreaImpact#rolls}); a landed roll lets {@link AreaImpact#release} hit the cone along the
+ * look, sparing every target the fist already tried this phase. Every release, whiff or not, sends one area impact
+ * ring down the cone ({@link RingConeEmitter#areaImpactRing}), a missed roll none, and each target it landed on gets
+ * the strike's own hit sound, read the way Epic Fight reads it for the fist's hit; Epic Fight's hit particle stays
  * off the impact, the ring is its picture. The event fires once per phase on the server; a phase cut short by
- * another animation ({@code isAnimationTerminated}) releases nothing.
+ * another animation ({@code isAnimationTerminated}) rolls nothing.
  *
  * <p>⚠ Epic Fight owns stamina: the current value, regeneration, the HUD and all ordinary consumption. GZR only
  * scales the cap and waives the undead's skill cost; it keeps no stamina attachment and adds no sprint gate,
@@ -158,7 +159,7 @@ public final class EpicFightIntegration {
         if (patch.getPrimaryItemCapability().getWeaponCategory() != CapabilityItem.WeaponCategories.FIST) return;
 
         ServerPlayer player = patch.getOriginal();
-        if (!AreaImpact.isUnlocked(player)) return;
+        if (!AreaImpact.rolls(player, player.getRandom())) return;
 
         Vec3 look = player.getLookAngle();
         RingConeEmitter.areaImpactRing(player, look, AreaImpact.RANGE);

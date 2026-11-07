@@ -32,9 +32,10 @@ import org.jetbrains.annotations.Nullable;
  * may hurt on the way; a block in the way snuffs it with no burst. The locked target takes the burst in full wherever
  * it bursts, if it stands inside.
  *
- * <p>The server owns the burst: the damage, the aim point and the locked target, set once by {@link #shoot}, live only
- * there. The orb has no model; the client copy flies the spawn packet's straight line, leaving one cloud puff a tick,
- * and the burst leaves {@link #BURST_PUFFS} poofs, a snuffed orb {@link #SNUFF_PUFFS}. It is never saved.
+ * <p>The server owns the burst: the damage, the aim point, the heading (the straight line's direction, which the
+ * burst hands on as the area impact's axis) and the locked target, set once by {@link #shoot}, live only there. The
+ * orb has no model; the client copy flies the spawn packet's straight line, leaving one cloud puff a tick, and the
+ * burst leaves {@link #BURST_PUFFS} poofs, a snuffed orb {@link #SNUFF_PUFFS}. It is never saved.
  * ⚠ {@link #BURST_PUFFS} and {@link #SNUFF_PUFFS} are provisional.
  *
  * @author Alex
@@ -53,6 +54,7 @@ public final class QiWaveEntity extends Projectile {
     private static final int NO_TARGET = -1;
     private float damage;
     private @Nullable Vec3 aimPoint;
+    private Vec3 heading = Vec3.ZERO;
     private int lockedId = NO_TARGET;
     private int flightTicks;
 
@@ -68,7 +70,8 @@ public final class QiWaveEntity extends Projectile {
         orb.aimPoint = aim;
         orb.lockedId = target.getId();
         orb.flightTicks = Mth.ceil(path.length() / SPEED);
-        orb.setDeltaMovement(path.normalize().scale(SPEED));
+        orb.heading = path.normalize();
+        orb.setDeltaMovement(orb.heading.scale(SPEED));
         owner.level().addFreshEntity(orb);
         owner.level().playSound(null, owner.getX(), owner.getY(), owner.getZ(), SoundEvents.BREEZE_SHOOT,
                 SoundSource.PLAYERS, 0.6F, 1.4F);
@@ -131,7 +134,7 @@ public final class QiWaveEntity extends Projectile {
     private void burst(Vec3 at) {
         if (getOwner() instanceof ServerPlayer owner) {
             LivingEntity locked = level().getEntity(lockedId) instanceof LivingEntity living ? living : null;
-            QiBurst.burst(owner, this, at, locked, damage);
+            QiBurst.burst(owner, this, at, heading, locked, damage);
         }
         if (level() instanceof ServerLevel server) {
             server.sendParticles(ParticleTypes.POOF, at.x, at.y, at.z, BURST_PUFFS, 0.4D, 0.4D, 0.4D, 0.05D);
