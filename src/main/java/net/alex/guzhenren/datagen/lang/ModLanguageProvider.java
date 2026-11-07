@@ -590,8 +590,8 @@ public class ModLanguageProvider extends LanguageProvider {
                 "%1$s was struck down by %2$s's Qi Wave", "%1$s 被 %2$s 的气波打死了");
         add("death.attack.guzhenren.qi_wave.item",
                 "%1$s was struck down by %2$s's Qi Wave using %3$s", "%1$s 被 %2$s 用 %3$s 的气波打死了");
-    }
         add("death.attack.guzhenren.body_overload",               "%1$s died of Body Overload", "%1$s 肉体过载而亡");
+    }
     //endregion
 
     //region ENUM [枚举]
