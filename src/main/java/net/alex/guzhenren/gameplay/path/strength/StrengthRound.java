@@ -8,6 +8,7 @@ import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BeastPhantomEntity;
 import net.alex.guzhenren.gameplay.attribute.StrengthService;
+import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
@@ -177,19 +178,15 @@ public final class StrengthRound {
 
     //region Release [解放]
     public static int getReleasedExtra(@NotNull ServerPlayer player) {
-        return getReleasedExtra(player, StrengthService.getCapacity(player), StrengthService.getStrengthPoints(player));
+        return getReleasedExtra(player, StrengthService.snapshot(player));
     }
 
-    private static int getReleasedExtra(@NotNull Player player, int capacity, int total) {
+    private static int getReleasedExtra(@NotNull Player player, @NotNull StrengthSnapshot snapshot) {
         State state = ROUNDS.get(player.getUUID());
         if (!isRunning(player) || state == null || state.families.isEmpty()) return 0;
 
-        Map<BeastStrengthFamily, Integer> temporary = new HashMap<>();
-        for (StrengthAmplifier amplifier : StrengthService.getAmplifiers(player)) {
-            if (amplifier.isBeast()) temporary.merge(amplifier.family(), amplifier.points(), Integer::sum);
-        }
-        return getReleasedExtra(capacity, total, state.families, PathStrengthService.get(player), temporary,
-                StrengthService.isAllOut(player), state.rolledFull);
+        return getReleasedExtra(snapshot.capacity(), snapshot.totalPoints(), state.families,
+                PathStrengthService.get(player), snapshot.beastAmplifierPoints(), snapshot.allOut(), state.rolledFull);
     }
 
     public static int getReleasedExtra(int capacity, int total, @NotNull List<BeastStrengthFamily> families,
@@ -250,8 +247,8 @@ public final class StrengthRound {
 
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
-        StrengthService.setReleaseSource((player, capacity, total) ->
-                player instanceof ServerPlayer ? getReleasedExtra(player, capacity, total) : 0);
+        StrengthService.setReleaseSource((player, snapshot) ->
+                player instanceof ServerPlayer ? getReleasedExtra(player, snapshot) : 0);
     }
     //endregion
 }

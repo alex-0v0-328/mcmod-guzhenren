@@ -17,11 +17,11 @@ import org.jetbrains.annotations.Nullable;
  * several beast families at once.
  *
  * <p>The injury tier is read live from the health share ({@link #getTier}): above 60% and under 75% is tier 1,
- * then every 15% further down one more, to tier 5 at 15% or less; 75% and above is no tier. Its amplifier adds
- * {@link #POINT_PERCENT} of the permanent points [力量点] (rounded down) and no family. Its capacity bonus
- * [承受力] depends on the branch: a beast phantom [兽力虚影] body carries the points it gains, any other body
- * gains {@link #HUMAN_CAPACITY_PERCENT} of its normal capacity [常态承受力] (rounded down). With no permanent
- * points the state adds nothing.
+ * then every 15% further down one more, to tier 5 at 15% or less; 75% and above is no tier. Each {@link Tier} holds the
+ * health share it stays above (its floor) and its two shares. Its amplifier adds the tier's point share of the
+ * permanent points [力量点] (rounded down) and no family. Its capacity bonus [承受力] depends on the branch: a beast phantom
+ * [兽力虚影] body carries the points it gains, any other body gains the tier's human capacity share of its normal capacity
+ * [常态承受力] (rounded down). With no permanent points the state adds nothing.
  *
  * <p>⚠ Provisional, awaiting Alex: the five point shares 10/20/30/40/50%. The human capacity shares
  * 100/125/150/175/200% are settled.
@@ -40,12 +40,32 @@ public final class HardshipStrength {
 
     private HardshipStrength() {}
 
-    public static final int TIERS = 5;
+    public static final int TIERS = Tier.values().length;
     public static final float START_BELOW = 0.75F;
     public static final float HEALED_SHARE = START_BELOW - 1.0E-4F;
-    private static final float[] TIER_CEILINGS = { 0.60F, 0.45F, 0.30F, 0.15F };
-    private static final int[] POINT_PERCENT = { 10, 20, 30, 40, 50 };
-    private static final int[] HUMAN_CAPACITY_PERCENT = { 100, 125, 150, 175, 200 };
+
+    private enum Tier {
+
+        ONE(0.60F, 10, 100),
+        TWO(0.45F, 20, 125),
+        THREE(0.30F, 30, 150),
+        FOUR(0.15F, 40, 175),
+        FIVE(0.0F, 50, 200);
+
+        private final float floor;
+        private final int pointPercent;
+        private final int humanCapacityPercent;
+
+        Tier(float floor, int pointPercent, int humanCapacityPercent) {
+            this.floor = floor;
+            this.pointPercent = pointPercent;
+            this.humanCapacityPercent = humanCapacityPercent;
+        }
+
+        private int getLevel() { return ordinal() + 1; }
+
+        private static Tier of(int level) { return values()[Math.min(level, TIERS) - 1]; }
+    }
 
     public static boolean isActive(@NotNull Player player) {
         return PathEffectService.find(player, ModPathEffectTypes.HARDSHIP_STRENGTH) != null;
@@ -56,23 +76,21 @@ public final class HardshipStrength {
     public static int getTier(float health, float maxHealth) {
         if (health <= 0.0F || !isHurt(health, maxHealth)) return 0;
 
-        int tier = 1;
-        for (float ceiling : TIER_CEILINGS) {
-            if (health > maxHealth * ceiling) break;
-            tier++;
+        for (Tier tier : Tier.values()) {
+            if (health > maxHealth * tier.floor) return tier.getLevel();
         }
-        return tier;
+        return TIERS;
     }
 
     public static int getPoints(int permanentPoints, int tier) {
         if (tier <= 0 || permanentPoints <= 0) return 0;
-        return (int) ((long) permanentPoints * POINT_PERCENT[Math.min(tier, TIERS) - 1] / 100L);
+        return (int) ((long) permanentPoints * Tier.of(tier).pointPercent / 100L);
     }
 
     public static int getCapacityBonus(boolean beastPhantom, int points, int normalCapacity, int tier) {
         if (tier <= 0 || points <= 0) return 0;
         if (beastPhantom) return points;
-        return (int) ((long) Math.max(0, normalCapacity) * HUMAN_CAPACITY_PERCENT[Math.min(tier, TIERS) - 1] / 100L);
+        return (int) ((long) Math.max(0, normalCapacity) * Tier.of(tier).humanCapacityPercent / 100L);
     }
 
     public static @Nullable StrengthAmplifier getAmplifier(@NotNull ResourceLocation source, boolean beastPhantom,
@@ -93,7 +111,7 @@ public final class HardshipStrength {
         public @Nullable StrengthAmplifier getAmplifier(@NotNull Player player, int permanentPoints,
                                                         int normalCapacity) {
             return HardshipStrength.getAmplifier(ModPathEffectTypes.HARDSHIP_STRENGTH.getId(),
-                    PathStrengthService.holdsBranch(player, StrengthPathBranch.BEAST_STRENGTH_PHANTOM),
+                    PathStrengthService.getHeldBranch(player) == StrengthPathBranch.BEAST_STRENGTH_PHANTOM,
                     permanentPoints, normalCapacity, getTier(player.getHealth(), player.getMaxHealth()));
         }
     }

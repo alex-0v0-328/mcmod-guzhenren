@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
 import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.gameplay.attribute.StrengthService;
+import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Bone;
@@ -229,10 +230,10 @@ public final class InfoModel {
         rows.add(new Row(0, new SkinRow(body.skin())));
         rows.add(new Row(0, new FleshRow(body.flesh())));
         rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
-        int points = StrengthService.getStrengthPoints(player);
-        if (points > 0) {
-            rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player), points,
-                    StrengthService.getCapacity(player), StrengthService.getNormalCapacity(player))));
+        StrengthSnapshot settlement = StrengthService.snapshot(player);
+        if (settlement.totalPoints() > 0) {
+            rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player, settlement),
+                    settlement.totalPoints(), settlement.capacity(), settlement.normalCapacity())));
         }
         double attackBonus = AttackDamageService.getFistBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {

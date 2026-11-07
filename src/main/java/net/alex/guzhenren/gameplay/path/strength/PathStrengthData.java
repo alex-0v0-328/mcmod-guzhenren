@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code
  * addAll} -- the {@code EnumMap(Map)} copy constructor throws on the empty maps {@code DEFAULT} uses. ⚠
- * The four layer caps (9/9/30/30) sum to exactly 9,999 jin; changing one breaks that identity. ⚠
+ * The five layer caps (9/9/30/30/30) sum to exactly 99,999 jin; changing one breaks that identity. ⚠
  * {@code getBeastReadings()} groups by {@code BeastStrengthFamily}, not species -- two boars share one.
  *
  * @author Alex

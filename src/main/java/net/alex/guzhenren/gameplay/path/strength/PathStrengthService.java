@@ -27,6 +27,11 @@ import org.jetbrains.annotations.Nullable;
  * go through. ⚠ The capacity gate is the Gu's ({@code BeastStrengthBehavior}), not this funnel's: a command grant
  * may seat a beast past the normal capacity, and the body then uses what it can carry.
  *
+ * <p>{@link #holdsBranch} is the one holding rule, read by {@link #getInterference} for the gates and by
+ * {@link #getHeldBranch} for the effects that differ by branch: Beast Strength Phantom, else Human Jun Strength, else
+ * Normal. ⚠ The funnel keeps a body from holding both, but the codec does not: a record saved with both reads as
+ * Beast Strength Phantom.
+ *
  * @author Alex
  * @version 1.0.0
  * @see PathStrengthData
@@ -38,6 +43,9 @@ import org.jetbrains.annotations.Nullable;
 public final class PathStrengthService {
 
     private PathStrengthService() {}
+
+    private static final List<StrengthPathBranch> HELD_ORDER =
+            List.of(StrengthPathBranch.BEAST_STRENGTH_PHANTOM, StrengthPathBranch.HUMAN_JUN_STRENGTH);
 
     public static @NotNull PathStrengthData get(@NotNull Player player) {
         return PlayerData.get(player).getStrength();
@@ -52,6 +60,13 @@ public final class PathStrengthService {
     public static boolean holdsBranch(@NotNull Player player, @NotNull StrengthPathBranch branch) {
         return get(player).hasPathBranch(branch)
                 || (branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM && hasBeastBuff(player));
+    }
+
+    public static @NotNull StrengthPathBranch getHeldBranch(@NotNull Player player) {
+        for (StrengthPathBranch branch : HELD_ORDER) {
+            if (holdsBranch(player, branch)) return branch;
+        }
+        return StrengthPathBranch.NORMAL;
     }
 
     public static @Nullable StrengthPathBranch getInterference(@NotNull Player player,

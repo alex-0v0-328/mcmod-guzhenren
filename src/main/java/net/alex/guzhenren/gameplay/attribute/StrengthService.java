@@ -24,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
  * kinds: the permanent record ({@link PathStrengthData}: human jin and beast strengths by family), the running
  * {@link StrengthAmplifier}s ({@link #getAmplifiers}: timed beast buffs and every path effect payload that is a
  * {@link StrengthAmplifierProvider}), and the points a round's beast release [解放] counts past the capacity
- * ({@link ReleaseSource}, set by the round keeper).
+ * ({@link ReleaseSource}, set by the round keeper). {@link #snapshot} gathers the first two kinds and what they
+ * settle to once ({@link StrengthSnapshot}); the capacity, the total and the usable points of a player each read one.
  *
  * <p>The normal carrying capacity [常态承受力] is {@link #getNormalCapacity}: {@link #getBaseCapacity}, which is
  * {@link #MORTAL_CAPACITY} plus {@link #CAPACITY_PER_RANK} per rank [转] (16, then 24 to 56 for ranks one to five)
@@ -59,13 +60,13 @@ public final class StrengthService {
     public static final int ALL_OUT_CAPACITY_FACTOR = 3;
     /** A full release counts the released family's permanent points this many times. */
     public static final int FULL_RELEASE_FACTOR = 3;
-    private static ReleaseSource releaseSource = (player, capacity, total) -> 0;
+    private static ReleaseSource releaseSource = (player, snapshot) -> 0;
 
     /** The round keeper's answer: the points a release lets past the capacity right now, zero outside a round. */
     @FunctionalInterface
     public interface ReleaseSource {
 
-        int getReleasedExtra(@NotNull Player player, int capacity, int total);
+        int getReleasedExtra(@NotNull Player player, @NotNull StrengthSnapshot snapshot);
     }
 
     public static void setReleaseSource(@NotNull ReleaseSource source) { releaseSource = source; }
@@ -85,9 +86,7 @@ public final class StrengthService {
     }
 
     /** The current capacity: the normal one plus every amplifier's bonus plus the All-Out lift. */
-    public static int getCapacity(@NotNull Player player) {
-        return getCapacity(getNormalCapacity(player), getCapacityBonus(getAmplifiers(player)), isAllOut(player));
-    }
+    public static int getCapacity(@NotNull Player player) { return snapshot(player).capacity(); }
 
     public static int getCapacity(int normalCapacity, int amplifierBonus, boolean allOut) {
         return normalCapacity + amplifierBonus + (allOut ? (ALL_OUT_CAPACITY_FACTOR - 1) * normalCapacity : 0);
@@ -99,9 +98,11 @@ public final class StrengthService {
 
     /** Every running amplifier: the timed beast buffs, then every path effect payload that provides one. */
     public static @NotNull List<StrengthAmplifier> getAmplifiers(@NotNull Player player) {
+        return getAmplifiers(player, getPermanentPoints(player), getNormalCapacity(player));
+    }
+
+    private static List<StrengthAmplifier> getAmplifiers(Player player, int permanent, int normal) {
         List<StrengthAmplifier> amplifiers = new ArrayList<>(PathStrengthService.getBeastBuffs(player));
-        int permanent = getPermanentPoints(player);
-        int normal = getNormalCapacity(player);
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
             if (!(effect.payload() instanceof StrengthAmplifierProvider provider)) continue;
 
@@ -124,17 +125,22 @@ public final class StrengthService {
     }
 
     /** The whole strength: permanent points plus every amplifier's points. */
-    public static int getStrengthPoints(@NotNull Player player) {
-        return getPermanentPoints(player) + getAmplifierPoints(getAmplifiers(player));
-    }
+    public static int getStrengthPoints(@NotNull Player player) { return snapshot(player).totalPoints(); }
 
     public static boolean isAllOut(@NotNull Player player) { return player.hasEffect(ModEffects.ALL_OUT_EFFORT_GU); }
 
+    public static @NotNull StrengthSnapshot snapshot(@NotNull Player player) {
+        int normal = getNormalCapacity(player);
+        int permanent = getPermanentPoints(player);
+        return StrengthSnapshot.of(normal, permanent, getAmplifiers(player, permanent, normal), isAllOut(player));
+    }
+
     /** What the body brings to bear right now: the cut total plus whatever the round releases past the capacity. */
-    public static int getUsablePoints(@NotNull Player player) {
-        int capacity = getCapacity(player);
-        int total = getStrengthPoints(player);
-        return getUsablePoints(capacity, total) + releaseSource.getReleasedExtra(player, capacity, total);
+    public static int getUsablePoints(@NotNull Player player) { return getUsablePoints(player, snapshot(player)); }
+
+    public static int getUsablePoints(@NotNull Player player, @NotNull StrengthSnapshot snapshot) {
+        return getUsablePoints(snapshot.capacity(), snapshot.totalPoints())
+                + releaseSource.getReleasedExtra(player, snapshot);
     }
 
     public static int getUsablePoints(int capacity, int total) { return Math.min(capacity, total); }

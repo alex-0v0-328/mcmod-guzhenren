@@ -80,7 +80,7 @@ public final class QiWaveService {
         float gain = StrengthRound.startRange(player, player.getRandom().nextFloat());
         float damage = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE) + gain;
         BeastStrengthFamily family = getChargeFamily(
-                PathStrengthService.holdsBranch(player, StrengthPathBranch.BEAST_STRENGTH_PHANTOM),
+                PathStrengthService.getHeldBranch(player) == StrengthPathBranch.BEAST_STRENGTH_PHANTOM,
                 StrengthRound.getFamilies(player),
                 StrengthRound.getAvailableFamilies(PathStrengthService.get(player)), player.getRandom());
         return family != null ? BeastChargeEntity.shoot(player, target, damage, family)
