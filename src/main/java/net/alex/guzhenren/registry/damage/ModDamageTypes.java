@@ -43,6 +43,8 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> AREA_IMPACT = key("area_impact");
     public static final ResourceKey<DamageType> QI_WAVE = key("qi_wave");
     public static final ResourceKey<DamageType> BODY_OVERLOAD = key("body_overload");
+    public static final ResourceKey<DamageType> CHARGED_PUNCH = key("charged_punch");
+    public static final ResourceKey<DamageType> IMPACT_BACKLASH = key("impact_backlash");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
         return new DamageSource(entity.level().registryAccess()

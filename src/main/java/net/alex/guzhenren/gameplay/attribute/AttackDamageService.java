@@ -6,6 +6,8 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
  * an Epic Fight glove [拳套] included, gets none of it, so no weapon's innate skill shares the strength path's
  * keys. {@link AttributeEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
  * changes; the player tick refreshes it every tick, which is how a hand change takes it on or off at once, and
- * {@code TransientModifiers.swap} makes an unchanged refresh a no-op.
+ * {@code TransientModifiers.swap} makes an unchanged refresh a no-op. {@link #getFistDamage} reads the attack a fist
+ * would land with any other count of points -- the attribute worked out again by operation with the zombie bonus and
+ * those points in this modifier's place, so other mods' multipliers scale them as they scale the attack -- for the
+ * Store Strength Gu's [蓄力蛊] charged punch, which brings points past the capacity to bear.
  *
  * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ No effect may declare its own
  * {@code addAttributeModifier}: every timed attack buff is strength points through the capacity, never a flat
@@ -57,6 +62,29 @@ public final class AttackDamageService {
 
     private static double getFistStrengthBonus(@NotNull Player player) {
         return StrengthService.getUsablePoints(player) * PathStrengthData.ATTACK_PER_POINT;
+    }
+
+    public static double getFistDamage(@NotNull Player player, int points) {
+        AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (attack == null) return 0.0D;
+
+        double added = attack.getBaseValue() + getZombieBonus(player)
+                + Math.max(0, points) * PathStrengthData.ATTACK_PER_POINT;
+        for (AttributeModifier modifier : attack.getModifiers()) {
+            if (isOther(modifier, AttributeModifier.Operation.ADD_VALUE)) added += modifier.amount();
+        }
+        double total = added;
+        for (AttributeModifier modifier : attack.getModifiers()) {
+            if (isOther(modifier, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) total += added * modifier.amount();
+        }
+        for (AttributeModifier modifier : attack.getModifiers()) {
+            if (isOther(modifier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) total *= 1.0D + modifier.amount();
+        }
+        return Attributes.ATTACK_DAMAGE.value().sanitizeValue(total);
+    }
+
+    private static boolean isOther(@NotNull AttributeModifier modifier, AttributeModifier.Operation operation) {
+        return modifier.operation() == operation && !modifier.id().equals(MODIFIER_ID);
     }
 
     public static double getZombieBonus(@NotNull Player player) {

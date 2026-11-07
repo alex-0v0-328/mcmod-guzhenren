@@ -226,6 +226,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.refining_plain",                  "Refining",                    "炼化中");
         add("guzhenren.hud.using_plain",                     "Using",                       "使用中");
         add("guzhenren.hud.using",                           "Use %s/%s",                   "使用 %s/%s");
+        add("guzhenren.hud.store_strength",                  "Charging",                    "蓄力中");
+        add("guzhenren.hud.store_strength.full",             "Charged",                     "蓄满");
         add("guzhenren.hud.slider.cancel",                   "Cancel",                      "取消");
         add("guzhenren.hud.elder_gu.withdraw",               "Withdraw %s stacks (%s)",     "取出 %s 组（%s 枚）");
         add("guzhenren.hud.elder_gu.detail",
@@ -418,6 +420,8 @@ public class ModLanguageProvider extends LanguageProvider {
                 "The all-out effort has not yet passed", "全力以赴蛊效果未散");
         add("guzhenren.item.failed.all_out_needs_branch",
                 "Must be paired with other Gu", "需搭配蛊虫使用");
+        add("guzhenren.item.failed.store_strength_active",
+                "The stored strength has not yet passed", "蓄力蛊效果未散");
         add("guzhenren.item.failed.buff_stronger",
                 "A stronger %s effect is still running", "更强的%s效果未散");
         add("guzhenren.item.failed.skin_taken",
@@ -509,6 +513,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.white_jade_gu",                        "White Jade Gu Effect", "白玉蛊效果");
         add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
         add("effect.guzhenren.all_out_effort_gu",                    "All-Out Effort Gu Effect", "全力以赴蛊效果");
+        add("effect.guzhenren.store_strength_gu",                    "Store Strength Gu Effect", "蓄力蛊效果");
         add("effect.guzhenren.temp_zombie",                          "Temp Zombie Effect", "临时僵尸化效果");
         add("effect.guzhenren.second_watch_gu",                      "Second Watch Gu Effect", "两更蛊效果");
         add("effect.guzhenren.third_watch_gu",                       "Third Watch Gu Effect", "三更蛊效果");
@@ -592,6 +597,11 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.qi_wave.item",
                 "%1$s was struck down by %2$s's Qi Wave using %3$s", "%1$s 被 %2$s 用 %3$s 的气波打死了");
         add("death.attack.guzhenren.body_overload",               "%1$s died of Body Overload", "%1$s 肉体过载而亡");
+        add("death.attack.guzhenren.charged_punch",
+                "%1$s was struck down by %2$s's Charged Punch", "%1$s 被 %2$s 的蓄力一拳打死了");
+        add("death.attack.guzhenren.charged_punch.item",
+                "%1$s was struck down by %2$s's Charged Punch using %3$s", "%1$s 被 %2$s 用 %3$s 的蓄力一拳打死了");
+        add("death.attack.guzhenren.impact_backlash",             "%1$s died of Impact Backlash", "%1$s 冲击反噬而亡");
     }
     //endregion
 

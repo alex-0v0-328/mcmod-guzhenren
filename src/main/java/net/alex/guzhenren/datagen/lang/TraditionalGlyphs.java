@@ -55,7 +55,7 @@ public final class TraditionalGlyphs {
             + "紫美羽老而耗肉背腐自至色芒花苦草荒荔莽菇落蓬虎蛋蛐血行衍衰被裂解豕象赤赴起越足跳身"
             + "辣送逍通速造道遭酒酸醒重野金雪零雷需青非面音食香高鬼魁魂魄魔黑"
             + "筋骨皮原抗招退限刻匿反坐增幅查治玉移防御翡翠"
-            + "副手持握配合其他部分快捷按住右永久益盾危能次搭";
+            + "副手持握配合其他部分快捷按住右永久益盾危能次搭蓄噬拳";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

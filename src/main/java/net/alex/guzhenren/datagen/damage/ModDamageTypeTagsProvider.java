@@ -20,8 +20,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.damagesource.DamageType}.
  * The six disaster damage types carry the same six bypass tags (armor, effects, enchantments, resistance,
  * shield, no knockback); the Moon Blade [月刃] is only a projectile, and Bleeding [流血] only bypasses armor. The body
- * overload [肉体过载] bypasses armor and carries no knockback: a body's own recoil has no source position, and 1.21
- * knocks such a hit back in a random direction. The Qi
+ * overload [肉体过载] and the impact backlash [冲击反噬] bypass armor and carry no knockback: a body's own recoil has no
+ * source position, and 1.21 knocks such a hit back in a random direction. The area impact [范围冲击] and the charged
+ * punch [蓄力一拳] carry no knockback either, since each pushes its own targets. The Qi
  * Wave [气波] is a projectile that also bypasses the hurt cooldown, so the several Beast Charges [兽力冲击] of one
  * ranged punch each land their share of its damage. Only the
  * four lethal checks -- lifespan exhausted, soul collapse, mind ocean
@@ -61,9 +62,11 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
         tag(DamageTypeTags.IS_EXPLOSION).add(ModDamageTypes.APERTURE_PRESSURE_EXPLOSION,
                 ModDamageTypes.TEN_EXTREME_DISASTER);
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE);
-        tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.QI_WAVE);
-        tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD);
-        tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT, ModDamageTypes.BODY_OVERLOAD);
+        tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.QI_WAVE, ModDamageTypes.CHARGED_PUNCH);
+        tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD,
+                ModDamageTypes.IMPACT_BACKLASH);
+        tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT, ModDamageTypes.CHARGED_PUNCH,
+                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.IMPACT_BACKLASH);
     }
 
     private void tagUnstoppable(TagKey<DamageType> tag) {

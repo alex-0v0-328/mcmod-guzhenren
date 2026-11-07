@@ -54,6 +54,7 @@ import net.alex.guzhenren.item.gu.mortal.path.strength.BeastStrengthBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.HardshipBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.HumanStrengthBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior;
+import net.alex.guzhenren.item.gu.mortal.path.strength.StoreStrengthBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.time.ManAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.time.TerrainAsBeforeGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.time.WatchBehavior;
@@ -656,6 +657,16 @@ public final class ModItems {
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = REGISTRAR.item("all_out_effort_gu_5",
             () -> createAllOutEffortGu(Rank.FIVE, 12_800, 972, 120, 120))
             .lang("All-Out Effort Gu V", "五转全力以赴蛊").register();
+    public static final DeferredItem<Item> STORE_STRENGTH_GU = REGISTRAR.item("store_strength_gu",
+            () -> new TendedGuItem(createRankedProperties(Rank.FOUR, GuPath.STRENGTH)
+                    .type(GuType.AMPLIFICATION)
+                    .effect(EffectCarrier.BODY)
+                    .refine(6_400)
+                    .costPerUse(324)
+                    .feed(ModItemTags.ALL_OUT_FEED, 1)
+                    .cooldown(60 * Ticks.SECOND),
+                    new StoreStrengthBehavior(60)))
+            .lang("Store Strength Gu", "蓄力蛊").register();
 
     private static TendedGuItem createCrashGu(Rank rank, int refine, int costPerUse, TimedBuffBehavior crash) {
         return new TendedGuItem(createRankedProperties(rank, GuPath.STRENGTH)

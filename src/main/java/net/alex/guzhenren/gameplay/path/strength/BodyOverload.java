@@ -3,7 +3,9 @@ package net.alex.guzhenren.gameplay.path.strength;
 import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>It never kills: {@link #getDamage} stops the health at {@link #HEALTH_FLOOR}, and a body already at or under it
  * pays nothing. The recoil neither consumes nor grants the attacker's hurt frames -- they are cleared for the hit and
  * put back after it -- so a steady fist pays every hit and a mob's blow is not swallowed by the recoil's frames.
+ *
+ * <p>The Store Strength Gu's [蓄力蛊] impact backlash [冲击反噬] pays through the same arithmetic: its charged punch's
+ * points past the current capacity, as {@code guzhenren:impact_backlash}, once a release ({@link StoreStrength}).
  *
  * @author Alex
  * @version 1.0.0
@@ -33,13 +38,17 @@ public final class BodyOverload {
 
     public static float recoil(@NotNull ServerPlayer player) {
         StrengthSnapshot snapshot = StrengthService.snapshot(player);
-        float damage = getDamage(getRecoil(snapshot.overloadPoints(), snapshot.capacity(), player.getMaxHealth()),
-                player.getHealth());
+        return recoil(player, snapshot.overloadPoints(), snapshot.capacity(), ModDamageTypes.BODY_OVERLOAD);
+    }
+
+    public static float recoil(@NotNull ServerPlayer player, int points, int capacity,
+                               @NotNull ResourceKey<DamageType> type) {
+        float damage = getDamage(getRecoil(points, capacity, player.getMaxHealth()), player.getHealth());
         if (damage <= 0.0F) return 0.0F;
 
         int hurtFrames = player.invulnerableTime;
         player.invulnerableTime = 0;
-        boolean hurt = player.hurt(ModDamageTypes.source(player, ModDamageTypes.BODY_OVERLOAD), damage);
+        boolean hurt = player.hurt(ModDamageTypes.source(player, type), damage);
         player.invulnerableTime = hurtFrames;
         return hurt ? damage : 0.0F;
     }

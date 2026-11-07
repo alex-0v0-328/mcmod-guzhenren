@@ -1,10 +1,12 @@
 package net.alex.guzhenren.client.hud;
 
+import net.alex.guzhenren.client.input.StoreStrengthInput;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.item.GuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +18,9 @@ import org.jetbrains.annotations.NotNull;
  * {@code chargeFraction} from {@link net.alex.guzhenren.item.GuItem}; if the item provides its own
  * fraction the bar reads that, otherwise it falls back to the vanilla remaining-ticks ratio. During the awakening
  * ritual [开窍仪式] it shows the aptitude bar instead: {@link AwakeningHud#getBarBase} climbs to the rolled base, gray
- * while filling and the default charge color once full, captioned like the aptitude line (八成七).
+ * while filling and the default charge color once full, captioned like the aptitude line (八成七). While the Store
+ * Strength Gu [蓄力蛊] charges ({@link StoreStrengthInput#isCharging}) it shows that charge, gray while filling and
+ * the default charge color once the server holds it full ({@link StoreStrengthInput#isFull}), captioned 蓄力中 / 蓄满.
  *
  * <p>{@link #isShowing} is the one test of "a charged Gu use is running", also read by {@link NourishHud} to stack
  * its bar above this one.
@@ -37,11 +41,14 @@ public final class ChargeHud extends HotbarHud {
     private ChargeHud() {}
 
     private static final int AWAKENING_FILLING_COLOR = 0xFFCCCCCC;
+    private static final String STORE_STRENGTH = "guzhenren.hud.store_strength";
+    private static final String STORE_STRENGTH_FULL = "guzhenren.hud.store_strength.full";
     static final HudBar AWAKENING = HudBar.of("awakening", BAR_WIDTH, BAR_HEIGHT);
 
     static boolean isShowing(Minecraft minecraft, LocalPlayer player) {
         if (minecraft.options.hideGui || player.isSpectator()) return false;
         if (AwakeningHud.INSTANCE.getBarBase(player, 0.0F) >= 0) return true;
+        if (StoreStrengthInput.isCharging()) return true;
         if (!player.isUsingItem()) return false;
 
         ItemStack stack = player.getUseItem();
@@ -63,6 +70,14 @@ public final class ChargeHud extends HotbarHud {
                     : AWAKENING_FILLING_COLOR;
             draw(graphics, minecraft, AWAKENING, x, y, awakening / 100.0F, color,
                     ModDisplayText.formatBaseFraction(awakening));
+            return;
+        }
+
+        if (StoreStrengthInput.isCharging()) {
+            boolean full = StoreStrengthInput.isFull();
+            draw(graphics, minecraft, HOTBAR, x, y, StoreStrengthInput.getProgress(),
+                    full ? GuItem.CHARGE_COLOR_DEFAULT : AWAKENING_FILLING_COLOR,
+                    Component.translatable(full ? STORE_STRENGTH_FULL : STORE_STRENGTH));
             return;
         }
 

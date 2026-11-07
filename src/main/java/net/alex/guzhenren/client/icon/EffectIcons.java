@@ -33,6 +33,7 @@ public final class EffectIcons {
         register.accept(GradedEffectIcon.createItem("malicious_thought_gu", 2, 5, 2), ModEffects.MALICIOUS_THOUGHT_GU);
         register.accept(GradedEffectIcon.createItem("self_reliance_gu", 2, 4), ModEffects.SELF_RELIANCE_GU);
         register.accept(new ItemEffectIcon("hardship_strength_gu"), ModEffects.HARDSHIP_STRENGTH_GU);
+        register.accept(new ItemEffectIcon("store_strength_gu"), ModEffects.STORE_STRENGTH_GU);
         register.accept(new ItemEffectIcon("jade_skin_gu"), ModEffects.JADE_SKIN_GU);
         register.accept(new ItemEffectIcon("heavenly_mugwort_gu"), ModEffects.HEAVENLY_MUGWORT_GU);
         register.accept(new ItemEffectIcon("white_jade_gu"), ModEffects.WHITE_JADE_GU);

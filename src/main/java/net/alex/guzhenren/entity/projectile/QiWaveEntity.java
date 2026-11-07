@@ -4,6 +4,8 @@ import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,6 +38,12 @@ import org.jetbrains.annotations.Nullable;
  * burst hands on as the area impact's axis) and the locked target, set once by {@link #shoot}, live only there. The
  * orb has no model; the client copy flies the spawn packet's straight line, leaving one cloud puff a tick, and the
  * burst leaves {@link #BURST_PUFFS} poofs, a snuffed orb {@link #SNUFF_PUFFS}. It is never saved.
+ *
+ * <p>The Store Strength Gu's [蓄力蛊] charged punch [蓄力一拳] throws a tracking orb instead ({@link #track}): it
+ * steers at the target's center every tick on both ends, from the synced target id, for up to
+ * {@link #TRACK_FLIGHT_FACTOR} times the straight flight, and bursts with the punch's own {@link QiBurst.Spec}; a
+ * target that dies leaves it flying on to the last point it saw, and one it has not reached when that flight runs out
+ * takes it bursting where it is, since the punch's backlash is already paid.
  * ⚠ {@link #BURST_PUFFS} and {@link #SNUFF_PUFFS} are provisional.
  *
  * @author Alex
@@ -51,8 +59,12 @@ public final class QiWaveEntity extends Projectile {
     public static final int BURST_PUFFS = 8;
     public static final int SNUFF_PUFFS = 3;
     private static final float SPAWN_DROP = 0.3F;
+    public static final int TRACK_FLIGHT_FACTOR = 2;
     private static final int NO_TARGET = -1;
+    private static final EntityDataAccessor<Integer> TRACKED =
+            SynchedEntityData.defineId(QiWaveEntity.class, EntityDataSerializers.INT);
     private float damage;
+    private QiBurst.Spec burst = QiBurst.Spec.QI_WAVE;
     private @Nullable Vec3 aimPoint;
     private Vec3 heading = Vec3.ZERO;
     private int lockedId = NO_TARGET;
@@ -61,6 +73,18 @@ public final class QiWaveEntity extends Projectile {
     public QiWaveEntity(EntityType<? extends QiWaveEntity> type, Level level) { super(type, level); }
 
     public static QiWaveEntity shoot(ServerPlayer owner, LivingEntity target, float damage) {
+        return launch(aim(owner, target, damage), owner);
+    }
+
+    public static QiWaveEntity track(ServerPlayer owner, LivingEntity target, float damage, QiBurst.Spec burst) {
+        QiWaveEntity orb = aim(owner, target, damage);
+        orb.burst = burst;
+        orb.flightTicks *= TRACK_FLIGHT_FACTOR;
+        orb.entityData.set(TRACKED, target.getId());
+        return launch(orb, owner);
+    }
+
+    private static QiWaveEntity aim(ServerPlayer owner, LivingEntity target, float damage) {
         QiWaveEntity orb = new QiWaveEntity(ModEntityTypes.QI_WAVE.get(), owner.level());
         orb.setOwner(owner);
         orb.damage = damage;
@@ -72,6 +96,10 @@ public final class QiWaveEntity extends Projectile {
         orb.flightTicks = Mth.ceil(path.length() / SPEED);
         orb.heading = path.normalize();
         orb.setDeltaMovement(orb.heading.scale(SPEED));
+        return orb;
+    }
+
+    private static QiWaveEntity launch(QiWaveEntity orb, ServerPlayer owner) {
         owner.level().addFreshEntity(orb);
         owner.level().playSound(null, owner.getX(), owner.getY(), owner.getZ(), SoundEvents.BREEZE_SHOOT,
                 SoundSource.PLAYERS, 0.6F, 1.4F);
@@ -82,18 +110,31 @@ public final class QiWaveEntity extends Projectile {
 
     public @Nullable Vec3 getAimPoint() { return aimPoint; }
 
+    public @Nullable LivingEntity getTracked() {
+        int id = entityData.get(TRACKED);
+        if (id == NO_TARGET) return null;
+        return level().getEntity(id) instanceof LivingEntity living && living.isAlive() ? living : null;
+    }
+
     @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {}
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
+        builder.define(TRACKED, NO_TARGET);
+    }
 
     @Override
     public void tick() {
         super.tick();
+        Vec3 center = position().add(0.0D, getBbHeight() / 2.0F, 0.0D);
         if (!level().isClientSide() && (aimPoint == null || tickCount > flightTicks + GRACE_TICKS)) {
-            discard();
+            if (aimPoint != null && entityData.get(TRACKED) != NO_TARGET) {
+                burst(center);
+            } else {
+                discard();
+            }
             return;
         }
+        steer(center);
         Vec3 motion = getDeltaMovement();
-        Vec3 center = position().add(0.0D, getBbHeight() / 2.0F, 0.0D);
         boolean arriving = !level().isClientSide() && center.distanceTo(aimPoint) <= motion.length();
         if (arriving) setDeltaMovement(aimPoint.subtract(center));
         HitResult hit = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
@@ -107,6 +148,18 @@ public final class QiWaveEntity extends Projectile {
         if (level().isClientSide()) level().addParticle(ParticleTypes.CLOUD, center.x, center.y, center.z, 0, 0, 0);
         motion = getDeltaMovement();
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
+    }
+
+    private void steer(Vec3 center) {
+        LivingEntity tracked = getTracked();
+        if (tracked == null) return;
+
+        Vec3 aim = tracked.getBoundingBox().getCenter();
+        Vec3 toward = aim.subtract(center);
+        if (toward.lengthSqr() <= 1.0E-6D) return;
+        if (!level().isClientSide()) aimPoint = aim;
+        heading = toward.normalize();
+        setDeltaMovement(heading.scale(SPEED));
     }
 
     @Override
@@ -134,7 +187,7 @@ public final class QiWaveEntity extends Projectile {
     private void burst(Vec3 at) {
         if (getOwner() instanceof ServerPlayer owner) {
             LivingEntity locked = level().getEntity(lockedId) instanceof LivingEntity living ? living : null;
-            QiBurst.burst(owner, this, at, heading, locked, damage);
+            QiBurst.burst(owner, this, at, heading, locked, damage, burst);
         }
         if (level() instanceof ServerLevel server) {
             server.sendParticles(ParticleTypes.POOF, at.x, at.y, at.z, BURST_PUFFS, 0.4D, 0.4D, 0.4D, 0.05D);

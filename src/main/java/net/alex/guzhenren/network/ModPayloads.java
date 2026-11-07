@@ -19,6 +19,8 @@ import net.alex.guzhenren.network.payload.PrimevalElderPayload;
 import net.alex.guzhenren.network.payload.QiWavePayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
+import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
+import net.alex.guzhenren.network.payload.StoreStrengthPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -83,11 +85,14 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.killingMove(player, intent.move(), intent.target()));
         toServer(registrar, QiWavePayload.TYPE, QiWavePayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.qiWave(player, intent.target()));
+        toServer(registrar, StoreStrengthPayload.TYPE, StoreStrengthPayload.STREAM_CODEC,
+                (intent, player) -> ClientIntents.storeStrength(player, intent.action(), intent.target()));
         toServer(registrar, PrimevalElderPayload.TYPE, PrimevalElderPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.primevalElder(player, intent.action(), intent.stacks()));
         toClient(registrar, SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC);
         toClient(registrar, ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC);
         toClient(registrar, KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC);
+        toClient(registrar, StoreStrengthNoticePayload.TYPE, StoreStrengthNoticePayload.STREAM_CODEC);
     }
 
     /** Registers what the client does with a notice of {@code noticeClass}; called from client setup only. */

@@ -12,6 +12,7 @@ import net.alex.guzhenren.client.hud.PlayerStatsHud;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.client.input.DashInput;
 import net.alex.guzhenren.client.input.QiWaveInput;
+import net.alex.guzhenren.client.input.StoreStrengthInput;
 import net.alex.guzhenren.client.particle.RingParticle;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.renderer.ModEntityRenderers;
@@ -30,6 +31,7 @@ import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
+import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -85,8 +87,9 @@ import org.jetbrains.annotations.Nullable;
  * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
  * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at the
  * lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player renderers get
- * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload}, {@code ImpactShakePayload} and
- * {@code KillingMoveTooltipPayload} handlers with {@code ModPayloads}, which names no client class itself, the
+ * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload}, {@code ImpactShakePayload},
+ * {@code KillingMoveTooltipPayload} and {@code StoreStrengthNoticePayload} handlers with {@code ModPayloads}, which
+ * names no client class itself, the
  * booklet reader ({@link BookletScreen}) with {@code BookletItem}, likewise, and the Epic Fight client hooks
  * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered
  * key states, the pending flashes, the shield glow and the Killing Move Tooltip, and drops a radial-menu hold; each
@@ -141,6 +144,7 @@ public final class ClientEvents {
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
             ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);
             ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
+            ModPayloads.handleOnClient(StoreStrengthNoticePayload.class, StoreStrengthInput::onNotice);
             BookletItem.readOnClient(BookletScreen::open);
             EpicFightClientIntegration.initialize();
         });
@@ -205,6 +209,7 @@ public final class ClientEvents {
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         DashInput.reset();
         QiWaveInput.reset();
+        StoreStrengthInput.reset();
         SkinFlashes.clear();
         ShieldGlowHud.INSTANCE.reset();
         KillingMoveTooltipHud.INSTANCE.clear();
@@ -227,5 +232,6 @@ public final class ClientEvents {
 
         DashInput.tick(minecraft, minecraft.player);
         QiWaveInput.tick(minecraft, minecraft.player);
+        StoreStrengthInput.tick(minecraft, minecraft.player);
     }
 }

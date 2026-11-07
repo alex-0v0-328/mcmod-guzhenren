@@ -46,7 +46,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * it rears on the arc's lift, dives after it and points at the target over its last stretch; it fades in over
  * {@link #FADE_IN_TICKS}. The
  * server owns the burst and the damage, set once by {@link #shoot}; the client copy flies the same curve from the
- * synced target, bend and flight ticks. It is never saved.
+ * synced target, bend and flight ticks. It is never saved. The Store Strength Gu's [蓄力蛊] charged punch [蓄力一拳]
+ * throws it with its own {@link QiBurst.Spec}; the Strength Qi Gu's punch bursts as a Qi Wave.
  *
  * @author Alex
  * @version 1.0.0
@@ -76,15 +77,22 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
             SynchedEntityData.defineId(BeastChargeEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private float damage;
+    private QiBurst.Spec burst = QiBurst.Spec.QI_WAVE;
     private @Nullable Vec3 arcStart;
 
     public BeastChargeEntity(EntityType<? extends BeastChargeEntity> type, Level level) { super(type, level); }
 
     public static BeastChargeEntity shoot(ServerPlayer owner, LivingEntity target, float damage,
                                           BeastStrengthFamily family) {
+        return shoot(owner, target, damage, family, QiBurst.Spec.QI_WAVE);
+    }
+
+    public static BeastChargeEntity shoot(ServerPlayer owner, LivingEntity target, float damage,
+                                          BeastStrengthFamily family, QiBurst.Spec burst) {
         BeastChargeEntity charge = new BeastChargeEntity(ModEntityTypes.BEAST_CHARGE.get(), owner.level());
         charge.setOwner(owner);
         charge.damage = damage;
+        charge.burst = burst;
         charge.setPos(owner.getX(), owner.getEyeY() - SPAWN_DROP - charge.getBbHeight() / 2.0F, owner.getZ());
         Vec3 start = charge.position();
         Vec3 end = target.getBoundingBox().getCenter();
@@ -205,7 +213,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         if (!(result.getEntity() instanceof LivingEntity target)) return;
 
         Vec3 at = target.getBoundingBox().getCenter();
-        QiBurst.burst(owner, this, at, getHeading(at), target, damage);
+        QiBurst.burst(owner, this, at, getHeading(at), target, damage, burst);
     }
 
     private Vec3 getHeading(Vec3 end) {

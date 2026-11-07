@@ -100,6 +100,8 @@ public final class ModEffects {
                     MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     public static final DeferredHolder<MobEffect, MarkerEffect> ALL_OUT_EFFORT_GU = MOB_EFFECTS.register(
             "all_out_effort_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> STORE_STRENGTH_GU = MOB_EFFECTS.register(
+            "store_strength_gu", () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, EFFECT_COLOR));
     //endregion
     //endregion
 

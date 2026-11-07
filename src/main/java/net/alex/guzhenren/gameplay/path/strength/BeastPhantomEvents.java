@@ -15,7 +15,8 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
  * The fist hit that opens a {@link StrengthRound} [攻击轮次] of the beast strength phantom path [兽力虚影流]: a
  * {@link LivingIncomingDamageEvent} with the player as the DIRECT entity, a fist in the main hand
  * ({@link AttackDamageService#isFistHand}), a positive amount on a living target and a damage type of the body's own
- * strength. An arrow, a Moon Blade, a Qi Wave or the area impact [范围冲击] carries none, and a hit the target's hurt
+ * strength. An arrow, a Moon Blade, a Qi Wave, the area impact [范围冲击] or the charged punch [蓄力一拳] carries
+ * none, and a hit the target's hurt
  * frames would swallow opens nothing. The same gate charges the body overload [肉体过载] on every such hit, inside a
  * round or not ({@link BodyOverload#recoil}), before the round is asked to open.
  *
@@ -50,7 +51,8 @@ public final class BeastPhantomEvents {
     }
 
     private static boolean isFistHit(DamageSource source, float amount, LivingEntity target) {
-        if (source.is(ModDamageTypes.AREA_IMPACT) || source.is(ModDamageTypes.QI_WAVE)) return false;
+        if (source.is(ModDamageTypes.AREA_IMPACT) || source.is(ModDamageTypes.QI_WAVE)
+                || source.is(ModDamageTypes.CHARGED_PUNCH)) return false;
         if (amount <= 0.0F || !target.isAlive()) return false;
         return target.invulnerableTime <= HURT_FRAME_GATE || source.is(DamageTypeTags.BYPASSES_COOLDOWN);
     }

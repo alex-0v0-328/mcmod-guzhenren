@@ -6,11 +6,14 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
+import net.alex.guzhenren.gameplay.path.strength.StoreStrengthChargeEvent;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.mortal.path.strength.ChargedPunch;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.refinement.RefinementMenu;
@@ -29,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * What the server does with each client intent: the two containers, the secondary path, the three
  * cultivation actions, the dash, the second-stage flight [二段飞行] toggle, the plunge [坠击], the Amplify Effect
  * Gu's [功倍蛊] radial-menu pick, the Primeval Elder Gu's [元老蛊] tap and slider pick, the Strength Qi Gu's [力气蛊]
- * ranged punch, and a moon blade Gu's [月刃]
+ * ranged punch, the Store Strength Gu's [蓄力蛊] charge (a refused start answers with the drop notice,
+ * {@code StoreStrengthNotices}), and a moon blade Gu's [月刃]
  * use (the killing move [杀招] picked, or none for a plain use; a cast that lands answers the caster with the Killing
  * Move Tooltip's [杀招提示] notice). Every intent but
  * that toggle refuses inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage
@@ -57,6 +61,8 @@ public final class ClientIntents {
     public enum NourishAction { START, CANCEL }
 
     public enum ElderAction { DEPOSIT, WITHDRAW }
+
+    public enum ChargeAction { START, CANCEL, RELEASE }
 
     private static final String STORAGE_TITLE = "guzhenren.menu.aperture_storage";
     private static final String REFINEMENT_TITLE = "guzhenren.menu.refinement";
@@ -134,6 +140,24 @@ public final class ClientIntents {
     /** A Strength Qi Gu [力气蛊] punch thrown as a Qi Wave [气波] at the client's target. */
     public static void qiWave(@NotNull ServerPlayer player, int target) {
         if (isOutsideTyh(player)) QiWaveService.fire(player, target);
+    }
+
+    public static void storeStrength(@NotNull ServerPlayer player, @NotNull ChargeAction action, int target) {
+        switch (action) {
+            case START -> {
+                if (!isOutsideTyh(player) || !StoreStrength.start(player)) {
+                    StoreStrengthNotices.send(player, StoreStrengthChargeEvent.Change.DROPPED);
+                }
+            }
+            case CANCEL -> StoreStrength.cancel(player);
+            case RELEASE -> {
+                if (isOutsideTyh(player)) {
+                    ChargedPunch.release(player, target);
+                } else {
+                    StoreStrength.cancel(player);
+                }
+            }
+        }
     }
 
     public static void openRefinement(@NotNull ServerPlayer player) {
