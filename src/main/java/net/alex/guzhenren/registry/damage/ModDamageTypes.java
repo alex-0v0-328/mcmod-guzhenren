@@ -20,7 +20,8 @@ import org.jetbrains.annotations.Nullable;
  * pressure explosion also carries {@code IS_EXPLOSION}. Three
  * more are ordinary combat damage outside that set: the Moon Blade [月刃], a projectile that armor stops, Bleeding
  * [流血], which goes past armor like poison, and the area impact [范围冲击], which armor stops and which carries only
- * {@code NO_KNOCKBACK}, since {@code AreaImpact} shoves along the punch itself.
+ * {@code NO_KNOCKBACK}, since {@code AreaImpact} shoves along the punch itself. The body overload [肉体过载] is a
+ * fist's recoil on its own body: past armor, with no attacker, and never lethal ({@code BodyOverload}).
  *
  * @author Alex
  * @version 1.0.0
@@ -41,6 +42,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> BLEEDING = key("bleeding");
     public static final ResourceKey<DamageType> AREA_IMPACT = key("area_impact");
     public static final ResourceKey<DamageType> QI_WAVE = key("qi_wave");
+    public static final ResourceKey<DamageType> BODY_OVERLOAD = key("body_overload");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
         return new DamageSource(entity.level().registryAccess()

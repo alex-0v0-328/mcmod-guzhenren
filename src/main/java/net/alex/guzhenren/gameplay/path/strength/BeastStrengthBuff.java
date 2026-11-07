@@ -7,8 +7,9 @@ package net.alex.guzhenren.gameplay.path.strength;
  * <p>Implemented by the buff's vanilla effect. The B panel reads it to word the buff as its strength with a
  * countdown under Strength Attainment [力道造诣], instead of listing it as a Gu effect among the path buffs.
  * {@link #getPoints} is what the buff adds to the body's strength points [力量点] while it runs, read by
- * {@link PathStrengthService#getBeastBuffs} as a {@link StrengthAmplifier} that brings its own carrying capacity, so
- * a timed beast is always brought to bear and never counts toward admitting a permanent one.
+ * {@link PathStrengthService#getBeastBuffs} as a {@link StrengthAmplifier} with no carrying capacity of its own: what
+ * it carries past the capacity is the body overload [肉体过载] ({@link BodyOverload}). It never counts toward
+ * admitting a permanent one.
  *
  * @author Alex
  * @version 1.0.0

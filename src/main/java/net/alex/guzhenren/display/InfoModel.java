@@ -158,9 +158,11 @@ public final class InfoModel {
 
     /**
      * Strength points [力量点] brought to bear over the points held, beast and human together, beside the current
-     * carrying capacity [承受力] and the normal one it is built on.
+     * carrying capacity [承受力], the normal one it is built on, and the body overload [肉体过载] past it (zero when
+     * none).
      */
-    public record CapacityRow(int usable, int total, int capacity, int normalCapacity) implements Entry {}
+    public record CapacityRow(int usable, int total, int capacity, int normalCapacity, int overload)
+            implements Entry {}
 
     public record AttackRow(double bonus) implements Entry {}
 
@@ -233,7 +235,8 @@ public final class InfoModel {
         StrengthSnapshot settlement = StrengthService.snapshot(player);
         if (settlement.totalPoints() > 0) {
             rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player, settlement),
-                    settlement.totalPoints(), settlement.capacity(), settlement.normalCapacity())));
+                    settlement.totalPoints(), settlement.capacity(), settlement.normalCapacity(),
+                    settlement.overloadPoints())));
         }
         double attackBonus = AttackDamageService.getFistBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {

@@ -19,7 +19,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.damagesource.DamageType}.
  * The six disaster damage types carry the same six bypass tags (armor, effects, enchantments, resistance,
- * shield, no knockback); the Moon Blade [月刃] is only a projectile and Bleeding [流血] only bypasses armor. The Qi
+ * shield, no knockback); the Moon Blade [月刃] is only a projectile, and Bleeding [流血] and the body overload [肉体过载]
+ * only bypass armor. The Qi
  * Wave [气波] is a projectile that also bypasses the hurt cooldown, so the several Beast Charges [兽力冲击] of one
  * ranged punch each land their share of its damage. Only the
  * four lethal checks -- lifespan exhausted, soul collapse, mind ocean
@@ -60,7 +61,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
                 ModDamageTypes.TEN_EXTREME_DISASTER);
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE);
         tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.QI_WAVE);
-        tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING);
+        tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD);
         tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT);
     }
 

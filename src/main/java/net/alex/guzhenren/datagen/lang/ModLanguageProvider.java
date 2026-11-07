@@ -361,6 +361,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.aperture_pressure",     "Aperture Pressure", "空窍压力");
         add("guzhenren.screen.capacity",                    "%s / %s pts, carries %s (%s at rest)",
                 "%s / %s 点，承受 %s（常态 %s）");
+        add("guzhenren.screen.capacity.body_overload",      ", overload %s", "，过载 %s");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
     }
@@ -590,6 +591,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.qi_wave.item",
                 "%1$s was struck down by %2$s's Qi Wave using %3$s", "%1$s 被 %2$s 用 %3$s 的气波打死了");
     }
+        add("death.attack.guzhenren.body_overload",               "%1$s died of Body Overload", "%1$s 肉体过载而亡");
     //endregion
 
     //region ENUM [枚举]

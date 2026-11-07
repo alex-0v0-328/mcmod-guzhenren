@@ -16,7 +16,8 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
  * {@link LivingIncomingDamageEvent} with the player as the DIRECT entity, a fist in the main hand
  * ({@link AttackDamageService#isFistHand}), a positive amount on a living target and a damage type of the body's own
  * strength. An arrow, a Moon Blade, a Qi Wave or the area impact [范围冲击] carries none, and a hit the target's hurt
- * frames would swallow opens nothing.
+ * frames would swallow opens nothing. The same gate charges the body overload [肉体过载] on every such hit, inside a
+ * round or not ({@link BodyOverload#recoil}), before the round is asked to open.
  *
  * <p>The opening hit has not yet taken the release into its attack attribute -- the player tick refreshes it the
  * next tick -- so the gain {@link StrengthRound#open} returns is added to this hit's amount, before armor. Later hits
@@ -25,6 +26,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
  * @author Alex
  * @version 1.0.0
  * @see StrengthRound
+ * @see BodyOverload
  * @since 1.0.0
  */
 
@@ -40,13 +42,14 @@ public final class BeastPhantomEvents {
         DamageSource source = event.getSource();
         LivingEntity target = event.getEntity();
         if (!(source.getDirectEntity() instanceof ServerPlayer player) || target == player) return;
-        if (!opensRound(source, event.getAmount(), target) || !AttackDamageService.isFistHand(player)) return;
+        if (!isFistHit(source, event.getAmount(), target) || !AttackDamageService.isFistHand(player)) return;
 
+        BodyOverload.recoil(player);
         float gain = StrengthRound.open(player, player.getRandom().nextFloat());
         if (gain > 0.0F) event.setAmount(event.getAmount() + gain);
     }
 
-    private static boolean opensRound(DamageSource source, float amount, LivingEntity target) {
+    private static boolean isFistHit(DamageSource source, float amount, LivingEntity target) {
         if (source.is(ModDamageTypes.AREA_IMPACT) || source.is(ModDamageTypes.QI_WAVE)) return false;
         if (amount <= 0.0F || !target.isAlive()) return false;
         return target.invulnerableTime <= HURT_FRAME_GATE || source.is(DamageTypeTags.BYPASSES_COOLDOWN);

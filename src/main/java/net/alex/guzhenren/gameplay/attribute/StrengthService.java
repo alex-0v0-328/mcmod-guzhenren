@@ -39,7 +39,10 @@ import org.jetbrains.annotations.NotNull;
  * {@link #isAllOut} is that same reading as a yes or no, for the area impact's chance and the Crash Gu dash, which
  * reads it on the owning client from the player's own synced effect and strength data). Every bonus is added on the
  * normal capacity, never multiplied with another. A body uses {@code min(total, capacity)} of the CURRENT capacity
- * ({@link #getUsablePoints}) plus the release extra, and keeps the rest; there is no overflow ramp and no load.
+ * ({@link #getUsablePoints}) plus the body overload [肉体过载] plus the release extra, and keeps the rest. The overload
+ * ({@link #getOverloadPoints}) is the part of the timed beasts' points past the current capacity, counted on top of the
+ * permanent beasts: it is brought to bear in full and paid for in health per fist hit ({@code BodyOverload}). A
+ * permanent beast seated past the capacity by a command and the human jin never overload; they are only cut.
  *
  * <p>{@link #getReleasedExtra} is a round's full release [全面解放], a critical hit of sorts: the released families'
  * PERMANENT points count {@link #FULL_RELEASE_FACTOR} times, every other point once, and the whole is still cut by the
@@ -139,6 +142,14 @@ public final class StrengthService {
         return total;
     }
 
+    public static int getTimedBeastPoints(@NotNull List<StrengthAmplifier> amplifiers) {
+        int total = 0;
+        for (StrengthAmplifier amplifier : amplifiers) {
+            if (amplifier.isBeast()) total += Math.max(0, amplifier.points());
+        }
+        return total;
+    }
+
     public static int getCapacityBonus(@NotNull List<StrengthAmplifier> amplifiers) {
         int total = 0;
         for (StrengthAmplifier amplifier : amplifiers) total += amplifier.capacityBonus();
@@ -150,19 +161,26 @@ public final class StrengthService {
 
     public static @NotNull StrengthSnapshot snapshot(@NotNull Player player) {
         int normal = getNormalCapacity(player);
-        int permanent = getPermanentPoints(player);
-        return StrengthSnapshot.of(normal, permanent, getAmplifiers(player, permanent, normal), getAllOutTier(player));
+        PathStrengthData data = PathStrengthService.get(player);
+        int permanent = data.getStrengthPoints();
+        return StrengthSnapshot.of(normal, permanent, data.getBeastPoints(), getAmplifiers(player, permanent, normal),
+                getAllOutTier(player));
     }
 
-    /** What the body brings to bear right now: the cut total plus whatever the round releases past the capacity. */
     public static int getUsablePoints(@NotNull Player player) { return getUsablePoints(player, snapshot(player)); }
 
     public static int getUsablePoints(@NotNull Player player, @NotNull StrengthSnapshot snapshot) {
-        return getUsablePoints(snapshot.capacity(), snapshot.totalPoints())
+        return getUsablePoints(snapshot.capacity(), snapshot.totalPoints()) + snapshot.overloadPoints()
                 + releaseSource.getReleasedExtra(player, snapshot);
     }
 
     public static int getUsablePoints(int capacity, int total) { return Math.min(capacity, total); }
+
+    public static int getOverloadPoints(int capacity, int permanentBeastPoints, int timedBeastPoints) {
+        int timed = Math.max(0, timedBeastPoints);
+        long past = (long) Math.max(0, permanentBeastPoints) + timed - capacity;
+        return (int) Math.clamp(past, 0L, timed);
+    }
 
     public static int getReleasedExtra(int capacity, int total, int fullReleasePoints) {
         long released = Math.max(0, total) + (long) (FULL_RELEASE_FACTOR - 1) * Math.max(0, fullReleasePoints);

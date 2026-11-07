@@ -157,8 +157,7 @@ final class InfoRowRenderer {
             case InfoModel.StrengthReadingRow e ->
                     new ScreenRow(indent, Component.empty(), null, null, formatReadings(e.readings()), false);
             case InfoModel.CapacityRow e -> new ScreenRow(indent, formatLabel("body_capacity"),
-                    Component.translatable("guzhenren.screen.capacity", e.usable(), e.total(), e.capacity(),
-                            e.normalCapacity()));
+                    formatCapacity(e));
             case InfoModel.AttackRow e -> new ScreenRow(indent, formatLabel("attack"),
                     Component.literal(ModDisplayText.formatAttackBonus(e.bonus())));
             case InfoModel.WisdomPathAchieveHeader ignored ->
@@ -176,6 +175,13 @@ final class InfoRowRenderer {
     }
 
     private static MutableComponent formatName(String key) { return Component.translatable(key); }
+
+    private static Component formatCapacity(InfoModel.CapacityRow row) {
+        MutableComponent text = Component.translatable("guzhenren.screen.capacity", row.usable(), row.total(),
+                row.capacity(), row.normalCapacity());
+        if (row.overload() <= 0) return text;
+        return text.append(Component.translatable("guzhenren.screen.capacity.body_overload", row.overload()));
+    }
 
     private static Component formatLabel(String name) {
         return Component.translatable("guzhenren.screen.label." + name);
