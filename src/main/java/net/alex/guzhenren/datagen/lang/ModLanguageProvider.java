@@ -698,6 +698,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(BeastStrength.TIGER,      "Tiger",      "虎");
         add(BeastStrength.STONE_TURTLE,    "Stone Turtle",    "石龟");
         add(BeastStrength.GALLOPING_HORSE, "Galloping Horse", "驰马");
+        add(BeastStrength.GREEN_BULL,      "Green Bull",      "青牛");
     }
 
     private void addStrengthPathBranch() {

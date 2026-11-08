@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  * it answers. A fist hit opens a round of {@link #ROUND_TICKS} when the last one began at least that long ago
  * ({@link BeastPhantomEvents} gates the hit); every hit inside it shares what the opening drew, and no hit re-rolls.
  *
- * <p>Only the families of the permanent beast strengths are drawn, never the ox. The opening hit rolls once against
+ * <p>Only the families of the permanent beast strengths are drawn; a timed strength alone (the Brute Force Longhorn
+ * Beetle's ox) opens nothing. The opening hit rolls once against
  * {@link #getChance}: {@link #CHANCE}, or 80/90/100% while the rank three/four/five All-Out Effort Gu [全力以赴] runs
  * ({@code StrengthSnapshot.allOutTier}). It draws {@link #getDrawCount}: under Hardship Strength [苦力] the streak's
  * count of distinct families, else one when the roll lands, else none -- the round still runs, so the next hits do not
@@ -170,7 +171,7 @@ public final class StrengthRound {
     public static @NotNull List<BeastStrengthFamily> getAvailableFamilies(@NotNull PathStrengthData data) {
         List<BeastStrengthFamily> families = new ArrayList<>();
         for (BeastStrengthFamily family : BeastStrengthFamily.values()) {
-            if (family != BeastStrengthFamily.OX && data.getBeastPoints(family) > 0) families.add(family);
+            if (data.getBeastPoints(family) > 0) families.add(family);
         }
         return families;
     }

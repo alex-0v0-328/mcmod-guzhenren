@@ -552,6 +552,10 @@ public final class ModItems {
             () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, 3_200, 4_800, ModItemTags.HORSE_FEED),
                     new BeastStrengthBehavior(BeastStrength.GALLOPING_HORSE)))
             .lang("Galloping Horse Strength Gu", "驰马骏力蛊").register();
+    public static final DeferredItem<Item> GREEN_BULL_LABOR_GU = REGISTRAR.item("green_bull_labor_gu",
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, 3_200, 4_800, ModItemTags.OX_FEED),
+                    new BeastStrengthBehavior(BeastStrength.GREEN_BULL)))
+            .lang("Green Bull Labor Gu", "青牛劳力蛊").register();
     public static final DeferredItem<Item> FLOWER_BOAR_GU = REGISTRAR.item("flower_boar_gu",
             () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED),
                     new TimedBuffBehavior(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),

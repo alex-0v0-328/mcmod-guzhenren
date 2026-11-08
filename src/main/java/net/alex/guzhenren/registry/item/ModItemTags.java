@@ -58,6 +58,7 @@ public final class ModItemTags {
     public static final TagKey<Item> TIGER_FEED = key("tiger_feed");
     public static final TagKey<Item> TURTLE_FEED = key("turtle_feed");
     public static final TagKey<Item> HORSE_FEED = key("horse_feed");
+    public static final TagKey<Item> OX_FEED = key("ox_feed");
     public static final TagKey<Item> BEEF_FEED = key("beef_feed");
     public static final TagKey<Item> IRON_FEED = key("iron_feed");
     public static final TagKey<Item> IRON_FEED_SMELTED = key("iron_feed_smelted");

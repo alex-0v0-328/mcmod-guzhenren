@@ -7,16 +7,16 @@ import net.alex.guzhenren.core.NamedEnum;
 
 /**
  * The family a beast strength [兽力] belongs to: the two boars share one bracket, the bear owns another, and the ox
- * exists only as the Brute Force Longhorn Beetle Gu's [蛮力天牛蛊] timed strength.
+ * holds the Green Bull Labor Gu's [青牛劳力蛊] permanent strength beside the Brute Force Longhorn Beetle Gu's
+ * [蛮力天牛蛊] timed one.
  *
  * <p>Readings group by family rather than by species constant, so a second boar lands in the boar
  * bracket instead of opening a new one. The declaration order is the B panel's reading order; the ordinal is
  * synced to the phantoms, never saved.
  *
  * <p>{@link #canManifest} says whether the family takes shape as a Beast Phantom [兽力虚影] or a Beast Charge
- * [兽力冲击]: every family does, the ox on the buffalo's model -- though only by hand ({@code BeastPhantomEntity.show}),
- * since the rounds and the charged punch draw permanent families alone and the ox is a timed strength. A family
- * that cannot is still drawn and released, it only shows nothing.
+ * [兽力冲击]: every family does, the ox on the buffalo's model. A family that cannot is still drawn and released, it
+ * only shows nothing.
  *
  * @author Alex
  * @version 1.0.0
