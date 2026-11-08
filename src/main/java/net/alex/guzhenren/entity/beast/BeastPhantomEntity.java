@@ -1,7 +1,5 @@
 package net.alex.guzhenren.entity.beast;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -32,18 +30,20 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 /**
  * A Beast Phantom [兽力虚影]: one beast family an attack round [攻击轮次] releases, shown for {@link #LIFETIME_TICKS}
  * and a further {@link #LINGER_TICKS} beside its owner, facing where the owner faces: the linger lets the next round
- * of a steady fist renew it before it goes, so it goes only {@link #getShownTicks} after the last round. Its {@link Slot} places it: the first {@link #SIDE_OFFSET} blocks
- * to the right and {@link #FORWARD_OFFSET} ahead, the second as far to the left, the third {@link #BACK_OFFSET}
- * straight behind, the fourth and the fifth stacked {@link #STACK_HEIGHT} above the first and the second. It plays
- * its family's attack once, then idles.
+ * of a steady fist renew it before it goes, so it goes only {@link #getShownTicks} after the last round. Its
+ * {@link Slot} places it, {@link #FORWARD_OFFSET} ahead of the owner: the ground layer is the first
+ * {@link #SIDE_OFFSET} blocks to the right and the second as far to the left; above them a fan of {@link #FAN_ROWS}
+ * rows of pairs opens downward from the apex, each row {@link #FAN_COLUMN} further out and {@link #FAN_ROW} lower than
+ * the one above, the lowest row {@link #FAN_BASE_HEIGHT} up, so no fan slot stands straight above a ground one
+ * (Alex's layout). It plays its family's attack once, then idles.
  *
  * <p>{@link #show} sets an owner's phantoms to a round's families: a family already up is renewed in its slot -- its
- * life starts over, nothing respawns -- a new one takes the first free slot ({@link #pickSlot}), and any other goes.
- * A new horse picks first and only from {@link #SIDE_FIRST}, never the back: its head reaches some 1.6 blocks ahead
- * at eye height and would stand in its owner's. A family that
+ * life starts over, nothing respawns -- a new one takes the first free slot in declaration order ({@link #pickSlot}:
+ * the ground pair, then the fan from its apex out), and any other goes. A family that
  * cannot manifest ({@code BeastStrengthFamily.canManifest}) is left out and takes no slot. A renewal bumps a
  * synced counter so the client restarts its own age for the fade: in over {@link #FADE_IN_TICKS}, out over the last
- * {@link #FADE_OUT_TICKS}. ⚠ {@link #LINGER_TICKS} and {@link #STACK_HEIGHT} are provisional.
+ * {@link #FADE_OUT_TICKS}. ⚠ {@link #LINGER_TICKS} and the fan's {@link #FAN_COLUMN}, {@link #FAN_ROW} and
+ * {@link #FAN_BASE_HEIGHT} are provisional, for Alex to tune in the client.
  *
  * <p>A pure display: no collision, no hitbox for attacks or projectiles, no damage, never saved; one summoned by
  * command has no owner and goes on its first tick. Both sides place it from the owner every tick, so the client
@@ -62,9 +62,10 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     public static final int LINGER_TICKS = 5;
     public static final double SIDE_OFFSET = 1.2D;
     public static final double FORWARD_OFFSET = 0.5D;
-    public static final double BACK_OFFSET = 1.2D;
-    public static final double STACK_HEIGHT = 1.8D;
-    private static final List<Slot> SIDE_FIRST = List.of(Slot.RIGHT, Slot.LEFT, Slot.UPPER_RIGHT, Slot.UPPER_LEFT);
+    public static final int FAN_ROWS = 4;
+    public static final double FAN_COLUMN = 1.0D;
+    public static final double FAN_ROW = 0.8D;
+    public static final double FAN_BASE_HEIGHT = 2.0D;
     private static final double SEARCH_RANGE = 4.0D;
     private static final double CULL_MARGIN = 1.5D;
     private static final int NO_OWNER = -1;
@@ -85,11 +86,29 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
 
     public enum Slot {
 
-        RIGHT,
-        LEFT,
-        BACK,
-        UPPER_RIGHT,
-        UPPER_LEFT
+        RIGHT(0, true),
+        LEFT(0, false),
+        FAN_RIGHT_1(1, true),
+        FAN_LEFT_1(1, false),
+        FAN_RIGHT_2(2, true),
+        FAN_LEFT_2(2, false),
+        FAN_RIGHT_3(3, true),
+        FAN_LEFT_3(3, false),
+        FAN_RIGHT_4(4, true),
+        FAN_LEFT_4(4, false);
+
+        private final int row;
+        private final boolean right;
+
+        Slot(int row, boolean right) {
+            this.row = row;
+            this.right = right;
+        }
+
+        /** 0 for the ground layer, else the fan row counted from its apex. */
+        public int getRow() { return this.row; }
+
+        public boolean isRight() { return this.right; }
     }
 
     public BeastPhantomEntity(EntityType<? extends BeastPhantomEntity> type, Level level) {
@@ -109,12 +128,10 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
             phantom.renew();
             taken.add(phantom.getSlot());
         }
-        List<BeastStrengthFamily> order = new ArrayList<>(families);
-        order.sort(Comparator.comparing(family -> family != BeastStrengthFamily.HORSE));
-        for (BeastStrengthFamily family : order) {
+        for (BeastStrengthFamily family : families) {
             if (owned.stream().anyMatch(phantom -> phantom.isAlive() && phantom.getFamily() == family)) continue;
 
-            Slot slot = pickSlot(family, taken);
+            Slot slot = pickSlot(taken);
             if (slot == null) continue;
 
             taken.add(slot);
@@ -122,9 +139,9 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         }
     }
 
-    public static @Nullable Slot pickSlot(@NotNull BeastStrengthFamily family, @NotNull Set<Slot> taken) {
-        List<Slot> order = family == BeastStrengthFamily.HORSE ? SIDE_FIRST : List.of(Slot.values());
-        return order.stream().filter(free -> !taken.contains(free)).findFirst().orElse(null);
+    public static @Nullable Slot pickSlot(@NotNull Set<Slot> taken) {
+        for (Slot slot : Slot.values()) if (!taken.contains(slot)) return slot;
+        return null;
     }
 
     public static BeastPhantomEntity summon(ServerPlayer owner, BeastStrengthFamily family, Slot slot) {
@@ -207,13 +224,10 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     }
 
     public static Vec3 getOffset(Slot slot) {
-        double side = switch (slot) {
-            case RIGHT, UPPER_RIGHT -> SIDE_OFFSET;
-            case LEFT, UPPER_LEFT -> -SIDE_OFFSET;
-            case BACK -> 0.0D;
-        };
-        double up = slot == Slot.UPPER_RIGHT || slot == Slot.UPPER_LEFT ? STACK_HEIGHT : 0.0D;
-        return new Vec3(side, up, slot == Slot.BACK ? -BACK_OFFSET : FORWARD_OFFSET);
+        int row = slot.getRow();
+        double side = row == 0 ? SIDE_OFFSET : FAN_COLUMN * (row - 0.5D);
+        double up = row == 0 ? 0.0D : FAN_BASE_HEIGHT + FAN_ROW * (FAN_ROWS - row);
+        return new Vec3(slot.isRight() ? side : -side, up, FORWARD_OFFSET);
     }
 
     private void follow(Entity owner) {
