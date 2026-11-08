@@ -14,8 +14,9 @@ import software.bernie.geckolib.animation.RawAnimation;
  *
  * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code attack_toss}), the
  * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe. {@link #getAttack} and
- * {@link #getLoop} hide that; the ox never shows and falls back to the boar. The horse has no
- * animation file: it is drawn on vanilla's horse model, which poses itself ({@code HorsePhantomModel}).
+ * {@link #getLoop} hide that; the ox never shows and falls back to the boar. The tortoise's carry the prefix but no
+ * attack, so the turtle's phantom only idles. The horse has no animation file: it is drawn on vanilla's horse model,
+ * which poses itself ({@code HorsePhantomModel}).
  *
  * @author Alex
  * @version 1.0.0
@@ -41,6 +42,7 @@ public interface BeastPhantomVisual {
     }
 
     static RawAnimation getAttack(BeastStrengthFamily family, String loop) {
+        if (family == BeastStrengthFamily.TURTLE) return getLoop(family, loop);
         return RawAnimation.begin().thenPlay(isBareNamed(family) ? "attack_toss" : "animation.attack_swipe")
                 .thenLoop(getName(family, loop));
     }

@@ -14,10 +14,7 @@ import net.alex.guzhenren.core.NamedEnum;
  * synced to the phantoms, never saved.
  *
  * <p>{@link #canManifest} says whether the family takes shape as a Beast Phantom [兽力虚影] or a Beast Charge
- * [兽力冲击]: the ox never does, and the turtle not until its model lands; a family that cannot is still drawn and
- * released, it only shows nothing. ⚠ Flip the turtle once its GeckoLib model, textures and animations are in,
- * and give it its own name in {@code BeastPhantomRenderer.getModelName} and {@code BeastPhantomVisual.isBareNamed}
- * with it.
+ * [兽力冲击]: the ox never does; a family that cannot is still drawn and released, it only shows nothing.
  *
  * @author Alex
  * @version 1.0.0
@@ -32,7 +29,7 @@ public enum BeastStrengthFamily implements NamedEnum {
     OX(false),
     BEAR(true),
     TIGER(true),
-    TURTLE(false),
+    TURTLE(true),
     HORSE(true);
 
     private final boolean manifests;

@@ -25,10 +25,10 @@ import software.bernie.geckolib.util.Color;
 
 /**
  * Draws a Beast Phantom [兽力虚影] with its family's own model and animations -- the wild boar's for the boar, the
- * bear's and the tiger's -- in the translucent {@code <model>_phantom} texture at full brightness, and redraws
- * it with {@code <model>_phantom_glowmask}, a copy of that texture, as an emissive layer, so the body glows faintly
- * in its own colors and the opaque eyes glow brightest. The texture is picked here ({@link #getTextureLocation}),
- * not left to the model, so the wild beasts' own textures never leak in.
+ * bear's, the tiger's and the tortoise's for the turtle -- in the translucent {@code <model>_phantom} texture at
+ * full brightness, and redraws it with {@code <model>_phantom_glowmask}, a copy of that texture, as an emissive
+ * layer, so the body glows faintly in its own colors and the opaque eyes glow brightest. The texture is picked here
+ * ({@link #getTextureLocation}), not left to the model, so the wild beasts' own textures never leak in.
  * The horse has no GeckoLib model: {@link #render} hands it to vanilla's horse geometry ({@link HorsePhantomModel}),
  * drawn the same way -- yaw, pitch, fade, both layers -- rearing once beside its owner and galloping as a charge. A
  * family that cannot manifest ({@code BeastStrengthFamily.canManifest}) draws nothing.
@@ -147,9 +147,10 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
 
     private static String getModelName(BeastStrengthFamily family) {
         return switch (family) {
-            case BOAR, OX, TURTLE -> "wild_boar";
+            case BOAR, OX -> "wild_boar";
             case BEAR -> "bear";
             case TIGER -> "tiger";
+            case TURTLE -> "tortoise";
             case HORSE -> "horse";
         };
     }
