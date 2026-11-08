@@ -14,7 +14,9 @@ import net.alex.guzhenren.core.NamedEnum;
  * synced to the phantoms, never saved.
  *
  * <p>{@link #canManifest} says whether the family takes shape as a Beast Phantom [兽力虚影] or a Beast Charge
- * [兽力冲击]: the ox never does; a family that cannot is still drawn and released, it only shows nothing.
+ * [兽力冲击]: every family does, the ox on the buffalo's model -- though only by hand ({@code BeastPhantomEntity.show}),
+ * since the rounds and the charged punch draw permanent families alone and the ox is a timed strength. A family
+ * that cannot is still drawn and released, it only shows nothing.
  *
  * @author Alex
  * @version 1.0.0
@@ -26,7 +28,7 @@ import net.alex.guzhenren.core.NamedEnum;
 public enum BeastStrengthFamily implements NamedEnum {
 
     BOAR(true),
-    OX(false),
+    OX(true),
     BEAR(true),
     TIGER(true),
     TURTLE(true),

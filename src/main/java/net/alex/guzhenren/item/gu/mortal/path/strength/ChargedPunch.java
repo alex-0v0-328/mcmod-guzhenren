@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link StoreStrength#release} counts). It brings {@link StoreStrength#getMaxPoints} to bear, past the current
  * capacity: the fist's attack with those points ({@link AttackDamageService#getFistDamage}). On the beast phantom path
  * [兽力虚影流] it releases one held family at random, or every one under Hardship Strength [苦力], and shows their
- * phantoms beside a running round's; the ox never shows.
+ * phantoms beside a running round's; the ox, a timed strength only, is never drawn.
  *
  * <p>The client names the target; {@link #getTarget} keeps it only when it is alive, {@link AreaImpact#canHit},
  * ahead of the look and within {@link #MAX_TARGET_DISTANCE} blocks of the eyes, so a forged id cannot turn the strike

@@ -13,10 +13,10 @@ import software.bernie.geckolib.animation.RawAnimation;
  * charges.
  *
  * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code attack_toss}), the
- * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe. {@link #getAttack} and
- * {@link #getLoop} hide that; the ox never shows and falls back to the boar. The tortoise's carry the prefix but no
- * attack, so the turtle's phantom only idles. The horse has no animation file: it is drawn on vanilla's horse model,
- * which poses itself ({@code HorsePhantomModel}).
+ * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe, the buffalo's carry the prefix
+ * and the ox attacks with its toss. {@link #getAttack} and {@link #getLoop} hide that. The tortoise's carry the
+ * prefix but no attack, so the turtle's phantom only idles. The horse has no animation file: it is drawn on
+ * vanilla's horse model, which poses itself ({@code HorsePhantomModel}).
  *
  * @author Alex
  * @version 1.0.0
@@ -43,8 +43,15 @@ public interface BeastPhantomVisual {
 
     static RawAnimation getAttack(BeastStrengthFamily family, String loop) {
         if (family == BeastStrengthFamily.TURTLE) return getLoop(family, loop);
-        return RawAnimation.begin().thenPlay(isBareNamed(family) ? "attack_toss" : "animation.attack_swipe")
-                .thenLoop(getName(family, loop));
+        return RawAnimation.begin().thenPlay(getAttackName(family)).thenLoop(getName(family, loop));
+    }
+
+    private static String getAttackName(BeastStrengthFamily family) {
+        return switch (family) {
+            case BOAR -> "attack_toss";
+            case OX -> "animation.attack_toss";
+            default -> "animation.attack_swipe";
+        };
     }
 
     static RawAnimation getLoop(BeastStrengthFamily family, String loop) {
@@ -56,6 +63,6 @@ public interface BeastPhantomVisual {
     }
 
     private static boolean isBareNamed(BeastStrengthFamily family) {
-        return family == BeastStrengthFamily.BOAR || family == BeastStrengthFamily.OX;
+        return family == BeastStrengthFamily.BOAR;
     }
 }
