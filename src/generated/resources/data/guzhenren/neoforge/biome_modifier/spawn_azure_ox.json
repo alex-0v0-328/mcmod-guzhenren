@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#guzhenren:cattle_spawns",
+  "spawners": {
+    "type": "guzhenren:azure_ox",
+    "maxCount": 1,
+    "minCount": 1,
+    "weight": 1
+  }
+}

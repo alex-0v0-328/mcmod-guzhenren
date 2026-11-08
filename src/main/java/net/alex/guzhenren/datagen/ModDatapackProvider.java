@@ -89,6 +89,9 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final ResourceKey<BiomeModifier> SPAWN_WHITE_TIGER = createModifierKey("spawn_white_tiger");
     private static final ResourceKey<BiomeModifier> SPAWN_TORTOISE = createModifierKey("spawn_tortoise");
     private static final ResourceKey<BiomeModifier> SPAWN_STONE_TORTOISE = createModifierKey("spawn_stone_tortoise");
+    private static final ResourceKey<BiomeModifier> SPAWN_YELLOW_OX = createModifierKey("spawn_yellow_ox");
+    private static final ResourceKey<BiomeModifier> SPAWN_WATER_BUFFALO = createModifierKey("spawn_water_buffalo");
+    private static final ResourceKey<BiomeModifier> SPAWN_AZURE_OX = createModifierKey("spawn_azure_ox");
     private static final int HOPE_GU_SPAWN_WEIGHT = 8;
     private static final int HOPE_GU_PACK_MINIMUM = 1;
     private static final int HOPE_GU_PACK_MAXIMUM = 2;
@@ -110,6 +113,12 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final int TORTOISE_SPAWN_WEIGHT = 4;
     private static final int TORTOISE_PACK_MAXIMUM = 2;
     private static final int STONE_TORTOISE_SPAWN_WEIGHT = 1;
+    private static final int YELLOW_OX_SPAWN_WEIGHT = 4;
+    private static final int YELLOW_OX_PACK_MINIMUM = 2;
+    private static final int YELLOW_OX_PACK_MAXIMUM = 4;
+    private static final int WATER_BUFFALO_SPAWN_WEIGHT = 2;
+    private static final int WATER_BUFFALO_PACK_MAXIMUM = 3;
+    private static final int AZURE_OX_SPAWN_WEIGHT = 1;
     private static final int BEAST_PACK_MINIMUM = 1;
     private static final int BEAST_PACK_MAXIMUM = 1;
 
@@ -146,6 +155,13 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
                 ModEntityTypes.TORTOISE.get(), TORTOISE_SPAWN_WEIGHT, BEAST_PACK_MINIMUM, TORTOISE_PACK_MAXIMUM)));
         context.register(SPAWN_STONE_TORTOISE, createBeastSpawns(biomes, ModBiomeTags.TORTOISE_SPAWNS,
                 ModEntityTypes.STONE_TORTOISE.get(), STONE_TORTOISE_SPAWN_WEIGHT));
+        context.register(SPAWN_YELLOW_OX, createSpawns(biomes, ModBiomeTags.CATTLE_SPAWNS, createSpawner(
+                ModEntityTypes.YELLOW_OX.get(), YELLOW_OX_SPAWN_WEIGHT, YELLOW_OX_PACK_MINIMUM, YELLOW_OX_PACK_MAXIMUM)));
+        context.register(SPAWN_WATER_BUFFALO, createSpawns(biomes, ModBiomeTags.CATTLE_SPAWNS, createSpawner(
+                ModEntityTypes.WATER_BUFFALO.get(), WATER_BUFFALO_SPAWN_WEIGHT, BEAST_PACK_MINIMUM,
+                WATER_BUFFALO_PACK_MAXIMUM)));
+        context.register(SPAWN_AZURE_OX, createBeastSpawns(biomes, ModBiomeTags.CATTLE_SPAWNS,
+                ModEntityTypes.AZURE_OX.get(), AZURE_OX_SPAWN_WEIGHT));
     }
 
     private static ResourceKey<BiomeModifier> createModifierKey(String id) {

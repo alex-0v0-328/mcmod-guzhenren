@@ -12,7 +12,8 @@ import net.minecraft.world.level.biome.Biome;
  * beasts spawn in; where the Spirit Spring [元泉] generates is the sibling mod Gu World's tag.
  * The wild boar tag is deliberately limited to its five forest biomes; the bear tag carries every
  * forest-family biome (the boar's five, the four taigas and the three jungles), the tiger tag
- * the three jungles, and the tortoise tag the three savannas and the sparse jungle.
+ * the three jungles, the tortoise tag the three savannas and the sparse jungle, and the cattle tag the 21
+ * biomes whose vanilla spawn tables carry the cow.
  * The wild Gu lists must NOT collapse to {@code #minecraft:is_overworld} -- that
  * carries the oceans, whose surface sits at sea level where the height check cannot hold a mote off
  * the water.
@@ -33,6 +34,7 @@ public final class ModBiomeTags {
     public static final TagKey<Biome> BEAR_SPAWNS = key("bear_spawns");
     public static final TagKey<Biome> TIGER_SPAWNS = key("tiger_spawns");
     public static final TagKey<Biome> TORTOISE_SPAWNS = key("tortoise_spawns");
+    public static final TagKey<Biome> CATTLE_SPAWNS = key("cattle_spawns");
 
     private static TagKey<Biome> key(String name) {
         return TagKey.create(Registries.BIOME, Guzhenren.id(name));

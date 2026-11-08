@@ -3,6 +3,8 @@ package net.alex.guzhenren.entity;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BearEntity;
 import net.alex.guzhenren.entity.beast.BearSpecies;
+import net.alex.guzhenren.entity.beast.CattleEntity;
+import net.alex.guzhenren.entity.beast.CattleSpecies;
 import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.TortoiseSpecies;
@@ -67,6 +69,9 @@ public final class EntityRegistrationEvents {
         event.put(ModEntityTypes.TORTOISE.get(), TortoiseEntity.createAttributes(TortoiseSpecies.TORTOISE).build());
         event.put(ModEntityTypes.STONE_TORTOISE.get(),
                 TortoiseEntity.createAttributes(TortoiseSpecies.STONE_TORTOISE).build());
+        for (CattleSpecies species : CattleSpecies.values()) {
+            event.put(createCattleType(species), CattleEntity.createAttributes().build());
+        }
         event.put(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(), SoulTraderEntity.createAttributes().build());
     }
 
@@ -76,6 +81,14 @@ public final class EntityRegistrationEvents {
             case ASIAN_BLACK -> ModEntityTypes.ASIAN_BLACK_BEAR.get();
             case AMERICAN_BLACK -> ModEntityTypes.AMERICAN_BLACK_BEAR.get();
             case ALBINO -> ModEntityTypes.ALBINO_BEAR.get();
+        };
+    }
+
+    private static EntityType<CattleEntity> createCattleType(CattleSpecies species) {
+        return switch (species) {
+            case YELLOW_OX -> ModEntityTypes.YELLOW_OX.get();
+            case WATER_BUFFALO -> ModEntityTypes.WATER_BUFFALO.get();
+            case AZURE_OX -> ModEntityTypes.AZURE_OX.get();
         };
     }
 
@@ -102,6 +115,9 @@ public final class EntityRegistrationEvents {
         registerAnimalSpawn(event, ModEntityTypes.WHITE_TIGER.get());
         registerAnimalSpawn(event, ModEntityTypes.TORTOISE.get());
         registerAnimalSpawn(event, ModEntityTypes.STONE_TORTOISE.get());
+        for (CattleSpecies species : CattleSpecies.values()) {
+            registerAnimalSpawn(event, createCattleType(species));
+        }
     }
 
     private static <T extends Mob> void registerAnimalSpawn(RegisterSpawnPlacementsEvent event,

@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.renderer;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BearEntity;
+import net.alex.guzhenren.entity.beast.CattleEntity;
 import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
@@ -50,6 +51,8 @@ public final class ModEntityRenderers {
             new DefaultedEntityGeoModel<>(Guzhenren.id("tiger"), false);
     private static final GeoModel<TortoiseEntity> TORTOISE_MODEL =
             new DefaultedEntityGeoModel<>(Guzhenren.id("tortoise"), false);
+    private static final GeoModel<CattleEntity> BUFFALO_MODEL =
+            new DefaultedEntityGeoModel<>(Guzhenren.id("buffalo"), false);
     private static final HumanSoulGeoModel HUMAN_SOUL_MODEL = new HumanSoulGeoModel();
 
     private static final ResourceLocation WHITE_BOAR_GU = getTexture("white_boar_gu");
@@ -67,6 +70,9 @@ public final class ModEntityRenderers {
     private static final ResourceLocation WHITE_TIGER = getTexture("white_tiger");
     private static final ResourceLocation TORTOISE = getTexture("tortoise");
     private static final ResourceLocation STONE_TORTOISE = getTexture("stone_tortoise");
+    private static final ResourceLocation YELLOW_OX = getTexture("yellow_ox");
+    private static final ResourceLocation WATER_BUFFALO = getTexture("water_buffalo");
+    private static final ResourceLocation AZURE_OX = getTexture("azure_ox");
 
     public static void register(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntityTypes.HOPE_GU_ENTITY.get(), NoopRenderer::new);
@@ -101,6 +107,10 @@ public final class ModEntityRenderers {
                 context -> createTortoiseRenderer(context, TORTOISE));
         event.registerEntityRenderer(ModEntityTypes.STONE_TORTOISE.get(),
                 context -> createTortoiseRenderer(context, STONE_TORTOISE));
+        event.registerEntityRenderer(ModEntityTypes.YELLOW_OX.get(), context -> createCattleRenderer(context, YELLOW_OX));
+        event.registerEntityRenderer(ModEntityTypes.WATER_BUFFALO.get(),
+                context -> createCattleRenderer(context, WATER_BUFFALO));
+        event.registerEntityRenderer(ModEntityTypes.AZURE_OX.get(), context -> createCattleRenderer(context, AZURE_OX));
         event.registerEntityRenderer(ModEntityTypes.BEAST_PHANTOM.get(), BeastPhantomRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(),
                 context -> new SoulTraderGeoRenderer(context, HUMAN_SOUL_MODEL, SoulTraderGeoRenderer.BLUE_TEXTURE));
@@ -132,6 +142,11 @@ public final class ModEntityRenderers {
     private static EntityRenderer<TortoiseEntity> createTortoiseRenderer(EntityRendererProvider.Context context,
                                                                          ResourceLocation texture) {
         return new FixedTextureGeoRenderer<>(context, TORTOISE_MODEL, texture, 0.6F, false);
+    }
+
+    private static EntityRenderer<CattleEntity> createCattleRenderer(EntityRendererProvider.Context context,
+                                                                     ResourceLocation texture) {
+        return new FixedTextureGeoRenderer<>(context, BUFFALO_MODEL, texture, 0.9F, false);
     }
 
     private static ResourceLocation getTexture(String name) {

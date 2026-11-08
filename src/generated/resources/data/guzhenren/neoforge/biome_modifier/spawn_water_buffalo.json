@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#guzhenren:cattle_spawns",
+  "spawners": {
+    "type": "guzhenren:water_buffalo",
+    "maxCount": 3,
+    "minCount": 1,
+    "weight": 2
+  }
+}
