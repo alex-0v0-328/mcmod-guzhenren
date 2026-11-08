@@ -39,7 +39,8 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * Server-authoritative action state machine shared by the wild boar and the big beasts (bears, tigers).
+ * Server-authoritative action state machine shared by the wild boar, the big beasts (bears, tigers) and the
+ * tortoise.
  *
  * <p>Every pose is a synchronized action {@code A} with a server game-time start and a monotonic sequence, so
  * late trackers replay one-shot actions from their first frame: {@link #getAction} is the current one,
@@ -54,8 +55,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * wire id, with {@link #getIdleAction}, the target-keeping {@link #getAlertAction} and {@link #getDeathAction}), its
  * cooldowns and save keys, the attack choice ({@link #chooseAttack}), every non-idle action's timing
  * ({@link #tickAction}), the reaction to a hit ({@link #reactToHurt}) and each non-idle action's animation
- * ({@link #getActionAnimation}, built once per action and reused every frame). An ambient action
- * ({@link ActionFlags#isAmbient}) is a rest pose that combat engagement interrupts. {@code registerGoals} and
+ * ({@link #getActionAnimation}, built once per action and reused every frame); {@link #getRunAnimationName}
+ * names the pursuit loop, which a model without a run clip maps elsewhere. An ambient action
+ * ({@link ActionFlags#isAmbient}) is a rest pose that combat engagement interrupts; {@link #isNightTime} is the
+ * shared night window for the ones that sleep. {@code registerGoals} and
  * {@code defineSynchedData} run inside the entity constructor, before subclass fields are assigned, so the hooks
  * they reach ({@link #registerSpeciesGoals}, {@link #getIdleAction}, {@link #getCooldowns}) return constants.
  *
@@ -86,6 +89,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     public static final int ATTACK_RECOVERY_TICKS = 10;
     public static final int SIGHT_LOSS_TICKS = 5 * Ticks.SECOND;
     private static final int LUNGE_RECHECK_TICKS = 5;
+    private static final int NIGHT_START_TICK = 13000;
+    private static final int NIGHT_END_TICK = 23000;
 
     private static final EntityDataAccessor<Byte> DATA_ACTION = SynchedEntityData.defineId(
             ActionEntity.class, EntityDataSerializers.BYTE);
@@ -149,6 +154,15 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     protected void onBeginAction(A next) {}
 
     protected void onActionCleared() {}
+
+    protected String getRunAnimationName() {
+        return this.getAnimationPrefix() + "run";
+    }
+
+    protected boolean isNightTime() {
+        long dayTime = this.level().getDayTime() % Ticks.DAY;
+        return dayTime >= NIGHT_START_TICK && dayTime <= NIGHT_END_TICK;
+    }
 
     protected boolean isKeepingMomentum(long ticks) {
         return false;
@@ -521,7 +535,9 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private PlayState handleAnimationState(AnimationState<ActionEntity<A>> state) {
         A current = this.getAction();
         if (current != this.getIdleAction()) return state.setAndContinue(this.actionAnimation(current));
-        if (this.baseLoops == null) this.baseLoops = BaseLoops.of(this.getAnimationPrefix());
+        if (this.baseLoops == null) {
+            this.baseLoops = BaseLoops.of(this.getAnimationPrefix(), this.getRunAnimationName());
+        }
         return state.setAndContinue(!state.isMoving() ? this.baseLoops.idle()
                 : this.isPursuing() ? this.baseLoops.run() : this.baseLoops.walk());
     }
@@ -554,9 +570,9 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
 
     private record BaseLoops(RawAnimation idle, RawAnimation walk, RawAnimation run) {
 
-        static BaseLoops of(String prefix) {
+        static BaseLoops of(String prefix, String run) {
             return new BaseLoops(RawAnimation.begin().thenLoop(prefix + "idle"),
-                    RawAnimation.begin().thenLoop(prefix + "walk"), RawAnimation.begin().thenLoop(prefix + "run"));
+                    RawAnimation.begin().thenLoop(prefix + "walk"), RawAnimation.begin().thenLoop(run));
         }
     }
 

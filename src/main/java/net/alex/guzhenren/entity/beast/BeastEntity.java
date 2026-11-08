@@ -2,7 +2,6 @@ package net.alex.guzhenren.entity.beast;
 
 import java.util.List;
 import java.util.function.Predicate;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.ActionEntity;
 import net.alex.guzhenren.entity.ai.StandStillGoal;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
@@ -72,8 +71,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
     public static final double SWIPE_REACH = 2.5D;
     private static final double AMBIENT_REST_CHANCE = 0.35D;
     private static final double NIGHT_LIE_DOWN_CHANCE = 0.5D;
-    private static final int NIGHT_START_TICK = 13000;
-    private static final int NIGHT_END_TICK = 23000;
     private static final Action[] ACTIONS = Action.values();
 
     private static final Cooldown SWIPE = new Cooldown(SWIPE_COOLDOWN_TICKS, "BeastSwipeCooldown");
@@ -237,11 +234,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
             }
             default -> {}
         }
-    }
-
-    private boolean isNightTime() {
-        long dayTime = this.level().getDayTime() % Ticks.DAY;
-        return dayTime >= NIGHT_START_TICK && dayTime <= NIGHT_END_TICK;
     }
     //endregion
 

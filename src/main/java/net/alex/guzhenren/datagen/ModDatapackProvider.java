@@ -87,6 +87,8 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final ResourceKey<BiomeModifier> SPAWN_ALBINO_BEAR = createModifierKey("spawn_albino_bear");
     private static final ResourceKey<BiomeModifier> SPAWN_TIGER = createModifierKey("spawn_tiger");
     private static final ResourceKey<BiomeModifier> SPAWN_WHITE_TIGER = createModifierKey("spawn_white_tiger");
+    private static final ResourceKey<BiomeModifier> SPAWN_TORTOISE = createModifierKey("spawn_tortoise");
+    private static final ResourceKey<BiomeModifier> SPAWN_STONE_TORTOISE = createModifierKey("spawn_stone_tortoise");
     private static final int HOPE_GU_SPAWN_WEIGHT = 8;
     private static final int HOPE_GU_PACK_MINIMUM = 1;
     private static final int HOPE_GU_PACK_MAXIMUM = 2;
@@ -105,6 +107,9 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final int ALBINO_BEAR_SPAWN_WEIGHT = 1;
     private static final int TIGER_SPAWN_WEIGHT = 3;
     private static final int WHITE_TIGER_SPAWN_WEIGHT = 1;
+    private static final int TORTOISE_SPAWN_WEIGHT = 4;
+    private static final int TORTOISE_PACK_MAXIMUM = 2;
+    private static final int STONE_TORTOISE_SPAWN_WEIGHT = 1;
     private static final int BEAST_PACK_MINIMUM = 1;
     private static final int BEAST_PACK_MAXIMUM = 1;
 
@@ -137,6 +142,10 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
                 ModEntityTypes.TIGER.get(), TIGER_SPAWN_WEIGHT));
         context.register(SPAWN_WHITE_TIGER, createBeastSpawns(biomes, ModBiomeTags.TIGER_SPAWNS,
                 ModEntityTypes.WHITE_TIGER.get(), WHITE_TIGER_SPAWN_WEIGHT));
+        context.register(SPAWN_TORTOISE, createSpawns(biomes, ModBiomeTags.TORTOISE_SPAWNS, createSpawner(
+                ModEntityTypes.TORTOISE.get(), TORTOISE_SPAWN_WEIGHT, BEAST_PACK_MINIMUM, TORTOISE_PACK_MAXIMUM)));
+        context.register(SPAWN_STONE_TORTOISE, createBeastSpawns(biomes, ModBiomeTags.TORTOISE_SPAWNS,
+                ModEntityTypes.STONE_TORTOISE.get(), STONE_TORTOISE_SPAWN_WEIGHT));
     }
 
     private static ResourceKey<BiomeModifier> createModifierKey(String id) {

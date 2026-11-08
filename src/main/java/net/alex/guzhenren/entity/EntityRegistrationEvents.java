@@ -4,6 +4,8 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BearEntity;
 import net.alex.guzhenren.entity.beast.BearSpecies;
 import net.alex.guzhenren.entity.beast.TigerEntity;
+import net.alex.guzhenren.entity.beast.TortoiseEntity;
+import net.alex.guzhenren.entity.beast.TortoiseSpecies;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.FlyingGuEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
@@ -62,6 +64,9 @@ public final class EntityRegistrationEvents {
         }
         event.put(ModEntityTypes.TIGER.get(), TigerEntity.createAttributes().build());
         event.put(ModEntityTypes.WHITE_TIGER.get(), TigerEntity.createAttributes().build());
+        event.put(ModEntityTypes.TORTOISE.get(), TortoiseEntity.createAttributes(TortoiseSpecies.TORTOISE).build());
+        event.put(ModEntityTypes.STONE_TORTOISE.get(),
+                TortoiseEntity.createAttributes(TortoiseSpecies.STONE_TORTOISE).build());
         event.put(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(), SoulTraderEntity.createAttributes().build());
     }
 
@@ -95,6 +100,8 @@ public final class EntityRegistrationEvents {
         registerAnimalSpawn(event, ModEntityTypes.ALBINO_BEAR.get());
         registerAnimalSpawn(event, ModEntityTypes.TIGER.get());
         registerAnimalSpawn(event, ModEntityTypes.WHITE_TIGER.get());
+        registerAnimalSpawn(event, ModEntityTypes.TORTOISE.get());
+        registerAnimalSpawn(event, ModEntityTypes.STONE_TORTOISE.get());
     }
 
     private static <T extends Mob> void registerAnimalSpawn(RegisterSpawnPlacementsEvent event,

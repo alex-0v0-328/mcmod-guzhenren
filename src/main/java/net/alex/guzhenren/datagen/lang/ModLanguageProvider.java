@@ -536,6 +536,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("entity.guzhenren.albino_bear",                "Albino Bear",            "白化熊");
         add("entity.guzhenren.tiger",                      "Tiger",                  "老虎");
         add("entity.guzhenren.white_tiger",                "White Tiger",            "白虎");
+        add("entity.guzhenren.tortoise",                   "Tortoise",               "陆龟");
+        add("entity.guzhenren.stone_tortoise",             "Stone Tortoise",         "石龟");
         add("entity.guzhenren.beast_phantom",              "Beast Phantom",          "兽力虚影");
         add("entity.guzhenren.horizontal_crash_gu_entity", "Horizontal Crash Gu",    "横冲蛊");
         add("entity.guzhenren.vertical_crash_gu_entity",   "Vertical Crash Gu",      "直撞蛊");

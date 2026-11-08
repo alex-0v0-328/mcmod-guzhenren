@@ -6,6 +6,8 @@ import net.alex.guzhenren.entity.beast.BearEntity;
 import net.alex.guzhenren.entity.beast.BearSpecies;
 import net.alex.guzhenren.entity.beast.BeastPhantomEntity;
 import net.alex.guzhenren.entity.beast.TigerEntity;
+import net.alex.guzhenren.entity.beast.TortoiseEntity;
+import net.alex.guzhenren.entity.beast.TortoiseSpecies;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.BoarGuEntity;
 import net.alex.guzhenren.entity.gu.CrashGuEntity;
@@ -29,9 +31,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * The entity types this mod registers.
  *
  * <p>Hope Gu, three boar Gu and four rhinoceros beetle Gu variants are naturally spawning ambient entities;
- * the wild boar, the four bears and the two tigers are naturally spawning creatures. Hope Gu's client mote
- * is emitted by its entity class. Each {@link SoulTrader} registers one fire-immune misc entity with no spawn
- * rule at all: soul traders exist only through {@code /summon}. The Moon Blade [月刃] and the Qi Wave [气波] are
+ * the wild boar, the four bears, the two tigers and the two tortoises are naturally spawning creatures. Hope Gu's
+ * client mote is emitted by its entity class. Each {@link SoulTrader} registers one fire-immune misc entity with no
+ * spawn rule at all: soul traders exist only through {@code /summon}. The Moon Blade [月刃] and the Qi Wave [气波] are
  * the projectiles. The Beast Phantom [兽力虚影] is display only and never saved.
  * Gu capture is a bare right click and is never gated on awakening [开窍]; the wild boar has no capture path.
  *
@@ -56,6 +58,8 @@ public final class ModEntityTypes {
     private static final float BEAR_HEIGHT = 1.4F;
     private static final float TIGER_WIDTH = 1.3F;
     private static final float TIGER_HEIGHT = 1.4F;
+    private static final float TORTOISE_WIDTH = 1.3F;
+    private static final float TORTOISE_HEIGHT = 0.8F;
     private static final float SOUL_TRADER_WIDTH = 0.6F;
     private static final float SOUL_TRADER_HEIGHT = 1.95F;
     private static final float MOON_BLADE_SIZE = 0.8F;
@@ -100,6 +104,10 @@ public final class ModEntityTypes {
             register("tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> WHITE_TIGER =
             register("white_tiger", TigerEntity::new, MobCategory.CREATURE, TIGER_WIDTH, TIGER_HEIGHT);
+    public static final DeferredHolder<EntityType<?>, EntityType<TortoiseEntity>> TORTOISE =
+            registerTortoise(TortoiseSpecies.TORTOISE);
+    public static final DeferredHolder<EntityType<?>, EntityType<TortoiseEntity>> STONE_TORTOISE =
+            registerTortoise(TortoiseSpecies.STONE_TORTOISE);
     //endregion
 
     //region Phantoms [虚影]
@@ -161,6 +169,11 @@ public final class ModEntityTypes {
     private static DeferredHolder<EntityType<?>, EntityType<BearEntity>> registerBear(BearSpecies species) {
         return register(species.getId(), (type, level) -> new BearEntity(type, level, species), MobCategory.CREATURE,
                 BEAR_WIDTH, BEAR_HEIGHT);
+    }
+
+    private static DeferredHolder<EntityType<?>, EntityType<TortoiseEntity>> registerTortoise(
+            TortoiseSpecies species) {
+        return register(species.getId(), TortoiseEntity::new, MobCategory.CREATURE, TORTOISE_WIDTH, TORTOISE_HEIGHT);
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<SoulTraderEntity>> registerSoulTrader(SoulTrader trader) {

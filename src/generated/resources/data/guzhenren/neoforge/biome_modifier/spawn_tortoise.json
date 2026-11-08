@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#guzhenren:tortoise_spawns",
+  "spawners": {
+    "type": "guzhenren:tortoise",
+    "maxCount": 2,
+    "minCount": 1,
+    "weight": 4
+  }
+}

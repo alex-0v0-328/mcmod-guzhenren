@@ -25,15 +25,16 @@ import org.jetbrains.annotations.Nullable;
  * Populates the hope, boar and rhinoceros beetle Gu tags from one shared list of 39 land biomes (the
  * sibling mod Gu World keeps a copy for the Spirit Spring [元泉]), the wild boar tag
  * from the five forest biomes where it naturally occurs, the bear tag from every forest-family biome
- * (12), and the tiger tag from the three jungle biomes.
+ * (12), the tiger tag from the three jungle biomes, and the tortoise tag from the three savannas and the sparse
+ * jungle (the grass-floored dry biomes; {@code animals_spawnable_on} holds only grass).
  * Must NOT collapse to {@code #minecraft:is_overworld} because that carries the
  * oceans, whose surface sits at sea level.
  *
  * <p>The four regions of Gu World, the Southern Border [南疆], the Western Desert [西漠], the Eastern Sea [东海] and
  * the Northern Plains [北原], draw on that mod's own biomes, in no vanilla tag, so the three wild Gu tags also name
  * each region's land biomes by id, as optional entries, a biome two regions share (the rainforest) once: the tags still
- * load without Gu World. The wild boar, bear
- * and tiger tags name no region biome: the regions spawn vanilla animals and wild Gu only, by Alex's decision.
+ * load without Gu World. The wild boar, bear,
+ * tiger and tortoise tags name no region biome: the regions spawn vanilla animals and wild Gu only, by Alex's decision.
  *
  * <p>⚠ The region lists are Gu World's biome ids, those of each region's roster ({@code Replicas}, {@code Ports}
  * and the region packages there, placed by each region's layout): renaming or adding one there means changing it
@@ -69,6 +70,11 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
             Biomes.JUNGLE,
             Biomes.SPARSE_JUNGLE,
             Biomes.BAMBOO_JUNGLE);
+    private static final List<ResourceKey<Biome>> TORTOISE_BIOMES = List.of(
+            Biomes.SAVANNA,
+            Biomes.SAVANNA_PLATEAU,
+            Biomes.WINDSWEPT_SAVANNA,
+            Biomes.SPARSE_JUNGLE);
     private static final List<String> SOUTHERN_BORDER_LAND = List.of("forested_plateau", "cloud_forest",
             "peach_grove", "misty_mountains", "bamboo_sea", "rainforest", "jungle_mountains", "emerald_peaks",
             "plains", "plateau", "hot_springs", "orchid_swamp", "alpine_meadow", "rocky_peaks", "painted_mountains",
@@ -157,6 +163,9 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
         }
         for (ResourceKey<Biome> biome : TIGER_BIOMES) {
             tag(ModBiomeTags.TIGER_SPAWNS).add(biome);
+        }
+        for (ResourceKey<Biome> biome : TORTOISE_BIOMES) {
+            tag(ModBiomeTags.TORTOISE_SPAWNS).add(biome);
         }
         for (String biome : REGION_LAND) {
             tag(ModBiomeTags.HOPE_GU_SPAWNS).addOptional(getGuWorldBiome(biome));
