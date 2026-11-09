@@ -1,12 +1,12 @@
 package net.alex.guzhenren.gameplay.aperture;
 
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * steps}), never a bigger second -- scaling the progress and the price instead would round the
  * round's length off the pool it is defined to cost. A billed second writes the target aperture once:
  * {@code pay} leaves it unwritten ({@link ApertureEssenceService#consumeDeferred}) and the progress lands
- * with the essence it cost. Every stage or rank this service raises fires the realm criterion
- * ({@code RankReachedTrigger}) once the aperture is written.
+ * with the essence it cost. Every stage or rank this service raises posts {@link RealmReachedEvent}
+ * once the aperture is written; the advancement package answers it with the realm criterion.
  *
  * <p>{@link #IMPACT_COST_PER_RANK_BASE}: one strike costs one and a half of a Ten-Extremes peak pool,
  * so no pool can ever hold it. {@link #CONVERTED_PRESSURE} is where the pressure gauge lands after a
@@ -308,7 +308,7 @@ public final class ApertureNourishService {
     //endregion
 
     private static void reachRealm(ServerPlayer player, int index) {
-        ModCriteriaTriggers.REACHED_RANK.get().trigger(player, ApertureService.getAperture(player, index));
+        ModEvents.post(new RealmReachedEvent(player, ApertureService.getAperture(player, index)));
     }
 
     private static void store(ServerPlayer player, ApertureNourishData data) {

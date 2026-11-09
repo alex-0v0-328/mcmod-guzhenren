@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.impact.ImpactCrater;
+import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -257,6 +257,6 @@ public final class SecondStageService {
         return target != player && target.isAlive() && !target.isSpectator() && target.isPickable()
                 && !player.isAlliedTo(target) && !target.isAlliedTo(player)
                 && !(target instanceof OwnableEntity owned && player.equals(owned.getOwner()))
-                && !(target instanceof WildGuEntity) && !(target instanceof ArmorStand);
+                && !target.getType().is(ModEntityTypeTags.WILD_GU) && !(target instanceof ArmorStand);
     }
 }

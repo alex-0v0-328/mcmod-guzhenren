@@ -14,7 +14,6 @@ import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.strength.ChargedPunch;
-import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -126,7 +125,7 @@ public final class ClientIntents {
     }
 
     public static void killingMove(@NotNull ServerPlayer player, @NotNull String move) {
-        killingMove(player, move, KillingMovePayload.NO_TARGET);
+        killingMove(player, move, KillingMoveService.NO_TARGET);
     }
 
     /** Drives the main-hand blade Gu at the client's locked target [锁定目标], {@code NO_TARGET} for none. */

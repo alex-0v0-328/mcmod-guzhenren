@@ -1,11 +1,11 @@
 package net.alex.guzhenren.gameplay.aperture.awakening;
 
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -32,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * at once, awakening and announcing whatever has not happened yet; every way out of a ritual calls it: the clock, a
  * death, a dimension change, a logout, and a login that finds one a crash left behind. The roll was fixed at the
  * click, so cutting the ritual short only cuts the animation: it opens the same aperture, and a relog can never
- * re-roll it. Awakening fires the Hope Gu criterion, since the ritual is what that advancement asks for.
+ * re-roll it. Awakening posts {@link ApertureAwakenedEvent}, which fires the Hope Gu criterion, since the ritual is
+ * what that advancement asks for.
  *
  * <p>{@link #isInDanger} is the gate before the click: a hit from another living entity within the last five seconds
  * (vanilla keeps the attacker that long, a player's own projectile aside), or the danger a bed refuses sleep for: a
@@ -133,7 +134,7 @@ public final class AwakeningRitualService {
         if (ApertureService.isAwakened(player)) return;
 
         ApertureService.awaken(player, ritual.base(), ritual.physique());
-        ModCriteriaTriggers.USED_HOPE_GU.get().trigger(player);
+        ModEvents.post(new ApertureAwakenedEvent(player));
         player.server.getCommands().sendCommands(player);
         playSound(player, AWAKEN_SOUND, 1.0F);
     }

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.entity.beast.BeastPhantomEntity;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Alex
  * @version 1.0.0
  * @see BeastPhantomEvents
- * @see BeastPhantomEntity
+ * @see BeastPhantomsDrawnEvent
  * @see HardshipStrength
  * @since 1.0.0
  */
@@ -104,7 +104,7 @@ public final class StrengthRound {
         List<BeastStrengthFamily> families = pickFamilies(available, count, player.getRandom());
         BeastStrengthFamily rolledFull = rolled && !families.isEmpty() ? families.getFirst() : null;
         ROUNDS.put(player.getUUID(), new State(now, families, rolledFull, streak));
-        BeastPhantomEntity.show(player, families);
+        ModEvents.post(new BeastPhantomsDrawnEvent(player, families));
         return (float) (getReleasedExtra(player) * PathStrengthData.ATTACK_PER_POINT);
     }
 
@@ -237,7 +237,7 @@ public final class StrengthRound {
 
         PathStrengthData data = PathStrengthService.get(player);
         if (state.families.removeIf(family -> data.getBeastPoints(family) <= 0)) {
-            BeastPhantomEntity.show(player, state.families);
+            ModEvents.post(new BeastPhantomsDrawnEvent(player, state.families));
         }
     }
 

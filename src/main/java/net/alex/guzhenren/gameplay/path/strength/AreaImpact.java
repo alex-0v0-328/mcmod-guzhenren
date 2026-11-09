@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -131,7 +131,7 @@ public final class AreaImpact {
                 && !player.isAlliedTo(target) && !target.isAlliedTo(player)
                 && !player.isPassengerOfSameVehicle(target)
                 && !(target instanceof OwnableEntity owned && player.equals(owned.getOwner()))
-                && !(target instanceof WildGuEntity) && !(target instanceof ArmorStand);
+                && !target.getType().is(ModEntityTypeTags.WILD_GU) && !(target instanceof ArmorStand);
     }
 
     private static boolean isInSight(ServerPlayer player, Vec3 origin, LivingEntity target) {

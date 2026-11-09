@@ -50,7 +50,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * ({@link #aimedTarget}): Epic Fight's lock-on when it is held ({@link EpicFightClientIntegration#getLockOnTarget}),
  * else the living entity under the crosshair within {@link KillingMoveService#AIM_RANGE} blocks, each box widened by
  * {@link #AIM_SLACK} so a near miss still counts, the first block in the way cutting the look short. Nothing there
- * sends {@link KillingMovePayload#NO_TARGET}, and the server checks the target again before the blade curves to it.
+ * sends {@link KillingMoveService#NO_TARGET}, and the server checks the target again before the blade curves to it.
  *
  * <p>A wild one leaves the click to vanilla, so it is still refined by holding the click. The hold ends when the use
  * key is let go or the Gu leaves the main hand (a number key); only the first sends anything.
@@ -100,7 +100,7 @@ public final class KillingMoveInput {
                 nearestDistance = distance;
             }
         }
-        return nearest == null ? KillingMovePayload.NO_TARGET : nearest.getId();
+        return nearest == null ? KillingMoveService.NO_TARGET : nearest.getId();
     }
 
     private static boolean isAimable(Entity entity) {

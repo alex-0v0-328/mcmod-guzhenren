@@ -10,6 +10,9 @@ import net.minecraft.world.entity.EntityType;
  *
  * <p>{@link #PREDATOR_PREY} lists the vanilla farm and small animals that hunting beasts (the Asian
  * black bear, tigers) proactively attack. Mod creatures never proactively target each other.
+ *
+ * <p>{@link #WILD_GU} lists every registered {@code WildGuEntity} subtype: the Gu motes that area strikes and the
+ * flight ram never hit. Gameplay tests the tag, since an {@code instanceof} would reach up into {@code entity}.
  */
 
 public final class ModEntityTypeTags {
@@ -18,4 +21,6 @@ public final class ModEntityTypeTags {
 
     public static final TagKey<EntityType<?>> PREDATOR_PREY = TagKey.create(
             Registries.ENTITY_TYPE, Guzhenren.id("predator_prey"));
+    public static final TagKey<EntityType<?>> WILD_GU = TagKey.create(
+            Registries.ENTITY_TYPE, Guzhenren.id("wild_gu"));
 }

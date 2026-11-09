@@ -13,7 +13,6 @@ import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeBehavior;
-import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -85,6 +84,7 @@ public final class KillingMoveService {
 
     /** The id a plain use sends: no killing move, the blade Gu alone. */
     public static final String PLAIN = "";
+    public static final int NO_TARGET = -1;
     /** How far the client looks for a crosshair target: a straight blade's whole flight. */
     public static final double AIM_RANGE = MoonBladeEntity.SPEED * MoonBladeEntity.LIFETIME_TICKS;
     /** How far the server accepts a client's target: the aim range plus slack for a tick or two of movement. */
@@ -178,11 +178,11 @@ public final class KillingMoveService {
     }
 
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id) {
-        return drive(player, id, KillingMovePayload.NO_TARGET);
+        return drive(player, id, NO_TARGET);
     }
 
     /**
-     * Drives the main-hand blade Gu, aimed at the client's target id ({@code KillingMovePayload.NO_TARGET} for none).
+     * Drives the main-hand blade Gu, aimed at the client's target id ({@link #NO_TARGET} for none).
      */
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id, int targetId) {
         ItemStack stack = player.getMainHandItem();
@@ -205,7 +205,7 @@ public final class KillingMoveService {
 
     /** The client's target id checked again on the server; null when any check fails. */
     public static @Nullable LivingEntity resolveTarget(@NotNull ServerPlayer player, int targetId) {
-        if (targetId == KillingMovePayload.NO_TARGET) return null;
+        if (targetId == NO_TARGET) return null;
         if (!(player.serverLevel().getEntity(targetId) instanceof LivingEntity target)) return null;
         if (!target.isAlive() || target == player) return null;
         Vec3 eye = player.getEyePosition();
