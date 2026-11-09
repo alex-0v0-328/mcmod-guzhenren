@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.behavior;
 
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.GuItem.Refusal;
@@ -27,7 +28,8 @@ import org.jetbrains.annotations.Nullable;
  * while a stronger copy of the same effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker
  * running copy is refreshed, a stronger Gu taking the weaker one's effect and strands. Inside the Gu's effect
  * cooldown the same strength adds its length; outside it the longer length wins ({@link #getNextDuration}). An
- * Amplify Effect Gu [功倍蛊] multiplies the length it adds and lays its Rule strands on the buff.
+ * Amplify Effect Gu [功倍蛊] multiplies the length it adds and lays its Rule strands on the buff; a beast buff then
+ * adds the held beasts' duration bonus ({@code PathStrengthService.getDurationBonus}, the green bull's ten seconds).
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a behavior does not mean sharing a larder.
  *
@@ -64,7 +66,8 @@ public record TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks, int a
         if (current != null && amplifier < current.payload().amplifier()) return;
 
         Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
-        int added = durationTicks * amplification.factor();
+        int added = durationTicks * amplification.factor()
+                + (buff.value() instanceof BeastStrengthBuff ? PathStrengthService.getDurationBonus(player) : 0);
         int duration = current == null ? added : getNextDuration(TimedEffects.getBuffTicksLeft(player, buff),
                 current.payload().amplifier(), added, amplifier, gu.getEffectCooldownLeft(player, stack) > 0);
         TimedEffects.grantBuff(player, gu, buff, amplifier, duration, amplification);

@@ -1,7 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.path.strength;
 
 import net.alex.guzhenren.gameplay.attribute.StrengthService;
-import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
@@ -17,8 +16,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The Hardship Strength behavior [苦力]: an auto state ({@link AutoUseBehavior}) that starts under 75% of max health
  * on a body holding a permanent human jun [人力钧力流] or beast phantom [兽力虚影流] strength whose normal capacity
- * [常态承受力] gains at least one point at the lightest tier -- less would be billed for nothing -- and runs until the
- * body is back at 75%. What it lends, tier by tier, is {@link HardshipStrength}'s.
+ * [常态承受力] gains at least one point at the lightest tier -- less would be billed for nothing -- and runs for a
+ * {@link #DURATION_SECONDS} window whatever the health does meanwhile (at 75% and above it lends nothing). What it
+ * lends, tier by tier, is {@link HardshipStrength}'s.
  *
  * @author Alex
  * @version 1.0.0
@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
  */
 
 public record HardshipBehavior() implements AutoUseBehavior {
+
+    public static final int DURATION_SECONDS = 30;
 
     @Override
     public @NotNull PathEffectType<?> getStateType() { return ModPathEffectTypes.HARDSHIP_STRENGTH; }
@@ -41,8 +43,11 @@ public record HardshipBehavior() implements AutoUseBehavior {
     }
 
     @Override
+    public int getDurationSeconds() { return DURATION_SECONDS; }
+
+    @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
-        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.HARDSHIP_STRENGTH, PathEffect.PERMANENT,
-                HardshipStrength.State.INSTANCE));
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.HARDSHIP_STRENGTH,
+                AutoUse.getEndTick(player, this), HardshipStrength.State.INSTANCE));
     }
 }

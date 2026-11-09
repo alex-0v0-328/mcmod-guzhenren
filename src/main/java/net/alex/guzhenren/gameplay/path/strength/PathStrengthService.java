@@ -53,6 +53,9 @@ public final class PathStrengthService {
 
     public static boolean has(@NotNull Player player, @NotNull BeastStrength beast) { return get(player).has(beast); }
 
+    /** The ticks the held beasts add to a strength path timed state as it starts (the green bull's ten seconds). */
+    public static int getDurationBonus(@NotNull Player player) { return get(player).getBeastDurationBonus(); }
+
     public static int getHumanStrength(@NotNull Player player, @NotNull HumanStrength kind) {
         return get(player).getHumanStrengthCount(kind);
     }

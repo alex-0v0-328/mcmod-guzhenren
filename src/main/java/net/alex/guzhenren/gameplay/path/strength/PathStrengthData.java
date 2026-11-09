@@ -108,6 +108,12 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         return total;
     }
 
+    public int getBeastDurationBonus() {
+        int total = 0;
+        for (BeastStrength beast : beasts) total += beast.getDurationBonusTicks();
+        return total;
+    }
+
     public double getBeastSprintBonus() {
         double total = 0.0D;
         for (BeastStrength beast : beasts) total += beast.getSprintBonus();

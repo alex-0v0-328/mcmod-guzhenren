@@ -643,13 +643,13 @@ public final class ModItems {
                     new TimedBuffBehavior(ModEffects.CHARGING_CRASH_GU, 60 * Ticks.SECOND, 4)))
             .lang("Charging Crash Gu V", "五转横冲直撞蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = REGISTRAR.item("self_reliance_gu_2",
-            () -> createSelfRelianceGu(Rank.TWO, 1_600, 36, 1, 0.03F))
+            () -> createSelfRelianceGu(Rank.TWO, 1_600, 36, 1, 0.03F, 15))
             .lang("Self Reliance Gu II", "二转自力更生蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = REGISTRAR.item("self_reliance_gu_3",
-            () -> createSelfRelianceGu(Rank.THREE, 3_200, 108, 2, 0.04F))
+            () -> createSelfRelianceGu(Rank.THREE, 3_200, 108, 2, 0.04F, 20))
             .lang("Self Reliance Gu III", "三转自力更生蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = REGISTRAR.item("self_reliance_gu_4",
-            () -> createSelfRelianceGu(Rank.FOUR, 6_400, 324, 3, 0.05F))
+            () -> createSelfRelianceGu(Rank.FOUR, 6_400, 324, 3, 0.05F, 25))
             .lang("Self Reliance Gu IV", "四转自力更生蛊").register();
     public static final DeferredItem<Item> HARDSHIP_STRENGTH_GU = REGISTRAR.item("hardship_strength_gu",
             () -> new TendedGuItem(createRankedProperties(Rank.FOUR, GuPath.STRENGTH)
@@ -694,7 +694,7 @@ public final class ModItems {
     }
 
     private static TendedGuItem createSelfRelianceGu(Rank rank, int refine, int costPerUse, int grade,
-                                                     float pulseHeal) {
+                                                     float pulseHeal, int durationSeconds) {
         return new TendedGuItem(createRankedProperties(rank, GuPath.STRENGTH)
                 .type(GuType.HEALING)
                 .effect(EffectCarrier.BODY)
@@ -702,7 +702,7 @@ public final class ModItems {
                 .costPerUse(costPerUse)
                 .feed(ModItemTags.COBBLESTONE_FEED, 1)
                 .cooldown(15 * Ticks.SECOND, Ticks.SECOND),
-                new SelfRelianceBehavior(grade, pulseHeal));
+                new SelfRelianceBehavior(grade, pulseHeal, durationSeconds));
     }
 
     private static TendedGuItem createAllOutEffortGu(Rank rank, int refine, int costPerUse, int cooldownSeconds,

@@ -55,10 +55,10 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link #HUMAN_STRENGTH} [人力] -- a permanent buff on the body per kind, one layer per stored layer.</li>
  * <li>{@link #BUFF} [限时增益] -- a timed buff on the body per Gu, payload the vanilla effect and its amplifier;
  * the beast buffs, the crashes and all-out effort.</li>
- * <li>{@link #SELF_RELIANCE} [自力更生] -- an auto heal on the body, payload the grade. Permanent until its auto
- * use stops it; exclusive.</li>
+ * <li>{@link #SELF_RELIANCE} [自力更生] -- an auto heal on the body, payload the grade. Timed: the window its auto
+ * use opens; exclusive.</li>
  * <li>{@link #HARDSHIP_STRENGTH} [苦力] -- an auto state on the body, its payload a strength amplifier provider.
- * Permanent until its auto use stops it; exclusive.</li>
+ * Timed: the window its auto use opens; exclusive.</li>
  * <li>{@link #TIMED_SKIN} [限时皮] -- the jade skin or white jade skin on the body, payload the skin; exclusive. The
  * skin itself stays on {@code BodyData}, which projects its own icon.</li>
  * <li>{@link #MUGWORT_SHIELD} [天蓬护盾] -- the shield on the body; its points stay on {@code ShieldData}.</li>

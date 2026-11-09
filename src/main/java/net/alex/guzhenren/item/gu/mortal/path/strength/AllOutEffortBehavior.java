@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Three rungs register it (三转至五转). A body with neither a permanent beast strength nor human strength is
  * refused before any charge ({@code all_out_needs_branch}). The effect stamps a marker effect at the Gu's tier, which
  * the strength service and the round read, and calls {@link AttackDamageService#refresh}, so attack still comes out of
- * one formula. An Amplify Effect Gu [功倍蛊] multiplies its length.
+ * one formula. An Amplify Effect Gu [功倍蛊] multiplies its length; the held beasts' duration bonus
+ * ({@code PathStrengthService.getDurationBonus}, the green bull's ten seconds) is added after that.
  *
  * <p>⚠ Its effect is a marker carrying no {@code AttributeModifier}. A modifier would be a second
  * source for one fact, and re-using it while it runs is a refusal.
@@ -58,7 +59,7 @@ public record AllOutEffortBehavior(int effectSeconds) implements GuBehavior {
     @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
         Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
-        int ticks = effectSeconds * Ticks.SECOND * amplification.factor();
+        int ticks = effectSeconds * Ticks.SECOND * amplification.factor() + PathStrengthService.getDurationBonus(player);
         TimedEffects.grantBuff(player, gu, ModEffects.ALL_OUT_EFFORT_GU, gu.getTier(), ticks, amplification);
         AttackDamageService.refresh(player);
     }

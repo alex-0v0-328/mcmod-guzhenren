@@ -14,13 +14,14 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The Self Reliance behavior [自力更生]: an auto heal ({@link AutoUseBehavior}) that starts under 75% of max health
- * and mends the holder back up to it. The state is the permanent path effect {@code ModPathEffectTypes.SELF_RELIANCE},
- * its payload the Gu's grade.
+ * and, for a window of {@code durationSeconds} (15/20/25 by rank), mends the holder back up to 75% whenever the body
+ * is under it. The state is the timed path effect {@code ModPathEffectTypes.SELF_RELIANCE}, its payload the Gu's
+ * grade.
  *
  * <p>Every {@link #PULSE_TICKS} ({@link #pulse}, from {@link AutoUse#tick}) the heal mends
  * {@code pulseHeal × curve × max health}, never past 75%; the last pulse is cut there and the heal stops. The curve
  * ({@link #getCurve}) is 1 at or under {@link #FULL_PULSE_BELOW} of max health and falls linearly to {@link #FLOOR}
- * at 75%. Damage taken meanwhile is healed too.
+ * at 75%. Damage taken meanwhile is healed too; at 75% and above a pulse does nothing and the window runs on.
  *
  * <p>A pulse that a cancelled heal leaves without effect pauses the heal; it neither ends it nor bills again. A
  * dying body is never healed: {@link AutoUse#tick} stops the state first.
@@ -32,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0.0
  */
 
-public record SelfRelianceBehavior(int grade, float pulseHeal) implements AutoUseBehavior {
+public record SelfRelianceBehavior(int grade, float pulseHeal, int durationSeconds) implements AutoUseBehavior {
 
     public static final int PULSE_TICKS = 5;
     public static final float FULL_PULSE_BELOW = 0.40F;
@@ -45,9 +46,12 @@ public record SelfRelianceBehavior(int grade, float pulseHeal) implements AutoUs
     public boolean canStart(@NotNull ServerPlayer player) { return true; }
 
     @Override
+    public int getDurationSeconds() { return durationSeconds; }
+
+    @Override
     public void applyEffect(MortalGuItem gu, ServerPlayer player, ItemStack stack) {
-        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.SELF_RELIANCE, PathEffect.PERMANENT,
-                new SelfRelianceHeal(grade)));
+        PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.SELF_RELIANCE,
+                AutoUse.getEndTick(player, this), new SelfRelianceHeal(grade)));
     }
 
     public static void pulse(@NotNull ServerPlayer player) {
@@ -58,9 +62,10 @@ public record SelfRelianceBehavior(int grade, float pulseHeal) implements AutoUs
 
         SelfRelianceBehavior behavior = BuiltInRegistries.ITEM.get(heal.source()) instanceof MortalGuItem gu
                 ? gu.getBehavior(SelfRelianceBehavior.class) : null;
-        if (behavior != null) behavior.mend(player);
-        if (behavior == null || !AutoUse.isHurt(player)) {
+        if (behavior == null) {
             PathEffectService.removeType(player, ModPathEffectTypes.SELF_RELIANCE);
+        } else if (AutoUse.isHurt(player)) {
+            behavior.mend(player);
         }
     }
 

@@ -4,9 +4,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * Hardship Strength Gu [苦力蛊] effect: the icon of the Hardship state, and nothing more. The state is the permanent
- * path effect {@code ModPathEffectTypes.HARDSHIP_STRENGTH}, which projects this icon with no countdown for as long as
- * it runs; what it lends is {@code HardshipStrength}'s.
+ * Hardship Strength Gu [苦力蛊] effect: the icon of the Hardship state, and nothing more. The state is the timed
+ * path effect {@code ModPathEffectTypes.HARDSHIP_STRENGTH}, which projects this icon with its window's countdown;
+ * what it lends is {@code HardshipStrength}'s.
  *
  * @author Alex
  * @version 1.0.0

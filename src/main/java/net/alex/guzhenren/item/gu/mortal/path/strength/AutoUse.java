@@ -8,6 +8,8 @@ import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +23,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The auto use [自动催动] of every {@link AutoUseBehavior} Gu: a refined copy held in the bag ({@code items} and
  * offhand) or stored in any aperture [空窍] starts its state on its own once the holder falls under 75% of max health
- * ({@link HardshipStrength#isHurt}), and loses it the moment that stops being so.
+ * ({@link HardshipStrength#isHurt}), for a window the behavior names ({@link #getEndTick}: its seconds plus the held
+ * beasts' duration bonus, the green bull's ten); healing meanwhile does not end it. A window that runs out on a body
+ * still hurt is followed by a new start, billed again, once the Gu's effect cooldown allows.
  *
  * <p>{@link #tryStart} runs on the heartbeat. Per state, only the highest rank held counts, however many copies:
  * its copies are tried in scan order (bag, offhand, then each aperture's store; the Vital Gu [本命蛊] slot is not
@@ -30,14 +34,14 @@ import org.jetbrains.annotations.Nullable;
  * any automatic use, and stamps the effect cooldown that spaces two starts. A stored copy is used on a copy written
  * back through {@code ApertureStorageService.setSlot}. Nothing is billed while the state runs.
  *
- * <p>{@link #tick} runs every tick and stops a running state, unbilled, when the holder is dead or dying, no longer
- * hurt, or holds no refined copy of the Gu that started it; then it pulses the Self Reliance heal. A state put back
- * later starts again, and pays again.
+ * <p>{@link #tick} runs every tick and stops a running state, unbilled, when the holder is dead or dying or holds no
+ * refined copy of the Gu that started it (the window's end is the path effect's own expiry); then it pulses the Self
+ * Reliance heal. A state put back later starts again, and pays again.
  *
  * <p>⚠ The hand gate ({@code AutoUseBehavior.checkEffect}) lets only a start through: {@link #isStarting} holds for
  * the one player whose start is under way, on the server thread, for the length of {@code tryAutoUse}.
  *
- * <p>⚠ Both states are permanent path effects: they survive a relog, and the first tick after it checks them again
+ * <p>⚠ Both states are timed path effects: they survive a relog, and the first tick after it checks them again
  * without billing. A higher rank picked up while a lower one runs takes over only at the next start.
  *
  * @author Alex
@@ -64,6 +68,11 @@ public final class AutoUse {
 
     public static boolean isHurt(@NotNull Player player) {
         return !player.isDeadOrDying() && HardshipStrength.isHurt(player.getHealth(), player.getMaxHealth());
+    }
+
+    public static long getEndTick(@NotNull ServerPlayer player, @NotNull AutoUseBehavior behavior) {
+        return player.level().getGameTime() + (long) behavior.getDurationSeconds() * Ticks.SECOND
+                + PathStrengthService.getDurationBonus(player);
     }
 
     //region Start [启动]
@@ -114,7 +123,7 @@ public final class AutoUse {
         List<PathEffect<?>> running = findRunning(player);
         if (running.isEmpty()) return;
 
-        if (!isHurt(player)) {
+        if (player.isDeadOrDying()) {
             for (PathEffect<?> state : running) PathEffectService.removeType(player, state.type());
             return;
         }
