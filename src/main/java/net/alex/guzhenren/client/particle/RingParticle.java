@@ -79,6 +79,10 @@ import org.joml.Vector3f;
  * without touching the global cull state; {@code QUADS} groups vertices four by four, and corner UVs stay
  * pinned to their corners on the reversed side.
  *
+ * <p>The one mutable static, {@code localDashHiddenUntilTick}, is the local player's own tick stamp for hiding the
+ * self dash ring; the client has one local player, and the window is bounded at both ends, so a stamp left by an
+ * older player entity hides nothing.
+ *
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.registry.particle.ModParticles

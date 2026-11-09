@@ -29,6 +29,9 @@ import org.lwjgl.glfw.GLFW;
  * arms the first-person sonic boom ({@link SonicBoomHud#noteRequested}). Logging out forgets a first tap that was
  * waiting for its second.
  *
+ * <p>The one mutable static, {@code ticks}, is this client's own tick clock for the double tap; it only counts up, and
+ * a stored first tap is forgotten on logout.
+ *
  * @author Alex
  * @version 1.0.0
  * @see DoubleTap

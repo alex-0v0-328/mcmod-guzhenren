@@ -6,7 +6,7 @@ import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.dimension.TreasureYellowHeavenGuard;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
-import net.alex.guzhenren.network.ClientIntents.ElderAction;
+import net.alex.guzhenren.network.payload.ElderAction;
 import net.alex.guzhenren.network.payload.PrimevalElderPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -35,6 +35,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * first is still refined by holding it and the others are refused as before. ⚠ A press that began on a wild one
  * ({@code refiningPress}) opens nothing once it is refined: vanilla re-fires the held click, and the slider waits
  * for the next press.
+ *
+ * <p>The one mutable static, {@code refiningPress}, is the local client's held-click latch; it clears when the use key
+ * comes up.
  *
  * @author Alex
  * @version 1.0.0

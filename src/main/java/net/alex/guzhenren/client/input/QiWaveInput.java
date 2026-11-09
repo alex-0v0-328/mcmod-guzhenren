@@ -21,6 +21,9 @@ import yesman.epicfight.client.input.EpicFightKeyMappings;
  * the button and takes the click in its battle mode, so both keys' held states are read. {@link #reset} forgets the
  * remembered state on logout.
  *
+ * <p>The one mutable static, {@code previousAttack}, is the local client's last key state for the edge; {@link #reset}
+ * forgets it on logout.
+ *
  * @author Alex
  * @version 1.0.0
  * @see QiWaveService

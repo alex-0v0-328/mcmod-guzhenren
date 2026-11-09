@@ -23,6 +23,9 @@ import org.jetbrains.annotations.NotNull;
  * class, the same seam as {@code ModPayloads}'s client handlers. The page turn plays on both sides with the reader
  * as the source, so the reader hears it at once from their own client and the server plays it to everyone else.
  *
+ * <p>The one mutable static, {@code reader}, is a client seam: the client installs its reader screen once at load, and
+ * the server never reads it.
+ *
  * @author Alex
  * @version 1.0.0
  * @see Booklet

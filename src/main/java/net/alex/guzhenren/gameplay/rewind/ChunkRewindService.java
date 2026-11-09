@@ -37,6 +37,10 @@ import org.jetbrains.annotations.NotNull;
  * earlier server is still dropped on the first tick of the next. A generation that throws (a broken worldgen
  * mod) is logged and restores nothing.
  *
+ * <p>The two mutable statics, {@code generating} and {@code epoch}, are server-wide on purpose: they count the origin
+ * generations in flight on the one running server, and {@link #clear} zeroes them and bumps the epoch when it stops,
+ * so a late completion is dropped.
+ *
  * @author Alex
  * @version 1.0.0
  * @see ChunkOriginGenerator

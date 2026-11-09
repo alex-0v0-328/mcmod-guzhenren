@@ -22,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
  * {@link RecipesUpdatedEvent} because the manager keeps its identity while a reload swaps the recipes inside it, and
  * on logout. Client thread only.
  *
+ * <p>The two mutable statics are the client's one recipe cache and the manager it was read from: a recipe reload or a
+ * logout forgets them, and the next read refills them.
+ *
  * @author Alex
  * @version 1.0.0
  * @see RefinementScreen

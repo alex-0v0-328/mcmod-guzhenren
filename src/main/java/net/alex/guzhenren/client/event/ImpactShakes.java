@@ -28,6 +28,9 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
  * replays one, and a pause holds them. A notice's numbers are clamped to {@link #MAX_STRENGTH} and
  * {@link #MAX_TICKS}. Pitch and yaw swing on two rates near 10 Hz.
  *
+ * <p>The one mutable static, {@code ticks}, is this client's own tick clock: it only counts up, and every shake stores
+ * its start on it, so nothing needs to forget it on logout.
+ *
  * @author Alex
  * @version 1.0.0
  * @see ImpactShakeEvents

@@ -41,6 +41,9 @@ import org.jetbrains.annotations.Nullable;
  * empty bar it is forced like any tended Gu: the amplified effect lands, then it dies of exhaustion and leaves its
  * hand.
  *
+ * <p>The one mutable static, {@code driving}, is a call-scoped server-thread context: it is set and cleared in a
+ * try/finally around one driven use, so it never outlives the call nor holds more than one player.
+ *
  * @author Alex
  * @version 1.0.0
  * @see TendedGuItem

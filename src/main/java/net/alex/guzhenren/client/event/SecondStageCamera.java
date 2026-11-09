@@ -45,10 +45,16 @@ public final class SecondStageCamera {
     private static final float YAW_RATE = 3.75F;
     private static final float MAX_FRAME_SECONDS = 0.1F;
     private static final float MIN_ROLL = 0.01F;
-    private static long lastFrameNanos;
-    private static float lastYaw = Float.NaN;
-    private static float turnRate;
-    private static float roll;
+
+    private static final class State {
+
+        long lastFrameNanos;
+        float lastYaw = Float.NaN;
+        float turnRate;
+        float roll;
+    }
+
+    private static final State STATE = new State();
 
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
@@ -61,26 +67,27 @@ public final class SecondStageCamera {
         boolean active = player.getAbilities().flying && SecondStageService.isActive(player);
         float throttle = active ? (float) PlayerData.get(player).getSecondStageThrottle() : 0.0F;
         float yaw = player.getViewYRot(partialTick);
-        float turned = Float.isNaN(lastYaw) || seconds <= 0.0F ? 0.0F : Mth.wrapDegrees(yaw - lastYaw) / seconds;
-        lastYaw = yaw;
-        turnRate = Mth.lerp(getEase(TURN_EASE, seconds), turnRate, turned);
-        float target = active ? getRollTarget(turnRate, throttle) : 0.0F;
-        roll = Mth.lerp(getEase(active ? ROLL_EASE : RELEASE_EASE, seconds), roll, target);
+        float turned = Float.isNaN(STATE.lastYaw) || seconds <= 0.0F ? 0.0F
+                : Mth.wrapDegrees(yaw - STATE.lastYaw) / seconds;
+        STATE.lastYaw = yaw;
+        STATE.turnRate = Mth.lerp(getEase(TURN_EASE, seconds), STATE.turnRate, turned);
+        float target = active ? getRollTarget(STATE.turnRate, throttle) : 0.0F;
+        STATE.roll = Mth.lerp(getEase(active ? ROLL_EASE : RELEASE_EASE, seconds), STATE.roll, target);
 
         float shake = getCruiseShake(throttle);
-        if (Math.abs(roll) < MIN_ROLL && shake <= 0.0F) return;
+        if (Math.abs(STATE.roll) < MIN_ROLL && shake <= 0.0F) return;
         float scale = minecraft.options.screenEffectScale().get().floatValue();
         float time = player.tickCount + partialTick;
-        event.setRoll(event.getRoll() + roll * scale);
+        event.setRoll(event.getRoll() + STATE.roll * scale);
         event.setPitch(event.getPitch() + shake * scale * Mth.sin(time * PITCH_RATE));
         event.setYaw(event.getYaw() + shake * scale * Mth.cos(time * YAW_RATE));
     }
 
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        lastYaw = Float.NaN;
-        turnRate = 0.0F;
-        roll = 0.0F;
+        STATE.lastYaw = Float.NaN;
+        STATE.turnRate = 0.0F;
+        STATE.roll = 0.0F;
     }
 
     static float getRollTarget(float turnRate, float throttle) {
@@ -95,8 +102,8 @@ public final class SecondStageCamera {
 
     private static float getFrameSeconds() {
         long now = System.nanoTime();
-        float seconds = lastFrameNanos == 0L ? 0.0F : (now - lastFrameNanos) / 1.0E9F;
-        lastFrameNanos = now;
+        float seconds = STATE.lastFrameNanos == 0L ? 0.0F : (now - STATE.lastFrameNanos) / 1.0E9F;
+        STATE.lastFrameNanos = now;
         return Math.min(seconds, MAX_FRAME_SECONDS);
     }
 }

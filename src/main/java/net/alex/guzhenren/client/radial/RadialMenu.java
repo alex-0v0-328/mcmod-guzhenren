@@ -71,60 +71,66 @@ public final class RadialMenu {
     private record Exit(List<Entry> entries, float[] hover, int picked, long openedAt, long startedAt) {}
 
     public static final int OPEN_DELAY_TICKS = 5;
-    private static @Nullable Owner owner;
-    private static @Nullable List<Entry> entries;
-    private static @Nullable Exit exit;
-    private static int heldTicks;
-    private static boolean spent;
-    private static double cursorX;
-    private static double cursorY;
-    private static float[] hover = new float[0];
-    private static long openedAt;
-    private static int labelIndex = RadialLayout.NONE;
-    private static long labelSince;
-    private static long lastFrameAt;
+
+    private static final class State {
+
+        @Nullable Owner owner;
+        @Nullable List<Entry> entries;
+        @Nullable Exit exit;
+        int heldTicks;
+        boolean spent;
+        double cursorX;
+        double cursorY;
+        float[] hover = new float[0];
+        long openedAt;
+        int labelIndex = RadialLayout.NONE;
+        long labelSince;
+        long lastFrameAt;
+    }
+
+    private static final State STATE = new State();
 
     private RadialMenu() {}
 
     //region the hold [长按]
     public static void hold(@NotNull Owner next) {
-        if (owner != null) return;
+        if (STATE.owner != null) return;
 
-        owner = next;
-        entries = null;
-        heldTicks = 0;
-        spent = false;
+        STATE.owner = next;
+        STATE.entries = null;
+        STATE.heldTicks = 0;
+        STATE.spent = false;
     }
 
-    public static boolean isHolding() { return owner != null; }
+    public static boolean isHolding() { return STATE.owner != null; }
 
-    public static boolean isOpen() { return entries != null; }
+    public static boolean isOpen() { return STATE.entries != null; }
 
     public static void close() {
-        owner = null;
-        entries = null;
-        exit = null;
+        STATE.owner = null;
+        STATE.entries = null;
+        STATE.exit = null;
     }
 
     public static int getSelected() {
-        return entries == null ? RadialLayout.NONE
-                : RadialLayout.sectorAt(cursorX, cursorY, entries.size(), RadialLayout.INNER_RADIUS);
+        return STATE.entries == null ? RadialLayout.NONE
+                : RadialLayout.sectorAt(STATE.cursorX, STATE.cursorY, STATE.entries.size(), RadialLayout.INNER_RADIUS);
     }
 
     public static void steer(double dx, double dy) {
         Window window = Minecraft.getInstance().getWindow();
-        cursorX += dx * window.getGuiScaledWidth() / window.getScreenWidth();
-        cursorY += dy * window.getGuiScaledHeight() / window.getScreenHeight();
-        double distance = Math.hypot(cursorX, cursorY);
+        STATE.cursorX += dx * window.getGuiScaledWidth() / window.getScreenWidth();
+        STATE.cursorY += dy * window.getGuiScaledHeight() / window.getScreenHeight();
+        double distance = Math.hypot(STATE.cursorX, STATE.cursorY);
         if (distance <= RadialLayout.OUTER_RADIUS) return;
 
-        cursorX *= RadialLayout.OUTER_RADIUS / distance;
-        cursorY *= RadialLayout.OUTER_RADIUS / distance;
+        STATE.cursorX *= RadialLayout.OUTER_RADIUS / distance;
+        STATE.cursorY *= RadialLayout.OUTER_RADIUS / distance;
     }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        Owner current = owner;
+        Owner current = STATE.owner;
         if (current == null) return;
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -136,36 +142,37 @@ public final class RadialMenu {
             release(current);
             return;
         }
-        if (!spent && entries == null && ++heldTicks >= OPEN_DELAY_TICKS) open(current);
+        if (!STATE.spent && STATE.entries == null && ++STATE.heldTicks >= OPEN_DELAY_TICKS) open(current);
     }
 
     private static void open(Owner current) {
         List<Entry> listed = List.copyOf(current.entries());
         if (listed.isEmpty()) {
-            spent = true;
+            STATE.spent = true;
             current.empty();
             return;
         }
-        entries = listed;
-        exit = null;
-        cursorX = 0.0D;
-        cursorY = 0.0D;
-        hover = new float[listed.size()];
-        openedAt = Util.getMillis();
-        labelIndex = RadialLayout.NONE;
+        STATE.entries = listed;
+        STATE.exit = null;
+        STATE.cursorX = 0.0D;
+        STATE.cursorY = 0.0D;
+        STATE.hover = new float[listed.size()];
+        STATE.openedAt = Util.getMillis();
+        STATE.labelIndex = RadialLayout.NONE;
     }
 
     private static void release(Owner current) {
-        List<Entry> shown = entries;
+        List<Entry> shown = STATE.entries;
         int sector = getSelected();
-        owner = null;
-        entries = null;
+        STATE.owner = null;
+        STATE.entries = null;
         if (shown == null) {
             current.releaseUnopened();
             return;
         }
         boolean picked = sector != RadialLayout.NONE && shown.get(sector).enabled();
-        exit = new Exit(shown, hover, picked ? sector : RadialLayout.NONE, openedAt, Util.getMillis());
+        STATE.exit = new Exit(shown, STATE.hover, picked ? sector : RadialLayout.NONE, STATE.openedAt,
+                Util.getMillis());
         if (picked) current.pick(sector);
     }
 
@@ -186,34 +193,34 @@ public final class RadialMenu {
     //region drawing [绘制]
     public static void render(@NotNull GuiGraphics graphics) {
         long now = Util.getMillis();
-        float seconds = lastFrameAt == 0L ? 0.0F : Math.min(100L, now - lastFrameAt) / 1000.0F;
-        lastFrameAt = now;
+        float seconds = STATE.lastFrameAt == 0L ? 0.0F : Math.min(100L, now - STATE.lastFrameAt) / 1000.0F;
+        STATE.lastFrameAt = now;
 
-        List<Entry> shown = entries;
+        List<Entry> shown = STATE.entries;
         if (shown != null) {
             int selected = getSelected();
-            ease(hover, selected, seconds);
-            if (selected != labelIndex) {
-                labelIndex = selected;
-                labelSince = now;
+            ease(STATE.hover, selected, seconds);
+            if (selected != STATE.labelIndex) {
+                STATE.labelIndex = selected;
+                STATE.labelSince = now;
             }
-            long sinceOpen = now - openedAt;
-            RadialDrawing.draw(graphics, shown, hover, sinceOpen, RadialMotion.getOpenScale(sinceOpen),
+            long sinceOpen = now - STATE.openedAt;
+            RadialDrawing.draw(graphics, shown, STATE.hover, sinceOpen, RadialMotion.getOpenScale(sinceOpen),
                     RadialMotion.getOpenAlpha(sinceOpen), RadialLayout.NONE, 0.0F);
-            if (labelIndex != RadialLayout.NONE) {
-                float rise = RadialMotion.getLabelIn(now - labelSince);
+            if (STATE.labelIndex != RadialLayout.NONE) {
+                float rise = RadialMotion.getLabelIn(now - STATE.labelSince);
                 float alpha = RadialMotion.getOpenAlpha(sinceOpen) * rise;
-                RadialDrawing.drawLabel(graphics, shown.get(labelIndex).label(), alpha, rise);
+                RadialDrawing.drawLabel(graphics, shown.get(STATE.labelIndex).label(), alpha, rise);
             }
             return;
         }
 
-        Exit leaving = exit;
+        Exit leaving = STATE.exit;
         if (leaving == null) return;
         long since = now - leaving.startedAt();
         boolean picked = leaving.picked() != RadialLayout.NONE;
         if (RadialMotion.isExitDone(since, picked)) {
-            exit = null;
+            STATE.exit = null;
             return;
         }
         ease(leaving.hover(), leaving.picked(), seconds);

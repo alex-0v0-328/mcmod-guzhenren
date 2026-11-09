@@ -34,21 +34,27 @@ public final class DashInput {
 
     private static final float DASH_YAW_CROSS = 90.0F;
     private static final float DASH_YAW_DIAGONAL = 45.0F;
-    private static boolean previousUp;
-    private static boolean previousDown;
-    private static boolean previousLeft;
-    private static boolean previousRight;
-    private static boolean previousAlt;
+
+    private static final class State {
+
+        boolean previousUp;
+        boolean previousDown;
+        boolean previousLeft;
+        boolean previousRight;
+        boolean previousAlt;
+    }
+
+    private static final State STATE = new State();
 
     public static void tick(Minecraft minecraft, LocalPlayer player) {
         boolean up = minecraft.options.keyUp.isDown();
         boolean down = minecraft.options.keyDown.isDown();
         boolean left = minecraft.options.keyLeft.isDown();
         boolean right = minecraft.options.keyRight.isDown();
-        boolean pressed = up && !previousUp || down && !previousDown
-                || left && !previousLeft || right && !previousRight;
+        boolean pressed = up && !STATE.previousUp || down && !STATE.previousDown
+                || left && !STATE.previousLeft || right && !STATE.previousRight;
         boolean alt = Screen.hasAltDown();
-        if (minecraft.screen == null && shouldStartDash(alt, previousAlt, pressed)) {
+        if (minecraft.screen == null && shouldStartDash(alt, STATE.previousAlt, pressed)) {
             int vertical = up == down ? 0 : up ? 1 : -1;
             int horizontal = left == right ? 0 : left ? 1 : -1;
             if (ClientIntents.canDash(vertical, horizontal,
@@ -58,19 +64,19 @@ public final class DashInput {
                 send(player, vertical, horizontal);
             }
         }
-        previousUp = up;
-        previousDown = down;
-        previousLeft = left;
-        previousRight = right;
-        previousAlt = alt;
+        STATE.previousUp = up;
+        STATE.previousDown = down;
+        STATE.previousLeft = left;
+        STATE.previousRight = right;
+        STATE.previousAlt = alt;
     }
 
     public static void reset() {
-        previousUp = false;
-        previousDown = false;
-        previousLeft = false;
-        previousRight = false;
-        previousAlt = false;
+        STATE.previousUp = false;
+        STATE.previousDown = false;
+        STATE.previousLeft = false;
+        STATE.previousRight = false;
+        STATE.previousAlt = false;
     }
 
     public static boolean shouldStartDash(boolean alt, boolean previousAlt, boolean directionPressed) {

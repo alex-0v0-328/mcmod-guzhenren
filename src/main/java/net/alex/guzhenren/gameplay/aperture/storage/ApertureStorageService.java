@@ -34,6 +34,9 @@ import org.jetbrains.annotations.NotNull;
  * aperture posts a {@code FirstApertureInsertedEvent} and {@link ApertureStorageEvents} slides every stored list
  * and the Vital Gu slot up one position.
  *
+ * <p>The one mutable static, {@code storedGu}, is a seam: the entry point sets it once at mod construction and nothing
+ * replaces it during play.
+ *
  * @author Alex
  * @version 1.0.0
  * @see ApertureService

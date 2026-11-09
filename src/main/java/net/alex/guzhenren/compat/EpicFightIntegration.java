@@ -5,12 +5,12 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.effect.timed.CrashDash;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -80,6 +80,9 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * through an action animation only on the owning client ({@code PlayerPatch.shouldMoveOnCurrentSide} is false on the
  * server, true on the {@code LocalPlayerPatch}) and posts the position to the server, so the scale reads All-Out
  * there, from the player's own synced effect and strength data.
+ *
+ * <p>The two mutable statics, {@code dashForward} and {@code dashBackward}, are set once by Epic Fight's animation
+ * registration and only read afterwards.
  *
  * @author Alex
  * @version 1.0.0

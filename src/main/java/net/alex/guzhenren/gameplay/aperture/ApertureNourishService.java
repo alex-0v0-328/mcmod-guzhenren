@@ -56,6 +56,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Just past 300 lines: nourishing and the wall strike share the stone purse and the progress a strike resets.
  *
+ * <p>The one mutable static, {@code stones}, is a seam: the entry point sets the stone purse once at mod construction
+ * and nothing replaces it during play.
+ *
  * @author Alex
  * @version 1.0.0
  * @see ApertureService

@@ -79,46 +79,53 @@ public final class HoldSlider {
     private static final HudBar TRACK = HudBar.of("slider", TRACK_WIDTH, TRACK_HEIGHT);
     private static final ResourceLocation KNOB = Guzhenren.id("hud/slider_knob");
     private static final Component CANCEL = Component.translatable("guzhenren.hud.slider.cancel");
-    private static @Nullable Owner owner;
-    private static int top = -1;
-    private static int heldTicks;
-    private static boolean spent;
-    private static double cursorX;
+
+    private static final class State {
+
+        @Nullable Owner owner;
+        int top = -1;
+        int heldTicks;
+        boolean spent;
+        double cursorX;
+    }
+
+    private static final State STATE = new State();
 
     private HoldSlider() {}
 
     //region the hold [长按]
     public static void hold(@NotNull Owner next) {
-        if (owner != null || RadialMenu.isHolding()) return;
+        if (STATE.owner != null || RadialMenu.isHolding()) return;
 
-        owner = next;
-        top = -1;
-        heldTicks = 0;
-        spent = false;
+        STATE.owner = next;
+        STATE.top = -1;
+        STATE.heldTicks = 0;
+        STATE.spent = false;
     }
 
-    public static boolean isHolding() { return owner != null; }
+    public static boolean isHolding() { return STATE.owner != null; }
 
-    public static boolean isOpen() { return top > 0; }
+    public static boolean isOpen() { return STATE.top > 0; }
 
     public static void close() {
-        owner = null;
-        top = -1;
+        STATE.owner = null;
+        STATE.top = -1;
     }
 
     public static int getValue() {
         if (!isOpen()) return 0;
-        return Math.min(top, (int) (cursorX / TRACK_WIDTH * (top + 1)));
+        return Math.min(STATE.top, (int) (STATE.cursorX / TRACK_WIDTH * (STATE.top + 1)));
     }
 
     public static void steer(double dx) {
         Window window = Minecraft.getInstance().getWindow();
-        cursorX = Mth.clamp(cursorX + dx * window.getGuiScaledWidth() / window.getScreenWidth(), 0.0D, TRACK_WIDTH);
+        STATE.cursorX = Mth.clamp(STATE.cursorX + dx * window.getGuiScaledWidth() / window.getScreenWidth(), 0.0D,
+                TRACK_WIDTH);
     }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        Owner current = owner;
+        Owner current = STATE.owner;
         if (current == null) return;
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -130,18 +137,18 @@ public final class HoldSlider {
             release(current);
             return;
         }
-        if (!spent && top < 0 && ++heldTicks >= RadialMenu.OPEN_DELAY_TICKS) open(current);
+        if (!STATE.spent && STATE.top < 0 && ++STATE.heldTicks >= RadialMenu.OPEN_DELAY_TICKS) open(current);
     }
 
     private static void open(Owner current) {
         int read = current.top();
         if (read <= 0) {
-            spent = true;
+            STATE.spent = true;
             current.empty();
             return;
         }
-        top = read;
-        cursorX = 1.5D * TRACK_WIDTH / (read + 1);
+        STATE.top = read;
+        STATE.cursorX = 1.5D * TRACK_WIDTH / (read + 1);
     }
 
     private static void release(Owner current) {
@@ -149,7 +156,7 @@ public final class HoldSlider {
         int value = getValue();
         close();
         if (!opened) {
-            if (!spent) current.releaseUnopened();
+            if (!STATE.spent) current.releaseUnopened();
             return;
         }
         if (value > 0) current.pick(value);
@@ -171,7 +178,7 @@ public final class HoldSlider {
 
     //region drawing [绘制]
     public static void render(@NotNull GuiGraphics graphics) {
-        Owner current = owner;
+        Owner current = STATE.owner;
         if (current == null || !isOpen()) return;
 
         Font font = Minecraft.getInstance().font;
@@ -184,7 +191,7 @@ public final class HoldSlider {
         Component label = value > 0 ? current.label(value) : CANCEL;
         graphics.drawCenteredString(font, label, graphics.guiWidth() / 2, labelY, ModPalette.TEXT);
 
-        int knob = left + Math.round((float) value / top * (TRACK_WIDTH - KNOB_WIDTH));
+        int knob = left + Math.round((float) value / STATE.top * (TRACK_WIDTH - KNOB_WIDTH));
         int knobY = trackY - (KNOB_HEIGHT - TRACK_HEIGHT) / 2;
         SpriteBatch.draw(graphics, sprites -> {
             TRACK.draw(sprites, left, trackY, knob - left, GuItem.CHARGE_COLOR_DEFAULT);
@@ -194,9 +201,9 @@ public final class HoldSlider {
         int endY = trackY + TRACK_HEIGHT / 2 - font.lineHeight / 2;
         graphics.drawString(font, CANCEL, left - END_GAP - font.width(CANCEL), endY,
                 value == 0 ? ModPalette.TEXT : ModPalette.LEGEND_TEXT, true);
-        graphics.drawString(font, String.valueOf(top), left + TRACK_WIDTH + END_GAP, endY,
-                value == top ? ModPalette.TEXT : ModPalette.LEGEND_TEXT, true);
-        graphics.drawCenteredString(font, current.detail(top), graphics.guiWidth() / 2, detailY,
+        graphics.drawString(font, String.valueOf(STATE.top), left + TRACK_WIDTH + END_GAP, endY,
+                value == STATE.top ? ModPalette.TEXT : ModPalette.LEGEND_TEXT, true);
+        graphics.drawCenteredString(font, current.detail(STATE.top), graphics.guiWidth() / 2, detailY,
                 ModPalette.LEGEND_TEXT);
     }
     //endregion

@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  * eases the view toward each new modifier over a few ticks; Minecraft caps the total widening, sprint and flight
  * included.
  *
- * <p>{@link #onLoggingOut} clears {@link #wasInSecondStage}, the remembered player and the sonic boom, so a stage
+ * <p>{@link #onLoggingOut} clears {@code STATE.wasInSecondStage}, the remembered player and the sonic boom, so a stage
  * that was running when the player left does not make the next world's first entry look like a continuation.
  *
  * @author Alex
@@ -53,8 +53,14 @@ public final class SecondStageEvents {
     private SecondStageEvents() {}
 
     private static final double FOV_WIDENING = 0.15D;
-    private static boolean wasInSecondStage;
-    private static @Nullable LocalPlayer lastPlayer;
+
+    private static final class State {
+
+        boolean wasInSecondStage;
+        @Nullable LocalPlayer lastPlayer;
+    }
+
+    private static final State STATE = new State();
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Pre event) {
@@ -62,7 +68,7 @@ public final class SecondStageEvents {
         if (minecraft.isPaused()) return;
         LocalPlayer player = minecraft.player;
         boolean active = player != null && SecondStageService.isActive(player);
-        if (active && (!wasInSecondStage || player != lastPlayer)) {
+        if (active && (!STATE.wasInSecondStage || player != STATE.lastPlayer)) {
             PlayerData.get(player).setSecondStageThrottle(SecondStageCruise.ENTRY_THROTTLE);
             minecraft.getSoundManager().play(new SecondStageWindSound(player));
             SonicBoomHud.INSTANCE.onSecondStageStarted(player.tickCount);
@@ -72,14 +78,14 @@ public final class SecondStageEvents {
             PlayerData data = PlayerData.get(player);
             if (data.getSecondStageThrottle() != 0.0D) data.setSecondStageThrottle(0.0D);
         }
-        wasInSecondStage = active;
-        lastPlayer = player;
+        STATE.wasInSecondStage = active;
+        STATE.lastPlayer = player;
     }
 
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        wasInSecondStage = false;
-        lastPlayer = null;
+        STATE.wasInSecondStage = false;
+        STATE.lastPlayer = null;
         SonicBoomHud.INSTANCE.reset();
     }
 

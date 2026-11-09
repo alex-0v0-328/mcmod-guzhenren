@@ -40,8 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link KillingMoveEvents} and after a stored partner is billed).
  *
  * <p>A player uses only the moves they have learned ({@link #knows}): reading the move's book
- * ({@link net.alex.guzhenren.item.KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death
- * without keepInventory empties.
+ * ({@link KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death without keepInventory empties.
  *
  * <p>A killing move is a switch [启动 / 关闭], not a single cast: a pick on the radial menu sends the move's id, and
  * {@link #toggle} switches it on, or off when it was on ({@code KillingMoveData.active}, synced, never saved, and
@@ -72,6 +71,12 @@ import org.jetbrains.annotations.Nullable;
  * [杀招提示]: the move and each Gu it used, main first, as copies taken after the bill ({@link Used#spent} stays for a
  * Gu the bill killed, which a partner's essence-only bill never does). Anything else, a plain use or a switch included,
  * answers {@code null}.
+ *
+ * <p>The two mutable statics, {@code driving} and {@code aiming}, are call-scoped server-thread contexts: each is set
+ * and cleared in a try/finally around one drive, so neither outlives the call nor holds more than one player.
+ *
+ * <p>Past 300 lines on purpose: knowing, listing, driving and toggling a killing move all read the same per-player
+ * known-move record and share the driving and aiming contexts.
  *
  * @author Alex
  * @version 1.0.0

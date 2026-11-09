@@ -44,6 +44,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ Both states are timed path effects: they survive a relog, and the first tick after it checks them again
  * without billing. A higher rank picked up while a lower one runs takes over only at the next start.
  *
+ * <p>The one mutable static, {@code starting}, is a call-scoped server-thread context: it is set and cleared in a
+ * try/finally around one auto use, so it never outlives the call.
+ *
  * @author Alex
  * @version 1.0.0
  * @see AutoUseBehavior
