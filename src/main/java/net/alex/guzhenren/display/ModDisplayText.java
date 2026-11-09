@@ -50,7 +50,7 @@ public final class ModDisplayText {
 
     private static final String GAP = "  ";
 
-    public static MutableComponent formatRealm(Aperture aperture) {
+    private static MutableComponent formatRealm(Aperture aperture) {
         return Component.translatable("guzhenren.display.realm",
                 Component.translatable(aperture.rank().getTranslationKey()),
                 Component.translatable(aperture.stage().getTranslationKey()));
@@ -63,7 +63,7 @@ public final class ModDisplayText {
         return Component.translatable("guzhenren.display.realm_title", formatRealm(aperture), title);
     }
 
-    public static MutableComponent formatTalent(Aperture aperture) {
+    private static MutableComponent formatTalent(Aperture aperture) {
         return Component.translatable(aperture.getTalent().getTranslationKey());
     }
 
@@ -143,7 +143,7 @@ public final class ModDisplayText {
         return Component.translatable("guzhenren.display.marks.both", whole, strands);
     }
 
-    public static String formatCount(long value) { return String.format(Locale.ROOT, "%,d", value); }
+    private static String formatCount(long value) { return String.format(Locale.ROOT, "%,d", value); }
 
     public static MutableComponent formatEffectTime(long secondsLeft) {
         return secondsLeft == PathEffect.PERMANENT ? Component.translatable("guzhenren.display.effect_permanent")

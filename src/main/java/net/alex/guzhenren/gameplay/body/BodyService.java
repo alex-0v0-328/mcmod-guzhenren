@@ -88,7 +88,7 @@ public final class BodyService {
 
     public static final ResourceLocation RACE_TALENT_SOURCE = Guzhenren.id("innate/race");
 
-    public static long getDayIndex(@NotNull MinecraftServer server) {
+    private static long getDayIndex(@NotNull MinecraftServer server) {
         return server.overworld().getDayTime() / Ticks.DAY;
     }
 
@@ -106,7 +106,7 @@ public final class BodyService {
         return get(player).extremePhysique();
     }
 
-    public static @NotNull Race getRace(@NotNull Player player) { return get(player).race(); }
+    private static @NotNull Race getRace(@NotNull Player player) { return get(player).race(); }
 
     private static void store(ServerPlayer player, BodyData data) {
         PlayerData.get(player).setBody(data);

@@ -155,7 +155,7 @@ public final class StoreStrength {
     //endregion
 
     //region Charge [蓄力]
-    public static boolean canCharge(@NotNull Player player) {
+    private static boolean canCharge(@NotNull Player player) {
         if (!player.isAlive() || player.isSpectator() || !AttackDamageService.isFistHand(player)) return false;
         PathStrengthData data = PathStrengthService.get(player);
         return (data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)

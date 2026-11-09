@@ -1,14 +1,11 @@
 package net.alex.guzhenren.gameplay.clock;
 
 import com.google.common.math.LongMath;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,10 +13,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>The rate is his own clock [自身时间] times the world's. {@link #getSelfRate} adds up every
  * {@link TimeRateContributor} among his active effects (the Watch Gu [更蛊] forms), flooring at 1; only the Time Path
- * [宙道] comes to it. {@link #getWorldRate} multiplies the rate of the dimension he stands in
- * ({@link ModDimensions.AnchoredDimension#timeRate()}) by every {@link TimeFlowArea} added through {@link #addArea}. A
- * world rate may run below 1, so {@link #getRate} is a {@code double}, floored at {@link #MIN_RATE} so that no wait
- * stretches without end.
+ * [宙道] comes to it. The world's is the rate of the dimension he stands in
+ * ({@link ModDimensions.AnchoredDimension#timeRate()}), which may run below 1, so {@link #getRate} is a
+ * {@code double}, floored at {@link #MIN_RATE} so that no wait stretches without end.
  *
  * <p>⚠ THREE verbs leave this class and a caller uses ONE: {@code shortenWait}, {@code scale}, {@code getSteps};
  * arithmetic on a rate at a call site runs 寿元 backwards -- only {@code InfoModel} may read
@@ -54,9 +50,6 @@ public final class TimeFlow {
 
     public static final int NORMAL_RATE = 1;
     public static final double MIN_RATE = 0.125;
-    private static final List<TimeFlowArea> AREAS = new CopyOnWriteArrayList<>();
-
-    public static void addArea(@NotNull TimeFlowArea area) { AREAS.add(area); }
 
     //region the rate [速率]
     public static int getSelfRate(@NotNull Player player) {
@@ -70,15 +63,13 @@ public final class TimeFlow {
         return Math.max(NORMAL_RATE, rate);
     }
 
-    public static double getWorldRate(@NotNull Level level, @NotNull Vec3 position) {
+    private static double getWorldRate(@NotNull Level level) {
         ModDimensions.AnchoredDimension dimension = ModDimensions.ANCHORED_DIMENSIONS.get(level.dimension());
-        double rate = dimension == null ? NORMAL_RATE : dimension.timeRate();
-        for (TimeFlowArea area : AREAS) rate *= area.getTimeRate(level, position);
-        return rate;
+        return dimension == null ? NORMAL_RATE : dimension.timeRate();
     }
 
     public static double getRate(@NotNull Player player) {
-        return Math.max(MIN_RATE, getSelfRate(player) * getWorldRate(player.level(), player.position()));
+        return Math.max(MIN_RATE, getSelfRate(player) * getWorldRate(player.level()));
     }
     //endregion
 

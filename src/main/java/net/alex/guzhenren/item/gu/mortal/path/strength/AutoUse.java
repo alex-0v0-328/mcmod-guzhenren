@@ -61,7 +61,7 @@ public final class AutoUse {
 
     private record Held(TendedGuItem gu, AutoUseBehavior behavior, ItemStack stack, int aperture, int index) {
 
-        boolean isStored() { return aperture != CARRIED; }
+        private boolean isStored() { return aperture != CARRIED; }
     }
 
     public static boolean isStarting(@NotNull Player player) { return starting == player; }

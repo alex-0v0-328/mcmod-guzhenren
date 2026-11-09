@@ -118,11 +118,6 @@ public final class StrengthRound {
         return isRunning(player) && state != null ? List.copyOf(state.families) : List.of();
     }
 
-    public static int getStreak(@NotNull Player player) {
-        State state = ROUNDS.get(player.getUUID());
-        return player instanceof ServerPlayer && state != null ? state.streak : 0;
-    }
-
     public static void clear(@NotNull Player player) {
         ROUNDS.remove(player.getUUID());
         RANGED.remove(player.getUUID());

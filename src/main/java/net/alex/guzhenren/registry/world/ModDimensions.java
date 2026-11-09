@@ -24,7 +24,7 @@ import net.minecraft.world.phys.Vec3;
  * {@link AnchoredDimension#rank} the dimension's 转 (6 to 9: 6-7 blessed land [福地], 8-9 grotto-heaven
  * [洞天]; 0 for a region of the mortal world, which has none), and {@link AnchoredDimension#timeRate} how fast
  * time runs inside against the overworld, multiplied into the clock of every player there
- * ({@code TimeFlow#getWorldRate}); below 1 it runs slower. Every rate is 1 until Alex sets one.
+ * ({@code TimeFlow#getRate}); below 1 it runs slower. Every rate is 1 until Alex sets one.
  *
  * <p>{@link Arrival#FLIGHT} lands the entrant on the spawn itself and grants flight for the stay.
  * {@link Arrival#SURFACE} lands them on top of the spawn's column -- the highest block that blocks motion

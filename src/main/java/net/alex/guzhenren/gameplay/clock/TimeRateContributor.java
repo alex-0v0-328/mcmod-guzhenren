@@ -6,7 +6,7 @@ package net.alex.guzhenren.gameplay.clock;
  * about.
  *
  * <p>The effect side implements it; the clock side only reads it, so the clock does not depend on the effect package.
- * A place where time itself runs differently is a {@link TimeFlowArea}, not a contributor.
+ * A dimension's own rate is {@code ModDimensions.AnchoredDimension#timeRate}, not a contributor.
  *
  * @author Alex
  * @version 1.0.0

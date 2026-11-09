@@ -133,7 +133,7 @@ public final class ApertureNourishService {
         return Math.max(1L, (max + COST_DIVISOR - 1) / COST_DIVISOR);
     }
 
-    public static long getImpactCost(@NotNull Player player) {
+    private static long getImpactCost(@NotNull Player player) {
         return IMPACT_COST_PER_RANK_BASE * ApertureService.getAperture(player).rank().getRankBase();
     }
 

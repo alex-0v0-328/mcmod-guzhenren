@@ -64,7 +64,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     }
 
     //region the leaves [叶片]
-    public static LeafGrowth getGrowth(ItemStack stack) {
+    private static LeafGrowth getGrowth(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.LEAF_GROWTH, LeafGrowth.FULL);
     }
 

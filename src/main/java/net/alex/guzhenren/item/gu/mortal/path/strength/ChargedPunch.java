@@ -121,7 +121,7 @@ public final class ChargedPunch {
                 snapshot.capacity(), ModDamageTypes.IMPACT_BACKLASH);
     }
 
-    public static boolean isRanged(@NotNull ServerPlayer player, @NotNull LivingEntity target) {
+    private static boolean isRanged(@NotNull ServerPlayer player, @NotNull LivingEntity target) {
         return player.hasEffect(ModEffects.STRENGTH_QI_GU) && target.canBeHitByProjectile()
                 && QiWaveService.isPastReach(QiWaveService.getBoxDistance(player, target),
                 player.entityInteractionRange())

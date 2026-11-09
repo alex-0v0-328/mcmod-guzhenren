@@ -58,7 +58,7 @@ public class SecondStageWindSound extends AbstractTickableSoundInstance {
         pitch = Mth.lerp(ease, pitch, BASE_PITCH + throttle * PITCH_PER_THROTTLE);
     }
 
-    static float getVolume(float throttle) {
+    private static float getVolume(float throttle) {
         return Mth.clamp((throttle - QUIET_THROTTLE) / (1.0F - QUIET_THROTTLE), SILENT, 1.0F);
     }
 }

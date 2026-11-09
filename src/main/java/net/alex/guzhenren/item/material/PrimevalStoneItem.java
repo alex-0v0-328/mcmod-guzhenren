@@ -55,7 +55,7 @@ public class PrimevalStoneItem extends GuMaterialItem {
         return used;
     }
 
-    public int getUsableCount(Player player, ItemStack stack) {
+    private int getUsableCount(Player player, ItemStack stack) {
         long deficit = ApertureEssenceService.getMaxEssence(player) - ApertureEssenceService.getCurrentEssence(player);
         return (int) Math.min(stack.getCount(), (deficit + essence - 1) / essence);
     }

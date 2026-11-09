@@ -48,7 +48,7 @@ public final class FlightService {
         return getGuGrant(player);
     }
 
-    public static @NotNull FlightGrant getGuGrant(@NotNull Player player) {
+    private static @NotNull FlightGrant getGuGrant(@NotNull Player player) {
         FlightGrant grant = FlightGrant.NONE;
         for (MobEffectInstance instance : player.getActiveEffects()) {
             if (instance.getEffect().value() instanceof FlightContributor contributor) {

@@ -37,7 +37,7 @@ public abstract class WildGuEntity extends PathfinderMob {
         this.caughtGu = caughtGu;
     }
 
-    public Item getCaughtGu() { return caughtGu.get(); }
+    private Item getCaughtGu() { return caughtGu.get(); }
 
     //region catching [捕捉]
     @Override

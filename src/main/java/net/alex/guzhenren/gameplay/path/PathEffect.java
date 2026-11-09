@@ -74,7 +74,7 @@ public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, Resou
         return new PathEffect<>(type, carrier, source, paths, value, layers, payload);
     }
 
-    public PathEffect<P> withPaths(Map<GuPath, PathMarks> value) {
+    private PathEffect<P> withPaths(Map<GuPath, PathMarks> value) {
         return new PathEffect<>(type, carrier, source, value, endTick, layers, payload);
     }
 

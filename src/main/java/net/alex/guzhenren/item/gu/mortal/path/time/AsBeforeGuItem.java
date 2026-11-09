@@ -94,7 +94,7 @@ public abstract class AsBeforeGuItem extends TendedGuItem {
         if (isCarriedRefined(player, ManAsBeforeGuItem.class)) PlayerRewindService.record(player, now);
     }
 
-    public static boolean isCarriedRefined(ServerPlayer player, Class<? extends AsBeforeGuItem> kind) {
+    private static boolean isCarriedRefined(ServerPlayer player, Class<? extends AsBeforeGuItem> kind) {
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             if (isRefinedOf(inventory.getItem(slot), kind)) return true;

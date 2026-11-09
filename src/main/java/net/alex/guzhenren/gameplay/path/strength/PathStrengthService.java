@@ -60,7 +60,7 @@ public final class PathStrengthService {
         return get(player).getHumanStrengthCount(kind);
     }
 
-    public static boolean holdsBranch(@NotNull Player player, @NotNull StrengthPathBranch branch) {
+    private static boolean holdsBranch(@NotNull Player player, @NotNull StrengthPathBranch branch) {
         return get(player).hasPathBranch(branch)
                 || (branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM && hasBeastBuff(player));
     }

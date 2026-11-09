@@ -93,7 +93,7 @@ public final class PrimevalStoneSupply {
     //endregion
 
     //region sourcing stones [取石]
-    public static void pourInto(ServerPlayer player, long wanted) {
+    private static void pourInto(ServerPlayer player, long wanted) {
         long each = getEssencePerStone();
         if (wanted <= 0L || each <= 0L) return;
         int taken = draw(player, (int) Math.min(Integer.MAX_VALUE, (wanted + each - 1) / each));
@@ -137,7 +137,7 @@ public final class PrimevalStoneSupply {
     //endregion
 
     //region a lump past the pool [超池支付]
-    public static long getWorthOnHand(Player player) {
+    private static long getWorthOnHand(Player player) {
         long stones = 0L;
         Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {

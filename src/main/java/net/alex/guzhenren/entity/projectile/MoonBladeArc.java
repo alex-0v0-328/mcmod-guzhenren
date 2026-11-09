@@ -92,7 +92,7 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
     }
 
     /** The unit vector to the left of a flight along {@code chord}, level with the ground; east for a flight south. */
-    static @NotNull Vec3 leftOf(@NotNull Vec3 chord) {
+    private static @NotNull Vec3 leftOf(@NotNull Vec3 chord) {
         Vec3 left = new Vec3(chord.z, 0.0D, -chord.x);
         return left.lengthSqr() < FLAT ? new Vec3(1.0D, 0.0D, 0.0D) : left.normalize();
     }

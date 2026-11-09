@@ -106,7 +106,7 @@ public final class SecondStageService {
                 && player.isSprinting();
     }
 
-    public static boolean canStay(@NotNull Player player, double throttle) {
+    private static boolean canStay(@NotNull Player player, double throttle) {
         return FlightService.getGrant(player).canFlySecondStage() && player.getAbilities().flying
                 && (player.isSprinting() || throttle > 0.0D);
     }

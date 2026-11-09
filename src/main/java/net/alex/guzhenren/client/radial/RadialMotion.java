@@ -88,12 +88,12 @@ public final class RadialMotion {
         return ms <= 0L ? 0.0F : Math.min(1.0F, ms / (float) duration);
     }
 
-    static float easeOutCubic(float x) {
+    private static float easeOutCubic(float x) {
         float rest = 1.0F - x;
         return 1.0F - rest * rest * rest;
     }
 
-    static float easeOutBack(float x) {
+    private static float easeOutBack(float x) {
         double rest = x - 1.0D;
         return (float) (1.0D + (BACK + 1.0D) * rest * rest * rest + BACK * rest * rest);
     }

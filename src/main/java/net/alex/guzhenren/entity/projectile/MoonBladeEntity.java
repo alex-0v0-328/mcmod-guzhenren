@@ -139,7 +139,7 @@ public final class MoonBladeEntity extends Projectile {
     public boolean isLocked() { return entityData.get(ARC_TARGET) != NO_TARGET; }
 
     /** The target this blade flies at, while it is locked on and the target is still there to be hit. */
-    public @Nullable LivingEntity getLockedTarget() {
+    private @Nullable LivingEntity getLockedTarget() {
         int id = entityData.get(ARC_TARGET);
         if (id == NO_TARGET) return null;
         return level().getEntity(id) instanceof LivingEntity living && living.isAlive() ? living : null;

@@ -44,12 +44,12 @@ public final class ApertureEssenceService {
     public static final long BASE_REGEN_PER_DAY = 100L;
     public static final int REGEN_INTERVAL_TICKS = Ticks.SECOND;
 
-    public static long getRegenPerDay(@NotNull Aperture aperture) {
+    private static long getRegenPerDay(@NotNull Aperture aperture) {
         return BASE_REGEN_PER_DAY * aperture.getTalent().getRegenRate() * aperture.rank().getRankBase()
                 * aperture.stage().getEssenceMultiplier();
     }
 
-    public static double getRegenPerTick(@NotNull Aperture aperture) {
+    private static double getRegenPerTick(@NotNull Aperture aperture) {
         return getRegenPerDay(aperture) / (double) Ticks.DAY;
     }
 
@@ -68,7 +68,7 @@ public final class ApertureEssenceService {
         return ApertureService.getAperture(player).distilledEssence();
     }
 
-    public static long getTotalDistilled(@NotNull Player player) {
+    private static long getTotalDistilled(@NotNull Player player) {
         long total = 0L;
         ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) total += data.get(i).distilledEssence();
@@ -125,11 +125,11 @@ public final class ApertureEssenceService {
         setDistilled(player, LongMath.saturatedAdd(getDistilledEssence(player), delta));
     }
 
-    public static void setDistilled(@NotNull ServerPlayer player, long value) {
+    private static void setDistilled(@NotNull ServerPlayer player, long value) {
         setDistilled(player, ApertureData.PRIMARY, value);
     }
 
-    public static void setDistilled(@NotNull ServerPlayer player, int index, long value) {
+    private static void setDistilled(@NotNull ServerPlayer player, int index, long value) {
         ApertureService.set(player, index,
                 ApertureService.getAperture(player, index).withDistilledEssence(value));
     }
@@ -157,7 +157,7 @@ public final class ApertureEssenceService {
         if (getTotalDistilled(player) > 0L && !isDistilling(player)) endDistilling(player);
     }
 
-    public static void endDistilling(@NotNull ServerPlayer player) {
+    private static void endDistilling(@NotNull ServerPlayer player) {
         ApertureData data = ApertureService.get(player);
         for (int i = 0; i < data.count(); i++) {
             Aperture aperture = data.get(i);

@@ -112,7 +112,7 @@ public final class ChunkRewindService {
     //endregion
 
     //region the queue [队列]
-    public static void enqueue(@NotNull ServerLevel level, @NotNull ChunkPos pos, @NotNull ChunkAccess origin) {
+    private static void enqueue(@NotNull ServerLevel level, @NotNull ChunkPos pos, @NotNull ChunkAccess origin) {
         QUEUE.addLast(new PendingRestore(level, pos, origin));
     }
 

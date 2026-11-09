@@ -317,7 +317,7 @@ public final class InfoModel {
                 && buff.getHolder().value() instanceof BeastStrengthBuff beast ? beast : null;
     }
 
-    static long getSecondsLeft(PathEffect<?> effect, long now) {
+    private static long getSecondsLeft(PathEffect<?> effect, long now) {
         return effect.isPermanent() ? PathEffect.PERMANENT
                 : ModDisplayText.getCountdownSeconds(effect.getTicksLeft(now));
     }

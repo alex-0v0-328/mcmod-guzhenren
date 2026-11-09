@@ -77,7 +77,7 @@ public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots
 
     public long getEssenceToFinish() { return Math.multiplyExact(essencePerSecond, getTotalSeconds()); }
 
-    public int getTotalTicks() {
+    private int getTotalTicks() {
         return getExactTotalTicks(getWindowCount());
     }
 

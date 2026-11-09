@@ -51,7 +51,7 @@ public final class MindService {
         return getPool(player, type).max();
     }
 
-    public static @NotNull Brilliance getBrilliance(@NotNull Player player) { return get(player).brilliance(); }
+    private static @NotNull Brilliance getBrilliance(@NotNull Player player) { return get(player).brilliance(); }
 
     public static @NotNull Map<ThoughtTag, Long> getTaggedThoughts(@NotNull Player player) {
         return get(player).taggedThoughts();

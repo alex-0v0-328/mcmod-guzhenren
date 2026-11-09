@@ -209,7 +209,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         return this.entityData.get(DATA_ACTION_SEQUENCE);
     }
 
-    public boolean isPursuing() {
+    private boolean isPursuing() {
         return this.entityData.get(DATA_PURSUING);
     }
 

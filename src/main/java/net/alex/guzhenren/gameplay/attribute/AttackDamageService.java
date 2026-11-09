@@ -87,7 +87,7 @@ public final class AttackDamageService {
         return modifier.operation() == operation && !modifier.id().equals(MODIFIER_ID);
     }
 
-    public static double getZombieBonus(@NotNull Player player) {
+    private static double getZombieBonus(@NotNull Player player) {
         BodyData body = BodyService.get(player);
         if (!body.isZombieOrTempZombie() || body.zombieTier() < 0) return 0.0D;
 

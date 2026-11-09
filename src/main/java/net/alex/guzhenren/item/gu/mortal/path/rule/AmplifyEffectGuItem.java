@@ -65,7 +65,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
         super(guProperties);
     }
 
-    public int getMultiplier() { return getRank().ordinal(); }
+    private int getMultiplier() { return getRank().ordinal(); }
 
     public boolean canAmplify(ItemStack amplifier, ItemStack target) {
         return isRefined(amplifier) && target.getItem() instanceof MortalGuItem driven && driven.canBeAmplified()

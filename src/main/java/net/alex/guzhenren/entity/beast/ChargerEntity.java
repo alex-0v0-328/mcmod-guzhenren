@@ -100,7 +100,7 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
         return this.getCooldown(this.getChargeCooldownKey());
     }
 
-    public int getTossCooldown() {
+    private int getTossCooldown() {
         return this.getCooldown(this.getTossCooldownKey());
     }
     //endregion

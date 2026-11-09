@@ -401,7 +401,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         public boolean isAmbient() { return this.ambient; }
 
         /** An attack, the roar, a hurt pose or death: a pose a hit or a sighted prey never interrupts. */
-        boolean isCombat() {
+        private boolean isCombat() {
             return this.attack || this == ROAR || this == HURT_LEFT || this == HURT_RIGHT || this == DEATH;
         }
     }

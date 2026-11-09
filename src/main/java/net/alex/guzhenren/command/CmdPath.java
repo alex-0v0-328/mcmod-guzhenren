@@ -158,7 +158,7 @@ public final class CmdPath {
 
         SET, ADD, SUB;
 
-        String getWord() { return name().toLowerCase(Locale.ROOT); }
+        private String getWord() { return name().toLowerCase(Locale.ROOT); }
 
         long apply(long current, long amount) {
             return switch (this) {

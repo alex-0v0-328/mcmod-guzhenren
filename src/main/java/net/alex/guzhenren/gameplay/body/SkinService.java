@@ -48,7 +48,7 @@ public final class SkinService {
         }
     }
 
-    public static @Nullable Holder<MobEffect> getEffectOf(@NotNull Skin skin) {
+    private static @Nullable Holder<MobEffect> getEffectOf(@NotNull Skin skin) {
         return switch (skin) {
             case JADE_SKIN -> ModEffects.JADE_SKIN_GU;
             case WHITE_JADE_SKIN -> ModEffects.WHITE_JADE_GU;

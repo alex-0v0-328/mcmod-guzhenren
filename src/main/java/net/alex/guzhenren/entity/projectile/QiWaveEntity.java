@@ -108,9 +108,7 @@ public final class QiWaveEntity extends Projectile {
 
     public float getDamage() { return damage; }
 
-    public @Nullable Vec3 getAimPoint() { return aimPoint; }
-
-    public @Nullable LivingEntity getTracked() {
+    private @Nullable LivingEntity getTracked() {
         int id = entityData.get(TRACKED);
         if (id == NO_TARGET) return null;
         return level().getEntity(id) instanceof LivingEntity living && living.isAlive() ? living : null;

@@ -111,7 +111,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         /** 0 for the ground layer, else the fan row counted from its apex. */
         public int getRow() { return this.row; }
 
-        public boolean isRight() { return this.right; }
+        private boolean isRight() { return this.right; }
     }
 
     public BeastPhantomEntity(EntityType<? extends BeastPhantomEntity> type, Level level) {
@@ -147,7 +147,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         return null;
     }
 
-    public static BeastPhantomEntity summon(ServerPlayer owner, BeastStrengthFamily family, Slot slot) {
+    private static BeastPhantomEntity summon(ServerPlayer owner, BeastStrengthFamily family, Slot slot) {
         BeastPhantomEntity phantom = new BeastPhantomEntity(ModEntityTypes.BEAST_PHANTOM.get(), owner.level());
         phantom.entityData.set(OWNER, owner.getId());
         phantom.entityData.set(FAMILY, family.ordinal());
@@ -171,7 +171,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         return findOwned(owner).stream().filter(phantom -> phantom.getFamily() == family).findFirst().orElse(null);
     }
 
-    public void renew() {
+    private void renew() {
         this.bornTick = this.tickCount;
         this.entityData.set(RENEWALS, this.entityData.get(RENEWALS) + 1);
     }
@@ -186,7 +186,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
         return Mth.clamp(Math.min(age / FADE_IN_TICKS, (getShownTicks() - age) / FADE_OUT_TICKS), 0.0F, 1.0F);
     }
 
-    public int getOwnerId() { return this.entityData.get(OWNER); }
+    private int getOwnerId() { return this.entityData.get(OWNER); }
 
     @Override
     public BeastStrengthFamily getFamily() {
