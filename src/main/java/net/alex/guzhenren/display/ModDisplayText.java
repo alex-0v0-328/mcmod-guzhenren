@@ -13,6 +13,8 @@ import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -186,11 +188,24 @@ public final class ModDisplayText {
     }
 
     private static MutableComponent formatBeastReading(InfoModel.BeastReading beast) {
-        MutableComponent name = Component.translatable("guzhenren.display.strength.beast_reading",
-                Component.translatable("guzhenren.display.strength.beast_number." + beast.count()),
-                Component.translatable(beast.family().getTranslationKey()));
+        MutableComponent name = formatBeastStrength(beast.family(), beast.count(), beast.innate());
         if (beast.secondsLeft() == PathEffect.PERMANENT) return name;
         return name.append(" ").append(formatEffectTime(beast.secondsLeft()));
+    }
+
+    public static MutableComponent formatBeastStrength(BeastStrength beast) {
+        return formatBeastStrength(beast.getFamily(), 1, beast.getForm() == BeastStrength.Form.INNATE ? beast : null);
+    }
+
+    public static MutableComponent formatBeastStrength(BeastStrengthFamily family, int count,
+                                                       @Nullable BeastStrength innate) {
+        if (innate != null) {
+            return Component.translatable("guzhenren.display.strength.innate_reading",
+                    Component.translatable(innate.getTranslationKey()));
+        }
+        return Component.translatable("guzhenren.display.strength.beast_reading",
+                Component.translatable("guzhenren.display.strength.beast_number." + count),
+                Component.translatable(family.getTranslationKey()));
     }
 
     public static MutableComponent formatStrengthLabel(MutableComponent branchName, int totalJin) {

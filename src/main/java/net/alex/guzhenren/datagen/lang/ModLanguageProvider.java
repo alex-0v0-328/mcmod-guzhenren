@@ -186,6 +186,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.wild",                        "Wild %s",                     "野生·%s");
         add("guzhenren.display.vital",                       "Vital %s",                    "本命·%s");
         add("guzhenren.display.strength.beast_reading",      "%s %s Strength",              "%s%s之力");
+        add("guzhenren.display.strength.innate_reading",     "%s Innate Strength",          "%s本力");
         add("guzhenren.display.strength.beast_number.1",     "One",                         "一");
         add("guzhenren.display.strength.beast_number.2",     "Two",                         "两");
         add("guzhenren.display.strength.beast_number.10",    "Ten",                         "十");
@@ -394,9 +395,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.second_aperture_rank",
                 "The second aperture already stands at or above this rank", "第二空窍已是该转数或更高");
         add("guzhenren.item.failed.aperture_unavailable",            "No usable aperture remains", "没有可以作用的空窍");
-        add("guzhenren.item.failed.beast_strength_held",             "You already hold the %s's strength", "已有%s之力");
+        add("guzhenren.item.failed.beast_strength_held",             "You already hold %s", "已有%s");
         add("guzhenren.item.failed.beast_strength_capacity",
-                "Your body cannot carry the %s's strength", "承受力不足以容纳%s之力");
+                "Your body cannot carry %s", "承受力不足以容纳%s");
         add("guzhenren.item.failed.human_strength_full",
                 "This strength is already at %s layers", "此力已满%s层");
         add("guzhenren.item.failed.mark_interference",               "Mark Interference", "力道道痕互斥");
@@ -699,6 +700,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(BeastStrength.STONE_TURTLE,    "Stone Turtle",    "石龟");
         add(BeastStrength.GALLOPING_HORSE, "Galloping Horse", "驰马");
         add(BeastStrength.GREEN_BULL,      "Green Bull",      "青牛");
+        add(BeastStrength.BROWN_BEAR,      "Brown Bear",      "棕熊");
     }
 
     private void addStrengthPathBranch() {

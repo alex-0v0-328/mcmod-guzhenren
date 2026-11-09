@@ -12,6 +12,7 @@ import java.util.Set;
 import net.alex.guzhenren.core.ModByteBufs;
 import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Strength [力道]: the beast and human strengths a player has refined into themselves. Immutable record
@@ -21,12 +22,15 @@ import org.jetbrains.annotations.NotNull;
  * {@link #getStrengthPoints} is the one unit both sides share: a jin of human strength is one strength point
  * [力量点], a beast its declared points, and a point is {@link #ATTACK_PER_POINT} attack. A running beast buff adds
  * its points as a {@link StrengthAmplifier} at {@code StrengthService.getStrengthPoints}, not here: this record
- * holds only what is permanent.
+ * holds only what is permanent. {@link #with} first takes out what the new beast {@link BeastStrength#replaces}, so a
+ * family holds one strength save the paired boars; {@link #getCovering} names the held beast that makes a new one
+ * pointless, and {@link #withoutReplacedBy} is what stays beside it.
  *
  * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code
  * addAll} -- the {@code EnumMap(Map)} copy constructor throws on the empty maps {@code DEFAULT} uses. ⚠
  * The five layer caps (9/9/30/30/30) sum to exactly 99,999 jin; changing one breaks that identity. ⚠
- * {@code getBeastReadings()} groups by {@code BeastStrengthFamily}, not species -- two boars share one.
+ * {@code getBeastReadings()} counts by {@code BeastStrengthFamily}, not species -- the two boars share one. The ctor
+ * keeps whatever set it is given; only {@link #with} applies the replacement.
  *
  * @author Alex
  * @version 1.0.0
@@ -74,14 +78,32 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
 
     public boolean isEmpty() { return beasts.isEmpty() && humanStrength.isEmpty(); }
 
-    public PathStrengthData with(BeastStrength beast) { return rebuild(beast, true); }
+    public PathStrengthData with(BeastStrength beast) { return withoutReplacedBy(beast).rebuild(beast, true); }
+
+    public PathStrengthData withoutReplacedBy(BeastStrength beast) {
+        EnumSet<BeastStrength> kept = EnumSet.noneOf(BeastStrength.class);
+        for (BeastStrength held : beasts) if (!beast.replaces(held)) kept.add(held);
+        return new PathStrengthData(kept, humanStrength);
+    }
+
+    public @Nullable BeastStrength getCovering(BeastStrength beast) {
+        for (BeastStrength held : beasts) if (beast.isCoveredBy(held)) return held;
+        return null;
+    }
 
     public PathStrengthData without(BeastStrength beast) { return rebuild(beast, false); }
 
     public Map<BeastStrengthFamily, Integer> getBeastReadings() {
         Map<BeastStrengthFamily, Integer> readings = new EnumMap<>(BeastStrengthFamily.class);
-        for (BeastStrength beast : beasts) readings.merge(beast.getFamily(), beast.getReading(), Integer::sum);
+        for (BeastStrength beast : beasts) readings.merge(beast.getFamily(), 1, Integer::sum);
         return readings;
+    }
+
+    public @Nullable BeastStrength getInnate(BeastStrengthFamily family) {
+        for (BeastStrength beast : beasts) {
+            if (beast.getFamily() == family && beast.getForm() == BeastStrength.Form.INNATE) return beast;
+        }
+        return null;
     }
 
     public int getTotalJin() {
@@ -111,6 +133,12 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
     public int getBeastDurationBonus() {
         int total = 0;
         for (BeastStrength beast : beasts) total += beast.getDurationBonusTicks();
+        return total;
+    }
+
+    public float getBeastChanceBonus() {
+        float total = 0.0F;
+        for (BeastStrength beast : beasts) total += beast.getChanceBonus();
         return total;
     }
 

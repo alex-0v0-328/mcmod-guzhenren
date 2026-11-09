@@ -578,6 +578,11 @@ public final class ModItems {
             () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, ModItemTags.OX_FEED),
                     new BeastStrengthBehavior(BeastStrength.GREEN_BULL)))
             .lang("Green Bull Labor Gu", "青牛劳力蛊").register();
+    public static final DeferredItem<Item> BROWN_BEAR_INNATE_STRENGTH_GU = REGISTRAR.item(
+            "brown_bear_innate_strength_gu",
+            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, ModItemTags.BEAR_FEED),
+                    new BeastStrengthBehavior(BeastStrength.BROWN_BEAR)))
+            .lang("Brown Bear Innate Strength Gu", "棕熊本力蛊").register();
     public static final DeferredItem<Item> FLOWER_BOAR_GU = REGISTRAR.item("flower_boar_gu",
             () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED),
                     new TimedBuffBehavior(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),

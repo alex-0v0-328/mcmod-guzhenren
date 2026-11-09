@@ -29,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Only the families of the permanent beast strengths are drawn; a timed strength alone (the Brute Force Longhorn
  * Beetle's ox) opens nothing. The opening hit rolls once against
- * {@link #getChance}: {@link #CHANCE}, or 80/90/100% while the rank three/four/five All-Out Effort Gu [全力以赴] runs
+ * {@link #getChance}: {@link #CHANCE} plus the held beasts' {@link BeastStrength#getChanceBonus} (the brown bear's
+ * innate strength makes it 10%), or 80/90/100% while the rank three/four/five All-Out Effort Gu [全力以赴] runs
  * ({@code StrengthSnapshot.allOutTier}). It draws {@link #getDrawCount}: under Hardship Strength [苦力] the streak's
  * count of distinct families, else one when the roll lands, else none -- the round still runs, so the next hits do not
  * roll again. The streak counts rounds opened within {@link #STREAK_WINDOW_TICKS} of the last one's end while Hardship
@@ -92,11 +93,12 @@ public final class StrengthRound {
         State last = ROUNDS.get(player.getUUID());
         if (last != null && !isOver(last.start, now)) return 0.0F;
 
-        List<BeastStrengthFamily> available = getAvailableFamilies(PathStrengthService.get(player));
+        PathStrengthData data = PathStrengthService.get(player);
+        List<BeastStrengthFamily> available = getAvailableFamilies(data);
         if (available.isEmpty()) return 0.0F;
 
         boolean hardship = HardshipStrength.isActive(player);
-        boolean rolled = roll < getChance(StrengthService.getAllOutTier(player));
+        boolean rolled = roll < getChance(StrengthService.getAllOutTier(player), data.getBeastChanceBonus());
         int streak = hardship ? getNextStreak(last == null ? 0 : last.streak, last == null ? now : last.start, now) : 0;
         int count = getDrawCount(hardship, rolled, streak, available.size());
         List<BeastStrengthFamily> families = pickFamilies(available, count, player.getRandom());
@@ -158,8 +160,8 @@ public final class StrengthRound {
         return chained ? lastStreak + 1 : 1;
     }
 
-    public static float getChance(int allOutTier) {
-        if (allOutTier < StrengthService.ALL_OUT_LOWEST_TIER) return CHANCE;
+    public static float getChance(int allOutTier, float beastBonus) {
+        if (allOutTier < StrengthService.ALL_OUT_LOWEST_TIER) return CHANCE + beastBonus;
         return ALL_OUT_CHANCES[Math.min(allOutTier - StrengthService.ALL_OUT_LOWEST_TIER, ALL_OUT_CHANCES.length - 1)];
     }
 

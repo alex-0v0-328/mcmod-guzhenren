@@ -48,9 +48,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>{@link #getReleasedExtra} is a round's full release [全面解放], a critical hit of sorts: the released families'
  * PERMANENT points count {@link #FULL_RELEASE_FACTOR} times, every other point once, and the whole is still cut by the
  * current capacity; the extra is what that adds over the plain {@code min(total, capacity)}. {@link #canAdmit} is the
- * gate of a new permanent beast strength: the permanent beasts held plus the new one may not pass the NORMAL capacity,
- * which counts a held beast's capacity bonus but not the new one's own; amplifiers and the All-Out lift admit
- * nothing.
+ * gate of a new permanent beast strength: the permanent beasts that stay beside it plus the new one may not pass the
+ * NORMAL capacity, which counts a staying beast's capacity bonus but neither the new one's own nor that of the beast
+ * it replaces ({@code PathStrengthData#withoutReplacedBy}); amplifiers and the All-Out lift admit nothing.
  *
  * <p>⚠ The {@code int} overloads are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
  *
@@ -191,7 +191,10 @@ public final class StrengthService {
 
     /** Whether the normal capacity has room for one more permanent beast strength beside those held. */
     public static boolean canAdmit(@NotNull Player player, @NotNull BeastStrength beast) {
-        return canAdmit(getNormalCapacity(player), PathStrengthService.get(player).getBeastPoints(), beast.getPoints());
+        PathStrengthData held = PathStrengthService.get(player);
+        PathStrengthData kept = held.withoutReplacedBy(beast);
+        int normal = getNormalCapacity(player) - held.getBeastCapacityBonus() + kept.getBeastCapacityBonus();
+        return canAdmit(normal, kept.getBeastPoints(), beast.getPoints());
     }
 
     public static boolean canAdmit(int normalCapacity, int heldBeastPoints, int newBeastPoints) {

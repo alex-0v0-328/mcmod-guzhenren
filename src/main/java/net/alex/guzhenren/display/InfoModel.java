@@ -36,6 +36,7 @@ import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathService;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
+import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
@@ -147,7 +148,8 @@ public final class InfoModel {
     public sealed interface StrengthReading {}
 
     /** {@code secondsLeft} is {@code PathEffect.PERMANENT} for a refined beast strength. */
-    public record BeastReading(BeastStrengthFamily family, int count, long secondsLeft) implements StrengthReading {}
+    public record BeastReading(BeastStrengthFamily family, int count, @Nullable BeastStrength innate,
+                               long secondsLeft) implements StrengthReading {}
 
     /** {@code unit} is {@link HumanStrength#JIN} or {@link HumanStrength#JUN}, the ten- and hundred-fold kinds folded in. */
     public record HumanReading(HumanStrength unit, int count) implements StrengthReading {}
@@ -349,11 +351,11 @@ public final class InfoModel {
         List<StrengthReading> readings = new ArrayList<>();
         for (BeastStrengthFamily family : BeastStrengthFamily.values()) {
             int count = refined.getOrDefault(family, 0);
-            if (count > 0) readings.add(new BeastReading(family, count, PathEffect.PERMANENT));
+            if (count > 0) readings.add(new BeastReading(family, count, data.getInnate(family), PathEffect.PERMANENT));
             for (PathEffect<?> effect : effects) {
                 BeastStrengthBuff buff = getBeastBuff(effect);
                 if (buff != null && buff.getBeastFamily() == family) {
-                    readings.add(new BeastReading(family, 1, getSecondsLeft(effect, now)));
+                    readings.add(new BeastReading(family, 1, null, getSecondsLeft(effect, now)));
                 }
             }
         }
