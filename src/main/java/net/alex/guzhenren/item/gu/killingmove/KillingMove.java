@@ -34,10 +34,10 @@ public enum KillingMove {
 
     /**
      * Little Light Amplification [小光蛊增幅]: a Moonlight [月光蛊] or Moonglow Gu [月芒蛊] blade, twice as hard; the
-     * Little Light Gu pays its use hunger to start and 6 essence a blade, half its own use.
+     * Little Light Gu pays its use hunger to start and 20 essence a blade, half its own use.
      */
     LITTLE_LIGHT_AMPLIFY("km_mortal_little_light_amplify", List.of(ModItems.MOONLIGHT_GU, ModItems.MOONGLOW_GU),
-            ModItems.LITTLE_LIGHT_GU, 2.0F, 6);
+            ModItems.LITTLE_LIGHT_GU, 2.0F, 20);
 
     private final String id;
     private final List<ItemLike> mains;
