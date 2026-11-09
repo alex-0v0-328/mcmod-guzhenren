@@ -20,6 +20,10 @@ import org.spongepowered.asm.mixin.injection.At;
  * submerged mining, the underwater overlay) treat it as water. Movement, drowning and swimming already ride the
  * fluid type and need nothing here.
  *
+ * <p>⚠ Not an event or an API: in NeoForge 21.1.265 the three tag overloads are deprecated shims over {@code
+ * NeoForgeMod.WATER_TYPE}, and no event or fluid-type flag widens that answer to another fluid type, so the wrappers
+ * stay.
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0

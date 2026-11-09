@@ -13,6 +13,9 @@ import org.spongepowered.asm.mixin.injection.At;
  * travel; {@link #guzhenren$holdSecondStageAltitude} reads that flying speed as zero while the synced mark is
  * present, so the cruise ({@link PlayerMixin}) follows the look alone and inherits no drift from the keys.
  *
+ * <p>⚠ Not an event or an API: NeoForge 21.1.265 has no hook on the climb and descent {@code aiStep} adds from the
+ * flying speed; reading the speed as zero at that one call leaves every other reader of the flying speed untouched.
+ *
  * @author Alex
  * @version 1.0.0
  * @see PlayerMixin

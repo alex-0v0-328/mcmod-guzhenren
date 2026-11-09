@@ -8,6 +8,11 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 /**
  * Lands {@link LastHurtView} on {@code LivingEntity}: the accessor of its {@code lastHurt} field.
  *
+ * <p>⚠ Not an event or an API: {@code lastHurt} is a protected field that no NeoForge event exposes ({@code
+ * DamageContainer} carries the reductions, not the last hit). An access transformer would reach it too, but needs the
+ * commented {@code accessTransformers} line in {@code build.gradle}; the accessor keeps {@link LastHurtView} the only
+ * seam.
+ *
  * @author Alex
  * @version 1.0.0
  * @since 1.0.0

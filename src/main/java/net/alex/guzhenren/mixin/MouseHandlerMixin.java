@@ -17,6 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * turn; {@code handleAccumulatedMovement} clears the movement afterwards as usual. Movement keys are untouched, so
  * the player keeps walking.
  *
+ * <p>⚠ Not an event or an API: {@code CalculatePlayerTurnEvent} only sets the sensitivity (its smallest turn is not
+ * zero), never sees the accumulated movement this class steers by, and the tutorial hook would still see a turn; a
+ * cancel at the head is the only way to hand the movement over whole.
+ *
  * @author Alex
  * @version 1.0.0
  * @see RadialMenu

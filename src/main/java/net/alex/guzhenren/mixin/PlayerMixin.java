@@ -17,6 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * cruise follows the look instead, so it replaces the whole travel rather than one speed reading. Remote players on
  * a client never travel, mark or not.
  *
+ * <p>⚠ Not an event or an API: NeoForge 21.1.265 posts nothing from {@code Player#travel}, and {@code PlayerTickEvent}
+ * runs after the movement was applied, so only a cancel at the head replaces it.
+ *
  * @author Alex
  * @version 1.0.0
  * @see LocalPlayerMixin
