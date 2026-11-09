@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;

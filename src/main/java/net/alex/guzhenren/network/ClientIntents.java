@@ -14,7 +14,10 @@ import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.strength.ChargedPunch;
+import net.alex.guzhenren.network.payload.ChargeAction;
+import net.alex.guzhenren.network.payload.ElderAction;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
+import net.alex.guzhenren.network.payload.NourishAction;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
@@ -56,12 +59,6 @@ import org.jetbrains.annotations.Nullable;
 public final class ClientIntents {
 
     private ClientIntents() {}
-
-    public enum NourishAction { START, CANCEL }
-
-    public enum ElderAction { DEPOSIT, WITHDRAW }
-
-    public enum ChargeAction { START, CANCEL, RELEASE }
 
     private static final String STORAGE_TITLE = "guzhenren.menu.aperture_storage";
     private static final String REFINEMENT_TITLE = "guzhenren.menu.refinement";

@@ -2,7 +2,6 @@ package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import net.alex.guzhenren.entity.ai.HoverNearPlayerGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.entity.gu.WildGuEntity
- * @see net.alex.guzhenren.entity.ai.HoverNearPlayerGoal
+ * @see net.alex.guzhenren.entity.gu.HoverNearPlayerGoal
  * @since 1.0.0
  */
 

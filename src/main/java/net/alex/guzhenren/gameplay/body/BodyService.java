@@ -75,6 +75,10 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ Every caller speaks YEARS; only this file knows lifespan parts.
  *
+ * <p>Past 300 lines on purpose: it is the one entry for the body record's reads and writes, one region per field
+ * family (age, physique, skin, tendons and bones, race, lifespan clock), and a split would leave the one entry point
+ * in two services.
+ *
  * @author Alex
  * @version 1.0.0
  * @see TimeFlow

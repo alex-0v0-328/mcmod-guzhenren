@@ -2,8 +2,6 @@ package net.alex.guzhenren.network.payload;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModByteBufs;
-import net.alex.guzhenren.network.ClientIntents;
-import net.alex.guzhenren.network.ClientIntents.ElderAction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,8 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The client-intent payload for the main-hand Primeval Elder Gu [元老蛊]: a tap's deposit, or the hold slider's
- * withdrawal of {@code stacks} stacks ({@code 0} for a deposit). {@link ClientIntents#primevalElder} checks it all
- * again; the slider's top is only what the client could see.
+ * withdrawal of {@code stacks} stacks ({@code 0} for a deposit).
+ * {@link net.alex.guzhenren.network.ClientIntents#primevalElder} checks it all again; the slider's top is only what
+ * the client could see.
  *
  * @author Alex
  * @version 1.0.0

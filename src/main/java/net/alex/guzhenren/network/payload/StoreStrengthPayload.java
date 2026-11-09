@@ -2,8 +2,6 @@ package net.alex.guzhenren.network.payload;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModByteBufs;
-import net.alex.guzhenren.network.ClientIntents;
-import net.alex.guzhenren.network.ClientIntents.ChargeAction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,8 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The client-intent payload for the Store Strength Gu's [蓄力蛊] charge [蓄力]: its start, its cancel, or its release
- * at the id of the target the client had locked on [锁定]. {@link ClientIntents#storeStrength} hands it to
- * {@code StoreStrength}, which checks the buff, the branch, the fist, the charge and the target again.
+ * at the id of the target the client had locked on [锁定].
+ * {@link net.alex.guzhenren.network.ClientIntents#storeStrength} hands it to {@code StoreStrength}, which checks the
+ * buff, the branch, the fist, the charge and the target again.
  *
  * @author Alex
  * @version 1.0.0

@@ -1,7 +1,6 @@
-package net.alex.guzhenren.entity.ai;
+package net.alex.guzhenren.entity.gu;
 
 import java.util.EnumSet;
-import net.alex.guzhenren.entity.gu.FlyingGuEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;

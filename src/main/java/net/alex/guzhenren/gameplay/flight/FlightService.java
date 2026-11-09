@@ -1,7 +1,6 @@
 package net.alex.guzhenren.gameplay.flight;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,7 +41,7 @@ public final class FlightService {
         if (!player.isAlive() || player.isSpectator() || player.isPassenger() || player.isSleeping()) {
             return FlightGrant.NONE;
         }
-        if (player.isCreative() || DimensionTravelService.isInside(player, ModDimensions.TREASURE_YELLOW_HEAVEN)) {
+        if (player.isCreative() || ModDimensions.isFlightGranted(player.level().dimension())) {
             return FlightGrant.SECOND_STAGE;
         }
         return getGuGrant(player);

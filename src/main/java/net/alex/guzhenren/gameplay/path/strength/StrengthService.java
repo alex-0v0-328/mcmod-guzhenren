@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.attribute;
+package net.alex.guzhenren.gameplay.path.strength;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,6 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
-import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthAmplifier;
-import net.alex.guzhenren.gameplay.path.strength.StrengthAmplifierProvider;
-import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
@@ -53,6 +47,9 @@ import org.jetbrains.annotations.NotNull;
  * it replaces ({@code PathStrengthData#withoutReplacedBy}); amplifiers and the All-Out lift admit nothing.
  *
  * <p>⚠ The {@code int} overloads are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
+ *
+ * <p>The one mutable static, {@code releaseSource}, is a seam: the round keeper sets it once at common setup and
+ * nothing replaces it during play; until then it answers zero.
  *
  * @author Alex
  * @version 1.0.0

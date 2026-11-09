@@ -1,9 +1,7 @@
-package net.alex.guzhenren.gameplay.attribute;
+package net.alex.guzhenren.gameplay.path.strength;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
+import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;

@@ -9,6 +9,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
+import net.alex.guzhenren.network.payload.NourishAction;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.minecraft.client.gui.Font;
@@ -104,10 +105,10 @@ final class ApertureButtons {
             case NOURISH -> {
                 if (isRunning(player, button.aperture())) {
                     PacketDistributor.sendToServer(new NourishAperturePayload(
-                            ClientIntents.NourishAction.CANCEL, ApertureNourishService.getTargetIndex(player)));
+                            NourishAction.CANCEL, ApertureNourishService.getTargetIndex(player)));
                 } else if (ApertureNourishService.canNourish(player, button.aperture())) {
                     PacketDistributor.sendToServer(new NourishAperturePayload(
-                            ClientIntents.NourishAction.START, button.aperture()));
+                            NourishAction.START, button.aperture()));
                     return true;
                 }
             }

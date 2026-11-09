@@ -1,10 +1,11 @@
 package net.alex.guzhenren.client.input;
 
+import net.alex.guzhenren.client.hud.StoreStrengthCharge;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
+import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
-import net.alex.guzhenren.network.ClientIntents.ChargeAction;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
+import net.alex.guzhenren.network.payload.ChargeAction;
 import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
 import net.alex.guzhenren.network.payload.StoreStrengthPayload;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -20,12 +21,12 @@ import yesman.epicfight.client.input.EpicFightKeyMappings;
  * The Store Strength Gu's [蓄力蛊] charge [蓄力] on the client. With the buff's effect on, a bare main hand and an
  * Epic Fight lock-on [锁定], holding the attack key for {@link StoreStrength#HOLD_TICKS} sends
  * {@link ChargeAction#START}; whatever Epic Fight and the Strength Qi Gu's [力气蛊] ranged punch do with that key
- * stays theirs. The charge then fills here at {@link StoreStrength#getStep} a tick for the bar ({@link #getProgress}),
- * but shows full ({@link #isFull}, with the crossbow's loaded click) only on the server's full notice
- * ({@link #onNotice}), since the server's tick is the charge's truth. Letting go sends {@link ChargeAction#RELEASE}
- * at the locked target, full or not -- the server judges; losing the effect, the bare hand, the lock-on or the game
- * screen sends {@link ChargeAction#CANCEL}. The server's drop notice ends the charge here too, and a new one waits
- * until the key comes up.
+ * stays theirs. The charge then fills in {@link StoreStrengthCharge} at {@link StoreStrength#getStep} a tick for the
+ * bar, but shows full ({@link StoreStrengthCharge#isFull}, with the crossbow's loaded click) only on the server's
+ * full notice ({@link #onNotice}), since the server's tick is the charge's truth. Letting go sends
+ * {@link ChargeAction#RELEASE} at the locked target, full or not -- the server judges; losing the effect, the bare
+ * hand, the lock-on or the game screen sends {@link ChargeAction#CANCEL}. The server's drop notice ends the charge
+ * here too, and a new one waits until the key comes up.
  *
  * <p>The keys are read as held states, like {@code QiWaveInput}: Epic Fight's attack key shares the button and takes
  * the click in its battle mode. {@link #reset} forgets everything on logout.
@@ -40,11 +41,15 @@ public final class StoreStrengthInput {
 
     private StoreStrengthInput() {}
 
-    private static int heldTicks;
-    private static boolean charging;
-    private static boolean full;
-    private static boolean waitingForKeyUp;
-    private static float progress;
+    private static final StoreStrengthCharge CHARGE = StoreStrengthCharge.INSTANCE;
+
+    private static final class State {
+
+        int heldTicks;
+        boolean waitingForKeyUp;
+    }
+
+    private static final State STATE = new State();
 
     public static void tick(Minecraft minecraft, LocalPlayer player) {
         boolean attack = minecraft.options.keyAttack.isDown() || EpicFightKeyMappings.ATTACK.isDown();
@@ -53,56 +58,47 @@ public final class StoreStrengthInput {
                 && player.hasEffect(ModEffects.STORE_STRENGTH_GU) && AttackDamageService.isFistHand(player)
                 && target != null;
 
-        if (charging) {
+        if (CHARGE.isCharging()) {
             if (!able) {
                 stop(ChargeAction.CANCEL, StoreStrengthPayload.NO_TARGET);
             } else if (!attack) {
                 stop(ChargeAction.RELEASE, target.getId());
             } else {
-                progress = StoreStrength.fill(progress, StrengthService.getAllOutTier(player));
+                CHARGE.setProgress(StoreStrength.fill(CHARGE.getFilled(), StrengthService.getAllOutTier(player)));
             }
             return;
         }
-        if (waitingForKeyUp) {
-            waitingForKeyUp = attack;
+        if (STATE.waitingForKeyUp) {
+            STATE.waitingForKeyUp = attack;
             return;
         }
-        heldTicks = attack && able ? heldTicks + 1 : 0;
-        if (heldTicks < StoreStrength.HOLD_TICKS) return;
+        STATE.heldTicks = attack && able ? STATE.heldTicks + 1 : 0;
+        if (STATE.heldTicks < StoreStrength.HOLD_TICKS) return;
 
-        charging = true;
-        progress = 0.0F;
+        CHARGE.start();
         PacketDistributor.sendToServer(new StoreStrengthPayload(ChargeAction.START, StoreStrengthPayload.NO_TARGET));
     }
 
     public static void onNotice(StoreStrengthNoticePayload notice) {
-        if (!charging) return;
+        if (!CHARGE.isCharging()) return;
 
         switch (notice.change()) {
             case FULL -> {
-                full = true;
+                CHARGE.markFull();
                 Minecraft.getInstance().getSoundManager()
                         .play(SimpleSoundInstance.forUI(SoundEvents.CROSSBOW_LOADING_END, 1.0F));
             }
             case DROPPED -> {
                 reset();
-                waitingForKeyUp = true;
+                STATE.waitingForKeyUp = true;
             }
         }
     }
 
-    public static boolean isCharging() { return charging; }
-
-    public static boolean isFull() { return full; }
-
-    public static float getProgress() { return full ? 1.0F : progress; }
-
     public static void reset() {
-        heldTicks = 0;
-        charging = false;
-        full = false;
-        waitingForKeyUp = false;
-        progress = 0.0F;
+        STATE.heldTicks = 0;
+        STATE.waitingForKeyUp = false;
+        CHARGE.reset();
     }
 
     private static void stop(ChargeAction action, int target) {

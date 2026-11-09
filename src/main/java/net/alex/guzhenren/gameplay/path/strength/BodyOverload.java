@@ -1,7 +1,5 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
-import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;

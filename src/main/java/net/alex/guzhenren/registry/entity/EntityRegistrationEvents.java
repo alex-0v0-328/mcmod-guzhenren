@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.registry.entity;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BearEntity;
@@ -11,7 +11,6 @@ import net.alex.guzhenren.entity.beast.TortoiseSpecies;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.FlyingGuEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
-import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnPlacementTypes;

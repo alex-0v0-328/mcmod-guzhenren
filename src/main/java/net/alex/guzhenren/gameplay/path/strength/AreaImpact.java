@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;

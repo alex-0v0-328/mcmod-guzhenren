@@ -1,9 +1,9 @@
-package net.alex.guzhenren.gameplay.attribute;
+package net.alex.guzhenren.gameplay.path.strength;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * strength through one capacity) at {@link PathStrengthData#ATTACK_PER_POINT} each, and the zombie [僵] tier
  * bonus. The strength counts only for a bare fist [拳] ({@link #isFistHand}): an empty main hand; any item in it,
  * an Epic Fight glove [拳套] included, gets none of it, so no weapon's innate skill shares the strength path's
- * keys. {@link AttributeEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
+ * keys. {@link AttackDamageEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
  * changes, and on a main-hand change ({@code LivingEquipmentChangeEvent}), which is how a hand change takes it on
  * or off at once; the heartbeat refreshes it once a second as a backstop, and {@code TransientModifiers.swap}
  * makes an unchanged refresh a no-op. {@link #getFistDamage} reads the attack a fist
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see MaxHealthService
+ * @see net.alex.guzhenren.gameplay.attribute.MaxHealthService
  * @see StrengthService
  * @since 1.0.0
  */

@@ -1,7 +1,6 @@
 package net.alex.guzhenren.item.gu.tending;
 
 import java.util.UUID;
-import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.Event;

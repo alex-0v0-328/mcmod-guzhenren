@@ -1,7 +1,6 @@
-package net.alex.guzhenren.gameplay.attribute;
+package net.alex.guzhenren.gameplay.path.strength;
 
 import java.util.List;
-import net.alex.guzhenren.gameplay.path.strength.StrengthAmplifier;
 import org.jetbrains.annotations.NotNull;
 
 /**

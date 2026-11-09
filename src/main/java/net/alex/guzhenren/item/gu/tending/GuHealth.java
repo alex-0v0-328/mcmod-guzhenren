@@ -1,9 +1,8 @@
 package net.alex.guzhenren.item.gu.tending;
 
 import net.alex.guzhenren.item.gu.GuProperties;
-import net.alex.guzhenren.item.gu.stack.VitalGuState;
-import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 

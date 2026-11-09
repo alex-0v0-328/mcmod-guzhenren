@@ -1,7 +1,6 @@
 package net.alex.guzhenren.item.gu.tending;
 
 import net.alex.guzhenren.item.gu.GuProperties;
-import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,6 +45,9 @@ import net.minecraft.world.item.ItemStack;
  * <p>⚠ "Hungry" means only that the next day rollover will kill it: the threshold is the bar's daily drain
  * ({@code perDay}), never the size of a meal. Only a {@code HungerBar} is ever hungry; the warning itself is {@code
  * TendedGuItem.feedAndWarn}'s.
+ *
+ * <p>Past 300 lines on purpose: the sealed interface and its three records (the hunger bar, the recover bar and no
+ * clock) share the bag and the unit arithmetic, so each kind reads best beside the other two.
  *
  * @author Alex
  * @version 1.0.0

@@ -1,12 +1,12 @@
 package net.alex.guzhenren.item.gu.mortal.path.strength;
 
 import net.alex.guzhenren.display.ModDisplayText;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;

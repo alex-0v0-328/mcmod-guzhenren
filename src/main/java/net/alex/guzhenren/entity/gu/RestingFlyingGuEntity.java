@@ -1,9 +1,6 @@
 package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
-import net.alex.guzhenren.entity.ai.FleePlayerGoal;
-import net.alex.guzhenren.entity.ai.LandRestGoal;
-import net.alex.guzhenren.entity.ai.WanderCourseGoal;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;

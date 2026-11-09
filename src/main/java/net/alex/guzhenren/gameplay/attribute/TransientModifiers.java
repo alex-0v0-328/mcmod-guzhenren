@@ -11,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
- * {@link AttackDamageService}, {@link MaxHealthService} and {@link KnockbackResistanceService},
- * {@code ADD_MULTIPLIED_BASE} for the Epic Fight
+ * {@link net.alex.guzhenren.gameplay.path.strength.AttackDamageService}, {@link MaxHealthService} and
+ * {@link KnockbackResistanceService}, {@code ADD_MULTIPLIED_BASE} for the Epic Fight
  * stamina cap ({@code compat.EpicFightIntegration}), {@code ADD_MULTIPLIED_TOTAL} for the beasts' sprint speed
- * ({@link SprintSpeedService}). The shared callers take the three-argument {@link #swap},
- * which adds. {@link #setGravityFactor} multiplies an entity's gravity (the plunge [坠击]) through vanilla's synced
+ * ({@link net.alex.guzhenren.gameplay.path.strength.SprintSpeedService}). The shared callers take the
+ * three-argument {@link #swap}, which adds. {@link #setGravityFactor} multiplies an entity's gravity (the plunge [坠击]) through vanilla's synced
  * {@code GRAVITY} attribute.
  *
  * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see AttackDamageService
+ * @see net.alex.guzhenren.gameplay.path.strength.AttackDamageService
  * @see MaxHealthService
  * @since 1.0.0
  */

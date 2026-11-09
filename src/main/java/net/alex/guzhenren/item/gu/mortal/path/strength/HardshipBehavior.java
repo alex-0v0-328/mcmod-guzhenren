@@ -1,12 +1,12 @@
 package net.alex.guzhenren.item.gu.mortal.path.strength;
 
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.server.level.ServerPlayer;

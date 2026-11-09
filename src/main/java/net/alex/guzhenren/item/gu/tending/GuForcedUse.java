@@ -3,7 +3,6 @@ package net.alex.guzhenren.item.gu.tending;
 import java.util.Map;
 import java.util.WeakHashMap;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
  * service; every write posts a {@link StrengthChangedEvent}, which refreshes the attack modifier.
  * {@link #getBeastBuffs} reads the running timed beast buffs off the path effects, which are the buffs' truth, as
  * {@link StrengthAmplifier}s; the whole strength and how much of it a body can bring to bear are
- * {@code gameplay.attribute.StrengthService}, which also gates a new beast against the carrying capacity.
+ * {@link StrengthService}, which also gates a new beast against the carrying capacity.
  *
  * <p>Mark Interference [道痕互斥] is enforced here, at the one write funnel: {@code grant} and a rising
  * {@code setHumanStrength} write nothing and return {@code false} while {@link #getInterference} names a held

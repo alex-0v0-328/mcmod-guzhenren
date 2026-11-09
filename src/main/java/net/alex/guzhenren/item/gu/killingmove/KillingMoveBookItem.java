@@ -1,9 +1,8 @@
-package net.alex.guzhenren.item;
+package net.alex.guzhenren.item.gu.killingmove;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
-import net.alex.guzhenren.item.gu.killingmove.KillingMove;
-import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
+import net.alex.guzhenren.item.GuItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;

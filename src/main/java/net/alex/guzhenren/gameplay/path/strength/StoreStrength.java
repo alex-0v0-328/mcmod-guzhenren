@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;

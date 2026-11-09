@@ -16,7 +16,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
  * passes meets the shields [护盾] ({@link ShieldService#guard}) at vanilla's shield-block slot, and a hit they or
  * their frames take whole is canceled the same way. It runs at {@code LOW}, after the handlers that refuse a hit
  * outright, so a refused hit spends no shield.
- * The attack refreshes on effect changes and attacks live in {@code gameplay.attribute.AttributeEvents}.
+ * The attack refreshes on effect changes and attacks live in {@code gameplay.path.strength.AttackDamageEvents}.
  *
  * @author Alex
  * @version 1.0.0

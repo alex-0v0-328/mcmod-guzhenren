@@ -8,9 +8,6 @@ import net.alex.guzhenren.gameplay.aperture.Aperture;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
-import net.alex.guzhenren.gameplay.attribute.AttackDamageService;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
-import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Bone;
@@ -27,15 +24,15 @@ import net.alex.guzhenren.gameplay.mind.MindPool;
 import net.alex.guzhenren.gameplay.mind.MindPoolType;
 import net.alex.guzhenren.gameplay.mind.MindService;
 import net.alex.guzhenren.gameplay.mind.ThoughtTag;
-import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuAttainment;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
+import net.alex.guzhenren.gameplay.path.PathMarks;
 import net.alex.guzhenren.gameplay.path.PathService;
-import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
+import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
@@ -43,6 +40,9 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
+import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
@@ -71,6 +71,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ In {@link ApertureIndex}, {@code number} is the display ordinal (1 = first aperture, 2 =
  * second), while {@code index} is the real list position -- a lone second aperture shows number 2
  * but lives at index 0.
+ *
+ * <p>Past 300 lines on purpose: it is the sealed catalogue of every panel row, one record each, with the builders that
+ * fill them; a row type added or changed is one record beside the {@code Entry} that permits it.
  *
  * @author Alex
  * @version 1.0.0

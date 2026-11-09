@@ -1,4 +1,4 @@
-package net.alex.guzhenren.entity;
+package net.alex.guzhenren.registry.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

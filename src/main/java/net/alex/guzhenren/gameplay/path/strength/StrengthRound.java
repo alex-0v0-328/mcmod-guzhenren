@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.gameplay.attribute.StrengthService;
-import net.alex.guzhenren.gameplay.attribute.StrengthSnapshot;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;

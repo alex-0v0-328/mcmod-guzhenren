@@ -19,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
  * vanilla's 20 -- mortal reads 0.
  *
  * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ Lowering the cap must also
- * clamp current health down; {@link AttackDamageService} needs no clamp (attack has no "current").
+ * clamp current health down; {@link net.alex.guzhenren.gameplay.path.strength.AttackDamageService} needs no clamp
+ * (attack has no "current").
  *
  * <p>⚠ Vanilla restores health before this modifier exists -- the saved health on load, the old player's
  * on a clone -- and clamps it to 20. {@link #carry} records the health at logout ({@code HEALTH_CARRY}) and
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Alex
  * @version 1.0.0
- * @see AttackDamageService
+ * @see net.alex.guzhenren.gameplay.path.strength.AttackDamageService
  * @see ApertureService
  * @since 1.0.0
  */
