@@ -32,9 +32,10 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ No neighbor updates also means a tree cut at the square's edge keeps its outer half, leaves included, and
  * water beside a refilled hole stays still until something updates it. ⚠ The restore queue is static and
- * transient: a server stop drops what is left (at most 25 chunks), a generation that finishes after its server
- * stopped is dropped, and a queued entry from an earlier server is dropped on the first tick of the next. A
- * generation that throws (a broken worldgen mod) is logged and restores nothing.
+ * transient: {@link #clear} on a server stop drops what is left (at most 25 chunks) and forgets the running
+ * generations, so a generation that finishes after its server stopped is dropped, and a queued entry from an
+ * earlier server is still dropped on the first tick of the next. A generation that throws (a broken worldgen
+ * mod) is logged and restores nothing.
  *
  * @author Alex
  * @version 1.0.0
@@ -52,6 +53,7 @@ public final class ChunkRewindService {
             Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
     private static final Deque<PendingRestore> QUEUE = new ArrayDeque<>();
     private static int generating;
+    private static int epoch;
 
     //region generating [生成]
     public static void rewindAround(@NotNull ServerLevel level, @NotNull ChunkPos center,
@@ -59,10 +61,10 @@ public final class ChunkRewindService {
         if (targets.isEmpty()) return;
 
         MinecraftServer server = level.getServer();
-        generating++;
+        int started = beginGeneration();
         ChunkOriginGenerator.generate(level, center, RESTORE_RADIUS).whenComplete((origins, error) ->
                 server.execute(() -> {
-                    generating--;
+                    if (!endGeneration(started)) return;
                     if (error != null) {
                         Guzhenren.LOGGER.error("As Before Gu could not generate the land around {} again", center,
                                 error);
@@ -76,6 +78,24 @@ public final class ChunkRewindService {
     }
 
     public static int getGenerating() { return generating; }
+
+    static int beginGeneration() {
+        generating++;
+        return epoch;
+    }
+
+    static boolean endGeneration(int started) {
+        if (started != epoch) return false;
+
+        generating--;
+        return true;
+    }
+
+    static void clear() {
+        QUEUE.clear();
+        generating = 0;
+        epoch++;
+    }
     //endregion
 
     //region restoring [还原]
@@ -112,7 +132,7 @@ public final class ChunkRewindService {
     //endregion
 
     //region the queue [队列]
-    private static void enqueue(@NotNull ServerLevel level, @NotNull ChunkPos pos, @NotNull ChunkAccess origin) {
+    static void enqueue(@NotNull ServerLevel level, @NotNull ChunkPos pos, @NotNull ChunkAccess origin) {
         QUEUE.addLast(new PendingRestore(level, pos, origin));
     }
 

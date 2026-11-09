@@ -19,8 +19,9 @@ import org.jetbrains.annotations.NotNull;
  * bonus. The strength counts only for a bare fist [拳] ({@link #isFistHand}): an empty main hand; any item in it,
  * an Epic Fight glove [拳套] included, gets none of it, so no weapon's innate skill shares the strength path's
  * keys. {@link AttributeEvents} refreshes it when a physique, a strength, a skin, an aperture or an effect
- * changes; the player tick refreshes it every tick, which is how a hand change takes it on or off at once, and
- * {@code TransientModifiers.swap} makes an unchanged refresh a no-op. {@link #getFistDamage} reads the attack a fist
+ * changes, and on a main-hand change ({@code LivingEquipmentChangeEvent}), which is how a hand change takes it on
+ * or off at once; the heartbeat refreshes it once a second as a backstop, and {@code TransientModifiers.swap}
+ * makes an unchanged refresh a no-op. {@link #getFistDamage} reads the attack a fist
  * would land with any other count of points -- the attribute worked out again by operation with the zombie bonus and
  * those points in this modifier's place, so other mods' multipliers scale them as they scale the attack -- for the
  * Store Strength Gu's [蓄力蛊] charged punch, which brings points past the capacity to bear.

@@ -12,7 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The base of every saved-data file this mod keeps on a level: a subclass writes itself into a tag
- * ({@link #write}) and is read back by the function it hands {@link #get}.
+ * ({@link #write}) and is read back by the function it hands {@link #get}; a caller on a hot path builds its
+ * {@link SavedData.Factory} once and hands that instead.
  *
  * <p>Item stacks go through the {@link StackIo} both sides receive, which writes and reads one non-empty stack
  * inside a saved-data tag with the registry context a stack needs. Subclasses override {@link #write} only and
@@ -44,6 +45,11 @@ public abstract class ModSavedData extends SavedData {
             @NotNull Supplier<T> create, @NotNull BiFunction<CompoundTag, StackIo, T> read) {
         return level.getDataStorage().computeIfAbsent(
                 new SavedData.Factory<>(create, (tag, registries) -> read.apply(tag, stackIo(registries))), name);
+    }
+
+    public static <T extends ModSavedData> @NotNull T get(@NotNull ServerLevel level, @NotNull String name,
+            @NotNull SavedData.Factory<T> factory) {
+        return level.getDataStorage().computeIfAbsent(factory, name);
     }
 
     private static StackIo stackIo(HolderLookup.Provider registries) {

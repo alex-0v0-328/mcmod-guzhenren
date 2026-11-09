@@ -32,7 +32,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>{@link #tick} runs on the heartbeat: it drops every timed effect whose end has passed, then re-projects the
  * icons of what is left, so {@code /effect clear} costs an icon for at most a second and never an effect.
- * A permanent effect projects an infinite icon. Each write re-projects at once, without waiting for the beat.
+ * A permanent effect projects an infinite icon. Each write re-projects at once, without waiting for the beat. An icon
+ * the player already wears as projected (same amplifier, no shorter) is left alone, so a steady beat adds no effect,
+ * posts no add event and sends no update packet.
  *
  * <p>⚠ An effect with no marks is never stored: applying one does nothing, and cutting or changing one to none
  * removes it as {@code CUT}. ⚠ What an effect does is its family's code reading {@link #find}; this service runs no
@@ -156,7 +158,17 @@ public final class PathEffectService {
                 player.removeEffect(projection.effect());
             }
         }
-        wanted.forEach((icon, shown) -> player.addEffect(ModEffects.instance(icon, shown[0], shown[1])));
+        wanted.forEach((icon, shown) -> {
+            if (!isShown(player.getEffect(icon), shown)) {
+                player.addEffect(ModEffects.instance(icon, shown[0], shown[1]));
+            }
+        });
+    }
+
+    private static boolean isShown(@Nullable MobEffectInstance worn, int[] shown) {
+        return worn != null && worn.getAmplifier() == shown[1] && !worn.isAmbient() && !worn.isVisible()
+                && worn.showIcon() && (worn.isInfiniteDuration()
+                || shown[0] != MobEffectInstance.INFINITE_DURATION && worn.getDuration() >= shown[0]);
     }
 
     private static int getIconDuration(PathEffect<?> effect, long now) {

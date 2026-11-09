@@ -8,6 +8,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,7 +16,9 @@ import org.jetbrains.annotations.NotNull;
  * {@code guzhenren_pressure_explosions.dat}, so a server stop mid-blast resumes the crater on the next start instead
  * of leaving it half-carved. The level that owns the file is the blasts' dimension; each blast writes its own state
  * ({@link AperturePressureExplosionTask}). A level's file loads on the first server tick that asks for it, so a
- * restored blast carries on one tick after the server starts, as soon as its chunks are loaded again.
+ * restored blast carries on one tick after the server starts, as soon as its chunks are loaded again. The storage
+ * factory is built once and cannot hold the level, so a file read from disk keeps its entries unbound for the rest
+ * of the {@link #get} call that read it, which binds them to the level before it returns.
  *
  * <p>{@link #tickAll} runs the blasts of every level against one budget a tick, {@link #TICK_BUDGET_NANOS} (10 of
  * the tick's 50 ms), the clock read every {@link #CLOCK_CHECK_INTERVAL} positions; levels go in the server's order
@@ -42,10 +45,15 @@ public final class AperturePressureExplosions extends ModSavedData {
     public static final String NAME = "guzhenren_pressure_explosions";
     private static final long TICK_BUDGET_NANOS = 10_000_000L;
     private static final int CLOCK_CHECK_INTERVAL = 256;
+    private static final SavedData.Factory<AperturePressureExplosions> FACTORY =
+            new SavedData.Factory<>(AperturePressureExplosions::new, (tag, registries) -> unbound(tag));
     private final List<AperturePressureExplosionTask> tasks = new ArrayList<>();
+    private ListTag unbound;
 
     public static @NotNull AperturePressureExplosions get(@NotNull ServerLevel level) {
-        return ModSavedData.get(level, NAME, AperturePressureExplosions::new, (tag, stacks) -> load(level, tag));
+        AperturePressureExplosions explosions = ModSavedData.get(level, NAME, FACTORY);
+        explosions.bind(level);
+        return explosions;
     }
 
     public static void tickAll(@NotNull MinecraftServer server) { tickAll(server, TICK_BUDGET_NANOS); }
@@ -56,13 +64,26 @@ public final class AperturePressureExplosions extends ModSavedData {
     }
 
     public static @NotNull AperturePressureExplosions load(@NotNull ServerLevel level, @NotNull CompoundTag tag) {
+        AperturePressureExplosions explosions = unbound(tag);
+        explosions.bind(level);
+        return explosions;
+    }
+
+    private static AperturePressureExplosions unbound(CompoundTag tag) {
         AperturePressureExplosions explosions = new AperturePressureExplosions();
-        ListTag entries = tag.getList("explosions", Tag.TAG_COMPOUND);
+        explosions.unbound = tag.getList("explosions", Tag.TAG_COMPOUND);
+        return explosions;
+    }
+
+    private void bind(ServerLevel level) {
+        ListTag entries = unbound;
+        if (entries == null) return;
+
+        unbound = null;
         for (int i = 0; i < entries.size(); i++) {
             AperturePressureExplosionTask task = AperturePressureExplosionTask.load(level, entries.getCompound(i));
-            if (task != null) explosions.tasks.add(task);
+            if (task != null) tasks.add(task);
         }
-        return explosions;
     }
 
     public boolean isEmpty() { return tasks.isEmpty(); }

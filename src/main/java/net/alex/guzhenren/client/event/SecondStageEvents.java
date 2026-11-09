@@ -69,7 +69,8 @@ public final class SecondStageEvents {
         } else if (active) {
             SecondStageService.stepThrottle(player);
         } else if (player != null) {
-            PlayerData.get(player).setSecondStageThrottle(0.0D);
+            PlayerData data = PlayerData.get(player);
+            if (data.getSecondStageThrottle() != 0.0D) data.setSecondStageThrottle(0.0D);
         }
         wasInSecondStage = active;
         lastPlayer = player;

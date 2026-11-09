@@ -3,11 +3,14 @@ package net.alex.guzhenren.gameplay.rewind;
 import net.alex.guzhenren.Guzhenren;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * Hands every server tick to {@link ChunkRewindService#tickQueue}, which restores one queued chunk per tick so a
- * Mountain or River As Before Gu [山如故 / 江如故] spreads its 25 chunks over 25 ticks instead of one.
+ * Mountain or River As Before Gu [山如故 / 江如故] spreads its 25 chunks over 25 ticks instead of one, and clears
+ * the queue and the running-generation count when the server stops, so a stopped world's levels and chunks are not
+ * pinned by a static.
  *
  * @author Alex
  * @version 1.0.0
@@ -24,4 +27,7 @@ public final class RewindTickEvents {
     public static void onServerTick(ServerTickEvent.Post event) {
         ChunkRewindService.tickQueue(event.getServer());
     }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) { ChunkRewindService.clear(); }
 }

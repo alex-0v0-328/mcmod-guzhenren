@@ -10,9 +10,11 @@ import net.alex.guzhenren.gameplay.body.SkinWornEvent;
 import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 /**
@@ -21,7 +23,8 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
  * capacity, also for a body not yet awakened, which posts no aperture event), {@link StrengthChangedEvent},
  * {@link ApertureChangedEvent} (the rank sets the max health and the base strength capacity), {@link BodyTemperedEvent} (tendons and bones move the capacity
  * under the attack, bones the max health and the knockback resistance) and the skin events (a worn skin adds
- * capacity); vanilla's effect events cover the rest.
+ * capacity); vanilla's effect events cover the rest, and {@link LivingEquipmentChangeEvent} on the main hand
+ * moves the fist-only attack bonus the moment the hand empties or fills.
  *
  * <p>⚠ Left to the heartbeat alone the attack row would lag by up to a second, which is visible on
  * the panel. ⚠ NeoForge posts the three effect events BEFORE the effect map changes, so
@@ -68,6 +71,12 @@ public final class AttributeEvents {
         MaxHealthService.refresh(event.getPlayer());
         KnockbackResistanceService.refresh(event.getPlayer());
         AttackDamageService.refresh(event.getPlayer());
+    }
+
+    @SubscribeEvent
+    public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
+        if (event.getSlot() != EquipmentSlot.MAINHAND) return;
+        if (event.getEntity() instanceof ServerPlayer player) AttackDamageService.refresh(player);
     }
 
     @SubscribeEvent

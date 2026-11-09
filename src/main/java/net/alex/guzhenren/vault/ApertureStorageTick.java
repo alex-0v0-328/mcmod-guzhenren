@@ -1,5 +1,6 @@
 package net.alex.guzhenren.vault;
 
+import java.util.List;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.gu.tending.GuUpkeep;
@@ -41,8 +42,11 @@ public final class ApertureStorageTick {
     }
 
     private static void tickStore(ServerPlayer player, int aperture, long days) {
-        for (int i = 0; i < ApertureStorageService.count(player, aperture); i++) {
-            ItemStack original = ApertureStorageService.getView(player, aperture).get(i);
+        for (int i = 0; ; i++) {
+            List<ItemStack> stored = ApertureStorageService.getView(player, aperture);
+            if (i >= stored.size()) return;
+
+            ItemStack original = stored.get(i);
             if (!isRefinedTended(original)) continue;
 
             ItemStack stack = original.copy();
