@@ -9,6 +9,7 @@ import net.alex.guzhenren.entity.projectile.QiBurst;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
+import net.alex.guzhenren.gameplay.path.strength.BeastChargeDamage;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.BodyOverload;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
@@ -45,9 +46,11 @@ import org.jetbrains.annotations.Nullable;
  * ahead of the look and within {@link #MAX_TARGET_DISTANCE} blocks of the eyes, so a forged id cannot turn the strike
  * behind the player or reach across the world. With the Strength Qi Gu's [力气蛊] effect on and the target past the
  * reach (the ranged punch's own rule), in sight and open to projectiles, it strikes from afar ({@link #shoot}): one
- * Beast Charge [兽力冲击] per released family that can manifest on its arc, the damage split evenly, or, as the
- * ranged punch picks them ({@code QiWaveService.getChargeFamilies}), one of a held family that can at random when
- * none released can; one tracking Qi Wave [气波] for the human jun path [人力钧力流] and for a body holding no such
+ * Beast Charge [兽力冲击] per released family that can manifest on its arc, or, as the ranged punch picks them
+ * ({@code QiWaveService.getChargeFamilies}), one of a held family that can at random when none released can, each
+ * hitting with its own family's strength ({@link BeastChargeDamage}): a released family's permanent points
+ * {@link StoreStrength#CHARGED_RELEASE_FACTOR} times, a random one's once, uncut by the capacity; one tracking Qi
+ * Wave [气波] with the punch's whole damage for the human jun path [人力钧力流] and for a body holding no such
  * family; each bursts {@link StoreStrength#getBurstRadius} blocks around where it lands, the target in full and
  * the rest {@link QiBurst#SECONDARY_RATIO}, as a charged punch that rolls no area impact.
  * Otherwise it swings the fan ({@link #swing}): every target {@link StoreStrength#isInFan} along the level way to the
@@ -113,7 +116,8 @@ public final class ChargedPunch {
             List<BeastStrengthFamily> charging = QiWaveService.getChargeFamilies(
                     branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM, released,
                     StrengthRound.getAvailableFamilies(data), player.getRandom());
-            shoot(player, target, damage, charging, widened);
+            shoot(player, target, damage, BeastChargeDamage.getDamages(data, charging, released,
+                    StoreStrength.CHARGED_RELEASE_FACTOR, BeastChargeDamage.UNCAPPED), charging, widened);
         } else {
             swing(player, target, damage, widened);
         }
@@ -139,7 +143,7 @@ public final class ChargedPunch {
     }
 
     //region Ranged [远程]
-    private static void shoot(ServerPlayer player, LivingEntity target, float damage,
+    private static void shoot(ServerPlayer player, LivingEntity target, float damage, float[] chargeDamages,
                               List<BeastStrengthFamily> charging, boolean widened) {
         QiBurst.Spec burst = new QiBurst.Spec(StoreStrength.getBurstRadius(widened), ModDamageTypes.CHARGED_PUNCH,
                 false);
@@ -147,8 +151,8 @@ public final class ChargedPunch {
             QiWaveEntity.track(player, target, damage, burst);
             return;
         }
-        for (BeastStrengthFamily family : charging) {
-            BeastChargeEntity.shoot(player, target, damage / charging.size(), family, burst);
+        for (int i = 0; i < charging.size(); i++) {
+            BeastChargeEntity.shoot(player, target, chargeDamages[i], charging.get(i), burst);
         }
     }
     //endregion

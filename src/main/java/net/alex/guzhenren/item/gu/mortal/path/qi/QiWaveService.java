@@ -6,10 +6,13 @@ import net.alex.guzhenren.effect.timed.StrengthQiGuEffect;
 import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
 import net.alex.guzhenren.entity.projectile.QiBurst;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
+import net.alex.guzhenren.gameplay.path.strength.BeastChargeDamage;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,14 +31,15 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>{@link #isPastReach} is the one range rule, read by both ends: a target inside the reach is left to the plain
  * melee hit, so one click never lands twice. The punch keeps to the strength rounds [攻击轮次]
- * ({@link StrengthRound#canRange}): one a round at most, and one thrown outside a round opens one. It hits as hard as
- * the fist: the player's attack damage, where the strength path's bonus and the round's release live, plus the release
- * the round it opened has not yet put there. No attack charge scales it; the rounds pace it.
+ * ({@link StrengthRound#canRange}): one a round at most, and one thrown outside a round opens one. A Qi Wave hits as
+ * hard as the fist: the player's attack damage, where the strength path's bonus and the round's release live, plus
+ * the release the round it opened has not yet put there. No attack charge scales it; the rounds pace it.
  *
  * <p>A holder of the beast strength phantom path [兽力虚影流] throws one {@link BeastChargeEntity} for every family the
- * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}), and the punch's damage
- * is split evenly among them, so all of them landing hit as hard as one punch; under Hardship Strength [苦力] the
- * streak draws one family more a round until every phantom strikes. Only a family that can manifest
+ * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}). Each hits with the
+ * strength its own family adds, not the punch's ({@link BeastChargeDamage}): its permanent points, three times over
+ * when the round fully releases the family, the charges' sum cut to the current capacity; under Hardship Strength
+ * [苦力] the streak draws one family more a round until every phantom strikes. Only a family that can manifest
  * ({@code BeastStrengthFamily.canManifest}) charges; one that cannot leaves its share to the others. Everyone else,
  * and a beast holder without a permanent beast that manifests, throws one {@link QiWaveEntity}. Each one bursts
  * ({@link QiBurst}) around where it lands, and each burst rolls the area impact [范围冲击] once on its own.
@@ -84,16 +88,20 @@ public final class QiWaveService {
         if (!player.hasLineOfSight(target) || !StrengthRound.canRange(player)) return List.of();
 
         float gain = StrengthRound.startRange(player, player.getRandom().nextFloat());
-        float damage = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE) + gain;
+        PathStrengthData data = PathStrengthService.get(player);
         List<BeastStrengthFamily> families = getChargeFamilies(
                 PathStrengthService.getHeldBranch(player) == StrengthPathBranch.BEAST_STRENGTH_PHANTOM,
-                StrengthRound.getFamilies(player),
-                StrengthRound.getAvailableFamilies(PathStrengthService.get(player)), player.getRandom());
-        if (families.isEmpty()) return List.of(QiWaveEntity.shoot(player, target, damage));
+                StrengthRound.getFamilies(player), StrengthRound.getAvailableFamilies(data), player.getRandom());
+        if (families.isEmpty()) {
+            return List.of(QiWaveEntity.shoot(player, target,
+                    (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE) + gain));
+        }
 
+        float[] damages = BeastChargeDamage.getDamages(data, families, StrengthRound.getFullyReleased(player),
+                StrengthService.FULL_RELEASE_FACTOR, StrengthService.getCapacity(player));
         List<Projectile> charges = new ArrayList<>();
-        for (BeastStrengthFamily family : families) {
-            charges.add(BeastChargeEntity.shoot(player, target, damage / families.size(), family));
+        for (int i = 0; i < families.size(); i++) {
+            charges.add(BeastChargeEntity.shoot(player, target, damages[i], families.get(i)));
         }
         return charges;
     }
