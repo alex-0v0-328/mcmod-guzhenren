@@ -137,7 +137,7 @@ public final class ModItems {
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Guzhenren.MOD_ID);
     private static final ItemRegistrar REGISTRAR = ItemRegistrar.of(ITEMS);
-    private static final long PRIMEVAL_STONE_ESSENCE = 20L;
+    private static final long PRIMEVAL_STONE_ESSENCE = 100L;
     private static final float MOONLIGHT_DAMAGE = 6.0F;
     private static final int MOON_BLADE_COOLDOWN_TICKS = 2;
     private static final int HUNGER_PER_USE = 3;
