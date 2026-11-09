@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
  * per-tick drop clusters the rings at the start and end of the path, while
  * spacing by measured travel stays uniform across windups, jumps and wall truncations. The ring at
  * the dash start appears first and the one near the end last, up to {@link #DASH_MAX_RINGS} rings
- * (~16 blocks of path). The ring velocity is only a facing-normal carrier
+ * (~24 blocks of path, the longest Crash Gu dash). The ring velocity is only a facing-normal carrier
  * ({@link #RING_NORMAL_DRIFT}, blocks per tick): a zero vector would trip {@code RingGeometry}'s
  * no-direction fallback and lay the ring flat, and over the ring's whole life the drift moves it
  * under a quarter block, which reads as stationary. Every ring of this package goes out through {@link #sendRing},
@@ -60,7 +60,7 @@ import net.minecraft.world.phys.Vec3;
 public final class RingConeEmitter {
 
     private static final double MIN_DIRECTION_LENGTH_SQR = 1.0E-6D;
-    private static final int DASH_MAX_RINGS = 8;
+    private static final int DASH_MAX_RINGS = 12;
     private static final int DASH_MAX_TICKS = 25;
     private static final int DASH_IDLE_LIMIT = 3;
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;

@@ -25,9 +25,14 @@ import net.minecraft.util.StringRepresentable;
  * carrying capacity [常态承受力] (the stone turtle's 128, the green bull's 64), {@link #getSprintBonus} to the
  * sprint's multiple of the walking speed (the galloping horse's 0.5, so 1.3 becomes 1.8),
  * {@link #getDurationBonusTicks} to the length of the strength path's timed states as they start -- the All-Out Effort
- * [全力以赴], the Hardship [苦力] and Self Reliance [自力更生] windows and the two timed beast strengths, never the
- * Strength Qi Gu [力气蛊] -- (the green bull's ten seconds), and {@link #getChanceBonus} to the opening punch's chance
- * of a full release outside the All-Out Effort (the brown bear's 0.05, so 5% becomes 10%).
+ * [全力以赴], the Hardship [苦力] and Self Reliance [自力更生] windows, the two timed beast strengths and the Crash Gu
+ * [横冲 / 直撞 / 横冲直撞], never the Strength Qi Gu [力气蛊] -- (the green bull's ten seconds),
+ * {@link #getChanceBonus} to the opening punch's chance of a full release outside the All-Out Effort (the brown
+ * bear's 0.05, so 5% becomes 10%), {@link #getDashBonus} to the Crash Gu dash's doublings, twice over during the
+ * All-Out Effort (the galloping horse's one, {@code CrashDash#getMultiple}), and {@link #getShieldBonus} to every
+ * shield's points as it is raised (the stone turtle's 0.5, so the heavenly mugwort's 180 becomes 270). The white and
+ * black boars held together, the two boars' strength, break their way along a Crash Gu dash
+ * ({@link PathStrengthData#hasTwoBoars}, {@code CrashBreach}).
  *
  * <p>⚠ A species tag is per SPECIES, not per constant: {@code WHITE_BOAR} and {@code BLACK_BOAR} share
  * {@code BOAR}. Do not move the family or the points into the reader.
@@ -43,10 +48,10 @@ public enum BeastStrength implements NamedEnum {
     BLACK_BOAR(BeastStrengthFamily.BOAR, Form.PAIRED, 24),
     BEAR(BeastStrengthFamily.BEAR, Form.COUNTED, 40),
     TIGER(BeastStrengthFamily.TIGER, Form.COUNTED, 64),
-    STONE_TURTLE(BeastStrengthFamily.TURTLE, Form.COUNTED, 48, 128, 0.0D, 0, 0.0F),
-    GALLOPING_HORSE(BeastStrengthFamily.HORSE, Form.COUNTED, 48, 0, 0.5D, 0, 0.0F),
-    GREEN_BULL(BeastStrengthFamily.OX, Form.COUNTED, 48, 64, 0.0D, 10 * Ticks.SECOND, 0.0F),
-    BROWN_BEAR(BeastStrengthFamily.BEAR, Form.INNATE, 96, 0, 0.0D, 0, 0.05F);
+    STONE_TURTLE(BeastStrengthFamily.TURTLE, Form.COUNTED, 48, 128, 0.0D, 0, 0.0F, 0.0D, 0.5F),
+    GALLOPING_HORSE(BeastStrengthFamily.HORSE, Form.COUNTED, 48, 0, 0.5D, 0, 0.0F, 1.0D, 0.0F),
+    GREEN_BULL(BeastStrengthFamily.OX, Form.COUNTED, 48, 64, 0.0D, 10 * Ticks.SECOND, 0.0F, 0.0D, 0.0F),
+    BROWN_BEAR(BeastStrengthFamily.BEAR, Form.INNATE, 96, 0, 0.0D, 0, 0.05F, 0.0D, 0.0F);
 
     public enum Form { COUNTED, PAIRED, INNATE }
 
@@ -58,13 +63,15 @@ public enum BeastStrength implements NamedEnum {
     private final double sprintBonus;
     private final int durationBonusTicks;
     private final float chanceBonus;
+    private final double dashBonus;
+    private final float shieldBonus;
 
     BeastStrength(BeastStrengthFamily family, Form form, int points) {
-        this(family, form, points, 0, 0.0D, 0, 0.0F);
+        this(family, form, points, 0, 0.0D, 0, 0.0F, 0.0D, 0.0F);
     }
 
     BeastStrength(BeastStrengthFamily family, Form form, int points, int capacityBonus, double sprintBonus,
-                  int durationBonusTicks, float chanceBonus) {
+                  int durationBonusTicks, float chanceBonus, double dashBonus, float shieldBonus) {
         this.family = family;
         this.form = form;
         this.points = points;
@@ -72,6 +79,8 @@ public enum BeastStrength implements NamedEnum {
         this.sprintBonus = sprintBonus;
         this.durationBonusTicks = durationBonusTicks;
         this.chanceBonus = chanceBonus;
+        this.dashBonus = dashBonus;
+        this.shieldBonus = shieldBonus;
     }
 
     public BeastStrengthFamily getFamily() { return family; }
@@ -95,6 +104,10 @@ public enum BeastStrength implements NamedEnum {
     public int getDurationBonusTicks() { return durationBonusTicks; }
 
     public float getChanceBonus() { return chanceBonus; }
+
+    public double getDashBonus() { return dashBonus; }
+
+    public float getShieldBonus() { return shieldBonus; }
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.strength.beast_strength."; }

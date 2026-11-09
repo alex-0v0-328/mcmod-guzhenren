@@ -10,6 +10,8 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
+import net.alex.guzhenren.gameplay.path.strength.CrashBreach;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.particle.RingConeEmitter;
 import net.minecraft.resources.ResourceLocation;
@@ -75,11 +77,14 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * rides the model yaw unchanged. Every Crash Gu dash moves in the yaw plane: the payload's
  * vertical/horizontal are the keyboard axes (W/S and A/D), never world-up.
  *
- * <p>{@code DashAnimation} scales Epic Fight's dodge coordinate vector by {@link CrashDash#getScale}, doubled
- * while {@link StrengthService#isAllOut}. It is the one piece here that runs on the client: Epic Fight moves a player
- * through an action animation only on the owning client ({@code PlayerPatch.shouldMoveOnCurrentSide} is false on the
- * server, true on the {@code LocalPlayerPatch}) and posts the position to the server, so the scale reads All-Out
- * there, from the player's own synced effect and strength data.
+ * <p>{@code DashAnimation} scales Epic Fight's dodge coordinate vector by {@link #getDashScale}:
+ * {@link CrashDash#getScale} from {@link StrengthService#isAllOut} and the held beasts' dash bonus (the galloping horse
+ * [驰马骏力]). It is the one piece here that runs on the client: Epic Fight moves a player through an action animation
+ * only on the owning client ({@code PlayerPatch.shouldMoveOnCurrentSide} is false on the server, true on the
+ * {@code LocalPlayerPatch}) and posts the position to the server, so the scale reads All-Out and the beasts there,
+ * from the player's own synced effect and strength data. The server reads the same scale for the two boars'
+ * strength [两猪之力]: a body holding both clears the dash's path through {@link CrashBreach#clear} before the
+ * animation is sent.
  *
  * <p>The two mutable statics, {@code dashForward} and {@code dashBackward}, are set once by Epic Fight's animation
  * registration and only read afterwards.
@@ -125,9 +130,18 @@ public final class EpicFightIntegration {
         AnimationManager.AnimationAccessor<DodgeAnimation> animation = vertical < 0
                 ? dashBackward : dashForward;
         if (animation == null) return;
+        Vec3 direction = dashDirection(vertical, yRot);
+        if (PathStrengthService.get(player).hasTwoBoars()) {
+            CrashBreach.clear(player, direction, CrashDash.getTravel(getDashScale(player)) + CrashBreach.MARGIN);
+        }
         patch.playAnimationSynchronized(animation, 0.0F);
         patch.setModelYRot(yRot, true);
-        RingConeEmitter.dashCone(player, dashDirection(vertical, yRot));
+        RingConeEmitter.dashCone(player, direction);
+    }
+
+    public static double getDashScale(Player player) {
+        return CrashDash.getScale(StrengthService.isAllOut(player),
+                PathStrengthService.get(player).getBeastDashBonus());
     }
 
     public static void refresh(ServerPlayer player) {
@@ -210,8 +224,9 @@ public final class EpicFightIntegration {
         @Override
         protected Vec3 getCoordVector(LivingEntityPatch<?> entityPatch,
                                       AssetAccessor<? extends DynamicAnimation> animation) {
-            boolean allOut = entityPatch.getOriginal() instanceof Player player && StrengthService.isAllOut(player);
-            return super.getCoordVector(entityPatch, animation).scale(CrashDash.getScale(allOut));
+            double scale = entityPatch.getOriginal() instanceof Player player ? getDashScale(player)
+                    : CrashDash.COORD_SCALE;
+            return super.getCoordVector(entityPatch, animation).scale(scale);
         }
     }
 }

@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.behavior;
 
+import net.alex.guzhenren.effect.timed.CrashGuEffect;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthBuff;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
@@ -28,8 +29,9 @@ import org.jetbrains.annotations.Nullable;
  * while a stronger copy of the same effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker
  * running copy is refreshed, a stronger Gu taking the weaker one's effect and strands. Inside the Gu's effect
  * cooldown the same strength adds its length; outside it the longer length wins ({@link #getNextDuration}). An
- * Amplify Effect Gu [功倍蛊] multiplies the length it adds and lays its Rule strands on the buff; a beast buff then
- * adds the held beasts' duration bonus ({@code PathStrengthService.getDurationBonus}, the green bull's ten seconds).
+ * Amplify Effect Gu [功倍蛊] multiplies the length it adds and lays its Rule strands on the buff; a beast buff or a
+ * Crash Gu's then adds the held beasts' duration bonus ({@code PathStrengthService.getDurationBonus}, the green
+ * bull's ten seconds), which the Strength Qi Gu's never takes.
  *
  * <p>⚠ Each of them still declares its own feed tag. Sharing a behavior does not mean sharing a larder.
  *
@@ -67,10 +69,14 @@ public record TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks, int a
 
         Amplification amplification = AmplifyEffectGuItem.bill(player, gu);
         int added = durationTicks * amplification.factor()
-                + (buff.value() instanceof BeastStrengthBuff ? PathStrengthService.getDurationBonus(player) : 0);
+                + (takesDurationBonus(buff.value()) ? PathStrengthService.getDurationBonus(player) : 0);
         int duration = current == null ? added : getNextDuration(TimedEffects.getBuffTicksLeft(player, buff),
                 current.payload().amplifier(), added, amplifier, gu.getEffectCooldownLeft(player, stack) > 0);
         TimedEffects.grantBuff(player, gu, buff, amplifier, duration, amplification);
+    }
+
+    static boolean takesDurationBonus(MobEffect effect) {
+        return effect instanceof BeastStrengthBuff || effect instanceof CrashGuEffect;
     }
 
     static int getNextDuration(int currentDuration, int currentAmplifier, int addedDuration, int addedAmplifier,

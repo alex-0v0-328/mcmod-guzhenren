@@ -22,8 +22,10 @@ import java.util.List;
  * hit reaches anything past the skin.
  *
  * <p>{@link #raise} lays a kind's layer on top, full, its timer restarted; a layer of that kind still up is
- * replaced, never stacked. {@link #guard} meets every hit the skin passed at the slot where vanilla checks a shield
- * block, before the freeze and helmet factors, the invulnerability frames, armor, Resistance, Protection and
+ * replaced, never stacked. Its points first pass through {@link ShieldRaisingEvent}, where a trait from above the
+ * body changes them (the stone turtle's [石龟负力] half again), so every shield Gu, present or future, takes it.
+ * {@link #guard} meets every hit the skin passed at the slot where vanilla checks a shield block, before the freeze
+ * and helmet factors, the invulnerability frames, armor, Resistance, Protection and
  * Absorption, so the layers spend raw damage, newest first. Inside the frames it spends only on what exceeds the
  * largest hit those frames already met ({@link ShieldWindow}), so lava drains it once per frame window, not every
  * tick. A hit the layers take whole is canceled and replayed as a block: no red flash or hurt sound, the frames
@@ -70,8 +72,11 @@ public final class ShieldService {
     }
 
     public static void raise(@NotNull ServerPlayer player, @NotNull ShieldType type, float points, int durationTicks) {
+        ShieldRaisingEvent raising = new ShieldRaisingEvent(player, type, points);
+        ModEvents.post(raising);
+        float laid = Math.max(0.0F, raising.getPoints());
         long endTick = player.level().getGameTime() + durationTicks;
-        PlayerData.get(player).setShield(get(player).raise(new ShieldLayer(type, points, points, endTick)));
+        PlayerData.get(player).setShield(get(player).raise(new ShieldLayer(type, laid, laid, endTick)));
         tickShield(player);
         ModEvents.post(new ShieldRaisedEvent(player, type));
     }
