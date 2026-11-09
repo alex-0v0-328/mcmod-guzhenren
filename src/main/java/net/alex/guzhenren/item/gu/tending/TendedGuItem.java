@@ -6,7 +6,6 @@ import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
-import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.GuProperties;
@@ -40,11 +39,12 @@ import org.jetbrains.annotations.Nullable;
  * lifecycle host of every Gu that needs refining and feeding: its {@link GuBehavior}s answer {@code checkEffect} /
  * {@code applyEffect} and any limit they bend, or a leaf with a lifecycle of its own overrides them; it owns the
  * charge ladder, channeling [灌注] and billing. Hunger and the meals from the bag are {@link GuHunger}, health
- * {@link GuHealth}, cooldown stamps {@link GuCooldowns}, the day-rollover walk {@link GuUpkeep}.
+ * {@link GuHealth}, cooldown stamps {@link GuCooldowns}, the day-rollover walk {@link GuUpkeep}, the channeling
+ * quota {@link GuChanneling}, the long cooldown {@link GuRefineCooldown}.
  *
  * <p>Still past 300 lines on purpose: what is left is the vanilla {@code Item} overrides and the hooks its
- * behaviors answer, and channeling is this item's own {@code onUseTick}, reading and writing ten of its members --
- * pulled out, all of them would have to open up.
+ * behaviors answer, and channeling is this item's own {@code onUseTick}, which {@code GuChanneling} serves with the
+ * numbers and the pour but cannot own: it drives the meal, the payment and the effect.
  *
  * <p>⚠ A refined Gu feeds itself from the holder's bag through one meal, {@link #feed} (every slot, offhand
  * included; it mends first, fills the bar only once whole, and runs only while the bar has room), at two moments:
@@ -56,13 +56,6 @@ import org.jetbrains.annotations.Nullable;
  * of its food ({@link GuHunger#carriesFood}). ⚠ Creative ignores the floor: the bar still drains to 0 for show, and
  * the Gu keeps channeling, as a forced use there never exhausts it.
  *
- * <p>⚠ {@code checkCooldown} is the one cooldown gate for the use, the tap use and {@link #tryAutoUse}:
- * the larger of the effect cooldown (waived by {@code canUseDuringEffectCooldown}) and the post-refine guard. A
- * refusal puts the ticks left back on the vanilla cooldown, so a lost sweep redraws. {@code spend} runs
- * {@code super.spend} first and only then puts the largest of the item cooldown, the post-refine guard and the
- * effect cooldown: {@code ItemCooldowns.addCooldown} overwrites unconditionally, so the other order would lose
- * the long cooldown to the base's short one.
- *
  * <p>⚠ A use short of hunger after the bag's meal ({@code GuHunger.isShortOfUse}, the hunger multiplier included)
  * is forced only on confirmation ({@link GuForcedUse}): the first {@code drive} warns in red and pays nothing, and
  * answers {@code WARNED}, on which {@code spend} puts no cooldown; the same Gu used again within five seconds is
@@ -73,16 +66,11 @@ import org.jetbrains.annotations.Nullable;
  * backs another's use (the Amplify Effect Gu [功倍蛊], a killing move's [杀招] partner): its essence, the meals around
  * it, and on an empty bar the same death, after the use it backed.
  *
- * <p>⚠ Refining and channeling advance one step every {@code STEP_TICKS} (2 ticks), at two paces that stay separate.
- * A holder above the Gu's rank is Gu-paced: a channel step pours at most 1/{@code STEPS_PER_ROUND} of a round, a
- * round every {@code ROUND_TICKS} (8 steps, 16 ticks = 0.8 s) scaled by {@code TimeFlow}, whatever the hunger, and a
- * refining step may pour the whole pool. At the Gu's rank or below, the pool sets the pace over the same 8-step
- * cycle: 1/9, 1/8, ... then 1/2 of the pool per step, 8/9 of it a cycle at normal time flow. Every essence this Gu
- * pays goes out through {@code
- * PrimevalStoneSupply.pay}; a step is sized from the pool, so it first tops up to at least {@code ESSENCE_FLOOR}
- * ({@code topUpFor}; creative draws no stone, so it sizes as if the pool stood at the floor), and a channel step eats
- * before it sizes the essence, because the step is capped by the essence above the hunger floor, which the meal
- * raises.
+ * <p>⚠ Refining and channeling advance one step every {@code GuChanneling.STEP_TICKS}, at the two paces {@link
+ * GuChanneling} keeps apart. Every essence this Gu pays goes out through {@code PrimevalStoneSupply.pay}; a step is
+ * sized from the pool, so it first tops up to at least {@code GuChanneling.ESSENCE_FLOOR} ({@code topUpFor}), and a
+ * channel step eats before it sizes the essence, because the step is capped by the essence above the hunger floor,
+ * which the meal raises.
  *
  * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
  * the very first click. Gu health is {@link GuHealth}, 4 x rank + 4 from the properties.
@@ -97,6 +85,8 @@ import org.jetbrains.annotations.Nullable;
  * @see GuProperties
  * @see GuBehavior
  * @see GuHunger
+ * @see GuChanneling
+ * @see GuRefineCooldown
  * @see RefinedGuState
  * @since 1.0.0
  */
@@ -115,15 +105,18 @@ public class TendedGuItem extends MortalGuItem {
     private static final String MSG_STARVED = "guzhenren.item.gu.starved";
     private static final String MSG_EXHAUSTED = "guzhenren.item.gu.exhausted";
     private static final String MSG_RUINED = "guzhenren.item.gu.ruined";
-    private static final int ESSENCE_FLOOR = 20;
     protected static final int WARNED = -1;
     protected final GuHunger hunger;
     protected final GuHealth health;
+    private final GuChanneling channeling;
+    private final GuRefineCooldown refineCooldown;
 
     public TendedGuItem(GuProperties guProperties, GuBehavior... behaviors) {
         super(new Properties().stacksTo(1), guProperties, behaviors);
         this.hunger = guProperties.buildHunger();
         this.health = guProperties.buildHealth();
+        this.channeling = new GuChanneling(guProperties, hunger);
+        this.refineCooldown = new GuRefineCooldown(guProperties);
     }
 
     //region what the behaviors answer [行为应答]
@@ -192,18 +185,13 @@ public class TendedGuItem extends MortalGuItem {
     //endregion
 
     //region channeling [灌注]
-    private static final int CHANNEL_MAX_TICKS = 72_000;
-    private static final int STEP_TICKS = 2;
-    private static final int STEPS_PER_ROUND = 8;
-    private static final int ROUND_TICKS = STEPS_PER_ROUND * STEP_TICKS;
-
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack,
                           int remaining) {
         if (!(entity instanceof ServerPlayer player)) return;
 
-        int elapsed = CHANNEL_MAX_TICKS - remaining;
-        if (elapsed < 0 || elapsed % STEP_TICKS != 0) return;
+        int elapsed = GuChanneling.CHANNEL_MAX_TICKS - remaining;
+        if (elapsed < 0 || elapsed % GuChanneling.STEP_TICKS != 0) return;
 
         if (!isRefined(stack)) {
             refineTick(player, stack, elapsed);
@@ -212,20 +200,20 @@ public class TendedGuItem extends MortalGuItem {
         if (!guProperties.isChanneled()) return;
 
         feed(player, stack);
-        PrimevalStoneSupply.topUpFor(player, ESSENCE_FLOOR);
-        int take = stepAmount(player, stack, elapsed);
+        PrimevalStoneSupply.topUpFor(player, GuChanneling.ESSENCE_FLOOR);
+        int take = channeling.stepAmount(player, stack, elapsed, isGuPaced(player));
         if (take <= 0 || !PrimevalStoneSupply.pay(player, take)) {
             player.stopUsingItem();
             return;
         }
-        pour(player, stack, take);
+        channeling.pour(this, player, stack, take);
         feed(player, stack);
     }
 
     private void refineTick(ServerPlayer player, ItemStack stack, int elapsed) {
-        PrimevalStoneSupply.topUpFor(player, ESSENCE_FLOOR);
+        PrimevalStoneSupply.topUpFor(player, GuChanneling.ESSENCE_FLOOR);
         int left = getRefineCost() - getState(stack).refineProgress();
-        int take = (int) Math.min(left, getPoured(player, elapsed));
+        int take = (int) Math.min(left, channeling.getPoured(player, elapsed, isGuPaced(player)));
         if (take <= 0 || !PrimevalStoneSupply.pay(player, take)) {
             player.stopUsingItem();
             return;
@@ -236,62 +224,7 @@ public class TendedGuItem extends MortalGuItem {
 
     private boolean isGuPaced(Player player) { return getRankGap(player) > 0; }
 
-    private int stepAmount(ServerPlayer player, ItemStack stack, int elapsed) {
-        long pool = getStepPool(player);
-        if (pool < ESSENCE_FLOOR) return 0;
-
-        int round = guProperties.getEssencePerRound();
-        int leftInThisRound = round - getState(stack).investedEssence() % round;
-        long thisStep = Math.min(getMostThisStepMaySpend(player, pool, elapsed),
-                getEssenceAboveHungerFloor(player, stack));
-
-        return (int) Math.min(thisStep, leftInThisRound);
-    }
-
-    private long getEssenceAboveHungerFloor(Player player, ItemStack stack) {
-        return player.getAbilities().instabuild ? Long.MAX_VALUE : hunger.getEssenceAboveHungerFloor(stack);
-    }
-
-    private long getMostThisStepMaySpend(ServerPlayer player, long pool, int elapsed) {
-        if (isGuPaced(player)) {
-            return Math.min(pool,
-                    TimeFlow.scale(player, Math.ceilDiv((long) guProperties.getEssencePerRound(), STEPS_PER_ROUND)));
-        }
-        return getPoolPacedStep(player, pool, elapsed);
-    }
-
-    private long getPoured(ServerPlayer player, int elapsed) {
-        long pool = getStepPool(player);
-        if (pool < ESSENCE_FLOOR) return 0L;
-        return isGuPaced(player) ? pool : getPoolPacedStep(player, pool, elapsed);
-    }
-
-    // Creative draws no stone, so its top-up never lifts a short pool to the floor; it sizes as if it had.
-    private static long getStepPool(ServerPlayer player) {
-        long pool = ApertureEssenceService.getSpendable(player);
-        return player.getAbilities().instabuild ? Math.max(pool, ESSENCE_FLOOR) : pool;
-    }
-
-    private static long getPoolPacedStep(ServerPlayer player, long pool, int elapsed) {
-        int stepIndex = (elapsed % ROUND_TICKS) / STEP_TICKS;
-        return Math.min(pool, TimeFlow.scale(player, pool / (STEPS_PER_ROUND + 1 - stepIndex)));
-    }
-
-    private void pour(ServerPlayer player, ItemStack stack, int amount) {
-        int pouredBefore = getState(stack).investedEssence();
-        int pouredAfter = pouredBefore + amount;
-
-        hunger.billHungerForEssence(stack, pouredBefore, pouredAfter);
-        store(stack, getState(stack).withInvested(pouredAfter));
-
-        if (pouredAfter >= guProperties.getEssencePerRound()) {
-            applyEffectWithCooldown(player, stack);
-            store(stack, getState(stack).withInvested(0));
-            if (checkEffect(player, stack) != null) player.stopUsingItem();
-        }
-    }
-
-    private void applyEffectWithCooldown(ServerPlayer player, ItemStack stack) {
+    void applyEffectWithCooldown(ServerPlayer player, ItemStack stack) {
         applyEffect(player, stack);
         if (guProperties.getEffectCooldownTicks() > 0) {
             stack.set(ModDataComponents.USED_AT,
@@ -301,32 +234,12 @@ public class TendedGuItem extends MortalGuItem {
     //endregion
 
     //region the long cooldown [长冷却]
-    private static final String FAILED_COOLDOWN = "guzhenren.item.failed.gu_cooldown";
-
-    private int postRefineCooldownLeft(Player player, ItemStack stack) {
-        Long refinedAt = stack.get(ModDataComponents.REFINED_AT);
-        return GuCooldowns.getCooldownLeft(player, refinedAt, POST_REFINE_COOLDOWN_TICKS);
-    }
-
-    private @Nullable Refusal checkCooldown(Player player, ItemStack stack) {
-        int left = Math.max(canUseDuringEffectCooldown() ? 0 : getEffectCooldownLeft(player, stack),
-                postRefineCooldownLeft(player, stack));
-        if (left <= 0) return null;
-
-        if (player instanceof ServerPlayer server) server.getCooldowns().addCooldown(this, left);
-        return new Refusal(FAILED_COOLDOWN,
-                Component.literal(String.valueOf(ModDisplayText.getCountdownSeconds(left))));
-    }
-
     @Override
     protected void spend(ServerPlayer player, ItemStack stack, int count) {
         if (count == WARNED) return;
 
         super.spend(player, stack, count);
-        int left = Math.max(TimeFlow.shortenWait(player, guProperties.getItemCooldownTicks()),
-                postRefineCooldownLeft(player, stack));
-        if (!canUseDuringEffectCooldown()) left = Math.max(left, getEffectCooldownLeft(player, stack));
-        if (left > 0) player.getCooldowns().addCooldown(this, left);
+        refineCooldown.put(this, player, stack);
     }
     //endregion
 
@@ -337,24 +250,26 @@ public class TendedGuItem extends MortalGuItem {
     @Override
     protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
         if (!isRefined(stack)) {
-            return checkEssenceGate(player, Math.min(ESSENCE_FLOOR, getRefineCost()), FAILED_REFINE_ESSENCE);
+            return checkEssenceGate(player, Math.min(GuChanneling.ESSENCE_FLOOR, getRefineCost()),
+                    FAILED_REFINE_ESSENCE);
         }
         Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
         if (poor != null) return poor;
 
-        if (guProperties.isChanneled() && getEssenceAboveHungerFloor(player, stack) <= 0 && !hunger.carriesFood(this, player)) {
+        if (guProperties.isChanneled() && channeling.getEssenceAboveHungerFloor(player, stack) <= 0
+                && !hunger.carriesFood(this, player)) {
             return new Refusal(FAILED_STARVING);
         }
         return checkCooldownThenOwnUse(player, stack);
     }
 
     private @Nullable Refusal checkCooldownThenOwnUse(Player player, ItemStack stack) {
-        Refusal cooling = checkCooldown(player, stack);
+        Refusal cooling = refineCooldown.check(this, player, stack);
         return cooling != null ? cooling : checkOwnUse(player, stack);
     }
 
     protected long useThreshold(ItemStack stack) {
-        return guProperties.isChanneled() ? ESSENCE_FLOOR : guProperties.getEssencePerRound();
+        return guProperties.isChanneled() ? GuChanneling.ESSENCE_FLOOR : guProperties.getEssencePerRound();
     }
 
     @Override
@@ -372,8 +287,8 @@ public class TendedGuItem extends MortalGuItem {
 
     @Override
     protected final int useDurationTicks(Player player, ItemStack stack) {
-        if (!isRefined(stack)) return CHANNEL_MAX_TICKS;
-        return guProperties.isChanneled() ? CHANNEL_MAX_TICKS : useChargeTicks(player, stack);
+        if (!isRefined(stack)) return GuChanneling.CHANNEL_MAX_TICKS;
+        return guProperties.isChanneled() ? GuChanneling.CHANNEL_MAX_TICKS : useChargeTicks(player, stack);
     }
 
     protected int useChargeTicks(Player player, ItemStack stack) { return useChargeByGap(player); }
@@ -437,7 +352,7 @@ public class TendedGuItem extends MortalGuItem {
 
     @Override
     protected final @Nullable Refusal checkTapUse(Player player, ItemStack stack) {
-        Refusal cooling = checkCooldown(player, stack);
+        Refusal cooling = refineCooldown.check(this, player, stack);
         return cooling != null ? cooling : checkOwnTapUse(player, stack);
     }
 
