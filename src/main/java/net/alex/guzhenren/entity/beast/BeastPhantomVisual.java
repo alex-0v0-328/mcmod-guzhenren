@@ -4,13 +4,16 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Function;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * What the Beast Phantom renderer [兽力虚影] reads of anything drawn as a phantom beast: the family whose model it
  * borrows, how far it has faded in or out, how far its nose is pitched down (MC's sign: down is positive) and whether
  * it charges. The phantom beside its owner and the Beast Charge [兽力冲击] both are one; only the charge pitches and
- * charges.
+ * charges. Only the phantom beside its owner comes and goes animated: {@link #getGlow} is the glow layer's strength
+ * as a multiple of its resting one, {@link #getScale} the model's size and {@link #getDrift} how far the model is
+ * drawn from the entity, in blocks to its right, up and ahead by its own yaw.
  *
  * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code attack_toss}), the
  * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe, the buffalo's carry the prefix
@@ -30,6 +33,12 @@ public interface BeastPhantomVisual {
     BeastStrengthFamily getFamily();
 
     float getFade(float partialTick);
+
+    default float getGlow(float partialTick) { return getFade(partialTick); }
+
+    default float getScale(float partialTick) { return 1.0F; }
+
+    default Vec3 getDrift(float partialTick) { return Vec3.ZERO; }
 
     default float getPitch(float partialTick) { return 0.0F; }
 

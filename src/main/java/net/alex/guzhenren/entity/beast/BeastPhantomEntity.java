@@ -43,9 +43,17 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * life starts over, nothing respawns -- a new one takes the first free slot in declaration order ({@link #pickSlot}:
  * the ground pair, then the fan from its lowest row up to its apex), and any other goes. A family that
  * cannot manifest ({@code BeastStrengthFamily.canManifest}) is left out and takes no slot. A renewal bumps a
- * synced counter so the client restarts its own age for the fade: in over {@link #FADE_IN_TICKS}, out over the last
- * {@link #FADE_OUT_TICKS}. ⚠ {@link #LINGER_TICKS} and the fan's {@link #FAN_BACK_OFFSET}, {@link #FAN_COLUMN},
- * {@link #FAN_ROW} and {@link #FAN_BASE_HEIGHT} are provisional, for Alex to tune in the client.
+ * synced counter so the client restarts its own age. ⚠ {@link #LINGER_TICKS} and the fan's {@link #FAN_BACK_OFFSET},
+ * {@link #FAN_COLUMN}, {@link #FAN_ROW} and {@link #FAN_BASE_HEIGHT} are provisional, for Alex to tune in the client.
+ *
+ * <p>It comes and goes drawn only: the entity stays in its slot and the renderer moves, scales and fades the model
+ * ({@link #getDrift}, {@link #getScale}, {@link #getFade}, {@link #getGlow}). It appears over {@link #APPEAR_TICKS},
+ * one tick later per slot in declaration order, sliding in from {@link #APPEAR_BACK} blocks behind its slot while it
+ * fades in and grows from {@link #APPEAR_SCALE} past {@link #APPEAR_OVERSHOOT} to full size. Over its last
+ * {@link #VANISH_TICKS} it gathers from its slot into its owner's body, {@link #BODY_HEIGHT} above the feet,
+ * shrinking to {@link #VANISH_SCALE} and fading out while its glow rises to {@link #GLOW_PEAK} times its strength.
+ * A renewal never replays the appearance; one that comes while it gathers sends it back out to its slot over
+ * {@link #VANISH_RETURN_TICKS}. One dropped from a round goes at once. ⚠ All of these numbers are provisional.
  *
  * <p>A pure display: no collision, no hitbox for attacks or projectiles, no damage, never saved; one summoned by
  * command has no owner and goes on its first tick. Both sides place it from the owner every tick, so the client
@@ -80,12 +88,22 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
             SynchedEntityData.defineId(BeastPhantomEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> RENEWALS =
             SynchedEntityData.defineId(BeastPhantomEntity.class, EntityDataSerializers.INT);
-    private static final int FADE_IN_TICKS = 3;
+    public static final int APPEAR_TICKS = 6;
+    public static final double APPEAR_BACK = 1.0D;
+    public static final float APPEAR_SCALE = 0.7F;
+    public static final float APPEAR_OVERSHOOT = 1.08F;
+    public static final int VANISH_TICKS = 8;
+    public static final int VANISH_RETURN_TICKS = 4;
+    public static final float VANISH_SCALE = 0.2F;
+    public static final double BODY_HEIGHT = 0.9D;
+    public static final float GLOW_PEAK = 2.4F;
+    private static final float OVERSHOOT_AT = 0.7F;
     private static final Map<BeastStrengthFamily, RawAnimation> ATTACKS =
             BeastPhantomVisual.byFamily(family -> BeastPhantomVisual.getAttack(family, "idle"));
-    private static final int FADE_OUT_TICKS = 10;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int bornTick;
+    private float vanish;
+    private float vanishO;
 
     public enum Slot {
 
@@ -180,11 +198,57 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
 
     public float getAge(float partialTick) { return this.tickCount - this.bornTick + partialTick; }
 
+    //region Coming and going [出现与消失]
+    private float getAppear(float partialTick) {
+        return Mth.clamp((this.tickCount + partialTick - getSlot().ordinal()) / APPEAR_TICKS, 0.0F, 1.0F);
+    }
+
+    private float getVanish(float partialTick) { return Mth.lerp(partialTick, this.vanishO, this.vanish); }
+
+    private static float easeOut(float progress) {
+        float rest = 1.0F - progress;
+        return 1.0F - rest * rest * rest;
+    }
+
+    private void tickVanish() {
+        boolean gathering = this.tickCount - this.bornTick > getShownTicks() - VANISH_TICKS;
+        this.vanishO = this.vanish;
+        this.vanish = Mth.clamp(this.vanish + (gathering ? 1.0F / VANISH_TICKS : -1.0F / VANISH_RETURN_TICKS),
+                0.0F, 1.0F);
+    }
+
     @Override
     public float getFade(float partialTick) {
-        float age = getAge(partialTick);
-        return Mth.clamp(Math.min(age / FADE_IN_TICKS, (getShownTicks() - age) / FADE_OUT_TICKS), 0.0F, 1.0F);
+        float vanish = getVanish(partialTick);
+        return getAppear(partialTick) * (1.0F - vanish * vanish);
     }
+
+    @Override
+    public float getGlow(float partialTick) {
+        float vanish = getVanish(partialTick);
+        float late = vanish * vanish * vanish;
+        return getAppear(partialTick) * Mth.lerp(vanish, 1.0F, GLOW_PEAK) * (1.0F - late * late);
+    }
+
+    @Override
+    public float getScale(float partialTick) {
+        float appear = getAppear(partialTick);
+        float vanish = getVanish(partialTick);
+        float grown = appear < OVERSHOOT_AT
+                ? Mth.lerp(easeOut(appear / OVERSHOOT_AT), APPEAR_SCALE, APPEAR_OVERSHOOT)
+                : Mth.lerp((appear - OVERSHOOT_AT) / (1.0F - OVERSHOOT_AT), APPEAR_OVERSHOOT, 1.0F);
+        return grown * Mth.lerp(vanish * vanish, 1.0F, VANISH_SCALE);
+    }
+
+    @Override
+    public Vec3 getDrift(float partialTick) {
+        float vanish = getVanish(partialTick);
+        double gathered = vanish * vanish;
+        double back = APPEAR_BACK * (1.0F - easeOut(getAppear(partialTick)));
+        Vec3 offset = getOffset(getSlot());
+        return new Vec3(-offset.x * gathered, (BODY_HEIGHT - offset.y) * gathered, -offset.z * gathered - back);
+    }
+    //endregion
 
     private int getOwnerId() { return this.entityData.get(OWNER); }
 
@@ -216,6 +280,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     @Override
     public void tick() {
         super.tick();
+        tickVanish();
         Entity owner = this.level().getEntity(getOwnerId());
         if (!this.level().isClientSide()
                 && (!(owner instanceof Player player) || !player.isAlive()

@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -37,7 +38,9 @@ import software.bernie.geckolib.util.Color;
  * <p>Draws every {@link BeastPhantomVisual}: the phantom beside its owner and the Beast Charge [兽力冲击] alike, at
  * {@link #PHANTOM_SCALE} times the wild beast's size.
  * Back-face culled like the soul traders, so the far side of the silhouette does not show through. Each fades as its
- * own {@link BeastPhantomVisual#getFade} says; the glow layer is translucent emissive at {@link #GLOW_ALPHA} of the
+ * own {@link BeastPhantomVisual#getFade} says, is drawn {@link BeastPhantomVisual#getDrift} away from its entity and
+ * {@link BeastPhantomVisual#getScale} times its size about its feet, and glows {@link BeastPhantomVisual#getGlow}
+ * times as strong; the glow layer is translucent emissive at {@link #GLOW_ALPHA} of the
  * mask's own alpha, since the mask covers the whole body and at full alpha it closes the translucent body up to
  * opaque. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and paints the whole masked body at full strength.
  * GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw, then tips them by
@@ -74,11 +77,30 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
                        @NotNull MultiBufferSource bufferSource, int packedLight) {
         BeastStrengthFamily family = entity.getFamily();
         if (!family.canManifest()) return;
+
+        poseStack.pushPose();
+        applyDrift(entity, poseStack, partialTick);
         if (family == BeastStrengthFamily.HORSE) {
             renderHorse(entity, partialTick, poseStack, bufferSource);
-            return;
+        } else {
+            super.render(entity, entityYaw, partialTick, poseStack, bufferSource, LightTexture.FULL_BRIGHT);
         }
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, LightTexture.FULL_BRIGHT);
+        poseStack.popPose();
+    }
+
+    private static void applyDrift(Entity entity, PoseStack poseStack, float partialTick) {
+        Vec3 drift = ((BeastPhantomVisual) entity).getDrift(partialTick);
+        if (drift.equals(Vec3.ZERO)) return;
+
+        float radians = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot()) * Mth.DEG_TO_RAD;
+        float sin = Mth.sin(radians);
+        float cos = Mth.cos(radians);
+        poseStack.translate(-sin * drift.z - cos * drift.x, drift.y, cos * drift.z - sin * drift.x);
+    }
+
+    private static int getGlowColor(BeastPhantomVisual visual, float partialTick) {
+        float alpha = Mth.clamp(visual.getGlow(partialTick) * GLOW_ALPHA, 0.0F, 1.0F);
+        return Color.ofARGB(alpha, 1.0F, 1.0F, 1.0F).argbInt();
     }
 
     @Override
@@ -86,6 +108,8 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
                                   float partialTick, float nativeScale) {
         super.applyRotations(animatable, poseStack, ageInTicks,
                 Mth.rotLerp(partialTick, animatable.yRotO, animatable.getYRot()), partialTick, nativeScale);
+        float scale = animatable.getScale(partialTick);
+        poseStack.scale(scale, scale, scale);
         applyPitch(animatable, poseStack, partialTick);
     }
 
@@ -110,7 +134,8 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot())));
         applyPitch(entity, poseStack, partialTick);
-        poseStack.scale(-PHANTOM_SCALE, -PHANTOM_SCALE, PHANTOM_SCALE);
+        float scale = PHANTOM_SCALE * entity.getScale(partialTick);
+        poseStack.scale(-scale, -scale, scale);
         poseStack.scale(HorsePhantomModel.SCALE, HorsePhantomModel.SCALE, HorsePhantomModel.SCALE);
         poseStack.translate(0.0F, -1.501F, 0.0F);
 
@@ -122,7 +147,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
         RenderType glow = RenderType.entityTranslucentEmissive(
                 Guzhenren.id("textures/entity/" + model + "_phantom_glowmask.png"));
         horse.render(poseStack, bufferSource.getBuffer(glow), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                Color.ofARGB(fade * GLOW_ALPHA, 1.0F, 1.0F, 1.0F).argbInt());
+                getGlowColor(entity, partialTick));
         poseStack.popPose();
     }
     //endregion
@@ -187,9 +212,9 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
             ResourceLocation mask = Guzhenren.id("textures/entity/" + getModelName(animatable.getFamily())
                     + "_phantom_glowmask.png");
             RenderType glow = RenderType.entityTranslucentEmissive(mask);
-            int color = Color.ofARGB(animatable.getFade(partialTick) * GLOW_ALPHA, 1.0F, 1.0F, 1.0F).argbInt();
             this.getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, glow,
-                    bufferSource.getBuffer(glow), partialTick, LightTexture.FULL_BRIGHT, packedOverlay, color);
+                    bufferSource.getBuffer(glow), partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
+                    getGlowColor(animatable, partialTick));
         }
     }
 }
