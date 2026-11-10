@@ -12,13 +12,15 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * A retaliatory charger (the wild boar, the cattle) on the {@link ActionEntity} state machine: it never hunts, a
+ * A retaliatory charger (the wild boar, the cattle, the elephants) on the {@link ActionEntity} state machine: it never hunts, a
  * first provocation plays the alert and later hits the hurt pose, and it answers with a straight charge from a few
  * blocks out or a toss up close. Every family's clips share one timing -- the charge's {@value #CHARGE_WINDUP_TICKS}
  * tick wind-up and {@value #CHARGE_WINDOW_END_TICKS} tick damage window, the toss's hit on tick
  * {@value #TOSS_HIT_TICK} -- so the timing constants live here; the subclass supplies its damages
  * ({@link #getChargeDamage}, {@link #getTossDamage}), its cooldown pair ({@link #createCooldowns}: the charge's,
- * then the toss's, behind {@link #getCooldowns}), its sounds, attributes and animation prefix.
+ * then the toss's, behind {@link #getCooldowns}), its sounds, attributes and animation prefix. A family with
+ * attacks of its own (the elephant's stomp and trunk sweep) appends them to {@link Action} after the death pose,
+ * keeping the wire ids, times them in {@link #tickSpeciesAttack} and widens the toss through {@link #getTossReach}.
  *
  * <p>The charge locks its direction only after its wind-up, so the charger keeps facing the target until then; in
  * {@link #tickCharge}, the swept-body test checks the actual path, not the diagonal broad-phase rectangle, and a
@@ -63,6 +65,10 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
     protected abstract float getTossDamage();
 
     protected abstract int getHurtActionTicks();
+
+    protected double getTossReach() { return TOSS_REACH; }
+
+    protected void tickSpeciesAttack(Action current, long ticks) {}
     //endregion
 
     //region action set [动作集]
@@ -137,7 +143,7 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
     @Override
     protected void chooseAttack(LivingEntity target) {
         double distance = this.distanceTo(target);
-        if (distance <= TOSS_REACH && this.getTossCooldown() == 0 && this.getSensing().hasLineOfSight(target)) {
+        if (distance <= this.getTossReach() && this.getTossCooldown() == 0 && this.getSensing().hasLineOfSight(target)) {
             this.tryStartAction(Action.ATTACK_TOSS);
         } else if (distance >= CHARGE_MIN_DISTANCE && distance <= CHARGE_MAX_DISTANCE && this.getChargeCooldown() == 0
                 && this.canStartLunge(target, CHARGE_SCAN_DISTANCE)) {
@@ -160,7 +166,7 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
             }
             case ATTACK_TOSS -> {
                 if (ticks >= TOSS_HIT_TICK && !this.hitSettled) {
-                    this.strikeTarget(TOSS_REACH, this.getTossDamage(), TOSS_KNOCKBACK, TOSS_UPWARD);
+                    this.strikeTarget(this.getTossReach(), this.getTossDamage(), TOSS_KNOCKBACK, TOSS_UPWARD);
                 }
                 if (ticks >= TOSS_ACTION_END_TICKS) this.finishAction();
             }
@@ -170,6 +176,7 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
             case GRAZE -> {
                 if (ticks >= GRAZE_ACTION_TICKS || this.getTarget() != null) this.finishAction();
             }
+            case ATTACK_STOMP, ATTACK_TRUNK -> this.tickSpeciesAttack(current, ticks);
             case DEATH, IDLE -> {}
         }
     }
@@ -237,7 +244,9 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
         ATTACK_CHARGE("attack_charge", false, true),
         ATTACK_TOSS("attack_toss", false, true),
         HURT("hurt", false, false),
-        DEATH("death", false, false);
+        DEATH("death", false, false),
+        ATTACK_STOMP("attack_stomp", false, true),
+        ATTACK_TRUNK("attack_trunk", false, true);
 
         private final String animation;
         private final boolean loop;

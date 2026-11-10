@@ -7,6 +7,7 @@ import net.alex.guzhenren.entity.beast.BearSpecies;
 import net.alex.guzhenren.entity.beast.BeastPhantomEntity;
 import net.alex.guzhenren.entity.beast.CattleEntity;
 import net.alex.guzhenren.entity.beast.CattleSpecies;
+import net.alex.guzhenren.entity.beast.ElephantEntity;
 import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.TortoiseSpecies;
@@ -33,7 +34,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * The entity types this mod registers.
  *
  * <p>Hope Gu, three boar Gu and four rhinoceros beetle Gu variants are naturally spawning ambient entities;
- * the wild boar, the four bears, the two tigers, the two tortoises and the three cattle are naturally spawning
+ * the wild boar, the four bears, the two tigers, the two tortoises, the three cattle and the two elephants are naturally spawning
  * creatures. Hope Gu's client mote is emitted by its entity class. Each {@link SoulTrader} registers one fire-immune misc entity with no
  * spawn rule at all: soul traders exist only through {@code /summon}. The Moon Blade [月刃] and the Qi Wave [气波] are
  * the projectiles. The Beast Phantom [兽力虚影] is display only and never saved.
@@ -64,6 +65,8 @@ public final class ModEntityTypes {
     private static final float TORTOISE_HEIGHT = 0.8F;
     private static final float CATTLE_WIDTH = 1.7F;
     private static final float CATTLE_HEIGHT = 1.75F;
+    private static final float ELEPHANT_WIDTH = 2.5F;
+    private static final float ELEPHANT_HEIGHT = 3.7F;
     private static final float SOUL_TRADER_WIDTH = 0.6F;
     private static final float SOUL_TRADER_HEIGHT = 1.95F;
     private static final float MOON_BLADE_SIZE = 0.8F;
@@ -118,6 +121,10 @@ public final class ModEntityTypes {
             registerCattle(CattleSpecies.WATER_BUFFALO);
     public static final DeferredHolder<EntityType<?>, EntityType<CattleEntity>> AZURE_OX =
             registerCattle(CattleSpecies.AZURE_OX);
+    public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT =
+            register("elephant", ElephantEntity::new, MobCategory.CREATURE, ELEPHANT_WIDTH, ELEPHANT_HEIGHT);
+    public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> WHITE_ELEPHANT =
+            register("white_elephant", ElephantEntity::new, MobCategory.CREATURE, ELEPHANT_WIDTH, ELEPHANT_HEIGHT);
     //endregion
 
     //region Phantoms [虚影]

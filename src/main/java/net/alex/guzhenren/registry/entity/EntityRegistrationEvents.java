@@ -5,6 +5,7 @@ import net.alex.guzhenren.entity.beast.BearEntity;
 import net.alex.guzhenren.entity.beast.BearSpecies;
 import net.alex.guzhenren.entity.beast.CattleEntity;
 import net.alex.guzhenren.entity.beast.CattleSpecies;
+import net.alex.guzhenren.entity.beast.ElephantEntity;
 import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.TortoiseSpecies;
@@ -71,6 +72,8 @@ public final class EntityRegistrationEvents {
         for (CattleSpecies species : CattleSpecies.values()) {
             event.put(createCattleType(species), CattleEntity.createAttributes().build());
         }
+        event.put(ModEntityTypes.ELEPHANT.get(), ElephantEntity.createAttributes().build());
+        event.put(ModEntityTypes.WHITE_ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(), SoulTraderEntity.createAttributes().build());
     }
 
@@ -117,6 +120,8 @@ public final class EntityRegistrationEvents {
         for (CattleSpecies species : CattleSpecies.values()) {
             registerAnimalSpawn(event, createCattleType(species));
         }
+        registerAnimalSpawn(event, ModEntityTypes.ELEPHANT.get());
+        registerAnimalSpawn(event, ModEntityTypes.WHITE_ELEPHANT.get());
     }
 
     private static <T extends Mob> void registerAnimalSpawn(RegisterSpawnPlacementsEvent event,

@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * (12), the tiger tag from the three jungle biomes, the tortoise tag from the three savannas and the sparse
  * jungle (the grass-floored dry biomes; {@code animals_spawnable_on} holds only grass), and the cattle tag from the
  * 21 vanilla biomes whose own spawn tables carry {@code minecraft:cow} (read from the 1.21.1 biome JSONs), so the
- * cattle live beside vanilla's cow.
+ * cattle live beside vanilla's cow, and the elephant tag from the three savannas and the three jungles.
  * Must NOT collapse to {@code #minecraft:is_overworld} because that carries the
  * oceans, whose surface sits at sea level.
  *
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * the Northern Plains [北原], draw on that mod's own biomes, in no vanilla tag, so the three wild Gu tags also name
  * each region's land biomes by id, as optional entries, a biome two regions share (the rainforest) once: the tags still
  * load without Gu World. The wild boar, bear,
- * tiger, tortoise and cattle tags name no region biome: the regions spawn vanilla animals and wild Gu only, by Alex's
+ * tiger, tortoise, cattle and elephant tags name no region biome: the regions spawn vanilla animals and wild Gu only, by Alex's
  * decision.
  *
  * <p>⚠ The region lists are Gu World's biome ids, those of each region's roster ({@code Replicas}, {@code Ports}
@@ -100,6 +100,13 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
             Biomes.SPARSE_JUNGLE,
             Biomes.BAMBOO_JUNGLE,
             Biomes.SWAMP);
+    private static final List<ResourceKey<Biome>> ELEPHANT_BIOMES = List.of(
+            Biomes.SAVANNA,
+            Biomes.SAVANNA_PLATEAU,
+            Biomes.WINDSWEPT_SAVANNA,
+            Biomes.JUNGLE,
+            Biomes.SPARSE_JUNGLE,
+            Biomes.BAMBOO_JUNGLE);
     private static final List<String> SOUTHERN_BORDER_LAND = List.of("forested_plateau", "cloud_forest",
             "peach_grove", "misty_mountains", "bamboo_sea", "rainforest", "jungle_mountains", "emerald_peaks",
             "plains", "plateau", "hot_springs", "orchid_swamp", "alpine_meadow", "rocky_peaks", "painted_mountains",
@@ -194,6 +201,9 @@ public class ModBiomeTagsProvider extends TagsProvider<Biome> {
         }
         for (ResourceKey<Biome> biome : CATTLE_BIOMES) {
             tag(ModBiomeTags.CATTLE_SPAWNS).add(biome);
+        }
+        for (ResourceKey<Biome> biome : ELEPHANT_BIOMES) {
+            tag(ModBiomeTags.ELEPHANT_SPAWNS).add(biome);
         }
         for (String biome : REGION_LAND) {
             tag(ModBiomeTags.HOPE_GU_SPAWNS).addOptional(getGuWorldBiome(biome));

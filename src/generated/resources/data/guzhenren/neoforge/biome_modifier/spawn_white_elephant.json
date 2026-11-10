@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#guzhenren:elephant_spawns",
+  "spawners": {
+    "type": "guzhenren:white_elephant",
+    "maxCount": 1,
+    "minCount": 1,
+    "weight": 1
+  }
+}

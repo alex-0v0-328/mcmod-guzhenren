@@ -92,6 +92,8 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final ResourceKey<BiomeModifier> SPAWN_YELLOW_OX = createModifierKey("spawn_yellow_ox");
     private static final ResourceKey<BiomeModifier> SPAWN_WATER_BUFFALO = createModifierKey("spawn_water_buffalo");
     private static final ResourceKey<BiomeModifier> SPAWN_AZURE_OX = createModifierKey("spawn_azure_ox");
+    private static final ResourceKey<BiomeModifier> SPAWN_ELEPHANT = createModifierKey("spawn_elephant");
+    private static final ResourceKey<BiomeModifier> SPAWN_WHITE_ELEPHANT = createModifierKey("spawn_white_elephant");
     private static final int HOPE_GU_SPAWN_WEIGHT = 8;
     private static final int HOPE_GU_PACK_MINIMUM = 1;
     private static final int HOPE_GU_PACK_MAXIMUM = 2;
@@ -119,6 +121,10 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
     private static final int WATER_BUFFALO_SPAWN_WEIGHT = 2;
     private static final int WATER_BUFFALO_PACK_MAXIMUM = 3;
     private static final int AZURE_OX_SPAWN_WEIGHT = 1;
+    private static final int ELEPHANT_SPAWN_WEIGHT = 2;
+    private static final int ELEPHANT_PACK_MINIMUM = 2;
+    private static final int ELEPHANT_PACK_MAXIMUM = 3;
+    private static final int WHITE_ELEPHANT_SPAWN_WEIGHT = 1;
     private static final int BEAST_PACK_MINIMUM = 1;
     private static final int BEAST_PACK_MAXIMUM = 1;
 
@@ -162,6 +168,10 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
                 WATER_BUFFALO_PACK_MAXIMUM)));
         context.register(SPAWN_AZURE_OX, createBeastSpawns(biomes, ModBiomeTags.CATTLE_SPAWNS,
                 ModEntityTypes.AZURE_OX.get(), AZURE_OX_SPAWN_WEIGHT));
+        context.register(SPAWN_ELEPHANT, createSpawns(biomes, ModBiomeTags.ELEPHANT_SPAWNS, createSpawner(
+                ModEntityTypes.ELEPHANT.get(), ELEPHANT_SPAWN_WEIGHT, ELEPHANT_PACK_MINIMUM, ELEPHANT_PACK_MAXIMUM)));
+        context.register(SPAWN_WHITE_ELEPHANT, createBeastSpawns(biomes, ModBiomeTags.ELEPHANT_SPAWNS,
+                ModEntityTypes.WHITE_ELEPHANT.get(), WHITE_ELEPHANT_SPAWN_WEIGHT));
     }
 
     private static ResourceKey<BiomeModifier> createModifierKey(String id) {

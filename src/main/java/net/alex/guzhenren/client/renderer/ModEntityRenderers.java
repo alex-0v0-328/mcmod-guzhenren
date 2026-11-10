@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.renderer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BearEntity;
 import net.alex.guzhenren.entity.beast.CattleEntity;
+import net.alex.guzhenren.entity.beast.ElephantEntity;
 import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
@@ -26,6 +27,8 @@ import software.bernie.geckolib.model.GeoModel;
  * <p>The boar Gu's ladybug geometry is life-sized (about 0.19 by 0.28 blocks); {@link #BOAR_GU_SCALE} draws it
  * at the width of the 0.4-block hitbox without touching the exported geometry, and it keeps the vanilla death
  * tilt. Every other family turns the tilt off because its death animation lies the body down by itself. The
+ * elephant is modeled at half size, one texel a unit on its 128 x 128 sheet, and {@link #ELEPHANT_SCALE} doubles it
+ * to about 3.75 blocks tall. The
  * crash Gu textures follow rank: dark silver for both rank-three Gu (one shared file), dark gold for rank four
  * and dark amethyst for rank five.
  *
@@ -39,6 +42,7 @@ public final class ModEntityRenderers {
     private ModEntityRenderers() {}
 
     private static final float BOAR_GU_SCALE = 2.0F;
+    private static final float ELEPHANT_SCALE = 2.0F;
     private static final GeoModel<BoarGuEntity> BOAR_GU_MODEL =
             new DefaultedEntityGeoModel<>(Guzhenren.id("boar_gu"), false);
     private static final GeoModel<CrashGuEntity> CRASH_GU_MODEL =
@@ -53,6 +57,8 @@ public final class ModEntityRenderers {
             new DefaultedEntityGeoModel<>(Guzhenren.id("tortoise"), false);
     private static final GeoModel<CattleEntity> BUFFALO_MODEL =
             new DefaultedEntityGeoModel<>(Guzhenren.id("buffalo"), false);
+    private static final GeoModel<ElephantEntity> ELEPHANT_MODEL =
+            new DefaultedEntityGeoModel<>(Guzhenren.id("elephant"), false);
     private static final HumanSoulGeoModel HUMAN_SOUL_MODEL = new HumanSoulGeoModel();
 
     private static final ResourceLocation WHITE_BOAR_GU = getTexture("white_boar_gu");
@@ -73,6 +79,8 @@ public final class ModEntityRenderers {
     private static final ResourceLocation YELLOW_OX = getTexture("yellow_ox");
     private static final ResourceLocation WATER_BUFFALO = getTexture("water_buffalo");
     private static final ResourceLocation AZURE_OX = getTexture("azure_ox");
+    private static final ResourceLocation ELEPHANT = getTexture("elephant");
+    private static final ResourceLocation WHITE_ELEPHANT = getTexture("white_elephant");
 
     public static void register(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntityTypes.HOPE_GU_ENTITY.get(), NoopRenderer::new);
@@ -111,6 +119,9 @@ public final class ModEntityRenderers {
         event.registerEntityRenderer(ModEntityTypes.WATER_BUFFALO.get(),
                 context -> createCattleRenderer(context, WATER_BUFFALO));
         event.registerEntityRenderer(ModEntityTypes.AZURE_OX.get(), context -> createCattleRenderer(context, AZURE_OX));
+        event.registerEntityRenderer(ModEntityTypes.ELEPHANT.get(), context -> createElephantRenderer(context, ELEPHANT));
+        event.registerEntityRenderer(ModEntityTypes.WHITE_ELEPHANT.get(),
+                context -> createElephantRenderer(context, WHITE_ELEPHANT));
         event.registerEntityRenderer(ModEntityTypes.BEAST_PHANTOM.get(), BeastPhantomRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(),
                 context -> new SoulTraderGeoRenderer(context, HUMAN_SOUL_MODEL, SoulTraderGeoRenderer.BLUE_TEXTURE));
@@ -147,6 +158,11 @@ public final class ModEntityRenderers {
     private static EntityRenderer<CattleEntity> createCattleRenderer(EntityRendererProvider.Context context,
                                                                      ResourceLocation texture) {
         return new FixedTextureGeoRenderer<>(context, BUFFALO_MODEL, texture, 0.9F, false);
+    }
+
+    private static EntityRenderer<ElephantEntity> createElephantRenderer(EntityRendererProvider.Context context,
+                                                                         ResourceLocation texture) {
+        return new FixedTextureGeoRenderer<>(context, ELEPHANT_MODEL, texture, 1.3F, false).withScale(ELEPHANT_SCALE);
     }
 
     private static ResourceLocation getTexture(String name) {
