@@ -13,8 +13,8 @@ import yesman.epicfight.client.input.EpicFightKeyMappings;
 /**
  * The Strength Qi Gu [力气蛊] punch on the client: a fresh press of the attack key, with the main hand empty and the
  * buff's effect on, sends {@link QiWavePayload} at Epic Fight's lock-on target when it is past the reach
- * ({@link QiWaveService#isPastReach}), at any distance; the server checks it all again and paces it by the strength
- * rounds. Without a lock-on nothing is
+ * ({@link QiWaveService#isPastReach}), at any distance; the server checks it all again and paces it by
+ * {@code StrengthRound.RANGE_INTERVAL_TICKS}. Without a lock-on nothing is
  * thrown: a crosshair pick snagged on grass and other plants.
  *
  * <p>The press is read as an edge of the held state, never as a consumed click: Epic Fight's own attack key shares

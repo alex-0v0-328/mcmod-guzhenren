@@ -41,13 +41,14 @@ import org.jetbrains.annotations.Nullable;
  * the opening; a family the body no longer holds leaves it, and its phantom goes, the next tick. Outside a round the
  * release is zero.
  *
- * <p>The Strength Qi Gu's [力气蛊] ranged punch keeps to the rounds ({@link #canRange}): at most one a round, at
- * least {@link #ROUND_TICKS} apart. One thrown outside a round opens one as a fist would ({@link #startRange}); one
- * thrown by a body without a permanent beast opens none and keeps only the spacing.
+ * <p>The Strength Qi Gu's [力气蛊] ranged punch has its own spacing ({@link #canRange}): at least
+ * {@link #RANGE_INTERVAL_TICKS} apart, so a round takes two, each sharing what the opening drew. One thrown
+ * outside a round opens one as a fist would ({@link #startRange}); one thrown by a body without a permanent beast
+ * opens none and keeps only the spacing.
  *
  * <p>⚠ Server memory only, keyed by player: never saved, cleared on death, logout, dimension change and server stop.
- * A client asks nothing of it and reads no release. ⚠ {@link #CHANCE}, {@link #ROUND_TICKS} and
- * {@link #STREAK_WINDOW_TICKS} are provisional. The int and list overloads are seams for unit tests.
+ * A client asks nothing of it and reads no release. ⚠ {@link #CHANCE}, {@link #ROUND_TICKS},
+ * {@link #RANGE_INTERVAL_TICKS} and {@link #STREAK_WINDOW_TICKS} are provisional. The int and list overloads are seams for unit tests.
  *
  * @author Alex
  * @version 1.0.0
@@ -65,6 +66,7 @@ public final class StrengthRound {
     public static final float CHANCE = 0.05F;
     private static final float[] ALL_OUT_CHANCES = { 0.80F, 0.90F, 1.0F };
     public static final int ROUND_TICKS = 20;
+    public static final int RANGE_INTERVAL_TICKS = 10;
     public static final int STREAK_WINDOW_TICKS = 20;
     private static final Map<UUID, State> ROUNDS = new HashMap<>();
     private static final Map<UUID, Long> RANGED = new HashMap<>();
@@ -122,16 +124,11 @@ public final class StrengthRound {
     }
 
     public static boolean canRange(@NotNull ServerPlayer player) {
-        long now = player.level().getGameTime();
-        State state = ROUNDS.get(player.getUUID());
-        Long roundStart = state != null && !isOver(state.start, now) ? state.start : null;
-        return canRange(RANGED.get(player.getUUID()), roundStart, now);
+        return canRange(RANGED.get(player.getUUID()), player.level().getGameTime());
     }
 
-    public static boolean canRange(@Nullable Long lastRanged, @Nullable Long roundStart, long now) {
-        if (lastRanged == null) return true;
-        if (now - lastRanged < ROUND_TICKS) return false;
-        return roundStart == null || lastRanged < roundStart;
+    public static boolean canRange(@Nullable Long lastRanged, long now) {
+        return lastRanged == null || now - lastRanged >= RANGE_INTERVAL_TICKS;
     }
 
     public static float startRange(@NotNull ServerPlayer player, float roll) {

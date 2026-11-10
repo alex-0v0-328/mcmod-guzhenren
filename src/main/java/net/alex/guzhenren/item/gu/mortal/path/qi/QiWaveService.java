@@ -30,10 +30,11 @@ import org.jetbrains.annotations.NotNull;
  * {@link #fire} checks it all again, bounded only by line of sight (vanilla's own 128 blocks).
  *
  * <p>{@link #isPastReach} is the one range rule, read by both ends: a target inside the reach is left to the plain
- * melee hit, so one click never lands twice. The punch keeps to the strength rounds [攻击轮次]
- * ({@link StrengthRound#canRange}): one a round at most, and one thrown outside a round opens one. A Qi Wave hits as
- * hard as the fist: the player's attack damage, where the strength path's bonus and the round's release live, plus
- * the release the round it opened has not yet put there. No attack charge scales it; the rounds pace it.
+ * melee hit, so one click never lands twice. The punch has its own spacing inside the strength rounds [攻击轮次]
+ * ({@link StrengthRound#canRange}): {@code RANGE_INTERVAL_TICKS} apart, and one thrown outside a round opens one. A
+ * Qi Wave hits as hard as the fist: the player's attack damage, where the strength path's bonus and the round's
+ * release live, plus the release the round it opened has not yet put there. No attack charge scales it; the spacing
+ * paces it.
  *
  * <p>A holder of the beast strength phantom path [兽力虚影流] throws one {@link BeastChargeEntity} for every family the
  * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}). Each hits with the
