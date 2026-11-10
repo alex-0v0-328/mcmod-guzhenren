@@ -25,19 +25,25 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import yesman.epicfight.api.animation.AnimationManager;
+import yesman.epicfight.api.animation.LivingMotions;
+import yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty;
 import yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty;
+import yesman.epicfight.api.animation.property.AnimationProperty.StaticAnimationProperty;
+import yesman.epicfight.api.animation.types.ActionAnimation;
 import yesman.epicfight.api.animation.types.AirSlashAnimation;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.ComboAttackAnimation;
 import yesman.epicfight.api.animation.types.DashAttackAnimation;
 import yesman.epicfight.api.animation.types.DodgeAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
+import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
 import yesman.epicfight.api.event.types.player.SetTargetEvent;
 import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
+import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.Armatures;
 import yesman.epicfight.registry.entries.EpicFightAttributes;
 import yesman.epicfight.registry.entries.EpicFightSkills;
@@ -86,8 +92,15 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * strength [两猪之力]: a body holding both clears the dash's path through {@link CrashBreach#clear} before the
  * animation is sent.
  *
- * <p>The two mutable statics, {@code dashForward} and {@code dashBackward}, are set once by Epic Fight's animation
- * registration and only read afterwards.
+ * <p>The Store Strength Gu's [蓄力蛊] charge [蓄力] borrows two of Epic Fight's clips under this mod's own accessors,
+ * so neither brings its own behavior along. {@link #holdCharge} plays the demolition leap's crouch as an action
+ * animation: it locks moving and turning, allows no combo attack or skill, and
+ * {@code Animations.ReusableSources.CHARGING} slows it into its last frame, where it stays until
+ * {@link #endCharge} hands the body back to the idle or {@link #strikeCharge} throws the third fist combo's clip, an
+ * action animation too and so no attack: it has no collider, deals nothing and closes no attack phase.
+ *
+ * <p>The mutable statics, {@code dashForward}, {@code dashBackward}, {@code chargeHold} and {@code chargeStrike}, are
+ * set once by Epic Fight's animation registration and only read afterwards.
  *
  * @author Alex
  * @version 1.0.0
@@ -101,6 +114,8 @@ public final class EpicFightIntegration {
             AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashForward;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashBackward;
+    private static AnimationManager.AnimationAccessor<ActionAnimation> chargeHold;
+    private static AnimationManager.AnimationAccessor<ActionAnimation> chargeStrike;
 
     private EpicFightIntegration() {}
 
@@ -119,7 +134,28 @@ public final class EpicFightIntegration {
             dashBackward = builder.nextAccessor("biped/skill/dash_backward", accessor ->
                     new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED)
                             .setResourceLocation("epicfight", "biped/skill/step_backward"));
+            chargeHold = builder.nextAccessor("biped/skill/store_strength_hold", accessor ->
+                    new ActionAnimation(0.15F, accessor, Armatures.BIPED)
+                            .addProperty(ActionAnimationProperty.STOP_MOVEMENT, true)
+                            .addProperty(StaticAnimationProperty.PLAY_SPEED_MODIFIER,
+                                    Animations.ReusableSources.CHARGING)
+                            .addProperty(StaticAnimationProperty.RESET_LIVING_MOTION, LivingMotions.IDLE)
+                            .setResourceLocation("epicfight", "biped/skill/demolition_leap_charge"));
+            chargeStrike = builder.nextAccessor("biped/skill/store_strength_strike", accessor ->
+                    new ActionAnimation(0.05F, accessor, Armatures.BIPED)
+                            .setResourceLocation("epicfight", "biped/combat/fist_auto3"));
         });
+    }
+
+    public static void holdCharge(ServerPlayer player) { play(player, chargeHold); }
+
+    public static void strikeCharge(ServerPlayer player) { play(player, chargeStrike); }
+
+    public static void endCharge(ServerPlayer player) { play(player, Animations.BIPED_IDLE); }
+
+    private static void play(ServerPlayer player, AssetAccessor<? extends StaticAnimation> animation) {
+        ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
+        if (patch != null && animation != null) patch.playAnimationSynchronized(animation, 0.0F);
     }
 
     public static void dash(ServerPlayer player, int vertical, float yRot) {

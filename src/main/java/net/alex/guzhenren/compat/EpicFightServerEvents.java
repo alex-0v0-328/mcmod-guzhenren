@@ -2,6 +2,7 @@ package net.alex.guzhenren.compat;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
+import net.alex.guzhenren.gameplay.path.strength.StoreStrengthChargeEvent;
 import net.alex.guzhenren.gameplay.plunge.PlungeLandedEvent;
 import net.alex.guzhenren.lifecycle.PlayerRefreshedEvent;
 import net.minecraft.core.BlockPos;
@@ -19,8 +20,9 @@ import yesman.epicfight.registry.entries.EpicFightItems;
 /**
  * Seeds Epic Fight's skill-retention rule once per world ({@link EpicFightRuleSeed}), re-reads the stamina
  * modifier whenever the apertures change ({@code ApertureChangedEvent}) or the lifecycle rebuilds a player's
- * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, and cracks the
- * ground under a plunge's landing.
+ * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, cracks the
+ * ground under a plunge's landing, and lets go of the Store Strength Gu's [蓄力蛊] charge pose when the server drops
+ * the charge on its own ({@link #onCharge}).
  *
  * <p>{@link #onPlungeLanded}: Epic Fight's own terrain fracture, the cracked ring its meteor slam leaves, at the
  * landing with the landing's impact power as its radius ({@code PlungeImpact#getImpactPower}, 2 to 6 blocks), sent to
@@ -57,6 +59,13 @@ public final class EpicFightServerEvents {
     public static void onLivingDrops(LivingDropsEvent event) {
         if (event.getEntity() instanceof Player) return;
         event.getDrops().removeIf(drop -> drop.getItem().is(EpicFightItems.SKILLBOOK));
+    }
+
+    @SubscribeEvent
+    public static void onCharge(StoreStrengthChargeEvent event) {
+        if (event.getChange() == StoreStrengthChargeEvent.Change.DROPPED) {
+            EpicFightIntegration.endCharge(event.getPlayer());
+        }
     }
 
     @SubscribeEvent

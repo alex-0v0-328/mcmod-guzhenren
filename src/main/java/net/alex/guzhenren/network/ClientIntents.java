@@ -141,16 +141,23 @@ public final class ClientIntents {
     public static void storeStrength(@NotNull ServerPlayer player, @NotNull ChargeAction action, int target) {
         switch (action) {
             case START -> {
-                if (!isOutsideTyh(player) || !StoreStrength.start(player)) {
+                if (isOutsideTyh(player) && StoreStrength.start(player)) {
+                    EpicFightIntegration.holdCharge(player);
+                } else {
                     StoreStrengthNotices.send(player, StoreStrengthChargeEvent.Change.DROPPED);
                 }
             }
-            case CANCEL -> StoreStrength.cancel(player);
+            case CANCEL -> {
+                if (StoreStrength.isCharging(player)) EpicFightIntegration.endCharge(player);
+                StoreStrength.cancel(player);
+            }
             case RELEASE -> {
-                if (isOutsideTyh(player)) {
-                    ChargedPunch.release(player, target);
+                boolean charging = StoreStrength.isCharging(player);
+                if (isOutsideTyh(player) && ChargedPunch.release(player, target)) {
+                    EpicFightIntegration.strikeCharge(player);
                 } else {
                     StoreStrength.cancel(player);
+                    if (charging) EpicFightIntegration.endCharge(player);
                 }
             }
         }
