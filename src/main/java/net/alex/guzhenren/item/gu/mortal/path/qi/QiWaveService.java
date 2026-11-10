@@ -102,7 +102,8 @@ public final class QiWaveService {
                 StrengthService.FULL_RELEASE_FACTOR, StrengthService.getCapacity(player));
         List<Projectile> charges = new ArrayList<>();
         for (int i = 0; i < families.size(); i++) {
-            charges.add(BeastChargeEntity.shoot(player, target, damages[i], families.get(i)));
+            charges.add(BeastChargeEntity.shoot(player, target, damages[i], families.get(i), QiBurst.Spec.QI_WAVE, i,
+                    families.size()));
         }
         return charges;
     }

@@ -152,7 +152,7 @@ public final class ChargedPunch {
             return;
         }
         for (int i = 0; i < charging.size(); i++) {
-            BeastChargeEntity.shoot(player, target, chargeDamages[i], charging.get(i), burst);
+            BeastChargeEntity.shoot(player, target, chargeDamages[i], charging.get(i), burst, i, charging.size());
         }
     }
     //endregion

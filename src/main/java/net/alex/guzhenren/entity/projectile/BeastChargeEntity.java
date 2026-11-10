@@ -35,7 +35,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * A Beast Charge [兽力冲击]: the Strength Qi Gu's [力气蛊] ranged punch on the beast strength phantom path, one
- * phantom beast of the round's family running at the lock-on target. It flies a {@link MoonBladeArc} from the muzzle to
+ * phantom beast of the round's family running at the lock-on target. It flies a {@link MoonBladeArc}, rolled by
+ * {@link BeastChargeArc} so the charges of one punch fan out over the upper half circle, from the muzzle to
  * the target's center, read afresh every tick, at {@link #SPEED} blocks a tick for at most {@link #MAX_FLIGHT_TICKS},
  * without gravity or drag, and passes through every other entity. When the flight runs out, or its box touches the
  * target, it bursts ({@link QiBurst#burst}) around the target and is gone that tick, handing on the arc's tangent at
@@ -84,12 +85,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     public BeastChargeEntity(EntityType<? extends BeastChargeEntity> type, Level level) { super(type, level); }
 
     public static BeastChargeEntity shoot(ServerPlayer owner, LivingEntity target, float damage,
-                                          BeastStrengthFamily family) {
-        return shoot(owner, target, damage, family, QiBurst.Spec.QI_WAVE);
-    }
-
-    public static BeastChargeEntity shoot(ServerPlayer owner, LivingEntity target, float damage,
-                                          BeastStrengthFamily family, QiBurst.Spec burst) {
+                                          BeastStrengthFamily family, QiBurst.Spec burst, int index, int count) {
         BeastChargeEntity charge = new BeastChargeEntity(ModEntityTypes.BEAST_CHARGE.get(), owner.level());
         charge.setOwner(owner);
         charge.damage = damage;
@@ -97,7 +93,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         charge.setPos(owner.getX(), owner.getEyeY() - SPAWN_DROP - charge.getBbHeight() / 2.0F, owner.getZ());
         Vec3 start = charge.position();
         Vec3 end = target.getBoundingBox().getCenter();
-        MoonBladeArc arc = MoonBladeArc.aim(start, end, SPEED, owner.getRandom());
+        MoonBladeArc arc = BeastChargeArc.aim(start, end, SPEED, owner.getRandom(), index, count);
         int ticks = Math.min(arc.flightTicks(), MAX_FLIGHT_TICKS);
         charge.entityData.set(TARGET, target.getId());
         charge.entityData.set(BEND, arc.bend().toVector3f());
