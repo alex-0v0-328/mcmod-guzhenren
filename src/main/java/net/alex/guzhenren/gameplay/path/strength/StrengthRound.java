@@ -47,8 +47,8 @@ import org.jetbrains.annotations.Nullable;
  * opens none and keeps only the spacing.
  *
  * <p>⚠ Server memory only, keyed by player: never saved, cleared on death, logout, dimension change and server stop.
- * A client asks nothing of it and reads no release. ⚠ {@link #CHANCE}, {@link #ROUND_TICKS},
- * {@link #RANGE_INTERVAL_TICKS} and {@link #STREAK_WINDOW_TICKS} are provisional. The int and list overloads are seams for unit tests.
+ * A client asks nothing of it and reads no release. ⚠ {@link #CHANCE}, {@link #ROUND_TICKS} and
+ * {@link #STREAK_WINDOW_TICKS} are provisional. The int and list overloads are seams for unit tests.
  *
  * @author Alex
  * @version 1.0.0
