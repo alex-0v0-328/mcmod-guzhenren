@@ -28,7 +28,9 @@ import net.minecraft.world.item.ItemStack;
  * ⚠ Stones count only for a player with an aperture to burn them through ({@link #canAfford}): the
  * essence gate stands in for {@code isAwakened}, and without the check a mortal could pay a Gu in stones. ⚠ Creative
  * draws no stone ({@link #draw} answers 0): the top-up pours nothing and the part of a cost the pool cannot cover goes
- * free, as creative eats no food either; only the player's own hand moves a stone (the supply slot, nourishing).
+ * free, as creative eats no food either; only the player's own hand moves a stone (the supply slot, nourishing). A
+ * step sized from the pool reads {@link #getPoolAfterTopUp} there instead: the pool as the top-up line would have
+ * left it from the stones in reach, so creative refines and channels at the pace survival does with those stones.
  *
  * <p>☠ A second copy of the top-up line drifts, and the pool silently clamps whatever a caller pours past
  * the cap. ☠ {@link #trySpend}: a lump bigger than the pool burns stones straight, never through the cap --
@@ -71,6 +73,12 @@ public final class PrimevalStoneSupply {
     public static long topUpDeficit(Player player) {
         return ApertureEssenceService.getMaxEssence(player) * REFILL_UP_TO_PERCENT / 100L
                 - ApertureEssenceService.getCurrentEssence(player);
+    }
+
+    public static long getPoolAfterTopUp(Player player) {
+        long spendable = ApertureEssenceService.getSpendable(player);
+        if (!isTopUpNeeded(player)) return spendable;
+        return spendable + Math.clamp(topUpDeficit(player), 0L, getWorthOnHand(player));
     }
 
     public static void topUp(ServerPlayer player) {

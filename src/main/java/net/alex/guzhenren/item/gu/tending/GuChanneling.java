@@ -3,6 +3,7 @@ package net.alex.guzhenren.item.gu.tending;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.item.gu.GuProperties;
+import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
@@ -20,8 +21,10 @@ import net.minecraft.world.item.ItemStack;
  * cycle: 1/9, 1/8, ... then 1/2 of the pool per step, 8/9 of it a cycle at normal time flow.
  *
  * <p>⚠ A step is sized from the pool, which is never below {@link #ESSENCE_FLOOR} when it pours: below it a step is
- * 0. Creative draws no stone, so its top-up never lifts a short pool to the floor; it sizes as if it had, and it
- * ignores the hunger floor ({@link #getEssenceAboveHungerFloor}). A channel step is capped by the essence above the
+ * 0. Creative draws no stone, so its top-up never lifts a short pool; it sizes from the pool the top-up would have
+ * left ({@code PrimevalStoneSupply.getPoolAfterTopUp}), never below the floor, and it ignores the hunger floor
+ * ({@link #getEssenceAboveHungerFloor}). ☠ Sized from the bare pool, a creative step on an empty one is a ninth of
+ * the floor, 2 a step against a rank three refining of 51,200. A channel step is capped by the essence above the
  * hunger floor, so the host eats before it sizes; it never pours past the end of the round.
  *
  * <p>Every sizing method has a pure overload taking only numbers, like {@code TimeFlow}'s arithmetic, for the tests;
@@ -94,7 +97,9 @@ final class GuChanneling {
     }
 
     private static long getStepPool(ServerPlayer player) {
-        return getStepPool(ApertureEssenceService.getSpendable(player), player.getAbilities().instabuild);
+        boolean creative = player.getAbilities().instabuild;
+        return getStepPool(creative ? PrimevalStoneSupply.getPoolAfterTopUp(player)
+                : ApertureEssenceService.getSpendable(player), creative);
     }
 
     static long getStepPool(long spendable, boolean creative) {
