@@ -21,9 +21,9 @@ import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
 import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
+import net.alex.guzhenren.particle.RingConeEmitter;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -56,14 +56,15 @@ import org.jetbrains.annotations.Nullable;
  * Otherwise it swings the fan ({@link #swing}): every target {@link StoreStrength#isInFan} along the level way to the
  * kept target (the look without one), in sight of the eyes and {@link AreaImpact#canHit}, nearest first until
  * {@link #MAX_TARGETS} took it, the kept one first in full and the rest {@link #SECONDARY_RATIO}, each pushed
- * {@link #KNOCKBACK} away from the feet. A swing that hits nothing still lands.
+ * {@link #KNOCKBACK} away from the feet. A swing that hits nothing still lands, and either way it sends one area
+ * impact ring [范围冲击环] from mid-body down the fan's axis to its range ({@link RingConeEmitter#areaImpactRing}).
  *
  * <p>Whatever it hits, the impact backlash [冲击反噬] follows: the points past the capacity, through
  * {@link BodyOverload#recoil} as {@code guzhenren:impact_backlash}. Its damage type opens no strength round and pays
  * no body overload ({@code BeastPhantomEvents}).
  *
- * <p>⚠ {@link #SECONDARY_RATIO}, {@link #MAX_TARGETS}, {@link #KNOCKBACK}, {@link #ARC_RADIUS} and
- * {@link #MAX_TARGET_DISTANCE} are provisional; the last sits above Epic Fight's default lock-on range.
+ * <p>⚠ {@link #SECONDARY_RATIO}, {@link #MAX_TARGETS}, {@link #KNOCKBACK} and {@link #MAX_TARGET_DISTANCE} are
+ * provisional; the last sits above Epic Fight's default lock-on range.
  *
  * @author Alex
  * @version 1.0.0
@@ -78,7 +79,6 @@ public final class ChargedPunch {
     public static final float SECONDARY_RATIO = 0.5F;
     public static final int MAX_TARGETS = 8;
     public static final double KNOCKBACK = 1.0D;
-    public static final double ARC_RADIUS = 3.0D;
     public static final double MAX_TARGET_DISTANCE = 32.0D;
 
     public static boolean release(@NotNull ServerPlayer player, int targetId) {
@@ -190,22 +190,13 @@ public final class ChargedPunch {
             landed++;
         }
         player.swing(InteractionHand.MAIN_HAND, true);
-        showSwing(player, axis, halfAngle);
+        showSwing(player, axis, range);
     }
 
-    private static void showSwing(ServerPlayer player, Vec3 axis, double halfAngle) {
+    private static void showSwing(ServerPlayer player, Vec3 axis, double range) {
         ServerLevel level = player.serverLevel();
-        int points = StoreStrength.getArcPoints(halfAngle);
-        double y = player.getY() + player.getBbHeight() * 0.5D;
-        for (int i = 0; i < points; i++) {
-            double angle = Math.toRadians(-halfAngle + i * StoreStrength.ARC_STEP_DEGREES);
-            double cos = Math.cos(angle);
-            double sin = Math.sin(angle);
-            double x = axis.x * cos - axis.z * sin;
-            double z = axis.x * sin + axis.z * cos;
-            level.sendParticles(ParticleTypes.SWEEP_ATTACK, player.getX() + x * ARC_RADIUS, y,
-                    player.getZ() + z * ARC_RADIUS, 1, 0.0D, 0.0D, 0.0D, 0.0D);
-        }
+        RingConeEmitter.areaImpactRing(level, player.position().add(0.0D, player.getBbHeight() * 0.5D, 0.0D), axis,
+                range);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 SoundSource.PLAYERS, 1.0F, 0.6F);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_KNOCKBACK,

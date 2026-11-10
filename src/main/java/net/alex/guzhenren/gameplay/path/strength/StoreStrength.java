@@ -74,7 +74,6 @@ public final class StoreStrength {
     public static final double ABOVE = 2.0D;
     public static final double BURST_RADIUS = 3.0D;
     public static final double HARDSHIP_BURST_RADIUS = 4.5D;
-    public static final double ARC_STEP_DEGREES = 15.0D;
     private static final double MIN_LENGTH_SQR = 1.0E-6D;
     private static final float FILL_EPSILON = 1.0E-4F;
     private static final Map<UUID, Float> CHARGES = new HashMap<>();
@@ -125,10 +124,6 @@ public final class StoreStrength {
     }
 
     public static double getBurstRadius(boolean widened) { return widened ? HARDSHIP_BURST_RADIUS : BURST_RADIUS; }
-
-    public static int getArcPoints(double halfAngleDegrees) {
-        return (int) Math.round(2.0D * halfAngleDegrees / ARC_STEP_DEGREES) + 1;
-    }
 
     public static @NotNull Vec3 getLevelAxis(@NotNull Vec3 toward) {
         Vec3 level = new Vec3(toward.x, 0.0D, toward.z);
