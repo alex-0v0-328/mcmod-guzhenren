@@ -24,6 +24,7 @@ import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -37,7 +38,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * {@link #FAN_ROWS} rows of pairs that opens downward from the apex, each row {@link #FAN_COLUMN} further out and
  * {@link #FAN_ROW} lower than the one above, the lowest row {@link #FAN_BASE_HEIGHT} up, so a third-person camera
  * sees the whole fan behind the owner and no fan slot stands straight behind a ground one. It plays its family's
- * attack once, then idles.
+ * appearance once, from when it starts to fade in, then idles.
  *
  * <p>{@link #show} sets an owner's phantoms to a round's families: a family already up is renewed in its slot -- its
  * life starts over, nothing respawns -- a new one takes the first free slot in declaration order ({@link #pickSlot}:
@@ -48,9 +49,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *
  * <p>It comes and goes drawn only: the entity stays in its slot and the renderer moves, scales and fades the model
  * ({@link #getDrift}, {@link #getScale}, {@link #getFade}, {@link #getGlow}). It appears over {@link #APPEAR_TICKS},
- * one tick later per slot in declaration order, sliding in from {@link #APPEAR_BACK} blocks behind its slot while it
- * fades in and grows from {@link #APPEAR_SCALE} past {@link #APPEAR_OVERSHOOT} to full size. Over its last
- * {@link #VANISH_TICKS} it gathers from its slot into its owner's body, {@link #BODY_HEIGHT} above the feet,
+ * one tick later per slot in declaration order -- its appearance clip waits as long -- sliding in from
+ * {@link #APPEAR_BACK} blocks behind its slot while it fades in and grows from {@link #APPEAR_SCALE} past
+ * {@link #APPEAR_OVERSHOOT} to full size. Over its last {@link #VANISH_TICKS} it gathers from its slot into its owner's body, {@link #BODY_HEIGHT} above the feet,
  * shrinking to {@link #VANISH_SCALE} and fading out while its glow rises to {@link #GLOW_PEAK} times its strength.
  * A renewal never replays the appearance; one that comes while it gathers sends it back out to its slot over
  * {@link #VANISH_RETURN_TICKS}. One dropped from a round goes at once. ⚠ All of these numbers are provisional.
@@ -98,8 +99,8 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     public static final double BODY_HEIGHT = 0.9D;
     public static final float GLOW_PEAK = 2.4F;
     private static final float OVERSHOOT_AT = 0.7F;
-    private static final Map<BeastStrengthFamily, RawAnimation> ATTACKS =
-            BeastPhantomVisual.byFamily(family -> BeastPhantomVisual.getAttack(family, "idle"));
+    private static final Map<BeastStrengthFamily, RawAnimation> APPEARANCES =
+            BeastPhantomVisual.byFamily(family -> BeastPhantomVisual.getAppear(family, "idle"));
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int bornTick;
     private float vanish;
@@ -338,8 +339,8 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
     //region Animation [动画]
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "attack", 0,
-                state -> state.setAndContinue(ATTACKS.get(getFamily()))));
+        controllers.add(new AnimationController<>(this, "appear", 0, state -> this.tickCount < getSlot().ordinal()
+                ? PlayState.STOP : state.setAndContinue(APPEARANCES.get(getFamily()))));
     }
 
     @Override

@@ -15,11 +15,10 @@ import software.bernie.geckolib.animation.RawAnimation;
  * as a multiple of its resting one, {@link #getScale} the model's size and {@link #getDrift} how far the model is
  * drawn from the entity, in blocks to its right, up and ahead by its own yaw.
  *
- * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code attack_toss}), the
- * bear's and the tiger's carry an {@code animation.} prefix and attack with a swipe, the buffalo's carry the prefix
- * and the ox attacks with its toss. {@link #getAttack} and {@link #getLoop} hide that. The tortoise's carry the
- * prefix but no attack, so the turtle's phantom only idles. The horse has no animation file: it is drawn on
- * vanilla's horse model, which poses itself ({@code HorsePhantomModel}).
+ * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code appear}), the
+ * bear's, the tiger's and the buffalo's carry an {@code animation.} prefix. {@link #getAppear} and {@link #getLoop}
+ * hide that. The tortoise's carry the prefix but no appearance, so the turtle's phantom only idles. The horse has no
+ * animation file: it is drawn on vanilla's horse model, which poses itself ({@code HorsePhantomModel}).
  *
  * @author Alex
  * @version 1.0.0
@@ -50,17 +49,9 @@ public interface BeastPhantomVisual {
         return animations;
     }
 
-    static RawAnimation getAttack(BeastStrengthFamily family, String loop) {
+    static RawAnimation getAppear(BeastStrengthFamily family, String loop) {
         if (family == BeastStrengthFamily.TURTLE) return getLoop(family, loop);
-        return RawAnimation.begin().thenPlay(getAttackName(family)).thenLoop(getName(family, loop));
-    }
-
-    private static String getAttackName(BeastStrengthFamily family) {
-        return switch (family) {
-            case BOAR -> "attack_toss";
-            case OX -> "animation.attack_toss";
-            default -> "animation.attack_swipe";
-        };
+        return RawAnimation.begin().thenPlay(getName(family, "appear")).thenLoop(getName(family, loop));
     }
 
     static RawAnimation getLoop(BeastStrengthFamily family, String loop) {
