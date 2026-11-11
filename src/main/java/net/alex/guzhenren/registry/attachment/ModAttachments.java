@@ -18,7 +18,6 @@ import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.PathEffectData;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -65,7 +64,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
  * {@code strength} as a subpackage of path. A constant is its record's class name without
- * {@code Data} ({@code PathStrengthData} is {@code PATH_STRENGTH}). Never give an attachment the bare domain word --
+ * {@code Data} ({@code PathEffectData} is {@code PATH_EFFECT}). Never give an attachment the bare domain word --
  * {@code qi}/{@code soul}/{@code strength} are also {@code GuPath} names. The ids are save keys: renaming
  * one loses every saved value.
  *
@@ -133,9 +132,6 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<PathEffectData>> PATH_EFFECT = registerSynced(
             "path_effect_data", PathEffectData.DEFAULT, PathEffectData.CODEC,
             StreamCodec.of(PathEffectData::encode, PathEffectData::decode));
-    public static final Supplier<AttachmentType<PathStrengthData>> PATH_STRENGTH = registerSynced(
-            "strength_data", PathStrengthData.DEFAULT, PathStrengthData.CODEC,
-            StreamCodec.of(PathStrengthData::encode, PathStrengthData::decode));
     //endregion
 
     //region Mind [脑海]

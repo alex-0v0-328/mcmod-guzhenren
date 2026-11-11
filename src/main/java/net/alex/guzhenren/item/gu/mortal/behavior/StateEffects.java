@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>⚠ Only a temp zombie carries a zombie effect. Turning zombie for good dissipates its Transformation strands:
  * {@link #syncZombie} runs the effect out on the spot, so it ends as an expiry and the form stays; a zombie gets none
- * back on login or by command. A temp zombie effect cut or removed takes the undead form with it; one that merely
+ * back on login or by command. A temp zombie effect removed takes the undead form with it; one that merely
  * runs out leaves the temp zombie to {@code UndeadService.tickTempZombie}, which lets it recover. A petrified
  * aperture is never un-petrified by its effect ending; the next aperture write puts the effect back.
  *
@@ -156,7 +156,7 @@ public final class StateEffects {
     @SubscribeEvent
     public static void onEnded(PathEffectEndedEvent event) {
         Reason reason = event.getReason();
-        if (event.getEffect().type() != ModPathEffectTypes.ZOMBIE || reason != Reason.CUT && reason != Reason.REMOVED) {
+        if (event.getEffect().type() != ModPathEffectTypes.ZOMBIE || reason != Reason.REMOVED) {
             return;
         }
         ServerPlayer player = event.getPlayer();

@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  * amplifier: {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. A Gu's gate reads
  * {@link #findBuff} and its kin; a rule that reads the vanilla effect (attack, carrying capacity, time flow) pauses
  * until then too. A jade skin and the shield keep their state on {@code BodyData} and
- * {@code ShieldData}; their effects follow the events those post, and an effect cut, removed or run out
+ * {@code ShieldData}; their effects follow the events those post, and an effect removed or run out
  * takes the state with it.
  *
  * <p>Using a Gu again while its effect runs lengthens the timer and adds no strands; a watch form stacks one layer
@@ -158,7 +158,7 @@ public final class TimedEffects {
         Map<GuPath, PathMarks> wanted = amplification.gu().getGuProperties().getEffectPaths();
         PathEffectService.update(player, type, source, effect -> {
             Map<GuPath, PathMarks> missing = new HashMap<>();
-            wanted.forEach((path, marks) -> missing.put(path, marks.cut(effect.getMarks(path))));
+            wanted.forEach((path, marks) -> missing.put(path, marks.minus(effect.getMarks(path))));
             return effect.addMarks(missing);
         });
     }

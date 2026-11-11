@@ -7,9 +7,11 @@ import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
+import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The strength settlement [力道结算]: how many of a body's strength points [力量点] it brings to bear. Static,
  * read-only service above the aperture and the body, since the capacity reads both. The points come in three
- * kinds: the permanent record ({@link PathStrengthData}: human jin and beast strengths by family), the running
+ * kinds: the permanent points, read from the strength path strands [丝] the beast and human strength effects carry
+ * ({@link #getPermanentPoints}, {@link PathStrengthData#getPoints(long)}; no effect, no points), the running
  * {@link StrengthAmplifier}s ({@link #getAmplifiers}: timed beast buffs and every path effect payload that is a
  * {@link StrengthAmplifierProvider}), and the points a round's beast release [解放] counts past the capacity
  * ({@link ReleaseSource}, set by the round keeper). {@link #snapshot} gathers the first two kinds and what they
@@ -115,8 +118,17 @@ public final class StrengthService {
 
     public static boolean isAllOut(@NotNull Player player) { return getAllOutTier(player) != NO_ALL_OUT; }
 
-    public static int getPermanentPoints(@NotNull Player player) {
-        return PathStrengthService.get(player).getStrengthPoints();
+    public static int getPermanentPoints(@NotNull Player player) { return getCarvedPoints(player, false); }
+
+    private static int getCarvedPoints(Player player, boolean beastsOnly) {
+        long strands = 0L;
+        for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
+            if (effect.type() == ModPathEffectTypes.BEAST_STRENGTH
+                    || !beastsOnly && effect.type() == ModPathEffectTypes.HUMAN_STRENGTH) {
+                strands += effect.getMarks(GuPath.STRENGTH).strands();
+            }
+        }
+        return PathStrengthData.getPoints(strands);
     }
 
     /** Every running amplifier: the timed beast buffs, then every path effect payload that provides one. */
@@ -160,10 +172,9 @@ public final class StrengthService {
 
     public static @NotNull StrengthSnapshot snapshot(@NotNull Player player) {
         int normal = getNormalCapacity(player);
-        PathStrengthData data = PathStrengthService.get(player);
-        int permanent = data.getStrengthPoints();
-        return StrengthSnapshot.of(normal, permanent, data.getBeastPoints(), getAmplifiers(player, permanent, normal),
-                getAllOutTier(player));
+        int permanent = getPermanentPoints(player);
+        return StrengthSnapshot.of(normal, permanent, getCarvedPoints(player, true),
+                getAmplifiers(player, permanent, normal), getAllOutTier(player));
     }
 
     public static int getUsablePoints(@NotNull Player player) { return getUsablePoints(player, snapshot(player)); }

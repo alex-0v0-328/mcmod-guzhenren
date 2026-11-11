@@ -32,7 +32,4 @@ public class FlowerBoarGuEffect extends MobEffect implements BeastStrengthBuff {
 
     @Override
     public BeastStrengthFamily getBeastFamily() { return BeastStrengthFamily.BOAR; }
-
-    @Override
-    public int getPoints() { return POINTS; }
 }

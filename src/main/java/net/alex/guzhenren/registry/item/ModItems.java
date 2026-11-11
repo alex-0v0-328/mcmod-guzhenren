@@ -20,6 +20,7 @@ import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
+import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.item.AdvancementIconItem;
@@ -550,66 +551,60 @@ public final class ModItems {
     //region Strength Path [力道]
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredItem<Item> WHITE_BOAR_GU = REGISTRAR.item("white_boar_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.ONE, ModItemTags.BOAR_FEED),
-                    new BeastStrengthBehavior(BeastStrength.WHITE_BOAR)))
+            () -> createBeastStrengthGu(Rank.ONE, ModItemTags.BOAR_FEED, BeastStrength.WHITE_BOAR))
             .lang("White Boar Gu", "白豕蛊").register();
     public static final DeferredItem<Item> BLACK_BOAR_GU = REGISTRAR.item("black_boar_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.ONE, ModItemTags.BOAR_FEED),
-                    new BeastStrengthBehavior(BeastStrength.BLACK_BOAR)))
+            () -> createBeastStrengthGu(Rank.ONE, ModItemTags.BOAR_FEED, BeastStrength.BLACK_BOAR))
             .lang("Black Boar Gu", "黑豕蛊").register();
     public static final DeferredItem<Item> BEAR_STRENGTH_GU = REGISTRAR.item("bear_strength_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.ONE, ModItemTags.BEAR_FEED),
-                    new BeastStrengthBehavior(BeastStrength.BEAR)))
+            () -> createBeastStrengthGu(Rank.ONE, ModItemTags.BEAR_FEED, BeastStrength.BEAR))
             .lang("Bear Strength Gu", "熊力蛊").register();
     public static final DeferredItem<Item> TIGER_STRENGTH_GU = REGISTRAR.item("tiger_strength_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.TWO, ModItemTags.TIGER_FEED),
-                    new BeastStrengthBehavior(BeastStrength.TIGER)))
+            () -> createBeastStrengthGu(Rank.TWO, ModItemTags.TIGER_FEED, BeastStrength.TIGER))
             .lang("Tiger Strength Gu", "虎力蛊").register();
     public static final DeferredItem<Item> STONE_TURTLE_STRENGTH_GU = REGISTRAR.item("stone_turtle_strength_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, ModItemTags.TURTLE_FEED),
-                    new BeastStrengthBehavior(BeastStrength.STONE_TURTLE)))
+            () -> createBeastStrengthGu(Rank.THREE, ModItemTags.TURTLE_FEED, BeastStrength.STONE_TURTLE))
             .lang("Stone Turtle Strength Gu", "石龟负力蛊").register();
     public static final DeferredItem<Item> GALLOPING_HORSE_STRENGTH_GU = REGISTRAR.item(
             "galloping_horse_strength_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, ModItemTags.HORSE_FEED),
-                    new BeastStrengthBehavior(BeastStrength.GALLOPING_HORSE)))
+            () -> createBeastStrengthGu(Rank.THREE, ModItemTags.HORSE_FEED, BeastStrength.GALLOPING_HORSE))
             .lang("Galloping Horse Strength Gu", "驰马骏力蛊").register();
     public static final DeferredItem<Item> GREEN_BULL_LABOR_GU = REGISTRAR.item("green_bull_labor_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, ModItemTags.OX_FEED),
-                    new BeastStrengthBehavior(BeastStrength.GREEN_BULL)))
+            () -> createBeastStrengthGu(Rank.THREE, ModItemTags.OX_FEED, BeastStrength.GREEN_BULL))
             .lang("Green Bull Labor Gu", "青牛劳力蛊").register();
     public static final DeferredItem<Item> BROWN_BEAR_INNATE_STRENGTH_GU = REGISTRAR.item(
             "brown_bear_innate_strength_gu",
-            () -> new TendedGuItem(createBeastStrengthProperties(Rank.THREE, ModItemTags.BEAR_FEED),
-                    new BeastStrengthBehavior(BeastStrength.BROWN_BEAR)))
+            () -> createBeastStrengthGu(Rank.THREE, ModItemTags.BEAR_FEED, BeastStrength.BROWN_BEAR))
             .lang("Brown Bear Innate Strength Gu", "棕熊本力蛊").register();
     public static final DeferredItem<Item> FLOWER_BOAR_GU = REGISTRAR.item("flower_boar_gu",
-            () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED),
+            () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED, FlowerBoarGuEffect.POINTS),
                     new TimedBuffBehavior(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),
                     new RecastBehavior()))
             .lang("Flower Boar Gu", "花豕蛊").register();
     public static final DeferredItem<Item> BRUTE_FORCE_LONGHORN_BEETLE_GU = REGISTRAR.item(
             "brute_force_longhorn_beetle_gu",
-            () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BEEF_FEED),
+            () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BEEF_FEED,
+                    BruteForceLonghornBeetleGuEffect.POINTS),
                     new TimedBuffBehavior(ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
                             BruteForceLonghornBeetleGuEffect.DURATION_TICKS),
                     new RecastBehavior()))
             .lang("Brute Force Longhorn Beetle Gu", "蛮力天牛蛊").register();
 
-    private static GuProperties createBeastStrengthProperties(Rank rank, TagKey<Item> feed) {
-        return createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
+    private static TendedGuItem createBeastStrengthGu(Rank rank, TagKey<Item> feed, BeastStrength beast) {
+        return new TendedGuItem(createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
                 .type(GuType.PATH_MARK_CARVING)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
-                .effect(EffectCarrier.BODY)
+                .effect(EffectCarrier.BODY, PathStrengthData.getStrands(beast.getPoints()))
                 .refine(refineEssence(rank))
-                .feed(feed, 1);
+                .feed(feed, 1),
+                new BeastStrengthBehavior(beast));
     }
 
-    private static GuProperties createBeastBuffProperties(TagKey<Item> feed) {
+    private static GuProperties createBeastBuffProperties(TagKey<Item> feed, int points) {
         return createRankedProperties(Rank.ONE, GuPath.STRENGTH)
                 .type(GuType.AMPLIFICATION)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
-                .effect(EffectCarrier.BODY)
+                .effect(EffectCarrier.BODY, PathStrengthData.getStrands(points))
                 .refine(refineEssence(Rank.ONE))
                 .costPerUse(infrequentUseEssence(Rank.ONE))
                 .feed(feed, 1)
@@ -619,29 +614,26 @@ public final class ModItems {
 
     //region Human Jun Strength Branch [人力钧力流]
     public static final DeferredItem<Item> JIN_STRENGTH_GU = REGISTRAR.item("jin_strength_gu",
-            () -> createHumanStrengthGu(Rank.ONE, 2, ModItemTags.IRON_FEED, HumanStrength.JIN))
+            () -> createHumanStrengthGu(Rank.ONE, ModItemTags.IRON_FEED, HumanStrength.JIN))
             .lang("Jin Strength Gu", "斤力蛊").register();
     public static final DeferredItem<Item> TENS_JIN_STRENGTH_GU = REGISTRAR.item("tens_jin_strength_gu",
-            () -> createHumanStrengthGu(Rank.TWO, 8, ModItemTags.IRON_FEED, HumanStrength.TEN_JIN))
+            () -> createHumanStrengthGu(Rank.TWO, ModItemTags.IRON_FEED, HumanStrength.TEN_JIN))
             .lang("Ten Jin Strength Gu", "十斤力蛊").register();
     public static final DeferredItem<Item> JUN_STRENGTH_GU = REGISTRAR.item("jun_strength_gu",
-            () -> createHumanStrengthGu(Rank.THREE, 32, ModItemTags.IRON_FEED_SMELTED,
-                    HumanStrength.JUN))
+            () -> createHumanStrengthGu(Rank.THREE, ModItemTags.IRON_FEED_SMELTED, HumanStrength.JUN))
             .lang("Jun Strength Gu", "钧力蛊").register();
     public static final DeferredItem<Item> TENS_JUN_STRENGTH_GU = REGISTRAR.item("tens_jun_strength_gu",
-            () -> createHumanStrengthGu(Rank.FOUR, 128, ModItemTags.IRON_FEED_SMELTED,
-                    HumanStrength.TEN_JUN))
+            () -> createHumanStrengthGu(Rank.FOUR, ModItemTags.IRON_FEED_SMELTED, HumanStrength.TEN_JUN))
             .lang("Ten Jun Strength Gu", "十钧力蛊").register();
     public static final DeferredItem<Item> HUNDREDS_JUN_STRENGTH_GU = REGISTRAR.item("hundreds_jun_strength_gu",
-            () -> createHumanStrengthGu(Rank.FIVE, 512, ModItemTags.IRON_FEED_SMELTED,
-                    HumanStrength.HUNDRED_JUN))
+            () -> createHumanStrengthGu(Rank.FIVE, ModItemTags.IRON_FEED_SMELTED, HumanStrength.HUNDRED_JUN))
             .lang("Hundred Jun Strength Gu", "百钧之力蛊").register();
 
-    private static TendedGuItem createHumanStrengthGu(Rank rank, long strands, TagKey<Item> feed, HumanStrength kind) {
+    private static TendedGuItem createHumanStrengthGu(Rank rank, TagKey<Item> feed, HumanStrength kind) {
         return new TendedGuItem(createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
                 .type(GuType.PATH_MARK_CARVING)
                 .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
-                .effect(EffectCarrier.BODY, strands)
+                .effect(EffectCarrier.BODY, PathStrengthData.getStrands(kind.getJin()))
                 .refine(refineEssence(rank))
                 .feed(feed, 1),
                 new HumanStrengthBehavior(kind));

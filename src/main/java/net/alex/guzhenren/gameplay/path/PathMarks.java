@@ -58,7 +58,7 @@ public record PathMarks(long marks, long strands) {
         return new PathMarks(LongMath.saturatedAdd(marks, other.marks), LongMath.saturatedAdd(strands, other.strands));
     }
 
-    public PathMarks cut(PathMarks amount) {
+    public PathMarks minus(PathMarks amount) {
         return new PathMarks(LongMath.saturatedSubtract(marks, amount.marks),
                 LongMath.saturatedSubtract(strands, amount.strands));
     }

@@ -14,7 +14,6 @@ import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
 import net.alex.guzhenren.gameplay.path.PathEffectData;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.alex.guzhenren.registry.attachment.ModAttachments;
@@ -78,7 +77,6 @@ public final class PlayerData {
 
     public PathEffectData getPathEffect() { return owner.getData(ModAttachments.PATH_EFFECT); }
 
-    public PathStrengthData getStrength() { return owner.getData(ModAttachments.PATH_STRENGTH); }
 
     public MindData getMind() { return owner.getData(ModAttachments.MIND); }
 
@@ -122,7 +120,6 @@ public final class PlayerData {
 
     public boolean setPathEffect(@NotNull PathEffectData value) { return set(ModAttachments.PATH_EFFECT, value); }
 
-    public boolean setStrength(@NotNull PathStrengthData value) { return set(ModAttachments.PATH_STRENGTH, value); }
 
     public boolean setMind(@NotNull MindData value) { return set(ModAttachments.MIND, value); }
 

@@ -18,10 +18,11 @@ import org.jetbrains.annotations.Nullable;
  * apart; one effect may carry several paths -- an amplifier adds Rule strands to the effect it amplifies.
  *
  * <p>⚠ An effect is on exactly while it carries marks: the compact constructor prunes paths with none, and the
- * store drops an effect with no path left. A partial cut changes the bookkeeping only; what the effect does reads
- * its type, payload and layers, never its marks. Extending the time ({@link #withEndTick}) adds no marks; a layer
- * ({@link #addLayer}) adds that layer's marks, so they grow with the layer count; replacing an effect replaces its
- * marks with it.
+ * store drops an effect with no path left. It has two states, there or not, and whatever lies between counts as not
+ * there: nothing takes part of an effect's marks, and whatever erases marks removes the effect. What the effect does
+ * reads its type, payload and layers. Extending the time ({@link #withEndTick}) adds no marks; a layer
+ * ({@link #addLayer}, {@link #dropLayer}) carries that layer's marks, so they follow the layer count; replacing an
+ * effect replaces its marks with it.
  *
  * @author Alex
  * @version 1.0.0
@@ -89,10 +90,10 @@ public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, Resou
                 layers == Integer.MAX_VALUE ? layers : layers + 1, payload);
     }
 
-    public PathEffect<P> cut(GuPath path, PathMarks amount) {
+    public PathEffect<P> dropLayer(Map<GuPath, PathMarks> layerMarks) {
         Map<GuPath, PathMarks> next = copy();
-        next.put(path, getMarks(path).cut(amount));
-        return withPaths(next);
+        layerMarks.forEach((path, marks) -> next.put(path, getMarks(path).minus(marks)));
+        return new PathEffect<>(type, carrier, source, next, endTick, layers - 1, payload);
     }
 
     private Map<GuPath, PathMarks> copy() {

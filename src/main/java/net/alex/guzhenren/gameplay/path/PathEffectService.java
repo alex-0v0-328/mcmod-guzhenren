@@ -22,13 +22,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The only runtime writer of path effects [流派效果]: put on, changed, cut, removed, run out, and projected as icons.
+ * The only runtime writer of path effects [流派效果]: put on, changed, removed, run out, and projected as icons.
  *
  * <p>Static service over the {@code path_effect_data} attachment; reads take {@link Player}, writes take
  * {@link ServerPlayer}. {@link #apply} puts an effect on and drops whatever shared its slot; {@link #update} changes
- * one in place (a longer time, another layer, a new payload) and keeps its slot; {@link #cut} takes marks off one
- * path, each counter on its own; {@link #remove} takes effects off by a test. Every effect dropped, by any of these
- * or by {@link #tick}, posts a {@link PathEffectEndedEvent} after the store is written.
+ * one in place (a longer time, another layer, a new payload) and keeps its slot; {@link #remove} takes effects off
+ * by a test. Every effect dropped, by any of these or by {@link #tick}, posts a {@link PathEffectEndedEvent} after
+ * the store is written.
  *
  * <p>{@link #tick} runs on the heartbeat: it drops every timed effect whose end has passed, then re-projects the
  * icons of what is left, so {@code /effect clear} costs an icon for at most a second and never an effect.
@@ -36,9 +36,9 @@ import org.jetbrains.annotations.Nullable;
  * the player already wears as projected (same amplifier, no shorter) is left alone, so a steady beat adds no effect,
  * posts no add event and sends no update packet.
  *
- * <p>⚠ An effect with no marks is never stored: applying one does nothing, and cutting or changing one to none
- * removes it as {@code CUT}. ⚠ What an effect does is its family's code reading {@link #find}; this service runs no
- * effect and reads no strength from marks.
+ * <p>⚠ An effect with no marks is never stored: applying one does nothing, and changing one to none removes it as
+ * {@code REMOVED}. An effect is there or not, and nothing here takes part of its marks. ⚠ What an effect does is its
+ * family's code reading {@link #find}; this service runs no effect and reads no strength from marks.
  *
  * <p>An icon is the vanilla effect each kind projects; where several effects project the same one, the longest
  * remaining time and the highest amplifier win.
@@ -89,13 +89,8 @@ public final class PathEffectService {
         List<PathEffect<?>> effects = new ArrayList<>(get(player).effects());
         effects.set(effects.indexOf(current), next);
         store(player, new PathEffectData(effects));
-        end(player, next.isEmpty() ? List.of(current) : List.of(), Reason.CUT);
+        end(player, next.isEmpty() ? List.of(current) : List.of(), Reason.REMOVED);
         return true;
-    }
-
-    public static <P> boolean cut(@NotNull ServerPlayer player, @NotNull PathEffectType<P> type,
-                                  @NotNull ResourceLocation source, @NotNull GuPath path, @NotNull PathMarks amount) {
-        return update(player, type, source, effect -> effect.cut(path, amount));
     }
 
     public static int remove(@NotNull ServerPlayer player, @NotNull Predicate<PathEffect<?>> which) {

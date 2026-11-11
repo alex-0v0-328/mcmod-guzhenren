@@ -33,7 +33,4 @@ public class BruteForceLonghornBeetleGuEffect extends MobEffect implements Beast
 
     @Override
     public BeastStrengthFamily getBeastFamily() { return BeastStrengthFamily.OX; }
-
-    @Override
-    public int getPoints() { return POINTS; }
 }

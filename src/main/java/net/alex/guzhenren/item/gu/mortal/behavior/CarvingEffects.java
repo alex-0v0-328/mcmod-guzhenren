@@ -1,49 +1,41 @@
 package net.alex.guzhenren.item.gu.mortal.behavior;
 
-import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.body.BodyGrade;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.BodyTemperedEvent;
+import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.SkinShedEvent;
 import net.alex.guzhenren.gameplay.body.SkinWornEvent;
-import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
-import net.alex.guzhenren.gameplay.path.PathMarks;
-import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.path.PathEffect;
+import net.alex.guzhenren.gameplay.path.PathEffectEndedEvent;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
-import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthChangedEvent;
 import net.alex.guzhenren.item.gu.MortalGuItem;
-import net.alex.guzhenren.item.gu.mortal.path.strength.BeastStrengthBehavior;
-import net.alex.guzhenren.item.gu.mortal.path.strength.HumanStrengthBehavior;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * The body effects of the channeled path mark carving Gu [灌注蛊]: the tempering Gu's skin, tendons and bones, the
- * beast strengths and the human strength layers. Each is the bookkeeping of a state another service owns -- the
- * body's grade, the strength store -- and follows its write through the event that write posts, so the state's
- * writer, a Gu or a command alike, knows nothing of it. Nothing here reads a mark to size anything.
+ * The body effects of the tempering Gu [炼体蛊]: the skin, tendons and bones. Each is the bookkeeping of a grade
+ * {@code BodyService} owns and follows its write through the event that write posts, so the grade's writer, a Gu or
+ * a command alike, knows nothing of it. The grade follows its effect back ({@link #onEnded}): a skin, tendon or bone
+ * effect removed drops the part to its native grade, so there is no grade without its marks. The beast and human
+ * strengths are not here: their effects are their store, written by {@code PathStrengthService}.
  *
- * <p>Event subscriber over {@link PathEffectService}; the Gu that made a state is found in {@code ModItems}, and its
+ * <p>Event subscriber over {@link PathEffectService}; the Gu that made a grade is found in {@code ModItems}, and its
  * {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. A grade is permanent, one
- * exclusive effect per part, so a new grade takes the old effect and its strands with it. A beast strength is one
- * effect per species. A human strength is one effect per kind whose layers follow the stored count.
+ * exclusive effect per part, so a new grade takes the old effect and its strands with it.
  *
  * <p>⚠ Every sync compares the effect with the state and writes only on a difference, so a handler running twice
- * is harmless and a partial cut survives a write that changes nothing. ⚠ The marks arrive only with the write that
+ * is harmless. ⚠ The marks arrive only with the write that
  * sets the state: nothing re-adds them on login, and a state saved before its effect existed stays without. ⚠ A
- * timed skin is not this class's: wearing a jade skin over a permanent one only drops the permanent skin's effect.
- * ⚠ Lowering human strength cuts each dropped layer's strands from the effect, so marks added to it by other
- * means stay.
+ * timed skin is not this class's: wearing a jade skin over a permanent one only drops the permanent skin's effect,
+ * and {@code onEnded} leaves a part alone once its state names another grade than the removed effect.
  *
  * @author Alex
  * @version 1.0.0
@@ -69,10 +61,18 @@ public final class CarvingEffects {
     }
 
     @SubscribeEvent
-    public static void onStrengthChanged(StrengthChangedEvent event) {
+    public static void onEnded(PathEffectEndedEvent event) {
+        if (event.getReason() != PathEffectEndedEvent.Reason.REMOVED) return;
+
         ServerPlayer player = event.getPlayer();
-        for (BeastStrength beast : BeastStrength.values()) syncBeast(player, beast);
-        for (HumanStrength kind : HumanStrength.values()) alignHuman(player, kind);
+        Object payload = event.getEffect().payload();
+        if (payload instanceof Skin skin) {
+            if (BodyService.getSkin(player) == skin) BodyService.shedSkin(player);
+        } else if (payload instanceof Tendon tendon) {
+            if (BodyService.getTendon(player) == tendon) BodyService.temperTendon(player, Tendon.NATIVE);
+        } else if (payload instanceof Bone bone) {
+            if (BodyService.getBone(player) == bone) BodyService.temperBone(player, Bone.NATIVE);
+        }
     }
 
     private static void syncSkin(ServerPlayer player) {
@@ -88,45 +88,6 @@ public final class CarvingEffects {
         syncGrade(player, ModPathEffectTypes.BODY_BONE, BodyService.getBone(player), true);
     }
 
-    private static void syncBeast(ServerPlayer player, BeastStrength beast) {
-        MortalGuItem gu = ModItems.findGuWith(BeastStrengthBehavior.class, behavior -> behavior.beast() == beast);
-        if (gu == null) return;
-
-        ResourceLocation source = gu.getEffectSource();
-        boolean worn = PathEffectService.find(player, ModPathEffectTypes.BEAST_STRENGTH, source) != null;
-        if (PathStrengthService.has(player, beast) == worn) return;
-
-        if (worn) {
-            PathEffectService.remove(player, effect -> isOf(effect, ModPathEffectTypes.BEAST_STRENGTH, source));
-        } else {
-            PathEffectService.apply(player,
-                    gu.createEffect(ModPathEffectTypes.BEAST_STRENGTH, PathEffect.PERMANENT, beast));
-        }
-    }
-
-    private static void alignHuman(ServerPlayer player, HumanStrength kind) {
-        MortalGuItem gu = ModItems.findGuWith(HumanStrengthBehavior.class, behavior -> behavior.kind() == kind);
-        if (gu == null) return;
-
-        ResourceLocation source = gu.getEffectSource();
-        int layers = PathStrengthService.getHumanStrength(player, kind);
-        PathEffect<HumanStrength> worn = PathEffectService.find(player, ModPathEffectTypes.HUMAN_STRENGTH, source);
-        if (layers <= 0) {
-            if (worn != null) {
-                PathEffectService.remove(player, effect -> isOf(effect, ModPathEffectTypes.HUMAN_STRENGTH, source));
-            }
-            return;
-        }
-        Map<GuPath, PathMarks> layer = gu.getGuProperties().getEffectPaths();
-        if (worn == null) {
-            PathEffectService.apply(player, withLayers(gu.createEffect(
-                    ModPathEffectTypes.HUMAN_STRENGTH, PathEffect.PERMANENT, kind), layer, layers));
-        } else if (worn.layers() != layers) {
-            PathEffectService.update(player, ModPathEffectTypes.HUMAN_STRENGTH, source,
-                    effect -> withLayers(effect, layer, layers));
-        }
-    }
-
     private static <G extends Enum<G> & BodyGrade<G>> void syncGrade(
             ServerPlayer player, PathEffectType<G> type, G grade, boolean carries) {
         PathEffect<G> worn = PathEffectService.find(player, type);
@@ -139,22 +100,5 @@ public final class CarvingEffects {
         if (worn != null && worn.payload() == grade) return;
 
         PathEffectService.apply(player, gu.createEffect(type, PathEffect.PERMANENT, grade));
-    }
-
-    private static <P> PathEffect<P> withLayers(PathEffect<P> effect, Map<GuPath, PathMarks> layer, int layers) {
-        PathEffect<P> next = effect;
-        while (next.layers() < layers) next = next.addLayer(layer);
-        int dropped = next.layers() - layers;
-        for (int i = 0; i < dropped; i++) {
-            for (Map.Entry<GuPath, PathMarks> entry : layer.entrySet()) {
-                next = next.cut(entry.getKey(), entry.getValue());
-            }
-        }
-        return new PathEffect<>(next.type(), next.carrier(), next.source(), next.paths(), next.endTick(), layers,
-                next.payload());
-    }
-
-    private static boolean isOf(PathEffect<?> effect, PathEffectType<?> type, ResourceLocation source) {
-        return effect.type() == type && effect.source().equals(source);
     }
 }

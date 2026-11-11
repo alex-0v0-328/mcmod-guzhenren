@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Posted on the game event bus after {@link PathEffectService} drops a path effect [流派效果] from a player, with its
- * marks, naming why: its time ran out, its marks were cut to nothing, another took its slot, or a caller or a
+ * marks, naming why: its time ran out, another took its slot, or a caller or a
  * command removed it. A family whose effect leaves something behind when it ends subscribes here.
  *
  * <p>⚠ The death that wipes a player resets the whole store past the service and posts nothing; a subscriber resets
@@ -36,5 +36,5 @@ public class PathEffectEndedEvent extends Event {
 
     public @NotNull Reason getReason() { return reason; }
 
-    public enum Reason { EXPIRED, CUT, REPLACED, REMOVED }
+    public enum Reason { EXPIRED, REPLACED, REMOVED }
 }

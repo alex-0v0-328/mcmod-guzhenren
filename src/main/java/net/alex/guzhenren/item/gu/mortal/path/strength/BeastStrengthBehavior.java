@@ -23,8 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * named by the family's reading), then a body whose normal carrying capacity [常态承受力] has no room for it beside
  * the beasts that stay ({@link StrengthService#canAdmit}: amplifiers and the All-Out lift admit nothing); the effect
  * delegates to {@link PathStrengthService#grant}, which swaps a replaced beast out. A species declares its own
- * family and worth on the enum, so adding one never touches this behavior. {@code CarvingEffects} finds the Gu that
- * grants a species by this behavior.
+ * family and worth on the enum, so adding one never touches this behavior.
  *
  * <p>⚠ If an edit here starts to look necessary, a number has been put in the wrong place.
  *
