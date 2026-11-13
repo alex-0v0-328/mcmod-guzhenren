@@ -14,6 +14,7 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
+import net.alex.guzhenren.gameplay.dimension.TossStashData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -33,7 +34,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 /**
  * Every data attachment this mod puts on a player.
  *
- * <p>DeferredRegister holder: the fifteen record attachments (immutable, written only through their
+ * <p>DeferredRegister holder: the fourteen record attachments (immutable, written only through their
  * service) plus the seven scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
  * {@code SHIELD_WINDOW}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}, {@code PLUNGE}).
  * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
@@ -61,9 +62,10 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * attachment is carried and reset by being registered here, nowhere else. {@code HEALTH_CARRY} is built by hand
  * because a death must not carry it, and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a
  * body that the death just ended, saved and never synced, and {@code AWAKENING_RITUAL}, which a death finishes
- * before the clone; {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}
- * and {@code PLUNGE} are unsaved, so no clone carries them. ⚠ {@code BORN} stays inherited, or the next login
- * re-rolls brilliance.
+ * before the clone. {@code TOSS_STASH} is built by hand the other way round: a death carries it, and a death that
+ * wipes must not reset it, since it holds the player's own items. {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW},
+ * {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE} and {@code PLUNGE} are unsaved, so no clone carries them.
+ * ⚠ {@code BORN} stays inherited, or the next login re-rolls brilliance.
  *
  * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
  * {@code strength} as a subpackage of path. A constant is its record's class name without
@@ -152,6 +154,14 @@ public final class ModAttachments {
     //region Dimension return [维度往返]
     public static final Supplier<AttachmentType<DimensionReturnData>> DIMENSION_RETURN =
             registerSaved("dimension_return", DimensionReturnData.DEFAULT, DimensionReturnData.CODEC);
+    //endregion
+
+    //region Treasure Yellow Heaven [宝黄天]
+    public static final Supplier<AttachmentType<TossStashData>> TOSS_STASH = ATTACHMENT_TYPES.register(
+            "toss_stash", () -> AttachmentType.builder(() -> TossStashData.DEFAULT)
+                    .serialize(TossStashData.CODEC, stash -> !stash.isEmpty())
+                    .copyOnDeath()
+                    .build());
     //endregion
 
     //region Rewind [如故]

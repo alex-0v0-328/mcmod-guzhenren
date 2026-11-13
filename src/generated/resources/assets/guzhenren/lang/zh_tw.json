@@ -97,7 +97,7 @@
   "guzhenren.command.travel.unknown_dimension": "%s 不是錨定維度",
   "guzhenren.command.unknown_value": "未知的取值：%s",
   "guzhenren.command.updated": "已更新 %s 名玩家",
-  "guzhenren.dimension.treasure_yellow_heaven.inventory_full": "背包已滿，放不下的物品懸浮在身邊",
+  "guzhenren.dimension.treasure_yellow_heaven.inventory_full": "背包已滿，物品將在離開寶黃天時掉落",
   "guzhenren.display.aperture_1": "第一空竅",
   "guzhenren.display.aperture_2": "第二空竅",
   "guzhenren.display.aptitude_line": "%s [%s]",

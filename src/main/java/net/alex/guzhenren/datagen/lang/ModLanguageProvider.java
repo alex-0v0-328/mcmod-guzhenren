@@ -244,7 +244,7 @@ public class ModLanguageProvider extends LanguageProvider {
     //region DIMENSION [维度]
     private void addDimensionKeys() {
         add("guzhenren.dimension.treasure_yellow_heaven.inventory_full",
-                "Inventory full: what does not fit floats beside you", "背包已满，放不下的物品悬浮在身边");
+                "Bag full: items drop when you leave Treasure Yellow Heaven", "背包已满，物品将在离开宝黄天时掉落");
     }
     //endregion
 

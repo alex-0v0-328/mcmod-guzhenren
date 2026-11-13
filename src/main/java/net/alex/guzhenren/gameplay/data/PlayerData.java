@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
+import net.alex.guzhenren.gameplay.dimension.TossStashData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: seventeen saved values, the
+ * Everything this mod keeps on a player, read and written through one object: sixteen saved values, the
  * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and three in-memory values, the
  * essence regen remainder ({@link #getEssenceCarry}) and the second-stage throttle ({@link #getSecondStageThrottle}),
  * which each end steps for itself, and the shield's invulnerability window ({@link #getShieldWindow}), the server's.
@@ -84,6 +85,8 @@ public final class PlayerData {
 
     public DimensionReturnData getDimensionReturn() { return owner.getData(ModAttachments.DIMENSION_RETURN); }
 
+    public TossStashData getTossStash() { return owner.getData(ModAttachments.TOSS_STASH); }
+
     public PlayerRewindData getRewind() { return owner.getData(ModAttachments.PLAYER_REWIND); }
 
     public boolean isInSecondStage() { return owner.hasData(ModAttachments.SECOND_STAGE); }
@@ -130,6 +133,8 @@ public final class PlayerData {
     public boolean setDimensionReturn(@NotNull DimensionReturnData value) {
         return set(ModAttachments.DIMENSION_RETURN, value);
     }
+
+    public boolean setTossStash(@NotNull TossStashData value) { return set(ModAttachments.TOSS_STASH, value); }
 
     public boolean setRewind(@NotNull PlayerRewindData value) { return set(ModAttachments.PLAYER_REWIND, value); }
 

@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.dimension;
 
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.TossedItems;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -23,16 +25,18 @@ import org.jetbrains.annotations.Nullable;
  * and the server's own answer stays the authority, since the client still sends the packet. Toss and damage are
  * server-side only; the toss is the one check that tells the player something, so it runs exactly once.
  *
- * <p>In {@link #tick}, leaving by any route -- exit, vanilla {@code /tp}, another mod's teleport -- drops the
- * flight grant, unless the player stands in another anchored dimension that grants flight.
+ * <p>In {@link #tick}, leaving by any route -- exit, vanilla {@code /tp}, another mod's teleport, a respawn
+ * after dying inside -- drops the flight grant, unless the player stands in another anchored dimension that grants
+ * flight, and drops the {@link TossStashData} at the player's feet.
  *
  * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
  * for. Attacks on it stay refused like every other attack. {@link #isUseRefused} takes the clicked entity, or
  * {@code null} for a right click on a block or with an item.
  *
- * <p>⚠ A toss goes back into the bag through {@link TossedItems#stow}, which never drops: {@link #tryStowToss}
- * answers {@code true} when it went in and the toss should not happen. What does not fit hovers where it was
- * dropped and despawns like any dropped item, and the player is told the bag is full.
+ * <p>⚠ No toss happens here: {@link #stowOrStash} puts it back through {@link TossedItems#putBack}, which never
+ * drops, and stashes what does not fit for the way out, telling the player the bag is full. No item entity ever
+ * enters this heaven, so nothing hovers or despawns. {@link #stowOrStash} and {@link #dropStash} skip the
+ * dimension check, since a GameTest world has no live Treasure Yellow Heaven.
  *
  * @author Alex
  * @version 1.0.0
@@ -69,10 +73,26 @@ public final class TreasureYellowHeavenGuard {
 
     public static boolean tryStowToss(Player player, ItemEntity tossed) {
         if (player.level().isClientSide() || !isInside(player)) return false;
-        if (TossedItems.stow(player, tossed)) return true;
+        stowOrStash(player, tossed);
+        return true;
+    }
 
+    public static void stowOrStash(Player player, ItemEntity tossed) {
+        ItemStack rest = TossedItems.putBack(player, tossed);
+        if (rest.isEmpty()) return;
+
+        PlayerData data = PlayerData.get(player);
+        data.setTossStash(data.getTossStash().with(rest));
         ActionBar.refuse(player, INVENTORY_FULL);
-        return false;
+    }
+
+    public static void dropStash(ServerPlayer player) {
+        PlayerData data = PlayerData.get(player);
+        TossStashData stash = data.getTossStash();
+        if (stash.isEmpty()) return;
+
+        data.setTossStash(TossStashData.DEFAULT);
+        for (ItemStack stack : stash.stacks()) player.spawnAtLocation(stack.copy());
     }
 
     public static boolean isDamageRefused(LivingEntity victim, DamageSource source) {
@@ -86,6 +106,7 @@ public final class TreasureYellowHeavenGuard {
             if (!ModDimensions.isFlightGranted(player.level().dimension())) {
                 DimensionTravelService.revokeFlight(player);
             }
+            dropStash(player);
             return;
         }
         DimensionTravelService.ensureFlight(player);
