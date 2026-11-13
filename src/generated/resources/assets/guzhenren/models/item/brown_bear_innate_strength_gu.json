@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "guzhenren:item/brown_bear_innate_strength_gu"
-  }
-}

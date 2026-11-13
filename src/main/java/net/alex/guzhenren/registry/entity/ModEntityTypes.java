@@ -81,15 +81,15 @@ public final class ModEntityTypes {
     public static final DeferredHolder<EntityType<?>, EntityType<HopeGuEntity>> HOPE_GU_ENTITY =
             registerMote("hope_gu_entity", (type, level) -> new HopeGuEntity(type, level, ModItems.HOPE_GU));
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> WHITE_BOAR_GU_ENTITY =
-            registerBoarGu("white_boar_gu_entity", ModItems.WHITE_BOAR_GU);
+            registerBoarGu("white_boar_gu_entity", ModItems.WHITE_BOAR_GU_1);
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> BLACK_BOAR_GU_ENTITY =
-            registerBoarGu("black_boar_gu_entity", ModItems.BLACK_BOAR_GU);
+            registerBoarGu("black_boar_gu_entity", ModItems.BLACK_BOAR_GU_1);
     public static final DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> FLOWER_BOAR_GU_ENTITY =
-            registerBoarGu("flower_boar_gu_entity", ModItems.FLOWER_BOAR_GU);
+            registerBoarGu("flower_boar_gu_entity", ModItems.FLOWER_BOAR_GU_1);
     public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> HORIZONTAL_CRASH_GU_ENTITY =
-            registerCrashGu("horizontal_crash_gu_entity", ModItems.HORIZONTAL_CRASH_GU);
+            registerCrashGu("horizontal_crash_gu_entity", ModItems.HORIZONTAL_CRASH_GU_3);
     public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> VERTICAL_CRASH_GU_ENTITY =
-            registerCrashGu("vertical_crash_gu_entity", ModItems.VERTICAL_CRASH_GU);
+            registerCrashGu("vertical_crash_gu_entity", ModItems.VERTICAL_CRASH_GU_3);
     public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> CHARGING_CRASH_GU_4_ENTITY =
             registerCrashGu("charging_crash_gu_4_entity", ModItems.CHARGING_CRASH_GU_4);
     public static final DeferredHolder<EntityType<?>, EntityType<CrashGuEntity>> CHARGING_CRASH_GU_5_ENTITY =

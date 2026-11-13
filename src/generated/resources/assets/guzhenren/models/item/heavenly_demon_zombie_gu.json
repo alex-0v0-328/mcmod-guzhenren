@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "guzhenren:item/heavenly_demon_zombie_gu"
-  }
-}

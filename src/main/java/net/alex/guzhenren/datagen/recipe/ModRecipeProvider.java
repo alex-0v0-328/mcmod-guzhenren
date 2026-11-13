@@ -62,12 +62,12 @@ public class ModRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(@NotNull RecipeOutput output) {
-        addRefinement(output, ModItems.FOUR_FLAVORS_LIQUOR_WORM, 1L, 1L, 50, List.of(16, 16, 16, 16),
+        addRefinement(output, ModItems.FOUR_FLAVORS_LIQUOR_WORM_2, 1L, 1L, 50, List.of(16, 16, 16, 16),
                 Map.of('s', GuIngredient.of(ModItems.SOUR_LIQUOR.get(), 1),
                         'b', GuIngredient.of(ModItems.BITTER_LIQUOR.get(), 1),
                         'h', GuIngredient.of(ModItems.SPICY_LIQUOR.get(), 1),
                         'w', GuIngredient.of(ModItems.SWEET_LIQUOR.get(), 1),
-                        'g', GuIngredient.of(ModItems.LIQUOR_WORM.get(), 1)),
+                        'g', GuIngredient.of(ModItems.LIQUOR_WORM_1.get(), 1)),
                 " .s. ",
                 ".....",
                 "bg.gh",
@@ -84,18 +84,18 @@ public class ModRecipeProvider extends RecipeProvider {
                 "B...B",
                 " .I. ");
 
-        addRefinement(output, ModItems.WHITE_JADE_GU, 1L, 1L, 40, List.of(16, 16, 16, 16),
-                Map.of('b', GuIngredient.of(ModItems.WHITE_BOAR_GU.get(), 1)),
-                Map.of('j', GuIngredient.of(ModItems.JADE_SKIN_GU.get(), 1)),
+        addRefinement(output, ModItems.WHITE_JADE_GU_2, 1L, 1L, 40, List.of(16, 16, 16, 16),
+                Map.of('b', GuIngredient.of(ModItems.WHITE_BOAR_GU_1.get(), 1)),
+                Map.of('j', GuIngredient.of(ModItems.JADE_SKIN_GU_1.get(), 1)),
                 " ... ",
                 ".jjj.",
                 ".jbj.",
                 ".jjj.",
                 " ... ");
 
-        addRefinement(output, ModItems.MOONGLOW_GU, 1L, 1L, 40, List.of(16, 16, 16, 16),
-                Map.of('M', GuIngredient.of(ModItems.MOONLIGHT_GU.get(), 1),
-                        'L', GuIngredient.of(ModItems.LITTLE_LIGHT_GU.get(), 1)),
+        addRefinement(output, ModItems.MOONGLOW_GU_2, 1L, 1L, 40, List.of(16, 16, 16, 16),
+                Map.of('M', GuIngredient.of(ModItems.MOONLIGHT_GU_1.get(), 1),
+                        'L', GuIngredient.of(ModItems.LITTLE_LIGHT_GU_1.get(), 1)),
                 " ... ",
                 ".....",
                 ".LML.",

@@ -117,7 +117,7 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
         if (getLeaves(stack, now) <= 0) return;
 
         stack.set(ModDataComponents.LEAF_GROWTH, getGrowth(stack).pick(now, regrowTicks));
-        player.getInventory().placeItemBackInInventory(new ItemStack(ModItems.VITALITY_LEAF_GU.get()));
+        player.getInventory().placeItemBackInInventory(new ItemStack(ModItems.VITALITY_LEAF_GU_1.get()));
     }
     //endregion
 

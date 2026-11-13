@@ -50,8 +50,8 @@ public class ModBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         registerFluidBlock(ModBlocks.SPIRIT_SPRING.get(), Guzhenren.id("block/spirit_spring_still"));
         registerFluidBlock(ModBlocks.PURE_WATER.get(), Guzhenren.id("block/pure_water_still"));
-        registerFlowerBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS.get(),
-                Guzhenren.id("item/nine_leaf_vitality_grass_full"));
+        registerFlowerBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS_3.get(),
+                Guzhenren.id("item/nine_leaf_vitality_grass_3_full"));
         registerDoublePlantBlock(ModBlocks.INTIMATE_GRASS.get(), buildTintedCrossOverlay());
         simpleBlock(ModBlocks.STEEL_BLOCK.get());
     }

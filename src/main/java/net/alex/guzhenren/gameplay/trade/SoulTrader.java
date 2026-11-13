@@ -25,7 +25,7 @@ public enum SoulTrader {
 
     TEST_TRADE_GU_IMMORTAL("test_trade_gu_immortal", () -> List.of(
             SoulTradeOffer.of(new ItemStack(Items.PORKCHOP, 64), TradeCost.of(ModItems.PRIMEVAL_STONE.get(), 10)),
-            SoulTradeOffer.of(new ItemStack(ModItems.WHITE_BOAR_GU.get()), TradeCost.of(Items.DIRT, 192))));
+            SoulTradeOffer.of(new ItemStack(ModItems.WHITE_BOAR_GU_1.get()), TradeCost.of(Items.DIRT, 192))));
 
     private final String id;
     private final Supplier<List<SoulTradeOffer>> offers;

@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "guzhenren:item/river_as_before_gu"
-  }
-}

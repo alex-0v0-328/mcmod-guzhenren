@@ -373,7 +373,7 @@ public class ModLanguageProvider extends LanguageProvider {
     //region ITEM [物品]
     private void addItemKeys() {
         addBlock(ModBlocks.PURE_WATER,                               "Pure Water", "纯水");
-        addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS,                 "Nine Leaf Vitality Grass", "九叶生机草");
+        addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS_3,               "Nine Leaf Vitality Grass III", "三转九叶生机草");
         addBlock(ModBlocks.INTIMATE_GRASS,                           "Intimate Grass", "知心草");
 
         add("itemGroup.guzhenren.mortal_gu",                         "Mortal Gu", "凡蛊");

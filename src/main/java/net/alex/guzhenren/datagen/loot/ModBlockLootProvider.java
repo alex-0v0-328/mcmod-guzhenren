@@ -46,7 +46,7 @@ public final class ModBlockLootProvider extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        dropOther(ModBlocks.NINE_LEAF_VITALITY_GRASS.get(), ModItems.NINE_LEAF_VITALITY_GRASS.get());
+        dropOther(ModBlocks.NINE_LEAF_VITALITY_GRASS_3.get(), ModItems.NINE_LEAF_VITALITY_GRASS_3.get());
         add(ModBlocks.INTIMATE_GRASS.get(), LootTable.lootTable().withPool(LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1.0F))
                 .add(LootItem.lootTableItem(ModItems.INTIMATE_GRASS_BUNDLE.get()).when(hasHoe()))));

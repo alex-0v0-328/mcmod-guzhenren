@@ -64,10 +64,10 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GU_MATERIAL = register("gu_material",
             () -> ModItems.PRIMEVAL_STONE.get(), EPIC_FIGHT_ITEMS, ModCreativeTabs::belongsInGuMaterial);
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> STRENGTH_MORTAL_GU = register(
-            "strength_mortal_gu", () -> ModItems.FLOWER_BOAR_GU.get(), Guzhenren.id("mortal_gu"),
+            "strength_mortal_gu", () -> ModItems.FLOWER_BOAR_GU_1.get(), Guzhenren.id("mortal_gu"),
             item -> belongsInPathTab(item, STRENGTH));
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WOOD_MORTAL_GU = register(
-            "wood_mortal_gu", () -> ModItems.VITALITY_LEAF_GU.get(), Guzhenren.id("strength_mortal_gu"),
+            "wood_mortal_gu", () -> ModItems.VITALITY_LEAF_GU_1.get(), Guzhenren.id("strength_mortal_gu"),
             item -> belongsInPathTab(item, WOOD));
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KM_MORTAL = register(
             "km_mortal", () -> ModItems.KM_MORTAL_LITTLE_LIGHT_AMPLIFY.get(), Guzhenren.id("wood_mortal_gu"),

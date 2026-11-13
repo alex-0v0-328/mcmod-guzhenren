@@ -146,8 +146,8 @@ public final class CmdBody {
 
     private static int getRegisteredDurationTicks(Skin skin) {
         return switch (skin) {
-            case JADE_SKIN -> getDurationTicks(ModItems.JADE_SKIN_GU.get());
-            case WHITE_JADE_SKIN -> getDurationTicks(ModItems.WHITE_JADE_GU.get());
+            case JADE_SKIN -> getDurationTicks(ModItems.JADE_SKIN_GU_1.get());
+            case WHITE_JADE_SKIN -> getDurationTicks(ModItems.WHITE_JADE_GU_2.get());
             default -> 0;
         };
     }

@@ -139,7 +139,7 @@ public final class ClientEvents {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_SPIRIT_SPRING.get(), RenderType.translucent());
             ItemBlockRenderTypes.setRenderLayer(ModFluids.PURE_WATER.get(), RenderType.translucent());
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_PURE_WATER.get(), RenderType.translucent());
-            ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS.get(), NineLeafVitalityGrassItem.PICKED,
+            ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS_3.get(), NineLeafVitalityGrassItem.PICKED,
                     (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
             ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);

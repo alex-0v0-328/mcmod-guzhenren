@@ -32,17 +32,17 @@ public final class EffectIcons {
         register.accept(GradedEffectIcon.createItem("casual_gu", 1, 2), ModEffects.CASUAL_GU);
         register.accept(GradedEffectIcon.createItem("malicious_thought_gu", 2, 5, 2), ModEffects.MALICIOUS_THOUGHT_GU);
         register.accept(GradedEffectIcon.createItem("self_reliance_gu", 2, 4), ModEffects.SELF_RELIANCE_GU);
-        register.accept(new ItemEffectIcon("hardship_strength_gu"), ModEffects.HARDSHIP_STRENGTH_GU);
-        register.accept(new ItemEffectIcon("store_strength_gu"), ModEffects.STORE_STRENGTH_GU);
-        register.accept(new ItemEffectIcon("jade_skin_gu"), ModEffects.JADE_SKIN_GU);
-        register.accept(new ItemEffectIcon("heavenly_mugwort_gu"), ModEffects.HEAVENLY_MUGWORT_GU);
-        register.accept(new ItemEffectIcon("white_jade_gu"), ModEffects.WHITE_JADE_GU);
-        register.accept(new ItemEffectIcon("strength_qi_gu"), ModEffects.STRENGTH_QI_GU);
-        register.accept(new ItemEffectIcon("horizontal_crash_gu"), ModEffects.HORIZONTAL_CRASH_GU);
-        register.accept(new ItemEffectIcon("vertical_crash_gu"), ModEffects.VERTICAL_CRASH_GU);
+        register.accept(new ItemEffectIcon("hardship_strength_gu_4"), ModEffects.HARDSHIP_STRENGTH_GU);
+        register.accept(new ItemEffectIcon("store_strength_gu_4"), ModEffects.STORE_STRENGTH_GU);
+        register.accept(new ItemEffectIcon("jade_skin_gu_1"), ModEffects.JADE_SKIN_GU);
+        register.accept(new ItemEffectIcon("heavenly_mugwort_gu_3"), ModEffects.HEAVENLY_MUGWORT_GU);
+        register.accept(new ItemEffectIcon("white_jade_gu_2"), ModEffects.WHITE_JADE_GU);
+        register.accept(new ItemEffectIcon("strength_qi_gu_3"), ModEffects.STRENGTH_QI_GU);
+        register.accept(new ItemEffectIcon("horizontal_crash_gu_3"), ModEffects.HORIZONTAL_CRASH_GU);
+        register.accept(new ItemEffectIcon("vertical_crash_gu_3"), ModEffects.VERTICAL_CRASH_GU);
         register.accept(GradedEffectIcon.createItem("charging_crash_gu", 4, 5), ModEffects.CHARGING_CRASH_GU);
-        register.accept(new ItemEffectIcon("second_watch_gu"), ModEffects.SECOND_WATCH_GU);
-        register.accept(new ItemEffectIcon("third_watch_gu"), ModEffects.THIRD_WATCH_GU);
+        register.accept(new ItemEffectIcon("second_watch_gu_4"), ModEffects.SECOND_WATCH_GU);
+        register.accept(new ItemEffectIcon("third_watch_gu_5"), ModEffects.THIRD_WATCH_GU);
         register.accept(new NoEffectIcon(), ModEffects.TEMP_ZOMBIE);
     }
 }

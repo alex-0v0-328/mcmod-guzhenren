@@ -32,7 +32,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>{@link #PURE_WATER} is the Pure Water [纯水] liquid block: a plain {@code LiquidBlock} on the same water
  * properties line, without the spring's light. It has no BlockItem; the Pure Water Bucket [纯水桶] carries it.
  *
- * <p>{@link #NINE_LEAF_VITALITY_GRASS} is the Nine Leaf Vitality Grass [九叶生机草] growing in the world: a
+ * <p>{@link #NINE_LEAF_VITALITY_GRASS_3} is the Nine Leaf Vitality Grass [九叶生机草] growing in the world: a
  * dandelion-shaped flower with no BlockItem, whose loot table drops the wild Gu item of the same id. Its
  * suspicious-stew effect is dormant -- no flower tag and no BlockItem carry it anywhere.
  *
@@ -73,8 +73,8 @@ public final class ModBlocks {
                     .noLootTable()
                     .liquid()
                     .sound(SoundType.EMPTY)));
-    public static final DeferredBlock<FlowerBlock> NINE_LEAF_VITALITY_GRASS = BLOCKS.register(
-            "nine_leaf_vitality_grass",
+    public static final DeferredBlock<FlowerBlock> NINE_LEAF_VITALITY_GRASS_3 = BLOCKS.register(
+            "nine_leaf_vitality_grass_3",
             () -> new FlowerBlock(MobEffects.REGENERATION, 8.0F,
                     BlockBehaviour.Properties.ofFullCopy(Blocks.DANDELION)));
     public static final DeferredBlock<DoublePlantBlock> INTIMATE_GRASS = BLOCKS.register("intimate_grass",
