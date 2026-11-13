@@ -232,7 +232,8 @@ tasks.register('pureTest', Test) {
             systemProperty 'gzr.wikiDir', wikiRoot.absolutePath
             inputs.files([
                     '玩家向/1.0.0/蛊真人Mod-玩家.md',
-                    '开发向-guzhenren/维护说明.md'
+                    '开发向-guzhenren/维护说明.md',
+                    '中英对照表.md'
             ].collect { new File(wikiRoot, it) })
             inputs.files(fileTree('src/test'))
         }
