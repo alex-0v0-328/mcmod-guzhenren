@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 public record StoreStrengthBehavior(int effectSeconds) implements GuBehavior {
 
-    private static final String FAILED_ACTIVE = "guzhenren.item.failed.store_strength_active";
     private static final String FAILED_NO_BRANCH = "guzhenren.item.failed.all_out_needs_branch";
 
     @Override
@@ -39,7 +38,7 @@ public record StoreStrengthBehavior(int effectSeconds) implements GuBehavior {
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
-        if (TimedEffects.hasBuff(player, ModEffects.STORE_STRENGTH_GU)) return new Refusal(FAILED_ACTIVE);
+        if (TimedEffects.hasBuff(player, ModEffects.STORE_STRENGTH_GU)) return new Refusal(Refusal.EFFECT_ACTIVE);
 
         PathStrengthData data = PathStrengthService.get(player);
         return data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)

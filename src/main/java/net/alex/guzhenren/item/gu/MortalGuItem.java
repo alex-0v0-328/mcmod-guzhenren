@@ -88,9 +88,6 @@ public abstract class MortalGuItem extends GuItem {
     private static final String KIND_KEY = "guzhenren.display.gu";
     private static final String TYPE_KEY = "guzhenren.display.gu_type";
     private static final String TYPE_BRANCH_KEY = "guzhenren.display.gu_type_branch";
-    protected static final String FAILED_REFINE_ESSENCE = "guzhenren.item.failed.refine_essence";
-    protected static final String FAILED_ESSENCE = "guzhenren.item.failed.essence";
-    private static final String FAILED_RANK_MISMATCH = "guzhenren.item.failed.rank_mismatch";
     private static final String FAILED_STAGE_PEAK = "guzhenren.item.failed.stage_peak";
     protected static final String CAPTION_USING_PLAIN = "guzhenren.hud.using_plain";
     private static final String CAPTION_REFINING_PLAIN = "guzhenren.hud.refining_plain";
@@ -166,9 +163,10 @@ public abstract class MortalGuItem extends GuItem {
 
     public final @Nullable Refusal checkStageUpGate(Aperture aperture) {
         if (aperture.rank() != getRank()) {
-            return new Refusal(FAILED_RANK_MISMATCH, Component.translatable(getRank().getTranslationKey()));
+            return new Refusal(Refusal.RANK_MISMATCH);
         }
-        return aperture.stage() == Stage.HIGHEST ? new Refusal(FAILED_STAGE_PEAK) : null;
+        return aperture.stage() == Stage.HIGHEST
+                ? new Refusal(FAILED_STAGE_PEAK, Component.translatable(aperture.rank().getTranslationKey())) : null;
     }
 
     protected final void payRefineCost(ServerPlayer player) { PrimevalStoneSupply.pay(player, getRefineCost()); }

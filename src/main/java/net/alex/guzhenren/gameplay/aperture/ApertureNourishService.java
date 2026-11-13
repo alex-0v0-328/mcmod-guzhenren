@@ -7,6 +7,7 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -78,9 +79,7 @@ public final class ApertureNourishService {
     public static final int CONVERTED_PRESSURE = 90;
     private static final int STAGE_UP_PRESSURE_RELIEF = 20;
     private static final int IMPACT_PRESSURE_RELIEF = 50;
-    private static final String STARVED = "guzhenren.nourish.starved";
     private static final String STAGE_UP = "guzhenren.nourish.stage_up";
-    private static final String IMPACT_POOR = "guzhenren.impact.poor";
     private static final String IMPACT_SUCCESS = "guzhenren.impact.success";
     private static final String IMPACT_HOLD = "guzhenren.impact.hold";
     private static final String IMPACT_DROP_STAGE = "guzhenren.impact.drop_stage";
@@ -191,7 +190,7 @@ public final class ApertureNourishService {
         ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
         if (starving.hasStarvedOut(now)) {
             store(player, starving.stopped());
-            ActionBar.inform(player, STARVED);
+            ActionBar.refuse(player, Refusal.ESSENCE);
             return;
         }
         store(player, starving);
@@ -263,7 +262,7 @@ public final class ApertureNourishService {
         Aperture aperture = ApertureService.getAperture(player);
         long cost = getImpactCost(player);
         if (!player.getAbilities().instabuild && !stones.spend().test(player, cost)) {
-            ActionBar.inform(player, IMPACT_POOR, cost);
+            ActionBar.refuse(player, Refusal.ESSENCE);
             return;
         }
 

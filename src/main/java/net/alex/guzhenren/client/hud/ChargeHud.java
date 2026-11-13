@@ -1,6 +1,6 @@
 package net.alex.guzhenren.client.hud;
 
-import net.alex.guzhenren.display.ModDisplayText;
+import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.item.GuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -68,7 +68,7 @@ public final class ChargeHud extends HotbarHud {
             int color = AwakeningHud.INSTANCE.isBarFull(player, partialTick) ? GuItem.CHARGE_COLOR_DEFAULT
                     : AWAKENING_FILLING_COLOR;
             draw(graphics, minecraft, AWAKENING, x, y, awakening / 100.0F, color,
-                    ModDisplayText.formatBaseFraction(awakening));
+                    Talent.formatPercent(awakening));
             return;
         }
 

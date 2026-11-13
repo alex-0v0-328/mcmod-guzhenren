@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>The truth is the leaf path effect [流派效果] ({@code TimedEffects.grantLeaf}); this vanilla effect is its
  * projection, which pulses while it shows and is put back within a second of {@code /effect clear}. Re-using the
- * Gu while this effect runs is a refusal ({@code vitality_active}).
+ * Gu while this effect runs is a refusal ({@code effect_active}).
  *
  * <p>A timed buff alters nothing permanently.
  *

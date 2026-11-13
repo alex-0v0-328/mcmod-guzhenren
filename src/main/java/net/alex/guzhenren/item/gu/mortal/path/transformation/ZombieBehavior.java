@@ -27,13 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 public record ZombieBehavior(int tempZombieTicks) implements GuBehavior {
 
-    private static final String FAILED_ALREADY_ZOMBIE = "guzhenren.item.failed.zombie_already";
 
     public static int getRung(MortalGuItem gu) { return gu.getRank().ordinal() - Rank.TWO.ordinal(); }
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
-        return BodyService.isZombie(player) ? new Refusal(FAILED_ALREADY_ZOMBIE) : null;
+        return BodyService.isZombie(player) ? new Refusal(Refusal.CANNOT_USE) : null;
     }
 
     @Override

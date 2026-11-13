@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class AsBeforeGuItem extends TendedGuItem {
 
-    protected static final String FAILED_TOO_YOUNG = "guzhenren.item.failed.as_before_too_young";
+    protected static final String FAILED_NO_RECORD = "guzhenren.item.failed.as_before_no_record";
     private static final String TOOLTIP_NEXT_POINT = "guzhenren.item.gu.next_point";
     protected final GuHunger.RecoverBar bar;
 

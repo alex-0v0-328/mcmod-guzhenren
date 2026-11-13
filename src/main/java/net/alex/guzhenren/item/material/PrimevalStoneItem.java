@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class PrimevalStoneItem extends GuMaterialItem {
 
-    private static final String FAILED_UNAWAKENED = "guzhenren.item.failed.unawakened";
     private static final String FAILED_FULL = "guzhenren.item.failed.essence_full";
     private final long essence;
 
@@ -43,7 +42,7 @@ public class PrimevalStoneItem extends GuMaterialItem {
 
     @Override
     protected @Nullable Refusal checkUse(Player player, ItemStack stack) {
-        if (!ApertureService.hasAperture(player)) return new Refusal(FAILED_UNAWAKENED);
+        if (!ApertureService.hasAperture(player)) return new Refusal(Refusal.UNAWAKENED);
         return ApertureEssenceService.getCurrentEssence(player) >= ApertureEssenceService.getMaxEssence(player)
                 ? new Refusal(FAILED_FULL) : null;
     }

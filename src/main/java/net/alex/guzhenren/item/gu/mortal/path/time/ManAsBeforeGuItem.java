@@ -1,6 +1,5 @@
 package net.alex.guzhenren.item.gu.mortal.path.time;
 
-import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindData;
 import net.alex.guzhenren.gameplay.rewind.PlayerRewindService;
 import net.alex.guzhenren.gameplay.rewind.PlayerSnapshot;
@@ -15,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
  * thoughts and the temp zombie form, as {@code PlayerSnapshot} lists them, and nothing else.
  *
  * <p>Extends {@link AsBeforeGuItem}. The memory is {@code PlayerRewindService}'s ring on the carrier, recorded only
- * while a refined one is carried: a Gu that has recorded nothing refuses with {@link #FAILED_NO_MEMORY}, one carried
- * for less than a day with {@code FAILED_TOO_YOUNG}, and neither refusal spends anything.
+ * while a refined one is carried: a Gu that has recorded nothing, or nothing a day old, refuses with
+ * {@code FAILED_NO_RECORD}, and the refusal spends nothing.
  *
  * @author Alex
  * @version 1.0.0
@@ -25,9 +24,6 @@ import org.jetbrains.annotations.Nullable;
  */
 
 public class ManAsBeforeGuItem extends AsBeforeGuItem {
-
-    private static final String FAILED_NO_MEMORY = "guzhenren.item.failed.as_before_no_memory";
-    private static final String MSG_RESTORED = "guzhenren.item.gu.as_before_body";
 
     public ManAsBeforeGuItem(GuProperties guProperties) {
         super(guProperties);
@@ -38,8 +34,8 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
         if (!(player instanceof ServerPlayer server)) return null;
 
         PlayerRewindData memory = PlayerRewindService.get(server);
-        if (memory.isEmpty()) return new Refusal(FAILED_NO_MEMORY);
-        return memory.pick(server.level().getGameTime()) == null ? new Refusal(FAILED_TOO_YOUNG) : null;
+        if (memory.isEmpty()) return new Refusal(FAILED_NO_RECORD);
+        return memory.pick(server.level().getGameTime()) == null ? new Refusal(FAILED_NO_RECORD) : null;
     }
 
     @Override
@@ -48,6 +44,5 @@ public class ManAsBeforeGuItem extends AsBeforeGuItem {
         if (snapshot == null) return;
 
         PlayerRewindService.restore(player, snapshot);
-        ActionBar.inform(player, MSG_RESTORED);
     }
 }

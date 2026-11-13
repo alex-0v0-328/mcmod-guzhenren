@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.core.WeightedPick;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
@@ -14,6 +15,9 @@ import net.minecraft.util.StringRepresentable;
  * <p>Closed vocabulary enum: regen rate, Epic Fight stamina percentage and the roll weights all live here. {@code NONE}
  * is outside the settable range; {@code shift(int)} clamps at {@code TEN_EXTREMES} to {@code FOURTH}. No sibling mod
  * may add a grade.
+ *
+ * <p>{@code formatPercent} names a base percent in tenths [成] (85 is 八成五); the HUD and the awakening announcement
+ * both read it, so it lives here below both.
  *
  * <p>⚠ The constants run HIGH to LOW, so {@code shift(+1)} is {@code ordinal - 1}. Reading the direction
  * off the declaration order is exactly how that gets reversed by accident. {@code 1} to {@code 19} is a hole, not
@@ -74,6 +78,16 @@ public enum Talent implements NamedEnum {
     public static int randomPercent(Talent talent) {
         if (talent.minPercent == talent.maxPercent) return talent.minPercent;
         return ThreadLocalRandom.current().nextInt(talent.minPercent, talent.maxPercent + 1);
+    }
+
+    public static Component formatPercent(int percent) {
+        if (percent >= 100) return Component.translatable("guzhenren.display.base_full");
+        Component tens = Component.translatable("guzhenren.display.base_tens." + (percent / 10));
+        int units = percent % 10;
+        return units == 0
+                ? Component.translatable("guzhenren.display.base_round", tens)
+                : Component.translatable("guzhenren.display.base_fraction", tens,
+                Component.translatable("guzhenren.display.base_units." + units));
     }
 
     public static Talent fromPercent(int percent) {

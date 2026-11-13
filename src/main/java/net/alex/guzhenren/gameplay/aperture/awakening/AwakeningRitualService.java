@@ -61,6 +61,7 @@ public final class AwakeningRitualService {
     public static final double DANGER_REACH = 8.0;
     public static final double DANGER_HEIGHT = 5.0;
     public static final String ANNOUNCEMENT = "guzhenren.chat.awakened";
+    public static final String APTITUDE = "guzhenren.chat.awakened_aptitude";
     public static final String GRADE_PREFIX = "guzhenren.display.talent_grade.";
     private static final SoundEvent START_SOUND = SoundEvents.BEACON_ACTIVATE;
     private static final SoundEvent AWAKEN_SOUND = SoundEvents.ENCHANTMENT_TABLE_USE;
@@ -127,7 +128,8 @@ public final class AwakeningRitualService {
         Talent talent = ApertureService.getTalent(player);
         return talent == Talent.TEN_EXTREMES
                 ? Component.translatable(BodyService.getExtremePhysique(player).getTranslationKey())
-                : Component.translatable(GRADE_PREFIX + talent.getSerializedName());
+                : Component.translatable(APTITUDE, Component.translatable(GRADE_PREFIX + talent.getSerializedName()),
+                Talent.formatPercent(ApertureService.getAperture(player).baseEssence()));
     }
 
     private static void awaken(ServerPlayer player, AwakeningRitual ritual) {

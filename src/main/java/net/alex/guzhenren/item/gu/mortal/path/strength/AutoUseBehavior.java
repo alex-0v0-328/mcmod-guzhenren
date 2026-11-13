@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>Each names the path effect it runs ({@link #getStateType}), its own start condition ({@link #canStart}) and
  * the length of the window one start opens ({@link #getDurationSeconds}); its {@code applyEffect} puts that effect
  * on until {@link AutoUse#getEndTick}, the window plus the held beasts' duration bonus. A hand use is refused here with
- * {@link #FAILED_AUTO_ONLY} and pays nothing; only {@link AutoUse}'s start gets past the gate, and no Amplify Effect
+ * {@link Refusal#AUTO_EFFECT} and pays nothing; only {@link AutoUse}'s start gets past the gate, and no Amplify Effect
  * Gu [功倍蛊] multiplies it.
  *
  * @author Alex
@@ -28,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 public interface AutoUseBehavior extends GuBehavior {
 
-    String FAILED_AUTO_ONLY = "guzhenren.item.failed.auto_only";
-
     @NotNull PathEffectType<?> getStateType();
 
     boolean canStart(@NotNull ServerPlayer player);
@@ -38,6 +36,6 @@ public interface AutoUseBehavior extends GuBehavior {
 
     @Override
     default @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
-        return AutoUse.isStarting(player) ? null : new Refusal(FAILED_AUTO_ONLY);
+        return AutoUse.isStarting(player) ? null : new Refusal(Refusal.AUTO_EFFECT);
     }
 }

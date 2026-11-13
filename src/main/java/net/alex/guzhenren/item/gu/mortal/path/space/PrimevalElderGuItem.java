@@ -52,7 +52,6 @@ public class PrimevalElderGuItem extends TendedGuItem {
     private static final String FAILED_EMPTY = "guzhenren.item.failed.elder_gu_empty";
     private static final String FAILED_FULL = "guzhenren.item.failed.elder_gu_full";
     private static final String FAILED_NO_STONES = "guzhenren.item.failed.elder_gu_no_stones";
-    private static final String FAILED_BAG_FULL = "guzhenren.item.failed.elder_gu_bag_full";
     private static final String TOOLTIP_STORED = "guzhenren.item.gu.stored_stones";
     private final long capacity;
 
@@ -149,7 +148,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
         }
         int room = getBagRoom(player);
         if (room <= 0) {
-            ActionBar.refuse(player, FAILED_BAG_FULL);
+            ActionBar.refuse(player, Refusal.BAG_FULL);
             return false;
         }
         int taken = (int) Math.min(Math.min((long) stacks * STACK, getStored(stack)), room);

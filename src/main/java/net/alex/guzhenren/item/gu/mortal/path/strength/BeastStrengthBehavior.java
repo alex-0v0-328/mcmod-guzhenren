@@ -50,9 +50,7 @@ public record BeastStrengthBehavior(BeastStrength beast) implements GuBehavior {
                     held.getBeastReadings().getOrDefault(family, 1), held.getInnate(family)));
         }
 
-        return StrengthService.canAdmit(player, beast)
-                ? null
-                : new Refusal(FAILED_CAPACITY, ModDisplayText.formatBeastStrength(beast));
+        return StrengthService.canAdmit(player, beast) ? null : new Refusal(FAILED_CAPACITY);
     }
 
     @Override

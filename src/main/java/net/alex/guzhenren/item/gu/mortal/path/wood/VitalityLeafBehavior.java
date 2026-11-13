@@ -27,14 +27,13 @@ import org.jetbrains.annotations.Nullable;
 
 public record VitalityLeafBehavior() implements GuBehavior {
 
-    private static final String FAILED_VITALITY_ACTIVE = "guzhenren.item.failed.vitality_active";
 
     @Override
     public boolean canBeAmplified() { return true; }
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
-        return TimedEffects.hasLeaf(player) ? new Refusal(FAILED_VITALITY_ACTIVE) : null;
+        return TimedEffects.hasLeaf(player) ? new Refusal(Refusal.EFFECT_ACTIVE) : null;
     }
 
     @Override

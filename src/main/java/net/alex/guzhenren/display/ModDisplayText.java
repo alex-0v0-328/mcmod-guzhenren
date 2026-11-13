@@ -69,7 +69,7 @@ public final class ModDisplayText {
 
     public static MutableComponent formatTalentLine(Aperture aperture, boolean awakened) {
         MutableComponent line = formatTalent(aperture);
-        if (awakened) line.append(formatDetail(formatBaseFraction(aperture.baseEssence())));
+        if (awakened) line.append(formatDetail(Talent.formatPercent(aperture.baseEssence())));
         return line;
     }
 
@@ -88,7 +88,7 @@ public final class ModDisplayText {
 
         Component detail = aperture.getTalent() == Talent.TEN_EXTREMES && body.isExtreme()
                 ? Component.translatable(body.extremePhysique().getTranslationKey())
-                : formatBaseFraction(aperture.baseEssence());
+                : Talent.formatPercent(aperture.baseEssence());
         return Component.translatable("guzhenren.display.aptitude_line", formatTalent(aperture), detail);
     }
 
@@ -231,15 +231,5 @@ public final class ModDisplayText {
         Component u = units > 0 ? Component.translatable("guzhenren.display.strength.num_units." + units) : null;
         if (t != null && u != null) return Component.translatable("guzhenren.display.strength.num_join", t, u);
         return t != null ? t : u;
-    }
-
-    public static Component formatBaseFraction(int base) {
-        if (base >= 100) return Component.translatable("guzhenren.display.base_full");
-        Component tens = Component.translatable("guzhenren.display.base_tens." + (base / 10));
-        int units = base % 10;
-        return units == 0
-                ? Component.translatable("guzhenren.display.base_round", tens)
-                : Component.translatable("guzhenren.display.base_fraction", tens,
-                Component.translatable("guzhenren.display.base_units." + units));
     }
 }

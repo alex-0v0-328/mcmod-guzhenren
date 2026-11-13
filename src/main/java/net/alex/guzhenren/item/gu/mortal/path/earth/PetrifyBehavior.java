@@ -34,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 public record PetrifyBehavior() implements GuBehavior {
 
     public static final int NO_TARGET = -1;
-    private static final String FAILED_UNAVAILABLE = "guzhenren.item.failed.aperture_unavailable";
 
     public static int getStoneTarget(@NotNull ApertureStatus primary, @NotNull ApertureStatus second) {
         if (primary == ApertureStatus.NORMAL) return ApertureData.PRIMARY;
@@ -56,7 +55,7 @@ public record PetrifyBehavior() implements GuBehavior {
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
         int target = getTargetOf(player);
-        if (target == NO_TARGET) return new Refusal(FAILED_UNAVAILABLE);
+        if (target == NO_TARGET) return new Refusal(Refusal.CANNOT_USE);
         return gu.checkStageUpGate(ApertureService.getAperture(player, target));
     }
 

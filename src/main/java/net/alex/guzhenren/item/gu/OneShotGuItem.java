@@ -32,7 +32,7 @@ public class OneShotGuItem extends MortalGuItem {
     //region the one press [一按]
     @Override
     protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
-        Refusal cost = checkEssenceGate(player, getRefineCost(), FAILED_REFINE_ESSENCE);
+        Refusal cost = checkEssenceGate(player, getRefineCost(), Refusal.ESSENCE);
         return cost != null ? cost : checkOwnUse(player, stack);
     }
 

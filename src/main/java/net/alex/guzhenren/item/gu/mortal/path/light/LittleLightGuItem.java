@@ -1,7 +1,6 @@
 package net.alex.guzhenren.item.gu.mortal.path.light;
 
 import java.util.List;
-import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
@@ -50,9 +49,6 @@ import org.jetbrains.annotations.NotNull;
 public final class LittleLightGuItem extends TendedGuItem {
 
     public static final int BRIGHT_TICKS = 2_400;
-    private static final String MSG_ON = "guzhenren.item.gu.little_light_bright_on";
-    private static final String MSG_OFF = "guzhenren.item.gu.little_light_bright_off";
-    private static final String MSG_DIMMED = "guzhenren.item.gu.little_light_dimmed";
     private static final String TOOLTIP_BRIGHT = "guzhenren.item.gu.little_light_bright";
 
     public LittleLightGuItem(GuProperties guProperties) {
@@ -68,7 +64,6 @@ public final class LittleLightGuItem extends TendedGuItem {
     protected int performOwnUse(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
         if (isBright(stack)) {
-            ActionBar.inform(player, MSG_OFF);
             turnOff(player, stack);
             return 0;
         }
@@ -79,7 +74,6 @@ public final class LittleLightGuItem extends TendedGuItem {
         stack.set(ModDataComponents.LITTLE_LIGHT_BRIGHT, true);
         stack.set(ModDataComponents.LITTLE_LIGHT_BRIGHT_UNTIL, player.level().getGameTime() + BRIGHT_TICKS);
         if (forced) stack.set(ModDataComponents.LITTLE_LIGHT_FORCED, true);
-        ActionBar.inform(player, MSG_ON);
         return 0;
     }
 
@@ -114,7 +108,6 @@ public final class LittleLightGuItem extends TendedGuItem {
         Long until = stack.get(ModDataComponents.LITTLE_LIGHT_BRIGHT_UNTIL);
         if (until != null && level.getGameTime() < until) return;
 
-        ActionBar.inform(player, MSG_DIMMED);
         turnOff(player, stack);
     }
     //endregion

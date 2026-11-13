@@ -29,6 +29,7 @@ import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.soul.SoulTier;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuType;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
@@ -160,7 +161,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.talent_grade.second",         "Grade B",                     "乙等");
         add("guzhenren.display.talent_grade.third",          "Grade C",                     "丙等");
         add("guzhenren.display.talent_grade.fourth",         "Grade D",                     "丁等");
-        add("guzhenren.chat.awakened",                       "%s's aptitude: %s",           "%s资质：%s");
+        add("guzhenren.chat.awakened",                       "%s has awakened, aptitude %s", "%s已开窍，资质%s");
+        add("guzhenren.chat.awakened_aptitude",              "%s, %s",                      "%s%s");
         add("guzhenren.display.none",                        "[NONE]",                      "[无]");
         add("guzhenren.display.marks.both",                  "%s Marks %s Strands",         "%s条道痕 %s丝道痕");
         add("guzhenren.display.marks.marks",                 "%s Marks",                    "%s条道痕");
@@ -252,25 +254,24 @@ public class ModLanguageProvider extends LanguageProvider {
     private void addCommandKeys() {
         add("guzhenren.command.tagged",                           "[GZR] %s", "[GZR] %s");
         add("guzhenren.command.updated",                          "Updated %s player(s)", "已更新 %s 名玩家");
-        add("guzhenren.command.unknown_value",                    "Unknown value: %s", "未知的取值：%s");
+        add("guzhenren.command.unknown_value",                    "Unknown value: %s", "未知取值：%s");
 
         add("guzhenren.command.failed.awakened",                  "%s has already awakened", "%s 已开窍");
         add("guzhenren.command.failed.unawakened",                "%s has not awakened", "%s 尚未开窍");
         add("guzhenren.command.failed.mark_interference",         "%s: Mark Interference", "%s：力道道痕互斥");
-        add("guzhenren.command.failed.aperture_index",            "%s has no aperture there", "%s 没有该空窍");
+        add("guzhenren.command.failed.aperture_index",            "%s has no aperture there", "%s 无此空窍");
         add("guzhenren.command.failed.base_extreme",
-                "%s is unawakened or a Ten Extremes physique; set the latter through talent",
-                "%s 未开窍或是十绝体；十绝体须用 talent 修改");
+                "%s is unawakened or a Ten Extremes physique", "%s 未开窍或为十绝体");
 
         add("guzhenren.command.travel.entered",                   "Sent %s into %s", "已将 %s 送入%s");
         add("guzhenren.command.travel.exited",
                 "Returned %s from the anchored dimension", "已将 %s 送出锚定维度");
-        add("guzhenren.command.travel.already_inside",            "%s is already inside %s", "%s 已经在%s内");
+        add("guzhenren.command.travel.already_inside",            "%s is already in %s", "%s 已在%s");
         add("guzhenren.command.travel.not_inside",
-                "%s is not inside an anchored dimension", "%s 不在任何锚定维度内");
+                "%s is not inside an anchored dimension", "%s 不在锚定维度内");
         add("guzhenren.command.travel.unknown_dimension",         "%s is not an anchored dimension", "%s 不是锚定维度");
         add("guzhenren.command.travel.missing_dimension",
-                "%s is not loaded on this server", "%s 未在此服务器加载", "%s 未在此伺服器載入");
+                "%s is not loaded on this server", "本服务器未加载 %s", "本伺服器未載入 %s");
     }
     //endregion
 
@@ -290,13 +291,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.menu.vital",                         "Vital", "本命");
         add("guzhenren.menu.refinement",                    "Gu Refinement", "炼蛊");
         add("guzhenren.menu.soul_trade.trade",              "Trade", "交易");
-        add("guzhenren.menu.soul_trade.short",              "Not enough to pay for this trade", "材料不足，无法交易");
-        add("guzhenren.menu.soul_trade.no_room",
-                "Not enough inventory space: make room before trading", "背包空间不足，请先腾出空间再交易");
-        add("guzhenren.menu.refinement.essence",            "Refining needs %s essence", "需真元%s炼制");
+        add("guzhenren.menu.soul_trade.short",              "Not enough to pay for this trade", "交易材料不足");
         add("guzhenren.menu.refinement.craft",              "Refine", "炼制");
-        add("guzhenren.menu.refinement.no_room",            "No output space", "输出无空位");
-        add("guzhenren.menu.refinement.not_awakened",       "No aperture for refining", "未开窍，无法炼蛊");
+        add("guzhenren.menu.refinement.no_room",            "Output is full", "输出已满");
         add("guzhenren.menu.refinement.rings",
                 "Outer ring: material  ·  Inner ring: Gu", "外圈 蛊材  ·  内圈 蛊虫");
         add("guzhenren.menu.refinement.window",
@@ -306,7 +303,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.menu.refinement.lost_essence",       "Failed: Your essence ran dry", "真元耗尽，炼制失败");
         add("guzhenren.menu.refinement.lost_roll",          "The refinement failed", "炼制失败");
         add("guzhenren.menu.refinement.elder_spent",
-                "The Primeval Elder Gu is spent, and is back in your bag", "元老蛊已耗尽，已卸下");
+                "The Primeval Elder Gu's stones are spent", "元老蛊用尽元石");
         add("guzhenren.menu.refinement.recipes",            "Recipes", "蛊方");
         add("guzhenren.menu.refinement.selected",           "Chosen  %s", "已选  %s");
         add("guzhenren.menu.refinement.extra",              "The grid holds more than this recipe wants", "格内有多余材料");
@@ -321,7 +318,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.menu.refinement.pick.chance",        "%s%%", "%s%%");
         add("guzhenren.menu.refinement.pick.success",       "Success  %s%%", "成功率  %s%%");
         add("guzhenren.menu.refinement.stop",               "Stop", "停止");
-        add("guzhenren.menu.refinement.stopped",            "You broke off the refinement", "你中断了炼制");
+        add("guzhenren.menu.refinement.stopped",            "Refinement interrupted", "炼制中断");
         add("guzhenren.menu.refinement.pool",               "%s / %s", "%s / %s");
         add("guzhenren.menu.refinement.pick.soul",          "%s soul a second", "每秒魂魄 %s");
         add("guzhenren.screen.label.primary_path",          "Primary Path", "主修流派");
@@ -333,9 +330,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.nourish_second",              "Nourish Second Aperture", "温养第二空窍");
         add("guzhenren.screen.impact",                      "Flush Aperture Wall", "冲刷窍壁");
         add("guzhenren.screen.button.storage",              "Aperture Storage", "空窍存储");
-        add("guzhenren.nourish.starved",                    "The essence ran out", "真元见底，中止温养");
         add("guzhenren.nourish.stage_up",                   "Aperture Stage Up", "小境界提升");
-        add("guzhenren.impact.poor",                        "Flushing the wall needs %s essence", "冲刷窍壁需真元 %s");
         add("guzhenren.impact.success",                     "Aperture Rank Up", "大境界提升");
         add("guzhenren.impact.hold",                        "Flush Failed, No change", "冲刷失败，大境界未变");
         add("guzhenren.impact.drop_stage",                  "Flush Failed, Stage dropped", "冲刷失败，小境界掉落");
@@ -384,76 +379,41 @@ public class ModLanguageProvider extends LanguageProvider {
         add("itemGroup.guzhenren.booklet",                           "Booklets", "书册");
 
         add("guzhenren.item.failed.awakened",                        "You have already awakened", "你已开窍");
-        add("guzhenren.item.failed.awakening",                       "The awakening is under way", "开窍仪式进行中");
-        add("guzhenren.item.failed.nourishing",                      "You are nourishing your aperture", "正在温养空窍");
-        add("guzhenren.item.failed.awakening_danger",
-                "Danger is near - you cannot awaken now", "周围有危险，暂不能开窍");
-        add("guzhenren.item.failed.unawakened",                      "You have NOT awakened", "你未开窍");
+        add("guzhenren.item.failed.awakening",                       "Awakening in progress", "开窍中");
+        add("guzhenren.item.failed.nourishing",                      "Nourishing your aperture", "温养空窍中");
+        add("guzhenren.item.failed.awakening_danger",                "Danger nearby, cannot awaken", "周围危险，无法开窍");
+        add(Refusal.UNAWAKENED,                                      "Not yet awakened", "尚未开窍");
         add("guzhenren.item.failed.essence_full",                    "Essence is already FULL", "真元已满");
-        add("guzhenren.item.failed.rank_mismatch",                   "Wrong realm - this Gu needs %s", "境界不符 — 此蛊需%s");
-        add("guzhenren.item.failed.stage_peak",                      "You are at the Stage Peak", "已至小境界巅峰");
-        add("guzhenren.item.failed.second_aperture_rank",
-                "The second aperture already stands at or above this rank", "第二空窍已是该转数或更高");
-        add("guzhenren.item.failed.aperture_unavailable",            "No usable aperture remains", "没有可以作用的空窍");
-        add("guzhenren.item.failed.beast_strength_held",             "You already hold %s", "已有%s");
-        add("guzhenren.item.failed.beast_strength_capacity",
-                "Your body cannot carry %s", "承受力不足以容纳%s");
-        add("guzhenren.item.failed.human_strength_full",
-                "This strength is already at %s layers", "此力已满%s层");
+        add(Refusal.RANK_MISMATCH,                                   "Wrong realm", "境界不符");
+        add("guzhenren.item.failed.stage_peak",                      "Already at %s Peak", "已至%s巅峰");
+        add(Refusal.CANNOT_USE,                                      "Cannot use this Gu", "无法使用该蛊");
+        add(Refusal.EFFECT_ACTIVE,                                   "This Gu's effect has not ended", "该蛊效果未结束");
+        add("guzhenren.item.failed.beast_strength_held",             "Already holding %s", "已有%s");
+        add("guzhenren.item.failed.beast_strength_capacity",         "Not enough capacity", "承受力不足");
+        add("guzhenren.item.failed.human_strength_full",             "Already at %s layers", "已叠满%s层");
         add("guzhenren.item.failed.mark_interference",               "Mark Interference", "力道道痕互斥");
-        add("guzhenren.item.failed.vitality_active",                 "Vitality Leaf is still working", "生机叶效果未散");
-        add("guzhenren.item.failed.self_reliance_healthy",
-                "Your health is already at nine tenths", "生命已达九成");
-        add("guzhenren.item.failed.self_reliance_running",           "Self Reliance is still healing", "自力更生正在回复");
-        add("guzhenren.item.failed.auto_only",                       "This Gu works on its own; it needs no driving",
-                "该蛊自动生效，无需催动");
-        add("guzhenren.item.failed.refine_essence",                  "NOT enough essence to refine", "真元不足无法炼化");
-        add("guzhenren.item.failed.essence",                         "NOT enough essence", "真元不足");
-        add("guzhenren.item.failed.liquor_rank",                     "Only a %s Gu Master can use this", "%s蛊师才可使用");
-        add("guzhenren.item.failed.liquor_distilling",               "You are already distilling", "精炼未止");
-        add("guzhenren.item.failed.elder_gu_empty",                  "This Gu holds no Primeval Stones", "蛊中无元石");
-        add("guzhenren.item.failed.elder_gu_full",                   "This Gu is full of Primeval Stones", "蛊中元石已满");
-        add("guzhenren.item.failed.elder_gu_bag_full",               "Your bag is full", "背包已满");
+        add(Refusal.AUTO_EFFECT,                                     "This Gu works on its own", "该蛊自动生效");
+        add(Refusal.ESSENCE,                                         "NOT enough essence", "真元不足");
+        add("guzhenren.item.failed.elder_gu_empty",
+                "No Primeval Stones stored in the Primeval Elder Gu", "元老蛊无元石储备");
+        add("guzhenren.item.failed.elder_gu_full",                   "The Primeval Elder Gu's store is full", "元老蛊元石储备已满");
+        add(Refusal.BAG_FULL,                                        "Your bag is full", "背包已满");
         add("guzhenren.item.failed.elder_gu_no_stones",
-                "You carry no Primeval Stones to store", "身上无元石可存");
-        add("guzhenren.item.failed.gu_cooldown",                     "This Gu needs another %s seconds", "此蛊尚需 %s 秒");
-        add("guzhenren.item.failed.all_out_active",
-                "The all-out effort has not yet passed", "全力以赴蛊效果未散");
+                "No Primeval Stones to store in the Primeval Elder Gu", "无元石存入元老蛊");
+        add("guzhenren.item.failed.gu_cooldown",                     "Cooling down %s s", "冷却中 %s 秒");
         add("guzhenren.item.failed.all_out_needs_branch",
                 "Must be paired with other Gu", "需搭配蛊虫使用");
-        add("guzhenren.item.failed.store_strength_active",
-                "The stored strength has not yet passed", "蓄力蛊效果未散");
-        add("guzhenren.item.failed.buff_stronger",
-                "A stronger %s effect is still running", "更强的%s效果未散");
-        add("guzhenren.item.failed.skin_taken",
-                "Your skin is already %s", "皮肤已是%s");
-        add("guzhenren.item.failed.tendon_taken",
-                "Your tendons are already %s", "筋已是%s");
-        add("guzhenren.item.failed.bone_taken",
-                "Your bones are already %s", "骨已是%s");
-        add("guzhenren.item.failed.zombie_already",
-                "Already a zombie, nothing left to turn", "已经是僵尸，无可再变");
-        add("guzhenren.item.failed.gu_starving",
-                "This Gu is too hungry - feed it first", "蛊已太饿，需先喂食");
-        add("guzhenren.item.failed.gu_short",
-                "Too hungry for one use - use it again within 5 s to force it, and the Gu dies of exhaustion",
-                "饱食不足一次：5 秒内再次催动将强行使用，蛊虫随后力竭而死");
-        add("guzhenren.item.failed.vital_gu_short",
-                "Your Vital Gu is too hungry for one use and can never be forced", "本命蛊饱食不足一次，不能强行催动");
-        add("guzhenren.item.failed.no_use",                          "This Gu needs no use", "此蛊无需使用");
-        add("guzhenren.item.failed.amplify_offhand",
-                "Hold right-click to pick a Gu, or hold it in the offhand", "按住右键选蛊，或副手持握配合催动");
-        add("guzhenren.item.failed.amplify_no_target",               "No Gu on the hotbar to amplify", "快捷栏没有可增幅的蛊");
-        add("guzhenren.item.failed.no_leaves",
-                "No Vitality Leaf left - the next grows in %s s", "生机叶已摘光，下一片需 %s 秒");
-        add("guzhenren.item.failed.leaves_full",                     "All nine Vitality Leaves have grown", "生机叶已满九片");
-        add("guzhenren.item.failed.as_before_no_memory",             "This Gu has not yet known you", "此蛊尚未识你");
-        add("guzhenren.item.failed.as_before_too_young",             "This Gu has not yet known a full day", "此蛊尚未满一日");
-        add("guzhenren.item.failed.as_before_unknown_land",          "This Gu has not yet known this land", "此蛊未识此地");
-        add("guzhenren.item.failed.as_before_not_land",              "This is no mountain", "此地非山");
-        add("guzhenren.item.failed.as_before_not_water",             "This is no river", "此地非江");
+        add("guzhenren.item.failed.tempering_taken",                 "Already %s", "已是%s");
+        add(Refusal.GU_HUNGRY,                                       "Gu is hungry", "蛊虫饥饿");
+        add("guzhenren.item.failed.forced_use_warning",              "Gu is hungry; forcing it kills it", "蛊虫饥饿，强行催动会死");
+        add("guzhenren.item.failed.vital_no_forced_use",             "A Vital Gu cannot be forced", "本命蛊无法强行催动");
+        add("guzhenren.item.failed.amplify_needs_hold",              "Hold to choose an amplify target", "需要长按选择增幅目标");
+        add("guzhenren.item.failed.amplify_no_target",               "No amplify target on the hotbar", "快捷栏无可增幅目标");
+        add("guzhenren.item.failed.no_leaves",                       "No Vitality Leaf yet", "暂无生机叶");
+        add("guzhenren.item.failed.as_before_no_record",             "No past record", "无过去记录");
+        add(Refusal.WRONG_TARGET,                                    "Wrong target", "作用目标错误");
         add("guzhenren.item.failed.as_before_no_grief",
-                "Terrain changes are off in this world (mobGriefing)", "本世界已关闭地形改动（mobGriefing）");
+                "Terrain changes are off in this world - mobGriefing", "本世界关闭了地形改动 - mobGriefing");
         add("guzhenren.item.gu.invested",                            "Invested %s/%s", "已投入 %s/%s");
         add("guzhenren.item.gu.refine_progress",                     "Refined %s/%s", "炼化 %s/%s");
         add("guzhenren.item.gu.refine_cost",                         "Refine %s", "炼化 %s");
@@ -465,39 +425,28 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.amplifies",
                 "Offhand: some Gu up to its rank, effect ×%s", "副手：本转及以下部分蛊效果 ×%s");
         add("guzhenren.item.gu.little_light_bright",                 "Shining bright", "强光中");
-        add("guzhenren.item.gu.little_light_bright_on",              "Your Little Light Gu shines bright", "小光蛊放出强光");
-        add("guzhenren.item.gu.little_light_bright_off",             "Your Little Light Gu dims", "小光蛊收起强光");
-        add("guzhenren.item.gu.little_light_dimmed",
-                "Your Little Light Gu's bright light fades", "小光蛊强光时限已到，熄灭");
         add("guzhenren.item.gu.killing_move_hint",
                 "Hold right-click to pick a killing move", "长按右键选杀招");
         add("guzhenren.killing_move.km_mortal_little_light_amplify", "Little Light Amplification", "小光蛊增幅");
-        add("guzhenren.item.killing_move.learned",                   "Learned the killing move %s", "学会杀招：%s");
-        add("guzhenren.item.failed.killing_move_known",              "You already know %s", "已学会%s");
+        add("guzhenren.item.killing_move.learned",                   "Killing move learned: %s", "习得杀招：%s");
+        add("guzhenren.item.failed.killing_move_known",              "Killing move already learned: %s", "已习得杀招：%s");
         add("guzhenren.item.killing_move.mains",                     "Main Gu: %s", "主蛊：%s");
         add("guzhenren.item.killing_move.partner",                   "Partner Gu: %s", "配合蛊：%s");
         add("guzhenren.item.killing_move.blade_factor",              "Moon blade damage ×%s", "月刃伤害 ×%s");
         add("guzhenren.item.killing_move.known",                     "Learned", "已学会");
-        add("guzhenren.killing_move.started",                        "Killing move on: %s", "杀招启动：%s");
+        add("guzhenren.killing_move.started",                        "Killing move: %s", "杀招：%s");
         add("guzhenren.killing_move.stopped",                        "Killing move off: %s", "杀招关闭：%s");
         add("guzhenren.killing_move.stop",                           "Stop %s", "关闭%s");
-        add("guzhenren.item.failed.killing_move_partner_hungry",
-                "%s is too hungry to start the killing move", "%s饱食不足，杀招无法启动");
         add("guzhenren.item.failed.killing_move_partner_missing",
-                "%s is not on you; the killing move is off", "身上没有%s，杀招关闭");
-        add("guzhenren.item.gu.as_before_body",                      "Your body is as it was a day ago", "身已如昨");
-        add("guzhenren.item.gu.as_before_land",                      "The land is as it was first made", "山已如初");
-        add("guzhenren.item.gu.as_before_water",                     "The waters are as they were first made", "江已如初");
+                "Missing the killing move's key Gu: %s", "缺少杀招关键蛊虫：%s");
         add("guzhenren.item.gu.lifespan_gained",                     "Lifespan +%s years", "寿元 +%s 年");
-        add("guzhenren.item.gu.hungry",                              "Your %s is hungry", "%s饿了");
-        add("guzhenren.item.gu.starved",                             "Your %s starved to death", "%s饿死了");
-        add("guzhenren.item.gu.exhausted",
-                "Your %s was forced past its limit and died", "强行催动%s，蛊已死亡");
-        add("guzhenren.item.gu.ruined",
-                "Your %s was ruined in the refinement", "%s在炼制中失败");
+        add("guzhenren.item.gu.hungry",                              "%s is hungry", "%s饥饿");
+        add("guzhenren.item.gu.starved",                             "%s starved", "%s饿死");
+        add("guzhenren.item.gu.forced_dead",                         "%s died from forced use", "%s强行催动而亡");
+        add("guzhenren.item.gu.refine_dead",                         "%s died in refinement", "%s炼制中死亡");
         add("guzhenren.item.gu.health",                              "Health %s / %s", "生命 %s / %s");
         add("guzhenren.item.gu.vital_lost",
-                "Your %s is gone -- health, soul and mind all suffer!", "本命%s死亡，你也遭受重创");
+                "Your Vital Gu %s died", "本命蛊%s死亡");
 
         add("effect.guzhenren.vitality_leaf_gu",                     "Vitality Leaf Gu Effect", "生机叶蛊效果");
         add("effect.guzhenren.liquor_worm",                          "Liquor Worm Effect", "酒虫效果");

@@ -5,6 +5,7 @@ import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.dimension.TreasureYellowHeavenGuard;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.network.payload.ElderAction;
 import net.alex.guzhenren.network.payload.PrimevalElderPayload;
@@ -49,7 +50,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class PrimevalElderInput {
 
     private static final String FAILED_EMPTY = "guzhenren.item.failed.elder_gu_empty";
-    private static final String FAILED_BAG_FULL = "guzhenren.item.failed.elder_gu_bag_full";
     private static final String LABEL_STACKS = "guzhenren.hud.elder_gu.withdraw";
     private static final String DETAIL = "guzhenren.hud.elder_gu.detail";
 
@@ -105,7 +105,7 @@ public final class PrimevalElderInput {
 
         @Override
         public void empty() {
-            ActionBar.refuse(player, PrimevalElderGuItem.getStored(stack()) <= 0 ? FAILED_EMPTY : FAILED_BAG_FULL);
+            ActionBar.refuse(player, PrimevalElderGuItem.getStored(stack()) <= 0 ? FAILED_EMPTY : Refusal.BAG_FULL);
         }
 
         @Override

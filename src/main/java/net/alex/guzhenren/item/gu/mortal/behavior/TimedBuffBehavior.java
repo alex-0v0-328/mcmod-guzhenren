@@ -43,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 public record TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks, int amplifier) implements GuBehavior {
 
-    private static final String FAILED_STRONGER = "guzhenren.item.failed.buff_stronger";
 
     public TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks) { this(buff, durationTicks, 0); }
 
@@ -59,7 +58,7 @@ public record TimedBuffBehavior(Holder<MobEffect> buff, int durationTicks, int a
 
         PathEffect<TimedBuff> current = TimedEffects.findBuff(player, buff);
         return current != null && current.payload().amplifier() > amplifier
-                ? new Refusal(FAILED_STRONGER, buff.value().getDisplayName()) : null;
+                ? new Refusal(Refusal.EFFECT_ACTIVE) : null;
     }
 
     @Override

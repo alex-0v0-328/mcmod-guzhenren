@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.MenuSlots;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>⚠ The row button stays live when the bag cannot pay: the refusal has to reach the server so the soul can
  * shake its head, and the server is the only judge anyway. Before settling, everything that will later fall
  * back into the bag -- the cursor stack of this menu and the player's 2x2 crafting grid -- joins the room check
- * ({@link SoulTradeOffer}); a refusal for room tells the player to make space first.
+ * ({@link SoulTradeOffer}); a refusal for room tells the player the bag is full.
  *
  * <p>The menu closes once the trader dies or the player is more than {@code TRADE_RANGE} away.
  *
@@ -47,7 +48,6 @@ public class SoulTradeMenu extends AbstractContainerMenu {
     private static final int HOTBAR_GAP = 4;
     private static final int INVENTORY_SLOTS = INVENTORY_COLS * INVENTORY_ROWS;
     private static final String SHORT = "guzhenren.menu.soul_trade.short";
-    private static final String NO_ROOM = "guzhenren.menu.soul_trade.no_room";
     private final Player player;
     private final @Nullable SoulTraderEntity trader;
     private final List<SoulTradeOffer> offers;
@@ -91,7 +91,7 @@ public class SoulTradeMenu extends AbstractContainerMenu {
                 this.offers.get(id).settle(server.getInventory(), this.collectReturning(server));
         switch (outcome) {
             case SHORT -> ActionBar.refuse(server, SHORT);
-            case NO_ROOM -> ActionBar.refuse(server, NO_ROOM);
+            case NO_ROOM -> ActionBar.refuse(server, Refusal.BAG_FULL);
             case DONE -> {}
         }
         this.trader.reactToTrade(outcome == SoulTradeOffer.Outcome.DONE);

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * gate refuses the next.
  *
  * <p>The gate asks the grade itself ({@link BodyGrade#canReplace}) whether the holder's current grade gives way,
- * and refuses with the part's own key and the worn grade's name; the effect is the subclass's {@link #temper}, one
+ * and refuses with the one tempering key and the worn grade's name, which names the part; the effect is the subclass's {@link #temper}, one
  * write through {@code BodyService}. Every number and rule hangs off that write and the grade enum, not off this
  * behavior. {@code CarvingEffects} finds the Gu that makes a grade by this behavior.
  *
@@ -35,12 +35,11 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class TemperingBehavior<G extends Enum<G> & BodyGrade<G>> implements GuBehavior {
 
+    private static final String FAILED_TAKEN = "guzhenren.item.failed.tempering_taken";
     private final G grade;
-    private final String failedTakenKey;
 
-    protected TemperingBehavior(G grade, String failedTakenKey) {
+    protected TemperingBehavior(G grade) {
         this.grade = grade;
-        this.failedTakenKey = failedTakenKey;
     }
 
     public @NotNull G getGrade() { return grade; }
@@ -53,7 +52,7 @@ public abstract class TemperingBehavior<G extends Enum<G> & BodyGrade<G>> implem
     public final @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
         G worn = getWorn(player);
         return grade.canReplace(worn) ? null
-                : new Refusal(failedTakenKey, Component.translatable(worn.getTranslationKey()));
+                : new Refusal(FAILED_TAKEN, Component.translatable(worn.getTranslationKey()));
     }
 
     @Override

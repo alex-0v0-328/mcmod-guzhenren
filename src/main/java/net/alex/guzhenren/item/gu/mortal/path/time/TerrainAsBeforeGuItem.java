@@ -1,6 +1,5 @@
 package net.alex.guzhenren.item.gu.mortal.path.time;
 
-import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.ModEvents;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +36,6 @@ import org.jetbrains.annotations.Nullable;
 public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
 
     private static final String FAILED_NO_GRIEF = "guzhenren.item.failed.as_before_no_grief";
-    private static final String FAILED_UNKNOWN_LAND = "guzhenren.item.failed.as_before_unknown_land";
-    private static final String FAILED_NOT_LAND = "guzhenren.item.failed.as_before_not_land";
-    private static final String FAILED_NOT_WATER = "guzhenren.item.failed.as_before_not_water";
-    private static final String MSG_LAND = "guzhenren.item.gu.as_before_land";
-    private static final String MSG_WATER = "guzhenren.item.gu.as_before_water";
     private final ChunkKind kind;
 
     public TerrainAsBeforeGuItem(ChunkKind kind, GuProperties guProperties) {
@@ -56,9 +50,9 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
         ServerLevel level = server.serverLevel();
         if (!ModEvents.canGrief(level, server)) return new Refusal(FAILED_NO_GRIEF);
         LevelChunk center = getLoaded(level, server.chunkPosition());
-        if (center == null) return new Refusal(FAILED_UNKNOWN_LAND);
+        if (center == null) return new Refusal(Refusal.CANNOT_USE);
         if (ChunkKind.of(level, center) != kind) {
-            return new Refusal(kind == ChunkKind.LAND ? FAILED_NOT_LAND : FAILED_NOT_WATER);
+            return new Refusal(Refusal.WRONG_TARGET);
         }
         return null;
     }
@@ -76,7 +70,6 @@ public class TerrainAsBeforeGuItem extends AsBeforeGuItem {
             }
         }
         ChunkRewindService.rewindAround(level, center, targets);
-        ActionBar.inform(player, kind == ChunkKind.LAND ? MSG_LAND : MSG_WATER);
     }
 
     private static @Nullable LevelChunk getLoaded(ServerLevel level, ChunkPos pos) {

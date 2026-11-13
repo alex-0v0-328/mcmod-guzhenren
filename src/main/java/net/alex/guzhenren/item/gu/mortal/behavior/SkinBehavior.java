@@ -29,11 +29,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class SkinBehavior extends TemperingBehavior<Skin> {
 
-    private static final String FAILED_SKIN_TAKEN = "guzhenren.item.failed.skin_taken";
     private final int durationTicks;
 
     public SkinBehavior(Skin skin, int durationTicks) {
-        super(skin, FAILED_SKIN_TAKEN);
+        super(skin);
         if (skin.isTimed() != durationTicks > 0) {
             throw new IllegalArgumentException(skin + " takes " + (skin.isTimed() ? "a duration" : "no duration"));
         }

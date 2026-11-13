@@ -21,10 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class BoneBehavior extends TemperingBehavior<Bone> {
 
-    private static final String FAILED_BONE_TAKEN = "guzhenren.item.failed.bone_taken";
-
     public BoneBehavior(Bone bone) {
-        super(bone, FAILED_BONE_TAKEN);
+        super(bone);
     }
 
     @Override

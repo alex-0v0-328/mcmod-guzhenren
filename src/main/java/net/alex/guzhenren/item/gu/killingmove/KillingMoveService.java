@@ -9,6 +9,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
@@ -94,8 +95,6 @@ public final class KillingMoveService {
     public static final double AIM_RANGE = MoonBladeEntity.SPEED * MoonBladeEntity.LIFETIME_TICKS;
     /** How far the server accepts a client's target: the aim range plus slack for a tick or two of movement. */
     public static final double AIM_CHECK_RANGE = AIM_RANGE + 2.0D;
-    private static final String FAILED_ESSENCE = "guzhenren.item.failed.essence";
-    private static final String FAILED_PARTNER_HUNGRY = "guzhenren.item.failed.killing_move_partner_hungry";
     private static final String FAILED_PARTNER_MISSING = "guzhenren.item.failed.killing_move_partner_missing";
     private static final String STARTED = "guzhenren.killing_move.started";
     private static final String STOPPED = "guzhenren.killing_move.stopped";
@@ -236,7 +235,7 @@ public final class KillingMoveService {
             return null;
         }
         if (!PrimevalStoneSupply.canAfford(player, main.getUseEssence() + active.getPartnerEssence())) {
-            ActionBar.refuse(player, FAILED_ESSENCE);
+            ActionBar.refuse(player, Refusal.ESSENCE);
             return null;
         }
         ItemStack mainBefore = stack.copy();
@@ -273,7 +272,7 @@ public final class KillingMoveService {
         Partner partner = findPartner(player, move);
         if (partner == null) return;
         if (!partner.gu().takeHunger(partner.stack(), move.getStartHunger())) {
-            ActionBar.refuse(player, FAILED_PARTNER_HUNGRY, partnerName(move));
+            ActionBar.refuse(player, Refusal.GU_HUNGRY);
             return;
         }
         StoreSlot stored = partner.stored();

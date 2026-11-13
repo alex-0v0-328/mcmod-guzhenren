@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 public class TreasureLotusGuItem extends TendedGuItem {
 
     private static final int ESSENCE_REGEN_PERCENT = 5;
-    private static final String FAILED_PASSIVE = "guzhenren.item.failed.no_use";
     private final int stonesPerSecond;
     private final int stonesPerHealth;
 
@@ -52,7 +51,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
 
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
-        return new Refusal(FAILED_PASSIVE);
+        return new Refusal(Refusal.AUTO_EFFECT);
     }
 
     @Override

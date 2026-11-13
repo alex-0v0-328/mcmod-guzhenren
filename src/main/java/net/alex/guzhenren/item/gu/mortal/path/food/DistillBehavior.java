@@ -7,7 +7,6 @@ import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.behavior.StateEffects;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -31,15 +30,13 @@ import org.jetbrains.annotations.Nullable;
 
 public record DistillBehavior() implements GuBehavior {
 
-    private static final String FAILED_RANK = "guzhenren.item.failed.liquor_rank";
-    private static final String FAILED_DISTILLING = "guzhenren.item.failed.liquor_distilling";
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
         if (ApertureService.getRank(player) != gu.getRank()) {
-            return new Refusal(FAILED_RANK, Component.translatable(gu.getRank().getTranslationKey()));
+            return new Refusal(Refusal.RANK_MISMATCH);
         }
-        return ApertureEssenceService.canDistill(player) ? null : new Refusal(FAILED_DISTILLING);
+        return ApertureEssenceService.canDistill(player) ? null : new Refusal(Refusal.EFFECT_ACTIVE);
     }
 
     @Override

@@ -6,6 +6,7 @@ import net.alex.guzhenren.core.MenuSlots;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
+import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.stack.VitalGuState;
@@ -101,9 +102,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     static final int DATA_STONES_NEEDED = 8;
     private static final int DATA_SELECTED = 9;
     private static final int DATA_SIZE = 10;
-    private static final String FAILED_ESSENCE = "guzhenren.menu.refinement.essence";
     private static final String FAILED_NO_ROOM = "guzhenren.menu.refinement.no_room";
-    private static final String FAILED_NOT_AWAKENED = "guzhenren.menu.refinement.not_awakened";
     private static final String STOPPED = "guzhenren.menu.refinement.stopped";
     private final Player player;
     private final SimpleContainer input = new SimpleContainer(GuRecipe.INPUT_SIZE);
@@ -251,11 +250,11 @@ public class RefinementMenu extends AbstractContainerMenu {
 
     private boolean begin() {
         if (!(player instanceof ServerPlayer server) || ritual.isRunning()) return false;
-        if (!ApertureService.isAwakened(server)) return refuse(server, FAILED_NOT_AWAKENED);
+        if (!ApertureService.isAwakened(server)) return refuse(server, Refusal.UNAWAKENED);
 
         GuRecipe recipe = match();
         if (recipe == null || recipe.results().isEmpty() || recipe.getWindowCount() <= 0) return false;
-        if (!canAfford(server, recipe)) return refuse(server, FAILED_ESSENCE, recipe.getEssenceToFinish());
+        if (!canAfford(server, recipe)) return refuse(server, Refusal.ESSENCE);
         if (countFreeOutputSlots() < recipe.results().size()) return refuse(server, FAILED_NO_ROOM);
 
         int[] taken = recipe.claim(GuRecipeInput.of(input));

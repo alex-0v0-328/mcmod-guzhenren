@@ -29,14 +29,13 @@ import org.jetbrains.annotations.Nullable;
 
 public record SecondApertureBehavior() implements GuBehavior {
 
-    private static final String FAILED_SECOND_RANK = "guzhenren.item.failed.second_aperture_rank";
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
         ApertureData data = ApertureService.get(player);
         int index = data.getSecondIndex();
         return index >= 0 && data.get(index).rank().ordinal() >= gu.getRank().ordinal()
-                ? new Refusal(FAILED_SECOND_RANK) : null;
+                ? new Refusal(Refusal.RANK_MISMATCH) : null;
     }
 
     @Override

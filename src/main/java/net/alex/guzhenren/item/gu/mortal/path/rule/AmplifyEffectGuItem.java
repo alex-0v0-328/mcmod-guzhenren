@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class AmplifyEffectGuItem extends TendedGuItem {
 
-    private static final String FAILED_OFFHAND = "guzhenren.item.failed.amplify_offhand";
+    private static final String FAILED_NEEDS_HOLD = "guzhenren.item.failed.amplify_needs_hold";
     private static final String TOOLTIP_AMPLIFIES = "guzhenren.item.gu.amplifies";
     private static @Nullable Driving driving;
 
@@ -94,7 +94,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
 
         MortalGuItem driven = (MortalGuItem) target.getItem();
         if (!PrimevalStoneSupply.canAfford(player, amplifier.getUseEssence() + driven.getUseEssence())) {
-            ActionBar.refuse(player, FAILED_ESSENCE);
+            ActionBar.refuse(player, Refusal.ESSENCE);
             return;
         }
         driving = new Driving(player, stack);
@@ -111,7 +111,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
     }
 
     @Override
-    protected Refusal checkEffect(Player player, ItemStack stack) { return new Refusal(FAILED_OFFHAND); }
+    protected Refusal checkEffect(Player player, ItemStack stack) { return new Refusal(FAILED_NEEDS_HOLD); }
 
     @Override
     protected void applyEffect(ServerPlayer player, ItemStack stack) {}

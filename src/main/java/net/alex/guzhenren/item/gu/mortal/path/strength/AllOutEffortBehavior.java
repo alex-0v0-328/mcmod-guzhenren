@@ -41,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 public record AllOutEffortBehavior(int effectSeconds) implements GuBehavior {
 
-    private static final String FAILED_ALREADY_UNLEASHED = "guzhenren.item.failed.all_out_active";
     private static final String FAILED_NO_BRANCH = "guzhenren.item.failed.all_out_needs_branch";
 
     @Override
@@ -49,7 +48,7 @@ public record AllOutEffortBehavior(int effectSeconds) implements GuBehavior {
 
     @Override
     public @Nullable Refusal checkEffect(MortalGuItem gu, Player player, ItemStack stack) {
-        if (TimedEffects.hasBuff(player, ModEffects.ALL_OUT_EFFORT_GU)) return new Refusal(FAILED_ALREADY_UNLEASHED);
+        if (TimedEffects.hasBuff(player, ModEffects.ALL_OUT_EFFORT_GU)) return new Refusal(Refusal.EFFECT_ACTIVE);
 
         PathStrengthData data = PathStrengthService.get(player);
         return data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)

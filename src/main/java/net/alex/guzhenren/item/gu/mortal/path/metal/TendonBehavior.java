@@ -21,10 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TendonBehavior extends TemperingBehavior<Tendon> {
 
-    private static final String FAILED_TENDON_TAKEN = "guzhenren.item.failed.tendon_taken";
-
     public TendonBehavior(Tendon tendon) {
-        super(tendon, FAILED_TENDON_TAKEN);
+        super(tendon);
     }
 
     @Override

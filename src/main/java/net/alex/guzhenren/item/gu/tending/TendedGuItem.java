@@ -97,13 +97,12 @@ public class TendedGuItem extends MortalGuItem {
     private static final String TOOLTIP_HUNGER = "guzhenren.item.gu.hunger_progress";
     private static final String TOOLTIP_HEALTH = "guzhenren.item.gu.health";
     private static final String CAPTION_CHANNELING = "guzhenren.hud.using";
-    private static final String FAILED_STARVING = "guzhenren.item.failed.gu_starving";
-    private static final String FAILED_SHORT = "guzhenren.item.failed.gu_short";
-    private static final String FAILED_VITAL_SHORT = "guzhenren.item.failed.vital_gu_short";
+    private static final String FAILED_FORCED_USE_WARNING = "guzhenren.item.failed.forced_use_warning";
+    private static final String FAILED_VITAL_NO_FORCED_USE = "guzhenren.item.failed.vital_no_forced_use";
     private static final String MSG_HUNGRY = "guzhenren.item.gu.hungry";
     private static final String MSG_STARVED = "guzhenren.item.gu.starved";
-    private static final String MSG_EXHAUSTED = "guzhenren.item.gu.exhausted";
-    private static final String MSG_RUINED = "guzhenren.item.gu.ruined";
+    private static final String MSG_FORCED_DEAD = "guzhenren.item.gu.forced_dead";
+    private static final String MSG_REFINE_DEAD = "guzhenren.item.gu.refine_dead";
     protected static final int WARNED = -1;
     protected final GuHunger hunger;
     protected final GuHealth health;
@@ -260,14 +259,14 @@ public class TendedGuItem extends MortalGuItem {
     protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
         if (!isRefined(stack)) {
             return checkEssenceGate(player, Math.min(GuChanneling.ESSENCE_FLOOR, getRefineCost()),
-                    FAILED_REFINE_ESSENCE);
+                    Refusal.ESSENCE);
         }
-        Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
+        Refusal poor = checkEssenceGate(player, useThreshold(stack), Refusal.ESSENCE);
         if (poor != null) return poor;
 
         if (guProperties.isChanneled() && channeling.getEssenceAboveHungerFloor(player, stack) <= 0
                 && !hunger.carriesFood(this, player)) {
-            return new Refusal(FAILED_STARVING);
+            return new Refusal(Refusal.GU_HUNGRY);
         }
         return checkCooldownThenOwnUse(player, stack);
     }
@@ -322,12 +321,12 @@ public class TendedGuItem extends MortalGuItem {
 
     private boolean confirmForcedUse(ServerPlayer player, ItemStack stack) {
         if (VitalGuState.isVital(stack)) {
-            ActionBar.refuse(player, FAILED_VITAL_SHORT);
+            ActionBar.refuse(player, FAILED_VITAL_NO_FORCED_USE);
             return false;
         }
         if (GuForcedUse.confirm(player, stack)) return true;
 
-        ActionBar.refuse(player, FAILED_SHORT);
+        ActionBar.refuse(player, FAILED_FORCED_USE_WARNING);
         return false;
     }
 
@@ -391,7 +390,7 @@ public class TendedGuItem extends MortalGuItem {
 
     @Override
     protected @Nullable Refusal checkInPlaceUse(Player player, ItemStack stack) {
-        Refusal poor = checkEssenceGate(player, useThreshold(stack), FAILED_ESSENCE);
+        Refusal poor = checkEssenceGate(player, useThreshold(stack), Refusal.ESSENCE);
         return poor != null ? poor : checkCooldownThenOwnUse(player, stack);
     }
 
@@ -507,8 +506,8 @@ public class TendedGuItem extends MortalGuItem {
 
     public static void starve(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_STARVED); }
 
-    public static void exhaust(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_EXHAUSTED); }
+    public static void exhaust(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_FORCED_DEAD); }
 
-    public static void ruin(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_RUINED); }
+    public static void ruin(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_REFINE_DEAD); }
     //endregion
 }

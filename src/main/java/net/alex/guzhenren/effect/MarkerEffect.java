@@ -13,11 +13,11 @@ import net.minecraft.world.effect.MobEffectCategory;
  * {@code /effect clear} and death cannot strand a player wearing a form they are no longer in.</li>
  * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed, at the Gu's tier; while it runs on a body holding a strength
  * branch, {@code StrengthService.getAllOutTier} reads the tier for the capacity [承受力] lift and the round's chance.
- * Re-using it while it runs is a refusal ({@code all_out_active}).</li>
+ * Re-using it while it runs is a refusal ({@code effect_active}).</li>
  * <li>{@code STORE_STRENGTH_GU} [蓄力蛊] -- timed, at the Gu's tier; both ends read it for the charge
  * ({@code StoreStrength.canCharge} on the server, {@code StoreStrengthInput} on the client), as the All-Out Effort
  * Gu's is read for its tier.
- * Re-using it while it runs is a refusal ({@code store_strength_active}).</li>
+ * Re-using it while it runs is a refusal ({@code effect_active}).</li>
  * <li>{@code JADE_SKIN_GU} [玉皮蛊] and {@code WHITE_JADE_GU} [白玉蛊] -- timed; project the skin [皮肤] stored
  * on {@code BodyData} with its end tick, re-applied or removed by {@code SkinService.tickSkin} every
  * heartbeat; the flat damage reduction reads the skin, never the effect.</li>

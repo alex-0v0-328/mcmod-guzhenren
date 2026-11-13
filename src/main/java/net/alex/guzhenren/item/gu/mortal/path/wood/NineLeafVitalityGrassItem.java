@@ -51,7 +51,6 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     public static final ResourceLocation PICKED = Guzhenren.id("picked");
     private static final int GROW_CHARGE_TICKS = 2 * Ticks.SECOND;
     private static final String FAILED_NO_LEAVES = "guzhenren.item.failed.no_leaves";
-    private static final String FAILED_LEAVES_FULL = "guzhenren.item.failed.leaves_full";
     private static final String TOOLTIP_LEAVES = "guzhenren.item.gu.leaves";
     private static final String TOOLTIP_NEXT_LEAF = "guzhenren.item.gu.next_leaf";
     private final int regrowTicks;
@@ -81,16 +80,15 @@ public class NineLeafVitalityGrassItem extends TendedGuItem {
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         long now = player.level().getGameTime();
-        return getLeaves(stack, now) > 0 ? null
-                : new Refusal(FAILED_NO_LEAVES, Component.literal(String.valueOf(getSecondsToNextLeaf(stack, now))));
+        return getLeaves(stack, now) > 0 ? null : new Refusal(FAILED_NO_LEAVES);
     }
 
     @Override
     protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) {
         if (getLeaves(stack, player.level().getGameTime()) >= LeafGrowth.MAX_LEAVES) {
-            return new Refusal(FAILED_LEAVES_FULL);
+            return new Refusal(Refusal.CANNOT_USE);
         }
-        return checkEssenceGate(player, essencePerLeaf, FAILED_ESSENCE);
+        return checkEssenceGate(player, essencePerLeaf, Refusal.ESSENCE);
     }
 
     @Override

@@ -50,6 +50,11 @@ import org.jetbrains.annotations.Nullable;
  * {@code use}, {@code releaseUsing} and {@code finishUsingItem}, never cached from the press. A leaf wanting its
  * own pacing overrides the hook, not the stage.
  *
+ * <p>A refusal whose only news is "wrong realm", "not usable here", "an effect still runs", "it works on its
+ * own", "a Gu is hungry", "wrong target", "the bag is full", "not enough essence" or "not
+ * yet awakened" uses the shared {@link Refusal} key of that name, wherever it is said (Alex 2026-11-14); a Gu keeps a key of its own only where the line tells the player
+ * what to do or names a value.
+ *
  * @author Alex
  * @version 1.0.0
  * @see net.alex.guzhenren.item.gu.MortalGuItem
@@ -79,7 +84,17 @@ public abstract class GuItem extends Item {
 
     public int getTier() { return rank.ordinal() - Rank.ONE.ordinal(); }
 
-    public record Refusal(String key, Object... args) {}
+    public record Refusal(String key, Object... args) {
+        public static final String RANK_MISMATCH = "guzhenren.item.failed.rank_mismatch";
+        public static final String CANNOT_USE = "guzhenren.item.failed.cannot_use";
+        public static final String EFFECT_ACTIVE = "guzhenren.item.failed.effect_active";
+        public static final String AUTO_EFFECT = "guzhenren.item.failed.auto_effect";
+        public static final String GU_HUNGRY = "guzhenren.item.failed.gu_hungry";
+        public static final String WRONG_TARGET = "guzhenren.item.failed.wrong_target";
+        public static final String BAG_FULL = "guzhenren.item.failed.bag_full";
+        public static final String ESSENCE = "guzhenren.item.failed.essence";
+        public static final String UNAWAKENED = "guzhenren.item.failed.unawakened";
+    }
 
     //region the hooks a leaf fills [叶类钩子]
     protected boolean hasUse() { return false; }
