@@ -22,10 +22,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * (read and written only through {@code VitalGuState}), {@code STORED_STONES}, {@code REFINED_AT},
  * {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK},
  * {@code LITTLE_LIGHT_BRIGHT} (present only while on, so a dynamic-light definition can match it),
- * {@code LITTLE_LIGHT_BRIGHT_UNTIL}, {@code LITTLE_LIGHT_FORCED} (present only on a forced round),
- * {@code SELF_RELIANCE_FORCED} (kept registered only so stacks from older saves still load; nothing writes or reads
- * it since Self Reliance became an auto Gu) and {@link LeafGrowth}. A component here is for state that not every tended Gu shares; anything
- * all of them carry belongs on the shared state record instead.
+ * {@code LITTLE_LIGHT_BRIGHT_UNTIL}, {@code LITTLE_LIGHT_FORCED} (present only on a forced round) and
+ * {@link LeafGrowth}. A component here is for state that not every tended Gu shares; anything all of them carry
+ * belongs on the shared state record instead.
  *
  * <p>⚠ Game-clock timestamps default to {@code 0}, which is a real game time -- judge {@code null},
  * never {@code 0}, or a fresh world reads "already used".
@@ -77,8 +76,6 @@ public final class ModDataComponents {
             registerLong("little_light_bright_until");
     public static final Supplier<DataComponentType<Boolean>> LITTLE_LIGHT_FORCED =
             register("little_light_forced", Codec.BOOL, ByteBufCodecs.BOOL);
-    public static final Supplier<DataComponentType<Boolean>> SELF_RELIANCE_FORCED =
-            register("self_reliance_forced", Codec.BOOL, ByteBufCodecs.BOOL);
     //endregion
 
     public static void register(IEventBus modEventBus) {
