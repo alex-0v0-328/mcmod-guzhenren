@@ -61,7 +61,7 @@ public final class StoreStrength {
 
     private StoreStrength() {}
 
-    public static final int CHARGE_TICKS = 8 * Ticks.SECOND;
+    public static final int CHARGE_TICKS = 4 * Ticks.SECOND;
     private static final int[] ALL_OUT_PERCENT = { 70, 60, 50 };
     public static final int HOLD_TICKS = 5;
     public static final int RELEASE_SLACK_TICKS = 2;
