@@ -73,6 +73,10 @@ import org.jetbrains.annotations.Nullable;
  * <p>{@code announceDeath} is the one death funnel ({@link #starve}, {@link #exhaust}, {@link #ruin}) and the
  * only poster of {@link VitalGuLostEvent}; a new way for a Gu to die goes through it.
  *
+ * <p>{@link #isRefining} and {@link #isChanneling} read a player's held use of a tended Gu, a wild one or a refined
+ * channeled one, off the use item, which the server and every client that sees the player know; the Epic Fight
+ * bridge picks the refining hold and the channeling seat by them.
+ *
  * <p>Refining is paid in instalments; what it buys is a lasting bond.
  *
  * @author Alex
@@ -215,6 +219,16 @@ public class TendedGuItem extends MortalGuItem {
         }
         refineStep(player, stack, take);
         if (isRefined(stack)) player.stopUsingItem();
+    }
+
+    public static boolean isRefining(Player player) {
+        return player.isUsingItem() && player.getUseItem().getItem() instanceof TendedGuItem gu
+                && !gu.isRefined(player.getUseItem());
+    }
+
+    public static boolean isChanneling(Player player) {
+        return player.isUsingItem() && player.getUseItem().getItem() instanceof TendedGuItem gu
+                && gu.isRefined(player.getUseItem()) && gu.guProperties.isChanneled();
     }
 
     private boolean isGuPaced(Player player) { return getRankGap(player) > 0; }

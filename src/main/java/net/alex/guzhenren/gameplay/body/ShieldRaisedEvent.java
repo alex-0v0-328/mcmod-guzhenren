@@ -6,8 +6,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Posted on the game event bus after {@link ShieldService#raise} lays a shield [护盾] layer, so the path effect its
- * Gu carries can follow from above the body; the layer's end tick is on {@link ShieldService#find}. Dispatch is
- * synchronous, so a subscriber has run before {@code raise} returns.
+ * Gu carries can follow from above the body and the Epic Fight bridge can cross the body's arms
+ * ({@code EpicFightServerEvents}); the layer's end tick is on {@link ShieldService#find}. Posted for every raise, a
+ * refill of a layer still up included. Dispatch is synchronous, so a subscriber has run before {@code raise} returns.
  *
  * @author Alex
  * @version 1.0.0

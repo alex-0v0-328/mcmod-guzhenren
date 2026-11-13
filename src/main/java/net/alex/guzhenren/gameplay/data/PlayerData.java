@@ -30,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
  * whether it changed; twelve values reach their owner's client on change ({@code ModAttachments} syncs
- * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player), and the awakening ritual
- * [开窍仪式] reaches every client that sees the player too. {@link #resetCarriedOnDeath} returns every value a death
+ * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player), and the nourishing run
+ * [温养空窍] and the awakening ritual [开窍仪式] reach every client that sees the player too. {@link #resetCarriedOnDeath} returns every value a death
  * carries to its default.
  *
  * <p>⚠ The only class that touches the attachment API: a view over NeoForge attachments. Services use these

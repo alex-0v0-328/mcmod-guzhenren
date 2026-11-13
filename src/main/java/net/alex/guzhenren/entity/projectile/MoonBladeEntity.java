@@ -27,6 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +48,8 @@ import org.joml.Vector3f;
  *
  * <p>The server owns the hit: the damage lives only there, set once by {@link #shoot}, and the client copy flies
  * the same line, or the same curve from the synced target, bend and flight ticks, just to be drawn. The blade is
- * never saved: it lives about a second, so a chunk unloading under it simply drops it.
+ * never saved: it lives about a second, so a chunk unloading under it simply drops it. Every blade fired posts one
+ * {@link ProjectileThrownEvent}, from which the shooter's body throws its arm.
  *
  * @author Alex
  * @version 1.0.0
@@ -112,6 +114,7 @@ public final class MoonBladeEntity extends Projectile {
         owner.level().addFreshEntity(blade);
         owner.level().playSound(null, owner.getX(), owner.getY(), owner.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 SoundSource.PLAYERS, 0.8F, variant.bleeds() ? 0.8F : 1.4F);
+        NeoForge.EVENT_BUS.post(new ProjectileThrownEvent(owner));
     }
 
     private void lockOn(LivingEntity target, ServerPlayer owner) {

@@ -61,7 +61,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>{@link #tickLocal} is the local player's half: it holds flight and the elytra shut and caps the speed between
  * the server's corrections, and stops the landing dead, so a slime block cannot fling the player back up.
  *
- * <p>The top is synced to its owner and never saved, and a death drops it, so a relog or a respawn starts outside the
+ * <p>The top is synced to every client that sees the player, who holds the fall pose on their screens too
+ * ({@code net.alex.guzhenren.compat.EpicFightClientIntegration}), and never saved, and a death drops it, so a relog or a respawn starts outside the
  * plunge. The gravity modifier is transient, and {@link #tick} takes it off any player who is not plunging.
  *
  * @author Alex

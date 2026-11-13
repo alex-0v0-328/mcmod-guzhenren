@@ -41,11 +41,14 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * {@code SECOND_STAGE_THROTTLE} are neither saved nor synced, each end keeping its own (the server alone writes
  * {@code SHIELD_WINDOW}), and {@code SECOND_STAGE} is synced to every client that sees the player, who
  * leans into the flight on their screens too, but never saved: it counts by presence, a player who has it flies the
- * second stage [二段飞行], and a relog starts outside it. {@code PLUNGE} is synced to its owner the same way: a
+ * second stage [二段飞行], and a relog starts outside it. {@code PLUNGE} is synced the same way, to every client that
+ * sees the player, who holds the fall pose on their screens too: a
  * player who has it is plunging [坠击], and its value is the top of that fall. {@code AWAKENING_RITUAL} counts by
  * presence too, a player who has it is in the awakening ritual [开窍仪式], and it is saved and synced to every client
  * that sees the player, who draws the Hope Gu [希望蛊] hovering before them and the aptitude plaque [资质牌匾] over
- * their head, Ten-Extremes physique included. A record other players must see
+ * their head, Ten-Extremes physique included. {@code APERTURE_NOURISH} is saved and inherited like the records
+ * {@link #registerSynced} makes but synced to every client that sees the player, who sits cross-legged on their
+ * screens while a run is going. A record other players must see
  * widens its sync predicate; it never gets a downstream payload.
  *
  * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
@@ -98,9 +101,12 @@ public final class ModAttachments {
                     () -> new float[ApertureData.MAX_APERTURES]).build());
     public static final Supplier<AttachmentType<ApertureStorage>> APERTURE_STORAGE =
             registerSaved("aperture_storage", ApertureStorage.DEFAULT, ApertureStorage.CODEC);
-    public static final Supplier<AttachmentType<ApertureNourishData>> APERTURE_NOURISH = registerSynced(
-            "nourish_data", ApertureNourishData.DEFAULT, ApertureNourishData.CODEC,
-            StreamCodec.of(ApertureNourishData::encode, ApertureNourishData::decode));
+    public static final Supplier<AttachmentType<ApertureNourishData>> APERTURE_NOURISH = registerInherited(
+            "nourish_data", () -> AttachmentType.builder(() -> ApertureNourishData.DEFAULT)
+                    .serialize(ApertureNourishData.CODEC)
+                    .copyOnDeath()
+                    .sync(StreamCodec.of(ApertureNourishData::encode, ApertureNourishData::decode))
+                    .build());
     public static final Supplier<AttachmentType<AwakeningRitual>> AWAKENING_RITUAL = ATTACHMENT_TYPES.register(
             "awakening_ritual", () -> AttachmentType.builder(() -> AwakeningRitual.DEFAULT)
                     .serialize(AwakeningRitual.CODEC)
@@ -167,7 +173,7 @@ public final class ModAttachments {
     //region Plunge [坠击]
     public static final Supplier<AttachmentType<Double>> PLUNGE = ATTACHMENT_TYPES.register(
             "plunge_top", () -> AttachmentType.builder(() -> 0.0D)
-                    .sync(OWNER_ONLY, ByteBufCodecs.DOUBLE)
+                    .sync(ByteBufCodecs.DOUBLE)
                     .build());
     //endregion
 

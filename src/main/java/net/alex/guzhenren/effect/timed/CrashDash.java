@@ -7,9 +7,9 @@ package net.alex.guzhenren.effect.timed;
  * adds the doublings up: one more for All-Out Effort [全力以赴], and the held beasts' dash bonus (the galloping horse's
  * [驰马骏力] one) on top, twice over while All-Out Effort runs. So 4.5 alone, 9.0 with either, 18.0 with both.
  *
- * <p>{@link #STEP_TRAVEL} is how far Epic Fight's step animations carry the root at a scale of one: step_forward's
- * 1.342 blocks and step_backward's 1.344, rounded up past both, so {@link #getTravel} bounds the dash's path from
- * the scale: about 6, 12 and 24 blocks. It lives outside the EF bridge so the spec stays readable without Epic Fight on
+ * <p>{@link #STEP_TRAVEL} is how far the mod's dash clips carry the root at a scale of one: 1.342 blocks for
+ * dash_forward, dash_left and dash_right, 1.344 for dash_backward, rounded up past them all, so {@link #getTravel}
+ * bounds the dash's path from the scale: about 6, 12 and 24 blocks. It lives outside the EF bridge so the spec stays readable without Epic Fight on
  * the classpath.
  *
  * @author Alex

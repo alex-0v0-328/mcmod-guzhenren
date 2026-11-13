@@ -1,0 +1,10 @@
+{
+	"layer": "COMPOSITE_LAYER",
+	"priority": "MIDDLE",
+	"masks": [
+		{
+			"livingmotion": "ALL",
+			"type": "guzhenren:chest_arms"
+		}
+	]
+}

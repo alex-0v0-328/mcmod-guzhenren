@@ -12,6 +12,9 @@ import org.jetbrains.annotations.NotNull;
  * ApertureNourishService} is the only runtime writer; progress
  * percent and the petrified latch live on {@link Aperture} itself.
  *
+ * <p>It is synced to every client that sees the player, not to the owner alone: a nourishing player sits
+ * cross-legged on other players' screens too.
+ *
  * <p>⚠ {@code starvedSinceTick} defaults to {@code NOT_STARVED} (-1), never {@code 0} -- zero is a real
  * game time, so a fresh world would read as starved since its beginning. ⚠ {@code target} is only
  * trusted once the service has clamped it against the apertures that exist, never straight from the wire.

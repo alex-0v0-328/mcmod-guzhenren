@@ -98,7 +98,7 @@ public final class ClientIntents {
                 player.hasEffect(ModEffects.VERTICAL_CRASH_GU),
                 player.hasEffect(ModEffects.CHARGING_CRASH_GU))) return;
         if (ApertureNourishService.isCultivating(player) || AwakeningRitualService.holdsStill(player)) return;
-        EpicFightIntegration.dash(player, vertical, yRot);
+        EpicFightIntegration.dash(player, vertical, horizontal, yRot);
     }
 
     public static void toggleSecondStage(@NotNull ServerPlayer player) { SecondStageService.toggle(player); }
@@ -148,7 +148,7 @@ public final class ClientIntents {
                 }
             }
             case CANCEL -> {
-                if (StoreStrength.isCharging(player)) EpicFightIntegration.endCharge(player);
+                if (StoreStrength.isCharging(player)) EpicFightIntegration.cancelCharge(player);
                 StoreStrength.cancel(player);
             }
             case RELEASE -> {
@@ -157,7 +157,7 @@ public final class ClientIntents {
                     EpicFightIntegration.strikeCharge(player);
                 } else {
                     StoreStrength.cancel(player);
-                    if (charging) EpicFightIntegration.endCharge(player);
+                    if (charging) EpicFightIntegration.cancelCharge(player);
                 }
             }
         }

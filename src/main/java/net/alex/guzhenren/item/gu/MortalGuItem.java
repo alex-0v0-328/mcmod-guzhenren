@@ -1,6 +1,7 @@
 package net.alex.guzhenren.item.gu;
 
 import java.util.List;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
@@ -60,6 +61,9 @@ import org.jetbrains.annotations.Nullable;
  * passes a zero cost. No one-shot Gu has a refine cost, so a mortal without an aperture uses the Vitality Leaf,
  * Lifespan, Guts and Second Aperture Gu by design; the Relics Gu stop at {@link #checkStageUpGate}. The Hope Gu
  * is the one {@code isAwakened} check, refusing a player who already has a first aperture.
+ *
+ * <p>Every landed use ends in {@code spend}, which posts {@link GuUsedEvent} once the cooldown is set and the Gu
+ * taken: the one seam a reaction to any Gu's use hangs on, so a new Gu needs no code for it.
  *
  * <p>The charge a use takes is paced by the gap between the holder's rank and the Gu's own
  * ({@link #useChargeByGap}), never by the stage.
@@ -187,6 +191,12 @@ public abstract class MortalGuItem extends GuItem {
     protected @Nullable Refusal checkOwnUse(Player player, ItemStack stack) { return null; }
 
     protected int performOwnUse(ServerPlayer player, ItemStack stack) { return 0; }
+
+    @Override
+    protected void spend(ServerPlayer player, ItemStack stack, int count) {
+        super.spend(player, stack, count);
+        ModEvents.post(new GuUsedEvent(player, this));
+    }
     //endregion
 
     //region display [显示]

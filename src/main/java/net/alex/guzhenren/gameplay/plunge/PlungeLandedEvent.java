@@ -10,8 +10,8 @@ import org.jetbrains.annotations.NotNull;
  * above zero), before the crater is blasted, so the ground at {@link #getPosition} is still whole. Dispatch is
  * synchronous.
  *
- * <p>The plunge posts and does not know who listens: the ground fracture lives in {@code net.alex.guzhenren.compat},
- * the shake in {@code net.alex.guzhenren.network}.
+ * <p>The plunge posts and does not know who listens: the ground fracture and the landing clip live in
+ * {@code net.alex.guzhenren.compat}, the shake in {@code net.alex.guzhenren.network}.
  *
  * @author Alex
  * @version 1.0.0
