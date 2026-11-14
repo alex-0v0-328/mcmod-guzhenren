@@ -31,10 +31,12 @@ import org.joml.Vector3f;
  * 希望蛊[Hope Gu]的 Photon 像素粒子定义，代码里搭发射器，不带 {@code .fx} 文件。
  *
  * <ul>
- *   <li>每粒 {@link #PIXELS}×{@link #PIXELS} 像素帧、世界宽 0.25 格（32 像素/格）；pixelArt 材质按贴图宽对齐纹素中心，
- *       贴图只有全透明与不透明，序列帧按整帧跳，Photon 默认全亮。</li>
+ *   <li>每粒 {@link #PIXELS}×{@link #PIXELS} 像素帧：萤光核心与消散小帧是蛊的身体，世界宽 0.5 格（16 像素/格，同原版实体）；
+ *       其余粒子 0.25 格（32 像素/格）。pixelArt 材质按贴图宽对齐纹素中心，贴图只有全透明与不透明，序列帧按整帧跳，
+ *       Photon 默认全亮。</li>
  *   <li>萤光：核心 {@code hope_glow} 1 粒跟实体，4 帧×5 tick 循环；拖尾 {@code hope_glow_mote} 世界空间，每移动
- *       {@link #TRAIL_SPACING} 格留 1 粒（飞行速度 0.1 格/tick 下约 2 tick 一粒），16 tick 寿命，至多 8 粒。</li>
+ *       {@link #TRAIL_SPACING} 格留 1 粒（飞行速度 0.1 格/tick 下约 2 tick 一粒），16 tick 寿命，至多 8 粒；另每
+ *       {@link #IDLE_INTERVAL_TICKS} tick 在核心下沿落 1 粒（每 tick 加速 0.002 格/tick），悬停时也有动静。</li>
  *   <li>消散：小帧（第 2 帧）停 4 tick，随后 4 粒尘四向均分散开，0.02 格/tick。</li>
  *   <li>余烬：3 粒在半径 0.2 格环上均分，0.015 格/tick 上升，每 tick 再加速 0.001 格/tick；火星爆散 12 粒，
  *       0.04 格/tick 球面向外；牌匾火星 1 粒原地，6 帧×3 tick。</li>
@@ -55,6 +57,7 @@ public final class HopeGuParticles {
 
     private static final int PIXELS = 8;
     private static final float HALF_SIZE = 0.125F;
+    private static final float BODY_HALF_SIZE = 0.25F;
     private static final float FRAME_EDGE = 1.0E-3F;
     private static final int EFFECT_TICKS = 20;
     private static final int CORE_CYCLE_TICKS = 20;
@@ -64,6 +67,9 @@ public final class HopeGuParticles {
     private static final int SMALL_CORE_TICKS = 4;
     private static final int TRAIL_MOTES = 8;
     private static final float TRAIL_SPACING = 0.2F;
+    private static final int IDLE_INTERVAL_TICKS = 10;
+    private static final int IDLE_MOTES = 2;
+    private static final float IDLE_FALL = 0.05F;
     private static final float SHAPE_SPEED = 0.05F;
     private static final float FADE_SPEED = 0.02F;
     private static final float EMBER_RADIUS = 0.2F;
@@ -83,6 +89,7 @@ public final class HopeGuParticles {
     public static @NotNull FX core() {
         if (core == null) {
             ParticleEmitter emitter = emitter("hope_glow", 4, CORE_CYCLE_TICKS);
+            body(emitter);
             emitter.config.setLifetimeMode(ParticleLifetime.Mode.Loop);
             emitter.config.setSimulationSpace(ParticleConfig.Space.Local);
             emitter.config.setLooping(true);
@@ -99,7 +106,15 @@ public final class HopeGuParticles {
             emitter.config.setLooping(true);
             emitter.config.setMaxParticles(TRAIL_MOTES);
             emitter.config.emission.setDistanceRate(NumberFunction.constant(TRAIL_SPACING));
-            trail = fx(emitter);
+            ParticleEmitter idle = emitter("hope_glow_mote", 4, MOTE_TICKS);
+            idle.config.setLooping(true);
+            idle.config.setMaxParticles(IDLE_MOTES);
+            idle.config.emission.setEmissionRate(NumberFunction.constant(1.0F / IDLE_INTERVAL_TICKS));
+            idle.config.shape.setPosition(new NumberFunction3(0.0F, -(BODY_HALF_SIZE + HALF_SIZE), 0.0F));
+            idle.config.physics.setEnable(true);
+            idle.config.physics.setHasCollision(false);
+            idle.config.physics.setGravity(NumberFunction.constant(IDLE_FALL));
+            trail = fx(emitter, idle);
         }
         return trail;
     }
@@ -107,6 +122,7 @@ public final class HopeGuParticles {
     public static @NotNull FX fade() {
         if (fade == null) {
             ParticleEmitter small = emitter("hope_glow", 4, SMALL_CORE_TICKS);
+            body(small);
             small.config.uvAnimation.setStartFrame(NumberFunction.constant(SMALL_CORE_FRAME));
             small.config.uvAnimation.setFrameOverTime(NumberFunction.constant(0));
             burst(small, 0, 1);
@@ -203,6 +219,10 @@ public final class HopeGuParticles {
                 new ECBCurves(0.0F, 0.0F, 1.0F / 3.0F, 1.0F / 3.0F, 2.0F / 3.0F, 2.0F / 3.0F, 1.0F, 1.0F)));
         config.uvAnimation.setCycle(frames - FRAME_EDGE);
         return emitter;
+    }
+
+    private static void body(ParticleEmitter emitter) {
+        emitter.config.setStartSize(new NumberFunction3(BODY_HALF_SIZE, BODY_HALF_SIZE, BODY_HALF_SIZE));
     }
 
     private static void burst(ParticleEmitter emitter, int time, int count) {
