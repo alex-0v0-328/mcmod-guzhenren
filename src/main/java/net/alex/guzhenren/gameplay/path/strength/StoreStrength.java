@@ -33,8 +33,9 @@ import org.jetbrains.annotations.NotNull;
  *       客户端进度只供蓄力条。</li>
  *   <li>蓄满发挥最多力量，可超当前承受力：兽力虚影流解放兽种（随机一种，苦力下全部）
  *       的永久点数计 {@link #CHARGED_RELEASE_FACTOR} 倍，人力无解放；超出部分为冲击反噬（{@link BodyOverload}）。</li>
- *   <li>近战为脚下指向锁定目标的水平扇形，远程在目标周围爆开；苦力下的人力钧力流加宽射程、半角与爆开半径；
- *       {@link #release} 算数后由 {@code ChargedPunch} 打出。</li>
+ *   <li>近战为脚下指向锁定目标的水平扇形，射程 {@link #getRange} 随最大点数的平方根增长、封顶 {@link #MAX_RANGE}；
+ *       远程在目标周围爆开，半径为射程一半；苦力下的人力钧力流射程乘 {@link #HARDSHIP_RANGE_FACTOR}（仍封顶）并加宽
+ *       半角；{@link #release} 算数后由 {@code ChargedPunch} 打出。</li>
  *   <li>⚠ 数值全部暂定。</li>
  *   <li>⚠ 只存服务端内存，按玩家索引，不存档。</li>
  * </ul>
@@ -55,14 +56,14 @@ public final class StoreStrength {
     public static final int HOLD_TICKS = 5;
     public static final int RELEASE_SLACK_TICKS = 2;
     public static final int CHARGED_RELEASE_FACTOR = 12;
-    public static final double RANGE = 6.0D;
+    public static final double BASE_RANGE = 4.0D;
+    public static final double RANGE_PER_ROOT_POINT = 0.3D;
+    public static final double MAX_RANGE = 16.0D;
+    public static final double HARDSHIP_RANGE_FACTOR = 1.5D;
     public static final double HALF_ANGLE_DEGREES = 45.0D;
-    public static final double HARDSHIP_RANGE = 9.0D;
     public static final double HARDSHIP_HALF_ANGLE_DEGREES = 135.0D;
     public static final double BELOW = 1.0D;
     public static final double ABOVE = 2.0D;
-    public static final double BURST_RADIUS = 3.0D;
-    public static final double HARDSHIP_BURST_RADIUS = 4.5D;
     private static final double MIN_LENGTH_SQR = 1.0E-6D;
     private static final float FILL_EPSILON = 1.0E-4F;
     private static final Map<UUID, Float> CHARGES = new HashMap<>();
@@ -106,13 +107,16 @@ public final class StoreStrength {
         return points;
     }
 
-    public static double getRange(boolean widened) { return widened ? HARDSHIP_RANGE : RANGE; }
+    public static double getRange(int maxPoints, boolean widened) {
+        double range = BASE_RANGE + RANGE_PER_ROOT_POINT * Math.sqrt(Math.max(0, maxPoints));
+        return Math.min(MAX_RANGE, widened ? range * HARDSHIP_RANGE_FACTOR : range);
+    }
 
     public static double getHalfAngle(boolean widened) {
         return widened ? HARDSHIP_HALF_ANGLE_DEGREES : HALF_ANGLE_DEGREES;
     }
 
-    public static double getBurstRadius(boolean widened) { return widened ? HARDSHIP_BURST_RADIUS : BURST_RADIUS; }
+    public static double getBurstRadius(int maxPoints, boolean widened) { return getRange(maxPoints, widened) / 2.0D; }
 
     public static @NotNull Vec3 getLevelAxis(@NotNull Vec3 toward) {
         Vec3 level = new Vec3(toward.x, 0.0D, toward.z);

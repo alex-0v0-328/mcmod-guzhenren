@@ -75,9 +75,9 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *   <li>拳击指 Epic Fight 模式下主手类别 FIST 且空手（{@link AttackDamageService#isFistHand}）的连击、冲刺攻击、空中攻
  *       击；拳套是 FIST 但非空手，空主手配副手武器是镜像模式、挥副手，固有技能是普通 {@code AttackAnimation}，不
  *       算。</li>
- *   <li>掷中则 {@link AreaImpact#release} 沿视线锥形命中，跳过本阶段已试目标；每次释放（含打空）发一道冲击环
- *       （{@link RingConeEmitter#areaImpactRing}），掷空不发；命中目标各播该击命中音（读法同 Epic Fight），不用其命中粒
- *       子，环即画面。</li>
+ *   <li>掷中则 {@link AreaImpact#release} 沿视线锥形命中并崩裂身前地形，跳过本阶段已试目标；每次释放（含打空）发一道
+ *       推到锥长的冲击环（{@link RingConeEmitter#areaImpactRing}），掷空不发；命中目标各播该击命中音（读法同 Epic
+ *       Fight），不用其命中粒子，环即画面。</li>
  * </ul>
  * <p>冲刺：
  * <ul>
@@ -436,7 +436,7 @@ public final class EpicFightIntegration {
         if (!AreaImpact.rolls(player, player.getRandom())) return;
 
         Vec3 look = player.getLookAngle();
-        RingConeEmitter.areaImpactRing(player, look, AreaImpact.RANGE);
+        RingConeEmitter.areaImpactRing(player, look, AreaImpact.getRange(AreaImpact.getPoints(player)));
         List<LivingEntity> landed = AreaImpact.release(player, look, patch.getCurrentlyAttackTriedEntities());
         AttackAnimation.Phase phase = event.getPhase();
         SoundEvent sound = phase.getProperty(AttackPhaseProperty.HIT_SOUND)

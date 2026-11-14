@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.path.strength;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ModEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.server.level.ServerLevel;
@@ -23,8 +24,9 @@ import org.jetbrains.annotations.NotNull;
  *   <li>路径长 = {@code CrashDash#getTravel} + {@link #MARGIN}；只算碰撞形状与扫箱相交的方块，脚下地面、所踩下半砖、
  *       无碰撞方块（草、花、作物、火把、铁轨、红石、液体）不动。</li>
  *   <li>着地时箱底抬一台阶（≤ 半身高），脚前一步高的边沿（土径、耕地、灵魂沙旁整块，前方台阶）可迈上，不挡路。</li>
- *   <li>按玩家破坏走，冒险模式、游戏管理方块、领地模组、出生点保护、世界边界都可拒；按空手掉落，创造不掉；
- *       遇首个不可破或被拒的方块即停，冲撞本身也停在那里。</li>
+ *   <li>{@link #mayBreak} 先问地形门槛 {@link ModEvents#canGrief}（{@code mobGriefing}），再按玩家破坏走，冒险模式、
+ *       游戏管理方块、领地模组、出生点保护、世界边界都可拒；按空手掉落，创造不掉；遇首个不可破或被拒的方块即停，
+ *       冲撞本身也停在那里。</li>
  *   <li>⚠ 硬度 ≤ 3 可破石头、深板岩、木板、原木、玻璃、硬度 3 矿石（照常掉落），挡于圆石深板岩、深层矿石、铁块、
  *       黑曜石；箱宽 0.6，沿列占 1 列，跨格线占 2 列；24 格冲撞穿软地一次最多约破 100 块。</li>
  * </ul>
@@ -108,12 +110,15 @@ public final class CrashBreach {
 
     private static boolean breakBlock(ServerPlayer player, ServerLevel level, BlockPos pos, BlockState state) {
         if (!canBreak(state.getDestroySpeed(level, pos), state.hasBlockEntity())) return false;
-        if (!level.mayInteract(player, pos)) return false;
-        if (CommonHooks.fireBlockBreak(level, player.gameMode.getGameModeForPlayer(), player, pos, state)
-                .isCanceled()) {
-            return false;
-        }
+        if (!mayBreak(player, level, pos, state)) return false;
         return level.destroyBlock(pos, !player.isCreative(), player);
+    }
+
+    public static boolean mayBreak(@NotNull ServerPlayer player, @NotNull ServerLevel level, @NotNull BlockPos pos,
+                                   @NotNull BlockState state) {
+        return ModEvents.canGrief(level, player) && level.mayInteract(player, pos)
+                && !CommonHooks.fireBlockBreak(level, player.gameMode.getGameModeForPlayer(), player, pos, state)
+                .isCanceled();
     }
     //endregion
 }

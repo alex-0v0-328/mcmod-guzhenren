@@ -19,10 +19,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 力气蛊[Strength Qi Gu]远程拳的爆开，{@link BeastChargeEntity} 与 {@link QiWaveEntity} 共用。
  * <ul>
- *   <li>碰撞箱距爆点 {@link #RADIUS} 格内且 {@link AreaImpact#canHit} 放行的生物（不含主人、盟友、宠物、野生蛊、盔甲
- *       架）以气波受伤：锁定目标全额，其余 {@link #SECONDARY_RATIO}；不开轮、不出虚影。</li>
- *   <li>每次爆开以弹射物随机源按主人概率掷一次范围冲击（{@link AreaImpact#rolls}）；掷中且主人同维度时发冲击环，沿最后
- *       飞行的 {@code heading} 放扇形，避开已命中者；爆开本身不变。</li>
+ *   <li>碰撞箱距爆点 {@link #RADIUS} 格内、{@link AreaImpact#canHit} 放行（不含主人、盟友、宠物、野生蛊、盔甲架）且
+ *       爆点到其眼无方块遮挡（{@link AreaImpact#isInSight}，Alex 定，墙后不挨打）的生物以气波受伤：锁定目标全额，
+ *       其余 {@link #SECONDARY_RATIO}；不开轮、不出虚影。</li>
+ *   <li>每次爆开以弹射物随机源按主人概率掷一次范围冲击（{@link AreaImpact#rolls}）；掷中且主人同维度时沿最后飞行的
+ *       {@code heading} 发冲击环，在爆点放范围冲击球（{@link AreaImpact#burst}），避开已命中者、不破方块；爆开本身
+ *       不变。</li>
  *   <li>{@link Spec} 定半径、伤害类型、是否掷范围冲击：{@link Spec#QI_WAVE} 给力气蛊；蓄力蛊[Store Strength Gu]的蓄力一
  *       拳自带一份，按蓄力一拳爆开、不掷。</li>
  *   <li>⚠ 气波伤害类型 {@code guzhenren:qi_wave} 带 {@code minecraft:bypasses_cooldown}：同一拳的几只兽力冲击才不会被
@@ -65,13 +67,14 @@ public final class QiBurst {
         AABB area = new AABB(at, at).inflate(radius);
         for (LivingEntity victim : projectile.level().getEntitiesOfClass(LivingEntity.class, area,
                 victim -> victim.getBoundingBox().distanceToSqr(at) <= radius * radius
-                        && AreaImpact.canHit(owner, victim))) {
+                        && AreaImpact.canHit(owner, victim) && AreaImpact.isInSight(projectile, at, victim))) {
             if (victim.hurt(source, getDamage(damage, victim == locked))) hit.add(victim);
         }
         if (!spec.rollsAreaImpact()) return hit;
         if (owner.level() == projectile.level() && AreaImpact.rolls(owner, projectile.getRandom())) {
-            RingConeEmitter.areaImpactRing(owner.serverLevel(), at, heading, AreaImpact.RANGE);
-            AreaImpact.release(owner, at, heading, hit);
+            RingConeEmitter.areaImpactRing(owner.serverLevel(), at, heading,
+                    AreaImpact.getRange(AreaImpact.getPoints(owner)));
+            AreaImpact.burst(owner, at, hit);
         }
         return hit;
     }

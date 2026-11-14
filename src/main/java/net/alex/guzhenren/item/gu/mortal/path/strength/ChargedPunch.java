@@ -8,6 +8,7 @@ import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
 import net.alex.guzhenren.entity.projectile.QiBurst;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.gameplay.path.strength.AreaImpactShatter;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastChargeDamage;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
@@ -47,10 +48,12 @@ import org.jetbrains.annotations.Nullable;
  *       每个能出形的解放兽种沿弧线发一道兽力冲击，都不能则按远程拳选法随机发一道能出形的持有兽种；人力钧力流或无此类
  *       兽种者发一道带拳全伤的追踪气波；选法见 {@code QiWaveService.getChargeFamilies}。</li>
  *   <li>冲击按本兽种力量命中（{@link BeastChargeDamage}）：解放的为永久力量点[Strength Points] ×
- *       {@link StoreStrength#CHARGED_RELEASE_FACTOR}，随机的 ×1，不截承受力；各在落点
- *       {@link StoreStrength#getBurstRadius} 格爆开，目标全额、余者 {@link QiBurst#SECONDARY_RATIO}，无范围冲击。</li>
- *   <li>否则挥扇 {@link #swing}：水平朝保留目标（无则视线），扇内可见可打者由近到远至多 {@link #MAX_TARGETS} 个，保留
- *       目标居首全额，余者 {@link #SECONDARY_RATIO}，各从脚下击退 {@link #KNOCKBACK}；挥空照落，总沿扇轴发一道
+ *       {@link StoreStrength#CHARGED_RELEASE_FACTOR}，随机的 ×1，不截承受力；各在落点按最大点数
+ *       {@link StoreStrength#getBurstRadius} 爆开，目标全额、余者 {@link QiBurst#SECONDARY_RATIO}，无范围冲击、
+ *       不破方块。</li>
+ *   <li>否则挥扇 {@link #swing}：水平朝保留目标（无则视线），射程按最大点数 {@link StoreStrength#getRange}，扇内
+ *       可见可打者由近到远至多 {@link #MAX_TARGETS} 个，保留目标居首全额，余者 {@link #SECONDARY_RATIO}，各从脚下
+ *       击退 {@link #KNOCKBACK}；打完在半个射程内崩裂地形（{@link AreaImpactShatter}）；挥空照落，总沿扇轴发一道
  *       范围冲击环到射程（{@link RingConeEmitter#areaImpactRing}）。</li>
  *   <li>无论打中什么都有冲击反噬：超承受力的点数经 {@link BodyOverload#recoil} 结算；该伤害类型不开轮次、不付肉体过载
  *       （{@code BeastPhantomEvents}）。</li>
@@ -109,9 +112,10 @@ public final class ChargedPunch {
                     branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM, released,
                     StrengthRound.getAvailableFamilies(data), player.getRandom());
             shoot(player, target, damage, BeastChargeDamage.getDamages(data, charging, released,
-                    StoreStrength.CHARGED_RELEASE_FACTOR, BeastChargeDamage.UNCAPPED), charging, widened);
+                    StoreStrength.CHARGED_RELEASE_FACTOR, BeastChargeDamage.UNCAPPED), charging,
+                    StoreStrength.getBurstRadius(maxPoints, widened));
         } else {
-            swing(player, target, damage, widened);
+            swing(player, target, damage, maxPoints, widened);
         }
         BodyOverload.recoil(player, StoreStrength.getBacklashPoints(maxPoints, snapshot.capacity()),
                 snapshot.capacity(), ModDamageTypes.IMPACT_BACKLASH);
@@ -136,9 +140,8 @@ public final class ChargedPunch {
 
     //region Ranged [远程]
     private static void shoot(ServerPlayer player, LivingEntity target, float damage, float[] chargeDamages,
-                              List<BeastStrengthFamily> charging, boolean widened) {
-        QiBurst.Spec burst = new QiBurst.Spec(StoreStrength.getBurstRadius(widened), ModDamageTypes.CHARGED_PUNCH,
-                false);
+                              List<BeastStrengthFamily> charging, double radius) {
+        QiBurst.Spec burst = new QiBurst.Spec(radius, ModDamageTypes.CHARGED_PUNCH, false);
         if (charging.isEmpty()) {
             QiWaveEntity.track(player, target, damage, burst);
             return;
@@ -150,12 +153,13 @@ public final class ChargedPunch {
     //endregion
 
     //region Melee [近战]
-    private static void swing(ServerPlayer player, @Nullable LivingEntity locked, float damage, boolean widened) {
+    private static void swing(ServerPlayer player, @Nullable LivingEntity locked, float damage, int maxPoints,
+                              boolean widened) {
         Vec3 feet = player.position();
         Vec3 axis = StoreStrength.getLevelAxis(locked != null ? locked.position().subtract(feet)
                 : player.getLookAngle());
         if (axis == Vec3.ZERO) axis = StoreStrength.getLevelAxis(Vec3.directionFromRotation(0.0F, player.getYRot()));
-        double range = StoreStrength.getRange(widened);
+        double range = StoreStrength.getRange(maxPoints, widened);
         double halfAngle = StoreStrength.getHalfAngle(widened);
 
         Vec3 fanAxis = axis;
@@ -182,6 +186,11 @@ public final class ChargedPunch {
             landed++;
         }
         player.swing(InteractionHand.MAIN_HAND, true);
+        if (AreaImpactShatter.canShatter(maxPoints)) {
+            Vec3 eye = player.getEyePosition();
+            AreaImpactShatter.shatter(player, eye, AreaImpactShatter.getFanCells(feet, player.getBbHeight(), axis,
+                    range / 2.0D, halfAngle, eye), maxPoints, AreaImpactShatter.FAN_MAX_BLOCKS);
+        }
         showSwing(player, axis, range);
     }
 
