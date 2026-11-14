@@ -28,9 +28,9 @@ import org.jetbrains.annotations.NotNull;
  *       {@link BeastStrength#getCapacityBonus}，不乘倍率）。</li>
  *   <li>当前承受力 {@link #getCapacity} 再加增幅承受加成（含苦力蛊[Hardship Strength Gu]）与
  *       {@link #getAllOutCapacityBonus}：全力以赴蛊[All-Out Effort Gu]在持人力钧力流或兽力虚影流的身体上运行时，三 / 四
- *       / 五转加常态 50% / 100% / 200%，转数读效果等级即蛊 tier（{@link #getAllOutTier}，否则 {@link #NO_ALL_OUT}）；各
- *       加成以常态为基数相加，不互乘；{@link #isAllOut} 为是否版，供范围冲击概率与横冲系冲刺（后者在所属客户端读同步数
- *       据）。</li>
+ *       / 五转加常态 50% / 100% / 200%，转数读效果等级即蛊 tier（{@link #getAllOutTier}，至少
+ *       {@link #ALL_OUT_LOWEST_TIER}：命令给的 0 级按三转算；否则 {@link #NO_ALL_OUT}）；各加成以常态为基数相加，不
+ *       互乘；{@link #isAllOut} 为是否版，供范围冲击概率与横冲系冲刺（后者在所属客户端读同步数据）。</li>
  *   <li>发挥 {@link #getUsablePoints} = 当前承受力下 {@code min(total, capacity)} + 肉体过载 + 解放额外点数，余者保留；
  *       过载 {@link #getOverloadPoints} 为限时兽力超当前承受力部分（计在永久兽力上），全额发挥、每拳扣血
  *       （{@code BodyOverload}）；指令超限永久兽力与人力斤数只截断。</li>

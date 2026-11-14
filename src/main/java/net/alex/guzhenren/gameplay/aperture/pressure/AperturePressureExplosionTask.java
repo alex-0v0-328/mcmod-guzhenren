@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>触及区块全载才开挖，挖完前保持加载（{@link CraterChunkTicket}）。</li>
  *   <li>已清方块比最小列半径（{@code CraterShape.getMinColumnRadius}）靠内一整格即免边缘判定：邻居不会在球外。</li>
  *   <li>内部静默清除（仅 {@code UPDATE_CLIENTS}，无掉落）；边缘延后补一次邻居更新，免沙、流体、火把悬空。</li>
- *   <li>保留不可破坏方块（基岩、屏障、传送门框架），世界底部爆炸不穿虚空。</li>
+ *   <li>清坑保留不可破坏方块（基岩、屏障、传送门框架），世界底部爆炸不穿虚空；⚠ 坑底转换只查已加载、非空气，不查
+ *       硬度。</li>
  *   <li>坑底：北冥冰魄体分层冰，炎煌雷泽体岩浆块与熔岩，万金妙华体零散金；北冥冰魄体另把雪化环带地表土变雪。</li>
  *   <li>{@link #save} 把全部状态存进本维度 {@link AperturePressureExplosions} 以续挖；边缘列表须整存：
  *       边缘方块是清掉的还是原为空气或不可破坏，事后看世界分不出。</li>

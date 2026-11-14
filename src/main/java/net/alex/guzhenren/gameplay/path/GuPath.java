@@ -10,6 +10,8 @@ import net.minecraft.util.StringRepresentable;
  * <ul>
  *   <li>闭合枚举，模组封闭规则的标准范例：其他模组不得新增常量，因此按道分键的存储都用普通 {@code EnumMap}。</li>
  *   <li>⚠ 别从英文名推中文名：宇道[Space Path]与宙道[Time Path]都存在，猜错不报错，只会悄悄指向另一条真实的道。</li>
+ *   <li>⚠ 炼化 {@code refine} 是认主，炼蛊 {@code refinement} 是无中生有；{@link #REFINEMENT} 已占「炼道」，不写裸
+ *       {@code Refinement} 类。</li>
  * </ul>
  *
  * @author Alex

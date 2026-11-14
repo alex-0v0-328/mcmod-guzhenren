@@ -11,7 +11,13 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 坠击的事件订阅类，规则在 {@link PlungeService}。坠击期间取消原版摔落伤害（落地自带伤害）；换维度或传送结束坠击。
+ * 坠击的事件订阅类，规则在 {@link PlungeService}。
+ *
+ * <ul>
+ *   <li>坠击期间取消原版摔落伤害（落地自带伤害）；换维度或传送结束坠击。</li>
+ *   <li>⚠ 别的模组直接调 {@code teleportTo} 时 NeoForge 不发传送事件：坠击不结束、顶点仍是传送前的，落地高度算错
+ *       （已知缺口）；命令、末影珍珠、紫颂果、末影人的传送会结束坠击。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -64,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>两端按各自速度判撞毁，服务端晚一包，音障附近可能一端撞毁、一端只掉血，油门在
  *       {@link SecondStageCruise#COAST_TICKS} 内消掉差别；平飞擦地几乎不损速，不掉血；落地非墙，原版着地停飞，二段随之
  *       结束。</li>
+ *   <li>⚠ 服务端模拟步比客户端早一 tick 碰墙：客户端最后一 tick 转开时服务端仍可能判撞墙（原版鞘翅同样）。</li>
  * </ul>
  * <p>限制：
  * <ul>

@@ -49,6 +49,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *       达。</li>
  *   <li>⚠ {@code DATA_APPEARING} 生来为 true：生成包即带，首帧即出现首帧，不会全尺寸再缩小；读档带 {@code Appeared} 的
  *       以 false 起步，带 NBT 的 {@code /summon} 无此键仍播出现；客户端每实例只判一次是否以出现开场。</li>
+ *   <li>直接继承 {@code Mob}，不进野兽动作状态机或捕获链；存档只写 {@code Appeared}，手势计时与迎客的玩家集合
+ *       不存。</li>
  * </ul>
  *
  * @author Alex

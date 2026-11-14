@@ -99,11 +99,11 @@ import org.jetbrains.annotations.Nullable;
  *   <li>真元[Essence]只由转 r 定：炼化 {@value #REFINE_ESSENCE} × 8^(r-1)；催动：连发月刃
  *       {@value #FREQUENT_USE_ESSENCE} × 8^(r-1)，其余付真元的蛊 {@value #INFREQUENT_USE_ESSENCE} × 8^(r-1)。</li>
  *   <li>{@link #createRankedProperties}：按次付费，饱食[Hunger]上限 2^(rank+1) 次 × {@value #HUNGER_PER_USE}，
- *       加不足一次的两天缓冲（每天 {@value #HUNGER_PER_DAY}）；一至五转 14、26、50、98、194。</li>
+ *       加不足一次的两天缓冲（每天 {@value #HUNGER_PER_DAY}）。</li>
  *   <li>{@link #createChannelProperties}：灌注类蛊[Channeled Gu]每轮真元力道 {@value #STRENGTH_ROUND_ESSENCE}
  *       × 10^(r-1)、炼体 {@value #TEMPERING_ROUND_ESSENCE} × 10^(r-1)，每 {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1)
- *       计 1 饱食，即每轮 18、12。</li>
- *   <li>灌注上限：一、二转一轮，三转起三轮，加同样缓冲；力道 20、20、56、56、56，炼体 14、14、38、38。</li>
+ *       计 1 饱食。</li>
+ *   <li>灌注上限：一、二转一轮，三转起三轮，加同样缓冲。</li>
  *   <li>月刃蛊隔 {@value #MOON_BLADE_COOLDOWN_TICKS} tick 再发，节奏即月刃本身，非冷却遮罩。</li>
  * </ul>
  * <p>注册：

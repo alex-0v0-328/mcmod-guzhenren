@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>材料与格组平行，有序精确、不镜像不旋转；材料可放本组任一格，全组合计恰为其数；格组不重叠，单格组即固定格。</li>
  *   <li>窗口数即阶段数；网格为去四角 5×5，外圈 12 格围内圈 9 格；产出蛊数供本命继承判定。</li>
+ *   <li>⚠ 产出蛊数只数 {@code MortalGuItem}：酒等有转数的蛊材也是 {@code GuItem}，按它数会误判本命继承。</li>
  *   <li>只有数据与匹配；配方类型、序列化器、排序列表在 {@link RefinementRecipe}。</li>
  * </ul>
  *

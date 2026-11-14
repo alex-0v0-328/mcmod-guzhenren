@@ -38,6 +38,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *       气波为弹射物；兽力[Beast Strength]虚影仅显示不存档。</li>
  *   <li>每个 {@link SoulTrader} 一个免火杂项实体，无生成规则，仅 {@code /summon}；希望蛊光点由实体类发出。</li>
  *   <li>捕蛊即直接右键，不以开窍[Awakening]为门槛；野猪不可捕获。</li>
+ *   <li>每个活体实体在 {@code assets/ftblibrary/textures/faces/guzhenren/} 补一份 {@code <实体 id>.json} 或
+ *       {@code .png} 作 FTB Chunks 小地图图标；两份并存时 FTB Library 只读 JSON，故只留一份；缺了开发环境报 ERROR、
+ *       地图只画通用圆点；{@code MISC} 实体不设则不画。</li>
  * </ul>
  *
  * @author Alex

@@ -22,8 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 即时增益行为：授予限时增益，效果、时长、强度由注册定。
  * <ul>
- *   <li>七只蛊带此行为，各配 {@link RecastBehavior}：兽力[Beast Strength]增益花豕蛊[Flower Boar Gu]、
- *       蛮力天牛蛊[Brute Force Longhorn Beetle Gu]，四种冲撞蛊，力气蛊[Strength Qi Gu]。</li>
+ *   <li>带此行为的蛊各配 {@link RecastBehavior}，名单见 wiki《蛊虫条目》。</li>
  *   <li>效果仅授予增益（{@link TimedEffects#grantBuff}）；兽力增益遇人力钧力流先拒（{@link MarkInterference}）；
  *       门槛仅在同效果更强副本运行时拒绝，免弱蛊白付；相等或更弱副本被刷新，强蛊连弱蛊效果与丝取代。</li>
  *   <li>效果冷却内同强度叠时长，冷却外取较长（{@link #getNextDuration}）；功倍蛊[Amplify Effect Gu]

@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
  *       飞行的 {@code heading} 放扇形，避开已命中者；爆开本身不变。</li>
  *   <li>{@link Spec} 定半径、伤害类型、是否掷范围冲击：{@link Spec#QI_WAVE} 给力气蛊；蓄力蛊[Store Strength Gu]的蓄力一
  *       拳自带一份，按蓄力一拳爆开、不掷。</li>
+ *   <li>⚠ 气波伤害类型 {@code guzhenren:qi_wave} 带 {@code minecraft:bypasses_cooldown}：同一拳的几只兽力冲击才不会被
+ *       受击无敌帧吞掉。</li>
  *   <li>⚠ {@link #RADIUS}、{@link #SECONDARY_RATIO} 暂定。</li>
  * </ul>
  *

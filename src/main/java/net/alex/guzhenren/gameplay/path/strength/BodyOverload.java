@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
  *       超出部分即 {@code StrengthSnapshot.overloadPoints}。</li>
  *   <li>每次过 {@link BeastPhantomEvents} 门槛的拳击都扣，不按轮，挥空不扣；类型 {@code guzhenren:body_overload}，
  *       无视护甲，无攻击者。</li>
+ *   <li>⚠ 伤害类型须带 {@code minecraft:no_knockback}：1.21 里无来源位置的伤害会被往随机方向推 0.4。</li>
  *   <li>不致死，生命停在 {@link #HEALTH_FLOOR}；不耗也不给受击无敌帧，连拳每击都扣，怪物攻击也不被吞。</li>
  *   <li>蓄力蛊[Store Strength Gu]的冲击反噬同算式：蓄力一拳超当前承受力的点数，类型 {@code guzhenren:impact_backlash}，
  *       每拳一次（{@link StoreStrength}）。</li>

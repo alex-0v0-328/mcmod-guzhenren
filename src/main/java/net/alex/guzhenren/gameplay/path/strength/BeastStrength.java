@@ -12,12 +12,9 @@ import net.minecraft.util.StringRepresentable;
  *       每点 = 1 斤人力 = {@link PathStrengthData#ATTACK_PER_POINT} 攻击，同走承受力。</li>
  *   <li>每兽种只持一种：{@link #replaces}（一熊之力变棕熊本力，不叠加），{@link #isCoveredBy} 拦下不更强的蛊；
  *       唯一例外（今后亦然）为 {@link Form#PAIRED} 白豕、黑豕并存成两猪之力；{@link Form#INNATE} 按本名显示。</li>
- *   <li>持有期间特性：承受力（石龟 128，青牛 64）；疾跑倍率（驰马 0.5，1.3 → 1.8）；全力以赴外全面解放概率（棕熊本力
- *       0.05，5% → 10%）；冲撞倍数，全力以赴翻倍（驰马 1，{@code CrashDash#getMultiple}）；护盾点数（石龟 0.5，
- *       天蓬蛊[Heavenly Mugwort Gu] 180 → 270）。</li>
- *   <li>力道限时状态开始时加时长（青牛 10 秒）：全力以赴、苦力、自力更生窗口、两种限时兽力、横冲蛊[Horizontal Crash Gu]
- *       / 直撞蛊[Vertical Crash Gu] / 横冲直撞蛊[Charging Crash Gu]，不含力气蛊[Strength Qi Gu]；
- *       两猪之力（{@link PathStrengthData#hasTwoBoars}）冲撞时破方块（{@code CrashBreach}）。</li>
+ *   <li>持有期间特性：承受力、疾跑倍率、全力以赴外全面解放概率、冲撞倍数（全力以赴翻倍，
+ *       {@code CrashDash#getMultiple}）、护盾点数、力道限时状态开始时的加时长；各兽数值见 wiki《蛊虫条目》。</li>
+ *   <li>两猪之力（{@link PathStrengthData#hasTwoBoars}）冲撞时破方块（{@code CrashBreach}）。</li>
  *   <li>⚠ 兽种标记按兽种不按常量（白豕、黑豕共用 {@code BOAR}）；兽种与点数勿移到读取方。</li>
  * </ul>
  *

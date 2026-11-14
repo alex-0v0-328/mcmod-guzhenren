@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>实时数值发布到界面 {@link ContainerData}，因客户端无法自行匹配蛊方。</li>
  *   <li>结算前不耗任何东西；成功取走已认领输入、填满产出，失败每种材料取一半、每只蛊扣四分之一生命。</li>
  *   <li>唯一蛊产物继承所吃本命蛊：按种类绑定到该蛊的空窍[Aperture]，从不按位置；吃两只时，槽位序第一且空窍仍在者胜，
- *       另一空窍失去主修流派（{@link ApertureService#inheritVital}）。</li>
+ *       另一空窍失去主修流派（{@link ApertureService#inheritVital}）；绑定后即登记令牌，产物还在输出格也已是本命。</li>
  *   <li>魂魄先扣当前值，不足部分按十分之一扣 {@code maxSoul}，致死即在此步。</li>
  *   <li>窗口内补给格先供本窗元石、余下补真元池，窗口外只补真元池；元老蛊[Primeval Elder Gu]中途耗尽即退回背包。</li>
  * </ul>

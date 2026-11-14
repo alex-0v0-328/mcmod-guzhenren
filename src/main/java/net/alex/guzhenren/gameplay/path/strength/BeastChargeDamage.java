@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>每只 = 兽种永久力量点[Strength Points] × 解放倍数（仅出形或随机补出为 1）× {@link #ATTACK_PER_POINT}。</li>
  *   <li>力气蛊[Strength Qi Gu]远程拳：全面解放 × {@link StrengthService#FULL_RELEASE_FACTOR}，总点数截到当前承受力（含
- *       全力以赴）按比例分摊；五转单熊 10.0，解放 14.0，五转全力以赴解放 30.0。</li>
- *   <li>蓄力一拳：解放 × {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不截断（{@link #UNCAPPED}），熊 120.0；
+ *       全力以赴）按比例分摊。</li>
+ *   <li>蓄力一拳：解放 × {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不截断（{@link #UNCAPPED}）；
  *       冲击反噬按该拳自身点数。</li>
  *   <li>⚠ {@link #ATTACK_PER_POINT}（拳头的 2 倍）为 Alex 暂定值。</li>
  * </ul>

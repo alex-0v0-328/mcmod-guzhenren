@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
  *       的道痕[Path Marks]）。</li>
  *   <li>存于 {@link MortalGuItem}，{@link TendedGuItem} 与提示、HUD 读取，构建 {@link GuHunger} 与 {@link GuHealth}；独
  *       有数值（时长、等级）在 {@link GuBehavior}；生命值不走链，一律 4 × 转数 + 4（一至五转 8–24）。</li>
+ *   <li>默认每次催动扣 1 点饱食；{@code hungerPerUse(0)} 就是 0，不补成 1，恶念、随意蛊的保质期条靠它。</li>
  *   <li>{@link #effect(EffectCarrier)} 取默认丝数（{@link #getDefaultStrands}：一转 12，每转 ×4），
  *       {@link #effect(EffectCarrier, long)} 指定丝数，{@link #effect(EffectCarrier, PathMarks)} 指定两计数；不调用者不
  *       施效果、无道痕（即时蛊或只改数值者）；{@link #createEffect} 造一族蛊经 {@code PathEffectService.apply} 施的效

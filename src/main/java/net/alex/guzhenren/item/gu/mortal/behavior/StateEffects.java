@@ -39,7 +39,8 @@ import org.jetbrains.annotations.NotNull;
  *       道[Path]、丝，来源为蛊物品 id；念与精炼效果是状态真值，原版效果只是图标、计时、等级：{@code /effect clear}
  *       只让图标消失到下次心跳，牛奶全解不掉。</li>
  *   <li>僵尸形态、石化空窍存于 {@code BodyData}、{@code Aperture}，命令设置无需另调：{@link #syncZombie}、
- *       {@link #syncStone} 在变更事件与登录时由状态推出效果，按档或转找蛊。</li>
+ *       {@link #syncStone} 在变更事件与登录时由状态推出效果：僵尸按档找蛊，{@code zombieTier} 为负（命令未给档）
+ *       按 0 档；石窍按被石化空窍中最高的转数找蛊。</li>
  *   <li>⚠ 仅临时僵尸化带僵尸效果；永久僵尸化消散其变化道丝：{@link #syncZombie} 当场令效果到期，按到期结束、形态保留，
  *       登录或命令都不再给；临时僵尸效果被摘则连形态带走，仅到期则交 {@code UndeadService.tickTempZombie} 恢复；
  *       石化空窍不因效果结束解除，下次空窍写入补回效果。</li>

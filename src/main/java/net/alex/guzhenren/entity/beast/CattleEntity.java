@@ -16,7 +16,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 牛，每个 {@link CattleSpecies} 一个实体类型：{@link ChargerEntity}，{@code buffalo} 模型、{@code animation.}
  * 前缀片段、原版牛音效，冲撞与角挑伤害取自种类；种类只在 tick 读，因 {@code registerGoals} 于 {@code Mob} 构造器内、
- * 其赋值前运行。
+ * 其赋值前运行。速度按片段步幅配：AI 驱动生物每秒移 {@code 43.17 x speed^2} 格，移速 0.2 与追击倍率 1.4 对应 walk
+ * 1.73、run 3.4 格/秒。
  */
 
 public final class CattleEntity extends ChargerEntity {

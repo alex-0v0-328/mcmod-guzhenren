@@ -98,26 +98,26 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * </ul>
  * <p>全身动画：
  * <ul>
- *   <li>蓄力蛊[Store Strength Gu]三动画，拉弓式，同目录：{@link #holdCharge}：动作动画 {@code charge_hold}，侧身屈膝、
- *       右拳拉过肩、左臂前指，锁移动转向、禁连击技能，{@code Animations.ReusableSources.CHARGING} 减速停在蓄满末
+ *   <li>蓄力蛊[Store Strength Gu]三动画同目录，姿势见 wiki《力量与战斗#蓄力一拳》：{@link #holdCharge}：动作动画
+ *       {@code charge_hold}，锁移动转向、禁连击技能，{@code Animations.ReusableSources.CHARGING} 减速停在蓄满末
  *       帧。</li>
- *   <li>{@link #strikeCharge}：{@code charge_strike} 扭腰下劈重拳，动作动画非攻击，无碰撞体、伤害，不结束攻击阶段；
+ *   <li>{@link #strikeCharge}：{@code charge_strike} 动作动画非攻击，无碰撞体、伤害，不结束攻击阶段；
  *       Root 位移即原有短步。</li>
  *   <li>{@link #cancelCharge}：每次未出拳就结束（客户端取消、服务端拒绝释放、蓄力 tick 丢弃）播 {@code charge_cancel}；
  *       普通静态动画，不锁，0.2 秒放臂后交回常态动作，可被打断。</li>
- *   <li>二段飞行[Second-Stage Flight]循环 {@code biped/living/second_stage_flight_loop}，0.8 秒：沿前轴平趴、抬头、双臂
- *       后掠、轻振；循环静态动画，固定头部，因客户端按俯仰倾斜整个模型（{@link EpicFightClientIntegration} 经
- *       {@link #getSecondStageFlightLoop} 映射到 {@link EpicFightLivingMotions#SECOND_STAGE_FLIGHT_LOOP}）。</li>
- *   <li>撞击 {@code biped/skill/second_stage_flight_crash}，0.4 秒：撞面蜷缩、后仰弹回、四肢前甩、站稳；Root 后滑
- *       0.34 再回，不产生位移；{@link #crashFlight} 由服务端撞击播放（{@code EpicFightServerEvents}）并同步给所有可见客
- *       户端（含本人）：服务端撞击才结束阶段、发环和弹坑，客户端撞击事件只到本人，客户端监听别人看不到；主帧动画，时长
- *       内冻结常态动作（阶段同 tick 结束，否则动作切换立即顶掉它），不锁移动转向攻击技能。</li>
- *   <li>下坠循环 {@code biped/living/plunge_fall}，0.4 秒踩踏俯冲：直立、双臂上撑、右腿直下、左膝上提；循环静态动画，客
- *       户端经 {@link #getPlungeFall} 映射到 {@link EpicFightLivingMotions#PLUNGE_FALL}，与坠击同始终，不论落地。</li>
- *   <li>落地 {@code biped/skill/plunge_land}，0.8 秒：直腿触地，0.1 秒沉为三点蹲（左膝着地、右拳撑地、左臂后甩），最后
- *       0.27 秒站起，Root 不产生位移；{@link #landPlunge} 由服务端落地播放（{@code EpicFightServerEvents}）并同步给所有
- *       可见客户端，落差 ≥ 3 格才播，更短只结束循环；主帧动画，前 {@link #PLUNGE_LAND_LOCK} 秒（蹲姿）锁移动连击技能、
- *       冻结常态动作，转向自由，之后走开即打断，不动播完。</li>
+ *   <li>二段飞行[Second-Stage Flight]循环 {@code biped/living/second_stage_flight_loop}，0.8 秒，姿势见
+ *       wiki《飞行与二段飞行》；循环静态动画，固定头部，因客户端按俯仰倾斜整个模型
+ *       （{@link EpicFightClientIntegration} 经 {@link #getSecondStageFlightLoop} 映射到
+ *       {@link EpicFightLivingMotions#SECOND_STAGE_FLIGHT_LOOP}）。</li>
+ *   <li>撞击 {@code biped/skill/second_stage_flight_crash}，0.4 秒；Root 后滑 0.34 再回，不产生位移；
+ *       {@link #crashFlight} 由服务端撞击播放（{@code EpicFightServerEvents}）并同步给所有可见客户端（含本人）：服务端
+ *       撞击才结束阶段、发环和弹坑，客户端撞击事件只到本人，客户端监听别人看不到；主帧动画，时长内冻结常态动作（阶段同
+ *       tick 结束，否则动作切换立即顶掉它），不锁移动转向攻击技能。</li>
+ *   <li>下坠循环 {@code biped/living/plunge_fall}，0.4 秒，姿势见 wiki《坠击#身体动作》；循环静态动画，客户端经
+ *       {@link #getPlungeFall} 映射到 {@link EpicFightLivingMotions#PLUNGE_FALL}，与坠击同始终，不论落地。</li>
+ *   <li>落地 {@code biped/skill/plunge_land}，0.8 秒，Root 不产生位移；{@link #landPlunge} 由服务端落地播放
+ *       （{@code EpicFightServerEvents}）并同步给所有可见客户端，落差 ≥ 3 格才播，更短只结束循环；主帧动画，前
+ *       {@link #PLUNGE_LAND_LOCK} 秒（蹲姿）锁移动连击技能、冻结常态动作，转向自由，之后走开即打断，不动播完。</li>
  * </ul>
  * <p>上半身动画：
  * <ul>
@@ -126,21 +126,19 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       驱动胸、头、肩、臂、手，腿、Root、躯干留给基础层常态动作（含跑步前倾），不锁；基础层更高优先级动画（攻击、冲
  *       刺、落地蹲）会盖住它们；都经 {@code playAnimationInClientSide} 发给所有可见客户端（含本人），不进服务端动画器：
  *       其单轨，播放会结束正在运行的动作。</li>
- *   <li>护盾 {@code biped/skill/shield_raise}，所有护盾共用，0.6 秒：肘外张、胸后仰，0.08 秒双前臂胸前交叉（右前），含
- *       胸收颌；下沉稳住至 0.4 秒，再略外张放下、挺胸；数据文件 {@code biped/skill/data/shield_raise.json} 按
- *       Epic Fight 物品使用动画的方式声明叠加层；{@link #raiseShield} 由 {@code ShieldRaisedEvent} 播放
- *       （{@code EpicFightServerEvents}），现有与将来的护盾蛊自动获得，每次 {@code ShieldService#raise}（含未消时补充）
- *       从头重播。</li>
- *   <li>投掷三动画各 0.3 秒，首用于月刃，供以后投掷类技能：单发 {@code biped/skill/throw_sweep}，下垂右臂后沉、自下而上
- *       横扫，0.12 秒出手；连发 {@code biped/skill/throw_punch_right} 及镜像 {@code throw_punch_left}，0.08 秒拳自肋旁
- *       直出，另一肘后拉。</li>
+ *   <li>护盾 {@code biped/skill/shield_raise}，所有护盾共用，0.6 秒，姿势见 wiki《肉体》；数据文件
+ *       {@code biped/skill/data/shield_raise.json} 按 Epic Fight 物品使用动画的方式声明叠加层；{@link #raiseShield} 由
+ *       {@code ShieldRaisedEvent} 播放（{@code EpicFightServerEvents}），现有与将来的护盾蛊自动获得，每次
+ *       {@code ShieldService#raise}（含未消时补充）从头重播。</li>
+ *   <li>投掷三动画各 0.3 秒，姿势见 wiki《实体》，首用于月刃，供以后投掷类技能：单发 {@code biped/skill/throw_sweep}；
+ *       连发 {@code biped/skill/throw_punch_right} 及镜像 {@code throw_punch_left}。</li>
  *   <li>{@link #throwProjectile}：每个 {@code ProjectileThrownEvent}（{@code EpicFightServerEvents}）即每片月刃播一个；
  *       {@link #getThrowClip}：距上次超过 {@link #THROW_RUN_TICKS} tick 或首次为横扫，窗口内为直拳且换手，故连发为横
  *       扫、左、右、左，停顿后重来；间隔按游戏 tick 计，上次投掷存于 {@code throwRuns}（弱引用表，仅服务端线程，不存
  *       档）；月刃最快 0.1 秒一片，早于动画结束，新动画从手臂现位 0.05 秒混入顶替，只有连发末个播到归位。</li>
- *   <li>无专属动作的蛊催动播 {@code biped/skill/use_reach}，0.5 秒：右肘后沉、胸微左转、右肩领先，右手 0.18 秒平伸（不
- *       高于下胸），保持至 0.3 秒后放下；{@link #useGu} 由每个 {@code GuUsedEvent} 播放
- *       （{@code EpicFightServerEvents}），凡蛊每次成功催动都发，新蛊无需代码，被拒不发不播。</li>
+ *   <li>无专属动作的蛊催动播 {@code biped/skill/use_reach}，0.5 秒，姿势见 wiki《蛊虫》；{@link #useGu} 由每个
+ *       {@code GuUsedEvent} 播放（{@code EpicFightServerEvents}），凡蛊每次成功催动都发，新蛊无需代码，被拒不发不
+ *       播。</li>
  *   <li>{@link #playsReach} 跳过：同 tick 已播专属动画者（{@link #raiseShield}、{@link #throwProjectile} 在蛊效果内、事
  *       件前把游戏 tick 记入 {@code ownClips}，弱引用表，仅服务端线程；护盾蛊、月刃类蛊因此只播自己的，新的自带动画蛊也
  *       只需记 tick）；坐着者（{@link #isMeditating}，如希望蛊[Hope Gu]点击即开始坐下的仪式）；自动催动
@@ -150,8 +148,8 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * <p>打坐与炼化：
  * <ul>
  *   <li>打坐三动画（盘腿坐，温养[Nourish]空窍[Aperture]、开窍[Awakening]仪式、灌注类蛊[Channeled Gu]灌注真元[Essence]共
- *       用）：大腿着地外张、小腿前交叉、背直、头微低、双手叠于小腹前；{@code biped/skill/meditate_sit} 0.8 秒坐下，
- *       {@code biped/living/meditate_loop} 一息 4 秒，{@code biped/skill/meditate_stand} 0.67 秒起身。</li>
+ *       用，姿势见 wiki《空窍》）：{@code biped/skill/meditate_sit} 0.8 秒坐下，{@code biped/living/meditate_loop} 一息
+ *       4 秒，{@code biped/skill/meditate_stand} 0.67 秒起身。</li>
  *   <li>{@link #isMeditating} 两端共读：温养中、仪式仍定身（{@code AwakeningRitualService#holdsStill}，前 5 秒）或按住
  *       已炼化灌注类蛊（{@code TendedGuItem#isChanneling}，读各客户端皆知的使用物品）；故灌注按住即坐、松开或灌空即起，
  *       仪式放人即起，不等牌匾淡出。</li>
@@ -163,11 +161,13 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       起身；坐下、起身为主帧动画，不锁移动转向攻击技能，只冻结常态动作：坐下全程，随后循环接手，起身前
  *       {@link #MEDITATE_STAND_HOLD} 秒，之后走开即打断；三者固定头部，Root 只降高度、不产生位移，碰撞箱与视线高度仍为
  *       站立值。</li>
- *   <li>炼化野生蛊持握 {@code biped/living/refine_loop}，2 秒：右手举蛊于胸前、低头注视、左臂下垂，一循环一息；循环静态
- *       动画，客户端经 {@link #getRefineLoop} 作叠加常态动作映射到 {@link EpicFightLivingMotions#REFINE_LOOP}
- *       （{@link EpicFightClientIntegration}）；数据文件 {@code biped/living/data/refine_loop.json} 置于
- *       {@code MIDDLE} 叠加层、{@code chest_arms} 遮罩下，可照常行走；服务端不发送。</li>
+ *   <li>炼化野生蛊持握 {@code biped/living/refine_loop}，2 秒，姿势见 wiki《蛊虫》，一循环一息；循环静态动画，客户端经
+ *       {@link #getRefineLoop} 作叠加常态动作映射到 {@link EpicFightLivingMotions#REFINE_LOOP} （
+ *       {@link EpicFightClientIntegration}）；数据文件 {@code biped/living/data/refine_loop.json} 置于 {@code MIDDLE}
+ *       叠加层、{@code chest_arms} 遮罩下，可照常行走；服务端不发送。</li>
  *   <li>全部动画访问器只由 Epic Fight 动画注册设置一次，之后只读。</li>
+ *   <li>有意超 300 行：访问器是 {@link #onAnimationRegistry} 一次写入的私有静态字段，各播放方法共读；拆类就得公开它们
+ *       或重复注册，Epic Fight 类型也会漏出 {@code compat}。</li>
  * </ul>
  *
  * @author Alex

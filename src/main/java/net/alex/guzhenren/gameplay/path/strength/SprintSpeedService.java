@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #getModifier} 乘总值，原版疾跑与本加成恰合成该倍率，药水仍整体缩放；服务端每 tick
  *       随攻击刷新（{@code PlayerTickEvents}），客户端经属性同步；不读手持。</li>
  *   <li>⚠ 修饰须为临时（{@link TransientModifiers}）。</li>
+ *   <li>⚠ 全面解放加成也加到步行：原版疾跑中命中会打断疾跑，只挂疾跑会在出拳那一刻失效。</li>
  * </ul>
  *
  * @author Alex

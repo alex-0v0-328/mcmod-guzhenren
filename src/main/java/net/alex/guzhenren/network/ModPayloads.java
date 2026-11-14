@@ -40,6 +40,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  *       {@code STREAM_CODEC}，经 NeoForge {@code PacketDistributor} 发送；处理器跑在主线程（NeoForge 默认）。</li>
  *   <li>⚠ 通知的客户端处理器靠查找、不在此点名：本类在服务端加载，服务端可能加载的代码不引用 {@code client}；
  *       {@code ClientEvents} 在客户端初始化时登记，未登记的通知丢弃。</li>
+ *   <li>⚠ 改任何 payload 的字段或顺序都要升 {@code VERSION}，新旧两端不得混连。</li>
  * </ul>
  *
  * @author Alex

@@ -28,7 +28,8 @@ import org.jetbrains.annotations.Nullable;
  *       {@code ShieldBehavior}（天蓬蛊[Heavenly Mugwort Gu]，不乘护盾值）、{@code VitalityLeafBehavior}、
  *       {@code WatchBehavior}。</li>
  *   <li>持续照顾型蛊[Tended Gu]：主手炼化，每次计费催动与每日消耗前后从背包补食；炼化后客户端把右键换成扇形选择器，
- *       自身催动只能来自伪造包，一律拒；副手不响应点击，被拒主手蛊保留自己的动作栏原因。</li>
+ *       自身催动只能来自伪造包，一律拒（{@code useThreshold} 为 0，故提示「需要长按选择增幅目标」而非真元不足）；副手
+ *       不响应点击，被拒主手蛊保留自己的动作栏原因。</li>
  *   <li>⚠ 副手时遇不可放大的蛊、自身野生、或被催动蛊付完后真元与随身元石[Primeval Stone]付不起，则闲置不计费，被催动
  *       蛊照常生效不放大；菜单催动先合计两份消耗（{@code PrimevalStoneSupply.canAfford}），不够即拒。</li>
  *   <li>饱食条空时同样被强行催动[Forced Use]：放大效果照常生效，随后它力竭而死离手。</li>

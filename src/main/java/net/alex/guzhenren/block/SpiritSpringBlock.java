@@ -23,8 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>产出走方块计划 tick，不走流体流动 tick，不与 {@code LiquidBlock} 每 5 tick 的流动重排相撞。</li>
  *   <li>产出链由 {@code onPlace}、{@code neighborChanged} 挂起；重载后由源头随机 tick
  *       （{@link SpiritSpringFluid.Source}）重挂，因静止源头收不到计划 tick。</li>
- *   <li>⚠ 下列五个常量是 Alex 定值，非随手可调参数：每源头每 100 tick 产一组元石，永不枯竭；上限半径内已满一组则暂停；
- *       仅 128 格内有存活非旁观玩家时产出。</li>
+ *   <li>⚠ 下列五个常量是 Alex 定值，非随手可调参数，规格见 wiki《元泉》。</li>
  *   <li>128 格即自然刷怪视距，用原版 {@code EntityGetter#hasNearbyAlivePlayer}（同刷怪笼）；计划 tick 在不 tick 的区块
  *       本就停转，显式门槛另管常加载区块（出生点、强制加载）。</li>
  * </ul>

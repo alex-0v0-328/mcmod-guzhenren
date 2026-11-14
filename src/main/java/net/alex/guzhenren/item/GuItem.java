@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #tryUseInPlace} 不经手、不蓄力原地催动（轮盘选取、元老蛊[Primeval Elder Gu] 轻点）：原版冷却静默挡下，
  *       {@code checkInPlaceUse} 在动作栏拒绝，{@code performInPlaceUse} 生效，返回是否生效。</li>
  *   <li>拒绝只为境界不符、无法使用、效果未结束、自动生效、蛊虫饥饿、目标错误、背包已满、真元[Essence] 不足、尚未开
- *       窍[Awakening] 时，处处用 {@link Refusal} 同名共用键（Alex 2026-11-14）；指引操作或给数值才用蛊自己的键。</li>
+ *       窍[Awakening] 时，处处用 {@link Refusal} 同名共用键（Alex 定）；指引操作或给数值才用蛊自己的键。</li>
  * </ul>
  *
  * @author Alex

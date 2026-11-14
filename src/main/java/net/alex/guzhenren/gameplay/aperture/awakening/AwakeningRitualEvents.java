@@ -14,6 +14,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * {@link AwakeningRitualService#finish}。
  * <ul>
  *   <li>⚠ 死亡钩子先于克隆：未开 keepInventory 则死亡掉落仪式刚开的空窍[Aperture]，同其他已开窍者。</li>
+ *   <li>⚠ 死亡钩子用 {@code LOWEST} 最后跑：被别的模组取消的死亡（复活）不结束仪式。</li>
  * </ul>
  *
  * @author Alex

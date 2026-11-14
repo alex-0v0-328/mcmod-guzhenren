@@ -11,8 +11,8 @@ import net.minecraft.world.item.Items;
  * <ul>
  *   <li>各以 {@link #getId()} 注册实体类型（同熊：一 NPC 一实体类型），共用 {@link SoulTraderEntity}；渲染器另选模型贴
  *       图，一种魂体外观可代多个 NPC；{@link #getOffers()} 按需构建：注册实体类型时已加载本枚举，物品尚无。</li>
- *   <li>{@code TEST_TRADE_GU_IMMORTAL}：首个测试交易者；10 元石[Primeval Stone] 换 64 生猪排，3 组泥土换 1 只白豕
- *       蛊[White Boar Gu]（如捕获般野生）。</li>
+ *   <li>{@code TEST_TRADE_GU_IMMORTAL}：首个测试交易者，报价见 wiki《测试交易 NPC》；换出的白豕蛊[White Boar Gu]
+ *       如捕获般野生。</li>
  * </ul>
  *
  * @author Alex

@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>⚠ 夹紧只在 {@code setCurrent}，读 {@link MindPoolType#isBurstable} 定能否超上限；不能放进 record：
  *       只有部分池可超限，池又不知自己类型。</li>
- *   <li>{@code regenStep} 是心跳入口，僵尸每 5 秒才回一次念。</li>
+ *   <li>{@code regenStep} 是心跳入口；永久僵尸（{@code BodyService.isZombie}）每 5 秒才回一次念，临时僵尸化照常。</li>
  *   <li>⚠ 自然回复总停在上限，闲着不会炸裂脑海；只有蛊、物品或命令能超量写入。</li>
  *   <li>⚠ {@code addThoughts} 在当前量之后写标签合计：须先 {@code setCurrent}，否则标签表超出总量。</li>
  * </ul>

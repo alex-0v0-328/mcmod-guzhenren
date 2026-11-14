@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  *       {@link #clickMenuButton} 在服务端按背包结算；背包槽供 {@code broadcastChanges} 在界面开着时同步增减。</li>
  *   <li>⚠ 付不起时行按钮仍可点：拒绝须到服务端，魂才会摇头；服务端本是唯一裁判。</li>
  *   <li>⚠ 结算前，之后落回背包的光标物品与 2x2 合成格计入空间检查（{@link SoulTradeOffer}），因空间被拒提示背包已满；交
- *       易魂死亡或玩家远于 {@code TRADE_RANGE} 即关闭。</li>
+ *       易魂死亡、换维度或玩家远于 {@code TRADE_RANGE} 即关闭。</li>
  * </ul>
  *
  * @author Alex

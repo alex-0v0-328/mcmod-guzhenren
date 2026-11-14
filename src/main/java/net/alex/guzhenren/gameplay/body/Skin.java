@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>玉皮系限时（{@link #isTimed}），耗尽由心跳蜕下；其余永久，重生保留。</li>
  *   <li>{@link #canReplace}：任何皮可盖原生；永久皮只盖同系低转（三转铜皮盖一转铜皮）；玉皮只盖原生，两种玉皮类蛊互不叠
  *       加、替换、延长，耗尽前无蛊可替。</li>
+ *   <li>⚠ 皮是肉身档位，不是玩家贴图：{@code SkinFlashPayload} 的闪现层只叠色，不换贴图。</li>
  * </ul>
  *
  * @author Alex

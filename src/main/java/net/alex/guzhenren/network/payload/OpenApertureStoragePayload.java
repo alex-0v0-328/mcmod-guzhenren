@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 打开指定空窍[Aperture]存储的客户端意图，只带空窍序号。
  * <ul>
- *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，打开 {@link ApertureStorageMenu}。</li>
+ *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，打开 {@link ApertureStorageMenu}；服务端重查序号在已
+ *       有空窍内且不在宝黄天[Treasure Yellow Heaven]，否则不开。</li>
  *   <li>⚠ 任何 payload 都不得带玩家数据，它只作同步状态反向下发；附件同步唯独不承载客户端意图。</li>
  * </ul>
  *

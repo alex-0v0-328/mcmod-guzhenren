@@ -12,8 +12,10 @@ import org.jetbrains.annotations.Nullable;
  * 人身上的一个流派效果。
  *
  * <ul>
- *   <li>存于 {@link PathEffectData}，运行时只由 {@link PathEffectService} 写入；来源取蛊物品 id 或先天 id；
- *       {@code endTick} 为游戏时间或 {@link #PERMANENT}。</li>
+ *   <li>存于 {@link PathEffectData}，运行时只由 {@link PathEffectService} 写入；{@code endTick} 为游戏时间或
+ *       {@link #PERMANENT}。</li>
+ *   <li>来源 id：蛊取物品 id；先天取 {@code guzhenren:innate/race}、{@code guzhenren:innate/extreme_physique}；力量取
+ *       {@code guzhenren:strength/<兽名或力名>}。</li>
  *   <li>{@code paths} 按道[Path]记道痕[Path Marks]条与丝（{@link PathMarks}），可多道；增幅者给所增效果补律道丝。</li>
  *   <li>⚠ 恰在带道痕时存在：构造器剪无道痕的道，存储丢无道的效果；只有在与不在，无物拿走部分道痕，抹去即摘除。</li>
  *   <li>作用只读类型、payload 和层数；延时（{@link #withEndTick}）不加道痕，每层（{@link #addLayer}、

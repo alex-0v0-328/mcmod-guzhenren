@@ -22,7 +22,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *
  * <ul>
  *   <li>{@link #SPIRIT_SPRING} 元泉[Spirit Spring]：属性逐项照抄原版水（可替换、无碰撞、爆炸抗性 100、活塞破坏、
- *       无战利品表），手感原生；另加岩浆的满 15 级光，Alex 定为萤石般明亮、怪物不生成的安全区。</li>
+ *       无战利品表），手感原生；另加满 15 级光（Alex 定，理由见 wiki《元泉》）。</li>
  *   <li>元泉 BlockItem 在 {@link net.alex.guzhenren.registry.item.ModItems} 注册，创造栏单次遍历才见得到；此处可安全
  *       {@code get()} {@link ModFluids#SPIRIT_SPRING}，因原版先注册 FLUID。</li>
  *   <li>{@link #PURE_WATER} 纯水：同一水属性的普通 {@code LiquidBlock}，无光照、无 BlockItem，由纯水桶携带。</li>

@@ -31,16 +31,13 @@ import org.joml.Vector3f;
  * 希望蛊[Hope Gu]的 Photon 像素粒子定义，代码里搭发射器，不带 {@code .fx} 文件。
  *
  * <ul>
- *   <li>每粒 {@link #PIXELS}×{@link #PIXELS} 像素帧：萤光核心与消散小帧是蛊的身体，世界宽 0.5 格（16 像素/格，同原版实体）；
- *       其余粒子 0.25 格（32 像素/格）。pixelArt 材质按贴图宽对齐纹素中心，贴图只有全透明与不透明，序列帧按整帧跳，
- *       Photon 默认全亮。</li>
- *   <li>萤光：核心 {@code hope_glow} 1 粒跟实体，4 帧×5 tick 循环；拖尾 {@code hope_glow_mote} 世界空间，每移动
- *       {@link #TRAIL_SPACING} 格留 1 粒（飞行速度 0.1 格/tick 下约 2 tick 一粒），16 tick 寿命，至多 8 粒；另每
- *       {@link #IDLE_INTERVAL_TICKS} tick 在核心下沿落 1 粒（每 tick 加速 0.002 格/tick），悬停时也有动静。</li>
- *   <li>消散：小帧（第 2 帧）停 4 tick，随后 4 粒尘四向均分散开，0.02 格/tick。</li>
- *   <li>余烬：3 粒在半径 0.2 格环上均分，0.015 格/tick 上升，每 tick 再加速 0.001 格/tick；火星爆散 12 粒，
- *       0.04 格/tick 球面向外；牌匾火星 1 粒原地，6 帧×3 tick。</li>
- *   <li>定义首次用到时才搭（Photon 已就绪），每次播放复制一份运行时；定点效果由 {@link PointExecutor} 放出，到时自灭。</li>
+ *   <li>尺寸、寿命、数量与速度是常量，规格在 wiki《实体蛊虫#希望蛊》与《空窍#开窍仪式》。</li>
+ *   <li>每粒 {@link #PIXELS}×{@link #PIXELS} 像素帧；pixelArt 材质按贴图宽对齐纹素中心，贴图只有全透明与不透明，序列帧
+ *       按整帧跳，Photon 默认全亮。</li>
+ *   <li>拖尾在世界空间按移动距离（{@link #TRAIL_SPACING}）发射，悬停时只靠每
+ *       {@link #IDLE_INTERVAL_TICKS} tick 的落尘。</li>
+ *   <li>定义首次用到时才搭（Photon 已就绪），存进可变静态字段作懒缓存，只在客户端线程读写、不重置；每次播放复制一份
+ *       运行时；定点效果由 {@link PointExecutor} 放出，到时自灭。</li>
  *   <li>⚠ 跟随效果都开 allowMulti：Photon 按 {@code fxLocation} 给同一实体去重，代码搭的定义没有位置（都为 null），
  *       不开则拖尾被当成核心的重复而不放。</li>
  * </ul>
