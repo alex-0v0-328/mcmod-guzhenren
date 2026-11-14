@@ -25,6 +25,9 @@ import software.bernie.geckolib.animation.RawAnimation;
  *       进行中不重启。</li>
  *   <li>游荡完后夜里按 {@link #NIGHT_SLEEP_CHANCE} 睡至天亮，白天按 {@link #EAT_CHANCE} 进食
  *       {@link #EAT_ACTION_TICKS}，均由 {@link StandStillGoal} 定住；无 run 片段，用不到的追击循环映射为 walk。</li>
+ *   <li>⚠ GeckoLib 以客户端同步速度 (|vx| + |vz|) / 2 ≥ 0.015 判定行走；游荡实测陆龟约 0.009～0.012、石龟约
+ *       0.006～0.008（沿轴到斜 45°），默认阈值下停在 idle、腿不动，故渲染器改用 {@link #WALK_ANIM_THRESHOLD}，停步后约
+ *       1 tick 回 idle。</li>
  * </ul>
  */
 
@@ -35,6 +38,7 @@ public final class TortoiseEntity extends ActionEntity<TortoiseEntity.Action> {
     public static final int DEATH_REMOVE_TICK = 32;
     public static final double NIGHT_SLEEP_CHANCE = 0.5D;
     public static final double EAT_CHANCE = 0.25D;
+    public static final float WALK_ANIM_THRESHOLD = 0.004F;
     private static final String ANIMATION_PREFIX = "animation.";
     private static final Action[] ACTIONS = Action.values();
 

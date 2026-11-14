@@ -150,7 +150,8 @@ public final class ModEntityRenderers {
 
     private static EntityRenderer<TortoiseEntity> createTortoiseRenderer(EntityRendererProvider.Context context,
                                                                          ResourceLocation texture) {
-        return new FixedTextureGeoRenderer<>(context, TORTOISE_MODEL, texture, 0.6F, false);
+        return new FixedTextureGeoRenderer<>(context, TORTOISE_MODEL, texture, 0.6F, false)
+                .withMotionAnimThreshold(TortoiseEntity.WALK_ANIM_THRESHOLD);
     }
 
     private static EntityRenderer<CattleEntity> createCattleRenderer(EntityRendererProvider.Context context,
