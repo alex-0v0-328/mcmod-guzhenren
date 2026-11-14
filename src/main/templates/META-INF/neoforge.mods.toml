@@ -41,6 +41,20 @@ config="${mod_id}.mixins.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="photon"
+    type="required"
+    versionRange="[2.2.11,2.3)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ldlib2"
+    type="required"
+    versionRange="[2.2.46,2.3)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     type="optional"
     versionRange="[19,20)"

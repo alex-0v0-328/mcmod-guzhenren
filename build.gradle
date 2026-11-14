@@ -181,6 +181,10 @@ dependencies {
     compileOnly files('run/mods/geckolib-neoforge-1.21.1-4.9.3.jar')
     localRuntime files('run/mods/geckolib-neoforge-1.21.1-4.9.3.jar')
 
+    // Photon draws the pixel Gu effects; its emitter settings extend LDLib2 types, so both compile.
+    compileOnly files('run/mods/photon-neoforge-1.21.1-2.2.11-all.jar', 'run/mods/ldlib2-neoforge-1.21.1-2.2.46.a-all.jar')
+    localRuntime files('run/mods/photon-neoforge-1.21.1-2.2.11-all.jar', 'run/mods/ldlib2-neoforge-1.21.1-2.2.46.a-all.jar')
+
     localRuntime fileTree(dir: guWorldLibs, include: 'guworld-*.jar', exclude: '*-sources.jar')
 }
 
