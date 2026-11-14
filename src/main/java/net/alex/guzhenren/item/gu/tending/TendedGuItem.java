@@ -131,6 +131,8 @@ public class TendedGuItem extends MortalGuItem {
 
     public int getHealth(ItemStack stack) { return health.get(stack); }
 
+    public void setHealth(ItemStack stack, int value) { health.set(this, stack, value); }
+
     public boolean takeDamage(ServerPlayer holder, ItemStack stack, int amount) {
         return health.takeDamage(this, holder, stack, amount);
     }

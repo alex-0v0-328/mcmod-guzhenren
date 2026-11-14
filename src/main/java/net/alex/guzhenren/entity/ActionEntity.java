@@ -4,12 +4,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
@@ -17,6 +21,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -25,6 +30,8 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -60,6 +67,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *   <li>{@link CombatGoal} 空闲时追击，否则不动；按原版近战节奏（{@code MeleeAttackGoal}）重寻路：目标移动时每 4～10
  *       tick，超 16 格 +5、超 32 格 +10，失败 +15，动作打断行走后立即重算；{@link WanderGoal} 空闲无目标时游荡，完后调
  *       {@link #onWanderComplete}；读档从空闲（或死亡）起。</li>
+ *   <li>寄宿蛊[Hosted Gu]：{@link #hostGu} 记蛊、以永久修饰符把生命上限乘 {@link #HOSTED_HEALTH_MULTIPLIER} 并回满，
+ *       {@link #applyAttack} 伤害乘 {@link #HOSTED_DAMAGE_MULTIPLIER}；修饰符随原版属性存档、先于生命读回，免被钳回基础上限；
+ *       存档有 {@code HostedGu} 而缺修饰符（{@code /summon} 带标签）才补加并回满。谁寄宿、掉落归物品层。</li>
  *   <li>有意超 300 行：状态机、AI 目标、持久化与战斗几何共享私有状态，宜一体读。</li>
  * </ul>
  */
@@ -72,6 +82,10 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private static final int LUNGE_RECHECK_TICKS = 5;
     private static final int NIGHT_START_TICK = 13000;
     private static final int NIGHT_END_TICK = 23000;
+    public static final double HOSTED_HEALTH_MULTIPLIER = 2.0D;
+    public static final float HOSTED_DAMAGE_MULTIPLIER = 1.5F;
+    private static final ResourceLocation HOSTED_HEALTH_ID = Guzhenren.id("hosted_gu");
+    private static final String HOSTED_GU_KEY = "HostedGu";
 
     private static final EntityDataAccessor<Byte> DATA_ACTION = SynchedEntityData.defineId(
             ActionEntity.class, EntityDataSerializers.BYTE);
@@ -92,6 +106,7 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     private int lostSightTicks;
     private int recoveryTicks;
     private long nextLungeCheckTime;
+    private @Nullable Item hostedGu;
 
     protected ActionEntity(EntityType<? extends ActionEntity<A>> type, Level level) {
         super(type, level);
@@ -389,7 +404,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
     protected void applyAttack(LivingEntity target, float damage, double horizontalStrength,
                                double upward, Vec3 direction) {
         Vec3 oldMovement = target.getDeltaMovement();
-        if (!target.hurt(this.damageSources().mobAttack(this), damage)) return;
+        float dealt = this.hostedGu == null ? damage : damage * HOSTED_DAMAGE_MULTIPLIER;
+        if (!target.hurt(this.damageSources().mobAttack(this), dealt)) return;
         double resistance = target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
         double scale = Mth.clamp(1.0D - resistance, 0.0D, 1.0D);
         target.setDeltaMovement(direction.x * horizontalStrength * scale,
@@ -471,6 +487,8 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         super.addAdditionalSaveData(tag);
         for (Cooldown cooldown : this.getCooldowns()) tag.putInt(cooldown.saveKey(), this.getCooldown(cooldown));
         tag.putInt(this.getRecoverySaveKey(), this.recoveryTicks);
+        if (this.hostedGu == null) return;
+        tag.putString(HOSTED_GU_KEY, BuiltInRegistries.ITEM.getKey(this.hostedGu).toString());
     }
 
     @Override
@@ -480,9 +498,21 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         for (Cooldown cooldown : this.getCooldowns()) this.setCooldown(cooldown, tag.getInt(cooldown.saveKey()));
         this.recoveryTicks = Mth.clamp(tag.getInt(this.getRecoverySaveKey()), 0, ATTACK_RECOVERY_TICKS);
         this.entityData.set(DATA_PURSUING, false);
+        this.readHostedGu(tag);
         boolean dead = this.getHealth() <= 0.0F;
         long now = this.level().getGameTime();
         this.writeAction(dead ? this.getDeathAction() : this.getIdleAction(), dead ? now - this.deathTime : now);
+    }
+
+    private void readHostedGu(CompoundTag tag) {
+        ResourceLocation id = ResourceLocation.tryParse(tag.getString(HOSTED_GU_KEY));
+        Item gu = id == null ? Items.AIR : BuiltInRegistries.ITEM.get(id);
+        if (gu == Items.AIR) return;
+        if (Objects.requireNonNull(this.getAttribute(Attributes.MAX_HEALTH)).hasModifier(HOSTED_HEALTH_ID)) {
+            this.hostedGu = gu;
+        } else {
+            this.hostGu(gu);
+        }
     }
 
     private void clearEngagement() {
@@ -494,6 +524,20 @@ public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags>
         this.setDeltaMovement(Vec3.ZERO);
         this.getNavigation().stop();
     }
+
+    //region hosted Gu [寄宿蛊]
+    public @Nullable Item getHostedGu() {
+        return this.hostedGu;
+    }
+
+    public void hostGu(Item gu) {
+        this.hostedGu = gu;
+        Objects.requireNonNull(this.getAttribute(Attributes.MAX_HEALTH)).addOrReplacePermanentModifier(
+                new AttributeModifier(HOSTED_HEALTH_ID, HOSTED_HEALTH_MULTIPLIER - 1.0D,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        this.setHealth(this.getMaxHealth());
+    }
+    //endregion
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {

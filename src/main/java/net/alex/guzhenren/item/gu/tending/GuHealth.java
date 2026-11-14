@@ -27,6 +27,10 @@ public record GuHealth(int max, int unitsPerHunger) {
 
     public int get(ItemStack stack) { return max - TendedGuItem.getState(stack).damageTaken(); }
 
+    void set(TendedGuItem gu, ItemStack stack, int value) {
+        gu.store(stack, TendedGuItem.getState(stack).withDamageTaken(max - value));
+    }
+
     boolean takeDamage(TendedGuItem gu, ServerPlayer holder, ItemStack stack, int amount) {
         if (amount <= 0) return false;
 
