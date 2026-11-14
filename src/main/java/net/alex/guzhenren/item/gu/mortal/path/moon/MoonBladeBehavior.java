@@ -8,12 +8,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The moon blade behavior [月刃]: each use fires one {@link MoonBladeEntity} of its variant along the holder's look, or
- * on a curve to the target {@link KillingMoveService} has the holder aiming at [锁定目标] (none outside a driven use).
- * The Moonlight Gu [月光蛊], Moonglow Gu [月芒蛊] and Blood Moon Gu [血月蛊] carry it with their own damage.
- *
- * <p>A killing move [杀招] driving this Gu multiplies the damage by the factor {@link KillingMoveService} answers for
- * this use (1 outside a killing move). It refuses nothing and lays down no path effect: the blade is instant.
+ * 月刃行为：月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]、血月蛊[Blood Moon Gu]共用，伤害各定。
+ * <ul>
+ *   <li>沿视线发一枚本变体月刃；{@link KillingMoveService} 有锁定目标时弧线追踪（仅杀招驱动时有）。</li>
+ *   <li>杀招[Killing Move]驱动时伤害乘杀招倍率（否则 1）；不拒绝、不留流派效果：月刃瞬发。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

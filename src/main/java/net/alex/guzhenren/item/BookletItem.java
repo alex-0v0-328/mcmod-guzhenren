@@ -12,19 +12,14 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A booklet [书册]: a right click in either hand opens its {@link Booklet} on a reading screen and turns a page
- * ({@link SoundEvents#BOOK_PAGE_TURN}). Reading is the whole of it: the book stacks to 1, is never used up, and
- * writes no state on either side.
- *
- * <p>Extends {@link Item} directly, not {@code BookItem}: vanilla's {@code BookItem} is the enchantable blank book.
- *
- * <p>The client's {@link #use} hands the item to whatever the client registered through {@link #readOnClient},
- * which opens the screen; until then, and always on a dedicated server, it does nothing. This class names no client
- * class, the same seam as {@code ModPayloads}'s client handlers. The page turn plays on both sides with the reader
- * as the source, so the reader hears it at once from their own client and the server plays it to everyone else.
- *
- * <p>The one mutable static, {@code reader}, is a client seam: the client installs its reader screen once at load, and
- * the server never reads it.
+ * 书册：主手或副手右键打开其 {@link Booklet} 阅读界面。
+ * <ul>
+ *   <li>只供阅读：最多堆 1，不消耗，两端不写状态；直接继承 {@link Item}，因原版 {@code BookItem} 是可附魔空白书。</li>
+ *   <li>客户端 {@link #use} 交给经 {@link #readOnClient} 注册的处理者开界面，注册前及专用服务端上不做事；本类不引用客户
+ *       端类，同 {@code ModPayloads} 客户端处理器的接缝；唯一可变静态字段 {@code reader} 即此接缝，客户端加载时装一次，
+ *       服务端从不读。</li>
+ *   <li>翻页声 {@link SoundEvents#BOOK_PAGE_TURN} 两端都以阅读者为声源：本端立即听到，服务端播给他人。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

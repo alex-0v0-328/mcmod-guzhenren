@@ -10,11 +10,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Server notice: a player just put on a skin [皮肤], so every client that sees them draws the flash in that skin's tint.
- *
- * <p>The one downstream record: the skin itself reaches the owner through attachment sync, but the
- * moment it was put on is what the flash needs, and watching players never receive another player's body
- * data. Carries the entity id and the skin, nothing a client could act on.
+ * 服务端通知：某玩家刚换上皮肤，看得到该玩家的客户端按皮肤色调画闪光。
+ * 下行：皮肤经附件同步只到本人，闪光要的是换上那一刻；旁观者从不收他人肉体数据；只带实体 id 与皮肤，无可据以行动之物。
  *
  * @author Alex
  * @version 1.0.0

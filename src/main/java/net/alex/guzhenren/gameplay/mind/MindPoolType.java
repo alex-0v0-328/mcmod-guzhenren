@@ -5,14 +5,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The kinds of thought [念] a mind holds, each with its own capacity.
+ * 脑海池的种类：念、意、情，对应 {@code MindData} 三池；闭合枚举。
  *
- * <p>Closed vocabulary enum: the three pools on {@code MindData}, and no sibling mod may add a fourth.
- * Capacities {@code 50000 / 12 / 8} live here as the single declaration; {@code BURST_NUMERATOR/DENOMINATOR}
- * is the one place the overfill ratio is written.
- *
- * <p>⚠ Only some may be overfilled past the cap, and only those can ever be lethal.
- * {@code isBurstable()} is the single declaration of which; never re-test the constant at a call site.
+ * <ul>
+ *   <li>容量 {@code 50000 / 12 / 8} 只在此声明，超限比例只在 {@code BURST_NUMERATOR/DENOMINATOR}。</li>
+ *   <li>⚠ 只有部分池能超上限，也只有它们能致死；{@code isBurstable()} 是唯一声明，调用处不得再判常量。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

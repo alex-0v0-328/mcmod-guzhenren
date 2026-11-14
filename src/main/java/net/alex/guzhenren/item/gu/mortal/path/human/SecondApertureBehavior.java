@@ -11,14 +11,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Second Aperture Gu's [第二空窍蛊] behavior: the only opener of the second aperture, human path. Its Gu is
- * one-shot: refining and using are free and instant, it carries no state and it stacks. Five rungs register it.
- *
- * <p>The gate refuses only a second aperture already at or above the Gu's rung -- an upgrade must be
- * strictly higher than the second aperture alone, and it overwrites it whole. (Back to the first stage,
- * Grade-A at 8/10, progress zeroed, bound paths kept.) Everything else answers: no first aperture,
- * no aperture at all, any rank gap -- a Gu below the holder needs no primary to compare against.
- * Usable while undead: an aperture opened by it reads a LIVING one under every later undeath.
+ * 第二空窍蛊[Second Aperture Gu]行为：第二空窍唯一开启途径，人道[Human Path]。
+ * <ul>
+ *   <li>一次性蛊，炼化与催动免费即时，无状态，可堆叠，注册五档；门槛只拒绝不低于本蛊档位的第二空窍：升级须严格更高并整
+ *       体覆盖（回初阶、甲等 8/10、进度归零、保留已绑定道）。</li>
+ *   <li>其余放行：无主空窍、无空窍、任意转数差，低于持有者的蛊无需比主空窍；僵尸化时可用，所开空窍此后僵尸化皆读作
+ *       LIVING。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

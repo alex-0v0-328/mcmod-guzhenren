@@ -12,20 +12,17 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * A retaliatory charger (the wild boar, the cattle, the elephants) on the {@link ActionEntity} state machine: it never hunts, a
- * first provocation plays the alert and later hits the hurt pose, and it answers with a straight charge from a few
- * blocks out or a toss up close. Every family's clips share one timing -- the charge's {@value #CHARGE_WINDUP_TICKS}
- * tick wind-up and {@value #CHARGE_WINDOW_END_TICKS} tick damage window, the toss's hit on tick
- * {@value #TOSS_HIT_TICK} -- so the timing constants live here; the subclass supplies its damages
- * ({@link #getChargeDamage}, {@link #getTossDamage}), its cooldown pair ({@link #createCooldowns}: the charge's,
- * then the toss's, behind {@link #getCooldowns}), its sounds, attributes and animation prefix. A family with
- * attacks of its own (the elephant's stomp and trunk sweep) appends them to {@link Action} after the death pose,
- * keeping the wire ids, times them in {@link #tickSpeciesAttack} and widens the toss through {@link #getTossReach}.
- *
- * <p>The charge locks its direction only after its wind-up, so the charger keeps facing the target until then; in
- * {@link #tickCharge}, the swept-body test checks the actual path, not the diagonal broad-phase rectangle, and a
- * wall, a ledge or a hit ends the run. After a completed wander the charger sometimes grazes, held in place by a
- * {@link StandStillGoal}; the graze ends after {@link #GRAZE_ACTION_TICKS} or as soon as the charger has a target.
+ * 反击型冲撞者（野猪、牛、大象），基于 {@link ActionEntity} 状态机。
+ * <ul>
+ *   <li>不主动狩猎：首次被惹播警戒，此后受击播受击姿势；稍远直线冲撞，近身掀击；各家片段共用时序，故常量在此：冲撞蓄力
+ *       {@value #CHARGE_WINDUP_TICKS} tick、伤害窗口到第 {@value #CHARGE_WINDOW_END_TICKS} tick，掀击第
+ *       {@value #TOSS_HIT_TICK} tick 命中。</li>
+ *   <li>子类给伤害、冷却对（{@link #createCooldowns}：先冲撞后掀击）、音效、属性与动画前缀；专属攻击（大象踩踏、鼻扫）
+ *       追加在 {@link Action} 死亡姿势后以保网络 id，经 {@link #tickSpeciesAttack} 计时、{@link #getTossReach}
+ *       放宽掀击距离。</li>
+ *   <li>蓄力完才锁方向，此前始终面向目标；冲刺扫掠检测按实际路径而非对角粗筛矩形，撞墙、前方无地或命中即止；
+ *       游荡完偶尔吃草，{@link StandStillGoal} 定住，{@link #GRAZE_ACTION_TICKS} 后或有目标即止。</li>
+ * </ul>
  */
 
 public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {

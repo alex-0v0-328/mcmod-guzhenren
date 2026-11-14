@@ -10,15 +10,12 @@ import net.minecraft.world.item.UseAnim;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Liquor [酒]: what a Liquor Worm [酒虫] is fed, and a drink in its own right.
- *
- * <p>Extends {@link net.alex.guzhenren.item.material.GuMaterialItem}. It earns a leaf class only because
- * it is drunk rather than eaten -- the {@code FoodProperties} builder needs a
- * {@link net.minecraft.world.item.UseAnim#DRINK} animation and a nausea chance. Five registrations (酒 plus
- * four flavors) use this one class; the flavors exist because the 四味酒虫 recipe takes one of each.
- *
- * <p>⚠ {@code FoodProperties.Builder.effect} must take a {@code Supplier} -- the effect holder resolves
- * too early during registration otherwise.
+ * 酒：酒虫[Liquor Worm]的补食，也可直接喝。
+ * <ul>
+ *   <li>因是喝非吃才开叶子类：{@code FoodProperties} 要 {@link UseAnim#DRINK} 动画与反胃概率。</li>
+ *   <li>酒与四种风味酒共 5 个注册项共用本类；风味酒因四味酒虫[Four Flavors Liquor Worm]蛊方各要一份。</li>
+ *   <li>⚠ {@code FoodProperties.Builder.effect} 须传 {@code Supplier}，否则注册期效果解析过早。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

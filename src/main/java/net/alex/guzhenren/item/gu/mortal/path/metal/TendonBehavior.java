@@ -9,9 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Steel Tendon Gu's [钢筋蛊] behavior: makes the holder's tendons [筋] steel for good, in the rank registration
- * names; the capacity it adds is the grade's. Extends {@link TemperingBehavior}; the write is
- * {@link BodyService#temperTendon}.
+ * 钢筋蛊[Steel Tendon Gu]的行为：筋永久变为同转钢筋，承受力加成取该档。
  *
  * @author Alex
  * @version 1.0.0

@@ -17,7 +17,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import org.jetbrains.annotations.NotNull;
 
-/** Writes the three cattle's vanilla-cow drops: beef with fire and looting behavior, and leather with looting. */
+/** 三种牛的原版牛掉落：牛肉（着火烧熟、抢夺加成）、皮革（抢夺加成）。 */
 
 public final class CattleLootProvider extends EntityLootSubProvider {
 

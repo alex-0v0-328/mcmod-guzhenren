@@ -11,15 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The body's memory for the Man As Before Gu [人如故]: {@link #record} a {@link PlayerSnapshot} when one is due,
- * {@link #pick} the one a day back, {@link #restore} the player to it.
- *
- * <p>A restore writes the vanilla body directly (health, food, air, fire, the effect list replaced whole) and the
- * mod's values through their services, so each derived state is refreshed the way its owner does it. The heartbeat
- * that follows re-projects the temp zombie [临时僵尸化] effect and re-runs the lethal checks on the restored values.
- *
- * <p>⚠ {@code record} is gated by {@link RewindClock#isDue} on the ring's last stamp, not by the caller's cadence,
- * so a relog or two carriers never double a snapshot.
+ * 人如故[Man As Before Gu]的身体记忆服务。还原直接写原版身体（生命、饥饿值、空气、着火，效果列表整体替换），模组数值经
+ * 各自服务写入，派生状态按所有者方式刷新；随后心跳重投临时僵尸化效果并重跑致死检查。⚠ {@code record} 按环末时间戳由
+ * {@link RewindClock#isDue} 把关，不靠调用节奏，重登或两个持有者都不会重复快照。
  *
  * @author Alex
  * @version 1.0.0

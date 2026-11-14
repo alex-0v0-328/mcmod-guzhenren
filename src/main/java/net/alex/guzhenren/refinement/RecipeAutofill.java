@@ -10,12 +10,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Autofill [自动填充]: picking a Gu Recipe [蛊方] pulls what the bag can cover into the cells the recipe names.
- *
- * <p>A cell already holding something the ingredient refuses is left alone, and a cell only ever stacks the same
- * item with the same components, up to its stack size. The bag is walked in slot order and each ingredient takes
- * only what its group still lacks, filling the group's cells in order; another player's Vital Gu [本命蛊] is
- * never pulled.
+ * 自动填充：选中蛊方后，把背包能凑出的材料拉进蛊方指定的格子。
+ * <ul>
+ *   <li>格内已有该材料不接受之物时不动该格；一格只叠同物品同组件的堆，至多到堆叠上限。</li>
+ *   <li>按背包槽位顺序遍历，每种材料只取其组仍缺的数量，依序填该组格子；他人的本命蛊从不拉取。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

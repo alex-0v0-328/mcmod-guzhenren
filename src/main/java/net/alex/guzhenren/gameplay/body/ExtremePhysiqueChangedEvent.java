@@ -5,12 +5,9 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link BodyService#setExtremePhysique} stored a different
- * ten-extreme physique [十绝体]; {@link #getBefore} and {@link #getAfter} always differ. Dispatch is
- * synchronous, so a subscriber has run before the write returns.
- *
- * <p>The aperture reacts to it (talent paths, base essence, pressure); the body posts instead of calling
- * the aperture, which already depends on the body.
+ * {@link BodyService#setExtremePhysique} 存入不同十绝体后发布的事件；同步分发，写入返回时订阅者已执行，
+ * {@link #getBefore} 与 {@link #getAfter} 必不同。空窍[Aperture]响应（天赋道、基础真元[Essence]、压力）；空窍已依赖肉
+ * 身，故不直接调用。
  *
  * @author Alex
  * @version 1.0.0

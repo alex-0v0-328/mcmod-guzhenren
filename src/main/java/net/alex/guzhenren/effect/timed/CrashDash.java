@@ -1,16 +1,15 @@
 package net.alex.guzhenren.effect.timed;
 
 /**
- * The Crash Gu dash distance [横冲 / 直撞 / 横冲直撞], kept free of game classes so plain JUnit pins it ({@link CrashGuEffect}
- * is a {@code MobEffect}, which needs the registries bootstrapped to load). {@link #COORD_SCALE} is the multiplier on
- * Epic Fight's dodge coordinate vector: one number shared by the whole Crash Gu family, 4.5. {@link #getMultiple}
- * adds the doublings up: one more for All-Out Effort [全力以赴], and the held beasts' dash bonus (the galloping horse's
- * [驰马骏力] one) on top, twice over while All-Out Effort runs. So 4.5 alone, 9.0 with either, 18.0 with both.
- *
- * <p>{@link #STEP_TRAVEL} is how far the mod's dash clips carry the root at a scale of one: 1.342 blocks for
- * dash_forward, dash_left and dash_right, 1.344 for dash_backward, rounded up past them all, so {@link #getTravel}
- * bounds the dash's path from the scale: about 6, 12 and 24 blocks. It lives outside the EF bridge so the spec stays readable without Epic Fight on
- * the classpath.
+ * 横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]、横冲直撞蛊[Charging Crash Gu]冲刺距离规格。
+ * <ul>
+ *   <li>不依赖游戏类与 Epic Fight，纯 JUnit 可测（{@link CrashGuEffect} 为 {@code MobEffect}，须引导注册表）。</li>
+ *   <li>{@link #COORD_SCALE}：Epic Fight 闪避坐标向量倍数，三蛊共用 4.5；{@link #getMultiple} 累加：
+ *       全力以赴蛊[All-Out Effort Gu]期间 +1，兽力[Beast Strength]冲刺加成（驰马 1）再加、全力以赴时双倍；单独 4.5、
+ *       任一 9.0、兼有 18.0。</li>
+ *   <li>{@link #STEP_TRAVEL}：冲刺片段倍数 1 时根骨骼位移（前、左、右 1.342 格，后 1.344 格），取值越过全部；
+ *       {@link #getTravel} 得路径上限约 6、12、24 格。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

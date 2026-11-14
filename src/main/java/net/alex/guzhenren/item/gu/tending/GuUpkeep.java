@@ -5,17 +5,14 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The day-rollover walk over refined tended Gu: three containers bill through here, on either clock --
- * {@link #tickInContainer} for a Gu held in an aperture, {@link #tickCarried} for every Gu in the holder's own
- * inventory; either eats from the holder's bag before and after the day's drain. Each refined Gu pays its own
- * upkeep, then its hunger clock decides whether it starved; a starved carried Gu is removed and reported through
- * {@code TendedGuItem.starve}.
- *
- * <p>⚠ The billing step runs the meal, decay, the meal again, then warn. Nothing in the code makes that order look
- * load-bearing, and swapping any two of them changes which Gu survive a day. The first meal saves a Gu that went
- * hungry while the bag was empty and found food since: a stored Gu cannot be driven, so nothing else feeds it before
- * the drain. Both meals run only on a heartbeat that crossed a day ({@code days > 0}); each mends first, so a Gu
- * whose bag food all went on a wound is still warned.
+ * 日切时对已炼化持续照顾型蛊[Tended Gu]的遍历。
+ * <ul>
+ *   <li>三种容器、两种时钟皆经此结算：{@link #tickInContainer} 管空窍[Aperture]中的蛊，{@link #tickCarried}
+ *       管随身蛊；每只先付维持开销，再由饱食[Hunger]时钟判饿死，随身饿死者移除并交 {@code TendedGuItem.starve}。</li>
+ *   <li>⚠ 顺序为进食、扣量、再进食、警告，看似随意，但交换任两步都会改变哪些蛊活过一天。</li>
+ *   <li>首次进食救下先前背包空而挨饿的蛊（存放的蛊不能催动，扣量前别无喂法）；两次进食都从背包、仅在跨日心跳
+ *       （{@code days > 0}），每次先修复，食物全耗于伤势者仍被警告。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

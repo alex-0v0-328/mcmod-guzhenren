@@ -11,14 +11,11 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Malicious Thought Gu [恶念蛊] effect: each second for twelve seconds it adds evil-tagged
- * thoughts [恶念] to the mind ocean [脑海].
- *
- * <p>The truth is the thought path effect [流派效果] ({@code StateEffects.grantThought}); this vanilla effect is its
- * projection, which pulses while it shows and is put back within a second of {@code /effect clear}. One effect, four
- * grades — the amplifier is the rank's tier, and the {@code evilPerSecond} table is given at registration. The
- * immediate portion lands in the Gu's payout, not here; this effect owns only the per-second drip. Thoughts land
- * through {@link MindService#addThoughts} tagged {@code EVIL}.
+ * 恶念蛊[Malicious Thought Gu]效果：12 秒内每秒给脑海加恶念。
+ * <ul>
+ *   <li>投影流派效果 {@code StateEffects.grantThought}（真值）：显示时脉冲，{@code /effect clear} 后 1 秒内补回。</li>
+ *   <li>四档：倍率即转数档位，{@code evilPerSecond} 注册时给定；即时部分归蛊产出，本效果只管每秒滴加。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

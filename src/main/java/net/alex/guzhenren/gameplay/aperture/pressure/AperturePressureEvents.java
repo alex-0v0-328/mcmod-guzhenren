@@ -6,12 +6,11 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * Drives the world-level background work that outlives the player who caused it: the staged
- * pressure-explosion [空窍压力爆炸] craters. Unlike the one-second heartbeat in {@link
- * net.alex.guzhenren.lifecycle.Heartbeat} these runs every server tick and keeps running
- * after the player died -- the crater finishes on its own. The blasts live in each level's saved
- * data, not in a static list, so a server stop mid-blast resumes on the next start and a
- * singleplayer world switch never carries stale level references.
+ * 空窍[Aperture]压力爆炸坑的世界级后台驱动：每服务端 tick（非每秒 {@link net.alex.guzhenren.lifecycle.Heartbeat}）
+ * 分段推进，玩家死后照挖。
+ * <ul>
+ *   <li>爆炸存各维度存档数据：停服续挖，单人切世界无过期维度引用。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -8,8 +8,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for one Strength Qi Gu [力气蛊] punch thrown as a Qi Wave [气波]: the id of the target
- * the client aimed at. {@code QiWaveService.fire} checks the buff, the empty hand and the target again.
+ * 力气蛊[Strength Qi Gu]出拳化气波的客户端意图 payload：瞄准目标 id；{@code QiWaveService.fire} 重查增益、空手与目标。
  *
  * @author Alex
  * @version 1.0.0

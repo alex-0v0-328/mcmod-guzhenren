@@ -26,30 +26,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The B panel: every tab of what a player is, read straight off the synced attachments.
- *
- * <p>Extends {@link net.minecraft.client.gui.screens.Screen} (no menu behind it). Six tabs: 空窍,
- * 肉身, 魂魄, 流派, 脑海, 炼蛊. The aperture tab draws one column per aperture -- a lone aperture
- * keeps the single-column layout -- and every column carries its own nourish [温养空窍] /
- * flush [冲刷窍壁] / storage [空窍存储] buttons; the storage button opens that aperture's container.
- * The refinement tab opens its container via a client-intent payload instead of drawing rows. Row
- * content comes from {@link InfoModel}; {@link InfoRowRenderer} turns each entry into the panel's
- * label and value, a value left-aligned in the column its {@link RowBlock} measured and pulled back to end at the row's
- * right edge only when it would run past it, {@link ApertureButtons} are the buttons under each aperture, and
- * {@link PathPicker} is
- * the secondary-path grid that opens over the panel. A frame is drawn in one {@link GuiBatch}: every sprite in one
- * {@link SpriteBatch}, then the fills over them (rule, hovers, nourish progress), then every text; {@link InfoRowCache}
- * keeps the rows of the last frame while the model is unchanged. The selected tab is the idle tab sprite with the
- * grayscale selection border over it, tinted the tab's accent; its title takes the same accent.
- *
- * <p>The storage and refinement screens are its sub-screens: their Esc comes back here. A panel opened that way
- * swallows Esc until the key is released, so the held key's repeats do not close it as well and one press steps
- * back exactly one level.
- *
- * <p>⚠ A plain screen with no menu behind it: no container channel to send an intent over.
- *
- * <p>Past 300 lines on purpose: the tabs, the rows, the scroll bar and the aperture columns are one layout that
- * reads the same edges ({@code contentLeft}, {@code valueRight}, {@code tabLeft}) as the panel resizes.
+ * B 面板，直接读同步附件的玩家状态标签页。
+ * <ul>
+ *   <li>六个标签页：空窍[Aperture]、肉身、魂魄、流派、脑海、炼蛊；选中页在常态标签 sprite 上叠灰度选中边框，
+ *       染成该页强调色，标题同色。</li>
+ *   <li>空窍页每空窍一列（只有一个时单列），各有温养[Nourish]空窍、冲刷窍壁、空窍存储按钮（{@link ApertureButtons}），
+ *       存储按钮打开该空窍的容器；{@link PathPicker} 是叠在面板上的辅修流派网格。</li>
+ *   <li>⚠ 普通界面背后无菜单、没有容器通道发意图：炼蛊页不画行，经客户端意图 payload 打开炼蛊容器。</li>
+ *   <li>行内容来自 {@link InfoModel}，{@link InfoRowRenderer} 转成标签和值；值在 {@link RowBlock} 量出的列内左对齐，
+ *       超出行右缘才贴右；{@link InfoRowCache} 在模型不变时沿用上一帧的行。</li>
+ *   <li>一帧一个 {@link GuiBatch}：sprite 全进 {@link SpriteBatch}，再叠填色（分隔线、悬停、温养进度），最后文字。</li>
+ *   <li>空窍存储、炼蛊界面是子界面，Esc 回此；如此打开的面板吞 Esc 至松开，重复键不连带关面板，一次只退一级。</li>
+ *   <li>超 300 行有意为之：标签页、行、滚动条、空窍列是同一布局，缩放时读同一组边界
+ *       （{@code contentLeft}、{@code valueRight}、{@code tabLeft}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

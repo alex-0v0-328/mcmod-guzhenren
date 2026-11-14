@@ -8,12 +8,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Malicious Thought Gu's [恶念蛊] burst: an immediate flood of thoughts of one tag via
- * {@link MindService#addThoughts}. It registers ahead of the Gu's {@link ThoughtBehavior}, so the burst lands before
- * the sustained effect.
- *
- * <p>⚠ Rank five floods past the burst line from an empty mind, so it kills on the spot. That is the
- * design, not a bug -- the antidote is thought conversion, unbuilt.
+ * 恶念蛊[Malicious Thought Gu]爆发：经 {@link MindService#addThoughts} 即刻灌入一种标签的念头。
+ * <ul>
+ *   <li>注册在该蛊 {@link ThoughtBehavior} 前，爆发先于持续效果。</li>
+ *   <li>⚠ 五转从空脑海即灌过爆脑线，当场致死；属设计，解法是未实现的念头转化。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

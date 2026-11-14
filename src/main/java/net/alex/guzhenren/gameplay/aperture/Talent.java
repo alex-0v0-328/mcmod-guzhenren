@@ -10,18 +10,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Aptitude [资质], derived from the aperture's base essence and never stored beside it.
+ * 资质[Aptitude]：由空窍[Aperture]基础真元[Essence]推导，从不另存。
  *
- * <p>Closed vocabulary enum: regen rate, Epic Fight stamina percentage and the roll weights all live here. {@code NONE}
- * is outside the settable range; {@code shift(int)} clamps at {@code TEN_EXTREMES} to {@code FOURTH}. No sibling mod
- * may add a grade.
- *
- * <p>{@code formatPercent} names a base percent in tenths [成] (85 is 八成五); the HUD and the awakening announcement
- * both read it, so it lives here below both.
- *
- * <p>⚠ The constants run HIGH to LOW, so {@code shift(+1)} is {@code ordinal - 1}. Reading the direction
- * off the declaration order is exactly how that gets reversed by accident. {@code 1} to {@code 19} is a hole, not
- * a value ({@code fromPercent} -> {@code NONE}).
+ * <ul>
+ *   <li>封闭词汇枚举，兄弟模组不得新增；回复倍率、Epic Fight 耐力百分比、抽取权重都在此；{@code NONE} 不可
+ *       设，{@code shift(int)} 夹在 {@code TEN_EXTREMES} 至 {@code FOURTH}。</li>
+ *   <li>{@code formatPercent} 把基础值读成「成」（85 即八成五），HUD 与开窍[Awakening]公告都读它，故放其下。</li>
+ *   <li>⚠ 常量由高到低，{@code shift(+1)} 即 {@code ordinal - 1}，照声明顺序读方向正是弄反的由来；⚠ {@code 1} 至
+ *       {@code 19} 是空洞（{@code fromPercent} → {@code NONE}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

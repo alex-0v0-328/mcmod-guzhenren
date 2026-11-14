@@ -16,16 +16,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The beast-strength behavior [兽力]: grants one species' strength for good; the species comes from registration.
- *
- * <p>The gate refuses a body that holds Human Jun Strength ({@link MarkInterference}), then a holder whose family
- * already carries that species or an equal or stronger one it would replace ({@link PathStrengthData#getCovering},
- * named by the family's reading), then a body whose normal carrying capacity [常态承受力] has no room for it beside
- * the beasts that stay ({@link StrengthService#canAdmit}: amplifiers and the All-Out lift admit nothing); the effect
- * delegates to {@link PathStrengthService#grant}, which swaps a replaced beast out. A species declares its own
- * family and worth on the enum, so adding one never touches this behavior.
- *
- * <p>⚠ If an edit here starts to look necessary, a number has been put in the wrong place.
+ * 兽力[Beast Strength]行为：永久授予一种兽力，种类来自注册。
+ * <ul>
+ *   <li>门槛依次拒：持人力钧力流（{@link MarkInterference}）；本兽种已有此兽力或要替换的同等或更强者
+ *       （{@link PathStrengthData#getCovering}，提示写该兽种读数）；常态承受力容不下它与留下的兽力
+ *       （{@link StrengthService#canAdmit}，增幅与全力以赴抬升不算）。</li>
+ *   <li>⚠ 若觉得要改这里，就是数值放错了地方：兽种与价值在枚举上声明，新增兽力不改本行为；效果交
+ *       {@link PathStrengthService#grant}，由它换出被替换者。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -7,13 +7,9 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The timed healing of the Vitality Leaf Gu [生机叶蛊]: heals one HP every half-second for 64 pulses.
- *
- * <p>The truth is the leaf path effect [流派效果] ({@code TimedEffects.grantLeaf}); this vanilla effect is its
- * projection, which pulses while it shows and is put back within a second of {@code /effect clear}. Re-using the
- * Gu while this effect runs is a refusal ({@code effect_active}).
- *
- * <p>A timed buff alters nothing permanently.
+ * 生机叶蛊[Vitality Leaf Gu]限时治疗：每 0.5 秒回 1 点生命，共 64 次；投影流派效果
+ * {@code TimedEffects.grantLeaf}（真值）：显示时脉冲，{@code /effect clear} 后 1 秒内补回；运行中再催动被拒
+ * （{@code effect_active}）；不留永久改动。
  *
  * @author Alex
  * @version 1.0.0

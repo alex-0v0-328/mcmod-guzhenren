@@ -7,9 +7,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * The payload of a running Self Reliance heal [自力更生]: the grade of the Gu that started it, the icon's amplifier.
- *
- * <p>A save from before the auto rebuild also carries an Amplify Effect Gu factor; the codec ignores it.
+ * 自力更生蛊[Self Reliance Gu]回复的 payload：发起蛊的级数，兼作图标效果等级。旧存档另带的功倍蛊[Amplify Effect Gu]
+ * 倍数由编解码器忽略。
  *
  * @author Alex
  * @version 1.0.0

@@ -8,15 +8,12 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The awakening ritual [开窍仪式] a Hope Gu [希望蛊] click starts: when it began, the aptitude [资质] it will open, the
- * physique a Ten-Extremes roll brings ({@code NONE} otherwise), where the Hope Gu hovers before the player, and
- * whether the aptitude has been revealed. Immutable record attachment keyed {@code awakening_ritual};
- * {@link AwakeningRitualService} is the only runtime writer.
- *
- * <p>⚠ It counts by presence: a player who has it is in the ritual, so {@link #DEFAULT} is only the builder's
- * placeholder and is never read as a ritual. {@code startTick} is game time, which every dimension shares, so every
- * client that draws the ritual reads the same elapsed time as the server. The physique rides along because body data
- * syncs to its owner alone, and other players draw its plaque too.
+ * 希望蛊[Hope Gu]单击起的开窍[Awakening]仪式，附件 {@code awakening_ritual}。
+ * <ul>
+ *   <li>运行时仅 {@link AwakeningRitualService} 写；{@code startTick} 取各维度共用游戏时间，两端一致。</li>
+ *   <li>⚠ 有附件即在仪式中；{@link #DEFAULT} 仅是构建器占位，不当仪式读。</li>
+ *   <li>十绝体（非十绝为 {@code NONE}）随仪式同步：肉身数据只发本人，旁人也画牌匾。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

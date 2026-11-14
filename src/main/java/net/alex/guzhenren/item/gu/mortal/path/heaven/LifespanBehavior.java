@@ -8,10 +8,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Lifespan Gu's [寿蛊] behavior: grants lifespan [寿元], rolled between the bounds given at registration.
- *
- * <p>The service write goes through {@link BodyService#addLifespan}. Each of the four rungs carries its own range,
- * and the name is the promise -- the roll only decides the tail.
+ * 寿蛊[Lifespan Gu]行为：经 {@link BodyService#addLifespan} 加寿元，取注册上下限间随机值；四档各有区间，名字即承诺，
+ * 随机只定零头。
  *
  * @author Alex
  * @version 1.0.0

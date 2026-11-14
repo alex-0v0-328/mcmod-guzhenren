@@ -6,23 +6,18 @@ import net.alex.guzhenren.gameplay.flight.SecondStageCruise;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Where one second-stage flight [二段飞行] forms its sound barrier rings [音障环], one tick at a time: pure state,
- * so the pure JVM tests can pin it; {@link SecondStageRingEmitter} sends what {@link #step} returns.
- *
- * <p>The entry already booms (the sonic boom ring [音爆环]), so the barrier rings keep quiet for
- * {@link #QUIET_TICKS} after it. From then on a ring forms at once, since a fresh trail ({@link #start}) carries a
- * full spacing, if the flight is past {@link #BARRIER_SPEED}, three times plain creative flight at full speed
- * ({@link SecondStageCruise#PLAIN_FLIGHT_SPEED}), and one more every {@link #SPACING} blocks of actual 3D travel
- * past it, through {@link RingTrailSpacing} like the dash trail. Below the barrier nothing forms and no distance
- * counts. The speed is the per-tick movement smoothed by {@link #SMOOTHING}, since the server sees a player's moves
- * as they arrive, sometimes two to a tick.
- *
- * <p>Each {@link Ring} forms on the path at foot level, {@link #HEAD_LEAD} blocks ahead along the movement at the
- * leading face, and faces it; the flier passes through it and leaves it behind. A tick's movement past
- * {@link #TELEPORT_DISTANCE} is a teleport, not flight: the trail picks up again there, its speed reset, without
- * laying rings along the jump.
- *
- * <p>At 6 times flight speed (≈3.3 blocks a tick) a ring forms every ≈5 ticks, four a second.
+ * 单次二段飞行[Second-Stage Flight]逐 tick 生成音障环的轨迹状态；纯状态，纯 JVM 测试可钉住。
+ * <ul>
+ *   <li>{@link SecondStageRingEmitter} 发送 {@link #step} 的返回值。</li>
+ *   <li>进入时已有音爆环，故 {@link #QUIET_TICKS} 内静默；之后速度超 {@link #BARRIER_SPEED}（创造满速普通飞行
+ *       {@link SecondStageCruise#PLAIN_FLIGHT_SPEED} 的 3 倍）立即成环，因新轨迹（{@link #start}）自带满间距。</li>
+ *   <li>此后每实际三维移动 {@link #SPACING} 格一环，与冲刺轨迹同经 {@link RingTrailSpacing}；低于音障速度不成环、
+ *       不计距离。</li>
+ *   <li>速度取每 tick 位移经 {@link #SMOOTHING} 平滑：服务端按到达顺序收玩家移动，有时一 tick 两次。</li>
+ *   <li>{@link Ring} 生成于路径脚部高度、移动前缘前 {@link #HEAD_LEAD} 格，面朝移动方向；飞行者穿环而过。</li>
+ *   <li>单 tick 位移超 {@link #TELEPORT_DISTANCE} 视为传送：落点重接轨迹、速度清零，跳跃路径不铺环。</li>
+ *   <li>6 倍飞行速度（约 3.3 格/tick）约每 5 tick 一环，每秒 4 个。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

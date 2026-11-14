@@ -9,10 +9,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for the main-hand Primeval Elder Gu [元老蛊]: a tap's deposit, or the hold slider's
- * withdrawal of {@code stacks} stacks ({@code 0} for a deposit).
- * {@link net.alex.guzhenren.network.ClientIntents#primevalElder} checks it all again; the slider's top is only what
- * the client could see.
+ * 主手元老蛊[Primeval Elder Gu]的客户端意图 payload：点按存入，或长按滑条取出 {@code stacks} 组（存入时为 {@code 0}）。
+ * {@link net.alex.guzhenren.network.ClientIntents#primevalElder} 全部重查；滑条上限只是客户端可见的数量。
  *
  * @author Alex
  * @version 1.0.0

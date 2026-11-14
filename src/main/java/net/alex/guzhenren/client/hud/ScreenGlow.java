@@ -6,9 +6,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
- * The render state of a full-screen glow: drawn additively at an alpha, so it brightens what lies under it like the
- * world rings, with depth off so nothing hides it. {@link ShieldGlowHud} and {@link SonicBoomHud} blit between
- * {@link #begin} and {@link #end}; {@link #getEffectScale} is the vanilla Distortion Effects slider both scale by.
+ * 全屏辉光渲染状态：按 alpha 加法混合（像世界环一样提亮下方），关深度测试（不被遮挡）。
+ * <ul>
+ *   <li>{@link ShieldGlowHud}、{@link SonicBoomHud} 在 {@link #begin}、{@link #end} 间绘制，{@link #getEffectScale}
+ *       为二者共用的原版「屏幕扭曲效果」滑条。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

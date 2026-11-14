@@ -33,45 +33,28 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A mortal Gu [凡蛊]: holds the {@link GuProperties}, the {@link GuBehavior}s and the essence [真元] gate, but no per-stack
- * state.
- *
- * <p>Sits between {@link GuItem} and three lifecycle hosts: {@link OneShotGuItem} (refining IS the use, stacks,
- * no state), {@link TendedGuItem} (refined then fed and used, carries {@link RefinedGuState}) with its
- * {@link ConsumedGuItem}, and the Hope Gu [希望蛊], which opens an aperture and is none of them. The constructor runs
- * {@link GuProperties#validate} so a typo in the numbers fails at startup, naming the Gu. {@link #checkStageUpGate} is the
- * one check a stage-raising Gu runs: the aperture's rank must be the Gu's own, and its stage below the peak.
- * {@link #getUseEssence} is what one use pays (a tended Gu's cost per use, a one-shot Gu's refining, nothing for a
- * channel), and {@link #canBeAmplified} says whether an Amplify Effect Gu [功倍蛊] multiplies it. The tooltip's usage
- * type line [类型] ({@link #formatType}) shows the type alone, or a branch after its parent ({@code 防御 · 反击}).
- *
- * <p>What a Gu does is its behaviors, in registration order: {@link #checkModules} is the first refusal,
- * {@link #applyModules} runs them all, and {@link #getBehavior} is how other code asks what a Gu does. ⚠ At most one
- * behavior may be amplified, because each that is bills the Amplify Effect Gu from its own effect: the constructor
- * refuses a second, naming the Gu.
- *
- * <p>⚠ Every Gu answers a right click even with nothing else to do, because refining [炼化] is always
- * an answer. A leaf that declines to answer makes the Gu look broken in the hand.
- *
- * <p>⚠ The essence gate ({@link #checkEssenceGate}) counts the carried stones with the pool
- * ({@code PrimevalStoneSupply.canAfford}), on the client as on the server, and a Gu pays every cost through
- * {@code PrimevalStoneSupply.pay}, so what the gate lets through, the payment covers.
- *
- * <p>⚠ No Gu gates on {@code isAwakened}; the essence gate stands in for it (stones count only with an aperture) and
- * passes a zero cost. No one-shot Gu has a refine cost, so a mortal without an aperture uses the Vitality Leaf,
- * Lifespan, Guts and Second Aperture Gu by design; the Relics Gu stop at {@link #checkStageUpGate}. The Hope Gu
- * is the one {@code isAwakened} check, refusing a player who already has a first aperture.
- *
- * <p>Every landed use ends in {@code spend}, which posts {@link GuUsedEvent} once the cooldown is set and the Gu
- * taken: the one seam a reaction to any Gu's use hangs on, so a new Gu needs no code for it.
- *
- * <p>The charge a use takes is paced by the gap between the holder's rank and the Gu's own
- * ({@link #useChargeByGap}), never by the stage.
- *
- * <p>The Vital Gu [本命蛊] binding lives on the stack and is read and written only through {@link VitalGuState};
- * this class shows it, as the name's mark and the glint, and keeps the Gu in hand. ⚠ A Vital Gu refuses the Q-key
- * drop in {@link #onDroppedByPlayer}, but the client has already emptied the hotbar slot by then: the refusal marks
- * the server's remote copy of that slot stale, so the next broadcast puts the Gu back on screen.
+ * 凡蛊：持有 {@link GuProperties}、{@link GuBehavior} 与真元[Essence] 门槛，无物品堆状态。
+ * <ul>
+ *   <li>介于 {@link GuItem} 与三种生命周期宿主间：{@link OneShotGuItem} 炼化即催动，无状态，可堆叠；
+ *       {@link TendedGuItem} 炼化后补食、催动，带 {@link RefinedGuState}；及其 {@link ConsumedGuItem}；希望蛊[Hope Gu]
+ *       开启空窍[Aperture]，三者皆非。构造器跑 {@link GuProperties#validate}，笔误启动即失败并点名；
+ *       {@link #checkStageUpGate} 是升阶蛊唯一检查：空窍转数等于蛊转数，阶段低于巅峰。</li>
+ *   <li>{@link #getUseEssence}：一次催动所付真元（持续照顾型蛊[Tended Gu] 单次代价、即时一次性蛊的炼化，灌注[Channel]
+ *       为 0）；{@link #canBeAmplified}：功倍蛊[Amplify Effect Gu] 能否倍增它；类型行 {@link #formatType} 显示类型或
+ *       「父 · 分支」（{@code 防御 · 反击}）。</li>
+ *   <li>⚠ 至多一个行为可增幅：每个都从自身效果向功倍蛊结账，第二个由构造器点名拒绝；蛊的作为即其行为，按注册顺序：
+ *       {@link #checkModules} 取首个拒绝，{@link #applyModules} 全执行，他处经 {@link #getBehavior} 询问。</li>
+ *   <li>⚠ 每只蛊都响应右键，即使无事可做：炼化总是响应；不响应的叶类让蛊在手中像坏了。</li>
+ *   <li>⚠ 真元门槛 {@link #checkEssenceGate} 经 {@code PrimevalStoneSupply.canAfford} 把携带元石[Primeval Stone] 连同真
+ *       元池计数，两端一致；每笔代价都经 {@code PrimevalStoneSupply.pay} 付，放行即付得清。</li>
+ *   <li>⚠ 蛊不查 {@code isAwakened}：真元门槛代之（元石有空窍才计），零代价放行；即时一次性蛊无炼化代价，无空窍凡人按设
+ *       计可用生机叶蛊[Vitality Leaf Gu]、寿蛊[Lifespan Gu]、胆识蛊[Guts Gu]、第二空窍蛊[Second Aperture Gu]，舍利
+ *       蛊[Relics Gu] 止于 {@link #checkStageUpGate}；仅希望蛊查 {@code isAwakened}：拒绝已有第一空窍者。</li>
+ *   <li>生效催动都以 {@code spend} 结束，设冷却、扣蛊后发布 {@link GuUsedEvent}：任何蛊催动反应的唯一接缝，新蛊无需代
+ *       码；蓄力按持有者与蛊的转数差定节奏（{@link #useChargeByGap}），不按阶段。</li>
+ *   <li>⚠ 本命绑定存物品堆，只经 {@link VitalGuState} 读写，本类显示名字标记与附魔光效并留蛊在手；
+ *       {@link #onDroppedByPlayer} 拒绝 Q 键丢弃时客户端已清空该格，即把服务端该格远端副本标过期，下次广播放回。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -120,7 +103,7 @@ public abstract class MortalGuItem extends GuItem {
 
     public boolean canBeAmplified() { return behaviors.stream().anyMatch(GuBehavior::canBeAmplified); }
 
-    /** The source of every path effect this Gu lays down: its item id. */
+    /** 本蛊所施全部流派效果的来源：其物品 ID。 */
     public final ResourceLocation getEffectSource() { return BuiltInRegistries.ITEM.getKey(this); }
 
     public final <P> PathEffect<P> createEffect(PathEffectType<P> type, long endTick, P payload) {

@@ -7,21 +7,14 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The leaves on one Nine Leaf Vitality Grass [九叶生机草]: how many were left when the stack was last written,
- * and the game time that count was settled at.
- *
- * <p>Stored on the {@code LEAF_GROWTH} data component and never ticked. {@link #settle} derives the count at
- * any later game time -- one leaf per {@code regrowTicks}, {@link #MAX_LEAVES} at most -- so a grass in a chest,
- * on the ground or in another player's bag keeps growing with nobody watching, and server and client derive the
- * same count from the same stamp. Game time is one clock for every dimension (the others read the overworld's).
- *
- * <p>⚠ A full grass parks its stamp at the moment it is settled: the regrowth of the first picked leaf starts at
- * the pick, not at the moment the grass last filled up. A partial count keeps the time already grown toward the
- * next leaf, so neither a pick nor a grown leaf throws that progress away. A stamp ahead of the clock (a stack
- * moved between saves) restarts the wait instead of freezing it.
- *
- * <p>{@link #getPickedStage} is the item model's three looks: full at seven leaves and up, half from one, empty at
- * none.
+ * 九叶生机草[Nine Leaf Vitality Grass]叶片：上次写入的叶数与结算时刻（主世界游戏时间，各维度共用）。
+ * <ul>
+ *   <li>存于 {@code LEAF_GROWTH} 组件，不逐 tick 更新；{@link #settle} 推算任一时刻叶数，每 {@code regrowTicks}
+ *       一片，至多 {@link #MAX_LEAVES}；箱中、地上、他人包里照长，两端同戳同数。</li>
+ *   <li>⚠ 满叶结算把戳停在当下，摘首片后从摘时再生；未满保留下一片进度，摘、长都不丢；戳超前时钟（跨存档搬动）
+ *       则重新等待，不冻结。</li>
+ *   <li>{@link #getPickedStage} 给模型三态：≥ 7 片满，≥ 1 片半，0 片空。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

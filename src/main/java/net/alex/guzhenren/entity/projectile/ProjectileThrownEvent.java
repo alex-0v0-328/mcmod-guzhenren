@@ -5,12 +5,12 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus, on the server, each time a player throws one projectile by hand: today every Moon
- * Blade [月刃] ({@link MoonBladeEntity#shoot}), one event a blade. The thrower's body follows from it: the Epic Fight
- * bridge plays the throw clips ({@code EpicFightServerEvents}), so a later throw-type skill gets them by posting this
- * event and wires nothing else. Dispatch is synchronous and the projectile is already in the level.
- *
- * <p>The projectile posts and does not know who listens; a listener changes nothing about the throw.
+ * 玩家亲手投出弹射物的服务端事件，发布在游戏事件总线。
+ * <ul>
+ *   <li>目前每发月刃（{@link MoonBladeEntity#shoot}）一个；Epic Fight 桥接据此播投掷动画
+ *       （{@code EpicFightServerEvents}），新投掷技能只需发布本事件。</li>
+ *   <li>同步分发，弹射物已入世界；发布方不知谁在听，监听者不改变投掷。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

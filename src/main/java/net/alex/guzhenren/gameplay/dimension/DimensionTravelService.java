@@ -20,40 +20,22 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Generic anchored-dimension travel service. A single {@link DimensionReturnData} attachment stores the
- * one return point for the one anchored dimension a player may be inside at a time.
- *
- * <p>{@link #isInside} answers whether the player is currently in the given dimension; {@link #enter}
- * snapshots the player's original location and flying state before teleporting there, returning
- * {@code false} instead when they are already inside the dimension or the target level could not be
- * resolved. Entering one anchored dimension from inside another keeps the first snapshot, so the exit
- * still leads back to where the trip began. Death clears the record through
- * {@link net.alex.guzhenren.lifecycle.PlayerDataService}.
- *
- * <p>{@link #getArrival} is where {@link #enter} lands the player: a {@code FLIGHT} arrival on the spawn
- * itself, which grants flight and starts the player flying; a {@code SURFACE} arrival on top of the spawn's
- * column, which revokes any grant carried in from a flight dimension. {@code Level.getHeight} reads an
- * unloaded chunk as the bottom of the world, so the column's chunk is loaded first, and generated on the
- * server thread if it never was: the first entry to a fresh spot stalls the server for the few chunks
- * that takes.
- *
- * <p>{@link #exit} restores the snapshot: if a return point exists, the player is teleported back to it
- * and resumes flying only if they were flying on entry and can still fly without the grant, returning
- * {@code true}; if no record exists, the player is sent to the Overworld shared spawn as a fallback
- * instead, returning {@code false}. Both paths revoke the flight grant and clear the record ({@link
- * #clear(ServerPlayer)} is safe to call even when no record is present).
- *
- * <p>⚠ Flight inside is a {@link FlightAbility} source, never a raw write to {@code Abilities.mayfly}: the raw field is
- * saved with the player and shared with game modes and other mods, so writing it leaked survival flight whenever a
- * player left without a matching restore. A {@link FlightAbility} source is never saved, which keeps the grant out of
- * the save file. {@link #ensureFlight} re-grants the permission each tick without forcing {@code flying} on, so the
- * player may choose to hover or stop flying freely while inside a flight dimension; {@link #revokeFlight} drops the
- * grant, and {@code flying} with it unless something else still lets the player fly, each tick while the player is
- * outside every anchored dimension that grants flight, so leaving by any route -- exit, vanilla {@code /tp}, another
- * mod's teleport -- revokes it.
- *
- * <p>{@link #rescueIfBelowVoid} teleports the player back to the given spawn if they have fallen below
- * the current level's minimum build height, returning {@code true} if a rescue teleport happened.
+ * 通用锚定维度旅行服务。
+ * <ul>
+ *   <li>一个 {@link DimensionReturnData} 附件存唯一返回点；{@link #enter} 传送前记原位与是否在飞，已在目标或无目标维度
+ *       返回 {@code false}；锚定维度间再进入保留首个快照，退出仍回出发处；死亡经
+ *       {@link net.alex.guzhenren.lifecycle.PlayerDataService} 清记录。</li>
+ *   <li>{@link #exit}：有返回点则传回，进入时在飞且去掉本授权仍能飞才续飞，返回 {@code true}；无记录兜底送主世界公共出
+ *       生点，返回 {@code false}；两路都撤授权、清记录，{@link #clear(ServerPlayer)} 无记录也安全。</li>
+ *   <li>{@link #getArrival}：{@code FLIGHT} 落在出生点并授飞、开飞；{@code SURFACE} 落在该列顶上并撤销飞行维度带来的授
+ *       权。{@code Level.getHeight} 把未加载区块读成世界底部，故先加载该列区块，未生成则在服务端线程生成，首入新位置会
+ *       卡顿。</li>
+ *   <li>⚠ 维度内飞行是 {@link FlightAbility} 来源（不存档），不直接写 {@code Abilities.mayfly}：该字段随玩家存档、
+ *       与游戏模式及他模组共用，直接写曾在未配对恢复就离开时泄漏生存飞行。</li>
+ *   <li>{@link #ensureFlight} 每 tick 补授权，不强制开飞；{@link #revokeFlight} 撤授权，无其他来源时一并关飞，玩家在所
+ *       有给飞行的锚定维度外每 tick 调用，故退出、原版 {@code /tp}、他模组传送等任何途径离开都撤销。</li>
+ *   <li>{@link #rescueIfBelowVoid}：低于最低建造高度时传回给定出生点，传送了返回 {@code true}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

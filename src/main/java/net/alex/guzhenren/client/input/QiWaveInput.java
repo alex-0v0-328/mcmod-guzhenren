@@ -11,18 +11,14 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
 /**
- * The Strength Qi Gu [力气蛊] punch on the client: a fresh press of the attack key, with the main hand empty and the
- * buff's effect on, sends {@link QiWavePayload} at Epic Fight's lock-on target when it is past the reach
- * ({@link QiWaveService#isPastReach}), at any distance; the server checks it all again and paces it by
- * {@code StrengthRound.RANGE_INTERVAL_TICKS}. Without a lock-on nothing is
- * thrown: a crosshair pick snagged on grass and other plants.
- *
- * <p>The press is read as an edge of the held state, never as a consumed click: Epic Fight's own attack key shares
- * the button and takes the click in its battle mode, so both keys' held states are read. {@link #reset} forgets the
- * remembered state on logout.
- *
- * <p>The one mutable static, {@code previousAttack}, is the local client's last key state for the edge; {@link #reset}
- * forgets it on logout.
+ * 力气蛊[Strength Qi Gu]远程拳的客户端输入。
+ * <ul>
+ *   <li>主手空、增益在身时新按攻击键：Epic Fight 锁定目标超出触及距离（{@link QiWaveService#isPastReach}）即向其发
+ *       {@link QiWavePayload}，不限距离；服务端全部重查，按 {@code StrengthRound.RANGE_INTERVAL_TICKS} 限频；
+ *       无锁定不出拳，因准星拾取会被草和其他植物挂住。</li>
+ *   <li>取按住状态的上升沿而非消费点击：Epic Fight 攻击键同键，战斗模式下吃掉点击，故两键按住状态都读。</li>
+ *   <li>唯一可变静态字段 {@code previousAttack} 为本机上次按键状态，用于判沿；{@link #reset} 登出时清除。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

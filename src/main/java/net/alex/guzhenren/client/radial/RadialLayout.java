@@ -1,12 +1,13 @@
 package net.alex.guzhenren.client.radial;
 
 /**
- * The geometry of the radial menu [扇形选择器], kept free of any game class so plain JUnit pins it: sector 0 is
- * centered straight up and the rest follow clockwise, in GUI coordinates (x right, y down) around the menu's center.
- * {@link #sectorAt} names the sector under a cursor, or {@link #NONE} inside the dead zone or with no sectors;
- * {@link #centerAngle} is a sector's center as a clockwise angle from straight up, in radians. The ring spans
- * {@link #INNER_RADIUS} to {@link #OUTER_RADIUS} GUI pixels, the inner ring being the dead zone, and icons sit on
- * {@link #ICON_RADIUS}.
+ * 扇形选择器的几何。
+ *
+ * <ul>
+ *   <li>不引用游戏类，纯 JUnit 可钉住；扇区 0 正上方居中，其余顺时针；GUI 坐标（x 右，y 下），原点为菜单中心。</li>
+ *   <li>{@link #sectorAt}：所指扇区，死区或无扇区为 {@link #NONE}；{@link #centerAngle}：中心自正上方顺时针弧度。</li>
+ *   <li>环跨 {@link #INNER_RADIUS} 到 {@link #OUTER_RADIUS} GUI 像素，内圈即死区；图标在 {@link #ICON_RADIUS}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -5,10 +5,8 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Whether a path effect [流派效果] helps its carrier or harms it: a path buff [流派增益] or a path debuff [流派减益].
- *
- * <p>Closed vocabulary enum; every {@link PathEffectType} names one. The B panel lists the two apart, each under its
- * own name, and later rules may read it; it changes no bookkeeping.
+ * 流派效果对载体有益或有害：流派增益或流派减益。闭合枚举，每个 {@link PathEffectType} 指定一种；B 面板分两类列出、
+ * 各用自己的名称，以后的规则可能读它；不改变任何记账。
  *
  * @author Alex
  * @version 1.0.0

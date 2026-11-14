@@ -7,14 +7,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Brilliance [才情]: the grade deciding how fast thought [念] refills.
+ * 才情：念的回复速度等级。
  *
- * <p>Closed vocabulary enum, rolled once at birth by {@code onBirth} and independent of aptitude.
- * Rates 1/4/16/64/256 念/s with weights 15/25/25/25/10; {@code shift(int)} clamps at both ends.
- * No sibling mod may add a grade.
- *
- * <p>⚠ There is deliberately no {@code NONE} grade, because a mortal still thinks. The lowest grade is
- * a real value rather than an absence, and code reading it as "unset" stops a mortal thinking at all.
+ * <ul>
+ *   <li>闭合枚举；出生时 {@code onBirth} 掷一次，与资质[Aptitude]无关；{@code shift(int)} 两端夹紧。</li>
+ *   <li>回复 1/4/16/64/256 念/秒，权重 15/25/25/25/10。</li>
+ *   <li>⚠ 故意不设 {@code NONE}：凡人也思考；最低档是真实值而非缺省，当成「未设置」凡人就不回念。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

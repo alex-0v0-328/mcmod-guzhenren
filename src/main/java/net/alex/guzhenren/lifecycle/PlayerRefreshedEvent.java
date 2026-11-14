@@ -5,12 +5,11 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted through {@code ModEvents} after {@link PlayerDataService} rebuilt a player's derived attributes: on
- * login, on a clone (death or End return), and on a full reset. Dispatch is synchronous, so a subscriber has
- * run before the lifecycle moment returns.
- *
- * <p>The lifecycle posts and does not know who listens: an integration with another mod (Epic Fight's stamina)
- * lives above it, in {@code compat}, and calling up into it would tie the lifecycle to that mod.
+ * {@link PlayerDataService} 重建玩家派生属性后经 {@code ModEvents} 发出的事件。
+ * <ul>
+ *   <li>时机：登录、克隆（死亡或末地返回）、完全重置；同步派发，订阅者在生命周期时刻返回前已跑完。</li>
+ *   <li>只发不问谁听：外部模组集成（Epic Fight 耐力）在上层 {@code compat}，向上调用会把生命周期绑死在该模组。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

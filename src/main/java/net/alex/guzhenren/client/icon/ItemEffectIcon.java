@@ -4,14 +4,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 
 /**
- * Draws an effect with the icon of the item that grants it, so the two always read as the same thing.
- *
- * <p>Implements {@link net.alex.guzhenren.client.icon.EffectIconLayout}, carrying only the item's registration id
- * and the texture location built from it once. The texture path is always {@code item/<id>}, ignoring the
- * amplifier -- a non-graded effect has one face.
- *
- * <p>⚠ It takes the item's registration id, not a mob_effect texture. An effect wearing its Gu's face
- * needs no second drawing, and a missing one here would be a checkerboard rather than a fallback.
+ * 借授予该效果的物品图标绘制的效果图标，两者一眼对应。
+ * <ul>
+ *   <li>存物品注册 id 与预建的贴图位置；路径恒为 {@code item/<id>}，忽略 {@code amplifier}：非分级效果仅一张脸。</li>
+ *   <li>⚠ 传物品注册 id 而非 {@code mob_effect} 贴图：效果沿用蛊图标就不必另画；此处缺图显示紫黑格，不回退。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -13,10 +13,8 @@ import net.minecraft.world.effect.MobEffect;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The payload of a timed buff [限时增益]: the vanilla effect it projects and the amplifier it projects at.
- *
- * <p>Stored by the effect's registry id, so a save names it; the {@link Holder} is resolved on use. The amplifier is
- * the Gu's own tier (a crash Gu's rank), never a count of marks.
+ * 限时增益 payload：投射的原版效果及等级。按效果注册 id 存储，存档写名字，{@link Holder} 用时解析；等级为蛊自身
+ * tier（横冲系蛊的转数），不是道痕[Path Marks]数。
  *
  * @author Alex
  * @version 1.0.0

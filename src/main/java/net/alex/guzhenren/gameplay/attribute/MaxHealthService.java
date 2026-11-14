@@ -11,23 +11,19 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Max health as a transient {@link AttributeModifier}: the rank's share from {@code ApertureService.getHealthRank}
- * -- the FIRST aperture's rank only, unawakened reads mortal, a lone second aperture never boosts it -- plus the
- * bones' [骨] share ({@code Bone.getMaxHealthBonus}). Static service; {@link AttributeEvents} refreshes it on
- * every {@code ApertureChangedEvent} (pressure writes post none) and {@code BodyTemperedEvent}, plus login,
- * clone and reset (a modifier does not ride a clone); the rank's share is {@code getMaxHealth()} minus
- * vanilla's 20 -- mortal reads 0.
- *
- * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}). ⚠ Lowering the cap must also
- * clamp current health down; {@link net.alex.guzhenren.gameplay.path.strength.AttackDamageService} needs no clamp
- * (attack has no "current").
- *
- * <p>⚠ Vanilla restores health before this modifier exists -- the saved health on load, the old player's
- * on a clone -- and clamps it to 20. {@link #carry} records the health at logout ({@code HEALTH_CARRY}) and
- * {@link #restoreCarried} takes it back after the login refresh, only when the load left exactly 20 under a
- * higher carry. A carry lives from one logout to the next login and no longer: a session that ends in a crash
- * writes none, so its save loads at most 20 instead of an older session's health. A clone hands the old
- * player's health over in {@code PlayerDataService.onClone}, and a respawn starts full.
+ * 临时 {@link AttributeModifier} 的最大生命：转数份额加骨份额（{@code Bone.getMaxHealthBonus}）。
+ * <ul>
+ *   <li>转数份额取 {@code ApertureService.getHealthRank}：只看第一空窍[Aperture]，未开窍[Awakening]按凡人，
+ *       单独第二空窍不加。</li>
+ *   <li>{@link AttributeEvents} 于 {@code ApertureChangedEvent}（压力写入不发）、{@code BodyTemperedEvent} 及登录、
+ *       克隆、重置时刷新（修饰不随克隆保留）。</li>
+ *   <li>⚠ 修饰须临时（{@link TransientModifiers}）；降上限须同压当前生命，{@code AttackDamageService}
+ *       不必（攻击无「当前值」）。</li>
+ *   <li>⚠ 原版先于此修饰恢复生命（读档取存档值，克隆取旧值）并截到 20：{@link #carry} 登出记入 {@code HEALTH_CARRY}，
+ *       {@link #restoreCarried} 登录刷新后取回，仅当读档恰 20 且携带值更高。</li>
+ *   <li>携带值只活一次登出到登录：崩溃会话不写，读档至多 20，不取更早会话的生命；克隆由
+ *       {@code PlayerDataService.onClone} 交接旧生命，重生满血。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -12,8 +12,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Hands each interaction inside the Treasure Yellow Heaven [宝黄天] to {@link TreasureYellowHeavenGuard} and
- * cancels what it refuses; the handlers live here, the rules there.
+ * 宝黄天[Treasure Yellow Heaven]交互的事件处理器：转交 {@link TreasureYellowHeavenGuard}，取消其拒绝项；规则在那边。
  *
  * @author Alex
  * @version 1.0.0

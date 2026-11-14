@@ -18,20 +18,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The All-Out Effort Gu's [全力以赴蛊] behavior: no effect of its own, only what it lends a strength branch for a
- * while. A body holding the human jun [人力钧力流] or the beast phantom [兽力虚影流] branch gains 50/100/200% of its
- * normal carrying capacity [常态承受力] for the rank three/four/five Gu ({@code StrengthService.getAllOutCapacityBonus}),
- * added on the normal one beside every other bonus; a beast phantom round's roll rises from 5% to 80/90/100%
- * ({@code StrengthRound.getChance}) and fully releases [全面解放] what it draws. No load is paid.
- *
- * <p>Three rungs register it (三转至五转). A body with neither a permanent beast strength nor human strength is
- * refused before any charge ({@code all_out_needs_branch}). The effect stamps a marker effect at the Gu's tier, which
- * the strength service and the round read, and calls {@link AttackDamageService#refresh}, so attack still comes out of
- * one formula. An Amplify Effect Gu [功倍蛊] multiplies its length; the held beasts' duration bonus
- * ({@code PathStrengthService.getDurationBonus}, the green bull's ten seconds) is added after that.
- *
- * <p>⚠ Its effect is a marker carrying no {@code AttributeModifier}. A modifier would be a second
- * source for one fact, and re-using it while it runs is a refusal.
+ * 全力以赴蛊[All-Out Effort Gu]的行为：自身无效果，限时借力给力道分支。
+ * <ul>
+ *   <li>三至五转：人力钧力流或兽力虚影流的常态承受力加 50%/100%/200%，与其他加成并列
+ *       （{@code StrengthService.getAllOutCapacityBonus}）；不付负载。</li>
+ *   <li>兽力虚影流开轮概率 5% 升至 80%/90%/100%（{@code StrengthRound.getChance}），并全面解放抽中兽种。</li>
+ *   <li>无永久兽力[Beast Strength]和人力者蓄力前即被拒（{@code all_out_needs_branch}）；效果期间再催动也拒。</li>
+ *   <li>按蛊的 tier 打标记效果供力量服务与轮次读，再调 {@link AttackDamageService#refresh}，攻击仍出自一个公式。</li>
+ *   <li>功倍蛊[Amplify Effect Gu]乘时长，持有兽种的时长加成（{@code PathStrengthService.getDurationBonus}，青牛 10 秒）
+ *       乘后再加。</li>
+ *   <li>⚠ 标记不带 {@code AttributeModifier}：修饰符会让同一事实有两个来源。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

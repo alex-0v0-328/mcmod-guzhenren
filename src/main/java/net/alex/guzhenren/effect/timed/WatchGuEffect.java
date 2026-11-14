@@ -6,10 +6,8 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * Time Rate Up [自身时间加速]: each layer makes the wearer's own clock outrun the world by its base rate.
- *
- * <p>One effect per Watch Gu [更蛊], so both kinds can run together and their capped rates add. The
- * effect duration remains world time: five minutes never hastens itself.
+ * 自身时间加速效果：每层使持有者时钟按基础速率快于世界；两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]各一效果，
+ * 可并行，封顶后速率相加；时长仍按世界时间，五分钟不自我加速。
  *
  * @author Alex
  * @version 1.0.0

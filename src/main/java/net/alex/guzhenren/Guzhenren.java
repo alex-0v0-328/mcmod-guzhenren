@@ -27,16 +27,14 @@ import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
 /**
- * Mod entry point: builds every registry holder and hands them to the mod event bus.
+ * 模组入口。
  *
- * <p>Holds the {@code MOD_ID} constant and the {@link #id} helper used across the codebase for
- * {@link ResourceLocation} creation. The constructor wires fourteen {@code DeferredRegister} holders
- * (attachments, data components, effects, fluid types, fluids, blocks, entities, items, creative
- * tabs, menus, particles, recipes, criterion triggers, loot modifiers) to the mod event bus in the order NeoForge
- * requires. It also hands the aperture's nourishing the {@code StonePurse} built on the item side's
- * {@code PrimevalStoneSupply}, and aperture storage the {@code StoredGu} built on the Gu item classes
- * ({@code StoredGuItems}), so the gameplay packages never depend on the item package. Worldgen features
- * live in the sibling mod Gu World, which places the Spirit Spring [元泉] block registered here.
+ * <ul>
+ *   <li>{@code MOD_ID}、{@link #id} 供全库建 {@link ResourceLocation}；十四个 {@code DeferredRegister} 按 NeoForge 顺序
+ *       挂模组总线；世界生成归姊妹模组 Gu World，由它放置此处注册的元泉[Spirit Spring]方块。</li>
+ *   <li>空窍[Aperture]温养[Nourish]拿物品侧 {@code PrimevalStoneSupply} 的 {@code StonePurse}，空窍储存拿基于蛊物品类的
+ *       {@code StoredGu}（{@code StoredGuItems}）：玩法包不依赖物品包。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -15,16 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Vital Gu [本命蛊] that died while their owner was offline, waiting for the owner's next login. An
- * offline player's attachments cannot be written, so the lost stack waits here, in the
- * overworld's data storage, until {@link VitalLossService} charges it
- * through the same penalty an online owner pays.
- *
- * <p>⚠ The mod's only server-level store of player state and its one mutable player-state class -- every
- * other piece of player state is an immutable attachment record (the other server-level stores hold world state:
- * the running pressure-explosion craters and {@code EpicFightRuleSeed}). ⚠ One entry per lost Gu, first in first
- * out; the service settles one per heartbeat, so the second 80% hurt is not swallowed by the first one's hurt
- * cooldown.
+ * 主人离线时死去、待其下次登录结算的本命蛊[Vital Gu]。
+ * <ul>
+ *   <li>离线玩家附件写不进，丢失的物品栈暂存主世界数据存储，待 {@link VitalLossService} 按在线同等惩罚结算。</li>
+ *   <li>⚠ 每蛊一条、先进先出；每次心跳结算一条，免得第二次 80% 伤害被第一次的受伤冷却吞掉。</li>
+ *   <li>⚠ 模组唯一存玩家状态的服务端级存储、唯一可变的玩家状态类；其余玩家状态皆不可变附件记录（其他服务端级存储存世界
+ *       状态：进行中的压力爆炸坑、{@code EpicFightRuleSeed}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

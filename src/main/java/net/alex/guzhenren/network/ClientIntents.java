@@ -31,24 +31,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What the server does with each client intent: the two containers, the secondary path, the three
- * cultivation actions, the dash, the second-stage flight [二段飞行] toggle, the plunge [坠击], the Amplify Effect
- * Gu's [功倍蛊] radial-menu pick, the Primeval Elder Gu's [元老蛊] tap and slider pick, the Strength Qi Gu's [力气蛊]
- * ranged punch, the Store Strength Gu's [蓄力蛊] charge (a refused start answers with the drop notice,
- * {@code StoreStrengthNotices}), and a moon blade Gu's [月刃]
- * use (the killing move [杀招] picked, or none for a plain use; a cast that lands answers the caster with the Killing
- * Move Tooltip's [杀招提示] notice). Every intent but
- * that toggle refuses inside the Treasure Yellow Heaven ({@link #isOutsideTyh}), where flight and its second stage
- * are what remains; the plunge's own rule refuses it there ({@code PlungeService#canStart}), which the client asks
- * too.
- *
- * <p>Every client intent in this mod is a B-panel button, a movement input or a held-input gesture that player-data
- * sync cannot carry upstream; none carries player data, and downstream player data always travels as synced state.
- * The packet layer ({@code ModPayloads}) decodes each packet and calls the matching method here with the
- * sender; this class holds every check and every effect.
- *
- * <p>⚠ This is where a forged packet lands, so a gate that only grays out a button is not a gate: every
- * refusal has to exist here as well as on the screen.
+ * 服务端对客户端意图的处理。
+ * <ul>
+ *   <li>意图：两个容器、辅修流派、三种修炼动作、冲刺、二段飞行[Second-Stage Flight]开关、坠击、
+ *       功倍蛊[Amplify Effect Gu]扇形选取、元老蛊[Primeval Elder Gu]轻点与滑条、力气蛊[Strength Qi Gu]远程拳、
+ *       蓄力蛊[Store Strength Gu]蓄力、月刃类蛊催动（可带杀招[Killing Move]，成功回发杀招提示）。</li>
+ *   <li>除二段飞行开关外，宝黄天[Treasure Yellow Heaven]内全拒（{@link #isOutsideTyh}），那里只剩飞行与二段；坠击由自身
+ *       规则在那里拒（{@code PlungeService#canStart}），客户端也问。</li>
+ *   <li>意图都是 B 面板按钮、移动输入或按住手势，玩家数据同步传不上去；意图不带玩家数据，下行一律走同步状态。
+ *       {@code ModPayloads} 解码后带发送者调这里，全部检查与效果在本类。</li>
+ *   <li>⚠ 伪造包落在这里：只让按钮变灰不算门槛，每个拒绝都须在此与界面上同时存在。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -109,7 +102,7 @@ public final class ClientIntents {
         if (isOutsideTyh(player)) AmplifyEffectGuItem.driveFromHotbar(player, slot);
     }
 
-    /** The main-hand Primeval Elder Gu's tap (its use, the deposit) or its slider pick of {@code stacks} stacks. */
+    /** 主手元老蛊[Primeval Elder Gu]的轻点（即催动，存入）或滑条选取 {@code stacks} 组。 */
     public static void primevalElder(@NotNull ServerPlayer player, @NotNull ElderAction action, int stacks) {
         ItemStack stack = player.getMainHandItem();
         if (!isOutsideTyh(player) || player.isSpectator()) return;
@@ -125,7 +118,7 @@ public final class ClientIntents {
         killingMove(player, move, KillingMoveService.NO_TARGET);
     }
 
-    /** Drives the main-hand blade Gu at the client's locked target [锁定目标], {@code NO_TARGET} for none. */
+    /** 朝客户端的锁定目标催动主手的刃类蛊；无目标传 {@code NO_TARGET}。 */
     public static void killingMove(@NotNull ServerPlayer player, @NotNull String move, int target) {
         if (!isOutsideTyh(player)) return;
 
@@ -133,7 +126,7 @@ public final class ClientIntents {
         if (cast != null) PacketDistributor.sendToPlayer(player, KillingMoveTooltipPayload.of(cast));
     }
 
-    /** A Strength Qi Gu [力气蛊] punch thrown as a Qi Wave [气波] at the client's target. */
+    /** 力气蛊[Strength Qi Gu]的出拳，化作气波打向客户端选定的目标。 */
     public static void qiWave(@NotNull ServerPlayer player, int target) {
         if (isOutsideTyh(player)) QiWaveService.fire(player, target);
     }

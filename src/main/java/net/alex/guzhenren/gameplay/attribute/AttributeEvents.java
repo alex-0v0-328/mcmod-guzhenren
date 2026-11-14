@@ -7,10 +7,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * Every moment the max health and the knockback resistance are recomputed outside the heartbeat:
- * {@link ApertureChangedEvent} (the rank sets the max health) and {@link BodyTemperedEvent} (bones move both).
- * The attack modifier has its own subscriber, {@code gameplay.path.strength.AttackDamageEvents}, because it
- * is derived from the strength path.
+ * 心跳外重算最大生命与击退抗性的事件入口。
+ * <ul>
+ *   <li>{@link ApertureChangedEvent}：转数定最大生命；{@link BodyTemperedEvent}：骨影响两者。</li>
+ *   <li>攻击修饰由力道派生，另归 {@code gameplay.path.strength.AttackDamageEvents}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -13,14 +13,11 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A wild Gu [野生蛊虫] living in the world; catching one hands over the Gu item, unrefined.
- *
- * <p>Extends {@link net.minecraft.world.entity.PathfinderMob}. The catch is a bare right click and is
- * NEVER gated on awakening [开窍] -- 希望蛊 is the only key to it, so a gate here would make awakening
- * unreachable. Drops nothing on death ({@code shouldDropLoot} is false).
- *
- * <p>⚠ The caught item arrives wild for free, because being refined is the presence of a component and a
- * caught Gu simply has none. That is why the world needs no special case downstream.
+ * 野生蛊：捕捉即得未炼化的蛊物品。
+ * <ul>
+ *   <li>⚠ 右键即可捕捉，绝不以开窍[Awakening]为门槛：希望蛊[Hope Gu]是开窍唯一钥匙，设门槛则开窍不可达。</li>
+ *   <li>⚠ 捕获物天然野生：已炼化看有无组件，捕获的蛊没有，下游无需特判。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

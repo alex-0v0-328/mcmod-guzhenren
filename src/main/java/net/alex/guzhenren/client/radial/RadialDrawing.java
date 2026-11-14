@@ -11,15 +11,15 @@ import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
 
 /**
- * Draws one frame of the radial menu [扇形选择器] from the state {@link RadialMenu} hands it: the sectors, then the
- * icons above them, then the pointed entry's name at the center.
+ * 扇形选择器的单帧绘制。
  *
- * <p>A sector's hover weight pushes it out by {@link #POP}, widens its rim by {@link #GROW} and enlarges its icon by
- * {@link #ICON_GROW}; its fill blends from the panel fill toward the highlight, and a picked one toward white with the
- * flash. Sectors are quads wound like {@code GuiGraphics.fill}'s, so they face the way every other GUI fill does; a
- * disabled icon's shade sits above the item, as vanilla's cooldown overlay does. Icons cannot fade, so they shrink
- * with the ring's opacity instead.
- * *
+ * <ul>
+ *   <li>状态由 {@link RadialMenu} 交来，依次画扇区、图标、中心所指条目名；悬停权重使扇区外推 {@link #POP}、外缘加宽
+ *       {@link #GROW}、图标放大 {@link #ICON_GROW}；图标无法淡出，改随环不透明度缩小。</li>
+ *   <li>填充色自面板底色混向高亮色，选中扇区随闪光混向白；四边形绕序同 {@code GuiGraphics.fill}，与其他 GUI 填充同向；
+ *       禁用遮罩盖在物品上，同原版冷却遮罩。</li>
+ * </ul>
+ *
  * @author Alex
  * @version 1.0.0
  * @see RadialMenu

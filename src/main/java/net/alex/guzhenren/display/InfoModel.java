@@ -50,30 +50,22 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every row the B panel draws: which rows, in what order, decided once, apart from how the panel words them.
+ * B 面板全部行的目录，与面板措辞分开。
  *
- * <p>Deciding "draw or not" here, not in the panel, is what keeps a section header with [无] from sitting beside
- * a real path-mark [道痕] figure. {@code Entry} is sealed and the panel switches over it with no default, so a new
- * row is a compile error until the panel words it. ⚠ A named section (Strength Attainment [力道造诣], ...) is a
- * label plus its rows, never a value. The Paths tab [流派] ({@link #buildPathRows}) has two
- * parts: path marks [道痕], each path's attainment [造诣] and whole path-mark total with nothing per source, then
- * effects [效果], the named attainment sections followed by the path buffs [流派增益] and path debuffs [流派减益],
- * each grouped by carrier with every effect's time left. ⚠ A beast or human strength [兽力 / 人力] and a
- * {@link BeastStrengthBuff} read as their strength under Strength Attainment, up to {@link #READINGS_PER_ROW} to a
- * row, so they never also list as path buffs. Do not widen {@code Entry}.
- * Sealed without a {@code permits} list, {@code Entry} takes its row records from this file alone: the records and
- * the builders that order the rows are the one table the panel reads.
- *
- * <p>Every entry compares by value, which is what lets the B panel keep the text it built for the last frame while
- * the rows are unchanged; {@link StrengthReadingRow} therefore carries readings and never a {@code Component},
- * which has no equality.
- *
- * <p>⚠ In {@link ApertureIndex}, {@code number} is the display ordinal (1 = first aperture, 2 =
- * second), while {@code index} is the real list position -- a lone second aperture shows number 2
- * but lives at index 0.
- *
- * <p>Past 300 lines on purpose: it is the sealed catalogue of every panel row, one record each, with the builders that
- * fill them; a row type added or changed is one record beside the {@code Entry} that permits it.
+ * <ul>
+ *   <li>画哪些行、何序、画不画一处决定：带 [无] 的分区标题才不挨着真实道痕[Path Marks]数字。</li>
+ *   <li>{@code Entry} sealed、不写 {@code permits}，行记录只来自本文件：记录与排行构建方法即面板读的唯一一张表；面板对
+ *       它 switch 不写 default，新行写出措辞前编译不过；不要放宽 {@code Entry}。</li>
+ *   <li>条目按值比较，行不变时 B 面板才沿用上一帧文字；故 {@link StrengthReadingRow} 只带读数，不带无相等性的
+ *       {@code Component}。</li>
+ *   <li>{@link #buildPathRows} 分两段：道痕，列每条道[Path]的造诣与整条道痕总数，不按来源分；效果，先具名造诣分区，再流
+ *       派增益、减益，各按载体分组并带剩余时间。</li>
+ *   <li>⚠ 具名分区（力道造诣等）是标签加其下各行，从不是数值；兽力[Beast Strength]、人力与 {@link BeastStrengthBuff} 在
+ *       力道造诣下按力量读数显示，每行至多 {@link #READINGS_PER_ROW} 个，不再列为流派增益。</li>
+ *   <li>⚠ {@link ApertureIndex} 的 {@code number} 是显示序号（1 = 第一空窍，2 = 第二空窍），{@code index} 是真实列表位
+ *       置：单独的第二空窍显示 2，却在 index 0。</li>
+ *   <li>超 300 行有意：面板行 sealed 目录，每行一条记录连同构建方法；增改一种行只在 {@code Entry} 旁加记录。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -147,14 +139,14 @@ public final class InfoModel {
 
     public record StrengthReadingRow(List<StrengthReading> readings) implements Entry {}
 
-    /** One strength the body holds: {@code count} beasts of a family, or {@code count} of a human unit. */
+    /** 身体持有的一种力量：某兽族 {@code count} 头，或某人力单位 {@code count} 个。 */
     public sealed interface StrengthReading {}
 
-    /** {@code secondsLeft} is {@code PathEffect.PERMANENT} for a refined beast strength. */
+    /** 已炼化的兽力[Beast Strength]，{@code secondsLeft} 为 {@code PathEffect.PERMANENT}。 */
     public record BeastReading(BeastStrengthFamily family, int count, @Nullable BeastStrength innate,
                                long secondsLeft) implements StrengthReading {}
 
-    /** {@code unit} is {@link HumanStrength#JIN} or {@link HumanStrength#JUN}, the ten- and hundred-fold kinds folded in. */
+    /** {@code unit} 只取 {@link HumanStrength#JIN} 或 {@link HumanStrength#JUN}，十倍、百倍种类并入其中。 */
     public record HumanReading(HumanStrength unit, int count) implements StrengthReading {}
 
     public record TimePathAchieveHeader() implements Entry {}
@@ -162,9 +154,8 @@ public final class InfoModel {
     public record TimeRateUpRow(int rate) implements Entry {}
 
     /**
-     * Strength points [力量点] brought to bear over the points held, beast and human together, beside the current
-     * carrying capacity [承受力], the normal one it is built on, and the body overload [肉体过载] past it (zero when
-     * none).
+     * 可发挥力量点[Strength Points] / 持有力量点（兽力[Beast Strength]与人力合计）；旁列当前承受力、其所基的常态承受
+     * 力、超出的肉体过载（无则 0）。
      */
     public record CapacityRow(int usable, int total, int capacity, int normalCapacity, int overload)
             implements Entry {}

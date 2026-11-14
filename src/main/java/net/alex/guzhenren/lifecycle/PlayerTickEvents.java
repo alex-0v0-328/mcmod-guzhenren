@@ -9,11 +9,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Hands every server player's end-of-tick to {@link Heartbeat}, then to the auto Gu states' stop check and the Self
- * Reliance heal pulse ({@link AutoUse#tick}), which run faster than the beat, then to the beasts' speed
- * ({@link SprintSpeedService#refresh}), so it follows the sprint's toggle and the round's release; the event handler
- * lives here, the heartbeat's order there. The fist-only attack bonus follows a hand change through
- * {@code AttackDamageEvents}, not through this tick.
+ * 服务端玩家 tick 末尾的事件入口。
+ * <ul>
+ *   <li>依次交 {@link Heartbeat}、{@link AutoUse#tick}（自动蛊状态停止检查、自力更生蛊[Self Reliance Gu]治疗脉冲，
+ *       快于心跳）、{@link SprintSpeedService#refresh}（兽类速度，跟疾跑开关与一轮释放）。</li>
+ *   <li>只限拳头的攻击加成经 {@code AttackDamageEvents} 随换手更新，不走此 tick。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

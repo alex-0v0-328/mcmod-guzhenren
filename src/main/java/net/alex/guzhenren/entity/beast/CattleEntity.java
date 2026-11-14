@@ -14,10 +14,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Cattle, one entity type per {@link CattleSpecies}: a {@link ChargerEntity} on the {@code buffalo} model with
- * {@code animation.}-prefixed clips and cow sounds, whose charge and toss damages come from the species. The
- * species field is read only at tick time, since {@code registerGoals} runs inside the {@code Mob} constructor
- * before it is assigned.
+ * 牛，每个 {@link CattleSpecies} 一个实体类型：{@link ChargerEntity}，{@code buffalo} 模型、{@code animation.}
+ * 前缀片段、原版牛音效，冲撞与角挑伤害取自种类；种类只在 tick 读，因 {@code registerGoals} 于 {@code Mob} 构造器内、
+ * 其赋值前运行。
  */
 
 public final class CattleEntity extends ChargerEntity {

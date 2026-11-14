@@ -6,15 +6,13 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * How a Beast Charge [兽力冲击] rolls its {@link MoonBladeArc}, kept free of entities so plain JUnit pins it. Where
- * the Moon Blade bends left or right only, a charge bends any way round the upper half circle about its chord: from
- * level to the shooter's left, over the top, to level to the right, never downward, since a block in the way takes a
- * charge away with no burst. The charges of one punch split that half circle into as many equal sectors, left to
- * right in the order thrown, and each rolls its angle inside its own, so no two fly one curve.
- *
- * <p>The bend is {@link #MIN_BEND_RATIO} to {@link #MAX_BEND_RATIO} of the chord's length, and the curve's peak is
- * moved along the chord by up to {@link #MAX_SHIFT_RATIO} of it either way, so one charge turns early and another
- * late. ⚠ The three ratios are provisional.
+ * 兽力冲击掷出 {@link MoonBladeArc} 的方式；不依赖实体，纯 JUnit 可测。
+ * <ul>
+ *   <li>月刃只左右弯；兽力冲击绕弦在上半圆任意弯，从左侧水平经正上方到右侧水平；不向下：挡路方块会让它消失不爆。</li>
+ *   <li>同拳冲击按掷出顺序从左到右等分半圆，各在本扇区随机取角，绝无同弧。</li>
+ *   <li>⚠ 三比例暂定：弯度为弦长 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO}；弧顶沿弦前后挪至多
+ *       {@link #MAX_SHIFT_RATIO}，早转晚转各异。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -39,7 +37,7 @@ public final class BeastChargeArc {
                 MoonBladeArc.flightTicks(start.distanceTo(end), speed));
     }
 
-    /** {@code turn} runs 0 for level to the left, 0.5 for straight over the top, 1 for level to the right. */
+    /** {@code turn} 取 0 为左侧水平，0.5 为正上方，1 为右侧水平。 */
     public static @NotNull Vec3 bend(@NotNull Vec3 start, @NotNull Vec3 end, float turn, float ratio, float shift) {
         Vec3 chord = end.subtract(start);
         double length = chord.length();

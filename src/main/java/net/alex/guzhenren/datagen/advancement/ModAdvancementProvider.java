@@ -24,11 +24,13 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The advancement tree [进度]: a root per milestone family, generated under {@code advancement/}.
- * The tree opens with the first Hope Gu [希望蛊] ritual -- obtaining it and holding the ritual to the
- * end are two AND-ed criteria ({@code obtained_gu} + {@code used_gu}). The realm [境界] chain hangs below it,
- * one {@code reached_rank} criterion each: Rank II to Rank V, with Rank III Peak branching off Rank III. Each
- * realm shows its rank's bare numeral ({@link AdvancementIconItem}); Rank III Peak shows Rank III's peak variant.
+ * 进度树（{@code advancement/}），每个里程碑族一个根。
+ *
+ * <ul>
+ *   <li>根：首次希望蛊[Hope Gu]仪式，得到它且坚持到底，两条件 AND（{@code obtained_gu} + {@code used_gu}）。</li>
+ *   <li>境界链挂其下，各一个 {@code reached_rank} 条件：二至五转，三转巅峰从三转分出；图标为本转纯数字
+ *       （{@link AdvancementIconItem}），三转巅峰用巅峰变体。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

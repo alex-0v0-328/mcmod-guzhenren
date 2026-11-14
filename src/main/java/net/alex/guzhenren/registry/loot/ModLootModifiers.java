@@ -10,10 +10,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * The global loot modifier codecs.
- *
- * <p>DeferredRegister holder: owns {@code remove_item}, the codec behind {@link RemoveItemLootModifier}, wired to the
- * mod event bus by {@code register}. The modifiers themselves are data, written by {@code ModLootModifierProvider}.
+ * 全局战利品修改器的编解码器，仅 {@link RemoveItemLootModifier} 的 {@code remove_item}；修改器是数据，由
+ * {@code ModLootModifierProvider} 生成。
  *
  * @author Alex
  * @version 1.0.0

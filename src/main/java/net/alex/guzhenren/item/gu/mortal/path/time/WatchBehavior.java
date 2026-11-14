@@ -12,14 +12,12 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Watch Gu's [更蛊] behavior: for a while its holder's own clock [自身时间] outruns the world's.
- *
- * <p>Two rungs register with it: 两更蛊 reaches two ×2 layers, and 三更蛊 reaches three ×3 layers. The effect owns
- * both its rate and layer cap; a form that is not a {@link WatchGuEffect} is refused at construction.
- *
- * <p>⚠ It refuses nothing. Reusing one kind adds a capped layer and refreshes its duration; wearing
- * both kinds is the design, and their rates add. An Amplify Effect Gu [功倍蛊] multiplies the refreshed
- * duration, not the layers.
+ * 更蛊[Watch Gu]的行为：限时让持有者的自身时间快于世界。
+ * <ul>
+ *   <li>两更蛊[Second Watch Gu]至多两层 ×2，三更蛊[Third Watch Gu]至多三层 ×3；速率与层数上限归效果所有。</li>
+ *   <li>⚠ 不拒绝催动：同种再用加一层（有上限）并刷新时长；两种同在是设计，速率相加；功倍蛊[Amplify Effect Gu]乘刷新后的
+ *       时长，不乘层数。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

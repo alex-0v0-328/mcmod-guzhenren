@@ -1,12 +1,9 @@
 package net.alex.guzhenren.entity.beast;
 
 /**
- * The two tortoise species. Each registers its own entity type under {@link #getId()} (bear precedent: one
- * variant, one entity type); they share the {@code tortoise} geometry and animation set and differ in texture
- * and stats. The stone tortoise is the rare, armored variant of the same savanna population.
- *
- * <p>{@link #getId()} is the entity-type id and texture base name ({@code textures/entity/<id>.png}).
- * {@link #getArmor()} is the flat armor and {@link #getKnockbackResistance()} the vanilla 0-1 attribute.
+ * 两种龟：共用 {@code tortoise} 几何与动画集，纹理与属性不同；石龟为同片萨瓦纳种群中稀有带甲变种；每种以
+ * {@link #getId()} 注册独立实体类型（沿用熊先例），id 兼作纹理基名（{@code textures/entity/<id>.png}）；护甲为固定值，
+ * 击退抗性为原版 0～1 属性。
  */
 
 public enum TortoiseSpecies {

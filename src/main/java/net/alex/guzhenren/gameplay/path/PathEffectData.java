@@ -12,17 +12,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every path effect [流派效果] a person carries, in the order they were put on.
+ * 一人身上的全部流派效果，按挂上先后排列。
  *
- * <p>Immutable record attachment keyed {@code path_effect_data}; {@link PathEffectService} is the only runtime
- * writer, and it syncs to the owner alone, like {@link PathData}. The compact constructor drops an effect with no
- * marks and keeps the later of two that share a slot ({@link PathEffect#sharesSlot}), so a store can never hold
- * an effect without marks or the same effect twice.
- *
- * <p>The save codec dispatches on each effect's {@code type} id through {@code ModPathEffectTypes} and reads each
- * saved effect on its own: one that fails, an id no type answers among them, is dropped and the rest load, since
- * NeoForge would otherwise skip the whole attachment. ⚠ The sync codec reads the same ids strictly, so a client and
- * server must register the same types, which one jar guarantees.
+ * <ul>
+ *   <li>附件 {@code path_effect_data}，运行时只由 {@link PathEffectService} 写入，同 {@link PathData} 只同步给本人；
+ *       紧凑构造器丢弃无道痕[Path Marks]的效果，共用一格（{@link PathEffect#sharesSlot}）时留后者。</li>
+ *   <li>存档 codec 按各效果 {@code type} id 经 {@code ModPathEffectTypes} 分派、逐个读：读失败的（含无类型认领的 id）
+ *       丢弃，其余照常加载，否则 NeoForge 会跳过整个附件。</li>
+ *   <li>⚠ 同步 codec 严格读同样的 id，两端须注册同样的类型；同一个 jar 保证这点。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

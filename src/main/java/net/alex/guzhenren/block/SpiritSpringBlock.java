@@ -17,21 +17,17 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Spirit Spring [元泉] liquid block: vanilla water behavior plus the stone heartbeat.
+ * 元泉[Spirit Spring]液体方块：原版水行为，加产元石[Primeval Stone]的心跳。
  *
- * <p>Production rides the block scheduled-tick channel, not the fluid's own flow tick, so its
- * cadence cannot collide with {@code LiquidBlock}'s 5t flow reschedules. The chain is armed from
- * {@code onPlace}/{@code neighborChanged}; after a save/reload the source's random tick
- * ({@link SpiritSpringFluid.Source}) re-arms it, because a settled
- * source receives no scheduled ticks on its own.
- *
- * <p>⚠ The five constants below are Alex's picks, not silent
- * tunables: one stack of primeval stones every 100 ticks per source, never exhausting, pausing
- * while the cap radius already holds a full stack, and producing only while a living non-spectator
- * player is within 128 blocks -- the natural-mob-spawn horizon, via vanilla
- * {@code EntityGetter#hasNearbyAlivePlayer} (the spawner-cage pattern, no new wheel). The block
- * scheduled-tick channel already idles in non-ticking chunks; the explicit gate additionally
- * covers always-loaded chunks (spawn, forceloaded).
+ * <ul>
+ *   <li>产出走方块计划 tick，不走流体流动 tick，不与 {@code LiquidBlock} 每 5 tick 的流动重排相撞。</li>
+ *   <li>产出链由 {@code onPlace}、{@code neighborChanged} 挂起；重载后由源头随机 tick
+ *       （{@link SpiritSpringFluid.Source}）重挂，因静止源头收不到计划 tick。</li>
+ *   <li>⚠ 下列五个常量是 Alex 定值，非随手可调参数：每源头每 100 tick 产一组元石，永不枯竭；上限半径内已满一组则暂停；
+ *       仅 128 格内有存活非旁观玩家时产出。</li>
+ *   <li>128 格即自然刷怪视距，用原版 {@code EntityGetter#hasNearbyAlivePlayer}（同刷怪笼）；计划 tick 在不 tick 的区块
+ *       本就停转，显式门槛另管常加载区块（出生点、强制加载）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

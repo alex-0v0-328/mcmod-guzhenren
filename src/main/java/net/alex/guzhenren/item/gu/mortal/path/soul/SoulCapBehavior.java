@@ -7,10 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Guts Gu's [胆识蛊] behavior: raises the soul cap [魂魄上限] by a fixed amount, never the current soul.
- *
- * <p>The effect delegates to {@link SoulService#addMax}; no gate is needed because a cap raise is always legal and
- * never stacks past what the service clamps.
+ * 胆识蛊[Guts Gu]的行为：魂魄上限加定值，不加当前魂魄；无需门槛，由 {@link SoulService#addMax} 钳制。
  *
  * @author Alex
  * @version 1.0.0

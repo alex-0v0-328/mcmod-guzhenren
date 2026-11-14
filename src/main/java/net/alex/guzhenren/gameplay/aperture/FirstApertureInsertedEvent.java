@@ -5,12 +5,12 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus right after {@link ApertureService} stored a first aperture [空窍] inserted ahead
- * of a lone second one, so every list kept per aperture index slides up one position. Dispatch is synchronous:
- * the store has shifted before the opening returns.
+ * 第一空窍[Aperture]插入事件，{@link ApertureService} 在孤立第二空窍前存下第一空窍后同步发布。
  *
- * <p>The aperture posts and does not know who listens: the store of each aperture lives above it, in
- * {@code gameplay.aperture.storage}, and calling up into it would close a dependency cycle.
+ * <ul>
+ *   <li>按空窍下标保存的列表都后移一位；开窍[Awakening]返回前存储已移位。</li>
+ *   <li>空窍只发布、不认识订阅者：各空窍存储在上层 {@code gameplay.aperture.storage}，向上调用会成依赖环。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

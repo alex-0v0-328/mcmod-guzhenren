@@ -3,18 +3,16 @@ package net.alex.guzhenren.compat;
 import yesman.epicfight.api.animation.LivingMotion;
 
 /**
- * This mod's own Epic Fight living motions, beside Epic Fight's {@code LivingMotions}.
- *
- * <p>{@link #SECOND_STAGE_FLIGHT_LOOP} is the base motion of a second-stage flier [二段飞行]:
- * {@link EpicFightClientIntegration} sets it and maps it to this mod's flight loop. Epic Fight numbers living
- * motions across every mod through {@code LivingMotion.ENUM_MANAGER}; {@link EpicFightIntegration#initialize}
- * registers this class there during mod construction, so both ends load it in the same order and the ids agree.
- * {@link #PLUNGE_FALL} is the base motion of a plunging player [坠击], set and mapped to the fall loop the same way.
- * {@link #MEDITATE_LOOP} is the base motion of a player sitting cross-legged [打坐], nourishing an aperture or held
- * still by the awakening ritual or pouring essence into a channeled Gu [灌注], set and mapped to the seated loop
- * the same way. {@link #REFINE_LOOP} is the composite motion of a player refining a wild Gu [炼化], set through the
- * composite-layer hook and mapped to the refining hold, which lies over the base motion on the chest, the head and
- * the arms. New motions go at the end: the ids follow the declaration order.
+ * 本模组自有的 Epic Fight 常态动作，与 {@code LivingMotions} 并列。
+ * <ul>
+ *   <li>{@link #SECOND_STAGE_FLIGHT_LOOP}、{@link #PLUNGE_FALL}、{@link #MEDITATE_LOOP}：
+ *       二段飞行[Second-Stage Flight]、坠击、打坐（温养[Nourish]空窍[Aperture]、开窍[Awakening]仪式定身、
+ *       灌注类蛊[Channeled Gu]灌注真元[Essence]）基础动作，由 {@link EpicFightClientIntegration} 设置并映射到循
+ *       环。</li>
+ *   <li>{@link #REFINE_LOOP}：炼化野生蛊的叠加动作，经叠加层钩子设置，映射到炼化持握，盖住基础动作的胸、头、臂。</li>
+ *   <li>Epic Fight 经 {@code LivingMotion.ENUM_MANAGER} 统一编号；{@link EpicFightIntegration#initialize} 在模组构造期
+ *       注册本类，两端顺序同、id 才一致；新动作只加末尾。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

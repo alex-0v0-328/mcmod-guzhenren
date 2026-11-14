@@ -11,45 +11,28 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The server-side cone trail behind the shockwave ring [激波环]: each ring blooms in place
- * from smallest to largest where it was born.
- *
- * <p>{@link #dashCone} plants the dash trail along the path, one ring every
- * {@link RingTrailSpacing#SPACING} blocks of ACTUAL travel -- the server-side dodge movement
- * arrives in uneven chunks (Epic Fight locks movement and lets the animation drive it), so a
- * per-tick drop clusters the rings at the start and end of the path, while
- * spacing by measured travel stays uniform across windups, jumps and wall truncations. The ring at
- * the dash start appears first and the one near the end last, up to {@link #DASH_MAX_RINGS} rings
- * (~24 blocks of path, the longest Crash Gu dash). The ring velocity is only a facing-normal carrier
- * ({@link #RING_NORMAL_DRIFT}, blocks per tick): a zero vector would trip {@code RingGeometry}'s
- * no-direction fallback and lay the ring flat, and over the ring's whole life the drift moves it
- * under a quarter block, which reads as stationary. Every ring of this package goes out through {@link #sendRing},
- * with count 0 and speed 1.0, handing the particle the exact velocity, which the ring also reads as its facing
- * normal ({@code FACING_MOTION}).
- *
- * <p>{@link #DASH_BURSTS} holds one active burst per player: a
- * retrigger while a dash burst is alive (a second payload inside the window) would replay the
- * whole trail, so a dash inside its own window is skipped instead of replacing it. The
- * {@link Burst} interface's {@code tick} drops one tick's ring(s) and returns the next state, or
- * null once the burst is spent. {@link DashBurst} positions each ring along the tick's movement
- * segment so even a chunked dodge spreads them evenly, and ends when the ring budget is spent, the
- * player stands still for {@link #DASH_IDLE_LIMIT} ticks (a dodge windup is shorter) below
- * {@link #DASH_IDLE_SPEED_SQR} squared horizontal speed (0.05 blocks/tick counts as still), or the
- * {@link #DASH_MAX_TICKS} safety cap runs out. {@link #DASH_RING_HEIGHT} is the dash ring's spawn
- * height above the feet, the standing ring's mid-body (max radius 1.1). A player's burst is dropped on logout and on
- * a dimension change ({@link #forget}): a dash burst measures travel from a position in one level, and carried into
- * another it would lay its rings along the line between the two. The per-player {@link #tick}, which
- * {@code RingConeEvents} calls at the end of each player tick, returns at once while the map is empty.
- *
- * <p>{@link #areaImpactRing} is that sibling for the area impact [范围冲击]: one {@code area_impact_ring}
- * [范围冲击环] born {@link #AREA_IMPACT_RING_START} block ahead of the cone's origin -- the eyes for a fist strike, the
- * burst point for a ranged punch's burst -- facing along its axis, carrying the speed that takes it to the
- * cone's end in {@link #AREA_IMPACT_TRAVEL_TICKS} ticks, where the ring stops, widens and fades. That tick count is
- * the ring's bloom (five frames, the last at age 4), so it stops as the bloom ends; pinned in {@code RingGeometryTest}.
- *
- * <p>Future speed- or force-feel actions call the {@code dashCone} entry point
- * (or add a sibling) rather than spawning rings directly. Pure visual feedback: no damage, no
- * hitbox.
+ * 激波环背后的服务端锥形轨迹：每环在出生处原地由小到大绽开；纯视觉，无伤害、无碰撞箱。
+ * <ul>
+ *   <li>本包所有环经 {@link #sendRing} 发出：count 0、speed 1.0，精确速度交给粒子，环亦读作朝向法线
+ *       （{@code FACING_MOTION}）；速度只承载法线（{@link #RING_NORMAL_DRIFT}，格/tick）：零向量触发
+ *       {@code RingGeometry} 无方向回退、环被放平；寿命内漂移不足 1/4 格，看似静止。</li>
+ *   <li>今后速度感、力量感动作调 {@code dashCone}（或新增同类入口），不直接生成环。</li>
+ *   <li>{@link #dashCone} 沿路径每实际移动 {@link RingTrailSpacing#SPACING} 格一环，起点先现、终点最后，至多
+ *       {@link #DASH_MAX_RINGS} 个（约 24 格路径，冲撞蛊[Crash Gu]最长冲刺）。</li>
+ *   <li>按实测移动而非逐 tick：服务端闪避位移成块不均到达（Epic Fight 锁住移动、由动画驱动），逐 tick 则环挤
+ *       两端；按距离则前摇、跳跃、撞墙截断都均匀；{@link DashBurst} 把每环摆在本 tick 移动线段上。</li>
+ *   <li>{@link DashBurst} 在环数用尽、{@link #DASH_MAX_TICKS} 安全上限耗尽，或连续 {@link #DASH_IDLE_LIMIT} tick
+ *       水平速度平方低于 {@link #DASH_IDLE_SPEED_SQR} 时结束；0.05 格/tick 算静止，闪避前摇比该时长短。</li>
+ *   <li>{@link #DASH_RING_HEIGHT}：冲刺环离脚高度，即站立环身体中部（最大半径 1.1）。</li>
+ *   <li>{@link #DASH_BURSTS} 每名玩家只存一个活动爆发：存活时重触发（窗口内第二个 payload）会重放整条轨迹，
+ *       故窗口内冲刺直接跳过、不替换；{@link Burst} 的 {@code tick} 铺本 tick 的环并返回下一状态，耗尽返回 null。</li>
+ *   <li>登出或换维度丢弃爆发（{@link #forget}）：爆发在单一维度内量距离，带入另一维度会沿两点连线铺环；
+ *       {@link #tick} 由 {@code RingConeEvents} 在每个玩家 tick 末调用，表空即返回。</li>
+ *   <li>{@link #areaImpactRing} 是范围冲击的同类入口：一个 {@code area_impact_ring}，生成在锥体原点（拳击为眼睛，
+ *       远程拳爆开为爆点）前 {@link #AREA_IMPACT_RING_START} 格，沿轴朝向。</li>
+ *   <li>环带 {@link #AREA_IMPACT_TRAVEL_TICKS} tick 内抵达锥末的速度，到达后停下、扩大并淡出；该 tick 数等于绽开时长
+ *       （五帧，末帧 age 4），环恰在绽开结束时停下，由 {@code RingGeometryTest} 钉住。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -93,7 +76,7 @@ public final class RingConeEmitter {
                 velocity.x, velocity.y, velocity.z, 1.0D);
     }
 
-    /** Blocks per tick that carry an area impact ring from its birth to {@code reach} blocks from its origin. */
+    /** 范围冲击环从出生处到距原点 {@code reach} 格所需的速度，格/tick。 */
     public static double getAreaImpactRingSpeed(double reach) {
         return (reach - AREA_IMPACT_RING_START) / AREA_IMPACT_TRAVEL_TICKS;
     }
@@ -112,7 +95,7 @@ public final class RingConeEmitter {
         DASH_BURSTS.remove(player.getUUID());
     }
 
-    /** Sends one ring at the point given, facing along {@code facing}, which its drift velocity carries. */
+    /** 在给定点发一个环，面朝 {@code facing}，朝向由漂移速度承载。 */
     static void sendRing(ServerLevel level, ParticleOptions ring, double x, double y, double z, Vec3 facing) {
         Vec3 velocity = facing.scale(RING_NORMAL_DRIFT);
         level.sendParticles(ring, x, y, z, 0, velocity.x, velocity.y, velocity.z, 1.0D);

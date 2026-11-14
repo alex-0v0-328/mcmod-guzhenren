@@ -24,24 +24,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything this mod keeps on a player, read and written through one object: sixteen saved values, the
- * second-stage flight [二段飞行] mark and the plunge [坠击] top, synced but never saved, and three in-memory values, the
- * essence regen remainder ({@link #getEssenceCarry}) and the second-stage throttle ({@link #getSecondStageThrottle}),
- * which each end steps for itself, and the shield's invulnerability window ({@link #getShieldWindow}), the server's.
- *
- * <p>{@link #get} is the single entry point on both sides. Each setter stores the value and returns
- * whether it changed; twelve values reach their owner's client on change ({@code ModAttachments} syncs
- * them {@code OWNER_ONLY}, the second-stage mark to every client that sees the player), and the nourishing run
- * [温养空窍] and the awakening ritual [开窍仪式] reach every client that sees the player too. {@link #resetCarriedOnDeath} returns every value a death
- * carries to its default.
- *
- * <p>⚠ The only class that touches the attachment API: a view over NeoForge attachments. Services use these
- * methods only.
- *
- * <p>⚠ Four values are a presence underneath, a shape the methods hide: the second-stage mark is on while its
- * attachment exists, and a relog or a death drops it; the plunge top is {@code null} unless the player is
- * plunging, and drops the same way; the awakening ritual is {@code null} unless the player is in it; the health
- * carry is either stored or absent, and {@link #takeHealthCarry} returns and clears it.
+ * 本模组存于玩家的全部数据，经一个对象读写。
+ * <ul>
+ *   <li>{@link #get} 是两端唯一入口，setter 返回是否改变；⚠ 唯一碰附件 API 的类（NeoForge 附件的视图），服务只用这些方
+ *       法。</li>
+ *   <li>存档 16 个；二段飞行[Second-Stage Flight]标记、坠击起点高度同步不存档；内存 3 个：真元[Essence]余数
+ *       （{@link #getEssenceCarry}）、二段油门（{@link #getSecondStageThrottle}）两端各推，护盾无敌窗口
+ *       （{@link #getShieldWindow}）仅服务端。</li>
+ *   <li>12 个值变更即同步本人（{@code ModAttachments} 用 {@code OWNER_ONLY}）；二段标记、温养空窍[Nourish Aperture]进
+ *       程、开窍[Awakening]仪式同步所有可见客户端。</li>
+ *   <li>⚠ 4 个值底层是附件有无：二段标记有即开，坠击起点高度仅坠击中非 {@code null}，二者重登或死亡即丢；开窍仪式仅仪式
+ *       中非 {@code null}；结转生命值存或无，{@link #takeHealthCarry} 取即清。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -162,12 +156,12 @@ public final class PlayerData {
 
     public void setHealthCarry(float value) { owner.setData(ModAttachments.HEALTH_CARRY, value); }
 
-    /** The carried health, cleared; {@code null} when nothing was carried. */
+    /** 取出并清除结转生命值；无则 {@code null}。 */
     public @Nullable Float takeHealthCarry() { return owner.removeData(ModAttachments.HEALTH_CARRY); }
 
     public void resetEssenceCarry() { owner.removeData(ModAttachments.ESSENCE_CARRY); }
 
-    /** Every value a death carries back to its default, synced; the reset of a death without keepInventory. */
+    /** 死亡继承值全部复位并同步；未开 keepInventory 的死亡重置。 */
     public void resetCarriedOnDeath() {
         for (AttachmentType<?> type : ModAttachments.getInherited()) owner.removeData(type);
     }
@@ -176,7 +170,7 @@ public final class PlayerData {
         return owner.hasData(type) ? owner.getData(type) : null;
     }
 
-    /** Stores {@code value}, or removes the attachment for {@code null}; true when that changed it. */
+    /** 存入 {@code value}，{@code null} 则移除附件；有变返回 true。 */
     private <T> boolean setOrRemove(Supplier<AttachmentType<T>> type, @Nullable T value) {
         if (Objects.equals(value, find(type))) return false;
         if (value == null) {

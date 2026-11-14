@@ -6,36 +6,20 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The beast strengths a body can hold, each declaring what it is worth in strength points [力量点].
- *
- * <p>Closed vocabulary enum stored as {@code Set<BeastStrength>} on {@code PathStrengthData}. Each constant
- * carries its own family, form and point worth, so adding a beast is one constant touching neither
- * the Gu item nor the attack sum. A boar is 24 points, a bear 40, a tiger 64, the stone turtle, the galloping
- * horse and the green bull 48, the brown bear's innate strength [棕熊本力] 96; a point is worth
- * {@link PathStrengthData#ATTACK_PER_POINT} attack, the same as one jin of human strength, and goes through the same
- * carrying capacity. No sibling mod may add a species.
- *
- * <p>A family holds one strength: a new one {@link #replaces} whatever its family holds, so the bear's one strength
- * [一熊之力] becomes the brown bear's innate strength and never adds to it, and {@link #isCoveredBy} keeps a Gu from
- * replacing an equal or stronger one. The {@link Form#PAIRED} white and black boars are the one exception, now and
- * later: they sit side by side as the two boars' strength [两猪之力]. {@link Form#INNATE} reads by its own name, not
- * as a count of its family.
- *
- * <p>A species may also carry a body trait for as long as it is held: {@link #getCapacityBonus} adds to the normal
- * carrying capacity [常态承受力] (the stone turtle's 128, the green bull's 64), {@link #getSprintBonus} to the
- * sprint's multiple of the walking speed (the galloping horse's 0.5, so 1.3 becomes 1.8),
- * {@link #getDurationBonusTicks} to the length of the strength path's timed states as they start -- the All-Out Effort
- * [全力以赴], the Hardship [苦力] and Self Reliance [自力更生] windows, the two timed beast strengths and the Crash Gu
- * [横冲 / 直撞 / 横冲直撞], never the Strength Qi Gu [力气蛊] -- (the green bull's ten seconds),
- * {@link #getChanceBonus} to the opening punch's chance of a full release outside the All-Out Effort (the brown
- * bear's 0.05, so 5% becomes 10%), {@link #getDashBonus} to the Crash Gu dash's doublings, twice over during the
- * All-Out Effort (the galloping horse's one, {@code CrashDash#getMultiple}), and {@link #getShieldBonus} to every
- * shield's points as it is raised (the stone turtle's 0.5, so the heavenly mugwort's 180 becomes 270). The white and
- * black boars held together, the two boars' strength, break their way along a Crash Gu dash
- * ({@link PathStrengthData#hasTwoBoars}, {@code CrashBreach}).
- *
- * <p>⚠ A species tag is per SPECIES, not per constant: {@code WHITE_BOAR} and {@code BLACK_BOAR} share
- * {@code BOAR}. Do not move the family or the points into the reader.
+ * 肉体可持有的兽力[Beast Strength]及其力量点[Strength Points]。
+ * <ul>
+ *   <li>存于 {@code PathStrengthData} 的 {@code Set}；新增兽力只加常量，不碰蛊物品与攻击合成；兄弟模组不得新增；
+ *       每点 = 1 斤人力 = {@link PathStrengthData#ATTACK_PER_POINT} 攻击，同走承受力。</li>
+ *   <li>每兽种只持一种：{@link #replaces}（一熊之力变棕熊本力，不叠加），{@link #isCoveredBy} 拦下不更强的蛊；
+ *       唯一例外（今后亦然）为 {@link Form#PAIRED} 白豕、黑豕并存成两猪之力；{@link Form#INNATE} 按本名显示。</li>
+ *   <li>持有期间特性：承受力（石龟 128，青牛 64）；疾跑倍率（驰马 0.5，1.3 → 1.8）；全力以赴外全面解放概率（棕熊本力
+ *       0.05，5% → 10%）；冲撞倍数，全力以赴翻倍（驰马 1，{@code CrashDash#getMultiple}）；护盾点数（石龟 0.5，
+ *       天蓬蛊[Heavenly Mugwort Gu] 180 → 270）。</li>
+ *   <li>力道限时状态开始时加时长（青牛 10 秒）：全力以赴、苦力、自力更生窗口、两种限时兽力、横冲蛊[Horizontal Crash Gu]
+ *       / 直撞蛊[Vertical Crash Gu] / 横冲直撞蛊[Charging Crash Gu]，不含力气蛊[Strength Qi Gu]；
+ *       两猪之力（{@link PathStrengthData#hasTwoBoars}）冲撞时破方块（{@code CrashBreach}）。</li>
+ *   <li>⚠ 兽种标记按兽种不按常量（白豕、黑豕共用 {@code BOAR}）；兽种与点数勿移到读取方。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

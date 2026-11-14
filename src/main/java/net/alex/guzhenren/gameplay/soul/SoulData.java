@@ -6,14 +6,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Soul [魂魄], the one pool that is lethal at the bottom. Immutable record attachment keyed {@code
- * soul_data}; {@code SoulService} is the only runtime writer; the
- * compact ctor floors {@code maxSoul} at zero and clamps {@code currentSoul} to {@code [0, max]}.
- *
- * <p>⚠ The cap is STORED rather than derived, because nothing else determines it -- compare Epic Fight
- * stamina, whose cap the combat system owns. ⚠ {@code withRevived()} returns {@code 1} (not 0) and restores
- * {@code DEFAULT_MAX_SOUL} when the cap itself was 0: a respawn may never hand back a value the lethal
- * check would fire on.
+ * 魂魄：唯一触底即致死的池，record 附件 {@code soul_data}。
+ * <ul>
+ *   <li>{@code SoulService} 唯一运行时写入；构造器钳 {@code maxSoul} ≥ 0、{@code currentSoul} ∈ {@code [0, max]}。</li>
+ *   <li>⚠ 上限存储而非推导：无他物决定它（对比 Epic Fight 耐力，其上限归战斗系统）。</li>
+ *   <li>⚠ {@code withRevived()} 回 1 而非 0，上限 0 时恢复 {@code DEFAULT_MAX_SOUL}：重生不得交回致死值。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -5,9 +5,8 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The body's flesh [肉]: native [原生] only, until a Gu tempers it. Closed vocabulary enum, one slot on
- * {@code BodyData}; it adds nothing yet. One family, ordered by declaration: a grade replaces every grade before
- * it and nothing after ({@link #canReplace}).
+ * 肉身的肉：暂只有原生、无加成，待蛊淬炼；{@code BodyData} 一槽。同族按声明顺序，新品阶只替换其前各级
+ * （{@link #canReplace}）。
  *
  * @author Alex
  * @version 1.0.0

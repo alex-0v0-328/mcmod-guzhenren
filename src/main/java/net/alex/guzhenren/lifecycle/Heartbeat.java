@@ -23,59 +23,41 @@ import net.alex.guzhenren.vault.ApertureStorageTick;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * The one-second heartbeat: a straight run of ordered steps that most of the player's state depends
- * on. Every tick of a live server player calls {@link #beat}, which gates itself: every step runs inside
- * {@code tickCount % HEARTBEAT_TICKS == 0}, and most read what an earlier one just wrote. The beat reads the
- * clock once, into a {@link Beat}, and every time-scaled step runs on that one reading. {@link PlayerDataService}
- * owns the lifecycle; this class owns the cadence, and every step but
- * {@code checkLethalState} lives in its own domain. {@code checkLethalState} stays here because the
- * order of the four deaths is a rule across domains.
- *
- * <p>The beat, in order, each step naming the step it must follow and why:
- *
+ * 每秒一次的心跳：玩家多数状态依赖的有序步骤。
+ * <ul>
+ *   <li>活着的服务端玩家每 tick 调 {@link #beat}，它自行门控：各步都在 {@code tickCount % HEARTBEAT_TICKS == 0} 内，
+ *       多数读前步刚写的值；时钟只读一次存入 {@link Beat}，按时间缩放的步骤共用；生命周期归 {@link PlayerDataService}，
+ *       节奏归本类，各步归各自领域，唯 {@code checkLethalState} 留此：四种死亡先后是跨领域规则。</li>
+ *   <li>⚠ 顺序承重而代码看不出：勿盲目调序；新步骤加一行，注明跟在哪步后、为何。</li>
+ *   <li>⚠ {@code checkLethalState} 最后跑、首中即返，死亡优先级固定：空窍压力 → 寿元 → 魂魄 → 脑海。</li>
+ *   <li>⚠ 慢于 1 秒的步骤在心跳内按 {@code tickCount % N} 门控，N 须为 {@code HEARTBEAT_TICKS} 倍数，否则只每
+ *       lcm(20, N) tick 触发、悄悄变慢；僵尸念头（{@code MindService.ZOMBIE_THOUGHT_INTERVAL_TICKS}，100）照此。</li>
+ * </ul>
  * <ol>
- * <li>{@code BodyService.tickAging} and {@code TimeFlow.getRate}, read once into the {@link Beat}: every
- * day-clock walk spends its {@code days}, and lifespan is not billed here. A rate change during the beat
- * lands on the next one.</li>
- * <li>{@code GuUpkeep.tickCarried} -- a day-clock walk on (1).</li>
- * <li>{@code ApertureStorageTick.tickStored} -- a day-clock walk on (1).</li>
- * <li>{@code ApertureStorageMenu.refresh}, for an open store -- after (3), or the menu saves its stale view
- * back over the walk.</li>
- * <li>{@code VitalLossService.settleOfflineVitalLoss} -- right after (2) and (3), which charge an online
- * Vital Gu death on the spot; its soul and mind halving lands before (15) and (19).</li>
- * <li>{@code PathEffectService.tick} -- after (5), before every step that reads a body form or a pool: drops the
- * path effects [流派效果] whose time ran out and re-projects the icons of the rest, so this beat reads this second's
- * effects.</li>
- * <li>{@code ApertureEssenceService.closeDistilling} -- before (13): the 1:2 return lands before regen picks
- * a pool.</li>
- * <li>{@code UndeadService.tickTempZombie} -- may end the form; (10) and (11) to (15) read the form.</li>
- * <li>{@code SkinService.tickSkin}, then {@code ShieldService.tickShield} -- shed a jade skin [玉皮] or a
- * shield [护盾] layer whose time ran out and project what is still worn as its effect, a body-form
- * projection like (8); nothing later reads either, both are read per hit instead.</li>
- * <li>{@code UndeadService.pinHunger} -- after (8), or a form that ended this beat still pins hunger.</li>
- * <li>{@code AttackDamageService.refresh} -- after (8): the form is a {@code getBonus} term.</li>
- * <li>{@code BodyService.tickLifespan} -- after (8), since an undead body is never billed; before (19),
- * which reads exhaustion.</li>
- * <li>{@code ApertureEssenceService.regenStep} -- after (7) and (8).</li>
- * <li>{@code ApertureNourishService.tickNourish} -- after (13): this second's regen before this second's
- * bill.</li>
- * <li>{@code MindService.regenStep} -- after (8): a zombie thinks every fifth second.</li>
- * <li>{@code AutoUse.tryStart} -- after (13), whose essence the auto-use pays.</li>
- * <li>{@code AsBeforeGuItem.remember} -- after (8), (12) and (15): the body it records is this beat's settled one,
- * the temp zombie form, lifespan exhaustion and thoughts included; before (19), so a body about to die is still
- * remembered as it was.</li>
- * <li>{@code AperturePressureService.tick} -- the service gates its own minute step and countdown; a full
- * gauge goes to (19).</li>
- * <li>{@code checkLethalState} -- last.</li>
+ *   <li>{@code BodyService.tickAging}、{@code TimeFlow.getRate} 读入 {@link Beat}：日钟推进花其 {@code days}，不扣寿
+ *       元；中途变倍率落下次。</li>
+ *   <li>{@code GuUpkeep.tickCarried}：按 (1) 推日钟。</li>
+ *   <li>{@code ApertureStorageTick.tickStored}：按 (1) 推日钟。</li>
+ *   <li>{@code ApertureStorageMenu.refresh}（打开的存储界面）：(3) 后，否则旧视图存回、盖掉推进。</li>
+ *   <li>{@code VitalLossService.settleOfflineVitalLoss}：紧跟当场结算在线本命蛊[Vital Gu]之死的 (2)、(3)；魂魄、脑海减
+ *       半在 (15)、(19) 前。</li>
+ *   <li>{@code PathEffectService.tick}：(5) 后、读形态或池前；摘到期流派效果、重投余下图标，本次读到本秒效果。</li>
+ *   <li>{@code ApertureEssenceService.closeDistilling}：(13) 前，1:2 返还先于回复选池。</li>
+ *   <li>{@code UndeadService.tickTempZombie}：可能结束形态；(10)、(11) 至 (15) 读形态。</li>
+ *   <li>{@code SkinService.tickSkin}、{@code ShieldService.tickShield}：褪去到期玉皮、护盾层，在穿的投射为效果，同 (8)
+ *       属形态投射；后续无步骤读，受击时各自读取。</li>
+ *   <li>{@code UndeadService.pinHunger}：(8) 后，否则本次结束的形态仍锁饱食[Hunger]。</li>
+ *   <li>{@code AttackDamageService.refresh}：(8) 后，形态是 {@code getBonus} 一项。</li>
+ *   <li>{@code BodyService.tickLifespan}：(8) 后，不死之身不扣寿元；(19) 前，(19) 读寿元耗尽。</li>
+ *   <li>{@code ApertureEssenceService.regenStep}：(7)、(8) 后。</li>
+ *   <li>{@code ApertureNourishService.tickNourish}：(13) 后，先回本秒真元[Essence]后扣温养[Nourish]。</li>
+ *   <li>{@code MindService.regenStep}：(8) 后，僵尸每 5 秒思考一次。</li>
+ *   <li>{@code AutoUse.tryStart}：(13) 后，自动催动付其回的真元。</li>
+ *   <li>{@code AsBeforeGuItem.remember}：(8)、(12)、(15) 后，记本次已结算的身体（含临时僵尸、寿元耗尽、念头）；
+ *       (19) 前，将死之身照原样记。</li>
+ *   <li>{@code AperturePressureService.tick}：自控每分钟一步与倒计时；满表交 (19)。</li>
+ *   <li>{@code checkLethalState}：最后。</li>
  * </ol>
- *
- * <p>⚠ The step ORDER is load-bearing and nothing in the code admits it: reorder nothing blind, and a
- * new step adds a line above naming which one it follows and why. {@code checkLethalState} runs last and
- * returns after the first hit, so the four deaths have a fixed precedence: 空窍压力 → 寿元 → 魂魄 → 脑海.
- *
- * <p>⚠ A step slower than a second gates on {@code tickCount % N} inside the beat, N a multiple of
- * {@code HEARTBEAT_TICKS}; any other N fires only every lcm(20, N) ticks, silently slower. A zombie's thought
- * ({@code MindService.ZOMBIE_THOUGHT_INTERVAL_TICKS}, 100) follows it.
  *
  * @author Alex
  * @version 1.0.0

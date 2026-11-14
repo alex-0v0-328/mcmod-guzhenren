@@ -14,17 +14,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Stone Aperture Gu's [石窍蛊] behavior: its target hits this rank's peak and petrifies -- never nourished,
- * never struck again.
- *
- * <p>Three rungs register with it. {@link #getStoneTarget} is the pure seam the unit tests pin: the target is the
- * PRIMARY aperture whenever it is NORMAL; only a dead or stoned primary passes the Gu on, and only to a NORMAL
- * second aperture; nobody usable answers {@code NO_TARGET}. {@link #getTargetOf} maps that seam onto real list
- * positions: a lone second aperture lives at position 0, and a missing slot counts as DEAD. A rank mismatch on the
- * primary does NOT pass it on -- the fall-through is for a lost aperture, not for a wrong rank. The gate refuses no
- * usable target, a rank mismatch on the target, and a target already at the peak (that use would buy only the
- * lock). The payout delegates to {@link ApertureNourishService#petrify}. {@code StateEffects} finds the Gu of a
- * petrified rank by this behavior.
+ * 石窍蛊[Stone Aperture Gu]行为：目标空窍[Aperture]升本转巅峰并石化。
+ * <ul>
+ *   <li>从此不再温养[Nourish]、不再冲刷窍壁；注册三档；{@link #getStoneTarget} 是单元测试钉住的纯接缝：主空窍 NORMAL
+ *       即目标，主空窍死亡或已石化才转给 NORMAL 第二空窍，皆不可用为 {@code NO_TARGET}。</li>
+ *   <li>{@link #getTargetOf} 映射至列表实位：独存第二空窍居 0，缺槽按 DEAD；主空窍转数不符不顺延，只因失去才顺延。</li>
+ *   <li>门槛拒绝无可用目标、目标转数不符、目标已在巅峰（只换来锁定）；生效委托 {@link ApertureNourishService#petrify}；
+ *       {@code StateEffects} 凭此行为按石化转数找蛊。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

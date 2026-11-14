@@ -16,20 +16,17 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
- * Writes the blockstates and models for the mod's blocks. A fluid block only needs the particle
- * model -- the liquid surface itself is drawn by the fluid renderer from the FluidType textures
- * (see {@link net.alex.guzhenren.client.fluid.SpiritSpringClientExtensions}) -- so each entry
- * matches vanilla's {@code block/water} shape: a blockstate variant pointing at a model whose
- * single texture is the still strip.
+ * 本模组方块的方块状态与模型。
  *
- * <p>A flower is vanilla's cutout {@code block/cross}. The Nine Leaf Vitality Grass [九叶生机草] crosses its
- * item's {@code _full} PNG -- the blocks atlas stitches {@code item/} too, so one file serves both.
- *
- * <p>A double plant is one model per half, picked by the {@code half} property, each on
- * {@link #TINTED_CROSS_OVERLAY}: vanilla's cross planes twice, the {@code #cross} gray PNG with tint index 0 (the
- * biome grass color, registered in {@code ClientEvents}) and the {@code #overlay} PNG coplanar on top without a
- * tint, so the parts drawn in color keep it. The later coplanar quad wins the depth test, the way the grass block's
- * side overlay does.
+ * <ul>
+ *   <li>流体方块只要粒子模型，同原版 {@code block/water}：一个变体指向唯一贴图为静止条带的模型；液面由流体渲染器按
+ *       {@code FluidType} 贴图画（{@link net.alex.guzhenren.client.fluid.SpiritSpringClientExtensions}）。</li>
+ *   <li>花用原版镂空 {@code block/cross}；九叶生机草[Nine Leaf Vitality Grass]用其物品 {@code _full} PNG，方块图集也拼
+ *       接 {@code item/}，一图两用。</li>
+ *   <li>双层植物按 {@code half} 每半一个模型，父模型 {@link #TINTED_CROSS_OVERLAY}：交叉面画两遍，{@code #cross} 灰度
+ *       PNG 带色调索引 0（群系草色，{@code ClientEvents} 注册），{@code #overlay} PNG 共面叠上不着色、保留原色；后画的
+ *       共面四边形赢深度测试，同草方块侧面覆盖层。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

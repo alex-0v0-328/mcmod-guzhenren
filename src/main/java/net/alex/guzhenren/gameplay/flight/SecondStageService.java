@@ -28,60 +28,50 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Second-stage flight [二段飞行]: the stage above vanilla's sprinting flight, the rules both ends share, and its
- * server half.
- *
- * <p>Flight has three speeds: plain flight, vanilla's sprinting flight, and the second stage, a cruise along the
- * look that tops out at {@link #SPEED_MULTIPLIER} times plain flight ({@link SecondStageCruise}). {@link #canEnter}
- * holds while the player's grant reaches the second stage ({@link FlightService#getGrant}) and the player is flying
- * and sprinting; both ends ask it, the client before sending a double tap of the sprint key
- * ({@code net.alex.guzhenren.client.input.SecondStageInput}), the server again in {@link #toggle}. The sprint
- * requirement keeps a hovering player out: vanilla only sprints while moving forward.
- *
- * <p>{@link #start} marks the stage ({@code PlayerData#setSecondStage}, synced to every client that sees the player),
- * sets the throttle to {@link SecondStageCruise#ENTRY_THROTTLE} and posts a {@link SecondStageStartedEvent} for the
- * feedback above it (the sonic boom). Every start is a fresh entry, so every entry booms. {@link #tick} runs every
- * server tick ({@link FlightEvents}): it steps the throttle ({@link #stepThrottle}), which fills while the player
- * sprints and drains once the sprint stops (the player let go of forward or brushed a wall), and ends the stage once
- * {@link #canStay} breaks: the throttle ran dry without a sprint, flying stopped (landed, or vanilla's double jump),
- * or the grant went. A second double tap ends it on purpose ({@link #toggle}). Ending it leaves flight alone, so the
- * player drops back to sprinting or plain flight. The server learns the sprint from the client's sprint commands, a
- * packet after the client, which steps its own throttle ({@code net.alex.guzhenren.client.event.SecondStageEvents}).
- *
- * <p>{@link #travel} replaces vanilla's flying travel while the mark is on
- * ({@code net.alex.guzhenren.mixin.PlayerMixin}) on whichever end moves the player: the client's own physics, and the
- * step the server runs each tick before it puts the player back where the client said, the step vanilla's elytra wall
- * damage rides on. The velocity follows the throttled look ({@link SecondStageCruise#nextVelocity}); jump and sneak
- * climb nothing ({@code LocalPlayerMixin}). Ahead of the move the server rams every living body in the swept box while
- * the flight is past {@link SecondStageCruise#BARRIER_SPEED}: player-attack damage by speed and a shove along the
- * flight, each body once per {@link SecondStageCruise#RAM_COOLDOWN_TICKS}, the flier unslowed. Only a hit the body
- * takes shoves it, scaled down by its knockback resistance; a refused one (no PvP, invulnerable, still flinching)
- * leaves it in place and free to be rammed the next tick. Wild Gu, allies either way round (a team, the flier's own
- * pets), anything the flier owns, spectators and armor stands are spared. Also ahead of the move, past the barrier
- * speed and where {@code ModEvents#canGrief} allows, the server shatters every fragile block
- * ({@link SecondStageCruise#isFragile}: leaves, glass, snow and the like) with a collision shape in the box swept over
- * the next {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} ticks ({@link #shatter}: {@code Level#destroyBlock} with
- * drops, so the break particles and sound are vanilla's), and the flight passes through. A collision on any axis, a
- * floor and a ceiling included, costs the elytra's wall damage on the server by the speed lost in three dimensions,
- * and losing at least the barrier speed in it is a crash: the throttle empties, the velocity stops, a
- * {@link SecondStageCrashEvent} goes up on that end (the server's ring and nearby shakes, the client's own shake), and
- * the server ends the stage and blasts a crater into the wall like a plunge's ({@link ImpactCrater#blast} at
- * {@link SecondStageCruise#getCrashPower}, {@link #CRASH_AHEAD} blocks ahead of mid-body along the flight). A
- * collision whose one-tick sweep holds nothing but fragile blocks is no hit at all ({@link #isFragileOnly}): the
- * client reaches glass the server's break has not arrived at yet, and with griefing refused the flier merely stops
- * against it, so no damage, no crash and the throttle keeps draining or filling as the sprint says. Each end judges the
- * crash on its own velocity, the server's a packet behind, so near the barrier one end may crash while the other only
- * pays the wall; the throttle drains the difference away within {@link SecondStageCruise#COAST_TICKS}. A level flight
- * brushing the ground collides vertically too, but loses next to no speed, so it costs nothing. Landing is no wall:
- * vanilla ends flight on the ground, and the stage with it.
- *
- * <p>⚠ The speed is never written to {@code Abilities}, which the game saves. ⚠ {@link #SPEED_MULTIPLIER} stays below
- * ≈18: vanilla's "moved too quickly" check allows 10 blocks a move beyond the server's own velocity, and at an entry
- * the server's step has not caught up with the client's speed yet, so past it the entry rubber-bands. At 6 it covers
- * ≈65 blocks a second, ≈4 chunks of new terrain, three times a sprinting flight and close to an elytra dive.
- *
- * <p>The mark and the throttle are not saved and a death drops them, so a relog or a respawn starts outside the
- * stage; a dimension change keeps the same player, and the first tick there checks the conditions again.
+ * 二段飞行[Second-Stage Flight]：疾跑飞行之上一档，含两端共用规则与服务端部分。
+ * <p>进出：
+ * <ul>
+ *   <li>沿视线巡航，最高为普通飞行 {@link #SPEED_MULTIPLIER} 倍（{@link SecondStageCruise}）。</li>
+ *   <li>{@link #canEnter}：授权到二段（{@link FlightService#getGrant}）、在飞、在疾跑；客户端发双击前问
+ *       （{@code net.alex.guzhenren.client.input.SecondStageInput}），服务端在 {@link #toggle} 再问；疾跑条件挡住悬停
+ *       （原版仅前进时疾跑）。</li>
+ *   <li>{@link #start} 打标记（{@code PlayerData#setSecondStage}，同步所有可见客户端）、油门设
+ *       {@link SecondStageCruise#ENTRY_THROTTLE}、发 {@link SecondStageStartedEvent} 供上层音爆，每次进入都爆。</li>
+ *   <li>{@link #tick}（{@link FlightEvents}，每服务端 tick）推油门（{@link #stepThrottle}）：疾跑加满，停跑（松前进或擦
+ *       墙）耗尽；{@link #canStay} 断即退：无疾跑且油门空、停飞（落地、双击跳跃）、失授权；再双击主动退
+ *       （{@link #toggle}），飞行保留。</li>
+ *   <li>服务端从疾跑指令得知疾跑，晚一个包；客户端自推油门
+ *       （{@code net.alex.guzhenren.client.event.SecondStageEvents}）。</li>
+ * </ul>
+ * <p>移动与撞击：
+ * <ul>
+ *   <li>有标记时 {@link #travel} 替换原版飞行移动（{@code net.alex.guzhenren.mixin.PlayerMixin}），由移动玩家的一端跑：
+ *       客户端是本机物理，服务端是每 tick 先模拟、再放回客户端上报位置的那步，原版鞘翅撞墙伤害靠它；速度朝「油门 ×
+ *       视线」靠拢（{@link SecondStageCruise#nextVelocity}），跳跃、潜行不升降（{@code LocalPlayerMixin}）。</li>
+ *   <li>撞人：过 {@link SecondStageCruise#BARRIER_SPEED} 时服务端移动前撞飞扫过的生物（玩家攻击伤害随速度，沿飞行方向推
+ *       开），同一生物每 {@link SecondStageCruise#RAM_COOLDOWN_TICKS} 一次，飞行者不减速；真受伤才推开，按击退抗性减，
+ *       伤害被拒（无 PvP、无敌、受伤无敌时间）则不动、下 tick 可再撞。</li>
+ *   <li>不撞野生蛊、任一方认定的盟友（同队、宠物）、飞行者拥有物、旁观者、盔甲架。</li>
+ *   <li>破块：同在移动前，过音障且 {@code ModEvents#canGrief} 允许时，服务端用带掉落的 {@code Level#destroyBlock}
+ *       （{@link #shatter}，粒子、声音原版）撞碎之后 {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} tick 扫过的带碰撞
+ *       脆弱方块（{@link SecondStageCruise#isFragile}），飞行穿过。</li>
+ *   <li>任一轴碰撞（含地面、天花板）在服务端按三维损速付鞘翅撞墙伤害；损速达音障即撞毁：油门、速度清零，该端发
+ *       {@link SecondStageCrashEvent}（服务端出环、震附近，客户端本机震屏），服务端退出二段并像坠击一样炸坑
+ *       （{@link ImpactCrater#blast}，威力 {@link SecondStageCruise#getCrashPower}，身体中部沿飞行方向前
+ *       {@link #CRASH_AHEAD} 格）。</li>
+ *   <li>一 tick 扫过的全是脆弱方块不算撞（{@link #isFragileOnly}）：客户端先于服务端破块到达玻璃，禁破坏时只顶住；
+ *       不掉血、不撞毁，油门照疾跑增减。</li>
+ *   <li>两端按各自速度判撞毁，服务端晚一包，音障附近可能一端撞毁、一端只掉血，油门在
+ *       {@link SecondStageCruise#COAST_TICKS} 内消掉差别；平飞擦地几乎不损速，不掉血；落地非墙，原版着地停飞，二段随之
+ *       结束。</li>
+ * </ul>
+ * <p>限制：
+ * <ul>
+ *   <li>⚠ 速度不写进会存档的 {@code Abilities}。</li>
+ *   <li>⚠ {@link #SPEED_MULTIPLIER} 须低于约 18：原版「移动过快」检查只容许每次移动超出服务端速度 10 格，进入时服务端未
+ *       追上客户端，超了会被拉回；取 6 约 65 格/秒（约 4 区块新地形），为疾跑飞行 3 倍，近鞘翅俯冲。</li>
+ *   <li>标记与油门不存档、死亡即丢，重登、重生从二段外开始；换维度同一玩家，首 tick 重判。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

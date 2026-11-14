@@ -5,17 +5,14 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The two names every domain enum in this mod carries: its saved name and its translation key.
- *
- * <p>Contract for the closed vocabulary enums ({@code GuPath}, {@code Rank}, {@code Stage},
- * {@code Talent}, ...). An enum declares only its {@link #getTranslationPrefix}; the saved name is the
- * constant's name in lowercase, and the translation key is the prefix followed by the saved name. Both
- * language providers take this interface rather than a {@code String}, so the key an enum ships and the
- * key it is registered under can never drift into two different literals.
- *
- * <p>⚠ Each enum's {@code CODEC} writes the saved name into player saves: renaming a constant loses
- * the value already saved under the old name. Lowercasing uses {@link Locale#ROOT}, so every system
- * locale writes the same names.
+ * 模组领域枚举的两个名字：存档名与翻译键。
+ * <ul>
+ *   <li>封闭词表枚举（{@code GuPath}、{@code Rank}、{@code Stage}、{@code Talent} 等）只声明
+ *       {@link #getTranslationPrefix}；存档名为常量名小写，翻译键为前缀加存档名。</li>
+ *   <li>两个语言 provider 都收本接口而非 {@code String}，枚举带出的键与注册的键不会分成两个字面量。</li>
+ *   <li>⚠ 各枚举的 {@code CODEC} 把存档名写进玩家存档：改常量名会丢失旧名下的值；小写用 {@link Locale#ROOT}，任何系统区
+ *       域写出的名字都相同。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

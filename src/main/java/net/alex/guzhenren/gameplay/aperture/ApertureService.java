@@ -22,34 +22,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The only runtime writer of the Aperture [空窍] attachment: awakening [开窍], rank [转数], stage [阶段], talent
- * [资质] and paths [流派]. Static service; most writes route through {@code store}, which posts an
- * {@link ApertureChangedEvent} (the max-health modifier and Epic Fight's stamina refresh); pressure
- * writes, in {@link AperturePressureService}, skip it.
+ * 空窍[Aperture]附件唯一运行时写入方：开窍[Awakening]、转数、阶段、资质[Aptitude]、道[Path]。
  *
- * <p>⚠ The body-physique/base-essence invariant is enforced here ({@code enforce}); the concrete
- * physique and talent grant live in {@code BodyService}. ⚠ {@code awaken} does NOT refuse an awakened
- * holder -- it appends; the caller gates. A base essence of zero (a Hope Gu that never rolled one) rolls a
- * fresh talent instead of opening an aperture with no base. ⚠ {@code reconcileTalentPaths} (the ten-extreme
- * talent effect) is one of the two cross-domain grants; a third would trigger extracting a coordinator.
- * The talent is the permanent {@code EXTREME_PHYSIQUE} aperture effect from {@link #TALENT_SOURCE}: a thousand whole
- * marks split evenly across the physique's talent paths; {@link #syncTalentEffect} puts it back on login when it is
- * missing or names another physique.
- * {@link #onExtremePhysiqueChanged} runs it, through {@link ApertureEvents}, whenever the body stores a
- * different ten-extreme physique, then resets the first aperture's base essence to match -- the full
- * base for a physique, one below for none, which also empties the pressure. Setting the first aperture's
- * talent to Ten Extremes rolls a physique the way awakening does, since the full base needs one; setting it to
- * a lower grade drops the physique first, so the re-rolled base is not forced back to full.
- *
- * <p>{@link #getStatus(Player, int)} is the one derivation of {@link ApertureStatus}: Zombie,
- * Temp Zombie and petrified apertures are DEAD; every other aperture is NORMAL.
- *
- * <p>{@link #openSecond} is the only opener of a second aperture: Grade-A at 8/10, this rank's
- * first stage and a full pool. Works with NO aperture at all -- the lone second aperture then IS the
- * whole list until Hope Gu inserts the first one ahead of it. A higher-rank Second Aperture Gu
- * overwrites what is already there, back to the first stage, while the bound paths stay -- the Vital
- * Gu holding them is untouched in storage. Hope Gu's first aperture, inserted ahead of a lone second one, posts
- * a {@link FirstApertureInsertedEvent} after it is stored, so the store kept per aperture index shifts with it.
+ * <ul>
+ *   <li>静态服务；多数写入经 {@code store} 发布 {@link ApertureChangedEvent}（最大生命值修饰符、Epic Fight 耐力刷
+ *       新），{@link AperturePressureService} 的压力写入绕过它。</li>
+ *   <li>⚠ 体质与基础真元[Essence]的不变量在此强制（{@code enforce}），具体体质与资质授予在 {@code BodyService}。</li>
+ *   <li>⚠ {@code awaken} 不拒已开窍者而追加，调用方把关；基础为 0（希望蛊[Hope Gu]未掷）重掷资质，免开零基础窍。</li>
+ *   <li>{@link #getStatus(Player, int)} 是 {@link ApertureStatus} 唯一推导：僵尸、临时僵尸化与石化空窍为
+ *       {@code DEAD}，其余 {@code NORMAL}。</li>
+ *   <li>⚠ {@code reconcileTalentPaths}（十绝天赋效果）是两条跨领域授予之一，出现第三条即抽出协调者；天赋是
+ *       {@link #TALENT_SOURCE} 给的永久 {@code EXTREME_PHYSIQUE} 空窍效果，整 1000 条道痕[Path Marks]均分到体质各天赋
+ *       道，登录时缺失或体质不符由 {@link #syncTalentEffect} 补回。</li>
+ *   <li>肉身存入不同十绝体时，{@link #onExtremePhysiqueChanged} 经 {@link ApertureEvents} 执行它，再对齐第一空窍基础真
+ *       元：有体质为满值，无则满值减一并清空压力。</li>
+ *   <li>第一空窍资质设为十绝时像开窍一样掷体质（满基础需要体质）；设得更低先摘体质，免得重掷基础被强制回满。</li>
+ *   <li>{@link #openSecond} 是第二空窍唯一开启方：甲等八成、本转初阶、满真元池；无空窍也能开，孤立第二空窍即整个列
+ *       表，直到希望蛊在其前插入第一空窍。</li>
+ *   <li>更高转第二空窍蛊[Second Aperture Gu]覆盖已有第二空窍并回到初阶，绑定的道保留，持有它们的本命蛊在存储里不动；希
+ *       望蛊插入的第一空窍存下后发布 {@link FirstApertureInsertedEvent}，按空窍下标的存储随之移位。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -193,7 +185,7 @@ public final class ApertureService {
         awaken(player, baseEssence, ExtremePhysique.NONE);
     }
 
-    /** {@code tenExtreme} is the physique a Ten-Extremes aperture brings; {@code NONE} rolls one. */
+    /** {@code tenExtreme} 是十绝天资空窍[Aperture]带来的体质；为 {@code NONE} 时随机掷一个。 */
     public static void awaken(@NotNull ServerPlayer player, int baseEssence, @NotNull ExtremePhysique tenExtreme) {
         open(player, baseEssence > 0 ? Aperture.createOpenedAt(baseEssence) : Aperture.createOpened(), tenExtreme);
     }

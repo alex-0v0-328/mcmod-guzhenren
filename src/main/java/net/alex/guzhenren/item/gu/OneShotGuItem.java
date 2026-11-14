@@ -8,12 +8,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A one-shot Gu [一次性]: refining and using are one instant act, so it carries no state and it stacks.
- *
- * <p>Extends {@link MortalGuItem} with {@code useDurationTicks = 0} (instant) and the shared
- * two-second post-refinement cooldown. The gate checks essence against {@code refineCost}, then the behaviors;
- * {@code performUse} pays the cost, runs every behavior and takes the one Gu, in one step. Hope Gu [希望蛊] is the
- * exception: {@code stacksTo(1)} and the awakening ritual [开窍仪式] its click starts, handled by its own leaf class.
+ * 即时一次性蛊：炼化即催动，一瞬完成，故无状态、可堆叠。{@code useDurationTicks = 0}，用共用的炼化后 2 秒冷却；门槛先按
+ * {@code refineCost} 查真元[Essence] 再查行为，{@code performUse} 一步付费、执行行为、扣一只蛊。希望蛊[Hope Gu] 例外：
+ * {@code stacksTo(1)}，点击开始开窍[Awakening] 仪式，由其叶类处理。
  *
  * @author Alex
  * @version 1.0.0

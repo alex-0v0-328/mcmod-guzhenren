@@ -35,29 +35,21 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * A soul that has come to the Treasure Yellow Heaven [宝黄天] to trade: it hovers where it was summoned, turns
- * its head toward players within {@link #LOOK_RANGE}, and opens {@link SoulTradeMenu} on a right click. Which
- * offers it carries is its {@link SoulTrader}; the look is the renderer's.
- *
- * <p>It never moves on its own and cannot be moved: {@link #travel} is empty, and it is not pushable, not
- * rideable, not leashable and ignores explosions. It takes damage only from sources that bypass invulnerability
- * ({@code /kill}, the void), never despawns, and drops nothing.
- *
- * <p>The model's contract runs on two controllers. {@code movement} loops {@code animation.idle}; a trader that
- * has just come into the world first plays {@code animation.appear} (20 ticks), and a dying one holds
- * {@code animation.disappear} (24 ticks) until {@link #tickDeath} removes it. {@code gesture} only plays
- * triggered one-shots over it -- they key body, head and arms, never the root or legs: {@code beckon} when a
- * player comes within {@link #BECKON_RANGE}, {@code cross_arms_nod} after a trade and
- * {@code hands_hips_shake} after a refused one. A trade reaction may cut a beckon short but never another
- * reaction, so a burst of clicks does not restart the nod every tick. A gesture counts as running for its length
- * plus the controller's {@code GESTURE_TRANSITION} blend-in, exactly as long as the client shows it: a trigger of the
- * same animation while it still runs would not restart it. The arrival scan does not look while the
- * soul is still appearing, so a player who was already waiting counts as arriving once it has formed.
- *
- * <p>⚠ {@code DATA_APPEARING} is born true, so the spawn packet already carries it and the first client frame
- * is the first appear frame, not a full-size soul that then shrinks. A trader read back from a save that
- * says {@code Appeared} starts false instead; a {@code /summon} with NBT has no such key and still appears.
- * The client decides once per entity instance whether its movement animation opens with the appear animation.
+ * 来宝黄天[Treasure Yellow Heaven] 交易的魂。
+ * <ul>
+ *   <li>悬停原地，看向 {@link #LOOK_RANGE} 内玩家，右键开 {@link SoulTradeMenu}；报价归 {@link SoulTrader}，外观归渲染
+ *       器；不自行移动也移不动（{@link #travel} 为空）：不可推、骑、拴，无视爆炸；只受绕过无敌的伤害（{@code /kill}、虚
+ *       空）；不消失，无掉落。</li>
+ *   <li>模型契约用两个控制器：{@code movement} 循环 {@code animation.idle}，新入世先播 {@code animation.appear}（20
+ *       tick），濒死保持 {@code animation.disappear}（24 tick）至 {@link #tickDeath} 移除。</li>
+ *   <li>{@code gesture} 只叠播触发式单次动画，只动身体、头、臂，不动根骨和腿：玩家进入 {@link #BECKON_RANGE} 播
+ *       {@code beckon}，成交播 {@code cross_arms_nod}，被拒播 {@code hands_hips_shake}。</li>
+ *   <li>交易反应可打断招手、不打断另一反应，连点不每 tick 重启点头；手势计时 = 动画长 + 控制器
+ *       {@code GESTURE_TRANSITION} 淡入，同客户端显示，运行中再触发同一动画不重启；出现中不扫到达，等候者成形后算到
+ *       达。</li>
+ *   <li>⚠ {@code DATA_APPEARING} 生来为 true：生成包即带，首帧即出现首帧，不会全尺寸再缩小；读档带 {@code Appeared} 的
+ *       以 false 起步，带 NBT 的 {@code /summon} 无此键仍播出现；客户端每实例只判一次是否以出现开场。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

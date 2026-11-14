@@ -18,29 +18,19 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Every block in the mod. The properties line copies vanilla water block-for-block (replaceable,
- * no collision, 100 blast resistance, destroyed by pistons, no loot table) so the Spirit Spring
- * [元泉] feels native, plus lava's full 15 light level -- Alex's pick: the spring is
- * a glowstone-bright safe zone where monsters cannot spawn. The BlockItem is registered in
- * {@link net.alex.guzhenren.registry.item.ModItems} so the creative tab's single item walk
- * still sees it.
+ * 本模组全部方块。
  *
- * <p>In {@link #SPIRIT_SPRING}, it is safe to call {@code get()} on
- * {@link net.alex.guzhenren.registry.fluid.ModFluids#SPIRIT_SPRING} here: vanilla registers FLUID
- * before BLOCK, so the holder is filled.
- *
- * <p>{@link #PURE_WATER} is the Pure Water [纯水] liquid block: a plain {@code LiquidBlock} on the same water
- * properties line, without the spring's light. It has no BlockItem; the Pure Water Bucket [纯水桶] carries it.
- *
- * <p>{@link #NINE_LEAF_VITALITY_GRASS_3} is the Nine Leaf Vitality Grass [九叶生机草] growing in the world: a
- * dandelion-shaped flower with no BlockItem, whose loot table drops the wild Gu item of the same id. Its
- * suspicious-stew effect is dormant -- no flower tag and no BlockItem carry it anywhere.
- *
- * <p>{@link #INTIMATE_GRASS} is the two-block Intimate Grass [知心草], vanilla tall grass in shape, properties and
- * biome tint, without a BlockItem; its loot table gives an Intimate Grass Bundle [知心草束] to a hoe only.
- *
- * <p>{@link #STEEL_BLOCK} is the Steel Block [钢块]: a plain storage block on the iron block's properties line, so
- * it mines, sounds and serves a beacon like one; nine Steel Ingots [钢锭] craft it and it crafts back.
+ * <ul>
+ *   <li>{@link #SPIRIT_SPRING} 元泉[Spirit Spring]：属性逐项照抄原版水（可替换、无碰撞、爆炸抗性 100、活塞破坏、
+ *       无战利品表），手感原生；另加岩浆的满 15 级光，Alex 定为萤石般明亮、怪物不生成的安全区。</li>
+ *   <li>元泉 BlockItem 在 {@link net.alex.guzhenren.registry.item.ModItems} 注册，创造栏单次遍历才见得到；此处可安全
+ *       {@code get()} {@link ModFluids#SPIRIT_SPRING}，因原版先注册 FLUID。</li>
+ *   <li>{@link #PURE_WATER} 纯水：同一水属性的普通 {@code LiquidBlock}，无光照、无 BlockItem，由纯水桶携带。</li>
+ *   <li>{@link #NINE_LEAF_VITALITY_GRASS_3} 野外生长的九叶生机草[Nine Leaf Vitality Grass]：蒲公英形花，无 BlockItem，
+ *       掉同 ID 野生蛊物品；谜之炖菜效果闲置，无花标签或 BlockItem 带出。</li>
+ *   <li>{@link #INTIMATE_GRASS} 两格高知心草：形状、属性、群系染色同原版高草丛，无 BlockItem；仅锄头掉知心草束。</li>
+ *   <li>{@link #STEEL_BLOCK} 钢块：铁块属性的普通存储方块，挖掘、音效、信标同铁块；与 9 钢锭互合。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

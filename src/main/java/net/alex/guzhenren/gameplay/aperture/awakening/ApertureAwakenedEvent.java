@@ -5,11 +5,11 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus when {@link AwakeningRitualService} awakens a player's first aperture [空窍] at the
- * end of the Hope Gu ritual [希望蛊]; an awakening granted by command posts nothing. Dispatch is synchronous.
- *
- * <p>The ritual posts and does not know who listens: the Hope Gu criterion lives above it, in
- * {@code net.alex.guzhenren.advancement}, and calling up into it would close a dependency cycle.
+ * 希望蛊[Hope Gu]仪式开出第一空窍[Aperture]的开窍[Awakening]事件。
+ * <ul>
+ *   <li>仪式结束时由 {@link AwakeningRitualService} 同步发到游戏总线；命令开窍不发。</li>
+ *   <li>仪式不知谁在听：进度条件在上层 {@code advancement} 包，直调即成依赖环。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

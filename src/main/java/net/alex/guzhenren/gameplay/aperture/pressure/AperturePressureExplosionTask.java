@@ -20,31 +20,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The block side of the ten-extreme pressure explosion [空窍压力爆炸]: the crater is carved over
- * many server ticks instead of one, under the per-tick time budget every active blast shares
- * ({@link AperturePressureExplosions}), so the largest blast (Great Strength True Martial [大力真武体], radius 112,
- * some 5.9 million positions) opens as fast as the server allows, tens of seconds, without dropping the tick
- * rate. A blast starts carving only once every chunk it touches is loaded, and holds them loaded until it is done
- * ({@link CraterChunkTicket}), so a crater finishes with no player near. A cleared block a full block inside the
- * smallest column radius ({@code CraterShape.getMinColumnRadius}) skips the rim test: none of its neighbors can lie
- * outside. Interior blocks go out silently ({@code UPDATE_CLIENTS} only, no drops); one deferred neighbor pass over
- * the rim [球壳边缘] keeps sand, fluids and torches from floating; unbreakable blocks (bedrock, barriers, portal
- * frames) stay, so a blast at the bottom of the world never opens the void. The shell [壳] walks center-outwards and
- * each column's radius carries a per-explosion jitter [噪声扰动], read from {@link CraterShape}. The crater floor is
- * physique-specific: layered ice [分层冰] for Northern Dark Ice Soul, magma and lava for Blazing Glory, scattered
- * gold for Myriad Gold; Northern Dark Ice Soul also converts the surface soil of an outer ring [雪化环带] to snow.
- * Entity damage, self-damage and the pressure reset stay in {@link
- * net.alex.guzhenren.gameplay.aperture.AperturePressureService#detonate} -- they resolve at tick zero.
- *
- * <p>A blast survives a server stop: {@link #save} writes its center, radius, seed, physique, phase, every cursor
- * and the rim list into its level's {@link AperturePressureExplosions}; the level is the blast's dimension.
- * {@link #load} rebuilds the shell in progress instead of reading it -- the shell is a pure function of the center,
- * radius, seed and build height, and {@code shellDistance} already counts the shell being walked -- so the restored
- * blast carves exactly what the stopped one had left. The rim list is saved whole: which rim blocks were cleared,
- * not air or unbreakable already, cannot be told from the world afterwards.
- *
- * <p>Past 300 lines on purpose: the save format writes and reads every cursor the four phases advance, so it stays
- * beside them.
+ * 十绝体空窍[Aperture]压力爆炸的方块部分：单坑地形任务。
+ * <ul>
+ *   <li>分多 tick 挖，共用每 tick 预算（{@link AperturePressureExplosions}）；最大爆炸（大力真武体，半径 112，
+ *       约 590 万位置）几十秒成形不掉 TPS；实体伤害、自伤、压力清零在第 0 tick 由 {@code detonate} 结算。</li>
+ *   <li>触及区块全载才开挖，挖完前保持加载（{@link CraterChunkTicket}）。</li>
+ *   <li>已清方块比最小列半径（{@code CraterShape.getMinColumnRadius}）靠内一整格即免边缘判定：邻居不会在球外。</li>
+ *   <li>内部静默清除（仅 {@code UPDATE_CLIENTS}，无掉落）；边缘延后补一次邻居更新，免沙、流体、火把悬空。</li>
+ *   <li>保留不可破坏方块（基岩、屏障、传送门框架），世界底部爆炸不穿虚空。</li>
+ *   <li>坑底：北冥冰魄体分层冰，炎煌雷泽体岩浆块与熔岩，万金妙华体零散金；北冥冰魄体另把雪化环带地表土变雪。</li>
+ *   <li>{@link #save} 把全部状态存进本维度 {@link AperturePressureExplosions} 以续挖；边缘列表须整存：
+ *       边缘方块是清掉的还是原为空气或不可破坏，事后看世界分不出。</li>
+ *   <li>球壳由内向外推，每列半径带扰动（{@link CraterShape}）；{@link #load} 重建而非读取进行中的球壳：它只依中心、
+ *       半径、种子、建筑高度，{@code shellDistance} 已计当前层，续挖如初。</li>
+ *   <li>有意超 300 行：存档读写四阶段的每个游标，须与之相邻。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

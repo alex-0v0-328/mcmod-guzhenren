@@ -17,7 +17,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import org.jetbrains.annotations.NotNull;
 
-/** Writes the wild boar's pork drop, including vanilla fire and looting behavior. */
+/** 野猪的猪肉掉落，含原版着火烧熟与抢夺加成。 */
 
 public final class WildBoarLootProvider extends EntityLootSubProvider {
 

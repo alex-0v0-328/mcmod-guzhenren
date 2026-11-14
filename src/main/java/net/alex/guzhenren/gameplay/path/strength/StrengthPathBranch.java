@@ -5,15 +5,9 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The four branches of Strength Path [力道], including Normal [基础力道] as the default classification.
- *
- * <p>Closed vocabulary enum. Beast Strength Phantom and Human Jun Strength own today's persistent
- * strength data; Atmospheric Heaven and Earth has no implementation yet; Normal classifies every
- * other Strength Path Gu without adding another data field.
- *
- * <p>Mark Interference [道痕互斥]: {@link #interferesWith} is symmetric, and a body holding one branch is refused
- * any branch it interferes with. Today only Beast Strength Phantom and Human Jun Strength interfere; a new pair
- * is one more case here.
+ * 力道四分支，基础力道为默认分类（封闭枚举）。兽力虚影流、人力钧力流持有现有持久数据；气象天地流未实现；基础力道归类其
+ * 余力道蛊，不加字段。道痕[Path Marks]互斥：{@link #interferesWith} 对称，持一支即拒互斥分支；现仅兽力虚影流与人力钧力
+ * 流，新增一对加一个分支。
  *
  * @author Alex
  * @version 1.0.0

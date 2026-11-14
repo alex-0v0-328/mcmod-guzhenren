@@ -13,22 +13,18 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Body [肉身] state: cumulative physiques, race, tendons, bones, skin, flesh, age and lifespan. Immutable record
- * attachment keyed {@code body_data}; {@code BodyService} is the only writer. The concrete Ten-Extreme physique
- * belongs here; the aperture stores only its base-essence value. Zombie and temp zombie are mutually exclusive;
- * Extreme may coexist with either one. The constructor drops temp zombie whenever zombie is present, so
- * {@link #with with(ZOMBIE)} needs no removal first, while {@code with(TEMP_ZOMBIE)} must follow
- * {@code without(ZOMBIE)}; it also clears the zombie tier once neither is left.
- *
- * <p>The skin [皮肤] is one slot, native by default, with its own end tick: a jade skin is worn until
- * {@code skinEndTick}, which {@code SkinService} checks on the heartbeat, and {@link #withRevived} drops it with
- * the undead forms; a bronze or iron skin is permanent, keeps no end tick and survives a respawn. The
- * {@code JADE_SKIN_GU} / {@code WHITE_JADE_GU} effects are only the jade skins' projection. The tendons [筋],
- * bones [骨] and flesh [肉] are three more permanent slots, native by default.
- *
- * <p>⚠ Fourteen components, so {@code encode}/{@code decode} are handwritten and the encoder mirrors the decoder
- * order exactly. ⚠ The time anchors default to {@code UNTRACKED} (-1), never {@code 0}: zero is a real
- * game time. ⚠ Every caller speaks YEARS; only this file knows parts exist.
+ * 肉身状态，附件 {@code body_data}：累积体质、种族、筋骨皮肉、年龄、寿元。
+ * <ul>
+ *   <li>仅 {@code BodyService} 写；具体十绝体存此，空窍[Aperture]只存其基础真元[Essence]。</li>
+ *   <li>⚠ 14 个组件手写 {@code encode}/{@code decode}，两者顺序须严格一致。</li>
+ *   <li>⚠ 时间锚点默认 {@code UNTRACKED}（-1），不用 {@code 0}：0 是真实游戏时间。</li>
+ *   <li>⚠ 调用方一律按年；仅本文件知细分单位（parts）。</li>
+ *   <li>僵尸与临时僵尸化互斥，十绝体可与任一共存；构造器遇僵尸丢临时僵尸化：{@link #with with(ZOMBIE)} 无需先移除，
+ *       {@code with(TEMP_ZOMBIE)} 须先 {@code without(ZOMBIE)}；两者皆无则清僵尸档位。</li>
+ *   <li>皮一格，默认原生，带结束 tick：玉皮穿到 {@code skinEndTick}（{@code SkinService} 心跳查），{@link #withRevived}
+ *       随不死形态脱；铜皮、铁皮永久，重生保留。</li>
+ *   <li>{@code JADE_SKIN_GU} / {@code WHITE_JADE_GU} 效果只是玉皮投影；筋、骨、肉为三个永久格，默认原生。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

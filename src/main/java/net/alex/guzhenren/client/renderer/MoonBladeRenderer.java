@@ -18,24 +18,17 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * Draws a {@link MoonBladeEntity} as one full-bright, double-sided crescent lying in the plane of its flight line and
- * the horizontal axis across it: flat to the ground when shot level, tilting with the pitch when shot up or down,
- * with the crescent's bulge leading.
+ * {@link MoonBladeEntity} 的渲染器。
  *
- * <p>A locked-on blade [锁定目标] banks into its turn: the whole face rolls about the flight line by the entity's
- * {@link MoonBladeEntity#getBankDegrees}, the left edge down for a curve to the left, up to
- * {@code MoonBladeArc.MAX_BANK_DEGREES}, so each shot leans its own way.
- *
- * <p>Left exactly flat, the blade would thin to a line for a shooter just above it and for anyone beside it. So the
- * whole blade, bulge included, is turned {@link #TILT_DEGREES} toward the camera about the axis perpendicular to both
- * the blade's face and the line to the camera (less when the camera already sees it more squarely than that, and not
- * at all straight on). That shows a shooter behind it, or a viewer beside it, a sliver of face about a third of the
- * blade's width, and the bulge still leads within that turn.
- *
- * <p>The texture is a vertical strip of {@link #FRAMES} 16-pixel frames read by age, not a vanilla animation: the
- * crescent grows over the first three ticks, holds the full frame while it flies, and fades over the last three
- * before the blade's lifetime ({@link MoonBladeEntity#getLifetimeTicks}) runs out. A blade that hits something
- * vanishes on its full frame.
+ * <ul>
+ *   <li>一片全亮、双面月牙，位于飞行线与其水平横轴所成平面：平射贴地，上下射随俯仰倾斜，凸面朝前。</li>
+ *   <li>锁定目标的月刃转弯时侧倾：刃面绕飞行线按 {@link MoonBladeEntity#getBankDegrees} 滚转，左弯左缘向下，最多
+ *       {@code MoonBladeArc.MAX_BANK_DEGREES}，每发各倾各的。</li>
+ *   <li>完全平放时对稍高的射手和旁人都细成一线，故整片刃绕同时垂直于刃面与镜头连线的轴朝镜头转 {@link #TILT_DEGREES}
+ *       （镜头更正对时转得少，正对不转）；后方射手或旁观者都能看到约三分之一刃宽，凸面仍朝前。</li>
+ *   <li>贴图为 {@link #FRAMES} 帧 16 像素竖条，按 age 读取，非原版动画；前 3 tick 长大，飞行中满帧，寿命
+ *       （{@link MoonBladeEntity#getLifetimeTicks}）耗尽前 3 tick 淡出；击中物体时停在满帧消失。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -85,7 +78,7 @@ public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {
         super.render(blade, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
 
-    /** Rolls the face about the flight line: a positive (left) bank lifts {@code side}, the right edge. */
+    /** 绕飞行线滚转刃面：正值（左倾）抬起 {@code side}，即右缘。 */
     private static void bank(float degrees, Vector3f forward, Vector3f side, Vector3f normal) {
         if (degrees == 0.0F) return;
         Quaternionf roll = new Quaternionf().fromAxisAngleRad(forward, (float) Math.toRadians(-degrees));

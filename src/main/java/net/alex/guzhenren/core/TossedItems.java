@@ -7,18 +7,14 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The one safe way to take back a toss: {@link #putBack} and {@link #stow} put the tossed stack back in the bag
- * and never drop.
- *
- * <p>⚠ {@code placeItemBackInInventory} drops what does not fit, and that drop posts {@code ItemTossEvent} again:
- * a handler that cancels a toss and puts it back that way recurses on a full bag until the server crashes -- a
- * cursor stack or the 2x2 crafting grid falling back on a closing screen is enough.
- *
- * <p>{@link #putBack} adds what fits and answers the rest, leaving the tossed entity as it was: a caller that keeps
- * the rest somewhere else may always cancel the toss. {@link #stow} leaves the rest on the tossed entity, hovering
- * without gravity where it was dropped, so it never falls into the void and can be picked up once there is room.
- * It answers whether everything fit: only then may its caller cancel the toss, because the event has already
- * taken the entity out of the world and a canceled toss whose rest did not fit would delete it.
+ * 收回丢弃物品的唯一安全方式，从不掉落。
+ * <ul>
+ *   <li>⚠ {@code placeItemBackInInventory} 掉落放不下的部分并再发 {@code ItemTossEvent}：取消丢弃后这样放回，背包满时递
+ *       归至服务器崩溃；关界面时光标堆叠或 2x2 合成格回落即可触发。</li>
+ *   <li>{@link #putBack}：放入能放下的，返回余下，不动丢出实体；余下另存的调用方总可取消丢弃。</li>
+ *   <li>{@link #stow}：余下留在丢出实体上，无重力悬停原处，不落虚空，有空位可拾；返回是否全部放下，仅全放下才可取消丢
+ *       弃，因事件已把实体移出世界，余下未放下却取消会删掉它。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

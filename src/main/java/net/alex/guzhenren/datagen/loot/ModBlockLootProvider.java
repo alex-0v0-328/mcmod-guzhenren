@@ -19,14 +19,14 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Writes the block loot tables: the Nine Leaf Vitality Grass [九叶生机草] flower drops its wild Gu item, full of
- * leaves; the Intimate Grass [知心草] gives one Intimate Grass Bundle [知心草束] to a hoe and nothing otherwise; the
- * Spirit Spring [元泉] and the Pure Water [纯水] have no table at all. The known blocks are this mod's, so a new
- * block without a table fails {@code runData}.
+ * 方块战利品表。
  *
- * <p>The Intimate Grass table has no {@code half} condition on purpose: the broken half drops through
- * {@code DoublePlantBlock.playerWillDestroy} with the player's tool, and the other half falls with no tool, so a hoe
- * yields exactly one bundle whichever half it struck.
+ * <ul>
+ *   <li>九叶生机草[Nine Leaf Vitality Grass]掉其野生蛊物品，叶子全满；元泉[Spirit Spring]与纯水无表；已知方块取本模组全
+ *       部方块，新方块缺表让 {@code runData} 失败。</li>
+ *   <li>知心草仅用锄时掉 1 个知心草束；故意不加 {@code half} 条件：被破坏那半经
+ *       {@code DoublePlantBlock.playerWillDestroy} 按玩家工具掉，另一半无工具掉，锄敲哪半都正好一束。</li>
+ * </ul>
  */
 
 public final class ModBlockLootProvider extends BlockLootSubProvider {

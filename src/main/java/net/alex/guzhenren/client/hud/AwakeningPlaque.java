@@ -12,10 +12,9 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * The aptitude plaque [资质牌匾] an awakening ritual [开窍仪式] reveals: a GUI sprite named after the rolled grade
- * ({@code plaque/talent/<grade>}), or after the physique for Ten Extremes ({@code plaque/extreme_physique/<physique>}),
- * {@link #WIDTH} pixels wide and {@code height} tall. Shared by the plaque on the player's own screen
- * ({@link AwakeningHud}) and the one over the head ({@code AwakeningPlaqueRenderer}).
+ * 开窍[Awakening]仪式揭晓的资质[Aptitude]牌匾：GUI 精灵图按掷出的资质档命名（{@code plaque/talent/<grade>}），十绝天资
+ * 按体质命名（{@code plaque/extreme_physique/<physique>}）；宽 {@link #WIDTH} 像素、高 {@code height}；本地屏幕
+ * （{@link AwakeningHud}）与头顶（{@code AwakeningPlaqueRenderer}）的牌匾共用。
  *
  * @author Alex
  * @version 1.0.0

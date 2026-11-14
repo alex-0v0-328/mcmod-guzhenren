@@ -9,13 +9,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Path [流派] progress, sparse: a path missing from the map is simply one nobody has walked.
+ * 流派进度，稀疏存储：表里没有的道[Path]即没人走过。
  *
- * <p>Immutable record attachment keyed {@code path_data}; {@code
- * PathService} is the only runtime writer. Each value is a
- * {@link PathEntry}. ⚠ A default {@link PathEntry} (no attainment, no bare marks) is pruned out of the map
- * entirely, so a path that has been fully revoked simply disappears -- do not read "absent" as
- * "never touched".
+ * <ul>
+ *   <li>附件 {@code path_data}，运行时只由 {@code PathService} 写入。</li>
+ *   <li>⚠ 默认 {@link PathEntry}（无造诣、无纯道痕[Path Marks]）被剪除，撤尽的道也消失；不在表里不等于没碰过。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

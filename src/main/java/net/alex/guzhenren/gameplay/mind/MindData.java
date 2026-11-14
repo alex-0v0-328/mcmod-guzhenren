@@ -11,16 +11,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Mind [脑海]: the brilliance [才情] and the three pools it drives -- thoughts [念], wills [意] and emotions
- * [情]. Immutable record attachment keyed {@code mind_data}; {@code MindService} is the only runtime writer
- * ({@code PlayerDataService} resets it whole); missing {@link MindPoolType} pools are filled with
- * {@link MindPool#of} by the ctor. {@link #isOverflowing} asks only the burstable pools: a pool that can never
- * pass its cap can never shatter the mind.
+ * 脑海：才情及其驱动的念、意、情三池。
  *
- * <p>⚠ Brilliance lives here rather than in its own attachment because it IS the regen rate of these
- * pools; kept apart, the rate and the pools it drives could drift. ⚠ The compact constructor rescales
- * {@code taggedThoughts} down to {@code current(THOUGHTS)} when the tags oversum, so a write that lowers
- * current thoughts must also lower the tag totals or the ctor silently will.
+ * <ul>
+ *   <li>附件 {@code mind_data}，运行时只由 {@code MindService} 写，{@code PlayerDataService} 整体重置；构造器用
+ *       {@link MindPool#of} 补齐缺的 {@link MindPoolType} 池。</li>
+ *   <li>{@link #isOverflowing} 只问可超限的池，过不了上限的池不会炸裂脑海。</li>
+ *   <li>⚠ 才情不单独成附件：它就是池的回复速度，分存会漂移。</li>
+ *   <li>⚠ 标签合计超过 {@code current(THOUGHTS)} 时，紧凑构造器把 {@code taggedThoughts} 按比例缩到当前念；
+ *       降当前念须同时降标签合计，否则构造器悄悄代劳。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

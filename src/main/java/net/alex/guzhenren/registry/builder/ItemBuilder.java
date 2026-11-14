@@ -14,17 +14,15 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One item's registration chain, opened by {@link ItemRegistrar#item} and closed by {@link #register}.
+ * 单个物品的注册链：{@link ItemRegistrar#item} 开启，{@link #register} 收尾。
  *
- * <p>One call per fact, like {@code GuProperties}: {@link #lang} gives the English and Simplified Chinese names, plus a
- * Traditional one only where the wording itself differs (otherwise {@code TraditionalGlyphs} converts the
- * Simplified); {@link #model} picks an {@link ItemModel} other than {@link ItemModel#FLAT}; {@link #tag} files the
- * item under item tags, each once, in call order; {@link #tab} puts it in that creative tab instead of the one its
- * class would pick. The factory is a plain {@code Supplier}, so the item's own constructor arguments, a
- * {@code GuProperties} chain among them, stay inside it untouched.
- *
- * <p>⚠ {@link #register} refuses an item without names, naming the id, before the factory reaches the
- * {@code DeferredRegister}: a declared item is never left to fall back on its raw translation key.
+ * <ul>
+ *   <li>一事一调用，同 {@code GuProperties}：{@link #lang} 英文、简中名，繁体仅措辞不同时给，否则
+ *       {@code TraditionalGlyphs} 转换；{@link #model} 选 {@link ItemModel#FLAT} 外的模型；{@link #tag}
+ *       按序归入物品标签，各一次；{@link #tab} 指定创造栏，取代类默认。</li>
+ *   <li>工厂是普通 {@code Supplier}，物品构造参数（含 {@code GuProperties} 链）原样留在其中。</li>
+ *   <li>⚠ {@link #register} 在工厂入 {@code DeferredRegister} 前拒收无名物品并报 ID，免得落回原始翻译键。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

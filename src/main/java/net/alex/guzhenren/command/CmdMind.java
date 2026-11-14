@@ -7,11 +7,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr mind}: writes brilliance [才情] and the three mind pools; the B panel reads them.
- *
- * <p>Offers graded set/up/down for brilliance [才情] and delegates to
- * {@link CmdMindPool} for the three wisdom pools. All of
- * {@code /gzr mind} is ungated -- a mortal thinks too.
+ * {@code /gzr mind}：写才情与念、意、情三池，B 面板读取；不设门槛，凡人也会思考。
  *
  * @author Alex
  * @version 1.0.0

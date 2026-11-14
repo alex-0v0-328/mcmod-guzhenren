@@ -12,29 +12,21 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The one supply line for primeval stones [元石]: every automatic draw on carried stones goes through here
- * -- the top-up line (refill below {@link #REFILL_BELOW_PERCENT}%, stop at {@link #REFILL_UP_TO_PERCENT}%), every
- * essence payment a Gu makes ({@link #pay}), nourishing's purse, and the refinement menu's supply slot.
- * {@link #takeFrom} is the single way a stone leaves a stack, whether the stack is stones or a Primeval Elder Gu
- * [元老蛊] vault.
- *
- * <p>⚠ A Gu pays only through {@link #pay}: the top-up line first, then the cost, the pool first and stones for any
- * rest. A channel or refining step is sized from the pool, so it tops up first ({@link #topUpFor} its floor) and then
- * pays the step. ⚠ The sources run in one order: loose stones from any bag slot, offhand included, then each carried
- * Elder Gu's stock, then each Elder Gu kept in aperture storage [空窍存储] (never the Vital Gu slot), by aperture and
- * slot. A stored one is drawn on a copy and written back through {@code ApertureStorageService.setSlot}, since the
- * view hands out the stored stacks themselves. ⚠ The client never holds the aperture storage, so its copy of
- * {@link #canAfford} counts the carried sources alone; the server decides, and the held use syncs back to it.
- * ⚠ Stones count only for a player with an aperture to burn them through ({@link #canAfford}): the
- * essence gate stands in for {@code isAwakened}, and without the check a mortal could pay a Gu in stones. ⚠ Creative
- * draws no stone ({@link #draw} answers 0): the top-up pours nothing and the part of a cost the pool cannot cover goes
- * free, as creative eats no food either; only the player's own hand moves a stone (the supply slot, nourishing). A
- * step sized from the pool reads {@link #getPoolAfterTopUp} there instead: the pool as the top-up line would have
- * left it from the stones in reach, so creative refines and channels at the pace survival does with those stones.
- *
- * <p>☠ A second copy of the top-up line drifts, and the pool silently clamps whatever a caller pours past
- * the cap. ☠ {@link #trySpend}: a lump bigger than the pool burns stones straight, never through the cap --
- * the pool pays first, the stones cover the rest, and the change goes back into the pool.
+ * 元石[Primeval Stone] 唯一的供给线：携带元石的一切自动抽取都经此。
+ * <ul>
+ *   <li>⚠ 蛊只经 {@link #pay} 付真元[Essence]：先补给线，再付代价，先扣池，余由元石补；灌注[Channel] 或炼化步长按池定，
+ *       故先补给（{@link #topUpFor} 其下限）再付。经此的还有补给线（低于 {@link #REFILL_BELOW_PERCENT}% 补，到
+ *       {@link #REFILL_UP_TO_PERCENT}% 停）、温养[Nourish] 钱袋、炼化菜单供给槽；{@link #takeFrom} 是元石离开物品堆的唯
+ *       一途径，散装或元老蛊[Primeval Elder Gu] 储库皆然。</li>
+ *   <li>⚠ 来源顺序固定：任意背包格（含副手）散装元石 → 携带元老蛊存量 → 空窍存储中的元老蛊（不取本命蛊槽），按空窍与槽
+ *       位；存储中的在副本上抽取，经 {@code ApertureStorageService.setSlot} 写回，因视图交出的是存储物品堆本身。</li>
+ *   <li>⚠ 客户端无空窍存储，其 {@link #canAfford} 只计携带来源，由服务端裁决，按住的催动同步回结果；元石只对有空窍可燃
+ *       者计数（{@link #canAfford}）：真元门槛代替 {@code isAwakened}，否则凡人能用元石付蛊。</li>
+ *   <li>⚠ 创造模式不抽元石（{@link #draw} 答 0）：补给不倒，池不足部分免除，如创造不吃东西；仅亲手移石（供给槽、温
+ *       养）；池定步长者改读 {@link #getPoolAfterTopUp}（可及元石补给后的池），故炼化、灌注节奏同生存持此石时。</li>
+ *   <li>☠ 补给线第二份副本会漂移，池会静默截掉超上限倒入的量；{@link #trySpend}：超池的一笔直接燃烧元石，不经上限：池先
+ *       付，元石补余，找零回池。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -85,14 +77,14 @@ public final class PrimevalStoneSupply {
         if (isTopUpNeeded(player)) pourInto(player, topUpDeficit(player));
     }
 
-    /** The top-up line, then, still short of {@code need} and the pool able to hold it, up to {@code need}. */
+    /** 先走补给线；仍不足 {@code need} 且池容得下时，补到 {@code need}。 */
     public static void topUpFor(ServerPlayer player, long need) {
         topUp(player);
         long missing = need - ApertureEssenceService.getSpendable(player);
         if (missing > 0L && ApertureEssenceService.getMaxEssence(player) >= need) pourInto(player, missing);
     }
 
-    /** What a Gu pays essence through: false, paying nothing, only when the pool and the stones together cannot. */
+    /** 蛊支付真元的入口：仅池与元石合计仍付不起时返回 false，且分文不付。 */
     public static boolean pay(ServerPlayer player, long cost) {
         if (cost <= 0L) return true;
         topUp(player);

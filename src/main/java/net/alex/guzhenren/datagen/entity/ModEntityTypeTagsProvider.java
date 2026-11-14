@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the entity-type tags. {@link ModEntityTypeTags#PREDATOR_PREY} carries the vanilla farm and
- * small animals that hunting beasts proactively attack; {@link ModEntityTypeTags#WILD_GU} carries every wild Gu mote.
+ * 实体类型标签：{@link ModEntityTypeTags#PREDATOR_PREY} 为狩猎野兽主动攻击的原版家畜、小动物；
+ * {@link ModEntityTypeTags#WILD_GU} 为全部野生蛊实体。
  */
 
 public class ModEntityTypeTagsProvider extends EntityTypeTagsProvider {

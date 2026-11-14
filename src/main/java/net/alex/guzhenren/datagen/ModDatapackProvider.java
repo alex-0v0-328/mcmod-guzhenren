@@ -25,16 +25,13 @@ import net.neoforged.neoforge.common.world.BiomeModifiers;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * The single provider for every datapack registry this mod writes.
+ * 全部数据包注册表的唯一 provider。
  *
- * <p>Extends {@link net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider}. Builds damage
- * types and the wild-spawn biome modifiers in one {@code RegistrySetBuilder}; the dimensions and the
- * Spirit Spring [元泉] worldgen belong to the sibling mod Gu World. The
- * tag providers take {@code getRegistryProvider()} from this instance, not the plain lookup, so the tag
- * pass sees the types this run generates.
- *
- * <p>⚠ There can only be one. The builtin-entries provider reports a fixed name, so a second instance
- * fails datagen outright; add a registry to this one's builder instead.
+ * <ul>
+ *   <li>伤害类型、野生生成群系修改器共用 {@code RegistrySetBuilder}；维度与元泉[Spirit Spring]生成归 Gu World。</li>
+ *   <li>标签 provider 取本实例 {@code getRegistryProvider()} 而非普通 lookup，才见本次生成的类型。</li>
+ *   <li>⚠ 只能有一个：内置条目 provider 名字固定，第二个实例让数据生成失败；新注册表加进本实例 builder。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

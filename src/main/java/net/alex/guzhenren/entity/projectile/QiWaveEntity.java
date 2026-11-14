@@ -27,24 +27,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A Qi Wave [气波], the bearing strike orb [方位攻击球]: the Strength Qi Gu's [力气蛊] ranged punch on the human
- * strength path, and on the beast path when no permanent beast is held. It flies straight at {@link #SPEED} blocks a
- * tick, without gravity or drag, at the point the lock-on target's center stood when it was thrown, and never follows
- * the target. It bursts ({@link QiBurst#burst}) at that point, or where it touches a living entity the burst
- * may hurt on the way; a block in the way snuffs it with no burst. The locked target takes the burst in full wherever
- * it bursts, if it stands inside.
- *
- * <p>The server owns the burst: the damage, the aim point, the heading (the straight line's direction, which the
- * burst hands on as the area impact's axis) and the locked target, set once by {@link #shoot}, live only there. The
- * orb has no model; the client copy flies the spawn packet's straight line, leaving one cloud puff a tick, and the
- * burst leaves {@link #BURST_PUFFS} poofs, a snuffed orb {@link #SNUFF_PUFFS}. It is never saved.
- *
- * <p>The Store Strength Gu's [蓄力蛊] charged punch [蓄力一拳] throws a tracking orb instead ({@link #track}): it
- * steers at the target's center every tick on both ends, from the synced target id, for up to
- * {@link #TRACK_FLIGHT_FACTOR} times the straight flight, and bursts with the punch's own {@link QiBurst.Spec}; a
- * target that dies leaves it flying on to the last point it saw, and one it has not reached when that flight runs out
- * takes it bursting where it is, since the punch's backlash is already paid.
- * ⚠ {@link #BURST_PUFFS} and {@link #SNUFF_PUFFS} are provisional.
+ * 气波（方位攻击球）：力气蛊[Strength Qi Gu]人力钧力流的远程拳；兽力虚影流无永久兽力[Beast Strength]时也用。
+ * <ul>
+ *   <li>直飞，无重力阻力，每 tick {@link #SPEED} 格，飞向投出时目标中心所在点，不跟随；在该点或途中碰到可伤生物处爆开
+ *       （{@link QiBurst#burst}），遇方块熄灭不爆；锁定目标在范围内即吃全额。</li>
+ *   <li>伤害、瞄准点、朝向（直线方向，爆开时作范围冲击轴）、锁定目标由 {@link #shoot} 设定，只在服务端；无模型，客户端
+ *       沿生成包直线飞，每 tick 一团云；爆开 {@link #BURST_PUFFS} 团烟，熄灭 {@link #SNUFF_PUFFS} 团；不存档。</li>
+ *   <li>蓄力蛊[Store Strength Gu]的蓄力一拳投追踪球（{@link #track}）：两端每 tick 按同步 id 追目标中心，至多直飞的
+ *       {@link #TRACK_FLIGHT_FACTOR} 倍，用拳自己的 {@link QiBurst.Spec}；目标死则飞向最后所见点，飞完未到即原地爆开
+ *       （反噬已付）。</li>
+ *   <li>⚠ {@link #BURST_PUFFS}、{@link #SNUFF_PUFFS} 暂定。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

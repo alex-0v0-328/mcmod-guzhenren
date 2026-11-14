@@ -10,12 +10,11 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Hands the awakening ritual [开窍仪式] its events: {@link AwakeningRitualService#tick} at the end of every server
- * player tick, and {@link AwakeningRitualService#finish} on a death, a dimension change, a logout and a login.
- *
- * <p>The event handlers live here, the rules behind them in {@link AwakeningRitualService}. ⚠ The death hook runs
- * before the clone, so a death without keepInventory drops the aperture the ritual just opened, as any death of an
- * awakened player does.
+ * 开窍[Awakening]仪式事件入口：服务端玩家 tick 末尾调 {@link AwakeningRitualService#tick}；死亡、换维度、登出、登录调
+ * {@link AwakeningRitualService#finish}。
+ * <ul>
+ *   <li>⚠ 死亡钩子先于克隆：未开 keepInventory 则死亡掉落仪式刚开的空窍[Aperture]，同其他已开窍者。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

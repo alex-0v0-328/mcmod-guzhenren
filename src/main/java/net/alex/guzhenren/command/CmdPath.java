@@ -22,23 +22,18 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@code /gzr path}: writes attainment [造诣] and the bare path marks [道痕], takes path effects [流派效果] off, and
- * carries the strength sub-command. Uses {@link net.alex.guzhenren.command.ModEnumArgument} for the path
- * argument; all writes delegate to {@link PathService} and {@link PathEffectService}.
+ * {@code /gzr path}：写造诣和裸道痕[Path Marks]，摘除流派效果，并挂力量子命令。
  *
- * <p>{@code marks <path> set|add|sub <marks> [strands set|add|sub <strands>]} writes the path's bare marks on the
- * body [肉体], the only carrier a mark without an effect has: whole marks [条], then optionally strands [丝] in the same
- * line; {@code marks <path> strands set|add|sub <strands>} writes strands alone. The two counters never convert.
- * {@code effect remove <type>} takes every effect of that type off, its marks with it; {@code effect clear} takes
- * them all.
- *
- * <p>☠ A command writes bare marks and can put no effect on here: an effect's marks come only with the command
- * that sets what lays it down -- a race, a physique, a grade -- so they carry that source and are revoked with it;
- * a handwritten effect could not be told from one a source laid down, and nothing would ever revoke it.
- *
- * <p>☠ The literals {@code marks}, {@code attainment} and {@code effect} come before the path word and the verbs
- * after it ({@code /gzr path marks <path> set ...}): {@code GuPath} also has a {@code strength} constant, and a word
- * argument directly under {@code path}, beside the {@code strength} literal, could never be typed as that path.
+ * <ul>
+ *   <li>道[Path]参数用 {@link ModEnumArgument}；写入交给 {@link PathService}、{@link PathEffectService}。</li>
+ *   <li>{@code marks <path> set|add|sub <marks> [strands set|add|sub <strands>]} 写该道肉体裸道痕，先条后丝；
+ *       {@code marks <path> strands set|add|sub <strands>} 只写丝；条、丝互不换算；肉体是无效果道痕的唯一载体。</li>
+ *   <li>{@code effect remove <type>} 摘除该类全部效果及其道痕；{@code effect clear} 全部摘除。</li>
+ *   <li>☠ 只写裸道痕，不在此挂效果：效果道痕只随设置其来源（种族、体质、品级）的命令而来，带着来源并随之撤销；
+ *       手写效果无法与来源挂上的区分，永不撤销。</li>
+ *   <li>☠ 字面量 {@code marks}、{@code attainment}、{@code effect} 在道词前，动词在后：{@code GuPath} 也有
+ *       {@code strength} 常量，与 {@code strength} 字面量并列挂在 {@code path} 下的单词参数永远输不成此道。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

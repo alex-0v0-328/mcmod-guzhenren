@@ -8,9 +8,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * Fires the criteria [触发器] of the gameplay events: {@link RealmReachedEvent} fires {@link RankReachedTrigger}
- * and {@link ApertureAwakenedEvent} fires {@link HopeGuUsedTrigger}. Gameplay lives below the advancements and
- * posts instead of calling up.
+ * 玩法事件转进度触发器：{@link RealmReachedEvent} 触发 {@link RankReachedTrigger}，{@link ApertureAwakenedEvent} 触发
+ * {@link HopeGuUsedTrigger}；玩法层在进度之下，只发事件不上调。
  *
  * @author Alex
  * @version 1.0.0

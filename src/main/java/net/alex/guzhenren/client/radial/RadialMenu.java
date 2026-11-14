@@ -17,31 +17,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The radial menu [扇形选择器]: a held input raises a ring of sectors at the screen's center, mouse movement points
- * at one, and letting go picks it. Generic: an {@link Owner} says while the input is held, which entries to show and
- * what a pick does; the Amplify Effect Gu [功倍蛊] and a moon blade Gu [月刃] (its killing moves [杀招]) are its
- * owners. An {@link Entry} is one sector: its icon, the name shown at the center while it is pointed at, and whether
- * a pick counts.
+ * 长按呼出的扇形选择器。
  *
- * <p>One hold runs at a time ({@link #hold}). It opens after {@link #OPEN_DELAY_TICKS} held ticks, so a tap never
- * shows it; the entries are read once at that moment and stay fixed until release. Letting go on an enabled sector
- * calls {@link Owner#pick}; inside the inner ring or on a disabled sector nothing happens. With no entries it calls
- * {@link Owner#empty} once and waits out the hold. Letting go with no ring open (before it opened, or after
- * {@code empty}) calls {@link Owner#releaseUnopened}, which does nothing unless the owner says otherwise. A screen
- * opening or a logout drops the hold with no call at all.
- *
- * <p>⚠ A hold also ends when {@link Owner#isHeld} turns false for any other reason, such as the owner's item leaving
- * the hand; {@code pick} and {@code releaseUnopened} are called all the same, so an owner that sends anything checks
- * its item is still in hand first.
- *
- * <p>⚠ While it is open the camera stands still and the walk keys still work: {@code MouseHandlerMixin} hands the
- * mouse movement that would have turned the player to {@link #steer}, in screen pixels, which moves an unseen cursor
- * clamped to the outer ring; only the pointed sector shows it. While a hold runs no interaction key reaches the world
- * and the hotbar does not scroll, so the owner's item stays in hand and nothing is hit or placed by the same click.
- *
- * <p>The animation follows {@link RadialMotion} on the wall clock, frame by frame, and {@link RadialDrawing} draws
- * each frame. Letting go ends the hold at once (the camera turns again, the pick is sent) and leaves an {@code Exit}
- * that only draws the ring leaving.
+ * <ul>
+ *   <li>{@link Owner} 定何时算按住、显示哪些条目、选中后做什么；现有持有者：功倍蛊[Amplify Effect Gu]，月刃蛊[Moon
+ *       Blade Gu]（选其杀招[Killing Move]）；{@link Entry} 即一个扇区：图标、指向时中心名称、选中是否生效。</li>
+ *   <li>按住时屏幕中心升起一圈扇区，指向其一、松开即选；同时只有一次长按（{@link #hold}）；按住
+ *       {@link #OPEN_DELAY_TICKS} tick 才打开，轻点不显示；条目打开时读一次，松开前不变。</li>
+ *   <li>松开：启用扇区上调 {@link Owner#pick}，内圈或禁用扇区无事；无条目调一次 {@link Owner#empty} 后等结束；未打开环
+ *       （打开前或 {@code empty} 后）调 {@link Owner#releaseUnopened}，默认空操作；开界面或登出即丢弃、不调方法。</li>
+ *   <li>⚠ {@link Owner#isHeld} 因其他原因变 false（如物品离手）同样结束长按，照常调 {@code pick} 与
+ *       {@code releaseUnopened}；会发包的持有者须先确认物品仍在手上。</li>
+ *   <li>⚠ 打开期间镜头不动、行走照常：{@code MouseHandlerMixin} 把本应转动玩家的鼠标位移按屏幕像素交给 {@link #steer}，
+ *       移动一个不可见、限在外圈内的光标，只由被指向的扇区体现。</li>
+ *   <li>长按期间交互键不传到世界、快捷栏不滚动，物品留在手上，同一次点击不击打或放置。</li>
+ *   <li>按挂钟逐帧跟随 {@link RadialMotion}，由 {@link RadialDrawing} 绘制；松开立即结束长按（镜头恢复、发送选择），只
+ *       留画环离场的 {@code Exit}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -17,27 +17,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What kind of {@link PathEffect} an instance is: its save id, its payload and how that payload is written, whether
- * it helps or harms ({@link PathEffectCategory}), whether one person may carry two, the icon it projects and the
- * name it shows.
+ * {@link PathEffect} 的类型。
  *
- * <p>Every type is registered once in {@code registry.effect.ModPathEffectTypes}, the closed list the save and sync
- * codecs look ids up in; a family adds its type there and its payload record beside its own code. The payload is
- * the state only that kind needs (a shield's value, a temp zombie level, a distilling phase); a kind that needs none
- * takes {@code Unit} with {@code MapCodec.unit}. Its {@link MapCodec} sits inline in the effect's saved object, so the
- * type picks its own field names.
- *
- * <p>An {@link #isExclusive exclusive} type is one slot per person: applying a new instance drops the old one with
- * its marks, whatever its source (a grade replaced by another). Any other type keeps one instance per source, and
- * applying the same source again replaces that one.
- *
- * <p>{@link #getIcon} names the vanilla effect the heartbeat projects while an instance is on, or {@code null} for
- * none. A kind whose vanilla effect depends on the instance (a buff per species, an amplifier per layer) takes a
- * projector instead, which answers a {@link Projection}. The projection is an icon, a timer and an amplifier only:
- * {@code /effect clear} takes it, the next heartbeat puts it back, and no rule reads it.
- *
- * <p>⚠ {@link #getEffectCodec} is built on first use, not in the constructor: the types are constructed while
- * {@code ModPathEffectTypes} initializes, and the dispatch codec over them belongs to the same class.
+ * <ul>
+ *   <li>定存档 id、payload 及其编解码、有益或有害（{@link PathEffectCategory}）、是否独占、图标与显示名。</li>
+ *   <li>每个类型只在 {@code registry.effect.ModPathEffectTypes} 登记一次，即存档与同步 codec 查 id 的闭合列表；
+ *       效果族在那里加类型，payload record 放自己代码旁。</li>
+ *   <li>payload 是该类型独需的状态（护盾值、临时僵尸化等级、精炼真元阶段），无则取 {@code Unit} 配
+ *       {@code MapCodec.unit}；其 {@link MapCodec} 内联在效果存档对象里，字段名由类型自定。</li>
+ *   <li>{@link #isExclusive 独占} 类型每人一格：挂新实例即连道痕[Path Marks]丢弃旧实例，不论来源（如一档换另一档）；
+ *       其他类型每来源一个实例，同来源再挂则替换。</li>
+ *   <li>{@link #getIcon}：实例在身时心跳投影的原版效果，{@code null} 为无；图标随实例变的类型（兽种增益、按层等级）改用
+ *       投影器返回 {@link Projection}。投影即图标、计时与等级：{@code /effect clear} 清后下次心跳放回，规则不读。</li>
+ *   <li>⚠ {@link #getEffectCodec} 首用才建：类型构造于 {@code ModPathEffectTypes} 初始化中，分派 codec 也在该类。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -105,7 +98,7 @@ public final class PathEffectType<P> {
         return projector == null ? null : projector.apply(effect);
     }
 
-    /** The vanilla effect an instance shows: which one and at which amplifier; the timer is the instance's own. */
+    /** 实例显示的原版效果及其等级；计时取实例自己的。 */
     public record Projection(@NotNull Holder<MobEffect> effect, int amplifier) {}
 
     public @NotNull Component getName(@NotNull PathEffect<P> effect) { return namer.apply(effect); }

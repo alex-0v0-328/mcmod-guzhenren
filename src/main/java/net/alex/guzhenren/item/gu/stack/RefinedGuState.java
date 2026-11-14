@@ -7,15 +7,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The per-stack state a tended Gu [需照顾] carries: how far refined, how well fed, how badly hurt.
- *
- * <p>An immutable record stored on the {@code REFINED_GU_STATE} data component. The compact constructor
- * clamps every field to {@code >= 0}.
- *
- * <p>⚠ Stores damage taken rather than health remaining, so a wild Gu's zero already reads as
- * undamaged. Turning that around would need a special case in every reader.
- *
- * <p>The {@code with*} copies are blocks, not one-liners: five components run the line past 120 columns.
+ * 持续照顾型蛊[Tended Gu]单物品状态：炼化进度、饱食[Hunger]、伤势。
+ * <ul>
+ *   <li>⚠ 存已受伤害而非剩余生命：野生蛊的 0 即未受伤；反之每个读取方都要特判。</li>
+ *   <li>存于 {@code REFINED_GU_STATE} 组件；{@code with*} 副本写成代码块：五个组件单行超 120 列。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

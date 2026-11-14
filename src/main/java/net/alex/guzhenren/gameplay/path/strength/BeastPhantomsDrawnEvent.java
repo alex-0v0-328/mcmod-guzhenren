@@ -6,12 +6,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus when {@link StrengthRound} sets a player's beast phantoms to the families of an
- * attack round [攻击轮次]: at its opening, and again the tick a drawn family leaves it. Dispatch is synchronous, so the
- * phantoms stand before the post returns.
- *
- * <p>The round posts and does not know who listens: the phantom entity lives above it, in
- * {@code net.alex.guzhenren.entity.beast}, and calling up into it would close a dependency cycle.
+ * 兽力虚影兽种设定事件，游戏事件总线。开轮及抽中兽种离轮那 tick 发出，同步分发，返回前虚影已就位；轮次不知谁在听：
+ * 虚影实体在上层 {@code net.alex.guzhenren.entity.beast}，上调成环。
  *
  * @author Alex
  * @version 1.0.0

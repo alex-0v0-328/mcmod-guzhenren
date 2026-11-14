@@ -13,15 +13,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A tended Gu's long cooldown [长冷却]: the one gate for the use, the tap use and {@code TendedGuItem.tryAutoUse}
- * ({@link #check}), and the cooldown put after a use ({@link #put}). Both read the larger of the effect cooldown
- * (waived by {@code canUseDuringEffectCooldown}) and the post-refine guard that {@code
- * TendedGuItem.POST_REFINE_COOLDOWN_TICKS} sets from the {@code REFINED_AT} stamp.
- *
- * <p>⚠ A refusal puts the ticks left back on the vanilla cooldown, so a lost sweep redraws. {@link #put} runs after
- * {@code super.spend} and puts the largest of the item cooldown, the post-refine guard and the effect cooldown:
- * {@code ItemCooldowns.addCooldown} overwrites unconditionally, so the other order would lose the long cooldown to
- * the base's short one.
+ * 持续照顾型蛊[Tended Gu]的长冷却：{@link #check} 是催动、点按、{@code TendedGuItem.tryAutoUse} 的唯一门槛，
+ * {@link #put} 加催动后冷却。
+ * <ul>
+ *   <li>两者取效果冷却（{@code canUseDuringEffectCooldown} 可免）与炼化后保护冷却（{@code REFINED_AT} 起
+ *       {@code TendedGuItem.POST_REFINE_COOLDOWN_TICKS}）的较大者。</li>
+ *   <li>⚠ 被拒时剩余 tick 写回原版冷却以重画转圈；{@link #put} 另含物品冷却，须在 {@code super.spend} 后写入：
+ *       {@code ItemCooldowns.addCooldown} 无条件覆盖，反序则基类短冷却盖掉长冷却。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

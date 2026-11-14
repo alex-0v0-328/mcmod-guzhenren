@@ -10,12 +10,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Man As Before Gu [人如故]: its carrier's body goes back to how it was a day ago -- health, hunger, effects, soul,
- * thoughts and the temp zombie form, as {@code PlayerSnapshot} lists them, and nothing else.
- *
- * <p>Extends {@link AsBeforeGuItem}. The memory is {@code PlayerRewindService}'s ring on the carrier, recorded only
- * while a refined one is carried: a Gu that has recorded nothing, or nothing a day old, refuses with
- * {@code FAILED_NO_RECORD}, and the refusal spends nothing.
+ * 人如故[Man As Before Gu]：携带者身体回到一天前。
+ * <ul>
+ *   <li>只回退 {@code PlayerSnapshot} 所列：生命、饥饿值、效果、魂魄、念、临时僵尸化形态；记忆是携带者身上
+ *       {@code PlayerRewindService} 的环形缓冲，只在随身带已炼化人如故时记录。</li>
+ *   <li>无记录或无一天前的记录时以 {@code FAILED_NO_RECORD} 拒绝，不扣费。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

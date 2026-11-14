@@ -11,18 +11,14 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Makes an entity in the Pure Water [纯水] count as in water; both sides.
- *
- * <p>NeoForge answers the three vanilla water-tag questions an entity asks of itself -- touching water, eyes in
- * water, water height -- with the water fluid type alone, not the {@code #minecraft:water} tag the Pure Water
- * sits in. Each wrapper here widens one answer to the Pure Water type too, so {@code isInWater},
- * {@code isUnderWater} and everything built on them (fish breathing, endermen burning, drowned conversion,
- * submerged mining, the underwater overlay) treat it as water. Movement, drowning and swimming already ride the
- * fluid type and need nothing here.
- *
- * <p>⚠ Not an event or an API: in NeoForge 21.1.265 the three tag overloads are deprecated shims over {@code
- * NeoForgeMod.WATER_TYPE}, and no event or fluid-type flag widens that answer to another fluid type, so the wrappers
- * stay.
+ * 让纯水中的实体算作在水中；双端。
+ * <ul>
+ *   <li>NeoForge 只按水流体类型答实体的三个原版水标签问题（接触水、眼在水中、水高度），不看纯水所在的
+ *       {@code #minecraft:water} 标签；每个包装把一个答案放宽到纯水，于是 {@code isInWater}、{@code isUnderWater} 及其
+ *       衍生（鱼呼吸、末影人遇水受伤、溺尸转化、水下挖掘、水下遮罩）都视其为水；移动、溺水、游泳本走流体类型。</li>
+ *   <li>⚠ 不用事件或 API：NeoForge 21.1.265 的三个标签重载是 {@code NeoForgeMod.WATER_TYPE} 上的弃用垫片，也无事件或流
+ *       体类型标志能放宽到别的流体类型。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

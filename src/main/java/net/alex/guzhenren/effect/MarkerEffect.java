@@ -4,33 +4,24 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * An effect that holds no state and runs no tick: the vanilla icon (and, for a timed one, the timer) of a
- * state whose truth lives elsewhere. One class, registered once per marker in {@code ModEffects}:
+ * 标记效果：别处状态的原版图标，不存状态、不跑 tick。限时者兼计时；{@code ModEffects} 每个标记注册一次本类。
  *
  * <ul>
- * <li>{@code TEMP_ZOMBIE} [临时僵尸化] -- projects the form stored on {@code BodyData};
- * {@code UndeadService.tickTempZombie} re-applies or removes it every heartbeat, so milk,
- * {@code /effect clear} and death cannot strand a player wearing a form they are no longer in.</li>
- * <li>{@code ALL_OUT_EFFORT_GU} [全力以赴] -- timed, at the Gu's tier; while it runs on a body holding a strength
- * branch, {@code StrengthService.getAllOutTier} reads the tier for the capacity [承受力] lift and the round's chance.
- * Re-using it while it runs is a refusal ({@code effect_active}).</li>
- * <li>{@code STORE_STRENGTH_GU} [蓄力蛊] -- timed, at the Gu's tier; both ends read it for the charge
- * ({@code StoreStrength.canCharge} on the server, {@code StoreStrengthInput} on the client), as the All-Out Effort
- * Gu's is read for its tier.
- * Re-using it while it runs is a refusal ({@code effect_active}).</li>
- * <li>{@code JADE_SKIN_GU} [玉皮蛊] and {@code WHITE_JADE_GU} [白玉蛊] -- timed; project the skin [皮肤] stored
- * on {@code BodyData} with its end tick, re-applied or removed by {@code SkinService.tickSkin} every
- * heartbeat; the flat damage reduction reads the skin, never the effect.</li>
- * <li>{@code HEAVENLY_MUGWORT_GU} [天蓬蛊] -- timed; projects the {@code HEAVENLY_MUGWORT} shield layer stored on
- * {@code ShieldData}, re-applied or removed by {@code ShieldService.tickShield} every heartbeat; the hit that empties
- * the layer removes it at once.</li>
- * <li>{@code LIQUOR_WORM} [酒虫] -- the icon of the {@code LIQUOR_DISTILLING} path effect, which is the truth of
- * the distilling; {@code closeDistilling} pays the 1:2 back once that effect is gone.</li>
+ *   <li>{@code TEMP_ZOMBIE}（临时僵尸化）：投影 {@code BodyData} 的形态，{@code UndeadService.tickTempZombie} 每次心跳
+ *       重施或移除；牛奶、{@code /effect clear}、死亡都不会让玩家困在已离开的形态。</li>
+ *   <li>{@code ALL_OUT_EFFORT_GU}（全力以赴蛊[All-Out Effort Gu]）：限时，等级即蛊档位，生效中拒再催动
+ *       （{@code effect_active}）；力道分支下 {@code StrengthService.getAllOutTier} 读档位定承受力提升与本轮几率。</li>
+ *   <li>{@code STORE_STRENGTH_GU}（蓄力蛊[Store Strength Gu]）：限时、等级、拒再催动、读档位同上；两端读它判蓄力（服务
+ *       端 {@code StoreStrength.canCharge}，客户端 {@code StoreStrengthInput}）。</li>
+ *   <li>{@code JADE_SKIN_GU}（玉皮蛊[Jade Skin Gu]）、{@code WHITE_JADE_GU}（白玉蛊[White Jade Gu]）：限时；投影
+ *       {@code BodyData} 的皮及结束 tick，{@code SkinService.tickSkin} 每次心跳重施或移除；固定减伤读皮不读效果。</li>
+ *   <li>{@code HEAVENLY_MUGWORT_GU}（天蓬蛊[Heavenly Mugwort Gu]）：限时；投影 {@code ShieldData}
+ *       {@code HEAVENLY_MUGWORT} 盾层，{@code ShieldService.tickShield} 每心跳重施或移除；打空该层当即移除。</li>
+ *   <li>{@code LIQUOR_WORM}（酒虫[Liquor Worm]）：流派效果 {@code LIQUOR_DISTILLING} 的图标，真值在该效果；它消失后
+ *       {@code closeDistilling} 按 1:2 退还。</li>
+ *   <li>☠ 规则勿挂标记到期：{@link MobEffect} 无到期钩子，{@code /effect clear} 静默移除它；真值读自身状态。</li>
+ *   <li>☠ 不要给标记加 {@code AttributeModifier}：攻击走 {@code AttackDamageService.getBonus}，只有一个公式。</li>
  * </ul>
- *
- * <p>☠ Never hang a rule on a marker's expiry: {@link MobEffect} has no expiry hook, and
- * {@code /effect clear} removes it silently. The truth reads its own level instead. ☠ Never give a marker
- * an {@code AttributeModifier}: attack goes through {@code AttackDamageService.getBonus}, one formula.
  *
  * @author Alex
  * @version 1.0.0

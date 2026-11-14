@@ -9,19 +9,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One piece of what a Gu does [蛊虫行为]: a gate, an effect, and the limits it bends, each a default method, so a
- * behavior answers only what it changes. A Gu is a lifecycle host ({@link OneShotGuItem}, {@link TendedGuItem},
- * {@link ConsumedGuItem}) plus its behaviors, given in order at registration; the host owns refining, feeding,
- * the essence and hunger bill and cooldowns, and a behavior bends them only through the limits below.
- *
- * <p>The host asks every behavior in order: {@link #checkEffect} refuses with the first refusal, {@link #applyEffect}
- * runs them all, {@link #canBeAmplified} and {@link #canUseDuringEffectCooldown} hold when any one does, and the
- * hunger multiplier is the largest. {@link #defersForcedDeath} lets a behavior whose effect needs its Gu alive keep a
- * forced Gu to the end of its round, killing it there itself. A behavior carries its own numbers (a duration, a grade);
- * the Gu's shared numbers stay on {@link GuProperties}, read through the host it is given.
- *
- * <p>⚠ A behavior is stateless and may be shared between Gu: per-stack state lives on the stack, per-player state in
- * the services. Other code asks what a Gu does through {@link MortalGuItem#getBehavior}, never through its class.
+ * 蛊虫行为：蛊的一项作为，含门槛、效果与所放宽的限制。
+ * <ul>
+ *   <li>皆为默认方法，只答所改；蛊 = 生命周期宿主 {@link OneShotGuItem}/{@link TendedGuItem}/{@link ConsumedGuItem} +
+ *       注册时按序给的行为；宿主管炼化、补食、真元[Essence] 与饱食[Hunger] 账单、冷却，行为只经下列限制放宽。</li>
+ *   <li>宿主按序询问：{@link #checkEffect} 取首个拒绝；{@link #applyEffect} 全执行；{@link #canBeAmplified} 与
+ *       {@link #canUseDuringEffectCooldown} 任一即成立；饱食倍率取最大；{@link #defersForcedDeath} 让需蛊存活的行为把强
+ *       行催动[Forced Use] 的蛊留到轮末再自行杀死。</li>
+ *   <li>⚠ 行为无状态、可多蛊共享：堆状态存堆上，玩家状态存服务；自带时长、等级，共用数值经宿主读 {@link GuProperties}；
+ *       他处经 {@link MortalGuItem#getBehavior} 问，不看类。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

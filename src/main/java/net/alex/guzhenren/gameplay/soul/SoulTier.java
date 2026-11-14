@@ -7,10 +7,8 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The tier a soul [魂魄] reads as, derived from its cap and never stored.
- *
- * <p>Closed vocabulary enum: the nine rungs ({@code 1} to {@code 1e10}) are read-only labels for display; the
- * {@code SoulData} cap is the source of truth. No sibling mod may add a tier.
+ * 魂魄档次：由上限推导，从不存储。封闭词表：九档（{@code 1} 至 {@code 1e10}）是只读显示标签，真值在 {@code SoulData} 上
+ * 限；兄弟模组不得新增。
  *
  * @author Alex
  * @version 1.0.0

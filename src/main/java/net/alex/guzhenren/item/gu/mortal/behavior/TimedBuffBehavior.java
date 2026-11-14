@@ -20,20 +20,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The instant-buff behavior [限时增益]: grants a timed buff whose effect holder, length and strength come from
- * registration. Seven Gu carry it, each with a {@link RecastBehavior}: the two beast buffs (花豕蛊 / 蛮力天牛蛊), the
- * four Crash Gu and the Strength Qi Gu (力气蛊).
- *
- * <p>The effect simply grants the timed buff ({@link TimedEffects#grantBuff}) and returns. A beast buff is first
- * refused to a body holding Human Jun Strength ({@link MarkInterference}); beyond that the gate refuses only
- * while a stronger copy of the same effect runs (a weaker Gu would pay its cost for nothing); an equal or weaker
- * running copy is refreshed, a stronger Gu taking the weaker one's effect and strands. Inside the Gu's effect
- * cooldown the same strength adds its length; outside it the longer length wins ({@link #getNextDuration}). An
- * Amplify Effect Gu [功倍蛊] multiplies the length it adds and lays its Rule strands on the buff; a beast buff or a
- * Crash Gu's then adds the held beasts' duration bonus ({@code PathStrengthService.getDurationBonus}, the green
- * bull's ten seconds), which the Strength Qi Gu's never takes.
- *
- * <p>⚠ Each of them still declares its own feed tag. Sharing a behavior does not mean sharing a larder.
+ * 即时增益行为：授予限时增益，效果、时长、强度由注册定。
+ * <ul>
+ *   <li>七只蛊带此行为，各配 {@link RecastBehavior}：兽力[Beast Strength]增益花豕蛊[Flower Boar Gu]、
+ *       蛮力天牛蛊[Brute Force Longhorn Beetle Gu]，四种冲撞蛊，力气蛊[Strength Qi Gu]。</li>
+ *   <li>效果仅授予增益（{@link TimedEffects#grantBuff}）；兽力增益遇人力钧力流先拒（{@link MarkInterference}）；
+ *       门槛仅在同效果更强副本运行时拒绝，免弱蛊白付；相等或更弱副本被刷新，强蛊连弱蛊效果与丝取代。</li>
+ *   <li>效果冷却内同强度叠时长，冷却外取较长（{@link #getNextDuration}）；功倍蛊[Amplify Effect Gu]
+ *       倍增所加时长并挂其律道[Rule Path]丝；兽力、冲撞蛊增益再加所持兽时长
+ *       （{@code PathStrengthService.getDurationBonus}，青牛 10 秒），力气蛊不加。</li>
+ *   <li>⚠ 各蛊仍各声明补食标签：共用行为不等于共用食谱。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

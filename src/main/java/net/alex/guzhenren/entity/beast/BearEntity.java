@@ -12,17 +12,12 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A bear, one entity type per {@link BearSpecies}.
- *
- * <p>Combat alternates the four-legged swipe (hit frame at tick 9) with the rarer rear-up slam
- * (hit frame at tick 17, about one in three melee attacks); {@link #tickHeavyAttack} is stationary,
- * with the hit landing when the paw comes down. Daytime rests cycle sit, roll and back-scratch --
- * {@link #pickDaytimeAmbient} sits half the time, splitting the rest between roll and back-scratch --
- * nights lie down and sleep. Vanilla polar bear sounds stand in; the first-lock roar reuses the polar
- * bear warning sound.
- *
- * <p>{@link #isActiveHunter} is null-safe: {@code registerGoals} evaluates goals during the
- * {@code Mob} constructor, before species is set.
+ * 熊，每个 {@link BearSpecies} 一个实体类型。
+ * <ul>
+ *   <li>四足挥击（第 9 tick 命中）与较少的站立拍击（第 17 tick，约占近战三分之一）交替；拍击原地结算，掌落即中。</li>
+ *   <li>白天坐、翻滚、蹭背轮换（坐占半，余二均分），夜里趴下入睡；借北极熊音效，首锁吼叫用其警告音。</li>
+ *   <li>{@link #isActiveHunter} 容忍空值：{@code registerGoals} 在 {@code Mob} 构造器内、种类赋值前评估 AI 目标。</li>
+ * </ul>
  */
 
 public final class BearEntity extends BeastEntity {

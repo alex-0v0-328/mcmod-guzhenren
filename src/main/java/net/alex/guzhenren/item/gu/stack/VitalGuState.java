@@ -12,15 +12,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Vital Gu [本命蛊] binding a stack carries: the one reader and writer of the {@code VITAL_OWNER},
- * {@code VITAL_APERTURE} and {@code VITAL_TOKEN} data components. It asks nothing of the item, so any stack
- * answers; only a tended Gu ever gets bound, and {@link MortalGuItem} shows the mark.
- *
- * <p>A Vital Gu names its aperture by kind ({@code ApertureData.PRIMARY} or {@code SECOND}), never by
- * position, so the binding survives Hope Gu inserting a first aperture ahead of a lone second one wherever
- * the Gu sits: {@link #bind} stores the kind of the holder's index, {@link #getBoundIndex} maps it back. An
- * aperture has one Vital Gu: {@link #bind} also stamps a fresh token, and only the stack whose token the
- * store holds for that kind is the current one ({@link #isCurrentVital}); a replaced one is harmless.
+ * 物品的本命蛊绑定：{@code VITAL_OWNER}、{@code VITAL_APERTURE}、{@code VITAL_TOKEN} 三组件的唯一读写方。
+ * <ul>
+ *   <li>任何物品都能答；只有持续照顾型蛊[Tended Gu]会被绑定，{@link MortalGuItem} 显示标记。</li>
+ *   <li>按种类（{@code ApertureData.PRIMARY} / {@code SECOND}）而非位置认空窍[Aperture]：希望蛊[Hope Gu]把第一空窍插到
+ *       单独的第二空窍前，旧绑定仍有效；{@link #bind} 存索引的种类，{@link #getBoundIndex} 映射回索引。</li>
+ *   <li>每空窍一只：{@link #bind} 盖新令牌，与存储所记令牌相符者才是当前的（{@link #isCurrentVital}）；旧蛊无害。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -19,16 +19,14 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A killing move book [杀招书]: a right click learns [学会] its {@link KillingMove} and uses up the book, a creative
- * player's excepted ({@link ItemStack#consume}); a move already known refuses and keeps the book. Learning asks for
- * nothing else, not even an aperture.
- *
- * <p>Extends {@link Item} directly, not {@link GuItem}: a book has no rank or path and none of the Gu click
- * templates. The move's rules and services stay in {@code item.gu.killingmove}.
- *
- * <p>Both sides decide from the same synced {@code KillingMoveData}, so the client's swing matches the server's
- * answer. The tooltip lists the row: its main Gu, its partner and the blade factor; whether this player knows it is
- * a client-side line ({@code KillingMoveInput}), since an item's own tooltip has no player.
+ * 杀招[Killing Move]书。
+ * <ul>
+ *   <li>右键学会其 {@link KillingMove} 并耗书，创造不耗（{@link ItemStack#consume}）；已会拒绝、留书；别无门槛，
+ *       无需空窍[Aperture]。</li>
+ *   <li>直接继承 {@link Item} 而非 {@link GuItem}：无转、无道[Path]、无蛊点击模板，杀招规则与服务在
+ *       {@code item.gu.killingmove}；两端按已同步 {@code KillingMoveData} 判定，挥手与服务端一致；提示框列主蛊、辅蛊、
+ *       刃伤倍率，是否已会由客户端另加一行（{@code KillingMoveInput}），因物品提示框拿不到玩家。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

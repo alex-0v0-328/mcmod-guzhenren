@@ -9,14 +9,14 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only runtime writer of Path [流派] progress: attainment and the bare path marks [道痕].
+ * 流派进度（造诣与纯道痕[Path Marks]）的唯一运行时写入方。
  *
- * <p>Static service over the {@code path_data} attachment; reads take {@link Player}, writes take
- * {@link ServerPlayer}. Bare marks are whole marks [条] and strands [丝] on the body [肉体] that do nothing; the
- * command writes them, one counter at a time, and nothing else does yet. Marks that come with an effect -- a race,
- * a physique, a Gu -- are {@link PathEffectService}'s, never bare. {@link #getMarks} is a path's whole total, both
- * halves summed per counter on every read. ⚠ {@code attainment} is a GRADE, so a race grant that shifts it up is
- * never "set" -- it MOVES, and the revoke shifts back down; nothing can tell a granted master from an earned one.
+ * <ul>
+ *   <li>纯道痕是肉体上不起作用的条与丝，目前只有命令写入，一次写一个计数；随效果来的道痕（种族、体质、蛊）归
+ *       {@link PathEffectService}，从不算纯道痕。</li>
+ *   <li>{@link #getMarks} 是一条道[Path]的完整总数，每次读取时两半按计数相加。</li>
+ *   <li>⚠ {@code attainment} 是等级：种族授予时上移、撤销时下移，从不「设置」；无法区分授予的大师与修来的大师。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

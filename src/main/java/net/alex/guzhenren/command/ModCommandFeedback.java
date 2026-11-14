@@ -5,12 +5,12 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 /**
- * Every reply a command sends, in one voice: green for what changed, red for what did not.
+ * 命令回复的唯一出口：绿色表示已改变，红色表示未改变。
  *
- * <p>The sole channel for command output. ⚠ Color carries exactly one meaning -- the category of the
- * reply -- and never encodes a domain, a rank [转数], or a severity. A red line still goes out through
- * {@code sendSuccess}, never {@code sendFailure}, because a partial refusal is a result, not a
- * failure, and {@code sendFailure} drops the {@code [GZR]} tag.
+ * <ul>
+ *   <li>⚠ 颜色只表示回复类别，不编码领域、转数或严重程度。</li>
+ *   <li>红色也走 {@code sendSuccess}，不用 {@code sendFailure}：部分拒绝非失败；后者另丢 {@code [GZR]} 标签。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -7,15 +7,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One mind pool of one {@link MindPoolType}; leaf record nested inside {@link MindData};
- * immutable, standard {@code DEFAULT}-codec-stream shape.
+ * 一种 {@link MindPoolType} 的脑海池，叶子 record，嵌在 {@link MindData} 内。
  *
- * <p>⚠ Not self-clamping: only some wisdom types may burst past their cap, so the clamp lives in {@code
- * MindService} and every write passes through there. ⚠
- * {@code burstAt()} divides before multiplying ({@code max / DENOM * NUMER}) and saturates the final
- * product, preserving the intended floor-before-multiply ratio without overflow; it never falls below
- * {@code max}, so a full pool is never overflowing, whatever its cap. ⚠ {@code withSlept()}
- * restores only HALF the deficit when the buffer was used -- never reduce {@code current}.
+ * <ul>
+ *   <li>⚠ 不自行夹紧：只有部分池类型可超上限，夹紧在 {@code MindService}，每次写入都经过。</li>
+ *   <li>⚠ {@code burstAt()} 先除后乘（{@code max / DENOM * NUMER}），末积饱和，保比例不溢出；不低于 {@code max}，
+ *       满池不算超限。</li>
+ *   <li>⚠ 用过缓冲时 {@code withSlept()} 只补缺额一半；从不降 {@code current}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

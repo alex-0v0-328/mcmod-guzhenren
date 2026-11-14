@@ -13,16 +13,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Forwards hard impacts to the wire as camera shakes [震屏]: the gameplay posts, this class sends each player near
- * the impact an {@link ImpactShakePayload} already scaled by distance ({@link #getFalloff}: full at the impact,
- * nothing at the radius).
- *
- * <p>{@link #onPlungeLanded}: the plunger and everyone within {@link #getPlungeRadius} of the landing shake
- * {@link #getPlungeStrength} degrees over {@link #PLUNGE_TICKS}, both growing with the landing's impact power (2 to
- * 6): 16 to 32 blocks, 0.25° to 0.65°. {@link #onSecondStageCrash}: everyone within {@link #CRASH_RADIUS} of a
- * second-stage crash but the flier shakes up to {@link #CRASH_STRENGTH} over {@link #CRASH_TICKS}; the flier's own
- * client shook the moment its physics crashed ({@code net.alex.guzhenren.client.event.ImpactShakes}), a round trip
- * sooner, with the same numbers.
+ * 把重击转发上线为震屏。
+ * <ul>
+ *   <li>玩法侧发事件，本类向附近玩家发按距离衰减的 {@link ImpactShakePayload}（{@link #getFalloff}：撞点满、半径处
+ *       零）；{@link #onPlungeLanded}：坠击者及落点 {@link #getPlungeRadius} 内所有人震 {@link #getPlungeStrength} 度，
+ *       持续 {@link #PLUNGE_TICKS}；均随落地冲击力（2 到 6）增长：16 到 32 格、0.25° 到 0.65°。</li>
+ *   <li>{@link #onSecondStageCrash}：二段飞行[Second-Stage Flight]撞毁处 {@link #CRASH_RADIUS} 内除飞行者外最多震
+ *       {@link #CRASH_STRENGTH}，持续 {@link #CRASH_TICKS}；飞行者本机在物理撞毁时已震
+ *       （{@code net.alex.guzhenren.client.event.ImpactShakes}），早一个往返，数值相同。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

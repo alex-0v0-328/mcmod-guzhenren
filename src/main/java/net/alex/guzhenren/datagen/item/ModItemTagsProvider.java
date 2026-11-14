@@ -18,16 +18,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the item tags, including the larders a Gu feeds from.
+ * 物品标签。
  *
- * <p>Extends {@link net.minecraft.data.tags.ItemTagsProvider}. Defines the feed tags ({@code boar_feed},
- * {@code bear_feed}, {@code jin_feed}, {@code liquor_feed}, etc.), the zombie feed tag, and the
- * all-out-effort feed tag, and nests the common {@code c:ingots/steel} and {@code c:storage_blocks/steel} tags
- * the Steel Tendon Gu eats from under the loader's {@code c:ingots} and {@code c:storage_blocks}. Every tag
- * references the registered item or a vanilla item, never a raw id. This mod's items name their own tags on their
- * {@link ItemRegistrar} registration chain (the liquors, the jades, the steel, the Advancement Icon [进度图标] hidden
- * from recipe viewers); those are written first, each tag's members in registration order, and the vanilla
- * members here after.
+ * <ul>
+ *   <li>蛊食物标签（{@code boar_feed}、{@code bear_feed}、{@code jin_feed}、{@code liquor_feed} 等）、僵尸与全力以赴
+ *       蛊[All-Out Effort Gu]食物标签：只引用已注册或原版物品，不写裸 id。</li>
+ *   <li>钢筋蛊[Steel Tendon Gu]所食通用 {@code c:ingots/steel}、{@code c:storage_blocks/steel} 嵌进加载器
+ *       {@code c:ingots}、{@code c:storage_blocks}。</li>
+ *   <li>本模组物品在 {@link ItemRegistrar} 注册链声明自身标签（酒、玉、钢、对配方查看器隐藏的进度图标），先写，各标签内
+ *       按注册顺序；原版成员随后写在此。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

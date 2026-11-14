@@ -22,11 +22,12 @@ import net.neoforged.neoforge.common.loot.LootTableIdCondition;
 import yesman.epicfight.registry.entries.EpicFightItems;
 
 /**
- * Writes the global loot modifiers: a vanilla Blue Orchid broken with a hoe also drops one Moon Orchid Petals
- * [月兰花瓣], on top of the flower itself; {@code no_skill_books} strips Epic Fight's skill books from all loot.
+ * 全局战利品修改器。
  *
- * <p>The petals ride NeoForge's {@code neoforge:add_table}: the modifier matches the target table and the tool, then
- * rolls the small table {@link Subtables} writes. The skill books go through this mod's {@code RemoveItemLootModifier}.
+ * <ul>
+ *   <li>锄破原版兰花另掉 1 份月兰花瓣：{@code neoforge:add_table} 匹配目标表与工具后掷 {@link Subtables} 小表。</li>
+ *   <li>{@code no_skill_books} 经本模组 {@code RemoveItemLootModifier} 从全部战利品去掉 Epic Fight 技能书。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

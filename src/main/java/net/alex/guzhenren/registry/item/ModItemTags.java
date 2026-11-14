@@ -7,13 +7,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
 /**
- * The item tags this mod declares, most of them the larders a Gu feeds from.
+ * 物品标签，多为补食料，按所喂蛊族命名（{@code boar_feed} 等）。
  *
- * <p>Tag-key holder (not a DeferredRegister): each {@link TagKey} is a feed larder named after the Gu
- * family it feeds ({@code boar_feed}, {@code liquor_feed}, ...). A datapack retunes membership; the key
- * is the contract. {@link #INGOTS_STEEL} and {@link #STORAGE_BLOCKS_STEEL} are the loader's {@code c:} convention
- * tags, which other mods' steel joins too, so their steel feeds the Steel Tendon Gu [钢筋蛊] as well. The regions
- * follow {@code GuPath}'s order, as {@code ModItems} does.
+ * <ul>
+ *   <li>数据包可改成员，键名才是契约；region 顺序随 {@code GuPath}，同 {@code ModItems}。</li>
+ *   <li>{@link #INGOTS_STEEL}、{@link #STORAGE_BLOCKS_STEEL} 是 {@code c:} 约定标签，含他模组的钢，
+ *       同样喂钢筋蛊[Steel Tendon Gu]。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

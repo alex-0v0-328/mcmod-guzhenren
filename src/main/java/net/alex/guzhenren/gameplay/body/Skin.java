@@ -5,22 +5,17 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The body's skin [皮]: native [原生], a jade skin a Strength Path defensive Gu lends for a while, or a bronze
- * [铜皮] or iron [铁皮] skin, rank one to four, one leaves for good.
+ * 肉身的皮：原生、力道防御蛊暂借的玉皮，或蛊永久留下的一至四转铜皮、铁皮。
  *
- * <p>Closed vocabulary enum, one slot on {@code BodyData}: a player wears one skin at a time. Every skin
- * carries its family [皮系], its rank [转], its flat damage reduction [固定减免], the points taken off every
- * hit the skin can turn ({@link #reduce}), and its strength capacity bonus [承受力] in strength points, which
- * {@code StrengthService.getNormalCapacity} adds while the skin is worn. A jade skin adds none: the capacity is read
- * between heartbeats while a timed skin is only shed on one, so a timed bonus would outlive the skin by up to a
- * second. The numbers are this enum's, a jade skin's duration the item registration's. The jade family is the
- * timed one ({@link #isTimed}): the heartbeat sheds it when it runs out; the others are permanent and survive a
- * respawn.
- *
- * <p>{@link #canReplace} is the gate: any skin goes over a native one; a permanent skin also goes over a lower
- * rank of its own family (a rank-three bronze skin over a rank-one bronze skin), never over another family's;
- * a jade skin goes over nothing but a native skin, so neither jade Gu stacks on, replaces, nor extends the
- * other, and no Gu replaces a jade skin before it runs out.
+ * <ul>
+ *   <li>{@code BodyData} 一槽，一次一层；数值归本枚举：皮系、转、固定减免（每次可抵挡伤害的扣除点数，
+ *       {@link #reduce}）、承受力加成（力量点[Strength Points]，穿着时 {@code StrengthService.getNormalCapacity}
+ *       加上）。</li>
+ *   <li>玉皮不加承受力：承受力在心跳间读取而限时皮只在心跳蜕下，否则加成会多留至多 1 秒；玉皮时长归物品注册。</li>
+ *   <li>玉皮系限时（{@link #isTimed}），耗尽由心跳蜕下；其余永久，重生保留。</li>
+ *   <li>{@link #canReplace}：任何皮可盖原生；永久皮只盖同系低转（三转铜皮盖一转铜皮）；玉皮只盖原生，两种玉皮类蛊互不叠
+ *       加、替换、延长，耗尽前无蛊可替。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

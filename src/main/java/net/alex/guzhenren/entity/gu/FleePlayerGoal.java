@@ -10,16 +10,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The escape reaction shared by flying Gu with a landing and rest lifecycle.
- *
- * <p>A non-creative, non-spectator player within six blocks is a threat. The goal holds until that
- * player is farther than ten blocks; {@link #canContinueToUse} re-checks every tick, since a player
- * who switches to creative or spectator, or leaves the dimension, is no longer the threat the goal
- * started from. The escape point uses {@link AirAndWaterRandomPos} because the normal ground-only
- * random position helper returns no point for a flying mob in open air. A resting or landing Gu
- * takes off before the escape navigation starts, so a threat cannot leave the entity stuck in a
- * ground phase. A search that finds no course, a course toward the threat or no path, and a
- * {@link #tick} repath that fails, back off for 10 to 20 ticks before the next attempt.
+ * 带降落歇息的飞行蛊共用的逃跑反应。
+ * <ul>
+ *   <li>威胁：6 格内非创造非旁观玩家；远于 10 格止，{@link #canContinueToUse} 每 tick 重查，切创造、旁观或换维度即解
+ *       除。</li>
+ *   <li>逃跑点用 {@link AirAndWaterRandomPos}，地面版工具在空中找不到点；歇息或降落中先起飞再逃，免卡地面。</li>
+ *   <li>无路线、路线朝威胁、无路径或 {@link #tick} 重寻路失败，退避 10～20 tick。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

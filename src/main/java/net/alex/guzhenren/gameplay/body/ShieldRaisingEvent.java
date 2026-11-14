@@ -5,10 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus as {@link ShieldService#raise} is about to lay a shield [护盾] layer, so a trait from
- * above the body can change its points before the layer is built: the stone turtle's [石龟负力] half again
- * ({@code BeastTraitEvents}). The layer is laid with whatever {@link #getPoints} holds once dispatch returns, never
- * below zero; its length stays the caller's.
+ * {@link ShieldService#raise} 建层前发布的事件：上层特性可改点数，如石龟兽力[Beast Strength] ×1.5
+ * （{@code BeastTraitEvents}）；返回后按 {@link #getPoints} 铺层，不低于 0，时长归调用方。
  *
  * @author Alex
  * @version 1.0.0

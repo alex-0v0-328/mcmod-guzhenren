@@ -31,23 +31,18 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@code /gzr aperture}: writes the holder's apertures [空窍]; the B panel reads them.
+ * {@code /gzr aperture}：写持有者的空窍[Aperture]，B 面板读取。
  *
- * <p>Guarded by a {@code requires(sourceAwakened)} gate (presentation only) AND a per-target gate (data
- * protection). Every value is a literal, so the tree carries its own suggestions and a word like
- * {@code ten_extreme:verdant_great_sun} needs no argument type. {@code rank set rank:<one..five>|up|down} may be
- * followed by {@code stage set stage:<init..peak>|up|down}, and both land in one write; each tree word carries
- * its operator, so nothing re-parses it. An optional {@code first|second} before {@code [targets]} picks the
- * aperture (default the first); {@code essence refill} without it fills every aperture, the distilled pool of
- * a distilling one included.
- *
- * <p>{@code talent set} acts on the first aperture alone: a grade re-rolls its base essence and drops any
- * Ten Extremes physique, and {@code ten_extreme:<physique>} stores that physique, whose change event sets
- * the full base. {@code essence base} therefore stops below the full base and refuses a Ten Extremes first
- * aperture.
- *
- * <p>⚠ Readers find the selector by walking {@code context.getNodes()} ({@link #getSelector}); its literals are
- * matched by name, so no other node on a selector-reading path may reuse them.
+ * <ul>
+ *   <li>两道门槛：{@code requires(sourceAwakened)} 只管显示，逐目标门槛保护数据。</li>
+ *   <li>值皆字面量，自带补全，{@code ten_extreme:verdant_great_sun} 类词无需参数类型；每词自带运算，不二次解析。</li>
+ *   <li>{@code rank set rank:<one..five>|up|down} 后可接 {@code stage set stage:<init..peak>|up|down}，一并写入。</li>
+ *   <li>{@code [targets]} 前可选 {@code first|second} 选空窍，默认第一空窍；不带它的 {@code essence refill}
+ *       填满所有空窍真元[Essence]及精炼中空窍的精炼真元池。</li>
+ *   <li>{@code talent set} 只改第一空窍：设资质[Aptitude]品级重掷基础真元、去十绝体；{@code ten_extreme:<physique>}
+ *       存体质，其变更事件设满基础真元，故 {@code essence base} 停于满值下，拒绝第一空窍为十绝体者。</li>
+ *   <li>⚠ {@link #getSelector} 遍历 {@code context.getNodes()} 按名匹配选窍词；同路径其他节点勿复用这两个字面量。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -84,7 +79,7 @@ public final class CmdAperture {
                 (word, stage) -> withSelector(Commands.literal(word), context -> grade(context, rank, stage)));
     }
 
-    /** {@code <name> set <name>:<value>|up|down}, each word built by {@code word} around its operator. */
+    /** {@code <name> set <name>:<value>|up|down}，每个词由 {@code word} 围绕其运算构造。 */
     private static <E extends NamedEnum> ArgumentBuilder<CommandSourceStack, ?> buildGrade(
             String name, E[] settable, BiFunction<E, Integer, E> shift,
             BiFunction<String, UnaryOperator<E>, ArgumentBuilder<CommandSourceStack, ?>> word) {

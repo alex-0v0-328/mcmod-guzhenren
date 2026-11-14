@@ -13,12 +13,12 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * The container menus this mod registers.
+ * 本模组的容器菜单。
  *
- * <p>DeferredRegister holder: owns {@link ApertureStorageMenu} (the Gu vault, paged) and
- * {@link RefinementMenu} (the 炼蛊 furnace), both opened client-intent-only from the B panel, and
- * {@link SoulTradeMenu}, opened by right-clicking a soul trader; its type reads the offers from the menu-open
- * payload.
+ * <ul>
+ *   <li>{@link ApertureStorageMenu}（分页蛊库）、{@link RefinementMenu}（炼蛊炉）只由 B 面板的客户端请求打开。</li>
+ *   <li>{@link SoulTradeMenu}：右键灵魂交易商打开，从打开 payload 读报价。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

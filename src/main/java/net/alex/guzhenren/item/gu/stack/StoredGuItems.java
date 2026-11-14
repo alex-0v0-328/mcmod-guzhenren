@@ -11,10 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The item side of {@link StoredGu}: answers aperture storage's questions from the Gu item classes. A store holds
- * mortal Gu ({@link MortalGuItem}); paths are {@link GuItem}'s, the Vital Gu binding {@link VitalGuState}'s.
- *
- * <p>The mod's entry point hands one to {@code ApertureStorageService.setStoredGu}.
+ * {@link StoredGu} 的物品侧，答空窍[Aperture]存储的查询；入口类交给 {@code ApertureStorageService.setStoredGu}。
+ * 只存凡蛊（{@link MortalGuItem}）；道[Path]取自 {@link GuItem}，本命绑定取自 {@link VitalGuState}。
  *
  * @author Alex
  * @version 1.0.0

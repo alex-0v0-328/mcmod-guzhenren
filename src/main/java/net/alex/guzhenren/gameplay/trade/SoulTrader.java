@@ -7,13 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * The trading NPCs of the Treasure Yellow Heaven [宝黄天]. Each registers its own entity type under
- * {@link #getId()} (bear precedent: one NPC, one entity type) and shares {@link SoulTraderEntity}; the renderer
- * picks model and texture separately, because one soul look may stand for many NPCs.
- *
- * <p>{@link #getOffers()} is built on demand: the enum is loaded while entity types register, before any item
- * exists. {@code TEST_TRADE_GU_IMMORTAL} is the first, test-only trader: ten primeval
- * stones for 64 porkchops, and three stacks of dirt for one White Boar Gu, handed over wild like a caught Gu.
+ * 宝黄天[Treasure Yellow Heaven] 的交易 NPC。
+ * <ul>
+ *   <li>各以 {@link #getId()} 注册实体类型（同熊：一 NPC 一实体类型），共用 {@link SoulTraderEntity}；渲染器另选模型贴
+ *       图，一种魂体外观可代多个 NPC；{@link #getOffers()} 按需构建：注册实体类型时已加载本枚举，物品尚无。</li>
+ *   <li>{@code TEST_TRADE_GU_IMMORTAL}：首个测试交易者；10 元石[Primeval Stone] 换 64 生猪排，3 组泥土换 1 只白豕
+ *       蛊[White Boar Gu]（如捕获般野生）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

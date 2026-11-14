@@ -12,30 +12,20 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only runtime writer of what an Aperture [空窍] holds, including the Vital Gu [本命蛊] bound to each.
- * {@code setVital} also rewrites the aperture's primary path via {@link ApertureService#setPrimaryPath}
- * -- binding a Gu IS what sets primary path [主修] (the store is not synced; the aperture is).
- *
- * <p>Knows the Gu it holds only through the {@link StoredGu} the entry point sets ({@link #setStoredGu}), so the
- * aperture does not depend on the item package; binding a Vital Gu reads that Gu's declared path from it.
- * ⚠ Writes NEVER go through {@code ApertureService.store}:
- * the {@code ApertureChangedEvent} and its max-health refresh hang off that. ⚠
- * {@code setPrimaryPath} no-ops when unchanged; keep the call, or a rebind loses the path. A Vital Gu
- * becomes its aperture's one current Vital Gu when it lands in the slot ({@code setVital}) or a refinement
- * passes the binding on ({@link #adoptVital}): its token replaces the kind's token in the store.
- *
- * <p>{@link #load(Player, int)} counts an aperture's stored Gu and its Vital Gu together against
- * {@code MAX_LOAD}. A write is refused only when it ends above both {@code MAX_LOAD} and the load it started
- * from, so an over-full store (a rank that fell) can still be emptied; {@code isOverLoad} counts the starting
- * load only when the result is over the cap. {@link #setSlot} writes one stored Gu back, the per-second settle's write.
- *
- * <p>{@link #shiftForFirstAperture} is the storage-side twin of
- * {@link ApertureData#insertFirst}: when Hope Gu opens the first aperture ahead of a lone second one, the
- * aperture posts a {@code FirstApertureInsertedEvent} and {@link ApertureStorageEvents} slides every stored list
- * and the Vital Gu slot up one position.
- *
- * <p>The one mutable static, {@code storedGu}, is a seam: the entry point sets it once at mod construction and nothing
- * replaces it during play.
+ * 空窍[Aperture]所存蛊（含本命蛊）的唯一运行时写入方。
+ * <ul>
+ *   <li>本命蛊落槽（{@code setVital}）或炼蛊传绑定（{@link #adoptVital}）即成唯一现任，令牌顶替该种类旧令牌；落槽经
+ *       {@link ApertureService#setPrimaryPath} 设主修（空窍同步，存储不同步）。</li>
+ *   <li>只凭 {@link StoredGu} 识蛊，空窍不依赖物品包，绑本命蛊时经它读道[Path]；唯一可变静态字段 {@code storedGu}
+ *       是接缝，入口类于 mod 构造时经 {@link #setStoredGu} 设一次，此后不换。</li>
+ *   <li>⚠ 写入绝不经 {@code ApertureService.store}：那里挂着 {@code ApertureChangedEvent} 及最大生命刷新。</li>
+ *   <li>⚠ {@code setPrimaryPath} 值不变即不做事；仍须调用，否则重绑丢主修。</li>
+ *   <li>{@link #shiftForFirstAperture} 即 {@link ApertureData#insertFirst} 的存储侧：希望蛊[Hope Gu]插第一空窍发
+ *       {@code FirstApertureInsertedEvent}，{@link ApertureStorageEvents} 据此调用。</li>
+ *   <li>{@link #load(Player, int)} 合计所存蛊与本命蛊，对照 {@code MAX_LOAD}；拒写规则让过满（转数跌落）仍可清空，
+ *       {@code isOverLoad} 超上限才算写前负载。</li>
+ *   <li>{@link #setSlot} 写回一只所存蛊，供每秒结算。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -131,7 +121,7 @@ public final class ApertureStorageService {
         return commit(player, aperture, get(player).withPage(aperture, from, page));
     }
 
-    /** Stores {@code next} unless it overloads {@code aperture} past both the cap and the current load. */
+    /** 写入 {@code next}，除非 {@code aperture} 负载因此同时超上限与当前负载。 */
     private static boolean commit(ServerPlayer player, int aperture, ApertureStorage next) {
         int after = load(player, next, aperture);
         if (after > MAX_LOAD && after > load(player, get(player), aperture)) return false;

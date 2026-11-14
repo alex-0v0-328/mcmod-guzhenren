@@ -6,12 +6,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * The three things nourishing [温养] needs from the primeval stones [元石] a player carries, so the aperture does not
- * depend on the item package that keeps them: {@link #canAfford} asks whether essence and stones together cover a
- * cost, {@link #topUp} runs the top-up line, and {@link #spend} pays a cost, essence first, then stones.
+ * 元石[Primeval Stone]袋：温养[Nourish]对随身元石的三项需求，使空窍[Aperture]不依赖存放元石的物品包。
  *
- * <p>The item side fills it: the mod's entry point hands {@code ApertureNourishService.setStonePurse} the one built
- * on {@code PrimevalStoneSupply}, before any player can nourish.
+ * <ul>
+ *   <li>{@link #canAfford} 问真元[Essence]加元石够否，{@link #topUp} 补足线，{@link #spend} 先真元后元石付款。</li>
+ *   <li>入口类在可温养前把 {@code PrimevalStoneSupply} 所建实例交给 {@code ApertureNourishService.setStonePurse}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

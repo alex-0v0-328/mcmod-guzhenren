@@ -8,11 +8,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Runs {@link FlightService#tick}, then {@link SecondStageService#tick}, at the end of every server player tick: the
- * Gu flight settles first, so the stage sees this tick's flight.
- *
- * <p>The event handlers live here, the rules behind them in the two services; a logout drops the player's ram
- * cooldowns ({@link SecondStageService#forget}).
+ * 飞行的事件处理器，规则在两个服务。每个服务端玩家 tick 末先跑 {@link FlightService#tick} 再跑
+ * {@link SecondStageService#tick}，蛊飞行先结算，二段飞行[Second-Stage Flight]才看到本 tick 的飞行；登出清撞人冷却
+ * （{@link SecondStageService#forget}）。
  *
  * @author Alex
  * @version 1.0.0

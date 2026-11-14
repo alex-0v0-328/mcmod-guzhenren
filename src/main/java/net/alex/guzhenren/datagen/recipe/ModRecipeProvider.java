@@ -30,19 +30,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the refinement [炼蛊] recipes, each one drawn as an ASCII picture of the grid, the furnace and blast
- * furnace recipes that cook a Gu material into another, and the steel's blast-furnace-only ingot and its block:
- * steel is iron cooked once more, which an ordinary furnace cannot do ({@link #addBlasting}).
+ * 本模组配方。
  *
- * <p>Extends {@link net.minecraft.data.recipes.RecipeProvider}. Each recipe is transcribed verbatim
- * from an ASCII drawing ({@code '.'} empty, {@code ' '} cut corner), so a wrong corner, a short row
- * or an unkeyed letter fails datagen. A letter in {@code key} is its own ingredient in every cell it
- * fills; a letter in {@code shared} is ONE ingredient that may sit in any of the cells drawn with it.
- * Refinement output lands under {@code data/guzhenren/recipe/refinement/}, cooking and storage output directly
- * under {@code data/guzhenren/recipe/}.
- *
- * <p>⚠ The drawing is transcribed verbatim, so a wrong corner, a short row or an unkeyed letter fails
- * datagen. The layout and every number in it are Alex's.
+ * <ul>
+ *   <li>蛊方各画成网格 ASCII 图并逐字转录（{@code '.'} 空格，{@code ' '} 切角）；{@code key} 字母所填每格各为一份配料，
+ *       {@code shared} 字母是同一份配料，可放在画了它的任一格。</li>
+ *   <li>⚠ 角画错、行太短、字母没配料都让数据生成失败；图样布局与其中每个数字都由 Alex 定。</li>
+ *   <li>熔炉、高炉把一种蛊材烧成另一种；钢锭只走高炉，另有钢块：钢是铁再烧一次，普通熔炉不行
+ *       （{@link #addBlasting}）。</li>
+ *   <li>炼蛊输出在 {@code data/guzhenren/recipe/refinement/}，烧炼与存储块直接在 {@code data/guzhenren/recipe/}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

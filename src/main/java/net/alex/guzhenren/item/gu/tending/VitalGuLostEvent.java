@@ -7,12 +7,11 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus when a Gu bound as someone's Vital Gu [本命蛊] dies -- starved,
- * exhausted or ruined -- wherever it was held. {@link #getOwner} may be offline; the subscriber decides
- * whether to charge the owner now or park the stack until the next login. Dispatch is synchronous.
- *
- * <p>The item posts and does not know who listens: the penalty lives in the lifecycle, above the items,
- * and calling up into it would close a dependency cycle.
+ * 本命蛊死亡事件：绑定为本命的蛊无论在哪饿死、力竭或损毁，都在游戏事件总线同步发布。
+ * <ul>
+ *   <li>{@link #getOwner} 可能离线；订阅方决定立即惩罚，还是把物品暂存到下次登录。</li>
+ *   <li>物品只发布、不知监听者：惩罚在物品之上的生命周期层，向上调用会成依赖环。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

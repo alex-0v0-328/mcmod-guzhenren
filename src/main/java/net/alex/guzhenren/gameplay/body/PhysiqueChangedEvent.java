@@ -5,12 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link BodyService} changes a player's physiques [体质] or
- * undead state -- add, remove, revive, temp zombie, zombie. Dispatch is synchronous, so a subscriber has
- * run before the write returns.
- *
- * <p>The body posts and does not know who listens: the attack modifier lives above it, in
- * {@code gameplay.attribute}, and calling up into it would close a dependency cycle.
+ * {@link BodyService} 改变体质或不死状态（增、删、复活、临时僵尸、僵尸）后发布的事件；同步分发，写入返回时订阅者已执
+ * 行。攻击修饰符在上层 {@code gameplay.attribute}，向上调用会成依赖环，故肉身只发布。
  *
  * @author Alex
  * @version 1.0.0

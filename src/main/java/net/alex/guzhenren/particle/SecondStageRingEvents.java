@@ -10,11 +10,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Drives {@link SecondStageRingEmitter}: the sonic boom on each {@link SecondStageStartedEvent}, the crash ring on
- * each server-side {@link SecondStageCrashEvent}, the sound barrier rings at the end of every player tick, and
- * dropping their trail on logout and on a dimension change.
- *
- * <p>The event handlers live here, the emission behind them in {@link SecondStageRingEmitter}.
+ * {@link SecondStageRingEmitter} 的事件入口：玩家 tick 末推进音障环，登出或换维度时丢弃其轨迹。
+ * 每个 {@link SecondStageStartedEvent} 发音爆环，每个服务端 {@link SecondStageCrashEvent} 发撞击环。
  *
  * @author Alex
  * @version 1.0.0

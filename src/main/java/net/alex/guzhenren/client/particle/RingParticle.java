@@ -26,62 +26,43 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 /**
- * The reusable shockwave ring [激波环] for speed- and force-feel feedback: Alex's {@link #FRAME_COUNT}
- * hand-drawn rings played in sprite-list order, one particle per drop (the L2 ring-texture test pins the
- * count against the datagen'd sprite lists). Every ring blooms small-to-large where it was planted: through
- * {@code RingConeEmitter}, the dash trail rides {@code shockwave_ring} along the dash path and each area impact
- * [范围冲击] sends one {@code area_impact_ring} [范围冲击环] from the cone's tip; through
- * {@code SecondStageRingEmitter}, each entry into
- * second-stage flight [二段飞行] opens one {@code sonic_boom_ring} [音爆环], and the flight forms
- * {@code barrier_ring} [音障环] at its leading face while it stays fast. Each frame's world size derives from its own
- * canvas width and the type's largest span ({@link RingGeometry#scaleForWidth(int, float)}):
- * {@link RingGeometry#LARGEST_RING_SPAN} for the trails, {@link #SONIC_BOOM_SPAN} for the sonic boom, whose
- * pixels read coarser for it. The quad size lerps toward the next frame every tick ({@link #nextQuadSize}), so the
- * bloom reads smooth instead of stepping.
+ * 速度感与力感反馈用的通用激波环粒子。
  *
- * <p>Every ring builds its plane perpendicular to the spawn velocity ({@link #spawnDirection}), tilting toward the
- * camera by {@link RingGeometry#MIN_OPENING_DEGREES} only when the plane would be edge-on. New callers register a
- * type in {@code ModParticles}, list the rings in the datagen provider, and map the type to
- * {@link #createDashTrail(SpriteSet)}, {@link #createSonicBoom(SpriteSet)}, {@link #createBarrierRing(SpriteSet)} or
- * {@link #createAreaImpactRing(SpriteSet)}.
- *
- * <p>A dash-trail ring ({@link #dashTrailRing}) is skipped by the dasher's own first-person camera: the
- * trail is for third-person and bystanders. {@link #noteLocalDash(int)} arms
- * {@link #DASH_SELF_HIDE_TICKS} -- the burst length plus one ring life including its linger -- and
- * {@code ownDashHiddenNow} bounds both ends of the window, because a world change resets the client
- * player's tickCount.
- *
- * <p>⚠ {@link #RING_LINGER_TICKS} lets a ring hold its last frame before despawning, or the completed
- * bloom never reads. How a ring leaves after the bloom is its {@link Exit}: the dash rings
- * {@link Exit#HOLD} full bright, the sonic boom {@link Exit#FADE}s through the linger, and a sound
- * barrier ring {@link Exit#SPREAD}s: over {@link #SPREAD_LINGER_TICKS} after its largest frame, half a second from
- * the full bloom to gone, it widens to {@link #SPREAD_GROWTH} times that frame, full bright until
- * {@link #SPREAD_FADE_START} of the way and fading out over the rest, so the rings second-stage flight leaves behind
- * dissolve outward. An area impact ring {@link Exit#SWEEP}s: it blooms to {@link #AREA_IMPACT_SPAN} while it
- * travels -- it moves only for its first {@link RingConeEmitter#AREA_IMPACT_TRAVEL_TICKS} ticks, the bloom, carrying
- * the speed that ends it at the cone's end -- then stands there and keeps widening at the bloom's own rate, one
- * frame step a tick ({@link RingGeometry#getSweepSize}), fading out over {@link #AREA_IMPACT_LINGER_TICKS} plus one.
- * Every other ring drifts its whole life. The fade and the
- * spread both read the exit progress ({@link RingGeometry#getExitProgress}) with the partial tick, so they run
- * smooth between ticks. ⚠ {@link #tick()} reads the age AFTER the increment, so the last frame is applied exactly
- * once and never overstepped; mixing the two sides is an off-by-one crash. ⚠ In {@code applyFrame} the
- * denominator is {@code FRAME_COUNT - 1}, NOT {@code lifetime - 1}: only the frame count lands exactly on frames 0
- * to n-1 once the linger decouples the lifetime from it.
- *
- * <p>⚠ It renders through {@link #ADDITIVE_GLOW} -- additive, two-sided, full bright -- because the
- * one-pixel white stroke all but disappears on an alpha-blended sheet. 1.21.1 has no {@code end()} hook on
- * {@link ParticleRenderType}, so nothing in it may leak to the next type: blend and depth mask are re-set by
- * every vanilla {@code begin}, culling is never touched (the quad is emitted two-sided instead), and the
- * atlas filter stays at the vanilla default. The deprecated {@code TextureAtlas.LOCATION_PARTICLES} id is
- * bound because vanilla's own particle types bind it and there is no replacement.
- *
- * <p>{@link #render} emits two quads with opposite winding (8 vertices), so the ring shows from both sides
- * without touching the global cull state; {@code QUADS} groups vertices four by four, and corner UVs stay
- * pinned to their corners on the reversed side.
- *
- * <p>The one mutable static, {@code localDashHiddenUntilTick}, is the local player's own tick stamp for hiding the
- * self dash ring; the client has one local player, and the window is bounded at both ends, so a stamp left by an
- * older player entity hides nothing.
+ * <ul>
+ *   <li>Alex 手绘 {@link #FRAME_COUNT} 帧，依 sprite 列表播放，每次投一个，落点处由小到大绽放；L2 环贴图测试钉住帧数与
+ *       数据生成的 sprite 列表；平面垂直于生成速度（{@link #spawnDirection}），仅侧对时向镜头倾斜
+ *       {@link RingGeometry#MIN_OPENING_DEGREES}。</li>
+ *   <li>{@code RingConeEmitter}：冲刺拖尾沿路径放 {@code shockwave_ring}，每次范围冲击从锥尖放一个
+ *       {@code area_impact_ring}（范围冲击环）；{@code SecondStageRingEmitter}：每次进入二段飞行[Second-Stage Flight]开
+ *       一个 {@code sonic_boom_ring}（音爆环），保持高速时前沿成 {@code barrier_ring}（音障环）。</li>
+ *   <li>帧尺寸由画布宽与类型最大跨度算出（{@link RingGeometry#scaleForWidth(int, float)}）：拖尾用
+ *       {@link RingGeometry#LARGEST_RING_SPAN}，音爆用 {@link #SONIC_BOOM_SPAN}，像素更粗；每 tick 向下一帧插值
+ *       （{@link #nextQuadSize}），绽放不跳格。</li>
+ *   <li>新类型：{@code ModParticles} 注册，数据生成 provider 列出环，再映射到 {@link #createDashTrail(SpriteSet)}、
+ *       {@link #createSonicBoom(SpriteSet)}、{@link #createBarrierRing(SpriteSet)} 或
+ *       {@link #createAreaImpactRing(SpriteSet)}。</li>
+ *   <li>冲刺拖尾环（{@link #dashTrailRing}）在冲刺者本人第一人称下跳过，只给第三人称与旁观者看；
+ *       {@link #noteLocalDash(int)} 启动 {@link #DASH_SELF_HIDE_TICKS}（连发时长加一环含停留的寿命）；
+ *       {@code ownDashHiddenNow} 限定窗口两端，因换世界会重置客户端玩家的 {@code tickCount}。</li>
+ *   <li>⚠ {@link #RING_LINGER_TICKS} 让环停在最后一帧再消失，否则读不出完整绽放；离场由 {@link Exit} 定：冲刺环
+ *       {@link Exit#HOLD} 全亮，音爆 {@link Exit#FADE} 停留期淡出。</li>
+ *   <li>音障环 {@link Exit#SPREAD}：最大帧后 {@link #SPREAD_LINGER_TICKS} tick 内（绽放到消失共半秒）扩到该帧的
+ *       {@link #SPREAD_GROWTH} 倍，前 {@link #SPREAD_FADE_START} 进度全亮、其后淡出，二段飞行留下的环向外消散。</li>
+ *   <li>范围冲击环 {@link Exit#SWEEP}：移动中绽放到 {@link #AREA_IMPACT_SPAN}，只在前
+ *       {@link RingConeEmitter#AREA_IMPACT_TRAVEL_TICKS} tick（绽放期）移动，恰停在锥末端；随后原地每 tick 长一帧步长
+ *       （{@link RingGeometry#getSweepSize}），{@link #AREA_IMPACT_LINGER_TICKS} 加 1 tick 内淡出；他环终生漂移。</li>
+ *   <li>淡出与扩散带 partial tick 读退场进度（{@link RingGeometry#getExitProgress}），tick 间平滑。</li>
+ *   <li>⚠ {@link #tick()} 读自增后的 age，最后一帧恰好应用一次、不越界；两侧混用差一崩溃。</li>
+ *   <li>⚠ {@code applyFrame} 分母取 {@code FRAME_COUNT - 1} 而非 {@code lifetime - 1}：停留使寿命与帧数脱钩，只有帧数能
+ *       精确落在第 0 到 n-1 帧。</li>
+ *   <li>⚠ 经 {@link #ADDITIVE_GLOW} 渲染（叠加、双面、全亮）：单像素白描边在 alpha 混合图集上几乎消失。</li>
+ *   <li>1.21.1 {@link ParticleRenderType} 无 {@code end()} 钩子，状态不可外漏：混合与深度掩码由原版各 {@code begin} 重
+ *       设，不碰剔除，图集过滤取默认；绑已弃用的 {@code TextureAtlas.LOCATION_PARTICLES}，因原版同样绑它且无替代。</li>
+ *   <li>{@link #render} 出两个反绕序四边形，双面可见又不碰全局剔除；{@code QUADS} 每 4 顶点一组，反面 UV 仍钉各自角
+ *       点。</li>
+ *   <li>唯一可变静态字段 {@code localDashHiddenUntilTick}：本地玩家隐藏自身冲刺环的 tick 戳；客户端只有一个本地玩家，窗
+ *       口两端有界，旧实体留下的戳不隐藏任何东西。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

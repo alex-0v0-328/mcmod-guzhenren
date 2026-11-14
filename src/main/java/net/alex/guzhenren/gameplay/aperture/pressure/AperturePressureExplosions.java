@@ -12,25 +12,18 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The pressure-explosion craters [空窍压力爆炸] still being carved in one level, kept in that level's data storage as
- * {@code guzhenren_pressure_explosions.dat}, so a server stop mid-blast resumes the crater on the next start instead
- * of leaving it half-carved. The level that owns the file is the blasts' dimension; each blast writes its own state
- * ({@link AperturePressureExplosionTask}). A level's file loads on the first server tick that asks for it, so a
- * restored blast carries on one tick after the server starts, as soon as its chunks are loaded again. The storage
- * factory is built once and cannot hold the level, so a file read from disk keeps its entries unbound for the rest
- * of the {@link #get} call that read it, which binds them to the level before it returns.
- *
- * <p>{@link #tickAll} runs the blasts of every level against one budget a tick, {@link #TICK_BUDGET_NANOS} (10 of
- * the tick's 50 ms), the clock read every {@link #CLOCK_CHECK_INTERVAL} positions; levels go in the server's order
- * and blasts in start order, so the older blast finishes first. The budget is an argument so a GameTest can step a
- * blast by a fixed amount: a zero budget still runs {@code CLOCK_CHECK_INTERVAL - 1} positions before its first
- * clock read. A level's data turns dirty on every tick one of its blasts runs, the tick the last one finishes
- * included, so the next save writes the empty list and a finished blast never comes back.
- *
- * <p>⚠ No static task list: the blasts live and die with their level, so a singleplayer world switch never carries
- * a stale level reference, and the stop save -- which runs after {@code ServerStoppingEvent} -- still sees every
- * running blast. ⚠ The file size follows the rim list: radius 112 clears up to ≈0.55 million rim blocks, ≈4.4 MB
- * before gzip, written only while that blast runs.
+ * 一维度内在挖的空窍[Aperture]压力爆炸坑，存该维度 {@code guzhenren_pressure_explosions.dat}。
+ * <ul>
+ *   <li>文件所在维度即爆炸维度；各爆炸自写状态（{@link AperturePressureExplosionTask}）。</li>
+ *   <li>维度文件于首次请求的 tick 加载：恢复的爆炸开服一 tick、区块重载后即续。</li>
+ *   <li>存储工厂只建一次、无维度：磁盘读出的条目在该次 {@link #get} 返回前才绑定维度。</li>
+ *   <li>⚠ 无静态列表：爆炸随维度存亡，切世界无过期引用；停服存档晚于 {@code ServerStoppingEvent}，仍见全部爆炸。</li>
+ *   <li>⚠ 文件随边缘列表变大：半径 112 至多约 55 万边缘方块，gzip 前约 4.4 MB，仅进行中写。</li>
+ *   <li>{@link #tickAll}：全维度爆炸每 tick 共用 {@link #TICK_BUDGET_NANOS}（50 ms 中 10 ms），每
+ *       {@link #CLOCK_CHECK_INTERVAL} 个位置读一次钟；维度依服务器序、爆炸依启动序，先启先完。</li>
+ *   <li>预算为参数，便于 GameTest 定量推进：零预算首次读钟前仍跑 {@code CLOCK_CHECK_INTERVAL - 1} 个位置。</li>
+ *   <li>有爆炸运行的 tick 都标脏，含最后挖完那 tick：下次存档写空列表，挖完的不复活。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

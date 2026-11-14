@@ -13,15 +13,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The human-strength behavior [人力]: adds one layer of one kind; the rank [转数] and the kind come from registration.
- *
- * <p>Five rungs register it (斤 / 十斤 / 钧 / 十钧 / 百钧). The gate refuses a body that holds Beast Strength Phantom,
- * a running beast buff included ({@link MarkInterference}), then a holder who has maxed out that kind; the
- * effect delegates to {@link PathStrengthService#addHumanStrength}. One layer per grant is fixed by
- * {@code LAYERS_PER_GRANT}.
- *
- * <p>⚠ What it grants rides the player rather than the stack, so a holder who has already maxed out
- * can hand the Gu to someone else, and it goes on working for them.
+ * 人力行为：给一种人力加一层，种类与转数来自注册（斤 / 十斤 / 钧 / 十钧 / 百钧）。
+ * <ul>
+ *   <li>门槛先拒持兽力虚影流者，含运行中的兽力[Beast Strength]增益（{@link MarkInterference}），再拒该种已满层者。</li>
+ *   <li>⚠ 授予挂在玩家而非物品堆上：满层者可把蛊交给别人，对方照样能用。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

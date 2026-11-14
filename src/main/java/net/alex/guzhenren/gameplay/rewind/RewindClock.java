@@ -8,17 +8,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The cadence the Man As Before Gu [人如故] memory keeps, and the arithmetic over a ring of stamped snapshots: when the
- * next snapshot is due, which one is "a day ago", and what a ring keeps after a new one lands.
- *
- * <p>A snapshot is taken twice a day, every {@link #INTERVAL_TICKS} of game time, and the ring keeps
- * {@link #RING_SIZE} of them, so it always spans one day. "A day ago" is the youngest snapshot at least
- * {@link #MIN_AGE_TICKS} -- a full day -- old, so a restore lands between one day and a day and a half back and never
- * on something younger. Game time is the world clock: a slept-through night is not a day gone, and the Time Path
- * [宙道] self-time never scales it.
- *
- * <p>⚠ Every stamp is game time, and {@link #NEVER} means no stamp: {@code 0} is a real game moment. A stamp ahead
- * of the clock (a world whose time ran backwards) is dropped by {@link #add}, so the ring never serves the future.
+ * 人如故[Man As Before Gu]记忆的节奏与快照环算术。
+ * <ul>
+ *   <li>每 {@link #INTERVAL_TICKS} 记一份（每天 2 次），环留 {@link #RING_SIZE} 份，恒跨一天；「一天前」= 至少
+ *       {@link #MIN_AGE_TICKS}（整一天）前最新的一份，还原落在 1–1.5 天前；游戏时间即世界时钟，睡过的夜不算一天，宙道自
+ *       身时间不缩放。</li>
+ *   <li>⚠ 时间戳皆为游戏时间，{@link #NEVER} 表示无，{@code 0} 是真实时刻；超前于时钟的时间戳（时间倒退的世界）由
+ *       {@link #add} 丢弃，环不提供未来。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

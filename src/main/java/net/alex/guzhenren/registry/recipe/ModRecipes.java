@@ -10,10 +10,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * The recipe type and serializer behind refinement [炼蛊].
- *
- * <p>DeferredRegister holder: owns the {@code refinement} {@link RecipeType} and its
- * {@link RefinementRecipe.Serializer}, wired to the mod event bus by {@code register}. No gameplay lives here.
+ * 炼蛊配方类型 {@code refinement} 及其序列化器，无玩法逻辑。
  *
  * @author Alex
  * @version 1.0.0

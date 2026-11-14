@@ -6,8 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The death the animated mobs share: the body holds still where it fell while its death animation plays, and
- * goes with vanilla's death poof at a tick that covers the whole animation.
+ * 动画生物共用死亡：播放时尸体原地停留，到覆盖整段动画的 tick 随原版死亡烟雾移除。
  *
  * @author Alex
  * @version 1.0.0

@@ -7,13 +7,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One Path's [流派] standing: its attainment grade, plus its bare path marks [道痕], whole marks and strands.
+ * 一条道[Path]的现状：造诣，加纯道痕[Path Marks]的条与丝。
  *
- * <p>Leaf record nested inside {@link PathData}; immutable. Bare marks sit on the body [肉体], the only carrier a
- * mark without an effect has, and do nothing. The two counters save inline beside the attainment.
- *
- * <p>⚠ This is only the bare half of a path's marks: the marks carried by effects live in {@link PathEffectData},
- * and {@code PathService.getMarks} adds the two. Neither half stores a total.
+ * <ul>
+ *   <li>叶子 record 嵌于 {@link PathData}，两计数随造诣内联存档；纯道痕在肉体上（无效果道痕的唯一载体），无作用。</li>
+ *   <li>⚠ 这里只存纯道痕一半：效果道痕在 {@link PathEffectData}，由 {@code PathService.getMarks} 相加；不存总数。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

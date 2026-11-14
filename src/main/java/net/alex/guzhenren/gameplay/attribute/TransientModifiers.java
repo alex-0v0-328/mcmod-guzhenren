@@ -10,18 +10,16 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The one way this mod writes an attribute: a transient modifier under a fixed id, {@code ADD_VALUE} for
- * {@link net.alex.guzhenren.gameplay.path.strength.AttackDamageService}, {@link MaxHealthService} and
- * {@link KnockbackResistanceService}, {@code ADD_MULTIPLIED_BASE} for the Epic Fight
- * stamina cap ({@code compat.EpicFightIntegration}), {@code ADD_MULTIPLIED_TOTAL} for the beasts' sprint speed
- * ({@link net.alex.guzhenren.gameplay.path.strength.SprintSpeedService}). The shared callers take the
- * three-argument {@link #swap}, which adds. {@link #setGravityFactor} multiplies an entity's gravity (the plunge [坠击]) through vanilla's synced
- * {@code GRAVITY} attribute.
- *
- * <p>⚠ Transient on purpose: a permanent modifier is saved into attribute NBT and double-stacks on the
- * next login. ⚠ {@link #swap} is a no-op when the attribute already {@link #hasModifier} that modifier, or holds none
- * and the amount is zero; refreshes run on every write and every heartbeat, so re-issuing the modifier each
- * time would churn the attribute sync.
+ * 本 mod 写属性的唯一方式：固定 id 下的临时修饰。
+ * <ul>
+ *   <li>{@code ADD_VALUE}（三参数 {@link #swap}）：{@code AttackDamageService}、{@link MaxHealthService}、
+ *       {@link KnockbackResistanceService}。</li>
+ *   <li>{@code ADD_MULTIPLIED_BASE}：Epic Fight 耐力上限（{@code compat.EpicFightIntegration}）。</li>
+ *   <li>{@code ADD_MULTIPLIED_TOTAL}：
+ *       兽力[Beast Strength]疾跑速度（{@link net.alex.guzhenren.gameplay.path.strength.SprintSpeedService}）。</li>
+ *   <li>⚠ 有意用临时修饰：永久修饰存进属性 NBT，下次登录叠两份。</li>
+ *   <li>⚠ 已 {@link #hasModifier} 该修饰或无修饰且值为 0 时 {@link #swap} 不动：每写、每心跳都刷新，重发即抖同步。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -34,7 +32,7 @@ public final class TransientModifiers {
 
     private TransientModifiers() {}
 
-    /** {@link #swap(AttributeInstance, ResourceLocation, double)} on the entity's attribute; none, nothing. */
+    /** 对实体该属性调 {@link #swap(AttributeInstance, ResourceLocation, double)}；无此属性不做事。 */
     public static void swap(@NotNull LivingEntity entity, @NotNull Holder<Attribute> attribute,
                             @NotNull ResourceLocation id, double amount) {
         AttributeInstance instance = entity.getAttribute(attribute);
@@ -53,7 +51,7 @@ public final class TransientModifiers {
         if (amount != 0.0D) instance.addTransientModifier(new AttributeModifier(id, amount, operation));
     }
 
-    /** Multiplies the entity's gravity by {@code factor} under {@code id}; a factor of 1 takes the modifier off. */
+    /** 经原版同步的 {@code GRAVITY} 在 {@code id} 下把重力乘 {@code factor}（坠击）；为 1 则摘修饰。 */
     public static void setGravityFactor(@NotNull LivingEntity entity, @NotNull ResourceLocation id, double factor) {
         AttributeInstance gravity = entity.getAttribute(Attributes.GRAVITY);
         if (gravity != null) swap(gravity, id, factor - 1.0D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);

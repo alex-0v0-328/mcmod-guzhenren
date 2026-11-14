@@ -15,10 +15,8 @@ import net.neoforged.neoforge.common.loot.LootModifier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A global loot modifier that strips every stack of one item from the generated loot and leaves the rest as it was.
- *
- * <p>The instances are data, written by {@code ModLootModifierProvider}: {@code guzhenren:no_skill_books} strips
- * Epic Fight's skill books.
+ * 全局战利品修改器：删去生成战利品中某物品的全部堆叠，其余不动；实例由 {@code ModLootModifierProvider} 写出，
+ * {@code guzhenren:no_skill_books} 删 Epic Fight 技能书。
  *
  * @author Alex
  * @version 1.0.0

@@ -9,16 +9,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Hands a player's travel to the second-stage cruise [二段飞行] while the stage is on; both ends.
- *
- * <p>{@link #guzhenren$cruise} cancels {@code Player#travel} whenever {@link SecondStageService#travel} moved the
- * player: an unmounted flier with the mark, on the end that simulates it (the local player's client, and the
- * server's own step). Vanilla's flying branch would scale the flying speed by the input and drag it at 0.91; the
- * cruise follows the look instead, so it replaces the whole travel rather than one speed reading. Remote players on
- * a client never travel, mark or not.
- *
- * <p>⚠ Not an event or an API: NeoForge 21.1.265 posts nothing from {@code Player#travel}, and {@code PlayerTickEvent}
- * runs after the movement was applied, so only a cancel at the head replaces it.
+ * 二段飞行[Second-Stage Flight]时把玩家移动交给二段巡航；双端。
+ * <ul>
+ *   <li>{@link SecondStageService#travel} 移动了玩家时 {@link #guzhenren$cruise} 在方法头取消 {@code Player#travel}：
+ *       限未骑乘、带标记的飞行者，在模拟它的一端（本机客户端、服务端自身那步）；客户端上的远端玩家从不跑移动。</li>
+ *   <li>原版飞行分支按输入缩放飞行速度、以 0.91 阻尼；巡航随视线，故替换整个移动而非一次速度读数。</li>
+ *   <li>⚠ 不用事件或 API：NeoForge 21.1.265 的 {@code Player#travel} 不发事件，{@code PlayerTickEvent} 晚于移动。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

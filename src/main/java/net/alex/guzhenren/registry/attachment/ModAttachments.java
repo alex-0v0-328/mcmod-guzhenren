@@ -32,52 +32,33 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * Every data attachment this mod puts on a player.
+ * 本模组挂在玩家身上的全部数据附件。
  *
- * <p>DeferredRegister holder: the fourteen record attachments (immutable, written only through their
- * service) plus the seven scratch fields ({@code ESSENCE_CARRY}, {@code BORN}, {@code HEALTH_CARRY},
- * {@code SHIELD_WINDOW}, {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE}, {@code PLUNGE}).
- * {@link #registerSynced} saves an attachment and syncs it to its owner alone ({@code OWNER_ONLY});
- * {@link #registerSaved} only saves it; {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW} and
- * {@code SECOND_STAGE_THROTTLE} are neither saved nor synced, each end keeping its own (the server alone writes
- * {@code SHIELD_WINDOW}), and {@code SECOND_STAGE} is synced to every client that sees the player, who
- * leans into the flight on their screens too, but never saved: it counts by presence, a player who has it flies the
- * second stage [二段飞行], and a relog starts outside it. {@code PLUNGE} is synced the same way, to every client that
- * sees the player, who holds the fall pose on their screens too: a
- * player who has it is plunging [坠击], and its value is the top of that fall. {@code AWAKENING_RITUAL} counts by
- * presence too, a player who has it is in the awakening ritual [开窍仪式], and it is saved and synced to every client
- * that sees the player, who draws the Hope Gu [希望蛊] hovering before them and the aptitude plaque [资质牌匾] over
- * their head, Ten-Extremes physique included. {@code APERTURE_NOURISH} is saved and inherited like the records
- * {@link #registerSynced} makes but synced to every client that sees the player, who sits cross-legged on their
- * screens while a run is going. A record other players must see
- * widens its sync predicate; it never gets a downstream payload.
- *
- * <p>Services store their records through {@code PlayerData}, whose setters skip an equal value: NeoForge sends a
- * synced attachment to its owner on every {@code setData}, equal or not, so a store that changes nothing writes and
- * sends nothing. The records compare by value, so equal means the client already holds it. {@code ESSENCE_CARRY}
- * is the one attachment written in place: regen banks into the array itself, never through {@code setData}.
- *
- * <p>Every attachment the two helpers register is inherited: NeoForge copies it to every clone, a death
- * included ({@code copyOnDeath}), and {@link #getInherited} lists it for the lifecycle's full reset, so a new
- * attachment is carried and reset by being registered here, nowhere else. {@code HEALTH_CARRY} is built by hand
- * because a death must not carry it, and so is {@code PLAYER_REWIND}, the Man As Before Gu's [人如故] memory of a
- * body that the death just ended, saved and never synced, and {@code AWAKENING_RITUAL}, which a death finishes
- * before the clone. {@code TOSS_STASH} is built by hand the other way round: a death carries it, and a death that
- * wipes must not reset it, since it holds the player's own items. {@code ESSENCE_CARRY}, {@code SHIELD_WINDOW},
- * {@code SECOND_STAGE}, {@code SECOND_STAGE_THROTTLE} and {@code PLUNGE} are unsaved, so no clone carries them.
- * ⚠ {@code BORN} stays inherited, or the next login re-rolls brilliance.
- *
- * <p>⚠ Each record lives in its feature package (aperture, body, soul, path, mind, dimension), with
- * {@code strength} as a subpackage of path. A constant is its record's class name without
- * {@code Data} ({@code PathEffectData} is {@code PATH_EFFECT}). Never give an attachment the bare domain word --
- * {@code qi}/{@code soul}/{@code strength} are also {@code GuPath} names. The ids are save keys: renaming
- * one loses every saved value.
- *
- * <p>⚠ A record's {@code CODEC} reads every field with {@code optionalFieldOf} and that field's default (the
- * list- and map-shaped {@code ApertureData} and {@code PathData} in their entry records), so
- * a save written before a field existed still loads. {@code DimensionReturnData.ReturnPoint} is the one
- * exception, its fields required inside an optional {@code point}; a field added there still takes
- * {@code optionalFieldOf}.
+ * <ul>
+ *   <li>14 个记录附件（不可变，只经服务写）加 7 个临时字段；{@link #registerSynced} 存并只同步本
+ *       人（{@code OWNER_ONLY}），{@link #registerSaved} 只存；{@code ESSENCE_CARRY}、{@code SHIELD_WINDOW}、
+ *       {@code SECOND_STAGE_THROTTLE} 不存不同步，两端各一份，{@code SHIELD_WINDOW} 仅服务端写。</li>
+ *   <li>{@code SECOND_STAGE}、{@code PLUNGE} 不存，同步给所有看得见该玩家的客户端（下称广播）以画前倾、下坠姿势；
+ *       有即分别处于二段飞行[Second-Stage Flight]（重登即出）、坠击（值为下坠最高点）。</li>
+ *   <li>{@code AWAKENING_RITUAL}：有即在开窍[Awakening]仪式中，存并广播，画悬浮希望蛊[Hope Gu]与头顶资质[Aptitude]牌
+ *       匾（含十绝体质）；{@code APERTURE_NOURISH} 如 {@link #registerSynced} 般存、继承但广播，
+ *       温养[Nourish]中画盘坐。</li>
+ *   <li>他人需见的记录只放宽同步谓词，不另发下行 payload。</li>
+ *   <li>服务经 {@code PlayerData} 存记录，setter 跳过相等值：NeoForge 每次 {@code setData} 都向本人发同步；
+ *       记录按值比较，相等即客户端已有。{@code ESSENCE_CARRY} 唯一原地写：回复直接累进数组。</li>
+ *   <li>两个辅助方法注册的都继承：NeoForge 随每次克隆复制，含死亡（{@code copyOnDeath}），{@link #getInherited}
+ *       列入生命周期全量重置；新附件在此注册即被携带、重置；未保存者不随克隆。</li>
+ *   <li>手写、死亡不带：{@code HEALTH_CARRY}；{@code PLAYER_REWIND}（人如故[Man As Before Gu]对刚死身体的记忆，
+ *       存不同步）；{@code AWAKENING_RITUAL}（死亡在克隆前结束仪式）。{@code TOSS_STASH} 相反：死亡带走，无
+ *       keepInventory 的死亡重置也不清，因存玩家自己的物品。</li>
+ *   <li>⚠ {@code BORN} 须继承，否则下次登录重抽才情。</li>
+ *   <li>⚠ 记录放功能包（aperture、body、soul、path、mind、dimension；{@code strength} 在 path 下）；常量名为类名去
+ *       {@code Data}（{@code PathEffectData} 即 {@code PATH_EFFECT}）；勿用裸领域词，
+ *       {@code qi}/{@code soul}/{@code strength} 也是 {@code GuPath} 名。</li>
+ *   <li>⚠ ID 即存档键，改名丢全部存值；记录 {@code CODEC} 每字段用 {@code optionalFieldOf} 带默认值（列表、映射形的
+ *       {@code ApertureData}、{@code PathData} 在条目记录里），旧档可读；例外 {@code DimensionReturnData.ReturnPoint}
+ *       字段在可选 {@code point} 内必填，新增仍用 {@code optionalFieldOf}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

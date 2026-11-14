@@ -22,33 +22,22 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Store Strength Gu's [蓄力蛊] charge [蓄力] and the rules of the charged punch [蓄力一拳] it lets go. While the
- * Gu's buff runs (its marker effect, read like the All-Out Effort Gu's), a body holding the beast phantom [兽力虚影流] or the human jun [人力钧力流] branch, a bare main
- * hand ({@link AttackDamageService#isFistHand}) and an Epic Fight lock-on [锁定] holds the attack key: after
- * {@link #HOLD_TICKS} the client asks {@link #start}, and the charge fills by {@link #getStep} a tick, so it is full
- * after {@link #getChargeTicks}: {@link #CHARGE_TICKS}, or 70/60/50% of it while the rank three/four/five All-Out
- * Effort Gu [全力以赴] runs. The step is read every tick, so an All-Out Effort that starts or ends mid-charge speeds or
- * slows only the rest. Letting go ({@link #release}) counts only when the charge is full, give or take
- * {@link #RELEASE_SLACK_TICKS} for the packets' jitter; anything short of that, a lost buff, branch or empty hand, death, a
- * dimension change or logout drops it with no strike and no cost. This tick is the charge's truth: it posts
- * {@link StoreStrengthChargeEvent} the tick the charge first counts as full and when it drops the charge on its own,
- * so a lagging server never shows a client a full charge it does not hold.
- *
- * <p>A full charge brings the most strength to bear, past the current capacity [承受力] ({@link #getMaxPoints}): every
- * point counts once, and on the beast path the families it releases count {@link #CHARGED_RELEASE_FACTOR} times their
- * permanent points -- one family at random ({@link #getReleasedFamilies}), every held family under Hardship Strength
- * [苦力]. The human jun path has no release; its jin count once. The points past the current capacity come back as
- * the impact backlash [冲击反噬] ({@link #getBacklashPoints}), paid through {@link BodyOverload}'s recoil.
- *
- * <p>The melee strike is a level fan [扇形] from the feet along the way to the locked target ({@link #isInFan}):
- * {@link #RANGE} blocks and {@link #HALF_ANGLE_DEGREES} either side, or {@link #HARDSHIP_RANGE} and
- * {@link #HARDSHIP_HALF_ANGLE_DEGREES} for a human jun body under Hardship Strength, from {@link #BELOW} under the
- * feet to {@link #ABOVE} over the head. The ranged strike bursts {@link #BURST_RADIUS} blocks around the target,
- * {@link #HARDSHIP_BURST_RADIUS} under the same widening. The Gu's {@code ChargedPunch} deals both once
- * {@link #release} counts.
- *
- * <p>⚠ Server memory only, keyed by player: never saved. The client fills its own copy of the progress for the bar
- * and waits for the full notice before it shows the charge full. ⚠ Every number here is provisional.
+ * 蓄力蛊[Store Strength Gu]的蓄力与蓄力一拳规则。
+ * <ul>
+ *   <li>条件：该蛊增益运行（读标记效果，同全力以赴蛊[All-Out Effort Gu]）、持兽力虚影流或人力钧力流、空手、
+ *       Epic Fight 锁定时按住攻击键 {@link #HOLD_TICKS}，客户端再请求 {@link #start}。</li>
+ *   <li>蓄满需 {@link #CHARGE_TICKS}，三 / 四 / 五转全力以赴下为 70% / 60% / 50%，逐 tick 按当时转数推进；
+ *       仅蓄满松手算数（容差 {@link #RELEASE_SLACK_TICKS} 吸收数据包抖动）；未满、丢增益、分支或空手、死亡、换维度、
+ *       下线都取消，不出拳不扣费。</li>
+ *   <li>本类 tick 是真相：首次判满与自行取消时发 {@link StoreStrengthChargeEvent}，服务端卡顿时客户端不会先亮蓄满；
+ *       客户端进度只供蓄力条。</li>
+ *   <li>蓄满发挥最多力量，可超当前承受力：兽力虚影流解放兽种（随机一种，苦力下全部）
+ *       的永久点数计 {@link #CHARGED_RELEASE_FACTOR} 倍，人力无解放；超出部分为冲击反噬（{@link BodyOverload}）。</li>
+ *   <li>近战为脚下指向锁定目标的水平扇形，远程在目标周围爆开；苦力下的人力钧力流加宽射程、半角与爆开半径；
+ *       {@link #release} 算数后由 {@code ChargedPunch} 打出。</li>
+ *   <li>⚠ 数值全部暂定。</li>
+ *   <li>⚠ 只存服务端内存，按玩家索引，不存档。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

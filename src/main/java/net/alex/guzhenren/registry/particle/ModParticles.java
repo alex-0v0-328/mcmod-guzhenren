@@ -9,21 +9,15 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Every particle type this mod registers, one constant per particle.
+ * 全部粒子类型，一粒子一常量。
  *
- * <p>DeferredRegister holder. The sprites behind each type are datagen'd by
- * {@code ModParticleDescriptionProvider}; textures live under
- * {@code textures/particle/} as Alex's hand-drawn finals.
- *
- * <p>{@link #SHOCKWAVE_RING} is the dash trail: rings listed small-to-large, each blooming in place
- * where it was dropped along the dash path (planted), hidden from the dashing
- * player's own first-person camera -- the trail is for third-person and bystanders.
- * {@link #SONIC_BOOM_RING} is the sonic boom ring [音爆环]
- * at each entry into second-stage flight [二段飞行]: the same rings blooming to ≈4 blocks. {@link #BARRIER_RING} is
- * the sound barrier ring [音障环] that flight forms at its leading face while it stays fast. The sonic boom fades
- * through its linger; a sound barrier ring widens to four times its largest frame as it fades.
- * {@link #AREA_IMPACT_RING} is the area impact ring [范围冲击环]: one per area impact [范围冲击], spreading like a
- * sound barrier ring while it travels from the cone's tip to its end, where it stops to fade.
+ * <ul>
+ *   <li>精灵图由 {@code ModParticleDescriptionProvider} 生成，贴图 {@code textures/particle/} 为 Alex 手绘终稿。</li>
+ *   <li>{@link #SHOCKWAVE_RING}：冲刺尾迹，环由小到大，在冲刺路径各落点原地绽开；冲刺者第一人称不可见。</li>
+ *   <li>{@link #SONIC_BOOM_RING}：音爆环，进入二段飞行[Second-Stage Flight]时出现，同款环绽至约 4 格，停留期淡出。</li>
+ *   <li>{@link #BARRIER_RING}：音障环，高速飞行时在前端成形，淡出时扩至最大帧四倍。</li>
+ *   <li>{@link #AREA_IMPACT_RING}：范围冲击环，每次范围冲击一个，自锥尖行至锥末如音障环扩散，停下淡出。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

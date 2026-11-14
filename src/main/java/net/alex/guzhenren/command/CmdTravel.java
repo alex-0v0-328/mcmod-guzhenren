@@ -24,19 +24,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 /**
- * {@code /guworld enter <dimension> [targets]} and {@code /guworld exit [targets]}: travel to and from the mod's
- * anchored dimensions. {@code enter} is admin-only; a bare {@code exit} is also open to any player standing in the
- * Treasure Yellow Heaven [宝黄天], whose guard leaves him no other way out, while {@code exit <targets>} and an exit
- * from any other anchored dimension stay admin-only. The gate reads the dimension, so the command tree must follow
- * the player across dimensions: vanilla re-sends it on every change of level
- * ({@code ServerPlayer#changeDimension} sends the permission level, which re-sends the commands).
+ * {@code /guworld enter <dimension> [targets]} 与 {@code /guworld exit [targets]}：进出本模组的锚定维度。
  *
- * <p>{@code enter} only accepts dimensions listed in {@link ModDimensions#ANCHORED_DIMENSIONS} -- an
- * anchored dimension is one the player is meant to leave through us, with the return point recorded
- * by {@link DimensionTravelService}. Vanilla dimension hops stay with vanilla {@code /execute in}. A listed
- * dimension whose level this server does not have (Gu World is not installed) is refused with its own message.
- * ⚠ A translation argument must be a component, number or string: the id goes in as text.
- * {@code exit} takes no dimension: the player leaves whichever anchored dimension they are inside.
+ * <ul>
+ *   <li>{@code enter} 仅限管理员；宝黄天[Treasure Yellow Heaven]内任何玩家可用无目标 {@code exit}，守卫不留别的出路；
+ *       {@code exit <targets>} 与从其他锚定维度退出仍限管理员；{@code exit} 不带维度，离开当前锚定维度。</li>
+ *   <li>门槛读所在维度，命令树须随跨维度更新：原版换世界即重发（{@code ServerPlayer#changeDimension} 发送权限等级，
+ *       进而重发命令）。</li>
+ *   <li>{@code enter} 只收 {@link ModDimensions#ANCHORED_DIMENSIONS} 所列维度，即玩家应经本模组离开的维度，返回点由
+ *       {@link DimensionTravelService} 记录；原版维度间跳转仍用 {@code /execute in}。</li>
+ *   <li>已列出但服务端无其世界的维度（未装 Gu World）用专门消息拒绝。</li>
+ *   <li>⚠ 翻译参数只能是组件、数字或字符串：id 以文本传入。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -8,9 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Gu-side gate of Mark Interference [道痕互斥]: refuses a strength Gu whose branch interferes with one the body
- * already holds. The beast and human strength behaviors ask it first, and so does the timed buff behavior for a
- * beast buff; the write funnel in {@link PathStrengthService} enforces the same rule, this only words it.
+ * 道痕互斥的蛊侧门槛：力道蛊分支与已持分支互斥时拒绝；兽力[Beast Strength]、人力行为先问，限时增益行为给兽力增益
+ * 时也问；{@link PathStrengthService} 写入口强制同一规则，这里只出措辞。
  *
  * @author Alex
  * @version 1.0.0

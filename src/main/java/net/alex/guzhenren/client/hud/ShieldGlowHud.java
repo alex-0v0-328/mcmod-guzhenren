@@ -12,17 +12,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The shield glow [护盾光晕]: white light over the screen edges while a shield [护盾] is up on the local player.
- *
- * <p>Raising a shield over none fades the glow in over {@link #FADE_IN_TICKS}; it then holds at {@link #PEAK_ALPHA}
- * times the points left over the points raised, summed over the layers up. A hit that spends a layer and leaves
- * some shield flashes it {@link #FLASH_ALPHA} brighter, fading back over {@link #FLASH_TICKS}; a layer whose time
- * runs out only lowers it, and the end of the last layer fades it out over {@link #FADE_OUT_TICKS} from where it
- * stood. {@link #tick} reads the synced {@code ShieldData} once a client tick and keeps those moments in game time; a
- * new local player entity (a respawn, a dimension change) starts it over, so the glow fades back in once its shield
- * syncs. {@link #render} draws vanilla's vignette texture
- * additively in white, so the edges brighten instead of darkening, and the vanilla Distortion Effects slider scales
- * it as it does {@link SonicBoomHud}. Registered above the vanilla camera overlays ({@code ClientEvents}).
+ * 护盾光晕：本机玩家有护盾时屏幕边缘的白光。
+ * <ul>
+ *   <li>无盾升盾时 {@link #FADE_IN_TICKS} 内淡入，后保持 {@link #PEAK_ALPHA} × 各层剩余点数和 / 升起点数和；
+ *       受击削减某层而护盾未尽则加亮 {@link #FLASH_ALPHA}，{@link #FLASH_TICKS} 内回落；某层到时只降亮度；
+ *       末层结束则从当前亮度经 {@link #FADE_OUT_TICKS} 淡出。</li>
+ *   <li>{@link #tick} 每客户端 tick 读一次同步的 {@code ShieldData}，按游戏时间记时刻；本机玩家实体换新（重生、换维度）
+ *       即重来，护盾同步后重新淡入；{@link #render} 以白色加法绘原版暗角贴图，边缘变亮，同 {@link SonicBoomHud}
+ *       随「屏幕扭曲效果」滑条缩放；注册在原版镜头叠层上（{@code ClientEvents}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -110,7 +108,7 @@ public final class ShieldGlowHud {
         return PEAK_ALPHA * Math.min(points / max, 1.0F) * in + (flash < 1.0F ? FLASH_ALPHA * (1.0F - flash) : 0.0F);
     }
 
-    /** Whether a layer still up from the same raising (its end tick unchanged) holds fewer points than before. */
+    /** 同一次升起（结束 tick 未变）且仍在的某层，点数是否比之前少。 */
     private static boolean isSpent(@NotNull ShieldData before, @NotNull ShieldData after) {
         for (ShieldLayer layer : before.layers()) {
             ShieldLayer next = after.find(layer.type());

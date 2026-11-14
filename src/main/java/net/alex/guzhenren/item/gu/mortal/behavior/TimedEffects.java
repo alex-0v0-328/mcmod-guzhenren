@@ -37,29 +37,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The body effects of the timed Gu [限时蛊]: the buffs (beast, crash, all-out effort, strength qi), the
- * jade skins, the Heavenly Mugwort shield, the Vitality Leaf and the Watch Gu forms. Each is the
- * bookkeeping of a state that ends by itself, and the effect ends with it: its strands go the moment it does.
- * Nothing here reads a mark to size anything.
- *
- * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in
- * {@code ModItems}, and its {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. The
- * buff, leaf and watch effects are the truth of their state and the vanilla effect only their icon, timer and
- * amplifier: {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. A Gu's gate reads
- * {@link #findBuff} and its kin; a rule that reads the vanilla effect (attack, carrying capacity, time flow) pauses
- * until then too. A jade skin and the shield keep their state on {@code BodyData} and
- * {@code ShieldData}; their effects follow the events those post, and an effect removed or run out
- * takes the state with it.
- *
- * <p>Using a Gu again while its effect runs lengthens the timer and adds no strands; a watch form stacks one layer
- * of strands per use up to its limit. A buff of the same vanilla effect from another Gu (a crash Gu of a higher
- * rank) takes the old effect and its strands with it. An Amplify Effect Gu [功倍蛊] that paid for the use adds its
- * Rule strands to the effect it amplified, once: {@link #markAmplified} tops the effect up to the amplifier's
- * strands and never past them.
- *
- * <p>⚠ Grants write only the effect; the state the effect projects is the caller's. ⚠ A skin or shield effect
- * ending for any reason but being replaced ends the state too, guarded by the state still being the effect's own,
- * so the events it posts do not loop.
+ * 限时蛊的身体流派效果。
+ * <ul>
+ *   <li>状态：增益（兽力[Beast Strength]、冲撞、全力以赴、力气）、玉皮、天蓬护盾、生机叶、更蛊[Watch Gu]形态；均自行结
+ *       束，效果随之结束、丝即消散；不读道痕[Path Marks]定量。</li>
+ *   <li>{@link PathEffectService} 上的工具与事件订阅者；造状态的蛊查 {@code ModItems}，其 {@code GuProperties} 给载体、
+ *       道[Path]、丝，来源为蛊物品 id；增益、生机叶、更蛊效果是状态真值，原版效果只是图标、计时、等级：
+ *       {@code /effect clear} 只让图标消失到下次心跳，牛奶全解不掉；门槛读 {@link #findBuff} 及同类，读原版效果的规则
+ *       （攻击、负重、时间流速）亦暂停至此。</li>
+ *   <li>玉皮、护盾状态存 {@code BodyData}、{@code ShieldData}，效果随其事件跟进，被摘或到期连状态带走。</li>
+ *   <li>运行中再催同蛊只续时、不加丝；更蛊形态每催叠一层丝至上限；他蛊同原版效果增益（更高转冲撞蛊）连旧效果与丝取代；
+ *       付费的功倍蛊[Amplify Effect Gu]把律道丝加到所增效果，仅一次：{@link #markAmplified} 补足增幅蛊丝数、不超。</li>
+ *   <li>⚠ 授予只写效果，投影状态归调用方；⚠ 皮或护盾效果非被取代而结束则连状态同结，状态仍属该效果才动，防循环。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

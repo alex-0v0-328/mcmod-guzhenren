@@ -5,9 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link BodyService#wearSkin} puts a skin [皮肤] on a player, jade or permanent; the
- * flash every watching client draws is sent by a subscriber in {@code network}, which the body cannot call
- * into without closing a dependency cycle. Shedding a skin posts {@link SkinShedEvent} instead.
+ * {@link BodyService#wearSkin} 穿上玉皮或永久皮后发布的事件；各观看客户端的闪光由 {@code network} 订阅者发送，
+ * 直接调用会成依赖环。蜕皮改发 {@link SkinShedEvent}。
  *
  * @author Alex
  * @version 1.0.0

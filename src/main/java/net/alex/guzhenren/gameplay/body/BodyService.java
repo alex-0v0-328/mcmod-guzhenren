@@ -26,58 +26,43 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only runtime writer of Body [肉身] state, and the home of every physique [体质] transition. Static
- * service; owns two clocks with two anchors: {@link #tickAging} keeps {@code lastDayIndex} and counts
- * DAYS for the three Gu-hunger walks and nothing else; {@link #tickLifespan} keeps
- * {@code lastBilledTick} and bills lifespan every heartbeat instead of once a day. Lifespan bills online time
- * only: {@link #skipOfflineLifespan} un-anchors the bill on login, so the first heartbeat re-anchors and bills
- * nothing for the time away, while the day clock still counts the days away for the Gu-hunger walks. The
- * per-heartbeat bill writes the synced BODY once a second per player; that small packet is the accepted price of
- * exact Time Path [宙道] scaling and an on-time exhaustion check, so the bill is not batched.
+ * 肉身状态唯一运行时写入者，体质转换归口。
  *
- * <p>⚠ {@code tickAging}'s returned day count can far exceed one and drives three day-clock walks --
- * swallowing it starves every Gu at once. ☠ 寿元 is SPENT through {@link TimeFlow#scale}
- * like every other thing he spends -- hastened means FASTER; a hand-rolled rate runs it
- * BACKWARDS, into a pure longevity buff. ⚠ Both anchors are {@code dayTime}, not {@code gameTime} (so
- * {@code /time add} still ages him): time running backwards re-anchors and bills nothing, and each clock's
- * whole guard is one {@code <} -- {@code today < lastDayIndex} in {@code tickAging},
- * {@code now < lastBilledTick} in {@code tickLifespan}.
- *
- * <p>In {@link #clampParts}, the intermediate {@code BigInteger} products are kept exact rather than
- * clamped early, because a later signed addition or fraction can bring them back into range.
- *
- * <p>Physique and undead writes go through {@link #storePhysique}, which posts a {@link PhysiqueChangedEvent}
- * (the attack modifier refreshes);
- * {@link #setExtremePhysique} posts an {@link ExtremePhysiqueChangedEvent} (the aperture reconciles its
- * talent paths, base essence and pressure). ⚠ {@code setExtremePhysique} does not check awakening: a
- * caller setting a physique other than {@code NONE} gates on it -- the command through
- * {@code AwakenedGate.AWAKENED}, awakening by opening the aperture first. ⚠ A temp zombie form that runs
- * out keeps its end tick: a Zombie Gu used within {@code RELAPSE_WINDOW_TICKS} after it turns the body
- * permanently 僵 ({@link #isWithinRelapseWindow}); only {@link #revive} clears it. ⚠ Lifespan across the
- * three stages, human, temp zombie and zombie: entering temp zombie freezes it (an undead body is never billed)
- * and leaving it only thaws it; turning zombie [僵尸], from a human or from temp zombie, sets it to
- * {@code ZOMBIE_LIFESPAN}, and that year stays when the form ends.
- *
- * <p>The skin [皮肤] is worn through {@link #wearSkin} and shed through {@link #shedSkin}; a jade skin's end
- * tick is {@code gameTime}, read by {@code SkinService} on the heartbeat, and {@link #revive} sheds it with the
- * undead forms; a permanent skin keeps no end tick and stays through a respawn. Wearing posts a
- * {@link SkinWornEvent} (the flash goes out); shedding posts {@link SkinShedEvent}. The tendons [筋] and bones [骨] are
- * tempered through {@link #temperTendon} and {@link #temperBone}, which post a {@link BodyTemperedEvent} (the
- * attribute layer refreshes capacity, max health and knockback resistance); the gate that decides whether a
- * grade replaces the worn one is each part's {@code canReplace}, asked by the Gu, never here.
- *
- * <p>{@link #setRace} is the second of the two cross-domain grants, beside
- * {@code ApertureService.reconcileTalentPaths}: it revokes the old race's talent and grants the new race's -- the
- * attainment shift through {@code PathService}, the path marks as the permanent {@code RACE_TALENT} body effect
- * through {@code PathEffectService}, ten whole marks on the race's path from {@link #RACE_TALENT_SOURCE}.
- * {@link #syncRaceTalent} puts that effect back on login when it is missing or names another race; it never
- * touches the attainment, which only a race change moves.
- *
- * <p>⚠ Every caller speaks YEARS; only this file knows lifespan parts.
- *
- * <p>Past 300 lines on purpose: it is the one entry for the body record's reads and writes, one region per field
- * family (age, physique, skin, tendons and bones, race, lifespan clock), and a split would leave the one entry point
- * in two services.
+ * <p>时钟：
+ * <ul>
+ *   <li>{@link #tickAging} 锚 {@code lastDayIndex}，只为三项蛊饱食[Hunger]遍历计天；{@link #tickLifespan} 锚
+ *       {@code lastBilledTick}，每次心跳结算寿元。</li>
+ *   <li>寿元只计在线：{@link #skipOfflineLifespan} 登录时解锚，首次心跳重锚、不补离线；日钟仍计离线天数。每次心跳写同步
+ *       的 BODY（每人每秒 1 次）以换宙道精确缩放与按时耗尽，不批量。</li>
+ *   <li>⚠ {@code tickAging} 返回天数可远大于 1，吞掉它会让所有蛊同时挨饿。</li>
+ *   <li>☠ 寿元经 {@link TimeFlow#scale} 消耗：加速即更快；手写速率会倒流成纯延寿。</li>
+ *   <li>⚠ 两锚点用 {@code dayTime} 非 {@code gameTime}（{@code /time add} 照样增龄）；时间倒退即重锚不结算，守卫仅一个
+ *       {@code <}：{@code today < lastDayIndex}、{@code now < lastBilledTick}。</li>
+ *   <li>⚠ 调用方只用年，寿元份数仅本文件知道；{@link #clampParts} 的 {@code BigInteger} 中间积不提前截断，后续有符号加
+ *       法或分数可拉回范围。</li>
+ * </ul>
+ * <p>体质：
+ * <ul>
+ *   <li>⚠ {@code setExtremePhysique} 不查开窍[Awakening]：设非 {@code NONE} 时调用方自设门槛（命令经
+ *       {@code AwakenedGate.AWAKENED}，开窍流程先开空窍[Aperture]）。</li>
+ *   <li>⚠ 临时僵尸到期仍留结束 tick：其后 {@code RELAPSE_WINDOW_TICKS} 内再用僵尸类蛊即永久成僵
+ *       （{@link #isWithinRelapseWindow}），仅 {@link #revive} 清除。</li>
+ *   <li>⚠ 寿元：进入临时僵尸即冻结（不死之躯不结算），离开只解冻；转僵尸置 {@code ZOMBIE_LIFESPAN}，形态结束保留。</li>
+ * </ul>
+ * <p>皮与筋骨：
+ * <ul>
+ *   <li>玉皮结束 tick 用 {@code gameTime}，{@code SkinService} 心跳读取，{@link #revive} 随不死形态一并蜕下；
+ *       永久皮无结束 tick，重生保留。</li>
+ *   <li>新品阶能否替换由各部位 {@code canReplace} 判定，蛊来问，不在此。</li>
+ * </ul>
+ * <p>种族：
+ * <ul>
+ *   <li>{@link #setRace} 是第二个跨域授予（另一个 {@code ApertureService.reconcileTalentPaths}）：撤旧授新，造诣经
+ *       {@code PathService} 平移；道痕[Path Marks]作永久 {@code RACE_TALENT} 肉身效果经 {@code PathEffectService}
+ *       施加，来源 {@link #RACE_TALENT_SOURCE}，种族之道[Path]上 10 整道痕。</li>
+ *   <li>{@link #syncRaceTalent} 登录时补回缺失或错种族的效果，不动造诣。</li>
+ *   <li>超 300 行：肉身记录读写唯一入口，每字段族一个 region，拆分会让入口分属两个服务。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -116,7 +101,7 @@ public final class BodyService {
         PlayerData.get(player).setBody(data);
     }
 
-    /** Keeps a body state's marker effect in step: shown for its ticks left, at least one, or taken off. */
+    /** 同步肉身状态标记效果：按剩余 tick（至少 1）显示，否则移除。 */
     static void projectMarker(ServerPlayer player, Holder<MobEffect> effect, boolean shown, long ticksLeft) {
         if (shown) {
             player.addEffect(ModEffects.instance(effect, Math.max(1, (int) ticksLeft)));

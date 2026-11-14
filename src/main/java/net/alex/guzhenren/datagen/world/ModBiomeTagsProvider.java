@@ -19,29 +19,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the biome tags deciding where wild Gu [野生蛊虫] and the wild boar [野猪] may spawn.
+ * 野生蛊与野猪生成位置的生物群系标签。
  *
- * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.level.biome.Biome}.
- * Populates the hope, boar and rhinoceros beetle Gu tags from one shared list of 39 land biomes (the
- * sibling mod Gu World keeps a copy for the Spirit Spring [元泉]), the wild boar tag
- * from the five forest biomes where it naturally occurs, the bear tag from every forest-family biome
- * (12), the tiger tag from the three jungle biomes, the tortoise tag from the three savannas and the sparse
- * jungle (the grass-floored dry biomes; {@code animals_spawnable_on} holds only grass), and the cattle tag from the
- * 21 vanilla biomes whose own spawn tables carry {@code minecraft:cow} (read from the 1.21.1 biome JSONs), so the
- * cattle live beside vanilla's cow, and the elephant tag from the three savannas and the three jungles.
- * Must NOT collapse to {@code #minecraft:is_overworld} because that carries the
- * oceans, whose surface sits at sea level.
- *
- * <p>The four regions of Gu World, the Southern Border [南疆], the Western Desert [西漠], the Eastern Sea [东海] and
- * the Northern Plains [北原], draw on that mod's own biomes, in no vanilla tag, so the three wild Gu tags also name
- * each region's land biomes by id, as optional entries, a biome two regions share (the rainforest) once: the tags still
- * load without Gu World. The wild boar, bear,
- * tiger, tortoise, cattle and elephant tags name no region biome: the regions spawn vanilla animals and wild Gu only, by Alex's
- * decision.
- *
- * <p>⚠ The region lists are Gu World's biome ids, those of each region's roster ({@code Replicas}, {@code Ports}
- * and the region packages there, placed by each region's layout): renaming or adding one there means changing it
- * here in the same task.
+ * <ul>
+ *   <li>三个野生蛊标签（{@code HOPE_GU_SPAWNS}、{@code BOAR_GU_SPAWNS}、{@code RHINOCEROS_BEETLE_GU_SPAWNS}）共用一张
+ *       39 个陆地群系的表，Gu World 为元泉[Spirit Spring]存有副本。</li>
+ *   <li>野猪：原生 5 个森林；熊：全部森林类（12 个）；虎：3 个丛林；象：3 个热带草原与 3 个丛林。</li>
+ *   <li>陆龟：3 个热带草原与稀疏丛林，即草地面的干燥群系（{@code animals_spawnable_on} 只含草方块）；牛：生成表含
+ *       {@code minecraft:cow} 的 21 个原版群系（读自 1.21.1 群系 JSON），与原版牛同住。</li>
+ *   <li>⚠ 不得收拢成 {@code #minecraft:is_overworld}：它含海洋，海洋表面在海平面。</li>
+ *   <li>Gu World 四地区（南疆、西漠、东海、北原）群系不在原版标签：三个野生蛊标签另按 id 列各地区陆地群系作可选条目，两
+ *       地区共有雨林只列一次，无 Gu World 照常加载；上述动物标签不含地区群系：地区只生成原版动物与野生蛊，Alex
+ *       定。</li>
+ *   <li>⚠ 地区列表即 Gu World 各地区名册的群系 id（那边 {@code Replicas}、{@code Ports} 与各地区包，按地区布局放置）：
+ *       那边改名或新增，须同一任务改这里。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

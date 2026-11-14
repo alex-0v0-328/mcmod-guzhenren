@@ -17,19 +17,18 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 
 /**
- * The impact shakes [震屏] this client's camera is playing; client only. Like {@link SecondStageCamera} it turns the
- * camera's angles, never the rendered image, and scales with the vanilla Distortion Effects slider.
+ * 本客户端镜头正在播的震屏；仅客户端。
  *
- * <p>A shake starts from an {@link ImpactShakePayload} (a plunge's landing, someone else's second-stage crash), its
- * strength already scaled by the distance, or straight from the local physics' {@link SecondStageCrashEvent}, with
- * {@link ImpactShakeEvents#CRASH_STRENGTH} over {@link ImpactShakeEvents#CRASH_TICKS}. Each opens at its strength in
- * degrees and fades on the square of the time left ({@link #getShake}); overlapping shakes add up to
- * {@link #MAX_STRENGTH}. Ages count on this class's own unpaused client ticks, so a respawn's fresh tick count never
- * replays one, and a pause holds them. A notice's numbers are clamped to {@link #MAX_STRENGTH} and
- * {@link #MAX_TICKS}. Pitch and yaw swing on two rates near 10 Hz.
- *
- * <p>The one mutable static, {@code ticks}, is this client's own tick clock: it only counts up, and every shake stores
- * its start on it, so nothing needs to forget it on logout.
+ * <ul>
+ *   <li>同 {@link SecondStageCamera}：只转镜头角度，不动画面，随原版“屏幕扭曲效果”滑条缩放。</li>
+ *   <li>来源：{@link ImpactShakePayload}（俯冲落地、他人的二段飞行[Second-Stage Flight]撞击，强度已按距离缩放），或本地
+ *       物理的 {@link SecondStageCrashEvent}（强度 {@link ImpactShakeEvents#CRASH_STRENGTH}，持续
+ *       {@link ImpactShakeEvents#CRASH_TICKS}）。</li>
+ *   <li>以强度（度）开场，按剩余时间平方衰减（{@link #getShake}）；重叠相加，上限 {@link #MAX_STRENGTH}；通知数值钳到
+ *       {@link #MAX_STRENGTH}、{@link #MAX_TICKS}；俯仰、偏航以两个近 10 Hz 的频率摆动。</li>
+ *   <li>时长按本类自己的未暂停客户端 tick 计：重生重置的 tick 计数不重播震屏，暂停即冻结。</li>
+ *   <li>唯一可变静态字段 {@code ticks} 是本客户端的 tick 时钟：只增不减，每次震屏在其上记起点，登出无需清零。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -8,17 +8,17 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
 
 /**
- * The horse's phantom body [马的兽力虚影]: vanilla's adult horse geometry ({@link ModelLayers#HORSE}), since the
- * phantom texture is painted on vanilla's horse layout, posed here without a horse entity, drawn {@link #SCALE} times
- * the model's size as vanilla draws its horses. The saddle, reins and the
- * foal's legs are hidden for good. {@link #pose} follows vanilla's {@code HorseModel.prepareMobModel} with the head
- * straight ahead, no grazing, no mouth and no tail swish: {@code stand} rears it up as a horse does, the limb swing
- * gallops it.
+ * 马的兽力虚影身体。
  *
- * <p>{@link #getRear} is the phantom's one-off attack beside its owner: up over {@link #REAR_RISE_TICKS}, held until
- * {@link #REAR_HOLD_TICKS}, down by {@link #REAR_END_TICKS}, then it stands. A Beast Charge [兽力冲击] gallops at
- * {@link #GALLOP_SWING_PER_TICK} limb swing a tick, at full stride. ⚠ The timings and the gallop rate are
- * provisional.
+ * <ul>
+ *   <li>用原版成年马几何（{@link ModelLayers#HORSE}），因虚影贴图按原版马布局绘制；无需马实体即可摆姿势，同原版按模型尺
+ *       寸 {@link #SCALE} 倍绘制；马鞍、缰绳、小马腿永久隐藏。</li>
+ *   <li>{@link #pose} 沿用原版 {@code HorseModel.prepareMobModel}，但头朝正前、不吃草、不张嘴、不甩尾；{@code stand} 使
+ *       前身像真马扬起，肢体摆动使其奔跑。</li>
+ *   <li>{@link #getRear}：主人身旁一次性攻击，{@link #REAR_RISE_TICKS} 内抬起，持至 {@link #REAR_HOLD_TICKS}，
+ *       {@link #REAR_END_TICKS} 时落下，后站立；兽力冲击按每 tick {@link #GALLOP_SWING_PER_TICK} 摆肢，全步幅跑。</li>
+ *   <li>⚠ 各时长与奔跑速率为暂定值。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

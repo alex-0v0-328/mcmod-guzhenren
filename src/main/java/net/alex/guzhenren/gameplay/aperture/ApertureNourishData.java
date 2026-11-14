@@ -7,17 +7,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Nourishing the Aperture [温养空窍]: whether a run is going, and which aperture it feeds. Immutable
- * record attachment keyed {@code nourish_data}; {@code
- * ApertureNourishService} is the only runtime writer; progress
- * percent and the petrified latch live on {@link Aperture} itself.
+ * 温养[Nourish]状态附件：是否在温养、温养哪个空窍[Aperture]。
  *
- * <p>It is synced to every client that sees the player, not to the owner alone: a nourishing player sits
- * cross-legged on other players' screens too.
- *
- * <p>⚠ {@code starvedSinceTick} defaults to {@code NOT_STARVED} (-1), never {@code 0} -- zero is a real
- * game time, so a fresh world would read as starved since its beginning. ⚠ {@code target} is only
- * trusted once the service has clamped it against the apertures that exist, never straight from the wire.
+ * <ul>
+ *   <li>键 {@code nourish_data}，运行时仅 {@code ApertureNourishService} 写；进度与石化锁存于 {@link Aperture}。</li>
+ *   <li>同步给所有看得见该玩家的客户端：温养者在他人屏幕上也盘腿而坐。</li>
+ *   <li>⚠ {@code starvedSinceTick} 默认 {@code NOT_STARVED}（-1）：{@code 0} 是真实时刻，新世界会读成开局即断供。</li>
+ *   <li>⚠ {@code target} 须经服务按现有空窍夹取才可信，不直接信网络值。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -53,7 +50,7 @@ public record ApertureNourishData(boolean cultivating, int target, long starvedS
 
     public boolean hasStarvedOut(long now) { return isStarving() && now - starvedSinceTick >= STARVE_GRACE_TICKS; }
 
-    /** Not cultivating and not starving, the target kept. */
+    /** 停止温养[Nourish]并清除断供，保留目标。 */
     public ApertureNourishData stopped() { return new ApertureNourishData(false, target, NOT_STARVED); }
 
     public ApertureNourishData withCultivating(boolean value) {

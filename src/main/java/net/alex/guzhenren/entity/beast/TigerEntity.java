@@ -15,25 +15,16 @@ import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * A tiger; the orange and white coats register as two entity types sharing this class (they differ
- * only in texture).
- *
- * <p>Combat swipes at arm's length (hit frame at tick 8) and pounces across three to eight blocks:
- * {@link #tickHeavyAttack} fires the leap impulse at tick 12 with the direction locked at that
- * moment -- {@link #onBeginAction} resets that lock for each new pounce, so a stale direction from
- * the previous pounce is never reused -- and the landing hit is a swept-body test over the flight
- * window. The leap locks on the first tick at or after the leap frame, so an unticked frame cannot
- * skip the lock; a leap that could no longer reach the landing window is dropped, and a wall that
- * stops the leap ends the pounce early without a hit. {@link #isKeepingMomentum} keeps the leap's
- * horizontal momentum from the leap tick through the landing window while gravity supplies the
- * vertical arc: the velocity is re-applied each tick inside that window so the arc covers the
- * locked distance instead of bleeding off to drag, and past the window the base action tick zeroes
- * the horizontal velocity, so the tiger never slides beyond it. Vanilla has no tiger sounds, so the
- * ocelot family stands in at a lowered pitch; the roar reuses the polar bear warning slightly
- * deepened.
- *
- * <p>{@link #pickDaytimeAmbient}: tigers only sit; they have no roll or scratch animations, so
- * {@link #getActionAnimation} maps those poses to the idle loop.
+ * 老虎：橙、白两色为共用本类、只差纹理的两个实体类型。
+ * <ul>
+ *   <li>近身挥击（第 8 tick 命中），3～8 格扑击：第 12 tick 施起跳冲量并当刻锁方向，{@link #onBeginAction}
+ *       每次新扑击重置锁定，不复用旧向；落地命中为飞行窗口内扫掠检测。</li>
+ *   <li>起跳帧当刻或其后首个 tick 锁定，漏帧不跳过；赶不上落地窗口则放弃起跳；撞墙停下即提前结束，无命中。</li>
+ *   <li>{@link #isKeepingMomentum} 自起跳至落地窗口末保持横向动量，纵向弧线交重力：窗口内每 tick 重施速度，
+ *       弧线才跨得过锁定距离、不被阻力耗尽；窗口后基础动作 tick 清零横向速度，不滑出。</li>
+ *   <li>原版无虎音效，借豹猫一系降调，吼叫用略低沉北极熊警告音；白天只坐，无翻滚、蹭背动画，{@link #getActionAnimation}
+ *       映射为待机循环。</li>
+ * </ul>
  */
 
 public final class TigerEntity extends BeastEntity {

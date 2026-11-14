@@ -6,10 +6,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Carries an item stack, empty or not, over the wire: {@link #writeStack} and {@link #readStack}.
- *
- * <p>⚠ A stack only travels on a {@link RegistryFriendlyByteBuf}. Every buffer the network and menu
- * layers hand out is one; a plain {@link FriendlyByteBuf} is refused with an {@link IllegalArgumentException}.
+ * 物品堆叠（含空）的网络读写；⚠ 只走 {@link RegistryFriendlyByteBuf}（网络层、菜单层给的都是），普通
+ * {@link FriendlyByteBuf} 抛 {@link IllegalArgumentException}。
  *
  * @author Alex
  * @version 1.0.0

@@ -18,18 +18,16 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
 /**
- * The Store Strength Gu's [蓄力蛊] charge [蓄力] on the client. With the buff's effect on, a bare main hand and an
- * Epic Fight lock-on [锁定], holding the attack key for {@link StoreStrength#HOLD_TICKS} sends
- * {@link ChargeAction#START}; whatever Epic Fight and the Strength Qi Gu's [力气蛊] ranged punch do with that key
- * stays theirs. The charge then fills in {@link StoreStrengthCharge} at {@link StoreStrength#getStep} a tick for the
- * bar, but shows full ({@link StoreStrengthCharge#isFull}, with the crossbow's loaded click) only on the server's
- * full notice ({@link #onNotice}), since the server's tick is the charge's truth. Letting go sends
- * {@link ChargeAction#RELEASE} at the locked target, full or not -- the server judges; losing the effect, the bare
- * hand, the lock-on or the game screen sends {@link ChargeAction#CANCEL}. The server's drop notice ends the charge
- * here too, and a new one waits until the key comes up.
- *
- * <p>The keys are read as held states, like {@code QiWaveInput}: Epic Fight's attack key shares the button and takes
- * the click in its battle mode. {@link #reset} forgets everything on logout.
+ * 蓄力蛊[Store Strength Gu]蓄力的客户端输入。
+ * <ul>
+ *   <li>增益在身、主手空、有 Epic Fight 锁定时按住攻击键 {@link StoreStrength#HOLD_TICKS} 发
+ *       {@link ChargeAction#START}，不夺 Epic Fight 与力气蛊[Strength Qi Gu]远程拳对该键的处理。</li>
+ *   <li>{@link StoreStrengthCharge} 每 tick 按 {@link StoreStrength#getStep} 涨条，但待服务端蓄满通知
+ *       （{@link #onNotice}）才显示满（{@link StoreStrengthCharge#isFull}，伴弩装填声），蓄力以服务端为准。</li>
+ *   <li>松开无论满否都向锁定目标发 {@link ChargeAction#RELEASE}，由服务端判；失去效果、空手、锁定或离开游戏画面发
+ *       {@link ChargeAction#CANCEL}；服务端中断通知同样结束蓄力，下次须等按键抬起。</li>
+ *   <li>同 {@code QiWaveInput} 读按住状态：Epic Fight 攻击键同键，战斗模式下吃掉点击；{@link #reset} 登出时清空。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

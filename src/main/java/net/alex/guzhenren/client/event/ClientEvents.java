@@ -72,28 +72,15 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every client-side registration this mod makes: HUD layers, key mappings, screens and renderers.
+ * 本模组全部客户端注册：HUD 层、按键、界面、渲染器。
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. Registers ten GUI layers
- * ({@link net.alex.guzhenren.client.hud.SonicBoomHud} and {@link ShieldGlowHud} above the vanilla camera overlays,
- * {@link net.alex.guzhenren.client.hud.PlayerStatsHud} and {@link KillingMoveTooltipHud} above the hotbar,
- * {@link net.alex.guzhenren.client.hud.ChargeHud},
- * {@link net.alex.guzhenren.client.hud.NourishHud}, {@link ShieldHud}, {@link RadialMenu} and {@link HoldSlider}
- * above the crosshair, and
- * {@link AwakeningHud} above everything),
- * the key mapping for
- * the B panel, the menu screens for the three containers, the shockwave-ring particle providers, the entity renderers
- * ({@link ModEntityRenderers}), the Spirit Spring and Pure Water fluids' translucent render layer, and the Nine Leaf
- * Vitality Grass [九叶生机草] model property, which derives the leaf count from the client level's game time. The Intimate
- * Grass [知心草] block takes the biome grass color on its tint index 0 the way vanilla tall grass does, sampled at the
- * lower half for both halves; its harvested item has no color handler and keeps its own PNG. Both player renderers get
- * a {@link SkinFlashLayer}, and client setup registers the {@code SkinFlashPayload}, {@code ImpactShakePayload},
- * {@code KillingMoveTooltipPayload} and {@code StoreStrengthNoticePayload} handlers with {@code ModPayloads}, which
- * names no client class itself, the
- * booklet reader ({@link BookletScreen}) with {@code BookletItem}, likewise, and the Epic Fight client hooks
- * ({@link EpicFightClientIntegration}). On logout it clears {@link DashInput}'s remembered
- * key states, the pending flashes, the shield glow and the Killing Move Tooltip, and drops a radial-menu hold; each
- * client tick steps the shield glow.
+ * <ul>
+ *   <li>九叶生机草[Nine Leaf Vitality Grass]模型属性按客户端世界游戏时间推算叶数。</li>
+ *   <li>知心草方块像高草在色调索引 0 取群系草色，上下两半都取下半格；采下的物品无颜色处理器，保留自身 PNG。</li>
+ *   <li>客户端初始化时向 {@code ModPayloads} 登记 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
+ *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 的处理器，{@code ModPayloads} 自身不引用
+ *       客户端类；书册阅读器（{@link BookletScreen}）同理登记给 {@code BookletItem}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

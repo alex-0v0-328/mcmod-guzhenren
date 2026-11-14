@@ -14,16 +14,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The shared behavior behind the body tempering Gu [炼体蛊]: makes one grade of one body part of the holder's -- a
- * skin [皮], tendons [筋] or bones [骨]. Which part comes from the subclass, which grade from registration; the Gu
- * itself is never consumed, so a holder who has outgrown it can hand it on. The two jade skins are instant defensive
- * Gu; every permanent grade is a channeled [灌注] path mark carving Gu whose one round is the payout, after which the
- * gate refuses the next.
- *
- * <p>The gate asks the grade itself ({@link BodyGrade#canReplace}) whether the holder's current grade gives way,
- * and refuses with the one tempering key and the worn grade's name, which names the part; the effect is the subclass's {@link #temper}, one
- * write through {@code BodyService}. Every number and rule hangs off that write and the grade enum, not off this
- * behavior. {@code CarvingEffects} finds the Gu that makes a grade by this behavior.
+ * 炼体蛊共用行为：把一个部位（皮、筋、骨）炼到某档。
+ * <ul>
+ *   <li>部位由子类定、档位由注册定；蛊不消耗，用不上可转手；两种玉皮是即时防御蛊，永久档皆为灌注[Channel]
+ *       类道痕[Path Marks]蚀刻蛊，一轮即生效，之后门槛拒绝。</li>
+ *   <li>门槛问档位本身（{@link BodyGrade#canReplace}）现有档是否让位，拒绝用统一炼体键附现有档名（已指明部位）；
+ *       效果是子类 {@link #temper}，经 {@code BodyService} 一次写入，数值与规则全挂在该写入与档位枚举上；
+ *       {@code CarvingEffects} 凭此行为找造某档的蛊。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

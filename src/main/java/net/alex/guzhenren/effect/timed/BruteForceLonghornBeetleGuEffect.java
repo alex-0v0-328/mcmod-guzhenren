@@ -8,13 +8,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * The timed buff of the Brute Force Longhorn Beetle Gu [蛮力天牛蛊]: one ox's strength [一牛之力] of strength
- * points for forty-five seconds, with no aftermath.
- *
- * <p>The path effect is the buff's truth and this vanilla effect its icon and timer. The points go through
- * {@link BeastStrengthBuff} into the one strength settlement, so the attack total stays one number and the
- * carrying capacity applies. An ox is worth a bear's points; the ox lasts longer than the boar, and that length
- * is its trait.
+ * 蛮力天牛蛊[Brute Force Longhorn Beetle Gu]限时增益：一牛之力力量点[Strength Points]，45 秒，结束无余波；
+ * 真值为流派效果，本效果仅图标与计时；点数经 {@link BeastStrengthBuff} 入唯一力量结算，攻击总值仍为一数，承受力照算；
+ * 牛熊同点，比猪持久，时长即特性。
  *
  * @author Alex
  * @version 1.0.0

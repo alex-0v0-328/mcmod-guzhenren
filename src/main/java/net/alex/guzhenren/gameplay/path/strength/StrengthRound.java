@@ -21,34 +21,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The attack round [攻击轮次] of the beast strength phantom path [兽力虚影流] and the {@link StrengthService.ReleaseSource}
- * it answers. A fist hit opens a round of {@link #ROUND_TICKS} when the last one began at least that long ago
- * ({@link BeastPhantomEvents} gates the hit); every hit inside it shares what the opening drew, and no hit re-rolls.
- *
- * <p>Only the families of the permanent beast strengths are drawn; a timed strength alone (the Brute Force Longhorn
- * Beetle's ox) opens nothing. The opening hit rolls once against
- * {@link #getChance}: {@link #CHANCE} plus the held beasts' {@link BeastStrength#getChanceBonus} (the brown bear's
- * innate strength makes it 10%), or 80/90/100% while the rank three/four/five All-Out Effort Gu [全力以赴] runs
- * ({@code StrengthSnapshot.allOutTier}). It draws {@link #getDrawCount}: under Hardship Strength [苦力] the streak's
- * count of distinct families, else one when the roll lands, else none -- the round still runs, so the next hits do not
- * roll again. The streak counts rounds opened within {@link #STREAK_WINDOW_TICKS} of the last one's end while Hardship
- * runs, and goes back to one past that window or when Hardship stops.
- *
- * <p>While the round runs it fully releases [全面解放] every drawn family while All-Out Effort runs NOW, else the first
- * one when the opening roll landed, through one {@link StrengthService#getReleasedExtra} over their summed permanent
- * points, still cut by the current capacity; any other drawn family is only shown ({@link #getFullyReleased} names
- * the released ones, which also lend their beasts' speed to {@code SprintSpeedService}). The drawn set is fixed at
- * the opening; a family the body no longer holds leaves it, and its phantom goes, the next tick. Outside a round the
- * release is zero.
- *
- * <p>The Strength Qi Gu's [力气蛊] ranged punch has its own spacing ({@link #canRange}): at least
- * {@link #RANGE_INTERVAL_TICKS} apart, so a round takes two, each sharing what the opening drew. One thrown
- * outside a round opens one as a fist would ({@link #startRange}); one thrown by a body without a permanent beast
- * opens none and keeps only the spacing.
- *
- * <p>⚠ Server memory only, keyed by player: never saved, cleared on death, logout, dimension change and server stop.
- * A client asks nothing of it and reads no release. ⚠ {@link #CHANCE}, {@link #ROUND_TICKS} and
- * {@link #STREAK_WINDOW_TICKS} are provisional. The int and list overloads are seams for unit tests.
+ * 兽力虚影流的攻击轮次，兼作 {@link StrengthService.ReleaseSource}。
+ * <ul>
+ *   <li>拳头命中（{@link BeastPhantomEvents} 把关）且距上轮开始满 {@link #ROUND_TICKS} 开一轮，轮内共用开轮所抽；
+ *       只抽永久兽力[Beast Strength]兽种，仅有限时兽力（蛮力天牛蛊[Brute Force Longhorn Beetle Gu]的牛）不开轮；开轮一
+ *       击掷 {@link #getChance}：{@link #CHANCE} + 所持兽力 {@link BeastStrength#getChanceBonus}（棕熊本力 10%），三 /
+ *       四 / 五转全力以赴蛊[All-Out Effort Gu]运行中 80% / 90% / 100%（{@code StrengthSnapshot.allOutTier}）。</li>
+ *   <li>抽数 {@link #getDrawCount}：苦力蛊[Hardship Strength Gu]运行中按连击轮数抽不同兽种，否则掷中抽 1；未中照常计
+ *       时、不再掷；连击即苦力中上轮结束后 {@link #STREAK_WINDOW_TICKS} 内开轮累加，超窗或苦力停回 1。</li>
+ *   <li>全力以赴此刻运行则全面解放全部抽中兽种，否则仅掷中时解放首个，按其永久点数和经一次
+ *       {@link StrengthService#getReleasedExtra}，仍截于当前承受力；其余只显虚影，轮外为 0；{@link #getFullyReleased}
+ *       列出解放兽种，速度借给 {@code SprintSpeedService}；抽中集合开轮即定，不再持有的兽种下一 tick 退出、虚影随
+ *       撤。</li>
+ *   <li>力气蛊[Strength Qi Gu]远程拳间隔 ≥ {@link #RANGE_INTERVAL_TICKS}（{@link #canRange}），一轮两拳共用所抽；轮外一
+ *       拳照拳头开轮（{@link #startRange}），无永久兽力只记间隔。</li>
+ *   <li>⚠ 仅服务端内存，按玩家，不存档，死亡、下线、换维度、停服清空，客户端不查不读；{@link #CHANCE}、
+ *       {@link #ROUND_TICKS}、{@link #STREAK_WINDOW_TICKS} 占位；int 与 list 重载为单测接缝。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

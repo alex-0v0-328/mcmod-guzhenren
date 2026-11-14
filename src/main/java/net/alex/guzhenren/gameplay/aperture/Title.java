@@ -6,14 +6,13 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Title [称号], derived from the rank [转数] and never stored.
+ * 称号：由转数推导，从不存储。
  *
- * <p>Closed vocabulary enum: the only place the mortal-versus-immortal distinction still lives today.
- * {@code fromRank} maps {@code NONE} -> {@code MORTAL}, {@code ONE} to {@code FIVE} -> {@code GU_MASTER},
- * {@code SIX} to {@code NINE} -> {@code GU_IMMORTAL}. No sibling mod may add a title.
- *
- * <p>⚠ Storing it would create a second answer that the rank could then contradict. The mortal's word
- * belongs to this enum alone, which is why {@link Rank#NONE} translates to the empty string.
+ * <ul>
+ *   <li>封闭词汇枚举，兄弟模组不得新增；凡人与蛊仙之分如今只在此处。</li>
+ *   <li>{@code fromRank}：{@code NONE} 凡人，{@code ONE} 至 {@code FIVE} 蛊师，{@code SIX} 至 {@code NINE} 蛊仙。</li>
+ *   <li>⚠ 存储会多出一个可与转数矛盾的答案；「凡人」只归本枚举，所以 {@link Rank#NONE} 译成空串。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

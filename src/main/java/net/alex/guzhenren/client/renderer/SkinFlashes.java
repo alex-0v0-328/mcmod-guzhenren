@@ -9,15 +9,14 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The skin flashes [皮肤闪现] this client is drawing: one per entity, started by a {@link SkinFlashPayload}
- * and fading over {@link #FADE_TICKS}. {@link SkinFlashLayer} reads them; nothing else does. A {@link Flash}
- * holds the skin that was put on and the client game tick it started.
+ * 本客户端正在绘制的皮肤闪现。
  *
- * <p>Each skin family has its tint: emerald green for the jade skin [玉皮], warm white for the white jade skin
- * [白玉皮], copper for the bronze skins [铜皮], steel gray for the iron skins [铁皮]; the native skin never
- * flashes. The alpha starts at {@link #START_ALPHA} and falls linearly, so the overlay is gone after one second.
- * A flash that has faded is dropped on the next read or by the client tick's {@link #prune}; leaving the world
- * clears the table.
+ * <ul>
+ *   <li>每实体一个，由 {@link SkinFlashPayload} 发起，仅 {@link SkinFlashLayer} 读取；{@link Flash} 存所穿的皮与开始时
+ *       的客户端游戏 tick；染色按皮族：玉皮翠绿，白玉皮暖白，铜皮铜色，铁皮钢灰，原生皮不闪现。</li>
+ *   <li>alpha 从 {@link #START_ALPHA} 线性降至 0，{@link #FADE_TICKS}（1 秒）内淡尽；淡尽者在下次读取或客户端 tick 的
+ *       {@link #prune} 移除，离开世界清空整表。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

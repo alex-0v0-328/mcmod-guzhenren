@@ -9,9 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Iron Bone Gu's [铁骨蛊] behavior: makes the holder's bones [骨] iron for good, in the rank registration names;
- * the max health and knockback resistance it adds are the grade's. Extends {@link TemperingBehavior}; the write is
- * {@link BodyService#temperBone}.
+ * 铁骨蛊[Iron Bone Gu]的行为：骨永久变为同转铁骨，最大生命与击退抗性加成取该档。
  *
  * @author Alex
  * @version 1.0.0

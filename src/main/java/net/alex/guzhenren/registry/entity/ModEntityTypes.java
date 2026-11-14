@@ -31,14 +31,14 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * The entity types this mod registers.
+ * 本模组注册的实体类型。
  *
- * <p>Hope Gu, three boar Gu and four rhinoceros beetle Gu variants are naturally spawning ambient entities;
- * the wild boar, the four bears, the two tigers, the two tortoises, the three cattle and the two elephants are naturally spawning
- * creatures. Hope Gu's client mote is emitted by its entity class. Each {@link SoulTrader} registers one fire-immune misc entity with no
- * spawn rule at all: soul traders exist only through {@code /summon}. The Moon Blade [月刃] and the Qi Wave [气波] are
- * the projectiles. The Beast Phantom [兽力虚影] is display only and never saved.
- * Gu capture is a bare right click and is never gated on awakening [开窍]; the wild boar has no capture path.
+ * <ul>
+ *   <li>自然生成环境实体：希望蛊[Hope Gu]、3 豕蛊、4 犀牛甲虫蛊变体；生物：野猪、4 熊、2 虎、2 龟、3 牛、2 象。月刃、
+ *       气波为弹射物；兽力[Beast Strength]虚影仅显示不存档。</li>
+ *   <li>每个 {@link SoulTrader} 一个免火杂项实体，无生成规则，仅 {@code /summon}；希望蛊光点由实体类发出。</li>
+ *   <li>捕蛊即直接右键，不以开窍[Awakening]为门槛；野猪不可捕获。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

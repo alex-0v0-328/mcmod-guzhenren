@@ -11,13 +11,12 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The base of every saved-data file this mod keeps on a level: a subclass writes itself into a tag
- * ({@link #write}) and is read back by the function it hands {@link #get}; a caller on a hot path builds its
- * {@link SavedData.Factory} once and hands that instead.
- *
- * <p>Item stacks go through the {@link StackIo} both sides receive, which writes and reads one non-empty stack
- * inside a saved-data tag with the registry context a stack needs. Subclasses override {@link #write} only and
- * fetch through {@link #get}.
+ * 模组维度存档数据的基类。
+ * <ul>
+ *   <li>子类只覆写 {@link #write}，经 {@link #get} 取用并交出读回函数；热路径改传只建一次的
+ *       {@link SavedData.Factory}。</li>
+ *   <li>物品堆叠经两侧共享的 {@link StackIo} 在存档标签内读写单个非空堆叠，带注册表上下文。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

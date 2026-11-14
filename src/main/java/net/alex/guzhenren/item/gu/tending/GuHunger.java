@@ -10,44 +10,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A tended Gu's hunger [饱食]: how it is billed over time, what it takes to keep one alive, and the meals it takes
- * from the holder's bag ({@link #feed}: every slot, offhand included; each food mends first through {@link GuHealth},
- * then fills the bar).
- *
- * <p>⚠ {@link #feed} is the one meal and runs only while a {@code HungerBar} has room: a full bar never eats just to
- * mend, so a wound waits for the next drop; a bar that never drains never eats. When it runs is {@code
- * TendedGuItem}'s rule, not this one's.
- *
- * <p>A sealed interface with three implementations: {@link HungerBar} (every tended Gu with a bar that drains),
- * {@link RecoverBar} (the As Before Gu [如故蛊]: a bar that refills with the world clock, never drains by the day,
- * never eats) and {@link NoClock} (Primeval Elder Gu, Heavenly Essence Treasure Lotus Gu, Nine Leaf Vitality Grass,
- * Watch Gu and Stone Aperture Gu -- never hungry, never feeds). Built by {@link GuProperties#buildHunger} at construction.
- *
- * <p>⚠ {@code RecoverBar} settles lazily from its {@code RECOVERED_AT} stamp, like {@code LeafGrowth}: {@link
- * RecoverBar#getPoints(ItemStack, long)} derives the count at any game time without writing, {@link
- * RecoverBar#settle} writes only a grown point (a full bar is left alone, so a carried one costs no stack write a
- * second). The day-clock walk settles every carried one each heartbeat, so the stored count is never more than a
- * second stale. ⚠ A full bar's stamp is stale by design, so a use that spends from a full bar must {@link
- * RecoverBar#restart} the stamp at the spend ({@code AsBeforeGuItem.performOwnUse}), or the next settle would hand the
- * point straight back.
- *
- * <p>{@code RecoverBar} mends health on the same clock, one point a {@code ticksPerPoint}, from its own {@code
- * HEALED_AT} stamp: started by the first settle that finds it hurt, removed once whole, so a whole one costs no write.
- *
- * <p>A channeled Gu's {@code HungerBar} bills by round progress, never by the essence numbers: {@code perRound}
- * points a round, one at each {@code 1/perRound} of it. The step cap {@link #getEssenceAboveHungerFloor} turns the
- * points above {@link #CHANNEL_HUNGER_FLOOR} back into essence through the round.
- *
- * <p>A use is short ({@link #isShortOfUse}) when the bar holds less than the use, its multiplier included; that is
- * the question behind a forced use ({@link GuForcedUse}), and {@link #isSpendForced} spends and answers the same.
- * A partner's bill ({@link #isSpendForcedAsPartner}) keeps the empty-bar rule.
- *
- * <p>⚠ "Hungry" means only that the next day rollover will kill it: the threshold is the bar's daily drain
- * ({@code perDay}), never the size of a meal. Only a {@code HungerBar} is ever hungry; the warning itself is {@code
- * TendedGuItem.feedAndWarn}'s.
- *
- * <p>Past 300 lines on purpose: the sealed interface and its three records (the hunger bar, the recover bar and no
- * clock) share the bag and the unit arithmetic, so each kind reads best beside the other two.
+ * 持续照顾型蛊[Tended Gu]的饱食[Hunger]密封接口，由 {@link GuProperties#buildHunger} 构建。
+ * <ul>
+ *   <li>{@link HungerBar} 按日扣量；{@link RecoverBar} 如故蛊[As Before Gu]，随世界时钟回满，不按日扣；{@link NoClock}
+ *       不饥饿：元老蛊[Primeval Elder Gu]、天元宝莲[Heavenly Essence Treasure Lotus Gu]、
+ *       九叶生机草[Nine Leaf Vitality Grass]、更蛊[Watch Gu]、石窍蛊[Stone Aperture Gu]。</li>
+ *   <li>⚠ {@link #feed} 是唯一进食：吃背包全槽位（含副手），每份先经 {@link GuHealth} 修复再补条，仅 {@code HungerBar}
+ *       有空位时运行；满条不为修复而吃，伤等下次扣量；时机由 {@code TendedGuItem} 定。</li>
+ *   <li>⚠ 回复条如 {@code LeafGrowth} 从 {@code RECOVERED_AT} 惰性结算：{@link RecoverBar#getPoints(ItemStack, long)}
+ *       只推算，{@link RecoverBar#settle} 长出一点才写（随身满条不每秒写）；日时钟每次心跳结算随身回复条，至多滞后
+ *       1 秒。</li>
+ *   <li>⚠ 满条时间戳按设计过期：从满条扣点须当即 {@link RecoverBar#restart}（{@code AsBeforeGuItem.performOwnUse}），
+ *       否则下次结算把点还回。</li>
+ *   <li>回复条同时钟修复生命，每 {@code ticksPerPoint} 一点，依 {@code HEALED_AT}：受伤即起，伤愈即删，无伤不写。</li>
+ *   <li>灌注[Channel]类蛊按轮进度逐点扣饱食而非真元[Essence]，每轮 {@code perRound} 点；
+ *       {@link #getEssenceAboveHungerFloor} 把 {@link #CHANNEL_HUNGER_FLOOR} 之上的点数按轮折回真元，作每步上限。</li>
+ *   <li>{@link #isShortOfUse}：条少于本次催动（含倍数），即强行催动[Forced Use]（{@link GuForcedUse}）判据；
+ *       {@link #isSpendForced} 扣量并同答；搭档扣量（{@link #isSpendForcedAsPartner}）沿用空条规则。</li>
+ *   <li>⚠ 「饥饿」仅指下次日切会饿死：阈值为每日扣量（{@code perDay}），非一顿；只有 {@code HungerBar} 会饥饿，
+ *       警告归 {@code TendedGuItem.feedAndWarn}。</li>
+ *   <li>有意超 300 行：密封接口与三个 record 共用背包与单位换算，并排最好读。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

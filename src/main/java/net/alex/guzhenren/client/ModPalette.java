@@ -1,11 +1,8 @@
 package net.alex.guzhenren.client;
 
 /**
- * The one palette of the client surfaces: the seven domain accent colors and the chrome that several
- * screens and HUDs mean by the same name. A color belongs here only when two or more surfaces share
- * it; a single surface's own look stays a local constant.
- *
- * <p>Client only -- common code (the item charge color) must not reference this class.
+ * 客户端唯一调色板：七个领域强调色，及多界面与 HUD 同名共用的框体色；两个及以上界面共用的色才放这里，单界面配色留本地常
+ * 量；仅客户端，通用代码（物品蓄力色）不得引用。
  *
  * @author Alex
  * @version 1.0.0

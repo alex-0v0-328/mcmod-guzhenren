@@ -14,14 +14,13 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Criterion for a cultivator's realm [境界]: the first aperture [空窍] stands at or past {@code rank} and
- * {@code stage}, rank compared first. A second aperture never counts. The fire sites are the cultivation
- * writes alone -- a stage nourished up, the wall struck through and a petrified gauge converted in {@code
- * ApertureNourishService}, a Stone Aperture Gu or Relics Gu used -- so a realm set by command never
- * completes the advancement.
+ * 修为进度条件：第一空窍[Aperture]达到或超过 {@code rank}、{@code stage}，先比转；第二空窍不计。
  *
- * <p>"At or past" lets the next real step award every grade below it: an aperture that arrived at Rank III
- * before these advancements existed earns Rank II on its next stage up.
+ * <ul>
+ *   <li>触发点仅修炼写入：{@code ApertureNourishService} 的温养[Nourish]升阶、冲刷窍壁成功、石化转化，及
+ *       催动石窍蛊[Stone Aperture Gu]或舍利蛊[Relics Gu]；命令设的修为不算。</li>
+ *   <li>“达到或超过”让下次真实进阶补发其下各档：进度加入前已三转的空窍，下次升阶即得二转。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

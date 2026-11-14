@@ -11,14 +11,14 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 /**
- * Where this mod's wild entities may spawn naturally: the placement checks {@link EntityRegistrationEvents} registers.
+ * 本模组野生实体的自然生成检查，由 {@link EntityRegistrationEvents} 注册。
  *
- * <p>Flying Gu families spawn at or above the dimension's chunk-generator sea level -- NOT {@code canSeeSky},
- * because leaves count as cover and would empty every forest floor ({@code Level#getSeaLevel} is a deprecated
- * constant 63) -- and never in or over a fluid: the first non-air block at or below the spawn point must hold none.
- * Biomes are 3D and land ones reach over water (the Eastern Sea's shallows, swamps, lakes), so the land biome tags
- * alone would let them spawn on the water surface. Wild beasts spawn on animal-spawnable ground ({@code BlockTags.ANIMALS_SPAWNABLE_ON} underfoot)
- * with raw brightness above {@value #ANIMAL_MIN_LIGHT}.
+ * <ul>
+ *   <li>飞行蛊家族在维度区块生成器海平面及以上生成，不用 {@code canSeeSky}（树叶算遮挡，会清空林地；
+ *       {@code Level#getSeaLevel} 是弃用常量 63）；不在流体中或其上生成：生成点及以下首个非空气方块不得含流体，
+ *       因群系是三维的，陆地群系伸到水面上（东海浅滩、沼泽、湖泊），只凭陆地群系标签会刷在水面。</li>
+ *   <li>野兽在 {@code BlockTags.ANIMALS_SPAWNABLE_ON} 地面生成，原始亮度高于 {@value #ANIMAL_MIN_LIGHT}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

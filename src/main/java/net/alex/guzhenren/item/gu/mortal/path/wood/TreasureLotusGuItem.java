@@ -18,15 +18,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Heavenly Essence Treasure Lotus Gu [天元宝莲]: a passive that mints primeval stones [元石] and restores essence [真元].
- *
- * <p>Extends {@link net.alex.guzhenren.item.gu.tending.TendedGuItem} but declares no clock -- never eats, never
- * starves. The one-second heartbeat of {@code payOwnUpkeep} restores 5% of max essence and mints {@code
- * stonesPerSecond} stones: while hurt they are banked toward the {@code stonesPerHealth} repair, else
- * they go to Elder Gu vaults, main bag, hotbar, offhand, then a drop. Refined right click is a refused {@code fail}
- * (no swing); unrefined Gu are still refined through the held channel.
- *
- * <p>⚠ The bank rides {@code HEAL_BANK}, not {@code RefinedGuState} (shared by all tended Gu); resets on heal.
+ * 天元宝莲[Heavenly Essence Treasure Lotus Gu]：产元石[Primeval Stone]、回真元[Essence]的被动蛊。
+ * <ul>
+ *   <li>无时钟：不进食、不饿死；已炼化右键为被拒的 {@code fail}（不挥手），未炼化仍可长按炼化。</li>
+ *   <li>{@code payOwnUpkeep} 每秒回最大真元 5%、产 {@code stonesPerSecond} 块元石：受伤则存储备，每
+ *       {@code stonesPerHealth} 块修 1 生命；否则依次放入元老蛊[Primeval Elder Gu]、主背包、快捷栏、副手，再掉落。</li>
+ *   <li>⚠ 储备存 {@code HEAL_BANK}，不放持续照顾型蛊[Tended Gu]共用的 {@code RefinedGuState}；伤愈即清空。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

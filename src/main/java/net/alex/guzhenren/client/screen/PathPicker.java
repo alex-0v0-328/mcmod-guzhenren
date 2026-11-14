@@ -14,13 +14,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The secondary-path [副流派] picker the B panel opens over itself: a grid of every path plus "none",
- * centered on the panel. A click on a cell sends {@link SetSecondaryPathPayload} for the aperture it was
- * opened for; a click anywhere else, Esc or B closes it without a choice.
- *
- * <p>It draws in one {@link GuiBatch}, the popup sprite first. The hovered cell's fill stays in the cell loop rather
- * than before every name: a long English name ("Transformation Path") runs into the next cell, whose hover fill is
- * drawn over it.
+ * 叠在 B 面板上的辅修流派选择器。
+ * <ul>
+ *   <li>全部道[Path]加「无」排成网格，在面板内居中；点格子为打开时对应的空窍[Aperture]发
+ *       {@link SetSecondaryPathPayload}，点别处、Esc 或 B 键关闭且不选。</li>
+ *   <li>一个 {@link GuiBatch}，弹窗 sprite 最先；悬停填色逐格画：英文长名（Transformation Path）伸进下格，
+ *       被其填色盖住。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

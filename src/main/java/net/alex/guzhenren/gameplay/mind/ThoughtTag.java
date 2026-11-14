@@ -5,13 +5,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The composition of a thought [念] pool: which kind a portion is tagged as.
+ * 念池组成的标签：某部分念属于哪一类。
  *
- * <p>Closed vocabulary enum; the tagged map on {@code MindData} keys off it. No sibling mod may add a tag.
- *
- * <p>⚠ {@code NATURAL} is derived, never stored -- it is what remains once every tagged portion is
- * subtracted from the pool's current. Only {@code EVIL} (and future tags) live in the map, so
- * {@code NATURAL} has no writer.
+ * <ul>
+ *   <li>闭合枚举，{@code MindData} 标签表的键。</li>
+ *   <li>⚠ {@code NATURAL} 只推算不存储（池当前量减带标签部分），无写入方；表里只有 {@code EVIL} 及将来的标签。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

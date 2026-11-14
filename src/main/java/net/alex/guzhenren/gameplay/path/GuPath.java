@@ -5,13 +5,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Every path [流派] a Gu can belong to. There is no {@code NONE}; "has not chosen" is a {@code null}.
+ * 蛊可归属的全部道[Path]；没有 {@code NONE}，「未选择」用 {@code null}。
  *
- * <p>Closed vocabulary enum and the canonical example of the mod's closure rule: no sibling mod may
- * add a constant here. That guarantee is what lets every path-keyed store stay a plain {@code EnumMap}.
- *
- * <p>⚠ Never derive a Chinese rendering from the English one. Space Path [宇道] and Time Path [宙道]
- * both exist, so a guess at either does not fail loudly -- it quietly names the other real path.
+ * <ul>
+ *   <li>闭合枚举，模组封闭规则的标准范例：其他模组不得新增常量，因此按道分键的存储都用普通 {@code EnumMap}。</li>
+ *   <li>⚠ 别从英文名推中文名：宇道[Space Path]与宙道[Time Path]都存在，猜错不报错，只会悄悄指向另一条真实的道。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

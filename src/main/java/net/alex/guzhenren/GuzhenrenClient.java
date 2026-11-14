@@ -10,13 +10,14 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 /**
- * Client-only entry point, so that nothing which would crash a dedicated server sits in {@link Guzhenren}.
+ * 仅客户端的入口。
  *
- * <p>Annotated {@code @Mod(dist = Dist.CLIENT)}. It registers every MobEffect's client extension --
- * the effect icons of {@link EffectIcons} -- plus the Spirit Spring's and the Pure Water's fluid rendering on the
- * mod bus; all other client-side event subscribers live under the {@code client/} package tree and are loaded
- * only on the client.
- * The Treasure Yellow Heaven's sky effects belong to the sibling mod Gu World.
+ * <ul>
+ *   <li>会崩专用服务端的内容只放这里，不进 {@link Guzhenren}；其余客户端订阅者在 {@code client/} 包下，仅客户端加
+ *       载。</li>
+ *   <li>模组总线上注册 MobEffect 客户端扩展（{@link EffectIcons} 效果图标）与元泉[Spirit Spring]、纯水流体渲染。</li>
+ *   <li>宝黄天[Treasure Yellow Heaven]的天空效果归姊妹模组 Gu World。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

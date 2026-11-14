@@ -7,18 +7,16 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Rank [转数], the coarse measure of a cultivator, and the tables each grade carries.
+ * 转数：修炼者的粗粒度度量及各转数值表。
  *
- * <p>Closed vocabulary enum: {@code rankBase} and {@code maxHealth} both live here as the single source.
- * {@code NONE} is outside the settable range; {@code shift(int)} clamps at {@code ONE} to {@code FIVE}. No sibling
- * mod may add a rank.
- *
- * <p>⚠ {@code maxHealth} is the player's maximum health at that rank. A tended Gu also answers
- * {@code getMaxHealth()}, from {@code GuProperties} (4 x rank + 4); Gu health never moves onto this table.
- *
- * <p>⚠ {@code NONE} translates to the empty string on purpose -- the mortal's word belongs to
- * {@link Title} alone, and a word with two owners drifts apart. {@code SIX} to {@code NINE} carry deliberate
- * zeroes (phase 3); do not "fix" them.
+ * <ul>
+ *   <li>封闭词汇枚举，{@code rankBase} 与 {@code maxHealth} 的唯一来源，兄弟模组不得新增；{@code NONE} 不可
+ *       设，{@code shift(int)} 夹在 {@code ONE} 至 {@code FIVE}。</li>
+ *   <li>⚠ {@code maxHealth} 是玩家在该转的最大生命值；持续照顾型蛊[Tended Gu]的 {@code getMaxHealth()} 取自
+ *       {@code GuProperties}（4 × 转 + 4），永不挪进此表。</li>
+ *   <li>⚠ {@code NONE} 故意译成空串：「凡人」只归 {@link Title}，一词两主会走样；⚠ {@code SIX} 至 {@code NINE} 刻意为
+ *       零（三期），别「修」。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

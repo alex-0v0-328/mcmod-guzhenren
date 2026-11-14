@@ -9,20 +9,17 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Who may fly and how far up the ladder ({@link FlightGrant}), and the flight a Gu grants. The faster stage on top,
- * second-stage flight [二段飞行], is {@link SecondStageService}'s.
- *
- * <p>{@link #getGrant} decides what a player may do right now, for both ends (the client asks it before sending an
- * intent). A creative player and anyone inside the Treasure Yellow Heaven [宝黄天] may fly the second stage; a
- * survival player only through an active effect that implements {@link FlightContributor}, the strongest one winning
- * ({@link #getGuGrant}); a spectator, a rider, a sleeper and the dead get nothing. Flight is plain creative flight,
- * toggled with vanilla's double jump, which vanilla sprinting doubles.
- *
- * <p>Flight from a Gu is a {@link FlightAbility} source ({@link #GU_FLIGHT_MODIFIER_ID}), never a raw write to
- * {@code Abilities#mayfly}, which the game saves and game modes share: it never takes away flight the game mode or
- * the anchored dimension granted. {@link #tick} ({@link FlightEvents}, every server tick) grants it while a Gu grants
- * flight and, once none does, revokes it and turns flying off unless something else still lets the player fly, so a
- * survival player falls when the effect runs out. Creative and the Treasure Yellow Heaven bring their own flight.
+ * 飞行授权等级（{@link FlightGrant}）与蛊给的飞行。
+ * <ul>
+ *   <li>更快的二段飞行[Second-Stage Flight]归 {@link SecondStageService}；{@link #getGrant} 两端共用，客户端发意图前先
+ *       问。</li>
+ *   <li>创造模式与宝黄天[Treasure Yellow Heaven]里任何人可飞二段；生存仅靠实现 {@link FlightContributor} 的生效效果，
+ *       取最强（{@link #getGuGrant}）；旁观、骑乘、睡觉、死亡者无。飞行即原版创造飞行：双击跳跃开关，疾跑翻倍。</li>
+ *   <li>蛊飞行是 {@link FlightAbility} 来源（{@link #GU_FLIGHT_MODIFIER_ID}），不直接写会存档、游戏模式共用的
+ *       {@code Abilities#mayfly}，绝不收回游戏模式或锚定维度给的飞行。</li>
+ *   <li>{@link #tick}（{@link FlightEvents}，每服务端 tick）有蛊授权即授予，无则撤销，无其他来源时关飞，效果到期生存玩
+ *       家下落；创造与宝黄天自带飞行。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -19,16 +19,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The reading screen of a booklet [书册]: the {@code book_spread} sprite centered and unscaled, the text laid out by
- * {@link BookletLayout} in the frame's ink [墨色] {@code #2f2925}, without shadow. It fits the 320x240 GUI area
- * that the automatic GUI scale always leaves, so nothing scales or scrolls.
- *
- * <p>{@link #open} is what {@link BookletItem} calls on the client, registered in client setup. The script is picked
- * once on opening: under {@code zh_tw} the Traditional text in the {@code booklet_hant} font, in every other
- * language the Simplified text in {@code booklet_hans}, both cut by {@code tools/booklet_font.py} at one glyph pixel
- * to one GUI pixel. A figure page is papered over in the text area's color {@code #e0d0a5}, hiding the rules, before
- * its item is drawn at three times the slot size. Esc closes it; like vanilla's book screen it pauses a
- * single-player game, and the narrator reads the book's name as its title.
+ * 书册阅读界面。
+ * <ul>
+ *   <li>{@code book_spread} sprite 居中不缩放，自动 GUI 缩放总留出 320x240 区域，正好放下、不滚动；文字按
+ *       {@link BookletLayout} 排，版框墨色 {@code #2f2925}，无阴影。</li>
+ *   <li>打开时选定字体：{@code zh_tw} 用繁体文本和 {@code booklet_hant}，其他语言用简体和 {@code booklet_hans}；
+ *       两套均由 {@code tools/booklet_font.py} 按 1 字形像素对 1 GUI 像素切出。</li>
+ *   <li>插图页先用文字区底色 {@code #e0d0a5} 盖住界栏，再按格子三倍尺寸画物品。</li>
+ *   <li>{@link #open} 客户端初始化时注册，供 {@link BookletItem} 用；Esc 关、单人暂停、旁白以书名为题，同原版。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

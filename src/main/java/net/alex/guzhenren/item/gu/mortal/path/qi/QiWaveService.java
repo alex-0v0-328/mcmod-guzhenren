@@ -25,25 +25,19 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Strength Qi Gu's [力气蛊] ranged punch: while its buff runs, an empty-hand punch at Epic Fight's lock-on target
- * past the vanilla reach throws one projectile at it, at any distance. The client sends the locked target's id;
- * {@link #fire} checks it all again, bounded only by line of sight (vanilla's own 128 blocks).
- *
- * <p>{@link #isPastReach} is the one range rule, read by both ends: a target inside the reach is left to the plain
- * melee hit, so one click never lands twice. The punch has its own spacing inside the strength rounds [攻击轮次]
- * ({@link StrengthRound#canRange}): {@code RANGE_INTERVAL_TICKS} apart, and one thrown outside a round opens one. A
- * Qi Wave hits as hard as the fist: the player's attack damage, where the strength path's bonus and the round's
- * release live, plus the release the round it opened has not yet put there. No attack charge scales it; the spacing
- * paces it.
- *
- * <p>A holder of the beast strength phantom path [兽力虚影流] throws one {@link BeastChargeEntity} for every family the
- * round drew, or one of a held family at random when it drew none ({@link #getChargeFamilies}). Each hits with the
- * strength its own family adds, not the punch's ({@link BeastChargeDamage}): its permanent points, three times over
- * when the round fully releases the family, the charges' sum cut to the current capacity; under Hardship Strength
- * [苦力] the streak draws one family more a round until every phantom strikes. Only a family that can manifest
- * ({@code BeastStrengthFamily.canManifest}) charges; one that cannot leaves its share to the others. Everyone else,
- * and a beast holder without a permanent beast that manifests, throws one {@link QiWaveEntity}. Each one bursts
- * ({@link QiBurst}) around where it lands, and each burst rolls the area impact [范围冲击] once on its own.
+ * 力气蛊[Strength Qi Gu]的远程拳。
+ * <ul>
+ *   <li>增益期间空手打原版触及距离外的 Epic Fight 锁定目标，抛投射物，不限距离；客户端只发 id，{@link #fire}
+ *       全部重验，只受视线限（原版 128 格）。</li>
+ *   <li>{@link #isPastReach} 是两端共读的唯一射程规则：触及内留给近战，一击不中两次；轮次内间隔
+ *       {@code RANGE_INTERVAL_TICKS}（{@link StrengthRound#canRange}），轮次外抛出即开一轮。</li>
+ *   <li>兽力虚影流按本轮抽中兽种各抛一个 {@link BeastChargeEntity}，无则随机一个持有兽种；不能出形的不冲击，
+ *       份额让给其他（{@code BeastStrengthFamily.canManifest}）。</li>
+ *   <li>每个按本兽种永久力量点[Strength Points]命中（{@link BeastChargeDamage}），本轮全面解放时 ×3；总和截到
+ *       当前承受力；苦力期间连击每轮多抽一种，直到虚影全出。</li>
+ *   <li>其余人及无可出形永久兽力[Beast Strength]者抛 {@link QiWaveEntity}：伤害同拳（含力道加成与本轮解放），另加所开
+ *       那轮未计入的解放；不按攻击蓄力缩放，由间隔控节奏；各投射物落点爆开（{@link QiBurst}），各掷一次范围冲击。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

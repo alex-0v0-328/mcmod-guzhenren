@@ -15,30 +15,21 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Little Light Gu [小光蛊]: Light Path [光道], rank I. A tended Gu whose own use is a switch, not a payout: it glows
- * in the hand, and a refined one can be turned bright for a paid round of two minutes.
- *
- * <p>The glow is not code: {@code assets/guzhenren/dynamiclights/item/} holds two LambDynamicLights definitions (light
- * level 10 for any stack, 15 for one carrying {@code LITTLE_LIGHT_BRIGHT}; the mod takes the larger of the matching
- * ones). Without that mod nothing glows. The bright component is synced to the client and present only while on,
- * never {@code false}, so the definition can match it and a switched-off stack equals a fresh one.
- *
- * <p>⚠ The switch bills no essence: {@code performOwnUse} replaces {@code drive}, and {@code useThreshold} is 0.
- * Turning bright on is one round: it pays the properties' use hunger once, eating from the bag before and after the drop
- * like any use, and stays bright for {@link #BRIGHT_TICKS} of server game time (the day clock's own ticks, not
- * scaled by self-time), held or not; a second press turns it off early and refunds nothing. The same use hunger is
- * what a killing move takes from this Gu as a partner when it starts. A wild one has no switch, so it can only glow
- * at 10.
- *
- * <p>⚠ {@code LITTLE_LIGHT_BRIGHT_UNTIL} is written once at the switch, never per tick, since every write resyncs
- * the slot. Only a carried stack ticks, so one left bright in a chest or on the ground goes out the moment a player
- * carries it again. Creative meals never use the food up ({@code GuHunger}).
- *
- * <p>⚠ Turning on short of the use hunger is a forced use ({@code GuForcedUse}): the first press warns, the same Gu
- * pressed again within five seconds turns bright for the full round, and the Gu dies of exhaustion when it goes out,
- * by the deadline or by a press. {@code LITTLE_LIGHT_FORCED} marks that round; it is written and removed with
- * {@code LITTLE_LIGHT_BRIGHT}, never per tick. Turning off is never gated; a Vital one short is only refused, and
- * creative is never warned and never dies.
+ * 小光蛊[Little Light Gu]：光道[Light Path]一转持续照顾型蛊[Tended Gu]。
+ * <ul>
+ *   <li>自身催动是开关非生效：手中发光，已炼化者付一轮可点亮 2 分钟；野生者无开关，只以 10 发光。</li>
+ *   <li>发光不在代码：{@code assets/guzhenren/dynamiclights/item/} 两份 LambDynamicLights 定义，任意堆叠 10、带
+ *       {@code LITTLE_LIGHT_BRIGHT} 为 15，取匹配中较大者，无该模组不发光；点亮组件同步到客户端，仅开启时存在、从不写
+ *       {@code false}，定义才能匹配，关掉的堆叠与新堆叠相同。</li>
+ *   <li>⚠ 开关不扣真元[Essence]：{@code performOwnUse} 取代 {@code drive}，{@code useThreshold} 为 0；点亮即一轮：
+ *       付一次属性催动饱食[Hunger]，扣前后照常从背包进食，无论握否亮 {@link #BRIGHT_TICKS} 服务端游戏时间（日钟 tick，
+ *       不受自身时间缩放）；再按提前熄灭，不退费；作杀招[Killing Move]辅蛊启动时扣的也是这份饱食。</li>
+ *   <li>⚠ {@code LITTLE_LIGHT_BRIGHT_UNTIL} 仅开关时写一次，不逐 tick 写，因每次写入都重同步该槽；只有随身堆叠 tick，
+ *       箱中或地上仍亮的一被带上即熄；创造模式进食不耗食物（{@code GuHunger}）。</li>
+ *   <li>⚠ 饱食不足时点亮即强行催动[Forced Use]（{@code GuForcedUse}）：首按警告，5 秒内再按同蛊点亮整轮，熄灭时（到期或
+ *       按下）蛊力竭而死；{@code LITTLE_LIGHT_FORCED} 标记该轮，与 {@code LITTLE_LIGHT_BRIGHT} 同写同删，不逐 tick 写；
+ *       熄灭不设门槛；本命小光蛊饱食不足只拒绝；创造模式不警告、不死亡。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

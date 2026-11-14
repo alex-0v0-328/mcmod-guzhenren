@@ -7,15 +7,13 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only runtime writer of Soul [魂魄], the one pool whose bottom is lethal. Static service; the compact ctor
- * of {@link SoulData} already clamps current to {@code [0, max]}, so this service is mostly a
- * pass-through -- but it owns the {@code revive} and {@code refill} shapes the lifecycle needs.
- *
- * <p>⚠ Nothing here KILLS: emptying the soul only sets up a lethal state that the heartbeat's last step
- * ({@code checkLethalState}) notices -- there is no "kill" call to search for. ⚠ A cap of 0 also lands
- * current at 0 (one check catches both), so {@code revive} must restore {@code DEFAULT_MAX_SOUL} when
- * the cap itself was 0 -- a respawn may never hand back a value the lethal check would fire on. ⚠
- * Guts Gu [胆识蛊] raises {@code maxSoul}; do not "fix" the refining cost by softening the numbers.
+ * 魂魄唯一的运行时写入者，静态服务。
+ * <ul>
+ *   <li>{@link SoulData} 构造器已钳值，本类多为直通，另持有生命周期所需的 {@code revive}、{@code refill}。</li>
+ *   <li>⚠ 本类不杀人：清空魂魄只布下致死状态，由心跳末步 {@code checkLethalState} 发现；没有可搜的 kill 调用。</li>
+ *   <li>⚠ 上限 0 时当前值亦为 0（一检兼顾），{@code revive} 须恢复 {@code DEFAULT_MAX_SOUL}，免重生即死。</li>
+ *   <li>⚠ 胆识蛊[Guts Gu] 提高 {@code maxSoul}；别靠调低数值“修”炼化代价。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

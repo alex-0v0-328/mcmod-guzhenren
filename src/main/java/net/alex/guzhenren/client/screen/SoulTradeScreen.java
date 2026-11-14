@@ -16,17 +16,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The soul trader's screen: one row per offer -- costs, an arrow, the result and a trade button -- above the
- * player's inventory. Drawn from the shared {@link Widgets} sprites and {@link ModPalette}, like the refinement
- * screen.
- *
- * <p>A cost count turns red while the bag holds less than it asks, and the button then looks dead with a red label,
- * but it stays clickable: the server judges and the soul answers with a head shake. Icons, counts and
- * button labels are drawn from {@code renderLabels}, so the carried item still paints over them.
- *
- * <p>The bag is counted once per frame in {@link #render}, into {@code enough} per cost and {@code affordable} per
- * offer, which the background and the labels both read; the background is one {@link GuiBatch}: the panel and cells,
- * the row fills over the panel, then the buttons over the rows.
+ * 灵魂交易 NPC 的交易界面。
+ * <ul>
+ *   <li>每条报价一行（成本、箭头、结果、交易按钮），在背包上方；同炼蛊界面用 {@link Widgets} sprite 和
+ *       {@link ModPalette}。</li>
+ *   <li>背包不够某项成本时该数量变红，按钮画成失效、标签变红但仍可点：由服务端裁定，NPC 摇头回应。</li>
+ *   <li>{@link #render} 每帧数背包，写各成本 {@code enough}、各报价 {@code affordable}，背景、标签共读。</li>
+ *   <li>图标、数量、按钮标签从 {@code renderLabels} 画，手持物品仍盖其上；背景一个 {@link GuiBatch}：先面板和格子，
+ *       再叠行填色，最后画按钮。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

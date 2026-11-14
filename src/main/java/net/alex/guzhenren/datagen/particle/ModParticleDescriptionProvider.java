@@ -9,13 +9,15 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.ParticleDescriptionProvider;
 
 /**
- * Generates {@code assets/guzhenren/particles/*.json}: the sprite list per particle type, in
- * playback order. Every ring type lists the same rings smallest-to-largest ({@link #RINGS}; every ring
- * blooms where it is born): the dash trail plants them along the path, second-stage flight [二段飞行] plants one
- * sonic boom where each entry starts and sound barrier rings at its leading face while it stays fast, and each area
- * impact [范围冲击] sends one ring down its cone. The type split is semantic: the dash trail hides from the dasher's
- * own first-person camera, the sonic boom grows to its own size and fades, a sound barrier ring widens further as it
- * fades, and an area impact ring travels to the cone's end before it does.
+ * {@code assets/guzhenren/particles/*.json}：各粒子类型按播放顺序的 sprite 列表。
+ *
+ * <ul>
+ *   <li>各环类型列同一组由小到大的环（{@link #RINGS}），每环在出生处绽开。</li>
+ *   <li>冲刺拖尾沿路径种环；二段飞行[Second-Stage Flight]每次进入处种 1 个音爆，高速时前缘种音障环；范围冲击沿锥体送 1
+ *       环。</li>
+ *   <li>按语义分型：冲刺拖尾对冲刺者第一人称隐藏；音爆长到自身尺寸后淡出；音障环边扩边淡；范围冲击环至锥体末端才淡
+ *       出。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

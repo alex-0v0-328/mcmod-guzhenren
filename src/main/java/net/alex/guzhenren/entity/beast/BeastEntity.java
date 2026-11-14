@@ -21,42 +21,21 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * The big beasts (bears, tigers): the {@link ActionEntity} state machine with a swipe and a heavy attack, a
- * first-lock roar, directional hurt poses and the night-sleep / daytime-rest ambient chain.
- *
- * <p>Subclasses supply the timing constants: {@link #getSwipeHitTick} is the tick at which the swipe's hit frame
- * lands; {@link #getSwipeActionTicks} the tick at which the swipe ends; {@link #getRoarActionTicks} the length of the
- * first-lock roar; {@link #getLieDownActionTicks} the lie-down transition into lie/sleep; {@link #getUpActionTicks}
- * the get-up transition back to idle. The attack: {@link #getSwipeDamage} and {@link #getHeavyDamage} are the flat
- * damage before armor; {@link #getSwipeKnockback} and {@link #getSwipeUpward} the swipe's knockback;
- * {@link #tickHeavyAttack} advances the heavy attack, hit frames and movement physics included.
- * {@link #isActiveHunter} says whether the beast seeks targets on its own or only retaliates;
- * {@link #pickDaytimeAmbient} picks the daytime ambient action, with relative weights;
- * {@link #getCullExtraHeight} and {@link #getCullHorizontalInflate} extend the render culling box so rearing poses
- * and tail sweeps are not clipped, recomputed only when the body's bounding box is replaced;
- * {@link #getHeavyAttackAnimation} names the heavy attack's animation. {@link #canSwipe} is the swipe's shared
- * precondition: in reach, off cooldown and in sight.
- *
- * <p>{@link HuntGoal} is registered unconditionally: {@code registerGoals} runs inside the {@code Mob}
- * constructor, before subclass fields like the bear species are assigned, so the temperament check happens
- * at tick time. A beast that becomes engaged in an ambient pose is snapped straight out of it without a
- * get-up transition.
- *
- * <p>In {@link #setTarget}, the first lock of an engagement is announced by the roar; it never interrupts a
- * running action. In {@link #reactToHurt}, a running hurt pose is never restarted: it outlasts vanilla's
- * 10-tick damage window, so restarting it would let steady hits stun-lock the beast out of every attack.
- * {@link #pickDirectionalHurt} picks the hurt pose from the attacker's bearing: an attacker on this beast's left
- * side knocks the head to the beast's right, playing {@code hurt_right}, and vice versa.
- *
- * <p>{@link #onWanderComplete} picks and starts an ambient action after a completed wander; nothing happens on a
- * miss. In {@link HuntGoal#canUse}, any awake, non-combat pose notices prey -- including sitting, lying,
- * rolling and scratching; only actual sleep, the get-up transition and ongoing combat skip hunting. A
- * {@link StandStillGoal} holds navigation still while the beast sits, lies, sleeps, rolls or scratches.
- * {@link HuntGoal} scans every ten ticks, staggered by entity id so neighboring beasts do not scan together, and
- * casts a sight ray only for a candidate nearer than the best one so far.
- *
- * <p>Past 300 lines on purpose: the fourteen poses, their animations, the ambient chain and the beast-only
- * hunt goal belong to this layer.
+ * 大型野兽（熊、虎）的 {@link ActionEntity} 状态机。
+ * <ul>
+ *   <li>子类给时序（挥击命中与结束 tick、首锁吼叫长度、趴下转卧睡与起身回待机过渡）、护甲前固定伤害、挥击击退、
+ *       重击推进（含命中帧与移动物理）与动画名、是否主动索敌、白天环境动作相对权重。</li>
+ *   <li>渲染剔除框按子类加高加宽，免裁人立与尾扫，仅碰撞箱替换时重算；{@link #canSwipe}：挥击共用前提，触及距离内、
+ *       冷却完、可见。</li>
+ *   <li>{@link HuntGoal} 无条件注册：{@code registerGoals} 在 {@code Mob} 构造器内、熊种类等子类字段赋值前运行，
+ *       性情改在 tick 判；环境姿势中交战直接脱出，不经起身。</li>
+ *   <li>交战首锁以吼叫宣告，不打断进行中动作；受击姿势不重启：它长于原版 10 tick 受伤窗口，重启会让持续命中把野兽锁死在
+ *       硬直；按攻击者方位选受击姿势，攻击者在左则头偏右，播 {@code hurt_right}，反之亦然。</li>
+ *   <li>游荡完成后掷一个环境动作，未中则不动；清醒非战斗姿势（含坐、卧、翻滚、蹭背）都留意猎物，仅入睡、起身、
+ *       战斗中不狩猎；{@link StandStillGoal} 于坐、卧、睡、翻滚、蹭背时停住导航。</li>
+ *   <li>{@link HuntGoal} 每 10 tick 扫描，按实体 id 错开，邻近野兽不同时扫；仅对比当前最佳更近者投射视线。</li>
+ *   <li>有意超 300 行：十四种姿势、动画、环境链与野兽专属狩猎目标同属此层。</li>
+ * </ul>
  */
 
 public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
@@ -400,7 +379,7 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         @Override
         public boolean isAmbient() { return this.ambient; }
 
-        /** An attack, the roar, a hurt pose or death: a pose a hit or a sighted prey never interrupts. */
+        /** 攻击、吼叫、受击或死亡：命中与发现猎物都打断不了的姿势。 */
         private boolean isCombat() {
             return this.attack || this == ROAR || this == HURT_LEFT || this == HURT_RIGHT || this == DEATH;
         }

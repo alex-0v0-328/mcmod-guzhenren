@@ -14,8 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Server-authoritative wild boar: a {@link ChargerEntity} with bare animation names, pig sounds and the
- * {@value #CHARGE_DAMAGE} charge and {@value #TOSS_DAMAGE} toss.
+ * 野猪：{@link ChargerEntity}，动画名无前缀、猪音效，冲撞 {@value #CHARGE_DAMAGE}、掀击 {@value #TOSS_DAMAGE}。
  */
 
 public final class WildBoarEntity extends ChargerEntity {

@@ -13,14 +13,13 @@ import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /**
- * The Crash Gu dash [横冲 / 直撞] on the client: holding Alt and pressing a movement key starts one. The
- * direction keys give a vertical and a horizontal step; {@link ClientIntents#canDash} decides whether the worn
- * Crash Gu effects allow it, the same rule the server checks again. A dash switches Epic Fight into its own
- * mode, turns the camera's forward yaw by the direction, and sends {@link DashPayload}.
- *
- * <p>{@link #shouldStartDash}: a fresh Alt press starts a dash, and so does a fresh direction press while
- * Alt is still held -- the edges, never the held state, or every tick would dash again. {@link #reset} forgets the
- * remembered key states, which the client calls on logout so the next world does not read a held key as an edge.
+ * 横冲系蛊（横冲蛊[Horizontal Crash Gu] / 直撞蛊[Vertical Crash Gu]）冲撞的客户端输入。
+ * <ul>
+ *   <li>按住 Alt 再按移动键发起，方向键给纵、横各一步；{@link ClientIntents#canDash} 判身上横冲系效果是否允许，
+ *       服务端同规则重查；冲撞时 Epic Fight 切入战斗模式，镜头前向偏航按方向转，发送 {@link DashPayload}。</li>
+ *   <li>{@link #shouldStartDash}：新按 Alt，或按住 Alt 时新按方向键即冲撞；只认按下沿，否则每 tick 都会再冲；
+ *       {@link #reset} 清空记住的按键状态，登出时调用，免得下个世界把按住的键读成按下沿。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

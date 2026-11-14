@@ -5,8 +5,7 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after a shield [护盾] layer ends: the hit that empties it, the heartbeat that finds
- * its time run out, or {@link ShieldService#dismiss}. The path effect it carried must go with it.
+ * 护盾层结束后发布的事件：打空它的伤害、发现超时的心跳或 {@link ShieldService#dismiss}；其携带的路径效果须随之移除。
  *
  * @author Alex
  * @version 1.0.0

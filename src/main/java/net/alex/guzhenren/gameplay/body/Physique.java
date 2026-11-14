@@ -5,7 +5,7 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Cumulative body physiques [体质] that can coexist on a player.
+ * 玩家身上可并存的累积体质。
  *
  * @author Alex
  * @version 1.0.0

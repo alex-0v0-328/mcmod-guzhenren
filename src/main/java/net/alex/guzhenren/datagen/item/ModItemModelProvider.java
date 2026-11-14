@@ -18,20 +18,15 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
- * Writes an item model per registered item, in the {@link ItemModel} shape it asks for.
+ * 物品模型，形状取 {@link ItemRegistrar} 注册链声明的 {@link ItemModel}。
  *
- * <p>Extends {@link net.neoforged.neoforge.client.model.generators.ItemModelProvider}. Every item names its shape on
- * its {@link ItemRegistrar} registration chain: the Spirit Spring [元泉] BlockItem the fluid's still strip instead
- * of an item PNG of its own, the Steel Block [钢块] its block model, the Nine Leaf Vitality Grass [九叶生机草] its
- * {@code _full} PNG overriding to {@code _half} and {@code _empty} on the {@code picked} property, the Advancement
- * Icon [进度图标] its {@code _0} PNG overriding on vanilla's {@code custom_model_data} property, one model per
- * settable rank and stage, and the rest a flat {@code basicItem}.
- *
- * <p>⚠ An item registered on {@code ModItems.ITEMS} past the chain would ship with no names, model or tags, so it
- * fails datagen here, naming the id.
- *
- * <p>⚠ The texture existence check means a missing PNG fails datagen instead of shipping
- * as a missing-texture item nobody notices until they open the tab.
+ * <ul>
+ *   <li>元泉[Spirit Spring] BlockItem 用流体静止条带而非自身 PNG；钢块用方块模型；其余为平面 {@code basicItem}。</li>
+ *   <li>九叶生机草[Nine Leaf Vitality Grass]用 {@code _full} PNG，按 {@code picked} 覆盖为 {@code _half}、
+ *       {@code _empty}；进度图标 {@code _0} PNG，按 {@code custom_model_data} 覆盖，每个可设转与阶段一个模型。</li>
+ *   <li>⚠ 绕过注册链注册到 {@code ModItems.ITEMS} 的物品缺名字、模型、标签，故在此让数据生成失败并报 id。</li>
+ *   <li>⚠ 查贴图存在：缺 PNG 让数据生成失败，而非发布成缺贴图物品、打开物品栏页才发现。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -9,33 +9,21 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The player's clock: how fast time runs for him, and the only door anything time-scaled goes through.
- *
- * <p>The rate is his own clock [自身时间] times the world's. {@link #getSelfRate} adds up every
- * {@link TimeRateContributor} among his active effects (the Watch Gu [更蛊] forms), flooring at 1; only the Time Path
- * [宙道] comes to it. The world's is the rate of the dimension he stands in
- * ({@link ModDimensions.AnchoredDimension#timeRate()}), which may run below 1, so {@link #getRate} is a
- * {@code double}, floored at {@link #MIN_RATE} so that no wait stretches without end.
- *
- * <p>⚠ THREE verbs leave this class and a caller uses ONE: {@code shortenWait}, {@code scale}, {@code getSteps};
- * arithmetic on a rate at a call site runs 寿元 backwards -- only {@code InfoModel} may read
- * {@link #getSelfRate}. ⚠ {@code scale} is what 寿元 goes through, so a hastened life is SPENT FASTER (same verb as
- * essence [真元] and thoughts [念]); {@code shortenWait} floors at one tick (a short wait divided by a fast clock is
- * zero, which reads as "no wait"). ⚠ A 造诣 grade term has no spec yet; when it lands it goes INSIDE
- * {@link #getSelfRate}.
- *
- * <p>{@link #shortenWait(Player, int)} is a stretch he has to sit through: a press held down, a cooldown, a ritual
- * waited out. {@link #scale(Player, long)} is what he earns or SPENDS in one step -- essence, thought, and the life it
- * costs him. {@link #getSteps} is how many times a coupled counter must run this beat, for the two that cannot take a
- * bigger step: 温养 and 炼蛊, whose progress and price would round apart if either were scaled on its own. The
- * heartbeat reads the rate once into a {@link Beat} and its steps scale through that.
- *
- * <p>A fractional rate leaves a fraction a whole count cannot hold: {@link #scale(double, long, RandomSource)} and
- * {@link #getSteps(double, RandomSource)} round it up with exactly that probability, so the expected count is exact.
- * A whole rate never draws from the random, so whole rates stay exact and deterministic; {@code scale(double)} keeps
- * the fraction for the caller's own carry (essence banks it in {@code ESSENCE_CARRY}).
- *
- * <p>The arithmetic overloads take a rate rather than a player, so they are asserted without a world.
+ * 玩家时钟：时间流速，随时间缩放的量只经此进出。
+ * <ul>
+ *   <li>总倍率 = 自身 × 世界。{@link #getSelfRate} 累加效果中的 {@link TimeRateContributor}（两更蛊[Second Watch Gu]、
+ *       三更蛊[Third Watch Gu] 等），最低 1，仅宙道[Time Path]用；⚠ 宙道造诣项未定，日后也放这里。</li>
+ *   <li>世界倍率取所站维度 {@link ModDimensions.AnchoredDimension#timeRate()}，可低于 1；故 {@link #getRate} 为
+ *       {@code double}，下限 {@link #MIN_RATE}，等待不无限拉长。</li>
+ *   <li>⚠ 只出三个动词，调用处择一；自算倍率会让寿元倒流，仅 {@code InfoModel} 可读 {@link #getSelfRate}。</li>
+ *   <li>⚠ {@link #shortenWait(Player, int)}：缩等待（蓄力、冷却、仪式），下限 1 tick，免得快时钟除成 0 读作「不用
+ *       等」。</li>
+ *   <li>⚠ {@link #scale(Player, long)}：放大每步收支（真元[Essence]、念、寿元），故加速更耗寿元。</li>
+ *   <li>{@link #getSteps}：温养[Nourish]、炼蛊等耦合计数本拍跑几步，单独缩放会让进度与费用舍入错开。</li>
+ *   <li>小数倍率按小数概率进 1（{@link #scale(double, long, RandomSource)}、{@link #getSteps(double, RandomSource)}），
+ *       期望精确；整数倍率不掷随机；{@code scale(double)} 留小数给调用方累计（真元存 {@code ESSENCE_CARRY}）。</li>
+ *   <li>心跳经 {@link Beat} 每拍只读一次；纯算术重载收倍率，无需世界即可断言。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

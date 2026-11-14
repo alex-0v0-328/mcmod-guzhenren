@@ -6,14 +6,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Attainment [造诣] in a path, from nothing up to the highest grade.
+ * 一条道[Path]上的造诣，从无到最高级；闭合枚举，与 {@link GuPath} 配对。
  *
- * <p>Closed vocabulary enum paired with {@link GuPath}: stored once per path in {@code PathEntry}, and
- * no sibling mod may extend the grade ladder. {@code shift(int)} clamps at both ends, so callers never
- * touch {@code ordinal()}.
- *
- * <p>⚠ Each grade carries its own refinement bonus here, so adding one is a single line and no change
- * anywhere else. Do not move that table into the code that reads it.
+ * <ul>
+ *   <li>每条道在 {@code PathEntry} 存一个；{@code shift(int)} 两端夹紧，调用方不碰 {@code ordinal()}。</li>
+ *   <li>⚠ 每级炼蛊加成写在本枚举，新增一级只加一行；别把这张表挪进读它的代码。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

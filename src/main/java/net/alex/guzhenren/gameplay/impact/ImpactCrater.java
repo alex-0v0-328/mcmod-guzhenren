@@ -10,15 +10,14 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The crater a body leaves when it hits the world hard: the plunge's [坠击] landing and the second-stage flight's
- * [二段飞行] crash both blast one through {@link #blast}.
+ * 身体高速撞地炸出的撞击坑。
  *
- * <p>A vanilla explosion at the impact that breaks blocks and hurts nothing: its {@link NoEntityDamage} calculator
- * refuses every entity's damage, so mobs, players and dropped items come through whole, and keeps vanilla's
- * knockback, which already leaves the explosion's source, the player, out. It asks {@code ModEvents#canGrief}
- * first: refused, the blast keeps every block and still knocks back and booms; allowed, blocks break by vanilla blast
- * resistance and drop like a creeper's ({@code mobExplosionDropDecay}), and TNT in the crater primes as vanilla's
- * {@code TntBlock#wasExploded} does, so chain reactions are a kept feature.
+ * <ul>
+ *   <li>坠击落地、二段飞行[Second-Stage Flight]坠毁经 {@link #blast}：撞击点原版爆炸一次，只破方块；
+ *       {@link NoEntityDamage} 拒绝一切实体伤害，生物、玩家、掉落物完好；保留原版击退，原版已排除玩家自己。</li>
+ *   <li>先问 {@code ModEvents#canGrief}：拒绝则不破块，照样击退、出声；允许则按原版爆炸抗性破块，掉落同苦力怕
+ *       （{@code mobExplosionDropDecay}）；坑内 TNT 按原版 {@code TntBlock#wasExploded} 点燃，连锁爆炸是保留特性。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

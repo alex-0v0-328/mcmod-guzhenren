@@ -17,22 +17,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The burst [爆开] a Strength Qi Gu's [力气蛊] ranged punch ends in, a {@link BeastChargeEntity} or a
- * {@link QiWaveEntity} alike: every living entity whose box lies within {@link #RADIUS} blocks of the burst and that
- * {@link AreaImpact#canHit} lets the owner hurt -- never the owner, an ally, a pet, a wild Gu or an armor stand --
- * takes the punch's damage as a Qi Wave, the locked target in full and everyone else {@link #SECONDARY_RATIO} of it.
- * A Qi Wave opens no strength round and manifests no phantom.
- *
- * <p>Each burst then rolls the area impact [范围冲击] once on the projectile's own random ({@link AreaImpact#rolls}),
- * at the owner's chance; a landed roll sends the area impact ring and releases the cone from the burst point along
- * the {@code heading} the projectile last flew, sparing every target the burst hit, while the owner stands in the
- * burst's level. The burst itself never changes with the roll.
- *
- * <p>A {@link Spec} names the radius, the damage type and whether the area impact rolls: {@link Spec#QI_WAVE} for the
- * Strength Qi Gu's punch, and the Store Strength Gu's [蓄力蛊] charged punch [蓄力一拳] hands its own, which bursts
- * as a charged punch and rolls nothing.
- *
- * <p>⚠ {@link #RADIUS} and {@link #SECONDARY_RATIO} are provisional.
+ * 力气蛊[Strength Qi Gu]远程拳的爆开，{@link BeastChargeEntity} 与 {@link QiWaveEntity} 共用。
+ * <ul>
+ *   <li>碰撞箱距爆点 {@link #RADIUS} 格内且 {@link AreaImpact#canHit} 放行的生物（不含主人、盟友、宠物、野生蛊、盔甲
+ *       架）以气波受伤：锁定目标全额，其余 {@link #SECONDARY_RATIO}；不开轮、不出虚影。</li>
+ *   <li>每次爆开以弹射物随机源按主人概率掷一次范围冲击（{@link AreaImpact#rolls}）；掷中且主人同维度时发冲击环，沿最后
+ *       飞行的 {@code heading} 放扇形，避开已命中者；爆开本身不变。</li>
+ *   <li>{@link Spec} 定半径、伤害类型、是否掷范围冲击：{@link Spec#QI_WAVE} 给力气蛊；蓄力蛊[Store Strength Gu]的蓄力一
+ *       拳自带一份，按蓄力一拳爆开、不掷。</li>
+ *   <li>⚠ {@link #RADIUS}、{@link #SECONDARY_RATIO} 暂定。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

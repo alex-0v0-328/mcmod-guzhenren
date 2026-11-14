@@ -5,12 +5,8 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The continuous random flight goal shared by the resting flying Gu entities.
- *
- * <p>A finished path is selected again on the next tick. Every 100 ticks the current course is
- * replaced, and each replacement has a one-in-ten chance to request a landing. The explicit phase
- * check keeps the goal from restarting while the landing goal owns a ground rest. A search that finds
- * no course backs the goal off for one second before the next search.
+ * 歇息型飞行蛊共用的连续随机飞行 AI 目标。路径走完次 tick 重选；每 100 tick 换航线，每次 1/10 概率请求降落；无航线退避
+ * 1 秒；显式阶段检查使降落目标掌管歇息时不重启。
  *
  * @author Alex
  * @version 1.0.0

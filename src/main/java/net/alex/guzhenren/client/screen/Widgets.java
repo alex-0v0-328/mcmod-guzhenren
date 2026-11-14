@@ -11,17 +11,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * The drawing pieces every screen of this package shares, drawn from the GUI sprites through a {@link SpriteBatch}:
- * the panel, the popup, item cells, a text button in its live, hovered and dead states, the {@code <-} back button
- * that returns to the B panel, and the progress bar; plus the one-pixel header rule (a fill), the hit test behind
- * every button, the container button click, and the way back to the B panel that the back button and Esc share.
- *
- * <p>A button is two calls, {@link #drawButton} into the sprite batch and {@link #drawButtonLabel} after it, so a
- * screen draws every sprite before any label; the back button splits the same way. The label sits centered one
- * pixel below the middle, the same for every button that uses it; a button laid out otherwise draws its own label.
- * A cell is the 16-pixel slot it frames, its sprite one pixel larger all round. The panel frame is {@link #FRAME}
- * pixels wide; anything drawn inside a panel or popup keeps clear of it. A popup's sprite carries a two-pixel shadow
- * past its bottom-right edge, so it draws that much larger than the popup it frames.
+ * 本包各界面共用的绘制部件。
+ * <ul>
+ *   <li>经 {@link SpriteBatch} 画 GUI sprite：面板、弹窗、物品格、三态文字按钮（可用、悬停、失效）、{@code <-} 返回键、
+ *       进度条；另有 1 像素标题分隔线（填色）、按钮命中判定、容器按钮点击、返回键与 Esc 共用的回 B 面板入口。</li>
+ *   <li>按钮分两次调用：{@link #drawButton} 进 sprite 批次，{@link #drawButtonLabel} 在后，界面才能先画全部 sprite
+ *       再写字，返回键同理；标签统一水平居中、比正中低 1 像素，布局不同的按钮自画标签。</li>
+ *   <li>格子即所框的 16 像素槽位，sprite 四周各大 1 像素；面板边框宽 {@link #FRAME} 像素，面板或弹窗内的内容都避开它；
+ *       弹窗 sprite 右下缘外带 2 像素阴影，故比所框弹窗大这么多。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -92,7 +90,7 @@ final class Widgets {
                 colour, false);
     }
 
-    /** {@code filled} is the inner width the fill covers, from 0 to {@code width - 2}; the fill sits 1 pixel in. */
+    /** {@code filled} 是填充覆盖的内宽，取 0 至 {@code width - 2}；填充内缩 1 像素。 */
     static void drawBar(SpriteBatch sprites, int x, int y, int width, int height, int filled, int colour) {
         sprites.blit(BAR_BACKGROUND, x, y, width, height);
         sprites.blit(BAR_FILL, x + 1, y + 1, Math.min(filled, width - 2), height - 2, colour);
@@ -112,7 +110,7 @@ final class Widgets {
 
     static boolean openInfo(Screen from) { return openInfo(from, false); }
 
-    /** {@code escapeHeld}: Esc brought it here, so the panel ignores that key until it is released. */
+    /** {@code escapeHeld}：由 Esc 带到这里，面板忽略该键直到松开。 */
     static boolean openInfo(Screen from, boolean escapeHeld) {
         from.onClose();
         Minecraft.getInstance().setScreen(new PlayerInfoScreen(escapeHeld));

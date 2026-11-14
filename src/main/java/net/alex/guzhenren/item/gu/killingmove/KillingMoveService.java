@@ -26,58 +26,32 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Killing moves [杀招] on the server, and the one gesture that drives a moon blade Gu [月刃]: every refined one
- * ({@link #asBladeGu}: the Moonlight [月光蛊], Moonglow [月芒蛊] and Blood Moon Gu [血月蛊]) is used in place from the
- * main hand, either plainly or as a killing move's main Gu backed by a refined partner ({@link KillingMove}), for
- * one stronger use while the move is switched on. The client's radial menu sends the move's id to switch it, or
- * {@link #PLAIN} for a tap; {@link #drive} checks it all again.
- *
- * <p>The payload names the move, never a slot: the server picks the partner itself, first from the inventory in
- * slot order (hotbar, main inventory, then the offhand; never the main hand's own slot), then from each aperture's
- * store [空窍存储] in order, the Vital Gu [本命蛊] slot left out. A stored partner is billed on a copy that is written
- * back to its slot ({@code ApertureStorageService.setSlot}), empty when the bill exhausted it. A move is usable
- * ({@link #listUsable}) once learned [学会] and backed; the client sees the inventory but not the store, so the
- * server keeps the store's half in the synced {@code KillingMoveData} ({@link #refreshStoreBacked}, from
- * {@link KillingMoveEvents} and after a stored partner is billed).
- *
- * <p>A player uses only the moves they have learned ({@link #knows}): reading the move's book
- * ({@link KillingMoveBookItem}) adds its id to {@code KillingMoveData}, which a death without keepInventory empties.
- *
- * <p>A killing move is a switch [启动 / 关闭], not a single cast: a pick on the radial menu sends the move's id, and
- * {@link #toggle} switches it on, or off when it was on ({@code KillingMoveData.active}, synced, never saved, and
- * cleared by a death). Switching on finds the partner and takes {@code KillingMove#getStartHunger} off its bar at
- * once, with no essence; a partner too hungry refuses the start, and no partner at all does nothing, silently, as the
- * menu would not have listed the move. Switching off costs nothing. While the move is on, every tap of a main Gu it
- * leads ({@link #PLAIN}) is a cast: the main Gu's own in-place use ({@code tryUseInPlace}), billed and refused as that
- * is, plus the partner's {@code KillingMove#getPartnerEssence} and no hunger. The cast first refuses with the essence
- * message when the aperture and the carried primeval stones [元石] together cannot pay both
- * ({@code PrimevalStoneSupply.canAfford}), leaving the move on; a tap with no refined partner on the player any more
- * refuses, switches the move off and says so. A tap with the move off, or of a main Gu the active move does not lead
- * (a Blood Moon Gu), is the plain blade.
- *
- * <p>⚠ The partner is billed from inside the main Gu's payout: {@link #driveAimed} sets a per-player driving context
- * around the in-place use, and {@link #getDamageFactor}, asked by the main Gu's blade, pays the partner's essence and
- * answers the row's factor. The first ask spends the context, so the partner pays once and any later ask in the same
- * use answers 1; outside a drive, or for another Gu, it always answers 1. A use the main Gu refuses (cooldown,
- * essence) never reaches the ask, so the partner stays unbilled.
- *
- * <p>The payload also carries the entity id of the target the client had locked on [锁定目标] (Epic Fight's lock-on,
- * or whatever its crosshair rested on within {@link #AIM_RANGE} blocks), or none. {@link #drive} checks it again
- * ({@link #resolveTarget}: a living entity, alive, not the shooter, ahead of the eye and within
- * {@link #AIM_CHECK_RANGE} blocks, the client's range plus slack for the latency) and sets it as the aiming context
- * around the in-place use; {@link #getAimedTarget}, asked by the blade behavior while it fires, answers it, so the
- * blade flies {@code MoonBladeArc} to it. A target that fails any check, or no target, fires the straight blade.
- *
- * <p>A cast that landed (the partner paid, so the factor applied) answers a {@link Cast} for the Killing Move Tooltip
- * [杀招提示]: the move and each Gu it used, main first, as copies taken after the bill ({@link Used#spent} stays for a
- * Gu the bill killed, which a partner's essence-only bill never does). Anything else, a plain use or a switch included,
- * answers {@code null}.
- *
- * <p>The two mutable statics, {@code driving} and {@code aiming}, are call-scoped server-thread contexts: each is set
- * and cleared in a try/finally around one drive, so neither outlives the call nor holds more than one player.
- *
- * <p>Past 300 lines on purpose: knowing, listing, driving and toggling a killing move all read the same per-player
- * known-move record and share the driving and aiming contexts.
+ * 服务端杀招[Killing Move]逻辑，兼月刃蛊唯一催动手势。
+ * <ul>
+ *   <li>已炼化月刃蛊（{@link #asBladeGu}：月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]、血月蛊[Blood Moon Gu]）主手原地催
+ *       动：普通一发，或作杀招主蛊由已炼化辅蛊撑（{@link KillingMove}），开启期间更强；轮盘发杀招 id 切换，轻点发
+ *       {@link #PLAIN}，{@link #drive} 全部重验。</li>
+ *   <li>仅用已学杀招（{@link #knows}）：读杀招书（{@link KillingMoveBookItem}）写 id 入 {@code KillingMoveData}，非
+ *       keepInventory 死亡清空；学会且有辅蛊即可用（{@link #listUsable}）。</li>
+ *   <li>payload 写杀招不写槽位，服务端依次找辅蛊：快捷栏、主背包、副手（除主手槽），再各空窍[Aperture]存储（除本命
+ *       槽）；存储辅蛊在副本上计费后写回（{@code ApertureStorageService.setSlot}），耗尽写空；客户端不见存储，其可用性
+ *       记入已同步 {@code KillingMoveData}（{@link KillingMoveEvents} 调 {@link #refreshStoreBacked}）。</li>
+ *   <li>开关非单发：{@link #toggle} 互切，状态 {@code KillingMoveData.active} 同步、不存档、死亡清；开时扣辅蛊
+ *       {@code KillingMove#getStartHunger} 饱食[Hunger]、免真元[Essence]，太饿拒，无辅蛊静默（轮盘不列）；关免费。</li>
+ *   <li>开启后轻点（{@link #PLAIN}）其主蛊即施放：主蛊原地催动（{@code tryUseInPlace}）计费拒绝照常，另付辅蛊
+ *       {@code KillingMove#getPartnerEssence}、不扣饱食；空窍加随身元石[Primeval Stone]付不起两份以真元提示拒绝
+ *       （{@code PrimevalStoneSupply.canAfford}），不关招；无炼化辅蛊则拒绝、关招并提示；未开或非其主蛊（血月蛊）
+ *       为普通一刃。</li>
+ *   <li>⚠ 辅蛊在主蛊生效内计费：{@link #driveAimed} 在原地催动外设按玩家驱动上下文，刃问 {@link #getDamageFactor}
+ *       时付辅蛊真元、返倍率；首问即耗尽上下文，此后、驱动外、他蛊恒 1；主蛊拒绝（冷却、真元）则问不到、不计费。</li>
+ *   <li>payload 可带客户端锁定目标实体 id（Epic Fight 锁定，或准星停留的 {@link #AIM_RANGE} 格内者）；{@link #drive}
+ *       重验（{@link #resolveTarget}：活体、非射手、视线前方、{@link #AIM_CHECK_RANGE} 格内含延迟余量）后设为瞄准上下
+ *       文，刃发射时问 {@link #getAimedTarget}，沿 {@code MoonBladeArc} 飞去；否则直线。</li>
+ *   <li>生效施放（辅蛊已付、倍率已用）返回 {@link Cast} 供杀招提示：杀招与各蛊计费后副本，主蛊在前，耗死者标
+ *       {@link Used#spent}（辅蛊只扣真元，不会）；其余（普通催动、开关）返回 {@code null}。</li>
+ *   <li>可变静态 {@code driving}、{@code aiming} 是单次调用的服务端线程上下文，各在一次驱动外 try/finally 设清，
+ *       不跨调用、不容多人；刻意超 300 行：学会、列出、驱动、开关共读按玩家已学记录，共享两上下文。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -88,12 +62,12 @@ import org.jetbrains.annotations.Nullable;
 
 public final class KillingMoveService {
 
-    /** The id a plain use sends: no killing move, the blade Gu alone. */
+    /** 普通催动的 id：无杀招[Killing Move]，只用月刃蛊。 */
     public static final String PLAIN = "";
     public static final int NO_TARGET = -1;
-    /** How far the client looks for a crosshair target: a straight blade's whole flight. */
+    /** 客户端找准星目标的距离：直线刃全程。 */
     public static final double AIM_RANGE = MoonBladeEntity.SPEED * MoonBladeEntity.LIFETIME_TICKS;
-    /** How far the server accepts a client's target: the aim range plus slack for a tick or two of movement. */
+    /** 服务端接受客户端目标的距离：瞄准距离加一两 tick 移动余量。 */
     public static final double AIM_CHECK_RANGE = AIM_RANGE + 2.0D;
     private static final String FAILED_PARTNER_MISSING = "guzhenren.item.failed.killing_move_partner_missing";
     private static final String STARTED = "guzhenren.killing_move.started";
@@ -106,10 +80,10 @@ public final class KillingMoveService {
 
     private record StoreSlot(int aperture, int index) {}
 
-    /** A cast that landed: the move and each Gu it used, main first. */
+    /** 生效的施放：杀招[Killing Move]与所用各蛊，主蛊在前。 */
     public record Cast(KillingMove move, List<Used> used) {}
 
-    /** One Gu of a {@link Cast}: a copy after the bill, or before it when the bill killed it ({@code spent}). */
+    /** {@link Cast} 中一只蛊：计费后副本；被耗死则为计费前副本（{@code spent}）。 */
     public record Used(ItemStack stack, boolean spent) {
 
         private static Used of(ItemStack before, ItemStack after) {
@@ -149,7 +123,7 @@ public final class KillingMoveService {
         return false;
     }
 
-    /** Learns the move; false when the player already knew it. */
+    /** 学会杀招[Killing Move]；已会返回 false。 */
     public static boolean learn(@NotNull ServerPlayer player, @NotNull KillingMove move) {
         PlayerData data = PlayerData.get(player);
         return data.setKillingMoves(data.getKillingMoves().withLearned(move.getId()));
@@ -160,7 +134,7 @@ public final class KillingMoveService {
                 && gu.getBehavior(MoonBladeBehavior.class) != null ? gu : null;
     }
 
-    /** The learned moves this main Gu leads with a partner carried or stored, in table order. */
+    /** 此主蛊主导、辅蛊随身或在存储的已学杀招[Killing Move]，按总表序。 */
     public static @NotNull List<KillingMove> listUsable(@NotNull Player player, @NotNull Item main) {
         KillingMoveData data = PlayerData.get(player).getKillingMoves();
         List<KillingMove> usable = new ArrayList<>();
@@ -185,9 +159,7 @@ public final class KillingMoveService {
         return drive(player, id, NO_TARGET);
     }
 
-    /**
-     * Drives the main-hand blade Gu, aimed at the client's target id ({@link #NO_TARGET} for none).
-     */
+    /** 驱动主手月刃蛊，瞄准客户端目标 id（无目标为 {@link #NO_TARGET}）。 */
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id, int targetId) {
         ItemStack stack = player.getMainHandItem();
         TendedGuItem main = asBladeGu(stack);
@@ -201,13 +173,13 @@ public final class KillingMoveService {
         }
     }
 
-    /** The target the blade fired inside {@link #drive} flies at, or null for a straight flight. */
+    /** {@link #drive} 内所发之刃的目标；直线为 null。 */
     public static @Nullable LivingEntity getAimedTarget(@NotNull ServerPlayer player) {
         Aiming current = aiming;
         return current != null && current.player() == player ? current.target() : null;
     }
 
-    /** The client's target id checked again on the server; null when any check fails. */
+    /** 服务端重验的客户端目标；任一校验不过为 null。 */
     public static @Nullable LivingEntity resolveTarget(@NotNull ServerPlayer player, int targetId) {
         if (targetId == NO_TARGET) return null;
         if (!(player.serverLevel().getEntity(targetId) instanceof LivingEntity target)) return null;
@@ -249,7 +221,7 @@ public final class KillingMoveService {
         return current.billed == null ? null : new Cast(active, List.of(Used.of(mainBefore, stack), current.billed));
     }
 
-    /** The move the player has switched on, or null; a move no longer known answers null too. */
+    /** 已开启的杀招[Killing Move]，无则 null；已不会的也为 null。 */
     public static @Nullable KillingMove getActive(@NotNull Player player) {
         KillingMoveData data = PlayerData.get(player).getKillingMoves();
         KillingMove move = KillingMove.byId(data.active());
@@ -260,9 +232,7 @@ public final class KillingMoveService {
         return PlayerData.get(player).getKillingMoves().isActive(move.getId());
     }
 
-    /**
-     * Switches the move off when it is on, otherwise on: the partner pays the start hunger, or the start is refused.
-     */
+    /** 已开则关，否则开：辅蛊付启动饱食[Hunger]，付不起则拒绝启动。 */
     public static void toggle(@NotNull ServerPlayer player, @NotNull KillingMove move) {
         if (isActive(player, move)) {
             setActive(player, KillingMoveData.NONE);

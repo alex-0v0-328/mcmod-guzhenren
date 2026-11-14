@@ -1,13 +1,9 @@
 package net.alex.guzhenren.entity.beast;
 
 /**
- * The three cattle species. Each registers its own entity type under {@link #getId()} (bear precedent: one
- * variant, one entity type); they share the {@code buffalo} geometry and animation set and differ in texture
- * and in the weight of their charge and toss. All three live beside vanilla's cow in its biomes; the azure ox is
- * the rare one.
- *
- * <p>{@link #getId()} is the entity-type id and texture base name ({@code textures/entity/<id>.png}).
- * {@link #getChargeDamage()} and {@link #getTossDamage()} are flat damage before armor.
+ * 三种牛：共用 {@code buffalo} 几何与动画集，纹理与冲撞、角挑伤害不同；均与原版牛同群系，青牛稀有；每种以
+ * {@link #getId()} 注册独立实体类型（沿用熊先例），id 兼作纹理基名（{@code textures/entity/<id>.png}）；伤害皆为护甲前
+ * 固定值。
  */
 
 public enum CattleSpecies {

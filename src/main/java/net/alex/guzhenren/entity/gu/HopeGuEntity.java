@@ -10,15 +10,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 
 /**
- * The wild Hope Gu [希望蛊]: the world's own source of an awakening [开窍].
- *
- * <p>Extends {@link net.alex.guzhenren.entity.gu.FlyingGuEntity}. Overrides {@code seeks} to target
- * only the unawakened -- a cultivator drifts past. Once any player comes within {@code DETECT_RANGE},
- * a one-minute fade clock starts; the window never reopens, and walking away neither resets nor pauses
- * it. The fade tick is unserialized on purpose -- a reloaded Gu starts over, and these despawn anyway.
- *
- * <p>⚠ It fades once any player has come into range, not once a particular one has. That sighting
- * starts a clock, and nothing restarts it afterward.
+ * 野生希望蛊[Hope Gu]：世界自身的开窍[Awakening]来源。
+ * <ul>
+ *   <li>{@code seeks} 只盯未开窍者；任一玩家进入 {@code DETECT_RANGE} 起计 1 分钟消散，走远不停不重置；消散 tick 有意不
+ *       存档，重载重计，反正会消失。</li>
+ *   <li>⚠ 认任一玩家，不认特定玩家；计时一开，无法重开或重启。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

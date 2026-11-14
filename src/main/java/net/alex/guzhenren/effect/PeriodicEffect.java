@@ -6,11 +6,8 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An effect that pulses once every {@code intervalTicks} of its remaining duration; the subclass's
- * {@link #onPulse} is the pulse.
- *
- * <p>⚠ This class answers vanilla's per-tick callbacks ({@link #isPulseTick} decides the cadence, the pulse never
- * ends the effect early), so subclasses override {@link #onPulse} only.
+ * 按剩余时长每 {@code intervalTicks} 脉冲一次的效果。⚠ 原版逐 tick 回调由本类应答（{@link #isPulseTick} 定节奏，脉冲不
+ * 提前结束效果），子类只覆写脉冲 {@link #onPulse}。
  *
  * @author Alex
  * @version 1.0.0

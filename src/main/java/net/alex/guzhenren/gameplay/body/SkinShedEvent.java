@@ -5,10 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link BodyService#shedSkin} takes a player's skin [皮肤] off, a jade skin
- * that ran out included: nothing is drawn for it, but the path effect a permanent skin carried must go, and
- * that lives above the body, in {@code item}, which the body cannot call into without closing a dependency cycle.
- * Dispatch is synchronous, so a subscriber has run before the write returns.
+ * {@link BodyService#shedSkin} 蜕皮（含耗尽玉皮）后发布的事件；同步分发，写入返回时订阅者已执行。不绘制，但永久皮的路径
+ * 效果须移除，它在上层 {@code item}，直接调用会成依赖环。
  *
  * @author Alex
  * @version 1.0.0

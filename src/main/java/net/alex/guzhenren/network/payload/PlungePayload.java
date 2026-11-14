@@ -7,11 +7,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for sneak plus Alt in the air: start a plunge [坠击].
- *
- * <p>Carries nothing, so there is nothing to forge;
- * {@link net.alex.guzhenren.gameplay.plunge.PlungeService#start} decides from the server's own state, and a player
- * who may not plunge simply keeps falling or flying.
+ * 空中潜行加 Alt 发起坠击的客户端意图 payload；不带数据，无从伪造。
+ * {@link net.alex.guzhenren.gameplay.plunge.PlungeService#start} 只按服务端自身状态判定；不能坠击者照常下落或飞行。
  *
  * @author Alex
  * @version 1.0.0

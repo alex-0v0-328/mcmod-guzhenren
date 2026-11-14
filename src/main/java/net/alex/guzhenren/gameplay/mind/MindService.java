@@ -11,14 +11,15 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The only runtime writer of Mind [脑海] pools, and the door where every clamp lives. Static service; {@code
- * setCurrent} is the single clamp -- it reads {@link MindPoolType#isBurstable} to decide whether the value
- * may exceed the cap; {@code regenStep} is the heartbeat entry, a zombie thinking every 5th second.
+ * 脑海池的唯一运行时写入方。
  *
- * <p>⚠ The clamp cannot live in the record: only some wisdom types may burst, and a pool does not know
- * its type. ⚠ Regen always stops at the cap -- the body must never idle itself into 脑海炸裂 [mind
- * ocean shattered]; only a Gu, item or command may overfill. ⚠ {@code addThoughts} writes the tag total
- * AFTER the current -- call {@code setCurrent} first, or the tag map oversums.
+ * <ul>
+ *   <li>⚠ 夹紧只在 {@code setCurrent}，读 {@link MindPoolType#isBurstable} 定能否超上限；不能放进 record：
+ *       只有部分池可超限，池又不知自己类型。</li>
+ *   <li>{@code regenStep} 是心跳入口，僵尸每 5 秒才回一次念。</li>
+ *   <li>⚠ 自然回复总停在上限，闲着不会炸裂脑海；只有蛊、物品或命令能超量写入。</li>
+ *   <li>⚠ {@code addThoughts} 在当前量之后写标签合计：须先 {@code setCurrent}，否则标签表超出总量。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

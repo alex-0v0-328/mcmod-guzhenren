@@ -25,28 +25,23 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 import software.bernie.geckolib.util.Color;
 
 /**
- * Draws a Beast Phantom [兽力虚影] with its family's own model and animations -- the wild boar's for the boar, the
- * bear's, the tiger's, the tortoise's for the turtle and the buffalo's for the ox -- in the translucent
- * {@code <model>_phantom} texture at full brightness, and redraws it with {@code <model>_phantom_glowmask}, a copy
- * of that texture, as an emissive layer, so the body glows faintly in its own colors and the opaque eyes glow
- * brightest. The texture is picked here ({@link #getTextureLocation}), not left to the model, so the wild beasts'
- * own textures never leak in.
- * The horse has no GeckoLib model: {@link #render} hands it to vanilla's horse geometry ({@link HorsePhantomModel}),
- * drawn the same way -- yaw, pitch, fade, both layers -- rearing once beside its owner and galloping as a charge. A
- * family that cannot manifest ({@code BeastStrengthFamily.canManifest}) draws nothing.
+ * 兽力虚影的渲染器。
  *
- * <p>Draws every {@link BeastPhantomVisual}: the phantom beside its owner and the Beast Charge [兽力冲击] alike, at
- * {@link #PHANTOM_SCALE} times the wild beast's size.
- * Back-face culled like the soul traders, so the far side of the silhouette does not show through. Each fades as its
- * own {@link BeastPhantomVisual#getFade} says, is drawn {@link BeastPhantomVisual#getDrift} away from its entity and
- * {@link BeastPhantomVisual#getScale} times its size about its feet, and glows {@link BeastPhantomVisual#getGlow}
- * times as strong; the glow layer is translucent emissive at {@link #GLOW_ALPHA} of the
- * mask's own alpha, since the mask covers the whole body and at full alpha it closes the translucent body up to
- * opaque. ⚠ Not {@code RenderType.eyes}: that one ignores alpha and paints the whole masked body at full strength.
- * GeckoLib turns only a living entity by its body yaw, so this turns these by their own yaw, then tips them by
- * {@link BeastPhantomVisual#getPitch} about a point {@link #PITCH_PIVOT} blocks above the feet, about half the
- * beasts' model height. No shadow, no hurt tint.
- * ⚠ {@link #PITCH_PIVOT} is provisional.
+ * <ul>
+ *   <li>用所属族的模型与动画：猪用野猪，熊、虎用自己的，龟用陆龟，牛用水牛；不能显形的族
+ *       （{@code BeastStrengthFamily.canManifest}）不画。</li>
+ *   <li>半透明 {@code <model>_phantom} 贴图全亮绘制，再以副本 {@code <model>_phantom_glowmask} 作自发光层重绘：身体以自
+ *       身颜色微光，不透明的眼睛最亮；贴图在此选定（{@link #getTextureLocation}），不混入野兽自身贴图。</li>
+ *   <li>马无 GeckoLib 模型：{@link #render} 交给原版马几何（{@link HorsePhantomModel}），画法相同（偏航、俯仰、淡出、两
+ *       层），在主人身旁扬蹄一次，冲击时奔跑。</li>
+ *   <li>主人身旁虚影与兽力冲击的 {@link BeastPhantomVisual} 一视同仁：按 {@link BeastPhantomVisual#getFade} 淡出，偏移
+ *       {@link BeastPhantomVisual#getDrift}，以脚底为中心缩放 {@link BeastPhantomVisual#getScale}，发光乘
+ *       {@link BeastPhantomVisual#getGlow}；背面剔除（同魂体交易者），剪影远侧不透出；无阴影、无受伤染色。</li>
+ *   <li>发光层半透明自发光，只取遮罩 alpha 的 {@link #GLOW_ALPHA}，否则半透明身体被封成不透明。</li>
+ *   <li>⚠ 不用 {@code RenderType.eyes}：它忽略 alpha，遮罩下全身画成满强度。</li>
+ *   <li>⚠ 绕脚底上方 {@link #PITCH_PIVOT} 格（约模型高度一半，暂定值）按 {@link BeastPhantomVisual#getPitch} 俯仰；
+ *       GeckoLib 只按身体偏航转活体，故先按实体自身偏航转动。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -56,9 +51,9 @@ import software.bernie.geckolib.util.Color;
 
 public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhantomVisual> extends GeoEntityRenderer<T> {
 
-    /** The phantom beasts are drawn this many times the wild beasts' size. */
+    /** 虚影相对野兽的尺寸倍数。 */
     public static final float PHANTOM_SCALE = 1.0F;
-    /** How much of the glow mask's own alpha the glow layer keeps; the mask covers the whole body. Provisional. */
+    /** 发光层保留的遮罩自身 alpha 比例；遮罩覆盖全身。暂定值。 */
     public static final float GLOW_ALPHA = 0.25F;
     public static final float PITCH_PIVOT = 0.7F;
 

@@ -1,15 +1,14 @@
 package net.alex.guzhenren.gameplay.aperture.pressure;
 
 /**
- * The shape of a pressure-explosion crater [空窍压力爆炸], column by column: pure functions of the block column, the
- * explosion's radius and its seed, so the same explosion always carves the same crater.
- *
- * <p>{@link #getColumnJitter} hashes a column into {@code [0, 0.1)}; {@link #getColumnRadius} scales the radius by
- * {@code 0.9} plus that jitter, so a crater's edge is ragged by at most a tenth. {@link #getColumnFloorY} is the
- * block under the sphere's bottom at that column. The floor tiers read that depth: layered ice [分层冰] turns packed
- * below 0 and blue below -32; gold is deepslate ore below 0, plain ore below 32 and solid blocks above. Each scatter
- * (lava, gold, powder snow) hashes the column under its own salt, so the three never line up; the snow ring
- * [雪化环带] reaches 8 to 16 blocks past the crater's radius, {@link #getRingReach} at most.
+ * 空窍[Aperture]压力爆炸坑的逐列形状：只依列、半径、种子的纯函数。
+ * <ul>
+ *   <li>{@link #getColumnJitter} 把列哈希到 {@code [0, 0.1)}；{@link #getColumnRadius} 为半径乘 {@code 0.9} 加扰动，
+ *       坑边至多参差一成；同爆炸同坑。</li>
+ *   <li>{@link #getColumnFloorY} 为该列球底下一格；坑底按此深度分层：冰 0 以下浮冰、-32 以下蓝冰；金 0 以下深层金矿石、
+ *       32 以下金矿石、以上金块。</li>
+ *   <li>熔岩、金、细雪各用己盐哈希列，互不重合；雪化环带伸出坑半径 8 至 16 格，至多 {@link #getRingReach}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

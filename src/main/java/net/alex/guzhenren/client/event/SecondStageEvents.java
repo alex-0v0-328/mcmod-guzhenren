@@ -18,28 +18,21 @@ import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The local player's second-stage flight [二段飞行] on its own end: the throttle that moves it, and the feedback that
- * reads it. {@code net.alex.guzhenren.mixin.PlayerMixin} moves the player; {@link SecondStageCamera} rolls and shakes
- * the view.
+ * 本地玩家端的二段飞行[Second-Stage Flight]：驱动它的油门，及读油门的反馈。
  *
- * <p>{@link #onClientTick} runs before the player ticks and after the tick's packets, and waits out a paused game,
- * when the player does not tick either. On the edge where the synced mark turns on, or turns up on a new local
- * player (a dimension change rebuilds it with the mark re-synced), it sets the throttle to
- * {@link SecondStageCruise#ENTRY_THROTTLE}, as the server did, starts the wind ({@link SecondStageWindSound}) and
- * plays the first-person sonic boom ({@link SonicBoomHud#onSecondStageStarted}), which keeps it only for an entry
- * this client asked for. Every later tick with the mark it steps the throttle
- * ({@link SecondStageService#stepThrottle}) from the local sprint, so the cruise answers the keys at once instead of a
- * round trip later; without the mark the throttle is empty.
- *
- * <p>{@link #onComputeFovModifier} widens the view with the throttle while the local player flies the second stage,
- * multiplying the vanilla modifier (already widened by flying and sprinting) by {@link #getFovFactor}: up to
- * {@link #FOV_WIDENING} more at full throttle, eased toward none by the vanilla FOV Effects slider the same way
- * NeoForge eases the vanilla modifier, so a player who turned FOV effects off sees no widening here either. Vanilla
- * eases the view toward each new modifier over a few ticks; Minecraft caps the total widening, sprint and flight
- * included.
- *
- * <p>{@link #onLoggingOut} clears {@code STATE.wasInSecondStage}, the remembered player and the sonic boom, so a stage
- * that was running when the player left does not make the next world's first entry look like a continuation.
+ * <ul>
+ *   <li>{@code net.alex.guzhenren.mixin.PlayerMixin} 移动玩家；{@link SecondStageCamera} 管镜头侧倾与抖动。</li>
+ *   <li>{@link #onClientTick} 在玩家 tick 前、本 tick 数据包后运行；暂停时玩家不 tick，一并跳过。</li>
+ *   <li>同步标记刚开启或出现在新本地玩家上（换维度会重建玩家并重新同步标记）时：油门设为
+ *       {@link SecondStageCruise#ENTRY_THROTTLE}（同服务端），启动风声（{@link SecondStageWindSound}），播第一人称音爆
+ *       （{@link SonicBoomHud#onSecondStageStarted}，只对本客户端请求的进入保留）。</li>
+ *   <li>带标记每 tick 按本地疾跑推油门（{@link SecondStageService#stepThrottle}），巡航响应不等往返；无标记清零。</li>
+ *   <li>{@link #onComputeFovModifier}：飞二段时随油门放宽视野，把原版修正值（已含飞行与疾跑的放宽）乘
+ *       {@link #getFovFactor}；满油门最多再放宽 {@link #FOV_WIDENING}。</li>
+ *   <li>按原版“视场角效果”滑条向零缓和（同 NeoForge 缓和原版修正值），关掉该项的玩家看不到放宽；原版用几 tick 把视野缓
+ *       向新修正值，Minecraft 对总放宽设上限，疾跑与飞行也计入。</li>
+ *   <li>{@link #onLoggingOut} 清 {@code STATE.wasInSecondStage}、所记玩家与音爆，新世界首进才不像延续。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

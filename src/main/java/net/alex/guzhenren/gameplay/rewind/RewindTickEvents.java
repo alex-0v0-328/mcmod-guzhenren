@@ -7,10 +7,8 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * Hands every server tick to {@link ChunkRewindService#tickQueue}, which restores one queued chunk per tick so a
- * Mountain or River As Before Gu [山如故 / 江如故] spreads its 25 chunks over 25 ticks instead of one, and clears
- * the queue and the running-generation count when the server stops, so a stopped world's levels and chunks are not
- * pinned by a static.
+ * 区块还原队列的服务端 tick 订阅类。每 tick 还原一个排队区块，山如故[Mountain As Before Gu]或江如故[River As Before Gu]
+ * 的 25 区块分摊到 25 tick；停服时清空队列与生成计数，免得静态字段钉住已停世界的维度与区块。
  *
  * @author Alex
  * @version 1.0.0

@@ -11,15 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Client intent: choose the secondary path [辅修] on the named aperture [空窍].
- *
- * <p>A payload carrying only an aperture index and a nullable {@link GuPath}
- * -- no other player data. The server handler in {@link net.alex.guzhenren.network.ModPayloads}
- * writes the choice through the aperture service. The path travels as its ordinal plus one (zero =
- * unset) via {@link ModByteBufs#writeNullableEnum}.
- *
- * <p>⚠ It is a payload only because the screen that sends it has no menu behind it. Anything inside a
- * container sends its intent over vanilla's own channels instead.
+ * 为指定空窍[Aperture]选辅修流派的客户端意图：只带空窍序号与可空 {@link GuPath}，无其他玩家数据。
+ * <ul>
+ *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，经空窍服务写入。</li>
+ *   <li>道[Path]以序数加一传送，0 为未设，见 {@link ModByteBufs#writeNullableEnum}。</li>
+ *   <li>⚠ 只因发送界面背后无容器才做成 payload；容器内操作走原版自身通道。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

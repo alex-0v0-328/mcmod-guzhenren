@@ -15,15 +15,15 @@ import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Pure Water [纯水] fluid: vanilla {@code WaterFluid} with its own registry entries, the {@link Flowing} arm
- * and the {@link Source} entry.
+ * 纯水流体：原版 {@code WaterFluid} 换上自己的注册条目，含 {@link Flowing}、{@link Source} 两变体。
  *
- * <p>Everything water does comes from the superclass -- slope 4, drop-off 1, 5t flow delay, two adjacent sources
- * minting a new one under the {@code waterSourceConversion} game rule, ambient sound and particles -- so only the
- * identity is overridden: the fluid type, the pair, the Pure Water Bucket [纯水桶] and the liquid block. Pure water
- * counts as vanilla water: the pair sits in {@code #minecraft:water}, which covers every block-side check, and
- * {@code EntityMixin} extends the entity-side checks NeoForge pins to the water fluid type;
- * {@link PureWaterFluidType} and {@link PureWaterEvents} carry the rest.
+ * <ul>
+ *   <li>水的行为全来自父类：坡度搜索 4、每格衰减 1、流动延迟 5 tick、{@code waterSourceConversion} 下两相邻源头生新源
+ *       头、环境音与粒子。</li>
+ *   <li>只覆写身份：流体类型、流体对、纯水桶、液体方块；流体对在 {@code #minecraft:water}，方块侧检查全当水。</li>
+ *   <li>NeoForge 绑定水类型的实体侧检查由 {@code EntityMixin} 扩展；其余归 {@link PureWaterFluidType}、
+ *       {@link PureWaterEvents}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

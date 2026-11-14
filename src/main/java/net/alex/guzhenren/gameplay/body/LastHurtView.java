@@ -1,11 +1,8 @@
 package net.alex.guzhenren.gameplay.body;
 
 /**
- * Every living entity's {@code LivingEntity#lastHurt}, the hit its current invulnerability frames already took;
- * server side, put on every {@code LivingEntity} by {@code LivingEntityAccessor}.
- *
- * <p>{@code ShieldService.guard} hands a hit inside the frames on as {@code lastHurt} plus what the shield [护盾]
- * passed, because vanilla subtracts {@code lastHurt} again before the hit lands.
+ * 服务端每个 {@code LivingEntity} 的 {@code lastHurt}（当前无敌帧已承受的伤害），由 {@code LivingEntityAccessor} 注入；
+ * 原版落地前会再减它，故 {@code ShieldService.guard} 交出帧内伤害时以它加护盾放过量。
  *
  * @author Alex
  * @version 1.0.0

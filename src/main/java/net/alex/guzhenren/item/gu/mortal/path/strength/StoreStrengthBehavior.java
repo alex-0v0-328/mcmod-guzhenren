@@ -18,10 +18,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Store Strength Gu's [蓄力蛊] behavior: a timed buff during which the bare hand may charge [蓄力] and let go a
- * charged punch [蓄力一拳] ({@link StoreStrength}). A body with neither a permanent beast strength nor human strength is
- * refused before any charge ({@code all_out_needs_branch}, shared with the All-Out Effort Gu [全力以赴]), and so is a
- * body whose buff still runs. An Amplify Effect Gu [功倍蛊] multiplies its length.
+ * 蓄力蛊[Store Strength Gu]的行为：限时增益，期间空手可蓄力放出蓄力一拳（{@link StoreStrength}）；增益未完再催动被拒，
+ * 无永久兽力[Beast Strength]和人力者蓄力前即被拒（{@code all_out_needs_branch}，与全力以赴蛊[All-Out Effort Gu]共用）；
+ * 功倍蛊[Amplify Effect Gu]乘时长。
  *
  * @author Alex
  * @version 1.0.0

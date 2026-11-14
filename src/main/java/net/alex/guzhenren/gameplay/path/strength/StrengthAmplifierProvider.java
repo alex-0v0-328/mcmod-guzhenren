@@ -5,13 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A path effect payload that amplifies the body's strength while it runs. {@code StrengthService.getAmplifiers} asks
- * every running payload that implements it, handing in the permanent points [力量点] and the normal carrying
- * capacity [常态承受力] so a provider can size itself by either; it answers one {@link StrengthAmplifier} or
- * {@code null} for nothing right now.
- *
- * <p>Timed beast buffs are not providers: their worth is declared on the vanilla effect ({@link BeastStrengthBuff})
- * and read by {@link PathStrengthService#getBeastBuffs}.
+ * 运行期间增幅肉体力量的流派效果 payload。{@code StrengthService.getAmplifiers} 询问每个运行中的实现者，
+ * 传入永久力量点[Strength Points]与常态承受力供其定量；限时兽力[Beast Strength]增益不是提供者，
+ * 其值声明于原版效果（{@link BeastStrengthBuff}），由 {@link PathStrengthService#getBeastBuffs} 读取。
  *
  * @author Alex
  * @version 1.0.0

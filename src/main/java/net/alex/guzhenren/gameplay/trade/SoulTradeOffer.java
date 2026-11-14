@@ -10,17 +10,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One trade a soul trader offers: the costs taken from the player's bag, and the result handed back.
- *
- * <p>Costs are {@link TradeCost}s, whose count is not capped at a stack. Only the 36 main inventory slots
- * ({@link Inventory#items}) pay and receive; armor and the offhand never do. An offer travels through its own
- * {@link #encode}/{@link #decode}.
- *
- * <p>{@link #settle(NonNullList, List)} is all or nothing: it pays and stows on copies and writes back only when
- * both succeed, and then only the slots whose contents changed, so untouched stacks keep their identity. The trade
- * is also refused unless everything that will later fall back into the bag still fits afterward -- the stack on
- * the cursor and the 2x2 crafting grid, passed as {@code returning}. Inside the Treasure Yellow Heaven [宝黄天] such
- * a return has nowhere else to go.
+ * 交易魂的一项报价：从背包扣的代价与交回的结果。
+ * <ul>
+ *   <li>代价为 {@link TradeCost}，数量不受单组上限；只用 36 个主背包格（{@link Inventory#items}），护甲、副手不参与；经
+ *       {@link #encode}/{@link #decode} 传输。</li>
+ *   <li>{@link #settle(NonNullList, List)} 全有或全无：在副本上扣费、放置，都成功才写回，且只写回变了的格，未动的物品堆
+ *       保留原身份；之后落回背包的物品（光标物品、2x2 合成格，即 {@code returning}）放不下也拒绝，因宝黄
+ *       天[Treasure Yellow Heaven] 内它们无处可去。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

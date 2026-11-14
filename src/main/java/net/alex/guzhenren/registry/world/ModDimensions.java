@@ -8,38 +8,25 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Level keys of the anchored dimensions this mod's travel acts on.
+ * 本模组维度旅行所用锚定维度的维度键。
  *
- * <p>The dimensions themselves -- dimension type, biome, level stem and sky effects -- belong to the
- * companion mod Gu World ({@code guworld}), a sibling project that depends on this mod; this mod never
- * sees its classes. So each dimension is named here by its level key alone, a contract that Gu World's
- * level stem keeps. Without that mod installed the level is absent, and {@code /guworld enter} refuses every target
- * ({@link net.alex.guzhenren.gameplay.dimension.DimensionTravelService#enter} finds no level).
- * The dimension's display name, {@code dimension.<namespace>.<path>}, is that mod's language key too.
- *
- * <p>{@link AnchoredDimension} is an anchored dimension: {@code /guworld enter} may target it, and a
- * player inside is expected to leave through {@code /guworld exit} so the recorded return point is
- * used. {@link AnchoredDimension#level} is the dimension's level key, {@link AnchoredDimension#spawn}
- * the fixed entry point every entrant arrives at, {@link AnchoredDimension#arrival} how they arrive there,
- * {@link AnchoredDimension#rank} the dimension's 转 (6 to 9: 6-7 blessed land [福地], 8-9 grotto-heaven
- * [洞天]; 0 for a region of the mortal world, which has none), and {@link AnchoredDimension#timeRate} how fast
- * time runs inside against the overworld, multiplied into the clock of every player there
- * ({@code TimeFlow#getRate}); below 1 it runs slower. Every rate is 1 until Alex sets one.
- *
- * <p>{@link Arrival#FLIGHT} lands the entrant on the spawn itself and grants flight for the stay.
- * {@link Arrival#SURFACE} lands them on top of the spawn's column -- the highest block that blocks motion
- * or holds a fluid, so the spawn's y is unused -- and grants no flight. {@link #isFlightGranted} answers
- * whether a level is an anchored dimension whose stay grants flight.
- *
- * <p>{@link #ANCHORED_DIMENSIONS} is the anchored dimension allow-list, by level key. Treasure
- * Yellow Heaven is a rank-8 grotto-heaven reached in flight; the four regions of the mortal world, the Southern
- * Border [南疆], the Western Desert [西漠], the Eastern Sea [东海] and the Northern Plains [北原], are entered on
- * foot at the surface above their origin, the Eastern Sea's at sea when no island stands there. Future Blessed
- * Land / Grotto-Heaven dimensions register here.
- *
- * <p>⚠ {@link #TREASURE_YELLOW_HEAVEN} and the four region keys spell out Gu World's namespace because
- * this mod cannot reach that mod's id constant. Renaming a dimension there means renaming it here too, or
- * entering it fails.
+ * <ul>
+ *   <li>维度本身（维度类型、生物群系、LevelStem、天空效果）归姊妹模组 Gu World（{@code guworld}）；它依赖本模组、
+ *       本模组看不到其类，故此处只用键指名，由其 LevelStem 守约。</li>
+ *   <li>未装该模组时维度不存在，{@code /guworld enter} 拒绝一切目标
+ *       （{@link net.alex.guzhenren.gameplay.dimension.DimensionTravelService#enter} 找不到维度）。</li>
+ *   <li>显示名 {@code dimension.<namespace>.<path>} 也是该模组的语言键。</li>
+ *   <li>⚠ {@link #TREASURE_YELLOW_HEAVEN} 与四地区键手写 Gu World 命名空间（拿不到其 id 常量）；那边改名这里须同改，
+ *       否则无法进入。</li>
+ *   <li>{@link AnchoredDimension}：{@code /guworld enter} 可选目标，身处其中应经 {@code /guworld exit} 离开才用上记录的
+ *       返回点；{@link AnchoredDimension#spawn} 是每个进入者的固定落点。</li>
+ *   <li>{@link AnchoredDimension#rank}：6–9 转（6–7 福地，8–9 洞天），凡间记 0；{@link AnchoredDimension#timeRate}：
+ *       相对主世界的时间流速，乘进其中玩家的时钟（{@code TimeFlow#getRate}），低于 1 变慢，Alex 设定前皆为 1。</li>
+ *   <li>{@link Arrival#FLIGHT} 落于落点本身，停留时给飞行；{@link Arrival#SURFACE} 落于该柱顶（最高的阻挡移动或含流体
+ *       方块，不用落点 y），不给飞行。</li>
+ *   <li>{@link #ANCHORED_DIMENSIONS} 为白名单：宝黄天[Treasure Yellow Heaven]是飞行抵达的八转洞天；凡间四地区南疆、
+ *       西漠、东海、北原步行进入，落原点上方地表，东海无岛则落海面；今后的福地、洞天在此登记。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

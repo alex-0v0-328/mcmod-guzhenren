@@ -22,21 +22,18 @@ import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every phrase the HUD, the B panel and the Gu tooltips share.
+ * HUD、B 面板与蛊物品提示共用的全部措辞。
  *
- * <p>The single source for shared wording: a phrase built at a call site is one that will eventually
- * word the same fact differently somewhere else. If two surfaces say a thing, the sentence belongs in
- * this file. Brackets ({@code [无]}, {@code [太日阳莽体]}) are baked into the lang value, never assembled here:
- * {@link #formatNone} is the {@code [无]}, {@link #formatDetail} wraps a muted aside, {@link #formatTalentLine} is a
- * talent with its base fraction. {@link #getCountdownSeconds} is the whole second a countdown shows, for a caller
- * that caches the text per second. {@link #formatMarks} words whole marks [条] and strands [丝] as two counts side
- * by side with thousands separators, never converting one into the other, and drops a count that is zero; a caller
- * hides the line when both are. {@link #formatEffectTime} takes the whole
- * seconds a path effect has left, or {@code PathEffect.PERMANENT}.
- *
- * <p>⚠ Two decimals on lifespan, not one ({@link #formatLifespan(double, double)}): a hundredth of a year is
- * twelve real seconds at ordinary speed, the coarsest step the eye still reads as movement; a tenth
- * stands still for two minutes.
+ * <ul>
+ *   <li>共享措辞唯一来源：调用处拼的短语迟早把同一事实说成另一样；两处界面说同一件事，句子放这里。</li>
+ *   <li>方括号（{@code [无]}、{@code [太日阳莽体]}）写在语言值里，不在此拼；{@link #formatNone} 即 {@code [无]}，
+ *       {@link #formatDetail} 包暗色旁注，{@link #formatTalentLine} 为资质[Aptitude]加基础成数。</li>
+ *   <li>{@link #getCountdownSeconds} 是倒计时显示的整秒，供按秒缓存文字；{@link #formatEffectTime} 接流派效果剩余整秒或
+ *       {@code PathEffect.PERMANENT}。</li>
+ *   <li>{@link #formatMarks} 并列道痕[Path Marks]条、丝数（千位分隔，互不换算）；0 项省略，全 0 时调用方隐藏该行。</li>
+ *   <li>⚠ 寿元保留 2 位小数而非 1 位（{@link #formatLifespan(double, double)}）：常速下 0.01 年是现实 12 秒，是肉眼仍看
+ *       得出在动的最粗步长；0.1 年会静止 2 分钟。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

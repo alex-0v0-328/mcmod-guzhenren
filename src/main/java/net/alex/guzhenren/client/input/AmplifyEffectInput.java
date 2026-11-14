@@ -20,14 +20,13 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Amplify Effect Gu [功倍蛊] on the client: a right click with a refined one in the main hand holds the
- * {@link RadialMenu} instead of using the item, listing the hotbar Gu it can amplify; a pick sends
- * {@link AmplifyDrivePayload} with that slot, and the server checks it all again.
- *
- * <p>A wild one leaves the click to vanilla, so it is still refined by holding the click. A sector is listed by
- * {@code AmplifyEffectGuItem#canAmplify} and shown disabled while its Gu is on the vanilla cooldown, which would stop
- * the drive anyway. The hold ends when the use key is let go or the amplifier leaves the main hand (a number key);
- * only the first sends the pick.
+ * 功倍蛊[Amplify Effect Gu]的客户端输入。
+ * <ul>
+ *   <li>主手持已炼化者右键：不使用物品，改按住 {@link RadialMenu}，列快捷栏中可增幅的蛊；选中发送带该栏位的
+ *       {@link AmplifyDrivePayload}，服务端全部重查；野生者把点击交还原版，仍可按住炼化。</li>
+ *   <li>扇区由 {@code AmplifyEffectGuItem#canAmplify} 列出，其蛊在原版冷却时显示禁用，反正也催动不了；
+ *       松开使用键或功倍蛊离开主手（数字键）都结束按住，只有前者发送选择。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

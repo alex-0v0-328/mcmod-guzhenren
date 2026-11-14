@@ -8,12 +8,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Client intent: open the refinement [炼蛊] menu.
- *
- * <p>A zero-byte singleton payload -- it carries no data at all, only the button press. The server
- * handler in {@link net.alex.guzhenren.network.ModPayloads} opens the
- * {@link RefinementMenu}. Client intent is the one direction attachment
- * sync cannot carry; no player data travels upstream.
+ * 打开炼蛊界面的客户端意图：零字节单例，只代表一次按键。
+ * <ul>
+ *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，打开 {@link RefinementMenu}。</li>
+ *   <li>不上传玩家数据；附件同步唯独不承载客户端意图。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

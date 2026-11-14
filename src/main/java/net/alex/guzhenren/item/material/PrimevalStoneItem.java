@@ -10,14 +10,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Primeval stone [元石]: a right click pours its essence [真元] into the holder's aperture [空窍].
- *
- * <p>Extends {@link net.alex.guzhenren.item.material.GuMaterialItem}. The essence value comes from registration.
- * The gate refuses an unawakened player (the service write is a silent no-op there) and a full pool.
- * Every automatic draw on carried stones -- the top-up line, paying a cost, the refinement supply slot --
- * lives in {@code PrimevalStoneSupply}; this class is the stone itself and what one is worth.
- *
- * <p>⚠ It refuses the unawakened instead of quietly doing nothing: the stone would otherwise be eaten for free.
+ * 元石[Primeval Stone]：右键将所含真元[Essence]灌入持有者空窍[Aperture]，真元值取自注册。
+ * <ul>
+ *   <li>⚠ 门槛拒绝池满与未开窍：服务写入对未开窍者静默无效，不拒绝则元石白吃。</li>
+ *   <li>自动扣携带元石（补池线、付消耗、炼蛊台供给槽）归 {@code PrimevalStoneSupply}，本类只管元石与价值。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -29,24 +29,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The refinement [炼蛊] container: the ring grid, the recipe [蛊方] behind the button, and the clock of
- * the {@link RefinementRitual} it owns.
- *
- * <p>The menu IS the clock -- its {@code broadcastChanges} runs every tick and advances the ritual, so
- * closing the window aborts by construction. The 5×5 grid (corners cut), the primeval stone slot, and the
- * 2×2 output are transient; no attachment involved.
- *
- * <p>⚠ The ritual is owned by the menu deliberately, never lifted into a service: the grid locks while it
- * runs, and the client reads every live figure through {@link
- * net.minecraft.world.inventory.ContainerData} (ten ints) because it cannot match a recipe itself. Picking a recipe
- * fills the grid from the bag through {@link RecipeAutofill}.
- *
- * <p>Past 300 lines on purpose: the slot layout, the slot rules, the recipe behind the button and the ritual's
- * clock all guard the same grid, which locks while the ritual runs.
- *
- * <p>⚠ Gu materials [蛊材] sit outside, Gu [蛊虫] inside, and NOTHING moves while the ritual runs. A selected recipe is
- * the only one {@code match()} considers. The craft button only STARTS the ritual; the outcome lands after every
- * window and gap has run.
+ * 炼蛊界面容器：环形网格、按钮背后的蛊方、所属 {@link RefinementRitual} 的时钟。
+ * <ul>
+ *   <li>界面即时钟：{@code broadcastChanges} 每 tick 运行并推进仪式，关窗即中止，由结构保证。</li>
+ *   <li>5×5 网格（去四角）、元石[Primeval Stone]格、2×2 产出格皆临时，不涉附件。</li>
+ *   <li>⚠ 仪式刻意归界面、不提到服务里：运行时网格锁定；客户端无法自行匹配蛊方，实时数值皆经
+ *       {@link net.minecraft.world.inventory.ContainerData}（十个 int）读取。</li>
+ *   <li>⚠ 蛊材在外环、蛊虫在内核，仪式运行时一律不可移动。</li>
+ *   <li>选中蛊方后 {@code match()} 只考虑它；选蛊方时经 {@link RecipeAutofill} 从背包填格。</li>
+ *   <li>炼制按钮只开始仪式，结果待所有窗口与间隔走完才落定。</li>
+ *   <li>刻意超过 300 行：槽位布局、放置规则、按钮背后的蛊方、仪式时钟守同一组网格，仪式运行时它锁定。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -299,7 +292,7 @@ public class RefinementMenu extends AbstractContainerMenu {
     public boolean stillValid(@NotNull Player who) { return who == player && who.isAlive(); }
 
     //region where a thing may sit [放置规则]
-    /** A grid cell: the ring takes materials, the core takes the player's own Gu. */
+    /** 网格单格：外环放材料，内核放玩家自己的蛊。 */
     private class GridSlot extends Slot {
 
         private final boolean core;

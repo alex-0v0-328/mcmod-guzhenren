@@ -11,21 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Hardship Strength [苦力] state: while the Hardship Strength Gu [苦力蛊] runs, the body's injury lends it
- * carrying capacity. The state is the permanent path effect {@code ModPathEffectTypes.HARDSHIP_STRENGTH}, started and
- * stopped by the Gu's auto use ({@code AutoUse}); {@link #isActive} is what the round keeper reads to let a round draw
- * several beast families at once.
- *
- * <p>The injury tier is read live from the health share ({@link #getTier}): above 60% and under 75% is tier 1,
- * then every 15% further down one more, to tier 5 at 15% or less; 75% and above is no tier. Each {@link Tier} holds the
- * health share it stays above (its floor) and its capacity share. It lends no strength points [力量点]: its amplifier
- * only raises the carrying capacity [承受力] by the tier's share of the normal capacity [常态承受力] (rounded down),
- * 5/10/25/50/100%, and only on a body holding the human jun [人力钧力流] or the beast phantom [兽力虚影流] branch
- * ({@code PathStrengthService.getHeldBranch}); any other body gains nothing.
- *
- * <p>⚠ The bounds compare the health with {@code max * bound}, never a quotient, so a health set to exactly a bound
- * lands in the lower tier as written. {@link #HEALED_SHARE} carries the auto use's float tolerance, so a heal that
- * stops at 75% reads as healed.
+ * 苦力状态：苦力蛊[Hardship Strength Gu]运行时伤势借出承受力。
+ * <ul>
+ *   <li>永久流派效果，由该蛊自动催动（{@code AutoUse}）开关；{@link #isActive} 让一轮抽多个兽种。</li>
+ *   <li>档位实读生命占比：低于 75% 起算，高于 60% 为 1 档，每再低 15% 加一档，≤ 15% 为 5 档；只按档抬承受力（常态承受力
+ *       的百分比，向下取整），不加力量点[Strength Points]，仅限持人力钧力流或兽力虚影流者。</li>
+ *   <li>⚠ 边界以 {@code max * bound} 比较而非商，恰在边界落入较低档。</li>
+ *   <li>⚠ {@link #HEALED_SHARE} 含自动催动的浮点容差，回复停在 75% 即算痊愈。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

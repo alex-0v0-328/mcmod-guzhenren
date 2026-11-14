@@ -5,14 +5,13 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The body's bones [骨]: native [原生], or the iron bones [铁骨] an Iron Bone Gu leaves for good, rank three or
- * four. Closed vocabulary enum, one slot on {@code BodyData}; permanent,
- * so a respawn keeps it.
+ * 肉身的骨：原生，或铁骨蛊[Iron Bone Gu]永久留下的三转、四转铁骨；{@code BodyData} 一槽，重生保留。
  *
- * <p>Iron bones add max health, in health points, knockback resistance on vanilla's 0 to 1 scale, and strength
- * capacity [承受力] in strength points [力量点], read by {@code MaxHealthService}, {@code KnockbackResistanceService}
- * and {@code StrengthService}; the numbers are this enum's. One family,
- * ordered by declaration: a grade replaces every grade before it and nothing after ({@link #canReplace}).
+ * <ul>
+ *   <li>铁骨加最大生命值（生命点）、击退抗性（原版 0–1）、承受力（力量点[Strength Points]），由
+ *       {@code MaxHealthService}、{@code KnockbackResistanceService}、{@code StrengthService} 读取，数值归本枚举。</li>
+ *   <li>同族按声明顺序，新品阶只替换其前各级（{@link #canReplace}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

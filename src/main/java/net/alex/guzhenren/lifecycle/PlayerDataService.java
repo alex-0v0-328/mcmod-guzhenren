@@ -26,26 +26,19 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The one cross-domain lifecycle service: birth, sleep, death, clone, respawn, and a full reset. A clone
- * inherits every value {@link PlayerData} keeps -- the loader copies them -- and this
- * is the single place that decides what a death takes back: a death that wipes resets them all
- * ({@link #resetAll}), a keepInventory death only the return point. Every domain service re-runs on
- * join/clone/reset. Birth and reset write whole values here, past the domain services, which are the
- * only runtime writers.
- *
- * <p>⚠ The {@code Player} (not {@code ServerPlayer}) signature on {@code onClone}/{@code onBirth}/{@code
- * resetAll} is the one carve-out from read-{@code Player}/write-{@code ServerPlayer}: during {@code
- * PlayerEvent.Clone} the fresh entity is typed {@code Player}; never widen a domain service. ⚠ {@code BORN}
- * stays inherited, or the next login re-rolls brilliance. ⚠ A new lethal state needs an {@code
- * onRespawn} line; its un-fire returns BARE values (soul 1, mind 0), on which the lethal check never fires. A
- * death dealt as plain damage leaves no lethal state to undo and needs none: {@code vital_gu_lost}
- * ({@link VitalLossService}) and the {@code ten_extreme_disaster} a detonation deals bystanders.
- *
- * <p>{@link #dropHumanApertures}: a death that wipes the apertures shakes one Human Aperture [人窍]
- * loose per aperture, each at its own rank, at the corpse; keepInventory deaths keep the apertures
- * and drop nothing.
- *
- * <p>Losing a Vital Gu [本命蛊] is charged by {@link VitalLossService}.
+ * 唯一的跨领域生命周期服务：出生、睡眠、死亡、克隆、重生、完全重置。
+ * <ul>
+ *   <li>克隆体继承 {@link PlayerData} 全部值（加载器复制），本类唯一决定死亡收回什么：清空型死亡全重置
+ *       （{@link #resetAll}），keepInventory 死亡只重置返回点。</li>
+ *   <li>加入、克隆、重置时重跑各领域服务；出生与重置在此直写整值、绕过领域服务，后者是唯一运行时写入方。</li>
+ *   <li>{@link #dropHumanApertures}：清空型死亡于尸处按空窍[Aperture]各掉同转人窍[Human Aperture]。</li>
+ *   <li>失去本命蛊[Vital Gu]由 {@link VitalLossService} 结算；它的 {@code vital_gu_lost} 与爆炸波及旁人的
+ *       {@code ten_extreme_disaster} 是普通伤害致死，不留致死状态，无需撤销。</li>
+ *   <li>⚠ {@code onClone}/{@code onBirth}/{@code resetAll} 用 {@code Player}，是读 {@code Player}、
+ *       写 {@code ServerPlayer} 的唯一例外：{@code PlayerEvent.Clone} 中新实体是 {@code Player}；勿放宽领域服务。</li>
+ *   <li>⚠ {@code BORN} 保持继承，否则下次登录重掷才情；新致死状态须在 {@code onRespawn} 加一行，撤销后取最低值（魂魄
+ *       1，脑海 0），致死检查不触发。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -143,7 +136,7 @@ public final class PlayerDataService {
         KnockbackResistanceService.refresh(player);
     }
 
-    /** Re-derives attack damage, then tells the listeners the derived attributes are settled. */
+    /** 重算攻击伤害，再通知监听者派生属性已定。 */
     private static void refreshDamage(ServerPlayer player) {
         AttackDamageService.refresh(player);
         ModEvents.post(new PlayerRefreshedEvent(player));

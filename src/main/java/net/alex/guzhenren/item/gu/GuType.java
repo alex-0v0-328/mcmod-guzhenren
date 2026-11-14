@@ -4,13 +4,9 @@ import net.alex.guzhenren.core.NamedEnum;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What a Gu is used for [蛊虫类型]: the usage axis beside rank [转数], path [流派] and the lifecycle class.
- *
- * <p>Closed vocabulary enum. A branch ({@link #RETALIATION}, {@link #STEED}, {@link #FLYING},
- * {@link #IDENTITY}) names its parent; a top-level type has none. A Gu carries at most one constant, set through
- * {@code GuProperties.type}, and may carry none: a lifespan Gu or a zombie Gu belongs to no usage type and shows no
- * line. The lifecycle (one-shot, tended, consumed) stays with the item class and never becomes a constant
- * here.
+ * 蛊虫类型：蛊的用途轴，与转数、道[Path]、生命周期类并列。封闭词表；分支 {@link #RETALIATION}、{@link #STEED}、
+ * {@link #FLYING}、{@link #IDENTITY} 指明父类型，顶层无父。每只蛊至多一个（经 {@code GuProperties.type}），可无：寿蛊、
+ * 尸蛊无用途类型，不显示该行。生命周期（即时一次性、持续照顾型[Tended Gu]、照顾后消耗型）留在物品类，不进本枚举。
  *
  * @author Alex
  * @version 1.0.0

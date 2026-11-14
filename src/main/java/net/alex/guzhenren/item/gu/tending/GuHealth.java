@@ -7,17 +7,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A tended Gu's health [蛊虫生命值], stored as damage TAKEN on {@link RefinedGuState}, so an untouched wild Gu reads
- * as full. Built by {@link GuProperties#buildHealth} from the Gu's rank (4 x rank + 4, so 8 to
- * 24); it stays off {@code Rank}, whose {@code getMaxHealth} is the player's.
- *
- * <p>Food mends at the hunger rate: one health point costs what one hunger point does ({@code unitsPerHunger}), and
- * {@link #mendFrom} eats whole items only, never past the wound. A Gu at zero health is ruined
- * ({@code TendedGuItem.ruin}) unless it is a Vital Gu [本命蛊], which keeps its slot at zero.
- *
- * <p>⚠ Every health write goes through the host's {@code store}, which clamps {@code damageTaken}, except {@code
- * RecoverBar.settleHealth}, which only shrinks an already clamped wound; the hunger bar clamps its own writes in
- * {@code GuHunger.storeBar}.
+ * 持续照顾型蛊[Tended Gu]的蛊虫生命：{@link RefinedGuState} 存已受伤害，未动过的野生蛊读作满血。
+ * <ul>
+ *   <li>{@link GuProperties#buildHealth} 取 4 × 转数 + 4（8–24），不用玩家的 {@code Rank.getMaxHealth}；归零即损毁
+ *       （{@code TendedGuItem.ruin}），本命蛊例外，0 生命仍占槽。</li>
+ *   <li>食物按饱食[Hunger]修复，1 生命 = 1 饱食（{@code unitsPerHunger}）；{@link #mendFrom} 只吃整件，不超伤势。</li>
+ *   <li>⚠ 生命写入都经宿主 {@code store}（钳 {@code damageTaken}），唯 {@code RecoverBar.settleHealth} 只缩已钳伤势；
+ *       饱食条在 {@code GuHunger.storeBar} 自钳。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

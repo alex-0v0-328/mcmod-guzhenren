@@ -10,14 +10,12 @@ import net.minecraft.world.item.ItemCooldowns;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The long cooldowns a tended Gu stamps on its own stack: vanilla draws the sweep, the stack's stamp (an
- * overworld game time) is the truth. {@link #createCooldownStamp} writes one, {@link #getCooldownLeft} reads it back.
- *
- * <p>⚠ {@link #createCooldownStamp}: stamped BACK by the share a hastened clock has already served, because the
- * stamp is read again long after the form has ended -- scaling the window on the way out would recompute a
- * live cooldown. A slowed clock stamps FORWARD, so {@link #stampCooldownLeft} counts a stamp ahead of now as
- * long as the slowest clock ({@code TimeFlow.MIN_RATE}) could stretch the window; a stamp beyond that came from
- * another world and reads as no cooldown.
+ * 持续照顾型蛊[Tended Gu]的物品长冷却：原版只画转圈，物品时间戳（主世界游戏时间）为真值。
+ * <ul>
+ *   <li>⚠ {@link #createCooldownStamp} 按加速时钟已走份额往回盖：结束很久后仍会读，出口再缩放会重算进行中的冷却。</li>
+ *   <li>⚠ 减速时钟往前盖：{@link #stampCooldownLeft} 认超前戳，上限为最慢时钟（{@code TimeFlow.MIN_RATE}）拉长的窗口；
+ *       超出者来自别的世界，按无冷却。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

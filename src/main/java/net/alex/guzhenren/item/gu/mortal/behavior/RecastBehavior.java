@@ -6,11 +6,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The recast behavior [冷却中再催]: its Gu may be driven again inside its effect cooldown, at double the hunger. The
- * buff Gu ({@link TimedBuffBehavior}) and the Heavenly Mugwort Gu [天蓬蛊] carry it.
- *
- * <p>Only the effect cooldown is waived; the item cooldown and the post-refine guard still hold. What a recast
- * does to the running effect (a buff adds its length, a shield refills) is the effect behavior's own.
+ * 冷却中再催行为。效果冷却内可再催，饱食[Hunger]翻倍；增益蛊（{@link TimedBuffBehavior}）与天蓬蛊[Heavenly Mugwort Gu]
+ * 带此行为；只免效果冷却，物品冷却与炼化后保护照旧；再催对运行中效果的作用（增益加时长、护盾回满）归效果行为。
  *
  * @author Alex
  * @version 1.0.0

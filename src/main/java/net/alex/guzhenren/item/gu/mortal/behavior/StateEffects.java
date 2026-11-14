@@ -30,24 +30,20 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The effects of the state Gu [状态蛊]: the zombie Gu's undead form, the Liquor Worm's distilling, the Stone Aperture
- * Gu's petrified aperture and the Casual and Malicious Thought Gu's flooded mind. Each is the bookkeeping of a state
- * that ends by itself or by command, and the effect ends with it: its strands go the moment it does. Nothing here
- * reads a mark to size anything.
- *
- * <p>Helper and event subscriber over {@link PathEffectService}; the Gu that made a state is found in {@code ModItems},
- * and its {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. The thought and distilling
- * effects are the truth of their state and the vanilla effect only their icon, timer and amplifier:
- * {@code /effect clear} costs the icon until the next heartbeat, and milk cures none. The zombie form and the
- * petrified aperture stay on {@code BodyData} and {@code Aperture}, so a command that sets them needs no call of its
- * own: {@link #syncZombie} and {@link #syncStone} derive the effect from the state on the change event and on login,
- * and name the Gu by the state's rung or rank.
- *
- * <p>⚠ Only a temp zombie carries a zombie effect. Turning zombie for good dissipates its Transformation strands:
- * {@link #syncZombie} runs the effect out on the spot, so it ends as an expiry and the form stays; a zombie gets none
- * back on login or by command. A temp zombie effect removed takes the undead form with it; one that merely
- * runs out leaves the temp zombie to {@code UndeadService.tickTempZombie}, which lets it recover. A petrified
- * aperture is never un-petrified by its effect ending; the next aperture write puts the effect back.
+ * 状态蛊的流派效果。
+ * <ul>
+ *   <li>状态：僵尸蛊的僵尸形态、酒虫[Liquor Worm]精炼、石窍蛊[Stone Aperture Gu]石化空窍[Aperture]、随意蛊[Casual Gu]
+ *       与恶念蛊[Malicious Thought Gu]念头充塞；自行或经命令结束，效果随之结束、丝即消散；不读道痕[Path Marks]定
+ *       量。</li>
+ *   <li>{@link PathEffectService} 上的工具与事件订阅者；造状态的蛊查 {@code ModItems}，其 {@code GuProperties} 给载体、
+ *       道[Path]、丝，来源为蛊物品 id；念与精炼效果是状态真值，原版效果只是图标、计时、等级：{@code /effect clear}
+ *       只让图标消失到下次心跳，牛奶全解不掉。</li>
+ *   <li>僵尸形态、石化空窍存于 {@code BodyData}、{@code Aperture}，命令设置无需另调：{@link #syncZombie}、
+ *       {@link #syncStone} 在变更事件与登录时由状态推出效果，按档或转找蛊。</li>
+ *   <li>⚠ 仅临时僵尸化带僵尸效果；永久僵尸化消散其变化道丝：{@link #syncZombie} 当场令效果到期，按到期结束、形态保留，
+ *       登录或命令都不再给；临时僵尸效果被摘则连形态带走，仅到期则交 {@code UndeadService.tickTempZombie} 恢复；
+ *       石化空窍不因效果结束解除，下次空窍写入补回效果。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

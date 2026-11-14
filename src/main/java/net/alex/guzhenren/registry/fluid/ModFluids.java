@@ -10,11 +10,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * The fluid pairs: the registry entries of each source and its flowing arm, for the Spirit Spring [元泉] and
- * the Pure Water [纯水].
- *
- * <p>DeferredRegister holder only; the behavior each pair shares lives in {@link SpiritSpringFluid} and
- * {@link PureWaterFluid}.
+ * 元泉[Spirit Spring]与纯水的流体对注册（源头与流动态），仅 DeferredRegister 容器；共享行为在
+ * {@link SpiritSpringFluid}、{@link PureWaterFluid}。
  *
  * @author Alex
  * @version 1.0.0

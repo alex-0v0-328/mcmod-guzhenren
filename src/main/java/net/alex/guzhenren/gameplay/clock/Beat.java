@@ -4,11 +4,8 @@ import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One heartbeat's reading of the player's clock, taken once so that every step of the beat runs on the same time.
- *
- * <p>{@link #days} is how many whole days the day clock advanced since the last beat (the Gu-hunger walks spend it);
- * {@link #rate} is {@link TimeFlow#getRate} at the start of the beat. Its verbs are {@link TimeFlow}'s, bound to that
- * rate: a step scales through its beat and never asks the clock again.
+ * 心跳对玩家时钟的单次读数，整拍共用。{@link #days}：上拍以来日时钟走过的整天数，供蛊饱食[Hunger]遍历扣；
+ * {@link #rate}：拍初的 {@link TimeFlow#getRate}；动词同 {@link TimeFlow}，绑定此倍率，不再问时钟。
  *
  * @author Alex
  * @version 1.0.0

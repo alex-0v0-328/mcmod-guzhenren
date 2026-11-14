@@ -13,11 +13,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Vitality Leaf Gu's [生机叶蛊] behavior: grants the vitality effect [生机叶], refusing while one is still running.
- *
- * <p>The gate checks {@link TimedEffects#hasLeaf} so a re-use while the leaf runs is a refusal, not a refresh; the
- * effect hands its duration to {@link TimedEffects#grantLeaf}. An Amplify Effect Gu [功倍蛊] multiplies that
- * duration, and with it the health the leaf returns.
+ * 生机叶蛊[Vitality Leaf Gu]行为：给生机叶效果，仍在则拒。
+ * <ul>
+ *   <li>门槛查 {@link TimedEffects#hasLeaf}：持续中再催动是拒而非刷新；时长交 {@link TimedEffects#grantLeaf}。</li>
+ *   <li>功倍蛊[Amplify Effect Gu]乘时长，返还生命同倍增加。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

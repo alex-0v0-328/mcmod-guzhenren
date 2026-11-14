@@ -9,20 +9,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One path effect [流派效果] on a person: what works, on which carrier, from what source, carrying which path marks
- * [道痕] on which paths, until when, in how many layers, with its kind's own payload.
+ * 人身上的一个流派效果。
  *
- * <p>Immutable record kept in {@link PathEffectData}; {@link PathEffectService} is the only runtime writer. The
- * source is the Gu item's id for a Gu's effect, or an innate id for one the body was born with. {@code endTick}
- * is a game time, or {@link #PERMANENT}. {@code paths} holds each path's {@link PathMarks}, whole marks and strands
- * apart; one effect may carry several paths -- an amplifier adds Rule strands to the effect it amplifies.
- *
- * <p>⚠ An effect is on exactly while it carries marks: the compact constructor prunes paths with none, and the
- * store drops an effect with no path left. It has two states, there or not, and whatever lies between counts as not
- * there: nothing takes part of an effect's marks, and whatever erases marks removes the effect. What the effect does
- * reads its type, payload and layers. Extending the time ({@link #withEndTick}) adds no marks; a layer
- * ({@link #addLayer}, {@link #dropLayer}) carries that layer's marks, so they follow the layer count; replacing an
- * effect replaces its marks with it.
+ * <ul>
+ *   <li>存于 {@link PathEffectData}，运行时只由 {@link PathEffectService} 写入；来源取蛊物品 id 或先天 id；
+ *       {@code endTick} 为游戏时间或 {@link #PERMANENT}。</li>
+ *   <li>{@code paths} 按道[Path]记道痕[Path Marks]条与丝（{@link PathMarks}），可多道；增幅者给所增效果补律道丝。</li>
+ *   <li>⚠ 恰在带道痕时存在：构造器剪无道痕的道，存储丢无道的效果；只有在与不在，无物拿走部分道痕，抹去即摘除。</li>
+ *   <li>作用只读类型、payload 和层数；延时（{@link #withEndTick}）不加道痕，每层（{@link #addLayer}、
+ *       {@link #dropLayer}）带该层道痕；替换连道痕一起换。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

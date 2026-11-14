@@ -18,27 +18,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Primeval Elder Gu [元老蛊]: a vault for primeval stones [元石] that pays its own upkeep from the vault.
- *
- * <p>Extends {@link net.alex.guzhenren.item.gu.tending.TendedGuItem} but declares no clock and never eats. Once refined its
- * use is the deposit: every carried stone goes in, free and with no charge, so it never shows a charge bar. The
- * withdrawal is no item use at all: the client's hold slider ({@code PrimevalElderInput}) picks a number of stacks
- * and {@link #tryWithdraw} lands it, free. Both answer only in the main hand; a wild one is still refined by holding
- * the click, with its refining bar. The stored-stones total rides
- * {@link net.alex.guzhenren.registry.item.ModDataComponents}, not {@code RefinedGuState}, because every tended Gu
- * shares that record.
- *
- * <p>⚠ A withdrawal fills the 36 bag slots only, partial plain stone stacks first (a renamed one is left alone),
- * and never past {@link #getBagRoom}: no stone goes to the offhand or the ground. The slider's top,
- * {@link #getWithdrawableStacks}, reads the same room.
- *
- * <p>Carried in any slot, its stock is the stone supply's second source, after loose stones
- * ({@code PrimevalStoneSupply}); its own uses are free, so they never top the pool up from it.
- *
- * <p>⚠ Starving is unreachable for it by design -- a failed refinement is the only thing that can
- * destroy one. Do not "fix" the missing hunger bar.
- *
- * <p>It never eats, but a wound still costs stones, on the heartbeat.
+ * 元老蛊[Primeval Elder Gu]：元石[Primeval Stone]库，从库存付自身养护。
+ * <ul>
+ *   <li>炼化后催动即免费存入随身全部元石，无蓄力条；取出不走催动：客户端长按滑条（{@code PrimevalElderInput}）选堆数，
+ *       {@link #tryWithdraw} 免费落实；都只在主手，野生的仍长按炼化（有炼化条）。</li>
+ *   <li>⚠ 取出只填背包 36 格，先补未满的普通元石堆（改名的不碰），不超 {@link #getBagRoom}：不进副手、不落地；滑条上限
+ *       {@link #getWithdrawableStacks} 读同一空间。</li>
+ *   <li>存量在 {@link net.alex.guzhenren.registry.item.ModDataComponents}，不在持续照顾型蛊[Tended Gu]共用的
+ *       {@code RefinedGuState}；任意格携带时是元石供给第二来源，排在散装元石后（{@code PrimevalStoneSupply}）。</li>
+ *   <li>不声明时钟、不进食；自身催动免费，不动库存；伤势仍在心跳时花元石修复。</li>
+ *   <li>⚠ 设计上不会饿死，只有炼化失败能毁掉它；别“修复”缺失的饱食条。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -139,7 +129,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
         return (int) ((stones + STACK - 1) / STACK);
     }
 
-    /** Withdraws up to {@code stacks} stacks of 64 into the bag; false when refused or on the vanilla cooldown. */
+    /** 取出至多 {@code stacks} 组（每组 64）放进背包；被拒或处于原版冷却时返回 false。 */
     public boolean tryWithdraw(ServerPlayer player, ItemStack stack, int stacks) {
         if (stacks <= 0 || !isRefined(stack) || player.getCooldowns().isOnCooldown(this)) return false;
         if (getStored(stack) <= 0) {

@@ -8,9 +8,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Server notice: something hit the world hard near this client's player, so its camera shakes {@link #strength}
- * degrees at the start, fading out over {@link #ticks}. The server already scaled the strength by the viewer's
- * distance ({@code net.alex.guzhenren.network.ImpactShakeEvents}); the client clamps both before use.
+ * 服务端通知：本地玩家附近有重击，镜头起始晃动 {@link #strength} 度，{@link #ticks} 内衰减。
+ * 服务端已按观察者距离缩放强度（{@code net.alex.guzhenren.network.ImpactShakeEvents}）；客户端两值都钳制后用。
  *
  * @author Alex
  * @version 1.0.0

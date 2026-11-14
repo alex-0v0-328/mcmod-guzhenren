@@ -7,14 +7,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Holds the local player's jump and sneak out of second-stage flight [二段飞行]; client only.
- *
- * <p>{@code LocalPlayer#aiStep} adds a climb or a descent of three times the flying speed to the velocity before the
- * travel; {@link #guzhenren$holdSecondStageAltitude} reads that flying speed as zero while the synced mark is
- * present, so the cruise ({@link PlayerMixin}) follows the look alone and inherits no drift from the keys.
- *
- * <p>⚠ Not an event or an API: NeoForge 21.1.265 has no hook on the climb and descent {@code aiStep} adds from the
- * flying speed; reading the speed as zero at that one call leaves every other reader of the flying speed untouched.
+ * 二段飞行[Second-Stage Flight]中屏蔽本机跳跃、潜行的升降；仅客户端。
+ * <ul>
+ *   <li>{@code LocalPlayer#aiStep} 移动前给速度加 3 倍飞行速度的升降；{@link #guzhenren$holdSecondStageAltitude} 在有同
+ *       步标记时把此处飞行速度读成 0，巡航（{@link PlayerMixin}）只随视线、不受按键漂移。</li>
+ *   <li>⚠ 不用事件或 API：NeoForge 21.1.265 对 {@code aiStep} 这段升降无钩子；只在此处读 0，别处飞行速度不受影响。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

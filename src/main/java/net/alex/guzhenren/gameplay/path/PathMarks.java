@@ -8,15 +8,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A count of path marks [道痕] on one path: whole marks [条] and strands [丝], two independent counters.
+ * 一条道[Path]上的道痕[Path Marks]数：条与丝，两个独立计数。
  *
- * <p>Immutable value record; both counters floor at zero. ⚠ Nothing converts one counter into the other: strands
- * never roll up into a mark, and no code path may add one. A race or a physique lays down whole marks; a mortal Gu
- * lays down strands only. Sums saturate per counter.
- *
- * <p>{@link #MAP_CODEC} writes the two counters as the fields {@code marks} and {@code strands}, so a holder can
- * inline them; both read leniently, so a field of another shape left by an older save reads as zero instead of
- * failing the whole record.
+ * <ul>
+ *   <li>值 record，两计数下限为零，求和按计数各自饱和；种族或体质留下整条，凡蛊只留丝。</li>
+ *   <li>⚠ 两计数从不互换：丝永不进位成条，任何代码不得新增这种换算。</li>
+ *   <li>{@link #MAP_CODEC} 把两计数写成字段 {@code marks}、{@code strands}，持有者可内联；两字段宽松读取，
+ *       旧存档其他形状的字段读作零，整条记录不会读失败。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

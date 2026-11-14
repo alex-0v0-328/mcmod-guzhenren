@@ -12,10 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Relics Gu's [舍利蛊] behavior: advances the holder's stage [阶段], only at the Gu's own rank.
- *
- * <p>The gate is {@link MortalGuItem#checkStageUpGate}: a rank mismatch or a holder already at {@link Stage#HIGHEST}
- * refuses. The effect delegates to {@link ApertureService#shiftStage}, then fires the realm criterion.
+ * 舍利蛊[Relics Gu]行为：持有者升一阶段，限蛊本转。门槛 {@link MortalGuItem#checkStageUpGate}：转数不符或已在
+ * {@link Stage#HIGHEST} 则拒绝；效果委托 {@link ApertureService#shiftStage}，再触发境界进度条件。
  *
  * @author Alex
  * @version 1.0.0

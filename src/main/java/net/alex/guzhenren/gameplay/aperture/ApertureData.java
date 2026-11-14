@@ -9,27 +9,21 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Aperture [空窍] attachment: a mortal has none, and awakening [开窍] is what puts one here. Immutable
- * record attachment keyed {@code aperture_data}, synced {@code OWNER_ONLY}, written only by {@code
- * ApertureService}; holds up to {@code MAX_APERTURES}
- * (2) {@link Aperture} entries -- an empty list IS the "no aperture at all" state.
+ * 空窍[Aperture]附件：凡人没有，开窍[Awakening]后才有。
  *
- * <p>List order is the awakening order, and the FIRST aperture is whatever is not flagged
- * {@code second}: a Second Aperture Gu may open before Hope Gu ever does, so the only reader of "the
- * primary" is {@link #getPrimary}, which falls back to a lone second aperture. {@code isAwakened} means
- * "has the FIRST aperture" -- Hope Gu, the refinement gate and the command gates all read it.
- * {@code hasAperture} means any aperture, a lone second one included: the HUD, the info panel, primeval
- * stones and nourishing read it.
- *
- * <p>A position moves when Hope Gu inserts the first aperture ahead of a lone second one; a kind
- * ({@code PRIMARY} the first, {@code SECOND} the second) never does. Anything that outlives the insert --
- * a Vital Gu's binding -- names its aperture by kind, and {@link #indexOf} / {@link #getKindAt} convert.
- *
- * <p>⚠ {@code with(index, aperture)} REFUSES to grow the list -- only {@code withOpened}/{@code insertFirst}
- * append -- the mirror of {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with}, which GROWS
- * to reach its index; deliberately opposite. ⚠ {@code MAX_APERTURES} caps the {@code encode}/{@code decode}
- * list too: longer is silently truncated on sync. ⚠ Decoding heals old saves: any entry at list position 1 is
- * marked {@code second}, because pre-flag saves implied it by position alone.
+ * <ul>
+ *   <li>键 {@code aperture_data}，同步 {@code OWNER_ONLY}，仅 {@code ApertureService} 写；空列表即无空窍。</li>
+ *   <li>列表顺序即开窍顺序，第一空窍是未标 {@code second} 者：第二空窍蛊[Second Aperture Gu]可能先于希望
+ *       蛊[Hope Gu]开，故「主空窍」只经 {@link #getPrimary} 读，仅剩孤立第二空窍时退回它。</li>
+ *   <li>{@code isAwakened} 指有第一空窍，希望蛊、炼化门槛、命令门槛读它；{@code hasAperture} 指有任一空窍（含孤立第二空
+ *       窍），HUD、信息面板、元石[Primeval Stone]、温养[Nourish]读它。</li>
+ *   <li>希望蛊在孤立第二空窍前插入第一空窍时位置会变，种类（{@code PRIMARY} 第一、{@code SECOND} 第二）不变；本命蛊绑定
+ *       等跨插入存续者按种类指认，经 {@link #indexOf} / {@link #getKindAt} 换算。</li>
+ *   <li>⚠ {@code with(index, aperture)} 不扩长列表，只有 {@code withOpened} / {@code insertFirst} 追加，与会扩长的
+ *       {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with} 刻意相反。</li>
+ *   <li>⚠ 至多 {@code MAX_APERTURES}（2）个，也限 {@code encode} / {@code decode} 列表，超长部分同步时静默截断。</li>
+ *   <li>⚠ 解码修复旧存档：位置 1 的条目一律标 {@code second}，因加标记前的存档只靠位置表示。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

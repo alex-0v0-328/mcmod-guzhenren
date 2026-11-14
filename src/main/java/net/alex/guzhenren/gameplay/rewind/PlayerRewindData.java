@@ -6,9 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What the Man As Before Gu [人如故] remembers of its carrier: a ring of {@link PlayerSnapshot}s, oldest first,
- * following {@link RewindClock}. Saved on the player, never synced (the client never decides whether a day is
- * remembered), and not carried through a death: a new body starts with no past.
+ * 人如故[Man As Before Gu]对持有者的记忆。{@link PlayerSnapshot} 环，旧者在前，按 {@link RewindClock} 节奏；存于玩家，
+ * 不同步（客户端不决定哪天被记住）；死亡不保留，新身体没有过去。
  *
  * @author Alex
  * @version 1.0.0

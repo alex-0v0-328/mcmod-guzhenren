@@ -14,21 +14,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Essence [真元]: pools, distilled reserves, regen, and the Liquor Worm's [酒虫] phases. Spending
- * cascades PRIMARY then SECOND, gains fill PRIMARY; {@code regenStep} banks the fractional remainder
- * per aperture in unsynced {@code ESSENCE_CARRY}.
+ * 真元[Essence]服务：真元池、精炼真元、回复与酒虫[Liquor Worm]三相。
  *
- * <p>⚠ Gates ask {@code spendable()}, never a no-index {@code getCurrentEssence()} (PRIMARY alone, and
- * distilling empties it). ⚠ {@code consume} burns distilled 1:2 first (rounded UP), then the pool. ⚠
- * The distilling truth is the per-aperture {@code distilling} flag, not the effect. ⚠ Any path that
- * SKIPS a regen step (DEAD [死窍]) must zero that carry.
- * {@link #cascadeTake} is the pure seam the unit tests pin for that cascade. {@link #closeDistilling}
- * is the heartbeat's step that settles a distilling whose Liquor Worm effect ended early.
- *
- * <p>{@code consume} writes each aperture it draws from once, distilled and pool together.
- * {@link #consumeDeferred} pays the same cascade but leaves aperture {@code index} unwritten and returns it as
- * the payment leaves it ({@code null} when the pools cannot pay), so a caller that changes that aperture too
- * lands both in one synced write.
+ * <ul>
+ *   <li>花费按 {@code PRIMARY}、{@code SECOND} 级联，收入先填 {@code PRIMARY}；{@code regenStep} 把各空窍[Aperture]回复
+ *       的小数余量存入不同步的 {@code ESSENCE_CARRY}；⚠ 跳过回复步的路径（死窍）须把该余量清零。</li>
+ *   <li>⚠ 门槛问 {@code spendable()}，不问无下标 {@code getCurrentEssence()}（只算 {@code PRIMARY}，精炼时清空）。</li>
+ *   <li>⚠ {@code consume} 先按 1:2 扣精炼真元（向上取整）再扣真元池，每个被扣空窍只写一次；{@link #consumeDeferred} 同
+ *       样级联但不写空窍 {@code index}，返回付款后的它（付不起为 {@code null}），供调用方并入同一次同步写
+ *       入；{@link #cascadeTake} 是单元测试钉住此级联的纯函数接缝。</li>
+ *   <li>⚠ 精炼以各空窍 {@code distilling} 标记为准，不看效果；{@link #closeDistilling} 心跳时结算酒虫早停的精炼。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -191,7 +187,7 @@ public final class ApertureEssenceService {
         return index < plan.length ? applyTake(data.get(index), plan[index]) : data.get(index);
     }
 
-    /** Writes every aperture's share of {@code plan} but {@code skipped}'s, which the caller writes itself. */
+    /** 写入 {@code plan} 中各空窍[Aperture]的份额，{@code skipped} 除外，由调用方自己写。 */
     private static void takeExcept(ServerPlayer player, ApertureData data, long[][] plan, int skipped) {
         for (int i = 0; i < plan.length; i++) {
             if (i != skipped && (plan[i][0] > 0L || plan[i][1] > 0L)) {

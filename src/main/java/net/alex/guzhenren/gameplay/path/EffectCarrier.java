@@ -5,10 +5,8 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Where path marks [道痕] sit on a person: the aperture [空窍], the body [肉体], the soul [魂魄] or the mind [脑海].
- *
- * <p>Closed vocabulary enum; no sibling mod may add a carrier. Every {@link PathEffect} names the one carrier it
- * works on. A bare mark, one without an effect ({@link PathEntry}), sits on the body and nowhere else.
+ * 道痕[Path Marks]在人身上的载体：空窍[Aperture]、肉体、魂魄或脑海。闭合枚举；每个 {@link PathEffect}
+ * 只作用于一个载体，纯道痕（{@link PathEntry}）只在肉体上。
  *
  * @author Alex
  * @version 1.0.0

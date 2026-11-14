@@ -1,11 +1,11 @@
 package net.alex.guzhenren.client.hud;
 
 /**
- * What {@link ChargeHud} shows of the Store Strength Gu's [蓄力蛊] charge [蓄力]: whether one is running, how far the
- * bar has filled, and whether the server holds it full. The client's input layer
- * ({@code net.alex.guzhenren.client.input.StoreStrengthInput}) is the only writer, the way it pushes into
- * {@link SonicBoomHud}; keeping the state here lets the bar read it without reaching up into the input layer.
- * Forgotten on logout through {@link #reset}.
+ * {@link ChargeHud} 读取的蓄力蛊[Store Strength Gu]蓄力状态：是否在蓄、进度、服务端是否判满。
+ * <ul>
+ *   <li>唯一写入者为客户端输入层（{@code net.alex.guzhenren.client.input.StoreStrengthInput}），同其推送
+ *       {@link SonicBoomHud}；放在此处，蓄力条不必上探输入层；登出经 {@link #reset} 清空。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

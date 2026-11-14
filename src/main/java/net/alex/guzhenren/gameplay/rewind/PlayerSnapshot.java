@@ -17,19 +17,13 @@ import net.minecraft.world.effect.MobEffectInstance;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One player's body at one game moment, as the Man As Before Gu [人如故] remembers it: health, hunger and
- * saturation, air and fire, every active effect with its time left, the soul [魂魄] he had, each mind pool's
- * thoughts [念] with their tags, and how long his temp zombie [临时僵尸化] form had left.
- *
- * <p>⚠ Deliberately not the whole player. Essence [真元], lifespan [寿元], inventory, position, experience, the
- * aperture and the paths stay out: putting essence or lifespan back would refund the Gu's own price and undo a day
- * of aging, putting a bag back would mint items. A zombie [僵尸] is not remembered either -- that turn is
- * final -- so the form is stored as the temp zombie ticks left, zero for none, and restored as a fresh window of
- * that length.
- *
- * <p>⚠ The effect list is read leniently: an effect whose mod has since been removed costs the list, not the
- * snapshot. A snapshot the codec cannot read at all is skipped by the loader with a logged error and nothing
- * else on the player is touched.
+ * 人如故[Man As Before Gu]记住的某一游戏时刻的玩家身体。
+ * <ul>
+ *   <li>⚠ 有意不含真元[Essence]、寿元、物品栏、位置、经验、空窍[Aperture]与各道[Path]：放回真元或寿元会退还蛊的代价并撤
+ *       销一天衰老，放回背包会凭空造物。</li>
+ *   <li>僵尸也不记（转化是终局）；临时僵尸化存为剩余 tick（0 为无），还原为同长的新窗口。</li>
+ *   <li>⚠ 效果列表宽松读取：模组已移除的效果只丢列表不丢快照；整体读不出的快照由加载方跳过并记错误，玩家其余不动。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

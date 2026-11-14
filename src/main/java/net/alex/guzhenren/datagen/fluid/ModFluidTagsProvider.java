@@ -12,9 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the fluid tags. Both Pure Water [纯水] entries join {@code #minecraft:water}, which is what makes vanilla's
- * block-side water checks -- sponges, concrete powder, bottles, fishing, coral, kelp, lava turning to stone --
- * treat it as water. The Spirit Spring [元泉] stays out: it only feels like water.
+ * 流体标签：纯水两条目加入 {@code #minecraft:water}，原版方块侧水判定（海绵、混凝土粉末、玻璃瓶、钓鱼、珊瑚、海带、熔岩
+ * 变石）才当它是水；元泉[Spirit Spring]不加入，只是手感像水。
  */
 
 public class ModFluidTagsProvider extends FluidTagsProvider {

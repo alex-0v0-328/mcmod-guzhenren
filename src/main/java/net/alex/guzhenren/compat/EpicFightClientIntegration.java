@@ -31,47 +31,28 @@ import yesman.epicfight.api.event.types.animation.InitAnimatorEvent;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClientPlayerPatch;
 
 /**
- * The client half of the Epic Fight bridge: a second-stage flier [二段飞行] leans into the flight, a plunging
- * player [坠击] holds the stomp dive, a meditating player [打坐] sits cross-legged and a player refining a Gu [炼化]
- * holds it before the chest; client only.
+ * Epic Fight 桥接的客户端侧。
  *
- * <p>Epic Fight draws an elytra flier lying along the flight and tilts the model by the negated pitch about its X
- * axis. A second-stage flier gets the same picture from this mod's own flight loop
- * ({@code biped/living/second_stage_flight_loop}, {@link EpicFightIntegration}): {@link #onInitAnimator} maps
- * {@link EpicFightLivingMotions#SECOND_STAGE_FLIGHT_LOOP} to it on every client player's animator, before Epic Fight
- * takes the animator's motions as its defaults, and {@link #onLivingMotion} sets that motion in place of the
- * creative flight, unless an animation holds the living motion (an action, the crash clip) or the flier is dying.
- * {@link #onPrepareModel} adds the tilt, scaled
- * by the flier's lean: it fills over {@link #LEAN_TICKS} while the mark is on and empties as fast once it goes
- * ({@link #onClientTick}), interpolated between ticks. The mark reaches every client that sees the flier, so others
- * see the lean too; the flier's own first-person view stays untilted. Epic Fight's own motion blend eases the
- * animation change.
- *
- * <p>A plunging player gets {@link EpicFightLivingMotions#PLUNGE_FALL}, mapped to the fall loop
- * ({@code biped/living/plunge_fall}) the same way, for as long as the plunge mark is on: from the start to the
- * landing or to whatever else ends the plunge. The mark reaches every client that sees the player too. The plunge
- * comes first: starting it ends the second stage, and the two marks may cross on the way to a client.
- *
- * <p>A player who nourishes an aperture [温养空窍], is held still by the awakening ritual [开窍仪式] or pours
- * essence into a channeled Gu [灌注]
- * ({@link EpicFightIntegration#isMeditating}) gets {@link EpicFightLivingMotions#MEDITATE_LOOP}, mapped to the seated
- * loop ({@code biped/living/meditate_loop}) the same way, after the plunge and the flight. All three states reach every
- * client that sees the player. The sit-down and stand-up clips come from the server and hold the living motion
- * while they run, so the loop takes over when the sit-down ends and the idle when the stand-up lets go.
- *
- * <p>A player refining a wild Gu [炼化] ({@code TendedGuItem#isRefining}: the held use of a tended Gu not yet
- * refined, which every client reads off the player's use item) gets {@link EpicFightLivingMotions#REFINE_LOOP} as
- * the composite living motion ({@link #onCompositeMotion}), mapped to the refining hold
- * ({@code biped/living/refine_loop}): the clip's data file puts it on a composite layer under the
- * {@code chest_arms} mask, so the right hand comes up to the chest and the head bows toward it while the legs keep the
- * base layer's motion, and the hold ends with the use, refined or let go. An animation that holds the living motion
- * (an action, a landing) clears the composite motion, so the hold gives way to it.
- *
- * <p>{@link #getLockOnTarget} reads Epic Fight's lock-on [锁定目标] for the moon blade Gu [月刃]: the entity its camera
- * is locked on, while the lock is held, read off {@code EpicFightCameraAPI} (the local player patch's own target is
- * that same focused entity).
- *
- * <p>{@link #initialize} registers the four hooks; client setup calls it once.
+ * <ul>
+ *   <li>二段飞行[Second-Stage Flight]：仿 Epic Fight 鞘翅飞行者顺飞向躺平（模型绕 X 轴转负俯仰角），用本模组飞行循环
+ *       （{@code biped/living/second_stage_flight_loop}，{@link EpicFightIntegration}）。</li>
+ *   <li>{@link #onInitAnimator} 为每个客户端玩家动画器把 {@link EpicFightLivingMotions} 的四个动作映射到
+ *       {@code biped/living/} 下同名小写循环，早于 Epic Fight 把动作取作默认值。</li>
+ *   <li>{@link #onLivingMotion} 换基础动作，优先级坠击 > 二段飞行（替换创造飞行）> 打坐；有动画占着基础动作
+ *       （动作、撞毁片段）或玩家濒死时不换；切换由 Epic Fight 动作混合过渡。</li>
+ *   <li>{@link #onPrepareModel} 按前倾量倾斜：二段飞行标记在时 {@link #LEAN_TICKS} 内涨满，去掉后同速清空
+ *       （{@link #onClientTick}），tick 间插值；飞行者自己的第一人称不倾斜。</li>
+ *   <li>二段飞行、坠击标记与打坐三种状态都送达每个看得见该玩家的客户端。</li>
+ *   <li>坠击：标记从开始保持到落地或其他结束坠击的情形；开始坠击会结束二段飞行，两个标记到客户端时可能交错。</li>
+ *   <li>打坐（{@link EpicFightIntegration#isMeditating}）：温养[Nourish]空窍[Aperture]、被开窍[Awakening]仪式定住
+ *       或向灌注类蛊[Channeled Gu]注入真元[Essence]；坐、起片段来自服务端并占基础动作，坐下后接循环，起身回待机。</li>
+ *   <li>炼化野生蛊（{@code TendedGuItem#isRefining}：按住使用未炼化的持续照顾型蛊[Tended Gu]，各客户端从使用物品读出）
+ *       的玩家得合成层动作 {@link EpicFightLivingMotions#REFINE_LOOP}（{@link #onCompositeMotion}）；数据文件将其置于
+ *       {@code chest_arms} 遮罩下：右手抬到胸前、头朝它低下，腿保持基础层动作。</li>
+ *   <li>举蛊随使用结束而结束，炼成或松手皆然；占基础动作的动画（动作、落地）清掉合成层动作，举蛊让位。</li>
+ *   <li>{@link #getLockOnTarget} 为月刃读 Epic Fight 锁定目标：锁定期间 {@code EpicFightCameraAPI} 的聚焦实体
+ *       （本地玩家 patch 自己的目标即同一实体）；{@link #initialize} 注册四个钩子，客户端初始化时调用一次。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -98,7 +79,7 @@ public final class EpicFightClientIntegration {
                 EpicFightClientIntegration::onInitAnimator, Guzhenren.MOD_ID);
     }
 
-    /** The living entity Epic Fight's camera is locked on, or null while it is not locking on. */
+    /** Epic Fight 镜头锁定的生物；未锁定时为 null。 */
     public static @Nullable LivingEntity getLockOnTarget() {
         EpicFightCameraAPI camera = EpicFightCameraAPI.getInstance();
         if (!camera.isLockingOnTarget()) return null;

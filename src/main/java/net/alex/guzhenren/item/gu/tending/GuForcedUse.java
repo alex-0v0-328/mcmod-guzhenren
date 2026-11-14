@@ -7,13 +7,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The forced use [强行催动]: a use its Gu cannot pay in hunger [饱食] -- the bar after the bag's meal -- is first
- * refused with a warning, and only the same Gu used again within {@link #WINDOW_TICKS} goes through, its effect
- * landing before the Gu dies of exhaustion. {@code TendedGuItem.drive} asks {@link #confirm}.
- *
- * <p>⚠ The window is server-only and transient: one per player, in no save and no data component, and gone with the
- * player object (a death, a logout). "The same Gu" is the same stack object, so two Gu of one kind never confirm
- * each other; a stack moved by hand may become a new object, which costs a fresh warning, never an unwanted death.
+ * 强行催动[Forced Use]确认窗口；{@code TendedGuItem.drive} 调 {@link #confirm}。
+ * <ul>
+ *   <li>进食后付不起饱食[Hunger]的催动先拒并警告；{@link #WINDOW_TICKS} 内再催同一只才放行，效果落地后蛊力竭而死。</li>
+ *   <li>⚠ 窗口仅服务端、临时：每玩家一个，不进存档或组件，随玩家对象消失（死亡、登出）。</li>
+ *   <li>「同一只」指同一物品堆对象，同种两只不互认；手动挪动可能变新对象，代价是重新警告，绝不误杀。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -31,7 +30,7 @@ public final class GuForcedUse {
 
     private GuForcedUse() {}
 
-    /** True, closing the window, when this stack was warned within the window; otherwise warns it afresh. */
+    /** 窗口内已警告过该物品则返回 true 并关窗；否则重新警告。 */
     public static boolean confirm(ServerPlayer player, ItemStack stack) {
         int now = player.server.getTickCount();
         Pending pending = PENDING.remove(player);

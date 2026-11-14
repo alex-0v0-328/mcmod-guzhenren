@@ -10,14 +10,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Client intent: begin or abandon nourishing the aperture [温养空窍]. A payload carrying a named
- * action ({@link NourishAction}) and the target aperture index -- no player data. The server
- * handler in {@link net.alex.guzhenren.network.ModPayloads} forwards to
- * {@link net.alex.guzhenren.network.ClientIntents}, which delegates to {@link ApertureNourishService}; client intent
- * is the one direction attachment sync cannot carry.
- *
- * <p>⚠ Two intents ride one payload as a named action rather than a bare boolean, because a boolean at
- * the call site reads as nothing at all.
+ * 开始或放弃温养[Nourish]空窍[Aperture]的客户端意图：具名动作（{@link NourishAction}）加空窍序号，不带玩家数据。
+ * <ul>
+ *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，经 {@link net.alex.guzhenren.network.ClientIntents}
+ *       转交 {@link ApertureNourishService}；附件同步唯独不承载客户端意图。</li>
+ *   <li>⚠ 两种意图共用一个 payload，用具名动作而非裸布尔：调用处布尔看不出含义。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -11,26 +11,18 @@ import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The landing and ground rest goal shared by the resting flying Gu entities.
- *
- * <p>A requested landing finds the first ground below the entity, at most 64 blocks down, and takes it only
- * when vanilla pathfinding classifies it as walkable, so water, lava and damaging blocks never become a resting
- * place for a one-health Gu. {@link #tryRetargetGround} scans down from the Gu itself rather than reading the
- * column heightmap: that top can be a canopy, an overhang or a roof above the Gu, which it could never settle
- * on from below, and the scan stops as soon as it finds ground that is not {@link #isOpen} -- the
- * {@code MOTION_BLOCKING} heightmap's own test, inverted: nothing to stand on and no fluid -- so only ground a
- * walking mob would stand on is ever offered as a landing spot. Navigation brings the entity within 1.5 blocks
- * of the spot and a direct drive finishes the descent: {@link #tickLanding} settles for the spot rather than
- * on it, aiming just below the surface so the drive ends in a collision, which is what sets {@code onGround}
- * for a Gu that never falls; only touchdown starts the 160 to 200 tick rest with cleared motion and occasional
- * heading changes. Nothing pulls a resting Gu down, so the rest ends with a takeoff as soon as the block under it
- * stops holding it (broken, or turned to fluid). A landing whose navigation has ended short of the spot scans
- * again at most every {@link #RETARGET_INTERVAL_TICKS} ticks. {@link #canUse} lets the goal pick a rest back up
- * directly for a Gu loaded mid-rest, which carries no landing request, so it resumes a fresh rest without
- * replaying its landing. Unsafe ground, a stalled landing or a failed navigation target aborts through
- * {@link RestingFlyingGuEntity#takeOff()} --
- * {@link #stop} also takes off whenever a threat interrupts rest, even when its escape path cannot start --
- * so the goal cannot wedge the entity in a non-flying phase.
+ * 歇息型飞行蛊共用的降落与地面歇息 AI 目标。
+ * <ul>
+ *   <li>落点：正下方首块地面，至多 64 格，原版寻路判可行走才取，水、岩浆、伤害方块不给 1 点生命的蛊歇脚。</li>
+ *   <li>{@link #tryRetargetGround} 从蛊自身下扫，不读高度图（列顶可能是头顶的树冠、悬垂、屋顶，从下够不着）；遇非
+ *       {@link #isOpen}（{@code MOTION_BLOCKING} 判断取反：无可站立物且无流体）地面即停，只取步行生物能站处。</li>
+ *   <li>寻路至 1.5 格内后直接驱动：{@link #tickLanding} 瞄准表面略下方，以碰撞收尾，不下落的蛊靠此置 {@code onGround}；
+ *       着地才歇 160～200 tick（清空运动、偶尔转向）。</li>
+ *   <li>无物下拉，脚下失去承托（破坏或变流体）即起飞；停在落点前的降落至多每 {@link #RETARGET_INTERVAL_TICKS} tick 重
+ *       扫；{@link #canUse} 让歇息中加载的蛊（无降落请求）直接重歇一轮、不重播降落。</li>
+ *   <li>地面不安全、降落停滞、寻路失败经 {@link RestingFlyingGuEntity#takeOff()} 中止；威胁打断时 {@link #stop} 也起飞
+ *       （逃跑路径未启动亦然），绝不卡在非飞行阶段。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

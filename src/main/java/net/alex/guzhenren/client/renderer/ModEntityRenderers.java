@@ -19,18 +19,16 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * Every entity renderer this mod registers: each family's shared GeckoLib model with one fixed texture per
- * entity type, the soul traders' translucent {@code human_soul}, the Hope Gu [希望蛊] as a
- * {@link NoopRenderer} (pure particles, no model), the Moon Blade [月刃] as a {@link MoonBladeRenderer} sprite, and the
- * Qi Wave [气波] as another {@link NoopRenderer}, and the Beast Phantom [兽力虚影] as a {@link BeastPhantomRenderer}.
+ * 本模组注册的全部实体渲染器。
  *
- * <p>The boar Gu's ladybug geometry is life-sized (about 0.19 by 0.28 blocks); {@link #BOAR_GU_SCALE} draws it
- * at the width of the 0.4-block hitbox without touching the exported geometry, and it keeps the vanilla death
- * tilt. Every other family turns the tilt off because its death animation lies the body down by itself. The
- * elephant is modeled at half size, one texel a unit on its 128 x 128 sheet, and {@link #ELEPHANT_SCALE} doubles it
- * to about 3.75 blocks tall. The
- * crash Gu textures follow rank: dark silver for both rank-three Gu (one shared file), dark gold for rank four
- * and dark amethyst for rank five.
+ * <ul>
+ *   <li>每族共用一个 GeckoLib 模型，每实体类型一张固定贴图；希望蛊[Hope Gu]与气波用 {@link NoopRenderer}（纯粒子）；月
+ *       刃用 {@link MoonBladeRenderer} sprite；兽力虚影用 {@link BeastPhantomRenderer}。</li>
+ *   <li>豕蛊[Boar Gu]的瓢虫几何按真实大小建模（约 0.19 × 0.28 格），{@link #BOAR_GU_SCALE} 画到 0.4 格碰撞箱宽，不改导
+ *       出几何，保留原版死亡倾倒；其余族关闭，其死亡动画自会放倒身体。</li>
+ *   <li>象按半尺寸建模，128 × 128 贴图每单位一纹素，{@link #ELEPHANT_SCALE} 放大一倍，约 3.75 格高。</li>
+ *   <li>冲撞蛊[Crash Gu]贴图按转数：两只三转暗银（共用一文件），四转暗金，五转暗紫晶。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -6,12 +6,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
 /**
- * The block tags this mod declares.
- *
- * <p>Tag-key holder (not a DeferredRegister). {@link #AS_BEFORE_TERRAIN} and {@link #AS_BEFORE_STRIPPED} decide what
- * the Mountain and River As Before Gu [山如故 / 江如故] put back: a decoration's change survives only where it swaps
- * one terrain block for another (a cliff's rock bands, a canyon's sandstone), and a stripped block (an ore, a raw
- * ore block) comes back as the stone around it. A modpack widens either tag through a datapack.
+ * 本模组方块标签；标签键容器，非 DeferredRegister。
+ * {@link #AS_BEFORE_TERRAIN}、{@link #AS_BEFORE_STRIPPED} 定山如故[Mountain As Before Gu]、
+ * 江如故[River As Before Gu]复原什么：装饰改动仅在地形块互换时保留（崖壁岩层、峡谷砂岩），剥离方块（矿石、粗矿块）
+ * 还原为周围石头；整合包可用数据包扩充。
  *
  * @author Alex
  * @version 1.0.0

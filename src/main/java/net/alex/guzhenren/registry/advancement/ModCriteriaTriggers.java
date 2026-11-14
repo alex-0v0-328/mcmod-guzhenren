@@ -10,12 +10,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Every custom criterion trigger [进度触发器], registered into the vanilla {@code TRIGGER_TYPES}
- * registry. The registration id mirrors the trigger name ({@code used_hope_gu}); advancement JSON
- * dispatches conditions by it.
+ * 自定义进度触发器，注册进原版 {@code TRIGGER_TYPES}。
  *
- * <p>☠ A trigger registers through {@link #TRIGGERS} only: vanilla's public
- * {@code CriteriaTriggers.register(String, ...)} parses a bare name into the {@code minecraft:} namespace.
+ * <ul>
+ *   <li>☠ 只经 {@link #TRIGGERS} 注册：{@code CriteriaTriggers.register(String, ...)} 把裸名归入 {@code minecraft:}；
+ *       注册 ID 即触发器名（{@code used_hope_gu}），进度 JSON 按它分派条件。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -9,14 +9,12 @@ import net.minecraft.client.gui.Font;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Keeps the B panel's drawn rows from one frame to the next, so a frame whose model did not change builds no text.
- *
- * <p>The screen still asks {@link InfoModel} for the model every frame and hands it in; the rows are rebuilt by
- * {@link InfoRowRenderer} only when the model is not equal to the one they were built from. Equality, not the
- * identity of the attachments behind it, because some rows read what no attachment holds (an effect's attack
- * bonus, the game time behind an effect's time left), and those must change the frame they change. The two slots, the
- * ordinary rows and the aperture columns, are independent. Each slot is kept as {@link RowBlock}s measured at the
- * rebuild, so the label and value columns cost no text measuring on an unchanged frame.
+ * B 面板已绘制行的跨帧缓存，模型不变的帧不建文字。
+ * <ul>
+ *   <li>界面仍每帧向 {@link InfoModel} 取模型；与上次构建所用模型不相等时才由 {@link InfoRowRenderer} 重建。</li>
+ *   <li>比较相等而非附件同一性：有些值不在任何附件里（效果攻击加成、效果剩余时间背后的游戏时间），变化当帧须刷新。</li>
+ *   <li>普通行、空窍[Aperture]列两槽独立，各存重建时量好的 {@link RowBlock}，不变的帧不再量标签列和值列字宽。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

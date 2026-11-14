@@ -16,7 +16,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import org.jetbrains.annotations.NotNull;
 
-/** Writes the two elephants' drops: two to four leather with looting, and no meat. */
+/** 两种象的掉落：2 至 4 张皮革（抢夺加成），不掉肉。 */
 
 public final class ElephantLootProvider extends EntityLootSubProvider {
 

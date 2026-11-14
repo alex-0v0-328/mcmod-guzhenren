@@ -17,14 +17,13 @@ import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Draws the skin flash [皮肤闪现] over a player: a translucent, single-color copy of the player model,
- * inflated a little past the skin so it never fights the skin's own pixels, fading with the flash's alpha.
+ * 叠在玩家身上的皮肤闪现层。
  *
- * <p>One layer per player model (wide and slim), added to both player renderers at
- * {@code EntityRenderersEvent.AddLayers}. The copy takes the parent's pose every frame, the way vanilla's
- * energy swirl does, and the parent's outer-layer visibility (hat, jacket, sleeves, pants), so a player who hid
- * a layer gets no inflated ghost of it; the texture is a flat white square, so the tint IS the color. A flash is
- * the only thing drawn: the worn skin itself changes nothing on the model.
+ * <ul>
+ *   <li>半透明单色模型副本，略膨胀免与皮肤争像素，随闪现 alpha 淡出；白贴图，染色即颜色；只画闪现，穿皮不改模型。</li>
+ *   <li>宽、窄玩家模型各一层，经 {@code EntityRenderersEvent.AddLayers} 加到两个玩家渲染器；每帧取父模型姿态（同原版能
+ *       量漩涡）与外层可见性（帽子、外套、袖子、裤子），隐藏某层的玩家不多出该层膨胀幻影。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

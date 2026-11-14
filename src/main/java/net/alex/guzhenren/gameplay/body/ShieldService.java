@@ -18,30 +18,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The shields [护盾] over the body: layered, one per {@link ShieldType}, spent like a separate health bar before the
- * hit reaches anything past the skin.
+ * 肉身分层护盾：每种 {@link ShieldType} 一层，过皮后先扣的独立血条。
  *
- * <p>{@link #raise} lays a kind's layer on top, full, its timer restarted; a layer of that kind still up is
- * replaced, never stacked. Its points first pass through {@link ShieldRaisingEvent}, where a trait from above the
- * body changes them (the stone turtle's [石龟负力] half again), so every shield Gu, present or future, takes it.
- * {@link #guard} meets every hit the skin passed at the slot where vanilla checks a shield block, before the freeze
- * and helmet factors, the invulnerability frames, armor, Resistance, Protection and
- * Absorption, so the layers spend raw damage, newest first. Inside the frames it spends only on what exceeds the
- * largest hit those frames already met ({@link ShieldWindow}), so lava drains it once per frame window, not every
- * tick. A hit the layers take whole is canceled and replayed as a block: no red flash or hurt sound, the frames
- * started, the shield-block sound when the hit has a source position (an attacker, a projectile, an explosion; lava,
- * fire, poison and drowning are taken silently), a melee attacker knocked {@link #ATTACKER_KNOCKBACK} back, and the
- * body knocked {@link #DEFENDER_KNOCKBACK} back unless the newest layer that took the hit is super armor [霸体]. A
- * hit that breaks the last layer passes the rest on as an ordinary hit. {@link #tickShield} drops the layers whose
- * time ran out and keeps each kind's marker effect in step. Raising posts {@link ShieldRaisedEvent} and the end of
- * each layer {@link ShieldDownEvent}.
- *
- * <p>The truth is {@code ShieldData}, never the effects: a {@code MobEffect} has no expiry hook and
- * {@code /effect clear} removes it silently, so the heartbeat re-applies them as {@link SkinService} does a jade
- * skin. ⚠ Damage that bypasses invulnerability or effects ({@code /kill}, the void, starvation) passes untouched,
- * and so does a hit a held vanilla shield blocks. ⚠ Inside the frames vanilla subtracts its own {@code lastHurt}
- * from what passes, and a canceled hit leaves that value behind, so the rest is handed on as {@code lastHurt}
- * plus the rest.
+ * <ul>
+ *   <li>{@link #raise} 满额置顶、重置计时，同种仍在的层被替换不叠加；点数先经 {@link ShieldRaisingEvent} 供上层特性改写
+ *       （如石龟兽力[Beast Strength] ×1.5），所有护盾蛊通用。</li>
+ *   <li>{@link #tickShield} 清超时层、同步标记效果；升起发 {@link ShieldRaisedEvent}，每层结束发
+ *       {@link ShieldDownEvent}。</li>
+ *   <li>{@link #guard} 在原版盾牌格挡处接皮放过的伤害，早于冰冻与头盔系数、无敌帧、护甲、抗性提升、保护、伤害吸收，
+ *       故各层按新到旧扣原始伤害；击穿最后一层，余量作普通伤害放过。</li>
+ *   <li>无敌帧内只扣超出该帧段已遇最大伤害的部分（{@link ShieldWindow}），岩浆每帧窗口只扣一次而非每 tick。</li>
+ *   <li>全额吃下即取消并按格挡重演：无红闪与受伤音效，无敌帧照开；有来源位置（攻击者、投射物、爆炸）才放格挡音效，
+ *       岩浆、火、中毒、溺水静默；近战攻击者击退 {@link #ATTACKER_KNOCKBACK}，肉身击退 {@link #DEFENDER_KNOCKBACK}，
+ *       最新吃伤层为霸体则不退。</li>
+ *   <li>真相在 {@code ShieldData}：{@code MobEffect} 无到期钩子，{@code /effect clear} 静默移除，故心跳重施，同
+ *       {@link SkinService} 之于玉皮。</li>
+ *   <li>⚠ 绕过无敌或效果的伤害（{@code /kill}、虚空、饥饿）与原版手持盾牌挡下的伤害原样通过。</li>
+ *   <li>⚠ 帧内原版会再减自身 {@code lastHurt}，被取消的伤害遗留该值，故余量以 {@code lastHurt} 加余量交出。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -81,10 +75,7 @@ public final class ShieldService {
         ModEvents.post(new ShieldRaisedEvent(player, type));
     }
 
-    /**
-     * Spends the layers on a hit about to land and rewrites what passes; true when the caller must cancel the hit,
-     * the layers or the frames having taken all of it.
-     */
+    /** 各层承接将落地的伤害并改写放过部分；true 表示调用方须取消（各层或无敌帧已全吃下）。 */
     public static boolean guard(@NotNull ServerPlayer player, @NotNull DamageContainer container) {
         DamageSource source = container.getSource();
         float hit = container.getNewDamage();

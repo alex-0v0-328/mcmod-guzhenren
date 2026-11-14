@@ -20,31 +20,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The awakening ritual [开窍仪式]: the only writer of {@link AwakeningRitual}, and the one road from a Hope Gu
- * [希望蛊] click to an opened first aperture.
- *
- * <p>{@link #start} stores the ritual with the aptitude [资质] and a Ten-Extremes physique already rolled and the
- * hover point {@link #ANCHOR_DISTANCE} blocks before the eyes. {@link #tick} awakens at
- * {@link AwakeningTimeline#AWAKEN_TICKS}, reveals at {@link AwakeningTimeline#RELEASE_TICKS} (the whole-server
- * announcement and the player's own reveal sound) and ends the ritual at {@link AwakeningTimeline#END_TICKS}, so
- * every client draws the plaques off the synced ritual alone. {@link #holdsStill} is the stance both sides read: the
- * server refuses dashing and nourishing exactly as long as the client locks the input. {@link #finish} ends a ritual
- * at once, awakening and announcing whatever has not happened yet; every way out of a ritual calls it: the clock, a
- * death, a dimension change, a logout, and a login that finds one a crash left behind. The roll was fixed at the
- * click, so cutting the ritual short only cuts the animation: it opens the same aperture, and a relog can never
- * re-roll it. Awakening posts {@link ApertureAwakenedEvent}, which fires the Hope Gu criterion, since the ritual is
- * what that advancement asks for.
- *
- * <p>{@link #isInDanger} is the gate before the click: a hit from another living entity within the last five seconds
- * (vanilla keeps the attacker that long, a player's own projectile aside), or the danger a bed refuses sleep for: a
- * monster that would stop the player resting within {@link #DANGER_REACH} blocks across and {@link #DANGER_HEIGHT}
- * up or down of the feet, the same box and test as {@code ServerPlayer.startSleepInBed}. Creative skips the gate, as
- * it skips the bed's.
- *
- * <p>⚠ {@code ApertureService.awaken} does not refuse an awakened player, so the ritual does: a command that
- * awakens a player mid-ritual leaves that aperture alone, and the Gu is spent. The announcement names the aptitude
- * the player holds then, while the plaques still draw the ritual's roll. A reset clears the ritual without awakening
- * ({@code PlayerDataService.resetAll}).
+ * 开窍[Awakening]仪式：希望蛊[Hope Gu]单击到开出第一空窍[Aperture]的唯一路径；独写 {@link AwakeningRitual}。
+ * <ul>
+ *   <li>{@link #start} 存仪式时已掷定资质[Aptitude]、十绝体，悬停点在眼前 {@link #ANCHOR_DISTANCE} 格；打断只截动画、
+ *       开同一空窍，重登不能重掷。</li>
+ *   <li>{@link #tick} 按 {@link AwakeningTimeline} 开窍、揭晓（全服播报、本人揭晓音）、结束；
+ *       客户端凭同步仪式画牌匾。</li>
+ *   <li>{@link #holdsStill} 为两端共读定身：客户端锁输入期间，服务端拒冲刺与温养[Nourish]。</li>
+ *   <li>{@link #finish} 立即结束，补未发生的开窍和播报；到点、死亡、换维度、登出、登录遇崩溃遗留皆走此。</li>
+ *   <li>开窍发 {@link ApertureAwakenedEvent}：希望蛊进度只认仪式。</li>
+ *   <li>{@link #isInDanger} 是单击前门槛：5 秒内被他者攻击（原版留攻击者这么久，自己弹射物除外），或水平
+ *       {@link #DANGER_REACH} 格、上下 {@link #DANGER_HEIGHT} 格内有阻止休息的怪物；范围、判定、创造模式跳过皆同
+ *       {@code ServerPlayer.startSleepInBed}。</li>
+ *   <li>⚠ {@code ApertureService.awaken} 不拒已开窍者，由仪式拒：仪式中被命令开窍则留命令的空窍，蛊照耗；播报当时资质，
+ *       牌匾仍画掷出值；重置（{@code PlayerDataService.resetAll}）清仪式不开窍。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -123,7 +113,7 @@ public final class AwakeningRitualService {
         if (!ritual.revealed()) announce(player);
     }
 
-    /** The announcement's aptitude: the grade, or the physique for Ten Extremes. */
+    /** 播报用资质[Aptitude]：等级，十绝报十绝体。 */
     public static @NotNull Component getAptitudeName(@NotNull Player player) {
         Talent talent = ApertureService.getTalent(player);
         return talent == Talent.TEN_EXTREMES

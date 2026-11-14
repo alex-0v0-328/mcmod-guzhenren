@@ -23,23 +23,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 
 /**
- * {@code /gzr body}: writes body [肉身] state -- physiques, race, tendons, bones, skin, lifespan and age;
- * the B panel reads it.
+ * {@code /gzr body}：写肉身状态（体质、种族、筋、骨、皮、寿元、年龄），B 面板读取。
  *
- * <p>Assembles the body subtree under {@code /gzr body}: physiques, race, the three tempered parts, lifespan and
- * age. The path domain writes live under {@code /gzr path}. All of {@code /gzr body} is ungated -- a
- * mortal ages and changes form too. The Ten Extremes physique is not written here: {@code /gzr aperture talent}
- * owns it, because it decides the first aperture's base essence.
- *
- * <p>Each part is set by family [族] and rank [转]: {@code skin set bronze_skin|iron_skin [rank]},
- * {@code tendon set steel_tendon [rank]} and {@code bone set iron_bone [rank]} take the family's lowest rank
- * when none is named; {@code skin set jade_skin|white_jade_skin [seconds]} are the only timed ones and take
- * their Gu's registered duration when none is named ({@link #getRegisteredDurationTicks}); {@code native} sets
- * a part back. A rank picks its grade by its offset from the lowest in {@link #getTempered}'s rank order, since a
- * family's ranks run without a gap ({@code BodyGrade}). The rank or seconds node is attached before
- * {@code [targets]}, so a bare number reads as the figure, never as a player name. A skin is worn the way its Gu
- * would and projected at once; every write skips the Gu's replacement gate, so an operator may lower a grade. The
- * flesh [肉] has only its native grade and no node.
+ * <ul>
+ *   <li>不设门槛，凡人也会变老、变换形态；道[Path]写入在 {@code /gzr path}；十绝体归 {@code /gzr aperture talent}：
+ *       它决定第一空窍[Aperture]的基础真元[Essence]。</li>
+ *   <li>{@code skin set bronze_skin|iron_skin [rank]}、{@code tendon set steel_tendon [rank]}、
+ *       {@code bone set iron_bone [rank]} 缺转取该族最低转；{@code native} 恢复原生；肉只有原生，无节点。</li>
+ *   <li>只有 {@code skin set jade_skin|white_jade_skin [seconds]} 限时，缺秒数取对应蛊注册时长
+ *       （{@link #getRegisteredDurationTicks}）；转、秒节点在 {@code [targets]} 前，裸数字只读作数值，不当玩家名。</li>
+ *   <li>品级按转与 {@link #getTempered} 转序最低转之差选取，同族各转连续无缺口（{@code BodyGrade}）。</li>
+ *   <li>皮按其蛊的方式穿上并立即投影；写入均跳过蛊的替换门槛，管理员可降品级。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

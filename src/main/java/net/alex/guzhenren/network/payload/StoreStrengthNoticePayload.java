@@ -9,9 +9,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Server notice to the charging client: its Store Strength Gu [蓄力蛊] charge [蓄力] is now full, or the server
- * dropped it ({@link Change}). Sent by {@code net.alex.guzhenren.network.StoreStrengthNotices}; the client ignores
- * it when it is not charging.
+ * 发给蓄力中客户端的服务端通知：蓄力蛊[Store Strength Gu]蓄力已满，或被服务端取消（{@link Change}）。
+ * 由 {@code net.alex.guzhenren.network.StoreStrengthNotices} 发送；客户端未在蓄力时忽略。
  *
  * @author Alex
  * @version 1.0.0

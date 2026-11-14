@@ -22,23 +22,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Nine Leaf Vitality Grass [九叶生机草]: a wood path grass that grows Vitality Leaf Gu [生机叶蛊], nine at most.
- *
- * <p>Extends {@link net.alex.guzhenren.item.gu.tending.TendedGuItem} but declares no clock -- never eats, never starves,
- * and has no way to mend its health. Once refined, a tapped right click picks one leaf into the bag for free; a
- * held one pays {@code essencePerLeaf} essence [真元] over a {@link #GROW_CHARGE_TICKS} charge to grow one, through
- * the stone supply like any Gu use ({@code PrimevalStoneSupply.pay}), so carried stones cover a short pool. Leaves
- * also regrow by themselves, one per {@code regrowTicks}; {@link LeafGrowth} settles the count lazily from its stamp.
- *
- * <p>⚠ A stack without the component holds nine: the grass picked from its flower, a wild one and a creative copy
- * are all full. {@link #checkEffect} is the pick's gate, the tap's and its payout's; {@link #checkOwnUse} is
- * the grow's.
- *
- * <p>⚠ The regrowth runs on the grass's own clock and is never scaled by Time Path [宙道] self-time; only the
- * holder's grow charge is shortened, like every other charge.
- *
- * <p>{@link #PICKED} is the item model property: {@code 0} full (seven leaves and up), {@link
- * LeafGrowth#PICKED_HALF} half, {@link LeafGrowth#PICKED_BARE} empty.
+ * 九叶生机草[Nine Leaf Vitality Grass]：长生机叶蛊[Vitality Leaf Gu]的木道草，至多九片。
+ * <ul>
+ *   <li>无时钟：不进食、不饿死、不修复生命；炼化后点按免费摘一片入包，{@link #checkEffect} 管摘叶、点按与效果，
+ *       {@link #checkOwnUse} 管长叶。</li>
+ *   <li>长按蓄力 {@link #GROW_CHARGE_TICKS}、付 {@code essencePerLeaf} 真元[Essence]长一片；同其他催动经
+ *       {@code PrimevalStoneSupply.pay}，不足由所带元石[Primeval Stone]补。</li>
+ *   <li>⚠ 无组件的物品算九片：花上摘的、野生的、创造复制的都满。</li>
+ *   <li>⚠ 自行再生（{@link LeafGrowth}）按草自身时钟，不受宙道时间缩放；后者只缩短长叶蓄力。</li>
+ *   <li>{@link #PICKED} 模型属性：满 0，半 {@link LeafGrowth#PICKED_HALF}，空 {@link LeafGrowth#PICKED_BARE}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

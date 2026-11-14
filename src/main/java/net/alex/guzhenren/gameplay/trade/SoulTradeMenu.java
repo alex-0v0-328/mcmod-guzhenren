@@ -16,19 +16,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The soul trader's offer list: one clickable row per {@link SoulTradeOffer} above the player's own inventory.
- *
- * <p>There are no trade slots. The client learns the offers from the menu-open payload
- * ({@link #writeOffers}); a click arrives as a vanilla menu-button press whose id is the offer index, and
- * {@link #clickMenuButton} settles it against the player's bag on the server. The inventory slots are here so
- * that {@code broadcastChanges} syncs what a trade took and gave while the screen stays open.
- *
- * <p>⚠ The row button stays live when the bag cannot pay: the refusal has to reach the server so the soul can
- * shake its head, and the server is the only judge anyway. Before settling, everything that will later fall
- * back into the bag -- the cursor stack of this menu and the player's 2x2 crafting grid -- joins the room check
- * ({@link SoulTradeOffer}); a refusal for room tells the player the bag is full.
- *
- * <p>The menu closes once the trader dies or the player is more than {@code TRADE_RANGE} away.
+ * 交易魂的报价列表：背包上方每个 {@link SoulTradeOffer} 一行可点。
+ * <ul>
+ *   <li>无交易槽：报价随开菜单 payload（{@link #writeOffers}）下发；点击即原版菜单按钮，id 为报价下标，
+ *       {@link #clickMenuButton} 在服务端按背包结算；背包槽供 {@code broadcastChanges} 在界面开着时同步增减。</li>
+ *   <li>⚠ 付不起时行按钮仍可点：拒绝须到服务端，魂才会摇头；服务端本是唯一裁判。</li>
+ *   <li>⚠ 结算前，之后落回背包的光标物品与 2x2 合成格计入空间检查（{@link SoulTradeOffer}），因空间被拒提示背包已满；交
+ *       易魂死亡或玩家远于 {@code TRADE_RANGE} 即关闭。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

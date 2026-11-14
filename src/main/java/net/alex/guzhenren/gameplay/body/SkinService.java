@@ -11,16 +11,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The skin [皮肤] heartbeat and its damage rule. {@link #tickSkin} sheds a jade skin whose time has run out and
- * projects the one still worn as its Gu's effect ({@link #getEffectOf}), so the icon and timer read on the HUD;
- * a permanent bronze or iron skin has no timer and projects nothing, it reads on the body panel.
- * {@link #reduceDamage} takes any skin's flat reduction off a hit the skin can turn; a jade skin whose time ran
- * out turns nothing in the second before the heartbeat sheds it.
+ * 皮的心跳步骤与伤害规则。
  *
- * <p>The truth is {@code BodyData.skin} with its end tick, never the effect: a {@code MobEffect} has no expiry
- * hook, and {@code /effect clear} removes it silently, so the heartbeat re-applies it the way
- * {@link UndeadService} projects the temp zombie form. ⚠ A skin gives way to nothing: damage that bypasses
- * invulnerability or effects ({@code /kill}, the void, starvation) passes untouched, like vanilla Resistance.
+ * <ul>
+ *   <li>{@link #tickSkin} 蜕下超时玉皮，把穿着的玉皮投影为其蛊效果（{@link #getEffectOf}）供 HUD 显示图标与计时；
+ *       永久皮不投影，显示在肉身面板。</li>
+ *   <li>{@link #reduceDamage} 从可抵挡的伤害中扣固定减免；超时玉皮在心跳蜕下前那一秒不抵挡。</li>
+ *   <li>真相是 {@code BodyData.skin} 及结束 tick：{@code MobEffect} 无到期钩子，{@code /effect clear} 静默移除，
+ *       故心跳重施，同 {@link UndeadService} 投影临时僵尸。</li>
+ *   <li>⚠ 绕过无敌或效果的伤害（{@code /kill}、虚空、饥饿）原样穿过，同原版抗性提升。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

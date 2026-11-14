@@ -1,11 +1,9 @@
 package net.alex.guzhenren.gameplay.body;
 
 /**
- * The invulnerability frames a shield [护盾] last met: the largest hit it saw inside them and the tick they close.
- * Scratch attachment keyed {@code shield_window}, neither saved nor synced; {@code ShieldService} is the only writer.
- *
- * <p>Vanilla's own {@code lastHurt} cannot stand in: a hit the shield takes whole is canceled and leaves it behind,
- * and a hit that breaks the shield leaves only what passed. Frames this record did not see read {@code lastHurt}.
+ * 护盾最近遇到的无敌帧：最大伤害与关闭 tick；临时附件 {@code shield_window}，不存不同步，仅 {@code ShieldService} 写。
+ * 原版 {@code lastHurt} 不能替代：全额吃下的伤害被取消会遗留它，击穿护盾的只留放过部分；本记录未见的帧读
+ * {@code lastHurt}。
  *
  * @author Alex
  * @version 1.0.0

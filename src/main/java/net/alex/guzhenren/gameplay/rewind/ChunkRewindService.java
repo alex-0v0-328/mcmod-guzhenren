@@ -17,29 +17,19 @@ import net.minecraft.world.level.chunk.PalettedContainer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Puts the land back to its bare landform, for the Mountain and River As Before Gu [山如故 / 江如故]:
- * {@link #rewindAround} has {@link ChunkOriginGenerator} generate the {@link #RESTORE_RADIUS} square (5×5) again
- * from the seed -- terrain only, no trees, plants, lakes, snow, ice, ores or structures -- then restores each chunk
- * asked for from its scratch twin ({@link #restore}).
- *
- * <p>A restore walks every position of the chunk against the origin (≈98,000 compares, a few milliseconds) and
- * sets only what differs, with {@link #RESTORE_FLAGS}: clients updated, no neighbor updates, no drops -- the land
- * is put back, nothing cascades from it. Whatever stands in the chunk and is not bare land goes: trees, buildings,
- * placed blocks. A container that goes spills its items the vanilla way. Entities, dropped items and biomes are not
- * touched. The chunks go through {@link #enqueue} and {@link #tickQueue}, one per server tick, once generation
- * finishes in the background (one to three seconds); {@link #getGenerating} counts the generations still running,
- * whose chunks are not queued yet.
- *
- * <p>⚠ No neighbor updates also means a tree cut at the square's edge keeps its outer half, leaves included, and
- * water beside a refilled hole stays still until something updates it. ⚠ The restore queue is static and
- * transient: {@link #clear} on a server stop drops what is left (at most 25 chunks) and forgets the running
- * generations, so a generation that finishes after its server stopped is dropped, and a queued entry from an
- * earlier server is still dropped on the first tick of the next. A generation that throws (a broken worldgen
- * mod) is logged and restores nothing.
- *
- * <p>The two mutable statics, {@code generating} and {@code epoch}, are server-wide on purpose: they count the origin
- * generations in flight on the one running server, and {@link #clear} zeroes them and bumps the epoch when it stops,
- * so a late completion is dropped.
+ * 把地面放回裸地形，供山如故[Mountain As Before Gu]、江如故[River As Before Gu]使用。
+ * <ul>
+ *   <li>{@link #rewindAround} 让 {@link ChunkOriginGenerator} 从种子重生成 {@link #RESTORE_RADIUS} 方阵（5×5，只有地
+ *       形），生成完（1–3 秒）后经 {@link #enqueue}、{@link #tickQueue} 每服务端 tick 以临时孪生区块还原一个请求区块
+ *       （{@link #restore}）；{@link #getGenerating} 计尚未入队的生成。</li>
+ *   <li>逐位置对比原貌（约 98,000 次，几毫秒），只改不同处，{@link #RESTORE_FLAGS} 更新客户端、不更新邻居、不掉落，不引
+ *       发连锁；非裸地形的树、建筑、放置方块都消失，容器按原版洒出物品；实体、掉落物、群系不动。</li>
+ *   <li>⚠ 不更新邻居：方阵边缘被切的树留外半边连叶；填平坑旁的水静止，直到被更新。</li>
+ *   <li>⚠ 队列静态且临时：停服时 {@link #clear} 丢弃剩余（最多 25 区块）、忘掉运行中生成，停服后才完成的生成与上个服务
+ *       器遗留的队列项（下个服务器首 tick）都被丢弃；抛异常的生成（损坏的世界生成模组）记日志，不还原。</li>
+ *   <li>可变静态 {@code generating}、{@code epoch} 有意全服共享，计唯一运行服务器上的进行中生成；停服时 {@link #clear}
+ *       归零并递增纪元，丢弃迟到的完成。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

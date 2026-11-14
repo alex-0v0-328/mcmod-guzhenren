@@ -17,26 +17,17 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * A flying Gu [飞行蛊] with a shared flight, landing and rest lifecycle.
- *
- * <p>The server owns the phase and landing request. Both values are synchronized entity data, so a
- * client can select the correct steady animation after spawning, tracking or loading an entity. The
- * server triggers the concrete entity's one-shot transition animation when a phase transition needs
- * one; a newly tracked or loaded client only selects the synchronized steady state.
- *
- * <p>The GeckoLib side is shared too: one {@code main} controller ({@link #createMainController}) that loops
- * {@link #getSteadyAnimation}, the idle, fly, lift and land animations, and the lift and land triggers fired on
- * take-off and landing.
- *
- * <p>{@link #takeOff}: only a resting Gu has closed its wing cases; an aborted landing is still in
- * the flight pose.
- *
- * <p>{@link #getMaxHeadYRot} is zero: the models turn no head bone, so the body takes every head turn whole.
- * With the vanilla 75 degrees, a standing Gu's body trails its head by that much and a rest turn barely shows.
- *
- * <p>{@link #readAdditionalSaveData}: goal state is not serialized. A saved landing re-arms its
- * request so the landing goal picks it up again; a saved rest is resumed by that goal directly,
- * without replaying the landing.
+ * 共用飞行、降落、歇息生命周期的飞行蛊。
+ * <ul>
+ *   <li>阶段与降落请求归服务端，同步为实体数据，客户端生成、追踪、加载后都能选对常驻动画；过渡动画仅服务端切换时触发，
+ *       新追踪或加载的客户端只看常驻状态。</li>
+ *   <li>GeckoLib 共用 {@code main} 控制器（{@link #createMainController}）循环 {@link #getSteadyAnimation}，含待机、飞
+ *       行、起降动画与触发。</li>
+ *   <li>{@link #takeOff} 只对歇息的蛊播起飞：只有它收着鞘翅，中止的降落仍是飞行姿势。</li>
+ *   <li>{@link #getMaxHeadYRot} 为 0：模型无头骨，转头全靠身体；原版 75 度下身体落后头部，歇息转向难以看出。</li>
+ *   <li>{@link #readAdditionalSaveData}：AI 目标状态不存档；存档降落重挂请求交降落目标，存档歇息由其直接接回，不重播降
+ *       落。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

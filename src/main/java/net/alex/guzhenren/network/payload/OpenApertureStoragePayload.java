@@ -9,14 +9,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Client intent: open the store of the named aperture [空窍].
- *
- * <p>A zero-data-except-an-index payload -- client intent is the one direction attachment sync cannot
- * carry, and this carries only which aperture to open. The server handler in
- * {@link net.alex.guzhenren.network.ModPayloads} opens the
- * {@link ApertureStorageMenu}; no player data travels upstream.
- *
- * <p>⚠ No payload may carry player data -- that always travels the other way, as synced state.
+ * 打开指定空窍[Aperture]存储的客户端意图，只带空窍序号。
+ * <ul>
+ *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，打开 {@link ApertureStorageMenu}。</li>
+ *   <li>⚠ 任何 payload 都不得带玩家数据，它只作同步状态反向下发；附件同步唯独不承载客户端意图。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

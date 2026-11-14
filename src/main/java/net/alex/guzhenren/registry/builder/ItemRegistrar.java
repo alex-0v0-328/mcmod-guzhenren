@@ -15,20 +15,17 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One chain per item: the id, the factory, both names, the model kind, the tags and the creative tab, declared
- * together where the item registers, then read back by the datagen providers and the creative tabs.
+ * 每物品一条声明链的登记器。
  *
- * <p>Modeled on Create's Registrate, built in-house: {@link #item} opens an {@link ItemBuilder}, whose
- * {@link ItemBuilder#register} hands the factory to the wrapped {@code DeferredRegister} and records an
- * {@link Entry} in registration order. {@link #typedItem} is the same for a field that keeps its item class.
- * {@link #of} keeps one registrar per {@code DeferredRegister}, so {@code ModItems} declares through
- * {@code ItemRegistrar.of(ITEMS)} and every reader reaches the same entries through the same call, without
- * {@code ModItems} handing them over and without a class-init cycle between the two.
- *
- * <p>⚠ A reader writes the declared entries first and its hand-written ones after, and an item both declared and
- * written by hand is a bug: the language provider throws on the repeated key, the tag provider writes the member
- * twice and fails the {@code runData} drift check. The model provider skips the shape a declared item's class would
- * pick, and a declared tab replaces the one its class would pick; without a tab the class still decides.
+ * <ul>
+ *   <li>ID、工厂、两种名字、模型、标签、创造栏在注册处一并声明，datagen provider 与创造栏读回。</li>
+ *   <li>仿 Create 的 Registrate 自写：{@link #item} 开 {@link ItemBuilder}，其 {@link ItemBuilder#register}
+ *       把工厂交给所包 {@code DeferredRegister}、按序记 {@link Entry}；{@link #typedItem} 供保留物品类的字段。</li>
+ *   <li>{@link #of} 每个 {@code DeferredRegister} 一个登记器：{@code ModItems} 经 {@code ItemRegistrar.of(ITEMS)}
+ *       声明，读者同法取同批条目，无需转交，无类初始化循环。</li>
+ *   <li>⚠ 读者先写声明条目、后写手写条目；既声明又手写即 bug：语言 provider 键重复抛异常，标签 provider 成员写两次致
+ *       {@code runData} 漂移检查失败。模型 provider 跳过类默认形状；声明的创造栏取代类默认。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -13,18 +13,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Self Reliance behavior [自力更生]: an auto heal ({@link AutoUseBehavior}) that starts under 75% of max health
- * and, for a window of {@code durationSeconds} (15/20/25 by rank), mends the holder back up to 75% whenever the body
- * is under it. The state is the timed path effect {@code ModPathEffectTypes.SELF_RELIANCE}, its payload the Gu's
- * grade.
- *
- * <p>Every {@link #PULSE_TICKS} ({@link #pulse}, from {@link AutoUse#tick}) the heal mends
- * {@code pulseHeal × curve × max health}, never past 75%; the last pulse is cut there and the heal stops. The curve
- * ({@link #getCurve}) is 1 at or under {@link #FULL_PULSE_BELOW} of max health and falls linearly to {@link #FLOOR}
- * at 75%. Damage taken meanwhile is healed too; at 75% and above a pulse does nothing and the window runs on.
- *
- * <p>A pulse that a cancelled heal leaves without effect pauses the heal; it neither ends it nor bills again. A
- * dying body is never healed: {@link AutoUse#tick} stops the state first.
+ * 自力更生蛊[Self Reliance Gu]的行为：自动治疗（{@link AutoUseBehavior}）。
+ * <ul>
+ *   <li>低于最大生命 75% 开启；{@code durationSeconds} 窗口（按转 15/20/25 秒）内低于 75% 就补回 75%，期间受伤也补；
+ *       状态为限时流派效果 {@code ModPathEffectTypes.SELF_RELIANCE}，payload 为蛊的档位。</li>
+ *   <li>每 {@link #PULSE_TICKS}（{@link AutoUse#tick} 调 {@link #pulse}）回 {@code pulseHeal × curve × max health}，
+ *       截在 75%；曲线在 {@link #FULL_PULSE_BELOW} 及以下为 1，到 75% 线性降至 {@link #FLOOR}。</li>
+ *   <li>75% 及以上脉冲无效，窗口照走；治疗被取消则暂停，不结束不重计费；濒死不治，{@link AutoUse#tick} 先停状态。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

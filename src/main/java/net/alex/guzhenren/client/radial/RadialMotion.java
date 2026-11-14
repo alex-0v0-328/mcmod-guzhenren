@@ -1,17 +1,16 @@
 package net.alex.guzhenren.client.radial;
 
 /**
- * The radial menu's [扇形选择器] animation, as pure functions of milliseconds so plain JUnit pins the timeline.
+ * 扇形选择器的动画。
  *
- * <p>Opening: the ring grows from {@link #OPEN_FROM} to full size with a slight overshoot ({@link #getOpenScale})
- * while it fades in ({@link #getOpenAlpha}), and each sector appears {@link #STAGGER_MS} after the one before it,
- * clockwise ({@link #getAppear}). Pointing: a sector's hover weight eases toward 1 while pointed at and back to 0
- * after ({@link #approach}); it pushes the sector out, widens its rim and enlarges its icon. The name at the center
- * rises in over {@link #LABEL_MS} ({@link #getLabelIn}). Leaving: a pick flashes the chosen sector white
- * ({@link #getFlash}), swells the ring to {@link #PICK_TO} and fades it after a short hold; a cancel shrinks it to
- * {@link #CANCEL_TO} while it fades ({@link #getExitScale}, {@link #getExitAlpha}, {@link #isExitDone}).
- *
- * <p>{@link #mix} and {@link #fade} work on ARGB colors, channel by channel.
+ * <ul>
+ *   <li>以毫秒为参数的纯函数，纯 JUnit 可钉住时间线；{@link #mix} 与 {@link #fade} 按通道处理 ARGB 颜色。</li>
+ *   <li>打开：环从 {@link #OPEN_FROM} 长到全尺寸并轻微过冲（{@link #getOpenScale}），同时淡入
+ *       （{@link #getOpenAlpha}）；扇区顺时针依次晚 {@link #STAGGER_MS} 出现（{@link #getAppear}）。</li>
+ *   <li>悬停权重指向缓至 1、离开回 0（{@link #approach}）；名称 {@link #LABEL_MS} 内升起（{@link #getLabelIn}）。</li>
+ *   <li>选中离场：被选扇区闪白（{@link #getFlash}），环胀到 {@link #PICK_TO}，短停后淡出；取消离场：环缩到
+ *       {@link #CANCEL_TO} 并淡出（{@link #getExitScale}、{@link #getExitAlpha}、{@link #isExitDone}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

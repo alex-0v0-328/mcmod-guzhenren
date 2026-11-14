@@ -11,12 +11,11 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The thought behavior of the Casual [随意蛊] and Malicious Thought [恶念蛊] Gu: floods the mind for a while. The path
- * effect type, the vanilla effect and the length come from registration; the amplifier is the Gu's tier plus the
- * registered offset, so a higher-rung Gu floods harder.
- *
- * <p>The payout delegates to {@link StateEffects#grantThought}, which lays the path effect [流派效果] of the thoughts
- * and projects the vanilla effect from it. It refuses nothing.
+ * 随意蛊[Casual Gu]、恶念蛊[Malicious Thought Gu]的念头行为：限时灌念头；不拒催动。
+ * <ul>
+ *   <li>流派效果、原版效果、时长取自注册；效果等级 = 级数（一转为 0）+ 注册偏移。</li>
+ *   <li>效果交 {@link StateEffects#grantThought}：先铺流派效果，再投射原版效果。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

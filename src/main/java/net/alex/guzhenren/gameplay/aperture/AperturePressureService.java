@@ -18,21 +18,18 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Aperture pressure [空窍压力]: a ten-extreme body's [十绝体] aperture fills with pressure and, once full,
- * detonates. Only an extreme body's aperture at {@code ApertureData.PRIMARY} carries pressure; every other
- * call is a no-op. Static service over the Aperture attachment.
+ * 空窍[Aperture]压力静态服务：十绝体空窍积满压力后引爆。
  *
- * <p>{@link #tick} adds {@code PRESSURE_PER_MINUTE} once a minute up to {@code PRESSURE_COUNTDOWN_START},
- * then arms a {@code COUNTDOWN_TICKS} deadline; at the deadline the pressure is full ({@link #isFull}) and
- * the heartbeat's lethal check calls {@link #detonate}. {@link #detonate} settles entity damage and the
- * self-kill at tick zero and hands the crater to {@link AperturePressureExplosionTask}: the radius is
- * {@code EXPLOSION_RADIUS_PER_RANK} times the rank's ordinal plus one (32 at rank one, 96 at rank five), plus
- * {@code GREAT_STRENGTH_RADIUS_BONUS} for Great Strength True Martial [大力真武体], 112 at most.
- * The crater is carved only where {@code ModEvents.canGrief} lets the dying player change the terrain
- * ({@code mobGriefing}); with it off, the damage and the self-kill still land.
- *
- * <p>⚠ Pressure writes go straight to {@code PlayerData}, not through {@code ApertureService.store}: they
- * change neither rank nor stage, so health and Epic Fight need no refresh.
+ * <ul>
+ *   <li>只有十绝体 {@code ApertureData.PRIMARY} 位的空窍带压力，其余调用不做事。</li>
+ *   <li>{@link #tick} 每分钟加 {@code PRESSURE_PER_MINUTE}，到 {@code PRESSURE_COUNTDOWN_START} 后设
+ *       {@code COUNTDOWN_TICKS} 截止时刻；到点压力满（{@link #isFull}），心跳致死检查调 {@link #detonate}。</li>
+ *   <li>{@link #detonate} 当 tick 结算实体伤害与自身致死，坑交给 {@link AperturePressureExplosionTask}：半径
+ *       {@code EXPLOSION_RADIUS_PER_RANK} ×（转数序号 + 1），一转 32 格、五转 96 格，大力真武体加
+ *       {@code GREAT_STRENGTH_RADIUS_BONUS}，至多 112 格；挖坑须 {@code ModEvents.canGrief} 允许将死玩家改地
+ *       形（{@code mobGriefing}），否则伤害与自身致死照样生效。</li>
+ *   <li>⚠ 压力直写 {@code PlayerData} 不经 {@code ApertureService.store}：转数阶段不变，血量与 Epic Fight 免刷新。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -129,7 +126,7 @@ public final class AperturePressureService {
         return physique == ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL ? radius + GREAT_STRENGTH_RADIUS_BONUS : radius;
     }
 
-    /** Callers have checked the extreme physique; only the primary aperture carries pressure. */
+    /** 调用方已查过十绝体；只有主空窍[Aperture]带压力。 */
     private static void setState(ServerPlayer player, int value, long deadline) {
         Aperture current = ApertureService.getAperture(player, ApertureData.PRIMARY);
         if (current.pressure() == value && current.pressureDeadlineTick() == deadline) return;

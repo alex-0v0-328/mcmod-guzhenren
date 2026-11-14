@@ -29,14 +29,12 @@ import net.neoforged.neoforge.common.util.NeoForgeExtraCodecs;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The recipe manager's view of a {@link GuRecipe}: the vanilla {@link Recipe} it registers as, its serializer, and
- * the sorted listing every refinement caller reads.
+ * {@link GuRecipe} 的配方管理器视图：原版 {@link Recipe}、序列化器、排序列表。
  *
- * <p>⚠ Nothing outside this class touches the vanilla recipe API; {@link GuRecipe}, {@link GuIngredient} and {@link
- * GuRecipeInput} never name it.
- *
- * <p>⚠ A recipe index means the same thing on both sides only because {@link #getKnown} sorts by recipe id. The
- * recipe manager's own order guarantees nothing at all.
+ * <ul>
+ *   <li>⚠ 只有本类碰原版配方 API；{@link GuRecipe}、{@link GuIngredient}、{@link GuRecipeInput} 都不引用它。</li>
+ *   <li>⚠ 蛊方序号两端一致全靠 {@link #getKnown} 按配方 ID 排序，配方管理器自身顺序毫无保证。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

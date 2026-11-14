@@ -13,12 +13,11 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The bars drawn over the hotbar while shields [护盾] are up: one per layer, its points left over the points it was
- * raised with, captioned with its kind.
- *
- * <p>Extends {@link net.alex.guzhenren.client.hud.HotbarHud}. Registered above the vanilla air-level layer. Reads the
- * synced {@code ShieldData}; each fill is its {@code ShieldType}'s. The newest layer, the one a hit spends first,
- * sits lowest; the bars stack above the charge and nourish bars, one {@link #getStackShift} for each that is up.
+ * 护盾在时快捷栏上方的护盾条，每层一条。
+ * <ul>
+ *   <li>进度为剩余 / 升起点数，标种类，色取 {@code ShieldType}；注册在原版氧气条层上，读同步的 {@code ShieldData}；
+ *       最新层（受击先耗）在最下；整组叠在蓄力、温养条上，每显示一条上移 {@link #getStackShift}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

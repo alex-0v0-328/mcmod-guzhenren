@@ -17,32 +17,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Amplify Effect Gu [功倍蛊]: Rule Path [律道], ranks II to V, never driven on its own. It multiplies another Gu's
- * effect by its own rank number, ×2 to ×5, and pays its own essence and hunger for that one use, two ways:
- * held in the offhand while a main-hand Gu pays out, or held in the main hand while the radial menu [扇形选择器]
- * drives a hotbar Gu ({@link #driveFromHotbar}).
- *
- * <p>Extends {@link TendedGuItem}: refined in the main hand like any tended Gu, and fed from the bag around each
- * billed use and around the day's drain. Once refined, the client turns its right click into the radial menu, so its
- * own use never reaches the server but by a forged packet, and is refused; from the offhand it does not answer the
- * click at all, so a refused main-hand Gu keeps its own reason on the action bar.
- *
- * <p>A Gu answers it through a behavior that declares {@code canBeAmplified} and asks {@link #bill} from its own
- * payout, multiplying its effect's length: {@code TimedBuffBehavior}, {@code AllOutEffortBehavior}, the timed
- * {@code SkinBehavior} (Jade Skin, White Jade), {@code ShieldBehavior} (Heavenly Mugwort, its length and not its
- * points), {@code VitalityLeafBehavior} and {@code WatchBehavior}. {@link #bill}
- * answers the factor, the driving or offhand amplifier's, billed there, or 1.
- * {@link #canAmplify} is the one eligibility test (the amplifier refined, the target amplifiable, refined if tended,
- * of its rank or lower), read by the client's menu and by both server paths.
- *
- * <p>⚠ In the offhand it stays idle and unbilled for a Gu it cannot amplify, while wild, and when the pool and the
- * carried stones cannot pay its essence after the driven Gu paid its own; the driven Gu then lands unamplified. The
- * menu's drive checks the two costs together first ({@code PrimevalStoneSupply.canAfford}) and refuses instead. On an
- * empty bar it is forced like any tended Gu: the amplified effect lands, then it dies of exhaustion and leaves its
- * hand.
- *
- * <p>The one mutable static, {@code driving}, is a call-scoped server-thread context: it is set and cleared in a
- * try/finally around one driven use, so it never outlives the call nor holds more than one player.
+ * 功倍蛊[Amplify Effect Gu]：律道，二至五转，不单独催动。
+ * <ul>
+ *   <li>另一只蛊的效果乘自身转数（×2 至 ×5），该次真元[Essence]与饱食[Hunger]自付；副手时随主手蛊结算，主手时随扇形
+ *       选择器催动快捷栏蛊（{@link #driveFromHotbar}）。</li>
+ *   <li>{@link #canAmplify} 是菜单与两条服务端路径共读的唯一资格判定；{@link #bill} 返回催动中或副手功倍蛊的倍率并就地
+ *       计费，否则 1。</li>
+ *   <li>声明 {@code canBeAmplified} 且结算时调 {@link #bill} 的行为按倍率乘时长：{@code TimedBuffBehavior}、
+ *       {@code AllOutEffortBehavior}、限时 {@code SkinBehavior}（玉皮蛊[Jade Skin Gu]、白玉蛊[White Jade Gu]）、
+ *       {@code ShieldBehavior}（天蓬蛊[Heavenly Mugwort Gu]，不乘护盾值）、{@code VitalityLeafBehavior}、
+ *       {@code WatchBehavior}。</li>
+ *   <li>持续照顾型蛊[Tended Gu]：主手炼化，每次计费催动与每日消耗前后从背包补食；炼化后客户端把右键换成扇形选择器，
+ *       自身催动只能来自伪造包，一律拒；副手不响应点击，被拒主手蛊保留自己的动作栏原因。</li>
+ *   <li>⚠ 副手时遇不可放大的蛊、自身野生、或被催动蛊付完后真元与随身元石[Primeval Stone]付不起，则闲置不计费，被催动
+ *       蛊照常生效不放大；菜单催动先合计两份消耗（{@code PrimevalStoneSupply.canAfford}），不够即拒。</li>
+ *   <li>饱食条空时同样被强行催动[Forced Use]：放大效果照常生效，随后它力竭而死离手。</li>
+ *   <li>唯一可变静态字段 {@code driving}：调用级服务端线程上下文，try/finally 包住一次催动，不越调用、不跨玩家。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -58,7 +49,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
 
     private record Driving(ServerPlayer player, ItemStack amplifier) {}
 
-    /** What one billed use came to: the factor on the driven Gu's effect and the Gu that paid it, if any. */
+    /** 一次计费催动的结果：被催动蛊的效果倍率，以及付费的功倍蛊[Amplify Effect Gu]（可为空）。 */
     public record Amplification(int factor, @Nullable AmplifyEffectGuItem gu) {
 
         public static final Amplification NONE = new Amplification(1, null);

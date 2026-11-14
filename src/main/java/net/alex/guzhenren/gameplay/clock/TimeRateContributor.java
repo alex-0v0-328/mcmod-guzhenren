@@ -1,12 +1,9 @@
 package net.alex.guzhenren.gameplay.clock;
 
 /**
- * The one seam anything hastens the player's own clock [自身时间] through: {@link TimeFlow#getSelfRate} walks
- * {@code getActiveEffects()} and adds up every contributor's {@link #timeRate}, instead of naming the effects it knows
- * about.
- *
- * <p>The effect side implements it; the clock side only reads it, so the clock does not depend on the effect package.
- * A dimension's own rate is {@code ModDimensions.AnchoredDimension#timeRate}, not a contributor.
+ * 加快玩家自身时间的唯一接口：{@link TimeFlow#getSelfRate} 遍历 {@code getActiveEffects()} 累加 {@link #timeRate}，
+ * 不点名效果。效果侧实现、时钟侧只读，时钟不依赖效果包；维度倍率 {@code ModDimensions.AnchoredDimension#timeRate}
+ * 不走此接口。
  *
  * @author Alex
  * @version 1.0.0

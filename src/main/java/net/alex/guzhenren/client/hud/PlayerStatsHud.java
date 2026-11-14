@@ -23,19 +23,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The top-left HUD readout: the realm line, then one bar per pool.
- *
- * <p>Registered above the vanilla hotbar layer in
- * {@link net.alex.guzhenren.client.event.ClientEvents}. Draws the title line (realm + title + aptitude), then
- * bars in order: essence, distilled, soul, gap, lifespan/age and pressure text. Hidden with
- * {@code hideGui}, in spectator, and under F3. Every phrase comes from
- * {@link ModDisplayText} so the HUD and the info command cannot diverge.
- *
- * <p>The rows, their texts and the filled widths are a pure function of the aperture, body and soul attachments
- * plus the whole second of the pressure countdown, so {@link Layout} is rebuilt only when that {@link Key}
- * changes (the attachments are immutable records, replaced on each sync) and a quiet frame builds no text. A frame
- * draws every bar ({@link HudBar}) in one {@link SpriteBatch}, then all the text in one {@link GuiBatch}; no row's
- * text lies under another row's bar, so the order is invisible.
+ * 左上角 HUD：境界行，下接每池一条。
+ * <ul>
+ *   <li>注册在原版快捷栏层之上（{@link net.alex.guzhenren.client.event.ClientEvents}）。</li>
+ *   <li>依次：标题行（境界 + 称号 + 资质[Aptitude]）、真元[Essence]、精炼真元、魂魄条、间隔、寿元 / 年龄与压力文字；
+ *       措辞全取 {@link ModDisplayText}，与信息命令一致；{@code hideGui}、旁观、F3 时隐藏。</li>
+ *   <li>内容只取决于空窍[Aperture]、肉体、魂魄附件与压力倒计时整秒，故仅 {@link Key} 变时重建 {@link Layout}（附件为不
+ *       可变记录，每次同步整体替换），静帧不建文字；所有条（{@link HudBar}）走一个 {@link SpriteBatch}，
+ *       再所有文字走一个 {@link GuiBatch}，文字不压别行的条，先后无感。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

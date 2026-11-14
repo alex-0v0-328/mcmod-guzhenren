@@ -11,11 +11,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Hands the plunge [坠击] its events: {@link PlungeService#tick} at the end of every server player tick and
- * {@link PlungeService#tickLocal} at the end of the local player's; vanilla's fall damage canceled while a plunge
- * runs, since the landing deals its own; a dimension change or a teleport ends the plunge.
- *
- * <p>The event handlers live here, the rules behind them in {@link PlungeService}.
+ * 坠击的事件订阅类，规则在 {@link PlungeService}。坠击期间取消原版摔落伤害（落地自带伤害）；换维度或传送结束坠击。
  *
  * @author Alex
  * @version 1.0.0

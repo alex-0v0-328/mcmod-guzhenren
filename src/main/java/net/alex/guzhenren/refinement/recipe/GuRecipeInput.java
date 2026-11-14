@@ -6,7 +6,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A snapshot of the refinement grid, cell by cell, for {@link GuRecipe} to match against.
+ * 炼蛊网格的逐格快照，供 {@link GuRecipe} 匹配。
  *
  * @author Alex
  * @version 1.0.0

@@ -10,10 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 /**
- * Client rendering of the Spirit Spring [元泉]: pre-colored textures (Alex colors the PNGs
- * directly, so no runtime tint) and an underwater fog taken from the HUD essence-bar accent
- * {@link ModPalette#APERTURE} -- the spring and the HUD share one sky blue. There is no water
- * overlay texture yet; being inside the spring shows fog only until Alex paints one.
+ * 元泉[Spirit Spring]的客户端渲染；贴图由 Alex 预先上色，无运行时着色。
+ *
+ * <ul>
+ *   <li>水下雾取 HUD 真元[Essence]条强调色 {@link ModPalette#APERTURE}，与 HUD 同一种天蓝。</li>
+ *   <li>暂无水下覆盖贴图，元泉内只显示雾，待 Alex 画好再补。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

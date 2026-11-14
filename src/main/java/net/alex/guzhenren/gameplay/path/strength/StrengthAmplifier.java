@@ -5,15 +5,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One temporary strength amplifier [增幅]: the strength points [力量点] a running state adds to the body, kept apart
- * from the permanent record by its {@code source}, and the carrying capacity [承受力] it brings along. A timed beast
- * buff (the Flower Boar Gu's boar, the Brute Force Longhorn Beetle Gu's ox) is one with its {@code family} set and no
- * capacity bonus: what it carries past the capacity is the body overload [肉体过载], brought to bear in full and paid
- * for in health ({@code BodyOverload}); the Hardship Strength Gu's [苦力蛊] amplifier has no family and no points,
- * only a capacity bonus.
- *
- * <p>Amplifiers never enter a full release [全面解放] base and never count toward admitting a permanent beast
- * strength; {@code StrengthService} sums them beside the permanent points.
+ * 一项临时力量增幅：运行中状态加的力量点[Strength Points]与承受力。以 {@code source} 与永久记录区分；
+ * 限时兽力[Beast Strength]（花豕蛊[Flower Boar Gu]、蛮力天牛蛊[Brute Force Longhorn Beetle Gu]）设兽种、无承受力，
+ * 超出即肉体过载（{@code BodyOverload}）；苦力蛊[Hardship Strength Gu]只加承受力；不进全面解放基数，不计永久兽力准入；
+ * {@code StrengthService} 与永久点数并列求和。
  *
  * @author Alex
  * @version 1.0.0
@@ -24,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 public record StrengthAmplifier(@NotNull ResourceLocation source, @Nullable BeastStrengthFamily family, int points,
                                 int capacityBonus) {
 
-    /** A beast's strength for a while: its points, with no capacity of its own. */
+    /** 限时兽力[Beast Strength]：只有点数，无自身承受力。 */
     public static StrengthAmplifier beast(@NotNull ResourceLocation source, @NotNull BeastStrengthFamily family,
                                           int points) {
         return new StrengthAmplifier(source, family, points, 0);

@@ -33,18 +33,15 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
- * Registers the eleven client-intent payloads and forwards each to {@link ClientIntents}, which holds every
- * check, and the three server notices ({@code SkinFlashPayload}, {@code ImpactShakePayload},
- * {@code KillingMoveTooltipPayload}), each handed to whatever the client registered for its class through
- * {@link #handleOnClient}.
- *
- * <p>Each record in {@code network.payload} is its own {@link CustomPacketPayload}, with its {@code TYPE} and
- * {@code STREAM_CODEC}; callers send them through NeoForge's {@code PacketDistributor}. The handlers run on the main
- * thread, NeoForge's default.
- *
- * <p>⚠ A notice's client handler is looked up, never named here: this class loads on the server, and code the
- * server may load references nothing in {@code client}. {@code ClientEvents} registers the handlers at client
- * setup; a notice with none registered is dropped.
+ * 网络 payload 的注册与分发。
+ * <ul>
+ *   <li>11 个客户端意图 payload 转 {@link ClientIntents}；3 个服务端通知经 {@link #handleOnClient} 交给客户端按类登记的
+ *       处理器：{@code SkinFlashPayload}、{@code ImpactShakePayload}、{@code KillingMoveTooltipPayload}。</li>
+ *   <li>{@code network.payload} 每个 record 是独立的 {@link CustomPacketPayload}，自带 {@code TYPE}、
+ *       {@code STREAM_CODEC}，经 NeoForge {@code PacketDistributor} 发送；处理器跑在主线程（NeoForge 默认）。</li>
+ *   <li>⚠ 通知的客户端处理器靠查找、不在此点名：本类在服务端加载，服务端可能加载的代码不引用 {@code client}；
+ *       {@code ClientEvents} 在客户端初始化时登记，未登记的通知丢弃。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -95,7 +92,7 @@ public final class ModPayloads {
         toClient(registrar, StoreStrengthNoticePayload.TYPE, StoreStrengthNoticePayload.STREAM_CODEC);
     }
 
-    /** Registers what the client does with a notice of {@code noticeClass}; called from client setup only. */
+    /** 登记客户端如何处理 {@code noticeClass} 类通知；只在客户端初始化时调用。 */
     public static <T extends CustomPacketPayload> void handleOnClient(Class<T> noticeClass, Consumer<T> handler) {
         CLIENT_HANDLERS.put(noticeClass, handler);
     }

@@ -16,22 +16,16 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The elephant and the white elephant, two entity types that differ only in texture (tiger precedent): a
- * {@link ChargerEntity} on the {@code elephant} model, which is authored at half size and drawn doubled, so the
- * body is about 3.1 by 3.75 by 4.7 blocks around a {@code 2.5 x 3.7} hitbox. It retaliates and never hunts.
- *
- * <p>Beyond {@value #CLOSE_REACH} blocks it charges like every charger. Within them it takes the first attack
- * off cooldown, in this order: the stomp (every {@value #STOMP_COOLDOWN_TICKS} ticks, landing on tick
- * {@value #STOMP_HIT_TICK} on everything attackable within {@value #STOMP_RADIUS} blocks, other elephants
- * excepted so a herd never turns on itself), the tusk toss (every {@value #TOSS_COOLDOWN_TICKS} ticks) and the
- * trunk sweep (every {@value #TRUNK_COOLDOWN_TICKS} ticks, landing on tick {@value #TRUNK_HIT_TICK}, one target,
- * knocked flat away).
- *
- * <p>{@link #MOVEMENT_SPEED} and {@link #PURSUIT_SPEED} follow the clips' strides: an AI-driven mob covers
- * {@code 43.17 x speed^2} blocks a second, so the walk clip's 1.27 and the run clip's 3.58 blocks a second give
- * the attribute and the pursuit multiplier. The culling box is widened because the head, trunk and tail reach
- * about 1.1 blocks past the hitbox and the stomp rears above it. No elephant sound exists in vanilla; the camel's,
- * pitched down, stand in.
+ * 大象与白象：只差纹理的两种实体类型（沿用虎先例）。
+ * <ul>
+ *   <li>{@link ChargerEntity}，{@code elephant} 模型半尺寸制作、加倍绘制，身体约 3.1 × 3.75 × 4.7 格，碰撞箱
+ *       {@code 2.5 x 3.7}；只反击；{@value #CLOSE_REACH} 格外照常冲撞，格内依次取首个冷却完的踩踏、牙挑、鼻扫。</li>
+ *   <li>踩踏每 {@value #STOMP_COOLDOWN_TICKS} tick，第 {@value #STOMP_HIT_TICK} tick 打中 {@value #STOMP_RADIUS}
+ *       格内全部可攻击目标，除其他大象，象群不内斗；牙挑每 {@value #TOSS_COOLDOWN_TICKS} tick；鼻扫每
+ *       {@value #TRUNK_COOLDOWN_TICKS} tick，第 {@value #TRUNK_HIT_TICK} tick 命中，单体水平击飞。</li>
+ *   <li>速度按片段步幅配：AI 驱动生物每秒移 {@code 43.17 x speed^2} 格，walk 1.27、run 3.58 格/秒分别得属性值与追击倍
+ *       率；头、鼻、尾伸出碰撞箱约 1.1 格，踩踏人立高过碰撞箱，故加宽剔除框；原版无象音效，借骆驼音效降调。</li>
+ * </ul>
  */
 
 public final class ElephantEntity extends ChargerEntity {

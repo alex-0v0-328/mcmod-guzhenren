@@ -1,10 +1,8 @@
 package net.alex.guzhenren.gameplay.flight;
 
 /**
- * The one seam a flying Gu effect grants flight through: an effect implements it and returns, for its amplifier,
- * flight alone or second-stage flight [二段飞行] as well. {@link FlightService} walks {@code getActiveEffects()}
- * every tick and keeps the strongest grant, instead of listing the effects it knows about -- a new flying Gu is one
- * interface, no edit there. The grant lasts exactly as long as the effect, and nothing about it reaches the save.
+ * 飞行蛊效果授予飞行的唯一接口：按效果等级返回仅飞行或含二段飞行[Second-Stage Flight]。{@link FlightService} 每 tick
+ * 遍历 {@code getActiveEffects()} 取最强，不点名效果，新飞行蛊只需实现此接口；授权与效果同存亡，不进存档。
  *
  * @author Alex
  * @version 1.0.0

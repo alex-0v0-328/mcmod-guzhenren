@@ -30,16 +30,15 @@ import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Spirit Spring [元泉] fluid: the behavior both entries of the pair share, plus the {@link Flowing} arm
- * and the {@link Source} entry.
+ * 元泉[Spirit Spring]流体：流体对两端共有行为，含 {@link Flowing}、{@link Source} 两变体。
  *
- * <p>Copies vanilla water's shape -- slope 4, drop-off 1, 5t flow delay, ambient underwater sound, water
- * drip particle -- minus the infinite-source rule: {@code canConvertToSource} stays false, so springs exist
- * only where a source was placed. There is no dedicated bucket item; scooping with a vanilla empty bucket
- * clears the spring and hands the bucket straight back ({@link #getBucket}).
- *
- * <p>⚠ The source's random tick is only a reload watchdog: it re-arms the deterministic block-tick chain
- * in {@link SpiritSpringBlock} and never produces stones by itself.
+ * <ul>
+ *   <li>照搬原版水形态：坡度搜索 4、每格衰减 1、流动延迟 5 tick、水下环境音、滴水粒子；去掉无限水源
+ *       （{@code canConvertToSource} 恒 false），元泉只在放过源头处存在。</li>
+ *   <li>无专用桶；原版空桶舀取清掉元泉，原样还回空桶（{@link #getBucket}）。</li>
+ *   <li>⚠ 源头随机 tick 只是重载看门狗：重挂 {@link SpiritSpringBlock} 的确定性方块 tick 链，自
+ *       身不产元石[Primeval Stone]。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

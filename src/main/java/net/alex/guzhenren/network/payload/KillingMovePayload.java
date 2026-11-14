@@ -9,11 +9,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for one use of a moon blade Gu [月刃] from the main hand: the id of the killing move
- * [杀招] picked on the radial menu, or {@code KillingMoveService.PLAIN} for a tap, and the entity id of the target
- * the client had locked on [锁定目标] when it let go, or {@code KillingMoveService.NO_TARGET}. It names no partner: the server picks
- * one, and {@link ClientIntents#killingMove} checks it all again, the target included (it exists, is alive, is
- * ahead and within reach); the client's menu only lists what it would pass.
+ * 主手月刃类蛊单次催动的客户端意图 payload；配合蛊由服务端挑选。
+ * <ul>
+ *   <li>{@code move}：轮盘所选杀招[Killing Move] id；点按为 {@code KillingMoveService.PLAIN}。</li>
+ *   <li>{@code target}：松手时锁定目标的实体 id，无则为 {@code KillingMoveService.NO_TARGET}。</li>
+ *   <li>{@link ClientIntents#killingMove} 全部重查，含目标存在、存活、在前方且在距离内；轮盘只列可通过项。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

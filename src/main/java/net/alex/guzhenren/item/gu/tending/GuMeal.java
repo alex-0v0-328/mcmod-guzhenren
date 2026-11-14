@@ -4,10 +4,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * One meal a tended Gu takes from a food stack: {@code items} taken off the stack, {@code gained} points
- * (hunger or health) and {@code eaten} items actually used up. {@link #createPortion} never feeds past the need,
- * and rounds the items eaten UP so a part-used item is paid for; {@link #eat} takes that portion off the stack
- * (creative eats for free) and hands back the bucket or bottle a used-up food leaves.
+ * 持续照顾型蛊[Tended Gu]从一堆食物吃的一顿：取下 {@code items}，得饱食[Hunger]或生命 {@code gained}。
+ * {@link #createPortion} 不超需求，实耗 {@code eaten} 向上取整，部分用掉也付；{@link #eat} 取下（创造免费）并还桶瓶。
  *
  * @author Alex
  * @version 1.0.0
@@ -24,7 +22,7 @@ record GuMeal(int items, int gained, int eaten) {
         return new GuMeal(items, gained, gained <= 0 ? 0 : (gained * per + units - 1) / units);
     }
 
-    /** Eats the portion of {@code food} that fills {@code need}, answering the points gained (0 when none). */
+    /** 吃掉 {@code food} 中补足 {@code need} 的份，返回所得点数（无则 0）。 */
     static int eat(ServerPlayer player, ItemStack food, int need, int per, int units) {
         GuMeal meal = createPortion(food.getCount(), need, per, units);
         if (meal.gained() <= 0) return 0;

@@ -5,15 +5,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 
 /**
- * Draws a graded effect's icon from its amplifier, so one effect can wear a different face per grade.
- *
- * <p>An {@link EffectIconLayout} carrying a name, a directory ({@code mob_effect} or {@code
- * item}) and the rank range. The texture path is {@code directory/name_rank}, where rank is
- * {@code amplifier + amplifierOffset} clamped to the range; the offset stays 1 unless the family
- * counts its amplifier from a later rank (the malicious thought Gu, whose grades start at rank two). The texture
- * location of every rank in the range is built once, so a frame only indexes them.
- *
- * <p>⚠ Keeps a family of grades one effect -- splitting it per grade would let two grades be held at once.
+ * 按 {@code amplifier} 换图的分级效果图标，一个效果每级一张脸。
+ * <ul>
+ *   <li>带名称、目录（{@code mob_effect} 或 {@code item}）与转数范围；路径 {@code directory/name_rank}，转数 =
+ *       {@code amplifier + amplifierOffset} 夹在范围内；偏移默认 1，家族从后转起算才改（恶念蛊[Malicious Thought Gu]从
+ *       二转起）；各转贴图位置预建，每帧只索引。</li>
+ *   <li>⚠ 同一家族各级保持为一个效果：按级拆开会让两级同时生效。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

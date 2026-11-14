@@ -33,31 +33,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Generates the bare land again from the world's seed, into scratch {@link ProtoChunk}s that never join the level:
- * the source the Mountain and River As Before Gu [山如故 / 江如故] restore from. Only the landform comes back -- no
- * tree, plant, lake, snow, ice, ore, structure or building.
- *
- * <p>Runs the vanilla generation steps {@code BIOMES} through {@code FEATURES} of
- * {@link ChunkPyramid#GENERATION_PYRAMID} with the level's own generator, so modded terrain (Gu World [蛊世界],
- * Tectonic, Terralith) comes back the way it was shaped. The scratch chunks carry no structure starts, so no
- * structure is placed and none bends the terrain: a village's hill comes back as the hill before the village.
- * Decoration ({@code FEATURES}) runs only to color the land -- a ported cliff's granite and calcite bands and a
- * canyon's stone columns are decorations -- and {@link #keep} lets a decorated block through only where it swaps one
- * {@link ModBlockTags#AS_BEFORE_TERRAIN} block for another; anything a decoration adds or removes (trees, plants,
- * lakes, boulders, snow, ice) falls back to the bare terrain. Every {@link ModBlockTags#AS_BEFORE_STRIPPED} block
- * (ores, the noise's raw ore veins) comes back as the stone or deepslate it sits in.
- *
- * <p>Features write one chunk past their own and the terrain steps read biomes one chunk out, so a square of radius
- * {@code r} decorates {@code r + 1}, shapes {@code r + 2} and lays biomes over {@code r + 3}: the 5×5 restore lays
- * out 11×11 scratch chunks. Everything after {@link #layOut} runs on {@code Util.backgroundExecutor()}; terrain steps
- * run in parallel (each writes its own chunk), features one chunk after another (each writes its neighbors). A
- * {@link Region} holds the scratch chunks and the holders a {@code WorldGenRegion} reads, a scratch chunk or else an
- * empty one; each {@link ScratchHolder} hands its one chunk to every status a step asks for and never schedules
- * anything. The result carries blocks only: no light, entities, ticks or block entities.
- *
- * <p>⚠ The generation pipeline ({@code GenerationChunkHolder}, {@code ChunkStep}, {@code WorldGenContext}) is named
- * only here. ⚠ The result is the seed's land under today's generator and mods: a world whose generator or
- * worldgen mods changed since a chunk was made gets the new land there.
+ * 从种子重新生成的裸地形，供山如故[Mountain As Before Gu]、江如故[River As Before Gu]还原。
+ * <ul>
+ *   <li>生成到从不加入维度的临时 {@link ProtoChunk}，只回地形：无树、植物、湖、雪、冰、矿、结构、建筑；用维度自身生成器
+ *       跑 {@link ChunkPyramid#GENERATION_PYRAMID} 的 {@code BIOMES} 至 {@code FEATURES}，模组地形（Gu World、
+ *       Tectonic、Terralith）按原样回来；无结构起点，不放结构也不被结构改形：村庄的山回到建村前。</li>
+ *   <li>装饰（{@code FEATURES}）只为上色（移植悬崖的花岗岩与方解石条带、峡谷石柱）：{@link #keep} 只放行
+ *       {@link ModBlockTags#AS_BEFORE_TERRAIN} 互换，装饰增删的树、植物、湖、巨石、雪、冰退回裸地形；
+ *       {@link ModBlockTags#AS_BEFORE_STRIPPED}（矿石、噪声原矿矿脉）还原为所在的石头或深板岩。</li>
+ *   <li>地物写到外一区块、地形步骤读外一区块群系，故半径 {@code r} 装饰 {@code r + 1}、塑形 {@code r + 2}、铺群系
+ *       {@code r + 3}：5×5 还原铺 11×11 临时区块；{@link #layOut} 之后在 {@code Util.backgroundExecutor()} 运行，地形步
+ *       骤并行（各写本区块），地物逐块串行（会写邻居）。</li>
+ *   <li>{@link ScratchHolder} 对任何请求状态都交出同一区块（无则空区块），从不调度；结果只含方块，无光照、实体、计划
+ *       tick、方块实体。</li>
+ *   <li>⚠ 生成管线（{@code GenerationChunkHolder}、{@code ChunkStep}、{@code WorldGenContext}）只在此引用；结果为种子在
+ *       当前生成器与模组下的地形，区块生成后换过生成器或世界生成模组，该处得新地形。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -76,7 +67,7 @@ public final class ChunkOriginGenerator {
     private static final List<ChunkStatus> TERRAIN_STEPS =
             List.of(ChunkStatus.BIOMES, ChunkStatus.NOISE, ChunkStatus.SURFACE, ChunkStatus.CARVERS);
 
-    /** The bare land of the square of {@code radius} around {@code center}, generated in the background. */
+    /** {@code center} 周围半径 {@code radius} 方阵的裸地形，后台生成。 */
     public static @NotNull CompletableFuture<Map<ChunkPos, ChunkAccess>> generate(@NotNull ServerLevel level,
                                                                                   @NotNull ChunkPos center,
                                                                                   int radius) {

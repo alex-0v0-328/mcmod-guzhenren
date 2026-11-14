@@ -5,13 +5,10 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus when the server's own tick changes a Store Strength Gu [蓄力蛊] charge [蓄力] the
- * client cannot see: {@link Change#FULL} the tick it first counts as full ({@link StoreStrength#isFull}), and
- * {@link Change#DROPPED} when the server drops it on its own (a lost buff, branch or fist, or a dimension change).
- * The client's own release and cancel post nothing. Dispatch is synchronous.
- *
- * <p>The charge posts and does not know who listens: the notice to the charging client lives in
- * {@code net.alex.guzhenren.network}, so the client shows the charge full only once the server holds it full.
+ * 蓄力蛊[Store Strength Gu]蓄力的服务端变化事件，游戏事件总线。{@link Change#FULL}
+ * 在首次判满（{@link StoreStrength#isFull}）那 tick，{@link Change#DROPPED} 在服务端自行取消（丢增益、分支或空手，
+ * 换维度）；客户端自己松手、取消不发；同步分发；通知客户端的监听在 {@code net.alex.guzhenren.network}，
+ * 客户端仅在服务端确认后显示蓄满。
  *
  * @author Alex
  * @version 1.0.0

@@ -8,10 +8,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Keeps the store's half of a usable killing move [杀招] fresh on the client: the server re-derives which learned
- * moves have a partner in an aperture store [空窍存储] ({@link KillingMoveService#refreshStoreBacked}) every
- * {@link #REFRESH_TICKS} ticks and whenever a menu closes, the store menu being the player's own way to change it.
- * An unchanged answer is not synced again.
+ * 杀招[Killing Move]存储辅蛊的刷新入口。每 {@link #REFRESH_TICKS} tick 及任一菜单关闭（存储菜单是玩家改存储的途径）时，
+ * 服务端重算已学杀招在空窍[Aperture]存储有无辅蛊（{@link KillingMoveService#refreshStoreBacked}），不变不重发同步。
  *
  * @author Alex
  * @version 1.0.0

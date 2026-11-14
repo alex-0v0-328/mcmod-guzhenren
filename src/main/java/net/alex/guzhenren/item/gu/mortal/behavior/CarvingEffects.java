@@ -21,21 +21,16 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * The body effects of the tempering Gu [炼体蛊]: the skin, tendons and bones. Each is the bookkeeping of a grade
- * {@code BodyService} owns and follows its write through the event that write posts, so the grade's writer, a Gu or
- * a command alike, knows nothing of it. The grade follows its effect back ({@link #onEnded}): a skin, tendon or bone
- * effect removed drops the part to its native grade, so there is no grade without its marks. The beast and human
- * strengths are not here: their effects are their store, written by {@code PathStrengthService}.
- *
- * <p>Event subscriber over {@link PathEffectService}; the Gu that made a grade is found in {@code ModItems}, and its
- * {@code GuProperties} supplies the carrier, path and strands, source the Gu's item id. A grade is permanent, one
- * exclusive effect per part, so a new grade takes the old effect and its strands with it.
- *
- * <p>⚠ Every sync compares the effect with the state and writes only on a difference, so a handler running twice
- * is harmless. ⚠ The marks arrive only with the write that
- * sets the state: nothing re-adds them on login, and a state saved before its effect existed stays without. ⚠ A
- * timed skin is not this class's: wearing a jade skin over a permanent one only drops the permanent skin's effect,
- * and {@code onEnded} leaves a part alone once its state names another grade than the removed effect.
+ * 炼体蛊的身体流派效果：皮、筋、骨。
+ * <ul>
+ *   <li>效果是 {@code BodyService} 所管档位的账面，随写档事件跟进，写档的蛊或命令无需知晓；档位反随效果
+ *       （{@link #onEnded}）：效果被摘则部位回天生档，档位必带道痕[Path Marks]；兽力[Beast Strength]、人力不在此，
+ *       其效果即存储，由 {@code PathStrengthService} 写。</li>
+ *   <li>{@link PathEffectService} 上的事件订阅者；造档的蛊查 {@code ModItems}，其 {@code GuProperties} 给载体、
+ *       道[Path]、丝，来源为蛊物品 id；档位永久，每部位一个独占效果，新档连旧效果与丝一并摘。</li>
+ *   <li>⚠ 同步先比对效果与状态，有差才写，重复运行无害；⚠ 道痕只随设状态的那次写入而来，登录不补，效果出现前存的状态一
+ *       直没有；⚠ 限时皮不归本类：永久皮上披玉皮只摘永久皮效果，部位已是别档时 {@code onEnded} 不动它。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

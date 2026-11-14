@@ -29,37 +29,28 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * A Beast Phantom [兽力虚影]: one beast family an attack round [攻击轮次] releases, shown for {@link #LIFETIME_TICKS}
- * and a further {@link #LINGER_TICKS} beside its owner, facing where the owner faces: the linger lets the next round
- * of a steady fist renew it before it goes, so it goes only {@link #getShownTicks} after the last round. Its
- * {@link Slot} places it in one of two layers seen from the front (Alex's layout): the ground layer,
- * {@link #FORWARD_OFFSET} ahead of the owner, puts the first {@link #SIDE_OFFSET} blocks to the right and the second as
- * far to the left; the back layer, {@link #FAN_BACK_OFFSET} behind the owner as if grown from the heels, is a fan of
- * {@link #FAN_ROWS} rows of pairs that opens downward from the apex, each row {@link #FAN_COLUMN} further out and
- * {@link #FAN_ROW} lower than the one above, the lowest row {@link #FAN_BASE_HEIGHT} up, so a third-person camera
- * sees the whole fan behind the owner and no fan slot stands straight behind a ground one. It plays its family's
- * appearance once, from when it starts to fade in, then idles.
- *
- * <p>{@link #show} sets an owner's phantoms to a round's families: a family already up is renewed in its slot -- its
- * life starts over, nothing respawns -- a new one takes the first free slot in declaration order ({@link #pickSlot}:
- * the ground pair, then the fan from its lowest row up to its apex), and any other goes. A family that
- * cannot manifest ({@code BeastStrengthFamily.canManifest}) is left out and takes no slot. A renewal bumps a
- * synced counter so the client restarts its own age. ⚠ {@link #LINGER_TICKS} and the fan's {@link #FAN_BACK_OFFSET},
- * {@link #FAN_COLUMN}, {@link #FAN_ROW} and {@link #FAN_BASE_HEIGHT} are provisional, for Alex to tune in the client.
- *
- * <p>It comes and goes drawn only: the entity stays in its slot and the renderer moves, scales and fades the model
- * ({@link #getDrift}, {@link #getScale}, {@link #getFade}, {@link #getGlow}). It appears over {@link #APPEAR_TICKS},
- * one tick later per slot in declaration order -- its appearance clip waits as long -- sliding in from
- * {@link #APPEAR_BACK} blocks behind its slot while it fades in and grows from {@link #APPEAR_SCALE} past
- * {@link #APPEAR_OVERSHOOT} to full size. Over its last {@link #VANISH_TICKS} it gathers from its slot into its owner's body, {@link #BODY_HEIGHT} above the feet,
- * shrinking to {@link #VANISH_SCALE} and fading out while its glow rises to {@link #GLOW_PEAK} times its strength.
- * A renewal never replays the appearance; one that comes while it gathers sends it back out to its slot over
- * {@link #VANISH_RETURN_TICKS}. One dropped from a round goes at once. ⚠ All of these numbers are provisional.
- *
- * <p>A pure display: no collision, no hitbox for attacks or projectiles, no damage, never saved; one summoned by
- * command has no owner and goes on its first tick. Both sides place it from the owner every tick, so the client
- * ignores the server's position packets. It goes when its time runs out or its owner is gone from this level, dead,
- * or logged out, which covers death, dimension change and logout.
+ * 兽力虚影：攻击轮次放出的一个兽种，立于主人身旁、朝向随主人。
+ * <ul>
+ *   <li>显示 {@link #LIFETIME_TICKS} 后再逗留 {@link #LINGER_TICKS}，供持续出拳的下一轮续接，故末轮后
+ *       {@link #getShownTicks} 才消失；淡入起播一次兽种出场动画，后待机。</li>
+ *   <li>{@link Slot} 正面看分两层（Alex 布局）：地面层在主人前 {@link #FORWARD_OFFSET}，首只右、次只左，各距
+ *       {@link #SIDE_OFFSET}；后层在主人后，似从脚跟长出，为 {@link #FAN_ROWS} 排成对槽位、自顶点向下张开的扇形，
+ *       每排更外更低，底排离地 {@link #FAN_BASE_HEIGHT}；第三人称见整把扇形，无扇形槽正对地面槽后方。</li>
+ *   <li>{@link #show} 按一轮抽中兽种更新：在场者原槽续接（寿命重计，不重生），新者按声明序占首个空槽（先地面两槽，
+ *       再扇形底排至顶点），余者消失；不能出形（{@code BeastStrengthFamily.canManifest}）者略过、不占槽；续接递增同步计
+ *       数器，客户端据此重置年龄。</li>
+ *   <li>⚠ {@link #LINGER_TICKS} 与扇形 {@link #FAN_BACK_OFFSET}、{@link #FAN_COLUMN}、{@link #FAN_ROW}、
+ *       {@link #FAN_BASE_HEIGHT} 为占位值，由 Alex 在客户端调。</li>
+ *   <li>出现与消失只改绘制（{@link #getDrift}、{@link #getScale}、{@link #getFade}、{@link #getGlow}），
+ *       实体始终在槽位：出现历时 {@link #APPEAR_TICKS}，每槽按声明序晚 1 tick（出场动画随之推迟），自槽后
+ *       {@link #APPEAR_BACK} 格滑入淡入，大小 {@link #APPEAR_SCALE} → {@link #APPEAR_OVERSHOOT} → 1；末
+ *       {@link #VANISH_TICKS} 收向主人脚上 {@link #BODY_HEIGHT} 处，缩至 {@link #VANISH_SCALE} 并淡出，发光升至
+ *       {@link #GLOW_PEAK} 倍；续接不重播出现，内收中续接用 {@link #VANISH_RETURN_TICKS} 回槽；被一轮剔除者即刻消
+ *       失。</li>
+ *   <li>⚠ 以上出现与消失数值均为占位。</li>
+ *   <li>纯显示：无碰撞，攻击与投射物打不中，无伤害，不存档；命令召唤者无主人，首 tick 即消失；两端每 tick 按主人摆放，
+ *       客户端忽略服务端位置包；时间耗尽或主人离维度、死亡、下线即消失。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -127,7 +118,7 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
             this.right = right;
         }
 
-        /** 0 for the ground layer, else the fan row counted from its apex. */
+        /** 地面层为 0，否则为从扇形顶点数起的排号。 */
         public int getRow() { return this.row; }
 
         private boolean isRight() { return this.right; }

@@ -23,22 +23,17 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Primeval Elder Gu [元老蛊] on the client: a right click with a refined one in the main hand holds the
- * {@link HoldSlider} instead of using the item. A tap (let go before the slider opens) sends the deposit; a pick
- * sends the withdrawal of that many stacks of 64. {@link PrimevalElderPayload} carries both, and the server checks
- * it all again.
- *
- * <p>The hold follows the selected slot and the Elder Gu's item, never the stack instance: the server re-syncs the
- * stack whenever its stock moves (a Treasure Lotus minting into it, a payment drawn from it), and that must not end
- * the hold. The slider's top is {@code PrimevalElderGuItem.getWithdrawableStacks}, read on the live stack when it
- * opens; with none it shows the server's own refusal (vault empty, or the bag full) and waits out the hold. A
- * wild one, an offhand one and any inside the Treasure Yellow Heaven [宝黄天] leave the click to vanilla, so the
- * first is still refined by holding it and the others are refused as before. ⚠ A press that began on a wild one
- * ({@code refiningPress}) opens nothing once it is refined: vanilla re-fires the held click, and the slider waits
- * for the next press.
- *
- * <p>The one mutable static, {@code refiningPress}, is the local client's held-click latch; it clears when the use key
- * comes up.
+ * 元老蛊[Primeval Elder Gu]的客户端输入。
+ * <ul>
+ *   <li>主手持已炼化者右键：不使用物品，改按住 {@link HoldSlider}；轻点（滑条弹出前松开）存入，选中取出相应组数（每组
+ *       64 个），均由 {@link PrimevalElderPayload} 携带，服务端全部重查。</li>
+ *   <li>按住跟随选中栏位与物品而非物品堆实例：存量变动（天元宝莲[Heavenly Essence Treasure Lotus Gu]产入、付款扣出）
+ *       时服务端重同步物品堆，不能因此结束按住；滑条上限为 {@code PrimevalElderGuItem.getWithdrawableStacks}，
+ *       弹出时读实时物品堆，为 0 则显示服务端同款拒绝（库空或背包满）并等按住结束。</li>
+ *   <li>野生、副手及身在宝黄天[Treasure Yellow Heaven]时把点击交还原版：野生者仍可按住炼化，其余照旧被拒。</li>
+ *   <li>⚠ 从野生开始的按下（{@code refiningPress}）炼化后不弹出：原版会重发按住的点击，滑条等下次按下；
+ *       该唯一可变静态字段为本机按住锁存，使用键抬起即清。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

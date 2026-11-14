@@ -5,12 +5,10 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after a mortal Gu's [凡蛊] use has landed and been billed: {@link MortalGuItem}'s
- * {@code spend}, the one step every landed use ends in -- the click, the tap use, an in-place use (a radial menu, a
- * killing move's cast, an Amplify Effect Gu's drive, a Primeval Elder Gu's deposit and withdrawal) and an auto use.
- * A refused use, a use stopped short of hunger, the refining of a wild Gu and a channel's rounds never reach it, and
- * Gu material is no mortal Gu. The Epic Fight bridge plays the generic use clip off it ({@code EpicFightServerEvents}).
- * The stack is not carried: the use may have taken the last Gu of it. Dispatch is synchronous.
+ * 凡蛊催动生效并结账后，发布于游戏事件总线的事件。发自 {@link MortalGuItem} 的 {@code spend}，即所有生效催动的终点：点
+ * 击、轻点、原地（轮盘、杀招[Killing Move] 施放、功倍蛊[Amplify Effect Gu] 驱动、元老蛊[Primeval Elder Gu] 存取）及自动
+ * 催动；被拒、饱食[Hunger] 中止、野生蛊炼化、灌注[Channel] 各轮不触发；蛊材非凡蛊。Epic Fight 桥接据此播通用催动动作
+ * （{@code EpicFightServerEvents}）。不带物品堆：催动可能用掉最后一只。同步派发。
  *
  * @author Alex
  * @version 1.0.0

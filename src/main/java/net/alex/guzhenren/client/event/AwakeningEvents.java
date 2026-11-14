@@ -9,9 +9,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 /**
- * The awakening ritual [开窍仪式] in the world, after the entities: the hovering Hope Gu [希望蛊]
- * ({@link AwakeningGuRenderer}) and the aptitude plaque over the head ({@link AwakeningPlaqueRenderer}). The screen
- * half is {@code AwakeningHud}.
+ * 开窍[Awakening]仪式的世界内绘制，排在实体之后：悬浮的希望蛊[Hope Gu]（{@link AwakeningGuRenderer}）
+ * 与头顶资质[Aptitude]牌匾（{@link AwakeningPlaqueRenderer}）；屏幕部分在 {@code AwakeningHud}。
  *
  * @author Alex
  * @version 1.0.0

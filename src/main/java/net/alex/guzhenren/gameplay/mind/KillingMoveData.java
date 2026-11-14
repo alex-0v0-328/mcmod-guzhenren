@@ -8,23 +8,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The killing moves [杀招] a player has learned [学会], held in the mind [脑海] beside {@link MindData}: immutable
- * record attachment keyed {@code killing_move_data}, synced to its owner so the radial menu lists only what they
- * know. A death without keepInventory resets it with every inherited attachment, so dying forgets them all and
- * keepInventory keeps them.
+ * 已学会的杀招[Killing Move]，与 {@link MindData} 并列存于脑海。
  *
- * <p>Each entry is a killing move's id as a string: the table is the item side's {@code KillingMove}, which gameplay
- * never imports, and an id no row names any more is simply never asked for. The compact constructor keeps both
- * lists distinct and sorted, so two records that know the same moves compare equal.
- *
- * <p>{@link #storeBacked} names the moves whose partner Gu sits refined in an aperture store [空窍], which is never
- * synced: the server re-derives it ({@code KillingMoveService.refreshStoreBacked}) and the menu reads it beside the
- * inventory it sees. It is synced but never saved, so a load or a death starts it empty until the next refresh.
- *
- * <p>{@link #active} is the id of the move the player has switched on [启动], or {@link #NONE}: every blade the
- * move's main Gu fires is a cast of it until the player switches it off again. It is synced, so the radial menu
- * shows the move as one to stop, and never saved, so a relog starts with it off; a death switches it off too
- * ({@code PlayerDataService.onClone}).
+ * <ul>
+ *   <li>附件 {@code killing_move_data}，同步本人供扇形选择器列招；不开保留物品栏死即全忘（随继承附件重置）。</li>
+ *   <li>存招 ID：招表在物品侧 {@code KillingMove}，gameplay 包不引用，已删的不再问；构造器两表去重排序，同招相等。</li>
+ *   <li>{@link #storeBacked}：配合蛊已炼化、存于空窍[Aperture]的招，由 {@code KillingMoveService.refreshStoreBacked}
+ *       在服务端重算（空窍存储不同步），选择器结合所见物品栏读；只同步不存档，读档或死亡后空到重算。</li>
+ *   <li>{@link #active}：已启动的招，关掉前主蛊每道刃都算一次施展；同步，选择器显示为可停止；不存档，
+ *       重登或死亡（{@code PlayerDataService.onClone}）即关。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -33,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record KillingMoveData(List<String> learned, List<String> storeBacked, String active) {
 
-    /** The {@link #active} of a player with no move switched on. */
+    /** 未启动任何招时的 {@link #active}。 */
     public static final String NONE = "";
     public static final KillingMoveData DEFAULT = new KillingMoveData(List.of(), List.of(), NONE);
     public static final Codec<KillingMoveData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -70,6 +63,6 @@ public record KillingMoveData(List<String> learned, List<String> storeBacked, St
         return new KillingMoveData(learned, ids, active);
     }
 
-    /** The record with {@code id} switched on, or {@link #NONE} to switch every move off. */
+    /** 启动 {@code id} 后的记录；传 {@link #NONE} 则关掉所有招。 */
     public KillingMoveData withActive(@NotNull String id) { return new KillingMoveData(learned, storeBacked, id); }
 }

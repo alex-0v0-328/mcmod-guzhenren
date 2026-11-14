@@ -1,14 +1,12 @@
 package net.alex.guzhenren.entity.beast;
 
 /**
- * The four bear species. Each registers its own entity type under {@link #getId()} (boar Gu precedent:
- * one variant, one entity type); they share the {@code bear} geometry and animation set and differ in
- * texture, temperament and stats. Only the Asian black bear hunts on its own; the rest retaliate.
- *
- * <p>{@link #getId()} is the entity-type id and texture base name ({@code textures/entity/<id>.png}).
- * {@link #isHostile()} says whether the species seeks targets on sight instead of only retaliating.
- * {@link #getSwipeDamage()} is the flat swipe damage, before armor, and {@link #getRearDamage()} the flat
- * rear-up slam damage, before armor.
+ * 四种熊：共用 {@code bear} 几何与动画集，纹理、性情、属性不同。
+ * <ul>
+ *   <li>每种以 {@link #getId()} 注册独立实体类型（沿用豕蛊[Boar Gu]实体先例：一变体一类型），id
+ *       兼作纹理基名（{@code textures/entity/<id>.png}）。</li>
+ *   <li>仅亚洲黑熊见敌即追（{@link #isHostile()}），其余只反击；挥击、站立拍击伤害均为护甲前固定值。</li>
+ * </ul>
  */
 
 public enum BearSpecies {

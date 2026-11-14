@@ -7,19 +7,16 @@ import net.minecraft.world.damagesource.DamageType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The body overload [肉体过载]: the timed beast strength (the Flower Boar Gu's boar, the Brute Force Longhorn Beetle
- * Gu's ox) carries no capacity of its own, so the part of it past the current capacity
- * ({@code StrengthSnapshot.overloadPoints}) is brought to bear in full and paid for in health. Every fist hit that
- * opens or shares an attack round ({@link BeastPhantomEvents}'s gate, not once a round; a miss costs nothing) deals
- * the attacker {@link #getRecoil}: {@code overload / capacity * max health * }{@link #RECOIL_RATIO}, as
- * {@code guzhenren:body_overload}, which goes past armor and has no attacker.
- *
- * <p>It never kills: {@link #getDamage} stops the health at {@link #HEALTH_FLOOR}, and a body already at or under it
- * pays nothing. The recoil neither consumes nor grants the attacker's hurt frames -- they are cleared for the hit and
- * put back after it -- so a steady fist pays every hit and a mob's blow is not swallowed by the recoil's frames.
- *
- * <p>The Store Strength Gu's [蓄力蛊] impact backlash [冲击反噬] pays through the same arithmetic: its charged punch's
- * points past the current capacity, as {@code guzhenren:impact_backlash}, once a release ({@link StoreStrength}).
+ * 肉体过载：限时兽力[Beast Strength]超承受力部分全额发挥，以血偿付。
+ * <ul>
+ *   <li>限时兽力（花豕蛊[Flower Boar Gu]、蛮力天牛蛊[Brute Force Longhorn Beetle Gu]）不带承受力，
+ *       超出部分即 {@code StrengthSnapshot.overloadPoints}。</li>
+ *   <li>每次过 {@link BeastPhantomEvents} 门槛的拳击都扣，不按轮，挥空不扣；类型 {@code guzhenren:body_overload}，
+ *       无视护甲，无攻击者。</li>
+ *   <li>不致死，生命停在 {@link #HEALTH_FLOOR}；不耗也不给受击无敌帧，连拳每击都扣，怪物攻击也不被吞。</li>
+ *   <li>蓄力蛊[Store Strength Gu]的冲击反噬同算式：蓄力一拳超当前承受力的点数，类型 {@code guzhenren:impact_backlash}，
+ *       每拳一次（{@link StoreStrength}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

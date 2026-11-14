@@ -6,12 +6,9 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus when a plunge [坠击] lands hard enough to show ({@link PlungeImpact#getImpactPower}
- * above zero), before the crater is blasted, so the ground at {@link #getPosition} is still whole. Dispatch is
- * synchronous.
- *
- * <p>The plunge posts and does not know who listens: the ground fracture and the landing clip live in
- * {@code net.alex.guzhenren.compat}, the shake in {@code net.alex.guzhenren.network}.
+ * 坠击落地有表现时的同步事件。{@link PlungeImpact#getImpactPower} 大于 0 时在炸坑前发到游戏事件总线，
+ * {@link #getPosition} 处地面仍完整；坠击不知谁听：地裂与落地动作在 {@code net.alex.guzhenren.compat}，震屏在
+ * {@code net.alex.guzhenren.network}。
  *
  * @author Alex
  * @version 1.0.0

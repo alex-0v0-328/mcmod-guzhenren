@@ -25,29 +25,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Strength [力道]: what has been accumulated -- beast strengths [兽力] and human strength counts. Static
- * service and the only writer of the two permanent strength path effects, which are the strengths' one store: a
- * beast strength is one {@code BEAST_STRENGTH} effect per species, a human strength one {@code HUMAN_STRENGTH}
- * effect per kind with a layer per stored layer, each on the body, sourced {@code strength/<name>} and carrying
- * {@link PathStrengthData#getStrands} of its points. {@link #get} reads them back as a {@link PathStrengthData}, on
- * either side, so an effect removed by any hand is a strength gone. Every write posts a
- * {@link StrengthChangedEvent}, which refreshes the attack modifier.
- * {@link #getBeastBuffs} reads the running timed beast buffs off the path effects, which are the buffs' truth, as
- * {@link StrengthAmplifier}s; the whole strength and how much of it a body can bring to bear are
- * {@link StrengthService}, which also gates a new beast against the carrying capacity.
- *
- * <p>Mark Interference [道痕互斥] is enforced here, at the one write funnel: {@code grant} and a rising
- * {@code setHumanStrength} write nothing and return {@code false} while {@link #getInterference} names a held
- * branch, so neither a Gu nor a command can store both. A running {@link BeastStrengthBuff} counts as holding
- * Beast Strength Phantom, but granting one is not a write here: beast buffs are gated at the Gu. Removals always
- * go through. ⚠ The capacity gate is the Gu's ({@code BeastStrengthBehavior}), not this funnel's: a command grant
- * may seat a beast past the normal capacity, and the body then uses what it can carry.
- *
- * <p>{@link #holdsBranch} is the one holding rule, read by {@link #getInterference} for the gates and by
- * {@link #getHeldBranch} for the effects that differ by branch: Beast Strength Phantom, else Human Jun Strength, else
- * Normal. ⚠ The funnel keeps a body from holding both, but the effect store does not: a body carrying both reads as
- * Beast Strength Phantom. ⚠ Lowering human strength drops whole layers with their strands, so marks added to the
- * effect by other means stay.
+ * 力道积累（兽力[Beast Strength]与人力层数）的静态服务。
+ * <ul>
+ *   <li>两个永久力道流派效果的唯一写入方，效果即唯一存储：兽力每物种一个，人力每种一个、层数同存量，均在肉体，
+ *       携带点数的丝；{@link #get} 两端读回，效果被谁摘除即失去该力量。</li>
+ *   <li>每次写入发 {@link StrengthChangedEvent} 刷新攻击；{@link #getBeastBuffs} 从流派效果读出运行中的限时兽力增益；
+ *       总量、可发挥量与新兽力的承受力把关归 {@link StrengthService}。</li>
+ *   <li>道痕[Path Marks]互斥在此唯一写入口执行：已持互斥分支时 {@code grant} 与上调的 {@code setHumanStrength} 不写、
+ *       返回 {@code false}；运行中的 {@link BeastStrengthBuff} 算持兽力虚影流，其授予在蛊处把关；移除总放行。</li>
+ *   <li>持有优先级（{@link #holdsBranch}）：兽力虚影流，其次人力钧力流，否则基础力道。</li>
+ *   <li>⚠ 承受力门槛在蛊（{@code BeastStrengthBehavior}）不在此：指令可超常态承受力，肉体只发挥能承受的部分。</li>
+ *   <li>⚠ 写入口阻止兼持，效果存储不阻止：兼持读作兽力虚影流。</li>
+ *   <li>⚠ 降低人力按整层连丝移除，他途加的道痕保留。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -79,7 +69,7 @@ public final class PathStrengthService {
 
     public static boolean has(@NotNull Player player, @NotNull BeastStrength beast) { return get(player).has(beast); }
 
-    /** The ticks the held beasts add to a strength path timed state as it starts (the green bull's ten seconds). */
+    /** 持有兽力[Beast Strength]给力道限时状态加的 tick（青牛 10 秒）。 */
     public static int getDurationBonus(@NotNull Player player) { return get(player).getBeastDurationBonus(); }
 
     public static int getHumanStrength(@NotNull Player player, @NotNull HumanStrength kind) {
@@ -167,7 +157,7 @@ public final class PathStrengthService {
         return next;
     }
 
-    /** Every running timed beast buff as an amplifier, sourced to the Gu that granted it. */
+    /** 运行中的限时兽力[Beast Strength]增益，来源为授予它的蛊。 */
     public static @NotNull List<StrengthAmplifier> getBeastBuffs(@NotNull Player player) {
         List<StrengthAmplifier> buffs = new ArrayList<>();
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {

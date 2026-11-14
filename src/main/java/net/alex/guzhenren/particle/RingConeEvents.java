@@ -8,10 +8,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Drives {@link RingConeEmitter}: advances a player's ring trails at the end of every player tick, and drops them
- * on logout and on a dimension change.
- *
- * <p>The event handlers live here, the trails behind them in {@link RingConeEmitter}.
+ * {@link RingConeEmitter} 的事件入口：每个玩家 tick 末推进该玩家的环轨迹，登出或换维度时丢弃。
  *
  * @author Alex
  * @version 1.0.0

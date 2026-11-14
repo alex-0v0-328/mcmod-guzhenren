@@ -14,23 +14,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The buffer reads and writes this mod adds: an enum as its ordinal, and enum-keyed maps and sets.
- *
- * <p>Provides {@code writeEnum}/{@code readEnum} (ordinal round-trip), {@code writeNullableEnum}/{@code
- * readNullableEnum} (ordinal + 1, zero = unset), {@code writeEnumMap}/{@code readEnumMap}, and {@code
- * writeEnumSet}/{@code readEnumSet}; {@link #enumCodec} and {@link #nullableEnumCodec} are the first two as stream
- * codecs, for the payloads' {@code StreamCodec.composite}. A record that syncs as an attachment or a data component
- * writes itself through these from its own {@code encode}/{@code decode}. A collection is its VarInt size, then each
- * element.
- *
- * <p>⚠ A nullable enum travels as its ordinal plus one, with zero meaning unset. No enum here has a
- * NONE constant to lean on, so this is where "has not chosen" becomes representable on the wire -- it
- * is what lets the two nullable {@code GuPath} fields on {@code Aperture} travel.
- *
- * <p>⚠ Decoding rejects an out-of-range ordinal with a {@code DecoderException} ({@link #byOrdinal}):
- * the client-intent packets read enums through these helpers and a forged packet can carry any VarInt,
- * so it fails as a malformed packet that disconnects the sender with a readable reason instead of a bare
- * {@code ArrayIndexOutOfBoundsException}.
+ * 模组新增的缓冲区读写：枚举按序号，及枚举为键的映射、集合。
+ * <ul>
+ *   <li>集合先写 VarInt 长度再逐个写元素；{@link #enumCodec}、{@link #nullableEnumCodec} 是枚举、可空枚举的 stream
+ *       codec 形式，供 payload 的 {@code StreamCodec.composite}。</li>
+ *   <li>作为附件或数据组件同步的 record 在自己的 {@code encode}/{@code decode} 里调用这些方法。</li>
+ *   <li>⚠ 可空枚举写序号加一，0 表示未设：枚举都没有 NONE 常量，“尚未选择”只能在此表示；{@code Aperture} 的两个可空
+ *       {@code GuPath} 字段靠它传输。</li>
+ *   <li>⚠ 越界序号抛 {@code DecoderException}（{@link #byOrdinal}）：客户端意图包经此读枚举，伪造包可带任意 VarInt；这
+ *       样按格式错误包断开发送方并给出可读原因，而非裸 {@code ArrayIndexOutOfBoundsException}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

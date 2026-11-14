@@ -10,23 +10,19 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The bar drawn over the hotbar while a charged Gu use is running.
+ * 蓄力催动蛊时快捷栏上方的蓄力条，注册在原版氧气层之上。
  *
- * <p>Extends {@link net.alex.guzhenren.client.hud.HotbarHud}. Registered above
- * the vanilla air-level layer. Reads the held item's {@code getUseDuration} and
- * {@code chargeFraction} from {@link net.alex.guzhenren.item.GuItem}; if the item provides its own
- * fraction the bar reads that, otherwise it falls back to the vanilla remaining-ticks ratio. During the awakening
- * ritual [开窍仪式] it shows the aptitude bar instead: {@link AwakeningHud#getBarBase} climbs to the rolled base, gray
- * while filling and the default charge color once full, captioned like the aptitude line (八成七). While the Store
- * Strength Gu [蓄力蛊] charges ({@link StoreStrengthCharge#isCharging}) it shows that charge, gray while filling and
- * the default charge color once the server holds it full ({@link StoreStrengthCharge#isFull}), captioned 蓄力中 / 蓄满.
- *
- * <p>{@link #isShowing} is the one test of "a charged Gu use is running", also read by {@link NourishHud} to stack
- * its bar above this one.
- *
- * <p>⚠ Any Gu whose use has a duration gets this for free, so adding a charged Gu needs no change here.
- * Whenever a leaf class's caption reads {@code a / b}, that class owes a {@code chargeFraction} over
- * the same pair.
+ * <ul>
+ *   <li>读手持物品在 {@link net.alex.guzhenren.item.GuItem} 的 {@code getUseDuration} 与 {@code chargeFraction}：物品给
+ *       出比例就用，否则退回原版剩余 tick 比例。</li>
+ *   <li>开窍[Awakening]仪式期间改显资质[Aptitude]条：{@link AwakeningHud#getBarBase} 爬升到掷出基础值，填充中灰色，满后
+ *       默认蓄力色，标题同资质行（八成七）。</li>
+ *   <li>蓄力蛊[Store Strength Gu]蓄力时（{@link StoreStrengthCharge#isCharging}）显示该蓄力：填充中灰色，服务端判满
+ *       （{@link StoreStrengthCharge#isFull}）后默认蓄力色，标题“蓄力中”/“蓄满”。</li>
+ *   <li>{@link #isShowing} 是“蓄力催动进行中”唯一判定；{@link NourishHud} 也读它，把自己的条叠在本条上方。</li>
+ *   <li>⚠ 催动带持续时间的蛊自动得本条，新增蓄力类蛊无需改这里。</li>
+ *   <li>叶子类标题写成 {@code a / b} 时须给出同一对数值的 {@code chargeFraction}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

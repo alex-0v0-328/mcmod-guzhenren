@@ -9,10 +9,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for the Store Strength Gu's [蓄力蛊] charge [蓄力]: its start, its cancel, or its release
- * at the id of the target the client had locked on [锁定].
- * {@link net.alex.guzhenren.network.ClientIntents#storeStrength} hands it to {@code StoreStrength}, which checks the
- * buff, the branch, the fist, the charge and the target again.
+ * 蓄力蛊[Store Strength Gu]蓄力的客户端意图 payload：开始、取消，或对锁定目标 id 释放。
+ * {@link net.alex.guzhenren.network.ClientIntents#storeStrength} 转交 {@code StoreStrength}，重查增益、力道、拳头、
+ * 蓄力与目标。
  *
  * @author Alex
  * @version 1.0.0

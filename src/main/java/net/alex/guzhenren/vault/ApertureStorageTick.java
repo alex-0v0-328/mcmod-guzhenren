@@ -10,18 +10,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The per-second settle of Gu held inside apertures, both the stored ones and each Vital Gu [本命蛊]. Called from
- * every heartbeat with the day count elapsed since the last one -- zero on most seconds, when a refined Gu
- * still pays its own upkeep; forwards to {@link GuUpkeep#tickInContainer} per refined Gu and reports starvation
- * through {@link TendedGuItem#starve}. Each stored Gu is read from the live store
- * ({@code ApertureStorageService.getView}) and its slot written back on its own right after its tick
- * ({@code ApertureStorageService.setSlot}): a Gu's upkeep may write the store itself (the Treasure Lotus mints
- * stones into a stored Primeval Elder Gu, which may itself have just paid its upkeep), and a walk that wrote one
- * snapshot back at the end would erase that.
+ * 空窍[Aperture]内蛊的每秒结算，含存储蛊与各本命蛊。
  *
- * <p>⚠ Every reader asks {@code isRefinedTended} first: an unrefined Gu's hunger is zero, and zero is also
- * what starvation looks like -- drop the test and the first rollover eats every wild Gu. Like the store's
- * list, the Vital slot is written back ({@code setVital}) only when the walk changed it.
+ * <ul>
+ *   <li>心跳调用，传距上次的天数，多数秒为 0，已炼化蛊仍自付养护；逐只转 {@link GuUpkeep#tickInContainer}，
+ *       饿死经 {@link TendedGuItem#starve} 报告。</li>
+ *   <li>每只存储蛊从实时存储读、tick 后即单独写回：养护可能自写存储（天元宝莲[Heavenly Essence Treasure Lotus Gu]
+ *       往存储的元老蛊[Primeval Elder Gu]铸元石[Primeval Stone]，该元老蛊或刚付完养护），遍历末整体写回会抹掉之。</li>
+ *   <li>⚠ 先问 {@code isRefinedTended}：未炼化蛊饱食[Hunger]为 0，与饿死无异；去掉它，首次日切即饿死所有野生蛊。</li>
+ *   <li>本命槽同理，仅遍历改动它时写回。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -3,14 +3,12 @@ package net.alex.guzhenren.gameplay.body;
 import net.alex.guzhenren.core.NamedEnum;
 
 /**
- * One grade of a body part [筋骨皮肉]: the tendons [筋], the bones [骨], the skin [皮] or the flesh [肉], native
- * [原生] or what a Strength Path defensive Gu made of it. Each part is a closed vocabulary enum implementing this
- * with itself as {@code G}, and one slot on {@code BodyData}. A grade carries the rank [转] of the Gu that grants
- * it, zero for native; within one family the ranks run without a gap, which {@code /gzr body} relies on to
- * name a grade by family and rank.
- *
- * <p>{@link #canReplace} is the one gate every tempering Gu asks: whether the holder's current grade gives
- * way to this one. Each part answers for itself; the item never compares grades on its own.
+ * 筋骨皮肉一格的一档：原生或力道防御蛊炼出。
+ * <ul>
+ *   <li>每格一个闭合枚举，以自身为 {@code G} 实现本接口，占 {@code BodyData} 一格；每档带授予蛊转数，原生 0。</li>
+ *   <li>同族各转连续，{@code /gzr body} 借此按族与转指名一档。</li>
+ *   <li>{@link #canReplace} 是炼体蛊共问的唯一门槛：当前档是否让位于此档；各格自答，物品不自比档。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

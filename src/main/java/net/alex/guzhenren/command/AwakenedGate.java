@@ -8,13 +8,14 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * The awakening [开窍] gate every command that needs an aperture shares: {@link #AWAKENED} refuses a target
- * per player (data protection), {@link #isSourceAwakened} hides a subtree in {@code requires()} (presentation
- * only), and {@link #applyOnAwakened} runs an operation on the awakened targets alone.
+ * 需要空窍[Aperture]的命令共用的开窍[Awakening]门槛。
  *
- * <p>It lives with the aperture, not in the command framework, so the framework stays below every feature.
- * ⚠ Anything that flips {@code sourceAwakened} for a player has to call
- * {@code ModCommandSupport.refreshCommands}, or the client keeps the tree it was last sent.
+ * <ul>
+ *   <li>{@link #AWAKENED} 逐玩家拒绝目标，保护数据；{@link #isSourceAwakened} 在 {@code requires()} 隐藏子树，
+ *       只管显示；{@link #applyOnAwakened} 只对已开窍目标执行。</li>
+ *   <li>放在空窍一侧而非命令框架，框架因此低于所有功能。</li>
+ *   <li>⚠ 改变 {@code sourceAwakened} 结果须调 {@code ModCommandSupport.refreshCommands}，否则客户端留着旧命令树。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

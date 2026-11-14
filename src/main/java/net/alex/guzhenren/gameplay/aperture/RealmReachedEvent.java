@@ -5,11 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link ApertureNourishService} raised a stage or rank and wrote the
- * aperture [空窍], carrying the aperture as it stands. Dispatch is synchronous.
- *
- * <p>The nourishing posts and does not know who listens: the realm criterion lives above it, in
- * {@code net.alex.guzhenren.advancement}, and calling up into it would close a dependency cycle.
+ * 境界提升事件：{@link ApertureNourishService} 升阶或升转并写入空窍[Aperture]后同步发布，携带写入后的空窍；温
+ * 养[Nourish]不认识订阅者，境界进度条件在上层 {@code net.alex.guzhenren.advancement}，向上调用会成依赖环。
  *
  * @author Alex
  * @version 1.0.0

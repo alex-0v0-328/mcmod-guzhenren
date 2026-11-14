@@ -11,9 +11,8 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Criterion for the ritual of the first Hope Gu [希望蛊]: an unawakened player holds the ritual to
- * the end and {@link ApertureService#awaken} opens the first aperture. The only fire site is
- * {@code HopeGuItem.apply}, so an awakening granted by command never completes the advancement.
+ * 首只希望蛊[Hope Gu]仪式的进度条件：未觉醒玩家撑完仪式，{@link ApertureService#awaken} 开第一空窍[Aperture]；唯一触发
+ * 点 {@code HopeGuItem.apply}，命令给的开窍[Awakening]不算。
  *
  * @author Alex
  * @version 1.0.0

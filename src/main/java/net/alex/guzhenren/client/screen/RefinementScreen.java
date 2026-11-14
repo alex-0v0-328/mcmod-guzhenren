@@ -20,30 +20,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The refinement [炼蛊] screen: the ring grid, the phase bar, and the recipe picker.
- *
- * <p>Extends {@link net.minecraft.client.gui.screens.inventory.AbstractContainerScreen} for
- * {@link RefinementMenu}. Draws the 5×5 grid (corners cut, the 内圈 in brighter cells inside a gold frame), the
- * craft button in three states, the phase bar, the stone slot, and the recipe picker modal. Ghosts for
- * missing ingredients ({@link RecipeGhosts}) and the pool readings ({@link PoolBars}) are drawn from
- * {@code renderLabels} so the carried item paints last; the buttons and cells are the package's {@link Widgets}, the
- * whole background in one {@link GuiBatch} and the three buttons in another, every sprite before any label. The
- * craft label turns red while the grid is ready but the aperture cannot pay the first second's essence; the button is
- * dead then. The recipe table the screen and its picker read is {@link KnownRecipes},
- * sorted once rather than per frame. The picker modal translates Z to 500 to stay above slot items. In
- * {@link #mouseClicked(double, double, int)}, the open picker swallows every click; only the left button acts on it.
- * Esc closes an open picker, otherwise it goes back to the B panel like the back button.
- *
- * <p>⚠ Every cell position comes from the menu's own helpers, so a drawn cell and the real slot
- * cannot drift apart. Two different pitches are in play; do not reuse the inventory's for the grid.
- *
- * <p>Just past 300 lines: the two buttons, the phase bar, the status line and the picker's input routing all read
- * the same ritual state off the menu.
- *
- * <p>The phase bar empties over the window, then over the gap. The status line is the ring legend until a recipe is
- * picked, then what that pick still wants. The craft button reads 停止 while the ritual runs; the recipe button is dead
- * then, since the grid is locked anyway. The client holds the whole synced recipe table, so the picker needs no
- * packet.
+ * 炼蛊界面。
+ * <ul>
+ *   <li>去四角 5×5 网格，内圈较亮，外套金框；另有三态炼制按钮、阶段条、元石[Primeval Stone]供给槽、蛊方选择器。</li>
+ *   <li>⚠ 格子位置都取菜单自己的辅助方法，画出的格子与真实槽位不错开；有两种格距，网格不沿用背包格距。</li>
+ *   <li>缺料虚影（{@link RecipeGhosts}）和资源池读数（{@link PoolBars}）从 {@code renderLabels} 画，手持物品才最后画；
+ *       按钮和格子用 {@link Widgets}，整块背景一个 {@link GuiBatch}、三个按钮另一个，sprite 全在文字前。</li>
+ *   <li>网格就绪但空窍[Aperture]付不起第一秒真元[Essence]时炼制标签变红、按钮失效；仪式运行时炼制按钮显示「停止」，
+ *       蛊方按钮失效（网格已锁）。</li>
+ *   <li>阶段条先在投石窗口内、再在间隔内走空；状态行未选蛊方时是内外圈图例，选后显示所选蛊方仍缺什么。</li>
+ *   <li>选择器：蛊方表取 {@link KnownRecipes}，只排序一次；客户端持有完整同步蛊方表，不发包；弹窗沿 Z 平移 500，
+ *       压在槽位物品上；打开时 {@link #mouseClicked(double, double, int)} 吞掉所有点击，只有左键作用于选择器；Esc
+ *       先关选择器，否则同返回键回 B 面板。</li>
+ *   <li>刚超 300 行：两个按钮、阶段条、状态行和选择器的输入分派都从菜单读同一份仪式状态。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

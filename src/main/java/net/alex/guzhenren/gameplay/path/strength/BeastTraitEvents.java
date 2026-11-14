@@ -6,10 +6,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * The beast strength traits [兽力特性] that reach a body package below the strength path through its events. Today one:
- * every shield [护盾] is raised with {@link PathStrengthData#getShieldMultiplier} times its points (the stone turtle's
- * [石龟负力] 1.5, so the heavenly mugwort's 180 becomes 270), its length untouched. The body package cannot read the
- * strength record itself: it sits below this one, and a call up would close a package cycle.
+ * 经事件作用到下层肉体包的兽力[Beast Strength]特性。目前一项：护盾点数 × {@link PathStrengthData#getShieldMultiplier}
+ * （石龟 1.5，天蓬蛊[Heavenly Mugwort Gu] 180 → 270），时长不变；肉体包向上读力量记录会成包循环。
  *
  * @author Alex
  * @version 1.0.0

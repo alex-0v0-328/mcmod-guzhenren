@@ -11,16 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One Aperture [空窍]: the vessel a cultivator awakens, and the thing that decides how much essence
- * fits. Leaf record nested inside {@link ApertureData}; immutable; thirteen active components hold rank,
- * stage, essence, paths, distilled essence, pressure, cultivation latches and the second-aperture flag.
+ * 空窍[Aperture]：开窍[Awakening]所得、定真元[Essence]容量的不可变 record，嵌于 {@link ApertureData}。
  *
- * <p>⚠ {@code baseEssence} clamps to {@code [MIN_BASE, MAX_BASE]} (20 to 100) when positive; {@code 0} is
- * reserved for {@code NONE} and {@code 1} to {@code 19} is a hole, not a value. ⚠ The two {@link GuPath} fields
- * are the ONLY active nullables in the data model ({@code writeNullableEnum}). ⚠ {@code second} marks the
- * aperture opened by a Second Aperture Gu, not by Hope Gu -- the LIST position is the awakening order, the
- * flag is the identity.
- * ⚠ The buffer codec ({@code encode}/{@code decode}) is handwritten.
+ * <ul>
+ *   <li>⚠ {@code baseEssence} 为正时夹到 {@code [MIN_BASE, MAX_BASE]}（20 至 100）；{@code 0} 专属
+ *       {@code NONE}，{@code 1} 至 {@code 19} 是空洞而非取值。</li>
+ *   <li>⚠ 两个 {@link GuPath} 是仅有可空字段（{@code writeNullableEnum}）；{@code encode} / {@code decode} 手写。</li>
+ *   <li>⚠ {@code second} 标第二空窍蛊[Second Aperture Gu]所开（非希望蛊[Hope Gu]）：列表位置即开窍序，标记是身份。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

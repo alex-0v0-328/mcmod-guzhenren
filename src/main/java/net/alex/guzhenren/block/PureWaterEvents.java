@@ -13,14 +13,13 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidInteractionRegistry;
 
 /**
- * The two vanilla-water hookups the Pure Water [纯水] cannot reach through its tag: lava meeting it hardens to
- * obsidian (a lava source) or cobblestone (flowing lava), the {@code FluidInteractionRegistry} entry NeoForge
- * keys to the water fluid type, and a dispenser pours the Pure Water Bucket [纯水桶] with the vanilla water
- * bucket's own behavior.
+ * 纯水靠标签够不到的两处原版水挂钩。
  *
- * <p>Annotated {@code @EventBusSubscriber}; both registries are plain maps, so the writes run in
- * {@code enqueueWork} on the main thread. Lava flowing down onto pure water turning to stone needs no entry:
- * vanilla reads that from {@code #minecraft:water}.
+ * <ul>
+ *   <li>岩浆遇纯水（源头成黑曜石，流动成圆石）：NeoForge 把 {@code FluidInteractionRegistry} 这条目绑在水类型上。</li>
+ *   <li>发射器倒纯水桶沿用原版水桶行为；两注册表都是普通映射，写入经 {@code enqueueWork} 在主线程执行。</li>
+ *   <li>岩浆从上方流到纯水上变石头无需条目：原版读 {@code #minecraft:water}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -6,8 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One translated line on a player's action bar, the mod's voice for a use, a menu click or a heartbeat step:
- * {@link #refuse} in red for what did not happen, {@link #inform} in the default color for what did.
+ * 动作栏的一行翻译提示（催动、菜单点击、心跳步骤）：{@link #refuse} 红字报未发生，{@link #inform} 默认色报已发生。
  *
  * @author Alex
  * @version 1.0.0

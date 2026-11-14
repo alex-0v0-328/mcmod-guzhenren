@@ -9,8 +9,7 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 /**
- * A GeckoLib renderer that draws a shared model with one fixed texture, so each entity type of a family gets
- * its own instance. Without the vanilla death tilt the model's own death animation shows as authored.
+ * 共享模型配单一固定贴图的 GeckoLib 渲染器，同族每实体类型各一实例；关闭原版死亡倾倒，模型自带死亡动画原样显示。
  *
  * @author Alex
  * @version 1.0.0

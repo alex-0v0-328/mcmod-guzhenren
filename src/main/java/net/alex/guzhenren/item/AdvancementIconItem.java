@@ -8,18 +8,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 
 /**
- * The Advancement Icon [进度图标]: an item that exists only to carry an advancement's picture.
- *
- * <p>A vanilla advancement icon is an {@link ItemStack}, so the realm [境界] advancements show their numeral
- * through this one item. There is one picture per settable {@link Rank} and {@link Stage}: {@link Stage#NONE}
- * is the bare numeral, every other stage its stage variant. Custom model data {@code 10 × rank + stage}
- * ({@link #getModelData}; Rank III Peak is 34) picks the {@code advancement_icon_<suffix>} model and PNG
- * ({@link #getSuffix}: {@code 3}, {@code 3_peak}); a stack without it shows numeral 0. It sits in no creative
- * tab and is hidden from recipe viewers.
- *
- * <p>⚠ The PNG suffixes follow the art source ({@code aseprite-gzr/numeral/}), so the middle stage is
- * {@code _mid}, not the stage's own name. {@link #icon} refuses a rank outside the settable range, which has
- * no PNG and would silently render as 0.
+ * 进度图标：只为承载进度图片而存在的物品。
+ * <ul>
+ *   <li>原版进度图标是 {@link ItemStack}，境界进度的数字都经本物品显示；每个可设定 {@link Rank}、{@link Stage} 一张图，
+ *       {@link Stage#NONE} 为光数字；不进创造标签页，对配方查看器隐藏。</li>
+ *   <li>模型数据 {@code 10 × rank + stage}（{@link #getModelData}，三转巅峰 = 34）选 {@code advancement_icon_<suffix>}
+ *       模型与 PNG（{@link #getSuffix}：{@code 3}、{@code 3_peak}），无则显示 0。</li>
+ *   <li>⚠ PNG 后缀随美术源 {@code aseprite-gzr/numeral/}，中阶为 {@code _mid} 而非阶段名；{@link #icon} 拒绝范围外转
+ *       数：无 PNG，会静默渲染成 0。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

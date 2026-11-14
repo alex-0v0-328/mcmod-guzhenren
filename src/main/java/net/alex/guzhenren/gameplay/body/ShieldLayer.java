@@ -6,11 +6,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One shield [护盾] layer on {@code ShieldData}: its kind, the points left, the points it was raised with and its
- * end tick.
- *
- * <p>The layer is up while points remain and the game time is short of {@code endTick}; {@code max} is kept only
- * so the HUD can read {@code points / max}.
+ * {@code ShieldData} 的一层护盾：种类、剩余点数、升起点数、结束 tick；点数有余且未到 {@code endTick} 时生效，
+ * {@code max} 只供 HUD 算 {@code points / max}。
  *
  * @author Alex
  * @version 1.0.0

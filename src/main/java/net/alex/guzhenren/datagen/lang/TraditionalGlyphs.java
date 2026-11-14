@@ -4,28 +4,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The Simplified-to-Traditional glyph table behind {@code zh_tw}.
+ * {@code zh_tw} 背后的简转繁字形表。
  *
- * <p>Traditional Chinese [繁中] mostly differs from {@code zh_cn} in glyphs only, so
- * {@link net.alex.guzhenren.datagen.lang.ModLanguageProvider} derives the {@code zh_tw} value of every entry
- * that writes no Traditional rendering of its own through {@link #convert}. The glyphs follow the Taiwan
- * standard (OpenCC {@code s2tw}, so 為 and not 爲); vocabulary stays as written (OpenCC
- * {@code s2twp} would turn 信息 into 資訊, which is a different word).
- *
- * <p>{@link #PAIRS} holds the one-to-one glyphs, {@link #PHRASES} the phrases and
- * {@link #UNCHANGED} the glyphs both scripts share. A token in {@link #PAIRS} or {@link #PHRASES}
- * is its Simplified half followed by its Traditional half (蛊蠱, 冲刷沖刷). {@link #convert} takes
- * the longest token that matches at each position, so a phrase always beats the glyphs inside it.
- *
- * <p>⚠ A glyph with more than one Traditional form in ordinary game text (冲 沖/衝, 制 制/製, 只
- * 只/隻, 准 准/準, 复 復/複/覆, 回 回/迴, 尽 盡/儘, 喂 喂/餵, 舍 舍/捨, 游 游/遊, 斗 斗/鬥, 周 周/週) sits in neither
- * {@link #PAIRS} nor {@link #UNCHANGED} on purpose: it converts only inside a phrase, so every new
- * use has to be decided in context. A glyph whose other form is archaic or never game text (背 is
- * 背包, not 揹包; 尸 is 屍; 万 is 萬) is filed with its usual form.
- *
- * <p>⚠ {@link #convert} throws on a Han glyph it cannot place. A new {@code zh_cn} string with an
- * unseen glyph therefore fails {@code runData} and {@code LangContractTest} at once, instead of
- * shipping a Simplified glyph inside the Traditional file.
+ * <ul>
+ *   <li>简繁大多只差字形：{@link ModLanguageProvider} 对没写繁体的条目经 {@link #convert} 推出 {@code zh_tw}。</li>
+ *   <li>台湾字形（OpenCC {@code s2tw}，作 為 不作 爲）；词汇照写（{@code s2twp} 会把 信息 换词为 資訊）。</li>
+ *   <li>{@link #PAIRS} 一对一字形，{@link #PHRASES} 词组，{@link #UNCHANGED} 简繁同形；token 为简体半段接繁体半段（蛊
+ *       蠱、冲刷沖刷），{@link #convert} 逐位取最长匹配，词组胜过其中单字。</li>
+ *   <li>⚠ 常见游戏文本中一简多繁的字（冲 沖/衝、制 制/製、只 只/隻、准 准/準、复 復/複/覆、回 回/迴、尽 盡/儘、喂 喂/
+ *       餵、舍 舍/捨、游 游/遊、斗 斗/鬥、周 周/週）故意不进 {@link #PAIRS} 与 {@link #UNCHANGED}，只在词组内转换，新用
+ *       法逐个按语境定；另一形古旧或游戏文本不见的（背 是 背包 不是 揹包；尸 屍；万 萬）按常用形归档。</li>
+ *   <li>⚠ {@link #convert} 遇无法归位的汉字抛异常：含新字形的 {@code zh_cn} 字符串让 {@code runData} 与
+ *       {@code LangContractTest} 同时失败，不把简体字发进繁体文件。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

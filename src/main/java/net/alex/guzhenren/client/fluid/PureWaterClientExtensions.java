@@ -6,10 +6,8 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Client rendering of the Pure Water [纯水]: vanilla's water strips multiplied by {@code #9FB4FF} at 170 alpha,
- * baked into the PNGs, so no runtime tint and no biome water color. Underwater fog and the screen overlay stay
- * vanilla water's: the camera reads the {@code #minecraft:water} tag, and {@code EntityMixin} puts the eyes
- * under water.
+ * 纯水客户端渲染：原版水贴图条乘 {@code #9FB4FF}、alpha 170 后烘进 PNG，无运行时着色，不取生物群系水色；水下雾与屏幕覆
+ * 盖层沿用原版水，镜头读 {@code #minecraft:water} 标签，{@code EntityMixin} 判定眼睛在水下。
  *
  * @author Alex
  * @version 1.0.0

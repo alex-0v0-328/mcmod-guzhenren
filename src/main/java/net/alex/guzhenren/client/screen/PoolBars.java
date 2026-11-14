@@ -11,13 +11,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * The pools the refinement screen shows under its grid: essence [真元], distilled essence while there is any, and
- * soul [魂魄], each a {@code value / max} reading over a thin bar. All three ride the synced attachments, so none of
- * them needs a packet; a refinement spends essence and soul every second, and the bars show it.
- *
- * <p>Drawn from the screen's {@code renderLabels}, so coordinates are panel-relative. The bars are the shared
- * {@link Widgets#drawBar}, one {@link SpriteBatch} each. Each of the three readings keeps its text until its value
- * or maximum moves, so a still pool builds nothing per frame.
+ * 炼蛊界面网格下方的资源池条。真元[Essence]、精炼真元（大于 0 才显示）、魂魄三条细条，上方各一行 {@code value / max}；
+ * 随同步附件更新、不发包，炼蛊每秒消耗真元和魂魄即时可见。从 {@code renderLabels} 画，坐标相对面板；条用
+ * {@link Widgets#drawBar}，各一个 {@link SpriteBatch}；读数各自缓存，值或上限变才重建。
  *
  * @author Alex
  * @version 1.0.0

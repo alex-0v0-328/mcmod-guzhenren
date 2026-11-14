@@ -6,17 +6,14 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 
 /**
- * The biome tags this mod declares.
+ * 生物群系标签：各野生蛊族与野兽生成的陆地群系。
  *
- * <p>Tag-key holder (not a DeferredRegister) for the land biomes each wild Gu family and the wild
- * beasts spawn in; where the Spirit Spring [元泉] generates is the sibling mod Gu World's tag.
- * The wild boar tag is deliberately limited to its five forest biomes; the bear tag carries every
- * forest-family biome (the boar's five, the four taigas and the three jungles), the tiger tag
- * the three jungles, the tortoise tag the three savannas and the sparse jungle, the cattle tag the 21
- * biomes whose vanilla spawn tables carry the cow, and the elephant tag the three savannas and the three jungles.
- * The wild Gu lists must NOT collapse to {@code #minecraft:is_overworld} -- that
- * carries the oceans, whose surface sits at sea level where the height check cannot hold a mote off
- * the water.
+ * <ul>
+ *   <li>元泉[Spirit Spring]生成群系归姊妹模组 Gu World 的标签。</li>
+ *   <li>野猪有意只含五个森林；熊含全部森林类：野猪的五个、四针叶林、三丛林。</li>
+ *   <li>虎三丛林；龟三热带草原与稀疏丛林；象三热带草原与三丛林；牛为原版刷牛的 21 个群系。</li>
+ *   <li>⚠ 野生蛊列表不得并成 {@code #minecraft:is_overworld}：其海洋地表在海平面，高度检查无法让野生蛊离水。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

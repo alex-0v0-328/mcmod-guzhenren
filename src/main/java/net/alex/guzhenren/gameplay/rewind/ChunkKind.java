@@ -11,13 +11,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Whether a chunk is land or water to an As Before Gu [如故蛊]: the Mountain As Before Gu [山如故] restores
- * {@link #LAND}, the River As Before Gu [江如故] restores {@link #WATER}, and each refuses the other.
- *
- * <p>Decided by biome, read once at the chunk's middle column on its surface: a biome tagged {@code is_ocean},
- * {@code is_deep_ocean} or {@code is_river} makes the chunk water, anything else land -- so a lake in a plain is
- * land, and a Southern Border [南疆] biome ported with Terralith's tags sorts itself. One read per chunk, no
- * column count.
+ * 如故蛊[As Before Gu]眼中区块的陆地 / 水域分类。山如故[Mountain As Before Gu]还原 {@link #LAND}，
+ * 江如故[River As Before Gu]还原 {@link #WATER}，各拒另一类。每区块只读中心列地表的群系，不数列，故平原湖算陆地，带
+ * Terralith 标签移植的南疆群系自行归类。
  *
  * @author Alex
  * @version 1.0.0

@@ -15,18 +15,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Gu Recipe [蛊方] picker the refinement screen opens over itself: "automatic" first, then every known
- * recipe with its result and base chance, a hover tooltip listing what it needs and costs. Rows are windowed
- * whole, like the B panel's modal, {@link #MAX_ROWS} at a time; the scroll wheel moves the window.
- *
- * <p>{@link #click} returns the menu button the chosen row stands for -- clear for "automatic", or the
- * recipe's index past {@code BUTTON_RECIPE_BASE} -- and the screen sends it. ⚠ It is drawn {@link #Z} out so
- * it clears the item layers below it.
- *
- * <p>It draws in one {@link GuiBatch}, in four passes that keep each row's own order: the popup sprite, every fill,
- * then every result icon (an item flushes on its own), then every text. Rows never overlap, so only the order within
- * a row shows; a row's hover fill and selection outline keep clear of the popup frame. The hover tooltip draws after
- * the batch: a tooltip runs a batch of its own, and batches never nest.
+ * 叠在炼蛊界面上的蛊方选择器。
+ * <ul>
+ *   <li>首行「自动」，其后每个已知蛊方带产物和基础成功率；同 B 面板弹窗按整行开窗，一次 {@link #MAX_ROWS} 行，
+ *       滚轮移窗；悬停提示列出所需材料与消耗，在批次之后画：提示自带一个批次，批次不能嵌套。</li>
+ *   <li>{@link #click} 返回所选行的菜单按钮，界面发送：「自动」为清除，蛊方为 {@code BUTTON_RECIPE_BASE} 加序号。</li>
+ *   <li>⚠ 沿 Z 外移 {@link #Z} 绘制，才能盖过下方物品层。</li>
+ *   <li>一个 {@link GuiBatch} 分四遍画（弹窗 sprite、填色、产物图标（物品自行提交）、文字），每行层序不变；行互不重叠，
+ *       看得出的只有行内层序；悬停填色和选中描边不压弹窗边框。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

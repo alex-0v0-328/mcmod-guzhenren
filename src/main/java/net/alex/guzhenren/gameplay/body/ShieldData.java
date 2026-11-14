@@ -10,12 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The shields [护盾] over the body: one layer per {@link ShieldType}, newest first, the order a hit spends them in.
- * Immutable record attachment keyed {@code shield_data}; {@code ShieldService} is the only writer.
- *
- * <p>{@link #raise} puts a layer on top and drops the older layer of its kind, so a kind never stacks. A layer whose
- * time ran out stays listed until the heartbeat clears it; the totals and {@link #isUp} skip it. The marker effects
- * are only projections.
+ * 肉身护盾：每种 {@link ShieldType} 一层，新者在前即消耗顺序；不可变 record 附件 {@code shield_data}，仅
+ * {@code ShieldService} 写。{@link #raise} 置顶并丢同种旧层，不叠加；超时层留到心跳清除，合计与 {@link #isUp} 跳过它；
+ * 标记效果仅为投影。
  *
  * @author Alex
  * @version 1.0.0

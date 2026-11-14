@@ -24,24 +24,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One refinement [炼蛊] run, ticked by the {@link RefinementMenu} that owns it: windows [窗口] for stones and
- * gaps between them, essence [真元] and soul [魂魄] paid every second, and the settlement at the end. The menu
- * stays the clock -- it calls {@link #advance} from its own {@code broadcastChanges} and {@link #stop} when
- * it closes -- so closing the window still aborts the run by construction.
- *
- * <p>Nothing is consumed until the settlement: success takes the claimed inputs and fills the output; failure
- * takes half of each material and wounds each Gu by a quarter of its health. Every live figure is published
- * into the menu's {@link ContainerData}, because the client cannot match a recipe itself.
- *
- * <p>A sole Gu result inherits the Vital Gu [本命蛊] it ate: bound to that Gu's aperture by kind, never
- * position. When it ate two, the first in slot order whose aperture still exists wins and the other
- * aperture loses its primary path
- * ({@link ApertureService#inheritVital}).
- *
- * <p>Soul is paid from the current pool first, then from {@code maxSoul} at a tenth of the rate, which is
- * what kills. Within a window the supply slot feeds the stones first; outside the window it only tops the
- * essence pool up, never past what the window did not want. A Primeval Elder Gu [元老蛊] that runs dry
- * mid-window is handed back to the bag.
+ * 单次炼蛊运行，由所属 {@link RefinementMenu} 逐 tick 推进。
+ * <ul>
+ *   <li>流程：投元石[Primeval Stone]窗口、窗口间隔、每秒付真元[Essence]与魂魄、末尾结算。</li>
+ *   <li>界面即时钟：{@code broadcastChanges} 调 {@link #advance}，关闭调 {@link #stop}；关窗即中止，由结构保证。</li>
+ *   <li>实时数值发布到界面 {@link ContainerData}，因客户端无法自行匹配蛊方。</li>
+ *   <li>结算前不耗任何东西；成功取走已认领输入、填满产出，失败每种材料取一半、每只蛊扣四分之一生命。</li>
+ *   <li>唯一蛊产物继承所吃本命蛊：按种类绑定到该蛊的空窍[Aperture]，从不按位置；吃两只时，槽位序第一且空窍仍在者胜，
+ *       另一空窍失去主修流派（{@link ApertureService#inheritVital}）。</li>
+ *   <li>魂魄先扣当前值，不足部分按十分之一扣 {@code maxSoul}，致死即在此步。</li>
+ *   <li>窗口内补给格先供本窗元石、余下补真元池，窗口外只补真元池；元老蛊[Primeval Elder Gu]中途耗尽即退回背包。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

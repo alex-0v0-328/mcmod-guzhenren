@@ -13,18 +13,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Hope Gu [希望蛊]: the one Gu that awakens [开窍] an aperture, through the awakening ritual [开窍仪式] a single
- * click starts.
- *
- * <p>Extends {@link net.alex.guzhenren.item.gu.MortalGuItem} directly, not {@code OneShotGuItem}: it pays no refining
- * and runs no behaviors. The click rolls the aptitude [资质], takes the Gu and hands the rest to
- * {@link AwakeningRitualService}, which holds the player still and awakens them when the flash peaks; danger nearby
- * refuses the click ({@link AwakeningRitualService#isInDanger}). A stack that rolled under the old held ritual still
- * carries that roll in {@link ModDataComponents#AWAKEN_BASE}, and the ritual takes it; creative, which keeps the
- * stack, clears it so a reset can re-roll.
- *
- * <p>⚠ {@code stacksTo(1)}: a data component is shared by the whole stack, so stacking would give 64 copies of one
- * rolled aptitude.
+ * 希望蛊[Hope Gu]：唯一能开窍[Awakening]的蛊，单击启动开窍仪式。
+ * <ul>
+ *   <li>直接继承 {@link MortalGuItem} 而非 {@code OneShotGuItem}：无炼化、不跑行为；单击掷资质[Aptitude]、收蛊，余下交
+ *       {@link AwakeningRitualService}：定住玩家，闪光达峰时开窍；附近有危险则拒绝
+ *       （{@link AwakeningRitualService#isInDanger}）。</li>
+ *   <li>旧按住式仪式所掷堆叠仍在 {@link ModDataComponents#AWAKEN_BASE} 存值，仪式沿用；创造模式留堆叠，故清除供重
+ *       掷。</li>
+ *   <li>⚠ {@code stacksTo(1)}：数据组件整堆共享，可堆叠即 64 份同一资质。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

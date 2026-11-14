@@ -23,36 +23,25 @@ import yesman.epicfight.network.server.SPCreateTerrainFracture;
 import yesman.epicfight.registry.entries.EpicFightItems;
 
 /**
- * Seeds Epic Fight's skill-retention rule once per world ({@link EpicFightRuleSeed}), re-reads the stamina
- * modifier whenever the apertures change ({@code ApertureChangedEvent}) or the lifecycle rebuilds a player's
- * derived attributes ({@code PlayerRefreshedEvent}), strips Epic Fight's skill books from mob drops, cracks the
- * ground under a plunge's landing and drops the plunger into the landing crouch, lets go of the Store Strength Gu's [蓄力蛊] charge pose when the server drops
- * the charge on its own ({@link #onCharge}), and throws a second-stage flier [二段飞行] back off the surface it
- * crashed into ({@link #onSecondStageCrash}: the server's crash plays the bounce clip for every client that sees the
- * flier; the flier's own client posts the event too, with a {@code LocalPlayer}, and is left to the server's).
- * Every shield [护盾] laid on a body crosses its arms ({@link #onShieldRaised}: {@code ShieldService#raise} posts the
- * event for every shield kind and every refill, so the clip is wired once here, never per Gu). Every projectile a
- * player throws by hand swings an arm ({@link #onProjectileThrown}: one {@code ProjectileThrownEvent} a Moon Blade
- * [月刃], so each blade plays one throw clip). Every landed use of a mortal Gu [凡蛊] reaches the right hand forward
- * ({@link #onGuUsed}: {@code MortalGuItem} posts {@code GuUsedEvent} from the one step every use ends in, so the
- * generic clip is wired once here and {@link EpicFightIntegration#useGu} leaves out the uses that have a clip of
- * their own). Every server player tick hands the player to
- * {@link EpicFightIntegration#tickMeditation}, which sits the player down and stands them up as nourishing and the
- * awakening ritual start and end ({@link #onPlayerTick}).
- *
- * <p>{@link #onPlungeLanded}: Epic Fight's own terrain fracture, the cracked ring its meteor slam leaves, at the
- * landing with the landing's impact power as its radius ({@code PlungeImpact#getImpactPower}, 2 to 6 blocks), sent to
- * every client tracking the chunk. Only the packet: {@code LevelUtil#circleSlamFracture} would also deal Epic Fight's
- * shockwave damage, and the plunge hurts nothing. The fracture is drawn on the clients alone and changes no block; it
- * goes out before the crater, since a client draws it on the ground below the landing, which the crater removes.
- * The explosion is the landing's sound, so the fracture's own stays off; its debris particles stay on. The same
- * landing plays the landing clip ({@link EpicFightIntegration#landPlunge}): the event is posted only for a landing
- * hard enough to show, so a drop too short to hurt plays none.
- *
- * <p>{@link #onLivingDrops}: the loot modifier {@code guzhenren:no_skill_books} already strips skill books from chest
- * loot, but Epic Fight adds mob drops through its own global loot modifier, and NeoForge applies global loot
- * modifiers in hash order, not pack order, so ours may run first. A player's death drops keep their books: those are
- * inventory, not loot.
+ * Epic Fight 兼容的服务端事件订阅。
+ * <ul>
+ *   <li>每个世界写入一次技能保留规则（{@link EpicFightRuleSeed}）；空窍[Aperture]变化（{@code ApertureChangedEvent}）或
+ *       生命周期重建派生属性（{@code PlayerRefreshedEvent}）时重读耐力修饰符。</li>
+ *   <li>{@link #onCharge}：服务端自行丢弃蓄力蛊[Store Strength Gu]蓄力时放下姿势；{@link #onPlayerTick}：每 tick 交
+ *       {@link EpicFightIntegration#tickMeditation}，随温养[Nourish]、开窍[Awakening]仪式起止坐下起身。</li>
+ *   <li>{@link #onSecondStageCrash}：服务端撞击为所有可见客户端播反弹；二段飞行[Second-Stage Flight]者本人客户端也发此
+ *       事件（带 {@code LocalPlayer}），留给服务端那次。</li>
+ *   <li>护盾、投掷、催动动画只在此接一次：{@link #onShieldRaised} 双臂交叉（{@code ShieldService#raise} 对每种护盾、每
+ *       次补充都发）；{@link #onProjectileThrown} 挥臂（每片月刃一个事件）；{@link #onGuUsed} 右手前伸
+ *       （{@code MortalGuItem} 在凡蛊催动共同收尾发），自带动画的由 {@link EpicFightIntegration#useGu} 排除。</li>
+ *   <li>{@link #onPlungeLanded}：落点放 Epic Fight 地裂（陨石砸地裂纹圈），半径取冲击力
+ *       （{@code PlungeImpact#getImpactPower}，2 到 6 格），发给追踪该区块的客户端，再播落地动画
+ *       （{@link EpicFightIntegration#landPlunge}）；事件只为够重的落地发出。</li>
+ *   <li>只发包：{@code LevelUtil#circleSlamFracture} 还会造成冲击波伤害，而坠击不伤任何东西；地裂只在客户端绘制、不改方
+ *       块，须先于弹坑发出，因其画在弹坑会挖掉的落点下方地面；爆炸即落地音效，地裂音效关、碎屑粒子留。</li>
+ *   <li>{@link #onLivingDrops}：从生物掉落删技能书；{@code guzhenren:no_skill_books} 只清箱子战利品，Epic Fight 经自己
+ *       的全局修改器加生物掉落，NeoForge 按哈希序而非数据包序应用，我们的可能先跑；玩家死亡掉落是背包，保留。</li>
+ * </ul>
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

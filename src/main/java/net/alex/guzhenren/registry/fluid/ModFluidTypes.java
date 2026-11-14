@@ -14,14 +14,13 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * The fluid types: the behavior half of a fluid pair, answering "what does standing in it feel
- * like". The Spirit Spring [元泉] type copies water's feel -- swim, drown, extinguish, push,
- * hydrate farmland, float boats -- and stays on every default the water experience implies,
- * except the one deliberately shut off: two adjacent sources never mint a new source. The Pure Water [纯水]
- * type is NeoForge's water type property for property, dripstone drip into a water cauldron included, with
- * the identity overrides in {@link PureWaterFluidType}.
+ * 流体类型：流体对的行为一半，即「站在里面的感觉」。
  *
- * <p>Both fluid entries of a pair share the one type here; see {@link ModFluids}.
+ * <ul>
+ *   <li>元泉[Spirit Spring]照搬水的手感（游泳、溺水、灭火、推动、润田、浮船）及默认值，仅关两源生新源。</li>
+ *   <li>纯水逐项等同 NeoForge 水类型，含滴水石锥滴入水炼药锅；身份覆盖在 {@link PureWaterFluidType}。
+ *       一对流体的两个条目共用同一类型，见 {@link ModFluids}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

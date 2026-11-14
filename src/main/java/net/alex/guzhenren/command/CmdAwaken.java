@@ -8,15 +8,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * {@code /gzr awaken}: opens an aperture [空窍] without the Gu that normally does it.
+ * {@code /gzr awaken}：绕过通常负责开窍[Awakening]的蛊，直接开出空窍[Aperture]。
  *
- * <p>Sits at the root of the command tree so that {@code /gzr aperture} can carry a single
- * {@code requires()} gate. Delegates to {@link
- * ApertureService#awaken} and then calls {@link
- * net.alex.guzhenren.command.ModCommandSupport#refreshCommands} so the client sees the newly-revealed branches.
- *
- * <p>⚠ The service does not refuse a holder who is already awakened; it appends another one. The gate
- * has to live here, in the caller.
+ * <ul>
+ *   <li>挂在根部，{@code /gzr aperture} 才能只带一个 {@code requires()} 门槛；{@link ApertureService#awaken} 后调
+ *       {@link net.alex.guzhenren.command.ModCommandSupport#refreshCommands}，客户端才见新分支。</li>
+ *   <li>⚠ 服务不拒绝已开窍者，会再追加一个空窍；门槛只能放在调用方，即这里。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

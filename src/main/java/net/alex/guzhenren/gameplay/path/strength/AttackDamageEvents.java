@@ -18,20 +18,14 @@ import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 /**
- * Every moment the attack modifier is recomputed outside the heartbeat. The mod's own writers
- * post {@link PhysiqueChangedEvent}, {@link ExtremePhysiqueChangedEvent} (the physique multiplies the strength
- * capacity, also for a body not yet awakened, which posts no aperture event), {@link StrengthChangedEvent} (and
- * {@link PathEffectEndedEvent} for a strength effect another hand removed),
- * {@link ApertureChangedEvent} (the rank sets the base strength capacity), {@link BodyTemperedEvent} (tendons and
- * bones move the capacity under the attack) and the skin events (a worn skin adds capacity); vanilla's effect
- * events cover the rest, and {@link LivingEquipmentChangeEvent} on the main hand moves the fist-only attack bonus
- * the moment the hand empties or fills. The max health and the knockback resistance have their own subscriber,
- * {@code gameplay.attribute.AttributeEvents}.
- *
- * <p>⚠ Left to the heartbeat alone the attack row would lag by up to a second, which is visible on
- * the panel. ⚠ NeoForge posts the three effect events BEFORE the effect map changes, so
- * {@code refreshAttack} queues the refresh as a {@link TickTask} that runs once the tick's work is done;
- * refreshing inside the event would read the effects as they were.
+ * 攻击修饰在心跳外的即时刷新入口。
+ * <ul>
+ *   <li>订阅原因：体质乘承受力（未开窍[Awakening]肉体也乘，它不发空窍[Aperture]事件）；
+ *       力道效果被他处摘除见 {@link PathEffectEndedEvent}；转数定基础承受力；筋骨、皮改承受力；换主手即时增减拳头加成；
+ *       最大生命与击退抗性另归 {@code gameplay.attribute.AttributeEvents}。</li>
+ *   <li>⚠ 只靠心跳，面板攻击行最多滞后 1 秒。</li>
+ *   <li>⚠ NeoForge 在效果表变化前发三个效果事件，{@code refreshAttack} 故以 {@link TickTask} 延到本 tick 末刷新。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

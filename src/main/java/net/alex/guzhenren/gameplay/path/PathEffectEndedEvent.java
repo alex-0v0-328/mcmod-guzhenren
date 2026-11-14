@@ -5,12 +5,12 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link PathEffectService} drops a path effect [流派效果] from a player, with its
- * marks, naming why: its time ran out, another took its slot, or a caller or a
- * command removed it. A family whose effect leaves something behind when it ends subscribes here.
+ * {@link PathEffectService} 摘掉玩家流派效果后发到游戏事件总线的事件。
  *
- * <p>⚠ The death that wipes a player resets the whole store past the service and posts nothing; a subscriber resets
- * its own state with that death, as every other player value does.
+ * <ul>
+ *   <li>带被摘效果及其道痕[Path Marks]与原因（到期、被顶替、调用方或命令摘除）；结束后要留影响的效果族在此订阅。</li>
+ *   <li>⚠ 清空玩家的死亡绕过服务整体重置存储，不发事件；订阅方随这次死亡自行重置状态，与其他玩家数值一致。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

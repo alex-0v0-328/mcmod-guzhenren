@@ -8,10 +8,7 @@ import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One price in a soul trade: an item, any data, and a count that is not capped at a stack -- a price of three
- * stacks of dirt is one cost of 192.
- *
- * <p>Travels as the item's registry id and the count.
+ * 交易魂交易的一项价格：物品（不论数据）加不受单组上限的数量，3 组泥土即一项 192；按物品注册 ID 与数量传输。
  *
  * @author Alex
  * @version 1.0.0

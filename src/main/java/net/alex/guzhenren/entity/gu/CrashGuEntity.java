@@ -11,27 +11,17 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * A wild crash Gu -- Horizontal Crash Gu [横冲蛊], Vertical Crash Gu [直撞蛊] or Charging Crash Gu [横冲直撞蛊] -- on
- * the rhinoceros beetle model, sharing the boar Gu flight and rest behavior.
- *
- * <p>All four registered variants use this entity class. The registration supplies the caught item,
- * dimensions and attributes; the renderer supplies the variant texture. The model's animation contract is
- * {@code animation.idle} while resting, {@code animation.lift} for 0.8 seconds followed by looping
- * {@code animation.fly}, and {@code animation.land} for 0.8 seconds followed by looping {@code animation.idle}.
- * The exported {@code animation.walk} is intentionally never selected.
- *
- * <p>While flying or landing, a beetle whose horizontal speed has dropped below {@link #HOVER_ENTER_SPEED}
- * blocks per tick loops {@code animation.hover} instead of {@code animation.fly} until it is faster than
- * {@link #HOVER_EXIT_SPEED} again; the gap keeps a beetle near the threshold from flickering between the two.
- * The speed is the client's own per-tick position change, so the choice needs no synchronized state.
- *
- * <p>A hit that leaves a resting beetle alive plays {@code animation.hurt} (0.3 seconds, from the rest pose, so
- * never in flight). With one health point, only a hit below one damage leaves it alive. Death holds
- * {@code animation.death}, which rolls the beetle onto its back where it is -- in the air too -- and
- * {@link #tickDeath} removes it at {@link #DEATH_REMOVE_TICK}: the controller first blends into the death pose
- * for {@code TRANSITION_TICKS} and only then plays the animation's {@link #DEATH_TICKS}, so removing at the
- * animation's own length would cut off the end of the roll. A running lift or land is stopped first so the
- * death starts at once.
+ * 野生横冲系甲虫：横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]、横冲直撞蛊[Charging Crash Gu]。
+ * <ul>
+ *   <li>独角仙模型，飞行歇息同野生豕蛊；四变种共用本类，捕获物、尺寸、属性由注册给，贴图由渲染器给。</li>
+ *   <li>动画约定同 {@link BoarGuEntity}；导出的 {@code animation.walk} 有意不用。</li>
+ *   <li>飞行或降落中水平速度低于 {@link #HOVER_ENTER_SPEED} 格/tick 改循环 {@code animation.hover}，快过
+ *       {@link #HOVER_EXIT_SPEED} 才换回，间隔防闪；速度取客户端每 tick 位移，无需同步。</li>
+ *   <li>歇息受击未死播 {@code animation.hurt}（0.3 秒，飞行不播）；1 点生命，伤害不足 1 才不死。</li>
+ *   <li>死亡先停起降，定格 {@code animation.death} 原地仰翻（空中亦然）；{@link #tickDeath} 在
+ *       {@link #DEATH_REMOVE_TICK} 移除：先过渡 {@code TRANSITION_TICKS} 再播 {@link #DEATH_TICKS}，按动画长度移除会截
+ *       掉末段。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

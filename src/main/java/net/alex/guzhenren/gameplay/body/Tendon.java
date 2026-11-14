@@ -5,12 +5,13 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The body's tendons [筋]: native [原生], or the steel tendons [钢筋] a Steel Tendon Gu leaves for good, rank three
- * or four. Closed vocabulary enum, one slot on {@code BodyData}; permanent, so a respawn keeps it.
+ * 肉身的筋：原生，或钢筋蛊[Steel Tendon Gu]永久留下的三转、四转钢筋；{@code BodyData} 一槽，重生保留。
  *
- * <p>Steel tendons raise the strength capacity [承受力] the body can bring to bear, in strength points [力量点],
- * which {@code StrengthService.getNormalCapacity} adds to the rank's base; the number is this enum's. One family,
- * ordered by declaration: a grade replaces every grade before it and nothing after ({@link #canReplace}).
+ * <ul>
+ *   <li>钢筋加承受力（力量点[Strength Points]），{@code StrengthService.getNormalCapacity} 加到该转基础值，
+ *       数值归本枚举。</li>
+ *   <li>同族按声明顺序，新品阶只替换其前各级（{@link #canReplace}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

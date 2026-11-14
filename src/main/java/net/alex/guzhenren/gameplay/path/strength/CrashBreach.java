@@ -15,30 +15,19 @@ import net.neoforged.neoforge.common.CommonHooks;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The two boars' strength [两猪之力] breaking its way along a Crash Gu dash [横冲 / 直撞 / 横冲直撞]: a body holding
- * the white and the black boar ({@link PathStrengthData#hasTwoBoars}) clears the path its box sweeps before the dash
- * moves it. Epic Fight drives the dash on the owning client and carries most of it in the first two ticks, so the
- * server cannot follow the body and break as it goes: {@link #clear} breaks the whole path on the tick the dash starts,
- * before the animation is sent, and sends the dasher each broken block at once, on the same ordered connection, so
- * the client never meets a block the server already broke.
- *
- * <p>{@link #getBoxes} sweeps the body's box along the level direction, {@link #STEP} blocks at a time, up to the
- * length the caller gives (the dash's {@code CrashDash#getTravel} plus {@link #MARGIN}). A block counts only where its
- * collision shape meets a swept box, so the floor underfoot, a bottom slab stood on and anything without collision
- * (grass, flowers, crops, torches, rails, redstone, fluids) stay. On the ground the box starts one step up
- * ({@code maxUpStep}, at most half the body's height): the floor's edge a step below the feet (a full block beside the
- * dirt path, farmland or soul sand stood on, a slab ahead) is one the dash steps onto, never a block in its way. Each
- * one met breaks when it is
- * {@link #canBreak}: hardness from zero to {@link #MAX_HARDNESS}, no block entity. It breaks as a player's break would
- * reach the world: {@code CommonHooks.fireBlockBreak} (adventure mode, game master blocks and every claim mod's
- * {@code BlockEvent.BreakEvent} can refuse it), spawn protection and the world border through
- * {@code mayInteract}, and its loot dropped as with a bare hand, none in creative. The first block met that cannot
- * break, or whose break is refused, stops the path there: the dash will meet it anyway.
- *
- * <p>⚠ {@link #MAX_HARDNESS} breaks stone, deepslate, planks, logs, glass and the hardness-3 ores (their loot drops)
- * and stops at cobbled deepslate, the deepslate ores, iron blocks and obsidian. The box is 0.6 wide, one column when it
- * runs along one and two when it straddles a block line, so a 24-block dash through soft ground breaks at most about
- * 100 blocks at once.
+ * 两猪之力冲撞的沿路破方块。
+ * <ul>
+ *   <li>冲撞（横冲蛊[Horizontal Crash Gu] / 直撞蛊[Vertical Crash Gu] / 横冲直撞蛊[Charging Crash Gu]）
+ *       由 Epic Fight 在本机推动，前 2 tick 推完大半，服务端跟不上；故 {@link #clear} 在开始那 tick、发动画前破完全路，
+ *       并经同一有序连接立即把破块发给冲撞者，客户端不会撞上已破方块。</li>
+ *   <li>路径长 = {@code CrashDash#getTravel} + {@link #MARGIN}；只算碰撞形状与扫箱相交的方块，脚下地面、所踩下半砖、
+ *       无碰撞方块（草、花、作物、火把、铁轨、红石、液体）不动。</li>
+ *   <li>着地时箱底抬一台阶（≤ 半身高），脚前一步高的边沿（土径、耕地、灵魂沙旁整块，前方台阶）可迈上，不挡路。</li>
+ *   <li>按玩家破坏走，冒险模式、游戏管理方块、领地模组、出生点保护、世界边界都可拒；按空手掉落，创造不掉；
+ *       遇首个不可破或被拒的方块即停，冲撞本身也停在那里。</li>
+ *   <li>⚠ 硬度 ≤ 3 可破石头、深板岩、木板、原木、玻璃、硬度 3 矿石（照常掉落），挡于圆石深板岩、深层矿石、铁块、
+ *       黑曜石；箱宽 0.6，沿列占 1 列，跨格线占 2 列；24 格冲撞穿软地一次最多约破 100 块。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

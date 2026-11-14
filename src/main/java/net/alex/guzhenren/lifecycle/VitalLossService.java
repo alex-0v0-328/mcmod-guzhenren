@@ -14,14 +14,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What losing a Vital Gu [本命蛊] costs its owner: half the soul [魂魄], half of every mind pool [脑海],
- * {@link #LOST_HEALTH_FRACTION} of the current health, and the bound aperture's primary path [主修].
- * {@link #onVitalGuLost} receives the item's {@link VitalGuLostEvent}: it charges an online owner at once
- * and parks the stack in {@link PendingVitalPenalties} for an offline one.
- *
- * <p>{@link #settleOfflineVitalLoss} waits out vanilla's 60-tick spawn invulnerability, which would
- * swallow the 80% hurt, and settles one lost Gu per heartbeat so the next hurt clears the 10-tick
- * hurt cooldown.
+ * 失去本命蛊[Vital Gu]对主人的代价。
+ * <ul>
+ *   <li>魂魄、各脑海池减半，扣当前生命的 {@link #LOST_HEALTH_FRACTION}，清所绑空窍[Aperture]的主修流派。</li>
+ *   <li>{@link #onVitalGuLost} 收 {@link VitalGuLostEvent}：在线即扣，离线存入 {@link PendingVitalPenalties}。</li>
+ *   <li>{@link #settleOfflineVitalLoss} 先等过原版 60 tick 出生无敌（否则吞掉 80% 伤害），每次心跳结算一个，下次伤害才
+ *       越过 10 tick 受伤冷却。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

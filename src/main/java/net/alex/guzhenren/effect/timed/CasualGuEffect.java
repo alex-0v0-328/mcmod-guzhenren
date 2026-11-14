@@ -11,13 +11,11 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Casual Gu [随意蛊] effect: each second for ten seconds it adds a random amount of natural
- * thoughts [念] to the mind ocean [脑海].
- *
- * <p>The truth is the thought path effect [流派效果] ({@code StateEffects.grantThought}); this vanilla effect is its
- * projection, which pulses while it shows and is put back within a second of {@code /effect clear}. One effect, two
- * grades — the amplifier is the rank's tier, and the {@code RANGES} table widens with it. Thoughts land through {@link
- * MindService#addThoughts} tagged {@code NATURAL}.
+ * 随意蛊[Casual Gu]效果：10 秒内每秒给脑海加随机自然念。
+ * <ul>
+ *   <li>投影流派效果 {@code StateEffects.grantThought}（真值）：显示时脉冲，{@code /effect clear} 后 1 秒内补回。</li>
+ *   <li>两档：倍率即转数档位，{@code RANGES} 逐档加宽。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

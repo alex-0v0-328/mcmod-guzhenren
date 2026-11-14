@@ -22,19 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Killing Move Tooltip [杀招提示]: after a killing move [杀招] lands, a panel at the screen's left edge, centered
- * vertically, names the move and gives each Gu it used, main first, one row: its icon, then rank, path and name, and
- * under them its hunger as a bar drawn like vanilla's durability bar (green full, red empty) with {@code x/y}. Rows
- * show the Gu as {@code KillingMoveTooltipPayload} carried them, right after the cast, never live values; a Gu the
- * cast killed draws gray with an empty bar. Registered above the hotbar, its notice handler set at client setup
- * ({@code ClientEvents}).
- *
- * <p>The motion runs on the wall clock: it slides in over {@link #SLIDE_IN_MS}, easing out, stays until
- * {@link #SHOWN_MS} after the cast, then slides out over {@link #SLIDE_OUT_MS}, easing in, while the panel and text
- * fade; the icons only slide. A cast while it shows swaps the rows and restarts the clock without sliding again, and
- * one while it slides out turns it back from where it is ({@link #getEnterElapsed}).
- *
- * <p>The panel is {@link #MIN_WIDTH} GUI pixels wide, wider only when a row or the title needs it.
+ * 杀招[Killing Move]命中后屏幕左缘垂直居中的提示面板。
+ * <ul>
+ *   <li>标题为招名；所用蛊每只一行、主蛊在前：图标、转数、道[Path]、名称，下附耐久条式饱食[Hunger]条（满绿空红）与
+ *       {@code x/y}；内容是 {@code KillingMoveTooltipPayload} 施放即刻的快照，施放中耗死的蛊画灰、条空。</li>
+ *   <li>注册在快捷栏上，通知处理器在客户端初始化时设（{@code ClientEvents}）；宽 {@link #MIN_WIDTH} GUI 像素，
+ *       不够才加宽；按墙钟 {@link #SLIDE_IN_MS} 缓出滑入，停至施放后 {@link #SHOWN_MS}，{@link #SLIDE_OUT_MS}
+ *       缓入滑出并淡出（图标只滑）；滑出中再施放则原位折回（{@link #getEnterElapsed}），显示中再施放则换行、重计时、
+ *       不重滑。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -81,14 +77,14 @@ public final class KillingMoveTooltipHud {
         panel = null;
     }
 
-    /** How far the panel sits off screen: 0 in place, 1 fully hidden. */
+    /** 面板移出屏幕的比例：0 在原位，1 完全隐藏。 */
     static float getOffset(long sinceEnter, long sinceCast) {
         float entering = 1.0F - clamp(sinceEnter / (float) SLIDE_IN_MS);
         float leaving = clamp((sinceCast - SHOWN_MS) / (float) SLIDE_OUT_MS);
         return Math.max(entering * entering * entering, leaving * leaving * leaving);
     }
 
-    /** The time into the slide-in that leaves the panel at {@code offset}, so a turn back never jumps. */
+    /** 滑入进行到面板恰在 {@code offset} 处的时长，折回时不跳变。 */
     static long getEnterElapsed(float offset) {
         return Math.round((1.0D - Math.cbrt(clamp(offset))) * SLIDE_IN_MS);
     }
@@ -173,7 +169,7 @@ public final class KillingMoveTooltipHud {
         return line.append(stack.getHoverName());
     }
 
-    /** One notice's text and width, measured on its first frame rather than every frame it shows. */
+    /** 一条通知的文字与宽度，首帧测量一次，不逐帧测。 */
     private record Panel(KillingMoveTooltipPayload notice, Component title, List<Row> rows, int width) {
 
         static Panel of(KillingMoveTooltipPayload notice, Font font) {
@@ -189,7 +185,7 @@ public final class KillingMoveTooltipHud {
         }
     }
 
-    /** {@code counter} is the hunger as {@code x/y}, null for a Gu without hunger, which draws no bar. */
+    /** {@code counter} 为 {@code x/y} 形式的饱食[Hunger]；无饱食的蛊为 null，不画条。 */
     private record Row(ItemStack stack, boolean spent, Component line, float fraction, @Nullable String counter) {
 
         static Row of(KillingMoveService.Used gu) {

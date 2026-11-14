@@ -29,55 +29,34 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A tended Gu [需照顾]: wild, then refined [炼化], then fed and used, all on one shared state record, so the
- * host stacks it to one ({@code Item.Properties} is the host's, never the registration's). The
- * lifecycle host of every Gu that needs refining and feeding: its {@link GuBehavior}s answer {@code checkEffect} /
- * {@code applyEffect} and any limit they bend, or a leaf with a lifecycle of its own overrides them; it owns the
- * charge ladder, channeling [灌注] and billing. Hunger and the meals from the bag are {@link GuHunger}, health
- * {@link GuHealth}, cooldown stamps {@link GuCooldowns}, the day-rollover walk {@link GuUpkeep}, the channeling
- * quota {@link GuChanneling}, the long cooldown {@link GuRefineCooldown}.
- *
- * <p>Still past 300 lines on purpose: what is left is the vanilla {@code Item} overrides and the hooks its
- * behaviors answer, and channeling is this item's own {@code onUseTick}, which {@code GuChanneling} serves with the
- * numbers and the pour but cannot own: it drives the meal, the payment and the effect.
- *
- * <p>⚠ A refined Gu feeds itself from the holder's bag through one meal, {@link #feed} (every slot, offhand
- * included; it mends first, fills the bar only once whole, and runs only while the bar has room), at two moments:
- * before a use, and right after every drop, back to full. The drops are a use ({@link #drive}), a partner's bill
- * ({@link #billAsPartner}), each channel step, the day clock ({@link GuUpkeep}, carried or kept in an aperture,
- * which also eats before its drain) and the Little Light Gu's switch-on; nothing else eats, so a full bar never
- * eats just to mend. Food never routes a
- * click, so there is no feeding gesture; a channeled Gu at its hunger floor is refused only when the bag holds none
- * of its food ({@link GuHunger#carriesFood}). ⚠ Creative ignores the floor: the bar still drains to 0 for show, and
- * the Gu keeps channeling, as a forced use there never exhausts it.
- *
- * <p>⚠ A use short of hunger after the bag's meal ({@code GuHunger.isShortOfUse}, the hunger multiplier included)
- * is forced only on confirmation ({@link GuForcedUse}): the first {@code drive} warns in red and pays nothing, and
- * answers {@code WARNED}, on which {@code spend} puts no cooldown; the same Gu used again within five seconds is
- * forced ({@code trySpendAndApply}): the effect lands, then the Gu dies of exhaustion, and the 1 that {@code drive}
- * returns is that death, not a payout; a behavior may defer that death to the end of its round
- * ({@code GuBehavior.defersForcedDeath}). A Vital Gu is only refused, never forced; creative is never warned and never
- * dies; {@link #tryAutoUse} skips a short use in silence. {@link #billAsPartner} is the one bill for a Gu that only
- * backs another's use (the Amplify Effect Gu [功倍蛊], a killing move's [杀招] partner): its essence, the meals around
- * it, and on an empty bar the same death, after the use it backed.
- *
- * <p>⚠ Refining and channeling advance one step every {@code GuChanneling.STEP_TICKS}, at the two paces {@link
- * GuChanneling} keeps apart. Every essence this Gu pays goes out through {@code PrimevalStoneSupply.pay}; a step is
- * sized from the pool, so it first tops up to at least {@code GuChanneling.ESSENCE_FLOOR} ({@code topUpFor}), and a
- * channel step eats before it sizes the essence, because the step is capped by the essence above the hunger floor,
- * which the meal raises.
- *
- * <p>⚠ {@link #canBeVital}: a Gu taken by its own use may never be bound, or the slot would lose it on
- * the very first click. Gu health is {@link GuHealth}, 4 x rank + 4 from the properties.
- *
- * <p>{@code announceDeath} is the one death funnel ({@link #starve}, {@link #exhaust}, {@link #ruin}) and the
- * only poster of {@link VitalGuLostEvent}; a new way for a Gu to die goes through it.
- *
- * <p>{@link #isRefining} and {@link #isChanneling} read a player's held use of a tended Gu, a wild one or a refined
- * channeled one, off the use item, which the server and every client that sees the player know; the Epic Fight
- * bridge picks the refining hold and the channeling seat by them.
- *
- * <p>Refining is paid in instalments; what it buys is a lasting bond.
+ * 持续照顾型蛊[Tended Gu]：需炼化、进食之蛊的生命周期宿主。
+ * <ul>
+ *   <li>野生、炼化、进食与催动共用一条状态 record，故堆叠上限 1（{@code Item.Properties} 归宿主，不归注册）。</li>
+ *   <li>{@link GuBehavior} 应答 {@code checkEffect} / {@code applyEffect} 及放宽的限制；自有生命周期的子类覆写。</li>
+ *   <li>本类管蓄力阶梯、灌注[Channel]、扣费；饱食[Hunger]与进食归 {@link GuHunger}，生命 {@link GuHealth}，冷却戳
+ *       {@link GuCooldowns}，日切 {@link GuUpkeep}，定额 {@link GuChanneling}，长冷却 {@link GuRefineCooldown}。</li>
+ *   <li>⚠ 已炼化的蛊只经 {@link #feed} 自喂（规则见 {@link GuHunger}）：催动前，及每次扣量后补满。扣量来自催动
+ *       （{@link #drive}）、搭档（{@link #billAsPartner}）、灌注每步、日时钟（{@link GuUpkeep}，
+ *       随身或在空窍[Aperture]，扣前也进食）、小光蛊[Little Light Gu]开启；别处不进食。</li>
+ *   <li>食物不走点击路由，无喂食手势；在饱食下限的灌注类蛊仅当背包无其食物才被拒（{@link GuHunger#carriesFood}）。</li>
+ *   <li>⚠ 创造模式忽略下限：条仍降到 0 作展示，蛊照常灌注，因创造下强行催动从不力竭。</li>
+ *   <li>⚠ 进食后付不起饱食（{@code GuHunger.isShortOfUse}，含倍数）须经 {@link GuForcedUse}
+ *       确认才强行催动[Forced Use]：首次 {@code drive} 红字警告、不付代价、返回 {@code WARNED}（{@code spend}
+ *       据此不加冷却）；五秒内再催即强行（{@code trySpendAndApply}），蛊在效果后力竭，{@code drive} 返回的 1
+ *       即此死而非产出；行为可推到该轮末（{@code GuBehavior.defersForcedDeath}）。</li>
+ *   <li>本命蛊只拒不强行；创造模式不警告不死亡；{@link #tryAutoUse} 静默跳过不足的催动。</li>
+ *   <li>{@link #billAsPartner} 是后援蛊（功倍蛊[Amplify Effect Gu]、杀招[Killing Move]搭档）唯一扣费：付真元[Essence]、
+ *       前后进食；空条同样死，死在所援催动后。</li>
+ *   <li>⚠ 真元都经 {@code PrimevalStoneSupply.pay} 支出，每步先补到至少 {@code GuChanneling.ESSENCE_FLOOR}
+ *       （{@code topUpFor}）再定量；灌注步先进食以抬高封顶。炼化分期付款，换长久羁绊。</li>
+ *   <li>{@link #isRefining}、{@link #isChanneling} 读使用中物品，服务端与看得见该玩家的客户端皆知其是否按住炼化或灌注；
+ *       Epic Fight 桥接据此选炼化按住与灌注坐姿。</li>
+ *   <li>⚠ {@link #canBeVital}：催动即消耗的蛊不可作本命，否则首点即失。</li>
+ *   <li>{@code announceDeath} 是唯一死亡漏斗（{@link #starve}、{@link #exhaust}、{@link #ruin}），也是
+ *       {@link VitalGuLostEvent} 唯一发布方；新死法须经它。</li>
+ *   <li>有意超 300 行：余为原版 {@code Item} 覆写与行为钩子；灌注即本物品的 {@code onUseTick}，驱动进食、付费与效果，
+ *       {@code GuChanneling} 只供数值，持有不了它。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -309,7 +288,7 @@ public class TendedGuItem extends MortalGuItem {
         return 0;
     }
 
-    /** True when a use short of hunger stops here: warned, or refused outright for a Vital Gu. */
+    /** 饱食[Hunger]不足的催动在此停下时为 true：已警告，或本命蛊直接拒。 */
     protected final boolean stopsShortUse(ServerPlayer player, ItemStack stack) {
         return isShortOfUse(player, stack) && !confirmForcedUse(player, stack);
     }
@@ -344,7 +323,7 @@ public class TendedGuItem extends MortalGuItem {
         return getModules().stream().anyMatch(behavior -> behavior.defersForcedDeath(this, player, stack));
     }
 
-    /** Pays one use backing another Gu's effect, with none of its own: false only when pool and stones cannot. */
+    /** 为他蛊效果付一次后援催动，自身无效果；真元[Essence]池与元石[Primeval Stone]都不足才为 false。 */
     public final boolean billAsPartner(ServerPlayer player, ItemStack stack) {
         if (!PrimevalStoneSupply.pay(player, guProperties.getEssencePerRound())) return false;
 
@@ -401,13 +380,13 @@ public class TendedGuItem extends MortalGuItem {
 
     protected void feed(ServerPlayer player, ItemStack stack) { hunger.feed(this, player, stack); }
 
-    /** The meal right after a drop, then the hungry warning when the next day rollover would kill it. */
+    /** 扣量后立即进食；下次日切会饿死它时再发饥饿警告。 */
     protected final void feedAndWarn(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
         if (isHungry(player, stack)) announce(player, stack, MSG_HUNGRY);
     }
 
-    /** Takes {@code points} off the hunger bar for a cost that is no use (a killing move's start); false when short. */
+    /** 为不算催动的开销（杀招[Killing Move]启动）从饱食[Hunger]条扣 {@code points}；不足时为 false。 */
     public final boolean takeHunger(ItemStack stack, int points) {
         RefinedGuState state = getState(stack);
         if (state.hunger() < points) return false;

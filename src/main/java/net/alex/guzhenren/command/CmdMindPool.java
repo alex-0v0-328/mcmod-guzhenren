@@ -8,14 +8,11 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * The mind pool cells under {@code /gzr mind wisdom}, spelled out one literal at a time.
+ * {@code /gzr mind wisdom} 下各池节点：每种 {@link MindPoolType} 一个，写入全交给 {@link MindService}。
  *
- * <p>Iterates {@link MindPoolType} and builds a cell per type,
- * each offering {@code current}/{@code max} with {@code set}/{@code add}/{@code sub}/{@code refill}.
- * All writes delegate to {@link MindService}.
- *
- * <p>⚠ Each pool keeps its own literal rather than becoming a value of one enum argument: a settled pool name is
- * never traded for a generic parameter.
+ * <ul>
+ *   <li>⚠ 每池保留自己的字面量，不并成一个枚举参数：已定的池名不换成泛化参数。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

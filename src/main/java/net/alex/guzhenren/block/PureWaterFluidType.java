@@ -15,13 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Pure Water [纯水] fluid type: NeoForge's water type, copied property for property by
- * {@code ModFluidTypes}, plus the overrides that type answers through its own identity.
- *
- * <p>NeoForge asks "is this the water type?" in a handful of places a tag cannot reach -- who swims, who drowns,
- * who dismounts under the surface -- so each is answered here the way water answers it: entities sensitive to
- * water cannot swim, entities that breathe underwater never drown, and a vehicle that dismounts underwater
- * does so in pure water too. Source conversion follows the {@code waterSourceConversion} game rule.
+ * 纯水流体类型：{@code ModFluidTypes} 逐项复制 NeoForge 水类型属性，再补水类型凭身份回答的覆写。NeoForge 在标签够不到处
+ * 问“是不是水类型”（谁能游、谁溺水、谁在水下下坐骑），这里都按水答：怕水的不能游，能水下呼吸的不溺水，水下卸乘客的载具
+ * 在纯水里同样卸；源头转化跟随 {@code waterSourceConversion} 游戏规则。
  *
  * @author Alex
  * @version 1.0.0

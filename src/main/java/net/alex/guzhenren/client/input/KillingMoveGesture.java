@@ -6,12 +6,12 @@ import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What one hold of a moon blade Gu's [月刃] use key sends, kept free of game state so plain JUnit covers it: the
- * radial menu's calls in, the payload's move id out.
- *
- * <p>A release before the ring opens (a tap) sends {@link KillingMoveService#PLAIN}, the plain blade. A hold the menu
- * found no usable killing move [杀招] for ({@link #empty}) sends nothing, although the menu reports its release
- * through the same {@link #releaseUnopened}. A pick sends the id {@link #list} put at that sector.
+ * 月刃蛊一次按住使用键的发送内容；不碰游戏状态，纯 JUnit 可测。
+ * <ul>
+ *   <li>轮盘回调进、payload 招式 id 出；轻点（弹出前松开）发普通月刃 {@link KillingMoveService#PLAIN}；
+ *       无可用杀招[Killing Move]（{@link #empty}）不发，虽轮盘同样经 {@link #releaseUnopened} 报松开；选中发
+ *       {@link #list} 在该扇区放的 id。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -10,15 +10,14 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The Ten-Extremes [十绝] physiques and the body tables that hang off each of them.
+ * 十绝体质及其肉身数值表。
  *
- * <p>The concrete physique is stored on {@code BodyData}; the aperture keeps only the base-essence
- * value that identifies the top aptitude grade. {@link #getCapacityMultiplier} scales the rank's base strength
- * capacity [承受力] ({@code StrengthService.getBaseCapacity}): a mortal body 1, a ten-extreme body 2, the Great
- * Strength True Martial body 4; it never touches what tempering adds.
- *
- * <p>⚠ The birth die skips {@code PURE_DREAM_REALITY_SEEKER}: it translates and is settable but can
- * never be rolled.
+ * <ul>
+ *   <li>具体体质存 {@code BodyData}；空窍[Aperture]只存标识最高资质[Aptitude]档的基础真元[Essence]值。</li>
+ *   <li>{@link #getCapacityMultiplier} 缩放该转基础承受力（{@code StrengthService.getBaseCapacity}）：凡体 1，十绝体
+ *       2，大力真武体 4；不影响淬炼所加。</li>
+ *   <li>⚠ 出生骰跳过 {@code PURE_DREAM_REALITY_SEEKER}：有翻译、可设置，永不掷出。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

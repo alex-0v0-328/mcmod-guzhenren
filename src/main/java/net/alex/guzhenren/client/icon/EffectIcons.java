@@ -8,11 +8,11 @@ import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Which effect wears which icon: one table, so the client entry point only hands each pair to NeoForge
- * ({@code GuzhenrenClient}).
- *
- * <p>{@link #forEach} walks the table in a fixed order, one icon per effect handle: an {@link EffectIconLayout}, or a
- * {@link NoEffectIcon} for an effect shown without one.
+ * 效果与图标的对照表。
+ * <ul>
+ *   <li>集中一处，客户端入口类（{@code GuzhenrenClient}）只把每对交给 NeoForge；{@link #forEach} 按固定顺序遍历，
+ *       每个效果句柄一个图标：{@link EffectIconLayout}，无图标的用 {@link NoEffectIcon}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

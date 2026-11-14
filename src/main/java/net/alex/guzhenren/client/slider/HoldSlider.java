@@ -22,27 +22,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The hold slider [长按滑条]: a held input raises a horizontal slider under the crosshair, sideways mouse movement
- * picks a value from {@code 0} (cancel) to the owner's top, and letting go picks it. The radial menu's
- * ({@link RadialMenu}) one-value sibling; the Primeval Elder Gu [元老蛊] is its owner.
- *
- * <p>One hold runs at a time ({@link #hold}), and never beside a radial menu's. It opens after
- * {@link RadialMenu#OPEN_DELAY_TICKS} held ticks, so a tap never shows it; the top is read once at that moment and
- * stays fixed until release. It opens on {@code 1}. Letting go on {@code 1} or more calls {@link Owner#pick}; on
- * {@code 0} nothing happens. A top of {@code 0} calls {@link Owner#empty} once and waits out the hold, and letting
- * go then calls nothing: the hold already meant the slider. Letting go before it opens calls
- * {@link Owner#releaseUnopened}. A screen opening or a logout drops the hold with no call.
- *
- * <p>⚠ As with the radial menu, a hold also ends when {@link Owner#isHeld} turns false for any other reason, and
- * {@code pick} is called all the same, so an owner that sends anything checks its item is still in hand first.
- *
- * <p>⚠ While it is open the camera stands still and the walk keys still work: {@code MouseHandlerMixin} hands the
- * horizontal mouse movement to {@link #steer}, in screen pixels, which moves an unseen cursor along the
- * {@link #TRACK_WIDTH}-pixel track, split evenly among the {@code top + 1} values. While a hold runs no interaction
- * key reaches the world and the wheel neither scrolls the hotbar nor moves the slider.
- *
- * <p>⚠ The track is the {@code slider} {@link HudBar} and the knob the {@code hud/slider_knob} sprite, both unscaled;
- * {@code HudBarTexturesTest} pins them to {@link #TRACK_WIDTH}, {@link #TRACK_HEIGHT} and the knob size.
+ * 长按滑条：按住时在准星下方弹出的横向单值选择器。
+ * <ul>
+ *   <li>扇形选择器（{@link RadialMenu}）的单值版，元老蛊[Primeval Elder Gu]是其调用方；同一时间只跑一个长按
+ *       （{@link #hold}），不与扇形选择器的长按并存。</li>
+ *   <li>按住 {@link RadialMenu#OPEN_DELAY_TICKS} tick 后弹出，轻点不弹；弹出时停在 {@code 1} 并读一次上限。</li>
+ *   <li>鼠标横移在 {@code 0}（取消）到调用方上限间选值，松开选定：{@code 1} 及以上调 {@link Owner#pick}，{@code 0}
+ *       什么也不做；弹出前松开调 {@link Owner#releaseUnopened}；上限为 {@code 0} 时调一次 {@link Owner#empty}
+ *       后等长按结束，松开不再调用（已算作滑条操作）；打开界面或登出时丢弃长按，不调任何回调。</li>
+ *   <li>⚠ 同扇形选择器：{@link Owner#isHeld} 因故变 false 也结束长按并调 {@code pick}；发包调用方须确认物品在手。</li>
+ *   <li>⚠ 弹出期间镜头不动、移动键照常：{@code MouseHandlerMixin} 把横向鼠标位移（屏幕像素）交给 {@link #steer}，
+ *       推隐形光标沿 {@link #TRACK_WIDTH} 像素轨道走，按 {@code top + 1} 个值均分；长按期间交互键不入世界，
+ *       滚轮不滚快捷栏、不动滑条。</li>
+ *   <li>⚠ 轨道是 {@code slider} {@link HudBar}，旋钮是 {@code hud/slider_knob} sprite，
+ *       均不缩放；{@code HudBarTexturesTest} 把它们钉在 {@link #TRACK_WIDTH}、{@link #TRACK_HEIGHT} 和旋钮尺寸上。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

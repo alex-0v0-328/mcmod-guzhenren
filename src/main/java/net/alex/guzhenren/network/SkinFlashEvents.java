@@ -8,8 +8,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * Forwards {@link SkinWornEvent} to the wire: the body posts, this class sends the
- * {@link SkinFlashPayload} to the player and everyone tracking them.
+ * {@link SkinWornEvent} 转发：身体侧发事件，本类发 {@link SkinFlashPayload} 给该玩家及所有追踪者。
  *
  * @author Alex
  * @version 1.0.0

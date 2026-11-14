@@ -4,19 +4,15 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What a Beast Charge [兽力冲击] hits for: the strength its own family adds to the body, never the punch's. Each
- * charge counts its family's permanent points [力量点] ({@link PathStrengthData#getBeastPoints}) times a release
- * factor, one for a family only shown or drawn at random, and is worth {@link #ATTACK_PER_POINT} attack a point,
- * twice the fist's {@link PathStrengthData#ATTACK_PER_POINT}.
- *
- * <p>The Strength Qi Gu's [力气蛊] ranged punch counts a family the round fully releases [全面解放]
- * {@link StrengthService#FULL_RELEASE_FACTOR} times and cuts the charges' summed points to the current capacity
- * [承受力], All-Out Effort's [全力以赴] lift included, each charge keeping its share: a rank five bear alone hits for
- * 10.0, released 14.0, released under the rank five All-Out Effort 30.0. The charged punch [蓄力一拳] counts a family
- * its charge releases {@code StoreStrength.CHARGED_RELEASE_FACTOR} times and cuts nothing ({@link #UNCAPPED}): the
- * bear's 120.0; its impact backlash still reads the punch's own points.
- *
- * <p>⚠ {@link #ATTACK_PER_POINT} is Alex's number and provisional.
+ * 兽力冲击伤害：按自身兽种的力量，不按拳。
+ * <ul>
+ *   <li>每只 = 兽种永久力量点[Strength Points] × 解放倍数（仅出形或随机补出为 1）× {@link #ATTACK_PER_POINT}。</li>
+ *   <li>力气蛊[Strength Qi Gu]远程拳：全面解放 × {@link StrengthService#FULL_RELEASE_FACTOR}，总点数截到当前承受力（含
+ *       全力以赴）按比例分摊；五转单熊 10.0，解放 14.0，五转全力以赴解放 30.0。</li>
+ *   <li>蓄力一拳：解放 × {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不截断（{@link #UNCAPPED}），熊 120.0；
+ *       冲击反噬按该拳自身点数。</li>
+ *   <li>⚠ {@link #ATTACK_PER_POINT}（拳头的 2 倍）为 Alex 暂定值。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

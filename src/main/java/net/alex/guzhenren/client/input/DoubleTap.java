@@ -1,11 +1,11 @@
 package net.alex.guzhenren.client.input;
 
 /**
- * Pure double-tap detection over client ticks, kept free of game state so plain JUnit covers it.
- *
- * <p>{@link #press} reports a double tap when the previous press came at most {@link #windowTicks} ticks earlier,
- * then forgets both, so a third quick press starts a new pair instead of toggling again. {@link #reset} forgets a
- * press that is waiting for its partner.
+ * 以客户端 tick 计的纯双击判定，不碰游戏状态，纯 JUnit 可测。
+ * <ul>
+ *   <li>{@link #press}：距上次按下不超过 {@link #windowTicks} tick 即报双击并忘掉两次，第三次快按开始新一对而不再切换；
+ *       {@link #reset} 忘掉待配对的按下。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

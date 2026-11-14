@@ -14,11 +14,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Hardship Strength behavior [苦力]: an auto state ({@link AutoUseBehavior}) that starts under 75% of max health
- * on a body holding a permanent human jun [人力钧力流] or beast phantom [兽力虚影流] strength whose normal capacity
- * [常态承受力] gains at least one point at the lightest tier -- less would be billed for nothing -- and runs for a
- * {@link #DURATION_SECONDS} window whatever the health does meanwhile (at 75% and above it lends nothing). What it
- * lends, tier by tier, is {@link HardshipStrength}'s.
+ * 苦力蛊[Hardship Strength Gu]的行为：自动状态（{@link AutoUseBehavior}）。
+ * <ul>
+ *   <li>低于最大生命 75% 开启，需持永久人力钧力流或兽力虚影流，且常态承受力在最轻档至少多 1 点（再少就白付费）。</li>
+ *   <li>窗口 {@link #DURATION_SECONDS} 秒，不随血量变化，75% 及以上不借力；各档借多少见 {@link HardshipStrength}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

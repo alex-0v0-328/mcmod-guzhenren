@@ -20,23 +20,18 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An As Before Gu [如故蛊]: a Time Path [宙道] Gu that puts something back the way it was. The middle class of the
- * three -- {@link ManAsBeforeGuItem} puts the carrier's body back a day, {@link TerrainAsBeforeGuItem} puts the land
- * or the waters around him back to the bare landform the world first generated -- owning what they share: the bar
- * that refills with the world clock, the body's memory that records only while a refined Man As Before Gu is carried,
- * and the refusals.
- *
- * <p>Extends {@link TendedGuItem} on a {@link GuHunger.RecoverBar}: never fed, never starves, and a use short of its
- * points is warned, then forced, like any use short of hunger ({@code TendedGuItem.drive}). {@link #remember} is the
- * heartbeat's step: once per {@code RewindClock.INTERVAL_TICKS} of game time, a carrier of a refined Man As Before Gu
- * has his body recorded. Carried means the bag, an aperture's store or a Vital [本命] slot. The land needs no memory:
- * the seed is it.
- *
- * <p>⚠ The client never holds the body's memory (it is not synced), so every gate on them runs for a {@code
- * ServerPlayer} only and the client-side gate passes. ⚠ The bar is settled on the server right before a use is
- * checked short and spends ({@link #performOwnUse}), never in a gate: a gate runs on the client too, and a client
- * write to the stack is a lie the server has to undo. A spend from a full bar restarts the stamp at the spend, since
- * a full bar's stamp is stale ({@code GuHunger.RecoverBar}).
+ * 如故蛊[As Before Gu]：把东西恢复原样的宙道蛊。
+ * <ul>
+ *   <li>三者中间类：{@link ManAsBeforeGuItem} 把携带者身体回退一天，{@link TerrainAsBeforeGuItem} 把周围陆地或水域回退
+ *       到初次生成的裸地形；共用饱食[Hunger]条、身体记忆和拒绝提示。</li>
+ *   <li>持续照顾型蛊[Tended Gu]，饱食条为随世界时钟回复的 {@link GuHunger.RecoverBar}，不补食、不饿死；点数不足时同
+ *       其他饱食不足的催动，先警告再强行催动[Forced Use]（{@code TendedGuItem.drive}）。</li>
+ *   <li>⚠ 条只在服务端、判不足并扣点前结算（{@link #performOwnUse}），不在门槛里：门槛客户端也跑，客户端写物品堆是
+ *       服务端还得撤销的假象；满条扣点把时间戳重置到扣点时，因满条时间戳已过时（{@code GuHunger.RecoverBar}）。</li>
+ *   <li>随身（背包、空窍[Aperture]存储或本命格）带已炼化人如故[Man As Before Gu]时，{@link #remember} 随心跳每
+ *       {@code RewindClock.INTERVAL_TICKS} 记一次身体；土地无需记忆，种子即记忆。</li>
+ *   <li>⚠ 客户端不持有身体记忆（不同步），相关门槛只对 {@code ServerPlayer} 运行，客户端放行。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

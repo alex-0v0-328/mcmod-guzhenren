@@ -12,11 +12,9 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * Maps the synchronized actions of an {@link ActionEntity} onto GeckoLib 4's transition and playback clocks.
- *
- * <p>In {@link #process}, once a non-looping animation reaches {@code State.TRANSITIONING} with a
- * current animation, GeckoLib polls at transition tick zero, so it initializes then seeks in the
- * same frame -- otherwise a late tracker either has no pose or briefly displays the first frame.
+ * {@link ActionEntity} 的 GeckoLib 4 动画控制器：同步动作映射为过渡与播放时钟；非循环动画带当前动画进
+ * {@code State.TRANSITIONING} 时 GeckoLib 于过渡 tick 0 轮询，故 {@link #process} 同帧先初始化再定位，免迟到的追踪者无
+ * 姿态或闪首帧。
  */
 
 final class ActionAnimationController<T extends GeoAnimatable> extends AnimationController<T> {

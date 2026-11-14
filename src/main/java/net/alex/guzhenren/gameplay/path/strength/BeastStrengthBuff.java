@@ -1,15 +1,10 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
 /**
- * A timed buff that is one beast's strength [一X之力] for as long as it runs: the Flower Boar Gu [花豕蛊] is one
- * boar's, the Brute Force Longhorn Beetle Gu [蛮力天牛蛊] one ox's.
- *
- * <p>Implemented by the buff's vanilla effect. The B panel reads it to word the buff as its strength with a
- * countdown under Strength Attainment [力道造诣], instead of listing it as a Gu effect among the path buffs.
- * What the buff adds to the body's strength points [力量点] while it runs is its path effect's strength strands [丝],
- * read by {@link PathStrengthService#getBeastBuffs} as a {@link StrengthAmplifier} with no carrying capacity of its
- * own: what it carries past the capacity is the body overload [肉体过载] ({@link BodyOverload}). It never counts
- * toward admitting a permanent one.
+ * 运行期间等于一某之力的限时兽力[Beast Strength]增益。花豕蛊[Flower Boar Gu]一猪，
+ * 蛮力天牛蛊[Brute Force Longhorn Beetle Gu]一牛，由原版效果实现；B 面板据此在力道造诣下显示带倒计时的兽力，
+ * 不列入流派增益；点数取流派效果的力道丝，经 {@link PathStrengthService#getBeastBuffs} 成无承受力的
+ * {@link StrengthAmplifier}，超出即肉体过载（{@link BodyOverload}）；不计入永久兽力准入。
  *
  * @author Alex
  * @version 1.0.0

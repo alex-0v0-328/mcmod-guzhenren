@@ -8,15 +8,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What a player tossed in the Treasure Yellow Heaven [宝黄天] that did not fit back in the bag, held for the way
- * out: {@link TreasureYellowHeavenGuard#tick} drops every stack at the player's feet once they stand outside, by
- * any route. Saved and never synced; a death carries it, so a player who dies inside gets it at the respawn point.
- *
- * <p>{@link #with} tops up a held stack of the same item and components before it starts a new one, so the list
- * stays as short as what it holds.
- *
- * <p>⚠ The stacks are copies the record owns: {@link #with} copies what it takes, and a reader copies before it
- * hands a stack on.
+ * 宝黄天[Treasure Yellow Heaven]里丢弃后放不回背包的物品。任何途径离开后由 {@link TreasureYellowHeavenGuard#tick}
+ * 掉在脚下；存档不同步，死亡继承，死在里面的在重生点拿到；{@link #with} 先补满同物品同组件的堆再开新堆。⚠ 物品堆是记录
+ * 自有副本：{@link #with} 复制收进的堆，读取方转交前先复制。
  *
  * @author Alex
  * @version 1.0.0

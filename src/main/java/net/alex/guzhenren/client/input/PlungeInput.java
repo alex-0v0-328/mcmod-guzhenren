@@ -16,21 +16,16 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * The plunge [坠击] on the client: sneak plus Alt in the air sends {@link PlungePayload}.
- *
- * <p>The chord counts in either order ({@link #isChord}): an Alt press while sneak is held, or a sneak press while
- * Alt is held -- the press, never the held state, so holding both starts one plunge, not one a tick. Alt is fixed,
- * either side, as for the dash ({@link DashInput}); sneak is whatever the sneak key is bound to, read from the raw key
- * and mouse events, and with Sneak set to Toggle a toggled-on sneak counts as held. Presses with a screen open do not
- * count. The chord is sent only when {@link PlungeService#canStart} holds on the client's own state; the server
- * decides again.
- *
- * <p>The two keys never meet another action in the air: Epic Fight's dodge, on Left Alt in the pack, refuses in the
- * air, and the plunge refuses on the ground.
- *
- * <p>{@link #onMovementInput} drops the jump input while the plunge runs, before vanilla reads it: a fresh jump
- * press would otherwise open the elytra or, double-tapped, turn flight back on for a tick before
- * {@link PlungeService#tickLocal} shuts them again.
+ * 坠击的客户端输入：空中按潜行加 Alt 发送 {@link PlungePayload}。
+ * <ul>
+ *   <li>组合键不分先后（{@link #isChord}）：按住潜行时按 Alt，或按住 Alt 时按潜行；只认按下，同时按住只起一次，不会每
+ *       tick 一次；界面打开时不算；Alt 固定、左右均可，同冲撞（{@link DashInput}）；潜行取潜行键当前绑定，
+ *       读原始键鼠事件，切换模式下开启的潜行算按住；客户端自身满足 {@link PlungeService#canStart} 才发，
+ *       服务端再判。</li>
+ *   <li>两键空中不撞其他动作：整合包里 Epic Fight 闪避在左 Alt，空中拒绝；坠击在地面拒绝。</li>
+ *   <li>{@link #onMovementInput} 坠击中先于原版丢弃跳跃输入：否则新跳跃会开鞘翅，或双击在
+ *       {@link PlungeService#tickLocal} 关掉前重开飞行一 tick。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

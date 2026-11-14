@@ -38,49 +38,34 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every path effect type [流派效果类型] this mod knows, one constant per kind, and the codec that finds a type by id.
- *
- * <p>A closed list, not a NeoForge registry: the save and sync codecs resolve a {@code type} id here, and no sibling
- * mod adds a type. A family adds its constant with {@link #register} and keeps its payload record in its own
- * package; the list is initialized on first use, so a codec reading an id always finds every type.
+ * 全部流派效果类型常量，及按 ID 查类型的编解码器。
  *
  * <ul>
- * <li>{@link #RACE_TALENT} [种族天赋] -- a buff on the body, payload the race; the variant race's ten whole marks
- * on its path.</li>
- * <li>{@link #EXTREME_PHYSIQUE} [十绝体质] -- a buff on the aperture, payload the physique; its thousand whole marks
- * split across its talent paths.</li>
- * <li>{@link #BODY_SKIN}, {@link #BODY_TENDON}, {@link #BODY_BONE} [炼体·皮 / 筋 / 骨] -- a permanent buff on the
- * body, payload the grade; exclusive, so a new grade takes the old one and its strands.</li>
- * <li>{@link #BEAST_STRENGTH} [兽力] -- a permanent buff on the body per species, payload the species.</li>
- * <li>{@link #HUMAN_STRENGTH} [人力] -- a permanent buff on the body per kind, one layer per stored layer.</li>
- * <li>{@link #BUFF} [限时增益] -- a timed buff on the body per Gu, payload the vanilla effect and its amplifier;
- * the beast buffs, the crashes and all-out effort.</li>
- * <li>{@link #SELF_RELIANCE} [自力更生] -- an auto heal on the body, payload the grade. Timed: the window its auto
- * use opens; exclusive.</li>
- * <li>{@link #HARDSHIP_STRENGTH} [苦力] -- an auto state on the body, its payload a strength amplifier provider.
- * Timed: the window its auto use opens; exclusive.</li>
- * <li>{@link #TIMED_SKIN} [限时皮] -- the jade skin or white jade skin on the body, payload the skin; exclusive. The
- * skin itself stays on {@code BodyData}, which projects its own icon.</li>
- * <li>{@link #MUGWORT_SHIELD} [天蓬护盾] -- the shield on the body; its points stay on {@code ShieldData}.</li>
- * <li>{@link #VITALITY_LEAF} [生机叶] -- a timed heal on the body.</li>
- * <li>{@link #WATCH_RATE} [更蛊] -- a timed time rate on the body per Gu, payload the vanilla form; one layer per
- * use.</li>
- * <li>{@link #ZOMBIE} [僵尸] -- a harmful timed state on a temp zombie's body; turning zombie for good dissipates
- * it, and the form itself stays on {@code BodyData}. Exclusive.</li>
- * <li>{@link #LIQUOR_DISTILLING} [酒虫精炼] -- a timed buff on the body while true essence is distilled, payload the
- * Gu's tier; the day it lasts is the distilling's. Exclusive.</li>
- * <li>{@link #STONE_APERTURE} [石窍] -- a permanent buff on the aperture while one is petrified; the latch itself
- * stays on {@code Aperture}. Exclusive.</li>
- * <li>{@link #CASUAL_THOUGHT}, {@link #MALICIOUS_THOUGHT} [随意念 / 恶念] -- a timed state on the mind per Gu, payload
- * the vanilla effect and its amplifier.</li>
+ *   <li>封闭列表，非 NeoForge 注册表：存档、同步编解码器在此解析 {@code type} ID，兄弟模组不加类型；家族用
+ *       {@link #register} 加常量，payload 记录留本包；首用即初始化，读 ID 必能找到全部类型。</li>
+ *   <li>{@code registerNamed} 建单枚举常量（存于 {@code field}）的增益类型，键随常量名；{@code registerUnit}、
+ *       {@code registerTimedBuff} 建无 payload、限时增益形状。</li>
+ *   <li>⚠ ID 即存档键，改名丢该类型全部存值；{@code BY_ID} 须在常量前声明，因常量类初始化时注册进它。</li>
+ *   <li>{@link #RACE_TALENT} 种族天赋：肉身增益，payload 种族；变异种族在其道上的 10 整道痕[Path Marks]。</li>
+ *   <li>{@link #EXTREME_PHYSIQUE} 十绝体质：空窍[Aperture]增益，payload 体质；1000 整道痕分摊到各天赋道。</li>
+ *   <li>{@link #BODY_SKIN}、{@link #BODY_TENDON}、{@link #BODY_BONE} 炼体皮筋骨：肉身永久增益，payload 等级；互斥，
+ *       新级连丝顶旧。</li>
+ *   <li>{@link #BEAST_STRENGTH} 兽力[Beast Strength]：每物种一个肉身永久增益，payload 物种。</li>
+ *   <li>{@link #HUMAN_STRENGTH} 人力：每种类一个肉身永久增益，每存一层算一层。</li>
+ *   <li>{@link #BUFF} 限时增益：每蛊一个肉身限时增益，payload 原版效果与 amplifier；兽类、冲撞、
+ *       全力以赴蛊[All-Out Effort Gu]用。</li>
+ *   <li>{@link #SELF_RELIANCE} 自力更生：肉身自动治疗，payload 等级；时长为自动催动窗口；互斥。</li>
+ *   <li>{@link #HARDSHIP_STRENGTH} 苦力：肉身自动状态，payload 力量 amplifier 提供者；时长为自动催动窗口；互斥。</li>
+ *   <li>{@link #TIMED_SKIN} 限时皮：肉身玉皮或白玉皮，payload 皮；互斥；皮本身在 {@code BodyData}，自投图标。</li>
+ *   <li>{@link #MUGWORT_SHIELD} 天蓬护盾：肉身护盾，点数在 {@code ShieldData}。</li>
+ *   <li>{@link #VITALITY_LEAF} 生机叶：肉身限时治疗。</li>
+ *   <li>{@link #WATCH_RATE} 更蛊：每蛊一个肉身限时时间倍率，payload 原版效果形态；每催动一次一层。</li>
+ *   <li>{@link #ZOMBIE} 僵尸：临时僵尸肉身的有害限时状态，永久尸化即散；形态在 {@code BodyData}；互斥。</li>
+ *   <li>{@link #LIQUOR_DISTILLING} 酒虫精炼：精炼真元[Essence]时的肉身限时增益，payload 蛊档次；历时一天；互斥。</li>
+ *   <li>{@link #STONE_APERTURE} 石窍：空窍石化时的空窍永久增益；锁存在 {@code Aperture}；互斥。</li>
+ *   <li>{@link #CASUAL_THOUGHT}、{@link #MALICIOUS_THOUGHT} 随意念、恶念：每蛊一个脑海限时状态，payload 同
+ *       {@link #BUFF}。</li>
  * </ul>
- *
- * <p>{@code registerNamed} builds a beneficial type carrying one enum constant in {@code field}, named by its key
- * around that constant's name; {@code registerUnit} and {@code registerTimedBuff} build the payload-free and the
- * timed-buff shapes.
- *
- * <p>⚠ The ids are save keys: renaming one drops every saved effect of that type. ⚠ {@code BY_ID} is declared
- * before the constants, since each constant registers into it during class initialization.
  *
  * @author Alex
  * @version 1.0.0

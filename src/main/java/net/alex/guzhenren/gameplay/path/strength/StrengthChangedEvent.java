@@ -5,11 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link PathStrengthService} wrote a player's beast or human
- * strengths [力道]. Dispatch is synchronous, so a subscriber has run before the write returns.
- *
- * <p>The path posts and does not know who listens: the attack modifier lives above it, in
- * {@code gameplay.attribute}, and calling up into it would close a dependency cycle.
+ * 兽力[Beast Strength]或人力写入后的同步事件。{@link PathStrengthService} 发到游戏事件总线，力道不知谁听：攻击修饰在上
+ * 层 {@code gameplay.attribute}，向上调用会成环。
  *
  * @author Alex
  * @version 1.0.0

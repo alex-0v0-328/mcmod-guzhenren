@@ -63,172 +63,112 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 /**
- * The server-side Epic Fight bridge (the dash input sits in {@code DashInput}): aptitude cap, undead free skill
- * use, attack refresh, target exclusion for every {@link net.alex.guzhenren.entity.gu.WildGuEntity}, the dash
- * animation, the dash-side shockwave cone trigger (ring spawning lives in {@code RingConeEmitter}), and the area
- * impact trigger.
- *
- * <p>{@link #onAttackPhaseEnd}: when the hit window of a fist strike closes -- a combo, dash or air attack in Epic
- * Fight mode with a fist-category primary hand that is also a bare main hand ({@link AttackDamageService#isFistHand};
- * a glove [拳套] is FIST but no bare hand; a bare main hand beside an offhand weapon is Epic Fight's mirror mode, which
- * swings the offhand weapon, so no fist strike), never an innate
- * skill, which Epic Fight builds as a plain {@code AttackAnimation} -- the area impact rolls its chance once on the
- * player's random ({@link AreaImpact#rolls}); a landed roll lets {@link AreaImpact#release} hit the cone along the
- * look, sparing every target the fist already tried this phase. Every release, whiff or not, sends one area impact
- * ring down the cone ({@link RingConeEmitter#areaImpactRing}), a missed roll none, and each target it landed on gets
- * the strike's own hit sound, read the way Epic Fight reads it for the fist's hit; Epic Fight's hit particle stays
- * off the impact, the ring is its picture. The event fires once per phase on the server; a phase cut short by
- * another animation ({@code isAnimationTerminated}) rolls nothing.
- *
- * <p>⚠ Epic Fight owns stamina: the current value, regeneration, the HUD and all ordinary consumption. GZR only
- * scales the cap and waives the undead's skill cost; it keeps no stamina attachment and adds no sprint gate,
- * jump bill, hunger exhaustion surcharge or client mixin.
- *
- * <p>{@link #dashDirection} computes the dash motion direction as a unit vector: the payload's yRot is
- * the Epic Fight MODEL facing (a backward dodge still faces the enemy), so {@link #getRingYawOffset(int)}
- * recovers the actual motion yaw -- pinned by {@code DashRingYawTest}. The client already bakes the
- * strafe/diagonal angles (±45°/±90°) into that yaw, so the only correction left is the backward dodge
- * animation moving opposite to the model facing: every backward combination flips 180, everything else
- * rides the model yaw unchanged. Every Crash Gu dash moves in the yaw plane: the payload's
- * vertical/horizontal are the keyboard axes (W/S and A/D), never world-up.
- *
- * <p>The dash plays one of this mod's own four clips, authored on the Epic Fight player rig and shipped under
- * {@code assets/guzhenren/animmodels/animations/biped/skill/}: {@code dash_forward} and {@code dash_right} ram with
- * the right shoulder, {@code dash_left} with the left, {@code dash_backward} with the back. {@link #getDashClip}
- * picks by the keyboard axes: any backward combination the back ram, any forward combination the forward ram, a
- * pure strafe its side (the payload's horizontal is 1 for left) -- pinned by {@code DashRingYawTest}. The clips
- * turn the body through the Root joint's rotation only; their Root translation is the travel, always along the
- * model's own forward axis (backward: its reverse), which Epic Fight rotates by the model yaw. So
- * {@code setModelYRot} stays: it is what aims the travel, the diagonals included.
- *
- * <p>{@code DashAnimation} scales Epic Fight's dodge coordinate vector by {@link #getDashScale}:
- * {@link CrashDash#getScale} from {@link StrengthService#isAllOut} and the held beasts' dash bonus (the galloping horse
- * [驰马骏力]). It is the one piece here that runs on the client: Epic Fight moves a player through an action animation
- * only on the owning client ({@code PlayerPatch.shouldMoveOnCurrentSide} is false on the server, true on the
- * {@code LocalPlayerPatch}) and posts the position to the server, so the scale reads All-Out and the beasts there,
- * from the player's own synced effect and strength data. The server reads the same scale for the two boars'
- * strength [两猪之力]: a body holding both clears the dash's path through {@link CrashBreach#clear} before the
- * animation is sent.
- *
- * <p>The Store Strength Gu's [蓄力蛊] charge [蓄力] plays three more of this mod's own clips from the same folder, a
- * bow draw. {@link #holdCharge} plays {@code charge_hold} as an action animation: the body turns side-on on
- * lightly bent knees, the right fist drawn back past the shoulder and the left arm pointing ahead; it locks moving
- * and turning, allows no combo attack or skill, and {@code Animations.ReusableSources.CHARGING} slows it into its
- * last frame, the fully charged pose, where it stays. {@link #strikeCharge} throws {@code charge_strike}, the
- * waist twisting into a heavy downward punch: an action animation too and so no attack, it has no collider, deals
- * nothing and closes no attack phase; its Root travel is the short step the strike has always taken.
- * {@link #cancelCharge} plays {@code charge_cancel} for every charge that ends without a strike -- the
- * client's cancel, a release the server refuses, a drop by the charge's own tick: a plain static animation, so it
- * locks nothing, lowers the arms in 0.2 s and hands the body back to the living motion, which may cut it short.
- *
- * <p>Second-stage flight [二段飞行] has two more of this mod's own clips. {@code biped/living/second_stage_flight_loop} is
- * the flight loop, 0.8 s: the body lies flat along the model's forward axis, head raised, both arms swept back along
- * the body, with a light flutter; a repeating static animation with a fixed head, since the client tilts the whole
- * model by the pitch ({@link EpicFightClientIntegration}, which maps it to {@link
- * EpicFightLivingMotions#SECOND_STAGE_FLIGHT_LOOP} through {@link #getSecondStageFlightLoop}). {@code
- * biped/skill/second_stage_flight_crash} is the crash, 0.4 s: the body crumples against the surface, is thrown back
- * and leans backward with the limbs flung ahead, then settles upright. {@link #crashFlight} plays it from the server's
- * crash ({@code EpicFightServerEvents}), synchronized to every client that sees the flier, the flier included: the
- * server's crash is the one that ends the stage and sends the ring and the crater, and the crash event on a client
- * reaches the flier's own client alone, so a client listener would show the bounce to nobody else. It is a main-frame
- * animation that only holds the living motion still for its length -- the stage ends in the same tick, and the motion
- * change that follows would otherwise replace the clip at once -- and locks no movement, turn, attack or skill; its
- * Root slides back 0.34 and returns, drawn as a pose and moving nothing.
- *
- * <p>The plunge [坠击] has the last two. {@code biped/living/plunge_fall} is the fall loop, 0.4 s, a stomp dive: the
- * body upright, both arms braced up against the airflow, the right leg stretched straight down and the left knee
- * drawn up; a repeating static animation the client maps to {@link EpicFightLivingMotions#PLUNGE_FALL} through
- * {@link #getPlungeFall}, so it runs for as long as the plunge does and ends with it, landing or not.
- * {@code biped/skill/plunge_land} is the landing, 0.8 s: the straight leg touches first, the body drops into a
- * three-point crouch in 0.1 s (left knee down, right fist on the ground, left arm thrown back), holds it and stands
- * up over the last 0.27 s. {@link #landPlunge} plays it from the server's landing ({@code EpicFightServerEvents}),
- * synchronized to every client that sees the player, and only for a landing hard enough to show, 3 blocks of fall or
- * more: a shorter plunge just ends the loop. It is a main-frame animation whose first
- * {@link #PLUNGE_LAND_LOCK} seconds, the crouch, lock movement, combo attacks and skills and hold the living motion
- * still; turning stays free. After that the living motion runs again, so walking off cuts the stand-up short and
- * standing still plays it out. Its Root keeps to the entity's position: the clip moves nothing.
- *
- * <p>Every shield [护盾] shares one clip, {@code biped/skill/shield_raise}, 0.6 s: the elbows flare as the chest rocks
- * back, both forearms snap into a cross in front of the chest in 0.08 s, the right one in front, while the chest
- * hunches forward behind them and the chin tucks; the guard sinks, settles and holds until 0.4 s, then the arms
- * swing down a little wide as the chest straightens. {@link #raiseShield}
- * plays it from {@code ShieldRaisedEvent} ({@code EpicFightServerEvents}), so every shield Gu, present or future, gets
- * it, and every call to {@code ShieldService#raise} replays it from the start, a refill of a shield still up
- * included. It is a plain static animation on a composite layer: the clip's client data file
- * ({@code biped/skill/data/shield_raise.json}, the way Epic Fight's own item-use clips declare it) puts it on the
- * {@code HIGH} composite layer under this mod's own joint mask
- * ({@code assets/guzhenren/animmodels/joint_mask/biped/chest_arms.json}: Epic Fight's {@code arms} plus the chest and
- * the head), so it drives the chest, the head, the shoulders, arms and hands alone, the legs, the Root and the torso
- * keep the base layer's living motion, a run's lean included, and it locks nothing; an animation of
- * a higher priority on the base layer (an attack, the dash, the landing crouch) hides it. It goes out through
- * {@code playAnimationInClientSide}, to every client that sees the player, the player's own included, and never
- * onto the server's animator: that one has a single track, and a clip played there would end the action it runs.
- *
- * <p>A throw [投掷] has three clips, 0.3 s each, first used by the Moon Blade [月刃] and meant for every later
- * throw-type skill: {@code biped/skill/throw_sweep}, the single shot, the hanging right arm dipping back and sweeping
- * from below upward, released at 0.12 s; {@code biped/skill/throw_punch_right} and its mirror
- * {@code throw_punch_left}, one shot of a run, the fist thrown straight ahead from the ribs by 0.08 s while the other
- * elbow is drawn back. {@link #throwProjectile} plays one for every {@code ProjectileThrownEvent}
- * ({@code EpicFightServerEvents}), so one for every blade, and {@link #getThrowClip} picks it from the gap since the
- * player's last throw: more than {@link #THROW_RUN_TICKS} ticks, or no throw yet, is the sweep; a throw inside the
- * window is a punch with the arm the last throw did not use, so a run goes sweep, left, right, left and a pause
- * starts over with the sweep. The gap is counted in game ticks and the last throw is kept per player in
- * {@code throwRuns}, a weak map only the server thread touches; it is never saved. The clips sit on the same
- * composite layer under the same {@code chest_arms} mask as the shield's and go out the same way
- * ({@code playAnimationInClientSide}), so they lock nothing, leave the legs to the living motion and reach every
- * client that sees the player. A blade may follow the last after 0.1 s, sooner than a clip ends: the new clip then
- * replaces the running one, blending in over 0.05 s from wherever the arms are, and only the last clip of a run
- * plays out to the arms' rest.
- *
- * <p>Meditation [打坐] has three clips, a cross-legged seat shared by nourishing an aperture [温养空窍], the awakening
- * ritual [开窍仪式] and pouring essence into a channeled Gu [灌注]: the thighs open on the ground, the shins fold across the
- * front, the back upright, the head a little bowed and both forearms over the lap so the hands stack before the lower
- * abdomen. {@code biped/skill/meditate_sit} sits down in 0.8 s, {@code biped/living/meditate_loop} is the seated loop,
- * one slow breath of 4 s, and {@code biped/skill/meditate_stand} stands up in 0.67 s. {@link #isMeditating} is the one
- * test both ends read: a nourishing run is going, the ritual still holds the player still ({@code
- * AwakeningRitualService#holdsStill}, its first 5 s), or the player holds the use of a refined channeled Gu ({@code
- * TendedGuItem#isChanneling}, read off the use item every client knows), so a channel sits for as long as the click is
- * held and stands up when it is let go or runs dry, and a ritual stands up when it lets the player move, not when its
- * plaque fades. The client maps the loop to {@link EpicFightLivingMotions#MEDITATE_LOOP} through {@link
- * #getMeditateLoop} for as long as the test holds, on every client that sees the player, a client that starts seeing
- * the player mid-seat included. {@link #tickMeditation} runs every server player tick ({@code EpicFightServerEvents}),
- * keeps the last answer per player in {@code meditating}, a weak map only the server thread touches and never saved,
- * and plays the sit-down when the test turns true and the stand-up when it turns false ({@link #getMeditationCue}),
- * synchronized to every client that sees the player: it watches the test instead of the services, so every way a run
- * or a ritual ends, the starved stop, a stage-up or a command included, stands the player up, and neither service
- * knows of it. A player first seen already seated (a login into a saved run) plays no sit-down and a dying one no
- * stand-up. Both one-shots are main-frame animations that lock no movement, turn, attack or skill and only hold the
- * living motion still, the sit-down for its whole length, after which the loop takes over, the stand-up for its first
- * {@link #MEDITATE_STAND_HOLD} seconds, after which walking off cuts it short. The head is fixed in all three; the
- * Root keeps to the entity's position, only its height drops, so the clips move nothing and the hitbox and the eye
- * height stay the standing ones.
- *
- * <p>A Gu use without an action of its own reaches forward: {@code biped/skill/use_reach}, 0.5 s, the right elbow
- * dips back, the chest turns a little left with the right shoulder leading and the right hand reaches straight
- * ahead no higher than the lower chest by 0.18 s, holds to 0.3 s and comes back down. {@link #useGu} plays it for every
- * {@code GuUsedEvent} ({@code EpicFightServerEvents}), the one event every landed use of a mortal Gu posts, so a new
- * Gu gets it with no code of its own; a refused use posts nothing and plays nothing. {@link #playsReach} leaves out
- * three kinds of use: one that already played a clip of its own in the same tick -- {@link #raiseShield} and
- * {@link #throwProjectile} stamp the game tick per player in {@code ownClips}, a weak map only the server thread
- * touches, and both run inside the Gu's effect, before the event -- so a shield Gu and a moon blade Gu keep theirs
- * alone, and a later Gu with its own clip only has to stamp too; one by a seated player ({@link #isMeditating}: the
- * Hope Gu [希望蛊], whose click starts the ritual that sits down); and an auto use ({@code AutoUse#isStarting}), which
- * the player never gestured for. A killing move's cast and an Amplify Effect Gu's drive are the player's own act
- * and do reach. The clip sits on the same {@code HIGH} composite layer under the same {@code chest_arms} mask as
- * the shield's and goes out the same way, so it locks nothing and leaves the legs to the living motion.
- *
- * <p>Refining a wild Gu [炼化] has a hold, {@code biped/living/refine_loop}, 2 s: the right hand raised before the chest
- * so the Gu it holds sits in view, the head bowed toward it, the left arm hanging, one slow breath a loop. It is a
- * repeating static animation the client maps to {@link EpicFightLivingMotions#REFINE_LOOP} as a composite living
- * motion through {@link #getRefineLoop} ({@link EpicFightClientIntegration}); its data file ({@code
- * biped/living/data/refine_loop.json}) puts it on the {@code MIDDLE} composite layer under the {@code chest_arms}
- * mask, so walking goes on under it. The server sends nothing for it.
- *
- * <p>The mutable statics, the four dash accessors, {@code chargeHold}, {@code chargeStrike}, {@code chargeCancel},
- * {@code secondStageFlightLoop}, {@code secondStageFlightCrash}, {@code plungeFall}, {@code plungeLand}, {@code
- * shieldRaise}, {@code throwSweep}, {@code throwPunchRight}, {@code throwPunchLeft}, {@code meditateSit}, {@code
- * meditateLoop}, {@code meditateStand}, {@code useReach} and {@code refineLoop}, are set once by Epic Fight's
- * animation registration and only read afterwards.
+ * 服务端 Epic Fight 桥接。
+ * <p>耐力与范围冲击：
+ * <ul>
+ *   <li>⚠ 耐力（当前值、回复、HUD、常规消耗）归 Epic Fight；本模组只按资质[Aptitude]缩放上限（{@link #refresh}）、免不
+ *       死者技能耗耐，不存耐力附件，不加疾跑门槛、跳跃扣费、原版饥饿消耗附加或客户端 mixin。</li>
+ *   <li>设定目标时排除野生蛊（{@link net.alex.guzhenren.entity.gu.WildGuEntity}）；冲刺输入在 {@code DashInput}，冲击环
+ *       生成在 {@code RingConeEmitter}。</li>
+ *   <li>{@link #onAttackPhaseEnd}：拳击命中窗口关闭时用玩家随机数掷一次范围冲击（{@link AreaImpact#rolls}）；每阶段只在
+ *       服务端触发一次，被别的动画打断（{@code isAnimationTerminated}）不掷。</li>
+ *   <li>拳击指 Epic Fight 模式下主手类别 FIST 且空手（{@link AttackDamageService#isFistHand}）的连击、冲刺攻击、空中攻
+ *       击；拳套是 FIST 但非空手，空主手配副手武器是镜像模式、挥副手，固有技能是普通 {@code AttackAnimation}，不
+ *       算。</li>
+ *   <li>掷中则 {@link AreaImpact#release} 沿视线锥形命中，跳过本阶段已试目标；每次释放（含打空）发一道冲击环
+ *       （{@link RingConeEmitter#areaImpactRing}），掷空不发；命中目标各播该击命中音（读法同 Epic Fight），不用其命中粒
+ *       子，环即画面。</li>
+ * </ul>
+ * <p>冲刺：
+ * <ul>
+ *   <li>{@link #dashDirection}：payload 的 yRot 是模型朝向（后撤闪避仍面向敌人），{@link #getRingYawOffset(int)} 还原运
+ *       动 yaw；客户端已把横移、斜向（±45°/±90°）计入 yaw，只有含后退的组合翻转 180°。</li>
+ *   <li>冲撞类蛊冲刺均在水平面：payload 的 vertical/horizontal 是键盘轴（W/S、A/D），非世界竖直。</li>
+ *   <li>{@code dash_forward}、{@code dash_right} 右肩撞，{@code dash_left} 左肩撞，{@code dash_backward} 背撞：四个自制
+ *       动画，基于 Epic Fight 玩家骨架，位于 {@code assets/guzhenren/animmodels/animations/biped/skill/}；
+ *       {@link #getDashClip} 含后退选背撞，含前进选前撞，纯横移选对应侧（horizontal 为 1 即左）；方向与选择由
+ *       {@code DashRingYawTest} 固定。</li>
+ *   <li>动画只靠 Root 旋转转身；Root 平移即位移，沿模型前轴（后撤反向），由 Epic Fight 按模型 yaw 旋转，故须留
+ *       {@code setModelYRot}，斜向亦然。</li>
+ *   <li>{@code DashAnimation} 把闪避坐标向量乘 {@link #getDashScale}，即 {@link CrashDash#getScale}
+ *       （{@link StrengthService#isAllOut} 与兽力[Beast Strength]冲刺加成，如驰马）；这是本类唯一的客户端部分：
+ *       Epic Fight 只在所属客户端按动作动画移动玩家再上报位置（{@code PlayerPatch.shouldMoveOnCurrentSide} 服务
+ *       端 false，{@code LocalPlayerPatch} true），故倍率读客户端已同步的效果与力量数据。</li>
+ *   <li>服务端为两猪之力读同一倍率：持有两猪时，发动画前先 {@link CrashBreach#clear} 清开路径。</li>
+ * </ul>
+ * <p>全身动画：
+ * <ul>
+ *   <li>蓄力蛊[Store Strength Gu]三动画，拉弓式，同目录：{@link #holdCharge}：动作动画 {@code charge_hold}，侧身屈膝、
+ *       右拳拉过肩、左臂前指，锁移动转向、禁连击技能，{@code Animations.ReusableSources.CHARGING} 减速停在蓄满末
+ *       帧。</li>
+ *   <li>{@link #strikeCharge}：{@code charge_strike} 扭腰下劈重拳，动作动画非攻击，无碰撞体、伤害，不结束攻击阶段；
+ *       Root 位移即原有短步。</li>
+ *   <li>{@link #cancelCharge}：每次未出拳就结束（客户端取消、服务端拒绝释放、蓄力 tick 丢弃）播 {@code charge_cancel}；
+ *       普通静态动画，不锁，0.2 秒放臂后交回常态动作，可被打断。</li>
+ *   <li>二段飞行[Second-Stage Flight]循环 {@code biped/living/second_stage_flight_loop}，0.8 秒：沿前轴平趴、抬头、双臂
+ *       后掠、轻振；循环静态动画，固定头部，因客户端按俯仰倾斜整个模型（{@link EpicFightClientIntegration} 经
+ *       {@link #getSecondStageFlightLoop} 映射到 {@link EpicFightLivingMotions#SECOND_STAGE_FLIGHT_LOOP}）。</li>
+ *   <li>撞击 {@code biped/skill/second_stage_flight_crash}，0.4 秒：撞面蜷缩、后仰弹回、四肢前甩、站稳；Root 后滑
+ *       0.34 再回，不产生位移；{@link #crashFlight} 由服务端撞击播放（{@code EpicFightServerEvents}）并同步给所有可见客
+ *       户端（含本人）：服务端撞击才结束阶段、发环和弹坑，客户端撞击事件只到本人，客户端监听别人看不到；主帧动画，时长
+ *       内冻结常态动作（阶段同 tick 结束，否则动作切换立即顶掉它），不锁移动转向攻击技能。</li>
+ *   <li>下坠循环 {@code biped/living/plunge_fall}，0.4 秒踩踏俯冲：直立、双臂上撑、右腿直下、左膝上提；循环静态动画，客
+ *       户端经 {@link #getPlungeFall} 映射到 {@link EpicFightLivingMotions#PLUNGE_FALL}，与坠击同始终，不论落地。</li>
+ *   <li>落地 {@code biped/skill/plunge_land}，0.8 秒：直腿触地，0.1 秒沉为三点蹲（左膝着地、右拳撑地、左臂后甩），最后
+ *       0.27 秒站起，Root 不产生位移；{@link #landPlunge} 由服务端落地播放（{@code EpicFightServerEvents}）并同步给所有
+ *       可见客户端，落差 ≥ 3 格才播，更短只结束循环；主帧动画，前 {@link #PLUNGE_LAND_LOCK} 秒（蹲姿）锁移动连击技能、
+ *       冻结常态动作，转向自由，之后走开即打断，不动播完。</li>
+ * </ul>
+ * <p>上半身动画：
+ * <ul>
+ *   <li>护盾、投掷、催动动画都是普通静态动画，置于 {@code HIGH} 叠加层、自制遮罩
+ *       {@code assets/guzhenren/animmodels/joint_mask/biped/chest_arms.json}（Epic Fight {@code arms} 加胸、头）下：只
+ *       驱动胸、头、肩、臂、手，腿、Root、躯干留给基础层常态动作（含跑步前倾），不锁；基础层更高优先级动画（攻击、冲
+ *       刺、落地蹲）会盖住它们；都经 {@code playAnimationInClientSide} 发给所有可见客户端（含本人），不进服务端动画器：
+ *       其单轨，播放会结束正在运行的动作。</li>
+ *   <li>护盾 {@code biped/skill/shield_raise}，所有护盾共用，0.6 秒：肘外张、胸后仰，0.08 秒双前臂胸前交叉（右前），含
+ *       胸收颌；下沉稳住至 0.4 秒，再略外张放下、挺胸；数据文件 {@code biped/skill/data/shield_raise.json} 按
+ *       Epic Fight 物品使用动画的方式声明叠加层；{@link #raiseShield} 由 {@code ShieldRaisedEvent} 播放
+ *       （{@code EpicFightServerEvents}），现有与将来的护盾蛊自动获得，每次 {@code ShieldService#raise}（含未消时补充）
+ *       从头重播。</li>
+ *   <li>投掷三动画各 0.3 秒，首用于月刃，供以后投掷类技能：单发 {@code biped/skill/throw_sweep}，下垂右臂后沉、自下而上
+ *       横扫，0.12 秒出手；连发 {@code biped/skill/throw_punch_right} 及镜像 {@code throw_punch_left}，0.08 秒拳自肋旁
+ *       直出，另一肘后拉。</li>
+ *   <li>{@link #throwProjectile}：每个 {@code ProjectileThrownEvent}（{@code EpicFightServerEvents}）即每片月刃播一个；
+ *       {@link #getThrowClip}：距上次超过 {@link #THROW_RUN_TICKS} tick 或首次为横扫，窗口内为直拳且换手，故连发为横
+ *       扫、左、右、左，停顿后重来；间隔按游戏 tick 计，上次投掷存于 {@code throwRuns}（弱引用表，仅服务端线程，不存
+ *       档）；月刃最快 0.1 秒一片，早于动画结束，新动画从手臂现位 0.05 秒混入顶替，只有连发末个播到归位。</li>
+ *   <li>无专属动作的蛊催动播 {@code biped/skill/use_reach}，0.5 秒：右肘后沉、胸微左转、右肩领先，右手 0.18 秒平伸（不
+ *       高于下胸），保持至 0.3 秒后放下；{@link #useGu} 由每个 {@code GuUsedEvent} 播放
+ *       （{@code EpicFightServerEvents}），凡蛊每次成功催动都发，新蛊无需代码，被拒不发不播。</li>
+ *   <li>{@link #playsReach} 跳过：同 tick 已播专属动画者（{@link #raiseShield}、{@link #throwProjectile} 在蛊效果内、事
+ *       件前把游戏 tick 记入 {@code ownClips}，弱引用表，仅服务端线程；护盾蛊、月刃类蛊因此只播自己的，新的自带动画蛊也
+ *       只需记 tick）；坐着者（{@link #isMeditating}，如希望蛊[Hope Gu]点击即开始坐下的仪式）；自动催动
+ *       （{@code AutoUse#isStarting}，无手势）；杀招[Killing Move]施放、功倍蛊[Amplify Effect Gu]驱动是玩家动作，照
+ *       常。</li>
+ * </ul>
+ * <p>打坐与炼化：
+ * <ul>
+ *   <li>打坐三动画（盘腿坐，温养[Nourish]空窍[Aperture]、开窍[Awakening]仪式、灌注类蛊[Channeled Gu]灌注真元[Essence]共
+ *       用）：大腿着地外张、小腿前交叉、背直、头微低、双手叠于小腹前；{@code biped/skill/meditate_sit} 0.8 秒坐下，
+ *       {@code biped/living/meditate_loop} 一息 4 秒，{@code biped/skill/meditate_stand} 0.67 秒起身。</li>
+ *   <li>{@link #isMeditating} 两端共读：温养中、仪式仍定身（{@code AwakeningRitualService#holdsStill}，前 5 秒）或按住
+ *       已炼化灌注类蛊（{@code TendedGuItem#isChanneling}，读各客户端皆知的使用物品）；故灌注按住即坐、松开或灌空即起，
+ *       仪式放人即起，不等牌匾淡出。</li>
+ *   <li>判定成立时所有可见客户端（含中途看到的）经 {@link #getMeditateLoop} 映射到
+ *       {@link EpicFightLivingMotions#MEDITATE_LOOP}；{@link #tickMeditation} 每个服务端玩家 tick 运行
+ *       （{@code EpicFightServerEvents}），上次结果存于 {@code meditating}（弱引用表，仅服务端线程，不存档），转真播坐
+ *       下、转假播起身（{@link #getMeditationCue}），同步给所有可见客户端。</li>
+ *   <li>盯判定不盯服务：任何结束（真元耗尽、升阶、命令）都起身，服务无需知情；初见已坐（登录续温养）不播坐下，濒死不播
+ *       起身；坐下、起身为主帧动画，不锁移动转向攻击技能，只冻结常态动作：坐下全程，随后循环接手，起身前
+ *       {@link #MEDITATE_STAND_HOLD} 秒，之后走开即打断；三者固定头部，Root 只降高度、不产生位移，碰撞箱与视线高度仍为
+ *       站立值。</li>
+ *   <li>炼化野生蛊持握 {@code biped/living/refine_loop}，2 秒：右手举蛊于胸前、低头注视、左臂下垂，一循环一息；循环静态
+ *       动画，客户端经 {@link #getRefineLoop} 作叠加常态动作映射到 {@link EpicFightLivingMotions#REFINE_LOOP}
+ *       （{@link EpicFightClientIntegration}）；数据文件 {@code biped/living/data/refine_loop.json} 置于
+ *       {@code MIDDLE} 叠加层、{@code chest_arms} 遮罩下，可照常行走；服务端不发送。</li>
+ *   <li>全部动画访问器只由 Epic Fight 动画注册设置一次，之后只读。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

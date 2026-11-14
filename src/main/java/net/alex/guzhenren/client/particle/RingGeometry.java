@@ -4,43 +4,24 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 /**
- * The pure corner geometry behind {@link RingParticle}, kept free of Minecraft client classes so
- * the pure JVM tests can pin it. The quad is either laid flat by {@link #getGround} (the fallback when there is no
- * direction) or set perpendicular to motion by {@link #getFacing}; both share the corner order
- * {@code -u-v, -u+v, +u+v, +u-v}, the flat quad with u=(1,0,0), v=(0,0,1) in the world XZ plane, no camera
- * involvement, and the perpendicular one with an orthonormal basis of the plane across the spawn direction.
+ * {@link RingParticle} 的纯角点几何。
  *
- * <p>{@link #LARGEST_CANVAS} is the canvas width of the largest hand-drawn ring and {@link #LARGEST_RING_SPAN}
- * its world span in blocks (总表 TODO acceptance: max ~2.2 blocks across); every frame's world size scales off
- * them through {@link #scaleForWidth} (the {@code quadSize} half-span multiplier for a frame drawn on a canvas
- * that wide), and a ring type whose largest frame spans another size passes that span as {@code largestSpan}.
- * A direction shorter than {@link #MIN_DIRECTION_LENGTH} is treated as "no direction" and falls back to
- * {@link #getGround}.
- *
- * <p>A ring's exit runs from its full bloom to its despawn: {@link #getExitProgress} goes from 0 at
- * {@code lastFrameAge} (partial ticks included) to 1 when the ring despawns, {@code lingerTicks + 1} ticks later,
- * and a spreading ring grows by that share of its extra size; a sweeping ring keeps growing one frame step a tick
- * past {@code lastFrameAge} instead ({@link #getSweepSize}). {@link #getFadeAlpha} holds full bright through
- * an exit until {@code fadeStart}, then fades out.
- *
- * <p>{@link #MIN_OPENING_DEGREES} is the minimum opening toward the camera, in degrees: a ring
- * perpendicular to a motion that runs sideways across the view is perfectly
- * edge-on and invisible, so the normal is tilted toward the camera enough to keep the arc legible.
- * At 5° the big early frames of a sideways dash render as a
- * 0.19-block sliver and the trail reads small-to-large; 30° keeps the largest frame ~1.1 blocks
- * wide even edge-on. Rings already facing the viewer (forward dash) sit far above the
- * threshold and are never touched.
- *
- * <p>{@link #getFacing} builds the quad perpendicular to {@code direction} (the ring faces along it,
- * like a shockwave riding a dash), applying the {@link #MIN_OPENING_DEGREES} tilt
- * toward {@code cameraForward} when the ring would otherwise be edge-on. A near-zero direction
- * falls back to {@link #getGround(float)}; a (near-)vertical one switches the reference axis so the
- * basis never degenerates -- note a vertical normal lands on the horizontal plane anyway, matching
- * {@link #getGround}. {@link #tiltTowardCamera} rotates the normal toward the camera only while it is nearly
- * perpendicular to the view (|n·v| under sin of {@link #MIN_OPENING_DEGREES} -- the edge-on case):
- * the result keeps the normal's view-perpendicular component and gains exactly
- * {@link #MIN_OPENING_DEGREES} of opening, so the adjustment is continuous and never pops. The
- * quad is double-sided, so the sign of the dot is irrelevant.
+ * <ul>
+ *   <li>不引客户端类，纯 JVM 可测；四边形双面，点积符号无关；角点顺序均为 {@code -u-v, -u+v, +u+v, +u-v}。</li>
+ *   <li>{@link #getGround}：世界 XZ 平面，{@code u=(1,0,0)}、{@code v=(0,0,1)}，不看镜头，无方向时回退用。</li>
+ *   <li>{@link #getFacing}：环面朝 {@code direction}（如冲刺激波），正交基横跨该方向；（近）竖直时换参考轴防退化，竖直
+ *       法线落在水平面，同 {@link #getGround}；短于 {@link #MIN_DIRECTION_LENGTH} 为无方向。</li>
+ *   <li>{@link #scaleForWidth}：由 {@link #LARGEST_CANVAS}（最大环画布宽）与 {@link #LARGEST_RING_SPAN}（其世界跨度，
+ *       格；总表 TODO 验收直径最大约 2.2 格）得帧 {@code quadSize} 半跨度倍数；跨度不同者另传
+ *       {@code largestSpan}。</li>
+ *   <li>退场自完全绽放至消失：{@link #getExitProgress} 在 {@code lastFrameAge}（含 partial tick）为 0，
+ *       {@code lingerTicks + 1} tick 后为 1；扩散环按进度长出额外尺寸，横扫环改为每 tick 再长一个帧步长
+ *       （{@link #getSweepSize}）；{@link #getFadeAlpha} 到 {@code fadeStart} 前全亮，之后淡出。</li>
+ *   <li>横穿视野的环侧对镜头、不可见，故法线朝镜头倾斜到张角 {@link #MIN_OPENING_DEGREES}（度）：5° 时横向冲刺的大号早
+ *       期帧只剩 0.19 格细条，拖尾读成由小到大；30° 时最大帧侧对也约 1.1 格宽。</li>
+ *   <li>仅侧对时向 {@code cameraForward} 倾斜：{@link #tiltTowardCamera} 只在 |n·v| 小于 sin
+ *       {@link #MIN_OPENING_DEGREES} 时旋转，保留法线垂直视线分量，张角恰为阈值、连续；正对的环（向前冲刺）不调。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

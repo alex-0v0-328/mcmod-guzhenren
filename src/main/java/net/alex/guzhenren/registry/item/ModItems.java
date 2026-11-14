@@ -91,41 +91,39 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every item and the only place a Gu's numbers actually live.
+ * 全部物品，也是蛊数值唯一的真值所在。
  *
- * <p>DeferredRegister holder: the {@link GuProperties} chain on each registration, or the family helper right
- * under its ladder, IS the truth. A figure written down anywhere else is a copy of it, and when the two disagree
- * this file is the one that is right. Essence comes from the Gu's rank r alone, never from an argument: refining
- * costs {@value #REFINE_ESSENCE} x 8^(r-1); a use costs {@value #FREQUENT_USE_ESSENCE} x 8^(r-1) for the rapid-fire
- * moon blades and {@value #INFREQUENT_USE_ESSENCE} x 8^(r-1) for every other Gu that pays one. The two shared helpers
- * give every family its bar. {@link #createRankedProperties} is a Gu paid per use: a bar of 2^(rank+1) uses of
- * {@value #HUNGER_PER_USE} plus a buffer of two days' drain of {@value #HUNGER_PER_DAY} (the buffer is below one use),
- * so 14, 26, 50, 98, 194 from rank I to V. {@link #createChannelProperties} is a channeled Gu [灌注] and sets its
- * round: {@value #STRENGTH_ROUND_ESSENCE} x 10^(r-1) for strength, {@value #TEMPERING_ROUND_ESSENCE} x 10^(r-1) for
- * tempering, one hunger billed for every {@value #ROUND_ESSENCE_PER_HUNGER} x 10^(r-1) poured, so 18 and 12 a round.
- * The bar holds one round at ranks I and II, three from rank III, plus the same buffer: strength 20, 20, 56, 56, 56,
- * tempering 14, 14, 38, 38. A moon blade Gu fires again after {@value #MOON_BLADE_COOLDOWN_TICKS} ticks: the blade
- * itself is the pacing, not a cooldown sweep. A family helper takes the other figures
- * that differ along the ladder as arguments, so the ladder reads as table rows; a chain spells its facts in
- * one order -- type, branch, effect, refine, essence, bar, feed, cooldown -- one call a line. {@link #findGuWith}
- * finds the Gu a body state was made by, through the behavior that made it, for the path effect it carries. One
- * {@link ItemRegistrar} chain per item, carrying its factory, both names, its model shape, its tags and any tab,
- * plus the PNG. Past 300 lines on purpose: it is a data table, and splitting it would scatter the one place the
- * numbers live.
- *
- * <p>⚠ The Gu regions follow {@link GuPath}'s order, one path a region, a branch or family a region inside it;
- * materials, books and the icon close the file. Registration order is the creative tabs' order
- * ({@code ModCreativeTabs} walks {@link #ITEMS}), so a Gu moves tab position with its row. The registration id
- * mirrors the Java name (and the PNG); every Gu's id ends in its rank ({@code primeval_elder_gu_1} to
- * {@code primeval_elder_gu_5}, {@code blood_wight_gu_5}) and its names carry it too, except the lifespan, hope and
- * relics Gu. A Gu material keeps a bare id: materials run from rank I to IX and some show no rank.
- *
- * <p>{@link #SPIRIT_SPRING} is the spring's {@code BlockItem}: same key as the block, so the names on its chain
- * name the block and the fluid too, and its icon is the fluid's still strip ({@code ItemModel.FLUID}) -- no item
- * PNG of its own. {@link #PURE_WATER_BUCKET} is the vanilla water
- * bucket's twin for the Pure Water [纯水]: it places a source, an empty bucket scoops one back, and a
- * dispenser pours it ({@code PureWaterEvents}). {@link #ADVANCEMENT_ICON} is no game item: it carries the
- * realm advancements' numerals ({@link AdvancementIconItem}).
+ * <p>数值：
+ * <ul>
+ *   <li>各注册的 {@link GuProperties} 链或其阶梯下的族助手即真值，别处数字皆副本，不符以此为准；故刻意超 300 行。</li>
+ *   <li>真元[Essence]只由转 r 定：炼化 {@value #REFINE_ESSENCE} × 8^(r-1)；催动：连发月刃
+ *       {@value #FREQUENT_USE_ESSENCE} × 8^(r-1)，其余付真元的蛊 {@value #INFREQUENT_USE_ESSENCE} × 8^(r-1)。</li>
+ *   <li>{@link #createRankedProperties}：按次付费，饱食[Hunger]上限 2^(rank+1) 次 × {@value #HUNGER_PER_USE}，
+ *       加不足一次的两天缓冲（每天 {@value #HUNGER_PER_DAY}）；一至五转 14、26、50、98、194。</li>
+ *   <li>{@link #createChannelProperties}：灌注类蛊[Channeled Gu]每轮真元力道 {@value #STRENGTH_ROUND_ESSENCE}
+ *       × 10^(r-1)、炼体 {@value #TEMPERING_ROUND_ESSENCE} × 10^(r-1)，每 {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1)
+ *       计 1 饱食，即每轮 18、12。</li>
+ *   <li>灌注上限：一、二转一轮，三转起三轮，加同样缓冲；力道 20、20、56、56、56，炼体 14、14、38、38。</li>
+ *   <li>月刃蛊隔 {@value #MOON_BLADE_COOLDOWN_TICKS} tick 再发，节奏即月刃本身，非冷却遮罩。</li>
+ * </ul>
+ * <p>注册：
+ * <ul>
+ *   <li>每物品一条 {@link ItemRegistrar} 链：工厂、两个名字、模型形状、标签、可选物品栏，外加 PNG。</li>
+ *   <li>族助手以随阶梯变化的数字为参数，如表格行；链按类型、分支、效果、炼化、真元、上限、补食、冷却，一行一调用。</li>
+ *   <li>{@link #findGuWith}：经行为反查造出某身体状态的蛊，供其流派效果用。</li>
+ *   <li>⚠ 蛊 region 按 {@link GuPath} 顺序，一道一个，道内一分支或一族一个；蛊材、书、图标收尾。</li>
+ *   <li>注册顺序即物品栏顺序（{@code ModCreativeTabs} 遍历 {@link #ITEMS}），蛊随所在行移位。</li>
+ *   <li>id 同 Java 名与 PNG；蛊 id 与名字带转（{@code primeval_elder_gu_1} 至 {@code primeval_elder_gu_5}、
+ *       {@code blood_wight_gu_5}），寿蛊[Lifespan Gu]、希望蛊[Hope Gu]、舍利蛊[Relics Gu]除外；
+ *       蛊材用裸 id：跨一至九转，有些不显示转。</li>
+ * </ul>
+ * <p>特殊物品：
+ * <ul>
+ *   <li>{@link #SPIRIT_SPRING}：元泉[Spirit Spring]的 {@code BlockItem}，与方块同键，链上名字兼名方块与流体；
+ *       图标为流体静止条带（{@code ItemModel.FLUID}），无物品 PNG。</li>
+ *   <li>{@link #PURE_WATER_BUCKET}：纯水版水桶，放水源、空桶舀回、发射器倾倒（{@code PureWaterEvents}）。</li>
+ *   <li>{@link #ADVANCEMENT_ICON}：非游戏物品，承载修为进度的数字（{@link AdvancementIconItem}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

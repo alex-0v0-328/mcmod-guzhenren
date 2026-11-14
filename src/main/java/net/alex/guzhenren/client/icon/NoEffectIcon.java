@@ -8,11 +8,10 @@ import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An effect that wears no icon: it stays off the HUD, and the inventory lists its name and time with an empty
- * icon slot.
- *
- * <p>⚠ The inventory screen ignores the instance's {@code showIcon} flag and draws the effect's own sprite, which
- * a texture-less effect lacks, so without this the slot shows the missing-texture checkerboard.
+ * 不带图标的效果：不上 HUD，物品栏列名称与时长，图标格留空。
+ * <ul>
+ *   <li>⚠ 物品栏无视实例的 {@code showIcon}，照画效果自身贴图；无贴图的效果缺这张图，不用本类则显示紫黑缺失贴图。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

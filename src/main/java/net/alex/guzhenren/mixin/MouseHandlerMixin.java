@@ -10,16 +10,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Holds the camera still while the radial menu [扇形选择器] or the hold slider [长按滑条] is open; client only.
- *
- * <p>{@link #guzhenren$steerHeldPicker} hands the mouse movement {@code turnPlayer} would have turned the player by
- * to {@link RadialMenu#steer} (the slider's {@link HoldSlider#steer} takes only the sideways part) and skips the
- * turn; {@code handleAccumulatedMovement} clears the movement afterwards as usual. Movement keys are untouched, so
- * the player keeps walking.
- *
- * <p>⚠ Not an event or an API: {@code CalculatePlayerTurnEvent} only sets the sensitivity (its smallest turn is not
- * zero), never sees the accumulated movement this class steers by, and the tutorial hook would still see a turn; a
- * cancel at the head is the only way to hand the movement over whole.
+ * 扇形选择器或长按滑条打开时锁住镜头；仅客户端。
+ * <ul>
+ *   <li>{@link #guzhenren$steerHeldPicker} 把 {@code turnPlayer} 本要转玩家的位移交 {@link RadialMenu#steer}（滑条
+ *       {@link HoldSlider#steer} 只取横向）并跳过转动，{@code handleAccumulatedMovement} 照常清零；移动键不变。</li>
+ *   <li>⚠ 不用事件或 API：{@code CalculatePlayerTurnEvent} 只能设灵敏度（最小转动非零），看不到累积位移，教程钩子仍见转
+ *       动；只有方法头取消才能整份交出位移。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

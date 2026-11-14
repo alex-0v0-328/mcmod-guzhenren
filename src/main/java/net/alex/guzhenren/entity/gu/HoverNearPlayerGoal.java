@@ -7,12 +7,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The goal that makes a flying Gu hover beside the player it wants.
- *
- * <p>☠ Drives the movement vector directly and never paths -- a mote flies straight, so the navigation's
- * path cache and stuck detector would be obstacles rather than help. The target is re-read every tick via
- * {@link net.alex.guzhenren.entity.gu.FlyingGuEntity#seekTarget}; a sine bob on {@code tickCount} gives
- * the hover its drift.
+ * 飞行蛊在想要的玩家旁悬停的 AI 目标。
+ * <ul>
+ *   <li>☠ 直接驱动移动向量、从不寻路：光点直飞，路径缓存与卡住检测只会碍事。</li>
+ *   <li>目标每 tick 经 {@link FlyingGuEntity#seekTarget} 重读；{@code tickCount} 正弦浮动给悬停加飘动。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

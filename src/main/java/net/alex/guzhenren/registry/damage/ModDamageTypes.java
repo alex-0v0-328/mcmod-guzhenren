@@ -9,19 +9,16 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The keys of this mod's damage types.
+ * 本模组伤害类型的键，唯一工厂 {@code source(entity, type)}。
  *
- * <p>Resource-key holder (not a DeferredRegister): damage types live in a datapack registry, so this
- * file owns only the {@link ResourceKey}s; the JSON is written at datagen time by a provider that does
- * not exist at runtime. {@code source(entity, type)} is the one factory.
- *
- * <p>⚠ Six disaster types, all carrying the same six tags (five {@code BYPASSES_*} plus {@code NO_KNOCKBACK})
- * but deliberately NOT {@code BYPASSES_INVULNERABILITY} -- creative stays unkillable. The aperture
- * pressure explosion also carries {@code IS_EXPLOSION}. Three
- * more are ordinary combat damage outside that set: the Moon Blade [月刃], a projectile that armor stops, Bleeding
- * [流血], which goes past armor like poison, and the area impact [范围冲击], which armor stops and which carries only
- * {@code NO_KNOCKBACK}, since {@code AreaImpact} shoves along the punch itself. The body overload [肉体过载] is a
- * fist's recoil on its own body: past armor, with no attacker, and never lethal ({@code BodyOverload}).
+ * <ul>
+ *   <li>资源键容器：伤害类型在数据包注册表，只持 {@link ResourceKey}，JSON 由 datagen provider 写（运行时无）。</li>
+ *   <li>⚠ 6 种天灾类带同样 6 个标签（5 个 {@code BYPASSES_*} 加 {@code NO_KNOCKBACK}），刻意不带
+ *       {@code BYPASSES_INVULNERABILITY}，创造模式仍杀不死；空窍[Aperture]压力爆炸另带 {@code IS_EXPLOSION}。</li>
+ *   <li>另 3 种普通战斗伤害：月刃，可挡的弹射物；流血，如毒穿甲；范围冲击，可挡，只带
+ *       {@code NO_KNOCKBACK}（{@code AreaImpact} 随拳推开）。肉体过载：拳的自身反冲，穿甲、无攻击者、
+ *       不致死（{@code BodyOverload}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

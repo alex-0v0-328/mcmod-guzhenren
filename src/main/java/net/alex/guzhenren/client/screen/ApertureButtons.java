@@ -19,16 +19,13 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The buttons under each aperture [空窍] in the B panel: nourish [温养空窍] (or flush [冲刷窍壁] for the first
- * aperture once it can strike the wall), then storage [空窍存储]. {@link #buildStackButtons} decides which buttons an
- * aperture shows, {@link #draw} adds one's sprite to the panel's batch, {@link #fillProgress} lays the nourish run
- * over it, {@link #drawLabel} draws its text and {@link #click} sends its payload; the paints are apart so the panel
- * can draw every sprite, then every fill, then every text in one batch. Where a stack sits is the panel's business.
- * Labels are built once, not per frame.
- *
- * <p>The nourish button is lit while it is the running target, with the run's progress as a fill inside its frame,
- * and a click on it then cancels; starting a run closes the panel. A button whose action cannot be afforded is drawn
- * dead.
+ * B 面板每个空窍[Aperture]下方的按钮。
+ * <ul>
+ *   <li>上温养[Nourish]空窍、下空窍存储；第一空窍可冲击窍壁时温养换成冲刷窍壁；付不起消耗的按钮画成失效。</li>
+ *   <li>温养按钮是当前目标时点亮、框内填进度，再点即取消；开始温养关闭面板。</li>
+ *   <li>{@link #draw}、{@link #fillProgress}、{@link #drawLabel} 分开，面板才能一批内先画全部 sprite，再填色，
+ *       最后文字；按钮列位置由面板定；标签只建一次。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -24,13 +24,14 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 /**
- * The Hope Gu [希望蛊] of every awakening ritual [开窍仪式] this client can see, drawn in the world: it flies from
- * the player's main hand to the synced hover point, bobs there, and shrinks into the light before the awakening.
+ * 开窍[Awakening]仪式中希望蛊[Hope Gu]的世界渲染。
  *
- * <p>Static renderer called once a frame after the entities ({@code AwakeningEvents}). The Gu is the item model,
- * full bright, lit head-on and turned to face the camera, {@link #SIZE} blocks across, drawn from its own buffer.
- * The hand point sits {@link #HAND_FORWARD} ahead of the eyes, {@link #HAND_SIDE} to the main-arm side and
- * {@link #HAND_DROP} below, so in the player's own first person the Gu comes up from the lower corner of the view.
+ * <ul>
+ *   <li>本客户端可见的每场仪式都画：蛊从玩家主手（眼前 {@link #HAND_FORWARD} 格、主手侧 {@link #HAND_SIDE} 格、下方
+ *       {@link #HAND_DROP} 格，本人第一人称下从视野下角升起）飞到同步的悬停点，上下浮动，开窍前缩入光中。</li>
+ *   <li>{@code AwakeningEvents} 每帧在实体后调一次；物品模型全亮、正面受光、朝镜头、宽 {@link #SIZE} 格，自用缓
+ *       冲。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

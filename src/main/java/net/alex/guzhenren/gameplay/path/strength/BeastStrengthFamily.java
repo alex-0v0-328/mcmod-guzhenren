@@ -6,17 +6,9 @@ import java.util.List;
 import net.alex.guzhenren.core.NamedEnum;
 
 /**
- * The family a beast strength [兽力] belongs to: the two boars share one bracket, the bear owns another, and the ox
- * holds the Green Bull Labor Gu's [青牛劳力蛊] permanent strength beside the Brute Force Longhorn Beetle Gu's
- * [蛮力天牛蛊] timed one.
- *
- * <p>Readings group by family rather than by species constant, so a second boar lands in the boar
- * bracket instead of opening a new one. The declaration order is the B panel's reading order; the ordinal is
- * synced to the phantoms, never saved.
- *
- * <p>{@link #canManifest} says whether the family takes shape as a Beast Phantom [兽力虚影] or a Beast Charge
- * [兽力冲击]: every family does, the ox on the buffalo's model. A family that cannot is still drawn and released, it
- * only shows nothing.
+ * 兽力[Beast Strength]所属兽种。两猪同档，熊独档；牛档兼容青牛劳力蛊[Green Bull Labor Gu]的永久兽力与蛮力天牛蛊
+ * [Brute Force Longhorn Beetle Gu]的限时兽力；读数按兽种分组；声明顺序即 B 面板顺序；序号同步给虚影，不存档；
+ * {@link #canManifest} 定能否出形为兽力虚影或兽力冲击，现全能（牛借水牛模型），不能者照常抽取、解放，只不显示。
  *
  * @author Alex
  * @version 1.0.0

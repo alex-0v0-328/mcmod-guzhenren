@@ -15,23 +15,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the damage type tags.
+ * 伤害类型标签；取数据包 provider 的 lookup，才见本次生成的类型。
  *
- * <p>Extends {@link net.minecraft.data.tags.TagsProvider} for {@link net.minecraft.world.damagesource.DamageType}.
- * The six disaster damage types carry the same six bypass tags (armor, effects, enchantments, resistance,
- * shield, no knockback); the Moon Blade [月刃] is only a projectile, and Bleeding [流血] only bypasses armor. The body
- * overload [肉体过载] and the impact backlash [冲击反噬] bypass armor and carry no knockback: a body's own recoil has no
- * source position, and 1.21 knocks such a hit back in a random direction. The area impact [范围冲击] and the charged
- * punch [蓄力一拳] carry no knockback either, since each pushes its own targets. The Qi
- * Wave [气波] is a projectile that also bypasses the hurt cooldown, so the several Beast Charges [兽力冲击] of one
- * ranged punch each land their share of its damage. Only the
- * four lethal checks -- lifespan exhausted, soul collapse, mind ocean
- * shattered and the pressure explosion -- also carry {@code BYPASSES_INVULNERABILITY}, so a Totem of Undying
- * cannot cancel them; the heartbeat deals them only after skipping creative and spectator players. The
- * Ten Extreme disaster and the Vital Gu loss stay without it: the disaster hits every entity in the blast and
- * the loss is a fraction of health, so the tag would only reach creative players and invulnerable entities.
- * The aperture pressure explosion and the disaster also carry {@code IS_EXPLOSION}. Takes the datapack
- * provider's registry lookup so it sees the types generated this run.
+ * <ul>
+ *   <li>六种灾难伤害同带六个绕过标签：护甲、效果、附魔、抗性、盾牌、无击退；月刃只是弹射物；流血只绕过护甲。</li>
+ *   <li>空窍压力爆炸、十绝天灾另带 {@code IS_EXPLOSION}；气波为弹射物、绕过受伤冷却：一拳的多个兽力冲击才各计伤
+ *       害。</li>
+ *   <li>肉体过载、冲击反噬绕过护甲且无击退：身体反冲无来源位置，1.21 会朝随机方向击退；范围冲击、蓄力一拳也无击退：各自
+ *       推开目标。</li>
+ *   <li>仅四种致死检查（寿元耗尽、魂魄衰竭、脑海炸裂、空窍压力爆炸）另带 {@code BYPASSES_INVULNERABILITY}，不死图腾挡不
+ *       住；心跳先跳过创造与旁观玩家。</li>
+ *   <li>十绝天灾、本命蛊死亡不带它：前者波及爆炸内全部实体，后者按比例扣血，带了只多打到创造玩家与无敌实体。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

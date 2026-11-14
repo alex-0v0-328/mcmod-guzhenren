@@ -6,10 +6,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr soul}: writes the soul [魂魄] pool independently of the body [肉身]; the B panel reads it.
- *
- * <p>Offers set/add/sub for the current and maximum soul, plus a refill action. A mortal has a soul,
- * so the entire branch is ungated.
+ * {@code /gzr soul}：独立于肉身写魂魄池，B 面板读取；整个分支不设门槛，凡人也有魂魄。
  *
  * @author Alex
  * @version 1.0.0

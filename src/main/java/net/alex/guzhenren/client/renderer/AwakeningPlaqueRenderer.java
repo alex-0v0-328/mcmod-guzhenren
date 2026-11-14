@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 /**
- * The aptitude plaque [资质牌匾] over the head of every player whose awakening ritual [开窍仪式] has revealed it, for
- * the other players around and for the player's own detached camera; the player's first person sees the screen
- * plaque instead ({@code AwakeningHud}).
+ * 头顶资质[Aptitude]牌匾的世界渲染。
  *
- * <p>Static renderer called once a frame after the entities ({@code AwakeningEvents}). The plaque is its GUI sprite
- * ({@link AwakeningPlaque}) on a camera-facing quad, {@link #BLOCKS_PER_PIXEL} blocks a pixel, full bright, with its
- * bottom edge {@link #LIFT} blocks over the head, clear of the name tag. It fades with the screen plaque, and hides
- * as a name tag does: with the HUD, past the name-tag range, or from a player who cannot see its owner.
+ * <ul>
+ *   <li>开窍[Awakening]揭晓资质后显示在该玩家头顶，给旁人与本人第三人称镜头看；本人第一人称改看屏幕牌匾
+ *       （{@code AwakeningHud}），两者同步淡出；隐藏规则同名牌：隐藏 HUD、超出名牌距离、观察者看不见其主人时。</li>
+ *   <li>静态渲染器，{@code AwakeningEvents} 每帧在实体后调用一次；牌匾即其 GUI sprite（{@link AwakeningPlaque}），贴在
+ *       朝镜头的四边形上，每像素 {@link #BLOCKS_PER_PIXEL} 格，全亮；底边在头顶上方 {@link #LIFT} 格，避开名牌。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

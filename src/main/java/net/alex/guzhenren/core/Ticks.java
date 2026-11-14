@@ -1,16 +1,12 @@
 package net.alex.guzhenren.core;
 
 /**
- * Every unit of time this mod speaks, in ticks.
- *
- * <p>The sole source of time constants for the entire mod: {@code SECOND 20}, {@code HALF_SECOND 10},
- * {@code MINUTE 1200}, {@code HALF_MINUTE 600},
- * {@code DAY 24000}, {@code HALF_DAY 12000}. There is no config in this mod, and there must never be
- * one -- a server owner who "configured" a day to 5000 would only desync aging, regen and feeding from
- * the day/night cycle. Never declare a second {@code 24000} anywhere else; use this class.
- *
- * <p>⚠ A duration someone might one day want to tune still belongs here as a named constant rather
- * than inline in whatever code happens to use it first.
+ * 模组全部时间单位，以 tick 计。
+ * <ul>
+ *   <li>全模组时间常量的唯一来源；别处不得再声明第二个 {@code 24000}。</li>
+ *   <li>模组没有配置，也永远不许有：服主把一天“配置”成 5000，只会让衰老、回复、补食与昼夜脱节。</li>
+ *   <li>⚠ 将来可能要调的时长也作为具名常量放这里，不内联在最先用它的代码里。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

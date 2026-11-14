@@ -10,17 +10,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The speed the held beasts add, the galloping horse's [驰马] among them, as one transient movement speed modifier.
- * A beast's {@code getSprintBonus} is a multiple of the walking speed: while the player sprints, every held beast's
- * adds to the sprint's own multiple (vanilla's {@link #VANILLA_SPRINT_FACTOR}, so the horse's 0.5 makes it 1.8);
- * while an attack round fully releases [全面解放] its family ({@code StrengthRound.getFullyReleased}), it adds to the
- * walk and the sprint alike, so a released horse walks at 1.5 and sprints at 2.3. {@link #getModifier} multiplies the
- * total, so vanilla's sprint and ours compose to exactly that multiple, and potions still scale the whole.
- *
- * <p>Server side, refreshed every tick by {@code PlayerTickEvents} beside the attack; the client gets it with the
- * attribute sync. It reads the sprint and the round, never the hand.
- *
- * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}).
+ * 持有兽力[Beast Strength]的移速加成，合为一个临时移速修饰。
+ * <ul>
+ *   <li>加成是步行速度的倍数：疾跑时加到原版疾跑倍率（驰马 0.5，1.3 → 1.8）；本轮全面解放其兽种时步行也加（解放的马步行
+ *       1.5、疾跑 2.3）。</li>
+ *   <li>{@link #getModifier} 乘总值，原版疾跑与本加成恰合成该倍率，药水仍整体缩放；服务端每 tick
+ *       随攻击刷新（{@code PlayerTickEvents}），客户端经属性同步；不读手持。</li>
+ *   <li>⚠ 修饰须为临时（{@link TransientModifiers}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

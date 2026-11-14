@@ -13,15 +13,12 @@ import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 
 /**
- * The client half of the cultivation stance [温养空窍]: it holds the player still and pulls the view in. The
- * awakening ritual [开窍仪式] holds the same stance, until its flash has faded and the plaque shows.
+ * 温养[Nourish]空窍[Aperture]姿态的客户端部分；开窍[Awakening]仪式沿用，直到闪白褪去、牌匾出现。
  *
- * <p>Annotated {@code @EventBusSubscriber(Dist.CLIENT)}. On {@code MovementInputUpdateEvent} it zeroes
- * every input axis while {@link #isHeldStill} is true; on {@code ComputeFovModifierEvent} it sets a multiplier so
- * the view pulls in to a {@link #CULTIVATION_FOV}-degree field of view.
- *
- * <p>☠ Standing still can only be enforced on the CLIENT. A server-side stop is undone on the very
- * next tick by whatever key is held -- client input is the only authority that can keep it still.
+ * <ul>
+ *   <li>{@link #isHeldStill} 为真时定住玩家：清零全部移动输入，视野改为 {@link #CULTIVATION_FOV} 度。</li>
+ *   <li>☠ 定身只能在客户端：服务端的停止下一 tick 就被按住的键抵消。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

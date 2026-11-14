@@ -7,11 +7,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for a sprint double tap: enter second-stage flight [二段飞行], or leave it.
- *
- * <p>Carries nothing, so there is nothing to forge;
- * {@link net.alex.guzhenren.gameplay.flight.SecondStageService#toggle} decides from the server's own state, and a
- * player who may not enter simply stays out.
+ * 双击疾跑进入或退出二段飞行[Second-Stage Flight]的客户端意图 payload；不带数据，无从伪造。
+ * {@link net.alex.guzhenren.gameplay.flight.SecondStageService#toggle} 只按服务端自身状态判定；不能进入者保持原状。
  *
  * @author Alex
  * @version 1.0.0

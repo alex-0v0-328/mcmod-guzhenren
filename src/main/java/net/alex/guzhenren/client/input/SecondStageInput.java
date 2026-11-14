@@ -17,20 +17,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * The second-stage flight [二段飞行] toggle on the client: double-tapping the sprint key sends
- * {@link ToggleSecondStagePayload}.
- *
- * <p>Presses come from the raw key and mouse events, matched against whatever the sprint key is bound to, because
- * the key mapping itself only tells whether the key is down and, with Sprint set to Toggle, not even that.
- * {@link #DOUBLE_TAP_TICKS} is vanilla's window for its own double taps (forward to sprint, jump to fly), counted in
- * client ticks ({@link #ticks}). Presses with a screen open do not count. A double tap is sent to leave the stage,
- * or to enter it when {@link SecondStageService#canEnter} holds on the client's own state: flying and already
- * sprinting, which the first tap starts while forward is held. The server decides again. A tap sent to enter also
- * arms the first-person sonic boom ({@link SonicBoomHud#noteRequested}). Logging out forgets a first tap that was
- * waiting for its second.
- *
- * <p>The one mutable static, {@code ticks}, is this client's own tick clock for the double tap; it only counts up, and
- * a stored first tap is forgotten on logout.
+ * 二段飞行[Second-Stage Flight]开关的客户端输入：双击疾跑键发送 {@link ToggleSecondStagePayload}。
+ * <ul>
+ *   <li>按键取原始键鼠事件，与疾跑键当前绑定比对：按键映射只知是否按下，疾跑设为切换模式时连这也不行；界面打开时不算；
+ *       {@link #DOUBLE_TAP_TICKS} 即原版自身双击（前进疾跑、跳跃飞行）的窗口，按客户端 tick（{@link #ticks}）计。</li>
+ *   <li>二段中双击即发退出；否则客户端自身满足 {@link SecondStageService#canEnter}（飞行中且已在疾跑，
+ *       按住前进时第一下即开始疾跑）才发进入，服务端再判；进入请求同时备好第一人称音爆环
+ *       （{@link SonicBoomHud#noteRequested}）。</li>
+ *   <li>唯一可变静态字段 {@code ticks} 为本客户端双击用 tick 时钟，只增不减；登出时忘掉待第二下的第一下。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -10,26 +10,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A tended Gu's channeling quota [灌注]: how much essence one step may pour, for a channeled Gu's round and for the
- * refining of a wild one. The host ({@code TendedGuItem}) keeps the hooks, the hunger meal and the payment; this
- * only sizes a step and writes what was poured.
- *
- * <p>⚠ Refining and channeling advance one step every {@link #STEP_TICKS} (2 ticks), at two paces that stay separate.
- * A holder above the Gu's rank is Gu-paced: a channel step pours at most 1/{@link #STEPS_PER_ROUND} of a round, a
- * round every {@link #ROUND_TICKS} (8 steps, 16 ticks = 0.8 s) scaled by {@code TimeFlow}, whatever the hunger, and a
- * refining step may pour the whole pool. At the Gu's rank or below, the pool sets the pace over the same 8-step
- * cycle: 1/9, 1/8, ... then 1/2 of the pool per step, 8/9 of it a cycle at normal time flow.
- *
- * <p>⚠ A step is sized from the pool, which is never below {@link #ESSENCE_FLOOR} when it pours: below it a step is
- * 0. Creative draws no stone, so its top-up never lifts a short pool; it sizes from the pool the top-up would have
- * left ({@code PrimevalStoneSupply.getPoolAfterTopUp}), never below the floor, and it ignores the hunger floor
- * ({@link #getEssenceAboveHungerFloor}). ☠ Sized from the bare pool, a creative step on an empty one is a ninth of
- * the floor, 2 a step against a rank three refining of 51,200. A channel step is capped by the essence above the
- * hunger floor, so the host eats before it sizes; it never pours past the end of the round.
- *
- * <p>Every sizing method has a pure overload taking only numbers, like {@code TimeFlow}'s arithmetic, for the tests;
- * the player overloads read those numbers and call it, and consume the one random roll a fractional rate needs only
- * when the pool is at the floor.
+ * 持续照顾型蛊[Tended Gu]的灌注[Channel]定额：灌注一轮或炼化野生蛊时每步可倒的真元[Essence]。
+ * <ul>
+ *   <li>宿主 {@code TendedGuItem} 管钩子、进食、付费，本类只定量、记倒入量，不倒过一轮终点；灌注步以饱食[Hunger]下限之
+ *       上的真元封顶，故宿主先进食再定量。</li>
+ *   <li>⚠ 炼化、灌注各每 {@link #STEP_TICKS}（2 tick）一步。持有者转数高于蛊时按蛊定速：灌注每步至多一轮
+ *       1/{@link #STEPS_PER_ROUND}，每 {@link #ROUND_TICKS}（8 步，16 tick = 0.8 秒）一轮，经 {@code TimeFlow} 缩放、
+ *       不看饱食；炼化每步可倒整池。否则由池定速：8 步一周期，每步依次倒池的 1/9、1/8……1/2，常速一周期共 8/9。</li>
+ *   <li>⚠ 池低于 {@link #ESSENCE_FLOOR} 则每步为 0；创造模式不扣元石[Primeval Stone]，补足抬不高池，故按补足后应剩的池
+ *       （{@code PrimevalStoneSupply.getPoolAfterTopUp}）定量，不低于下限，忽略饱食下限。</li>
+ *   <li>☠ 若按裸池，创造空池每步仅下限 1/9 即 2，而三转炼化要 51,200。</li>
+ *   <li>定量方法皆有纯数值重载供测试（同 {@code TimeFlow} 算术）；玩家重载读数调用，池在下限才耗分数倍率的随机数。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

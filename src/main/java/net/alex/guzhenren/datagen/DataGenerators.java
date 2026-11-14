@@ -32,14 +32,12 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 /**
- * Wires every generator that runs at datagen time.
+ * 数据生成总入口。
  *
- * <p>Annotated {@code @EventBusSubscriber}. On {@code GatherDataEvent} it adds every provider that
- * lives under {@code datagen/}. The output is a committed source set under
- * {@code src/generated/resources}.
- *
- * <p>⚠ What they write is a committed source set, so a provider changed without regenerating ships a
- * stale jar while the build stays perfectly green.
+ * <ul>
+ *   <li>{@code GatherDataEvent} 加入 {@code datagen/} 全部 provider；输出提交进 {@code src/generated/resources}。</li>
+ *   <li>⚠ 改 provider 不重新生成，构建照样全绿，发布的 jar 却是旧数据。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -1,16 +1,16 @@
 package net.alex.guzhenren.registry.builder;
 
 /**
- * The item model a declared item gets: the shapes {@code ModItemModelProvider} knows how to write.
+ * 已声明物品的模型种类：{@code ModItemModelProvider} 会写的形状。
  *
- * <p>{@link #FLAT} is the default, vanilla's {@code item/generated} over {@code item/<id>}. {@link #BLOCK} shows the
- * block model of the same id; {@link #FLUID} lays the fluid's still strip {@code block/<id>_still} flat, the Spirit
- * Spring [元泉] BlockItem having no PNG of its own; {@link #LEAF_STAGES} shows the Nine Leaf Vitality Grass's
- * [九叶生机草] {@code _full} PNG and overrides to {@code _half} and {@code _empty} on its {@code picked} property;
- * {@link #NUMERALS} shows the Advancement Icon's [进度图标] {@code _0} PNG and overrides on
- * {@code custom_model_data}, one numeral per settable rank and stage.
- *
- * <p>The kinds are names, not callbacks, so a registration line never references a client datagen class.
+ * <ul>
+ *   <li>{@link #FLAT} 默认，原版 {@code item/generated} 叠 {@code item/<id>}；{@link #BLOCK} 同 ID 方块模型；
+ *       {@link #FLUID} 平放 {@code block/<id>_still}，因元泉[Spirit Spring] BlockItem 无自带 PNG。</li>
+ *   <li>{@link #LEAF_STAGES}：九叶生机草[Nine Leaf Vitality Grass] {@code _full}，按 {@code picked} 切 {@code _half}、
+ *       {@code _empty}；{@link #NUMERALS}：进度图标 {@code _0}，按 {@code custom_model_data} 切换，每个可设的转、
+ *       阶一个数字。</li>
+ *   <li>种类是名字而非回调，注册行从不引用客户端 datagen 类。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

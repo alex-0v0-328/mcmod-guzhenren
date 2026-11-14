@@ -1,8 +1,8 @@
 package net.alex.guzhenren.network.payload;
 
 /**
- * The three moves of the Store Strength Gu's [蓄力蛊] charge [蓄力] intent: start, cancel, or release at the locked target.
- * Lives with the payload that carries it, so the payload needs nothing from {@code net.alex.guzhenren.network}.
+ * 蓄力蛊[Store Strength Gu]蓄力意图的三个动作：开始、取消、对锁定目标释放。
+ * 与所属 payload 同包，免其依赖 {@code net.alex.guzhenren.network}。
  *
  * @author Alex
  * @version 1.0.0

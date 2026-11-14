@@ -7,16 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One Gu recipe [蛊方]: what it eats, what it yields, and the windows the ritual runs through.
+ * 一张蛊方：耗料、产出、仪式的投石窗口。
  *
- * <p>The ingredients and their cell groups are parallel lists (SHAPED and exact -- no mirroring, no rotation):
- * an ingredient may sit in any cell of its own group, and the group together holds exactly its count. Groups
- * never overlap, so a one-cell group is a plain fixed cell. The window list's length IS the stage count. The
- * data and the matching logic live here; the recipe manager's side -- recipe type, serializer, the sorted
- * listing -- lives in {@link RefinementRecipe}.
- *
- * <p>The grid is a 5×5 with its four corners cut away: the outer ring [外圈] of 12 around the inner ring [内圈] of 9. The
- * Gu count among the results is what the sole-Gu inheritance rule reads.
+ * <ul>
+ *   <li>材料与格组平行，有序精确、不镜像不旋转；材料可放本组任一格，全组合计恰为其数；格组不重叠，单格组即固定格。</li>
+ *   <li>窗口数即阶段数；网格为去四角 5×5，外圈 12 格围内圈 9 格；产出蛊数供本命继承判定。</li>
+ *   <li>只有数据与匹配；配方类型、序列化器、排序列表在 {@link RefinementRecipe}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

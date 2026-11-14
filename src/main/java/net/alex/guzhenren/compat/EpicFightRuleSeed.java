@@ -7,12 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 /**
- * Whether this world has had Epic Fight's skill-retention rule seeded, kept in the overworld's data storage as
- * {@code guzhenren_epicfight_rules.dat}.
- *
- * <p>{@link #seed} turns {@code keepSkills} on the first time a world starts with this mod and never again, so a
- * server that turns it off with {@code /gamerule} keeps its choice across restarts. The rule is a vanilla game
- * rule, saved in {@code level.dat} and shared by every level of the server, so one flag covers them all.
+ * Epic Fight 技能保留规则是否已写入的世界标记，存于主世界 {@code guzhenren_epicfight_rules.dat}；{@link #seed} 只在世界
+ * 首次带本模组启动时开启 {@code keepSkills}，服务器用 {@code /gamerule} 关掉后重启仍保留；该规则是原版游戏规则，存于
+ * {@code level.dat}，全服维度共用，一个标记覆盖全部。
  *
  * @author Alex
  * @version 1.0.0

@@ -21,31 +21,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The auto use [自动催动] of every {@link AutoUseBehavior} Gu: a refined copy held in the bag ({@code items} and
- * offhand) or stored in any aperture [空窍] starts its state on its own once the holder falls under 75% of max health
- * ({@link HardshipStrength#isHurt}), for a window the behavior names ({@link #getEndTick}: its seconds plus the held
- * beasts' duration bonus, the green bull's ten); healing meanwhile does not end it. A window that runs out on a body
- * still hurt is followed by a new start, billed again, once the Gu's effect cooldown allows.
- *
- * <p>{@link #tryStart} runs on the heartbeat. Per state, only the highest rank held counts, however many copies:
- * its copies are tried in scan order (bag, offhand, then each aperture's store; the Vital Gu [本命蛊] slot is not
- * scanned) until one starts. A start is the Gu's own {@code TendedGuItem.tryAutoUse}, so it pays the essence and the
- * use's hunger once, at that rank, behind the same essence gate, effect cooldown and silent skip of a short bar as
- * any automatic use, and stamps the effect cooldown that spaces two starts. A stored copy is used on a copy written
- * back through {@code ApertureStorageService.setSlot}. Nothing is billed while the state runs.
- *
- * <p>{@link #tick} runs every tick and stops a running state, unbilled, when the holder is dead or dying or holds no
- * refined copy of the Gu that started it (the window's end is the path effect's own expiry); then it pulses the Self
- * Reliance heal. A state put back later starts again, and pays again.
- *
- * <p>⚠ The hand gate ({@code AutoUseBehavior.checkEffect}) lets only a start through: {@link #isStarting} holds for
- * the one player whose start is under way, on the server thread, for the length of {@code tryAutoUse}.
- *
- * <p>⚠ Both states are timed path effects: they survive a relog, and the first tick after it checks them again
- * without billing. A higher rank picked up while a lower one runs takes over only at the next start.
- *
- * <p>The one mutable static, {@code starting}, is a call-scoped server-thread context: it is set and cleared in a
- * try/finally around one auto use, so it never outlives the call.
+ * 所有 {@link AutoUseBehavior} 蛊的自动催动。
+ * <ul>
+ *   <li>背包（{@code items}、副手）或任一空窍[Aperture]存储中的已炼化蛊，在持有者低于最大生命 75%
+ *       （{@link HardshipStrength#isHurt}）时自行开启状态；窗口见 {@link #getEndTick}（青牛 +10 秒），回血不结束窗口；
+ *       到期仍受伤，等效果冷却允许后重开、再计费。</li>
+ *   <li>{@link #tryStart} 走心跳：每种状态只算持有的最高转，逐份试到一份开启（不扫本命蛊格）；开启即蛊自己的
+ *       {@code TendedGuItem.tryAutoUse}：按该转付一次真元[Essence]与催动饱食[Hunger]，同受真元门槛、效果冷却和饱食不足
+ *       静默跳过，并打效果冷却隔开两次开启；运行中不计费。</li>
+ *   <li>{@link #tick} 每 tick 在持有者死亡濒死或不再持有开启它的已炼化蛊时停状态，不计费（到期靠流派效果自身过期）；
+ *       蛊放回后重开、再付。</li>
+ *   <li>⚠ 两种状态都是限时流派效果：重登后保留，首个 tick 重查不计费；低转运行中拾起高转，下次开启才接替。</li>
+ *   <li>⚠ 手持门槛（{@code AutoUseBehavior.checkEffect}）只放行开启：{@link #isStarting} 仅在服务端线程、
+ *       {@code tryAutoUse} 期间对正在开启的玩家成立。</li>
+ *   <li>唯一可变静态字段 {@code starting}：调用级服务端线程上下文，try/finally 包住一次自动催动，不越调用。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

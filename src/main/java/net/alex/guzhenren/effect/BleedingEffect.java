@@ -7,10 +7,8 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Bleeding [流血]: 1 damage a second, past armor, for as long as it lasts. The Blood Moon Blade [血月刃] leaves it.
- *
- * <p>A plain effect with no state behind it, so milk cures it, the one exception in {@link MilkCureEvents}. The
- * pulse names no attacker; the kill goes to whoever last hurt the target, as with poison.
+ * 流血效果：每秒 1 点伤害、无视护甲，由血月刃留下；无状态普通效果，故牛奶能解（{@link MilkCureEvents} 唯一例外）；脉冲
+ * 不指明攻击者，击杀归最后伤害者，同中毒。
  *
  * @author Alex
  * @version 1.0.0

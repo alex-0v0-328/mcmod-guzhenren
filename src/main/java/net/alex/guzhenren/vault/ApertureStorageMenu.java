@@ -23,39 +23,34 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The container behind one aperture's [空窍] store, paged because the store outgrows one screen: up to
- * {@code ApertureStorageService.MAX_LOAD} load, at least one per Gu. Shift-click is vanilla's merge, which reads each
- * slot's limit for the stack it is offered ({@code GuSlot#getMaxStackSize(ItemStack)}), so the load cap holds there.
+ * 单个空窍[Aperture]存储的容器菜单。
  *
- * <p>Extends {@link net.minecraft.world.inventory.AbstractContainerMenu}. 54 slots per page; the Vital Gu
- * [本命蛊] slot sits outside the pager, past {@code imageWidth}. The save trigger is a container
- * listener ({@code page.addListener(container -> save())}), not an override of {@code slotsChanged} -- that
- * override is never called because {@code AbstractContainerMenu} is not a {@code ContainerListener}.
- * {@code load} raises {@code loading}, so its own {@code setItem} calls do not save a half-loaded page. ⚠ It
- * saves on every changed slot, not once per click: the slots admit a Gu by {@code getLoad()}, which only a save
- * refreshes, so a deferred save would let one shift-click or drag over-fill the page and lose the refused Gu.
- * ⚠ That load is the synced {@code DATA_LOAD}: the store never reaches the client, so a slot never recomputes
- * the load from the client's attachment.
- *
- * <p>{@code countPages} counts the pages that hold every stored Gu plus one free slot, so a full page
- * still leaves an empty one for the next Gu. Binding a Vital Gu here only marks the stack;
- * {@code ApertureStorageService.setVital} then sets the aperture's primary path.
- *
- * <p>⚠ The heartbeat calls {@code refresh} after the upkeep walk: any second can heal, feed or fill a
- * stored Gu, and an open menu that saved its stale view back would undo it -- or resurrect a Gu that
- * starved a moment earlier.
- *
- * <p>⚠ {@link VitalSlot#mayPlace} admits a Gu by the load after the swap, mouse and number key alike: a
- * refused {@code setVital} in {@code save} reloads the slot but cannot take back the copy vanilla already
- * moved to the cursor or hotbar, which would duplicate the old Vital Gu and lose the new one.
- *
- * <p>An aperture has one Vital Gu. Binding a new one makes the replaced one an ordinary Gu: its token no
- * longer matches the store, and {@link #releaseFormer} strips the mark from the copy vanilla just moved to
- * the cursor or into the bag.
- *
- * <p>⚠ A command that rewrites the store under an open menu ({@code /gzr reset}, {@code /gzr awaken}) calls
- * {@link #closeFor} first: before the next heartbeat refresh, a click or the close would save the stale window
- * back over the reset or into the shifted indices.
+ * <p>分页与负载：
+ * <ul>
+ *   <li>存储超一屏故分页；负载上限 {@code ApertureStorageService.MAX_LOAD}，每蛊至少计 1；本命蛊槽不随翻页，在
+ *       {@code imageWidth} 外。</li>
+ *   <li>Shift 点击走原版合并，逐格按 {@code GuSlot#getMaxStackSize} 限量，负载上限照样成立。</li>
+ *   <li>{@code countPages} 按存储蛊数加一计页，满页后仍留一空页。</li>
+ *   <li>⚠ 负载取同步的 {@code DATA_LOAD}：存储不发往客户端，槽位不按客户端附件重算。</li>
+ * </ul>
+ * <p>保存：
+ * <ul>
+ *   <li>由容器监听器触发，不覆写 {@code slotsChanged}：{@code AbstractContainerMenu} 非 {@code ContainerListener}，
+ *       覆写永不被调；{@code load} 置 {@code loading}，自身 {@code setItem} 不存半载的页。</li>
+ *   <li>⚠ 每改一格即存，非每次点击：槽位按 {@code getLoad()} 收蛊，只有保存刷新它；延迟则一次 Shift 点击或拖动会
+ *       塞超本页、丢掉被拒的蛊。</li>
+ *   <li>⚠ 心跳在养护遍历后调 {@code refresh}：每秒都可能治疗、补食、充满存储蛊，开着的菜单存回过期视图会撤销之，
+ *       甚至复活刚饿死的蛊。</li>
+ *   <li>⚠ 开着菜单时改写存储的命令（{@code /gzr reset}、{@code /gzr awaken}）先调 {@link #closeFor}：否则心跳刷新前，
+ *       一次点击或关闭会存回过期窗口，盖掉重置或写进移位的索引。</li>
+ * </ul>
+ * <p>本命蛊：
+ * <ul>
+ *   <li>一空窍一只；在此绑定只标记物品堆，再由 {@code ApertureStorageService.setVital} 设该空窍主修流派。</li>
+ *   <li>换新则旧的变回普通蛊：令牌不再匹配存储，{@link #releaseFormer} 清掉原版刚移到光标或背包那份拷贝的标记。</li>
+ *   <li>⚠ {@link VitalSlot#mayPlace} 按交换后负载收蛊，鼠标、数字键皆然：{@code save} 里被拒的 {@code setVital}
+ *       会重载槽位，却收不回原版已移到光标或快捷栏的拷贝，致旧本命蛊被复制、新的丢失。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

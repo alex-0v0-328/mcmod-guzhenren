@@ -8,15 +8,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What aperture storage needs to know about the Gu [蛊] it holds, so the aperture does not depend on the item
- * package that defines them: which stacks it may store and at what rank, a Gu's path, and the Vital Gu's binding
- * token, owner and aperture kind. The vault's menu and per-second settle sit above the item package
- * ({@code net.alex.guzhenren.vault}) and ask the Gu classes themselves.
- *
- * <p>The item side fills it: the mod's entry point hands {@code ApertureStorageService.setStoredGu} the one built on
- * the Gu item classes, before any player can open a store. A stack that is no Gu answers {@code null}, zero or
- * {@code false} everywhere; {@link #getRank} also answers {@code null} for a Gu the store may not hold, and
- * {@link #getToken} zero for an unbound Gu.
+ * 空窍[Aperture]存储查所存蛊的接口，使空窍不依赖定义蛊的物品包。
+ * <ul>
+ *   <li>{@code net.alex.guzhenren.vault} 的菜单与每秒结算在物品包之上，直问蛊类。</li>
+ *   <li>物品侧实现基于蛊物品类，由入口类在玩家能开存储前交给 {@code ApertureStorageService.setStoredGu}。</li>
+ *   <li>非蛊栈一律答 {@code null}、零或 {@code false}；{@link #getRank} 对不许存的蛊亦答 {@code null}，
+ *       {@link #getToken} 对未绑定蛊答零。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

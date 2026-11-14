@@ -20,18 +20,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A wild Gu that flies: it drifts toward a player it wants, and hovers there.
- *
- * <p>Extends {@link net.alex.guzhenren.entity.gu.WildGuEntity}. A flying move control and flying path
- * navigation support the hover and random-flight goals. {@code seeks} is the one door: the base wants anyone,
- * a leaf narrows it; {@link #isWanting} is the same test used both for starting and for keeping a target,
- * so a player who turns spectator or leaves is let go.
- *
- * <p>⚠ {@code isNoGravity()} is a flat true on purpose. The flying move control only clears gravity
- * while it is actively moving the mob, and the hover goal stops the navigation. {@link #checkFallDamage}
- * likewise neutralizes the fall check: every descent is self-propelled (hover approach, landing goal,
- * escape cone), so the accrued fall distance must never become damage and must never kill the
- * one-health mote -- vanilla flyers such as bees and bats clear this check the same way.
+ * 会飞的野生蛊：飘向想要的玩家并悬停。
+ * <ul>
+ *   <li>{@code seeks} 是唯一关口：基类全要，叶子类收窄；{@link #isWanting} 兼管选定与保持，玩家转旁观或离开即放
+ *       手。</li>
+ *   <li>⚠ {@code isNoGravity()} 恒为 true：飞行移动控制仅主动移动时清重力，悬停目标却停了寻路。</li>
+ *   <li>⚠ {@link #checkFallDamage} 置空：下降全靠自驱（悬停、降落、逃跑锥），坠落距离不得伤及 1 点生命的光点；原版蜜
+ *       蜂、蝙蝠同理。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

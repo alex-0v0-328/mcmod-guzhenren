@@ -11,9 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Server notice to the caster alone: a killing move [杀招] just landed, so the Killing Move Tooltip [杀招提示] slides
- * in. Carries the move's id and each Gu the cast used, main first ({@link KillingMoveService.Cast}), as stacks: a
- * partner may sit in an aperture store [空窍存储] the client never sees, so the notice brings the Gu with it.
+ * 只发给施放者的服务端通知：杀招[Killing Move]命中，提示滑入。
+ * 带杀招 id 与本次各蛊物品堆，主蛊在前（{@link KillingMoveService.Cast}）；配合蛊或在客户端不可见的空窍[Aperture]存储。
  *
  * @author Alex
  * @version 1.0.0

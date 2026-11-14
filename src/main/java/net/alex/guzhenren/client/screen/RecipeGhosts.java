@@ -13,17 +13,13 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The cells a picked Gu Recipe [蛊方] still wants, drawn into the refinement grid as faded items under the vanilla
- * ghost-recipe overlay with the missing count; plus the two recipe readings the refinement screen and the
- * {@link RecipePicker} share: {@link #getResult}, the first result, and {@link #getOption}, one of an ingredient's
- * items, cycling once a second.
- *
- * <p>⚠ {@link #draw} runs from the screen's {@code renderLabels}: coordinates are panel-relative, and the carried
- * item still paints over the ghosts. A cell that already holds anything gets no ghost; an ingredient's ghost takes
- * the first empty cell of its group.
- *
- * <p>The ghosts draw in one {@link GuiBatch}, in three passes -- every faded item, every overlay, every count --
- * which keeps each cell's own order; the grid's cells sit 22 apart and never overlap, so only that order shows.
+ * 已选蛊方在炼蛊网格里仍缺的格子，画成虚影。
+ * <ul>
+ *   <li>虚影：半透明物品，上盖原版虚影配方遮罩，标缺少数量；已有物品的格子不画，材料虚影落在其组内第一个空格。</li>
+ *   <li>{@link #getResult} 取首个产物，{@link #getOption} 每秒轮换材料候选；炼蛊界面与 {@link RecipePicker} 共用。</li>
+ *   <li>⚠ {@link #draw} 从 {@code renderLabels} 调用：坐标相对面板，手持物品仍画在虚影上。</li>
+ *   <li>一个 {@link GuiBatch} 分三遍画（半透明物品、遮罩、数量），每格层序不变；格距 22 互不重叠，只见格内层序。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

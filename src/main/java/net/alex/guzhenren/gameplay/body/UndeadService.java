@@ -6,8 +6,8 @@ import net.minecraft.world.food.FoodData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The heartbeat steps of the undead [僵]. {@link #tickTempZombie} lets an expired temp zombie recover and
- * projects the state as the {@code TEMP_ZOMBIE} effect; {@link #pinHunger} keeps an undead body's hunger full.
+ * 不死（僵）的心跳步骤：{@link #tickTempZombie} 让到期临时僵尸恢复并投影为 {@code TEMP_ZOMBIE} 效果；{@link #pinHunger}
+ * 保持不死之躯饥饿值满格。
  *
  * @author Alex
  * @version 1.0.0

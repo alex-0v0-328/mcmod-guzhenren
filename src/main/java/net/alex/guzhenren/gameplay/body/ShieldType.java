@@ -11,15 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 /**
- * A kind of shield [护盾] a Gu raises over the body: its bar fill, whether a hit it takes whole leaves the body
- * unmoved [霸体], and the marker effect that projects it.
+ * 蛊升起的护盾种类：血条填充色、是否霸体（全额吃下时肉身不动）、投影它的标记效果。
  *
- * <p>Closed vocabulary enum, one layer per kind on {@code ShieldData}; points and length are the raising Gu's
- * registration's, never this enum's. A new shield Gu adds a constant here and its name in the language provider;
- * {@code ShieldService}, the bar ({@code ShieldHud}) and the screen glow ({@code ShieldGlowHud}) need no change.
- * A kind that is not super armor still takes the 0.4 knockback vanilla leaves after a shield block.
- *
- * <p>⚠ {@link #CODEC} writes the saved name into player saves: renaming a constant drops a layer saved under it.
+ * <ul>
+ *   <li>封闭词表，{@code ShieldData} 每种一层；点数与时长归升起之蛊的注册。新护盾蛊只加常量和 LanguageProvider 名称，
+ *       {@code ShieldService}、{@code ShieldHud}、{@code ShieldGlowHud} 不用改。</li>
+ *   <li>非霸体仍吃原版盾牌格挡后的 0.4 击退。</li>
+ *   <li>⚠ {@link #CODEC} 把常量名写入玩家存档：改名会丢失旧名保存的层。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

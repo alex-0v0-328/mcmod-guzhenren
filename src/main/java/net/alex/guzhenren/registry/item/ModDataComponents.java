@@ -16,21 +16,15 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * The item components this mod adds, for state belonging to one particular stack.
+ * 物品组件：单个物品堆独有的状态。
  *
- * <p>DeferredRegister holder: {@link RefinedGuState}, {@code VITAL_OWNER}, {@code VITAL_APERTURE}, {@code VITAL_TOKEN}
- * (read and written only through {@code VitalGuState}), {@code STORED_STONES}, {@code REFINED_AT},
- * {@code AWAKEN_BASE}, {@code USED_AT}, {@code HEAL_BANK},
- * {@code LITTLE_LIGHT_BRIGHT} (present only while on, so a dynamic-light definition can match it),
- * {@code LITTLE_LIGHT_BRIGHT_UNTIL}, {@code LITTLE_LIGHT_FORCED} (present only on a forced round) and
- * {@link LeafGrowth}. A component here is for state that not every tended Gu shares; anything all of them carry
- * belongs on the shared state record instead.
- *
- * <p>⚠ Game-clock timestamps default to {@code 0}, which is a real game time -- judge {@code null},
- * never {@code 0}, or a fresh world reads "already used".
- *
- * <p>Callers read and write a component through the stack with the holder itself, NeoForge's {@code Supplier}
- * overloads ({@code stack.get(ModDataComponents.USED_AT)}); setting {@code null} removes it.
+ * <ul>
+ *   <li>只放部分持续照顾型蛊[Tended Gu]才有的状态；全体共有的归 {@link RefinedGuState}。</li>
+ *   <li>{@code VITAL_*} 只经 {@code VitalGuState} 读写。</li>
+ *   <li>{@code LITTLE_LIGHT_BRIGHT} 亮时才有，供动态光源；{@code LITTLE_LIGHT_FORCED} 仅强行催动[Forced Use]轮内。</li>
+ *   <li>⚠ 时间戳默认 {@code 0} 也是真实游戏时间：判 {@code null} 不判 {@code 0}，否则新世界误判已催动。</li>
+ *   <li>经 NeoForge {@code Supplier} 重载直接用持有者读写；设 {@code null} 即移除。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

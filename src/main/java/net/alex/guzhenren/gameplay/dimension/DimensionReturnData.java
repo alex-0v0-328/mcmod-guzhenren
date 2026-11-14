@@ -9,17 +9,9 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Return-point snapshot for anchored dimension travel [宝黄天 / 福地 / 洞天]. A player can only be inside
- * one anchored dimension at a time, so one optional {@link ReturnPoint} is enough. The record is
- * server-only: it is serialized to NBT but never synced to clients.
- *
- * <p>The compact constructor rejects a null outer {@code point}; the nested compact constructor rejects
- * a null level key.
- *
- * <p>{@link ReturnPoint} is one saved location: dimension, position, rotation, and whether the
- * player was flying on entry. Flight permission itself is not saved -- the anchored-dimension grant
- * is a transient attribute modifier, so a record written before it may still carry a {@code mayfly}
- * key that decoding ignores.
+ * 锚定维度旅行的返回点快照（宝黄天[Treasure Yellow Heaven]、福地、洞天）。同时只在一个锚定维度，一个可选
+ * {@link ReturnPoint} 够用；仅服务端，存 NBT 不同步；外层 {@code point}、内层维度键非 {@code null}；{@code flying}
+ * 指进入时在飞。飞行权限不存：锚定维度授权是临时属性修饰符，旧记录的 {@code mayfly} 键解码忽略。
  *
  * @author Alex
  * @version 1.0.0

@@ -6,30 +6,20 @@ import net.alex.guzhenren.item.Booklet;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Where each glyph of a {@link Booklet} sits on its spread: top to bottom down a column, columns right to left, the
- * right half-page first from its rightmost column, then the left half-page, like an opened thread-bound book [线装书].
- *
- * <p>The spread sprite is {@value #WIDTH}x{@value #HEIGHT}, drawn unscaled. Each half-page's text area is
- * {@value #AREA_WIDTH}x{@value #AREA_HEIGHT} with its top-left at ({@value #RIGHT_X},{@value #TOP}) on the right and
- * ({@value #LEFT_X},{@value #TOP}) on the left: {@value #COLUMNS} columns of {@value #ROWS} rows, {@value #PITCH}
- * pixels a column and {@value #ROW_HEIGHT} a row. The sprite rules the columns [界栏] one pixel wide at x = 144+14k
- * and 16+14k for k = 1 to 7. A glyph is a 12x12 cell of the booklet font, its ink in the cell's columns 0 to 10, drawn
- * {@value #GLYPH_X} pixels right of its column's start and {@value #GLYPH_Y} pixels below the area's top plus its
- * row: one blank pixel stays between the ink and the rule on either side, and between the rightmost column's ink and
- * the frame [版框].
- *
- * <p>Each paragraph starts a fresh column and flows into the next when one fills. An attribute line [属性] and the
- * text [正文] start at the top [顶格]; an attribute keeps to one column. A quote [引文] sinks {@value #QUOTE_SINK}
- * rows in every column it fills [低两格] and, unless it opens the text, leaves one blank column before it. A column
- * never opens on the closing punctuation of {@link #NO_COLUMN_START} [避头]: the glyph before it moves down with
- * it, and the column it leaves ends one row short.
- *
- * <p>A booklet with a figure keeps its text to the right half-page; the left one shows the figure's item as a
- * {@value #ICON}-pixel icon with the caption [图注] down one column below it, {@value #CAPTION_GAP} pixels apart,
- * the block centered both ways on the area.
- *
- * <p>⚠ No page turning: text past its half-page, or past one spread without a figure, refuses to lay out, naming
- * the paragraph.
+ * {@link Booklet} 跨页上每个字的位置，仿翻开的线装书。
+ * <ul>
+ *   <li>字序：列内自上而下，列间自右向左；先右半页（从最右列起），再左半页。</li>
+ *   <li>跨页 sprite {@value #WIDTH}x{@value #HEIGHT} 不缩放；每半页文字区 {@value #AREA_WIDTH}x{@value #AREA_HEIGHT}，
+ *       左上角右页 ({@value #RIGHT_X},{@value #TOP})、左页 ({@value #LEFT_X},{@value #TOP})；{@value #COLUMNS} 列
+ *       {@value #ROWS} 行，列距 {@value #PITCH}、行高 {@value #ROW_HEIGHT} 像素。</li>
+ *   <li>sprite 带 1 像素界栏，x = 144+14k、16+14k，k 取 1 至 7；字为书册字体 12x12 格，墨占 0 至 10 列，画在列起点右
+ *       {@value #GLYPH_X}、文字区顶加行偏移下 {@value #GLYPH_Y} 像素；墨距两侧界栏、最右列墨距版框各 1 像素。</li>
+ *   <li>每段另起一列，满则接下列；正文、属性行顶格，属性行只占一列；引文每列下沉 {@value #QUOTE_SINK} 行（低两格），
+ *       非开篇则前空一列；避头：列首不放 {@link #NO_COLUMN_START} 中的收尾标点，前一字随之下移，原列少一行。</li>
+ *   <li>有插图时只在右半页排文字；左半页画插图物品的 {@value #ICON} 像素图标，图注在其下竖排一列、相隔
+ *       {@value #CAPTION_GAP} 像素，整块在文字区内居中。</li>
+ *   <li>⚠ 不翻页：文字超出半页，或无插图时超出一个跨页，拒绝排版并报出该段。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

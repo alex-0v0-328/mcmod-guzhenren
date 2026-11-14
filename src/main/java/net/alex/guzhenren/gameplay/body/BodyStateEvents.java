@@ -10,13 +10,14 @@ import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * Reacts to the vanilla moments that change body [肉身] behavior: {@code onBreathe} lets an undead life
- * form breathe underwater, {@code onIncomingDamage} hands a hit to the worn skin [皮肤] for its flat reduction and
- * cancels a hit the skin turns whole, so it leaves no knockback, hurt sound or invulnerability frames behind; what
- * passes meets the shields [护盾] ({@link ShieldService#guard}) at vanilla's shield-block slot, and a hit they or
- * their frames take whole is canceled the same way. It runs at {@code LOW}, after the handlers that refuse a hit
- * outright, so a refused hit spends no shield.
- * The attack refreshes on effect changes and attacks live in {@code gameplay.path.strength.AttackDamageEvents}.
+ * 改变肉身行为的原版时机订阅者。
+ *
+ * <ul>
+ *   <li>{@code onBreathe}：不死之躯水下可呼吸。{@code onIncomingDamage}：先扣所穿皮的固定减免，全额挡下即取消，
+ *       不留击退、受伤音效、无敌帧；余量在原版盾牌格挡处交护盾（{@link ShieldService#guard}），全额吃下同样取消。</li>
+ *   <li>{@code LOW} 优先级，晚于直接拒绝伤害的处理器，被拒伤害不耗护盾；攻击力刷新在
+ *       {@code gameplay.path.strength.AttackDamageEvents}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

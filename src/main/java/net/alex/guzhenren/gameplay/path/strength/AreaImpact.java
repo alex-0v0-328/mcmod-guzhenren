@@ -23,30 +23,20 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The area impact [范围冲击]: a fist strike, or the burst of a Strength Qi Gu [力气蛊] ranged punch, may also hit what
- * stands in a cone ahead of it, even when the strike itself whiffs. Each strike phase and each burst rolls once
- * ({@link #rolls}) against {@link #getChance}, which the running effects alone set, never the strength points:
- * {@link #ALL_OUT_CHANCE} under All-Out Effort [全力以赴] ({@link StrengthService#isAllOut}), {@link #BOTH_CHANCE}
- * with the Strength Qi Gu's effect beside it, {@link #STRENGTH_QI_CHANCE} under the Strength Qi Gu alone, none
- * without either. The roll reads the vanilla effects and draws from the random it is handed; a missed roll leaves
- * no trace.
- *
- * <p>{@code EpicFightIntegration} rolls when the hit window of an Epic Fight combo, dash or air attack closes and
- * releases the cone from the eyes along the look, sparing every target the fist already tried; {@code QiBurst} rolls
- * on the projectile's random and releases it from the burst point along the projectile's last flight direction,
- * sparing every target the burst hit. This class knows nothing of Epic Fight.
- *
- * <p>{@link #release} opens the cone from its origin along its axis: a target's hitbox center within {@link #RANGE}
- * blocks and {@link #HALF_ANGLE_DEGREES} off the axis, in line of sight from the origin (a block clip to its eyes,
- * as vanilla's {@code hasLineOfSight} clips from the eyes), nearest first until {@link #MAX_TARGETS} have taken the
- * hit, so a nearer body that refuses it does not use up the cap. Each takes {@link #DAMAGE_RATIO} of the attacker's
- * attack panel as {@code AREA_IMPACT}, ordinary combat damage that armor stops, and a hit that lands pushes it
- * {@link #KNOCKBACK} along the axis through vanilla {@code knockback}, which scales by the knockback resistance;
- * the type carries {@code NO_KNOCKBACK}, so vanilla's own shove away from the attacker stays off. A refused hit (no
- * PvP, invulnerable, still flinching) moves nothing. Spared like the second stage ram, plus whatever rides with the
- * attacker: itself, allies, its own pets, wild Gu and armor stands. No block is touched.
- *
- * <p>⚠ {@link #ALL_OUT_CHANCE}, {@link #BOTH_CHANCE} and {@link #STRENGTH_QI_CHANCE} are provisional.
+ * 范围冲击：拳击或力气蛊[Strength Qi Gu]远程拳爆开时追加的锥形打击。
+ * <ul>
+ *   <li>每段拳、每次爆开掷一次（{@link #rolls}），挥空也掷；概率只看效果，不看力量点[Strength Points]：
+ *       全力以赴（{@link StrengthService#isAllOut}）{@link #ALL_OUT_CHANCE}，加力气蛊 {@link #BOTH_CHANCE}，
+ *       仅力气蛊 {@link #STRENGTH_QI_CHANCE}；未中不留痕。</li>
+ *   <li>{@code EpicFightIntegration} 在连段、冲刺、空中攻击命中窗口关闭时从眼沿视线放，排除拳已判定者；
+ *       {@code QiBurst} 用投射物随机数，从爆点沿末段飞行方向放，排除本次已中者；本类不认识 Epic Fight。</li>
+ *   <li>判定碰撞箱中心，锥顶到目标眼须无方块遮挡（同原版 {@code hasLineOfSight}）；由近及远打满 {@link #MAX_TARGETS}
+ *       个，拒伤者不占名额。</li>
+ *   <li>伤害为攻击面板 × {@link #DAMAGE_RATIO}，普通战斗伤害，护甲照减；命中沿锥轴原版 {@code knockback}
+ *       （受抗性缩放），类型带 {@code NO_KNOCKBACK} 免叠原版击退；拒伤（PvP 关、无敌、无敌帧）不推。</li>
+ *   <li>排除同二段飞行[Second-Stage Flight]撞击（自身、盟友、己方宠物、野生蛊、盔甲架），另加同乘者；不碰方块。</li>
+ *   <li>⚠ 三个概率均为占位。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -83,7 +73,7 @@ public final class AreaImpact {
         return chance > 0.0F && random.nextFloat() < chance;
     }
 
-    /** Whether {@code point} lies in the cone from {@code origin} along {@code axis}, a unit vector. */
+    /** {@code point} 是否在从 {@code origin} 沿单位向量 {@code axis} 的锥内。 */
     public static boolean isInCone(Vec3 origin, Vec3 axis, Vec3 point) {
         Vec3 offset = point.subtract(origin);
         double distanceSqr = offset.lengthSqr();

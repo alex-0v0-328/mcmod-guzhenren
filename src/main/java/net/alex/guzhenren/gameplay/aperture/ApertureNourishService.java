@@ -16,49 +16,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Nourishing the Aperture [温养空窍] and striking its wall [冲刷窍壁] -- the only way a rank rises.
- * Static service; progress and the petrified latch live on each {@link Aperture}; the strike cost goes
- * through the {@link StonePurse} the entry point sets (essence first, then stones).
+ * 温养[Nourish]空窍[Aperture]与冲刷窍壁服务，转数提升的唯一途径。
  *
- * <p>⚠ The wall is the PRIMARY aperture's alone -- a second aperture nourishes but never strikes; its
- * only rank-up is a higher-rank Second Aperture Gu. ⚠ A rank-up MUST also set the stage back to {@code
- * LOWEST}, or a "二转巅峰" squares the essence cap. ⚠ The strike zeroes progress win or lose; charge
- * BEFORE rolling. ⚠ A hastened clock bills MORE seconds per heartbeat ({@link #tickNourish}, {@code
- * steps}), never a bigger second -- scaling the progress and the price instead would round the
- * round's length off the pool it is defined to cost. A billed second writes the target aperture once:
- * {@code pay} leaves it unwritten ({@link ApertureEssenceService#consumeDeferred}) and the progress lands
- * with the essence it cost. Every stage or rank this service raises posts {@link RealmReachedEvent}
- * once the aperture is written; the advancement package answers it with the realm criterion.
- *
- * <p>{@link #IMPACT_COST_PER_RANK_BASE}: one strike costs one and a half of a Ten-Extremes peak pool,
- * so no pool can ever hold it. {@link #CONVERTED_PRESSURE} is where the pressure gauge lands after a
- * petrified aperture converts a full one into a rank-up. {@link Outcome} is what one strike against
- * the aperture wall did.
- *
- * <p>{@link #shiftTargetForInsertedFirst}: when Hope Gu inserts the first aperture at position 0, an
- * in-progress session aimed at the lone second aperture (target 0) would silently slide onto the new
- * first aperture -- move the target with its aperture. No session running, nothing to move; the next
- * {@code start} rewrites it. The target stays in bounds: {@code start} refuses an index outside the list
- * ({@link #canNourish}); with no aperture {@link #getTargetIndex} answers {@code PRIMARY}, since clamping
- * against {@code count - 1} would give -1, and the heartbeat cancels a running session.
- *
- * <p>⚠ {@link #petrify} is the writer that sets {@code petrified}: it lands the aperture on this
- * rank's peak, zeroes the pressure gauge, and locks cultivation until a full gauge converts
- * (ten-extremes) or resetAll clears it. A run in progress is force-stopped by the same write, so the
- * heartbeat loop needs no petrified check of its own. {@link #convertPetrifiedPressure} is the
- * pressure gauge a petrified aperture keeps filling: at full it converts into the next rank's first
- * stage and cures the stone -- the one way back to NORMAL short of resetAll, and the landing can take
- * the next rank's Stone Aperture Gu to enter the cycle again. Only while a next rank exists; at the
- * last rank it answers {@code false} and the caller detonates.
- *
- * <p>{@link #resolve} is the seam the unit tests pin: a roll of {@code 0} to {@code 99} against the two outcome
- * tables. ☠ The two tables split at different points, and only the Ten-Extremes one can never lose
- * base.
- *
- * <p>Just past 300 lines: nourishing and the wall strike share the stone purse and the progress a strike resets.
- *
- * <p>The one mutable static, {@code stones}, is a seam: the entry point sets the stone purse once at mod construction
- * and nothing replaces it during play.
+ * <ul>
+ *   <li>静态服务，进度与石化锁存在各 {@link Aperture} 上；冲刷费经入口类设的 {@link StonePurse} 付，先真元[Essence]后元
+ *       石[Primeval Stone]；升阶、升转写入空窍后发布 {@link RealmReachedEvent}，进度包据此判境界进度。</li>
+ *   <li>⚠ 加速时钟让每次心跳计费更多秒（{@link #tickNourish}，{@code steps}），不放大一秒：缩放进度与价格会因取整让一轮
+ *       长度偏离其定义所耗的一池真元；计费的一秒只写一次目标空窍，{@code pay} 不写
+ *       它（{@link ApertureEssenceService#consumeDeferred}），进度与所耗真元一起落盘。</li>
+ *   <li>{@link #shiftTargetForInsertedFirst}：希望蛊[Hope Gu]在位置 0 插入第一空窍时，瞄准孤立第二空窍（目标 0）的温养
+ *       会滑到新第一空窍，故目标随空窍移动；未在温养则不动，下次 {@code start} 重写。</li>
+ *   <li>目标不越界：{@code start} 拒绝列表外下标（{@link #canNourish}）；无空窍时 {@link #getTargetIndex} 返回
+ *       {@code PRIMARY}，因按 {@code count - 1} 夹取得 -1，且心跳会取消进行中的温养。</li>
+ *   <li>⚠ 窍壁只属 {@code PRIMARY} 空窍：第二空窍能温养不能冲刷，只靠更高转的第二空窍蛊[Second Aperture Gu]升转；⚠ 升转
+ *       须同时把阶段重置为 {@code LOWEST}，否则「二转巅峰」使真元上限平方；⚠ 冲刷成败都清零进度，先收费后掷骰。</li>
+ *   <li>{@link #IMPACT_COST_PER_RANK_BASE}：一次冲刷费十绝天资巅峰真元池的 1.5 倍，任何池都装不下；{@link Outcome} 是一
+ *       次冲刷的结果；{@link #resolve} 是单元测试钉住的接缝，{@code 0} 至 {@code 99} 的骰点对照两张结果表；☠ 两表分界点
+ *       不同，只有十绝那张永不掉基础真元。</li>
+ *   <li>⚠ {@link #petrify} 是 {@code petrified} 的写入方：空窍落到本转巅峰、压力清零、锁住修炼，直到满压力转化（十绝
+ *       体）或 {@code resetAll} 清除；同一次写入强停温养，心跳循环无需另查石化。</li>
+ *   <li>{@link #convertPetrifiedPressure}：石化空窍持续积压，满时转为下一转初阶并解除石化，是 {@code resetAll} 外回到
+ *       {@code NORMAL} 的唯一途径，落地后可用下一转石窍蛊[Stone Aperture Gu]重入循环；无下一转时返回 {@code false}，由
+ *       调用方引爆；{@link #CONVERTED_PRESSURE} 是转化后的压力落点。</li>
+ *   <li>超 300 行：温养与冲刷共用元石袋与进度；可变静态 {@code stones} 是接缝，入口类仅在模组构造时设一次。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

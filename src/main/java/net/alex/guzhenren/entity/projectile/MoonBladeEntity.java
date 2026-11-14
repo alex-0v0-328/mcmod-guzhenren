@@ -34,22 +34,15 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
- * A Moon Blade [月刃]: the crescent the Moonlight [月光蛊], Moonglow [月芒蛊] and Blood Moon Gu [血月蛊] fire. Without
- * a target it flies straight, without gravity or drag, at {@link #SPEED} blocks a tick for {@link #LIFETIME_TICKS},
- * and ends on the first entity or block it meets; a Blood Moon Blade [血月刃] also leaves Bleeding [流血] on what it
- * hurts.
- *
- * <p>Fired at a locked-on target [锁定目标] ({@link #shoot} with one the blade can hit) it flies a {@link MoonBladeArc}
- * instead: a curve from the muzzle to the target's center, read afresh every tick so the target is met where it is,
- * bent left or right by a roll made once per shot. It covers the chord in the arc's flight ticks and lives
- * {@link #ARC_GRACE_TICKS} longer; when the ticks run out, or its box touches the target on the way, it hits that
- * target outright, so the landing point is the target. A block or another entity in the way still stops it as on a
- * straight flight. A target gone (dead, removed, unloaded) mid-flight drops the arc, and the blade flies on straight.
- *
- * <p>The server owns the hit: the damage lives only there, set once by {@link #shoot}, and the client copy flies
- * the same line, or the same curve from the synced target, bend and flight ticks, just to be drawn. The blade is
- * never saved: it lives about a second, so a chunk unloading under it simply drops it. Every blade fired posts one
- * {@link ProjectileThrownEvent}, from which the shooter's body throws its arm.
+ * 月刃：月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]、血月蛊[Blood Moon Gu]射出的月牙。
+ * <ul>
+ *   <li>无目标直飞，无重力阻力，每 tick {@link #SPEED} 格，活 {@link #LIFETIME_TICKS}，遇首个实体或方块即止；血月刃附流
+ *       血。</li>
+ *   <li>锁定目标时改飞 {@link MoonBladeArc}：每 tick 重读目标中心，每发掷一次左右弯；飞行 tick 内走完弦，到时或碰到目标
+ *       即命中，落点即目标；方块或他物照样拦截；目标中途消失（死亡、移除、卸载）则弃弧直飞。</li>
+ *   <li>命中归服务端，伤害由 {@link #shoot} 设定；客户端按同步数据飞同一路径，仅供绘制；不存档：只活约 1 秒，区块卸载即
+ *       丢；每刃发布一个 {@link ProjectileThrownEvent}，射手据此做投掷动作。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -59,7 +52,7 @@ import org.joml.Vector3f;
 
 public final class MoonBladeEntity extends Projectile {
 
-    /** The two blades: their texture, their hit puff, and whether they make the target bleed. */
+    /** 两种刃：贴图、命中烟雾、是否致流血。 */
     public enum Variant {
         MOON(false), BLOOD(true);
 
@@ -72,13 +65,13 @@ public final class MoonBladeEntity extends Projectile {
 
     public static final float SPEED = 1.5F;
     public static final int LIFETIME_TICKS = 16;
-    /** Ticks a locked blade outlives its flight, so a hit at the last tick still lands before it is gone. */
+    /** 锁定刃比飞行多活的 tick，末 tick 命中在消失前仍生效。 */
     public static final int ARC_GRACE_TICKS = 2;
-    /** The longest locked flight; {@code KillingMoveService} locks nothing past 26 blocks, 18 ticks, inside it. */
+    /** 锁定飞行上限；{@code KillingMoveService} 只锁 26 格内（18 tick），在上限内。 */
     public static final int MAX_ARC_FLIGHT_TICKS = 20;
     private static final int NO_TARGET = -1;
     private static final Variant[] VARIANTS = Variant.values();
-    /** Blocks below the eye the blade appears, so the shooter sees its face instead of its edge. */
+    /** 刃出现在眼下方的格数，射手看到刃面而非刃边。 */
     private static final float SPAWN_DROP = 0.3F;
     public static final int BLEEDING_TICKS = 5 * Ticks.SECOND;
     private static final int PUFF_COUNT = 6;
@@ -102,7 +95,7 @@ public final class MoonBladeEntity extends Projectile {
         shoot(owner, variant, damage, null);
     }
 
-    /** Fires one blade; a {@code target} the blade can hit makes it a locked flight, any other flies straight. */
+    /** 发射一刃；可命中的 {@code target} 使其锁定飞行，否则直飞。 */
     public static void shoot(ServerPlayer owner, Variant variant, float damage, @Nullable LivingEntity target) {
         MoonBladeEntity blade = new MoonBladeEntity(ModEntityTypes.MOON_BLADE.get(), owner.level());
         blade.setOwner(owner);
@@ -133,7 +126,7 @@ public final class MoonBladeEntity extends Projectile {
         return VARIANTS[Math.floorMod(entityData.get(VARIANT), VARIANTS.length)];
     }
 
-    /** Ticks this blade lives: the straight lifetime, or the locked flight plus its grace. */
+    /** 存活 tick：直飞寿命，或锁定飞行加宽限。 */
     public int getLifetimeTicks() {
         int ticks = entityData.get(ARC_TICKS);
         return ticks > 0 ? ticks + ARC_GRACE_TICKS : LIFETIME_TICKS;
@@ -141,14 +134,14 @@ public final class MoonBladeEntity extends Projectile {
 
     public boolean isLocked() { return entityData.get(ARC_TARGET) != NO_TARGET; }
 
-    /** The target this blade flies at, while it is locked on and the target is still there to be hit. */
+    /** 飞向的目标；仅锁定中且目标仍可命中时有值。 */
     private @Nullable LivingEntity getLockedTarget() {
         int id = entityData.get(ARC_TARGET);
         if (id == NO_TARGET) return null;
         return level().getEntity(id) instanceof LivingEntity living && living.isAlive() ? living : null;
     }
 
-    /** The curve of a locked flight, or null for a straight one; the client reads it off the synced data. */
+    /** 锁定飞行的曲线，直飞为 null；客户端从同步数据读。 */
     public @Nullable MoonBladeArc getArc() {
         int ticks = entityData.get(ARC_TICKS);
         if (ticks <= 0 || !isLocked()) return null;
@@ -156,7 +149,7 @@ public final class MoonBladeEntity extends Projectile {
         return new MoonBladeArc(arcStart, new Vec3(entityData.get(ARC_BEND)), ticks);
     }
 
-    /** The roll of a locked blade for its turn, in degrees, positive to the left; 0 on a straight flight. */
+    /** 锁定刃转弯侧倾角（度），向左为正；直飞为 0。 */
     public float getBankDegrees() {
         MoonBladeArc arc = getArc();
         LivingEntity target = getLockedTarget();
@@ -193,7 +186,7 @@ public final class MoonBladeEntity extends Projectile {
         updateRotation();
     }
 
-    /** Points this tick's motion along the arc at the target's current center; null, and motion kept, otherwise. */
+    /** 沿弧线把本 tick 运动指向目标当前中心；否则返回 null，运动不变。 */
     private @Nullable LivingEntity followArc() {
         MoonBladeArc arc = getArc();
         if (arc == null) return null;

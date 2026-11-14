@@ -6,9 +6,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * Stands the phantoms [兽力虚影] of an attack round: {@link BeastPhantomsDrawnEvent} is answered with
- * {@link BeastPhantomEntity#show} in the same tick, since the event dispatches synchronously. The round lives
- * below the entity and posts instead of calling up.
+ * 为攻击轮次立兽力虚影的订阅类：事件同步分发，故同 tick 以 {@link BeastPhantomEntity#show} 响应
+ * {@link BeastPhantomsDrawnEvent}；轮次层级在实体之下，只发事件，不向上调用。
  *
  * @author Alex
  * @version 1.0.0

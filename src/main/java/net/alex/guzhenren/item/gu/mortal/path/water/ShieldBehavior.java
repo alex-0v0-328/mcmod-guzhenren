@@ -11,12 +11,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The shield behavior [护盾]: raises one shield layer whose type, points and length come from registration. The
- * Heavenly Mugwort Gu [天蓬蛊] carries it, with a {@link net.alex.guzhenren.item.gu.mortal.behavior.RecastBehavior}.
- *
- * <p>Every use fills the shield to its full points and restarts its timer through {@link ShieldService#raise}; a
- * shield still up is replaced, never stacked. It refuses nothing. An Amplify Effect Gu [功倍蛊] multiplies the
- * length, never the points. {@code TimedEffects} finds the Gu of a shield type by this behavior.
+ * 护盾行为：升一层护盾，类型、点数、时长取自注册；不拒催动，{@code TimedEffects} 凭它找某类护盾的蛊。
+ * <ul>
+ *   <li>天蓬蛊[Heavenly Mugwort Gu]携带，配 {@link net.alex.guzhenren.item.gu.mortal.behavior.RecastBehavior}。</li>
+ *   <li>每次经 {@link ShieldService#raise} 补满并重计时，替换不叠加；功倍蛊[Amplify Effect Gu]只乘时长。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

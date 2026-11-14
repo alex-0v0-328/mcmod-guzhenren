@@ -14,23 +14,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * A command argument accepting one constant of an enum, spelled as a {@code word()} literal. Provides
- * a static-constants factory ({@link #createArgument(String, Enum[])}) and a dynamic one
- * ({@link #createArgument(String, Function)}) computing suggestions from what was already parsed.
+ * 接受一个枚举常量的命令参数，以 {@code word()} 字面量拼写。
  *
- * <p>⚠ The {@link #createArgument(String, Function)} overload's function must tolerate a nonsense earlier
- * argument: {@code word()} accepts any word.
- *
- * <p>⚠ Two enum arguments in one chain take distinct names ({@code ARG_PATH}, {@code ARG_KIND} beside
- * {@code ModCommandSupport.ARG_VALUE}): the context keeps one argument per name, so a shared name silently
- * leaves only the later word.
- *
- * <p>☠ Everything typed after a redirect is parsed into a CHILD context, and {@code /gzr} is that
- * redirect. An executor already runs on that child, but a suggestion provider is handed the root context,
- * so its read of an earlier argument must go through {@code getLastChild()} or it throws
- * {@code IllegalArgumentException}, which Brigadier does NOT catch: the suggestion list comes back
- * empty and silent under {@code /gzr} while {@code /guzhenren} still fills it. That is why {@code get} reads
- * from the deepest context, pinned by {@code ModEnumArgumentTest}.
+ * <ul>
+ *   <li>{@link #createArgument(String, Enum[])} 用静态常量；{@link #createArgument(String, Function)}
+ *       按已解析内容动态算补全。</li>
+ *   <li>⚠ 后者的函数须容忍前面参数乱写：{@code word()} 接受任意单词。</li>
+ *   <li>⚠ 同链两个枚举参数须异名（{@code ARG_PATH}、{@code ARG_KIND} 与 {@code ModCommandSupport.ARG_VALUE} 并列）：
+ *       上下文每名只留一个参数，同名静默只剩后一个词。</li>
+ *   <li>☠ 重定向（即 {@code /gzr}）后的输入全解析进子上下文；执行器在子上下文，补全提供器却拿到根上下文，
+ *       读前面参数须经 {@code getLastChild()}，否则抛 {@code IllegalArgumentException}；Brigadier 不捕获，
+ *       {@code /gzr} 下补全静默为空，{@code /guzhenren} 下照常。</li>
+ *   <li>因此 {@code get} 从最深上下文读取，由 {@code ModEnumArgumentTest} 钉住。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

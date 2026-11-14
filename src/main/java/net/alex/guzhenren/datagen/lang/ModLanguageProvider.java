@@ -40,31 +40,20 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Every string of this mod in all three languages, written as one aligned table: each line is a key, its English
- * rendering and its Simplified Chinese one. The same provider runs once per {@link Language} and writes only its own
- * column, so no language can miss a key the others have.
+ * 三种语言的全部字符串，一张对齐表。
  *
- * <p>Extends {@link net.neoforged.neoforge.common.data.LanguageProvider}. Blocks, effects, entities and enum
- * constants are added through the registered object or the constant, never a raw key string, so a renamed
- * registration cannot leave a key behind pointing at nothing; items name themselves on their registration chain;
- * the interface, command and message strings have no object and are added by their key. Past 300 lines, and its
- * sections past 40, on purpose: it is a data table, one line per string. The value
- * columns align per {@code add*()} method; an entry too long for the line wraps its two renderings onto the next.
- *
- * <p>⚠ Both renderings are the authority, not a translation of each other. Deriving either side from the other is how
- * a name quietly comes to mean something it never meant.
- *
- * <p>Traditional Chinese [繁中] ({@code zh_tw}) converts the Simplified column through {@link TraditionalGlyphs},
- * which throws on a glyph it cannot place, so a new string with an unseen glyph fails {@code runData} instead of
- * shipping a Simplified glyph. An entry writes a fourth, Traditional rendering by hand only where the wording itself
- * differs (信息, 資訊); a glyph-only difference belongs in the glyph table, which fixes it everywhere it occurs.
- *
- * <p>Every item carries its names on its {@link ItemRegistrar} registration chain instead of a line here;
- * {@link #addDeclaredItemKeys} writes them under the item's description id through the same column switch, so the
- * Traditional conversion and the repeated-key check hold for them too. A BlockItem's description id is its
- * block's, so the Spirit Spring's chain names its block, its BlockItem and its fluid type at once, and the Steel
- * Block's its block and BlockItem. Only a block without a BlockItem keeps an {@code addBlock} line in
- * {@link #addItemKeys}; the Pure Water block's names its fluid type too, sharing one description id.
+ * <ul>
+ *   <li>每行一个键、英文、简中；同一 provider 按 {@link Language} 各跑一次、只写自己那列，不会有语言缺键。</li>
+ *   <li>⚠ 两种写法都权威，互不为译文；由一边推另一边，名字会悄悄变成从未有过的意思。</li>
+ *   <li>方块、效果、实体、枚举常量经注册对象或常量添加，不写裸键、改名无悬空键；界面、指令、消息无对象，按键加。</li>
+ *   <li>物品名字在 {@link ItemRegistrar} 注册链；{@link #addDeclaredItemKeys} 经同一列开关写到其 description id，繁体转
+ *       换与重复键检查照样成立。</li>
+ *   <li>BlockItem 与方块共用 description id：元泉[Spirit Spring]注册链一次命名方块、BlockItem、流体类型，钢块命名方块与
+ *       BlockItem；仅无 BlockItem 的方块在 {@link #addItemKeys} 留 {@code addBlock} 行，纯水那行兼命名其流体类型。</li>
+ *   <li>{@code zh_tw} 由简体列经 {@link TraditionalGlyphs} 转换，遇未知字形抛异常，{@code runData} 失败而不发布简体字；
+ *       仅措辞不同（信息、資訊）才手写第四列繁体，只差字形的进字形表，一处改处处生效。</li>
+ *   <li>值列按 {@code add*()} 方法对齐，过长条目两种写法折行；超 300 行、分区超 40 行有意：数据表一行一个字符串。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -7,18 +7,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A tended Gu [需照顾] that its own use takes [一次性消耗]: cared for like any other, and gone once driven.
- * Not a one-shot Gu [一次性] ({@link OneShotGuItem}), whose refining is its use.
- *
- * <p>Extends {@link TendedGuItem} to override {@code drive} so it returns 1, making the base's own
- * {@code spend} shrink the stack. The third answer to "is it still there afterward" (after
- * {@link OneShotGuItem} and a plain tended Gu), so the Vital [本命] slot asks {@code canBeVital}
- * rather than testing the class.
- *
- * <p>⚠ Binding one would lose it, and bill its owner, on the very first click. ⚠ It never eats on its way out:
- * {@code drive} only spends and grants ({@code trySpendAndApply}), skipping the base's meals before and after, so
- * no food goes into a stack that is gone after the click. Every one costs no hunger a use, so there is no drop to
- * eat after; it still eats around the day clock's drain like any tended Gu.
+ * 一次性消耗的持续照顾型蛊[Tended Gu]：照顾同其他蛊，催动后消失。
+ * <ul>
+ *   <li>不同于炼化即使用的一次性蛊（{@link OneShotGuItem}）；{@code drive} 返回 1，令基类 {@code spend} 减堆。</li>
+ *   <li>⚠ 若作本命，首点即失并罚主人，故本命槽问 {@code canBeVital} 而非查类：「用后还在否」的第三种答案（另为
+ *       {@link OneShotGuItem}、普通持续照顾型蛊）。</li>
+ *   <li>⚠ 不喂将消失之物：{@code drive} 只扣费生效（{@code trySpendAndApply}），跳过基类前后进食。</li>
+ *   <li>催动不扣饱食[Hunger]，无缺口可补；仍同他蛊在日切扣量前后进食。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

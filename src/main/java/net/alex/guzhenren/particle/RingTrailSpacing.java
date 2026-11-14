@@ -1,20 +1,15 @@
 package net.alex.guzhenren.particle;
 
 /**
- * The even-spacing accumulator behind the planted dash trail and the sound barrier rings [音障环]: how far
- * into this tick's movement segment the next rings drop. Distance-based rather than tick-based because the
- * server-side dodge movement arrives in uneven chunks (Epic Fight locks movement and lets the animation drive it),
- * so a per-tick drop clusters the rings at the start and end of the path;
- * spacing by measured travel keeps the trail uniform across windups, jumps and wall truncations.
- * {@link #SPACING} is the distance between two neighboring rings on the dash path, in blocks; the sound barrier
- * rings pass their own spacing ({@code BarrierRingTrail}).
- *
- * <p>{@link #getDrops} takes the spacing, the distance traveled since the last drop ({@code carry}, below the
- * spacing, or exactly the spacing for a ring that is due at the segment's start), this tick's movement segment
- * length ({@code segLen}), and the rings the burst
- * may still drop ({@code ringsLeft}), and returns a {@link Drops} of where on the segment the rings
- * drop, plus the new carry and remaining ring budget; {@link Drops#offsets} are the ascending
- * offsets along this tick's segment where rings drop.
+ * 冲刺轨迹与音障环共用的等距累加器：算下一批环在本 tick 移动线段上的落点。
+ * <ul>
+ *   <li>按距离而非 tick 铺环：服务端闪避位移成块不均到达（Epic Fight 锁住移动、由动画驱动），逐 tick 铺会挤在路径
+ *       两端；按实测移动则前摇、跳跃、撞墙截断都均匀。</li>
+ *   <li>{@link #SPACING}：冲刺路径相邻两环间距（格）；音障环传入自己的间距（{@code BarrierRingTrail}）。</li>
+ *   <li>{@link #getDrops} 的 {@code carry}：距上次落环已移距离，小于间距，本线段起点就该落环时恰等于间距；
+ *       {@code ringsLeft}：本次爆发剩余环数；{@link Drops} 另带新 carry 与剩余环数。</li>
+ *   <li>{@link Drops#offsets}：本 tick 线段上的升序落环偏移。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

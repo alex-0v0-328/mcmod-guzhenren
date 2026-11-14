@@ -11,14 +11,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The zombie Gu's [僵尸蛊] behavior; the form's length comes from registration, the rung from the Gu's rank.
- *
- * <p>Nine Gu register with it (二转至五转). The gate refuses only "already 僵"; the payout delegates to
- * {@link BodyService} to enter temp zombie or, on a relapse, turn permanently 僵. {@code StateEffects} finds the Gu
- * of a rung by this behavior and {@link #getRung}.
- *
- * <p>⚠ Using one again too soon is not refused -- it is the penalty, and it makes the form permanent.
- * That branch leaves early, so anything both outcomes need has to sit ahead of it.
+ * 僵尸蛊[Zombie Gu]行为：时长取自注册，级别取自转数；二至五转 9 只蛊共用。
+ * <ul>
+ *   <li>只拒已是僵尸；效果交 {@link BodyService}：临时僵尸化，复发则永久；{@code StateEffects} 凭本行为与
+ *       {@link #getRung} 找某级蛊。</li>
+ *   <li>⚠ 复发窗口内再催动不拒，即惩罚转永久；该分支提前返回，两种结果共需的逻辑须在其前。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

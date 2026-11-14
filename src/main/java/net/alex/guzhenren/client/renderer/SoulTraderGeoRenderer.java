@@ -20,21 +20,17 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
 /**
- * Renders a soul trader as the translucent {@code human_soul}: each trader's renderer instance injects its fixed
- * color texture, and every color shares one eye glow mask.
+ * 魂体交易者的渲染器，画成半透明的 {@code human_soul}。
  *
- * <p>The body draws back-face culled ({@code entityTranslucentCull}): the model has 26 opposite-facing touching
- * faces that would flicker, and the far side of the silhouette would show through, without culling. An
- * invisible trader falls back to GeckoLib's own invisibility and glowing branches. There is no shadow, no
- * red hurt or death tint, and no death tilt -- the soul fades through {@code animation.disappear} instead.
- *
- * <p>⚠ {@link EyeGlowLayer} redraws the model with {@code RenderType.eyes} and the glow mask, nudged
- * {@code EYE_LIFT} blocks toward the camera. Without the nudge the eyes, which sit on the inner head, lose the
- * depth test to the outer hat shell half a pixel in front of them -- the translucent body writes depth. The
- * camera sits at the origin of the render pose, so the inverted pose matrix maps it into model space whatever
- * rotation or scale the pose carries; the nudge runs along the line from the eyes ({@code EYE_HEIGHT} above the
- * feet, pixel row 28.5 of the model) to the camera, so it moves the glow along the view ray instead of off the eye
- * texels. Back-face culling still hides the eyes from behind.
+ * <ul>
+ *   <li>每个实例注入交易者的固定颜色贴图，各色共用一张眼睛发光遮罩；隐身交易者回退 GeckoLib 自带隐身与发光分支；无阴
+ *       影、无受伤或死亡红色染色、无死亡倾倒，魂体改经 {@code animation.disappear} 淡出。</li>
+ *   <li>身体背面剔除（{@code entityTranslucentCull}）：模型 26 个面朝向相反、彼此相贴，否则闪烁且剪影远侧透出。</li>
+ *   <li>⚠ {@link EyeGlowLayer} 用 {@code RenderType.eyes} 与发光遮罩重绘模型，朝镜头推近 {@code EYE_LIFT} 格，否则内层
+ *       头部的眼睛在深度测试中输给前方半像素的外层帽壳（半透明身体写深度）。</li>
+ *   <li>推近沿眼睛（脚底上方 {@code EYE_HEIGHT}，模型第 28.5 像素行）到镜头的连线，发光沿视线移动、不偏离眼睛纹素；镜头
+ *       在渲染姿态原点，任何旋转或缩放下逆姿态矩阵都能把它映射到模型空间；背面剔除仍从背后挡住眼睛。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

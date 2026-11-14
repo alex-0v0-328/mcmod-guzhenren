@@ -10,19 +10,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The closed table of killing moves [杀招]: each row names its id, the main Gu that may lead it from the main hand,
- * the one partner Gu that backs it, the factor it puts on the main Gu's blade damage and the essence the partner pays
- * on every blade fired while the move is on. To start the move [启动] the partner pays one use of hunger, its own
- * properties' ({@link #getStartHunger}). A new killing move is a new row, with a book [杀招书] of the same id that teaches
- * it ({@link net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem}).
- *
- * <p>Both Gu are tended and count only once refined: {@link #isLedBy} and {@link #isBackedBy} are the one
- * eligibility test, read by the client's radial menu and by {@link KillingMoveService} alike. Whether the player has
- * learned the row is {@link KillingMoveService#knows}, and where its partner may sit is the service's.
- *
- * <p>⚠ The id is a save key and the payload's name for the move: the learned list stores it
- * ({@code KillingMoveData}), and it doubles as the book's item id and the name's translation key, so renaming one
- * forgets the move for everyone who learned it.
+ * 杀招[Killing Move]封闭总表，一行一招。
+ * <ul>
+ *   <li>每行：id、主手主蛊、唯一辅蛊、刃伤倍率、开启期间辅蛊每刃真元[Essence]；启动时辅蛊付一次自身催动饱食[Hunger]
+ *       （{@link #getStartHunger}）；新招即新行，配同 id 杀招书（{@link KillingMoveBookItem}）。</li>
+ *   <li>两蛊均为持续照顾型蛊[Tended Gu]，须已炼化；{@link #isLedBy}、{@link #isBackedBy} 是唯一资格判定，客户端轮盘与
+ *       {@link KillingMoveService} 共用；是否学会（{@link KillingMoveService#knows}）、辅蛊放哪归该服务。</li>
+ *   <li>⚠ id 即存档键、payload 招名、已学列表项（{@code KillingMoveData}）、书物品 id、翻译键；改名即全员遗忘。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -33,8 +28,8 @@ import org.jetbrains.annotations.Nullable;
 public enum KillingMove {
 
     /**
-     * Little Light Amplification [小光蛊增幅]: a Moonlight [月光蛊] or Moonglow Gu [月芒蛊] blade, twice as hard; the
-     * Little Light Gu pays its use hunger to start and 20 essence a blade, half its own use.
+     * 小光蛊增幅：月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]刃伤 ×2；辅蛊小光蛊[Little Light Gu]
+     * 启动付一次催动饱食[Hunger]，每刃 20 真元[Essence]（其催动的一半）。
      */
     LITTLE_LIGHT_AMPLIFY("km_mortal_little_light_amplify", List.of(ModItems.MOONLIGHT_GU_1, ModItems.MOONGLOW_GU_2),
             ModItems.LITTLE_LIGHT_GU_1, 2.0F, 20);
@@ -63,10 +58,10 @@ public enum KillingMove {
 
     public float getDamageFactor() { return damageFactor; }
 
-    /** The hunger the partner pays once when the move starts: one use of its own, from its guProperties. */
+    /** 启动时辅蛊付的饱食[Hunger]：一次自身催动量，取自其 guProperties。 */
     public int getStartHunger() { return ((TendedGuItem) partner.asItem()).getGuProperties().getHungerPerUse(); }
 
-    /** The essence the partner pays on every blade fired while the move is on. */
+    /** 开启期间辅蛊每刃付的真元[Essence]。 */
     public int getPartnerEssence() { return partnerEssence; }
 
     // Plain loop: the radial menu and the tooltip ask while drawing.

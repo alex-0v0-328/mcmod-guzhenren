@@ -19,9 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Writes the block tags. The As Before terrain tag holds the ground itself -- stone,
- * soil, sand, terracotta, sandstone -- and leaves out moss, ice, snow layers and fluids, which the As Before Gu
- * [如故蛊] do not put back.
+ * 方块标签：如故蛊[As Before Gu]地形标签只收地面本身（石、土、沙、陶瓦、砂岩），不收它不复原的苔藓、冰、雪层、流体。
  */
 
 public class ModBlockTagsProvider extends BlockTagsProvider {

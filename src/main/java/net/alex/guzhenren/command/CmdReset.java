@@ -8,11 +8,12 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * {@code /gzr reset}: puts a player back to what they were born as.
+ * {@code /gzr reset}：把玩家恢复到出生时的状态。
  *
- * <p>Delegates to {@link PlayerDataService#resetAll} and then calls
- * {@link net.alex.guzhenren.command.ModCommandSupport#refreshCommands}, because the reset flips the
- * awakened gate and the client must see the updated tree.
+ * <ul>
+ *   <li>{@link PlayerDataService#resetAll} 后调 {@link net.alex.guzhenren.command.ModCommandSupport#refreshCommands}：
+ *       重置翻转开窍[Awakening]门槛，客户端须见新命令树。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

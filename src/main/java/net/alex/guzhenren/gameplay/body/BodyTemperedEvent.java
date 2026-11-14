@@ -5,12 +5,12 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link BodyService} tempers a player's tendons [筋] or bones [骨]: the
- * strength capacity, the max health and the knockback resistance they feed are attribute modifiers that live
- * above the body, in {@code gameplay.attribute}, which the body cannot call into without closing a dependency
- * cycle. Dispatch is synchronous, so a subscriber has run before the write returns. A skin posts
- * {@link SkinWornEvent} and {@link SkinShedEvent} instead; its reduction is read per hit, its capacity bonus
- * refreshes the attack off those two events.
+ * {@link BodyService} 淬炼筋或骨后发布的事件；同步分发，写入返回时订阅者已执行。
+ *
+ * <ul>
+ *   <li>承受力、最大生命值、击退抗性是 {@code gameplay.attribute} 的属性修饰符，肉身直接调用会成依赖环。</li>
+ *   <li>皮改发 {@link SkinWornEvent}、{@link SkinShedEvent}：减免逐次受击读取，承受力加成借这两个事件刷新攻击力。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

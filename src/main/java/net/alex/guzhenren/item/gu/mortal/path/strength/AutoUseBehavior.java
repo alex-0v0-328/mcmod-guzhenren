@@ -11,14 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The auto behavior [自动生效]: its Gu works on its own while the holder is hurt, never by hand. The Self Reliance
- * Gu [自力更生蛊] and the Hardship Strength Gu [苦力蛊] carry one each; {@link AutoUse} starts and stops them.
- *
- * <p>Each names the path effect it runs ({@link #getStateType}), its own start condition ({@link #canStart}) and
- * the length of the window one start opens ({@link #getDurationSeconds}); its {@code applyEffect} puts that effect
- * on until {@link AutoUse#getEndTick}, the window plus the held beasts' duration bonus. A hand use is refused here with
- * {@link Refusal#AUTO_EFFECT} and pays nothing; only {@link AutoUse}'s start gets past the gate, and no Amplify Effect
- * Gu [功倍蛊] multiplies it.
+ * 自动生效行为：持有者受伤时自行生效，不可手动。
+ * <ul>
+ *   <li>自力更生蛊[Self Reliance Gu]、苦力蛊[Hardship Strength Gu]各带一个，{@link AutoUse} 开停；{@code applyEffect}
+ *       施加流派效果至 {@link AutoUse#getEndTick}（窗口加持有兽种时长加成）。</li>
+ *   <li>手动以 {@link Refusal#AUTO_EFFECT} 拒绝不付费，仅放行 {@link AutoUse}；功倍蛊[Amplify Effect Gu]不放大。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

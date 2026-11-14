@@ -5,13 +5,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The aperture status [空窍状态]: what an aperture [空窍] still can and cannot do, derived never stored.
+ * 空窍[Aperture]状态：封闭词汇枚举，只推导不存储。
  *
- * <p>Closed vocabulary enum. NORMAL is a living aperture; DEAD [死窍] covers zombie [僵尸], temp zombie
- * [临时僵尸化] and stone apertures [石窍] -- no natural regen, nourishing or striking.
- *
- * <p>⚠ The derivation lives on {@code ApertureService#getStatus}, not here -- enums in this package are
- * vocabulary, and the check every gate wants is {@code status == NORMAL}.
+ * <ul>
+ *   <li>{@code NORMAL} 活窍；{@code DEAD}（死窍）含僵尸、临时僵尸化、石窍，不自然回复、温养[Nourish]或冲刷窍壁。</li>
+ *   <li>⚠ 推导在 {@code ApertureService#getStatus} 而非此处：本包枚举只作词汇，门槛都判 {@code status == NORMAL}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

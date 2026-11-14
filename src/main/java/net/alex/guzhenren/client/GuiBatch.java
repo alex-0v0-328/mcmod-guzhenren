@@ -3,17 +3,14 @@ package net.alex.guzhenren.client;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
- * The one place the mod batches GUI drawing.
+ * 模组批量绘制 GUI 的唯一入口。
  *
- * <p>Every {@code GuiGraphics.fill} and {@code drawString} ends in its own flush, so a panel of fifty fills is
- * fifty draw calls. {@link #draw} runs a block through vanilla's {@code drawManaged}, the same call the vanilla HUD
- * uses, which holds the flushes back until the block ends. A batch still ends whenever the render type changes, so
- * a block draws all its fills first and all its text after, which is only allowed where text sits on top of the
- * fills in the first place.
- *
- * <p>⚠ Never nest: the inner call clears the managed flag when it returns, and the outer block's remaining draws
- * flush one by one again. {@code drawManaged} is deprecated in the pinned NeoForge sources; this is the one call
- * site that suppresses the warning.
+ * <ul>
+ *   <li>每次 {@code GuiGraphics.fill}、{@code drawString} 自带 flush，五十个填充即五十次绘制调用；{@link #draw} 让块走
+ *       原版 HUD 同款 {@code drawManaged}（锁定版 NeoForge 已弃用，此处唯一压制该警告），flush 攒到块尾。</li>
+ *   <li>渲染类型一变批次照样结束，故块内先画全部填充、后画全部文字；只用于文字本就压在填充上的地方。</li>
+ *   <li>⚠ 禁止嵌套：内层返回即清托管标记，外层余下绘制又逐个 flush。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

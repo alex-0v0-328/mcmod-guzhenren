@@ -4,33 +4,27 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The cruise of second-stage flight [二段飞行]: pure numbers, so the pure JVM tests can pin them;
- * {@link SecondStageService#travel} moves the player with them on both ends.
- *
- * <p>The flight follows the look, pitch included, with no strafe and no climb input. A throttle between 0 and 1
- * scales {@link #getTopSpeed}: {@link #nextThrottle} fills it in {@link #RAMP_TICKS} while the player sprints and
- * drains it in {@link #COAST_TICKS} once the sprint stops. An entry starts at {@link #ENTRY_THROTTLE}, the speed of
- * vanilla's sprinting flight, so entering never brakes. {@link #nextVelocity} moves the velocity
- * {@link #STEERING} of the way to the throttled look each tick, which also turns it: 90% of a turn lands within
- * 9 ticks (≈0.45 s).
- *
- * <p>Speeds are blocks a tick of actual movement. Plain flight at vanilla's flying speed moves
- * {@link #PLAIN_FLIGHT_SPEED}: its input of 0.98 accelerates against an air drag of 0.91, which settles at
- * 0.98 / 0.09 times the flying speed. The top is {@link SecondStageService#SPEED_MULTIPLIER} times that, ≈3.3 blocks a
- * tick (≈65 a second). {@link #BARRIER_SPEED}, three times plain flight, is where the sound barrier rings form, a
- * wall hit counts as a crash and a body in the path is rammed.
- *
- * <p>A wall costs what an elytra pays ({@link #getWallDamage}): ten points a block a tick of speed lost, less three,
- * the speed in three dimensions, so a floor and a ceiling are walls too. A crash blasts a crater of
- * {@link #getCrashPower}: {@link #CRASH_POWER_PER_SPEED} a block a tick lost, between {@link #MIN_CRASH_POWER} at the
- * barrier and {@link #MAX_CRASH_POWER}, a TNT's, ≈3.9 for a head-on hit at full speed. A ram deals
- * {@link #RAM_DAMAGE_PER_SPEED} a block a tick of the flier's speed ({@link #getRamDamage}).
- *
- * <p>A fragile block ({@link #isFragile}) is one whose explosion resistance is below {@link #FRAGILE_RESISTANCE}:
- * leaves (0.2), glass (0.3), snow (0.1), cactus (0.4), mushroom blocks (0.2), slime, honey and scaffolding (0); dirt
- * and sand (0.5) are not. Past the barrier speed the flight shatters them instead of hitting them, the server breaking
- * every fragile block its box sweeps over the next {@link #BREAK_LOOKAHEAD_TICKS} ticks (≈10 blocks at full speed),
- * so the client, a packet ahead of the server, reaches air where it saw glass.
+ * 二段飞行[Second-Stage Flight]的巡航数值，纯 JVM 测试可钉；{@link SecondStageService#travel} 两端用它移动玩家。
+ * <ul>
+ *   <li>沿视线飞，含俯仰，无平移、升降。油门 0–1 乘 {@link #getTopSpeed}：{@link #nextThrottle} 疾跑
+ *       {@link #RAMP_TICKS} 加满，停跑 {@link #COAST_TICKS} 耗尽；进入从 {@link #ENTRY_THROTTLE}（原版疾跑飞行速度）
+ *       起，不减速。</li>
+ *   <li>{@link #nextVelocity} 每 tick 向「油门 × 视线」靠拢 {@link #STEERING}，兼作转向，9 tick（约 0.45 秒）转过
+ *       90%。</li>
+ *   <li>速度单位：每 tick 实际移动格数。原版飞行速度下普通飞行为 {@link #PLAIN_FLIGHT_SPEED}（输入 0.98 抗 0.91 空气阻
+ *       力，稳定于飞行速度的 0.98 / 0.09 倍）；最高为其 {@link SecondStageService#SPEED_MULTIPLIER} 倍，约 3.3 格/tick
+ *       （约 65 格/秒）。</li>
+ *   <li>{@link #BARRIER_SPEED} 为普通飞行 3 倍：过此出音障环，撞墙算撞毁，路径上的生物被撞飞。</li>
+ *   <li>撞墙按鞘翅掉血（{@link #getWallDamage}）：每损失 1 格/tick 速度 10 点再减 3，三维计速，地面、天花板也算
+ *       墙。</li>
+ *   <li>撞毁炸坑威力 {@link #getCrashPower}：每损失 1 格/tick 计 {@link #CRASH_POWER_PER_SPEED}，限于音障时
+ *       {@link #MIN_CRASH_POWER} 到 TNT 级 {@link #MAX_CRASH_POWER}，满速正撞约 3.9；撞人伤害每 1 格/tick 飞行速度计
+ *       {@link #RAM_DAMAGE_PER_SPEED}（{@link #getRamDamage}）。</li>
+ *   <li>脆弱方块（{@link #isFragile}）爆炸抗性低于 {@link #FRAGILE_RESISTANCE}：树叶 0.2、玻璃 0.3、雪 0.1、仙人掌
+ *       0.4、蘑菇块 0.2，黏液块、蜂蜜块、脚手架 0；泥土、沙 0.5 不算。</li>
+ *   <li>过音障即撞碎不撞上：服务端破坏碰撞箱之后 {@link #BREAK_LOOKAHEAD_TICKS} tick 扫过的全部脆弱方块（满速
+ *       约 10 格），早一个包的客户端到达时已是空气。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

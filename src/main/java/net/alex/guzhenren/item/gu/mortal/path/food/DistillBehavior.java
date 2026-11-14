@@ -13,14 +13,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Liquor Worm's [酒虫] behavior: distills ordinary essence [真元] into the distilled reserve, in phases.
- *
- * <p>Four rungs register with it, each usable only at its own rank. The payout calls
- * {@link ApertureEssenceService#beginDistilling} and lays a day-long path effect [流派效果] on the body, the truth
- * of the distilling; the three phases (drain, redirect, 1:2 spend) live in the service and the effect, not here.
- *
- * <p>⚠ While it runs the ordinary pool is empty by design. Anything gating on essence must ask for the
- * spendable figure, or it will refuse everything for the whole of that stretch.
+ * 酒虫[Liquor Worm]行为：普通真元[Essence]分阶段精炼为精炼储备。
+ * <ul>
+ *   <li>注册四档，各限本转；生效调 {@link ApertureEssenceService#beginDistilling} 并挂一天流派效果作精炼真值；三阶段
+ *       （抽干、改道、1:2 花费）在服务与效果中。</li>
+ *   <li>⚠ 运行期普通真元池按设计为空，以真元为门槛者须查可花费数，否则全程拒绝。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

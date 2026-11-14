@@ -6,24 +6,21 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The curve a locked-on Moon Blade [月刃] flies, kept free of entities so plain JUnit pins it: a quadratic Bezier
- * from the {@code start} it was fired at, through a control point set off the chord's midpoint by {@code bend},
- * to the target's center, which the caller reads afresh every tick so a moving target is still met.
+ * 锁定月刃的飞行曲线；不依赖实体，纯 JUnit 可测。
+ * <ul>
+ *   <li>二次贝塞尔：{@code start} 经弦中点偏 {@code bend} 的控制点到目标中心；调用方每 tick 重读中心，移动目标也能命
+ *       中。</li>
+ *   <li>{@link #aim} 每发掷一次弯：左右各半，弦长的 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO}，另加其
+ *       {@link #LIFT_RATIO} 抬升；「左」指沿弦看射手左侧。</li>
+ *   <li>{@link #flightTicks} 按速度折算弦长，至少 {@link #MIN_FLIGHT_TICKS}；第 n tick 位于 {@link #pointAt}
+ *       （{@code t = n / flightTicks}），{@link #tangentAt} 为其对 t 的导数，兽力冲击爆开时作范围冲击轴。</li>
+ *   <li>{@link #bankDegrees}：渲染转弯侧倾，倒向弯侧，最大弯度时 {@link #MAX_BANK_DEGREES}，以下成比例；
+ *       {@link #isAimable}：服务端校验客户端所选目标在射程内、视线前方。</li>
+ * </ul>
  *
- * <p>{@link #aim} rolls the bend once per shot: left or right of the chord with equal odds, by
- * {@link #MIN_BEND_RATIO} to {@link #MAX_BEND_RATIO} of the chord's length, plus {@link #LIFT_RATIO} of that as a
- * lift. "Left" is the shooter's left looking along the chord. The flight takes {@link #flightTicks}, the chord at the
- * speed given, never under {@link #MIN_FLIGHT_TICKS}; the blade's position at tick {@code n} is {@link #pointAt} with
- * {@code t = n / flightTicks}, and {@link #tangentAt} is the curve's direction there, the derivative of
- * {@link #pointAt} in {@code t} (a Beast Charge hands it on at its burst as the area impact's axis).
- *
- * <p>{@link #bankDegrees} is the roll the renderer gives the blade for the turn: toward the side it bends to,
- * {@link #MAX_BANK_DEGREES} at the largest bend and in proportion below it, so every shot leans a little differently.
- * {@link #isAimable} is the server's geometric check on a client-picked target: within range and ahead of the eye.
- *
- * @param start where the blade was fired from
- * @param bend the control point's offset from the chord's midpoint
- * @param flightTicks ticks from start to target
+ * @param start 发射点
+ * @param bend 控制点相对弦中点的偏移
+ * @param flightTicks 从发射点到目标的 tick 数
  * @author Alex
  * @version 1.0.0
  * @see MoonBladeEntity
@@ -51,7 +48,7 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         return new MoonBladeArc(start, bend(start, end, left, ratio), flightTicks(start.distanceTo(end), speed));
     }
 
-    /** The control point's offset: {@code ratio} of the chord sideways, plus {@link #LIFT_RATIO} of that upward. */
+    /** 控制点偏移：横向弦长的 {@code ratio}，再加其 {@link #LIFT_RATIO} 向上。 */
     public static @NotNull Vec3 bend(@NotNull Vec3 start, @NotNull Vec3 end, boolean left, float ratio) {
         Vec3 chord = end.subtract(start);
         double size = chord.length() * ratio;
@@ -79,7 +76,7 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         return control.subtract(start).scale(2.0D * (1.0D - t)).add(end.subtract(control).scale(2.0D * t));
     }
 
-    /** Positive rolls the blade's left edge down, for a bend to the left. */
+    /** 正值使刃左缘向下，对应左弯。 */
     public float bankDegrees(@NotNull Vec3 end) {
         Vec3 chord = end.subtract(start);
         double across = Math.sqrt(chord.x * chord.x + chord.z * chord.z);
@@ -91,7 +88,7 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         return toLeft < 0.0D ? -bank : bank;
     }
 
-    /** The unit vector to the left of a flight along {@code chord}, level with the ground; east for a flight south. */
+    /** 沿 {@code chord} 飞行的左侧水平单位向量；向南飞时为东。 */
     static @NotNull Vec3 leftOf(@NotNull Vec3 chord) {
         Vec3 left = new Vec3(chord.z, 0.0D, -chord.x);
         return left.lengthSqr() < FLAT ? new Vec3(1.0D, 0.0D, 0.0D) : left.normalize();

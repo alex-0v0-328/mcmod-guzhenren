@@ -17,53 +17,34 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The plunge [坠击]: a player in the air presses sneak plus Alt and slams straight down at
- * {@link #GRAVITY_MULTIPLIER} times gravity, cratering the landing and taking three times the fall damage. This is
- * the server half and the rule both ends share; the client sends the chord
- * ({@code net.alex.guzhenren.client.input.PlungeInput}).
- *
- * <p>{@link #canStart} holds for a living, awake, unmounted player off the ground, out of every fluid, off every
- * ladder and outside the Treasure Yellow Heaven [宝黄天], not plunging already: flying, falling, levitating and
- * gliding all count as in the air. The client asks it before sending, the server again in {@link #start}. Anyone
- * may plunge, creative included, with no cooldown; a drop too short to hurt leaves nothing behind.
- *
- * <p>{@link #start} turns flight and the second stage off, folds the elytra, clears levitation and slow falling,
- * zeroes the horizontal and the upward speed, and multiplies gravity through the synced gravity attribute
- * ({@code TransientModifiers#setGravityFactor}), so both ends fall that fast. It stores the top of the fall, the
- * player's height plus what they had already fallen, so starting low in a long fall saves nothing.
- *
- * <p>Each tick the server runs its own step of the player's movement before putting the player back where the
- * client last said, so its velocity keeps up with the fall. ⚠ That velocity is what vanilla's "moved too quickly"
- * check allows on top of 10 blocks a move, and the server's step meets the ground a tick before the client does,
- * zeroing it: the client's last move must stay under 10 blocks, so both ends cap the fall at
- * {@link #MAX_FALL_SPEED} blocks a tick (≈160 blocks a second, past ≈60 blocks of fall), which also holds at 10 TPS,
- * where one tick carries two moves.
- *
- * <p>{@link #tick} runs every server tick ({@link PlungeEvents}). Until the landing it holds flight and the elytra
- * shut, clears levitation and slow falling again if something re-applies them, and caps the speed; a plunge cannot be
- * called off. Death, mounting, a fluid, a ladder or the heaven end it early with no crater and no extra damage
- * ({@link #stop}), and so do a dimension change and a teleport. ⚠ It lands once the player is on the ground and vanilla
- * has reset the fall distance: the server's own step lands early, but only the client's moves run vanilla's fall
- * handling ({@code ServerPlayer#checkFallDamage} is empty), which resets the distance once the client is down. So the
- * crater sits where the client landed and the fall vanilla saw is the plunge's own, canceled while {@link #isActive}
- * holds. A landing that shows ({@link PlungeImpact#getImpactPower}) first posts a {@link PlungeLandedEvent} on the
- * whole ground, for the fracture and the shake above it; it then blasts the crater at the power
- * {@link PlungeImpact#getCraterPower} gives the height, then deals {@link PlungeImpact#getDamage} of the player's safe
- * fall distance and fall damage multiplier, the attributes vanilla's {@code LivingEntity#calculateFallDamage} reads, as
- * plain fall damage, which Feather Falling, Protection and Resistance reduce as usual. A player who may fly is hurt
- * anyway: vanilla spares them, the plunge does not. Block cushions (hay, slime, beds) do not apply. The crater digs out
- * the ground underfoot, and the drop into it is an ordinary fall.
- *
- * <p>The crater is {@link ImpactCrater#blast} at the landing: a vanilla explosion that breaks the ground by blast
- * resistance and hurts nothing, asking {@code ModEvents#canGrief} first, and that knocks back everything but the
- * plunger.
- *
- * <p>{@link #tickLocal} is the local player's half: it holds flight and the elytra shut and caps the speed between
- * the server's corrections, and stops the landing dead, so a slime block cannot fling the player back up.
- *
- * <p>The top is synced to every client that sees the player, who holds the fall pose on their screens too
- * ({@code net.alex.guzhenren.compat.EpicFightClientIntegration}), and never saved, and a death drops it, so a relog or a respawn starts outside the
- * plunge. The gravity modifier is transient, and {@link #tick} takes it off any player who is not plunging.
+ * 坠击：空中按潜行 + Alt，以 {@link #GRAVITY_MULTIPLIER} 倍重力垂直下砸。
+ * <ul>
+ *   <li>落地炸坑，受 3 倍摔落伤害；本类为服务端半边与两端共用规则，客户端发组合键
+ *       （{@code net.alex.guzhenren.client.input.PlungeInput}）。</li>
+ *   <li>{@link #canStart}：存活、未睡、未骑乘、离地、不在流体与梯子上、不在宝黄天[Treasure Yellow Heaven]、未在坠击，飞
+ *       行、下落、漂浮、滑翔都算空中；客户端发前查，服务端 {@link #start} 再查；人人可用，含创造，无冷却；落差不足以伤
+ *       人则不留痕。</li>
+ *   <li>{@link #start} 关飞行与二段飞行[Second-Stage Flight]、收鞘翅、清漂浮与缓降、水平与向上速度归零，经同步重力属性
+ *       乘重力（{@code TransientModifiers#setGravityFactor}），两端同速下落；顶点 = 高度 + 已坠距离，长坠途中才开始也不
+ *       少算。</li>
+ *   <li>⚠ 服务端每 tick 先自行步进再放回客户端上报位置，速度才跟上下落；该速度即原版「移动过快」在每步 10 格外的额外放
+ *       行，服务端步进早一 tick 触地将其归零，故客户端末步须 < 10 格：两端封顶每 tick {@link #MAX_FALL_SPEED} 格（约
+ *       160 格/秒，坠约 60 格后），10 TPS 一 tick 两步也成立。</li>
+ *   <li>{@link #tick} 每服务端 tick 运行（{@link PlungeEvents}），落地前锁飞行与鞘翅、再清漂浮与缓降、封顶速度；不可取
+ *       消；死亡、骑乘、流体、梯子、宝黄天、换维度、传送提前结束，不成坑无额外伤害（{@link #stop}）。</li>
+ *   <li>⚠ 在地面且原版已重置摔落距离才算落地：只有客户端移动走原版摔落处理（{@code ServerPlayer#checkFallDamage} 为
+ *       空），服务端步进虽先触地，客户端落地才重置距离，故坑在客户端落点，原版看到的摔落即坠击自身的，{@link #isActive}
+ *       期间取消。</li>
+ *   <li>有表现的落地（{@link PlungeImpact#getImpactPower}）先在完整地面发 {@link PlungeLandedEvent} 供上层地裂与震屏，
+ *       再按 {@link PlungeImpact#getCraterPower} 炸坑，再按原版 {@code LivingEntity#calculateFallDamage} 所读的安全摔落
+ *       距离与摔落伤害倍率造成 {@link PlungeImpact#getDamage} 普通摔落伤害：摔落缓冲、保护、抗性提升照常减免；可飞行玩
+ *       家也受伤；干草块、黏液块、床不缓冲；坑挖掉脚下，掉进坑是普通摔落。</li>
+ *   <li>坑为 {@link ImpactCrater#blast}：原版爆炸按爆炸抗性破坏地面、不伤人，先查 {@code ModEvents#canGrief}，击退坠击
+ *       者以外的一切。</li>
+ *   <li>{@link #tickLocal}：服务端纠正之间锁飞行与鞘翅、封顶速度，落地即刹停，黏液块弹不回；顶点同步给所有看得到该玩家
+ *       的客户端以保持坠落姿势（{@code net.alex.guzhenren.compat.EpicFightClientIntegration}），不存档，死亡清除，重登
+ *       重生不在坠击中；重力修饰为临时，{@link #tick} 从未坠击的玩家身上摘除。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

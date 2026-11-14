@@ -18,19 +18,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 /**
- * The root of {@code /guzhenren} (alias {@code /gzr}), assembling every subcommand under it.
+ * {@code /guzhenren}（别名 {@code /gzr}）的根，挂载全部子命令，需权限等级 2。
  *
- * <p>Registers the literal {@code guzhenren} with permission level 2, then attaches the seven root
- * branches ({@code CmdAwaken}, {@code CmdReset}, {@code CmdAperture}, {@code CmdBody}, {@code CmdSoul},
- * {@code CmdPath}, {@code CmdMind}) -- all attachment-data commands; the B panel is where a player's state is
- * read, so no branch prints it. The
- * {@code gzr} alias is a {@code redirect} to that root, so everything typed after it parses into a
- * child context.
- *
- * <p>World-environment commands live on the separate {@code guworld} root: currently
- * {@link net.alex.guzhenren.command.CmdTravel}'s {@code enter} (permission level 2) and {@code exit}, which a player
- * of any level may run on himself inside the Treasure Yellow Heaven [宝黄天] and only level 2 runs elsewhere or on
- * others.
+ * <ul>
+ *   <li>七个根分支都写附件数据；玩家状态在 B 面板读，无分支打印。</li>
+ *   <li>{@code gzr} 是指向根的 {@code redirect}，其后输入都解析进子上下文。</li>
+ *   <li>世界环境命令在独立的 {@code guworld} 根：{@link CmdTravel} 的 {@code enter}（等级 2）与 {@code exit}；
+ *       任何等级的玩家可在宝黄天[Treasure Yellow Heaven]内对自己用 {@code exit}，别处或对他人限等级 2。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

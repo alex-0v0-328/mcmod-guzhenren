@@ -21,18 +21,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The shared pieces every subcommand is built from: target resolution, gating, and feedback. Provides
- * the {@code withTargets} wrapper hanging {@code [targets]} off a literal, the {@code apply}/{@code
- * applyIf} runners iterating per target (one loop, in {@code run}), and {@code refreshCommands}
- * re-sending the command tree after a gate flip; also the
- * shared verb builders ({@code buildEnumSetNode}, {@code buildCounter}, {@code buildEnumCounter}).
+ * 各子命令共用的构件：目标解析、门槛、反馈。
  *
- * <p>{@code enumCounter} is the set/add/sub triple behind one enum argument; the amount is read as
- * any {@code Number} so an {@code int} argument narrows back exactly. Its {@code sub} negates plainly,
- * unlike {@code counter}, which saturates. A {@code false} write is reported under the refusal key.
- *
- * <p>⚠ Anything that flips the answer of a {@code requires()} predicate has to ask this class to
- * refresh the command tree, or the client keeps the tree it was last sent.
+ * <ul>
+ *   <li>{@code withTargets} 在字面量后挂 {@code [targets]}；{@code apply}、{@code applyIf} 逐目标执行，循环只在
+ *       {@code run}；共用动词构造：{@code buildEnumSetNode}、{@code buildCounter}、{@code buildEnumCounter}。</li>
+ *   <li>{@code enumCounter} 是枚举参数后的 {@code set|add|sub}；数量按 {@code Number} 读，{@code int} 参数可精确收窄；
+ *       其 {@code sub} 直接取负，不像 {@code counter} 那样饱和；写入返回 {@code false} 时按拒绝键报告。</li>
+ *   <li>⚠ 凡改变 {@code requires()} 谓词结果的操作，须经 {@code refreshCommands} 重发命令树，否则客户端留旧树。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -138,7 +135,7 @@ public final class ModCommandSupport {
         return updated;
     }
 
-    /** Runs {@code operation} on every target, splitting them by its answer. */
+    /** 对每个目标执行 {@code operation}，按其返回值分组。 */
     static Outcome run(CommandContext<CommandSourceStack> context, ResultOperation operation)
             throws CommandSyntaxException {
         List<ServerPlayer> done = new ArrayList<>();
@@ -161,7 +158,7 @@ public final class ModCommandSupport {
 
     //endregion
 
-    /** The targets an operation went through for and the ones it refused, both in target order. */
+    /** 操作通过与被拒的目标，均按目标顺序。 */
     record Outcome(List<ServerPlayer> done, List<ServerPlayer> refused) {
 
         Component doneNames() { return getNames(done); }

@@ -11,9 +11,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Forwards the server's own Store Strength Gu [蓄力蛊] charge changes ({@link StoreStrengthChargeEvent}) to the
- * charging client as a {@link StoreStrengthNoticePayload}; {@link ClientIntents#storeStrength} sends the same
- * {@link Change#DROPPED} when it refuses a start.
+ * 蓄力蛊[Store Strength Gu]蓄力通知转发：服务端 {@link StoreStrengthChargeEvent} 以 {@link StoreStrengthNoticePayload}
+ * 发给蓄力客户端；{@link ClientIntents#storeStrength} 拒起手时也发 {@link Change#DROPPED}。
  *
  * @author Alex
  * @version 1.0.0

@@ -8,17 +8,14 @@ import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posts this mod's own events on the game event bus, where a lower layer tells a higher one that something
- * changed (an aperture, a physique, a strength path, a lost Vital Gu), and asks the bus whether an entity may
- * change the terrain.
- *
- * <p>{@link #canGrief} is the one gate every terrain change of this mod goes through: the pressure-explosion crater
- * [空窍压力爆炸] and the Mountain and River As Before Gu [山如故 / 江如故]. It follows vanilla's {@code mobGriefing}
- * through the loader's griefing event, so a server turns them off with {@code /gamerule mobGriefing false} and a
- * protection mod can answer per entity. Damage never asks it.
- *
- * <p>⚠ Services post through {@link #post} and ask through {@link #canGrief} only, so every terrain change passes
- * the one griefing gate.
+ * 模组事件发布入口与地形改动门槛。
+ * <ul>
+ *   <li>{@link #post} 发到游戏事件总线，下层借此告知上层变化（空窍[Aperture]、体质、力道、本命蛊丢失）。</li>
+ *   <li>{@link #canGrief}：唯一地形门槛，管空窍压力爆炸弹坑、山如故[Mountain As Before Gu]、
+ *       江如故[River As Before Gu]；经加载器破坏事件跟随原版 {@code mobGriefing}，服务器可用
+ *       {@code /gamerule mobGriefing false} 关闭，保护模组可逐实体裁定；伤害不问它。</li>
+ *   <li>⚠ 服务只经 {@link #post} 发布、经 {@link #canGrief} 询问，地形改动才都过同一门槛。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

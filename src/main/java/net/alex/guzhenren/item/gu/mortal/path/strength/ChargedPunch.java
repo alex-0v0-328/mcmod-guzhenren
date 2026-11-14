@@ -36,35 +36,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The charged punch [蓄力一拳] a full Store Strength Gu [蓄力蛊] charge lets go ({@link #release} once
- * {@link StoreStrength#release} counts). It brings {@link StoreStrength#getMaxPoints} to bear, past the current
- * capacity: the fist's attack with those points ({@link AttackDamageService#getFistDamage}). On the beast phantom path
- * [兽力虚影流] it releases one held family at random, or every one under Hardship Strength [苦力], and shows their
- * phantoms beside a running round's.
- *
- * <p>The client names the target; {@link #getTarget} keeps it only when it is alive, {@link AreaImpact#canHit},
- * ahead of the look and within {@link #MAX_TARGET_DISTANCE} blocks of the eyes, so a forged id cannot turn the strike
- * behind the player or reach across the world. With the Strength Qi Gu's [力气蛊] effect on and the target past the
- * reach (the ranged punch's own rule), in sight and open to projectiles, it strikes from afar ({@link #shoot}): one
- * Beast Charge [兽力冲击] per released family that can manifest on its arc, or, as the ranged punch picks them
- * ({@code QiWaveService.getChargeFamilies}), one of a held family that can at random when none released can, each
- * hitting with its own family's strength ({@link BeastChargeDamage}): a released family's permanent points
- * {@link StoreStrength#CHARGED_RELEASE_FACTOR} times, a random one's once, uncut by the capacity; one tracking Qi
- * Wave [气波] with the punch's whole damage for the human jun path [人力钧力流] and for a body holding no such
- * family; each bursts {@link StoreStrength#getBurstRadius} blocks around where it lands, the target in full and
- * the rest {@link QiBurst#SECONDARY_RATIO}, as a charged punch that rolls no area impact.
- * Otherwise it swings the fan ({@link #swing}): every target {@link StoreStrength#isInFan} along the level way to the
- * kept target (the look without one), in sight of the eyes and {@link AreaImpact#canHit}, nearest first until
- * {@link #MAX_TARGETS} took it, the kept one first in full and the rest {@link #SECONDARY_RATIO}, each pushed
- * {@link #KNOCKBACK} away from the feet. A swing that hits nothing still lands, and either way it sends one area
- * impact ring [范围冲击环] from mid-body down the fan's axis to its range ({@link RingConeEmitter#areaImpactRing}).
- *
- * <p>Whatever it hits, the impact backlash [冲击反噬] follows: the points past the capacity, through
- * {@link BodyOverload#recoil} as {@code guzhenren:impact_backlash}. Its damage type opens no strength round and pays
- * no body overload ({@code BeastPhantomEvents}).
- *
- * <p>⚠ {@link #SECONDARY_RATIO}, {@link #MAX_TARGETS}, {@link #KNOCKBACK} and {@link #MAX_TARGET_DISTANCE} are
- * provisional; the last sits above Epic Fight's default lock-on range.
+ * 蓄力蛊[Store Strength Gu]蓄满后放出的蓄力一拳。
+ * <ul>
+ *   <li>{@link StoreStrength#release} 计数后触发；按 {@link StoreStrength#getMaxPoints} 出拳，可超当前承受力
+ *       （{@link AttackDamageService#getFistDamage}）。</li>
+ *   <li>兽力虚影流随机解放一个持有兽种，苦力期间全解放，虚影显在运行中轮次的虚影旁。</li>
+ *   <li>{@link #getTarget} 重验客户端给的目标（存活、可打、在视线前、距眼 {@link #MAX_TARGET_DISTANCE} 格内），伪造 id
+ *       不能把一击转到身后或伸到远处。</li>
+ *   <li>力气蛊[Strength Qi Gu]效果在身、目标在触及外（同远程拳）、可见且可被投射物命中时远程出手（{@link #shoot}）：
+ *       每个能出形的解放兽种沿弧线发一道兽力冲击，都不能则按远程拳选法随机发一道能出形的持有兽种；人力钧力流或无此类
+ *       兽种者发一道带拳全伤的追踪气波；选法见 {@code QiWaveService.getChargeFamilies}。</li>
+ *   <li>冲击按本兽种力量命中（{@link BeastChargeDamage}）：解放的为永久力量点[Strength Points] ×
+ *       {@link StoreStrength#CHARGED_RELEASE_FACTOR}，随机的 ×1，不截承受力；各在落点
+ *       {@link StoreStrength#getBurstRadius} 格爆开，目标全额、余者 {@link QiBurst#SECONDARY_RATIO}，无范围冲击。</li>
+ *   <li>否则挥扇 {@link #swing}：水平朝保留目标（无则视线），扇内可见可打者由近到远至多 {@link #MAX_TARGETS} 个，保留
+ *       目标居首全额，余者 {@link #SECONDARY_RATIO}，各从脚下击退 {@link #KNOCKBACK}；挥空照落，总沿扇轴发一道
+ *       范围冲击环到射程（{@link RingConeEmitter#areaImpactRing}）。</li>
+ *   <li>无论打中什么都有冲击反噬：超承受力的点数经 {@link BodyOverload#recoil} 结算；该伤害类型不开轮次、不付肉体过载
+ *       （{@code BeastPhantomEvents}）。</li>
+ *   <li>⚠ {@link #SECONDARY_RATIO}、{@link #MAX_TARGETS}、{@link #KNOCKBACK}、{@link #MAX_TARGET_DISTANCE} 暂定；
+ *       末项高于 Epic Fight 默认锁定距离。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

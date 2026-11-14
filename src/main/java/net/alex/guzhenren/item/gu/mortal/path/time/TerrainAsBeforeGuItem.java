@@ -15,16 +15,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Mountain As Before Gu [山如故] and River As Before Gu [江如故]: the chunks around the carrier go back to the bare
- * landform the world first generated -- no trees, plants, lakes, snow, ice, ores or structures. One class, two
- * registrations, told apart by the {@link ChunkKind} each restores -- the Mountain works on land chunks, the River on
- * water chunks, and each refuses when the carrier's own chunk is the other kind.
- *
- * <p>Extends {@link AsBeforeGuItem}. The gate reads the carrier's chunk alone: loaded and of this Gu's kind; the
- * payout then hands every loaded chunk of the 5×5 square that is of this kind to
- * {@code ChunkRewindService.rewindAround}, which generates the square again from the seed and restores one chunk
- * per server tick. A neighbor of the other kind is skipped in silence. Where {@code ModEvents.canGrief} keeps the
- * carrier from changing the terrain ({@code mobGriefing}), the Gu refuses before anything is spent.
+ * 山如故[Mountain As Before Gu]与江如故[River As Before Gu]：周围区块回到初次生成的裸地形。
+ * <ul>
+ *   <li>裸地形即无树木、植物、湖泊、雪、冰、矿石、结构；一类两注册，按恢复的 {@link ChunkKind} 区分：山如故管陆地区块，
+ *       江如故管水域区块，所在区块为另一种时拒绝。</li>
+ *   <li>结算把 5×5 内已加载的同种区块交 {@code ChunkRewindService.rewindAround}：按种子重生成，每服务端 tick 恢复一块；
+ *       异种邻块静默跳过；{@code ModEvents.canGrief} 不许改地形（{@code mobGriefing}）时扣费前拒绝。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

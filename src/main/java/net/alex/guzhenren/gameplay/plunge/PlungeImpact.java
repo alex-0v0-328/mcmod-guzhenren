@@ -1,21 +1,17 @@
 package net.alex.guzhenren.gameplay.plunge;
 
 /**
- * What a plunge [坠击] does on landing, as numbers: pure, so the pure JVM tests pin it; {@link PlungeService} applies
- * them.
- *
- * <p>The height is the whole fall: what the player had already fallen when the plunge started, plus the drop from
- * there to the landing ({@link #getHeight}). {@link #getDamage} is vanilla 1.21's fall damage for that height,
- * {@code ceil((height - safe fall distance) * fall damage multiplier)}, times {@link #DAMAGE_MULTIPLIER}; the two
- * attributes come from the player ({@code PlungeService#land}). {@link #getCraterPower} is the vanilla
- * explosion power of the crater: none below {@link #CRATER_MIN_HEIGHT}, {@link #MIN_POWER} at it, one more every
- * {@link #POWER_STEP} blocks, capped at {@link #MAX_POWER} from 64 blocks up -- a charged creeper's 6, a hole about
- * 5 blocks across in dirt and far less in stone, since vanilla's blast resistance decides what breaks.
- *
- * <p>Between 3 and 4 blocks the fall already hurts (vanilla's safe distance is 3) but leaves no crater.
- * {@link #getImpactPower} is how hard the landing shows, the ground fracture's radius and the shake's scale: none
- * below {@link #IMPACT_MIN_HEIGHT}, the crater power from 4 blocks, and {@link #MIN_POWER} between, where a fall
- * hurts but digs nothing, or where griefing is off and the crater never forms.
+ * 坠击落地的纯数值（纯 JVM 测试可钉），由 {@link PlungeService} 施加。
+ * <ul>
+ *   <li>高度 {@link #getHeight} 为整段坠落：开始时已坠距离 + 此后落差；{@link #getDamage} 为原版 1.21 摔落伤害
+ *       {@code ceil((height - safe fall distance) * fall damage multiplier)} × {@link #DAMAGE_MULTIPLIER}，两属性取自玩
+ *       家（{@code PlungeService#land}）。</li>
+ *   <li>{@link #getCraterPower}：坑的原版爆炸威力；低于 {@link #CRATER_MIN_HEIGHT} 为 0，达到为 {@link #MIN_POWER}，每
+ *       {@link #POWER_STEP} 格 +1，64 格起封顶 {@link #MAX_POWER}（闪电苦力怕的 6：泥土约 5 格宽的坑，石头小得多，按原
+ *       版爆炸抗性）。</li>
+ *   <li>{@link #getImpactPower}：落地表现强度（地裂半径、震屏幅度）；低于 {@link #IMPACT_MIN_HEIGHT} 为 0，4 格起取坑威
+ *       力，其间取 {@link #MIN_POWER}；3–4 格已摔伤（原版安全距离 3）但不挖坑，关闭破坏时也不成坑，表现照出。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

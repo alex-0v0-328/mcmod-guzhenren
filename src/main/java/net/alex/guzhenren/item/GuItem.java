@@ -23,37 +23,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The abstract base of everything a Gu hand holds, covering both Gu [蛊虫] and Gu material [蛊材]: only what the
- * two share, the identity (rank, path and the kind line of the tooltip), the tooltip and the right click.
- *
- * <p>Extends {@link Item} with the right-click templates a leaf fills: the use, the tap use, the charge and the
- * in-place use. Every gesture is a right click, tapped or held: there is no left-click, swing or sneak template,
- * and none gets added. How long a charge runs is the leaf's {@code useDurationTicks}; the Vital Gu [本命蛊] mark
- * and the rank-gap pacing are a mortal Gu's ({@code MortalGuItem}), never a material's.
- *
- * <p>⚠ A leaf answering {@code hasTapUse} has two uses on the one click: let go within {@link #TAP_TICKS} lands
- * the tap use ({@code checkTapUse}, {@code performTapUse}) in {@code releaseUsing}, a full charge lands the use, and a
- * release in between lands neither. Its charge is never shorter than {@link #HOLD_MIN_TICKS}, so the two cannot
- * overlap; the press is refused only when both uses refuse, with the tap's reason. Only the Nine Leaf Vitality
- * Grass answers it, and only once refined, so a wild one is still refined by the hold.
- *
- * <p>Vanilla offers a click to the offhand whenever the main hand's use fails or passes, cooldown included. A leaf
- * that works only as a partner held there answers {@code hasOffhandUse} false, so it passes silently instead of
- * replacing the main-hand Gu's refusal on the action bar. A leaf answering {@code keepsRefusedClick} (every tended
- * Gu but the Treasure Lotus) consumes its refusal instead, so the offhand item is not used or placed on it.
- *
- * <p>{@link #tryUseInPlace} uses a stack where it lies, with no hand and no charge: a pick from a radial menu, or a
- * Primeval Elder Gu's tap. The vanilla cooldown stops it silently, as it stops a click; {@code checkInPlaceUse}
- * refuses on the action bar, and {@code performInPlaceUse} lands it. It answers whether it landed.
- *
- * <p>⚠ The hooks ({@code checkUse}, {@code performUse}, {@code useDurationTicks}, {@code hasTapUse}) are re-read in
- * {@code use}, {@code releaseUsing} and {@code finishUsingItem}, never cached from the press. A leaf wanting its
- * own pacing overrides the hook, not the stage.
- *
- * <p>A refusal whose only news is "wrong realm", "not usable here", "an effect still runs", "it works on its
- * own", "a Gu is hungry", "wrong target", "the bag is full", "not enough essence" or "not
- * yet awakened" uses the shared {@link Refusal} key of that name, wherever it is said (Alex 2026-11-14); a Gu keeps a key of its own only where the line tells the player
- * what to do or names a value.
+ * 蛊虫与蛊材的抽象基类：只含二者共有的身份、提示与右键。
+ * <ul>
+ *   <li>身份含转数、道[Path]、种类行；叶类填的模板：催动、轻点、蓄力、原地催动，皆右键轻点或按住，不加左键、挥动、潜行
+ *       模板；蓄力时长取叶类 {@code useDurationTicks}；本命蛊标记与转数差节奏只属凡蛊 {@code MortalGuItem}。</li>
+ *   <li>⚠ {@code hasTapUse} 叶类一击两用：{@link #TAP_TICKS} 内松开在 {@code releaseUsing} 生效轻点
+ *       {@code checkTapUse}/{@code performTapUse}，蓄满则催动，中途松开皆无；蓄力不短于 {@link #HOLD_MIN_TICKS} 故不重
+ *       叠；两者皆拒才拒按下，用轻点理由；仅已炼化的九叶生机草[Nine Leaf Vitality Grass] 回答它，野生仍按住炼化。</li>
+ *   <li>⚠ 钩子 {@code checkUse}、{@code performUse}、{@code useDurationTicks}、{@code hasTapUse} 在 {@code use}、
+ *       {@code releaseUsing}、{@code finishUsingItem} 中重读，不缓存；自定节奏覆写钩子而非阶段。</li>
+ *   <li>主手催动失败或放行（含冷却）时原版把点击交给副手：仅作副手配合的叶类 {@code hasOffhandUse} 答 false，静默放行，
+ *       不顶替主手蛊的拒绝；{@code keepsRefusedClick} 的叶类（除天元宝莲[Heavenly Essence Treasure Lotus Gu] 外的持续照
+ *       顾型蛊[Tended Gu]）吞下拒绝，副手物品不被使用或放置。</li>
+ *   <li>{@link #tryUseInPlace} 不经手、不蓄力原地催动（轮盘选取、元老蛊[Primeval Elder Gu] 轻点）：原版冷却静默挡下，
+ *       {@code checkInPlaceUse} 在动作栏拒绝，{@code performInPlaceUse} 生效，返回是否生效。</li>
+ *   <li>拒绝只为境界不符、无法使用、效果未结束、自动生效、蛊虫饥饿、目标错误、背包已满、真元[Essence] 不足、尚未开
+ *       窍[Awakening] 时，处处用 {@link Refusal} 同名共用键（Alex 2026-11-14）；指引操作或给数值才用蛊自己的键。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

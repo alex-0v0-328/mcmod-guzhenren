@@ -18,23 +18,17 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 /**
- * Draws GUI sprites ({@code textures/gui/sprites}) the way {@code GuiGraphics.blitSprite} does -- stretched, tiled or
- * nine-sliced as the sprite's {@code .mcmeta} says, or cropped from the left for a part-full bar ({@link #blitLeft}) --
- * but every quad of a block goes into one buffer and one draw call.
+ * GUI 精灵图（{@code textures/gui/sprites}）批量绘制器。
  *
- * <p>{@code blitSprite} draws each tile on its own, so a full-screen nine-slice panel with a 20-pixel center costs a
- * few hundred draw calls a frame. {@link #draw} collects a block's quads and draws them when the block ends, after
- * flushing what the graphics already queued: a block lands over earlier fills and under later fills and text, and
- * inside a block a later sprite covers an earlier one. A tint multiplies the sprite's pixels, which is how a
- * grayscale sprite takes a data color.
- *
- * <p>The nine-slice's right column is as wide as the sprite's right border; vanilla 1.21.1 draws it at the left
- * border's width, which cuts a sprite whose two side borders differ.
- *
- * <p>⚠ A block holds the shared {@link Tesselator} open, so nothing inside it may call a vanilla {@code blit}. Every
- * GUI sprite sits on the one GUI atlas.
- *
- * <p>The slicing geometry is pure, so it is tested without a render thread.
+ * <ul>
+ *   <li>画法同 {@code GuiGraphics.blitSprite}：按 {@code .mcmeta} 拉伸、平铺或九宫格，部分填满的条从左裁切
+ *       （{@link #blitLeft}）；但整块四边形进同一缓冲、一次绘制调用；色调乘像素，灰度精灵图借此显示数据色。</li>
+ *   <li>{@code blitSprite} 每图块单独绘制，中心 20 像素的全屏九宫格面板每帧几百次绘制调用。</li>
+ *   <li>{@link #draw} 先 flush 图形队列，块尾画所收四边形：盖住此前填充、压在此后填充与文字下，块内后画盖先画。</li>
+ *   <li>九宫格右列宽取右边框；原版 1.21.1 按左边框宽画，左右边框不等的精灵图会被截断。</li>
+ *   <li>⚠ 块内一直占着共享 {@link Tesselator}，不得调原版 {@code blit}。</li>
+ *   <li>全部 GUI 精灵图同在一个图集；切片几何是纯函数，无需渲染线程即可测。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -80,7 +74,7 @@ public final class SpriteBatch {
         }
     }
 
-    /** Draws a {@code texW} x {@code texH} sprite's leftmost {@code width} columns unscaled, whatever its scaling. */
+    /** 不缩放地画 {@code texW} × {@code texH} 精灵图最左边 {@code width} 列，无视其缩放方式。 */
     public void blitLeft(ResourceLocation id, int texW, int texH, int x, int y, int width, int tint) {
         if (width <= 0) return;
         addRegion(sprites.getSprite(id), x, y, width, texH, 0, 0, texW, texH, tint);

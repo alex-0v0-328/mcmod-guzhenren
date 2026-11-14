@@ -39,48 +39,29 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * Server-authoritative action state machine shared by the wild boar, the big beasts (bears, tigers) and the
- * tortoise.
- *
- * <p>Every pose is a synchronized action {@code A} with a server game-time start and a monotonic sequence, so
- * late trackers replay one-shot actions from their first frame: {@link #getAction} is the current one,
- * {@link #getActionTicks} the elapsed server game ticks since its start, and {@link #getActionSequence} tells
- * repeated actions of one type apart. Damage lands on animation hit frames, never on contact:
- * {@link #strikeTarget} settles the hit and lands it only on a target still in reach and in sight. Each attack
- * has its own {@link Cooldown}, which starts with the attack; a finished attack adds
- * {@link #ATTACK_RECOVERY_TICKS} before the next one. Cooldowns and recovery are server-only counts: no client
- * reads them, so they are saved but never synchronized.
- *
- * <p>The subclass supplies the action set ({@link #getActionValues}, an {@link ActionFlags} enum whose ordinal is the
- * wire id, with {@link #getIdleAction}, the target-keeping {@link #getAlertAction} and {@link #getDeathAction}), its
- * cooldowns and save keys, the attack choice ({@link #chooseAttack}), every non-idle action's timing
- * ({@link #tickAction}), the reaction to a hit ({@link #reactToHurt}) and each non-idle action's animation
- * ({@link #getActionAnimation}, built once per action and reused every frame); {@link #getRunAnimationName}
- * names the pursuit loop, which a model without a run clip maps elsewhere. An ambient action
- * ({@link ActionFlags#isAmbient}) is a rest pose that combat engagement interrupts; {@link #isNightTime} is the
- * shared night window for the ones that sleep. {@code registerGoals} and
- * {@code defineSynchedData} run inside the entity constructor, before subclass fields are assigned, so the hooks
- * they reach ({@link #registerSpeciesGoals}, {@link #getIdleAction}, {@link #getCooldowns}) return constants.
- *
- * <p>{@link #tryStartAction} starts a server action: attacks refuse to start while another attack is in
- * progress, during recovery or under their cooldown, and the target is captured at once so a new attacker
- * cannot redirect an attack already in progress. {@link #hitSettled} marks the running attack's hit as
- * resolved, landed or missed. In {@link #validateTarget}, a target lost to range, sight or the rules ends a
- * running alert and an unsettled attack; a settled hit still plays its recovery pose, even when it killed
- * the target. Sight checks go through the mob's sensing, which caches one answer per target per tick; only
- * {@link #isHitBySweep}, the swept-body test of whether a moving attack's path meets the target, casts a fresh ray,
- * because a charge moves the body before it tests. After a refusal
- * {@link #canStartLunge} sweeps the lunge path again only after {@link #LUNGE_RECHECK_TICKS} ticks, and the
- * cooldown map holds only running cooldowns, so an idle mob skips {@link #tickCooldowns} entirely.
- *
- * <p>{@link CombatGoal} pursues the target while idle and holds still otherwise. It re-paths on vanilla's melee
- * rhythm ({@code MeleeAttackGoal}): every 4 to 10 ticks while the target keeps moving, 5 or 10 more beyond 16 or 32
- * blocks, 15 more after a failed path, and at once when an action has stopped the walk. {@link WanderGoal} strolls
- * while idle and untargeted and calls {@link #onWanderComplete} after a completed walk. A save keeps only the
- * cooldowns and the recovery; every load starts idle, or dead.
- *
- * <p>Past 300 lines on purpose: the state machine, its goals, persistence and combat geometry share
- * private state and read as one unit.
+ * 野猪、大型野兽（熊、虎）与龟共用服务端权威动作状态机。
+ * <ul>
+ *   <li>姿势即同步动作 {@code A}，带服务端游戏时间起点与单调序号，迟到的追踪者从首帧重放一次性动作；
+ *       {@link #getActionTicks} 计起点后服务端 tick，序号区分同类重复动作。</li>
+ *   <li>伤害落在动画命中帧而非接触时，{@link #strikeTarget} 只打仍在触及距离内且可见者；攻击各有 {@link Cooldown}，
+ *       随攻击起算，结束再隔 {@link #ATTACK_RECOVERY_TICKS}；冷却与恢复仅服务端计数，只存档、不同步。</li>
+ *   <li>攻击中、恢复期、冷却中不起新攻击（{@link #tryStartAction}）；目标当场锁定，新攻击者改不了进行中攻击；
+ *       {@link #hitSettled}：命中已结算（中或空）。</li>
+ *   <li>目标因距离、视线、规则丢失即结束警戒与未结算攻击（{@link #validateTarget}），已结算命中与击杀照播恢复。</li>
+ *   <li>视线走生物感知（每目标每 tick 缓存），仅扫掠检测 {@link #isHitBySweep} 重投射线，因冲撞先移身体再检测；
+ *       扑击被拒隔 {@link #LUNGE_RECHECK_TICKS} tick 再扫；冷却表只存进行中冷却，空闲生物跳过
+ *       {@link #tickCooldowns}。</li>
+ *   <li>子类给动作集（{@link ActionFlags} 枚举，序号即网络 id，含待机、保持目标的警戒、死亡）、冷却与存档键、选招、
+ *       动作时序、受击反应、动作动画（每动作建一次、每帧复用）；{@link #getRunAnimationName} 命名追击循环，无 run
+ *       片段可改映射。</li>
+ *   <li>环境动作（{@link ActionFlags#isAmbient}）即休息姿势，交战即断；{@link #isNightTime}：会睡者共用夜间窗口；
+ *       {@code registerGoals}、{@code defineSynchedData} 于构造器内、子类字段赋值前运行，
+ *       所触钩子（{@link #registerSpeciesGoals}、{@link #getIdleAction}、{@link #getCooldowns}）只能返回常量。</li>
+ *   <li>{@link CombatGoal} 空闲时追击，否则不动；按原版近战节奏（{@code MeleeAttackGoal}）重寻路：目标移动时每 4～10
+ *       tick，超 16 格 +5、超 32 格 +10，失败 +15，动作打断行走后立即重算；{@link WanderGoal} 空闲无目标时游荡，完后调
+ *       {@link #onWanderComplete}；读档从空闲（或死亡）起。</li>
+ *   <li>有意超 300 行：状态机、AI 目标、持久化与战斗几何共享私有状态，宜一体读。</li>
+ * </ul>
  */
 
 public abstract class ActionEntity<A extends Enum<A> & ActionEntity.ActionFlags> extends PathfinderMob

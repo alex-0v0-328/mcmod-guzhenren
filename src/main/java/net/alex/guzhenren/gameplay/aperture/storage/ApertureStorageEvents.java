@@ -6,9 +6,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * What aperture storage does when the apertures [空窍] change under it: a first aperture inserted ahead of a lone
- * second one shifts every stored list and the Vital Gu [本命蛊] slot through
- * {@link ApertureStorageService#shiftForFirstAperture}.
+ * 空窍[Aperture]存储事件入口：第一空窍插到单独第二空窍前时，经 {@link ApertureStorageService#shiftForFirstAperture}
+ * 上移各列表与本命蛊槽一位。
  *
  * @author Alex
  * @version 1.0.0

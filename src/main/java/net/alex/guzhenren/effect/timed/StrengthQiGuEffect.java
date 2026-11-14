@@ -5,13 +5,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * Strength Qi Gu [力气蛊] effect: for as long as it runs an empty-hand punch at Epic Fight's lock-on target past the
- * vanilla reach throws a Qi Wave [气波] or, on the beast strength phantom path, a Beast Charge [兽力冲击] at it
- * instead, at any distance and at most once every {@code StrengthRound.RANGE_INTERVAL_TICKS} ({@code QiWaveService}).
- *
- * <p>This class carries only the duration and the icon; the buff's truth is its timed path effect
- * ({@code TimedEffects.hasBuff}), which the server reads, while the client reads this effect to decide whether a
- * punch is worth sending.
+ * 力气蛊[Strength Qi Gu]效果：生效时空手打原版触及距离外的 Epic Fight 锁定目标，改发气波（兽力虚影流发兽力冲击），
+ * 不限距离，至多每 {@code StrengthRound.RANGE_INTERVAL_TICKS} 一次（{@code QiWaveService}）；本类只管时长与图标，
+ * 真值为限时流派效果（{@code TimedEffects.hasBuff}），服务端读它，客户端读本效果定是否发拳。
  *
  * @author Alex
  * @version 1.0.0

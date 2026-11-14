@@ -6,13 +6,8 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * The mod's key bindings.
- *
- * <p>Currently a single binding: {@code OPEN_INFO} (B), which opens the
- * {@link net.alex.guzhenren.client.screen.PlayerInfoScreen}. All keys live under the
- * {@code key.categories.guzhenren} category. It is bound in the {@code IN_GAME} context, so a key another mod binds
- * for its screens does not show as a conflict; the info screen closes on it through the context-free
- * {@code KeyMapping#matches}.
+ * 模组按键：仅 {@code OPEN_INFO}（B）打开 {@link net.alex.guzhenren.client.screen.PlayerInfoScreen}；绑 {@code IN_GAME}
+ * 上下文，他模组界面同键不报冲突，信息界面以不分上下文的 {@code KeyMapping#matches} 用它关闭。
  *
  * @author Alex
  * @version 1.0.0

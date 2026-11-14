@@ -5,10 +5,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
 /**
- * One cell's need in a Gu Recipe [蛊方]: what may sit there, and exactly how many.
- *
- * <p>The recipe's own ingredient type, independent of vanilla's {@code Ingredient}; {@link RefinementRecipe}
- * reads and writes it as the flat JSON object {@code {"count": n, "item": …}}.
+ * 蛊方的一条材料需求：可放物品与确切数量。
+ * 自有类型，非原版 {@code Ingredient}；{@link RefinementRecipe} 按扁平 JSON {@code {"count": n, "item": …}} 读写。
  *
  * @author Alex
  * @version 1.0.0

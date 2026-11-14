@@ -8,17 +8,14 @@ import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * What the Beast Phantom renderer [兽力虚影] reads of anything drawn as a phantom beast: the family whose model it
- * borrows, how far it has faded in or out, how far its nose is pitched down (MC's sign: down is positive) and whether
- * it charges. The phantom beside its owner and the Beast Charge [兽力冲击] both are one; only the charge pitches and
- * charges. Only the phantom beside its owner comes and goes animated: {@link #getGlow} is the glow layer's strength
- * as a multiple of its resting one, {@link #getScale} the model's size and {@link #getDrift} how far the model is
- * drawn from the entity, in blocks to its right, up and ahead by its own yaw.
- *
- * <p>The animation files do not share a naming: the wild boar's are bare ({@code idle}, {@code appear}), the
- * bear's, the tiger's and the buffalo's carry an {@code animation.} prefix. {@link #getAppear} and {@link #getLoop}
- * hide that. The tortoise's carry the prefix but no appearance, so the turtle's phantom only idles. The horse has no
- * animation file: it is drawn on vanilla's horse model, which poses itself ({@code HorsePhantomModel}).
+ * 兽力虚影渲染器读的接口：借哪个兽种模型、淡入淡出程度、鼻尖下俯（MC 符号，向下为正）、是否冲锋。
+ * <ul>
+ *   <li>身旁虚影与兽力冲击均实现，仅冲击会俯仰、冲锋；仅身旁虚影有出现与消失：{@link #getGlow} 为发光层相对平时倍数，
+ *       {@link #getScale} 为模型大小，{@link #getDrift} 为模型相对实体、按自身朝向右上前的偏移格数。</li>
+ *   <li>动画命名不一：野猪无前缀（{@code idle}、{@code appear}），熊、虎、水牛带 {@code animation.}，由
+ *       {@link #getAppear}、{@link #getLoop} 屏蔽；龟带前缀而无出场动画，只待机；马无动画文件，原版马模型自摆姿势
+ *       （{@code HorsePhantomModel}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -16,27 +16,19 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Server-authority rules of the Treasure Yellow Heaven [宝黄天] anchored dimension. While inside, a player may
- * only move, fly, chat, and use the exit command; every other interaction is refused. Void damage is refused too,
- * so {@link #tick} can return the player to spawn.
- *
- * <p>Break, place, use and attack answer the same on both sides, since the client knows its own dimension: a
- * refusal there stops the client predicting the interaction (no ghost block, no swing, no use animation started),
- * and the server's own answer stays the authority, since the client still sends the packet. Toss and damage are
- * server-side only; the toss is the one check that tells the player something, so it runs exactly once.
- *
- * <p>In {@link #tick}, leaving by any route -- exit, vanilla {@code /tp}, another mod's teleport, a respawn
- * after dying inside -- drops the flight grant, unless the player stands in another anchored dimension that grants
- * flight, and drops the {@link TossStashData} at the player's feet.
- *
- * <p>The one entity a player may right-click here is a {@link SoulTraderEntity}: trading is what this heaven is
- * for. Attacks on it stay refused like every other attack. {@link #isUseRefused} takes the clicked entity, or
- * {@code null} for a right click on a block or with an item.
- *
- * <p>⚠ No toss happens here: {@link #stowOrStash} puts it back through {@link TossedItems#putBack}, which never
- * drops, and stashes what does not fit for the way out, telling the player the bag is full. No item entity ever
- * enters this heaven, so nothing hovers or despawns. {@link #stowOrStash} and {@link #dropStash} skip the
- * dimension check, since a GameTest world has no live Treasure Yellow Heaven.
+ * 宝黄天[Treasure Yellow Heaven]的服务端权威规则。
+ * <ul>
+ *   <li>只许移动、飞行、聊天、退出命令，其余交互一律拒；虚空伤害也拒，交 {@link #tick} 拉回出生点。</li>
+ *   <li>破坏、放置、使用、攻击两端同判：客户端知道所在维度，拒绝即不预测（无幽灵方块、挥手、使用动画），仍发包，服务端
+ *       为准；丢弃与伤害只在服务端判，丢弃是唯一提示玩家的检查，只跑一次。</li>
+ *   <li>{@link #tick}：任何途径离开（退出、原版 {@code /tp}、他模组传送、死后重生）都撤飞行授权，除非站在另一个给飞行的
+ *       锚定维度，并把 {@link TossStashData} 掉在脚下。</li>
+ *   <li>唯一可右键的实体是 {@link SoulTraderEntity}，此天本为交易；攻击它照拒；{@link #isUseRefused} 点方块或手持物品时
+ *       传 {@code null}。</li>
+ *   <li>⚠ 不发生丢弃：{@link #stowOrStash} 经 {@link TossedItems#putBack}（从不掉落）放回，放不下的暂存到离开并提示背包
+ *       已满；物品实体从不进入，无悬浮或消失的掉落物。</li>
+ *   <li>{@link #stowOrStash}、{@link #dropStash} 不查维度：GameTest 世界没有真宝黄天。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

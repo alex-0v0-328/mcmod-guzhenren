@@ -34,22 +34,17 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * A Beast Charge [兽力冲击]: the Strength Qi Gu's [力气蛊] ranged punch on the beast strength phantom path, one
- * phantom beast of the round's family running at the lock-on target. It flies a {@link MoonBladeArc}, rolled by
- * {@link BeastChargeArc} so the charges of one punch fan out over the upper half circle, from the muzzle to
- * the target's center, read afresh every tick, at {@link #SPEED} blocks a tick for at most {@link #MAX_FLIGHT_TICKS},
- * without gravity or drag, and passes through every other entity. When the flight runs out, or its box touches the
- * target, it bursts ({@link QiBurst#burst}) around the target and is gone that tick, handing on the arc's tangent at
- * that tick ({@link MoonBladeArc#tangentAt}) as the direction it last flew; a block in the way, or a flight
- * that runs out with no target left, takes it away with no burst. Nothing lingers: the strike is the burst itself.
- *
- * <p>It plays its family's charge loop while it flies (the horse, drawn on vanilla's model, gallops on the
- * renderer's limb swing instead) and faces its next step along the arc, yaw and pitch alike, so
- * it rears on the arc's lift, dives after it and points at the target over its last stretch; it fades in over
- * {@link #FADE_IN_TICKS}. The
- * server owns the burst and the damage, set once by {@link #shoot}; the client copy flies the same curve from the
- * synced target, bend and flight ticks. It is never saved. The Store Strength Gu's [蓄力蛊] charged punch [蓄力一拳]
- * throws it with its own {@link QiBurst.Spec}; the Strength Qi Gu's punch bursts as a Qi Wave.
+ * 兽力冲击：力气蛊[Strength Qi Gu]兽力虚影流的远程拳，本轮兽类虚影冲向锁定目标。
+ * <ul>
+ *   <li>飞 {@link BeastChargeArc} 掷出的 {@link MoonBladeArc}（同拳在上半圆散开），朝每 tick 重读的目标中心，每 tick
+ *       {@link #SPEED} 格，至多 {@link #MAX_FLIGHT_TICKS}，无重力阻力，穿过其他实体。</li>
+ *   <li>飞完或碰到目标即在目标处爆开（{@link QiBurst#burst}）并消失，交出该 tick 切线（{@link MoonBladeArc#tangentAt}）
+ *       作最后方向；被方块挡或飞完时无目标则消失不爆；打击即爆开，无残留。</li>
+ *   <li>播本兽类冲锋循环（马用原版模型，靠渲染器肢体摆动），{@link #FADE_IN_TICKS} 内淡入；偏航俯仰朝弧线下一步：抬升扬
+ *       起，随后俯冲，末段指向目标。</li>
+ *   <li>爆开与伤害归服务端，{@link #shoot} 设定；客户端按同步的目标、弯度、飞行 tick 飞同一曲线；不存档。蓄力
+ *       蛊[Store Strength Gu]的蓄力一拳带自己的 {@link QiBurst.Spec}，力气蛊的拳按气波爆开。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

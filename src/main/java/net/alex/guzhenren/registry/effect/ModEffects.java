@@ -23,18 +23,15 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Every MobEffect this mod registers, one constant per effect.
+ * 本模组注册的全部 MobEffect。
  *
- * <p>DeferredRegister holder: grades that exclude each other are ONE effect with an amplifier; members
- * meant to be worn TOGETHER get one effect each (the two Watch Gu, so their rates add). Every effect uses
- * the white effect color, including effects granted by Gu materials. The regions follow {@code GuPath}'s order, as
- * {@code ModItems} does.
- *
- * <p>⚠ Every effect is built through {@code instance}, which sets
- * {@code showParticles=false, showIcon=true}; the color only feeds the {@link MobEffect} ctor.
- *
- * <p>Callers hold an effect as a {@code Holder<MobEffect>}, this mod's {@code DeferredHolder} or vanilla's
- * {@code MobEffects} entry, and ask the entity directly ({@code hasEffect}, {@code getEffect}, {@code removeEffect}).
+ * <ul>
+ *   <li>互斥档次合为一个效果，以 amplifier 区分；须同戴的各占一个（两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]，
+ *       倍率相加）。</li>
+ *   <li>全部用白色效果色，含蛊材给的效果；region 顺序同 {@code GuPath}、{@code ModItems}。</li>
+ *   <li>⚠ 实例经 {@code instance}：{@code showParticles=false, showIcon=true}；颜色只给 {@link MobEffect} 构造。</li>
+ *   <li>调用方持 {@code Holder<MobEffect>}（自家 {@code DeferredHolder} 或原版 {@code MobEffects}），直接查实体。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

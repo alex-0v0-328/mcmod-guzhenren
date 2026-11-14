@@ -8,14 +8,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 
 /**
- * The inventory-toss half of "a Vital Gu [本命蛊] cannot be thrown away"; the Q-key drop is answered
- * on the item itself via {@code onDroppedByPlayer}.
- *
- * <p>Only {@link VitalGuState#isVital} stacks are refused. This handler must
- * hand the stack back into the inventory: vanilla's {@link net.neoforged.neoforge.event.entity.item.ItemTossEvent}
- * removes the entity before posting, so canceling alone deletes the item instead of saving it. It hands it
- * back through {@link TossedItems#stow}, which never drops; a Vital Gu that does not fit hovers where it was
- * dropped and never despawns, so a full bag can neither crash the server nor lose it.
+ * 「本命蛊不可丢」的物品栏一半；Q 键丢弃归物品的 {@code onDroppedByPlayer}。
+ * <ul>
+ *   <li>只拒 {@link VitalGuState#isVital} 的物品，经 {@link TossedItems#stow} 归还，从不掉落。</li>
+ *   <li>⚠ 须还回：{@link net.neoforged.neoforge.event.entity.item.ItemTossEvent} 发布前已移实体，仅取消会删物品。</li>
+ *   <li>放不下的本命蛊悬停原处、永不消失：背包满既不崩服也不丢蛊。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

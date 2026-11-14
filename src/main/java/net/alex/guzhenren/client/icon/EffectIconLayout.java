@@ -10,14 +10,12 @@ import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Shared layout for an effect icon drawn from a texture: slot centering, the HUD/inventory render hooks,
- * and the one abstract seam -- which texture this instance wears.
- *
- * <p>Implements {@link net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions}.
- * The two default render methods (HUD and inventory) both delegate to {@code locationFor}, so a new
- * effect icon strategy is one class implementing that seam, and it hands back a {@code ResourceLocation} it built
- * ahead of time, because the render methods run once per icon per frame. {@code textureFor} is the same texture as
- * a path string. All icons are 16×16, centered with a 1px inset.
+ * 由贴图绘制的效果图标共用布局：格内居中、HUD 与物品栏渲染钩子。
+ * <ul>
+ *   <li>唯一抽象接缝是用哪张贴图：两个默认渲染方法都委托 {@code locationFor}，新图标策略只需一个类实现它；它返回预建的
+ *       {@code ResourceLocation}，因渲染方法每帧每图标调一次；{@code textureFor} 为同一贴图的路径串。</li>
+ *   <li>图标一律 16×16，居中内缩 1 像素。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

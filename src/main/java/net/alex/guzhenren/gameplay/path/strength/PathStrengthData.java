@@ -9,26 +9,21 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Strength [力道]: the beast and human strengths a player has refined into themselves, as one immutable reading. It
- * is stored nowhere: {@code PathStrengthService.get} builds it from the body's beast and human strength path
- * effects, which are the only truth, so there is no strength without its marks. A {@code Set} of
- * {@link BeastStrength} plus a sparse {@code Map} of {@link HumanStrength} layer counts, ctor-capped.
- * {@link #getStrengthPoints} is the one unit both sides share: a jin of human strength is one strength point
- * [力量点], a beast its declared points, and a point is {@link #ATTACK_PER_POINT} attack. A point is also
- * {@link #STRANDS_PER_POINT} strands [丝] of strength path marks: {@link #getStrands} is the one conversion, and every
- * Gu that gives points declares its strands through it, never as a number of its own. {@link #getPoints(long)} is the
- * way back: the settlement reads a body's points from the strands its strength effects carry, so this reading names
- * what is held and the effects say how much it is worth. A running beast buff adds
- * its points as a {@link StrengthAmplifier} at {@code StrengthService.getStrengthPoints}, not here: this reading
- * holds only what is permanent. {@link #with} first takes out what the new beast {@link BeastStrength#replaces}, so a
- * family holds one strength save the paired boars; {@link #getCovering} names the held beast that makes a new one
- * pointless, and {@link #withoutReplacedBy} is what stays beside it.
- *
- * <p>⚠ The ctor must build {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code
- * addAll} -- the {@code EnumMap(Map)} copy constructor throws on the empty maps {@code DEFAULT} uses. ⚠
- * The five layer caps (9/9/30/30/30) sum to exactly 99,999 jin; changing one breaks that identity. ⚠
- * {@code getBeastReadings()} counts by {@code BeastStrengthFamily}, not species -- the two boars share one. The ctor
- * keeps whatever set it is given; only {@link #with} applies the replacement.
+ * 力道读数：玩家炼入的兽力[Beast Strength]与人力，不可变。
+ * <ul>
+ *   <li>不存档：{@code PathStrengthService.get} 由肉体兽力、人力流派效果构建，效果是唯一真相，无道痕[Path Marks]
+ *       即无力量；只含永久部分，限时增益以 {@link StrengthAmplifier} 计入
+ *       {@code StrengthService.getStrengthPoints}。</li>
+ *   <li>力量点[Strength Points]是两边共用单位：1 斤 = 1 点，兽力按声明点数；1 点 = {@link #STRANDS_PER_POINT}
+ *       丝力道道痕，{@link #getStrands} 是唯一换算，蛊都经它声明丝数；{@link #getPoints(long)} 反向，
+ *       结算由效果的丝读点数。</li>
+ *   <li>{@link #with} 先移除被 {@link BeastStrength#replaces} 者，每兽种只持一种（成对猪除外）；{@link #getCovering}
+ *       找出使新兽力多余者；构造器原样保留集合。</li>
+ *   <li>⚠ 构造器须用 {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code addAll}：
+ *       {@code EnumMap(Map)} 遇 {@code DEFAULT} 的空表会抛异常。</li>
+ *   <li>⚠ 五种层数上限（9/9/30/30/30）合计恰为 99,999 斤，改一个即破坏。</li>
+ *   <li>⚠ {@code getBeastReadings()} 按兽种计数，两种猪共用一个。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -152,7 +147,7 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         return total;
     }
 
-    /** The permanent strength points [力量点]: every jin plus every refined beast's points. */
+    /** 永久力量点[Strength Points]：全部斤数加已持兽力点数。 */
     public int getStrengthPoints() { return getTotalJin() + getBeastPoints(); }
 
     public static long getStrands(int points) { return Math.max(0, points) * STRANDS_PER_POINT; }

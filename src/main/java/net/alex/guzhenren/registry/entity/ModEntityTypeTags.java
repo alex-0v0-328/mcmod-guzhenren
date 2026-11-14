@@ -6,13 +6,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
 /**
- * The entity-type tags this mod declares.
+ * 本模组声明的实体类型标签。
  *
- * <p>{@link #PREDATOR_PREY} lists the vanilla farm and small animals that hunting beasts (the Asian
- * black bear, tigers) proactively attack. Mod creatures never proactively target each other.
- *
- * <p>{@link #WILD_GU} lists every registered {@code WildGuEntity} subtype: the Gu motes that area strikes and the
- * flight ram never hit. Gameplay tests the tag, since an {@code instanceof} would reach up into {@code entity}.
+ * <ul>
+ *   <li>{@link #PREDATOR_PREY}：猎食野兽（亚洲黑熊、老虎）主动攻击的原版家畜与小动物；本模组生物互不主动攻击。</li>
+ *   <li>{@link #WILD_GU}：全部 {@code WildGuEntity} 子类型，范围打击、飞行冲撞不中的小蛊；查标签免得
+ *       {@code instanceof} 上依赖 {@code entity}。</li>
+ * </ul>
  */
 
 public final class ModEntityTypeTags {

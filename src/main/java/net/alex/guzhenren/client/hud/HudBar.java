@@ -5,15 +5,14 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * A HUD progress bar drawn from two GUI sprites, {@code hud/<name>_bar_background} and {@code hud/<name>_bar_fill}:
- * a frame one pixel larger than the fill on every side, and a grayscale fill tinted with the bar's data color.
+ * 由两张 GUI 精灵图 {@code hud/<name>_bar_background}、{@code hud/<name>_bar_fill} 画成的 HUD 进度条。
  *
- * <p>Both sprites draw unscaled. A part-full bar shows the fill's leftmost {@code filled} columns instead of squeezing
- * the whole sprite, so the marks drawn into a fill (the awakening bar's fifths, the nourish bar's tenths) stay lined up
- * with the frame's.
- *
- * <p>⚠ {@link #width} and {@link #height} are the fill sprite's size; {@code HudBarTexturesTest} pins the PNGs to the
- * layouts that build these.
+ * <ul>
+ *   <li>边框四边各比填充大 1 像素；灰度填充按条的数据色着色。</li>
+ *   <li>两图都不缩放；部分填满只显示填充最左 {@code filled} 列，不压缩整图，填充上的刻度（开窍[Awakening]条五等分、
+ *       温养[Nourish]条十等分）因此始终对齐边框。</li>
+ *   <li>⚠ {@link #width}、{@link #height} 是填充精灵图尺寸；{@code HudBarTexturesTest} 将 PNG 钉在生成布局上。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -30,7 +29,7 @@ public record HudBar(ResourceLocation background, ResourceLocation fill, int wid
                 width, height);
     }
 
-    /** Draws the bar with its fill's top-left corner at ({@code x}, {@code y}); {@code filled} runs 0 to width. */
+    /** 画条，填充左上角位于（{@code x}，{@code y}）；{@code filled} 取 0 到 {@code width}。 */
     public void draw(SpriteBatch sprites, int x, int y, int filled, int tint) {
         sprites.blit(background, x - 1, y - 1, width + 2, height + 2);
         sprites.blitLeft(fill, width, height, x, y, Math.min(filled, width), tint);

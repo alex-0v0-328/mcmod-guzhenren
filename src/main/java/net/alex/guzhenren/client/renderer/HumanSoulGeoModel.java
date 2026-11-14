@@ -10,12 +10,9 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
 /**
- * The {@code human_soul} GeckoLib model shared by every soul trader, whatever texture it wears.
- *
- * <p>⚠ The look turn is added to the head bone, not written over it. GeckoLib's own head turn
- * ({@code DefaultedEntityGeoModel} with a head bone) sets the rotation outright and would erase the nod and
- * the head shake the gestures key on that bone. Adding is safe because every animation the soul plays keys the
- * head, so each processed frame starts the bone from its keyframe again.
+ * 所有魂体交易者共用的 {@code human_soul} GeckoLib 模型，与所穿贴图无关。
+ * ⚠ 视线转动叠加到头部骨骼、不覆盖：GeckoLib 自带头部转动（带头部骨骼的 {@code DefaultedEntityGeoModel}）直接设旋转，会
+ * 抹掉手势在该骨骼上打关键帧的点头与摇头；魂体每个动画都给头部打关键帧，每个处理帧从关键帧重来，叠加安全。
  *
  * @author Alex
  * @version 1.0.0

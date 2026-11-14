@@ -19,27 +19,20 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One Gu's numbers, given as a builder chain at registration so that a registration reads as a table row.
- *
- * <p>The single source of truth for every Gu's numerical identity: refine cost, channel/cost-per-use,
- * hunger bar geometry (or a {@link #recoverBar} that refills with the world clock and never eats), feed tags,
- * cooldown, the usage type [类型] ({@link GuType}, absent for a Gu that has none), and the path effect
- * [流派效果] it lays down: the carrier it works on and the path marks [道痕] it carries on the Gu's path.
- * Stored on {@link MortalGuItem} at construction; read by {@link TendedGuItem} and the tooltip/HUD renderers, and
- * it builds the Gu's {@link GuHunger} and {@link GuHealth}. What only one kind of Gu needs (a duration, a grade)
- * stays on its {@link GuBehavior}. Gu health is no chain call: it is 4 x rank + 4 (8 to 24 at ranks I to V), for
- * every Gu alike.
- *
- * <p>{@link #effect(EffectCarrier)} takes the rank's default strands [丝] ({@link #getDefaultStrands}: 12 at rank one,
- * four times as many each rank); {@link #effect(EffectCarrier, long)} names them, and
- * {@link #effect(EffectCarrier, PathMarks)} names both counters. A Gu without the call lays down no effect and
- * carries no marks -- an instant Gu, or one that only changes a number. {@link #createEffect} builds the effect a
- * family puts on with {@code PathEffectService.apply}.
- *
- * <p>⚠ {@link #validate} runs at registration and refuses to start the game, naming the Gu, when
- * the channel numbers do not divide evenly, or a food worth more than one point does not divide the bar, a use,
- * a day and the health, or an effect carries no marks, or a mortal Gu's effect carries whole marks [条]: a mortal
- * Gu lays down strands only. It is the first line of defense; never route around it.
+ * 单只蛊的数值：注册时以构建链给出，读如表格一行。
+ * <ul>
+ *   <li>每只蛊数值身份的唯一来源：炼化代价、灌注[Channel] 或单次代价、饱食[Hunger] 条规格（或随世界时钟回满、从不进食的
+ *       {@link #recoverBar}）、补食标签、冷却、用途类型（{@link GuType}，可无）、流派效果（载体及其在蛊所属道[Path] 上
+ *       的道痕[Path Marks]）。</li>
+ *   <li>存于 {@link MortalGuItem}，{@link TendedGuItem} 与提示、HUD 读取，构建 {@link GuHunger} 与 {@link GuHealth}；独
+ *       有数值（时长、等级）在 {@link GuBehavior}；生命值不走链，一律 4 × 转数 + 4（一至五转 8–24）。</li>
+ *   <li>{@link #effect(EffectCarrier)} 取默认丝数（{@link #getDefaultStrands}：一转 12，每转 ×4），
+ *       {@link #effect(EffectCarrier, long)} 指定丝数，{@link #effect(EffectCarrier, PathMarks)} 指定两计数；不调用者不
+ *       施效果、无道痕（即时蛊或只改数值者）；{@link #createEffect} 造一族蛊经 {@code PathEffectService.apply} 施的效
+ *       果。</li>
+ *   <li>⚠ {@link #validate} 注册时运行，下列情况点名该蛊并拒绝启动：灌注数值不整除；价值 > 1 点的食物不整除条、单次、单
+ *       日、生命值；效果无道痕；凡蛊效果带整条（凡蛊只施丝）。它是第一道防线，绝不绕过。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

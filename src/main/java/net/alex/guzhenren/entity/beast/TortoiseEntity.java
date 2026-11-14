@@ -19,14 +19,13 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * A passive tortoise on the {@link ActionEntity} state machine with an empty attack set: the land and stone
- * species ({@link TortoiseSpecies}) register as two entity types sharing this class. It never takes a target,
- * so {@link #getAlertAction} is the idle action, {@link #chooseAttack} never runs and {@link #getCooldownOf}
- * is unreachable. A hit plays the hurt pose once and is otherwise ignored; a running hurt pose is not restarted.
- *
- * <p>After a completed wander the tortoise sleeps at night ({@link #NIGHT_SLEEP_CHANCE}) until dawn, or eats
- * by day ({@link #EAT_CHANCE}) for {@link #EAT_ACTION_TICKS}; a {@link StandStillGoal} holds it still in both.
- * The model has no run clip, so {@link #getRunAnimationName} maps the never-reached pursuit loop to the walk.
+ * 被动龟：攻击集为空的 {@link ActionEntity}；陆龟、石龟（{@link TortoiseSpecies}）为共用本类的两个实体类型。
+ * <ul>
+ *   <li>从不锁定目标：警戒即待机，{@link #chooseAttack} 不执行，{@link #getCooldownOf} 不可达；受击只播一次受击姿势，
+ *       进行中不重启。</li>
+ *   <li>游荡完后夜里按 {@link #NIGHT_SLEEP_CHANCE} 睡至天亮，白天按 {@link #EAT_CHANCE} 进食
+ *       {@link #EAT_ACTION_TICKS}，均由 {@link StandStillGoal} 定住；无 run 片段，用不到的追击循环映射为 walk。</li>
+ * </ul>
  */
 
 public final class TortoiseEntity extends ActionEntity<TortoiseEntity.Action> {

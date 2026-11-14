@@ -17,42 +17,29 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The strength settlement [力道结算]: how many of a body's strength points [力量点] it brings to bear. Static,
- * read-only service above the aperture and the body, since the capacity reads both. The points come in three
- * kinds: the permanent points, read from the strength path strands [丝] the beast and human strength effects carry
- * ({@link #getPermanentPoints}, {@link PathStrengthData#getPoints(long)}; no effect, no points), the running
- * {@link StrengthAmplifier}s ({@link #getAmplifiers}: timed beast buffs and every path effect payload that is a
- * {@link StrengthAmplifierProvider}), and the points a round's beast release [解放] counts past the capacity
- * ({@link ReleaseSource}, set by the round keeper). {@link #snapshot} gathers the first two kinds and what they
- * settle to once ({@link StrengthSnapshot}); the capacity, the total and the usable points of a player each read one.
- *
- * <p>The normal carrying capacity [常态承受力] is {@link #getNormalCapacity}: {@link #getBaseCapacity}, which is
- * {@link #MORTAL_CAPACITY} plus {@link #CAPACITY_PER_RANK} per rank [转] (16, then 24 to 56 for ranks one to five)
- * times the physique's multiplier, plus what the worn skin, tendons and bones add and what the held beasts carry
- * (the stone turtle's {@link BeastStrength#getCapacityBonus}) -- tempering and beasts sit outside the multiplier.
- * The current capacity ({@link #getCapacity}) adds every amplifier's capacity bonus (the Hardship Strength
- * [苦力] one among them) and, while the All-Out Effort Gu [全力以赴] runs on a body holding the human jun or the beast
- * phantom branch, {@link #getAllOutCapacityBonus}: 50/100/200% of the normal capacity for the rank three/four/five Gu,
- * read from the effect's amplifier, which is the Gu's tier ({@link #getAllOutTier}, {@link #NO_ALL_OUT} otherwise;
- * {@link #isAllOut} is that same reading as a yes or no, for the area impact's chance and the Crash Gu dash, which
- * reads it on the owning client from the player's own synced effect and strength data). Every bonus is added on the
- * normal capacity, never multiplied with another. A body uses {@code min(total, capacity)} of the CURRENT capacity
- * ({@link #getUsablePoints}) plus the body overload [肉体过载] plus the release extra, and keeps the rest. The overload
- * ({@link #getOverloadPoints}) is the part of the timed beasts' points past the current capacity, counted on top of the
- * permanent beasts: it is brought to bear in full and paid for in health per fist hit ({@code BodyOverload}). A
- * permanent beast seated past the capacity by a command and the human jin never overload; they are only cut.
- *
- * <p>{@link #getReleasedExtra} is a round's full release [全面解放], a critical hit of sorts: the released families'
- * PERMANENT points count {@link #FULL_RELEASE_FACTOR} times, every other point once, and the whole is still cut by the
- * current capacity; the extra is what that adds over the plain {@code min(total, capacity)}. {@link #canAdmit} is the
- * gate of a new permanent beast strength: the permanent beasts that stay beside it plus the new one may not pass the
- * NORMAL capacity, which counts a staying beast's capacity bonus but neither the new one's own nor that of the beast
- * it replaces ({@code PathStrengthData#withoutReplacedBy}); amplifiers and the All-Out lift admit nothing.
- *
- * <p>⚠ The {@code int} overloads are deliberate seams so the arithmetic is unit-testable without a {@link Player}.
- *
- * <p>The one mutable static, {@code releaseSource}, is a seam: the round keeper sets it once at common setup and
- * nothing replaces it during play; until then it answers zero.
+ * 力道结算：身体实际发挥的力量点[Strength Points]。
+ * <ul>
+ *   <li>静态只读，位于空窍[Aperture]与肉体之上（承受力读两者）；永久点数读兽力[Beast Strength]与人力效果的力道丝
+ *       （{@link #getPermanentPoints}、{@link PathStrengthData#getPoints(long)}，无效果无点数），增幅见
+ *       {@link #getAmplifiers}，解放额外点数由轮次管理方设置的 {@link ReleaseSource} 给出；{@link #snapshot} 一次收集前
+ *       两类及结算（{@link StrengthSnapshot}），承受力、总点数、发挥点数各取一份。</li>
+ *   <li>常态承受力 {@link #getNormalCapacity} = {@link #getBaseCapacity}（{@link #MORTAL_CAPACITY} + 每转
+ *       {@link #CAPACITY_PER_RANK}：16，一至五转 24–56）× 体质倍率 + 皮筋骨与兽力加成（石龟
+ *       {@link BeastStrength#getCapacityBonus}，不乘倍率）。</li>
+ *   <li>当前承受力 {@link #getCapacity} 再加增幅承受加成（含苦力蛊[Hardship Strength Gu]）与
+ *       {@link #getAllOutCapacityBonus}：全力以赴蛊[All-Out Effort Gu]在持人力钧力流或兽力虚影流的身体上运行时，三 / 四
+ *       / 五转加常态 50% / 100% / 200%，转数读效果等级即蛊 tier（{@link #getAllOutTier}，否则 {@link #NO_ALL_OUT}）；各
+ *       加成以常态为基数相加，不互乘；{@link #isAllOut} 为是否版，供范围冲击概率与横冲系冲刺（后者在所属客户端读同步数
+ *       据）。</li>
+ *   <li>发挥 {@link #getUsablePoints} = 当前承受力下 {@code min(total, capacity)} + 肉体过载 + 解放额外点数，余者保留；
+ *       过载 {@link #getOverloadPoints} 为限时兽力超当前承受力部分（计在永久兽力上），全额发挥、每拳扣血
+ *       （{@code BodyOverload}）；指令超限永久兽力与人力斤数只截断。</li>
+ *   <li>{@link #getReleasedExtra}：全面解放，类似暴击，被解放兽种永久点数 × {@link #FULL_RELEASE_FACTOR}、其余 × 1，合
+ *       计仍截于当前承受力，取超出普通截断的部分；{@link #canAdmit}：留下的永久兽力 + 新兽力 ≤ 常态承受力，计留下兽力的
+ *       承受加成，不计新兽力与被替换兽力的（{@code PathStrengthData#withoutReplacedBy}），增幅与全力以赴不参与。</li>
+ *   <li>⚠ {@code int} 重载为单测接缝，无需 {@link Player}；唯一可变静态 {@code releaseSource} 亦为接缝，轮次管理方在通
+ *       用初始化设一次、不再换，之前返回 0。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -73,7 +60,7 @@ public final class StrengthService {
     public static final int FULL_RELEASE_FACTOR = 3;
     private static ReleaseSource releaseSource = (player, snapshot) -> 0;
 
-    /** The round keeper's answer: the points a release lets past the capacity right now, zero outside a round. */
+    /** 此刻的解放额外点数，轮外为 0。 */
     @FunctionalInterface
     public interface ReleaseSource {
 
@@ -131,7 +118,7 @@ public final class StrengthService {
         return PathStrengthData.getPoints(strands);
     }
 
-    /** Every running amplifier: the timed beast buffs, then every path effect payload that provides one. */
+    /** 生效中的增幅：先限时兽力增益，后各路径效果 payload。 */
     public static @NotNull List<StrengthAmplifier> getAmplifiers(@NotNull Player player) {
         return getAmplifiers(player, getPermanentPoints(player), getNormalCapacity(player));
     }
@@ -167,7 +154,7 @@ public final class StrengthService {
         return total;
     }
 
-    /** The whole strength: permanent points plus every amplifier's points. */
+    /** 总力量：永久点数 + 各增幅点数。 */
     public static int getStrengthPoints(@NotNull Player player) { return snapshot(player).totalPoints(); }
 
     public static @NotNull StrengthSnapshot snapshot(@NotNull Player player) {
@@ -197,7 +184,7 @@ public final class StrengthService {
         return Math.max(0, (int) Math.min(capacity, released) - getUsablePoints(capacity, total));
     }
 
-    /** Whether the normal capacity has room for one more permanent beast strength beside those held. */
+    /** 常态承受力能否再容一种永久兽力。 */
     public static boolean canAdmit(@NotNull Player player, @NotNull BeastStrength beast) {
         PathStrengthData held = PathStrengthService.get(player);
         PathStrengthData kept = held.withoutReplacedBy(beast);

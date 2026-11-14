@@ -9,8 +9,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The client-intent payload for one radial-menu pick of the Amplify Effect Gu [功倍蛊]: the hotbar slot of the Gu to
- * drive. {@link ClientIntents#amplifyDrive} checks it all again; the client's menu only lists what it would pass.
+ * 功倍蛊[Amplify Effect Gu]轮盘单选的客户端意图 payload：所驱动蛊的快捷栏格。
+ * {@link ClientIntents#amplifyDrive} 全部重查；轮盘只列可通过项。
  *
  * @author Alex
  * @version 1.0.0

@@ -13,31 +13,24 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The rings of second-stage flight [二段飞行], server side, so every player in particle range sees them: the sonic
- * boom ring [音爆环] at each entry and the sound barrier rings [音障环] while the flight stays fast.
- *
- * <p>{@link #sonicBoom} answers each {@code SecondStageStartedEvent} ({@link SecondStageRingEvents}): one
- * {@code sonic_boom_ring} blooming to ≈4 blocks, facing the look direction, at mid-body ({@link #RING_HEIGHT}) and
- * {@link #BOOM_BEHIND} blocks back along the look, so it opens behind the flier's own first-person camera, which gets
- * the screen ring ({@code net.alex.guzhenren.client.hud.SonicBoomHud}) instead; and the warden's sonic boom at
- * {@link #BOOM_VOLUME}, heard ≈32 blocks out, as far as the ring is sent. It also starts the player's
- * {@link BarrierRingTrail} there.
- *
- * <p>{@link #tick} steps that trail while {@link SecondStageService#isActive} holds and sends a {@code barrier_ring}
- * at mid-body for each ring it forms: none for the first two seconds, then one every ≈16 blocks while the flight
- * stays past three times plain flight. A ring blooms small to large where it formed, then widens to four times its
- * size and fades out ({@code RingParticle}'s spread exit). At full speed that is four rings a second, each living
- * 15 ticks, ≈3 alive at once behind each flier. A trail found missing while the stage is on (a dimension change
- * dropped it) picks up where the player stands, quiet again. The trail ends with the stage; logout and a dimension
- * change drop it ({@link #forget}); {@link SecondStageRingEvents} calls {@link #tick} at the end of each player
- * tick.
- *
- * <p>{@link #crash} answers each server-side {@code SecondStageCrashEvent}: one {@code sonic_boom_ring} at mid-body
- * against the surface ({@link #CRASH_AHEAD} blocks along the heading), facing the heading in three dimensions, so a
- * dive's ring lies flat on the ground and a climb's flat under the ceiling ({@code RingGeometry#getFacing} handles
- * the vertical normal); the crater's explosion is the impact's sound.
- *
- * <p>Pure feedback: no damage, no hitbox.
+ * 二段飞行[Second-Stage Flight]的服务端环：进入时音爆环、高速时音障环、撞击时撞击环。
+ * <ul>
+ *   <li>服务端发送，粒子范围内玩家都看得到；纯反馈，无伤害、无碰撞箱。</li>
+ *   <li>{@link #sonicBoom} 响应每个 {@code SecondStageStartedEvent}（{@link SecondStageRingEvents}）：一个
+ *       {@code sonic_boom_ring}，绽开到约 4 格，面朝视线，位于身体中部（{@link #RING_HEIGHT}），沿视线后退
+ *       {@link #BOOM_BEHIND} 格，在飞行者第一人称镜头后绽开；飞行者改看屏幕环
+ *       （{@code net.alex.guzhenren.client.hud.SonicBoomHud}）；就地开始 {@link BarrierRingTrail}。</li>
+ *   <li>同时以 {@link #BOOM_VOLUME} 播放监守者音爆，约 32 格外可闻，同环的发送距离。</li>
+ *   <li>{@link #tick} 在 {@link SecondStageService#isActive} 时推进轨迹，每成一环在身体中部发 {@code barrier_ring}；
+ *       头 2 秒不成环，之后保持普通飞行 3 倍以上时约每 16 格一环。</li>
+ *   <li>环就地由小到大绽开，再扩到 4 倍并淡出（{@code RingParticle} 扩散退场）；满速每秒 4 环、每环存活 15 tick，
+ *       每名飞行者身后约同时 3 个。</li>
+ *   <li>开启时轨迹缺失（换维度已丢弃）则就地重开、重新静默；轨迹随二段飞行结束，登出、换维度时丢弃
+ *       （{@link #forget}）；{@link SecondStageRingEvents} 在每个玩家 tick 末调用 {@link #tick}。</li>
+ *   <li>{@link #crash} 响应每个服务端 {@code SecondStageCrashEvent}：身体中部贴撞击面（沿航向 {@link #CRASH_AHEAD}
+ *       格）发 {@code sonic_boom_ring}，三维面朝航向；俯冲平铺地面、爬升平贴天花板（{@code RingGeometry#getFacing}
+ *       处理竖直法线）；撞击声来自撞坑爆炸。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

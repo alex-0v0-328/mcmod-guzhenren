@@ -8,12 +8,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Knockback resistance as a transient {@link net.minecraft.world.entity.ai.attributes.AttributeModifier}, the
- * bones' [骨] share alone ({@code Bone.getKnockbackResistance}). Static service; {@link AttributeEvents}
- * refreshes it on every {@code BodyTemperedEvent}, plus login, clone and reset (a modifier does not ride a
- * clone). Native bones read 0, which {@link TransientModifiers#swap} writes as no modifier.
- *
- * <p>⚠ The modifier MUST stay transient ({@link TransientModifiers}).
+ * 临时修饰的击退抗性，只有骨的份额（{@code Bone.getKnockbackResistance}）。
+ * <ul>
+ *   <li>{@link AttributeEvents} 于 {@code BodyTemperedEvent} 及登录、克隆、重置时刷新（修饰不随克隆保留）。</li>
+ *   <li>⚠ 修饰须临时（{@link TransientModifiers}）；原生骨为 0，{@link TransientModifiers#swap} 写为无修饰。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

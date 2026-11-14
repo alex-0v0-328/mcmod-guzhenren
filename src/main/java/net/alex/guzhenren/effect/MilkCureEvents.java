@@ -11,13 +11,10 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Milk [牛奶] cures none of this mod's own effects but Bleeding [流血]. Each other one is the icon, timer, modifier or
- * pulse of a state held elsewhere -- a path effect [流派效果], the body -- that the heartbeat projects
- * again, so curing one only paused what it carries until the next beat; Bleeding has no state behind it.
- *
- * <p>Event subscriber on {@link MobEffectEvent.Remove}: a removal whose cure is {@link EffectCures#MILK} and whose
- * effect sits in this mod's namespace is canceled. Every other removal passes: another cure (a totem), a removal
- * with no cure ({@code /effect clear}, death) and every vanilla effect.
+ * 牛奶解除规则：本模组效果中牛奶只解流血。其余都是别处状态（流派效果、身体）的图标、计时、修饰符或脉冲，心跳重新投影，
+ * 解掉只让其所载停到下一拍；流血背后无状态。监听 {@link MobEffectEvent.Remove}：解药为 {@link EffectCures#MILK} 且效果
+ * 属本模组命名空间的移除被取消；其余放行，如别的解药（图腾）、无解药的移除（{@code /effect clear}、死亡）、所有原版效
+ * 果。
  *
  * @author Alex
  * @version 1.0.0

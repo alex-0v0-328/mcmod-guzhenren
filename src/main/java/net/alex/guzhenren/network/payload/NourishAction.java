@@ -1,8 +1,8 @@
 package net.alex.guzhenren.network.payload;
 
 /**
- * The two moves of the aperture nourish [温养] intent: start nourishing an aperture, or cancel.
- * Lives with the payload that carries it, so the payload needs nothing from {@code net.alex.guzhenren.network}.
+ * 温养[Nourish]空窍[Aperture]意图的两个动作：开始或取消。
+ * 与所属 payload 同包，免其依赖 {@code net.alex.guzhenren.network}。
  *
  * @author Alex
  * @version 1.0.0

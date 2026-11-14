@@ -11,29 +11,18 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Gu kept inside each Aperture [空窍], including the Vital Gu [本命蛊] bound to that aperture.
- * Immutable record attachment keyed {@code aperture_storage}; serialized but NOT synced -- every reader
- * is server-side and the menu reads it through slot channels; {@code
- * ApertureStorageService} is the only runtime writer.
- *
- * <p>⚠ Uses {@link ItemStack#OPTIONAL_CODEC}: an interior empty is a real slot position, only TRAILING
- * holes are trimmed, or items would jump the moment a gap is saved. ⚠ {@code with} GROWS to reach its
- * index (unlike {@link ApertureData#with}, which refuses) -- a store may exist before its aperture opens.
- * ⚠ {@link #getView} hands out the stored stacks themselves, not copies, for a read-only walk: copy a stack
- * before changing it.
- *
- * <p>A record owns its stacks. Lists from outside are deep-copied on construction, while {@link #with},
- * {@link #withPage}, {@link #withVital} and {@link #shiftRight} hand the next record the stacks this one already
- * holds (the private {@code OwnedStacks}) and copy only a stack that is new at its position, so writing one changed
- * slot back costs one copy instead of the whole store.
- *
- * <p>{@link #shiftRight} makes room for a first aperture inserted ahead of a lone second one: every
- * stored list and the Vital Gu slot moves one position up. The Vital Gu that moves is the second
- * aperture's, so it is pinned to kind {@code SECOND} explicitly, through the {@link StoredGu} the caller hands in:
- * one bound by the component default ({@code PRIMARY}) would otherwise read as the new first aperture's.
- *
- * <p>{@link #tokens} holds, per aperture kind, the token of the one current Vital Gu: an aperture has one
- * Vital Gu, so a replaced one whose copy still carries the mark is not it ({@code VitalGuState.isCurrentVital}).
+ * 各空窍[Aperture]所存蛊，含绑定该空窍的本命蛊；附件 {@code aperture_storage}。
+ * <ul>
+ *   <li>存档不同步：读者全在服务端，菜单经槽位通道读；运行时仅 {@code ApertureStorageService} 写。</li>
+ *   <li>⚠ 用 {@link ItemStack#OPTIONAL_CODEC}：中间空位是真槽位，只裁尾部空位，否则存档后隔空物品跳位。</li>
+ *   <li>⚠ {@code with} 扩到所需下标（{@link ApertureData#with} 拒绝）：存储可先于空窍存在。</li>
+ *   <li>⚠ {@link #getView} 交出栈本身而非副本，仅供只读遍历，改前先复制。</li>
+ *   <li>自有其栈：外来列表深拷贝，各 {@code with*} 与 {@link #shiftRight} 沿用已有栈（私有 {@code OwnedStacks}），
+ *       只拷新栈，写一格只拷一次。</li>
+ *   <li>{@link #shiftRight} 为新第一空窍腾位，各列表与本命蛊槽上移一位；上移本命蛊属第二空窍，经调用方的
+ *       {@link StoredGu} 钉为 {@code SECOND}，否则按默认 {@code PRIMARY} 归新第一空窍。</li>
+ *   <li>{@link #tokens} 按空窍种类存现任本命蛊令牌，旧副本带标记也不算（{@code VitalGuState.isCurrentVital}）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

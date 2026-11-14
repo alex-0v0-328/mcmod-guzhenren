@@ -9,11 +9,8 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Flight granted by named sources: a Gu's flight, an anchored dimension's flight. Each source is granted and
- * revoked on its own; the player may fly while any source holds.
- *
- * <p>⚠ Callers grant, revoke and ask by source id. Each source is a transient {@code ADD_VALUE} modifier on
- * NeoForge's creative-flight attribute, named by the source id, so it is never saved and a respawn starts with none.
+ * 按具名来源授予的飞行，如蛊、锚定维度。各来源独立授撤，任一在即可飞。⚠ 调用方只按来源 ID 授予、撤销、查询；每个来源是
+ * NeoForge 创造飞行属性上以来源 ID 命名的临时 {@code ADD_VALUE} 修饰符，不存档，重生即无。
  *
  * @author Alex
  * @version 1.0.0
@@ -29,10 +26,10 @@ public final class FlightAbility {
         return flight != null && flight.hasModifier(source);
     }
 
-    /** Whether the player may fly at all, from any grant: the game mode, another mod, or a source here. */
+    /** 能否飞行；授权来自游戏模式、他模组或此处来源皆算。 */
     public static boolean canFly(@NotNull Player player) { return player.mayFly(); }
 
-    /** Grants flight from {@code source}; {@code false} when that source already held. */
+    /** 从 {@code source} 授飞；该来源已在则 {@code false}。 */
     public static boolean grant(@NotNull ServerPlayer player, @NotNull ResourceLocation source) {
         AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
         if (flight == null || flight.hasModifier(source)) return false;
@@ -40,7 +37,7 @@ public final class FlightAbility {
         return true;
     }
 
-    /** Revokes flight from {@code source}; {@code false} when that source did not hold. */
+    /** 撤销 {@code source} 的飞行；该来源不在则 {@code false}。 */
     public static boolean revoke(@NotNull ServerPlayer player, @NotNull ResourceLocation source) {
         AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
         return flight != null && flight.removeModifier(source);

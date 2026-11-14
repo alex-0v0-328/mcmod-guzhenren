@@ -5,18 +5,15 @@ import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.minecraft.util.Mth;
 
 /**
- * The awakening ritual's [开窍仪式] clock, in ticks since the click: the server awakens at {@link #AWAKEN_TICKS},
- * reveals the aptitude [资质] at {@link #RELEASE_TICKS} and ends the ritual at {@link #END_TICKS}; every client draws
- * the ritual off the same marks.
- *
- * <p>Static curves, each a pure function of the elapsed ticks. The Hope Gu [希望蛊] flies out over {@link #FLY_TICKS},
- * hovers and bobs, then shrinks into the light from {@link #FADE_START_TICKS} and is gone at
- * {@link #FLASH_START_TICKS}. The aptitude bar over the hotbar climbs from the lowest grade's floor to the rolled base
- * over {@link #BAR_FILL_TICKS}, then holds full until the flash. The slow white flash [闪白] rises from
- * {@link #FLASH_START_TICKS} to full white at the awakening and fades out by the release; {@link #getFlashTint} is
- * how far a Ten-Extremes flash has turned pale goose yellow [淡鹅黄], full at the awakening and held while it fades.
- * At the release the player may move again and the aptitude plaques [资质牌匾] fade in, hold, and fade out by
- * {@link #END_TICKS}.
+ * 开窍[Awakening]仪式时钟：单击后 tick 数的静态曲线。
+ * <ul>
+ *   <li>服务端 {@link #AWAKEN_TICKS} 开窍、{@link #RELEASE_TICKS} 揭晓资质[Aptitude]、{@link #END_TICKS} 结束，
+ *       客户端按同组时刻画；揭晓解除定身，牌匾淡入、停留、结束前淡出。</li>
+ *   <li>快捷栏上资质条 {@link #BAR_FILL_TICKS} 内由最低档下限爬到掷出基数，停到闪白。</li>
+ *   <li>希望蛊[Hope Gu] {@link #FLY_TICKS} 内飞出后悬浮，{@link #FADE_START_TICKS} 起缩入光中，
+ *       {@link #FLASH_START_TICKS} 消失；闪白自此慢升，开窍全白，揭晓前淡出；{@link #getFlashTint} 为十绝转淡鹅黄程度，
+ *       开窍时满，淡出时保持。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

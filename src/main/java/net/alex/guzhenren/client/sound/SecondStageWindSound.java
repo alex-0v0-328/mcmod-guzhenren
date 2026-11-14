@@ -11,12 +11,12 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The wind of the local player's second-stage flight [二段飞行]: vanilla's elytra loop, following the player and the
- * throttle; client only, and only the flier hears it.
- *
- * <p>{@code SecondStageEvents} starts one on each entry. Silent up to {@link #QUIET_THROTTLE}, it swells to full
- * volume at full throttle while the pitch climbs from {@link #BASE_PITCH} by {@link #PITCH_PER_THROTTLE}; both ease
- * toward the target, {@link #RISE} a tick going up and {@link #FALL} coming down. It stops when the mark goes.
+ * 本地玩家二段飞行[Second-Stage Flight]的风声，仅本人客户端可闻。
+ * <ul>
+ *   <li>原版鞘翅循环音，随玩家位置和油门；{@code SecondStageEvents} 每次进入二段飞行时启动，标记消失时停止。</li>
+ *   <li>油门到 {@link #QUIET_THROTTLE} 前静音、满油门满音量；音高从 {@link #BASE_PITCH} 起随油门升
+ *       {@link #PITCH_PER_THROTTLE}；音量和音高向目标缓动，每 tick 升 {@link #RISE}、降 {@link #FALL}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

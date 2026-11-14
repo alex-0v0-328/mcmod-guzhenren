@@ -8,12 +8,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The parts every container menu of the mod repeats around its own slots.
- *
- * <p>{@link #addPlayerInventory} lays out the player's bag in vanilla order -- the three bag rows first, then the
- * hotbar -- so the menu's slot indices stay where its shift-click routing expects them. {@link #quickMove} is the
- * shift-click frame: the menu passes only where a stack goes, and the frame returns the stack as it was before
- * the move, or empty when nothing moved, as vanilla's loop over {@code quickMoveStack} requires.
+ * 模组各容器菜单在自身槽位外重复的部分。
+ * <ul>
+ *   <li>{@link #addPlayerInventory}：按原版顺序先三行背包后快捷栏，槽位下标才合 shift 点击路由。</li>
+ *   <li>{@link #quickMove}：shift 点击框架，菜单只给去向；返回移动前堆叠，未动返回空（原版 {@code quickMoveStack} 循环
+ *       所需）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

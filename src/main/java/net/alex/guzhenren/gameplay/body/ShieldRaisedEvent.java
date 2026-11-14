@@ -5,10 +5,9 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Posted on the game event bus after {@link ShieldService#raise} lays a shield [护盾] layer, so the path effect its
- * Gu carries can follow from above the body and the Epic Fight bridge can cross the body's arms
- * ({@code EpicFightServerEvents}); the layer's end tick is on {@link ShieldService#find}. Posted for every raise, a
- * refill of a layer still up included. Dispatch is synchronous, so a subscriber has run before {@code raise} returns.
+ * {@link ShieldService#raise} 升起一层护盾（含补满仍在的层）后发布的事件；同步分发，{@code raise} 返回时订阅者已执行。
+ * 供上层跟进蛊的路径效果、Epic Fight 桥接交叉双臂（{@code EpicFightServerEvents}）；结束 tick 见
+ * {@link ShieldService#find}。
  *
  * @author Alex
  * @version 1.0.0

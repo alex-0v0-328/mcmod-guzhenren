@@ -22,26 +22,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The only runtime writer of path effects [流派效果]: put on, changed, removed, run out, and projected as icons.
+ * 流派效果的唯一运行时写入方。
  *
- * <p>Static service over the {@code path_effect_data} attachment; reads take {@link Player}, writes take
- * {@link ServerPlayer}. {@link #apply} puts an effect on and drops whatever shared its slot; {@link #update} changes
- * one in place (a longer time, another layer, a new payload) and keeps its slot; {@link #remove} takes effects off
- * by a test. Every effect dropped, by any of these or by {@link #tick}, posts a {@link PathEffectEndedEvent} after
- * the store is written.
- *
- * <p>{@link #tick} runs on the heartbeat: it drops every timed effect whose end has passed, then re-projects the
- * icons of what is left, so {@code /effect clear} costs an icon for at most a second and never an effect.
- * A permanent effect projects an infinite icon. Each write re-projects at once, without waiting for the beat. An icon
- * the player already wears as projected (same amplifier, no shorter) is left alone, so a steady beat adds no effect,
- * posts no add event and sends no update packet.
- *
- * <p>⚠ An effect with no marks is never stored: applying one does nothing, and changing one to none removes it as
- * {@code REMOVED}. An effect is there or not, and nothing here takes part of its marks. ⚠ What an effect does is its
- * family's code reading {@link #find}; this service runs no effect and reads no strength from marks.
- *
- * <p>An icon is the vanilla effect each kind projects; where several effects project the same one, the longest
- * remaining time and the highest amplifier win.
+ * <ul>
+ *   <li>{@link #apply} 挂上并顶掉同格旧效果，{@link #update} 改（更久、多一层、新 payload）保留原格，{@link #remove}
+ *       按条件摘除；以上或 {@link #tick} 丢掉的效果均在写存储后发 {@link PathEffectEndedEvent}。</li>
+ *   <li>⚠ 无道痕[Path Marks]效果不入存储：挂不上，改成无道痕按 {@code REMOVED} 摘除；只有在与不在，不拿部分道痕。</li>
+ *   <li>⚠ 作用由效果族代码读 {@link #find} 实现；本服务不运行效果，也不从道痕读力量。</li>
+ *   <li>{@link #tick} 随心跳丢掉到期限时效果，再给其余重投影图标，{@code /effect clear} 至多让图标消失 1 秒、
+ *       拿不走效果；永久效果投影无限时长；每次写入立即重投影。</li>
+ *   <li>图标是每类效果投影的原版效果，多个投影同一个时取最长剩余与最高等级；玩家已戴着的（等级同、时长不短）不动：
+ *       稳定心跳不加效果、不发添加事件、不发更新包。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -107,7 +99,7 @@ public final class PathEffectService {
         return remove(player, effect -> effect.type() == type);
     }
 
-    /** Puts {@code wanted} on unless an effect of its type carries its payload; {@code null} takes the type off. */
+    /** 同类型效果已带相同 payload 时不动，否则挂上 {@code wanted}；{@code null} 摘掉该类型。 */
     public static <P> void sync(@NotNull ServerPlayer player, @NotNull PathEffectType<P> type,
                                 @Nullable PathEffect<P> wanted) {
         PathEffect<P> worn = find(player, type);

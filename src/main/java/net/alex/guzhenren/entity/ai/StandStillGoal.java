@@ -6,9 +6,8 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 /**
- * Holds a mob's navigation still while it plays a rest pose and has no target: the big beasts' sit, lie, sleep,
- * roll and scratch, the wild boar's graze. The pose starts and ends in the entity's own action machine; this goal
- * only claims {@code MOVE}, so a stroll cannot walk the mob out of it.
+ * 休息姿势（大型野兽坐、卧、睡、翻滚、蹭背，野猪吃草）且无目标时停住导航的 AI 目标；起止由实体动作状态机定，只占
+ * {@code MOVE}，闲逛带不走生物。
  *
  * @author Alex
  * @version 1.0.0

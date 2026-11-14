@@ -11,18 +11,12 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The bar drawn over the hotbar while the aperture is being nourished [温养空窍].
- *
- * <p>Extends {@link net.alex.guzhenren.client.hud.HotbarHud}. Registered above
- * the vanilla air-level layer. Reads the cultivation fraction from
- * {@link ApertureNourishService#getFraction} and swaps to a red
- * fill when starving.
- *
- * <p>While the charge bar is up too, this bar sits one {@link #getStackShift} higher, so the two never overlap;
- * {@link #isShowing} lets {@link ShieldHud} stack above it the same way.
- *
- * <p>⚠ It is a separate layer from the charge bar on purpose: that one reads only the held item, and
- * grafting a player attachment into it would take away the property its own header states.
+ * 温养[Nourish]空窍[Aperture]时快捷栏上方的温养条。
+ * <ul>
+ *   <li>注册在原版氧气条层之上；进度取 {@link ApertureNourishService#getFraction}，真元[Essence]将尽时填红。</li>
+ *   <li>蓄力条同显时上移一个 {@link #getStackShift} 免重叠；{@link ShieldHud} 借 {@link #isShowing} 同样叠在其上。</li>
+ *   <li>⚠ 故意与蓄力条分层：蓄力条只读手持物品，塞入玩家附件会破坏其类注释所述性质。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

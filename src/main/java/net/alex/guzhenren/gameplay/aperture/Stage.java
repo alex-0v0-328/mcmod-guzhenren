@@ -7,14 +7,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Stage [阶段] within a rank, and the multiplier it contributes to the essence [真元] cap.
+ * 阶段：一转内的分级及其真元[Essence]上限倍率。
  *
- * <p>Closed vocabulary enum: the multiplier lives here and the formula lives on the record, so the cap
- * has exactly one expression. {@code NONE} is outside the settable range; {@code shift(int)} clamps at
- * {@code INIT} to {@code PEAK}. No sibling mod may add a stage.
- *
- * <p>⚠ A second place that multiplies is a second answer -- do not re-declare the multiplier at a call
- * site. {@code NONE}'s multiplier is {@code 0}, which is the mortal's empty pool, not a fallback.
+ * <ul>
+ *   <li>封闭词汇枚举，兄弟模组不得新增；倍率在此、公式在空窍[Aperture] record 上，上限只有一个表达式；{@code NONE} 不可
+ *       设，{@code shift(int)} 夹在 {@code INIT} 至 {@code PEAK}。</li>
+ *   <li>⚠ 第二处相乘就是第二个答案，勿在调用处重复声明倍率；{@code NONE} 的倍率 {@code 0} 是凡人空池，不是兜底。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -11,17 +11,13 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * The fist hit that opens a {@link StrengthRound} [攻击轮次] of the beast strength phantom path [兽力虚影流]: a
- * {@link LivingIncomingDamageEvent} with the player as the DIRECT entity, a fist in the main hand
- * ({@link AttackDamageService#isFistHand}), a positive amount on a living target and a damage type of the body's own
- * strength. An arrow, a Moon Blade, a Qi Wave, the area impact [范围冲击] or the charged punch [蓄力一拳] carries
- * none, and a hit the target's hurt
- * frames would swallow opens nothing. The same gate charges the body overload [肉体过载] on every such hit, inside a
- * round or not ({@link BodyOverload#recoil}), before the round is asked to open.
- *
- * <p>The opening hit has not yet taken the release into its attack attribute -- the player tick refreshes it the
- * next tick -- so the gain {@link StrengthRound#open} returns is added to this hit's amount, before armor. Later hits
- * of the round carry it through the attribute.
+ * 开启兽力虚影流攻击轮次的拳击命中。
+ * <ul>
+ *   <li>门槛：玩家为直接来源、空手、伤害为正、目标存活、属肉体自身力量；箭、月刃、气波、范围冲击、蓄力一拳不算，
+ *       会被受击无敌帧吞掉的不开轮。</li>
+ *   <li>同门槛每击先扣肉体过载（{@link BodyOverload#recoil}），不论轮内外。</li>
+ *   <li>开轮那击的属性下一 tick 才含解放，故 {@link StrengthRound#open} 的增量直接加到本击（护甲前）。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

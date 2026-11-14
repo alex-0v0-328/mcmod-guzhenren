@@ -11,24 +11,18 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The sonic boom ring [音爆环] in the entering player's own first person: the shockwave ring drawn on the screen,
- * opening from the crosshair past the screen edges, while the world ring
- * ({@code net.alex.guzhenren.particle.SecondStageRingEmitter}) opens behind the camera for everyone else. Registered
- * above the vanilla camera overlays ({@code ClientEvents}).
- *
- * <p>It plays only for an entry into second-stage flight [二段飞行] this client asked for: {@link #noteRequested}
- * marks a double tap that asks to enter ({@code net.alex.guzhenren.client.input.SecondStageInput}), and
- * {@link #onSecondStageStarted} plays the ring when the synced mark turns on within {@link #REQUEST_WINDOW_TICKS}
- * after it ({@code net.alex.guzhenren.client.event.SecondStageEvents}). A mark that turns on with no request, such as
- * the attachment sync after a dimension change, plays nothing. Both ticks are the local player's {@code tickCount},
- * which a new player entity resets, so every window is bounded at both ends.
- *
- * <p>The ring follows the world ring's bloom: Alex's five ring frames ({@link #RINGS}), one per tick, then
- * {@link #LIFETIME_TICKS} minus the frames of linger, fading out. Its diameter eases out from
- * {@link #START_HEIGHT_FRACTION} of the screen height to {@link #END_WIDTH_FRACTION} of the screen width, so the
- * center stays open and the stroke crosses the edges before it fades; the pixels scale with it and read coarse, the
- * same coarse look as the 4-block world ring. It draws additive like the world rings, and the vanilla Distortion
- * Effects slider scales its opacity, so a player who turned screen effects off sees none.
+ * 二段飞行[Second-Stage Flight]进入者自己第一人称屏幕上的音爆环。
+ * <ul>
+ *   <li>激波环从准星展开、越过屏幕边缘；世界环（{@code net.alex.guzhenren.particle.SecondStageRingEmitter}）
+ *       同时在镜头后为他人展开；注册在原版镜头叠层之上（{@code ClientEvents}）。</li>
+ *   <li>只播本机请求的进入：{@code net.alex.guzhenren.client.input.SecondStageInput} 发出的进入双击经
+ *       {@link #noteRequested} 记下，其后 {@link #REQUEST_WINDOW_TICKS} 内同步标记打开才由
+ *       {@link #onSecondStageStarted} 播放（{@code net.alex.guzhenren.client.event.SecondStageEvents}）；
+ *       换维度后附件同步等无请求的标记不播；两处均为本机玩家 {@code tickCount}，新实体重置，窗口两端有界。</li>
+ *   <li>绽放同世界环：Alex 五帧环（{@link #RINGS}）每 tick 一帧，余下 {@link #LIFETIME_TICKS} 减帧数淡出；直径由屏高
+ *       {@link #START_HEIGHT_FRACTION} 缓出至屏宽 {@link #END_WIDTH_FRACTION}，中心留空，笔画淡出前越过边缘；
+ *       像素随之变粗，同 4 格世界环；加法混合，不透明度随「屏幕扭曲效果」滑条，关掉即无。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -13,15 +13,15 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 
 /**
- * Rolls and shakes the local player's camera in second-stage flight [二段飞行]; client only. Everything turns the
- * camera's angles, never the rendered image, so shader packs see an ordinary camera, and everything scales with the
- * vanilla Distortion Effects slider: at 0 the camera stays still.
+ * 二段飞行[Second-Stage Flight]中本地玩家镜头的侧倾与抖动；仅客户端。
  *
- * <p>The roll banks into a turn: the yaw's turn rate, eased over ≈0.1 s ({@link #TURN_EASE}), times
- * {@link #ROLL_PER_TURN} and the throttle, capped at {@link #MAX_ROLL}, the roll itself eased at {@link #ROLL_EASE}
- * and released faster ({@link #RELEASE_EASE}) once the stage ends. The cruise shake starts past
- * {@link #SHAKE_THROTTLE} and reaches {@link #CRUISE_SHAKE} degrees at full throttle, swinging pitch and yaw on two
- * rates near 10 Hz. A crash's shake is {@link ImpactShakes}'s.
+ * <ul>
+ *   <li>只转镜头角度，不动画面，光影包看到普通镜头；效果随原版“屏幕扭曲效果”滑条缩放，为 0 时镜头不动。</li>
+ *   <li>转弯侧倾：偏航转速经约 0.1 秒平滑（{@link #TURN_EASE}），乘 {@link #ROLL_PER_TURN} 与油门，上限
+ *       {@link #MAX_ROLL}；侧倾按 {@link #ROLL_EASE} 平滑，二段结束后以更快的 {@link #RELEASE_EASE} 回正。</li>
+ *   <li>巡航抖动：油门过 {@link #SHAKE_THROTTLE} 起抖，满油门 {@link #CRUISE_SHAKE} 度；俯仰、偏航双频近 10 Hz。</li>
+ *   <li>撞击震屏归 {@link ImpactShakes}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -6,8 +6,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * What the aperture [空窍] does when the body [肉身] changes under it: a new ten-extreme physique [十绝体]
- * hands its talent paths and base essence over through {@link ApertureService#onExtremePhysiqueChanged}.
+ * 肉身变化时的空窍[Aperture]订阅者：新十绝体经 {@link ApertureService#onExtremePhysiqueChanged} 交接天赋道[Path]与基础
+ * 真元[Essence]。
  *
  * @author Alex
  * @version 1.0.0

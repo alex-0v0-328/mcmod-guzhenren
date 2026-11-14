@@ -15,18 +15,17 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The awakening ritual [开窍仪式] on the local player's own screen: the slow white flash [闪白] and the aptitude plaque
- * [资质牌匾]. Registered above every other layer ({@code ClientEvents}), so the full white covers the whole HUD.
+ * 本地屏幕上的开窍[Awakening]仪式：缓慢闪白与资质[Aptitude]牌匾。
  *
- * <p>Holds no state: every frame is drawn from the synced ritual and the clock, so a ritual cut short (a death, a
- * dimension change) simply stops drawing. {@link #getBarBase} feeds {@link ChargeHud} the aptitude bar, which reads
- * the ritual because the Gu was spent at the click.
- *
- * <p>The flash fills the screen white, or for Ten Extremes white turning {@link #TEN_EXTREMES_FLASH} pale goose yellow
- * [淡鹅黄] ({@link AwakeningTimeline#getFlashTint}); it covers a hidden HUD too. The plaque ({@link AwakeningPlaque})
- * hides with the HUD, as the one over the head does, and shows in first person only, since a detached camera sees the
- * one over the head; it is drawn at the largest whole scale up to {@link #MAX_PLAQUE_SCALE} that keeps it within
- * {@link #PLAQUE_SCREEN_FRACTION} of the screen height.
+ * <ul>
+ *   <li>注册在全部其他层之上（{@code ClientEvents}），全白盖住整个 HUD；不持状态，每帧由同步的仪式与时钟画出，仪式中断
+ *       （死亡、换维度）即停画。</li>
+ *   <li>{@link #getBarBase} 给 {@link ChargeHud} 供资质条；读仪式，因为蛊点击时已耗掉。</li>
+ *   <li>全屏闪白，十绝天资由白转 {@link #TEN_EXTREMES_FLASH} 淡鹅黄（{@link AwakeningTimeline#getFlashTint}）；HUD 隐藏
+ *       仍覆盖。</li>
+ *   <li>牌匾（{@link AwakeningPlaque}）随 HUD 隐藏，头顶那块也一样；只在第一人称显示，因脱离的镜头看得到头顶那块；按不
+ *       超过 {@link #MAX_PLAQUE_SCALE} 的最大整数倍画，高不超过屏高的 {@link #PLAQUE_SCREEN_FRACTION}。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -46,8 +45,7 @@ public final class AwakeningHud {
     private static final float PLAQUE_SCREEN_FRACTION = 0.6F;
 
     /**
-     * The aptitude the bar shows this frame, or -1 when no bar shows. Whether it shows goes by the whole tick, so
-     * {@link ChargeHud#isShowing} and the frame it draws agree.
+     * 资质条本帧显示的资质，不显示时为 -1；是否显示按整 tick 判断，使 {@link ChargeHud#isShowing} 与所画的帧一致。
      */
     int getBarBase(@NotNull Player player, float partialTick) {
         AwakeningRitual ritual = AwakeningRitualService.get(player);

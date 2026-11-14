@@ -7,16 +7,14 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Race [种族]: human, plus the variant races that each grant standing on one path.
+ * 种族：人族，及各在一条道[Path]上带天赋的变异种族。
  *
- * <p>Closed vocabulary enum on {@code BodyData}. Everyone is born {@code HUMAN}; a variant is only ever
- * made, never rolled. {@code DRAGONMEN} is the only variant a player may become; the other ten are
- * NPC-only. No sibling mod may add a race.
- *
- * <p>⚠ A race can be changed, so both halves of that standing must be exactly revocable: the
- * {@link #TALENT_MARKS} marks ride on the race's own talent effect rather than a bare pool, and the attainment
- * MOVES (a shift, {@link #TALENT_SHIFT}) rather than being set, so leaving the race can undo it exactly.
- * {@code Race.HUMAN} is not {@link GuPath#HUMAN} [人道].
+ * <ul>
+ *   <li>{@code BodyData} 上的封闭词表；人人生为 {@code HUMAN}，变异只能被造、不掷出；玩家只能成为 {@code DRAGONMEN}，
+ *       其余十个仅 NPC；兄弟模组不得新增；{@code Race.HUMAN} 不是 {@link GuPath#HUMAN}（人道）。</li>
+ *   <li>⚠ 种族可换，天赋两半须可精确撤销：{@link #TALENT_MARKS} 道痕[Path Marks]挂在种族天赋效果上而非裸池；
+ *       造诣平移（{@link #TALENT_SHIFT}）而非设定。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0

@@ -33,30 +33,20 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * A moon blade Gu [月刃] on the client: a right click with a refined one in the main hand
- * ({@link KillingMoveService#asBladeGu}) holds the {@link RadialMenu} instead of using the item, whether or not the
- * player has learned a killing move [杀招]; {@link KillingMoveGesture} decides what the hold sends as
- * {@link KillingMovePayload}, and the server checks it all again.
- *
- * <p>A tap (let go before the ring opens, {@code RadialMenu.OPEN_DELAY_TICKS}) fires the blade at once, with no
- * charge: the plain blade, or the cast of the move switched on. A longer hold opens one sector per usable move
- * ({@link KillingMoveService#listUsable}: learned, with a refined partner in the inventory or an aperture store),
- * labeled with the move's name, or "stop" and the name while it is on, and showing its partner; a pick switches the
- * move on or off, and letting go inside the inner ring or on a disabled sector sends nothing. A hold with no usable
- * move opens nothing and sends nothing. A sector is shown disabled while the main Gu is on the vanilla cooldown, which
- * stops the server too.
- *
- * <p>Whatever the hold sends goes with the target the player has locked on [锁定目标] at that moment
- * ({@link #aimedTarget}): Epic Fight's lock-on when it is held ({@link EpicFightClientIntegration#getLockOnTarget}),
- * else the living entity under the crosshair within {@link KillingMoveService#AIM_RANGE} blocks, each box widened by
- * {@link #AIM_SLACK} so a near miss still counts, the first block in the way cutting the look short. Nothing there
- * sends {@link KillingMoveService#NO_TARGET}, and the server checks the target again before the blade curves to it.
- *
- * <p>A wild one leaves the click to vanilla, so it is still refined by holding the click. The hold ends when the use
- * key is let go or the Gu leaves the main hand (a number key); only the first sends anything.
- *
- * <p>It also writes the tooltip lines that need the player, which an item's own tooltip lacks: a refined main Gu of
- * a learned move gets the hold hint, and a killing move book [杀招书] already read gets its learned line.
+ * 月刃蛊的客户端输入。
+ * <ul>
+ *   <li>主手持已炼化者（{@link KillingMoveService#asBladeGu}）右键改按住 {@link RadialMenu}，不用物品，
+ *       学没学杀招[Killing Move]皆然；{@link KillingMoveGesture} 定所发 {@link KillingMovePayload}，服务端重查。</li>
+ *   <li>轻点（轮盘弹出前松开，{@code RadialMenu.OPEN_DELAY_TICKS}）立即出刃、不蓄力：普通月刃或已开杀招的施放；
+ *       长按为每个可用杀招开一扇区（{@link KillingMoveService#listUsable}：已学且物品栏或空窍[Aperture]存储有已炼化配合
+ *       蛊），标招名（开启中为「停止」加招名）并显示配合蛊；选中即开关，内圈或禁用扇区松开不发；无可用杀招则不弹不发；
+ *       主蛊在原版冷却时扇区禁用，服务端同样拦下；野生者把点击交还原版，仍可按住炼化；松开使用键或蛊离开主手（数字键）
+ *       都结束按住，仅前者发送。</li>
+ *   <li>附带锁定目标（{@link #aimedTarget}）：{@link EpicFightClientIntegration#getLockOnTarget} 优先，否则取准星下
+ *       {@link KillingMoveService#AIM_RANGE} 格内活体（碰撞箱各放宽 {@link #AIM_SLACK}，差一点也算；遇方块截止），
+ *       都无则发 {@link KillingMoveService#NO_TARGET}；服务端在月刃转向前重查。</li>
+ *   <li>补写需玩家的提示行（物品自身提示拿不到玩家）：已学杀招的已炼化主蛊加按住提示，已读杀招书加已学行。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
@@ -74,10 +64,10 @@ public final class KillingMoveInput {
 
     private KillingMoveInput() {}
 
-    /** The entity id the blade should curve to: Epic Fight's lock-on, else the crosshair's living entity, else none. */
+    /** 月刃要转向的实体 id：Epic Fight 锁定目标，否则准星下的活体，否则无。 */
     private static int aimedTarget(LocalPlayer player) { return aimedTarget(player, KillingMoveService.AIM_RANGE); }
 
-    /** The same aim with the crosshair looking {@code range} blocks out; the lock-on is taken at any distance. */
+    /** 同上，准星看出 {@code range} 格；锁定目标不限距离。 */
     private static int aimedTarget(LocalPlayer player, double range) {
         LivingEntity locked = EpicFightClientIntegration.getLockOnTarget();
         if (locked != null) return locked.getId();

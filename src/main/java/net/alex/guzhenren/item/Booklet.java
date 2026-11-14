@@ -10,21 +10,16 @@ import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The texts of the booklets [书册], one constant per book, each paragraph in Simplified and Traditional glyphs.
- *
- * <p>Closed vocabulary enum: a book is a run of paragraphs set top to bottom, right to left, an optional figure
- * [图] on the left half-page, and nothing else. The text stays here rather than in the language files: it is
- * written once in Chinese and shown in Chinese in every language, Traditional under {@code zh_tw} and Simplified
- * everywhere else, and {@code tools/booklet_font.py} cuts the bitmap fonts from the string literals of this file. A
- * paragraph's two scripts hold the same number of glyphs, so both lay out alike. Punctuation is the vertical forms
- * (︐ ︒), one glyph cell each; the ideographic space {@code U+3000} keeps its cell and draws nothing.
- *
- * <p>A figure names the Gu it shows by registry id and declares that Gu's rank and path. The declaration is a drift
- * guard: {@code BookletGameTests} fails when the registered Gu no longer matches it, and {@code BookletTextTest}
- * fails when the attribute line [属性] or the caption no longer matches the language files.
- *
- * <p>⚠ A glyph added here ships only after {@code tools/booklet_font.py} reruns; {@code BookletFontTest} fails
- * until it does.
+ * 书册的书文：每本一个常量，每段带简繁两套字。
+ * <ul>
+ *   <li>封闭词表：一本书只有自上而下、自右向左的段落，加左半页可选的一幅图。</li>
+ *   <li>书文不进语言文件：只用中文写一次，各语言都显示中文（{@code zh_tw} 繁体，其余简体）；
+ *       {@code tools/booklet_font.py} 从本文件字符串字面量截取位图字体。</li>
+ *   <li>每段简繁字数相同，排版一致；标点用竖排（︐ ︒）各占一格，全角空格 {@code U+3000} 占格不画。</li>
+ *   <li>图按注册 ID 指明所画的蛊，并声明其转数与道[Path]，作防漂移护栏：注册的蛊不符时 {@code BookletGameTests} 失败，
+ *       属性行或图注与语言文件不符时 {@code BookletTextTest} 失败。</li>
+ *   <li>⚠ 新增的字须重跑 {@code tools/booklet_font.py} 才发布，此前 {@code BookletFontTest} 一直失败。</li>
+ * </ul>
  *
  * @author Alex
  * @version 1.0.0
