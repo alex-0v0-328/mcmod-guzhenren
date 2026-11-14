@@ -51,14 +51,13 @@ jobs:
           photon_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/wSiq87dk | jq -er --arg file "$photon_file" '.files[] | select(.filename == $file) | .url')
           curl --fail --location --retry 3 "$photon_url" -o "run/mods/$photon_file"
 
-      # LDLib2 ships only on the author's snapshot Maven, which may republish a version, so the hash pins it.
       - name: Download LDLib2
         working-directory: guzhenren-template-1.21.1
         run: |
           mkdir -p run/mods
           ldlib_file=ldlib2-neoforge-1.21.1-2.2.46.a-all.jar
-          curl --fail --location --retry 3 "https://maven.firstdark.dev/snapshots/com/lowdragmc/ldlib2/ldlib2-neoforge-1.21.1/2.2.46.a/$ldlib_file" -o "run/mods/$ldlib_file"
-          echo "5b0330f38e4a68f6c585b387c6f2f31ba7e5af0dc07a69ccdc98731379acbeeb  run/mods/$ldlib_file" | sha256sum -c -
+          ldlib_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/Zrj8M2XK | jq -er --arg file "$ldlib_file" '.files[] | select(.filename == $file) | .url')
+          curl --fail --location --retry 3 "$ldlib_url" -o "run/mods/$ldlib_file"
 
       # The test suites are local-only (src/test is gitignored) and run before every push through
       # the maintainer's ship tool, so CI compiles, packages and checks generated data.
