@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  *       样级联但不写空窍 {@code index}，返回付款后的它（付不起为 {@code null}），供调用方并入同一次同步写
  *       入；{@link #cascadeTake} 是单元测试钉住此级联的纯函数接缝。</li>
  *   <li>⚠ 各空窍的精炼状态（回复进哪个池、能否再精炼、退还谁）看 {@code distilling} 标记；何时结束看酒虫效果：
- *       {@link #closeDistilling} 心跳时见效果已失且仍有精炼真元，即按 1:2 退回真元池并清标记。</li>
+ *       {@link #closeDistilling} 心跳时见效果已失而仍有空窍带标记，即按 1:2 退回余下精炼真元并清标记，花光也清。</li>
  * </ul>
  *
  * @author Alex
@@ -65,11 +65,12 @@ public final class ApertureEssenceService {
         return ApertureService.getAperture(player).distilledEssence();
     }
 
-    private static long getTotalDistilled(@NotNull Player player) {
-        long total = 0L;
+    private static boolean hasDistillingAperture(@NotNull Player player) {
         ApertureData data = ApertureService.get(player);
-        for (int i = 0; i < data.count(); i++) total += data.get(i).distilledEssence();
-        return total;
+        for (int i = 0; i < data.count(); i++) {
+            if (data.get(i).distilling()) return true;
+        }
+        return false;
     }
 
     public static long getSpendable(@NotNull Player player) {
@@ -151,7 +152,7 @@ public final class ApertureEssenceService {
     }
 
     public static void closeDistilling(@NotNull ServerPlayer player) {
-        if (getTotalDistilled(player) > 0L && !isDistilling(player)) endDistilling(player);
+        if (hasDistillingAperture(player) && !isDistilling(player)) endDistilling(player);
     }
 
     private static void endDistilling(@NotNull ServerPlayer player) {
