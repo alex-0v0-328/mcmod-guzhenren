@@ -20,7 +20,8 @@ import net.minecraft.world.item.ItemStack;
  *   <li>⚠ 池低于 {@link #ESSENCE_FLOOR} 则每步为 0；创造模式不扣元石[Primeval Stone]，补足抬不高池，故按补足后应剩的池
  *       （{@code PrimevalStoneSupply.getPoolAfterTopUp}）定量，不低于下限，忽略饱食下限。</li>
  *   <li>☠ 若按裸池，创造空池每步仅下限 1/9 即 2，而三转炼化要 51,200。</li>
- *   <li>定量方法皆有纯数值重载供测试（同 {@code TimeFlow} 算术）；玩家重载读数调用，池在下限才耗分数倍率的随机数。</li>
+ *   <li>定量方法皆有纯数值重载供测试（同 {@code TimeFlow} 算术），玩家重载读数后调用；池低于下限即返回 0、不掷随机数，
+ *       否则仅 {@code TimeFlow.scale} 遇小数积时掷一次。</li>
  * </ul>
  *
  * @author Alex

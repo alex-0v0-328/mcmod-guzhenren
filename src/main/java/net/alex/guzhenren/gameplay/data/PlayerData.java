@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>存档 16 个；二段飞行[Second-Stage Flight]标记、坠击起点高度同步不存档；内存 3 个：真元[Essence]余数
  *       （{@link #getEssenceCarry}）、二段油门（{@link #getSecondStageThrottle}）两端各推，护盾无敌窗口
  *       （{@link #getShieldWindow}）仅服务端。</li>
- *   <li>12 个值变更即同步本人（{@code ModAttachments} 用 {@code OWNER_ONLY}）；二段标记、温养空窍[Nourish Aperture]进
- *       程、开窍[Awakening]仪式同步所有可见客户端。</li>
+ *   <li>变更即同步 12 个：8 个经 {@code OWNER_ONLY} 只给本人（{@code ModAttachments} 的 {@code registerSynced}）；
+ *       二段标记、坠击起点高度、温养空窍[Nourish Aperture]进程、开窍[Awakening]仪式 4 个同步所有可见客户端。</li>
  *   <li>⚠ 4 个值底层是附件有无：二段标记有即开，坠击起点高度仅坠击中非 {@code null}，二者重登或死亡即丢；开窍仪式仅仪式
  *       中非 {@code null}；结转生命值存或无，{@link #takeHealthCarry} 取即清。</li>
  * </ul>

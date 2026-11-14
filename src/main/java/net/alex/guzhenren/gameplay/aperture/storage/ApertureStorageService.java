@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #shiftForFirstAperture} 即 {@link ApertureData#insertFirst} 的存储侧：希望蛊[Hope Gu]插第一空窍发
  *       {@code FirstApertureInsertedEvent}，{@link ApertureStorageEvents} 据此调用。</li>
  *   <li>{@link #load(Player, int)} 合计所存蛊与本命蛊，对照 {@code MAX_LOAD}；拒写规则让过满（转数跌落）仍可清空，
- *       {@code isOverLoad} 超上限才算写前负载。</li>
+ *       {@code commit} 仅在写后超上限时才算写前负载。</li>
  *   <li>{@link #setSlot} 写回一只所存蛊，供每秒结算。</li>
  * </ul>
  *

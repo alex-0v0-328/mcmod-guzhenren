@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * 唯一的跨领域生命周期服务：出生、睡眠、死亡、克隆、重生、完全重置。
  * <ul>
  *   <li>克隆体继承 {@link PlayerData} 全部值（加载器复制），本类唯一决定死亡收回什么：清空型死亡全重置
- *       （{@link #resetAll}），keepInventory 死亡只重置返回点。</li>
+ *       （{@link #resetAll}），keepInventory 死亡只重置返回点与当前杀招[Killing Move]。</li>
  *   <li>加入、克隆、重置时重跑各领域服务；出生与重置在此直写整值、绕过领域服务，后者是唯一运行时写入方。</li>
  *   <li>{@link #dropHumanApertures}：清空型死亡于尸处按空窍[Aperture]各掉同转人窍[Human Aperture]。</li>
  *   <li>失去本命蛊[Vital Gu]由 {@link VitalLossService} 结算；它的 {@code vital_gu_lost} 与爆炸波及旁人的

@@ -23,7 +23,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ {@code consume} 先按 1:2 扣精炼真元（向上取整）再扣真元池，每个被扣空窍只写一次；{@link #consumeDeferred} 同
  *       样级联但不写空窍 {@code index}，返回付款后的它（付不起为 {@code null}），供调用方并入同一次同步写
  *       入；{@link #cascadeTake} 是单元测试钉住此级联的纯函数接缝。</li>
- *   <li>⚠ 精炼以各空窍 {@code distilling} 标记为准，不看效果；{@link #closeDistilling} 心跳时结算酒虫早停的精炼。</li>
+ *   <li>⚠ 各空窍的精炼状态（回复进哪个池、能否再精炼、退还谁）看 {@code distilling} 标记；何时结束看酒虫效果：
+ *       {@link #closeDistilling} 心跳时见效果已失且仍有精炼真元，即按 1:2 退回真元池并清标记。</li>
  * </ul>
  *
  * @author Alex

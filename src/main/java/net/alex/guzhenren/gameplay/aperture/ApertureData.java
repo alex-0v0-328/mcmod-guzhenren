@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  *       等跨插入存续者按种类指认，经 {@link #indexOf} / {@link #getKindAt} 换算。</li>
  *   <li>⚠ {@code with(index, aperture)} 不扩长列表，只有 {@code withOpened} / {@code insertFirst} 追加，与会扩长的
  *       {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with} 刻意相反。</li>
- *   <li>⚠ 至多 {@code MAX_APERTURES}（2）个，也限 {@code encode} / {@code decode} 列表，超长部分同步时静默截断。</li>
+ *   <li>⚠ 至多 {@code MAX_APERTURES}（2）个：构造时静默截断超长部分，{@code encode} / {@code decode} 超长抛异常。</li>
  *   <li>⚠ 解码修复旧存档：位置 1 的条目一律标 {@code second}，因加标记前的存档只靠位置表示。</li>
  * </ul>
  *

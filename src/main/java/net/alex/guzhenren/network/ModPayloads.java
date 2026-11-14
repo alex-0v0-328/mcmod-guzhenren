@@ -35,8 +35,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 /**
  * 网络 payload 的注册与分发。
  * <ul>
- *   <li>11 个客户端意图 payload 转 {@link ClientIntents}；3 个服务端通知经 {@link #handleOnClient} 交给客户端按类登记的
- *       处理器：{@code SkinFlashPayload}、{@code ImpactShakePayload}、{@code KillingMoveTooltipPayload}。</li>
+ *   <li>客户端意图 payload 转 {@link ClientIntents}；服务端通知经 {@link #handleOnClient} 按类交给客户端处理器。</li>
  *   <li>{@code network.payload} 每个 record 是独立的 {@link CustomPacketPayload}，自带 {@code TYPE}、
  *       {@code STREAM_CODEC}，经 NeoForge {@code PacketDistributor} 发送；处理器跑在主线程（NeoForge 默认）。</li>
  *   <li>⚠ 通知的客户端处理器靠查找、不在此点名：本类在服务端加载，服务端可能加载的代码不引用 {@code client}；
