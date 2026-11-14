@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
  *   <li>⚠ 认任一玩家，不认特定玩家；计时一开，无法重开或重启。</li>
  *   <li>世界里没有模型，身体是客户端 Photon 萤光（{@code HopeGuEffectEvents}）；消散前 {@link #FADE_BURST_TICKS} tick 广播
  *       {@link #FADE_EVENT}，客户端据 {@link #isFading} 换小帧并四向散开。</li>
+ *   <li>发光不在代码：{@code assets/guzhenren/dynamiclights/entity/} 的 LambDynamicLights 定义，没装该模组就只有粒子全亮。</li>
  * </ul>
  *
  * @author Alex
