@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>带此行为的蛊各配 {@link RecastBehavior}，名单见 wiki《蛊虫条目》。</li>
  *   <li>效果仅授予增益（{@link TimedEffects#grantBuff}）；兽力增益遇人力钧力流先拒（{@link MarkInterference}）；
- *       门槛仅在同效果更强副本运行时拒绝，免弱蛊白付；相等或更弱副本被刷新，强蛊连弱蛊效果与丝取代。</li>
+ *       门槛仅在同效果更强副本运行时拒绝，免弱蛊白付；相等或更弱副本被刷新，强蛊连弱蛊效果与点取代。</li>
  *   <li>效果冷却内同强度叠时长，冷却外取较长（{@link #getNextDuration}）；功倍蛊[Amplify Effect Gu]
- *       倍增所加时长并挂其律道[Rule Path]丝；兽力、冲撞蛊增益再加所持兽时长
+ *       倍增所加时长并挂其律道[Rule Path]点；兽力、冲撞蛊增益再加所持兽时长
  *       （{@code PathStrengthService.getDurationBonus}，青牛 10 秒），力气蛊不加。</li>
  *   <li>⚠ 各蛊仍各声明补食标签：共用行为不等于共用食谱。</li>
  * </ul>

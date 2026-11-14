@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <ul>
  *   <li>道[Path]参数用 {@link ModEnumArgument}；写入交给 {@link PathService}、{@link PathEffectService}。</li>
- *   <li>{@code marks <path> set|add|sub <marks> [strands set|add|sub <strands>]} 写该道肉体裸道痕，先条后丝；
- *       {@code marks <path> strands set|add|sub <strands>} 只写丝；条、丝互不换算；肉体是无效果道痕的唯一载体。</li>
+ *   <li>{@code marks <path> set|add|sub <marks> [points set|add|sub <points>]} 写该道肉体裸道痕，先条后点；
+ *       {@code marks <path> points set|add|sub <points>} 只写点；条、点互不换算；肉体是无效果道痕的唯一载体。</li>
  *   <li>{@code effect remove <type>} 摘除该类全部效果及其道痕；{@code effect clear} 全部摘除。</li>
  *   <li>☠ 只写裸道痕，不在此挂效果：效果道痕只随设置其来源（种族、体质、品级）的命令而来，带着来源并随之撤销；
  *       手写效果无法与来源挂上的区分，永不撤销。</li>
@@ -47,7 +47,7 @@ public final class CmdPath {
 
     private static final String ARG_PATH = "path";
     private static final String ARG_TYPE = "type";
-    private static final String ARG_STRANDS = "strands";
+    private static final String ARG_POINTS = "points";
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("path")
@@ -63,9 +63,9 @@ public final class CmdPath {
         for (Write marks : Write.values()) {
             path.then(Commands.literal(marks.getWord()).then(ModCommandSupport.withTargets(
                     Commands.argument(ModCommandSupport.ARG_VALUE, LongArgumentType.longArg(0L)),
-                    context -> writeBare(context, marks, null)).then(buildStrands(marks))));
+                    context -> writeBare(context, marks, null)).then(buildPoints(marks))));
         }
-        return Commands.literal("marks").then(path.then(buildStrands(null)));
+        return Commands.literal("marks").then(path.then(buildPoints(null)));
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> buildAttainment() {
@@ -99,29 +99,29 @@ public final class CmdPath {
     }
 
     //region builders [构造]
-    private static ArgumentBuilder<CommandSourceStack, ?> buildStrands(@Nullable Write marks) {
-        ArgumentBuilder<CommandSourceStack, ?> strands = Commands.literal(ARG_STRANDS);
+    private static ArgumentBuilder<CommandSourceStack, ?> buildPoints(@Nullable Write marks) {
+        ArgumentBuilder<CommandSourceStack, ?> points = Commands.literal(ARG_POINTS);
         for (Write write : Write.values()) {
-            strands.then(Commands.literal(write.getWord()).then(ModCommandSupport.withTargets(
-                    Commands.argument(ARG_STRANDS, LongArgumentType.longArg(0L)),
+            points.then(Commands.literal(write.getWord()).then(ModCommandSupport.withTargets(
+                    Commands.argument(ARG_POINTS, LongArgumentType.longArg(0L)),
                     context -> writeBare(context, marks, write))));
         }
-        return strands;
+        return points;
     }
 
     private static int writeBare(CommandContext<CommandSourceStack> context, @Nullable Write marks,
-                                 @Nullable Write strands) throws CommandSyntaxException {
+                                 @Nullable Write points) throws CommandSyntaxException {
         GuPath path = getPathOf(context);
         long markValue = marks == null ? 0L : LongArgumentType.getLong(context, ModCommandSupport.ARG_VALUE);
-        long strandValue = strands == null ? 0L : LongArgumentType.getLong(context, ARG_STRANDS);
+        long pointValue = points == null ? 0L : LongArgumentType.getLong(context, ARG_POINTS);
         return ModCommandSupport.apply(context, player -> {
             if (marks != null) {
                 PathService.setBareMarks(player, path, marks.apply(PathService.getBareMarks(player, path).marks(),
                         markValue));
             }
-            if (strands != null) {
-                PathService.setBareStrands(player, path, strands.apply(
-                        PathService.getBareMarks(player, path).strands(), strandValue));
+            if (points != null) {
+                PathService.setBarePoints(player, path, points.apply(
+                        PathService.getBareMarks(player, path).points(), pointValue));
             }
         });
     }

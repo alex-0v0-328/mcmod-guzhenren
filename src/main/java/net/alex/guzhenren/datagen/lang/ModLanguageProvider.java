@@ -157,9 +157,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.chat.awakened",                       "%s has awakened, aptitude %s", "%s已开窍，资质%s");
         add("guzhenren.chat.awakened_aptitude",              "%s, %s",                      "%s%s");
         add("guzhenren.display.none",                        "[NONE]",                      "[无]");
-        add("guzhenren.display.marks.both",                  "%s Marks %s Strands",         "%s条道痕 %s丝道痕");
+        add("guzhenren.display.marks.both",                  "%s Marks %s Points",          "%s条道痕 %s点道痕");
         add("guzhenren.display.marks.marks",                 "%s Marks",                    "%s条道痕");
-        add("guzhenren.display.marks.strands",               "%s Strands",                  "%s丝道痕");
+        add("guzhenren.display.marks.points",                "%s Points",                   "%s点道痕");
         add("guzhenren.display.effect_permanent",            "Permanent",                   "永久");
         add("guzhenren.path_effect.race_talent",             "Race Talent [%s]",            "种族天赋 [%s]");
         add("guzhenren.path_effect.extreme_physique",        "Ten-Extremes Physique [%s]",  "十绝体质 [%s]");

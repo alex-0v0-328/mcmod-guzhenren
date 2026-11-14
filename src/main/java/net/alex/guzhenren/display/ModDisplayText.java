@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  *       {@link #formatDetail} 包暗色旁注，{@link #formatTalentLine} 为资质[Aptitude]加基础成数。</li>
  *   <li>{@link #getCountdownSeconds} 是倒计时显示的整秒，供按秒缓存文字；{@link #formatEffectTime} 接流派效果剩余整秒或
  *       {@code PathEffect.PERMANENT}。</li>
- *   <li>{@link #formatMarks} 并列道痕[Path Marks]条、丝数（千位分隔，互不换算）；0 项省略，全 0 时调用方隐藏该行。</li>
+ *   <li>{@link #formatMarks} 并列道痕[Path Marks]条、点数（千位分隔，互不换算）；0 项省略，全 0 时调用方隐藏该行。</li>
  *   <li>⚠ 寿元保留 2 位小数而非 1 位（{@link #formatLifespan(double, double)}）：常速下 0.01 年是现实 12 秒，是肉眼仍看
  *       得出在动的最粗步长；0.1 年会静止 2 分钟。</li>
  * </ul>
@@ -134,10 +134,10 @@ public final class ModDisplayText {
 
     public static MutableComponent formatMarks(PathMarks marks) {
         String whole = formatCount(marks.marks());
-        String strands = formatCount(marks.strands());
-        if (marks.marks() == 0L) return Component.translatable("guzhenren.display.marks.strands", strands);
-        if (marks.strands() == 0L) return Component.translatable("guzhenren.display.marks.marks", whole);
-        return Component.translatable("guzhenren.display.marks.both", whole, strands);
+        String points = formatCount(marks.points());
+        if (marks.marks() == 0L) return Component.translatable("guzhenren.display.marks.points", points);
+        if (marks.points() == 0L) return Component.translatable("guzhenren.display.marks.marks", whole);
+        return Component.translatable("guzhenren.display.marks.both", whole, points);
     }
 
     private static String formatCount(long value) { return String.format(Locale.ROOT, "%,d", value); }

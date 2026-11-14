@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 力道结算：身体实际发挥的力量点[Strength Points]。
  * <ul>
- *   <li>静态只读，位于空窍[Aperture]与肉体之上（承受力读两者）；永久点数读兽力[Beast Strength]与人力效果的力道丝
+ *   <li>静态只读，位于空窍[Aperture]与肉体之上（承受力读两者）；永久点数读兽力[Beast Strength]与人力效果的力道道痕点
  *       （{@link #getPermanentPoints}、{@link PathStrengthData#getPoints(long)}，无效果无点数），增幅见
  *       {@link #getAmplifiers}，解放额外点数由轮次管理方设置的 {@link ReleaseSource} 给出；{@link #snapshot} 一次收集前
  *       两类及结算（{@link StrengthSnapshot}），承受力、总点数、发挥点数各取一份。</li>
@@ -108,14 +108,14 @@ public final class StrengthService {
     public static int getPermanentPoints(@NotNull Player player) { return getCarvedPoints(player, false); }
 
     private static int getCarvedPoints(Player player, boolean beastsOnly) {
-        long strands = 0L;
+        long markPoints = 0L;
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {
             if (effect.type() == ModPathEffectTypes.BEAST_STRENGTH
                     || !beastsOnly && effect.type() == ModPathEffectTypes.HUMAN_STRENGTH) {
-                strands += effect.getMarks(GuPath.STRENGTH).strands();
+                markPoints += effect.getMarks(GuPath.STRENGTH).points();
             }
         }
-        return PathStrengthData.getPoints(strands);
+        return PathStrengthData.getPoints(markPoints);
     }
 
     /** 生效中的增幅：先限时兽力增益，后各路径效果 payload。 */

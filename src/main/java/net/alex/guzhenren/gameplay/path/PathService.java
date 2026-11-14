@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * 流派进度（造诣与纯道痕[Path Marks]）的唯一运行时写入方。
  *
  * <ul>
- *   <li>纯道痕是肉体上不起作用的条与丝，目前只有命令写入，一次写一个计数；随效果来的道痕（种族、体质、蛊）归
+ *   <li>纯道痕是肉体上不起作用的条与点，目前只有命令写入，一次写一个计数；随效果来的道痕（种族、体质、蛊）归
  *       {@link PathEffectService}，从不算纯道痕。</li>
  *   <li>{@link #getMarks} 是一条道[Path]的完整总数，每次读取时两半按计数相加。</li>
  *   <li>⚠ {@code attainment} 是等级：种族授予时上移、撤销时下移，从不「设置」；无法区分授予的大师与修来的大师。</li>
@@ -63,12 +63,12 @@ public final class PathService {
         storeBare(player, path, getBareMarks(player, path).withMarks(marks));
     }
 
-    public static void setBareStrands(@NotNull ServerPlayer player, @NotNull GuPath path, long strands) {
-        storeBare(player, path, getBareMarks(player, path).withStrands(strands));
+    public static void setBarePoints(@NotNull ServerPlayer player, @NotNull GuPath path, long points) {
+        storeBare(player, path, getBareMarks(player, path).withPoints(points));
     }
 
-    public static void addBareStrands(@NotNull ServerPlayer player, @NotNull GuPath path, long delta) {
-        setBareStrands(player, path, LongMath.saturatedAdd(getBareMarks(player, path).strands(), delta));
+    public static void addBarePoints(@NotNull ServerPlayer player, @NotNull GuPath path, long delta) {
+        setBarePoints(player, path, LongMath.saturatedAdd(getBareMarks(player, path).points(), delta));
     }
 
     private static void storeBare(ServerPlayer player, GuPath path, PathMarks marks) {

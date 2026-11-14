@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #RACE_TALENT} 种族天赋：肉身增益，payload 种族；变异种族在其道上的 10 整道痕[Path Marks]。</li>
  *   <li>{@link #EXTREME_PHYSIQUE} 十绝体质：空窍[Aperture]增益，payload 体质；1000 整道痕分摊到各天赋道。</li>
  *   <li>{@link #BODY_SKIN}、{@link #BODY_TENDON}、{@link #BODY_BONE} 炼体皮筋骨：肉身永久增益，payload 等级；互斥，
- *       新级连丝顶旧。</li>
+ *       新级连点顶旧。</li>
  *   <li>{@link #BEAST_STRENGTH} 兽力[Beast Strength]：每物种一个肉身永久增益，payload 物种。</li>
  *   <li>{@link #HUMAN_STRENGTH} 人力：每种类一个肉身永久增益，每存一层算一层。</li>
  *   <li>{@link #BUFF} 限时增益：每蛊一个肉身限时增益，payload 原版效果与 amplifier；兽类、冲撞、

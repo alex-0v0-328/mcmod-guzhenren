@@ -7,7 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 一条道[Path]的现状：造诣，加纯道痕[Path Marks]的条与丝。
+ * 一条道[Path]的现状：造诣，加纯道痕[Path Marks]的条与点。
  *
  * <ul>
  *   <li>叶子 record 嵌于 {@link PathData}，两计数随造诣内联存档；纯道痕在肉体上（无效果道痕的唯一载体），无作用。</li>

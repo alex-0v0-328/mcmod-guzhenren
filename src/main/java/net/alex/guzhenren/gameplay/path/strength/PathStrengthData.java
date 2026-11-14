@@ -14,9 +14,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>不存档：{@code PathStrengthService.get} 由肉体兽力、人力流派效果构建，效果是唯一真相，无道痕[Path Marks]
  *       即无力量；只含永久部分，限时增益以 {@link StrengthAmplifier} 计入
  *       {@code StrengthService.getStrengthPoints}。</li>
- *   <li>力量点[Strength Points]是两边共用单位：1 斤 = 1 点，兽力按声明点数；1 点 = {@link #STRANDS_PER_POINT}
- *       丝力道道痕，{@link #getStrands} 是唯一换算，蛊都经它声明丝数；{@link #getPoints(long)} 反向，
- *       结算由效果的丝读点数。</li>
+ *   <li>力量点[Strength Points]是两边共用单位：1 斤 = 1 点，兽力按声明点数；1 点 = {@link #MARK_POINTS_PER_POINT}
+ *       点力道道痕，{@link #getMarkPoints} 是唯一换算，蛊都经它声明道痕点数；{@link #getPoints(long)} 反向，
+ *       结算由效果的道痕点读力量点。</li>
  *   <li>{@link #with} 先移除被 {@link BeastStrength#replaces} 者，每兽种只持一种（成对猪除外）；{@link #getCovering}
  *       找出使新兽力多余者；构造器原样保留集合。</li>
  *   <li>⚠ 构造器须用 {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code addAll}：
@@ -35,7 +35,7 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
 
     public static final PathStrengthData DEFAULT = new PathStrengthData(Set.of(), Map.of());
     public static final double ATTACK_PER_POINT = 0.125D;
-    public static final long STRANDS_PER_POINT = 2L;
+    public static final long MARK_POINTS_PER_POINT = 2L;
 
     public PathStrengthData {
         EnumSet<BeastStrength> takenBeasts = EnumSet.noneOf(BeastStrength.class);
@@ -150,10 +150,10 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
     /** 永久力量点[Strength Points]：全部斤数加已持兽力点数。 */
     public int getStrengthPoints() { return getTotalJin() + getBeastPoints(); }
 
-    public static long getStrands(int points) { return Math.max(0, points) * STRANDS_PER_POINT; }
+    public static long getMarkPoints(int points) { return Math.max(0, points) * MARK_POINTS_PER_POINT; }
 
-    public static int getPoints(long strands) {
-        return (int) Math.min(Integer.MAX_VALUE, Math.max(0L, strands) / STRANDS_PER_POINT);
+    public static int getPoints(long markPoints) {
+        return (int) Math.min(Integer.MAX_VALUE, Math.max(0L, markPoints) / MARK_POINTS_PER_POINT);
     }
 
     public int getJunReading() {

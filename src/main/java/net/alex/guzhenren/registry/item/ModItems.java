@@ -593,7 +593,7 @@ public final class ModItems {
         return new TendedGuItem(createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
                 .type(GuType.PATH_MARK_CARVING)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
-                .effect(EffectCarrier.BODY, PathStrengthData.getStrands(beast.getPoints()))
+                .effect(EffectCarrier.BODY, PathStrengthData.getMarkPoints(beast.getPoints()))
                 .refine(refineEssence(rank))
                 .feed(feed, 1),
                 new BeastStrengthBehavior(beast));
@@ -603,7 +603,7 @@ public final class ModItems {
         return createRankedProperties(Rank.ONE, GuPath.STRENGTH)
                 .type(GuType.AMPLIFICATION)
                 .strengthPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
-                .effect(EffectCarrier.BODY, PathStrengthData.getStrands(points))
+                .effect(EffectCarrier.BODY, PathStrengthData.getMarkPoints(points))
                 .refine(refineEssence(Rank.ONE))
                 .costPerUse(infrequentUseEssence(Rank.ONE))
                 .feed(feed, 1)
@@ -632,7 +632,7 @@ public final class ModItems {
         return new TendedGuItem(createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
                 .type(GuType.PATH_MARK_CARVING)
                 .strengthPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH)
-                .effect(EffectCarrier.BODY, PathStrengthData.getStrands(kind.getJin()))
+                .effect(EffectCarrier.BODY, PathStrengthData.getMarkPoints(kind.getJin()))
                 .refine(refineEssence(rank))
                 .feed(feed, 1),
                 new HumanStrengthBehavior(kind));

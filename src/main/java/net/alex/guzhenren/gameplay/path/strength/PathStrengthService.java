@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * 力道积累（兽力[Beast Strength]与人力层数）的静态服务。
  * <ul>
  *   <li>两个永久力道流派效果的唯一写入方，效果即唯一存储：兽力每物种一个，人力每种一个、层数同存量，均在肉体，
- *       携带点数的丝；{@link #get} 两端读回，效果被谁摘除即失去该力量。</li>
+ *       携带力量点换算的道痕点；{@link #get} 两端读回，效果被谁摘除即失去该力量。</li>
  *   <li>每次写入发 {@link StrengthChangedEvent} 刷新攻击；{@link #getBeastBuffs} 从流派效果读出运行中的限时兽力增益；
  *       总量、可发挥量与新兽力的承受力把关归 {@link StrengthService}。</li>
  *   <li>道痕[Path Marks]互斥在此唯一写入口执行：已持互斥分支时 {@code grant} 与上调的 {@code setHumanStrength} 不写、
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>持有优先级（{@link #holdsBranch}）：兽力虚影流，其次人力钧力流，否则基础力道。</li>
  *   <li>⚠ 承受力门槛在蛊（{@code BeastStrengthBehavior}）不在此：指令可超常态承受力，肉体只发挥能承受的部分。</li>
  *   <li>⚠ 写入口阻止兼持，效果存储不阻止：兼持读作兽力虚影流。</li>
- *   <li>⚠ 降低人力按整层连丝移除，他途加的道痕保留。</li>
+ *   <li>⚠ 降低人力按整层连道痕点移除，他途加的道痕保留。</li>
  * </ul>
  *
  * @author Alex
@@ -146,7 +146,7 @@ public final class PathStrengthService {
     private static <P extends NamedEnum> PathEffect<P> createEffect(PathEffectType<P> type, P payload, int points) {
         ResourceLocation source = Guzhenren.id("strength/" + payload.getSerializedName());
         return PathEffect.of(type, EffectCarrier.BODY, source,
-                Map.of(GuPath.STRENGTH, PathMarks.ofStrands(PathStrengthData.getStrands(points))),
+                Map.of(GuPath.STRENGTH, PathMarks.ofPoints(PathStrengthData.getMarkPoints(points))),
                 PathEffect.PERMANENT, payload);
     }
 
@@ -164,7 +164,7 @@ public final class PathStrengthService {
             BeastStrengthBuff buff = getBeastBuff(effect);
             if (buff != null) {
                 buffs.add(StrengthAmplifier.beast(effect.source(), buff.getBeastFamily(),
-                        PathStrengthData.getPoints(effect.getMarks(GuPath.STRENGTH).strands())));
+                        PathStrengthData.getPoints(effect.getMarks(GuPath.STRENGTH).points())));
             }
         }
         return buffs;

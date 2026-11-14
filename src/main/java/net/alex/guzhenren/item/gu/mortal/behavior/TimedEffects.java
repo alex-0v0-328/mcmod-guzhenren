@@ -40,14 +40,14 @@ import org.jetbrains.annotations.Nullable;
  * 限时蛊的身体流派效果。
  * <ul>
  *   <li>状态：增益（兽力[Beast Strength]、冲撞、全力以赴、力气）、玉皮、天蓬护盾、生机叶、更蛊[Watch Gu]形态；均自行结
- *       束，效果随之结束、丝即消散；不读道痕[Path Marks]定量。</li>
+ *       束，效果随之结束、点即消散；不读道痕[Path Marks]定量。</li>
  *   <li>{@link PathEffectService} 上的工具与事件订阅者；造状态的蛊查 {@code ModItems}，其 {@code GuProperties} 给载体、
- *       道[Path]、丝，来源为蛊物品 id；增益、生机叶、更蛊效果是状态真值，原版效果只是图标、计时、等级：
+ *       道[Path]、点，来源为蛊物品 id；增益、生机叶、更蛊效果是状态真值，原版效果只是图标、计时、等级：
  *       {@code /effect clear} 只让图标消失到下次心跳，牛奶全解不掉；门槛读 {@link #findBuff} 及同类，读原版效果的规则
  *       （攻击、负重、时间流速）亦暂停至此。</li>
  *   <li>玉皮、护盾状态存 {@code BodyData}、{@code ShieldData}，效果随其事件跟进，被摘或到期连状态带走。</li>
- *   <li>运行中再催同蛊只续时、不加丝；更蛊形态每催叠一层丝至上限；他蛊同原版效果增益（更高转冲撞蛊）连旧效果与丝取代；
- *       付费的功倍蛊[Amplify Effect Gu]把律道丝加到所增效果，仅一次：{@link #markAmplified} 补足增幅蛊丝数、不超。</li>
+ *   <li>运行中再催同蛊只续时、不加点；更蛊形态每催叠一层点至上限；他蛊同原版效果增益（更高转冲撞蛊）连旧效果与点取代；
+ *       付费的功倍蛊[Amplify Effect Gu]把律道点加到所增效果，仅一次：{@link #markAmplified} 补足增幅蛊点数、不超。</li>
  *   <li>⚠ 授予只写效果，投影状态归调用方；⚠ 皮或护盾效果非被取代而结束则连状态同结，状态仍属该效果才动，防循环。</li>
  * </ul>
  *

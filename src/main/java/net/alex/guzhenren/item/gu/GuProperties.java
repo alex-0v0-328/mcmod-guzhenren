@@ -27,12 +27,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>存于 {@link MortalGuItem}，{@link TendedGuItem} 与提示、HUD 读取，构建 {@link GuHunger} 与 {@link GuHealth}；独
  *       有数值（时长、等级）在 {@link GuBehavior}；生命值不走链，一律 4 × 转数 + 4（一至五转 8–24）。</li>
  *   <li>默认每次催动扣 1 点饱食；{@code hungerPerUse(0)} 就是 0，不补成 1，恶念、随意蛊的保质期条靠它。</li>
- *   <li>{@link #effect(EffectCarrier)} 取默认丝数（{@link #getDefaultStrands}：一转 12，每转 ×4），
- *       {@link #effect(EffectCarrier, long)} 指定丝数，{@link #effect(EffectCarrier, PathMarks)} 指定两计数；不调用者不
+ *   <li>{@link #effect(EffectCarrier)} 取默认点数（{@link #getDefaultPoints}：一转 12，每转 ×4），
+ *       {@link #effect(EffectCarrier, long)} 指定点数，{@link #effect(EffectCarrier, PathMarks)} 指定两计数；不调用者不
  *       施效果、无道痕（即时蛊或只改数值者）；{@link #createEffect} 造一族蛊经 {@code PathEffectService.apply} 施的效
  *       果。</li>
  *   <li>⚠ {@link #validate} 注册时运行，下列情况点名该蛊并拒绝启动：灌注数值不整除；价值 > 1 点的食物不整除条、单次、单
- *       日、生命值；效果无道痕；凡蛊效果带整条（凡蛊只施丝）。它是第一道防线，绝不绕过。</li>
+ *       日、生命值；效果无道痕；凡蛊效果带整条（凡蛊只施点）。它是第一道防线，绝不绕过。</li>
  * </ul>
  *
  * @author Alex
@@ -62,8 +62,8 @@ public final class GuProperties {
     private int feedUnits;
     private int effectCooldownTicks;
     private int itemCooldownTicks;
-    private static final long DEFAULT_STRANDS = 12L;
-    private static final long STRANDS_PER_RANK = 4L;
+    private static final long DEFAULT_POINTS = 12L;
+    private static final long POINTS_PER_RANK = 4L;
     private @Nullable EffectCarrier effectCarrier;
     private PathMarks effectMarks = PathMarks.NONE;
 
@@ -148,9 +148,9 @@ public final class GuProperties {
         return this;
     }
 
-    public GuProperties effect(EffectCarrier carrier) { return effect(carrier, getDefaultStrands(rank)); }
+    public GuProperties effect(EffectCarrier carrier) { return effect(carrier, getDefaultPoints(rank)); }
 
-    public GuProperties effect(EffectCarrier carrier, long strands) { return effect(carrier, PathMarks.ofStrands(strands)); }
+    public GuProperties effect(EffectCarrier carrier, long points) { return effect(carrier, PathMarks.ofPoints(points)); }
 
     public GuProperties effect(EffectCarrier carrier, PathMarks marks) {
         this.effectCarrier = carrier;
@@ -196,9 +196,9 @@ public final class GuProperties {
         return effectCarrier == null ? Map.of() : Map.of(path, effectMarks);
     }
 
-    public static long getDefaultStrands(Rank rank) {
+    public static long getDefaultPoints(Rank rank) {
         int steps = Math.max(0, rank.ordinal() - Rank.LOWEST.ordinal());
-        return LongMath.saturatedMultiply(DEFAULT_STRANDS, LongMath.saturatedPow(STRANDS_PER_RANK, steps));
+        return LongMath.saturatedMultiply(DEFAULT_POINTS, LongMath.saturatedPow(POINTS_PER_RANK, steps));
     }
 
     public <P> PathEffect<P> createEffect(PathEffectType<P> effectType, ResourceLocation source, long endTick,
@@ -249,7 +249,7 @@ public final class GuProperties {
     private void validateEffect(String id) {
         if (effectMarks.isEmpty()) throw fault(id, "lays down an effect with no marks");
         if (rank.ordinal() <= Rank.HIGHEST.ordinal() && effectMarks.marks() > 0L) {
-            throw fault(id, "is mortal but declares %d whole marks; a mortal Gu carries strands only"
+            throw fault(id, "is mortal but declares %d whole marks; a mortal Gu carries points only"
                     .formatted(effectMarks.marks()));
         }
     }
