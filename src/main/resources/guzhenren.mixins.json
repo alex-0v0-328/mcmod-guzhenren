@@ -9,6 +9,8 @@
     "PlayerMixin"
   ],
   "client": [
+    "CameraAccessor",
+    "GameRendererMixin",
     "LocalPlayerMixin",
     "MouseHandlerMixin"
   ],

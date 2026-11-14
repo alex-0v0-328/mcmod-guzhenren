@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.hud;
 
 import net.alex.guzhenren.client.ModPalette;
+import net.alex.guzhenren.client.cinematic.CultivationCamera;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -15,6 +16,8 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>注册在原版氧气条层之上；进度取 {@link ApertureNourishService#getFraction}，真元[Essence]将尽时填红。</li>
  *   <li>蓄力条同显时上移一个 {@link #getStackShift} 免重叠；{@link ShieldHud} 借 {@link #isShowing} 同样叠在其上。</li>
+ *   <li>温养运镜期间（{@link CultivationCamera#isShowing}）其余 HUD 隐藏，条连标题居中画在下黑边上
+ *       （{@link CinematicHud}）。</li>
  *   <li>⚠ 故意与蓄力条分层：蓄力条只读手持物品，塞入玩家附件会破坏其类注释所述性质。</li>
  * </ul>
  *
@@ -51,12 +54,20 @@ public final class NourishHud extends HotbarHud {
         ApertureNourishData nourish = ApertureNourishService.get(player);
         boolean starving = nourish.isStarving();
         int x = getBarLeft(minecraft);
-        int y = getBarTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? getStackShift(minecraft) : 0);
+        int y = getTop(minecraft, player);
 
         int target = ApertureNourishService.getTargetIndex(player);
         draw(graphics, minecraft, NOURISH, x, y, ApertureNourishService.getFraction(player, target),
                 starving ? FILL_STARVING : ModPalette.APERTURE,
                 getCaption(starving, ApertureService.getAperture(player, target).nourishProgress()));
+    }
+
+    private static int getTop(Minecraft minecraft, LocalPlayer player) {
+        if (CultivationCamera.isShowing()) {
+            return CinematicHud.getBottomCenter(minecraft.getWindow().getGuiScaledHeight())
+                    - (BAR_HEIGHT - TEXT_GAP - minecraft.font.lineHeight) / 2;
+        }
+        return getBarTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? getStackShift(minecraft) : 0);
     }
 
     private Component getCaption(boolean starving, int progress) {

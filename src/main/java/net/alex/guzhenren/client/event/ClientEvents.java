@@ -1,9 +1,12 @@
 package net.alex.guzhenren.client.event;
 
+import java.util.Set;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.ModKeyMappings;
+import net.alex.guzhenren.client.cinematic.CultivationCamera;
 import net.alex.guzhenren.client.hud.AwakeningHud;
 import net.alex.guzhenren.client.hud.ChargeHud;
+import net.alex.guzhenren.client.hud.CinematicHud;
 import net.alex.guzhenren.client.hud.KillingMoveTooltipHud;
 import net.alex.guzhenren.client.hud.ShieldGlowHud;
 import net.alex.guzhenren.client.hud.ShieldHud;
@@ -39,6 +42,7 @@ import net.alex.guzhenren.registry.menu.ModMenus;
 import net.alex.guzhenren.registry.particle.ModParticles;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -68,6 +72,7 @@ import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +85,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>客户端初始化时向 {@code ModPayloads} 登记 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
  *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 的处理器，{@code ModPayloads} 自身不引用
  *       客户端类；书册阅读器（{@link BookletScreen}）同理登记给 {@code BookletItem}。</li>
+ *   <li>温养[Nourish]运镜显示期间（{@link CultivationCamera#isShowing}）只画 {@link #CINEMATIC_LAYERS}：黑边、温养条、
+ *       扇形选择器、长按滑条与调试、Tab 列表、字幕、动作栏提示、存档提示；聊天栏只在打开聊天界面时画。</li>
  * </ul>
  *
  * @author Alex
@@ -103,9 +110,14 @@ public final class ClientEvents {
     private static final ResourceLocation RADIAL_MENU = Guzhenren.id("radial_menu");
     private static final ResourceLocation HOLD_SLIDER = Guzhenren.id("hold_slider");
     private static final ResourceLocation AWAKENING = Guzhenren.id("awakening");
+    private static final ResourceLocation CINEMATIC = Guzhenren.id("cinematic");
+    private static final Set<ResourceLocation> CINEMATIC_LAYERS = Set.of(CINEMATIC, NOURISH, RADIAL_MENU, HOLD_SLIDER,
+            VanillaGuiLayers.DEBUG_OVERLAY, VanillaGuiLayers.TAB_LIST, VanillaGuiLayers.SUBTITLE_OVERLAY,
+            VanillaGuiLayers.OVERLAY_MESSAGE, VanillaGuiLayers.SAVING_INDICATOR);
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerBelowAll(CINEMATIC, CinematicHud.INSTANCE::render);
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SONIC_BOOM, SonicBoomHud.INSTANCE::render);
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, SHIELD_GLOW, ShieldGlowHud.INSTANCE::render);
         event.registerAbove(VanillaGuiLayers.HOTBAR, PLAYER_STATS, (g, delta) -> PlayerStatsHud.INSTANCE.render(g));
@@ -117,6 +129,14 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, HOLD_SLIDER, (g, delta) -> HoldSlider.render(g));
         event.registerAboveAll(AWAKENING, AwakeningHud.INSTANCE::render);
+    }
+
+    @SubscribeEvent
+    public static void onRenderGuiLayer(RenderGuiLayerEvent.Pre event) {
+        if (!CultivationCamera.isShowing() || CINEMATIC_LAYERS.contains(event.getName())) return;
+        boolean chatting = Minecraft.getInstance().screen instanceof ChatScreen;
+        if (chatting && event.getName().equals(VanillaGuiLayers.CHAT)) return;
+        event.setCanceled(true);
     }
 
     @SubscribeEvent
