@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.effect.timed.CrashDash;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -15,8 +14,9 @@ import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.CrashBreach;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthService;
+import net.alex.guzhenren.gameplay.path.strength.CrashDash;
+import net.alex.guzhenren.gameplay.path.strength.CrashSources;
+import net.alex.guzhenren.gameplay.path.strength.CrashStrike;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.particle.RingConeEmitter;
@@ -33,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.LivingMotion;
 import yesman.epicfight.api.animation.LivingMotions;
+import yesman.epicfight.api.animation.TransformSheet;
 import yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty;
 import yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty;
 import yesman.epicfight.api.animation.property.AnimationProperty.StaticAnimationProperty;
@@ -90,11 +91,20 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       {@code DashRingYawTest} 固定。</li>
  *   <li>动画只靠 Root 旋转转身；Root 平移即位移，沿模型前轴（后撤反向），由 Epic Fight 按模型 yaw 旋转，故须留
  *       {@code setModelYRot}，斜向亦然。</li>
- *   <li>{@code DashAnimation} 把闪避坐标向量乘 {@link #getDashScale}，即 {@link CrashDash#getScale}
- *       （{@link StrengthService#isAllOut} 与兽力[Beast Strength]冲刺加成，如驰马）；这是本类唯一的客户端部分：
- *       Epic Fight 只在所属客户端按动作动画移动玩家再上报位置（{@code PlayerPatch.shouldMoveOnCurrentSide} 服务
- *       端 false，{@code LocalPlayerPatch} true），故倍率读客户端已同步的效果与力量数据。</li>
- *   <li>服务端为两猪之力读同一倍率：持有两猪时，发动画前先 {@link CrashBreach#clear} 清开路径。</li>
+ *   <li>{@code DashAnimation} 把闪避坐标向量乘 {@link #getDashScale}，播放速度经 {@code PLAY_SPEED_MODIFIER} 乘
+ *       {@link CrashSources#getPlaySpeed} 再由 {@link CrashDash#limitSpeed} 限到每 tick 位移上限；这是本类唯一的
+ *       客户端部分：Epic Fight 只在所属客户端按动作动画移动玩家再上报位置
+ *       （{@code PlayerPatch.shouldMoveOnCurrentSide} 服务端 false，{@code LocalPlayerPatch} true），故读客户端已同步
+ *       的效果与力量数据（{@link CrashSources#of}，不含只在服务端的解放）；服务端动画器同算播放速度，片段两端同时结束。</li>
+ *   <li>⚠ 位移只来自片段本身，路程才等于 {@link CrashSources#getTravel}、每 tick 才受限：Epic Fight 默认让过渡链接
+ *       也移动（{@code MOVE_ON_LINK}，片段 Root 起点 z 0.52 会被补进链接，多走约四成），故关掉；建链接时
+ *       （修饰器收到 prev ≠ elapsed，逐 tick 调用两者相等）交回原速，链接按整 tick 结束、片段从 0 起播（否则 1.5 倍速
+ *       的 nextStartTime 为 0.05，吞掉起步大半位移）；{@code AFFECT_SPEED} 关掉，疾跑、药水、驰马疾跑不再乘位移
+ *       （否则超出每 tick 上限与清开的路径）；{@code STOP_MOVEMENT}、{@code REMOVE_DELTA_MOVEMENT} 开始与每 tick 清掉
+ *       水平速度，疾跑、跳跃的惯性不叠进冲撞（否则侧撞、后撞比预测路程短，停点前留一段已清开的通道）。碰撞箱宽
+ *       {@link CrashBreach#DASH_WIDTH}，沿路清障按同宽扫。</li>
+ *   <li>服务端读同一份来源：有硬度上限时发动画前先 {@link CrashBreach#clear} 恰按路程清开路径（不加余量），再登记
+ *       终点破坏打击与起点坑（{@link CrashStrike#start}）。</li>
  * </ul>
  * <p>全身动画：
  * <ul>
@@ -220,13 +230,13 @@ public final class EpicFightIntegration {
     public static void onAnimationRegistry(AnimationManager.AnimationRegistryEvent event) {
         event.newBuilder(Guzhenren.MOD_ID, builder -> {
             dashForward = builder.nextAccessor("biped/skill/dash_forward", accessor ->
-                    new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED));
+                    new DashAnimation(0.1F, accessor, (float) CrashBreach.DASH_WIDTH, 0.6F, Armatures.BIPED));
             dashBackward = builder.nextAccessor("biped/skill/dash_backward", accessor ->
-                    new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED));
+                    new DashAnimation(0.1F, accessor, (float) CrashBreach.DASH_WIDTH, 0.6F, Armatures.BIPED));
             dashLeft = builder.nextAccessor("biped/skill/dash_left", accessor ->
-                    new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED));
+                    new DashAnimation(0.1F, accessor, (float) CrashBreach.DASH_WIDTH, 0.6F, Armatures.BIPED));
             dashRight = builder.nextAccessor("biped/skill/dash_right", accessor ->
-                    new DashAnimation(0.1F, accessor, 0.8F, 0.6F, Armatures.BIPED));
+                    new DashAnimation(0.1F, accessor, (float) CrashBreach.DASH_WIDTH, 0.6F, Armatures.BIPED));
             chargeHold = builder.nextAccessor("biped/skill/charge_hold", accessor ->
                     new ActionAnimation(0.15F, accessor, Armatures.BIPED)
                             .addProperty(ActionAnimationProperty.STOP_MOVEMENT, true)
@@ -381,18 +391,15 @@ public final class EpicFightIntegration {
         };
         if (animation == null) return;
         Vec3 direction = dashDirection(vertical, yRot);
-        if (PathStrengthService.get(player).hasTwoBoars()) {
-            CrashBreach.clear(player, direction, CrashDash.getTravel(getDashScale(player)) + CrashBreach.MARGIN);
-        }
+        CrashSources sources = CrashSources.of(player);
+        CrashBreach.clear(player, direction, sources.getTravel(), sources.getMaxHardness());
         patch.playAnimationSynchronized(animation, 0.0F);
         patch.setModelYRot(yRot, true);
         RingConeEmitter.dashCone(player, direction);
+        CrashStrike.start(player, direction, sources);
     }
 
-    public static double getDashScale(Player player) {
-        return CrashDash.getScale(StrengthService.isAllOut(player),
-                PathStrengthService.get(player).getBeastDashBonus());
-    }
+    public static double getDashScale(Player player) { return CrashSources.of(player).getScale(); }
 
     public static void refresh(ServerPlayer player) {
         AttributeInstance instance = player.getAttribute(EpicFightAttributes.MAX_STAMINA);
@@ -483,6 +490,25 @@ public final class EpicFightIntegration {
         private DashAnimation(float transitionTime, AnimationManager.AnimationAccessor<DodgeAnimation> accessor,
                               float width, float height, AssetAccessor<? extends Armature> armature) {
             super(transitionTime, accessor, width, height, armature);
+            this.addProperty(ActionAnimationProperty.MOVE_ON_LINK, false);
+            this.addProperty(ActionAnimationProperty.AFFECT_SPEED, false);
+            this.addProperty(ActionAnimationProperty.STOP_MOVEMENT, true);
+            this.addProperty(ActionAnimationProperty.REMOVE_DELTA_MOVEMENT, true);
+            this.addProperty(StaticAnimationProperty.PLAY_SPEED_MODIFIER, this::getDashSpeed);
+        }
+
+        private float getDashSpeed(DynamicAnimation animation, LivingEntityPatch<?> entityPatch, float speed,
+                                   float prevElapsedTime, float elapsedTime) {
+            if (prevElapsedTime != elapsedTime) return speed;
+            if (!(entityPatch.getOriginal() instanceof Player player)) return speed;
+
+            CrashSources sources = CrashSources.of(player);
+            float played = (float) (speed * sources.getPlaySpeed());
+            if (animation != this) return played;
+            TransformSheet coord = getCoord();
+            return CrashDash.limitSpeed(played, elapsedTime, sources.getScale(),
+                    (from, to) -> coord.getInterpolatedTranslation((float) from)
+                            .distance(coord.getInterpolatedTranslation((float) to)));
         }
 
         @Override

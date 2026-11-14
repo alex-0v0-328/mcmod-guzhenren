@@ -1,11 +1,14 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
+import java.util.HashSet;
+import java.util.Set;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -20,7 +23,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link AttackDamageEvents} 在变化、换手时即刷，心跳每秒兜底；{@code TransientModifiers.swap}
  *       无变化即空转。</li>
  *   <li>{@link #getFistDamage} 按运算方式重算任意点数下的拳头攻击，他模组乘算照常放大；供蓄力蛊[Store Strength Gu]
- *       超承受力的蓄力一拳。</li>
+ *       超承受力的蓄力一拳。{@link #getBareFistDamage} 另剔除主手物品自带的攻击修饰，供不看手持物的终点破坏打击
+ *       [Crash Strike]。</li>
  *   <li>⚠ 修饰须为临时（{@link TransientModifiers}）。</li>
  *   <li>⚠ 效果不得自带 {@code addAttributeModifier}：限时攻击增益一律走承受力内的力量点，不另开入口。</li>
  *   <li>⚠ 僵尸加成读 {@code BodyData.zombieTier}，不读 MobEffect（永久僵尸无效果；指令等级 -1 无加成）。</li>
@@ -61,26 +65,44 @@ public final class AttackDamageService {
     }
 
     public static double getFistDamage(@NotNull Player player, int points) {
+        return getFistDamage(player, points, Set.of());
+    }
+
+    public static double getBareFistDamage(@NotNull Player player, int points) {
+        Set<ResourceLocation> held = new HashSet<>();
+        player.getMainHandItem().forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+            if (attribute.value() == Attributes.ATTACK_DAMAGE.value()) held.add(modifier.id());
+        });
+        return getFistDamage(player, points, held);
+    }
+
+    private static double getFistDamage(Player player, int points, Set<ResourceLocation> skipped) {
         AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attack == null) return 0.0D;
 
         double added = attack.getBaseValue() + getZombieBonus(player)
                 + Math.max(0, points) * PathStrengthData.ATTACK_PER_POINT;
         for (AttributeModifier modifier : attack.getModifiers()) {
-            if (isOther(modifier, AttributeModifier.Operation.ADD_VALUE)) added += modifier.amount();
+            if (isOther(modifier, AttributeModifier.Operation.ADD_VALUE, skipped)) added += modifier.amount();
         }
         double total = added;
         for (AttributeModifier modifier : attack.getModifiers()) {
-            if (isOther(modifier, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) total += added * modifier.amount();
+            if (isOther(modifier, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, skipped)) {
+                total += added * modifier.amount();
+            }
         }
         for (AttributeModifier modifier : attack.getModifiers()) {
-            if (isOther(modifier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) total *= 1.0D + modifier.amount();
+            if (isOther(modifier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, skipped)) {
+                total *= 1.0D + modifier.amount();
+            }
         }
         return Attributes.ATTACK_DAMAGE.value().sanitizeValue(total);
     }
 
-    private static boolean isOther(@NotNull AttributeModifier modifier, AttributeModifier.Operation operation) {
-        return modifier.operation() == operation && !modifier.id().equals(MODIFIER_ID);
+    private static boolean isOther(AttributeModifier modifier, AttributeModifier.Operation operation,
+                                   Set<ResourceLocation> skipped) {
+        return modifier.operation() == operation && !modifier.id().equals(MODIFIER_ID)
+                && !skipped.contains(modifier.id());
     }
 
     private static double getZombieBonus(@NotNull Player player) {

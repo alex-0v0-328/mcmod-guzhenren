@@ -12,9 +12,10 @@ import net.minecraft.util.StringRepresentable;
  *       每点 = 1 斤人力 = {@link PathStrengthData#ATTACK_PER_POINT} 攻击，同走承受力。</li>
  *   <li>每兽种只持一种：{@link #replaces}（一熊之力变棕熊本力，不叠加），{@link #isCoveredBy} 拦下不更强的蛊；
  *       唯一例外（今后亦然）为 {@link Form#PAIRED} 白豕、黑豕并存成两猪之力；{@link Form#INNATE} 按本名显示。</li>
- *   <li>持有期间特性：承受力、疾跑倍率、全力以赴外全面解放概率、冲撞倍数（全力以赴翻倍，
- *       {@code CrashDash#getMultiple}）、护盾点数、力道限时状态开始时的加时长；各兽数值见 wiki《蛊虫条目》。</li>
- *   <li>两猪之力（{@link PathStrengthData#hasTwoBoars}）冲撞时破方块（{@code CrashBreach}）。</li>
+ *   <li>持有期间特性：承受力、疾跑倍率、全力以赴外全面解放概率、冲撞距离与播放速度加成（与其他来源相加，
+ *       {@code CrashDash}）、护盾点数、力道限时状态开始时的加时长；各兽数值见 wiki《蛊虫条目》。</li>
+ *   <li>两猪之力（{@link PathStrengthData#hasTwoBoars}）是成对特性，不落在单个常量上：冲撞距离、破方块硬度与终点打击
+ *       伤害各有加成（{@code CrashSources}）。</li>
  *   <li>⚠ 兽种标记按兽种不按常量（白豕、黑豕共用 {@code BOAR}）；兽种与点数勿移到读取方。</li>
  * </ul>
  *
@@ -29,10 +30,10 @@ public enum BeastStrength implements NamedEnum {
     BLACK_BOAR(BeastStrengthFamily.BOAR, Form.PAIRED, 24),
     BEAR(BeastStrengthFamily.BEAR, Form.COUNTED, 40),
     TIGER(BeastStrengthFamily.TIGER, Form.COUNTED, 64),
-    STONE_TURTLE(BeastStrengthFamily.TURTLE, Form.COUNTED, 48, 128, 0.0D, 0, 0.0F, 0.0D, 0.5F),
-    GALLOPING_HORSE(BeastStrengthFamily.HORSE, Form.COUNTED, 48, 0, 0.5D, 0, 0.0F, 1.0D, 0.0F),
-    GREEN_BULL(BeastStrengthFamily.OX, Form.COUNTED, 48, 64, 0.0D, 10 * Ticks.SECOND, 0.0F, 0.0D, 0.0F),
-    BROWN_BEAR(BeastStrengthFamily.BEAR, Form.INNATE, 96, 0, 0.0D, 0, 0.05F, 0.0D, 0.0F);
+    STONE_TURTLE(BeastStrengthFamily.TURTLE, Form.COUNTED, 48, 128, 0.0D, 0, 0.0F, 0.0D, 0.0D, 0.5F),
+    GALLOPING_HORSE(BeastStrengthFamily.HORSE, Form.COUNTED, 48, 0, 0.5D, 0, 0.0F, 1.0D, 0.5D, 0.0F),
+    GREEN_BULL(BeastStrengthFamily.OX, Form.COUNTED, 48, 64, 0.0D, 10 * Ticks.SECOND, 0.0F, 0.0D, 0.0D, 0.0F),
+    BROWN_BEAR(BeastStrengthFamily.BEAR, Form.INNATE, 96, 0, 0.0D, 0, 0.05F, 0.0D, 0.0D, 0.0F);
 
     public enum Form { COUNTED, PAIRED, INNATE }
 
@@ -45,14 +46,16 @@ public enum BeastStrength implements NamedEnum {
     private final int durationBonusTicks;
     private final float chanceBonus;
     private final double dashBonus;
+    private final double dashSpeedBonus;
     private final float shieldBonus;
 
     BeastStrength(BeastStrengthFamily family, Form form, int points) {
-        this(family, form, points, 0, 0.0D, 0, 0.0F, 0.0D, 0.0F);
+        this(family, form, points, 0, 0.0D, 0, 0.0F, 0.0D, 0.0D, 0.0F);
     }
 
     BeastStrength(BeastStrengthFamily family, Form form, int points, int capacityBonus, double sprintBonus,
-                  int durationBonusTicks, float chanceBonus, double dashBonus, float shieldBonus) {
+                  int durationBonusTicks, float chanceBonus, double dashBonus, double dashSpeedBonus,
+                  float shieldBonus) {
         this.family = family;
         this.form = form;
         this.points = points;
@@ -61,6 +64,7 @@ public enum BeastStrength implements NamedEnum {
         this.durationBonusTicks = durationBonusTicks;
         this.chanceBonus = chanceBonus;
         this.dashBonus = dashBonus;
+        this.dashSpeedBonus = dashSpeedBonus;
         this.shieldBonus = shieldBonus;
     }
 
@@ -87,6 +91,8 @@ public enum BeastStrength implements NamedEnum {
     public float getChanceBonus() { return chanceBonus; }
 
     public double getDashBonus() { return dashBonus; }
+
+    public double getDashSpeedBonus() { return dashSpeedBonus; }
 
     public float getShieldBonus() { return shieldBonus; }
 

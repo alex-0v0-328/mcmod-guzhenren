@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>全力以赴蛊[All-Out Effort Gu] tier 未在持分支身体上运行时为 {@link StrengthService#NO_ALL_OUT}；肉体过载为限时
  *       兽力超当前承受力的点数（{@link StrengthService#getOverloadPoints}），仍全额发挥。</li>
  *   <li>不含普通截断外的解放（依赖轮次），由
- *       {@link StrengthService#getUsablePoints(net.minecraft.world.entity.player.Player, StrengthSnapshot)} 加上。</li>
+ *       {@link StrengthService#getUsablePoints(net.minecraft.world.entity.player.Player, StrengthSnapshot)} 加上；
+ *       {@link #settledPoints} 即不含解放的发挥点数，两端同值（解放只在服务端），横冲系冲撞读它。</li>
  *   <li>⚠ 须经 {@link #of} 构建，保证派生与收集分量一致；规范构造器不检查。</li>
  * </ul>
  *
@@ -37,4 +38,6 @@ public record StrengthSnapshot(int normalCapacity, int permanentPoints, @NotNull
     }
 
     public boolean allOut() { return allOutTier != StrengthService.NO_ALL_OUT; }
+
+    public int settledPoints() { return StrengthService.getUsablePoints(capacity, totalPoints) + overloadPoints; }
 }

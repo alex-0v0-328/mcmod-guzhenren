@@ -554,6 +554,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.charged_punch.item",
                 "%1$s was struck down by %2$s's Charged Punch using %3$s", "%1$s 被 %2$s 用 %3$s 的蓄力一拳打死了");
         add("death.attack.guzhenren.impact_backlash",             "%1$s died of Impact Backlash", "%1$s 冲击反噬而亡");
+        add("death.attack.guzhenren.crash_strike",               "%1$s was rammed by %2$s", "%1$s 被 %2$s 撞死了");
+        add("death.attack.guzhenren.crash_strike.item",
+                "%1$s was rammed by %2$s using %3$s", "%1$s 被 %2$s 用 %3$s 撞死了");
     }
     //endregion
 

@@ -8,7 +8,8 @@ import net.minecraft.world.effect.MobEffectCategory;
  * <ul>
  *   <li>横冲开横轴，直撞开纵轴，横冲直撞两轴；客户端按身上效果的注册项定可用轴，位移经
  *       {@link net.alex.guzhenren.network.payload.DashPayload} 上报；横冲直撞跨四、五转，图标按转分档。</li>
- *   <li>距离规格在 {@link CrashDash}，因 {@code MobEffect} 纯 JUnit 载不了。</li>
+ *   <li>距离与播放速度规格在 {@link net.alex.guzhenren.gameplay.path.strength.CrashDash}，因 {@code MobEffect} 纯
+ *       JUnit 载不了。</li>
  * </ul>
  *
  * @author Alex

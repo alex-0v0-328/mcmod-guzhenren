@@ -1,6 +1,7 @@
 package net.alex.guzhenren.particle;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.path.strength.CrashStruckEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -8,7 +9,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * {@link RingConeEmitter} 的事件入口：每个玩家 tick 末推进该玩家的环轨迹，登出或换维度时丢弃。
+ * {@link RingConeEmitter} 的事件入口：每个玩家 tick 末推进该玩家的环轨迹，登出或换维度时丢弃；
+ * 每个 {@link CrashStruckEvent} 发一枚范围冲击环。
  *
  * @author Alex
  * @version 1.0.0
@@ -24,6 +26,12 @@ public final class RingConeEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player) RingConeEmitter.tick(player);
+    }
+
+    @SubscribeEvent
+    public static void onCrashStruck(CrashStruckEvent event) {
+        RingConeEmitter.areaImpactRing(event.getPlayer().serverLevel(), event.getOrigin(), event.getDirection(),
+                event.getRange());
     }
 
     @SubscribeEvent

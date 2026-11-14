@@ -16,8 +16,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 6 种天灾类带同样 6 个标签（5 个 {@code BYPASSES_*} 加 {@code NO_KNOCKBACK}）；寿元耗尽、魂魄衰竭、脑海炸裂、
  *       空窍[Aperture]压力爆炸另带 {@code BYPASSES_INVULNERABILITY}，不死图腾挡不住；空窍压力爆炸、十绝天灾另带
  *       {@code IS_EXPLOSION}。</li>
- *   <li>其余是普通战斗伤害：月刃、气波是护甲可挡的弹射物；流血如毒穿甲；范围冲击、蓄力一拳护甲可挡、
- *       无击退（{@code AreaImpact}、{@code ChargedPunch} 自行推开目标）；气波、蓄力一拳另绕过受伤冷却。</li>
+ *   <li>其余是普通战斗伤害：月刃、气波是护甲可挡的弹射物；流血如毒穿甲；范围冲击、蓄力一拳、终点破坏打击护甲可挡、
+ *       无击退（{@code AreaImpact}、{@code ChargedPunch}、{@code CrashStrike} 自行推开目标）；气波、蓄力一拳另绕过受伤
+ *       冷却。</li>
  *   <li>肉体过载（{@code BodyOverload}）、冲击反噬（{@code ChargedPunch}）是拳对自身的反冲：穿甲、无击退、无攻击者、
  *       不致死。</li>
  * </ul>
@@ -44,6 +45,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> BODY_OVERLOAD = key("body_overload");
     public static final ResourceKey<DamageType> CHARGED_PUNCH = key("charged_punch");
     public static final ResourceKey<DamageType> IMPACT_BACKLASH = key("impact_backlash");
+    public static final ResourceKey<DamageType> CRASH_STRIKE = key("crash_strike");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
         return new DamageSource(entity.level().registryAccess()

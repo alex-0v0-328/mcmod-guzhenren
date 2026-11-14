@@ -61,7 +61,7 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
         tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD,
                 ModDamageTypes.IMPACT_BACKLASH);
         tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT, ModDamageTypes.CHARGED_PUNCH,
-                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.IMPACT_BACKLASH);
+                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.IMPACT_BACKLASH, ModDamageTypes.CRASH_STRIKE);
     }
 
     private void tagUnstoppable(TagKey<DamageType> tag) {

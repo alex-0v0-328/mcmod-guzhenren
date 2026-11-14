@@ -24,6 +24,8 @@
   "death.attack.guzhenren.body_overload": "%1$s 肉體過載而亡",
   "death.attack.guzhenren.charged_punch": "%1$s 被 %2$s 的蓄力一拳打死了",
   "death.attack.guzhenren.charged_punch.item": "%1$s 被 %2$s 用 %3$s 的蓄力一拳打死了",
+  "death.attack.guzhenren.crash_strike": "%1$s 被 %2$s 撞死了",
+  "death.attack.guzhenren.crash_strike.item": "%1$s 被 %2$s 用 %3$s 撞死了",
   "death.attack.guzhenren.impact_backlash": "%1$s 衝擊反噬而亡",
   "death.attack.guzhenren.lifespan_exhausted": "%1$s 壽元耗盡而亡",
   "death.attack.guzhenren.mind_ocean_shattered": "%1$s 腦海炸裂而亡",

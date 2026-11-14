@@ -27,14 +27,17 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * 崩裂[Shatter]：范围冲击[Area Impact]拳击与蓄力一拳[Charged Punch]近战打碎身前地形。
+ * 崩裂[Shatter]：范围冲击[Area Impact]拳击、蓄力一拳[Charged Punch]近战与终点破坏打击[Crash Strike]打碎身前地形。
  * <ul>
  *   <li>这一击的力量点[Strength Points] ≥ {@link #SOFT_POINTS} 才破，硬度上限按点数分三档（{@link #getMaxHardness}）；
- *       带方块实体、液体、不可破的一律不破。</li>
+ *       终点破坏打击另带两猪之力、全力以赴的档位，直接给上限（{@link #shatterWith}）；带方块实体、液体、不可破的一律
+ *       不破。</li>
  *   <li>破坏区为伤害范围的一半：范围冲击是同轴锥（{@link #getConeCells}），蓄力一拳是同轴水平扇形，从脚面那层到头顶
- *       上一格（{@link #getFanCells}，不挖脚下地面）；格子按中心判定，由近到远。</li>
+ *       上一格（{@link #getFanCells}，不挖脚下地面）；终点破坏打击是同高整圆（{@link #getDiscCells}，含自身那列），
+ *       冲撞起点坑另往下多挖地面层；格子按中心判定，由近到远。</li>
  *   <li>{@link #shatter} 按格子顺序逐格，返回破了几块：先问地形门槛 {@link ModEvents#canGrief}；眼睛到格中心被没破的
  *       方块挡住就跳过，近处先破，挖开的口子不挡后面；按玩家破坏问权限（{@link CrashBreach#mayBreak}）；破满上限
  *       即停。调用方先问 {@link #canShatter}，点数不够不必建格子。</li>
@@ -42,7 +45,8 @@ import org.jetbrains.annotations.NotNull;
  *       {@code Block#destroy}，可收获（{@code canHarvestBlock}）且非创造才 {@code playerDestroy}（统计、饥饿、掉落、
  *       经验，冰化水）；石头、矿石等需工具者碎而不掉。猪灵守护方块整击激怒一次。</li>
  *   <li>⚠ 不调 {@code playerWillDestroy}：它每块向旁人发破坏粒子与音效，256 块时太吵；改为每 {@link #PARTICLE_EVERY}
- *       块发一组方块粒子，整击只在最近一块处播一次破坏音（参考维特卢姆[Viltrumite]），其余职责在此补齐。</li>
+ *       块发一组方块粒子，整击只在最近一块处播一次破坏音（参考维特卢姆[Viltrumite]），其余职责在此补齐；横冲系沿路破块
+ *       （{@link CrashBreach}）共用 {@link #showDebris}、{@link #playBreak}。</li>
  *   <li>⚠ 双格方块（门、高草、高花）任一半先破，另一半随形状更新连带消失并按自身战利品表掉落：生存恰掉一份；创造
  *       或不可收获时破上半，同原版先以 {@code UPDATE_SUPPRESS_DROPS} 抹掉下半，否则下半会掉。邻居形状更新会清掉
  *       该标志，只标在本格上无效。</li>
@@ -106,19 +110,30 @@ public final class AreaImpactShatter {
 
     public static @NotNull List<BlockPos> getFanCells(@NotNull Vec3 feet, double height, @NotNull Vec3 axis,
                                                       double radius, double halfAngleDegrees, @NotNull Vec3 from) {
-        if (axis.lengthSqr() < MIN_LENGTH_SQR || !(radius > 0.0D)) return List.of();
+        if (axis.lengthSqr() < MIN_LENGTH_SQR) return List.of();
+        return getLayerCells(feet, height, radius, 0, axis, Math.cos(Math.toRadians(halfAngleDegrees)), from);
+    }
 
-        int bottom = Mth.floor(feet.y + 0.5D);
+    public static @NotNull List<BlockPos> getDiscCells(@NotNull Vec3 feet, double height, double radius,
+                                                       int floorLayers, @NotNull Vec3 from) {
+        return getLayerCells(feet, height, radius, Math.max(0, floorLayers), null, 0.0D, from);
+    }
+
+    private static List<BlockPos> getLayerCells(Vec3 feet, double height, double radius, int floorLayers,
+                                                @Nullable Vec3 axis, double cos, Vec3 from) {
+        if (!(radius > 0.0D)) return List.of();
+
+        int bottom = Mth.floor(feet.y + 0.5D) - floorLayers;
         int top = Mth.floor(feet.y + height) + 1;
-        double minCos = Math.cos(Math.toRadians(halfAngleDegrees)) - ANGLE_SLACK;
+        double minCos = cos - ANGLE_SLACK;
         List<BlockPos> cells = new ArrayList<>();
         for (int x = Mth.floor(feet.x - radius); x <= Mth.floor(feet.x + radius); x++) {
             for (int z = Mth.floor(feet.z - radius); z <= Mth.floor(feet.z + radius); z++) {
                 double dx = x + 0.5D - feet.x;
                 double dz = z + 0.5D - feet.z;
                 double distance = Math.sqrt(dx * dx + dz * dz);
-                if (distance < MIN_REACH || distance > radius) continue;
-                if ((dx * axis.x + dz * axis.z) / distance < minCos) continue;
+                if (distance > radius) continue;
+                if (axis != null && (distance < MIN_REACH || (dx * axis.x + dz * axis.z) / distance < minCos)) continue;
                 for (int y = bottom; y <= top; y++) cells.add(new BlockPos(x, y, z));
             }
         }
@@ -134,7 +149,11 @@ public final class AreaImpactShatter {
     //region Break [破坏]
     public static int shatter(@NotNull ServerPlayer player, @NotNull Vec3 from, @NotNull List<BlockPos> cells,
                               int points, int cap) {
-        float maxHardness = getMaxHardness(points);
+        return shatterWith(player, from, cells, getMaxHardness(points), cap);
+    }
+
+    public static int shatterWith(@NotNull ServerPlayer player, @NotNull Vec3 from, @NotNull List<BlockPos> cells,
+                                  float maxHardness, int cap) {
         ServerLevel level = player.serverLevel();
         if (maxHardness < 0.0F || player.isSpectator() || !ModEvents.canGrief(level, player)) return 0;
 
@@ -157,9 +176,7 @@ public final class AreaImpactShatter {
             breakQuietly(player, level, pos, state, broken % PARTICLE_EVERY == 0);
             broken++;
         }
-        if (first != null) {
-            level.playSound(null, first, sound.getBreakSound(), SoundSource.BLOCKS, SOUND_VOLUME, SOUND_PITCH);
-        }
+        if (first != null) playBreak(level, first, sound);
         if (guarded) PiglinAi.angerNearbyPiglins(player, false);
         return broken;
     }
@@ -170,13 +187,19 @@ public final class AreaImpactShatter {
         return hit.getType() == HitResult.Type.MISS || hit.getBlockPos().equals(pos);
     }
 
+    static void showDebris(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull BlockState state) {
+        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), pos.getX() + 0.5D,
+                pos.getY() + 0.5D, pos.getZ() + 0.5D, PARTICLE_COUNT, PARTICLE_SPREAD, PARTICLE_SPREAD,
+                PARTICLE_SPREAD, PARTICLE_SPEED);
+    }
+
+    static void playBreak(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull SoundType sound) {
+        level.playSound(null, pos, sound.getBreakSound(), SoundSource.BLOCKS, SOUND_VOLUME, SOUND_PITCH);
+    }
+
     private static void breakQuietly(ServerPlayer player, ServerLevel level, BlockPos pos, BlockState state,
                                      boolean showParticles) {
-        if (showParticles) {
-            level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), pos.getX() + 0.5D,
-                    pos.getY() + 0.5D, pos.getZ() + 0.5D, PARTICLE_COUNT, PARTICLE_SPREAD, PARTICLE_SPREAD,
-                    PARTICLE_SPREAD, PARTICLE_SPEED);
-        }
+        if (showParticles) showDebris(level, pos, state);
         boolean harvest = !player.isCreative() && state.canHarvestBlock(level, pos, player);
         if (!harvest) clearLowerHalf(level, pos, state);
         level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
@@ -185,7 +208,7 @@ public final class AreaImpactShatter {
         if (harvest) state.getBlock().playerDestroy(level, player, pos, state, null, ItemStack.EMPTY);
     }
 
-    private static void clearLowerHalf(ServerLevel level, BlockPos pos, BlockState state) {
+    static void clearLowerHalf(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull BlockState state) {
         EnumProperty<DoubleBlockHalf> half = BlockStateProperties.DOUBLE_BLOCK_HALF;
         if (!state.hasProperty(half) || state.getValue(half) != DoubleBlockHalf.UPPER) return;
 

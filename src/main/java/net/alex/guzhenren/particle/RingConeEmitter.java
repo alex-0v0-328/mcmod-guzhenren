@@ -18,7 +18,7 @@ import net.minecraft.world.phys.Vec3;
  *       {@code RingGeometry} 无方向回退、环被放平；寿命内漂移不足 1/4 格，看似静止。</li>
  *   <li>今后速度感、力量感动作调 {@code dashCone}（或新增同类入口），不直接生成环。</li>
  *   <li>{@link #dashCone} 沿路径每实际移动 {@link RingTrailSpacing#SPACING} 格一环，起点先现、终点最后，至多
- *       {@link #DASH_MAX_RINGS} 个（约 24 格路径，冲撞蛊[Crash Gu]最长冲刺）。</li>
+ *       {@link #DASH_MAX_RINGS} 个（约 32 格路径，冲撞蛊[Crash Gu]最长冲刺）。</li>
  *   <li>按实测移动而非逐 tick：服务端闪避位移成块不均到达（Epic Fight 锁住移动、由动画驱动），逐 tick 则环挤
  *       两端；按距离则前摇、跳跃、撞墙截断都均匀；{@link DashBurst} 把每环摆在本 tick 移动线段上。</li>
  *   <li>{@link DashBurst} 在环数用尽、{@link #DASH_MAX_TICKS} 安全上限耗尽，或连续 {@link #DASH_IDLE_LIMIT} tick
@@ -43,7 +43,7 @@ import net.minecraft.world.phys.Vec3;
 public final class RingConeEmitter {
 
     private static final double MIN_DIRECTION_LENGTH_SQR = 1.0E-6D;
-    private static final int DASH_MAX_RINGS = 12;
+    private static final int DASH_MAX_RINGS = 16;
     private static final int DASH_MAX_TICKS = 25;
     private static final int DASH_IDLE_LIMIT = 3;
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;

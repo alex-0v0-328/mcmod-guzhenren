@@ -127,6 +127,12 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         return total;
     }
 
+    public double getBeastDashSpeedBonus() {
+        double total = 0.0D;
+        for (BeastStrength beast : beasts) total += beast.getDashSpeedBonus();
+        return total;
+    }
+
     public float getShieldMultiplier() {
         float total = 1.0F;
         for (BeastStrength beast : beasts) total += beast.getShieldBonus();

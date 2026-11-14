@@ -13,8 +13,8 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 /**
  * 开启兽力虚影流攻击轮次的拳击命中。
  * <ul>
- *   <li>门槛：玩家为直接来源、空手、伤害为正、目标存活、属肉体自身力量；箭、月刃、气波、范围冲击、蓄力一拳不算，
- *       会被受击无敌帧吞掉的不开轮。</li>
+ *   <li>门槛：玩家为直接来源、空手、伤害为正、目标存活、属肉体自身力量；箭、月刃、气波、范围冲击、蓄力一拳、终点破坏
+ *       打击不算，会被受击无敌帧吞掉的不开轮。</li>
  *   <li>同门槛每击先扣肉体过载（{@link BodyOverload#recoil}），不论轮内外。</li>
  *   <li>开轮那击的属性下一 tick 才含解放，故 {@link StrengthRound#open} 的增量直接加到本击（护甲前）。</li>
  * </ul>
@@ -47,7 +47,7 @@ public final class BeastPhantomEvents {
 
     private static boolean isFistHit(DamageSource source, float amount, LivingEntity target) {
         if (source.is(ModDamageTypes.AREA_IMPACT) || source.is(ModDamageTypes.QI_WAVE)
-                || source.is(ModDamageTypes.CHARGED_PUNCH)) return false;
+                || source.is(ModDamageTypes.CHARGED_PUNCH) || source.is(ModDamageTypes.CRASH_STRIKE)) return false;
         if (amount <= 0.0F || !target.isAlive()) return false;
         return target.invulnerableTime <= HURT_FRAME_GATE || source.is(DamageTypeTags.BYPASSES_COOLDOWN);
     }

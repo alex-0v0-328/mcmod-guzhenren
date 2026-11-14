@@ -24,6 +24,8 @@
   "death.attack.guzhenren.body_overload": "%1$s died of Body Overload",
   "death.attack.guzhenren.charged_punch": "%1$s was struck down by %2$s's Charged Punch",
   "death.attack.guzhenren.charged_punch.item": "%1$s was struck down by %2$s's Charged Punch using %3$s",
+  "death.attack.guzhenren.crash_strike": "%1$s was rammed by %2$s",
+  "death.attack.guzhenren.crash_strike.item": "%1$s was rammed by %2$s using %3$s",
   "death.attack.guzhenren.impact_backlash": "%1$s died of Impact Backlash",
   "death.attack.guzhenren.lifespan_exhausted": "%1$s ran out of lifespan",
   "death.attack.guzhenren.mind_ocean_shattered": "%1$s shattered their Mind Ocean",

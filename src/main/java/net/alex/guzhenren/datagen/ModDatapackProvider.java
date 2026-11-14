@@ -65,6 +65,7 @@ public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {
         context.register(ModDamageTypes.BODY_OVERLOAD, new DamageType("guzhenren.body_overload", 0.0F));
         context.register(ModDamageTypes.CHARGED_PUNCH, new DamageType("guzhenren.charged_punch", 0.1F));
         context.register(ModDamageTypes.IMPACT_BACKLASH, new DamageType("guzhenren.impact_backlash", 0.0F));
+        context.register(ModDamageTypes.CRASH_STRIKE, new DamageType("guzhenren.crash_strike", 0.1F));
     }
     //endregion
 
