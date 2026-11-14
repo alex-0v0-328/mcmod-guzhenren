@@ -10,6 +10,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureStatus;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
+import net.alex.guzhenren.gameplay.body.Appendage;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Flesh;
@@ -116,6 +117,8 @@ public final class InfoModel {
     public record SkinRow(Skin skin) implements Entry {}
 
     public record FleshRow(Flesh flesh) implements Entry {}
+
+    public record AppendageRow(Set<Appendage> appendages) implements Entry {}
 
     public record Soul(SoulData soul) implements Entry {}
 
@@ -227,6 +230,9 @@ public final class InfoModel {
         rows.add(new Row(0, new BoneRow(body.bone())));
         rows.add(new Row(0, new SkinRow(body.skin())));
         rows.add(new Row(0, new FleshRow(body.flesh())));
+        if (!body.anatomy().appendages().isEmpty()) {
+            rows.add(new Row(0, new AppendageRow(body.anatomy().appendages())));
+        }
         rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
         StrengthSnapshot settlement = StrengthService.snapshot(player);
         if (settlement.totalPoints() > 0) {

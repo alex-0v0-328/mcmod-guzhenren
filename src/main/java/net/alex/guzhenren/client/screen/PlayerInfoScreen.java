@@ -13,6 +13,8 @@ import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
 import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.gameplay.body.BodyPart;
+import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -33,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>空窍页每空窍一列（只有一个时单列），各有温养[Nourish]空窍、冲刷窍壁、空窍存储按钮（{@link ApertureButtons}），
  *       存储按钮打开该空窍的容器；{@link PathPicker} 是叠在面板上的辅修流派网格。</li>
  *   <li>⚠ 普通界面背后无菜单、没有容器通道发意图：炼蛊页不画行，经客户端意图 payload 打开炼蛊容器。</li>
+ *   <li>肉身页右侧画 {@link BodyFigure} 方块人，最多占内容宽的 1/{@code FIGURE_SHARE}，行收窄到其左；悬停肢体出
+ *       提示。</li>
  *   <li>行内容来自 {@link InfoModel}，{@link InfoRowRenderer} 转成标签和值；值在 {@link RowBlock} 量出的列内左对齐，
  *       超出行右缘才贴右；{@link InfoRowCache} 在模型不变时沿用上一帧的行。</li>
  *   <li>一帧一个 {@link GuiBatch}：sprite 全进 {@link SpriteBatch}，再叠填色（分隔线、悬停、温养进度），最后文字。</li>
@@ -87,6 +91,7 @@ public final class PlayerInfoScreen extends Screen {
     private static final int SCROLL_W = 6;
     private static final int SCROLL_GAP = 9;
     private static final int COL_GAP = 16;
+    private static final int FIGURE_SHARE = 3;
     private int leftPos;
     private int topPos;
     private int panelW;
@@ -128,6 +133,7 @@ public final class PlayerInfoScreen extends Screen {
             drawFrameTexts(graphics, accent);
             if (player != null) drawContentTexts(graphics, content, accent);
         });
+        if (player != null && !picker.isOpen()) drawFigureTooltip(graphics, player, mouseX, mouseY);
         if (player != null && picker.isOpen()) {
             picker.render(graphics, font, leftPos, topPos, panelW, panelH, mouseX, mouseY, accent);
         }
@@ -169,6 +175,7 @@ public final class PlayerInfoScreen extends Screen {
         for (ApertureButtons.ColumnButton b : content.buttons()) {
             ApertureButtons.draw(sprites, player, b, mouseX, mouseY);
         }
+        drawFigure(sprites, player);
     }
 
     private void drawTab(SpriteBatch sprites, int i, int mouseX, int mouseY) {
@@ -211,7 +218,7 @@ public final class PlayerInfoScreen extends Screen {
             int end = Math.min(block.rows().size(), scrollRow + content.visible());
             int y = getContentTop();
             for (int i = scrollRow; i < end; i++) {
-                visitor.visit(block, block.rows().get(i), getContentLeft(), getValueRight(), y);
+                visitor.visit(block, block.rows().get(i), getContentLeft(), getRowsRight(), y);
                 y += LINE_H;
             }
             return;
@@ -247,6 +254,39 @@ public final class PlayerInfoScreen extends Screen {
         for (int i = 0; i < row.cells().size(); i++) {
             graphics.drawString(font, row.cells().get(i), x0 + row.indent() + i * cellW, y, ModPalette.TEXT, false);
         }
+    }
+    //endregion
+
+    //region body figure [方块人]
+    private int getFigureScale() {
+        if (activeTab != TAB_BODY) return 0;
+        return BodyFigure.getScale((getValueRight() - getContentLeft()) / FIGURE_SHARE,
+                getContentBottom() - getContentTop());
+    }
+
+    private int getFigureLeft(int scale) { return getValueRight() - BodyFigure.WIDTH * scale; }
+
+    private int getRowsRight() {
+        int scale = getFigureScale();
+        return scale == 0 ? getValueRight() : getFigureLeft(scale) - COL_GAP;
+    }
+
+    private void drawFigure(SpriteBatch sprites, LocalPlayer player) {
+        int scale = getFigureScale();
+        if (scale == 0) return;
+
+        BodyFigure.draw(sprites, BodyService.getAnatomy(player), getFigureLeft(scale), getContentTop(), scale);
+    }
+
+    private void drawFigureTooltip(GuiGraphics graphics, LocalPlayer player, int mouseX, int mouseY) {
+        int scale = getFigureScale();
+        if (scale == 0) return;
+
+        BodyPart part = BodyFigure.getHovered(mouseX, mouseY, getFigureLeft(scale), getContentTop(), scale);
+        if (part == null) return;
+
+        graphics.renderComponentTooltip(font, BodyFigure.getTooltip(BodyService.getAnatomy(player), part), mouseX,
+                mouseY);
     }
     //endregion
 

@@ -7,6 +7,7 @@ import net.alex.guzhenren.display.ModDisplayText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,6 +123,8 @@ final class InfoRowRenderer {
             case InfoModel.BoneRow e -> formatNamed(indent, "bone", e.bone().getTranslationKey());
             case InfoModel.SkinRow e -> formatNamed(indent, "skin", e.skin().getTranslationKey());
             case InfoModel.FleshRow e -> formatNamed(indent, "flesh", e.flesh().getTranslationKey());
+            case InfoModel.AppendageRow e -> new ScreenRow(indent, formatLabel("appendages"),
+                    ComponentUtils.formatList(e.appendages(), appendage -> formatName(appendage.getTranslationKey())));
             case InfoModel.Soul e -> new ScreenRow(indent, formatLabel("soul"),
                     Component.literal(ModDisplayText.formatPool(e.soul().currentSoul(), e.soul().maxSoul()))
                             .append(ModDisplayText.formatDetail(formatName(e.soul().getTier().getTranslationKey()))));
