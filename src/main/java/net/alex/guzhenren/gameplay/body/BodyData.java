@@ -13,10 +13,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身状态，附件 {@code body_data}：累积体质、种族、筋骨皮肉、年龄、寿元。
+ * 肉身状态，附件 {@code body_data}：累积体质、种族、筋骨皮肉、肢体与七窍（{@link Anatomy}）、年龄、寿元。
  * <ul>
  *   <li>仅 {@code BodyService} 写；具体十绝体存此，空窍[Aperture]只存其基础真元[Essence]。</li>
- *   <li>⚠ 14 个组件手写 {@code encode}/{@code decode}，两者顺序须严格一致。</li>
+ *   <li>⚠ 15 个组件手写 {@code encode}/{@code decode}，两者顺序须严格一致。</li>
  *   <li>⚠ 时间锚点默认 {@code UNTRACKED}（-1），不用 {@code 0}：0 是真实游戏时间。</li>
  *   <li>⚠ 调用方一律按年；仅本文件知细分单位（parts）。</li>
  *   <li>僵尸与临时僵尸化互斥，十绝体可与任一共存；构造器遇僵尸丢临时僵尸化：{@link #with with(ZOMBIE)} 无需先移除，
@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>皮一格，默认原生，带结束 tick：玉皮穿到 {@code skinEndTick}（{@code SkinService} 心跳查），{@link #withRevived}
  *       随不死形态脱；铜皮、铁皮永久，重生保留。</li>
  *   <li>{@code JADE_SKIN_GU} / {@code WHITE_JADE_GU} 效果只是玉皮投影；筋、骨、肉为三个永久格，默认原生。</li>
+ *   <li>{@link #withRevived} 清空肢体与七窍伤势，附加部位保留。</li>
  * </ul>
  *
  * @author Alex
@@ -46,7 +47,8 @@ public record BodyData(
         long skinEndTick,
         Tendon tendon,
         Bone bone,
-        Flesh flesh
+        Flesh flesh,
+        Anatomy anatomy
 ) {
 
     public static final long UNTRACKED = -1L;
@@ -59,7 +61,7 @@ public record BodyData(
     public static final long RELAPSE_WINDOW_TICKS = 5L * Ticks.MINUTE;
     public static final BodyData DEFAULT = new BodyData(Set.of(), ExtremePhysique.NONE, Race.HUMAN,
             toParts(DEFAULT_AGE), toParts(DEFAULT_LIFESPAN), UNTRACKED, UNTRACKED, NO_ZOMBIE_TIER, UNTRACKED,
-            Skin.NATIVE, UNTRACKED, Tendon.NATIVE, Bone.NATIVE, Flesh.NATIVE);
+            Skin.NATIVE, UNTRACKED, Tendon.NATIVE, Bone.NATIVE, Flesh.NATIVE, Anatomy.DEFAULT);
 
     public static long toParts(long years) { return LongMath.saturatedMultiply(years, PARTS_PER_YEAR); }
 
@@ -80,14 +82,15 @@ public record BodyData(
             Codec.LONG.optionalFieldOf("skin_end_tick", UNTRACKED).forGetter(BodyData::skinEndTick),
             Tendon.CODEC.optionalFieldOf("tendon", Tendon.NATIVE).forGetter(BodyData::tendon),
             Bone.CODEC.optionalFieldOf("bone", Bone.NATIVE).forGetter(BodyData::bone),
-            Flesh.CODEC.optionalFieldOf("flesh", Flesh.NATIVE).forGetter(BodyData::flesh)
+            Flesh.CODEC.optionalFieldOf("flesh", Flesh.NATIVE).forGetter(BodyData::flesh),
+            Anatomy.CODEC.optionalFieldOf("anatomy", Anatomy.DEFAULT).forGetter(BodyData::anatomy)
     ).apply(instance, BodyData::new));
     public static @NotNull BodyData decode(@NotNull FriendlyByteBuf buf) {
         return new BodyData(ModByteBufs.readEnumSet(buf, Physique.class), ModByteBufs.readEnum(buf,
                 ExtremePhysique.class), ModByteBufs.readEnum(buf, Race.class), buf.readVarLong(), buf.readVarLong(),
                 buf.readVarLong(), buf.readVarLong(), buf.readVarInt(), buf.readVarLong(), ModByteBufs.readEnum(buf,
                 Skin.class), buf.readVarLong(), ModByteBufs.readEnum(buf, Tendon.class), ModByteBufs.readEnum(buf,
-                Bone.class), ModByteBufs.readEnum(buf, Flesh.class));
+                Bone.class), ModByteBufs.readEnum(buf, Flesh.class), Anatomy.decode(buf));
     }
 
     public static void encode(@NotNull FriendlyByteBuf buf, @NotNull BodyData value) {
@@ -105,6 +108,7 @@ public record BodyData(
         ModByteBufs.writeEnum(buf, value.tendon());
         ModByteBufs.writeEnum(buf, value.bone());
         ModByteBufs.writeEnum(buf, value.flesh());
+        Anatomy.encode(buf, value.anatomy());
     }
 
     public BodyData {
@@ -153,17 +157,17 @@ public record BodyData(
 
     public BodyData withPhysiques(Set<Physique> value) {
         return new BodyData(value, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withExtremePhysique(ExtremePhysique physique) {
         return new BodyData(physiques, physique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withRevived() {
         return without(Physique.ZOMBIE).without(Physique.TEMP_ZOMBIE).withTempZombieEndTick(UNTRACKED)
-                .withSkin(skin.isTimed() ? Skin.NATIVE : skin, UNTRACKED);
+                .withSkin(skin.isTimed() ? Skin.NATIVE : skin, UNTRACKED).withAnatomy(anatomy.withoutInjuries());
     }
 
     public BodyData with(Physique physique) { return withPhysiques(getChanged(physique, true)); }
@@ -179,57 +183,62 @@ public record BodyData(
 
     public BodyData withRace(Race race) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withAgeParts(long value) {
         return new BodyData(physiques, extremePhysique, race, value, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withLifespanParts(long value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, value, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withLastDayIndex(long value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, value, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withTempZombieEndTick(long value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, value, zombieTier,
-                lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withZombieTier(int value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                value, lastBilledTick, skin, skinEndTick, tendon, bone, flesh);
+                value, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withSkin(Skin value, long endTick) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, value, endTick, tendon, bone, flesh);
+                zombieTier, lastBilledTick, value, endTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withTendon(Tendon value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, value, bone, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, value, bone, flesh, anatomy);
     }
 
     public BodyData withBone(Bone value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, lastBilledTick, skin, skinEndTick, tendon, value, flesh);
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, value, flesh, anatomy);
+    }
+
+    public BodyData withAnatomy(Anatomy value) {
+        return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
+                zombieTier, lastBilledTick, skin, skinEndTick, tendon, bone, flesh, value);
     }
 
     public BodyData withLastBilledTick(long value) {
         return new BodyData(physiques, extremePhysique, race, ageParts, lifespanParts, lastDayIndex, tempZombieEndTick,
-                zombieTier, value, skin, skinEndTick, tendon, bone, flesh);
+                zombieTier, value, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 
     public BodyData withLived(long parts, long billedTick) {
         return new BodyData(physiques, extremePhysique, race, LongMath.saturatedAdd(ageParts, parts),
                 LongMath.saturatedSubtract(lifespanParts, parts), lastDayIndex, tempZombieEndTick, zombieTier,
-                billedTick, skin, skinEndTick, tendon, bone, flesh);
+                billedTick, skin, skinEndTick, tendon, bone, flesh, anatomy);
     }
 }

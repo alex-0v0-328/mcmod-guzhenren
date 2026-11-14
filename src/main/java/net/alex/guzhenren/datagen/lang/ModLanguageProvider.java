@@ -9,9 +9,13 @@ import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.gameplay.aperture.Title;
+import net.alex.guzhenren.gameplay.body.Appendage;
+import net.alex.guzhenren.gameplay.body.BodyPart;
 import net.alex.guzhenren.gameplay.body.Bone;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.body.Flesh;
+import net.alex.guzhenren.gameplay.body.Injury;
+import net.alex.guzhenren.gameplay.body.Organ;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.ShieldType;
@@ -335,6 +339,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.bone",                  "Bones", "骨");
         add("guzhenren.screen.label.skin",                  "Skin", "皮");
         add("guzhenren.screen.label.flesh",                 "Flesh", "肉");
+        add("guzhenren.screen.label.appendages",            "Appendages", "附加部位");
+        add("guzhenren.screen.figure.entry",                "%s: %s", "%s：%s");
         add("guzhenren.screen.label.wisdom_path_achieve",   "Wisdom Path Attainment", "智道造诣");
         add("guzhenren.screen.label.soul",                  "Soul", "魂魄");
         add("guzhenren.screen.label.lifespan",              "Lifespan", "寿元");
@@ -579,6 +585,10 @@ public class ModLanguageProvider extends LanguageProvider {
         addTendon();
         addBone();
         addFlesh();
+        addBodyPart();
+        addOrgan();
+        addAppendage();
+        addInjury();
     }
 
     private void addGuType() {
@@ -630,6 +640,36 @@ public class ModLanguageProvider extends LanguageProvider {
 
     private void addFlesh() {
         add(Flesh.NATIVE, "Original", "原生");
+    }
+
+    private void addBodyPart() {
+        add(BodyPart.HEAD,      "Head",      "头");
+        add(BodyPart.TORSO,     "Torso",     "躯干");
+        add(BodyPart.RIGHT_ARM, "Right Arm", "右臂");
+        add(BodyPart.LEFT_ARM,  "Left Arm",  "左臂");
+        add(BodyPart.RIGHT_LEG, "Right Leg", "右腿");
+        add(BodyPart.LEFT_LEG,  "Left Leg",  "左腿");
+    }
+
+    private void addOrgan() {
+        add(Organ.EYES,  "Eyes",  "眼");
+        add(Organ.EARS,  "Ears",  "耳");
+        add(Organ.NOSE,  "Nose",  "鼻");
+        add(Organ.MOUTH, "Mouth", "口");
+    }
+
+    private void addAppendage() {
+        add(Appendage.WINGS, "Wings", "翼");
+        add(Appendage.TAIL,  "Tail",  "尾");
+        add(Appendage.HORNS, "Horns", "角");
+    }
+
+    private void addInjury() {
+        add(Injury.NONE,     "Unhurt",          "无伤");
+        add(Injury.LIGHT,    "Light Injury",    "轻伤");
+        add(Injury.MODERATE, "Moderate Injury", "中伤");
+        add(Injury.SEVERE,   "Severe Injury",   "重伤");
+        add(Injury.CRIPPLED, "Crippled",        "残缺");
     }
 
     private void addBeastStrength() {

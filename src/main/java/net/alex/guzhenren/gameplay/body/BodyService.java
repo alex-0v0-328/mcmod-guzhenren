@@ -55,6 +55,10 @@ import org.jetbrains.annotations.NotNull;
  *       永久皮无结束 tick，重生保留。</li>
  *   <li>新品阶能否替换由各部位 {@code canReplace} 判定，蛊来问，不在此。</li>
  * </ul>
+ * <p>肢体与七窍：
+ * <ul>
+ *   <li>伤势与附加部位只有管理命令写，不发事件；受伤来源与效果定下后再加事件。</li>
+ * </ul>
  * <p>种族：
  * <ul>
  *   <li>{@link #setRace} 是第二个跨域授予（另一个 {@code ApertureService.reconcileTalentPaths}）：撤旧授新，造诣经
@@ -246,6 +250,30 @@ public final class BodyService {
     public static void temperBone(@NotNull ServerPlayer player, @NotNull Bone bone) {
         store(player, get(player).withBone(bone));
         ModEvents.post(new BodyTemperedEvent(player));
+    }
+    //endregion
+
+    //region Limbs and orifices [肢体与七窍]
+    public static @NotNull Anatomy getAnatomy(@NotNull Player player) { return get(player).anatomy(); }
+
+    public static void setInjury(@NotNull ServerPlayer player, @NotNull BodyPart part, @NotNull Injury injury) {
+        BodyData body = get(player);
+        store(player, body.withAnatomy(body.anatomy().withInjury(part, injury)));
+    }
+
+    public static void setInjury(@NotNull ServerPlayer player, @NotNull Organ organ, @NotNull Injury injury) {
+        BodyData body = get(player);
+        store(player, body.withAnatomy(body.anatomy().withInjury(organ, injury)));
+    }
+
+    public static void healInjuries(@NotNull ServerPlayer player) {
+        BodyData body = get(player);
+        store(player, body.withAnatomy(body.anatomy().withoutInjuries()));
+    }
+
+    public static void setAppendage(@NotNull ServerPlayer player, @NotNull Appendage appendage, boolean present) {
+        BodyData body = get(player);
+        store(player, body.withAnatomy(body.anatomy().withAppendage(appendage, present)));
     }
     //endregion
 

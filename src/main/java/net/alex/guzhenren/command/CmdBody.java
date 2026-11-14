@@ -6,9 +6,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.body.Appendage;
 import net.alex.guzhenren.gameplay.body.BodyGrade;
+import net.alex.guzhenren.gameplay.body.BodyPart;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.Bone;
+import net.alex.guzhenren.gameplay.body.Injury;
+import net.alex.guzhenren.gameplay.body.Organ;
 import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.Skin;
@@ -20,10 +24,11 @@ import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.Item;
 
 /**
- * {@code /gzr body}：写肉身状态（体质、种族、筋、骨、皮、寿元、年龄），B 面板读取。
+ * {@code /gzr body}：写肉身状态（体质、种族、筋、骨、皮、肢体与七窍伤势、附加部位、寿元、年龄），B 面板读取。
  *
  * <ul>
  *   <li>不设门槛，凡人也会变老、变换形态；道[Path]写入在 {@code /gzr path}；十绝体归 {@code /gzr aperture talent}：
@@ -34,6 +39,8 @@ import net.minecraft.world.item.Item;
  *       （{@link #getRegisteredDurationTicks}）；转、秒节点在 {@code [targets]} 前，裸数字只读作数值，不当玩家名。</li>
  *   <li>品级按转与 {@link #getTempered} 转序最低转之差选取，同族各转连续无缺口（{@code BodyGrade}）。</li>
  *   <li>皮按其蛊的方式穿上并立即投影；写入均跳过蛊的替换门槛，管理员可降品级。</li>
+ *   <li>{@code injury limb <肢体> <伤势>}、{@code injury organ <七窍> <伤势>} 设一处伤势，{@code injury heal} 全部治
+ *       好；{@code appendage add|remove <部位>} 增删附加部位；受伤来源未定前这是唯一写入口。</li>
  * </ul>
  *
  * @author Alex
@@ -48,6 +55,8 @@ public final class CmdBody {
 
     private static final String ARG_SECONDS = "seconds";
     private static final String ARG_RANK = "rank";
+    private static final String ARG_PART = "part";
+    private static final String ARG_INJURY = "injury";
     private static final String NATIVE = "native";
     private static final Physique[] PHYSIQUES = Arrays.stream(Physique.values())
             .filter(physique -> physique != Physique.EXTREME).toArray(Physique[]::new);
@@ -66,6 +75,8 @@ public final class CmdBody {
                         buildTimedSkin(Skin.WHITE_JADE_SKIN),
                         buildRanked("bronze_skin", getFamily(Skin.Family.BRONZE), CmdBody::wearPermanentSkin),
                         buildRanked("iron_skin", getFamily(Skin.Family.IRON), CmdBody::wearPermanentSkin)))
+                .then(buildInjury())
+                .then(buildAppendage())
                 .then(ModCommandSupport.buildCounter("lifespan", BodyService::setLifespan, BodyService::addLifespan))
                 .then(ModCommandSupport.buildCounter("age", BodyService::setAge, BodyService::addAge));
     }
@@ -82,6 +93,39 @@ public final class CmdBody {
                 ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, PHYSIQUES), context -> {
                     Physique value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, PHYSIQUES);
                     return ModCommandSupport.apply(context, player -> operation.apply(player, value));
+                }));
+    }
+
+    private static ArgumentBuilder<CommandSourceStack, ?> buildInjury() {
+        return Commands.literal("injury")
+                .then(buildInjured("limb", BodyPart.values(), BodyService::setInjury))
+                .then(buildInjured("organ", Organ.values(), BodyService::setInjury))
+                .then(ModCommandSupport.withTargets(Commands.literal("heal"),
+                        context -> ModCommandSupport.apply(context, BodyService::healInjuries)));
+    }
+
+    private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildInjured(
+            String literal, E[] parts, InjuryOperation<E> operation) {
+        return Commands.literal(literal).then(ModEnumArgument.createArgument(ARG_PART, parts)
+                .then(ModCommandSupport.withTargets(ModEnumArgument.createArgument(ARG_INJURY, Injury.values()),
+                        context -> {
+                            E part = ModEnumArgument.get(context, ARG_PART, parts);
+                            Injury injury = ModEnumArgument.get(context, ARG_INJURY, Injury.values());
+                            return ModCommandSupport.apply(context, player -> operation.apply(player, part, injury));
+                        })));
+    }
+
+    private static ArgumentBuilder<CommandSourceStack, ?> buildAppendage() {
+        return Commands.literal("appendage")
+                .then(appendageAction("add", true))
+                .then(appendageAction("remove", false));
+    }
+
+    private static ArgumentBuilder<CommandSourceStack, ?> appendageAction(String literal, boolean present) {
+        return Commands.literal(literal).then(ModCommandSupport.withTargets(
+                ModEnumArgument.createArgument(ModCommandSupport.ARG_VALUE, Appendage.values()), context -> {
+                    Appendage value = ModEnumArgument.get(context, ModCommandSupport.ARG_VALUE, Appendage.values());
+                    return ModCommandSupport.apply(context, player -> BodyService.setAppendage(player, value, present));
                 }));
     }
 
@@ -149,5 +193,11 @@ public final class CmdBody {
 
     private static int getDurationTicks(Item gu) {
         return Objects.requireNonNull(((MortalGuItem) gu).getBehavior(SkinBehavior.class)).getDurationTicks();
+    }
+
+    @FunctionalInterface
+    private interface InjuryOperation<E extends Enum<E>> {
+
+        void apply(ServerPlayer player, E part, Injury injury);
     }
 }
