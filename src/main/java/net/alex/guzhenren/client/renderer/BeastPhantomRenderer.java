@@ -1,13 +1,18 @@
 package net.alex.guzhenren.client.renderer;
 
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
+import java.util.function.Function;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BeastPhantomVisual;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -38,6 +43,9 @@ import software.bernie.geckolib.util.Color;
  *       {@link BeastPhantomVisual#getDrift}，以脚底为中心缩放 {@link BeastPhantomVisual#getScale}，发光乘
  *       {@link BeastPhantomVisual#getGlow}；背面剔除（同魂体交易者），剪影远侧不透出；无阴影、无受伤染色。</li>
  *   <li>发光层半透明自发光，只取遮罩 alpha 的 {@link #GLOW_ALPHA}，否则半透明身体被封成不透明。</li>
+ *   <li>⚠ 两层都用自建类型（{@link #BODY}、{@link #GLOW}），背面剔除且不写深度：原版半透明实体类型写深度，而光影
+ *       （Iris）下玩家皮肤晚于虚影绘制，第三人称时身后扇形会把主人整个挡掉。代价是虚影后方的半透明方块（水、染色玻璃）
+ *       盖在虚影上，同一虚影前后重叠的部位发光叠加。</li>
  *   <li>⚠ 不用 {@code RenderType.eyes}：它忽略 alpha，遮罩下全身画成满强度。</li>
  *   <li>⚠ 绕脚底上方 {@link #PITCH_PIVOT} 格（约模型高度一半，暂定值）按 {@link BeastPhantomVisual#getPitch} 俯仰；
  *       GeckoLib 只按身体偏航转活体，故先按实体自身偏航转动。</li>
@@ -56,6 +64,10 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
     /** 发光层保留的遮罩自身 alpha 比例；遮罩覆盖全身。暂定值。 */
     public static final float GLOW_ALPHA = 0.25F;
     public static final float PITCH_PIVOT = 0.7F;
+    private static final Function<ResourceLocation, RenderType> BODY = Util.memoize(texture -> create("body",
+            RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER, texture, true));
+    private static final Function<ResourceLocation, RenderType> GLOW = Util.memoize(texture -> create("glow",
+            RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER, texture, false));
 
     private final HorsePhantomModel horse;
 
@@ -65,6 +77,20 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
         this.withScale(PHANTOM_SCALE);
         this.addRenderLayer(new GlowLayer<>(this));
         this.horse = new HorsePhantomModel(context);
+    }
+
+    private static RenderType create(String layer, RenderStateShard.ShaderStateShard shader, ResourceLocation texture,
+                                     boolean lit) {
+        RenderType.CompositeState.CompositeStateBuilder state = RenderType.CompositeState.builder()
+                .setShaderState(shader)
+                .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setOverlayState(RenderStateShard.OVERLAY)
+                .setWriteMaskState(RenderStateShard.COLOR_WRITE);
+        if (lit) state.setLightmapState(RenderStateShard.LIGHTMAP);
+        return RenderType.create(Guzhenren.MOD_ID + "_beast_phantom_" + layer, DefaultVertexFormat.NEW_ENTITY,
+                VertexFormat.Mode.QUADS, RenderType.TRANSIENT_BUFFER_SIZE, true, true,
+                state.createCompositeState(true));
     }
 
     @Override
@@ -136,11 +162,10 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
 
         float fade = entity.getFade(partialTick);
         String model = getModelName(BeastStrengthFamily.HORSE);
-        RenderType body = RenderType.entityTranslucentCull(Guzhenren.id("textures/entity/" + model + "_phantom.png"));
+        RenderType body = BODY.apply(Guzhenren.id("textures/entity/" + model + "_phantom.png"));
         horse.render(poseStack, bufferSource.getBuffer(body), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                 Color.ofARGB(fade, 1.0F, 1.0F, 1.0F).argbInt());
-        RenderType glow = RenderType.entityTranslucentEmissive(
-                Guzhenren.id("textures/entity/" + model + "_phantom_glowmask.png"));
+        RenderType glow = GLOW.apply(Guzhenren.id("textures/entity/" + model + "_phantom_glowmask.png"));
         horse.render(poseStack, bufferSource.getBuffer(glow), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                 getGlowColor(entity, partialTick));
         poseStack.popPose();
@@ -155,7 +180,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
     @Override
     public @Nullable RenderType getRenderType(T animatable, ResourceLocation texture,
                                               @Nullable MultiBufferSource bufferSource, float partialTick) {
-        return RenderType.entityTranslucentCull(texture);
+        return BODY.apply(texture);
     }
 
     @Override
@@ -206,7 +231,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
                            int packedLight, int packedOverlay) {
             ResourceLocation mask = Guzhenren.id("textures/entity/" + getModelName(animatable.getFamily())
                     + "_phantom_glowmask.png");
-            RenderType glow = RenderType.entityTranslucentEmissive(mask);
+            RenderType glow = GLOW.apply(mask);
             this.getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, glow,
                     bufferSource.getBuffer(glow), partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
                     getGlowColor(animatable, partialTick));
