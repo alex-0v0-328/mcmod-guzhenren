@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>炼化后催动即免费存入随身全部元石，无蓄力条；取出不走催动：客户端长按滑条（{@code PrimevalElderInput}）选堆数，
  *       {@link #tryWithdraw} 免费落实；都只在主手，野生的仍长按炼化（有炼化条）。</li>
+ *   <li>创造模式催动不看身上元石，直接填满容量、不动背包；已满仍拒。</li>
  *   <li>⚠ 取出只填背包 36 格，先补未满的普通元石堆（改名的不碰），不超 {@link #getBagRoom}：不进副手、不落地；滑条上限
  *       {@link #getWithdrawableStacks} 读同一空间。</li>
  *   <li>存量在 {@link net.alex.guzhenren.registry.item.ModDataComponents}，不在持续照顾型蛊[Tended Gu]共用的
@@ -76,12 +77,14 @@ public class PrimevalElderGuItem extends TendedGuItem {
     @Override
     protected @Nullable Refusal checkEffect(Player player, ItemStack stack) {
         if (getStored(stack) >= capacity) return new Refusal(FAILED_FULL);
+        if (player.getAbilities().instabuild) return null;
         return getDepositable(player, stack) <= 0 ? new Refusal(FAILED_NO_STONES) : null;
     }
 
     @Override
     protected void applyEffect(ServerPlayer player, ItemStack stack) {
-        deposit(player, stack);
+        if (player.getAbilities().instabuild) setStored(stack, capacity);
+        else deposit(player, stack);
         payOwnUpkeep(player, stack);
         playPickup(player);
     }
@@ -107,7 +110,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
             if (!isStone(stones)) continue;
 
             int move = Math.min(stones.getCount(), wanted - taken);
-            if (!player.getAbilities().instabuild) stones.shrink(move);
+            stones.shrink(move);
             taken += move;
         }
         setStored(stack, getStored(stack) + wanted);
