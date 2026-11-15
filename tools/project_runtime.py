@@ -36,7 +36,7 @@ WORKSPACE_ROOT = REPOSITORY_ROOT.parent.parent
 GU_WORLD_ROOT = Path(os.environ.get('GZR_GU_WORLD') or REPOSITORY_ROOT.parent / 'mcmod-guworld').expanduser().resolve()
 TEMP_ROOT = Path(os.environ.get('GZR_TEMP') or WORKSPACE_ROOT / 'Temps' / 'guzhenren').expanduser().resolve()
 LOG_DIR = TEMP_ROOT / 'logs'
-WIKI_ROOT = Path(os.environ.get('GZR_WIKI') or WORKSPACE_ROOT / 'Notes' / 'wiki-guzhenren-mod').expanduser().resolve()
+WIKI_ROOT = Path(os.environ.get('GZR_WIKI') or REPOSITORY_ROOT.parent / 'mcmod-wiki-gzr').expanduser().resolve()
 MODELS_ROOT = Path(os.environ.get('GZR_MODELS') or REPOSITORY_ROOT.parent / 'assets' / 'blockbench-gzr').expanduser().resolve()
 EXIT = object()
 # How long local_checks.py and commit_push.py queue behind another run's Gradle lock before giving up.

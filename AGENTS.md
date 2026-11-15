@@ -15,7 +15,7 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 |-----------------------------------|----------------------------------------------------------------------------------------------------|
 | `./`                              | GUZHENREN MOD，`alex-0v0-328/mcmod-guzhenren`（公开）                                              |
 | `../mcmod-guworld/`               | GUWORLD MOD，`alex-0v0-328/mcmod-guworld`（公开）                                                  |
-| `../../Notes/wiki-guzhenren-mod/` | wiki，`alex-0v0-328/guzhenren-mod-wiki`（私有）：`开发向-guzhenren/`、`开发向-guworld/`、`玩家向/` |
+| `../mcmod-wiki-gzr/`              | wiki，`alex-0v0-328/guzhenren-mod-wiki`（私有）：`开发向-guzhenren/`、`开发向-guworld/`、`玩家向/` |
 | `../../Temps/`                    | 临时目录：`guzhenren/`、`guworld/`                                                                 |
 | `../assets/`                      | 资产源文件，只读                                                                                   |
 

@@ -27,7 +27,7 @@ Paths below are relative to Guzhenren's root. The flow serves both repositories:
 
 ## Wiki
 
-The wiki (`../../Notes/wiki-guzhenren-mod`, private `alex-0v0-328/guzhenren-mod-wiki`, `.obsidian/` untracked) ships after the mods it documents, without the mirror: run `doc_conventions.py links`, stage only the pages this task touched (another session's page edits stay out unless Alex says otherwise), make one `docs: ...` commit under the message and contributor rules above, and `git push` to `main`.
+The wiki (`../mcmod-wiki-gzr`, private `alex-0v0-328/guzhenren-mod-wiki`, `.obsidian/` untracked) ships after the mods it documents, without the mirror: run `doc_conventions.py links`, stage only the pages this task touched (another session's page edits stay out unless Alex says otherwise), make one `docs: ...` commit under the message and contributor rules above, and `git push` to `main`.
 
 ## Push rules
 
