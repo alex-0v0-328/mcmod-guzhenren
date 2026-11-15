@@ -5,7 +5,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.body.Anatomy;
 import net.alex.guzhenren.gameplay.body.BodyPart;
@@ -22,6 +21,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>精灵图在 {@code textures/gui/sprites/body/}，同画布同原点叠放，由 Pixel Art 会话分层导出：六张纯白平涂的肢体
  *       乘伤势色，最上面一张 {@code outline} 不染色。</li>
  *   <li>七窍不画、筋骨皮肉改造不画（Alex 定）：七窍伤势只在悬停头的提示里列，改造只在文字行显示。</li>
+ *   <li>悬停提示逐肢体只列有伤条目（Alex 定）：该肢体有伤列它，头另列受伤的窍，「无伤」不列；无可列时返回空表，
+ *       {@code renderComponentTooltip} 对空表不画，悬停无伤肢体即无反应。</li>
  *   <li>按整数倍绘制：倍数取可用宽高都放得下的最大值，上限 {@link #MAX_SCALE}；放不下一倍时不画。</li>
  *   <li>⚠ {@link #BOXES} 是画布上的肢体包围盒，悬停命中靠它；换图后须按新图核对。</li>
  * </ul>
@@ -85,19 +86,18 @@ final class BodyFigure {
 
     static List<Component> getTooltip(Anatomy anatomy, BodyPart part) {
         List<Component> lines = new ArrayList<>();
-        lines.add(formatEntry(part.getTranslationKey(), anatomy.getInjury(part)));
+        addIfInjured(lines, part.getTranslationKey(), anatomy.getInjury(part));
         if (part == BodyPart.HEAD) {
-            for (Organ organ : Organ.values()) {
-                lines.add(formatEntry(organ.getTranslationKey(), anatomy.getInjury(organ)));
-            }
+            for (Organ organ : Organ.values()) addIfInjured(lines, organ.getTranslationKey(), anatomy.getInjury(organ));
         }
         return lines;
     }
 
-    private static Component formatEntry(String nameKey, Injury injury) {
-        MutableComponent value = Component.translatable(injury.getTranslationKey())
-                .withColor(injury.isInjured() ? getTint(injury) : ModPalette.TEXT);
-        return Component.translatable("guzhenren.screen.figure.entry", Component.translatable(nameKey), value);
+    private static void addIfInjured(List<Component> lines, String nameKey, Injury injury) {
+        if (!injury.isInjured()) return;
+
+        MutableComponent value = Component.translatable(injury.getTranslationKey()).withColor(getTint(injury));
+        lines.add(Component.translatable("guzhenren.screen.figure.entry", Component.translatable(nameKey), value));
     }
 
     private static int getTint(Injury injury) { return TINTS.get(injury); }
