@@ -1,0 +1,25 @@
+# Codex project config for GZR, loaded only for a checkout trusted in ~/.codex/config.toml. Sessions open only in this
+# checkout, so no other repository carries a copy.
+
+project_doc_max_bytes = 65536
+
+# Injects alex-constitution and i-have-adhd from this repository's .claude/skills, as Claude Code's hook does. Codex
+# runs a project hook only after Alex trusts it once in Codex, and again after the hook line changes; an untrusted
+# hook is skipped without a word.
+[[hooks.SessionStart]]
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "python3 -B \"$(git rev-parse --show-toplevel)/.claude/hooks/session_start.py\" --codex"
+additional_context_limit = 20000
+
+# MCP servers: the same three as Claude Code's and opencode's; credentials stay in the environment.
+[mcp_servers.jetbrains]
+url = "http://127.0.0.1:64342/stream"
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+bearer_token_env_var = "CONTEXT7_API_KEY"
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"
