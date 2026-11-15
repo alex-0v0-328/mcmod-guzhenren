@@ -153,10 +153,7 @@ neoForge {
         // multi mod projects should define one per mod
         "${mod_id}" {
             sourceSet(sourceSets.main)
-            // src/test is local-only (gitignored), so a CI checkout has no GameTests to join.
-            if (file('src/test/game/java').isDirectory()) {
-                sourceSet(sourceSets.gametest)
-            }
+            sourceSet(sourceSets.gametest)
         }
     }
 }

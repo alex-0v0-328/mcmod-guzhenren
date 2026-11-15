@@ -59,8 +59,8 @@ jobs:
           ldlib_url=$(curl --fail --silent --retry 3 --retry-all-errors https://api.modrinth.com/v2/version/Zrj8M2XK | jq -er --arg file "$ldlib_file" '.files[] | select(.filename == $file) | .url')
           curl --fail --location --retry 3 "$ldlib_url" -o "run/mods/$ldlib_file"
 
-      # The test suites are local-only (src/test is gitignored) and run before every push through
-      # the maintainer's ship tool, so CI compiles, packages and checks generated data.
+      # 'build' runs the JUnit layer without the wiki gate, since the wiki repository is private; the
+      # wiki gate and the GameTests run before every push through tools/commit_push.py.
       - name: Build with Gradle
         working-directory: guzhenren-template-1.21.1
         run: ./gradlew build
