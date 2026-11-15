@@ -3,13 +3,13 @@
 
 project_doc_max_bytes = 65536
 
-# Injects alex-constitution and i-have-adhd from this repository's .claude/skills, as Claude Code's hook does. Codex
-# runs a project hook only after Alex trusts it once in Codex, and again after the hook line changes; an untrusted
-# hook is skipped without a word.
+# Injects alex-constitution and i-have-adhd from this repository's .claude/skills in one call, as Claude Code's hooks
+# do one skill each. Codex runs a project hook only after Alex trusts it once in Codex, and again after the hook line
+# changes; an untrusted hook is skipped without a word.
 [[hooks.SessionStart]]
 [[hooks.SessionStart.hooks]]
 type = "command"
-command = "python -B \"$(git rev-parse --show-toplevel)/.claude/hooks/session_start.py\" --codex"
+command = "python -B \"$(git rev-parse --show-toplevel)/.claude/hooks/session_start.py\""
 additional_context_limit = 20000
 
 # MCP servers: the same three as Claude Code's and opencode's; credentials stay in the environment.
