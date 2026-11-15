@@ -11,7 +11,6 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.InfoRowRenderer.RowBlock;
 import net.alex.guzhenren.client.screen.InfoRowRenderer.ScreenRow;
 import net.alex.guzhenren.display.InfoModel;
-import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.body.BodyPart;
 import net.alex.guzhenren.gameplay.body.BodyService;
@@ -31,18 +30,22 @@ import org.jetbrains.annotations.Nullable;
  * B 面板，直接读同步附件的玩家状态标签页。
  * <ul>
  *   <li>六个标签页：空窍[Aperture]、肉身、魂魄、流派、脑海、炼蛊；选中页在常态标签 sprite 上叠灰度选中边框，
- *       染成该页强调色，标题同色。</li>
- *   <li>空窍页每空窍一列（只有一个时单列），各有温养[Nourish]空窍、冲刷窍壁、空窍存储按钮（{@link ApertureButtons}），
- *       存储按钮打开该空窍的容器；{@link PathPicker} 是叠在面板上的辅修流派网格。</li>
+ *       染成该页强调色，标题同色。面板宽取屏宽 0.80，不足 {@code PANEL_MIN_W} 时补到它（GUI 6 下 342 → 400）。</li>
+ *   <li>肉身、空窍页分栏（Alex 定）：图 | 文字 | 按钮 | 页签。图左留白 {@code FIGURE_MARGIN}，图与文字隔
+ *       留白加 {@code COLUMN_GAP}；图栏宽 = 该页图宽 × 倍数，倍数按留够按钮栏和 {@code TEXT_MIN_W} 文字后剩的宽取，
+ *       上下限见 {@link BodyFigure}、{@link ApertureFigure}。空窍图至少 2 倍，窄屏下两页图栏不同宽、空窍页文字栏
+ *       低于下限（GUI 6 为 122），Alex 定；肉身页无按钮，文字栏延到页签前。</li>
+ *   <li>空窍页每空窍一段（空窍图、文字、该空窍的 {@link ApertureButtons} 顶对齐），双空窍上下两段，整段一起滚动；
+ *       段高、段距都是行高整倍数，行随滚动整行进出，图和按钮靠剪裁截边。{@link PathPicker} 是叠在面板上的
+ *       辅修流派网格。</li>
  *   <li>⚠ 普通界面背后无菜单、没有容器通道发意图：炼蛊页不画行，经客户端意图 payload 打开炼蛊容器。</li>
- *   <li>肉身页右侧画 {@link BodyFigure} 方块人，最多占内容宽的 1/{@code FIGURE_SHARE}，行收窄到其左；悬停肢体出
- *       提示。</li>
  *   <li>行内容来自 {@link InfoModel}，{@link InfoRowRenderer} 转成标签和值；值在 {@link RowBlock} 量出的列内左对齐，
  *       超出行右缘才贴右；{@link InfoRowCache} 在模型不变时沿用上一帧的行。</li>
- *   <li>一帧一个 {@link GuiBatch}：sprite 全进 {@link SpriteBatch}，再叠填色（分隔线、悬停、温养进度），最后文字。</li>
+ *   <li>一帧一个 {@link GuiBatch}：先画框架（面板、页签、滚动条、标题），再在内容区剪裁内画 sprite、填色、文字；
+ *       剪裁开关会冲刷批次，故框架与内容各成一段。</li>
  *   <li>空窍存储、炼蛊界面是子界面，Esc 回此；如此打开的面板吞 Esc 至松开，重复键不连带关面板，一次只退一级。</li>
- *   <li>超 300 行有意为之：标签页、行、滚动条、空窍列是同一布局，缩放时读同一组边界
- *       （{@code contentLeft}、{@code valueRight}、{@code tabLeft}）。</li>
+ *   <li>超 300 行有意为之：标签页、行、滚动条、分栏是同一布局，缩放时读同一组边界
+ *       （{@code edgeLeft}、{@code edgeRight}、{@code tabLeft}）。</li>
  * </ul>
  *
  * @author Alex
@@ -54,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
 public final class PlayerInfoScreen extends Screen {
 
     private static final float SCREEN_FRACTION = 0.80F;
+    private static final int PANEL_MIN_W = 400;
     private static final int PAD = 12;
     static final int HEADER_H = 22;
     private static final int CONTENT_TOP = HEADER_H + 8;
@@ -84,20 +88,23 @@ public final class PlayerInfoScreen extends Screen {
     static final int BTN_GAP = 4;
     private static final int TAB_APERTURE = 0;
     private static final int TAB_BODY = 1;
-    private static final int TAB_SOUL = 2;
     private static final int TAB_PATHS = 3;
     private static final int TAB_MIND = 4;
     private static final int TAB_REFINEMENT = 5;
     private static final int SCROLL_W = 6;
     private static final int SCROLL_GAP = 9;
-    private static final int COL_GAP = 16;
-    private static final int FIGURE_SHARE = 3;
+    private static final int FIGURE_MARGIN = 8;
+    private static final int COLUMN_GAP = 10;
+    private static final int TEXT_MIN_W = 150;
+    private static final int BUTTON_PAD = 6;
+    private static final int BUTTON_MIN_W = 40;
     private int leftPos;
     private int topPos;
     private int panelW;
     private int panelH;
     private int activeTab;
     private @Nullable InfoRowRenderer.Click hoverClick;
+    private @Nullable Component hoverValue;
     private int scrollRow;
     private final PathPicker picker = new PathPicker();
     private final InfoRowCache rowCache = new InfoRowCache();
@@ -112,7 +119,7 @@ public final class PlayerInfoScreen extends Screen {
 
     @Override
     protected void init() {
-        panelW = Math.round(width * SCREEN_FRACTION);
+        panelW = Math.min(width - 2 * PAD, Math.max(Math.round(width * SCREEN_FRACTION), PANEL_MIN_W));
         panelH = Math.round(height * SCREEN_FRACTION);
         leftPos = (width - panelW) / 2;
         topPos = (height - panelH) / 2;
@@ -125,57 +132,61 @@ public final class PlayerInfoScreen extends Screen {
         LocalPlayer player = Minecraft.getInstance().player;
         Content content = player == null ? Content.EMPTY : getContent(player);
         hoverClick = null;
+        hoverValue = null;
 
         GuiBatch.draw(graphics, () -> {
-            SpriteBatch.draw(graphics, sprites -> drawSprites(sprites, content, player, mouseX, mouseY));
+            SpriteBatch.draw(graphics, sprites -> drawFrameSprites(sprites, content, player, mouseX, mouseY));
             Widgets.drawRule(graphics, leftPos + PAD, topPos + HEADER_H, leftPos + panelW - PAD, DIVIDER);
-            if (player != null) fillContent(graphics, content, player, mouseX, mouseY);
             drawFrameTexts(graphics, accent);
-            if (player != null) drawContentTexts(graphics, content, accent);
+            if (player == null) return;
+
+            graphics.enableScissor(getEdgeLeft(), getContentTop() - 1, getEdgeRight(), getContentBottom());
+            SpriteBatch.draw(graphics, sprites -> drawContentSprites(sprites, content, player, mouseX, mouseY));
+            fillContent(graphics, content, player, mouseX, mouseY);
+            drawContentTexts(graphics, content, accent);
+            graphics.disableScissor();
         });
-        if (player != null && !picker.isOpen()) drawFigureTooltip(graphics, player, mouseX, mouseY);
+        if (player != null && !picker.isOpen()) drawTooltips(graphics, content, player, mouseX, mouseY);
         if (player != null && picker.isOpen()) {
             picker.render(graphics, font, leftPos, topPos, panelW, panelH, mouseX, mouseY, accent);
         }
     }
 
     private Content getContent(LocalPlayer player) {
-        if (activeTab == TAB_APERTURE && hasTwoApertures(player)) {
-            List<RowBlock> groups = rowCache.getApertureGroups(font, InfoModel.buildApertureRows(player));
-            return new Content(true, RowBlock.EMPTY, groups, buildColumnButtons(player, groups), 0);
+        int visible = (getContentBottom() - getContentTop()) / LINE_H;
+        if (activeTab != TAB_APERTURE && activeTab != TAB_BODY) {
+            RowBlock block = rowCache.getRows(font, getListModel(player));
+            scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, block.rows().size() - visible));
+            return new Content(block, block.rows().size(), visible, null, List.of(), List.of());
         }
-        RowBlock block = rowCache.getRows(font, getModel(player));
-        List<ApertureButtons.ColumnButton> buttons = buildBottomButtons(player);
-        int rowsBottom = getContentBottom() - buttons.size() * (BTN_H + BTN_GAP);
-        int visible = Math.max(0, (rowsBottom - getContentTop()) / LINE_H);
-        scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, block.rows().size() - visible));
-        return new Content(false, block, List.of(), buttons, visible);
+        boolean aperturePage = activeTab == TAB_APERTURE;
+        boolean hasButtons = aperturePage && ApertureService.hasAperture(player);
+        Columns columns = getColumns(aperturePage, hasButtons);
+        List<RowBlock> blocks = aperturePage
+                ? rowCache.getApertureGroups(font, InfoModel.buildApertureRows(player))
+                : List.of(rowCache.getRows(font, InfoModel.buildBodyRows(player)));
+        List<Band> bands = getBands(player, blocks, hasButtons, columns.figureH());
+        int total = bands.isEmpty() ? 0 : bands.getLast().bottom() / LINE_H;
+        scrollRow = Mth.clamp(scrollRow, 0, Math.max(0, total - visible));
+        return new Content(RowBlock.EMPTY, total, visible, columns, bands, placeButtons(bands, columns));
     }
 
-    private List<InfoModel.Row> getModel(LocalPlayer player) {
+    private List<InfoModel.Row> getListModel(LocalPlayer player) {
         return switch (activeTab) {
-            case TAB_BODY -> InfoModel.buildBodyRows(player);
-            case TAB_SOUL -> InfoModel.buildSoulRows(player);
             case TAB_PATHS -> InfoModel.buildPathRows(player);
             case TAB_MIND -> InfoModel.buildMindRows(player);
-            default -> InfoModel.buildApertureRows(player);
+            default -> InfoModel.buildSoulRows(player);
         };
     }
 
     //region the three passes [三道绘制]
-    private void drawSprites(SpriteBatch sprites, Content content, @Nullable LocalPlayer player, int mouseX,
-                             int mouseY) {
+    private void drawFrameSprites(SpriteBatch sprites, Content content, @Nullable LocalPlayer player, int mouseX,
+                                  int mouseY) {
         Widgets.drawPanel(sprites, leftPos, topPos, panelW, panelH);
         for (int i = 0; i < TAB_TITLES.length; i++) drawTab(sprites, i, mouseX, mouseY);
-        if (player == null) return;
-
-        if (!content.columns() && content.block().rows().size() > content.visible()) {
-            drawScrollBar(sprites, content.block().rows().size(), content.visible());
+        if (player != null && content.total() > content.visible()) {
+            drawScrollBar(sprites, content.total(), content.visible());
         }
-        for (ApertureButtons.ColumnButton b : content.buttons()) {
-            ApertureButtons.draw(sprites, player, b, mouseX, mouseY);
-        }
-        drawFigure(sprites, player);
     }
 
     private void drawTab(SpriteBatch sprites, int i, int mouseX, int mouseY) {
@@ -189,15 +200,6 @@ public final class PlayerInfoScreen extends Screen {
         if (active) sprites.blit(TAB_SELECTED, x0, y0, TAB_W, TAB_H, ACCENT[i]);
     }
 
-    private void fillContent(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY) {
-        if (content.columns()) {
-            int divider = getContentLeft() + getColumnWidth() + COL_GAP / 2;
-            graphics.fill(divider, getContentTop(), divider + 1, getContentBottom(), DIVIDER);
-        }
-        forEachRow(content, (block, row, x0, x1, y) -> fillRowHover(graphics, row, x0, x1, y, mouseX, mouseY));
-        for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.fillProgress(graphics, player, b);
-    }
-
     private void drawFrameTexts(GuiGraphics graphics, int accent) {
         graphics.drawString(font, TAB_TITLES[activeTab],
                 leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
@@ -207,82 +209,105 @@ public final class PlayerInfoScreen extends Screen {
         }
     }
 
+    private void drawContentSprites(SpriteBatch sprites, Content content, LocalPlayer player, int mouseX,
+                                    int mouseY) {
+        for (ApertureButtons.ColumnButton b : content.buttons()) {
+            ApertureButtons.draw(sprites, player, b, isOverButton(mouseX, mouseY, b));
+        }
+        Columns columns = content.columns();
+        if (columns == null) return;
+        if (activeTab == TAB_BODY) {
+            BodyFigure.draw(sprites, BodyService.getAnatomy(player), columns.figureLeft(),
+                    getBandTop(content.bands().getFirst()), columns.scale());
+            return;
+        }
+        for (int i = 0; i < content.bands().size(); i++) {
+            ApertureFigure.draw(sprites, ApertureService.getAperture(player, i), columns.figureLeft(),
+                    getBandTop(content.bands().get(i)), columns.scale());
+        }
+    }
+
+    private void fillContent(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY) {
+        Columns columns = content.columns();
+        if (columns != null) {
+            for (int i = 1; i < content.bands().size(); i++) {
+                int y = getBandTop(content.bands().get(i)) - LINE_H / 2;
+                graphics.fill(columns.textLeft(), y, getEdgeRight(), y + 1, DIVIDER);
+            }
+        }
+        forEachRow(content, (block, row, x0, x1, y) -> fillRowHover(graphics, block, row, x0, x1, y, mouseX,
+                mouseY));
+        for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.fillProgress(graphics, player, b);
+    }
+
     private void drawContentTexts(GuiGraphics graphics, Content content, int accent) {
         forEachRow(content, (block, row, x0, x1, y) -> drawRowText(graphics, block, row, x0, x1, y, accent));
         for (ApertureButtons.ColumnButton b : content.buttons()) ApertureButtons.drawLabel(graphics, font, b);
     }
 
     private void forEachRow(Content content, RowVisitor visitor) {
-        if (!content.columns()) {
+        Columns columns = content.columns();
+        if (columns == null) {
             RowBlock block = content.block();
             int end = Math.min(block.rows().size(), scrollRow + content.visible());
             int y = getContentTop();
             for (int i = scrollRow; i < end; i++) {
-                visitor.visit(block, block.rows().get(i), getContentLeft(), getRowsRight(), y);
+                visitor.visit(block, block.rows().get(i), getContentLeft(), getValueRight(), y);
                 y += LINE_H;
             }
             return;
         }
-        int colW = getColumnWidth();
-        for (int c = 0; c < content.groups().size(); c++) {
-            RowBlock block = content.groups().get(c);
-            int x0 = getContentLeft() + c * (colW + COL_GAP);
-            int y = getContentTop();
-            for (ScreenRow row : block.rows()) {
-                visitor.visit(block, row, x0, x0 + colW, y);
+        for (Band band : content.bands()) {
+            int y = getBandTop(band);
+            for (ScreenRow row : band.block().rows()) {
+                if (y >= getContentTop() && y + LINE_H <= getContentBottom()) {
+                    visitor.visit(band.block(), row, columns.textLeft(), columns.textRight(), y);
+                }
                 y += LINE_H;
             }
         }
     }
 
-    private void fillRowHover(GuiGraphics graphics, ScreenRow row, int x0, int x1, int y, int mouseX, int mouseY) {
+    private void fillRowHover(GuiGraphics graphics, RowBlock block, ScreenRow row, int x0, int x1, int y, int mouseX,
+                              int mouseY) {
         if (!Widgets.isOver(mouseX, mouseY, x0 - 2, y - 1, x1 - x0 + 4, LINE_H)) return;
 
         graphics.fill(x0 - 2, y - 1, x1 + 2, y + LINE_H - 1, ROW_HOVER);
         if (row.click() != null) hoverClick = row.click();
+        if (InfoRowRenderer.isValueClipped(font, block, row, x0, x1)) hoverValue = row.value();
     }
 
     private void drawRowText(GuiGraphics graphics, RowBlock block, ScreenRow row, int x0, int x1, int y, int accent) {
         int labelColor = row.value() == null ? accent : ModPalette.TEXT;
         graphics.drawString(font, row.label(), x0 + row.indent(), y, labelColor, false);
-        if (row.value() != null) {
-            int left = x0 + (row.paired() ? block.pairLeft() : block.valueLeft());
-            graphics.drawString(font, row.value(), Math.min(left, x1 - font.width(row.value())), y, ModPalette.TEXT,
-                    false);
+        Component value = row.value();
+        if (value != null) {
+            int left = InfoRowRenderer.getValueLeft(font, block, row, value, x0, x1);
+            graphics.drawString(font, InfoRowRenderer.clip(font, value, x1 - left), left, y, ModPalette.TEXT, false);
         }
         int cellW = Math.min(block.cellWidth(), (x1 - x0 - row.indent()) / InfoModel.READINGS_PER_ROW);
         for (int i = 0; i < row.cells().size(); i++) {
             graphics.drawString(font, row.cells().get(i), x0 + row.indent() + i * cellW, y, ModPalette.TEXT, false);
         }
     }
-    //endregion
 
-    //region body figure [方块人]
-    private int getFigureScale() {
-        if (activeTab != TAB_BODY) return 0;
-        return BodyFigure.getScale((getValueRight() - getContentLeft()) / FIGURE_SHARE,
-                getContentBottom() - getContentTop());
-    }
+    private void drawTooltips(GuiGraphics graphics, Content content, LocalPlayer player, int mouseX, int mouseY) {
+        if (hoverValue != null) {
+            graphics.renderTooltip(font, hoverValue, mouseX, mouseY);
+            return;
+        }
+        for (ApertureButtons.ColumnButton b : content.buttons()) {
+            if (isOverButton(mouseX, mouseY, b) && ApertureButtons.isClipped(font, b)) {
+                graphics.renderTooltip(font, b.label(), mouseX, mouseY);
+                return;
+            }
+        }
+        Columns columns = content.columns();
+        if (columns == null || activeTab != TAB_BODY || content.bands().isEmpty()) return;
+        if (!isInContent(mouseX, mouseY)) return;
 
-    private int getFigureLeft(int scale) { return getValueRight() - BodyFigure.WIDTH * scale; }
-
-    private int getRowsRight() {
-        int scale = getFigureScale();
-        return scale == 0 ? getValueRight() : getFigureLeft(scale) - COL_GAP;
-    }
-
-    private void drawFigure(SpriteBatch sprites, LocalPlayer player) {
-        int scale = getFigureScale();
-        if (scale == 0) return;
-
-        BodyFigure.draw(sprites, BodyService.getAnatomy(player), getFigureLeft(scale), getContentTop(), scale);
-    }
-
-    private void drawFigureTooltip(GuiGraphics graphics, LocalPlayer player, int mouseX, int mouseY) {
-        int scale = getFigureScale();
-        if (scale == 0) return;
-
-        BodyPart part = BodyFigure.getHovered(mouseX, mouseY, getFigureLeft(scale), getContentTop(), scale);
+        BodyPart part = BodyFigure.getHovered(mouseX, mouseY, columns.figureLeft(),
+                getBandTop(content.bands().getFirst()), columns.scale());
         if (part == null) return;
 
         graphics.renderComponentTooltip(font, BodyFigure.getTooltip(BodyService.getAnatomy(player), part), mouseX,
@@ -290,47 +315,61 @@ public final class PlayerInfoScreen extends Screen {
     }
     //endregion
 
-    //region aperture columns [空窍列]
-    private static boolean hasTwoApertures(LocalPlayer player) {
-        return ApertureService.get(player).count() == 2;
+    //region figure columns [分栏]
+    private Columns getColumns(boolean aperturePage, boolean hasButtons) {
+        int span = getEdgeRight() - getEdgeLeft();
+        int height = getContentBottom() - getContentTop();
+        int buttonW = Math.max(BUTTON_MIN_W, Math.min(ApertureButtons.getLabelWidth(font) + 2 * BUTTON_PAD,
+                span - 2 * FIGURE_MARGIN - BodyFigure.WIDTH - 2 * COLUMN_GAP - TEXT_MIN_W));
+        int figureBudget = span - 2 * FIGURE_MARGIN - 2 * COLUMN_GAP - buttonW - TEXT_MIN_W;
+        int scale = aperturePage ? ApertureFigure.getScale(figureBudget, height)
+                : Math.max(1, BodyFigure.getScale(figureBudget, height));
+        int figureW = (aperturePage ? ApertureFigure.SIZE : BodyFigure.WIDTH) * scale;
+        int figureH = (aperturePage ? ApertureFigure.SIZE : BodyFigure.HEIGHT) * scale;
+        int figureLeft = getEdgeLeft() + FIGURE_MARGIN;
+        int textLeft = figureLeft + figureW + FIGURE_MARGIN + COLUMN_GAP;
+        int buttonLeft = getEdgeRight() - buttonW;
+        return new Columns(scale, figureLeft, figureH, textLeft,
+                hasButtons ? buttonLeft - COLUMN_GAP : getEdgeRight(), buttonLeft);
     }
 
-    private int getColumnWidth() { return (getValueRight() - getContentLeft() - COL_GAP) / 2; }
-    //endregion
-
-    //region per-aperture buttons [空窍按钮]
-    private boolean hasNoButtons(LocalPlayer player) {
-        return activeTab != TAB_APERTURE || !ApertureService.hasAperture(player);
+    private List<Band> getBands(LocalPlayer player, List<RowBlock> blocks, boolean hasButtons, int figureH) {
+        List<Band> bands = new ArrayList<>(blocks.size());
+        int top = 0;
+        for (int i = 0; i < blocks.size(); i++) {
+            RowBlock block = blocks.get(i);
+            List<ApertureButtons.StackButton> stack = hasButtons ? ApertureButtons.buildStackButtons(player, i)
+                    : List.of();
+            int stackH = stack.size() * (BTN_H + BTN_GAP) - BTN_GAP;
+            int height = Math.max(block.rows().size() * LINE_H, Math.max(figureH, stackH));
+            height = Mth.positiveCeilDiv(height, LINE_H) * LINE_H;
+            bands.add(new Band(block, stack, top, height));
+            top += height + LINE_H;
+        }
+        return bands;
     }
 
-    private List<ApertureButtons.ColumnButton> buildBottomButtons(LocalPlayer player) {
-        if (hasTwoApertures(player) || hasNoButtons(player)) return List.of();
-
-        List<ApertureButtons.StackButton> stack = ApertureButtons.buildStackButtons(player, ApertureData.PRIMARY);
-        List<ApertureButtons.ColumnButton> buttons = new ArrayList<>(stack.size());
-        int base = getContentBottom() - stack.size() * (BTN_H + BTN_GAP) + BTN_GAP;
-        place(buttons, stack, getContentLeft(), getValueRight(), base);
-        return buttons;
-    }
-
-    private List<ApertureButtons.ColumnButton> buildColumnButtons(LocalPlayer player, List<RowBlock> groups) {
-        if (hasNoButtons(player)) return List.of();
-
+    private List<ApertureButtons.ColumnButton> placeButtons(List<Band> bands, Columns columns) {
         List<ApertureButtons.ColumnButton> buttons = new ArrayList<>();
-        int colW = getColumnWidth();
-        for (int c = 0; c < groups.size(); c++) {
-            int x0 = getContentLeft() + c * (colW + COL_GAP);
-            int base = getContentTop() + (groups.get(c).rows().size() + 1) * LINE_H;
-            place(buttons, ApertureButtons.buildStackButtons(player, c), x0, x0 + colW, base);
+        for (Band band : bands) {
+            int top = getBandTop(band);
+            for (ApertureButtons.StackButton b : band.stack()) {
+                buttons.add(new ApertureButtons.ColumnButton(b.aperture(), b.kind(), b.label(), columns.buttonLeft(),
+                        getEdgeRight(), top + b.top()));
+            }
         }
         return buttons;
     }
 
-    private static void place(List<ApertureButtons.ColumnButton> buttons, List<ApertureButtons.StackButton> stack,
-                              int x0, int x1, int base) {
-        for (ApertureButtons.StackButton b : stack) {
-            buttons.add(new ApertureButtons.ColumnButton(b.aperture(), b.kind(), b.label(), x0, x1, base + b.top()));
-        }
+    private int getBandTop(Band band) { return getContentTop() + band.top() - scrollRow * LINE_H; }
+
+    private boolean isOverButton(double mouseX, double mouseY, ApertureButtons.ColumnButton b) {
+        return isInContent(mouseX, mouseY) && ApertureButtons.isInBox(mouseX, mouseY, b.x0(), b.x1(), b.top());
+    }
+
+    private boolean isInContent(double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, getEdgeLeft(), getContentTop(), getEdgeRight() - getEdgeLeft(),
+                getContentBottom() - getContentTop());
     }
 
     private boolean clickApertureButtons(double mouseX, double mouseY) {
@@ -338,7 +377,7 @@ public final class PlayerInfoScreen extends Screen {
         if (player == null) return false;
 
         for (ApertureButtons.ColumnButton b : getContent(player).buttons()) {
-            if (!ApertureButtons.isInBox(mouseX, mouseY, b.x0(), b.x1(), b.top())) continue;
+            if (!isOverButton(mouseX, mouseY, b)) continue;
             if (ApertureButtons.click(player, b)) onClose();
             return true;
         }
@@ -452,9 +491,16 @@ public final class PlayerInfoScreen extends Screen {
         void visit(RowBlock block, ScreenRow row, int x0, int x1, int y);
     }
 
-    private record Content(boolean columns, RowBlock block, List<RowBlock> groups,
-                           List<ApertureButtons.ColumnButton> buttons, int visible) {
+    private record Columns(int scale, int figureLeft, int figureH, int textLeft, int textRight, int buttonLeft) {}
 
-        static final Content EMPTY = new Content(false, RowBlock.EMPTY, List.of(), List.of(), 0);
+    private record Band(RowBlock block, List<ApertureButtons.StackButton> stack, int top, int height) {
+
+        int bottom() { return top + height; }
+    }
+
+    private record Content(RowBlock block, int total, int visible, @Nullable Columns columns, List<Band> bands,
+                           List<ApertureButtons.ColumnButton> buttons) {
+
+        static final Content EMPTY = new Content(RowBlock.EMPTY, 0, 0, null, List.of(), List.of());
     }
 }

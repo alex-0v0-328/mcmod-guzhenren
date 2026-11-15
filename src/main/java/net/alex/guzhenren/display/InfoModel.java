@@ -192,7 +192,7 @@ public final class InfoModel {
         }
         for (int i = 0; i < data.count(); i++) {
             rows.add(new Row(0, new ApertureIndex(i + 1, i)));
-            addApertureBlock(rows, data.get(i), true, INDENT, i, !data.get(i).second(),
+            addApertureBlock(rows, data.get(i), true, 0, i, !data.get(i).second(),
                     BodyService.isExtreme(player), ApertureService.getStatus(player, i));
             if (i < data.count() - 1) rows.add(new Row(0, new Blank()));
         }

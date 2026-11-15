@@ -22,7 +22,8 @@ import org.joml.Matrix4f;
  *
  * <ul>
  *   <li>画法同 {@code GuiGraphics.blitSprite}：按 {@code .mcmeta} 拉伸、平铺或九宫格，部分填满的条从左裁切
- *       （{@link #blitLeft}）；但整块四边形进同一缓冲、一次绘制调用；色调乘像素，灰度精灵图借此显示数据色。</li>
+ *       （{@link #blitLeft}），帧图、分层图按块切（{@link #blitRegion}）；但整块四边形进同一缓冲、一次绘制调用；
+ *       色调乘像素，灰度精灵图借此显示数据色。</li>
  *   <li>{@code blitSprite} 每图块单独绘制，中心 20 像素的全屏九宫格面板每帧几百次绘制调用。</li>
  *   <li>{@link #draw} 先 flush 图形队列，块尾画所收四边形：盖住此前填充、压在此后填充与文字下，块内后画盖先画。</li>
  *   <li>九宫格右列宽取右边框；原版 1.21.1 按左边框宽画，左右边框不等的精灵图会被截断。</li>
@@ -78,6 +79,14 @@ public final class SpriteBatch {
     public void blitLeft(ResourceLocation id, int texW, int texH, int x, int y, int width, int tint) {
         if (width <= 0) return;
         addRegion(sprites.getSprite(id), x, y, width, texH, 0, 0, texW, texH, tint);
+    }
+
+    /** 把精灵图中 ({@code u}, {@code v}) 起的一块拉伸画到目标框，无视其缩放方式。 */
+    public void blitRegion(ResourceLocation id, int texW, int texH, int u, int v, int regionW, int regionH, int x, int y,
+                           int width, int height, int tint) {
+        if (width <= 0 || height <= 0) return;
+        addQuad(sprites.getSprite(id), x, y, width, height, (float) u / texW, (float) v / texH,
+                (float) (u + regionW) / texW, (float) (v + regionH) / texH, tint);
     }
 
     //region geometry [几何]

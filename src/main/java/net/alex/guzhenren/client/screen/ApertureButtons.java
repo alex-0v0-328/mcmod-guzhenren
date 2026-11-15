@@ -19,12 +19,14 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * B 面板每个空窍[Aperture]下方的按钮。
+ * B 面板空窍[Aperture]页按钮栏的按钮，每空窍一组。
  * <ul>
  *   <li>上温养[Nourish]空窍、下空窍存储；第一空窍可冲击窍壁时温养换成冲刷窍壁；付不起消耗的按钮画成失效。</li>
  *   <li>温养按钮是当前目标时点亮、框内填进度，再点即取消；开始温养关闭面板。</li>
  *   <li>{@link #draw}、{@link #fillProgress}、{@link #drawLabel} 分开，面板才能一批内先画全部 sprite，再填色，
- *       最后文字；按钮列位置由面板定；标签只建一次。</li>
+ *       最后文字；按钮栏位置、悬停判定由面板定；标签只建一次。</li>
+ *   <li>栏宽取 {@link #getLabelWidth} 量的全部标签最宽者，标签换了栏不跳；面板压窄栏宽时标签截成省略号，
+ *       {@link #isClipped} 供面板悬停补全文提示（英文在 GUI 6 时会截）。</li>
  * </ul>
  *
  * @author Alex
@@ -67,8 +69,16 @@ final class ApertureButtons {
         return withStorage(aperture, buttons, 0);
     }
 
-    static void draw(SpriteBatch sprites, LocalPlayer player, ColumnButton button, int mouseX, int mouseY) {
-        boolean hover = isInBox(mouseX, mouseY, button.x0(), button.x1(), button.top());
+    static int getLabelWidth(Font font) {
+        int width = 0;
+        for (Component label : List.of(LABEL_NOURISH, LABEL_NOURISH_STOP, LABEL_NOURISH_SECOND, LABEL_IMPACT,
+                LABEL_STORAGE)) {
+            width = Math.max(width, font.width(label));
+        }
+        return width;
+    }
+
+    static void draw(SpriteBatch sprites, LocalPlayer player, ColumnButton button, boolean hover) {
         boolean running = button.kind() == Kind.NOURISH && isRunning(player, button.aperture());
         boolean live = switch (button.kind()) {
             case IMPACT -> ApertureNourishService.canAffordImpact(player);
@@ -91,10 +101,22 @@ final class ApertureButtons {
     }
 
     static void drawLabel(GuiGraphics graphics, Font font, ColumnButton button) {
-        int width = button.x1() - button.x0();
-        graphics.drawString(font, button.label(), button.x0() + (width - font.width(button.label())) / 2,
-                button.top() + (PlayerInfoScreen.BTN_H - font.lineHeight) / 2, ModPalette.TEXT, false);
+        int y = button.top() + (PlayerInfoScreen.BTN_H - font.lineHeight) / 2;
+        if (!isClipped(font, button)) {
+            int width = button.x1() - button.x0();
+            graphics.drawString(font, button.label(), button.x0() + (width - font.width(button.label())) / 2, y,
+                    ModPalette.TEXT, false);
+            return;
+        }
+        graphics.drawString(font, InfoRowRenderer.clip(font, button.label(), getLabelRoom(button)),
+                button.x0() + BUTTON_FRAME * 2, y, ModPalette.TEXT, false);
     }
+
+    static boolean isClipped(Font font, ColumnButton button) {
+        return font.width(button.label()) > getLabelRoom(button);
+    }
+
+    private static int getLabelRoom(ColumnButton button) { return button.x1() - button.x0() - BUTTON_FRAME * 4; }
 
     static boolean click(LocalPlayer player, ColumnButton button) {
         switch (button.kind()) {

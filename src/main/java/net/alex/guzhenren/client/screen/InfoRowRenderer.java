@@ -6,9 +6,13 @@ import net.alex.guzhenren.display.InfoModel;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -17,9 +21,11 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 模型只定行和顺序、不定文案；面板分两列放左标签、右可选值。</li>
  *   <li>辅修流派行点开 {@link PathPicker}；标题行无值、用标签页强调色；脑海标题为 {@code null}（标签页已写明）。</li>
  *   <li>{@link #getRows} 把两条道痕[Path Marks]行合占一行（{@code paired}）、力道读数行转成
- *       {@code cells}；{@link #getApertureGroups} 把空窍[Aperture]标签页的模型按空窍分组、去空行，供两列布局。</li>
- *   <li>{@link #getBlock} 把一页行或一列空窍量成 {@link RowBlock}：值从带值行最宽「缩进 + 标签」后一列起，
+ *       {@code cells}；{@link #getApertureGroups} 把空窍[Aperture]标签页的模型按空窍分组、去空行，供空窍页上下分段。</li>
+ *   <li>{@link #getBlock} 把一页行或一段空窍量成 {@link RowBlock}：值从带值行最宽「缩进 + 标签」后一列起，
  *       并排次条道痕从最宽首条后一列起，读数格取最宽，每列加 {@code VALUE_GAP} 16 px；宽度只看行，值贴标签。</li>
+ *   <li>窄栏里（英文、空窍页 GUI 6 文字栏 122）值按 {@link #getValueLeft} 先左移，最多贴到标签后
+ *       {@code VALUE_MIN_GAP}，绝不压标签；仍放不下由 {@link #clip} 截成「...」，面板悬停该行出全文。</li>
  *   <li>{@link #draw} 对 sealed 条目做无 default 的 switch，每种行一个 case：新行不补就编译不过。</li>
  * </ul>
  *
@@ -33,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 final class InfoRowRenderer {
 
     private static final int VALUE_GAP = 16;
+    private static final int VALUE_MIN_GAP = 6;
 
     private InfoRowRenderer() {}
 
@@ -50,6 +57,24 @@ final class InfoRowRenderer {
             for (Component c : row.cells()) cell = Math.max(cell, font.width(c));
         }
         return new RowBlock(rows, label + VALUE_GAP, pair + VALUE_GAP, cell + VALUE_GAP);
+    }
+
+    static int getValueLeft(Font font, RowBlock block, ScreenRow row, Component value, int x0, int x1) {
+        int aligned = x0 + (row.paired() ? block.pairLeft() : block.valueLeft());
+        int afterLabel = x0 + row.indent() + font.width(row.label()) + VALUE_MIN_GAP;
+        return Math.max(afterLabel, Math.min(aligned, x1 - font.width(value)));
+    }
+
+    static boolean isValueClipped(Font font, RowBlock block, ScreenRow row, int x0, int x1) {
+        Component value = row.value();
+        return value != null && getValueLeft(font, block, row, value, x0, x1) + font.width(value) > x1;
+    }
+
+    static FormattedCharSequence clip(Font font, FormattedText text, int width) {
+        if (font.width(text) <= width) return Language.getInstance().getVisualOrder(text);
+
+        FormattedText head = font.substrByWidth(text, width - font.width(CommonComponents.ELLIPSIS));
+        return Language.getInstance().getVisualOrder(FormattedText.composite(head, CommonComponents.ELLIPSIS));
     }
 
     static List<ScreenRow> getRows(List<InfoModel.Row> model) {

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>界面仍每帧向 {@link InfoModel} 取模型；与上次构建所用模型不相等时才由 {@link InfoRowRenderer} 重建。</li>
  *   <li>比较相等而非附件同一性：有些值不在任何附件里（效果攻击加成、效果剩余时间背后的游戏时间），变化当帧须刷新。</li>
- *   <li>普通行、空窍[Aperture]列两槽独立，各存重建时量好的 {@link RowBlock}，不变的帧不再量标签列和值列字宽。</li>
+ *   <li>普通行、空窍[Aperture]段两槽独立，各存重建时量好的 {@link RowBlock}，不变的帧不再量标签列和值列字宽。</li>
  * </ul>
  *
  * @author Alex
