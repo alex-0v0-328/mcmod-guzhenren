@@ -99,7 +99,7 @@ MODELS = {spec.model_id: spec for spec in (
         "texture_stone_tortoise.png": "stone_tortoise.png",
         "texture_phantom.png": "tortoise_phantom.png",
         "texture_phantom_glowmask.png": "tortoise_phantom_glowmask.png",
-    }, witness="tortoise", bones=8, cubes=8, animations=7, keyframes=221, texture_size=128),
+    }, witness="tortoise", bones=8, cubes=8, animations=7, keyframes=244, texture_size=128),
     # The buffalo model serves the yellow ox, the water buffalo and the azure ox, and the ox family's beast phantom.
     model_spec("geckolib-buffalo", "buffalo", {
         "texture_yellow.png": "yellow_ox.png",
