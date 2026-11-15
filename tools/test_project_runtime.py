@@ -1,4 +1,4 @@
-"""Linux integration checks for paths, process ownership and exporter output safety."""
+"""Windows integration checks for paths, process ownership and exporter output safety."""
 import json
 import os
 import signal
@@ -17,6 +17,7 @@ import project_runtime as env
 
 
 SCRATCH = env.TEMP_ROOT / 'test_project_runtime'
+IDLE_JAVA = 'public class Idle { public static void main(String[] a) throws Exception { Thread.sleep(60_000); } }\n'
 
 
 def tearDownModule():
@@ -27,19 +28,44 @@ def tearDownModule():
         pass
 
 
-class LinuxToolTests(unittest.TestCase):
+def end(process):
+    if process.poll() is None:
+        process.kill()
+    process.wait()
+
+
+class WindowsToolTests(unittest.TestCase):
 
     def setUp(self):
         SCRATCH.mkdir(parents=True, exist_ok=True)
         self.scratch = tempfile.TemporaryDirectory(dir=SCRATCH)
         self.root = Path(self.scratch.name)
+        # Registered first, so it runs last: Windows cannot delete a held lock file or a running process's folder.
+        self.addCleanup(self.scratch.cleanup)
 
-    def tearDown(self):
-        self.scratch.cleanup()
+    def hold(self, path, text=''):
+        """Holds the Gradle lock byte of `path` the way another run would; returns its release."""
+        handle = path.open('a+b')
+        if text:
+            handle.write(text.encode('utf-8'))
+            handle.flush()
+        self.assertTrue(env.try_lock(handle), f'{path} was already locked')
+
+        def release():
+            if not handle.closed:
+                env.unlock(handle)
+                handle.close()
+        self.addCleanup(release)
+        return release
+
+    def start(self, command, cwd):
+        process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.addCleanup(end, process)
+        return process
 
     def test_default_paths_keep_checks_in_workspace_temps(self):
-        self.assertEqual(env.TEMP_ROOT, Path('/home/haotianwu/Workspace/Temps/guzhenren'))
-        self.assertEqual(env.GU_WORLD_ROOT, Path('/home/haotianwu/Workspace/Projects/mcmod-guworld'))
+        self.assertEqual(env.TEMP_ROOT, Path.home() / 'Workspace' / 'Temps' / 'guzhenren')
+        self.assertEqual(env.GU_WORLD_ROOT, Path.home() / 'Workspace' / 'Projects' / 'mcmod-guworld')
 
     def test_projects_are_the_two_main_checkouts(self):
         main = env.project('guzhenren')
@@ -65,7 +91,7 @@ class LinuxToolTests(unittest.TestCase):
         for name, root in roots.items():
             owner = env.project(name)
             command = env.gradle_command(owner.root, 'build')
-            self.assertEqual(command[:3], ['bash', str(root / 'gradlew'), 'build'], name)
+            self.assertEqual(command[:2], [str(root / 'gradlew.bat'), 'build'], name)
             self.assertIn(f'-PguWorldDir={roots["guworld"]}', command, name)
             self.assertIn(f'-PguzhenrenDir={roots["guzhenren"]}', command, name)
             self.assertIn(f'-PgameTestDir={owner.temp / "gametest"}', command)
@@ -103,34 +129,44 @@ class LinuxToolTests(unittest.TestCase):
         repo = env.REPOSITORY_ROOT
         moddev = f'java -Dfml.modFolders=guzhenren%%{repo}/build/classes/java/main @{repo}/build/moddev/clientRunVmArgs.txt'
         processes = {1: moddev, 3: f'java -jar {repo}/gradle/wrapper/gradle-wrapper.jar runClient',
-                     4: 'java @/other/build/moddev/clientRunVmArgs.txt'}
-        self.assertEqual(env.game_jvms(processes, repo), [1])
+                     4: 'java @/other/build/moddev/clientRunVmArgs.txt',
+                     5: f'"C:\\jdk\\bin\\java.exe" "@{repo}\\build\\moddev\\serverRunVmArgs.txt"'.upper()}
+        self.assertEqual(env.game_jvms(processes, repo), [1, 5])
         self.assertEqual(env.game_jvms(processes, '/other'), [4])
 
-    def test_java_processes_in_a_folder_match_by_working_directory(self):
-        proc, game, other = self.root / 'proc', self.root / 'server-smoke', self.root / 'run'
-        game.mkdir()
-        other.mkdir()
-        for pid, exe, cwd in ((11, 'java', game), (12, 'java', other), (13, 'python3', game)):
-            entry = proc / str(pid)
-            entry.mkdir(parents=True)
-            (entry / 'exe').symlink_to(f'/usr/bin/{exe}')
-            (entry / 'cwd').symlink_to(cwd)
-            (entry / 'cmdline').write_bytes(f'{exe}\0-jar\0x.jar\0'.encode())
-        self.assertEqual(env.java_processes_in(game, proc), [11])
+    def test_java_inventory_reads_command_line_working_directory_and_exe(self):
+        game, other, spaced = self.root / 'server-smoke', self.root / 'run', self.root / 'project with spaces'
+        for folder in (game, other, spaced):
+            folder.mkdir()
+        source = self.root / 'Idle.java'
+        source.write_text(IDLE_JAVA, encoding='utf-8')
+        java = Path(env.runtime_environment()['JAVA_HOME']) / 'bin' / 'java.exe'
+        launch = f'@{spaced / "build" / "moddev" / "clientRunVmArgs.txt"}'
+        jvm = self.start([str(java), str(source), launch], game)
+        bystander = self.start([sys.executable, '-c', 'import time; time.sleep(60)'], game)
 
-    def test_gradle_wrapper_runs_without_executable_bit_in_spaced_directory(self):
+        found = env.java_processes()
+        self.assertIn(jvm.pid, found)
+        self.assertIn('Idle.java', found[jvm.pid])
+        self.assertNotIn(bystander.pid, found, 'a non-Java process counted as a JVM')
+        self.assertEqual(env.game_jvms({jvm.pid: found[jvm.pid]}, spaced), [jvm.pid])
+        self.assertEqual(env.java_processes_in(game), [jvm.pid])
+        self.assertNotIn(jvm.pid, env.java_processes_in(other))
+        self.assertTrue(env.same_path(env.java_process_dirs()[jvm.pid], game))
+        self.assertTrue(env.same_path(env.process_exe(jvm.pid), java))
+
+    def test_gradle_wrapper_gets_every_argument_intact_in_spaced_directory(self):
         root = self.root / 'project with spaces'
         root.mkdir()
-        (root / 'gradlew').write_text('#!/bin/sh\nprintf "%s\\n" "$@"\n')
-        try:
-            result = subprocess.run(env.gradle_command(root, 'build'), cwd=root, capture_output=True, text=True)
-        except OSError as error:
-            self.fail(f'Linux wrapper could not start: {error}')
+        (root / 'gradlew.bat').write_text(
+            f'@"{sys.executable}" -c "import sys; print(chr(10).join(sys.argv[1:]))" %*\r\n', encoding='utf-8')
+        result = subprocess.run(env.gradle_command(root, 'build'), cwd=root, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('build', result.stdout.splitlines())
-        self.assertIn('-PguWorldDir=/home/haotianwu/Workspace/Projects/mcmod-guworld', result.stdout.splitlines())
-        self.assertIn('--daemon', result.stdout.splitlines())
+        lines = result.stdout.splitlines()
+        self.assertIn('build', lines)
+        self.assertIn(f'-PguWorldDir={env.GU_WORLD_ROOT}', lines)
+        self.assertIn(f'-PguzhenrenDir={root}', lines)
+        self.assertIn('--daemon', lines)
 
     def test_per_run_log_carries_its_pid_and_prunes_only_old_logs_of_ended_runs(self):
         ended = subprocess.Popen([sys.executable, '-c', 'pass'])
@@ -155,37 +191,46 @@ class LinuxToolTests(unittest.TestCase):
 
     def test_process_supplies_jdk21_and_utf8_and_temporary_directory(self):
         log = env.Log('process', self.root)
-        script = 'import os,json; print(json.dumps({k:os.environ.get(k) for k in ["JAVA_HOME","TMPDIR"]})); print("中文")'
+        names = ['JAVA_HOME', 'TMPDIR', 'TMP', 'TEMP']
+        script = f'import os,json; print(json.dumps({{k:os.environ.get(k) for k in {names}}})); print("中文")'
         process = env.Process([sys.executable, '-c', script], self.root, log)
         try:
             self.assertEqual(process.wait(timeout=10), 0)
         finally:
-            if process.proc.poll() is None:
-                process.proc.kill()
-                process.proc.wait()
+            end(process.proc)
             log.close()
-        lines = log.path.read_text().splitlines()
+        lines = log.path.read_text(encoding='utf-8').splitlines()
         values = json.loads(lines[0])
-        self.assertEqual(values['JAVA_HOME'], '/home/haotianwu/.local/share/jdks/jdk-21.0.12.1+1')
-        self.assertEqual(values['TMPDIR'], '/home/haotianwu/Workspace/Temps/guzhenren/tmp')
+        java_home = Path(values['JAVA_HOME'])
+        self.assertRegex((java_home / 'release').read_text(encoding='utf-8'), r'JAVA_VERSION="21[."]')
+        self.assertTrue((java_home / 'bin' / 'javac.exe').is_file())
+        for name in ('TMPDIR', 'TMP', 'TEMP'):
+            self.assertEqual(values[name], str(env.TEMP_ROOT / 'tmp'), name)
         self.assertEqual(lines[1], '中文')
 
-    def test_pid_probe_recognizes_live_and_reaped_linux_processes(self):
+    def test_pid_probe_recognizes_live_and_ended_processes(self):
         process = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'])
         try:
-            try:
-                self.assertTrue(env.pid_alive(process.pid))
-                self.assertTrue(env.pid_alive(os.getpid()))
-            except OSError as error:
-                self.fail(f'Linux PID probe failed: {error}')
+            self.assertTrue(env.pid_alive(process.pid))
+            self.assertTrue(env.pid_alive(os.getpid()))
         finally:
             process.kill()
             process.wait()
+        # Popen still holds the ended process's handle, so its PID cannot have been reused yet.
         self.assertFalse(env.pid_alive(process.pid))
         self.assertFalse(env.pid_alive(-1))
 
+    def test_descendants_skip_a_child_older_than_the_pid_it_names(self):
+        # 13 names PID 10 as its parent but predates the current 10: its real parent ended and 10 was reused.
+        table = {10: (1, 'cmd.exe'), 11: (10, 'java.exe'), 12: (11, 'java.exe'), 13: (10, 'old.exe'),
+                 14: (99, 'other.exe')}
+        born = {10: 100, 11: 110, 12: 120, 13: 50, 14: 10}
+        with patch.object(env, 'process_table', return_value=table), \
+                patch.object(env, '_created', side_effect=born.get):
+            self.assertEqual(sorted(env.descendant_pids(10)), [11, 12])
+
     def test_kill_tree_stops_its_child_and_preserves_unrelated_process(self):
-        unrelated = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+        unrelated = self.start([sys.executable, '-c', 'import time; time.sleep(60)'], self.root)
         log = env.Log('tree', self.root)
         script = ('import subprocess,sys,time; '
                   'child=subprocess.Popen([sys.executable,"-c","import time; time.sleep(60)"]); '
@@ -196,43 +241,27 @@ class LinuxToolTests(unittest.TestCase):
             outcome, line = process.watch(until=lambda _: True, timeout=10)
             self.assertEqual(outcome, 'until')
             child = int(line)
-            self.assertEqual(os.getpgid(process.proc.pid), process.proc.pid,
-                             'the tool must own an isolated process group')
+            self.assertIn(child, env.descendant_pids(process.proc.pid))
             process.kill_tree()
             self.assertIsNotNone(process.proc.poll())
             self.assertFalse(env.pid_alive(child), 'a game descendant survived cleanup')
             self.assertIsNone(unrelated.poll(), 'cleanup killed an unrelated process')
         finally:
-            for pid in [child, process.proc.pid, unrelated.pid]:
+            for pid in [child, process.proc.pid]:
                 if pid:
                     try:
-                        os.kill(pid, signal.SIGKILL)
-                    except ProcessLookupError:
+                        os.kill(pid, signal.SIGTERM)
+                    except OSError:
                         pass
             process.proc.wait()
-            unrelated.wait()
             log.close()
-
-    def test_java_process_inventory_reads_proc(self):
-        proc = self.root / 'proc'
-        entry = proc / '321'
-        entry.mkdir(parents=True)
-        (entry / 'exe').symlink_to('/installed/jdk/bin/java')
-        (entry / 'cmdline').write_bytes(b'java\0@/project with spaces/build/moddev/clientRunVmArgs.txt\0')
-        (proc / 'self').mkdir()
-        try:
-            found = env.java_processes(proc)
-        except TypeError as error:
-            self.fail(f'Linux process inventory is unavailable: {error}')
-        self.assertEqual(list(found), [321])
-        self.assertEqual(env.game_jvms(found, Path('/project with spaces')), [321])
 
     def test_explicit_wrong_jdk_is_rejected_before_launch(self):
         self.assertTrue(hasattr(env, 'runtime_environment'), 'the launch environment must validate the JDK')
         wrong = self.root / 'jdk25'
         (wrong / 'bin').mkdir(parents=True)
-        (wrong / 'bin/java').touch()
-        (wrong / 'bin/javac').touch()
+        (wrong / 'bin' / 'java.exe').touch()
+        (wrong / 'bin' / 'javac.exe').touch()
         (wrong / 'release').write_text('JAVA_VERSION="25.0.4"\n')
         with self.assertRaises(SystemExit):
             env.runtime_environment({'GZR_JAVA_HOME': str(wrong)})
@@ -247,7 +276,7 @@ class LinuxToolTests(unittest.TestCase):
         self.assertEqual(target.read_text(), 'original')
         self.assertEqual(list(target.parent.glob('*.tmp')), [])
 
-    def test_exporters_honor_linux_model_authority_override(self):
+    def test_exporters_honor_model_authority_override(self):
         models = self.root / 'model authority'
         script = ('import bbmodel_to_geckolib, json; '
                   'print(json.dumps([str(m.source_model) for m in bbmodel_to_geckolib.MODELS.values()]))')
@@ -259,7 +288,7 @@ class LinuxToolTests(unittest.TestCase):
         for path in json.loads(result.stdout):
             self.assertTrue(Path(path).is_relative_to(models), path)
 
-    def test_stale_pid_metadata_does_not_prevent_kernel_lock_acquisition(self):
+    def test_stale_pid_metadata_does_not_prevent_lock_acquisition(self):
         path = self.root / 'gradle.lock'
         path.write_text(str(os.getpid()))
         try:
@@ -272,41 +301,31 @@ class LinuxToolTests(unittest.TestCase):
         with env.Lock(path):
             pass
 
-    def test_lock_wait_blocks_in_the_kernel_and_beats_a_flock_waiter_queue(self):
-        import fcntl
+    def test_lock_waiter_takes_the_lock_soon_after_release(self):
         path = self.root / 'queue.lock'
-        with path.open('w+') as holder:
-            fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            # A hand-run `flock` waiter that keeps re-taking the lock for a moment after each release would starve
-            # a poller; a kernel waiter gets its turn.
-            hog = subprocess.Popen(['bash', '-c', 'for i in $(seq 1 40); do flock "$1" sleep 0.05; done', '_',
-                                    str(path)])
-            try:
-                time.sleep(0.2)
-                started = time.monotonic()
-                holder_release = threading.Timer(0.3, lambda: fcntl.flock(holder, fcntl.LOCK_UN))
-                holder_release.start()
-                with env.Lock(path, wait=10, echo=lambda *a, **k: None, poll=5.0):
-                    waited = time.monotonic() - started
-                self.assertLess(waited, 4.0, f'the tool waited {waited:.1f}s behind a flock queue')
-            finally:
-                hog.kill(); hog.wait()
+        release = self.hold(path)
+        holder_release = threading.Timer(0.3, release)
+        holder_release.start()
+        started = time.monotonic()
+        try:
+            with env.Lock(path, wait=10, echo=lambda *a, **k: None, poll=0.05):
+                waited = time.monotonic() - started
+        finally:
+            holder_release.join()
+        self.assertGreaterEqual(waited, 0.25, 'took a lock that was still held')
+        self.assertLess(waited, 2.0, f'the tool waited {waited:.1f}s after the release')
 
     def test_lock_wait_still_gives_up_at_the_deadline(self):
-        import fcntl
         path = self.root / 'deadline.lock'
-        with path.open('w+') as holder:
-            holder.write('4242'); holder.flush()
-            fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            started = time.monotonic()
-            with self.assertRaises(SystemExit) as caught:
-                with env.Lock(path, wait=0.5, echo=lambda *a, **k: None):
-                    self.fail('acquired a held lock')
-            self.assertIn('4242', str(caught.exception))
-            self.assertLess(time.monotonic() - started, 3.0)
+        self.hold(path, '4242')
+        started = time.monotonic()
+        with self.assertRaises(SystemExit) as caught:
+            with env.Lock(path, wait=0.5, echo=lambda *a, **k: None):
+                self.fail('acquired a held lock')
+        self.assertIn('4242', str(caught.exception))
+        self.assertLess(time.monotonic() - started, 3.0)
 
     def test_lock_rejection_preserves_existing_check_and_ship_logs(self):
-        import fcntl
         for name, arguments in [('local_checks', ['build']),
                                 ('commit_push', [str(self.root / 'plan.json'), '--dry-run'])]:
             project_temp = self.root / name
@@ -314,16 +333,31 @@ class LinuxToolTests(unittest.TestCase):
             logfile = project_temp / 'logs' / f'{name}.log'
             logfile.write_text('active run evidence\n')
             (self.root / 'plan.json').write_text(json.dumps({'commits': [{'title': 'chore: test', 'files': ['a']}] }))
-            lockfile = project_temp / 'gradle.lock'
-            with lockfile.open('w+') as handle:
-                handle.write(str(os.getpid())); handle.flush()
-                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                environment = dict(os.environ, GZR_TEMP=str(project_temp), GZR_LOCK_WAIT='0')
-                result = subprocess.run([sys.executable, '-B', str(env.REPOSITORY_ROOT / 'tools' / f'{name}.py'),
-                                         *arguments], env=environment, capture_output=True, text=True)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn('another local_checks/commit_push run', result.stderr)
-                self.assertEqual(logfile.read_text(), 'active run evidence\n', name)
+            self.hold(project_temp / 'gradle.lock', str(os.getpid()))
+            environment = dict(os.environ, GZR_TEMP=str(project_temp), GZR_LOCK_WAIT='0')
+            result = subprocess.run([sys.executable, '-B', str(env.REPOSITORY_ROOT / 'tools' / f'{name}.py'),
+                                     *arguments], env=environment, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('another local_checks/commit_push run', result.stderr)
+            self.assertEqual(logfile.read_text(), 'active run evidence\n', name)
+
+    def test_hand_run_command_holds_the_shared_lock_and_returns_its_exit_code(self):
+        temp = self.root / 'manual'
+        temp.mkdir()
+        lockfile = temp / 'gradle.lock'
+        environment = dict(os.environ, GZR_TEMP=str(temp), GZR_LOCK_WAIT='0')
+        # The command reads the lock file while its runner holds the lock: the holder's PID stays readable.
+        probe = [sys.executable, '-c', 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).read_text()); sys.exit(3)',
+                 str(lockfile)]
+        runner = [sys.executable, '-B', str(env.REPOSITORY_ROOT / 'tools' / 'project_runtime.py'), *probe]
+        result = subprocess.run(runner, env=environment, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertTrue(result.stdout.strip().isdigit(), result.stdout)
+        self.assertEqual(lockfile.read_text(), '', 'the runner left its PID behind')
+        self.hold(lockfile, '4242')
+        result = subprocess.run(runner, env=environment, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 3, 'the command ran without the lock')
+        self.assertIn('4242', result.stderr)
 
     def test_interruption_cleans_owned_process_before_releasing_lock(self):
         self.assertTrue(hasattr(env.Process, '__exit__'), 'owned processes need exception-safe cleanup')
@@ -338,13 +372,14 @@ class LinuxToolTests(unittest.TestCase):
             with env.Lock(self.root / 'interrupt.lock'):
                 self.assertFalse(env.pid_alive(process.proc.pid))
         finally:
-            if process.proc.poll() is None:
-                process.proc.kill(); process.proc.wait()
+            end(process.proc)
             log.close()
 
     def test_gradle_timeout_is_total_even_when_output_keeps_arriving(self):
-        wrapper = self.root / 'gradlew'
-        wrapper.write_text('#!/bin/sh\ni=0; while [ "$i" -lt 100 ]; do echo tick; sleep 0.01; i=$((i+1)); done\n')
+        wrapper = self.root / 'gradlew.bat'
+        wrapper.write_text(f'@"{sys.executable}" -c "import time; '
+                           '[(print(\'tick\', flush=True), time.sleep(0.01)) for _ in range(300)]"\r\n',
+                           encoding='utf-8')
         log = env.Log('timeout', self.root)
         try:
             code, seconds, _ = check.gradle(check.Context(self.root, log), 'build', timeout=0.1)

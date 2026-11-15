@@ -1,5 +1,7 @@
 # Every text file is stored and checked out with LF; Git detects which files are text.
 * text=auto eol=lf
+# cmd.exe misreads labels and blocks in a batch file with bare LF line ends.
+*.bat text eol=crlf
 
 # Disable autocrlf on generated files, they always generate with LF
 # Add any extra files or paths here to make git stop saying they

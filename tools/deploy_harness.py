@@ -1,6 +1,6 @@
 """Deploys the always-on skills and the SessionStart hook from this repository into ~/.claude.
 
-    python3 -B tools/deploy_harness.py    copies .claude/skills/<always-on> and .claude/hooks/session_start.py
+    python -B tools/deploy_harness.py    copies .claude/skills/<always-on> and .claude/hooks/session_start.py
 
 The repository copies are the source. The user-level SessionStart hook (~/.claude/settings.json) runs the deployed
 script, which injects the deployed skills into every local Claude Code session of every project; Codex and opencode

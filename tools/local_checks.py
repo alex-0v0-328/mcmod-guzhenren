@@ -4,11 +4,11 @@ A stage that loads the other mod builds that mod's jar first, once per run, and 
 (project_runtime.PROJECTS, partner): Guzhenren's game stages (gametest, server, client) load the sibling Gu
 World, which supplies every dimension; every Gu World stage loads Guzhenren, its required mod.
 
-    python3 -B tools/local_checks.py                   every stage (client and multiplayer open a game window, ~1 min each)
-    python3 -B tools/local_checks.py --headless        every stage except the two that open a game window
-    python3 -B tools/local_checks.py gametest data     only the named stages, always in the canonical order
-    python3 -B tools/local_checks.py --list            what each stage covers
-    python3 -B tools/local_checks.py --project guworld the sibling Gu World: build, GameTests, runData drift
+    python -B tools/local_checks.py                   every stage (client and multiplayer open a game window, ~1 min each)
+    python -B tools/local_checks.py --headless        every stage except the two that open a game window
+    python -B tools/local_checks.py gametest data     only the named stages, always in the canonical order
+    python -B tools/local_checks.py --list            what each stage covers
+    python -B tools/local_checks.py --project guworld the sibling Gu World: build, GameTests, runData drift
 
 The full output of every stage goes to <Temp>/<project>/logs/local_checks-<pid>.log, one per run;
 the console shows one summary line per stage. Exit code 0 means every stage that ran passed.
@@ -111,7 +111,7 @@ def gradle(ctx, *arguments, patterns=(), timeout=1800, root=None, project=None):
     root = root or ctx.root
     collector = Collector(TASK_FAILED, *patterns)
     started = time.monotonic()
-    ctx.log.write(f'$ gradlew {" ".join(arguments)}   (in {root})')
+    ctx.log.write(f'$ gradlew.bat {" ".join(arguments)}   (in {root})')
     deadline = started + timeout
     command = env.gradle_command(root, *arguments, project=project or ctx.project)
     with env.Process(command, root, ctx.log) as process:
@@ -239,7 +239,7 @@ def partner_problem(ctx, root=None):
         partner = env.partner_of(ctx.project)
         root = root or ctx.project.partner
         name = ctx.project.partner_name
-        if not (root / 'gradlew').exists():
+        if not (root / 'gradlew.bat').exists():
             ctx.partner = f'{name} not found at {root}; {", ".join(ctx.project.partner_stages)} load its jar'
             return ctx.partner
         ctx.log.section(name)
@@ -694,7 +694,7 @@ def main(argv):
             if name in project.stages:
                 print(f'{name:<11} {description}')
         return 0
-    env.require_linux()
+    env.require_windows()
     names = select(args.stages, args.headless, project)
     wiki = None if args.no_wiki or not project.wiki_gate or not env.wiki_available() else env.WIKI_ROOT
     with env.Lock(wait=env.LOCK_WAIT):

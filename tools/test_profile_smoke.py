@@ -1,8 +1,8 @@
 """Unit checks for profile_smoke.py: the jfr dump parser, the mod attribution and the game-JVM role lookup."""
-import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import profile_smoke as profile
 
@@ -99,26 +99,17 @@ class GameRoleTests(unittest.TestCase):
     def test_roles_follow_the_stage_game_dirs_and_jdk_of_each_jvm(self):
         with tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
-            proc = root / 'proc'
             temp = root / 'temps' / 'guzhenren'
             jdk_bin = root / 'jdk' / 'bin'
-            jdk_bin.mkdir(parents=True)
-            (jdk_bin / 'java').write_text('', encoding='utf-8')
-            for pid, folder in ((101, temp / 'multiplayer-server'), (102, temp / 'multiplayer-client'),
-                                (103, temp / 'something-else')):
-                folder.mkdir(parents=True)
-                entry = proc / str(pid)
-                entry.mkdir(parents=True)
-                os.symlink(jdk_bin / 'java', entry / 'exe')
-                os.symlink(folder, entry / 'cwd')
-                (entry / 'cmdline').write_bytes(b'java\0-jar\0game.jar\0')
-            # A non-Java process and a dead entry are skipped.
-            other = proc / '104'
-            other.mkdir()
-            os.symlink(root / 'bin' / 'python3', other / 'exe')
-            (proc / 'self').mkdir()
-
-            roles = profile.game_roles(temp, proc_root=proc)
+            # Windows hands the working directory back in whatever case and slash the launcher used.
+            dirs = {101: temp / 'multiplayer-server', 102: Path(str(temp / 'Multiplayer-Client').upper()),
+                    103: temp / 'something-else', 104: root / 'multiplayer-server'}
+            exes = {101: jdk_bin / 'java.exe', 102: jdk_bin / 'java.exe', 103: jdk_bin / 'java.exe'}
+            # 104 sits in a game-dir name outside the stage's Temp folder; 105 ended before its exe was read.
+            dirs[105] = temp / 'server-smoke'
+            with patch.object(profile.env, 'java_process_dirs', return_value=dirs), \
+                    patch.object(profile.env, 'process_exe', side_effect=exes.get):
+                roles = profile.game_roles(temp)
 
         self.assertEqual({'server': (101, jdk_bin), 'client': (102, jdk_bin)}, roles)
 

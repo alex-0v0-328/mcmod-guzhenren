@@ -1,10 +1,10 @@
 """One-command commit and push: verify the exact tree CI will see, commit each group, push, wait for CI.
 
-    python3 -B tools/commit_push.py PLAN.json             preflight, CI mirror, commit, contributor gate, push, wait for CI
-    python3 -B tools/commit_push.py PLAN.json --dry-run   preflight and CI mirror only
-    python3 -B tools/commit_push.py --push-only           contributor gate, push, wait for CI (after fixing a failed gate)
-    python3 -B tools/commit_push.py PLAN.json --project guworld    the same for the sibling Gu World repository
-    python3 -B tools/commit_push.py --ci [SHA]           wait for the GitHub Actions run of SHA (default HEAD)
+    python -B tools/commit_push.py PLAN.json             preflight, CI mirror, commit, contributor gate, push, wait for CI
+    python -B tools/commit_push.py PLAN.json --dry-run   preflight and CI mirror only
+    python -B tools/commit_push.py --push-only           contributor gate, push, wait for CI (after fixing a failed gate)
+    python -B tools/commit_push.py PLAN.json --project guworld    the same for the sibling Gu World repository
+    python -B tools/commit_push.py --ci [SHA]           wait for the GitHub Actions run of SHA (default HEAD)
 
 PLAN.json lists the commits in order, with their Conventional Commits titles and an optional body
 (which may end in a BREAKING CHANGE footer):
@@ -498,7 +498,7 @@ class Shipper:
         if problems:
             self.report('contrib', 'FAIL', 'an AI would show up as a contributor', problems)
             raise Stop('contributor gate failed; the commits stay local, NOT pushed. Fix them, then run '
-                       'python3 -B tools/commit_push.py --push-only')
+                       'python -B tools/commit_push.py --push-only')
         self.report('contrib', 'PASS', f'{len(records)} unpushed commit(s) carry {identity[0]} <{identity[1]}> '
                     f'alone, no co-author or generated-with lines')
 
@@ -515,7 +515,7 @@ class Shipper:
             return True
         state = 'unknown (timed out or API unreachable)' if conclusion is None else conclusion
         self.report('ci', 'FAIL', f'GitHub Actions {state} on {head[:7]}',
-                    ([url] if url else []) + [f're-check: python3 -B tools/commit_push.py --ci {head[:7]}'
+                    ([url] if url else []) + [f're-check: python -B tools/commit_push.py --ci {head[:7]}'
                                               + self.project_flags()])
         return False
 
@@ -563,7 +563,7 @@ def main(argv):
         parser.error('--push-only already waits for CI')
     if not (args.push_only or args.ci) and not args.plan:
         parser.error('a plan is required unless --push-only or --ci')
-    env.require_linux()
+    env.require_windows()
     project = env.project(args.project)
     if args.ci:
         sha = env.git('rev-parse', args.ci, cwd=project.root)[1].strip()

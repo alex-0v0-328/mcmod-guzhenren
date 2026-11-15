@@ -9,7 +9,7 @@ project_doc_max_bytes = 65536
 [[hooks.SessionStart]]
 [[hooks.SessionStart.hooks]]
 type = "command"
-command = "python3 -B \"$(git rev-parse --show-toplevel)/.claude/hooks/session_start.py\" --codex"
+command = "python -B \"$(git rev-parse --show-toplevel)/.claude/hooks/session_start.py\" --codex"
 additional_context_limit = 20000
 
 # MCP servers: the same three as Claude Code's and opencode's; credentials stay in the environment.

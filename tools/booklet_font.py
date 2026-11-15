@@ -1,7 +1,7 @@
 """Bitmap fonts for the booklets [书册], cut from the Fusion Pixel 12px monospaced BDF fonts.
 
-    python3 -B tools/booklet_font.py            cut every glyph Booklet.java uses into both fonts, copy the licenses
-    python3 -B tools/booklet_font.py --check    fail when the shipped fonts or licenses differ from a fresh cut
+    python -B tools/booklet_font.py            cut every glyph Booklet.java uses into both fonts, copy the licenses
+    python -B tools/booklet_font.py --check    fail when the shipped fonts or licenses differ from a fresh cut
 
 Collects every non-ASCII, non-space code point from the string literals of Booklet.java and cuts each one from the
 zh_hans and the zh_hant BDF into a 12x12 cell, one glyph pixel to one GUI pixel, white ink on transparency. Each

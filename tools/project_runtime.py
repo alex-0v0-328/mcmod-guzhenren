@@ -1,17 +1,20 @@
-"""Linux plumbing for local_checks.py and commit_push.py: project paths, logs and owned processes.
+"""Windows plumbing for local_checks.py and commit_push.py: project paths, logs and owned processes.
 
-The tools use bash and each repository's Gradle wrapper with JDK 21. Temporary files live under
-Workspace/Temps; GZR_TEMP, GZR_GU_WORLD, GZR_WIKI, GZR_MODELS and GZR_JAVA_HOME override local paths.
+The tools use each repository's gradlew.bat with JDK 21. Temporary files live under Workspace/Temps;
+GZR_TEMP, GZR_GU_WORLD, GZR_WIKI, GZR_MODELS and GZR_JAVA_HOME override local paths.
 One Gradle lock covers every project, so parallel sessions never build the same folder at once: a run queues
-for it up to GZR_LOCK_WAIT seconds (default an hour).
+for it up to GZR_LOCK_WAIT seconds (default an hour). A hand-run Gradle command takes the same lock through
+
+    python -B tools/project_runtime.py gradlew.bat runClient     any command, run once the lock is free
+
+Processes are read through the Win32 API (ctypes): the toolhelp snapshot for parents, the PEB for command
+lines and working directories. The tools expect 64-bit Python; the path helpers import on any system.
 """
-import fcntl
+import argparse
 import hashlib
 import html
 import os
 import queue
-import shlex
-import signal
 import re
 import shutil
 import stat
@@ -21,6 +24,11 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
+
+if sys.platform == 'win32':
+    import ctypes
+    import msvcrt
+    from ctypes import wintypes
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -88,9 +96,9 @@ def mod_roots(owner, root=None):
     return (owner.partner, root) if owner.name == 'guzhenren' else (root, owner.partner)
 
 
-def require_linux():
-    if not sys.platform.startswith('linux'):
-        raise SystemExit("These tools run on Linux; use this workstation's Python 3.")
+def require_windows():
+    if sys.platform != 'win32' or ctypes.sizeof(ctypes.c_void_p) != 8:
+        raise SystemExit("These tools run on Windows with 64-bit Python; use this workstation's Python 3.")
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8')
@@ -108,7 +116,10 @@ def runtime_environment(overrides=None):
         candidates = [Path(configured).expanduser()]
     else:
         candidates = []
-        for folder in [Path.home() / '.local/share/jdks', Path.home() / '.jdks', Path('/usr/lib/jvm')]:
+        program_files = Path(environment.get('ProgramFiles') or r'C:\Program Files')
+        # IDEA's downloads, then the usual installers (Temurin, Oracle, Microsoft, Zulu).
+        for folder in [Path.home() / '.jdks', program_files / 'Eclipse Adoptium', program_files / 'Java',
+                       program_files / 'Microsoft', program_files / 'Zulu']:
             if folder.is_dir():
                 candidates.extend(sorted(folder.iterdir()))
     for candidate in candidates:
@@ -117,7 +128,7 @@ def runtime_environment(overrides=None):
         except OSError:
             continue
         if (re.search(r'^JAVA_VERSION="21(?:[.+-]|"|$)', release, re.M)
-                and (candidate / 'bin/java').is_file() and (candidate / 'bin/javac').is_file()):
+                and (candidate / 'bin' / 'java.exe').is_file() and (candidate / 'bin' / 'javac.exe').is_file()):
             java_home = candidate.resolve()
             break
     else:
@@ -127,10 +138,15 @@ def runtime_environment(overrides=None):
     temporary.mkdir(parents=True, exist_ok=True)
     environment['JAVA_HOME'] = str(java_home)
     environment['PATH'] = str(java_home / 'bin') + os.pathsep + environment.get('PATH', '')
-    environment['TMPDIR'] = str(temporary)
+    # TMP and TEMP are what Windows programs read; TMPDIR is Python's first choice.
+    for name in ('TMPDIR', 'TMP', 'TEMP'):
+        environment[name] = str(temporary)
     environment['PYTHONDONTWRITEBYTECODE'] = '1'
+    # A pipe gets the Windows code page (GBK here) unless asked otherwise; the logs and the parsers read UTF-8.
+    environment['PYTHONIOENCODING'] = 'utf-8'
     java_options = environment.get('JAVA_TOOL_OPTIONS', '')
-    environment['JAVA_TOOL_OPTIONS'] = (java_options + f' -Djava.io.tmpdir="{temporary}"').strip()
+    environment['JAVA_TOOL_OPTIONS'] = (java_options + f' -Djava.io.tmpdir="{temporary}"'
+                                        ' -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8').strip()
     return environment
 
 
@@ -186,17 +202,40 @@ class Log:
         self._handle.close()
 
 
+# The byte the Gradle lock holds, far past the holder's PID text: a Windows byte-range lock also bars every other
+# handle from reading the bytes it covers, and waiters read the PID to say whom they wait for.
+LOCK_BYTE = 0x7FFF0000
+
+
+def try_lock(handle):
+    """Takes the lock byte of an open lock file without waiting; False while another handle holds it."""
+    handle.seek(LOCK_BYTE)
+    try:
+        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        return True
+    except OSError:
+        return False
+    finally:
+        handle.seek(0)
+
+
+def unlock(handle):
+    """Releases the lock byte; closing the handle alone frees it only when Windows gets round to it."""
+    handle.seek(LOCK_BYTE)
+    try:
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+    finally:
+        handle.seek(0)
+
+
 class Lock:
-    """One kernel lock for all projects. Keep its inode in place while tools may be running.
+    """One Windows file lock for all projects. Keep the lock file in place while tools may be running.
 
     A held lock makes the caller wait up to `wait` seconds (0: give up at once), saying once whom it waits for.
-    The wait is a blocking `flock(2)` under an alarm, never a poll: hand-run `flock gradle.lock <command>` waiters
-    block in the kernel, and a poller that only retries every few seconds loses every release to them and starves."""
+    Windows offers no blocking wait with a deadline on a byte-range lock, so a waiter retries every `poll` seconds.
+    Every waiter (these tools and `project_runtime.py <command>`) polls alike, so none starves the others."""
 
-    class _Timeout(Exception):
-        pass
-
-    def __init__(self, path=None, wait=0, echo=print, poll=2.0):
+    def __init__(self, path=None, wait=0, echo=print, poll=0.2):
         self.path = Path(path or TEMP_ROOT / 'gradle.lock')
         self.wait = wait
         self.echo = echo
@@ -205,57 +244,31 @@ class Lock:
 
     def __enter__(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        handle = self.path.open('a+', encoding='utf-8')
+        handle = self.path.open('a+b')
         deadline = time.monotonic() + self.wait
         told = False
-        while True:
-            try:
-                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except BlockingIOError:
-                handle.seek(0)
-                holder = handle.read().strip() or 'starting'
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    handle.close()
-                    raise SystemExit(f'another local_checks/commit_push run (pid {holder}) is using Gradle; '
-                                     'wait for it to finish') from None
-                if not told:
-                    self.echo(f'waiting for the Gradle lock (pid {holder}) ...', flush=True)
-                    told = True
-                if self._block(handle, remaining):
-                    break
+        while not try_lock(handle):
+            holder = handle.read().decode('utf-8', errors='replace').strip() or 'starting'
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                handle.close()
+                raise SystemExit(f'another local_checks/commit_push run (pid {holder}) is using Gradle; '
+                                 'wait for it to finish') from None
+            if not told:
+                self.echo(f'waiting for the Gradle lock (pid {holder}) ...', flush=True)
+                told = True
+            time.sleep(min(self.poll, remaining))
         try:
             handle.seek(0)
             handle.truncate()
-            handle.write(str(os.getpid()))
+            handle.write(str(os.getpid()).encode('utf-8'))
             handle.flush()
         except BaseException:
+            unlock(handle)
             handle.close()
             raise
         self._handle = handle
         return self
-
-    def _block(self, handle, remaining):
-        """Blocks on the lock for up to `remaining` seconds; True once held. Off the main thread, where no alarm can
-        interrupt the call, it sleeps one poll instead and reports False so the caller retries."""
-        if threading.current_thread() is not threading.main_thread():
-            time.sleep(min(self.poll, remaining))
-            return False
-
-        def expire(signum, frame):
-            raise Lock._Timeout()
-
-        previous = signal.signal(signal.SIGALRM, expire)
-        signal.setitimer(signal.ITIMER_REAL, remaining)
-        try:
-            fcntl.flock(handle, fcntl.LOCK_EX)
-            return True
-        except Lock._Timeout:
-            return False
-        finally:
-            signal.setitimer(signal.ITIMER_REAL, 0)
-            signal.signal(signal.SIGALRM, previous)
 
     def __exit__(self, *exc):
         if self._handle is not None:
@@ -264,51 +277,221 @@ class Lock:
                 self._handle.truncate()
                 self._handle.flush()
             finally:
-                self._handle.close()
-                self._handle = None
+                try:
+                    unlock(self._handle)
+                finally:
+                    self._handle.close()
+                    self._handle = None
+
+
+# ----- Win32 process access ---------------------------------------------------------------------------
+
+PROCESS_TERMINATE = 0x0001
+PROCESS_VM_READ = 0x0010
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+SYNCHRONIZE = 0x00100000
+WAIT_TIMEOUT = 0x00000102
+ERROR_ACCESS_DENIED = 5
+TH32CS_SNAPPROCESS = 0x00000002
+# Offsets in the 64-bit PEB and its RTL_USER_PROCESS_PARAMETERS, unchanged since 64-bit Windows XP.
+PEB_PROCESS_PARAMETERS = 0x20
+PARAMETERS_CURRENT_DIRECTORY = 0x38
+PARAMETERS_COMMAND_LINE = 0x70
+JAVA_EXES = ('java.exe', 'javaw.exe')
+
+if sys.platform == 'win32':
+    class _ProcessEntry(ctypes.Structure):
+        _fields_ = [('dwSize', wintypes.DWORD), ('cntUsage', wintypes.DWORD), ('th32ProcessID', wintypes.DWORD),
+                    ('th32DefaultHeapID', ctypes.c_size_t), ('th32ModuleID', wintypes.DWORD),
+                    ('cntThreads', wintypes.DWORD), ('th32ParentProcessID', wintypes.DWORD),
+                    ('pcPriClassBase', ctypes.c_long), ('dwFlags', wintypes.DWORD),
+                    ('szExeFile', ctypes.c_wchar * 260)]
+
+    class _UnicodeString(ctypes.Structure):
+        _fields_ = [('Length', wintypes.USHORT), ('MaximumLength', wintypes.USHORT), ('Buffer', ctypes.c_void_p)]
+
+    class _BasicInformation(ctypes.Structure):
+        _fields_ = [('ExitStatus', ctypes.c_long), ('PebBaseAddress', ctypes.c_void_p),
+                    ('AffinityMask', ctypes.c_size_t), ('BasePriority', ctypes.c_long),
+                    ('UniqueProcessId', ctypes.c_size_t), ('InheritedFromUniqueProcessId', ctypes.c_size_t)]
+
+    def _function(library, name, result, *arguments):
+        function = getattr(library, name)
+        function.restype, function.argtypes = result, arguments
+        return function
+
+    _kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    _ntdll = ctypes.WinDLL('ntdll')
+    _OpenProcess = _function(_kernel32, 'OpenProcess', wintypes.HANDLE, wintypes.DWORD, wintypes.BOOL,
+                             wintypes.DWORD)
+    _CloseHandle = _function(_kernel32, 'CloseHandle', wintypes.BOOL, wintypes.HANDLE)
+    _WaitForSingleObject = _function(_kernel32, 'WaitForSingleObject', wintypes.DWORD, wintypes.HANDLE,
+                                     wintypes.DWORD)
+    _TerminateProcess = _function(_kernel32, 'TerminateProcess', wintypes.BOOL, wintypes.HANDLE, wintypes.UINT)
+    _GetProcessTimes = _function(_kernel32, 'GetProcessTimes', wintypes.BOOL, wintypes.HANDLE,
+                                 *[ctypes.POINTER(wintypes.FILETIME)] * 4)
+    _QueryFullProcessImageNameW = _function(_kernel32, 'QueryFullProcessImageNameW', wintypes.BOOL,
+                                            wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR,
+                                            ctypes.POINTER(wintypes.DWORD))
+    _CreateToolhelp32Snapshot = _function(_kernel32, 'CreateToolhelp32Snapshot', wintypes.HANDLE, wintypes.DWORD,
+                                          wintypes.DWORD)
+    _Process32FirstW = _function(_kernel32, 'Process32FirstW', wintypes.BOOL, wintypes.HANDLE,
+                                 ctypes.POINTER(_ProcessEntry))
+    _Process32NextW = _function(_kernel32, 'Process32NextW', wintypes.BOOL, wintypes.HANDLE,
+                                ctypes.POINTER(_ProcessEntry))
+    _ReadProcessMemory = _function(_kernel32, 'ReadProcessMemory', wintypes.BOOL, wintypes.HANDLE, ctypes.c_void_p,
+                                   ctypes.c_void_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t))
+    _NtQueryInformationProcess = _function(_ntdll, 'NtQueryInformationProcess', ctypes.c_long, wintypes.HANDLE,
+                                           ctypes.c_ulong, ctypes.c_void_p, ctypes.c_ulong,
+                                           ctypes.POINTER(ctypes.c_ulong))
+    _INVALID_HANDLE = ctypes.c_void_p(-1).value
+
+
+class _Opened:
+    """A process handle closed on exit; None inside when the process is gone or not ours to open."""
+
+    def __init__(self, pid, access):
+        self.handle = _OpenProcess(access, False, pid) if pid > 0 else None
+        self.error = 0 if self.handle else ctypes.get_last_error()
+
+    def __enter__(self):
+        return self.handle
+
+    def __exit__(self, *exc):
+        if self.handle:
+            _CloseHandle(self.handle)
 
 
 def pid_alive(pid):
+    """True while the process runs; an exited one whose handle someone still holds counts as gone."""
     if pid <= 0:
         return False
+    opened = _Opened(pid, SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION)
+    with opened as handle:
+        if not handle:
+            return opened.error == ERROR_ACCESS_DENIED
+        return _WaitForSingleObject(handle, 0) == WAIT_TIMEOUT
+
+
+def process_table():
+    """{pid: (parent pid, exe file name)} of every running process."""
+    snapshot = _CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+    if not snapshot or snapshot == _INVALID_HANDLE:
+        raise OSError(ctypes.get_last_error(), 'CreateToolhelp32Snapshot failed')
     try:
-        state = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0]
-        return state not in {'Z', 'X'}
-    except FileNotFoundError:
-        return False
-    except PermissionError:
-        return True
+        entry = _ProcessEntry(dwSize=ctypes.sizeof(_ProcessEntry))
+        table = {}
+        more = _Process32FirstW(snapshot, ctypes.byref(entry))
+        while more:
+            table[entry.th32ProcessID] = (entry.th32ParentProcessID, entry.szExeFile)
+            more = _Process32NextW(snapshot, ctypes.byref(entry))
+        return table
+    finally:
+        _CloseHandle(snapshot)
+
+
+def _created(pid):
+    """The process's creation time in FILETIME ticks, or None."""
+    with _Opened(pid, PROCESS_QUERY_LIMITED_INFORMATION) as handle:
+        if not handle:
+            return None
+        times = [wintypes.FILETIME() for _ in range(4)]
+        if not _GetProcessTimes(handle, *(ctypes.byref(time_) for time_ in times)):
+            return None
+        return times[0].dwHighDateTime << 32 | times[0].dwLowDateTime
 
 
 def descendant_pids(pid):
-    parents = {}
-    for entry in Path('/proc').iterdir():
-        if not entry.name.isdigit():
-            continue
-        try:
-            fields = (entry / 'stat').read_text().rsplit(')', 1)[1].split()
-            parents[int(entry.name)] = int(fields[1])
-        except (OSError, ValueError, IndexError):
-            continue
+    """The live descendants of `pid`. Windows leaves a dead parent's PID in its children, and PIDs get reused, so
+    a child must also be no older than the parent it names or a stranger would join the tree."""
+    table = process_table()
+    born = {}
+
+    def created(owner):
+        if owner not in born:
+            born[owner] = _created(owner)
+        return born[owner]
+
     found = []
     pending = [pid]
     while pending:
         parent = pending.pop()
-        children = [child for child, owner in parents.items() if owner == parent and child not in found]
-        found.extend(children)
-        pending.extend(children)
+        for child, (owner, _) in table.items():
+            if owner != parent or child == parent or child == pid or child in found:
+                continue
+            if created(parent) is not None and created(child) is not None and created(child) < created(parent):
+                continue
+            found.append(child)
+            pending.append(child)
     return found
 
 
+def _read_memory(handle, address, size):
+    buffer = ctypes.create_string_buffer(size)
+    done = ctypes.c_size_t()
+    if not _ReadProcessMemory(handle, address, buffer, size, ctypes.byref(done)) or done.value != size:
+        raise OSError(ctypes.get_last_error(), 'ReadProcessMemory failed')
+    return buffer.raw
+
+
+def _read_unicode_string(handle, address):
+    string = _UnicodeString.from_buffer_copy(_read_memory(handle, address, ctypes.sizeof(_UnicodeString)))
+    if not string.Length or not string.Buffer:
+        return ''
+    return _read_memory(handle, string.Buffer, string.Length).decode('utf-16-le', errors='replace')
+
+
+def process_parameters(pid):
+    """(command line, working directory) of a process, read from its PEB; None when it is gone or not ours."""
+    with _Opened(pid, PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ) as handle:
+        if not handle:
+            return None
+        info = _BasicInformation()
+        if (_NtQueryInformationProcess(handle, 0, ctypes.byref(info), ctypes.sizeof(info), None) != 0
+                or not info.PebBaseAddress):
+            return None
+        try:
+            parameters = int.from_bytes(_read_memory(handle, info.PebBaseAddress + PEB_PROCESS_PARAMETERS, 8),
+                                        'little')
+            return (_read_unicode_string(handle, parameters + PARAMETERS_COMMAND_LINE),
+                    _read_unicode_string(handle, parameters + PARAMETERS_CURRENT_DIRECTORY))
+        except OSError:
+            return None
+
+
+def process_exe(pid):
+    """The full path of a process's executable, or None."""
+    with _Opened(pid, PROCESS_QUERY_LIMITED_INFORMATION) as handle:
+        if not handle:
+            return None
+        size = wintypes.DWORD(32768)
+        buffer = ctypes.create_unicode_buffer(size.value)
+        if not _QueryFullProcessImageNameW(handle, 0, buffer, ctypes.byref(size)):
+            return None
+        return Path(buffer.value)
+
+
+def _terminate(pid):
+    with _Opened(pid, PROCESS_TERMINATE) as handle:
+        if handle:
+            _TerminateProcess(handle, 1)
+
+
+def same_path(first, second):
+    """Whether two paths name the same place, compared the way Windows does: any case, either slash."""
+    return os.path.normcase(str(Path(first).resolve())) == os.path.normcase(str(Path(second).resolve()))
+
+
 class Process:
-    """A child process whose merged output is copied line by line into the log."""
+    """A child process whose merged output is copied line by line into the log. It starts its own process group,
+    so a Ctrl+C in the tool's console reaches the tool, which then cleans the tree up itself."""
 
     def __init__(self, command, cwd, log, env=None):
         self.log = log
         self.command = command
         self.proc = subprocess.Popen(
             command, cwd=cwd, env=runtime_environment(env), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, start_new_session=True)
+            stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
         self._lines = queue.Queue()
         self._reader = threading.Thread(target=self._pump, daemon=True)
         self._reader.start()
@@ -356,20 +539,12 @@ class Process:
         return self.proc.returncode if outcome == 'exit' else None
 
     def kill_tree(self):
+        """Ends the child and everything it started; the descendants are listed first, while their parents live."""
         children = descendant_pids(self.proc.pid)
-        try:
-            os.killpg(self.proc.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
+        if self.proc.poll() is None:
+            self.proc.kill()
         kill_pids(children)
-        try:
-            self.proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            try:
-                os.killpg(self.proc.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            self.proc.wait(timeout=5)
+        self.proc.wait(timeout=5)
         self._reader.join(timeout=5)
 
 
@@ -396,7 +571,7 @@ def gradle_command(root, *arguments, project=None, daemon=True):
     owner = project or project_at(root)
     gu_world, guzhenren = mod_roots(owner, root)
     lifetime = ['--daemon', f'-Dorg.gradle.daemon.idletimeout={DAEMON_IDLE_MS}'] if daemon else ['--no-daemon']
-    return ['bash', str(root / 'gradlew'), *arguments, f'-PguWorldDir={gu_world}',
+    return [str(root / 'gradlew.bat'), *arguments, f'-PguWorldDir={gu_world}',
             f'-PguzhenrenDir={guzhenren}', f'-PgameTestDir={owner.temp / "gametest"}',
             f'-PdataGameDir={owner.temp / "data"}', *lifetime, '--console=plain']
 
@@ -410,61 +585,58 @@ def git(*arguments, cwd=REPOSITORY_ROOT, env=None, check=True):
     return result.returncode, stdout, stderr
 
 
-def java_processes(proc_root=Path('/proc')):
-    """Running Java processes visible to this user, keyed by PID."""
+def _java_parameters():
+    """{pid: (command line, working directory)} of the running Java processes this user can read."""
     found = {}
-    for entry in Path(proc_root).iterdir():
-        if not entry.name.isdigit():
+    for pid, (_, exe) in process_table().items():
+        if exe.casefold() not in JAVA_EXES:
             continue
-        try:
-            if (entry / 'exe').readlink().name != 'java':
-                continue
-            arguments = (entry / 'cmdline').read_bytes().decode('utf-8', errors='replace').rstrip('\0').split('\0')
-            if arguments and arguments[0]:
-                found[int(entry.name)] = shlex.join(arguments)
-        except OSError:
-            continue
+        parameters = process_parameters(pid)
+        if parameters and parameters[0]:
+            found[pid] = parameters
     return found
 
 
-def java_processes_in(folder, proc_root=Path('/proc')):
+def java_processes():
+    """Running Java processes visible to this user, keyed by PID: the command line exactly as Windows keeps it."""
+    return {pid: command_line for pid, (command_line, _) in _java_parameters().items()}
+
+
+def java_process_dirs():
+    """Working directory of each running Java process visible to this user, keyed by PID."""
+    return {pid: Path(cwd) for pid, (_, cwd) in _java_parameters().items() if cwd}
+
+
+def java_processes_in(folder):
     """PIDs of the Java processes whose working directory is `folder`."""
-    folder = Path(folder).resolve()
-    found = []
-    for pid in java_processes(proc_root):
-        try:
-            if (Path(proc_root) / str(pid) / 'cwd').resolve(strict=True) == folder:
-                found.append(pid)
-        except OSError:
-            continue
-    return sorted(found)
+    return sorted(pid for pid, cwd in java_process_dirs().items() if same_path(cwd, folder))
+
+
+def _path_text(text):
+    """A path or command line in the form game_jvms compares: forward slashes, case folded."""
+    return str(text).replace('\\', '/').casefold()
 
 
 def game_jvms(processes, root=REPOSITORY_ROOT):
     """Game JVMs launched from this checkout, by Gradle or by IDEA: both pass ModDevGradle's
-    build/moddev/<run>RunVmArgs.txt, which the Gradle daemon and wrapper never do."""
-    marker = str(Path(root) / 'build' / 'moddev') + '/'
+    build/moddev/<run>RunVmArgs.txt, which the Gradle daemon and wrapper never do. Windows paths match in either
+    slash and any case."""
+    marker = _path_text(Path(root) / 'build' / 'moddev') + '/'
     return sorted(pid for pid, command_line in processes.items()
-                  if marker in command_line and 'RunVmArgs.txt' in command_line)
+                  if marker in _path_text(command_line) and 'runvmargs.txt' in _path_text(command_line))
 
 
 def kill_pids(pids):
-    remaining = {pid for pid in pids if pid > 1 and pid != os.getpid() and pid_alive(pid)}
+    """Ends the processes and waits up to 5 s for them to go. Windows has no SIGTERM for a console JVM (Java takes
+    Ctrl+Break as a thread dump request), so this is TerminateProcess straight away."""
+    remaining = {pid for pid in pids if pid > 4 and pid != os.getpid() and pid_alive(pid)}
     for pid in remaining:
-        try:
-            os.kill(pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
+        _terminate(pid)
     deadline = time.monotonic() + 5
     while remaining and time.monotonic() < deadline:
         remaining = {pid for pid in remaining if pid_alive(pid)}
         if remaining:
             time.sleep(0.05)
-    for pid in remaining:
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
 
 
 def tree_hashes(root, skip_dir='.cache'):
@@ -528,3 +700,20 @@ def junit_totals(results_dir):
                 name = f'{case.get("classname", "?").rsplit(".", 1)[-1]}.{case.get("name", "?")}'
                 totals['failed'].append((name, message.splitlines()[0] if message else ''))
     return totals
+
+
+def main(argv=None):
+    """Runs a hand-started command (a manual Gradle build) under the shared Gradle lock; returns its exit code."""
+    parser = argparse.ArgumentParser(description='Run a command under the shared Gradle lock, queueing up to '
+                                                 'GZR_LOCK_WAIT seconds like local_checks.py and commit_push.py.')
+    parser.add_argument('command', nargs=argparse.REMAINDER, help='the command and its arguments, e.g. gradlew.bat build')
+    args = parser.parse_args(argv)
+    if not args.command:
+        parser.error('a command is required')
+    require_windows()
+    with Lock(wait=LOCK_WAIT):
+        return subprocess.call(args.command)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

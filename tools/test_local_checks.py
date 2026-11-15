@@ -1,4 +1,3 @@
-import fcntl
 import json
 import os
 import socket
@@ -110,7 +109,7 @@ def project_checks(root):
         command, result = command_of(check.stage_data, check.Context(generated, data_log, project=owner))
         data_log.close()
         assert result.status == 'PASS', result
-        assert command[2] == 'runData' and command[3].startswith('-P'), command
+        assert command[1] == 'runData' and command[2].startswith('-P'), command
         assert f'-PdataGameDir={owner.temp / "data"}' in command
     server_project = replace(guzhenren, temp=root / 'main-temp')
     owner = server_project
@@ -170,7 +169,7 @@ def project_checks(root):
     assert [4242] in killed and waits == [], (killed, waits)
 
     # The partner is built without clean: Gradle's up-to-date check keeps an unchanged jar.
-    (root / 'gradlew').write_text('', encoding='utf-8')
+    (root / 'gradlew.bat').write_text('', encoding='utf-8')
     for owner in (guzhenren, guworld):
         calls = []
 
@@ -433,9 +432,13 @@ class CheckTests(unittest.TestCase):
             expect_exit(env.Lock(lock_path).__enter__)
         with env.Lock(lock_path):
             pass
-        holder = lock_path.open('a+')
-        fcntl.flock(holder, fcntl.LOCK_EX)
-        threading.Timer(0.2, holder.close).start()
+        holder = lock_path.open('a+b')
+        assert env.try_lock(holder)
+
+        def release():
+            env.unlock(holder)
+            holder.close()
+        threading.Timer(0.2, release).start()
         said = []
         with env.Lock(lock_path, wait=5, echo=lambda text, **_: said.append(text), poll=0.05):
             assert lock_path.read_text(encoding='utf-8') == str(os.getpid())
@@ -460,8 +463,10 @@ class CheckTests(unittest.TestCase):
             2: f'java -Xmx64m -jar {repo}/gradle/wrapper/gradle-wrapper.jar runClient',
             3: 'java -cp gradle-daemon-main.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.7.1',
             4: 'java @/other/project/build/moddev/clientRunVmArgs.txt',
+            # How Windows launches it: backslashes, a quoted path, a drive letter in another case.
+            5: f'"C:\\jdk\\bin\\java.exe" "@{str(vm_args).swapcase()}"',
         }
-        assert env.game_jvms(processes, repo) == [1]
+        assert env.game_jvms(processes, repo) == [1, 5]
 
         assert env.decode_line('熊'.encode('utf-8')) == '熊'
         assert env.decode_line(b'\xff') == '\ufffd'

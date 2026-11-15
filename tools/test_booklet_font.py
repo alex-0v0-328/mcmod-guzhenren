@@ -103,7 +103,7 @@ class BookletFontTest(unittest.TestCase):
     def test_shipped_fonts_match_a_fresh_cut(self):
         outputs = fonts.build(fonts.env.REPOSITORY_ROOT, fonts.FONT_ROOT)
         self.assertEqual([], fonts.stale(fonts.env.REPOSITORY_ROOT, outputs),
-                         "rerun python3 -B tools/booklet_font.py")
+                         "rerun python -B tools/booklet_font.py")
 
 
 if __name__ == "__main__":

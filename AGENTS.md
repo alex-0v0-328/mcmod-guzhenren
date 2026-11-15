@@ -51,15 +51,15 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 
 ## Checks and shipping
 
-改后用 `python3 -B tools/local_checks.py` 检查受影响阶段；`--list` 列阶段，GUWORLD 加 `--project guworld`。数据生成 provider 改动必跑 `data`；通过后仅因新改动、失败或未决问题补查。
+改后用 `python -B tools/local_checks.py` 检查受影响阶段；`--list` 列阶段，GUWORLD 加 `--project guworld`。数据生成 provider 改动必跑 `data`；通过后仅因新改动、失败或未决问题补查。
 
-你负责 Gradle、自动客户端/多人检查、IDEA 同步验证；Alex 验收视觉与手感。两仓库共用 `../../Temps/guzhenren/gradle.lock`；手动 Gradle 也须持锁，禁止删锁。
+你负责 Gradle、自动客户端/多人检查、IDEA 同步验证；Alex 验收视觉与手感。两仓库共用 `../../Temps/guzhenren/gradle.lock`；手动 Gradle 也须持锁（`python -B tools/project_runtime.py gradlew.bat <任务>`），禁止删锁。
 
 日志按运行隔离；读取、报告后只清理自己的日志，保留诊断证据。
 代码修改后、wiki 编辑前读 `wiki-sync`；完成时同步受影响 wiki，报告改动、检查结果、未验证项、遗留问题。
 
 【原则】commit 标题 Alex 指定则照用，否则代理直接选推荐项，不再询问；禁止 AI 共同创作者、署名及尾注。
-提交推送先读 `commit-push`，mod 用 `python3 -B tools/commit_push.py`，wiki 按该技能直接提交推送；Alex 要求结束会话时读 `exit-session`。推送后 CI 变红：先 git revert 该提交并推送，使 main 回绿，再修复、复查、重新推送；禁止强推。
+提交推送先读 `commit-push`，mod 用 `python -B tools/commit_push.py`，wiki 按该技能直接提交推送；Alex 要求结束会话时读 `exit-session`。推送后 CI 变红：先 git revert 该提交并推送，使 main 回绿，再修复、复查、重新推送；禁止强推。
 
 ## Conventions
 
@@ -67,7 +67,7 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 - 临时文件放临时目录的 `<项目>/<本任务唯一目录>/`，验证后只清理自己的文件；构建产物、Gradle 缓存位置不变。新脚本先说明用途；临时脚本放任务目录，长期脚本放 `tools/`，补用途、测试、地图入口。
 - 载体分工见《维护说明#写作与来源》：开发向写是什么与为什么，类级 Javadoc 写怎么做与小心什么，玩家向记版本快照，测试不在 wiki 列清单；规则与 Skills 存代理指令；文档只写当前决定、理由、约束、待办，历史留给 Git。
 - 待办：《维护说明#待办与计划》；客户端验收：《玩家资料维护#当前悬着项》；待定设计：对应页面待定部分。Markdown 沿用表格、标题、引用规范，用 `tools/doc_conventions.py` 检查；Obsidian 不另设与页面名相同的 H1。
-- 规则只改本文件，`CLAUDE.md` 只放 Claude Code 专属段。本机文件不进 Git：`.env.local`、`.mcp.json`、`.claude/settings.local.json`、`CLAUDE.local.md`、`AGENTS.override.md`。改常驻技能或 `.claude/hooks/session_start.py` 后，用 `python3 -B tools/deploy_harness.py` 部署，`tools/test_deploy_harness.py` 检查副本。
+- 规则只改本文件，`CLAUDE.md` 只放 Claude Code 专属段。本机文件不进 Git：`.env.local`、`.mcp.json`、`.claude/settings.local.json`、`CLAUDE.local.md`、`AGENTS.override.md`。改常驻技能或 `.claude/hooks/session_start.py` 后，用 `python -B tools/deploy_harness.py` 部署，`tools/test_deploy_harness.py` 检查副本。
 - memory 只存 Alex 偏好、跨会话进行中状态与外部指针；设计事实进 wiki 后 memory 只留指针。
 
 ## Codex 与 opencode

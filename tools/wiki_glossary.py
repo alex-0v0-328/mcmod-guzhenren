@@ -8,8 +8,8 @@ ORDER when their last segment is listed there, then key order.
 
 Everything from the `## 设定词` heading on is hand-written and kept as it is; the script owns the text above it.
 
-    python3 -B tools/wiki_glossary.py            check: exit 1 and print the stale lines when the page is out of date
-    python3 -B tools/wiki_glossary.py --write    regenerate the generated part
+    python -B tools/wiki_glossary.py            check: exit 1 and print the stale lines when the page is out of date
+    python -B tools/wiki_glossary.py --write    regenerate the generated part
 """
 import argparse
 import difflib

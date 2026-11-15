@@ -1,7 +1,10 @@
 """SessionStart hook for Claude Code and Codex: injects Alex's always-on skills into the session.
 
-    python3 ~/.claude/hooks/session_start.py          user-level hook: every local session, from ~/.claude/skills
-    python3 .claude/hooks/session_start.py --codex    Codex project hook (.codex/config.toml), from .claude/skills
+    python -B C:/Users/<user>/.claude/hooks/session_start.py   user-level hook: every local session, from ~/.claude/skills
+    python -B .claude/hooks/session_start.py --codex           Codex project hook (.codex/config.toml), from .claude/skills
+
+On Windows `python3` is the Microsoft Store stub, so hooks call `python`; the absolute forward-slash path works
+in whichever shell runs the hook.
 
 Claude Code adds the hook's stdout to the session context; Codex takes it only as the JSON `additionalContext` of
 --codex and drops plain text that opens with '['. Skills otherwise load on demand; this makes
@@ -70,7 +73,7 @@ def notice(skills=SKILLS, names=ALWAYS_ON, project=None):
         return ''
     return (f'\n[session-start] The project copy of {", ".join(changed)} differs from the injected one in {skills}; '
             'tell Alex before starting work. Once the repository copy is right, redeploy it with '
-            'python3 -B tools/deploy_harness.py.\n')
+            'python -B tools/deploy_harness.py.\n')
 
 
 def codex(text):

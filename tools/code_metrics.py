@@ -9,8 +9,8 @@ Per project (--project guzhenren|guworld, default both) it measures:
   4. Git hotspots (commits in the last 180 days x current lines) and change coupling between src/main files;
   5. test annotations and test source size.
 
-    python3 -B tools/code_metrics.py --out DIR                       # both mods
-    python3 -B tools/code_metrics.py --out DIR --project guworld --full
+    python -B tools/code_metrics.py --out DIR                       # both mods
+    python -B tools/code_metrics.py --out DIR --project guworld --full
 
 Writes <out>/<project>-metrics.json (full data, stable key order) and <project>-metrics.md (<= 5 rows per list
 unless --full). It never builds: the graph is read from build/classes/java/main by a pure-Python class-file reader
@@ -715,7 +715,7 @@ def main(argv):
     parser.add_argument('--max-commit-files', type=int, default=DEFAULT_MAX_COMMIT_FILES,
                         help='commits touching more files are ignored for change coupling (default 40)')
     args = parser.parse_args(argv)
-    env.require_linux()
+    env.require_windows()
     for name in [args.project] if args.project else sorted(MODS):
         report = analyze_project(name, env.project(name).root, args.days, args.max_commit_files)
         json_path, markdown_path = write_reports(report, args.out, args.full)

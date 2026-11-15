@@ -1,11 +1,11 @@
 """Documentation conventions: padded tables, wiki links, typography, headings, carriers.
 
-    python3 -B tools/doc_conventions.py tables FILE...         report padded tables whose columns no longer line up
-    python3 -B tools/doc_conventions.py tables FILE... --fix   re-pad them in place
-    python3 -B tools/doc_conventions.py links [FILE...]        wiki links and the rules docs' wiki references resolve
-    python3 -B tools/doc_conventions.py typography [FILE...]   the wiki's Chinese typography
-    python3 -B tools/doc_conventions.py headings [FILE...]     no numbered heading, no H1 repeating the file name, no §
-    python3 -B tools/doc_conventions.py carriers [FILE...]     no fact on the wrong carrier (wiki《维护说明#写作与来源》)
+    python -B tools/doc_conventions.py tables FILE...         report padded tables whose columns no longer line up
+    python -B tools/doc_conventions.py tables FILE... --fix   re-pad them in place
+    python -B tools/doc_conventions.py links [FILE...]        wiki links and the rules docs' wiki references resolve
+    python -B tools/doc_conventions.py typography [FILE...]   the wiki's Chinese typography
+    python -B tools/doc_conventions.py headings [FILE...]     no numbered heading, no H1 repeating the file name, no §
+    python -B tools/doc_conventions.py carriers [FILE...]     no fact on the wrong carrier (wiki《维护说明#写作与来源》)
 
 Tables. A padded table is one whose separator row has a run of more than three dashes. Every column is
 padded to its widest cell, measured in display width (East Asian wide and fullwidth characters count 2,

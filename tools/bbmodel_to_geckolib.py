@@ -1,7 +1,7 @@
 """Blockbench-to-GeckoLib 4 exporter for every entity model the mod ships.
 
-    python3 -B tools/bbmodel_to_geckolib.py export bear tiger      compile, copy and validate the named models
-    python3 -B tools/bbmodel_to_geckolib.py validate --all         validate every model's outputs against its source
+    python -B tools/bbmodel_to_geckolib.py export bear tiger      compile, copy and validate the named models
+    python -B tools/bbmodel_to_geckolib.py validate --all         validate every model's outputs against its source
 
 Reads a read-only `.bbmodel` from the Blockbench model authority, compiles geometry 1.12.0 and animation 1.8.0
 JSON with GeckoLib's axis conventions, copies the variant textures byte for byte, and validates every output

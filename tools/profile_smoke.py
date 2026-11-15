@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Profile a local_checks.py smoke stage with JFR and attribute the cost to this mod.
 
 Runs `local_checks.py <stage>` (server or multiplayer), attaches a Java Flight Recorder recording to each game
@@ -7,11 +6,11 @@ every recording: CPU samples and allocation samples whose stack holds a `net.ale
 top mod frame, inclusive = any mod frame), GC pauses, and the running samples of the server thread. The before
 and after of an optimization pass are two runs of the same stage.
 
-    python3 -B tools/profile_smoke.py multiplayer            # run, record, summarize into Temps/guzhenren/profile-<pid>/
-    python3 -B tools/profile_smoke.py server --out DIR       # the lighter stage (entities, features, dimensions)
-    python3 -B tools/profile_smoke.py summarize FILE.jfr     # summarize an existing recording again
+    python -B tools/profile_smoke.py multiplayer            # run, record, summarize into Temps/guzhenren/profile-<pid>/
+    python -B tools/profile_smoke.py server --out DIR       # the lighter stage (entities, features, dimensions)
+    python -B tools/profile_smoke.py summarize FILE.jfr     # summarize an existing recording again
 
-jcmd and jfr come from the JDK the game JVM runs on (its /proc exe), so the recording and its reader always match;
+jcmd and jfr come from the JDK the game JVM runs on (its java.exe), so the recording and its reader always match;
 the summary needs JDK 21 or newer on that path. The stage's own result goes to <out>/local_checks.out and the
 stage log stays where local_checks.py puts it. A recording covers boot too, so the first seconds are mod loading.
 """
@@ -39,23 +38,20 @@ TIME_UNITS = {'ns': 1e-6, 'us': 1e-3, 'ms': 1.0, 's': 1000.0}
 BYTE_UNITS = {'bytes': 1, 'kB': 1e3, 'MB': 1e6, 'GB': 1e9}
 
 
-def game_roles(temp_root, proc_root=Path('/proc')):
+def game_roles(temp_root):
     """The game JVMs of a stage by role: {role: (pid, jdk bin dir)}, found by their working directory."""
     found = {}
-    for pid in env.java_processes(proc_root):
-        try:
-            cwd = (Path(proc_root) / str(pid) / 'cwd').resolve(strict=True)
-            exe = (Path(proc_root) / str(pid) / 'exe').resolve(strict=True)
-        except OSError:
-            continue
+    for pid, cwd in env.java_process_dirs().items():
         for role, names in GAME_DIRS.items():
-            if cwd.parent == Path(temp_root) and cwd.name in names:
-                found[role] = (pid, exe.parent)
+            if env.same_path(cwd.parent, temp_root) and cwd.name.casefold() in names:
+                exe = env.process_exe(pid)
+                if exe:
+                    found[role] = (pid, exe.parent)
     return found
 
 
 def start_recording(pid, jdk_bin, target):
-    command = [str(jdk_bin / 'jcmd'), str(pid), 'JFR.start', 'name=profile_smoke', 'settings=profile',
+    command = [str(jdk_bin / 'jcmd.exe'), str(pid), 'JFR.start', 'name=profile_smoke', 'settings=profile',
                'dumponexit=true', f'filename={target}']
     reply = subprocess.run(command, capture_output=True, text=True)
     return reply.returncode == 0 and 'Started recording' in reply.stdout, (reply.stdout + reply.stderr).strip()
@@ -175,9 +171,9 @@ def default_jfr_tool():
     """The jfr tool of GZR_JAVA_HOME, else the first `jfr` on PATH."""
     home = os.environ.get('GZR_JAVA_HOME')
     if home:
-        return Path(home) / 'bin' / 'jfr'
+        return Path(home) / 'bin' / 'jfr.exe'
     for folder in os.environ.get('PATH', '').split(os.pathsep):
-        candidate = Path(folder) / 'jfr'
+        candidate = Path(folder) / 'jfr.exe'
         if candidate.is_file():
             return candidate
     raise SystemExit('no jfr tool: set GZR_JAVA_HOME to a JDK 21+ or pass --jfr')
@@ -201,7 +197,7 @@ def main(argv):
         return 0
     if args.target not in STAGES:
         parser.error(f'stage must be one of {", ".join(STAGES)}, or summarize')
-    env.require_linux()
+    env.require_windows()
     project = env.project(args.project)
     out_dir = Path(args.out) if args.out else project.temp / f'profile-{os.getpid()}'
     recordings = run_stage(args.target, out_dir, project)
@@ -212,7 +208,7 @@ def main(argv):
         if not path.exists():
             print(f'{role}: recording missing at {path}', flush=True)
             continue
-        summary, lines = summarize(path, jdk_bin / 'jfr', args.top)
+        summary, lines = summarize(path, jdk_bin / 'jfr.exe', args.top)
         print(f'\n{role}: {lines[1]}\n  {summary}', flush=True)
     return 0
 

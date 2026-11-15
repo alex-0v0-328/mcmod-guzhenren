@@ -3,10 +3,10 @@
 Reads src/generated/resources and src/main/resources of Guzhenren and Gu World (project_runtime.PROJECTS) and writes
 <out>/<project>-datapack.json (everything, uncut) and <out>/<project>-datapack.md (lists cut to 20 unless --full).
 
-    python3 -B tools/datapack_audit.py --out DIR                    both projects
-    python3 -B tools/datapack_audit.py --out DIR --project guworld  one project (the other is still indexed to resolve cross-mod ids)
-    python3 -B tools/datapack_audit.py --out DIR --full             uncut lists in the markdown too
-    python3 -B tools/datapack_audit.py --out DIR --regions a,b      override the auto-detected region names
+    python -B tools/datapack_audit.py --out DIR                    both projects
+    python -B tools/datapack_audit.py --out DIR --project guworld  one project (the other is still indexed to resolve cross-mod ids)
+    python -B tools/datapack_audit.py --out DIR --full             uncut lists in the markdown too
+    python -B tools/datapack_audit.py --out DIR --regions a,b      override the auto-detected region names
 
 Region names are the folders under data/<ns>/worldgen/{density_function,noise}/terrain/. A file is per-region when a
 path segment or the file stem equals one of them; strict normalization rewrites terrain/<region>/ inside string
