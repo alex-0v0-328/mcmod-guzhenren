@@ -43,7 +43,7 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 技能：`.claude/skills/<技能名>/SKILL.md`。
 
 1. SessionStart 注入 `alex-constitution`、`i-have-adhd`；未正确注入则先读对应技能。
-2. 开工查 `git status`、`git diff`，确认环境和现有改动。
+2. 开工查 `git status`、`git diff`，确认环境和现有改动；新机器首个会话先做完《维护说明#待办与计划》的「新机器」条目。
 3. 非小改动先做第一性原理分析、环境审查、实施路径确认；计划分阶段自查，按 `alex-constitution` 向 Alex 提问，仅问未明确的目标、约束、选择。
 4. 新增蛊、实体、机制先读 `new-content` 和对应 wiki；审查或确认行为先读 `review-change`，仅审查不改文件。
 5. 修复先查源码、日志与复现，定位原因后改；无法复现则报告证据与不确定项，不让 Alex 重复已报现象。能写回归先写回归；红色快照断言由 Alex 裁定，不为通过而改。
