@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
  *       （{@link AwakeningRitualService#isInDanger}）。</li>
  *   <li>旧按住式仪式所掷堆叠仍在 {@link ModDataComponents#AWAKEN_BASE} 存值，仪式沿用；创造模式留堆叠，故清除供重
  *       掷。</li>
- *   <li>⚠ {@code stacksTo(1)}：数据组件整堆共享，可堆叠即 64 份同一资质。</li>
+ *   <li>⚠ 堆叠上限 1 由 {@link MortalGuItem} 定：数据组件整堆共享，可堆叠即 64 份同一资质。</li>
  * </ul>
  *
  * @author Alex
@@ -38,7 +38,7 @@ public class HopeGuItem extends MortalGuItem {
     private static final String FAILED_DANGER = "guzhenren.item.failed.awakening_danger";
 
     public HopeGuItem(GuProperties guProperties) {
-        super(new Properties().stacksTo(1), guProperties);
+        super(new Properties(), guProperties);
     }
 
     @Override

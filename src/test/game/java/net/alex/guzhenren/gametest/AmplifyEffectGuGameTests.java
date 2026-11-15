@@ -212,13 +212,13 @@ public final class AmplifyEffectGuGameTests {
     public static void aRadialPickSpendsAOneShotGuFromItsSlot(GameTestHelper helper) {
         ServerPlayer player = awakened(helper, null);
         hold(player, InteractionHand.MAIN_HAND, ModItems.AMPLIFY_EFFECT_GU_2.get(), 16);
-        ItemStack leaves = new ItemStack(ModItems.VITALITY_LEAF_GU_1.get(), 2);
-        player.getInventory().setItem(4, leaves);
+        ItemStack leaf = new ItemStack(ModItems.VITALITY_LEAF_GU_1.get());
+        player.getInventory().setItem(4, leaf);
 
         ClientIntents.amplifyDrive(player, 4);
 
         assertEquals(VitalityLeafGuEffect.DURATION_TICKS * 2, duration(player, ModEffects.VITALITY_LEAF_GU));
-        assertEquals(1, leaves.getCount());
+        assertTrue(player.getInventory().getItem(4).isEmpty(), "the driven one-shot Gu stayed in its slot");
         helper.succeed();
     }
 

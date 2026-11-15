@@ -89,7 +89,7 @@ public class TendedGuItem extends MortalGuItem {
     private final GuRefineCooldown refineCooldown;
 
     public TendedGuItem(GuProperties guProperties, GuBehavior... behaviors) {
-        super(new Properties().stacksTo(1), guProperties, behaviors);
+        super(new Properties(), guProperties, behaviors);
         this.hunger = guProperties.buildHunger();
         this.health = guProperties.buildHealth();
         this.channeling = new GuChanneling(guProperties, hunger);

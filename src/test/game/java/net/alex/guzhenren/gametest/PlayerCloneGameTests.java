@@ -79,7 +79,7 @@ public final class PlayerCloneGameTests {
         PlayerDataService.onBirth(from);
         BodyService.setExtremePhysique(from, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL);
         BodyService.addPhysique(from, Physique.ZOMBIE);
-        ApertureStorageService.set(from, 0, List.of(new ItemStack(ModItems.SECOND_APERTURE_GU_1.get(), 2)));
+        ApertureStorageService.set(from, 0, List.of(new ItemStack(ModItems.SECOND_APERTURE_GU_1.get())));
         ServerPlayer to = mortal(helper);
         cloneOnto(from, to, true, true);
         PlayerDataService.onRespawn(to);
@@ -92,7 +92,7 @@ public final class PlayerCloneGameTests {
         helper.assertTrue(BodyService.isExtreme(to) && !BodyService.isUndead(to),
                 "revival lost extreme or kept undead");
         ApertureStorageService.getItems(to, 0).getFirst().shrink(1);
-        helper.assertValueEqual(ApertureStorageService.getItems(from, 0).getFirst().getCount(), 2,
+        helper.assertValueEqual(ApertureStorageService.getItems(from, 0).getFirst().getCount(), 1,
                 "cloned storage shares mutable stacks with original");
         helper.succeed();
     }

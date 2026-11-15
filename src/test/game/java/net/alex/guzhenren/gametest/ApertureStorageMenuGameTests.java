@@ -35,54 +35,48 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.serverTicks;
 @PrefixGameTestTemplate(false)
 public final class ApertureStorageMenuGameTests {
     private static final int WORM_FULL = 8;
+    private static final int FIFTH_RANK_FULL = 8;
 
     private ApertureStorageMenuGameTests() {}
 
     @GameTest(template = "empty9x9x9")
-    public static void storageMousePlacementKeepsOverflow(GameTestHelper helper) {
-        ServerPlayer player = awakenedMortal(helper);
-        ApertureStorageMenu menu = new ApertureStorageMenu(1, player.getInventory(), ApertureData.PRIMARY, 0);
-        menu.setCarried(new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 64));
-
-        menu.clicked(0, 0, ClickType.PICKUP, player);
-
-        helper.assertValueEqual(storedCount(player, ApertureData.PRIMARY), 8,
-                "mouse placement accepted count");
-        helper.assertValueEqual(menu.getCarried().getCount(), 56, "mouse placement kept overflow");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void storageShiftMoveKeepsOverflow(GameTestHelper helper) {
-        ServerPlayer player = awakenedMortal(helper);
-        player.getInventory().setItem(0, new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 64));
-        ApertureStorageMenu menu = new ApertureStorageMenu(1, player.getInventory(), ApertureData.PRIMARY, 0);
-
-        menu.clicked(ApertureStorageMenu.PAGE_SIZE + 27, 0, ClickType.QUICK_MOVE, player);
-
-        helper.assertValueEqual(storedCount(player, ApertureData.PRIMARY), 8,
-                "shift move accepted count");
-        helper.assertValueEqual(player.getInventory().getItem(0).getCount(), 56,
-                "shift move kept overflow");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void storageShiftMoveTopsUpStoredStack(GameTestHelper helper) {
+    public static void storageMousePlacementStopsAtTheLoad(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
         PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY,
-                List.of(new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 4))));
-        player.getInventory().setItem(0, new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 64));
+                fifthRank(FIFTH_RANK_FULL - 1)));
+        ApertureStorageMenu menu = new ApertureStorageMenu(1, player.getInventory(), ApertureData.PRIMARY, 0);
+
+        menu.setCarried(new ItemStack(ModItems.SECOND_APERTURE_GU_5.get()));
+        menu.clicked(FIFTH_RANK_FULL - 1, 0, ClickType.PICKUP, player);
+        helper.assertValueEqual(storedCount(player, ApertureData.PRIMARY), FIFTH_RANK_FULL,
+                "mouse placement under the load");
+        helper.assertTrue(menu.getCarried().isEmpty(), "mouse placement under the load left the gu on the cursor");
+
+        menu.setCarried(new ItemStack(ModItems.SECOND_APERTURE_GU_5.get()));
+        menu.clicked(FIFTH_RANK_FULL, 0, ClickType.PICKUP, player);
+        helper.assertValueEqual(storedCount(player, ApertureData.PRIMARY), FIFTH_RANK_FULL,
+                "mouse placement over the load");
+        helper.assertValueEqual(menu.getCarried().getCount(), 1, "mouse placement over the load took the gu");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void storageShiftMoveStopsAtTheLoad(GameTestHelper helper) {
+        ServerPlayer player = awakenedMortal(helper);
+        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY,
+                fifthRank(FIFTH_RANK_FULL - 1)));
+        player.getInventory().setItem(0, new ItemStack(ModItems.SECOND_APERTURE_GU_5.get()));
+        player.getInventory().setItem(1, new ItemStack(ModItems.SECOND_APERTURE_GU_5.get()));
         ApertureStorageMenu menu = new ApertureStorageMenu(1, player.getInventory(), ApertureData.PRIMARY, 0);
 
         menu.clicked(ApertureStorageMenu.PAGE_SIZE + 27, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(ApertureStorageMenu.PAGE_SIZE + 28, 0, ClickType.QUICK_MOVE, player);
 
-        helper.assertValueEqual(menu.getSlot(0).getItem().getCount(), 8,
-                "shift move topped up the stored stack");
-        helper.assertValueEqual(storedCount(player, ApertureData.PRIMARY), 8,
+        helper.assertValueEqual(storedCount(player, ApertureData.PRIMARY), FIFTH_RANK_FULL,
                 "shift move accepted count");
-        helper.assertValueEqual(player.getInventory().getItem(0).getCount(), 60,
-                "shift move kept overflow");
+        helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "shift move under the load left the gu behind");
+        helper.assertValueEqual(player.getInventory().getItem(1).getCount(), 1,
+                "shift move over the load took the gu");
         helper.succeed();
     }
 
@@ -90,20 +84,22 @@ public final class ApertureStorageMenuGameTests {
     public static void storageSyncedLoadLimitsSlot(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
         ApertureStorageMenu menu = new ApertureStorageMenu(1, player.getInventory(), ApertureData.PRIMARY, 0);
-        menu.setData(2, 224);
-        ItemStack incoming = new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 64);
+        ItemStack incoming = new ItemStack(ModItems.SECOND_APERTURE_GU_5.get());
 
+        menu.setData(2, 224);
         helper.assertValueEqual(menu.getSlot(0).getMaxStackSize(incoming), 1,
                 "synced load slot limit");
+        menu.setData(2, ApertureStorageService.MAX_LOAD);
+        helper.assertValueEqual(menu.getSlot(0).getMaxStackSize(incoming), 0,
+                "synced full load slot limit");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
     public static void storageLegacyOverloadCanBeReducedBySwap(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
-        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY, List.of(
-                new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 9),
-                new ItemStack(ModItems.SECOND_APERTURE_GU_5.get()))));
+        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY,
+                fifthRank(FIFTH_RANK_FULL + 2)));
         ApertureStorageMenu menu = new ApertureStorageMenu(1, player.getInventory(), ApertureData.PRIMARY, 0);
         menu.setCarried(new ItemStack(ModItems.SECOND_APERTURE_GU_1.get()));
 
@@ -236,12 +232,12 @@ public final class ApertureStorageMenuGameTests {
     private static ServerPlayer fullVitalPlayer(GameTestHelper helper, ItemStack vital) {
         ServerPlayer player = awakenedMortal(helper);
         VitalGuState.bind(vital, player, ApertureData.PRIMARY);
-        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY, List.of(
-                new ItemStack(ModItems.SECOND_APERTURE_GU_5.get(), 7),
-                new ItemStack(ModItems.SECOND_APERTURE_GU_4.get()),
-                new ItemStack(ModItems.SECOND_APERTURE_GU_3.get()),
-                new ItemStack(ModItems.SECOND_APERTURE_GU_2.get()),
-                new ItemStack(ModItems.SECOND_APERTURE_GU_1.get())))
+        List<ItemStack> stored = fifthRank(FIFTH_RANK_FULL - 1);
+        stored.add(new ItemStack(ModItems.SECOND_APERTURE_GU_4.get()));
+        stored.add(new ItemStack(ModItems.SECOND_APERTURE_GU_3.get()));
+        stored.add(new ItemStack(ModItems.SECOND_APERTURE_GU_2.get()));
+        stored.add(new ItemStack(ModItems.SECOND_APERTURE_GU_1.get()));
+        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY, stored)
                 .withVital(ApertureData.PRIMARY, vital.copy()));
         ApertureStorageService.adoptVital(player, ApertureData.PRIMARY, vital);
         helper.assertValueEqual(ApertureStorageService.load(player, ApertureData.PRIMARY),
@@ -285,6 +281,12 @@ public final class ApertureStorageMenuGameTests {
     private static int storedElderDamage(ServerPlayer player) {
         return TendedGuItem.getState(ApertureStorageService.getItems(player, ApertureData.PRIMARY).getFirst())
                 .damageTaken();
+    }
+
+    private static List<ItemStack> fifthRank(int count) {
+        List<ItemStack> stacks = new ArrayList<>();
+        for (int i = 0; i < count; i++) stacks.add(new ItemStack(ModItems.SECOND_APERTURE_GU_5.get()));
+        return stacks;
     }
 
     private static int storedCount(ServerPlayer player, int aperture) {

@@ -167,8 +167,6 @@ public final class WikiItemsGameTests {
         WikiTable page = page(wiki, ITEMS_PAGE);
         mechanisms = mechanisms(wiki);
         List<String> channelTypes = new ArrayList<>();
-        List<Long> oneShotStacks = new ArrayList<>();
-        List<Long> hopeStack = new ArrayList<>();
         List<String> foodPoints = new ArrayList<>();
         for (Group group : GROUPS) {
             Table table = group.table();
@@ -186,9 +184,6 @@ public final class WikiItemsGameTests {
             if (table == Table.ONE_SHOT) {
                 assertTrue(items.stream().noneMatch(TendedGuItem.class::isInstance), row.location());
                 assertEquals(List.of(0L), values(items, MortalGuItem::getRefineCost), row.location() + " refine cost");
-                List<Long> stack = values(items, g -> new ItemStack(g).getMaxStackSize());
-                if (group.ids().equals(List.of("hope_gu"))) hopeStack.addAll(stack);
-                else oneShotStacks.addAll(stack);
                 continue;
             }
             assertTrue(items.stream().allMatch(TendedGuItem.class::isInstance), row.location());
@@ -252,10 +247,9 @@ public final class WikiItemsGameTests {
         List<String> food = collapse(foodPoints);
         assertTrue(food.size() == 1 && food.getFirst().matches("\\d+"), ITEMS_PAGE + " per food is not fixed " + food);
         page.expectMatch("每份食物固定回 \\*\\*(\\d+)\\*\\* 点", List.of(Long.parseLong(food.getFirst())));
-        List<Long> stacks = collapse(oneShotStacks);
-        assertTrue(stacks.size() == 1 && hopeStack.size() == 1, ITEMS_PAGE + " one-shot stacks " + oneShotStacks);
-        page.expectMatch("\\*\\*一次性蛊\\*\\*：无这些状态；堆叠上限 (\\d+)，希望蛊 (\\d+)",
-                List.of(stacks.getFirst(), hopeStack.getFirst()));
+        List<Long> stacks = values(List.copyOf(registered.values()), g -> new ItemStack(g).getMaxStackSize());
+        assertEquals(List.of(1L), stacks, "Gu stack limits");
+        page.expectMatch("所有蛊虫堆叠上限 (\\d+)", stacks);
         // The channeled table drops the type column because every one shares it, named once above the table.
         assertEquals(1L, channelTypes.stream().distinct().count(), ITEMS_PAGE + " channeled types " + channelTypes);
         String line = "灌注类：" + channelTypes.getFirst();

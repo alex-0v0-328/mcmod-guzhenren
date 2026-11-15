@@ -35,7 +35,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 凡蛊：持有 {@link GuProperties}、{@link GuBehavior} 与真元[Essence] 门槛，无物品堆状态。
  * <ul>
- *   <li>介于 {@link GuItem} 与三种生命周期宿主间：{@link OneShotGuItem} 炼化即催动，无状态，可堆叠；
+ *   <li>⚠ 所有蛊堆叠上限 1：构造器统一 {@code stacksTo(1)}，叶类不自设；数据组件整堆共享，可堆叠即整堆同一状态。</li>
+ *   <li>介于 {@link GuItem} 与三种生命周期宿主间：{@link OneShotGuItem} 炼化即催动，无状态；
  *       {@link TendedGuItem} 炼化后补食、催动，带 {@link RefinedGuState}；及其 {@link ConsumedGuItem}；希望蛊[Hope Gu]
  *       开启空窍[Aperture]，三者皆非。构造器跑 {@link GuProperties#validate}，笔误启动即失败并点名；
  *       {@link #checkStageUpGate} 是升阶蛊唯一检查：空窍转数等于蛊转数，阶段低于巅峰。</li>
@@ -79,7 +80,7 @@ public abstract class MortalGuItem extends GuItem {
     private final List<GuBehavior> behaviors;
 
     protected MortalGuItem(Properties properties, GuProperties guProperties, GuBehavior... behaviors) {
-        super(properties, guProperties.getRank(), guProperties.getPath());
+        super(properties.stacksTo(1), guProperties.getRank(), guProperties.getPath());
         this.guProperties = guProperties;
         this.behaviors = List.of(behaviors);
         String id = getRank().name() + " " + getClass().getSimpleName()
