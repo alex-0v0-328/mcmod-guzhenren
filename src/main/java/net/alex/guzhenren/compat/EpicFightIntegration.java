@@ -159,7 +159,7 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * <ul>
  *   <li>打坐三动画（盘腿坐，温养[Nourish]空窍[Aperture]、开窍[Awakening]仪式、灌注类蛊[Channeled Gu]灌注真元[Essence]共
  *       用，姿势见 wiki《空窍》）：{@code biped/skill/meditate_sit} 0.8 秒坐下，{@code biped/living/meditate_loop} 一息
- *       4 秒，{@code biped/skill/meditate_stand} 0.67 秒起身。</li>
+ *       4 秒，{@code biped/skill/meditate_stand} 1.8 秒起身（单膝跪起）。</li>
  *   <li>{@link #isMeditating} 两端共读：温养中、仪式仍定身（{@code AwakeningRitualService#holdsStill}，前 5 秒）或按住
  *       已炼化灌注类蛊（{@code TendedGuItem#isChanneling}，读各客户端皆知的使用物品）；故灌注按住即坐、松开或灌空即起，
  *       仪式放人即起，不等牌匾淡出。</li>
@@ -213,7 +213,7 @@ public final class EpicFightIntegration {
     static final long THROW_RUN_TICKS = 10L;
     private static final Map<ServerPlayer, ThrowRun> throwRuns = new WeakHashMap<>();
     private static final float PLUNGE_LAND_LOCK = 0.53F;
-    private static final float MEDITATE_STAND_HOLD = 0.4F;
+    private static final float MEDITATE_STAND_HOLD = 1.2F;
     private static final Map<ServerPlayer, Boolean> meditating = new WeakHashMap<>();
     private static final Map<ServerPlayer, Long> ownClips = new WeakHashMap<>();
 
