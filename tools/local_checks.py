@@ -478,7 +478,9 @@ def client_ready(state):
     return check
 
 
-def stage_client(ctx):
+def stage_client(ctx, on_ready=None):
+    """on_ready(game JVM pids) runs once the title screen has settled, before the client closes: game_window.py's
+    title shot."""
     before = env.java_processes()
     running = env.game_jvms(before, ctx.root)
     if running:
@@ -496,8 +498,12 @@ def stage_client(ctx):
             alive = False
         owned = set(env.descendant_pids(process.proc.pid))
         spawned = [pid for pid in env.game_jvms(env.java_processes(), ctx.root) if pid in owned]
-        process.kill_tree()
-        env.kill_pids(spawned)
+        try:
+            if alive and on_ready:
+                on_ready(spawned)
+        finally:
+            process.kill_tree()
+            env.kill_pids(spawned)
         leftover = [pid for pid in env.game_jvms(env.java_processes(), ctx.root) if pid in spawned]
         seconds = time.monotonic() - started
         notes = [f'game JVM {leftover} still running after kill'] if leftover else []
