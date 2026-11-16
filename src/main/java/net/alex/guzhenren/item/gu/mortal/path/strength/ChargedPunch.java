@@ -57,8 +57,7 @@ import org.jetbrains.annotations.Nullable;
  *       范围冲击环到射程（{@link RingConeEmitter#areaImpactRing}）。</li>
  *   <li>无论打中什么都有冲击反噬：超承受力的点数经 {@link BodyOverload#recoil} 结算；该伤害类型不开轮次、不付肉体过载
  *       （{@code BeastPhantomEvents}）。</li>
- *   <li>⚠ {@link #SECONDARY_RATIO}、{@link #MAX_TARGETS}、{@link #KNOCKBACK}、{@link #MAX_TARGET_DISTANCE} 暂定；
- *       末项高于 Epic Fight 默认锁定距离。</li>
+ *   <li>⚠ {@link #MAX_TARGET_DISTANCE} 高于 Epic Fight 默认锁定距离。</li>
  * </ul>
  *
  * @author Alex

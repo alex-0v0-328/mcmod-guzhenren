@@ -35,8 +35,7 @@ import org.jetbrains.annotations.Nullable;
  *       撤。</li>
  *   <li>力气蛊[Strength Qi Gu]远程拳间隔 ≥ {@link #RANGE_INTERVAL_TICKS}（{@link #canRange}），一轮两拳共用所抽；轮外一
  *       拳照拳头开轮（{@link #startRange}），无永久兽力只记间隔。</li>
- *   <li>⚠ 仅服务端内存，按玩家，不存档，死亡、下线、换维度、停服清空，客户端不查不读；{@link #CHANCE}、
- *       {@link #ROUND_TICKS}、{@link #STREAK_WINDOW_TICKS} 占位；int 与 list 重载为单测接缝。</li>
+ *   <li>⚠ 仅服务端内存，按玩家，不存档，死亡、下线、换维度、停服清空，客户端不查不读；int 与 list 重载为单测接缝。</li>
  * </ul>
  *
  * @author Alex

@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
  *       {@code knockback}（受抗性缩放），类型带 {@code NO_KNOCKBACK} 免叠原版击退；拒伤（PvP 关、无敌、无敌帧）
  *       不推。</li>
  *   <li>排除同二段飞行[Second-Stage Flight]撞击（自身、盟友、己方宠物、野生蛊、盔甲架），另加同乘者。</li>
- *   <li>⚠ 三个概率与范围曲线均为占位。</li>
  * </ul>
  *
  * @author Alex

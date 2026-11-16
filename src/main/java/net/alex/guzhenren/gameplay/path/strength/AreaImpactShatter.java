@@ -50,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 双格方块（门、高草、高花）任一半先破，另一半随形状更新连带消失并按自身战利品表掉落：生存恰掉一份；创造
  *       或不可收获时破上半，同原版先以 {@code UPDATE_SUPPRESS_DROPS} 抹掉下半，否则下半会掉。邻居形状更新会清掉
  *       该标志，只标在本格上无效。</li>
- *   <li>⚠ 点数门槛、硬度档、块数上限、粒子与音效均为占位。</li>
  * </ul>
  *
  * @author Alex

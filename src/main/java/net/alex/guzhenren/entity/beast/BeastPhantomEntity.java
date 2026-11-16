@@ -39,15 +39,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *   <li>{@link #show} 按一轮抽中兽种更新：在场者原槽续接（寿命重计，不重生），新者按声明序占首个空槽（先地面两槽，
  *       再扇形底排至顶点），余者消失；不能出形（{@code BeastStrengthFamily.canManifest}）者略过、不占槽；续接递增同步计
  *       数器，客户端据此重置年龄。</li>
- *   <li>⚠ {@link #LINGER_TICKS} 与扇形 {@link #FAN_BACK_OFFSET}、{@link #FAN_COLUMN}、{@link #FAN_ROW}、
- *       {@link #FAN_BASE_HEIGHT} 为占位值，由 Alex 在客户端调。</li>
  *   <li>出现与消失只改绘制（{@link #getDrift}、{@link #getScale}、{@link #getFade}、{@link #getGlow}），
  *       实体始终在槽位：出现历时 {@link #APPEAR_TICKS}，每槽按声明序晚 1 tick（出场动画随之推迟），自槽后
  *       {@link #APPEAR_BACK} 格滑入淡入，大小 {@link #APPEAR_SCALE} → {@link #APPEAR_OVERSHOOT} → 1；末
  *       {@link #VANISH_TICKS} 收向主人脚上 {@link #BODY_HEIGHT} 处，缩至 {@link #VANISH_SCALE} 并淡出，发光升至
  *       {@link #GLOW_PEAK} 倍；续接不重播出现，内收中续接用 {@link #VANISH_RETURN_TICKS} 回槽；被一轮剔除者即刻消
  *       失。</li>
- *   <li>⚠ 以上出现与消失数值均为占位。</li>
  *   <li>纯显示：无碰撞，攻击与投射物打不中，无伤害，不存档；命令召唤者无主人，首 tick 即消失；两端每 tick 按主人摆放，
  *       客户端忽略服务端位置包；时间耗尽或主人离维度、死亡、下线即消失。</li>
  *   <li>有意超 300 行：槽位摆放与出现、消失曲线读同一组同步字段和 tick 状态，另有约 30 行纯显示的原版覆写；拆开要公开这

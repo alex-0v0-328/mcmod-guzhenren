@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
  *       拳自带一份，按蓄力一拳爆开、不掷。</li>
  *   <li>⚠ 气波伤害类型 {@code guzhenren:qi_wave} 带 {@code minecraft:bypasses_cooldown}：同一拳的几只兽力冲击才不会被
  *       受击无敌帧吞掉。</li>
- *   <li>⚠ {@link #RADIUS}、{@link #SECONDARY_RATIO} 暂定。</li>
  * </ul>
  *
  * @author Alex

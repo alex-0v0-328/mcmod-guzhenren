@@ -55,7 +55,7 @@ import org.jetbrains.annotations.NotNull;
  *       的地面留着（终点脚下不破）。死亡、登出、换维度不挖。</li>
  *   <li>层高按站立身高（{@code Pose.STANDING}）：Epic Fight 闪避期间把碰撞箱压到 0.6 格高。</li>
  *   <li>冷却 {@link #COOLDOWN_TICKS} tick 按打击计：冷却中冲撞照常、起点坑照挖，到点不打、终点不崩。</li>
- *   <li>⚠ 延迟突增超过登记时的往返延迟时兜底仍可能先到，打击落在途中；伤害倍率、冷却、停判阈值均为占位。</li>
+ *   <li>⚠ 延迟突增超过登记时的往返延迟时兜底仍可能先到，打击落在途中。</li>
  * </ul>
  *
  * @author Alex

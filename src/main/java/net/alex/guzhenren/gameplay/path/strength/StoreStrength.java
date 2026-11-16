@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
  *   <li>近战为脚下指向锁定目标的水平扇形，射程 {@link #getRange} 随最大点数的平方根增长、封顶 {@link #MAX_RANGE}；
  *       远程在目标周围爆开，半径为射程一半；苦力下的人力钧力流射程乘 {@link #HARDSHIP_RANGE_FACTOR}（仍封顶）并加宽
  *       半角；{@link #release} 算数后由 {@code ChargedPunch} 打出。</li>
- *   <li>⚠ 数值全部暂定。</li>
  *   <li>⚠ 只存服务端内存，按玩家索引，不存档。</li>
  * </ul>
  *

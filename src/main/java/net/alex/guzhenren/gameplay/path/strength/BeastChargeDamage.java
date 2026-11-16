@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
  *       全力以赴）按比例分摊。</li>
  *   <li>蓄力一拳：解放 × {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不截断（{@link #UNCAPPED}）；
  *       冲击反噬按该拳自身点数。</li>
- *   <li>⚠ {@link #ATTACK_PER_POINT}（拳头的 2 倍）为 Alex 暂定值。</li>
  * </ul>
  *
  * @author Alex

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>月刃只左右弯；兽力冲击绕弦在上半圆任意弯，从左侧水平经正上方到右侧水平；不向下：挡路方块会让它消失不爆。</li>
  *   <li>同拳冲击按掷出顺序从左到右等分半圆，各在本扇区随机取角，绝无同弧。</li>
- *   <li>⚠ 三比例暂定：弯度为弦长 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO}；弧顶沿弦前后挪至多
+ *   <li>弯度为弦长 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO}；弧顶沿弦前后挪至多
  *       {@link #MAX_SHIFT_RATIO}，早转晚转各异。</li>
  * </ul>
  *

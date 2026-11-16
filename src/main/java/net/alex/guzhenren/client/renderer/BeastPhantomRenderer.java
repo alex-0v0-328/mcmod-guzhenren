@@ -47,7 +47,7 @@ import software.bernie.geckolib.util.Color;
  *       （Iris）下玩家皮肤晚于虚影绘制，第三人称时身后扇形会把主人整个挡掉。代价是虚影后方的半透明方块（水、染色玻璃）
  *       盖在虚影上，同一虚影前后重叠的部位发光叠加。</li>
  *   <li>⚠ 不用 {@code RenderType.eyes}：它忽略 alpha，遮罩下全身画成满强度。</li>
- *   <li>⚠ 绕脚底上方 {@link #PITCH_PIVOT} 格（约模型高度一半，暂定值）按 {@link BeastPhantomVisual#getPitch} 俯仰；
+ *   <li>⚠ 绕脚底上方 {@link #PITCH_PIVOT} 格（约模型高度一半）按 {@link BeastPhantomVisual#getPitch} 俯仰；
  *       GeckoLib 只按身体偏航转活体，故先按实体自身偏航转动。</li>
  * </ul>
  *
@@ -61,7 +61,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
 
     /** 虚影相对野兽的尺寸倍数。 */
     public static final float PHANTOM_SCALE = 1.0F;
-    /** 发光层保留的遮罩自身 alpha 比例；遮罩覆盖全身。暂定值。 */
+    /** 发光层保留的遮罩自身 alpha 比例；遮罩覆盖全身。 */
     public static final float GLOW_ALPHA = 0.25F;
     public static final float PITCH_PIVOT = 0.7F;
     private static final Function<ResourceLocation, RenderType> BODY = Util.memoize(texture -> create("body",

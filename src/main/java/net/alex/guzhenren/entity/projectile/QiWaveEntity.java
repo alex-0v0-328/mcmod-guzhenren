@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
  *   <li>蓄力蛊[Store Strength Gu]的蓄力一拳投追踪球（{@link #track}）：两端每 tick 按同步 id 追目标中心，至多直飞的
  *       {@link #TRACK_FLIGHT_FACTOR} 倍，用拳自己的 {@link QiBurst.Spec}；目标死则飞向最后所见点，飞完未到即原地爆开
  *       （反噬已付）。</li>
- *   <li>⚠ {@link #BURST_PUFFS}、{@link #SNUFF_PUFFS} 暂定。</li>
  * </ul>
  *
  * @author Alex

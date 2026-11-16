@@ -17,7 +17,6 @@ import net.minecraft.util.Mth;
  *       前身像真马扬起，肢体摆动使其奔跑。</li>
  *   <li>{@link #getRear}：主人身旁一次性攻击，{@link #REAR_RISE_TICKS} 内抬起，持至 {@link #REAR_HOLD_TICKS}，
  *       {@link #REAR_END_TICKS} 时落下，后站立；兽力冲击按每 tick {@link #GALLOP_SWING_PER_TICK} 摆肢，全步幅跑。</li>
- *   <li>⚠ 各时长与奔跑速率为暂定值。</li>
  * </ul>
  *
  * @author Alex

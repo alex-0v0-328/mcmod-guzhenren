@@ -16,7 +16,6 @@ import java.util.function.DoubleBinaryOperator;
  *       位移总量不变，片段 {@link #CLIP_TICKS} tick 按速度缩短（{@link #getClipTicks}）。</li>
  *   <li>{@link #limitSpeed} 再把本 tick 的播放速度压到位移 ≤ {@link #MAX_STEP} 格：原版专用服一个移动包超 10 格判移动过快
  *       拉回（单人、局域网房主豁免），多出的位移顺延到后续 tick；片段坐标由调用方以两时刻间距离给出。</li>
- *   <li>⚠ 倍数各项、路程上限与播放速度加成均为占位。</li>
  * </ul>
  *
  * @author Alex
