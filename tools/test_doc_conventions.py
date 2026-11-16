@@ -136,6 +136,10 @@ class ProseTests(unittest.TestCase):
         put(wiki / '.obsidian', 'hidden.md', '## x\n')
         vault = docs.Vault(wiki)
         assert sorted(vault.pages) == ['home', 'page'] and vault.files == {'pic.png'}
+        (wiki / docs.NOVEL_DIR / '1 第一卷').mkdir(parents=True)
+        put(wiki / docs.NOVEL_DIR / '1 第一卷', '0001 第一节.md', '正文 [[gone]]\n')
+        assert docs.wiki_pages(wiki) == [wiki / 'home.md', wiki / 'sub/page.md'], 'no check reads the novel'
+        assert '0001 第一节' in docs.Vault(wiki).pages, 'design pages may link to a 节'
         assert vault.headings('page') == {'细节', '更深'}
         assert rules(docs.link_problems(wiki / 'home.md', vault)) == [
             'link gone: no wiki page or file "gone"', 'link page#没有: "page" has no heading "没有"',

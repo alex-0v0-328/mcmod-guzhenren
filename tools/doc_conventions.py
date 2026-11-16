@@ -186,10 +186,16 @@ def display(path):
     return str(path.relative_to(env.WORKSPACE_ROOT)) if path.is_relative_to(env.WORKSPACE_ROOT) else str(path)
 
 
+# The original novel, converted one page per 节: quoted text, not our writing, so no check reads it; the Vault still
+# indexes it so design pages can link to a 节.
+NOVEL_DIR = '原著-蛊真人'
+
+
 def wiki_pages(root=None):
     root = Path(root or env.WIKI_ROOT)
     return sorted(path for path in root.rglob('*.md')
-                  if not any(part.startswith('.') for part in path.relative_to(root).parts))
+                  if not any(part.startswith('.') for part in path.relative_to(root).parts)
+                  and path.relative_to(root).parts[0] != NOVEL_DIR)
 
 
 # Skills kept verbatim from their upstream (alex-constitution names the commit), so its own conventions stand.
