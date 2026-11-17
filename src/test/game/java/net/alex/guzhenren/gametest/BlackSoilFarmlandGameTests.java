@@ -6,10 +6,12 @@ import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -34,10 +36,10 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
- * 黑土耕地：腐泥冻土右键原版耕地或其上的作物掺成，保留湿润度和作物，生存消耗 1 个、创造不消耗，别的方块不认；踩踏、
- * 干燥退泥土、近水湿润、湿润加成、掉泥土同原版耕地；每个随机刻给正上方作物补 3 次生长判定，成熟即停，标签作物（瓜茎）
- * 算、树苗不算，知心草作物每补一刻都过自己的 1/4 判定。生长判定用恒掷 0 并计数的随机源直接驱动耕地随机刻，次数与阶段
- * 都确定。
+ * 黑土耕地：腐泥冻土右键原版耕地或其上的作物掺成，保留湿润度和作物（不发形状更新，用一受更新即碎的枯灌木验证），
+ * 生存消耗 1 个、创造不消耗，别的方块不认；踩踏、干燥退泥土、近水湿润、湿润加成、掉泥土同原版耕地；每个随机刻给正上方
+ * 作物补 3 次生长判定，成熟即停，标签作物（瓜茎）算、树苗不算，知心草作物每补一刻都过自己的 1/4 判定。生长判定用恒掷 0
+ * 并计数的随机源直接驱动耕地随机刻，次数与阶段都确定。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -92,6 +94,18 @@ public final class BlackSoilFarmlandGameTests {
                 "a sapling does not pass the mud down");
         helper.assertBlockPresent(Blocks.FARMLAND, OTHER_SOIL);
         helper.assertValueEqual(player.getMainHandItem().getCount(), 1, "no more mud spent");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void conversionSendsNoShapeUpdateToThePlantAbove(GameTestHelper helper) {
+        placeSoil(helper, SOIL, Blocks.FARMLAND, 0);
+        helper.setBlock(SOIL.above(), Blocks.DEAD_BUSH);
+        ServerPlayer player = holdMud(helper, 1);
+
+        helper.assertTrue(useOn(helper, player, SOIL).consumesAction(), "the mud is used");
+        assertBlackSoil(helper, SOIL, 0);
+        helper.assertBlockPresent(Blocks.DEAD_BUSH, SOIL.above());
         helper.succeed();
     }
 
@@ -229,6 +243,11 @@ public final class BlackSoilFarmlandGameTests {
         helper.assertTrue(BlackSoilFarmlandBlock.isCrop(true, Blocks.MELON_STEM), "a tagged stem is a crop");
         helper.assertFalse(BlackSoilFarmlandBlock.isCrop(false, Blocks.MELON_STEM), "an untagged stem is not");
         helper.assertFalse(BlackSoilFarmlandBlock.isCrop(false, Blocks.OAK_SAPLING), "a sapling is not");
+        for (Block block : BuiltInRegistries.BLOCK) {
+            BlockState state = block.defaultBlockState();
+            boolean split = BlackSoilFarmlandBlock.isCrop(state.is(BlockTags.CROPS), block);
+            helper.assertTrue(BlackSoilFarmlandBlock.isCrop(state) == split, "both crop tests agree on " + block);
+        }
         helper.succeed();
     }
 

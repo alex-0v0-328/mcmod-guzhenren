@@ -23,9 +23,10 @@ import org.jetbrains.annotations.Nullable;
  * 腐泥冻土：右键原版耕地或其上的作物，把耕地掺成黑土耕地。
  * <ul>
  *   <li>因有对方块的右键才开叶子类；只认 {@code minecraft:farmland}，别的方块放行，黑土耕地不能再掺。</li>
- *   <li>点到作物时取它正下方那格耕地：小麦类作物的外形盖满整格，种满的田从上方点不到耕地；作物的范围同
- *       {@code BlackSoilFarmlandBlock#isCrop}。</li>
- *   <li>换方块只在服务端：带上原耕地的湿润度；新旧耕地都是 {@code FarmBlock}，其上作物的存活判定不变，不会被挤掉。</li>
+ *   <li>点到作物时取它正下方那格耕地；作物的范围同 {@code BlackSoilFarmlandBlock#isCrop}。</li>
+ *   <li>换方块只在服务端，带上原耕地的湿润度。</li>
+ *   <li>⚠ 换方块的标志带 {@code UPDATE_KNOWN_SHAPE}，不发邻格形状更新：否则上方作物复检存活，亮度不足 8 的会掉落；
+ *       新旧耕地外形相同，邻格无形状可改。</li>
  *   <li>成功才消耗 1 个，创造模式不消耗；音效用黑土耕地的放置声，同 {@code BlockItem} 放方块。</li>
  * </ul>
  *
@@ -50,7 +51,7 @@ public class RottenFrozenMudItem extends GuMaterialItem {
         Player player = context.getPlayer();
         BlockState blackSoil = ModBlocks.BLACK_SOIL_FARMLAND.get().defaultBlockState()
                 .setValue(FarmBlock.MOISTURE, farmland.getValue(FarmBlock.MOISTURE));
-        level.setBlock(pos, blackSoil, Block.UPDATE_ALL_IMMEDIATE);
+        level.setBlock(pos, blackSoil, Block.UPDATE_ALL_IMMEDIATE | Block.UPDATE_KNOWN_SHAPE);
         SoundType sound = blackSoil.getSoundType(level, pos, player);
         level.playSound(null, pos, sound.getPlaceSound(), SoundSource.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F,
                 sound.getPitch() * 0.8F);
