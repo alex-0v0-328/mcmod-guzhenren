@@ -143,7 +143,7 @@ public final class WikiItemsGameTests {
         total.row("注册", "全部物品").expect("数量", List.of((long) registered.size()));
         total.row("注册", "蛊虫").expect("数量", List.of(gu));
         total.row("注册", "蛊材").expect("数量", List.of(material));
-        total.row("注册", "其他（钢锭、钢块、元泉流体方块、纯水桶、杀招书、书册、进度图标）")
+        total.row("注册", "其他（钢锭、钢块、知心草种子、元泉流体方块、纯水桶、杀招书、书册、进度图标）")
                 .expect("数量", List.of(registered.size() - gu - material));
         List<MortalGuItem> items = guItems();
         long tended = items.stream().filter(TendedGuItem.class::isInstance).count();
@@ -497,6 +497,7 @@ public final class WikiItemsGameTests {
                 group(Table.MATERIAL, "酒", "liquor sour_liquor sweet_liquor bitter_liquor spicy_liquor"),
                 group(Table.MATERIAL, "人窍", ladder("human_aperture_", 1, 5)),
                 group(Table.MATERIAL, "草木蛊材", "intimate_grass_bundle moon_orchid_petals"),
+                group(Table.MATERIAL, "蛊植种子", "intimate_grass_seeds"),
                 group(Table.MATERIAL, "土道蛊材", "rotten_frozen_mud jade rough_jade jadeite rough_jadeite"),
                 group(Table.MATERIAL, "血道蛊材", "blood_bottle"),
                 group(Table.MATERIAL, "金属", "steel_ingot steel_block"),

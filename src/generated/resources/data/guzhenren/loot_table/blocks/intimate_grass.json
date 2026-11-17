@@ -1,20 +1,155 @@
 {
   "type": "minecraft:block",
+  "functions": [
+    {
+      "function": "minecraft:explosion_decay"
+    }
+  ],
   "pools": [
     {
       "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:any_of",
+          "terms": [
+            {
+              "condition": "minecraft:all_of",
+              "terms": [
+                {
+                  "block": "guzhenren:intimate_grass",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "half": "lower"
+                  }
+                },
+                {
+                  "condition": "minecraft:location_check",
+                  "offsetY": 1,
+                  "predicate": {
+                    "block": {
+                      "blocks": "guzhenren:intimate_grass",
+                      "state": {
+                        "half": "upper"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "condition": "minecraft:all_of",
+              "terms": [
+                {
+                  "block": "guzhenren:intimate_grass",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "half": "upper"
+                  }
+                },
+                {
+                  "condition": "minecraft:location_check",
+                  "offsetY": -1,
+                  "predicate": {
+                    "block": {
+                      "blocks": "guzhenren:intimate_grass",
+                      "state": {
+                        "half": "lower"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "entries": [
         {
           "type": "minecraft:item",
-          "conditions": [
+          "functions": [
             {
-              "condition": "minecraft:match_tool",
-              "predicate": {
-                "items": "#minecraft:hoes"
-              }
+              "add": false,
+              "count": 2.0,
+              "function": "minecraft:set_count"
             }
           ],
           "name": "guzhenren:intimate_grass_bundle"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:any_of",
+          "terms": [
+            {
+              "condition": "minecraft:all_of",
+              "terms": [
+                {
+                  "block": "guzhenren:intimate_grass",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "half": "lower"
+                  }
+                },
+                {
+                  "condition": "minecraft:location_check",
+                  "offsetY": 1,
+                  "predicate": {
+                    "block": {
+                      "blocks": "guzhenren:intimate_grass",
+                      "state": {
+                        "half": "upper"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "condition": "minecraft:all_of",
+              "terms": [
+                {
+                  "block": "guzhenren:intimate_grass",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "half": "upper"
+                  }
+                },
+                {
+                  "condition": "minecraft:location_check",
+                  "offsetY": -1,
+                  "predicate": {
+                    "block": {
+                      "blocks": "guzhenren:intimate_grass",
+                      "state": {
+                        "half": "lower"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "function": "minecraft:apply_bonus",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.5714286
+              }
+            }
+          ],
+          "name": "guzhenren:intimate_grass_seeds"
         }
       ],
       "rolls": 1.0

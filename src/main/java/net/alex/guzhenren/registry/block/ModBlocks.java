@@ -1,6 +1,7 @@
 package net.alex.guzhenren.registry.block;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.block.IntimateGrassCropBlock;
 import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.world.effect.MobEffects;
@@ -28,7 +29,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *   <li>{@link #PURE_WATER} 纯水：同一水属性的普通 {@code LiquidBlock}，无光照、无 BlockItem，由纯水桶携带。</li>
  *   <li>{@link #NINE_LEAF_VITALITY_GRASS_3} 野外生长的九叶生机草[Nine Leaf Vitality Grass]：蒲公英形花，无 BlockItem，
  *       掉同 ID 野生蛊物品；谜之炖菜效果闲置，无花标签或 BlockItem 带出。</li>
- *   <li>{@link #INTIMATE_GRASS} 两格高知心草：形状、属性、群系染色同原版高草丛，无 BlockItem；仅锄头掉知心草束。</li>
+ *   <li>{@link #INTIMATE_GRASS} 野生两格高知心草：形状、属性同原版高草丛，贴图自带颜色、不随群系染色，无 BlockItem；
+ *       任何方式破坏都掉知心草束与种子，由 Gu World 生成。</li>
+ *   <li>{@link #INTIMATE_GRASS_CROP} 知心草作物：属性同小麦，无 BlockItem，由知心草种子种下
+ *       （{@link IntimateGrassCropBlock}）。</li>
  *   <li>{@link #STEEL_BLOCK} 钢块：铁块属性的普通存储方块，挖掘、音效、信标同铁块；与 9 钢锭互合。</li>
  * </ul>
  *
@@ -69,6 +73,9 @@ public final class ModBlocks {
                     BlockBehaviour.Properties.ofFullCopy(Blocks.DANDELION)));
     public static final DeferredBlock<DoublePlantBlock> INTIMATE_GRASS = BLOCKS.register("intimate_grass",
             () -> new DoublePlantBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.TALL_GRASS)));
+    public static final DeferredBlock<IntimateGrassCropBlock> INTIMATE_GRASS_CROP = BLOCKS.register(
+            "intimate_grass_crop",
+            () -> new IntimateGrassCropBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT)));
 
     public static final DeferredBlock<Block> STEEL_BLOCK = BLOCKS.register("steel_block",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)));

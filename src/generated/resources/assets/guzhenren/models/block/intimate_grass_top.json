@@ -1,8 +1,7 @@
 {
-  "parent": "guzhenren:block/tinted_cross_overlay",
+  "parent": "minecraft:block/cross",
   "render_type": "minecraft:cutout",
   "textures": {
-    "cross": "guzhenren:block/intimate_grass_top",
-    "overlay": "guzhenren:block/intimate_grass_top_overlay"
+    "cross": "guzhenren:block/intimate_grass_top"
   }
 }

@@ -365,6 +365,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addBlock(ModBlocks.PURE_WATER,                               "Pure Water", "纯水");
         addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS_3,               "Nine Leaf Vitality Grass III", "三转九叶生机草");
         addBlock(ModBlocks.INTIMATE_GRASS,                           "Intimate Grass", "知心草");
+        addBlock(ModBlocks.INTIMATE_GRASS_CROP,                      "Intimate Grass Crops", "知心草作物");
 
         add("itemGroup.guzhenren.mortal_gu",                         "Mortal Gu", "凡蛊");
         add("itemGroup.guzhenren.gu_material",                       "Gu Material", "蛊材");

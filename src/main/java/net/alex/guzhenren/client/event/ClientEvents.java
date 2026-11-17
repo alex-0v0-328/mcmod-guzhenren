@@ -35,7 +35,6 @@ import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
-import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.alex.guzhenren.registry.menu.ModMenus;
@@ -44,22 +43,15 @@ import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.GrassColor;
-import net.minecraft.world.level.block.DoublePlantBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -67,7 +59,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -81,7 +72,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * <ul>
  *   <li>九叶生机草[Nine Leaf Vitality Grass]模型属性按客户端世界游戏时间推算叶数。</li>
- *   <li>知心草方块像高草在色调索引 0 取群系草色，上下两半都取下半格；采下的物品无颜色处理器，保留自身 PNG。</li>
  *   <li>客户端初始化时向 {@code ModPayloads} 登记 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
  *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 的处理器，{@code ModPayloads} 自身不引用
  *       客户端类；书册阅读器（{@link BookletScreen}）同理登记给 {@code BookletItem}。</li>
@@ -164,18 +154,6 @@ public final class ClientEvents {
         return Minecraft.getInstance().level != null
                 ? grass.getPickedStage(stack, Minecraft.getInstance().level.getGameTime())
                 : 0.0F;
-    }
-
-    @SubscribeEvent
-    public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
-        event.register((state, level, pos, tintIndex) -> getGrassColor(state, level, pos),
-                ModBlocks.INTIMATE_GRASS.get());
-    }
-
-    private static int getGrassColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos) {
-        if (level == null || pos == null) return GrassColor.getDefaultColor();
-        boolean upper = state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER;
-        return BiomeColors.getAverageGrassColor(level, upper ? pos.below() : pos);
     }
 
     @SubscribeEvent

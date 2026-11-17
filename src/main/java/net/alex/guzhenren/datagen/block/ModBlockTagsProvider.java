@@ -19,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 方块标签：如故蛊[As Before Gu]地形标签只收地面本身（石、土、沙、陶瓦、砂岩），不收它不复原的苔藓、冰、雪层、流体。
+ * 方块标签：如故蛊[As Before Gu]地形标签只收地面本身（石、土、沙、陶瓦、砂岩），不收它不复原的苔藓、冰、雪层、流体；
+ * 知心草作物入原版作物与保田标签，否则它脚下的耕地干了会退成泥土。
  */
 
 public class ModBlockTagsProvider extends BlockTagsProvider {
@@ -41,6 +42,8 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.BEACON_BASE_BLOCKS).add(ModBlocks.STEEL_BLOCK.get());
         tag(STORAGE_BLOCKS_STEEL).add(ModBlocks.STEEL_BLOCK.get());
         tag(Tags.Blocks.STORAGE_BLOCKS).addTag(STORAGE_BLOCKS_STEEL);
+        tag(BlockTags.CROPS).add(ModBlocks.INTIMATE_GRASS_CROP.get());
+        tag(BlockTags.MAINTAINS_FARMLAND).add(ModBlocks.INTIMATE_GRASS_CROP.get());
         tag(ModBlockTags.AS_BEFORE_TERRAIN)
                 .addTags(BlockTags.BASE_STONE_OVERWORLD, BlockTags.BASE_STONE_NETHER, BlockTags.SAND,
                         BlockTags.TERRACOTTA, Tags.Blocks.SANDSTONE_UNCOLORED_BLOCKS, Tags.Blocks.SANDSTONE_RED_BLOCKS)

@@ -82,6 +82,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.Tags;
@@ -121,6 +122,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>{@link #SPIRIT_SPRING}：元泉[Spirit Spring]的 {@code BlockItem}，与方块同键，链上名字兼名方块与流体；
  *       图标为流体静止条带（{@code ItemModel.FLUID}），无物品 PNG。</li>
+ *   <li>{@link #INTIMATE_GRASS_SEEDS}：知心草种子，{@code ItemNameBlockItem}，右键耕地种下知心草作物；名字归物品，
+ *       作物方块另有自己的名字。</li>
  *   <li>{@link #PURE_WATER_BUCKET}：纯水版水桶，放水源、空桶舀回、发射器倾倒（{@code PureWaterEvents}）。</li>
  *   <li>{@link #ADVANCEMENT_ICON}：非游戏物品，承载修为进度的数字（{@link AdvancementIconItem}）。</li>
  * </ul>
@@ -912,6 +915,10 @@ public final class ModItems {
     public static final DeferredItem<Item> INTIMATE_GRASS_BUNDLE = REGISTRAR.item("intimate_grass_bundle",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD))
             .lang("Intimate Grass Bundle", "知心草束").register();
+    public static final DeferredItem<Item> INTIMATE_GRASS_SEEDS = REGISTRAR.item("intimate_grass_seeds",
+            () -> new ItemNameBlockItem(ModBlocks.INTIMATE_GRASS_CROP.get(), new Item.Properties()))
+            .lang("Intimate Grass Seeds", "知心草种子").tag(Tags.Items.SEEDS).tab(ModCreativeTabs.GU_MATERIAL)
+            .register();
     public static final DeferredItem<Item> MOON_ORCHID_PETALS = REGISTRAR.item("moon_orchid_petals",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD))
             .lang("Moon Orchid Petals", "月兰花瓣").register();
