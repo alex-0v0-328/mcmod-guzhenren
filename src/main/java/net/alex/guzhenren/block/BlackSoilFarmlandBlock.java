@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,7 +22,8 @@ import org.jetbrains.annotations.NotNull;
  *       相同，故作物期望得 {@value #GROWTH_MULTIPLIER} 倍随机刻；光照、邻格减速等判定仍由作物自己做。</li>
  *   <li>⚠ 每补一刻前重读上方方块：作物可能刚成熟（不再随机刻）或被自己的随机刻换掉；父类可能已把自己退成泥土，此时
  *       不补。</li>
- *   <li>作物指 {@code #minecraft:crops} 标签或 {@code CropBlock} 子类；能种在耕地上的树苗、花不算。</li>
+ *   <li>作物指 {@code #minecraft:crops} 标签或 {@code CropBlock} 子类；能种在耕地上的树苗、花不算。两条件拆在
+ *       {@link #isCrop(boolean, Block)}：原版 {@code CropBlock} 全在标签里，不拆就钉不住子类这一条。</li>
  *   <li>⚠ {@link #CODEC} 的类型参数只能是 {@code FarmBlock}：父类 {@code codec()} 的返回类型不带通配符。</li>
  * </ul>
  *
@@ -38,9 +40,9 @@ public final class BlackSoilFarmlandBlock extends FarmBlock {
 
     public BlackSoilFarmlandBlock(Properties properties) { super(properties); }
 
-    public static boolean isCrop(BlockState state) {
-        return state.is(BlockTags.CROPS) || state.getBlock() instanceof CropBlock;
-    }
+    public static boolean isCrop(BlockState state) { return isCrop(state.is(BlockTags.CROPS), state.getBlock()); }
+
+    public static boolean isCrop(boolean tagged, Block block) { return tagged || block instanceof CropBlock; }
 
     @Override
     public @NotNull MapCodec<FarmBlock> codec() { return CODEC; }

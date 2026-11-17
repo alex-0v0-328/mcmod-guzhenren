@@ -37,8 +37,8 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
  * 知心草的野生采集与种植：野生两格草不论工具、打哪半都只掉一份（2 草束加 1–4 种子）；种子只能种在耕地（含黑土耕地）
- * 上；作物成熟掉 1 草束加 1–2 种子，未成熟退 1 种子；骨粉同小麦；生长次数是同条件小麦的 1/4；作物在农夫乐事的沃土排除标签里。破坏均为真实生存
- * {@code gameMode.destroyBlock}。生长对照用固定种子的随机源直接驱动随机刻，结果确定。
+ * 上；作物成熟掉 1 草束加 1–2 种子，未成熟退 1 种子；骨粉同小麦；生长次数是同条件小麦的 1/4；作物在农夫乐事的沃土
+ * 排除标签里。破坏均为真实生存 {@code gameMode.destroyBlock}。生长对照用固定种子的随机源直接驱动随机刻，结果确定。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
