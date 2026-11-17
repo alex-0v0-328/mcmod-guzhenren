@@ -1,8 +1,6 @@
 package net.alex.guzhenren.gameplay.aperture;
 
-import com.mojang.serialization.Codec;
 import net.alex.guzhenren.core.NamedEnum;
-import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,7 +24,6 @@ public enum Title implements NamedEnum {
     GU_MASTER,
     GU_IMMORTAL;
 
-    public static final Codec<Title> CODEC = StringRepresentable.fromEnum(Title::values);
 
     public static @NotNull Title fromRank(Rank rank) {
         if (rank == Rank.NONE) return MORTAL;

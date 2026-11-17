@@ -144,7 +144,7 @@ public final class QiWaveGameTests {
         });
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void rangedPunchesKeepTheirSpacing(GameTestHelper helper) {
         ServerPlayer player = buffed(helper, STAND);
         Villager villager = target(helper, AHEAD);
@@ -220,7 +220,7 @@ public final class QiWaveGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void aStreakThrowsEveryDrawnFamilyEachForItsOwnPoints(GameTestHelper helper) {
         ServerPlayer player = buffed(helper, STAND);
         PathStrengthService.grant(player, BeastStrength.BEAR);

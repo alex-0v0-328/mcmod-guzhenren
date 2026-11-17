@@ -7,7 +7,6 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
-import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.NourishAction;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;

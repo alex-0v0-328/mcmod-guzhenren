@@ -342,7 +342,7 @@ public final class PlayerInfoScreen extends Screen {
                     : List.of();
             int stackH = stack.size() * (BTN_H + BTN_GAP) - BTN_GAP;
             int height = Math.max(block.rows().size() * LINE_H, Math.max(figureH, stackH));
-            height = Mth.positiveCeilDiv(height, LINE_H) * LINE_H;
+            height = Mth.roundToward(height, LINE_H);
             bands.add(new Band(block, stack, top, height));
             top += height + LINE_H;
         }

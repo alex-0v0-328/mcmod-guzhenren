@@ -3,10 +3,6 @@ package net.alex.guzhenren.registry.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 
@@ -32,14 +28,12 @@ public final class SpawnRules {
 
     private SpawnRules() {}
 
-    static <T extends Mob> boolean onAnimalGround(EntityType<T> type, ServerLevelAccessor level,
-                                                  MobSpawnType reason, BlockPos pos, RandomSource random) {
+    static boolean onAnimalGround(ServerLevelAccessor level, BlockPos pos) {
         return level.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON)
                 && level.getRawBrightness(pos, 0) > ANIMAL_MIN_LIGHT;
     }
 
-    static <T extends Mob> boolean onTheSurface(EntityType<T> type, ServerLevelAccessor level,
-                                                MobSpawnType reason, BlockPos pos, RandomSource random) {
+    static boolean onTheSurface(ServerLevelAccessor level, BlockPos pos) {
         return pos.getY() >= level.getLevel().getChunkSource().getGenerator().getSeaLevel()
                 && !isInOrOverFluid(level, pos);
     }

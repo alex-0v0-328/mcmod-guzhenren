@@ -157,8 +157,18 @@ class WikiTableTest {
 
     @Test
     void missingGuFieldDoesNotBorrowFromAnotherSection() {
-        String next = "\n### Bear\n\n| 项目 | 说明 |\n|---|---|\n| 使用真元 | 16 |\n"
-                + "\n| 蛊虫 | 转 | 炼化真元 |\n|---|---|---|\n| Bear | 一 | 800 |\n";
+        String next = """
+
+                ### Bear
+
+                | 项目 | 说明 |
+                |---|---|
+                | 使用真元 | 16 |
+
+                | 蛊虫 | 转 | 炼化真元 |
+                |---|---|---|
+                | Bear | 一 | 800 |
+                """;
         List<WikiTable.Row> rows = WikiTable.parse("gu.md", GU_ENTRY + next).guRows();
         assertThrows(AssertionError.class, () -> rows.getFirst().cell("使用真元"));
         rows.getLast().expect("使用真元", List.of(16L));

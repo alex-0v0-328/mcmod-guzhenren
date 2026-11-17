@@ -147,7 +147,7 @@ public final class ClientEvents {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.PURE_WATER.get(), RenderType.translucent());
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_PURE_WATER.get(), RenderType.translucent());
             ItemProperties.register(ModItems.NINE_LEAF_VITALITY_GRASS_3.get(), NineLeafVitalityGrassItem.PICKED,
-                    (ClampedItemPropertyFunction) ClientEvents::getPickedStage);
+                    (ClampedItemPropertyFunction) (stack, level, entity, seed) -> getPickedStage(stack, level, entity));
             ModPayloads.handleOnClient(SkinFlashPayload.class, SkinFlashes::flash);
             ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);
             ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
@@ -157,8 +157,7 @@ public final class ClientEvents {
         });
     }
 
-    private static float getPickedStage(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity,
-                                        int seed) {
+    private static float getPickedStage(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
         if (!(stack.getItem() instanceof NineLeafVitalityGrassItem grass)) return 0.0F;
         if (level != null) return grass.getPickedStage(stack, level.getGameTime());
         if (entity != null) return grass.getPickedStage(stack, entity.level().getGameTime());
@@ -169,11 +168,11 @@ public final class ClientEvents {
 
     @SubscribeEvent
     public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
-        event.register(ClientEvents::getGrassColor, ModBlocks.INTIMATE_GRASS.get());
+        event.register((state, level, pos, tintIndex) -> getGrassColor(state, level, pos),
+                ModBlocks.INTIMATE_GRASS.get());
     }
 
-    private static int getGrassColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,
-                                     int tintIndex) {
+    private static int getGrassColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos) {
         if (level == null || pos == null) return GrassColor.getDefaultColor();
         boolean upper = state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER;
         return BiomeColors.getAverageGrassColor(level, upper ? pos.below() : pos);

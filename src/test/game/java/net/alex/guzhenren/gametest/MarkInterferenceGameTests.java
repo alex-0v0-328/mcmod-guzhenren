@@ -55,12 +55,12 @@ public final class MarkInterferenceGameTests {
     private MarkInterferenceGameTests() {}
 
     private static final String MARK_INTERFERENCE = "guzhenren.item.failed.mark_interference";
-    private static final List<Supplier<Item>> HUMAN_GU = List.of(ModItems.JIN_STRENGTH_GU_1::get,
-            ModItems.TENS_JIN_STRENGTH_GU_2::get, ModItems.JUN_STRENGTH_GU_3::get, ModItems.TENS_JUN_STRENGTH_GU_4::get);
-    private static final List<Supplier<Item>> BEAST_GU = List.of(ModItems.WHITE_BOAR_GU_1::get,
-            ModItems.BLACK_BOAR_GU_1::get, ModItems.BEAR_STRENGTH_GU_1::get);
-    private static final List<Supplier<Item>> BEAST_BUFF_GU = List.of(ModItems.FLOWER_BOAR_GU_1::get,
-            ModItems.BRUTE_FORCE_LONGHORN_BEETLE_GU_1::get);
+    private static final List<Supplier<Item>> HUMAN_GU = List.of(ModItems.JIN_STRENGTH_GU_1,
+            ModItems.TENS_JIN_STRENGTH_GU_2, ModItems.JUN_STRENGTH_GU_3, ModItems.TENS_JUN_STRENGTH_GU_4);
+    private static final List<Supplier<Item>> BEAST_GU = List.of(ModItems.WHITE_BOAR_GU_1,
+            ModItems.BLACK_BOAR_GU_1, ModItems.BEAR_STRENGTH_GU_1);
+    private static final List<Supplier<Item>> BEAST_BUFF_GU = List.of(ModItems.FLOWER_BOAR_GU_1,
+            ModItems.BRUTE_FORCE_LONGHORN_BEETLE_GU_1);
 
     @GameTest(template = "empty9x9x9")
     public static void aBeastBodyIsRefusedEveryHumanStrengthGu(GameTestHelper helper) {

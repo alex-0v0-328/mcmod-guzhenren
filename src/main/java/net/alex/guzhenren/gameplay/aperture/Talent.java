@@ -1,13 +1,11 @@
 package net.alex.guzhenren.gameplay.aperture;
 
-import com.mojang.serialization.Codec;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.core.WeightedPick;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.util.StringRepresentable;
 
 /**
  * 资质[Aptitude]：由空窍[Aperture]基础真元[Essence]推导，从不另存。
@@ -35,7 +33,6 @@ public enum Talent implements NamedEnum {
 
     NONE(0, 0, 0, 0, 0);
 
-    public static final Codec<Talent> CODEC = StringRepresentable.fromEnum(Talent::values);
     public static final Talent HIGHEST = TEN_EXTREMES;
     public static final Talent LOWEST = FOURTH;
     private final int minPercent;

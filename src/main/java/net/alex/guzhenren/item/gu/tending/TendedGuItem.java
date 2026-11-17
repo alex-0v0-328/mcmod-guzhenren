@@ -121,7 +121,7 @@ public class TendedGuItem extends MortalGuItem {
 
     public boolean isRefined(ItemStack stack) { return getState(stack).refined(); }
 
-    public boolean isHungry(ServerPlayer player, ItemStack stack) {
+    public boolean isHungry(ItemStack stack) {
         return isRefined(stack) && hunger.isHungry(stack);
     }
     //endregion
@@ -385,7 +385,7 @@ public class TendedGuItem extends MortalGuItem {
     /** 扣量后立即进食；下次日切会饿死它时再发饥饿警告。 */
     protected final void feedAndWarn(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
-        if (isHungry(player, stack)) announce(player, stack, MSG_HUNGRY);
+        if (isHungry(stack)) announce(player, stack, MSG_HUNGRY);
     }
 
     /** 为不算催动的开销（杀招[Killing Move]启动）从饱食[Hunger]条扣 {@code points}；不足时为 false。 */

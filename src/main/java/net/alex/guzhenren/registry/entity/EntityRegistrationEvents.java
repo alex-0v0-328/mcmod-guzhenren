@@ -126,11 +126,13 @@ public final class EntityRegistrationEvents {
                                                             EntityType<T> type) {
         event.register(type, SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                SpawnRules::onAnimalGround, RegisterSpawnPlacementsEvent.Operation.REPLACE);
+                (spawned, level, reason, pos, random) -> SpawnRules.onAnimalGround(level, pos),
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
     private static <T extends Mob> void registerSurfaceSpawn(RegisterSpawnPlacementsEvent event, EntityType<T> type) {
         event.register(type, SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                SpawnRules::onTheSurface, RegisterSpawnPlacementsEvent.Operation.REPLACE);
+                (spawned, level, reason, pos, random) -> SpawnRules.onTheSurface(level, pos),
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 }

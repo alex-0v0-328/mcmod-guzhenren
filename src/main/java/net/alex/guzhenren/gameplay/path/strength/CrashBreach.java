@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ModEvents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -104,7 +105,8 @@ public final class CrashBreach {
         sweep:
         for (AABB box : getBoxes(getBody(player), direction, length)) {
             for (BlockPos pos : getCells(box)) {
-                if (!level.hasChunkAt(pos)) break sweep;
+                if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()),
+                        SectionPos.blockToSectionCoord(pos.getZ()))) break sweep;
                 BlockState state = level.getBlockState(pos);
                 if (!meets(level, pos, state, box)) continue;
                 if (!AreaImpactShatter.canBreak(state.getDestroySpeed(level, pos), state.hasBlockEntity(), maxHardness)

@@ -1,7 +1,7 @@
 package net.alex.guzhenren.compat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.gson.JsonArray;
@@ -46,7 +46,7 @@ class ThrowClipTest {
                 JsonArray times = joint.getAsJsonArray("time");
                 JsonArray keys = joint.getAsJsonArray("transform");
                 assertEquals(0.3D, times.get(times.size() - 1).getAsDouble(), 1.0E-9D, clip);
-                assertFalse(keys.get(keys.size() - 1).equals(keys.get(keys.size() / 3)),
+                assertNotEquals(keys.get(keys.size() - 1), keys.get(keys.size() / 3),
                         name + " leaves its rest on the way in " + clip);
             }
             assertEquals(getJoint(read("throw_sweep.json"), "Arm_R").getAsJsonArray("transform").get(0),

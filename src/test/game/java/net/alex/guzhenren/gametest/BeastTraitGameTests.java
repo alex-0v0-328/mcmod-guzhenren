@@ -126,7 +126,7 @@ public final class BeastTraitGameTests {
         ShieldLayer layer = shield(player);
         assertEquals(270.0D, layer.points(), DELTA);
         assertEquals(270.0D, layer.max(), DELTA);
-        assertEquals((long) SHIELD_TICKS, ShieldService.getTicksLeft(player, ShieldType.HEAVENLY_MUGWORT));
+        assertEquals(SHIELD_TICKS, ShieldService.getTicksLeft(player, ShieldType.HEAVENLY_MUGWORT));
         helper.succeed();
     }
 

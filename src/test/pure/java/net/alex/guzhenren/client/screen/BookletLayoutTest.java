@@ -127,13 +127,13 @@ class BookletLayoutTest {
     @Test
     @DisplayName("punctuation never opens a column: the glyph before it moves down with it [避头]")
     void punctuationPullsTheGlyphBeforeIt() {
-        String text = HAN.substring(0, 12) + "︒" + HAN.substring(12, 13);
+        String text = HAN.substring(0, 12) + "︒" + HAN.charAt(12);
         List<BookletLayout.Cell> cells = lay(new Paragraph(Role.TEXT, text, text));
         assertEquals(cell(HAN.substring(10, 11), 0, 10), cells.get(10));
         assertEquals(cell(HAN.substring(11, 12), 1, 0), cells.get(11));
         assertEquals(cell("︒", 1, 1), cells.get(12));
 
-        String run = HAN.substring(0, 11) + "︒︐" + HAN.substring(11, 12);
+        String run = HAN.substring(0, 11) + "︒︐" + HAN.charAt(11);
         List<BookletLayout.Cell> pulled = lay(new Paragraph(Role.TEXT, run, run));
         assertEquals(cell(HAN.substring(10, 11), 1, 0), pulled.get(10));
         assertEquals(cell("︐", 1, 2), pulled.get(12));

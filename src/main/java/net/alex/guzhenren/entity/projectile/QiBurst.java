@@ -53,12 +53,6 @@ public final class QiBurst {
 
     public static @NotNull List<LivingEntity> burst(@NotNull ServerPlayer owner, @NotNull Entity projectile,
                                                     @NotNull Vec3 at, @NotNull Vec3 heading,
-                                                    @Nullable LivingEntity locked, float damage) {
-        return burst(owner, projectile, at, heading, locked, damage, Spec.QI_WAVE);
-    }
-
-    public static @NotNull List<LivingEntity> burst(@NotNull ServerPlayer owner, @NotNull Entity projectile,
-                                                    @NotNull Vec3 at, @NotNull Vec3 heading,
                                                     @Nullable LivingEntity locked, float damage, @NotNull Spec spec) {
         DamageSource source = ModDamageTypes.source(projectile, owner, spec.type());
         double radius = spec.radius();

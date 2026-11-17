@@ -279,12 +279,12 @@ public final class WikiItemsGameTests {
             return found.getFirst();
         }).toList();
         List<String> headers = new ArrayList<>(group.table().headers);
-        List<String> cells = headers.stream().map(field -> {
-            if (field.equals("蛊") || field.equals("蛊虫")) return group.label();
-            if (field.equals("效果") || field.equals("一轮结果")) return "见本节";
-            if (field.equals("冷却中再催")) return effectFlag(selected, RECAST, RECAST, NO_RECAST);
-            if (field.equals("用后")) return effectFlag(selected, GONE, "消失", "保留");
-            return String.join("<br>", collapse(selected.stream().map(r -> r.cell(field)).toList()));
+        List<String> cells = headers.stream().map(field -> switch (field) {
+            case "蛊", "蛊虫" -> group.label();
+            case "效果", "一轮结果" -> "见本节";
+            case "冷却中再催" -> effectFlag(selected, RECAST, RECAST, NO_RECAST);
+            case "用后" -> effectFlag(selected, GONE, "消失", "保留");
+            default -> String.join("<br>", collapse(selected.stream().map(r -> r.cell(field)).toList()));
         }).toList();
         WikiTable.Row first = selected.getFirst();
         return new WikiTable.Row(first.location(), first.headerLocation(), first.section(), headers, cells);

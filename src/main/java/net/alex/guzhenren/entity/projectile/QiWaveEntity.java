@@ -125,7 +125,8 @@ public final class QiWaveEntity extends Projectile {
         }
         steer(center);
         Vec3 motion = getDeltaMovement();
-        boolean arriving = !level().isClientSide() && center.distanceTo(aimPoint) <= motion.length();
+        boolean arriving = !level().isClientSide() && aimPoint != null
+                && center.distanceTo(aimPoint) <= motion.length();
         if (arriving) setDeltaMovement(aimPoint.subtract(center));
         HitResult hit = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
         if (hit.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hit)) {

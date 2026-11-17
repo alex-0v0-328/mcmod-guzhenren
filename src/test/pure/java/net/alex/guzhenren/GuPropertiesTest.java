@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -172,7 +173,7 @@ class GuPropertiesTest {
                 .hungerPerRound(3).hungerPerUse(5).hungerPerDay(7);
         assertTrue(bar.buildHunger() instanceof GuHunger.HungerBar(int max, int units, int essence, int round,
                 int use, int day) && max == 48 && units == 2 && essence == 900 && round == 3 && use == 5 && day == 7);
-        assertTrue(GuProperties.of(Rank.THREE, GuPath.STRENGTH).buildHunger() instanceof GuHunger.NoClock);
+        assertInstanceOf(GuHunger.NoClock.class, GuProperties.of(Rank.THREE, GuPath.STRENGTH).buildHunger());
     }
 
     @Test

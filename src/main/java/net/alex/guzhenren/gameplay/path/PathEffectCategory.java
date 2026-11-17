@@ -1,8 +1,6 @@
 package net.alex.guzhenren.gameplay.path;
 
-import com.mojang.serialization.Codec;
 import net.alex.guzhenren.core.NamedEnum;
-import net.minecraft.util.StringRepresentable;
 
 /**
  * 流派效果对载体有益或有害：流派增益或流派减益。闭合枚举，每个 {@link PathEffectType} 指定一种；B 面板分两类列出、
@@ -19,7 +17,6 @@ public enum PathEffectCategory implements NamedEnum {
     BENEFICIAL,
     HARMFUL;
 
-    public static final Codec<PathEffectCategory> CODEC = StringRepresentable.fromEnum(PathEffectCategory::values);
 
     @Override
     public String getTranslationPrefix() { return "guzhenren.enum.path.effect_category."; }

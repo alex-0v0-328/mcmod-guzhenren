@@ -86,7 +86,7 @@ public abstract class ChargerEntity extends ActionEntity<ChargerEntity.Action> {
         return attack == Action.ATTACK_CHARGE ? this.getChargeCooldownKey() : this.getTossCooldownKey();
     }
 
-    private Cooldown getChargeCooldownKey() { return this.getCooldowns().get(0); }
+    private Cooldown getChargeCooldownKey() { return this.getCooldowns().getFirst(); }
 
     private Cooldown getTossCooldownKey() { return this.getCooldowns().get(1); }
 

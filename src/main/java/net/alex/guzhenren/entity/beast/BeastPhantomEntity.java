@@ -187,8 +187,6 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
 
     public static int getShownTicks() { return LIFETIME_TICKS + LINGER_TICKS; }
 
-    public float getAge(float partialTick) { return this.tickCount - this.bornTick + partialTick; }
-
     //region Coming and going [出现与消失]
     private float getAppear(float partialTick) {
         return Mth.clamp((this.tickCount + partialTick - getSlot().ordinal()) / APPEAR_TICKS, 0.0F, 1.0F);

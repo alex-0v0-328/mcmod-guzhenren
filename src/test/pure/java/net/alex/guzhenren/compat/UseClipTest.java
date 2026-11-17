@@ -2,6 +2,7 @@ package net.alex.guzhenren.compat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -41,7 +42,7 @@ class UseClipTest {
             JsonArray keys = keys(reach, name);
             assertEquals(0.5D, lastTime(reach, name), 1.0E-9D);
             assertEquals(keys.get(0), keys.get(keys.size() - 1), name + " ends where it started");
-            assertFalse(keys.get(0).equals(keys.get(keys.size() / 2)), name + " leaves its rest on the way");
+            assertNotEquals(keys.get(0), keys.get(keys.size() / 2), name + " leaves its rest on the way");
         }
         assertLayer(read("skill/data/use_reach.json"), "HIGH");
 
@@ -50,7 +51,7 @@ class UseClipTest {
             JsonArray keys = keys(hold, name);
             assertEquals(2.0D, lastTime(hold, name), 1.0E-9D);
             assertEquals(keys.get(0), keys.get(keys.size() - 1), name + " loops");
-            assertFalse(keys.get(0).equals(keys(reach, name).get(0)), name + " is held away from the idle hang");
+            assertNotEquals(keys.get(0), keys(reach, name).get(0), name + " is held away from the idle hang");
         }
         assertEquals(keys(reach, "Hand_L").get(0), keys(hold, "Hand_L").get(0), "the left arm hangs");
         assertLayer(read("living/data/refine_loop.json"), "MIDDLE");

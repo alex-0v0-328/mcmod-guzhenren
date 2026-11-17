@@ -7,7 +7,6 @@ import net.alex.guzhenren.gameplay.aperture.ApertureNourishData;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
-import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.soul.SoulData;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;

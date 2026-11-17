@@ -2,6 +2,7 @@ package net.alex.guzhenren.gametest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
@@ -208,7 +209,7 @@ public final class AreaImpactGameTests {
         List<LivingEntity> landed = AreaImpact.burst(player, helper.absoluteVec(SPHERE), List.of(spared));
 
         assertEquals(2, landed.size());
-        assertTrue(landed.containsAll(List.of(north, south)), () -> "the sphere landed on " + landed);
+        assertTrue(Set.copyOf(landed).containsAll(List.of(north, south)), () -> "the sphere landed on " + landed);
         assertEquals(north.getMaxHealth() - damage, north.getHealth(), DELTA);
         assertTrue(north.getDeltaMovement().z < 0.0D, () -> "the burst shoved " + north.getDeltaMovement());
         assertTrue(south.getDeltaMovement().z > 0.0D, () -> "the burst shoved " + south.getDeltaMovement());

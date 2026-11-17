@@ -33,7 +33,6 @@ import static net.alex.guzhenren.gametest.GameTestGu.charge;
 import static net.alex.guzhenren.gametest.GameTestPlayers.STAND;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertEquals;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
-import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
  * 三种如故蛊[As Before Gu]。

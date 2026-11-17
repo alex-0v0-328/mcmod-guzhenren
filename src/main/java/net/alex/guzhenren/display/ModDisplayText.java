@@ -190,10 +190,6 @@ public final class ModDisplayText {
         return name.append(" ").append(formatEffectTime(beast.secondsLeft()));
     }
 
-    public static MutableComponent formatBeastStrength(BeastStrength beast) {
-        return formatBeastStrength(beast.getFamily(), 1, beast.getForm() == BeastStrength.Form.INNATE ? beast : null);
-    }
-
     public static MutableComponent formatBeastStrength(BeastStrengthFamily family, int count,
                                                        @Nullable BeastStrength innate) {
         if (innate != null) {

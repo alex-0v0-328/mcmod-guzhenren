@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * 蓄力蛊[Store Strength Gu]蓄满后放出的蓄力一拳。
  * <ul>
  *   <li>{@link StoreStrength#release} 计数后触发；按 {@link StoreStrength#getMaxPoints} 出拳，可超当前承受力
- *       （{@link AttackDamageService#getFistDamage}）。</li>
+ *       （{@link AttackDamageService#getFistDamage(net.minecraft.world.entity.player.Player, int)}）。</li>
  *   <li>兽力虚影流随机解放一个持有兽种，苦力期间全解放，虚影显在运行中轮次的虚影旁。</li>
  *   <li>{@link #getTarget} 重验客户端给的目标（存活、可打、在视线前、距眼 {@link #MAX_TARGET_DISTANCE} 格内），伪造 id
  *       不能把一击转到身后或伸到远处。</li>

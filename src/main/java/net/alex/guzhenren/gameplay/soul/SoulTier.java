@@ -1,9 +1,7 @@
 package net.alex.guzhenren.gameplay.soul;
 
-import com.mojang.serialization.Codec;
 import net.alex.guzhenren.core.NamedEnum;
 import net.alex.guzhenren.gameplay.aperture.Title;
-import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,7 +26,6 @@ public enum SoulTier implements NamedEnum {
     TEN_MILLION(1_000_000_000L),
     HUNDRED_MILLION(10_000_000_000L);
 
-    public static final Codec<SoulTier> CODEC = StringRepresentable.fromEnum(SoulTier::values);
     private final long minSoul;
 
     SoulTier(long minSoul) {

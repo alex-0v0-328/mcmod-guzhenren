@@ -53,7 +53,7 @@ public final class CmdTravel {
         return Commands.literal("enter")
                 .then(ModCommandSupport.withTargets(
                         Commands.argument(ARG_DIMENSION, ResourceLocationArgument.id())
-                                .suggests(CmdTravel::suggestAnchoredDimensions),
+                                .suggests((context, builder) -> suggestAnchoredDimensions(builder)),
                         CmdTravel::enter));
     }
 
@@ -71,8 +71,7 @@ public final class CmdTravel {
                 && DimensionTravelService.isInside(player, ModDimensions.TREASURE_YELLOW_HEAVEN);
     }
 
-    private static CompletableFuture<Suggestions> suggestAnchoredDimensions(
-            CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
+    private static CompletableFuture<Suggestions> suggestAnchoredDimensions(SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggestResource(
                 ModDimensions.ANCHORED_DIMENSIONS.keySet().stream().map(ResourceKey::location), builder);
     }

@@ -1,8 +1,6 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
-import com.mojang.serialization.Codec;
 import net.alex.guzhenren.core.NamedEnum;
-import net.minecraft.util.StringRepresentable;
 
 /**
  * 力道四分支，基础力道为默认分类（封闭枚举）。兽力虚影流、人力钧力流持有现有持久数据；气象天地流未实现；基础力道归类其
@@ -23,7 +21,6 @@ public enum StrengthPathBranch implements NamedEnum {
     ATMOSPHERIC_HEAVEN_AND_EARTH,
     NORMAL;
 
-    public static final Codec<StrengthPathBranch> CODEC = StringRepresentable.fromEnum(StrengthPathBranch::values);
 
     public boolean interferesWith(StrengthPathBranch other) {
         return switch (this) {

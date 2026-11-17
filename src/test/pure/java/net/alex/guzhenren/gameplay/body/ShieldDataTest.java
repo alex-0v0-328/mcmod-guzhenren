@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.body;
 import static net.alex.guzhenren.TestBuffers.withBuffer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -75,7 +76,7 @@ class ShieldDataTest {
             JsonArray keys = joint.getAsJsonArray("transform");
             assertEquals(0.6D, times.get(times.size() - 1).getAsDouble(), 1.0E-9D);
             assertEquals(keys.get(0), keys.get(keys.size() - 1), name + " ends where it started");
-            assertFalse(keys.get(0).equals(keys.get(keys.size() / 2)), name + " leaves its rest on the way");
+            assertNotEquals(keys.get(0), keys.get(keys.size() / 2), name + " leaves its rest on the way");
         }
 
         JsonObject data = read("data/shield_raise.json");

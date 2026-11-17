@@ -94,7 +94,7 @@ public final class TreasureYellowHeavenStashGameTests {
 
         List<ItemStack> stash = PlayerData.get(to).getTossStash().stacks();
         helper.assertValueEqual(stash.size(), 1, "a wiping death lost the stash");
-        helper.assertValueEqual(stash.get(0).getCount(), 3, "the stash the clone carried");
+        helper.assertValueEqual(stash.getFirst().getCount(), 3, "the stash the clone carried");
 
         TreasureYellowHeavenGuard.tick(to);
 
@@ -118,7 +118,7 @@ public final class TreasureYellowHeavenStashGameTests {
 
         List<ItemStack> stash = PlayerData.get(loaded).getTossStash().stacks();
         helper.assertValueEqual(stash.size(), 1, "the stash was not saved");
-        helper.assertTrue(ItemStack.matches(stash.get(0), named), "the saved stack changed");
+        helper.assertTrue(ItemStack.matches(stash.getFirst(), named), "the saved stack changed");
         saved.discard();
         loaded.discard();
         helper.succeed();

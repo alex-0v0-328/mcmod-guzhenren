@@ -37,7 +37,7 @@ public record Anatomy(Map<BodyPart, Injury> limbInjuries, Map<Organ, Injury> org
                     .forGetter(Anatomy::limbInjuries),
             Codec.unboundedMap(Organ.CODEC, Injury.CODEC).optionalFieldOf("organ_injuries", Map.of())
                     .forGetter(Anatomy::organInjuries),
-            Appendage.CODEC.listOf().<Set<Appendage>>xmap(Set::copyOf, ArrayList::new)
+            Appendage.CODEC.listOf().xmap(Set::copyOf, ArrayList::new)
                     .optionalFieldOf("appendages", Set.of()).forGetter(Anatomy::appendages)
     ).apply(instance, Anatomy::new));
 

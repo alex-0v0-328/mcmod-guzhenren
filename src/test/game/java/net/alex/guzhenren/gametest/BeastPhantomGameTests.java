@@ -168,7 +168,7 @@ public final class BeastPhantomGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void allOutEffortShowsAPhantomEveryRound(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
@@ -202,7 +202,7 @@ public final class BeastPhantomGameTests {
         });
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void aRoundsEndReleasesNothing(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.TIGER);
@@ -300,7 +300,7 @@ public final class BeastPhantomGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void theSameFamilyIsRenewedInPlaceAndAnotherReplacesIt(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         BeastPhantomEntity.show(player, List.of(BeastStrengthFamily.TIGER));
@@ -319,7 +319,7 @@ public final class BeastPhantomGameTests {
         });
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void aSteadyFistRenewsThePhantomAcrossRounds(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
@@ -352,7 +352,7 @@ public final class BeastPhantomGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 100)
+    @GameTest(template = "empty9x9x9")
     public static void thePhantomGoesAfterItsLifetime(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.TIGER);
