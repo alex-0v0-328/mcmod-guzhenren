@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>点到作物时取它正下方那格耕地；作物的范围同 {@code BlackSoilFarmlandBlock#isCrop}。</li>
  *   <li>换方块只在服务端，带上原耕地的湿润度。</li>
  *   <li>⚠ 换方块的标志带 {@code UPDATE_KNOWN_SHAPE}，不发邻格形状更新：否则上方作物复检存活，亮度不足 8 的会掉落；
- *       新旧耕地外形相同，邻格无形状可改。</li>
+ *       新旧耕地外形相同，邻格无形状可改。代价是旁边的侦测器不触发。</li>
  *   <li>成功才消耗 1 个，创造模式不消耗；音效用黑土耕地的放置声，同 {@code BlockItem} 放方块。</li>
  *   <li>{@link #convertEach} 供连锁类模组（{@code compat.FtbUltimineIntegration}）逐格走同一条 {@code useOn}：手里不是
  *       腐泥冻土即返回 0，用完即停，返回转换的格数。</li>

@@ -60,3 +60,11 @@ config="${mod_id}.mixins.json"
     versionRange="[19,20)"
     ordering="AFTER"
     side="BOTH"
+
+# This mod constructs first so its right-click handler is asked before FTB Ultimine's crop harvesting.
+[[dependencies.${mod_id}]]
+    modId="ftbultimine"
+    type="optional"
+    versionRange="[0,)"
+    ordering="BEFORE"
+    side="BOTH"

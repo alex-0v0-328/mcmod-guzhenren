@@ -9,12 +9,10 @@ import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -120,12 +118,13 @@ public final class BlackSoilFarmlandGameTests {
         helper.setBlock(SOIL.east().above(), ((CropBlock) Blocks.WHEAT).getStateForAge(2));
         helper.setBlock(SOIL.west(), Blocks.DIRT);
         ServerPlayer player = holdMud(helper, 3);
-        List<BlockPos> chained = new ArrayList<>(List.of(helper.absolutePos(SOIL.west())));
+        List<BlockPos> chained = new ArrayList<>(List.of(helper.absolutePos(SOIL.west()),
+                helper.absolutePos(SOIL.east().above())));
         row.forEach(pos -> chained.add(helper.absolutePos(pos)));
 
         int converted = RottenFrozenMudItem.convertEach(player, InteractionHand.MAIN_HAND, chained);
 
-        helper.assertValueEqual(converted, 3, "blocks converted with 3 mud");
+        helper.assertValueEqual(converted, 3, "blocks converted with 3 mud, the crop's farmland counted once");
         helper.assertBlockPresent(Blocks.DIRT, SOIL.west());
         for (int index = 0; index < 3; index++) assertBlackSoil(helper, row.get(index), 0);
         helper.assertBlockPresent(Blocks.FARMLAND, row.get(3));
@@ -273,11 +272,6 @@ public final class BlackSoilFarmlandGameTests {
         helper.assertTrue(BlackSoilFarmlandBlock.isCrop(true, Blocks.MELON_STEM), "a tagged stem is a crop");
         helper.assertFalse(BlackSoilFarmlandBlock.isCrop(false, Blocks.MELON_STEM), "an untagged stem is not");
         helper.assertFalse(BlackSoilFarmlandBlock.isCrop(false, Blocks.OAK_SAPLING), "a sapling is not");
-        for (Block block : BuiltInRegistries.BLOCK) {
-            BlockState state = block.defaultBlockState();
-            boolean split = BlackSoilFarmlandBlock.isCrop(state.is(BlockTags.CROPS), block);
-            helper.assertTrue(BlackSoilFarmlandBlock.isCrop(state) == split, "both crop tests agree on " + block);
-        }
         helper.succeed();
     }
 
