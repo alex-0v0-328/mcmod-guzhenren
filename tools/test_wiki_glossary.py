@@ -68,6 +68,7 @@ class WikiGlossaryTest(unittest.TestCase):
         self.assertLess(text.index('## 修炼'), text.index('## 世界'))
         self.assertTrue(text.startswith('## 修炼\n'))
         self.assertTrue(text.endswith(glossary.MANUAL_STUB))
+        self.assertNotIn(b'\r', self.page.read_bytes())
         self.assertEqual(0, run([], self.roots, self.wiki)[0])
 
     def test_write_keeps_the_hand_written_section(self):
