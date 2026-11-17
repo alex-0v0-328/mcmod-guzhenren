@@ -70,6 +70,7 @@ import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
 import net.alex.guzhenren.item.material.LiquorItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
+import net.alex.guzhenren.item.material.RottenFrozenMudItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemModel;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
@@ -124,6 +125,8 @@ import org.jetbrains.annotations.Nullable;
  *       图标为流体静止条带（{@code ItemModel.FLUID}），无物品 PNG。</li>
  *   <li>{@link #INTIMATE_GRASS_SEEDS}：知心草种子，{@code ItemNameBlockItem}，右键耕地种下知心草作物；名字归物品，
  *       作物方块另有自己的名字。</li>
+ *   <li>{@link #BLACK_SOIL_FARMLAND}：黑土耕地的 {@code BlockItem}，只进创造栏；生存里由腐泥冻土
+ *       （{@link RottenFrozenMudItem}）右键耕地得到方块，挖掉掉泥土。</li>
  *   <li>{@link #PURE_WATER_BUCKET}：纯水版水桶，放水源、空桶舀回、发射器倾倒（{@code PureWaterEvents}）。</li>
  *   <li>{@link #ADVANCEMENT_ICON}：非游戏物品，承载修为进度的数字（{@link AdvancementIconItem}）。</li>
  * </ul>
@@ -926,7 +929,7 @@ public final class ModItems {
 
     //region Earth materials [土道蛊材]
     public static final DeferredItem<Item> ROTTEN_FROZEN_MUD = REGISTRAR.item("rotten_frozen_mud",
-            () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
+            () -> new RottenFrozenMudItem(new Item.Properties()))
             .lang("Rotten Frozen Mud", "腐泥冻土").register();
     public static final DeferredItem<Item> JADE = REGISTRAR.item("jade",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
@@ -957,6 +960,13 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.STEEL_BLOCK.get(), new Item.Properties()))
             .lang("Steel Block", "钢块").model(ItemModel.BLOCK).tag(ModItemTags.STORAGE_BLOCKS_STEEL)
             .tab(ModCreativeTabs.GU_MATERIAL).register();
+    //endregion
+
+    //region Farmland [耕地]
+    public static final DeferredItem<Item> BLACK_SOIL_FARMLAND = REGISTRAR.item("black_soil_farmland",
+            () -> new BlockItem(ModBlocks.BLACK_SOIL_FARMLAND.get(), new Item.Properties()))
+            .lang("Black Soil Farmland", "黑土耕地").model(ItemModel.BLOCK).tab(ModCreativeTabs.GU_MATERIAL)
+            .register();
     //endregion
 
     //region Human Aperture [人窍]

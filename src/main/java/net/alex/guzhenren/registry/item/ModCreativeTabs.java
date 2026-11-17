@@ -28,7 +28,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *
  * <ul>
  *   <li>力道、木道蛊离开凡蛊栏进本道栏，木道蛊材仍留蛊材栏；其后凡道杀招[Killing Move]书栏，书册殿后。</li>
- *   <li>{@code tab} 取代按类选栏：元泉[Spirit Spring] BlockItem、纯水桶、钢锭、钢块借此进蛊材栏。</li>
+ *   <li>{@code tab} 取代按类选栏：元泉[Spirit Spring] BlockItem、纯水桶、钢锭、钢块、知心草种子、黑土耕地借此
+ *       进蛊材栏。</li>
  *   <li>⚠ 不属上述类又无 {@code tab} 的物品静默不进任何栏；进度图标有意如此。</li>
  *   <li>图标用 lambda：带 {@code tab} 的注册可能在 {@code ModItems} 初始化中触发本类，直接读字段得 null。</li>
  *   <li>语言 provider 无物品栏重载，不用这六个常量。</li>

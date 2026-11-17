@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
@@ -25,6 +26,8 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
  *   <li>双层植物按 {@code half} 每半一个原版 {@code block/cross} 模型，贴图自带颜色，不着色。</li>
  *   <li>作物按 {@code age} 每阶段一个原版井字形 {@code block/crop} 模型；知心草作物的 8 张阶段图沿用资产名
  *       {@code intimate_grass_stage0} 至 {@code 7}，模型名带方块 ID。</li>
+ *   <li>耕地照原版两个 {@code block/template_farmland} 模型：{@code moisture} 满用湿顶面，其余用干顶面；侧面与底面
+ *       共用 {@code _side} 图。</li>
  * </ul>
  *
  * @author Alex
@@ -46,6 +49,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 Guzhenren.id("item/nine_leaf_vitality_grass_3_full"));
         registerDoublePlantBlock(ModBlocks.INTIMATE_GRASS.get());
         registerCropBlock(ModBlocks.INTIMATE_GRASS_CROP.get(), "intimate_grass");
+        registerFarmlandBlock(ModBlocks.BLACK_SOIL_FARMLAND.get());
         simpleBlock(ModBlocks.STEEL_BLOCK.get());
     }
 
@@ -83,6 +87,23 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     .modelFile(models().crop(name, modLoc("block/" + texture + "_stage" + age)).renderType("cutout"))
                     .build();
         });
+    }
+    //endregion
+
+    //region the farmland [耕地]
+    private void registerFarmlandBlock(Block block) {
+        String name = BuiltInRegistries.BLOCK.getKey(block).getPath();
+        ModelFile dry = buildFarmlandModel(name, name);
+        ModelFile moist = buildFarmlandModel(name + "_moist", name);
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(FarmBlock.MOISTURE) == FarmBlock.MAX_MOISTURE ? moist : dry)
+                .build());
+    }
+
+    private ModelFile buildFarmlandModel(String model, String block) {
+        return models().withExistingParent(model, mcLoc("block/template_farmland"))
+                .texture("dirt", modLoc("block/" + block + "_side"))
+                .texture("top", modLoc("block/" + model));
     }
     //endregion
 }

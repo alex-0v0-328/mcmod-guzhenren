@@ -17,6 +17,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -41,11 +42,9 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>九叶生机草[Nine Leaf Vitality Grass]掉其野生蛊物品，叶子全满；元泉[Spirit Spring]与纯水无表；已知方块取本模组全
  *       部方块，新方块缺表让 {@code runData} 失败。</li>
- *   <li>野生知心草任何方式破坏都掉 {@value #WILD_BUNDLES} 个知心草束，加 1 颗种子与 {@value #WILD_SEED_ROLLS} 次
- *       {@value #SEED_ROLL_CHANCE} 的额外判定（同成熟小麦的种子量，时运每级多一次）。</li>
+ *   <li>知心草两张表的数量见 wiki《植物与采集》；种子用原版小麦的二项分布加成，时运生效，爆炸照原版衰减。</li>
  *   <li>⚠ 双层植物两半各滚一次表：被打那半经 {@code DoublePlantBlock.playerWillDestroy} 掉，另一半随后失去支撑再掉；
  *       故照原版双层植物只在另一半还在时掉落，打哪半都正好一份。</li>
- *   <li>知心草作物成熟掉 1 个知心草束，加 1 颗种子与 {@value #CROP_SEED_ROLLS} 次额外判定；未成熟只退 1 颗种子。</li>
  *   <li>{@link #hasHoe} 供 {@code ModLootModifierProvider} 的月兰花瓣用。</li>
  * </ul>
  */
@@ -75,6 +74,7 @@ public final class ModBlockLootProvider extends BlockLootSubProvider {
         dropOther(ModBlocks.NINE_LEAF_VITALITY_GRASS_3.get(), ModItems.NINE_LEAF_VITALITY_GRASS_3.get());
         add(ModBlocks.INTIMATE_GRASS.get(), this::createWildIntimateGrassDrops);
         add(ModBlocks.INTIMATE_GRASS_CROP.get(), this::createIntimateGrassCropDrops);
+        dropOther(ModBlocks.BLACK_SOIL_FARMLAND.get(), Blocks.DIRT);
         dropSelf(ModBlocks.STEEL_BLOCK.get());
     }
 

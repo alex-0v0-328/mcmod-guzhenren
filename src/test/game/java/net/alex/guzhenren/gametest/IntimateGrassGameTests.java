@@ -6,10 +6,13 @@ import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -33,8 +36,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
- * 知心草的野生采集与种植：野生两格草不论工具、打哪半都只掉一份（2 草束加 1–4 种子）；种子只能种在耕地上；作物成熟掉
- * 1 草束加 1–2 种子，未成熟退 1 种子；骨粉同小麦；生长次数是同条件小麦的 1/4。破坏均为真实生存
+ * 知心草的野生采集与种植：野生两格草不论工具、打哪半都只掉一份（2 草束加 1–4 种子）；种子只能种在耕地（含黑土耕地）
+ * 上；作物成熟掉 1 草束加 1–2 种子，未成熟退 1 种子；骨粉同小麦；生长次数是同条件小麦的 1/4；作物在农夫乐事的沃土排除标签里。破坏均为真实生存
  * {@code gameMode.destroyBlock}。生长对照用固定种子的随机源直接驱动随机刻，结果确定。
  */
 
@@ -42,8 +45,11 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 @PrefixGameTestTemplate(false)
 public final class IntimateGrassGameTests {
 
+    private static final TagKey<Block> UNAFFECTED_BY_RICH_SOIL = TagKey.create(Registries.BLOCK,
+            ResourceLocation.fromNamespaceAndPath("farmersdelight", "unaffected_by_rich_soil"));
     private static final long GROWTH_SEED = 20261118L;
     private static final int GROWTH_ROLLS = 12_000;
+    private static final int WHEAT_TO_CROP = 4;
     private static final double GROWTH_TOLERANCE = 0.6D;
     private static final int LIGHT_TO_GROW = 9;
 
@@ -73,19 +79,25 @@ public final class IntimateGrassGameTests {
     public static void seedsPlantOnFarmlandOnly(GameTestHelper helper) {
         BlockPos farmland = CENTER_POS.below();
         BlockPos dirt = farmland.east(3);
+        BlockPos blackSoil = farmland.west(3);
         helper.setBlock(farmland, Blocks.FARMLAND);
         helper.setBlock(dirt, Blocks.DIRT);
+        helper.setBlock(blackSoil, ModBlocks.BLACK_SOIL_FARMLAND.get());
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-seed-mock").build();
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.INTIMATE_GRASS_SEEDS.get(), 2));
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.INTIMATE_GRASS_SEEDS.get(), 3));
 
         useOnTop(helper, player, dirt);
         helper.assertBlockNotPresent(ModBlocks.INTIMATE_GRASS_CROP.get(), dirt.above());
-        helper.assertValueEqual(player.getMainHandItem().getCount(), 2, "seeds kept on dirt");
+        helper.assertValueEqual(player.getMainHandItem().getCount(), 3, "seeds kept on dirt");
 
         useOnTop(helper, player, farmland);
         helper.assertBlockState(CENTER_POS, state -> state.is(ModBlocks.INTIMATE_GRASS_CROP.get())
                 && state.getValue(CropBlock.AGE) == 0, () -> "a seedling on the farmland");
-        helper.assertValueEqual(player.getMainHandItem().getCount(), 1, "one seed spent");
+        helper.assertValueEqual(player.getMainHandItem().getCount(), 2, "one seed spent");
+
+        useOnTop(helper, player, blackSoil);
+        helper.assertBlockPresent(ModBlocks.INTIMATE_GRASS_CROP.get(), blackSoil.above());
+        helper.assertValueEqual(player.getMainHandItem().getCount(), 1, "one more seed spent on black soil");
         helper.succeed();
     }
 
@@ -126,11 +138,18 @@ public final class IntimateGrassGameTests {
         int crop = countGrowths(helper, CENTER_POS, ModBlocks.INTIMATE_GRASS_CROP.get());
         int wheat = countGrowths(helper, CENTER_POS.east(3), (CropBlock) Blocks.WHEAT);
 
+        helper.assertValueEqual(IntimateGrassCropBlock.GROWTH_SLOWDOWN, WHEAT_TO_CROP, "the slowdown constant");
         helper.assertTrue(crop > 0, "the crop grows at all");
         double ratio = wheat / (double) crop;
-        helper.assertTrue(Math.abs(ratio - IntimateGrassCropBlock.GROWTH_SLOWDOWN) <= GROWTH_TOLERANCE,
-                "wheat grows " + IntimateGrassCropBlock.GROWTH_SLOWDOWN + " times as often, got " + wheat + " to "
-                        + crop);
+        helper.assertTrue(Math.abs(ratio - WHEAT_TO_CROP) <= GROWTH_TOLERANCE,
+                "wheat grows " + WHEAT_TO_CROP + " times as often, got " + wheat + " to " + crop);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void richSoilLeavesTheCropAlone(GameTestHelper helper) {
+        helper.assertTrue(ModBlocks.INTIMATE_GRASS_CROP.get().defaultBlockState().is(UNAFFECTED_BY_RICH_SOIL),
+                "the crop is in the Farmer's Delight rich soil exclusion tag");
         helper.succeed();
     }
 

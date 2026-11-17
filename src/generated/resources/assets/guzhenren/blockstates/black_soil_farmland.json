@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "moisture=0": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=1": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=2": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=3": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=4": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=5": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=6": {
+      "model": "guzhenren:block/black_soil_farmland"
+    },
+    "moisture=7": {
+      "model": "guzhenren:block/black_soil_farmland_moist"
+    }
+  }
+}
