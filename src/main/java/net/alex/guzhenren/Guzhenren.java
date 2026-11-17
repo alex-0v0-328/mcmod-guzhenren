@@ -2,6 +2,7 @@ package net.alex.guzhenren;
 
 import com.mojang.logging.LogUtils;
 import net.alex.guzhenren.compat.EpicFightIntegration;
+import net.alex.guzhenren.compat.FtbUltimineIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.StonePurse;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
@@ -23,6 +24,7 @@ import net.alex.guzhenren.registry.particle.ModParticles;
 import net.alex.guzhenren.registry.recipe.ModRecipes;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
@@ -34,6 +36,8 @@ import org.slf4j.Logger;
  *       挂模组总线；世界生成归姊妹模组 Gu World，由它放置此处注册的元泉[Spirit Spring]方块。</li>
  *   <li>空窍[Aperture]温养[Nourish]拿物品侧 {@code PrimevalStoneSupply} 的 {@code StonePurse}，空窍储存拿基于蛊物品类的
  *       {@code StoredGu}（{@code StoredGuItems}）：玩法包不依赖物品包。</li>
+ *   <li>FTB 连锁[FTB Ultimine]是可选模组：装了才登记联动（{@code FtbUltimineIntegration}），判断只读它的常量，不加载
+ *       该类。</li>
  * </ul>
  *
  * @author Alex
@@ -69,5 +73,6 @@ public class Guzhenren {
         ApertureStorageService.setStoredGu(new StoredGuItems());
         modEventBus.addListener(EpicFightIntegration::onAnimationRegistry);
         EpicFightIntegration.initialize();
+        if (ModList.get().isLoaded(FtbUltimineIntegration.MOD_ID)) FtbUltimineIntegration.initialize();
     }
 }

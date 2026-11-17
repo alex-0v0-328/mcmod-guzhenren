@@ -1,7 +1,10 @@
 package net.alex.guzhenren.gametest;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.block.BlackSoilFarmlandBlock;
+import net.alex.guzhenren.item.material.RottenFrozenMudItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
@@ -37,9 +40,10 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
  * 黑土耕地：腐泥冻土右键原版耕地或其上的作物掺成，保留湿润度和作物（不发形状更新，用一受更新即碎的枯灌木验证），
- * 生存消耗 1 个、创造不消耗，别的方块不认；踩踏、干燥退泥土、近水湿润、湿润加成、掉泥土同原版耕地；每个随机刻给正上方
- * 作物补 3 次生长判定，成熟即停，标签作物（瓜茎）算、树苗不算，知心草作物每补一刻都过自己的 1/4 判定。生长判定用恒掷 0
- * 并计数的随机源直接驱动耕地随机刻，次数与阶段都确定。
+ * 生存消耗 1 个、创造不消耗，别的方块不认；连锁入口逐格转换、每格 1 个、用完即停，手里不是腐泥冻土不接手；踩踏、
+ * 干燥退泥土、近水湿润、湿润加成、掉泥土同原版耕地；每个随机刻给正上方作物补 3 次生长判定，成熟即停，标签作物（瓜茎）
+ * 算、树苗不算，知心草作物每补一刻都过自己的 1/4 判定。生长判定用恒掷 0 并计数的随机源直接驱动耕地随机刻，次数与阶段
+ * 都确定。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -106,6 +110,32 @@ public final class BlackSoilFarmlandGameTests {
         helper.assertTrue(useOn(helper, player, SOIL).consumesAction(), "the mud is used");
         assertBlackSoil(helper, SOIL, 0);
         helper.assertBlockPresent(Blocks.DEAD_BUSH, SOIL.above());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void chainedConversionSpendsOneMudPerBlockAndStopsWhenItRunsOut(GameTestHelper helper) {
+        List<BlockPos> row = List.of(SOIL, SOIL.east(), SOIL.east(2), SOIL.east(3));
+        row.forEach(pos -> placeSoil(helper, pos, Blocks.FARMLAND, 0));
+        helper.setBlock(SOIL.east().above(), ((CropBlock) Blocks.WHEAT).getStateForAge(2));
+        helper.setBlock(SOIL.west(), Blocks.DIRT);
+        ServerPlayer player = holdMud(helper, 3);
+        List<BlockPos> chained = new ArrayList<>(List.of(helper.absolutePos(SOIL.west())));
+        row.forEach(pos -> chained.add(helper.absolutePos(pos)));
+
+        int converted = RottenFrozenMudItem.convertEach(player, InteractionHand.MAIN_HAND, chained);
+
+        helper.assertValueEqual(converted, 3, "blocks converted with 3 mud");
+        helper.assertBlockPresent(Blocks.DIRT, SOIL.west());
+        for (int index = 0; index < 3; index++) assertBlackSoil(helper, row.get(index), 0);
+        helper.assertBlockPresent(Blocks.FARMLAND, row.get(3));
+        helper.assertBlockPresent(Blocks.WHEAT, SOIL.east().above());
+        helper.assertTrue(player.getMainHandItem().isEmpty(), "all the mud is spent");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WHEAT_SEEDS, 4));
+        helper.assertValueEqual(RottenFrozenMudItem.convertEach(player, InteractionHand.MAIN_HAND, chained), 0,
+                "blocks converted with another item in hand");
+        helper.assertBlockPresent(Blocks.FARMLAND, row.get(3));
         helper.succeed();
     }
 

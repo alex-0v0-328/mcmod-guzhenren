@@ -1,13 +1,18 @@
 package net.alex.guzhenren.item.material;
 
+import java.util.Collection;
 import net.alex.guzhenren.block.BlackSoilFarmlandBlock;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -16,6 +21,8 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 换方块的标志带 {@code UPDATE_KNOWN_SHAPE}，不发邻格形状更新：否则上方作物复检存活，亮度不足 8 的会掉落；
  *       新旧耕地外形相同，邻格无形状可改。</li>
  *   <li>成功才消耗 1 个，创造模式不消耗；音效用黑土耕地的放置声，同 {@code BlockItem} 放方块。</li>
+ *   <li>{@link #convertEach} 供连锁类模组（{@code compat.FtbUltimineIntegration}）逐格走同一条 {@code useOn}：手里不是
+ *       腐泥冻土即返回 0，用完即停，返回转换的格数。</li>
  * </ul>
  *
  * @author Alex
@@ -58,6 +67,20 @@ public class RottenFrozenMudItem extends GuMaterialItem {
         level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, blackSoil));
         context.getItemInHand().consume(1, player);
         return InteractionResult.CONSUME;
+    }
+
+    public static int convertEach(ServerPlayer player, InteractionHand hand, Collection<BlockPos> positions) {
+        ItemStack mud = player.getItemInHand(hand);
+        if (!(mud.getItem() instanceof RottenFrozenMudItem)) return 0;
+
+        int converted = 0;
+        for (BlockPos pos : positions) {
+            if (mud.isEmpty()) break;
+
+            BlockHitResult hit = new BlockHitResult(Vec3.atBottomCenterOf(pos.above()), Direction.UP, pos, false);
+            if (mud.useOn(new UseOnContext(player, hand, hit)).consumesAction()) converted++;
+        }
+        return converted;
     }
 
     private static @Nullable BlockPos findFarmland(Level level, BlockPos clicked) {
