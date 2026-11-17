@@ -223,6 +223,9 @@ tasks.register('pureTest', Test) {
     // The JVM lives for seconds and spends them loading classes: C1-only JIT starts it faster.
     jvmArgs '-XX:TieredStopAtLevel=1'
     systemProperty 'gzr.projectDir', projectDir.absolutePath
+    // FtbUltimineContractTest reads these pack jars at run time; as inputs, swapping one reruns the test.
+    inputs.files(fileTree('run/mods') { include 'ftb-ultimine-neoforge-*.jar', 'architectury-*.jar' })
+            .withPropertyName('ftbUltimineJars').withPathSensitivity(PathSensitivity.NAME_ONLY)
     if (providers.gradleProperty('wikiDir').isPresent()) {
         def configuredWikiDir = providers.gradleProperty('wikiDir').get()
         // Set the raw value before the blank check: the wiki test skips on an unset property but

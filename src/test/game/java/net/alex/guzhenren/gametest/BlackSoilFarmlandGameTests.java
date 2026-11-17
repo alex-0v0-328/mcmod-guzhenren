@@ -116,15 +116,19 @@ public final class BlackSoilFarmlandGameTests {
         List<BlockPos> row = List.of(SOIL, SOIL.east(), SOIL.east(2), SOIL.east(3));
         row.forEach(pos -> placeSoil(helper, pos, Blocks.FARMLAND, 0));
         helper.setBlock(SOIL.east().above(), ((CropBlock) Blocks.WHEAT).getStateForAge(2));
+        helper.setBlock(SOIL.east(2).above(), ((CropBlock) Blocks.WHEAT).getStateForAge(2));
         helper.setBlock(SOIL.west(), Blocks.DIRT);
         ServerPlayer player = holdMud(helper, 3);
-        List<BlockPos> chained = new ArrayList<>(List.of(helper.absolutePos(SOIL.west()),
-                helper.absolutePos(SOIL.east().above())));
-        row.forEach(pos -> chained.add(helper.absolutePos(pos)));
+        List<BlockPos> chained = new ArrayList<>();
+        for (BlockPos pos : List.of(SOIL.west(), SOIL.east().above(), SOIL, SOIL.east(), SOIL.east(2).above(),
+                SOIL.east(3))) {
+            chained.add(helper.absolutePos(pos));
+        }
 
         int converted = RottenFrozenMudItem.convertEach(player, InteractionHand.MAIN_HAND, chained);
 
-        helper.assertValueEqual(converted, 3, "blocks converted with 3 mud, the crop's farmland counted once");
+        helper.assertValueEqual(converted, 3, "blocks converted with 3 mud: one farmland listed with its crop "
+                + "counts once, another is reached through its crop alone");
         helper.assertBlockPresent(Blocks.DIRT, SOIL.west());
         for (int index = 0; index < 3; index++) assertBlackSoil(helper, row.get(index), 0);
         helper.assertBlockPresent(Blocks.FARMLAND, row.get(3));

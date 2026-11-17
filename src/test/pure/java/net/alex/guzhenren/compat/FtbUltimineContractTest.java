@@ -20,19 +20,20 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 /**
  * FTB 连锁[FTB Ultimine]反射契约：{@link FtbUltimineIntegration} 不对它编译，这里读整合包镜像 {@code run/mods} 里的
  * FTB 连锁与 Architectury 两个 jar，核对联动按名字取的字段与方法签名还在；jar 不在（CI 没有整合包镜像）即跳过。整合包
- * 升级这两个模组后签名变了，本测试先红，不必等游戏里那条警告。
+ * 升级这两个模组后签名变了，本测试先红，不必等游戏里那条警告：两个 jar 是 {@code pureTest} 任务的输入，换了即重跑。
  */
 
-public class FtbUltimineContractTest {
-
-    private static final Path MODS = Path.of(System.getProperty("gzr.projectDir"), "run", "mods");
+class FtbUltimineContractTest {
 
     @Test
-    public void theReflectedRightClickApiKeepsItsSignatures() throws IOException {
+    void theReflectedRightClickApiKeepsItsSignatures() throws IOException {
+        String root = System.getProperty("gzr.projectDir");
+        assumeTrue(root != null, "gzr.projectDir is unset: run through the Gradle pureTest task");
+        Path mods = Path.of(root, "run", "mods");
         List<JarFile> jars = new ArrayList<>();
         for (String prefix : List.of("ftb-ultimine-neoforge-", "architectury-")) {
-            Path jar = find(prefix);
-            assumeTrue(jar != null, () -> "no " + prefix + "*.jar in " + MODS.toAbsolutePath());
+            Path jar = find(mods, prefix);
+            assumeTrue(jar != null, () -> "no " + prefix + "*.jar in " + mods);
             jars.add(new JarFile(jar.toFile()));
         }
         JavaClasses classes = new ClassFileImporter().importJars(jars);
@@ -50,10 +51,10 @@ public class FtbUltimineContractTest {
                 .getRawReturnType().getName(), "the shape context carries the server player");
     }
 
-    private static Path find(String prefix) throws IOException {
-        if (!Files.isDirectory(MODS)) return null;
+    private static Path find(Path mods, String prefix) throws IOException {
+        if (!Files.isDirectory(mods)) return null;
 
-        try (DirectoryStream<Path> jars = Files.newDirectoryStream(MODS, prefix + "*.jar")) {
+        try (DirectoryStream<Path> jars = Files.newDirectoryStream(mods, prefix + "*.jar")) {
             for (Path jar : jars) return jar;
         }
         return null;
