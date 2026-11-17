@@ -127,7 +127,7 @@ def main(argv=None, roots=None, wiki=None):
     current = page.read_text(encoding='utf-8') if page.is_file() else ''
     head, manual = split(current)
     if args.write:
-        page.write_text(generated + (manual or MANUAL_STUB), encoding='utf-8')
+        page.write_text(generated + (manual or MANUAL_STUB), encoding='utf-8', newline='\n')
         print(f'wiki_glossary: wrote {page}')
         return 0
     if head == generated:
