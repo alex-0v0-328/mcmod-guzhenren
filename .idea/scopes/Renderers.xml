@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Renderers" pattern="file[mcmod-guzhenren.main]:java/net/alex/guzhenren/client/renderer//*" />
+</component>

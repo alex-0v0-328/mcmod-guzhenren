@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="ChineseText" pattern="file:*.java||file:AGENTS.md||file:README.zh-TW.md||file:README.md" />
+</component>

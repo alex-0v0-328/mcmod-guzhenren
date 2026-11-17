@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="NoTextChecks" pattern="file:run//*||file:resources/.cache//*||file:src/ports//*||file:resources/licenses//*||file:LICENSE.txt||file:gradlew||file:gradlew.bat||file:templates/META-INF//*||file:META-INF/neoforge.mods.toml||file:.claude/skills/i-have-adhd//*||file:*.py" />
+</component>

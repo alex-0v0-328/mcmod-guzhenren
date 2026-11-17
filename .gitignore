@@ -5,7 +5,11 @@ build/
 !**/src/**/build/
 
 ### IntelliJ IDEA ###
-.idea/
+### the inspection profile, its scopes and the project dictionary are shared; misc.xml entry points stay local ###
+.idea/*
+!.idea/inspectionProfiles/
+!.idea/scopes/
+!.idea/dictionaries/
 *.iws
 *.iml
 *.ipr
@@ -29,7 +33,7 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### macOS ###
 .DS_Store
 
 ### Minecraft Modding ###

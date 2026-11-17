@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="WorldgenGolden" pattern="file[mcmod-guworld.gametest]:resources/net/alex/guzhenrenworld/gametest/worldgen_golden.properties" />
+</component>

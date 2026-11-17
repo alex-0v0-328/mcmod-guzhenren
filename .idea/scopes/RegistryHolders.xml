@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="RegistryHolders" pattern="file[mcmod-guzhenren.main]:java/net/alex/guzhenren/registry/item/ModItems.java" />
+</component>
