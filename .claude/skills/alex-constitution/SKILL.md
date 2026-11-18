@@ -35,4 +35,4 @@ The main agent runs on the current session's model and effort, and owns goals, s
 
 ## i-have-adhd
 
-The i-have-adhd skill (upstream `ayghri/i-have-adhd@839872f`) holds from the first message; "stop ADHD mode" or "normal mode" turns it off for this session only.
+The i-have-adhd skill (upstream `ayghri/i-have-adhd@839872f`, plus a local `grill-me` exception to its list cap) holds from the first message; "stop ADHD mode" or "normal mode" turns it off for this session only.

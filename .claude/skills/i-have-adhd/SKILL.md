@@ -106,6 +106,8 @@ For long lists in the final response, group related items and rank the most rele
 
 Never omit relevant items when completeness matters. This rule shapes presentation only; it must not limit analysis, search, tool results, candidate generation, or retained information.
 
+Exception: a `grill-me` round lists every question it asks, eight or more included. Each question stays numbered, titled and paired with one recommended answer, so the round reads as one list answered by number.
+
 ### 10. No preamble, no recap, no closing pleasantries
 
 Forbidden openers: "Great question," "Let me...", "I'll...", "Sure!", "Looking at your...", "To answer your question..."
