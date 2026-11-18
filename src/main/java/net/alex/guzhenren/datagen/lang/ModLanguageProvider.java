@@ -37,8 +37,11 @@ import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.GuType;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
+import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.item.ModItems;
+import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.jetbrains.annotations.Nullable;
@@ -85,6 +88,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addScreenKeys();
         addDeclaredItemKeys();
         addItemKeys();
+        addEffectKeys();
         addEntityKeys();
         addAdvancementKeys();
         addDeathMessages();
@@ -106,6 +110,13 @@ public class ModLanguageProvider extends LanguageProvider {
 
     private void addBlock(Supplier<? extends Block> block, String english, String simplified) {
         add(block.get().getDescriptionId(), english, simplified);
+    }
+
+    private void addEffect(Holder<MobEffect> effect, String english, String simplified,
+                           String englishDescription, String simplifiedDescription) {
+        String key = effect.value().getDescriptionId();
+        add(key, english, simplified);
+        add(key + ".description", englishDescription, simplifiedDescription);
     }
 
     private void addDeclaredItemKeys() {
@@ -443,31 +454,98 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.health",                              "Health %s / %s", "生命 %s / %s");
         add("guzhenren.item.gu.vital_lost",
                 "Your Vital Gu %s died", "本命蛊%s死亡");
+    }
+    //endregion
 
-        add("effect.guzhenren.vitality_leaf_gu",                     "Vitality Leaf Gu Effect", "生机叶蛊效果");
-        add("effect.guzhenren.liquor_worm",                          "Liquor Worm Effect", "酒虫效果");
-        add("effect.guzhenren.flower_boar_gu",                       "Flower Boar Gu Effect", "花豕蛊效果");
-        add("effect.guzhenren.brute_force_longhorn_beetle_gu",
-                "Brute Force Longhorn Beetle Gu Effect", "蛮力天牛蛊效果");
-        add("effect.guzhenren.strength_qi_gu",                       "Strength Qi Gu Effect", "力气蛊效果");
-        add("effect.guzhenren.horizontal_crash_gu",                  "Horizontal Crash Gu Effect", "横冲蛊效果");
-        add("effect.guzhenren.vertical_crash_gu",                    "Vertical Crash Gu Effect", "直撞蛊效果");
-        add("effect.guzhenren.charging_crash_gu",                    "Charging Crash Gu Effect", "横冲直撞蛊效果");
-        add("effect.guzhenren.self_reliance_gu",                     "Self Reliance Gu Effect", "自力更生蛊效果");
-        add("effect.guzhenren.hardship_strength_gu",                 "Hardship Strength Gu Effect", "苦力蛊效果");
-        add("effect.guzhenren.jade_skin_gu",                         "Jade Skin Gu Effect", "玉皮蛊效果");
-        add("effect.guzhenren.white_jade_gu",                        "White Jade Gu Effect", "白玉蛊效果");
-        add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
-        add("effect.guzhenren.all_out_effort_gu",                    "All-Out Effort Gu Effect", "全力以赴蛊效果");
-        add("effect.guzhenren.store_strength_gu",                    "Store Strength Gu Effect", "蓄力蛊效果");
-        add("effect.guzhenren.habitual_strength_gu",                 "Habitual Strength Gu Effect", "惯力蛊效果");
-        add("effect.guzhenren.big_strength_gu",                      "Big Strength Gu Effect", "大力蛊效果");
-        add("effect.guzhenren.temp_zombie",                          "Temp Zombie Effect", "临时僵尸化效果");
-        add("effect.guzhenren.second_watch_gu",                      "Second Watch Gu Effect", "两更蛊效果");
-        add("effect.guzhenren.third_watch_gu",                       "Third Watch Gu Effect", "三更蛊效果");
-        add("effect.guzhenren.malicious_thought_gu",                 "Malicious Thought Gu Effect", "恶念蛊效果");
-        add("effect.guzhenren.casual_gu",                            "Casual Gu Effect", "随意蛊效果");
-        add("effect.guzhenren.bleeding",                             "Bleeding", "流血");
+    //region EFFECT [状态效果]
+    private void addEffectKeys() {
+        addEffect(ModEffects.SECOND_WATCH_GU, "Second Watch Gu Effect", "两更蛊效果",
+                "Speeds up your time and Lifespan drain by 2x per stack (up to 2 stacks, max 13x total with " +
+                "Third Watch Gu).",
+                "自身时间与寿元消耗加快：每层 ×2，最多 2 层，与三更蛊合计最高 ×13。");
+        addEffect(ModEffects.THIRD_WATCH_GU, "Third Watch Gu Effect", "三更蛊效果",
+                "Speeds up your time and Lifespan drain by 3x per stack (up to 3 stacks, max 13x total with " +
+                "Second Watch Gu).",
+                "自身时间与寿元消耗加快：每层 ×3，最多 3 层，与两更蛊合计最高 ×13。");
+        addEffect(ModEffects.VITALITY_LEAF_GU, "Vitality Leaf Gu Effect", "生机叶蛊效果",
+                "Continuously regenerates health over time.",
+                "持续回复生命。");
+        addEffect(ModEffects.HEAVENLY_MUGWORT_GU, "Heavenly Mugwort Gu Effect", "天蓬蛊效果",
+                "Grants a Heavenly Mugwort Shield that absorbs incoming damage.",
+                "获得天蓬护盾，替你吸收伤害。");
+        addEffect(ModEffects.JADE_SKIN_GU, "Jade Skin Gu Effect", "玉皮蛊效果",
+                "Temporarily turns your skin into Jade Skin, reducing each hit taken by a flat amount.",
+                "皮肤暂时化为玉皮，每次受到的伤害减少固定数值。");
+        addEffect(ModEffects.WHITE_JADE_GU, "White Jade Gu Effect", "白玉蛊效果",
+                "Temporarily turns your skin into White Jade Skin, reducing each hit taken by a larger flat " +
+                "amount than Jade Skin.",
+                "皮肤暂时化为白玉皮，每次受到的伤害减少固定数值，比玉皮减得更多。");
+        addEffect(ModEffects.STRENGTH_QI_GU, "Strength Qi Gu Effect", "力气蛊效果",
+                "Unarmed punches at a locked target beyond 3 blocks launch a ranged strike that bursts across " +
+                "3 blocks on impact.",
+                "锁定目标在 3 格外时，空手出拳会发出远程攻击，落点爆开 3 格。");
+        addEffect(ModEffects.FLOWER_BOAR_GU, "Flower Boar Gu Effect", "花豕蛊效果",
+                "Temporarily grants the Beast Strength of a boar, increasing attack damage.",
+                "临时获得一猪之力（兽力），攻击提高。");
+        addEffect(ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
+                "Brute Force Longhorn Beetle Gu Effect", "蛮力天牛蛊效果",
+                "Temporarily grants the Beast Strength of an ox, increasing attack damage.",
+                "临时获得一牛之力（兽力），攻击提高。");
+        addEffect(ModEffects.HORIZONTAL_CRASH_GU, "Horizontal Crash Gu Effect", "横冲蛊效果",
+                "Allows dashing left and right. With enough strength, dashes break blocks and strike the area " +
+                "ahead upon stopping.",
+                "可向左右冲刺；力量足够时冲刺会撞碎沿路方块，停下时对前方造成范围打击。");
+        addEffect(ModEffects.VERTICAL_CRASH_GU, "Vertical Crash Gu Effect", "直撞蛊效果",
+                "Allows dashing forward and backward. With enough strength, dashes break blocks and strike the " +
+                "area ahead upon stopping.",
+                "可向前后冲刺；力量足够时冲刺会撞碎沿路方块，停下时对前方造成范围打击。");
+        addEffect(ModEffects.CHARGING_CRASH_GU, "Charging Crash Gu Effect", "横冲直撞蛊效果",
+                "Allows dashing in four directions. With enough strength, dashes break blocks and strike the " +
+                "area ahead upon stopping.",
+                "可向前后左右四个方向冲刺；力量足够时撞碎沿路方块，停下时对前方造成范围打击。");
+        addEffect(ModEffects.SELF_RELIANCE_GU, "Self Reliance Gu Effect", "自力更生蛊效果",
+                "Automatically and rapidly heals by a percentage of max health when below 75% health, stopping " +
+                "at 75%.",
+                "生命低于 75% 时自动按最大生命百分比快速回血，回到 75% 即停。");
+        addEffect(ModEffects.HARDSHIP_STRENGTH_GU, "Hardship Strength Gu Effect", "苦力蛊效果",
+                "Activates below 75% health. Lower health grants more base capacity, and Beast Phantom combos " +
+                "spawn an extra phantom.",
+                "生命低于 75% 时自动生效：伤势越重常态承受力越高；兽力虚影连击每轮多一只。");
+        addEffect(ModEffects.ALL_OUT_EFFORT_GU, "All-Out Effort Gu Effect", "全力以赴蛊效果",
+                "Boosts base capacity, Full Release, and Area Impact rates. Dashes go faster, farther, and hit " +
+                "harder; charges faster.",
+                "常态承受力、全面解放与范围冲击概率提高；横冲类冲刺更快更远更强，蓄力蛊蓄满更快。");
+        addEffect(ModEffects.STORE_STRENGTH_GU, "Store Strength Gu Effect", "蓄力蛊效果",
+                "Hold attack on a locked target to charge a fan-shaped heavy punch that ignores capacity. Causes " +
+                "non-lethal recoil.",
+                "锁定目标后按住攻击键蓄力，蓄满打出无视承受力的扇形重拳；每拳反噬扣血但不致死。");
+        addEffect(ModEffects.HABITUAL_STRENGTH_GU, "Habitual Strength Gu Effect", "惯力蛊效果",
+                "Like Store Strength Gu, but you can move while charging: hold attack on a locked target to " +
+                "charge a fan-shaped punch.",
+                "同蓄力蛊：锁定目标按住攻击键蓄力，蓄满打出扇形重拳；蓄力时可以移动。");
+        addEffect(ModEffects.BIG_STRENGTH_GU, "Big Strength Gu Effect", "大力蛊效果",
+                "Grants 32 temporary strength points and +16 capacity for any Strength branch. Points beyond " +
+                "capacity are wasted.",
+                "临时力量点 +32、承受力 +16，兽力人力流派皆可用；超出承受力的部分无效。");
+        addEffect(ModEffects.CASUAL_GU, "Casual Gu Effect", "随意蛊效果",
+                "Continuously adds random Thoughts to your Mind.",
+                "持续向脑海加入随机的念。");
+        addEffect(ModEffects.MALICIOUS_THOUGHT_GU, "Malicious Thought Gu Effect", "恶念蛊效果",
+                "Continuously generates Malicious Thoughts in your Mind that later turn into normal Thoughts. " +
+                "Excess Thoughts are fatal.",
+                "脑海持续产生恶念，恶念一段时间后转为普通的念；念过多会危及性命。");
+        addEffect(ModEffects.BLEEDING, "Bleeding", "流血",
+                "Deals 1 armor-piercing damage per second. The only effect in this mod that can be cured by " +
+                "drinking milk.",
+                "每秒受到 1 点无视盔甲的伤害；是本模组唯一可通过喝牛奶解除的效果。");
+        addEffect(ModEffects.LIQUOR_WORM, "Liquor Worm Effect", "酒虫效果",
+                "Converts Essence recovered over one in-game day into Distilled Essence. 1 Distilled Essence " +
+                "equals 2 normal Essence.",
+                "一个游戏日内回复的真元转为精炼真元，1 点精炼真元抵 2 点普通真元。");
+        addEffect(ModEffects.TEMP_ZOMBIE, "Temp Zombie Effect", "临时僵尸化效果",
+                "Temporarily turns you into a Zombie, boosting attack. Using Zombie Gu during or within 5 " +
+                "minutes makes it permanent.",
+                "暂时化为僵尸，攻击提高；期间或结束后 5 分钟内再催动僵尸蛊会永久变成僵尸。");
     }
     //endregion
 
