@@ -28,13 +28,14 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>{@link #get} 是两端唯一入口，setter 返回是否改变；⚠ 唯一碰附件 API 的类（NeoForge 附件的视图），服务只用这些方
  *       法。</li>
- *   <li>存档 16 个；二段飞行[Second-Stage Flight]标记、坠击起点高度同步不存档；内存 3 个：真元[Essence]余数
- *       （{@link #getEssenceCarry}）、二段油门（{@link #getSecondStageThrottle}）两端各推，护盾无敌窗口
+ *   <li>存档 16 个；二段飞行[Second-Stage Flight]标记、坠击起点高度、可移动蓄力标记同步不存档；内存 3 个：
+ *       真元[Essence]余数（{@link #getEssenceCarry}）、二段油门（{@link #getSecondStageThrottle}）两端各推，护盾无敌窗口
  *       （{@link #getShieldWindow}）仅服务端。</li>
- *   <li>变更即同步 12 个：8 个经 {@code OWNER_ONLY} 只给本人（{@code ModAttachments} 的 {@code registerSynced}）；
- *       二段标记、坠击起点高度、温养空窍[Nourish Aperture]进程、开窍[Awakening]仪式 4 个同步所有可见客户端。</li>
- *   <li>⚠ 4 个值底层是附件有无：二段标记有即开，坠击起点高度仅坠击中非 {@code null}，二者重登或死亡即丢；开窍仪式仅仪式
- *       中非 {@code null}；结转生命值存或无，{@link #takeHealthCarry} 取即清。</li>
+ *   <li>变更即同步 13 个：8 个经 {@code OWNER_ONLY} 只给本人（{@code ModAttachments} 的 {@code registerSynced}）；
+ *       二段标记、坠击起点高度、可移动蓄力标记、温养空窍[Nourish Aperture]进程、开窍[Awakening]仪式 5 个同步所有可见
+ *       客户端。</li>
+ *   <li>⚠ 5 个值底层是附件有无：二段标记、可移动蓄力标记有即开，坠击起点高度仅坠击中非 {@code null}，三者重登或死亡即丢；
+ *       开窍仪式仅仪式中非 {@code null}；结转生命值存或无，{@link #takeHealthCarry} 取即清。</li>
  * </ul>
  *
  * @author Alex
@@ -87,6 +88,8 @@ public final class PlayerData {
 
     public double getSecondStageThrottle() { return owner.getData(ModAttachments.SECOND_STAGE_THROTTLE); }
 
+    public boolean isInMobileCharge() { return owner.hasData(ModAttachments.MOBILE_CHARGE); }
+
     public @Nullable Double getPlungeTopY() { return find(ModAttachments.PLUNGE); }
 
     public boolean isBorn() { return owner.getData(ModAttachments.BORN); }
@@ -138,6 +141,16 @@ public final class PlayerData {
             owner.setData(ModAttachments.SECOND_STAGE, true);
         } else {
             owner.removeData(ModAttachments.SECOND_STAGE);
+        }
+        return true;
+    }
+
+    public boolean setMobileCharge(boolean value) {
+        if (value == isInMobileCharge()) return false;
+        if (value) {
+            owner.setData(ModAttachments.MOBILE_CHARGE, true);
+        } else {
+            owner.removeData(ModAttachments.MOBILE_CHARGE);
         }
         return true;
     }

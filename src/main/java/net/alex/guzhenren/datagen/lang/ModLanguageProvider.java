@@ -460,6 +460,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.guzhenren.heavenly_mugwort_gu",                  "Heavenly Mugwort Gu Effect", "天蓬蛊效果");
         add("effect.guzhenren.all_out_effort_gu",                    "All-Out Effort Gu Effect", "全力以赴蛊效果");
         add("effect.guzhenren.store_strength_gu",                    "Store Strength Gu Effect", "蓄力蛊效果");
+        add("effect.guzhenren.habitual_strength_gu",                 "Habitual Strength Gu Effect", "惯力蛊效果");
+        add("effect.guzhenren.big_strength_gu",                      "Big Strength Gu Effect", "大力蛊效果");
         add("effect.guzhenren.temp_zombie",                          "Temp Zombie Effect", "临时僵尸化效果");
         add("effect.guzhenren.second_watch_gu",                      "Second Watch Gu Effect", "两更蛊效果");
         add("effect.guzhenren.third_watch_gu",                       "Third Watch Gu Effect", "三更蛊效果");

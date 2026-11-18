@@ -35,11 +35,12 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  * 本模组挂在玩家身上的全部数据附件。
  *
  * <ul>
- *   <li>14 个记录附件（不可变，只经服务写）加 7 个临时字段；{@link #registerSynced} 存并只同步本
+ *   <li>14 个记录附件（不可变，只经服务写）加 8 个临时字段；{@link #registerSynced} 存并只同步本
  *       人（{@code OWNER_ONLY}），{@link #registerSaved} 只存；{@code ESSENCE_CARRY}、{@code SHIELD_WINDOW}、
  *       {@code SECOND_STAGE_THROTTLE} 不存不同步，两端各一份，{@code SHIELD_WINDOW} 仅服务端写。</li>
  *   <li>{@code SECOND_STAGE}、{@code PLUNGE} 不存，同步给所有看得见该玩家的客户端（下称广播）以画前倾、下坠姿势；
- *       有即分别处于二段飞行[Second-Stage Flight]（重登即出）、坠击（值为下坠最高点）。</li>
+ *       有即分别处于二段飞行[Second-Stage Flight]（重登即出）、坠击（值为下坠最高点）；{@code MOBILE_CHARGE} 同样不存
+ *       并广播，有即在惯力蛊[Habitual Strength Gu]的可移动蓄力中，画上半身蓄力架势。</li>
  *   <li>{@code AWAKENING_RITUAL}：有即在开窍[Awakening]仪式中，存并广播，画悬浮希望蛊[Hope Gu]与头顶资质[Aptitude]牌
  *       匾（含十绝体质）；{@code APERTURE_NOURISH} 如 {@link #registerSynced} 般存、继承但广播，
  *       温养[Nourish]中画盘坐。</li>
@@ -165,6 +166,13 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<Double>> PLUNGE = ATTACHMENT_TYPES.register(
             "plunge_top", () -> AttachmentType.builder(() -> 0.0D)
                     .sync(ByteBufCodecs.DOUBLE)
+                    .build());
+    //endregion
+
+    //region Strength [力道]
+    public static final Supplier<AttachmentType<Boolean>> MOBILE_CHARGE = ATTACHMENT_TYPES.register(
+            "mobile_charge_flag", () -> AttachmentType.builder(() -> Boolean.TRUE)
+                    .sync(ByteBufCodecs.BOOL)
                     .build());
     //endregion
 

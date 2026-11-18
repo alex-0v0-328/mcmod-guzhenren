@@ -10,6 +10,8 @@ import yesman.epicfight.api.animation.LivingMotion;
  *       灌注类蛊[Channeled Gu]灌注真元[Essence]）基础动作，由 {@link EpicFightClientIntegration} 设置并映射到循
  *       环。</li>
  *   <li>{@link #REFINE_LOOP}：炼化野生蛊的叠加动作，经叠加层钩子设置，映射到炼化持握，盖住基础动作的胸、头、臂。</li>
+ *   <li>{@link #CHARGE_HOLD_MOVE}：惯力蛊[Habitual Strength Gu]可移动蓄力的叠加动作，同经叠加层钩子，映射到上半身蓄力
+ *       架势，腿留给基础动作。</li>
  *   <li>Epic Fight 经 {@code LivingMotion.ENUM_MANAGER} 统一编号；{@link EpicFightIntegration#initialize} 在模组构造期
  *       注册本类，两端顺序同、id 才一致；新动作只加末尾。</li>
  * </ul>
@@ -24,7 +26,8 @@ public enum EpicFightLivingMotions implements LivingMotion {
     SECOND_STAGE_FLIGHT_LOOP,
     PLUNGE_FALL,
     MEDITATE_LOOP,
-    REFINE_LOOP;
+    REFINE_LOOP,
+    CHARGE_HOLD_MOVE;
 
     private final int id;
 

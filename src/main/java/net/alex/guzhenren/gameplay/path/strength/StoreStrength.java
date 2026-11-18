@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -22,10 +23,12 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 蓄力蛊[Store Strength Gu]的蓄力与蓄力一拳规则。
+ * 蓄力蛊[Store Strength Gu]与惯力蛊[Habitual Strength Gu]的蓄力与蓄力一拳规则。
  * <ul>
- *   <li>条件：该蛊增益运行（读标记效果，同全力以赴蛊[All-Out Effort Gu]）、持兽力虚影流或人力钧力流、空手、
- *       Epic Fight 锁定时按住攻击键 {@link #HOLD_TICKS}，客户端再请求 {@link #start}。</li>
+ *   <li>条件：两蛊任一增益运行（读标记效果，同全力以赴蛊[All-Out Effort Gu]，{@link #hasBuff}）、持兽力虚影流或人力
+ *       钧力流、空手、Epic Fight 锁定时按住攻击键 {@link #HOLD_TICKS}，客户端再请求 {@link #start}。</li>
+ *   <li>起蓄时惯力蛊增益在身即为可移动蓄力（{@link #isMobile}，两增益同在按惯力算）：标记广播给所有看得见的客户端，
+ *       本次蓄力结束即撤（自行丢弃时在事件之后撤，监听方仍读得到）；其余规则两蛊相同。</li>
  *   <li>蓄满需 {@link #CHARGE_TICKS}，三 / 四 / 五转全力以赴下为 70% / 60% / 50%，逐 tick 按当时转数推进；
  *       仅蓄满松手算数（容差 {@link #RELEASE_SLACK_TICKS} 吸收数据包抖动）；未满、丢增益、分支或空手、死亡、换维度、
  *       下线都取消，不出拳不扣费。</li>
@@ -140,13 +143,19 @@ public final class StoreStrength {
     //endregion
 
     //region Charge [蓄力]
+    public static boolean hasBuff(@NotNull Player player) {
+        return player.hasEffect(ModEffects.STORE_STRENGTH_GU) || player.hasEffect(ModEffects.HABITUAL_STRENGTH_GU);
+    }
+
     private static boolean canCharge(@NotNull Player player) {
         if (!player.isAlive() || player.isSpectator() || !AttackDamageService.isFistHand(player)) return false;
         PathStrengthData data = PathStrengthService.get(player);
         return (data.hasPathBranch(StrengthPathBranch.BEAST_STRENGTH_PHANTOM)
                 || data.hasPathBranch(StrengthPathBranch.HUMAN_JUN_STRENGTH))
-                && player.hasEffect(ModEffects.STORE_STRENGTH_GU);
+                && hasBuff(player);
     }
+
+    public static boolean isMobile(@NotNull Player player) { return PlayerData.get(player).isInMobileCharge(); }
 
     public static boolean isCharging(@NotNull Player player) { return CHARGES.containsKey(player.getUUID()); }
 
@@ -158,13 +167,18 @@ public final class StoreStrength {
     public static boolean start(@NotNull ServerPlayer player) {
         if (!canCharge(player)) return false;
         CHARGES.put(player.getUUID(), 0.0F);
+        PlayerData.get(player).setMobileCharge(player.hasEffect(ModEffects.HABITUAL_STRENGTH_GU));
         return true;
     }
 
-    public static void cancel(@NotNull Player player) { CHARGES.remove(player.getUUID()); }
+    public static void cancel(@NotNull Player player) {
+        CHARGES.remove(player.getUUID());
+        PlayerData.get(player).setMobileCharge(false);
+    }
 
     public static boolean release(@NotNull ServerPlayer player) {
         Float progress = CHARGES.remove(player.getUUID());
+        PlayerData.get(player).setMobileCharge(false);
         if (progress == null || !isFull(progress, StrengthService.getAllOutTier(player))) return false;
         return canCharge(player);
     }
@@ -172,6 +186,7 @@ public final class StoreStrength {
     private static void drop(@NotNull ServerPlayer player) {
         if (CHARGES.remove(player.getUUID()) != null) {
             NeoForge.EVENT_BUS.post(new StoreStrengthChargeEvent(player, StoreStrengthChargeEvent.Change.DROPPED));
+            PlayerData.get(player).setMobileCharge(false);
         }
     }
     //endregion

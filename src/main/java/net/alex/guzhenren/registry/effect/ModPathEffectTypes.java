@@ -20,6 +20,7 @@ import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectCategory;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.BigStrength;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.SelfRelianceHeal;
@@ -56,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
  *       全力以赴蛊[All-Out Effort Gu]用。</li>
  *   <li>{@link #SELF_RELIANCE} 自力更生：肉身自动治疗，payload 等级；时长为自动催动窗口；互斥。</li>
  *   <li>{@link #HARDSHIP_STRENGTH} 苦力：肉身自动状态，payload 力量 amplifier 提供者；时长为自动催动窗口；互斥。</li>
+ *   <li>{@link #BIG_STRENGTH} 大力：肉身限时增益，payload 力量 amplifier 提供者，点数读力道道痕点；互斥。</li>
  *   <li>{@link #TIMED_SKIN} 限时皮：肉身玉皮或白玉皮，payload 皮；互斥；皮本身在 {@code BodyData}，自投图标。</li>
  *   <li>{@link #MUGWORT_SHIELD} 天蓬护盾：肉身护盾，点数在 {@code ShieldData}。</li>
  *   <li>{@link #VITALITY_LEAF} 生机叶：肉身限时治疗。</li>
@@ -118,6 +120,12 @@ public final class ModPathEffectTypes {
             effect -> new PathEffectType.Projection(ModEffects.HARDSHIP_STRENGTH_GU, 0),
             effect -> Component.translatable("guzhenren.path_effect.timed_buff",
                     ModEffects.HARDSHIP_STRENGTH_GU.value().getDisplayName())));
+    public static final PathEffectType<BigStrength.State> BIG_STRENGTH = register(PathEffectType.projecting(
+            Guzhenren.id("big_strength"), BigStrength.State.CODEC, BigStrength.State.STREAM_CODEC,
+            PathEffectCategory.BENEFICIAL, true,
+            effect -> new PathEffectType.Projection(ModEffects.BIG_STRENGTH_GU, 0),
+            effect -> Component.translatable("guzhenren.path_effect.timed_buff",
+                    ModEffects.BIG_STRENGTH_GU.value().getDisplayName())));
     public static final PathEffectType<Skin> TIMED_SKIN =
             registerNamed("timed_skin", "skin", Skin.class, Skin.CODEC, true);
     public static final PathEffectType<Unit> MUGWORT_SHIELD =

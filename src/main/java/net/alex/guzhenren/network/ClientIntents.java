@@ -135,22 +135,24 @@ public final class ClientIntents {
         switch (action) {
             case START -> {
                 if (isOutsideTyh(player) && StoreStrength.start(player)) {
-                    EpicFightIntegration.holdCharge(player);
+                    if (!StoreStrength.isMobile(player)) EpicFightIntegration.holdCharge(player);
                 } else {
                     StoreStrengthNotices.send(player, StoreStrengthChargeEvent.Change.DROPPED);
                 }
             }
             case CANCEL -> {
-                if (StoreStrength.isCharging(player)) EpicFightIntegration.cancelCharge(player);
+                if (StoreStrength.isCharging(player) && !StoreStrength.isMobile(player)) {
+                    EpicFightIntegration.cancelCharge(player);
+                }
                 StoreStrength.cancel(player);
             }
             case RELEASE -> {
-                boolean charging = StoreStrength.isCharging(player);
+                boolean posed = StoreStrength.isCharging(player) && !StoreStrength.isMobile(player);
                 if (isOutsideTyh(player) && ChargedPunch.release(player, target)) {
                     EpicFightIntegration.strikeCharge(player);
                 } else {
                     StoreStrength.cancel(player);
-                    if (charging) EpicFightIntegration.cancelCharge(player);
+                    if (posed) EpicFightIntegration.cancelCharge(player);
                 }
             }
         }

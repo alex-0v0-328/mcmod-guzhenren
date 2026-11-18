@@ -8,7 +8,6 @@ import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.network.payload.ChargeAction;
 import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
 import net.alex.guzhenren.network.payload.StoreStrengthPayload;
-import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -18,7 +17,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
 /**
- * 蓄力蛊[Store Strength Gu]蓄力的客户端输入。
+ * 蓄力蛊[Store Strength Gu]、惯力蛊[Habitual Strength Gu]蓄力的客户端输入。
  * <ul>
  *   <li>增益在身、主手空、有 Epic Fight 锁定时按住攻击键 {@link StoreStrength#HOLD_TICKS} 发
  *       {@link ChargeAction#START}，不夺 Epic Fight 与力气蛊[Strength Qi Gu]远程拳对该键的处理。</li>
@@ -53,7 +52,7 @@ public final class StoreStrengthInput {
         boolean attack = minecraft.options.keyAttack.isDown() || EpicFightKeyMappings.ATTACK.isDown();
         LivingEntity target = EpicFightClientIntegration.getLockOnTarget();
         boolean able = minecraft.screen == null && !player.isUsingItem() && player.isAlive()
-                && player.hasEffect(ModEffects.STORE_STRENGTH_GU) && AttackDamageService.isFistHand(player)
+                && StoreStrength.hasBuff(player) && AttackDamageService.isFistHand(player)
                 && target != null;
 
         if (CHARGE.isCharging()) {

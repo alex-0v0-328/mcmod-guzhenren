@@ -17,6 +17,7 @@ import net.alex.guzhenren.gameplay.path.strength.CrashBreach;
 import net.alex.guzhenren.gameplay.path.strength.CrashDash;
 import net.alex.guzhenren.gameplay.path.strength.CrashSources;
 import net.alex.guzhenren.gameplay.path.strength.CrashStrike;
+import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.particle.RingConeEmitter;
@@ -50,6 +51,7 @@ import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.types.player.ComboAttackEvent;
 import yesman.epicfight.api.event.types.player.SetTargetEvent;
 import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
@@ -171,6 +173,12 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       起身；坐下、起身为主帧动画，不锁移动转向攻击技能，只冻结常态动作：坐下全程，随后循环接手，起身前
  *       {@link #MEDITATE_STAND_HOLD} 秒，之后走开即打断；三者固定头部，Root 只降高度、不产生位移，碰撞箱与视线高度仍为
  *       站立值。</li>
+ *   <li>惯力蛊[Habitual Strength Gu]可移动蓄力 {@code biped/living/charge_hold_move}，1 秒定格循环：{@code charge_hold}
+ *       末帧的胸、头、臂，胸另带上该帧 Root、躯干的拧转（遮罩下 Root、躯干归基础层）；客户端经
+ *       {@link #getChargeHoldMove} 作叠加常态动作映射到 {@link EpicFightLivingMotions#CHARGE_HOLD_MOVE}，数据文件置于
+ *       {@code HIGH} 叠加层、{@code chest_arms} 遮罩下；服务端不发送，也不播 {@code charge_hold}、
+ *       {@code charge_cancel}，出拳照播 {@code charge_strike}；{@link #onComboAttack} 在可移动蓄力期间取消连击（全身
+ *       蓄力靠动作动画禁连击，这里没有）。</li>
  *   <li>炼化野生蛊持握 {@code biped/living/refine_loop}，2 秒，姿势见 wiki《蛊虫》，一循环一息；循环静态动画，客户端经
  *       {@link #getRefineLoop} 作叠加常态动作映射到 {@link EpicFightLivingMotions#REFINE_LOOP} （
  *       {@link EpicFightClientIntegration}）；数据文件 {@code biped/living/data/refine_loop.json} 置于 {@code MIDDLE}
@@ -197,6 +205,7 @@ public final class EpicFightIntegration {
     private static AnimationManager.AnimationAccessor<ActionAnimation> chargeHold;
     private static AnimationManager.AnimationAccessor<ActionAnimation> chargeStrike;
     private static AnimationManager.AnimationAccessor<StaticAnimation> chargeCancel;
+    private static AnimationManager.AnimationAccessor<StaticAnimation> chargeHoldMove;
     private static AnimationManager.AnimationAccessor<StaticAnimation> secondStageFlightLoop;
     private static AnimationManager.AnimationAccessor<MainFrameAnimation> secondStageFlightCrash;
     private static AnimationManager.AnimationAccessor<StaticAnimation> plungeFall;
@@ -223,6 +232,7 @@ public final class EpicFightIntegration {
         LivingMotion.ENUM_MANAGER.registerEnumCls(Guzhenren.MOD_ID, EpicFightLivingMotions.class);
         EpicFightEventHooks.Player.CONSUME_SKILL.registerEvent(EpicFightIntegration::onSkillConsume, Guzhenren.MOD_ID);
         EpicFightEventHooks.Player.SET_TARGET.registerEvent(EpicFightIntegration::onSetTarget, Guzhenren.MOD_ID);
+        EpicFightEventHooks.Player.COMBO_ATTACK.registerEvent(EpicFightIntegration::onComboAttack, Guzhenren.MOD_ID);
         EpicFightEventHooks.Animation.ATTACK_PHASE_END.registerEvent(EpicFightIntegration::onAttackPhaseEnd,
                 Guzhenren.MOD_ID);
     }
@@ -247,6 +257,8 @@ public final class EpicFightIntegration {
                     new ActionAnimation(0.05F, accessor, Armatures.BIPED));
             chargeCancel = builder.nextAccessor("biped/skill/charge_cancel", accessor ->
                     new StaticAnimation(0.05F, false, accessor, Armatures.BIPED));
+            chargeHoldMove = builder.nextAccessor("biped/living/charge_hold_move", accessor ->
+                    new StaticAnimation(true, accessor, Armatures.BIPED));
             secondStageFlightLoop = builder.nextAccessor("biped/living/second_stage_flight_loop", accessor ->
                     new StaticAnimation(true, accessor, Armatures.BIPED)
                             .addProperty(StaticAnimationProperty.FIXED_HEAD_ROTATION, true));
@@ -367,6 +379,8 @@ public final class EpicFightIntegration {
         return seated ? MeditationCue.SIT : MeditationCue.STAND;
     }
 
+    static AssetAccessor<? extends StaticAnimation> getChargeHoldMove() { return chargeHoldMove; }
+
     public static void holdCharge(ServerPlayer player) { play(player, chargeHold); }
 
     public static void strikeCharge(ServerPlayer player) { play(player, chargeStrike); }
@@ -430,6 +444,10 @@ public final class EpicFightIntegration {
 
     private static void onSetTarget(SetTargetEvent event) {
         if (event.getTarget() instanceof WildGuEntity) event.cancel();
+    }
+
+    private static void onComboAttack(ComboAttackEvent event) {
+        if (StoreStrength.isMobile(event.getPlayerPatch().getOriginal())) event.cancel();
     }
 
     private static void onAttackPhaseEnd(AttackPhaseEndEvent event) {

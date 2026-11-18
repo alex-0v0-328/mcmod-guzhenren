@@ -5,6 +5,7 @@ import net.alex.guzhenren.entity.projectile.ProjectileThrownEvent;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.body.ShieldRaisedEvent;
 import net.alex.guzhenren.gameplay.flight.SecondStageCrashEvent;
+import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrengthChargeEvent;
 import net.alex.guzhenren.gameplay.plunge.PlungeLandedEvent;
 import net.alex.guzhenren.item.gu.GuUsedEvent;
@@ -27,7 +28,7 @@ import yesman.epicfight.registry.entries.EpicFightItems;
  * <ul>
  *   <li>每个世界写入一次技能保留规则（{@link EpicFightRuleSeed}）；空窍[Aperture]变化（{@code ApertureChangedEvent}）或
  *       生命周期重建派生属性（{@code PlayerRefreshedEvent}）时重读耐力修饰符。</li>
- *   <li>{@link #onCharge}：服务端自行丢弃蓄力蛊[Store Strength Gu]蓄力时放下姿势；{@link #onPlayerTick}：每 tick 交
+ *   <li>{@link #onCharge}：服务端自行丢弃蓄力蛊[Store Strength Gu]蓄力时放下姿势（可移动蓄力无全身姿势，不播）；{@link #onPlayerTick}：每 tick 交
  *       {@link EpicFightIntegration#tickMeditation}，随温养[Nourish]、开窍[Awakening]仪式起止坐下起身。</li>
  *   <li>{@link #onSecondStageCrash}：服务端撞击为所有可见客户端播反弹；二段飞行[Second-Stage Flight]者本人客户端也发此
  *       事件（带 {@code LocalPlayer}），留给服务端那次。</li>
@@ -70,7 +71,8 @@ public final class EpicFightServerEvents {
 
     @SubscribeEvent
     public static void onCharge(StoreStrengthChargeEvent event) {
-        if (event.getChange() == StoreStrengthChargeEvent.Change.DROPPED) {
+        if (event.getChange() == StoreStrengthChargeEvent.Change.DROPPED
+                && !StoreStrength.isMobile(event.getPlayer())) {
             EpicFightIntegration.cancelCharge(event.getPlayer());
         }
     }

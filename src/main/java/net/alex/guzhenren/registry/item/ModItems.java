@@ -19,6 +19,7 @@ import net.alex.guzhenren.gameplay.mind.ThoughtTag;
 import net.alex.guzhenren.gameplay.path.EffectCarrier;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.BigStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
@@ -51,6 +52,7 @@ import net.alex.guzhenren.item.gu.mortal.path.soul.SoulCapBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AllOutEffortBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.BeastStrengthBehavior;
+import net.alex.guzhenren.item.gu.mortal.path.strength.BigStrengthBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.HardshipBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.HumanStrengthBehavior;
 import net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior;
@@ -690,16 +692,33 @@ public final class ModItems {
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = REGISTRAR.item("all_out_effort_gu_5",
             () -> createAllOutEffortGu(Rank.FIVE, 120, 120))
             .lang("All-Out Effort Gu V", "五转全力以赴蛊").register();
-    public static final DeferredItem<Item> STORE_STRENGTH_GU_4 = REGISTRAR.item("store_strength_gu_4",
-            () -> new TendedGuItem(createRankedProperties(Rank.FOUR, GuPath.STRENGTH)
+    public static final DeferredItem<Item> STORE_STRENGTH_GU_3 = REGISTRAR.item("store_strength_gu_3",
+            () -> createStoreStrengthGu(Rank.THREE, ModEffects.STORE_STRENGTH_GU))
+            .lang("Store Strength Gu III", "三转蓄力蛊").register();
+    public static final DeferredItem<Item> HABITUAL_STRENGTH_GU_4 = REGISTRAR.item("habitual_strength_gu_4",
+            () -> createStoreStrengthGu(Rank.FOUR, ModEffects.HABITUAL_STRENGTH_GU))
+            .lang("Habitual Strength Gu IV", "四转惯力蛊").register();
+    public static final DeferredItem<Item> BIG_STRENGTH_GU_2 = REGISTRAR.item("big_strength_gu_2",
+            () -> new TendedGuItem(createRankedProperties(Rank.TWO, GuPath.STRENGTH)
                     .type(GuType.AMPLIFICATION)
-                    .effect(EffectCarrier.BODY)
-                    .refine(refineEssence(Rank.FOUR))
-                    .costPerUse(infrequentUseEssence(Rank.FOUR))
-                    .feed(ModItemTags.ALL_OUT_FEED, 1)
-                    .cooldown(60 * Ticks.SECOND),
-                    new StoreStrengthBehavior(60)))
-            .lang("Store Strength Gu IV", "四转蓄力蛊").register();
+                    .effect(EffectCarrier.BODY, PathStrengthData.getMarkPoints(BigStrength.POINTS))
+                    .refine(refineEssence(Rank.TWO))
+                    .costPerUse(infrequentUseEssence(Rank.TWO))
+                    .feed(ModItemTags.IRON_FEED, 1)
+                    .cooldown(30 * Ticks.SECOND),
+                    new BigStrengthBehavior(30)))
+            .lang("Big Strength Gu II", "二转大力蛊").register();
+
+    private static TendedGuItem createStoreStrengthGu(Rank rank, Holder<MobEffect> effect) {
+        return new TendedGuItem(createRankedProperties(rank, GuPath.STRENGTH)
+                .type(GuType.AMPLIFICATION)
+                .effect(EffectCarrier.BODY)
+                .refine(refineEssence(rank))
+                .costPerUse(infrequentUseEssence(rank))
+                .feed(ModItemTags.ALL_OUT_FEED, 1)
+                .cooldown(60 * Ticks.SECOND),
+                new StoreStrengthBehavior(effect, 60));
+    }
 
     private static TendedGuItem createCrashGu(Rank rank, TimedBuffBehavior crash) {
         return new TendedGuItem(createRankedProperties(rank, GuPath.STRENGTH)

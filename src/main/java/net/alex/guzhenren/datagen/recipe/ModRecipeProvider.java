@@ -81,6 +81,16 @@ public class ModRecipeProvider extends RecipeProvider {
                 "B...B",
                 " .I. ");
 
+        addRefinement(output, ModItems.HABITUAL_STRENGTH_GU_4, 100L, 3L, 30, List.of(64, 64, 64, 64),
+                Map.of('I', GuIngredient.of(Items.IRON_BLOCK, 4),
+                        'B', GuIngredient.of(Items.GOLD_BLOCK, 2),
+                        'S', GuIngredient.of(ModItems.STORE_STRENGTH_GU_3.get(), 1)),
+                " .I. ",
+                "B...B",
+                "I.S.I",
+                "B...B",
+                " .I. ");
+
         addRefinement(output, ModItems.WHITE_JADE_GU_2, 1L, 1L, 40, List.of(16, 16, 16, 16),
                 Map.of('b', GuIngredient.of(ModItems.WHITE_BOAR_GU_1.get(), 1)),
                 Map.of('j', GuIngredient.of(ModItems.JADE_SKIN_GU_1.get(), 1)),

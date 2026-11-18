@@ -13,6 +13,9 @@ import net.minecraft.world.effect.MobEffectCategory;
  *       （{@code effect_active}）；力道分支下 {@code StrengthService.getAllOutTier} 读档位定承受力提升与本轮几率。</li>
  *   <li>{@code STORE_STRENGTH_GU}（蓄力蛊[Store Strength Gu]）：限时、等级、拒再催动、读档位同上；两端读它判蓄力（服务
  *       端 {@code StoreStrength.canCharge}，客户端 {@code StoreStrengthInput}）。</li>
+ *   <li>{@code HABITUAL_STRENGTH_GU}（惯力蛊[Habitual Strength Gu]）：同蓄力蛊，另让蓄力期间可移动
+ *       （{@code StoreStrength.isMobile}）。</li>
+ *   <li>{@code BIG_STRENGTH_GU}（大力蛊[Big Strength Gu]）：流派效果 {@code BIG_STRENGTH} 的图标与计时，真值在该效果。</li>
  *   <li>{@code JADE_SKIN_GU}（玉皮蛊[Jade Skin Gu]）、{@code WHITE_JADE_GU}（白玉蛊[White Jade Gu]）：限时；投影
  *       {@code BodyData} 的皮及结束 tick，{@code SkinService.tickSkin} 每次心跳重施或移除；固定减伤读皮不读效果。</li>
  *   <li>{@code HEAVENLY_MUGWORT_GU}（天蓬蛊[Heavenly Mugwort Gu]）：限时；投影 {@code ShieldData}

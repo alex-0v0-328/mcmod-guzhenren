@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
+import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.client.Minecraft;
@@ -36,7 +37,7 @@ import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClie
  * <ul>
  *   <li>二段飞行[Second-Stage Flight]：仿 Epic Fight 鞘翅飞行者顺飞向躺平（模型绕 X 轴转负俯仰角），用本模组飞行循环
  *       （{@code biped/living/second_stage_flight_loop}，{@link EpicFightIntegration}）。</li>
- *   <li>{@link #onInitAnimator} 为每个客户端玩家动画器把 {@link EpicFightLivingMotions} 的四个动作映射到
+ *   <li>{@link #onInitAnimator} 为每个客户端玩家动画器把 {@link EpicFightLivingMotions} 的五个动作映射到
  *       {@code biped/living/} 下同名小写循环，早于 Epic Fight 把动作取作默认值。</li>
  *   <li>{@link #onLivingMotion} 换基础动作，优先级坠击 > 二段飞行（替换创造飞行）> 打坐；有动画占着基础动作
  *       （动作、撞毁片段）或玩家濒死时不换；切换由 Epic Fight 动作混合过渡。</li>
@@ -49,6 +50,9 @@ import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClie
  *   <li>炼化野生蛊（{@code TendedGuItem#isRefining}：按住使用未炼化的持续照顾型蛊[Tended Gu]，各客户端从使用物品读出）
  *       的玩家得合成层动作 {@link EpicFightLivingMotions#REFINE_LOOP}（{@link #onCompositeMotion}）；数据文件将其置于
  *       {@code chest_arms} 遮罩下：右手抬到胸前、头朝它低下，腿保持基础层动作。</li>
+ *   <li>惯力蛊[Habitual Strength Gu]的可移动蓄力（{@code StoreStrength#isMobile}，广播标记）得合成层动作
+ *       {@link EpicFightLivingMotions#CHARGE_HOLD_MOVE}，优先于举蛊：{@code HIGH} 叠加层、同一遮罩下胸、头、臂摆蓄力
+ *       架势，腿照常走跑跳。</li>
  *   <li>举蛊随使用结束而结束，炼成或松手皆然；占基础动作的动画（动作、落地）清掉合成层动作，举蛊让位。</li>
  *   <li>{@link #getLockOnTarget} 为月刃读 Epic Fight 锁定目标：锁定期间 {@code EpicFightCameraAPI} 的聚焦实体
  *       （本地玩家 patch 自己的目标即同一实体）；{@link #initialize} 注册四个钩子，客户端初始化时调用一次。</li>
@@ -121,7 +125,10 @@ public final class EpicFightClientIntegration {
     }
 
     private static void onCompositeMotion(ModifyPlayerLivingMotionEvent.CompositeLayer event) {
-        if (TendedGuItem.isRefining(event.getPlayerPatch().getOriginal())) {
+        Player player = event.getPlayerPatch().getOriginal();
+        if (StoreStrength.isMobile(player)) {
+            event.setMotion(EpicFightLivingMotions.CHARGE_HOLD_MOVE);
+        } else if (TendedGuItem.isRefining(player)) {
             event.setMotion(EpicFightLivingMotions.REFINE_LOOP);
         }
     }
@@ -136,6 +143,8 @@ public final class EpicFightClientIntegration {
                 EpicFightIntegration.getMeditateLoop());
         event.getAnimator().addLivingAnimation(EpicFightLivingMotions.REFINE_LOOP,
                 EpicFightIntegration.getRefineLoop());
+        event.getAnimator().addLivingAnimation(EpicFightLivingMotions.CHARGE_HOLD_MOVE,
+                EpicFightIntegration.getChargeHoldMove());
     }
 
     private static void onPrepareModel(PrepareModelEvent event) {
