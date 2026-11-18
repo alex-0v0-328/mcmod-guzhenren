@@ -214,7 +214,7 @@ class CheckTests(unittest.TestCase):
 
     def test_stage_selection_and_the_project_table(self):
         assert check.select([], False) == list(check.STAGES)
-        assert check.select([], True) == ['build', 'gametest', 'data', 'server']
+        assert check.select([], True) == ['tools', 'build', 'gametest', 'data', 'server']
         assert check.select(['client', 'build'], False) == ['build', 'client']
         assert check.select(['multiplayer'], True) == []
         expect_exit(check.select, ['bogus'], False)
@@ -443,6 +443,44 @@ class CheckTests(unittest.TestCase):
         with env.Lock(lock_path, wait=5, echo=lambda text, **_: said.append(text), poll=0.05):
             assert lock_path.read_text(encoding='utf-8') == str(os.getpid())
         assert len(said) == 1 and 'waiting for the Gradle lock' in said[0], said
+
+    def test_tools_stage_reads_the_unittest_summary(self):
+        class Scripted(FakeProcess):
+            script, returncode, environments = [], 0, []
+
+            def __init__(self, command, cwd, log, env=None):
+                super().__init__(command, cwd, log, outcomes=self.script)
+                self.proc.returncode = self.returncode
+                Scripted.environments.append(env)
+
+        log = env.Log('tools', self.root)
+        ctx = check.Context(self.root, log)
+        Scripted.script = [('until', 'Ran 132 tests in 9.090s'), ('until', 'OK (skipped=1)'), ('exit', None)]
+        with patch.object(env, 'Process', Scripted):
+            passed = check.stage_tools(ctx)
+        assert (passed.status, passed.detail) == ('PASS', '132 tool tests passed'), passed
+        # An export sits elsewhere: the tests must still find this workstation's Temp, partner, wiki and models.
+        assert Scripted.environments[0]['GZR_TEMP'] == str(env.TEMP_ROOT), Scripted.environments
+        assert set(Scripted.environments[0]) == {'GZR_TEMP', 'GZR_GU_WORLD', 'GZR_WIKI', 'GZR_MODELS'}
+        Scripted.script = [('until', 'FAIL: test_project_table (test_commit_push.PlanTests.test_project_table)'),
+                           ('until', 'Ran 132 tests in 9.090s'), ('until', 'FAILED (failures=1)'), ('exit', None)]
+        Scripted.returncode = 1
+        with patch.object(env, 'Process', Scripted):
+            failed = check.stage_tools(ctx)
+        log.close()
+        assert failed.status == 'FAIL' and failed.detail == '1 of 132 tool tests failed', failed
+        assert failed.notes == ['test_commit_push.PlanTests.test_project_table'], failed.notes
+        assert check.select(['tools'], False) == ['tools']
+        expect_exit(check.select, ['tools'], False, env.PROJECTS['guworld'])
+
+    def test_a_verification_run_gets_its_own_partner_and_game_directories(self):
+        log = env.Log('verify', self.root)
+        partner, games = self.root / 'partner', self.root / 'games'
+        ctx = check.Context(self.root, log, partner_root=partner, game_root=games)
+        command, _ = command_of(check.stage_data, ctx)
+        log.close()
+        assert f'-PguWorldDir={partner}' in command and f'-PguzhenrenDir={self.root}' in command, command
+        assert f'-PdataGameDir={games / "data"}' in command and f'-PgameTestDir={games / "gametest"}' in command
 
     def test_gametest_takes_the_wiki_gate_like_build(self):
         (self.root / 'src' / 'test' / 'game').mkdir(parents=True)

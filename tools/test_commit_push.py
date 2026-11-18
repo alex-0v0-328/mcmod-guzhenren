@@ -145,6 +145,9 @@ class PlanTests(unittest.TestCase):
     def test_project_table(self):
         project_table()
 
+    def test_a_change_is_verified_with_what_reads_it(self):
+        change_kinds()
+
 
 class RoundTripTests(unittest.TestCase):
     """Local bare remotes, no Gradle, no network."""
@@ -187,6 +190,48 @@ def validate_plans():
     assert commit_push.validate_plan(plan(('chore: one', ['src/a']), ('chore: two', ['src/ab.java']))) == []
 
     assert commit_push.normalize('./src/main/A.java ') == 'src/main/A.java'
+
+    # A commit may take part of a file (patches, contents) and name its repository.
+    partial = {'commits': [{'project': 'guworld', 'title': 'fix: x', 'patches': ['lang.patch']},
+                           {'project': 'wiki', 'title': 'docs: y', 'contents': {'a.md': 'a.md.staged'}}],
+               'order': ['guzhenren', 'guworld']}
+    assert commit_push.validate_plan(partial) == []
+    assert 'non-empty list' in commit_push.validate_plan({'commits': [{'title': 'fix: x'}]})[0]
+    assert '"project" must be one of' in commit_push.validate_plan(
+        {'commits': [{'project': 'forge', 'title': 'fix: x', 'files': ['a']}]})[0]
+    assert '"order" must list' in commit_push.validate_plan({**partial, 'order': ['guworld', 'guworld']})[0]
+    assert '"order" must list' in commit_push.validate_plan({**partial, 'order': ['forge']})[0]
+    assert '"patches" must be' in commit_push.validate_plan({'commits': [{'title': 'fix: x', 'patches': 'a.patch'}]})[0]
+    assert '"contents" must map' in commit_push.validate_plan({'commits': [{'title': 'fix: x', 'contents': ['a']}]})[0]
+    both = {'commits': [{'title': 'fix: x', 'files': ['a.java']}, {'title': 'fix: y', 'contents': {'a.java': 's'}}]}
+    assert commit_push.validate_plan(both) == ['commit 2: a.java is already in commit 1']
+    # The same path in two repositories is two files.
+    apart = {'commits': [{'title': 'fix: x', 'files': ['build.gradle']},
+                         {'project': 'guworld', 'title': 'fix: y', 'files': ['build.gradle']}]}
+    assert commit_push.validate_plan(apart) == []
+    assert commit_push.validate_plan(plan(('fix: x', ['a'])), default='guworld') == []
+
+
+def change_kinds():
+    guzhenren, guworld = env.PROJECTS['guzhenren'], env.PROJECTS['guworld']
+    needs = commit_push.needs
+    assert needs(guzhenren, ['README.md', 'README.zh-TW.md', 'LICENSE.txt', '.idea/dictionaries/project.xml']) == []
+    assert needs(guzhenren, ['tools/commit_push.py', 'AGENTS.md', '.claude/skills/commit-push/SKILL.md']) == ['tools']
+    assert needs(guzhenren, ['tools/a.py', 'src/main/java/A.java']) == ['tools', 'gradle']
+    for path in ('build.gradle', '.github/workflows/build.yml', 'src/generated/resources/a.json', 'gradle.properties',
+                 'docs/README.md', 'unknown.bin'):
+        assert needs(guzhenren, [path]) == ['gradle'], f'{path} must take the whole Gradle chain'
+    assert needs(guworld, ['tools/a.py']) == ['gradle'], 'Gu World has no tool tests'
+    assert needs(guworld, ['README.md']) == [] and needs(guworld, []) == []
+    assert needs(guzhenren, [], full=True) == ['tools', 'gradle'] and needs(guworld, [], full=True) == ['gradle']
+    assert needs(env.WIKI, ['a.md']) == ['links'] and needs(env.WIKI, []) == []
+
+    changed = [f'src/main/java/a/A{number}.java' for number in range(40)] + \
+              [f'src/main/java/b/B{number}.java' for number in range(20)] + ['README.md']
+    assert commit_push.wide_entries(['README.md', 'src/main/java/a/'], changed) == []
+    wide = commit_push.wide_entries(['src/main/java/'], changed)
+    assert len(wide) == 1 and wide[0].startswith(
+        'src/main/java/ takes 60 changed paths (src/main/java/a 40, src/main/java/b 20)'), wide
 
 
 def ci_jar_parity():
@@ -251,7 +296,200 @@ def project_table():
     for project in (env.PROJECTS['guzhenren'], env.PROJECTS['guworld']):
         shipper = commit_push.Shipper(plan(('chore: x', ['a'])), None, False, False, 0, project=project)
         assert shipper.branch == 'main' and shipper.root == project.root
-        assert shipper.work == project.temp / 'commit_push'
+        # Both mods verify in one pool of slots, under Guzhenren's Temp folder.
+        assert shipper.ship_root == env.TEMP_ROOT / 'ship' and shipper.work.parent == shipper.ship_root
+    wiki = commit_push.Shipper(plan(('docs: x', ['a.md'])), None, False, False, 0, project=env.WIKI)
+    assert [repo.name for repo in wiki.repos] == ['wiki'] and wiki.ship_root == env.TEMP_ROOT / 'ship'
+
+
+def scratch_repository(scratch, name='work'):
+    """A repository on main with one pushed commit and its bare remote: (work tree, remote, project)."""
+    remote, work = scratch / f'{name}.git', scratch / name
+    env.git('init', '--quiet', '--bare', '--initial-branch=main', str(remote), cwd=scratch)
+    env.git('init', '--quiet', '--initial-branch=main', str(work), cwd=scratch)
+    for key, value in (('user.name', 'Alex Test'), ('user.email', 'alex@example.com'), ('core.autocrlf', 'false')):
+        env.git('config', key, value, cwd=work)
+    env.git('remote', 'add', 'origin', remote.as_posix(), cwd=work)
+    lines = b''.join(f'line {number}\n'.encode() for number in range(1, 13))
+    for file in ('shared.txt', 'second.txt', 'whole.txt', 'other.txt', 'README.md'):
+        (work / file).write_bytes(lines)
+    env.git('add', '-A', cwd=work)
+    env.git('commit', '--quiet', '-m', 'chore: base', cwd=work)
+    env.git('push', '--quiet', 'origin', 'main', cwd=work)
+    return work, remote, env.Project(name, work, scratch / 'temp', (), (), (), False, False)
+
+
+def edit(path, changes):
+    """Rewrite numbered lines of a scratch file: {line number: new text}."""
+    lines = path.read_bytes().split(b'\n')
+    for number, text in changes.items():
+        lines[number - 1] = text.encode()
+    path.write_bytes(b'\n'.join(lines))
+
+
+def git_out(work, *arguments):
+    return env.git(*arguments, cwd=work)[1]
+
+
+class LandingTests(unittest.TestCase):
+    """Scratch repositories with local bare remotes: no Gradle, no network."""
+
+    def setUp(self):
+        env.TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+        self.temporary = tempfile.TemporaryDirectory(dir=env.TEMP_ROOT)
+        self.addCleanup(self.temporary.cleanup)
+        self.scratch = Path(self.temporary.name)
+
+    def ship(self, plan_data, project, **options):
+        log = env.Log('commit_push', log_dir=self.scratch / 'logs')
+        try:
+            options = {'dry_run': False, 'poll': False, 'poll_timeout': 0, 'plan_dir': self.scratch, **options}
+            before = options.pop('before', ())
+            shipper = commit_push.Shipper(plan_data, log, echo=lambda *a, **k: None, project=project, **options)
+            for prepare in before:
+                prepare(shipper)
+            shipper.ok = shipper.run()
+        finally:
+            log.close()
+        shipper.log_text = log.path.read_bytes()
+        return shipper
+
+    def test_part_of_a_file_ships_and_the_rest_and_the_index_stay(self):
+        work, remote, project = scratch_repository(self.scratch)
+        # One hunk of shared.txt goes into the patch; the second hunk is another session's.
+        edit(work / 'shared.txt', {1: 'mine'})
+        (self.scratch / 'shared.patch').write_bytes(env.git('diff', '--', 'shared.txt', cwd=work)[1].encode())
+        edit(work / 'shared.txt', {12: 'theirs'})
+        # second.txt ships as the staged file says, not as the work tree has it.
+        edit(work / 'second.txt', {1: 'mine', 12: 'theirs'})
+        staged = self.scratch / 'second.staged'
+        staged.write_bytes((work / 'second.txt').read_bytes())
+        edit(staged, {12: 'line 12'})
+        edit(work / 'whole.txt', {5: 'mine'})
+        # Another session has staged its own file: the run must neither commit nor unstage it.
+        edit(work / 'other.txt', {3: 'theirs'})
+        env.git('add', 'other.txt', cwd=work)
+        (work / 'untracked.txt').write_bytes(b'theirs\n')
+
+        shipped = self.ship({'commits': [
+            {'title': 'fix: one hunk', 'patches': ['shared.patch']},
+            {'title': 'fix: the rest', 'files': ['whole.txt'], 'contents': {'second.txt': 'second.staged'}}]}, project)
+        self.assertTrue(shipped.ok, shipped.lines)
+        self.assertEqual(git_out(work, 'log', '--format=%s', '-3').split('\n')[:3],
+                         ['fix: the rest', 'fix: one hunk', 'chore: base'])
+        self.assertEqual(git_out(work, 'rev-parse', 'HEAD'), git_out(remote, 'rev-parse', 'main'))
+        self.assertEqual(git_out(work, 'diff-tree', '--no-commit-id', '-r', '--name-only', 'HEAD~1').split(),
+                         ['shared.txt'])
+        self.assertEqual(sorted(git_out(work, 'diff-tree', '--no-commit-id', '-r', '--name-only', 'HEAD').split()),
+                         ['second.txt', 'whole.txt'])
+        for file in ('shared.txt', 'second.txt'):
+            committed = git_out(work, 'show', f'HEAD:{file}')
+            self.assertIn('mine', committed, file)
+            self.assertNotIn('theirs', committed, file)
+            self.assertIn(b'theirs', (work / file).read_bytes(), f'{file}: the work tree lost the other hunk')
+        status = sorted(line for line in git_out(work, 'status', '--porcelain').split('\n') if line)
+        self.assertEqual(status, [' M second.txt', ' M shared.txt', '?? untracked.txt', 'M  other.txt'])
+        self.assertNotIn(b'\0', shipped.log_text, 'the log must stay a text file')
+        self.assertFalse(shipped.work.exists(), 'the run left its scratch folder behind')
+
+    def test_a_refused_gate_commits_nothing(self):
+        work, remote, project = scratch_repository(self.scratch)
+        edit(work / 'whole.txt', {1: 'by hand'})
+        env.git('commit', '--quiet', '-am', 'chore: by hand', '-m',
+                'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>', cwd=work)
+        by_hand = git_out(work, 'rev-parse', 'HEAD')
+        edit(work / 'shared.txt', {1: 'mine'})
+        refused = self.ship(plan(('fix: mine', ['shared.txt'])), project)
+        self.assertFalse(refused.ok)
+        self.assertTrue(any('message carries' in line for line in refused.lines), refused.lines)
+        self.assertEqual(git_out(work, 'rev-parse', 'HEAD'), by_hand, 'the branch moved past a refused gate')
+        self.assertEqual(git_out(work, 'status', '--porcelain').strip(), 'M shared.txt')
+        self.assertEqual(git_out(remote, 'rev-list', '--count', 'main').strip(), '1', 'nothing may be pushed')
+
+    def test_a_tree_is_verified_once_and_again_only_when_it_moved(self):
+        work, remote, project = scratch_repository(self.scratch)
+        edit(work / 'shared.txt', {1: 'mine'})
+        mine = plan(('fix: mine', ['shared.txt']))
+        first = self.ship(mine, project, dry_run=True)
+        self.assertTrue(first.ok and any('green on the exact tree' in line for line in first.lines), first.lines)
+        self.assertEqual(git_out(work, 'status', '--porcelain').strip(), 'M shared.txt', 'a dry run changed the checkout')
+        again = self.ship(mine, project, dry_run=True)
+        self.assertTrue(again.ok and any('already passed' in line for line in again.lines), again.lines)
+
+        # Another session lands a commit between this run's verification and its landing.
+        def another_session_lands_first(shipper):
+            verify = shipper.verify
+            rounds = []
+
+            def verify_then_interfere():
+                verify()
+                if not rounds:
+                    edit(work / 'whole.txt', {1: 'theirs'})
+                    env.git('commit', '--quiet', '-m', 'fix: theirs', '--', 'whole.txt', cwd=work)
+                rounds.append(1)
+            shipper.verify = verify_then_interfere
+            shipper.rounds = rounds
+        landed = self.ship(mine, project, before=[another_session_lands_first])
+        self.assertTrue(landed.ok, landed.lines)
+        self.assertEqual(len(landed.rounds), 2, 'the moved main must be verified again, once')
+        self.assertTrue(any(line.startswith('land      RETRY') for line in landed.lines), landed.lines)
+        self.assertEqual(sum('green on the exact tree' in line for line in landed.lines), 1, landed.lines)
+        self.assertEqual(git_out(work, 'log', '--format=%s', '-2').split('\n')[:2], ['fix: mine', 'fix: theirs'])
+        self.assertEqual(git_out(work, 'rev-parse', 'HEAD'), git_out(remote, 'rev-parse', 'main'))
+        self.assertEqual(git_out(work, 'status', '--porcelain').strip(), '')
+
+    def test_commits_made_by_hand_are_verified_before_the_push(self):
+        work, remote, project = scratch_repository(self.scratch)
+        edit(work / 'whole.txt', {1: 'by hand'})
+        env.git('commit', '--quiet', '-am', 'fix: by hand', cwd=work)
+        pushed = self.ship({'commits': []}, project, push_only=True)
+        self.assertTrue(pushed.ok, pushed.lines)
+        self.assertTrue(any(line.startswith('verify    PASS') and 'green on the exact tree' in line
+                            for line in pushed.lines), pushed.lines)
+        self.assertEqual(git_out(work, 'rev-parse', 'HEAD'), git_out(remote, 'rev-parse', 'main'))
+        nothing = self.ship({'commits': []}, project, push_only=True)
+        self.assertFalse(nothing.ok)
+        self.assertTrue(any('no local commits to push' in line for line in nothing.lines), nothing.lines)
+
+    def test_docs_ship_without_a_check(self):
+        work, remote, project = scratch_repository(self.scratch)
+        edit(work / 'README.md', {1: '# readme'})
+        shipped = self.ship(plan(('docs: readme', ['README.md'])), project)
+        self.assertTrue(shipped.ok, shipped.lines)
+        self.assertTrue(any('no check reads' in line for line in shipped.lines), shipped.lines)
+        self.assertFalse((shipped.ship_root / 'slot-1').exists(), 'a docs change took a verification slot')
+        self.assertEqual(git_out(work, 'rev-parse', 'HEAD'), git_out(remote, 'rev-parse', 'main'))
+
+    def test_one_plan_ships_several_repositories_in_order(self):
+        first, first_remote, alpha = scratch_repository(self.scratch, 'alpha')
+        second, second_remote, beta = scratch_repository(self.scratch, 'beta')
+        projects = {'alpha': alpha, 'beta': beta}
+        self.assertEqual(commit_push.validate_plan(
+            {'commits': [{'project': 'beta', 'title': 'fix: b', 'files': ['whole.txt']}]}, projects=projects), [])
+        for work in (first, second):
+            edit(work / 'whole.txt', {1: 'mine'})
+        commits = [{'project': 'beta', 'title': 'fix: beta', 'files': ['whole.txt']},
+                   {'title': 'fix: alpha', 'files': ['whole.txt']}]
+        dry = self.ship({'commits': commits, 'order': ['alpha', 'beta']}, alpha, projects=projects, dry_run=True,
+                        ship_root=self.scratch / 'ship')
+        self.assertEqual([repo.name for repo in dry.repos], ['alpha', 'beta'], 'the plan names the order')
+        shipped = self.ship({'commits': commits}, alpha, projects=projects, ship_root=self.scratch / 'ship')
+        self.assertTrue(shipped.ok, shipped.lines)
+        self.assertEqual([repo.name for repo in shipped.repos], ['beta', 'alpha'])
+        pushes = [line for line in shipped.lines if line.startswith('push ')]
+        self.assertEqual([line.split()[2] for line in pushes], ['beta:', 'alpha:'], pushes)
+        for work, remote, title in ((first, first_remote, 'fix: alpha'), (second, second_remote, 'fix: beta')):
+            self.assertEqual(git_out(work, 'rev-parse', 'HEAD'), git_out(remote, 'rev-parse', 'main'))
+            self.assertEqual(git_out(work, 'log', '--format=%s', '-1').strip(), title)
+
+        # A repository whose verification fails keeps every repository of the plan unshipped.
+        edit(first / 'whole.txt', {2: 'more'})
+        edit(second / 'whole.txt', {2: 'trailing blank '})
+        before = [git_out(work, 'rev-parse', 'HEAD') for work in (first, second)]
+        stopped = self.ship({'commits': commits}, alpha, projects=projects, ship_root=self.scratch / 'ship')
+        self.assertFalse(stopped.ok)
+        self.assertTrue(any('whitespace' in line for line in stopped.lines), stopped.lines)
+        self.assertEqual([git_out(work, 'rev-parse', 'HEAD') for work in (first, second)], before)
 
 
 def run(status, conclusion, sha='1234567890abcdef'):
@@ -297,6 +535,17 @@ class GitHubActionsTests(unittest.TestCase):
             return [run('completed', 'success')]
         self.assertEqual(self.poll(flaky), 'success')
         self.assertEqual(len(attempts), 2, 'a failed fetch is retried')
+
+    def test_a_full_sha_asks_for_the_runs_of_that_commit(self):
+        urls = []
+
+        def record(url, token):
+            urls.append(url)
+            return '{"workflow_runs": []}', 200
+        commit_push.fetch_runs('o', 'r', get=record, sha='a' * 40)
+        commit_push.fetch_runs('o', 'r', get=record, sha='abc1234')
+        self.assertTrue(urls[0].endswith('&head_sha=' + 'a' * 40), urls[0])
+        self.assertNotIn('head_sha', urls[1])
 
     def test_a_rejected_token_falls_back_to_anonymous(self):
         calls = []

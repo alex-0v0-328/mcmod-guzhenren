@@ -325,21 +325,88 @@ class WindowsToolTests(unittest.TestCase):
         self.assertIn('4242', str(caught.exception))
         self.assertLess(time.monotonic() - started, 3.0)
 
-    def test_lock_rejection_preserves_existing_check_and_ship_logs(self):
-        for name, arguments in [('local_checks', ['build']),
-                                ('commit_push', [str(self.root / 'plan.json'), '--dry-run'])]:
-            project_temp = self.root / name
-            (project_temp / 'logs').mkdir(parents=True)
-            logfile = project_temp / 'logs' / f'{name}.log'
-            logfile.write_text('active run evidence\n')
-            (self.root / 'plan.json').write_text(json.dumps({'commits': [{'title': 'chore: test', 'files': ['a']}] }))
-            self.hold(project_temp / 'gradle.lock', str(os.getpid()))
-            environment = dict(os.environ, GZR_TEMP=str(project_temp), GZR_LOCK_WAIT='0')
-            result = subprocess.run([sys.executable, '-B', str(env.REPOSITORY_ROOT / 'tools' / f'{name}.py'),
-                                     *arguments], env=environment, capture_output=True, text=True)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn('another local_checks/commit_push run', result.stderr)
-            self.assertEqual(logfile.read_text(), 'active run evidence\n', name)
+    def test_lock_rejection_preserves_the_existing_check_log(self):
+        project_temp = self.root / 'local_checks'
+        (project_temp / 'logs').mkdir(parents=True)
+        logfile = project_temp / 'logs' / 'local_checks.log'
+        logfile.write_text('active run evidence\n')
+        self.hold(project_temp / 'gradle.lock', str(os.getpid()))
+        environment = dict(os.environ, GZR_TEMP=str(project_temp), GZR_LOCK_WAIT='0')
+        result = subprocess.run([sys.executable, '-B', str(env.REPOSITORY_ROOT / 'tools' / 'local_checks.py'),
+                                 'build'], env=environment, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('another local_checks/commit_push run', result.stderr)
+        self.assertEqual(logfile.read_text(), 'active run evidence\n')
+
+    def test_waiters_take_a_lock_in_arrival_order(self):
+        path = self.root / 'order.lock'
+        release = self.hold(path)
+        order = []
+
+        def waiter(name):
+            with env.Lock(path, wait=10, echo=lambda *a, **k: None, poll=0.02):
+                order.append(name)
+                time.sleep(0.05)
+        threads = []
+        for name in 'abcd':
+            threads.append(threading.Thread(target=waiter, args=(name,)))
+            threads[-1].start()
+            time.sleep(0.1)
+        release()
+        for thread in threads:
+            thread.join(timeout=10)
+        self.assertEqual(order, list('abcd'), 'a later waiter overtook an earlier one')
+        self.assertEqual(list((self.root / 'order.lock.queue').iterdir()), [], 'a waiter left its ticket behind')
+
+    def test_tickets_of_ended_or_replaced_processes_do_not_hold_the_line(self):
+        path = self.root / 'stale.lock'
+        queue = self.root / 'stale.lock.queue'
+        queue.mkdir()
+        ended = subprocess.Popen([sys.executable, '-c', 'pass'])
+        ended.wait()
+        # First in line by their arrival time: a process that ended, and a live PID born at another time.
+        gone = queue / f'{1:020d}-{ended.pid}-0-dead'
+        reused = queue / f'{2:020d}-{os.getpid()}-1-dead'
+        unreadable = queue / 'not-a-ticket'
+        for ticket in (gone, reused, unreadable):
+            ticket.touch()
+        with env.Lock(path):
+            pass
+        self.assertEqual(sorted(entry.name for entry in queue.iterdir()), ['not-a-ticket'])
+
+    def test_slots_admit_their_count_and_hand_each_run_its_own_folder(self):
+        pool = self.root / 'ship'
+        with env.Slot(pool, count=2) as first, env.Slot(pool, count=2) as second:
+            self.assertEqual({first.directory, second.directory}, {pool / 'slot-1', pool / 'slot-2'})
+            with self.assertRaises(SystemExit) as caught:
+                with env.Slot(pool, count=2):
+                    self.fail('a third run took one of two slots')
+            self.assertIn('verification slot', str(caught.exception))
+            self.assertIn(str(os.getpid()), str(caught.exception))
+        with env.Slot(pool, count=2) as again:
+            self.assertEqual(again.directory, pool / 'slot-1')
+        self.assertEqual(env.Slot(pool).count, env.SLOTS)
+
+    def test_ship_projects_add_the_wiki_to_the_two_mods(self):
+        self.assertEqual(sorted(env.ship_projects()), ['guworld', 'guzhenren', 'wiki'])
+        wiki = env.ship_projects()['wiki']
+        self.assertIs(wiki, env.WIKI)
+        self.assertEqual((wiki.root, wiki.stages, wiki.partner, wiki.ci_jar_dir), (env.WIKI_ROOT, (), None, None))
+        self.assertNotIn('wiki', env.PROJECTS, 'local_checks.py has nothing to run on the wiki')
+
+    def test_gradle_command_takes_an_exported_partner_and_its_own_game_directories(self):
+        export, partner, games = self.root / 'export', self.root / 'partner', self.root / 'games'
+        export.mkdir()
+        guzhenren, guworld = env.project('guzhenren'), env.project('guworld')
+        command = env.gradle_command(export, 'build', project=guzhenren, partner_root=partner, game_root=games)
+        self.assertIn(f'-PguzhenrenDir={export}', command)
+        self.assertIn(f'-PguWorldDir={partner}', command)
+        self.assertIn(f'-PgameTestDir={games / "gametest"}', command)
+        self.assertIn(f'-PdataGameDir={games / "data"}', command)
+        command = env.gradle_command(export, 'build', project=guworld, partner_root=partner)
+        self.assertIn(f'-PguWorldDir={export}', command)
+        self.assertIn(f'-PguzhenrenDir={partner}', command)
+        self.assertIn(f'-PgameTestDir={guworld.temp / "gametest"}', command)
 
     def test_hand_run_command_holds_the_shared_lock_and_returns_its_exit_code(self):
         temp = self.root / 'manual'
