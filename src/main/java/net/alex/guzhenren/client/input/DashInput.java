@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.input;
 
+import net.alex.guzhenren.client.camera.CombatCameraRig;
 import net.alex.guzhenren.client.particle.RingParticle;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.payload.DashPayload;
@@ -16,7 +17,8 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  * 横冲系蛊（横冲蛊[Horizontal Crash Gu] / 直撞蛊[Vertical Crash Gu]）冲撞的客户端输入。
  * <ul>
  *   <li>按住 Alt 再按移动键发起，方向键给纵、横各一步；{@link ClientIntents#canDash} 判身上横冲系效果是否允许，
- *       服务端同规则重查；冲撞时 Epic Fight 切入战斗模式，镜头前向偏航按方向转，发送 {@link DashPayload}。</li>
+ *       服务端同规则重查；冲撞时 Epic Fight 切入战斗模式，镜头前向偏航按方向转，发送 {@link DashPayload}，并由
+ *       {@link CombatCameraRig#kick} 放宽视野。</li>
  *   <li>{@link #shouldStartDash}：新按 Alt，或按住 Alt 时新按方向键即冲撞；只认按下沿，否则每 tick 都会再冲；
  *       {@link #reset} 清空记住的按键状态，登出时调用，免得下个世界把按住的键读成按下沿。</li>
  * </ul>
@@ -92,6 +94,7 @@ public final class DashInput {
                             + DASH_YAW_DIAGONAL * vertical * horizontal));
                     PacketDistributor.sendToServer(new DashPayload(vertical, horizontal, yRot));
                     RingParticle.noteLocalDash(player.tickCount);
+                    CombatCameraRig.kick();
                 });
     }
 }

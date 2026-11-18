@@ -1,5 +1,6 @@
 package net.alex.guzhenren.mixin;
 
+import net.alex.guzhenren.client.camera.CombatCameraRig;
 import net.alex.guzhenren.client.cinematic.CultivationCamera;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
@@ -12,7 +13,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 镜头摆好后按温养[Nourish]运镜（{@link CultivationCamera#getFrame}）改写本帧镜头；仅客户端。
+ * 镜头摆好后依次按战斗构图（{@link CombatCameraRig#getFrame}）与温养[Nourish]运镜（{@link CultivationCamera#getFrame}）
+ * 改写本帧镜头；仅客户端。
  * <ul>
  *   <li>注入点在 {@code renderLevel} 调用 {@code Camera#setup} 之后、视锥剔除之前：原版、Epic Fight 第三人称都已摆完，
  *       改写对剔除、方块与实体绘制、声音监听位置一并生效。</li>
@@ -36,9 +38,14 @@ public abstract class GameRendererMixin {
             target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;"
                     + "Lnet/minecraft/world/entity/Entity;ZZF)V"))
     private void guzhenren$frameCultivation(DeltaTracker deltaTracker, CallbackInfo info) {
+        CameraAccessor accessor = (CameraAccessor) mainCamera;
+        CombatCameraRig.Frame combat = CombatCameraRig.getFrame(mainCamera);
+        if (combat != null) {
+            accessor.guzhenren$setPosition(combat.position());
+            accessor.guzhenren$setRotation(combat.yaw(), combat.pitch(), combat.roll());
+        }
         CultivationCamera.Frame frame = CultivationCamera.getFrame(mainCamera);
         if (frame == null) return;
-        CameraAccessor accessor = (CameraAccessor) mainCamera;
         accessor.guzhenren$setPosition(frame.position());
         accessor.guzhenren$setRotation(frame.yaw(), frame.pitch(), frame.roll());
         accessor.guzhenren$setDetached(frame.detached());
