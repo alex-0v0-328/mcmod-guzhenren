@@ -2,7 +2,9 @@ package net.alex.guzhenren.gametest;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BigStrength;
@@ -36,7 +38,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  * <ul>
  *   <li>五转裸身（常态承受 56）：无力量者也可催动，总点数 +32、承受 +16；人力 200 斤发挥 56 → 72；熊 40 发挥 40 → 72，
  *       不过载。</li>
- *   <li>状态在身再催动被拒不扣费；状态结束点数与承受同撤。</li>
+ *   <li>状态在身再催动被拒不扣费；状态结束点数与承受同撤；持青牛时时长 30 → 40 秒。</li>
  * </ul>
  */
 
@@ -111,6 +113,19 @@ public final class BigStrengthGameTests {
         assertEquals(BEAR_POINTS + BigStrength.POINTS, StrengthService.getUsablePoints(player),
                 "72 points do not fit a 72 capacity");
         assertEquals(0, snapshot.overloadPoints(), "the big strength overloaded the beast body");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theGreenBullAddsTenSecondsToTheBigStrength(GameTestHelper helper) {
+        ServerPlayer player = player(helper);
+        assertTrue(PathStrengthService.grant(player, BeastStrength.GREEN_BULL), "the bull was refused");
+
+        click(helper, player, hold(player, ModItems.BIG_STRENGTH_GU_2.get(), GU_HUNGER));
+        PathEffect<BigStrength.State> effect = assertNotNull(
+                PathEffectService.find(player, ModPathEffectTypes.BIG_STRENGTH), () -> "the Gu laid no big strength");
+        assertEquals((long) (30 + 10) * Ticks.SECOND, effect.getTicksLeft(player.level().getGameTime()),
+                "the green bull did not add its 10 seconds");
         helper.succeed();
     }
 
