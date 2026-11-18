@@ -31,22 +31,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 服务端对客户端意图的处理。
+ * 服务端对客户端交互意图的统一处理与权限校验入口（由 {@link ModPayloads} 解码后调用）。
  * <ul>
- *   <li>意图：两个容器、辅修流派、三种修炼动作、冲刺、二段飞行[Second-Stage Flight]开关、坠击、
- *       功倍蛊[Amplify Effect Gu]扇形选取、元老蛊[Primeval Elder Gu]轻点与滑条、力气蛊[Strength Qi Gu]远程拳、
- *       蓄力蛊[Store Strength Gu]蓄力、月刃类蛊催动（可带杀招[Killing Move]，成功回发杀招提示）。</li>
- *   <li>除二段飞行开关外，宝黄天[Treasure Yellow Heaven]内全拒（{@link #isOutsideTyh}），那里只剩飞行与二段；坠击由自身
- *       规则在那里拒（{@code PlungeService#canStart}），客户端也问。</li>
- *   <li>意图都是 B 面板按钮、移动输入或按住手势，玩家数据同步传不上去；意图不带玩家数据，下行一律走同步状态。
- *       {@code ModPayloads} 解码后带发送者调这里，全部检查与效果在本类。</li>
- *   <li>⚠ 伪造包落在这里：只让按钮变灰不算门槛，每个拒绝都须在此与界面上同时存在。</li>
+ *   <li>覆盖两个容器菜单、辅修流派设置、三种修炼动作、冲刺、二段飞行开关、坠击、功倍蛊[Amplify Effect Gu]轮盘选取、
+ *       元老蛊[Primeval Elder Gu]存取、力气蛊[Strength Qi Gu]气波、蓄力蛊[Store Strength Gu]蓄力以及刃类蛊催动（可携带
+ *       杀招并回传提示）。</li>
+ *   <li>除二段飞行开关与坠击（由 {@code PlungeService#canStart} 自行判定）外，玩家位于宝黄天[Treasure Yellow Heaven]时
+ *       一律通过 {@link #isOutsideTyh} 拒绝其余操作。</li>
+ *   <li>所有意图载荷均来自面板按钮、移动输入或按住手势且不附带玩家数据，任何状态变更一律由服务端经同步附件或通知下
+ *       发。</li>
+ *   <li>⚠ 客户端置灰按钮不构成安全边界：所有伪造或过期网络包均落入本类方法，每项前置门槛必须在服务端与客户端界面同步校
+ *       验。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.screen.PlayerInfoScreen
- * @since 1.0.0
  */
 
 public final class ClientIntents {

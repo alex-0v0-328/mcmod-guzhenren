@@ -9,20 +9,17 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 
 /**
- * 野生希望蛊[Hope Gu]：世界自身的开窍[Awakening]来源。
+ * 野生希望蛊[Hope Gu]实体：继承 {@link FlyingGuEntity}，是世界自然生成的开窍[Awakening]来源。
  * <ul>
- *   <li>{@code seeks} 只盯未开窍者；任一玩家进入 {@code DETECT_RANGE} 起计 1 分钟消散，走远不停不重置；消散 tick 有意不
- *       存档，重载重计，反正会消失。</li>
- *   <li>⚠ 认任一玩家，不认特定玩家；计时一开，无法重开或重启。</li>
- *   <li>世界里没有模型，身体是客户端 Photon 萤光（{@code HopeGuEffectEvents}）；消散前 {@link #FADE_BURST_TICKS} tick 广播
- *       {@link #FADE_EVENT}，客户端据 {@link #isFading} 换小帧并四向散开。</li>
- *   <li>发光不在代码：{@code assets/guzhenren/dynamiclights/entity/} 的 LambDynamicLights 定义，没装该模组就只有粒子全亮。</li>
+ *   <li>{@link #isSeeking} 仅向尚未开窍的玩家靠拢；但只要任意玩家（无论是否开窍）进入 {@link #DETECT_RANGE} 即启动 1 分
+ *       钟消散倒计时，玩家走远不会暂停或重置；倒计时有意不写入存档，区块重载后重新起算。</li>
+ *   <li>⚠ 消散倒计时认任意玩家而不绑定特定玩家，且一旦启动不可取消或重启。</li>
+ *   <li>实体无几何模型，本体由客户端 Photon 萤光粒子表现（{@code HopeGuEffectEvents}）；消散前
+ *       {@link #FADE_BURST_TICKS} tick 广播 {@link #FADE_EVENT}，客户端根据 {@link #isFading} 切换小光点并向四周散
+ *       开。</li>
+ *   <li>动态光源由 {@code assets/guzhenren/dynamiclights/entity/} 下的 LambDynamicLights 配置声明，未安装该模组时仅保持
+ *       粒子自身全亮。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
- * @since 1.0.0
  */
 
 public class HopeGuEntity extends FlyingGuEntity {

@@ -13,16 +13,12 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 护盾在时快捷栏上方的护盾条，每层一条。
+ * 快捷栏上方的护盾进度条：护盾存在时为每一层独立绘制一条进度条。
  * <ul>
- *   <li>进度为剩余 / 升起点数，标种类，色取 {@code ShieldType}；注册在原版氧气条层上，读同步的 {@code ShieldData}；
- *       最新层（受击先耗）在最下；整组叠在蓄力、温养条上，每显示一条上移 {@link #getStackShift}。</li>
+ *   <li>进度比例取剩余点数 / 升起初始点数，标题标注护盾种类并采用 {@code ShieldType} 对应颜色；注册在原版氧气条图层之上
+ *       并读取同步的 {@code ShieldData}；最新一层（受击优先消耗）置于最下方，整组叠在蓄力条与温养条上方，每显示一层上
+ *       移一个 {@link #getStackShift}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldService
- * @since 1.0.0
  */
 
 public final class ShieldHud extends HotbarHud {

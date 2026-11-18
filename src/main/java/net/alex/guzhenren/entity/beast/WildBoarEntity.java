@@ -14,7 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 野猪：{@link ChargerEntity}，动画名无前缀、猪音效，冲撞 {@value #CHARGE_DAMAGE}、掀击 {@value #TOSS_DAMAGE}。
+ * 野猪实体：继承 {@link ChargerEntity}，使用无前缀动画名与原版猪音效，冲撞伤害 {@value #CHARGE_DAMAGE}、掀击伤害
+ * {@value #TOSS_DAMAGE}。
  */
 
 public final class WildBoarEntity extends ChargerEntity {

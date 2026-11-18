@@ -5,21 +5,14 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * 由两张 GUI 精灵图 {@code hud/<name>_bar_background}、{@code hud/<name>_bar_fill} 画成的 HUD 进度条。
- *
+ * 基于两张 GUI 精灵图 {@code hud/<name>_bar_background} 与 {@code hud/<name>_bar_fill} 构成的 HUD 进度条。
  * <ul>
- *   <li>边框四边各比填充大 1 像素；灰度填充按条的数据色着色。</li>
- *   <li>两图都不缩放；部分填满只显示填充最左 {@code filled} 列，不压缩整图，填充上的刻度（开窍[Awakening]条五等分、
- *       温养[Nourish]条十等分）因此始终对齐边框。</li>
- *   <li>⚠ {@link #width}、{@link #height} 是填充精灵图尺寸；{@code HudBarTexturesTest} 将 PNG 钉在生成布局上。</li>
+ *   <li>背景边框四边各比填充区域宽 1 像素；灰度填充贴图按进度条的数据色进行颜色乘法着色。</li>
+ *   <li>背景与填充均不做拉伸缩放；部分填充时仅裁切显示填充贴图最左侧 {@code filled} 列而不压缩整图，因此填充图上的刻度
+ *       线（如开窍[Awakening]条五等分、温养[Nourish]条十等分）始终与边框保持对齐。</li>
+ *   <li>⚠ {@link #width} 与 {@link #height} 表示填充精灵图的像素尺寸；{@code HudBarTexturesTest} 会将 PNG 尺寸锁定
+ *       在生成布局规格上。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see HotbarHud
- * @see PlayerStatsHud
- * @see net.alex.guzhenren.client.slider.HoldSlider
- * @since 1.0.0
  */
 
 public record HudBar(ResourceLocation background, ResourceLocation fill, int width, int height) {

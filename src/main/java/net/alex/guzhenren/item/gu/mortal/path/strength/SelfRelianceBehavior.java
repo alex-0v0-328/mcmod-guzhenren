@@ -13,20 +13,18 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 自力更生蛊[Self Reliance Gu]的行为：自动治疗（{@link AutoUseBehavior}）。
+ * 自力更生蛊[Self Reliance Gu]行为：实现 {@link AutoUseBehavior}，由 {@link AutoUse} 在玩家受伤时自动触发持续自愈（
+ * {@link SelfRelianceHeal}）。
  * <ul>
- *   <li>低于最大生命 75% 开启；{@code durationSeconds} 窗口（按转 15/20/25 秒）内低于 75% 就补回 75%，期间受伤也补；
- *       状态为限时流派效果 {@code ModPathEffectTypes.SELF_RELIANCE}，payload 为蛊的档位。</li>
- *   <li>每 {@link #PULSE_TICKS}（{@link AutoUse#tick} 调 {@link #pulse}）回 {@code pulseHeal × curve × max health}，
- *       截在 75%；曲线在 {@link #FULL_PULSE_BELOW} 及以下为 1，到 75% 线性降至 {@link #FLOOR}。</li>
- *   <li>75% 及以上脉冲无效，窗口照走；治疗被取消则暂停，不结束不重计费；濒死不治，{@link AutoUse#tick} 先停状态。</li>
+ *   <li>当玩家生命值低于上限 75% 时自动开启，挂载持续 {@code durationSeconds}（一至三转分别为 15/20/25 秒，另加永久兽力
+ *       时长加成）的流派效果 {@code ModPathEffectTypes.SELF_RELIANCE}（载荷记录蛊虫档位），窗口期内只要生命值低于 75%
+ *       即持续脉冲回血至 75%。</li>
+ *   <li>窗口期内由 {@link AutoUse#tick} 每 {@link #PULSE_TICKS} tick 调用一次 {@link #pulse}，每次回复
+ *       {@code pulseHeal * curve * maxHealth} 并截断至 75% 生命上限；衰减曲线 {@link #getCurve} 在生命值不高于
+ *       {@link #FULL_PULSE_BELOW}（40%）时取满值 1，从 40% 到 75% 线性衰减至 {@link #FLOOR}（0.25）。</li>
+ *   <li>生命值达到 75% 及以上时脉冲空转，但状态窗口照常计时；若单次治疗被外部事件取消则当次不回血，不会提前终止窗口或重
+ *       新扣费；玩家濒死时由 {@link AutoUse#tick} 先行移除状态，不再触发回血。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AutoUse
- * @see SelfRelianceHeal
- * @since 1.0.0
  */
 
 public record SelfRelianceBehavior(int grade, float pulseHeal, int durationSeconds) implements AutoUseBehavior {

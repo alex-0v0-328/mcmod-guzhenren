@@ -10,12 +10,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 炼蛊配方类型 {@code refinement} 及其序列化器，无玩法逻辑。
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementRecipe
- * @since 1.0.0
+ * 炼蛊配方类型 {@code refinement}（{@link RefinementRecipe}）及其序列化器的 {@code DeferredRegister} 注册容器，本身不包
+ * 含玩法逻辑。
  */
 
 public final class ModRecipes {

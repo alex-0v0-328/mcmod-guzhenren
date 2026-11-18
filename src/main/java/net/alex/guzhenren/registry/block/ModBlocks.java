@@ -20,28 +20,22 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 本模组全部方块。
- *
+ * 本模组全部方块注册表。
  * <ul>
- *   <li>{@link #SPIRIT_SPRING} 元泉[Spirit Spring]：属性逐项照抄原版水（可替换、无碰撞、爆炸抗性 100、活塞破坏、
- *       无战利品表），手感原生；另加满 15 级光（Alex 定，理由见 wiki《元泉》）。</li>
- *   <li>元泉 BlockItem 在 {@link net.alex.guzhenren.registry.item.ModItems} 注册，创造栏单次遍历才见得到；此处可安全
- *       {@code get()} {@link ModFluids#SPIRIT_SPRING}，因原版先注册 FLUID。</li>
- *   <li>{@link #PURE_WATER} 纯水：同一水属性的普通 {@code LiquidBlock}，无光照、无 BlockItem，由纯水桶携带。</li>
- *   <li>{@link #NINE_LEAF_VITALITY_GRASS_3} 野外生长的九叶生机草[Nine Leaf Vitality Grass]：蒲公英形花，无 BlockItem，
- *       掉同 ID 野生蛊物品；谜之炖菜效果闲置，无花标签或 BlockItem 带出。</li>
- *   <li>{@link #INTIMATE_GRASS} 野生两格高知心草：形状、属性同原版高草丛，贴图自带颜色、不随群系染色，无 BlockItem；
- *       不需工具即掉知心草束与种子，爆炸照原版衰减，由 Gu World 生成。</li>
- *   <li>{@link #INTIMATE_GRASS_CROP} 知心草作物：属性同小麦，无 BlockItem，由知心草种子种下
- *       （{@link IntimateGrassCropBlock}）。</li>
- *   <li>{@link #BLACK_SOIL_FARMLAND} 黑土耕地：属性照抄原版耕地，由腐泥冻土右键耕地掺成，挖掉掉泥土；BlockItem 只进
- *       创造栏（{@link BlackSoilFarmlandBlock}）。</li>
- *   <li>{@link #STEEL_BLOCK} 钢块：铁块属性的普通存储方块，挖掘、音效、信标同铁块；与 9 钢锭互合。</li>
+ *   <li>{@link #SPIRIT_SPRING}（元泉[Spirit Spring]）：逐项沿用原版水属性（可替换、无碰撞、爆炸抗性 100、活塞推毁、无战
+ *       利品表）并附加满级 15 级光照，{@code BlockItem} 在 {@link net.alex.guzhenren.registry.item.ModItems} 注册（此处
+ *       直接读取 {@link ModFluids#SPIRIT_SPRING} 是安全的，因流体注册先于方块执行）。</li>
+ *   <li>{@link #PURE_WATER}：与原版水同属性的普通 {@code LiquidBlock}，无光照且不单独提供 {@code BlockItem}，由纯水桶放
+ *       置。</li>
+ *   <li>{@link #NINE_LEAF_VITALITY_GRASS_3}（野生九叶生机草[Nine Leaf Vitality Grass]）：采用蒲公英外形与属性的
+ *       {@link FlowerBlock}，无 {@code BlockItem} 也不加入花朵标签，破坏时掉落同 ID 野生蛊物品（谜之炖菜效果仅作构造占
+ *       位而不对外提供）。</li>
+ *   <li>{@link #INTIMATE_GRASS} 与 {@link #INTIMATE_GRASS_CROP}（知心草及其作物）：前者为两格高草丛（贴图自带色彩、不随
+ *       群系染色，无 {@code BlockItem}，无需工具即可掉落草束与种子，由 Gu World 生成），后者沿用小麦属性并由知心草种子
+ *       种植（{@link IntimateGrassCropBlock}）。</li>
+ *   <li>{@link #BLACK_SOIL_FARMLAND} 与 {@link #STEEL_BLOCK}：黑土耕地（{@link BlackSoilFarmlandBlock}）沿用原版耕地属
+ *       性并由腐泥冻土右键转化（挖毁掉落泥土，{@code BlockItem} 仅进创造栏）；钢块则沿用铁块属性与 9 个钢锭互合。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModBlocks {

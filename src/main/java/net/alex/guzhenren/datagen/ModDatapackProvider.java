@@ -25,17 +25,15 @@ import net.neoforged.neoforge.common.world.BiomeModifiers;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * 全部数据包注册表的唯一 provider。
- *
+ * 主模组数据包内置注册表条目的唯一生成器。
  * <ul>
- *   <li>伤害类型、野生生成群系修改器共用 {@code RegistrySetBuilder}；维度与元泉[Spirit Spring]生成归 Gu World。</li>
- *   <li>标签 provider 取本实例 {@code getRegistryProvider()} 而非普通 lookup，才见本次生成的类型。</li>
- *   <li>⚠ 只能有一个：内置条目 provider 名字固定，第二个实例让数据生成失败；新注册表加进本实例 builder。</li>
+ *   <li>通过 {@link #BUILDER} 汇总注册全部自定义伤害类型（{@link ModDamageTypes}）以及野生蛊与野兽的自然刷怪群系修改
+ *       器；维度与元泉[Spirit Spring]世界生成则归属配套模组 Gu World。</li>
+ *   <li>下游伤害类型与生物群系标签生成器必须使用本实例的 {@link #getRegistryProvider()}，才能解析本次运行生成的注册表条
+ *       目。</li>
+ *   <li>⚠ {@link DatapackBuiltinEntriesProvider} 的任务名称固定，单次数据生成只能注册一个实例；新增数据包注册表必须并入
+ *       {@link #BUILDER}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class ModDatapackProvider extends DatapackBuiltinEntriesProvider {

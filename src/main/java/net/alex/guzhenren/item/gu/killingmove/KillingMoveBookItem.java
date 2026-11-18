@@ -19,19 +19,14 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 杀招[Killing Move]书。
+ * 杀招[Killing Move]秘籍物品：右键阅读以习得对应的 {@link KillingMove}。
  * <ul>
- *   <li>右键学会其 {@link KillingMove} 并耗书，创造不耗（{@link ItemStack#consume}）；已会拒绝、留书；别无门槛，
- *       无需空窍[Aperture]。</li>
- *   <li>直接继承 {@link Item} 而非 {@link GuItem}：无转、无道[Path]、无蛊点击模板，杀招规则与服务在
- *       {@code item.gu.killingmove}；两端按已同步 {@code KillingMoveData} 判定，挥手与服务端一致；提示框列主蛊、辅蛊、
- *       刃伤倍率，是否已会由客户端另加一行（{@code KillingMoveInput}），因物品提示框拿不到玩家。</li>
+ *   <li>右键调用 {@link KillingMoveService#learn} 学会杀招并消耗书本（创造模式由 {@link ItemStack#consume} 保留）；若已
+ *       习得则拒绝并保留书本；学习本身不要求已开窍[Awakening]。</li>
+ *   <li>直接继承 {@link Item} 而非 {@link GuItem}：书本无转数、无流派、也不用蛊虫蓄力/轻点模板；双端均读取已同步的
+ *       {@code KillingMoveData} 判断是否已学会，保证客户端挥手表现与服务端一致；物品提示框列出主蛊、辅蛊与伤害倍率，而
+ *       「已学会」提示行因原版 {@link #appendHoverText} 拿不到玩家实例，改由客户端 {@code KillingMoveInput} 追加。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMoveService#learn
- * @since 1.0.0
  */
 
 public final class KillingMoveBookItem extends Item {

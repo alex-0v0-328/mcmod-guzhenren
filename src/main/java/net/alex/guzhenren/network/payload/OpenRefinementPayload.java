@@ -8,16 +8,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 打开炼蛊界面的客户端意图：零字节单例，只代表一次按键。
- * <ul>
- *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，打开 {@link RefinementMenu}。</li>
- *   <li>不上传玩家数据；附件同步唯独不承载客户端意图。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
+ * 请求打开炼蛊界面（{@link RefinementMenu}）的零字节单例客户端意图载荷，仅表示一次点击触发而不携带任何玩家数据，经
+ * {@link net.alex.guzhenren.network.ModPayloads} 分发至服务端校验开启。
  */
 
 public record OpenRefinementPayload() implements CustomPacketPayload {

@@ -18,22 +18,20 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 全力以赴蛊[All-Out Effort Gu]的行为：自身无效果，限时借力给力道分支。
+ * 全力以赴蛊[All-Out Effort Gu]行为：自身不提供独立基础力量，而是在限时内强化玩家已持有的力道流派分支。
  * <ul>
- *   <li>三至五转：人力钧力流或兽力虚影流的常态承受力加 50%/100%/200%，与其他加成并列
- *       （{@code StrengthService.getAllOutCapacityBonus}）；不付负载。</li>
- *   <li>兽力虚影流开轮概率 5% 升至 80%/90%/100%（{@code StrengthRound.getChance}），并全面解放抽中兽种。</li>
- *   <li>无永久兽力[Beast Strength]和人力者蓄力前即被拒（{@code all_out_needs_branch}）；效果期间再催动也拒。</li>
- *   <li>按蛊的 tier 打标记效果供力量服务与轮次读，再调 {@link AttackDamageService#refresh}，攻击仍出自一个公式。</li>
- *   <li>功倍蛊[Amplify Effect Gu]乘时长，持有兽种的时长加成（{@code PathStrengthService.getDurationBonus}，青牛 10 秒）
- *       乘后再加。</li>
- *   <li>⚠ 标记不带 {@code AttributeModifier}：修饰符会让同一事实有两个来源。</li>
+ *   <li>共三至五转三档：使人力钧力流派或兽力虚影流派的常态肉身承受力额外提升 50%/100%/200%（与其他承受力加成并列，见
+ *       {@code StrengthService.getAllOutCapacityBonus}），且不计入肉身负载。</li>
+ *   <li>对兽力虚影流派，将攻击轮次触发概率由 5% 提升至 80%/90%/100%（{@code StrengthRound.getChance}），并使抽中的兽种
+ *       获得全面解放。</li>
+ *   <li>未持有任何永久兽力或人力的玩家在蓄力起手前即被拒绝（{@code all_out_needs_branch}）；效果持续期间再次催动亦拒
+ *       绝。</li>
+ *   <li>生效时按蛊虫档位挂载标记效果供力量服务与攻击轮次读取，并调用 {@link AttackDamageService#refresh} 重算攻击力，保
+ *       证攻击力始终由单一公式派生；功倍蛊[Amplify Effect Gu]先倍增基础时长，之后再加上玩家所持永久兽力的时长加成
+ *       （{@link PathStrengthService#getDurationBonus}，如青牛加 10 秒）。</li>
+ *   <li>⚠ 该药水效果仅作状态标记，绝不直接挂载原版 {@code AttributeModifier}，以免与 {@link AttackDamageService} 产生双
+ *       重属性来源。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.tending.TendedGuItem
- * @since 1.0.0
  */
 
 public record AllOutEffortBehavior(int effectSeconds) implements GuBehavior {

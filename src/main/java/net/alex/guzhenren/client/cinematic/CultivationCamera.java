@@ -25,29 +25,24 @@ import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 温养[Nourish]空窍[Aperture]时本地玩家的电影化运镜；仅客户端，机位几何在 {@link CultivationShots}。
- *
+ * 温养[Nourish]空窍时本地玩家的电影化运镜控制器：仅运行于客户端，机位几何定义在 {@link CultivationShots}。
  * <ul>
- *   <li>温养中（{@link ApertureNourishService#isCultivating}）镜头 1 秒平滑离开玩家视角、进入机位循环，温养结束 1 秒
- *       平滑回到原第一或第三人称；鼠标与移动另由 {@code NourishInputEvents} 锁住。</li>
- *   <li>{@link #getFrame} 给出本帧镜头（{@link Frame}），镜头摆好后由 {@code GameRendererMixin} 写回；镜头离原视点和
- *       坐姿头部都超过 {@link #DETACH_DISTANCE} 格才离体、画出玩家模型，近处不画以免从头内看到贴图。</li>
- *   <li>过渡中的偏航沿上一帧的转向连续变化，不按最短方向逐帧重算，否则机位转到背后时会甩半圈；完全进入后不再记，
- *       退出从最短方向重新起算。</li>
- *   <li>机位开始时检查遮挡：取开头、中间、结尾三处，从坐姿头部到镜头的可视距离不足 {@link #MIN_CLEAR} 倍就跳到下一个；
- *       全被挡住（室内）退回环绕；每帧再按遮挡把镜头拉到墙前 {@link #WALL_GAP} 格。</li>
- *   <li>远眺的方向在机位开始时探一次：头部向 8 个方向各射 {@link #VISTA_RAY} 格、略向上抬；侧推先试左侧，每轮换边，
- *       挡住则换另一侧。</li>
- *   <li>运镜显示期间（{@link #isShowing}，含进出过渡）不画手、方块选框和水下、着火、窒息贴脸遮罩；左键攻击与选取方块
- *       丢弃，因为准星所指不在画面里，右键留给扇形选择器、长按滑条和物品。</li>
- *   <li>HUD 由 {@code ClientEvents} 只留白名单层，黑边与切镜黑屏由 {@code CinematicHud} 读 {@link #getBars}、
- *       {@link #getFade} 绘制；退出时不再切镜，淡黑停在退出那一刻、随过渡收掉。</li>
+ *   <li>温养进行中（{@link ApertureNourishService#isCultivating}）镜头在 1 秒内平滑脱离玩家视角并切入机位循环，结束时用
+ *       1 秒平滑回到原第一或第三人称视角；鼠标转向与移动输入另由 {@code NourishInputEvents} 锁定。</li>
+ *   <li>{@link #getFrame} 计算本帧镜头姿态（{@link Frame}）并由 {@code GameRendererMixin} 写回；当镜头同时远离原视点与
+ *       坐姿头部超过 {@link #DETACH_DISTANCE} 格时才离体并渲染玩家模型，防止近距离穿入头部模型看到内部贴图。</li>
+ *   <li>进入过渡中的偏航沿上一帧的转向连续变化，不按每帧最短角重新选向，以免机位绕至背后时发生半圈甩头；完全进入后不再
+ *       记录，退出时再从最短方向重新起算。</li>
+ *   <li>机位开始时对开头、中间、结尾三处进行遮挡检测：若从坐姿头部到镜头的可视距离不足 {@link #MIN_CLEAR} 倍则跳过该机
+ *       位；若所有机位均被遮挡（如室内）则退回环绕机位；每帧仍会根据实时射线遮挡把镜头拉回墙前 {@link #WALL_GAP}
+ *       格。</li>
+ *   <li>远眺机位的方向在机位开始时探测一次：从头部向 8 个水平方向各发射 {@link #VISTA_RAY} 格并略向上抬升射线；侧推机位
+ *       首轮先试左侧并每轮交替，若首试方向受阻则换向另一侧。</li>
+ *   <li>运镜显示期间（{@link #isShowing}，含进出过渡）隐藏第一人称手部、方块选框及水下、着火、窒息贴脸遮罩；左键攻击与
+ *       选取方块交互一律丢弃（准星不再对应画面中心），右键保留给扇形选择器、长按滑条与物品交互。</li>
+ *   <li>HUD 由 {@code ClientEvents} 过滤至仅保留白名单层，上下黑边与切镜黑屏由 {@code CinematicHud} 读取
+ *       {@link #getBars} 和 {@link #getFade} 绘制；退出时不再触发切镜，黑屏强度停留在退出瞬间并随退出过渡淡出。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CultivationShots
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

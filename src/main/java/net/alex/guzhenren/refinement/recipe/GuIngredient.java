@@ -5,13 +5,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
 /**
- * 蛊方的一条材料需求：可放物品与确切数量。
- * 自有类型，非原版 {@code Ingredient}；{@link RefinementRecipe} 按扁平 JSON {@code {"count": n, "item": …}} 读写。
- *
- * @author Alex
- * @version 1.0.0
- * @see GuRecipe
- * @since 1.0.0
+ * {@link GuRecipe} 的单条材料需求记录，封装可接受的 {@link Ingredient} 与精确所需数量；属于模组自有数据记录而非原版类
+ * 型，由 {@link RefinementRecipe} 按扁平 JSON 字段读写。
  */
 
 public record GuIngredient(Ingredient ingredient, int count) {

@@ -4,13 +4,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * 苦力蛊[Hardship Strength Gu]效果，仅苦力状态图标：状态即限时流派效果 {@code ModPathEffectTypes.HARDSHIP_STRENGTH}，
- * 由其投影本图标与窗口倒计时；加成归 {@code HardshipStrength}。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.path.strength.HardshipStrength
- * @since 1.0.0
+ * 苦力蛊[Hardship Strength Gu]的纯图标标记效果，仅用于显示倒计时与状态图标；实际状态真值由限时流派效果
+ * {@code ModPathEffectTypes.HARDSHIP_STRENGTH} 持有，具体数值加成由
+ * {@link net.alex.guzhenren.gameplay.path.strength.HardshipStrength} 结算。
  */
 
 public final class HardshipStrengthGuEffect extends MobEffect {

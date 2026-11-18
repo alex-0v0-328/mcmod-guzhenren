@@ -3,20 +3,14 @@ package net.alex.guzhenren.gameplay.body;
 import net.alex.guzhenren.core.NamedEnum;
 
 /**
- * 筋骨皮肉一格的一档：原生，或金道、土道炼体蛊换上的档。
+ * 筋、骨、皮、肉单部位炼体档位的公共接口：涵盖原生状态或金道、土道炼体蛊改造后的品阶。
  * <ul>
- *   <li>每格一个闭合枚举，以自身为 {@code G} 实现本接口，占 {@code BodyData} 一格；每档带授予蛊转数，原生 0。</li>
- *   <li>同族各转连续，{@code /gzr body} 借此按族与转指名一档。</li>
- *   <li>{@link #canReplace} 是炼体蛊共问的唯一门槛：当前档是否让位于此档；各格自答，物品不自比档。</li>
+ *   <li>每个部位对应一个实现 {@code BodyGrade<G>} 的闭合枚举（{@link Skin}、{@link Tendon}、{@link Bone}、
+ *       {@link Flesh}），在 {@link BodyData} 中各占一槽；每档携带对应蛊虫转数（原生为 {@code 0}），同族各转按序排列供
+ *       {@code /gzr body} 指令按族与转数寻址。</li>
+ *   <li>{@link #canReplace} 是炼体蛊起手校验的唯一替换门槛：由各部位枚举自行决定当前档位能否被新档覆盖，蛊虫物品侧不直
+ *       接比较档位高低。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Skin
- * @see Tendon
- * @see Bone
- * @see Flesh
- * @since 1.0.0
  */
 
 public interface BodyGrade<G extends BodyGrade<G>> extends NamedEnum {

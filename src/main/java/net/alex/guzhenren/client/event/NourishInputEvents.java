@@ -15,19 +15,15 @@ import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 
 /**
- * 温养[Nourish]空窍[Aperture]姿态的客户端部分；开窍[Awakening]仪式沿用，直到闪白褪去、牌匾出现。
- *
+ * 温养空窍姿态的客户端输入锁定器：开窍[Awakening]仪式同样沿用，直到闪白褪去且牌匾显现为止。
  * <ul>
- *   <li>{@link #isHeldStill} 为真时定住玩家：清零全部移动输入，视野保持玩家自己的设置，速度与状态效果不再拉伸。</li>
- *   <li>{@link #holdsTurn} 锁转向，范围比定身多出按住灌注类蛊[Channeled Gu]
- *       （{@code EpicFightIntegration#isMeditating}），灌注只锁转向不锁移动；转向由 {@code MouseHandlerMixin} 丢弃，
- *       温养的镜头另由 {@code CultivationCamera} 接管。</li>
- *   <li>☠ 定身只能在客户端：服务端的停止下一 tick 就被按住的键抵消。</li>
+ *   <li>{@link #isHeldStill} 为真时定住本地玩家：清零全部移动输入，并保持玩家自有视野设置（不受速度或药水效果拉
+ *       伸）。</li>
+ *   <li>{@link #holdsTurn} 负责锁定视角转向，覆盖范围在定身之上额外包含按住灌注类蛊[Channeled Gu]（
+ *       {@code EpicFightIntegration#isMeditating}），灌注期间只锁转向不锁移动；鼠标转向输入由
+ *       {@code MouseHandlerMixin} 丢弃，温养运镜镜头则另由 {@code CultivationCamera} 接管。</li>
+ *   <li>⚠ 定身限制必须在客户端实施：若仅在服务端强制停步，下一 tick 就会被客户端持续按住的按键移动输入抵消。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

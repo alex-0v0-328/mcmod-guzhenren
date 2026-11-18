@@ -6,25 +6,20 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 锁定月刃的飞行曲线；不依赖实体，纯 JUnit 可测。
+ * 锁定月刃（{@link MoonBladeEntity}）与兽力冲击共用的二次贝塞尔飞行弧线，不依赖实体状态、可直接用 JUnit 测试。
  * <ul>
- *   <li>二次贝塞尔：{@code start} 经弦中点偏 {@code bend} 的控制点到目标中心；调用方每 tick 重读中心，移动目标也能命
- *       中。</li>
- *   <li>{@link #aim} 每发掷一次弯：左右各半，弦长的 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO}，另加其
- *       {@link #LIFT_RATIO} 抬升；「左」指沿弦看射手左侧。</li>
- *   <li>{@link #flightTicks} 按速度折算弦长，至少 {@link #MIN_FLIGHT_TICKS}；第 n tick 位于 {@link #pointAt}
- *       （{@code t = n / flightTicks}），{@link #tangentAt} 为其对 t 的导数，兽力冲击爆开时作范围冲击轴。</li>
- *   <li>{@link #bankDegrees}：渲染转弯侧倾，倒向弯侧，最大弯度时 {@link #MAX_BANK_DEGREES}，以下成比例；
- *       {@link #isAimable}：服务端校验客户端所选目标在射程内、视线前方。</li>
+ *   <li>曲线从发射点 {@link #start} 出发，经弦线中点加上控制点偏移 {@link #bend} 后到达目标中心，耗时
+ *       {@link #flightTicks} tick；调用方每 tick 重新传入目标当前中心，因此移动中的目标也能被准确追踪。</li>
+ *   <li>{@link #aim} 为每发月刃随机掷出左右弯向（概率各半）：{@link #bend(Vec3, Vec3, boolean, float)} 沿弦线左侧水平单
+ *       位向量 {@link #leftOf}（从发射点看向终点时的左侧，如向南飞行时指向正东）偏移弦长的 {@link #MIN_BEND_RATIO}～
+ *       {@link #MAX_BEND_RATIO}，并额外向上抬升该偏移量的 {@link #LIFT_RATIO} 倍。</li>
+ *   <li>{@link #flightTicks(double, float)} 按飞行速度折算弦长并保底 {@link #MIN_FLIGHT_TICKS} tick；第 {@code n} tick
+ *       的轨迹点由 {@link #pointAt}（{@code t = n / flightTicks}）给出，对 {@code t} 的一阶导数 {@link #tangentAt} 则在
+ *       兽力冲击爆开时作为范围冲击环的朝向轴。</li>
+ *   <li>{@link #bankDegrees} 计算月刃渲染时的转弯侧倾角（正值使左缘下压，对应左弯），达到最大弯度时倾角为
+ *       {@link #MAX_BANK_DEGREES}，其余按比例缩放；{@link #isAimable} 供服务端校验客户端上报的目标是否处于射程与视野前
+ *       方。</li>
  * </ul>
- *
- * @param start 发射点
- * @param bend 控制点相对弦中点的偏移
- * @param flightTicks 从发射点到目标的 tick 数
- * @author Alex
- * @version 1.0.0
- * @see MoonBladeEntity
- * @since 1.0.0
  */
 
 public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
@@ -48,7 +43,6 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         return new MoonBladeArc(start, bend(start, end, left, ratio), flightTicks(start.distanceTo(end), speed));
     }
 
-    /** 控制点偏移：横向弦长的 {@code ratio}，再加其 {@link #LIFT_RATIO} 向上。 */
     public static @NotNull Vec3 bend(@NotNull Vec3 start, @NotNull Vec3 end, boolean left, float ratio) {
         Vec3 chord = end.subtract(start);
         double size = chord.length() * ratio;
@@ -76,7 +70,6 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         return control.subtract(start).scale(2.0D * (1.0D - t)).add(end.subtract(control).scale(2.0D * t));
     }
 
-    /** 正值使刃左缘向下，对应左弯。 */
     public float bankDegrees(@NotNull Vec3 end) {
         Vec3 chord = end.subtract(start);
         double across = Math.sqrt(chord.x * chord.x + chord.z * chord.z);
@@ -88,7 +81,6 @@ public record MoonBladeArc(Vec3 start, Vec3 bend, int flightTicks) {
         return toLeft < 0.0D ? -bank : bank;
     }
 
-    /** 沿 {@code chord} 飞行的左侧水平单位向量；向南飞时为东。 */
     static @NotNull Vec3 leftOf(@NotNull Vec3 chord) {
         Vec3 left = new Vec3(chord.z, 0.0D, -chord.x);
         return left.lengthSqr() < FLAT ? new Vec3(1.0D, 0.0D, 0.0D) : left.normalize();

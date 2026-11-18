@@ -9,23 +9,18 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 飞行授权等级（{@link FlightGrant}）与蛊给的飞行。
+ * 玩家飞行授权等级查询与蛊虫飞行能力同步服务。
  * <ul>
- *   <li>更快的二段飞行[Second-Stage Flight]归 {@link SecondStageService}；{@link #getGrant} 两端共用，客户端发意图前先
- *       问。</li>
- *   <li>创造模式与宝黄天[Treasure Yellow Heaven]里任何人可飞二段；生存仅靠实现 {@link FlightContributor} 的生效效果，
- *       取最强（{@link #getGuGrant}）；旁观、骑乘、睡觉、死亡者无。飞行即原版创造飞行：双击跳跃开关，疾跑翻倍。</li>
- *   <li>蛊飞行是 {@link FlightAbility} 来源（{@link #GU_FLIGHT_MODIFIER_ID}），不直接写会存档、游戏模式共用的
- *       {@code Abilities#mayfly}，绝不收回游戏模式或锚定维度给的飞行。</li>
- *   <li>{@link #tick}（{@link FlightEvents}，每服务端 tick）有蛊授权即授予，无则撤销，无其他来源时关飞，效果到期生存玩
- *       家下落；创造与宝黄天自带飞行。</li>
+ *   <li>更高速的二段飞行[Second-Stage Flight]巡航归 {@link SecondStageService} 管理；{@link #getGrant} 供双端共读（客户
+ *       端在发送二段飞行切换意图前先用它做本地校验）。</li>
+ *   <li>创造模式与宝黄天[Treasure Yellow Heaven]等飞行维度直接授予 {@link FlightGrant#SECOND_STAGE}；生存模式仅汇总实现
+ *       {@link FlightContributor} 的活动药水效果并取最高档（{@code getGuGrant}）；死亡、旁观、骑乘或睡眠状态下统一返回
+ *       {@link FlightGrant#NONE}。</li>
+ *   <li>蛊虫飞行通过 {@link FlightAbility} 在 {@link #GU_FLIGHT_MODIFIER_ID} 下独立挂载临时修饰符，不改写会落盘的
+ *       {@code Abilities.mayfly}，因此绝不会误回收游戏模式或锚定维度授予的飞行权限。</li>
+ *   <li>{@link #tick} 每个服务端 tick 检查蛊虫飞行授权：有则挂载修饰符，无则撤销修饰符并在失去全部飞行来源时关闭飞行令
+ *       生存玩家自然下落。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see FlightGrant
- * @see SecondStageService
- * @since 1.0.0
  */
 
 public final class FlightService {

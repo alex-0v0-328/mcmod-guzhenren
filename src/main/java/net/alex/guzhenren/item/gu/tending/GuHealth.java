@@ -7,20 +7,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 持续照顾型蛊[Tended Gu]的蛊虫生命：{@link RefinedGuState} 存已受伤害，未动过的野生蛊读作满血。
+ * 持续照顾型蛊[Tended Gu]的生命值规格：{@link RefinedGuState} 中存储已受伤害而非当前生命，未动过的野生蛊默认视为满血。
  * <ul>
- *   <li>{@link GuProperties#buildHealth} 取 4 × 转数 + 4（8–24），不用玩家的 {@code Rank.getMaxHealth}；归零即损毁
- *       （{@code TendedGuItem.ruin}），本命蛊例外，0 生命仍占槽。</li>
- *   <li>食物按饱食[Hunger]修复，1 生命 = 1 饱食（{@code unitsPerHunger}）；{@link #mendFrom} 只吃整件，不超伤势。</li>
- *   <li>⚠ 生命写入都经宿主 {@code store}（钳 {@code damageTaken}），唯 {@code RecoverBar.settleHealth} 只缩已钳伤势；
- *       饱食条在 {@code GuHunger.storeBar} 自钳。</li>
+ *   <li>最大生命值由 {@link GuProperties#buildHealth} 按 {@code 4 × 转数 + 4}（即 8 至 24）生成，不复用玩家的
+ *       {@code Rank.getMaxHealth}；生命归零时触发损毁（{@code TendedGuItem.ruin}），但本命蛊[Vital Gu]例外，0 生命仍保
+ *       留在本命槽中。</li>
+ *   <li>食物按饱食[Hunger]点数等比折算修复伤势，固定 1 点生命等于 1 点饱食（{@code unitsPerHunger}）；{@link #mendFrom}
+ *       仅消耗整件食物且不会超出当前伤势上限。</li>
+ *   <li>⚠ 除 {@code RecoverBar.settleHealth} 直接缩减已钳制的伤势外，所有生命写入均须经过宿主 {@code store} 对
+ *       {@code damageTaken} 做范围钳制；饱食条则由 {@code GuHunger.storeBar} 自行钳制。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @see GuMeal
- * @since 1.0.0
  */
 
 public record GuHealth(int max, int unitsPerHunger) {

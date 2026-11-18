@@ -13,16 +13,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 人力行为：给一种人力加一层，种类与转数来自注册（斤 / 十斤 / 钧 / 十钧 / 百钧）。
+ * 人力授予行为：灌注[Channel]完成后为玩家叠加一层注册指定的 {@link HumanStrength}（一至五转分别对应一斤、十斤、一钧、十
+ * 钧、百钧之力）。
  * <ul>
- *   <li>门槛先拒持兽力虚影流者，含运行中的兽力[Beast Strength]增益（{@link MarkInterference}），再拒该种已满层者。</li>
- *   <li>⚠ 授予挂在玩家而非物品堆上：满层者可把蛊交给别人，对方照样能用。</li>
+ *   <li>{@link #checkEffect} 先拦截已持有兽力虚影流派或正处于限时兽力增益中的玩家（{@link MarkInterference}），再拦截该
+ *       档人力已达层数上限的玩家。</li>
+ *   <li>⚠ 已叠加的人力层数记录在玩家身上而非物品栈上：已满层的玩家可将同种蛊虫转交他人继续炼化使用。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.tending.TendedGuItem
- * @since 1.0.0
  */
 
 public record HumanStrengthBehavior(HumanStrength kind) implements GuBehavior {

@@ -6,23 +6,19 @@ import net.alex.guzhenren.gameplay.flight.SecondStageCruise;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 单次二段飞行[Second-Stage Flight]逐 tick 生成音障环的轨迹状态；纯状态，纯 JVM 测试可钉住。
+ * 单次二段飞行[Second-Stage Flight]期间逐刻生成音障环的纯状态轨迹模型，供 {@link SecondStageRingEmitter} 驱动并可由纯
+ * JVM 单元测试直接验证。
  * <ul>
- *   <li>{@link SecondStageRingEmitter} 发送 {@link #step} 的返回值。</li>
- *   <li>进入时已有音爆环，故 {@link #QUIET_TICKS} 内静默；之后速度超 {@link #BARRIER_SPEED}（创造满速普通飞行
- *       {@link SecondStageCruise#PLAIN_FLIGHT_SPEED} 的 3 倍）立即成环，因新轨迹（{@link #start}）自带满间距。</li>
- *   <li>此后每实际三维移动 {@link #SPACING} 格一环，与冲刺轨迹同经 {@link RingTrailSpacing}；低于音障速度不成环、
- *       不计距离。</li>
- *   <li>速度取每 tick 位移经 {@link #SMOOTHING} 平滑：服务端按到达顺序收玩家移动，有时一 tick 两次。</li>
- *   <li>{@link Ring} 生成于路径脚部高度、移动前缘前 {@link #HEAD_LEAD} 格，面朝移动方向；飞行者穿环而过。</li>
- *   <li>单 tick 位移超 {@link #TELEPORT_DISTANCE} 视为传送：落点重接轨迹、速度清零，跳跃路径不铺环。</li>
- *   <li>6 倍飞行速度（约 3.3 格/tick）约每 5 tick 一环，每秒 4 个。</li>
+ *   <li>刚进入二段飞行时已有入场音爆环，因此在最初 {@link #QUIET_TICKS} 刻内保持静默；静默期结束后，只要平滑速度达到
+ *       {@link #BARRIER_SPEED}（创造模式满速普通飞行 {@link SecondStageCruise#PLAIN_FLIGHT_SPEED} 的 3 倍），由于
+ *       {@link #start} 初始自带满间距 {@link #SPACING}，会立即触发首个音障环。</li>
+ *   <li>之后每实际三维移动 {@link #SPACING} 格经 {@link RingTrailSpacing} 铺设一环（6 倍飞行速度下约每 5 刻 1 环、每秒
+ *       4 环），低于音障速度时既不成环也不累计距离。</li>
+ *   <li>每刻位移经 {@link #SMOOTHING} 系数做指数平滑，以抵消服务端按网络包到达顺序处理移动时偶发的一刻两次移动包抖
+ *       动。</li>
+ *   <li>每次生成的 {@link Ring} 位于轨迹点前缘 {@link #HEAD_LEAD} 格（由发射器抬高至身体中部）并面朝前进方向，使飞行者
+ *       穿环而过；单刻位移超过 {@link #TELEPORT_DISTANCE} 视作传送，直接重接轨迹并清零速度以避免跨段铺环。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageRingEmitter
- * @since 1.0.0
  */
 
 record BarrierRingTrail(Vec3 lastPos, double carry, double speed, int age) {

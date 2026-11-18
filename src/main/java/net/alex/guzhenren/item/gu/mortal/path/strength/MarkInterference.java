@@ -8,13 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 道痕互斥的蛊侧门槛：力道蛊分支与已持分支互斥时拒绝；兽力[Beast Strength]、人力行为先问，限时增益行为给兽力增益
- * 时也问；{@link PathStrengthService} 写入口强制同一规则，这里只出措辞。
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthPathBranch#interferesWith
- * @since 1.0.0
+ * 力道分支道痕互斥的物品侧门槛检查：当待催动蛊虫所属分支与玩家已持有的力道分支互斥
+ * （{@link StrengthPathBranch#interferesWith}）时返回拒绝提示；永久兽力、永久人力及赋予限时兽力增益的行为在催动前均先调
+ * 用 {@link #check}（{@link PathStrengthService} 写入端同样强校验该互斥规则，本类负责在扣费前给出统一提示语）。
  */
 
 public final class MarkInterference {

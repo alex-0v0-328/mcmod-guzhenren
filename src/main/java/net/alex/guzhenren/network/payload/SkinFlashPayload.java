@@ -10,13 +10,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 服务端通知：某玩家刚换上皮肤，看得到该玩家的客户端按皮肤色调画闪光。
- * 下行：皮肤经附件同步只到本人，闪光要的是换上那一刻；旁观者从不收他人肉体数据；只带实体 id 与皮肤，无可据以行动之物。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
+ * 通知可见范围内客户端播放玩家换皮闪光特效的服务端下行载荷（由 {@link net.alex.guzhenren.network.ModPayloads} 注册），
+ * 仅携带实体 ID 与 {@link Skin} 类型以弥补他人肉身附件不对旁观者同步及单靠附件无法感知换皮瞬间的限制。
  */
 
 public record SkinFlashPayload(int entityId, Skin skin) implements CustomPacketPayload {

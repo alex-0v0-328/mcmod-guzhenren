@@ -6,13 +6,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@code ShieldData} 的一层护盾：种类、剩余点数、升起点数、结束 tick；点数有余且未到 {@code endTick} 时生效，
- * {@code max} 只供 HUD 算 {@code points / max}。
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldData
- * @since 1.0.0
+ * {@link ShieldData} 中的单层护盾记录：包含护盾种类、当前剩余点数、初始上限点数（{@code max}，供 HUD 计算进度比例）与到
+ * 期时刻（{@code endTick}）；仅当剩余点数大于 {@code 0} 且未到 {@code endTick} 时生效（{@link #isUp}）。
  */
 
 public record ShieldLayer(@NotNull ShieldType type, float points, float max, long endTick) {

@@ -4,32 +4,27 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 二段飞行[Second-Stage Flight]的巡航数值，纯 JVM 测试可钉；{@link SecondStageService#travel} 两端用它移动玩家。
+ * 二段飞行[Second-Stage Flight]的巡航运动学与碰撞数值纯函数，供双端 {@link SecondStageService#travel} 驱动移动并支持裸
+ * JVM 单元测试。
  * <ul>
- *   <li>沿视线飞，含俯仰，无平移、升降。油门 0–1 乘 {@link #getTopSpeed}：{@link #nextThrottle} 疾跑
- *       {@link #RAMP_TICKS} 加满，停跑 {@link #COAST_TICKS} 耗尽；进入从 {@link #ENTRY_THROTTLE}（原版疾跑飞行速度）
- *       起，不减速。</li>
- *   <li>{@link #nextVelocity} 每 tick 向「油门 × 视线」靠拢 {@link #STEERING}，兼作转向，9 tick（约 0.45 秒）转过
- *       90%。</li>
- *   <li>速度单位：每 tick 实际移动格数。原版飞行速度下普通飞行为 {@link #PLAIN_FLIGHT_SPEED}（输入 0.98 抗 0.91 空气阻
- *       力，稳定于飞行速度的 0.98 / 0.09 倍）；最高为其 {@link SecondStageService#SPEED_MULTIPLIER} 倍，约 3.3 格/tick
- *       （约 65 格/秒）。</li>
- *   <li>{@link #BARRIER_SPEED} 为普通飞行 3 倍：过此出音障环，撞墙算撞毁，路径上的生物被撞飞。</li>
- *   <li>撞墙按鞘翅掉血（{@link #getWallDamage}）：每损失 1 格/tick 速度 10 点再减 3，三维计速，地面、天花板也算
- *       墙。</li>
- *   <li>撞毁炸坑威力 {@link #getCrashPower}：每损失 1 格/tick 计 {@link #CRASH_POWER_PER_SPEED}，限于音障时
- *       {@link #MIN_CRASH_POWER} 到 TNT 级 {@link #MAX_CRASH_POWER}，满速正撞约 3.9；撞人伤害每 1 格/tick 飞行速度计
- *       {@link #RAM_DAMAGE_PER_SPEED}（{@link #getRamDamage}）。</li>
- *   <li>脆弱方块（{@link #isFragile}）爆炸抗性低于 {@link #FRAGILE_RESISTANCE}：树叶 0.2、玻璃 0.3、雪 0.1、仙人掌
- *       0.4、蘑菇块 0.2，黏液块、蜂蜜块、脚手架 0；泥土、沙 0.5 不算。</li>
- *   <li>过音障即撞碎不撞上：服务端破坏碰撞箱之后 {@link #BREAK_LOOKAHEAD_TICKS} tick 扫过的全部脆弱方块（满速
- *       约 10 格），早一个包的客户端到达时已是空气。</li>
+ *   <li>沿视线方向三维巡航（含俯仰，屏蔽水平横移与垂直升降）：油门在 {@code [0, 1]} 内缩放 {@link #getTopSpeed}，
+ *       {@link #nextThrottle} 在疾跑时经 {@link #RAMP_TICKS} 爬满、停止疾跑时经 {@link #COAST_TICKS} 归零；进入二段飞行
+ *       时从 {@link #ENTRY_THROTTLE}（对应原版疾跑飞行速度）起步，不发生顿挫减速。</li>
+ *   <li>{@link #nextVelocity} 每 tick 将当前速度向「油门 × 视线方向」插值靠拢 {@link #STEERING}（兼作转向惯性，约 9
+ *       tick 转过 90%）。</li>
+ *   <li>速度单位为每 tick 实际位移格数：默认飞行速度下普通飞行为 {@link #PLAIN_FLIGHT_SPEED}（输入 {@code 0.98} 与空气
+ *       阻力 {@code 0.91} 平衡于 {@code 0.98 / 0.09} 倍），二段极速为其 {@link SecondStageService#SPEED_MULTIPLIER} 倍
+ *       （约 3.3 格/tick，合 65 格/秒）。</li>
+ *   <li>{@link #BARRIER_SPEED}（普通飞行的 3 倍）为音障阈值：超过该速度时产生音障环、撞击固体触发撞毁，且沿途撞飞生
+ *       物。</li>
+ *   <li>碰撞自伤（{@link #getWallDamage}）沿用原版鞘翅撞墙公式（每损失 1 格/tick 三维速度扣 10 点再减 3，地面与天花板同
+ *       样计入）；撞毁炸坑威力（{@link #getCrashPower}）按损失速度乘以 {@link #CRASH_POWER_PER_SPEED} 并夹取在
+ *       {@link #MIN_CRASH_POWER} 至 {@link #MAX_CRASH_POWER}（TNT 级）之间；撞人伤害（{@link #getRamDamage}）按每 1
+ *       格/tick 飞行速度乘以 {@link #RAM_DAMAGE_PER_SPEED}。</li>
+ *   <li>爆炸抗性低于 {@link #FRAGILE_RESISTANCE}（{@code 0.5}）的方块视为脆弱方块（{@link #isFragile}，含树叶、玻璃、
+ *       雪、仙人掌、蘑菇块、黏液块、蜂蜜块、脚手架；泥土与沙子抗性为 {@code 0.5} 不计入）：超过音障时服务端提前破除前方
+ *       {@link #BREAK_LOOKAHEAD_TICKS} tick 轨迹内的脆弱方块，使客户端穿过时不发生碰撞。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageService
- * @since 1.0.0
  */
 
 public final class SecondStageCruise {

@@ -17,39 +17,28 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 坠击：空中按潜行 + Alt，以 {@link #GRAVITY_MULTIPLIER} 倍重力垂直下砸。
+ * 坠击服务：在空中按潜行 + Alt，以 {@link #GRAVITY_MULTIPLIER}（8）倍重力垂直急坠，落地造成 3 倍摔落自伤并炸坑。
  * <ul>
- *   <li>落地炸坑，受 3 倍摔落伤害；本类为服务端半边与两端共用规则，客户端发组合键
- *       （{@code net.alex.guzhenren.client.input.PlungeInput}）。</li>
- *   <li>{@link #canStart}：存活、未睡、未骑乘、离地、不在流体与梯子上、不在宝黄天[Treasure Yellow Heaven]、未在坠击，飞
- *       行、下落、漂浮、滑翔都算空中；客户端发前查，服务端 {@link #start} 再查；人人可用，含创造，无冷却；落差不足以伤
- *       人则不留痕。</li>
- *   <li>{@link #start} 关飞行与二段飞行[Second-Stage Flight]、收鞘翅、清漂浮与缓降、水平与向上速度归零，经同步重力属性
- *       乘重力（{@code TransientModifiers#setGravityFactor}），两端同速下落；顶点 = 高度 + 已坠距离，长坠途中才开始也不
- *       少算。</li>
- *   <li>⚠ 服务端每 tick 先自行步进再放回客户端上报位置，速度才跟上下落；该速度即原版「移动过快」在每步 10 格外的额外放
- *       行，服务端步进早一 tick 触地将其归零，故客户端末步须 < 10 格：两端封顶每 tick {@link #MAX_FALL_SPEED} 格（约
- *       160 格/秒，坠约 60 格后），10 TPS 一 tick 两步也成立。</li>
- *   <li>{@link #tick} 每服务端 tick 运行（{@link PlungeEvents}），落地前锁飞行与鞘翅、再清漂浮与缓降、封顶速度；不可取
- *       消；死亡、骑乘、流体、梯子、宝黄天、换维度、传送提前结束，不成坑无额外伤害（{@link #stop}）。</li>
- *   <li>⚠ 在地面且原版已重置摔落距离才算落地：只有客户端移动走原版摔落处理（{@code ServerPlayer#checkFallDamage} 为
- *       空），服务端步进虽先触地，客户端落地才重置距离，故坑在客户端落点，原版看到的摔落即坠击自身的，{@link #isActive}
- *       期间取消。</li>
- *   <li>有表现的落地（{@link PlungeImpact#getImpactPower}）先在完整地面发 {@link PlungeLandedEvent} 供上层地裂与震屏，
- *       再按 {@link PlungeImpact#getCraterPower} 炸坑，再按原版 {@code LivingEntity#calculateFallDamage} 所读的安全摔落
- *       距离与摔落伤害倍率造成 {@link PlungeImpact#getDamage} 普通摔落伤害：摔落缓冲、保护、抗性提升照常减免；可飞行玩
- *       家也受伤；干草块、黏液块、床不缓冲；坑挖掉脚下，掉进坑是普通摔落。</li>
- *   <li>坑为 {@link ImpactCrater#blast}：原版爆炸按爆炸抗性破坏地面、不伤人，先查 {@code ModEvents#canGrief}，击退坠击
- *       者以外的一切。</li>
- *   <li>{@link #tickLocal}：服务端纠正之间锁飞行与鞘翅、封顶速度，落地即刹停，黏液块弹不回；顶点同步给所有看得到该玩家
- *       的客户端以保持坠落姿势（{@code net.alex.guzhenren.compat.EpicFightClientIntegration}），不存档，死亡清除，重登
- *       重生不在坠击中；重力修饰为临时，{@link #tick} 从未坠击的玩家身上摘除。</li>
+ *   <li>{@link #canStart} 校验起手条件（双端共用，所有玩家含创造模式均无冷却可用）：存活、未睡眠、未骑乘、离地（飞行、
+ *       下落、飘浮、鞘翅滑翔均可）、不在流体或梯子中、不在宝黄天[Treasure Yellow Heaven]内且未处于坠击中。</li>
+ *   <li>{@link #start} 记录起跳最高点（{@code getY() + fallDistance}，使半途起砸也计入前段坠落）、
+ *       关闭二段飞行[Second-Stage Flight]与普通飞行、收起鞘翅、清除飘浮与缓降、将水平与向上速度清零，并通过
+ *       {@link TransientModifiers#setGravityFactor} 挂载同步的 8 倍重力修饰符，使双端同速下坠。</li>
+ *   <li>{@link #tick} 每个服务端 tick 维持锁飞行/鞘翅、清飘浮/缓降并封顶下落速度（不可主动取消）；若中途死亡、骑乘、入
+ *       水/岩浆、抓梯、进入宝黄天、切换维度或传送（{@code !canContinue}），调用 {@link #stop} 提前结束，不炸坑且不加倍
+ *       摔伤。</li>
+ *   <li>⚠ 服务端每 tick 先模拟一步移动再拉回客户端上报坐标：当服务端模拟步比客户端早一 tick 触地并把服务端垂直速度清零
+ *       后，若客户端最后一 tick 位移超过 10 格会被原版「移动过快」检查拉回，因此双端统一将每 tick 下落速度封顶为
+ *       {@link #MAX_FALL_SPEED}（8 格/tick，约 160 格/秒）。</li>
+ *   <li>⚠ 落地判定必须同时满足 {@code onGround() && fallDistance == 0.0F}：因为仅客户端移动数据包会触发原版落地重置
+ *       {@code fallDistance}，等客户端确认落地再调 {@code land} 可确保炸坑位置与客户端落点一致（坠击期间原版摔落事件由
+ *       {@link PlungeEvents} 取消）。</li>
+ *   <li>{@code land} 依次发布 {@link PlungeLandedEvent}（脚下地面尚未炸毁）、调用 {@link ImpactCrater#blast} 炸坑，最后
+ *       按玩家安全摔落距离与摔落伤害倍率结算 {@link PlungeImpact#getDamage} 普通摔落伤害（吃摔落缓冲、保护与抗性提升，
+ *       干草块、黏液块与床不减免；可飞行玩家同样受伤，脚下炸出坑后继续跌入坑底按普通摔落计）。</li>
+ *   <li>{@link #tickLocal} 在本机每 tick 锁死飞行与鞘翅并在触地瞬间刹停速度（防止被黏液块弹起）；坠击顶点附件同步给所有
+ *       追踪客户端以驱动下坠动作（不落盘，重登或死亡自动清除）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlungeImpact
- * @since 1.0.0
  */
 
 public final class PlungeService {

@@ -30,11 +30,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 蛊方物品：一种物品，组件 {@code recipe_id} 记它是哪张蛊方，名称显示为「蛊方 • 产物」。
  * <ul>
- *   <li>右键单点（{@link GuItem#TAP_TICKS} 内松开）在客户端打开蛊方图册；未学会时按住研读，满
- *       {@link GuRecipeKnowledge#getStudyTicks} 后服务端学会，进度条由客户端 {@code ChargeHud} 画；已学会则按下即开图册，
- *       不再研读。书永不消耗，研读不要求开窍。</li>
- *   <li>客户端回调经 {@link #readOnClient} 与 {@link #lookUpOnClient} 在客户端初始化时注入（同 {@code BookletItem}），隔
- *       离客户端类；专用服务端上二者保持空操作，名称经 {@link ServerLifecycleHooks} 查服务端配方。</li>
+ *   <li>右键单点（{@link GuItem#TAP_TICKS} 内松开）在客户端打开蛊方图册；未学会时按住研读，
+ *       满 {@link GuRecipeKnowledge#getStudyTicks} 后服务端学会，进度条由客户端 {@code ChargeHud} 画；已学会则按下即开
+ *       图册，不再研读。书永不消耗，研读不要求开窍。</li>
+ *   <li>客户端回调经 {@link #readOnClient} 与 {@link #lookUpOnClient} 在客户端初始化时注入（同
+ *       {@code BookletItem}），隔离客户端类；专用服务端上二者保持空操作，名称经 {@link ServerLifecycleHooks} 查服务
+ *       端配方。</li>
  *   <li>⚠ 物品名需要产物，产物要查配方表：服务端线程查服务器，其余线程查客户端世界；两边都查不到时只显示「蛊方」。</li>
  * </ul>
  */

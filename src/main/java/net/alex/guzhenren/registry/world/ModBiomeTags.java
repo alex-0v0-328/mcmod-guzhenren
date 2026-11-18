@@ -6,18 +6,14 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 
 /**
- * 生物群系标签：各野生蛊族与野兽生成的陆地群系。
- *
+ * 本模组声明的生物群系标签键定义，指定各野生蛊族与野兽自然生成的陆地群系范围（元泉[Spirit Spring]生成群系标签归配套模组
+ * Gu World）。
  * <ul>
- *   <li>元泉[Spirit Spring]生成群系归姊妹模组 Gu World 的标签。</li>
- *   <li>野猪有意只含五个森林；熊含全部森林类：野猪的五个、四针叶林、三丛林。</li>
- *   <li>虎三丛林；龟三热带草原与稀疏丛林；象三热带草原与三丛林；牛为原版刷牛的 21 个群系。</li>
- *   <li>⚠ 野生蛊列表不得并成 {@code #minecraft:is_overworld}：其海洋地表在海平面，高度检查无法让野生蛊离水。</li>
+ *   <li>野猪仅包含 5 种森林群系；熊包含全部森林、针叶林与丛林类群系；虎归入 3 种丛林；龟归入 3 种热带草原与稀疏丛林；象
+ *       归入 3 种热带草原与 3 种丛林；牛沿用原版刷牛的 21 个群系。</li>
+ *   <li>⚠ 野生蛊的群系标签严禁合并使用 {@code #minecraft:is_overworld}：主世界标签包含海平面高度的海洋群系，仅靠高度检
+ *       查无法阻止野生蛊在水面上生成。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModBiomeTags {

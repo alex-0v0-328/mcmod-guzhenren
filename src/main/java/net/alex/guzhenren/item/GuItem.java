@@ -33,18 +33,13 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 钩子 {@code checkUse}、{@code performUse}、{@code useDurationTicks}、{@code hasTapUse} 在 {@code use}、
  *       {@code releaseUsing}、{@code finishUsingItem} 中重读，不缓存；自定节奏覆写钩子而非阶段。</li>
  *   <li>主手催动失败或放行（含冷却）时原版把点击交给副手：仅作副手配合的叶类 {@code hasOffhandUse} 答 false，静默放行，
- *       不顶替主手蛊的拒绝；{@code keepsRefusedClick} 的叶类（除天元宝莲[Heavenly Essence Treasure Lotus Gu] 外的持续照
- *       顾型蛊[Tended Gu]）吞下拒绝，副手物品不被使用或放置。</li>
+ *       不顶替主手蛊的拒绝；{@code keepsRefusedClick} 的叶类（除天元宝莲[Heavenly Essence Treasure Lotus Gu] 外的
+ *       持续照顾型蛊[Tended Gu]）吞下拒绝，副手物品不被使用或放置。</li>
  *   <li>{@link #tryUseInPlace} 不经手、不蓄力原地催动（轮盘选取、元老蛊[Primeval Elder Gu] 轻点）：原版冷却静默挡下，
  *       {@code checkInPlaceUse} 在动作栏拒绝，{@code performInPlaceUse} 生效，返回是否生效。</li>
- *   <li>拒绝只为境界不符、无法使用、效果未结束、自动生效、蛊虫饥饿、目标错误、背包已满、真元[Essence] 不足、尚未开
- *       窍[Awakening] 时，处处用 {@link Refusal} 同名共用键（Alex 定）；指引操作或给数值才用蛊自己的键。</li>
+ *   <li>拒绝只为境界不符、无法使用、效果未结束、自动生效、蛊虫饥饿、目标错误、背包已满、真元[Essence] 不足、
+ *       尚未开窍[Awakening] 时，处处用 {@link Refusal} 同名共用键（Alex 定）；指引操作或给数值才用蛊自己的键。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.MortalGuItem
- * @since 1.0.0
  */
 
 public abstract class GuItem extends Item {

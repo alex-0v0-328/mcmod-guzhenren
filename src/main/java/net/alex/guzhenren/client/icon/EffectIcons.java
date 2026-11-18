@@ -8,17 +8,11 @@ import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 效果与图标的对照表。
+ * 状态效果与客户端图标渲染策略的集中对照表。
  * <ul>
- *   <li>集中一处，客户端入口类（{@code GuzhenrenClient}）只把每对交给 NeoForge；{@link #forEach} 按固定顺序遍历，
- *       每个效果句柄一个图标：{@link EffectIconLayout}，无图标的用 {@link NoEffectIcon}。</li>
+ *   <li>将映射集中在一处维护，客户端入口类（{@code GuzhenrenClient}）只需把每对映射注册给 NeoForge；{@link #forEach} 按
+ *       固定顺序遍历，为每个效果注册表句柄绑定 {@link EffectIconLayout} 图标或无图标占位 {@link NoEffectIcon}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GradedEffectIcon
- * @see ItemEffectIcon
- * @since 1.0.0
  */
 
 public final class EffectIcons {

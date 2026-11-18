@@ -18,19 +18,18 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
- * 物品模型，形状取 {@link ItemRegistrar} 注册链声明的 {@link ItemModel}。
- *
+ * 本模组物品模型数据生成器，按 {@link ItemRegistrar} 注册链声明的 {@link ItemModel} 策略分发生成。
  * <ul>
- *   <li>元泉[Spirit Spring] BlockItem 用流体静止条带而非自身 PNG；钢块用方块模型；其余为平面 {@code basicItem}。</li>
- *   <li>九叶生机草[Nine Leaf Vitality Grass]用 {@code _full} PNG，按 {@code picked} 覆盖为 {@code _half}、
- *       {@code _empty}；进度图标 {@code _0} PNG，按 {@code custom_model_data} 覆盖，每个可设转与阶段一个模型。</li>
- *   <li>⚠ 绕过注册链注册到 {@code ModItems.ITEMS} 的物品缺名字、模型、标签，故在此让数据生成失败并报 id。</li>
- *   <li>⚠ 查贴图存在：缺 PNG 让数据生成失败，而非发布成缺贴图物品、打开物品栏页才发现。</li>
+ *   <li>元泉[Spirit Spring]方块物品直接使用流体静止条带贴图（{@link ItemModel#FLUID}），钢块直接继承同名方块模型
+ *       （{@link ItemModel#BLOCK}），常规物品生成单层平面模型（{@link ItemModel#FLAT}）。</li>
+ *   <li>九叶生机草[Nine Leaf Vitality Grass]（{@link ItemModel#LEAF_STAGES}）默认使用 {@code _full} 贴图，并按采摘属性
+ *       {@link NineLeafVitalityGrassItem#PICKED} 覆盖切换为 {@code _half} 与 {@code _empty}；进度数字图标
+ *       （{@link ItemModel#NUMERALS}，{@link #registerNumeralItem}）以 {@code _0} 为底，按转数与阶段升序写入
+ *       {@code custom_model_data} 覆盖项（原版按最后一个达到阈值的覆盖项生效）。</li>
+ *   <li>⚠ {@link #registerModels} 会校验 {@link ModItems#ITEMS} 中的每个注册项是否均经过 {@link ItemRegistrar} 登记，且
+ *       模型构造器通过 {@link ExistingFileHelper} 强制校验贴图文件存在，确保漏登记或缺失 PNG 在 {@code runData} 阶段直
+ *       接报错。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class ModItemModelProvider extends ItemModelProvider {
@@ -78,7 +77,6 @@ public class ModItemModelProvider extends ItemModelProvider {
 
     private ItemModelBuilder registerNumeralItem(String name) {
         ItemModelBuilder model = getBuilder(name).parent(GENERATED).texture("layer0", modLoc("item/" + name + "_0"));
-        // Ascending order: the last override whose threshold the value reaches wins.
         for (Rank rank : Rank.getSettable()) {
             for (Stage stage : Stage.values()) {
                 model.override().predicate(CUSTOM_MODEL_DATA, AdvancementIconItem.getModelData(rank, stage))

@@ -13,20 +13,17 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 
 /**
- * 二段飞行[Second-Stage Flight]中本地玩家镜头的侧倾与抖动；仅客户端。
- *
+ * 二段飞行中本地玩家镜头的侧倾与巡航抖动控制器，仅运行于客户端。
  * <ul>
- *   <li>只转镜头角度，不动画面，光影包看到普通镜头；效果随原版“屏幕扭曲效果”滑条缩放，为 0 时镜头不动。</li>
- *   <li>转弯侧倾：偏航转速经约 0.1 秒平滑（{@link #TURN_EASE}），乘 {@link #ROLL_PER_TURN} 与油门，上限
- *       {@link #MAX_ROLL}；侧倾按 {@link #ROLL_EASE} 平滑，二段结束后以更快的 {@link #RELEASE_EASE} 回正。</li>
- *   <li>巡航抖动：油门过 {@link #SHAKE_THROTTLE} 起抖，满油门 {@link #CRUISE_SHAKE} 度；俯仰、偏航双频近 10 Hz。</li>
- *   <li>撞击震屏归 {@link ImpactShakes}。</li>
+ *   <li>仅转动镜头角度而不移动画面位置，光影包看到的仍是正常视角；效果随原版「屏幕扭曲效果」滑条缩放，滑条为 0 时镜头保
+ *       持静止。</li>
+ *   <li>转弯侧倾：偏航角速度经约 0.1 秒平滑（{@link #TURN_EASE}）后乘以 {@link #ROLL_PER_TURN} 与油门，受上限
+ *       {@link #MAX_ROLL} 约束；侧倾角按 {@link #ROLL_EASE} 平滑跟随，退出二段飞行后以更快的 {@link #RELEASE_EASE} 回
+ *       正。</li>
+ *   <li>巡航抖动：油门超过 {@link #SHAKE_THROTTLE} 后起抖，满油门幅度达 {@link #CRUISE_SHAKE} 度，俯仰与偏航采用两组接
+ *       近 10 Hz 的频率叠加。</li>
+ *   <li>撞击产生的震屏效果由 {@link ImpactShakes} 单独负责。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageEvents
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

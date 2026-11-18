@@ -8,13 +8,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 寿蛊[Lifespan Gu]行为：经 {@link BodyService#addLifespan} 加寿元，取注册上下限间随机值；四档各有区间，名字即承诺，
- * 随机只定零头。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.OneShotGuItem
- * @since 1.0.0
+ * 寿蛊[Lifespan Gu]行为：供一次性消耗蛊（{@link net.alex.guzhenren.item.gu.OneShotGuItem}）在注册的
+ * {@code [minYears, maxYears]} 闭区间内随机抽取年数并通过 {@link BodyService#addLifespan} 增加玩家寿元；四档寿蛊各自约
+ * 定区间，物品名称对应基础寿元量，随机浮动仅决定零头。
  */
 
 public record LifespanBehavior(int minYears, int maxYears) implements GuBehavior {

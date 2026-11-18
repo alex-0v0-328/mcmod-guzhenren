@@ -70,21 +70,16 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 本模组全部客户端注册：HUD 层、按键、界面、渲染器。
- *
+ * 本模组客户端总注册入口：统一注册 HUD 图层、按键绑定、菜单界面与实体渲染器。
  * <ul>
- *   <li>九叶生机草[Nine Leaf Vitality Grass]模型属性按客户端世界游戏时间推算叶数。</li>
- *   <li>客户端初始化时向 {@code ModPayloads} 登记 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
- *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 的处理器，{@code ModPayloads} 自身不引用
- *       客户端类；书册阅读器（{@link BookletScreen}）同理登记给 {@code BookletItem}。</li>
- *   <li>温养[Nourish]运镜显示期间（{@link CultivationCamera#isShowing}）只画 {@link #CINEMATIC_LAYERS}：黑边、温养条、
- *       扇形选择器、长按滑条与调试、Tab 列表、字幕、动作栏提示、存档提示；聊天栏只在打开聊天界面时画。</li>
+ *   <li>九叶生机草[Nine Leaf Vitality Grass]的物品模型属性依据客户端世界游戏时间推算当前叶数。</li>
+ *   <li>客户端初始化时向 {@code ModPayloads} 注册 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
+ *       {@code KillingMoveTooltipPayload} 与 {@code StoreStrengthNoticePayload} 的处理器，使 {@code ModPayloads} 本身
+ *       不直接依赖客户端类；书册阅读器（{@link BookletScreen}）同理注册给 {@code BookletItem}。</li>
+ *   <li>温养[Nourish]运镜显示期间（{@link CultivationCamera#isShowing}）仅保留 {@link #CINEMATIC_LAYERS} 白名单图层：
+ *       上下黑边、温养条、扇形选择器、长按滑条、调试覆盖层、Tab 列表、字幕、动作栏提示与存档提示，聊天栏仅在打开聊天
+ *       界面时绘制。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.ModKeyMappings
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

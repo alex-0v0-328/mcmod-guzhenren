@@ -7,18 +7,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 强行催动[Forced Use]确认窗口；{@code TendedGuItem.drive} 调 {@link #confirm}。
+ * 强行催动[Forced Use]二次确认窗口管理器：由 {@code TendedGuItem.drive} 调用 {@link #confirm} 判定是否允许放行。
  * <ul>
- *   <li>进食后付不起饱食[Hunger]的催动先拒并警告；{@link #WINDOW_TICKS} 内再催同一只才放行，效果落地后蛊力竭而死。</li>
- *   <li>⚠ 窗口仅服务端、临时：每玩家一个，不进存档或组件，随玩家对象消失（死亡、登出）。</li>
- *   <li>「同一只」指同一物品堆对象，同种两只不互认；手动挪动可能变新对象，代价是重新警告，绝不误杀。</li>
+ *   <li>自动进食后仍付不起饱食[Hunger]代价的催动会先被拒绝并弹出红字警告；玩家在 {@link #WINDOW_TICKS} 内再次催动同一只
+ *       蛊才会放行，并在效果生效后使蛊虫力竭而死。</li>
+ *   <li>⚠ 确认窗口仅保存在服务端内存中且属于临时状态，每位玩家至多记录一条，不写入存档或物品栈组件，随玩家死亡或登出而
+ *       丢失。</li>
+ *   <li>「同一只」按物品栈对象引用比对，同种类的两只蛊互不替代；手动整理背包可能产生新物品栈实例，最坏代价也只是重新弹
+ *       出警告，绝不会误杀玩家手中其他蛊虫。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @see GuHunger
- * @since 1.0.0
  */
 
 public final class GuForcedUse {

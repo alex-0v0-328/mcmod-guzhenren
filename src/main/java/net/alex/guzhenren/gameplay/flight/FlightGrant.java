@@ -3,14 +3,9 @@ package net.alex.guzhenren.gameplay.flight;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 来源允许的空中能力，三级递进。{@code FLIGHT}：创造式飞行，原版疾跑可加速；{@code SECOND_STAGE}：二段飞
- * 行[Second-Stage Flight]，再加 {@link SecondStageService} 管的更快一档；{@link #getStrongest} 取较高级，多来源不叠过最
- * 高级。
- *
- * @author Alex
- * @version 1.0.0
- * @see FlightContributor
- * @since 1.0.0
+ * 空中飞行能力授权等级枚举：按无飞行（{@link #NONE}）、普通创造式飞行（{@link #FLIGHT}）与二段飞行[Second-Stage Flight]
+ * （{@link #SECOND_STAGE}，含 {@link SecondStageService} 高速巡航）三级递进；多来源并存时由 {@link #getStrongest} 取最
+ * 高档，互不叠加。
  */
 
 public enum FlightGrant {

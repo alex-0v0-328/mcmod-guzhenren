@@ -30,33 +30,28 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 崩裂[Shatter]：范围冲击[Area Impact]拳击、蓄力一拳[Charged Punch]近战与终点破坏打击[Crash Strike]打碎身前地形。
+ * 地形崩裂[Shatter]服务：负责范围冲击[Area Impact]拳击、蓄力一拳[Charged Punch]近战与终点破坏打击[Crash Strike]的前方方
+ * 块破坏。
  * <ul>
- *   <li>这一击的力量点[Strength Points] ≥ {@link #SOFT_POINTS} 才破，硬度上限按点数分三档（{@link #getMaxHardness}）；
- *       终点破坏打击另带两猪之力、全力以赴的档位，直接给上限（{@link #shatterWith}）；带方块实体、液体、不可破的一律
- *       不破。</li>
- *   <li>破坏区为伤害范围的一半：范围冲击是同轴锥（{@link #getConeCells}），蓄力一拳是同轴水平扇形，从脚面那层到头顶
- *       上一格（{@link #getFanCells}，不挖脚下地面）；终点破坏打击是同高整圆（{@link #getDiscCells}，含自身那列），
- *       冲撞起点坑另往下多挖地面层；格子按中心判定，由近到远。</li>
- *   <li>{@link #shatter} 按格子顺序逐格，返回破了几块：先问地形门槛 {@link ModEvents#canGrief}；眼睛到格中心被没破的
- *       方块挡住就跳过，近处先破，挖开的口子不挡后面；按玩家破坏问权限（{@link CrashBreach#mayBreak}）；破满上限
- *       即停。调用方先问 {@link #canShatter}，点数不够不必建格子。</li>
- *   <li>按玩家空手挖掘结算（Alex 定，不是静默置空）：同 {@code ServerPlayerGameMode#destroyBlock} 先移除、调
- *       {@code Block#destroy}，可收获（{@code canHarvestBlock}）且非创造才 {@code playerDestroy}（统计、饥饿、掉落、
- *       经验，冰化水）；石头、矿石等需工具者碎而不掉。猪灵守护方块整击激怒一次。</li>
- *   <li>⚠ 不调 {@code playerWillDestroy}：它每块向旁人发破坏粒子与音效，256 块时太吵；改为每 {@link #PARTICLE_EVERY}
- *       块发一组方块粒子，整击只在最近一块处播一次破坏音（参考维特卢姆[Viltrumite]），其余职责在此补齐；横冲系沿路破块
- *       （{@link CrashBreach}）共用 {@link #showDebris}、{@link #playBreak}。</li>
- *   <li>⚠ 双格方块（门、高草、高花）任一半先破，另一半随形状更新连带消失并按自身战利品表掉落：生存恰掉一份；创造
- *       或不可收获时破上半，同原版先以 {@code UPDATE_SUPPRESS_DROPS} 抹掉下半，否则下半会掉。邻居形状更新会清掉
- *       该标志，只标在本格上无效。</li>
+ *   <li>本击力量点[Strength Points]达到 {@link #SOFT_POINTS} 时方可破块，可破坏方块硬度上限按力量点分三档
+ *       （{@link #getMaxHardness}；终点破坏打击叠入两猪之力与全力以赴档位后直接调 {@link #shatterWith}）；带方块实体、
+ *       流体或不可破坏的方块一律跳过。</li>
+ *   <li>崩裂半径取对应打击半径的一半：范围冲击取视线同轴锥（{@link #getConeCells}）；蓄力一拳取从脚底平层到头顶上一格的
+ *       水平扇形（{@link #getFanCells}，不挖脚下地面）；终点破坏打击取同高度圆柱圆盘（{@link #getDiscCells}，冲撞起点坑
+ *       额外向下多挖一层地面）。所有候选格按距起点由近到远排序。</li>
+ *   <li>{@link #shatter} 依序遍历候选格并返回实际破坏块数：先查 {@link ModEvents#canGrief}，再查视线遮挡
+ *       （{@code isExposed}，近处方块先破后自然让出后续视线）与玩家破坏权限（{@link CrashBreach#mayBreak}），达到块数上
+ *       限 {@code cap} 即停。</li>
+ *   <li>按玩家空手挖掘规则结算（Alex 定）：移除方块并调用 {@code Block.destroy}，仅在非创造模式且空手可收获
+ *       （{@code canHarvestBlock}）时调用 {@code playerDestroy} 产生掉落、经验与统计（需工具的石头、矿石等碎裂但不掉
+ *       落）；整击若破除猪灵守护方块则统一激怒一次附近猪灵。</li>
+ *   <li>⚠ 刻意不调每块都会广播粒子与音效的 {@code playerWillDestroy}（最多 256 块同时炸响会严重吵闹）：改为每
+ *       {@link #PARTICLE_EVERY} 块发送一组碎屑粒子，整次崩裂仅在最近的首块位置播放一次低沉破坏音（{@link CrashBreach}
+ *       沿路破块共用 {@link #showDebris} 与 {@link #playBreak}）。</li>
+ *   <li>⚠ 双格高方块（门、高草、高花）在生存模式空手可收获时破任意半格即可正常掉落一份；而在创造模式或不可收获时破上半
+ *       格，必须先由 {@link #clearLowerHalf} 以 {@code UPDATE_SUPPRESS_DROPS} 清掉下半格，否则下半格会在形状更新中额外
+ *       爆出掉落物。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AreaImpact
- * @see CrashBreach
- * @since 1.0.0
  */
 
 public final class AreaImpactShatter {

@@ -5,19 +5,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 
 /**
- * 按 {@code amplifier} 换图的分级效果图标，一个效果每级一张脸。
+ * 按 {@code amplifier} 切换贴图的分级效果图标：同一效果的不同等级各自对应独立图标贴图。
  * <ul>
- *   <li>带名称、目录（{@code mob_effect} 或 {@code item}）与转数范围；路径 {@code directory/name_rank}，转数 =
- *       {@code amplifier + amplifierOffset} 夹在范围内；偏移默认 1，家族从后转起算才改（恶念蛊[Malicious Thought Gu]从
- *       二转起）；各转贴图位置预建，每帧只索引。</li>
- *   <li>⚠ 同一家族各级保持为一个效果：按级拆开会让两级同时生效。</li>
+ *   <li>记录名称、贴图目录（{@code mob_effect} 或 {@code item}）与转数范围；拼接路径 {@code directory/name_rank}，
+ *       其中转数由 {@code amplifier + amplifierOffset} 钳制到区间内得出（默认偏移为 1，仅起始转数高于一转的家族需要
+ *       调整，例如恶念蛊[Malicious Thought Gu]从二转起算）；各转贴图位置在构造时预先建立，每帧渲染只做数组索引。</li>
+ *   <li>⚠ 同一家族各等级仍必须保持为单个状态效果注册项：若按等级拆分为多个独立效果，会导致两个等级同时生效叠加。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see EffectIconLayout
- * @see ItemEffectIcon
- * @since 1.0.0
  */
 
 public final class GradedEffectIcon implements EffectIconLayout {

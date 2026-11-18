@@ -13,16 +13,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 生机叶蛊[Vitality Leaf Gu]行为：给生机叶效果，仍在则拒。
+ * 生机叶蛊[Vitality Leaf Gu]行为：供一次性消耗蛊（{@link net.alex.guzhenren.item.gu.OneShotGuItem}）赋予玩家生机叶持续
+ * 回血效果（{@link TimedEffects#grantLeaf}）。
  * <ul>
- *   <li>门槛查 {@link TimedEffects#hasLeaf}：持续中再催动是拒而非刷新；时长交 {@link TimedEffects#grantLeaf}。</li>
- *   <li>功倍蛊[Amplify Effect Gu]乘时长，返还生命同倍增加。</li>
+ *   <li>{@link #checkEffect} 通过 {@link TimedEffects#hasLeaf} 拦截已有生机叶效果的玩家（持续期间再次催动直接拒绝而非刷
+ *       新时长）。</li>
+ *   <li>支持功倍蛊[Amplify Effect Gu]倍增持续时长，总回复生命量随持续时长同倍增加。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.OneShotGuItem
- * @since 1.0.0
  */
 
 public record VitalityLeafBehavior() implements GuBehavior {

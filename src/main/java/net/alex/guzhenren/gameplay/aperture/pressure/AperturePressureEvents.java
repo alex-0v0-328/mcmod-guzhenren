@@ -6,16 +6,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * 空窍[Aperture]压力爆炸坑的世界级后台驱动：每服务端 tick（非每秒 {@link net.alex.guzhenren.lifecycle.Heartbeat}）
- * 分段推进，玩家死后照挖。
- * <ul>
- *   <li>爆炸存各维度存档数据：停服续挖，单人切世界无过期维度引用。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AperturePressureExplosions
- * @since 1.0.0
+ * 空窍压力爆炸坑的世界级 tick 驱动入口：每个服务端 tick 末尾（而非每秒一次的
+ * {@link net.alex.guzhenren.lifecycle.Heartbeat}）调用 {@link AperturePressureExplosions#tickAll} 分段推进地形挖掘，玩
+ * 家死后或下线后仍继续挖完。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

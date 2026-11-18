@@ -16,20 +16,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 灵魂交易 NPC 的交易界面。
+ * 魂体交易者[Soul Trader]的交易界面。
  * <ul>
- *   <li>每条报价一行（成本、箭头、结果、交易按钮），在背包上方；同炼蛊界面用 {@link Widgets} sprite 和
- *       {@link ModPalette}。</li>
- *   <li>背包不够某项成本时该数量变红，按钮画成失效、标签变红但仍可点：由服务端裁定，NPC 摇头回应。</li>
- *   <li>{@link #render} 每帧数背包，写各成本 {@code enough}、各报价 {@code affordable}，背景、标签共读。</li>
- *   <li>图标、数量、按钮标签从 {@code renderLabels} 画，手持物品仍盖其上；背景一个 {@link GuiBatch}：先面板和格子，
- *       再叠行填色，最后画按钮。</li>
+ *   <li>每条报价占一行（包含成本、箭头、产物与交易按钮）排列在玩家背包上方，沿用与炼蛊界面一致的
+ *       {@link Widgets} 精灵图与 {@link ModPalette} 配色。</li>
+ *   <li>当背包缺少某项成本时对应数量显示为红色，按钮绘制为失效态且文字变红，但仍允许点击并交由服务端裁定（不满足时
+ *       由 NPC 摇头拒绝）。</li>
+ *   <li>{@link #render} 每帧盘点背包计算各成本的 {@code enough} 与各报价的 {@code affordable} 状态，供背景绘制与标签
+ *       文字共享。</li>
+ *   <li>图标、数量与按钮标签在 {@code renderLabels} 中绘制，确保手持物品依然盖在其上；整块背景复用单个
+ *       {@link GuiBatch}，依次绘制面板与槽位、行悬停叠色以及交易按钮。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTradeMenu
- * @since 1.0.0
  */
 
 public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {

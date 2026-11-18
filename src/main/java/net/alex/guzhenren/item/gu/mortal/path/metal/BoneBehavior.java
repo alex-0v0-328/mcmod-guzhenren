@@ -9,12 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 铁骨蛊[Iron Bone Gu]的行为：骨永久变为同转铁骨，最大生命与击退抗性加成取该档。
- *
- * @author Alex
- * @version 1.0.0
- * @see Bone
- * @since 1.0.0
+ * 铁骨蛊[Iron Bone Gu]炼体行为：将玩家骨骼永久淬炼为对应转数的铁骨档位（{@link Bone}），最大生命值与击退抗性加成由目标
+ * 档位决定。
  */
 
 public final class BoneBehavior extends TemperingBehavior<Bone> {

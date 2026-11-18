@@ -30,24 +30,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 炼蛊界面容器：环形网格、按钮背后的蛊方、所属 {@link RefinementRitual} 的时钟。
+ * 炼蛊界面的服务端容器菜单，统一管理 5×5 去角环形网格、配方选中逻辑以及所属 {@link RefinementRitual} 的运行推进。
  * <ul>
- *   <li>界面即时钟：{@code broadcastChanges} 每 tick 运行并推进仪式，关窗即中止，由结构保证。</li>
- *   <li>5×5 网格（去四角）、元石[Primeval Stone]格、2×2 产出格皆临时，不涉附件。</li>
- *   <li>⚠ 仪式刻意归界面、不提到服务里：运行时网格锁定；客户端无法自行匹配蛊方，实时数值皆经
- *       {@link net.minecraft.world.inventory.ContainerData}（十个 int）读取。</li>
- *   <li>⚠ 蛊材在外环、蛊虫在内核，仪式运行时一律不可移动。</li>
- *   <li>只认已学会的蛊方（{@link GuRecipeKnowledge}）：未学会的选不中，也不参与自动匹配；选中序号仍是服务器全部蛊方
- *       的排序序号。</li>
- *   <li>选中蛊方后 {@code match()} 只考虑它；选蛊方时经 {@link RecipeAutofill} 从背包填格。</li>
- *   <li>炼制按钮只开始仪式，结果待所有窗口与间隔走完才落定。</li>
- *   <li>刻意超过 300 行：槽位布局、放置规则、按钮背后的蛊方、仪式时钟守同一组网格，仪式运行时它锁定。</li>
+ *   <li>界面即仪式时钟：菜单每刻在 {@link #broadcastChanges} 中按时间流速步数推进仪式，并在关闭菜单时立即终止仪式，由容
+ *       器生命周期天然保证中止语义；5×5 网格、元石[Primeval Stone]补给格与 2×2 产出格均为临时容器，不挂接玩家持久附
+ *       件。</li>
+ *   <li>⚠ 仪式刻意内置于菜单而非下沉至玩法服务：仪式运行时会直接锁定网格槽位，且客户端无法自行匹配 {@link GuRecipe}，所
+ *       有运行期状态均通过 10 个 {@link ContainerData} 整型槽同步。</li>
+ *   <li>⚠ 网格外环仅允许放置蛊材、内核仅允许放置玩家自身非他人本命的蛊虫，且仪式开始后全部输入格禁止拿取或放入。</li>
+ *   <li>只认玩家已学会的蛊方（{@link GuRecipeKnowledge}）：未学会的既选不中也不参与自动匹配；选中索引仍是服务器全部蛊方
+ *       的排序索引。</li>
+ *   <li>选中固定配方后仅匹配该配方并通过 {@link RecipeAutofill} 从背包补料；点击炼制按钮仅启动仪式，实际扣料与产出结算
+ *       须待全部投石窗口与间隔走完才落定。</li>
+ *   <li>有意超过 300 行：槽位坐标布局、放置规则、配方匹配状态与仪式时钟共享同一套输入网格与锁定状态，强行拆分会割裂不变
+ *       量。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuRecipe
- * @since 1.0.0
  */
 
 public class RefinementMenu extends AbstractContainerMenu {

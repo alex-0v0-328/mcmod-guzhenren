@@ -16,25 +16,20 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 本模组唯一改写 {@code ATTACK_DAMAGE} 的入口。
+ * 本模组改写玩家原版 {@code ATTACK_DAMAGE} 属性的唯一服务入口。
  * <ul>
- *   <li>加成 = 可发挥力量点[Strength Points]（{@link StrengthService#getUsablePoints}，兽力[Beast Strength]、
- *       人力共用承受力）× 每点攻击 + 僵尸等级加成；力量只算空手，Epic Fight 拳套也不算，故武器固有技不与力道共键。</li>
- *   <li>{@link AttackDamageEvents} 在变化、换手时即刷，心跳每秒兜底；{@code TransientModifiers.swap}
- *       无变化即空转。</li>
- *   <li>{@link #getFistDamage} 按运算方式重算任意点数下的拳头攻击，他模组乘算照常放大；供蓄力蛊[Store Strength Gu]
- *       超承受力的蓄力一拳。{@link #getBareFistDamage} 另剔除主手物品自带的攻击修饰，供不看手持物的终点破坏打击
- *       [Crash Strike]。</li>
- *   <li>⚠ 修饰须为临时（{@link TransientModifiers}）。</li>
- *   <li>⚠ 效果不得自带 {@code addAttributeModifier}：限时攻击增益一律走承受力内的力量点，不另开入口。</li>
- *   <li>⚠ 僵尸加成读 {@code BodyData.zombieTier}，不读 MobEffect（永久僵尸无效果；指令等级 -1 无加成）。</li>
+ *   <li>总攻击力加成 = 空手可发挥力量点[Strength Points]（{@link StrengthService#getUsablePoints}，兽力[Beast Strength]
+ *       与人力共用承受力）× 每点攻击加成 + 僵尸档位固定加成；力量点加成仅在主手完全为空（{@link #isFistHand}，手持 Epic
+ *       Fight 拳套也视为非空手）时生效，{@link #getFistBonus} 则忽略手持物返回空手加成供 B 面板展示。</li>
+ *   <li>由 {@link AttackDamageEvents} 在状态或主手变更时即时刷新，并由每秒心跳兜底。</li>
+ *   <li>{@link #getFistDamage} 按原版属性修饰符运算顺序重算指定力量点数下的空手攻击力（保留其他模组的乘算加成，
+ *       供蓄力蛊[Store Strength Gu]突破承受力的蓄力一拳使用）；{@link #getBareFistDamage} 额外剔除主手物品自带的攻击力
+ *       修饰符（供不看手持物的终点破坏打击[Crash Strike]使用）。</li>
+ *   <li>⚠ 必须通过 {@link TransientModifiers} 挂载临时属性修饰符；本模组任何药水效果均不得自带
+ *       {@code addAttributeModifier} 直接改攻击力，所有限时力量增益一律转为力量点走承受力结算。</li>
+ *   <li>⚠ 僵尸攻击力加成直接读取 {@link BodyData#zombieTier}（指令直接赋予的永久僵尸等级为 {@code -1} 时无加成），不读
+ *       药水效果。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.attribute.MaxHealthService
- * @see StrengthService
- * @since 1.0.0
  */
 
 public final class AttackDamageService {
@@ -55,7 +50,6 @@ public final class AttackDamageService {
         return isFistHand(player) ? getFistStrengthBonus(player) : 0.0D;
     }
 
-    /** 不论手持何物，拳头此刻的加成：B 面板攻击行。 */
     public static double getFistBonus(@NotNull Player player) {
         return getFistStrengthBonus(player) + getZombieBonus(player);
     }

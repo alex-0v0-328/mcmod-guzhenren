@@ -5,12 +5,8 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 附加部位：改造蛊在原生肢体之外长出的翼、尾、角，预留槽位，暂无蛊写入，方块人也还没有对应叠层。
- *
- * @author Alex
- * @version 1.0.0
- * @see Anatomy
- * @since 1.0.0
+ * 肉身附加部位枚举：改造蛊在原生躯干外生长的翼、尾、角槽位（存于 {@link Anatomy}，当前仅由管理指令写入，尚未接入蛊虫与
+ * 方块人渲染叠层）。
  */
 
 public enum Appendage implements NamedEnum {

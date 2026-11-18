@@ -14,19 +14,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 失去本命蛊[Vital Gu]对主人的代价。
+ * 本命蛊损毁时对绑定主人施加反噬惩罚与离线补扣的服务（由 {@link Heartbeat} 定时结算离线队列）。
  * <ul>
- *   <li>魂魄、各脑海池减半，扣当前生命的 {@link #LOST_HEALTH_FRACTION}，清所绑空窍[Aperture]的主修流派。</li>
- *   <li>{@link #onVitalGuLost} 收 {@link VitalGuLostEvent}：在线即扣，离线存入 {@link PendingVitalPenalties}。</li>
- *   <li>{@link #settleOfflineVitalLoss} 先等过原版 60 tick 出生无敌（否则吞掉 80% 伤害），每次心跳结算一个，下次伤害才
- *       越过 10 tick 受伤冷却。</li>
+ *   <li>损毁惩罚固定将当前魂魄与各脑海池减半，造成当前生命值 {@link #LOST_HEALTH_FRACTION} 的伤害，并清空该本命蛊所绑定
+ *       空窍的主修流派。</li>
+ *   <li>{@link #onVitalGuLost} 响应 {@link VitalGuLostEvent}：若主人在线则立即扣除惩罚，离线则写入
+ *       {@link PendingVitalPenalties} 存档队列。</li>
+ *   <li>{@link #settleOfflineVitalLoss} 在玩家上线并度过原版 {@link #OFFLINE_VITAL_SETTLE_AFTER_TICKS} 刻出生无敌后，每
+ *       次心跳至多结算一条待处理惩罚，使下一次 80% 伤害能跨过 10 刻受伤无敌帧。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PendingVitalPenalties
- * @see Heartbeat
- * @since 1.0.0
  */
 
 public final class VitalLossService {

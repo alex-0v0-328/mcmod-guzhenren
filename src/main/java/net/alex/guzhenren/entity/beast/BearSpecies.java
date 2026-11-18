@@ -1,11 +1,11 @@
 package net.alex.guzhenren.entity.beast;
 
 /**
- * 四种熊：共用 {@code bear} 几何与动画集，纹理、性情、属性不同。
+ * 熊的四个种类枚举：共用 {@code bear} 模型几何与动画集，按种类区分贴图、攻击性与基础属性。
  * <ul>
- *   <li>每种以 {@link #getId()} 注册独立实体类型（沿用豕蛊[Boar Gu]实体先例：一变体一类型），id
- *       兼作纹理基名（{@code textures/entity/<id>.png}）。</li>
- *   <li>仅亚洲黑熊见敌即追（{@link #isHostile()}），其余只反击；挥击、站立拍击伤害均为护甲前固定值。</li>
+ *   <li>每个种类以 {@link #getId()} 注册独立实体类型（沿用豕蛊[Boar Gu]实体一变体一类型的先例），ID 兼作贴图文件名
+ *       （{@code textures/entity/<id>.png}）。</li>
+ *   <li>仅亚洲黑熊会主动索敌（{@link #isHostile()}），其余种类仅在受击后反击；挥击与站立拍击伤害均为护甲前固定值。</li>
  * </ul>
  */
 

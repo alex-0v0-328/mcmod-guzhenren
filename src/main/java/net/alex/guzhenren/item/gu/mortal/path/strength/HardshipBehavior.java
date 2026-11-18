@@ -14,17 +14,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 苦力蛊[Hardship Strength Gu]的行为：自动状态（{@link AutoUseBehavior}）。
+ * 苦力蛊[Hardship Strength Gu]行为：实现 {@link AutoUseBehavior}，由 {@link AutoUse} 在玩家受伤时自动触发。
  * <ul>
- *   <li>低于最大生命 75% 开启，需持永久人力钧力流或兽力虚影流，且常态承受力在最轻档至少多 1 点（再少就白付费）。</li>
- *   <li>窗口 {@link #DURATION_SECONDS} 秒，不随血量变化，75% 及以上不借力；各档借多少见 {@link HardshipStrength}。</li>
+ *   <li>当玩家生命值低于上限 75% 时尝试开启：要求玩家已持有永久人力钧力流派或兽力虚影流派，且当前常态肉身承受力在最轻伤
+ *       势档位下至少能获得 1 点加成（避免加成为 0 时白白扣费）。</li>
+ *   <li>开启后持续 {@link #DURATION_SECONDS} 秒（另加永久兽力时长加成），窗口自身不随血量回升而提前关闭，但生命值回到
+ *       75% 及以上时暂停提供加成（各伤势档位的具体加成见 {@link HardshipStrength}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AutoUse
- * @see HardshipStrength
- * @since 1.0.0
  */
 
 public record HardshipBehavior() implements AutoUseBehavior {

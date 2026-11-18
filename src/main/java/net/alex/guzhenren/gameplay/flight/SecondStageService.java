@@ -28,56 +28,29 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 二段飞行[Second-Stage Flight]：疾跑飞行之上一档，含两端共用规则与服务端部分。
- * <p>进出：
+ * 二段飞行[Second-Stage Flight]服务：管理疾跑飞行之上的高速视线巡航、冲撞生物、撞碎脆弱方块与撞毁炸坑。
  * <ul>
- *   <li>沿视线巡航，最高为普通飞行 {@link #SPEED_MULTIPLIER} 倍（{@link SecondStageCruise}）。</li>
- *   <li>{@link #canEnter}：授权到二段（{@link FlightService#getGrant}）、在飞、在疾跑；客户端发双击前问
- *       （{@code net.alex.guzhenren.client.input.SecondStageInput}），服务端在 {@link #toggle} 再问；疾跑条件挡住悬停
- *       （原版仅前进时疾跑）。</li>
- *   <li>{@link #start} 打标记（{@code PlayerData#setSecondStage}，同步所有可见客户端）、油门设
- *       {@link SecondStageCruise#ENTRY_THROTTLE}、发 {@link SecondStageStartedEvent} 供上层音爆，每次进入都爆。</li>
- *   <li>{@link #tick}（{@link FlightEvents}，每服务端 tick）推油门（{@link #stepThrottle}）：疾跑加满，停跑（松前进或擦
- *       墙）耗尽；{@link #canStay} 断即退：无疾跑且油门空、停飞（落地、双击跳跃）、失授权；再双击主动退
- *       （{@link #toggle}），飞行保留。</li>
- *   <li>服务端从疾跑指令得知疾跑，晚一个包；客户端自推油门
- *       （{@code net.alex.guzhenren.client.event.SecondStageEvents}）。</li>
+ *   <li>{@link #canEnter} 要求玩家拥有二段飞行授权（{@link FlightService#getGrant}）、正在飞行且正在疾跑（客户端双击前
+ *       与服务端 {@link #toggle} 均校验此条件，疾跑门槛自然排除悬停状态）。</li>
+ *   <li>{@link #start} 设置二段飞行同步标记、将油门初始化为 {@link SecondStageCruise#ENTRY_THROTTLE}，并每次发布
+ *       {@link SecondStageStartedEvent} 触发音爆特效。</li>
+ *   <li>{@link #tick} 每个服务端 tick 推进油门（{@link #stepThrottle}，客户端在本地同步自推油门）：当停止疾跑且油门归
+ *       零、落地停飞或失去授权时（{@code !canStay}）自动退出二段飞行；再次双击疾跑可主动调 {@link #toggle} 退出二段并保
+ *       持普通飞行。</li>
+ *   <li>二段飞行激活期间，{@link #travel} 接管原版飞行移动（{@code PlayerMixin}，由当前控制移动的一端执行，并屏蔽跳跃与
+ *       潜行升降）：在服务端移动前，若速度达到音障（{@link SecondStageCruise#BARRIER_SPEED}），先执行 {@code ram} 撞飞
+ *       路径上的非盟友/非野生蛊活体生物（按同一目标 {@link SecondStageCruise#RAM_COOLDOWN_TICKS} 冷却，仅在实际造成玩家
+ *       攻击伤害时按击退抗性推开，飞行者自身不减速），并在 {@code ModEvents.canGrief} 允许时执行 {@code shatter} 提前撞
+ *       碎前方 {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} tick 内的脆弱方块。</li>
+ *   <li>移动后若发生非纯脆弱方块碰撞（{@code !isFragileOnly}），服务端按三维速度损失结算原版鞘翅撞墙伤害；当速度损失达
+ *       到音障阈值时判定为撞毁：清零油门与速度、在当前端发布 {@link SecondStageCrashEvent}，服务端退出二段飞行并在身体
+ *       前方 {@code CRASH_AHEAD} 格处调 {@link ImpactCrater#blast} 炸坑。</li>
+ *   <li>⚠ 服务端的模拟移动步比客户端早一 tick 接触墙面，因此客户端最后一刻转弯避开时服务端仍可能判定擦墙受伤（与原版鞘
+ *       翅一致）。</li>
+ *   <li>⚠ 二段速度绝不写入会落盘的 {@code Abilities}；{@link #SPEED_MULTIPLIER}（{@code 6.0}，约 65 格/秒）必须低于约
+ *       {@code 18}，否则进入二段瞬间客户端单步位移超出服务端预期 10 格上限，会被原版「移动过快」检查强制拉回。二段标记
+ *       与油门均不落盘，重登或死亡后自动归零。</li>
  * </ul>
- * <p>移动与撞击：
- * <ul>
- *   <li>有标记时 {@link #travel} 替换原版飞行移动（{@code net.alex.guzhenren.mixin.PlayerMixin}），由移动玩家的一端跑：
- *       客户端是本机物理，服务端是每 tick 先模拟、再放回客户端上报位置的那步，原版鞘翅撞墙伤害靠它；速度朝「油门 ×
- *       视线」靠拢（{@link SecondStageCruise#nextVelocity}），跳跃、潜行不升降（{@code LocalPlayerMixin}）。</li>
- *   <li>撞人：过 {@link SecondStageCruise#BARRIER_SPEED} 时服务端移动前撞飞扫过的生物（玩家攻击伤害随速度，沿飞行方向推
- *       开），同一生物每 {@link SecondStageCruise#RAM_COOLDOWN_TICKS} 一次，飞行者不减速；真受伤才推开，按击退抗性减，
- *       伤害被拒（无 PvP、无敌、受伤无敌时间）则不动、下 tick 可再撞。</li>
- *   <li>不撞野生蛊、任一方认定的盟友（同队、宠物）、飞行者拥有物、旁观者、盔甲架。</li>
- *   <li>破块：同在移动前，过音障且 {@code ModEvents#canGrief} 允许时，服务端用带掉落的 {@code Level#destroyBlock}
- *       （{@link #shatter}，粒子、声音原版）撞碎之后 {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} tick 扫过的带碰撞
- *       脆弱方块（{@link SecondStageCruise#isFragile}），飞行穿过。</li>
- *   <li>任一轴碰撞（含地面、天花板）在服务端按三维损速付鞘翅撞墙伤害；损速达音障即撞毁：油门、速度清零，该端发
- *       {@link SecondStageCrashEvent}（服务端出环、震附近，客户端本机震屏），服务端退出二段并像坠击一样炸坑
- *       （{@link ImpactCrater#blast}，威力 {@link SecondStageCruise#getCrashPower}，身体中部沿飞行方向前
- *       {@link #CRASH_AHEAD} 格）。</li>
- *   <li>一 tick 扫过的全是脆弱方块不算撞（{@link #isFragileOnly}）：客户端先于服务端破块到达玻璃，禁破坏时只顶住；
- *       不掉血、不撞毁，油门照疾跑增减。</li>
- *   <li>两端按各自速度判撞毁，服务端晚一包，音障附近可能一端撞毁、一端只掉血，油门在
- *       {@link SecondStageCruise#COAST_TICKS} 内消掉差别；平飞擦地几乎不损速，不掉血；落地非墙，原版着地停飞，二段随之
- *       结束。</li>
- *   <li>⚠ 服务端模拟步比客户端早一 tick 碰墙：客户端最后一 tick 转开时服务端仍可能判撞墙（原版鞘翅同样）。</li>
- * </ul>
- * <p>限制：
- * <ul>
- *   <li>⚠ 速度不写进会存档的 {@code Abilities}。</li>
- *   <li>⚠ {@link #SPEED_MULTIPLIER} 须低于约 18：原版「移动过快」检查只容许每次移动超出服务端速度 10 格，进入时服务端未
- *       追上客户端，超了会被拉回；取 6 约 65 格/秒（约 4 区块新地形），为疾跑飞行 3 倍，近鞘翅俯冲。</li>
- *   <li>标记与油门不存档、死亡即丢，重登、重生从二段外开始；换维度同一玩家，首 tick 重判。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see FlightService
- * @since 1.0.0
  */
 
 public final class SecondStageService {

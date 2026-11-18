@@ -46,31 +46,36 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 野猪、大型野兽（熊、虎）与龟共用服务端权威动作状态机。
+ * 野猪、大型野兽（熊、虎、牛、大象）与龟共用的服务端权威动作状态机。
  * <ul>
- *   <li>姿势即同步动作 {@code A}，带服务端游戏时间起点与单调序号，迟到的追踪者从首帧重放一次性动作；
- *       {@link #getActionTicks} 计起点后服务端 tick，序号区分同类重复动作。</li>
- *   <li>伤害落在动画命中帧而非接触时，{@link #strikeTarget} 只打仍在触及距离内且可见者；攻击各有 {@link Cooldown}，
- *       随攻击起算，结束再隔 {@link #ATTACK_RECOVERY_TICKS}；冷却与恢复仅服务端计数，只存档、不同步。</li>
- *   <li>攻击中、恢复期、冷却中不起新攻击（{@link #tryStartAction}）；目标当场锁定，新攻击者改不了进行中攻击；
- *       {@link #hitSettled}：命中已结算（中或空）。</li>
- *   <li>目标因距离、视线、规则丢失即结束警戒与未结算攻击（{@link #validateTarget}），已结算命中与击杀照播恢复。</li>
- *   <li>视线走生物感知（每目标每 tick 缓存），仅扫掠检测 {@link #isHitBySweep} 重投射线，因冲撞先移身体再检测；
- *       扑击被拒隔 {@link #LUNGE_RECHECK_TICKS} tick 再扫；冷却表只存进行中冷却，空闲生物跳过
+ *   <li>当前姿势即同步动作 {@code A}，附带服务端游戏时间起点与单调递增序号，使迟到的追踪客户端也能从首帧重放一次性动
+ *       作；{@link #getActionTicks} 计算自起点以来的服务端 tick，序号用于区分连续触发的同类动作。</li>
+ *   <li>伤害在动画命中帧而非接触瞬间结算，{@link #strikeTarget} 仅命中仍在触及距离内且视线可见的目标；每种攻击各有
+ *       {@link Cooldown}，自起手起算，动作结束后再进入 {@link #ATTACK_RECOVERY_TICKS} 恢复期；冷却与恢复仅在服务端计
+ *       数，只存档、不同步。</li>
+ *   <li>攻击进行中、恢复期或对应冷却未完时不可发起新攻击（{@link #tryStartAction}）；起手时锁定 {@link #actionTarget}，
+ *       中途被其他攻击者命中不会篡改当前攻击目标；{@link #hitSettled} 标记本轮命中已结算（命中或落空）。</li>
+ *   <li>目标因距离、视线或规则失效时立即终止警戒与尚未结算的攻击（{@link #validateTarget}），已结算的命中与击杀仍播完收
+ *       招。</li>
+ *   <li>视线检查复用生物感知缓存（每目标每 tick 一次），仅冲撞扫掠检测 {@link #isHitBySweep} 因先移动身体再检测而重新投
+ *       射射线；扑击路径被拒后隔 {@link #LUNGE_RECHECK_TICKS} tick 再扫；冷却表只存进行中的冷却，空闲生物跳过
  *       {@link #tickCooldowns}。</li>
- *   <li>子类给动作集（{@link ActionFlags} 枚举，序号即网络 id，含待机、保持目标的警戒、死亡）、冷却与存档键、选招、
- *       动作时序、受击反应、动作动画（每动作建一次、每帧复用）；{@link #getRunAnimationName} 命名追击循环，无 run
- *       片段可改映射。</li>
- *   <li>环境动作（{@link ActionFlags#isAmbient}）即休息姿势，交战即断；{@link #isNightTime}：会睡者共用夜间窗口；
- *       {@code registerGoals}、{@code defineSynchedData} 于构造器内、子类字段赋值前运行，
- *       所触钩子（{@link #registerSpeciesGoals}、{@link #getIdleAction}、{@link #getCooldowns}）只能返回常量。</li>
- *   <li>{@link CombatGoal} 空闲时追击，否则不动；按原版近战节奏（{@code MeleeAttackGoal}）重寻路：目标移动时每 4～10
- *       tick，超 16 格 +5、超 32 格 +10，失败 +15，动作打断行走后立即重算；{@link WanderGoal} 空闲无目标时游荡，完后调
- *       {@link #onWanderComplete}；读档从空闲（或死亡）起。</li>
- *   <li>寄宿蛊[Hosted Gu]：{@link #hostGu} 记蛊、以永久修饰符把生命上限乘 {@link #HOSTED_HEALTH_MULTIPLIER} 并回满，
- *       {@link #applyAttack} 伤害乘 {@link #HOSTED_DAMAGE_MULTIPLIER}；修饰符随原版属性存档、先于生命读回，免被钳回基础上限；
- *       存档有 {@code HostedGu} 而缺修饰符（{@code /summon} 带标签）才补加并回满。谁寄宿、掉落归物品层。</li>
- *   <li>有意超 300 行：状态机、AI 目标、持久化与战斗几何共享私有状态，宜一体读。</li>
+ *   <li>子类提供动作枚举（实现 {@link ActionFlags}，枚举序号即网络 ID，含待机、保持目标的警戒与死亡）、冷却与存档键、选
+ *       招、动作时序、受击反应及动作动画（每个动作首次使用时构建并按序号缓存复用）；{@link #getRunAnimationName} 指定追
+ *       击循环动画名，无独立奔跑片段的子类可覆写映射。</li>
+ *   <li>环境动作（{@link ActionFlags#isAmbient}）表示休息姿势，进入交战即刻打断；{@link #isNightTime} 提供会睡眠生物共
+ *       用的夜间窗口。</li>
+ *   <li>⚠ {@link #registerGoals} 与 {@link #defineSynchedData} 在父类构造器内、子类字段赋值前执行，期间调用的钩子（
+ *       {@link #registerSpeciesGoals}、{@link #getIdleAction}、{@link #getCooldowns}）只能返回常量。</li>
+ *   <li>{@link CombatGoal} 在待机时追击目标，非待机时停止导航；追击按原版近战节奏（{@code MeleeAttackGoal}）重寻路：目
+ *       标移动超过 1 格时每 4～10 tick 重算，距离超 16 格加 5 tick、超 32 格加 10 tick，寻路失败加 15 tick，动作打断行
+ *       走后立即重算；{@link WanderGoal} 在待机且无目标时随机游荡，走完路径后回调 {@link #onWanderComplete}；读档后统一
+ *       从待机（或死亡）状态恢复。</li>
+ *   <li>寄宿蛊[Hosted Gu]：{@link #hostGu} 记录寄宿物品并以永久属性修饰符将生命上限乘以
+ *       {@link #HOSTED_HEALTH_MULTIPLIER} 后回满，{@link #applyAttack} 将伤害乘以 {@link #HOSTED_DAMAGE_MULTIPLIER}；修
+ *       饰符随原版属性先于生命值读档，避免生命值被基础上限截断；仅当存档含 {@code HostedGu} 标签却缺少属性修饰符（如带
+ *       标签 {@code /summon}）时才补加修饰符并回满。寄宿筛选与掉落归物品层处理。</li>
+ *   <li>本类有意超过 300 行：动作状态机、AI 目标、持久化与战斗几何共享私有状态，适合集中维护。</li>
  * </ul>
  */
 

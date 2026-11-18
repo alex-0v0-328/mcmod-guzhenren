@@ -10,19 +10,14 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 十绝体质及其肉身数值表。
- *
+ * 十绝体[Ten Extreme Physiques]枚举：定义各十绝体的肉身承受力倍率、Epic Fight 耐力加成百分比与天赋流派。
  * <ul>
- *   <li>具体体质存 {@code BodyData}；空窍[Aperture]只存标识最高资质[Aptitude]档的基础真元[Essence]值。</li>
- *   <li>{@link #getCapacityMultiplier} 缩放该转基础承受力（{@code StrengthService.getBaseCapacity}）：凡体 1，十绝体
- *       2，大力真武体 4；不影响淬炼所加。</li>
- *   <li>⚠ 出生骰跳过 {@code PURE_DREAM_REALITY_SEEKER}：有翻译、可设置，永不掷出。</li>
+ *   <li>具体体质存于 {@link BodyData#extremePhysique}，空窍仅存储代表十绝天资的满值基础真元。</li>
+ *   <li>{@link #getCapacityMultiplier} 仅缩放玩家当前转数的基础承受力（{@code StrengthService.getBaseCapacity}：凡体
+ *       {@code 1}、普通十绝体 {@code 2}、大力真武体 {@code 4}），不放大筋骨皮淬炼提供的固定承受力加成。</li>
+ *   <li>⚠ {@link #randomTenExtreme} 随机抽取十绝体时刻意跳过纯梦求真体（{@link #PURE_DREAM_REALITY_SEEKER}）：该体质保
+ *       留翻译与指令设置支持，但永不由开窍或重掷自然抽出。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuPath
- * @since 1.0.0
  */
 
 public enum ExtremePhysique implements NamedEnum {

@@ -17,29 +17,28 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 功倍蛊[Amplify Effect Gu]：律道，二至五转，不单独催动。
+ * 功倍蛊[Amplify Effect Gu]物品：二至五转持续照顾型蛊[Tended Gu]，不可单独催动生效，专用于倍增另一只凡蛊的效果。
  * <ul>
- *   <li>另一只蛊的效果乘自身转数（×2 至 ×5），该次真元[Essence]与饱食[Hunger]自付；副手时随主手蛊结算，主手时随扇形
- *       选择器催动快捷栏蛊（{@link #driveFromHotbar}）。</li>
- *   <li>{@link #canAmplify} 是菜单与两条服务端路径共读的唯一资格判定；{@link #bill} 返回催动中或副手功倍蛊的倍率并就地
- *       计费，否则 1。</li>
- *   <li>声明 {@code canBeAmplified} 且结算时调 {@link #bill} 的行为按倍率乘时长：{@code TimedBuffBehavior}、
- *       {@code AllOutEffortBehavior}、限时 {@code SkinBehavior}（玉皮蛊[Jade Skin Gu]、白玉蛊[White Jade Gu]）、
- *       {@code ShieldBehavior}（天蓬蛊[Heavenly Mugwort Gu]，不乘护盾值）、{@code VitalityLeafBehavior}、
- *       {@code WatchBehavior}。</li>
- *   <li>持续照顾型蛊[Tended Gu]：主手炼化，每次计费催动与每日消耗前后从背包补食；炼化后客户端把右键换成扇形选择器，
- *       自身催动只能来自伪造包，一律拒（{@code useThreshold} 为 0，故提示「需要长按选择增幅目标」而非真元不足）；副手
- *       不响应点击，被拒主手蛊保留自己的动作栏原因。</li>
- *   <li>⚠ 副手时遇不可放大的蛊、自身野生、或被催动蛊付完后真元与随身元石[Primeval Stone]付不起，则闲置不计费，被催动
- *       蛊照常生效不放大；菜单催动先合计两份消耗（{@code PrimevalStoneSupply.canAfford}），不够即拒。</li>
- *   <li>饱食条空时同样被强行催动[Forced Use]：放大效果照常生效，随后它力竭而死离手。</li>
- *   <li>唯一可变静态字段 {@code driving}：调用级服务端线程上下文，try/finally 包住一次催动，不越调用、不跨玩家。</li>
+ *   <li>将被催动凡蛊的效果乘以功倍蛊自身转数（2～5 倍），并由功倍蛊自行支付一次真元与饱食[Hunger]消耗；握于副手时随主手
+ *       蛊催动自动结算，握于主手时通过客户端扇形轮盘选择快捷栏中的目标蛊虫进行原地驱动
+ *       （{@link #driveFromHotbar}）。</li>
+ *   <li>{@link #canAmplify} 是客户端轮盘与服务端两条结算路径共用的唯一资格判定；{@link #bill} 在目标蛊生效时对当前驱动
+ *       中或副手握持的功倍蛊当场扣费并返回 {@link Amplification}（内含效果倍率与付费的功倍蛊实例；未增幅时返回
+ *       {@link Amplification#NONE}，倍率为 1、蛊实例为 {@code null}）。</li>
+ *   <li>声明了 {@code canBeAmplified} 且在结算时调用 {@link #bill} 的行为会按倍率延长持续时长，包括
+ *       {@code TimedBuffBehavior}、{@code AllOutEffortBehavior}、限时 {@code SkinBehavior}（玉皮蛊[Jade Skin Gu]、
+ *       白玉蛊[White Jade Gu]）、{@code ShieldBehavior}（天蓬蛊[Heavenly Mugwort Gu]，仅延长时长而不倍增护盾
+ *       值）、{@code VitalityLeafBehavior} 与 {@code WatchBehavior}。</li>
+ *   <li>作为持续照顾型蛊，仅支持在主手长按炼化，并在每次增幅扣费及每日维护前后自动从背包补食；炼化后客户端将主手右键拦
+ *       截为扇形轮盘，若服务端收到直接催动包则一律以「需长按选择增幅目标」拒绝（{@link #useThreshold} 设为 0 以免被真元
+ *       门槛抢先拦截）；副手令 {@link #hasOffhandUse} 返回 {@code false}，保证主手蛊被拒时保留其自身的拒绝提示。</li>
+ *   <li>⚠ 握于副手时，若主手蛊不支持增幅、功倍蛊自身尚未炼化、或主手蛊扣费后剩余真元与随身元石[Primeval Stone]不足以支
+ *       付功倍蛊消耗，功倍蛊保持静默不扣费，主手蛊照常以原倍率生效；而通过主手轮盘驱动（{@link #driveFromHotbar}）时会
+ *       先用 {@code PrimevalStoneSupply.canAfford} 校验两只蛊的真元总和，不足则直接拒绝。</li>
+ *   <li>饱食条为空时同样触发强行催动[Forced Use]：本次增幅效果照常生效，随后功倍蛊力竭死亡并从手中消失。</li>
+ *   <li>唯一可变静态字段 {@code driving} 为服务端单次 {@link #driveFromHotbar} 调用栈内的线程上下文，由
+ *       {@code try/finally} 严格包裹，不跨调用或跨玩家留存。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @since 1.0.0
  */
 
 public final class AmplifyEffectGuItem extends TendedGuItem {
@@ -50,7 +49,6 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
 
     private record Driving(ServerPlayer player, ItemStack amplifier) {}
 
-    /** 一次计费催动的结果：被催动蛊的效果倍率，以及付费的功倍蛊[Amplify Effect Gu]（可为空）。 */
     public record Amplification(int factor, @Nullable AmplifyEffectGuItem gu) {
 
         public static final Amplification NONE = new Amplification(1, null);

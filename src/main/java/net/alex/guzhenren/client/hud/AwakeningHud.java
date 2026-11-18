@@ -19,27 +19,24 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 本地屏幕上的开窍[Awakening]仪式：像素菱形闪白、资质[Aptitude]牌匾与牌匾火星。
- *
+ * 本地屏幕上的开窍仪式叠层：负责绘制像素菱形闪白、资质[Aptitude]牌匾与牌匾火星。
  * <ul>
- *   <li>注册在全部其他层之上（{@code ClientEvents}），闪白盖住整个 HUD；闪白与牌匾不持状态，每帧按同步的仪式与整 tick
- *       画出，仪式中断（死亡、换维度）即停画。</li>
- *   <li>{@link #getBarBase} 给 {@link ChargeHud} 供资质条；读仪式，因为蛊点击时已耗掉；资质条是否显示按整 tick 判断，
- *       使 {@link ChargeHud#isShowing} 与所画的帧一致，不显示时为 -1。</li>
- *   <li>闪白是实心菱形，不抖动、不半透明：格子边长为牌匾整数倍 k，到屏幕中心格的曼哈顿距离不超过
- *       {@link AwakeningTimeline#getFlashReach} 的格子涂满；常态 {@link #FLASH_WHITE}，十绝天资开窍起转
- *       {@link #TEN_EXTREMES_FLASH} 淡鹅黄；HUD 隐藏仍覆盖。</li>
- *   <li>牌匾（{@link AwakeningPlaque}）随 HUD 隐藏，头顶那块也一样；只在第一人称显示，因脱离的镜头看得到头顶那块；按不
- *       超过 {@link #MAX_PLAQUE_SCALE} 的最大整数倍 k 画，高不超过屏高的 {@link #PLAQUE_SCREEN_FRACTION}；自中线展开、
- *       白色斜带扫过非底色像素、自下而上碎掉，全按整 tick 跳。</li>
- *   <li>火星由 {@code HopeGuEffectEvents} 在本人第一人称时加入，记牌匾像素坐标与出生 tick，同样按 k 画在牌匾上；
- *       {@link #SPARK_FRAMES} 帧各 {@link #SPARK_FRAME_TICKS} tick，仪式结束后仍画完；游戏时间早于出生 tick（进了时间更早的世界）即丢弃。</li>
+ *   <li>注册在全部其他 HUD 层之上（{@code ClientEvents}），使闪白能够遮盖整个 HUD；闪白与牌匾自身不维护独立状态，每帧
+ *       直接依据同步的仪式进度与整 tick 计算绘制，一旦仪式中断（死亡或换维度）即刻停止渲染。</li>
+ *   <li>{@link #getBarBase} 为 {@link ChargeHud} 提供资质条进度（直接读取仪式状态，因希望蛊[Hope Gu]在点击时已消
+ *       耗）；是否显示资质条同样按整 tick 判定，确保 {@link ChargeHud#isShowing} 与实际绘制帧一致，不显示时返回
+ *       -1。</li>
+ *   <li>闪白采用实心菱形格而不做抖动或半透明过渡：格子边长为牌匾缩放的整数倍 {@code k}，凡到屏幕中心格的曼哈顿距离不超
+ *       过 {@link AwakeningTimeline#getFlashReach} 的格子均予涂满；常态呈 {@link #FLASH_WHITE}，
+ *       十绝天资[Ten Extremes Physique]开窍时转为 {@link #TEN_EXTREMES_FLASH} 淡鹅黄，且在隐藏 HUD 时仍照常覆盖全
+ *       屏。</li>
+ *   <li>牌匾（{@link AwakeningPlaque}）随 HUD 一同隐藏（头顶世界牌匾同理），且仅在第一人称视角显示，避免第三人称脱离
+ *       镜头同时看到头顶牌匾；绘制倍率取不超过 {@link #MAX_PLAQUE_SCALE} 的最大整数倍 {@code k}，使牌匾高度不超过屏高
+ *       的 {@link #PLAQUE_SCREEN_FRACTION}，并按整 tick 步进完成中线展开、白色斜带扫过非底色像素以及自下而上碎裂。</li>
+ *   <li>牌匾火星由 {@code HopeGuEffectEvents} 在本人第一人称下注入，记录牌匾局部像素坐标与出生 tick 并按同倍率
+ *       {@code k} 绘制在牌匾表面；每枚火星共 {@link #SPARK_FRAMES} 帧、每帧持续 {@link #SPARK_FRAME_TICKS} tick，仪
+ *       式结束后仍播完余帧；若客户端游戏时间早于出生 tick（切入了时间更早的世界）则直接丢弃。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningTimeline
- * @since 1.0.0
  */
 
 public final class AwakeningHud {

@@ -7,20 +7,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 温养[Nourish]状态附件：是否在温养、温养哪个空窍[Aperture]。
- *
+ * 空窍温养[Nourish]状态附件（键 {@code nourish_data}）：记录是否正在温养、目标空窍下标与断供起始时刻。
  * <ul>
- *   <li>键 {@code nourish_data}，运行时仅 {@code ApertureNourishService} 写；进度与石化锁存于 {@link Aperture}。</li>
- *   <li>同步给所有看得见该玩家的客户端：温养者在他人屏幕上也盘腿而坐。</li>
- *   <li>⚠ {@code starvedSinceTick} 默认 {@code NOT_STARVED}（-1）：{@code 0} 是真实时刻，新世界会读成开局即断供。</li>
- *   <li>⚠ {@code target} 须经服务按现有空窍夹取才可信，不直接信网络值。</li>
+ *   <li>运行时仅由 {@link ApertureNourishService} 写入；温养进度与石化锁存于各 {@link Aperture} 条目中，
+ *       {@link #stopped} 停止温养并清除断供计时但保留目标下标。</li>
+ *   <li>同步给所有追踪该玩家的客户端，使周围玩家也能看到温养者的盘腿打坐动作。</li>
+ *   <li>⚠ {@code starvedSinceTick} 未断供时必须为 {@link #NOT_STARVED}（{@code -1}）：{@code 0} 是新世界合法的游戏时
+ *       刻，用作默认值会被误判为开局即断供。</li>
+ *   <li>⚠ {@code target} 读取时必须由服务按当前空窍数量夹取（{@link ApertureNourishService#getTargetIndex}），不能直
+ *       接采信原始字段值。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Aperture
- * @see ApertureNourishService
- * @since 1.0.0
  */
 
 public record ApertureNourishData(boolean cultivating, int target, long starvedSinceTick) {
@@ -50,7 +46,6 @@ public record ApertureNourishData(boolean cultivating, int target, long starvedS
 
     public boolean hasStarvedOut(long now) { return isStarving() && now - starvedSinceTick >= STARVE_GRACE_TICKS; }
 
-    /** 停止温养[Nourish]并清除断供，保留目标。 */
     public ApertureNourishData stopped() { return new ApertureNourishData(false, target, NOT_STARVED); }
 
     public ApertureNourishData withCultivating(boolean value) {

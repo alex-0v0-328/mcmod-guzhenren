@@ -31,23 +31,21 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@code /gzr aperture}：写持有者的空窍[Aperture]，B 面板读取。
- *
+ * {@code /gzr aperture} 子命令：修改目标玩家的空窍状态（转数、阶段、资质、真元），结果由客户端 B 面板读取展示。
  * <ul>
- *   <li>两道门槛：{@code requires(sourceAwakened)} 只管显示，逐目标门槛保护数据。</li>
- *   <li>值皆字面量，自带补全，{@code ten_extreme:verdant_great_sun} 类词无需参数类型；每词自带运算，不二次解析。</li>
- *   <li>{@code rank set rank:<one..five>|up|down} 后可接 {@code stage set stage:<init..peak>|up|down}，一并写入。</li>
- *   <li>{@code [targets]} 前可选 {@code first|second} 选空窍，默认第一空窍；不带它的 {@code essence refill}
- *       填满所有空窍真元[Essence]及精炼中空窍的精炼真元池。</li>
- *   <li>{@code talent set} 只改第一空窍：设资质[Aptitude]品级重掷基础真元、去十绝体；{@code ten_extreme:<physique>}
- *       存体质，其变更事件设满基础真元，故 {@code essence base} 停于满值下，拒绝第一空窍为十绝体者。</li>
- *   <li>⚠ {@link #getSelector} 遍历 {@code context.getNodes()} 按名匹配选窍词；同路径其他节点勿复用这两个字面量。</li>
+ *   <li>根节点通过 {@link AwakenedGate#isSourceAwakened} 控制命令树可见性，执行期再按目标玩家与所选空窍做存在性校
+ *       验。</li>
+ *   <li>枚举选项统一注册为字面量节点（如 {@code ten_extreme:verdant_great_sun}）以直接提供补全并绑定对应写操作；
+ *       {@link #buildGrade} 构建 {@code <name> set <name>:<value>|up|down} 节点，且 {@code rank} 分支后可继续串联
+ *       {@code stage} 分支一次写入。</li>
+ *   <li>目标参数 {@code [targets]} 前可加 {@code first} 或 {@code second} 选择第一或第二空窍（省略时默认操作第一空
+ *       窍）；不带选窍字面量的 {@code essence refill} 则会一次性填满目标玩家所有空窍的当前真元及精炼真元池。</li>
+ *   <li>{@code talent set} 仅作用于第一空窍：设置常规资质[Aptitude]会重掷基础真元并清除十绝体，设置
+ *       {@code ten_extreme:<physique>} 则写入十绝体并通过事件将第一空窍基础真元锁定为满值；因此 {@code essence base} 的
+ *       上限设为满值减一，并拒绝修改十绝体玩家的第一空窍基础真元。</li>
+ *   <li>⚠ {@link #getSelector} 通过遍历 {@code context.getNodes()} 匹配节点名 {@value #FIRST} 与 {@value #SECOND} 来判
+ *       断选窍，同一命令路径上的其他节点严禁复用这两个字面量名称。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModCommandSupport
- * @since 1.0.0
  */
 
 public final class CmdAperture {
@@ -79,7 +77,6 @@ public final class CmdAperture {
                 (word, stage) -> withSelector(Commands.literal(word), context -> grade(context, rank, stage)));
     }
 
-    /** {@code <name> set <name>:<value>|up|down}，每个词由 {@code word} 围绕其运算构造。 */
     private static <E extends NamedEnum> ArgumentBuilder<CommandSourceStack, ?> buildGrade(
             String name, E[] settable, BiFunction<E, Integer, E> shift,
             BiFunction<String, UnaryOperator<E>, ArgumentBuilder<CommandSourceStack, ?>> word) {

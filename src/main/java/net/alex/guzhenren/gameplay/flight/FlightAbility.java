@@ -9,12 +9,13 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 按具名来源授予的飞行，如蛊、锚定维度。各来源独立授撤，任一在即可飞。⚠ 调用方只按来源 ID 授予、撤销、查询；每个来源是
- * NeoForge 创造飞行属性上以来源 ID 命名的临时 {@code ADD_VALUE} 修饰符，不存档，重生即无。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 按具名来源（{@link ResourceLocation}，如蛊虫效果、锚定维度）独立授予与撤销创造式飞行的底层能力门面。
+ * <ul>
+ *   <li>多个来源互不覆盖，只要任一来源存在（或游戏模式、其他模组授权）即可飞行（{@link #canFly}）。</li>
+ *   <li>⚠ 调用方只能按自身来源 ID 调用 {@link #grant}、{@link #revoke} 与 {@link #has}；每个来源底层对应
+ *       {@link NeoForgeMod#CREATIVE_FLIGHT} 属性上同 ID 的临时 {@code ADD_VALUE} 修饰符，不落盘且死亡重生后自动清
+ *       零。</li>
+ * </ul>
  */
 
 public final class FlightAbility {
@@ -26,10 +27,8 @@ public final class FlightAbility {
         return flight != null && flight.hasModifier(source);
     }
 
-    /** 能否飞行；授权来自游戏模式、他模组或此处来源皆算。 */
     public static boolean canFly(@NotNull Player player) { return player.mayFly(); }
 
-    /** 从 {@code source} 授飞；该来源已在则 {@code false}。 */
     public static boolean grant(@NotNull ServerPlayer player, @NotNull ResourceLocation source) {
         AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
         if (flight == null || flight.hasModifier(source)) return false;
@@ -37,7 +36,6 @@ public final class FlightAbility {
         return true;
     }
 
-    /** 撤销 {@code source} 的飞行；该来源不在则 {@code false}。 */
     public static boolean revoke(@NotNull ServerPlayer player, @NotNull ResourceLocation source) {
         AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
         return flight != null && flight.removeModifier(source);

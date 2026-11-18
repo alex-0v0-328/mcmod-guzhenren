@@ -21,20 +21,19 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 野兽寄宿蛊[Hosted Gu]的规则：谁寄宿哪只兽力蛊、寄宿概率与死后掉落；生命、伤害与存档归 {@link ActionEntity#hostGu}。
+ * 野兽寄宿蛊[Hosted Gu]的生成与掉落规则订阅类：定义哪些野兽可寄宿哪只兽力蛊、寄宿概率及击杀掉落（寄宿后的生命上限、伤害
+ * 倍率与存档读写归 {@link ActionEntity#hostGu} 负责）。
  * <ul>
- *   <li>出生掷一次 {@link #HOST_CHANCE}（{@link FinalizeSpawnEvent}：区块生成、自然刷新、刷怪笼、不带标签的
- *       {@code /summon}）：老虎、白虎寄宿虎力蛊，四种熊熊力蛊，野猪白、黑豕蛊各半；其余野兽不寄宿。</li>
- *   <li>掉落：死前 5 秒内挨过玩家打（原版 {@code lastHurtByPlayerTime}）且 {@code doMobLoot} 开，掷
- *       {@link #DROP_CHANCE}；掉的是野生蛊，生命在半满（向上取整）到满之间均匀取整。</li>
- *   <li>⚠ 规则放物品层：物品包已依赖实体包，实体包反依赖会成环（{@code ArchitectureTest}）。</li>
+ *   <li>野兽出生时（{@link FinalizeSpawnEvent}，涵盖区块生成、自然刷怪、刷怪笼及不带自定义标签的 {@code /summon}）按
+ *       {@link #HOST_CHANCE} 概率判定寄宿：黄虎与白虎寄宿虎力蛊[Tiger Strength Gu]，
+ *       四种熊寄宿熊力蛊[Bear Strength Gu]，野猪等概率寄宿白豕蛊[White Boar Gu]或黑豕蛊[Black Boar Gu]，其余野兽不寄
+ *       宿。</li>
+ *   <li>寄宿野兽死亡前 5 秒内受过玩家攻击（原版 {@code isRecentlyHit}）且世界开启 {@code doMobLoot} 时，按
+ *       {@link #DROP_CHANCE} 概率掉落未炼化的野生寄宿蛊，其初始生命值在半血（向上取整）至满血之间均匀随机
+ *       （{@link TendedGuItem#setHealth}）。</li>
+ *   <li>⚠ 本类必须放在物品层而非实体层：物品包已单向依赖实体包，若实体包反向引用具体蛊虫注册项会导致包依赖成环并破坏
+ *       {@code ArchitectureTest}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ActionEntity
- * @see TendedGuItem#setHealth
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

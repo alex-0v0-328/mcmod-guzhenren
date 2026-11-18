@@ -21,20 +21,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 各子命令共用的构件：目标解析、门槛、反馈。
- *
+ * 模组各子命令共用的基础设施：目标玩家解析、前置条件过滤、节点构建模板与执行结果反馈。
  * <ul>
- *   <li>{@code withTargets} 在字面量后挂 {@code [targets]}；{@code apply}、{@code applyIf} 逐目标执行，循环只在
- *       {@code run}；共用动词构造：{@code buildEnumSetNode}、{@code buildCounter}、{@code buildEnumCounter}。</li>
- *   <li>{@code enumCounter} 是枚举参数后的 {@code set|add|sub}；数量按 {@code Number} 读，{@code int} 参数可精确收窄；
- *       其 {@code sub} 直接取负，不像 {@code counter} 那样饱和；写入返回 {@code false} 时按拒绝键报告。</li>
- *   <li>⚠ 凡改变 {@code requires()} 谓词结果的操作，须经 {@code refreshCommands} 重发命令树，否则客户端留旧树。</li>
+ *   <li>{@link #withTargets} 在节点末尾追加可选的 {@code [targets]} 玩家选择器（未指定时默认取命令源玩家）；
+ *       {@link #apply}、{@link #applyIf} 与 {@link #applyIfResult} 调用 {@link #run} 逐目标执行操作，将目标按返回值划分
+ *       为成功与拒绝两组（{@link Outcome}）并交由 {@link ModCommandFeedback} 汇总输出。</li>
+ *   <li>提供三类通用节点构建器：{@link #buildEnumSetNode} 构建枚举 {@code set} 节点；{@link #buildCounter} 构建
+ *       {@code long} 数值的 {@code set|add|sub} 节点（{@code sub} 使用饱和取反）；{@link #buildEnumCounter} 构建带枚举
+ *       前缀的数值计数器（读取 {@link Number} 以兼容 {@code int} 精确收窄，{@code sub} 直接取反，并在操作返回
+ *       {@code false} 时按指定拒绝键反馈）。</li>
+ *   <li>⚠ 任何改变 Brigadier 节点 {@code requires()} 判定结果的操作完成后，必须调用 {@link #refreshCommands} 向目标客户
+ *       端重新下发命令树，否则客户端补全仍会保留旧命令树。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.ModCommandFeedback
- * @since 1.0.0
  */
 
 public final class ModCommandSupport {
@@ -135,7 +133,6 @@ public final class ModCommandSupport {
         return updated;
     }
 
-    /** 对每个目标执行 {@code operation}，按其返回值分组。 */
     static Outcome run(CommandContext<CommandSourceStack> context, ResultOperation operation)
             throws CommandSyntaxException {
         List<ServerPlayer> done = new ArrayList<>();
@@ -158,7 +155,6 @@ public final class ModCommandSupport {
 
     //endregion
 
-    /** 操作通过与被拒的目标，均按目标顺序。 */
     record Outcome(List<ServerPlayer> done, List<ServerPlayer> refused) {
 
         Component doneNames() { return getNames(done); }

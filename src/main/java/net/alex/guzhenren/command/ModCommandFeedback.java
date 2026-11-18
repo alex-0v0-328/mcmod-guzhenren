@@ -5,17 +5,13 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 /**
- * 命令回复的唯一出口：绿色表示已改变，红色表示未改变。
- *
+ * 模组指令反馈消息的唯一发送出口：绿色表示状态已变更（{@link #sendSuccess}），红色表示操作被拒绝或未变更
+ * （{@link #sendFailure}）。
  * <ul>
- *   <li>⚠ 颜色只表示回复类别，不编码领域、转数或严重程度。</li>
- *   <li>红色也走 {@code sendSuccess}，不用 {@code sendFailure}：部分拒绝非失败；后者另丢 {@code [GZR]} 标签。</li>
+ *   <li>{@link #sendFailure} 底层同样调用 {@link CommandSourceStack#sendSuccess} 而非 {@code sendFailure}，以保留统一的
+ *       {@code [GZR]} 前缀标签并支持多目标部分成功、部分拒绝时同时输出两条反馈。</li>
+ *   <li>⚠ 颜色仅用于区分指令执行结果是否生效，严禁用于编码流派、转数或消息严重程度。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.ModCommandSupport
- * @since 1.0.0
  */
 
 public final class ModCommandFeedback {

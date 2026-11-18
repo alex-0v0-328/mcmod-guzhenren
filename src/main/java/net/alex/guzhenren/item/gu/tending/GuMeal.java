@@ -4,14 +4,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 持续照顾型蛊[Tended Gu]从一堆食物吃的一顿：取下 {@code items}，得饱食[Hunger]或生命 {@code gained}。
- * {@link #createPortion} 不超需求，实耗 {@code eaten} 向上取整，部分用掉也付；{@link #eat} 取下（创造免费）并还桶瓶。
- *
- * @author Alex
- * @version 1.0.0
- * @see GuHunger
- * @see TendedGuItem
- * @since 1.0.0
+ * 持续照顾型蛊[Tended Gu]从食物堆中取食的定量记录：按需求换算可取件数 {@code items}、所得饱食[Hunger]或生命点数
+ * {@code gained} 与实际消耗件数 {@code eaten}。{@link #createPortion} 确保所得不超过需求且实耗向上取整（部分用掉也按
+ * 整件扣除），{@link #eat} 负责扣除食物（创造模式免费）并归还桶或瓶等容器。
  */
 
 record GuMeal(int items, int gained, int eaten) {

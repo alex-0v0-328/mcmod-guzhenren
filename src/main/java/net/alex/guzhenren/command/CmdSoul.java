@@ -6,12 +6,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr soul}：独立于肉身写魂魄池，B 面板读取；整个分支不设门槛，凡人也有魂魄。
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulService
- * @since 1.0.0
+ * {@code /gzr soul} 子命令：独立于肉身状态修改目标玩家的魂魄上限与当前值（{@link SoulService}），结果由 B 面板读取；凡
+ * 人同样具有魂魄，因此不设开窍门禁。
  */
 
 public final class CmdSoul {

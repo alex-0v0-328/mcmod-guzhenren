@@ -17,21 +17,19 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 共用飞行、降落、歇息生命周期的飞行蛊。
+ * 具备「飞行—降落—地面歇息」三阶段生命周期的野生飞行蛊基类。
  * <ul>
- *   <li>阶段与降落请求归服务端，同步为实体数据，客户端生成、追踪、加载后都能选对常驻动画；过渡动画仅服务端切换时触发，
- *       新追踪或加载的客户端只看常驻状态。</li>
- *   <li>GeckoLib 共用 {@code main} 控制器（{@link #createMainController}）循环 {@link #getSteadyAnimation}，含待机、飞
- *       行、起降动画与触发。</li>
- *   <li>{@link #takeOff} 只对歇息的蛊播起飞：只有它收着鞘翅，中止的降落仍是飞行姿势。</li>
- *   <li>{@link #getMaxHeadYRot} 为 0：模型无头骨，转头全靠身体；原版 75 度下身体落后头部，歇息转向难以看出。</li>
- *   <li>{@link #readAdditionalSaveData}：AI 目标状态不存档；存档降落重挂请求交降落目标，存档歇息由其直接接回，不重播降
- *       落。</li>
+ *   <li>飞行阶段（{@link FlightPhase}）与降落请求由服务端维护并同步至实体数据，使客户端在生成、进入追踪或区块加载时都能
+ *       选对常驻循环动画；起飞与着地过渡动画仅在服务端阶段切换时触发，后加入追踪的客户端直接播放常驻状态。</li>
+ *   <li>GeckoLib 动画统一由 {@link #createMainController} 创建的 {@code main} 控制器驱动，常驻循环取自
+ *       {@link #getSteadyAnimation}，并注册 {@code lift}（起飞）与 {@code land}（着地）两个可触发过渡动画。</li>
+ *   <li>{@link #takeOff} 仅在从 {@link FlightPhase#RESTING} 起飞时触发 {@code lift} 动画：只有歇息状态收起了鞘翅，半途
+ *       中止的降落原本就处于展翅飞行姿态。</li>
+ *   <li>{@link #getMaxHeadYRot} 固定返回 {@code 0}：甲虫与瓢虫模型无独立头骨，转向全靠旋转身体；若保留原版 75 度头身偏
+ *       角上限，歇息时小幅转头会被身体滞后吞掉。</li>
+ *   <li>{@link #readAdditionalSaveData} 恢复阶段与降落标志以弥补 AI 目标自身不存档：读档时若处于降落阶段则自动补挂降落
+ *       请求交由 {@link LandRestGoal} 接管，若处于歇息阶段则由 {@link LandRestGoal} 直接进入歇息计时而不重播降落。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public abstract class RestingFlyingGuEntity extends FlyingGuEntity implements GeoEntity {

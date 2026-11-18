@@ -1,9 +1,11 @@
 package net.alex.guzhenren.entity.beast;
 
 /**
- * 两种龟：共用 {@code tortoise} 几何与动画集，纹理与属性不同；石龟为同片萨瓦纳种群中稀有带甲变种；每种以
- * {@link #getId()} 注册独立实体类型（沿用熊先例），id 兼作纹理基名（{@code textures/entity/<id>.png}）；护甲为固定值，
- * 击退抗性为原版 0～1 属性。
+ * 龟的两个种类枚举：共用 {@code tortoise} 模型几何与动画集，按种类区分贴图与基础属性。
+ * <ul>
+ *   <li>石龟为热带草原种群中稀有的重甲变种；每个种类以 {@link #getId()} 注册独立实体类型（沿用熊的先例），ID 兼作贴图文
+ *       件名（{@code textures/entity/<id>.png}）；护甲为固定点数，击退抗性为原版 0～1 比例值。</li>
+ * </ul>
  */
 
 public enum TortoiseSpecies {

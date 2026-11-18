@@ -51,27 +51,25 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * B 面板全部行的目录，与面板措辞分开。
- *
+ * B 面板所有显示行与分区的数据目录，与 {@link ModDisplayText} 的文本措辞分离。
  * <ul>
- *   <li>画哪些行、何序、画不画一处决定：带 [无] 的分区标题才不挨着真实道痕[Path Marks]数字。</li>
- *   <li>{@code Entry} sealed、不写 {@code permits}，行记录只来自本文件：记录与排行构建方法即面板读的唯一一张表；面板对
- *       它 switch 不写 default，新行写出措辞前编译不过；不要放宽 {@code Entry}。</li>
- *   <li>条目按值比较，行不变时 B 面板才沿用上一帧文字；故 {@link StrengthReadingRow} 只带读数，不带无相等性的
- *       {@code Component}。</li>
- *   <li>{@link #buildPathRows} 分两段：道痕，列每条道[Path]的造诣与整条道痕总数，不按来源分；效果，先具名造诣分区，再流
- *       派增益、减益，各按载体分组并带剩余时间。</li>
- *   <li>⚠ 具名分区（力道造诣等）是标签加其下各行，从不是数值；兽力[Beast Strength]、人力与 {@link BeastStrengthBuff} 在
- *       力道造诣下按力量读数显示，每行至多 {@link #READINGS_PER_ROW} 个，不再列为流派增益。</li>
- *   <li>⚠ {@link ApertureIndex} 的 {@code number} 是显示序号（1 = 第一空窍，2 = 第二空窍），{@code index} 是真实列表位
- *       置：单独的第二空窍显示 2，却在 index 0。</li>
- *   <li>超 300 行有意：面板行 sealed 目录，每行一条记录连同构建方法；增改一种行只在 {@code Entry} 旁加记录。</li>
+ *   <li>统一决定绘制哪些行、以何种顺序排列以及何时显示带「无」的占位标题，避免将占位标题紧挨着真实道痕[Path Marks]数字
+ *       显示。</li>
+ *   <li>{@code Entry} 采用 {@code sealed} 声明且不写 {@code permits}，所有行记录均定义在本文件内；面板渲染对其做穷尽
+ *       {@code switch} 而不设 {@code default} 分支，新增行类型在补齐对应措辞前无法通过编译，因此禁止放宽 {@code Entry}
+ *       的密封范围。</li>
+ *   <li>行记录均按值比较相等性，B 面板据此判断行未变化并复用上一帧缓存文本；因此 {@link StrengthReadingRow} 只保存读数
+ *       记录而不直接携带无值相等性的 {@code Component}。</li>
+ *   <li>{@link #buildPathRows} 按两段组织：流派段列出每条已显示流派的造诣与总道痕（不拆分来源），效果段依次列出具名成就
+ *       分区以及增益、减益分组（按 {@link EffectCarrier} 归类并附剩余倒计时）。</li>
+ *   <li>⚠ 具名成就分区（如力道、宙道、智道造诣标题）仅作分组标签而非数值条目；兽力[Beast Strength]、人力与
+ *       {@link BeastStrengthBuff} 归入力道成就下按力量读数展示，每行至多 {@link #READINGS_PER_ROW} 项，不再重复列入通用
+ *       流派增益。</li>
+ *   <li>⚠ {@link ApertureIndex} 的 {@code number} 是界面展示序号（1 为第一空窍，2 为第二空窍），{@code index} 是存储列
+ *       表下标：若玩家仅拥有第二空窍，其 {@code number} 为 2 而 {@code index} 为 0。</li>
+ *   <li>有意超过 300 行：本类是 B 面板全部 {@code Entry} 记录及其构建方法的集中目录，增删行类型时只需在 {@code Entry}
+ *       旁同步维护对应记录。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModDisplayText
- * @since 1.0.0
  */
 
 public final class InfoModel {
@@ -157,8 +155,8 @@ public final class InfoModel {
     public record TimeRateUpRow(int rate) implements Entry {}
 
     /**
-     * 可发挥力量点[Strength Points] / 持有力量点（兽力[Beast Strength]与人力合计）；旁列当前承受力、其所基的常态承受
-     * 力、超出的肉体过载（无则 0）。
+     * 可发挥力量点[Strength Points] / 持有力量点（兽力[Beast Strength]与人力合计），旁列当前承受力、常态承受力基准以及
+     * 超出的肉体过载点（无过载时为 0）。
      */
     public record CapacityRow(int usable, int total, int capacity, int normalCapacity, int overload)
             implements Entry {}

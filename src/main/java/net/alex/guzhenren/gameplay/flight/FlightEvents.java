@@ -8,14 +8,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 飞行的事件处理器，规则在两个服务。每个服务端玩家 tick 末先跑 {@link FlightService#tick} 再跑
- * {@link SecondStageService#tick}，蛊飞行先结算，二段飞行[Second-Stage Flight]才看到本 tick 的飞行；登出清撞人冷却
- * （{@link SecondStageService#forget}）。
- *
- * @author Alex
- * @version 1.0.0
- * @see FlightService
- * @since 1.0.0
+ * 飞行与二段飞行[Second-Stage Flight]的事件转发入口：每个服务端玩家 tick 末尾先执行 {@link FlightService#tick} 结算蛊虫
+ * 飞行授权，再执行 {@link SecondStageService#tick} 推进二段飞行（确保二段飞行读到本 tick 最新的飞行状态）；玩家登出时调
+ * {@link SecondStageService#forget} 清理撞击冷却表。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

@@ -12,22 +12,20 @@ import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * B 面板空窍[Aperture]页的空窍图：窍内暗底、海体、窗框三层同原点叠画。
+ * B 面板空窍页签中的空窍动态插图：按同一原点依次叠画窍内暗底、真元海体与窗框三层精灵图。
  * <ul>
- *   <li>精灵图在 {@code textures/gui/sprites/aperture/}，由 Pixel Art 会话导出：{@code back}、{@code front} 各 32×32
- *       不染色；五张海体 256×128 = 横 8 帧 × 纵 4 明暗层（深、中、浅、浪尖），纯白平涂、层间不重叠，逐层乘色后拼成整片海。</li>
- *   <li>水位画死在海体图里，按资质选图（十绝 100、甲 90、乙 70、丙 50、丁 30），不随当前真元升降（Alex 定）。</li>
- *   <li>海色 20 种，色号 = (转 − 1) × 4 + 阶（初 0、中 1、高 2、巅峰 3），每色四阶对应海体四层；只此一处用，留本地不进
- *       {@code ModPalette}。未开窍、六转及以上只画暗底和窗框。</li>
- *   <li>8 帧循环、每帧 150 ms，按系统时钟走，不随服务端掉刻卡顿。</li>
- *   <li>按整数倍绘制，至少 {@link #MIN_SCALE} 倍（1 倍时浪只剩 1 像素起伏，Alex 定可比面板文字栏下限更优先），
- *       至多 {@link #MAX_SCALE} 倍。</li>
+ *   <li>精灵图位于 {@code textures/gui/sprites/aperture/}，由 Pixel Art 会话导出：{@code back} 与 {@code front} 各
+ *       为 32×32 不染色图，五张海体图为 256×128（横向 8 帧 × 纵向 4 明暗层：深、中、浅、浪尖），纯白平涂且层间互不
+ *       重叠，逐层乘以对应海色后拼成整片真元海。</li>
+ *   <li>水位高度直接固定在海体贴图中并按资质[Aptitude]档位选图（十绝 100、甲 90、乙 70、丙 50、丁 30），不随当前
+ *       剩余真元升降（由 Alex 选定）。</li>
+ *   <li>真元海共有 20 种境界配色，色号按 {@code (转 - 1) × 4 + 阶} 计算（初 0、中 1、高 2、巅峰 3），每种配色的四
+ *       阶亮度分别乘到海体四个明暗层上；该配色表仅在本类使用，保留在本地而不放入 {@code ModPalette}；未开窍或六转
+ *       及以上仅绘制暗底与窗框。</li>
+ *   <li>海浪动画以 8 帧循环播放、每帧 150 ms，直接读取系统时钟推进，不随服务端掉刻卡顿。</li>
+ *   <li>绘制缩放采用整数倍率，受上下限 {@link #MIN_SCALE} 与 {@link #MAX_SCALE} 约束（1 倍下浪高仅剩 1 像素起伏，
+ *       由 Alex 选定至少 2 倍的优先级高于面板文字栏最小宽度）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerInfoScreen
- * @since 1.0.0
  */
 
 final class ApertureFigure {

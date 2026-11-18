@@ -16,25 +16,19 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 宝黄天[Treasure Yellow Heaven]的服务端权威规则。
+ * 宝黄天[Treasure Yellow Heaven]维度的交互限制与安全守卫服务。
  * <ul>
- *   <li>只许移动、飞行、聊天、退出命令，其余交互一律拒；虚空伤害也拒，交 {@link #tick} 拉回出生点。</li>
- *   <li>破坏、放置、使用、攻击两端同判：客户端知道所在维度，拒绝即不预测（无幽灵方块、挥手、使用动画），仍发包，服务端
- *       为准；丢弃与伤害只在服务端判，丢弃是唯一提示玩家的检查，只跑一次。</li>
- *   <li>{@link #tick}：任何途径离开（退出、原版 {@code /tp}、他模组传送、死后重生）都撤飞行授权，除非站在另一个给飞行的
- *       锚定维度，并把 {@link TossStashData} 掉在脚下。</li>
- *   <li>唯一可右键的实体是 {@link SoulTraderEntity}，此天本为交易；攻击它照拒；{@link #isUseRefused} 点方块或手持物品时
- *       传 {@code null}。</li>
- *   <li>⚠ 不发生丢弃：{@link #stowOrStash} 经 {@link TossedItems#putBack}（从不掉落）放回，放不下的暂存到离开并提示背包
- *       已满；物品实体从不进入，无悬浮或消失的掉落物。</li>
- *   <li>{@link #stowOrStash}、{@link #dropStash} 不查维度：GameTest 世界没有真宝黄天。</li>
+ *   <li>维度内仅允许移动、飞行、聊天、与 {@link SoulTraderEntity} 右键交易以及执行退出指令；其余方块破坏、放置、物品使
+ *       用、攻击（含攻击交易商）以及玩家掉入虚空伤害一律拒绝，跌出最低高度时由 {@link #tick} 拉回出生点。</li>
+ *   <li>破坏、放置、右键使用与攻击在客户端和服务端双端同时拦截：客户端直接取消本地预测（避免出现幽灵方块、挥手或使用动
+ *       画），服务端作最终权威裁定；丢弃物品与伤害拦截仅在服务端执行，其中丢弃拦截是唯一向动作栏发送提示的检查。</li>
+ *   <li>{@link #tick}：当玩家以任何途径离开宝黄天（退出指令、{@code /tp}、跨模组传送或死亡重生）且未进入另一个授予飞行
+ *       的锚定维度时，立即撤销维度飞行授权并将 {@link TossStashData} 中暂存的物品吐在脚下。</li>
+ *   <li>⚠ 宝黄天内绝不生成掉落物实体：{@link #stowOrStash} 通过 {@link TossedItems#putBack} 将丢弃的物品直接塞回背包，
+ *       塞不下的部分存入 {@link TossStashData} 并提示背包已满，防止出现悬浮或消失的掉落物。</li>
+ *   <li>{@link #stowOrStash} 与 {@link #dropStash} 本身不校验当前维度，以便在无宝黄天维度的 GameTest 环境中直接测
+ *       试。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TreasureYellowHeavenGuardEvents
- * @see net.alex.guzhenren.gameplay.dimension.DimensionTravelService
- * @since 1.0.0
  */
 
 public final class TreasureYellowHeavenGuard {

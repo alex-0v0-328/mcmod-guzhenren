@@ -20,27 +20,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 十绝体空窍[Aperture]压力爆炸的方块部分：单坑地形任务。
+ * 十绝体[Ten Extreme Physiques]空窍压力爆炸的单坑地形挖掘任务。
  * <ul>
- *   <li>分多 tick 挖，共用每 tick 预算（{@link AperturePressureExplosions}）；最大爆炸（大力真武体，半径 112，
- *       约 590 万位置）几十秒成形不掉 TPS；实体伤害、自伤、压力清零在第 0 tick 由 {@code detonate} 结算。</li>
- *   <li>触及区块全载才开挖，挖完前保持加载（{@link CraterChunkTicket}）。</li>
- *   <li>已清方块比最小列半径（{@code CraterShape.getMinColumnRadius}）靠内一整格即免边缘判定：邻居不会在球外。</li>
- *   <li>内部静默清除（仅 {@code UPDATE_CLIENTS}，无掉落）；边缘延后补一次邻居更新，免沙、流体、火把悬空。</li>
- *   <li>清坑保留不可破坏方块（基岩、屏障、传送门框架），世界底部爆炸不穿虚空；⚠ 坑底转换只查已加载、非空气，不查
- *       硬度。</li>
- *   <li>坑底：北冥冰魄体分层冰，炎煌雷泽体岩浆块与熔岩，万金妙华体零散金；北冥冰魄体另把雪化环带地表土变雪。</li>
- *   <li>{@link #save} 把全部状态存进本维度 {@link AperturePressureExplosions} 以续挖；边缘列表须整存：
- *       边缘方块是清掉的还是原为空气或不可破坏，事后看世界分不出。</li>
- *   <li>球壳由内向外推，每列半径带扰动（{@link CraterShape}）；{@link #load} 重建而非读取进行中的球壳：它只依中心、
- *       半径、种子、建筑高度，{@code shellDistance} 已计当前层，续挖如初。</li>
- *   <li>有意超 300 行：存档读写四阶段的每个游标，须与之相邻。</li>
+ *   <li>在共享的每 tick 时间预算（{@link AperturePressureExplosions}）内分多 tick 推进，使最大半径 112（大力真武体，约
+ *       590 万个方块位置）的巨坑在数十秒内平滑成形而不卡顿 TPS；实体伤害、自爆致死与压力清零已在第 0 tick 由
+ *       {@link net.alex.guzhenren.gameplay.aperture.AperturePressureService#detonate} 结算。</li>
+ *   <li>触及区块全部加载就绪后才开始挖掘，并在挖完前通过 {@link CraterChunkTicket} 保持加载。</li>
+ *   <li>由内向外按立方球壳（{@code fillShell}）逐层清除方块：距离中心小于最小列半径减一格（{@code innerSquared}）的内部
+ *       方块免做六向邻居检查；内部清除仅发 {@code UPDATE_CLIENTS} 而不触发掉落与方块更新，球壳外缘方块记入 {@code rim}
+ *       留到最后阶段统一补发邻居更新，防止沙砾、流体或火把悬空。</li>
+ *   <li>清坑阶段跳过不可破坏方块（基岩、屏障、传送门框架等），避免炸穿世界底板；坑底铺设与环带覆雪（北冥冰魄体铺冰与雪
+ *       环、炎煌雷泽体铺岩浆块与熔岩、万金妙华体散布金矿与金块）按 {@link CraterShape} 规则执行。</li>
+ *   <li>⚠ 坑底铺设（{@code tickFloor}）只检查目标格已加载且非空气，不检查原方块硬度。</li>
+ *   <li>{@link #save} 与 {@link #load} 将四个阶段及游标持久化到 {@link AperturePressureExplosions}：当前球壳仅依赖中
+ *       心、半径、种子与建筑高度，重载时直接按 {@code shellDistance} 重建；而边缘列表 {@code rim} 无法从已成空气的世界
+ *       状态逆推，必须完整序列化落盘。</li>
+ *   <li>四个阶段的步进与游标序列化紧密耦合，因此保持在同一类中（超 300 行）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.aperture.AperturePressureService#detonate(net.minecraft.server.level.ServerPlayer)
- * @since 1.0.0
  */
 
 public final class AperturePressureExplosionTask {

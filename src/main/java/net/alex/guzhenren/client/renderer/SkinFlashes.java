@@ -9,19 +9,14 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 本客户端正在绘制的皮肤闪现。
- *
+ * 本客户端正在播放的皮肤闪现状态表。
  * <ul>
- *   <li>每实体一个，由 {@link SkinFlashPayload} 发起，仅 {@link SkinFlashLayer} 读取；{@link Flash} 存所穿的皮与开始时
- *       的客户端游戏 tick；染色按皮族：玉皮翠绿，白玉皮暖白，铜皮铜色，铁皮钢灰，原生皮不闪现。</li>
- *   <li>alpha 从 {@link #START_ALPHA} 线性降至 0，{@link #FADE_TICKS}（1 秒）内淡尽；淡尽者在下次读取或客户端 tick 的
- *       {@link #prune} 移除，离开世界清空整表。</li>
+ *   <li>每个实体至多保留一条闪现记录：由 {@link SkinFlashPayload} 触发写入，仅由 {@link SkinFlashLayer} 读取；
+ *       {@link Flash} 保存所穿皮肤类型与开始时的客户端游戏 tick，染色按皮族区分（玉皮呈翠绿、白玉皮呈暖白、铜皮呈铜
+ *       色、铁皮呈钢灰，原生皮肤不触发闪现）。</li>
+ *   <li>Alpha 在 {@link #FADE_TICKS}（1 秒）内从 {@link #START_ALPHA} 线性衰减至 0；已淡尽的记录在下次读取或客户端
+ *       tick 的 {@link #prune} 清理，离开世界时清空整张状态表。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SkinFlashLayer
- * @since 1.0.0
  */
 
 public final class SkinFlashes {

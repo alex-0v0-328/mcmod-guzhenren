@@ -25,23 +25,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 本模组存于玩家的全部数据，经一个对象读写。
+ * 玩家附件数据的统一读写门面：聚合本模组挂载在 {@link Player} 上的全部持久化、同步与内存状态。
  * <ul>
- *   <li>{@link #get} 是两端唯一入口，setter 返回是否改变；⚠ 唯一碰附件 API 的类（NeoForge 附件的视图），服务只用这些方
- *       法。</li>
- *   <li>存档 16 个；二段飞行[Second-Stage Flight]标记、坠击起点高度、可移动蓄力标记同步不存档；内存 3 个：
- *       真元[Essence]余数（{@link #getEssenceCarry}）、二段油门（{@link #getSecondStageThrottle}）两端各推，护盾无敌窗口
- *       （{@link #getShieldWindow}）仅服务端。</li>
- *   <li>变更即同步 13 个：8 个经 {@code OWNER_ONLY} 只给本人（{@code ModAttachments} 的 {@code registerSynced}）；
- *       二段标记、坠击起点高度、可移动蓄力标记、温养空窍[Nourish Aperture]进程、开窍[Awakening]仪式 5 个同步所有可见
- *       客户端。</li>
- *   <li>⚠ 5 个值底层是附件有无：二段标记、可移动蓄力标记有即开，坠击起点高度仅坠击中非 {@code null}，三者重登或死亡即丢；
- *       开窍仪式仅仪式中非 {@code null}；结转生命值存或无，{@link #takeHealthCarry} 取即清。</li>
+ *   <li>⚠ {@link #get} 是双端访问玩家附件的唯一入口（各 setter 返回值是否发生变更）；全仓仅本类直接调用 NeoForge 的
+ *       {@code getData} / {@code setData} / {@code removeData}，业务服务一律经本类方法读写。</li>
+ *   <li>共管理 16 个存档附件；二段飞行[Second-Stage Flight]标记、坠击起点高度与移动蓄力标记仅网络同步而不落盘；另有 3
+ *       个纯内存状态：真元回复余数（{@link #getEssenceCarry}）与二段飞行油门（{@link #getSecondStageThrottle}）由双端各
+ *       自维护，护盾无敌帧窗口（{@link #getShieldWindow}）仅在服务端使用。</li>
+ *   <li>变更即自动同步的附件共 13 个：其中 8 个通过 {@code OWNER_ONLY} 仅同步给玩家本人，而二段飞行标记、坠击起点高度、
+ *       移动蓄力标记、温养[Nourish]状态与开窍[Awakening]仪式 5 个附件同步给所有追踪该玩家的客户端以驱动外观与动
+ *       作。</li>
+ *   <li>⚠ 5 个状态以「附件是否存在（{@code hasData}）」编码：二段飞行标记与移动蓄力标记存在即开启，坠击起点高度仅在坠击
+ *       期间非 {@code null}（三者重登或死亡即清除）；开窍仪式仅在仪式期间非 {@code null}；登出结转生命值通过
+ *       {@link #takeHealthCarry} 取出时一并移除附件。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class PlayerData {
@@ -176,12 +173,12 @@ public final class PlayerData {
 
     public void setHealthCarry(float value) { owner.setData(ModAttachments.HEALTH_CARRY, value); }
 
-    /** 取出并清除结转生命值；无则 {@code null}。 */
+    /** 取出并清除登出结转生命值，未设置时返回 {@code null}。 */
     public @Nullable Float takeHealthCarry() { return owner.removeData(ModAttachments.HEALTH_CARRY); }
 
     public void resetEssenceCarry() { owner.removeData(ModAttachments.ESSENCE_CARRY); }
 
-    /** 死亡继承值全部复位并同步；未开 keepInventory 的死亡重置。 */
+    /** 将所有死亡继承类附件重置为默认值并同步（供未开启 {@code keepInventory} 的死亡或完全重置调用）。 */
     public void resetCarriedOnDeath() {
         for (AttachmentType<?> type : ModAttachments.getInherited()) owner.removeData(type);
     }
@@ -190,7 +187,6 @@ public final class PlayerData {
         return owner.hasData(type) ? owner.getData(type) : null;
     }
 
-    /** 存入 {@code value}，{@code null} 则移除附件；有变返回 true。 */
     private <T> boolean setOrRemove(Supplier<AttachmentType<T>> type, @Nullable T value) {
         if (Objects.equals(value, find(type))) return false;
         if (value == null) {

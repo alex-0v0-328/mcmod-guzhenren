@@ -29,44 +29,41 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 持续照顾型蛊[Tended Gu]：需炼化、进食之蛊的生命周期宿主。
+ * 持续照顾型蛊[Tended Gu]基类：需要经过炼化、日常进食与照料维护的凡蛊[Mortal Gu]生命周期宿主。
  * <ul>
- *   <li>野生、炼化、进食与催动共用一条状态 record，故堆叠上限 1（{@code Item.Properties} 归宿主，不归注册）。</li>
- *   <li>{@link GuBehavior} 应答 {@code checkEffect} / {@code applyEffect} 及放宽的限制；自有生命周期的子类覆写。</li>
- *   <li>本类管蓄力阶梯、灌注[Channel]、扣费；饱食[Hunger]与进食归 {@link GuHunger}，生命 {@link GuHealth}，冷却戳
- *       {@link GuCooldowns}，日切 {@link GuUpkeep}，定额 {@link GuChanneling}，长冷却 {@link GuRefineCooldown}。</li>
- *   <li>⚠ 已炼化的蛊只经 {@link #feed} 自喂（规则见 {@link GuHunger}）：催动前，及每次扣量后补满。扣量来自催动
- *       （{@link #drive}）、搭档（{@link #billAsPartner}）、灌注每步、日时钟（{@link GuUpkeep}，
- *       随身或在空窍[Aperture]，扣前也进食）、小光蛊[Little Light Gu]开启；别处不进食。</li>
- *   <li>食物不走点击路由，无喂食手势；在饱食下限的灌注类蛊仅当背包无其食物才被拒（{@link GuHunger#carriesFood}）。</li>
- *   <li>⚠ 创造模式忽略下限：条仍降到 0 作展示，蛊照常灌注，因创造下强行催动从不力竭。</li>
- *   <li>⚠ 进食后付不起饱食（{@code GuHunger.isShortOfUse}，含倍数）须经 {@link GuForcedUse}
- *       确认才强行催动[Forced Use]：首次 {@code drive} 红字警告、不付代价、返回 {@code WARNED}（{@code spend}
- *       据此不加冷却）；五秒内再催即强行（{@code trySpendAndApply}），蛊在效果后力竭，{@code drive} 返回的 1
- *       即此死而非产出；行为可推到该轮末（{@code GuBehavior.defersForcedDeath}）。</li>
- *   <li>本命蛊只拒不强行；创造模式不警告不死亡；{@link #tryAutoUse} 静默跳过不足的催动。</li>
- *   <li>{@link #billAsPartner} 是后援蛊（功倍蛊[Amplify Effect Gu]、杀招[Killing Move]搭档）唯一扣费：付真元[Essence]、
- *       前后进食；空条同样死，死在所援催动后。</li>
- *   <li>⚠ 真元都经 {@code PrimevalStoneSupply.pay} 支出，每步先补到至少 {@code GuChanneling.ESSENCE_FLOOR}
- *       （{@code topUpFor}）再定量；灌注步先进食以抬高封顶。炼化分期付款，换长久羁绊。</li>
- *   <li>{@link #isRefining}、{@link #isChanneling} 读使用中物品，服务端与看得见该玩家的客户端皆知其是否按住炼化或灌注；
- *       Epic Fight 桥接据此选炼化按住与灌注坐姿。</li>
- *   <li>⚠ {@link #canBeVital}：催动即消耗的蛊不可作本命，否则首点即失。</li>
- *   <li>{@code announceDeath} 是唯一死亡漏斗（{@link #starve}、{@link #exhaust}、{@link #ruin}），也是
- *       {@link VitalGuLostEvent} 唯一发布方；新死法须经它。</li>
- *   <li>有意超 300 行：余为原版 {@code Item} 覆写与行为钩子；灌注即本物品的 {@code onUseTick}，驱动进食、付费与效果，
- *       {@code GuChanneling} 只供数值，持有不了它。</li>
+ *   <li>野生、炼化、进食与催动状态共用同一份物品栈数据组件，因此堆叠上限固定为 1（{@code Item.Properties} 由本宿主统
+ *       一设定，不交由注册处决定）。</li>
+ *   <li>行为模块 {@link GuBehavior} 响应 {@code checkEffect}、{@code applyEffect} 与各类放宽限制，具备独立生命周期的特
+ *       殊蛊通过子类覆写扩展。</li>
+ *   <li>本类负责蓄力阶梯、灌注[Channel]与催动扣费；饱食[Hunger]与进食归 {@link GuHunger}，生命归 {@link GuHealth}，长
+ *       冷却时间戳归 {@link GuCooldowns}，跨日维持归 {@link GuUpkeep}，灌注定额归 {@link GuChanneling}，长冷却门控归
+ *       {@link GuRefineCooldown}。</li>
+ *   <li>⚠ 已炼化的蛊仅通过 {@link #feed} 自动取食（规则见 {@link GuHunger}）：仅在催动前与每次扣减饱食后触发；扣减来
+ *       源包括主动催动（{@link #drive}）、后援搭档扣费（{@link #billAsPartner}）、灌注每步、跨日心跳（
+ *       {@link GuUpkeep}，涵盖随身与空窍内蛊虫且扣前也会进食）以及小光蛊[Little Light Gu]开启，其余场景均不进食。</li>
+ *   <li>食物不走右键喂食交互，也没有单独的喂食手势；处于饱食下限的灌注类蛊仅在玩家背包完全没有对应食物时才会被拒绝继续
+ *       灌注（{@link GuHunger#carriesFood}）。</li>
+ *   <li>⚠ 创造模式下忽略饱食下限：饱食条仍会降至 0 用于界面展示，但蛊虫照常灌注，因为创造模式下强行催动不会导致力竭死
+ *       亡。</li>
+ *   <li>⚠ 进食后仍付不起饱食（{@code GuHunger.isShortOfUse}，含增幅倍数）的催动须经 {@link GuForcedUse} 二次确认才允
+ *       许强行催动[Forced Use]：首次 {@code drive} 弹出红字警告且不扣费，并返回 {@code WARNED}（{@code spend} 据此跳过
+ *       冷却）；五秒内再次催动则执行 {@code trySpendAndApply} 并在效果后使蛊力竭死亡，此时 {@code drive} 返回 1 表示力
+ *       竭耗尽而非正常消耗，部分行为可通过 {@code GuBehavior.defersForcedDeath} 将死亡延迟到该轮结束。</li>
+ *   <li>本命蛊[Vital Gu]只拒绝而绝不强行催动，创造模式不警告也不死亡，{@link #tryAutoUse} 则静默跳过饱食不足的催
+ *       动。</li>
+ *   <li>{@link #billAsPartner} 是后援蛊（功倍蛊[Amplify Effect Gu]与杀招[Killing Move]搭档）的唯一扣费入口：扣除真元
+ *       并在前后自动进食；若扣量后饱食归零同样触发力竭死亡，且延后至所支援的催动结算之后。</li>
+ *   <li>⚠ 所有真元支出均经 {@code PrimevalStoneSupply.pay} 结算，每步灌注先补足至至少
+ *       {@code GuChanneling.ESSENCE_FLOOR} （{@code topUpFor}）再做定量；灌注步会先进食以抬高饱食折算上限，炼化支持分期
+ *       投入真元换取长期持有。</li>
+ *   <li>{@link #isRefining} 与 {@link #isChanneling} 读取实体正在使用的物品栈，使服务端与可见范围内的客户端都能判断玩家
+ *       是否正在按住炼化或灌注，供 Epic Fight 桥接切换对应动作姿态。</li>
+ *   <li>⚠ {@link #canBeVital} 负责拦截催动即消失的一次性蛊成为本命蛊，防止玩家首次点击即失去本命蛊并受反噬。</li>
+ *   <li>{@code announceDeath} 是全部死因（{@link #starve}、{@link #exhaust}、{@link #ruin}）的唯一汇流点，也是
+ *       {@link VitalGuLostEvent} 的唯一发布方；新增死因必须经由此处统一收口。</li>
+ *   <li>本文件有意超过 300 行：除上述规则外余下为原版 {@code Item} 覆写与行为钩子；灌注本身即本类的 {@code onUseTick}，
+ *       直接驱动进食、付费与效果，而 {@code GuChanneling} 仅做纯数值定量且不持有物品逻辑。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuProperties
- * @see GuBehavior
- * @see GuHunger
- * @see GuChanneling
- * @see GuRefineCooldown
- * @see RefinedGuState
- * @since 1.0.0
  */
 
 public class TendedGuItem extends MortalGuItem {

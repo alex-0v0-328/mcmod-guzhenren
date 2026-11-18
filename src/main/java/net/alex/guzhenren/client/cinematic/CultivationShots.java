@@ -4,24 +4,19 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 温养[Nourish]运镜的机位几何与时间曲线；纯函数，{@link CultivationCamera} 每帧取用。
- *
+ * 温养[Nourish]运镜的机位几何与时间曲线计算器：全为纯函数，供 {@link CultivationCamera} 每帧取用。
  * <ul>
- *   <li>{@link Shot} 按声明顺序循环（环绕、远眺、侧推、仰望、天顶），一轮 56 秒；每个机位给出镜头位置与注视点
- *       （{@link Pose}），朝向由两点算出（{@link #getYaw}、{@link #getPitch}，同原版：偏航 0 朝 +Z、90 朝 -X，俯仰正值
- *       朝下）。</li>
- *   <li>锚点是盘坐玩家的脚底，基准朝向是开始温养时的偏航；坐姿只降动画高度，故头、胸高度取
- *       {@link #HEAD_HEIGHT}、{@link #CHEST_HEIGHT}，不读碰撞箱的站立视线高度。</li>
- *   <li>远眺朝 {@link #pickVista} 选出的方向：{@link #VISTA_DIRECTIONS} 向中可视距离最远、且不短于
- *       {@link #VISTA_MIN_REACH} 格；镜头在人身后偏侧，人落在画面下三分之一，远景居中。</li>
- *   <li>切镜前后各 {@link #FADE_TICKS} tick 淡入黑屏（{@link #getFade}）；首个机位不淡入，由进出过渡
- *       （{@link #getBlend}，{@link #BLEND_TICKS}）接手，黑边滑入滑出用 {@link #getBars}（{@link #BAR_TICKS}）。</li>
+ *   <li>{@link Shot} 按声明顺序循环（环绕、远眺、侧推、仰望、天顶），完整一轮耗时 56 秒；每个机位输出镜头位置与注视点（
+ *       {@link Pose}），朝向角由两点算出（{@link #getYaw} 与 {@link #getPitch} 沿用原版约定：偏航 0 朝 +Z、90 朝 -X，俯
+ *       仰正值朝下）。</li>
+ *   <li>机位锚点取盘坐玩家的脚底坐标，基准朝向取开始温养时的偏航角；盘坐姿态仅改变动画高度而非碰撞箱，因此头、胸高度固
+ *       定取 {@link #HEAD_HEIGHT} 与 {@link #CHEST_HEIGHT}，不读取碰撞箱的站立视线高度。</li>
+ *   <li>远眺朝 {@link #pickVista} 选定的方向展开：在 {@link #VISTA_DIRECTIONS} 个候选中挑选可视距离最远且不短于
+ *       {@link #VISTA_MIN_REACH} 格的方向，将镜头置于玩家身后偏侧使人像落在画面下三分之一、远景居于中央。</li>
+ *   <li>切镜前后各用 {@link #FADE_TICKS} tick 淡入黑屏（{@link #getFade}）；首个机位不做切镜淡入，而是由进出过渡（
+ *       {@link #getBlend}，时长 {@link #BLEND_TICKS}）接管，上下黑边滑入滑出进度由 {@link #getBars}（时长
+ *       {@link #BAR_TICKS}）控制。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CultivationCamera
- * @since 1.0.0
  */
 
 final class CultivationShots {

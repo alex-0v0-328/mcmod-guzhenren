@@ -7,13 +7,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * 自力更生蛊[Self Reliance Gu]回复的 payload：发起蛊的级数，兼作图标效果等级。旧存档另带的功倍蛊[Amplify Effect Gu]
- * 倍数由编解码器忽略。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior
- * @since 1.0.0
+ * 自力更生蛊[Self Reliance Gu]持续恢复流派效果的 {@code payload} 记录：保存触发该效果的蛊虫阶数（{@code grade}，兼作状
+ * 态栏投影图标的放大器等级；旧存档残留的功倍蛊[Amplify Effect Gu]倍率字段在反序列化时自动忽略）。
  */
 
 public record SelfRelianceHeal(int grade) {

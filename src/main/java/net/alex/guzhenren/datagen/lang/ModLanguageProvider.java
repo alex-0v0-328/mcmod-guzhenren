@@ -47,25 +47,18 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 三种语言的全部字符串，一张对齐表。
- *
+ * 主模组英、简、繁三语翻译表的统一数据生成器。
  * <ul>
- *   <li>每行一个键、英文、简中；同一 provider 按 {@link Language} 各跑一次、只写自己那列，不会有语言缺键。</li>
- *   <li>⚠ 两种写法都权威，互不为译文；由一边推另一边，名字会悄悄变成从未有过的意思。</li>
- *   <li>方块、效果、实体、枚举常量经注册对象或常量添加，不写裸键、改名无悬空键；界面、指令、消息无对象，按键加。</li>
- *   <li>物品名字在 {@link ItemRegistrar} 注册链；{@link #addDeclaredItemKeys} 经同一列开关写到其 description id，繁体转
- *       换与重复键检查照样成立。</li>
- *   <li>BlockItem 与方块共用 description id：元泉[Spirit Spring]注册链一次命名方块、BlockItem、流体类型，钢块命名方块与
- *       BlockItem；仅无 BlockItem 的方块在 {@link #addItemKeys} 留 {@code addBlock} 行，纯水那行兼命名其流体类型。</li>
- *   <li>{@code zh_tw} 由简体列经 {@link TraditionalGlyphs} 转换，遇未知字形抛异常，{@code runData} 失败而不发布简体字；
- *       仅措辞不同（信息、資訊）才手写第四列繁体，只差字形的进字形表，一处改处处生效。</li>
- *   <li>值列按 {@code add*()} 方法对齐，过长条目两种写法折行；超 300 行、分区超 40 行有意：数据表一行一个字符串。</li>
+ *   <li>每种 {@link Language} 各自实例化运行一次并输出对应语言列，确保三语翻译键集合严格对齐。</li>
+ *   <li>方块、状态效果、实体与领域枚举（{@link NamedEnum}）均通过注册对象或枚举常量生成翻译键，避免改名后残留悬空键；物
+ *       品译名由 {@link #addDeclaredItemKeys} 从 {@link ItemRegistrar} 注册链统一提取，无对应方块物品的纯方块则通过
+ *       {@link #addBlock} 补充（元泉[Spirit Spring]与纯水的方块翻译键同时供同名流体类型复用）。</li>
+ *   <li>繁体中文默认由简体列经 {@link TraditionalGlyphs#convert} 自动转换字形，仅在两岸用词不同（如「服务器」与「伺服
+ *       器」）时才显式传入第四列繁体文本。</li>
+ *   <li>有意超过 300 行：全模组翻译词条按功能分区集中排布在一张对齐表中，一行对应一个翻译键。</li>
+ *   <li>⚠ 英文与简体中文均为手写权威定稿，互不为机翻；若简体列包含 {@link TraditionalGlyphs} 未收录的新汉字，会在
+ *       {@code runData} 阶段直接抛错失败。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TraditionalGlyphs
- * @since 1.0.0
  */
 
 public class ModLanguageProvider extends LanguageProvider {

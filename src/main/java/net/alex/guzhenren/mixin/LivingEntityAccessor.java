@@ -6,13 +6,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 /**
- * {@code LivingEntity} 上 {@link LastHurtView} 的实现：{@code lastHurt} 字段访问器。
- * ⚠ 不用事件或 API：{@code lastHurt} 受保护，无 NeoForge 事件暴露（{@code DamageContainer} 只带减伤）；访问转换器也行，
- * 但须启用 {@code build.gradle} 里注释掉的 {@code accessTransformers} 行，访问器使 {@link LastHurtView} 为唯一接缝。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * {@link LivingEntity} 上 {@link LastHurtView} 的受保护字段 {@code lastHurt} 访问器，作为读取最近一次受伤基准值的唯一接
+ * 缝。
+ * <ul>
+ *   <li>⚠ 不使用事件或 API：{@code lastHurt} 为受保护字段且 NeoForge 事件未暴露该原始字段（{@code DamageContainer} 仅包
+ *       含减伤信息）；虽可改用访问转换器，但需开启 {@code build.gradle} 中已注释的配置，使用访问器更有利于把边界收口在
+ *       {@link LastHurtView}。</li>
+ * </ul>
  */
 
 @Mixin(LivingEntity.class)

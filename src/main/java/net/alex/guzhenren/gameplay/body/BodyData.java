@@ -13,24 +13,25 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身状态，附件 {@code body_data}：累积体质、种族、筋骨皮肉、肢体与七窍（{@link Anatomy}）、年龄、寿元。
+ * 玩家肉身状态附件（键 {@code body_data}）：承载累积体质、十绝体[Ten Extreme Physiques]、种族、筋骨皮肉档位、肢体与七窍
+ * （{@link Anatomy}）以及年龄与寿元。
  * <ul>
- *   <li>仅 {@code BodyService} 写；具体十绝体存此，空窍[Aperture]只存其基础真元[Essence]。</li>
- *   <li>⚠ 15 个组件手写 {@code encode}/{@code decode}，两者顺序须严格一致。</li>
- *   <li>⚠ 时间锚点默认 {@code UNTRACKED}（-1），不用 {@code 0}：0 是真实游戏时间。</li>
- *   <li>⚠ 调用方一律按年；仅本文件知细分单位（parts）。</li>
- *   <li>僵尸与临时僵尸化互斥，十绝体可与任一共存；构造器遇僵尸丢临时僵尸化：{@link #with with(ZOMBIE)} 无需先移除，
- *       {@code with(TEMP_ZOMBIE)} 须先 {@code without(ZOMBIE)}；两者皆无则清僵尸档位。</li>
- *   <li>皮一格，默认原生，带结束 tick：玉皮穿到 {@code skinEndTick}（{@code SkinService} 心跳查），{@link #withRevived}
- *       随不死形态脱；铜皮、铁皮永久，重生保留。</li>
- *   <li>{@code JADE_SKIN_GU} / {@code WHITE_JADE_GU} 效果只是玉皮投影；筋、骨、肉为三个永久格，默认原生。</li>
- *   <li>{@link #withRevived} 清空肢体与七窍伤势，附加部位保留。</li>
+ *   <li>运行时仅由 {@link BodyService} 写入；具体十绝体枚举存于此处，空窍仅存储代表十绝天资的满值基础真元。</li>
+ *   <li>⚠ 15 个组件使用手写 {@link #encode} 与 {@link #decode} 同步，两者的字段读写顺序必须严格一致。</li>
+ *   <li>⚠ 所有时间戳锚点未启用时统一填 {@link #UNTRACKED}（{@code -1}），切勿用 {@code 0}（{@code 0} 是新世界合法游戏时
+ *       间）。</li>
+ *   <li>⚠ 外部调用方一律以「年」为单位传参，细分的「份」（{@code parts}，每年 {@link #PARTS_PER_YEAR} 份）仅在本类与
+ *       {@link BodyService} 内部换算。</li>
+ *   <li>僵尸（{@link Physique#ZOMBIE}）与临时僵尸化（{@link Physique#TEMP_ZOMBIE}）互斥，十绝体可与任一并存；紧凑构造器
+ *       在同时存在时自动移除 {@code TEMP_ZOMBIE}（因此 {@code with(ZOMBIE)} 无需先手动摘除临时僵尸，而
+ *       {@code with(TEMP_ZOMBIE)} 需先 {@code without(ZOMBIE)}），当两者均无时自动将 {@code zombieTier} 重置为
+ *       {@link #NO_ZOMBIE_TIER}。</li>
+ *   <li>皮肤占一槽，限时皮肤（玉皮、白玉皮）带 {@code skinEndTick} 到期时刻（{@code JADE_SKIN_GU} /
+ *       {@code WHITE_JADE_GU} 药水效果仅作其状态栏图标投影），由 {@link SkinService} 在心跳中检查脱下；铜皮、铁皮及筋、
+ *       骨、肉为永久改造档位，死亡重生后保留。</li>
+ *   <li>{@link #withRevived} 用于复活或脱僵：一并移除僵尸与临时僵尸化、脱下限时皮肤、清空肢体与七窍伤势，但保留永久炼体
+ *       档位与附加部位。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @since 1.0.0
  */
 
 public record BodyData(

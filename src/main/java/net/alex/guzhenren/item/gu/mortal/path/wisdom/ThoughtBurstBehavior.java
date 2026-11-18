@@ -8,15 +8,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 恶念蛊[Malicious Thought Gu]爆发：经 {@link MindService#addThoughts} 即刻灌入一种标签的念头。
+ * 恶念蛊[Malicious Thought Gu]的瞬时灌念行为：催动瞬间通过 {@link MindService#addThoughts} 向玩家脑海一次性灌入定额的指
+ * 定标签念头。
  * <ul>
- *   <li>注册在该蛊 {@link ThoughtBehavior} 前，爆发先于持续效果。</li>
- *   <li>⚠ 五转从空脑海即灌过爆脑线，当场致死；属设计，解法是未实现的念头转化。</li>
+ *   <li>在恶念蛊的行为列表中排在 {@link ThoughtBehavior} 之前，确保瞬时爆发先于持续灌念生效。</li>
+ *   <li>⚠ 五转恶念蛊单次灌入量直接超过空脑海的爆脑上限，催动即当场致死；此为有意设计，须配合后续的念头转化手段化
+ *       解。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public record ThoughtBurstBehavior(long thoughts, ThoughtTag tag) implements GuBehavior {

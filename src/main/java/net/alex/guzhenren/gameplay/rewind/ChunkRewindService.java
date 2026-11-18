@@ -17,25 +17,20 @@ import net.minecraft.world.level.chunk.PalettedContainer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 把地面放回裸地形，供山如故[Mountain As Before Gu]、江如故[River As Before Gu]使用。
+ * 区块地形回溯还原服务：将山如故[Mountain As Before Gu]与江如故[River As Before Gu]作用范围内的地面恢复为初始裸地形。
  * <ul>
- *   <li>{@link #rewindAround} 让 {@link ChunkOriginGenerator} 从种子重生成 {@link #RESTORE_RADIUS} 方阵（5×5，只有地
- *       形），生成完（1–3 秒）后经 {@link #enqueue}、{@link #tickQueue} 每服务端 tick 以临时孪生区块还原一个请求区块
- *       （{@link #restore}）；{@link #getGenerating} 计尚未入队的生成。</li>
- *   <li>逐位置对比原貌（约 98,000 次，几毫秒），只改不同处，{@link #RESTORE_FLAGS} 更新客户端、不更新邻居、不掉落，不引
- *       发连锁；非裸地形的树、建筑、放置方块都消失，容器按原版洒出物品；实体、掉落物、群系不动。</li>
- *   <li>⚠ 不更新邻居：方阵边缘被切的树留外半边连叶；填平坑旁的水静止，直到被更新。</li>
- *   <li>⚠ 队列静态且临时：停服时 {@link #clear} 丢弃剩余（最多 25 区块）、忘掉运行中生成，停服后才完成的生成与上个服务
- *       器遗留的队列项（下个服务器首 tick）都被丢弃；抛异常的生成（损坏的世界生成模组）记日志，不还原。</li>
- *   <li>可变静态 {@code generating}、{@code epoch} 有意全服共享，计唯一运行服务器上的进行中生成；停服时 {@link #clear}
- *       归零并递增纪元，丢弃迟到的完成。</li>
+ *   <li>{@link #rewindAround} 调用 {@link ChunkOriginGenerator} 在后台重生成半径 {@link #RESTORE_RADIUS}（5×5 方阵）的
+ *       初始裸地形；生成完毕（约 1–3 秒）后回到服务端主线程将目标区块加入队列（{@link #enqueue}），由
+ *       {@link #tickQueue} 每服务端 tick 取出 1 个区块执行 {@link #restore} 还原。</li>
+ *   <li>{@link #restore} 逐格比对当前区块与裸地形区块，仅对状态不同的位置以 {@link #RESTORE_FLAGS}（同步客户端、抑制方
+ *       块掉落且不触发邻居形状更新）写入原貌方块：非裸地形的树木、建筑与玩家放置方块均消失（容器按原版移除方块实体逻辑
+ *       洒出内部物品），而生物实体、掉落物与生物群系保持不变。</li>
+ *   <li>⚠ 写入时抑制邻居更新，因此方阵边界被截断的树木外侧半边会保留枝叶，填平坑洞旁的水流也会保持静止直至下次受扰
+ *       动。</li>
+ *   <li>⚠ 待还原队列与计数器（{@code generating}、{@code epoch}）为全服共享的内存静态状态：停服时 {@link #clear} 清空剩
+ *       余队列并递增 {@code epoch} 纪元号，使停服后才完成的后台生成任务自动丢弃；后台生成若因第三方世界生成模组异常失败
+ *       则仅记录错误日志。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ChunkOriginGenerator
- * @see ChunkKind
- * @since 1.0.0
  */
 
 public final class ChunkRewindService {

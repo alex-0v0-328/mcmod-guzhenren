@@ -10,18 +10,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 自定义进度触发器，注册进原版 {@code TRIGGER_TYPES}。
- *
+ * 自定义原版进度触发器注册表（包含 {@link HopeGuUsedTrigger} 与 {@link RankReachedTrigger}），向
+ * {@code BuiltInRegistries.TRIGGER_TYPES} 注册模组条件触发器。
  * <ul>
- *   <li>☠ 只经 {@link #TRIGGERS} 注册：{@code CriteriaTriggers.register(String, ...)} 把裸名归入 {@code minecraft:}；
- *       注册 ID 即触发器名（{@code used_hope_gu}），进度 JSON 按它分派条件。</li>
+ *   <li>⚠ 必须统一经由 {@link #TRIGGERS} 注册：直接调用原版 {@code CriteriaTriggers.register(String, ...)} 会将裸路径名
+ *       归入 {@code minecraft:} 命名空间，而进度 JSON 依赖本模组命名空间下的注册 ID 分派条件。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see HopeGuUsedTrigger
- * @see RankReachedTrigger
- * @since 1.0.0
  */
 
 public final class ModCriteriaTriggers {

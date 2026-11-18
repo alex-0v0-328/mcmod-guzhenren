@@ -7,18 +7,18 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 收回丢弃物品的唯一安全方式，从不掉落。
+ * 拦截丢弃事件并安全收回物品的工具类，保证剩余物品绝不触发二次掉落循环。
  * <ul>
- *   <li>⚠ {@code placeItemBackInInventory} 掉落放不下的部分并再发 {@code ItemTossEvent}：取消丢弃后这样放回，背包满时递
- *       归至服务器崩溃；关界面时光标堆叠或 2x2 合成格回落即可触发。</li>
- *   <li>{@link #putBack}：放入能放下的，返回余下，不动丢出实体；余下另存的调用方总可取消丢弃。</li>
- *   <li>{@link #stow}：余下留在丢出实体上，无重力悬停原处，不落虚空，有空位可拾；返回是否全部放下，仅全放下才可取消丢
- *       弃，因事件已把实体移出世界，余下未放下却取消会删掉它。</li>
+ *   <li>{@link #putBack} 尝试将丢出实体的物品塞回玩家背包并返回未能放入的剩余堆叠（不修改原掉落物实体），供会将剩余物品
+ *       另行存储的调用方无条件取消丢弃事件。</li>
+ *   <li>{@link #stow} 在背包塞满剩余堆叠时将其写回掉落物实体，并设为无重力、零速度原处悬停以防掉入虚空，待玩家腾出空位
+ *       后自动拾取；仅当全部物品均塞入背包时返回 {@code true}。</li>
+ *   <li>⚠ 严禁在 {@code ItemTossEvent} 中调用原版 {@code Inventory#placeItemBackInInventory}：该方法在背包已满时会将放
+ *       不下的部分重新丢出并再次触发 {@code ItemTossEvent}，导致关闭界面归还光标物品或合成格物品时陷入无限递归直至服务
+ *       端崩溃。</li>
+ *   <li>⚠ 调用 {@link #stow} 的事件处理器仅可在其返回 {@code true}（全部塞回背包）时取消 {@code ItemTossEvent}；因为事
+ *       件触发时掉落物实体尚未加入世界，若在存在剩余物品时取消事件会导致剩余物品直接消失。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class TossedItems {

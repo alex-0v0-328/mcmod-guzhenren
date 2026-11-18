@@ -9,18 +9,13 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr path strength}：写身体持有的兽力[Beast Strength]与人力，B 面板读取。
- *
+ * {@code /gzr path strength} 子命令：修改目标玩家肉身持有的兽力[Beast Strength]与人力，结果由 B 面板读取。
  * <ul>
- *   <li>兽力 {@code grant|revoke|clear}；人力 {@code set|add|sub}，读 {@code int} 参数，{@code (int)} 收窄精确。</li>
- *   <li>写入全经 {@link PathStrengthService}，它也是刷新攻击修饰符的唯一入口。</li>
- *   <li>服务因道痕互斥拒绝的 {@code grant} 或人力上升，对该玩家报 {@code FAILED_MARK_INTERFERENCE}，不写入。</li>
+ *   <li>支持兽力的赋予、移除与清空（{@code grant|revoke|clear}）以及人力的增减与设置
+ *       （{@code human <kind> set|add|sub}，读取 {@code int} 参数后安全收窄）。</li>
+ *   <li>所有变更统一经由 {@link PathStrengthService} 写入并同步刷新攻击伤害属性修饰符；若因异道道痕[Path Marks]互斥导致
+ *       赋予兽力或增加人力被服务层拒绝，则向命令源反馈 {@link #FAILED_MARK_INTERFERENCE}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.ModEnumArgument
- * @since 1.0.0
  */
 
 public final class CmdStrength {

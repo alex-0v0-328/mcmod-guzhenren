@@ -96,48 +96,28 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 全部物品，也是蛊数值唯一的真值所在。
- *
- * <p>数值：
+ * 本模组全部物品的 {@code DeferredRegister} 注册表，也是全仓所有蛊虫数值（炼化、催动消耗、饱食上限与冷却）的唯一真值来
+ * 源。
  * <ul>
- *   <li>各注册的 {@link GuProperties} 链或其阶梯下的族助手即真值，别处数字皆副本，不符以此为准；故刻意超 300 行。</li>
- *   <li>真元[Essence]只由转 r 定：炼化 {@value #REFINE_ESSENCE} × 8^(r-1)；催动：连发月刃
- *       {@value #FREQUENT_USE_ESSENCE} × 8^(r-1)，其余付真元的蛊 {@value #INFREQUENT_USE_ESSENCE} × 8^(r-1)。</li>
- *   <li>{@link #createRankedProperties}：按次付费，饱食[Hunger]上限 2^(rank+1) 次 × {@value #HUNGER_PER_USE}，
- *       加不足一次的两天缓冲（每天 {@value #HUNGER_PER_DAY}）。</li>
- *   <li>{@link #createChannelProperties}：灌注类蛊[Channeled Gu]每轮真元力道 {@value #STRENGTH_ROUND_ESSENCE}
- *       × 10^(r-1)、炼体 {@value #TEMPERING_ROUND_ESSENCE} × 10^(r-1)，每 {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1)
- *       计 1 饱食。</li>
- *   <li>灌注上限：一、二转一轮，三转起三轮，加同样缓冲。</li>
- *   <li>月刃蛊隔 {@value #MOON_BLADE_COOLDOWN_TICKS} tick 再发，节奏即月刃本身，非冷却遮罩。</li>
+ *   <li>数值真值规则：各物品注册链的 {@link GuProperties} 或阶梯族辅助方法即为唯一权威数值（其他处副本若不一致以此为
+ *       准，故本类有意超过 300 行）；真元消耗仅随转数 r 缩放，炼化固定为 {@value #REFINE_ESSENCE} × 8^(r-1)，连发月刃催
+ *       动为 {@value #FREQUENT_USE_ESSENCE} × 8^(r-1)，其余付真元蛊为 {@value #INFREQUENT_USE_ESSENCE} × 8^(r-1)。</li>
+ *   <li>饱食上限规则：{@link #createRankedProperties} 按次付费，上限为 2^(rank+1) 次 × {@value #HUNGER_PER_USE} 加上 2
+ *       天缓冲（每天 {@value #HUNGER_PER_DAY}）；{@link #createChannelProperties} 用于灌注类蛊[Channeled Gu]，每轮耗力
+ *       道 {@value #STRENGTH_ROUND_ESSENCE} × 10^(r-1) 或炼体 {@value #TEMPERING_ROUND_ESSENCE} × 10^(r-1)（每
+ *       {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1) 计 1 饱食），一二转按 1 轮、三转起按 3 轮外加同等缓冲计算；月刃蛊
+ *       的 {@value #MOON_BLADE_COOLDOWN_TICKS} 刻间隔为自身连发节奏而非冷却遮罩。</li>
+ *   <li>注册链与命名：每件物品通过 {@link ItemRegistrar} 链依次绑定工厂、英文与简体中文名称、模型、标签与可选创造栏（注
+ *       册顺序即创造栏展示顺序）；{@link #findGuWith} 用于由流派效果反查可产生对应肉身状态的蛊。</li>
+ *   <li>⚠ 蛊虫区段必须严格按 {@link GuPath} 顺序组织（一道一区、道内按分支或蛊族划分），蛊材、书册与图标收尾；物品 ID
+ *       须与 Java 常量名及贴图文件名一致，蛊虫默认带转数后缀（{@code _1} 至 {@code _5}，唯寿蛊[Lifespan Gu]、
+ *       希望蛊[Hope Gu]、舍利蛊[Relics Gu]不带后缀），蛊材用裸 ID 以跨转通用。</li>
+ *   <li>特殊物品映射：{@link #SPIRIT_SPRING} 为元泉[Spirit Spring]的 {@code BlockItem}（与方块共用翻译键并平铺流体静止
+ *       贴图）；{@link #INTIMATE_GRASS_SEEDS} 为 {@link ItemNameBlockItem}（名字归物品，作物方块另有独立键）；
+ *       {@link #BLACK_SOIL_FARMLAND} 仅进创造栏，生存通过腐泥冻土（{@link RottenFrozenMudItem}）右键转化；
+ *       {@link #PURE_WATER_BUCKET} 负责纯水桶交互，{@link #ADVANCEMENT_ICON}（{@link AdvancementIconItem}）为仅供修为进
+ *       度展示数字的虚拟物品。</li>
  * </ul>
- * <p>注册：
- * <ul>
- *   <li>每物品一条 {@link ItemRegistrar} 链：工厂、两个名字、模型形状、标签、可选物品栏，外加 PNG。</li>
- *   <li>族助手以随阶梯变化的数字为参数，如表格行；链按类型、分支、效果、炼化、真元、上限、补食、冷却，一行一调用。</li>
- *   <li>{@link #findGuWith}：经行为反查造出某身体状态的蛊，供其流派效果用。</li>
- *   <li>⚠ 蛊 region 按 {@link GuPath} 顺序，一道一个，道内一分支或一族一个；蛊材、书、图标收尾。</li>
- *   <li>注册顺序即物品栏顺序（{@code ModCreativeTabs} 遍历 {@link #ITEMS}），蛊随所在行移位。</li>
- *   <li>id 同 Java 名与 PNG；蛊 id 与名字带转（{@code primeval_elder_gu_1} 至 {@code primeval_elder_gu_5}、
- *       {@code blood_wight_gu_5}），寿蛊[Lifespan Gu]、希望蛊[Hope Gu]、舍利蛊[Relics Gu]除外；
- *       蛊材用裸 id：跨一至九转，有些不显示转。</li>
- * </ul>
- * <p>特殊物品：
- * <ul>
- *   <li>{@link #SPIRIT_SPRING}：元泉[Spirit Spring]的 {@code BlockItem}，与方块同键，链上名字兼名方块与流体；
- *       图标为流体静止条带（{@code ItemModel.FLUID}），无物品 PNG。</li>
- *   <li>{@link #INTIMATE_GRASS_SEEDS}：知心草种子，{@code ItemNameBlockItem}，右键耕地种下知心草作物；名字归物品，
- *       作物方块另有自己的名字。</li>
- *   <li>{@link #BLACK_SOIL_FARMLAND}：黑土耕地的 {@code BlockItem}，只进创造栏；生存里由腐泥冻土
- *       （{@link RottenFrozenMudItem}）右键耕地得到方块，挖掉掉泥土。</li>
- *   <li>{@link #PURE_WATER_BUCKET}：纯水版水桶，放水源、空桶舀回、发射器倾倒（{@code PureWaterEvents}）。</li>
- *   <li>{@link #ADVANCEMENT_ICON}：非游戏物品，承载修为进度的数字（{@link AdvancementIconItem}）。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuProperties
- * @since 1.0.0
  */
 
 public final class ModItems {

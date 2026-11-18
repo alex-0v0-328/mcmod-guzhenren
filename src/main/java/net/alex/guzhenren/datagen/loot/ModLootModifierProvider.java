@@ -22,16 +22,14 @@ import net.neoforged.neoforge.common.loot.LootTableIdCondition;
 import yesman.epicfight.registry.entries.EpicFightItems;
 
 /**
- * 全局战利品修改器。
- *
+ * 本模组全局战利品修改器（{@link GlobalLootModifierProvider}）数据生成器。
  * <ul>
- *   <li>锄破原版兰花另掉 1 份月兰花瓣：{@code neoforge:add_table} 匹配目标表与工具后掷 {@link Subtables} 小表。</li>
- *   <li>{@code no_skill_books} 经本模组 {@code RemoveItemLootModifier} 从全部战利品去掉 Epic Fight 技能书。</li>
+ *   <li>{@code moon_orchid_petals} 使用 {@link AddTableLootModifier}，在玩家用锄头
+ *       （{@link ModBlockLootProvider#hasHoe}）破坏原版兰花时额外抽取子战利品表 {@link Subtables} 掉落 1 份月兰花
+ *       瓣。</li>
+ *   <li>{@code no_skill_books} 使用 {@link RemoveItemLootModifier} 从各类箱子与战利品表中全局剔除 Epic Fight 技能
+ *       书。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModLootModifierProvider extends GlobalLootModifierProvider {

@@ -10,17 +10,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 带降落歇息的飞行蛊共用的逃跑反应。
+ * 歇息型飞行蛊（{@link RestingFlyingGuEntity}）共用的逃离玩家 AI 目标。
  * <ul>
- *   <li>威胁：6 格内非创造非旁观玩家；远于 10 格止，{@link #canContinueToUse} 每 tick 重查，切创造、旁观或换维度即解
- *       除。</li>
- *   <li>逃跑点用 {@link AirAndWaterRandomPos}，地面版工具在空中找不到点；歇息或降落中先起飞再逃，免卡地面。</li>
- *   <li>无路线、路线朝威胁、无路径或 {@link #tick} 重寻路失败，退避 10～20 tick。</li>
+ *   <li>当 6 格内出现非创造、非旁观模式玩家时触发逃跑，拉开至 10 格外停止；{@link #canContinueToUse} 每 tick 复查，玩家
+ *       切入创造/旁观模式或跨维度时立即解除。</li>
+ *   <li>逃跑采样点使用 {@link AirAndWaterRandomPos}（地面随机采样工具在空中会找不到落点）；若蛊虫正处于歇息或降落阶段，
+ *       启动时先调用 {@link RestingFlyingGuEntity#takeOff()} 起飞再寻路，防止卡在地面。</li>
+ *   <li>未采到点、采样点反而更靠近威胁、寻路不可达或 {@link #tick} 续寻路失败时，随机退避 10～20 tick 再试。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class FleePlayerGoal extends Goal {

@@ -14,18 +14,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 石窍蛊[Stone Aperture Gu]行为：目标空窍[Aperture]升本转巅峰并石化。
+ * 石窍蛊[Stone Aperture Gu]行为：将目标空窍直接推升至本转巅峰并永久石化。
  * <ul>
- *   <li>从此不再温养[Nourish]、不再冲刷窍壁；注册三档；{@link #getStoneTarget} 是单元测试钉住的纯接缝：主空窍 NORMAL
- *       即目标，主空窍死亡或已石化才转给 NORMAL 第二空窍，皆不可用为 {@code NO_TARGET}。</li>
- *   <li>{@link #getTargetOf} 映射至列表实位：独存第二空窍居 0，缺槽按 DEAD；主空窍转数不符不顺延，只因失去才顺延。</li>
- *   <li>门槛拒绝无可用目标、目标转数不符、目标已在巅峰（只换来锁定）；生效委托 {@link ApertureNourishService#petrify}；
- *       {@code StateEffects} 凭此行为按石化转数找蛊。</li>
+ *   <li>石化后的空窍不再需要温养[Nourish]、窍壁也不再受真元冲刷；共注册一至三转三档；{@link #getStoneTarget} 为供单元测
+ *       试直接验证的纯函数：主空窍处于 {@link ApertureStatus#NORMAL} 时固定选主空窍，仅当主空窍已死亡或已石化时才顺延选
+ *       择处于 {@link ApertureStatus#NORMAL} 的第二空窍，两者均不可用时返回 {@link #NO_TARGET}。</li>
+ *   <li>{@link #getTargetOf} 将逻辑目标映射为空窍列表的实际下标（仅存第二空窍时位于下标 0，缺失槽位按死亡处理）；若主空
+ *       窍仍正常但转数与本蛊不符，直接拒绝而不会顺延到第二空窍。</li>
+ *   <li>{@link #checkEffect} 拒绝无可用空窍、目标空窍转数不符或已处于巅峰（避免白白换来石化锁定）；{@link #applyEffect}
+ *       委托 {@link ApertureNourishService#petrify} 执行；{@code StateEffects} 通过检索本行为按石化转数反查对应的石窍
+ *       蛊。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public record PetrifyBehavior() implements GuBehavior {

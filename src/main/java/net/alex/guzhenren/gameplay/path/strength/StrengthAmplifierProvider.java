@@ -5,13 +5,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 运行期间增幅肉体力量的流派效果 payload。{@code StrengthService.getAmplifiers} 询问每个运行中的实现者，
- * 传入永久力量点[Strength Points]与常态承受力供其定量；限时兽力[Beast Strength]增益不是提供者，
- * 其值声明于原版效果（{@link BeastStrengthBuff}），由 {@link PathStrengthService#getBeastBuffs} 读取。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 运行期间动态提供力道增幅的流派效果 {@code payload} 接口：{@link StrengthService#getAmplifiers}
+ * 遍历玩家流派效果时传入永久力量点[Strength Points]与常态承受力供其计算 {@link StrengthAmplifier}
+ * （限时兽力[Beast Strength]增益走原版药水效果接口 {@link BeastStrengthBuff}，由
+ * {@link PathStrengthService#getBeastBuffs} 单独采集）。
  */
 
 public interface StrengthAmplifierProvider {

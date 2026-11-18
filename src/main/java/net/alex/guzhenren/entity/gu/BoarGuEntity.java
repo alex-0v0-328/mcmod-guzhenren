@@ -6,17 +6,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 
 /**
- * 野生豕蛊：自由游荡，不追玩家。
+ * 野生豕蛊实体：在世界中自由飞行与降落歇息，不追逐玩家。
  * <ul>
- *   <li>移动目标、飞行阶段、动画控制器继承 {@link RestingFlyingGuEntity}；白豕蛊[White Boar Gu]、黑豕
- *       蛊[Black Boar Gu]、花豕蛊[Flower Boar Gu]只差捕获物与贴图。</li>
- *   <li>瓢虫模型动画：歇息 {@code animation.idle}；{@code animation.lift} 0.8 秒后循环 {@code animation.fly}；
- *       {@code animation.land} 0.8 秒后循环 {@code animation.idle}。</li>
+ *   <li>AI 目标、飞行阶段与动画控制器均继承自 {@link RestingFlyingGuEntity}；白豕蛊[White Boar Gu]、
+ *       黑豕蛊[Black Boar Gu]与花豕蛊[Flower Boar Gu]共用本类，仅捕获所得物品与贴图不同。</li>
+ *   <li>瓢虫模型动画约定：歇息循环 {@code animation.idle}；起飞播放 0.8 秒 {@code animation.lift} 后转入循环
+ *       {@code animation.fly}；着地播放 0.8 秒 {@code animation.land} 后转入循环 {@code animation.idle}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class BoarGuEntity extends RestingFlyingGuEntity {

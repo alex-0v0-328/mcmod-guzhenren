@@ -8,16 +8,11 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr mind wisdom} 下各池节点：每种 {@link MindPoolType} 一个，写入全交给 {@link MindService}。
- *
+ * {@code /gzr mind wisdom} 子命令分支：为每种思绪池类型（{@link MindPoolType}）挂载独立的字面量节点（{@code current}、
+ * {@code max}、{@code refill}），并将所有数值修改委托给 {@link MindService}。
  * <ul>
- *   <li>⚠ 每池保留自己的字面量，不并成一个枚举参数：已定的池名不换成泛化参数。</li>
+ *   <li>⚠ 每种思绪池固定注册为独立的字面量节点而非合并为单个枚举参数，以保持既有命令路径稳定。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CmdMind
- * @since 1.0.0
  */
 
 public final class CmdMindPool {

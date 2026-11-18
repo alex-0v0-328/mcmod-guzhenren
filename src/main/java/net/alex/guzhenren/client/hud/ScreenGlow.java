@@ -6,15 +6,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
- * 全屏辉光渲染状态：按 alpha 加法混合（像世界环一样提亮下方），关深度测试（不被遮挡）。
+ * 全屏辉光渲染状态辅助类：启用按 Alpha 加法混合（如同世界环般提亮下方画面）并关闭深度测试以避免被前景遮挡。
  * <ul>
- *   <li>{@link ShieldGlowHud}、{@link SonicBoomHud} 在 {@link #begin}、{@link #end} 间绘制，{@link #getEffectScale}
- *       为二者共用的原版「屏幕扭曲效果」滑条。</li>
+ *   <li>{@link ShieldGlowHud} 与 {@link SonicBoomHud} 在 {@link #begin} 与 {@link #end} 之间执行绘制，并共用
+ *       {@link #getEffectScale} 读取原版「屏幕扭曲效果」滑条缩放系数。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 final class ScreenGlow {

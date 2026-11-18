@@ -19,27 +19,25 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 单只蛊的数值：注册时以构建链给出，读如表格一行。
+ * 单只凡蛊的静态数值规格：在注册时通过流式构建链声明，作为该蛊数值身份的唯一权威来源。
  * <ul>
- *   <li>每只蛊数值身份的唯一来源：炼化代价、灌注[Channel] 或单次代价、饱食[Hunger] 条规格（或随世界时钟回满、从不进食的
- *       {@link #recoverBar}）、补食标签、冷却、用途类型（{@link GuType}，可无）、流派效果（载体及其在蛊所属道[Path] 上
- *       的道痕[Path Marks]）。</li>
- *   <li>存于 {@link MortalGuItem}，{@link TendedGuItem} 与提示、HUD 读取，构建 {@link GuHunger} 与 {@link GuHealth}；独
- *       有数值（时长、等级）在 {@link GuBehavior}；生命值不走链，一律 4 × 转数 + 4（一至五转 8–24）。</li>
- *   <li>默认每次催动扣 1 点饱食；{@code hungerPerUse(0)} 就是 0，不补成 1，恶念、随意蛊的保质期条靠它。</li>
- *   <li>{@link #effect(EffectCarrier)} 取默认点数（{@link #getDefaultPoints}：一转 12，每转 ×4），
- *       {@link #effect(EffectCarrier, long)} 指定点数，{@link #effect(EffectCarrier, PathMarks)} 指定两计数；不调用者不
- *       施效果、无道痕（即时蛊或只改数值者）；{@link #createEffect} 造一族蛊经 {@code PathEffectService.apply} 施的效
- *       果。</li>
- *   <li>⚠ {@link #validate} 注册时运行，下列情况点名该蛊并拒绝启动：灌注数值不整除；价值 > 1 点的食物不整除条、单次、单
- *       日、生命值；效果无道痕；凡蛊效果带整条（凡蛊只施点）。它是第一道防线，绝不绕过。</li>
+ *   <li>集中声明炼化消耗、灌注[Channel]每轮或单次催动的真元消耗、饱食[Hunger]条规格（或随世界时间自动恢复、无需喂食的
+ *       {@link #recoverBar}）、补食标签与折算单位、效果冷却与物品冷却、用途分类（{@link GuType}，可空）以及流派效果（载
+ *       体与本流派道痕[Path Marks]）。</li>
+ *   <li>实例保存在 {@link MortalGuItem} 中，供 {@link TendedGuItem}、物品提示框与 HUD 读取，并用于构建 {@link GuHunger}
+ *       与 {@link GuHealth}；行为专属参数（如持续时长、效果等级）留在 {@link GuBehavior} 中；蛊虫最大生命值固定按
+ *       {@code 4 * rank + 4} 计算（一至五转为 8～24 点），不经构建链配置。</li>
+ *   <li>默认每次催动消耗 1 点饱食；显式传入 {@code hungerPerUse(0)} 即为 0 点而不会被兜底改成 1，
+ *       恶念蛊[Malicious Thought Gu]与随意蛊[Casual Gu]的保质期计时条依赖此特性。</li>
+ *   <li>{@link #effect(EffectCarrier)} 赋予按转数计算的默认道痕点数（{@link #getDefaultPoints}：一转 12 点，每升一转乘
+ *       4），{@link #effect(EffectCarrier, long)} 指定点数，{@link #effect(EffectCarrier, PathMarks)} 直接指定完整道
+ *       痕；未调用者表示不施加持续流派效果、不携带道痕（如瞬发蛊或纯数值修改蛊）；{@link #createEffect} 用于构建交由
+ *       {@code PathEffectService.apply} 施加的流派效果实例。</li>
+ *   <li>⚠ {@link #validate} 在物品注册阶段执行启动校验，是防止配置错误的底线护栏（绝不可绕过）：灌注真元不能被每轮饱食
+ *       整除、单份折算超过 1 点饱食的食物（{@code GuMeal} 只整份消耗且绝不超额进食，小于单份食物的缺口将永远无法填补）
+ *       不能整除饱食上限/单次消耗/每日消耗/生命上限、声明了效果载体却无道痕、或凡蛊效果携带了整条道痕（凡蛊只能携带道痕
+ *       点）时，均会直接点名该蛊并抛出异常阻止启动。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MortalGuItem
- * @see GuHunger
- * @since 1.0.0
  */
 
 public final class GuProperties {
@@ -254,7 +252,6 @@ public final class GuProperties {
         }
     }
 
-    // GuMeal feeds whole items and never past the need, so a gap smaller than one food would stay unfillable.
     private void checkWholeMeals(String id) {
         if (feedUnits % unitsPerHunger != 0) {
             throw fault(id, "food of %d units is not whole points at rate %d".formatted(feedUnits, unitsPerHunger));

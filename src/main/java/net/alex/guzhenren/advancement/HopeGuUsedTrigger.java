@@ -11,13 +11,8 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 首只希望蛊[Hope Gu]仪式的进度条件：未觉醒玩家撑完仪式，{@link ApertureService#awaken} 开第一空窍[Aperture]；唯一触发
- * 点 {@code HopeGuItem.apply}，命令给的开窍[Awakening]不算。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.registry.advancement.ModCriteriaTriggers
- * @since 1.0.0
+ * 完成首只希望蛊[Hope Gu]开窍[Awakening]仪式的进度触发器。仅在未开窍玩家撑完仪式并通过 {@link ApertureService#awaken}
+ * 开启第一空窍时由 {@code HopeGuItem.apply} 发布的事件触发，管理员通过指令直接开窍不会触发该进度。
  */
 
 public class HopeGuUsedTrigger extends SimpleCriterionTrigger<HopeGuUsedTrigger.Instance> {

@@ -8,13 +8,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * 玩法事件转进度触发器：{@link RealmReachedEvent} 触发 {@link RankReachedTrigger}，{@link ApertureAwakenedEvent} 触发
- * {@link HopeGuUsedTrigger}；玩法层在进度之下，只发事件不上调。
- *
- * @author Alex
- * @version 1.0.0
- * @see ModCriteriaTriggers
- * @since 1.0.0
+ * 将玩法层事件桥接至原版进度触发器的事件监听类：监听 {@link RealmReachedEvent} 触发修为进阶条件
+ * {@link RankReachedTrigger}，监听 {@link ApertureAwakenedEvent} 触发希望蛊开窍条件 {@link HopeGuUsedTrigger}，使底层玩
+ * 法包无需反向依赖进度包。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

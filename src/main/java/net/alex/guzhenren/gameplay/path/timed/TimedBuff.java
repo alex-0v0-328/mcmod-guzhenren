@@ -13,13 +13,9 @@ import net.minecraft.world.effect.MobEffect;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 限时增益 payload：投射的原版效果及等级。按效果注册 id 存储，存档写名字，{@link Holder} 用时解析；等级为蛊自身
- * tier（横冲系蛊的转数），不是道痕[Path Marks]数。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects
- * @since 1.0.0
+ * 限时药水增益类流派效果的 {@code payload} 记录：保存投影的原版药水效果注册 ID 与放大器等级（按注册 ID 序列化，运行时经
+ * {@link #getHolder} 解析 {@link Holder}；{@code amplifier} 表示横冲直撞等蛊虫自身的转数档位，而非道痕[Path Marks]
+ * 数）。
  */
 
 public record TimedBuff(@NotNull ResourceLocation effect, int amplifier) {

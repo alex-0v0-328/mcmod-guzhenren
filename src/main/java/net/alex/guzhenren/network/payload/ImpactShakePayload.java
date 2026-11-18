@@ -8,13 +8,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 服务端通知：本地玩家附近有重击，镜头起始晃动 {@link #strength} 度，{@link #ticks} 内衰减。
- * 服务端已按观察者距离缩放强度（{@code net.alex.guzhenren.network.ImpactShakeEvents}）；客户端两值都钳制后用。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
+ * 通知本地玩家附近发生重击的服务端下行载荷（由 {@link net.alex.guzhenren.network.ModPayloads} 注册，
+ * {@code ImpactShakeEvents} 按观察者距离预先衰减强度），指示客户端以起始强度 {@link #strength} 度、持续 {@link #ticks}
+ * 刻播放镜头晃动（客户端使用前会对两值做安全钳制）。
  */
 
 public record ImpactShakePayload(float strength, int ticks) implements CustomPacketPayload {

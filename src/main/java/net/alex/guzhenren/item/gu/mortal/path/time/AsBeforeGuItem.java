@@ -20,23 +20,21 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 如故蛊[As Before Gu]：把东西恢复原样的宙道蛊。
+ * 如故系五转持续照顾型蛊[Tended Gu]的抽象基类：涵盖将玩家身体回溯一天的 {@link ManAsBeforeGuItem} 与将周围陆地/水域恢复
+ * 为初始裸地形的 {@link TerrainAsBeforeGuItem}，封装共用的自然恢复进度条、身体快照采样与拒绝提示。
  * <ul>
- *   <li>三者中间类：{@link ManAsBeforeGuItem} 把携带者身体回退一天，{@link TerrainAsBeforeGuItem} 把周围陆地或水域回退
- *       到初次生成的裸地形；共用饱食[Hunger]条、身体记忆和拒绝提示。</li>
- *   <li>持续照顾型蛊[Tended Gu]，饱食条为随世界时钟回复的 {@link GuHunger.RecoverBar}，不补食、不饿死；点数不足时同
- *       其他饱食不足的催动，先警告再强行催动[Forced Use]（{@code TendedGuItem.drive}）。</li>
- *   <li>⚠ 条只在服务端、判不足并扣点前结算（{@link #performOwnUse}），不在门槛里：门槛客户端也跑，客户端写物品堆是
- *       服务端还得撤销的假象；满条扣点把时间戳重置到扣点时，因满条时间戳已过时（{@code GuHunger.RecoverBar}）。</li>
- *   <li>随身（背包、空窍[Aperture]存储或本命格）带已炼化人如故[Man As Before Gu]时，{@link #remember} 随心跳每
- *       {@code RewindClock.INTERVAL_TICKS} 记一次身体；土地无需记忆，种子即记忆。</li>
- *   <li>⚠ 客户端不持有身体记忆（不同步），相关门槛只对 {@code ServerPlayer} 运行，客户端放行。</li>
+ *   <li>进度条固定采用随世界时钟自然恢复的 {@link GuHunger.RecoverBar}（{@link RewindClock}），无需喂食也不会饿死；当剩
+ *       余点数不足以支付单次催动时，遵循持续照顾型蛊的强行催动[Forced Use]规则，首次按下发出警告、确认后强行催动并力竭
+ *       死亡。</li>
+ *   <li>⚠ 进度条必须在服务端实际执行催动、判定点数与扣点前才调用 {@link GuHunger.RecoverBar#settle} 结算
+ *       （{@link #performOwnUse}），绝不可在双端共跑的门槛检查中写回物品栈；若扣点前进度条原本已满，扣点后必须调用
+ *       {@link GuHunger.RecoverBar#restart} 将恢复起点重置为当前时刻（满条期间锚点时间戳已停滞过时）。</li>
+ *   <li>当玩家随身背包、空窍存储或本命槽中携带有已炼化的人如故[Man As Before Gu]时，{@link #remember} 随服务端心跳每隔
+ *       {@link RewindClock#INTERVAL_TICKS} 记录一次玩家身体快照；山如故与江如故无需记录快照（世界种子本身即初始地形记
+ *       忆）。</li>
+ *   <li>⚠ 客户端不同步玩家身体回溯缓冲，因此子类与历史记录相关的催动门槛仅对 {@link ServerPlayer} 校验，客户端直接放
+ *       行。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RewindClock
- * @since 1.0.0
  */
 
 public abstract class AsBeforeGuItem extends TendedGuItem {

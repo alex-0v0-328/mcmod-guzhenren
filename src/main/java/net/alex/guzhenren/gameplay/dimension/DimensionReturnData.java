@@ -9,14 +9,13 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 锚定维度旅行的返回点快照（宝黄天[Treasure Yellow Heaven]、福地、洞天）。同时只在一个锚定维度，一个可选
- * {@link ReturnPoint} 够用；仅服务端，存 NBT 不同步；外层 {@code point}、内层维度键非 {@code null}；{@code flying}
- * 指进入时在飞。飞行权限不存：锚定维度授权是临时属性修饰符，旧记录的 {@code mayfly} 键解码忽略。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.dimension.DimensionTravelService
- * @since 1.0.0
+ * 锚定维度旅行的返回点快照附件（用于宝黄天[Treasure Yellow Heaven]、福地、洞天）。
+ * <ul>
+ *   <li>玩家同一时刻最多身处一个锚定维度，因此只需保存单个可选 {@link ReturnPoint}；仅服务端落盘、不同步，外层
+ *       {@code point} 与内层维度键均不可为 {@code null}。</li>
+ *   <li>{@code flying} 记录进入锚定维度前是否正在飞行；飞行授权本身不存入此记录（锚定维度内的飞行授权通过临时属性修饰符
+ *       挂载，旧存档残留的 {@code mayfly} 字段在反序列化时自动忽略）。</li>
+ * </ul>
  */
 
 public record DimensionReturnData(Optional<ReturnPoint> point) {

@@ -7,17 +7,9 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
 /**
- * 物品标签，多为补食料，按所喂蛊族命名（{@code boar_feed} 等）。
- *
- * <ul>
- *   <li>数据包可改成员，键名才是契约；region 顺序随 {@code GuPath}，同 {@code ModItems}。</li>
- *   <li>{@link #INGOTS_STEEL}、{@link #STORAGE_BLOCKS_STEEL} 是 {@code c:} 约定标签，含他模组的钢，
- *       同样喂钢筋蛊[Steel Tendon Gu]。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 本模组物品标签键容器，主要对应按蛊族命名的喂食料标签（数据包可覆盖成员，键名即对外契约，区段排序与 {@code GuPath} 和
+ * {@code ModItems} 保持一致）；其中 {@link #INGOTS_STEEL} 与 {@link #STORAGE_BLOCKS_STEEL} 复用 {@code c:} 通用约定标
+ * 签，使其他模组的钢同样可用于喂养钢筋蛊[Steel Tendon Gu]。
  */
 
 public final class ModItemTags {

@@ -9,17 +9,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 服务端玩家 tick 末尾的事件入口。
- * <ul>
- *   <li>依次交 {@link Heartbeat}、{@link AutoUse#tick}（自动蛊状态停止检查、自力更生蛊[Self Reliance Gu]治疗脉冲，
- *       快于心跳）、{@link SprintSpeedService#refresh}（兽类速度，跟疾跑开关与一轮释放）。</li>
- *   <li>只限拳头的攻击加成经 {@code AttackDamageEvents} 随换手更新，不走此 tick。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Heartbeat
- * @since 1.0.0
+ * 服务端玩家每刻（{@link PlayerTickEvent.Post}）末尾的事件入口，依次驱动 {@link Heartbeat#beat}、{@link AutoUse#tick}
+ * （高频自动催动停止判定与自力更生蛊[Self Reliance Gu]治疗脉冲）以及 {@link SprintSpeedService#refresh}（兽类疾跑移速刷
+ * 新）；仅限拳头生效的攻击加成随换手事件更新，不经由本刻循环。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

@@ -5,20 +5,14 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 蛊可归属的全部道[Path]；没有 {@code NONE}，「未选择」用 {@code null}。
- *
+ * 蛊师流派（道）枚举：不设 {@code NONE} 常量，「未选择流派」统一用 {@code null} 表示。
  * <ul>
- *   <li>闭合枚举，模组封闭规则的标准范例：其他模组不得新增常量，因此按道分键的存储都用普通 {@code EnumMap}。</li>
- *   <li>⚠ 别从英文名推中文名：宇道[Space Path]与宙道[Time Path]都存在，猜错不报错，只会悄悄指向另一条真实的道。</li>
- *   <li>⚠ 炼化 {@code refine} 是认主，炼蛊 {@code refinement} 是无中生有；{@link #REFINEMENT} 已占「炼道」，不写裸
- *       {@code Refinement} 类。</li>
+ *   <li>封闭词汇枚举，其他模组不得扩展常量，因此按流派分键的映射一律使用 {@code EnumMap<GuPath, ...>}。</li>
+ *   <li>⚠ 切勿仅凭英文单词猜测流派对应关系：宇道[Space Path]（{@link #SPACE}）与宙道[Time Path]（{@link #TIME}）同时存
+ *       在，混淆两者不会触发编译报错，只会静默指向错误的流派。</li>
+ *   <li>⚠ 代码命名中 {@code refine} 指炼化蛊虫（认主），{@code refinement} 指炼蛊（合成升转）；{@link #REFINEMENT} 已占
+ *       用「炼道」语义，其他包避免单独以裸 {@code Refinement} 命名类。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see EffectCarrier
- * @see GuAttainment
- * @since 1.0.0
  */
 
 public enum GuPath implements NamedEnum {

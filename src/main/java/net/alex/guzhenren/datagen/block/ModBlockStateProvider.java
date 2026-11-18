@@ -16,23 +16,17 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
- * 本模组方块的方块状态与模型。
- *
+ * 本模组方块的方块状态（BlockState）与方块模型数据生成器。
  * <ul>
- *   <li>流体方块只要粒子模型，同原版 {@code block/water}：一个变体指向唯一贴图为静止条带的模型；液面由流体渲染器按
- *       {@code FluidType} 贴图画（{@link net.alex.guzhenren.client.fluid.SpiritSpringClientExtensions}）。</li>
- *   <li>花用原版镂空 {@code block/cross}；九叶生机草[Nine Leaf Vitality Grass]用其物品 {@code _full} PNG，方块图集也拼
- *       接 {@code item/}，一图两用。</li>
- *   <li>双层植物按 {@code half} 每半一个原版 {@code block/cross} 模型，贴图自带颜色，不着色。</li>
- *   <li>作物按 {@code age} 每阶段一个原版井字形 {@code block/crop} 模型；知心草作物的 8 张阶段图沿用资产名
- *       {@code intimate_grass_stage0} 至 {@code 7}，模型名带方块 ID。</li>
- *   <li>耕地照原版两个 {@code block/template_farmland} 模型：{@code moisture} 满用湿顶面，其余用干顶面；侧面与底面
- *       共用 {@code _side} 图。</li>
+ *   <li>流体方块（元泉[Spirit Spring]与纯水）对齐原版 {@code block/water}，仅生成声明静止条带粒子贴图的单变体模型，实际
+ *       液面由流体渲染器根据 {@code FluidType} 客户端扩展绘制
+ *       （{@link net.alex.guzhenren.client.fluid.SpiritSpringClientExtensions}）。</li>
+ *   <li>单格植物（三转九叶生机草[Nine Leaf Vitality Grass]）使用原版镂空 {@code block/cross} 模板，并直接复用其物品的
+ *       {@code _full} 贴图；双层植物（野生知心草）按上下半格分别生成独立的 {@code block/cross} 镂空模型。</li>
+ *   <li>知心草作物按 {@code age}（0–7）生成 8 个原版井字形 {@code block/crop} 模型（共用
+ *       {@code intimate_grass_stage0..7} 贴图）；黑土耕地对齐原版耕地生成干、湿两个继承自
+ *       {@code block/template_farmland} 的模型，仅在 {@code moisture} 满值时切换为湿润顶面。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class ModBlockStateProvider extends BlockStateProvider {

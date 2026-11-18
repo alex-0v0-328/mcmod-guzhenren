@@ -22,20 +22,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 杀招[Killing Move]命中后屏幕左缘垂直居中的提示面板。
+ * 杀招[Killing Move]施放命中后在屏幕左缘垂直居中显示的提示面板。
  * <ul>
- *   <li>标题为招名；所用蛊每只一行、主蛊在前：图标、转数、道[Path]、名称，下附耐久条式饱食[Hunger]条（满绿空红）与
- *       {@code x/y}；内容是 {@code KillingMoveTooltipPayload} 施放即刻的快照，施放中耗死的蛊画灰、条空。</li>
- *   <li>注册在快捷栏上，通知处理器在客户端初始化时设（{@code ClientEvents}）；宽 {@link #MIN_WIDTH} GUI 像素，
- *       不够才加宽；按墙钟 {@link #SLIDE_IN_MS} 缓出滑入，停至施放后 {@link #SHOWN_MS}，{@link #SLIDE_OUT_MS}
- *       缓入滑出并淡出（图标只滑）；滑出中再施放则原位折回（{@link #getEnterElapsed}），显示中再施放则换行、重计时、
- *       不重滑。</li>
+ *   <li>顶部标题为杀招名称；其下每只参与蛊虫占一行（主蛊居首），展示物品图标、转数、流派与名称，并在下方附带耐久条风
+ *       格的饱食[Hunger]条（满绿空红）与 {@code x/y} 数值；内容取自施放瞬间的 {@code KillingMoveTooltipPayload} 快
+ *       照，施放中力竭耗死的蛊虫标灰且饱食条为空。</li>
+ *   <li>图层注册在快捷栏之上，通知处理器在客户端初始化时挂载（{@code ClientEvents}）；面板基础宽度为
+ *       {@link #MIN_WIDTH} GUI 像素（文本更宽时自适应拓宽），按墙钟时间在 {@link #SLIDE_IN_MS} 内缓出滑入、停留至施
+ *       放后 {@link #SHOWN_MS} 并在 {@link #SLIDE_OUT_MS} 内缓入滑出兼淡出（图标仅滑出）；滑出途中再次施放从当前位置原
+ *       位折回（{@link #getEnterElapsed}），仍在显示中再次施放则直接刷新内容并重置计时而不重新滑入。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMoveService#drive
- * @since 1.0.0
  */
 
 public final class KillingMoveTooltipHud {

@@ -5,12 +5,12 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 歇息型飞行蛊共用的连续随机飞行 AI 目标。路径走完次 tick 重选；每 100 tick 换航线，每次 1/10 概率请求降落；无航线退避
- * 1 秒；显式阶段检查使降落目标掌管歇息时不重启。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 歇息型飞行蛊（{@link RestingFlyingGuEntity}）共用的连续随机飞行 AI 目标。
+ * <ul>
+ *   <li>路径走完后于下一 tick 立即重选航线，飞行途中每 {@link #RECOURSE_TICKS}（5 秒）换一次航线，每次选线有 1/10 概率
+ *       发起降落请求；未采到可用航线时退避 1 秒；{@link #canUse} 显式要求处于
+ *       {@link RestingFlyingGuEntity.FlightPhase#FLYING}，防止在 {@link LandRestGoal} 接管歇息期间抢回控制权。</li>
+ * </ul>
  */
 
 public class WanderCourseGoal extends WaterAvoidingRandomFlyingGoal {

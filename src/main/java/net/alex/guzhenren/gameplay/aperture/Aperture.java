@@ -11,20 +11,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 空窍[Aperture]：开窍[Awakening]所得、定真元[Essence]容量的不可变 record，嵌于 {@link ApertureData}。
- *
+ * 单个空窍的不可变数据记录，嵌于 {@link ApertureData}，决定真元容量并承载修为与状态。
  * <ul>
- *   <li>⚠ {@code baseEssence} 为正时夹到 {@code [MIN_BASE, MAX_BASE]}（20 至 100）；{@code 0} 专属
- *       {@code NONE}，{@code 1} 至 {@code 19} 是空洞而非取值。</li>
- *   <li>⚠ 两个 {@link GuPath} 是仅有可空字段（{@code writeNullableEnum}）；{@code encode} / {@code decode} 手写。</li>
- *   <li>⚠ {@code second} 标第二空窍蛊[Second Aperture Gu]所开（非希望蛊[Hope Gu]）：列表位置即开窍序，标记是身份。</li>
+ *   <li>⚠ {@code baseEssence} 为正时夹取到 {@code [MIN_BASE, MAX_BASE]}（20 至 100）；{@code 0} 专属于
+ *       {@link #NONE}，{@code 1} 至 {@code 19} 是无意义的空洞区间而非合法取值。</li>
+ *   <li>⚠ 两个 {@link GuPath} 是仅有的可空字段（网络用 {@code writeNullableEnum}），{@link #encode} 与
+ *       {@link #decode} 为手写实现；兼修流派与主修相同时在紧凑构造器中自动清空。</li>
+ *   <li>⚠ {@code second} 标记该空窍由第二空窍蛊[Second Aperture Gu]开启（而非希望蛊[Hope Gu]）：列表下标仅反映当前
+ *       排位，此标记才是区分第一、第二空窍的身份依据。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureData
- * @see ApertureService
- * @since 1.0.0
  */
 
 public record Aperture(

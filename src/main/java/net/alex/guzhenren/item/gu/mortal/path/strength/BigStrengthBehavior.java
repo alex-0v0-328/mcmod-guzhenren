@@ -18,14 +18,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 大力蛊[Big Strength Gu]的行为：限时大力状态（{@link BigStrength}），不限流派；状态未完再催动被拒；
- * 功倍蛊[Amplify Effect Gu]乘时长，持有兽种的时长加成（{@code PathStrengthService.getDurationBonus}，青牛 10 秒）乘后
- * 再加；施后调 {@link AttackDamageService#refresh}，攻击仍出自一个公式。
- *
- * @author Alex
- * @version 1.0.0
- * @see BigStrength
- * @since 1.0.0
+ * 大力蛊[Big Strength Gu]行为：为玩家赋予不限力道分支的限时大力状态（{@link BigStrength}）；状态未结束时拒绝重复催
+ * 动，支持功倍蛊[Amplify Effect Gu]倍增持续时长，持有兽种的时长加成（{@code PathStrengthService.getDurationBonus}，
+ * 青牛 10 秒）乘后再加，生效后立即调用 {@link AttackDamageService#refresh} 刷新攻击力。
  */
 
 public record BigStrengthBehavior(int effectSeconds) implements GuBehavior {

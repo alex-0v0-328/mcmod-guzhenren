@@ -5,16 +5,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 念池组成的标签：某部分念属于哪一类。
- *
+ * 念头池的分类标签枚举：标识念池中各部分念头的性质（作为 {@link MindData#taggedThoughts} 的键）。
  * <ul>
- *   <li>闭合枚举，{@code MindData} 标签表的键。</li>
- *   <li>⚠ {@code NATURAL} 只推算不存储（池当前量减带标签部分），无写入方；表里只有 {@code EVIL} 及将来的标签。</li>
+ *   <li>⚠ {@link #NATURAL}（自然念）仅由念池当前总量减去所有带标签念头推算得出
+ *       （{@link MindService#getNaturalThoughts}），从不落盘存储；映射表中仅保存 {@link #EVIL}（恶念）及未来扩展的特殊
+ *       念头标签。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public enum ThoughtTag implements NamedEnum {

@@ -6,18 +6,15 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 魂魄：唯一触底即致死的池，record 附件 {@code soul_data}。
+ * 玩家魂魄状态附件（键 {@code soul_data}）：唯一触底（{@link #isCollapsed}）即致死的资源池。
  * <ul>
- *   <li>{@code SoulService} 唯一运行时写入；构造器钳 {@code maxSoul} ≥ 0、{@code currentSoul} ∈ {@code [0, max]}。</li>
- *   <li>⚠ 上限存储而非推导：无他物决定它（对比 Epic Fight 耐力，其上限归战斗系统）。</li>
- *   <li>⚠ {@code withRevived()} 回 1 而非 0，上限 0 时恢复 {@code DEFAULT_MAX_SOUL}：重生不得交回致死值。</li>
+ *   <li>运行时仅由 {@link SoulService} 写入；紧凑构造器将 {@code maxSoul} 钳至 {@code >= 0}、{@code currentSoul} 钳
+ *       至 {@code [0, maxSoul]}。</li>
+ *   <li>⚠ 上限直接落盘存储而非从其他系统推导：魂魄独立于肉身与修为（对比 Epic Fight 耐力由战斗系统决定上
+ *       限）。</li>
+ *   <li>⚠ {@link #withRevived()} 将当前魂魄置为 {@link #REVIVED_SOUL}（1）而非 0，且上限为 0 时恢复至
+ *       {@link #DEFAULT_MAX_SOUL}，防止玩家重生后立即再次触发魂飞魄散致死。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulService
- * @see SoulTier
- * @since 1.0.0
  */
 
 public record SoulData(long maxSoul, long currentSoul) {

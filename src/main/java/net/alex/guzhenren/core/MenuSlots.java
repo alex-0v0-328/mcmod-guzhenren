@@ -8,16 +8,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 模组各容器菜单在自身槽位外重复的部分。
+ * 模组容器菜单共用的玩家背包槽位布局与 Shift 快速移动辅助工具。
  * <ul>
- *   <li>{@link #addPlayerInventory}：按原版顺序先三行背包后快捷栏，槽位下标才合 shift 点击路由。</li>
- *   <li>{@link #quickMove}：shift 点击框架，菜单只给去向；返回移动前堆叠，未动返回空（原版 {@code quickMoveStack} 循环
- *       所需）。</li>
+ *   <li>{@link #addPlayerInventory} 严格按原版顺序先添加 3 行主背包槽位（下标 9–35）、再添加底部快捷栏槽位（下标 0–
+ *       8），保证容器槽位索引与 Shift 点击路由约定一致。</li>
+ *   <li>{@link #quickMove} 封装原版 {@code quickMoveStack} 的样板流程，由具体菜单传入目标区间移动谓词；移动成功时返回移
+ *       动前的堆叠副本，未发生移动时返回 {@link ItemStack#EMPTY} 以终止原版的快速移动循环。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class MenuSlots {

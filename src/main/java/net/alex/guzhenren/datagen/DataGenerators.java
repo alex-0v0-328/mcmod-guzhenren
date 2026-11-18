@@ -32,16 +32,13 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 /**
- * 数据生成总入口。
- *
+ * 主模组数据生成阶段全部 Provider 的统一挂载入口。
  * <ul>
- *   <li>{@code GatherDataEvent} 加入 {@code datagen/} 全部 provider；输出提交进 {@code src/generated/resources}。</li>
- *   <li>⚠ 改 provider 不重新生成，构建照样全绿，发布的 jar 却是旧数据。</li>
+ *   <li>在 {@link GatherDataEvent} 中挂载 {@code datagen/} 包下的全部客户端与服务端生成器，生成产物写入版本库追踪的
+ *       {@code src/generated/resources} 目录。</li>
+ *   <li>⚠ 生成产物直接提交入库：修改任何 Provider 后若未重新运行 {@code data} 生成阶段，常规编译仍会通过，但打包出的
+ *       Jar 会携带旧数据。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

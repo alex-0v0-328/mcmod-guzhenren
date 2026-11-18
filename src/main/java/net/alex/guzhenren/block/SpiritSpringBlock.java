@@ -17,20 +17,16 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 元泉[Spirit Spring]液体方块：原版水行为，加产元石[Primeval Stone]的心跳。
- *
+ * 元泉液体方块：在原版水液体方块的基础上驱动定时产出元石[Primeval Stone]的计划刻循环。
  * <ul>
- *   <li>产出走方块计划 tick，不走流体流动 tick，不与 {@code LiquidBlock} 每 5 tick 的流动重排相撞。</li>
- *   <li>产出链由 {@code onPlace}、{@code neighborChanged} 挂起；重载后由源头随机 tick
- *       （{@link SpiritSpringFluid.Source}）重挂，因静止源头收不到计划 tick。</li>
- *   <li>⚠ 下列五个常量是 Alex 定值，非随手可调参数，规格见 wiki《元泉》。</li>
- *   <li>128 格即自然刷怪视距，用原版 {@code EntityGetter#hasNearbyAlivePlayer}（同刷怪笼）；计划 tick 在不 tick 的区块
- *       本就停转，显式门槛另管常加载区块（出生点、强制加载）。</li>
+ *   <li>元石产出通过方块计划刻（{@link #tick}，间隔 {@link #PRODUCTION_INTERVAL_TICKS}）而非流体流动刻调度，避免与
+ *       {@link LiquidBlock} 每 5 tick 的流体扩散重排互相干扰。</li>
+ *   <li>产出链在方块放置（{@link #onPlace}）或邻格更新（{@link #neighborChanged}）时挂起；区块重加载或结构生成后的静态
+ *       源头若丢失方块计划刻，则由流体源头的随机刻（{@link SpiritSpringFluid.Source}）兜底重新唤醒。</li>
+ *   <li>每次触发时要求 {@link #PRODUCTION_PLAYER_RANGE}（128 格，对齐原版自然刷怪视距）内存在存活玩家，且周围
+ *       {@link #NEARBY_STONES_CAP_RADIUS} 半径内的元石掉落物总数未达到上限 {@link #NEARBY_STONES_CAP}，防止在出生点或强
+ *       制加载区块中无人时无限堆积掉落物。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class SpiritSpringBlock extends LiquidBlock {

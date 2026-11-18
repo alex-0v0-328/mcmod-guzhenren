@@ -30,31 +30,26 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 import software.bernie.geckolib.util.Color;
 
 /**
- * 兽力虚影的渲染器。
- *
+ * 兽力虚影渲染器。
  * <ul>
- *   <li>用所属族的模型与动画：猪用野猪，熊、虎用自己的，龟用陆龟，牛用水牛；不能显形的族
- *       （{@code BeastStrengthFamily.canManifest}）不画。</li>
- *   <li>半透明 {@code <model>_phantom} 贴图全亮绘制，再以副本 {@code <model>_phantom_glowmask} 作自发光层重绘：身体以自
- *       身颜色微光，不透明的眼睛最亮；贴图在此选定（{@link #getTextureLocation}），不混入野兽自身贴图。</li>
- *   <li>马无 GeckoLib 模型：{@link #render} 交给原版马几何（{@link HorsePhantomModel}），画法相同（偏航、俯仰、淡出、两
- *       层），在主人身旁扬蹄一次，冲击时奔跑。</li>
- *   <li>主人身旁虚影与兽力冲击的 {@link BeastPhantomVisual} 一视同仁：按 {@link BeastPhantomVisual#getFade} 淡出，偏移
- *       {@link BeastPhantomVisual#getDrift}，以脚底为中心缩放 {@link BeastPhantomVisual#getScale}，发光乘
- *       {@link BeastPhantomVisual#getGlow}；背面剔除（同魂体交易者），剪影远侧不透出；无阴影、无受伤染色。</li>
- *   <li>发光层半透明自发光，只取遮罩 alpha 的 {@link #GLOW_ALPHA}，否则半透明身体被封成不透明。</li>
- *   <li>⚠ 两层都用自建类型（{@link #BODY}、{@link #GLOW}），背面剔除且不写深度：原版半透明实体类型写深度，而光影
- *       （Iris）下玩家皮肤晚于虚影绘制，第三人称时身后扇形会把主人整个挡掉。代价是虚影后方的半透明方块（水、染色玻璃）
- *       盖在虚影上，同一虚影前后重叠的部位发光叠加。</li>
- *   <li>⚠ 不用 {@code RenderType.eyes}：它忽略 alpha，遮罩下全身画成满强度。</li>
- *   <li>⚠ 绕脚底上方 {@link #PITCH_PIVOT} 格（约模型高度一半）按 {@link BeastPhantomVisual#getPitch} 俯仰；
- *       GeckoLib 只按身体偏航转活体，故先按实体自身偏航转动。</li>
+ *   <li>沿用所属野兽族的模型与动画：猪族用野猪，熊与虎用各自模型，龟族用陆龟，牛族用水牛；不可显形的族（
+ *       {@code BeastStrengthFamily.canManifest}）直接跳过渲染。</li>
+ *   <li>先全亮绘制半透明的 {@code <model>_phantom} 贴图，再叠绘 {@code <model>_phantom_glowmask} 作为自发光层（身体
+ *       以自身颜色微光，不透明眼部最亮）；贴图选定在 {@link #getTextureLocation} 完成，不混用野兽原版贴图。</li>
+ *   <li>马族没有 GeckoLib 模型，由 {@link #render} 委托原版马模型（{@link HorsePhantomModel}）按相同双层管线绘制
+ *       （偏航、俯仰与淡出一致），实现主人身旁扬蹄或兽力冲击奔跑。</li>
+ *   <li>主人身旁召唤虚影与兽力冲击均统一读取 {@link BeastPhantomVisual}：按 {@link BeastPhantomVisual#getFade} 淡
+ *       出、叠加 {@link BeastPhantomVisual#getDrift} 偏移、以脚底为原点按 {@link BeastPhantomVisual#getScale} 缩
+ *       放、发光强度乘以 {@link BeastPhantomVisual#getGlow}，启用背面剔除（同魂体交易者）以免远侧剪影透出，且不产生阴
+ *       影或受击染红。</li>
+ *   <li>自发光层仅保留遮罩自身 Alpha 的 {@link #GLOW_ALPHA} 比例，避免半透明身体被全强度覆盖成完全不透明。</li>
+ *   <li>⚠ 本体层与发光层均使用自建的背面剔除且不写深度的渲染类型（{@link #BODY} 与 {@link #GLOW}）：原版半透明实
+ *       体类型会写入深度，而在 Iris 光影下玩家皮肤渲染晚于虚影，会导致第三人称时身后虚影直接把玩家本体遮没；该折中的
+ *       代价是虚影后方的半透明方块（水、染色玻璃）会盖在虚影之上，且同一虚影前后重叠部位发光会累加。</li>
+ *   <li>⚠ 不可改用 {@code RenderType.eyes}：该类型忽略顶点 Alpha，会把覆盖全身的发光遮罩绘成满强度不透明。</li>
+ *   <li>⚠ 绕脚底上方 {@link #PITCH_PIVOT} 格（约模型半高）应用 {@link BeastPhantomVisual#getPitch} 俯仰角；因
+ *       GeckoLib 仅对活体应用身体偏航，本渲染器须先手动应用实体自身偏航旋转。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastPhantomVisual
- * @since 1.0.0
  */
 
 public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhantomVisual> extends GeoEntityRenderer<T> {

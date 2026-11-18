@@ -9,24 +9,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 人身上的一个流派效果。
- *
+ * 挂载在玩家身上的单个流派效果不可变记录（存于 {@link PathEffectData}，运行时仅由 {@link PathEffectService} 写入）。
  * <ul>
- *   <li>存于 {@link PathEffectData}，运行时只由 {@link PathEffectService} 写入；{@code endTick} 为游戏时间或
- *       {@link #PERMANENT}。</li>
- *   <li>来源 id：蛊取物品 id；先天取 {@code guzhenren:innate/race}、{@code guzhenren:innate/extreme_physique}；力量取
- *       {@code guzhenren:strength/<兽名或力名>}。</li>
- *   <li>{@code paths} 按道[Path]记道痕[Path Marks]条与点（{@link PathMarks}），可多道；增幅者给所增效果补律道点。</li>
- *   <li>⚠ 恰在带道痕时存在：构造器剪无道痕的道，存储丢无道的效果；只有在与不在，无物拿走部分道痕，抹去即摘除。</li>
- *   <li>作用只读类型、payload 和层数；延时（{@link #withEndTick}）不加道痕，每层（{@link #addLayer}、
- *       {@link #dropLayer}）带该层道痕；替换连道痕一起换。</li>
+ *   <li>{@code endTick} 为到期游戏时刻或 {@link #PERMANENT}（永久）；{@code source} 标识来源（蛊虫取物品注册 ID，先天取
+ *       {@code guzhenren:innate/race} 或 {@code guzhenren:innate/extreme_physique}，力量取
+ *       {@code guzhenren:strength/<名称>}）。</li>
+ *   <li>{@code paths} 按流派记录该效果携带的道痕[Path Marks]条数与点数（支持跨多条流派，例如增幅蛊会在被增幅效果上追加
+ *       律道道痕点）。</li>
+ *   <li>⚠ 流派效果的存在性与其携带的道痕严格绑定：紧凑构造器自动剔除零道痕的流派，{@link PathEffectData} 自动丢弃无任何
+ *       道痕的效果；不存在脱离效果扣减部分道痕的操作，道痕归零即代表效果被移除。</li>
+ *   <li>具体机制只读效果类型、{@code payload} 与叠层数（{@code layers}）；延长持续时间（{@link #withEndTick}）不增加道
+ *       痕，增减层数（{@link #addLayer} / {@link #dropLayer}）同步增减单层道痕，同槽替换则连同道痕整体覆盖。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffectType
- * @see PathEffectService
- * @since 1.0.0
  */
 
 public record PathEffect<P>(PathEffectType<P> type, EffectCarrier carrier, ResourceLocation source,

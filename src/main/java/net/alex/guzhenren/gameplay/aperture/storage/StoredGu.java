@@ -8,18 +8,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 空窍[Aperture]存储查所存蛊的接口，使空窍不依赖定义蛊的物品包。
+ * 空窍存储访问蛊虫物品属性的桥接接口，使 {@code gameplay.aperture} 不依赖定义蛊虫的 {@code item} 包。
  * <ul>
- *   <li>{@code net.alex.guzhenren.vault} 的菜单与每秒结算在物品包之上，直问蛊类。</li>
- *   <li>物品侧实现基于蛊物品类，由入口类在玩家能开存储前交给 {@code ApertureStorageService.setStoredGu}。</li>
- *   <li>非蛊栈一律答 {@code null}、零或 {@code false}；{@link #getRank} 对不许存的蛊亦答 {@code null}，
- *       {@link #getToken} 对未绑定蛊答零。</li>
+ *   <li>上层 {@code net.alex.guzhenren.vault} 的容器菜单与每秒养护结算位于物品包之上，可直接访问蛊物品类；本包则通过模
+ *       组主类注入 {@link ApertureStorageService#setStoredGu} 的实现查询。</li>
+ *   <li>非蛊物品栈一律返回 {@code null}、{@code 0} 或 {@code false}；{@link #getRank} 对不可存入空窍的蛊虫也返回
+ *       {@code null}，{@link #getToken} 对未绑定本命蛊返回 {@code 0}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureStorageService
- * @since 1.0.0
  */
 
 public interface StoredGu {

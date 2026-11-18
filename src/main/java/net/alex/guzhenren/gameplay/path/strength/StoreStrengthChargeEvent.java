@@ -5,15 +5,9 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 蓄力蛊[Store Strength Gu]蓄力的服务端变化事件，游戏事件总线。{@link Change#FULL}
- * 在首次判满（{@link StoreStrength#isFull}）那 tick，{@link Change#DROPPED} 在服务端自行取消（丢增益、分支或空手，
- * 换维度）；客户端自己松手、取消不发；同步分发；通知客户端的监听在 {@code net.alex.guzhenren.network}，
- * 客户端仅在服务端确认后显示蓄满。
- *
- * @author Alex
- * @version 1.0.0
- * @see StoreStrength
- * @since 1.0.0
+ * 蓄力蛊[Store Strength Gu] / 惯力蛊[Habitual Strength Gu]的服务端蓄力状态变更事件：首次达到满蓄力
+ * （{@link Change#FULL}）或被服务端判定中断（{@link Change#DROPPED}，如失去增益、切换主手或跨维度；客户端主动松手或取消
+ * 不发）时同步发布，供上层 {@code network} 包通知客户端点亮蓄满提示或中止本地蓄力条。
  */
 
 public class StoreStrengthChargeEvent extends Event {

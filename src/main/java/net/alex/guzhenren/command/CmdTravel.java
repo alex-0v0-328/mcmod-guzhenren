@@ -24,23 +24,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 /**
- * {@code /guworld enter <dimension> [targets]} 与 {@code /guworld exit [targets]}：进出本模组的锚定维度。
- *
+ * {@code /guworld enter <dimension> [targets]} 与 {@code /guworld exit [targets]} 子命令：进出本模组登记的锚定维度。
  * <ul>
- *   <li>{@code enter} 仅限管理员；宝黄天[Treasure Yellow Heaven]内任何玩家可用无目标 {@code exit}，守卫不留别的出路；
- *       {@code exit <targets>} 与从其他锚定维度退出仍限管理员；{@code exit} 不带维度，离开当前锚定维度。</li>
- *   <li>门槛读所在维度，命令树须随跨维度更新：原版换世界即重发（{@code ServerPlayer#changeDimension} 发送权限等级，
- *       进而重发命令）。</li>
- *   <li>{@code enter} 只收 {@link ModDimensions#ANCHORED_DIMENSIONS} 所列维度，即玩家应经本模组离开的维度，返回点由
- *       {@link DimensionTravelService} 记录；原版维度间跳转仍用 {@code /execute in}。</li>
- *   <li>已列出但服务端无其世界的维度（未装 Gu World）用专门消息拒绝。</li>
- *   <li>⚠ 翻译参数只能是组件、数字或字符串：id 以文本传入。</li>
+ *   <li>权限规则：{@code enter} 仅限管理员使用；处于宝黄天[Treasure Yellow Heaven]内的任何玩家均可对自己执行无参
+ *       {@code exit} 离开（因维度守卫禁止其他离开方式），而带目标参数的 {@code exit <targets>} 或从四域等其他锚定维度退
+ *       出仍仅限管理员；原版跨维度传送（{@code ServerPlayer#changeDimension}）会自动重发权限与命令树，确保 {@code exit}
+ *       可见性实时更新。</li>
+ *   <li>{@code enter} 仅接受 {@link ModDimensions#ANCHORED_DIMENSIONS} 中登记的锚定维度，由
+ *       {@link DimensionTravelService} 记录进入前的返回锚点；若目标维度已登记但服务端未加载对应世界（如未安装 Gu
+ *       World），则返回专属缺失维度提示。</li>
+ *   <li>⚠ 构造翻译组件时参数只能传入 {@link Component}、数字或字符串，因此维度 {@link ResourceLocation} 必须先转为字符
+ *       串传入。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.dimension.DimensionTravelService
- * @since 1.0.0
  */
 
 public final class CmdTravel {

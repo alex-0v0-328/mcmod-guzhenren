@@ -20,22 +20,19 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
 /**
- * 魂体交易者的渲染器，画成半透明的 {@code human_soul}。
- *
+ * 魂体交易者[Soul Trader]渲染器：以半透明形态渲染 {@code human_soul} 模型。
  * <ul>
- *   <li>每个实例注入交易者的固定颜色贴图，各色共用一张眼睛发光遮罩；隐身交易者回退 GeckoLib 自带隐身与发光分支；无阴
- *       影、无受伤或死亡红色染色、无死亡倾倒，魂体改经 {@code animation.disappear} 淡出。</li>
- *   <li>身体背面剔除（{@code entityTranslucentCull}）：模型 26 个面朝向相反、彼此相贴，否则闪烁且剪影远侧透出。</li>
- *   <li>⚠ {@link EyeGlowLayer} 用 {@code RenderType.eyes} 与发光遮罩重绘模型，朝镜头推近 {@code EYE_LIFT} 格，否则内层
- *       头部的眼睛在深度测试中输给前方半像素的外层帽壳（半透明身体写深度）。</li>
- *   <li>推近沿眼睛（脚底上方 {@code EYE_HEIGHT}，模型第 28.5 像素行）到镜头的连线，发光沿视线移动、不偏离眼睛纹素；镜头
- *       在渲染姿态原点，任何旋转或缩放下逆姿态矩阵都能把它映射到模型空间；背面剔除仍从背后挡住眼睛。</li>
+ *   <li>每个实例注入各自固定的颜色贴图并共用同一张眼部发光遮罩；隐身交易者回退至 GeckoLib 自带的隐身与发光分支；关
+ *       闭地面阴影、受击或死亡染红及原版死亡倾倒，改由 {@code animation.disappear} 淡出。</li>
+ *   <li>身体采用开启背面剔除的半透明类型（{@code entityTranslucentCull}）：因模型 26 个面朝向相反且彼此相贴，若不剔
+ *       除背面不仅会闪烁还会透出远侧剪影。</li>
+ *   <li>⚠ {@link EyeGlowLayer} 使用 {@code RenderType.eyes} 与发光遮罩重绘模型，并必须沿视线朝镜头推近
+ *       {@code EYE_LIFT} 格：因为半透明身体会写入深度缓冲，若不前移，内层头部的眼睛在深度测试中会输给前方仅半像素之
+ *       差的外层帽壳。</li>
+ *   <li>前移向量取自眼睛位置（脚底上方 {@code EYE_HEIGHT}，对应模型第 28.5 像素行）指向相机原点，确保发光始终沿视线
+ *       移动而不偏移眼睛纹素；在渲染姿态坐标系中相机位于原点，因此无论实体如何旋转或缩放，逆姿态矩阵都能将该向量准确映
+ *       射回模型空间，同时背面剔除仍会从背后正确遮挡眼睛。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see HumanSoulGeoModel
- * @since 1.0.0
  */
 
 public final class SoulTraderGeoRenderer extends GeoEntityRenderer<SoulTraderEntity> {

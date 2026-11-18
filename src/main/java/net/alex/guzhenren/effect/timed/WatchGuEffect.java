@@ -6,13 +6,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * 自身时间加速效果：每层使持有者时钟按基础速率快于世界；两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]各一效果，
- * 可并行，封顶后速率相加；时长仍按世界时间，五分钟不自我加速。
- *
- * @author Alex
- * @version 1.0.0
- * @see TimeRateContributor
- * @since 1.0.0
+ * 自身时间加速类蛊虫（两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]）的 {@link TimeRateContributor} 效果基类。各更蛊
+ * 分别注册独立效果以支持同时佩戴与速率叠加，效果倍率对应层数（封顶后按 {@code ratePerLayer} 线性累加）；持续时间仍按世
+ * 界时间流逝，五分钟倒计时不会自我加速。
  */
 
 public class WatchGuEffect extends MobEffect implements TimeRateContributor {

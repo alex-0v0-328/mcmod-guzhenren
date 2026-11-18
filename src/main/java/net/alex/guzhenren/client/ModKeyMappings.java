@@ -6,13 +6,9 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * 模组按键：仅 {@code OPEN_INFO}（B）打开 {@link net.alex.guzhenren.client.screen.PlayerInfoScreen}；绑 {@code IN_GAME}
- * 上下文，他模组界面同键不报冲突，信息界面以不分上下文的 {@code KeyMapping#matches} 用它关闭。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.screen.PlayerInfoScreen
- * @since 1.0.0
+ * 模组客户端按键绑定：当前仅注册 {@code OPEN_INFO}（默认 B 键）用于打开 {@link PlayerInfoScreen}；绑定至
+ * {@code IN_GAME} 上下文以避免与其他模组同键冲突，信息界面自身则通过不分上下文的 {@code KeyMapping#matches} 用同一按键
+ * 关闭界面。
  */
 
 public final class ModKeyMappings {

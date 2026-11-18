@@ -11,13 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@link StoredGu} 的物品侧，答空窍[Aperture]存储的查询；入口类交给 {@code ApertureStorageService.setStoredGu}。
- * 只存凡蛊（{@link MortalGuItem}）；道[Path]取自 {@link GuItem}，本命绑定取自 {@link VitalGuState}。
- *
- * @author Alex
- * @version 1.0.0
- * @see StoredGu
- * @since 1.0.0
+ * 空窍存储接口 {@link StoredGu} 的物品栈适配实现：在模组初始化期通过 {@code ApertureStorageService.setStoredGu} 注入，
+ * 供空窍存储层查询凡蛊[Mortal Gu]（{@link MortalGuItem}）的转数、流派（{@link GuItem}）与本命绑定
+ * （{@link VitalGuState}）。
  */
 
 public final class StoredGuItems implements StoredGu {

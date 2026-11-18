@@ -6,11 +6,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 动画生物共用死亡：播放时尸体原地停留，到覆盖整段动画的 tick 随原版死亡烟雾移除。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 动画生物共用的死亡维持工具：死亡动画播放期间将实体固定在原地，待达到覆盖整段死亡动画的 {@code removeTick} 时再广播原
+ * 版死亡烟雾并移除实体。
  */
 
 public final class HeldDeath {

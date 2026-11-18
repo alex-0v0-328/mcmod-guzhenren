@@ -5,11 +5,8 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 玩家身上可并存的累积体质。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 玩家身上可并存的肉身体质标记枚举（存于 {@link BodyData#physiques}，其中 {@link #ZOMBIE} 与 {@link #TEMP_ZOMBIE} 互
+ * 斥，任一均可与 {@link #EXTREME} 并存）。
  */
 
 public enum Physique implements NamedEnum {

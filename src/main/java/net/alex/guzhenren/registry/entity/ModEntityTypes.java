@@ -31,22 +31,16 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 本模组注册的实体类型。
- *
+ * 本模组全部 {@link EntityType} 注册表，涵盖野生蛊、野兽、虚影、魂商与投射物。
  * <ul>
- *   <li>自然生成环境实体：希望蛊[Hope Gu]、3 豕蛊、4 犀牛甲虫蛊变体；生物：野猪、4 熊、2 虎、2 龟、3 牛、2 象。月刃、
- *       气波为弹射物；兽力[Beast Strength]虚影仅显示不存档。</li>
- *   <li>每个 {@link SoulTrader} 一个免火杂项实体，无生成规则，仅 {@code /summon}；希望蛊光点由实体类发出。</li>
- *   <li>捕蛊即直接右键，不以开窍[Awakening]为门槛；野猪不可捕获。</li>
- *   <li>每个活体实体在 {@code assets/ftblibrary/textures/faces/guzhenren/} 补一份 {@code <实体 id>.json} 或
- *       {@code .png} 作 FTB Chunks 小地图图标；两份并存时 FTB Library 只读 JSON，故只留一份；缺了开发环境报 ERROR、
- *       地图只画通用圆点；{@code MISC} 实体不设则不画。</li>
+ *   <li>自然生成与战斗实体包括希望蛊（自带实体光点散发）、3 种豕蛊、4 种犀牛甲虫蛊变体，以及野猪、4 种熊、2 种虎、2 种
+ *       龟、3 种牛与 2 种象等野兽（徒手右键即可捕获野生蛊且不以开窍[Awakening]为门槛，野猪不可捕获）；月刃、气
+ *       波与兽力[Beast Strength]冲撞为投射物，兽力虚影（{@link BeastPhantomEntity}）仅作视觉展示而不持久化存档；每个
+ *       {@link SoulTrader} 对应一个免疫火焰的杂项实体，无自然生成规则，仅支持 {@code /summon} 召唤。</li>
+ *   <li>⚠ 每个活体生物实体均须在 {@code assets/ftblibrary/textures/faces/guzhenren/} 下提供一份 {@code <实体 id>.json}
+ *       或 {@code .png} 作为 FTB Chunks 小地图头像（两者并存时 FTB Library 仅读取 JSON，故只保留一份；缺失会导致开发环
+ *       境打印 ERROR 且小地图退化为通用圆点，{@code MISC} 杂项实体未配置则不绘制）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see HopeGuEntity
- * @since 1.0.0
  */
 
 public final class ModEntityTypes {

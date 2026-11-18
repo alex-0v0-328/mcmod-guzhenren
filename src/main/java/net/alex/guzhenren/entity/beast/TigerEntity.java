@@ -15,15 +15,17 @@ import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * 老虎：橙、白两色为共用本类、只差纹理的两个实体类型。
+ * 老虎实体：黄虎与白虎共用本类，注册为仅贴图不同的两个实体类型。
  * <ul>
- *   <li>近身挥击（第 8 tick 命中），3～8 格扑击：第 12 tick 施起跳冲量并当刻锁方向，{@link #onBeginAction}
- *       每次新扑击重置锁定，不复用旧向；落地命中为飞行窗口内扫掠检测。</li>
- *   <li>起跳帧当刻或其后首个 tick 锁定，漏帧不跳过；赶不上落地窗口则放弃起跳；撞墙停下即提前结束，无命中。</li>
- *   <li>{@link #isKeepingMomentum} 自起跳至落地窗口末保持横向动量，纵向弧线交重力：窗口内每 tick 重施速度，
- *       弧线才跨得过锁定距离、不被阻力耗尽；窗口后基础动作 tick 清零横向速度，不滑出。</li>
- *   <li>原版无虎音效，借豹猫一系降调，吼叫用略低沉北极熊警告音；白天只坐，无翻滚、蹭背动画，{@link #getActionAnimation}
- *       映射为待机循环。</li>
+ *   <li>近身使用挥击（第 {@value #SWIPE_HIT_TICK} tick 命中），3～8 格内发起扑击：第 {@value #POUNCE_LEAP_TICK} tick 施
+ *       加起跳冲量并锁定方向，{@link #onBeginAction} 在每次新扑击起手时清空旧方向；腾空窗口内按每 tick 位移做扫掠碰撞检
+ *       测。</li>
+ *   <li>起跳在起跳帧或其后首个 tick 锁定方向，避免偶发跳帧漏掉起跳；若已错过腾空窗口或目标失效则直接放弃，扑击途中撞墙
+ *       即提前结束且不结算伤害。</li>
+ *   <li>{@link #isKeepingMomentum} 在起跳至腾空窗口结束期间保持水平动量，垂直方向交由重力形成抛物线：窗口内每 tick 重新
+ *       赋予水平速度以防空气阻力提前耗尽扑击距离，窗口结束后由基类动作心跳清零水平速度以防落地滑步。</li>
+ *   <li>复用原版豹猫音效并降调，吼叫借用降调的北极熊警告音；白天环境动作仅使用坐下，模型无翻滚与蹭背动画，由
+ *       {@link #getActionAnimation} 兜底映射为待机循环。</li>
  * </ul>
  */
 

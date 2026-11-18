@@ -5,12 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 护盾层结束后发布的事件：打空它的伤害、发现超时的心跳或 {@link ShieldService#dismiss}；其携带的路径效果须随之移除。
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldRaisedEvent
- * @since 1.0.0
+ * 肉身护盾层结束事件：当护盾被伤害击碎、心跳检测到期或由 {@link ShieldService#dismiss} 主动撤除时同步发布，通知上层移
+ * 除伴随该护盾挂载的流派效果与动作状态。
  */
 
 public class ShieldDownEvent extends Event {

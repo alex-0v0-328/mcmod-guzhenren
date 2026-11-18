@@ -10,16 +10,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 元石[Primeval Stone]：右键将所含真元[Essence]灌入持有者空窍[Aperture]，真元值取自注册。
+ * 元石[Primeval Stone]物品：右键将蕴含的真元注入持有者空窍，单枚真元数值由注册参数决定。
  * <ul>
- *   <li>⚠ 门槛拒绝池满与未开窍：服务写入对未开窍者静默无效，不拒绝则元石白吃。</li>
- *   <li>自动扣携带元石（补池线、付消耗、炼蛊台供给槽）归 {@code PrimevalStoneSupply}，本类只管元石与价值。</li>
+ *   <li>⚠ 门槛必须显式拒绝真元池已满与尚未开窍的玩家：底层服务对未开窍者的写入静默无操作，若不提前拒绝会导致元石被白
+ *       白消耗。</li>
+ *   <li>自动扣除随身元石（补池线、支付催动消耗与炼蛊台供给槽）均归 {@code PrimevalStoneSupply} 管理，本类只负责元石本
+ *       身的使用与数值承载。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.material.GuMaterialItem
- * @since 1.0.0
  */
 
 public class PrimevalStoneItem extends GuMaterialItem {

@@ -1,16 +1,11 @@
 package net.alex.guzhenren.client.input;
 
 /**
- * 以客户端 tick 计的纯双击判定，不碰游戏状态，纯 JUnit 可测。
+ * 基于客户端 tick 计数的纯双击状态机：不依赖任何游戏状态，可直接由纯 JUnit 单元测试覆盖。
  * <ul>
- *   <li>{@link #press}：距上次按下不超过 {@link #windowTicks} tick 即报双击并忘掉两次，第三次快按开始新一对而不再切换；
- *       {@link #reset} 忘掉待配对的按下。</li>
+ *   <li>{@link #press} 判定距离上次有效按下是否不超过 {@link #windowTicks} tick：若在窗口内则触发双击并清除两次按下记
+ *       录（第三次快按重新作为新一轮首次按下，不会连续误切）；{@link #reset} 用于清空尚未配对的首按记录。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageInput
- * @since 1.0.0
  */
 
 public final class DoubleTap {

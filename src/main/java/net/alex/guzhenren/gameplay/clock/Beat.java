@@ -4,13 +4,12 @@ import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 心跳对玩家时钟的单次读数，整拍共用。{@link #days}：上拍以来日时钟走过的整天数，供蛊饱食[Hunger]遍历扣；
- * {@link #rate}：拍初的 {@link TimeFlow#getRate}；动词同 {@link TimeFlow}，绑定此倍率，不再问时钟。
- *
- * @author Alex
- * @version 1.0.0
- * @see TimeFlow
- * @since 1.0.0
+ * 每秒心跳对玩家时钟的单次采样快照，供整拍内各子系统复用而不再重复查询时钟。
+ * <ul>
+ *   <li>{@link #days} 为自上一拍以来主世界日钟跨过的整天数，供蛊虫每日饱食[Hunger]结算；{@link #rate} 为拍初采样的
+ *       {@link TimeFlow#getRate} 总时间倍率，{@link #scale} 与 {@link #getSteps} 直接绑定该倍率委派给
+ *       {@link TimeFlow}。</li>
+ * </ul>
  */
 
 public record Beat(long days, double rate, @NotNull RandomSource random) {

@@ -1,15 +1,14 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
 /**
- * 运行期间等于一某之力的限时兽力[Beast Strength]增益。花豕蛊[Flower Boar Gu]一猪，
- * 蛮力天牛蛊[Brute Force Longhorn Beetle Gu]一牛，由原版效果实现；B 面板据此在力道造诣下显示带倒计时的兽力，
- * 不列入流派增益；点数取流派效果的力道道痕点，经 {@link PathStrengthService#getBeastBuffs} 成无承受力的
- * {@link StrengthAmplifier}，超出即肉体过载（{@link BodyOverload}）；不计入永久兽力准入。
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastStrengthFamily
- * @since 1.0.0
+ * 持续期间等效于「一某之力」的限时兽力[Beast Strength]药水效果接口（如花豕蛊[Flower Boar Gu]对应豕、
+ * 蛮力天牛蛊[Brute Force Longhorn Beetle Gu]对应牛）。
+ * <ul>
+ *   <li>B 面板据此将效果带倒计时归在力道「兽力」行下展示，不重复列入流派增益列表。</li>
+ *   <li>力量点数取自对应流派效果上的力道道痕[Path Marks]点，经 {@link PathStrengthService#getBeastBuffs} 转为不带承受力
+ *       加成的 {@link StrengthAmplifier}（超出当前承受力的部分全额发挥并触发 {@link BodyOverload} 肉体过载反噬，且不计
+ *       入永久兽力分支准入）。</li>
+ * </ul>
  */
 
 public interface BeastStrengthBuff {

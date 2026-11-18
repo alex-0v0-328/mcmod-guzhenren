@@ -11,14 +11,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * 炼蛊界面网格下方的资源池条。真元[Essence]、精炼真元（大于 0 才显示）、魂魄三条细条，上方各一行 {@code value / max}；
- * 随同步附件更新、不发包，炼蛊每秒消耗真元和魂魄即时可见。从 {@code renderLabels} 画，坐标相对面板；条用
- * {@link Widgets#drawBar}，各一个 {@link SpriteBatch}；读数各自缓存，值或上限变才重建。
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementScreen
- * @since 1.0.0
+ * 炼蛊界面网格下方的资源池进度条组：依次绘制真元、精炼真元（仅大于 0 时显示）与魂魄三条细进度条并在上方标注
+ * {@code value / max} 读数；随同步附件实时更新而无需额外发包，使炼蛊每秒的资源消耗即时可见；在
+ * {@code renderLabels} 中以相对面板坐标绘制，三条各自通过 {@link Widgets#drawBar} 使用独立 {@link SpriteBatch}，
+ * 读数文本组件仅在当前值或上限变化时重建缓存。
  */
 
 final class PoolBars {

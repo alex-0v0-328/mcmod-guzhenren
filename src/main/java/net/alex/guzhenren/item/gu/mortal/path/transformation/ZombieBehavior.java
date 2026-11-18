@@ -11,16 +11,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 僵尸蛊[Zombie Gu]行为：时长取自注册，级别取自转数；二至五转 9 只蛊共用。
+ * 僵尸蛊[Zombie Gu]行为：二至五转共 9 只僵尸系凡蛊共用，临时僵尸化时长在注册时注入，僵尸档位由蛊虫转数派生
+ * （{@link #getRung}）。
  * <ul>
- *   <li>只拒已是僵尸；效果交 {@link BodyService}：临时僵尸化，复发则永久；{@code StateEffects} 凭本行为与
- *       {@link #getRung} 找某级蛊。</li>
- *   <li>⚠ 复发窗口内再催动不拒，即惩罚转永久；该分支提前返回，两种结果共需的逻辑须在其前。</li>
+ *   <li>{@link #checkEffect} 仅拒绝已处于永久僵尸体质的玩家；{@link #applyEffect} 委托 {@link BodyService} 使玩家进入临
+ *       时僵尸化（若在复发窗口内再次催动则转为永久僵尸）；{@code StateEffects} 通过检索本行为与 {@link #getRung} 反查对
+ *       应档位的僵尸蛊。</li>
+ *   <li>⚠ 在复发窗口（{@link BodyService#isWithinRelapseWindow}）内再次催动不会被门槛拦截，而是直接惩罚转为永久僵尸并提
+ *       前返回，因此两条分支共用的前置逻辑必须写在该分支判断之前。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public record ZombieBehavior(int tempZombieTicks) implements GuBehavior {

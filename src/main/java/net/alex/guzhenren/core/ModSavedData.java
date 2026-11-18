@@ -11,16 +11,14 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 模组维度存档数据的基类。
+ * 模组维度级持久化存档数据（{@link SavedData}）的抽象基类。
  * <ul>
- *   <li>子类只覆写 {@link #write}，经 {@link #get} 取用并交出读回函数；热路径改传只建一次的
- *       {@link SavedData.Factory}。</li>
- *   <li>物品堆叠经两侧共享的 {@link StackIo} 在存档标签内读写单个非空堆叠，带注册表上下文。</li>
+ *   <li>子类只需实现 {@link #write} 并通过 {@link #get} 按需创建或读取实例；高频访问的热路径可通过预构建的
+ *       {@link SavedData.Factory} 调用重载版 {@link #get(ServerLevel, String, SavedData.Factory)} 以避免重复分配工厂对
+ *       象。</li>
+ *   <li>通过 {@link StackIo} 将当前 {@link HolderLookup.Provider} 注册表上下文绑定到单个非空 {@link ItemStack} 的 NBT
+ *       读写中，屏蔽底层序列化样板代码。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public abstract class ModSavedData extends SavedData {

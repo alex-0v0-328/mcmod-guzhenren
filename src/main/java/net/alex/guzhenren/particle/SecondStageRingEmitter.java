@@ -13,30 +13,21 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 二段飞行[Second-Stage Flight]的服务端环：进入时音爆环、高速时音障环、撞击时撞击环。
+ * 二段飞行[Second-Stage Flight]期间的服务端视觉环发射器（基于 {@link RingConeEmitter#sendRing} 与 {@code RingParticle}
+ * 渲染），在进入、高速巡航与撞击时向可见范围内的玩家发送纯视觉反馈。
  * <ul>
- *   <li>服务端发送，粒子范围内玩家都看得到；纯反馈，无伤害、无碰撞箱。</li>
- *   <li>{@link #sonicBoom} 响应每个 {@code SecondStageStartedEvent}（{@link SecondStageRingEvents}）：一个
- *       {@code sonic_boom_ring}，绽开到约 4 格，面朝视线，位于身体中部（{@link #RING_HEIGHT}），沿视线后退
- *       {@link #BOOM_BEHIND} 格，在飞行者第一人称镜头后绽开；飞行者改看屏幕环
- *       （{@code net.alex.guzhenren.client.hud.SonicBoomHud}）；就地开始 {@link BarrierRingTrail}。</li>
- *   <li>同时以 {@link #BOOM_VOLUME} 播放监守者音爆，约 32 格外可闻，同环的发送距离。</li>
- *   <li>{@link #tick} 在 {@link SecondStageService#isActive} 时推进轨迹，每成一环在身体中部发 {@code barrier_ring}；
- *       头 2 秒不成环，之后保持普通飞行 3 倍以上时约每 16 格一环。</li>
- *   <li>环就地由小到大绽开，再扩到 4 倍并淡出（{@code RingParticle} 扩散退场）；满速每秒 4 环、每环存活 15 tick，
- *       每名飞行者身后约同时 3 个。</li>
- *   <li>开启时轨迹缺失（换维度已丢弃）则就地重开、重新静默；轨迹随二段飞行结束，登出、换维度时丢弃
- *       （{@link #forget}）；{@link SecondStageRingEvents} 在每个玩家 tick 末调用 {@link #tick}。</li>
- *   <li>{@link #crash} 响应每个服务端 {@code SecondStageCrashEvent}：身体中部贴撞击面（沿航向 {@link #CRASH_AHEAD}
- *       格）发 {@code sonic_boom_ring}，三维面朝航向；俯冲平铺地面、爬升平贴天花板（{@code RingGeometry#getFacing}
- *       处理竖直法线）；撞击声来自撞坑爆炸。</li>
+ *   <li>{@link #sonicBoom} 响应 {@link SecondStageStartedEvent}：在玩家身体中部（{@link #RING_HEIGHT}）沿视线后方
+ *       {@link #BOOM_BEHIND} 格生成一枚面向视线的 {@code sonic_boom_ring}（在第一人称视角后方绽开，飞行者本机改看屏幕
+ *       环），以 {@link #BOOM_VOLUME} 音量播放约 32 格可闻的监守者音爆声，并初始化 {@link BarrierRingTrail}。</li>
+ *   <li>{@link #tick} 由 {@link SecondStageRingEvents} 在玩家刻末尾调用：在 {@link SecondStageService#isActive} 期间推
+ *       进轨迹并沿身体中部发射 {@code barrier_ring}（前 2 秒静默，之后达到 3 倍普通飞行速度时约每 16 格 1 环、满速约每
+ *       秒 4 环且每个粒子存活 15 刻并扩散至 4 倍后淡出）；若因切换维度导致轨迹缺失但仍处于飞行态，则就地重建轨迹并重新
+ *       静默。</li>
+ *   <li>{@link #crash} 响应服务端 {@link SecondStageCrashEvent}：在身体中部沿航向前方 {@link #CRASH_AHEAD} 格贴近撞击面
+ *       生成三维朝向航向的 {@code sonic_boom_ring}（垂直俯冲或爬升时由 {@code RingGeometry#getFacing} 处理法线使环面贴
+ *       合地面或天花板），撞击音效由弹坑爆炸提供。</li>
+ *   <li>飞行结束、玩家登出或切换维度时调用 {@link #forget} 清除轨迹缓存。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.particle.RingParticle
- * @see RingConeEmitter
- * @since 1.0.0
  */
 
 public final class SecondStageRingEmitter {

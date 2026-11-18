@@ -5,16 +5,14 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 脑海池的种类：念、意、情，对应 {@code MindData} 三池；闭合枚举。
- *
+ * 脑海三池种类枚举：定义念（{@link #THOUGHTS}）、意（{@link #WILLS}）、情（{@link #EMOTIONS}）的默认容量与是否允许超限
+ * 爆裂。
  * <ul>
- *   <li>容量 {@code 50000 / 12 / 8} 只在此声明，超限比例只在 {@code BURST_NUMERATOR/DENOMINATOR}。</li>
- *   <li>⚠ 只有部分池能超上限，也只有它们能致死；{@code isBurstable()} 是唯一声明，调用处不得再判常量。</li>
+ *   <li>各池默认容量（{@code 50000 / 12 / 8}）与超限致死比例（{@link #BURST_NUMERATOR} / {@link #BURST_DENOMINATOR}）唯
+ *       一定义在此。</li>
+ *   <li>⚠ 只有 {@link #isBurstable} 为 {@code true} 的池允许写入超出 {@code max} 的缓冲值并在超限时触发脑海炸裂致死，调
+ *       用方一律查询该方法而非硬编码枚举常量。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public enum MindPoolType implements NamedEnum {

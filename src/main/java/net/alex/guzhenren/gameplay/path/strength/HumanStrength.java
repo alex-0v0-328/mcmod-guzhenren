@@ -5,14 +5,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 肉体累积的人力，以斤、钧计。存于 {@code PathStrengthData}；五种层数上限合计恰为 99,999 斤；兄弟模组不得新增；
- * 1 斤须等于 1 力量点[Strength Points]（{@code PathStrengthData.ATTACK_PER_POINT}），否则破坏与兽力[Beast Strength]
- * 共用的结算；可发挥多少只归 {@code StrengthService}。
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthPathBranch
- * @since 1.0.0
+ * 肉体永久累积的人力枚举（以斤、钧为单位，存于 {@link PathStrengthData#humanLayers}，五档满层合计 99,999 斤）。
+ * <ul>
+ *   <li>⚠ 1 斤人力严格等于 1 点力量点[Strength Points]（对应 {@link PathStrengthData#ATTACK_PER_POINT} 空手攻击力），
+ *       保证人力与兽力[Beast Strength]共用同一套承受力与攻击力结算；实际可发挥点数唯一由 {@link StrengthService} 裁
+ *       定。</li>
+ * </ul>
  */
 
 public enum HumanStrength implements NamedEnum {

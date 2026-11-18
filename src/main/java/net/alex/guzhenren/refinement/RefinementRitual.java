@@ -24,23 +24,19 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 单次炼蛊运行，由所属 {@link RefinementMenu} 逐 tick 推进。
+ * 单次炼蛊仪式的运行态机与结算引擎，由所属 {@link RefinementMenu} 逐刻调用 {@link #advance} 推进。
  * <ul>
- *   <li>流程：投元石[Primeval Stone]窗口、窗口间隔、每秒付真元[Essence]与魂魄、末尾结算。</li>
- *   <li>界面即时钟：{@code broadcastChanges} 调 {@link #advance}，关闭调 {@link #stop}；关窗即中止，由结构保证。</li>
- *   <li>实时数值发布到界面 {@link ContainerData}，因客户端无法自行匹配蛊方。</li>
- *   <li>结算前不耗任何东西；成功取走已认领输入、填满产出，失败每种材料取一半、每只蛊扣四分之一生命。</li>
- *   <li>唯一蛊产物继承所吃本命蛊：按种类绑定到该蛊的空窍[Aperture]，从不按位置；吃两只时，槽位序第一且空窍仍在者胜，
- *       另一空窍失去主修流派（{@link ApertureService#inheritVital}）；绑定后即登记令牌，产物还在输出格也已是本命。</li>
- *   <li>魂魄先扣当前值，不足部分按十分之一扣 {@code maxSoul}，致死即在此步。</li>
- *   <li>窗口内补给格先供本窗元石、余下补真元池，窗口外只补真元池；元老蛊[Primeval Elder Gu]中途耗尽即退回背包。</li>
+ *   <li>仪式按投石窗口与窗口间隔交替运行（间隔与窗口内每秒均扣除 {@link GuRecipe} 指定的真元与魂魄），全部阶段走完后按
+ *       基础成功率与炼道造诣加成掷骰结算，并通过 {@link ContainerData} 向客户端同步实时进度。</li>
+ *   <li>补给槽在投石窗口内优先供应当前窗口所需元石，余量及窗口外阶段则用于为真元池补能；若燃料
+ *       为元老蛊[Primeval Elder Gu]且中途耗尽，立即将其退回玩家背包或原地掉落。</li>
+ *   <li>魂魄消耗优先扣除当前魂魄，不足部分按 10:1 折算扣除魂魄上限（魂魄归零即触发致死）；正式结算前不消耗网格内材料，
+ *       成功时扣清已认领输入并交付产物，失败则令每格材料损失一半（向上取整）、每只持续照顾型蛊受损四分之一最大生命
+ *       值。</li>
+ *   <li>唯一凡蛊产物支持本命蛊继承：若配方仅产出一只凡蛊且消耗了己方本命蛊，通过 {@link ApertureService#inheritVital}
+ *       按被吃本命蛊所绑空窍种类择一继承（同时吃两只时槽位靠前且空窍仍存在者胜出，另一空窍清空主修流派），并在产物放入
+ *       输出格时即完成令牌绑定与存储登记。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementMenu
- * @see GuRecipe
- * @since 1.0.0
  */
 
 final class RefinementRitual {

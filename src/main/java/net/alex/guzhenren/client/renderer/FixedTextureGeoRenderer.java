@@ -9,13 +9,9 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 /**
- * 共享模型配单一固定贴图的 GeckoLib 渲染器，同族每实体类型各一实例；关闭原版死亡倾倒，模型自带死亡动画原样显示；慢速族用
- * {@link #withMotionAnimThreshold} 压低 GeckoLib 判定行走的速度阈值（默认 0.015）。
- *
- * @author Alex
- * @version 1.0.0
- * @see ModEntityRenderers
- * @since 1.0.0
+ * 共享模型配合单一固定贴图的 GeckoLib 实体渲染器：同族每个实体类型各实例化一次，默认关闭原版死亡倾倒以原样播放模型
+ * 自带死亡动画；对于移动缓慢的实体族，可通过 {@link #withMotionAnimThreshold} 压低 GeckoLib 判定行走动画的速度阈
+ * 值（默认 0.015）。
  */
 
 public final class FixedTextureGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntityRenderer<T> {

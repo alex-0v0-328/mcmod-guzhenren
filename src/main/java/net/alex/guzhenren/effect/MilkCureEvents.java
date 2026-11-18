@@ -11,14 +11,10 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 牛奶解除规则：本模组效果中牛奶只解流血。其余都是别处状态（流派效果、身体）的图标、计时、修饰符或脉冲，心跳重新投影，
- * 解掉只让其所载停到下一拍；流血背后无状态。监听 {@link MobEffectEvent.Remove}：解药为 {@link EffectCures#MILK} 且效果
- * 属本模组命名空间的移除被取消；其余放行，如别的解药（图腾）、无解药的移除（{@code /effect clear}、死亡）、所有原版效
- * 果。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 牛奶解除限制监听器：在本模组所有 {@link MobEffect} 中，仅流血效果（{@link ModEffects#BLEEDING}）背后无持久状态而允许
+ * 被牛奶解除，其余效果均为流派效果或肉身状态的图标投影。监听 {@link MobEffectEvent.Remove} 时，若解药为
+ * {@link EffectCures#MILK} 且目标属于本模组命名空间而非流血，则取消本次移除；其余移除方式（如不死图腾、
+ * {@code /effect clear}、死亡或原版效果）一律放行。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

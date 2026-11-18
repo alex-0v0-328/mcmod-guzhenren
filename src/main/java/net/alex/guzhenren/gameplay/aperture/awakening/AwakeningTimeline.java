@@ -6,22 +6,17 @@ import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.minecraft.util.Mth;
 
 /**
- * 开窍[Awakening]仪式时钟：单击后 tick 数的静态曲线与逐 tick 档位。
+ * 开窍[Awakening]仪式时间轴：定义右键起手后各阶段的关键帧时刻、插值曲线与逐 tick 像素档位。
  * <ul>
- *   <li>服务端 {@link #AWAKEN_TICKS} 开窍、{@link #RELEASE_TICKS} 揭晓资质[Aptitude]、{@link #END_TICKS} 结束，
- *       客户端按同组时刻画；揭晓解除定身。</li>
- *   <li>快捷栏上资质条 {@link #BAR_FILL_TICKS} 内由最低档下限爬到掷出基数，停到闪白。</li>
- *   <li>希望蛊[Hope Gu] {@link #FLY_TICKS} 内飞出后悬浮；燃烬帧 0 即物品图标，逐步换到第 7 帧，
- *       {@link #FLASH_START_TICKS} 燃尽（帧号 -1）。</li>
- *   <li>像素特效只按整 tick 跳档，不插值：闪白菱形 0 不画、{@link #FLASH_STEPS} 盖满，往返；牌匾自中线展开
- *       （行数展满即高）、扫光（斜带左上沿 x+y，不扫为 -1，{@code span} 为最大 x+y 加一）、自下而上按
- *       {@link #SHATTER_BLOCK} 像素一行碎掉。</li>
+ *   <li>服务端在 {@link #AWAKEN_TICKS} 开窍、{@link #RELEASE_TICKS} 揭晓资质并解除定身、{@link #END_TICKS} 结束仪式；客
+ *       户端按同一套时刻驱动表现。</li>
+ *   <li>快捷栏上方的资质条在 {@link #BAR_FILL_TICKS} 内从最低档下限爬升至预掷基数，满格停驻至闪白开始。</li>
+ *   <li>希望蛊[Hope Gu]在 {@link #FLY_TICKS} 内缓动飞至悬停点并上下浮动；燃烬帧 {@code 0} 为原物品图标，按
+ *       {@code BURNOUT_STEP_TICKS} 逐级切至第 7 帧，到 {@link #FLASH_START_TICKS} 燃尽消失（返回 {@code -1}）。</li>
+ *   <li>屏幕像素特效按整 tick 跳档、不做帧间插值：闪白菱形从 {@code 0}（不画）外扩至 {@link #FLASH_STEPS} 盖满全屏后再
+ *       收回；资质牌匾自中线上下展开（展满高度即停），经两次斜向扫光（返回斜带左上沿 {@code x + y}，不扫时为
+ *       {@code -1}），最后从 {@link #SHATTER_TICKS} 起自下而上按每行 {@link #SHATTER_BLOCK} 像素逐帧碎裂。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningRitualService
- * @since 1.0.0
  */
 
 public final class AwakeningTimeline {

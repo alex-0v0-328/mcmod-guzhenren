@@ -11,24 +11,21 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 蓄力催动蛊时快捷栏上方的蓄力条，注册在原版氧气层之上。
- *
+ * 蓄力催动蛊虫时快捷栏上方的蓄力进度条：注册在原版氧气条图层之上。
  * <ul>
- *   <li>读手持物品在 {@link net.alex.guzhenren.item.GuItem} 的 {@code getUseDuration} 与 {@code chargeFraction}：物品给
- *       出比例就用，否则退回原版剩余 tick 比例。</li>
- *   <li>开窍[Awakening]仪式期间改显资质[Aptitude]条：{@link AwakeningHud#getBarBase} 爬升到掷出基础值，填充中灰色，满后
- *       默认蓄力色，标题同资质行（八成七）。</li>
- *   <li>蓄力蛊[Store Strength Gu]蓄力时（{@link StoreStrengthCharge#isCharging}）显示该蓄力：填充中灰色，服务端判满
- *       （{@link StoreStrengthCharge#isFull}）后默认蓄力色，标题“蓄力中”/“蓄满”。</li>
- *   <li>研读蛊方（{@link GuRecipeItem}）时显示研读进度，单点阅读的 {@link GuItem#TAP_TICKS} 内不出条，免得一闪而过。</li>
- *   <li>{@link #isShowing} 是“蓄力催动进行中”唯一判定；{@link NourishHud} 也读它，把自己的条叠在本条上方。</li>
- *   <li>⚠ 催动带持续时间的蛊自动得本条，新增蓄力类蛊无需改这里。</li>
- *   <li>叶子类标题写成 {@code a / b} 时须给出同一对数值的 {@code chargeFraction}。</li>
+ *   <li>常规蓄力读取手持 {@link net.alex.guzhenren.item.GuItem} 的 {@code getUseDuration} 与 {@code chargeFraction}：若
+ *       物品给出了比例则直接采用，否则回退为原版剩余使用 tick 比例。</li>
+ *   <li>开窍[Awakening]仪式期间切换显示资质[Aptitude]进度条：进度跟随 {@link AwakeningHud#getBarBase} 爬升至掷出基
+ *       础值，填充中呈灰色、到达后转为默认蓄力色，标题同资质行格式（如「八成七」）。</li>
+ *   <li>蓄力蛊[Store Strength Gu]或惯力蛊[Habitual Strength Gu]蓄力期间（{@link StoreStrengthCharge#isCharging}）显示
+ *       对应蓄力进度：填充中呈灰色，收到服务端判满（{@link StoreStrengthCharge#isFull}）后转为默认蓄力色，标题在「蓄
+ *       力中」与「蓄满」间切换。</li>
+ *   <li>研读蛊方（{@link GuRecipeItem}）时显示研读进度，单点阅读的 {@link GuItem#TAP_TICKS} 内不出条，免得一闪
+ *       而过。</li>
+ *   <li>{@link #isShowing} 是「蓄力条正在显示」的唯一判定入口，{@link NourishHud} 通过它把温养条叠放在本条之上。</li>
+ *   <li>⚠ 凡是带使用持续时间的蛊虫都会自动获得本蓄力条，新增蓄力类蛊虫无需修改此类。</li>
+ *   <li>当叶子类将标题写成 {@code a / b} 形式时，必须同步给出基于同一对数值计算的 {@code chargeFraction}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ChargeHud extends HotbarHud {

@@ -10,17 +10,14 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 开窍[Awakening]仪式事件入口：服务端玩家 tick 末尾调 {@link AwakeningRitualService#tick}；死亡、换维度、登出、登录调
- * {@link AwakeningRitualService#finish}。
+ * 开窍[Awakening]仪式事件转发入口：服务端玩家每 tick 末尾推进 {@link AwakeningRitualService#tick}，死亡、切换维度、登
+ * 出或重登时调 {@link AwakeningRitualService#finish} 立即结清未完仪式。
  * <ul>
- *   <li>⚠ 死亡钩子先于克隆：未开 keepInventory 则死亡掉落仪式刚开的空窍[Aperture]，同其他已开窍者。</li>
- *   <li>⚠ 死亡钩子用 {@code LOWEST} 最后跑：被别的模组取消的死亡（复活）不结束仪式。</li>
+ *   <li>⚠ 死亡事件先于玩家克隆触发：未开启死亡不掉落（{@code keepInventory}）时，仪式中死亡会先补完开窍，再在克隆时按已
+ *       开窍玩家的统一规则重置。</li>
+ *   <li>⚠ {@link #onDeath} 必须使用 {@link EventPriority#LOWEST} 最后执行，确保被不死图腾或其他模组取消的死亡不会误中断
+ *       正在进行的仪式。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningRitualService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

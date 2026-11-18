@@ -11,19 +11,17 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
 /**
- * 力气蛊[Strength Qi Gu]远程拳的客户端输入。
+ * 力气蛊[Strength Qi Gu]远程拳的客户端输入处理器。
  * <ul>
- *   <li>主手空、增益在身时新按攻击键：Epic Fight 锁定目标超出触及距离（{@link QiWaveService#isPastReach}）即向其发
- *       {@link QiWavePayload}，不限距离；服务端全部重查，按 {@code StrengthRound.RANGE_INTERVAL_TICKS} 限频；
- *       无锁定不出拳，因准星拾取会被草和其他植物挂住。</li>
- *   <li>取按住状态的上升沿而非消费点击：Epic Fight 攻击键同键，战斗模式下吃掉点击，故两键按住状态都读。</li>
- *   <li>唯一可变静态字段 {@code previousAttack} 为本机上次按键状态，用于判沿；{@link #reset} 登出时清除。</li>
+ *   <li>当力气蛊增益在身且主手为空时，新按下攻击键若检测到 Epic Fight 锁定目标超出近战触及距离（
+ *       {@link QiWaveService#isPastReach}），即向该目标发送 {@link QiWavePayload}（不设最远距离上限）；服务端会全
+ *       量重查条件并按 {@code StrengthRound.RANGE_INTERVAL_TICKS} 限频；无锁定目标时不出拳，以免准星拾取被杂草等植物
+ *       挡住。</li>
+ *   <li>通过监听攻击键按住状态的上升沿而非消费点击事件触发：因 Epic Fight 攻击键复用同一按键并在战斗模式下消费点击，故
+ *       同时读取两套按键绑定状态。</li>
+ *   <li>唯一可变静态字段 {@code previousAttack} 仅保存上一 tick 按键状态以判定上升沿，玩家登出时经 {@link #reset}
+ *       清空。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see QiWaveService
- * @since 1.0.0
  */
 
 public final class QiWaveInput {

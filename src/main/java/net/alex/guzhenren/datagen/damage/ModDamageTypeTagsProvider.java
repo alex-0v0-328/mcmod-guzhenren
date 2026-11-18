@@ -15,23 +15,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 伤害类型标签；取数据包 provider 的 lookup，才见本次生成的类型。
- *
+ * 本模组伤害类型标签数据生成器（依赖 {@link net.alex.guzhenren.datagen.ModDatapackProvider#getRegistryProvider()} 解析
+ * 当次生成的伤害类型）。
  * <ul>
- *   <li>六种灾难伤害同带六个绕过标签：护甲、效果、附魔、抗性、盾牌、无击退；月刃只是弹射物；流血只绕过护甲。</li>
- *   <li>空窍压力爆炸、十绝天灾另带 {@code IS_EXPLOSION}；气波为弹射物、绕过受伤冷却：一拳的多个兽力冲击才各计伤
- *       害。</li>
- *   <li>肉体过载、冲击反噬绕过护甲且无击退：身体反冲无来源位置，1.21 会朝随机方向击退；范围冲击、蓄力一拳也无击退：各自
- *       推开目标。</li>
- *   <li>仅四种致死检查（寿元耗尽、魂魄衰竭、脑海炸裂、空窍压力爆炸）另带 {@code BYPASSES_INVULNERABILITY}，不死图腾挡不
- *       住；心跳先跳过创造与旁观玩家。</li>
- *   <li>十绝天灾、本命蛊死亡不带它：前者波及爆炸内全部实体，后者按比例扣血，带了只多打到创造玩家与无敌实体。</li>
+ *   <li>六种灾劫与反噬致死伤害（寿元耗尽、魂魄衰竭、脑海炸裂、空窍压力爆炸、十绝天灾、本命蛊死亡）统一加入穿透护甲、效
+ *       果、附魔、抗性、盾牌及无击退六个标签；其中仅前四种自身极限致死伤害额外加入
+ *       {@link DamageTypeTags#BYPASSES_INVULNERABILITY} 以穿透不死图腾（心跳检查已提前跳过创造与旁观模式玩家，而十绝天
+ *       灾与本命蛊死亡不加该标签以免误伤创造模式玩家或无敌实体）。</li>
+ *   <li>空窍压力爆炸与十绝天灾加入爆炸标签；月刃与气波加入弹射物标签，且气波与蓄力一拳加入绕过受击无敌帧标签
+ *       （{@link DamageTypeTags#BYPASSES_COOLDOWN}），使单拳触发的多道兽力气波能全额结算伤害。</li>
+ *   <li>流血、肉体过载与冲击反噬加入穿透护甲标签；范围冲击、蓄力一拳、冲撞打击、肉体过载与冲击反噬均加入无击退标签（前
+ *       三者由技能自身控制击退位移，后两者为无来源坐标的体内反冲，若不加无击退标签会被 1.21 原版朝随机水平方向击
+ *       退）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.datagen.ModDatapackProvider
- * @since 1.0.0
  */
 
 public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {

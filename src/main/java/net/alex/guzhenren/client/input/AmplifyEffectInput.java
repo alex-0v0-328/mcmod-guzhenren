@@ -20,18 +20,14 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * 功倍蛊[Amplify Effect Gu]的客户端输入。
+ * 功倍蛊[Amplify Effect Gu]的客户端输入处理器。
  * <ul>
- *   <li>主手持已炼化者右键：不使用物品，改按住 {@link RadialMenu}，列快捷栏中可增幅的蛊；选中发送带该栏位的
- *       {@link AmplifyDrivePayload}，服务端全部重查；野生者把点击交还原版，仍可按住炼化。</li>
- *   <li>扇区由 {@code AmplifyEffectGuItem#canAmplify} 列出，其蛊在原版冷却时显示禁用，反正也催动不了；
- *       松开使用键或功倍蛊离开主手（数字键）都结束按住，只有前者发送选择。</li>
+ *   <li>主手持有已炼化的功倍蛊并按下右键时，拦截原版物品使用并改为按住唤出 {@link RadialMenu}，展示快捷栏中所有可被
+ *       增幅的凡蛊；选中扇区后发送携带对应栏位的 {@link AmplifyDrivePayload}，由服务端重新执行完整校验；野生功倍蛊则
+ *       将点击交还原版以保留长按炼化。</li>
+ *   <li>扇区候选列表由 {@code AmplifyEffectGuItem#canAmplify} 过滤得出，处于原版冷却中的目标蛊显示为禁用状态（反正无
+ *       法催动）；松开使用键或切换主手使功倍蛊离手都会结束本次按住，仅松开使用键且命中有效扇区时才发送驱动请求。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AmplifyEffectGuItem
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

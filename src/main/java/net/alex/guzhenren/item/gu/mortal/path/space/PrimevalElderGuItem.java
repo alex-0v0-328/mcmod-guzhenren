@@ -18,23 +18,21 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 元老蛊[Primeval Elder Gu]：元石[Primeval Stone]库，从库存付自身养护。
+ * 元老蛊[Primeval Elder Gu]物品：随身存储元石[Primeval Stone]的持续照顾型蛊[Tended Gu]，并直接从库存元石中扣除自身伤势
+ * 养护消耗。
  * <ul>
- *   <li>炼化后催动即免费存入随身全部元石，无蓄力条；取出不走催动：客户端长按滑条（{@code PrimevalElderInput}）选堆数，
- *       {@link #tryWithdraw} 免费落实；都只在主手，野生的仍长按炼化（有炼化条）。</li>
- *   <li>创造模式催动不看身上元石，直接填满容量、不动背包；已满仍拒。</li>
- *   <li>⚠ 取出只填背包 36 格，先补未满的普通元石堆（改名的不碰），不超 {@link #getBagRoom}：不进副手、不落地；滑条上限
- *       {@link #getWithdrawableStacks} 读同一空间。</li>
- *   <li>存量在 {@link net.alex.guzhenren.registry.item.ModDataComponents}，不在持续照顾型蛊[Tended Gu]共用的
- *       {@code RefinedGuState}；任意格携带时是元石供给第二来源，排在散装元石后（{@code PrimevalStoneSupply}）。</li>
- *   <li>不声明时钟、不进食；自身催动免费，不动库存；伤势仍在心跳时花元石修复。</li>
- *   <li>⚠ 设计上不会饿死，只有炼化失败能毁掉它；别“修复”缺失的饱食条。</li>
+ *   <li>炼化后主手右键单击即免费将背包内全部元石存入蛊中（无蓄力条）；取出元石不走常规催动：客户端长按滑条
+ *       （{@code PrimevalElderInput}）选定组数后，服务端 {@link #tryWithdraw} 免费取出至多 {@code stacks} 组（每组 64
+ *       块）放入主背包（被拒或处于原版物品冷却时返回 {@code false}）；存取均仅限主手，野生状态下仍为长按炼化。</li>
+ *   <li>创造模式下催动不检查随身元石，直接将内部存量填满至容量上限且不改动背包（已满时照常拒绝）。</li>
+ *   <li>⚠ {@link #tryWithdraw} 仅填充主背包 36 格，优先补齐未满的普通元石堆（跳过重命名等带额外组件的元石），绝不超出
+ *       {@link #getBagRoom}、不塞入副手、也不向地面抛洒；客户端滑条上限 {@link #getWithdrawableStacks} 读取同一剩余空
+ *       间。</li>
+ *   <li>元石存量记录在独立组件 {@link ModDataComponents#STORED_STONES} 中，不放入 {@code RefinedGuState}；无论放在背包
+ *       何处，已炼化的元老蛊均作为 {@code PrimevalStoneSupply} 的第二顺位自动补给源（排在散装元石之后）。</li>
+ *   <li>⚠ 元老蛊不声明饱食时钟、不进食，按设计绝不会饿死（仅炼化失败会毁掉它，切勿为其补加饱食条）；日常心跳仅在自身受
+ *       损时从库存元石中扣除相应数量修复生命值（{@link #payOwnUpkeep}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.tending.TendedGuItem
- * @since 1.0.0
  */
 
 public class PrimevalElderGuItem extends TendedGuItem {
@@ -132,7 +130,6 @@ public class PrimevalElderGuItem extends TendedGuItem {
         return (int) ((stones + STACK - 1) / STACK);
     }
 
-    /** 取出至多 {@code stacks} 组（每组 64）放进背包；被拒或处于原版冷却时返回 false。 */
     public boolean tryWithdraw(ServerPlayer player, ItemStack stack, int stacks) {
         if (stacks <= 0 || !isRefined(stack) || player.getCooldowns().isOnCooldown(this)) return false;
         if (getStored(stack) <= 0) {

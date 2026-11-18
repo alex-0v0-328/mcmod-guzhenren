@@ -11,16 +11,9 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 恶念蛊[Malicious Thought Gu]效果：12 秒内每秒给脑海加恶念。
- * <ul>
- *   <li>投影流派效果 {@code StateEffects.grantThought}（真值）：显示时脉冲，{@code /effect clear} 后 1 秒内补回。</li>
- *   <li>四档：倍率即转数档位，{@code evilPerSecond} 注册时给定；即时部分归蛊产出，本效果只管每秒滴加。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MindService
- * @since 1.0.0
+ * 恶念蛊[Malicious Thought Gu]的周期效果：在 12 秒内每秒按注册时给定的 {@code evilPerSecond} 配列向脑海注入恶念（真值由
+ * 流派效果 {@code StateEffects.grantThought} 持有并负责在被清除后 1 秒内补回）。效果倍率对应四转以内的转数档位，即时产
+ * 出的念头由蛊虫使用逻辑处理，本类仅负责每秒持续滴加并调用 {@link MindService} 写入。
  */
 
 public class MaliciousThoughtGuEffect extends PeriodicEffect {

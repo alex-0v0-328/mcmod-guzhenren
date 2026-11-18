@@ -7,18 +7,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 一条道[Path]的现状：造诣，加纯道痕[Path Marks]的条与点。
- *
+ * 单条流派的进度记录（嵌于 {@link PathData}）：包含流派造诣（{@link GuAttainment}）与肉身裸道痕[Path Marks]
+ * （{@link PathMarks}）。
  * <ul>
- *   <li>叶子 record 嵌于 {@link PathData}，两计数随造诣内联存档；纯道痕在肉体上（无效果道痕的唯一载体），无作用。</li>
- *   <li>⚠ 这里只存纯道痕一半：效果道痕在 {@link PathEffectData}，由 {@code PathService.getMarks} 相加；不存总数。</li>
+ *   <li>裸道痕仅存于肉体且本身不产生具体效果；造诣与裸道痕在同一对象内联存档。</li>
+ *   <li>⚠ 此处仅保存不随效果附着的裸道痕；流派效果附带的道痕存于 {@link PathEffectData}，查询玩家某流派的总道痕必须调用
+ *       {@link PathService#getMarks} 将两部分相加。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathData
- * @see PathService
- * @since 1.0.0
  */
 
 public record PathEntry(GuAttainment attainment, PathMarks marks) {

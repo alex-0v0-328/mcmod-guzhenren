@@ -11,23 +11,20 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 二段飞行[Second-Stage Flight]进入者自己第一人称屏幕上的音爆环。
+ * 二段飞行[Second-Stage Flight]进入者第一人称视角下的屏幕音爆环叠层。
  * <ul>
- *   <li>激波环从准星展开、越过屏幕边缘；世界环（{@code net.alex.guzhenren.particle.SecondStageRingEmitter}）
- *       同时在镜头后为他人展开；注册在原版镜头叠层之上（{@code ClientEvents}）。</li>
- *   <li>只播本机请求的进入：{@code net.alex.guzhenren.client.input.SecondStageInput} 发出的进入双击经
- *       {@link #noteRequested} 记下，其后 {@link #REQUEST_WINDOW_TICKS} 内同步标记打开才由
- *       {@link #onSecondStageStarted} 播放（{@code net.alex.guzhenren.client.event.SecondStageEvents}）；
- *       换维度后附件同步等无请求的标记不播；两处均为本机玩家 {@code tickCount}，新实体重置，窗口两端有界。</li>
- *   <li>绽放同世界环：Alex 五帧环（{@link #RINGS}）每 tick 一帧，余下 {@link #LIFETIME_TICKS} 减帧数淡出；直径由屏高
- *       {@link #START_HEIGHT_FRACTION} 缓出至屏宽 {@link #END_WIDTH_FRACTION}，中心留空，笔画淡出前越过边缘；
- *       像素随之变粗，同 4 格世界环；加法混合，不透明度随「屏幕扭曲效果」滑条，关掉即无。</li>
+ *   <li>激波环从屏幕中心准星处展开并越过屏幕边缘，与此同时世界环
+ *       （{@code net.alex.guzhenren.particle.SecondStageRingEmitter}）在镜头后方为其他观察者展开；本图层注册在原版镜头
+ *       叠层之上（{@code ClientEvents}）。</li>
+ *   <li>仅响应本机主动请求的进入动作：由 {@code net.alex.guzhenren.client.input.SecondStageInput} 发出的双击进入请求先
+ *       通过 {@link #noteRequested} 登记，随后 {@link #REQUEST_WINDOW_TICKS} 内同步标记开启才由
+ *       {@link #onSecondStageStarted} 触发播放（{@code net.alex.guzhenren.client.event.SecondStageEvents}），从而过滤
+ *       换维度重建玩家等无请求同步；窗口两端均绑定本地玩家 {@code tickCount}，新实体自动重置。</li>
+ *   <li>播放节奏与世界环一致：采用 Alex 绘制的五帧环贴图（{@link #RINGS}）每 tick 推进一帧，余下
+ *       {@link #LIFETIME_TICKS} 减去帧数的窗口用于淡出；直径从屏高 {@link #START_HEIGHT_FRACTION} 缓出扩展至屏宽
+ *       {@link #END_WIDTH_FRACTION}（中心留空且笔画在淡出前越过边缘，像素同步变粗以匹配 4 格世界环）；使用加法混合，
+ *       不透明度随原版「屏幕扭曲效果」滑条缩放，关闭滑条时完全隐藏。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.particle.RingParticle
- * @since 1.0.0
  */
 
 public final class SonicBoomHud {

@@ -23,47 +23,51 @@ import net.alex.guzhenren.vault.ApertureStorageTick;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * 每秒一次的心跳：玩家多数状态依赖的有序步骤。
+ * 服务端玩家每秒执行一次的心跳调度器，按固定先后顺序推进各领域状态（由 {@link PlayerTickEvents} 逐刻调用并自行门控）。
  * <ul>
- *   <li>活着的服务端玩家每 tick 调 {@link #beat}，它自行门控：各步都在 {@code tickCount % HEARTBEAT_TICKS == 0} 内，
- *       多数读前步刚写的值；时钟只读一次存入 {@link Beat}，按时间缩放的步骤共用；生命周期归 {@link PlayerDataService}，
- *       节奏归本类，各步归各自领域，唯 {@code checkLethalState} 留此：四种死亡先后是跨领域规则。</li>
- *   <li>⚠ 顺序承重而代码看不出：勿盲目调序；新步骤加一行，注明跟在哪步后、为何。</li>
- *   <li>⚠ {@code checkLethalState} 最后跑、首中即返，死亡优先级固定：空窍压力 → 寿元 → 魂魄 → 脑海。</li>
- *   <li>⚠ 慢于 1 秒的步骤在心跳内按 {@code tickCount % N} 门控，N 须为 {@code HEARTBEAT_TICKS} 倍数，否则只每
- *       lcm(20, N) tick 触发、悄悄变慢；僵尸念头（{@code MindService.ZOMBIE_THOUGHT_INTERVAL_TICKS}，100）照此。</li>
+ *   <li>存活的服务端玩家每刻调用 {@link #beat}，本类在 {@code tickCount % HEARTBEAT_TICKS == 0} 时执行各步；时间流速仅
+ *       在本拍开头读取一次并存入 {@link Beat} 供后续按时间缩放的步骤共用，生命周期入口归 {@link PlayerDataService}，具
+ *       体业务归各自领域，唯 {@code checkLethalState} 因涉及跨领域死亡优先级而留在本类。</li>
+ *   <li>⚠ 下列步骤顺序隐含跨领域数据依赖（多数步骤读取前一步刚写入的状态），严禁随意调换顺序；新增步骤时必须在列表对应
+ *       位置补充说明其前置依赖与原因。</li>
+ *   <li>⚠ {@code checkLethalState} 必须在心跳末尾执行且首中即返回，死亡判定优先级固定为：空窍压力、寿元耗尽、魂魄崩溃、
+ *       脑海爆裂。</li>
+ *   <li>⚠ 周期慢于 1 秒的步骤在心跳内按 {@code tickCount % N} 门控时，N 必须为 {@code HEARTBEAT_TICKS} 的整数倍，否则只
+ *       会在 {@code lcm(20, N)} 刻触发一次而悄然变慢（例如僵尸念头周期
+ *       {@code MindService.ZOMBIE_THOUGHT_INTERVAL_TICKS} 为 100 刻）。</li>
  * </ul>
  * <ol>
- *   <li>{@code BodyService.tickAging}、{@code TimeFlow.getRate} 读入 {@link Beat}：日钟推进花其 {@code days}，不扣寿
- *       元；中途变倍率落下次。</li>
- *   <li>{@code GuUpkeep.tickCarried}：按 (1) 推日钟。</li>
- *   <li>{@code ApertureStorageTick.tickStored}：按 (1) 推日钟。</li>
- *   <li>{@code ApertureStorageMenu.refresh}（打开的存储界面）：(3) 后，否则旧视图存回、盖掉推进。</li>
- *   <li>{@code VitalLossService.settleOfflineVitalLoss}：紧跟当场结算在线本命蛊[Vital Gu]之死的 (2)、(3)；魂魄、脑海减
- *       半在 (15)、(19) 前。</li>
- *   <li>{@code PathEffectService.tick}：(5) 后、读形态或池前；摘到期流派效果、重投余下图标，本次读到本秒效果。</li>
- *   <li>{@code ApertureEssenceService.closeDistilling}：(13) 前，1:2 返还先于回复选池。</li>
- *   <li>{@code UndeadService.tickTempZombie}：可能结束形态；(10)、(11) 至 (15) 读形态。</li>
- *   <li>{@code SkinService.tickSkin}、{@code ShieldService.tickShield}：褪去到期玉皮、护盾层，在穿的投射为效果，同 (8)
- *       属形态投射；后续无步骤读，受击时各自读取。</li>
- *   <li>{@code UndeadService.pinHunger}：(8) 后，否则本次结束的形态仍锁饱食[Hunger]。</li>
- *   <li>{@code AttackDamageService.refresh}：(8) 后，形态是 {@code getBonus} 一项。</li>
- *   <li>{@code BodyService.tickLifespan}：(8) 后，不死之身不扣寿元；(19) 前，(19) 读寿元耗尽。</li>
- *   <li>{@code ApertureEssenceService.regenStep}：(7)、(8) 后。</li>
- *   <li>{@code ApertureNourishService.tickNourish}：(13) 后，先回本秒真元[Essence]后扣温养[Nourish]。</li>
- *   <li>{@code MindService.regenStep}：(8) 后，僵尸每 5 秒思考一次。</li>
- *   <li>{@code AutoUse.tryStart}：(13) 后，自动催动付其回的真元。</li>
- *   <li>{@code AsBeforeGuItem.remember}：(8)、(12)、(15) 后，记本次已结算的身体（含临时僵尸、寿元耗尽、念头）；
- *       (19) 前，将死之身照原样记。</li>
- *   <li>{@code AperturePressureService.tick}：自控每分钟一步与倒计时；满表交 (19)。</li>
- *   <li>{@code checkLethalState}：最后。</li>
+ *   <li>{@code BodyService.tickAging} 与 {@code TimeFlow.getRate} 采样存入 {@link Beat}：日钟推进消耗对应天数而不扣减寿
+ *       元，心跳中途变更时间倍率将在下一次心跳生效。</li>
+ *   <li>{@code GuUpkeep.tickCarried}：按第 (1) 步的天数推进背包内蛊虫的日钟养护。</li>
+ *   <li>{@code ApertureStorageTick.tickStored}：按第 (1) 步的天数推进空窍存储与本命槽内蛊虫的日钟养护。</li>
+ *   <li>{@code ApertureStorageMenu.refresh}（仅玩家正打开存储界面时）：必须在第 (3) 步之后，防止旧界面视图写回时覆盖刚
+ *       完成的养护推进。</li>
+ *   <li>{@code VitalLossService.settleOfflineVitalLoss}：紧跟可能令在线本命蛊饿死的第 (2)、(3) 步执行，并保证魂魄与脑海
+ *       减半早于第 (15)、(19) 步生效。</li>
+ *   <li>{@code PathEffectService.tick}：必须在第 (5) 步之后、后续读取形态或资源池之前摘除到期流派效果并重投剩余图标，使
+ *       本拍读取到最新效果状态。</li>
+ *   <li>{@code ApertureEssenceService.closeDistilling}：必须在第 (13) 步之前完成，使酒虫精炼的 1:2 真元退还先于自动回复
+ *       选池。</li>
+ *   <li>{@code UndeadService.tickTempZombie}：可能终止临时僵尸形态；第 (10)、(11) 至 (15) 步均依赖本步确定后的形
+ *       态。</li>
+ *   <li>{@code SkinService.tickSkin} 与 {@code ShieldService.tickShield}：褪去到期的玉皮与护盾层并将当前穿戴投射为效果
+ *       图标，与第 (8) 步同属形态投射（后续无心跳步骤读取皮盾，受击时再实时读取）。</li>
+ *   <li>{@code UndeadService.pinHunger}：必须在第 (8) 步之后执行，否则刚结束僵尸形态的玩家仍会被锁定饱食[Hunger]
+ *       值。</li>
+ *   <li>{@code AttackDamageService.refresh}：必须在第 (8) 步之后执行，因僵尸形态本身是 {@code getBonus} 的组成项之
+ *       一。</li>
+ *   <li>{@code BodyService.tickLifespan}：必须在第 (8) 步之后（不死之躯免扣寿元）且在第 (19) 步之前执行，供致死检查读取
+ *       寿元耗尽状态。</li>
+ *   <li>{@code ApertureEssenceService.regenStep}：必须在第 (7)、(8) 步之后按最新形态与精炼池状态回复真元。</li>
+ *   <li>{@code ApertureNourishService.tickNourish}：必须在第 (13) 步之后先回复本秒真元再扣除温养[Nourish]消耗。</li>
+ *   <li>{@code MindService.regenStep}：必须在第 (8) 步之后执行，以反映僵尸每 5 秒产生一次念头的规则。</li>
+ *   <li>{@code AutoUse.tryStart}：必须在第 (13) 步之后执行，使自动催动能够使用本秒刚回复的真元。</li>
+ *   <li>{@code AsBeforeGuItem.remember}：必须在第 (8)、(12)、(15) 步之后记录本秒已结算的身体快照（含临时僵尸、寿元耗尽
+ *       与念头状态），且必须在第 (19) 步前完成，以便按原样保留濒死瞬间状态。</li>
+ *   <li>{@code AperturePressureService.tick}：内部自控每分钟推进与爆炸倒计时，满压后交由第 (19) 步结算。</li>
+ *   <li>{@code checkLethalState}：在所有领域状态结算完毕后统一执行致死判定。</li>
  * </ol>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @see PlayerTickEvents
- * @since 1.0.0
  */
 
 public final class Heartbeat {

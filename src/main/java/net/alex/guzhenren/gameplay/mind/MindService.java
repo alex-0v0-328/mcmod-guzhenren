@@ -11,21 +11,17 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 脑海池的唯一运行时写入方。
- *
+ * 脑海三池与才情[Brilliance]的唯一运行时写入服务。
  * <ul>
- *   <li>⚠ 夹紧只在 {@code setCurrent}，读 {@link MindPoolType#isBurstable} 定能否超上限；不能放进 record：
- *       只有部分池可超限，池又不知自己类型。</li>
- *   <li>{@code regenStep} 是心跳入口；永久僵尸（{@code BodyService.isZombie}）每 5 秒才回一次念，临时僵尸化照常。</li>
- *   <li>⚠ 自然回复总停在上限，闲着不会炸裂脑海；只有蛊、物品或命令能超量写入。</li>
- *   <li>⚠ {@code addThoughts} 在当前量之后写标签合计：须先 {@code setCurrent}，否则标签表超出总量。</li>
+ *   <li>⚠ 池当前值的上限夹取仅在 {@link #setCurrent}（底层 {@code withCurrent}）中按 {@link MindPoolType#isBurstable}
+ *       执行，不可放入 {@link MindPool} 构造器：因为仅部分池允许超限写入，且 {@link MindPool} 本身不持有池类型。</li>
+ *   <li>{@link #regenStep} 为每秒心跳自然回念入口：永久僵尸（{@code BodyService.isZombie}）每 5 秒（
+ *       {@link #ZOMBIE_THOUGHT_INTERVAL_TICKS}）才自然回复一次念头，临时僵尸化照常每秒回复。</li>
+ *   <li>⚠ 自然回复严格封顶于 {@code max}，挂机永远不会撑爆脑海；唯有蛊虫、物品或管理员指令可向允许超限的池写入超出上限
+ *       的数值。</li>
+ *   <li>⚠ {@link #addThoughts} 必须先调用 {@code withCurrent} 增加念池总量，再写入 {@code taggedThoughts} 标签份额，否
+ *       则新标签份额会因超出旧总量而被 {@link MindData} 紧凑构造器按比例截断。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MindData
- * @see MindPool
- * @since 1.0.0
  */
 
 public final class MindService {

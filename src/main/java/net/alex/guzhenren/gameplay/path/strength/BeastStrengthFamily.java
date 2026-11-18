@@ -6,15 +6,14 @@ import java.util.List;
 import net.alex.guzhenren.core.NamedEnum;
 
 /**
- * 兽力[Beast Strength]所属兽种。两猪同档，熊独档；牛档兼容青牛劳力蛊[Green Bull Labor Gu]的永久兽力与蛮力天牛蛊
- * [Brute Force Longhorn Beetle Gu]的限时兽力；读数按兽种分组；声明顺序即 B 面板顺序；序号同步给虚影，不存档；
- * {@link #canManifest} 定能否出形为兽力虚影或兽力冲击，现全能（牛借水牛模型），不能者照常抽取、解放，只不显示。
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastStrength
- * @see PathStrengthData
- * @since 1.0.0
+ * 兽力[Beast Strength]所属的兽种分类枚举：按声明顺序决定 B 面板展示与网络同步序号（序号仅用于虚影同步，不落盘）。
+ * <ul>
+ *   <li>白豕与黑豕共用 {@link #BOAR}，青牛劳力蛊[Green Bull Labor Gu]
+ *       的永久牛力与蛮力天牛蛊[Brute Force Longhorn Beetle Gu]的限时牛力共用 {@link #OX}；抽取与解放均按兽种归并计
+ *       算。</li>
+ *   <li>{@link #canManifest} 控制该兽种能否具象化为背后的兽力虚影或远程兽力冲击实体（当前全部开启；若为 {@code false}
+ *       则照常参与抽取与解放数值结算，仅不生成模型实体）。</li>
+ * </ul>
  */
 
 public enum BeastStrengthFamily implements NamedEnum {

@@ -1,21 +1,17 @@
 package net.alex.guzhenren.client.radial;
 
 /**
- * 扇形选择器的动画。
- *
+ * 扇形选择器的纯动画曲线工具。
  * <ul>
- *   <li>以毫秒为参数的纯函数，纯 JUnit 可钉住时间线；{@link #mix} 与 {@link #fade} 按通道处理 ARGB 颜色。</li>
- *   <li>打开：环从 {@link #OPEN_FROM} 长到全尺寸并轻微过冲（{@link #getOpenScale}），同时淡入
- *       （{@link #getOpenAlpha}）；扇区顺时针依次晚 {@link #STAGGER_MS} 出现（{@link #getAppear}）。</li>
- *   <li>悬停权重指向缓至 1、离开回 0（{@link #approach}）；名称 {@link #LABEL_MS} 内升起（{@link #getLabelIn}）。</li>
- *   <li>选中离场：被选扇区闪白（{@link #getFlash}），环胀到 {@link #PICK_TO}，短停后淡出；取消离场：环缩到
- *       {@link #CANCEL_TO} 并淡出（{@link #getExitScale}、{@link #getExitAlpha}、{@link #isExitDone}）。</li>
+ *   <li>以毫秒时间戳为输入的纯函数集，可直接用纯 JUnit 单元测试钉住动画时间线；{@link #mix} 与 {@link #fade} 按通道插
+ *       值 ARGB 颜色。</li>
+ *   <li>展开阶段：扇环自 {@link #OPEN_FROM} 放大至完整尺寸并伴随轻微过冲（{@link #getOpenScale}）与淡入（
+ *       {@link #getOpenAlpha}），各扇区顺时针依次延迟 {@link #STAGGER_MS} 错峰出现（{@link #getAppear}）。</li>
+ *   <li>悬停响应：指向时悬停权重平滑趋向 1、离开时回落至 0（{@link #approach}），中心名称在 {@link #LABEL_MS} 内升
+ *       起（{@link #getLabelIn}）。</li>
+ *   <li>离场阶段：选中时目标扇区闪白（{@link #getFlash}）且扇环扩张至 {@link #PICK_TO} 后短停淡出；取消时扇环收缩至
+ *       {@link #CANCEL_TO} 并淡出（{@link #getExitScale}、{@link #getExitAlpha} 与 {@link #isExitDone}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RadialMenu
- * @since 1.0.0
  */
 
 public final class RadialMotion {

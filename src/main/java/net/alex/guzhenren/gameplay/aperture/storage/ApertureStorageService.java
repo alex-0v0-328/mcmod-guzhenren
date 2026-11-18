@@ -12,26 +12,21 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 空窍[Aperture]所存蛊（含本命蛊）的唯一运行时写入方。
+ * 空窍存蛊与本命蛊的唯一运行时写入服务。
  * <ul>
- *   <li>本命蛊落槽（{@code setVital}）或炼蛊传绑定（{@link #adoptVital}）即成唯一现任，令牌顶替该种类旧令牌；落槽经
- *       {@link ApertureService#setPrimaryPath} 设主修（空窍同步，存储不同步）。</li>
- *   <li>只凭 {@link StoredGu} 识蛊，空窍不依赖物品包，绑本命蛊时经它读道[Path]；唯一可变静态字段 {@code storedGu}
- *       是接缝，入口类于 mod 构造时经 {@link #setStoredGu} 设一次，此后不换。</li>
- *   <li>⚠ 写入绝不经 {@code ApertureService.store}：那里挂着 {@code ApertureChangedEvent} 及最大生命刷新。</li>
- *   <li>⚠ {@code setPrimaryPath} 值不变即不做事；仍须调用，否则重绑丢主修。</li>
- *   <li>{@link #shiftForFirstAperture} 即 {@link ApertureData#insertFirst} 的存储侧：希望蛊[Hope Gu]插第一空窍发
- *       {@code FirstApertureInsertedEvent}，{@link ApertureStorageEvents} 据此调用。</li>
- *   <li>{@link #load(Player, int)} 合计所存蛊与本命蛊，对照 {@code MAX_LOAD}；拒写规则让过满（转数跌落）仍可清空，
- *       {@code commit} 仅在写后超上限时才算写前负载。</li>
- *   <li>{@link #setSlot} 写回一只所存蛊，供每秒结算。</li>
+ *   <li>本命蛊放入槽位（{@link #setVital}）或炼蛊升转继承绑定（{@link #adoptVital}）时，将其令牌记为该空窍种类的唯一现
+ *       任令牌；放入本命槽时同步调用 {@link ApertureService#setPrimaryPath} 设定该窍主修流派（空窍附件同步客户端，而存
+ *       储附件不同步）。</li>
+ *   <li>通过 {@link StoredGu} 桥接接口读取蛊虫属性，使 {@code gameplay} 包不依赖 {@code item} 包；唯一可变静态字段
+ *       {@code storedGu} 在模组构造期由入口类经 {@link #setStoredGu} 注入一次。</li>
+ *   <li>⚠ 存蛊写入直接更新 {@link PlayerData#setApertureStorage}，绝不经过会发布 {@code ApertureChangedEvent} 及刷新最
+ *       大生命值的 {@link ApertureService}；但 {@link #setVital} 仍须调 {@link ApertureService#setPrimaryPath}（流派未
+ *       变时内部直接返回），否则更换同流派或新流派本命蛊会漏设主修。</li>
+ *   <li>{@link #shiftForFirstAperture} 响应 {@code FirstApertureInsertedEvent}（由 {@link ApertureStorageEvents} 转
+ *       发），与 {@link ApertureData#insertFirst} 同步后移各空窍存储下标。</li>
+ *   <li>{@link #load(Player, int)} 汇总该窍普通存蛊与本命蛊的负载并与 {@link #MAX_LOAD} 比较；{@code commit} 仅在写入后
+ *       负载同时超过 {@link #MAX_LOAD} 且高于写入前负载时才拒绝写入，确保因修为跌落而超载的空窍仍能取出物品。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureService
- * @see net.alex.guzhenren.vault.ApertureStorageTick
- * @since 1.0.0
  */
 
 public final class ApertureStorageService {
@@ -121,7 +116,6 @@ public final class ApertureStorageService {
         return commit(player, aperture, get(player).withPage(aperture, from, page));
     }
 
-    /** 写入 {@code next}，除非 {@code aperture} 负载因此同时超上限与当前负载。 */
     private static boolean commit(ServerPlayer player, int aperture, ApertureStorage next) {
         int after = load(player, next, aperture);
         if (after > MAX_LOAD && after > load(player, get(player), aperture)) return false;

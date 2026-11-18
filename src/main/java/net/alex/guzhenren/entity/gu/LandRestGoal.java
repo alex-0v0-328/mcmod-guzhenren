@@ -11,22 +11,20 @@ import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 歇息型飞行蛊共用的降落与地面歇息 AI 目标。
+ * 歇息型飞行蛊（{@link RestingFlyingGuEntity}）共用的降落与地面歇息 AI 目标。
  * <ul>
- *   <li>落点：正下方首块地面，至多 64 格，原版寻路判可行走才取，水、岩浆、伤害方块不给 1 点生命的蛊歇脚。</li>
- *   <li>{@link #tryRetargetGround} 从蛊自身下扫，不读高度图（列顶可能是头顶的树冠、悬垂、屋顶，从下够不着）；遇非
- *       {@link #isOpen}（{@code MOTION_BLOCKING} 判断取反：无可站立物且无流体）地面即停，只取步行生物能站处。</li>
- *   <li>寻路至 1.5 格内后直接驱动：{@link #tickLanding} 瞄准表面略下方，以碰撞收尾，不下落的蛊靠此置 {@code onGround}；
- *       着地才歇 160～200 tick（清空运动、偶尔转向）。</li>
- *   <li>无物下拉，脚下失去承托（破坏或变流体）即起飞；停在落点前的降落至多每 {@link #RETARGET_INTERVAL_TICKS} tick 重
- *       扫；{@link #canUse} 让歇息中加载的蛊（无降落请求）直接重歇一轮、不重播降落。</li>
- *   <li>地面不安全、降落停滞、寻路失败经 {@link RestingFlyingGuEntity#takeOff()} 中止；威胁打断时 {@link #stop} 也起飞
- *       （逃跑路径未启动亦然），绝不卡在非飞行阶段。</li>
+ *   <li>落点选择正下方至多 64 格内的首块地面，且须经原版 {@link WalkNodeEvaluator} 判定为 {@link PathType#WALKABLE}，避
+ *       免只有 1 点生命的野生蛊落在水面、岩浆或伤害方块上。</li>
+ *   <li>{@link #tryRetargetGround} 从蛊虫当前坐标向下逐格扫描而非读取高度图（高度图列顶可能是头顶树冠、悬垂或屋顶，从下
+ *       方无法到达），遇到首个非 {@link #isOpen}（即阻挡移动或含流体）的方块即停止，只取上方空间通畅的可站立表面。</li>
+ *   <li>寻路飞至落点 1.5 格内后转为直接驱动速度：{@link #tickLanding} 指向方块表面略下方并靠碰撞触地，为无重力的飞行蛊
+ *       触发 {@code onGround}；触地后进入 160～200 tick 歇息（清零速度并偶发随机转头）。</li>
+ *   <li>因实体无重力，歇息期间若脚下承托方块被破坏或变为流体则立即起飞；降落途中若寻路提前结束，至多每
+ *       {@link #RETARGET_INTERVAL_TICKS} tick 重新扫描一次落点；{@link #canUse} 允许从存档恢复为歇息阶段的蛊虫（此时无
+ *       降落请求标志）直接续上一轮歇息，无需重播降落。</li>
+ *   <li>地面不安全、降落超时、寻路失败时均通过 {@link RestingFlyingGuEntity#takeOff()} 中止并恢复飞行；被玩家威胁打断时
+ *       {@link #stop} 也会强制起飞（即使逃跑路径尚未建好），保证绝不卡在非飞行阶段。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class LandRestGoal extends Goal {

@@ -10,17 +10,15 @@ import net.minecraft.world.item.ItemCooldowns;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 持续照顾型蛊[Tended Gu]的物品长冷却：原版只画转圈，物品时间戳（主世界游戏时间）为真值。
+ * 持续照顾型蛊[Tended Gu]（{@link TendedGuItem}）的物品栈长冷却时间戳工具：原版物品冷却仅用于绘制扇形转圈动画，物品栈上
+ * 的主世界游戏时间戳才是跨重登与跨容器的冷却真值。
  * <ul>
- *   <li>⚠ {@link #createCooldownStamp} 按加速时钟已走份额往回盖：结束很久后仍会读，出口再缩放会重算进行中的冷却。</li>
- *   <li>⚠ 减速时钟往前盖：{@link #stampCooldownLeft} 认超前戳，上限为最慢时钟（{@code TimeFlow.MIN_RATE}）拉长的窗口；
- *       超出者来自别的世界，按无冷却。</li>
+ *   <li>⚠ {@link #createCooldownStamp} 在写入时间戳时直接将玩家当前时间流速（{@link TimeFlow}）缩短的等待差额往回扣减，
+ *       避免在读取剩余冷却时二次缩放导致已结束或进行中的冷却因流速变化而跳变。</li>
+ *   <li>⚠ 减速时间流速会使写入的时间戳超前于当前主世界游戏时间：{@link #stampCooldownLeft} 允许在最慢流速
+ *       （{@link TimeFlow#MIN_RATE}）拉长的最大窗口范围内识别超前时间戳；若超前量越过该上限，则判定为跨存档迁移的异世界
+ *       时间戳并直接视为无冷却。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @since 1.0.0
  */
 
 public final class GuCooldowns {

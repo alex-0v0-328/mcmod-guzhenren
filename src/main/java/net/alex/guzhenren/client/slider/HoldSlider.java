@@ -22,26 +22,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 长按滑条：按住时在准星下方弹出的横向单值选择器。
+ * 长按滑条选择器：按住使用键时在准星下方弹出的横向单值选择器。
  * <ul>
- *   <li>扇形选择器（{@link RadialMenu}）的单值版，元老蛊[Primeval Elder Gu]是其调用方；同一时间只跑一个长按
- *       （{@link #hold}），不与扇形选择器的长按并存。</li>
- *   <li>按住 {@link RadialMenu#OPEN_DELAY_TICKS} tick 后弹出，轻点不弹；弹出时停在 {@code 1} 并读一次上限。</li>
- *   <li>鼠标横移在 {@code 0}（取消）到调用方上限间选值，松开选定：{@code 1} 及以上调 {@link Owner#pick}，{@code 0}
- *       什么也不做；弹出前松开调 {@link Owner#releaseUnopened}；上限为 {@code 0} 时调一次 {@link Owner#empty}
- *       后等长按结束，松开不再调用（已算作滑条操作）；打开界面或登出时丢弃长按，不调任何回调。</li>
- *   <li>⚠ 同扇形选择器：{@link Owner#isHeld} 因故变 false 也结束长按并调 {@code pick}；发包调用方须确认物品在手。</li>
- *   <li>⚠ 弹出期间镜头不动、移动键照常：{@code MouseHandlerMixin} 把横向鼠标位移（屏幕像素）交给 {@link #steer}，
- *       推隐形光标沿 {@link #TRACK_WIDTH} 像素轨道走，按 {@code top + 1} 个值均分；长按期间交互键不入世界，
- *       滚轮不滚快捷栏、不动滑条。</li>
- *   <li>⚠ 轨道是 {@code slider} {@link HudBar}，旋钮是 {@code hud/slider_knob} sprite，
- *       均不缩放；{@code HudBarTexturesTest} 把它们钉在 {@link #TRACK_WIDTH}、{@link #TRACK_HEIGHT} 和旋钮尺寸上。</li>
+ *   <li>为扇形选择器（{@link RadialMenu}）的单值简化版，目前由元老蛊[Primeval Elder Gu]调用；同一时间仅运行一个长按
+ *       实例（{@link #hold}），不与扇形选择器的长按共存。</li>
+ *   <li>按住满 {@link RadialMenu#OPEN_DELAY_TICKS} tick 后弹出（轻点不弹出），弹出初始停留在 {@code 1} 并读取一次上
+ *       限。</li>
+ *   <li>横向移动鼠标可在 {@code 0}（取消）到调用方上限之间选值，松开按键时结算：{@code 1} 及以上调用
+ *       {@link Owner#pick}，{@code 0} 不执行任何动作；弹出前松开调用 {@link Owner#releaseUnopened}；若上限为
+ *       {@code 0} 则立即调用一次 {@link Owner#empty} 并等待松手（不再二次回调，因已视为完成滑条操作）；打开界面或
+ *       登出时直接丢弃长按而不触发任何回调。</li>
+ *   <li>⚠ 与扇形选择器相同，{@link Owner#isHeld} 因其他原因变为 false（如切走物品）也会立刻结束长按并调用
+ *       {@code pick}，因此会发包的调用方须自行确认物品仍在手。</li>
+ *   <li>⚠ 弹出期间锁定视角旋转但保持移动按键正常：{@code MouseHandlerMixin} 将横向鼠标位移（按屏幕像素）转交给
+ *       {@link #steer}，推动不可见光标沿 {@link #TRACK_WIDTH} 像素轨道按 {@code top + 1} 档均分移动；长按期间阻
+ *       止交互键传入世界，且滚轮不滚动快捷栏也不操控滑条。</li>
+ *   <li>⚠ 滑条轨道使用 {@code slider} {@link HudBar}、旋钮使用 {@code hud/slider_knob} 精灵图且均不做缩放；
+ *       {@code HudBarTexturesTest} 会将它们锁定在 {@link #TRACK_WIDTH}、{@link #TRACK_HEIGHT} 与旋钮尺寸上。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RadialMenu
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

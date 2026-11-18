@@ -25,24 +25,23 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 力气蛊[Strength Qi Gu]的远程拳。
+ * 力气蛊[Strength Qi Gu]（{@link StrengthQiGuEffect}）远程拳的服务端发射服务。
  * <ul>
- *   <li>增益期间空手打原版触及距离外的 Epic Fight 锁定目标，抛投射物，不限距离；客户端只发 id，{@link #fire}
- *       全部重验，只受视线限（原版 128 格）。</li>
- *   <li>{@link #isPastReach} 是两端共读的唯一射程规则：触及内留给近战，一击不中两次；轮次内间隔
- *       {@code RANGE_INTERVAL_TICKS}（{@link StrengthRound#canRange}），轮次外抛出即开一轮。</li>
- *   <li>兽力虚影流按本轮抽中兽种各抛一个 {@link BeastChargeEntity}，无则随机一个持有兽种；不能出形的不冲击，
- *       份额让给其他（{@code BeastStrengthFamily.canManifest}）。</li>
- *   <li>每个按本兽种永久力量点[Strength Points]命中（{@link BeastChargeDamage}），本轮全面解放时 ×3；总和截到
- *       当前承受力；苦力期间连击每轮多抽一种，直到虚影全出。</li>
- *   <li>其余人及无可出形永久兽力[Beast Strength]者抛 {@link QiWaveEntity}：伤害同拳（含力道加成与本轮解放），另加所开
- *       那轮未计入的解放；不按攻击蓄力缩放，由间隔控节奏；各投射物落点爆开（{@link QiBurst}），各掷一次范围冲击。</li>
+ *   <li>处于力气蛊增益期间，玩家空手攻击原版近战触及距离外的 Epic Fight 锁定目标时发射远程拳弹射物（客户端仅上报目标实
+ *       体 ID，服务端 {@link #fire} 全量复验，射程仅受原版 128 格视线限制）。</li>
+ *   <li>{@link #isPastReach} 是双端共用的唯一射程分界：触及距离内留给原版近战，保证同一拳不会近战与远程双重命中；在攻击
+ *       轮次内受 {@link StrengthRound#canRange} 间隔限制，轮次外挥拳即开启新一轮
+ *       （{@link StrengthRound#startRange}）。</li>
+ *   <li>兽力虚影流派按当前轮次已抽中的兽种分别发射一道 {@link BeastChargeEntity}，若本轮未抽中则从玩家已持有的永久兽力
+ *       中随机抽取一种；不可显形的兽种（{@code BeastStrengthFamily#canManifest}）不发射冲击，将份额让给其他可显形兽
+ *       种。</li>
+ *   <li>每道兽力冲击按对应兽种的永久力量点[Strength Points]计算基础伤害（{@link BeastChargeDamage}），若本轮触发全面解
+ *       放则乘 3，所有冲击的总伤害上限截断至当前肉身承受力；苦力蛊[Hardship Strength Gu]生效期间连续出拳每轮多抽一种兽
+ *       力，直至全部可显形兽影同出。</li>
+ *   <li>其他流派或未持有可显形永久兽力的玩家改为发射一枚 {@link QiWaveEntity}：基础伤害等同于当次空手拳伤（含力道加成与
+ *       本轮解放加成，并补入本次新开轮次尚未计入属性的解放增量），不随原版攻击蓄力条缩放，改由远程发射间隔控制节奏；所
+ *       有远程拳弹射物在落点均通过 {@link QiBurst} 爆开并各自独立判定一次范围冲击。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthQiGuEffect
- * @since 1.0.0
  */
 
 public final class QiWaveService {

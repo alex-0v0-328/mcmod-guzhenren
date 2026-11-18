@@ -11,17 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 为指定空窍[Aperture]选辅修流派的客户端意图：只带空窍序号与可空 {@link GuPath}，无其他玩家数据。
+ * 为指定空窍设置辅修流派的客户端意图载荷，仅携带空窍序号与可空流派 {@link GuPath}（通过
+ * {@link ModByteBufs#nullableEnumCodec} 以序数加一编码、0 表示未设）而由 {@link net.alex.guzhenren.network.ModPayloads}
+ * 交由空窍服务写入。
  * <ul>
- *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，经空窍服务写入。</li>
- *   <li>道[Path]以序数加一传送，0 为未设，见 {@link ModByteBufs#writeNullableEnum}。</li>
- *   <li>⚠ 只因发送界面背后无容器才做成 payload；容器内操作走原版自身通道。</li>
+ *   <li>⚠ 仅因设置界面背后未绑定原版容器才单独定义为网络载荷；凡容器菜单内的交互操作一律走原版容器同步通道。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
  */
 
 public record SetSecondaryPathPayload(int aperture, @Nullable GuPath path) implements CustomPacketPayload {

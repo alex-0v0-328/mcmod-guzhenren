@@ -11,16 +11,14 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 随意蛊[Casual Gu]、恶念蛊[Malicious Thought Gu]的念头行为：限时灌念头；不拒催动。
+ * 随意蛊[Casual Gu]与恶念蛊[Malicious Thought Gu]的持续灌念行为：在限时内持续向玩家脑海灌入对应念头（与
+ * {@link ThoughtBurstBehavior} 配合使用，不设催动拦截门槛）。
  * <ul>
- *   <li>流派效果、原版效果、时长取自注册；效果等级 = 级数（一转为 0）+ 注册偏移。</li>
- *   <li>效果交 {@link StateEffects#grantThought}：先铺流派效果，再投射原版效果。</li>
+ *   <li>流派效果类型、原版药水效果与持续时长在注册时注入，实际效果等级为「蛊虫档位（一转为 0）+
+ *       {@code amplifierOffset}」。</li>
+ *   <li>{@link #applyEffect} 委托 {@link StateEffects#grantThought} 先写入流派效果真值，再由心跳投影为原版药水效
+ *       果。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ThoughtBurstBehavior
- * @since 1.0.0
  */
 
 public record ThoughtBehavior(PathEffectType<TimedBuff> type, Holder<MobEffect> effect, int amplifierOffset,

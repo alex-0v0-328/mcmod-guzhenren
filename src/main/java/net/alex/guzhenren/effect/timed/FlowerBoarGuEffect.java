@@ -8,13 +8,8 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * 花豕蛊[Flower Boar Gu]限时增益：一猪之力力量点[Strength Points]，30 秒，结束无余波；真值为流派效果，本效果仅图标与计
- * 时；点数经 {@link BeastStrengthBuff} 入唯一力量结算，攻击总值仍为一数，承受力照算。
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastStrengthBuff
- * @since 1.0.0
+ * 花豕蛊[Flower Boar Gu]的限时图标效果：提供持续 30 秒、相当于一猪之力的兽力点数，结束时无额外余波；真值由流派效果维
+ * 护，本类仅承担图标、计时与 {@link BeastStrengthBuff} 标识，使点数并入唯一力量结算体系并正常受承受力限制。
  */
 
 public class FlowerBoarGuEffect extends MobEffect implements BeastStrengthBuff {

@@ -11,17 +11,15 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 皮蛊行为：玉皮蛊[Jade Skin Gu]、白玉蛊[White Jade Gu]限时，铜皮蛊[Bronze Skin Gu]、铁皮蛊[Iron Skin Gu]永久。
+ * 皮蛊炼体行为：涵盖限时的玉皮蛊[Jade Skin Gu]、白玉蛊[White Jade Gu]与永久的铜皮蛊[Bronze Skin Gu]、
+ * 铁皮蛊[Iron Skin Gu]。
  * <ul>
- *   <li>哪种皮、玉皮多久由注册定；⚠ 限时皮须正时长、永久皮不得有，构造时校验。</li>
- *   <li>经 {@link BodyService#wearSkin} 写皮后立即投影，HUD 不等心跳即显示玉皮；减伤、计时、闪光都挂在这次写入。</li>
- *   <li>功倍蛊[Amplify Effect Gu]倍增限时皮时长，永久皮不增幅不计费；{@code TimedEffects} 凭此找借出玉皮的蛊。</li>
+ *   <li>⚠ 皮肤档位与限时时长在注册时注入，构造器强制校验「限时皮必须给正数时长、永久皮时长必须为 0」。</li>
+ *   <li>通过 {@link BodyService#wearSkin} 写入皮肤后立即调用 {@link SkinService#tickSkin} 投影状态，使 HUD 无需等待下一
+ *       轮心跳即可显示玉皮；减伤、倒计时与受击闪光均随本次写入生效。</li>
+ *   <li>功倍蛊[Amplify Effect Gu]仅倍增限时皮的持续时长，永久皮不接受增幅也不触发功倍蛊扣费；{@link TimedEffects} 通过
+ *       检索本行为反查赋予当前限时皮的蛊虫。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SkinService
- * @since 1.0.0
  */
 
 public final class SkinBehavior extends TemperingBehavior<Skin> {

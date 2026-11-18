@@ -12,13 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 舍利蛊[Relics Gu]行为：持有者升一阶段，限蛊本转。门槛 {@link MortalGuItem#checkStageUpGate}：转数不符或已在
- * {@link Stage#HIGHEST} 则拒绝；效果委托 {@link ApertureService#shiftStage}，再触发境界进度条件。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.OneShotGuItem
- * @since 1.0.0
+ * 舍利蛊[Relics Gu]行为：供一次性消耗蛊（{@link net.alex.guzhenren.item.gu.OneShotGuItem}）将持有者主空窍提升一个小阶
+ * 段，仅限与本蛊同转时使用；{@link #checkEffect} 委托 {@link MortalGuItem#checkStageUpGate} 拒绝转数不符或已达
+ * {@link Stage#HIGHEST} 的情形，{@link #applyEffect} 调用 {@link ApertureService#shiftStage} 升阶并触发境界进度准则。
  */
 
 public record StageUpBehavior() implements GuBehavior {

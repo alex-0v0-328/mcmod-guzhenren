@@ -9,13 +9,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 /**
- * 开窍[Awakening]仪式的世界内绘制，排在实体之后：悬浮的希望蛊[Hope Gu]（{@link AwakeningGuRenderer}）
- * 与头顶资质[Aptitude]牌匾（{@link AwakeningPlaqueRenderer}）；屏幕部分在 {@code AwakeningHud}。
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningGuRenderer
- * @since 1.0.0
+ * 开窍仪式的世界内渲染入口：排在实体渲染之后，负责绘制悬浮的希望蛊[Hope Gu]（{@link AwakeningGuRenderer}）与头顶资
+ * 质[Aptitude]牌匾（{@link AwakeningPlaqueRenderer}）；屏幕叠层部分由 {@code AwakeningHud} 负责。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

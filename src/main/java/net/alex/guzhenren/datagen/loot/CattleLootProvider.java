@@ -17,7 +17,9 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import org.jetbrains.annotations.NotNull;
 
-/** 三种牛的原版牛掉落：牛肉（着火烧熟、抢夺加成）、皮革（抢夺加成）。 */
+/**
+ * 三种牛类实体（黄牛、水牛、青牛）的战利品表子生成器，对齐原版牛掉落皮革与牛肉（支持火焰灼烧熟肉与抢夺附魔加成）。
+ */
 
 public final class CattleLootProvider extends EntityLootSubProvider {
 

@@ -9,26 +9,21 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 力道读数：玩家炼入的兽力[Beast Strength]与人力，不可变。
+ * 玩家永久力道读数快照：汇总肉体上永久持有的兽力[Beast Strength]集合与各档人力层数。
  * <ul>
- *   <li>不存档：{@code PathStrengthService.get} 由肉体兽力、人力流派效果构建，效果是唯一真相，无道痕[Path Marks]
- *       即无力量；只含永久部分，限时增益以 {@link StrengthAmplifier} 计入
- *       {@code StrengthService.getStrengthPoints}。</li>
- *   <li>力量点[Strength Points]是两边共用单位：1 斤 = 1 点，兽力按声明点数；1 点 = {@link #MARK_POINTS_PER_POINT}
- *       点力道道痕，{@link #getMarkPoints} 是唯一换算，蛊都经它声明道痕点数；{@link #getPoints(long)} 反向，
- *       结算由效果的道痕点读力量点。</li>
- *   <li>{@link #with} 先移除被 {@link BeastStrength#replaces} 者，每兽种只持一种（成对猪除外）；{@link #getCovering}
- *       找出使新兽力多余者；构造器原样保留集合。</li>
- *   <li>⚠ 构造器须用 {@code new EnumMap<>(Class)} + {@code putAll} / {@code noneOf} + {@code addAll}：
- *       {@code EnumMap(Map)} 遇 {@code DEFAULT} 的空表会抛异常。</li>
- *   <li>⚠ 五种层数上限（9/9/30/30/30）合计恰为 99,999 斤，改一个即破坏。</li>
- *   <li>⚠ {@code getBeastReadings()} 按兽种计数，两种猪共用一个。</li>
+ *   <li>本记录不单独落盘，由 {@link PathStrengthService#get} 从玩家身上的永久兽力与人力流派效果实时构建（流派效果是唯一
+ *       数据源，无道痕[Path Marks]即无力量）；仅包含永久力量（{@link #getStrengthPoints}），限时增益以
+ *       {@link StrengthAmplifier} 形式在 {@link StrengthService} 中合并。</li>
+ *   <li>力量点[Strength Points]为兽力与人力的统一计量单位：1 斤人力 = 1 点，兽力按枚举声明点数计；1 点力量恒等于
+ *       {@link #MARK_POINTS_PER_POINT}（2）点力道道痕，所有力道蛊统一经 {@link #getMarkPoints} 换算道痕点，结算时再经
+ *       {@link #getPoints(long)} 从效果道痕点反推力量点。</li>
+ *   <li>{@link #with} 在加入新兽力前先剔除被 {@link BeastStrength#replaces} 判定替换的同兽种旧兽力（成对的白豕与黑豕除
+ *       外）；{@link #getCovering} 返回已持有且点数不低于目标的同兽种兽力。</li>
+ *   <li>⚠ 紧凑构造器复制枚举集合时必须使用 {@code EnumSet.noneOf} + {@code addAll} 与 {@code new EnumMap<>(Class)}：直
+ *       接调 {@code EnumSet.copyOf} 或 {@code new EnumMap<>(Map)} 遇到 {@link #DEFAULT} 的空集合会抛异常。</li>
+ *   <li>⚠ 五档人力的最大层数（{@code 9 / 9 / 30 / 30 / 30}）总和恰好为 {@code 99,999} 斤，切勿改动单档上限；
+ *       {@link #getBeastReadings} 按 {@link BeastStrengthFamily} 归并计数（白豕与黑豕合占猪类计数）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathStrengthService
- * @since 1.0.0
  */
 
 public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Integer> humanStrength) {
@@ -153,7 +148,6 @@ public record PathStrengthData(Set<BeastStrength> beasts, Map<HumanStrength, Int
         return total;
     }
 
-    /** 永久力量点[Strength Points]：全部斤数加已持兽力点数。 */
     public int getStrengthPoints() { return getTotalJin() + getBeastPoints(); }
 
     public static long getMarkPoints(int points) { return Math.max(0, points) * MARK_POINTS_PER_POINT; }

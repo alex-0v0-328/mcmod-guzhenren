@@ -7,19 +7,14 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 种族：人族，及各在一条道[Path]上带天赋的变异种族。
- *
+ * 肉身种族枚举：包含人族（{@link #HUMAN}）以及各自在一条流派上拥有天赋的十一种异人种族。
  * <ul>
- *   <li>{@code BodyData} 上的封闭词表；人人生为 {@code HUMAN}，变异只能被造、不掷出；玩家只能成为 {@code DRAGONMEN}，
- *       其余十个仅 NPC；兄弟模组不得新增；{@code Race.HUMAN} 不是 {@link GuPath#HUMAN}（人道）。</li>
- *   <li>⚠ 种族可换，天赋两半须可精确撤销：{@link #TALENT_MARKS} 道痕[Path Marks]挂在种族天赋效果上而非裸池；
- *       造诣平移（{@link #TALENT_SHIFT}）而非设定。</li>
+ *   <li>存于 {@link BodyData#race} 的封闭词汇表；角色出生默认为 {@code HUMAN}，异人种族仅能通过转化获得而不会随机掷出
+ *       （玩家仅能转化为龙人 {@link #DRAGONMEN}，其余十种仅供 NPC 使用）；注意 {@link #HUMAN} 指种族，而非人道
+ *       （{@link GuPath#HUMAN}）。</li>
+ *   <li>⚠ 种族允许切换，因此天赋的两项加成必须支持对称撤销：道痕[Path Marks]加成（{@link #TALENT_MARKS}）以永久流派效果
+ *       挂载而非直接写入裸道痕池，流派造诣则通过相对平移（{@link #TALENT_SHIFT}）增减而非直接覆写。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuPath
- * @since 1.0.0
  */
 
 public enum Race implements NamedEnum {

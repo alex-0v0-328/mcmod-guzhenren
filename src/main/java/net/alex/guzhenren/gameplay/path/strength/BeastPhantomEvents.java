@@ -11,19 +11,15 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * 开启兽力虚影流攻击轮次的拳击命中。
+ * 空手近战命中开启兽力虚影流[Beast Strength Phantom]攻击轮次与结算肉体过载的事件入口。
  * <ul>
- *   <li>门槛：玩家为直接来源、空手、伤害为正、目标存活、属肉体自身力量；箭、月刃、气波、范围冲击、蓄力一拳、终点破坏
- *       打击不算，会被受击无敌帧吞掉的不开轮。</li>
- *   <li>同门槛每击先扣肉体过载（{@link BodyOverload#recoil}），不论轮内外。</li>
- *   <li>开轮那击的属性下一 tick 才含解放，故 {@link StrengthRound#open} 的增量直接加到本击（护甲前）。</li>
+ *   <li>触发门槛：伤害直接来源为服务端玩家、主手为空（{@link AttackDamageService#isFistHand}）、伤害大于 {@code 0}、目
+ *       标存活，且不属于气波、范围冲击[Area Impact]、蓄力一拳[Charged Punch]或终点破坏打击[Crash Strike]等派生伤害，同
+ *       时不会被目标当前的受击无敌帧吞掉。</li>
+ *   <li>满足门槛的每一拳（无论是否处于轮次内）均先调用 {@link BodyOverload#recoil} 结算肉体过载反噬。</li>
+ *   <li>开启新轮次的那一击因属性修饰符要到下一 tick 才包含全面解放增量，直接将 {@link StrengthRound#open} 返回的解放攻
+ *       击增量加入本次护甲前伤害。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthRound
- * @see BodyOverload
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

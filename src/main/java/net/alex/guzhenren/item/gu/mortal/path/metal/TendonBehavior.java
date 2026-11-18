@@ -9,12 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 钢筋蛊[Steel Tendon Gu]的行为：筋永久变为同转钢筋，承受力加成取该档。
- *
- * @author Alex
- * @version 1.0.0
- * @see Tendon
- * @since 1.0.0
+ * 钢筋蛊[Steel Tendon Gu]炼体行为：将玩家筋络永久淬炼为对应转数的钢筋档位（{@link Tendon}），肉身承受力加成由目标档位决
+ * 定。
  */
 
 public final class TendonBehavior extends TemperingBehavior<Tendon> {

@@ -11,20 +11,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * 本包各界面共用的绘制部件。
+ * 客户端界面模块共用的基础绘制部件工具。
  * <ul>
- *   <li>经 {@link SpriteBatch} 画 GUI sprite：面板、弹窗、物品格、三态文字按钮（可用、悬停、失效）、{@code <-} 返回键、
- *       进度条；另有 1 像素标题分隔线（填色）、按钮命中判定、容器按钮点击、返回键与 Esc 共用的回 B 面板入口。</li>
- *   <li>按钮分两次调用：{@link #drawButton} 进 sprite 批次，{@link #drawButtonLabel} 在后，界面才能先画全部 sprite
- *       再写字，返回键同理；标签统一水平居中、比正中低 1 像素，布局不同的按钮自画标签。</li>
- *   <li>格子即所框的 16 像素槽位，sprite 四周各大 1 像素；面板边框宽 {@link #FRAME} 像素，面板或弹窗内的内容都避开它；
- *       弹窗 sprite 右下缘外带 2 像素阴影，故比所框弹窗大这么多。</li>
+ *   <li>通过 {@link SpriteBatch} 统一绘制面板、弹窗、物品格、三态文字按钮（可用、悬停、失效）、{@code <-} 返回键及进
+ *       度条等 GUI 精灵图，同时提供 1 像素标题分隔线填充、按钮命中检测、容器按钮发包以及返回键与 Esc 共用的回退到 B
+ *       面板入口。</li>
+ *   <li>按钮将图形绘制与文本绘制拆分为 {@link #drawButton} 与 {@link #drawButtonLabel} 两步（返回键同理），使调用方
+ *       界面的批处理能够先画完所有精灵图再统一写字；常规按钮标签默认水平居中并略下移 1 像素，特殊布局按钮可自行绘制
+ *       标签。</li>
+ *   <li>物品格精灵图四周比所框 16 像素槽位各宽 1 像素；面板边框宽度固定为 {@link #FRAME} 像素，面板或弹窗内所有内容
+ *       均须避让边框；弹窗精灵图右下缘外带 2 像素阴影，尺寸比其所框住的逻辑弹窗区域多出该阴影宽度。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerInfoScreen
- * @since 1.0.0
  */
 
 final class Widgets {

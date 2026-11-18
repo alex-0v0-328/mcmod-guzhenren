@@ -1,18 +1,15 @@
 package net.alex.guzhenren.client.radial;
 
 /**
- * 扇形选择器的几何。
- *
+ * 扇形选择器的纯几何布局计算器。
  * <ul>
- *   <li>不引用游戏类，纯 JUnit 可钉住；扇区 0 正上方居中，其余顺时针；GUI 坐标（x 右，y 下），原点为菜单中心。</li>
- *   <li>{@link #sectorAt}：所指扇区，死区或无扇区为 {@link #NONE}；{@link #centerAngle}：中心自正上方顺时针弧度。</li>
- *   <li>环跨 {@link #INNER_RADIUS} 到 {@link #OUTER_RADIUS} GUI 像素，内圈即死区；图标在 {@link #ICON_RADIUS}。</li>
+ *   <li>不引用任何游戏类，可直接通过纯 JUnit 单元测试钉住几何分布；第 0 号扇区在正上方居中，其余顺时针排列，采用 GUI
+ *       坐标系（x 向右、y 向下）并以菜单中心为原点。</li>
+ *   <li>{@link #sectorAt} 返回当前指向的扇区索引（位于中心死区或无扇区时返回 {@link #NONE}），{@link #centerAngle} 返
+ *       回各扇区中心线自正上方顺时针旋转的弧度。</li>
+ *   <li>扇环径向跨越 {@link #INNER_RADIUS} 至 {@link #OUTER_RADIUS} GUI 像素（内圈以内为死区），图标放置在
+ *       {@link #ICON_RADIUS} 半径处。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RadialMenu
- * @since 1.0.0
  */
 
 public final class RadialLayout {

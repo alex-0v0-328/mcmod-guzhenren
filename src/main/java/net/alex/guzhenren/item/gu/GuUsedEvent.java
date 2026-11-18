@@ -5,15 +5,14 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 凡蛊催动生效并结账后，发布于游戏事件总线的事件。发自 {@link MortalGuItem} 的 {@code spend}，即所有生效催动的终点：点
- * 击、轻点、原地（轮盘、杀招[Killing Move] 施放、功倍蛊[Amplify Effect Gu] 驱动、元老蛊[Primeval Elder Gu] 存取）及自动
- * 催动；被拒、饱食[Hunger] 中止、野生蛊炼化、灌注[Channel] 各轮不触发；蛊材非凡蛊。Epic Fight 桥接据此播通用催动动作
- * （{@code EpicFightServerEvents}）。不带物品堆：催动可能用掉最后一只。同步派发。
- *
- * @author Alex
- * @version 1.0.0
- * @see MortalGuItem
- * @since 1.0.0
+ * 凡蛊（{@link MortalGuItem}）催动成功并完成资源结算后，在 NeoForge 游戏事件总线同步发布的服务端事件。
+ * <ul>
+ *   <li>由 {@link MortalGuItem} 的 {@code spend} 统一触发，覆盖所有生效催动入口：手持右键、轻点、原地催动（轮盘、
+ *       杀招[Killing Move]施放、功倍蛊[Amplify Effect Gu]驱动、元老蛊[Primeval Elder Gu]存取）以及自动催动；被门槛拒
+ *       绝、因饱食[Hunger]不足中止、野生蛊炼化及灌注[Channel]中间轮次均不触发，蛊材亦不触发。</li>
+ *   <li>Epic Fight 桥接层（{@code EpicFightServerEvents}）监听本事件以播放通用催动动作；事件不携带物品栈引用，因为单次
+ *       消耗型蛊虫在结算后可能已耗尽。</li>
+ * </ul>
  */
 
 public class GuUsedEvent extends Event {

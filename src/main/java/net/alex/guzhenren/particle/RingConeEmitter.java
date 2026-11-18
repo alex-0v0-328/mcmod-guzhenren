@@ -11,33 +11,25 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 激波环背后的服务端锥形轨迹：每环在出生处原地由小到大绽开；纯视觉，无伤害、无碰撞箱。
+ * 服务端激波环与范围冲击环的发射器（对应客户端粒子渲染见 {@link net.alex.guzhenren.client.particle.RingParticle}），所
+ * 有环均在无伤害、无碰撞箱的前提下提供纯视觉反馈。
  * <ul>
- *   <li>本包所有环经 {@link #sendRing} 发出：count 0、speed 1.0，精确速度交给粒子，环亦读作朝向法线
- *       （{@code FACING_MOTION}）；速度只承载法线（{@link #RING_NORMAL_DRIFT}，格/tick）：零向量触发
- *       {@code RingGeometry} 无方向回退、环被放平；寿命内漂移不足 1/4 格，看似静止。</li>
- *   <li>今后速度感、力量感动作调 {@code dashCone}（或新增同类入口），不直接生成环。</li>
- *   <li>{@link #dashCone} 沿路径每实际移动 {@link RingTrailSpacing#SPACING} 格一环，起点先现、终点最后，至多
- *       {@link #DASH_MAX_RINGS} 个（约 32 格路径，冲撞蛊[Crash Gu]最长冲刺）。</li>
- *   <li>按实测移动而非逐 tick：服务端闪避位移成块不均到达（Epic Fight 锁住移动、由动画驱动），逐 tick 则环挤
- *       两端；按距离则前摇、跳跃、撞墙截断都均匀；{@link DashBurst} 把每环摆在本 tick 移动线段上。</li>
- *   <li>{@link DashBurst} 在环数用尽、{@link #DASH_MAX_TICKS} 安全上限耗尽，或连续 {@link #DASH_IDLE_LIMIT} tick
- *       水平速度平方低于 {@link #DASH_IDLE_SPEED_SQR} 时结束；0.05 格/tick 算静止，闪避前摇比该时长短。</li>
- *   <li>{@link #DASH_RING_HEIGHT}：冲刺环离脚高度，即站立环身体中部（最大半径 1.1）。</li>
- *   <li>{@link #DASH_BURSTS} 每名玩家只存一个活动爆发：存活时重触发（窗口内第二个 payload）会重放整条轨迹，
- *       故窗口内冲刺直接跳过、不替换；{@link Burst} 的 {@code tick} 铺本 tick 的环并返回下一状态，耗尽返回 null。</li>
- *   <li>登出或换维度丢弃爆发（{@link #forget}）：爆发在单一维度内量距离，带入另一维度会沿两点连线铺环；
- *       {@link #tick} 由 {@code RingConeEvents} 在每个玩家 tick 末调用，表空即返回。</li>
- *   <li>{@link #areaImpactRing} 是范围冲击的同类入口：一个 {@code area_impact_ring}，生成在锥体原点（拳击为眼睛，
- *       远程拳爆开为爆点）前 {@link #AREA_IMPACT_RING_START} 格，沿轴朝向。</li>
- *   <li>环带 {@link #AREA_IMPACT_TRAVEL_TICKS} tick 内抵达锥末的速度，到达后停下、扩大并淡出；该 tick 数等于绽开时长
- *       （五帧，末帧 age 4），环恰在绽开结束时停下，由 {@code RingGeometryTest} 钉住。</li>
+ *   <li>本包所有视觉环统一通过 {@link #sendRing} 以数量 0、速度倍率 1.0 发送，使粒子系统直接将速度向量解读为朝向法线
+ *       （{@code FACING_MOTION}）；速度仅承载长度为 {@link #RING_NORMAL_DRIFT} 格/刻的法线方向（避免零向量触发
+ *       {@code RingGeometry} 平放回退，同时粒子寿命内漂移不足 1/4 格而近似静止）。</li>
+ *   <li>冲刺轨迹（{@link #dashCone}）沿实际水平位移通过 {@link RingTrailSpacing} 每 {@link RingTrailSpacing#SPACING} 格
+ *       铺设 {@code shockwave_ring}（离地 {@link #DASH_RING_HEIGHT} 格，从起点顺次到终点，最多 {@link #DASH_MAX_RINGS}
+ *       个以覆盖约 32 格最长冲刺）；采用实测位移而非固定逐刻发放，可避免因服务端动画位移分块到达导致粒子挤在起止两
+ *       端。</li>
+ *   <li>玩家同一时间至多存在一个活动 {@link DashBurst}（新触发在持续期间直接跳过，防止窗口期内重复发包重放整条轨迹）；
+ *       当环数耗尽、达到 {@link #DASH_MAX_TICKS} 上限、或连续 {@link #DASH_IDLE_LIMIT} 刻水平速度平方低于
+ *       {@link #DASH_IDLE_SPEED_SQR} 时自动结束。</li>
+ *   <li>范围冲击（{@link #areaImpactRing}）从锥体原点前方 {@link #AREA_IMPACT_RING_START} 格沿攻击轴线发射一枚
+ *       {@code area_impact_ring}，令其在 {@link #AREA_IMPACT_TRAVEL_TICKS} 刻（恰好等于五帧绽开动画的末帧年龄）抵达锥底
+ *       并停下扩散淡出。</li>
+ *   <li>玩家登出或切换维度时通过 {@link #forget} 立即丢弃进行中的爆发状态（防止跨维度连线铺环），常规逐刻推进由
+ *       {@link RingConeEvents} 在玩家刻末尾调用 {@link #tick} 触发。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.particle.RingParticle
- * @since 1.0.0
  */
 
 public final class RingConeEmitter {

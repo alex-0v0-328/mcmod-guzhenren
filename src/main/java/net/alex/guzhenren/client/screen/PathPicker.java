@@ -14,18 +14,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 叠在 B 面板上的辅修流派选择器。
+ * 叠加在 B 面板之上的辅修流派选择弹窗。
  * <ul>
- *   <li>全部道[Path]加「无」排成网格，在面板内居中；点格子为打开时对应的空窍[Aperture]发
- *       {@link SetSecondaryPathPayload}，点别处、Esc 或 B 键关闭且不选。</li>
- *   <li>一个 {@link GuiBatch}，弹窗 sprite 最先；悬停填色逐格画：英文长名（Transformation Path）伸进下格，
- *       被其填色盖住。</li>
+ *   <li>将全部流派与「无」排成网格并在面板内居中显示；点击格子即为打开时所选空窍发送
+ *       {@link SetSecondaryPathPayload}，点击弹窗外部、按 Esc 或按 B 键则不作选择直接关闭。</li>
+ *   <li>整块弹窗走单个 {@link GuiBatch}：最先绘制弹窗精灵图，再逐格绘制悬停填色与流派名称（英文较长的
+ *       {@code Transformation Path} 会伸入下方格区域，并由下格的悬停填色遮盖）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerInfoScreen
- * @since 1.0.0
  */
 
 final class PathPicker {

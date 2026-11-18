@@ -16,19 +16,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 兽力[Beast Strength]行为：永久授予一种兽力，种类来自注册。
+ * 永久兽力授予行为：灌注[Channel]完成后为玩家永久赋予注册指定的 {@link BeastStrength}。
  * <ul>
- *   <li>门槛依次拒：持人力钧力流（{@link MarkInterference}）；本兽种已有此兽力或要替换的同等或更强者
- *       （{@link PathStrengthData#getCovering}，提示写该兽种读数）；常态承受力容不下它与留下的兽力
- *       （{@link StrengthService#canAdmit}，增幅与全力以赴抬升不算）。</li>
- *   <li>⚠ 若觉得要改这里，就是数值放错了地方：兽种与价值在枚举上声明，新增兽力不改本行为；效果交
- *       {@link PathStrengthService#grant}，由它换出被替换者。</li>
+ *   <li>{@link #checkEffect} 依次拦截三类情形：已持有人力钧力流派（{@link MarkInterference}）；同兽种已持有相同或更高档
+ *       位的永久兽力（{@link PathStrengthData#getCovering}，拒绝提示中附上该兽种当前读数）；玩家常态肉身承受力不足以容
+ *       纳本兽力与其余保留兽力之和（{@link StrengthService#canAdmit}，不含限时增益与全力以赴蛊[All-Out Effort Gu]的临时
+ *       抬升）。</li>
+ *   <li>⚠ 各兽力的兽种归属与力量点数全部声明在 {@link BeastStrength} 枚举中，新增兽力蛊时无需修改本
+ *       类；{@link #applyEffect} 直接委托 {@link PathStrengthService#grant} 写入并自动替换同兽种低档兽力。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.tending.TendedGuItem
- * @since 1.0.0
  */
 
 public record BeastStrengthBehavior(BeastStrength beast) implements GuBehavior {

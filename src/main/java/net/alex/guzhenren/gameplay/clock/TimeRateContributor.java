@@ -1,14 +1,9 @@
 package net.alex.guzhenren.gameplay.clock;
 
 /**
- * 加快玩家自身时间的唯一接口：{@link TimeFlow#getSelfRate} 遍历 {@code getActiveEffects()} 累加 {@link #timeRate}，
- * 不点名效果。效果侧实现、时钟侧只读，时钟不依赖效果包；维度倍率 {@code ModDimensions.AnchoredDimension#timeRate}
- * 不走此接口。
- *
- * @author Alex
- * @version 1.0.0
- * @see TimeFlow
- * @since 1.0.0
+ * 提升玩家自身时间流速的药水效果接口：{@link TimeFlow#getSelfRate} 遍历玩家活动效果并累加此接口返回的倍率，使
+ * {@code gameplay.clock} 无需依赖 {@code effect} 包；维度时间倍率（{@code ModDimensions.AnchoredDimension#timeRate}）不
+ * 走此接口。
  */
 
 public interface TimeRateContributor {

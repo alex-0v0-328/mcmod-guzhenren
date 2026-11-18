@@ -25,29 +25,24 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 范围冲击：拳击时追加的身前锥形打击，或力气蛊[Strength Qi Gu]远程拳爆开时追加的球形打击。
+ * 范围冲击[Area Impact]服务：空手拳击追加的身前锥形冲击波，或力气蛊[Strength Qi Gu]远程气波爆开时追加的球形冲击波。
  * <ul>
- *   <li>每段拳、每次爆开掷一次（{@link #rolls}），挥空也掷；概率只看效果，不看力量点[Strength Points]：
- *       全力以赴（{@link StrengthService#isAllOut}）{@link #ALL_OUT_CHANCE}，加力气蛊 {@link #BOTH_CHANCE}，
- *       仅力气蛊 {@link #STRENGTH_QI_CHANCE}；未中不留痕。</li>
- *   <li>范围 {@link #getRange} 由这一击的力量点[Strength Points]定（{@link #getPoints}：空手时的发挥点数，拿东西
- *       为 0），随平方根增长、封顶 {@link #MAX_RANGE}。</li>
- *   <li>{@code EpicFightIntegration} 在连段、冲刺、空中攻击命中窗口关闭时 {@link #release}：从眼沿视线放锥，排除拳
- *       已判定者，打完交 {@link AreaImpactShatter} 崩裂身前地形；{@code QiBurst} 用投射物随机数 {@link #burst}：以爆点
- *       为心的球，排除本次已中者，不破方块；本类不认识 Epic Fight。</li>
- *   <li>判定碰撞箱中心，锥顶或球心到目标眼须无方块遮挡（{@link #isInSight}，同原版 {@code hasLineOfSight}，
- *       {@code QiBurst} 爆开共用）；由近及远打满
- *       {@link #MAX_TARGETS} 个，拒伤者不占名额。</li>
- *   <li>伤害为攻击面板 × {@link #DAMAGE_RATIO}，普通战斗伤害，护甲照减；命中沿锥轴（球为球心向外）原版
- *       {@code knockback}（受抗性缩放），类型带 {@code NO_KNOCKBACK} 免叠原版击退；拒伤（PvP 关、无敌、无敌帧）
- *       不推。</li>
- *   <li>排除同二段飞行[Second-Stage Flight]撞击（自身、盟友、己方宠物、野生蛊、盔甲架），另加同乘者。</li>
+ *   <li>每段拳击或每次气波爆开独立掷骰一次（{@link #rolls}，挥空同样判定）；触发概率仅取决于状态（全力以赴为
+ *       {@link #ALL_OUT_CHANCE}、力气蛊为 {@link #STRENGTH_QI_CHANCE}、两者并存为 {@link #BOTH_CHANCE}），与力量点无
+ *       关。</li>
+ *   <li>作用半径 {@link #getRange} 由本击可发挥力量点[Strength Points]（{@link #getPoints}，手持物品时为 {@code 0}）按
+ *       平方根增长，封顶于 {@link #MAX_RANGE}。</li>
+ *   <li>{@code EpicFightIntegration} 在连段、冲刺或空中拳击命中窗口结束时调 {@link #release}（从眼部沿视线发出锥形冲
+ *       击，排除本拳已判定目标，随后调 {@link AreaImpactShatter} 崩裂前方地形）；{@code QiBurst} 在远程气波爆开时调
+ *       {@link #burst}（以爆点为中心发出球形冲击，排除气波直击目标，不破方块）。</li>
+ *   <li>目标碰撞箱中心须落在锥体（{@link #isInCone}）或球体内，且从起点到目标眼部无方块碰撞遮挡（{@link #isInSight}）；
+ *       按由近及远顺序最多命中 {@link #MAX_TARGETS} 个目标（免疫伤害的目标不占名额）。</li>
+ *   <li>伤害为当前攻击力面板 × {@link #DAMAGE_RATIO}（{@code guzhenren:area_impact} 普通战斗伤害，受护甲减免，带
+ *       {@code NO_KNOCKBACK} 标签以避免叠加原版击退），实际造成伤害后沿锥轴或球心向外施加 {@link #KNOCKBACK} 击
+ *       退。</li>
+ *   <li>排除目标规则与二段飞行[Second-Stage Flight]冲撞一致（自身、同队盟友、己方宠物、野生蛊、盔甲架），并额外排除同乘
+ *       载具的实体。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthService
- * @since 1.0.0
  */
 
 public final class AreaImpact {
@@ -89,7 +84,6 @@ public final class AreaImpact {
         return Math.min(MAX_RANGE, BASE_RANGE + RANGE_PER_ROOT_POINT * Math.sqrt(Math.max(0, points)));
     }
 
-    /** {@code point} 是否在从 {@code origin} 沿单位向量 {@code axis}、长 {@code range} 的锥内。 */
     public static boolean isInCone(Vec3 origin, Vec3 axis, double range, Vec3 point) {
         Vec3 offset = point.subtract(origin);
         double distanceSqr = offset.lengthSqr();

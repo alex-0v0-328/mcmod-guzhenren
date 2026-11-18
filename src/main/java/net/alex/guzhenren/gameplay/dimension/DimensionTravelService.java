@@ -20,27 +20,24 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 通用锚定维度旅行服务。
+ * 通用锚定维度进出与维度内飞行授权服务。
  * <ul>
- *   <li>一个 {@link DimensionReturnData} 附件存唯一返回点；{@link #enter} 传送前记原位与是否在飞，已在目标或无目标维度
- *       返回 {@code false}；锚定维度间再进入保留首个快照，退出仍回出发处；死亡经
- *       {@link net.alex.guzhenren.lifecycle.PlayerDataService} 清记录。</li>
- *   <li>{@link #exit}：有返回点则传回，进入时在飞且去掉本授权仍能飞才续飞，返回 {@code true}；无记录兜底送主世界公共出
- *       生点，返回 {@code false}；两路都撤授权、清记录，{@link #clear(ServerPlayer)} 无记录也安全。</li>
- *   <li>{@link #getArrival}：{@code FLIGHT} 落在出生点并授飞、开飞；{@code SURFACE} 落在该列顶上并撤销飞行维度带来的授
- *       权。{@code Level.getHeight} 把未加载区块读成世界底部，故先加载该列区块，未生成则在服务端线程生成，首入新位置会
- *       卡顿。</li>
- *   <li>⚠ 维度内飞行是 {@link FlightAbility} 来源（不存档），不直接写 {@code Abilities.mayfly}：该字段随玩家存档、
- *       与游戏模式及他模组共用，直接写曾在未配对恢复就离开时泄漏生存飞行。</li>
- *   <li>{@link #ensureFlight} 每 tick 补授权，不强制开飞；{@link #revokeFlight} 撤授权，无其他来源时一并关飞，玩家在所
- *       有给飞行的锚定维度外每 tick 调用，故退出、原版 {@code /tp}、他模组传送等任何途径离开都撤销。</li>
- *   <li>{@link #rescueIfBelowVoid}：低于最低建造高度时传回给定出生点，传送了返回 {@code true}。</li>
+ *   <li>通过 {@link DimensionReturnData} 保存唯一返回点：{@link #enter} 在首次从普通维度进入锚定维度时记录原坐标与是否
+ *       正在飞行（已在目标维度或目标维度不存在时返回 {@code false}；在锚定维度之间连续跳转时保留最初的出发点快照，使
+ *       {@link #exit} 始终回到最初出发处；死亡时由 {@code PlayerDataService} 清空记录）。</li>
+ *   <li>{@link #exit}：若有有效返回点则传回原处（仅当进入前在飞且撤销维度授权后仍具备飞行能力时才恢复飞行状态）并返回
+ *       {@code true}；无返回点时兜底传回主世界公共出生点并返回 {@code false}；两条路径均撤销维度飞行授权并清空返回点记
+ *       录。</li>
+ *   <li>{@link #getArrival}：{@code FLIGHT} 模式直接落在配置出生点并授予、开启飞行；{@code SURFACE} 模式先强制加载目标
+ *       列区块（因未加载区块的 {@code Level.getHeight} 会读成世界最低高度，首次进入未生成位置会在服务端线程同步生成该区
+ *       块），再落在地表最高阻挡格上方并撤销锚定维度飞行授权。</li>
+ *   <li>⚠ 锚定维度内的飞行通过 {@link FlightAbility} 临时属性修饰符授予（不落盘），切勿直接改写随玩家存档且与游戏模式共
+ *       用的 {@code Abilities.mayfly}，以免异常离开时在生存模式永久残留飞行权限。</li>
+ *   <li>{@link #ensureFlight} 每 tick 补齐维度飞行授权（不强制进入飞行姿态）；{@link #revokeFlight} 在玩家离开所有授予
+ *       飞行的锚定维度后每 tick 调用（无论经指令退出、原版 {@code /tp} 还是其他模组传送），撤销授权并在无其他飞行来源时
+ *       关闭飞行。</li>
+ *   <li>{@link #rescueIfBelowVoid} 在玩家跌出最低建筑高度时传回指定出生点并清零摔落距离。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see DimensionReturnData
- * @since 1.0.0
  */
 
 public final class DimensionTravelService {

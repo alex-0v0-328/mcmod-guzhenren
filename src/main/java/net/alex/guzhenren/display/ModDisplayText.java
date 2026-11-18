@@ -22,23 +22,18 @@ import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * HUD、B 面板与蛊物品提示共用的全部措辞。
- *
+ * HUD、B 面板与蛊虫物品提示共用的本地化文本格式化工具（与 {@link InfoModel} 配合使用）。
  * <ul>
- *   <li>共享措辞唯一来源：调用处拼的短语迟早把同一事实说成另一样；两处界面说同一件事，句子放这里。</li>
- *   <li>方括号（{@code [无]}、{@code [太日阳莽体]}）写在语言值里，不在此拼；{@link #formatNone} 即 {@code [无]}，
- *       {@link #formatDetail} 包暗色旁注，{@link #formatTalentLine} 为资质[Aptitude]加基础成数。</li>
- *   <li>{@link #getCountdownSeconds} 是倒计时显示的整秒，供按秒缓存文字；{@link #formatEffectTime} 接流派效果剩余整秒或
- *       {@code PathEffect.PERMANENT}。</li>
- *   <li>{@link #formatMarks} 并列道痕[Path Marks]条、点数（千位分隔，互不换算）；0 项省略，全 0 时调用方隐藏该行。</li>
- *   <li>⚠ 寿元保留 2 位小数而非 1 位（{@link #formatLifespan(double, double)}）：常速下 0.01 年是现实 12 秒，是肉眼仍看
- *       得出在动的最粗步长；0.1 年会静止 2 分钟。</li>
+ *   <li>作为跨界面共享措辞的唯一来源，凡两处界面表述同一事实时均应在此统一格式化，避免各自拼接导致文案分歧。</li>
+ *   <li>方括号（如 {@code [无]}、{@code [太日阳莽体]}）写在语言文件译文中而非在此硬编码拼接；{@link #formatNone} 输出占
+ *       位文本，{@link #formatDetail} 包装暗灰色旁注，{@link #formatTalentLine} 为资质[Aptitude]追加基础真元成数。</li>
+ *   <li>{@link #getCountdownSeconds} 将剩余刻数向上取整为整秒供界面按秒缓存文本，{@link #formatEffectTime} 则将剩余整秒
+ *       或 {@code PathEffect.PERMANENT} 格式化为倒计时或永久标记。</li>
+ *   <li>{@link #formatMarks} 并列格式化道痕[Path Marks]的整数条数与散点数（使用千位分隔符且互不进位换算），为 0 的分量
+ *       会省略，全 0 行由调用方隐藏。</li>
+ *   <li>⚠ {@link #formatLifespan(double, double)} 保留 2 位小数而非 1 位：在正常流速下，0.01 年对应现实约 12 秒，是玩家
+ *       能肉眼察觉寿元流动的最粗显示步长（0.1 年会导致显示静止约 2 分钟）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see InfoModel
- * @since 1.0.0
  */
 
 public final class ModDisplayText {

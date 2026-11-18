@@ -11,25 +11,19 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 临时 {@link AttributeModifier} 的最大生命：转数份额加骨份额（{@code Bone.getMaxHealthBonus}）。
+ * 玩家最大生命值临时 {@link AttributeModifier} 服务：汇总修为转数与铁骨（{@code Bone.getMaxHealthBonus}）的生命加成。
  * <ul>
- *   <li>转数份额取 {@code ApertureService.getHealthRank}：只看第一空窍[Aperture]，未开窍[Awakening]按凡人，
- *       单独第二空窍不加。</li>
- *   <li>{@link AttributeEvents} 于 {@code ApertureChangedEvent}（压力写入不发）、{@code BodyTemperedEvent} 及登录、
- *       克隆、重置时刷新（修饰不随克隆保留）。</li>
- *   <li>⚠ 修饰须临时（{@link TransientModifiers}）；降上限须同压当前生命，{@code AttackDamageService}
- *       不必（攻击无「当前值」）。</li>
- *   <li>⚠ 原版先于此修饰恢复生命（读档取存档值，克隆取旧值）并截到 20：{@link #carry} 登出记入 {@code HEALTH_CARRY}，
- *       {@link #restoreCarried} 登录刷新后取回，仅当读档恰 20 且携带值更高。</li>
- *   <li>携带值只活一次登出到登录：崩溃会话不写，读档至多 20，不取更早会话的生命；克隆由
- *       {@code PlayerDataService.onClone} 交接旧生命，重生满血。</li>
+ *   <li>转数加成取自 {@link ApertureService#getHealthRank}：仅认第一空窍（未开窍[Awakening]按凡人 20 点计，孤立第二空窍
+ *       不增加生命上限）。</li>
+ *   <li>由 {@link AttributeEvents} 在 {@code ApertureChangedEvent}（压力变更不触发）、{@code BodyTemperedEvent} 以及登
+ *       录、克隆、重置时刷新。</li>
+ *   <li>⚠ 必须使用 {@link TransientModifiers} 挂载临时修饰符；当最大生命值下调导致当前生命超出新上限时，
+ *       {@link #refresh} 立即将当前生命下压至新上限（攻击力修饰无当前值，无需此步）。</li>
+ *   <li>⚠ 原版在读档或克隆时先于本修饰符恢复生命值，会将高于 20 的生命截断为 20：{@link #carry} 在登出时将当前生命暂存
+ *       至 {@code healthCarry}，{@link #restoreCarried} 在登录刷新上限后取回（仅当读档后生命恰好为 20 且暂存值更高时恢
+ *       复）；该暂存值仅存活一次登出到登录（崩溃未触发登出则读档上限为 20），克隆与死亡重生的生命交接由
+ *       {@code PlayerDataService.onClone} 负责。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.path.strength.AttackDamageService
- * @see ApertureService
- * @since 1.0.0
  */
 
 public final class MaxHealthService {

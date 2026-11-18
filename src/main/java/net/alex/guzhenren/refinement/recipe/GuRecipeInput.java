@@ -6,12 +6,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 炼蛊网格的逐格快照，供 {@link GuRecipe} 匹配。
- *
- * @author Alex
- * @version 1.0.0
- * @see GuRecipe
- * @since 1.0.0
+ * 炼蛊输入网格的只读逐格快照，用于在 {@link GuRecipe} 中执行确定性材料匹配与缺口计算。
  */
 
 public record GuRecipeInput(List<ItemStack> slots) {

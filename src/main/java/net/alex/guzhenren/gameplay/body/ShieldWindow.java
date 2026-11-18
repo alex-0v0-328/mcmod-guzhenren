@@ -1,14 +1,9 @@
 package net.alex.guzhenren.gameplay.body;
 
 /**
- * 护盾最近遇到的无敌帧：最大伤害与关闭 tick；临时附件 {@code shield_window}，不存不同步，仅 {@code ShieldService} 写。
- * 原版 {@code lastHurt} 不能替代：全额吃下的伤害被取消会遗留它，击穿护盾的只留放过部分；本记录未见的帧读
- * {@code lastHurt}。
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldService
- * @since 1.0.0
+ * 护盾受击无敌帧窗口记录（服务端临时内存附件 {@code shield_window}，不落盘、不同步，仅由 {@link ShieldService} 写入）：
+ * 记录当前无敌帧段内已承受的最大伤害与窗口结束 tick；因被护盾全额挡下并取消的事件不会更新原版 {@code lastHurt}，而击穿
+ * 护盾的事件只会在 {@code lastHurt} 留下放行余量，故需单独跟踪窗口峰值（窗口未开启时回退读 {@code lastHurt}）。
  */
 
 public record ShieldWindow(float lastHit, long endTick) {

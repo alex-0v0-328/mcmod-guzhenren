@@ -24,24 +24,23 @@ import yesman.epicfight.network.server.SPCreateTerrainFracture;
 import yesman.epicfight.registry.entries.EpicFightItems;
 
 /**
- * Epic Fight 兼容的服务端事件订阅。
+ * Epic Fight 联动的服务端事件监听入口。
  * <ul>
- *   <li>每个世界写入一次技能保留规则（{@link EpicFightRuleSeed}）；空窍[Aperture]变化（{@code ApertureChangedEvent}）或
- *       生命周期重建派生属性（{@code PlayerRefreshedEvent}）时重读耐力修饰符。</li>
- *   <li>{@link #onCharge}：服务端自行丢弃蓄力蛊[Store Strength Gu]蓄力时放下姿势（可移动蓄力无全身姿势，不播）；{@link #onPlayerTick}：每 tick 交
- *       {@link EpicFightIntegration#tickMeditation}，随温养[Nourish]、开窍[Awakening]仪式起止坐下起身。</li>
- *   <li>{@link #onSecondStageCrash}：服务端撞击为所有可见客户端播反弹；二段飞行[Second-Stage Flight]者本人客户端也发此
- *       事件（带 {@code LocalPlayer}），留给服务端那次。</li>
- *   <li>护盾、投掷、催动动画只在此接一次：{@link #onShieldRaised} 双臂交叉（{@code ShieldService#raise} 对每种护盾、每
- *       次补充都发）；{@link #onProjectileThrown} 挥臂（每片月刃一个事件）；{@link #onGuUsed} 右手前伸
- *       （{@code MortalGuItem} 在凡蛊催动共同收尾发），自带动画的由 {@link EpicFightIntegration#useGu} 排除。</li>
- *   <li>{@link #onPlungeLanded}：落点放 Epic Fight 地裂（陨石砸地裂纹圈），半径取冲击力
- *       （{@code PlungeImpact#getImpactPower}，2 到 6 格），发给追踪该区块的客户端，再播落地动画
- *       （{@link EpicFightIntegration#landPlunge}）；事件只为够重的落地发出。</li>
- *   <li>只发包：{@code LevelUtil#circleSlamFracture} 还会造成冲击波伤害，而坠击不伤任何东西；地裂只在客户端绘制、不改方
- *       块，须先于弹坑发出，因其画在弹坑会挖掉的落点下方地面；爆炸即落地音效，地裂音效关、碎屑粒子留。</li>
- *   <li>{@link #onLivingDrops}：从生物掉落删技能书；{@code guzhenren:no_skill_books} 只清箱子战利品，Epic Fight 经自己
- *       的全局修改器加生物掉落，NeoForge 按哈希序而非数据包序应用，我们的可能先跑；玩家死亡掉落是背包，保留。</li>
+ *   <li>服务端启动时调用 {@link EpicFightRuleSeed#seed} 初始化技能保留规则；空窍变更（{@link ApertureChangedEvent}）或
+ *       玩家派生属性重建（{@link PlayerRefreshedEvent}）时调用 {@link EpicFightIntegration#refresh} 刷新耐力上限修饰
+ *       符。</li>
+ *   <li>{@link #onCharge} 在服务端主动丢弃蓄力蛊[Store Strength Gu]原地蓄力（非可移动蓄力）时播放收臂取消动画；
+ *       {@link #onPlayerTick} 每刻驱动 {@link EpicFightIntegration#tickMeditation}，随温养[Nourish]、开窍[Awakening]仪
+ *       式与真元灌注的起止广播入座和起身动画。</li>
+ *   <li>{@link #onSecondStageCrash} 在服务端处理二段飞行[Second-Stage Flight]撞墙事件时向所有可见客户端广播反弹动画（忽
+ *       略客户端侧触发的同名事件）；{@link #onShieldRaised}、{@link #onProjectileThrown} 与 {@link #onGuUsed} 分别触发
+ *       护盾架起、投射物挥臂与凡蛊通用伸手催动动画。</li>
+ *   <li>{@link #onPlungeLanded} 在重度坠击落地时向追踪该区块的客户端发送 {@link SPCreateTerrainFracture} 渲染环形地裂纹
+ *       （仅发包渲染并保留碎屑粒子、关闭地裂音效且不调用会造成额外冲击波伤害的 {@code circleSlamFracture}，必须在弹坑挖
+ *       掘前发送以免落点地面方块被挖空），随后播放落地蹲姿动画（{@link EpicFightIntegration#landPlunge}）。</li>
+ *   <li>{@link #onLivingDrops} 过滤非玩家生物死亡掉落中的 Epic Fight 技能书（箱子战利品已由全局战利品修改器
+ *       {@code guzhenren:no_skill_books} 过滤，但生物掉落由 Epic Fight 自身的全局修改器按哈希顺序注入，需在掉落事件中兜
+ *       底清除）。</li>
  * </ul>
  */
 

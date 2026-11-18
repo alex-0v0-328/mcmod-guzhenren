@@ -15,22 +15,18 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 每物品一条声明链的登记器。
- *
+ * 每物品一条声明链的集中登记器，在注册点一并声明 ID、工厂、中英文名称、模型形状、标签与创造栏并供 datagen provider 与创
+ * 造栏遍历读回。
  * <ul>
- *   <li>ID、工厂、两种名字、模型、标签、创造栏在注册处一并声明，datagen provider 与创造栏读回。</li>
- *   <li>仿 Create 的 Registrate 自写：{@link #item} 开 {@link ItemBuilder}，其 {@link ItemBuilder#register}
- *       把工厂交给所包 {@code DeferredRegister}、按序记 {@link Entry}；{@link #typedItem} 供保留物品类的字段。</li>
- *   <li>{@link #of} 每个 {@code DeferredRegister} 一个登记器：{@code ModItems} 经 {@code ItemRegistrar.of(ITEMS)}
- *       声明，读者同法取同批条目，无需转交，无类初始化循环。</li>
- *   <li>⚠ 读者先写声明条目、后写手写条目；既声明又手写即 bug：语言 provider 键重复抛异常，标签 provider 成员写两次致
- *       {@code runData} 漂移检查失败。模型 provider 跳过类默认形状；声明的创造栏取代类默认。</li>
+ *   <li>仿照 Registrate 模式自建：{@link #item} 与 {@link #typedItem} 创建 {@link ItemBuilder}，由
+ *       {@link ItemBuilder#register} 将工厂注册到包装的 {@code DeferredRegister.Items} 并按注册顺序写入 {@link Entry}
+ *       列表。</li>
+ *   <li>{@link #of} 为每个 {@code DeferredRegister.Items} 维护唯一实例，使 {@code ModItems} 与下游读取方无需额外转交引
+ *       用且规避类初始化循环。</li>
+ *   <li>⚠ 所有下游 provider 与创造栏均按「先读登记条目、再读手写补充」处理，同一物品绝不可既走登记链又在手写段重复声明
+ *       （否则语言 provider 会因重复键抛异常，标签 provider 会因重复成员导致 {@code runData} 漂移检查失败）；物品栏若在
+ *       此显式声明则会覆盖按类默认分派，模型 provider 亦会跳过已登记项的默认形状。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ItemBuilder
- * @since 1.0.0
  */
 
 public final class ItemRegistrar {

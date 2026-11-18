@@ -13,18 +13,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 镜头摆好后依次按战斗构图（{@link CombatCameraRig#getFrame}）与温养[Nourish]运镜（{@link CultivationCamera#getFrame}）
- * 改写本帧镜头；仅客户端。
+ * 仅客户端 Mixin，在每帧世界渲染的镜头架设完成后依次应用战斗构图帧（{@link CombatCameraRig#getFrame}）
+ * 与温养[Nourish]运镜帧（{@link CultivationCamera#getFrame}）。
  * <ul>
- *   <li>注入点在 {@code renderLevel} 调用 {@code Camera#setup} 之后、视锥剔除之前：原版、Epic Fight 第三人称都已摆完，
- *       改写对剔除、方块与实体绘制、声音监听位置一并生效。</li>
- *   <li>⚠ 不用事件或 API：原因见 {@link CameraAccessor}。</li>
+ *   <li>注入点位于 {@code renderLevel} 调用 {@code Camera#setup} 之后、视锥剔除之前，此时原版与 Epic Fight 第三人称镜头
+ *       均已计算完毕，改写结果会同时作用于视锥剔除、方块实体渲染与声音监听位置。</li>
+ *   <li>⚠ 不使用事件或 API 的原因见 {@link CameraAccessor}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CameraAccessor
- * @since 1.0.0
  */
 
 @Mixin(GameRenderer.class)

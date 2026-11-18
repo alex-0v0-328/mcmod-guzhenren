@@ -8,29 +8,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 本模组维度旅行所用锚定维度的维度键。
- *
+ * 本模组跨维度旅行所使用的锚定维度 {@link ResourceKey} 与落点白名单定义。
  * <ul>
- *   <li>维度本身（维度类型、生物群系、LevelStem、天空效果）归姊妹模组 Gu World（{@code guworld}）；它依赖本模组、
- *       本模组看不到其类，故此处只用键指名，由其 LevelStem 守约。</li>
- *   <li>未装该模组时维度不存在，{@code /guworld enter} 拒绝一切目标
- *       （{@link net.alex.guzhenren.gameplay.dimension.DimensionTravelService#enter} 找不到维度）。</li>
- *   <li>显示名 {@code dimension.<namespace>.<path>} 也是该模组的语言键。</li>
- *   <li>⚠ {@link #TREASURE_YELLOW_HEAVEN} 与四地区键手写 Gu World 命名空间（拿不到其 id 常量）；那边改名这里须同改，
- *       否则无法进入。</li>
- *   <li>{@link AnchoredDimension}：{@code /guworld enter} 可选目标，身处其中应经 {@code /guworld exit} 离开才用上记录的
- *       返回点；{@link AnchoredDimension#spawn} 是每个进入者的固定落点。</li>
- *   <li>{@link AnchoredDimension#rank}：6–9 转（6–7 福地，8–9 洞天），凡间记 0；{@link AnchoredDimension#timeRate}：
- *       相对主世界的时间流速，乘进其中玩家的时钟（{@code TimeFlow#getRate}），低于 1 变慢，Alex 设定前皆为 1。</li>
- *   <li>{@link Arrival#FLIGHT} 落于落点本身，停留时给飞行；{@link Arrival#SURFACE} 落于该柱顶（最高的阻挡移动或含流体
- *       方块，不用落点 y），不给飞行。</li>
- *   <li>{@link #ANCHORED_DIMENSIONS} 为白名单：宝黄天[Treasure Yellow Heaven]是飞行抵达的八转洞天；凡间四地区南疆、
- *       西漠、东海、北原步行进入，落原点上方地表，东海无岛则落海面；今后的福地、洞天在此登记。</li>
+ *   <li>维度的实际类型、群系、{@code LevelStem} 与天空渲染归属配套模组 Gu World（{@code guworld}）；因本模组不能反向依
+ *       赖 Gu World 的类，此处仅按 ID 字符串约定声明维度键；未安装 Gu World 时维度不存在，{@code /guworld enter} 会因
+ *       {@link net.alex.guzhenren.gameplay.dimension.DimensionTravelService#enter} 找不到目标维度而拒绝传送，显示名
+ *       {@code dimension.<namespace>.<path>} 亦由 Gu World 提供。</li>
+ *   <li>⚠ {@link #TREASURE_YELLOW_HEAVEN} 与四地区维度键直接手写 {@code guworld} 命名空间（无法直接引用其常量）：若 Gu
+ *       World 侧修改任意维度 ID，本类必须同步修改，否则维度传送将失效。</li>
+ *   <li>{@link AnchoredDimension} 描述 {@code /guworld enter} 的合法目标（进入后应通过 {@code /guworld exit} 沿记录点返
+ *       回）：{@link #spawn} 为固定目标坐标，{@link #rank} 标明转数（6–7 为福地、8–9 为洞天，凡间记 0），
+ *       {@link #timeRate} 为相对主世界的时间流速倍率（乘入 {@code TimeFlow#getRate}，暂均为 1.0）。</li>
+ *   <li>{@link Arrival#FLIGHT} 降落在固定坐标并授予区域飞行权限，{@link Arrival#SURFACE} 则忽略坐标 y 值、降落在该柱面
+ *       最高的阻挡移动或含流体方块顶面且不授予飞行。</li>
+ *   <li>{@link #ANCHORED_DIMENSIONS} 作为安全白名单：宝黄天[Treasure Yellow Heaven]为以飞行进入的八转洞天，凡间四地区
+ *       （南疆、西漠、东海、北原）则步行进入并落于原点上方地表（东海若原点无岛则落于海面）；后续新增福地与洞天统一在此
+ *       登记。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModDimensions {

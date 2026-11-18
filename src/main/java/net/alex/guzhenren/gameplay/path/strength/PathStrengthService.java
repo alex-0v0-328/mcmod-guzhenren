@@ -25,26 +25,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 力道积累（兽力[Beast Strength]与人力层数）的静态服务。
+ * 永久力道积累（兽力[Beast Strength]与人力层数）的唯一写入与查询服务。
  * <ul>
- *   <li>两个永久力道流派效果的唯一写入方，效果即唯一存储：兽力每物种一个，人力每种一个、层数同存量，均在肉体，
- *       携带力量点换算的道痕点；{@link #get} 两端读回，效果被谁摘除即失去该力量。</li>
- *   <li>每次写入发 {@link StrengthChangedEvent} 刷新攻击；{@link #getBeastBuffs} 从流派效果读出运行中的限时兽力增益；
- *       总量、可发挥量与新兽力的承受力把关归 {@link StrengthService}。</li>
- *   <li>道痕[Path Marks]互斥在此唯一写入口执行：已持互斥分支时 {@code grant} 与上调的 {@code setHumanStrength} 不写、
- *       返回 {@code false}；运行中的 {@link BeastStrengthBuff} 算持兽力虚影流，其授予在蛊处把关；移除总放行。</li>
- *   <li>持有优先级（{@link #holdsBranch}）：兽力虚影流，其次人力钧力流，否则基础力道。</li>
- *   <li>⚠ 承受力门槛在蛊（{@code BeastStrengthBehavior}）不在此：指令可超常态承受力，肉体只发挥能承受的部分。</li>
- *   <li>⚠ 写入口阻止兼持，效果存储不阻止：兼持读作兽力虚影流。</li>
- *   <li>⚠ 降低人力按整层连道痕点移除，他途加的道痕保留。</li>
+ *   <li>作为永久兽力与永久人力两类肉身流派效果的唯一写入方，流派效果本身即唯一持久化载体（每种兽力一个效果、
+ *       每档人力一个按层数叠加以携带对应道痕[Path Marks]点的效果）；双端通过 {@link #get} 实时从流派效果还原
+ *       {@link PathStrengthData}，效果被摘除即失去对应力量。</li>
+ *   <li>每次写入后发布 {@link StrengthChangedEvent} 触发攻击力刷新；{@link #getBeastBuffs} 从活动流派效果中提取限时兽力
+ *       增益（{@link BeastStrengthBuff}），{@link #getDurationBonus} 汇总永久兽力对力道限时状态的时长加成；总力量、可发
+ *       挥力量与承受力准入归 {@link StrengthService} 计算。</li>
+ *   <li>力道分支互斥在此处唯一把关：当玩家已持有互斥分支（{@link #getInterference}，运行中的限时兽力同样视为持有兽力虚
+ *       影流）时，{@link #grant} 与上调层数的 {@link #setHumanStrength} 拒绝写入并返回 {@code false}；移除或下调始终放
+ *       行。</li>
+ *   <li>分支持有判定优先级（{@link #getHeldBranch}）：优先认兽力虚影流，其次人力钧力流，均无则为
+ *       {@link StrengthPathBranch#NORMAL}。</li>
+ *   <li>⚠ 新兽力的常态承受力准入检查在蛊虫行为侧（{@code BeastStrengthBehavior}）执行而非本服务内，以便管理员指令可赋予
+ *       超出常态承受力的永久兽力（超出部分仅截断不发挥）。</li>
+ *   <li>⚠ 下调人力层数时通过 {@code dropLayer} 按整层扣除该档人力自带的道痕点，保留其他途径（如增幅蛊）追加的道
+ *       痕。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathStrengthData
- * @see StrengthChangedEvent
- * @see StrengthPathBranch#interferesWith
- * @since 1.0.0
  */
 
 public final class PathStrengthService {
@@ -69,7 +67,6 @@ public final class PathStrengthService {
 
     public static boolean has(@NotNull Player player, @NotNull BeastStrength beast) { return get(player).has(beast); }
 
-    /** 持有兽力[Beast Strength]给力道限时状态加的 tick（青牛 10 秒）。 */
     public static int getDurationBonus(@NotNull Player player) { return get(player).getBeastDurationBonus(); }
 
     public static int getHumanStrength(@NotNull Player player, @NotNull HumanStrength kind) {
@@ -157,7 +154,6 @@ public final class PathStrengthService {
         return next;
     }
 
-    /** 运行中的限时兽力[Beast Strength]增益，来源为授予它的蛊。 */
     public static @NotNull List<StrengthAmplifier> getBeastBuffs(@NotNull Player player) {
         List<StrengthAmplifier> buffs = new ArrayList<>();
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {

@@ -8,14 +8,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 宝黄天[Treasure Yellow Heaven]里丢弃后放不回背包的物品。任何途径离开后由 {@link TreasureYellowHeavenGuard#tick}
- * 掉在脚下；存档不同步，死亡继承，死在里面的在重生点拿到；{@link #with} 先补满同物品同组件的堆再开新堆。⚠ 物品堆是记录
- * 自有副本：{@link #with} 复制收进的堆，读取方转交前先复制。
- *
- * @author Alex
- * @version 1.0.0
- * @see TreasureYellowHeavenGuard
- * @since 1.0.0
+ * 宝黄天[Treasure Yellow Heaven]内丢弃物品的溢出暂存附件：当玩家在宝黄天内丢弃物品且背包已满无法塞回时暂存于此，待玩家
+ * 以任何途径离开宝黄天后由 {@link TreasureYellowHeavenGuard#tick} 在脚下吐出（仅服务端存档、不同步，死亡后保留以便在重
+ * 生点领回）。
+ * <ul>
+ *   <li>{@link #with} 先尝试合并到同物品同组件的已有堆叠中，剩余部分再追加新堆。</li>
+ *   <li>⚠ 内部持有的物品栈均为独立副本：{@link #with} 会拷贝传入的物品栈，外部读取方在交出或生成掉落物前也必须先拷
+ *       贝。</li>
+ * </ul>
  */
 
 public record TossStashData(List<ItemStack> stacks) {

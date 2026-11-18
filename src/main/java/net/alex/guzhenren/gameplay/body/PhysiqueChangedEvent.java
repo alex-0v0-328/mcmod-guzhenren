@@ -5,14 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link BodyService} 改变体质或不死状态（增、删、复活、临时僵尸、僵尸）后发布的事件；同步分发，写入返回时订阅者已执
- * 行。攻击修饰符在上层 {@code gameplay.attribute}，向上调用会成依赖环，故肉身只发布。
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @see ExtremePhysiqueChangedEvent
- * @since 1.0.0
+ * 肉身体质或死灵状态变更事件：{@link BodyService} 增删体质、复活、进入临时僵尸化或转为僵尸后同步发布；上层
+ * {@code gameplay.path.strength} 通过订阅此事件刷新攻击力修饰符，避免 {@code gameplay.body} 反向依赖。
  */
 
 public class PhysiqueChangedEvent extends Event {

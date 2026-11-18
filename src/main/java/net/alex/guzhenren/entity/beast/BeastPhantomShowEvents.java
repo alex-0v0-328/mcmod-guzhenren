@@ -6,13 +6,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
- * 为攻击轮次立兽力虚影的订阅类：事件同步分发，故同 tick 以 {@link BeastPhantomEntity#show} 响应
- * {@link BeastPhantomsDrawnEvent}；轮次层级在实体之下，只发事件，不向上调用。
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastPhantomEntity
- * @since 1.0.0
+ * 监听攻击轮次事件并生成兽力虚影的订阅类：{@link BeastPhantomsDrawnEvent} 同步分发，本类在同一 tick 调用
+ * {@link BeastPhantomEntity#show} 更新虚影，使轮次玩法层无需反向依赖实体层。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

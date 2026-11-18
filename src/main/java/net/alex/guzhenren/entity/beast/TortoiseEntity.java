@@ -19,15 +19,16 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * 被动龟：攻击集为空的 {@link ActionEntity}；陆龟、石龟（{@link TortoiseSpecies}）为共用本类的两个实体类型。
+ * 被动龟实体：攻击集为空的 {@link ActionEntity}，陆龟与石龟（{@link TortoiseSpecies}）共用本类并注册为两个实体类型。
  * <ul>
- *   <li>从不锁定目标：警戒即待机，{@link #chooseAttack} 不执行，{@link #getCooldownOf} 不可达；受击只播一次受击姿势，
- *       进行中不重启。</li>
- *   <li>游荡完后夜里按 {@link #NIGHT_SLEEP_CHANCE} 睡至天亮，白天按 {@link #EAT_CHANCE} 进食
- *       {@link #EAT_ACTION_TICKS}，均由 {@link StandStillGoal} 定住；无 run 片段，用不到的追击循环映射为 walk。</li>
- *   <li>⚠ GeckoLib 以客户端同步速度 (|vx| + |vz|) / 2 ≥ 0.015 判定行走；游荡实测陆龟约 0.009～0.012、石龟约
- *       0.006～0.008（沿轴到斜 45°），默认阈值下停在 idle、腿不动，故渲染器改用 {@link #WALK_ANIM_THRESHOLD}，停步后约
- *       1 tick 回 idle。</li>
+ *   <li>从不锁定目标：警戒动作直接返回待机，{@link #chooseAttack} 空实现，{@link #getCooldownOf} 不可达；受击仅播放一次
+ *       受击姿势，播放期间再次受击不重置。</li>
+ *   <li>随机游荡走完后，夜间按 {@link #NIGHT_SLEEP_CHANCE} 概率入睡至天亮，白天按 {@link #EAT_CHANCE} 概率进食
+ *       {@link #EAT_ACTION_TICKS} tick，期间均由 {@link StandStillGoal} 锁住移动；模型无奔跑片段，将用不到的追击循环映
+ *       射为行走动画。</li>
+ *   <li>⚠ GeckoLib 默认以客户端同步水平速度 {@code (|vx| + |vz|) / 2 >= 0.015} 判定移动，而陆龟游荡实测仅约
+ *       0.009～0.012、石龟约 0.006～0.008，在默认阈值下会一直卡在待机动画而不迈腿，因此渲染器改用
+ *       {@link #WALK_ANIM_THRESHOLD}，停步后约 1 tick 切回待机。</li>
  * </ul>
  */
 

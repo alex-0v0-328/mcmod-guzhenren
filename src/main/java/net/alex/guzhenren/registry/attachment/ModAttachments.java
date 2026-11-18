@@ -33,38 +33,33 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * 本模组挂在玩家身上的全部数据附件。
- *
+ * 本模组挂载在玩家实体上的全部 NeoForge 数据附件类型定义。
  * <ul>
- *   <li>14 个记录附件（不可变，只经服务写）加 8 个临时字段；{@link #registerSynced} 存并只同步本
- *       人（{@code OWNER_ONLY}），{@link #registerSaved} 只存；{@code ESSENCE_CARRY}、{@code SHIELD_WINDOW}、
- *       {@code SECOND_STAGE_THROTTLE} 不存不同步，两端各一份，{@code SHIELD_WINDOW} 仅服务端写。</li>
- *   <li>{@code SECOND_STAGE}、{@code PLUNGE} 不存，同步给所有看得见该玩家的客户端（下称广播）以画前倾、下坠姿势；
- *       有即分别处于二段飞行[Second-Stage Flight]（重登即出）、坠击（值为下坠最高点）；{@code MOBILE_CHARGE} 同样不存
- *       并广播，有即在惯力蛊[Habitual Strength Gu]的可移动蓄力中，画上半身蓄力架势。</li>
- *   <li>{@code AWAKENING_RITUAL}：有即在开窍[Awakening]仪式中，存并广播，画悬浮希望蛊[Hope Gu]与头顶资质[Aptitude]牌
- *       匾（含十绝体质）；{@code APERTURE_NOURISH} 如 {@link #registerSynced} 般存、继承但广播，
- *       温养[Nourish]中画盘坐。</li>
- *   <li>他人需见的记录只放宽同步谓词，不另发下行 payload。</li>
- *   <li>服务经 {@code PlayerData} 存记录，setter 跳过相等值：NeoForge 每次 {@code setData} 都向本人发同步；
- *       记录按值比较，相等即客户端已有。{@code ESSENCE_CARRY} 唯一原地写：回复直接累进数组。</li>
- *   <li>两个辅助方法注册的都继承：NeoForge 随每次克隆复制，含死亡（{@code copyOnDeath}），{@link #getInherited}
- *       列入生命周期全量重置；新附件在此注册即被携带、重置；未保存者不随克隆。</li>
- *   <li>手写、死亡不带：{@code HEALTH_CARRY}；{@code PLAYER_REWIND}（人如故[Man As Before Gu]对刚死身体的记忆，
- *       存不同步）；{@code AWAKENING_RITUAL}（死亡在克隆前结束仪式）。{@code TOSS_STASH} 相反：死亡带走，无
- *       keepInventory 的死亡重置也不清，因存玩家自己的物品。</li>
- *   <li>⚠ {@code BORN} 须继承，否则下次登录重抽才情。</li>
- *   <li>⚠ 记录放功能包（aperture、body、soul、path、mind、dimension；{@code strength} 在 path 下）；常量名为类名去
- *       {@code Data}（{@code PathEffectData} 即 {@code PATH_EFFECT}）；勿用裸领域词，
- *       {@code qi}/{@code soul}/{@code strength} 也是 {@code GuPath} 名。</li>
- *   <li>⚠ ID 即存档键，改名丢全部存值；记录 {@code CODEC} 每字段用 {@code optionalFieldOf} 带默认值（列表、映射形的
- *       {@code ApertureData}、{@code PathData} 在条目记录里），旧档可读；例外 {@code DimensionReturnData.ReturnPoint}
- *       字段在可选 {@code point} 内必填，新增仍用 {@code optionalFieldOf}。</li>
+ *   <li>共包含 14 个不可变业务记录附件（仅通过领域服务写入）与 8 个辅助或状态标志字段：其中 {@link #registerSynced} 持
+ *       久化并仅同步至本人（{@code OWNER_ONLY}），{@link #registerSaved} 仅持久化不同步；{@code ESSENCE_CARRY}、
+ *       {@code SHIELD_WINDOW} 与 {@code SECOND_STAGE_THROTTLE} 为不持久化也不同步的瞬时缓存（{@code SHIELD_WINDOW} 仅服
+ *       务端写入）。</li>
+ *   <li>{@code SECOND_STAGE}（二段飞行）、{@code PLUNGE}（坠击最高点高度）与 {@code MOBILE_CHARGE}
+ *       （惯力蛊[Habitual Strength Gu]可移动蓄力）为不持久化但向全部可见客户端广播的姿态标记，用于驱动他人视角下的飞行
+ *       前倾、下落或上半身蓄力动画；{@code AWAKENING_RITUAL}（悬浮希望蛊与头顶资质[Aptitude]牌匾）与
+ *       {@code APERTURE_NOURISH}（盘坐温养[Nourish]）亦向可见客户端广播（前者不随死亡继承，后者按常规继承并持久
+ *       化）。</li>
+ *   <li>需要让其他玩家客户端看见的状态仅通过放宽同步谓词实现广播，不为此另建下行网络载荷；业务层经 {@code PlayerData}
+ *       更新记录时会自动跳过相等值以避免重复发包（唯独 {@code ESSENCE_CARRY} 直接原地累加浮点数组）。</li>
+ *   <li>经 {@link #registerSynced} 与 {@link #registerSaved} 注册的附件均启用 {@code copyOnDeath} 并加入
+ *       {@link #getInherited} 列表供生命周期全量重置；手动注册的字段则按语义分化：{@code HEALTH_CARRY}、
+ *       {@code PLAYER_REWIND}（人如故[Man As Before Gu]对死亡前身体的记忆，存不同步）与 {@code AWAKENING_RITUAL} 不随死
+ *       亡继承，而 {@code TOSS_STASH}（保存玩家自己的丢弃物）不仅随死亡携带且在非 {@code keepInventory} 死亡重置中也不
+ *       清空。</li>
+ *   <li>⚠ {@code BORN} 标记必须启用死亡继承，否则玩家在死亡重开或重登后会重新随机抽选才情。</li>
+ *   <li>⚠ 数据记录类须归属各自功能包（如 {@code aperture}、{@code body}、{@code soul}、{@code path}、{@code mind}、
+ *       {@code dimension}），且附件常量命名应取记录类名去掉 {@code Data} 后缀（如 {@code PathEffectData} 对应
+ *       {@code PATH_EFFECT}），严禁使用裸领域词（因 {@code qi}、{@code soul}、{@code strength} 同时是 {@code GuPath} 枚
+ *       举名）。</li>
+ *   <li>⚠ 附件注册 ID 即存档键名，改名会导致对应旧存档数据全部丢失；各记录 {@code CODEC} 字段必须使用带默认值的
+ *       {@code optionalFieldOf} 以保持旧档兼容（列表或映射成员如 {@code ApertureData}、{@code PathData} 在条目内部各自
+ *       兜底，唯 {@code DimensionReturnData.ReturnPoint} 在可选 {@code point} 内部仍为必填字段）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModAttachments {

@@ -12,20 +12,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 护盾光晕：本机玩家有护盾时屏幕边缘的白光。
+ * 护盾屏幕边缘光晕：本地玩家持有护盾时在屏幕四周渲染白色边缘光效。
  * <ul>
- *   <li>无盾升盾时 {@link #FADE_IN_TICKS} 内淡入，后保持 {@link #PEAK_ALPHA} × 各层剩余点数和 / 升起点数和；
- *       受击削减某层而护盾未尽则加亮 {@link #FLASH_ALPHA}，{@link #FLASH_TICKS} 内回落；某层到时只降亮度；
- *       末层结束则从当前亮度经 {@link #FADE_OUT_TICKS} 淡出。</li>
- *   <li>{@link #tick} 每客户端 tick 读一次同步的 {@code ShieldData}，按游戏时间记时刻；本机玩家实体换新（重生、换维度）
- *       即重来，护盾同步后重新淡入；{@link #render} 以白色加法绘原版暗角贴图，边缘变亮，同 {@link SonicBoomHud}
- *       随「屏幕扭曲效果」滑条缩放；注册在原版镜头叠层上（{@code ClientEvents}）。</li>
+ *   <li>无盾升盾时在 {@link #FADE_IN_TICKS} 内淡入，随后保持 {@link #PEAK_ALPHA} ×（各层剩余点数之和 / 升起点数之
+ *       和）；受击削减某层且护盾未尽时瞬时提亮 {@link #FLASH_ALPHA} 并在 {@link #FLASH_TICKS} 内回落；单层到期仅按比
+ *       例降低亮度，末层结束时从当前亮度经 {@link #FADE_OUT_TICKS} 淡出。</li>
+ *   <li>{@link #tick} 每个客户端 tick 读取同步的 {@code ShieldData} 并按游戏时间记录节点，本地玩家实体重建（重生或换
+ *       维度）时重置并在下次同步后重新淡入；{@link #render} 以白色加法混合绘制原版暗角贴图，与 {@link SonicBoomHud}
+ *       同受「屏幕扭曲效果」滑条缩放，注册在原版镜头叠层之上（{@code ClientEvents}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldService
- * @since 1.0.0
  */
 
 public final class ShieldGlowHud {

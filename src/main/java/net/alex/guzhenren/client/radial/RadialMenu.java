@@ -17,30 +17,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 长按呼出的扇形选择器。
- *
+ * 长按呼出的扇形选择器控制器。
  * <ul>
- *   <li>{@link Owner} 定何时算按住、显示哪些条目、选中后做什么；现有持有者：功倍蛊[Amplify Effect Gu]，月刃蛊[Moon
- *       Blade Gu]（选其杀招[Killing Move]）；{@link Entry} 即一个扇区：图标、指向时中心名称、选中是否生效。</li>
- *   <li>按住时屏幕中心升起一圈扇区，指向其一、松开即选；同时只有一次长按（{@link #hold}）；按住
- *       {@link #OPEN_DELAY_TICKS} tick 才打开，轻点不显示；条目打开时读一次，松开前不变。</li>
- *   <li>松开：启用扇区上调 {@link Owner#pick}，内圈或禁用扇区无事；无条目调一次 {@link Owner#empty} 后等结束；未打开环
- *       （打开前或 {@code empty} 后）调 {@link Owner#releaseUnopened}，默认空操作；开界面或登出即丢弃、不调方法。</li>
- *   <li>⚠ {@link Owner#isHeld} 因其他原因变 false（如物品离手）同样结束长按，照常调 {@code pick} 与
- *       {@code releaseUnopened}；会发包的持有者须先确认物品仍在手上。</li>
- *   <li>⚠ 打开期间镜头不动、行走照常：{@code MouseHandlerMixin} 把本应转动玩家的鼠标位移按屏幕像素交给 {@link #steer}，
- *       移动一个不可见、限在外圈内的光标，只由被指向的扇区体现。</li>
- *   <li>长按期间交互键不传到世界、快捷栏不滚动，物品留在手上，同一次点击不击打或放置。</li>
- *   <li>按挂钟逐帧跟随 {@link RadialMotion}，由 {@link RadialDrawing} 绘制；松开立即结束长按（镜头恢复、发送选择），只
- *       留画环离场的 {@code Exit}。</li>
+ *   <li>由 {@link Owner} 决定何时处于按住、展示哪些条目及选中后的回调；现有调用方包括功倍蛊[Amplify Effect Gu]与
+ *       月刃蛊[Moon Blade Gu]（选择其杀招[Killing Move]），每个 {@link Entry} 对应一个扇区及其图标、中心名称和选中动
+ *       作。</li>
+ *   <li>按住期间在屏幕中心升起扇形菜单，移动光标指向扇区并松手即触发选中；同一时间仅维持一个活跃长按（{@link #hold}），
+ *       须按住满 {@link #OPEN_DELAY_TICKS} tick 才正式弹出（轻点不显示），条目列表在弹出瞬间读取一次并在松开前保持不
+ *       变。</li>
+ *   <li>松开按键时若落在启用扇区则调用 {@link Owner#pick}，落在内圈死区或禁用扇区则无事发生；若完全没有条目则调用一
+ *       次 {@link Owner#empty} 并等待松开；弹出前松开或在 {@code empty} 后松开均调用 {@link Owner#releaseUnopened}（默
+ *       认空操作）；打开界面或登出时直接丢弃状态而不调用任何回调。</li>
+ *   <li>⚠ {@link Owner#isHeld} 因其他原因变为 false（例如物品被切走离手）同样会立即结束长按并照常回调 {@code pick}
+ *       或 {@code releaseUnopened}，因此会发包的持有者须自行再次确认物品仍在手中。</li>
+ *   <li>⚠ 菜单弹出期间相机视角锁定而玩家移动照常：{@code MouseHandlerMixin} 把本应转动镜头的鼠标位移（按屏幕像素）
+ *       改交给 {@link #steer}，推动一枚被限制在外圈半径内的不可见光标，仅通过高亮对应扇区反馈指向。</li>
+ *   <li>长按期间屏蔽交互键向世界的穿透及快捷栏滚轮滚动，使物品留在手中且同一点击不会意外攻击或放置方块。</li>
+ *   <li>动画按墙钟时间由 {@link RadialMotion} 推进并由 {@link RadialDrawing} 绘制；松开后立即结束长按（恢复镜头并派发
+ *       选中结果），仅保留用于绘制离场动画的 {@code Exit} 状态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RadialLayout
- * @see RadialMotion
- * @see RadialDrawing
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

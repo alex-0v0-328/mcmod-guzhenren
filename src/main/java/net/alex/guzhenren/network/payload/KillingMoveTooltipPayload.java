@@ -11,13 +11,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 只发给施放者的服务端通知：杀招[Killing Move]命中，提示滑入。
- * 带杀招 id 与本次各蛊物品堆，主蛊在前（{@link KillingMoveService.Cast}）；配合蛊或在客户端不可见的空窍[Aperture]存储。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
+ * 仅下发给施放者的杀招命中滑入提示通知载荷（由 {@link net.alex.guzhenren.network.ModPayloads} 注册），携带杀招 ID 与本
+ * 次消耗或参与的各蛊物品堆列表（主蛊居首，见 {@link KillingMoveService.Cast}），以补齐客户端无法直接读取服务端空窍存储
+ * 中配合蛊的问题。
  */
 
 public record KillingMoveTooltipPayload(String move, List<KillingMoveService.Used> used)

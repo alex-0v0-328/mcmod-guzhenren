@@ -39,40 +39,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 全部流派效果类型常量，及按 ID 查类型的编解码器。
- *
+ * 全部流派效果类型（{@link PathEffectType}）常量表以及按 ID 解析的 {@link #CODEC} 与 {@link #EFFECT_CODEC}。
  * <ul>
- *   <li>封闭列表，非 NeoForge 注册表：存档、同步编解码器在此解析 {@code type} ID，兄弟模组不加类型；家族用
- *       {@link #register} 加常量，payload 记录留本包；首用即初始化，读 ID 必能找到全部类型。</li>
- *   <li>{@code registerNamed} 建单枚举常量（存于 {@code field}）的增益类型，键随常量名；{@code registerUnit}、
- *       {@code registerTimedBuff} 建无 payload、限时增益形状。</li>
- *   <li>⚠ ID 即存档键，改名丢该类型全部存值；{@code BY_ID} 须在常量前声明，因常量类初始化时注册进它。</li>
- *   <li>{@link #RACE_TALENT} 种族天赋：肉身增益，payload 种族；变异种族在其道上的 10 整道痕[Path Marks]。</li>
- *   <li>{@link #EXTREME_PHYSIQUE} 十绝体质：空窍[Aperture]增益，payload 体质；1000 整道痕分摊到各天赋道。</li>
- *   <li>{@link #BODY_SKIN}、{@link #BODY_TENDON}、{@link #BODY_BONE} 炼体皮筋骨：肉身永久增益，payload 等级；互斥，
- *       新级连点顶旧。</li>
- *   <li>{@link #BEAST_STRENGTH} 兽力[Beast Strength]：每物种一个肉身永久增益，payload 物种。</li>
- *   <li>{@link #HUMAN_STRENGTH} 人力：每种类一个肉身永久增益，每存一层算一层。</li>
- *   <li>{@link #BUFF} 限时增益：每蛊一个肉身限时增益，payload 原版效果与 amplifier；兽类、冲撞、
- *       全力以赴蛊[All-Out Effort Gu]用。</li>
- *   <li>{@link #SELF_RELIANCE} 自力更生：肉身自动治疗，payload 等级；时长为自动催动窗口；互斥。</li>
- *   <li>{@link #HARDSHIP_STRENGTH} 苦力：肉身自动状态，payload 力量 amplifier 提供者；时长为自动催动窗口；互斥。</li>
- *   <li>{@link #BIG_STRENGTH} 大力：肉身限时增益，payload 力量 amplifier 提供者，点数读力道道痕点；互斥。</li>
- *   <li>{@link #TIMED_SKIN} 限时皮：肉身玉皮或白玉皮，payload 皮；互斥；皮本身在 {@code BodyData}，自投图标。</li>
- *   <li>{@link #MUGWORT_SHIELD} 天蓬护盾：肉身护盾，点数在 {@code ShieldData}。</li>
- *   <li>{@link #VITALITY_LEAF} 生机叶：肉身限时治疗。</li>
- *   <li>{@link #WATCH_RATE} 更蛊：每蛊一个肉身限时时间倍率，payload 原版效果形态；每催动一次一层。</li>
- *   <li>{@link #ZOMBIE} 僵尸：临时僵尸肉身的有害限时状态，永久尸化即散；形态在 {@code BodyData}；互斥。</li>
- *   <li>{@link #LIQUOR_DISTILLING} 酒虫精炼：精炼真元[Essence]时的肉身限时增益，payload 蛊档次；历时一天；互斥。</li>
- *   <li>{@link #STONE_APERTURE} 石窍：空窍石化时的空窍永久增益；锁存在 {@code Aperture}；互斥。</li>
- *   <li>{@link #CASUAL_THOUGHT}、{@link #MALICIOUS_THOUGHT} 随意念、恶念：每蛊一个脑海限时状态，payload 同
+ *   <li>采用本模组封闭静态列表而非 NeoForge 注册表：由本类静态常量统一驱动存档与网络编解码器，不开放给外部模组扩展；家
+ *       族共用的工厂 {@link #registerNamed}、{@link #registerUnit} 与 {@link #registerTimedBuff} 分别生成单枚举载荷、无
+ *       载荷单位与限时增益形状，所有载荷类型均保留在本包或所属领域。</li>
+ *   <li>⚠ {@link #BY_ID} 映射必须在全部类型常量之前声明（类初始化时按字段顺序注册），且每个注册 ID 即存档键名，任何改名
+ *       都会导致旧存档中的对应流派效果全部丢失。</li>
+ *   <li>先天与炼体永久增益：{@link #RACE_TALENT}（变异种族赋予对应流派 10 条整道痕[Path Marks]）、
+ *       {@link #EXTREME_PHYSIQUE}（十绝体质向各天赋流派分摊 1000 条整道痕）、{@link #BODY_SKIN} / {@link #BODY_TENDON}
+ *       / {@link #BODY_BONE}（炼体皮筋骨互斥增益，新等级直接覆盖旧等级）与 {@link #STONE_APERTURE}（空窍石化永久增益，
+ *       锁定态存于 {@code Aperture}）。</li>
+ *   <li>力道与限时肉身效果：{@link #BEAST_STRENGTH}（每兽族一项永久兽力[Beast Strength]）、{@link #HUMAN_STRENGTH}（每
+ *       单位一项永久人力，按层累加）、{@link #BUFF}（各类限时增益投影，承载兽力、冲撞与全
+ *       力以赴蛊[All-Out Effort Gu]）、{@link #SELF_RELIANCE} / {@link #HARDSHIP_STRENGTH} / {@link #BIG_STRENGTH}（对
+ *       应互斥力道状态）、{@link #TIMED_SKIN} / {@link #MUGWORT_SHIELD} / {@link #VITALITY_LEAF}（限时皮盾与治疗）、
+ *       {@link #WATCH_RATE}（更蛊时间倍率，每催动叠一层）、{@link #ZOMBIE}（临时僵尸减益，永久尸化时消散）与
+ *       {@link #LIQUOR_DISTILLING}（酒虫[Liquor Worm]精炼 1 日增益）。</li>
+ *   <li>脑海限时状态：{@link #CASUAL_THOUGHT}（随意念增益）与 {@link #MALICIOUS_THOUGHT}（恶念减益），载荷结构同
  *       {@link #BUFF}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffectType
- * @since 1.0.0
  */
 
 public final class ModPathEffectTypes {

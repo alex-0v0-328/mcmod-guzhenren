@@ -9,21 +9,19 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 蛊虫行为：蛊的一项作为，含门槛、效果与所放宽的限制。
+ * 凡蛊（{@link MortalGuItem}）的单条可组合行为接口：封装生效门槛、实际效果及对宿主通用规则的放宽条件。
  * <ul>
- *   <li>皆为默认方法，只答所改；蛊 = 生命周期宿主 {@link OneShotGuItem}/{@link TendedGuItem}/{@link ConsumedGuItem} +
- *       注册时按序给的行为；宿主管炼化、补食、真元[Essence] 与饱食[Hunger] 账单、冷却，行为只经下列限制放宽。</li>
- *   <li>宿主按序询问：{@link #checkEffect} 取首个拒绝；{@link #applyEffect} 全执行；{@link #canBeAmplified} 与
- *       {@link #canUseDuringEffectCooldown} 任一即成立；饱食倍率取最大；{@link #defersForcedDeath} 让需蛊存活的行为把强
- *       行催动[Forced Use] 的蛊留到轮末再自行杀死。</li>
- *   <li>⚠ 行为无状态、可多蛊共享：堆状态存堆上，玩家状态存服务；自带时长、等级，共用数值经宿主读 {@link GuProperties}；
- *       他处经 {@link MortalGuItem#getBehavior} 问，不看类。</li>
+ *   <li>接口方法全部提供默认空实现，具体行为仅覆写自身关心的钩子；每只凡蛊由生命周期宿主
+ *       （{@link OneShotGuItem}、{@link TendedGuItem} 或 {@link ConsumedGuItem}）与注册时按序传入的行为列表组合而成：宿
+ *       主统一负责炼化、补食、真元与饱食[Hunger]结算及冷却，行为仅通过本接口钩子调整规则。</li>
+ *   <li>宿主按注册顺序轮询行为列表：{@link #checkEffect} 返回首个非空拒绝原因；{@link #applyEffect} 依次执行全部行
+ *       为；{@link #canBeAmplified} 与 {@link #canUseDuringEffectCooldown} 只要任一行为返回 {@code true} 即成
+ *       立；{@link #getHungerCostMultiplier} 取各行为返回的最大倍率；{@link #defersForcedDeath} 允许需要蛊虫在持续期间
+ *       存活的行为将强行催动[Forced Use]致死推迟到轮次结束时再自行结算。</li>
+ *   <li>⚠ 行为实现必须保持无状态以便跨多只蛊虫复用：物品栈状态存于数据组件，玩家状态存于各领域服务；行为自身仅持有固定
+ *       时长或等级常量，通用数值通过宿主读取 {@link GuProperties}；外部代码统一通过 {@link MortalGuItem#getBehavior} 查
+ *       询行为，不按物品子类判断。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MortalGuItem
- * @since 1.0.0
  */
 
 public interface GuBehavior {

@@ -17,24 +17,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 力气蛊[Strength Qi Gu]远程拳的爆开，{@link BeastChargeEntity} 与 {@link QiWaveEntity} 共用。
+ * 力气蛊[Strength Qi Gu]与蓄力蛊[Store Strength Gu]远程拳共用的范围爆开结算工具，供 {@link BeastChargeEntity} 与
+ * {@link QiWaveEntity} 调用。
  * <ul>
- *   <li>碰撞箱距爆点 {@link #RADIUS} 格内、{@link AreaImpact#canHit} 放行（不含主人、盟友、宠物、野生蛊、盔甲架）且
- *       爆点到其眼无方块遮挡（{@link AreaImpact#isInSight}，Alex 定，墙后不挨打）的生物以气波受伤：锁定目标全额，
- *       其余 {@link #SECONDARY_RATIO}；不开轮、不出虚影。</li>
- *   <li>每次爆开以弹射物随机源按主人概率掷一次范围冲击（{@link AreaImpact#rolls}）；掷中且主人同维度时沿最后飞行的
- *       {@code heading} 发冲击环，在爆点放范围冲击球（{@link AreaImpact#burst}），避开已命中者、不破方块；爆开本身
- *       不变。</li>
- *   <li>{@link Spec} 定半径、伤害类型、是否掷范围冲击：{@link Spec#QI_WAVE} 给力气蛊；蓄力蛊[Store Strength Gu]的蓄力一
- *       拳自带一份，按蓄力一拳爆开、不掷。</li>
- *   <li>⚠ 气波伤害类型 {@code guzhenren:qi_wave} 带 {@code minecraft:bypasses_cooldown}：同一拳的几只兽力冲击才不会被
- *       受击无敌帧吞掉。</li>
+ *   <li>对碰撞箱距爆点不超过 {@link Spec#radius()}、经 {@link AreaImpact#canHit} 放行（排除主人、盟友、宠物、野生蛊与盔
+ *       甲架）且爆点至眼部无方块遮挡（{@link AreaImpact#isInSight}，Alex 定，隔墙不受伤）的生物造成伤害：锁定目标承受全
+ *       额伤害，其余目标乘以 {@link #SECONDARY_RATIO}；爆开本身不开启新攻击轮次、也不触发身旁兽力虚影。</li>
+ *   <li>当 {@link Spec#rollsAreaImpact()} 为真且主人仍在同一维度时，每次爆开以弹射物随机源按主人概率判定一次范围冲击（
+ *       {@link AreaImpact#rolls}）：掷中时沿弹射物末段飞行朝向 {@code heading} 发射冲击环，并在爆点触发
+ *       {@link AreaImpact#burst}（跳过本次已命中的目标且不破坏方块）。</li>
+ *   <li>{@link Spec} 定义爆开半径、伤害类型与是否判定范围冲击：{@link Spec#QI_WAVE} 供力气蛊远程拳使用，蓄力蛊的蓄力一
+ *       拳则传入专属规格（使用蓄力一拳伤害类型且不重复判定范围冲击）。</li>
+ *   <li>⚠ 气波伤害类型 {@code guzhenren:qi_wave} 必须带有 {@code minecraft:bypasses_cooldown} 标签，否则同一拳发出的多
+ *       道兽力冲击会被目标的受击无敌帧吞掉。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService
- * @since 1.0.0
  */
 
 public final class QiBurst {

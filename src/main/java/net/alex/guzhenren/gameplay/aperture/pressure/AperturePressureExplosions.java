@@ -12,23 +12,21 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 一维度内在挖的空窍[Aperture]压力爆炸坑，存该维度 {@code guzhenren_pressure_explosions.dat}。
+ * 单维度内正在挖掘的空窍压力爆炸任务集合，持久化于该维度的 {@code guzhenren_pressure_explosions.dat}。
  * <ul>
- *   <li>文件所在维度即爆炸维度；各爆炸自写状态（{@link AperturePressureExplosionTask}）。</li>
- *   <li>维度文件于首次请求的 tick 加载：恢复的爆炸开服一 tick、区块重载后即续。</li>
- *   <li>存储工厂只建一次、无维度：磁盘读出的条目在该次 {@link #get} 返回前才绑定维度。</li>
- *   <li>⚠ 无静态列表：爆炸随维度存亡，切世界无过期引用；停服存档晚于 {@code ServerStoppingEvent}，仍见全部爆炸。</li>
- *   <li>⚠ 文件随边缘列表变大：半径 112 至多约 55 万边缘方块，gzip 前约 4.4 MB，仅进行中写。</li>
- *   <li>{@link #tickAll}：全维度爆炸每 tick 共用 {@link #TICK_BUDGET_NANOS}（50 ms 中 10 ms），每
- *       {@link #CLOCK_CHECK_INTERVAL} 个位置读一次钟；维度依服务器序、爆炸依启动序，先启先完。</li>
- *   <li>预算为参数，便于 GameTest 定量推进：零预算首次读钟前仍跑 {@code CLOCK_CHECK_INTERVAL - 1} 个位置。</li>
- *   <li>有爆炸运行的 tick 都标脏，含最后挖完那 tick：下次存档写空列表，挖完的不复活。</li>
+ *   <li>存档文件所在维度即爆炸所属维度；每场爆炸的具体阶段与游标由 {@link AperturePressureExplosionTask} 读写。</li>
+ *   <li>{@link SavedData.Factory} 构造时不带维度上下文，反序列化先暂存原始列表，在首次调用 {@link #get} 时才绑定
+ *       {@link ServerLevel} 并还原任务，因此重启后首个服务端 tick 即可无缝续挖。</li>
+ *   <li>⚠ 不设全局静态列表，所有任务随维度 {@link SavedData} 生命周期存亡，单人切换存档不会残留过期维度引用；停服保存晚
+ *       于 {@code ServerStoppingEvent}，进行中的任务会自动落盘。</li>
+ *   <li>⚠ 存档体积随边缘列表（{@code rim}）增长：最大半径 112 时至多约 55 万个边缘坐标（压缩前约 4.4 MB），仅在挖掘未完
+ *       成期间写入磁盘。</li>
+ *   <li>{@link #tickAll} 让所有维度的活动爆炸共享每 tick {@link #TICK_BUDGET_NANOS}（10 ms）时间预算，每处理
+ *       {@link #CLOCK_CHECK_INTERVAL} 个位置读一次纳秒时钟；按维度遍历顺序与任务启动先后依次推进。传入 {@code 0} 预算时
+ *       在首次查钟前仍会推进 {@code CLOCK_CHECK_INTERVAL - 1} 个位置，供 GameTest 定量步进。</li>
+ *   <li>⚠ 只要本 tick 有任务执行（含全部挖完清空的那一 tick）就必须调用 {@code setDirty()}，确保下次保存写入空列表，防
+ *       止已挖完的大坑在重启后复发。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AperturePressureEvents
- * @since 1.0.0
  */
 
 public final class AperturePressureExplosions extends ModSavedData {

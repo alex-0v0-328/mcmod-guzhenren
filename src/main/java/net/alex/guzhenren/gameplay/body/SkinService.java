@@ -11,22 +11,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 皮的心跳步骤与伤害规则。
- *
+ * 肉身皮肤的心跳维护与固定减伤服务。
  * <ul>
- *   <li>{@link #tickSkin} 蜕下超时玉皮，把穿着的玉皮投影为其蛊效果（{@link #getEffectOf}）供 HUD 显示图标与计时；
- *       永久皮不投影，显示在肉身面板。</li>
- *   <li>{@link #reduceDamage} 从可抵挡的伤害中扣固定减免；超时玉皮在心跳蜕下前那一秒不抵挡。</li>
- *   <li>真相是 {@code BodyData.skin} 及结束 tick：{@code MobEffect} 无到期钩子，{@code /effect clear} 静默移除，
- *       故心跳重施，同 {@link UndeadService} 投影临时僵尸。</li>
- *   <li>⚠ 绕过无敌或效果的伤害（{@code /kill}、虚空、饥饿）原样穿过，同原版抗性提升。</li>
+ *   <li>{@link #tickSkin} 在心跳中脱下已到期的限时玉皮，并将穿戴中的限时玉皮投影为对应药水效果（{@code JADE_SKIN_GU} /
+ *       {@code WHITE_JADE_GU}）供 HUD 显示图标与倒计时；永久皮肤不投影药水效果，仅在 B 面板肉身页展示。</li>
+ *   <li>{@link #reduceDamage} 从可抵挡伤害中减去当前皮肤的固定减免值；已到期的限时玉皮在心跳正式脱下前的间隔内不再减
+ *       伤。</li>
+ *   <li>真实状态唯一存于 {@link BodyData#skin} 与 {@code skinEndTick}：因原版 {@code MobEffect} 无到期回调且会被
+ *       {@code /effect clear} 静默清除，心跳中会按真实状态重新补挂投影效果（与 {@link UndeadService} 投影临时僵尸一
+ *       致）。</li>
+ *   <li>⚠ 穿透无敌或药水效果的伤害（{@code /kill}、虚空、饥饿）不受皮肤减免，判定口径与原版抗性提升一致。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @see Skin
- * @since 1.0.0
  */
 
 public final class SkinService {

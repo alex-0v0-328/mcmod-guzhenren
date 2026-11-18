@@ -18,18 +18,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 天元宝莲[Heavenly Essence Treasure Lotus Gu]：产元石[Primeval Stone]、回真元[Essence]的被动蛊。
+ * 天元宝莲[Heavenly Essence Treasure Lotus Gu]物品：被动产出元石[Primeval Stone]并回复真元的持续照顾型蛊[Tended Gu]。
  * <ul>
- *   <li>无时钟：不进食、不饿死；已炼化右键为被拒的 {@code fail}（不挥手），未炼化仍可长按炼化。</li>
- *   <li>{@code payOwnUpkeep} 每秒回最大真元 5%、产 {@code stonesPerSecond} 块元石：受伤则存储备，每
- *       {@code stonesPerHealth} 块修 1 生命；否则依次放入元老蛊[Primeval Elder Gu]、主背包、快捷栏、副手，再掉落。</li>
- *   <li>⚠ 储备存 {@code HEAL_BANK}，不放持续照顾型蛊[Tended Gu]共用的 {@code RefinedGuState}；伤愈即清空。</li>
+ *   <li>无饱食时钟：无需喂食、也不会饿死；野生状态下仍可长按炼化，炼化后右键催动固定返回
+ *       {@code FAIL}（{@link #keepsRefusedClick} 为 {@code false}，不挥手且放行副手）。</li>
+ *   <li>在每秒一次的 {@link #payOwnUpkeep} 被动心跳中，为持有者回复 5% 最大真元并产出 {@code stonesPerSecond} 块元石：
+ *       若宝莲自身受损则先将产出的元石存入修复储备，每满 {@code stonesPerHealth} 块修复 1 点生命值；未受损时依次尝试存
+ *       入随身及空窍存储中的元老蛊[Primeval Elder Gu]、主背包、快捷栏与副手，仍放不下时向地面掉落。</li>
+ *   <li>⚠ 修复储备独立存于 {@link ModDataComponents#HEAL_BANK} 组件而非通用的 {@code RefinedGuState}，一旦伤势痊愈即刻
+ *       移除该组件。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.tending.TendedGuItem
- * @since 1.0.0
  */
 
 public class TreasureLotusGuItem extends TendedGuItem {

@@ -13,20 +13,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 把重击转发上线为震屏。
+ * 将服务端重击事件转为距离衰减震屏通知（{@link ImpactShakePayload}，经 {@link ModPayloads} 下发）的转发监听器。
  * <ul>
- *   <li>玩法侧发事件，本类向附近玩家发按距离衰减的 {@link ImpactShakePayload}（{@link #getFalloff}：撞点满、半径处
- *       零）；{@link #onPlungeLanded}：坠击者及落点 {@link #getPlungeRadius} 内所有人震 {@link #getPlungeStrength} 度，
- *       持续 {@link #PLUNGE_TICKS}；均随落地冲击力（2 到 6）增长：16 到 32 格、0.25° 到 0.65°。</li>
- *   <li>{@link #onSecondStageCrash}：二段飞行[Second-Stage Flight]撞毁处 {@link #CRASH_RADIUS} 内除飞行者外最多震
- *       {@link #CRASH_STRENGTH}，持续 {@link #CRASH_TICKS}；飞行者本机在物理撞毁时已震
- *       （{@code net.alex.guzhenren.client.event.ImpactShakes}），早一个往返，数值相同。</li>
+ *   <li>{@link #onPlungeLanded} 响应 {@link PlungeLandedEvent}，按落地冲击力（2 至 6）向半径 {@link #getPlungeRadius}
+ *       （16 至 32 格）内的所有玩家（含坠击者）发送强度 {@link #getPlungeStrength}（0.25° 至 0.65°）、持续
+ *       {@link #PLUNGE_TICKS} 刻的震屏通知，并由 {@link #getFalloff} 从撞点线性衰减至半径边界的 0。</li>
+ *   <li>{@link #onSecondStageCrash} 响应 {@link SecondStageCrashEvent}，向撞毁点 {@link #CRASH_RADIUS} 格内除飞行者外的
+ *       所有玩家发送上限 {@link #CRASH_STRENGTH} 度、持续 {@link #CRASH_TICKS} 刻的震屏通知；飞行者本机已在物理撞毁当刻
+ *       由客户端直接触发同等强度的本地震屏，以省去一次网络往返延迟。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModPayloads
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

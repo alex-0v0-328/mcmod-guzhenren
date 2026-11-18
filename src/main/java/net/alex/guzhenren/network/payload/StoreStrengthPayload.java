@@ -9,14 +9,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 蓄力蛊[Store Strength Gu]蓄力的客户端意图 payload：开始、取消，或对锁定目标 id 释放。
- * {@link net.alex.guzhenren.network.ClientIntents#storeStrength} 转交 {@code StoreStrength}，重查增益、力道、拳头、
- * 蓄力与目标。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.path.strength.StoreStrength
- * @since 1.0.0
+ * 蓄力蛊[Store Strength Gu]蓄力交互的客户端意图载荷，携带 {@link ChargeAction} 与锁定目标实体 ID（无目标时为
+ * {@link #NO_TARGET}），经 {@link net.alex.guzhenren.network.ClientIntents#storeStrength} 转交
+ * {@link net.alex.guzhenren.gameplay.path.strength.StoreStrength} 重查增益、力道、空手、蓄力状态与目标合法性。
  */
 
 public record StoreStrengthPayload(ChargeAction action, int target) implements CustomPacketPayload {

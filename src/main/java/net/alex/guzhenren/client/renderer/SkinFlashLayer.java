@@ -17,18 +17,13 @@ import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 叠在玩家身上的皮肤闪现层。
- *
+ * 叠加在玩家渲染器上的皮肤闪现渲染层。
  * <ul>
- *   <li>半透明单色模型副本，略膨胀免与皮肤争像素，随闪现 alpha 淡出；白贴图，染色即颜色；只画闪现，穿皮不改模型。</li>
- *   <li>宽、窄玩家模型各一层，经 {@code EntityRenderersEvent.AddLayers} 加到两个玩家渲染器；每帧取父模型姿态（同原版能
- *       量漩涡）与外层可见性（帽子、外套、袖子、裤子），隐藏某层的玩家不多出该层膨胀幻影。</li>
+ *   <li>以略微膨胀的半透明单色模型副本包裹玩家以防止与皮肤发生深度冲突，随闪现 Alpha 逐渐淡出；采用纯白贴图配合顶点
+ *       染色驱动颜色，仅在闪现期间渲染，日常穿戴皮肤不修改玩家自身模型。</li>
+ *   <li>通过 {@code EntityRenderersEvent.AddLayers} 分别挂载到宽、窄两套玩家模型渲染器上；每帧同步父模型的骨骼姿态
+ *       （与原版能量漩涡层一致）以及外层衣物可见性（帽子、外套、袖子、裤子），以免隐藏外层的玩家身上多出膨胀幻影。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SkinFlashes
- * @since 1.0.0
  */
 
 public final class SkinFlashLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {

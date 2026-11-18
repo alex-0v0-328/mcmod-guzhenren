@@ -5,18 +5,16 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 模组领域枚举的两个名字：存档名与翻译键。
+ * 模组领域枚举的统一命名契约，同时派生存档序列化名与语言表翻译键。
  * <ul>
- *   <li>封闭词表枚举（{@code GuPath}、{@code Rank}、{@code Stage}、{@code Talent} 等）只声明
- *       {@link #getTranslationPrefix}；存档名为常量名小写，翻译键为前缀加存档名。</li>
- *   <li>两个语言 provider 都收本接口而非 {@code String}，枚举带出的键与注册的键不会分成两个字面量。</li>
- *   <li>⚠ 各枚举的 {@code CODEC} 把存档名写进玩家存档：改常量名会丢失旧名下的值；小写用 {@link Locale#ROOT}，任何系统区
- *       域写出的名字都相同。</li>
+ *   <li>封闭词表枚举（如 {@code GuPath}、{@code Rank}、{@code Stage}、{@code Talent} 等）仅需实现
+ *       {@link #getTranslationPrefix}：序列化名默认取枚举常量的小写名（{@link #getSerializedName}），翻译键自动拼接为前
+ *       缀加序列化名（{@link #getTranslationKey}）。</li>
+ *   <li>数据生成阶段的语言表 Provider 与运行时 UI 均直接接收本接口而非裸字符串，避免同一枚举的翻译键在多处硬编码失
+ *       步。</li>
+ *   <li>⚠ 各枚举的 {@code CODEC} 直接将 {@link #getSerializedName} 写入玩家存档，因此严禁随意重命名已发布的枚举常量；小
+ *       写转换固定使用 {@link Locale#ROOT}，避免受操作系统语言环境影响。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public interface NamedEnum extends StringRepresentable {

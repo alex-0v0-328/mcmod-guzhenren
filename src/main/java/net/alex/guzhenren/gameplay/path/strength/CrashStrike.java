@@ -32,36 +32,29 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 终点破坏打击[Crash Strike]：横冲系冲撞停下时，在停点前方的球形打击。
+ * 终点破坏打击[Crash Strike]与起点坑服务：跟踪横冲系冲撞的客户端位移，在冲出起点后补挖起点坑、停下时触发前方球形打击与
+ * 终点崩裂。
  * <ul>
- *   <li>{@link #start} 在服务端发冲撞时登记（来源、方向）；冲撞在所属客户端移动，服务端只见上报位置：每 tick 量水平位移，
- *       已走 ≥ {@link #MIN_TRAVEL} 格且连续 {@link #STOP_TICKS} tick &lt; {@link #STOP_STEP} 格即停下
- *       （{@link #hasStopped}；只看一 tick 时，网络抖动让某 tick 没收到位置就会误判）。兜底时限
- *       {@link #getDeadline} = 过渡 {@link #LINK_TICKS} + 片段 + 每 tick 上限拉长的 tick + {@link #LATE_TICKS} + 往返延迟
- *       （至多 {@link #MAX_LATENCY_TICKS}）。累计位移超过路程 {@link #LOST_MARGIN} 格（传送）作废不打；死亡、登出、换维度
- *       作废；新冲撞替换旧登记。</li>
- *   <li>球心为停时身体中心沿冲撞方向前 {@link #AHEAD} 格，半径同范围冲击（{@link CrashSources#getStrikeRange}）；遮挡从
- *       身体中心量，停在墙前时球心可能在墙里；排除同 {@link AreaImpact#canHit}，由近到远至多 {@link #MAX_TARGETS} 个，
- *       拒伤者不占名额。</li>
- *   <li>伤害 = 发挥点数下的空手拳击攻击（{@link AttackDamageService#getBareFistDamage}，不看主手）×
- *       {@link #getDamageRatio}；类型 {@code guzhenren:crash_strike}，护甲照减、无原版击退，沿冲撞方向自推
- *       {@link #KNOCKBACK}；不开虚影轮次（{@code BeastPhantomEvents}），至少命中一个才按拳扣一次肉体过载。</li>
- *   <li>打完以停点为心崩裂整圆（{@link #getEndCells}，Alex 定：半径为打击半径一半，脚面那层到头顶上一格，脚下地面
- *       不动，至多 {@link #MAX_BLOCKS} 块，硬度上限同沿路 {@link CrashSources#getMaxHardness}）；挥空照崩，总发
- *       {@link CrashStruckEvent}（粒子包据此放一枚范围冲击环）。</li>
- *   <li>起点坑（{@link #getPitCells}，Alex 定）：以起步脚下为心、同半径整圆，再往下多挖一层地面，硬度、块数同上。
- *       不在起步时挖：过渡链接那 2 tick 原地不动，脚下一空就往下掉，坑沿会把冲撞挡停；改为离起点水平超过半径
- *       + {@link #PIT_CLEARANCE} 格（最远格角 0.71 + 闪避箱半宽 0.4）时挖，未走出即停下、作废时补挖，此时脚下所踩那几列
- *       的地面留着（终点脚下不破）。死亡、登出、换维度不挖。</li>
- *   <li>层高按站立身高（{@code Pose.STANDING}）：Epic Fight 闪避期间把碰撞箱压到 0.6 格高。</li>
- *   <li>冷却 {@link #COOLDOWN_TICKS} tick 按打击计：冷却中冲撞照常、起点坑照挖，到点不打、终点不崩。</li>
- *   <li>⚠ 延迟突增超过登记时的往返延迟时兜底仍可能先到，打击落在途中。</li>
+ *   <li>{@link #start} 在服务端发起冲撞时登记 {@code Run}：因位移由客户端驱动，服务端每 tick 测量上报位置的水平步长；当
+ *       累计位移达到 {@link #MIN_TRAVEL} 且连续 {@link #STOP_TICKS} tick 步长小于 {@link #STOP_STEP}，或到达包含网络延
+ *       迟余量的截止时限 {@link #getDeadline} 时判定停下（{@link #hasStopped}）。若累计位移超出预期路程加
+ *       {@link #LOST_MARGIN}（发生传送）、死亡、登出或切换维度，则作废本次登记。</li>
+ *   <li>终点打击球心位于停点身体中心沿冲撞方向前伸 {@link #AHEAD} 格处，半径取 {@link CrashSources#getStrikeRange}，视
+ *       线遮挡从玩家身体中心起算（防止貼墙停下时球心嵌入墙内导致全被遮挡），按由近到远最多命中 {@link #MAX_TARGETS} 个
+ *       目标。</li>
+ *   <li>伤害 = 剥离主手武器修饰后的空手攻击力（{@link AttackDamageService#getBareFistDamage}）× {@link #getDamageRatio}
+ *       （{@code guzhenren:crash_strike} 战斗伤害，受护甲减免，沿冲撞方向施加 {@link #KNOCKBACK} 击退）；不开启兽力虚影
+ *       轮次，命中至少一个目标时结算一次 {@link BodyOverload#recoil} 肉体过载。</li>
+ *   <li>终点打击后以停点为中心执行圆盘地形崩裂（{@link #getEndCells}，半径为打击半径一半，从脚底平层到头顶上一格，保留
+ *       脚下所踩地面，至多破 {@link #MAX_BLOCKS} 块），并发布 {@link CrashStruckEvent} 触发冲击环粒子（挥空同样崩裂并发
+ *       事件）。</li>
+ *   <li>起点坑（{@link #getPitCells}，比终点圆盘多向下挖一层地面）：不在起冲第 0 tick 挖掘（否则 Epic Fight 前 2 tick
+ *       原地过渡会让玩家掉进坑里被坑沿卡停），而是等玩家水平离开起点超过 {@code radius + PIT_CLEARANCE} 时再回头补挖；
+ *       若未走出该距离即停下，挖坑时会自动排除玩家当前站立碰撞箱正下方的地面格（{@code isUnder}）。</li>
+ *   <li>所有高度计算固定取站立姿态身高（{@link Pose#STANDING}），不受 Epic Fight 闪避动作压低碰撞箱的影响；终点打击受
+ *       {@link #COOLDOWN_TICKS} 冷却限制（冷却期间仍可正常冲撞并挖起点坑，仅跳过终点打击与终点崩裂）。</li>
+ *   <li>⚠ 若冲撞途中的网络延迟突增超出起冲登记时的往返延迟，兜底截止时限可能提前触发，使终点打击落在半途。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CrashSources
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

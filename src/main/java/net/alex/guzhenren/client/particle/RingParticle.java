@@ -26,49 +26,47 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 /**
- * 速度感与力感反馈用的通用激波环粒子。
- *
+ * 速度感与力感反馈通用的激波环粒子。
  * <ul>
- *   <li>Alex 手绘 {@link #FRAME_COUNT} 帧，依 sprite 列表播放，每次投一个，落点处由小到大绽放；L2 环贴图测试钉住帧数与
- *       数据生成的 sprite 列表；平面垂直于生成速度（{@link #spawnDirection}），仅侧对时向镜头倾斜
- *       {@link RingGeometry#MIN_OPENING_DEGREES}。</li>
- *   <li>{@code RingConeEmitter}：冲刺拖尾沿路径放 {@code shockwave_ring}，每次范围冲击从锥尖放一个
- *       {@code area_impact_ring}（范围冲击环）；{@code SecondStageRingEmitter}：每次进入二段飞行[Second-Stage Flight]开
- *       一个 {@code sonic_boom_ring}（音爆环），保持高速时前沿成 {@code barrier_ring}（音障环）。</li>
- *   <li>帧尺寸由画布宽与类型最大跨度算出（{@link RingGeometry#scaleForWidth(int, float)}）：拖尾用
- *       {@link RingGeometry#LARGEST_RING_SPAN}，音爆用 {@link #SONIC_BOOM_SPAN}，像素更粗；每 tick 向下一帧插值
- *       （{@link #nextQuadSize}），绽放不跳格。</li>
- *   <li>新类型：{@code ModParticles} 注册，数据生成 provider 列出环，再映射到 {@link #createDashTrail(SpriteSet)}、
- *       {@link #createSonicBoom(SpriteSet)}、{@link #createBarrierRing(SpriteSet)} 或
- *       {@link #createAreaImpactRing(SpriteSet)}。</li>
- *   <li>冲刺拖尾环（{@link #dashTrailRing}）在冲刺者本人第一人称下跳过，只给第三人称与旁观者看；
- *       {@link #noteLocalDash(int)} 启动 {@link #DASH_SELF_HIDE_TICKS}（连发时长加一环含停留的寿命）；
- *       {@code ownDashHiddenNow} 限定窗口两端，因换世界会重置客户端玩家的 {@code tickCount}。</li>
- *   <li>⚠ {@link #RING_LINGER_TICKS} 让环停在最后一帧再消失，否则读不出完整绽放；离场由 {@link Exit} 定：冲刺环
- *       {@link Exit#HOLD} 全亮，音爆 {@link Exit#FADE} 停留期淡出。</li>
- *   <li>音障环 {@link Exit#SPREAD}：最大帧后 {@link #SPREAD_LINGER_TICKS} tick 内（绽放到消失共半秒）扩到该帧的
- *       {@link #SPREAD_GROWTH} 倍，前 {@link #SPREAD_FADE_START} 进度全亮、其后淡出，二段飞行留下的环向外消散。</li>
- *   <li>范围冲击环 {@link Exit#SWEEP}：移动中绽放到 {@link #AREA_IMPACT_SPAN}，只在前
- *       {@link RingConeEmitter#AREA_IMPACT_TRAVEL_TICKS} tick（绽放期）移动，恰停在锥末端；随后原地每 tick 长一帧步长
- *       （{@link RingGeometry#getSweepSize}），{@link #AREA_IMPACT_LINGER_TICKS} 加 1 tick 内淡出；他环终生漂移。</li>
- *   <li>淡出与扩散带 partial tick 读退场进度（{@link RingGeometry#getExitProgress}），tick 间平滑。</li>
- *   <li>⚠ {@link #tick()} 读自增后的 age，最后一帧恰好应用一次、不越界；两侧混用差一崩溃。</li>
- *   <li>⚠ {@code applyFrame} 分母取 {@code FRAME_COUNT - 1} 而非 {@code lifetime - 1}：停留使寿命与帧数脱钩，只有帧数能
- *       精确落在第 0 到 n-1 帧。</li>
- *   <li>⚠ 经 {@link #ADDITIVE_GLOW} 渲染（叠加、双面、全亮）：单像素白描边在 alpha 混合图集上几乎消失。</li>
- *   <li>1.21.1 {@link ParticleRenderType} 无 {@code end()} 钩子，状态不可外漏：混合与深度掩码由原版各 {@code begin} 重
- *       设，不碰剔除，图集过滤取默认；绑已弃用的 {@code TextureAtlas.LOCATION_PARTICLES}，因原版同样绑它且无替代。</li>
- *   <li>{@link #render} 出两个反绕序四边形，双面可见又不碰全局剔除；{@code QUADS} 每 4 顶点一组，反面 UV 仍钉各自角
- *       点。</li>
- *   <li>唯一可变静态字段 {@code localDashHiddenUntilTick}：本地玩家隐藏自身冲刺环的 tick 戳；客户端只有一个本地玩家，窗
- *       口两端有界，旧实体留下的戳不隐藏任何东西。</li>
+ *   <li>使用 Alex 手绘的 {@link #FRAME_COUNT} 帧贴图并按 sprite 列表逐帧播放，每次投射一枚在生成点由小到大绽放（L2 环贴
+ *       图测试锁定帧数与数据生成的 sprite 列表）；环面垂直于生成速度方向（{@link #spawnDirection}），并在侧对镜头时
+ *       自动偏转至少 {@link RingGeometry#MIN_OPENING_DEGREES}。</li>
+ *   <li>{@code RingConeEmitter} 沿冲刺路径释放 {@code shockwave_ring} 拖尾，并在每次范围冲击时从锥尖释放一枚
+ *       {@code area_impact_ring}；{@code SecondStageRingEmitter} 在每次进入二段飞行[Second-Stage Flight]时释放一枚
+ *       {@code sonic_boom_ring}（音爆环），并在维持高速巡航时在身前形成 {@code barrier_ring}（音障环）。</li>
+ *   <li>各帧世界尺寸由画布宽与对应类型最大跨度算出（{@link RingGeometry#scaleForWidth(int, float)}）：冲刺拖尾采用
+ *       {@link RingGeometry#LARGEST_RING_SPAN}，音爆环采用更粗像素的 {@link #SONIC_BOOM_SPAN}；每 tick 向下一帧插值
+ *       （{@link #nextQuadSize}），使绽放过程平滑不跳格。</li>
+ *   <li>新增环类型时只需在 {@code ModParticles} 注册并在数据生成 provider 列出帧图，再映射至
+ *       {@link #createDashTrail(SpriteSet)}、{@link #createSonicBoom(SpriteSet)}、
+ *       {@link #createBarrierRing(SpriteSet)} 或 {@link #createAreaImpactRing(SpriteSet)} 工厂之一。</li>
+ *   <li>冲刺拖尾环（{@link #dashTrailRing}）在冲刺者本人第一人称视角下跳过渲染，仅面向第三人称与旁观者展示；
+ *       {@link #noteLocalDash(int)} 开启 {@link #DASH_SELF_HIDE_TICKS} 隐藏窗口（连发总时长加一环含停留的寿命），
+ *       {@code ownDashHiddenNow} 同时校验窗口上下界以防切换世界重置客户端 {@code tickCount}。</li>
+ *   <li>⚠ {@link #RING_LINGER_TICKS} 让环在末帧停留片刻后再消失，否则肉眼难以看清完整绽放；离场方式由 {@link Exit}
+ *       决定：冲刺环 {@link Exit#HOLD} 保持全亮，音爆环 {@link Exit#FADE} 在停留期渐隐。</li>
+ *   <li>音障环采用 {@link Exit#SPREAD}：到达最大帧后的 {@link #SPREAD_LINGER_TICKS} tick 内（从绽放到消失共半秒）继续
+ *       扩大至该帧的 {@link #SPREAD_GROWTH} 倍，前 {@link #SPREAD_FADE_START} 进度保持全亮、其后淡出，呈现留在空中的气
+ *       浪消散效果。</li>
+ *   <li>范围冲击环采用 {@link Exit#SWEEP}：仅在绽放期的前 {@link RingConeEmitter#AREA_IMPACT_TRAVEL_TICKS} tick 内随速
+ *       度移动并扩张至 {@link #AREA_IMPACT_SPAN}，恰好停在冲击锥末端，随后原地每 tick 增长一帧步长（
+ *       {@link RingGeometry#getSweepSize}）并在 {@link #AREA_IMPACT_LINGER_TICKS} 加 1 tick 内淡出；其余类型环则终生漂
+ *       移。</li>
+ *   <li>淡出与扩散均结合 partial tick 读取退场进度（{@link RingGeometry#getExitProgress}），保证帧间平滑过渡。</li>
+ *   <li>⚠ {@link #tick()} 读取自增后的 {@code age}，使末帧恰好应用一次且绝不越界，若两侧混用 off-by-one 索引会直接崩
+ *       溃。</li>
+ *   <li>⚠ {@code applyFrame} 分母固定取 {@code FRAME_COUNT - 1} 而非 {@code lifetime - 1}：停留时间使寿命与动画帧数脱
+ *       钩，只有按帧数分母才能精确对齐第 0 到 n-1 帧。</li>
+ *   <li>⚠ 必须经 {@link #ADDITIVE_GLOW}（叠加混合、双面、全亮）渲染：单像素白描边在常规 Alpha 混合粒子图集中几乎不可
+ *       见。</li>
+ *   <li>1.21.1 的 {@link ParticleRenderType} 没有 {@code end()} 回调，因此不能向全局泄漏状态：混合模式与深度掩码由原
+ *       版各 {@code begin} 重置，本类不修改背面剔除且图集过滤取默认；暂绑已弃用的
+ *       {@code TextureAtlas.LOCATION_PARTICLES}，因为原版粒子同样绑定它且尚无替代。</li>
+ *   <li>{@link #render} 提交两个反绕序四边形实现双面可见而无需修改全局剔除状态；{@code QUADS} 每 4 顶点成一组，反面
+ *       UV 依然准确锚定在各自角点。</li>
+ *   <li>唯一可变静态字段 {@code localDashHiddenUntilTick} 保存本地玩家隐藏自身冲刺环的 tick 截止戳；客户端仅存在一个
+ *       本地玩家且窗口上下界受控，旧实体留下的时间戳不会误隐藏新环。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.registry.particle.ModParticles
- * @see RingGeometry
- * @since 1.0.0
  */
 
 public final class RingParticle extends TextureSheetParticle {

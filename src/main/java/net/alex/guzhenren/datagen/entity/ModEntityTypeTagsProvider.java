@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 实体类型标签：{@link ModEntityTypeTags#PREDATOR_PREY} 为狩猎野兽主动攻击的原版家畜、小动物；
- * {@link ModEntityTypeTags#WILD_GU} 为全部野生蛊实体。
+ * 本模组实体类型标签数据生成器：{@link ModEntityTypeTags#PREDATOR_PREY} 收录供捕食野兽主动猎杀的原版家畜与小动物，
+ * {@link ModEntityTypeTags#WILD_GU} 收录全部可捕捉的野生蛊实体。
  */
 
 public class ModEntityTypeTagsProvider extends EntityTypeTagsProvider {

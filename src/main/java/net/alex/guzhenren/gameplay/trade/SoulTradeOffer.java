@@ -10,19 +10,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 交易魂的一项报价：从背包扣的代价与交回的结果。
+ * 交易魂的单项报价记录：封装待扣除的一组 {@link TradeCost} 代价与交回的 {@code result} 物品。
  * <ul>
- *   <li>代价为 {@link TradeCost}，数量不受单组上限；只用 36 个主背包格（{@link Inventory#items}），护甲、副手不参与；经
- *       {@link #encode}/{@link #decode} 传输。</li>
- *   <li>{@link #settle(NonNullList, List)} 全有或全无：在副本上扣费、放置，都成功才写回，且只写回变了的格，未动的物品堆
- *       保留原身份；之后落回背包的物品（光标物品、2x2 合成格，即 {@code returning}）放不下也拒绝，因宝黄
- *       天[Treasure Yellow Heaven] 内它们无处可去。</li>
+ *   <li>单笔代价数量不受物品最大堆叠上限限制；结算仅读取并修改 36 个主背包格（{@link Inventory#items}），护甲槽与
+ *       副手不参与扣费或收货；经 {@link #encode} 与 {@link #decode} 随开窗数据包同步至客户端。</li>
+ *   <li>{@link #settle(NonNullList, List)} 采用全有或全无原子结算：先在列表副本上扣费与试放，全部通过后才写回原
+ *       背包，且仅覆盖发生变化的槽位以保留未动物品堆的原实例。</li>
+ *   <li>⚠ 结算额外校验关闭界面后将落回背包的 {@code returning} 物品（光标物品与 2×2 合成格）：由于
+ *       宝黄天[Treasure Yellow Heaven]内不允许凭空丢弃或无处安放，一旦回退物品溢出同样返回
+ *       {@link Outcome#NO_ROOM} 拒绝交易。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTradeMenu
- * @since 1.0.0
  */
 
 public record SoulTradeOffer(List<TradeCost> costs, ItemStack result) {

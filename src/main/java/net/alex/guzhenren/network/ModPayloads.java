@@ -33,20 +33,16 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
- * 网络 payload 的注册与分发。
+ * 模组自定义网络载荷的集中注册与双端分发入口。
  * <ul>
- *   <li>客户端意图 payload 转 {@link ClientIntents}；服务端通知经 {@link #handleOnClient} 按类交给客户端处理器。</li>
- *   <li>{@code network.payload} 每个 record 是独立的 {@link CustomPacketPayload}，自带 {@code TYPE}、
- *       {@code STREAM_CODEC}，经 NeoForge {@code PacketDistributor} 发送；处理器跑在主线程（NeoForge 默认）。</li>
- *   <li>⚠ 通知的客户端处理器靠查找、不在此点名：本类在服务端加载，服务端可能加载的代码不引用 {@code client}；
- *       {@code ClientEvents} 在客户端初始化时登记，未登记的通知丢弃。</li>
- *   <li>⚠ 改任何 payload 的字段或顺序都要升 {@code VERSION}，新旧两端不得混连。</li>
+ *   <li>全部载荷定义于 {@code network.payload} 子包中，各自实现 {@link CustomPacketPayload} 并声明 {@code TYPE} 与
+ *       {@code STREAM_CODEC}，通过 NeoForge {@code PacketDistributor} 收发且默认在主线程执行；上行意图交由
+ *       {@link ClientIntents} 处理，下行通知经 {@link #dispatchToClient} 按类路由至 {@link #handleOnClient} 登记的处理
+ *       器。</li>
+ *   <li>⚠ 客户端通知处理器通过运行时查表分派而不在此直接引用：本类会在专用服务端加载，任何服务端可加载类均不得引用
+ *       {@code client} 包；处理器由客户端初始化时登记，未登记的通知将被静默丢弃。</li>
+ *   <li>⚠ 修改任意载荷的字段结构或编解码顺序时必须同步递增 {@link #VERSION}，防止版本不匹配的双端混连。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ClientIntents
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

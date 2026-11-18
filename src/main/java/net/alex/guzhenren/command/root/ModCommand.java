@@ -18,19 +18,16 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 /**
- * {@code /guzhenren}（别名 {@code /gzr}）的根，挂载全部子命令，需权限等级 2。
- *
+ * 模组指令树根入口：注册 {@code /guzhenren}（及重定向别名 {@code /gzr}）与维度传送指令 {@code /guworld}。
  * <ul>
- *   <li>七个根分支都写附件数据；玩家状态在 B 面板读，无分支打印。</li>
- *   <li>{@code gzr} 是指向根的 {@code redirect}，其后输入都解析进子上下文。</li>
- *   <li>世界环境命令在独立的 {@code guworld} 根：{@link CmdTravel} 的 {@code enter}（等级 2）与 {@code exit}；
- *       任何等级的玩家可在宝黄天[Treasure Yellow Heaven]内对自己用 {@code exit}，别处或对他人限等级 2。</li>
+ *   <li>{@code /guzhenren} 要求权限等级 2，下设 7 个修改玩家附件数据的子命令分支；玩家状态统一通过客户端 B 面板查看，不
+ *       设命令行查询打印分支。</li>
+ *   <li>{@code /gzr} 通过 Brigadier {@code redirect} 指向 {@code /guzhenren} 根节点，重定向后的参数全部解析在子上下文中
+ *       （参见 {@link net.alex.guzhenren.command.ModEnumArgument}）。</li>
+ *   <li>维度进出命令挂载在独立的 {@code /guworld} 根节点下（{@link CmdTravel}）：{@code enter} 要求权限等级 2；处
+ *       于宝黄天[Treasure Yellow Heaven]内的任何玩家均可对自己执行无参 {@code exit} 离开，在其余维度或指定他人为目标时
+ *       仍要求权限等级 2。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.ModEnumArgument
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

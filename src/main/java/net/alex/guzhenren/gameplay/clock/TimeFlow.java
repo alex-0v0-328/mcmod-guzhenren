@@ -9,27 +9,26 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 玩家时钟：时间流速，随时间缩放的量只经此进出。
+ * 玩家时间流速服务：所有随自身时间或维度时间缩放的数值均须经此类的三个入口换算。
  * <ul>
- *   <li>总倍率 = 自身 × 世界。{@link #getSelfRate} 累加效果中的 {@link TimeRateContributor}（两更蛊[Second Watch Gu]、
- *       三更蛊[Third Watch Gu] 等），最低 1，仅宙道[Time Path]用；⚠ 宙道造诣项未定，日后也放这里。</li>
- *   <li>世界倍率取所站维度 {@link ModDimensions.AnchoredDimension#timeRate()}，可低于 1；故 {@link #getRate} 为
- *       {@code double}，下限 {@link #MIN_RATE}，等待不无限拉长。</li>
- *   <li>⚠ 只出三个动词，调用处择一；自算倍率会让寿元倒流，仅 {@code InfoModel} 可读 {@link #getSelfRate}。</li>
- *   <li>⚠ {@link #shortenWait(Player, int)}：缩等待（蓄力、冷却、仪式），下限 1 tick，免得快时钟除成 0 读作「不用
- *       等」。</li>
- *   <li>⚠ {@link #scale(Player, long)}：放大每步收支（真元[Essence]、念、寿元），故加速更耗寿元。</li>
- *   <li>{@link #getSteps}：温养[Nourish]、炼蛊等耦合计数本拍跑几步，单独缩放会让进度与费用舍入错开。</li>
- *   <li>小数倍率按小数概率进 1（{@link #scale(double, long, RandomSource)}、{@link #getSteps(double, RandomSource)}），
- *       期望精确；整数倍率不掷随机；{@code scale(double)} 留小数给调用方累计（真元存 {@code ESSENCE_CARRY}）。</li>
- *   <li>心跳经 {@link Beat} 每拍只读一次；纯算术重载收倍率，无需世界即可断言。</li>
+ *   <li>总时间倍率 = 自身时间倍率 × 所处维度时间倍率（下限为 {@link #MIN_RATE}，防止低速维度把冷却无限拉长）。
+ *       {@link #getSelfRate} 遍历玩家身上的活动药水效果并累加 {@link TimeRateContributor}（如两更蛊[Second Watch Gu]、
+ *       三更蛊[Third Watch Gu]），保底为 {@link #NORMAL_RATE}；未来宙道造诣加成也在此处唯一接入。</li>
+ *   <li>维度时间倍率取自玩家所在维度的 {@link ModDimensions.AnchoredDimension#timeRate()}（可小于 {@code 1}）。</li>
+ *   <li>⚠ 业务调用处只允许按语义选用以下三个换算方法之一，切勿自行读取倍率手写乘除（仅界面 {@code InfoModel} 可直接读
+ *       {@link #getSelfRate} 展示）：</li>
+ *   <li>⚠ {@link #shortenWait}：缩短蓄力、冷却或仪式等等待时长，结果下限锁为 {@code 1} tick，防止高倍率下除成 {@code 0}
+ *       变成瞬发。</li>
+ *   <li>⚠ {@link #scale(Player, long)}：放大每秒心跳的产出与消耗（真元、念头、寿元），因此自身时间加速时寿元流逝同步加
+ *       快。</li>
+ *   <li>{@link #getSteps}：计算温养[Nourish]、炼蛊等进度与扣费耦合的系统在本拍应执行的整步数，避免对进度和费用分别取整
+ *       造成累计偏差。</li>
+ *   <li>非整数倍率对整数的缩放（{@link #scale(double, long, RandomSource)} 与 {@link #getSteps(double, RandomSource)}）
+ *       按小数部分作概率进位以保持数学期望精确，整数倍率不消耗随机数；{@link #scale(double, double)} 保留浮点数供调用方
+ *       自行累积余数（如真元回复的 {@code essenceCarry}）。</li>
+ *   <li>每秒心跳通过 {@link Beat} 在拍初采样一次倍率；纯算术重载方法直接接收 {@code rate}，供无世界环境的单元测试调
+ *       用。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TimeRateContributor
- * @see Beat
- * @since 1.0.0
  */
 
 public final class TimeFlow {

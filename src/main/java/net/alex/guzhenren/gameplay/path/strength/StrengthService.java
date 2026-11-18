@@ -17,35 +17,26 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 力道结算：身体实际发挥的力量点[Strength Points]。
+ * 力道综合结算服务：计算肉身承受力、总力量点[Strength Points]、肉体过载与实际可发挥力量点。
  * <ul>
- *   <li>静态只读，位于空窍[Aperture]与肉体之上（承受力读两者）；永久点数读兽力[Beast Strength]与人力效果的力道道痕点
- *       （{@link #getPermanentPoints}、{@link PathStrengthData#getPoints(long)}，无效果无点数），增幅见
- *       {@link #getAmplifiers}，解放额外点数由轮次管理方设置的 {@link ReleaseSource} 给出；{@link #snapshot} 一次收集前
- *       两类及结算（{@link StrengthSnapshot}），承受力、总点数、发挥点数各取一份。</li>
- *   <li>常态承受力 {@link #getNormalCapacity} = {@link #getBaseCapacity}（{@link #MORTAL_CAPACITY} + 每转
- *       {@link #CAPACITY_PER_RANK}：16，一至五转 24–56）× 体质倍率 + 皮筋骨与兽力加成（石龟
- *       {@link BeastStrength#getCapacityBonus}，不乘倍率）。</li>
- *   <li>当前承受力 {@link #getCapacity} 再加增幅承受加成（含苦力蛊[Hardship Strength Gu]）与
- *       {@link #getAllOutCapacityBonus}：全力以赴蛊[All-Out Effort Gu]在持人力钧力流或兽力虚影流的身体上运行时，三 / 四
- *       / 五转加常态 50% / 100% / 200%，转数读效果等级即蛊 tier（{@link #getAllOutTier}，至少
- *       {@link #ALL_OUT_LOWEST_TIER}：命令给的 0 级按三转算；否则 {@link #NO_ALL_OUT}）；各加成以常态为基数相加，不
- *       互乘；{@link #isAllOut} 为是否版，供范围冲击概率与横冲系冲刺（后者在所属客户端读同步数据）。</li>
- *   <li>发挥 {@link #getUsablePoints} = 当前承受力下 {@code min(total, capacity)} + 肉体过载 + 解放额外点数，余者保留；
- *       过载 {@link #getOverloadPoints} 为限时兽力超当前承受力部分（计在永久兽力上），全额发挥、每拳扣血
- *       （{@code BodyOverload}）；指令超限永久兽力与人力斤数只截断。</li>
- *   <li>{@link #getReleasedExtra}：全面解放，类似暴击，被解放兽种永久点数 × {@link #FULL_RELEASE_FACTOR}、其余 × 1，合
- *       计仍截于当前承受力，取超出普通截断的部分；{@link #canAdmit}：留下的永久兽力 + 新兽力 ≤ 常态承受力，计留下兽力的
- *       承受加成，不计新兽力与被替换兽力的（{@code PathStrengthData#withoutReplacedBy}），增幅与全力以赴不参与。</li>
- *   <li>⚠ {@code int} 重载为单测接缝，无需 {@link Player}；唯一可变静态 {@code releaseSource} 亦为接缝，轮次管理方在通
- *       用初始化设一次、不再换，之前返回 0。</li>
+ *   <li>纯只读静态服务：{@link #getPermanentPoints} 从永久兽力[Beast Strength]与人力流派效果的道痕[Path Marks]点换算永
+ *       久力量点，{@link #getAmplifiers} 采集限时兽力与各 {@link StrengthAmplifierProvider} 增幅，全面解放额外点数由
+ *       {@link StrengthRound} 注入的 {@link ReleaseSource} 提供；{@link #snapshot} 一次性采集并返回
+ *       {@link StrengthSnapshot}。</li>
+ *   <li>常态承受力 {@link #getNormalCapacity} = 基础承受力 {@link #getBaseCapacity}（{@code 16 + 8 * 转数序号}，乘以十
+ *       绝体承受力倍率）+ 皮、筋、骨炼体加成 + 永久兽力承受力加成（如石龟之力，固定加算、不乘十绝体倍率）。</li>
+ *   <li>当前承受力 {@link #getCapacity} = 常态承受力 + 增幅承受力加成（含苦力蛊[Hardship Strength Gu]）+
+ *       {@link #getAllOutCapacityBonus}（已入兽力虚影流或人力钧力流且运行三/四/五转全力以赴蛊[All-Out Effort Gu]时，按
+ *       常态承受力的 50% / 100% / 200% 加算，与苦力蛊同以常态承受力为基数相加、互不叠乘）。</li>
+ *   <li>可发挥力量点 {@link #getUsablePoints} = {@code min(totalPoints, capacity) + overloadPoints + releasedExtra}：其
+ *       中 {@link #getOverloadPoints} 为限时兽力超出当前承受力的部分（全额发挥并按拳触发 {@link BodyOverload} 扣血，而
+ *       指令赋予的超限永久力量仅截断不发挥）。</li>
+ *   <li>{@link #getReleasedExtra} 计算攻击轮次内全面解放兽种带来的额外发挥点数（解放兽种的永久点数乘以
+ *       {@link #FULL_RELEASE_FACTOR}，连同其余点数仍封顶于当前承受力）；{@link #canAdmit} 校验扣除被替换旧兽力后，常态
+ *       承受力能否容纳新永久兽力（不计临时增幅与全力以赴）。</li>
+ *   <li>⚠ 接收基本类型的重载方法供无 {@link Player} 环境的单元测试直接调用；唯一可变静态字段 {@code releaseSource} 仅在
+ *       通用初始化阶段由 {@link StrengthRound} 设置一次。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathStrengthService
- * @see AttackDamageService
- * @since 1.0.0
  */
 
 public final class StrengthService {
@@ -60,7 +51,6 @@ public final class StrengthService {
     public static final int FULL_RELEASE_FACTOR = 3;
     private static ReleaseSource releaseSource = (player, snapshot) -> 0;
 
-    /** 此刻的解放额外点数，轮外为 0。 */
     @FunctionalInterface
     public interface ReleaseSource {
 
@@ -118,7 +108,6 @@ public final class StrengthService {
         return PathStrengthData.getPoints(markPoints);
     }
 
-    /** 生效中的增幅：先限时兽力增益，后各路径效果 payload。 */
     public static @NotNull List<StrengthAmplifier> getAmplifiers(@NotNull Player player) {
         return getAmplifiers(player, getPermanentPoints(player), getNormalCapacity(player));
     }
@@ -154,7 +143,6 @@ public final class StrengthService {
         return total;
     }
 
-    /** 总力量：永久点数 + 各增幅点数。 */
     public static int getStrengthPoints(@NotNull Player player) { return snapshot(player).totalPoints(); }
 
     public static @NotNull StrengthSnapshot snapshot(@NotNull Player player) {
@@ -184,7 +172,6 @@ public final class StrengthService {
         return Math.max(0, (int) Math.min(capacity, released) - getUsablePoints(capacity, total));
     }
 
-    /** 常态承受力能否再容一种永久兽力。 */
     public static boolean canAdmit(@NotNull Player player, @NotNull BeastStrength beast) {
         PathStrengthData held = PathStrengthService.get(player);
         PathStrengthData kept = held.withoutReplacedBy(beast);

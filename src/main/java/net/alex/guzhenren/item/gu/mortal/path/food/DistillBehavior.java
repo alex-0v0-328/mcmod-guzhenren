@@ -13,17 +13,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 酒虫[Liquor Worm]行为：普通真元[Essence]分阶段精炼为精炼储备。
+ * 酒虫[Liquor Worm]行为：将普通真元分阶段精炼为高一阶的精炼真元储备。
  * <ul>
- *   <li>注册四档，各限本转；生效调 {@link ApertureEssenceService#beginDistilling} 并挂一天流派效果作精炼真值；三阶段
- *       （抽干、改道、1:2 花费）在服务与效果中。</li>
- *   <li>⚠ 运行期普通真元池按设计为空，以真元为门槛者须查可花费数，否则全程拒绝。</li>
+ *   <li>共注册一至四转四档，仅限主空窍处于本蛊同转时催动；生效时调用 {@link ApertureEssenceService#beginDistilling} 并
+ *       通过 {@link StateEffects#grantDistilling} 挂载持续一整天的流派效果作为精炼状态真值（抽干、改道与 1:2 折算消耗三
+ *       阶段逻辑位于服务与效果类中）。</li>
+ *   <li>⚠ 精炼运行期间普通真元池按设计保持为空，任何以真元为前置门槛的逻辑必须查询可花费真元总量而非普通真元池余额，否
+ *       则在精炼期间会全程误判为真元不足。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StateEffects#grantDistilling
- * @since 1.0.0
  */
 
 public record DistillBehavior() implements GuBehavior {

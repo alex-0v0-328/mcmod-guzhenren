@@ -21,32 +21,27 @@ import net.neoforged.neoforge.common.CommonHooks;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 横冲系冲撞的沿路破方块。
+ * 横冲系冲撞（横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]、横冲直撞蛊[Charging Crash Gu]）的沿途破块服务。
  * <ul>
- *   <li>冲撞（横冲蛊[Horizontal Crash Gu] / 直撞蛊[Vertical Crash Gu] / 横冲直撞蛊[Charging Crash Gu]）
- *       由 Epic Fight 在本机推动，前 2 tick 推完大半，服务端跟不上；故 {@link #clear} 在开始那 tick、发动画前破完全路，
- *       并经同一有序连接立即把破块发给冲撞者，客户端不会撞上已破方块。</li>
- *   <li>硬度上限 {@link #getMaxHardness}：发挥点数按崩裂三档（{@link AreaImpactShatter#getMaxHardness}），全力以赴升
- *       一档，两猪之力至少到顶档；无档（{@link AreaImpactShatter#NONE}）不破，冲撞照旧被墙挡住。</li>
- *   <li>路径长恰为 {@code CrashSources#getTravel}，不加余量：多清的一段会在停点前方留成通道（Alex 定：沿路只破挡路
- *       的）。只算碰撞形状与扫箱相交的方块，脚下地面、所踩下半砖、无碰撞方块（草、花、作物、火把、铁轨、红石、液体）
- *       不动；起点坑与终点圆由 {@link CrashStrike} 另破。</li>
- *   <li>着地时箱底抬一台阶（≤ 半身高），脚前一步高的边沿（土径、耕地、灵魂沙旁整块，前方台阶）可迈上，不挡路。</li>
- *   <li>{@link #mayBreak} 先问地形门槛 {@link ModEvents#canGrief}（{@code mobGriefing}），再按玩家破坏走，冒险模式、
- *       游戏管理方块、领地模组、出生点保护、世界边界都可拒；按空手掉落（战利品表不看工具，矿石照掉），创造不掉；遇首个
- *       不可破或被拒的方块即停，冲撞本身也停在那里。</li>
- *   <li>⚠ 不走 {@code Level#destroyBlock}：它每块向旁人发破坏粒子与音效，32 格冲撞最多约 136 块时太吵；改为每
- *       {@link AreaImpactShatter#PARTICLE_EVERY} 块一组碎屑，整次在首块处播一次破坏音，其余步骤（掉落、置换流体、
- *       游戏事件）照它的顺序补齐。</li>
- *   <li>⚠ 扫箱宽 {@link #DASH_WIDTH}，同 Epic Fight 冲撞期间的碰撞箱（窄于它会留下擦边的一列把冲撞挡停），高仍为站立身高；
- *       居中时占 1 列，偏离格心超过 0.1 占 2 列；路程截到 32 格，故无另设块数上限。未加载区块当挡路，不强行加载。</li>
- *   <li>创造模式破双格方块上半时同崩裂先抹掉下半（{@link AreaImpactShatter#clearLowerHalf}），否则下半连带掉落。</li>
+ *   <li>冲撞位移由 Epic Fight 在所属客户端驱动，前 2 tick 即走完大半路程；因此服务端必须在起冲当 tick、下发动画包之前调
+ *       用 {@link #clear} 一次性破除沿途可破方块，并通过同一连接立即补发 {@link ClientboundBlockUpdatePacket}，防止客户
+ *       端撞上服务端已破的方块。</li>
+ *   <li>可破坏硬度上限 {@link #getMaxHardness}：在力量点三档（{@link AreaImpactShatter#getMaxHardness}）基础上，全力以
+ *       赴提升一档，两猪之力直接保底顶档（{@link AreaImpactShatter#HARD_HARDNESS}）；未入档
+ *       （{@link AreaImpactShatter#NONE}）时不破块。</li>
+ *   <li>扫描长度严格等于 {@link CrashSources#getTravel}（不加前伸余量，以免在停点前方多挖出空洞通道，Alex 定）：仅破坏
+ *       碰撞箱与扫掠盒实际相交的方块，脚下地面、所踩下半砖以及无碰撞体积方块（草、花、火把、液体等）保持不动；地面起冲
+ *       时扫掠盒底面抬高一个步高（{@code maxUpStep}，不超过半身高），允许直接迈上前方台阶或土径边沿。</li>
+ *   <li>{@link #mayBreak} 依次校验 {@link ModEvents#canGrief}、{@code mayInteract} 与 NeoForge
+ *       {@code BlockEvent.BreakEvent}；生存模式按空手战利品表掉落（不校验工具等级，矿石同样掉落），创造模式不掉落；遇到
+ *       首个未加载区块、超硬度或无权限破坏的方块立即停止清路，玩家冲撞也随之停在该方块前。</li>
+ *   <li>⚠ 为避免 32 格冲撞（最多约 136 块）逐块广播原版破坏音效与粒子造成噪音，不调用 {@code Level.destroyBlock}，改为
+ *       每 {@link AreaImpactShatter#PARTICLE_EVERY} 块发一组碎屑、整次清路仅在首块位置播一次破坏音，并手动补齐掉落、流
+ *       体回填与 {@code BLOCK_DESTROY} 游戏事件；创造模式破双格方块上半时同样调用
+ *       {@link AreaImpactShatter#clearLowerHalf} 抑制下半掉落。</li>
+ *   <li>⚠ 扫掠盒水平宽度必须取 {@link #DASH_WIDTH}（{@code 0.8}，与 Epic Fight 闪避动作期间放宽的碰撞箱一致），若按原版
+ *       {@code 0.6} 宽度扫描会漏掉擦边方块并把客户端冲撞卡停。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CrashSources
- * @since 1.0.0
  */
 
 public final class CrashBreach {

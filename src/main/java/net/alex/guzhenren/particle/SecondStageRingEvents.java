@@ -10,13 +10,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * {@link SecondStageRingEmitter} 的事件入口：玩家 tick 末推进音障环，登出或换维度时丢弃其轨迹。
- * 每个 {@link SecondStageStartedEvent} 发音爆环，每个服务端 {@link SecondStageCrashEvent} 发撞击环。
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageRingEmitter
- * @since 1.0.0
+ * {@link SecondStageRingEmitter} 的服务端事件桥接器：在玩家刻末尾推进音障环轨迹，在登出或切换维度时清理轨迹，并分别响应
+ * {@link SecondStageStartedEvent} 与服务端 {@link SecondStageCrashEvent} 发送音爆环与撞击环。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

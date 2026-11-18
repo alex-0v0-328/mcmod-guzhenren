@@ -5,14 +5,8 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身的肉：暂只有原生、无加成，待蛊淬炼；{@code BodyData} 一槽。同族按声明顺序，新品阶只替换其前各级
- * （{@link #canReplace}）。
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyData
- * @see BodyGrade
- * @since 1.0.0
+ * 肉身血肉品阶枚举：存于 {@link BodyData}，当前仅含无加成的原生血肉（{@link #NATIVE}），预留给后续炼体蛊按声明顺序向上
+ * 替换（{@link #canReplace}）。
  */
 
 public enum Flesh implements BodyGrade<Flesh> {

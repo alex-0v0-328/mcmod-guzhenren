@@ -17,18 +17,13 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * 开窍[Awakening]仪式揭晓的资质[Aptitude]牌匾：GUI 精灵图按掷出的资质档命名（{@code plaque/talent/<grade>}），十绝天资
- * 按体质命名（{@code plaque/extreme_physique/<physique>}）；宽 {@link #WIDTH} 像素、高 {@code height}；本地屏幕
- * （{@link AwakeningHud}）与头顶（{@code AwakeningPlaqueRenderer}）的牌匾共用。
+ * 开窍仪式揭晓的资质[Aptitude]牌匾精灵图描述：GUI 精灵图按掷出的资质等级（{@code plaque/talent/<grade>}）或十绝天资
+ * [Ten Extremes Physique]体质（{@code plaque/extreme_physique/<physique>}）命名，固定宽 {@link #WIDTH} 像素、高
+ * {@code height} 像素，供本地屏幕（{@link AwakeningHud}）与头顶世界渲染（{@code AwakeningPlaqueRenderer}）共用。
  * <ul>
- *   <li>{@link #getHighlight} 标出扫光可盖的像素：非底色（{@code #1f191b}、{@code #0c090a}）的不透明像素；按图集精灵内容
- *       缓存，资源重载换新内容即重读。</li>
+ *   <li>{@link #getHighlight} 标出扫光可覆盖的像素集合（排除 {@code #1f191b} 与 {@code #0c090a} 两种底色的不透明像
+ *       素），并按图集精灵图内容做缓存，当资源包重载更换贴图内容时自动重新解析。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningHud
- * @since 1.0.0
  */
 
 public record AwakeningPlaque(@NotNull ResourceLocation sprite, int height) {

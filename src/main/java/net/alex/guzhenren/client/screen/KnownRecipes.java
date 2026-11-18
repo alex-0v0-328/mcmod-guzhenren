@@ -29,20 +29,18 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 客户端已知的蛊方，排序一次后缓存。
+ * 客户端蛊方缓存：将排序后的配方列表缓存起来以避免逐帧重排，并给出本人已学会的子集。
  * <ul>
- *   <li>{@link RefinementRecipe#getSorted} 按 id 排序全部蛊方，不缓存则炼蛊界面和蛊方选择器每帧都付这笔开销。</li>
- *   <li>客户端 {@link RecipeManager} 换实例时重建；{@link RecipesUpdatedEvent}（重载换配方不换实例）和登出时丢弃。</li>
- *   <li>{@link #get} 是全量表，下标同服务端菜单的选中序号；{@link #getLearned} 只列已学会的（随同步来的
- *       {@link GuRecipeKnowledgeData} 实例重算），选择器显示它，再经 {@link Learned#toGlobal} 换回全量下标发包。</li>
- *   <li>兼给蛊方物品（{@link GuRecipeItem}）供名称与创造栏查表，并在已学会的蛊方提示里加绿字「已学会」。</li>
- *   <li>只在客户端线程用；两个可变静态字段是客户端唯一的蛊方缓存及其来源管理器，重载或登出时清空，下次读取再填。</li>
+ *   <li>{@link RefinementRecipe#getSorted} 每次都会按 ID 重新排序全部配方，若不缓存，炼蛊界面与蛊方选择器每帧都会承担
+ *       该开销。</li>
+ *   <li>当客户端 {@link RecipeManager} 实例更换时自动重建，并在收到 {@link RecipesUpdatedEvent}（数据包重载更新配方而
+ *       不更换管理器实例）或玩家登出时失效丢弃；已学会子集另按同步来的 {@link GuRecipeKnowledgeData} 实例重算。</li>
+ *   <li>{@link #get} 是全量表，下标与服务端菜单的选中索引一致；{@link #getLearned} 只列已学会的，选择器用它显示，再经
+ *       {@link Learned#toGlobal} 换回全量下标发包。</li>
+ *   <li>同时给蛊方物品（{@link GuRecipeItem}）供名称与创造栏用的客户端查表，并在已学会的蛊方提示里加绿字「已学
+ *       会」。</li>
+ *   <li>仅限客户端线程访问；可变静态字段构成客户端唯一的蛊方缓存及其来源，重载或登出时清空并在下次读取时重新填充。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementScreen
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

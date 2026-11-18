@@ -10,14 +10,12 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
 /**
- * 所有魂体交易者共用的 {@code human_soul} GeckoLib 模型，与所穿贴图无关。
- * ⚠ 视线转动叠加到头部骨骼、不覆盖：GeckoLib 自带头部转动（带头部骨骼的 {@code DefaultedEntityGeoModel}）直接设旋转，会
- * 抹掉手势在该骨骼上打关键帧的点头与摇头；魂体每个动画都给头部打关键帧，每个处理帧从关键帧重来，叠加安全。
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTraderGeoRenderer
- * @since 1.0.0
+ * 所有魂体交易者[Soul Trader]共用的 {@code human_soul} GeckoLib 模型，独立于所穿贴图颜色。
+ * <ul>
+ *   <li>⚠ 视线转动以叠加方式写入头部骨骼而非直接覆盖：GeckoLib 默认头部转向（启用头部骨骼的
+ *       {@code DefaultedEntityGeoModel}）会直接覆盖旋转角，从而抹掉手势动画在该骨骼上打关键帧的点头与摇头；由于魂
+ *       体每个动画都会为头部打关键帧，每帧从关键帧重置后再做叠加即可安全保留手势动画。</li>
+ * </ul>
  */
 
 public final class HumanSoulGeoModel extends DefaultedEntityGeoModel<SoulTraderEntity> {

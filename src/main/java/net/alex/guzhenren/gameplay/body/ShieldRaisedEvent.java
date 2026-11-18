@@ -5,14 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link ShieldService#raise} 升起一层护盾（含补满仍在的层）后发布的事件；同步分发，{@code raise} 返回时订阅者已执行。
- * 供上层跟进蛊的路径效果、Epic Fight 桥接交叉双臂（{@code EpicFightServerEvents}）；结束 tick 见
- * {@link ShieldService#find}。
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldDownEvent
- * @since 1.0.0
+ * 肉身护盾升起事件：{@link ShieldService#raise} 升起新护盾层（含刷新同种已有层）后同步发布，供上层挂载对应蛊虫的流派效
+ * 果与 Epic Fight 交叉双臂防御姿态（{@code EpicFightServerEvents}）；到期时刻可通过 {@link ShieldService#find} 查询。
  */
 
 public class ShieldRaisedEvent extends Event {

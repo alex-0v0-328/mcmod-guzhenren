@@ -10,19 +10,14 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 /**
- * 仅客户端的入口。
- *
+ * 主模组的客户端专属入口类（{@code Dist.CLIENT}）。
  * <ul>
- *   <li>会崩专用服务端的内容只放这里，不进 {@link Guzhenren}；其余客户端订阅者在 {@code client/} 包下，仅客户端加
- *       载。</li>
- *   <li>模组总线上注册 MobEffect 客户端扩展（{@link EffectIcons} 效果图标）与元泉[Spirit Spring]、纯水流体渲染。</li>
- *   <li>宝黄天[Treasure Yellow Heaven]的天空效果归姊妹模组 Gu World。</li>
+ *   <li>集中放置直接引用客户端类而会导致专用服务端崩溃的模组总线初始化逻辑，与双端入口 {@link Guzhenren} 隔离；其余客户
+ *       端事件订阅者则分布在 {@code client/} 包下。</li>
+ *   <li>在 {@link RegisterClientExtensionsEvent} 中统一注册状态效果的自定义图标渲染扩展（{@link EffectIcons}），
+ *       以及元泉[Spirit Spring]与纯水两种自定义流体的客户端材质与雾气扩展；宝黄天[Treasure Yellow Heaven]的维度天空效果
+ *       则归属配套模组 Gu World。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Guzhenren
- * @since 1.0.0
  */
 
 @Mod(value = Guzhenren.MOD_ID, dist = Dist.CLIENT)

@@ -19,21 +19,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 方块标签。
- *
+ * 本模组方块标签数据生成器。
  * <ul>
- *   <li>如故蛊[As Before Gu]地形标签只收地面本身（石、土、沙、陶瓦、砂岩），不收它不复原的苔藓、冰、雪层、流体。</li>
- *   <li>知心草作物入保田标签，否则它脚下的耕地干了会退成泥土；入原版作物标签，蜜蜂授粉、剑挖加速和其他模组借此认它是
- *       作物，黑土耕地也按此标签补随机刻。</li>
- *   <li>知心草作物入农夫乐事的沃土排除标签 {@link #UNAFFECTED_BY_RICH_SOIL}：沃土与沃土耕地不给它施骨粉；没装农夫乐事
- *       时这个标签无人读。</li>
- *   <li>黑土耕地入原版耕地所在的三个标签（锹挖、大型垂滴叶可放、村民耕地）。</li>
+ *   <li>如故蛊[As Before Gu]地形恢复标签（{@link ModBlockTags#AS_BEFORE_TERRAIN}）仅收录天然地基方块（岩石、泥土、沙
+ *       子、陶瓦、砂岩等），排除苔藓、冰、雪层与流体；剥离标签（{@link ModBlockTags#AS_BEFORE_STRIPPED}）收录矿石与粗金
+ *       属块。</li>
+ *   <li>知心草作物加入 {@link BlockTags#MAINTAINS_FARMLAND}（防止下方干耕地退化为泥土）与 {@link BlockTags#CROPS}（使蜜
+ *       蜂授粉、剑挖掘加速及黑土耕地随机刻加速生效），并加入农夫乐事的沃土排除标签 {@link #UNAFFECTED_BY_RICH_SOIL} 以
+ *       禁止沃土对其触发骨粉催熟（未安装农夫乐事时该标签静默闲置）。</li>
+ *   <li>黑土耕地加入原版耕地所属的锹挖掘、大型垂滴叶可放置与村民耕地三个标签；钢块加入镐挖掘、石质工具门槛、信标基座及
+ *       通用钢块存储标签 {@link #STORAGE_BLOCKS_STEEL}（{@code c:storage_blocks/steel}）。</li>
  * </ul>
  */
 
 public class ModBlockTagsProvider extends BlockTagsProvider {
 
-    // The loader's convention tag other mods' steel blocks join; only datagen names it, so the key lives here.
     private static final TagKey<Block> STORAGE_BLOCKS_STEEL =
             TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/steel"));
     private static final TagKey<Block> UNAFFECTED_BY_RICH_SOIL = TagKey.create(Registries.BLOCK,

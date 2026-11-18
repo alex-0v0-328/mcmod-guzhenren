@@ -16,21 +16,20 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * B 面板肉身页的方块人：六肢体按伤势给填充上色，外加一层固定色轮廓。
+ * B 面板肉身页签中的方块人伤势图示：六大肢体各自按伤势程度着色，外层再叠绘一张固定颜色的轮廓线。
  * <ul>
- *   <li>精灵图在 {@code textures/gui/sprites/body/}，同画布同原点叠放，由 Pixel Art 会话分层导出：六张纯白平涂的肢体
- *       乘伤势色，最上面一张 {@code outline} 不染色。</li>
- *   <li>七窍不画、筋骨皮肉改造不画（Alex 定）：七窍伤势只在悬停头的提示里列，改造只在文字行显示。</li>
- *   <li>悬停提示逐肢体只列有伤条目（Alex 定）：该肢体有伤列它，头另列受伤的窍，「无伤」不列；无可列时返回空表，
- *       {@code renderComponentTooltip} 对空表不画，悬停无伤肢体即无反应。</li>
- *   <li>按整数倍绘制：倍数取可用宽高都放得下的最大值，上限 {@link #MAX_SCALE}；放不下一倍时不画。</li>
- *   <li>⚠ {@link #BOXES} 是画布上的肢体包围盒，悬停命中靠它；换图后须按新图核对。</li>
+ *   <li>精灵图位于 {@code textures/gui/sprites/body/}，同画布同原点叠放并由 Pixel Art 会话分层导出：六张纯白平涂的
+ *       肢体图层分别乘以各自伤势色，最上层的 {@code outline} 轮廓图保持原色不染色。</li>
+ *   <li>不绘制七窍以及筋骨皮肉改造状态（由 Alex 选定）：七窍伤势仅在鼠标悬停头部时的提示中列出，肉身改造仅在右侧文字
+ *       行中展示。</li>
+ *   <li>悬停提示按部位只列出有伤条目（由 Alex 选定）：某肢体有伤时显示对应伤势（头部额外列出受伤的窍），「无伤」一
+ *       律不展示；当所有条目均无伤时返回空列表，使 {@code renderComponentTooltip} 自动不弹出提示框，悬停无伤肢体
+ *       即无反馈。</li>
+ *   <li>采用整数倍率绘制：取可用宽与可用高均能容纳的最大整数倍并受 {@link #MAX_SCALE} 限制，连 1 倍都放不下时跳过绘
+ *       制。</li>
+ *   <li>⚠ {@link #BOXES} 硬编码画布上各肢体的碰撞包围盒，悬停命中检测完全依赖它；若后续更换体形贴图，必须同步核对这
+ *       组包围盒。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerInfoScreen
- * @since 1.0.0
  */
 
 final class BodyFigure {

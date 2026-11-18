@@ -14,24 +14,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 接受一个枚举常量的命令参数，以 {@code word()} 字面量拼写。
- *
+ * 接收单个可序列化枚举常量的命令参数构建与解析工具（底层使用 {@link StringArgumentType#word()}）。
  * <ul>
- *   <li>{@link #createArgument(String, Enum[])} 用静态常量；{@link #createArgument(String, Function)}
- *       按已解析内容动态算补全。</li>
- *   <li>⚠ 后者的函数须容忍前面参数乱写：{@code word()} 接受任意单词。</li>
- *   <li>⚠ 同链两个枚举参数须异名（{@code ARG_PATH}、{@code ARG_KIND} 与 {@code ModCommandSupport.ARG_VALUE} 并列）：
- *       上下文每名只留一个参数，同名静默只剩后一个词。</li>
- *   <li>☠ 重定向（即 {@code /gzr}）后的输入全解析进子上下文；执行器在子上下文，补全提供器却拿到根上下文，
- *       读前面参数须经 {@code getLastChild()}，否则抛 {@code IllegalArgumentException}；Brigadier 不捕获，
- *       {@code /gzr} 下补全静默为空，{@code /guzhenren} 下照常。</li>
- *   <li>因此 {@code get} 从最深上下文读取，由 {@code ModEnumArgumentTest} 钉住。</li>
+ *   <li>{@link #createArgument(String, Enum[])} 提供静态枚举候选补全，{@link #createArgument(String, Function)} 则根据
+ *       当前已解析的上下文动态计算候选枚举列表。</li>
+ *   <li>⚠ 动态候选函数必须容忍前置参数为任意非法字符串，因为底层 {@code word()} 在补全阶段会接收玩家输入的任意单
+ *       词。</li>
+ *   <li>⚠ 同一条命令链上的两个枚举参数必须使用不同的参数名（如将 {@code ARG_PATH} 或 {@code ARG_KIND} 与
+ *       {@link ModCommandSupport#ARG_VALUE} 区分开），否则 Brigadier 上下文会以后一个同名参数静默覆盖前一个参数。</li>
+ *   <li>⚠ {@link #get} 必须从 {@link CommandContext#getLastChild()} 最深层子上下文读取参数值：当玩家通过重定向别名
+ *       （{@code /gzr}）输入指令时，重定向后的参数全部解析在子上下文中，而补全回调收到的却是根上下文；若直接读根上下文
+ *       会抛出 {@link IllegalArgumentException} 并导致 {@code /gzr} 下补全静默失效。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.root.ModCommand
- * @since 1.0.0
  */
 
 public final class ModEnumArgument {

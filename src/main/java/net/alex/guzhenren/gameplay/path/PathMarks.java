@@ -8,20 +8,15 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 一条道[Path]上的道痕[Path Marks]数：条与点，两个独立计数。
- *
+ * 单条流派上的道痕[Path Marks]计数记录：由「整条道痕（{@code marks}）」与「道痕点（{@code points}）」两个非负独立计数组
+ * 成。
  * <ul>
- *   <li>值 record，两计数下限为零，求和按计数各自饱和；种族或体质留下整条，凡蛊只留点。</li>
- *   <li>⚠ 两计数从不互换：点永不进位成条，任何代码不得新增这种换算。</li>
- *   <li>{@link #MAP_CODEC} 把两计数写成字段 {@code marks}、{@code points}，持有者可内联；两字段宽松读取，
- *       旧存档其他形状的字段读作零，整条记录不会读失败。</li>
+ *   <li>加减运算对两个计数分别执行饱和算术（下限为 {@code 0}）；先天种族与十绝体[Ten Extreme Physiques]赋予整条道痕，凡
+ *       蛊则赋予道痕点。</li>
+ *   <li>⚠ 「条」与「点」完全独立、永不互相换算或进位，任何业务代码不得自行定义点到条的进位比例。</li>
+ *   <li>{@link #MAP_CODEC} 将两个计数内联为 {@code marks} 与 {@code points} 可选容错字段（旧存档中不兼容的字段类型会被
+ *       安静回退为 {@code 0}，不会导致外层记录反序列化失败）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEntry
- * @see PathEffect
- * @since 1.0.0
  */
 
 public record PathMarks(long marks, long points) {

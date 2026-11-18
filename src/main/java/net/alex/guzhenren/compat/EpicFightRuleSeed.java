@@ -7,14 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 /**
- * Epic Fight 技能保留规则是否已写入的世界标记，存于主世界 {@code guzhenren_epicfight_rules.dat}；{@link #seed} 只在世界
- * 首次带本模组启动时开启 {@code keepSkills}，服务器用 {@code /gamerule} 关掉后重启仍保留；该规则是原版游戏规则，存于
- * {@code level.dat}，全服维度共用，一个标记覆盖全部。
- *
- * @author Alex
- * @version 1.0.0
- * @see EpicFightServerEvents
- * @since 1.0.0
+ * 记录当前存档是否已初始化 Epic Fight 技能保留规则的主世界持久化标记（{@code guzhenren_epicfight_rules.dat}）。
+ * {@link #seed} 仅在存档首次加载本模组时将全局游戏规则 {@code keepSkills} 设为 {@code true}，若服主后续通过
+ * {@code /gamerule} 手动关闭该规则，重启服务器后仍尊重服主设置而不重新覆盖。
  */
 
 public final class EpicFightRuleSeed extends ModSavedData {

@@ -12,18 +12,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 物品的本命蛊绑定：{@code VITAL_OWNER}、{@code VITAL_APERTURE}、{@code VITAL_TOKEN} 三组件的唯一读写方。
+ * 物品栈的本命蛊[Vital Gu]绑定状态工具：作为 {@code VITAL_OWNER}、{@code VITAL_APERTURE}、{@code VITAL_TOKEN} 三项数据
+ * 组件的唯一读写入口。
  * <ul>
- *   <li>任何物品都能答；只有持续照顾型蛊[Tended Gu]会被绑定，{@link MortalGuItem} 显示标记。</li>
- *   <li>按种类（{@code ApertureData.PRIMARY} / {@code SECOND}）而非位置认空窍[Aperture]：希望蛊[Hope Gu]把第一空窍插到
- *       单独的第二空窍前，旧绑定仍有效；{@link #bind} 存索引的种类，{@link #getBoundIndex} 映射回索引。</li>
- *   <li>每空窍一只：{@link #bind} 盖新令牌，与存储所记令牌相符者才是当前的（{@link #isCurrentVital}）；旧蛊无害。</li>
+ *   <li>任意物品栈均可安全查询绑定状态，但只有持续照顾型蛊[Tended Gu]允许被绑定；凡蛊基类 {@link MortalGuItem} 负责在名
+ *       称与光效上呈现本命标记。</li>
+ *   <li>空窍归属按种类（{@code ApertureData.PRIMARY} / {@code SECOND}）而非下标索引记录：当希望蛊[Hope Gu]把第一空窍插
+ *       入独立的第二空窍之前时，原有绑定依然有效；{@link #bind} 存入下标对应的空窍种类，{@link #getBoundIndex} 再按持有
+ *       者当前空窍列表映射回索引。</li>
+ *   <li>每个空窍至多认领一只本命蛊：{@link #bind} 会写入新的随机令牌，只有与空窍存储所记令牌一致的物品才被视为当前有效
+ *       本命蛊（{@link #isCurrentVital}），旧蛊失效且无副作用。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MortalGuItem
- * @since 1.0.0
  */
 
 public final class VitalGuState {

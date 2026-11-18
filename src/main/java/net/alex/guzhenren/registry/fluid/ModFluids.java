@@ -10,15 +10,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 元泉[Spirit Spring]与纯水的流体对注册（源头与流动态），仅 DeferredRegister 容器；共享行为在
- * {@link SpiritSpringFluid}、{@link PureWaterFluid}。
- *
- * @author Alex
- * @version 1.0.0
- * @see ModFluidTypes
- * @see SpiritSpringFluid
- * @see PureWaterFluid
- * @since 1.0.0
+ * 元泉[Spirit Spring]（{@link SpiritSpringFluid}）与纯水（{@link PureWaterFluid}）两对源流体的 {@code DeferredRegister}
+ * 注册容器（对应流体类型定义见 {@link ModFluidTypes}）。
  */
 
 public final class ModFluids {

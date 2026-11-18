@@ -16,7 +16,9 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import org.jetbrains.annotations.NotNull;
 
-/** 两种象的掉落：2 至 4 张皮革（抢夺加成），不掉肉。 */
+/**
+ * 两种象类实体（普通象、白象）的战利品表子生成器，固定掉落 2–4 张皮革（支持抢夺附魔加成），不掉落肉类。
+ */
 
 public final class ElephantLootProvider extends EntityLootSubProvider {
 

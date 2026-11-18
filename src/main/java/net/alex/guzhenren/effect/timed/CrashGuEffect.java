@@ -4,18 +4,13 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * 横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]、横冲直撞蛊[Charging Crash Gu]共用效果类。
+ * 横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]与横冲直撞蛊[Charging Crash Gu]共用的效果标识类。
  * <ul>
- *   <li>横冲开横轴，直撞开纵轴，横冲直撞两轴；客户端按身上效果的注册项定可用轴，位移经
- *       {@link net.alex.guzhenren.network.payload.DashPayload} 上报；横冲直撞跨四、五转，图标按转分档。</li>
- *   <li>距离与播放速度规格在 {@link net.alex.guzhenren.gameplay.path.strength.CrashDash}，因 {@code MobEffect} 纯
- *       JUnit 载不了。</li>
+ *   <li>客户端依据身上持有的效果注册项判定可冲刺轴向（横冲开放水平轴，直撞开放竖直轴，横冲直撞同时开放两轴，跨四、五转
+ *       时按转数显示不同图标），并通过 {@link net.alex.guzhenren.network.payload.DashPayload} 上报冲刺意图。</li>
+ *   <li>冲刺距离与动画播放速度规格定义在 {@link net.alex.guzhenren.gameplay.path.strength.CrashDash} 中，以便纯 JVM 单
+ *       元测试在不加载 {@link MobEffect} 的环境下直接验证。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.payload.DashPayload
- * @since 1.0.0
  */
 
 public final class CrashGuEffect extends MobEffect {

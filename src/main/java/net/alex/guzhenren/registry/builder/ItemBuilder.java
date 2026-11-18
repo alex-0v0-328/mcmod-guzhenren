@@ -14,20 +14,16 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 单个物品的注册链：{@link ItemRegistrar#item} 开启，{@link #register} 收尾。
- *
+ * 单个物品的链式注册构造器，由 {@link ItemRegistrar#item} 或 {@link ItemRegistrar#typedItem} 开启并以 {@link #register}
+ * 收尾。
  * <ul>
- *   <li>一事一调用，同 {@code GuProperties}：{@link #lang} 英文、简中名，繁体仅措辞不同时给，否则
- *       {@code TraditionalGlyphs} 转换；{@link #model} 选 {@link ItemModel#FLAT} 外的模型；{@link #tag}
- *       按序归入物品标签，各一次；{@link #tab} 指定创造栏，取代类默认。</li>
- *   <li>工厂是普通 {@code Supplier}，物品构造参数（含 {@code GuProperties} 链）原样留在其中。</li>
- *   <li>⚠ {@link #register} 在工厂入 {@code DeferredRegister} 前拒收无名物品并报 ID，免得落回原始翻译键。</li>
+ *   <li>采用一事一调用链式风格（与 {@code GuProperties} 一致）：{@link #lang} 声明英文与简体中文译名（繁体仅在用词与简
+ *       中不同时显式传入，否则由 {@code TraditionalGlyphs} 自动转换），{@link #model} 选择 {@link ItemModel#FLAT} 之外
+ *       的模型形状，{@link #tag} 按顺序追加物品标签，{@link #tab} 指定归属创造模式物品栏以覆盖按类默认规则。</li>
+ *   <li>物品构造工厂保持为普通 {@code Supplier}，物品自身的参数链（如 {@code GuProperties}）原样保留在工厂内部。</li>
+ *   <li>⚠ {@link #register} 会在提交至 {@code DeferredRegister} 前强校验中英文名称非空并携带 ID 报错，防止缺失译名的物
+ *       品回退到原始翻译键。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ItemRegistrar
- * @since 1.0.0
  */
 
 public final class ItemBuilder<T extends Item> {

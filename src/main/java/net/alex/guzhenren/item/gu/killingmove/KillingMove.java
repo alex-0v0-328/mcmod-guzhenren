@@ -10,27 +10,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 杀招[Killing Move]封闭总表，一行一招。
+ * 杀招[Killing Move]封闭注册表枚举：每一个枚举项定义一式杀招及其配套参数。
  * <ul>
- *   <li>每行：id、主手主蛊、唯一辅蛊、刃伤倍率、开启期间辅蛊每刃真元[Essence]；启动时辅蛊付一次自身催动饱食[Hunger]
- *       （{@link #getStartHunger}）；新招即新行，配同 id 杀招书（{@link KillingMoveBookItem}）。</li>
- *   <li>两蛊均为持续照顾型蛊[Tended Gu]，须已炼化；{@link #isLedBy}、{@link #isBackedBy} 是唯一资格判定，客户端轮盘与
- *       {@link KillingMoveService} 共用；是否学会（{@link KillingMoveService#knows}）、辅蛊放哪归该服务。</li>
- *   <li>⚠ id 即存档键、payload 招名、已学列表项（{@code KillingMoveData}）、书物品 id、翻译键；改名即全员遗忘。</li>
+ *   <li>每式杀招包含唯一 ID、主手可主导该招的主蛊列表、唯一辅蛊、伤害倍率以及开启期间每次施放由辅蛊额外支付的真元
+ *       （{@link #getPartnerEssence}）；启动杀招时辅蛊须先支付一次自身单次催动的饱食[Hunger]（{@link #getStartHunger}，
+ *       直接读取辅蛊的 {@code GuProperties}）；新增杀招只需在此添加枚举项并注册同 ID 的杀招书
+ *       （{@link KillingMoveBookItem}）。例如 {@link #LITTLE_LIGHT_AMPLIFY} 由月光蛊[Moonlight Gu]或月芒蛊[Moonglow Gu]
+ *       主导、小光蛊[Little Light Gu]辅助，使月刃伤害翻倍，启动消耗一次小光蛊饱食，每发月刃额外消耗 20 点真元。</li>
+ *   <li>主蛊与辅蛊均须为已炼化的持续照顾型蛊[Tended Gu]；{@link #isLedBy}（采用简单循环以便轮盘与提示框在渲染帧内零分配
+ *       查询）与 {@link #isBackedBy} 是判定主辅蛊资格的唯一入口，由客户端轮盘与服务端 {@link KillingMoveService} 共用；
+ *       玩家是否已习得杀招（{@link KillingMoveService#knows}）以及辅蛊在背包或空窍存储中的检索均归
+ *       {@link KillingMoveService} 负责。</li>
+ *   <li>⚠ {@link #getId()} 同时作为玩家已学列表存档键（{@code KillingMoveData}）、网络包标识、杀招书物品 ID 与翻译键后
+ *       缀，改名会导致已有存档丢失该杀招记录。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMoveService
- * @since 1.0.0
  */
 
 public enum KillingMove {
 
-    /**
-     * 小光蛊增幅：月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]刃伤 ×2；辅蛊小光蛊[Little Light Gu]
-     * 启动付一次催动饱食[Hunger]，每刃 20 真元[Essence]（其催动的一半）。
-     */
     LITTLE_LIGHT_AMPLIFY("km_mortal_little_light_amplify", List.of(ModItems.MOONLIGHT_GU_1, ModItems.MOONGLOW_GU_2),
             ModItems.LITTLE_LIGHT_GU_1, 2.0F, 20);
 
@@ -58,13 +55,10 @@ public enum KillingMove {
 
     public float getDamageFactor() { return damageFactor; }
 
-    /** 启动时辅蛊付的饱食[Hunger]：一次自身催动量，取自其 guProperties。 */
     public int getStartHunger() { return ((TendedGuItem) partner.asItem()).getGuProperties().getHungerPerUse(); }
 
-    /** 开启期间辅蛊每刃付的真元[Essence]。 */
     public int getPartnerEssence() { return partnerEssence; }
 
-    // Plain loop: the radial menu and the tooltip ask while drawing.
     public boolean isLedBy(Item item) {
         for (ItemLike main : mains) {
             if (main.asItem() == item) return true;

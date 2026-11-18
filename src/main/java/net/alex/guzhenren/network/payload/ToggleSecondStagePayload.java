@@ -7,13 +7,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 双击疾跑进入或退出二段飞行[Second-Stage Flight]的客户端意图 payload；不带数据，无从伪造。
- * {@link net.alex.guzhenren.gameplay.flight.SecondStageService#toggle} 只按服务端自身状态判定；不能进入者保持原状。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.flight.SecondStageService
- * @since 1.0.0
+ * 双击疾跑切换二段飞行[Second-Stage Flight]开关的零字节单例客户端意图载荷；由于不附带任何参数因而无法伪造，服务端
+ * {@link net.alex.guzhenren.gameplay.flight.SecondStageService#toggle} 仅依据自身状态判定，不满足条件时保持原状。
  */
 
 public record ToggleSecondStagePayload() implements CustomPacketPayload {

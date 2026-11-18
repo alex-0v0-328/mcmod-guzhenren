@@ -8,17 +8,9 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * {@code /gzr reset}：把玩家恢复到出生时的状态。
- *
- * <ul>
- *   <li>{@link PlayerDataService#resetAll} 后调 {@link net.alex.guzhenren.command.ModCommandSupport#refreshCommands}：
- *       重置翻转开窍[Awakening]门槛，客户端须见新命令树。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CmdAwaken
- * @since 1.0.0
+ * {@code /gzr reset} 子命令：将目标玩家的全部模组数据重置回初始未开窍[Awakening]状态
+ * （{@link PlayerDataService#resetAll}），并立即调用 {@link ModCommandSupport#refreshCommands} 向客户端重发命令树以隐藏
+ * 需开窍的子命令。
  */
 
 public final class CmdReset {

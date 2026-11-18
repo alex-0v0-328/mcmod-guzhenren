@@ -26,25 +26,22 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 唯一的跨领域生命周期服务：出生、睡眠、死亡、克隆、重生、完全重置。
+ * 唯一的跨领域玩家生命周期服务，统筹出生初始化、睡眠回复、死亡克隆、重生恢复与完全重置。
  * <ul>
- *   <li>克隆体继承 {@link PlayerData} 全部值（加载器复制），本类唯一决定死亡收回什么：清空型死亡全重置
- *       （{@link #resetAll}），keepInventory 死亡只重置返回点与当前杀招[Killing Move]。</li>
- *   <li>加入、克隆、重置时重跑各领域服务；出生与重置在此直写整值、绕过领域服务，后者是唯一运行时写入方。</li>
- *   <li>{@link #dropHumanApertures}：清空型死亡于尸处按空窍[Aperture]各掉同转人窍[Human Aperture]。</li>
- *   <li>失去本命蛊[Vital Gu]由 {@link VitalLossService} 结算；它的 {@code vital_gu_lost} 与爆炸波及旁人的
- *       {@code ten_extreme_disaster} 是普通伤害致死，不留致死状态，无需撤销。</li>
- *   <li>⚠ {@code onClone}/{@code onBirth}/{@code resetAll} 用 {@code Player}，是读 {@code Player}、
- *       写 {@code ServerPlayer} 的唯一例外：{@code PlayerEvent.Clone} 中新实体是 {@code Player}；勿放宽领域服务。</li>
- *   <li>⚠ {@code BORN} 保持继承，否则下次登录重掷才情；新致死状态须在 {@code onRespawn} 加一行，撤销后取最低值（魂魄
- *       1，脑海 0），致死检查不触发。</li>
+ *   <li>NeoForge 克隆体默认继承 {@link PlayerData} 全部附件，因此由本类唯一裁定死亡代价：非 {@code keepInventory} 死亡
+ *       时在尸体处掉落各空窍对应转数的人窍[Human Aperture]（{@link #dropHumanApertures}）并执行 {@link #resetAll} 全量
+ *       重置，{@code keepInventory} 死亡仅清空维度返回点与当前激活杀招[Killing Move]。</li>
+ *   <li>上线、克隆与重置时统一刷新 {@link ApertureService}、{@link BodyService} 等领域同步与派生属性，并经
+ *       {@link #refreshDamage} 发出 {@link PlayerRefreshedEvent}；仅出生与全量重置允许在此直写整份状态记录，运行时增量
+ *       更新一律归各自领域服务。</li>
+ *   <li>本命蛊损毁由 {@link VitalLossService} 单独结算；{@code vital_gu_lost} 与爆炸波及他人的
+ *       {@code ten_extreme_disaster} 属于一次性普通伤害致死，不留致死状态，重生时无需额外撤销。</li>
+ *   <li>⚠ {@code onClone}、{@code onBirth} 与 {@code resetAll} 是全模组唯一接收 {@code Player} 而非
+ *       {@code ServerPlayer} 写入数据的例外（因 {@code PlayerEvent.Clone} 新实体尚未完全转为服务端类型），领域服务不得
+ *       放宽此参数约束。</li>
+ *   <li>⚠ {@code BORN} 标记必须随死亡克隆继承，否则玩家重生或重登后会重新随机生成资质[Aptitude]；新增任何致死状态时必须
+ *       在 {@link #onRespawn} 中补充重置分支，且重置后应落至不触发心跳致死判定的安全值（如魂魄为 1、脑海为 0）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureService
- * @see BodyService
- * @since 1.0.0
  */
 
 public final class PlayerDataService {

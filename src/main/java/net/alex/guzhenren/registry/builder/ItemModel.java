@@ -1,21 +1,16 @@
 package net.alex.guzhenren.registry.builder;
 
 /**
- * 已声明物品的模型种类：{@code ModItemModelProvider} 会写的形状。
- *
+ * 声明式物品模型形状枚举（供 {@link ItemBuilder#model(ItemModel)} 指定并由 {@code ModItemModelProvider} 生成对应模型
+ * JSON），以轻量名字解耦注册期代码与客户端 datagen 类。
  * <ul>
- *   <li>{@link #FLAT} 默认，原版 {@code item/generated} 叠 {@code item/<id>}；{@link #BLOCK} 同 ID 方块模型；
- *       {@link #FLUID} 平放 {@code block/<id>_still}，因元泉[Spirit Spring] BlockItem 无自带 PNG。</li>
- *   <li>{@link #LEAF_STAGES}：九叶生机草[Nine Leaf Vitality Grass] {@code _full}，按 {@code picked} 切 {@code _half}、
- *       {@code _empty}；{@link #NUMERALS}：进度图标 {@code _0}，按 {@code custom_model_data} 切换，每个可设的转、
- *       阶一个数字。</li>
- *   <li>种类是名字而非回调，注册行从不引用客户端 datagen 类。</li>
+ *   <li>{@link #FLAT} 为默认原版 {@code item/generated} 叠 {@code item/<id>} 贴图；{@link #BLOCK} 直接继承同名方块模
+ *       型；{@link #FLUID} 平铺 {@code block/<id>_still} 流体条带（专用于无独立物品贴图的元泉[Spirit Spring]
+ *       {@code BlockItem}）。</li>
+ *   <li>{@link #LEAF_STAGES} 为九叶生机草[Nine Leaf Vitality Grass]按 {@code picked} 属性在 {@code _full}、
+ *       {@code _half} 与 {@code _empty} 间切换；{@link #NUMERALS} 为进度数字图标按 {@code custom_model_data} 在
+ *       {@code _0} 起各转阶编号模型间切换。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ItemBuilder#model(ItemModel)
- * @since 1.0.0
  */
 
 public enum ItemModel { FLAT, BLOCK, FLUID, LEAF_STAGES, NUMERALS }

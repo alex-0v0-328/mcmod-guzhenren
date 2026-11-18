@@ -19,15 +19,10 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 蓄力蛊[Store Strength Gu]与惯力蛊[Habitual Strength Gu]的行为：限时增益 {@code effect}，期间空手可蓄力放出蓄力一拳
- * （{@link StoreStrength}），惯力蛊的增益另让蓄力期间可移动；自己的增益未完再催动被拒，
- * 无永久兽力[Beast Strength]和人力者蓄力前即被拒（{@code all_out_needs_branch}，与全力以赴蛊[All-Out Effort Gu]共用）；
- * 功倍蛊[Amplify Effect Gu]乘时长。
- *
- * @author Alex
- * @version 1.0.0
- * @see StoreStrength
- * @since 1.0.0
+ * 蓄力蛊[Store Strength Gu]与惯力蛊[Habitual Strength Gu]行为：赋予玩家限时增益 {@code effect}，持续期间空手可按键蓄力
+ * 并释放蓄力一拳（{@link StoreStrength}，其中惯力蛊增益允许在蓄力期间移动）；自身同种增益尚未结束时拒绝重复催动，未持有
+ * 任何永久兽力或人力的玩家在蓄力起手前即被拒绝（与全力以赴蛊[All-Out Effort Gu]共用 {@code all_out_needs_branch} 提示
+ * 键），支持功倍蛊[Amplify Effect Gu]倍增持续时长。
  */
 
 public record StoreStrengthBehavior(Holder<MobEffect> effect, int effectSeconds) implements GuBehavior {

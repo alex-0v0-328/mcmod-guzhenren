@@ -4,24 +4,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@code zh_tw} 背后的简转繁字形表。
- *
+ * 主模组繁体中文（{@code zh_tw}）的简繁字形转换表。
  * <ul>
- *   <li>简繁大多只差字形：{@link ModLanguageProvider} 对没写繁体的条目经 {@link #convert} 推出 {@code zh_tw}。</li>
- *   <li>台湾字形（OpenCC {@code s2tw}，作 為 不作 爲）；词汇照写（{@code s2twp} 会把 信息 换词为 資訊）。</li>
- *   <li>{@link #PAIRS} 一对一字形，{@link #PHRASES} 词组，{@link #UNCHANGED} 简繁同形；token 为简体半段接繁体半段（蛊
- *       蠱、冲刷沖刷），{@link #convert} 逐位取最长匹配，词组胜过其中单字。</li>
- *   <li>⚠ 常见游戏文本中一简多繁的字（冲 沖/衝、制 制/製、只 只/隻、准 准/準、复 復/複/覆、回 回/迴、尽 盡/儘、喂 喂/
- *       餵、舍 舍/捨、游 游/遊、斗 斗/鬥、周 周/週）故意不进 {@link #PAIRS} 与 {@link #UNCHANGED}，只在词组内转换，新用
- *       法逐个按语境定；另一形古旧或游戏文本不见的（背 是 背包 不是 揹包；尸 屍；万 萬）按常用形归档。</li>
- *   <li>⚠ {@link #convert} 遇无法归位的汉字抛异常：含新字形的 {@code zh_cn} 字符串让 {@code runData} 与
- *       {@code LangContractTest} 同时失败，不把简体字发进繁体文件。</li>
+ *   <li>繁体中文保持原有用词而仅按台湾正体字标准（OpenCC {@code s2tw}，如用「為」不用「爲」）转换字形，由
+ *       {@link ModLanguageProvider} 对未显式指定繁体文本的词条调用 {@link #convert} 生成。</li>
+ *   <li>{@link #PAIRS} 收录单字映射，{@link #PHRASES} 收录多字词组，{@link #UNCHANGED} 收录简繁同形字；每个映射词元按
+ *       「前一半简体、后一半繁体」编码（如 {@code 蛊蠱}、{@code 冲刷沖刷}），由 {@link #convert} 从左至右按最长前缀匹配
+ *       替换，使词组优先于单字。</li>
+ *   <li>⚠ 在游戏文本中存在一对多歧义的常见字（如「冲」「制」「只」「准」「复」「回」「尽」「喂」「舍」「游」「斗」
+ *       「周」）刻意不放入 {@link #PAIRS} 或 {@link #UNCHANGED}，强制要求按具体语境以整词形式录入
+ *       {@link #PHRASES}。</li>
+ *   <li>⚠ {@link #convert} 遇到未收录的汉字会直接抛出 {@link IllegalArgumentException}，使包含未知字形的新增简体词条在
+ *       {@code runData} 与单元测试中立即失败，防止简体字混入繁体语言文件。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.datagen.lang.ModLanguageProvider
- * @since 1.0.0
  */
 
 public final class TraditionalGlyphs {

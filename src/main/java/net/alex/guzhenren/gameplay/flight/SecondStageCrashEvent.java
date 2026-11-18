@@ -6,15 +6,14 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 二段飞行[Second-Stage Flight]撞上墙、地面或天花板时在游戏事件总线发布。由移动玩家的一端发
- * （{@link SecondStageService#travel}）：服务端那步带 {@code ServerPlayer}，本机物理带 {@code LocalPlayer}，监听方自
- * 判；同步派发，玩家仍贴着撞击面；{@link #getHeading} 为含俯仰的飞行单位向量，俯冲朝下。飞行包只发布：音爆环在
- * {@code net.alex.guzhenren.particle}，震屏在 {@code net.alex.guzhenren.client.event.SecondStageCamera}。
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageService
- * @since 1.0.0
+ * 二段飞行[Second-Stage Flight]高速撞击墙面、地面或天花板导致撞毁时发布的事件。
+ * <ul>
+ *   <li>由执行玩家移动的一端在 {@link SecondStageService#travel} 中同步发布（服务端传入 {@code ServerPlayer}，客户端本
+ *       机物理传入 {@code LocalPlayer}，订阅方自行区分）；发布时玩家仍贴在撞击面上，{@link #getHeading} 为含俯仰角的归
+ *       一化飞行方向向量。</li>
+ *   <li>{@code gameplay.flight} 包只发布事件：音爆粒子环与附近震屏位于 {@code net.alex.guzhenren.particle}，本机震屏位
+ *       于 {@code net.alex.guzhenren.client.event.SecondStageCamera}。</li>
+ * </ul>
  */
 
 public class SecondStageCrashEvent extends Event {

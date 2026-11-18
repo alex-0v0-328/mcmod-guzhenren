@@ -10,17 +10,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 开始或放弃温养[Nourish]空窍[Aperture]的客户端意图：具名动作（{@link NourishAction}）加空窍序号，不带玩家数据。
+ * 请求开始或取消指定空窍温养[Nourish]的客户端意图载荷，携带具名动作 {@link NourishAction} 与空窍序号而不附带玩家数据，
+ * 经 {@link net.alex.guzhenren.network.ModPayloads} 与 {@link net.alex.guzhenren.network.ClientIntents} 转交
+ * {@link ApertureNourishService} 处理。
  * <ul>
- *   <li>由 {@link net.alex.guzhenren.network.ModPayloads} 处理，经 {@link net.alex.guzhenren.network.ClientIntents}
- *       转交 {@link ApertureNourishService}；附件同步唯独不承载客户端意图。</li>
- *   <li>⚠ 两种意图共用一个 payload，用具名动作而非裸布尔：调用处布尔看不出含义。</li>
+ *   <li>⚠ 开始与取消两种意图刻意共用同一载荷并采用具名枚举而非裸布尔参数，避免调用点出现语义不明的布尔字面量。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
  */
 
 public record NourishAperturePayload(NourishAction action, int aperture) implements CustomPacketPayload {

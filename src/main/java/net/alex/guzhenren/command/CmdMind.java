@@ -7,12 +7,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /gzr mind}：写才情与念、意、情三池，B 面板读取；不设门槛，凡人也会思考。
- *
- * @author Alex
- * @version 1.0.0
- * @see CmdMindPool
- * @since 1.0.0
+ * {@code /gzr mind} 子命令：修改玩家的才情等级与念、意、情三类思绪池（{@link CmdMindPool}），结果由 B 面板读取；凡人同
+ * 样具备才情与思绪，因此不设开窍门禁。
  */
 
 public final class CmdMind {

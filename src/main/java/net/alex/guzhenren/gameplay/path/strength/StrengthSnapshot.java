@@ -4,20 +4,17 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 力道结算某一时刻的读数：{@link StrengthService#snapshot} 一次收集，一次结算只读一遍肉体、路径效果与增幅。
+ * 力道结算在单次查询中的不可变快照：由 {@link StrengthService#snapshot} 一次性采集肉身、流派效果与临时增幅，避免单次结
+ * 算重复遍历状态。
  * <ul>
- *   <li>全力以赴蛊[All-Out Effort Gu] tier 未在持分支身体上运行时为 {@link StrengthService#NO_ALL_OUT}；肉体过载为限时
- *       兽力超当前承受力的点数（{@link StrengthService#getOverloadPoints}），仍全额发挥。</li>
- *   <li>不含普通截断外的解放（依赖轮次），由
- *       {@link StrengthService#getUsablePoints(net.minecraft.world.entity.player.Player, StrengthSnapshot)} 加上；
- *       {@link #settledPoints} 即不含解放的发挥点数，两端同值（解放只在服务端），横冲系冲撞读它。</li>
- *   <li>⚠ 须经 {@link #of} 构建，保证派生与收集分量一致；规范构造器不检查。</li>
+ *   <li>未激活全力以赴蛊[All-Out Effort Gu]或未入专精分支时 {@code allOutTier} 为 {@link StrengthService#NO_ALL_OUT}；
+ *       {@code overloadPoints} 为限时兽力[Beast Strength]超出当前承受力的点数（全额发挥并触发肉体过载）。</li>
+ *   <li>{@link #settledPoints} 为不含攻击轮次全面解放的常态可发挥力量点[Strength Points]（客户端与服务端数值一致，供横
+ *       冲系冲撞 {@link CrashSources} 读取）；最终可发挥点数由
+ *       {@link StrengthService#getUsablePoints(Player, StrengthSnapshot)} 再叠入服务端轮次解放增量。</li>
+ *   <li>⚠ 必须通过工厂方法 {@link #of} 构建，以确保 {@code totalPoints}、{@code capacity} 与 {@code overloadPoints} 三
+ *       个派生字段与输入分量严格一致。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthService
- * @since 1.0.0
  */
 
 public record StrengthSnapshot(int normalCapacity, int permanentPoints, @NotNull List<StrengthAmplifier> amplifiers,

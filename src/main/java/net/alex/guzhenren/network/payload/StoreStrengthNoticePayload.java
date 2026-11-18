@@ -9,13 +9,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 发给蓄力中客户端的服务端通知：蓄力蛊[Store Strength Gu]蓄力已满，或被服务端取消（{@link Change}）。
- * 由 {@code net.alex.guzhenren.network.StoreStrengthNotices} 发送；客户端未在蓄力时忽略。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.network.ModPayloads
- * @since 1.0.0
+ * 下发给正在蓄力客户端的蓄力蛊[Store Strength Gu]状态通知载荷（由 {@link net.alex.guzhenren.network.ModPayloads} 注册，
+ * {@code StoreStrengthNotices} 发送），携带已满或被服务端取消的 {@link Change} 枚举；客户端未处于蓄力态时直接忽略。
  */
 
 public record StoreStrengthNoticePayload(Change change) implements CustomPacketPayload {

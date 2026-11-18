@@ -10,14 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 肉身护盾：每种 {@link ShieldType} 一层，新者在前即消耗顺序；不可变 record 附件 {@code shield_data}，仅
- * {@code ShieldService} 写。{@link #raise} 置顶并丢同种旧层，不叠加；超时层留到心跳清除，合计与 {@link #isUp} 跳过它；
- * 标记效果仅为投影。
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldService
- * @since 1.0.0
+ * 肉身分层护盾数据附件（键 {@code shield_data}）：每种 {@link ShieldType} 最多占一层，按升起时间由新到旧排列即受击扣减
+ * 顺序。
+ * <ul>
+ *   <li>运行时仅由 {@link ShieldService} 写入；{@link #raise} 将新护盾层置于列表首位并替换同种旧层（同种不叠加）。</li>
+ *   <li>已到期的护盾层留待心跳统一清理，{@link #isUp}、{@link #getPoints} 与 {@link #getMax} 均实时跳过过期层；药水标记
+ *       效果仅作状态栏投影。</li>
+ * </ul>
  */
 
 public record ShieldData(@NotNull List<ShieldLayer> layers) {

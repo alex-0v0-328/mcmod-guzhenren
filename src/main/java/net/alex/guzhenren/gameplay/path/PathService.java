@@ -9,20 +9,15 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 流派进度（造诣与纯道痕[Path Marks]）的唯一运行时写入方。
- *
+ * 玩家流派进度（造诣与肉身裸道痕[Path Marks]）的唯一运行时写入服务。
  * <ul>
- *   <li>纯道痕是肉体上不起作用的条与点，目前只有命令写入，一次写一个计数；随效果来的道痕（种族、体质、蛊）归
- *       {@link PathEffectService}，从不算纯道痕。</li>
- *   <li>{@link #getMarks} 是一条道[Path]的完整总数，每次读取时两半按计数相加。</li>
- *   <li>⚠ {@code attainment} 是等级：种族授予时上移、撤销时下移，从不「设置」；无法区分授予的大师与修来的大师。</li>
+ *   <li>裸道痕指不依附于任何流派效果、仅留在肉体上的道痕条与点（当前仅由管理员指令写入）；种族、体质与蛊虫带来的效果道
+ *       痕归 {@link PathEffectService} 管理。</li>
+ *   <li>{@link #getMarks} 在读取时将裸道痕（{@link #getBareMarks}）与效果道痕（{@link PathEffectService#getMarks}）实时
+ *       相加，返回该流派的完整道痕总数。</li>
+ *   <li>⚠ 流派造诣只存当前等级而不区分来源：异人种族授予或撤销天赋时通过 {@link #shiftAttainment} 相对平移等级，切勿用
+ *       硬编码等级直接覆盖玩家修得的造诣。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathData
- * @see PathEntry
- * @since 1.0.0
  */
 
 public final class PathService {

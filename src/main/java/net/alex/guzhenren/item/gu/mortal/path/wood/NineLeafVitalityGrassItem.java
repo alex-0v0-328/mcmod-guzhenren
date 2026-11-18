@@ -22,21 +22,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 九叶生机草[Nine Leaf Vitality Grass]：长生机叶蛊[Vitality Leaf Gu]的木道草，至多九片。
+ * 九叶生机草[Nine Leaf Vitality Grass]物品：可生长并采摘生机叶蛊[Vitality Leaf Gu]的二转持续照顾型蛊[Tended Gu]，至多蓄
+ * 满九片叶。
  * <ul>
- *   <li>无时钟：不进食、不饿死、不修复生命；炼化后点按免费摘一片入包，{@link #checkEffect} 管摘叶、点按与效果，
- *       {@link #checkOwnUse} 管长叶。</li>
- *   <li>长按蓄力 {@link #GROW_CHARGE_TICKS}、付 {@code essencePerLeaf} 真元[Essence]长一片；同其他催动经
- *       {@code PrimevalStoneSupply.pay}，不足由所带元石[Primeval Stone]补。</li>
- *   <li>⚠ 无组件的物品算九片：花上摘的、野生的、创造复制的都满。</li>
- *   <li>⚠ 自行再生（{@link LeafGrowth}）按草自身时钟，不受宙道时间缩放；后者只缩短长叶蓄力。</li>
- *   <li>{@link #PICKED} 模型属性：满 0，半 {@link LeafGrowth#PICKED_HALF}，空 {@link LeafGrowth#PICKED_BARE}。</li>
+ *   <li>无饱食时钟：无需喂食、不会饿死、也不自动修复损伤；已炼化状态下启用「右键一击两用」：右键轻点免费摘下一片生机叶
+ *       蛊放入背包（由 {@link #checkEffect} / {@link #checkOwnTapUse} 校验是否有叶，{@link #performTapUse} 走
+ *       {@link #drive} 触发 {@link #applyEffect}），长按蓄力 {@link #GROW_CHARGE_TICKS} 则消耗 {@code essencePerLeaf}
+ *       点真元催熟一片叶（由 {@link #checkOwnUse} 校验未满九片且真元充足，{@link #performOwnUse} 经
+ *       {@link PrimevalStoneSupply#pay} 扣费）。</li>
+ *   <li>⚠ 未携带 {@code LEAF_GROWTH} 组件的物品栈默认视为满九片叶（{@link LeafGrowth#FULL}），保证从自然花朵采摘、野生
+ *       捕获或创造模式复制的九叶生机草初始均为满叶。</li>
+ *   <li>⚠ 叶片的自然再生（{@link LeafGrowth}）按世界时钟结算，不受持有者自身时间流速（{@link TimeFlow}）缩放；时间流速
+ *       仅缩短长按催熟叶片的蓄力时长（{@link #useChargeTicks}）。</li>
+ *   <li>物品模型属性 {@link #PICKED} 根据当前叶片数映射为满叶（{@code 0.0F}）、半叶（{@link LeafGrowth#PICKED_HALF}）与
+ *       光杆（{@link LeafGrowth#PICKED_BARE}）三态贴图。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see LeafGrowth
- * @since 1.0.0
  */
 
 public class NineLeafVitalityGrassItem extends TendedGuItem {

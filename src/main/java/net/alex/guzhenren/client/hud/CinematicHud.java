@@ -8,17 +8,12 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 温养[Nourish]运镜（{@link CultivationCamera}）的上下黑边与切镜黑屏。
+ * 温养[Nourish]运镜（{@link CultivationCamera}）的上下黑边与切镜黑屏绘制器。
  * <ul>
- *   <li>注册在全部 HUD 层之下（{@code ClientEvents}），运镜期间其余层由白名单隐藏，温养条改画在下黑边正中
- *       （{@link #getBottomCenter}）。</li>
- *   <li>黑边各占屏高 {@link #BAR_FRACTION}，0.5 秒滑入滑出；切镜黑屏铺满画面、压在黑边之下。</li>
+ *   <li>注册在全部 HUD 图层之下（{@code ClientEvents}），运镜期间其余图层由白名单隐藏，温养条则改画在下黑边正中（
+ *       {@link #getBottomCenter}）。</li>
+ *   <li>上下黑边各占屏幕高度的 {@link #BAR_FRACTION} 并在 0.5 秒内滑入滑出；切镜黑屏铺满全屏且压在黑边之下。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CultivationCamera
- * @since 1.0.0
  */
 
 public final class CinematicHud {

@@ -7,17 +7,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * 二段飞行[Second-Stage Flight]中屏蔽本机跳跃、潜行的升降；仅客户端。
+ * 仅客户端 Mixin，在二段飞行[Second-Stage Flight]期间屏蔽本机跳跃与潜行键带来的垂直升降速度（与 {@link PlayerMixin} 配
+ * 合）。
  * <ul>
- *   <li>{@code LocalPlayer#aiStep} 移动前给速度加 3 倍飞行速度的升降；{@link #guzhenren$holdSecondStageAltitude} 在有同
- *       步标记时把此处飞行速度读成 0，巡航（{@link PlayerMixin}）只随视线、不受按键漂移。</li>
- *   <li>⚠ 不用事件或 API：NeoForge 21.1.265 对 {@code aiStep} 这段升降无钩子；只在此处读 0，别处飞行速度不受影响。</li>
+ *   <li>{@code LocalPlayer#aiStep} 会在移动前按 3 倍飞行速度叠加按键升降量；当 {@link SecondStageService#isActive} 为真
+ *       时，{@link #guzhenren$holdSecondStageAltitude} 将此处的飞行速度读数屏蔽为 0，确保巡航严格跟随视线方向而不因按键
+ *       发生高度漂移。</li>
+ *   <li>⚠ 不使用事件或 API：NeoForge 21.1.265 未对 {@code aiStep} 的该段升降逻辑提供任何事件钩子，本修改点仅拦截此处读
+ *       数而不影响其他位置对飞行速度的读取。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerMixin
- * @since 1.0.0
  */
 
 @Mixin(LocalPlayer.class)

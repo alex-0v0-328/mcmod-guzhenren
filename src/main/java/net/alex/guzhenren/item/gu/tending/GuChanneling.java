@@ -10,25 +10,21 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 持续照顾型蛊[Tended Gu]的灌注[Channel]定额：灌注一轮或炼化野生蛊时每步可倒的真元[Essence]。
+ * 持续照顾型蛊[Tended Gu]的灌注[Channel]定额计算器：负责计算单轮灌注或炼化野生蛊时每步允许注入的真元上限。
  * <ul>
- *   <li>宿主 {@code TendedGuItem} 管钩子、进食、付费，本类只定量、记倒入量，不倒过一轮终点；灌注步以饱食[Hunger]下限之
- *       上的真元封顶，故宿主先进食再定量。</li>
- *   <li>⚠ 炼化、灌注各每 {@link #STEP_TICKS}（2 tick）一步。持有者转数高于蛊时按蛊定速：灌注每步至多一轮
- *       1/{@link #STEPS_PER_ROUND}，每 {@link #ROUND_TICKS}（8 步，16 tick = 0.8 秒）一轮，经 {@code TimeFlow} 缩放、
- *       不看饱食；炼化每步可倒整池。否则由池定速：8 步一周期，每步依次倒池的 1/9、1/8……1/2，常速一周期共 8/9。</li>
- *   <li>⚠ 池低于 {@link #ESSENCE_FLOOR} 则每步为 0；创造模式不扣元石[Primeval Stone]，补足抬不高池，故按补足后应剩的池
- *       （{@code PrimevalStoneSupply.getPoolAfterTopUp}）定量，不低于下限，忽略饱食下限。</li>
- *   <li>☠ 若按裸池，创造空池每步仅下限 1/9 即 2，而三转炼化要 51,200。</li>
- *   <li>定量方法皆有纯数值重载供测试（同 {@code TimeFlow} 算术），玩家重载读数后调用；池低于下限即返回 0、不掷随机数，
- *       否则仅 {@code TimeFlow.scale} 遇小数积时掷一次。</li>
+ *   <li>宿主 {@link TendedGuItem} 负责交互钩子、进食与实际扣费，本类仅计算单步注入量并推进已投入计数，保证不超出单轮上
+ *       限；灌注步会以饱食[Hunger]下限之上的可用点数作为封顶，因此宿主必须先执行进食再调用本类定量。</li>
+ *   <li>⚠ 炼化与灌注均每 {@link #STEP_TICKS}（2 tick）推进一次。当持有者转数高于蛊虫时按蛊虫节奏定速：灌注每步至多注入
+ *       一轮的 1/{@link #STEPS_PER_ROUND}，每 {@link #ROUND_TICKS}（8 步，16 tick = 0.8 秒）完成一轮并经
+ *       {@link TimeFlow} 缩放且不看饱食；炼化每步至多可注入整池真元。其余情况按真元池比例定速：8 步为一个周期，每步依次
+ *       注入当前真元池的 1/9、1/8 直至 1/2，常速下一周期累计注入 8/9。</li>
+ *   <li>⚠ 真元池低于 {@link #ESSENCE_FLOOR} 时每步定量为 0；由于创造模式下使用元石[Primeval Stone]不扣物品且补足无法抬
+ *       高真元池，定量必须以补足后应余的真元池（{@link PrimevalStoneSupply#getPoolAfterTopUp}）为准并忽略饱食下限；若改
+ *       按裸池计算，创造模式空池每步仅能注入下限的 1/9（即 2 点），无法完成需要 51,200 点真元的三转炼化。</li>
+ *   <li>所有定量方法均提供纯数值重载供单元测试直接调用（与 {@code TimeFlow} 算术一致），玩家重载仅在读取状态后委托给纯
+ *       数值版本；当真元池低于下限时直接返回 0 且不掷随机数，否则仅在 {@code TimeFlow.scale} 产生小数余数时掷一次随
+ *       机。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @see GuHunger
- * @since 1.0.0
  */
 
 final class GuChanneling {

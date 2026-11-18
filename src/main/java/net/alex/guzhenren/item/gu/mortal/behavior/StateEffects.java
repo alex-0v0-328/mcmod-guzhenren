@@ -30,27 +30,25 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 状态蛊的流派效果。
+ * 状态类凡蛊（僵尸形态、酒虫[Liquor Worm]精炼、石窍蛊[Stone Aperture Gu]石化空窍、随意蛊[Casual Gu]与
+ * 恶念蛊[Malicious Thought Gu]念头充塞）的流派效果管理与同步工具。
  * <ul>
- *   <li>状态：僵尸蛊的僵尸形态、酒虫[Liquor Worm]精炼、石窍蛊[Stone Aperture Gu]石化空窍[Aperture]、随意蛊[Casual Gu]
- *       与恶念蛊[Malicious Thought Gu]念头充塞；自行或经命令结束，效果随之结束、点即消散；不读道痕[Path Marks]定
- *       量。</li>
- *   <li>{@link PathEffectService} 上的工具与事件订阅者；造状态的蛊查 {@code ModItems}，其 {@code GuProperties} 给载体、
- *       道[Path]、点，来源为蛊物品 id；念与精炼效果是状态真值，原版效果只是图标、计时、等级：{@code /effect clear}
- *       只让图标消失到下次心跳，牛奶全解不掉。</li>
- *   <li>僵尸形态、石化空窍存于 {@code BodyData}、{@code Aperture}，命令设置无需另调：{@link #syncZombie}、
- *       {@link #syncStone} 在变更事件与登录时由状态推出效果：僵尸按档找蛊，{@code zombieTier} 为负（命令未给档）
- *       按 0 档；石窍按被石化空窍中最高的转数找蛊。</li>
- *   <li>⚠ 仅临时僵尸化带僵尸效果；永久僵尸化消散其变化道点：{@link #syncZombie} 当场令效果到期，按到期结束、形态保留，
- *       登录或命令都不再给；临时僵尸效果被摘则连形态带走，仅到期则交 {@code UndeadService.tickTempZombie} 恢复；
- *       石化空窍不因效果结束解除，下次空窍写入补回效果。</li>
+ *   <li>此类状态随自身计时或命令结束时，对应的 {@link PathEffect} 同步结束并消散道痕[Path Marks]点数，状态本身不按道痕
+ *       数量做数值缩放。</li>
+ *   <li>付与状态的蛊虫通过扫描 {@code ModItems} 定位，并由其 {@code GuProperties} 提供载体、流派与道痕点数，效果来源取
+ *       该蛊物品 ID；念头充塞与精炼的流派效果即状态真值，原版药水效果仅作图标、倒计时与等级投影（{@code /effect clear}
+ *       只能让图标暂隐至下一轮心跳，饮用牛奶亦无法清除）。</li>
+ *   <li>僵尸形态与石化空窍的真值分别保存在 {@code BodyData} 与 {@code Aperture} 中，命令修改状态时无需额外调用本
+ *       类：{@link #syncZombie} 与 {@link #syncStone} 在监听到变更事件及玩家登录时自动由真值推导流派效果（临时僵尸按
+ *       {@code zombieTier} 匹配对应转数僵尸蛊，命令未指定档位导致为负时按 0 档处理；石窍按已石化空窍中的最高转数匹配石
+ *       窍蛊）。</li>
+ *   <li>⚠ 仅临时僵尸化携带变化道流派效果，转为永久僵尸化时必须消散该效果的道痕点数：{@link #syncZombie} 调用
+ *       {@link #dissipate} 将效果结束 tick 改为当前时刻并立刻触发到期（按自然到期结束而非移除，从而在 {@link #onEnded}
+ *       中保留僵尸形态，此后登录或命令均不再补挂效果）；反之若临时僵尸效果被显式移除
+ *       （{@code Reason.REMOVED}），{@link #onEnded} 会一并清除僵尸体质，而自然到期则交由
+ *       {@code UndeadService.tickTempZombie} 恢复肉身；石化空窍不随流派效果结束而解封，下次空窍写入时会重新补齐效
+ *       果。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffectService
- * @see TimedEffects
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)
@@ -108,7 +106,6 @@ public final class StateEffects {
         PathEffectService.apply(player, gu.createEffect(ModPathEffectTypes.ZOMBIE, endTick, Unit.INSTANCE));
     }
 
-    // An expiry, unlike a removal, leaves the form standing (see onEnded).
     private static void dissipate(ServerPlayer player, PathEffect<Unit> current) {
         long now = player.level().getGameTime();
         PathEffectService.update(player, ModPathEffectTypes.ZOMBIE, current.source(),

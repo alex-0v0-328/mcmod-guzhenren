@@ -6,15 +6,9 @@ import java.util.function.ToIntFunction;
 import java.util.random.RandomGenerator;
 
 /**
- * 出生定级枚举共用的加权抽取。
- * <ul>
- *   <li>权重取自 {@code ToIntFunction}，各枚举自带权重列；过滤重载先剔除再加权（普通资质[Aptitude]抽取排除
- *       {@code TEN_EXTREMES}）；总权重 0 时 {@code nextInt(0)} 抛异常，同集中前。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 出生定级等枚举共用的加权随机抽取工具。权重由调用方传入的 {@link ToIntFunction} 提供，带过滤谓词的重载会先剔除不满足条
+ * 件的候选项再累加总权重（例如抽取常规资质[Aptitude]时排除十绝体 {@code TEN_EXTREMES}）；若过滤后总权重为 0 则由
+ * {@code random.nextInt(0)} 直接抛出异常。
  */
 
 public final class WeightedPick {

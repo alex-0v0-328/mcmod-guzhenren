@@ -15,19 +15,15 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 山如故[Mountain As Before Gu]与江如故[River As Before Gu]：周围区块回到初次生成的裸地形。
+ * 山如故[Mountain As Before Gu]与江如故[River As Before Gu]物品：继承 {@link AsBeforeGuItem}，将周围区块回溯为世界种子
+ * 初次生成的裸地形。
  * <ul>
- *   <li>裸地形即无树木、植物、湖泊、雪、冰、矿石、结构；一类两注册，按恢复的 {@link ChunkKind} 区分：山如故管陆地区块，
- *       江如故管水域区块，所在区块为另一种时拒绝。</li>
- *   <li>结算把 5×5 内已加载的同种区块交 {@code ChunkRewindService.rewindAround}：按种子重生成，每服务端 tick 恢复一块；
- *       异种邻块静默跳过；{@code ModEvents.canGrief} 不许改地形（{@code mobGriefing}）时扣费前拒绝。</li>
+ *   <li>裸地形指仅保留基础地形与地层，不含树木、植被、湖泊、冰雪、矿脉与结构；两只蛊共用本类，按目标 {@link ChunkKind}
+ *       区分：山如故仅作用于陆地区块，江如故仅作用于水域区块，玩家脚下所在中心区块属于另一类型时直接拒绝。</li>
+ *   <li>催动生效时收集以玩家所在区块为中心 5×5 范围内已加载的同类型区块，交由 {@link ChunkRewindService#rewindAround}
+ *       按世界种子重新生成并每服务端 tick 恢复一个区块（范围内的异类邻块静默跳过）；若 {@link ModEvents#canGrief} 禁止
+ *       破坏地形（如关闭 {@code mobGriefing}），则在扣费前拒绝。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AsBeforeGuItem
- * @see ChunkRewindService
- * @since 1.0.0
  */
 
 public class TerrainAsBeforeGuItem extends AsBeforeGuItem {

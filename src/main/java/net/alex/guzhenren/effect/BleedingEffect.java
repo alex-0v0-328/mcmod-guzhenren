@@ -7,13 +7,9 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 流血效果：每秒 1 点伤害、无视护甲，由血月刃留下；无状态普通效果，故牛奶能解（{@link MilkCureEvents} 唯一例外）；脉冲
- * 不指明攻击者，击杀归最后伤害者，同中毒。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.entity.projectile.MoonBladeEntity
- * @since 1.0.0
+ * 流血效果：每秒造成 {@value #DAMAGE_PER_PULSE} 点无视护甲伤害，由血月刃
+ * （{@link net.alex.guzhenren.entity.projectile.MoonBladeEntity}）附加；由于背后不挂接持久状态，因此是
+ * {@link MilkCureEvents} 中唯一允许牛奶解除的效果，且脉冲不指定攻击者而沿用最后伤害者归属。
  */
 
 public final class BleedingEffect extends PeriodicEffect {

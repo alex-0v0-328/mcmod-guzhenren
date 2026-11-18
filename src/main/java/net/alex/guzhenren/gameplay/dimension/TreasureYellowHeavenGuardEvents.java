@@ -12,12 +12,8 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 宝黄天[Treasure Yellow Heaven]交互的事件处理器：转交 {@link TreasureYellowHeavenGuard}，取消其拒绝项；规则在那边。
- *
- * @author Alex
- * @version 1.0.0
- * @see TreasureYellowHeavenGuard
- * @since 1.0.0
+ * 宝黄天[Treasure Yellow Heaven]守卫事件订阅入口：将方块、交互、攻击、丢弃、受伤与玩家 tick 事件转发给
+ * {@link TreasureYellowHeavenGuard} 并在被拒时取消事件。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

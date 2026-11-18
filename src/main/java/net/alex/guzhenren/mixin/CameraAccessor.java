@@ -7,13 +7,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 /**
- * 温养[Nourish]运镜改写本帧镜头的位置、朝向与离体标记；仅客户端，由 {@link GameRendererMixin} 在镜头摆好后调用。
- * ⚠ 不用事件或 API：{@code ViewportEvent.ComputeCameraAngles} 只给角度，且 NeoForge 21.1.265 在 {@code setup} 设位置前
- * 发出；Epic Fight 第三人称镜头取消原版 {@code setup}，连该事件也不发。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 仅客户端访问器，供 {@link GameRendererMixin} 在温养[Nourish]运镜生效时直接改写 {@link Camera} 的位置、旋转角与离体标
+ * 记。
+ * <ul>
+ *   <li>⚠ 不使用事件或 API：NeoForge 21.1.265 的 {@code ViewportEvent.ComputeCameraAngles} 仅提供角度修改且触发于
+ *       {@code setup} 设置位置之前，而 Epic Fight 第三人称镜头会取消原版 {@code setup} 导致该事件根本不触发。</li>
+ * </ul>
  */
 
 @Mixin(Camera.class)

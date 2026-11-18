@@ -8,18 +8,16 @@ import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 模组事件发布入口与地形改动门槛。
+ * 模组内部事件发布入口与实体破坏地形的统一权限门禁。
  * <ul>
- *   <li>{@link #post} 发到游戏事件总线，下层借此告知上层变化（空窍[Aperture]、体质、力道、本命蛊丢失）。</li>
- *   <li>{@link #canGrief}：唯一地形门槛，管空窍压力爆炸弹坑、山如故[Mountain As Before Gu]、
- *       江如故[River As Before Gu]；经加载器破坏事件跟随原版 {@code mobGriefing}，服务器可用
- *       {@code /gamerule mobGriefing false} 关闭，保护模组可逐实体裁定；伤害不问它。</li>
- *   <li>⚠ 服务只经 {@link #post} 发布、经 {@link #canGrief} 询问，地形改动才都过同一门槛。</li>
+ *   <li>{@link #post} 将模组自定义事件派发至 {@link NeoForge#EVENT_BUS}，供底层玩法服务向高层的进度、联动或属性模块通知
+ *       状态变更（如空窍、体质、力道变化或本命蛊损毁）。</li>
+ *   <li>{@link #canGrief} 封装 {@link EventHooks#canEntityGrief}，作为空窍自爆弹坑、山如故[Mountain As Before Gu]
+ *       与江如故[River As Before Gu]等地形改动的唯一门禁，自动遵循原版 {@code mobGriefing} 游戏规则与领地保护模组的实体
+ *       级裁定（实体伤害结算不受此门禁限制）。</li>
+ *   <li>⚠ 所有玩法服务必须统一通过 {@link #post} 发布事件、通过 {@link #canGrief} 检查地形修改权限，禁止绕过本类直接访
+ *       问底层总线或直接破坏方块。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModEvents {

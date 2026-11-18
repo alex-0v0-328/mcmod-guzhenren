@@ -19,20 +19,16 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * 本模组注册的全部实体渲染器。
- *
+ * 本模组客户端全部实体渲染器的集中注册入口。
  * <ul>
- *   <li>每族共用一个 GeckoLib 模型，每实体类型一张固定贴图；希望蛊[Hope Gu]与气波用 {@link NoopRenderer}（纯粒子）；月
- *       刃用 {@link MoonBladeRenderer} sprite；兽力虚影用 {@link BeastPhantomRenderer}。</li>
- *   <li>豕蛊[Boar Gu]的瓢虫几何按真实大小建模（约 0.19 × 0.28 格），{@link #BOAR_GU_SCALE} 画到 0.4 格碰撞箱宽，不改导
- *       出几何，保留原版死亡倾倒；其余族关闭，其死亡动画自会放倒身体。</li>
- *   <li>象按半尺寸建模，128 × 128 贴图每单位一纹素，{@link #ELEPHANT_SCALE} 放大一倍，约 3.75 格高。</li>
- *   <li>冲撞蛊[Crash Gu]贴图按转数：两只三转暗银（共用一文件），四转暗金，五转暗紫晶。</li>
+ *   <li>同族实体共用一个 GeckoLib 模型并在各实体类型上绑定一张固定贴图；希望蛊[Hope Gu]与气波使用
+ *       {@link NoopRenderer}（纯粒子表现），月刃使用 {@link MoonBladeRenderer} 绘制，兽力虚影使用
+ *       {@link BeastPhantomRenderer}。</li>
+ *   <li>豕蛊[Boar Gu]的瓢虫模型按真实比例建模（约 0.19 × 0.28 格），由 {@link #BOAR_GU_SCALE} 放大至 0.4 格碰撞箱
+ *       宽度而无需修改导出几何，且保留原版死亡倾倒；其余实体族均关闭倾倒，以便完整展示各自的死亡动画。</li>
+ *   <li>象族按半尺寸建模（128 × 128 贴图对应每单位一纹素），由 {@link #ELEPHANT_SCALE} 放大一倍至约 3.75 格高。</li>
+ *   <li>冲撞蛊[Crash Gu]贴图按转数区分：两只三转暗银（共用同一文件）、四转暗金与五转暗紫晶。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModEntityRenderers {

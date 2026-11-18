@@ -20,24 +20,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 炼蛊界面。
+ * 炼蛊操作界面。
  * <ul>
- *   <li>去四角 5×5 网格，内圈较亮，外套金框；另有三态炼制按钮、阶段条、元石[Primeval Stone]供给槽、蛊方选择器。</li>
- *   <li>⚠ 格子位置都取菜单自己的辅助方法，画出的格子与真实槽位不错开；有两种格距，网格不沿用背包格距。</li>
- *   <li>缺料虚影（{@link RecipeGhosts}）和资源池读数（{@link PoolBars}）从 {@code renderLabels} 画，手持物品才最后画；
- *       按钮和格子用 {@link Widgets}，整块背景一个 {@link GuiBatch}、三个按钮另一个，sprite 全在文字前。</li>
- *   <li>网格就绪但空窍[Aperture]付不起第一秒真元[Essence]时炼制标签变红、按钮失效；仪式运行时炼制按钮显示「停止」，
- *       蛊方按钮失效（网格已锁）。</li>
- *   <li>阶段条先在投石窗口内、再在间隔内走空；状态行未选蛊方时是内外圈图例，选后显示所选蛊方仍缺什么。</li>
- *   <li>选择器：蛊方表取 {@link KnownRecipes}，只排序一次；客户端持有完整同步蛊方表，不发包；弹窗沿 Z 平移 500，
- *       压在槽位物品上；打开时 {@link #mouseClicked(double, double, int)} 吞掉所有点击，只有左键作用于选择器；Esc
- *       先关选择器，否则同返回键回 B 面板。</li>
- *   <li>刚超 300 行：两个按钮、阶段条、状态行和选择器的输入分派都从菜单读同一份仪式状态。</li>
+ *   <li>中央为去四角 5×5 炼蛊网格（内圈较亮、外套金框），配有三态炼制按钮、阶段进度条、元石[Primeval Stone]供给槽与
+ *       蛊方选择器。</li>
+ *   <li>⚠ 所有格子坐标均直接读取菜单自身的布局辅助方法，防止绘制格位与真实槽位错位（炼蛊网格与下方玩家背包使用两种不同
+ *       格距）。</li>
+ *   <li>缺料虚影（{@link RecipeGhosts}）与资源池读数（{@link PoolBars}）在 {@code renderLabels} 中绘制，确保手持物
+ *       品最后绘制在最上层；按钮与格子通过 {@link Widgets} 绘制，整块背景使用一个 {@link GuiBatch}、三个按钮共用另一
+ *       个 {@link GuiBatch}，且精灵图全部排在文本之前。</li>
+ *   <li>当网格就绪但空窍支付不起第一秒真元时，炼制按钮文字变红且按钮禁用；炼制仪式运行期间炼制按钮切换为「停止」且蛊
+ *       方选择按钮禁用（网格已锁定）。</li>
+ *   <li>阶段条先在投石窗口内、再在间隔期内逐步走空；状态行未选蛊方时显示内外圈图例，选定后提示当前蛊方尚缺哪些条
+ *       件。</li>
+ *   <li>蛊方选择器的数据源取自 {@link KnownRecipes} 缓存（客户端持有全量同步配方表，无需发包）；弹窗沿 Z 轴平移
+ *       500 压在槽位物品之上；弹窗开启时 {@link #mouseClicked(double, double, int)} 吞掉所有点击且仅左键作用于选择
+ *       器，按 Esc 先关闭选择器，否则与返回键一样退回 B 面板。</li>
+ *   <li>本文件略超 300 行：两个按钮、阶段条、状态行与选择器的输入分派均围绕菜单提供的同一份仪式状态协同工作。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {

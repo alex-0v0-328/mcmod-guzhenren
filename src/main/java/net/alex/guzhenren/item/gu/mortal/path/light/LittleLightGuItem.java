@@ -15,26 +15,26 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 小光蛊[Little Light Gu]：光道[Light Path]一转持续照顾型蛊[Tended Gu]。
+ * 小光蛊[Little Light Gu]物品：一转持续照顾型蛊[Tended Gu]，催动作为手持强光开关而非单次法术效果。
  * <ul>
- *   <li>自身催动是开关非生效：手中发光，已炼化者付一轮可点亮 2 分钟；野生者无开关，只以 10 发光。</li>
- *   <li>发光不在代码：{@code assets/guzhenren/dynamiclights/item/} 两份 LambDynamicLights 定义，任意堆叠 10、带
- *       {@code LITTLE_LIGHT_BRIGHT} 为 15，取匹配中较大者，无该模组不发光；点亮组件同步到客户端，仅开启时存在、从不写
- *       {@code false}，定义才能匹配，关掉的堆叠与新堆叠相同。</li>
- *   <li>⚠ 开关不扣真元[Essence]：{@code performOwnUse} 取代 {@code drive}，{@code useThreshold} 为 0；点亮即一轮：
- *       付一次属性催动饱食[Hunger]，扣前后照常从背包进食，无论握否亮 {@link #BRIGHT_TICKS} 服务端游戏时间（日钟 tick，
- *       不受自身时间缩放）；再按提前熄灭，不退费；作杀招[Killing Move]辅蛊启动时扣的也是这份饱食。</li>
- *   <li>⚠ {@code LITTLE_LIGHT_BRIGHT_UNTIL} 仅开关时写一次，不逐 tick 写，因每次写入都重同步该槽；只有随身堆叠 tick，
- *       箱中或地上仍亮的一被带上即熄；创造模式进食不耗食物（{@code GuHunger}）。</li>
- *   <li>⚠ 饱食不足时点亮即强行催动[Forced Use]（{@code GuForcedUse}）：首按警告，5 秒内再按同蛊点亮整轮，熄灭时（到期或
- *       按下）蛊力竭而死；{@code LITTLE_LIGHT_FORCED} 标记该轮，与 {@code LITTLE_LIGHT_BRIGHT} 同写同删，不逐 tick 写；
- *       熄灭不设门槛；本命小光蛊饱食不足只拒绝；创造模式不警告、不死亡。</li>
+ *   <li>握在手中时常驻提供基础光照，已炼化后催动可消耗一轮饱食[Hunger]点亮 2 分钟强光；野生状态下不支持点亮开关，仅发出
+ *       10 级基础光。</li>
+ *   <li>动态光源由 {@code assets/guzhenren/dynamiclights/item/} 下的两份 LambDynamicLights 配置声明（任意小光蛊物品栈亮
+ *       度 10，携带 {@link ModDataComponents#LITTLE_LIGHT_BRIGHT} 组件时亮度 15，取匹配项的最大值；未安装该模组时不产生
+ *       动态光源）；点亮组件同步至客户端且仅在开启期间存在，熄灭时直接移除组件而非写入 {@code false}，以便匹配器区分开
+ *       关状态并保证熄灭后的物品栈与新物品栈完全一致。</li>
+ *   <li>⚠ 开关点亮不消耗真元（覆写 {@link #performOwnUse} 接管催动且 {@link #useThreshold} 恒返回 {@code 0L}）：每次点
+ *       亮扣除一次 {@code GuProperties} 声明的单次催动饱食，扣点前后照常从背包自动进食，随后无论是否继续手持均持续点亮
+ *       {@link #BRIGHT_TICKS} 服务端游戏时间（按世界时钟结算，不受玩家自身时间流速缩放影响）；亮起期间再次催动则提前熄
+ *       灭，不退还已付饱食；作为杀招[Killing Move]辅蛊启动时扣除的也是同一份单次饱食。</li>
+ *   <li>⚠ 截止时刻 {@link ModDataComponents#LITTLE_LIGHT_BRIGHT_UNTIL} 仅在开关切换时写入一次，绝不在每 tick 递减写回
+ *       （每次修改组件都会触发该背包槽位全量网络同步）；由于仅随身背包物品栈会执行 {@link #inventoryTick}，放入箱子或丢
+ *       在地上的已点亮小光蛊在超时后一旦被玩家重新拾回身上即刻熄灭。</li>
+ *   <li>⚠ 饱食不足时点亮遵循强行催动[Forced Use]（{@code GuForcedUse}）规则：首次按下发出警告，5 秒内再次按下同一只蛊则
+ *       强行点亮整轮，待熄灭时（无论自然到期或主动关灯）蛊虫力竭死亡；{@link ModDataComponents#LITTLE_LIGHT_FORCED} 标
+ *       记该轮强行点亮，与点亮组件同写同删；主动熄灭不设任何门槛；本命小光蛊在饱食不足时直接拒绝点亮；创造模式下既不警
+ *       告也不致死。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @since 1.0.0
  */
 
 public final class LittleLightGuItem extends TendedGuItem {

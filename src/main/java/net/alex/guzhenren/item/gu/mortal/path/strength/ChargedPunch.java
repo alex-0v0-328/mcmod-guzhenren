@@ -37,33 +37,33 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 蓄力蛊[Store Strength Gu]蓄满后放出的蓄力一拳。
+ * 蓄力蛊[Store Strength Gu]与惯力蛊[Habitual Strength Gu]（{@link StoreStrengthBehavior}）蓄力满槽后释放的蓄力一拳结算
+ * 工具。
  * <ul>
- *   <li>{@link StoreStrength#release} 计数后触发；按 {@link StoreStrength#getMaxPoints} 出拳，可超当前承受力
+ *   <li>由 {@link StoreStrength#release} 确认蓄满并清槽后触发；按 {@link StoreStrength#getMaxPoints} 计算出拳总点数，允
+ *       许突破当前肉身承受力上限
  *       （{@link AttackDamageService#getFistDamage(net.minecraft.world.entity.player.Player, int)}）。</li>
- *   <li>兽力虚影流随机解放一个持有兽种，苦力期间全解放，虚影显在运行中轮次的虚影旁。</li>
- *   <li>{@link #getTarget} 重验客户端给的目标（存活、可打、在视线前、距眼 {@link #MAX_TARGET_DISTANCE} 格内），伪造 id
- *       不能把一击转到身后或伸到远处。</li>
- *   <li>力气蛊[Strength Qi Gu]效果在身、目标在触及外（同远程拳）、可见且可被投射物命中时远程出手（{@link #shoot}）：
- *       每个能出形的解放兽种沿弧线发一道兽力冲击，都不能则按远程拳选法随机发一道能出形的持有兽种；人力钧力流或无此类
- *       兽种者发一道带拳全伤的追踪气波；选法见 {@code QiWaveService.getChargeFamilies}。</li>
- *   <li>冲击按本兽种力量命中（{@link BeastChargeDamage}）：解放的为永久力量点[Strength Points] ×
- *       {@link StoreStrength#CHARGED_RELEASE_FACTOR}，随机的 ×1，不截承受力；各在落点按最大点数
- *       {@link StoreStrength#getBurstRadius} 爆开，目标全额、余者 {@link QiBurst#SECONDARY_RATIO}，无范围冲击、
- *       不破方块。</li>
- *   <li>否则挥扇 {@link #swing}：水平朝保留目标（无则视线），射程按最大点数 {@link StoreStrength#getRange}，扇内
- *       可见可打者由近到远至多 {@link #MAX_TARGETS} 个，保留目标居首全额，余者 {@link #SECONDARY_RATIO}，各从脚下
- *       击退 {@link #KNOCKBACK}；打完在半个射程内崩裂地形（{@link AreaImpactShatter}）；挥空照落，总沿扇轴发一道
- *       范围冲击环到射程（{@link RingConeEmitter#areaImpactRing}）。</li>
- *   <li>无论打中什么都有冲击反噬：超承受力的点数经 {@link BodyOverload#recoil} 结算；该伤害类型不开轮次、不付肉体过载
- *       （{@code BeastPhantomEvents}）。</li>
- *   <li>⚠ {@link #MAX_TARGET_DISTANCE} 高于 Epic Fight 默认锁定距离。</li>
+ *   <li>兽力虚影流派随机解放一种已持有的永久兽力（苦力蛊[Hardship Strength Gu]生效期间则解放全部持有兽种），并将解放的
+ *       兽种虚影并入当前攻击轮次的身旁虚影一同显形。</li>
+ *   <li>{@link #getTarget} 复验客户端上报的目标实体 ID（须存活、可被命中、位于视野前方且距眼部不超过
+ *       {@link #MAX_TARGET_DISTANCE} 格），防止伪造包将拳劲转向身后或超远目标；注意 {@link #MAX_TARGET_DISTANCE} 高于
+ *       Epic Fight 默认锁定距离。</li>
+ *   <li>当玩家带有力气蛊[Strength Qi Gu]效果、复验目标位于原版近战触及距离外且视线无遮挡、可被弹射物命中时，走远程出手
+ *       （{@link #shoot}）：每个可显形的解放兽种沿弧线发射一道 {@link BeastChargeEntity}，若解放兽种均不可显形则按
+ *       {@link QiWaveService#getChargeFamilies} 从持有兽种中随机抽取一种可显形兽种发射；人力钧力流派或无可显形兽种时改
+ *       为发射一枚携带全额拳伤的追踪气波（{@link QiWaveEntity#track}）。</li>
+ *   <li>远程兽力冲击按各自兽种力量计算伤害（{@link BeastChargeDamage}）：本次解放的兽种取永久力量点[Strength Points]乘
+ *       以 {@link StoreStrength#CHARGED_RELEASE_FACTOR}，随机兜底的兽种乘 1，且均不截断至肉身承受力；落点按最大点数决定
+ *       的 {@link StoreStrength#getBurstRadius} 爆开，锁定目标承受全额伤害、其余目标乘以
+ *       {@link QiBurst#SECONDARY_RATIO}，不触发范围冲击且不破坏方块。</li>
+ *   <li>不满足远程条件时走近战扇形挥拳（{@link #swing}）：水平轴朝向复验通过的锁定目标（无目标则取视线水平投影），射程
+ *       由最大点数决定（{@link StoreStrength#getRange}），对扇形内视线可见的可命中目标由近到远至多结算
+ *       {@link #MAX_TARGETS} 个（锁定目标固定排首位并承受全额伤害，其余目标乘以 {@link #SECONDARY_RATIO}），各沿脚下连
+ *       线击退 {@link #KNOCKBACK}；随后在半数射程内崩裂地形方块（{@link AreaImpactShatter}），并始终沿扇形中轴发射一道
+ *       直达射程末端的冲击环（{@link RingConeEmitter#areaImpactRing}，挥空同样播放）。</li>
+ *   <li>无论近战、远程或挥空，出拳后均结算冲击反噬：超出当前肉身承受力的点数经 {@link BodyOverload#recoil} 造成反噬伤害
+ *       （该伤害类型不触发新攻击轮次、也不重复计入肉体过载）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StoreStrengthBehavior
- * @since 1.0.0
  */
 
 public final class ChargedPunch {

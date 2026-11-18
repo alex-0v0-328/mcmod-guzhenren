@@ -7,16 +7,12 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 飞行蛊在想要的玩家旁悬停的 AI 目标。
+ * 驱动 {@link FlyingGuEntity} 飞向目标玩家并在其眼部附近悬停的 AI 目标。
  * <ul>
- *   <li>☠ 直接驱动移动向量、从不寻路：光点直飞，路径缓存与卡住检测只会碍事。</li>
- *   <li>目标每 tick 经 {@link FlyingGuEntity#seekTarget} 重读；{@code tickCount} 正弦浮动给悬停加飘动。</li>
+ *   <li>⚠ 直接写入速度向量而不走寻路导航：光点直线接近玩家，使用寻路缓存与卡住检测反而会干扰悬停。</li>
+ *   <li>启动时通过 {@link FlyingGuEntity#seekTarget} 选取目标，逼近后以基于 {@code tickCount} 的正弦速度分量产生上下轻
+ *       飘效果。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
- * @since 1.0.0
  */
 
 public class HoverNearPlayerGoal extends Goal {

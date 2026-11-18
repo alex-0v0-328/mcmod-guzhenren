@@ -15,21 +15,16 @@ import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 纯水流体：原版 {@code WaterFluid} 换上自己的注册条目，含 {@link Flowing}、{@link Source} 两变体。
- *
+ * 纯水流体实现：继承自原版 {@link WaterFluid} 并替换为本模组注册条目，包含静态源头（{@link Source}）与流动变体
+ * （{@link Flowing}）。
  * <ul>
- *   <li>水的行为全来自父类：坡度搜索 4、每格衰减 1、流动延迟 5 tick、{@code waterSourceConversion} 下两相邻源头生新源
- *       头、环境音与粒子。</li>
- *   <li>只覆写身份：流体类型、流体对、纯水桶、液体方块；流体对在 {@code #minecraft:water}，方块侧检查全当水。</li>
- *   <li>NeoForge 绑定水类型的实体侧检查由 {@code EntityMixin} 扩展；其余归 {@link PureWaterFluidType}、
- *       {@link PureWaterEvents}。</li>
+ *   <li>完整继承原版水的物理与表现：坡度搜寻距离 4、每格水位衰减 1、流动间隔 5 tick、遵循 {@code waterSourceConversion}
+ *       规则的无限水源转化，以及水下环境音效与滴水粒子。</li>
+ *   <li>仅覆写身份关联方法，绑定本模组的 {@link ModFluidTypes#PURE_WATER}、正流与源流注册项、纯水桶及液体方块；由于流体
+ *       对已加入 {@code #minecraft:water} 标签，方块侧的水体判定均直接将其视作水。</li>
+ *   <li>NeoForge 按具体水类型判断的实体交互与属性分别由 {@link PureWaterFluidType}、{@link PureWaterEvents} 与
+ *       {@code EntityMixin} 补齐。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModFluids
- * @see PureWaterFluidType
- * @since 1.0.0
  */
 
 public abstract class PureWaterFluid extends WaterFluid {

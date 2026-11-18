@@ -29,18 +29,15 @@ import net.neoforged.neoforge.common.util.NeoForgeExtraCodecs;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link GuRecipe} 的配方管理器视图：原版 {@link Recipe}、序列化器、排序列表。
- *
+ * {@link GuRecipe} 接入原版 {@link RecipeManager} 的适配器记录，包含原版 {@link Recipe} 封装、JSON/网络编解码
+ * {@link Serializer} 与排序配方查询。
  * <ul>
- *   <li>⚠ 只有本类碰原版配方 API；{@link GuRecipe}、{@link GuIngredient}、{@link GuRecipeInput} 都不引用它。</li>
- *   <li>⚠ 蛊方序号两端一致全靠 {@link #getSorted} 按配方 ID 排序，配方管理器自身顺序毫无保证；序号覆盖服务器全部
- *       蛊方，学没学会由 {@code GuRecipeKnowledge} 另判。</li>
+ *   <li>⚠ 仅本类接触原版配方 API，底层 {@link GuRecipe}、{@link GuIngredient} 与 {@link GuRecipeInput} 均不反向依赖原版
+ *       配方接口。</li>
+ *   <li>⚠ {@link #getKnown} 与 {@link #getSorted} 必须按配方 ID 确定性排序：原版 {@link RecipeManager} 不保证返回顺序稳
+ *       定，客户端与服务端选定配方的索引一致性全赖此排序保证；索引覆盖服务器全部蛊方，玩家学没学会由
+ *       {@code GuRecipeKnowledge} 另判。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuRecipe
- * @since 1.0.0
  */
 
 public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {

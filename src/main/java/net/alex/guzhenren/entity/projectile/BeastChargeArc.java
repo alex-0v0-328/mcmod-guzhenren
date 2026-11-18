@@ -6,18 +6,15 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 兽力冲击掷出 {@link MoonBladeArc} 的方式；不依赖实体，纯 JUnit 可测。
+ * 兽力冲击（{@link BeastChargeEntity}）生成飞行弧线 {@link MoonBladeArc} 的纯数学工厂，不依赖实体状态、可直接用 JUnit
+ * 测试。
  * <ul>
- *   <li>月刃只左右弯；兽力冲击绕弦在上半圆任意弯，从左侧水平经正上方到右侧水平；不向下：挡路方块会让它消失不爆。</li>
- *   <li>同拳冲击按掷出顺序从左到右等分半圆，各在本扇区随机取角，绝无同弧。</li>
- *   <li>弯度为弦长 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO}；弧顶沿弦前后挪至多
- *       {@link #MAX_SHIFT_RATIO}，早转晚转各异。</li>
+ *   <li>月刃仅在水平方向左右弯曲，而兽力冲击绕起止弦线在上半圆任意偏转（{@link #bend} 中 {@code turn} 取 {@code 0} 为左
+ *       侧水平、{@code 0.5} 为正上方、{@code 1} 为右侧水平），绝不向下弯曲以免撞地提前消散。</li>
+ *   <li>同一拳发出的多道冲击按序号从左到右等分上半圆，各自在所属扇区内随机取角，保证同拳弧线互不重叠。</li>
+ *   <li>弯曲幅度在弦长的 {@link #MIN_BEND_RATIO}～{@link #MAX_BEND_RATIO} 之间随机，控制点另沿弦线方向前后偏移至多
+ *       {@link #MAX_SHIFT_RATIO}，使各道冲击的转折早晚各异。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastChargeEntity
- * @since 1.0.0
  */
 
 public final class BeastChargeArc {
@@ -37,7 +34,6 @@ public final class BeastChargeArc {
                 MoonBladeArc.flightTicks(start.distanceTo(end), speed));
     }
 
-    /** {@code turn} 取 0 为左侧水平，0.5 为正上方，1 为右侧水平。 */
     public static @NotNull Vec3 bend(@NotNull Vec3 start, @NotNull Vec3 end, float turn, float ratio, float shift) {
         Vec3 chord = end.subtract(start);
         double length = chord.length();

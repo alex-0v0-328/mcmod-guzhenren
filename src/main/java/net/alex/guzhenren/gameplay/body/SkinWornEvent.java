@@ -5,14 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link BodyService#wearSkin} 穿上玉皮或永久皮后发布的事件；各观看客户端的闪光由 {@code network} 订阅者发送，
- * 直接调用会成依赖环。蜕皮改发 {@link SkinShedEvent}。
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @see PhysiqueChangedEvent
- * @since 1.0.0
+ * 肉身换皮事件：{@link BodyService#wearSkin} 穿上限时玉皮或永久铜皮、铁皮后同步发布（脱皮改发 {@link SkinShedEvent}），
+ * 供上层 {@code network} 包向追踪客户端广播穿戴闪光并刷新承受力与攻击力。
  */
 
 public class SkinWornEvent extends Event {

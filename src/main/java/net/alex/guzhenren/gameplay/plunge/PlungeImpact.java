@@ -1,22 +1,18 @@
 package net.alex.guzhenren.gameplay.plunge;
 
 /**
- * 坠击落地的纯数值（纯 JVM 测试可钉），由 {@link PlungeService} 施加。
+ * 坠击落地的伤害、炸坑威力与表现强度纯函数（由 {@link PlungeService} 调用，支持裸 JVM 单元测试）。
  * <ul>
- *   <li>高度 {@link #getHeight} 为整段坠落：开始时已坠距离 + 此后落差；{@link #getDamage} 为原版 1.21 摔落伤害
- *       {@code ceil((height - safe fall distance) * fall damage multiplier)} × {@link #DAMAGE_MULTIPLIER}，两属性取自玩
- *       家（{@code PlungeService#land}）。</li>
- *   <li>{@link #getCraterPower}：坑的原版爆炸威力；低于 {@link #CRATER_MIN_HEIGHT} 为 0，达到为 {@link #MIN_POWER}，每
- *       {@link #POWER_STEP} 格 +1，64 格起封顶 {@link #MAX_POWER}（闪电苦力怕的 6：泥土约 5 格宽的坑，石头小得多，按原
- *       版爆炸抗性）。</li>
- *   <li>{@link #getImpactPower}：落地表现强度（地裂半径、震屏幅度）；低于 {@link #IMPACT_MIN_HEIGHT} 为 0，4 格起取坑威
- *       力，其间取 {@link #MIN_POWER}；3–4 格已摔伤（原版安全距离 3）但不挖坑，关闭破坏时也不成坑，表现照出。</li>
+ *   <li>总下落高度 {@link #getHeight} = 起砸前已累计的坠落距离 + 起砸后的高度差；自身摔伤 {@link #getDamage} 为原版
+ *       1.21 摔落伤害公式 {@code ceil((height - safeFallDistance) * fallDamageMultiplier)} 的
+ *       {@link #DAMAGE_MULTIPLIER}（3）倍。</li>
+ *   <li>炸坑爆炸威力 {@link #getCraterPower}：下落不足 {@link #CRATER_MIN_HEIGHT}（4 格）时为 {@code 0}，满 4 格从
+ *       {@link #MIN_POWER} 起步，每多下落 {@link #POWER_STEP}（15 格）威力 {@code +1}，至 64 格封顶于
+ *       {@link #MAX_POWER}（6.0，等同闪电苦力怕）。</li>
+ *   <li>落地视觉表现强度 {@link #getImpactPower}（驱动地裂半径与震屏幅度）：下落不足 {@link #IMPACT_MIN_HEIGHT}（3 格）
+ *       时为 {@code 0}，3 至 4 格之间取 {@link #MIN_POWER}（已受摔伤但不挖坑），4 格及以上与炸坑威力一致（即便关闭地形
+ *       破坏也照常播放表现）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlungeService
- * @since 1.0.0
  */
 
 public final class PlungeImpact {

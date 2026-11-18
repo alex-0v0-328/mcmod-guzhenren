@@ -22,23 +22,21 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@code /gzr path}：写造诣和裸道痕[Path Marks]，摘除流派效果，并挂力量子命令。
- *
+ * {@code /gzr path} 子命令：修改各流派造诣与肉身裸道痕[Path Marks]、移除流派效果，并挂载力道子命令
+ * （{@link CmdStrength}）。
  * <ul>
- *   <li>道[Path]参数用 {@link ModEnumArgument}；写入交给 {@link PathService}、{@link PathEffectService}。</li>
- *   <li>{@code marks <path> set|add|sub <marks> [points set|add|sub <points>]} 写该道肉体裸道痕，先条后点；
- *       {@code marks <path> points set|add|sub <points>} 只写点；条、点互不换算；肉体是无效果道痕的唯一载体。</li>
- *   <li>{@code effect remove <type>} 摘除该类全部效果及其道痕；{@code effect clear} 全部摘除。</li>
- *   <li>☠ 只写裸道痕，不在此挂效果：效果道痕只随设置其来源（种族、体质、品级）的命令而来，带着来源并随之撤销；
- *       手写效果无法与来源挂上的区分，永不撤销。</li>
- *   <li>☠ 字面量 {@code marks}、{@code attainment}、{@code effect} 在道词前，动词在后：{@code GuPath} 也有
- *       {@code strength} 常量，与 {@code strength} 字面量并列挂在 {@code path} 下的单词参数永远输不成此道。</li>
+ *   <li>流派参数通过 {@link ModEnumArgument} 解析，数据修改分别委托给 {@link PathService} 与
+ *       {@link PathEffectService}。</li>
+ *   <li>{@code marks <path> set|add|sub <marks> [points set|add|sub <points>]} 先写该流派的肉身裸道痕条数、再可选写点
+ *       数，{@code marks <path> points set|add|sub <points>} 则单独写点数；条与点互不自动换算。</li>
+ *   <li>{@code effect remove <type>} 移除指定类型的全部流派效果及其附带道痕，{@code effect clear} 清空全部流派效
+ *       果。</li>
+ *   <li>⚠ 本命令仅允许直接修改肉身裸道痕，不提供手动挂载流派效果的入口：效果道痕必须由设置种族、体质或肉身品级等来源命
+ *       令自动挂载并随来源一同撤销，若手动绕过来源注入效果将导致该效果永远无法被正常卸载。</li>
+ *   <li>⚠ 子分支字面量 {@code marks}、{@code attainment}、{@code effect} 必须置于流派参数之前：因为 {@link GuPath} 枚举
+ *       本身包含 {@code strength}，若将流派参数直接挂在 {@code path} 下与 {@code strength} 字面量子命令并列，会导致力道
+ *       枚举值被字面量节点遮蔽而无法输入。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.ModEnumArgument
- * @since 1.0.0
  */
 
 public final class CmdPath {

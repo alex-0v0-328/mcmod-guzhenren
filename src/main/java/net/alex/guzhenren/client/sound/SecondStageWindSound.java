@@ -11,16 +11,13 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 本地玩家二段飞行[Second-Stage Flight]的风声，仅本人客户端可闻。
+ * 本地玩家二段飞行期间的持续风声实例，仅在本人客户端播放。
  * <ul>
- *   <li>原版鞘翅循环音，随玩家位置和油门；{@code SecondStageEvents} 每次进入二段飞行时启动，标记消失时停止。</li>
- *   <li>油门到 {@link #QUIET_THROTTLE} 前静音、满油门满音量；音高从 {@link #BASE_PITCH} 起随油门升
- *       {@link #PITCH_PER_THROTTLE}；音量和音高向目标缓动，每 tick 升 {@link #RISE}、降 {@link #FALL}。</li>
+ *   <li>复用原版鞘翅循环风声并实时跟随玩家位置与油门变化；由 {@code SecondStageEvents} 在进入二段飞行时启动，并在飞
+ *       行标记消失时自动停止。</li>
+ *   <li>油门达到 {@link #QUIET_THROTTLE} 前保持静音、满油门时达到最大音量，音高则从 {@link #BASE_PITCH} 起随油门升
+ *       高 {@link #PITCH_PER_THROTTLE}；音量与音高每 tick 按 {@link #RISE} 与 {@link #FALL} 速率向目标平滑缓动。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class SecondStageWindSound extends AbstractTickableSoundInstance {

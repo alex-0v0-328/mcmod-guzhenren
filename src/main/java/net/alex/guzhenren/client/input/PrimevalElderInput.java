@@ -23,22 +23,20 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * 元老蛊[Primeval Elder Gu]的客户端输入。
+ * 元老蛊[Primeval Elder Gu]的客户端输入处理器。
  * <ul>
- *   <li>主手持已炼化者右键：不使用物品，改按住 {@link HoldSlider}；轻点（滑条弹出前松开）存入，选中取出相应组数（每组
- *       64 个），均由 {@link PrimevalElderPayload} 携带，服务端全部重查。</li>
- *   <li>按住跟随选中栏位与物品而非物品堆实例：存量变动（天元宝莲[Heavenly Essence Treasure Lotus Gu]产入、付款扣出）
- *       时服务端重同步物品堆，不能因此结束按住；滑条上限为 {@code PrimevalElderGuItem.getWithdrawableStacks}，
- *       弹出时读实时物品堆，为 0 则显示服务端同款拒绝（库空或背包满）并等按住结束。</li>
- *   <li>野生、副手及身在宝黄天[Treasure Yellow Heaven]时把点击交还原版：野生者仍可按住炼化，其余照旧被拒。</li>
- *   <li>⚠ 从野生开始的按下（{@code refiningPress}）炼化后不弹出：原版会重发按住的点击，滑条等下次按下；
- *       该唯一可变静态字段为本机按住锁存，使用键抬起即清。</li>
+ *   <li>主手持有已炼化的元老蛊并按下右键时，拦截原版物品使用并改为按住唤出 {@link HoldSlider}；轻点（滑条弹出前松
+ *       开）存入背包全部元石[Primeval Stone]，拖动选中组数则按每组 64 个取出，两种意图均通过
+ *       {@link PrimevalElderPayload} 发往服务端并全量重查。</li>
+ *   <li>按住过程追踪所选快捷栏位与物品类型而非物品栈实例（存量因天元宝莲[Heavenly Essence Treasure Lotus Gu]产入或
+ *       扣费变化时服务端会重新同步物品栈，不能因此打断按住）；滑条上限读取
+ *       {@code PrimevalElderGuItem.getWithdrawableStacks}（弹出时取实时物品栈），若上限为 0 则立即提示与服务端一
+ *       致的拒绝消息（库空或背包满）并等待松手结束。</li>
+ *   <li>野生状态、位于副手或身处宝黄天[Treasure Yellow Heaven]时将点击交还原版处理（野生仍可长按炼化，其余按规被
+ *       拒）。</li>
+ *   <li>⚠ 从野生状态开始按住直至炼化完成的当次按压（{@code refiningPress}）在炼化完成瞬间不会直接弹出滑条：原版会
+ *       重发持续按住的点击，须待松手后下次再按才唤出滑条；该唯一可变静态字段仅作本机按住锁存，使用键抬起即清零。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PrimevalElderGuItem
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

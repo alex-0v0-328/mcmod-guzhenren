@@ -33,27 +33,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 从种子重新生成的裸地形，供山如故[Mountain As Before Gu]、江如故[River As Before Gu]还原。
+ * 从世界种子在后台重新生成区块初始裸地形的生成器（供山如故[Mountain As Before Gu]与江如故[River As Before Gu]使用）。
  * <ul>
- *   <li>生成到从不加入维度的临时 {@link ProtoChunk}，只回地形：无树、植物、湖、雪、冰、矿、结构、建筑；用维度自身生成器
- *       跑 {@link ChunkPyramid#GENERATION_PYRAMID} 的 {@code BIOMES} 至 {@code FEATURES}，模组地形（Gu World、
- *       Tectonic、Terralith）按原样回来；无结构起点，不放结构也不被结构改形：村庄的山回到建村前。</li>
- *   <li>装饰（{@code FEATURES}）只为上色（移植悬崖的花岗岩与方解石条带、峡谷石柱）：{@link #keep} 只放行
- *       {@link ModBlockTags#AS_BEFORE_TERRAIN} 互换，装饰增删的树、植物、湖、巨石、雪、冰退回裸地形；
- *       {@link ModBlockTags#AS_BEFORE_STRIPPED}（矿石、噪声原矿矿脉）还原为所在的石头或深板岩。</li>
- *   <li>地物写到外一区块、地形步骤读外一区块群系，故半径 {@code r} 装饰 {@code r + 1}、塑形 {@code r + 2}、铺群系
- *       {@code r + 3}：5×5 还原铺 11×11 临时区块；{@link #layOut} 之后在 {@code Util.backgroundExecutor()} 运行，地形步
- *       骤并行（各写本区块），地物逐块串行（会写邻居）。</li>
- *   <li>{@link ScratchHolder} 对任何请求状态都交出同一区块（无则空区块），从不调度；结果只含方块，无光照、实体、计划
- *       tick、方块实体。</li>
- *   <li>⚠ 生成管线（{@code GenerationChunkHolder}、{@code ChunkStep}、{@code WorldGenContext}）只在此引用；结果为种子在
- *       当前生成器与模组下的地形，区块生成后换过生成器或世界生成模组，该处得新地形。</li>
+ *   <li>在绝不挂载到真实维度的临时 {@link ProtoChunk} 上运行维度自身的区块生成器（依次执行
+ *       {@link ChunkPyramid#GENERATION_PYRAMID} 的 {@code BIOMES}、{@code NOISE}、{@code SURFACE}、{@code CARVERS} 与
+ *       {@code FEATURES}），完整复现模组地形（Gu World、Tectonic、Terralith）；因初始状态跳过结构起点生成，不会放置任何
+ *       结构建筑，也不会受村庄等结构的地形平整影响。</li>
+ *   <li>地物装饰步（{@code FEATURES}）仅用于保留悬崖花岗岩/方解石岩层等岩石上色：{@link #keep} 仅允许同属
+ *       {@link ModBlockTags#AS_BEFORE_TERRAIN} 的地形方块互换（将装饰步生成的树木、植物、湖泊、巨石与冰雪退回雕刻后的裸
+ *       地形），并将属于 {@link ModBlockTags#AS_BEFORE_STRIPPED} 的矿石与原矿脉替换为所在高度的普通石头、深板岩或下界
+ *       岩。</li>
+ *   <li>因地物装饰会向相邻 1 区块写入、地形生成需读取外围群系，生成半径 {@code r} 的目标方阵需外扩铺设 {@code r + 3} 的
+ *       临时区块（例如 5×5 目标方阵需铺设 11×11 临时区块）；{@code layOut} 在主线程捕获上下文后交由
+ *       {@code Util.backgroundExecutor()} 异步执行（地形四步并行，地物装饰逐块串行）。</li>
+ *   <li>私有 {@code ScratchHolder} 对任意请求状态直接返回内存中的临时区块而不触发区块调度；生成的裸区块仅含方块状态，不
+ *       含光照、实体、计划刻或方块实体。</li>
+ *   <li>⚠ 底层世界生成管线（{@code GenerationChunkHolder}、{@code ChunkStep}、{@code WorldGenContext}）仅封装在本类内；
+ *       生成结果反映当前种子与当前世界生成器配置，若存档中途更换过地形模组则会还原出新生成器的地形。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ChunkRewindService
- * @since 1.0.0
  */
 
 public final class ChunkOriginGenerator {
@@ -67,7 +64,7 @@ public final class ChunkOriginGenerator {
     private static final List<ChunkStatus> TERRAIN_STEPS =
             List.of(ChunkStatus.BIOMES, ChunkStatus.NOISE, ChunkStatus.SURFACE, ChunkStatus.CARVERS);
 
-    /** {@code center} 周围半径 {@code radius} 方阵的裸地形，后台生成。 */
+    /** 在后台线程异步生成以 {@code center} 为中心、半径 {@code radius} 方阵的初始裸地形区块映射。 */
     public static @NotNull CompletableFuture<Map<ChunkPos, ChunkAccess>> generate(@NotNull ServerLevel level,
                                                                                   @NotNull ChunkPos center,
                                                                                   int radius) {

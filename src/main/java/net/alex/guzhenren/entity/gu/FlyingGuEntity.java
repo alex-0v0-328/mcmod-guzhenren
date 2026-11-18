@@ -20,20 +20,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 会飞的野生蛊：飘向想要的玩家并悬停。
+ * 飞行野生蛊基类：继承 {@link WildGuEntity}，发现合意玩家时主动飘近并在其身旁悬停（{@link HoverNearPlayerGoal}）。
  * <ul>
- *   <li>{@code seeks} 是唯一关口：基类全要，叶子类收窄；{@link #isWanting} 兼管选定与保持，玩家转旁观或离开即放
- *       手。</li>
- *   <li>⚠ {@code isNoGravity()} 恒为 true：飞行移动控制仅主动移动时清重力，悬停目标却停了寻路。</li>
- *   <li>⚠ {@link #checkFallDamage} 置空：下降全靠自驱（悬停、降落、逃跑锥），坠落距离不得伤及 1 点生命的光点；原版蜜
- *       蜂、蝙蝠同理。</li>
+ *   <li>{@link #isSeeking} 是筛选目标玩家的唯一子类钩子：本基类默认接受所有玩家，子类可收窄条件；{@link #isWanting} 同
+ *       时用于初始锁定与持续保持，玩家切入旁观模式或离开当前维度时自动放弃。</li>
+ *   <li>⚠ {@link #isNoGravity()} 恒返回 {@code true}：{@link FlyingMoveControl} 仅在寻路移动期间关闭重力，而悬停目标会
+ *       停止寻路导航，若不常驻无重力会导致悬停时下坠。</li>
+ *   <li>⚠ {@link #checkFallDamage} 必须置空：所有下降位移均由 AI 主动驱动（悬停、降落、逃跑锥），不能因累计下落距离摔死
+ *       只有 1 点生命的野生蛊（与原版蜜蜂、蝙蝠一致）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.entity.gu.WildGuEntity
- * @see net.alex.guzhenren.entity.gu.HoverNearPlayerGoal
- * @since 1.0.0
  */
 
 public class FlyingGuEntity extends WildGuEntity {

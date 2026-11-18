@@ -27,22 +27,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 腐泥冻土：右键原版耕地或其上的作物，把耕地掺成黑土耕地。
+ * 腐泥冻土[Rotten Frozen Mud]物品：右键原版耕地或其上方作物，可将对应耕地掺转化为黑土耕地[Black Soil Farmland]。
  * <ul>
- *   <li>因有对方块的右键才开叶子类；只认 {@code minecraft:farmland}，别的方块放行，黑土耕地不能再掺。</li>
- *   <li>点到作物时取它正下方那格耕地；作物的范围同 {@code BlackSoilFarmlandBlock#isCrop}。</li>
- *   <li>换方块只在服务端，带上原耕地的湿润度。</li>
- *   <li>⚠ 换方块的标志带 {@code UPDATE_KNOWN_SHAPE}，不发邻格形状更新：否则上方作物复检存活，亮度不足 8 的会掉落；
- *       新旧耕地外形相同，邻格无形状可改。代价是旁边的侦测器不触发。</li>
- *   <li>成功才消耗 1 个，创造模式不消耗；音效用黑土耕地的放置声，同 {@code BlockItem} 放方块。</li>
- *   <li>{@link #convertEach} 供连锁类模组（{@code compat.FtbUltimineIntegration}）逐格走同一条 {@code useOn}：手里不是
- *       腐泥冻土即返回 0，用完即停，返回转换的格数。</li>
+ *   <li>因需处理对方块的右键交互才单开叶子类：仅识别 {@code minecraft:farmland}，其余方块直接放行，已转化为黑土耕地者
+ *       不可重复掺杂。</li>
+ *   <li>点击作物时自动定位其正下方那格耕地，作物的判定范围与 {@link BlackSoilFarmlandBlock#isCrop} 保持一致。</li>
+ *   <li>方块替换仅在服务端执行，并完整继承原耕地的湿润度属性。</li>
+ *   <li>⚠ 替换方块时携带 {@code UPDATE_KNOWN_SHAPE} 标志以跳过邻格形状更新：否则上方作物会重新校验存活条件，导致亮
+ *       度不足 8 的作物直接掉落；由于新旧耕地外形完全相同，邻格本身也无形状变化，唯一代价是旁边的侦测器不会触发。</li>
+ *   <li>仅在转换成功时消耗 1 个物品，创造模式不消耗；放置音效沿用黑土耕地的方块放置声，与 {@code BlockItem} 放置体
+ *       验一致。</li>
+ *   <li>{@link #convertEach} 供连锁采集类兼容模组（{@code compat.FtbUltimineIntegration}）逐格走同一条 {@code useOn}
+ *       路径：手中不再持有腐泥冻土即返回 0，耗尽即停，并返回实际转换格数。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BlackSoilFarmlandBlock
- * @since 1.0.0
  */
 
 public class RottenFrozenMudItem extends GuMaterialItem {

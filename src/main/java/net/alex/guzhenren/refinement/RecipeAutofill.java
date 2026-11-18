@@ -10,16 +10,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 自动填充：选中蛊方后，把背包能凑出的材料拉进蛊方指定的格子。
- * <ul>
- *   <li>格内已有该材料不接受之物时不动该格；一格只叠同物品同组件的堆，至多到堆叠上限。</li>
- *   <li>按背包槽位顺序遍历，每种材料只取其组仍缺的数量，依序填该组格子；他人的本命蛊从不拉取。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementMenu
- * @since 1.0.0
+ * 炼蛊配方选中后的材料自动填充工具（供 {@link RefinementMenu} 调用）：按背包槽位顺序将尚缺数量的材料依次填入对应配方格
+ * 组。若目标格已放入当前配方不接受的物品则跳过该格，同一格仅堆叠同物品同组件的物品堆至堆叠上限，并始终跳过属于他人的本
+ * 命蛊。
  */
 
 final class RecipeAutofill {

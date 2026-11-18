@@ -9,23 +9,17 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 本模组伤害类型的键；伤害源只经 {@code source} 的两个重载构建。
- *
+ * 本模组全部数据包伤害类型的 {@link ResourceKey} 定义与 {@link DamageSource} 构建入口（对应 JSON 由 datagen provider 生
+ * 成）。
  * <ul>
- *   <li>资源键容器：伤害类型在数据包注册表，只持 {@link ResourceKey}，JSON 由 datagen provider 写（运行时无）。</li>
- *   <li>⚠ 6 种天灾类带同样 6 个标签（5 个 {@code BYPASSES_*} 加 {@code NO_KNOCKBACK}）；寿元耗尽、魂魄衰竭、脑海炸裂、
- *       空窍[Aperture]压力爆炸另带 {@code BYPASSES_INVULNERABILITY}，不死图腾挡不住；空窍压力爆炸、十绝天灾另带
- *       {@code IS_EXPLOSION}。</li>
- *   <li>其余是普通战斗伤害：月刃、气波是护甲可挡的弹射物；流血如毒穿甲；范围冲击、蓄力一拳、终点破坏打击护甲可挡、
- *       无击退（{@code AreaImpact}、{@code ChargedPunch}、{@code CrashStrike} 自行推开目标）；气波、蓄力一拳另绕过受伤
- *       冷却。</li>
- *   <li>肉体过载（{@code BodyOverload}）、冲击反噬（{@code ChargedPunch}）是拳对自身的反冲：穿甲、无击退、无攻击者、
- *       不致死。</li>
+ *   <li>常规战斗与反冲伤害中，月刃、气波为可被护甲减免的弹射物伤害，流血如同中毒无视护甲；范围冲击、蓄力一拳与终点破坏
+ *       打击可被护甲减免且无原版击退（由 {@code AreaImpact}、{@code ChargedPunch} 与 {@code CrashStrike} 自行施加击
+ *       退），其中气波与蓄力一拳额外绕过受伤无敌帧；肉体过载与冲击反噬则是拳击对自身施加的穿甲、无击退、无攻击者且不致
+ *       死反冲伤害。</li>
+ *   <li>⚠ 6 种天灾与死劫型伤害均配置相同的 6 个绕过标签（5 个 {@code BYPASSES_*} 加 {@code NO_KNOCKBACK}）；其中寿元耗
+ *       尽、魂魄衰竭、脑海炸裂与空窍压力爆炸额外携带 {@code BYPASSES_INVULNERABILITY} 使其无视不死图腾，空窍压力爆炸与
+ *       十绝天灾额外携带 {@code IS_EXPLOSION}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModDamageTypes {

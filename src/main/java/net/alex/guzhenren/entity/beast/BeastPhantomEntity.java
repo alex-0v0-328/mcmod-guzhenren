@@ -29,32 +29,30 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 兽力虚影：攻击轮次放出的一个兽种，立于主人身旁、朝向随主人。
+ * 兽力虚影实体：攻击轮次（{@link net.alex.guzhenren.gameplay.path.strength.StrengthRound}）放出的单个兽种虚影，立于主人
+ * 身旁并随主人朝向旋转。
  * <ul>
- *   <li>显示 {@link #LIFETIME_TICKS} 后再逗留 {@link #LINGER_TICKS}，供持续出拳的下一轮续接，故末轮后
- *       {@link #getShownTicks} 才消失；淡入起播一次兽种出场动画，后待机。</li>
- *   <li>{@link Slot} 正面看分两层（Alex 布局）：地面层在主人前 {@link #FORWARD_OFFSET}，首只右、次只左，各距
- *       {@link #SIDE_OFFSET}；后层在主人后，似从脚跟长出，为 {@link #FAN_ROWS} 排成对槽位、自顶点向下张开的扇形，
- *       每排更外更低，底排离地 {@link #FAN_BASE_HEIGHT}；第三人称见整把扇形，无扇形槽正对地面槽后方。</li>
- *   <li>{@link #show} 按一轮抽中兽种更新：在场者原槽续接（寿命重计，不重生），新者按声明序占首个空槽（先地面两槽，
- *       再扇形底排至顶点），余者消失；不能出形（{@code BeastStrengthFamily.canManifest}）者略过、不占槽；续接递增同步计
- *       数器，客户端据此重置年龄。</li>
- *   <li>出现与消失只改绘制（{@link #getDrift}、{@link #getScale}、{@link #getFade}、{@link #getGlow}），
- *       实体始终在槽位：出现历时 {@link #APPEAR_TICKS}，每槽按声明序晚 1 tick（出场动画随之推迟），自槽后
- *       {@link #APPEAR_BACK} 格滑入淡入，大小 {@link #APPEAR_SCALE} → {@link #APPEAR_OVERSHOOT} → 1；末
- *       {@link #VANISH_TICKS} 收向主人脚上 {@link #BODY_HEIGHT} 处，缩至 {@link #VANISH_SCALE} 并淡出，发光升至
- *       {@link #GLOW_PEAK} 倍；续接不重播出现，内收中续接用 {@link #VANISH_RETURN_TICKS} 回槽；被一轮剔除者即刻消
- *       失。</li>
- *   <li>纯显示：无碰撞，攻击与投射物打不中，无伤害，不存档；命令召唤者无主人，首 tick 即消失；两端每 tick 按主人摆放，
- *       客户端忽略服务端位置包；时间耗尽或主人离维度、死亡、下线即消失。</li>
- *   <li>有意超 300 行：槽位摆放与出现、消失曲线读同一组同步字段和 tick 状态，另有约 30 行纯显示的原版覆写；拆开要公开这
- *       些状态。</li>
+ *   <li>每次触发显示 {@link #LIFETIME_TICKS} 后再逗留 {@link #LINGER_TICKS} 供连续出拳的下一轮续接，因此末轮结束后经
+ *       {@link #getShownTicks} 才会消失；淡入时播放一次兽种出场动画，随后转入待机循环。</li>
+ *   <li>{@link Slot} 从正面看分前后两层（Alex 定）：地面层（{@link Slot#getRow} 为 0）位于主人前方
+ *       {@link #FORWARD_OFFSET} 格，首只居右、次只居左，横向各距 {@link #SIDE_OFFSET} 格；后层位于主人身后，共
+ *       {@link #FAN_ROWS} 排成对槽位（{@link Slot#getRow} 为自扇形顶点数起的排号 1～4），构成自顶点向下张开的扇形，越往
+ *       下越靠外越低，底排离地 {@link #FAN_BASE_HEIGHT} 格，且无扇形槽正对地面槽正后方，便于第三人称看清整把扇形。</li>
+ *   <li>{@link #show} 按单轮抽中的兽种列表更新：已在场的同兽种留在原槽续接（重置寿命而不重新生成），新抽中的兽种按声明
+ *       序填入首个空槽（先地面两槽，再扇形底排至顶点），未抽中的在场虚影立即移除；不可显形的兽种
+ *       （{@code BeastStrengthFamily#canManifest}）直接跳过、不占槽位；续接时递增同步计数器 {@code RENEWALS}，客户端据
+ *       此重置出生 tick。</li>
+ *   <li>出现与消失仅改渲染变换（{@link #getDrift}、{@link #getScale}、{@link #getFade}、{@link #getGlow}），实体坐标始
+ *       终留在槽位：出现历时 {@link #APPEAR_TICKS}，每个槽位按声明序顺延 1 tick（出场动画同步推迟），自槽位后方
+ *       {@link #APPEAR_BACK} 格滑入并淡入，缩放由 {@link #APPEAR_SCALE} 升至 {@link #APPEAR_OVERSHOOT} 再回落到 1；最后
+ *       {@link #VANISH_TICKS} 收向主人脚部上方 {@link #BODY_HEIGHT} 处，缩至 {@link #VANISH_SCALE} 并淡出，发光强度升至
+ *       {@link #GLOW_PEAK} 倍；续接不重播出现动画，若在收拢途中续接则用 {@link #VANISH_RETURN_TICKS} 平滑退回槽
+ *       位。</li>
+ *   <li>纯视觉实体：无物理碰撞、不可被选中或攻击、不拦截弹射物、不存档；用命令直接召唤因无主人会在首 tick 自毁；两端每
+ *       tick 按主人实时位置摆放，客户端忽略服务端位置插值；超时或主人跨维度、死亡、下线时立即移除。</li>
+ *   <li>本类有意超过 300 行：槽位几何与出现/消失曲线共用同一组同步字段与 tick 状态，另有约 30 行纯视觉实体的原版方法覆
+ *       写。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.path.strength.StrengthRound
- * @since 1.0.0
  */
 
 public final class BeastPhantomEntity extends Entity implements GeoEntity, BeastPhantomVisual {
@@ -117,7 +115,6 @@ public final class BeastPhantomEntity extends Entity implements GeoEntity, Beast
             this.right = right;
         }
 
-        /** 地面层为 0，否则为从扇形顶点数起的排号。 */
         public int getRow() { return this.row; }
 
         private boolean isRight() { return this.right; }

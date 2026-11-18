@@ -6,12 +6,8 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 纯水客户端渲染：原版水贴图条按 wiki《纯水》的颜色烘进 PNG，无运行时着色，不取生物群系水色；水下雾与屏幕覆盖层沿用原
- * 版水，镜头读 {@code #minecraft:water} 标签，{@code EntityMixin} 判定眼睛在水下。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 纯水客户端渲染扩展：原版水贴图条已按 wiki《纯水》调色预烘焙进 PNG，不做运行时着色且不读取生物群系水色；水下雾与屏幕覆
+ * 盖层沿用原版水效果，镜头依据 {@code #minecraft:water} 标签与 {@code EntityMixin} 判定眼睛是否位于水下。
  */
 
 public class PureWaterClientExtensions implements IClientFluidTypeExtensions {

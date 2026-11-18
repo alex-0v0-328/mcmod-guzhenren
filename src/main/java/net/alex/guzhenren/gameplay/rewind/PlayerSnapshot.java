@@ -17,18 +17,15 @@ import net.minecraft.world.effect.MobEffectInstance;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 人如故[Man As Before Gu]记住的某一游戏时刻的玩家身体。
+ * 人如故[Man As Before Gu]在单个游戏时刻捕获的玩家身体状态快照（嵌于 {@link PlayerRewindData}）。
  * <ul>
- *   <li>⚠ 有意不含真元[Essence]、寿元、物品栏、位置、经验、空窍[Aperture]与各道[Path]：放回真元或寿元会退还蛊的代价并撤
- *       销一天衰老，放回背包会凭空造物。</li>
- *   <li>僵尸也不记（转化是终局）；临时僵尸化存为剩余 tick（0 为无），还原为同长的新窗口。</li>
- *   <li>⚠ 效果列表宽松读取：模组已移除的效果只丢列表不丢快照；整体读不出的快照由加载方跳过并记错误，玩家其余不动。</li>
+ *   <li>⚠ 刻意不记录真元、寿元、物品栏、坐标、经验、空窍与流派数据：回退真元或寿元会白嫖蛊虫消耗并抵消自然衰老，回退背
+ *       包则会凭空复制物品。</li>
+ *   <li>永久僵尸形态不可逆转，不纳入回溯；临时僵尸化仅记录剩余持续 tick（无则为 {@code 0}），还原时按剩余时长重新赋予临
+ *       时僵尸化窗口。</li>
+ *   <li>⚠ 药水效果列表使用 {@code lenientOptionalFieldOf} 容错反序列化：若旧快照中含有已被移除的模组效果，仅丢弃该效果
+ *       列表而不会使整份玩家存档加载失败。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerRewindService
- * @since 1.0.0
  */
 
 public record PlayerSnapshot(long takenAt, float health, int foodLevel, float saturation, int airSupply,

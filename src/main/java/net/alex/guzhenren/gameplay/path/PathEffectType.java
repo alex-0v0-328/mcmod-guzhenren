@@ -17,26 +17,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@link PathEffect} 的类型。
- *
+ * 流派效果（{@link PathEffect}）的类型定义：声明注册 ID、{@code payload} 编解码器、增益/减益分类
+ * （{@link PathEffectCategory}）、槽位独占规则、状态栏投影图标与显示名称。
  * <ul>
- *   <li>定存档 id、payload 及其编解码、有益或有害（{@link PathEffectCategory}）、是否独占、图标与显示名。</li>
- *   <li>每个类型只在 {@code registry.effect.ModPathEffectTypes} 登记一次，即存档与同步 codec 查 id 的闭合列表；
- *       效果族在那里加类型，payload record 放自己代码旁。</li>
- *   <li>payload 是该类型独需的状态（护盾值、临时僵尸化等级、精炼真元阶段），无则取 {@code Unit} 配
- *       {@code MapCodec.unit}；其 {@link MapCodec} 内联在效果存档对象里，字段名由类型自定。</li>
- *   <li>{@link #isExclusive 独占} 类型每人一格：挂新实例即连道痕[Path Marks]丢弃旧实例，不论来源（如一档换另一档）；
- *       其他类型每来源一个实例，同来源再挂则替换。</li>
- *   <li>{@link #getIcon}：实例在身时心跳投影的原版效果，{@code null} 为无；图标随实例变的类型（兽种增益、按层等级）改用
- *       投影器返回 {@link Projection}。投影即图标、计时与等级：{@code /effect clear} 清后下次心跳放回，规则不读。</li>
- *   <li>⚠ {@link #getEffectCodec} 首用才建：类型构造于 {@code ModPathEffectTypes} 初始化中，分派 codec 也在该类。</li>
+ *   <li>所有类型统一在 {@code registry.effect.ModPathEffectTypes} 中注册，构成存档与网络同步按 ID 分派的封闭类型
+ *       表。</li>
+ *   <li>{@code payload} 承载该类型特有的附加状态（无附加状态时用 {@code Unit} 搭配 {@code MapCodec.unit}），其
+ *       {@link MapCodec} 内联在流派效果的序列化对象中。</li>
+ *   <li>独占类型（{@link #isExclusive} 为 {@code true}）在每名玩家身上最多存在一个实例，挂载新实例时不论来源直接替换旧
+ *       实例；非独占类型按 {@code (type, source)} 共用槽位，仅替换同来源的旧实例。</li>
+ *   <li>{@link #getIcon} 或动态投影器（{@link #project} 返回 {@link Projection}）指定效果在身时向原版状态栏投影的药水图
+ *       标与等级（{@code null} 表示不投影）；投影仅供 HUD 展示，业务规则只读 {@link PathEffect}。</li>
+ *   <li>⚠ {@link #getEffectCodec} 采用延迟初始化：因为类型常量在 {@code ModPathEffectTypes} 类加载期构造，分派 Codec 也
+ *       在同一类中初始化。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffect
- * @see PathEffectService
- * @since 1.0.0
  */
 
 public final class PathEffectType<P> {
@@ -98,7 +92,7 @@ public final class PathEffectType<P> {
         return projector == null ? null : projector.apply(effect);
     }
 
-    /** 实例显示的原版效果及其等级；计时取实例自己的。 */
+    /** 状态栏投影目标的原版药水效果及其放大器等级（持续时间取自流派效果实例自身）。 */
     public record Projection(@NotNull Holder<MobEffect> effect, int amplifier) {}
 
     public @NotNull Component getName(@NotNull PathEffect<P> effect) { return namer.apply(effect); }

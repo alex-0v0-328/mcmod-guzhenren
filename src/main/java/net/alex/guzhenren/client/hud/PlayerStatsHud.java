@@ -23,20 +23,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 左上角 HUD：境界行，下接每池一条。
+ * 左上角玩家状态 HUD：顶部显示境界摘要行，下方依次排列各资源池进度条。
  * <ul>
- *   <li>注册在原版快捷栏层之上（{@link net.alex.guzhenren.client.event.ClientEvents}）。</li>
- *   <li>依次：标题行（境界 + 称号 + 资质[Aptitude]）、真元[Essence]、精炼真元、魂魄条、间隔、寿元 / 年龄与压力文字；
- *       措辞全取 {@link ModDisplayText}，与信息命令一致；{@code hideGui}、旁观、F3 时隐藏。</li>
- *   <li>内容只取决于空窍[Aperture]、肉体、魂魄附件与压力倒计时整秒，故仅 {@link Key} 变时重建 {@link Layout}（附件为不
- *       可变记录，每次同步整体替换），静帧不建文字；所有条（{@link HudBar}）走一个 {@link SpriteBatch}，
- *       再所有文字走一个 {@link GuiBatch}，文字不压别行的条，先后无感。</li>
+ *   <li>注册在原版快捷栏图层之上（{@link net.alex.guzhenren.client.event.ClientEvents}）。</li>
+ *   <li>由上至下依次为标题行（境界、称号与资质[Aptitude]）、真元条、精炼真元条、魂魄条、间隔空行、寿元与年龄以及压力倒
+ *       计时文本；全部措辞取自 {@link ModDisplayText} 以与信息命令保持一致，在 {@code hideGui}、旁观模式或 F3 调试界面
+ *       开启时自动隐藏。</li>
+ *   <li>展示内容仅取决于空窍、肉身、魂魄附件与压力倒计时整秒数，因此仅在 {@link Key} 变化时重建 {@link Layout}（附件为
+ *       不可变记录，每次同步整体替换），静帧下零文字分配；所有进度条（{@link HudBar}）合批走一个 {@link SpriteBatch}，
+ *       所有文本合批走一个 {@link GuiBatch}，彼此互不压盖。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModDisplayText
- * @since 1.0.0
  */
 
 public final class PlayerStatsHud {

@@ -10,33 +10,33 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 持续照顾型蛊[Tended Gu]的饱食[Hunger]密封接口，由 {@link GuProperties#buildHunger} 构建。
+ * 持续照顾型蛊[Tended Gu]的饱食[Hunger]密封接口：由 {@link GuProperties#buildHunger} 按蛊虫规格构造对应实现。
  * <ul>
- *   <li>{@link HungerBar} 按日扣量；{@link RecoverBar} 如故蛊[As Before Gu]，随世界时钟回满，不按日扣；{@link NoClock}
- *       不饥饿：元老蛊[Primeval Elder Gu]、天元宝莲[Heavenly Essence Treasure Lotus Gu]、
- *       九叶生机草[Nine Leaf Vitality Grass]、更蛊[Watch Gu]、石窍蛊[Stone Aperture Gu]。</li>
- *   <li>⚠ {@link #feed} 是唯一进食：吃背包全槽位（含副手），每份先经 {@link GuHealth} 修复再补条，仅 {@code HungerBar}
- *       有空位时运行；满条不为修复而吃，伤等下次扣量；时机由 {@code TendedGuItem} 定。</li>
- *   <li>⚠ 回复条如 {@code LeafGrowth} 从 {@code RECOVERED_AT} 惰性结算：{@link RecoverBar#getPoints(ItemStack, long)}
- *       只推算，{@link RecoverBar#settle} 长出一点才写（随身满条不每秒写）；日时钟每次心跳结算随身回复条，至多滞后
- *       1 秒。</li>
- *   <li>⚠ 满条时间戳按设计过期：从满条扣点须当即 {@link RecoverBar#restart}（{@code AsBeforeGuItem.performOwnUse}），
- *       否则下次结算把点还回。</li>
- *   <li>回复条同时钟修复生命，每 {@code ticksPerPoint} 一点，依 {@code HEALED_AT}：受伤即起，伤愈即删，无伤不写。</li>
- *   <li>灌注[Channel]类蛊按轮进度逐点扣饱食而非真元[Essence]，每轮 {@code perRound} 点；
- *       {@link #getEssenceAboveHungerFloor} 把 {@link #CHANNEL_HUNGER_FLOOR} 之上的点数按轮折回真元，作每步上限。</li>
- *   <li>{@link #isShortOfUse}：条少于本次催动（含倍数），即强行催动[Forced Use]（{@link GuForcedUse}）判据；
- *       {@link #isSpendForced} 扣量并同答；搭档扣量（{@link #isSpendForcedAsPartner}）沿用空条规则。</li>
- *   <li>⚠ 「饥饿」仅指下次日切会饿死：阈值为每日扣量（{@code perDay}），非一顿；只有 {@code HungerBar} 会饥饿，
- *       警告归 {@code TendedGuItem.feedAndWarn}。</li>
- *   <li>有意超 300 行：密封接口与三个 record 共用背包与单位换算，并排最好读。</li>
+ *   <li>包含三种实现：{@link HungerBar} 按游戏日扣减饱食；{@link RecoverBar} 用于如故蛊[As Before Gu]，随世界时钟自动回
+ *       复满条而不按日扣减；{@link NoClock} 表示永不饥饿（如元老蛊[Primeval Elder Gu]、
+ *       天元宝莲[Heavenly Essence Treasure Lotus Gu]、九叶生机草[Nine Leaf Vitality Grass]、更蛊[Watch Gu]与
+ *       石窍蛊[Stone Aperture Gu]）。</li>
+ *   <li>⚠ {@link #feed} 是唯一的自动进食入口：扫描玩家背包全部槽位（含副手），每份食物先通过 {@link GuHealth} 修复伤势
+ *       再补充饱食条，且仅在 {@code HungerBar} 存在空缺时触发；满条状态下不会为修伤而进食，伤势留待下次扣量后顺带修复，
+ *       具体调用时机由 {@code TendedGuItem} 决定。</li>
+ *   <li>⚠ {@link RecoverBar} 参照 {@code LeafGrowth} 基于 {@code RECOVERED_AT} 时间戳惰性结
+ *       算：{@link RecoverBar#getPoints} 仅做推算而不落盘，{@link RecoverBar#settle} 仅在真正长出至少 1 点时才写回组件
+ *       （避免随身满条每秒反复写入），日时钟每次心跳也会同步结算随身回复条，最多滞后 1 秒。</li>
+ *   <li>⚠ 满条状态下的时间戳按设计会逐渐过期：从满条状态扣减点数时必须立即调用 {@link RecoverBar#restart}（如
+ *       {@code AsBeforeGuItem.performOwnUse}），否则下次结算会把旧时间差重新补回。</li>
+ *   <li>{@link RecoverBar} 同时按世界时钟以每 {@code ticksPerPoint} 1 点的速率修复伤势，依赖 {@code HEALED_AT} 组件记录
+ *       起点：受伤时才写入，伤愈即清除，无伤时不写组件。</li>
+ *   <li>灌注[Channel]类蛊按轮内进度逐点扣减饱食而非直接消耗真元，每轮对应 {@code perRound} 点饱
+ *       食；{@link #getEssenceAboveHungerFloor} 将 {@link #CHANNEL_HUNGER_FLOOR} 之上的饱食点数按轮折算回真元上限，作为
+ *       单步灌注的封顶值。</li>
+ *   <li>{@link #isShortOfUse} 判断当前饱食是否低于本次催动所需（含增幅倍数），作为触发强行催动[Forced Use]（
+ *       {@link GuForcedUse}）的判据；{@link #isSpendForced} 负责实际扣量并返回是否属于强行扣减；搭档扣量（
+ *       {@link #isSpendForcedAsPartner}）沿用空条即力竭的判定规则。</li>
+ *   <li>⚠ 「饥饿」特指下次跨日扣量时将饿死的状态：判定阈值为每日扣量（{@code perDay}）而非单顿食量；只有
+ *       {@code HungerBar} 会产生饥饿状态，提示警告由 {@code TendedGuItem.feedAndWarn} 负责。</li>
+ *   <li>本文件有意超过 300 行：密封接口与其三个 {@code record} 实现共用背包扫描与单位换算辅助逻辑，并排维护可读性最
+ *       佳。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuProperties
- * @see TendedGuItem
- * @since 1.0.0
  */
 
 public sealed interface GuHunger {

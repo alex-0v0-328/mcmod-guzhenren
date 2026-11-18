@@ -32,36 +32,28 @@ import yesman.epicfight.api.event.types.animation.InitAnimatorEvent;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClientPlayerPatch;
 
 /**
- * Epic Fight 桥接的客户端侧。
- *
+ * Epic Fight 联动的客户端动画、模型姿态与锁定目标桥接。
  * <ul>
- *   <li>二段飞行[Second-Stage Flight]：仿 Epic Fight 鞘翅飞行者顺飞向躺平（模型绕 X 轴转负俯仰角），用本模组飞行循环
- *       （{@code biped/living/second_stage_flight_loop}，{@link EpicFightIntegration}）。</li>
- *   <li>{@link #onInitAnimator} 为每个客户端玩家动画器把 {@link EpicFightLivingMotions} 的五个动作映射到
- *       {@code biped/living/} 下同名小写循环，早于 Epic Fight 把动作取作默认值。</li>
- *   <li>{@link #onLivingMotion} 换基础动作，优先级坠击 > 二段飞行（替换创造飞行）> 打坐；有动画占着基础动作
- *       （动作、撞毁片段）或玩家濒死时不换；切换由 Epic Fight 动作混合过渡。</li>
- *   <li>{@link #onPrepareModel} 按前倾量倾斜：二段飞行标记在时 {@link #LEAN_TICKS} 内涨满，去掉后同速清空
- *       （{@link #onClientTick}），tick 间插值；飞行者自己的第一人称不倾斜。</li>
- *   <li>二段飞行、坠击标记与打坐三种状态都送达每个看得见该玩家的客户端。</li>
- *   <li>坠击：标记从开始保持到落地或其他结束坠击的情形；开始坠击会结束二段飞行，两个标记到客户端时可能交错。</li>
- *   <li>打坐（{@link EpicFightIntegration#isMeditating}）：温养[Nourish]空窍[Aperture]、被开窍[Awakening]仪式定住
- *       或向灌注类蛊[Channeled Gu]注入真元[Essence]；坐、起片段来自服务端并占基础动作，坐下后接循环，起身回待机。</li>
- *   <li>炼化野生蛊（{@code TendedGuItem#isRefining}：按住使用未炼化的持续照顾型蛊[Tended Gu]，各客户端从使用物品读出）
- *       的玩家得合成层动作 {@link EpicFightLivingMotions#REFINE_LOOP}（{@link #onCompositeMotion}）；数据文件将其置于
- *       {@code chest_arms} 遮罩下：右手抬到胸前、头朝它低下，腿保持基础层动作。</li>
- *   <li>惯力蛊[Habitual Strength Gu]的可移动蓄力（{@code StoreStrength#isMobile}，广播标记）得合成层动作
- *       {@link EpicFightLivingMotions#CHARGE_HOLD_MOVE}，优先于举蛊：{@code HIGH} 叠加层、同一遮罩下胸、头、臂摆蓄力
- *       架势，腿照常走跑跳。</li>
- *   <li>举蛊随使用结束而结束，炼成或松手皆然；占基础动作的动画（动作、落地）清掉合成层动作，举蛊让位。</li>
- *   <li>{@link #getLockOnTarget} 为月刃读 Epic Fight 锁定目标：锁定期间 {@code EpicFightCameraAPI} 的聚焦实体
- *       （本地玩家 patch 自己的目标即同一实体）；{@link #initialize} 注册四个钩子，客户端初始化时调用一次。</li>
+ *   <li>{@link #initialize} 在客户端初始化时向 Epic Fight 注册动画初始化、基础层动作、合成层动作与模型渲染前准备四个事
+ *       件钩子；{@link #onInitAnimator} 在玩家动画器创建时将 {@link EpicFightLivingMotions} 的 5 个自定义常态动作绑定到
+ *       {@code biped/living/} 下的同名循环动画。</li>
+ *   <li>基础层常态动作（{@link #onLivingMotion}）在无高优动作占用且玩家未濒死时按「坠击 &gt;
+ *       二段飞行[Second-Stage Flight] &gt; 打坐」优先级切换，由 Epic Fight 负责动作混合过渡；这三类状态均已同步至所有可
+ *       见客户端（坠击启动时会终止二段飞行，两端标记在网络传输中可能短暂交错）。</li>
+ *   <li>二段飞行俯仰倾斜（{@link #onPrepareModel}）：仿照鞘翅飞行姿态将玩家模型绕 X 轴旋转负俯仰角，倾斜权重在
+ *       {@link #onClientTick} 中按 {@link #LEAN_TICKS} 线性渐入渐出并在帧间插值；本地玩家处于第一人称视角时不倾
+ *       斜。</li>
+ *   <li>打坐状态（{@link EpicFightIntegration#isMeditating}）涵盖温养[Nourish]空窍、开窍[Awakening]仪式定身与
+ *       灌注类蛊[Channeled Gu]注入真元：入座与起身过渡动画由服务端下发并短暂接管基础层，入座完成后落入循环，起身完成后
+ *       恢复待机。</li>
+ *   <li>合成层常态动作（{@link #onCompositeMotion}）在 {@code chest_arms} 上半身遮罩下叠加，保留腿部走跑跳动作：
+ *       惯力蛊[Habitual Strength Gu]可移动蓄力（{@link StoreStrength#isMobile}）在 {@code HIGH} 叠加层播放
+ *       {@link EpicFightLivingMotions#CHARGE_HOLD_MOVE}，优先级高于在 {@code MIDDLE} 叠加层播放的野生蛊炼化持握动作
+ *       {@link EpicFightLivingMotions#REFINE_LOOP}（{@link TendedGuItem#isRefining}）；当基础层播放攻击或落地等主帧动画
+ *       时合成层自动让位。</li>
+ *   <li>{@link #getLockOnTarget} 读取 {@link EpicFightCameraAPI} 当前镜头锁定且存活的实体（未锁定时返回
+ *       {@code null}），供月刃等投射物制导使用。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see EpicFightIntegration
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)
@@ -83,7 +75,6 @@ public final class EpicFightClientIntegration {
                 EpicFightClientIntegration::onInitAnimator, Guzhenren.MOD_ID);
     }
 
-    /** Epic Fight 镜头锁定的生物；未锁定时为 null。 */
     public static @Nullable LivingEntity getLockOnTarget() {
         EpicFightCameraAPI camera = EpicFightCameraAPI.getInstance();
         if (!camera.isLockingOnTarget()) return null;

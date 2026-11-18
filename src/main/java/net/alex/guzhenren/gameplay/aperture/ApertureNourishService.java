@@ -16,36 +16,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 温养[Nourish]空窍[Aperture]与冲刷窍壁服务，转数提升的唯一途径。
- *
+ * 空窍温养[Nourish]、冲刷窍壁与石窍转化的静态服务：玩家提升小境界与转数的唯一业务入口。
  * <ul>
- *   <li>静态服务，进度与石化锁存在各 {@link Aperture} 上；冲刷费经入口类设的 {@link StonePurse} 付，先真元[Essence]后元
- *       石[Primeval Stone]；升阶、升转写入空窍后发布 {@link RealmReachedEvent}，进度包据此判境界进度。</li>
- *   <li>⚠ 加速时钟让每次心跳计费更多秒（{@link #tickNourish}，{@code steps}），不放大一秒：缩放进度与价格会因取整让一轮
- *       长度偏离其定义所耗的一池真元；计费的一秒只写一次目标空窍，{@code pay} 不写
- *       它（{@link ApertureEssenceService#consumeDeferred}），进度与所耗真元一起落盘。</li>
- *   <li>{@link #shiftTargetForInsertedFirst}：希望蛊[Hope Gu]在位置 0 插入第一空窍时，瞄准孤立第二空窍（目标 0）的温养
- *       会滑到新第一空窍，故目标随空窍移动；未在温养则不动，下次 {@code start} 重写。</li>
- *   <li>目标不越界：{@code start} 拒绝列表外下标（{@link #canNourish}）；无空窍时 {@link #getTargetIndex} 返回
- *       {@code PRIMARY}，因按 {@code count - 1} 夹取得 -1，且心跳会取消进行中的温养。</li>
- *   <li>⚠ 窍壁只属 {@code PRIMARY} 空窍：第二空窍能温养不能冲刷，只靠更高转的第二空窍蛊[Second Aperture Gu]升转；⚠ 升转
- *       须同时把阶段重置为 {@code LOWEST}，否则「二转巅峰」使真元上限平方；⚠ 冲刷成败都清零进度，先收费后掷骰。</li>
- *   <li>{@link #IMPACT_COST_PER_RANK_BASE}：一次冲刷费十绝天资巅峰真元池的 1.5 倍，任何池都装不下；{@link Outcome} 是一
- *       次冲刷的结果；{@link #resolve} 是单元测试钉住的接缝，{@code 0} 至 {@code 99} 的骰点对照两张结果表；☠ 两表分界点
- *       不同，只有十绝那张永不掉基础真元。</li>
- *   <li>⚠ {@link #petrify} 是 {@code petrified} 的写入方：空窍落到本转巅峰、压力清零、锁住修炼，直到满压力转化（十绝
- *       体）或 {@code resetAll} 清除；同一次写入强停温养，心跳循环无需另查石化。</li>
- *   <li>{@link #convertPetrifiedPressure}：石化空窍持续积压，满时转为下一转初阶并解除石化，是 {@code resetAll} 外回到
- *       {@code NORMAL} 的唯一途径，落地后可用下一转石窍蛊[Stone Aperture Gu]重入循环；无下一转时返回 {@code false}，由
- *       调用方引爆；{@link #CONVERTED_PRESSURE} 是转化后的压力落点。</li>
- *   <li>超 300 行：温养与冲刷共用元石袋与进度；可变静态 {@code stones} 是接缝，入口类仅在模组构造时设一次。</li>
+ *   <li>温养进度与石化标记存于各 {@link Aperture}，费用经模组入口注入的 {@link StonePurse} 支付（先扣真元、不足再拿
+ *       元石[Primeval Stone]补足）；升阶或升转落盘后发布 {@link RealmReachedEvent} 驱动进度触发器。</li>
+ *   <li>⚠ 自身时间加速通过增加单次心跳执行的秒步数（{@link #tickNourish} 遍历 {@code beat.getSteps()}）实现，而非缩放
+ *       单秒进度与单秒耗费，以免取整误差导致一轮温养的总真元消耗偏离整池定义；每步经
+ *       {@link ApertureEssenceService#consumeDeferred} 延迟写入目标空窍，与新进度合并为一次落盘。</li>
+ *   <li>{@link #shiftTargetForInsertedFirst}：希望蛊[Hope Gu]在下标 {@code 0} 插入第一空窍时，若正在温养原下标
+ *       {@code 0} 的孤立第二空窍，将目标下标同步后移到 {@code SECOND}；未在温养则不改，留待下次 {@link #start} 写
+ *       入。</li>
+ *   <li>{@link #start} 经 {@link #canNourish} 拒绝越界下标；无空窍时 {@link #getTargetIndex} 返回 {@code PRIMARY}（避
+ *       免按 {@code count - 1} 夹取出 {@code -1}），且心跳会立即取消温养。</li>
+ *   <li>⚠ 只有主空窍能冲刷窍壁，第二空窍只能温养升阶、靠更高转第二空窍蛊[Second Aperture Gu]升转；冲刷先扣费后掷骰，成
+ *       败均清零温养进度，成功升转时必须同时将阶段重置为 {@link Stage#LOWEST}（否则残留巅峰倍率会让真元上限暴
+ *       增）。</li>
+ *   <li>⚠ {@link #resolve} 是供单元测试校验的纯函数，按 {@code 0..99} 骰点查普通或十绝结果表：两表分界点不同，且只有
+ *       十绝表永不触发跌落基础真元（{@link Outcome#DROP_BASE}）。</li>
+ *   <li>⚠ {@link #petrify} 是 {@code petrified} 的唯一写入入口：将目标空窍推至本转巅峰、清零进度与压力并锁死修炼，同时
+ *       停止当前温养；此后唯有十绝体满压转化（{@link #convertPetrifiedPressure}，升入下一转初阶、解除石化并将压力置为
+ *       {@link #CONVERTED_PRESSURE}，可继续用下一转石窍蛊[Stone Aperture Gu]循环；五转无下一转时返回 {@code false} 交由
+ *       调用方引爆）或角色重置才能解除石化。</li>
+ *   <li>本类与冲刷、石窍共用元石袋和进度状态而保持同文件；可变静态字段 {@code stones} 仅在模组构造时由入口类注入一
+ *       次。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureService
- * @see TimeFlow
- * @since 1.0.0
  */
 
 public final class ApertureNourishService {

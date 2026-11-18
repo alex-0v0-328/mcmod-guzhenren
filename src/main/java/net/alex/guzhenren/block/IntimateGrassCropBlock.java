@@ -11,20 +11,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 知心草作物：一格高、8 个阶段的耕地作物，种子为知心草种子。
- *
+ * 知心草耕地作物方块：单格高、共 8 个生长阶段的农作物，对应种子为知心草种子。
  * <ul>
- *   <li>底速是小麦的 1/{@value #GROWTH_SLOWDOWN}：每次随机刻先过 1/{@value #GROWTH_SLOWDOWN} 判定，过了才走原版
- *       {@code CropBlock} 的生长判定（光照、耕地湿润、邻格同种减速照旧），期望耗时恰为小麦的
- *       {@value #GROWTH_SLOWDOWN} 倍。</li>
- *   <li>⚠ 判定必须留在 {@link #randomTick} 入口：黑土耕地靠给上方作物补随机刻来加速，补的每一刻都要过这道判定，
- *       两者相乘才回到小麦速度；改成缩放原版概率会因取整偏离 4 倍。</li>
- *   <li>骨粉、踩踏、形状、存活条件全同小麦；数值与理由见 wiki《植物与采集》。</li>
+ *   <li>基础生长速度为原版小麦的 1/{@value #GROWTH_SLOWDOWN}：在 {@link #randomTick} 入口处先做一次
+ *       1/{@value #GROWTH_SLOWDOWN} 的概率过滤，通过后才调用父类 {@link CropBlock} 的生长判定（保留原版光照、耕地湿润度
+ *       与同种邻格减速规则），其余骨粉催熟、踩踏、碰撞箱与存活条件均与小麦一致。</li>
+ *   <li>⚠ 减速概率过滤必须保留在 {@link #randomTick} 入口而非缩放原版生长速度公式：这样当种在
+ *       {@link BlackSoilFarmlandBlock} 上接收 4 倍随机刻时，每次补发的随机刻都会经过同一过滤，两者相乘恰好恢复至普通小
+ *       麦的基准生长速度，避免因原版公式整数取整造成倍率偏差。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class IntimateGrassCropBlock extends CropBlock {

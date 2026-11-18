@@ -18,22 +18,19 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * {@link MoonBladeEntity} 的渲染器。
- *
+ * {@link MoonBladeEntity} 的实体渲染器。
  * <ul>
- *   <li>一片全亮、双面月牙，位于飞行线与其水平横轴所成平面：平射贴地，上下射随俯仰倾斜，凸面朝前。</li>
- *   <li>锁定目标的月刃转弯时侧倾：刃面绕飞行线按 {@link MoonBladeEntity#getBankDegrees} 滚转，左弯左缘向下，最多
- *       {@code MoonBladeArc.MAX_BANK_DEGREES}，每发各倾各的。</li>
- *   <li>完全平放时对稍高的射手和旁人都细成一线，故整片刃绕同时垂直于刃面与镜头连线的轴朝镜头转 {@link #TILT_DEGREES}
- *       （镜头更正对时转得少，正对不转）；后方射手或旁观者都能看到约三分之一刃宽，凸面仍朝前。</li>
- *   <li>贴图为 {@link #FRAMES} 帧 16 像素竖条，按 age 读取，非原版动画；前 3 tick 长大，飞行中满帧，寿命
- *       （{@link MoonBladeEntity#getLifetimeTicks}）耗尽前 3 tick 淡出；击中物体时停在满帧消失。</li>
+ *   <li>绘制一片全亮且双面可见的月牙，展开在飞行线与其水平横轴构成的平面内（平射贴地、斜射随俯仰倾斜，凸面始终朝
+ *       前）。</li>
+ *   <li>锁定追踪目标的月刃在转弯时按 {@link MoonBladeEntity#getBankDegrees} 绕飞行线滚转侧倾（左弯时左缘下压，最
+ *       大倾角为 {@code MoonBladeArc.MAX_BANK_DEGREES}，各发独立倾斜）。</li>
+ *   <li>完全平放的刃面在略高于月刃的射手与旁观者视角下会细成一条线，因此整片刃会绕同时垂直于刃面与视线方向的轴朝镜头
+ *       偏转 {@link #TILT_DEGREES}（视角越正对则偏转越小，完全正对时不偏转），确保后方射手与旁观者均能看到约三分之
+ *       一刃宽而凸面仍朝前。</li>
+ *   <li>贴图由 {@link #FRAMES} 帧 16 像素竖条组成，直接按实体 age 索引读取而非原版动画：前 3 tick 逐帧放大，飞行中
+ *       维持满帧，寿命（{@link MoonBladeEntity#getLifetimeTicks}）耗尽前 3 tick 淡出，击中物体时则停留在满帧并消
+ *       失。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MoonBladeEntity
- * @since 1.0.0
  */
 
 public final class MoonBladeRenderer extends EntityRenderer<MoonBladeEntity> {

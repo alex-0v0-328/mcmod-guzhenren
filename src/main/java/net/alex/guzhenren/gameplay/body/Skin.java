@@ -5,24 +5,17 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身的皮：原生、力道防御蛊暂借的玉皮，或蛊永久留下的一至四转铜皮、铁皮。
- *
+ * 肉身皮肤品阶枚举：涵盖原生皮、力道防御蛊赋予的限时玉皮/白玉皮，以及一至四转铜皮蛊、铁皮蛊永久改造的铜皮与铁皮。
  * <ul>
- *   <li>{@code BodyData} 一槽，一次一层；数值归本枚举：皮系、转、固定减免（每次可抵挡伤害的扣除点数，
- *       {@link #reduce}）、承受力加成（力量点[Strength Points]，穿着时 {@code StrengthService.getNormalCapacity}
- *       加上）。</li>
- *   <li>玉皮不加承受力：承受力在心跳间读取而限时皮只在心跳蜕下，否则加成会多留至多 1 秒；玉皮时长归物品注册。</li>
- *   <li>玉皮系限时（{@link #isTimed}），耗尽由心跳蜕下；其余永久，重生保留。</li>
- *   <li>{@link #canReplace}：任何皮可盖原生；永久皮只盖同系低转（三转铜皮盖一转铜皮）；玉皮只盖原生，两种玉皮类蛊互不叠
- *       加、替换、延长，耗尽前无蛊可替。</li>
- *   <li>⚠ 皮是肉身档位，不是玩家贴图：{@code SkinFlashPayload} 的闪现层只叠色，不换贴图。</li>
+ *   <li>在 {@link BodyData} 中占一槽（同一时刻仅有一层皮肤），统一定义皮肤系别、转数、每次可抵挡伤害的固定减免点数
+ *       （{@link #reduce}）与肉身承受力加成（力量点[Strength Points]，由 {@code StrengthService.getNormalCapacity} 计
+ *       入）。</li>
+ *   <li>玉皮系属于限时皮肤（{@link #isTimed}，持续时间由物品定义，到期由心跳脱下），不提供承受力加成（以免承受力在两次
+ *       心跳之间残留最多 1 秒）；铜皮系与铁皮系为永久改造，死亡重生后保留。</li>
+ *   <li>{@link #canReplace} 替换规则：任何皮肤均可替换原生皮；永久皮仅能替换同系更低转数的皮肤；限时玉皮仅能替换原生皮
+ *       （玉皮与白玉皮互不叠加、替换或续期）。</li>
+ *   <li>⚠ 本枚举表示肉身防御档位而非玩家外观贴图，{@code SkinFlashPayload} 仅在受击或穿戴时叠加闪光染色。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyData
- * @see BodyGrade
- * @since 1.0.0
  */
 
 public enum Skin implements BodyGrade<Skin> {

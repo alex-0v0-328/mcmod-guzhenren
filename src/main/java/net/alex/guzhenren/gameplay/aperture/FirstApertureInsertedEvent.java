@@ -5,18 +5,13 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 第一空窍[Aperture]插入事件，{@link ApertureService} 在孤立第二空窍前存下第一空窍后同步发布。
- *
+ * 第一空窍插入事件：由 {@link ApertureService} 在孤立第二空窍前插入第一空窍（{@link ApertureData#insertFirst}）后同步发
+ * 布。
  * <ul>
- *   <li>按空窍下标保存的列表都后移一位；开窍[Awakening]返回前存储已移位。</li>
- *   <li>空窍只发布、不认识订阅者：各空窍存储在上层 {@code gameplay.aperture.storage}，向上调用会成依赖环。</li>
+ *   <li>按空窍下标保存的数据列表（如空窍存储）在回调中整体后移一位；开窍[Awakening]调用返回前已完成移位。</li>
+ *   <li>{@code gameplay.aperture} 只发布事件而不认识订阅者：空窍存储位于子包 {@code gameplay.aperture.storage}，直接调
+ *       用会造成双向依赖。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureService
- * @see ApertureData#insertFirst
- * @since 1.0.0
  */
 
 public class FirstApertureInsertedEvent extends Event {

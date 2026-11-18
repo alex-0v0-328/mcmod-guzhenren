@@ -13,19 +13,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 本模组的容器菜单。
- *
- * <ul>
- *   <li>{@link ApertureStorageMenu}（分页蛊库）、{@link RefinementMenu}（炼蛊炉）只由 B 面板的客户端请求打开。</li>
- *   <li>{@link SoulTradeMenu}：右键灵魂交易商打开，从打开 payload 读报价。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureStorageMenu
- * @see RefinementMenu
- * @see SoulTradeMenu
- * @since 1.0.0
+ * 本模组全部容器菜单类型（{@link MenuType}）注册表：包含仅由客户端 B 面板请求开启的分页空窍存储
+ * （{@link ApertureStorageMenu}）与炼蛊界面（{@link RefinementMenu}），以及右键魂商实体时读取额外打开数据的交易界面
+ * （{@link SoulTradeMenu}）。
  */
 
 public final class ModMenus {

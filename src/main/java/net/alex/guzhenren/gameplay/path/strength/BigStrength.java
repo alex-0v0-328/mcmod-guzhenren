@@ -13,17 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 大力状态：大力蛊[Big Strength Gu]运行时临时加力量点[Strength Points]，并带点数一半的承受力。
+ * 大力状态：大力蛊[Big Strength Gu]生效期间提供的临时力量点[Strength Points]与折半承受力增幅。
  * <ul>
- *   <li>限时流派效果，点数读该效果的力道道痕点（同限时兽力[Beast Strength]），承受加成为点数
- *       ÷ {@link #CAPACITY_DIVISOR}，向下取整：承受力已满的身体也能发挥一半。</li>
- *   <li>非兽力增幅：超当前承受力部分只截断，不走肉体过载；不限流派，不计永久兽力准入，不进全面解放基数。</li>
+ *   <li>作为限时流派效果挂载，力量点数取自该效果上的力道道痕[Path Marks]点，并附带 {@code points / CAPACITY_DIVISOR}
+ *       （向下取整，即一半）的临时承受力加成，使承受力已满的身体也能发挥出至少一半的新增力量。</li>
+ *   <li>属于非兽力增幅（{@code beastFamily == null}）：超出当前总承受力的部分直接截断而不触发肉体过载反噬；不限制力道流
+ *       派分支，不计入永久兽力准入，也不计入全面解放基数。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthAmplifierProvider
- * @since 1.0.0
  */
 
 public final class BigStrength {

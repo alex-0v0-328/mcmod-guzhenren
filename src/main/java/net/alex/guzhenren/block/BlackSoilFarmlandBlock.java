@@ -12,24 +12,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 黑土耕地：掺了腐泥冻土的耕地，其上作物期望快 {@value #GROWTH_MULTIPLIER} 倍。
- *
+ * 黑土耕地方块：掺入腐泥冻土改良的耕地，使其上方作物的期望生长速度提升至普通耕地的 {@value #GROWTH_MULTIPLIER} 倍。
  * <ul>
- *   <li>继承 {@code FarmBlock} 即得原版耕地的种植、湿润加成、湿润、踩踏、退成泥土：原版与 NeoForge 认这些都用
- *       {@code instanceof FarmBlock}。</li>
- *   <li>⚠ 农民村民例外：其次要工作点写死为原版耕地（{@code VillagerProfession}），纯黑土田里既不收割也不补种。</li>
- *   <li>加速：自己每个随机刻，先走父类，再给正上方作物补 {@value #EXTRA_GROWTH_TICKS} 个随机刻。耕地与作物被抽中的频率
- *       相同，故作物期望得 {@value #GROWTH_MULTIPLIER} 倍随机刻；光照、邻格减速等判定仍由作物自己做。</li>
- *   <li>⚠ 每补一刻前重读上方方块：作物可能刚成熟（不再随机刻）或被自己的随机刻换掉；父类可能已把自己退成泥土，此时
- *       不补。</li>
- *   <li>作物指 {@code #minecraft:crops} 标签或 {@code CropBlock} 子类；能种在耕地上的树苗、花不算。两条件拆在
- *       {@link #isCrop(boolean, Block)}：原版 {@code CropBlock} 全在标签里，不拆就钉不住子类这一条。</li>
- *   <li>⚠ {@link #CODEC} 的类型参数只能是 {@code FarmBlock}：父类 {@code codec()} 的返回类型不带通配符。</li>
+ *   <li>继承自 {@link FarmBlock}，直接复用原版与 NeoForge 基于 {@code instanceof FarmBlock} 判定的可种植性、水源湿润、
+ *       水分加成、踩踏退化等全部耕地逻辑。</li>
+ *   <li>在自身每次 {@link #randomTick} 中先执行父类湿润与退化逻辑，若自身未退化为泥土，则向正上方满足 {@link #isCrop}
+ *       的作物补发 {@value #EXTRA_GROWTH_TICKS} 次随机刻（由于耕地与作物被抽中随机刻的基准概率相同，叠加后作物期望获得
+ *       {@value #GROWTH_MULTIPLIER} 倍随机刻，且每次生长仍遵循作物自身的光照与邻格判定）。</li>
+ *   <li>{@link #isCrop} 将标签匹配（{@code #minecraft:crops}）与子类判定（{@code instanceof CropBlock}）拆入重载方法，
+ *       以便单元测试独立覆盖两条分支，排除树苗或花朵等非作物植物。</li>
+ *   <li>⚠ 每次补发随机刻前必须重新读取耕地自身与上方方块状态：父类随机刻可能已将无作物干涸耕地退化为泥土，而上方作物也
+ *       可能在前一次随机刻中成熟并停止接收随机刻。</li>
+ *   <li>⚠ 农民村民的次要工作点在原版 {@code VillagerProfession} 中硬编码为 {@code Blocks.FARMLAND}，因此在纯黑土耕地上
+ *       不会触发村民自动收割与补种。</li>
+ *   <li>⚠ {@link #CODEC} 的泛型类型参数必须保持为 {@link FarmBlock}，以匹配父类 {@link FarmBlock#codec()} 不带通配符的
+ *       返回签名。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class BlackSoilFarmlandBlock extends FarmBlock {

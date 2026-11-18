@@ -21,29 +21,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 兽力虚影流的攻击轮次，兼作 {@link StrengthService.ReleaseSource}。
+ * 兽力虚影流[Beast Strength Phantom]的攻击轮次与全面解放服务（在通用初始化时注册为
+ * {@link StrengthService.ReleaseSource}）。
  * <ul>
- *   <li>拳头命中（{@link BeastPhantomEvents} 把关）且距上轮开始满 {@link #ROUND_TICKS} 开一轮，轮内共用开轮所抽；
- *       只抽永久兽力[Beast Strength]兽种，仅有限时兽力（蛮力天牛蛊[Brute Force Longhorn Beetle Gu]的牛）不开轮；开轮一
- *       击掷 {@link #getChance}：{@link #CHANCE} + 所持兽力 {@link BeastStrength#getChanceBonus}（棕熊本力 10%），三 /
- *       四 / 五转全力以赴蛊[All-Out Effort Gu]运行中 80% / 90% / 100%（{@code StrengthSnapshot.allOutTier}）。</li>
- *   <li>抽数 {@link #getDrawCount}：苦力蛊[Hardship Strength Gu]运行中按连击轮数抽不同兽种，否则掷中抽 1；未中照常计
- *       时、不再掷；连击即苦力中上轮结束后 {@link #STREAK_WINDOW_TICKS} 内开轮累加，超窗或苦力停回 1。</li>
- *   <li>全力以赴此刻运行则全面解放全部抽中兽种，否则仅掷中时解放首个，按其永久点数和经一次
- *       {@link StrengthService#getReleasedExtra}，仍截于当前承受力；其余只显虚影，轮外为 0；{@link #getFullyReleased}
- *       列出解放兽种，速度借给 {@code SprintSpeedService}；抽中集合开轮即定，不再持有的兽种下一 tick 退出、虚影随
- *       撤。</li>
- *   <li>力气蛊[Strength Qi Gu]远程拳间隔 ≥ {@link #RANGE_INTERVAL_TICKS}（{@link #canRange}），一轮两拳共用所抽；轮外一
- *       拳照拳头开轮（{@link #startRange}），无永久兽力只记间隔。</li>
- *   <li>⚠ 仅服务端内存，按玩家，不存档，死亡、下线、换维度、停服清空，客户端不查不读；int 与 list 重载为单测接缝。</li>
+ *   <li>当空手命中通过 {@link BeastPhantomEvents} 门槛且距上一轮开始已满 {@link #ROUND_TICKS}（1 秒）时开启新轮次
+ *       （仅从永久兽力[Beast Strength]兽种中抽取，仅有蛮力天牛蛊等限时兽力时不开轮）；开轮当击按 {@link #getChance} 掷
+ *       全面解放骰（基础 {@link #CHANCE} + 永久兽力概率加成，三/四/五转全力以赴蛊[All-Out Effort Gu]下直接提升至 80% /
+ *       90% / 100%）。</li>
+ *   <li>抽取兽种数 {@link #getDrawCount}：未开启苦力蛊[Hardship Strength Gu]时仅在掷中时抽 1 种（未掷中也照常开启空轮计
+ *       时、轮内不再补掷）；开启苦力蛊时按连击轮数 {@code streak} 抽取对应数量的不重复兽种（上一轮结束后
+ *       {@link #STREAK_WINDOW_TICKS} 内再次开轮则连击数 {@code +1}，超时或关闭苦力蛊则重置为 {@code 1}）。</li>
+ *   <li>全面解放判定（{@link #getFullyReleased}）：若当前处于全力以赴状态则本轮抽中的全部兽种均全面解放，否则仅在开轮掷
+ *       中时解放首个抽中兽种；全面解放兽种的永久点数经 {@link StrengthService#getReleasedExtra} 放大（仍受当前承受力上
+ *       限截断），其移速加成同步借给 {@link SprintSpeedService}；轮次开启或中途失去某兽种时发布
+ *       {@link BeastPhantomsDrawnEvent} 刷新虚影实体。</li>
+ *   <li>力气蛊[Strength Qi Gu]远程气波受 {@link #RANGE_INTERVAL_TICKS}（0.5 秒）发射间隔限制（{@link #canRange}）：同一
+ *       轮内的两记气波共用本轮抽中的兽种，若在轮外发射则先调 {@link #startRange} 开启新轮次。</li>
+ *   <li>⚠ 轮次与远程冷却状态仅保存在服务端内存映射中、不落盘，玩家死亡、登出、跨维度或停服时一律清空。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastPhantomEvents
- * @see BeastPhantomsDrawnEvent
- * @see HardshipStrength
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

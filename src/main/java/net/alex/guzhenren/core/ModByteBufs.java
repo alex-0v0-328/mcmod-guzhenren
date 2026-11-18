@@ -14,20 +14,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 模组新增的缓冲区读写：枚举按序号，及枚举为键的映射、集合。
+ * 面向枚举及以枚举为元素的映射、集合的网络字节流编解码工具。
  * <ul>
- *   <li>集合先写 VarInt 长度再逐个写元素；{@link #enumCodec}、{@link #nullableEnumCodec} 是枚举、可空枚举的 stream
- *       codec 形式，供 payload 的 {@code StreamCodec.composite}。</li>
- *   <li>作为附件或数据组件同步的 record 在自己的 {@code encode}/{@code decode} 里调用这些方法。</li>
- *   <li>⚠ 可空枚举写序号加一，0 表示未设：枚举都没有 NONE 常量，“尚未选择”只能在此表示；{@code Aperture} 的两个可空
- *       {@code GuPath} 字段靠它传输。</li>
- *   <li>⚠ 越界序号抛 {@code DecoderException}（{@link #byOrdinal}）：客户端意图包经此读枚举，伪造包可带任意 VarInt；这
- *       样按格式错误包断开发送方并给出可读原因，而非裸 {@code ArrayIndexOutOfBoundsException}。</li>
+ *   <li>枚举按 {@link Enum#ordinal()} 读写 VarInt，集合与映射先写 VarInt 元素数量再逐项序列化；{@link #enumCodec} 与
+ *       {@link #nullableEnumCodec} 提供对应的 {@link StreamCodec} 包装，供网络 Payload 组合使用。</li>
+ *   <li>⚠ 可空枚举（{@link #writeNullableEnum} / {@link #readNullableEnum}）以 {@code 0} 表示 {@code null}、非空值写入
+ *       {@code ordinal + 1}：因为业务枚举（如 {@code GuPath}）不设占位的 {@code NONE} 常量，「未选择」状态完全靠该编码
+ *       表达。</li>
+ *   <li>⚠ {@link #byOrdinal} 遇到越界序号时统一抛出 {@link DecoderException} 而非数组越界异常，确保收到伪造的客户端意图
+ *       包时能由网络层按协议格式错误安全断开连接并记录原因。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModByteBufs {

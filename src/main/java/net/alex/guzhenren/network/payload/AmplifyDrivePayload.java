@@ -9,13 +9,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 功倍蛊[Amplify Effect Gu]轮盘单选的客户端意图 payload：所驱动蛊的快捷栏格。
- * {@link ClientIntents#amplifyDrive} 全部重查；轮盘只列可通过项。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem
- * @since 1.0.0
+ * 功倍蛊[Amplify Effect Gu]轮盘单选后触发目标蛊虫催动的客户端意图载荷，仅携带目标快捷栏槽位索引；客户端轮盘仅展示可用
+ * 项，服务端由 {@link ClientIntents#amplifyDrive} 对所有前置条件执行完整重查。
  */
 
 public record AmplifyDrivePayload(int slot) implements CustomPacketPayload {

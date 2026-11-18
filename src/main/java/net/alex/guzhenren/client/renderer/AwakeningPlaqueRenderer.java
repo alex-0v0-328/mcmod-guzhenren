@@ -22,23 +22,18 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 /**
- * 头顶资质[Aptitude]牌匾的世界渲染。
- *
+ * 头顶资质[Aptitude]牌匾的世界内渲染器。
  * <ul>
- *   <li>开窍[Awakening]揭晓资质后显示在该玩家头顶，给旁人与本人第三人称镜头看；本人第一人称改看屏幕牌匾
- *       （{@code AwakeningHud}），两者同 tick 展开、扫光、碎掉；隐藏规则同名牌（{@link #isVisible}）：隐藏 HUD、超出
- *       名牌距离、观察者看不见其主人时。</li>
- *   <li>静态渲染器，{@code AwakeningEvents} 每帧在实体后调用一次；牌匾即其 GUI sprite（{@link AwakeningPlaque}），贴在
- *       朝镜头的四边形上，每像素 {@link #BLOCKS_PER_PIXEL} 格（与希望蛊、粒子同密度），全亮；底边在头顶上方
- *       {@link #LIFT} 格，避开名牌；四边形绕向同名牌字形，在同一翻转坐标系里，剔除后留下同一面。</li>
- *   <li>扫光像素是白色小方块，沿视线朝镜头挪 {@link #SHEEN_LIFT} 格防深度打架；{@link #getPixelPosition} 给火星取牌匾
- *       像素的世界坐标，同样朝镜头挪。</li>
+ *   <li>开窍仪式揭晓资质后在目标玩家头顶渲染，供旁人与本人第三人称视角观看；本人第一人称改为观看屏幕牌匾（
+ *       {@code AwakeningHud}），两者严格按同一 tick 展开、扫光并碎裂；可见性规则与原版名牌一致（
+ *       {@link #isVisible}）：在隐藏 HUD、超出名牌距离或观察者看不见主体时隐藏。</li>
+ *   <li>为无状态静态渲染器，由 {@code AwakeningEvents} 每帧在实体渲染之后调用一次；直接复用 GUI 精灵图（
+ *       {@link AwakeningPlaque}）贴在朝向镜头的全亮四边形上，每像素固定占 {@link #BLOCKS_PER_PIXEL} 格（与希望蛊及
+ *       粒子密度一致），底边置于头顶上方 {@link #LIFT} 格以避开名牌，四边形绕序与名牌字形在翻转坐标系中一致以确保正
+ *       面留存。</li>
+ *   <li>扫光像素作为白色小方块沿视线朝镜头方向前移 {@link #SHEEN_LIFT} 格以避免深度冲突；{@link #getPixelPosition}
+ *       为火星粒子换算牌匾像素的世界坐标并同样略朝镜头前移。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningTimeline
- * @since 1.0.0
  */
 
 public final class AwakeningPlaqueRenderer {

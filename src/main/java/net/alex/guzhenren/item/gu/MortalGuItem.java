@@ -33,34 +33,37 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 凡蛊：持有 {@link GuProperties}、{@link GuBehavior} 与真元[Essence] 门槛，无物品堆状态。
+ * 凡蛊抽象基类：继承 {@link GuItem}，组合静态数值规格 {@link GuProperties}、行为列表 {@link GuBehavior} 与真元门槛校
+ * 验，自身不直接维护物品栈可变状态。
  * <ul>
- *   <li>⚠ 所有蛊堆叠上限 1：构造器统一 {@code stacksTo(1)}，叶类不自设；数据组件整堆共享，可堆叠即整堆同一状态。</li>
- *   <li>介于 {@link GuItem} 与三种生命周期宿主间：{@link OneShotGuItem} 炼化即催动，无状态；
- *       {@link TendedGuItem} 炼化后补食、催动，带 {@link RefinedGuState}；及其 {@link ConsumedGuItem}；希望蛊[Hope Gu]
- *       开启空窍[Aperture]，三者皆非。构造器跑 {@link GuProperties#validate}，笔误启动即失败并点名；
- *       {@link #checkStageUpGate} 是升阶蛊唯一检查：空窍转数等于蛊转数，阶段低于巅峰。</li>
- *   <li>{@link #getUseEssence}：一次催动所付真元（持续照顾型蛊[Tended Gu] 单次代价、即时一次性蛊的炼化，灌注[Channel]
- *       为 0）；{@link #canBeAmplified}：功倍蛊[Amplify Effect Gu] 能否倍增它；类型行 {@link #formatType} 显示类型或
- *       「父 · 分支」（{@code 防御 · 反击}）。</li>
- *   <li>⚠ 至多一个行为可增幅：每个都从自身效果向功倍蛊结账，第二个由构造器点名拒绝；蛊的作为即其行为，按注册顺序：
- *       {@link #checkModules} 取首个拒绝，{@link #applyModules} 全执行，他处经 {@link #getBehavior} 询问。</li>
- *   <li>⚠ 每只蛊都响应右键，即使无事可做：炼化总是响应；不响应的叶类让蛊在手中像坏了。</li>
- *   <li>⚠ 真元门槛 {@link #checkEssenceGate} 经 {@code PrimevalStoneSupply.canAfford} 把携带元石[Primeval Stone] 连同真
- *       元池计数，两端一致；每笔代价都经 {@code PrimevalStoneSupply.pay} 付，放行即付得清。</li>
- *   <li>⚠ 蛊不查 {@code isAwakened}：真元门槛代之（元石有空窍才计），零代价放行；即时一次性蛊无炼化代价，无空窍凡人按设
- *       计可用生机叶蛊[Vitality Leaf Gu]、寿蛊[Lifespan Gu]、胆识蛊[Guts Gu]、第二空窍蛊[Second Aperture Gu]，舍利
- *       蛊[Relics Gu] 止于 {@link #checkStageUpGate}；仅希望蛊查 {@code isAwakened}：拒绝已有第一空窍者。</li>
- *   <li>生效催动都以 {@code spend} 结束，设冷却、扣蛊后发布 {@link GuUsedEvent}：任何蛊催动反应的唯一接缝，新蛊无需代
- *       码；蓄力按持有者与蛊的转数差定节奏（{@link #useChargeByGap}），不按阶段。</li>
- *   <li>⚠ 本命绑定存物品堆，只经 {@link VitalGuState} 读写，本类显示名字标记与附魔光效并留蛊在手；
- *       {@link #onDroppedByPlayer} 拒绝 Q 键丢弃时客户端已清空该格，即把服务端该格远端副本标过期，下次广播放回。</li>
+ *   <li>⚠ 所有凡蛊堆叠上限固定为 1：本类构造器统一调用 {@code stacksTo(1)}，子类无需重复设置；因为物品栈数据组件在整组
+ *       物品间共享，一旦允许堆叠会导致整组蛊虫共用同一份炼化、饱食或资质状态。</li>
+ *   <li>承上启下连接 {@link GuItem} 与三类生命周期宿主：炼化即催动的一次性消耗蛊 {@link OneShotGuItem}（无物品栈状
+ *       态）、需炼化喂养的持续照顾型蛊[Tended Gu] {@link TendedGuItem}（携带 {@link RefinedGuState}）及其一次性消耗子类
+ *       {@link ConsumedGuItem}（希望蛊[Hope Gu]直接继承本类以启动开窍[Awakening]仪式）；构造器在注册期调用
+ *       {@link GuProperties#validate} 执行数值自检，配置错误在启动时即点名报错；{@link #checkStageUpGate} 封装升阶类凡
+ *       蛊的公共门槛（目标空窍转数等于本蛊转数且阶段未达巅峰）。</li>
+ *   <li>{@link #getUseEssence} 返回单次催动消耗的真元（持续照顾型蛊取单次消耗，一次性消耗蛊取炼化消耗，灌注[Channel]型
+ *       蛊返回 0）；{@link #canBeAmplified} 判断是否可被功倍蛊[Amplify Effect Gu]增幅；{@link #getEffectSource} 固定以
+ *       本蛊的物品注册 ID 作为其施加的全部流派效果来源；{@link #formatType} 将用途分类格式化为顶层名或「父类型 · 子类
+ *       型」（如 {@code 防御 · 反击}）。</li>
+ *   <li>⚠ 单只凡蛊至多只能挂载一个声明了 {@link GuBehavior#canBeAmplified} 的行为（每个可增幅行为都会在生效时向功倍蛊扣
+ *       费一次，若超过一个由构造器直接抛出异常拦截）；{@link #checkModules} 按注册顺序返回首个拒绝原
+ *       因，{@link #applyModules} 依次执行全部行为，外部通过 {@link #getBehavior} 检索行为实例。</li>
+ *   <li>⚠ 每只凡蛊均固定覆写 {@link #hasUse} 返回 {@code true} 以响应右键（野生蛊至少需响应炼化，若不响应会让玩家误以为
+ *       按键失灵）。</li>
+ *   <li>⚠ 真元门槛 {@link #checkEssenceGate} 通过 {@link PrimevalStoneSupply#canAfford} 将随身元石[Primeval Stone]折算
+ *       入可用真元，双端判定一致，实际扣费统一走 {@link PrimevalStoneSupply#pay}。</li>
+ *   <li>⚠ 凡蛊本身不单独校验 {@code isAwakened}，而是由真元门槛自然拦截（未开窍者真元上限为 0 且不计随身元石）：炼化消
+ *       耗为 0 的一次性消耗蛊按设计允许未开窍凡人直接使用（如生机叶蛊[Vitality Leaf Gu]、寿蛊[Lifespan Gu]、
+ *       胆识蛊[Guts Gu]、第二空窍蛊[Second Aperture Gu]），舍利蛊[Relics Gu]由 {@link #checkStageUpGate} 拦截，唯独希望
+ *       蛊显式拒绝已开窍玩家。</li>
+ *   <li>所有成功催动均以 {@link #spend} 收尾：设置冷却、扣减物品栈后在事件总线发布 {@link GuUsedEvent}，作为监听凡蛊催
+ *       动的唯一公共接缝；催动蓄力时长按持有者与蛊虫的转数差分为三档（{@link #useChargeByGap}），与小阶段无关。</li>
+ *   <li>⚠ 本命蛊绑定状态存于物品栈组件并仅通过 {@link VitalGuState} 读写，本类负责渲染本命前缀名称、附魔光效并拦截丢
+ *       弃；当 {@link #onDroppedByPlayer} 拦截 Q 键丢弃时，由于客户端已先行清空快捷栏槽位，服务端必须将该槽位的远端同步
+ *       快照置空以强制下一帧重发原物品。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuProperties
- * @since 1.0.0
  */
 
 public abstract class MortalGuItem extends GuItem {
@@ -104,7 +107,6 @@ public abstract class MortalGuItem extends GuItem {
 
     public boolean canBeAmplified() { return behaviors.stream().anyMatch(GuBehavior::canBeAmplified); }
 
-    /** 本蛊所施全部流派效果的来源：其物品 ID。 */
     public final ResourceLocation getEffectSource() { return BuiltInRegistries.ITEM.getKey(this); }
 
     public final <P> PathEffect<P> createEffect(PathEffectType<P> type, long endTick, P payload) {

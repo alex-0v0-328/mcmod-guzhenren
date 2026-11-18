@@ -1,19 +1,14 @@
 package net.alex.guzhenren.particle;
 
 /**
- * 冲刺轨迹与音障环共用的等距累加器：算下一批环在本 tick 移动线段上的落点。
+ * 冲刺轨迹（{@link RingConeEmitter}）与音障环轨迹（{@link BarrierRingTrail}）共用的等距落点累加器，用于计算本刻位移线段
+ * 上应生成各环的精确偏移。
  * <ul>
- *   <li>按距离而非 tick 铺环：服务端闪避位移成块不均到达（Epic Fight 锁住移动、由动画驱动），逐 tick 铺会挤在路径
- *       两端；按实测移动则前摇、跳跃、撞墙截断都均匀。</li>
- *   <li>{@link #SPACING}：冲刺路径相邻两环间距（格）；音障环传入自己的间距（{@code BarrierRingTrail}）。</li>
- *   <li>{@link #getDrops} 的 {@code carry}：距上次落环已移距离，小于间距，本线段起点就该落环时恰等于间距；
- *       {@code ringsLeft}：本次爆发剩余环数；{@link Drops} 另带新 carry 与剩余环数。</li>
- *   <li>{@link Drops#offsets}：本 tick 线段上的升序落环偏移。</li>
+ *   <li>因服务端接收动画驱动位移时常呈分块不均匀到达，按实测移动距离分段可保证前摇、跳跃或撞墙截断时环距依然均匀。</li>
+ *   <li>{@link #SPACING} 定义冲刺轨迹默认间距（格），音障环则通过重载传入自身间距；{@link #getDrops} 依据距上次落环的累
+ *       计距离 {@code carry} 与剩余环数上限 {@code ringsLeft}，返回包含本段升序偏移数组、结余距离与剩余环数的
+ *       {@link Drops} 记录（当 {@code carry} 恰等于间距时会在本段起点立即落环）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 final class RingTrailSpacing {

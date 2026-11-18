@@ -18,20 +18,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 物品标签。
- *
+ * 本模组物品标签数据生成器。
  * <ul>
- *   <li>蛊食物标签（{@code boar_feed}、{@code bear_feed}、{@code jin_feed}、{@code liquor_feed} 等）、僵尸与全力以赴
- *       蛊[All-Out Effort Gu]食物标签：只引用已注册或原版物品，不写裸 id。</li>
- *   <li>钢筋蛊[Steel Tendon Gu]所食通用 {@code c:ingots/steel}、{@code c:storage_blocks/steel} 嵌进加载器
- *       {@code c:ingots}、{@code c:storage_blocks}。</li>
- *   <li>本模组物品在 {@link ItemRegistrar} 注册链声明自身标签（酒、玉、钢、对配方查看器隐藏的进度图标），先写，各标签内
- *       按注册顺序；原版成员随后写在此。</li>
+ *   <li>首先按注册顺序遍历 {@link ItemRegistrar} 注册链，写出本模组物品自声明的标签（酒类、玉石、钢锭与钢块、以及对配方
+ *       查看器隐藏的进度图标标签 {@code c:hidden_from_recipe_viewers}）。</li>
+ *   <li>随后填充各类蛊虫喂食标签（如猪力、熊力、虎力、斤力、酒虫、全力以赴蛊[All-Out Effort Gu]、僵尸躯体等食物标签），
+ *       并将钢筋蛊[Steel Tendon Gu]食用的通用钢锭标签 {@code c:ingots/steel} 及钢块标签 {@code c:storage_blocks/steel}
+ *       汇入加载器顶层 {@code c:ingots} 与 {@code c:storage_blocks}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class ModItemTagsProvider extends ItemTagsProvider {

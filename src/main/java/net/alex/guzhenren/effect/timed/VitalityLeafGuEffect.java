@@ -7,13 +7,9 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 生机叶蛊[Vitality Leaf Gu]限时治疗：每 0.5 秒回 1 点生命，共 64 次；投影流派效果
- * {@code TimedEffects.grantLeaf}（真值）：显示时脉冲，{@code /effect clear} 后 1 秒内补回；运行中再催动被拒
- * （{@code effect_active}）；不留永久改动。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 生机叶蛊[Vitality Leaf Gu]的限时周期治疗效果：每 0.5 秒回复 1 点生命值，总计 64 次；真值由流派效果
+ * {@code TimedEffects.grantLeaf} 持有（图标被清除后会在 1 秒内补回），生效期间禁止重复催动，结束后不保留任何永久属性改
+ * 动。
  */
 
 public class VitalityLeafGuEffect extends PeriodicEffect {

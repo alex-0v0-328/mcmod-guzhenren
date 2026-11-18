@@ -1,19 +1,15 @@
 package net.alex.guzhenren.gameplay.aperture.pressure;
 
 /**
- * 空窍[Aperture]压力爆炸坑的逐列形状：只依列、半径、种子的纯函数。
+ * 空窍压力爆炸坑的几何与材質分布纯函数：仅由水平坐标、基准半径与爆炸种子决定。
  * <ul>
- *   <li>{@link #getColumnJitter} 把列哈希到 {@code [0, 0.1)}；{@link #getColumnRadius} 为半径乘 {@code 0.9} 加扰动，
- *       坑边至多参差一成；同爆炸同坑。</li>
- *   <li>{@link #getColumnFloorY} 为该列球底下一格；坑底按此深度分层：冰 0 以下浮冰、-32 以下蓝冰；金 0 以下深层金矿石、
- *       32 以下金矿石、以上金块。</li>
- *   <li>熔岩、金、细雪各用己盐哈希列，互不重合；雪化环带伸出坑半径 8 至 16 格，至多 {@link #getRingReach}。</li>
+ *   <li>{@link #getColumnJitter} 将列坐标与种子哈希至 {@code [0, 0.1)}；{@link #getColumnRadius} 以 {@code 0.9} 倍基准
+ *       半径加上该扰动，使坑壁边缘产生至多一成的参差感且同种子结果恒定。</li>
+ *   <li>{@link #getColumnFloorY} 算出该列球面底部下方紧邻的一格 Y 坐标，{@link #getIceTier} 与 {@link #getGoldTier} 按
+ *       此高度决定冰层（冰、浮冰、蓝冰）与金层（深层金矿、金矿、金块）档位。</li>
+ *   <li>熔岩列、金列与细雪列各自异或独立盐值复用列哈希，分布互不重叠；北冥冰魄体的覆雪外环向坑外延伸 8 至 16 格（上限
+ *       {@link #getRingReach}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AperturePressureExplosionTask
- * @since 1.0.0
  */
 
 final class CraterShape {

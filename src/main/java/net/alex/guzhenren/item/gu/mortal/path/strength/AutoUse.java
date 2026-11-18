@@ -21,26 +21,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 所有 {@link AutoUseBehavior} 蛊的自动催动。
+ * 挂载 {@link AutoUseBehavior} 的力道凡蛊（自力更生蛊[Self Reliance Gu]、苦力蛊[Hardship Strength Gu]）的服务端自动催动
+ * 调度器。
  * <ul>
- *   <li>背包（{@code items}、副手）或任一空窍[Aperture]存储中的已炼化蛊，在持有者低于最大生命 75%
- *       （{@link HardshipStrength#isHurt}）时自行开启状态；窗口见 {@link #getEndTick}（青牛 +10 秒），回血不结束窗口；
- *       到期仍受伤，等效果冷却允许后重开、再计费。</li>
- *   <li>{@link #tryStart} 走心跳：每种状态只算持有的最高转，逐份试到一份开启（不扫本命蛊格）；开启即蛊自己的
- *       {@code TendedGuItem.tryAutoUse}：按该转付一次真元[Essence]与催动饱食[Hunger]，同受真元门槛、效果冷却和饱食不足
- *       静默跳过，并打效果冷却隔开两次开启；运行中不计费。</li>
- *   <li>{@link #tick} 每 tick 在持有者死亡濒死或不再持有开启它的已炼化蛊时停状态，不计费（到期靠流派效果自身过期）；
- *       蛊放回后重开、再付。</li>
- *   <li>⚠ 两种状态都是限时流派效果：重登后保留，首个 tick 重查不计费；低转运行中拾起高转，下次开启才接替。</li>
- *   <li>⚠ 手持门槛（{@code AutoUseBehavior.checkEffect}）只放行开启：{@link #isStarting} 仅在服务端线程、
- *       {@code tryAutoUse} 期间对正在开启的玩家成立。</li>
- *   <li>唯一可变静态字段 {@code starting}：调用级服务端线程上下文，try/finally 包住一次自动催动，不越调用。</li>
+ *   <li>当玩家随身背包（主背包、快捷栏、副手）或任意空窍存储中持有已炼化的自动催动蛊，且当前生命值低于上限的
+ *       75%（{@link HardshipStrength#isHurt}）时，自动开启对应状态；持续窗口由 {@link #getEndTick} 计算（含青牛 +10 秒
+ *       等永久兽力时长加成），期间生命值回升至 75% 以上不会提前终止窗口；窗口到期后若仍处于受伤状态，待效果冷却结束后自
+ *       动重开并再次扣费。</li>
+ *   <li>{@link #tryStart} 在玩家心跳中调用：每种状态仅取当前持有的最高转数蛊虫，逐个尝试调用
+ *       {@link TendedGuItem#tryAutoUse}（跳过本命蛊槽位）直至有一只成功开启；开启时按该蛊转数扣除一次真元与
+ *       催动饱食[Hunger]，同样受真元门槛、效果冷却与饱食不足约束（不满足时静默跳过），并写入效果冷却以隔开下次自动开
+ *       启；状态运行期间不再重复扣费。</li>
+ *   <li>{@link #tick} 每 tick 检查运行中的自动状态：当玩家死亡/濒死，或身上已不再持有赋予该状态的同源已炼化蛊虫时，立即
+ *       移除状态且不扣费（正常到期则由流派效果自身过期处理）；将蛊虫重新放回身上后会重新触发开启并扣费。</li>
+ *   <li>⚠ 自力更生与苦力状态均为持久化流派效果，重登后原样保留，登录首 tick 复查持有条件而不重新扣费；若低转状态运行途
+ *       中拾入高转同种蛊，需等当前轮次结束后才由高转蛊接替开启。</li>
+ *   <li>⚠ 手持右键门槛（{@link AutoUseBehavior#checkEffect}）仅放行来自本类的自动开启调用：可变静态字段
+ *       {@code starting} 作为服务端单次 {@link #start} 调用栈内的线程上下文，由 {@code try/finally} 严格包裹，使
+ *       {@link #isStarting} 仅在该瞬间对当前玩家返回 {@code true}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AutoUseBehavior
- * @since 1.0.0
  */
 
 public final class AutoUse {

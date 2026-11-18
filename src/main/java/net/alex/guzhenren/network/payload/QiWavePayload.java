@@ -8,12 +8,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 力气蛊[Strength Qi Gu]出拳化气波的客户端意图 payload：瞄准目标 id；{@code QiWaveService.fire} 重查增益、空手与目标。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService
- * @since 1.0.0
+ * 力气蛊[Strength Qi Gu]出拳化作气波时的客户端意图载荷，仅携带客户端瞄准目标的实体 ID，服务端在
+ * {@link net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService#fire} 中重新校验效果增益、空手状态与目标合法性。
  */
 
 public record QiWavePayload(int target) implements CustomPacketPayload {

@@ -6,13 +6,8 @@ import net.minecraft.world.food.FoodData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 不死（僵）的心跳步骤：{@link #tickTempZombie} 让到期临时僵尸恢复并投影为 {@code TEMP_ZOMBIE} 效果；{@link #pinHunger}
- * 保持不死之躯饥饿值满格。
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @since 1.0.0
+ * 死灵体质（僵尸与临时僵尸化）的心跳维护服务：{@link #tickTempZombie} 在临时僵尸化到期时移除该体质并同步
+ * {@code TEMP_ZOMBIE} 状态栏投影效果；{@link #pinHunger} 将死灵体质玩家的饥饿值与饱和度锁满并清零消耗度。
  */
 
 public final class UndeadService {

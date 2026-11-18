@@ -1,12 +1,8 @@
 package net.alex.guzhenren.network.payload;
 
 /**
- * 元老蛊[Primeval Elder Gu]意图的两个动作：存入元石[Primeval Stone]，或按组取出。
- * 与所属 payload 同包，免其依赖 {@code net.alex.guzhenren.network}。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 元老蛊[Primeval Elder Gu]交互意图的动作枚举，区分点按存入元石[Primeval Stone]（{@link #DEPOSIT}）与长按滑条按组取出
+ * （{@link #WITHDRAW}），与 {@link PrimevalElderPayload} 同包以避免载荷包反向依赖上层 {@code network} 包。
  */
 
 public enum ElderAction { DEPOSIT, WITHDRAW }

@@ -7,22 +7,17 @@ import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 
 /**
- * 空窍[Aperture]压力爆炸坑的区块票：触及区块载到挖完，无人在场也挖完。
+ * 空窍压力爆炸坑的区块加载票管理：确保触及区块在挖掘期间常驻内存，即使无玩家在场也能挖完。
  * <ul>
- *   <li>重启后无人加载这些区块，远处重生者也不再占着；方形范围比最宽列多一格（{@code reach}）：
- *       边缘更新触及最外已清方块的邻居，未载区块会在服务端线程同步加载。</li>
- *   <li>每区块一张 33 级票，{@code FULL} 但不 tick：方块可读写，生物、方块实体、计划刻休眠；只耗加载与内存，不耗 tick；
- *       半径 32 至 112 成形的几十秒里占约 25 至 256 个区块。</li>
- *   <li>{@link #isLoaded} 首调加票，查 {@code getChunkNow} 不查 {@code hasChunk}：后者只看票等级，未载完即为真；
- *       到齐后锁存，持票区块不卸。</li>
- *   <li>⚠ 票键为爆炸种子：两坑共区块各持一票，先完者不卸另一坑的区块。</li>
- *   <li>⚠ 票不存档，停服即丢；恢复的爆炸首 tick 新建票重询。</li>
+ *   <li>票覆盖范围比最大水平影响半径多扩 1 格（{@code reach}），确保最后阶段对最外圈已清方块做邻居更新时，相邻区块也已
+ *       加载，不会在服务端主线程触发同步阻塞加载。</li>
+ *   <li>每个区块挂一张 33 级区域票（对应 {@code FULL} 状态但不执行实体与随机刻 tick），仅占内存而不增加每 tick 实体负
+ *       担。</li>
+ *   <li>⚠ {@link #isLoaded} 首次调用时挂票，并通过 {@code getChunkNow != null}（而非仅看票等级的 {@code hasChunk}）确
+ *       认区块真正加载完毕，全部就绪后锁存结果。</li>
+ *   <li>⚠ 票键取爆炸随机种子（{@code key}），使相邻两场爆炸重叠的区块各自持票，先挖完的一方释放票时不会卸载另一方仍在挖
+ *       的区块；区块票不落盘，重启恢复后在首个 tick 重新挂票查询。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AperturePressureExplosionTask
- * @since 1.0.0
  */
 
 final class CraterChunkTicket {

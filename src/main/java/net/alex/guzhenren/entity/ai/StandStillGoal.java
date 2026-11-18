@@ -6,12 +6,8 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 /**
- * 休息姿势（大型野兽坐、卧、睡、翻滚、蹭背，野猪吃草）且无目标时停住导航的 AI 目标；起止由实体动作状态机定，只占
- * {@code MOVE}，闲逛带不走生物。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 在实体处于休息姿势（大型野兽坐、卧、睡、翻滚、蹭背，或冲撞者吃草）且无攻击目标时停止导航的 AI 目标；起止由实体动作状
+ * 态机判定，仅占用 {@code MOVE} 标志位以防随机游荡带走生物。
  */
 
 public final class StandStillGoal extends Goal {

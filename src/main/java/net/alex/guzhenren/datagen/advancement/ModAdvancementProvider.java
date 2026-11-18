@@ -24,19 +24,13 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 进度树（{@code advancement/}），每个里程碑族一个根。
- *
+ * 模组进度树（{@code advancement/}）数据生成器。
  * <ul>
- *   <li>根：首次希望蛊[Hope Gu]仪式，得到它且坚持到底，两条件 AND（{@code obtained_gu} + {@code used_gu}）。</li>
- *   <li>境界链挂其下，各一个 {@code reached_rank} 条件：二至五转，三转巅峰从三转分出；图标为本转纯数字
- *       （{@link AdvancementIconItem}），三转巅峰用巅峰变体。</li>
+ *   <li>根节点 {@code first_awakening} 要求玩家同时满足「获得希望蛊[Hope Gu]」与「完成首次希望蛊开窍仪式
+ *       （{@link net.alex.guzhenren.advancement.HopeGuUsedTrigger}）」两个条件（AND 关系）。</li>
+ *   <li>修为进阶链挂载在根节点之下，依次通过 {@link net.alex.guzhenren.advancement.RankReachedTrigger} 检测二转至五转
+ *       （其中三转巅峰从三转节点分叉）；进度图标统一使用携带对应转数与阶段模型数据的 {@link AdvancementIconItem}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.advancement.HopeGuUsedTrigger
- * @see net.alex.guzhenren.advancement.RankReachedTrigger
- * @since 1.0.0
  */
 
 public class ModAdvancementProvider extends AdvancementProvider {

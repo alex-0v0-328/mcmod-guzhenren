@@ -7,20 +7,15 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 一种 {@link MindPoolType} 的脑海池，叶子 record，嵌在 {@link MindData} 内。
- *
+ * 单个 {@link MindPoolType} 脑海池的不可变记录（嵌于 {@link MindData}）。
  * <ul>
- *   <li>⚠ 不自行夹紧：只有部分池类型可超上限，夹紧在 {@code MindService}，每次写入都经过。</li>
- *   <li>⚠ {@code burstAt()} 先除后乘（{@code max / DENOM * NUMER}），末积饱和，保比例不溢出；不低于 {@code max}，
- *       满池不算超限。</li>
- *   <li>⚠ 用过缓冲时 {@code withSlept()} 只补缺额一半；从不降 {@code current}。</li>
+ *   <li>⚠ 紧凑构造器仅保证非负而不把 {@code current} 夹取到 {@code max}：因为部分池类型允许超出上限进入缓冲区，上限夹取
+ *       统一由 {@link MindService} 在每次写入时按池类型执行。</li>
+ *   <li>⚠ {@link #burstAt} 采用先除后饱和乘（{@code max / BURST_DENOMINATOR * BURST_NUMERATOR}）并保底为 {@code max}，
+ *       防止大上限乘法溢出，且确保满池（{@code current == max}）永不被判为超限（{@link #isOverflowing}）。</li>
+ *   <li>⚠ 动用过超限缓冲区（{@code bufferUsed}）时，睡眠恢复 {@link #withSlept} 仅补齐缺失额的一半并清除标记，且绝不会
+ *       把已高于 {@code max} 的当前值压低。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MindData
- * @see MindService
- * @since 1.0.0
  */
 
 public record MindPool(long current, long max, boolean bufferUsed) {

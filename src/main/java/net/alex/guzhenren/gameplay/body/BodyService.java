@@ -26,53 +26,37 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身状态唯一运行时写入者，体质转换归口。
- *
- * <p>时钟：
+ * 玩家肉身数据（{@link BodyData}）的唯一运行时写入服务：统一管理寿元与年龄时钟、体质转换、筋骨皮肉淬炼、解剖伤势与种族
+ * 天赋。
  * <ul>
- *   <li>{@link #tickAging} 锚 {@code lastDayIndex}，只为三项蛊饱食[Hunger]遍历计天；{@link #tickLifespan} 锚
- *       {@code lastBilledTick}，每次心跳结算寿元。</li>
- *   <li>寿元只计在线：{@link #skipOfflineLifespan} 登录时解锚，首次心跳重锚、不补离线；日钟仍计离线天数。每次心跳写同步
- *       的 BODY（每人每秒 1 次）以换宙道精确缩放与按时耗尽，不批量。</li>
- *   <li>⚠ {@code tickAging} 返回天数可远大于 1，吞掉它会让所有蛊同时挨饿。</li>
- *   <li>☠ 寿元经 {@link TimeFlow#scale} 消耗：加速即更快；手写速率会倒流成纯延寿。</li>
- *   <li>⚠ 两锚点用 {@code dayTime} 非 {@code gameTime}（{@code /time add} 照样增龄）；时间倒退即重锚不结算，守卫仅一个
- *       {@code <}：{@code today < lastDayIndex}、{@code now < lastBilledTick}。</li>
- *   <li>⚠ 调用方只用年，寿元份数仅本文件知道；{@link #clampParts} 的 {@code BigInteger} 中间积不提前截断，后续有符号加
- *       法或分数可拉回范围。</li>
+ *   <li>{@link #tickAging} 锚定 {@code lastDayIndex}，仅用于驱动三处蛊虫每日饱食[Hunger]结算；{@link #tickLifespan} 锚
+ *       定 {@code lastBilledTick}，每次心跳扣减在线寿元（{@link #skipOfflineLifespan} 在登录时解锚以跳过离线时长，而日
+ *       钟照常计入离线跨日）。</li>
+ *   <li>⚠ {@link #tickAging} 返回的跨日天数在长离线或 {@code /time add} 后可能远大于 {@code 1}，调用方必须按返回天数完
+ *       整结算，吞掉返回值会让蛊虫漏扣饱食。</li>
+ *   <li>⚠ 寿元消耗经 {@link Beat#scale}（底层 {@link TimeFlow#scale}）按自身时间倍率缩放：自身时间加速时寿元流逝同步加
+ *       快，切勿反写除法或负号以免变成倒流延寿。</li>
+ *   <li>⚠ 两个时间锚点均取主世界 {@code dayTime}（而非 {@code gameTime}，使 {@code /time add} 同样推算年龄与寿元）；当
+ *       时间倒退（{@code today < lastDayIndex} 或 {@code now < lastBilledTick}）时仅重新锚定而不扣减。</li>
+ *   <li>⚠ 外部调用方一律以「年」为单位传参，寿元「份」数仅在本类与 {@link BodyData} 内部换算；{@link #clampParts} 使用
+ *       {@link BigInteger} 计算中间乘积后再夹取到 {@code long}，防止大数加减提前溢出截断。</li>
+ *   <li>⚠ {@link #setExtremePhysique} 不校验玩家是否已开窍[Awakening]，赋非 {@code NONE}
+ *       的十绝体[Ten Extreme Physiques]时由调用方先行把关（管理指令经 {@code AwakenedGate.AWAKENED} 拦截，开窍仪式先开
+ *       空窍再赋体质）。</li>
+ *   <li>⚠ 临时僵尸化到期摘除 {@link Physique#TEMP_ZOMBIE} 时仍保留 {@code tempZombieEndTick}：到期后
+ *       {@link BodyData#RELAPSE_WINDOW_TICKS}（5 分钟）内若再次使用僵尸类蛊（{@link #isWithinRelapseWindow}），会直接恶
+ *       化为永久僵尸；该时间戳仅在 {@link #revive} 时清除。进入临时僵尸或永久僵尸期间寿元冻结不扣，转为永久僵尸时寿元设
+ *       为 {@link BodyData#ZOMBIE_LIFESPAN}。</li>
+ *   <li>限时皮肤（玉皮、白玉皮）的到期时刻按 {@code gameTime} 计，由 {@link SkinService} 在心跳中检查脱下，并在
+ *       {@link #revive} 时随不死形态一并褪去；永久皮肤与筋、骨、肉无到期时间，重生保留。</li>
+ *   <li>肢体与七窍伤势及附加部位当前仅由管理指令读写，暂不发布事件。</li>
+ *   <li>⚠ {@link #setRace} 是现有两处跨领域授予之一（另一处为 {@code ApertureService.reconcileTalentPaths}）：切换异人
+ *       种族时撤销旧种族天赋并授予新种族天赋，通过 {@link PathService#shiftAttainment} 平移对应流派造诣，并以
+ *       {@link #RACE_TALENT_SOURCE} 挂载 10 条整道痕[Path Marks]的永久 {@code RACE_TALENT} 肉身流派效果（登录缺失或种族
+ *       不符时由 {@link #syncRaceTalent} 补齐，但不重复平移造诣）。</li>
+ *   <li>本类作为 {@link BodyData} 全部字段族的唯一写入入口，按功能分 {@code //region} 组织在同一文件中（超 300
+ *       行）。</li>
  * </ul>
- * <p>体质：
- * <ul>
- *   <li>⚠ {@code setExtremePhysique} 不查开窍[Awakening]：设非 {@code NONE} 时调用方自设门槛（命令经
- *       {@code AwakenedGate.AWAKENED}，开窍流程先开空窍[Aperture]）。</li>
- *   <li>⚠ 临时僵尸到期仍留结束 tick：其后 {@code RELAPSE_WINDOW_TICKS} 内再用僵尸类蛊即永久成僵
- *       （{@link #isWithinRelapseWindow}），仅 {@link #revive} 清除。</li>
- *   <li>⚠ 寿元：进入临时僵尸即冻结（不死之躯不结算），离开只解冻；转僵尸置 {@code ZOMBIE_LIFESPAN}，形态结束保留。</li>
- * </ul>
- * <p>皮与筋骨：
- * <ul>
- *   <li>玉皮结束 tick 用 {@code gameTime}，{@code SkinService} 心跳读取，{@link #revive} 随不死形态一并蜕下；
- *       永久皮无结束 tick，重生保留。</li>
- *   <li>新品阶能否替换由各部位 {@code canReplace} 判定，蛊来问，不在此。</li>
- * </ul>
- * <p>肢体与七窍：
- * <ul>
- *   <li>伤势与附加部位只有管理命令写，不发事件；受伤来源与效果定下后再加事件。</li>
- * </ul>
- * <p>种族：
- * <ul>
- *   <li>{@link #setRace} 是第二个跨域授予（另一个 {@code ApertureService.reconcileTalentPaths}）：撤旧授新，造诣经
- *       {@code PathService} 平移；道痕[Path Marks]作永久 {@code RACE_TALENT} 肉身效果经 {@code PathEffectService}
- *       施加，来源 {@link #RACE_TALENT_SOURCE}，种族之道[Path]上 10 整道痕。</li>
- *   <li>{@link #syncRaceTalent} 登录时补回缺失或错种族的效果，不动造诣。</li>
- *   <li>超 300 行：肉身记录读写唯一入口，每字段族一个 region，拆分会让入口分属两个服务。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TimeFlow
- * @see PhysiqueChangedEvent
- * @since 1.0.0
  */
 
 public final class BodyService {
@@ -105,7 +89,6 @@ public final class BodyService {
         PlayerData.get(player).setBody(data);
     }
 
-    /** 同步肉身状态标记效果：按剩余 tick（至少 1）显示，否则移除。 */
     static void projectMarker(ServerPlayer player, Holder<MobEffect> effect, boolean shown, long ticksLeft) {
         if (shown) {
             player.addEffect(ModEffects.instance(effect, Math.max(1, (int) ticksLeft)));

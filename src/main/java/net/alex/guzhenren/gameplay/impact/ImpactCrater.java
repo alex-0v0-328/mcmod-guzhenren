@@ -10,18 +10,14 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 身体高速撞地炸出的撞击坑。
- *
+ * 肉身高速撞地或撞墙产生的物理撞击坑工具（供坠击落地与二段飞行[Second-Stage Flight]撞毁共用）。
  * <ul>
- *   <li>坠击落地、二段飞行[Second-Stage Flight]坠毁经 {@link #blast}：撞击点原版爆炸一次，只破方块；
- *       {@link NoEntityDamage} 拒绝一切实体伤害，生物、玩家、掉落物完好；保留原版击退，原版已排除玩家自己。</li>
- *   <li>先问 {@code ModEvents#canGrief}：拒绝则不破块，照样击退、出声；允许则按原版爆炸抗性破块，掉落同苦力怕
- *       （{@code mobExplosionDropDecay}）；坑内 TNT 按原版 {@code TntBlock#wasExploded} 点燃，连锁爆炸是保留特性。</li>
+ *   <li>{@link #blast} 在撞击点触发一次原版爆炸：通过 {@code NoEntityDamage} 屏蔽所有实体伤害（生物、玩家与掉落物均完好
+ *       无损），仅保留原版对周围生物的冲击波击退（发起玩家自身已被原版排除）。</li>
+ *   <li>先经 {@code ModEvents.canGrief} 检查破坏权限：若禁止破坏则切换为 {@code NONE}（仅保留音效与击退、不破方块）；若
+ *       允许破坏则切换为 {@code MOB}（按原版爆炸抗性破块并沿用苦力怕掉落衰减，坑内 TNT 会被原版机制正常引爆形成连
+ *       锁）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ImpactCrater {

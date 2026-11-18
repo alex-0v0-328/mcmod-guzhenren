@@ -11,14 +11,10 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 如故蛊[As Before Gu]眼中区块的陆地 / 水域分类。山如故[Mountain As Before Gu]还原 {@link #LAND}，
- * 江如故[River As Before Gu]还原 {@link #WATER}，各拒另一类。每区块只读中心列地表的群系，不数列，故平原湖算陆地，带
- * Terralith 标签移植的南疆群系自行归类。
- *
- * @author Alex
- * @version 1.0.0
- * @see ChunkRewindService
- * @since 1.0.0
+ * 如故系地形还原的区块水陆分类枚举：山如故[Mountain As Before Gu]仅还原 {@link #LAND}（陆地），
+ * 江如故[River As Before Gu]仅还原 {@link #WATER}（水域），各自拒绝另一类；{@link #of} 仅采样区块中心列地表高度处的生物
+ * 群系标签（含河流与深浅海洋标签为 {@code WATER}，因此平原内的小湖泊算作 {@code LAND}，而带 Terralith 标签移植的四域群
+ * 系自动按各自群系标签归类）。
  */
 
 public enum ChunkKind {

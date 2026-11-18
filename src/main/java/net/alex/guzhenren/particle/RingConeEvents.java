@@ -9,13 +9,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * {@link RingConeEmitter} 的事件入口：每个玩家 tick 末推进该玩家的环轨迹，登出或换维度时丢弃；
- * 每个 {@link CrashStruckEvent} 发一枚范围冲击环。
- *
- * @author Alex
- * @version 1.0.0
- * @see RingConeEmitter
- * @since 1.0.0
+ * {@link RingConeEmitter} 的服务端事件桥接器：在玩家刻末尾推进冲刺环爆发轨迹，在玩家登出或切换维度时清理状态，并在收到
+ * {@link CrashStruckEvent} 时发射范围冲击环。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

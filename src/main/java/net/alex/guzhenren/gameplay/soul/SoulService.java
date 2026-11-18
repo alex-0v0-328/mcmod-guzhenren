@@ -7,18 +7,17 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 魂魄唯一的运行时写入者，静态服务。
+ * 玩家魂魄状态的唯一运行时写入服务。
  * <ul>
- *   <li>{@link SoulData} 构造器已钳值，本类多为直通，另持有生命周期所需的 {@code revive}、{@code refill}。</li>
- *   <li>⚠ 本类不杀人：清空魂魄只布下致死状态，由心跳末步 {@code checkLethalState} 发现；没有可搜的 kill 调用。</li>
- *   <li>⚠ 上限 0 时当前值亦为 0（一检兼顾），{@code revive} 须恢复 {@code DEFAULT_MAX_SOUL}，免重生即死。</li>
- *   <li>⚠ 胆识蛊[Guts Gu] 提高 {@code maxSoul}；别靠调低数值“修”炼化代价。</li>
+ *   <li>{@link SoulData} 紧凑构造器已负责数值钳位，本类写入方法多为直通，另提供复活重置（{@link #revive}）、回
+ *       满（{@link #refill}）与消耗扣减（{@link #consume}）。</li>
+ *   <li>⚠ 本类不直接执行击杀：将魂魄扣至 0 仅使 {@link SoulData#isCollapsed()} 为真，实际致死由每秒心跳末步的
+ *       致死检查统一判定并施加伤害。</li>
+ *   <li>⚠ 上限为 0 时当前魂魄也必为 0（一并触发触底判定），因此 {@link #revive} 必须同时兜底恢复默认上限，避
+ *       免玩家重生即死。</li>
+ *   <li>⚠ 胆识蛊[Guts Gu]用于提高 {@code maxSoul}，魂魄不足或炼化代价过高时不得通过直接压低消耗数值来规避限
+ *       制。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulData
- * @since 1.0.0
  */
 
 public final class SoulService {

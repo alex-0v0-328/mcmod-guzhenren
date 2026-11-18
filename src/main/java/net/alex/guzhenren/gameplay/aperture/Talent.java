@@ -8,19 +8,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 /**
- * 资质[Aptitude]：由空窍[Aperture]基础真元[Essence]推导，从不另存。
- *
+ * 空窍资质[Aptitude]枚举：由空窍基础真元百分比（{@link Aperture#baseEssence}）实时推导，不单独落盘。
  * <ul>
- *   <li>封闭词汇枚举，兄弟模组不得新增；回复倍率、Epic Fight 耐力百分比、抽取权重都在此；{@code NONE} 不可
- *       设，{@code shift(int)} 夹在 {@code TEN_EXTREMES} 至 {@code FOURTH}。</li>
- *   <li>{@code formatPercent} 把基础值读成「成」（85 即八成五），HUD 与开窍[Awakening]公告都读它，故放其下。</li>
- *   <li>⚠ 常量由高到低，{@code shift(+1)} 即 {@code ordinal - 1}，照声明顺序读方向正是弄反的由来；⚠ {@code 1} 至
- *       {@code 19} 是空洞（{@code fromPercent} → {@code NONE}）。</li>
+ *   <li>封闭词汇枚举，兄弟模组不得新增；统一定义各档百分比区间、抽取权重、真元自然回复倍率与 Epic Fight 耐力加成百分
+ *       比；{@link #NONE} 不可直接设置，{@link #shift} 夹取在 {@link #TEN_EXTREMES} 至 {@link #FOURTH} 之间。</li>
+ *   <li>{@link #formatPercent} 将基础真元数值格式化为中文「几成几」（如 85 为「八成五」），供 HUD 与开窍[Awakening]播报
+ *       共用。</li>
+ *   <li>⚠ 枚举常量按从高到低声明，因此提升资质 {@code shift(+1)} 对应 {@code ordinal - 1}，切勿按声明顺序反向推算；
+ *       百分比 {@code 1..19} 为未定义空洞，{@link #fromPercent} 对其返回 {@link #NONE}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public enum Talent implements NamedEnum {

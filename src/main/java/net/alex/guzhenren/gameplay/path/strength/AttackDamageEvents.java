@@ -18,19 +18,14 @@ import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 /**
- * 攻击修饰在心跳外的即时刷新入口。
+ * 玩家攻击力修饰符在每秒心跳之外的即时刷新事件入口。
  * <ul>
- *   <li>订阅原因：体质乘承受力（未开窍[Awakening]肉体也乘，它不发空窍[Aperture]事件）；
- *       力道效果被他处摘除见 {@link PathEffectEndedEvent}；转数定基础承受力；筋骨、皮改承受力；换主手即时增减拳头加成；
- *       最大生命与击退抗性另归 {@code gameplay.attribute.AttributeEvents}。</li>
- *   <li>⚠ 只靠心跳，面板攻击行最多滞后 1 秒。</li>
- *   <li>⚠ NeoForge 在效果表变化前发三个效果事件，{@code refreshAttack} 故以 {@link TickTask} 延到本 tick 末刷新。</li>
+ *   <li>当体质、十绝体[Ten Extreme Physiques]、力道点数或流派效果、空窍转数、皮肤、筋骨或主手物品变更时立即调
+ *       {@link AttackDamageService#refresh}，避免面板攻击力滞后至多 1 秒（最大生命值与击退抗性另归
+ *       {@code gameplay.attribute.AttributeEvents}）。</li>
+ *   <li>⚠ NeoForge 的药水效果增删/到期事件在实体效果表实际更新前触发，因此 {@code refreshAttack} 通过 {@link TickTask}
+ *       延迟到当前服务端 tick 末尾再刷新攻击力。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AttackDamageService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

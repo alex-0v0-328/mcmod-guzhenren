@@ -5,17 +5,12 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 玩家亲手投出弹射物的服务端事件，发布在游戏事件总线。
+ * 玩家亲手投出弹射物时在 NeoForge 游戏事件总线同步发布的服务端事件。
  * <ul>
- *   <li>目前每发月刃（{@link MoonBladeEntity#shoot}）一个；Epic Fight 桥接据此播投掷动画
- *       （{@code EpicFightServerEvents}），新投掷技能只需发布本事件。</li>
- *   <li>同步分发，弹射物已入世界；发布方不知谁在听，监听者不改变投掷。</li>
+ *   <li>目前每发射一枚月刃（{@link MoonBladeEntity#shoot}）即发布一次；Epic Fight 桥接层
+ *       （{@code EpicFightServerEvents}）监听本事件以播放投掷动作，新增投掷类技能只需发布本事件即可复用表现，发布方无需
+ *       感知监听者。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MoonBladeEntity
- * @since 1.0.0
  */
 
 public class ProjectileThrownEvent extends Event {

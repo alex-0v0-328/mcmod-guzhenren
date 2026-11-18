@@ -34,23 +34,20 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 兽力冲击：力气蛊[Strength Qi Gu]兽力虚影流的远程拳，本轮兽类虚影冲向锁定目标。
+ * 兽力冲击弹射物：力气蛊[Strength Qi Gu]兽力虚影流派的远程拳，驱动本轮显形的兽类虚影沿弧线冲向锁定目标。
  * <ul>
- *   <li>飞 {@link BeastChargeArc} 掷出的 {@link MoonBladeArc}（同拳在上半圆散开），朝每 tick 重读的目标中心，每 tick
- *       {@link #SPEED} 格，至多 {@link #MAX_FLIGHT_TICKS}，无重力阻力，穿过其他实体。</li>
- *   <li>飞完或碰到目标即在目标处爆开（{@link QiBurst#burst}）并消失，交出该 tick 切线（{@link MoonBladeArc#tangentAt}）
- *       作最后方向；被方块挡或飞完时无目标则消失不爆；打击即爆开，无残留。</li>
- *   <li>播本兽类冲锋循环（马用原版模型，靠渲染器肢体摆动），{@link #FADE_IN_TICKS} 内淡入；偏航俯仰朝弧线下一步：抬升扬
- *       起，随后俯冲，末段指向目标。</li>
- *   <li>爆开与伤害归服务端，{@link #shoot} 设定；客户端按同步的目标、弯度、飞行 tick 飞同一曲线；不存档。蓄力
- *       蛊[Store Strength Gu]的蓄力一拳带自己的 {@link QiBurst.Spec}，力气蛊的拳按气波爆开。</li>
+ *   <li>沿 {@link BeastChargeArc} 生成的 {@link MoonBladeArc} 飞行（同拳多道冲击在上半圆散开），每 tick 重读目标中心，
+ *       速度为 {@link #SPEED} 格/tick，飞行上限 {@link #MAX_FLIGHT_TICKS} tick，不受重力与空气阻力影响，且忽略非锁定目
+ *       标的其他实体。</li>
+ *   <li>飞完弧线或触碰锁定目标时即在目标中心触发 {@link QiBurst#burst} 爆开并销毁，将当帧弧线切线（
+ *       {@link MoonBladeArc#tangentAt}）作为冲击环朝向；若途中撞上方块或飞完时目标已失效则直接销毁、不触发爆开。</li>
+ *   <li>飞行期间循环播放对应兽种的冲锋动画（马使用原版模型，由
+ *       {@link net.alex.guzhenren.client.renderer.BeastPhantomRenderer} 驱动四肢摆动），并在前 {@link #FADE_IN_TICKS}
+ *       tick 内淡入；偏航角与俯仰角始终朝向弧线下一帧位置，呈现先扬起再俯冲刺向目标的轨迹。</li>
+ *   <li>命中与爆开结算由服务端权威执行，参数由 {@link #shoot} 注入；客户端根据同步的目标 ID、控制点偏移与飞行 tick 重建
+ *       同一条弧线用于渲染，实体不写入存档；蓄力蛊[Store Strength Gu]的蓄力一拳传入专属 {@link QiBurst.Spec}，力气蛊普
+ *       攻则使用默认气波规格。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see QiBurst
- * @see net.alex.guzhenren.client.renderer.BeastPhantomRenderer
- * @since 1.0.0
  */
 
 public final class BeastChargeEntity extends Projectile implements GeoEntity, BeastPhantomVisual {

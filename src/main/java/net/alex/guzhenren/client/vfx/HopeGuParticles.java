@@ -28,24 +28,18 @@ import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 /**
- * 希望蛊[Hope Gu]的 Photon 像素粒子定义，代码里搭发射器，不带 {@code .fx} 文件。
- *
+ * 希望蛊[Hope Gu]的 Photon 像素粒子编程式定义：直接在代码中构建发射器，不依赖外部 {@code .fx} 文件。
  * <ul>
- *   <li>尺寸、寿命、数量与速度是常量，规格在 wiki《实体蛊虫#希望蛊》与《空窍#开窍仪式》。</li>
- *   <li>每粒 {@link #PIXELS}×{@link #PIXELS} 像素帧；pixelArt 材质按贴图宽对齐纹素中心，贴图只有全透明与不透明，序列帧
- *       按整帧跳，Photon 默认全亮。</li>
- *   <li>拖尾在世界空间按移动距离（{@link #TRAIL_SPACING}）发射，悬停时只靠每
- *       {@link #IDLE_INTERVAL_TICKS} tick 的落尘。</li>
- *   <li>定义首次用到时才搭（Photon 已就绪），存进可变静态字段作懒缓存，只在客户端线程读写、不重置；每次播放复制一份
- *       运行时；定点效果由 {@link PointExecutor} 放出，到时自灭。</li>
- *   <li>⚠ 跟随效果都开 allowMulti：Photon 按 {@code fxLocation} 给同一实体去重，代码搭的定义没有位置（都为 null），
- *       不开则拖尾被当成核心的重复而不放。</li>
+ *   <li>粒子的尺寸、寿命、数量与速度参数均为常量，对应设计规格见 wiki《实体蛊虫#希望蛊》与《空窍#开窍仪式》。</li>
+ *   <li>单粒采用 {@link #PIXELS}×{@link #PIXELS} 像素帧；{@code pixelArt} 材质按贴图宽度对齐纹素中心，贴图仅含全透
+ *       明与不透明像素，序列帧按整帧切换，Photon 粒子默认全亮渲染。</li>
+ *   <li>移动拖尾在世界空间按位移距离（{@link #TRAIL_SPACING}）触发发射，悬停静止时仅靠每
+ *       {@link #IDLE_INTERVAL_TICKS} tick 的零星落尘维持动态。</li>
+ *   <li>粒子定义在首次使用时懒初始化构建（确保 Photon 已就绪）并缓存在可变静态字段中，仅在客户端线程读写且无需重
+ *       置；每次播放复制一份运行时实例，定点特效通过 {@link PointExecutor} 放出并在播完后自毁。</li>
+ *   <li>⚠ 所有跟随类效果均须启用 {@code allowMulti}：Photon 依据 {@code fxLocation} 对同一实体去重，而编程式构建
+ *       的定义没有文件位置（均为 {@code null}），若不开启则拖尾会被误判为与核心重复而被跳过。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see HopeGuEffectEvents
- * @since 1.0.0
  */
 
 public final class HopeGuParticles {

@@ -8,12 +8,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * {@link SkinWornEvent} 转发：身体侧发事件，本类发 {@link SkinFlashPayload} 给该玩家及所有追踪者。
- *
- * @author Alex
- * @version 1.0.0
- * @see ModPayloads
- * @since 1.0.0
+ * 将肉身侧的 {@link SkinWornEvent} 转发为下行 {@link SkinFlashPayload} 通知（由 {@link ModPayloads} 注册），发送给穿戴
+ * 者本人及所有正在追踪该玩家的客户端以播放皮肤闪光效果。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

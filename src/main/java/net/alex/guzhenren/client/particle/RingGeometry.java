@@ -4,29 +4,27 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 /**
- * {@link RingParticle} 的纯角点几何。
- *
+ * {@link RingParticle} 的纯角点几何计算工具。
  * <ul>
- *   <li>不引客户端类，纯 JVM 可测；四边形双面，点积符号无关；角点顺序均为 {@code -u-v, -u+v, +u+v, +u-v}。</li>
- *   <li>{@link #getGround}：世界 XZ 平面，{@code u=(1,0,0)}、{@code v=(0,0,1)}，不看镜头，无方向时回退用。</li>
- *   <li>{@link #getFacing}：环面朝 {@code direction}（如冲刺激波），正交基横跨该方向；（近）竖直时换参考轴防退化，竖直
- *       法线落在水平面，同 {@link #getGround}；短于 {@link #MIN_DIRECTION_LENGTH} 为无方向。</li>
- *   <li>{@link #scaleForWidth}：由 {@link #LARGEST_CANVAS}（最大环画布宽）与 {@link #LARGEST_RING_SPAN}（其世界跨度，
- *       格；总表 TODO 验收直径最大约 2.2 格）得帧 {@code quadSize} 半跨度倍数；跨度不同者另传
+ *   <li>不引用任何客户端渲染类，可直接通过纯 JVM 单元测试验证；四边形采用双面渲染且与法线点积正负无关，四角点固定按
+ *       {@code -u-v, -u+v, +u+v, +u-v} 顺序输出。</li>
+ *   <li>{@link #getGround} 生成位于世界 XZ 平面的水平基（{@code u=(1,0,0)}、{@code v=(0,0,1)}），无视镜头朝向，作为无
+ *       方向时的回退方案。</li>
+ *   <li>{@link #getFacing} 生成垂直于 {@code direction} 的正交基（用于冲刺激波等定向环）：当方向接近竖直时切换参考轴防
+ *       止叉乘退化（纯竖直法线退化回水平面，与 {@link #getGround} 一致），长度短于 {@link #MIN_DIRECTION_LENGTH} 视为
+ *       无方向。</li>
+ *   <li>{@link #scaleForWidth} 依据 {@link #LARGEST_CANVAS}（最大环画布宽）与 {@link #LARGEST_RING_SPAN}（对应世界跨
+ *       度，单位：格，总表 TODO 验收直径上限约 2.2 格）换算单帧 {@code quadSize} 半跨度倍数；不同跨度的环可另行传入
  *       {@code largestSpan}。</li>
- *   <li>退场自完全绽放至消失：{@link #getExitProgress} 在 {@code lastFrameAge}（含 partial tick）为 0，
- *       {@code lingerTicks + 1} tick 后为 1；扩散环按进度长出额外尺寸，横扫环改为每 tick 再长一个帧步长
- *       （{@link #getSweepSize}）；{@link #getFadeAlpha} 到 {@code fadeStart} 前全亮，之后淡出。</li>
- *   <li>横穿视野的环侧对镜头、不可见，故法线朝镜头倾斜到张角 {@link #MIN_OPENING_DEGREES}（度）：5° 时横向冲刺的大号早
- *       期帧只剩 0.19 格细条，拖尾读成由小到大；30° 时最大帧侧对也约 1.1 格宽。</li>
- *   <li>仅侧对时向 {@code cameraForward} 倾斜：{@link #tiltTowardCamera} 只在 |n·v| 小于 sin
- *       {@link #MIN_OPENING_DEGREES} 时旋转，保留法线垂直视线分量，张角恰为阈值、连续；正对的环（向前冲刺）不调。</li>
+ *   <li>退场计算从末帧完全绽放到彻底消失：{@link #getExitProgress} 在 {@code lastFrameAge}（含 partial tick）处为 0，
+ *       经过 {@code lingerTicks + 1} tick 后达到 1；扩散环按进度追加额外缩放，横扫环每 tick 再增长一个帧步长（
+ *       {@link #getSweepSize}）；{@link #getFadeAlpha} 在 {@code fadeStart} 之前保持全亮，之后线性淡出。</li>
+ *   <li>几乎侧对镜头的环在画面上会缩成不可见的细线，因此将法线朝镜头方向倾斜至最小张角
+ *       {@link #MIN_OPENING_DEGREES}（度）：5° 时横向冲刺的大号早期帧仅剩 0.19 格细条导致拖尾像由小变大，30° 时最大帧
+ *       侧对仍有约 1.1 格可视宽度。</li>
+ *   <li>{@link #tiltTowardCamera} 仅在侧对（|n·v| 小于 sin {@link #MIN_OPENING_DEGREES}）时朝 {@code cameraForward}
+ *       旋转法线，保留法线垂直于视线的分量使边界处连续过渡；正对镜头的环（例如向前冲刺）不做偏转。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RingParticle
- * @since 1.0.0
  */
 
 final class RingGeometry {

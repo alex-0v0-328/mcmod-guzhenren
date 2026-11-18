@@ -7,17 +7,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 才情：念的回复速度等级。
- *
+ * 脑海才情[Brilliance]等级枚举：决定玩家每秒自然产出的念头数量（{@link #getThoughtsPerSecond}）。
  * <ul>
- *   <li>闭合枚举；出生时 {@code onBirth} 掷一次，与资质[Aptitude]无关；{@code shift(int)} 两端夹紧。</li>
- *   <li>回复 1/4/16/64/256 念/秒，权重 15/25/25/25/10。</li>
- *   <li>⚠ 故意不设 {@code NONE}：凡人也思考；最低档是真实值而非缺省，当成「未设置」凡人就不回念。</li>
+ *   <li>封闭词汇枚举；角色出生时（{@code onBirth}）按权重随机抽取一次，与空窍资质无关；{@link #shift} 夹取在
+ *       {@link #LOWEST} 至 {@link #HIGHEST} 之间。</li>
+ *   <li>⚠ 刻意不设 {@code NONE} 常量：凡人同样拥有脑海并自然产念，最低档 {@link #ORDINARY}（每秒 1 念）是合法的初始值而
+ *       非「未设置」占位。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public enum Brilliance implements NamedEnum {

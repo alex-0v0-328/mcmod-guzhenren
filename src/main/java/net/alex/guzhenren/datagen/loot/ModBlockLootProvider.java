@@ -37,15 +37,16 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 方块战利品表。
- *
+ * 本模组方块的战利品表子生成器。
  * <ul>
- *   <li>九叶生机草[Nine Leaf Vitality Grass]掉其野生蛊物品，叶子全满；元泉[Spirit Spring]与纯水无表；已知方块取本模组全
- *       部方块，新方块缺表让 {@code runData} 失败。</li>
- *   <li>知心草两张表的数量见 wiki《植物与采集》；种子用原版小麦的二项分布加成，时运生效，爆炸照原版衰减。</li>
- *   <li>⚠ 双层植物两半各滚一次表：被打那半经 {@code DoublePlantBlock.playerWillDestroy} 掉，另一半随后失去支撑再掉；
- *       故照原版双层植物只在另一半还在时掉落，打哪半都正好一份。</li>
- *   <li>{@link #hasHoe} 供 {@code ModLootModifierProvider} 的月兰花瓣用。</li>
+ *   <li>{@link #getKnownBlocks} 遍历本模组注册的全部方块（流体方块无战利品表），确保新增有形方块漏写战利品表时在
+ *       {@code runData} 阶段直接报错；三转九叶生机草[Nine Leaf Vitality Grass]直接掉落满叶状态的野生蛊物品，黑土耕地掉
+ *       落泥土，钢块掉落自身。</li>
+ *   <li>野生知心草与知心草作物均掉落知心草束与知心草种子（种子数量应用原版小麦的时运二项分布加成与爆炸衰减）；
+ *       {@link #hasHoe} 提供锄头工具匹配条件供 {@link ModLootModifierProvider} 复用。</li>
+ *   <li>⚠ 野生知心草作为双层植物（{@link DoublePlantBlock}），在一半被破坏时另一半会因失去支撑紧接着破坏并各自结算一次
+ *       战利品表；因此必须通过 {@link #isHalfWithOtherHalf} 限制仅当对应另一半方块尚存时才掉落战利品，确保无论破坏上半
+ *       格还是下半格都只掉落一份。</li>
  * </ul>
  */
 

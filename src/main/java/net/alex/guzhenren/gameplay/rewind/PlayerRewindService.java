@@ -11,15 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 人如故[Man As Before Gu]的身体记忆服务。还原直接写原版身体（生命、饥饿值、空气、着火，效果列表整体替换），模组数值经
- * 各自服务写入，派生状态按所有者方式刷新；随后心跳重投临时僵尸化效果并重跑致死检查。⚠ {@code record} 按环末时间戳由
- * {@link RewindClock#isDue} 把关，不靠调用节奏，重登或两个持有者都不会重复快照。
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerSnapshot
- * @see PlayerRewindData
- * @since 1.0.0
+ * 人如故[Man As Before Gu]的玩家身体快照记录与回溯还原服务。
+ * <ul>
+ *   <li>{@link #restore} 直接写回原版生命值、饥饿度、饱和度、氧气、着火时间并整体替换药水效果列表，魂魄、脑海与临时僵尸
+ *       化剩余时间则经各自领域服务写回（随后心跳自动重投状态栏标记并重跑致死检查）。</li>
+ *   <li>⚠ {@link #record} 严格以环形队列末尾的时间戳经 {@link RewindClock#isDue} 判断是否到点，不依赖外层调用频率，因此
+ *       玩家重登或同时携带多只人如故也不会重复记录快照。</li>
+ * </ul>
  */
 
 public final class PlayerRewindService {

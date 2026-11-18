@@ -13,20 +13,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 持续照顾型蛊[Tended Gu]的长冷却：{@link #check} 是催动、点按、{@code TendedGuItem.tryAutoUse} 的唯一门槛，
- * {@link #put} 加催动后冷却。
+ * 持续照顾型蛊[Tended Gu]的长冷却门控：{@link #check} 是催动、点按及 {@code TendedGuItem.tryAutoUse} 共用的唯一冷却检
+ * 查入口，{@link #put} 负责在催动后写入冷却。
  * <ul>
- *   <li>两者取效果冷却（{@code canUseDuringEffectCooldown} 可免）与炼化后保护冷却（{@code REFINED_AT} 起
- *       {@code TendedGuItem.POST_REFINE_COOLDOWN_TICKS}）的较大者。</li>
- *   <li>⚠ 被拒时剩余 tick 写回原版冷却以重画转圈；{@link #put} 另含物品冷却，须在 {@code super.spend} 后写入：
- *       {@code ItemCooldowns.addCooldown} 无条件覆盖，反序则基类短冷却盖掉长冷却。</li>
+ *   <li>剩余长冷却取效果冷却（声明 {@code canUseDuringEffectCooldown} 时豁免）与炼化后保护冷却（自 {@code REFINED_AT}
+ *       起计 {@code TendedGuItem.POST_REFINE_COOLDOWN_TICKS}）两者的较大值。</li>
+ *   <li>⚠ 校验被拒时会将剩余 tick 写回原版物品冷却以重绘扇形转圈；{@link #put} 另行写入常规物品冷却，因此必须在
+ *       {@code super.spend} 之后调用：原版 {@code ItemCooldowns.addCooldown} 会无条件覆盖既有冷却，若顺序相反则基类的短
+ *       冷却会覆盖掉长冷却。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @see GuCooldowns
- * @since 1.0.0
  */
 
 final class GuRefineCooldown {

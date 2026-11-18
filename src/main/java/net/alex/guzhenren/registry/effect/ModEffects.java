@@ -23,19 +23,15 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 本模组注册的全部 MobEffect。
- *
+ * 本模组全部 {@link MobEffect} 注册表与 {@link MobEffectInstance} 构建工厂。
  * <ul>
- *   <li>互斥档次合为一个效果，以 amplifier 区分；须同戴的各占一个（两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]，
- *       倍率相加）。</li>
- *   <li>全部用白色效果色，含蛊材给的效果；region 顺序同 {@code GuPath}、{@code ModItems}。</li>
- *   <li>⚠ 实例经 {@code instance}：{@code showParticles=false, showIcon=true}；颜色只给 {@link MobEffect} 构造。</li>
- *   <li>调用方持 {@code Holder<MobEffect>}（自家 {@code DeferredHolder} 或原版 {@code MobEffects}），直接查实体。</li>
+ *   <li>互斥档位合并为同一个效果并通过 {@code amplifier} 区分等级，允许叠加生效的则各自独立注册
+ *       （如两更蛊[Second Watch Gu]与三更蛊[Third Watch Gu]可并行相加）；各区段排序与 {@code GuPath}、{@code ModItems}
+ *       保持一致，所有效果（含蛊材效果）统一向构造器传入白色 {@link #EFFECT_COLOR}。</li>
+ *   <li>⚠ 任何 {@link MobEffectInstance} 必须经由 {@link #instance} 构建，统一关闭粒子并开启图标
+ *       （{@code showParticles=false, showIcon=true}）；业务查询方应直接持有 {@code Holder<MobEffect>}（即本类
+ *       {@code DeferredHolder} 或原版 {@code MobEffects}）检查实体。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModEffects {

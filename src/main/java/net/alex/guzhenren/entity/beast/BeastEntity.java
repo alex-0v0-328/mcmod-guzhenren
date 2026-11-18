@@ -21,20 +21,23 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * 大型野兽（熊、虎）的 {@link ActionEntity} 状态机。
+ * 大型野兽（熊、虎）共用的 {@link ActionEntity} 状态机基类。
  * <ul>
- *   <li>子类给时序（挥击命中与结束 tick、首锁吼叫长度、趴下转卧睡与起身回待机过渡）、护甲前固定伤害、挥击击退、
- *       重击推进（含命中帧与移动物理）与动画名、是否主动索敌、白天环境动作相对权重。</li>
- *   <li>渲染剔除框按子类加高加宽，免裁人立与尾扫，仅碰撞箱替换时重算；{@link #canSwipe}：挥击共用前提，触及距离内、
- *       冷却完、可见。</li>
- *   <li>{@link HuntGoal} 无条件注册：{@code registerGoals} 在 {@code Mob} 构造器内、熊种类等子类字段赋值前运行，
- *       性情改在 tick 判；环境姿势中交战直接脱出，不经起身。</li>
- *   <li>交战首锁以吼叫宣告，不打断进行中动作；受击姿势不重启：它长于原版 10 tick 受伤窗口，重启会让持续命中把野兽锁死在
- *       硬直；按攻击者方位选受击姿势，攻击者在左则头偏右，播 {@code hurt_right}，反之亦然。</li>
- *   <li>游荡完成后掷一个环境动作，未中则不动；清醒非战斗姿势（含坐、卧、翻滚、蹭背）都留意猎物，仅入睡、起身、
- *       战斗中不狩猎；{@link StandStillGoal} 于坐、卧、睡、翻滚、蹭背时停住导航。</li>
- *   <li>{@link HuntGoal} 每 10 tick 扫描，按实体 id 错开，邻近野兽不同时扫；仅对比当前最佳更近者投射视线。</li>
- *   <li>有意超 300 行：十四种姿势、动画、环境链与野兽专属狩猎目标同属此层。</li>
+ *   <li>子类提供动作时序（挥击命中与结束 tick、首锁吼叫时长、趴下转卧睡与起身回待机的过渡时长）、护甲前固定伤害、挥击击
+ *       退、重击推进（含命中帧与位移物理）及动画名、是否主动索敌、白天环境动作的相对权重。</li>
+ *   <li>渲染剔除框按子类额外加高加宽，防止人立拍击与甩尾被视锥裁剪，且仅在碰撞箱实例变化时重算；{@link #canSwipe} 封装
+ *       挥击的公共前提（触及距离内、冷却完毕且视线可见）。</li>
+ *   <li>⚠ {@link HuntGoal} 无条件注册，因为 {@code registerGoals} 在 {@code Mob} 构造器内、子类字段（如熊的种类）赋值前
+ *       运行，是否主动索敌改在每 tick 的 {@link #isActiveHunter} 中判定；环境姿势下进入交战时直接切入战斗，不播放起身过
+ *       渡。</li>
+ *   <li>首次锁定目标时以吼叫宣告，但不打断进行中的动作；{@link Action#isCombat} 涵盖攻击、吼叫、受击与死亡四类不可被受
+ *       击或发现猎物打断的姿势，由于受击姿势长于原版 10 tick 无敌帧，受击中不重置姿势以免被连续命中锁死在硬直；受击方向
+ *       按攻击者相对朝向选择：攻击者在左侧时头部偏右，播放 {@code hurt_right}，反之播放 {@code hurt_left}。</li>
+ *   <li>随机游荡走完后按概率进入环境动作，未掷中则原地待机；清醒的非战斗姿势（含坐、卧、翻滚、蹭背）仍继续扫描猎物，仅
+ *       入睡、起身与战斗姿势暂停索敌；{@link StandStillGoal} 在环境姿势期间锁住移动导航。</li>
+ *   <li>{@link HuntGoal} 每 10 tick 扫描一次，按实体 ID 错峰以避免邻近野兽同帧扫描，且仅对距离优于当前最佳候选的目标投
+ *       射视线检查。</li>
+ *   <li>本类有意超过 300 行：十四种姿势、动画映射、昼夜环境链与专属狩猎目标耦合紧密，集中维护更清晰。</li>
  * </ul>
  */
 
@@ -379,7 +382,6 @@ public abstract class BeastEntity extends ActionEntity<BeastEntity.Action> {
         @Override
         public boolean isAmbient() { return this.ambient; }
 
-        /** 攻击、吼叫、受击或死亡：命中与发现猎物都打断不了的姿势。 */
         private boolean isCombat() {
             return this.attack || this == ROAR || this == HURT_LEFT || this == HURT_RIGHT || this == DEATH;
         }

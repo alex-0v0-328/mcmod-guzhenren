@@ -19,25 +19,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 野生蛊与野猪生成位置的生物群系标签。
- *
+ * 野生蛊与本模组野兽自然刷怪群系标签的数据生成器。
  * <ul>
- *   <li>三个野生蛊标签（{@code HOPE_GU_SPAWNS}、{@code BOAR_GU_SPAWNS}、{@code RHINOCEROS_BEETLE_GU_SPAWNS}）共用一张
- *       39 个陆地群系的表，Gu World 为元泉[Spirit Spring]存有副本。</li>
- *   <li>野猪：原生 5 个森林；熊：全部森林类（12 个）；虎：3 个丛林；象：3 个热带草原与 3 个丛林。</li>
- *   <li>陆龟：3 个热带草原与稀疏丛林，即草地面的干燥群系（{@code animals_spawnable_on} 只含草方块）；牛：生成表含
- *       {@code minecraft:cow} 的 21 个原版群系（读自 1.21.1 群系 JSON），与原版牛同住。</li>
- *   <li>⚠ 不得收拢成 {@code #minecraft:is_overworld}：它含海洋，海洋表面在海平面。</li>
- *   <li>Gu World 四地区（南疆、西漠、东海、北原）群系不在原版标签：三个野生蛊标签另按 id 列各地区陆地群系作可选条目，两
- *       地区共有雨林只列一次，无 Gu World 照常加载；上述动物标签不含地区群系：地区只生成原版动物与野生蛊，Alex
- *       定。</li>
- *   <li>⚠ 地区列表即 Gu World 各地区名册的群系 id（那边 {@code Replicas}、{@code Ports} 与各地区包，按地区布局放置）：
- *       那边改名或新增，须同一任务改这里。</li>
+ *   <li>三类野生蛊刷怪标签（{@link ModBiomeTags#HOPE_GU_SPAWNS}、{@link ModBiomeTags#BOAR_GU_SPAWNS}、
+ *       {@link ModBiomeTags#RHINOCEROS_BEETLE_GU_SPAWNS}）共用包含 39 个主世界陆地群系的 {@link #LAND_SPAWN_BIOMES}（配
+ *       套模组 Gu World 为元泉[Spirit Spring]维护了同一份主世界陆地群系表），并以可选条目（{@code addOptional}）形式追
+ *       加 Gu World 四域的全部陆地群系（{@link #REGION_LAND}），使未安装 Gu World 时也能正常加载数据包。</li>
+ *   <li>野兽刷怪标签按栖息地划分且仅包含原版主世界群系（四域不额外生成模组野兽）：野猪分布于 5 个温带森林，熊分布于全部
+ *       12 个森林与针叶林、丛林，虎分布于 3 个丛林，象分布于热带草原与丛林，陆龟分布于草地表的干燥群系，牛类则对齐原版
+ *       牛所在的 21 个群系。</li>
+ *   <li>⚠ 严禁将陆地刷怪群系表简化替换为包含海洋与河流的 {@code #minecraft:is_overworld}。</li>
+ *   <li>⚠ {@link #REGION_LAND} 下的四域陆地群系路径必须与 Gu World 各域群系名册保持严格一致；Gu World 新增或重命名陆地
+ *       群系时必须在同一任务中同步更新此处。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class ModBiomeTagsProvider extends TagsProvider<Biome> {

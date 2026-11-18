@@ -23,30 +23,26 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 蓄力蛊[Store Strength Gu]与惯力蛊[Habitual Strength Gu]的蓄力与蓄力一拳规则。
+ * 蓄力蛊[Store Strength Gu]与惯力蛊[Habitual Strength Gu]的蓄力进度与蓄力一拳[Charged Punch]结算规则。
  * <ul>
- *   <li>条件：两蛊任一增益运行（读标记效果，同全力以赴蛊[All-Out Effort Gu]，{@link #hasBuff}）、持兽力虚影流或人力
- *       钧力流、空手、Epic Fight 锁定时按住攻击键 {@link #HOLD_TICKS}，客户端再请求 {@link #start}。</li>
- *   <li>起蓄时惯力蛊增益在身即为可移动蓄力（{@link #isMobile}，两增益同在按惯力算）：标记广播给所有看得见的客户端，
- *       本次蓄力结束即撤（自行丢弃时在事件之后撤，监听方仍读得到）；可移动蓄力期间
- *       不能疾跑，服务端每 tick 清疾跑标记，客户端另松开疾跑键；其余规则两蛊相同。</li>
- *   <li>蓄满需 {@link #CHARGE_TICKS}，三 / 四 / 五转全力以赴下为 70% / 60% / 50%，逐 tick 按当时转数推进；
- *       仅蓄满松手算数（容差 {@link #RELEASE_SLACK_TICKS} 吸收数据包抖动）；未满、丢增益、分支或空手、死亡、换维度、
- *       下线都取消，不出拳不扣费。</li>
- *   <li>本类 tick 是真相：首次判满与自行取消时发 {@link StoreStrengthChargeEvent}，服务端卡顿时客户端不会先亮蓄满；
- *       客户端进度只供蓄力条。</li>
- *   <li>蓄满发挥最多力量，可超当前承受力：兽力虚影流解放兽种（随机一种，苦力下全部）
- *       的永久点数计 {@link #CHARGED_RELEASE_FACTOR} 倍，人力无解放；超出部分为冲击反噬（{@link BodyOverload}）。</li>
- *   <li>近战为脚下指向锁定目标的水平扇形，射程 {@link #getRange} 随最大点数的平方根增长、封顶 {@link #MAX_RANGE}；
- *       远程在目标周围爆开，半径为射程一半；苦力下的人力钧力流射程乘 {@link #HARDSHIP_RANGE_FACTOR}（仍封顶）并加宽
- *       半角；{@link #release} 算数后由 {@code ChargedPunch} 打出。</li>
- *   <li>⚠ 只存服务端内存，按玩家索引，不存档。</li>
+ *   <li>起蓄条件（{@code canCharge}）：身上带有蓄力蛊或惯力蛊状态标记（{@link #hasBuff}）、已入兽力虚影流或人力钧力流、
+ *       主手为空（{@link AttackDamageService#isFistHand}）；客户端在 Epic Fight 锁定目标并按住攻击键满
+ *       {@link #HOLD_TICKS} 后发包请求 {@link #start}。</li>
+ *   <li>起蓄瞬间若带有惯力蛊状态，则开启可移动蓄力标记（{@link #isMobile}，双蛊并存时按惯力蛊计，同步给所有追踪客户端并
+ *       在蓄力结束或中断时撤除）；可移动蓄力期间不能疾跑，服务端每 tick 清疾跑标记，客户端另松开疾跑键。</li>
+ *   <li>基础蓄满时长为 {@link #CHARGE_TICKS}（三、四、五转全力以赴蛊[All-Out Effort Gu]运行期间分别缩短至 70%、60%、
+ *       50%，每 tick 按当前档位步进）；仅蓄满后松手才有效（留有 {@link #RELEASE_SLACK_TICKS} 容差吸收网络抖动），未蓄满
+ *       松手、中途失去增益/分支/空手、死亡、切换维度或登出均取消蓄力，不出拳也不扣费。</li>
+ *   <li>服务端 tick 为唯一权威：首次蓄满时发布 {@link StoreStrengthChargeEvent.Change#FULL}，服务端被动中断时发布
+ *       {@link StoreStrengthChargeEvent.Change#DROPPED}，避免服务端卡顿时客户端抢先亮起蓄满提示。</li>
+ *   <li>蓄满一拳突破当前承受力上限发挥最大力量（{@link #getMaxPoints}）：兽力虚影流抽取解放兽种（默认随机 1 种，苦力状
+ *       态下全部兽种）并将其永久点数放大至 {@link #CHARGED_RELEASE_FACTOR}（12）倍，人力钧力流无解放倍率；超出当前承受
+ *       力的部分（{@link #getBacklashPoints}）按 {@link BodyOverload} 结算冲击反噬。</li>
+ *   <li>打击范围：近战为从脚底指向锁定目标的水平扇形（射程 {@link #getRange} 随最大点数的平方根增长并封顶于
+ *       {@link #MAX_RANGE}），远程气波在锁定目标处爆开（半径为射程的一半）；苦力状态下的人力钧力流射程额外乘以
+ *       {@link #HARDSHIP_RANGE_FACTOR} 并拓宽扇形半角。</li>
+ *   <li>⚠ 蓄力进度仅保存在服务端内存映射 {@code CHARGES} 中，不落盘存储。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StoreStrengthChargeEvent
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

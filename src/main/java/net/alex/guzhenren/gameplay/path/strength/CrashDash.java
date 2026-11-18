@@ -3,25 +3,19 @@ package net.alex.guzhenren.gameplay.path.strength;
 import java.util.function.DoubleBinaryOperator;
 
 /**
- * 横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]、横冲直撞蛊[Charging Crash Gu]冲刺的距离与播放速度规格。
+ * 横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]与横冲直撞蛊[Charging Crash Gu]的冲刺距离与动画播放速度纯函数
+ * （不依赖 Minecraft 或 Epic Fight 类，支持裸 JVM 测试；玩家状态由 {@link CrashSources} 采集后传入）。
  * <ul>
- *   <li>不依赖游戏类与 Epic Fight，纯 JUnit 可测（{@code CrashGuEffect} 为 {@code MobEffect}，须引导注册表）；玩家身上
- *       的来源由 {@link CrashSources} 读出再交本类。</li>
- *   <li>{@link #getMultiple} 四源相加（Alex 定）：1 + √P / {@link #ROOT_POINTS_PER_MULTIPLE} + 两猪之力
- *       {@link #TWO_BOARS_BONUS} + 兽力冲刺加成（驰马 1）+ 全力以赴 {@link #ALL_OUT_BONUS}；P 为不含解放的发挥点数。</li>
- *   <li>{@link #getScale}：Epic Fight 闪避坐标向量倍数 = {@link #COORD_SCALE} × 倍数，截到路程 {@link #MAX_TRAVEL} 格。</li>
- *   <li>{@link #STEP_TRAVEL}：冲刺片段倍数 1 时根骨骼位移（前、左、右 1.342 格，后 1.344 格），取值越过全部；
- *       {@link #getTravel} 得路径上限。</li>
- *   <li>{@link #getPlaySpeed}：片段播放速度 = 1 + 兽力播放速度加成（驰马 0.5）+ 全力以赴 {@link #ALL_OUT_SPEED_BONUS}，
- *       位移总量不变，片段 {@link #CLIP_TICKS} tick 按速度缩短（{@link #getClipTicks}）。</li>
- *   <li>{@link #limitSpeed} 再把本 tick 的播放速度压到位移 ≤ {@link #MAX_STEP} 格：原版专用服一个移动包超 10 格判移动过快
- *       拉回（单人、局域网房主豁免），多出的位移顺延到后续 tick；片段坐标由调用方以两时刻间距离给出。</li>
+ *   <li>距离倍率 {@link #getMultiple} 由四项相加（Alex 定）：{@code 1 + sqrt(P) / ROOT_POINTS_PER_MULTIPLE} + 两猪之力
+ *       加成（{@link #TWO_BOARS_BONUS}）+ 兽力冲刺加成（如驰马 {@code 1.0}）+ 全力以赴加成（{@link #ALL_OUT_BONUS}），
+ *       其中 {@code P} 为不含全面解放的常态可发挥力量点[Strength Points]。</li>
+ *   <li>{@link #getScale} 将距离倍率乘以 {@link #COORD_SCALE} 得到 Epic Fight 闪避动画根骨骼位移缩放系数，并将总路程
+ *       （{@link #getTravel}，单倍片段根骨骼位移为 {@link #STEP_TRAVEL}）封顶于 {@link #MAX_TRAVEL}（32 格）。</li>
+ *   <li>动画播放速度 {@link #getPlaySpeed} = {@code 1 + 兽力速度加成 + 全力以赴速度加成}（总路程不变，动画持续 tick 数
+ *       {@link #getClipTicks} 随播放速度加快而缩短）。</li>
+ *   <li>{@link #limitSpeed} 将单 tick 内的动画播放速度二分压低至单步位移不超过 {@link #MAX_STEP}（9 格），防止在专用服
+ *       务器上因单个移动包位移超过 10 格触发原版「移动过快」回拉（压低的部分顺延到后续 tick 播完）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see CrashSources
- * @since 1.0.0
  */
 
 public final class CrashDash {

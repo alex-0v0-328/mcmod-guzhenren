@@ -18,26 +18,24 @@ import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 本地玩家端的二段飞行[Second-Stage Flight]：驱动它的油门，及读油门的反馈。
- *
+ * 本地玩家端的二段飞行客户端事件处理器：负责驱动本地油门步进以及基于油门的镜头与视听反馈。
  * <ul>
- *   <li>{@code net.alex.guzhenren.mixin.PlayerMixin} 移动玩家；{@link SecondStageCamera} 管镜头侧倾与抖动。</li>
- *   <li>{@link #onClientTick} 在玩家 tick 前、本 tick 数据包后运行；暂停时玩家不 tick，一并跳过。</li>
- *   <li>同步标记刚开启或出现在新本地玩家上（换维度会重建玩家并重新同步标记）时：油门设为
- *       {@link SecondStageCruise#ENTRY_THROTTLE}（同服务端），启动风声（{@link SecondStageWindSound}），播第一人称音爆
- *       （{@link SonicBoomHud#onSecondStageStarted}，只对本客户端请求的进入保留）。</li>
- *   <li>带标记每 tick 按本地疾跑推油门（{@link SecondStageService#stepThrottle}），巡航响应不等往返；无标记清零。</li>
- *   <li>{@link #onComputeFovModifier}：飞二段时随油门放宽视野，把原版修正值（已含飞行与疾跑的放宽）乘
- *       {@link #getFovFactor}；满油门最多再放宽 {@link #FOV_WIDENING}。</li>
- *   <li>按原版“视场角效果”滑条向零缓和（同 NeoForge 缓和原版修正值），关掉该项的玩家看不到放宽；原版用几 tick 把视野缓
- *       向新修正值，Minecraft 对总放宽设上限，疾跑与飞行也计入。</li>
- *   <li>{@link #onLoggingOut} 清 {@code STATE.wasInSecondStage}、所记玩家与音爆，新世界首进才不像延续。</li>
+ *   <li>实际位移逻辑在 {@code net.alex.guzhenren.mixin.PlayerMixin}，镜头侧倾与抖动由 {@link SecondStageCamera} 负
+ *       责。</li>
+ *   <li>{@link #onClientTick} 在玩家 tick 前且本 tick 数据包处理后执行；游戏暂停时玩家不执行 tick，本逻辑一并跳
+ *       过。</li>
+ *   <li>同步标记刚开启或出现在新本地玩家实体上（例如换维度会重建玩家实体并重新同步标记）时：将油门初始化为
+ *       {@link SecondStageCruise#ENTRY_THROTTLE}（与服务端一致），启动风声（{@link SecondStageWindSound}），并播放第
+ *       一人称音爆环（{@link SonicBoomHud#onSecondStageStarted}，仅对本客户端主动请求的进入生效）。</li>
+ *   <li>携带飞行标记期间每 tick 根据本地疾跑状态步进油门（{@link SecondStageService#stepThrottle}），使巡航响应无需等待
+ *       网络往返；失去标记后立即清零油门。</li>
+ *   <li>{@link #onComputeFovModifier} 在二段飞行期间随油门放宽视野：将已包含飞行与疾跑加成的原版修正值再乘以
+ *       {@link #getFovFactor}，满油门时至多额外放宽 {@link #FOV_WIDENING}。</li>
+ *   <li>视野放宽按原版「视场角效果」滑条向 1.0 缓和（与 NeoForge 缓和原版修正值一致），关闭该选项时看不到额外放宽；原版
+ *       仍会用数 tick 平滑过渡并受总放宽上限约束（疾跑与飞行同样计入上限）。</li>
+ *   <li>{@link #onLoggingOut} 清空 {@code STATE.wasInSecondStage}、记录的玩家实体与音爆状态，避免重进世界时残留上一会话
+ *       的延续状态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SecondStageService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

@@ -8,20 +8,17 @@ import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * 兽力虚影渲染器读的接口：借哪个兽种模型、淡入淡出程度、鼻尖下俯（MC 符号，向下为正）、是否冲锋。
+ * 兽力虚影渲染器读取的视觉契约接口：提供兽种类型、淡入淡出系数、俯仰角（Minecraft 符号约定，向下为正）以及是否处于冲锋
+ * 状态。
  * <ul>
- *   <li>身旁虚影与兽力冲击均实现，仅冲击会俯仰、冲锋；仅身旁虚影有出现与消失：{@link #getGlow} 为发光层相对平时倍数，
- *       {@link #getScale} 为模型大小，{@link #getDrift} 为模型相对实体、按自身朝向右上前的偏移格数。</li>
- *   <li>动画命名不一：野猪无前缀（{@code idle}、{@code appear}），熊、虎、水牛带 {@code animation.}，由
- *       {@link #getAppear}、{@link #getLoop} 屏蔽；龟带前缀而无出场动画，只待机；马无动画文件，原版马模型自摆姿势
- *       （{@code HorsePhantomModel}）。</li>
+ *   <li>身旁虚影（{@link BeastPhantomEntity}）与兽力冲击
+ *       （{@link net.alex.guzhenren.entity.projectile.BeastChargeEntity}）均实现本接口：仅兽力冲击会俯仰与冲锋；仅身旁
+ *       虚影具有出现与收拢形变，其中 {@link #getGlow} 为发光层相对常驻亮度的倍率，{@link #getScale} 为模型缩放倍
+ *       率，{@link #getDrift} 为模型相对实体原点沿自身右、上、前方向的偏移格数。</li>
+ *   <li>各兽种模型动画命名不一致：野猪无前缀（{@code idle}、{@code appear}），熊、虎、水牛带 {@code animation.} 前缀，
+ *       统一由 {@link #getAppear} 与 {@link #getLoop} 屏蔽；龟带前缀但无出场动画，直接循环待机；马无 GeckoLib 动画文
+ *       件，由原版马模型 {@code HorsePhantomModel} 自行摆出姿态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastPhantomEntity
- * @see net.alex.guzhenren.entity.projectile.BeastChargeEntity
- * @since 1.0.0
  */
 
 public interface BeastPhantomVisual {

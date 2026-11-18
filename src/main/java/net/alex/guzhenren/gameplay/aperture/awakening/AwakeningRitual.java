@@ -8,18 +8,15 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 希望蛊[Hope Gu]单击起的开窍[Awakening]仪式，附件 {@code awakening_ritual}。
+ * 希望蛊[Hope Gu]开窍[Awakening]仪式状态记录（附件 {@code awakening_ritual}）。
  * <ul>
- *   <li>运行时仅 {@link AwakeningRitualService} 写；{@code startTick} 取各维度共用游戏时间，两端一致。</li>
- *   <li>⚠ 有附件即在仪式中；{@link #DEFAULT} 仅是构建器占位，不当仪式读。</li>
- *   <li>十绝体（非十绝为 {@code NONE}）随仪式同步：肉身数据只发本人，旁人也画牌匾。</li>
+ *   <li>运行时仅由 {@link AwakeningRitualService} 写入；{@code startTick} 取世界共享 {@code gameTime}，保证服务端与客
+ *       户端按同一时间轴（{@link AwakeningTimeline}）推进。</li>
+ *   <li>⚠ 玩家身上存在此附件即视为正在进行开窍仪式；{@link #DEFAULT} 仅供 NeoForge 附件构建器作初始化占位，业务读取以
+ *       {@code hasData} 为准。</li>
+ *   <li>预掷的十绝体[Ten Extreme Physiques]（非十绝为 {@code NONE}）随此附件同步给所有追踪客户端，以便周围玩家在肉身附
+ *       件仅同步本人的情况下也能渲染出正确的十绝牌匾。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningRitualService
- * @see AwakeningTimeline
- * @since 1.0.0
  */
 
 public record AwakeningRitual(long startTick, int base, @NotNull ExtremePhysique physique, @NotNull Vec3 anchor,

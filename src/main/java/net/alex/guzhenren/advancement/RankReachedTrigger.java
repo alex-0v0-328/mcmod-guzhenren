@@ -14,18 +14,13 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 修为进度条件：第一空窍[Aperture]达到或超过 {@code rank}、{@code stage}，先比转；第二空窍不计。
- *
+ * 第一空窍修为达到或超过指定转数与阶段的进度触发器（忽略第二空窍）。
  * <ul>
- *   <li>触发点仅修炼写入：{@code ApertureNourishService} 的温养[Nourish]升阶、冲刷窍壁成功、石化转化，及
- *       催动石窍蛊[Stone Aperture Gu]或舍利蛊[Relics Gu]；命令设的修为不算。</li>
- *   <li>“达到或超过”让下次真实进阶补发其下各档：进度加入前已三转的空窍，下次升阶即得二转。</li>
+ *   <li>仅由正常修炼晋升路径触发（含 {@code ApertureNourishService} 的温养[Nourish]升阶、冲刷窍壁破转、石化转化，以及催
+ *       动石窍蛊[Stone Aperture Gu]或舍利蛊[Relics Gu]），管理员指令直接修改修为不会触发。</li>
+ *   <li>{@link Instance#matches} 采用「达到或超过」比较（先比转数、同转再比阶段），使高转玩家在后续任意一次正常晋升时能
+ *       一并补发此前跳过的低转进度。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.registry.advancement.ModCriteriaTriggers
- * @since 1.0.0
  */
 
 public class RankReachedTrigger extends SimpleCriterionTrigger<RankReachedTrigger.Instance> {

@@ -27,21 +27,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 气波（方位攻击球）：力气蛊[Strength Qi Gu]人力钧力流的远程拳；兽力虚影流无永久兽力[Beast Strength]时也用。
+ * 气波弹射物（方位攻击球）：力气蛊[Strength Qi Gu]人力与钧力流派的远程拳，兽力虚影流派在未持有永久兽力时也回退发射本弹
+ * 射物。
  * <ul>
- *   <li>直飞，无重力阻力，每 tick {@link #SPEED} 格，飞向投出时目标中心所在点，不跟随；在该点或途中碰到可伤生物处爆开
- *       （{@link QiBurst#burst}），遇方块熄灭不爆；锁定目标在范围内即吃全额。</li>
- *   <li>伤害、瞄准点、朝向（直线方向，爆开时作范围冲击轴）、锁定目标由 {@link #shoot} 设定，只在服务端；无模型，客户端
- *       沿生成包直线飞，每 tick 一团云；爆开 {@link #BURST_PUFFS} 团烟，熄灭 {@link #SNUFF_PUFFS} 团；不存档。</li>
- *   <li>蓄力蛊[Store Strength Gu]的蓄力一拳投追踪球（{@link #track}）：两端每 tick 按同步 id 追目标中心，至多直飞的
- *       {@link #TRACK_FLIGHT_FACTOR} 倍，用拳自己的 {@link QiBurst.Spec}；目标死则飞向最后所见点，飞完未到即原地爆开
- *       （反噬已付）。</li>
+ *   <li>{@link #shoot} 发射直线气波：不受重力与阻力影响，以 {@link #SPEED} 格/tick 飞向发射瞬间目标中心所在的固定点（不
+ *       追踪移动），到达该点或途中触碰可伤害生物时触发 {@link QiBurst#burst} 爆开，撞上方块则直接熄灭、不触发爆开；锁定
+ *       目标只要处于爆开半径内即承受全额伤害。</li>
+ *   <li>伤害、瞄准点、直线朝向（爆开时作为范围冲击环的轴向）与锁定目标仅在服务端维护；实体无几何模型，客户端沿生成包初
+ *       速度直飞并每 tick 生成一团云粒子，服务端爆开时发送 {@link #BURST_PUFFS} 团烟雾、撞方块熄灭时发送
+ *       {@link #SNUFF_PUFFS} 团烟雾；不写入存档。</li>
+ *   <li>蓄力蛊[Store Strength Gu]的蓄力一拳调用 {@link #track} 发射追踪气波：两端每 tick 根据同步目标 ID 转向目标当前中
+ *       心，最大飞行时长放宽至直线飞行 tick 的 {@link #TRACK_FLIGHT_FACTOR} 倍，并使用蓄力一拳专属的
+ *       {@link QiBurst.Spec}；若目标中途死亡则继续飞向最后记录的位置，飞行超时仍未到达则直接在当前位置爆开（因出拳反噬
+ *       已结算）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see QiBurst
- * @since 1.0.0
  */
 
 public final class QiWaveEntity extends Projectile {

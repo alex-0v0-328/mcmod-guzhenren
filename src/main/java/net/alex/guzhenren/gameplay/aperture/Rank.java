@@ -7,21 +7,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 转数：修炼者的粗粒度度量及各转数值表。
- *
+ * 修为转数枚举：定义转数基数（{@link #getRankBase}）与玩家各转最大生命值（{@link #getMaxHealth}）。
  * <ul>
- *   <li>封闭词汇枚举，{@code rankBase} 与 {@code maxHealth} 的唯一来源，兄弟模组不得新增；{@code NONE} 不可
- *       设，{@code shift(int)} 夹在 {@code ONE} 至 {@code FIVE}。</li>
- *   <li>⚠ {@code maxHealth} 是玩家在该转的最大生命值；持续照顾型蛊[Tended Gu]的 {@code getMaxHealth()} 取自
- *       {@code GuProperties}（4 × 转 + 4），永不挪进此表。</li>
- *   <li>⚠ {@code NONE} 故意译成空串：「凡人」只归 {@link Title}，一词两主会走样；⚠ {@code SIX} 至 {@code NINE} 刻意为
- *       零（三期），别「修」。</li>
+ *   <li>封闭词汇枚举，兄弟模组不得新增；{@link #NONE} 不可由指令或业务直接设置，{@link #shift} 夹取在 {@link #ONE} 至
+ *       {@link #FIVE} 之间。</li>
+ *   <li>⚠ {@link #getMaxHealth} 仅代表玩家在该转的最大生命值；持续照顾型蛊[Tended Gu]的生命上限取自
+ *       {@code GuProperties}（{@code 4 * rank + 4}），切勿混入此表。</li>
+ *   <li>⚠ {@link #NONE} 的语言键刻意映射为空字符串，因为「凡人」称号唯一归属 {@link Title}；{@link #SIX} 至
+ *       {@link #NINE} 属于远期仙蛊阶段占位，数值刻意留 {@code 0}，切勿自行补值。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Title
- * @since 1.0.0
  */
 
 public enum Rank implements NamedEnum {

@@ -8,21 +8,16 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
 
 /**
- * 马的兽力虚影身体。
- *
+ * 马族兽力虚影的几何模型封装。
  * <ul>
- *   <li>用原版成年马几何（{@link ModelLayers#HORSE}），因虚影贴图按原版马布局绘制；无需马实体即可摆姿势，同原版按模型尺
- *       寸 {@link #SCALE} 倍绘制；马鞍、缰绳、小马腿永久隐藏。</li>
- *   <li>{@link #pose} 沿用原版 {@code HorseModel.prepareMobModel}，但头朝正前、不吃草、不张嘴、不甩尾；{@code stand} 使
- *       前身像真马扬起，肢体摆动使其奔跑。</li>
- *   <li>{@link #getRear}：主人身旁一次性攻击，{@link #REAR_RISE_TICKS} 内抬起，持至 {@link #REAR_HOLD_TICKS}，
- *       {@link #REAR_END_TICKS} 时落下，后站立；兽力冲击按每 tick {@link #GALLOP_SWING_PER_TICK} 摆肢，全步幅跑。</li>
+ *   <li>直接采用原版成年马几何（{@link ModelLayers#HORSE}），以匹配按原版马 UV 布局绘制的虚影贴图；无需依赖马实体实
+ *       例即可摆出动作，按原版马模型尺寸的 {@link #SCALE} 倍绘制，且永久隐藏马鞍、缰绳与小马腿部件。</li>
+ *   <li>{@link #pose} 复用原版 {@code HorseModel.prepareMobModel} 的骨骼驱动逻辑，但强制头部朝向正前且不做吃草、张
+ *       嘴或甩尾动作；通过 {@code stand} 使前身如真马般扬起，并通过肢体摆动模拟奔跑。</li>
+ *   <li>{@link #getRear} 驱动主人身旁的一次性攻击动作：在 {@link #REAR_RISE_TICKS} 内抬起前身、保持至
+ *       {@link #REAR_HOLD_TICKS} 并在 {@link #REAR_END_TICKS} 落下回归站立；兽力冲击则按每 tick
+ *       {@link #GALLOP_SWING_PER_TICK} 全步幅摆动四肢奔跑。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastPhantomRenderer
- * @since 1.0.0
  */
 
 public final class HorsePhantomModel {

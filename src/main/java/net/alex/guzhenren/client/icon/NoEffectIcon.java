@@ -8,15 +8,11 @@ import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtension
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 不带图标的效果：不上 HUD，物品栏列名称与时长，图标格留空。
+ * 无图标状态效果的空白占位渲染器：不在 HUD 中显示，物品栏列表中仅保留名称与剩余时长而将图标格留空。
  * <ul>
- *   <li>⚠ 物品栏无视实例的 {@code showIcon}，照画效果自身贴图；无贴图的效果缺这张图，不用本类则显示紫黑缺失贴图。</li>
+ *   <li>⚠ 原版物品栏界面会无视效果实例的 {@code showIcon} 标记并强行绘制效果自身贴图；对于本身不配贴图的隐藏或状态型效
+ *       果，若不挂载本类占位则会直接暴露紫黑缺失纹理。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.icon.EffectIcons
- * @since 1.0.0
  */
 
 public final class NoEffectIcon implements IClientMobEffectExtensions {

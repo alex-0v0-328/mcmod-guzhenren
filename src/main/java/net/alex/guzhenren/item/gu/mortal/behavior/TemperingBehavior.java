@@ -14,21 +14,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 炼体蛊共用行为：把一个部位（皮、筋、骨）炼到某档。
+ * 炼体蛊（{@link SkinBehavior}、{@link TendonBehavior}、{@link BoneBehavior}）共用的抽象行为基类：将玩家指定身体部位
+ * （皮、筋、骨）淬炼至目标档位 {@code G}。
  * <ul>
- *   <li>部位由子类定、档位由注册定；蛊不消耗，用不上可转手；两种玉皮是即时防御蛊，永久档皆为灌注[Channel]
- *       类道痕[Path Marks]蚀刻蛊，一轮即生效，之后门槛拒绝。</li>
- *   <li>门槛问档位本身（{@link BodyGrade#canReplace}）现有档是否让位，拒绝用统一炼体键附现有档名（已指明部位）；
- *       效果是子类 {@link #temper}，经 {@code BodyService} 一次写入，数值与规则全挂在该写入与档位枚举上；
- *       {@code CarvingEffects} 凭此行为找造某档的蛊。</li>
+ *   <li>身体部位由子类指定，目标档位在注册时注入；炼体蛊催动后不消耗物品栈，炼成后可转交他人；两款玉皮属于限时防御蛊，
+ *       其余永久皮、筋、骨均为灌注[Channel]型道痕[Path Marks]蚀刻蛊，灌注满一轮即永久生效，此后再次催动会被门槛拒
+ *       绝。</li>
+ *   <li>{@link #checkEffect} 委托目标档位的 {@link BodyGrade#canReplace} 判定当前部位档位是否允许被替换，被拒时统一返回
+ *       附带当前档位译名的拒绝提示；{@link #applyEffect} 调用子类 {@link #temper} 经 {@code BodyService} 一次性写入档
+ *       位，具体属性加成与规则全部绑定在档位枚举与写入事件上；{@link CarvingEffects} 通过检索本行为定位赋予某档位的蛊
+ *       虫。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SkinBehavior
- * @see TendonBehavior
- * @see BoneBehavior
- * @since 1.0.0
  */
 
 public abstract class TemperingBehavior<G extends Enum<G> & BodyGrade<G>> implements GuBehavior {

@@ -27,31 +27,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * B 面板，直接读同步附件的玩家状态标签页。
+ * B 面板玩家信息总界面：直接读取客户端同步附件并以六个页签展示玩家全部状态。
  * <ul>
- *   <li>六个标签页：空窍[Aperture]、肉身、魂魄、流派、脑海、炼蛊；选中页在常态标签 sprite 上叠灰度选中边框，
- *       染成该页强调色，标题同色。面板宽取屏宽 0.80，不足 {@code PANEL_MIN_W} 时补到它（GUI 6 下 342 → 400）。</li>
- *   <li>肉身、空窍页分栏（Alex 定）：图 | 文字 | 按钮 | 页签。图左留白 {@code FIGURE_MARGIN}，图与文字隔
- *       留白加 {@code COLUMN_GAP}；图栏宽 = 该页图宽 × 倍数，倍数按留够按钮栏和 {@code TEXT_MIN_W} 文字后剩的宽取，
- *       上下限见 {@link BodyFigure}、{@link ApertureFigure}。空窍图至少 2 倍，窄屏下两页图栏不同宽、空窍页文字栏
- *       低于下限（GUI 6 为 122），Alex 定；肉身页无按钮，文字栏延到页签前。</li>
- *   <li>空窍页每空窍一段（空窍图、文字、该空窍的 {@link ApertureButtons} 顶对齐），双空窍上下两段，整段一起滚动；
- *       段高、段距都是行高整倍数，行随滚动整行进出，图和按钮靠剪裁截边。{@link PathPicker} 是叠在面板上的
- *       辅修流派网格。</li>
- *   <li>⚠ 普通界面背后无菜单、没有容器通道发意图：炼蛊页不画行，经客户端意图 payload 打开炼蛊容器。</li>
- *   <li>行内容来自 {@link InfoModel}，{@link InfoRowRenderer} 转成标签和值；值在 {@link RowBlock} 量出的列内左对齐，
- *       超出行右缘才贴右；{@link InfoRowCache} 在模型不变时沿用上一帧的行。</li>
- *   <li>一帧一个 {@link GuiBatch}：先画框架（面板、页签、滚动条、标题），再在内容区剪裁内画 sprite、填色、文字；
- *       剪裁开关会冲刷批次，故框架与内容各成一段。</li>
- *   <li>空窍存储、炼蛊界面是子界面，Esc 回此；如此打开的面板吞 Esc 至松开，重复键不连带关面板，一次只退一级。</li>
- *   <li>超 300 行有意为之：标签页、行、滚动条、分栏是同一布局，缩放时读同一组边界
+ *   <li>包含空窍、肉身、魂魄、流派、脑海、炼蛊六个页签；选中页签在常态精灵图上叠绘灰度选中边框并染为该页强调色（标
+ *       题同色）；面板宽度取屏幕宽度的 0.80，不足 {@code PANEL_MIN_W} 时补齐至最小值（GUI 6 缩放下由 342 补齐至
+ *       400）。</li>
+ *   <li>肉身页与空窍页采用四栏布局（图 | 文字 | 按钮 | 页签，由 Alex 选定）：左侧图栏留白 {@code FIGURE_MARGIN}
+ *       且与文字栏相隔 {@code COLUMN_GAP}，图栏宽度等于图原宽乘以整数倍率（在留足按钮栏与 {@code TEXT_MIN_W} 后取
+ *       可用最大值，上下限见 {@link BodyFigure} 与 {@link ApertureFigure}；空窍图保底 2 倍，窄屏下允许两页图栏不
+ *       同宽且空窍页文字栏在 GUI 6 下缩至 122 低于常规下限）；肉身页无按钮栏，文字栏直接延伸至页签前。</li>
+ *   <li>空窍页为每只空窍划分独立段落（空窍图、文字与 {@link ApertureButtons} 顶对齐），拥有双空窍时上下两段整体滚
+ *       动；段高与段距均为行高整倍数以保证文本整行进出视口，插图与按钮由裁剪区域截边；{@link PathPicker} 作为叠加
+ *       网格弹窗展示在面板之上。</li>
+ *   <li>⚠ 普通 {@code Screen} 背后不绑定菜单容器，没有容器按钮通道可用于发送打开容器意图：因此炼蛊页不绘制内容行，
+ *       而是经由客户端意图 payload 请求服务端打开炼蛊容器。</li>
+ *   <li>信息行内容取自 {@link InfoModel} 并由 {@link InfoRowRenderer} 排版绘制，右侧值在 {@link RowBlock} 量算的
+ *       列宽内左对齐（仅超出行右缘时贴右），模型未变时由 {@link InfoRowCache} 跨帧复用。</li>
+ *   <li>整帧复用单个 {@link GuiBatch}：先画外框（面板、页签、滚动条与标题），再在内容区裁剪框内绘制精灵图、填色与
+ *       文字；因开关裁剪区域会主动冲刷批次，外框与内容各自独立成批。</li>
+ *   <li>空窍存储与炼蛊界面作为本界面的子界面，按 Esc 会退回本面板；以这种方式返回打开的面板会吞掉 Esc 直到松开，确
+ *       保连续按住或重复按键一次只退一级。</li>
+ *   <li>本文件有意超过 300 行：页签、信息行、滚动条与分栏计算属于同一套响应式布局，缩放窗口时读取同一组边界变量
  *       （{@code edgeLeft}、{@code edgeRight}、{@code tabLeft}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see InfoModel
- * @since 1.0.0
  */
 
 public final class PlayerInfoScreen extends Screen {

@@ -12,11 +12,14 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 熊，每个 {@link BearSpecies} 一个实体类型。
+ * 熊实体：每个 {@link BearSpecies} 对应一个独立实体类型。
  * <ul>
- *   <li>四足挥击（第 9 tick 命中）与较少的站立拍击（第 17 tick，约占近战三分之一）交替；拍击原地结算，掌落即中。</li>
- *   <li>白天坐、翻滚、蹭背轮换（坐占半，余二均分），夜里趴下入睡；借北极熊音效，首锁吼叫用其警告音。</li>
- *   <li>{@link #isActiveHunter} 容忍空值：{@code registerGoals} 在 {@code Mob} 构造器内、种类赋值前评估 AI 目标。</li>
+ *   <li>近战在四足挥击（第 {@value #SWIPE_HIT_TICK} tick 命中）与约占三分之一概率的站立拍击（第 {@value #REAR_HIT_TICK}
+ *       tick 原地结算）之间交替。</li>
+ *   <li>白天按权重轮换坐下、翻滚、蹭背（坐下占一半，其余两项均分），夜间趴下入睡；复用北极熊音效，首次锁定目标时以北极
+ *       熊警告音吼叫。</li>
+ *   <li>⚠ {@link #isActiveHunter} 必须容忍 {@code species} 为空：{@code registerGoals} 在 {@code Mob} 构造器内、子类种
+ *       类字段赋值前即会评估 AI 目标。</li>
  * </ul>
  */
 

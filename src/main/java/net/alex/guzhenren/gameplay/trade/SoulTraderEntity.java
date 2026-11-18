@@ -35,29 +35,24 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 来宝黄天[Treasure Yellow Heaven] 交易的魂。
+ * 宝黄天[Treasure Yellow Heaven]交易魂实体：悬停原地的交互式交易 NPC。
  * <ul>
- *   <li>悬停原地，看向 {@link #LOOK_RANGE} 内玩家，右键开 {@link SoulTradeMenu}；报价归 {@link SoulTrader}，外观归渲染
- *       器；不自行移动也移不动（{@link #travel} 为空）：不可推、骑、拴，无视爆炸；只受绕过无敌的伤害（{@code /kill}、虚
- *       空）；不消失，无掉落。</li>
- *   <li>模型契约用两个控制器：{@code movement} 循环 {@code animation.idle}，新入世先播 {@code animation.appear}（20
- *       tick），濒死保持 {@code animation.disappear}（24 tick）至 {@link #tickDeath} 移除。</li>
- *   <li>{@code gesture} 只叠播触发式单次动画，只动身体、头、臂，不动根骨和腿：玩家进入 {@link #BECKON_RANGE} 播
- *       {@code beckon}，成交播 {@code cross_arms_nod}，被拒播 {@code hands_hips_shake}。</li>
- *   <li>交易反应可打断招手、不打断另一反应，连点不每 tick 重启点头；手势计时 = 动画长 + 控制器
- *       {@code GESTURE_TRANSITION} 淡入，同客户端显示，运行中再触发同一动画不重启；出现中不扫到达，等候者成形后算到
- *       达。</li>
- *   <li>⚠ {@code DATA_APPEARING} 生来为 true：生成包即带，首帧即出现首帧，不会全尺寸再缩小；读档带 {@code Appeared} 的
- *       以 false 起步，带 NBT 的 {@code /summon} 无此键仍播出现；客户端每实例只判一次是否以出现开场。</li>
- *   <li>直接继承 {@code Mob}，不进野兽动作状态机或捕获链；存档只写 {@code Appeared}，手势计时与迎客的玩家集合
- *       不存。</li>
+ *   <li>右键交互为存活玩家打开 {@link SoulTradeMenu}（报价取自 {@link SoulTrader}，外观由客户端渲染器选配）；实
+ *       体看向 {@link #LOOK_RANGE} 内玩家，完全固定原地（{@link #travel} 为空、无重力、不可推/骑/拴、免疫爆
+ *       炸、不自然消失且无掉落），仅受绕过无敌的伤害（如 {@code /kill} 与虚空）。</li>
+ *   <li>GeckoLib 动画模型需提供两个控制器：{@code movement} 平时循环 {@code animation.idle}、初生时先播 20
+ *       tick {@code animation.appear}、濒死保持 24 tick {@code animation.disappear} 至 {@link #tickDeath} 移
+ *       除；{@code gesture} 仅叠播单次触发动画（仅驱动身体、头与双臂），在玩家新走入 {@link #BECKON_RANGE}
+ *       时播 {@code beckon}，成交播 {@code cross_arms_nod}，被拒播 {@code hands_hips_shake}。</li>
+ *   <li>手势锁定时长取动画长度加淡入时间 {@code GESTURE_TRANSITION}（5 tick）：交易反应可打断招手但不会打断进
+ *       行中的另一次反应（避免连续点击每 tick 重启点头）；尚在出现阶段时不扫描玩家到达，待成形后再对等候玩家
+ *       触发招手。</li>
+ *   <li>⚠ {@code DATA_APPEARING} 默认值为 {@code true} 且随生成包下发，使实体首帧即以出现动画起手而不会先闪现全
+ *       尺寸模型；读档时若存在 {@code Appeared} 标记则置为 {@code false}（无该键的 {@code /summon} 仍播出现），
+ *       客户端每个实例仅在首帧锁存一次 {@code opensWithAppear}。</li>
+ *   <li>直接继承 {@link Mob} 而不接入野兽状态机或捕获链；NBT 仅持久化 {@code Appeared}，手势计时与已迎客玩家集
+ *       合均为运行期内存状态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTrader
- * @see SoulTradeMenu
- * @since 1.0.0
  */
 
 public class SoulTraderEntity extends Mob implements GeoEntity {

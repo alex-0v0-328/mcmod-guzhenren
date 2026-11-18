@@ -14,17 +14,14 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * 流体类型：流体对的行为一半，即「站在里面的感觉」。
- *
+ * 本模组流体类型（{@link FluidType}）注册表，定义实体站在流体内部的物理手感与交互属性（具体流体对定义见
+ * {@link ModFluids}）。
  * <ul>
- *   <li>元泉[Spirit Spring]照搬水的手感（游泳、溺水、灭火、推动、润田、浮船）及默认值，仅关两源生新源。</li>
- *   <li>纯水逐项等同 NeoForge 水类型，含滴水石锥滴入水炼药锅；身份覆盖在 {@link PureWaterFluidType}。
- *       一对流体的两个条目共用同一类型，见 {@link ModFluids}。</li>
+ *   <li>元泉[Spirit Spring]沿用原版水的游泳、溺水、灭火、推动、润田与浮船等全部交互手感，但显式关闭无限水源转化
+ *       （{@code canConvertToSource(false)}）。</li>
+ *   <li>纯水逐项对齐 NeoForge 原版水类型属性（包含滴水石锥向炼药锅滴水），其身份重载与水标签兼容逻辑另见
+ *       {@link PureWaterFluidType}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class ModFluidTypes {

@@ -17,23 +17,18 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 
 /**
- * 本客户端镜头正在播的震屏；仅客户端。
- *
+ * 本客户端镜头正在播放的撞击震屏管理器，仅运行于客户端。
  * <ul>
- *   <li>同 {@link SecondStageCamera}：只转镜头角度，不动画面，随原版“屏幕扭曲效果”滑条缩放。</li>
- *   <li>来源：{@link ImpactShakePayload}（俯冲落地、他人的二段飞行[Second-Stage Flight]撞击，强度已按距离缩放），或本地
- *       物理的 {@link SecondStageCrashEvent}（强度 {@link ImpactShakeEvents#CRASH_STRENGTH}，持续
+ *   <li>与 {@link SecondStageCamera} 同样只转动镜头角度而不移动画面，并随原版「屏幕扭曲效果」滑条等比缩放。</li>
+ *   <li>震屏来源包括服务端下发的 {@link ImpactShakePayload}（俯冲落地与他人二段飞行[Second-Stage Flight]撞击，强度已按
+ *       距离衰减）以及本地物理触发的 {@link SecondStageCrashEvent}（强度 {@link ImpactShakeEvents#CRASH_STRENGTH}，持续
  *       {@link ImpactShakeEvents#CRASH_TICKS}）。</li>
- *   <li>以强度（度）开场，按剩余时间平方衰减（{@link #getShake}）；重叠相加，上限 {@link #MAX_STRENGTH}；通知数值钳到
- *       {@link #MAX_STRENGTH}、{@link #MAX_TICKS}；俯仰、偏航以两个近 10 Hz 的频率摆动。</li>
- *   <li>时长按本类自己的未暂停客户端 tick 计：重生重置的 tick 计数不重播震屏，暂停即冻结。</li>
- *   <li>唯一可变静态字段 {@code ticks} 是本客户端的 tick 时钟：只增不减，每次震屏在其上记起点，登出无需清零。</li>
+ *   <li>单次震屏以角度强度开场并按剩余时间平方衰减（{@link #getShake}），多源震屏叠加且受 {@link #MAX_STRENGTH} 上限约
+ *       束，网络下发值亦钳制在 {@link #MAX_STRENGTH} 与 {@link #MAX_TICKS} 内；俯仰与偏航以两组接近 10 Hz 的频率摆
+ *       动。</li>
+ *   <li>持续时间按本类自有的未暂停客户端 tick 计数：玩家重生导致的实体 tick 重置不会重播震屏，游戏暂停时自动冻结。</li>
+ *   <li>唯一可变静态字段 {@code ticks} 是本客户端单调递增的 tick 时钟，每次震屏在其上记录起点时间，登出无需清零。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ImpactShakeEvents
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

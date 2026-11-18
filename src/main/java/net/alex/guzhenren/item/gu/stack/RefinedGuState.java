@@ -7,16 +7,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 持续照顾型蛊[Tended Gu]单物品状态：炼化进度、饱食[Hunger]、伤势。
+ * 持续照顾型蛊[Tended Gu]的单物品栈状态记录：保存炼化进度、已投入真元、饱食[Hunger]与已受伤害。
  * <ul>
- *   <li>⚠ 存已受伤害而非剩余生命：野生蛊的 0 即未受伤；反之每个读取方都要特判。</li>
- *   <li>存于 {@code REFINED_GU_STATE} 组件；{@code with*} 副本写成代码块：五个组件单行超 120 列。</li>
+ *   <li>⚠ 伤势字段记录已受伤害而非剩余生命值：野生蛊默认值为 0 即表示未受伤；若改为存储剩余生命，则所有读取方都必须额外
+ *       特判未初始化状态。</li>
+ *   <li>本记录挂载于 {@code REFINED_GU_STATE} 数据组件；五个字段的 {@code with*} 副本方法拆写成代码块，以便将单行长度
+ *       控制在 120 列以内。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @since 1.0.0
  */
 
 public record RefinedGuState(boolean refined, int refineProgress, int investedEssence, int hunger,

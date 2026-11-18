@@ -6,13 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 人如故[Man As Before Gu]对持有者的记忆。{@link PlayerSnapshot} 环，旧者在前，按 {@link RewindClock} 节奏；存于玩家，
- * 不同步（客户端不决定哪天被记住）；死亡不保留，新身体没有过去。
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerRewindService
- * @since 1.0.0
+ * 人如故[Man As Before Gu]对持有者的身体快照环形队列附件：按由旧到新顺序保存 {@link PlayerSnapshot}（采样与选取节奏由
+ * {@link RewindClock} 控制；仅服务端落盘、不同步给客户端，且死亡重生后不保留）。
  */
 
 public record PlayerRewindData(List<PlayerSnapshot> snapshots) {

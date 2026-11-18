@@ -11,16 +11,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 护盾行为：升一层护盾，类型、点数、时长取自注册；不拒催动，{@code TimedEffects} 凭它找某类护盾的蛊。
+ * 护盾授予行为：通过 {@link ShieldService#raise} 为玩家升起一层指定类型、护盾值与持续时长的护盾（{@code TimedEffects}
+ * 通过检索本行为反查赋予某类护盾的蛊虫）。
  * <ul>
- *   <li>天蓬蛊[Heavenly Mugwort Gu]携带，配 {@link net.alex.guzhenren.item.gu.mortal.behavior.RecastBehavior}。</li>
- *   <li>每次经 {@link ShieldService#raise} 补满并重计时，替换不叠加；功倍蛊[Amplify Effect Gu]只乘时长。</li>
+ *   <li>由天蓬蛊[Heavenly Mugwort Gu]携带，并搭配 {@link net.alex.guzhenren.item.gu.mortal.behavior.RecastBehavior} 允
+ *       许在冷却期间再次催动。</li>
+ *   <li>每次催动均将护盾值补满并重置持续时间（覆盖刷新而非叠加护盾值）；功倍蛊[Amplify Effect Gu]仅倍增护盾持续时长，不
+ *       倍增护盾值。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldService
- * @since 1.0.0
  */
 
 public record ShieldBehavior(ShieldType type, float points, int durationTicks) implements GuBehavior {

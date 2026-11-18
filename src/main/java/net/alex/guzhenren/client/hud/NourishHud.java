@@ -12,19 +12,16 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 温养[Nourish]空窍[Aperture]时快捷栏上方的温养条。
+ * 温养空窍时在快捷栏上方显示的温养进度条。
  * <ul>
- *   <li>注册在原版氧气条层之上；进度取 {@link ApertureNourishService#getFraction}，真元[Essence]将尽时填红。</li>
- *   <li>蓄力条同显时上移一个 {@link #getStackShift} 免重叠；{@link ShieldHud} 借 {@link #isShowing} 同样叠在其上。</li>
- *   <li>温养运镜期间（{@link CultivationCamera#isShowing}）其余 HUD 隐藏，条连标题居中画在下黑边上
- *       （{@link CinematicHud}）。</li>
- *   <li>⚠ 故意与蓄力条分层：蓄力条只读手持物品，塞入玩家附件会破坏其类注释所述性质。</li>
+ *   <li>注册在原版氧气条图层之上；进度读取 {@link ApertureNourishService#getFraction}，当真元即将耗尽时填充转为红
+ *       色。</li>
+ *   <li>当蓄力条同时显示时，本条上移一个 {@link #getStackShift} 高度避免重叠；{@link ShieldHud} 同样通过
+ *       {@link #isShowing} 将护盾条叠放在本条之上。</li>
+ *   <li>温养运镜期间（{@link CultivationCamera#isShowing}）其余 HUD 图层隐藏，温养条连同标题改画在下黑边中央（
+ *       {@link CinematicHud}）。</li>
+ *   <li>⚠ 本类故意与蓄力条分开独立实现：蓄力条只读取手持物品状态，若强行塞入玩家附件查询会破坏其类约束。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.hud.ChargeHud
- * @since 1.0.0
  */
 
 public final class NourishHud extends HotbarHud {

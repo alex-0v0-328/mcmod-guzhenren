@@ -7,19 +7,16 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 一张蛊方：耗料、产出、仪式的投石窗口。
- *
+ * 单张炼蛊配方的不可变规则数据记录，描述材料格组、产物列表、每秒消耗与投石窗口节奏，并交由 {@link RefinementRecipe}（与
+ * {@link net.alex.guzhenren.refinement.RefinementMenu} 配合）对接原版配方系统。
  * <ul>
- *   <li>材料与格组平行，有序精确、不镜像不旋转；材料可放本组任一格，全组合计恰为其数；格组不重叠，单格组即固定格。</li>
- *   <li>窗口数即阶段数；网格为去四角 5×5，外圈 12 格围内圈 9 格；产出蛊数供本命继承判定。</li>
- *   <li>⚠ 产出蛊数只数 {@code MortalGuItem}：酒等有转数的蛊材也是 {@code GuItem}，按它数会误判本命继承。</li>
- *   <li>只有数据与匹配；配方类型、序列化器、排序列表在 {@link RefinementRecipe}。</li>
+ *   <li>材料列表与格组列表一一平行且严格按位置匹配（不镜像、不旋转），每组格位互不重叠，组内所有格位之和须精确等于对应
+ *       材料数量（单格组即固定格位）。</li>
+ *   <li>网格采用 5×5 去除四角的 21 格布局（外环 12 格、内核 9 格），{@link #windows} 列表长度即为仪式阶段数，构造器会在
+ *       加载期校验非负性与总时长溢出。</li>
+ *   <li>⚠ {@link #getGuResultCount} 仅统计 {@code MortalGuItem} 数量用于本命蛊继承判定：部分有转数的蛊材同样继承自
+ *       {@code GuItem}，若扩大统计范围会误判多蛊产物并阻断继承。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.refinement.RefinementMenu
- * @since 1.0.0
  */
 
 public record GuRecipe(List<GuIngredient> ingredients, List<List<Integer>> slots, List<ItemStack> results,

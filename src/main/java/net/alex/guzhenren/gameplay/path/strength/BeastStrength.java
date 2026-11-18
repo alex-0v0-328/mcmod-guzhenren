@@ -6,22 +6,21 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 肉体可持有的兽力[Beast Strength]及其力量点[Strength Points]。
+ * 肉体永久持有的兽力[Beast Strength]枚举：定义各兽力的所属兽种（{@link BeastStrengthFamily}）、力量点[Strength Points]
+ * 与被动特性加成。
  * <ul>
- *   <li>存于 {@code PathStrengthData} 的 {@code Set}；新增兽力只加常量，不碰蛊物品与攻击合成；兄弟模组不得新增；
- *       每点 = 1 斤人力 = {@link PathStrengthData#ATTACK_PER_POINT} 攻击，同走承受力。</li>
- *   <li>每兽种只持一种：{@link #replaces}（一熊之力变棕熊本力，不叠加），{@link #isCoveredBy} 拦下不更强的蛊；
- *       唯一例外（今后亦然）为 {@link Form#PAIRED} 白豕、黑豕并存成两猪之力；{@link Form#INNATE} 按本名显示。</li>
- *   <li>持有期间特性：承受力、疾跑倍率、全力以赴外全面解放概率、冲撞距离与播放速度加成（与其他来源相加，
- *       {@code CrashDash}）、护盾点数、力道限时状态开始时的加时长；各兽数值见 wiki《蛊虫条目》。</li>
- *   <li>两猪之力（{@link PathStrengthData#hasTwoBoars}）是成对特性，不落在单个常量上：冲撞距离、破方块硬度与终点打击
- *       伤害各有加成（{@code CrashSources}）。</li>
- *   <li>⚠ 兽种标记按兽种不按常量（白豕、黑豕共用 {@code BOAR}）；兽种与点数勿移到读取方。</li>
+ *   <li>存于 {@link PathStrengthData#beastStrengths}；每 1 点兽力等同于 1 斤人力，对应
+ *       {@link PathStrengthData#ATTACK_PER_POINT} 空手攻击力并共同占用肉身承受力。</li>
+ *   <li>同一兽种默认只能持有一种兽力（{@link #replaces}，如棕熊本力替换一熊之力而不叠加，{@link #isCoveredBy} 拦截不高
+ *       于当前点数的同兽种蛊）；唯一例外为标有 {@link Form#PAIRED} 的白豕与黑豕，可并存组成「两猪之力」；
+ *       {@link Form#INNATE} 则按本名显示。</li>
+ *   <li>被动特性字段涵盖：承受力加成、疾跑速度倍率、非全力以赴下的全面解放概率、横冲冲刺距离与动画播放速度加成
+ *       （{@link CrashDash}）、肉身护盾倍率（{@link BeastTraitEvents}）以及力道限时状态初始时长加成。</li>
+ *   <li>「两猪之力」（{@link PathStrengthData#hasTwoBoars}）属于双猪并存的组合特性，不在单个枚举常量上设字段，由
+ *       {@link CrashSources} 统一读取并加成冲撞距离、破块硬度与终点打击伤害。</li>
+ *   <li>⚠ 兽种统计与虚影抽取一律按 {@link BeastStrengthFamily} 归并（白豕与黑豕共用
+ *       {@link BeastStrengthFamily#BOAR}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public enum BeastStrength implements NamedEnum {

@@ -9,18 +9,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 二段飞行[Second-Stage Flight]时把玩家移动交给二段巡航；双端。
+ * 双端 Mixin，在二段飞行[Second-Stage Flight]激活期间将 {@code Player#travel} 整体交由二段巡航逻辑接管（客户端垂直按键
+ * 屏蔽见 {@link LocalPlayerMixin}）。
  * <ul>
- *   <li>{@link SecondStageService#travel} 移动了玩家时 {@link #guzhenren$cruise} 在方法头取消 {@code Player#travel}：
- *       限未骑乘、带标记的飞行者，在模拟它的一端（本机客户端、服务端自身那步）；客户端上的远端玩家从不跑移动。</li>
- *   <li>原版飞行分支按输入缩放飞行速度、以 0.91 阻尼；巡航随视线，故替换整个移动而非一次速度读数。</li>
- *   <li>⚠ 不用事件或 API：NeoForge 21.1.265 的 {@code Player#travel} 不发事件，{@code PlayerTickEvent} 晚于移动。</li>
+ *   <li>{@link #guzhenren$cruise} 在 {@code Player#travel} 头部调用 {@link SecondStageService#travel}，仅对未骑乘且持有
+ *       同步标记的本地客户端或服务端玩家生效并取消原版移动（客户端上的远端玩家不执行 {@code travel}）。</li>
+ *   <li>原版飞行分支按键盘输入缩放速度并施加 0.91 阻力，而二段巡航必须严格沿视线矢量推进，因此必须整体替换移动逻辑而非
+ *       仅修改飞行速度读数。</li>
+ *   <li>⚠ 不使用事件或 API：NeoForge 21.1.265 的 {@code Player#travel} 不派发任何取消事件，而 {@code PlayerTickEvent}
+ *       的执行时机晚于移动结算。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see LocalPlayerMixin
- * @since 1.0.0
  */
 
 @Mixin(Player.class)

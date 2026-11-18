@@ -5,17 +5,12 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link PathEffectService} 摘掉玩家流派效果后发到游戏事件总线的事件。
- *
+ * 流派效果结束事件：{@link PathEffectService} 从玩家身上移除流派效果后在游戏总线上同步发布。
  * <ul>
- *   <li>带被摘效果及其道痕[Path Marks]与原因（到期、被顶替、调用方或命令摘除）；结束后要留影响的效果族在此订阅。</li>
- *   <li>⚠ 清空玩家的死亡绕过服务整体重置存储，不发事件；订阅方随这次死亡自行重置状态，与其他玩家数值一致。</li>
+ *   <li>携带被移除的 {@link PathEffect}（含其道痕[Path Marks]与载荷）以及结束原因（{@link Reason}：自然到期、被同槽顶
+ *       替、主动或指令移除），供需要在效果结束时做收尾清理的机制订阅。</li>
+ *   <li>⚠ 未开启死亡不掉落的死亡重置直接清空附件而不逐条发布此事件，各订阅方随死亡克隆流程自行重置状态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffectService
- * @since 1.0.0
  */
 
 public class PathEffectEndedEvent extends Event {

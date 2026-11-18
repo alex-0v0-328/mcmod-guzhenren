@@ -15,18 +15,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 主人离线时死去、待其下次登录结算的本命蛊[Vital Gu]。
+ * 离线期间本命蛊损毁的待结算惩罚队列（基于主世界 {@link ModSavedData} 持久化），供 {@link VitalLossService} 在玩家重新
+ * 登录后逐只补扣。
  * <ul>
- *   <li>离线玩家附件写不进，丢失的物品栈暂存主世界数据存储，待 {@link VitalLossService} 按在线同等惩罚结算。</li>
- *   <li>⚠ 每蛊一条、先进先出；每次心跳结算一条，免得第二次 80% 伤害被第一次的受伤冷却吞掉。</li>
- *   <li>⚠ 模组唯一存玩家状态的服务端级存储、唯一可变的玩家状态类；其余玩家状态皆不可变附件记录（其他服务端级存储存世界
- *       状态：进行中的压力爆炸坑、{@code EpicFightRuleSeed}）。</li>
+ *   <li>离线玩家的实体附件无法直接写入，因此将其损毁的本命蛊物品栈暂存于本服务端存档队列，待其上线后再按在线同等规则结
+ *       算。</li>
+ *   <li>⚠ 按玩家 UUID 维护先进先出队列且每次心跳至多结算一只，避免第二次 80% 当前生命值伤害被第一次的受伤无敌帧吞
+ *       掉。</li>
+ *   <li>⚠ 本类是全模组唯一用于保存玩家跨线状态的服务端级存储及唯一可变玩家状态容器（其余服务端存储仅存世界状态，如爆炸
+ *       坑与 {@code EpicFightRuleSeed}，其余玩家状态均为不可变附件记录）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see VitalLossService
- * @since 1.0.0
  */
 
 public final class PendingVitalPenalties extends ModSavedData {

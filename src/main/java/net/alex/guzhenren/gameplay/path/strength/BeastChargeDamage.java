@@ -4,20 +4,15 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 兽力冲击伤害：按自身兽种的力量，不按拳。
+ * 兽力冲击（虚影扑击）的伤害计算纯函数：按各兽种自身的永久兽力[Beast Strength]点数结算，而非按玩家拳击面板结算。
  * <ul>
- *   <li>每只 = 兽种永久力量点[Strength Points] × 解放倍数（仅出形或随机补出为 1）× {@link #ATTACK_PER_POINT}。</li>
- *   <li>力气蛊[Strength Qi Gu]远程拳：全面解放 × {@link StrengthService#FULL_RELEASE_FACTOR}，总点数截到当前承受力（含
- *       全力以赴）按比例分摊。</li>
- *   <li>蓄力一拳：解放 × {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不截断（{@link #UNCAPPED}）；
- *       冲击反噬按该拳自身点数。</li>
+ *   <li>单只兽影基础点数 = 该兽种永久力量点[Strength Points] × 解放倍数（未全面解放或仅随机补出形体时倍数为
+ *       {@code 1}），再乘以 {@link #ATTACK_PER_POINT} 转为伤害。</li>
+ *   <li>力气蛊[Strength Qi Gu]远程气波：全面解放兽种乘以 {@link StrengthService#FULL_RELEASE_FACTOR}，所有出形兽影的总
+ *       点数封顶于当前承受力（含全力以赴）并按比例分摊（{@link #getDamages}）。</li>
+ *   <li>蓄力一拳[Charged Punch]：解放兽种乘以 {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不设承受力上限（传入
+ *       {@link #UNCAPPED}），超承受力的冲击反噬按该拳自身总点数结算。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthRound#getFullyReleased
- * @see StoreStrength#getReleasedFamilies
- * @since 1.0.0
  */
 
 public final class BeastChargeDamage {

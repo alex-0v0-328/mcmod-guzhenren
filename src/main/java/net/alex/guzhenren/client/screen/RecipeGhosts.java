@@ -13,18 +13,16 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 已选蛊方在炼蛊网格里仍缺的格子，画成虚影。
+ * 炼蛊网格中已选蛊方的缺料虚影提示绘制器。
  * <ul>
- *   <li>虚影：半透明物品，上盖原版虚影配方遮罩，标缺少数量；已有物品的格子不画，材料虚影落在其组内第一个空格。</li>
- *   <li>{@link #getResult} 取首个产物，{@link #getOption} 每秒轮换材料候选；炼蛊界面与 {@link RecipePicker} 共用。</li>
- *   <li>⚠ {@link #draw} 从 {@code renderLabels} 调用：坐标相对面板，手持物品仍画在虚影上。</li>
- *   <li>一个 {@link GuiBatch} 分三遍画（半透明物品、遮罩、数量），每格层序不变；格距 22 互不重叠，只见格内层序。</li>
+ *   <li>虚影由半透明物品图标、原版虚影配方遮罩与缺少数量数字叠绘而成；已有物品的槽位不画虚影，材料组缺口画在组内首个
+ *       空槽位上。</li>
+ *   <li>{@link #getResult} 取蛊方首个产物，{@link #getOption} 按秒轮换展示材料候选物品；本逻辑由炼蛊界面与
+ *       {@link RecipePicker} 共用。</li>
+ *   <li>⚠ {@link #draw} 在 {@code renderLabels} 中以相对面板坐标调用，确保鼠标抓起的手持物品依然绘制在虚影之上。</li>
+ *   <li>所有槽位共用一个 {@link GuiBatch} 并分三遍提交（半透明物品、遮罩、数量数字）：由于网格间距 22 像素且各格互
+ *       不重叠，格内层序完全保持正确。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementScreen
- * @since 1.0.0
  */
 
 final class RecipeGhosts {

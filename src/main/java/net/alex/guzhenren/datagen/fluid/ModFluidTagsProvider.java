@@ -12,8 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 流体标签：纯水两条目加入 {@code #minecraft:water}，原版方块侧水判定（海绵、混凝土粉末、玻璃瓶、钓鱼、珊瑚、海带、熔岩
- * 变石）才当它是水；元泉[Spirit Spring]不加入，只是手感像水。
+ * 本模组流体标签数据生成器：将纯水的源流与正流加入 {@code #minecraft:water}，使海绵吸水、混凝土粉末凝固、玻璃瓶装水、钓
+ * 鱼、水生植物存活及岩浆下流成石等原版方块侧水体判定将其视作水；元泉[Spirit Spring]则不加入该标签，仅保持与水相似的物理
+ * 流动手感。
  */
 
 public class ModFluidTagsProvider extends FluidTagsProvider {

@@ -15,14 +15,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 纯水流体类型：{@code ModFluidTypes} 逐项复制 NeoForge 水类型属性，再补水类型凭身份回答的覆写。NeoForge 在标签够不到处
- * 问“是不是水类型”（谁能游、谁溺水、谁在水下下坐骑），这里都按水答：怕水的不能游，能水下呼吸的不溺水，水下卸乘客的载具
- * 在纯水里同样卸；源头转化跟随 {@code waterSourceConversion} 游戏规则。
- *
- * @author Alex
- * @version 1.0.0
- * @see PureWaterFluid
- * @since 1.0.0
+ * 纯水流体类型（{@link FluidType}）：在 {@code ModFluidTypes} 复刻原版水属性的基础上，补齐 NeoForge 按流体类型身份分派
+ * 的回调。
+ * <ul>
+ *   <li>当 NeoForge 在流体标签之外查询实体能否游泳（{@link #canSwim}）、是否溺水（{@link #canDrownIn}）、水下是否脱离载
+ *       具（{@link #canRideVehicleUnder}）以及无限水源转化（{@link #canConvertToSource}）时，统一对齐原版水类型的判定逻
+ *       辑（例如怕水生物不可游、具备水下呼吸能力的生物不溺水、跟随 {@code waterSourceConversion} 游戏规则）。</li>
+ *   <li>{@link #canDrownIn} 内部调用已标记过时的 {@link LivingEntity#canBreatheUnderwater()}，是因为该方法仅对外部调用
+ *       方过时（外部应调 {@code canDrownInFluidType} 并最终路由至此），NeoForge 原版水类型分支自身同样直接读取该方
+ *       法。</li>
+ * </ul>
  */
 
 public class PureWaterFluidType extends FluidType {
@@ -44,8 +46,6 @@ public class PureWaterFluidType extends FluidType {
         return entity instanceof LivingEntity living ? !living.isSensitiveToWater() : super.canSwim(entity);
     }
 
-    // canBreatheUnderwater is deprecated for callers of canDrownInFluidType, which lands here: NeoForge's own
-    // water branch reads it the same way.
     @SuppressWarnings("deprecation")
     @Override
     public boolean canDrownIn(@NotNull LivingEntity entity) { return !entity.canBreatheUnderwater(); }

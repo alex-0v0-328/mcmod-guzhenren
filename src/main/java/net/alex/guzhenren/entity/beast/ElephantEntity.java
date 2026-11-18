@@ -16,15 +16,17 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 大象与白象：只差纹理的两种实体类型（沿用虎先例）。
+ * 大象与白象实体：继承 {@link ChargerEntity}，两者共用本类、仅贴图不同（沿用虎的先例）。
  * <ul>
- *   <li>{@link ChargerEntity}，{@code elephant} 模型半尺寸制作、加倍绘制，身体约 3.1 × 3.75 × 4.7 格，碰撞箱
- *       {@code 2.5 x 3.7}；只反击；{@value #CLOSE_REACH} 格外照常冲撞，格内依次取首个冷却完的踩踏、牙挑、鼻扫。</li>
- *   <li>踩踏每 {@value #STOMP_COOLDOWN_TICKS} tick，第 {@value #STOMP_HIT_TICK} tick 打中 {@value #STOMP_RADIUS}
- *       格内全部可攻击目标，除其他大象，象群不内斗；牙挑每 {@value #TOSS_COOLDOWN_TICKS} tick；鼻扫每
- *       {@value #TRUNK_COOLDOWN_TICKS} tick，第 {@value #TRUNK_HIT_TICK} tick 命中，单体水平击飞。</li>
- *   <li>速度按片段步幅配：AI 驱动生物每秒移 {@code 43.17 x speed^2} 格，walk 1.27、run 3.58 格/秒分别得属性值与追击倍
- *       率；头、鼻、尾伸出碰撞箱约 1.1 格，踩踏人立高过碰撞箱，故加宽剔除框；原版无象音效，借骆驼音效降调。</li>
+ *   <li>{@code elephant} 模型以半尺寸建模并放大两倍渲染，外观尺寸约 3.1 × 3.75 × 4.7 格，碰撞箱为 {@code 2.5 x 3.7}；仅
+ *       在受击后反击，距离目标超过 {@value #CLOSE_REACH} 格时照常冲撞，{@value #CLOSE_REACH} 格内依次选用首个冷却完毕的
+ *       踩踏、牙挑或鼻扫。</li>
+ *   <li>踩踏冷却 {@value #STOMP_COOLDOWN_TICKS} tick，于第 {@value #STOMP_HIT_TICK} tick 震击 {@value #STOMP_RADIUS} 格
+ *       内除同类大象外的全部可攻击目标（象群内部不误伤）；牙挑冷却 {@value #TOSS_COOLDOWN_TICKS} tick；鼻扫冷却
+ *       {@value #TRUNK_COOLDOWN_TICKS} tick，于第 {@value #TRUNK_HIT_TICK} tick 命中单体并造成水平击退。</li>
+ *   <li>移速按动画步幅匹配（AI 生物地面移速约为 {@code 43.17 * speed^2} 格/秒，行走 1.27 格/秒、奔跑 3.58 格/秒分别对应
+ *       基础移速 {@value #MOVEMENT_SPEED} 与追击倍率 {@value #PURSUIT_SPEED}）；因头、鼻、尾伸出碰撞箱约 1.1 格且踩踏人
+ *       立高于碰撞箱，特意加宽加高视锥剔除框；复用原版骆驼音效并降调播放。</li>
  * </ul>
  */
 

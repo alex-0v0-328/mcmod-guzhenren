@@ -12,9 +12,11 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * {@link ActionEntity} 的 GeckoLib 4 动画控制器：同步动作映射为过渡与播放时钟；非循环动画带当前动画进
- * {@code State.TRANSITIONING} 时 GeckoLib 于过渡 tick 0 轮询，故 {@link #process} 同帧先初始化再定位，免迟到的追踪者无
- * 姿态或闪首帧。
+ * {@link ActionEntity} 的 GeckoLib 4 动画控制器：将同步动作映射为过渡时长与播放时钟。
+ * <ul>
+ *   <li>⚠ 非循环动画在已有当前动画时进入 {@code State.TRANSITIONING}，GeckoLib 会在过渡 tick 0 轮询，因此
+ *       {@link #process} 在同一帧内先完成初始化再定位到已流逝 tick，避免迟到的追踪客户端无姿态或闪现首帧。</li>
+ * </ul>
  */
 
 final class ActionAnimationController<T extends GeoAnimatable> extends AnimationController<T> {

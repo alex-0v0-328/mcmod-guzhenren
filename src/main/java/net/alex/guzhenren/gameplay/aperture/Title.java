@@ -4,18 +4,12 @@ import net.alex.guzhenren.core.NamedEnum;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 称号：由转数推导，从不存储。
- *
+ * 修士大境界称号枚举：由 {@link Rank} 实时推导（{@link #fromRank}：无转为凡人、一至五转为蛊师、六至九转为蛊仙），从不落
+ * 盘存储。
  * <ul>
- *   <li>封闭词汇枚举，兄弟模组不得新增；凡人与蛊仙之分如今只在此处。</li>
- *   <li>{@code fromRank}：{@code NONE} 凡人，{@code ONE} 至 {@code FIVE} 蛊师，{@code SIX} 至 {@code NINE} 蛊仙。</li>
- *   <li>⚠ 存储会多出一个可与转数矛盾的答案；「凡人」只归本枚举，所以 {@link Rank#NONE} 译成空串。</li>
+ *   <li>⚠ 单独存储称号会制造与转数不一致的双重数据源；「凡人」译名唯一归属 {@link #MORTAL}，因此 {@link Rank#NONE} 的
+ *       语言键刻意留空以避免拼接重复。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Rank
- * @since 1.0.0
  */
 
 public enum Title implements NamedEnum {

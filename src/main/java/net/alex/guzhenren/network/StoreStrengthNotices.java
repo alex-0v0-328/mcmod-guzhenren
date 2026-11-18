@@ -11,13 +11,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 蓄力蛊[Store Strength Gu]蓄力通知转发：服务端 {@link StoreStrengthChargeEvent} 以 {@link StoreStrengthNoticePayload}
- * 发给蓄力客户端；{@link ClientIntents#storeStrength} 拒起手时也发 {@link Change#DROPPED}。
- *
- * @author Alex
- * @version 1.0.0
- * @see ModPayloads
- * @since 1.0.0
+ * 蓄力蛊[Store Strength Gu]蓄力状态变更的服务端通知转发器：响应 {@link StoreStrengthChargeEvent} 并通过
+ * {@link StoreStrengthNoticePayload}（由 {@link ModPayloads} 注册）下发至蓄力客户端；当
+ * {@link ClientIntents#storeStrength} 拒绝起手时亦主动补发 {@link Change#DROPPED}。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

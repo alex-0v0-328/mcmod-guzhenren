@@ -8,14 +8,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * 蛮力天牛蛊[Brute Force Longhorn Beetle Gu]限时增益：一牛之力力量点[Strength Points]，45 秒，结束无余波；
- * 真值为流派效果，本效果仅图标与计时；点数经 {@link BeastStrengthBuff} 入唯一力量结算，攻击总值仍为一数，承受力照算；
- * 牛熊同点，比猪持久，时长即特性。
- *
- * @author Alex
- * @version 1.0.0
- * @see BeastStrengthBuff
- * @since 1.0.0
+ * 蛮力天牛蛊[Brute Force Longhorn Beetle Gu]的限时图标效果：提供持续 45 秒、相当于一牛之力的兽力点数，结束时无额外余
+ * 波；真值由流派效果维护，本类仅承担图标、计时与 {@link BeastStrengthBuff} 标识，使点数并入唯一力量结算体系并正常受承受
+ * 力限制（与熊力同点但比猪类更持久）。
  */
 
 public class BruteForceLonghornBeetleGuEffect extends MobEffect implements BeastStrengthBuff {

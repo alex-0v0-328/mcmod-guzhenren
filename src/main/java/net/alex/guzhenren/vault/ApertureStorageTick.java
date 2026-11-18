@@ -10,22 +10,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 空窍[Aperture]内蛊的每秒结算，含存储蛊与各本命蛊。
- *
+ * 空窍内存储蛊虫与各窍本命蛊的每秒养护结算入口（由心跳传入距上次结算经过的天数，经 {@link ApertureStorageService} 读写
+ * 并转交 {@link GuUpkeep#tickInContainer} 处理）。
  * <ul>
- *   <li>心跳调用，传距上次的天数，多数秒为 0，已炼化蛊仍自付养护；逐只转 {@link GuUpkeep#tickInContainer}，
- *       饿死经 {@link TendedGuItem#starve} 报告。</li>
- *   <li>每只存储蛊从实时存储读、tick 后即单独写回：养护可能自写存储（天元宝莲[Heavenly Essence Treasure Lotus Gu]
- *       往存储的元老蛊[Primeval Elder Gu]铸元石[Primeval Stone]，该元老蛊或刚付完养护），遍历末整体写回会抹掉之。</li>
- *   <li>⚠ 先问 {@code isRefinedTended}：未炼化蛊饱食[Hunger]为 0，与饿死无异；去掉它，首次日切即饿死所有野生蛊。</li>
- *   <li>本命槽同理，仅遍历改动它时写回。</li>
+ *   <li>绝大多数秒数传入的天数为 0，但已炼化蛊虫仍会在容器内执行自身养护逻辑，饿死时统一通过
+ *       {@link TendedGuItem#starve} 发出提示。</li>
+ *   <li>存储列表遍历采用逐只实时读取并在发生变更后立即写回单个槽位的策略：部分蛊虫养护会直接读写同一存储（如
+ *       天元宝莲[Heavenly Essence Treasure Lotus Gu]向存储中的元老蛊[Primeval Elder Gu]注入元石），若在遍历结束后整体写
+ *       回会覆盖这些即时改动；本命槽仅在状态实际变化或饿死时写回。</li>
+ *   <li>⚠ 遍历存储蛊时必须先校验 {@code isRefinedTended}：未炼化蛊的饱食值初始为 0，与饿死状态相同，若漏过此检查会在首
+ *       次日切时误判饿死所有野生蛊。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureStorageService
- * @see GuUpkeep
- * @since 1.0.0
  */
 
 public final class ApertureStorageTick {

@@ -17,20 +17,14 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 物品组件：单个物品堆独有的状态。
- *
+ * 挂载在单个物品堆上的持久同步 {@link DataComponentType} 注册表。
  * <ul>
- *   <li>只放部分持续照顾型蛊[Tended Gu]才有的状态；全体共有的归 {@link RefinedGuState}。</li>
- *   <li>{@code VITAL_*} 只经 {@code VitalGuState} 读写。</li>
- *   <li>{@code LITTLE_LIGHT_BRIGHT} 亮时才有，供动态光源；{@code LITTLE_LIGHT_FORCED} 仅强行催动[Forced Use]轮内。</li>
- *   <li>⚠ 时间戳默认 {@code 0} 也是真实游戏时间：判 {@code null} 不判 {@code 0}，否则新世界误判已催动。</li>
- *   <li>经 NeoForge {@code Supplier} 重载直接用持有者读写；设 {@code null} 即移除。</li>
+ *   <li>全体持续照顾型蛊[Tended Gu]共用的核心状态归 {@link RefinedGuState} 管理，本类其余组件仅覆盖本命蛊绑定
+ *       （{@code VITAL_*}，仅经 {@code VitalGuState} 读写）、饱食时钟与单蛊专属字段（例如小光蛊的动态光源标记
+ *       {@code LITTLE_LIGHT_BRIGHT} 与强行催动[Forced Use]轮次标记 {@code LITTLE_LIGHT_FORCED}）。</li>
+ *   <li>⚠ 时间戳组件的 {@code 0L} 值代表合法的游戏零刻：判断组件是否已写入必须检查 {@code null} 而禁止判 {@code 0}，否
+ *       则新创建的世界会被误判为刚刚催动过。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinedGuState
- * @since 1.0.0
  */
 
 public final class ModDataComponents {

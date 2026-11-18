@@ -24,21 +24,15 @@ import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 
 /**
- * 本模组实体的属性与生成放置注册。
- *
+ * 本模组全部实体的默认属性绑定与自然生成放置规则注册入口。
  * <ul>
- *   <li>希望蛊[Hope Gu]注册 {@link FlyingGuEntity} 属性；豕蛊、犀牛甲虫蛊变体共用并调高静止飞
- *       速（{@code RESTING_GU_FLYING_SPEED}），因路径导航空速随它缩放，基础值下逃跑、降落几乎不动；希望蛊悬停直设速度，
- *       用基础值。</li>
- *   <li>飞行蛊家族共用地表放置，野兽共用地面放置，均基于 {@link Heightmap.Types#MOTION_BLOCKING_NO_LEAVES}；检查在
- *       {@link SpawnRules}；交易蛊仙有属性无放置，只能召唤。</li>
+ *   <li>属性注册中，希望蛊[Hope Gu]使用 {@link FlyingGuEntity} 基础属性，豕蛊与犀牛甲虫蛊变体在其基础上将飞行速度提升至
+ *       {@link #RESTING_GU_FLYING_SPEED}（因路径导航空速随该属性缩放，基础值下逃跑和降落几乎静止，而希望蛊悬停直接写速
+ *       度故无需调高）；{@link SoulTraderEntity} 注册了属性但不设自然生成规则，仅通过指令召唤。</li>
+ *   <li>生成放置注册中，飞行蛊家族统一绑定地表无限制放置（{@link SpawnRules#onTheSurface}），全部野兽绑定地面放置
+ *       （{@link SpawnRules#onAnimalGround}），两者均采用 {@link Heightmap.Types#MOTION_BLOCKING_NO_LEAVES} 高度
+ *       图。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.entity.gu.FlyingGuEntity
- * @see SpawnRules
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

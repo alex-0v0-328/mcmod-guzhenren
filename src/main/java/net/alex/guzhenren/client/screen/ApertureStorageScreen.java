@@ -15,19 +15,14 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 单个空窍[Aperture]的分页存储界面，每页 54 格。
+ * 单个空窍的分页存储界面，每页包含 54 个存储槽位。
  * <ul>
- *   <li>本命蛊格在伸出面板右缘的侧标签里；侧标签 sprite 盖住面板右上角，左缘重叠 {@link #SIDE_TAB_OVERLAP}
- *       像素使两框相接，标题分隔线横贯两者。</li>
- *   <li>背景、翻页器各一个 {@link GuiBatch}，先 sprite，再填色，最后文字。</li>
- *   <li>⚠ 翻页器（上一页、页码、下一页）在面板左下角下方，避开上缘 Inventory Profiles Next 的排序按钮；
- *       上缘只放左侧返回键 {@code <-}，它或 Esc 先关容器再开 B 面板。</li>
+ *   <li>本命蛊[Vital Gu]专属槽位放在向右侧伸出的侧标签页内；侧标签精灵图盖在主面板右上角上，左缘重叠
+ *       {@link #SIDE_TAB_OVERLAP} 像素使两框自然衔接，标题分隔线横贯主面板与侧标签。</li>
+ *   <li>主背景与翻页器各使用一个 {@link GuiBatch}，批内严格遵循先精灵图、再填充色、最后文字的绘制顺序。</li>
+ *   <li>⚠ 翻页器（上一页、页码、下一页）放在面板左下角外侧，避开顶缘 Inventory Profiles Next 的排序按钮；顶缘仅在
+ *       左侧放置 {@code <-} 返回按钮，点击它或按 Esc 会先关闭存储容器再重新打开 B 面板。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureStorageMenu
- * @since 1.0.0
  */
 
 public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStorageMenu> {

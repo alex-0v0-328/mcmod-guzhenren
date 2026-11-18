@@ -26,48 +26,51 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 服务端杀招[Killing Move]逻辑，兼月刃蛊唯一催动手势。
+ * 杀招[Killing Move]的服务端领域服务，兼作月刃蛊（月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]、血月蛊[Blood Moon Gu]）的
+ * 唯一催动驱动入口。
  * <ul>
- *   <li>已炼化月刃蛊（{@link #asBladeGu}：月光蛊[Moonlight Gu]、月芒蛊[Moonglow Gu]、血月蛊[Blood Moon Gu]）主手原地催
- *       动：普通一发，或作杀招主蛊由已炼化辅蛊撑（{@link KillingMove}），开启期间更强；轮盘发杀招 id 切换，轻点发
- *       {@link #PLAIN}，{@link #drive} 全部重验。</li>
- *   <li>仅用已学杀招（{@link #knows}）：读杀招书（{@link KillingMoveBookItem}）写 id 入 {@code KillingMoveData}，非
- *       keepInventory 死亡清空；学会且有辅蛊即可用（{@link #listUsable}）。</li>
- *   <li>payload 写杀招不写槽位，服务端依次找辅蛊：快捷栏、主背包、副手（除主手槽），再各空窍[Aperture]存储（除本命
- *       槽）；存储辅蛊在副本上计费后写回（{@code ApertureStorageService.setSlot}），耗尽写空；客户端不见存储，其可用性
- *       记入已同步 {@code KillingMoveData}（{@link KillingMoveEvents} 调 {@link #refreshStoreBacked}）。</li>
- *   <li>开关非单发：{@link #toggle} 互切，状态 {@code KillingMoveData.active} 同步、不存档、死亡清；开时扣辅蛊
- *       {@code KillingMove#getStartHunger} 饱食[Hunger]、免真元[Essence]，太饿拒，无辅蛊静默（轮盘不列）；关免费。</li>
- *   <li>开启后轻点（{@link #PLAIN}）其主蛊即施放：主蛊原地催动（{@code tryUseInPlace}）计费拒绝照常，另付辅蛊
- *       {@code KillingMove#getPartnerEssence}、不扣饱食；空窍加随身元石[Primeval Stone]付不起两份以真元提示拒绝
- *       （{@code PrimevalStoneSupply.canAfford}），不关招；无炼化辅蛊则拒绝、关招并提示；未开或非其主蛊（血月蛊）
- *       为普通一刃。</li>
- *   <li>⚠ 辅蛊在主蛊生效内计费：{@link #driveAimed} 在原地催动外设按玩家驱动上下文，刃问 {@link #getDamageFactor}
- *       时付辅蛊真元、返倍率；首问即耗尽上下文，此后、驱动外、他蛊恒 1；主蛊拒绝（冷却、真元）则问不到、不计费。</li>
- *   <li>payload 可带客户端锁定目标实体 id（Epic Fight 锁定，或准星停留的 {@link #AIM_RANGE} 格内者）；{@link #drive}
- *       重验（{@link #resolveTarget}：活体、非射手、视线前方、{@link #AIM_CHECK_RANGE} 格内含延迟余量）后设为瞄准上下
- *       文，刃发射时问 {@link #getAimedTarget}，沿 {@code MoonBladeArc} 飞去；否则直线。</li>
- *   <li>生效施放（辅蛊已付、倍率已用）返回 {@link Cast} 供杀招提示：杀招与各蛊计费后副本，主蛊在前，耗死者标
- *       {@link Used#spent}（辅蛊只扣真元，不会）；其余（普通催动、开关）返回 {@code null}。</li>
- *   <li>可变静态 {@code driving}、{@code aiming} 是单次调用的服务端线程上下文，各在一次驱动外 try/finally 设清，
- *       不跨调用、不容多人；刻意超 300 行：学会、列出、驱动、开关共读按玩家已学记录，共享两上下文。</li>
+ *   <li>主手握持已炼化月刃蛊（{@link #asBladeGu}）时的原地催动由 {@link #drive(ServerPlayer, String, int)} 统一接管：客
+ *       户端轮盘发送杀招 ID 以切换开关，右键轻点发送 {@link #PLAIN}（空串，表示普通催动或施放当前已开启的杀招），服务端
+ *       对所有条件全量复验。</li>
+ *   <li>玩家仅能使用已习得的杀招（{@link #knows}，当前开启 אך已遗忘的杀招在 {@link #getActive} 中亦视为
+ *       {@code null}）：阅读杀招书（{@link KillingMoveBookItem}）调用 {@link #learn}（已学会时返回 {@code false}）将杀
+ *       招 ID 写入 {@code KillingMoveData}，未开启死亡不掉落时随死亡清空；{@link #listUsable} 按总表顺序返回由指定主蛊
+ *       主导、玩家已习得且随身或空窍存储中备有辅蛊的杀招列表。</li>
+ *   <li>网络包只传杀招 ID 而不传槽位，服务端按「快捷栏 → 主背包 → 副手（跳过主手槽）→ 各空窍存储（跳过本命槽）」顺序检
+ *       索辅蛊；位于空窍存储中的辅蛊在副本上扣费后通过 {@code ApertureStorageService.setSlot} 写回（耗尽则写空）；由于
+ *       客户端无法直接读取服务端空窍存储，存储辅蛊的可用性由 {@link KillingMoveEvents} 调 {@link #refreshStoreBacked}
+ *       同步至 {@code KillingMoveData}。</li>
+ *   <li>杀招为开关式状态而非单次触发：{@link #toggle} 切换开关（{@code KillingMoveData.active} 仅同步、不存档，死亡清
+ *       空）；开启时从辅蛊扣除 {@link KillingMove#getStartHunger} 点饱食[Hunger]（不耗真元），饱食不足则拒绝启动，无可
+ *       用辅蛊则静默忽略（客户端轮盘不列出）；关闭杀招不消耗资源。</li>
+ *   <li>开启杀招后轻点（{@link #PLAIN}）其主蛊即触发杀招施放：主蛊经 {@code tryUseInPlace} 照常校验并扣费，同时由辅蛊额
+ *       外支付 {@link KillingMove#getPartnerEssence} 点真元（不扣饱食）；若空窍真元加上随身元石[Primeval Stone]不足以同
+ *       时支付主辅两份真元（{@code PrimevalStoneSupply.canAfford}），则以真元不足提示拒绝且保持杀招开启；若施放时已找不
+ *       到已炼化辅蛊，则拒绝施放、自动关闭杀招并提示；未开启杀招或主手非当前杀招主蛊（如血月蛊）时则按普通月刃催
+ *       动。</li>
+ *   <li>⚠ 辅蛊真元必须在主蛊确认生效的瞬间扣费：{@link #driveAimed} 在调用主蛊 {@code tryUseInPlace} 外层设置线程上下文
+ *       {@code driving}，月刃行为调用 {@link #getDamageFactor} 时才真正扣除辅蛊真元并返回伤害倍率；首次查询即消费该上下
+ *       文，此后、驱动外或其他蛊虫查询恒返回 {@code 1.0F}；若主蛊因冷却或门槛被拒则不会调用 {@link #getDamageFactor}，
+ *       辅蛊分文不付。</li>
+ *   <li>客户端可随包上报准星锁定目标的实体 ID（无目标传 {@link #NO_TARGET}；客户端寻标距离为直线月刃全程
+ *       {@link #AIM_RANGE}）；{@link #drive} 先经 {@link #resolveTarget} 复验目标（存活、非射手本人、位于视野前方且在放
+ *       宽了一两 tick 移动余量的 {@link #AIM_CHECK_RANGE} 内），复验通过才写入瞄准上下文 {@code aiming}，供月刃发射时通
+ *       过 {@link #getAimedTarget} 读取并沿 {@link MoonBladeArc} 锁定飞行（未通过复验则为 {@code null}，退回直线飞
+ *       行）。</li>
+ *   <li>成功施放杀招（辅蛊已完成扣费且倍率生效）时返回 {@link Cast} 供客户端杀招浮窗展示，内含杀招与主辅蛊计费后的物品
+ *       栈快照列表 {@link Used}（主蛊在前；若蛊虫因本次催动耗尽则 {@link Used#spent} 为 {@code true} 并保留计费前快照，
+ *       辅蛊仅付真元不会耗尽）；普通月刃催动或仅切换开关时返回 {@code null}。</li>
+ *   <li>可变静态字段 {@code driving} 与 {@code aiming} 仅作为服务端主线程单次 {@link #drive} 调用栈内的临时上下文，均在
+ *       {@code try/finally} 中当场清空，绝不跨 tick 留存；本类有意超过 300 行：习得、检索、瞄准复验、开关与驱动共用上述
+ *       上下文及辅蛊查找逻辑，集中维护更安全。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMove
- * @see net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem
- * @since 1.0.0
  */
 
 public final class KillingMoveService {
 
-    /** 普通催动的 id：无杀招[Killing Move]，只用月刃蛊。 */
     public static final String PLAIN = "";
     public static final int NO_TARGET = -1;
-    /** 客户端找准星目标的距离：直线刃全程。 */
     public static final double AIM_RANGE = MoonBladeEntity.SPEED * MoonBladeEntity.LIFETIME_TICKS;
-    /** 服务端接受客户端目标的距离：瞄准距离加一两 tick 移动余量。 */
     public static final double AIM_CHECK_RANGE = AIM_RANGE + 2.0D;
     private static final String FAILED_PARTNER_MISSING = "guzhenren.item.failed.killing_move_partner_missing";
     private static final String STARTED = "guzhenren.killing_move.started";
@@ -80,10 +83,8 @@ public final class KillingMoveService {
 
     private record StoreSlot(int aperture, int index) {}
 
-    /** 生效的施放：杀招[Killing Move]与所用各蛊，主蛊在前。 */
     public record Cast(KillingMove move, List<Used> used) {}
 
-    /** {@link Cast} 中一只蛊：计费后副本；被耗死则为计费前副本（{@code spent}）。 */
     public record Used(ItemStack stack, boolean spent) {
 
         private static Used of(ItemStack before, ItemStack after) {
@@ -123,7 +124,6 @@ public final class KillingMoveService {
         return false;
     }
 
-    /** 学会杀招[Killing Move]；已会返回 false。 */
     public static boolean learn(@NotNull ServerPlayer player, @NotNull KillingMove move) {
         PlayerData data = PlayerData.get(player);
         return data.setKillingMoves(data.getKillingMoves().withLearned(move.getId()));
@@ -134,7 +134,6 @@ public final class KillingMoveService {
                 && gu.getBehavior(MoonBladeBehavior.class) != null ? gu : null;
     }
 
-    /** 此主蛊主导、辅蛊随身或在存储的已学杀招[Killing Move]，按总表序。 */
     public static @NotNull List<KillingMove> listUsable(@NotNull Player player, @NotNull Item main) {
         KillingMoveData data = PlayerData.get(player).getKillingMoves();
         List<KillingMove> usable = new ArrayList<>();
@@ -159,7 +158,6 @@ public final class KillingMoveService {
         return drive(player, id, NO_TARGET);
     }
 
-    /** 驱动主手月刃蛊，瞄准客户端目标 id（无目标为 {@link #NO_TARGET}）。 */
     public static @Nullable Cast drive(@NotNull ServerPlayer player, @NotNull String id, int targetId) {
         ItemStack stack = player.getMainHandItem();
         TendedGuItem main = asBladeGu(stack);
@@ -173,13 +171,11 @@ public final class KillingMoveService {
         }
     }
 
-    /** {@link #drive} 内所发之刃的目标；直线为 null。 */
     public static @Nullable LivingEntity getAimedTarget(@NotNull ServerPlayer player) {
         Aiming current = aiming;
         return current != null && current.player() == player ? current.target() : null;
     }
 
-    /** 服务端重验的客户端目标；任一校验不过为 null。 */
     public static @Nullable LivingEntity resolveTarget(@NotNull ServerPlayer player, int targetId) {
         if (targetId == NO_TARGET) return null;
         if (!(player.serverLevel().getEntity(targetId) instanceof LivingEntity target)) return null;
@@ -221,7 +217,6 @@ public final class KillingMoveService {
         return current.billed == null ? null : new Cast(active, List.of(Used.of(mainBefore, stack), current.billed));
     }
 
-    /** 已开启的杀招[Killing Move]，无则 null；已不会的也为 null。 */
     public static @Nullable KillingMove getActive(@NotNull Player player) {
         KillingMoveData data = PlayerData.get(player).getKillingMoves();
         KillingMove move = KillingMove.byId(data.active());
@@ -232,7 +227,6 @@ public final class KillingMoveService {
         return PlayerData.get(player).getKillingMoves().isActive(move.getId());
     }
 
-    /** 已开则关，否则开：辅蛊付启动饱食[Hunger]，付不起则拒绝启动。 */
     public static void toggle(@NotNull ServerPlayer player, @NotNull KillingMove move) {
         if (isActive(player, move)) {
             setActive(player, KillingMoveData.NONE);

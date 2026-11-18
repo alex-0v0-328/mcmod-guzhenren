@@ -16,24 +16,23 @@ import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * B 面板每条 {@link InfoModel} 条目的文字。
+ * B 面板信息行渲染器：将 {@link InfoModel} 条目转化为左标签、右可选值的双列文本布局并绘制。
  * <ul>
- *   <li>⚠ 模型只定行和顺序、不定文案；面板分两列放左标签、右可选值。</li>
- *   <li>辅修流派行点开 {@link PathPicker}；标题行无值、用标签页强调色；脑海标题为 {@code null}（标签页已写明）。</li>
- *   <li>{@link #getRows} 把两条道痕[Path Marks]行合占一行（{@code paired}）、力道读数行转成
- *       {@code cells}；{@link #getApertureGroups} 把空窍[Aperture]标签页的模型按空窍分组、去空行，供空窍页上下分段。</li>
- *   <li>{@link #getBlock} 把一页行或一段空窍量成 {@link RowBlock}：值从带值行最宽「缩进 + 标签」后一列起，
- *       并排次条道痕从最宽首条后一列起，读数格取最宽，每列加 {@code VALUE_GAP} 16 px；宽度只看行，值贴标签。</li>
- *   <li>窄栏里（英文、空窍页 GUI 6 文字栏 122）值按 {@link #getValueLeft} 先左移，最多贴到标签后
- *       {@code VALUE_MIN_GAP}，绝不压标签；仍放不下由 {@link #clip} 截成「...」，面板悬停该行出全文。</li>
- *   <li>{@link #draw} 对 sealed 条目做无 default 的 switch，每种行一个 case：新行不补就编译不过。</li>
+ *   <li>⚠ 数据模型仅定义行结构与排序而不决定界面文案，面板统一按左标签、右可选值两列排版。</li>
+ *   <li>点击辅修流派行可打开 {@link PathPicker}；标题行无右侧值且使用当前页签强调色，其中脑海页签标题为 {@code null}
+ *       （页签名称已写明）。</li>
+ *   <li>{@link #getRows} 把两条道痕[Path Marks]行合并为一行的 {@code paired} 布局，并将力道读数行转换为
+ *       {@code cells} 网格；{@link #getApertureGroups} 将空窍页签的模型按空窍拆组并去除间隔空行，供空窍页上下分段排
+ *       版。</li>
+ *   <li>{@link #getBlock} 将整页或单段空窍行量算为 {@link RowBlock}：右侧值列紧接在最宽「缩进 + 标签」之后一列起步，
+ *       并排次条道痕紧接在最宽首条之后起步，读数格取最宽列宽，各列之间增加 {@code VALUE_GAP}（16 px）；列宽仅由当前
+ *       行集合决定，使右侧值紧贴标签列而不浪费横向空间。</li>
+ *   <li>在窄栏条件下（如英文界面或 GUI 6 缩放下仅 122 px 宽的空窍文字栏），{@link #getValueLeft} 先向左压缩值列直
+ *       至贴近标签后 {@code VALUE_MIN_GAP}（绝不压盖标签），仍溢出时由 {@link #clip} 截断为「...」并由面板在悬停时显
+ *       示完整文本。</li>
+ *   <li>{@link #draw} 对 sealed 行条目执行无 {@code default} 分支的 {@code switch} 穷举匹配，确保新增行类型若漏写渲染
+ *       逻辑会直接触发编译失败。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerInfoScreen
- * @see InfoModel
- * @since 1.0.0
  */
 
 final class InfoRowRenderer {

@@ -8,14 +8,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 即时一次性蛊：炼化即催动，一瞬完成，故无状态。{@code useDurationTicks = 0}，用共用的炼化后 2 秒冷却；门槛先按
- * {@code refineCost} 查真元[Essence] 再查行为，{@code performUse} 一步付费、执行行为、扣一只蛊。希望蛊[Hope Gu] 例外：
- * 点击开始开窍[Awakening] 仪式，由其叶类处理。
- *
- * @author Alex
- * @version 1.0.0
- * @see MortalGuItem
- * @since 1.0.0
+ * 即时一次性消耗凡蛊宿主：继承 {@link MortalGuItem}，右键单击一步完成炼化与催动并消耗物品栈，自身不维护任何物品栈状态。
+ * <ul>
+ *   <li>{@link #useDurationTicks} 恒为 0，催动后施加 {@link #REFINE_DONE_COOLDOWN_TICKS}（2 秒）冷却；{@link #checkUse}
+ *       先按 {@link #getRefineCost} 校验真元门槛，通过后再依次校验行为列表；{@link #performUse} 一次性扣除炼化真元、执
+ *       行全部行为并消耗 1 只蛊虫（希望蛊[Hope Gu]因需启动持续开窍[Awakening]仪式而直接继承 {@link MortalGuItem}，不走
+ *       本类）。</li>
+ * </ul>
  */
 
 public class OneShotGuItem extends MortalGuItem {

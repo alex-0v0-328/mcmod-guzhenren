@@ -11,19 +11,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 苦力状态：苦力蛊[Hardship Strength Gu]运行时伤势借出承受力。
+ * 苦力状态：苦力蛊[Hardship Strength Gu]开启期间按当前已损生命比例动态提升肉身承受力，
+ * 并使兽力虚影流[Beast Strength Phantom]每轮可抽取多个兽种。
  * <ul>
- *   <li>永久流派效果，由该蛊自动催动（{@code AutoUse}）开关；{@link #isActive} 让一轮抽多个兽种。</li>
- *   <li>档位实读生命占比：低于 75% 起算，高于 60% 为 1 档，每再低 15% 加一档，≤ 15% 为 5 档；只按档抬承受力（常态承受力
- *       的百分比，向下取整），不加力量点[Strength Points]，仅限持人力钧力流或兽力虚影流者。</li>
- *   <li>⚠ 边界以 {@code max * bound} 比较而非商，恰在边界落入较低档。</li>
- *   <li>⚠ {@link #HEALED_SHARE} 含自动催动的浮点容差，回复停在 75% 即算痊愈。</li>
+ *   <li>作为永久流派效果由苦力蛊自动催动（{@code AutoUse}）开关；仅对已入人力钧力流或兽力虚影流的玩家提供承受力加成（按
+ *       常态承受力的百分比向下取整，不直接增加力量点[Strength Points]）。</li>
+ *   <li>伤势分五档（{@link #getTier}）：当前生命低于最大生命的 75%（{@link #START_BELOW}）起算，高于 60% 为 1 档，每再
+ *       低 15% 升一档，不高于 15% 为 5 档。</li>
+ *   <li>⚠ 档位分界统一用乘法 {@code health > maxHealth * floor} 比较而非除法，恰好落在分界点时归入较低档；
+ *       {@link #HEALED_SHARE} 留有 {@code 1e-4} 浮点容差，确保生命恢复至 75% 时稳定判定为痊愈。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see StrengthAmplifierProvider
- * @since 1.0.0
  */
 
 public final class HardshipStrength {

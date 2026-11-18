@@ -8,12 +8,11 @@ import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 交易魂交易的一项价格：物品（不论数据）加不受单组上限的数量，3 组泥土即一项 192；按物品注册 ID 与数量传输。
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTradeOffer
- * @since 1.0.0
+ * 交易魂报价的单项材料代价：由目标物品类型（不校验组件数据）与正整数需求数量组成。
+ * <ul>
+ *   <li>需求数量不受单组最大堆叠上限限制（例如 3 组泥土直接记为 {@code 192}）；通过物品注册 ID 与 {@code VarInt} 数
+ *       量进行网络编解码（供 {@link SoulTradeOffer} 传输）。</li>
+ * </ul>
  */
 
 public record TradeCost(Item item, int count) {

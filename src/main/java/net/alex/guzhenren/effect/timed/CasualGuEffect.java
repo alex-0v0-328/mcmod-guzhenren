@@ -11,16 +11,9 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 随意蛊[Casual Gu]效果：10 秒内每秒给脑海加随机自然念。
- * <ul>
- *   <li>投影流派效果 {@code StateEffects.grantThought}（真值）：显示时脉冲，{@code /effect clear} 后 1 秒内补回。</li>
- *   <li>两档：倍率即转数档位，{@code RANGES} 逐档加宽。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MindService
- * @since 1.0.0
+ * 随意蛊[Casual Gu]的周期效果：在 10 秒内每秒为玩家脑海补充随机数量的自然念（真值由流派效果
+ * {@code StateEffects.grantThought} 持有并负责在被清除后 1 秒内补回）。当前共两档，效果倍率对应转数档位，每次脉冲由
+ * {@link MindService} 按 {@code RANGES} 区间抽取数量写入。
  */
 
 public class CasualGuEffect extends PeriodicEffect {

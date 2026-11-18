@@ -10,19 +10,15 @@ import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * 改变肉身行为的原版时机订阅者。
- *
+ * 肉身状态对原版生存与受伤事件的订阅入口。
  * <ul>
- *   <li>{@code onBreathe}：不死之躯水下可呼吸。{@code onIncomingDamage}：先扣所穿皮的固定减免，全额挡下即取消，
- *       不留击退、受伤音效、无敌帧；余量在原版盾牌格挡处交护盾（{@link ShieldService#guard}），全额吃下同样取消。</li>
- *   <li>{@code LOW} 优先级，晚于直接拒绝伤害的处理器，被拒伤害不耗护盾；攻击力刷新在
- *       {@code gameplay.path.strength.AttackDamageEvents}。</li>
+ *   <li>{@link #onBreathe}：死灵体质（僵尸与临时僵尸化）水下免耗氧气。</li>
+ *   <li>{@link #onIncomingDamage}：先经 {@link SkinService#reduceDamage} 扣减所穿皮肤的固定减伤，若减至 {@code 0} 则直
+ *       接取消事件（不产生击退、受伤音效与无敌帧）；剩余伤害再交由 {@link ShieldService#guard} 按原版盾牌格挡槽结算护
+ *       盾，全额挡下时同样取消事件。</li>
+ *   <li>⚠ {@link #onIncomingDamage} 使用 {@link EventPriority#LOW}，确保在直接免疫伤害的高优先级处理器之后运行，避免被
+ *       免疫的攻击白扣护盾耐久；肉身变更触发的攻击力刷新另归 {@code gameplay.path.strength.AttackDamageEvents}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

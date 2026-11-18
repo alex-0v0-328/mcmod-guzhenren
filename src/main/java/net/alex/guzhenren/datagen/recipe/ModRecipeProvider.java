@@ -30,21 +30,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 本模组配方。
- *
+ * 本模组炼蛊配方与原版烧炼、合成配方的数据生成器。
  * <ul>
- *   <li>蛊方各画成网格 ASCII 图并逐字转录（{@code '.'} 空格，{@code ' '} 切角）；{@code key} 字母所填每格各为一份配料，
- *       {@code shared} 字母是同一份配料，可放在画了它的任一格。</li>
- *   <li>⚠ 角画错、行太短、字母没配料都让数据生成失败；图样布局与其中每个数字都由 Alex 定。</li>
- *   <li>熔炉、高炉把一种蛊材烧成另一种；钢锭只走高炉，另有钢块：钢是铁再烧一次，普通熔炉不行
- *       （{@link #addBlasting}）。</li>
- *   <li>炼蛊输出在 {@code data/guzhenren/recipe/refinement/}，烧炼与存储块直接在 {@code data/guzhenren/recipe/}。</li>
+ *   <li>炼蛊蛊方（{@link GuRecipe}）以 5×5 字符网格直观声明（{@code '.'} 表示空格，{@code ' '} 表示四个切角禁用格）：
+ *       {@code key} 映射中的字符每出现一格就代表一份独立配料，{@code shared} 映射中的字符则共享同一份配料并允许放置在任
+ *       意标有该字符的槽位中，最终输出至 {@code data/guzhenren/recipe/refinement/}。</li>
+ *   <li>蛊材烧炼与存储块合成直接输出至 {@code data/guzhenren/recipe/}：原玉与原翠同时注册熔炉与高炉配方，而铁锭炼制钢锭
+ *       仅注册高炉配方（{@link #addBlasting}），并配套生成钢锭与钢块的双向合成配方。</li>
+ *   <li>⚠ {@link #read} 会在数据生成期严格校验 5×5 图样尺寸、四角切空以及字符与配料表的一一对应关系，任何格式错误都会直
+ *       接抛错中断生成。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuRecipe
- * @since 1.0.0
  */
 
 public class ModRecipeProvider extends RecipeProvider {

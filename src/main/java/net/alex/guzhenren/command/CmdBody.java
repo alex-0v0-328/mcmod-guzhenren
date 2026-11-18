@@ -28,25 +28,20 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.Item;
 
 /**
- * {@code /gzr body}：写肉身状态（体质、种族、筋、骨、皮、肢体与七窍伤势、附加部位、寿元、年龄），B 面板读取。
- *
+ * {@code /gzr body} 子命令：修改肉身状态（常规体质、种族、筋、骨、皮、肢体与七窍伤势、附加部位、寿元、年龄），结果由 B
+ * 面板读取。
  * <ul>
- *   <li>不设门槛，凡人也会变老、变换形态；道[Path]写入在 {@code /gzr path}；十绝体归 {@code /gzr aperture talent}：
- *       它决定第一空窍[Aperture]的基础真元[Essence]。</li>
- *   <li>{@code skin set bronze_skin|iron_skin [rank]}、{@code tendon set steel_tendon [rank]}、
- *       {@code bone set iron_bone [rank]} 缺转取该族最低转；{@code native} 恢复原生；肉只有原生，无节点。</li>
- *   <li>只有 {@code skin set jade_skin|white_jade_skin [seconds]} 限时，缺秒数取对应蛊注册时长
- *       （{@link #getRegisteredDurationTicks}）；转、秒节点在 {@code [targets]} 前，裸数字只读作数值，不当玩家名。</li>
- *   <li>品级按转与 {@link #getTempered} 转序最低转之差选取，同族各转连续无缺口（{@code BodyGrade}）。</li>
- *   <li>皮按其蛊的方式穿上并立即投影；写入均跳过蛊的替换门槛，管理员可降品级。</li>
- *   <li>{@code injury limb <肢体> <伤势>}、{@code injury organ <七窍> <伤势>} 设一处伤势，{@code injury heal} 全部治
- *       好；{@code appendage add|remove <部位>} 增删附加部位；受伤来源未定前这是唯一写入口。</li>
+ *   <li>不设开窍门禁（凡人同样具有肉身与寿元）；流派道痕归 {@code /gzr path} 管理，十绝体因决定第一空窍基础真元而归入
+ *       {@code /gzr aperture talent}。</li>
+ *   <li>{@code skin set bronze_skin|iron_skin [rank]}、{@code tendon set steel_tendon [rank]} 与
+ *       {@code bone set iron_bone [rank]} 省略转数时默认取该系列最低转，按转数与最低转之差索引同族连续枚举项
+ *       （{@link BodyGrade}）；{@code native} 恢复为凡胎原生态。</li>
+ *   <li>限时皮肤（{@code jade_skin}、{@code white_jade_skin}）支持可选秒数参数 {@code [seconds]}，省略时读取对应蛊虫的
+ *       注册持续时长（{@link #getRegisteredDurationTicks}）；转数与秒数节点均置于 {@code [targets]} 之前以避免数字被解
+ *       析为玩家名，且写入后立即调用 {@link SkinService#tickSkin} 刷新皮肤投影，允许管理员跨品级覆盖或降级。</li>
+ *   <li>{@code injury limb <肢体> <伤势>} 与 {@code injury organ <七窍> <伤势>} 设置单处伤势，{@code injury heal} 一键
+ *       痊愈；{@code appendage add|remove <部位>} 增删附加部位。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.ModCommandSupport
- * @since 1.0.0
  */
 
 public final class CmdBody {

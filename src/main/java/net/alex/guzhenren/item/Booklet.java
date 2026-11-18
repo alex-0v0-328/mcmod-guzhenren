@@ -12,23 +12,22 @@ import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 书册的书文：每本一个常量，每段带简繁两套字。
+ * 书册（{@link BookletItem}）的书文定义枚举：每本书册对应一个枚举项，每个段落同时维护简体与繁体两套文本。
  * <ul>
- *   <li>封闭词表：一本书只有自上而下、自右向左的段落，加左半页可选的一幅图。</li>
- *   <li>蛊方书文（{@code RECIPE_*}）不是书册物品，由蛊方物品按配方 ID（{@link #forRecipe}）取用：只写转数、道与要哪
- *       些蛊和蛊材，不写摆位（左半页网格画出）；不用标点，「需要蛊虫」「配合蛊材」各占一列作题，其下每项一列、低一格。</li>
- *   <li>书文不进语言文件：只用中文写一次，各语言都显示中文（{@code zh_tw} 繁体，其余简体）；
- *       {@code tools/booklet_font.py} 从本文件字符串字面量截取位图字体。</li>
- *   <li>每段简繁字数相同，排版一致；标点用竖排（︐ ︒）各占一格，全角空格 {@code U+3000} 占格不画。</li>
- *   <li>图按注册 ID 指明所画的蛊，并声明其转数与道[Path]，作防漂移护栏：注册的蛊不符时 {@code BookletGameTests} 失败，
- *       属性行或图注与语言文件不符时 {@code BookletTextTest} 失败。</li>
- *   <li>⚠ 新增的字须重跑 {@code tools/booklet_font.py} 才发布，此前 {@code BookletFontTest} 一直失败。</li>
+ *   <li>封闭词表：每本书册仅包含自上而下、自右向左排版的段落列表（{@link Paragraph}），以及左半页可选的一幅插图（
+ *       {@link Figure}）。</li>
+ *   <li>蛊方书文（{@code RECIPE_*}）不是书册物品，由蛊方物品按配方 ID（{@link #forRecipe}）取用：只写转数、道与要哪些蛊
+ *       和蛊材，不写摆位，摆位由左半页的网格图画出；不用标点，「需要蛊虫」「配合蛊材」各占一列作题，其下每项一列、
+ *       低一格。</li>
+ *   <li>书文不走语言文件：仅在本枚举内以中文维护一份，任何客户端语言环境下均渲染为中文（{@code zh_tw} 使用繁体，其余语
+ *       言使用简体）；构建脚本 {@code tools/booklet_font.py} 直接从本文件的字符串字面量中提取字形生成位图字体。</li>
+ *   <li>同一段落的简繁文本码点数必须严格相等（{@link #requireTwins}），以保证版式完全一致；标点采用竖排专有字符
+ *       （{@code ︐}、{@code ︒}）且各占一格，段首缩进使用全角空格 {@code U+3000}（占格而不绘制）。</li>
+ *   <li>{@link Figure} 按注册 ID 指定所绘蛊虫并声明其转数与流派作为防漂移护栏：若与实际注册的蛊虫不符则
+ *       {@code BookletGameTests} 失败，若属性段或图注与语言文件译名不符则 {@code BookletTextTest} 失败。</li>
+ *   <li>⚠ 新增字形后必须重新运行 {@code tools/booklet_font.py} 更新位图字体，否则 {@code BookletFontTest} 会持续失
+ *       败。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BookletItem
- * @since 1.0.0
  */
 
 public enum Booklet {

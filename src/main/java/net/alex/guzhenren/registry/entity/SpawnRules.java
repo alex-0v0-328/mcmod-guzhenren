@@ -7,19 +7,14 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 /**
- * 本模组野生实体的自然生成检查，由 {@link EntityRegistrationEvents} 注册。
- *
+ * 本模组野生实体自然生成位置的静态谓词检查（由 {@link EntityRegistrationEvents} 挂载）。
  * <ul>
- *   <li>飞行蛊家族在维度区块生成器海平面及以上生成，不用 {@code canSeeSky}（树叶算遮挡，会清空林地；
- *       {@code Level#getSeaLevel} 是弃用常量 63）；不在流体中或其上生成：生成点及以下首个非空气方块不得含流体，
- *       因群系是三维的，陆地群系伸到水面上（东海浅滩、沼泽、湖泊），只凭陆地群系标签会刷在水面。</li>
- *   <li>野兽在 {@code BlockTags.ANIMALS_SPAWNABLE_ON} 地面生成，原始亮度高于 {@value #ANIMAL_MIN_LIGHT}。</li>
+ *   <li>飞行蛊家族要求生成高度不低于维度区块生成器的海平面，刻意不使用 {@code canSeeSky}（避免树叶遮挡清空整片森林）也
+ *       不使用已弃用的固定海平面常量 63（{@code Level#getSeaLevel}）；同时向下探测至首个非空气方块，确保生成点不在流体
+ *       内部或流体上方，防止三维陆地群系延伸到海面或湖面时将野生蛊刷在水上。</li>
+ *   <li>全部野兽要求脚下方块符合 {@code BlockTags.ANIMALS_SPAWNABLE_ON} 且原始亮度严格高于
+ *       {@value #ANIMAL_MIN_LIGHT}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see EntityRegistrationEvents
- * @since 1.0.0
  */
 
 public final class SpawnRules {

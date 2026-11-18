@@ -16,21 +16,16 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * 坠击的客户端输入：空中按潜行加 Alt 发送 {@link PlungePayload}。
+ * 空中坠击动作的客户端输入处理器：在空中同时按下潜行键与 Alt 键发送 {@link PlungePayload}。
  * <ul>
- *   <li>组合键不分先后（{@link #isChord}）：按住潜行时按 Alt，或按住 Alt 时按潜行；只认按下，同时按住只起一次，不会每
- *       tick 一次；界面打开时不算；Alt 固定、左右均可，同冲撞（{@link DashInput}）；潜行取潜行键当前绑定，
- *       读原始键鼠事件，切换模式下开启的潜行算按住；客户端自身满足 {@link PlungeService#canStart} 才发，
- *       服务端再判。</li>
- *   <li>两键空中不撞其他动作：整合包里 Epic Fight 闪避在左 Alt，空中拒绝；坠击在地面拒绝。</li>
- *   <li>{@link #onMovementInput} 坠击中先于原版丢弃跳跃输入：否则新跳跃会开鞘翅，或双击在
- *       {@link PlungeService#tickLocal} 关掉前重开飞行一 tick。</li>
+ *   <li>组合键不限按下顺序（{@link #isChord}）：既支持按住潜行时按下 Alt，也支持按住 Alt 时按下潜行；仅在按下瞬间触发
+ *       一次而不随长按每 tick 重复，界面打开时忽略；Alt 键固定支持左右两侧（与 {@link DashInput} 一致），潜行键读取当前
+ *       按键绑定与原始键鼠事件（切换潜行模式下开启的状态视为持续按住）；客户端先通过 {@link PlungeService#canStart} 预
+ *       检，服务端再做权威判定。</li>
+ *   <li>该双键组合在空中不与其余动作冲突：整合包内 Epic Fight 闪避虽绑定在左 Alt 但在空中无效，而坠击在地面无效。</li>
+ *   <li>{@link #onMovementInput} 在坠击期间抢在原版之前丢弃跳跃输入，否则新起跳会意外开启鞘翅，或双击跳跃会在
+ *       {@link PlungeService#tickLocal} 关闭前重新开启飞行一 tick。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlungeService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

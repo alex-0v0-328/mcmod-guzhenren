@@ -8,19 +8,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 
 /**
- * 进度图标：只为承载进度图片而存在的物品。
+ * 进度图标物品：专供原版进度界面承载境界数字图标的纯表现物品。
  * <ul>
- *   <li>原版进度图标是 {@link ItemStack}，境界进度的数字都经本物品显示；每个可设定 {@link Rank}、{@link Stage} 一张图，
- *       {@link Stage#NONE} 为光数字；不进创造标签页，对配方查看器隐藏。</li>
- *   <li>模型数据 {@code 10 × rank + stage}（{@link #getModelData}，三转巅峰 = 34）选 {@code advancement_icon_<suffix>}
- *       模型与 PNG（{@link #getSuffix}：{@code 3}、{@code 3_peak}），无则显示 0。</li>
- *   <li>⚠ PNG 后缀随美术源 {@code aseprite-gzr/numeral/}，中阶为 {@code _mid} 而非阶段名；{@link #icon} 拒绝范围外转
- *       数：无 PNG，会静默渲染成 0。</li>
+ *   <li>原版进度图标只能绑定 {@link ItemStack}，因此所有境界进度的数字图标均通过本物品展示；每个有效的 {@link Rank} 与
+ *       {@link Stage} 组合对应一张贴图（{@link Stage#NONE} 为纯数字），物品本身不进入创造模式标签页并对配方查看器隐
+ *       藏。</li>
+ *   <li>自定义模型数据按 {@code 10 * rank + stage} 编码（{@link #getModelData}，如三转巅峰为 {@code 34}），用于在模型覆
+ *       盖表中选择 {@code advancement_icon_<suffix>} 模型与对应 PNG（{@link #getSuffix}，如
+ *       {@code 3}、{@code 3_peak}），未匹配时回退显示 0。</li>
+ *   <li>⚠ PNG 后缀遵循美术源目录 {@code aseprite-gzr/numeral/} 的命名，中阶固定为 {@code _mid} 而非枚举
+ *       名；{@link #icon} 会主动拒绝超出凡人范围的转数，防止因缺少对应 PNG 而静默回退渲染为 0。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class AdvancementIconItem extends Item {

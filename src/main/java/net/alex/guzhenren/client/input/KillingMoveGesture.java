@@ -6,17 +6,12 @@ import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 月刃蛊一次按住使用键的发送内容；不碰游戏状态，纯 JUnit 可测。
+ * 月刃蛊一次按住使用键时的轮盘结果映射器：不依赖游戏状态，可直接由纯 JUnit 单元测试覆盖。
  * <ul>
- *   <li>轮盘回调进、payload 招式 id 出；轻点（弹出前松开）发普通月刃 {@link KillingMoveService#PLAIN}；
- *       无可用杀招[Killing Move]（{@link #empty}）不发，虽轮盘同样经 {@link #releaseUnopened} 报松开；选中发
- *       {@link #list} 在该扇区放的 id。</li>
+ *   <li>负责把轮盘菜单回调转化为待发送的杀招[Killing Move]载荷 ID：轻点（弹出前松开）发送普通月刃
+ *       {@link KillingMoveService#PLAIN}；无可用杀招（{@link #empty}）时不发包（即便轮盘同样会经
+ *       {@link #releaseUnopened} 通知松开）；选中扇区则发送 {@link #list} 在该位置绑定的招式 ID。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMoveInput
- * @since 1.0.0
  */
 
 public final class KillingMoveGesture {

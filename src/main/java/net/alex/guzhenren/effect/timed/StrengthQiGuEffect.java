@@ -5,15 +5,11 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
 /**
- * 力气蛊[Strength Qi Gu]效果：生效时空手打原版触及距离外的 Epic Fight 锁定目标，改发气波（兽力虚影流发兽力冲击），
- * 不限距离，至多每 {@code StrengthRound.RANGE_INTERVAL_TICKS} 一次（{@code QiWaveService}）；本类只管时长与图标，
- * 真值为限时流派效果（{@code TimedEffects.hasBuff}），服务端读它，客户端读本效果定是否发拳。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.entity.projectile.QiWaveEntity
- * @see net.alex.guzhenren.entity.projectile.BeastChargeEntity
- * @since 1.0.0
+ * 力气蛊[Strength Qi Gu]的限时图标效果：生效期间空手攻击原版触及距离外的 Epic Fight 锁定目标时，改由
+ * {@code QiWaveService} 以不高于 {@code StrengthRound.RANGE_INTERVAL_TICKS} 的频率发射
+ * {@link net.alex.guzhenren.entity.projectile.QiWaveEntity}（兽力虚影流改为发射
+ * {@link net.alex.guzhenren.entity.projectile.BeastChargeEntity}）；本类仅承载客户端图标与时长（客户端据此判断是否拦截
+ * 发拳），服务端真值以限时流派效果 {@code TimedEffects.hasBuff} 为准。
  */
 
 public final class StrengthQiGuEffect extends MobEffect {

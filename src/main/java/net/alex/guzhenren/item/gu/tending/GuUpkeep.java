@@ -5,21 +5,17 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 心跳（每秒）对已炼化持续照顾型蛊[Tended Gu]的遍历。
+ * 每秒心跳对已炼化持续照顾型蛊[Tended Gu]的维持遍历工具。
  * <ul>
- *   <li>三种容器：随身背包经 {@link #tickCarried}（{@code Heartbeat.beat} 直调），各空窍[Aperture]的存储格与本命槽经
- *       {@link #tickInContainer}（{@code ApertureStorageTick}）；两种时钟：饱食[Hunger]条按日扣量，回复条按世界时钟。
- *       每只先付维持开销，再由时钟判饿死，随身饿死者移除并交 {@code TendedGuItem.starve}。</li>
- *   <li>⚠ 顺序为进食、扣量、再进食、警告，看似随意，但交换任两步都会改变哪些蛊活过一天。</li>
- *   <li>首次进食救下先前背包空而挨饿的蛊（存放的蛊不能催动，扣量前别无喂法）；两次进食都从背包、仅在跨日心跳
- *       （{@code days > 0}），每次先修复，食物全耗于伤势者仍被警告。</li>
+ *   <li>遍历覆盖三类存储位置（随身背包经 {@link #tickCarried} 由 {@code Heartbeat.beat} 直调，各空窍存储格与本命槽经
+ *       {@link #tickInContainer} 由 {@code ApertureStorageTick} 调用）与两类时钟（饱食[Hunger]条按游戏日扣减，回复条按
+ *       世界时钟结算）；每只蛊先支付维持开销再结算饿死，随身饿死者从背包移除并交由 {@code TendedGuItem.starve} 公
+ *       告。</li>
+ *   <li>⚠ 内部执行顺序固定为「进食、扣量、再进食、警告」，交换任意两步都会改变饥荒临界状态下的存活结果。</li>
+ *   <li>扣量前先执行一次进食，可救下此前因背包无食而处于饥饿边缘的蛊虫（存放在空窍中的蛊无法催动，扣量前别无喂食途
+ *       径）；两次进食均从背包取食且仅在跨日心跳（{@code days > 0}）触发，且每次都优先修复伤势，若食物全数耗于修伤而饱
+ *       食仍低于阈值则仍会发出饥饿警告。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see TendedGuItem
- * @see GuHunger
- * @since 1.0.0
  */
 
 public final class GuUpkeep {

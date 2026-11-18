@@ -9,17 +9,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 主手月刃类蛊单次催动的客户端意图 payload；配合蛊由服务端挑选。
- * <ul>
- *   <li>{@code move}：轮盘所选杀招[Killing Move] id；点按为 {@code KillingMoveService.PLAIN}。</li>
- *   <li>{@code target}：松手时锁定目标的实体 id，无则为 {@code KillingMoveService.NO_TARGET}。</li>
- *   <li>{@link ClientIntents#killingMove} 全部重查，含目标存在、存活、在前方且在距离内；轮盘只列可通过项。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.killingmove.KillingMoveService
- * @since 1.0.0
+ * 催动主手刃类蛊及可选杀招[Killing Move]的客户端意图载荷（配合蛊由服务端自动挑选），携带轮盘选中的杀招 ID（点按普攻时为
+ * {@code KillingMoveService.PLAIN}）与松手时锁定目标的实体 ID（无目标时为 {@code KillingMoveService.NO_TARGET}）；客户
+ * 端轮盘仅展示可用项，服务端由 {@link ClientIntents#killingMove} 重查目标存在性、存活状态、前方朝向及距离等全部条件。
  */
 
 public record KillingMovePayload(String move, int target) implements CustomPacketPayload {

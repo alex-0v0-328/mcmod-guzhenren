@@ -37,24 +37,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 限时蛊的身体流派效果。
+ * 限时凡蛊（兽力/冲撞/全力以赴/力气增益、限时玉皮、天蓬护盾、生机叶、更蛊[Watch Gu]时间流速）的身体流派效果管理与同步工
+ * 具。
  * <ul>
- *   <li>状态：增益（兽力[Beast Strength]、冲撞、全力以赴、力气）、玉皮、天蓬护盾、生机叶、更蛊[Watch Gu]形态；均自行结
- *       束，效果随之结束、点即消散；不读道痕[Path Marks]定量。</li>
- *   <li>{@link PathEffectService} 上的工具与事件订阅者；造状态的蛊查 {@code ModItems}，其 {@code GuProperties} 给载体、
- *       道[Path]、点，来源为蛊物品 id；增益、生机叶、更蛊效果是状态真值，原版效果只是图标、计时、等级：
- *       {@code /effect clear} 只让图标消失到下次心跳，牛奶全解不掉；门槛读 {@link #findBuff} 及同类，读原版效果的规则
- *       （攻击、负重、时间流速）亦暂停至此。</li>
- *   <li>玉皮、护盾状态存 {@code BodyData}、{@code ShieldData}，效果随其事件跟进，被摘或到期连状态带走。</li>
- *   <li>运行中再催同蛊只续时、不加点；更蛊形态每催叠一层点至上限；他蛊同原版效果增益（更高转冲撞蛊）连旧效果与点取代；
- *       付费的功倍蛊[Amplify Effect Gu]把律道点加到所增效果，仅一次：{@link #markAmplified} 补足增幅蛊点数、不超。</li>
- *   <li>⚠ 授予只写效果，投影状态归调用方；⚠ 皮或护盾效果非被取代而结束则连状态同结，状态仍属该效果才动，防循环。</li>
+ *   <li>所有限时效果到期后自动结束并消散其携带的道痕[Path Marks]点数，状态数值不按道痕数量缩放。</li>
+ *   <li>付与状态的蛊虫通过扫描 {@code ModItems} 定位，并由其 {@code GuProperties} 提供载体、流派与道痕点数，效果来源取
+ *       该蛊物品 ID；限时增益、生机叶与更蛊的 {@link PathEffect} 即状态真值，原版药水效果仅作图标、倒计时与等级投影
+ *       （{@code /effect clear} 只能让图标暂隐至下一轮心跳，饮用牛奶亦无法清除），因此催动门槛与玩法规则（攻击、负重、
+ *       时间流速）统一查询 {@link #findBuff} 等本类入口。</li>
+ *   <li>限时玉皮与天蓬护盾的真值分别保存在 {@code BodyData} 与 {@code ShieldData} 中，本类监听其穿脱/升落事件同步流派效
+ *       果，并在流派效果被移除或自然到期时反向清除对应皮肤或护盾。</li>
+ *   <li>效果运行期间再次催动同一只蛊仅刷新或累加结束时间、不重复叠加道痕点数（唯独更蛊每次再催会叠加一层道痕点数直至层
+ *       数上限）；更高等级的同种增益（如高转冲撞蛊）会直接替换旧效果及其道痕点数；若当次催动由功倍蛊[Amplify Effect Gu]
+ *       增幅，{@link #markAmplified} 会将功倍蛊的律道点数补齐到被增幅效果上（重复增幅只补差额、不叠加超出单份功倍蛊点
+ *       数）。</li>
+ *   <li>⚠ {@code grant*} 系列方法仅写入 {@link PathEffectService}，将效果立即投影为原版药水图标等表现由调用方负
+ *       责。</li>
+ *   <li>⚠ 当限时皮或天蓬护盾效果因非替换原因（{@code Reason.REPLACED} 以外）结束时，{@link #onEnded} 仅在玩家当前皮肤或
+ *       护盾仍归属该效果时才执行清除，避免触发事件死循环或误清已切换的新状态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffectService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

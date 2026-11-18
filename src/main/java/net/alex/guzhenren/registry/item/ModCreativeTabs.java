@@ -25,21 +25,16 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 创造模式物品栏：按物品类与道[Path]分派，或按注册链的 {@code tab}。
- *
+ * 本模组创造模式物品栏注册表，按物品类型、所属流派或在 {@link ItemRegistrar} 中显式声明的 {@code tab} 规则分配物品。
  * <ul>
- *   <li>力道、木道蛊离开凡蛊栏进本道栏，木道蛊材仍留蛊材栏；其后凡道杀招[Killing Move]书栏，书册殿后（蛊方按客户端配方表每张列一本）。</li>
- *   <li>{@code tab} 取代按类选栏：元泉[Spirit Spring] BlockItem、纯水桶、钢锭、钢块、知心草种子、黑土耕地借此
- *       进蛊材栏。</li>
- *   <li>⚠ 不属上述类又无 {@code tab} 的物品静默不进任何栏；进度图标有意如此。</li>
- *   <li>图标用 lambda：带 {@code tab} 的注册可能在 {@code ModItems} 初始化中触发本类，直接读字段得 null。</li>
- *   <li>语言 provider 无物品栏重载，不用这六个常量。</li>
+ *   <li>栏位顺序依次为凡蛊（排除独立建栏的力道与木道凡蛊）、蛊材、力道凡蛊、木道凡蛊、凡道杀招[Killing Move]书及书
+ *       册（蛊方按客户端配方表每张列一本）；通过注册链 {@code tab} 参数声明的物品（如元泉[Spirit Spring]
+ *       {@code BlockItem}、纯水桶、钢锭、钢块、知心草种子与黑土耕地）直接归入指定栏位并覆盖按类默认规则。</li>
+ *   <li>⚠ 既不符合任意栏位谓词又未显式指定 {@code tab} 的物品会静默跳过而不进入任何创造栏（进度图标物品即有意如
+ *       此）。</li>
+ *   <li>⚠ 图标必须使用 lambda 延迟求值（含 {@code tab} 的物品注册可能在 {@code ModItems} 类初始化中途触发本类加载，直接
+ *       读静态字段会得到 {@code null}）；本类六个栏位常量均不参与语言 datagen。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModItems
- * @since 1.0.0
  */
 
 @SuppressWarnings({ "Convert2MethodRef", "FunctionalExpressionCanBeFolded" })

@@ -11,22 +11,17 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 脑海：才情及其驱动的念、意、情三池。
- *
+ * 玩家脑海状态附件（键 {@code mind_data}）：承载才情[Brilliance]、念/意/情三池（{@link MindPool}）以及特殊念头标签份额
+ * （{@link ThoughtTag}）。
  * <ul>
- *   <li>附件 {@code mind_data}，运行时只由 {@code MindService} 写，{@code PlayerDataService} 整体重置；构造器用
- *       {@link MindPool#of} 补齐缺的 {@link MindPoolType} 池。</li>
- *   <li>{@link #isOverflowing} 只问可超限的池，过不了上限的池不会炸裂脑海。</li>
- *   <li>⚠ 才情不单独成附件：它就是池的回复速度，分存会漂移。</li>
- *   <li>⚠ 标签合计超过 {@code current(THOUGHTS)} 时，紧凑构造器把 {@code taggedThoughts} 按比例缩到当前念；
- *       降当前念须同时降标签合计，否则构造器悄悄代劳。</li>
+ *   <li>运行时仅由 {@link MindService} 写入，紧凑构造器自动用 {@link MindPool#of} 补齐缺失的 {@link MindPoolType} 条
+ *       目。</li>
+ *   <li>{@link #isOverflowing} 仅检查允许超限爆裂的池（{@link MindPoolType#isBurstable}），不可超限的池不会触发脑海炸
+ *       裂。</li>
+ *   <li>⚠ 才情与三池保存在同一附件中，切勿拆成独立附件以免重置或同步时产生漂移。</li>
+ *   <li>⚠ 当特殊念头标签份额总和超过当前念头总量（{@code current(THOUGHTS)}）时，紧凑构造器会将各标签份额按比例缩减至不
+ *       超过当前总念；因此业务层下调当前念头时应同步扣减标签份额，避免被构造器按比例静默截断。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MindPool
- * @see MindService
- * @since 1.0.0
  */
 
 public record MindData(Brilliance brilliance, Map<MindPoolType, MindPool> pools, Map<ThoughtTag, Long> taggedThoughts) {

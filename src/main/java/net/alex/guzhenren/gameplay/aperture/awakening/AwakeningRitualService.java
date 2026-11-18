@@ -20,27 +20,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 开窍[Awakening]仪式：希望蛊[Hope Gu]单击到开出第一空窍[Aperture]的唯一路径；独写 {@link AwakeningRitual}。
+ * 开窍[Awakening]仪式服务：希望蛊[Hope Gu]右键开启第一空窍的唯一业务路径，独家写入 {@link AwakeningRitual}。
  * <ul>
- *   <li>{@link #start} 存仪式时已掷定资质[Aptitude]、十绝体，悬停点在眼前 {@link #ANCHOR_DISTANCE} 格；打断只截动画、
- *       开同一空窍，重登不能重掷。</li>
- *   <li>{@link #tick} 按 {@link AwakeningTimeline} 开窍、揭晓（全服播报、本人揭晓音）、结束；
- *       客户端凭同步仪式画牌匾。</li>
- *   <li>{@link #holdsStill} 为两端共读定身：客户端锁输入期间，服务端拒冲刺与温养[Nourish]。</li>
- *   <li>{@link #finish} 立即结束，补未发生的开窍和播报；到点、死亡、换维度、登出、登录遇崩溃遗留皆走此。</li>
- *   <li>开窍发 {@link ApertureAwakenedEvent}：希望蛊进度只认仪式。</li>
- *   <li>{@link #isInDanger} 是单击前门槛：5 秒内被他者攻击（原版留攻击者这么久，自己弹射物除外），或水平
- *       {@link #DANGER_REACH} 格、上下 {@link #DANGER_HEIGHT} 格内有阻止休息的怪物；范围、判定、创造模式跳过皆同
- *       {@code ServerPlayer.startSleepInBed}。</li>
- *   <li>⚠ {@code ApertureService.awaken} 不拒已开窍者，由仪式拒：仪式中被命令开窍则留命令的空窍，蛊照耗；播报当时资质，
- *       牌匾仍画掷出值；重置（{@code PlayerDataService.resetAll}）清仪式不开窍。</li>
+ *   <li>{@link #start} 启动仪式时即预先掷定资质与十绝体[Ten Extreme Physiques]，并将悬停锚点设在眼前
+ *       {@link #ANCHOR_DISTANCE} 格；中途被打断或重登只会跳过剩余动画并落地同一结果，无法通过强退重掷。</li>
+ *   <li>{@link #tick} 按 {@link AwakeningTimeline} 依次执行开窍、揭晓（全服播报与本人提示音，{@link #getAptitudeName}
+ *       对十绝天资直接返回十绝体名称）与结束清理；客户端依据同步的仪式附件渲染特效与牌匾。</li>
+ *   <li>{@link #holdsStill} 供双端共读定身状态：客户端锁定移动与视角输入，服务端拒绝冲刺与温养[Nourish]。</li>
+ *   <li>{@link #finish} 立即移除仪式附件并补齐尚未执行的开窍与全服播报；正常到期、死亡、跨维度、登出以及崩溃后重登均走
+ *       此收尾。</li>
+ *   <li>开窍落盘时发布 {@link ApertureAwakenedEvent}，希望蛊进度仅由仪式触发。</li>
+ *   <li>{@link #isInDanger} 为右键起手前的安全门槛：近 5 秒内受过非自身生物攻击，或水平 {@link #DANGER_REACH} 格、垂直
+ *       {@link #DANGER_HEIGHT} 格内存在妨碍入睡的怪物时拒绝开窍（范围、判定与创造模式豁免均对齐
+ *       {@code ServerPlayer.startSleepInBed}）。</li>
+ *   <li>⚠ {@link ApertureService#awaken} 本身不拦截已开窍玩家，由本服务在起手与落盘时把关：若仪式中途被管理员命令提前开
+ *       窍，仪式不再覆盖该空窍（希望蛊已消耗），揭晓播报按当前实际资质读取，而客户端牌匾仍按仪式预掷值绘制；角色重置会
+ *       直接清除仪式附件而不触发开窍。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningTimeline
- * @see AwakeningRitualEvents
- * @since 1.0.0
  */
 
 public final class AwakeningRitualService {
@@ -113,7 +109,6 @@ public final class AwakeningRitualService {
         if (!ritual.revealed()) announce(player);
     }
 
-    /** 播报用资质[Aptitude]：等级，十绝报十绝体。 */
     public static @NotNull Component getAptitudeName(@NotNull Player player) {
         Talent talent = ApertureService.getTalent(player);
         return talent == Talent.TEN_EXTREMES

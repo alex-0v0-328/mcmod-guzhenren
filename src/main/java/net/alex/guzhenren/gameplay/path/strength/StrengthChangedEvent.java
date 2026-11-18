@@ -5,13 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 兽力[Beast Strength]或人力写入后的同步事件。{@link PathStrengthService} 发到游戏事件总线，力道不知谁听：攻击修饰在上
- * 层 {@code gameplay.attribute}，向上调用会成环。
- *
- * @author Alex
- * @version 1.0.0
- * @see PathStrengthService
- * @since 1.0.0
+ * 永久兽力[Beast Strength]或人力层数变更事件：由 {@link PathStrengthService} 在写入或移除永久力道效果后同步发布，供
+ * {@link AttackDamageEvents} 即时刷新攻击力修饰符。
  */
 
 public class StrengthChangedEvent extends Event {

@@ -8,19 +8,14 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * 需要空窍[Aperture]的命令共用的开窍[Awakening]门槛。
- *
+ * 依赖空窍的子命令共用的开窍[Awakening]前置校验门禁。
  * <ul>
- *   <li>{@link #AWAKENED} 逐玩家拒绝目标，保护数据；{@link #isSourceAwakened} 在 {@code requires()} 隐藏子树，
- *       只管显示；{@link #applyOnAwakened} 只对已开窍目标执行。</li>
- *   <li>放在空窍一侧而非命令框架，框架因此低于所有功能。</li>
- *   <li>⚠ 改变 {@code sourceAwakened} 结果须调 {@code ModCommandSupport.refreshCommands}，否则客户端留着旧命令树。</li>
+ *   <li>分设两层校验：{@link #isSourceAwakened} 用于 Brigadier 节点的 {@code requires()} 以向未开窍的命令源隐藏命令子
+ *       树，而 {@link #AWAKENED} 与 {@link #applyOnAwakened} 在执行期逐个校验目标玩家是否已开窍以保护底层空窍数
+ *       据。</li>
+ *   <li>⚠ 任何改变玩家开窍状态（即改变 {@link #isSourceAwakened} 返回值）的操作完成后，必须调用
+ *       {@link ModCommandSupport#refreshCommands} 向客户端重发命令树，否则客户端补全仍停留在旧命令树。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModCommandSupport
- * @since 1.0.0
  */
 
 public final class AwakenedGate {

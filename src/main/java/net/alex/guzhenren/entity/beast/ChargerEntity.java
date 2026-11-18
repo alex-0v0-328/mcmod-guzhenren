@@ -12,16 +12,19 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * 反击型冲撞者（野猪、牛、大象），基于 {@link ActionEntity} 状态机。
+ * 反击型冲撞生物（野猪、牛、大象）共用的 {@link ActionEntity} 状态机基类。
  * <ul>
- *   <li>不主动狩猎：首次被惹播警戒，此后受击播受击姿势；稍远直线冲撞，近身掀击；各家片段共用时序，故常量在此：冲撞蓄力
- *       {@value #CHARGE_WINDUP_TICKS} tick、伤害窗口到第 {@value #CHARGE_WINDOW_END_TICKS} tick，掀击第
- *       {@value #TOSS_HIT_TICK} tick 命中。</li>
- *   <li>子类给伤害、冷却对（{@link #createCooldowns}：先冲撞后掀击）、音效、属性与动画前缀；专属攻击（大象踩踏、鼻扫）
- *       追加在 {@link Action} 死亡姿势后以保网络 id，经 {@link #tickSpeciesAttack} 计时、{@link #getTossReach}
- *       放宽掀击距离。</li>
- *   <li>蓄力完才锁方向，此前始终面向目标；冲刺扫掠检测按实际路径而非对角粗筛矩形，撞墙、前方无地或命中即止；
- *       游荡完偶尔吃草，{@link StandStillGoal} 定住，{@link #GRAZE_ACTION_TICKS} 后或有目标即止。</li>
+ *   <li>不主动索敌：首次受激惹时播放警戒姿势，此后受击播放受击姿势；距离较远时发起直线冲撞，近身则发动掀击；各子类动画
+ *       片段共用同一套关键帧时序，因此冲撞蓄力 {@value #CHARGE_WINDUP_TICKS} tick、冲撞伤害窗口结束于第
+ *       {@value #CHARGE_WINDOW_END_TICKS} tick、掀击于第 {@value #TOSS_HIT_TICK} tick 命中等常量统一定义在本类。</li>
+ *   <li>子类提供伤害数值、冷却列表（{@link #createCooldowns} 固定按「先冲撞、后掀击」顺序排列）、音效、基础属性与动画前
+ *       缀；子类专属攻击（如大象的踩踏、鼻扫）经 {@link #tickSpeciesAttack} 推进时序，并可通过覆写
+ *       {@link #getTossReach} 放宽掀击触及距离。</li>
+ *   <li>⚠ 子类专属攻击枚举项（{@link Action#ATTACK_STOMP}、{@link Action#ATTACK_TRUNK}）必须追加在 {@link Action#DEATH}
+ *       之后，以保证基础动作的网络同步序号稳定。</li>
+ *   <li>冲撞在蓄力阶段始终朝向目标，蓄力结束瞬间才锁定冲刺方向；冲刺途中按每步实际位移路径执行扫掠检测（而非对角粗筛矩
+ *       形），撞墙、前方失去地面或命中目标即刻终止；随机游荡走完后按概率进入吃草姿势，由 {@link StandStillGoal} 锁住移
+ *       动，满 {@link #GRAZE_ACTION_TICKS} 或出现攻击目标时结束。</li>
  * </ul>
  */
 

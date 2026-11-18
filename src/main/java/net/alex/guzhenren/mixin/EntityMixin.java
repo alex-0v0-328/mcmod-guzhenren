@@ -11,18 +11,15 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * 让纯水中的实体算作在水中；双端。
+ * 双端 Mixin，使处于纯水中的实体在原版水标签判定中同样被视为处于水中。
  * <ul>
- *   <li>NeoForge 只按水流体类型答实体的三个原版水标签问题（接触水、眼在水中、水高度），不看纯水所在的
- *       {@code #minecraft:water} 标签；每个包装把一个答案放宽到纯水，于是 {@code isInWater}、{@code isUnderWater} 及其
- *       衍生（鱼呼吸、末影人遇水受伤、溺尸转化、水下挖掘、水下遮罩）都视其为水；移动、溺水、游泳本走流体类型。</li>
- *   <li>⚠ 不用事件或 API：NeoForge 21.1.265 的三个标签重载是 {@code NeoForgeMod.WATER_TYPE} 上的弃用垫片，也无事件或流
- *       体类型标志能放宽到别的流体类型。</li>
+ *   <li>NeoForge 对实体的接触水体、眼部浸水与水深读取三个方法仅按原版 {@code WATER_TYPE} 作答，不自动识别
+ *       {@code #minecraft:water} 标签下的纯水；本类通过 {@code @ModifyReturnValue} 将纯水流体类型纳入这三个判定，从而使
+ *       {@code isInWater}、{@code isUnderWater} 及其衍生原版机制（鱼类呼吸、末影人遇水受伤、溺尸转化、水下挖掘与视野遮
+ *       罩）正确生效。</li>
+ *   <li>⚠ 不使用事件或 API：NeoForge 21.1.265 对这三个标签重载仅在 {@code NeoForgeMod.WATER_TYPE} 上提供已弃用的垫片，
+ *       且不存在可扩展至其他自定义流体类型的公共事件或标志位。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @Mixin(Entity.class)

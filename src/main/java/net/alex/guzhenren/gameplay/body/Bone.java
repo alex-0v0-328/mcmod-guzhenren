@@ -5,19 +5,14 @@ import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身的骨：原生，或铁骨蛊[Iron Bone Gu]永久留下的三转、四转铁骨；{@code BodyData} 一槽，重生保留。
- *
+ * 肉身骨骼品阶枚举：涵盖原生骨，以及三转、四转铁骨蛊[Iron Bone Gu]永久改造的铁骨档位（存于 {@link BodyData}，重生保
+ * 留）。
  * <ul>
- *   <li>铁骨加最大生命值（生命点）、击退抗性（原版 0–1）、承受力（力量点[Strength Points]），由
- *       {@code MaxHealthService}、{@code KnockbackResistanceService}、{@code StrengthService} 读取，数值归本枚举。</li>
- *   <li>同族按声明顺序，新品阶只替换其前各级（{@link #canReplace}）。</li>
+ *   <li>铁骨同时提供最大生命值加成、原版击退抗性（{@code 0..1}）与肉身承受力（力量点[Strength Points]），分别由
+ *       {@code MaxHealthService}、{@code KnockbackResistanceService} 与 {@code StrengthService} 读取，数值唯一定义在本
+ *       枚举中。</li>
+ *   <li>同族按声明顺序由低到高排列，新品阶仅能替换低于自身的旧档位（{@link #canReplace}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyData
- * @see BodyGrade
- * @since 1.0.0
  */
 
 public enum Bone implements BodyGrade<Bone> {

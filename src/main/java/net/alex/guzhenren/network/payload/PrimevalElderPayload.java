@@ -9,13 +9,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 主手元老蛊[Primeval Elder Gu]的客户端意图 payload：点按存入，或长按滑条取出 {@code stacks} 组（存入时为 {@code 0}）。
- * {@link net.alex.guzhenren.network.ClientIntents#primevalElder} 全部重查；滑条上限只是客户端可见的数量。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem
- * @since 1.0.0
+ * 操作主手元老蛊[Primeval Elder Gu]的客户端意图载荷，支持点按存入或通过长按滑条取出指定组数（存入时 {@link #stacks} 为
+ * 0）；客户端滑条上限仅作界面可见参考，所有条件与数量由服务端
+ * {@link net.alex.guzhenren.network.ClientIntents#primevalElder} 重新校验。
  */
 
 public record PrimevalElderPayload(ElderAction action, int stacks) implements CustomPacketPayload {

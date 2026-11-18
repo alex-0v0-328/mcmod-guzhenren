@@ -6,11 +6,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 动作栏的一行翻译提示（催动、菜单点击、心跳步骤）：{@link #refuse} 红字报未发生，{@link #inform} 默认色报已发生。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 玩家动作栏单行翻译提示工具（用于蛊虫催动、菜单点击与修炼心跳反馈）：{@link #refuse} 以红色字体提示操作被拒绝或未发
+ * 生，{@link #inform} 以默认颜色提示状态已更新。
  */
 
 public final class ActionBar {

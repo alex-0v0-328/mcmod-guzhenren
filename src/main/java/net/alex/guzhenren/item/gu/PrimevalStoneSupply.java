@@ -12,27 +12,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 元石[Primeval Stone] 唯一的供给线：携带元石的一切自动抽取都经此。
+ * 随身元石[Primeval Stone]（{@link PrimevalStoneItem}）与元老蛊[Primeval Elder Gu]存量的唯一自动抽取与真元结算通道。
  * <ul>
- *   <li>⚠ 蛊只经 {@link #pay} 付真元[Essence]：先补给线，再付代价，先扣池，余由元石补；灌注[Channel] 或炼化步长按池定，
- *       故先补给（{@link #topUpFor} 其下限）再付。经此的还有补给线（低于 {@link #REFILL_BELOW_PERCENT}% 补，到
- *       {@link #REFILL_UP_TO_PERCENT}% 停）、温养[Nourish] 钱袋、炼化菜单供给槽；{@link #takeFrom} 是元石离开物品堆的唯
- *       一途径，散装或元老蛊[Primeval Elder Gu] 储库皆然。</li>
- *   <li>⚠ 来源顺序固定：任意背包格（含副手）散装元石 → 携带元老蛊存量 → 空窍存储中的元老蛊（不取本命蛊槽），按空窍与槽
- *       位；存储中的在副本上抽取，经 {@code ApertureStorageService.setSlot} 写回，因视图交出的是存储物品堆本身。</li>
- *   <li>⚠ 客户端无空窍存储，其 {@link #canAfford} 只计携带来源，由服务端裁决，按住的催动同步回结果；元石只对有空窍可燃
- *       者计数（{@link #canAfford}）：真元门槛代替 {@code isAwakened}，否则凡人能用元石付蛊。</li>
- *   <li>⚠ 创造模式不抽元石（{@link #draw} 答 0）：补给不倒，池不足部分免除，如创造不吃东西；仅亲手移石（供给槽、温
- *       养）；池定步长者改读 {@link #getPoolAfterTopUp}（可及元石补给后的池），故炼化、灌注节奏同生存持此石时。</li>
- *   <li>☠ 补给线第二份副本会漂移，池会静默截掉超上限倒入的量；{@link #trySpend}：超池的一笔直接燃烧元石，不经上限：池先
- *       付，元石补余，找零回池。</li>
+ *   <li>⚠ 凡蛊的一切真元支出均须通过 {@link #pay} 执行：先触发自动补给线（当真元池低于上限
+ *       {@link #REFILL_BELOW_PERCENT}% 时自动抽取元石补至 {@link #REFILL_UP_TO_PERCENT}%），再调用 {@link #trySpend} 优
+ *       先扣除真元池余额、差额由随身元石补足（仅当池与元石合计仍不足时返回 {@code false} 且分文不扣）；由
+ *       于灌注[Channel]与炼化的每步定额取决于当前真元池余额，调用方须先调 {@link #topUpFor}（在常规补给线基础上，若池容
+ *       量允许但仍低于最低起付线 {@code need}，则继续抽石补至 {@code need}）再计算步长；此外日常心跳补给、温养[Nourish]
+ *       钱袋与炼蛊台供给槽均走本类，{@link #takeFrom} 是从散装元石栈或元老蛊中扣减元石的唯一底层入口。</li>
+ *   <li>⚠ 抽取元石的检索顺序严格固定：「背包与副手中的散装元石 → 背包与副手中的元老蛊存量 → 各空窍存储中的元老蛊存量
+ *       （跳过本命槽）」；空窍存储中的元老蛊必须在物品栈副本上扣减后再通过 {@code ApertureStorageService.setSlot} 写
+ *       回，以触发存储同步。</li>
+ *   <li>⚠ 客户端无法访问服务端空窍存储，因此客户端调用 {@link #canAfford} 时仅统计随身背包与副手来源（最终结果由服务端
+ *       权威裁决并同步）；同时 {@link #canAfford} 仅在玩家最大真元大于 0（即拥有可用空窍）时才计入随身元石，借此以真元
+ *       门槛自然拦截未开窍凡人使用需消耗真元的蛊虫。</li>
+ *   <li>⚠ 创造模式下自动抽取元石恒返回 0（{@link #draw}），真元池不足的部分直接免除（唯有手动向供给槽或温养钱袋放入元石
+ *       时才扣减物品）；依赖真元池余额决定步长的炼化与灌注逻辑改读 {@link #getPoolAfterTopUp}（模拟计入随身元石补给后的
+ *       真元池），使创造模式持有元石时的步长节奏与生存模式保持一致。</li>
+ *   <li>⚠ 切勿自行复制补给线逻辑或在超池支付时先把元石全部倒入真元池（真元池会静默截断超出上限的部
+ *       分）：{@link #trySpend} 对超出当前真元池余额的单笔开销会先扣空真元池，再直接燃烧刚好够补齐差额的整数块元石，并
+ *       将单块元石折算后多出的零头退回真元池。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PrimevalStoneItem
- * @see PrimevalElderGuItem
- * @since 1.0.0
  */
 
 public final class PrimevalStoneSupply {
@@ -77,14 +77,12 @@ public final class PrimevalStoneSupply {
         if (isTopUpNeeded(player)) pourInto(player, topUpDeficit(player));
     }
 
-    /** 先走补给线；仍不足 {@code need} 且池容得下时，补到 {@code need}。 */
     public static void topUpFor(ServerPlayer player, long need) {
         topUp(player);
         long missing = need - ApertureEssenceService.getSpendable(player);
         if (missing > 0L && ApertureEssenceService.getMaxEssence(player) >= need) pourInto(player, missing);
     }
 
-    /** 蛊支付真元的入口：仅池与元石合计仍付不起时返回 false，且分文不付。 */
     public static boolean pay(ServerPlayer player, long cost) {
         if (cost <= 0L) return true;
         topUp(player);

@@ -10,22 +10,20 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 本 mod 写属性的唯一方式：固定 id 下的临时修饰。
+ * 本模组操作原版实体属性的唯一入口：在固定 {@link ResourceLocation} 下幂等挂载或移除临时 {@link AttributeModifier}。
  * <ul>
- *   <li>{@code ADD_VALUE}（三参数 {@link #swap}）：{@code AttackDamageService}、{@link MaxHealthService}、
- *       {@link KnockbackResistanceService}。</li>
- *   <li>{@code ADD_MULTIPLIED_BASE}：Epic Fight 耐力上限（{@code compat.EpicFightIntegration}）。</li>
- *   <li>{@code ADD_MULTIPLIED_TOTAL}：
- *       兽力[Beast Strength]疾跑速度（{@link net.alex.guzhenren.gameplay.path.strength.SprintSpeedService}）。</li>
- *   <li>⚠ 有意用临时修饰：永久修饰存进属性 NBT，下次登录叠两份。</li>
- *   <li>⚠ 已 {@link #hasModifier} 该修饰或无修饰且值为 0 时 {@link #swap} 不动：每写、每心跳都刷新，重发即抖同步。</li>
+ *   <li>{@code ADD_VALUE}（三参数 {@link #swap}）：供
+ *       {@link net.alex.guzhenren.gameplay.path.strength.AttackDamageService}、{@link MaxHealthService} 与
+ *       {@link KnockbackResistanceService} 使用。</li>
+ *   <li>{@code ADD_MULTIPLIED_BASE}：供 Epic Fight 耐力上限（{@code compat.EpicFightIntegration}）使用。</li>
+ *   <li>{@code ADD_MULTIPLIED_TOTAL}：供兽力[Beast Strength]疾跑速度
+ *       （{@link net.alex.guzhenren.gameplay.path.strength.SprintSpeedService}）与坠击重力缩放
+ *       （{@link #setGravityFactor}）使用。</li>
+ *   <li>⚠ 必须使用临时修饰符（{@code addTransientModifier}）：永久修饰符会序列化进实体属性 NBT，重登后与代码重新挂载的
+ *       修饰符叠加或冲突。</li>
+ *   <li>⚠ 当目标属性已持有同 ID、同数值、同运算方式的修饰符（{@link #hasModifier}），或当前无修饰符且新值为 {@code 0}
+ *       时，{@link #swap} 直接返回不触碰属性实例，避免每次心跳或写入刷新时重复触发原版属性同步包。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.gameplay.path.strength.AttackDamageService
- * @see MaxHealthService
- * @since 1.0.0
  */
 
 public final class TransientModifiers {
@@ -51,7 +49,7 @@ public final class TransientModifiers {
         if (amount != 0.0D) instance.addTransientModifier(new AttributeModifier(id, amount, operation));
     }
 
-    /** 经原版同步的 {@code GRAVITY} 在 {@code id} 下把重力乘 {@code factor}（坠击）；为 1 则摘修饰。 */
+    /** 在固定 {@code id} 下将实体的原版同步 {@code GRAVITY} 属性乘以 {@code factor}（{@code 1} 时移除修饰符）。 */
     public static void setGravityFactor(@NotNull LivingEntity entity, @NotNull ResourceLocation id, double factor) {
         AttributeInstance gravity = entity.getAttribute(Attributes.GRAVITY);
         if (gravity != null) swap(gravity, id, factor - 1.0D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);

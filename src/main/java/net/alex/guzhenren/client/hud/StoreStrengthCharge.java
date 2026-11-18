@@ -1,15 +1,11 @@
 package net.alex.guzhenren.client.hud;
 
 /**
- * {@link ChargeHud} 读取的蓄力蛊[Store Strength Gu]蓄力状态：是否在蓄、进度、服务端是否判满。
+ * 蓄力蛊[Store Strength Gu]本地蓄力状态容器：记录是否正在蓄力、当前进度与服务端判满状态，供 {@link ChargeHud} 读取。
  * <ul>
- *   <li>唯一写入者为客户端输入层（{@code net.alex.guzhenren.client.input.StoreStrengthInput}），同其推送
- *       {@link SonicBoomHud}；放在此处，蓄力条不必上探输入层；登出经 {@link #reset} 清空。</li>
+ *   <li>唯一写入方为客户端输入层（{@code net.alex.guzhenren.client.input.StoreStrengthInput}），类似
+ *       {@link SonicBoomHud} 的信号推送模式，使 HUD 层无需向上依赖输入层；玩家登出时通过 {@link #reset} 清空状态。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class StoreStrengthCharge {

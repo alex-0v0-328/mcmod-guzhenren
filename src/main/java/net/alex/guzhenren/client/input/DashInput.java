@@ -14,19 +14,15 @@ import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /**
- * 横冲系蛊（横冲蛊[Horizontal Crash Gu] / 直撞蛊[Vertical Crash Gu]）冲撞的客户端输入。
+ * 横冲系蛊（横冲蛊[Horizontal Crash Gu]与直撞蛊[Vertical Crash Gu]）冲撞动作的客户端输入处理器。
  * <ul>
- *   <li>按住 Alt 再按移动键发起，方向键给纵、横各一步；{@link ClientIntents#canDash} 判身上横冲系效果是否允许，
- *       服务端同规则重查；冲撞时 Epic Fight 切入战斗模式，镜头前向偏航按方向转，发送 {@link DashPayload}，并由
- *       {@link CombatCameraRig#kick} 放宽视野。</li>
- *   <li>{@link #shouldStartDash}：新按 Alt，或按住 Alt 时新按方向键即冲撞；只认按下沿，否则每 tick 都会再冲；
- *       {@link #reset} 清空记住的按键状态，登出时调用，免得下个世界把按住的键读成按下沿。</li>
+ *   <li>按住 Alt 键的同时按下移动方向键即可发起冲撞，由方向键决定前后或左右各跨出一步；客户端通过
+ *       {@link ClientIntents#canDash} 预判身上横冲系效果是否允许冲撞（服务端按同一规则重查），发起冲撞时让 Epic
+ *       Fight 切入战斗模式、将镜头前向偏航对齐方向并发送 {@link DashPayload}，同时由 {@link CombatCameraRig#kick} 放宽
+ *       视野。</li>
+ *   <li>{@link #shouldStartDash} 仅在刚按下 Alt 或按住 Alt 期间刚按下方向键的按下沿触发，避免长按每 tick 重复冲撞；
+ *       登出时调用 {@link #reset} 清空已记录的按键状态，防止进入下个世界时把仍按住的按键误判为新的按下沿。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see DashPayload
- * @since 1.0.0
  */
 
 public final class DashInput {

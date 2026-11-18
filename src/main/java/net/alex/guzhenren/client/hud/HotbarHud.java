@@ -11,23 +11,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 快捷栏上方各进度条的共用布局：几何尺寸、随护甲与坐骑移动的基线、每条复用的精灵图绘制与标题。
- *
+ * 快捷栏上方各进度条的共用布局基类：封装几何尺寸、随护甲与坐骑自适应抬升的基线、精灵图条绘制与居中标题渲染。
  * <ul>
- *   <li>{@link net.alex.guzhenren.client.hud.ChargeHud}、{@link net.alex.guzhenren.client.hud.NourishHud}、
- *       {@link net.alex.guzhenren.client.hud.ShieldHud} 的包内抽象基类。</li>
- *   <li>{@code barTop} 跟随原版手持物品名基线，护甲与坐骑血量把条往上推而非遮住。</li>
- *   <li>每条是一个 {@link HudBar}，在同一 {@link SpriteBatch} 里画完再画标题；蓄力与护盾用 {@link #HOTBAR}，
- *       开窍[Awakening]、温养[Nourish]条用各自的。</li>
- *   <li>各条 {@link #render} 画本帧，由加载器 HUD 层（{@code ClientEvents}）调用。</li>
- *   <li>多条可同时出现（护盾下温养时持蓄力蛊）：{@link #getStackShift} 把后出现的条抬过下方标题，叠放不重叠。</li>
+ *   <li>为 {@link ChargeHud}、{@link NourishHud} 与 {@link ShieldHud} 共用的包内抽象基类。</li>
+ *   <li>{@code barTop} 跟随原版手持物品名称基线动态计算，确保护甲值与坐骑血量会把进度条向上推开而非互相遮挡。</li>
+ *   <li>每条对应一个 {@link HudBar}，在同一个 {@link SpriteBatch} 中完成条体绘制后再写标题文字；蓄力与护盾条使用
+ *       {@link #HOTBAR} 样式，开窍[Awakening]与温养[Nourish]条使用各自专用样式。</li>
+ *   <li>各子类通过 {@link #render} 绘制当前帧，并由客户端 HUD 图层注册（{@code ClientEvents}）驱动调用。</li>
+ *   <li>当多个进度条同时出现（例如护盾生效、温养中且手持蓄力蛊）时，{@link #getStackShift} 将后绘制的条抬高至下方标题
+ *       之上，使各条整齐叠放而不重叠。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.client.hud.ChargeHud
- * @see net.alex.guzhenren.client.hud.NourishHud
- * @since 1.0.0
  */
 
 abstract class HotbarHud {

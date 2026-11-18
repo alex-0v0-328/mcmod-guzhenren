@@ -7,18 +7,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * 宝黄天[Treasure Yellow Heaven] 的交易 NPC。
+ * 宝黄天[Treasure Yellow Heaven]交易魂 NPC 枚举：定义各交易者的注册标识与延迟构建的报价表。
  * <ul>
- *   <li>各以 {@link #getId()} 注册实体类型（同熊：一 NPC 一实体类型），共用 {@link SoulTraderEntity}；渲染器另选模型贴
- *       图，一种魂体外观可代多个 NPC；{@link #getOffers()} 按需构建：注册实体类型时已加载本枚举，物品尚无。</li>
- *   <li>{@code TEST_TRADE_GU_IMMORTAL}：首个测试交易者，报价见 wiki《测试交易 NPC》；换出的白豕蛊[White Boar Gu]
- *       如捕获般野生。</li>
+ *   <li>每个枚举项以 {@link #getId()} 注册独立实体类型并共用 {@link SoulTraderEntity} 逻辑（具体模型与贴图由客户端
+ *       渲染器按实体类型选配，同一种魂体外观可复用于多个 NPC）。</li>
+ *   <li>⚠ 报价表通过 {@code Supplier} 在 {@link #getOffers()} 首次调用时惰性构建：注册实体类型时本枚举已加载，而
+ *       {@code ModItems} 物品尚未完成注册，严禁在枚举构造期直接求值。</li>
+ *   <li>{@link #TEST_TRADE_GU_IMMORTAL} 为首个测试交易者，换出的白豕蛊[White Boar Gu]不附带炼化归属数据，与野
+ *       外直接捕获的野生蛊相同。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTraderEntity
- * @since 1.0.0
  */
 
 public enum SoulTrader {

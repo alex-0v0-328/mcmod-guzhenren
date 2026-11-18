@@ -5,16 +5,11 @@ import net.alex.guzhenren.core.NamedEnum;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * 七窍：两眼、两耳、两鼻孔、口，按四类存，成对的一类共用一档伤势。
+ * 肉身七窍分类枚举：按眼、耳、鼻、口四类记录于 {@link Anatomy}（成对器官共用一档伤势）。
  * <ul>
- *   <li>都长在 {@link BodyPart#HEAD} 上，但伤势与头分开记：头无伤也可失明。</li>
- *   <li>七窍改造档等第一只七窍蛊再加，现在只有伤势。</li>
+ *   <li>七窍在解剖上均位于头部（{@link BodyPart#HEAD}），但伤势与头部独立记录（例如头部无伤时双目仍可单独受损）。</li>
+ *   <li>当前仅承载伤势档位；七窍改造档位留待引入首只七窍改造蛊时扩展。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Anatomy
- * @since 1.0.0
  */
 
 public enum Organ implements NamedEnum {

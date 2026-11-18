@@ -11,19 +11,14 @@ import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
 
 /**
- * 扇形选择器的单帧绘制。
- *
+ * 扇形选择器的单帧渲染器。
  * <ul>
- *   <li>状态由 {@link RadialMenu} 交来，依次画扇区、图标、中心所指条目名；悬停权重使扇区外推 {@link #POP}、外缘加宽
- *       {@link #GROW}、图标放大 {@link #ICON_GROW}；图标无法淡出，改随环不透明度缩小。</li>
- *   <li>填充色自面板底色混向高亮色，选中扇区随闪光混向白；四边形绕序同 {@code GuiGraphics.fill}，与其他 GUI 填充同向；
- *       禁用遮罩盖在物品上，同原版冷却遮罩。</li>
+ *   <li>读取 {@link RadialMenu} 提供的实时状态并依次绘制扇区背景、条目图标与中心悬停条目名称；悬停权重驱动扇区外推
+ *       {@link #POP}、外缘加宽 {@link #GROW} 与图标放大 {@link #ICON_GROW}，且由于物品图标无法半透明淡出而改为随环不透
+ *       明度等比缩放。</li>
+ *   <li>扇区填充色由面板底色插值至高亮色，选中扇区再随闪光权重插值至纯白；四边形顶点绕序与 {@code GuiGraphics.fill}
+ *       等 GUI 填充保持一致；禁用遮罩覆盖在物品图标之上，呈现与原版物品冷却一致的视觉效果。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RadialMenu
- * @since 1.0.0
  */
 
 final class RadialDrawing {

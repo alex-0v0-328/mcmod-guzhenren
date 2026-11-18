@@ -18,29 +18,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 肉身分层护盾：每种 {@link ShieldType} 一层，过皮后先扣的独立血条。
- *
+ * 肉身分层护盾服务：管理各 {@link ShieldType} 护盾层的升起、到期清理与受击格挡结算。
  * <ul>
- *   <li>{@link #raise} 满额置顶、重置计时，同种仍在的层被替换不叠加；点数先经 {@link ShieldRaisingEvent} 供上层特性改写
- *       （如石龟兽力[Beast Strength] ×1.5），所有护盾蛊通用。</li>
- *   <li>{@link #tickShield} 清超时层、同步标记效果；升起发 {@link ShieldRaisedEvent}，每层结束发
- *       {@link ShieldDownEvent}。</li>
- *   <li>{@link #guard} 在原版盾牌格挡处接皮放过的伤害，早于冰冻与头盔系数、无敌帧、护甲、抗性提升、保护、伤害吸收，
- *       故各层按新到旧扣原始伤害；击穿最后一层，余量作普通伤害放过。</li>
- *   <li>无敌帧内只扣超出该帧段已遇最大伤害的部分（{@link ShieldWindow}），岩浆每帧窗口只扣一次而非每 tick。</li>
- *   <li>全额吃下即取消并按格挡重演：无红闪与受伤音效，无敌帧照开；有来源位置（攻击者、投射物、爆炸）才放格挡音效，
- *       岩浆、火、中毒、溺水静默；近战攻击者击退 {@link #ATTACKER_KNOCKBACK}，肉身击退 {@link #DEFENDER_KNOCKBACK}，
- *       最新吃伤层为霸体则不退。</li>
- *   <li>真相在 {@code ShieldData}：{@code MobEffect} 无到期钩子，{@code /effect clear} 静默移除，故心跳重施，同
- *       {@link SkinService} 之于玉皮。</li>
- *   <li>⚠ 绕过无敌或效果的伤害（{@code /kill}、虚空、饥饿）与原版手持盾牌挡下的伤害原样通过。</li>
- *   <li>⚠ 帧内原版会再减自身 {@code lastHurt}，被取消的伤害遗留该值，故余量以 {@code lastHurt} 加余量交出。</li>
+ *   <li>{@link #raise} 将新护盾层满额置顶并重置计时（同种旧层直接替换、不叠加）；初始点数先经
+ *       {@link ShieldRaisingEvent} 供上层特性缩放（如石龟兽力[Beast Strength] ×1.5），落盘后发布
+ *       {@link ShieldRaisedEvent}。</li>
+ *   <li>{@link #tickShield} 在心跳中清理超时护盾层、同步状态栏标记效果，并为每个新到期的层发布
+ *       {@link ShieldDownEvent}；真实状态唯一存于 {@link ShieldData}，防止 {@code /effect clear} 静默清掉护盾。</li>
+ *   <li>{@link #guard} 在皮肤固定减伤之后、原版冰冻/头盔系数、无敌帧、护甲与抗性结算之前承接伤害，按由新到旧顺序扣减各
+ *       层护盾；击穿所有层后将剩余伤害放行给原版后续结算。</li>
+ *   <li>无敌帧窗口（{@link ShieldWindow}）内仅扣减超出该帧窗口已承受最大伤害的差额，使岩浆等每 tick 伤害在单次无敌帧内
+ *       只扣一次护盾。</li>
+ *   <li>全额挡下伤害时取消事件并模拟原版盾牌格挡表现：不闪红、不播受伤音，照常开启受击无敌帧；带空间来源的攻击播放格挡
+ *       音效并按 {@link #ATTACKER_KNOCKBACK} 击退近战攻击者，非霸体护盾自身承受 {@link #DEFENDER_KNOCKBACK} 击退（环境
+ *       持续伤害静默吸收）。</li>
+ *   <li>⚠ 穿透无敌或药水效果的伤害（{@code /kill}、虚空、饥饿）以及已被原版手持盾牌挡下的伤害直接跳过护盾。</li>
+ *   <li>⚠ 在受击无敌帧内击穿护盾放行余量时，因原版后续会再减去实体自身的 {@code lastHurt}，必须将放行伤害写为
+ *       {@code lastHurt + rest}（见 {@link LastHurtView}），否则穿透伤害会被原版二次抵扣。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldData
- * @since 1.0.0
  */
 
 public final class ShieldService {
@@ -75,7 +70,6 @@ public final class ShieldService {
         ModEvents.post(new ShieldRaisedEvent(player, type));
     }
 
-    /** 各层承接将落地的伤害并改写放过部分；true 表示调用方须取消（各层或无敌帧已全吃下）。 */
     public static boolean guard(@NotNull ServerPlayer player, @NotNull DamageContainer container) {
         DamageSource source = container.getSource();
         float hit = container.getNewDamage();

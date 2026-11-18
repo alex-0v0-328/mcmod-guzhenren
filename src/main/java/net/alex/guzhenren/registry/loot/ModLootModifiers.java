@@ -10,12 +10,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * 全局战利品修改器的编解码器，仅 {@link RemoveItemLootModifier} 的 {@code remove_item}；修改器是数据，由
- * {@code ModLootModifierProvider} 生成。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 全局战利品修改器编解码器注册表，仅注册 {@link RemoveItemLootModifier} 的 {@code remove_item} 序列化器（具体数据包修改
+ * 器实例由 {@code ModLootModifierProvider} 生成）。
  */
 
 public final class ModLootModifiers {

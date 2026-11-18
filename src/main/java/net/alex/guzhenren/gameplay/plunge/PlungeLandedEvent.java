@@ -6,14 +6,9 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 坠击落地有表现时的同步事件。{@link PlungeImpact#getImpactPower} 大于 0 时在炸坑前发到游戏事件总线，
- * {@link #getPosition} 处地面仍完整；坠击不知谁听：地裂与落地动作在 {@code net.alex.guzhenren.compat}，震屏在
- * {@code net.alex.guzhenren.network}。
- *
- * @author Alex
- * @version 1.0.0
- * @see PlungeService
- * @since 1.0.0
+ * 坠击有效落地事件：当 {@link PlungeImpact#getImpactPower} 大于 {@code 0}（下落满 3 格）时，由 {@link PlungeService} 在
+ * 炸坑破块前同步发布（此时 {@link #getPosition} 脚下地面仍完整），供上层 {@code compat} 播放地裂与跪地硬直动作、
+ * {@code network} 广播震屏。
  */
 
 public class PlungeLandedEvent extends Event {

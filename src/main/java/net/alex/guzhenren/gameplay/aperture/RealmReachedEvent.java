@@ -5,13 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 境界提升事件：{@link ApertureNourishService} 升阶或升转并写入空窍[Aperture]后同步发布，携带写入后的空窍；温
- * 养[Nourish]不认识订阅者，境界进度条件在上层 {@code net.alex.guzhenren.advancement}，向上调用会成依赖环。
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureNourishService
- * @since 1.0.0
+ * 境界提升事件：{@link ApertureNourishService} 升阶或升转并写入空窍后同步发布，携带更新后的 {@link Aperture}；空窍包不
+ * 依赖上层 {@code advancement} 包，进度触发器通过订阅此事件判定境界达成。
  */
 
 public class RealmReachedEvent extends Event {

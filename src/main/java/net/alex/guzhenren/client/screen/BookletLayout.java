@@ -6,25 +6,24 @@ import net.alex.guzhenren.item.Booklet;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@link Booklet} 跨页上每个字的位置，仿翻开的线装书。
+ * {@link Booklet} 跨页排版引擎：仿照翻开的竖排线装书计算每个汉字的精确屏幕位置。
  * <ul>
- *   <li>字序：列内自上而下，列间自右向左；先右半页（从最右列起），再左半页。</li>
- *   <li>跨页 sprite {@value #WIDTH}x{@value #HEIGHT} 不缩放；每半页文字区 {@value #AREA_WIDTH}x{@value #AREA_HEIGHT}，
- *       左上角右页 ({@value #RIGHT_X},{@value #TOP})、左页 ({@value #LEFT_X},{@value #TOP})；{@value #COLUMNS} 列
- *       {@value #ROWS} 行，列距 {@value #PITCH}、行高 {@value #ROW_HEIGHT} 像素。</li>
- *   <li>sprite 带 1 像素界栏，x = 144+14k、16+14k，k 取 1 至 7；字为书册字体 12x12 格，墨占 0 至 10 列，画在列起点右
- *       {@value #GLYPH_X}、文字区顶加行偏移下 {@value #GLYPH_Y} 像素；墨距两侧界栏、最右列墨距版框各 1 像素。</li>
- *   <li>每段另起一列，满则接下列；正文、属性行顶格，属性行只占一列；引文每列下沉 {@value #QUOTE_SINK} 行（低两格），
- *       非开篇则前空一列；避头：列首不放 {@link #NO_COLUMN_START} 中的收尾标点，前一字随之下移，原列少一行。</li>
- *   <li>有插图或是蛊方（左半页画网格）时只在右半页排文字；左半页画插图物品的 {@value #ICON} 像素图标，图注在其下竖排一列、相隔
- *       {@value #CAPTION_GAP} 像素，整块在文字区内居中。</li>
- *   <li>⚠ 不翻页：文字超出半页，或无插图时超出一个跨页，拒绝排版并报出该段。</li>
+ *   <li>阅读顺序遵循传统竖排：列内自上而下、列间自右向左，先排右半页（从最右列起），再排左半页。</li>
+ *   <li>跨页精灵图尺寸为 {@value #WIDTH}×{@value #HEIGHT} 且不做缩放；每半页文字区为
+ *       {@value #AREA_WIDTH}×{@value #AREA_HEIGHT}，左上角分别位于右页 ({@value #RIGHT_X},{@value #TOP}) 与左页
+ *       ({@value #LEFT_X},{@value #TOP})，容纳 {@value #COLUMNS} 列 {@value #ROWS} 行，列距 {@value #PITCH} 像素、
+ *       行高 {@value #ROW_HEIGHT} 像素。</li>
+ *   <li>底图自带 1 像素界栏（x = 144+14k 与 16+14k，k 取 1 至 7）；书册字体每个字形为 12×12 格（墨迹占 0 至 10
+ *       列），绘制在列起点向右 {@value #GLYPH_X} 像素、文字区顶加行偏移向下 {@value #GLYPH_Y} 像素处，使墨迹距两侧界栏
+ *       以及最右列墨迹距版框均留出 1 像素空隙。</li>
+ *   <li>每段另起一列，满列则自动接续下一列；正文与属性行顶格起排（属性行独占一列），引文每列下沉 {@value #QUOTE_SINK}
+ *       行（低两格）且非开篇时前空一列；实行避头原则，列首禁止出现 {@link #NO_COLUMN_START} 中的收尾标点，遇之则连同
+ *       前一字一起顺移至下一列，使原列少排一行。</li>
+ *   <li>带有插图或属于蛊方（左半页画蛊方网格）时仅在右半页排版文字；左半页在文字区内居中绘制插图物品的
+ *       {@value #ICON} 像素图标，图注在其下方相隔 {@value #CAPTION_GAP} 像素处竖排一列。</li>
+ *   <li>⚠ 书册版式不支持翻页：文字超出半页（有插图时）或超出整个跨页（无插图时）会直接拒绝排版并点名报错对应段
+ *       落。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BookletScreen
- * @since 1.0.0
  */
 
 final class BookletLayout {

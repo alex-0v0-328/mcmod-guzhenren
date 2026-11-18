@@ -11,21 +11,19 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.RawAnimation;
 
 /**
- * 野生横冲系甲虫：横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]、横冲直撞蛊[Charging Crash Gu]。
+ * 野生横冲系甲虫实体：涵盖横冲蛊[Horizontal Crash Gu]、直撞蛊[Vertical Crash Gu]与横冲直撞蛊[Charging Crash Gu]。
  * <ul>
- *   <li>独角仙模型，飞行歇息同野生豕蛊；四变种共用本类，捕获物、尺寸、属性由注册给，贴图由渲染器给。</li>
- *   <li>动画约定同 {@link BoarGuEntity}；导出的 {@code animation.walk} 有意不用。</li>
- *   <li>飞行或降落中水平速度低于 {@link #HOVER_ENTER_SPEED} 格/tick 改循环 {@code animation.hover}，快过
- *       {@link #HOVER_EXIT_SPEED} 才换回，间隔防闪；速度取客户端每 tick 位移，无需同步。</li>
- *   <li>歇息受击未死播 {@code animation.hurt}（0.3 秒，飞行不播）；1 点生命，伤害不足 1 才不死。</li>
- *   <li>死亡先停起降，定格 {@code animation.death} 原地仰翻（空中亦然）；{@link #tickDeath} 在
- *       {@link #DEATH_REMOVE_TICK} 移除：先过渡 {@code TRANSITION_TICKS} 再播 {@link #DEATH_TICKS}，按动画长度移除会截
- *       掉末段。</li>
+ *   <li>采用独角仙模型，飞行与降落歇息机制同 {@link BoarGuEntity}（导出的 {@code animation.walk} 有意不用）；各变种共用
+ *       本类，捕获所得物品、尺寸与属性在注册时注入，贴图由渲染器按实体类型区分。</li>
+ *   <li>处于飞行或降落阶段时，若客户端每 tick 水平位移低于 {@link #HOVER_ENTER_SPEED} 则切为循环
+ *       {@code animation.hover}，超过 {@link #HOVER_EXIT_SPEED} 才切回飞行动画，用双阈值迟滞防止临界闪烁，且直接读取客
+ *       户端位移、无需额外网络同步。</li>
+ *   <li>歇息阶段受击且未死时触发 0.3 秒 {@code animation.hurt}（飞行中不播放；实体仅 1 点生命，伤害低于 1 时才会触
+ *       发）。</li>
+ *   <li>⚠ 死亡时先停止起降触发动画并定格在 {@code animation.death} 原地仰翻，{@link #tickDeath} 必须等到
+ *       {@link #DEATH_REMOVE_TICK}（即 {@code TRANSITION_TICKS} 过渡加上 {@link #DEATH_TICKS} 动画时长）再移除实体，若
+ *       仅按动画时长移除会截断末段仰翻。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class CrashGuEntity extends RestingFlyingGuEntity {

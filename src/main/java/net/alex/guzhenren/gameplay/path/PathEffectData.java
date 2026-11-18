@@ -12,21 +12,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 一人身上的全部流派效果，按挂上先后排列。
- *
+ * 玩家身上的全部流派效果列表附件（键 {@code path_effect_data}，按挂载先后顺序排列，仅同步给玩家本人）。
  * <ul>
- *   <li>附件 {@code path_effect_data}，运行时只由 {@link PathEffectService} 写入，同 {@link PathData} 只同步给本人；
- *       紧凑构造器丢弃无道痕[Path Marks]的效果，共用一格（{@link PathEffect#sharesSlot}）时留后者。</li>
- *   <li>存档 codec 按各效果 {@code type} id 经 {@code ModPathEffectTypes} 分派、逐个读：读失败的（含无类型认领的 id）
- *       丢弃，其余照常加载，否则 NeoForge 会跳过整个附件。</li>
- *   <li>⚠ 同步 codec 严格读同样的 id，两端须注册同样的类型；同一个 jar 保证这点。</li>
+ *   <li>运行时仅由 {@link PathEffectService} 写入；紧凑构造器自动丢弃无道痕[Path Marks]的空效果，并在发生同槽冲突
+ *       （{@link PathEffect#sharesSlot}）时保留后加入的效果。</li>
+ *   <li>存档反序列化按各条目的类型 ID 经 {@code ModPathEffectTypes} 逐条解析：单条解析失败（含已移除的未知类型 ID）时仅
+ *       丢弃该条，确保其余流派效果正常加载而不会让 NeoForge 丢弃整个附件。</li>
+ *   <li>⚠ 网络同步编解码严格按注册表 ID 读写，要求客户端与服务端运行相同版本的类型注册表。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffect
- * @see PathEffectService
- * @since 1.0.0
  */
 
 public record PathEffectData(List<PathEffect<?>> effects) {

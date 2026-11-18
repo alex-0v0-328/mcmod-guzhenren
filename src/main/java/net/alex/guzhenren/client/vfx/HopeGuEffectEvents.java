@@ -25,23 +25,17 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 /**
- * 希望蛊[Hope Gu]像素粒子（{@link HopeGuParticles}）的客户端触发。
- *
+ * 希望蛊[Hope Gu]像素粒子（{@link HopeGuParticles}）的客户端事件触发器。
  * <ul>
- *   <li>野生希望蛊进入客户端世界即挂上核心与拖尾，跟到实体移除；核心随实体立即消失，拖尾放完余粒。实体
- *       {@link HopeGuEntity#isFading} 时两者停下，原地放消散效果。</li>
- *   <li>开窍[Awakening]仪式按整 tick 放：燃烬换帧放余烬，闪白起点放火星爆散，都在蛊的位置；牌匾每展开一档在上下两边
- *       各放一粒火星，每碎一行在两块中心各放一粒。</li>
- *   <li>牌匾火星：本人第一人称交给 {@link AwakeningHud} 画在屏幕牌匾上；否则在头顶牌匾对应像素处放世界粒子，
- *       看不见那块牌匾就不放。</li>
- *   <li>⚠ 跟着玩家刻走，每名玩家记上次处理的仪式 tick：{@code /tick freeze} 下玩家照刻、对时包可让游戏时间回退，同一
- *       tick 只放一次。</li>
+ *   <li>野生希望蛊实体进入客户端世界时立即挂载核心与拖尾粒子并跟随至实体移除（核心随实体即刻消失，拖尾放完余粒）；当
+ *       实体进入 {@link HopeGuEntity#isFading} 状态时停止跟随并在原地播放消散特效。</li>
+ *   <li>开窍[Awakening]仪式期间按整 tick 触发：燃烬每次换帧释放余烬粒子，闪白起点在蛊虫位置释放火星爆散；资质
+ *       [Aptitude]牌匾每展开一档在上下边缘各释放一粒火星，每碎裂一行在左右两半中心各释放一粒火星。</li>
+ *   <li>牌匾火星在本人第一人称下直接交由 {@link AwakeningHud} 绘制在屏幕牌匾上；其他视角则在头顶世界牌匾对应像素位置
+ *       生成世界粒子（观察者不可见该牌匾时跳过）。</li>
+ *   <li>⚠ 特效推进跟随玩家刻运行，并为每名玩家记录上次处理的仪式 tick：在 {@code /tick freeze} 下玩家仍继续运行或
+ *       对时包回退游戏时间时，同一仪式 tick 保证只触发一次。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see HopeGuParticles
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

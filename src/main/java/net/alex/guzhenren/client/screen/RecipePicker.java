@@ -15,20 +15,17 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 叠在炼蛊界面上的蛊方选择器。
+ * 叠加在炼蛊界面之上的蛊方选择弹窗。
  * <ul>
- *   <li>首行「自动」，其后每个已知蛊方带产物和基础成功率；同 B 面板弹窗按整行开窗，一次 {@link #MAX_ROWS} 行，
- *       滚轮移窗；悬停提示列出所需材料与消耗，在批次之后画：提示自带一个批次，批次不能嵌套。</li>
- *   <li>{@link #click} 返回所选行的菜单按钮，界面发送：「自动」为清除，蛊方为 {@code BUTTON_RECIPE_BASE} 加序号。</li>
- *   <li>⚠ 沿 Z 外移 {@link #Z} 绘制，才能盖过下方物品层。</li>
- *   <li>一个 {@link GuiBatch} 分四遍画（弹窗 sprite、填色、产物图标（物品自行提交）、文字），每行层序不变；行互不重叠，
- *       看得出的只有行内层序；悬停填色和选中描边不压弹窗边框。</li>
+ *   <li>首行固定为「自动」，其后列出所有已知蛊方及其产物图标与基础成功率；与 B 面板弹窗一样按整行开窗（每次至多显示
+ *       {@link #MAX_ROWS} 行并支持滚轮滚动），鼠标悬停时列出所需材料与消耗的提示框则在批处理结束之后再画（原版提示自
+ *       带独立批次，不可嵌套）。</li>
+ *   <li>{@link #click} 返回选中行对应的菜单按钮 ID 并由界面发送：「自动」发送清除按钮，具体蛊方发送
+ *       {@code BUTTON_RECIPE_BASE} 加上配方序号。</li>
+ *   <li>⚠ 绘制时必须沿 Z 轴外移 {@link #Z} 深度，才能正确盖过下方的物品槽位层。</li>
+ *   <li>整块弹窗走单个 {@link GuiBatch} 并分四遍提交（弹窗精灵图、填色、自行提交的产物图标、文字），各行之间互不重
+ *       叠且每行内部层序不变，保证悬停填色与选中描边不会压盖弹窗边框。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see RefinementScreen
- * @since 1.0.0
  */
 
 final class RecipePicker {

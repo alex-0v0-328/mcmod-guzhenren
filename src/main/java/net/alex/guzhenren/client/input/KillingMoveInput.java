@@ -33,25 +33,22 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * 月刃蛊的客户端输入。
+ * 月刃蛊的客户端输入处理器。
  * <ul>
- *   <li>主手持已炼化者（{@link KillingMoveService#asBladeGu}）右键改按住 {@link RadialMenu}，不用物品，
- *       学没学杀招[Killing Move]皆然；{@link KillingMoveGesture} 定所发 {@link KillingMovePayload}，服务端重查。</li>
- *   <li>轻点（轮盘弹出前松开，{@code RadialMenu.OPEN_DELAY_TICKS}）立即出刃、不蓄力：普通月刃或已开杀招的施放；
- *       长按为每个可用杀招开一扇区（{@link KillingMoveService#listUsable}：已学且物品栏或空窍[Aperture]存储有已炼化配合
- *       蛊），标招名（开启中为「停止」加招名）并显示配合蛊；选中即开关，内圈或禁用扇区松开不发；无可用杀招则不弹不发；
- *       主蛊在原版冷却时扇区禁用，服务端同样拦下；野生者把点击交还原版，仍可按住炼化；松开使用键或蛊离开主手（数字键）
- *       都结束按住，仅前者发送。</li>
- *   <li>附带锁定目标（{@link #aimedTarget}）：{@link EpicFightClientIntegration#getLockOnTarget} 优先，否则取准星下
- *       {@link KillingMoveService#AIM_RANGE} 格内活体（碰撞箱各放宽 {@link #AIM_SLACK}，差一点也算；遇方块截止），
- *       都无则发 {@link KillingMoveService#NO_TARGET}；服务端在月刃转向前重查。</li>
- *   <li>补写需玩家的提示行（物品自身提示拿不到玩家）：已学杀招的已炼化主蛊加按住提示，已读杀招书加已学行。</li>
+ *   <li>主手持有已炼化的月刃蛊（{@link KillingMoveService#asBladeGu}）按右键时，无论玩家是否已学会杀招[Killing Move]，
+ *       均拦截原版物品使用并改为按住 {@link RadialMenu}；待发送的 {@link KillingMovePayload} 由
+ *       {@link KillingMoveGesture} 决策并交服务端重查。</li>
+ *   <li>轻点（在 {@code RadialMenu.OPEN_DELAY_TICKS} 弹出前松开）立即不蓄力出刃（施放普通月刃或已开启的杀招）；长按
+ *       弹出轮盘后为每个可用杀招展示一个扇区（{@link KillingMoveService#listUsable}：已学且背包或空窍存储中存在已炼
+ *       化配合蛊），显示招式名称（开启中标为「停止」加招名）及配合蛊图标，选中即切换开关状态，松开在内圈或禁用扇区则
+ *       不发包；无可用杀招时不弹出也不发包；主蛊处于原版冷却时扇区禁用（服务端同步拦截）；野生月刃蛊保留原版点击以按
+ *       住炼化；松开使用键或切换主手使蛊离手都会结束按住，仅前者发送请求。</li>
+ *   <li>发包时附带锁定目标 ID（{@link #aimedTarget}）：优先取 {@link EpicFightClientIntegration#getLockOnTarget}，否则
+ *       选取准星下 {@link KillingMoveService#AIM_RANGE} 格内的活体（碰撞箱放宽 {@link #AIM_SLACK} 并遇方块截断），
+ *       均无目标则发 {@link KillingMoveService#NO_TARGET}；服务端会在月刃转向追踪前再次校验。</li>
+ *   <li>同时负责补充需要玩家上下文的物品提示行（物品自身 {@code appendHoverText} 拿不到玩家）：为已学会杀招的已炼化主
+ *       蛊追加长按提示，并为已读过的杀招书追加「已学习」行。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMoveService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)

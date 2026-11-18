@@ -9,27 +9,23 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 空窍[Aperture]附件：凡人没有，开窍[Awakening]后才有。
- *
+ * 玩家空窍列表附件（键 {@code aperture_data}，同步策略 {@code OWNER_ONLY}）：凡人为空列表，开窍[Awakening]或开启第
+ * 二空窍后存入条目。
  * <ul>
- *   <li>键 {@code aperture_data}，同步 {@code OWNER_ONLY}，仅 {@code ApertureService} 写；空列表即无空窍。</li>
- *   <li>列表顺序即开窍顺序，第一空窍是未标 {@code second} 者：第二空窍蛊[Second Aperture Gu]可能先于希望
- *       蛊[Hope Gu]开，故「主空窍」只经 {@link #getPrimary} 读，仅剩孤立第二空窍时退回它。</li>
- *   <li>{@code isAwakened} 指有第一空窍，希望蛊、炼化门槛、命令门槛读它；{@code hasAperture} 指有任一空窍（含孤立第二空
- *       窍），HUD、信息面板、元石[Primeval Stone]、温养[Nourish]读它。</li>
- *   <li>希望蛊在孤立第二空窍前插入第一空窍时位置会变，种类（{@code PRIMARY} 第一、{@code SECOND} 第二）不变；本命蛊绑定
- *       等跨插入存续者按种类指认，经 {@link #indexOf} / {@link #getKindAt} 换算。</li>
- *   <li>⚠ {@code with(index, aperture)} 不扩长列表，只有 {@code withOpened} / {@code insertFirst} 追加，与会扩长的
- *       {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with} 刻意相反。</li>
- *   <li>⚠ 至多 {@code MAX_APERTURES}（2）个：构造时静默截断超长部分，{@code encode} / {@code decode} 超长抛异常。</li>
- *   <li>⚠ 解码修复旧存档：位置 1 的条目一律标 {@code second}，因加标记前的存档只靠位置表示。</li>
+ *   <li>运行时仅由 {@link ApertureService} 写入。</li>
+ *   <li>列表按当前排位存放，未标 {@code second} 的条目为第一空窍：因第二空窍蛊[Second Aperture Gu]可先于
+ *       希望蛊[Hope Gu]使用，「主空窍」一律经 {@link #getPrimary} 读取，仅有一个孤立第二空窍时退回该窍。</li>
+ *   <li>{@link #isAwakened} 表示拥有第一空窍（希望蛊、炼化门槛与命令门槛检查此项）；{@link #hasAperture} 表示拥有任一
+ *       空窍（含孤立第二空窍，HUD、信息面板、元石[Primeval Stone]与温养[Nourish]检查此项）。</li>
+ *   <li>希望蛊在孤立第二空窍前插入第一空窍时，列表下标会后移，但空窍种类（{@link #PRIMARY}、{@link #SECOND}）不变；本命
+ *       蛊绑定等跨插入存续的数据按种类标识，经 {@link #indexOf} 与 {@link #getKindAt} 换算下标。</li>
+ *   <li>⚠ {@link #with(int, Aperture)} 不扩容列表，仅 {@link #withOpened} 与 {@link #insertFirst} 会新增条目（与自动
+ *       扩容的 {@link net.alex.guzhenren.gameplay.aperture.storage.ApertureStorage#with} 相反）。</li>
+ *   <li>⚠ 最多容纳 {@link #MAX_APERTURES}（2）个空窍：构造器静默截断超长部分，{@link #encode} 与 {@link #decode} 遇到
+ *       超长列表直接抛异常。</li>
+ *   <li>⚠ {@code heal} 在反序列化时迁移旧存档：将下标 {@code 1} 的条目强制标为 {@code second}（旧存档仅靠位置区
+ *       分）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see Aperture
- * @see ApertureService
- * @since 1.0.0
  */
 
 public record ApertureData(List<Aperture> apertures) {

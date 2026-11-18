@@ -18,23 +18,19 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 /**
- * GUI 精灵图（{@code textures/gui/sprites}）批量绘制器。
- *
+ * GUI 精灵图[Sprite]（{@code textures/gui/sprites}）批量绘制器。
  * <ul>
- *   <li>画法同 {@code GuiGraphics.blitSprite}：按 {@code .mcmeta} 拉伸、平铺或九宫格，部分填满的条从左裁切
- *       （{@link #blitLeft}），帧图、分层图按块切（{@link #blitRegion}）；但整块四边形进同一缓冲、一次绘制调用；
- *       色调乘像素，灰度精灵图借此显示数据色。</li>
- *   <li>{@code blitSprite} 每图块单独绘制，中心 20 像素的全屏九宫格面板每帧几百次绘制调用。</li>
- *   <li>{@link #draw} 先 flush 图形队列，块尾画所收四边形：盖住此前填充、压在此后填充与文字下，块内后画盖先画。</li>
- *   <li>九宫格右列宽取右边框；原版 1.21.1 按左边框宽画，左右边框不等的精灵图会被截断。</li>
- *   <li>⚠ 块内一直占着共享 {@link Tesselator}，不得调原版 {@code blit}。</li>
- *   <li>全部 GUI 精灵图同在一个图集；切片几何是纯函数，无需渲染线程即可测。</li>
+ *   <li>支持按 {@code .mcmeta} 拉伸、平铺或九宫格绘制（与 {@code GuiGraphics.blitSprite} 行为一致），支持从左侧裁切部分
+ *       填充的进度条（{@link #blitLeft}）以及按区域切分的帧图与分层图（{@link #blitRegion}）；整批四边形写入同一顶点缓
+ *       冲并在末尾一次提交绘制，同时支持颜色乘法着色以驱动灰度精灵图显示数据颜色。</li>
+ *   <li>原版 {@code blitSprite} 对每块切片都会单独提交一次绘制，中心平铺 20 像素块的全屏九宫格面板每帧会产生数百次绘制
+ *       调用。</li>
+ *   <li>{@link #draw} 开始时会先 flush 当前图形队列，并在代码块结束时统一绘制收集到的四边形，使其遮盖此前的填充并位于后
+ *       续填充与文字之下，批内后画的内容覆盖先画的内容。</li>
+ *   <li>九宫格右列宽度正确读取右边框配置（原版 1.21.1 错误按左边框宽度绘制，导致左右边框不等的精灵图被截断）。</li>
+ *   <li>⚠ 批处理块运行期间持续占用共享 {@link Tesselator}，块内严禁调用原版 {@code blit} 或其他触发绘制的方法。</li>
+ *   <li>所有 GUI 精灵图共用同一张图集；切片几何逻辑均为纯函数，无需启动渲染线程即可执行单元测试。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see GuiBatch
- * @since 1.0.0
  */
 
 public final class SpriteBatch {

@@ -22,24 +22,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 流派效果的唯一运行时写入方。
- *
+ * 玩家流派效果（{@link PathEffectData}）的唯一运行时写入与状态栏图标投影服务。
  * <ul>
- *   <li>{@link #apply} 挂上并顶掉同格旧效果，{@link #update} 改（更久、多一层、新 payload）保留原格，{@link #remove}
- *       按条件摘除；以上或 {@link #tick} 丢掉的效果均在写存储后发 {@link PathEffectEndedEvent}。</li>
- *   <li>⚠ 无道痕[Path Marks]效果不入存储：挂不上，改成无道痕按 {@code REMOVED} 摘除；只有在与不在，不拿部分道痕。</li>
- *   <li>⚠ 作用由效果族代码读 {@link #find} 实现；本服务不运行效果，也不从道痕读力量。</li>
- *   <li>{@link #tick} 随心跳丢掉到期限时效果，再给其余重投影图标，{@code /effect clear} 至多让图标消失 1 秒、
- *       拿不走效果；永久效果投影无限时长；每次写入立即重投影。</li>
- *   <li>图标是每类效果投影的原版效果，多个投影同一个时取最长剩余与最高等级；玩家已戴着的（等级同、时长不短）不动：
- *       稳定心跳不加效果、不发添加事件、不发更新包。</li>
+ *   <li>{@link #apply} 挂载新效果并顶替同槽旧效果（发布 {@link Reason#REPLACED}），{@link #update} 原位更新时长、层数或
+ *       {@code payload}，{@link #remove} 按条件摘除（发布 {@link Reason#REMOVED}），{@link #sync} 在同类型效果已带相同
+ *       {@code payload} 时保持不动、否则挂载或摘除；所有被移除或心跳到期的效果均在落盘后发布
+ *       {@link PathEffectEndedEvent}。</li>
+ *   <li>⚠ 不含任何道痕[Path Marks]的效果无法挂载，若 {@link #update} 将道痕扣空则按 {@link Reason#REMOVED} 摘除；流派效
+ *       果的具体业务作用由各机制通过 {@link #find} 查询实现，本服务不直接执行效果逻辑，也不从道痕反推力量点。</li>
+ *   <li>{@link #tick} 在每次心跳中清理已到期的限时效果并重新投影原版状态栏图标（每次写入时也会立即重投影）：永久效果投
+ *       影为无限时长，{@code /effect clear} 最多只能让状态栏图标消失至多 1 秒，无法清除底层的流派效果。</li>
+ *   <li>多个流派效果投影到同一个原版药水图标时，取最长剩余时间与最高等级；若玩家身上已有等级相同且剩余时长不短于目标的
+ *       同种图标，则跳过重挂，避免稳定心跳期间每拍重发药水同步包。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PathEffectData
- * @see PathEffect
- * @since 1.0.0
  */
 
 public final class PathEffectService {
@@ -99,7 +94,6 @@ public final class PathEffectService {
         return remove(player, effect -> effect.type() == type);
     }
 
-    /** 同类型效果已带相同 payload 时不动，否则挂上 {@code wanted}；{@code null} 摘掉该类型。 */
     public static <P> void sync(@NotNull ServerPlayer player, @NotNull PathEffectType<P> type,
                                 @Nullable PathEffect<P> wanted) {
         PathEffect<P> worn = find(player, type);

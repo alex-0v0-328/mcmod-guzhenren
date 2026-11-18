@@ -5,13 +5,11 @@ import net.alex.guzhenren.gameplay.aperture.Title;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 魂魄档次：由上限推导，从不存储。封闭词表：九档（{@code 1} 至 {@code 1e10}）是只读显示标签，真值在 {@code SoulData} 上
- * 限；兄弟模组不得新增。
- *
- * @author Alex
- * @version 1.0.0
- * @see Title
- * @since 1.0.0
+ * 魂魄档次枚举：由 {@link SoulData#maxSoul()} 经 {@link #fromSoul} 实时推导，从不落盘存储。
+ * <ul>
+ *   <li>九档（{@code 1} 至 {@code 10^10}）为只读显示标签，真值始终是 {@link SoulData} 的魂魄上限；属于封闭词
+ *       表，其他系统不得擅自扩展档位。</li>
+ * </ul>
  */
 
 public enum SoulTier implements NamedEnum {

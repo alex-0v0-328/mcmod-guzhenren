@@ -8,18 +8,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * {@code /gzr awaken}：绕过通常负责开窍[Awakening]的蛊，直接开出空窍[Aperture]。
- *
+ * {@code /gzr awaken} 子命令：跳过希望蛊[Hope Gu]开窍[Awakening]仪式，直接为未开窍玩家开辟第一空窍。
  * <ul>
- *   <li>挂在根部，{@code /gzr aperture} 才能只带一个 {@code requires()} 门槛；{@link ApertureService#awaken} 后调
- *       {@link net.alex.guzhenren.command.ModCommandSupport#refreshCommands}，客户端才见新分支。</li>
- *   <li>⚠ 服务不拒绝已开窍者，会再追加一个空窍；门槛只能放在调用方，即这里。</li>
+ *   <li>直接挂载在根命令下（使 {@code /gzr aperture} 可统一挂载已开窍可见性门禁）；调用 {@link ApertureService#awaken}
+ *       后会立即调用 {@link ModCommandSupport#refreshCommands} 向目标客户端重发命令树以解锁空窍子命令。</li>
+ *   <li>⚠ {@link ApertureService#awaken} 自身不拦截已开窍玩家（重复调用会继续追加新空窍），因此必须在本命令入口通过
+ *       {@code AwakenedGate.AWAKENED.negate()} 拒绝已开窍目标。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.command.CmdReset
- * @since 1.0.0
  */
 
 public final class CmdAwaken {

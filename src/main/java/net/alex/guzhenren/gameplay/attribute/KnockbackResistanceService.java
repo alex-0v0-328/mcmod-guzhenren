@@ -8,17 +8,13 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 临时修饰的击退抗性，只有骨的份额（{@code Bone.getKnockbackResistance}）。
+ * 玩家击退抗性临时属性修饰符服务：仅承载铁骨（{@code Bone.getKnockbackResistance}）提供的击退抗性。
  * <ul>
- *   <li>{@link AttributeEvents} 于 {@code BodyTemperedEvent} 及登录、克隆、重置时刷新（修饰不随克隆保留）。</li>
- *   <li>⚠ 修饰须临时（{@link TransientModifiers}）；原生骨为 0，{@link TransientModifiers#swap} 写为无修饰。</li>
+ *   <li>由 {@link AttributeEvents} 在 {@code BodyTemperedEvent} 时刷新，并在登录、玩家克隆（临时修饰符不随克隆保留）与
+ *       角色重置时重新同步。</li>
+ *   <li>⚠ 必须使用 {@link TransientModifiers} 挂载临时修饰符；原生骨的抗性加成为 {@code 0}，
+ *       {@link TransientModifiers#swap} 会自动移除修饰符。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see MaxHealthService
- * @see BodyService
- * @since 1.0.0
  */
 
 public final class KnockbackResistanceService {

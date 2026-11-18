@@ -21,21 +21,16 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 /**
- * 开窍[Awakening]仪式中希望蛊[Hope Gu]的世界渲染。
- *
+ * 开窍仪式期间希望蛊[Hope Gu]的世界内渲染器。
  * <ul>
- *   <li>本客户端可见的每场仪式都画：蛊从玩家主手（眼前 {@link #HAND_FORWARD} 格、主手侧 {@link #HAND_SIDE} 格、下方
- *       {@link #HAND_DROP} 格，本人第一人称下从视野下角升起）飞到同步的悬停点，上下浮动；{@link #getGuPosition} 也给
- *       余烬与火星定位。</li>
- *   <li>{@code AwakeningEvents} 每帧在实体后调一次；画燃烬贴图 {@code hope_burnout} 的当前帧（
- *       {@link AwakeningTimeline#getBurnoutFrame}，帧 0 即物品图标），朝镜头、全亮、{@link #PIXELS} 像素宽
- *       {@code PIXELS × BLOCKS_PER_PIXEL} 格，与粒子同密度；不缩放，燃尽即不画；绕向同头顶牌匾，自用缓冲。</li>
+ *   <li>绘制当前客户端可见的每场开窍仪式：希望蛊从玩家主手位置（眼前 {@link #HAND_FORWARD} 格、主手侧
+ *       {@link #HAND_SIDE} 格、下方 {@link #HAND_DROP} 格，本人第一人称下呈现从视野右下角升起）飞向同步的悬停点并上下
+ *       浮动；{@link #getGuPosition} 同时为余烬与火星粒子提供发射坐标。</li>
+ *   <li>由 {@code AwakeningEvents} 每帧在实体渲染之后调用一次：绘制燃烬序列贴图 {@code hope_burnout} 的当前帧（
+ *       {@link AwakeningTimeline#getBurnoutFrame}，第 0 帧即常规物品图标），始终朝向镜头、全亮、尺寸为
+ *       {@link #PIXELS} 像素宽（即 {@code PIXELS × BLOCKS_PER_PIXEL} 格，与像素粒子密度一致），不做缩放并在燃尽后停
+ *       画，四边形绕序与头顶牌匾相同且使用独立缓冲源。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningTimeline
- * @since 1.0.0
  */
 
 public final class AwakeningGuRenderer {

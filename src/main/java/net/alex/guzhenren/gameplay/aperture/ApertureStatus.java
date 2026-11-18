@@ -3,16 +3,12 @@ package net.alex.guzhenren.gameplay.aperture;
 import net.alex.guzhenren.core.NamedEnum;
 
 /**
- * 空窍[Aperture]状态：封闭词汇枚举，只推导不存储。
- *
+ * 空窍状态枚举：只按需推导、从不落盘存储的封闭词汇表。
  * <ul>
- *   <li>{@code NORMAL} 活窍；{@code DEAD}（死窍）含僵尸、临时僵尸化、石窍，不自然回复、温养[Nourish]或冲刷窍壁。</li>
- *   <li>⚠ 推导在 {@code ApertureService#getStatus} 而非此处：本包枚举只作词汇，门槛都判 {@code status == NORMAL}。</li>
+ *   <li>{@link #NORMAL} 为正常活窍；{@link #DEAD}（死窍）涵盖僵尸、临时僵尸化与石化空窍，停止自然回复、温养[Nourish]与
+ *       冲刷窍壁。</li>
+ *   <li>⚠ 状态唯一由 {@link ApertureService#getStatus} 推导，各处业务门槛统一判定 {@code status == NORMAL}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public enum ApertureStatus implements NamedEnum {

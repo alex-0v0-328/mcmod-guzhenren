@@ -11,19 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 /**
- * 蛊升起的护盾种类：血条填充色、是否霸体（全额吃下时肉身不动）、投影它的标记效果。
- *
+ * 蛊虫升起的肉身护盾种类枚举：定义 HUD 护盾条填充色、是否附带霸体（全额格挡时自身免击退）以及对应的投影药水效果。
  * <ul>
- *   <li>封闭词表，{@code ShieldData} 每种一层；点数与时长归升起之蛊的注册。新护盾蛊只加常量和 LanguageProvider 名称，
- *       {@code ShieldService}、{@code ShieldHud}、{@code ShieldGlowHud} 不用改。</li>
- *   <li>非霸体仍吃原版盾牌格挡后的 0.4 击退。</li>
- *   <li>⚠ {@link #CODEC} 把常量名写入玩家存档：改名会丢失旧名保存的层。</li>
+ *   <li>封闭词汇枚举，{@link ShieldData} 每种最多存一层，护盾点数与持续时间由对应蛊虫注册定义；新增护盾蛊只需在此添加枚
+ *       举常量与译名，{@link ShieldService} 与 HUD 渲染自动适配。</li>
+ *   <li>非霸体护盾在全额格挡有源攻击时仍承受 {@link ShieldService#DEFENDER_KNOCKBACK} 击退。</li>
+ *   <li>⚠ {@link #CODEC} 将枚举序列化名写入玩家存档，修改常量名会导致旧存档中保存的对应护盾层丢失。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldService
- * @since 1.0.0
  */
 
 public enum ShieldType implements NamedEnum {

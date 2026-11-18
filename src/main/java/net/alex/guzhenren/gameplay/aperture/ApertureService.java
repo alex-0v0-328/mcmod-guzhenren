@@ -22,32 +22,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 空窍[Aperture]附件唯一运行时写入方：开窍[Awakening]、转数、阶段、资质[Aptitude]、道[Path]。
- *
+ * 玩家空窍数据（{@link ApertureData}）的唯一运行时写入入口：管理开窍[Awakening]、第二空窍、转数、阶段、资质与流派。
  * <ul>
- *   <li>静态服务；多数写入经 {@code store} 发布 {@link ApertureChangedEvent}（最大生命值修饰符、Epic Fight 耐力刷
- *       新），{@link AperturePressureService} 的压力写入绕过它。</li>
- *   <li>⚠ 体质与基础真元[Essence]的不变量在此强制（{@code enforce}），具体体质与资质授予在 {@code BodyService}。</li>
- *   <li>⚠ {@code awaken} 不拒已开窍者而追加，调用方把关；基础为 0（希望蛊[Hope Gu]未掷）重掷资质，免开零基础窍。</li>
- *   <li>{@link #getStatus(Player, int)} 是 {@link ApertureStatus} 唯一推导：僵尸、临时僵尸化与石化空窍为
- *       {@code DEAD}，其余 {@code NORMAL}。</li>
- *   <li>⚠ {@code reconcileTalentPaths}（十绝天赋效果）是两条跨领域授予之一，出现第三条即抽出协调者；天赋是
- *       {@link #TALENT_SOURCE} 给的永久 {@code EXTREME_PHYSIQUE} 空窍效果，整 1000 条道痕[Path Marks]均分到体质各天赋
- *       道，登录时缺失或体质不符由 {@link #syncTalentEffect} 补回。</li>
- *   <li>肉身存入不同十绝体时，{@link #onExtremePhysiqueChanged} 经 {@link ApertureEvents} 执行它，再对齐第一空窍基础真
- *       元：有体质为满值，无则满值减一并清空压力。</li>
- *   <li>第一空窍资质设为十绝时像开窍一样掷体质（满基础需要体质）；设得更低先摘体质，免得重掷基础被强制回满。</li>
- *   <li>{@link #openSecond} 是第二空窍唯一开启方：甲等八成、本转初阶、满真元池；无空窍也能开，孤立第二空窍即整个列
- *       表，直到希望蛊在其前插入第一空窍。</li>
- *   <li>更高转第二空窍蛊[Second Aperture Gu]覆盖已有第二空窍并回到初阶，绑定的道保留，持有它们的本命蛊在存储里不动；希
- *       望蛊插入的第一空窍存下后发布 {@link FirstApertureInsertedEvent}，按空窍下标的存储随之移位。</li>
+ *   <li>除 {@link AperturePressureService} 直接写压力外，其余变更均经 {@code store} 落盘并发布
+ *       {@link ApertureChangedEvent}（触发最大生命值修饰符与 Epic Fight 耐力刷新）。</li>
+ *   <li>{@link #getStatus(Player, int)} 是推导 {@link ApertureStatus} 的唯一入口：死灵体质
+ *       （{@code BodyService.isUndead}，含僵尸与临时僵尸化）或已石化的空窍返回 {@code DEAD}，其余返回
+ *       {@code NORMAL}。</li>
+ *   <li>⚠ 第一空窍的满值基础真元（{@code Aperture.MAX_BASE}，即十绝天资）与身怀十绝体[Ten Extreme Physiques]双向绑定：
+ *       {@link #set} 拒绝为非十绝体写入满基础真元，{@code enforce} 则将十绝体玩家的第一空窍强制对齐为满值、非十绝体压至
+ *       {@code MAX_BASE - 1} 并清空压力。</li>
+ *   <li>{@link #setTalent} 将第一空窍设为十绝天资时，若尚无十绝体则由 {@code BodyService} 随机赋予一种；设为更低档时先
+ *       摘除十绝体再重掷基础真元，防止重掷结果被 {@code enforce} 强制拉回满值。</li>
+ *   <li>⚠ 肉身十绝体变更时，{@link ApertureEvents} 调 {@link #onExtremePhysiqueChanged} 对齐第一空窍基础真元（有体质设
+ *       为满值，无则降为满值减一并清空压力），并经 {@code reconcileTalentPaths} 更新 {@link #TALENT_SOURCE} 的永久
+ *       {@code EXTREME_PHYSIQUE} 空窍流派效果（将 1000 条道痕[Path Marks]均分至该体质各天赋流派，登录缺失或体质不符时由
+ *       {@link #syncTalentEffect} 补齐；此为现有两处跨领域授予之一，满三处时抽出协调器）。</li>
+ *   <li>⚠ {@link #awaken} 不校验玩家是否已开窍（由调用方把关，仅在空窍槽已满时忽略）：{@code baseEssence <= 0}（
+ *       希望蛊[Hope Gu]未预掷）时重掷资质以免开出零基础空窍；开出十绝天资时按 {@code tenExtreme} 赋予十绝体（
+ *       {@code NONE} 则随机掷取）。</li>
+ *   <li>{@link #openSecond} 是开启或覆盖第二空窍的唯一入口（固定甲等八成、本转初阶、满真元池）：未开第一空窍时也可单独
+ *       开启并暂居下标 {@code 0}；后续希望蛊开启第一空窍时会插入到下标 {@code 0}，发布
+ *       {@link FirstApertureInsertedEvent} 并后移温养目标下标。更高转第二空窍蛊[Second Aperture Gu]覆盖已有第二空窍时重
+ *       置为初阶，保留已绑定的主修与兼修流派（存储中的本命蛊保持原位）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureData
- * @see ApertureEssenceService
- * @since 1.0.0
  */
 
 public final class ApertureService {
@@ -185,7 +183,6 @@ public final class ApertureService {
         awaken(player, baseEssence, ExtremePhysique.NONE);
     }
 
-    /** {@code tenExtreme} 是十绝天资空窍[Aperture]带来的体质；为 {@code NONE} 时随机掷一个。 */
     public static void awaken(@NotNull ServerPlayer player, int baseEssence, @NotNull ExtremePhysique tenExtreme) {
         open(player, baseEssence > 0 ? Aperture.createOpenedAt(baseEssence) : Aperture.createOpened(), tenExtreme);
     }

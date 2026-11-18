@@ -12,21 +12,16 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 
 /**
- * 玩家生命周期（登录、登出、死亡、克隆、重生、睡眠）事件的转发入口。
+ * 玩家生命周期事件（登录、登出、克隆、重生、睡眠唤醒与本命蛊损毁）的统一转发入口，除门控外全部业务交由
+ * {@link PlayerDataService} 与 {@link VitalLossService} 处理。
  * <ul>
- *   <li>各时刻转 {@link PlayerDataService}，本命蛊[Vital Gu]之死（{@code VitalGuLostEvent}）转
- *       {@link VitalLossService}；本类不做决定，免得处理器对重生保留什么起分歧。</li>
- *   <li>{@code keepInventory} 取自 {@link MinecraftServer} 游戏规则而非 {@code level()}，传给唯一结算死亡重置的
- *       {@code onClone}；它用 {@code LOW} 优先级，在 NeoForge 复制继承附件后跑，重置不被覆盖。</li>
- *   <li>⚠ {@code onRespawn} 跳过末地返回（{@code isEndConquered}）：原版对它也发重生事件，换维度从不重置身体。</li>
- *   <li>⚠ {@code onWakeUp} 以 {@code wakeImmediately} / {@code updateLevel} / {@code isSleepingLongEnough} 把关：醒来是
- *       跳变非持续状态，盯 tick 会重复触发。</li>
+ *   <li>死亡克隆处理（{@link #onClone}）以 {@code EventPriority.LOW} 在 NeoForge 复制完继承附件后执行，确保清空型重置不
+ *       被覆盖；是否保留物品栏取自 {@link MinecraftServer} 游戏规则而非维度实例。</li>
+ *   <li>⚠ {@link #onRespawn} 必须跳过末地返回传送门触发的重生事件（{@code isEndConquered}），防止跨维返回错误触发死亡恢
+ *       复逻辑。</li>
+ *   <li>⚠ {@link #onWakeUp} 必须同时校验 {@code wakeImmediately}、{@code updateLevel} 与 {@code isSleepingLongEnough}，
+ *       确保仅在完整睡醒那一刻触发一次回复。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerDataService
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

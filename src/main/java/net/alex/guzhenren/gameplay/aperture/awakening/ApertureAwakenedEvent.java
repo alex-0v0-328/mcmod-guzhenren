@@ -5,16 +5,8 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 希望蛊[Hope Gu]仪式开出第一空窍[Aperture]的开窍[Awakening]事件。
- * <ul>
- *   <li>仪式结束时由 {@link AwakeningRitualService} 同步发到游戏总线；命令开窍不发。</li>
- *   <li>仪式不知谁在听：进度条件在上层 {@code advancement} 包，直调即成依赖环。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see AwakeningRitualService
- * @since 1.0.0
+ * 希望蛊[Hope Gu]仪式开出第一空窍的开窍[Awakening]完成事件：由 {@link AwakeningRitualService} 在仪式开窍点同步发布到游
+ * 戏总线（管理员命令直接开窍不发布），供上层 {@code advancement} 包触发进度条件而无需反向依赖。
  */
 
 public class ApertureAwakenedEvent extends Event {

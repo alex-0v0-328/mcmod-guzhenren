@@ -18,26 +18,21 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 空窍[Aperture]压力静态服务：十绝体空窍积满压力后引爆。
- *
+ * 空窍压力静态服务：推进十绝体[Ten Extreme Physiques]主空窍的压力累积、倒计时与满压引爆。
  * <ul>
- *   <li>只有十绝体 {@code ApertureData.PRIMARY} 位的空窍带压力，其余调用不做事。</li>
- *   <li>{@link #tick} 每分钟加 {@code PRESSURE_PER_MINUTE}，到 {@code PRESSURE_COUNTDOWN_START} 后设
- *       {@code COUNTDOWN_TICKS} 截止时刻；到点压力满（{@link #isFull}），心跳致死检查调 {@link #detonate}。每分钟一拍取
- *       {@code tickCount}、截止取 {@code gameTime}，都不经 {@code TimeFlow}，不吃自身时间倍率。</li>
- *   <li>{@link #detonate} 当 tick 结算实体伤害与自身致死，坑交给 {@link AperturePressureExplosionTask}：半径
- *       {@code EXPLOSION_RADIUS_PER_RANK} ×（转数序号 + 1），大力真武体加 {@code GREAT_STRENGTH_RADIUS_BONUS}；挖坑须
- *       {@code ModEvents.canGrief} 允许将死玩家改地形（{@code mobGriefing}），否则伤害与自身致死照样生效。</li>
- *   <li>⚠ 压力直写 {@code PlayerData} 不经 {@code ApertureService.store}：转数阶段不变，血量与 Epic Fight 免刷新。</li>
- *   <li>⚠ 压力是 {@code Aperture} 的字段，本服务留在 {@code gameplay.aperture}：温养、冲刷窍壁要调压力，移进
- *       {@code pressure} 子包会两包互依；子包只经 {@link AperturePressureExplosionTask#start} 往下调。</li>
+ *   <li>仅身怀十绝体且下标为 {@link ApertureData#PRIMARY} 的空窍会产生压力，其余情况调用均为空操作。</li>
+ *   <li>{@link #tick} 每分钟（按 {@code tickCount}）增加 {@code PRESSURE_PER_MINUTE}，到达
+ *       {@link Aperture#PRESSURE_COUNTDOWN_START} 时写入 {@code gameTime + COUNTDOWN_TICKS} 截止时刻；到期后置为满压（
+ *       {@link #isFull}），由心跳致死检查调 {@link #detonate}。分钟步进与倒计时均按世界真实 tick 计，不受
+ *       {@code TimeFlow} 自身时间倍率影响。</li>
+ *   <li>{@link #detonate} 在当前 tick 立即结算范围内实体灾难伤害与玩家自身致死，地形挖坑则在通过
+ *       {@code ModEvents.canGrief} 检查后交给 {@link AperturePressureExplosionTask#start} 分 tick 推进（若禁止破坏地
+ *       形，伤害与自爆致死照常生效）。</li>
+ *   <li>⚠ 压力变更通过 {@code setState} 直接写入 {@link PlayerData}，绕过 {@link ApertureService} 的 {@code store}，
+ *       避免每次涨压都触发最大生命值与 Epic Fight 耐力刷新。</li>
+ *   <li>⚠ 压力字段位于 {@link Aperture} 且温养、冲刷窍壁均需泄压，故本服务留在 {@code gameplay.aperture} 包内，仅单向调
+ *       用 {@code pressure} 子包的 {@link AperturePressureExplosionTask#start}，避免父子包循环依赖。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureService
- * @see AperturePressureExplosionTask
- * @since 1.0.0
  */
 
 public final class AperturePressureService {
@@ -128,7 +123,6 @@ public final class AperturePressureService {
         return physique == ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL ? radius + GREAT_STRENGTH_RADIUS_BONUS : radius;
     }
 
-    /** 调用方已查过十绝体；只有主空窍[Aperture]带压力。 */
     private static void setState(ServerPlayer player, int value, long deadline) {
         Aperture current = ApertureService.getAperture(player, ApertureData.PRIMARY);
         if (current.pressure() == value && current.pressureDeadlineTick() == deadline) return;

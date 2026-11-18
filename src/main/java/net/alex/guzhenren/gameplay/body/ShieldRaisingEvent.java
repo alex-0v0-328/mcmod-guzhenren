@@ -5,13 +5,9 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link ShieldService#raise} 建层前发布的事件：上层特性可改点数，如石龟兽力[Beast Strength] ×1.5
- * （{@code BeastTraitEvents}）；返回后按 {@link #getPoints} 铺层，不低于 0，时长归调用方。
- *
- * @author Alex
- * @version 1.0.0
- * @see ShieldRaisedEvent
- * @since 1.0.0
+ * 肉身护盾建层前事件：{@link ShieldService#raise} 创建护盾层前同步发布，允许上层特性改写护盾初始点数（如石龟
+ * 兽力[Beast Strength]将护盾值乘以 1.5，见 {@code BeastTraitEvents}）；事件返回后按不低于 {@code 0} 的
+ * {@link #getPoints} 铺设护盾层，持续时间由调用方决定。
  */
 
 public class ShieldRaisingEvent extends Event {

@@ -15,12 +15,8 @@ import net.neoforged.neoforge.common.loot.LootModifier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 全局战利品修改器：删去生成战利品中某物品的全部堆叠，其余不动；实例由 {@code ModLootModifierProvider} 写出，
- * {@code guzhenren:no_skill_books} 删 Epic Fight 技能书。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
+ * 从生成的战利品列表中移除指定物品全部堆叠的全局战利品修改器（{@link LootModifier}），其余掉落保持不变；数据包实例由
+ * {@code ModLootModifierProvider} 写出（如通过 {@code guzhenren:no_skill_books} 移除箱子中的 Epic Fight 技能书）。
  */
 
 public final class RemoveItemLootModifier extends LootModifier {

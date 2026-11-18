@@ -14,18 +14,15 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 肉身的部位状态，{@link BodyData} 的一格：六肢体与七窍的伤势、长出的附加部位。
+ * 肉身解剖部位状态记录（嵌于 {@link BodyData}）：承载六肢体（{@link BodyPart}）与七窍（{@link Organ}）的伤势，以及额外
+ * 长出的附加部位（{@link Appendage}）。
  * <ul>
- *   <li>筋骨皮肉的改造档仍是全身一档，存在 {@link BodyData} 自己的四格，不按肢体分。</li>
- *   <li>两张伤势表只存受伤的条目，读不到即 {@link Injury#NONE}；构造器丢掉 {@code NONE}，相等比较不受写法影响。</li>
- *   <li>⚠ 网络按枚举顺序逐个写全部肢体和七窍，{@code encode}/{@code decode} 顺序须一致。</li>
+ *   <li>筋、骨、皮、肉的炼体改造档位仍为全身统一一档，直接存于 {@link BodyData} 的四个独立字段，不按肢体拆分。</li>
+ *   <li>两张伤势映射表仅存储实际受伤的部位，未收录部位经 {@link #getInjury} 统一返回 {@link Injury#NONE}；紧凑构造器会
+ *       自动过滤掉传入的 {@code NONE} 条目，确保值相等比较不受构造写法影响。</li>
+ *   <li>⚠ 网络序列化按枚举声明顺序逐一读写全部肢体与七窍，{@link #encode} 与 {@link #decode} 的遍历顺序必须严格一
+ *       致。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see BodyPart
- * @see Organ
- * @since 1.0.0
  */
 
 public record Anatomy(Map<BodyPart, Injury> limbInjuries, Map<Organ, Injury> organInjuries,

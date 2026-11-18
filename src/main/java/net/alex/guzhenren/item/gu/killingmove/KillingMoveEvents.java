@@ -8,13 +8,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 杀招[Killing Move]存储辅蛊的刷新入口。每 {@link #REFRESH_TICKS} tick 及任一菜单关闭（存储菜单是玩家改存储的途径）时，
- * 服务端重算已学杀招在空窍[Aperture]存储有无辅蛊（{@link KillingMoveService#refreshStoreBacked}），不变不重发同步。
- *
- * @author Alex
- * @version 1.0.0
- * @see KillingMoveService
- * @since 1.0.0
+ * 杀招[Killing Move]空窍存储辅蛊可用性的服务端刷新入口：每 {@link #REFRESH_TICKS} tick 以及任意容器菜单关闭时（空窍存储
+ * 界面是玩家调整存储内蛊虫的途径），调用 {@link KillingMoveService#refreshStoreBacked} 重算已学杀招在空窍存储中是否有可
+ * 用辅蛊，结果未变时不重复发送同步包。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

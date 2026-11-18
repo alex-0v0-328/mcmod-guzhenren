@@ -30,22 +30,15 @@ import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 元泉[Spirit Spring]流体：流体对两端共有行为，含 {@link Flowing}、{@link Source} 两变体。
- *
+ * 元泉流体实现：定义正流（{@link Flowing}）与源流（{@link Source}）共用的物理与交互规则。
  * <ul>
- *   <li>照搬原版水形态：坡度搜索 4、每格衰减 1、流动延迟 5 tick、水下环境音、滴水粒子；去掉无限水源
- *       （{@code canConvertToSource} 恒 false），元泉只在放过源头处存在。</li>
- *   <li>无专用桶；原版空桶舀取清掉元泉，原样还回空桶（{@link #getBucket}）。</li>
- *   <li>⚠ 源头随机 tick 只是重载看门狗：重挂 {@link SpiritSpringBlock} 的确定性方块 tick 链，自
- *       身不产元石[Primeval Stone]。</li>
+ *   <li>沿用原版水的流动参数（坡度搜寻距离 4、每格衰减 1、流动延迟 5 tick、水下环境音与滴水粒子），但禁用无限水源转化
+ *       （{@link #canConvertToSource} 恒返回 {@code false}），使元泉源头仅存在于世界生成或显式放置的位置。</li>
+ *   <li>不设专用流体桶：用原版空桶右键舀取会直接清除元泉源头并返还空桶（{@link #getBucket} 返回
+ *       {@link Items#BUCKET}）。</li>
+ *   <li>⚠ {@link Source#randomTick} 仅作为看门狗用于重新挂起 {@link SpiritSpringBlock#scheduleProduction} 的确定性方块
+ *       计划刻，其自身绝不直接产出元石[Primeval Stone]。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ModFluids
- * @see ModFluidTypes
- * @see SpiritSpringBlock
- * @since 1.0.0
  */
 
 public abstract class SpiritSpringFluid extends FlowingFluid {

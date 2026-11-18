@@ -18,20 +18,19 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * B 面板空窍[Aperture]页按钮栏的按钮，每空窍一组。
+ * B 面板空窍页签中单个空窍对应的一组操作按钮控件。
  * <ul>
- *   <li>上温养[Nourish]空窍、下空窍存储；第一空窍可冲击窍壁时温养换成冲刷窍壁；付不起消耗的按钮画成失效。</li>
- *   <li>温养按钮是当前目标时点亮、框内填进度，再点即取消；开始温养关闭面板。</li>
- *   <li>{@link #draw}、{@link #fillProgress}、{@link #drawLabel} 分开，面板才能一批内先画全部 sprite，再填色，
- *       最后文字；按钮栏位置、悬停判定由面板定；标签只建一次。</li>
- *   <li>栏宽取 {@link #getLabelWidth} 量的全部标签最宽者，标签换了栏不跳；面板压窄栏宽时标签截成省略号，
- *       {@link #isClipped} 供面板悬停补全文提示（英文在 GUI 6 时会截）。</li>
+ *   <li>上方按钮为温养[Nourish]空窍、下方按钮为打开空窍存储；当第一空窍可冲击窍壁时，温养按钮切换为「冲刷窍壁」；
+ *       无法支付对应消耗的按钮绘制为失效状态。</li>
+ *   <li>若某空窍正处于温养目标状态，则对应温养按钮保持点亮并在框内填充当前进度，再次点击即取消温养；发起新温养时会
+ *       自动关闭信息面板。</li>
+ *   <li>将 {@link #draw}、{@link #fillProgress} 与 {@link #drawLabel} 拆分为三个阶段，以便外层面板在一个批次内先统一
+ *       绘制全部精灵图、再填充进度色块、最后绘制全部文本；按钮栏坐标与悬停命中判定由面板掌控，标签组件在构造时仅创建一
+ *       次。</li>
+ *   <li>按钮栏宽度取 {@link #getLabelWidth} 测得的全部候选标签最大宽度，防止标签文案切换时栏宽跳动；当面板空间受限
+ *       压窄按钮栏时，过长标签自动截断为省略号，并通过 {@link #isClipped} 通知面板在悬停时补全完整文字提示（英文界面
+ *       在 GUI 6 缩放下会触发截断）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PlayerInfoScreen
- * @since 1.0.0
  */
 
 final class ApertureButtons {

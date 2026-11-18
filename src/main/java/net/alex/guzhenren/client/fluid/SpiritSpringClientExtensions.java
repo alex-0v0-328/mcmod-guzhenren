@@ -10,16 +10,11 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 /**
- * 元泉[Spirit Spring]的客户端渲染；贴图由 Alex 预先上色，无运行时着色。
- *
+ * 元泉客户端渲染扩展：贴图已由 Alex 预先调色，不做运行时着色。
  * <ul>
- *   <li>水下雾取 HUD 真元[Essence]条强调色 {@link ModPalette#APERTURE}，与 HUD 同一种天蓝。</li>
- *   <li>暂无水下覆盖贴图，元泉内只显示雾，待 Alex 画好再补。</li>
+ *   <li>水下雾颜色复用 HUD 真元条强调色 {@link ModPalette#APERTURE}，保持与空窍面板相同的天蓝色调。</li>
+ *   <li>目前暂缺专用水下覆盖层贴图，玩家进入元泉时仅渲染水下雾效，待后续补绘贴图后再行接入。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public class SpiritSpringClientExtensions implements IClientFluidTypeExtensions {

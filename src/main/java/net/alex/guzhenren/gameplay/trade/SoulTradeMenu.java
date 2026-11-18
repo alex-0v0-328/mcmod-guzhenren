@@ -16,19 +16,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 交易魂的报价列表：背包上方每个 {@link SoulTradeOffer} 一行可点。
+ * 交易魂的报价列表容器菜单：在玩家背包上方为每个 {@link SoulTradeOffer} 渲染一行可点击报价。
  * <ul>
- *   <li>无交易槽：报价随开菜单 payload（{@link #writeOffers}）下发；点击即原版菜单按钮，id 为报价下标，
- *       {@link #clickMenuButton} 在服务端按背包结算；背包槽供 {@code broadcastChanges} 在界面开着时同步增减。</li>
- *   <li>⚠ 付不起时行按钮仍可点：拒绝须到服务端，魂才会摇头；服务端本是唯一裁判。</li>
- *   <li>⚠ 结算前，之后落回背包的光标物品与 2x2 合成格计入空间检查（{@link SoulTradeOffer}），因空间被拒提示背包已满；交
- *       易魂死亡、换维度或玩家远于 {@code TRADE_RANGE} 即关闭。</li>
+ *   <li>无交易物品槽位：报价列表随打开菜单时的 payload（{@link #writeOffers}）下发客户端；点击行按钮即触发原版
+ *       菜单按钮（{@link #clickMenuButton}，button id 为报价下标），由服务端直接从玩家主背包扣费与发放物
+ *       品，背包槽位用于界面开启期间通过 {@code broadcastChanges} 同步增减。</li>
+ *   <li>⚠ 玩家材料不足时客户端行按钮仍保持可点击：拒绝提示与 {@link SoulTraderEntity} 的摇头反应必须在服务端
+ *       触发，服务端是交易成败的唯一裁判。</li>
+ *   <li>⚠ 结算空间时计入关闭菜单后将落回背包的光标物品与 2×2 合成格物品（{@link SoulTradeOffer#settle}），放不
+ *       下则提示背包已满并拒绝成交；当交易魂死亡、双方跨维度或距离超过 {@link SoulTraderEntity#TRADE_RANGE}
+ *       时菜单自动关闭。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see SoulTraderEntity
- * @since 1.0.0
  */
 
 public class SoulTradeMenu extends AbstractContainerMenu {

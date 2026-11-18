@@ -13,18 +13,13 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidInteractionRegistry;
 
 /**
- * 纯水靠标签够不到的两处原版水挂钩。
- *
+ * 纯水流体无法仅靠流体标签覆盖的两处原版交互注册入口。
  * <ul>
- *   <li>岩浆遇纯水（源头成黑曜石，流动成圆石）：NeoForge 把 {@code FluidInteractionRegistry} 这条目绑在水类型上。</li>
- *   <li>发射器倒纯水桶沿用原版水桶行为；两注册表都是普通映射，写入经 {@code enqueueWork} 在主线程执行。</li>
- *   <li>岩浆从上方流到纯水上变石头无需条目：原版读 {@code #minecraft:water}。</li>
+ *   <li>在 {@link FMLCommonSetupEvent} 中通过 {@code enqueueWork} 向主线程注册岩浆接触纯水的流体交互（纯水源头变黑曜
+ *       石、流动纯水变圆石，因 NeoForge 将 {@link FluidInteractionRegistry} 绑定在具体 {@code FluidType} 而非标签上；岩
+ *       浆自上而下流入纯水生成石头则已由原版 {@code #minecraft:water} 标签覆盖）。</li>
+ *   <li>同时为纯水桶注册与原版水桶一致的发射器倒水行为（{@link DispenserBlock#registerBehavior}）。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see PureWaterFluid
- * @since 1.0.0
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)

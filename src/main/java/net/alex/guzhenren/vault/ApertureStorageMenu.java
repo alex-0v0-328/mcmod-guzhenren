@@ -23,39 +23,30 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 单个空窍[Aperture]存储的容器菜单。
- *
- * <p>分页与负载：
+ * 单个空窍内部蛊虫存储的容器菜单，负责分页视图、负载门禁与本命蛊槽位绑定（业务存储由 {@link ApertureStorageService} 托
+ * 管）。
  * <ul>
- *   <li>存储超一屏故分页；负载上限 {@code ApertureStorageService.MAX_LOAD}，每蛊至少计 1；本命蛊槽不随翻页，在
- *       {@code imageWidth} 外。</li>
- *   <li>Shift 点击走原版合并，逐格按 {@code GuSlot#getMaxStackSize} 限量，负载上限照样成立。</li>
- *   <li>{@code countPages} 按存储蛊数加一计页，满页后仍留一空页。</li>
- *   <li>⚠ 负载取同步的 {@code DATA_LOAD}：存储不发往客户端，槽位不按客户端附件重算。</li>
+ *   <li>分页与负载：存储支持多页切换并在末页后保留一个空页（{@link #countPages}），本命蛊槽固定在 {@code imageWidth} 外
+ *       侧不随翻页变化；Shift 快捷移动沿用原版合并逻辑并逐格通过 {@link GuSlot#getMaxStackSize} 校验总量上限
+ *       {@code ApertureStorageService.MAX_LOAD}（每只蛊至少计 1 负载）。</li>
+ *   <li>⚠ 负载校验依赖服务端同步的 {@code DATA_LOAD} 数据槽：客户端不持有完整空窍存储副本，槽位上限严禁在客户端依据附件
+ *       自行推算。</li>
+ *   <li>实时保存机制：通过容器监听器即时写回而不覆写 {@code slotsChanged}（因 {@link AbstractContainerMenu} 未实现
+ *       {@code ContainerListener}，覆写不会被调用），加载页期间通过 {@code loading} 标志屏蔽自身 {@code setItem} 引发的
+ *       误存。</li>
+ *   <li>⚠ 必须按每次槽位改动即时保存而非按点击保存：Shift 点击或拖动会连续写入多个槽位，若不即时刷新 {@link #getLoad()}
+ *       会导致单次操作塞超总负载并丢弃被拒物品。</li>
+ *   <li>⚠ 心跳在完成养护遍历后必须调用 {@link #refresh}：养护每秒可能治疗、补食或移入新蛊，若不及时刷新视图，开启的菜单
+ *       后续写回过期快照会撤销养护成果甚至复活已饿死的蛊。</li>
+ *   <li>⚠ 指令在直接修改存储前必须先调用 {@link #closeFor}：否则在下次心跳刷新前，玩家点击或关闭菜单会把过期窗口写回并
+ *       覆盖 {@code /gzr reset} 或 {@code /gzr awaken} 的结果。</li>
+ *   <li>本命蛊绑定与替换：每个空窍仅允许绑定一只本命蛊，放入槽位即打上堆叠令牌并由
+ *       {@link ApertureStorageService#setVital} 同步空窍主修流派；更换新本命蛊时，{@link #releaseFormer} 会同步清除已被
+ *       原版移至光标或背包的旧本命蛊拷贝标记。</li>
+ *   <li>⚠ {@link VitalSlot#mayPlace} 必须按交换后的净负载放行（无论鼠标点击还是数字键切换）：若在 {@code save()} 中才被
+ *       {@code setVital} 拒绝并重载槽位，将无法收回原版已搬到光标或快捷栏的拷贝，进而造成旧本命蛊被复制而新蛊丢
+ *       失。</li>
  * </ul>
- * <p>保存：
- * <ul>
- *   <li>由容器监听器触发，不覆写 {@code slotsChanged}：{@code AbstractContainerMenu} 非 {@code ContainerListener}，
- *       覆写永不被调；{@code load} 置 {@code loading}，自身 {@code setItem} 不存半载的页。</li>
- *   <li>⚠ 每改一格即存，非每次点击：槽位按 {@code getLoad()} 收蛊，只有保存刷新它；延迟则一次 Shift 点击或拖动会
- *       塞超本页、丢掉被拒的蛊。</li>
- *   <li>⚠ 心跳在养护遍历后调 {@code refresh}：每秒都可能治疗、补食、充满存储蛊，开着的菜单存回过期视图会撤销之，
- *       甚至复活刚饿死的蛊。</li>
- *   <li>⚠ 开着菜单时改写存储的命令（{@code /gzr reset}、{@code /gzr awaken}）先调 {@link #closeFor}：否则心跳刷新前，
- *       一次点击或关闭会存回过期窗口，盖掉重置或写进移位的索引。</li>
- * </ul>
- * <p>本命蛊：
- * <ul>
- *   <li>一空窍一只；在此绑定只标记物品堆，再由 {@code ApertureStorageService.setVital} 设该空窍主修流派。</li>
- *   <li>换新则旧的变回普通蛊：令牌不再匹配存储，{@link #releaseFormer} 清掉原版刚移到光标或背包那份拷贝的标记。</li>
- *   <li>⚠ {@link VitalSlot#mayPlace} 按交换后负载收蛊，鼠标、数字键皆然：{@code save} 里被拒的 {@code setVital}
- *       会重载槽位，却收不回原版已移到光标或快捷栏的拷贝，致旧本命蛊被复制、新的丢失。</li>
- * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @see ApertureStorageService
- * @since 1.0.0
  */
 
 public class ApertureStorageMenu extends AbstractContainerMenu {

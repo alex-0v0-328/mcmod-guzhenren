@@ -17,7 +17,9 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import org.jetbrains.annotations.NotNull;
 
-/** 野猪的猪肉掉落，含原版着火烧熟与抢夺加成。 */
+/**
+ * 野猪实体的战利品表子生成器，对齐原版猪掉落 1–3 个猪排（支持火焰灼烧熟肉与抢夺附魔加成）。
+ */
 
 public final class WildBoarLootProvider extends EntityLootSubProvider {
 

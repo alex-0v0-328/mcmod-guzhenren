@@ -5,13 +5,8 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.item.GuItem;
 
 /**
- * 蛊材：具体类，无自身分类轴。无行为的蛊材直接注册为本类，需自有 {@code use()} 才开叶子类；蛊虫、蛊材都继承
- * {@link net.alex.guzhenren.item.GuItem}，故它居物品树根。
- *
- * @author Alex
- * @version 1.0.0
- * @see net.alex.guzhenren.item.GuItem
- * @since 1.0.0
+ * 蛊材[Gu Material]基类：具体物品类，自身不划分二级子轴；无额外行为的蛊材直接注册为本类，需要独立 {@code use()}
+ * 逻辑时再派生叶子类。蛊虫与蛊材共同继承 {@link GuItem}，由其统领物品树根节点。
  */
 
 public class GuMaterialItem extends GuItem {
