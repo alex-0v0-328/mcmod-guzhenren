@@ -6,6 +6,7 @@ import net.alex.guzhenren.item.Booklet;
 import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.item.ModCreativeTabs;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.gametest.framework.GameTest;
@@ -81,7 +82,8 @@ public final class BookletGameTests {
         assertSame(booklet, tab.getIconItem().getItem());
         List<Item> shelf = getShown(helper, tab);
         assertTrue(shelf.contains(booklet), "Gu Atlas: Hope missing from the booklet tab");
-        assertTrue(shelf.stream().allMatch(BookletItem.class::isInstance), "the booklet tab shows a non-booklet");
+        assertTrue(shelf.stream().allMatch(item -> item instanceof BookletItem || item instanceof GuRecipeItem),
+                "the booklet tab shows a non-booklet");
         for (CreativeModeTab other : List.of(ModCreativeTabs.MORTAL_GU.get(), ModCreativeTabs.GU_MATERIAL.get(),
                 ModCreativeTabs.STRENGTH_MORTAL_GU.get(), ModCreativeTabs.WOOD_MORTAL_GU.get(),
                 ModCreativeTabs.KM_MORTAL.get())) {

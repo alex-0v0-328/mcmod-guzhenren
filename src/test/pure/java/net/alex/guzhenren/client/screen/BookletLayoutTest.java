@@ -181,16 +181,14 @@ class BookletLayoutTest {
     }
 
     @Test
-    @DisplayName("every booklet lays out in both scripts, its text on the right half-page when it has a figure")
+    @DisplayName("every booklet lays out in both scripts, on the right half-page beside a figure or a recipe grid")
     void everyBookletLaysOut() {
         for (Booklet booklet : Booklet.values()) {
             for (boolean traditional : new boolean[] { false, true }) {
                 BookletLayout.Spread spread = assertDoesNotThrow(() -> BookletLayout.lay(booklet, traditional),
                         booklet.name());
-                if (booklet.getFigure().isEmpty()) {
-                    assertNull(spread.plate());
-                    continue;
-                }
+                if (booklet.getFigure().isEmpty()) assertNull(spread.plate());
+                if (booklet.getFigure().isEmpty() && booklet.getRecipe().isEmpty()) continue;
                 assertAll(spread.text().stream().map(cell -> () ->
                         assertTrue(cell.x() >= RIGHT_X, booklet + " sets " + cell + " on the figure page")));
             }

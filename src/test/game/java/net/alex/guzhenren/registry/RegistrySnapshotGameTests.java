@@ -7,6 +7,7 @@ import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTest;
@@ -43,6 +44,7 @@ public final class RegistrySnapshotGameTests {
                             && blockItem.getBlock() instanceof SpiritSpringBlock
                             || item instanceof BucketItem || item instanceof AdvancementIconItem
                             || item instanceof KillingMoveBookItem || item instanceof BookletItem
+                            || item instanceof GuRecipeItem
                             || item == ModItems.STEEL_INGOT.get() || item == ModItems.STEEL_BLOCK.get()
                             || item == ModItems.INTIMATE_GRASS_SEEDS.get()
                             || item == ModItems.BLACK_SOIL_FARMLAND.get(),

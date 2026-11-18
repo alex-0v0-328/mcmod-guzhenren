@@ -89,6 +89,7 @@ public final class RefinementCellGroupGameTests {
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-cell-group-gametest").at(CENTER);
         player.getInventory().setItem(9, new ItemStack(ModItems.JADE_SKIN_GU_1.get()));
         player.getInventory().setItem(10, new ItemStack(ModItems.WHITE_BOAR_GU_1.get()));
+        GameTestRecipes.learnAll(player);
         RefinementMenu menu = new RefinementMenu(1, player.getInventory());
 
         menu.clickMenuButton(player, RefinementMenu.BUTTON_RECIPE_BASE + whiteJadeIndex(helper));

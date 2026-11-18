@@ -35,6 +35,7 @@ public final class RefinementMenuGameTests {
         ItemStack foreign = GameTestGu.refined(ModItems.LIQUOR_WORM_1.get(), 3);
         VitalGuState.bind(foreign, owner, ApertureData.PRIMARY);
         holder.getInventory().setItem(9, foreign);
+        GameTestRecipes.learnAll(holder);
         RefinementMenu menu = new RefinementMenu(1, holder.getInventory());
 
         menu.clickMenuButton(holder, RefinementMenu.BUTTON_RECIPE_BASE + fourFlavorsIndex(helper));
@@ -55,6 +56,7 @@ public final class RefinementMenuGameTests {
                 ModItems.SPICY_LIQUOR.get(), ModItems.SWEET_LIQUOR.get(), ModItems.LIQUOR_WORM_1.get(),
                 ModItems.LIQUOR_WORM_1.get());
         for (int i = 0; i < ingredients.size(); i++) player.getInventory().setItem(9 + i, new ItemStack(ingredients.get(i)));
+        GameTestRecipes.learnAll(player);
         RefinementMenu menu = new RefinementMenu(1, player.getInventory());
         menu.clickMenuButton(player, RefinementMenu.BUTTON_RECIPE_BASE + fourFlavorsIndex(helper));
         menu.clickMenuButton(player, RefinementMenu.BUTTON_CRAFT);
