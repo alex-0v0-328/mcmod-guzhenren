@@ -2,10 +2,14 @@
 
 The tools use each repository's gradlew.bat with JDK 21. Temporary files live under Workspace/Temps;
 GZR_TEMP, GZR_GU_WORLD, GZR_WIKI, GZR_MODELS and GZR_JAVA_HOME override local paths.
-One Gradle lock covers every project, so parallel sessions never build the same folder at once: a run queues
-for it up to GZR_LOCK_WAIT seconds (default an hour). A hand-run Gradle command takes the same lock through
+One Gradle lock covers every live checkout, so parallel sessions never build the same folder at once: a run
+queues for it up to GZR_LOCK_WAIT seconds (default an hour), in arrival order. A hand-run Gradle command takes
+the same lock through
 
     python -B tools/project_runtime.py gradlew.bat runClient     any command, run once the lock is free
+
+commit_push.py builds exported trees instead, each in one of GZR_VERIFY_SLOTS verification slots (default 2),
+and takes no Gradle lock.
 
 Processes are read through the Win32 API (ctypes): the toolhelp snapshot for parents, the PEB for command
 lines and working directories. The tools expect 64-bit Python; the path helpers import on any system.
@@ -16,6 +20,7 @@ import html
 import os
 import queue
 import re
+import secrets
 import shutil
 import stat
 import subprocess
@@ -41,6 +46,8 @@ MODELS_ROOT = Path(os.environ.get('GZR_MODELS') or REPOSITORY_ROOT.parent / 'ass
 EXIT = object()
 # How long local_checks.py and commit_push.py queue behind another run's Gradle lock before giving up.
 LOCK_WAIT = float(os.environ.get('GZR_LOCK_WAIT') or 3600)
+# How many commit_push.py runs verify their exported trees at once; each is a Gradle build plus a game JVM.
+SLOTS = int(os.environ.get('GZR_VERIFY_SLOTS') or 2)
 DAEMON_IDLE_MS = 600_000
 
 
@@ -67,14 +74,16 @@ class Project:
 
 PROJECTS = {
     'guzhenren': Project('guzhenren', REPOSITORY_ROOT, TEMP_ROOT,
-                         ('build', 'gametest', 'data', 'server', 'client', 'multiplayer'), ('build', 'data'),
-                         ('build', 'gametest'), True,
+                         ('tools', 'build', 'gametest', 'data', 'server', 'client', 'multiplayer'),
+                         ('build', 'data'), ('build', 'gametest'), True,
                          GU_WORLD_ROOT, 'Gu World', ('gametest', 'server', 'client', 'multiplayer')),
     'guworld': Project('guworld', GU_WORLD_ROOT, TEMP_ROOT.parent / 'guworld',
                        ('build', 'gametest', 'data'), ('build', 'data'), ('gametest',), False,
                        REPOSITORY_ROOT, 'Guzhenren', ('build', 'gametest', 'data'), ci_jar_dir=None),
 }
 # Gu World's local tests are GameTests alone, so its mirror adds only those to its CI build.
+# The wiki ships through commit_push.py too, but it is no mod: no Gradle stage, no partner, no workflow.
+WIKI = Project('wiki', WIKI_ROOT, TEMP_ROOT / 'wiki', (), (), (), False, ci_jar_dir=None)
 
 
 def project(name):
@@ -85,15 +94,22 @@ def all_projects():
     return list(PROJECTS.values())
 
 
+def ship_projects():
+    """Every repository commit_push.py ships, by name: the two mods and the wiki."""
+    return {**PROJECTS, WIKI.name: WIKI}
+
+
 def partner_of(owner):
     """The other mod."""
     return next(other for other in all_projects() if other.name != owner.name)
 
 
-def mod_roots(owner, root=None):
-    """(Gu World root, Guzhenren root) for a run of `owner` from `root` (its checkout or an export of it)."""
+def mod_roots(owner, root=None, partner_root=None):
+    """(Gu World root, Guzhenren root) for a run of `owner` from `root` (its checkout or an export of it), with
+    the partner at `partner_root` (default: the partner's checkout)."""
     root = Path(root or owner.root)
-    return (owner.partner, root) if owner.name == 'guzhenren' else (root, owner.partner)
+    partner = Path(partner_root or owner.partner)
+    return (partner, root) if owner.name == 'guzhenren' else (root, partner)
 
 
 def require_windows():
@@ -228,12 +244,59 @@ def unlock(handle):
         handle.seek(0)
 
 
+class Queue:
+    """Arrival order for the waiters of a lock or a slot pool. `directory` holds one ticket file per waiter,
+    named by its arrival time, and only the first `width` tickets may try the lock. A ticket whose process
+    ended (its PID gone, or reused by a process born at another time) is dropped, so a killed waiter never
+    blocks the line. The tickets only order the waiters; the byte lock alone excludes."""
+
+    def __init__(self, directory, width=1):
+        self.directory = Path(directory)
+        self.width = width
+        self.ticket = None
+
+    def join(self):
+        self.directory.mkdir(parents=True, exist_ok=True)
+        pid = os.getpid()
+        self.ticket = self.directory / f'{time.time_ns():020d}-{pid}-{_created(pid) or 0}-{secrets.token_hex(2)}'
+        self.ticket.touch()
+
+    def leave(self):
+        if self.ticket is not None:
+            self.ticket.unlink(missing_ok=True)
+            self.ticket = None
+
+    def my_turn(self):
+        try:
+            tickets = sorted(self.directory.iterdir())
+        except FileNotFoundError:
+            return True
+        ahead = 0
+        for path in tickets:
+            if path == self.ticket:
+                return True
+            parts = path.name.split('-')
+            if len(parts) != 4 or not (parts[1].isdigit() and parts[2].isdigit()):
+                continue
+            pid, born = int(parts[1]), int(parts[2])
+            if not pid_alive(pid) or (born and _created(pid) not in (None, born)):
+                path.unlink(missing_ok=True)
+                continue
+            ahead += 1
+            if ahead >= self.width:
+                return False
+        return True
+
+
 class Lock:
     """One Windows file lock for all projects. Keep the lock file in place while tools may be running.
 
     A held lock makes the caller wait up to `wait` seconds (0: give up at once), saying once whom it waits for.
     Windows offers no blocking wait with a deadline on a byte-range lock, so a waiter retries every `poll` seconds.
-    Every waiter (these tools and `project_runtime.py <command>`) polls alike, so none starves the others."""
+    The waiters (these tools and `project_runtime.py <command>`) take it in arrival order (Queue)."""
+
+    busy = 'another local_checks/commit_push run (pid {holder}) is using Gradle; wait for it to finish'
+    waiting = 'waiting for the Gradle lock (pid {holder}) ...'
 
     def __init__(self, path=None, wait=0, echo=print, poll=0.2):
         self.path = Path(path or TEMP_ROOT / 'gradle.lock')
@@ -242,22 +305,42 @@ class Lock:
         self.poll = poll
         self._handle = None
 
+    def candidates(self):
+        """The lock files any one of which will do."""
+        return [self.path]
+
     def __enter__(self):
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        handle = self.path.open('a+b')
+        paths = self.candidates()
+        paths[0].parent.mkdir(parents=True, exist_ok=True)
+        queue = Queue(paths[0].with_name(paths[0].name + '.queue'), len(paths))
+        queue.join()
         deadline = time.monotonic() + self.wait
         told = False
-        while not try_lock(handle):
-            holder = handle.read().decode('utf-8', errors='replace').strip() or 'starting'
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                handle.close()
-                raise SystemExit(f'another local_checks/commit_push run (pid {holder}) is using Gradle; '
-                                 'wait for it to finish') from None
-            if not told:
-                self.echo(f'waiting for the Gradle lock (pid {holder}) ...', flush=True)
-                told = True
-            time.sleep(min(self.poll, remaining))
+        handle = None
+        try:
+            while handle is None:
+                holder = ''
+                for path in paths if queue.my_turn() else []:
+                    candidate = path.open('a+b')
+                    if try_lock(candidate):
+                        handle, self.path = candidate, path
+                        break
+                    holder = holder or candidate.read().decode('utf-8', errors='replace').strip()
+                    candidate.close()
+                if handle is not None:
+                    break
+                if not holder and paths[0].exists():
+                    holder = paths[0].read_bytes().decode('utf-8', errors='replace').strip()
+                holder = holder or 'starting'
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise SystemExit(self.busy.format(holder=holder)) from None
+                if not told:
+                    self.echo(self.waiting.format(holder=holder), flush=True)
+                    told = True
+                time.sleep(min(self.poll, remaining))
+        finally:
+            queue.leave()
         try:
             handle.seek(0)
             handle.truncate()
@@ -282,6 +365,27 @@ class Lock:
                 finally:
                     self._handle.close()
                     self._handle = None
+
+
+class Slot(Lock):
+    """One of `count` verification slots under `directory`: commit_push.py verifies an exported tree in a slot,
+    so that many runs verify at once and the rest wait in arrival order. `directory` is the slot's own folder
+    once taken; the exports and game directories of a run live there, at the same paths every time."""
+
+    busy = 'every verification slot is taken (pid {holder}); wait for a commit_push run to finish'
+    waiting = 'waiting for a verification slot (pid {holder}) ...'
+
+    def __init__(self, directory, count=None, wait=0, echo=print, poll=0.2):
+        super().__init__(Path(directory) / 'slot-1.lock', wait, echo, poll)
+        self.root = Path(directory)
+        self.count = count or SLOTS
+
+    def candidates(self):
+        return [self.root / f'slot-{number}.lock' for number in range(1, self.count + 1)]
+
+    @property
+    def directory(self):
+        return self.path.with_suffix('')
 
 
 # ----- Win32 process access ---------------------------------------------------------------------------
@@ -562,18 +666,21 @@ def project_at(root):
     return PROJECTS['guzhenren']
 
 
-def gradle_command(root, *arguments, project=None, daemon=True):
-    """A Gradle invocation in `root` for `project` (default: the project at root), with its partner's checkout.
+def gradle_command(root, *arguments, project=None, daemon=True, partner_root=None, game_root=None):
+    """A Gradle invocation in `root` for `project` (default: the project at root), with its partner's checkout
+    (or `partner_root`, an export of the partner) and its GameTest and datagen game directories under the
+    project's Temp folder (or `game_root`, so two runs at once never share a world).
     A warm daemon saves each later invocation its JVM start and Gradle bootstrap (≈4 s); it serves both mods
     and stops after DAEMON_IDLE_MS idle. daemon=False starts a single-use daemon that ends with the build, for runs whose
     game JVM the caller must own and kill."""
     root = Path(root).resolve()
     owner = project or project_at(root)
-    gu_world, guzhenren = mod_roots(owner, root)
+    gu_world, guzhenren = mod_roots(owner, root, partner_root)
+    games = Path(game_root or owner.temp)
     lifetime = ['--daemon', f'-Dorg.gradle.daemon.idletimeout={DAEMON_IDLE_MS}'] if daemon else ['--no-daemon']
     return [str(root / 'gradlew.bat'), *arguments, f'-PguWorldDir={gu_world}',
-            f'-PguzhenrenDir={guzhenren}', f'-PgameTestDir={owner.temp / "gametest"}',
-            f'-PdataGameDir={owner.temp / "data"}', *lifetime, '--console=plain']
+            f'-PguzhenrenDir={guzhenren}', f'-PgameTestDir={games / "gametest"}',
+            f'-PdataGameDir={games / "data"}', *lifetime, '--console=plain']
 
 
 def git(*arguments, cwd=REPOSITORY_ROOT, env=None, check=True):

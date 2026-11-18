@@ -1,4 +1,4 @@
-"""One-command local check of the mod: build + JUnit, GameTests, runData drift, server and client smoke.
+"""One-command local check of the mod: tool tests, build + JUnit, GameTests, runData drift, server and client smoke.
 
 A stage that loads the other mod builds that mod's jar first, once per run, and fails without it
 (project_runtime.PROJECTS, partner): Guzhenren's game stages (gametest, server, client) load the sibling Gu
@@ -69,6 +69,10 @@ class Context:
     # The partner build's outcome, shared by every run_stages call that passes the same dict
     # (commit_push's two mirror passes): absent until built, then '' or the reason it failed.
     partner_state: dict = field(default_factory=dict)
+    # commit_push.py verifies an export: the partner is then an export of its own tree with its jar already
+    # built (partner_root), and the game directories are the run's own (game_root).
+    partner_root: Path = None
+    game_root: Path = None
 
     def __post_init__(self):
         if self.project is None:
@@ -113,7 +117,8 @@ def gradle(ctx, *arguments, patterns=(), timeout=1800, root=None, project=None):
     started = time.monotonic()
     ctx.log.write(f'$ gradlew.bat {" ".join(arguments)}   (in {root})')
     deadline = started + timeout
-    command = env.gradle_command(root, *arguments, project=project or ctx.project)
+    command = env.gradle_command(root, *arguments, project=project or ctx.project,
+                                 partner_root=ctx.partner_root, game_root=ctx.game_root)
     with env.Process(command, root, ctx.log) as process:
         while True:
             outcome, line = process.watch(until=lambda _: True, timeout=max(0, deadline - time.monotonic()))
@@ -137,6 +142,44 @@ def failed_tasks(collector):
 
 def went_wrong(collector, limit=6):
     return collector.went_wrong[:limit]
+
+
+# ----- tools: the unit tests of these tools ----------------------------------------------------------
+
+UNITTEST_RAN = re.compile(r'^Ran (\d+) tests? in ')
+UNITTEST_FAILED = re.compile(r'^(?:FAIL|ERROR): (\S+) \(([^)]*)\)')
+
+
+def stage_tools(ctx):
+    """`python -m unittest discover -s tools` in ctx.root. An export of the repository sits elsewhere, so the
+    paths project_runtime derives from its own location are pinned to this workstation's."""
+    started = time.monotonic()
+    command = [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_*.py']
+    pinned = {'GZR_TEMP': str(env.TEMP_ROOT), 'GZR_GU_WORLD': str(env.GU_WORLD_ROOT), 'GZR_WIKI': str(env.WIKI_ROOT),
+              'GZR_MODELS': str(env.MODELS_ROOT)}
+    ctx.log.write(f'$ {" ".join(command)}   (in {ctx.root})')
+    collector = Collector(UNITTEST_RAN, UNITTEST_FAILED)
+    with env.Process(command, ctx.root, ctx.log, env=pinned) as process:
+        deadline = started + 900
+        while True:
+            outcome, line = process.watch(until=lambda _: True, timeout=max(0, deadline - time.monotonic()))
+            if outcome != 'until':
+                break
+            collector(line)
+        code = process.proc.returncode if outcome == 'exit' else None
+        if code is None:
+            process.kill_tree()
+    seconds = time.monotonic() - started
+    ran = matches(collector, UNITTEST_RAN)
+    failed = [match.group(2) if match.group(2).endswith(match.group(1)) else f'{match.group(2)}.{match.group(1)}'
+              for match in matches(collector, UNITTEST_FAILED)]
+    count = ran[-1].group(1) if ran else '0'
+    if code == 0 and ran:
+        return Result('PASS', seconds, f'{count} tool tests passed')
+    if code is None:
+        return Result('FAIL', seconds, 'timed out')
+    return Result('FAIL', seconds, f'{len(failed)} of {count} tool tests failed' if failed else f'unittest exit {code}',
+                  failed[:15] or collector.tail[-8:])
 
 
 # ----- build: compile, jar, pureTest JUnit ------------------------------------------------------
@@ -635,6 +678,7 @@ def join_server(ctx, server, game_dir, client_dir, port, rcon_port, password, st
     return Result('PASS', seconds, summary + stopped_note(held_open) + tail)
 
 STAGES = {
+    'tools': ('python -m unittest discover -s tools: the unit tests of these tools', stage_tools),
     'build': ('gradlew build: compile, jar, pureTest JUnit (wiki gate when the wiki exists)', stage_build),
     'gametest': ('gradlew runGameTestServer: every @GameTest on a dedicated server, both mods loaded (wiki gate as in build)', stage_gametest),
     'data': ('gradlew runData: providers must reproduce src/generated exactly (the CI drift check)', stage_data),
@@ -650,10 +694,12 @@ NEEDS_CLASSES = {'gametest', 'data', 'server', 'client', 'multiplayer'}
 WINDOWED = {'client', 'multiplayer'}
 
 
-def run_stages(root, names, log, wiki=None, echo=print, project=None, partner_state=None):
+def run_stages(root, names, log, wiki=None, echo=print, project=None, partner_state=None, partner_root=None,
+               game_root=None):
     project = project or env.PROJECTS['guzhenren']
     ctx = Context(Path(root), log, wiki, project=project,
-                  partner_state=partner_state if partner_state is not None else {})
+                  partner_state=partner_state if partner_state is not None else {},
+                  partner_root=partner_root, game_root=game_root)
     results = {}
     for name in names:
         if ctx.compile_failed and name in NEEDS_CLASSES:
