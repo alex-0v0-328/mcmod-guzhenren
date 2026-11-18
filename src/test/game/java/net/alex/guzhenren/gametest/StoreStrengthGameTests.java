@@ -71,7 +71,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *       与黑曜石，也不挖脚下地面。</li>
  *   <li>力气蛊[Strength Qi Gu]增益中目标在触及距离外：人力流放一个追踪气波，兽力流放一发兽力冲击，按解放熊自身 480
  *       点计（120.0），不打近战；追踪气波超时就地爆开；拳伤害保留攻击力乘数，不低于 0。</li>
- *   <li>惯力蛊[Habitual Strength Gu]增益下起蓄带可移动标记，取消、出拳、丢弃都撤；出拳结果与蓄力蛊相同。</li>
+ *   <li>惯力蛊[Habitual Strength Gu]增益下起蓄带可移动标记，蓄力期间疾跑被清掉；取消、出拳、丢弃都撤；出拳结果与蓄力蛊相同。</li>
  *   <li>出拳者站石头地面朝南（yaw 0），已过出生无敌，反噬可生效；身后目标 id 不保留，挥击沿视线；目标为
  *       {@link #TARGET_HEALTH} 生命的无意识村民；蓄力用 {@link GameTestPlayers#serverTicks} 推进。</li>
  * </ul>
@@ -331,6 +331,9 @@ public final class StoreStrengthGameTests {
 
         assertTrue(StoreStrength.start(player), "the charge did not start under the Habitual Gu alone");
         assertTrue(StoreStrength.isMobile(player), "the Habitual Gu's charge is not mobile");
+        player.setSprinting(true);
+        GameTestPlayers.serverTicks(player, 1);
+        assertFalse(player.isSprinting(), "the mobile charge let its holder sprint");
         StoreStrength.cancel(player);
         assertFalse(StoreStrength.isMobile(player), "the mobile mark outlived a cancelled charge");
 
