@@ -20,6 +20,7 @@ import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
+import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
@@ -60,7 +61,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertNotNull;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 蓄力蛊[Store Strength Gu]及其蓄力一拳测试，不含客户端锁定输入。
+ * 蓄力蛊[Store Strength Gu]、惯力蛊[Habitual Strength Gu]及其蓄力一拳测试，不含客户端锁定输入。
  * <ul>
  *   <li>无永久兽力流或人力流分支则拒绝不扣费，有则施加增益；未蓄满松手不出拳不扣费；手持剑或 Epic Fight 拳套、
  *       增益消失则拒绝并丢弃蓄力；全力以赴蛊[All-Out Effort Gu]缩短蓄力。</li>
@@ -70,6 +71,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *       与黑曜石，也不挖脚下地面。</li>
  *   <li>力气蛊[Strength Qi Gu]增益中目标在触及距离外：人力流放一个追踪气波，兽力流放一发兽力冲击，按解放熊自身 480
  *       点计（120.0），不打近战；追踪气波超时就地爆开；拳伤害保留攻击力乘数，不低于 0。</li>
+ *   <li>惯力蛊[Habitual Strength Gu]增益下起蓄带可移动标记，取消、出拳、丢弃都撤；出拳结果与蓄力蛊相同。</li>
  *   <li>出拳者站石头地面朝南（yaw 0），已过出生无敌，反噬可生效；身后目标 id 不保留，挥击沿视线；目标为
  *       {@link #TARGET_HEALTH} 生命的无意识村民；蓄力用 {@link GameTestPlayers#serverTicks} 推进。</li>
  * </ul>
@@ -113,7 +115,7 @@ public final class StoreStrengthGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theGuIsRefusedWithoutABranchAndLaysItsBuffWithOne(GameTestHelper helper) {
         ServerPlayer player = player(helper, NEAR_STAND);
-        ItemStack gu = hold(player, ModItems.STORE_STRENGTH_GU_4.get(), GU_HUNGER);
+        ItemStack gu = hold(player, ModItems.STORE_STRENGTH_GU_3.get(), GU_HUNGER);
         TendedGuItem item = (TendedGuItem) gu.getItem();
         long essence = ApertureEssenceService.getSpendable(player);
 
@@ -311,6 +313,43 @@ public final class StoreStrengthGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
+    public static void theHabitualGuChargesOnTheMoveAndStrikesTheSame(GameTestHelper helper) {
+        ServerPlayer player = human(helper, NEAR_STAND);
+        Villager locked = villager(helper, LOCKED);
+        assertTrue(StoreStrength.start(player), "the Store Strength charge did not start");
+        assertFalse(StoreStrength.isMobile(player), "the Store Strength Gu charges on the move");
+        StoreStrength.cancel(player);
+
+        ItemStack gu = hold(player, InteractionHand.MAIN_HAND, ModItems.HABITUAL_STRENGTH_GU_4.get(), GU_HUNGER);
+        click(helper, player, gu);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        assertTrue(TimedEffects.hasBuff(player, ModEffects.HABITUAL_STRENGTH_GU), "the Habitual Gu laid no buff");
+        PathEffectService.remove(player, effect -> effect.payload() instanceof TimedBuff buff
+                && buff.is(ModEffects.STORE_STRENGTH_GU));
+        GameTestPlayers.serverTicks(player, 1);
+        assertFalse(player.hasEffect(ModEffects.STORE_STRENGTH_GU), "the Store Strength buff was not ended");
+
+        assertTrue(StoreStrength.start(player), "the charge did not start under the Habitual Gu alone");
+        assertTrue(StoreStrength.isMobile(player), "the Habitual Gu's charge is not mobile");
+        StoreStrength.cancel(player);
+        assertFalse(StoreStrength.isMobile(player), "the mobile mark outlived a cancelled charge");
+
+        fillCharge(player);
+        assertTrue(StoreStrength.isMobile(player), "the full charge lost its mobile mark");
+        float expected = (float) AttackDamageService.getFistDamage(player, JIN);
+        assertTrue(ChargedPunch.release(player, locked.getId()), "the full mobile charge did not strike");
+        assertEquals(expected, TARGET_HEALTH - locked.getHealth(), DELTA);
+        assertFalse(StoreStrength.isMobile(player), "the mobile mark outlived the strike");
+
+        assertTrue(StoreStrength.start(player), "the charge did not restart");
+        PathEffectService.remove(player, effect -> effect.type() == ModPathEffectTypes.BUFF);
+        GameTestPlayers.serverTicks(player, 1);
+        assertFalse(StoreStrength.isCharging(player), "the charge outlived the Habitual Gu's buff");
+        assertFalse(StoreStrength.isMobile(player), "the mobile mark outlived a dropped charge");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
     public static void withTheQiBuffAFarTargetTakesOneTrackingQiWave(GameTestHelper helper) {
         ServerPlayer player = human(helper, FAR_STAND);
         Villager far = villager(helper, PAST_REACH);
@@ -480,7 +519,7 @@ public final class StoreStrengthGameTests {
     }
 
     private static void useGu(GameTestHelper helper, ServerPlayer player) {
-        ItemStack gu = hold(player, InteractionHand.MAIN_HAND, ModItems.STORE_STRENGTH_GU_4.get(), GU_HUNGER);
+        ItemStack gu = hold(player, InteractionHand.MAIN_HAND, ModItems.STORE_STRENGTH_GU_3.get(), GU_HUNGER);
         click(helper, player, gu);
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         assertTrue(TimedEffects.hasBuff(player, ModEffects.STORE_STRENGTH_GU), "the Gu laid no buff");
