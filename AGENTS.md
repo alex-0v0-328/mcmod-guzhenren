@@ -53,13 +53,13 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 
 改后用 `python -B tools/local_checks.py` 检查受影响阶段；`--list` 列阶段，GUWORLD 加 `--project guworld`。数据生成 provider 改动必跑 `data`；通过后仅因新改动、失败或未决问题补查。
 
-你负责 Gradle、自动客户端/多人检查、IDEA 同步验证；Alex 验收视觉与手感。两仓库共用 `../../Temps/guzhenren/gradle.lock`；手动 Gradle 也须持锁（`python -B tools/project_runtime.py gradlew.bat <任务>`），禁止删锁。
+你负责 Gradle、自动客户端/多人检查、IDEA 同步验证；Alex 验收视觉与手感。两仓库的工作区共用 `../../Temps/guzhenren/gradle.lock`；手动 Gradle 也须持锁（`python -B tools/project_runtime.py gradlew.bat <任务>`），禁止删锁。`commit_push.py` 在导出树里验证，不占此锁。
 
 日志按运行隔离；读取、报告后只清理自己的日志，保留诊断证据。
 代码修改后、wiki 编辑前读 `wiki-sync`；完成时同步受影响 wiki，报告改动、检查结果、未验证项、遗留问题。
 
 【原则】commit 标题 Alex 指定则照用，否则代理直接选推荐项，不再询问；禁止 AI 共同创作者、署名及尾注。
-提交推送先读 `commit-push`，mod 用 `python -B tools/commit_push.py`，wiki 按该技能直接提交推送；Alex 要求结束会话时读 `exit-session`。推送后 CI 变红：先 git revert 该提交并推送，使 main 回绿，再修复、复查、重新推送；禁止强推。
+提交推送先读 `commit-push`，两个 mod 与 wiki 都用 `python -B tools/commit_push.py`，禁止手工提交绕过验证；Alex 要求结束会话时读 `exit-session`。推送后 CI 变红：先 git revert 该提交并推送，使 main 回绿，再修复、复查、重新推送；禁止强推。
 
 ## Conventions
 
