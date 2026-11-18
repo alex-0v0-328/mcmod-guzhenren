@@ -15,6 +15,7 @@ import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.dimension.TossStashData;
+import net.alex.guzhenren.gameplay.mind.GuRecipeKnowledgeData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -131,6 +132,9 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<KillingMoveData>> KILLING_MOVE =
             registerSynced("killing_move_data", KillingMoveData.DEFAULT, KillingMoveData.CODEC,
                     StreamCodec.of(KillingMoveData::encode, KillingMoveData::decode));
+    public static final Supplier<AttachmentType<GuRecipeKnowledgeData>> GU_RECIPE_KNOWLEDGE = registerSynced(
+            "gu_recipe_knowledge_data", GuRecipeKnowledgeData.DEFAULT, GuRecipeKnowledgeData.CODEC,
+            StreamCodec.of(GuRecipeKnowledgeData::encode, GuRecipeKnowledgeData::decode));
     //endregion
 
     //region Dimension return [维度往返]

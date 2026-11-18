@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.hud;
 
 import net.alex.guzhenren.gameplay.aperture.Talent;
 import net.alex.guzhenren.item.GuItem;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
  *       默认蓄力色，标题同资质行（八成七）。</li>
  *   <li>蓄力蛊[Store Strength Gu]蓄力时（{@link StoreStrengthCharge#isCharging}）显示该蓄力：填充中灰色，服务端判满
  *       （{@link StoreStrengthCharge#isFull}）后默认蓄力色，标题“蓄力中”/“蓄满”。</li>
+ *   <li>研读蛊方（{@link GuRecipeItem}）时显示研读进度，单点阅读的 {@link GuItem#TAP_TICKS} 内不出条，免得一闪而过。</li>
  *   <li>{@link #isShowing} 是“蓄力催动进行中”唯一判定；{@link NourishHud} 也读它，把自己的条叠在本条上方。</li>
  *   <li>⚠ 催动带持续时间的蛊自动得本条，新增蓄力类蛊无需改这里。</li>
  *   <li>叶子类标题写成 {@code a / b} 时须给出同一对数值的 {@code chargeFraction}。</li>
@@ -38,6 +40,7 @@ public final class ChargeHud extends HotbarHud {
     private static final int AWAKENING_FILLING_COLOR = 0xFFCCCCCC;
     private static final String STORE_STRENGTH = "guzhenren.hud.store_strength";
     private static final String STORE_STRENGTH_FULL = "guzhenren.hud.store_strength.full";
+    private static final String STUDY = "guzhenren.hud.gu_recipe.study";
     static final HudBar AWAKENING = HudBar.of("awakening", BAR_WIDTH, BAR_HEIGHT);
 
     static boolean isShowing(Minecraft minecraft, LocalPlayer player) {
@@ -47,7 +50,12 @@ public final class ChargeHud extends HotbarHud {
         if (!player.isUsingItem()) return false;
 
         ItemStack stack = player.getUseItem();
+        if (stack.getItem() instanceof GuRecipeItem) return getStudied(player) > GuItem.TAP_TICKS;
         return stack.getItem() instanceof GuItem gu && gu.getUseDuration(stack, player) > 0;
+    }
+
+    private static int getStudied(LocalPlayer player) {
+        return player.getUseItem().getUseDuration(player) - player.getUseItemRemainingTicks();
     }
 
     @Override
@@ -77,6 +85,12 @@ public final class ChargeHud extends HotbarHud {
         }
 
         ItemStack stack = player.getUseItem();
+        if (stack.getItem() instanceof GuRecipeItem) {
+            float studied = getStudied(player) / (float) stack.getUseDuration(player);
+            draw(graphics, minecraft, HOTBAR, x, y, studied, GuItem.CHARGE_COLOR_DEFAULT,
+                    Component.translatable(STUDY));
+            return;
+        }
         GuItem gu = (GuItem) stack.getItem();
         int total = gu.getUseDuration(stack, player);
         int remaining = player.getUseItemRemainingTicks();

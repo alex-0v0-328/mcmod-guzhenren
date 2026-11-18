@@ -235,6 +235,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.hud.using",                           "Use %s/%s",                   "使用 %s/%s");
         add("guzhenren.hud.store_strength",                  "Charging",                    "蓄力中");
         add("guzhenren.hud.store_strength.full",             "Charged",                     "蓄满");
+        add("guzhenren.hud.gu_recipe.study",                 "Studying",                    "研读中");
         add("guzhenren.hud.slider.cancel",                   "Cancel",                      "取消");
         add("guzhenren.hud.elder_gu.withdraw",               "Withdraw %s stacks (%s)",     "取出 %s 组（%s 枚）");
         add("guzhenren.hud.elder_gu.detail",
@@ -443,6 +444,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.killing_move.known",                     "Learned", "已学会");
         add("guzhenren.killing_move.started",                        "Killing move: %s", "杀招：%s");
         add("guzhenren.killing_move.stopped",                        "Killing move off: %s", "杀招关闭：%s");
+        add("item.guzhenren.gu_recipe.named",                        "Gu Recipe • %s", "蛊方 • %s");
+        add("guzhenren.item.gu_recipe.learned",                      "Gu recipe learned: %s", "习得蛊方：%s");
+        add("guzhenren.item.gu_recipe.known",                        "Learned", "已学会");
+        add("guzhenren.item.failed.gu_recipe_missing",               "No such Gu recipe", "没有这张蛊方");
         add("guzhenren.killing_move.stop",                           "Stop %s", "关闭%s");
         add("guzhenren.item.failed.killing_move_partner_missing",
                 "Missing the killing move's key Gu: %s", "缺少杀招关键蛊虫：%s");

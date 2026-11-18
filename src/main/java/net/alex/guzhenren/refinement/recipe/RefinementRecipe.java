@@ -33,7 +33,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <ul>
  *   <li>⚠ 只有本类碰原版配方 API；{@link GuRecipe}、{@link GuIngredient}、{@link GuRecipeInput} 都不引用它。</li>
- *   <li>⚠ 蛊方序号两端一致全靠 {@link #getKnown} 按配方 ID 排序，配方管理器自身顺序毫无保证。</li>
+ *   <li>⚠ 蛊方序号两端一致全靠 {@link #getSorted} 按配方 ID 排序，配方管理器自身顺序毫无保证；序号覆盖服务器全部
+ *       蛊方，学没学会由 {@code GuRecipeKnowledge} 另判。</li>
  * </ul>
  *
  * @author Alex
@@ -46,9 +47,12 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
 
     //region attemptable recipes [可尝试蛊方]
     public static List<GuRecipe> getKnown(RecipeManager recipes) {
+        return getSorted(recipes).stream().map(held -> held.value().gu()).toList();
+    }
+
+    public static List<RecipeHolder<RefinementRecipe>> getSorted(RecipeManager recipes) {
         return recipes.getAllRecipesFor(ModRecipes.REFINEMENT.get()).stream()
                 .sorted(Comparator.comparing(RecipeHolder::id))
-                .map(held -> held.value().gu())
                 .toList();
     }
     //endregion

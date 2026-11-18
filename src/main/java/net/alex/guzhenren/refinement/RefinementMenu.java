@@ -25,6 +25,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 仪式刻意归界面、不提到服务里：运行时网格锁定；客户端无法自行匹配蛊方，实时数值皆经
  *       {@link net.minecraft.world.inventory.ContainerData}（十个 int）读取。</li>
  *   <li>⚠ 蛊材在外环、蛊虫在内核，仪式运行时一律不可移动。</li>
+ *   <li>只认已学会的蛊方（{@link GuRecipeKnowledge}）：未学会的选不中，也不参与自动匹配；选中序号仍是服务器全部蛊方
+ *       的排序序号。</li>
  *   <li>选中蛊方后 {@code match()} 只考虑它；选蛊方时经 {@link RecipeAutofill} 从背包填格。</li>
  *   <li>炼制按钮只开始仪式，结果待所有窗口与间隔走完才落定。</li>
  *   <li>刻意超过 300 行：槽位布局、放置规则、按钮背后的蛊方、仪式时钟守同一组网格，仪式运行时它锁定。</li>
@@ -162,15 +165,15 @@ public class RefinementMenu extends AbstractContainerMenu {
         if (server == null) return null;
 
         GuRecipeInput in = GuRecipeInput.of(input);
-        List<GuRecipe> known = RefinementRecipe.getKnown(server.getRecipeManager());
+        List<RecipeHolder<RefinementRecipe>> all = RefinementRecipe.getSorted(server.getRecipeManager());
         if (selectedIndex >= 0) {
-            if (selectedIndex >= known.size()) return null;
+            if (selectedIndex >= all.size() || !isLearned(all.get(selectedIndex))) return null;
 
-            GuRecipe only = known.get(selectedIndex);
+            GuRecipe only = all.get(selectedIndex).value().gu();
             return only.claim(in) != null ? only : null;
         }
-        for (GuRecipe recipe : known) {
-            if (recipe.claim(in) != null) return recipe;
+        for (RecipeHolder<RefinementRecipe> held : all) {
+            if (isLearned(held) && held.value().gu().claim(in) != null) return held.value().gu();
         }
         return null;
     }
@@ -179,12 +182,18 @@ public class RefinementMenu extends AbstractContainerMenu {
         MinecraftServer server = player.getServer();
         if (server == null || ritual.isRunning()) return false;
 
-        List<GuRecipe> known = RefinementRecipe.getKnown(server.getRecipeManager());
-        selectedIndex = index >= 0 && index < known.size() ? index : -1;
+        List<RecipeHolder<RefinementRecipe>> all = RefinementRecipe.getSorted(server.getRecipeManager());
+        if (index >= 0 && index < all.size() && !isLearned(all.get(index))) return false;
+
+        selectedIndex = index >= 0 && index < all.size() ? index : -1;
         craftData.set(DATA_SELECTED, selectedIndex + 1);
-        if (selectedIndex >= 0) RecipeAutofill.fill(known.get(selectedIndex), input, player);
+        if (selectedIndex >= 0) RecipeAutofill.fill(all.get(selectedIndex).value().gu(), input, player);
         refresh();
         return true;
+    }
+
+    private boolean isLearned(RecipeHolder<RefinementRecipe> held) {
+        return GuRecipeKnowledge.knows(player, held.id());
     }
 
     private void refresh() {

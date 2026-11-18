@@ -197,8 +197,9 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
             Widgets.drawBackLabel(graphics, font, getBackX(), getBackY());
         });
         if (picker.isOpen()) {
-            picker.render(graphics, font, KnownRecipes.get(), menu.getSelected(), leftPos, topPos, imageWidth,
-                    imageHeight, mouseX, mouseY);
+            KnownRecipes.Learned learned = KnownRecipes.getLearned();
+            picker.render(graphics, font, learned.recipes(), learned.toLocal(menu.getSelected()), leftPos, topPos,
+                    imageWidth, imageHeight, mouseX, mouseY);
             return;
         }
         renderTooltip(graphics, mouseX, mouseY);
@@ -273,7 +274,12 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (picker.isOpen()) {
             if (button == 0) {
-                int chosen = picker.click(mouseX, mouseY, KnownRecipes.get(), leftPos, topPos, imageWidth, imageHeight);
+                KnownRecipes.Learned learned = KnownRecipes.getLearned();
+                int chosen = picker.click(mouseX, mouseY, learned.recipes(), leftPos, topPos, imageWidth, imageHeight);
+                if (chosen >= RefinementMenu.BUTTON_RECIPE_BASE) {
+                    int global = learned.toGlobal(chosen - RefinementMenu.BUTTON_RECIPE_BASE);
+                    chosen = global < 0 ? RecipePicker.NO_BUTTON : RefinementMenu.BUTTON_RECIPE_BASE + global;
+                }
                 if (chosen != RecipePicker.NO_BUTTON) send(chosen);
             }
             return true;

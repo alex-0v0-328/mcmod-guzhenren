@@ -11,6 +11,7 @@ import net.alex.guzhenren.gameplay.body.ShieldData;
 import net.alex.guzhenren.gameplay.body.ShieldWindow;
 import net.alex.guzhenren.gameplay.dimension.DimensionReturnData;
 import net.alex.guzhenren.gameplay.dimension.TossStashData;
+import net.alex.guzhenren.gameplay.mind.GuRecipeKnowledgeData;
 import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.mind.MindData;
 import net.alex.guzhenren.gameplay.path.PathData;
@@ -78,6 +79,8 @@ public final class PlayerData {
 
     public KillingMoveData getKillingMoves() { return owner.getData(ModAttachments.KILLING_MOVE); }
 
+    public GuRecipeKnowledgeData getGuRecipeKnowledge() { return owner.getData(ModAttachments.GU_RECIPE_KNOWLEDGE); }
+
     public DimensionReturnData getDimensionReturn() { return owner.getData(ModAttachments.DIMENSION_RETURN); }
 
     public TossStashData getTossStash() { return owner.getData(ModAttachments.TOSS_STASH); }
@@ -125,6 +128,10 @@ public final class PlayerData {
 
     public boolean setKillingMoves(@NotNull KillingMoveData value) {
         return set(ModAttachments.KILLING_MOVE, value);
+    }
+
+    public boolean setGuRecipeKnowledge(@NotNull GuRecipeKnowledgeData value) {
+        return set(ModAttachments.GU_RECIPE_KNOWLEDGE, value);
     }
 
     public boolean setDimensionReturn(@NotNull DimensionReturnData value) {

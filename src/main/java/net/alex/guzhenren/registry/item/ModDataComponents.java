@@ -12,6 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -70,6 +71,11 @@ public final class ModDataComponents {
             registerLong("little_light_bright_until");
     public static final Supplier<DataComponentType<Boolean>> LITTLE_LIGHT_FORCED =
             register("little_light_forced", Codec.BOOL, ByteBufCodecs.BOOL);
+    //endregion
+
+    //region Gu recipe [蛊方]
+    public static final Supplier<DataComponentType<ResourceLocation>> RECIPE_ID =
+            register("recipe_id", ResourceLocation.CODEC, ResourceLocation.STREAM_CODEC);
     //endregion
 
     public static void register(IEventBus modEventBus) {

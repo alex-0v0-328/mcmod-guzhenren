@@ -4,40 +4,24 @@
   "essence_per_second": 100,
   "ingredients": [
     {
-      "count": 4,
-      "item": "minecraft:iron_block"
+      "count": 1,
+      "item": "minecraft:rabbit_foot"
     },
     {
-      "count": 2,
-      "item": "minecraft:gold_block"
-    },
-    {
-      "count": 2,
-      "item": "minecraft:gold_block"
-    },
-    {
-      "count": 4,
-      "item": "minecraft:iron_block"
+      "count": 1,
+      "item": "minecraft:rabbit_foot"
     },
     {
       "count": 1,
       "item": "guzhenren:store_strength_gu_3"
     },
     {
-      "count": 4,
-      "item": "minecraft:iron_block"
+      "count": 1,
+      "item": "minecraft:rabbit_foot"
     },
     {
-      "count": 2,
-      "item": "minecraft:gold_block"
-    },
-    {
-      "count": 2,
-      "item": "minecraft:gold_block"
-    },
-    {
-      "count": 4,
-      "item": "minecraft:iron_block"
+      "count": 1,
+      "item": "minecraft:rabbit_foot"
     }
   ],
   "results": [
@@ -48,13 +32,9 @@
   ],
   "slots": [
     1,
-    3,
-    4,
     5,
     16,
     6,
-    7,
-    8,
     10
   ],
   "soul_per_second": 3,

@@ -23,6 +23,7 @@ import net.alex.guzhenren.client.renderer.SkinFlashLayer;
 import net.alex.guzhenren.client.renderer.SkinFlashes;
 import net.alex.guzhenren.client.screen.ApertureStorageScreen;
 import net.alex.guzhenren.client.screen.BookletScreen;
+import net.alex.guzhenren.client.screen.KnownRecipes;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
@@ -35,6 +36,7 @@ import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.alex.guzhenren.registry.menu.ModMenus;
@@ -143,6 +145,8 @@ public final class ClientEvents {
             ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
             ModPayloads.handleOnClient(StoreStrengthNoticePayload.class, StoreStrengthInput::onNotice);
             BookletItem.readOnClient(BookletScreen::open);
+            GuRecipeItem.readOnClient(BookletScreen::openRecipe);
+            GuRecipeItem.lookUpOnClient(KnownRecipes::find, KnownRecipes::getIds);
             EpicFightClientIntegration.initialize();
         });
     }

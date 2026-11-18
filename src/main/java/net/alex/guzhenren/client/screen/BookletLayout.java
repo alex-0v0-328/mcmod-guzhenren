@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  *       {@value #GLYPH_X}、文字区顶加行偏移下 {@value #GLYPH_Y} 像素；墨距两侧界栏、最右列墨距版框各 1 像素。</li>
  *   <li>每段另起一列，满则接下列；正文、属性行顶格，属性行只占一列；引文每列下沉 {@value #QUOTE_SINK} 行（低两格），
  *       非开篇则前空一列；避头：列首不放 {@link #NO_COLUMN_START} 中的收尾标点，前一字随之下移，原列少一行。</li>
- *   <li>有插图时只在右半页排文字；左半页画插图物品的 {@value #ICON} 像素图标，图注在其下竖排一列、相隔
+ *   <li>有插图或是蛊方（左半页画网格）时只在右半页排文字；左半页画插图物品的 {@value #ICON} 像素图标，图注在其下竖排一列、相隔
  *       {@value #CAPTION_GAP} 像素，整块在文字区内居中。</li>
  *   <li>⚠ 不翻页：文字超出半页，或无插图时超出一个跨页，拒绝排版并报出该段。</li>
  * </ul>
@@ -53,7 +53,8 @@ final class BookletLayout {
 
     static Spread lay(Booklet booklet, boolean traditional) {
         Plate plate = booklet.getFigure().map(figure -> plate(figure.caption(traditional))).orElse(null);
-        return new Spread(layText(booklet.getParagraphs(), plate == null ? 2 * COLUMNS : COLUMNS, traditional), plate);
+        boolean halfPage = plate != null || booklet.getRecipe().isPresent();
+        return new Spread(layText(booklet.getParagraphs(), halfPage ? COLUMNS : 2 * COLUMNS, traditional), plate);
     }
 
     static List<Cell> layText(List<Booklet.Paragraph> paragraphs, int columns, boolean traditional) {

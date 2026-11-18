@@ -11,6 +11,7 @@ import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -27,7 +28,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * 创造模式物品栏：按物品类与道[Path]分派，或按注册链的 {@code tab}。
  *
  * <ul>
- *   <li>力道、木道蛊离开凡蛊栏进本道栏，木道蛊材仍留蛊材栏；其后凡道杀招[Killing Move]书栏，书册殿后。</li>
+ *   <li>力道、木道蛊离开凡蛊栏进本道栏，木道蛊材仍留蛊材栏；其后凡道杀招[Killing Move]书栏，书册殿后（蛊方按客户端配方表每张列一本）。</li>
  *   <li>{@code tab} 取代按类选栏：元泉[Spirit Spring] BlockItem、纯水桶、钢锭、钢块、知心草种子、黑土耕地借此
  *       进蛊材栏。</li>
  *   <li>⚠ 不属上述类又无 {@code tab} 的物品静默不进任何栏；进度图标有意如此。</li>
@@ -65,7 +66,7 @@ public final class ModCreativeTabs {
             KillingMoveBookItem.class::isInstance);
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> BOOKLET = register(
             "booklet", () -> ModItems.GU_ATLAS_HOPE.get(), Guzhenren.id("km_mortal"),
-            BookletItem.class::isInstance);
+            item -> item instanceof BookletItem || item instanceof GuRecipeItem);
 
     private static DeferredHolder<CreativeModeTab, CreativeModeTab> register(
             String id, Supplier<? extends Item> icon, ResourceLocation before, Predicate<Item> accepted) {
@@ -85,7 +86,13 @@ public final class ModCreativeTabs {
             ItemRegistrar.Entry declared = registrar.getEntry(entry.getId());
             ResourceKey<CreativeModeTab> declaredTab = declared == null ? null : declared.tab();
             Item item = entry.get();
-            if (declaredTab != null ? declaredTab.equals(tab) : accepted.test(item)) output.accept(item);
+            if (!(declaredTab != null ? declaredTab.equals(tab) : accepted.test(item))) continue;
+
+            if (item instanceof GuRecipeItem) {
+                for (ResourceLocation id : GuRecipeItem.listForCreativeTab()) output.accept(GuRecipeItem.of(item, id));
+            } else {
+                output.accept(item);
+            }
         }
     }
 

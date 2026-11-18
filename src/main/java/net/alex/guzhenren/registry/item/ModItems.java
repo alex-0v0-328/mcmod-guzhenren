@@ -73,6 +73,7 @@ import net.alex.guzhenren.item.material.GuMaterialItem;
 import net.alex.guzhenren.item.material.LiquorItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.item.material.RottenFrozenMudItem;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.builder.ItemModel;
 import net.alex.guzhenren.registry.builder.ItemRegistrar;
@@ -1021,6 +1022,9 @@ public final class ModItems {
     public static final DeferredItem<Item> GU_ATLAS_HOPE = REGISTRAR.item("gu_atlas_hope",
             () -> new BookletItem(new Item.Properties(), Booklet.GU_ATLAS_HOPE))
             .lang("Gu Atlas: Hope", "蛊虫图说：希望").register();
+    public static final DeferredItem<Item> GU_RECIPE = REGISTRAR.item("gu_recipe",
+            () -> new GuRecipeItem(new Item.Properties()))
+            .lang("Gu Recipe", "蛊方").register();
     //endregion
 
     //region Advancement Icon [进度图标]
