@@ -28,7 +28,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>条件：两蛊任一增益运行（读标记效果，同全力以赴蛊[All-Out Effort Gu]，{@link #hasBuff}）、持兽力虚影流或人力
  *       钧力流、空手、Epic Fight 锁定时按住攻击键 {@link #HOLD_TICKS}，客户端再请求 {@link #start}。</li>
  *   <li>起蓄时惯力蛊增益在身即为可移动蓄力（{@link #isMobile}，两增益同在按惯力算）：标记广播给所有看得见的客户端，
- *       本次蓄力结束即撤（自行丢弃时在事件之后撤，监听方仍读得到）；其余规则两蛊相同。</li>
+ *       本次蓄力结束即撤（自行丢弃时在事件之后撤，监听方仍读得到）；可移动蓄力期间
+ *       不能疾跑，服务端每 tick 清疾跑标记，客户端另松开疾跑键；其余规则两蛊相同。</li>
  *   <li>蓄满需 {@link #CHARGE_TICKS}，三 / 四 / 五转全力以赴下为 70% / 60% / 50%，逐 tick 按当时转数推进；
  *       仅蓄满松手算数（容差 {@link #RELEASE_SLACK_TICKS} 吸收数据包抖动）；未满、丢增益、分支或空手、死亡、换维度、
  *       下线都取消，不出拳不扣费。</li>
@@ -202,6 +203,7 @@ public final class StoreStrength {
             drop(player);
             return;
         }
+        if (isMobile(player) && player.isSprinting()) player.setSprinting(false);
         int tier = StrengthService.getAllOutTier(player);
         float filled = fill(progress, tier);
         CHARGES.put(player.getUUID(), filled);

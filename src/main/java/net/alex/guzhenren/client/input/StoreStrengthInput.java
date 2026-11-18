@@ -25,6 +25,8 @@ import yesman.epicfight.client.input.EpicFightKeyMappings;
  *       （{@link #onNotice}）才显示满（{@link StoreStrengthCharge#isFull}，伴弩装填声），蓄力以服务端为准。</li>
  *   <li>松开无论满否都向锁定目标发 {@link ChargeAction#RELEASE}，由服务端判；失去效果、空手、锁定或离开游戏画面发
  *       {@link ChargeAction#CANCEL}；服务端中断通知同样结束蓄力，下次须等按键抬起。</li>
+ *   <li>可移动蓄力（{@link StoreStrength#isMobile}）期间每 tick 停止疾跑并松开疾跑键：只清疾跑标记的话，原版下一 tick
+ *       会凭按住的键重新起跑；松开后须重新按键才再疾跑。</li>
  *   <li>同 {@code QiWaveInput} 读按住状态：Epic Fight 攻击键同键，战斗模式下吃掉点击；{@link #reset} 登出时清空。</li>
  * </ul>
  *
@@ -62,6 +64,7 @@ public final class StoreStrengthInput {
                 stop(ChargeAction.RELEASE, target.getId());
             } else {
                 CHARGE.setProgress(StoreStrength.fill(CHARGE.getFilled(), StrengthService.getAllOutTier(player)));
+                if (StoreStrength.isMobile(player)) stopSprinting(minecraft, player);
             }
             return;
         }
@@ -96,6 +99,11 @@ public final class StoreStrengthInput {
         STATE.heldTicks = 0;
         STATE.waitingForKeyUp = false;
         CHARGE.reset();
+    }
+
+    private static void stopSprinting(Minecraft minecraft, LocalPlayer player) {
+        minecraft.options.keySprint.setDown(false);
+        if (player.isSprinting()) player.setSprinting(false);
     }
 
     private static void stop(ChargeAction action, int target) {
