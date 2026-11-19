@@ -27,14 +27,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 范围冲击[Area Impact]服务：空手拳击追加的身前锥形冲击波，或力气蛊[Strength Qi Gu]远程气波爆开时追加的球形冲击波。
  * <ul>
- *   <li>每段拳击或每次气波爆开独立掷骰一次（{@link #rolls}，挥空同样判定）；触发概率仅取决于状态（全力以赴为
- *       {@link #ALL_OUT_CHANCE}、力气蛊为 {@link #STRENGTH_QI_CHANCE}、两者并存为 {@link #BOTH_CHANCE}），与力量点无
- *       关。</li>
+ *   <li>每个连招轮[Combo Round]只在收尾招掷一次（{@link #rolls}，由 {@link ComboRound#rollsImpact} 调用，挥空同样判
+ *       定）；触发概率仅取决于状态（全力以赴为 {@link #ALL_OUT_CHANCE}、力气蛊为 {@link #STRENGTH_QI_CHANCE}、两者并存为
+ *       {@link #BOTH_CHANCE}），与力量点无关。</li>
  *   <li>作用半径 {@link #getRange} 由本击可发挥力量点[Strength Points]（{@link #getPoints}，手持物品时为 {@code 0}）按
  *       平方根增长，封顶于 {@link #MAX_RANGE}。</li>
- *   <li>{@code EpicFightIntegration} 在连段、冲刺或空中拳击命中窗口结束时调 {@link #release}（从眼部沿视线发出锥形冲
- *       击，排除本拳已判定目标，随后调 {@link AreaImpactShatter} 崩裂前方地形）；{@code QiBurst} 在远程气波爆开时调
- *       {@link #burst}（以爆点为中心发出球形冲击，排除气波直击目标，不破方块）。</li>
+ *   <li>{@code EpicFightIntegration} 在近战收尾招最后一段判定结束时调 {@link #release}（从眼部沿视线发出锥形冲击，排
+ *       除本拳已判定目标，随后调 {@link AreaImpactShatter} 崩裂前方地形）；收尾招化作远程拳时改由 {@code QiBurst} 在爆开
+ *       时调 {@link #burst}（以爆点为中心发出球形冲击，排除气波直击目标，不破方块）。</li>
  *   <li>目标碰撞箱中心须落在锥体（{@link #isInCone}）或球体内，且从起点到目标眼部无方块碰撞遮挡（{@link #isInSight}）；
  *       按由近及远顺序最多命中 {@link #MAX_TARGETS} 个目标（免疫伤害的目标不占名额）。</li>
  *   <li>伤害为当前攻击力面板 × {@link #DAMAGE_RATIO}（{@code guzhenren:area_impact} 普通战斗伤害，受护甲减免，带

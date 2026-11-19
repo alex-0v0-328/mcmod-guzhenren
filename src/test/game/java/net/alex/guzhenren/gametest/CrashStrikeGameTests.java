@@ -5,10 +5,10 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.CrashSources;
 import net.alex.guzhenren.gameplay.path.strength.CrashStrike;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -34,7 +34,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 终点破坏打击[Crash Strike]：五转活玩家在场景西缘朝东。
  * <ul>
- *   <li>两猪 48 点：空手拳击 7，倍率 0.75 打 5.25，开全力以赴 1.0 打 7；不开虚影轮次，20 tick 内再打落空。</li>
+ *   <li>两猪 48 点：空手拳击 7，倍率 0.75 打 5.25，开全力以赴 1.0 打 7；收尾招中也不抽虚影，20 tick 内再打落空。</li>
  *   <li>手持钻石剑（仿装备刷新挂上其攻击修饰）时打击仍按空手。</li>
  *   <li>冲撞流程：无力量（半径 3 格、打 0.5）从西缘冲 4 格，移动那 tick 与其后第一个静止 tick 不打，连续第二个静止 tick
  *       才打到停点前方的猪；无力量路程 6.05 格，一 tick 跳出 12 格（传送）作废，此后静止也不打。</li>
@@ -66,16 +66,17 @@ public final class CrashStrikeGameTests {
     private static final double DELTA = 1.0E-3D;
 
     @GameTest(template = "empty9x9x9")
-    public static void theStrikeHitsAtTheFullRatioWithoutOpeningARoundAndCoolsDown(GameTestHelper helper) {
+    public static void theStrikeHitsAtTheFullRatioWithoutDrawingAPhantomAndCoolsDown(GameTestHelper helper) {
         ServerPlayer player = boars(helper, "gzr-crash-strike-round");
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, ALL_OUT_TICKS, RANK_FIVE_TIER));
         Pig pig = idlePig(helper, NEAR);
 
+        ComboRound.beginStrike(player, true);
         List<LivingEntity> landed = CrashStrike.strike(player, EAST, CrashSources.of(player));
         assertTrue(landed.contains(pig), "the strike missed the pig ahead");
         assertEquals(pig.getMaxHealth() - 7.0D, pig.getHealth(), DELTA);
         assertTrue(pig.getDeltaMovement().x > 0.0D, () -> "the strike shoved " + pig.getDeltaMovement());
-        assertFalse(StrengthRound.isRunning(player), "the strike opened a phantom round at All-Out Effort's 100%");
+        assertTrue(ComboRound.getFamilies(player).isEmpty(), "the strike drew a phantom at All-Out Effort's 100%");
 
         assertTrue(CrashStrike.strike(player, EAST, CrashSources.of(player)).isEmpty(), "the cooldown let it strike");
         assertEquals(pig.getMaxHealth() - 7.0D, pig.getHealth(), DELTA);

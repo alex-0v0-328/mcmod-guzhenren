@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -29,16 +30,16 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 兽力虚影实体：攻击轮次（{@link net.alex.guzhenren.gameplay.path.strength.StrengthRound}）放出的单个兽种虚影，立于主人
- * 身旁并随主人朝向旋转。
+ * 兽力虚影实体：连招轮（{@link ComboRound}）收尾招放出的单个兽种虚影，立于主人身旁并随主人朝向旋转。
  * <ul>
- *   <li>每次触发显示 {@link #LIFETIME_TICKS} 后再逗留 {@link #LINGER_TICKS} 供连续出拳的下一轮续接，因此末轮结束后经
- *       {@link #getShownTicks} 才会消失；淡入时播放一次兽种出场动画，随后转入待机循环。</li>
+ *   <li>每次触发显示 {@link #LIFETIME_TICKS}（即 {@link ComboRound#SHOWN_TICKS}）后再逗留 {@link #LINGER_TICKS} 供紧接
+ *       的下一次收尾续接，因此最后一次收尾后经 {@link #getShownTicks} 才会消失；淡入时播放一次兽种出场动画，随后转入待
+ *       机循环。</li>
  *   <li>{@link Slot} 从正面看分前后两层（Alex 定）：地面层（{@link Slot#getRow} 为 0）位于主人前方
  *       {@link #FORWARD_OFFSET} 格，首只居右、次只居左，横向各距 {@link #SIDE_OFFSET} 格；后层位于主人身后，共
  *       {@link #FAN_ROWS} 排成对槽位（{@link Slot#getRow} 为自扇形顶点数起的排号 1～4），构成自顶点向下张开的扇形，越往
  *       下越靠外越低，底排离地 {@link #FAN_BASE_HEIGHT} 格，且无扇形槽正对地面槽正后方，便于第三人称看清整把扇形。</li>
- *   <li>{@link #show} 按单轮抽中的兽种列表更新：已在场的同兽种留在原槽续接（重置寿命而不重新生成），新抽中的兽种按声明
+ *   <li>{@link #show} 按单次收尾抽中的兽种列表更新：已在场的同兽种留在原槽续接（重置寿命而不重新生成），新抽中的兽种按声明
  *       序填入首个空槽（先地面两槽，再扇形底排至顶点），未抽中的在场虚影立即移除；不可显形的兽种
  *       （{@code BeastStrengthFamily#canManifest}）直接跳过、不占槽位；续接时递增同步计数器 {@code RENEWALS}，客户端据
  *       此重置出生 tick。</li>
@@ -57,7 +58,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public final class BeastPhantomEntity extends Entity implements GeoEntity, BeastPhantomVisual {
 
-    public static final int LIFETIME_TICKS = 20;
+    public static final int LIFETIME_TICKS = ComboRound.SHOWN_TICKS;
     public static final int LINGER_TICKS = 5;
     public static final double SIDE_OFFSET = 1.2D;
     public static final double FORWARD_OFFSET = 0.5D;

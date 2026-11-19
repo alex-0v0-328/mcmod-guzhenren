@@ -22,12 +22,12 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>对碰撞箱距爆点不超过 {@link Spec#radius()}、经 {@link AreaImpact#canHit} 放行（排除主人、盟友、宠物、野生蛊与盔
  *       甲架）且爆点至眼部无方块遮挡（{@link AreaImpact#isInSight}，Alex 定，隔墙不受伤）的生物造成伤害：锁定目标承受全
- *       额伤害，其余目标乘以 {@link #SECONDARY_RATIO}；爆开本身不开启新攻击轮次、也不触发身旁兽力虚影。</li>
- *   <li>当 {@link Spec#rollsAreaImpact()} 为真且主人仍在同一维度时，每次爆开以弹射物随机源按主人概率判定一次范围冲击（
- *       {@link AreaImpact#rolls}）：掷中时沿弹射物末段飞行朝向 {@code heading} 发射冲击环，并在爆点触发
- *       {@link AreaImpact#burst}（跳过本次已命中的目标且不破坏方块）。</li>
- *   <li>{@link Spec} 定义爆开半径、伤害类型与是否判定范围冲击：{@link Spec#QI_WAVE} 供力气蛊远程拳使用，蓄力蛊的蓄力一
- *       拳则传入专属规格（使用蓄力一拳伤害类型且不重复判定范围冲击）。</li>
+ *       额伤害，其余目标乘以 {@link #SECONDARY_RATIO}；爆开本身不结算连招轮、也不触发身旁兽力虚影。</li>
+ *   <li>当 {@link Spec#areaImpact()} 为真且主人仍在同一维度时，爆开另放范围冲击：沿弹射物末段飞行朝向 {@code heading}
+ *       发射冲击环，并在爆点触发 {@link AreaImpact#burst}（跳过本次已命中的目标且不破坏方块）；是否放由发射方在连招轮收
+ *       尾时一次掷定，同一发的几道兽力冲击一起放。</li>
+ *   <li>{@link Spec} 定义爆开半径、伤害类型与是否放范围冲击：{@link Spec#qiWave} 供力气蛊远程拳使用，蓄力蛊的蓄力一拳
+ *       则传入专属规格（使用蓄力一拳伤害类型且不放范围冲击）。</li>
  *   <li>⚠ 气波伤害类型 {@code guzhenren:qi_wave} 必须带有 {@code minecraft:bypasses_cooldown} 标签，否则同一拳发出的多
  *       道兽力冲击会被目标的受击无敌帧吞掉。</li>
  * </ul>
@@ -42,9 +42,11 @@ public final class QiBurst {
 
     public static float getDamage(float damage, boolean locked) { return locked ? damage : damage * SECONDARY_RATIO; }
 
-    public record Spec(double radius, @NotNull ResourceKey<DamageType> type, boolean rollsAreaImpact) {
+    public record Spec(double radius, @NotNull ResourceKey<DamageType> type, boolean areaImpact) {
 
-        public static final Spec QI_WAVE = new Spec(RADIUS, ModDamageTypes.QI_WAVE, true);
+        public static final Spec QI_WAVE = qiWave(false);
+
+        public static Spec qiWave(boolean areaImpact) { return new Spec(RADIUS, ModDamageTypes.QI_WAVE, areaImpact); }
     }
 
     public static @NotNull List<LivingEntity> burst(@NotNull ServerPlayer owner, @NotNull Entity projectile,
@@ -59,12 +61,11 @@ public final class QiBurst {
                         && AreaImpact.canHit(owner, victim) && AreaImpact.isInSight(projectile, at, victim))) {
             if (victim.hurt(source, getDamage(damage, victim == locked))) hit.add(victim);
         }
-        if (!spec.rollsAreaImpact()) return hit;
-        if (owner.level() == projectile.level() && AreaImpact.rolls(owner, projectile.getRandom())) {
-            RingConeEmitter.areaImpactRing(owner.serverLevel(), at, heading,
-                    AreaImpact.getRange(AreaImpact.getPoints(owner)));
-            AreaImpact.burst(owner, at, hit);
-        }
+        if (!spec.areaImpact() || owner.level() != projectile.level()) return hit;
+
+        RingConeEmitter.areaImpactRing(owner.serverLevel(), at, heading,
+                AreaImpact.getRange(AreaImpact.getPoints(owner)));
+        AreaImpact.burst(owner, at, hit);
         return hit;
     }
 }

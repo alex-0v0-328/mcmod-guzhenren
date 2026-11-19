@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>纯只读静态服务：{@link #getPermanentPoints} 从永久兽力[Beast Strength]与人力流派效果的道痕[Path Marks]点换算永
  *       久力量点，{@link #getAmplifiers} 采集限时兽力与各 {@link StrengthAmplifierProvider} 增幅，全面解放额外点数由
- *       {@link StrengthRound} 注入的 {@link ReleaseSource} 提供；{@link #snapshot} 一次性采集并返回
+ *       {@link ComboRound} 注入的 {@link ReleaseSource} 提供；{@link #snapshot} 一次性采集并返回
  *       {@link StrengthSnapshot}。</li>
  *   <li>常态承受力 {@link #getNormalCapacity} = 基础承受力 {@link #getBaseCapacity}（{@code 16 + 8 * 转数序号}，乘以十
  *       绝体承受力倍率）+ 皮、筋、骨炼体加成 + 永久兽力承受力加成（如石龟之力，固定加算、不乘十绝体倍率）。</li>
@@ -31,11 +31,11 @@ import org.jetbrains.annotations.NotNull;
  *   <li>可发挥力量点 {@link #getUsablePoints} = {@code min(totalPoints, capacity) + overloadPoints + releasedExtra}：其
  *       中 {@link #getOverloadPoints} 为限时兽力超出当前承受力的部分（全额发挥并按拳触发 {@link BodyOverload} 扣血，而
  *       指令赋予的超限永久力量仅截断不发挥）。</li>
- *   <li>{@link #getReleasedExtra} 计算攻击轮次内全面解放兽种带来的额外发挥点数（解放兽种的永久点数乘以
+ *   <li>{@link #getReleasedExtra} 计算连招轮收尾招全面解放兽种带来的额外发挥点数（解放兽种的永久点数乘以
  *       {@link #FULL_RELEASE_FACTOR}，连同其余点数仍封顶于当前承受力）；{@link #canAdmit} 校验扣除被替换旧兽力后，常态
  *       承受力能否容纳新永久兽力（不计临时增幅与全力以赴）。</li>
  *   <li>⚠ 接收基本类型的重载方法供无 {@link Player} 环境的单元测试直接调用；唯一可变静态字段 {@code releaseSource} 仅在
- *       通用初始化阶段由 {@link StrengthRound} 设置一次。</li>
+ *       通用初始化阶段由 {@link ComboRound} 设置一次。</li>
  * </ul>
  */
 

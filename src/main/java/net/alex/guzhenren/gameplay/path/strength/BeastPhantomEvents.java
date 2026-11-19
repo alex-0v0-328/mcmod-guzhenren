@@ -11,14 +11,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * 空手近战命中开启兽力虚影流[Beast Strength Phantom]攻击轮次与结算肉体过载的事件入口。
+ * 空手近战命中结算肉体过载与兽力虚影流[Beast Strength Phantom]连招轮收尾的事件入口。
  * <ul>
  *   <li>触发门槛：伤害直接来源为服务端玩家、主手为空（{@link AttackDamageService#isFistHand}）、伤害大于 {@code 0}、目
  *       标存活，且不属于气波、范围冲击[Area Impact]、蓄力一拳[Charged Punch]或终点破坏打击[Crash Strike]等派生伤害，同
  *       时不会被目标当前的受击无敌帧吞掉。</li>
- *   <li>满足门槛的每一拳（无论是否处于轮次内）均先调用 {@link BodyOverload#recoil} 结算肉体过载反噬。</li>
- *   <li>开启新轮次的那一击因属性修饰符要到下一 tick 才包含全面解放增量，直接将 {@link StrengthRound#open} 返回的解放攻
- *       击增量加入本次护甲前伤害。</li>
+ *   <li>满足门槛的每一拳（采矿模式原版拳与连招前几段同样）均先调用 {@link BodyOverload#recoil} 结算肉体过载反噬。</li>
+ *   <li>仅收尾招（{@link ComboRound#isFinishing}）的命中调 {@link ComboRound#strike} 抽兽种，并把抽中那一击尚未进攻击
+ *       属性的解放增量直接加入本次护甲前伤害。</li>
  * </ul>
  */
 
@@ -37,7 +37,9 @@ public final class BeastPhantomEvents {
         if (!isFistHit(source, event.getAmount(), target) || !AttackDamageService.isFistHand(player)) return;
 
         BodyOverload.recoil(player);
-        float gain = StrengthRound.open(player, player.getRandom().nextFloat());
+        if (!ComboRound.isFinishing(player)) return;
+
+        float gain = ComboRound.strike(player, player.getRandom().nextFloat());
         if (gain > 0.0F) event.setAmount(event.getAmount() + gain);
     }
 

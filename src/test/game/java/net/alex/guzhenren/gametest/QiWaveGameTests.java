@@ -12,10 +12,10 @@ import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.BeastChargeDamage;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
@@ -57,13 +57,15 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>力气蛊施加增益 {@link StrengthQiGuEffect#DURATION_TICKS} 并投射图标；增益中主手空时，人力钧力流肉身向前方 6
  *       格目标出拳，掷一个气波，爆开为 {@code guzhenren:qi_wave} 伤害，归出拳者；目标受拳的攻击伤害，旁边村民一半，
  *       自己的狼无伤；单独花豕蛊[Flower Boar Gu]仍掷气波。</li>
- *   <li>{@link QiWaveService#fire} 不出手：无增益、手持物品、目标在触及距离内、在身后、是本人、同轮第二次；
- *       一轮后可再出；方块挡路则气波熄灭。</li>
- *   <li>永久兽力[Beast Strength]掷本族兽力冲击，按该族所加力量计伤：五转熊 10.0，解放 14.0（120 点被承受力截断），
- *       五转全力以赴蛊[All-Out Effort Gu]下解放 30.0；连击两发各留本族份额；冲击随弧线抬升，末段指向目标中心。</li>
- *   <li>每次爆开在投射物自身随机源上掷范围冲击，掷后立即设种（{@code AreaImpactGameTests.nextRoll}）；
- *       掷中则以爆点为心放球：伤及爆点后方 4 格、爆开半径外的村民，气波那次另伤及爆点正东 4 格、与飞行方向垂直的村民，
- *       未中则其无伤；气波出拳者另练人力 200 斤（发挥 56 点，球半径 6 格），熊冲击发挥 40 点（球半径 5.5 格）。</li>
+ *   <li>上报（{@link QiWaveService#request}）与起招（{@link QiWaveService#onStrike}）在
+ *       {@link QiWaveService#JOIN_TICKS} 内配对才出一发，哪方先到都行，各自落单或隔太久不出；
+ *       {@link QiWaveService#fire} 不出手：无增益、手持物品、目标在触及距离内、在身后、是本人；方块挡路则气波熄灭。</li>
+ *   <li>永久兽力[Beast Strength]掷本族兽力冲击，按该族所加力量计伤：五转熊 10.0，收尾解放 14.0（120 点被承受力截断），
+ *       五转全力以赴蛊[All-Out Effort Gu]下收尾解放 30.0；苦力连击两发各留本族份额；前几段不结算连招轮；冲击随弧线
+ *       抬升，末段指向目标中心。</li>
+ *   <li>范围冲击在收尾时于出拳者随机源上掷一次，掷前设种（{@code AreaImpactGameTests.nextRoll}）；掷中则爆开时以爆点
+ *       为心放球：伤及爆点后方 4 格、爆开半径外的村民，气波那次另伤及爆点正东 4 格、与飞行方向垂直的村民，未中则其无
+ *       伤；气波出拳者另练人力 200 斤（发挥 56 点，球半径 6 格），熊冲击发挥 40 点（球半径 5.5 格）。</li>
  *   <li>冲击弧线在出拳者随机源上掷出；{@link #steadyArc} 给该随机源设种，使后续 {@link #ARC_DRAWS} 次取值都低于
  *       {@link #LOW_DRAW}，无论哪几次掷弧线：弯曲至多 0.24、峰值后移，冲击在 {@link #FLIGHT_TICKS} 内落到目标。</li>
  *   <li>出拳者在北缘朝南（yaw 0）；目标为 {@link #TARGET_HEALTH} 生命的无意识村民。</li>
@@ -145,17 +147,21 @@ public final class QiWaveGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void rangedPunchesKeepTheirSpacing(GameTestHelper helper) {
+    public static void aRangedPunchFiresOnlyWhenPairedWithAStrike(GameTestHelper helper) {
         ServerPlayer player = buffed(helper, STAND);
         Villager villager = target(helper, AHEAD);
 
-        one(QiWaveService.fire(player, villager.getId()), "the first punch threw nothing");
-        none(QiWaveService.fire(player, villager.getId()));
-        helper.runAfterDelay(StrengthRound.RANGE_INTERVAL_TICKS - 2, () ->
-                none(QiWaveService.fire(player, villager.getId())));
-        helper.runAfterDelay(StrengthRound.RANGE_INTERVAL_TICKS + 1, () -> {
-            one(QiWaveService.fire(player, villager.getId()), "the spacing later threw nothing");
-            none(QiWaveService.fire(player, villager.getId()));
+        none(QiWaveService.request(player, villager.getId()));
+        one(QiWaveService.onStrike(player, false), "a strike after the report threw nothing");
+        none(QiWaveService.onStrike(player, false));
+        one(QiWaveService.request(player, villager.getId()), "a report after the strike threw nothing");
+        none(QiWaveService.request(player, villager.getId()));
+        none(QiWaveService.request(player, villager.getId()));
+        one(QiWaveService.onStrike(player, false), "a mashed report threw other than once");
+        none(QiWaveService.request(player, villager.getId()));
+        helper.runAfterDelay(QiWaveService.JOIN_TICKS + 1, () -> {
+            none(QiWaveService.onStrike(player, false));
+            none(QiWaveService.request(player, Integer.MAX_VALUE));
             helper.succeed();
         });
     }
@@ -166,8 +172,6 @@ public final class QiWaveGameTests {
         PathStrengthService.grant(player, BeastStrength.BEAR);
         Villager villager = target(helper, AHEAD);
 
-        StrengthRound.open(player, MISS);
-        assertTrue(StrengthRound.getFamilies(player).isEmpty(), "a missed roll drew a family");
         BeastChargeEntity charge = assertInstance(shoot(player, villager), BeastChargeEntity.class);
         assertEquals(BeastStrengthFamily.BEAR, charge.getFamily(), "the charge is not the bear");
         assertEquals(BEAR_DAMAGE, charge.getDamage(), DELTA);
@@ -186,16 +190,16 @@ public final class QiWaveGameTests {
         PathStrengthService.grant(player, BeastStrength.BEAR);
         Villager villager = target(helper, AHEAD);
 
-        StrengthRound.open(player, 0.0F);
-        assertEquals(List.of(BeastStrengthFamily.BEAR), StrengthRound.getFullyReleased(player),
+        draw(player, 0.0F);
+        assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFullyReleased(player),
                 "the landed roll did not release the bear");
         assertTrue(StrengthService.getCapacity(player) < BEAR_POINTS * StrengthService.FULL_RELEASE_FACTOR,
                 "the capacity does not cut the released bear");
-        BeastChargeEntity charge = assertInstance(shoot(player, villager), BeastChargeEntity.class);
+        BeastChargeEntity charge = assertInstance(finish(player, villager), BeastChargeEntity.class);
         assertEquals(RELEASED_BEAR_DAMAGE, charge.getDamage(), DELTA);
         assertEquals(StrengthService.getCapacity(player) * BeastChargeDamage.ATTACK_PER_POINT, charge.getDamage(),
                 DELTA);
-        assertTrue(StrengthRound.hasRangedThisRound(player), "the round did not mark its ranged punch");
+        assertTrue(ComboRound.isRanged(player), "the finisher did not mark its ranged punch");
 
         helper.runAfterDelay(FLIGHT_TICKS, () -> {
             assertEquals(charge.getDamage(), TARGET_HEALTH - villager.getHealth(), DELTA);
@@ -210,10 +214,10 @@ public final class QiWaveGameTests {
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, ALL_OUT_TICKS, RANK_FIVE_TIER));
         Villager villager = target(helper, AHEAD);
 
-        StrengthRound.open(player, MISS);
-        assertEquals(List.of(BeastStrengthFamily.BEAR), StrengthRound.getFullyReleased(player),
+        draw(player, MISS);
+        assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFullyReleased(player),
                 "All-Out Effort did not release the bear");
-        BeastChargeEntity charge = assertInstance(shoot(player, villager), BeastChargeEntity.class);
+        BeastChargeEntity charge = assertInstance(finish(player, villager), BeastChargeEntity.class);
         assertEquals(ALL_OUT_BEAR_DAMAGE, charge.getDamage(), DELTA);
         assertEquals(BEAR_POINTS * StrengthService.FULL_RELEASE_FACTOR * BeastChargeDamage.ATTACK_PER_POINT,
                 charge.getDamage(), DELTA);
@@ -231,32 +235,30 @@ public final class QiWaveGameTests {
         assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
         Villager villager = target(helper, AHEAD);
 
-        StrengthRound.open(player, MISS);
-        assertEquals(1, StrengthRound.getFamilies(player).size(), "the streak's first round drew other than one");
-        helper.runAfterDelay(StrengthRound.ROUND_TICKS + 1, () -> {
-            StrengthRound.open(player, MISS);
-            assertEquals(2, StrengthRound.getFamilies(player).size(), "the streak's second round drew other than two");
-            assertTrue(StrengthRound.getFullyReleased(player).isEmpty(), "a missed roll released a family");
-            double share = Math.min(1.0D,
-                    (double) StrengthService.getCapacity(player) / (BEAR_POINTS + BOAR_POINTS));
-            List<Projectile> shots = QiWaveService.fire(player, villager.getId());
-            assertEquals(2, shots.size(), "the streak's second round did not throw both phantoms");
-            List<BeastStrengthFamily> thrown = new ArrayList<>();
-            float total = 0.0F;
-            for (Projectile shot : shots) {
-                BeastChargeEntity charge = assertInstance(shot, BeastChargeEntity.class);
-                int points = charge.getFamily() == BeastStrengthFamily.BEAR ? BEAR_POINTS : BOAR_POINTS;
-                assertEquals(points * share * BeastChargeDamage.ATTACK_PER_POINT, charge.getDamage(), DELTA);
-                thrown.add(charge.getFamily());
-                total += charge.getDamage();
-            }
-            assertEquals(StrengthRound.getFamilies(player), thrown, "the charges are not the drawn families");
+        draw(player, MISS);
+        assertEquals(1, ComboRound.getFamilies(player).size(), "the streak's first round drew other than one");
+        ComboRound.complete(player, false);
+        draw(player, MISS);
+        assertEquals(2, ComboRound.getFamilies(player).size(), "the streak's second round drew other than two");
+        assertTrue(ComboRound.getFullyReleased(player).isEmpty(), "a missed roll released a family");
+        double share = Math.min(1.0D, (double) StrengthService.getCapacity(player) / (BEAR_POINTS + BOAR_POINTS));
+        List<Projectile> shots = QiWaveService.fire(player, villager.getId(), true);
+        assertEquals(2, shots.size(), "the streak's second round did not throw both phantoms");
+        List<BeastStrengthFamily> thrown = new ArrayList<>();
+        float total = 0.0F;
+        for (Projectile shot : shots) {
+            BeastChargeEntity charge = assertInstance(shot, BeastChargeEntity.class);
+            int points = charge.getFamily() == BeastStrengthFamily.BEAR ? BEAR_POINTS : BOAR_POINTS;
+            assertEquals(points * share * BeastChargeDamage.ATTACK_PER_POINT, charge.getDamage(), DELTA);
+            thrown.add(charge.getFamily());
+            total += charge.getDamage();
+        }
+        assertEquals(ComboRound.getFamilies(player), thrown, "the charges are not the drawn families");
 
-            float landed = total;
-            helper.runAfterDelay(FLIGHT_TICKS, () -> {
-                assertEquals(landed, TARGET_HEALTH - villager.getHealth(), DELTA);
-                helper.succeed();
-            });
+        float landed = total;
+        helper.runAfterDelay(FLIGHT_TICKS, () -> {
+            assertEquals(landed, TARGET_HEALTH - villager.getHealth(), DELTA);
+            helper.succeed();
         });
     }
 
@@ -297,8 +299,9 @@ public final class QiWaveGameTests {
         Villager aside = target(helper, ASIDE_CLOSE);
         float expected = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
-        QiWaveEntity orb = assertInstance(shoot(player, villager), QiWaveEntity.class);
-        AreaImpactGameTests.nextRoll(orb.getRandom(), AreaImpact.STRENGTH_QI_CHANCE, true);
+        impact(player, true);
+        QiWaveEntity orb = assertInstance(finish(player, villager), QiWaveEntity.class);
+        assertTrue(orb.isAlive(), "the orb did not fly");
 
         helper.runAfterDelay(FLIGHT_TICKS, () -> {
             assertEquals(expected, TARGET_HEALTH - villager.getHealth(), DELTA);
@@ -333,8 +336,8 @@ public final class QiWaveGameTests {
         Villager past = target(helper, PAST_CLOSE);
         float expected = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
-        QiWaveEntity orb = assertInstance(shoot(player, villager), QiWaveEntity.class);
-        AreaImpactGameTests.nextRoll(orb.getRandom(), AreaImpact.STRENGTH_QI_CHANCE, false);
+        impact(player, false);
+        assertInstance(finish(player, villager), QiWaveEntity.class);
 
         helper.runAfterDelay(FLIGHT_TICKS, () -> {
             assertEquals(expected, TARGET_HEALTH - villager.getHealth(), DELTA);
@@ -350,9 +353,10 @@ public final class QiWaveGameTests {
         Villager villager = target(helper, CLOSE);
         Villager past = target(helper, PAST_CLOSE);
 
+        impact(player, true);
+        ComboRound.strike(player, MISS);
         steadyArc(player.getRandom());
-        BeastChargeEntity charge = assertInstance(shoot(player, villager), BeastChargeEntity.class);
-        AreaImpactGameTests.nextRoll(charge.getRandom(), AreaImpact.STRENGTH_QI_CHANCE, true);
+        BeastChargeEntity charge = assertInstance(finish(player, villager), BeastChargeEntity.class);
 
         helper.runAfterDelay(FLIGHT_TICKS, () -> {
             assertEquals(charge.getDamage(), TARGET_HEALTH - villager.getHealth(), DELTA);
@@ -364,14 +368,17 @@ public final class QiWaveGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aChargeOutsideARoundOpensOne(GameTestHelper helper) {
+    public static void anOpeningPunchSettlesNoRound(GameTestHelper helper) {
         ServerPlayer player = buffed(helper, STAND);
         PathStrengthService.grant(player, BeastStrength.BEAR);
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, ALL_OUT_TICKS, RANK_FIVE_TIER));
         Villager villager = target(helper, AHEAD);
 
-        assertFalse(StrengthRound.isRunning(player), "a round ran before the punch");
-        assertInstance(shoot(player, villager), BeastChargeEntity.class);
-        assertTrue(StrengthRound.isRunning(player), "the ranged punch opened no round");
+        ComboRound.beginStrike(player, false);
+        BeastChargeEntity charge = assertInstance(shoot(player, villager), BeastChargeEntity.class);
+        assertEquals(BEAR_DAMAGE, charge.getDamage(), DELTA);
+        assertTrue(ComboRound.getFamilies(player).isEmpty(), "an opening punch drew a family");
+        assertTrue(ComboRound.getFullyReleased(player).isEmpty(), "an opening punch released a family");
         helper.succeed();
     }
 
@@ -405,11 +412,11 @@ public final class QiWaveGameTests {
         ServerPlayer bare = GameTestGu.awakened(GameTestPlayers.survival(helper, "gzr-qi-wave-bare").at(STAND),
                 Rank.FIVE);
         Villager villager = target(helper, AHEAD);
-        none(QiWaveService.fire(bare, villager.getId()));
+        none(QiWaveService.fire(bare, villager.getId(), false));
 
         ServerPlayer armed = buffed(helper, STAND);
         armed.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
-        none(QiWaveService.fire(armed, villager.getId()));
+        none(QiWaveService.fire(armed, villager.getId(), false));
         helper.succeed();
     }
 
@@ -419,11 +426,12 @@ public final class QiWaveGameTests {
         Villager near = target(helper, new BlockPos(4, 1, 6));
         Villager behind = target(helper, new BlockPos(4, 1, 0));
 
-        none(QiWaveService.fire(player, near.getId()));
-        none(QiWaveService.fire(player, behind.getId()));
-        none(QiWaveService.fire(player, player.getId()));
-        none(QiWaveService.fire(player, Integer.MAX_VALUE));
-        assertFalse(StrengthRound.isRunning(player), "a refused punch opened a round");
+        ComboRound.beginStrike(player, true);
+        none(QiWaveService.fire(player, near.getId(), true));
+        none(QiWaveService.fire(player, behind.getId(), true));
+        none(QiWaveService.fire(player, player.getId(), true));
+        none(QiWaveService.fire(player, Integer.MAX_VALUE, true));
+        assertFalse(ComboRound.isRanged(player), "a refused punch took over the finisher");
         helper.succeed();
     }
 
@@ -432,12 +440,28 @@ public final class QiWaveGameTests {
         ServerPlayer player = buffed(helper, new Vec3(0.5, 1.0, 0.5));
         Villager far = target(helper, new BlockPos(8, 1, 8));
         assertTrue(QiWaveService.getBoxDistance(player, far) > 8.0D, "the target is not past 8 blocks");
-        one(QiWaveService.fire(player, far.getId()), "nothing at a far target");
+        one(QiWaveService.fire(player, far.getId(), false), "nothing at a far target");
         helper.succeed();
     }
 
     private static Projectile shoot(ServerPlayer player, Villager target) {
-        return one(QiWaveService.fire(player, target.getId()), "nothing was thrown");
+        return one(QiWaveService.fire(player, target.getId(), false), "nothing was thrown");
+    }
+
+    private static Projectile finish(ServerPlayer player, Villager target) {
+        if (!ComboRound.isFinishing(player)) ComboRound.beginStrike(player, true);
+        return one(QiWaveService.fire(player, target.getId(), true), "the finisher threw nothing");
+    }
+
+    private static void draw(ServerPlayer player, float roll) {
+        ComboRound.beginStrike(player, true);
+        ComboRound.strike(player, roll);
+    }
+
+    private static void impact(ServerPlayer player, boolean lands) {
+        ComboRound.beginStrike(player, true);
+        AreaImpactGameTests.nextRoll(player.getRandom(), AreaImpact.STRENGTH_QI_CHANCE, lands);
+        assertEquals(lands, ComboRound.rollsImpact(player), "the finisher's area impact rolled the other way");
     }
 
     private static void steadyArc(RandomSource random) {

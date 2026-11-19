@@ -22,11 +22,11 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>共三至五转三档：使人力钧力流派或兽力虚影流派的常态肉身承受力额外提升 50%/100%/200%（与其他承受力加成并列，见
  *       {@code StrengthService.getAllOutCapacityBonus}），且不计入肉身负载。</li>
- *   <li>对兽力虚影流派，将攻击轮次触发概率由 5% 提升至 80%/90%/100%（{@code StrengthRound.getChance}），并使抽中的兽种
- *       获得全面解放。</li>
+ *   <li>对兽力虚影流派，将连招轮收尾的抽取概率由 5% 提升至 80%/90%/100%（{@code ComboRound.getChance}），并使抽中的兽
+ *       种获得全面解放。</li>
  *   <li>未持有任何永久兽力或人力的玩家在蓄力起手前即被拒绝（{@code all_out_needs_branch}）；效果持续期间再次催动亦拒
  *       绝。</li>
- *   <li>生效时按蛊虫档位挂载标记效果供力量服务与攻击轮次读取，并调用 {@link AttackDamageService#refresh} 重算攻击力，保
+ *   <li>生效时按蛊虫档位挂载标记效果供力量服务与连招轮读取，并调用 {@link AttackDamageService#refresh} 重算攻击力，保
  *       证攻击力始终由单一公式派生；功倍蛊[Amplify Effect Gu]先倍增基础时长，之后再加上玩家所持永久兽力的时长加成
  *       （{@link PathStrengthService#getDurationBonus}，如青牛加 10 秒）。</li>
  *   <li>⚠ 该药水效果仅作状态标记，绝不直接挂载原版 {@code AttributeModifier}，以免与 {@link AttackDamageService} 产生双

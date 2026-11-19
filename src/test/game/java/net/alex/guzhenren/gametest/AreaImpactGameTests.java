@@ -39,7 +39,8 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 活玩家的范围冲击（场景西缘朝东）。
  * <ul>
- *   <li>覆盖扇形命中与放过、运行中效果定的几率、Epic Fight 触发（仿其在拳击命中窗口关闭时投递）。</li>
+ *   <li>覆盖扇形命中与放过、运行中效果定的几率、Epic Fight 触发（仿其起招时与拳击命中窗口关闭时投递；只有连招轮收尾招
+ *       放）。</li>
  *   <li>身体持熊与两猪，即全力以赴所需兽力[Beast Strength]虚影流；加满者另开全力以赴与力气蛊[Strength Qi Gu]，几率
  *       50%。</li>
  *   <li>{@link #nextRoll} 播种定下次掷骰中否，触发测试投递前都调。</li>
@@ -74,7 +75,7 @@ public final class AreaImpactGameTests {
         List<Pig> missed = List.of(idlePig(helper, BEHIND), idlePig(helper, BEYOND), idlePig(helper, ASIDE));
         float damage = AreaImpact.getDamage(player.getAttributeValue(Attributes.ATTACK_DAMAGE));
 
-        strike(fighting(player), Animations.FIST_AUTO1, false, true);
+        strike(fighting(player), Animations.FIST_AUTO3, false, true);
 
         assertEquals(near.getMaxHealth() - damage, near.getHealth(), DELTA);
         assertEquals(far.getMaxHealth() - damage, far.getHealth(), DELTA);
@@ -90,39 +91,43 @@ public final class AreaImpactGameTests {
         ServerPlayer player = charged(helper);
         Pig pig = idlePig(helper, NEAR);
 
-        strike(fighting(player), Animations.FIST_AUTO1, false, false);
+        strike(fighting(player), Animations.FIST_AUTO3, false, false);
 
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void onlyAClosedFistComboStrikeReleases(GameTestHelper helper) {
+    public static void onlyAClosedFistFinisherReleases(GameTestHelper helper) {
         ServerPlayer player = charged(helper);
         ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
         assertTrue(patch != null, "Epic Fight player patch missing");
         Pig pig = idlePig(helper, NEAR);
 
         patch.toVanillaMode(false);
-        strike(patch, Animations.FIST_AUTO1, false, true);
+        strike(patch, Animations.FIST_AUTO3, false, true);
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
 
         patch.toEpicFightMode(false);
-        strike(patch, Animations.FIST_AUTO1, true, true);
+        strike(patch, Animations.FIST_AUTO1, false, true);
+        assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
+        strike(patch, Animations.FIST_AUTO2, false, true);
+        assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
+        strike(patch, Animations.FIST_AUTO3, true, true);
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
         strike(patch, Animations.RELENTLESS_COMBO, false, true);
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
-        strike(patch, Animations.FIST_AUTO1, false, true);
+        strike(patch, Animations.FIST_AUTO3, false, true);
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(EpicFightItems.GLOVE.get()));
-        strike(patch, Animations.FIST_AUTO1, false, true);
+        strike(patch, Animations.FIST_AUTO3, false, true);
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.IRON_SWORD));
         assertTrue(patch.isMirrorMode(), "a bare main hand beside an offhand sword is not mirror mode");
-        strike(patch, Animations.FIST_AUTO1, false, true);
+        strike(patch, Animations.FIST_AUTO3, false, true);
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
 
         player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
@@ -136,7 +141,7 @@ public final class AreaImpactGameTests {
         ServerPlayer player = strong(helper);
         Pig pig = idlePig(helper, NEAR);
 
-        strike(fighting(player), Animations.FIST_AUTO1, false, true);
+        strike(fighting(player), Animations.FIST_AUTO3, false, true);
 
         assertEquals(pig.getMaxHealth(), pig.getHealth(), DELTA);
         helper.succeed();
@@ -187,7 +192,7 @@ public final class AreaImpactGameTests {
         patch.getCurrentlyAttackTriedEntities().add(tried);
         assertTrue(patch.getCurrentlyAttackTriedEntities().contains(tried), "the tried list did not keep the pig");
 
-        strike(patch, Animations.FIST_AUTO1, false, true);
+        strike(patch, Animations.FIST_AUTO3, false, true);
 
         assertEquals(tried.getMaxHealth(), tried.getHealth(), DELTA);
         assertTrue(open.getHealth() < open.getMaxHealth(), "the untried pig was not hit");
@@ -276,6 +281,7 @@ public final class AreaImpactGameTests {
     private static void strike(ServerPlayerPatch patch,
                                AnimationManager.AnimationAccessor<? extends AttackAnimation> animation,
                                boolean terminated, boolean lands) {
+        GameTestEpicFight.actionStarted(patch, animation);
         nextRoll(patch.getOriginal().getRandom(), AreaImpact.BOTH_CHANCE, lands);
         GameTestEpicFight.attackPhaseEnded(patch, animation, terminated);
     }

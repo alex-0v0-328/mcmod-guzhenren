@@ -13,12 +13,12 @@ import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastChargeDamage;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.BodyOverload;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
-import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
 import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  *       许突破当前肉身承受力上限
  *       （{@link AttackDamageService#getFistDamage(net.minecraft.world.entity.player.Player, int)}）。</li>
  *   <li>兽力虚影流派随机解放一种已持有的永久兽力（苦力蛊[Hardship Strength Gu]生效期间则解放全部持有兽种），并将解放的
- *       兽种虚影并入当前攻击轮次的身旁虚影一同显形。</li>
+ *       兽种虚影并入连招轮[Combo Round]收尾仍在显示的身旁虚影一同显形。</li>
  *   <li>{@link #getTarget} 复验客户端上报的目标实体 ID（须存活、可被命中、位于视野前方且距眼部不超过
  *       {@link #MAX_TARGET_DISTANCE} 格），防止伪造包将拳劲转向身后或超远目标；注意 {@link #MAX_TARGET_DISTANCE} 高于
  *       Epic Fight 默认锁定距离。</li>
@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  *       线击退 {@link #KNOCKBACK}；随后在半数射程内崩裂地形方块（{@link AreaImpactShatter}），并始终沿扇形中轴发射一道
  *       直达射程末端的冲击环（{@link RingConeEmitter#areaImpactRing}，挥空同样播放）。</li>
  *   <li>无论近战、远程或挥空，出拳后均结算冲击反噬：超出当前肉身承受力的点数经 {@link BodyOverload#recoil} 造成反噬伤害
- *       （该伤害类型不触发新攻击轮次、也不重复计入肉体过载）。</li>
+ *       （该伤害类型不结算连招轮、也不重复计入肉体过载）。</li>
  * </ul>
  */
 
@@ -97,7 +97,7 @@ public final class ChargedPunch {
         StrengthPathBranch branch = PathStrengthService.getHeldBranch(player);
         boolean hardship = HardshipStrength.isActive(player);
         List<BeastStrengthFamily> released = branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM
-                ? StoreStrength.getReleasedFamilies(StrengthRound.getAvailableFamilies(data), hardship,
+                ? StoreStrength.getReleasedFamilies(ComboRound.getAvailableFamilies(data), hardship,
                 player.getRandom())
                 : List.of();
         int maxPoints = StoreStrength.getMaxPoints(snapshot.totalPoints(),
@@ -109,7 +109,7 @@ public final class ChargedPunch {
         if (target != null && isRanged(player, target)) {
             List<BeastStrengthFamily> charging = QiWaveService.getChargeFamilies(
                     branch == StrengthPathBranch.BEAST_STRENGTH_PHANTOM, released,
-                    StrengthRound.getAvailableFamilies(data), player.getRandom());
+                    ComboRound.getAvailableFamilies(data), player.getRandom());
             shoot(player, target, damage, BeastChargeDamage.getDamages(data, charging, released,
                     StoreStrength.CHARGED_RELEASE_FACTOR, BeastChargeDamage.UNCAPPED), charging,
                     StoreStrength.getBurstRadius(maxPoints, widened));
@@ -130,7 +130,7 @@ public final class ChargedPunch {
     public static float getDamage(float damage, boolean locked) { return locked ? damage : damage * SECONDARY_RATIO; }
 
     private static List<BeastStrengthFamily> getShownFamilies(ServerPlayer player, List<BeastStrengthFamily> released) {
-        List<BeastStrengthFamily> shown = new ArrayList<>(StrengthRound.getFamilies(player));
+        List<BeastStrengthFamily> shown = new ArrayList<>(ComboRound.getShown(player));
         for (BeastStrengthFamily family : released) {
             if (!shown.contains(family)) shown.add(family);
         }

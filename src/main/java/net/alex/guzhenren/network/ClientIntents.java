@@ -124,7 +124,7 @@ public final class ClientIntents {
 
     /** 力气蛊[Strength Qi Gu]的出拳，化作气波打向客户端选定的目标。 */
     public static void qiWave(@NotNull ServerPlayer player, int target) {
-        if (isOutsideTyh(player)) QiWaveService.fire(player, target);
+        if (isOutsideTyh(player)) QiWaveService.request(player, target);
     }
 
     public static void storeStrength(@NotNull ServerPlayer player, @NotNull ChargeAction action, int target) {

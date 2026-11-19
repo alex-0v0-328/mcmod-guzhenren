@@ -97,7 +97,7 @@ public final class StoreStrength {
                                                                        boolean hardship,
                                                                        @NotNull RandomSource random) {
         if (hardship) return List.copyOf(available);
-        return StrengthRound.pickFamilies(available, 1, random);
+        return ComboRound.pickFamilies(available, 1, random);
     }
 
     public static int getReleasedPoints(@NotNull PathStrengthData data, @NotNull List<BeastStrengthFamily> families) {

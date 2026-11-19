@@ -10,12 +10,12 @@ import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.Tendon;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.BodyOverload;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.SprintSpeedService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.MortalGuItem;
@@ -57,7 +57,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>全力以赴蛊[All-Out Effort Gu]按档位提升承受力，只作用于有分支的肉身，出拳不付负荷；限时兽力超出承受力则每拳付肉
  *       体过载，最低一颗心。</li>
  *   <li>新永久兽力[Beast Strength]准入门槛；棕熊本力蛊[Brown Bear Innate Strength Gu]替换熊或全新授予都到 96 点，
- *       之后拒熊；石龟承受力；驰马疾跑及其解放轮额外步行与疾跑速度。</li>
+ *       之后拒熊；石龟承受力；驰马疾跑及其收尾解放后虚影显示期间的额外步行与疾跑速度。</li>
  *   <li>效果驱动攻击力写入是服务端任务，检查等 2 tick；模拟玩家不 tick，需时手调 {@code PlayerTickEvents}
  *       换手刷新。</li>
  * </ul>
@@ -342,11 +342,13 @@ public final class StrengthSettlementGameTests {
     }
 
     @GameTest(template = "empty9x9x9", timeoutTicks = 60)
-    public static void aReleasedHorseSpeedsTheWalkAndTheSprintForItsRound(GameTestHelper helper) {
+    public static void aReleasedHorseSpeedsTheWalkAndTheSprintWhileItsPhantomShows(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
         double walk = player.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
         PathStrengthService.grant(player, BeastStrength.GALLOPING_HORSE);
-        StrengthRound.open(player, 0.0F);
+        ComboRound.beginStrike(player, true);
+        ComboRound.strike(player, 0.0F);
+        ComboRound.complete(player, false);
         SprintSpeedService.refresh(player);
         assertEquals(walk * 1.5D, player.getAttributeValue(Attributes.MOVEMENT_SPEED), DELTA);
 
@@ -355,10 +357,10 @@ public final class StrengthSettlementGameTests {
         assertEquals(walk * 2.3D, player.getAttributeValue(Attributes.MOVEMENT_SPEED), DELTA);
         player.setSprinting(false);
 
-        helper.runAfterDelay(StrengthRound.ROUND_TICKS + 1, () -> {
+        helper.runAfterDelay(ComboRound.SHOWN_TICKS + 1, () -> {
             SprintSpeedService.refresh(player);
             assertEquals(walk, player.getAttributeValue(Attributes.MOVEMENT_SPEED), DELTA);
-            StrengthRound.clear(player);
+            ComboRound.clear(player);
             helper.succeed();
         });
     }

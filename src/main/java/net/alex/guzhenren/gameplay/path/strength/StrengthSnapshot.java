@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>未激活全力以赴蛊[All-Out Effort Gu]或未入专精分支时 {@code allOutTier} 为 {@link StrengthService#NO_ALL_OUT}；
  *       {@code overloadPoints} 为限时兽力[Beast Strength]超出当前承受力的点数（全额发挥并触发肉体过载）。</li>
- *   <li>{@link #settledPoints} 为不含攻击轮次全面解放的常态可发挥力量点[Strength Points]（客户端与服务端数值一致，供横
+ *   <li>{@link #settledPoints} 为不含连招轮收尾全面解放的常态可发挥力量点[Strength Points]（客户端与服务端数值一致，供横
  *       冲系冲撞 {@link CrashSources} 读取）；最终可发挥点数由
- *       {@link StrengthService#getUsablePoints(Player, StrengthSnapshot)} 再叠入服务端轮次解放增量。</li>
+ *       {@link StrengthService#getUsablePoints(Player, StrengthSnapshot)} 再叠入服务端收尾招解放增量。</li>
  *   <li>⚠ 必须通过工厂方法 {@link #of} 构建，以确保 {@code totalPoints}、{@code capacity} 与 {@code overloadPoints} 三
  *       个派生字段与输入分量严格一致。</li>
  * </ul>

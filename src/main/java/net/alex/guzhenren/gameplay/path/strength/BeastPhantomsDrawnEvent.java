@@ -6,7 +6,7 @@ import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 兽力虚影抽取完成事件：由 {@link StrengthRound} 在开启攻击轮次或轮次内抽中兽种脱出时同步发布，供上层
+ * 兽力虚影抽取完成事件：由 {@link ComboRound} 在连招轮收尾招抽取兽种时同步发布，供上层
  * {@code net.alex.guzhenren.entity.beast} 生成或更新背后的兽力虚影实体，避免 {@code gameplay} 包反向依赖 {@code entity}
  * 包。
  */

@@ -63,8 +63,10 @@ public final class QiWaveEntity extends Projectile {
 
     public QiWaveEntity(EntityType<? extends QiWaveEntity> type, Level level) { super(type, level); }
 
-    public static QiWaveEntity shoot(ServerPlayer owner, LivingEntity target, float damage) {
-        return launch(aim(owner, target, damage), owner);
+    public static QiWaveEntity shoot(ServerPlayer owner, LivingEntity target, float damage, QiBurst.Spec burst) {
+        QiWaveEntity orb = aim(owner, target, damage);
+        orb.burst = burst;
+        return launch(orb, owner);
     }
 
     public static QiWaveEntity track(ServerPlayer owner, LivingEntity target, float damage, QiBurst.Spec burst) {

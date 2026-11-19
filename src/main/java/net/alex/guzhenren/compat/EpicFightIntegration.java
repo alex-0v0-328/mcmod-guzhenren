@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
@@ -13,11 +14,13 @@ import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.CrashBreach;
 import net.alex.guzhenren.gameplay.path.strength.CrashDash;
 import net.alex.guzhenren.gameplay.path.strength.CrashSources;
 import net.alex.guzhenren.gameplay.path.strength.CrashStrike;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
+import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.particle.RingConeEmitter;
@@ -51,7 +54,9 @@ import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.types.animation.StartActionEvent;
 import yesman.epicfight.api.event.types.player.ComboAttackEvent;
+import yesman.epicfight.api.event.types.player.ModifyComboCounter;
 import yesman.epicfight.api.event.types.player.SetTargetEvent;
 import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
@@ -71,11 +76,19 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *   <li>⚠ 耐力系统的当前值、自然回复、HUD 与常规消耗完全由 Epic Fight 管理；本模组仅按玩家资质[Aptitude]或十绝体缩放耐
  *       力上限（{@link #refresh}）并免除不死之躯（{@link BodyService#isUndead}）的技能耐力消耗
  *       （{@link #onSkillConsume}），不另建耐力附件或疾跑跳跃扣费逻辑。</li>
- *   <li>目标过滤与范围冲击：{@link #onSetTarget} 阻止锁定野生蛊（{@link WildGuEntity}）；{@link #onAttackPhaseEnd} 在
- *       Epic Fight 战斗模式下主手为空手拳击（类别为 {@code FIST} 且 {@link AttackDamageService#isFistHand} 成立的连击、
- *       冲刺攻击或空中攻击，排除拳套、副手镜像挥击与武器固有技能）的命中窗口正常结束时，按 {@link AreaImpact#rolls} 掷
- *       骰触发范围冲击（{@link AreaImpact#release}），跳过本阶段已判定过的实体，并发出冲击环
- *       （{@link RingConeEmitter#areaImpactRing}）与命中音效。</li>
+ *   <li>目标过滤：{@link #onSetTarget} 阻止锁定野生蛊（{@link WildGuEntity}）。</li>
+ *   <li>连招轮[Combo Round]挂点，只认 Epic Fight 战斗模式下的空手拳击（类别为 {@code FIST} 且
+ *       {@link AttackDamageService#isFistHand} 成立的连击、冲刺攻击或空中攻击，排除拳套、副手镜像挥击与武器固有技能）：
+ *       {@link #onStartAction} 在出招起播时按 {@link #isFinisher} 判定收尾招（自动攻击动作表最后一段连击，或冲刺、空中
+ *       攻击；不在动作表里的连击动作按一下一轮算），调 {@link ComboRound#beginStrike} 并通知
+ *       {@link QiWaveService#onStrike} 配对远程拳；{@link #onModifyComboCounter} 在连段计数从非零被清零时调
+ *       {@link ComboRound#abandon}，若清零正是刚起播的冲刺或空中收尾招引起则只断苦力连击、保留这一招（Epic Fight 的清零与
+ *       起播事件先后不定）；{@link #onAttackPhaseEnd} 在
+ *       收尾招最后一段判定结束时调 {@link ComboRound#complete}，若正常结束、未改由远程拳出手且本轮掷中
+ *       （{@link ComboRound#rollsImpact}），先放范围冲击（{@link AreaImpact#release}，跳过本段已判定过的实体）与冲击环
+ *       （{@link RingConeEmitter#areaImpactRing}）及命中音效。</li>
+ *   <li>⚠ 收尾招的每一记命中都按「最后一下」算：Epic Fight 空手的三个收尾动作各只有一段判定，若日后收尾动作带多段判定，
+ *       前几段命中也会被当成收尾。</li>
  *   <li>冲撞冲刺（{@link #dash}）：客户端上报模型朝向 {@code yRot} 与水平键盘轴 {@code vertical}/{@code horizontal}，由
  *       {@link #getDashClip} 选择前撞、背撞、左肩撞或右肩撞动画，并通过 {@link #getRingYawOffset} 还原实际水平冲刺方向
  *       （仅含后退的输入翻转 180°）；若玩家具备破障硬度上限，服务端在播放动画前先调用 {@link CrashBreach#clear} 沿路清
@@ -93,8 +106,8 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       （{@link #getSecondStageFlightLoop}）固定头部旋转，撞墙时由服务端调用 {@link #crashFlight} 播放反弹主帧动画并短
  *       暂冻结常态动作切换；坠击下落循环（{@link #getPlungeFall}）在落差达标落地时由服务端调用 {@link #landPlunge} 播放
  *       落地主帧动画，在前 {@link #PLUNGE_LAND_LOCK} 秒内锁定移动与攻击。</li>
- *   <li>上半身叠加动画：护盾展开（{@link #raiseShield}）、投射物挥臂（{@link #throwProjectile}，在
- *       {@link #THROW_RUN_TICKS} 窗口内按横扫、左直拳、右直拳交替）与凡蛊通用伸手催动（{@link #useGu}）均配置在
+ *   <li>上半身叠加动画：护盾展开（{@link #raiseShield}）、投射物挥臂（{@link #throwProjectile}，上一个挥臂片段还没播完
+ *       就按横扫、左直拳、右直拳续接，播完则从横扫重来，窗口取片段自身时长）与凡蛊通用伸手催动（{@link #useGu}）均配置在
  *       {@code HIGH} 叠加层与 {@code chest_arms} 遮罩下，仅通过 {@code playAnimationInClientSide} 下发给可见客户端而不
  *       进入服务端单轨动画器，以免打断正在执行的全身动作。</li>
  *   <li>{@link #playsReach} 负责过滤通用伸手动画：同一游戏刻已播放护盾或投掷专属动画（记录在 {@link #ownClips}）、处于
@@ -135,8 +148,8 @@ public final class EpicFightIntegration {
     private static AnimationManager.AnimationAccessor<MainFrameAnimation> meditateStand;
     private static AnimationManager.AnimationAccessor<StaticAnimation> useReach;
     private static AnimationManager.AnimationAccessor<StaticAnimation> refineLoop;
-    static final long THROW_RUN_TICKS = 10L;
     private static final Map<ServerPlayer, ThrowRun> throwRuns = new WeakHashMap<>();
+    private static final Map<ServerPlayer, AttackAnimation> finishers = new WeakHashMap<>();
     private static final float PLUNGE_LAND_LOCK = 0.53F;
     private static final float MEDITATE_STAND_HOLD = 1.2F;
     private static final Map<ServerPlayer, Boolean> meditating = new WeakHashMap<>();
@@ -149,6 +162,10 @@ public final class EpicFightIntegration {
         EpicFightEventHooks.Player.CONSUME_SKILL.registerEvent(EpicFightIntegration::onSkillConsume, Guzhenren.MOD_ID);
         EpicFightEventHooks.Player.SET_TARGET.registerEvent(EpicFightIntegration::onSetTarget, Guzhenren.MOD_ID);
         EpicFightEventHooks.Player.COMBO_ATTACK.registerEvent(EpicFightIntegration::onComboAttack, Guzhenren.MOD_ID);
+        EpicFightEventHooks.Player.MODIFY_COMBO_COUNTER.registerEvent(EpicFightIntegration::onModifyComboCounter,
+                Guzhenren.MOD_ID);
+        EpicFightEventHooks.Animation.START_ACTION.registerEvent(EpicFightIntegration::onStartAction,
+                Guzhenren.MOD_ID);
         EpicFightEventHooks.Animation.ATTACK_PHASE_END.registerEvent(EpicFightIntegration::onAttackPhaseEnd,
                 Guzhenren.MOD_ID);
     }
@@ -243,22 +260,30 @@ public final class EpicFightIntegration {
     public static void throwProjectile(ServerPlayer player) {
         long now = player.serverLevel().getGameTime();
         ThrowRun last = throwRuns.get(player);
-        ThrowClip clip = last == null ? ThrowClip.SWEEP : getThrowClip(last.clip(), now - last.tick());
-        throwRuns.put(player, new ThrowRun(clip, now));
+        ThrowClip clip = last == null ? ThrowClip.SWEEP : getThrowClip(last.clip(), now - last.tick(), last.ticks());
+        AnimationManager.AnimationAccessor<StaticAnimation> animation = getThrowAnimation(clip);
+        throwRuns.put(player, new ThrowRun(clip, now, getClipTicks(animation)));
         ownClips.put(player, now);
 
-        AnimationManager.AnimationAccessor<StaticAnimation> animation = switch (clip) {
-            case SWEEP -> throwSweep;
-            case PUNCH_RIGHT -> throwPunchRight;
-            case PUNCH_LEFT -> throwPunchLeft;
-        };
         ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
         if (patch == null || animation == null || player.isDeadOrDying()) return;
         patch.playAnimationInClientSide(animation, 0.0F);
     }
 
-    static ThrowClip getThrowClip(ThrowClip last, long gap) {
-        if (gap < 0L || gap > THROW_RUN_TICKS) return ThrowClip.SWEEP;
+    static AnimationManager.AnimationAccessor<StaticAnimation> getThrowAnimation(ThrowClip clip) {
+        return switch (clip) {
+            case SWEEP -> throwSweep;
+            case PUNCH_RIGHT -> throwPunchRight;
+            case PUNCH_LEFT -> throwPunchLeft;
+        };
+    }
+
+    static long getClipTicks(AssetAccessor<? extends StaticAnimation> animation) {
+        return animation == null ? 0L : Math.round(animation.get().getTotalTime() * Ticks.SECOND);
+    }
+
+    static ThrowClip getThrowClip(ThrowClip last, long gap, long playing) {
+        if (gap < 0L || gap > playing) return ThrowClip.SWEEP;
         return last == ThrowClip.PUNCH_LEFT ? ThrowClip.PUNCH_RIGHT : ThrowClip.PUNCH_LEFT;
     }
 
@@ -366,20 +391,51 @@ public final class EpicFightIntegration {
         if (StoreStrength.isMobile(event.getPlayerPatch().getOriginal())) event.cancel();
     }
 
-    private static void onAttackPhaseEnd(AttackPhaseEndEvent event) {
-        if (event.isAnimationTerminated()) return;
-        if (!(event.getEntityPatch() instanceof ServerPlayerPatch patch) || !patch.isEpicFightMode()) return;
-        if (!isFistStrike(event.getAnimation().get())) return;
-        if (patch.getPrimaryItemCapability().getWeaponCategory() != CapabilityItem.WeaponCategories.FIST) return;
-
+    //region Combo Round [连招轮]
+    private static void onStartAction(StartActionEvent event) {
+        if (!(event.getEntityPatch() instanceof ServerPlayerPatch patch)) return;
         ServerPlayer player = patch.getOriginal();
-        if (!AttackDamageService.isFistHand(player)) return;
-        if (!AreaImpact.rolls(player, player.getRandom())) return;
+        if (!(event.getAnimation().get() instanceof AttackAnimation attack) || !isFistStrike(patch, attack)) {
+            if (finishers.remove(player) != null) ComboRound.complete(player, true);
+            return;
+        }
 
+        boolean finishing = isFinisher(attack, patch.getPrimaryItemCapability().getAutoAttackMotion(patch));
+        if (finishing) finishers.put(player, attack);
+        else finishers.remove(player);
+        ComboRound.beginStrike(player, finishing);
+        QiWaveService.onStrike(player, finishing);
+    }
+
+    private static void onModifyComboCounter(ModifyComboCounter event) {
+        if (event.getPrevValue() <= 0 || event.getNextValue() != 0) return;
+        ServerPlayer player = event.getPlayerPatch().getOriginal();
+        if (event.getAnimation() != null && finishers.get(player) == event.getAnimation().get()) {
+            ComboRound.breakStreak(player);
+        } else {
+            ComboRound.abandon(player);
+        }
+    }
+
+    private static void onAttackPhaseEnd(AttackPhaseEndEvent event) {
+        if (!(event.getEntityPatch() instanceof ServerPlayerPatch patch)) return;
+        AttackAnimation animation = event.getAnimation().get();
+        ServerPlayer player = patch.getOriginal();
+        if (finishers.get(player) != animation || event.getPhaseOrder() < animation.phases.length - 1) return;
+
+        finishers.remove(player);
+        if (!event.isAnimationTerminated() && isFistStrike(patch, animation) && !ComboRound.isRanged(player)
+                && ComboRound.rollsImpact(player)) {
+            releaseImpact(patch, event.getPhase());
+        }
+        ComboRound.complete(player, event.isAnimationTerminated());
+    }
+
+    private static void releaseImpact(ServerPlayerPatch patch, AttackAnimation.Phase phase) {
+        ServerPlayer player = patch.getOriginal();
         Vec3 look = player.getLookAngle();
         RingConeEmitter.areaImpactRing(player, look, AreaImpact.getRange(AreaImpact.getPoints(player)));
         List<LivingEntity> landed = AreaImpact.release(player, look, patch.getCurrentlyAttackTriedEntities());
-        AttackAnimation.Phase phase = event.getPhase();
         SoundEvent sound = phase.getProperty(AttackPhaseProperty.HIT_SOUND)
                 .orElseGet(() -> patch.getWeaponHitSound(phase.effectiveHand(patch)));
         if (sound == null) return;
@@ -391,10 +447,29 @@ public final class EpicFightIntegration {
         }
     }
 
+    private static boolean isFistStrike(ServerPlayerPatch patch, AttackAnimation animation) {
+        return patch.isEpicFightMode() && isFistStrike(animation)
+                && patch.getPrimaryItemCapability().getWeaponCategory() == CapabilityItem.WeaponCategories.FIST
+                && AttackDamageService.isFistHand(patch.getOriginal());
+    }
+
     private static boolean isFistStrike(AttackAnimation animation) {
         return animation instanceof ComboAttackAnimation || animation instanceof DashAttackAnimation
                 || animation instanceof AirSlashAnimation;
     }
+
+    static boolean isFinisher(AttackAnimation animation,
+                              List<? extends AssetAccessor<? extends AttackAnimation>> motions) {
+        if (!(animation instanceof ComboAttackAnimation)) return true;
+        int combos = motions.size() - 2;
+        for (int i = 0; i < combos; i++) {
+            if (motions.get(i).get() == animation) return isLastCombo(i, motions.size());
+        }
+        return true;
+    }
+
+    static boolean isLastCombo(int index, int motions) { return index == motions - 3; }
+    //endregion
 
     private static Vec3 dashDirection(int vertical, float yRot) {
         float radians = (yRot + getRingYawOffset(vertical)) * ((float) Math.PI / 180.0F);
@@ -417,7 +492,7 @@ public final class EpicFightIntegration {
 
     enum MeditationCue { NONE, SIT, STAND }
 
-    private record ThrowRun(ThrowClip clip, long tick) {}
+    private record ThrowRun(ThrowClip clip, long tick, long ticks) {}
 
     private static final class DashAnimation extends DodgeAnimation {
 

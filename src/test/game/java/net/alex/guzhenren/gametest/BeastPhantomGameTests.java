@@ -8,9 +8,9 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthRound;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
@@ -21,11 +21,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -35,14 +32,14 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 活玩家的攻击轮次与兽力[Beast Strength]虚影。
+ * 活玩家连招轮[Combo Round]收尾招的兽力[Beast Strength]虚影与全面解放（轮的边界归 {@code ComboRoundGameTests}）。
  * <ul>
- *   <li>空手命中开一轮，轮内再中不抽新兽种；持剑或无永久兽力（仅花豕蛊[Flower Boar Gu]亦然）不开；轮末不解放。</li>
- *   <li>掷中现一虚影，其兽种永久点数在承受上限内变三倍；五转全力以赴每轮现一个，结束即撤加成；棕熊本力掷中单熊掷不中的
- *       骰（10% 对 5%）。</li>
+ *   <li>无永久兽力（仅花豕蛊[Flower Boar Gu]亦然）不抽；掷中现一虚影，其兽种永久点数在承受上限内变三倍；没掷中不抽，
+ *       同一收尾不补掷。</li>
+ *   <li>五转全力以赴每次收尾现一个，结束即撤加成；棕熊本力掷中单熊掷不中的骰（10% 对 5%）。</li>
  *   <li>虚影占槽：前两个在主人前方右、左，其余在身后扇形自最低排起，与朝向无关；同兽种再现原地续期，异兽种替换，寿命到
  *       或随主人消失。</li>
- *   <li>龟、牛同样成形，六兽种皆有槽；苦力连抽归 {@code StrengthRoundTest}。</li>
+ *   <li>龟、牛同样成形，六兽种皆有槽；苦力连抽归 {@code ComboRoundGameTests}。</li>
  * </ul>
  */
 
@@ -57,51 +54,9 @@ public final class BeastPhantomGameTests {
     private static final float MISS = 0.99F;
     private static final int EFFECT_TICKS = 600;
     private static final int SETTLE_TICKS = 2;
-    private static final int MORTAL = StrengthService.MORTAL_CAPACITY;
     private static final int RANK_FIVE = 56;
     private static final int RANK_FIVE_TIER = 4;
     private static final float TURNED_YAW = 90.0F;
-
-    @GameTest(template = "empty9x9x9")
-    public static void aFistHitOpensARoundAndTheNextHitDrawsNothingNew(GameTestHelper helper) {
-        ServerPlayer player = mortal(helper);
-        PathStrengthService.grant(player, BeastStrength.TIGER);
-        PathStrengthService.grant(player, BeastStrength.BEAR);
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
-
-        helper.runAfterDelay(SETTLE_TICKS, () -> {
-            punch(helper, player, new BlockPos(2, 1, 2));
-            assertTrue(StrengthRound.isRunning(player), "a fist hit opened no round");
-            List<BeastStrengthFamily> drawn = StrengthRound.getFamilies(player);
-            assertEquals(1, drawn.size(), "All-Out Effort did not draw one family");
-            BeastPhantomEntity phantom = BeastPhantomEntity.findOwned(player, drawn.getFirst());
-            assertTrue(phantom != null, "the drawn family showed no phantom");
-
-            helper.runAfterDelay(5, () -> {
-                punch(helper, player, new BlockPos(6, 1, 6));
-                assertEquals(drawn, StrengthRound.getFamilies(player));
-                assertEquals(0.0D, StrengthRound.open(player, LAND), DELTA);
-                assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "a hit inside the round drew again");
-                assertTrue(phantom.isAlive(), "a hit inside the round replaced the phantom");
-                helper.succeed();
-            });
-        });
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void aSwordHitOpensNoRound(GameTestHelper helper) {
-        ServerPlayer player = mortal(helper);
-        PathStrengthService.grant(player, BeastStrength.TIGER);
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
-
-        helper.runAfterDelay(SETTLE_TICKS, () -> {
-            punch(helper, player, new BlockPos(2, 1, 2));
-            assertFalse(StrengthRound.isRunning(player), "a sword hit opened a round");
-            assertTrue(BeastPhantomEntity.findOwned(player).isEmpty(), "a sword hit showed a phantom");
-            helper.succeed();
-        });
-    }
 
     @GameTest(template = "empty9x9x9")
     public static void noPermanentBeastShowsNoPhantom(GameTestHelper helper) {
@@ -113,11 +68,11 @@ public final class BeastPhantomGameTests {
         boar.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            assertEquals(0.0D, StrengthRound.open(plain, LAND), DELTA);
-            assertEquals(0.0D, StrengthRound.open(boar, LAND), DELTA);
+            assertEquals(0.0D, finish(plain, LAND), DELTA);
+            assertEquals(0.0D, finish(boar, LAND), DELTA);
             punch(helper, boar, new BlockPos(2, 1, 2));
             for (ServerPlayer player : List.of(plain, boar)) {
-                assertFalse(StrengthRound.isRunning(player), "a body without a permanent beast opened a round");
+                assertTrue(ComboRound.getFamilies(player).isEmpty(), "a body without a permanent beast drew");
                 assertTrue(BeastPhantomEntity.findOwned(player).isEmpty(), "a body without a permanent beast "
                         + "showed a phantom");
             }
@@ -131,8 +86,8 @@ public final class BeastPhantomGameTests {
         PathStrengthService.grant(player, BeastStrength.BEAR);
         int extra = StrengthService.getReleasedExtra(RANK_FIVE, 40, 40);
 
-        assertEquals(extra * PathStrengthData.ATTACK_PER_POINT, StrengthRound.open(player, LAND), DELTA);
-        assertEquals(extra, StrengthRound.getReleasedExtra(player));
+        assertEquals(extra * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
+        assertEquals(extra, ComboRound.getReleasedExtra(player));
         assertEquals(RANK_FIVE - 40, extra, "the release passed the capacity");
         assertEquals(RANK_FIVE, StrengthService.getUsablePoints(player), "the settlement missed the release");
         List<BeastPhantomEntity> phantoms = BeastPhantomEntity.findOwned(player);
@@ -142,11 +97,12 @@ public final class BeastPhantomGameTests {
 
         ServerPlayer missed = mortal(helper);
         PathStrengthService.grant(missed, BeastStrength.TIGER);
-        assertEquals(0.0D, StrengthRound.open(missed, StrengthRound.CHANCE), DELTA);
-        assertTrue(StrengthRound.isRunning(missed), "a missed roll did not still run the round");
-        assertTrue(StrengthRound.getFamilies(missed).isEmpty(), "a missed roll drew a family");
+        assertEquals(0.0D, finish(missed, ComboRound.CHANCE), DELTA);
+        assertTrue(ComboRound.isFinishing(missed), "a missed roll ended the finisher");
+        assertTrue(ComboRound.getFamilies(missed).isEmpty(), "a missed roll drew a family");
         assertTrue(BeastPhantomEntity.findOwned(missed).isEmpty(), "a missed roll showed a phantom");
-        assertEquals(0.0D, StrengthRound.open(missed, LAND), DELTA);
+        assertEquals(0.0D, ComboRound.strike(missed, LAND), DELTA);
+        assertTrue(ComboRound.getFamilies(missed).isEmpty(), "the same finisher rolled again");
         helper.succeed();
     }
 
@@ -155,13 +111,13 @@ public final class BeastPhantomGameTests {
         float roll = 0.07F;
         ServerPlayer bear = mortal(helper);
         PathStrengthService.grant(bear, BeastStrength.BEAR);
-        StrengthRound.open(bear, roll);
-        assertTrue(StrengthRound.getFamilies(bear).isEmpty(), "the bear alone landed a 7% roll");
+        finish(bear, roll);
+        assertTrue(ComboRound.getFamilies(bear).isEmpty(), "the bear alone landed a 7% roll");
 
         ServerPlayer brownBear = mortal(helper);
         PathStrengthService.grant(brownBear, BeastStrength.BROWN_BEAR);
-        StrengthRound.open(brownBear, roll);
-        assertEquals(List.of(BeastStrengthFamily.BEAR), StrengthRound.getFamilies(brownBear),
+        finish(brownBear, roll);
+        assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(brownBear),
                 "the brown bear missed a 7% roll");
         assertTrue(BeastPhantomEntity.findOwned(brownBear, BeastStrengthFamily.BEAR) != null,
                 "the landed roll showed no bear phantom");
@@ -169,19 +125,18 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void allOutEffortShowsAPhantomEveryRound(GameTestHelper helper) {
+    public static void allOutEffortShowsAPhantomEveryFinisher(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            assertTrue(StrengthRound.open(player, MISS) > 0.0F, "the first round released nothing");
+            assertTrue(finish(player, MISS) > 0.0F, "the first finisher released nothing");
             assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null, "no first phantom");
-            helper.runAfterDelay(StrengthRound.ROUND_TICKS + 1, () -> {
-                assertTrue(StrengthRound.open(player, MISS) > 0.0F, "the second round released nothing");
-                assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null, "no second phantom");
-                helper.succeed();
-            });
+            ComboRound.complete(player, false);
+            assertTrue(finish(player, MISS) > 0.0F, "the next finisher released nothing");
+            assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null, "no second phantom");
+            helper.succeed();
         });
     }
 
@@ -192,26 +147,12 @@ public final class BeastPhantomGameTests {
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            StrengthRound.open(player, MISS);
-            assertEquals(2 * 40, StrengthRound.getReleasedExtra(player), "rank five All-Out did not carry the 120");
+            finish(player, MISS);
+            assertEquals(2 * 40, ComboRound.getReleasedExtra(player), "rank five All-Out did not carry the 120");
 
             player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
-            assertEquals(RANK_FIVE - 40, StrengthRound.getReleasedExtra(player), "the lift outlived the effect");
-            assertEquals(List.of(BeastStrengthFamily.BEAR), StrengthRound.getFamilies(player));
-            helper.succeed();
-        });
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void aRoundsEndReleasesNothing(GameTestHelper helper) {
-        ServerPlayer player = mortal(helper);
-        PathStrengthService.grant(player, BeastStrength.TIGER);
-        StrengthRound.open(player, LAND);
-
-        helper.runAfterDelay(StrengthRound.ROUND_TICKS + 1, () -> {
-            assertFalse(StrengthRound.isRunning(player), "the round outlived its ticks");
-            assertEquals(0, StrengthRound.getReleasedExtra(player));
-            assertEquals(MORTAL, StrengthService.getUsablePoints(player), "the release outlived its round");
+            assertEquals(RANK_FIVE - 40, ComboRound.getReleasedExtra(player), "the lift outlived the effect");
+            assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player));
             helper.succeed();
         });
     }
@@ -291,8 +232,8 @@ public final class BeastPhantomGameTests {
         int capacity = RANK_FIVE + 128;
         int extra = StrengthService.getReleasedExtra(capacity, 48, 48);
 
-        assertEquals(extra * PathStrengthData.ATTACK_PER_POINT, StrengthRound.open(player, LAND), DELTA);
-        assertEquals(List.of(BeastStrengthFamily.TURTLE), StrengthRound.getFamilies(player), "the turtle was not drawn");
+        assertEquals(extra * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
+        assertEquals(List.of(BeastStrengthFamily.TURTLE), ComboRound.getFamilies(player), "the turtle was not drawn");
         assertEquals(96, extra, "the turtle's release did not triple it");
         BeastPhantomEntity turtle = BeastPhantomEntity.findOwned(player, BeastStrengthFamily.TURTLE);
         assertTrue(turtle != null, "the turtle took no shape");
@@ -320,19 +261,20 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aSteadyFistRenewsThePhantomAcrossRounds(GameTestHelper helper) {
+    public static void aSteadyFistRenewsThePhantomAcrossFinishers(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            StrengthRound.open(player, MISS);
+            finish(player, MISS);
+            ComboRound.complete(player, false);
             BeastPhantomEntity bear = BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR);
             assertTrue(bear != null, "no bear shown");
-            helper.runAfterDelay(StrengthRound.ROUND_TICKS + BeastPhantomEntity.LINGER_TICKS - 2, () -> {
-                assertTrue(StrengthRound.open(player, MISS) > 0.0F, "the next round did not open");
-                assertTrue(bear.isAlive(), "the bear went between two rounds");
-                assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "the next round respawned the bear");
+            helper.runAfterDelay(BeastPhantomEntity.getShownTicks() - 2, () -> {
+                assertTrue(finish(player, MISS) > 0.0F, "the next finisher released nothing");
+                assertTrue(bear.isAlive(), "the bear went between two finishers");
+                assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "the next finisher respawned the bear");
                 helper.succeed();
             });
         });
@@ -356,7 +298,7 @@ public final class BeastPhantomGameTests {
     public static void thePhantomGoesAfterItsLifetime(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.TIGER);
-        StrengthRound.open(player, LAND);
+        finish(player, LAND);
 
         helper.runAfterDelay(BeastPhantomEntity.getShownTicks() - 2, () ->
                 assertFalse(BeastPhantomEntity.findOwned(player).isEmpty(), "the phantom left before its linger ran out"));
@@ -370,16 +312,21 @@ public final class BeastPhantomGameTests {
     public static void thePhantomAndTheRoundGoWithItsOwner(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
-        StrengthRound.open(player, LAND);
+        finish(player, LAND);
         BeastPhantomEntity phantom = BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR);
         assertTrue(phantom != null, "no phantom shown");
 
         player.kill();
-        assertFalse(StrengthRound.isRunning(player), "the round outlived its owner");
+        assertFalse(ComboRound.isFinishing(player), "the finisher outlived its owner");
         helper.runAfterDelay(2, () -> {
             assertFalse(phantom.isAlive(), "the phantom outlived its owner");
             helper.succeed();
         });
+    }
+
+    private static float finish(ServerPlayer player, float roll) {
+        ComboRound.beginStrike(player, true);
+        return ComboRound.strike(player, roll);
     }
 
     private static void punch(GameTestHelper helper, ServerPlayer player, BlockPos at) {

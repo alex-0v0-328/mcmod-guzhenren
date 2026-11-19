@@ -17,23 +17,33 @@ import net.alex.guzhenren.compat.EpicFightIntegration.ThrowClip;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** 月刃投掷动作：按距上次投掷间隔选动作（{@link EpicFightIntegration#getThrowClip}）；三文件及合成层数据。 */
+/** 月刃投掷动作：按上一片段是否播完选动作（{@link EpicFightIntegration#getThrowClip}）；三文件及合成层数据；连招收尾段。 */
 
 class ThrowClipTest {
 
     private static final String CLIPS = "assets/guzhenren/animmodels/animations/biped/skill/";
 
     @Test
-    @DisplayName("a throw after a pause is the sweep; inside the window the arms alternate, left first")
+    @DisplayName("a throw after the last clip ended is the sweep; while it still plays the arms alternate, left first")
     void aRunAlternatesArms() {
-        long window = EpicFightIntegration.THROW_RUN_TICKS;
+        long playing = 6L;
         for (ThrowClip last : ThrowClip.values()) {
-            assertEquals(ThrowClip.SWEEP, EpicFightIntegration.getThrowClip(last, window + 1L));
-            assertEquals(ThrowClip.SWEEP, EpicFightIntegration.getThrowClip(last, -1L), "a clock set back starts over");
+            assertEquals(ThrowClip.SWEEP, EpicFightIntegration.getThrowClip(last, playing + 1L, playing));
+            assertEquals(ThrowClip.SWEEP, EpicFightIntegration.getThrowClip(last, -1L, playing),
+                    "a clock set back starts over");
+            assertEquals(ThrowClip.SWEEP, EpicFightIntegration.getThrowClip(last, 1L, 0L), "a zero clip chained");
         }
-        assertEquals(ThrowClip.PUNCH_LEFT, EpicFightIntegration.getThrowClip(ThrowClip.SWEEP, 2L));
-        assertEquals(ThrowClip.PUNCH_RIGHT, EpicFightIntegration.getThrowClip(ThrowClip.PUNCH_LEFT, 2L));
-        assertEquals(ThrowClip.PUNCH_LEFT, EpicFightIntegration.getThrowClip(ThrowClip.PUNCH_RIGHT, window));
+        assertEquals(ThrowClip.PUNCH_LEFT, EpicFightIntegration.getThrowClip(ThrowClip.SWEEP, 2L, playing));
+        assertEquals(ThrowClip.PUNCH_RIGHT, EpicFightIntegration.getThrowClip(ThrowClip.PUNCH_LEFT, 2L, playing));
+        assertEquals(ThrowClip.PUNCH_LEFT, EpicFightIntegration.getThrowClip(ThrowClip.PUNCH_RIGHT, playing, playing));
+    }
+
+    @Test
+    @DisplayName("the last combo attack finishes a round: the third of Epic Fight's five empty-hand motions")
+    void theLastComboFinishes() {
+        assertEquals(List.of(false, false, true),
+                List.of(EpicFightIntegration.isLastCombo(0, 5), EpicFightIntegration.isLastCombo(1, 5),
+                        EpicFightIntegration.isLastCombo(2, 5)));
     }
 
     @Test
