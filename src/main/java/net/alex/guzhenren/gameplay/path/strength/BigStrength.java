@@ -13,12 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 大力状态：大力蛊[Big Strength Gu]生效期间提供的临时力量点[Strength Points]与折半承受力增幅。
+ * 大力状态：大力蛊[Big Strength Gu]生效期间提供的增幅力量点[Strength Points]。
  * <ul>
- *   <li>作为限时流派效果挂载，力量点数取自该效果上的力道道痕[Path Marks]点，并附带 {@code points / CAPACITY_DIVISOR}
- *       （向下取整，即一半）的临时承受力加成，使承受力已满的身体也能发挥出至少一半的新增力量。</li>
- *   <li>属于非兽力增幅（{@code beastFamily == null}）：超出当前总承受力的部分直接截断而不触发肉体过载反噬；不限制力道流
- *       派分支，不计入永久兽力准入，也不计入全面解放基数。</li>
+ *   <li>作为限时流派效果挂载，力量点数取自该效果上的力道道痕[Path Marks]点，登记为一个增幅来源
+ *       （{@link StrengthAmplifier#points}）：不带承受力，超出当前承受力的部分全额发挥并结算过载反噬。</li>
+ *   <li>属于非兽力增幅：不限制力道流派分支，不过准入，不出兽影，也不计入全面解放。</li>
  * </ul>
  */
 
@@ -27,16 +26,13 @@ public final class BigStrength {
     private BigStrength() {}
 
     public static final int POINTS = 32;
-    public static final int CAPACITY_DIVISOR = 2;
 
     public static boolean isActive(@NotNull Player player) {
         return PathEffectService.find(player, ModPathEffectTypes.BIG_STRENGTH) != null;
     }
 
-    public static int getCapacityBonus(int points) { return Math.max(0, points) / CAPACITY_DIVISOR; }
-
     public static @Nullable StrengthAmplifier getAmplifier(@NotNull ResourceLocation source, int points) {
-        return points > 0 ? new StrengthAmplifier(source, null, points, getCapacityBonus(points)) : null;
+        return points > 0 ? StrengthAmplifier.points(source, points) : null;
     }
 
     public record State() implements StrengthAmplifierProvider {

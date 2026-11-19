@@ -5,9 +5,11 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.AreaImpactShatter;
+import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
+import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -28,16 +30,18 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import static net.alex.guzhenren.gametest.GameTestGu.inSlot;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertEquals;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
  * 范围冲击[Area Impact]拳击的崩裂（场景西缘朝东，眼高 2.62）。
  * <ul>
- *   <li>五转、人力 200 斤：常态承受 56，发挥 56 点，不破；五转全力以赴承受 168，发挥 168 点，破硬度 ≤ 0.6，破坏半径约
- *       4.1 格。</li>
+ *   <li>五转、人力 168 斤全额发挥 168 点：破硬度 ≤ 0.6，破坏半径约 4.1 格；人力 99 斤不足 100 点，不破。</li>
  *   <li>正前方一排：2 格泥土（破）、3 格石头（太硬）、4 格泥土（被石头挡住）、5 格泥土（在半径外）。</li>
  *   <li>门先破上半：生存由下半连带掉一扇门，创造不掉（原版先静默抹掉下半）；石头按空手挖碎而不掉。</li>
+ *   <li>苦力运行中的人力钧力流锥形放大（半径 ×1.5、半角 135°），崩裂仍按未放大的半径与 45° 半角：结算 184 点，破坏半
+ *       径约 4.2 格，5 格外与正侧方的泥土都留。</li>
  *   <li>蓄力一拳的扇形崩裂与硬度上档在 {@code StoreStrengthGameTests}。</li>
  * </ul>
  */
@@ -54,15 +58,17 @@ public final class AreaImpactShatterGameTests {
     private static final BlockPos HARD = new BlockPos(4, 2, 4);
     private static final BlockPos SHIELDED = new BlockPos(5, 2, 4);
     private static final BlockPos BEYOND = new BlockPos(6, 2, 4);
-    private static final int EFFECT_TICKS = 600;
-    private static final int RANK_FIVE_TIER = 4;
-    private static final int CAPACITY_POINTS = 56;
-    private static final int ALL_OUT_POINTS = 168;
+    private static final BlockPos SIDE = new BlockPos(1, 2, 6);
+    private static final int STRONG_POINTS = 168;
+    private static final int WEAK_POINTS = 99;
+    private static final int HARDSHIP_POINTS = 184;
+    private static final int BAG_SLOT = 9;
+    private static final int HUNGER = 98;
 
     @GameTest(template = "empty9x9x9")
     public static void aStrongFistShattersTheSoftBlocksItSees(GameTestHelper helper) {
-        ServerPlayer player = allOut(human(helper, GameTestPlayers.survival(helper, "gzr-shatter-cone")
-                .pastSpawnInvulnerability().at(WEST)));
+        ServerPlayer player = strong(helper, GameTestPlayers.survival(helper, "gzr-shatter-cone")
+                .pastSpawnInvulnerability().at(WEST));
         row(helper);
 
         AreaImpact.release(player, EAST, List.of());
@@ -79,8 +85,9 @@ public final class AreaImpactShatterGameTests {
     @GameTest(template = "empty9x9x9")
     public static void underAHundredPointsNothingBreaks(GameTestHelper helper) {
         ServerPlayer player = human(helper, GameTestPlayers.survival(helper, "gzr-shatter-weak")
-                .pastSpawnInvulnerability().at(WEST));
-        assertEquals(CAPACITY_POINTS, AreaImpact.getPoints(player));
+                .pastSpawnInvulnerability().at(WEST), 3, 0, 9);
+        assertEquals(WEAK_POINTS, AreaImpact.getPoints(player));
+        assertTrue(WEAK_POINTS < AreaImpactShatter.SOFT_POINTS, "the weak fist is not under the soft tier");
         row(helper);
 
         AreaImpact.release(player, EAST, List.of());
@@ -91,16 +98,16 @@ public final class AreaImpactShatterGameTests {
 
     @GameTest(template = "empty9x9x9")
     public static void adventureModeBreaksNothingAndCreativeDropsNothing(GameTestHelper helper) {
-        ServerPlayer adventurer = allOut(human(helper, GameTestPlayers.survival(helper, "gzr-shatter-adventure")
-                .pastSpawnInvulnerability().at(WEST)));
+        ServerPlayer adventurer = strong(helper, GameTestPlayers.survival(helper, "gzr-shatter-adventure")
+                .pastSpawnInvulnerability().at(WEST));
         row(helper);
         adventurer.setGameMode(GameType.ADVENTURE);
         AreaImpact.release(adventurer, EAST, List.of());
         assertBlock(helper, NEAR, Blocks.DIRT);
         adventurer.discard();
 
-        ServerPlayer builder = allOut(human(helper, GameTestPlayers.survival(helper, "gzr-shatter-creative")
-                .creative(() -> true).pastSpawnInvulnerability().at(WEST)));
+        ServerPlayer builder = strong(helper, GameTestPlayers.survival(helper, "gzr-shatter-creative")
+                .creative(() -> true).pastSpawnInvulnerability().at(WEST));
         AreaImpact.release(builder, EAST, List.of());
         assertBlock(helper, NEAR, Blocks.AIR);
         assertTrue(drops(helper).isEmpty(), "creative dropped the broken dirt");
@@ -181,8 +188,8 @@ public final class AreaImpactShatterGameTests {
 
     @GameTest(template = "empty9x9x9")
     public static void aHeldItemKeepsTheFistFromShattering(GameTestHelper helper) {
-        ServerPlayer player = allOut(human(helper, GameTestPlayers.survival(helper, "gzr-shatter-held")
-                .pastSpawnInvulnerability().at(WEST)));
+        ServerPlayer player = strong(helper, GameTestPlayers.survival(helper, "gzr-shatter-held")
+                .pastSpawnInvulnerability().at(WEST));
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         assertEquals(0, AreaImpact.getPoints(player));
         row(helper);
@@ -190,6 +197,34 @@ public final class AreaImpactShatterGameTests {
         AreaImpact.release(player, EAST, List.of());
 
         assertBlock(helper, NEAR, Blocks.DIRT);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theWidenedConeShattersNoWiderThanTheNarrowOne(GameTestHelper helper) {
+        ServerPlayer player = strong(helper, GameTestPlayers.survival(helper, "gzr-shatter-widened")
+                .pastSpawnInvulnerability().at(WEST));
+        inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
+        player.setHealth(player.getMaxHealth() * 0.7F);
+        AutoUse.tryStart(player);
+        assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
+        assertTrue(AreaImpact.isWidened(player), "Hardship did not widen the human branch");
+        assertEquals(HARDSHIP_POINTS, AreaImpact.getPoints(player));
+        double reach = AreaImpact.getRange(HARDSHIP_POINTS, true) / 2.0D;
+        Vec3 eyes = player.getEyePosition();
+        assertTrue(helper.absolutePos(BEYOND).getCenter().distanceTo(eyes) < reach,
+                "the far dirt is outside even the widened half range");
+        assertTrue(helper.absolutePos(SIDE).getCenter().distanceTo(eyes) < AreaImpact.getRange(HARDSHIP_POINTS) / 2.0D,
+                "the side dirt is outside the narrow half range");
+        helper.setBlock(NEAR, Blocks.DIRT);
+        helper.setBlock(BEYOND, Blocks.DIRT);
+        helper.setBlock(SIDE, Blocks.DIRT);
+
+        AreaImpact.release(player, EAST, List.of());
+
+        assertBlock(helper, NEAR, Blocks.AIR);
+        assertBlock(helper, BEYOND, Blocks.DIRT);
+        assertBlock(helper, SIDE, Blocks.DIRT);
         helper.succeed();
     }
 
@@ -215,18 +250,20 @@ public final class AreaImpactShatterGameTests {
                 .mapToInt(drop -> drop.getItem().getCount()).sum();
     }
 
-    private static ServerPlayer human(GameTestHelper helper, ServerPlayer player) {
+    private static ServerPlayer human(GameTestHelper helper, ServerPlayer player, int jun, int tenJin, int jin) {
         GameTestPlayers.ground(helper);
         GameTestGu.awakened(player, Rank.FIVE);
         player.setYRot(-90.0F);
-        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 6), "the jun was refused");
-        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 2), "the ten jin was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, jun), "the jun was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, tenJin),
+                "the ten jin was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JIN, jin), "the jin was refused");
         return player;
     }
 
-    private static ServerPlayer allOut(ServerPlayer player) {
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
-        assertEquals(ALL_OUT_POINTS, AreaImpact.getPoints(player));
+    private static ServerPlayer strong(GameTestHelper helper, ServerPlayer player) {
+        human(helper, player, 5, 1, 8);
+        assertEquals(STRONG_POINTS, AreaImpact.getPoints(player));
         return player;
     }
 

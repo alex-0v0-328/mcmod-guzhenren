@@ -155,11 +155,10 @@ public final class InfoModel {
     public record TimeRateUpRow(int rate) implements Entry {}
 
     /**
-     * 可发挥力量点[Strength Points] / 持有力量点（兽力[Beast Strength]与人力合计），旁列当前承受力、常态承受力基准以及
-     * 超出的肉体过载点（无过载时为 0）。
+     * 总力量点[Strength Points]（永久与增幅合计，不含倍率），旁列当前承受力、常态承受力基准以及平时结算力量点超出当前
+     * 承受力的点数（不超出时为 0）。
      */
-    public record CapacityRow(int usable, int total, int capacity, int normalCapacity, int overload)
-            implements Entry {}
+    public record CapacityRow(int total, int capacity, int normalCapacity, int overload) implements Entry {}
 
     public record AttackRow(double bonus) implements Entry {}
 
@@ -234,9 +233,8 @@ public final class InfoModel {
         rows.add(new Row(0, new Lifespan(body.getLifespanYears(), body.ageYears())));
         StrengthSnapshot settlement = StrengthService.snapshot(player);
         if (settlement.totalPoints() > 0) {
-            rows.add(new Row(0, new CapacityRow(StrengthService.getUsablePoints(player, settlement),
-                    settlement.totalPoints(), settlement.capacity(), settlement.normalCapacity(),
-                    settlement.overloadPoints())));
+            rows.add(new Row(0, new CapacityRow(settlement.totalPoints(), settlement.capacity(),
+                    settlement.normalCapacity(), settlement.overloadPoints(settlement.settledPoints()))));
         }
         double attackBonus = AttackDamageService.getFistBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {

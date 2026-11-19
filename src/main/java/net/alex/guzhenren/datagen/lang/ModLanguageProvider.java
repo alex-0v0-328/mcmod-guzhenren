@@ -354,12 +354,12 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.strength_path_achieve", "Strength Path Attainment", "力道造诣");
         add("guzhenren.screen.label.time_path_achieve",     "Time Path Attainment", "宙道造诣");
         add("guzhenren.screen.label.time_rate_up",          "Time Rate Up", "自身时间加速");
-        add("guzhenren.screen.label.body_capacity",         "Capacity", "承受");
+        add("guzhenren.screen.label.body_capacity",         "Strength Points", "力量点");
         add("guzhenren.screen.label.attack",                "Base Attack", "基础攻击力");
         add("guzhenren.screen.label.aperture_pressure",     "Aperture Pressure", "空窍压力");
-        add("guzhenren.screen.capacity",                    "%s / %s pts, carries %s (%s at rest)",
-                "%s / %s 点，承受 %s（常态 %s）");
-        add("guzhenren.screen.capacity.body_overload",      ", overload %s", "，过载 %s");
+        add("guzhenren.screen.capacity",                    "%s, capacity %s (%s at rest)",
+                "%s，承受力 %s（常态 %s）");
+        add("guzhenren.screen.capacity.body_overload",      ", %s over", "，超出 %s");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
     }
@@ -392,6 +392,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.beast_strength_held",             "Already holding %s", "已有%s");
         add("guzhenren.item.failed.beast_strength_capacity",         "Not enough capacity", "承受力不足");
         add("guzhenren.item.failed.human_strength_full",             "Already at %s layers", "已叠满%s层");
+        add("guzhenren.item.failed.human_strength_capacity",         "Not enough capacity", "承受力不足");
         add("guzhenren.item.failed.mark_interference",               "Mark Interference", "力道道痕互斥");
         add(Refusal.AUTO_EFFECT,                                     "This Gu works on its own", "该蛊自动生效");
         add(Refusal.ESSENCE,                                         "NOT enough essence", "真元不足");
@@ -506,25 +507,26 @@ public class ModLanguageProvider extends LanguageProvider {
                 "at 75%.",
                 "生命低于 75% 时自动按最大生命百分比快速回血，回到 75% 即停。");
         addEffect(ModEffects.HARDSHIP_STRENGTH_GU, "Hardship Strength Gu Effect", "苦力蛊效果",
-                "Activates below 75% health. Lower health grants more base capacity, and Beast Phantom combos " +
-                "spawn an extra phantom.",
-                "生命低于 75% 时自动生效：伤势越重常态承受力越高；兽力虚影连击每轮多一只。");
+                "Activates below 75% health. Lower health hits harder (+10% to +50%); Beast Phantom combos draw " +
+                "more phantoms, and Human Jun finishers always release a wider Area Impact.",
+                "生命低于 75% 时自动生效：伤势越重出拳越重（+10% 到 +50%）；兽力虚影连击越久兽影越多，" +
+                "人力钧力收尾必出更大的范围冲击。");
         addEffect(ModEffects.ALL_OUT_EFFORT_GU, "All-Out Effort Gu Effect", "全力以赴蛊效果",
-                "Boosts base capacity, Full Release, and Area Impact rates. Dashes go faster, farther, and hit " +
+                "Boosts capacity, Beast Phantom, and Area Impact rates. Dashes go faster, farther, and hit " +
                 "harder; charges faster.",
-                "常态承受力、全面解放与范围冲击概率提高；横冲类冲刺更快更远更强，蓄力蛊蓄满更快。");
+                "承受力、兽影与范围冲击概率提高；横冲类冲刺更快更远更强，蓄力蛊蓄满更快。");
         addEffect(ModEffects.STORE_STRENGTH_GU, "Store Strength Gu Effect", "蓄力蛊效果",
-                "Hold attack on a locked target to charge a fan-shaped heavy punch that ignores capacity. Causes " +
-                "non-lethal recoil.",
-                "锁定目标后按住攻击键蓄力，蓄满打出无视承受力的扇形重拳；每拳反噬扣血但不致死。");
+                "Hold attack on a locked target for at least 1 s to charge a fan-shaped punch, up to 3x when " +
+                "full. Strength beyond capacity recoils, never lethally.",
+                "锁定目标后按住攻击键蓄力至少 1 秒，松手打出扇形重拳，蓄满 3 倍；超出承受力会反噬扣血但不致死。");
         addEffect(ModEffects.HABITUAL_STRENGTH_GU, "Habitual Strength Gu Effect", "惯力蛊效果",
                 "Like Store Strength Gu, but you can move while charging: hold attack on a locked target to " +
                 "charge a fan-shaped punch.",
-                "同蓄力蛊：锁定目标按住攻击键蓄力，蓄满打出扇形重拳；蓄力时可以移动。");
+                "同蓄力蛊：锁定目标按住攻击键蓄力，松手打出扇形重拳；蓄力时可以移动。");
         addEffect(ModEffects.BIG_STRENGTH_GU, "Big Strength Gu Effect", "大力蛊效果",
-                "Grants 32 temporary strength points and +16 capacity for any Strength branch. Points beyond " +
-                "capacity are wasted.",
-                "临时力量点 +32、承受力 +16，兽力人力流派皆可用；超出承受力的部分无效。");
+                "Grants 32 strength points for any Strength branch. Points beyond capacity still land and " +
+                "recoil on you.",
+                "力量点 +32，兽力人力流派皆可用；超出承受力的部分照常发挥并反噬自身。");
         addEffect(ModEffects.CASUAL_GU, "Casual Gu Effect", "随意蛊效果",
                 "Continuously adds random Thoughts to your Mind.",
                 "持续向脑海加入随机的念。");
@@ -627,12 +629,11 @@ public class ModLanguageProvider extends LanguageProvider {
                 "%1$s was struck down by %2$s's Qi Wave", "%1$s 被 %2$s 的气波打死了");
         add("death.attack.guzhenren.qi_wave.item",
                 "%1$s was struck down by %2$s's Qi Wave using %3$s", "%1$s 被 %2$s 用 %3$s 的气波打死了");
-        add("death.attack.guzhenren.body_overload",               "%1$s died of Body Overload", "%1$s 肉体过载而亡");
+        add("death.attack.guzhenren.body_overload",               "%1$s died of Body Overload", "%1$s 过载反噬而亡");
         add("death.attack.guzhenren.charged_punch",
                 "%1$s was struck down by %2$s's Charged Punch", "%1$s 被 %2$s 的蓄力一拳打死了");
         add("death.attack.guzhenren.charged_punch.item",
                 "%1$s was struck down by %2$s's Charged Punch using %3$s", "%1$s 被 %2$s 用 %3$s 的蓄力一拳打死了");
-        add("death.attack.guzhenren.impact_backlash",             "%1$s died of Impact Backlash", "%1$s 冲击反噬而亡");
         add("death.attack.guzhenren.crash_strike",               "%1$s was rammed by %2$s", "%1$s 被 %2$s 撞死了");
         add("death.attack.guzhenren.crash_strike.item",
                 "%1$s was rammed by %2$s using %3$s", "%1$s 被 %2$s 用 %3$s 撞死了");

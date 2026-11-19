@@ -13,7 +13,6 @@ import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
-import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,9 +38,9 @@ public final class PhysiqueGameTests {
         double base = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
         PathStrengthService.grant(player, BeastStrength.BEAR);
-        int usable = Math.min(BeastStrength.BEAR.getPoints(), StrengthService.getCapacity(player));
         helper.assertValueEqual(player.getAttributeValue(Attributes.ATTACK_DAMAGE),
-                base + usable * PathStrengthData.ATTACK_PER_POINT, "beast strength did not lift attack at once");
+                base + BeastStrength.BEAR.getPoints() * PathStrengthData.ATTACK_PER_POINT,
+                "beast strength did not lift attack at once");
         PathStrengthService.revoke(player, BeastStrength.BEAR);
         helper.assertValueEqual(player.getAttributeValue(Attributes.ATTACK_DAMAGE), base,
                 "revoked beast strength kept its attack");

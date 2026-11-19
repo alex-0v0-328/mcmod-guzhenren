@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.path.strength;
 
+import java.util.List;
 import net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.DisplayName;
@@ -8,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * 自动蛊算术：苦力蛊[Hardship Strength Gu]伤势档位边界；每档给人身或兽力虚影身的力量点[Strength Points]与容量加成；
- * 自力更生蛊[Self Reliance Gu]脉冲曲线；活玩家见 {@code HardshipStrengthGameTests}、{@code SelfRelianceGameTests}。
+ * 自动蛊算术：苦力蛊[Hardship Strength Gu]伤势档位边界；每档给已入分支身体的整拳倍率，不给力量点[Strength Points]与
+ * 承受力；自力更生蛊[Self Reliance Gu]脉冲曲线；活玩家见 {@code HardshipStrengthGameTests}、{@code SelfRelianceGameTests}。
  */
 
 class HardshipStrengthTest {
@@ -33,25 +34,37 @@ class HardshipStrengthTest {
     }
 
     @Test
-    @DisplayName("each tier adds 5 / 10 / 25 / 50 / 100 percent of the normal capacity, rounded down")
-    void capacityBonusByTier() {
-        int[] expected = { 0, 2, 5, 14, 28, 56 };
+    @DisplayName("each tier adds 10 / 20 / 30 / 40 / 50 percent to the whole punch")
+    void punchPercentByTier() {
+        int[] expected = { 0, 10, 20, 30, 40, 50 };
+        assertEquals(5, HardshipStrength.TIERS);
         for (int tier = 0; tier <= HardshipStrength.TIERS; tier++) {
-            assertEquals(expected[tier], HardshipStrength.getCapacityBonus(56, tier), "tier " + tier);
+            assertEquals(expected[tier], HardshipStrength.getPunchPercent(tier), "tier " + tier);
         }
-        assertEquals(0, HardshipStrength.getCapacityBonus(16, 1), "0.8 rounds down to nothing");
-        assertEquals(1, HardshipStrength.getCapacityBonus(20, 1), "a 20 capacity's lightest tier is one point");
-        assertEquals(0, HardshipStrength.getCapacityBonus(-8, 5), "a negative capacity gained");
-        assertEquals(Integer.MAX_VALUE, HardshipStrength.getCapacityBonus(Integer.MAX_VALUE, 5), "no overflow");
     }
 
     @Test
-    @DisplayName("the amplifier lends no points and no family, only capacity, and only to a body holding a branch")
+    @DisplayName("the amplifier lends no points, family or capacity, only the punch factor, and only to a branch")
     void amplifierShape() {
-        assertEquals(new StrengthAmplifier(SOURCE, null, 0, 5), HardshipStrength.getAmplifier(SOURCE, true, 56, 2));
-        assertNull(HardshipStrength.getAmplifier(SOURCE, false, 56, 5), "no branch, yet lent");
-        assertNull(HardshipStrength.getAmplifier(SOURCE, true, 56, 0), "healthy, yet lent");
-        assertNull(HardshipStrength.getAmplifier(SOURCE, true, 16, 1), "lent nothing, yet an amplifier");
+        assertEquals(new StrengthAmplifier(SOURCE, null, 0, 0, 20), HardshipStrength.getAmplifier(SOURCE, true, 2));
+        assertEquals(new StrengthAmplifier(SOURCE, null, 0, 0, 50), HardshipStrength.getAmplifier(SOURCE, true, 5));
+        assertNull(HardshipStrength.getAmplifier(SOURCE, false, 5), "no branch, yet lent");
+        assertNull(HardshipStrength.getAmplifier(SOURCE, true, 0), "healthy, yet lent");
+    }
+
+    @Test
+    @DisplayName("the tier multiplies the settled points and leaves the total and the capacity alone")
+    void tierMultipliesTheSettledPoints() {
+        int[] settled = { 40, 44, 48, 52, 56, 60 };
+        for (int tier = 0; tier <= HardshipStrength.TIERS; tier++) {
+            StrengthAmplifier amplifier = HardshipStrength.getAmplifier(SOURCE, true, tier);
+            StrengthSnapshot snapshot = StrengthSnapshot.of(16, 40, amplifier == null ? List.of() : List.of(amplifier),
+                    StrengthService.NO_ALL_OUT);
+            assertEquals(40, snapshot.totalPoints(), "tier " + tier);
+            assertEquals(16, snapshot.capacity(), "tier " + tier);
+            assertEquals(settled[tier], snapshot.settledPoints(), "tier " + tier);
+            assertEquals(settled[tier] - 16, snapshot.overloadPoints(snapshot.settledPoints()), "tier " + tier);
+        }
     }
 
     @Test

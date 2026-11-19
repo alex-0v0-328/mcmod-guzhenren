@@ -35,7 +35,7 @@ public final class TraditionalGlyphs {
     private static final String PHRASES = "一只一隻 耗尽耗盡 将尽將盡 战斗戰鬥 冲刷沖刷 横冲橫衝 轮回輪迴 回复回復 准大準大 "
             + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦 周围周圍 随后隨後 范围範圍 冲击衝擊 用尽用盡 放回放回 "
             + "躯干軀幹 冲刺衝刺 发出發出 游戏遊戲 获得獲得 分钟分鐘 低于低於 回到回到 回血回血 前后前後 时间后時間後 目标后目標後 "
-            + "结束后結束後";
+            + "结束后結束後 松手鬆手 并反噬並反噬 发挥發揮";
     private static final String UNCHANGED = "一丁七三上下不世丙中丸主乃之乙九也了二互五亡交人仙以任位何作你使俗信修倍值停"
             + "偷催元先光入全八六共具再冥冰凡出刃初利到刷力功加包化北十千升半卓卸厚及取受口"
             + "古可名君味命品四因圈土在地基境墨壁外多大天太央失奴如妙子存宇宗宙定害家容小尚展山峰已"
@@ -47,7 +47,7 @@ public final class TraditionalGlyphs {
             + "筋骨皮原抗招退限刻匿反坐增幅查治玉移防御翡翠"
             + "副手持握配合其他部分快捷按住右永久益盾危能次搭蓄噬拳冷缺少得要目去"
             + "尾左翼耳肢腿臂角附鼻耕"
-            + "概盔模唯喝奶除向前碎沿路低替吸固抵段性最比即扇扣但致程期同皆超研";
+            + "概盔模唯喝奶除向前碎沿路低替吸固抵段性最比即扇扣但致程期同皆超研照";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

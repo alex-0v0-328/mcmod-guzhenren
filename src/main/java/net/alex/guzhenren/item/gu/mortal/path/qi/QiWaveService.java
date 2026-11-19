@@ -10,19 +10,23 @@ import net.alex.guzhenren.effect.timed.StrengthQiGuEffect;
 import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
 import net.alex.guzhenren.entity.projectile.QiBurst;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
+import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastChargeDamage;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.BodyOverload;
 import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
+import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.Vec3;
@@ -42,12 +46,15 @@ import org.jetbrains.annotations.Nullable;
  *   <li>一拳一发、没有间隔：客户端按下攻击键的上报（{@link #request}）与服务端 Epic Fight 真正起招（{@link #onStrike}）
  *       在 {@link #JOIN_TICKS} 内配对才发射，先到的一方等待另一方；Epic Fight 拒绝出招（动作中、采矿模式等）时上报作废，
  *       连按不会多发。</li>
- *   <li>只有连招轮[Combo Round]的收尾招结算本轮：兽力虚影流派按本招抽中的兽种各发一道 {@link BeastChargeEntity}（全面解
- *       放乘 3，合计截到当前肉身承受力），本轮范围冲击掷中则各自爆开时放球形冲击，并通知 {@link ComboRound#markRanged}
- *       不再放近战锥形；前几段或本招没抽中时从已持有的可显形永久兽力中随机一种按 1 倍发射。不可显形的兽种
- *       （{@code BeastStrengthFamily#canManifest}）不发射冲击。</li>
- *   <li>其他流派或未持有可显形永久兽力的玩家改为发射一枚 {@link QiWaveEntity}：伤害等同当次空手拳伤（收尾招含解放，并
- *       补入抽中那一击尚未计入属性的解放增量），不随原版攻击蓄力条缩放。</li>
+ *   <li>远程拳的总伤害 = 当次空手拳伤（按出手时的结算力量点[Strength Points]重算，收尾招含解放）×
+ *       {@link #RANGED_RATIO} 出手系数，不随原版攻击蓄力条缩放；出手系数不影响过载反噬，结算力量点与承受力在出手时记入
+ *       {@link BodyOverload.Shot} 并登记到本招（{@link ComboRound#markShot}），弹射物爆开或同一招的近战命中首次造成
+ *       伤害时结算一次。</li>
+ *   <li>只有连招轮[Combo Round]的收尾招结算本轮：兽力虚影流派按本招抽中的兽种各发一道 {@link BeastChargeEntity}，总伤害
+ *       按兽种份额分摊（{@link BeastChargeDamage}）；本轮范围冲击掷中则爆开半径由 {@link QiBurst#RADIUS} 扩到范围冲击
+ *       半径，并通知 {@link ComboRound#markRanged} 不再放近战锥形。前几段或本招没抽中时从已持有的可显形永久兽力中随
+ *       机一种带全部伤害发射。不可显形的兽种（{@code BeastStrengthFamily#canManifest}）不发射冲击。</li>
+ *   <li>其他流派或未持有可显形永久兽力的玩家改为发射一枚带全部伤害的 {@link QiWaveEntity}。</li>
  * </ul>
  */
 
@@ -57,6 +64,7 @@ public final class QiWaveService {
     private QiWaveService() {}
 
     public static final int JOIN_TICKS = 2;
+    public static final float RANGED_RATIO = 0.5F;
     private static final Map<UUID, Shot> SHOTS = new HashMap<>();
     private static final Map<UUID, Strike> STRIKES = new HashMap<>();
 
@@ -130,22 +138,26 @@ public final class QiWaveService {
         LivingEntity target = getTarget(player, targetId);
         if (target == null) return List.of();
 
-        float gain = finishing ? ComboRound.strike(player, player.getRandom().nextFloat()) : 0.0F;
+        if (finishing) ComboRound.strike(player, player.getRandom().nextFloat());
         boolean impact = finishing && ComboRound.rollsImpact(player);
         if (finishing) ComboRound.markRanged(player);
-        QiBurst.Spec burst = QiBurst.Spec.qiWave(impact);
-        PathStrengthData data = PathStrengthService.get(player);
-        List<BeastStrengthFamily> families = getChargeFamilies(
-                PathStrengthService.getHeldBranch(player) == StrengthPathBranch.BEAST_STRENGTH_PHANTOM,
-                ComboRound.getFamilies(player), ComboRound.getAvailableFamilies(data), player.getRandom());
-        if (families.isEmpty()) {
-            return List.of(QiWaveEntity.shoot(player, target,
-                    (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE) + gain, burst));
-        }
 
-        List<BeastStrengthFamily> released = finishing ? ComboRound.getFullyReleased(player) : List.of();
-        float[] damages = BeastChargeDamage.getDamages(data, families, released,
-                StrengthService.FULL_RELEASE_FACTOR, StrengthService.getCapacity(player));
+        StrengthSnapshot snapshot = StrengthService.snapshot(player);
+        int points = StrengthService.getSettledPoints(player, snapshot);
+        double radius = impact ? AreaImpact.getRange(points, AreaImpact.isWidened(player)) : QiBurst.RADIUS;
+        BodyOverload.Shot shot = new BodyOverload.Shot(points, snapshot.capacity());
+        ComboRound.markShot(player, shot);
+        QiBurst.Spec burst = new QiBurst.Spec(radius, ModDamageTypes.QI_WAVE, impact, shot);
+        float damage = (float) AttackDamageService.getFistDamage(player, points) * RANGED_RATIO;
+
+        PathStrengthData data = PathStrengthService.get(player);
+        List<BeastStrengthFamily> drawn = ComboRound.getFamilies(player);
+        List<BeastStrengthFamily> families = getChargeFamilies(
+                PathStrengthService.getHeldBranch(player) == StrengthPathBranch.BEAST_STRENGTH_PHANTOM, drawn,
+                ComboRound.getAvailableFamilies(data), player.getRandom());
+        if (families.isEmpty()) return List.of(QiWaveEntity.shoot(player, target, damage, burst));
+
+        float[] damages = BeastChargeDamage.split(damage, BeastChargeDamage.getWeights(data, families, drawn));
         List<Projectile> charges = new ArrayList<>();
         for (int i = 0; i < families.size(); i++) {
             charges.add(BeastChargeEntity.shoot(player, target, damages[i], families.get(i), burst, i,

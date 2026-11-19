@@ -8,21 +8,32 @@ import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
+import net.alex.guzhenren.gameplay.path.strength.BodyOverload;
 import net.alex.guzhenren.gameplay.path.strength.ComboRound;
+import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
+import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -32,11 +43,14 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 活玩家连招轮[Combo Round]收尾招的兽力[Beast Strength]虚影与全面解放（轮的边界归 {@code ComboRoundGameTests}）。
+ * 活玩家连招轮[Combo Round]收尾招的兽力[Beast Strength]虚影、全面解放与空手命中的过载反噬（轮的边界归
+ * {@code ComboRoundGameTests}）。
  * <ul>
- *   <li>无永久兽力（仅花豕蛊[Flower Boar Gu]亦然）不抽；掷中现一虚影，其兽种永久点数在承受上限内变三倍；没掷中不抽，
- *       同一收尾不补掷。</li>
- *   <li>五转全力以赴每次收尾现一个，结束即撤加成；棕熊本力掷中单熊掷不中的骰（10% 对 5%）。</li>
+ *   <li>无永久兽力（仅花豕蛊[Flower Boar Gu]亦然）不抽；掷中现一虚影，其兽种永久点数再计一份（×2，不按承受力截断）；没
+ *       掷中不抽，同一收尾不补掷。</li>
+ *   <li>五转全力以赴每次收尾现一个，中途结束只撤承受力、解放照旧；棕熊本力掷中单熊掷不中的骰（10% 对 5%）。</li>
+ *   <li>收尾招命中：解放增量（点数 × 0.125）补进本击护甲前伤害，并记下溢出量；每次出手打中结算一次过载反噬（超出 ÷ 承受
+ *       力 × 最大生命 × 50%，停在 2 血），同一招的后续命中、持剑与没打中都不扣，新出招再扣。</li>
  *   <li>虚影占槽：前两个在主人前方右、左，其余在身后扇形自最低排起，与朝向无关；同兽种再现原地续期，异兽种替换，寿命到
  *       或随主人消失。</li>
  *   <li>龟、牛同样成形，六兽种皆有槽；苦力连抽归 {@code ComboRoundGameTests}。</li>
@@ -57,6 +71,11 @@ public final class BeastPhantomGameTests {
     private static final int RANK_FIVE = 56;
     private static final int RANK_FIVE_TIER = 4;
     private static final float TURNED_YAW = 90.0F;
+    private static final int BEAR_POINTS = 40;
+    private static final int TURTLE_POINTS = 48;
+    private static final int BROWN_BEAR_POINTS = 96;
+    private static final float BLOW = 1.0F;
+    private static final float TARGET_HEALTH = 1000.0F;
 
     @GameTest(template = "empty9x9x9")
     public static void noPermanentBeastShowsNoPhantom(GameTestHelper helper) {
@@ -84,12 +103,13 @@ public final class BeastPhantomGameTests {
     public static void aLandedRollShowsOnePhantomAndAFullRelease(GameTestHelper helper) {
         ServerPlayer player = rankFive(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
-        int extra = StrengthService.getReleasedExtra(RANK_FIVE, 40, 40);
 
-        assertEquals(extra * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
-        assertEquals(extra, ComboRound.getReleasedExtra(player));
-        assertEquals(RANK_FIVE - 40, extra, "the release passed the capacity");
-        assertEquals(RANK_FIVE, StrengthService.getUsablePoints(player), "the settlement missed the release");
+        assertEquals(BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
+        assertEquals(BEAR_POINTS, ComboRound.getReleasedPoints(player));
+        assertEquals(2 * BEAR_POINTS, StrengthService.getSettledPoints(player), "the released bear did not double");
+        assertTrue(StrengthService.getSettledPoints(player) > StrengthService.getCapacity(player),
+                "the release was cut at the capacity");
+        assertEquals(RANK_FIVE, StrengthService.getCapacity(player), "the rank five capacity moved");
         List<BeastPhantomEntity> phantoms = BeastPhantomEntity.findOwned(player);
         assertEquals(1, phantoms.size(), "a landed roll did not show one phantom");
         assertEquals(BeastStrengthFamily.BEAR, phantoms.getFirst().getFamily(), "the phantom is not the bear");
@@ -141,20 +161,157 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theEndOfAllOutEffortDropsItsLiftAtOnce(GameTestHelper helper) {
+    public static void theEndOfAllOutEffortKeepsTheReleaseAndDropsOnlyItsCapacity(GameTestHelper helper) {
         ServerPlayer player = rankFive(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            finish(player, MISS);
-            assertEquals(2 * 40, ComboRound.getReleasedExtra(player), "rank five All-Out did not carry the 120");
+            assertEquals(BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT, finish(player, MISS), DELTA);
+            assertEquals(3 * RANK_FIVE, StrengthService.getCapacity(player), "rank five All-Out did not triple");
+            assertEquals(0, StrengthService.getOverloadPoints(StrengthService.getSettledPoints(player),
+                    StrengthService.getCapacity(player)), "the lifted capacity did not hold the released bear");
 
             player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
-            assertEquals(RANK_FIVE - 40, ComboRound.getReleasedExtra(player), "the lift outlived the effect");
+            assertEquals(BEAR_POINTS, ComboRound.getReleasedPoints(player), "the release left with the effect");
             assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player));
+            assertEquals(2 * BEAR_POINTS, StrengthService.getSettledPoints(player), "the points left with the effect");
+            assertEquals(2 * BEAR_POINTS - RANK_FIVE, StrengthService.getOverloadPoints(
+                    StrengthService.getSettledPoints(player), StrengthService.getCapacity(player)),
+                    "the lift outlived the effect");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theFinishersReleaseJoinsTheBlowThatDrewItAndMarksItsSpill(GameTestHelper helper) {
+        ServerPlayer player = mortal(helper);
+        PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        float gain = (float) (BROWN_BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT);
+
+        helper.runAfterDelay(SETTLE_TICKS, () -> {
+            Villager opener = villager(helper, new BlockPos(2, 1, 2));
+            ComboRound.beginStrike(player, false);
+            hit(player, opener);
+            assertEquals(BLOW, TARGET_HEALTH - opener.getHealth(), DELTA);
+            assertEquals(BLOW, ComboRound.getSpill(player, BLOW), DELTA);
+
+            Villager first = villager(helper, new BlockPos(2, 1, 4));
+            Villager second = villager(helper, new BlockPos(6, 1, 6));
+            ComboRound.beginStrike(player, true);
+            hit(player, first);
+            assertEquals(BLOW + gain, TARGET_HEALTH - first.getHealth(), DELTA);
+            assertEquals(BLOW + gain - TARGET_HEALTH, ComboRound.getSpill(player, BLOW), DELTA);
+            assertEquals(2 * BROWN_BEAR_POINTS, StrengthService.getSettledPoints(player));
+
+            hit(player, second);
+            assertEquals(BLOW, TARGET_HEALTH - second.getHealth(), DELTA);
+            assertEquals(BLOW + gain - TARGET_HEALTH, ComboRound.getSpill(player, BLOW), DELTA);
+            assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "a second target drew again");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aBlowThatKillsLeavesItsSpillForTheAreaImpact(GameTestHelper helper) {
+        ServerPlayer player = mortal(helper);
+        PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        float gain = (float) (BROWN_BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT);
+
+        helper.runAfterDelay(SETTLE_TICKS, () -> {
+            Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 2));
+            float health = pig.getHealth();
+            assertTrue(health < BLOW + gain, "the pig outlives the released blow");
+            ComboRound.beginStrike(player, true);
+            hit(player, pig);
+            assertTrue(pig.isDeadOrDying(), "the released blow did not kill the pig");
+            assertEquals(BLOW + gain - health, ComboRound.getSpill(player, BLOW), DELTA);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aLandedFistPaysTheOverloadOnceAStrike(GameTestHelper helper) {
+        ServerPlayer player = vulnerable(helper);
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 2), "the jin were refused");
+        int capacity = StrengthService.getCapacity(player);
+        assertEquals(StrengthService.MORTAL_CAPACITY, capacity, "the mortal capacity moved");
+        float recoil = (2 * HumanStrength.TEN_JIN.getJin() - capacity) / (float) capacity * player.getMaxHealth()
+                * 0.5F;
+        assertEquals(2.5D, recoil, DELTA);
+        float health = player.getHealth();
+
+        ComboRound.beginStrike(player, false);
+        assertEquals(health, player.getHealth(), DELTA);
+        hit(player, villager(helper, new BlockPos(2, 1, 2)));
+        assertEquals(health - recoil, player.getHealth(), DELTA);
+        DamageSource source = player.getLastDamageSource();
+        assertTrue(source != null && source.is(ModDamageTypes.BODY_OVERLOAD), "the recoil is not the body overload");
+        assertTrue(source.is(DamageTypeTags.NO_KNOCKBACK), "the body overload may knock back");
+        assertTrue(source.is(DamageTypeTags.BYPASSES_ARMOR), "the body overload stops at armor");
+
+        hit(player, villager(helper, new BlockPos(6, 1, 2)));
+        assertEquals(health - recoil, player.getHealth(), DELTA);
+
+        ComboRound.beginStrike(player, true);
+        Villager finished = villager(helper, new BlockPos(2, 1, 6));
+        hit(player, finished);
+        hit(player, finished);
+        assertEquals(health - 2.0F * recoil, player.getHealth(), DELTA);
+        ComboRound.complete(player, false);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
+        ComboRound.beginStrike(player, false);
+        hit(player, villager(helper, new BlockPos(6, 1, 6)));
+        assertEquals(health - 2.0F * recoil, player.getHealth(), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theOverloadCountsTheReleaseOfTheBlowThatDrewIt(GameTestHelper helper) {
+        ServerPlayer player = GameTestGu.awakened(vulnerable(helper), Rank.FIVE);
+        PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+
+        helper.runAfterDelay(SETTLE_TICKS, () -> {
+            int capacity = 3 * RANK_FIVE;
+            assertEquals(capacity, StrengthService.getCapacity(player), "rank five All-Out did not triple");
+            float health = player.getHealth();
+            float recoil = (2 * BROWN_BEAR_POINTS - capacity) / (float) capacity * player.getMaxHealth() * 0.5F;
+
+            ComboRound.beginStrike(player, false);
+            hit(player, villager(helper, new BlockPos(2, 1, 2)));
+            assertEquals(health, player.getHealth(), DELTA);
+            assertTrue(player.getLastDamageSource() == null, "96 points under a capacity of 168 paid an overload");
+
+            ComboRound.beginStrike(player, true);
+            hit(player, villager(helper, new BlockPos(2, 1, 4)));
+            assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player));
+            assertEquals(health - recoil, player.getHealth(), DELTA);
+            hit(player, villager(helper, new BlockPos(6, 1, 6)));
+            assertEquals(health - recoil, player.getHealth(), DELTA);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theOverloadStopsAtTwoHealthAndNeverKills(GameTestHelper helper) {
+        ServerPlayer player = vulnerable(helper);
+        PathStrengthService.grant(player, BeastStrength.TIGER);
+        assertTrue(StrengthService.getSettledPoints(player) > 2 * StrengthService.getCapacity(player),
+                "the tiger does not pass twice the mortal capacity");
+
+        ComboRound.beginStrike(player, false);
+        hit(player, villager(helper, new BlockPos(6, 1, 2)));
+        assertEquals(2.0D, player.getHealth(), DELTA);
+        assertEquals(2.0D, BodyOverload.HEALTH_FLOOR, 0.0D);
+        ComboRound.beginStrike(player, false);
+        hit(player, villager(helper, new BlockPos(6, 1, 4)));
+        assertEquals(2.0D, player.getHealth(), DELTA);
+        assertTrue(player.isAlive(), "the overload killed its puncher");
+        helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
@@ -229,12 +386,11 @@ public final class BeastPhantomGameTests {
     public static void aTurtleReleaseCountsAndShowsItsPhantom(GameTestHelper helper) {
         ServerPlayer player = rankFive(helper);
         PathStrengthService.grant(player, BeastStrength.STONE_TURTLE);
-        int capacity = RANK_FIVE + 128;
-        int extra = StrengthService.getReleasedExtra(capacity, 48, 48);
 
-        assertEquals(extra * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
+        assertEquals(TURTLE_POINTS * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
         assertEquals(List.of(BeastStrengthFamily.TURTLE), ComboRound.getFamilies(player), "the turtle was not drawn");
-        assertEquals(96, extra, "the turtle's release did not triple it");
+        assertEquals(2 * TURTLE_POINTS, StrengthService.getSettledPoints(player), "the turtle did not double");
+        assertEquals(RANK_FIVE + 128, StrengthService.getCapacity(player), "the turtle's capacity is missing");
         BeastPhantomEntity turtle = BeastPhantomEntity.findOwned(player, BeastStrengthFamily.TURTLE);
         assertTrue(turtle != null, "the turtle took no shape");
         assertEquals(BeastPhantomEntity.Slot.RIGHT, turtle.getSlot(), "the turtle missed the first slot");
@@ -330,8 +486,23 @@ public final class BeastPhantomGameTests {
     }
 
     private static void punch(GameTestHelper helper, ServerPlayer player, BlockPos at) {
-        Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, at);
-        assertTrue(pig.hurt(player.damageSources().playerAttack(player), 1.0F), "the punch did no damage");
+        hit(player, helper.spawnWithNoFreeWill(EntityType.PIG, at));
+    }
+
+    private static void hit(ServerPlayer player, LivingEntity target) {
+        target.invulnerableTime = 0;
+        assertTrue(target.hurt(player.damageSources().playerAttack(player), BLOW), "the punch did no damage");
+    }
+
+    private static Villager villager(GameTestHelper helper, BlockPos at) {
+        Villager villager = helper.spawnWithNoFreeWill(EntityType.VILLAGER, at);
+        villager.getAttribute(Attributes.MAX_HEALTH).setBaseValue(TARGET_HEALTH);
+        villager.setHealth(TARGET_HEALTH);
+        return villager;
+    }
+
+    private static ServerPlayer vulnerable(GameTestHelper helper) {
+        return GameTestPlayers.survival(helper, "gzr-beast-phantom-gametest").pastSpawnInvulnerability().onGround();
     }
 
     private static void assertSlot(ServerPlayer player, BeastStrengthFamily family, BeastPhantomEntity.Slot slot) {

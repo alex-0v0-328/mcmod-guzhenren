@@ -79,13 +79,67 @@ class StrengthSettlementTest {
     }
 
     @Test
-    @DisplayName("at rest a body uses min(points, capacity) and keeps the rest -- no overflow ramp")
-    void usableIsTheMinimum() {
-        assertEquals(0, StrengthService.getUsablePoints(24, 0));
-        assertEquals(24, StrengthService.getUsablePoints(24, 24));
-        assertEquals(24, StrengthService.getUsablePoints(24, 25));
-        assertEquals(24, StrengthService.getUsablePoints(24, 9999));
-        assertEquals(16, StrengthService.getUsablePoints(16, BeastStrength.WHITE_BOAR.getPoints()));
+    @DisplayName("every point is brought to bear: the capacity never cuts the settled points")
+    void pointsAreNeverCutByTheCapacity() {
+        int none = StrengthService.NO_ALL_OUT;
+        assertEquals(0, StrengthService.getSettledPoints(0, 0, 1.0D));
+        assertEquals(24, StrengthService.getSettledPoints(24, 0, 1.0D));
+        assertEquals(9999, StrengthService.getSettledPoints(9999, 0, 1.0D));
+
+        StrengthSnapshot mortal = StrengthSnapshot.of(16, BeastStrength.BEAR.getPoints(), List.of(), none);
+        assertEquals(16, mortal.capacity());
+        assertEquals(40, mortal.totalPoints());
+        assertEquals(40, mortal.settledPoints(), "a mortal's bear was cut to the capacity");
+        assertEquals(24, mortal.overloadPoints(mortal.settledPoints()), "the points past the capacity went missing");
+    }
+
+    @Test
+    @DisplayName("settled = floor(sum(points x source factor) x product(punch factors)): 152 with the tiger out is 842")
+    void settlementMultipliesSourcesThenThePunchAndRoundsDown() {
+        int total = BeastStrength.BEAR.getPoints() + BeastStrength.TIGER.getPoints()
+                + BeastStrength.WHITE_BOAR.getPoints() + BeastStrength.BLACK_BOAR.getPoints();
+        assertEquals(152, total);
+        assertEquals(842, StrengthService.getSettledPoints(total, BeastStrength.TIGER.getPoints(), 1.3D * 3.0D),
+                "(40 + 64 x 2 + 48) x 1.3 x 3 = 842.4");
+
+        StrengthSnapshot hardship = StrengthSnapshot.of(56, total, List.of(StrengthAmplifier.punch(SOURCE, 30)),
+                StrengthService.NO_ALL_OUT);
+        assertEquals(1.3D, hardship.punchFactor(), DELTA);
+        assertEquals(842, hardship.settle(BeastStrength.TIGER.getPoints(), 3.0D));
+        assertEquals(197, hardship.settledPoints(), "152 x 1.3 = 197.6 at rest");
+        assertEquals(280, hardship.settle(BeastStrength.TIGER.getPoints(), 1.0D), "216 x 1.3 = 280.8");
+        assertEquals(296, hardship.settle(0, 1.5D), "152 x 1.3 x 1.5 = 296.4");
+    }
+
+    @Test
+    @DisplayName("a fully released family counts twice, every other source once")
+    void onlyTheReleasedFamilyIsDoubled() {
+        assertEquals(2, StrengthService.FULL_RELEASE_FACTOR);
+        assertEquals(80, StrengthService.getSettledPoints(40, 40, 1.0D), "a released bear is not 80");
+        assertEquals(104, StrengthService.getSettledPoints(64, 40, 1.0D), "the timed boar beside the bear was doubled");
+        assertEquals(168, StrengthService.getSettledPoints(104, 64, 1.0D), "bear 40 + tiger 64 x 2");
+        assertEquals(208, StrengthService.getSettledPoints(104, 104, 1.0D), "both families out");
+        assertEquals(200, StrengthService.getSettledPoints(200, 0, 1.0D), "human jin has no release");
+        assertEquals(Integer.MAX_VALUE,
+                StrengthService.getSettledPoints(Integer.MAX_VALUE, Integer.MAX_VALUE, 3.0D), "overflow");
+    }
+
+    @Test
+    @DisplayName("whole-punch factors multiply each other and exact products are not rounded under")
+    void punchFactorsMultiplyAndRoundDown() {
+        assertEquals(44, StrengthService.getSettledPoints(40, 0, 1.1D));
+        assertEquals(45, StrengthService.getSettledPoints(41, 0, 1.1D), "45.1 rounds down");
+        assertEquals(60, StrengthService.getSettledPoints(40, 0, 1.5D));
+        assertEquals(120, StrengthService.getSettledPoints(40, 0, 3.0D));
+        assertEquals(90, StrengthService.getSettledPoints(50, 0, 1.2D * 1.5D));
+        assertEquals(180, StrengthService.getSettledPoints(40, 0, 1.5D * 3.0D), "Hardship five on a full charge");
+        assertEquals(360, StrengthService.getSettledPoints(40, 40, 1.5D * 3.0D), "the release joined the factors");
+
+        assertEquals(1.0D, StrengthService.getPunchFactor(List.of()), DELTA);
+        assertEquals(1.0D, StrengthService.getPunchFactor(List.of(BOAR, OX)), DELTA, "a source moved the factor");
+        assertEquals(1.3D, StrengthService.getPunchFactor(List.of(BOAR, StrengthAmplifier.punch(SOURCE, 30))), DELTA);
+        assertEquals(1.5D * 1.2D, StrengthService.getPunchFactor(
+                List.of(StrengthAmplifier.punch(SOURCE, 50), StrengthAmplifier.punch(SOURCE, 20))), DELTA);
     }
 
     @Test
@@ -123,6 +177,25 @@ class StrengthSettlementTest {
     }
 
     @Test
+    @DisplayName("a human layer passes the same admission, and a hundred jun fits no mortal body")
+    void humanLayersShareTheAdmission() {
+        assertTrue(StrengthService.canAdmit(24, 0, HumanStrength.JIN.getJin()), "rank one refused its first jin");
+        assertTrue(StrengthService.canAdmit(24, 23, HumanStrength.JIN.getJin()), "the last point was refused");
+        assertFalse(StrengthService.canAdmit(24, 24, HumanStrength.JIN.getJin()), "a full rank one admitted a jin");
+        assertFalse(StrengthService.canAdmit(24, 20, HumanStrength.TEN_JIN.getJin()), "30 passed rank one's 24");
+        assertFalse(StrengthService.canAdmit(56, 0, HumanStrength.TEN_JUN.getJin()), "rank five bare took ten jun");
+
+        int largest = StrengthService.getBaseCapacity(Rank.FIVE, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL)
+                + Skin.IRON_SKIN_4.getCapacityBonus() + Tendon.STEEL_TENDON_4.getCapacityBonus()
+                + Bone.IRON_BONE_4.getCapacityBonus();
+        assertEquals(844, largest);
+        assertEquals(3000, HumanStrength.HUNDRED_JUN.getJin());
+        assertTrue(StrengthService.canAdmit(largest, 0, HumanStrength.TEN_JUN.getJin()));
+        assertFalse(StrengthService.canAdmit(largest, 0, HumanStrength.HUNDRED_JUN.getJin()),
+                "a mortal body admitted a hundred jun");
+    }
+
+    @Test
     @DisplayName("one jin is one point and a boar 24, a bear 40, at 0.125 attack each")
     void pointsShareOneUnit() {
         PathStrengthData data = new PathStrengthData(Set.of(BeastStrength.WHITE_BOAR, BeastStrength.BEAR),
@@ -132,21 +205,6 @@ class StrengthSettlementTest {
         assertEquals(89, data.getStrengthPoints());
         assertEquals(3.0D, BeastStrength.WHITE_BOAR.getPoints() * PathStrengthData.ATTACK_PER_POINT);
         assertEquals(5.0D, BeastStrength.BEAR.getPoints() * PathStrengthData.ATTACK_PER_POINT);
-    }
-
-    @Test
-    @DisplayName("a full release counts the family's permanent points three times, still cut by the capacity")
-    void fullReleaseIsCutByTheCapacity() {
-        assertEquals(3, StrengthService.FULL_RELEASE_FACTOR);
-        assertEquals(16, StrengthService.getReleasedExtra(56, 40, 40), "a rank five bear stops at its 56");
-        assertEquals(80, StrengthService.getReleasedExtra(168, 40, 40), "rank five All-Out did not carry 120");
-        assertEquals(44, StrengthService.getReleasedExtra(84, 40, 40), "rank three All-Out did not stop at 84");
-        assertEquals(0, StrengthService.getReleasedExtra(16, 64, 64), "an already cut tiger added past the capacity");
-        assertEquals(80, StrengthService.getReleasedExtra(168, 64, 40), "a timed boar joined the 3x");
-        assertEquals(0, StrengthService.getReleasedExtra(56, 40, 0), "a plain draw added points");
-        assertEquals(0, StrengthService.getReleasedExtra(16, 0, 0));
-        assertEquals(0, StrengthService.getReleasedExtra(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE),
-                "overflow");
     }
 
     @Test
@@ -293,59 +351,87 @@ class StrengthSettlementTest {
     }
 
     @Test
-    @DisplayName("a timed beast brings no capacity of its own")
-    void timedBeastBringsNoCapacity() {
-        assertEquals(0, BOAR.capacityBonus());
-        assertEquals(0, OX.capacityBonus());
-        assertEquals(64, StrengthService.getTimedBeastPoints(
-                List.of(BOAR, OX, new StrengthAmplifier(SOURCE, null, 0, 28))), "Hardship counted as a timed beast");
+    @DisplayName("an amplifier fills one layer: a beast or plain source brings points, Hardship only a punch factor")
+    void amplifiersBringNoCapacity() {
+        StrengthAmplifier big = StrengthAmplifier.points(SOURCE, 32);
+        StrengthAmplifier hardship = StrengthAmplifier.punch(SOURCE, 30);
+        assertEquals(new StrengthAmplifier(SOURCE, BeastStrengthFamily.BOAR, 24, 0, 0), BOAR);
+        assertEquals(new StrengthAmplifier(SOURCE, null, 32, 0, 0), big);
+        assertEquals(new StrengthAmplifier(SOURCE, null, 0, 0, 30), hardship);
+        assertTrue(BOAR.isBeast(), "the timed boar has no family");
+        assertFalse(big.isBeast(), "the big strength counts as a beast");
+        assertFalse(hardship.isBeast(), "Hardship counts as a beast");
+
+        List<StrengthAmplifier> all = List.of(BOAR, OX, big, hardship);
+        assertEquals(96, StrengthService.getAmplifierPoints(all), "Hardship lent points");
+        assertEquals(0, StrengthService.getCapacityBonus(all), "an amplifier lifted the capacity");
+        assertEquals(1.3D, StrengthService.getPunchFactor(all), DELTA);
     }
 
     @Test
-    @DisplayName("the overload is the timed beasts' points past the capacity, beside the permanent beasts")
-    void overloadIsTheTimedBeastsPastTheCapacity() {
-        assertEquals(8, StrengthService.getOverloadPoints(56, 40, 24), "rank five bear and boar");
-        assertEquals(24, StrengthService.getOverloadPoints(56, 40, 40), "rank five bear and ox");
-        assertEquals(0, StrengthService.getOverloadPoints(56, 0, 24), "a boar alone under rank five's 56 overloaded");
-        assertEquals(24, StrengthService.getOverloadPoints(16, 0, 40), "a mortal's ox past 16");
-        assertEquals(24, StrengthService.getOverloadPoints(16, 64, 24), "the tiger past 16 overloaded");
-        assertEquals(0, StrengthService.getOverloadPoints(56, 0, 0));
-        assertEquals(0, StrengthService.getOverloadPoints(56, Integer.MAX_VALUE, -5), "a negative timed beast");
-        assertEquals(40, StrengthService.getOverloadPoints(0, Integer.MAX_VALUE, 40), "overflow");
+    @DisplayName("the overload is the settled points past the current capacity, whatever their source")
+    void overloadIsTheSettledPointsPastTheCapacity() {
+        assertEquals(8, StrengthService.getOverloadPoints(64, 56), "rank five bear and boar");
+        assertEquals(0, StrengthService.getOverloadPoints(56, 56), "a body at its capacity overloaded");
+        assertEquals(0, StrengthService.getOverloadPoints(40, 56));
+        assertEquals(48, StrengthService.getOverloadPoints(64, 16), "a command's tiger past a mortal's 16");
+        assertEquals(144, StrengthService.getOverloadPoints(200, 56), "human jin past the capacity");
+        assertEquals(674, StrengthService.getOverloadPoints(842, 168));
+        assertEquals(0, StrengthService.getOverloadPoints(0, 0));
+        assertEquals(40, StrengthService.getOverloadPoints(40, -5), "a negative capacity");
     }
 
     @Test
-    @DisplayName("the snapshot carries the overload, and All-Out Effort or Hardship lifts it away")
-    void snapshotCarriesTheOverload() {
+    @DisplayName("the snapshot settles in full: only All-Out Effort lifts the capacity, no amplifier does")
+    void snapshotSettlesPastTheCapacity() {
         int none = StrengthService.NO_ALL_OUT;
-        StrengthSnapshot boar = StrengthSnapshot.of(56, 40, 40, List.of(BOAR), none);
+        StrengthSnapshot boar = StrengthSnapshot.of(56, 40, List.of(BOAR), none);
         assertEquals(56, boar.capacity(), "the boar moved the capacity");
+        assertEquals(40, boar.permanentPoints());
         assertEquals(64, boar.totalPoints());
-        assertEquals(8, boar.overloadPoints());
-        assertEquals(64, StrengthService.getUsablePoints(boar.capacity(), boar.totalPoints()) + boar.overloadPoints(),
-                "the overload was not brought to bear in full");
+        assertEquals(64, boar.settledPoints(), "the overload was not brought to bear in full");
+        assertEquals(8, boar.overloadPoints(boar.settledPoints()));
+        assertFalse(boar.allOut());
 
-        StrengthSnapshot ox = StrengthSnapshot.of(56, 40, 40, List.of(OX), none);
-        assertEquals(24, ox.overloadPoints());
-        assertEquals(0, StrengthSnapshot.of(56, 40, 40, List.of(OX), 2).overloadPoints(),
-                "rank three All-Out Effort's 84 did not carry the ox");
-        assertEquals(0, StrengthSnapshot.of(56, 40, 40, List.of(BOAR), 2).overloadPoints(),
-                "rank three All-Out Effort's 84 did not carry the boar");
-        assertEquals(0, StrengthSnapshot.of(56, 40, 40, List.of(BOAR, new StrengthAmplifier(SOURCE, null, 0, 28)),
-                none).overloadPoints(), "Hardship's 28 did not carry the boar");
-        assertEquals(0, StrengthSnapshot.of(56, 200, 0, List.of(), none).overloadPoints(), "human jin overloaded");
-        assertEquals(0, StrengthSnapshot.of(16, 64, 64, List.of(), none).overloadPoints(),
-                "a command's tiger overloaded");
+        StrengthSnapshot lifted = StrengthSnapshot.of(56, 40, List.of(OX), 2);
+        assertTrue(lifted.allOut());
+        assertEquals(84, lifted.capacity());
+        assertEquals(0, lifted.overloadPoints(lifted.settledPoints()), "rank three All-Out's 84 did not carry the ox");
+        assertEquals(24, StrengthSnapshot.of(56, 40, List.of(OX), none).overloadPoints(80));
+
+        StrengthSnapshot hardship = StrengthSnapshot.of(56, 40, List.of(BOAR, StrengthAmplifier.punch(SOURCE, 50)),
+                none);
+        assertEquals(56, hardship.capacity(), "Hardship lifted the capacity");
+        assertEquals(64, hardship.totalPoints(), "Hardship moved the total");
+        assertEquals(96, hardship.settledPoints());
+        assertEquals(40, hardship.overloadPoints(hardship.settledPoints()));
+
+        StrengthSnapshot big = StrengthSnapshot.of(56, 40, List.of(StrengthAmplifier.points(SOURCE, 32)), none);
+        assertEquals(56, big.capacity(), "the big strength lifted the capacity");
+        assertEquals(72, big.settledPoints());
+        assertEquals(16, big.overloadPoints(big.settledPoints()));
+
+        StrengthSnapshot human = StrengthSnapshot.of(56, 200, List.of(), none);
+        assertEquals(144, human.overloadPoints(human.settledPoints()), "human jin past the capacity paid nothing");
+        StrengthSnapshot command = StrengthSnapshot.of(16, 64, List.of(), none);
+        assertEquals(48, command.overloadPoints(command.settledPoints()), "a command's tiger paid nothing");
+        assertEquals(112, command.overloadPoints(command.settle(64, 1.0D)), "the release was left out of the overload");
     }
 
     @Test
-    @DisplayName("each fist hit costs overload / capacity * max health / 2, stopping the health at 2")
+    @DisplayName("the recoil is overload / capacity * max health / 2, stopping the health at 2")
     void recoilIsHalfTheOverloadShareOfHealth() {
+        assertEquals(0.5F, BodyOverload.RECOIL_RATIO, DELTA);
+        assertEquals(2.0F, BodyOverload.HEALTH_FLOOR, DELTA);
         assertEquals(1.4286F, BodyOverload.getRecoil(8, 56, 20.0F), DELTA);
         assertEquals(4.2857F, BodyOverload.getRecoil(24, 56, 20.0F), DELTA);
+        assertEquals(15.0F, BodyOverload.getRecoil(24, 16, 20.0F), DELTA);
+        assertEquals(40.119F, BodyOverload.getRecoil(674, 168, 20.0F), DELTA);
         assertEquals(0.0F, BodyOverload.getRecoil(0, 84, 20.0F), DELTA);
         assertEquals(0.0F, BodyOverload.getRecoil(8, 0, 20.0F), DELTA);
         assertEquals(1.4286F, BodyOverload.getDamage(BodyOverload.getRecoil(8, 56, 20.0F), 20.0F), DELTA);
+        assertEquals(18.0F, BodyOverload.getDamage(BodyOverload.getRecoil(674, 168, 20.0F), 20.0F), DELTA,
+                "a recoil past the health did not stop at 2");
         assertEquals(1.0F, BodyOverload.getDamage(4.2857F, 3.0F), DELTA);
         assertEquals(0.0F, BodyOverload.getDamage(4.2857F, 2.0F), DELTA);
         assertEquals(0.0F, BodyOverload.getDamage(4.2857F, 1.5F), DELTA);

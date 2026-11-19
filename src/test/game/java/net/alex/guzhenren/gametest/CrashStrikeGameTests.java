@@ -3,13 +3,18 @@ package net.alex.guzhenren.gametest;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
+import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.CrashSources;
 import net.alex.guzhenren.gameplay.path.strength.CrashStrike;
+import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
+import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -27,14 +32,20 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import static net.alex.guzhenren.gametest.GameTestGu.inSlot;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertEquals;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 终点破坏打击[Crash Strike]：五转活玩家在场景西缘朝东。
+ * 终点破坏打击[Crash Strike]：五转活玩家（最大生命 100，满血）在场景西缘朝东。
  * <ul>
- *   <li>两猪 48 点：空手拳击 7，倍率 0.75 打 5.25，开全力以赴 1.0 打 7；收尾招中也不抽虚影，20 tick 内再打落空。</li>
+ *   <li>两猪 48 点（承受力 56 内，无过载反噬）：空手拳击 7，出手系数 0.75 打 5.25，开全力以赴 1.0 打 7；收尾招中也不抽
+ *       虚影，20 tick 内再打落空。</li>
+ *   <li>溢出结算：两猪加虎 112 点，打击 11.25，最近的猪吃整击，下一只吃剩余 1.25；打中结算一次过载反噬（超出 56 点，
+ *       扣最大生命的 50%），挥空与冷却内再打不扣。</li>
+ *   <li>苦力：生命 40% 时整拳 +30%，结算 62 点，打击 6.5625 并按 62 点结算过载反噬；冲撞距离、破坏硬度与打击半径仍读总
+ *       力量点 48，不随苦力变化。</li>
  *   <li>手持钻石剑（仿装备刷新挂上其攻击修饰）时打击仍按空手。</li>
  *   <li>冲撞流程：无力量（半径 3 格、打 0.5）从西缘冲 4 格，移动那 tick 与其后第一个静止 tick 不打，连续第二个静止 tick
  *       才打到停点前方的猪；无力量路程 6.05 格，一 tick 跳出 12 格（传送）作废，此后静止也不打。</li>
@@ -61,6 +72,14 @@ public final class CrashStrikeGameTests {
     private static final Vec3 PIT_STOP = new Vec3(6.0D, 1.0D, 6.0D);
     private static final Vec3 ONE_EAST = new Vec3(5.5D, 1.0D, 4.5D);
     private static final Vec3 EAST = new Vec3(1.0D, 0.0D, 0.0D);
+    private static final int BOAR_POINTS = 48;
+    private static final int HEAVY_POINTS = 112;
+    private static final int HARDSHIP_POINTS = 62;
+    private static final int CAPACITY = 56;
+    private static final float TWO_BOARS_RATIO = 0.75F;
+    private static final float PIG_HEALTH = 10.0F;
+    private static final int BAG_SLOT = 9;
+    private static final int HUNGER = 98;
     private static final int ALL_OUT_TICKS = 200;
     private static final int RANK_FIVE_TIER = 4;
     private static final double DELTA = 1.0E-3D;
@@ -80,6 +99,60 @@ public final class CrashStrikeGameTests {
 
         assertTrue(CrashStrike.strike(player, EAST, CrashSources.of(player)).isEmpty(), "the cooldown let it strike");
         assertEquals(pig.getMaxHealth() - 7.0D, pig.getHealth(), DELTA);
+        assertEquals(player.getMaxHealth(), player.getHealth(), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theStrikeSpillsFromTheNearestTargetAndOverloadsTheBodyOnce(GameTestHelper helper) {
+        ServerPlayer player = heavy(helper, "gzr-crash-strike-spill");
+        Pig near = idlePig(helper, NEAR);
+        Pig far = idlePig(helper, STOP);
+        float blow = blow(HEAVY_POINTS, TWO_BOARS_RATIO);
+
+        assertEquals(List.of(near, far), CrashStrike.strike(player, EAST, CrashSources.of(player)));
+        assertEquals(0.0D, near.getHealth(), DELTA);
+        assertEquals(PIG_HEALTH - (blow - PIG_HEALTH), far.getHealth(), DELTA);
+        float left = player.getMaxHealth() - recoil(player, HEAVY_POINTS);
+        assertEquals(left, player.getHealth(), DELTA);
+
+        assertTrue(CrashStrike.strike(player, EAST, CrashSources.of(player)).isEmpty(), "the cooldown let it strike");
+        assertEquals(left, player.getHealth(), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aStrikeThatLandsOnNothingCostsNoHealth(GameTestHelper helper) {
+        ServerPlayer player = heavy(helper, "gzr-crash-strike-whiff");
+
+        assertTrue(CrashStrike.strike(player, EAST, CrashSources.of(player)).isEmpty(), "the strike hit thin air");
+        assertTrue(CrashStrike.isCooling(player), "the whiffed strike did not fire");
+        assertEquals(player.getMaxHealth(), player.getHealth(), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void hardshipRaisesTheStrikeAndLeavesTheDashAlone(GameTestHelper helper) {
+        ServerPlayer player = boars(helper, "gzr-crash-strike-hardship");
+        CrashSources before = CrashSources.of(player);
+        inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
+        player.setHealth(player.getMaxHealth() * 0.4F);
+        AutoUse.tryStart(player);
+        assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
+        assertEquals(HARDSHIP_POINTS, StrengthService.getSettledPoints(player));
+
+        CrashSources sources = CrashSources.of(player);
+        assertEquals(BOAR_POINTS, sources.points());
+        assertEquals(before, sources);
+        assertEquals(before.getTravel(), sources.getTravel(), DELTA);
+        assertEquals(before.getMaxHardness(), sources.getMaxHardness(), DELTA);
+        assertEquals(AreaImpact.getRange(BOAR_POINTS), sources.getStrikeRange(), DELTA);
+
+        Pig pig = idlePig(helper, NEAR);
+        float health = player.getHealth();
+        assertEquals(List.of(pig), CrashStrike.strike(player, EAST, before));
+        assertEquals(PIG_HEALTH - blow(HARDSHIP_POINTS, TWO_BOARS_RATIO), pig.getHealth(), DELTA);
+        assertEquals(health - recoil(player, HARDSHIP_POINTS), player.getHealth(), DELTA);
         helper.succeed();
     }
 
@@ -191,6 +264,14 @@ public final class CrashStrikeGameTests {
         helper.succeed();
     }
 
+    private static float blow(int settledPoints, float ratio) {
+        return (1.0F + settledPoints * 0.125F) * ratio;
+    }
+
+    private static float recoil(ServerPlayer player, int settledPoints) {
+        return (float) Math.max(0, settledPoints - CAPACITY) / CAPACITY * player.getMaxHealth() * 0.5F;
+    }
+
     private static void assertBlock(GameTestHelper helper, BlockPos pos, Block block) {
         assertTrue(helper.getBlockState(pos).is(block),
                 pos + " is " + helper.getBlockState(pos) + ", not " + block);
@@ -208,12 +289,23 @@ public final class CrashStrikeGameTests {
         ServerPlayer player = player(helper, name);
         assertTrue(PathStrengthService.grant(player, BeastStrength.WHITE_BOAR), "the white boar was refused");
         assertTrue(PathStrengthService.grant(player, BeastStrength.BLACK_BOAR), "the black boar was refused");
-        assertEquals(48L, CrashSources.of(player).points());
+        assertEquals(BOAR_POINTS, CrashSources.of(player).points());
+        return player;
+    }
+
+    private static ServerPlayer heavy(GameTestHelper helper, String name) {
+        ServerPlayer player = boars(helper, name);
+        assertTrue(PathStrengthService.grant(player, BeastStrength.TIGER), "the tiger was refused");
+        assertEquals(HEAVY_POINTS, CrashSources.of(player).points());
         return player;
     }
 
     private static ServerPlayer player(GameTestHelper helper, String name) {
         GameTestPlayers.ground(helper);
-        return GameTestGu.awakened(GameTestPlayers.survival(helper, name).at(WEST), Rank.FIVE);
+        ServerPlayer player = GameTestGu.awakened(GameTestPlayers.survival(helper, name).pastSpawnInvulnerability()
+                .at(WEST), Rank.FIVE);
+        assertEquals(CAPACITY, StrengthService.getCapacity(player));
+        player.setHealth(player.getMaxHealth());
+        return player;
     }
 }

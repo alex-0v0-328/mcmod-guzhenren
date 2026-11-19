@@ -71,6 +71,16 @@ class CrashStrikeTest {
     }
 
     @Test
+    @DisplayName("the strike radius is the unwidened area impact range of the dash's points")
+    void theStrikeRadiusIsNeverWidened() {
+        for (int points : new int[] { 0, 48, 112, 400, 10_000 }) {
+            CrashSources sources = new CrashSources(points, false, 0.0D, 0.0D, false);
+            assertEquals(AreaImpact.getRange(points, false), sources.getStrikeRange(), 1.0E-9D);
+        }
+        assertEquals(12.0D, new CrashSources(10_000, true, 1.0D, 0.5D, true).getStrikeRange(), 1.0E-9D);
+    }
+
+    @Test
     @DisplayName("the end disc circles the stop from the feet layer to above the head, behind too, and spares the floor")
     void theEndDiscSparesTheFloor() {
         List<BlockPos> cells = CrashStrike.getEndCells(FEET, HEIGHT, RADIUS);

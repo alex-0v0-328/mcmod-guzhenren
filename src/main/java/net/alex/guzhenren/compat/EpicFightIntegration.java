@@ -85,7 +85,8 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       {@link ComboRound#abandon}，若清零正是刚起播的冲刺或空中收尾招引起则只断苦力连击、保留这一招（Epic Fight 的清零与
  *       起播事件先后不定）；{@link #onAttackPhaseEnd} 在
  *       收尾招最后一段判定结束时调 {@link ComboRound#complete}，若正常结束、未改由远程拳出手且本轮掷中
- *       （{@link ComboRound#rollsImpact}），先放范围冲击（{@link AreaImpact#release}，跳过本段已判定过的实体）与冲击环
+ *       （{@link ComboRound#rollsImpact}），先放范围冲击（{@link AreaImpact#release}，跳过本段已判定过的实体，按溢
+ *       出结算）与冲击环
  *       （{@link RingConeEmitter#areaImpactRing}）及命中音效。</li>
  *   <li>⚠ 收尾招的每一记命中都按「最后一下」算：Epic Fight 空手的三个收尾动作各只有一段判定，若日后收尾动作带多段判定，
  *       前几段命中也会被当成收尾。</li>
@@ -434,7 +435,8 @@ public final class EpicFightIntegration {
     private static void releaseImpact(ServerPlayerPatch patch, AttackAnimation.Phase phase) {
         ServerPlayer player = patch.getOriginal();
         Vec3 look = player.getLookAngle();
-        RingConeEmitter.areaImpactRing(player, look, AreaImpact.getRange(AreaImpact.getPoints(player)));
+        RingConeEmitter.areaImpactRing(player, look,
+                AreaImpact.getRange(AreaImpact.getPoints(player), AreaImpact.isWidened(player)));
         List<LivingEntity> landed = AreaImpact.release(player, look, patch.getCurrentlyAttackTriedEntities());
         SoundEvent sound = phase.getProperty(AttackPhaseProperty.HIT_SOUND)
                 .orElseGet(() -> patch.getWeaponHitSound(phase.effectiveHand(patch)));

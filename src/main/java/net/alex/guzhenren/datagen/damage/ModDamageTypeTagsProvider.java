@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
  *       灾与本命蛊死亡不加该标签以免误伤创造模式玩家或无敌实体）。</li>
  *   <li>空窍压力爆炸与十绝天灾加入爆炸标签；月刃与气波加入弹射物标签，且气波与蓄力一拳加入绕过受击无敌帧标签
  *       （{@link DamageTypeTags#BYPASSES_COOLDOWN}），使单拳触发的多道兽力气波能全额结算伤害。</li>
- *   <li>流血、肉体过载与冲击反噬加入穿透护甲标签；范围冲击、蓄力一拳、冲撞打击、肉体过载与冲击反噬均加入无击退标签（前
- *       三者由技能自身控制击退位移，后两者为无来源坐标的体内反冲，若不加无击退标签会被 1.21 原版朝随机水平方向击
- *       退）。</li>
+ *   <li>流血与过载反噬加入穿透护甲标签；过载反噬另加无视效果与无视附魔标签，使抗性、保护附魔、皮肤固定减伤与肉身护盾
+ *       （{@code SkinService.canTurn}）都不抵它，按公式实扣；范围冲击、蓄力一拳、冲撞打击与过载反噬均加入无击退标签（前三者由技能自身控制
+ *       击退位移，过载反噬为无来源坐标的体内反冲，若不加无击退标签会被 1.21 原版朝随机水平方向击退）。</li>
  * </ul>
  */
 
@@ -54,10 +54,11 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
                 ModDamageTypes.TEN_EXTREME_DISASTER);
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE);
         tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.QI_WAVE, ModDamageTypes.CHARGED_PUNCH);
-        tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD,
-                ModDamageTypes.IMPACT_BACKLASH);
+        tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD);
+        tag(DamageTypeTags.BYPASSES_EFFECTS).add(ModDamageTypes.BODY_OVERLOAD);
+        tag(DamageTypeTags.BYPASSES_ENCHANTMENTS).add(ModDamageTypes.BODY_OVERLOAD);
         tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_IMPACT, ModDamageTypes.CHARGED_PUNCH,
-                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.IMPACT_BACKLASH, ModDamageTypes.CRASH_STRIKE);
+                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.CRASH_STRIKE);
     }
 
     private void tagUnstoppable(TagKey<DamageType> tag) {

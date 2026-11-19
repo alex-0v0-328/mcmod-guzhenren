@@ -38,8 +38,7 @@ import org.jetbrains.annotations.Nullable;
  *       {@link #SNUFF_PUFFS} 团烟雾；不写入存档。</li>
  *   <li>蓄力蛊[Store Strength Gu]的蓄力一拳调用 {@link #track} 发射追踪气波：两端每 tick 根据同步目标 ID 转向目标当前中
  *       心，最大飞行时长放宽至直线飞行 tick 的 {@link #TRACK_FLIGHT_FACTOR} 倍，并使用蓄力一拳专属的
- *       {@link QiBurst.Spec}；若目标中途死亡则继续飞向最后记录的位置，飞行超时仍未到达则直接在当前位置爆开（因出拳反噬
- *       已结算）。</li>
+ *       {@link QiBurst.Spec}；若目标中途死亡则继续飞向最后记录的位置，飞行超时仍未到达则直接在当前位置爆开。</li>
  * </ul>
  */
 

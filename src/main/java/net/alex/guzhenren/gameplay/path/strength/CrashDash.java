@@ -8,7 +8,7 @@ import java.util.function.DoubleBinaryOperator;
  * <ul>
  *   <li>距离倍率 {@link #getMultiple} 由四项相加（Alex 定）：{@code 1 + sqrt(P) / ROOT_POINTS_PER_MULTIPLE} + 两猪之力
  *       加成（{@link #TWO_BOARS_BONUS}）+ 兽力冲刺加成（如驰马 {@code 1.0}）+ 全力以赴加成（{@link #ALL_OUT_BONUS}），
- *       其中 {@code P} 为不含全面解放的常态可发挥力量点[Strength Points]。</li>
+ *       其中 {@code P} 为总力量点[Strength Points]（不吃解放、蓄力与苦力倍率）。</li>
  *   <li>{@link #getScale} 将距离倍率乘以 {@link #COORD_SCALE} 得到 Epic Fight 闪避动画根骨骼位移缩放系数，并将总路程
  *       （{@link #getTravel}，单倍片段根骨骼位移为 {@link #STEP_TRAVEL}）封顶于 {@link #MAX_TRAVEL}（32 格）。</li>
  *   <li>动画播放速度 {@link #getPlaySpeed} = {@code 1 + 兽力速度加成 + 全力以赴速度加成}（总路程不变，动画持续 tick 数

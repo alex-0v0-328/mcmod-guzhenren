@@ -40,13 +40,14 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *       速度为 {@link #SPEED} 格/tick，飞行上限 {@link #MAX_FLIGHT_TICKS} tick，不受重力与空气阻力影响，且忽略非锁定目
  *       标的其他实体。</li>
  *   <li>飞完弧线或触碰锁定目标时即在目标中心触发 {@link QiBurst#burst} 爆开并销毁，将当帧弧线切线（
- *       {@link MoonBladeArc#tangentAt}）作为冲击环朝向；若途中撞上方块或飞完时目标已失效则直接销毁、不触发爆开。</li>
+ *       {@link MoonBladeArc#tangentAt}）作为冲击环朝向；目标中途失效（如被同一拳先到的冲击打死）时继续飞向其最后记录
+ *       的中心并在那里爆开，由最近的目标吃起；途中撞上方块则直接销毁、不触发爆开。</li>
  *   <li>飞行期间循环播放对应兽种的冲锋动画（马使用原版模型，由
  *       {@link net.alex.guzhenren.client.renderer.BeastPhantomRenderer} 驱动四肢摆动），并在前 {@link #FADE_IN_TICKS}
  *       tick 内淡入；偏航角与俯仰角始终朝向弧线下一帧位置，呈现先扬起再俯冲刺向目标的轨迹。</li>
  *   <li>命中与爆开结算由服务端权威执行，参数由 {@link #shoot} 注入；客户端根据同步的目标 ID、控制点偏移与飞行 tick 重建
- *       同一条弧线用于渲染，实体不写入存档；蓄力蛊[Store Strength Gu]的蓄力一拳传入专属 {@link QiBurst.Spec}，力气蛊普
- *       攻则使用默认气波规格。</li>
+ *       同一条弧线用于渲染，实体不写入存档；爆开规格 {@link QiBurst.Spec} 由出手方按每一拳新建（力气蛊远程拳与蓄力
+ *       蛊[Store Strength Gu]的蓄力一拳各自传入）。</li>
  * </ul>
  */
 
@@ -73,6 +74,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
     private float damage;
     private QiBurst.Spec burst = QiBurst.Spec.QI_WAVE;
     private @Nullable Vec3 arcStart;
+    private @Nullable Vec3 aim;
 
     public BeastChargeEntity(EntityType<? extends BeastChargeEntity> type, Level level) { super(type, level); }
 
@@ -156,6 +158,7 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         if (hit.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hit)) {
             hitTargetOrDeflectSelf(hit);
         }
+        if (!isRemoved() && target == null && aim != null && tickCount >= entityData.get(FLIGHT_TICKS)) burstAtAim();
         if (isRemoved()) return;
 
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
@@ -179,13 +182,22 @@ public final class BeastChargeEntity extends Projectile implements GeoEntity, Be
         MoonBladeArc arc = getArc();
         if (arc == null) return null;
         LivingEntity target = getTarget();
-        if (target == null) {
+        if (target != null) aim = target.getBoundingBox().getCenter();
+        if (level().isClientSide() ? target == null : aim == null) {
             if (!level().isClientSide()) entityData.set(TARGET, NO_TARGET);
             return null;
         }
         double t = Math.min(1.0D, tickCount / (double) arc.flightTicks());
-        setDeltaMovement(arc.pointAt(target.getBoundingBox().getCenter(), t).subtract(position()));
+        setDeltaMovement(arc.pointAt(aim, t).subtract(position()));
         return target;
+    }
+
+    private void burstAtAim() {
+        if (level().isClientSide() || aim == null) return;
+        if (getOwner() instanceof ServerPlayer owner) {
+            QiBurst.burst(owner, this, aim, getHeading(aim), null, damage, burst);
+        }
+        discard();
     }
 
     private boolean arrives(LivingEntity target, Vec3 motion) {

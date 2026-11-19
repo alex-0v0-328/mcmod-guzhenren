@@ -10,58 +10,64 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BeastChargeDamageTest {
 
-    private static final int RANK_FIVE_CAPACITY = 56;
-    private static final int RANK_FIVE_ALL_OUT_CAPACITY = 168;
     private static final float DELTA = 1.0E-4F;
+    private static final List<BeastStrengthFamily> BEAR = List.of(BeastStrengthFamily.BEAR);
+    private static final List<BeastStrengthFamily> BEAR_THEN_BOAR =
+            List.of(BeastStrengthFamily.BEAR, BeastStrengthFamily.BOAR);
     private static final PathStrengthData BEAR_AND_BOAR = new PathStrengthData(
             Set.of(BeastStrength.BEAR, BeastStrength.WHITE_BOAR), Map.of());
+    private static final PathStrengthData BEAR_AND_TWO_BOARS = new PathStrengthData(
+            Set.of(BeastStrength.BEAR, BeastStrength.WHITE_BOAR, BeastStrength.BLACK_BOAR), Map.of());
 
     @Test
-    @DisplayName("a charge is worth 0.25 attack a point, twice the fist")
-    void aPointIsTwiceTheFist() {
-        assertEquals(2.0D * PathStrengthData.ATTACK_PER_POINT, BeastChargeDamage.ATTACK_PER_POINT);
+    @DisplayName("a family weighs its permanent points, in the order the charges fly")
+    void aFamilyWeighsItsPermanentPoints() {
+        assertArrayEquals(new int[] { 40, 24 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR_THEN_BOAR, List.of()));
+        assertArrayEquals(new int[] { 24, 40 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR,
+                List.of(BeastStrengthFamily.BOAR, BeastStrengthFamily.BEAR), List.of()));
+        assertArrayEquals(new int[] { 40, 48 },
+                BeastChargeDamage.getWeights(BEAR_AND_TWO_BOARS, BEAR_THEN_BOAR, List.of()),
+                "the two boars are one family");
+        assertArrayEquals(new int[] { 0 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR,
+                List.of(BeastStrengthFamily.TIGER), List.of()), "a family not held weighs nothing");
     }
 
     @Test
-    @DisplayName("Strength Qi: a rank five bear hits 10.0, released 14.0 cut to the capacity, under All-Out 30.0")
-    void strengthQiBearIsCutToTheCapacity() {
-        List<BeastStrengthFamily> bear = List.of(BeastStrengthFamily.BEAR);
-        assertArrayEquals(new float[] { 10.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, bear, List.of(),
-                StrengthService.FULL_RELEASE_FACTOR, RANK_FIVE_CAPACITY), DELTA);
-        assertArrayEquals(new float[] { 14.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, bear, bear,
-                StrengthService.FULL_RELEASE_FACTOR, RANK_FIVE_CAPACITY), DELTA);
-        assertArrayEquals(new float[] { 30.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, bear, bear,
-                StrengthService.FULL_RELEASE_FACTOR, RANK_FIVE_ALL_OUT_CAPACITY), DELTA);
+    @DisplayName("a fully released family weighs twice its points, the others once")
+    void aReleasedFamilyWeighsTwice() {
+        assertEquals(2, StrengthService.FULL_RELEASE_FACTOR);
+        assertArrayEquals(new int[] { 80, 24 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR_THEN_BOAR, BEAR));
+        assertArrayEquals(new int[] { 40, 48 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR_THEN_BOAR,
+                List.of(BeastStrengthFamily.BOAR)));
+        assertArrayEquals(new int[] { 80, 48 },
+                BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR_THEN_BOAR, BEAR_THEN_BOAR));
     }
 
     @Test
-    @DisplayName("charges past the capacity share the cut by their points")
-    void chargesShareTheCutByTheirPoints() {
-        List<BeastStrengthFamily> both = List.of(BeastStrengthFamily.BEAR, BeastStrengthFamily.BOAR);
-        assertArrayEquals(new float[] { 10.0F, 6.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, both, List.of(),
-                StrengthService.FULL_RELEASE_FACTOR, 64), DELTA);
-        assertArrayEquals(new float[] { 5.0F, 3.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, both, List.of(),
-                StrengthService.FULL_RELEASE_FACTOR, 32), DELTA);
-        assertArrayEquals(new float[] { 0.0F, 0.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, both, List.of(),
-                StrengthService.FULL_RELEASE_FACTOR, 0), DELTA);
+    @DisplayName("the charges share the punch by their weights and add up to it")
+    void theChargesShareThePunchByTheirWeights() {
+        assertArrayEquals(new float[] { 5.0F, 3.0F }, BeastChargeDamage.split(8.0F, new int[] { 40, 24 }), DELTA);
+        assertArrayEquals(new float[] { 5.3125F, 3.1875F }, BeastChargeDamage.split(8.5F, new int[] { 80, 48 }),
+                DELTA);
+        float[] uneven = BeastChargeDamage.split(10.0F, new int[] { 80, 24, 48 });
+        assertArrayEquals(new float[] { 10.0F * 80 / 152, 10.0F * 24 / 152, 10.0F * 48 / 152 }, uneven, DELTA);
+        assertEquals(10.0F, uneven[0] + uneven[1] + uneven[2], DELTA);
     }
 
     @Test
-    @DisplayName("the charged punch: a released bear hits 120.0 uncut, a random family once")
-    void chargedPunchIsUncut() {
-        List<BeastStrengthFamily> bear = List.of(BeastStrengthFamily.BEAR);
-        assertArrayEquals(new float[] { 120.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR, bear, bear,
-                StoreStrength.CHARGED_RELEASE_FACTOR, BeastChargeDamage.UNCAPPED), DELTA);
-        assertArrayEquals(new float[] { 6.0F }, BeastChargeDamage.getDamages(BEAR_AND_BOAR,
-                List.of(BeastStrengthFamily.BOAR), bear, StoreStrength.CHARGED_RELEASE_FACTOR,
-                BeastChargeDamage.UNCAPPED), DELTA);
+    @DisplayName("a lone charge carries the whole punch, released or not")
+    void aLoneChargeCarriesTheWholePunch() {
+        assertArrayEquals(new float[] { 4.5F }, BeastChargeDamage.split(4.5F,
+                BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR, List.of())), DELTA);
+        assertArrayEquals(new float[] { 5.5F }, BeastChargeDamage.split(5.5F,
+                BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR, BEAR)), DELTA);
     }
 
     @Test
-    @DisplayName("the points never go negative or overflow")
-    void pointsStayInRange() {
-        assertEquals(0, BeastChargeDamage.getPoints(-40, 3));
-        assertEquals(0, BeastChargeDamage.getPoints(40, -1));
-        assertEquals(Integer.MAX_VALUE, BeastChargeDamage.getPoints(Integer.MAX_VALUE, 12));
+    @DisplayName("charges that weigh nothing share the punch evenly; a negative weight counts as nothing")
+    void weightlessChargesShareEvenly() {
+        assertArrayEquals(new float[] { 3.0F, 3.0F }, BeastChargeDamage.split(6.0F, new int[] { 0, 0 }), DELTA);
+        assertArrayEquals(new float[] { 0.0F, 6.0F }, BeastChargeDamage.split(6.0F, new int[] { -40, 24 }), DELTA);
+        assertArrayEquals(new float[0], BeastChargeDamage.split(6.0F, new int[0]), DELTA);
     }
 }

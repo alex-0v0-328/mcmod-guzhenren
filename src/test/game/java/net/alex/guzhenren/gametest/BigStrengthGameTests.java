@@ -8,6 +8,8 @@ import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.BigStrength;
+import net.alex.guzhenren.gameplay.path.strength.BodyOverload;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
@@ -18,9 +20,13 @@ import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.alex.guzhenren.registry.item.ModItems;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -36,9 +42,10 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 大力蛊[Big Strength Gu]测试。
  * <ul>
- *   <li>五转裸身（常态承受 56）：无力量者也可催动，总点数 +32、承受 +16；人力 200 斤发挥 56 → 72；熊 40 发挥 40 → 72，
- *       不过载。</li>
- *   <li>状态在身再催动被拒不扣费；状态结束点数与承受同撤；持青牛时时长 30 → 40 秒。</li>
+ *   <li>五转裸身（常态承受 56）：无力量者也可催动，总点数 +32，承受力不变；增幅不过准入，人力 200 斤与熊 40 之上照
+ *       样催动，点数全额发挥。</li>
+ *   <li>熊 40 + 大力 32 超出承受力 16 点，空手命中按过载反噬扣血。</li>
+ *   <li>状态在身再催动被拒不扣费；状态结束点数同撤；持青牛时时长 30 → 40 秒。</li>
  * </ul>
  */
 
@@ -51,11 +58,12 @@ public final class BigStrengthGameTests {
     private static final int NORMAL_CAPACITY = 56;
     private static final int JIN = 200;
     private static final int BEAR_POINTS = 40;
+    private static final double DELTA = 0.001D;
 
     private BigStrengthGameTests() {}
 
     @GameTest(template = "empty9x9x9")
-    public static void aBodyWithNoStrengthGainsThePointsAndHalfAsCapacity(GameTestHelper helper) {
+    public static void aBodyWithNoStrengthGainsThePointsAndNoCapacity(GameTestHelper helper) {
         ServerPlayer player = player(helper);
         ItemStack gu = hold(player, ModItems.BIG_STRENGTH_GU_2.get(), GU_HUNGER);
         TendedGuItem item = (TendedGuItem) gu.getItem();
@@ -66,8 +74,10 @@ public final class BigStrengthGameTests {
         assertTrue(player.hasEffect(ModEffects.BIG_STRENGTH_GU), "the big strength shows no icon");
         StrengthSnapshot snapshot = StrengthService.snapshot(player);
         assertEquals(BigStrength.POINTS, snapshot.totalPoints(), "the big strength is not 32 points");
-        assertEquals(NORMAL_CAPACITY + 16, snapshot.capacity(), "the capacity did not gain half the points");
-        assertEquals(BigStrength.POINTS, StrengthService.getUsablePoints(player), "the points are not all usable");
+        assertEquals(0, snapshot.permanentPoints(), "the big strength counted as permanent");
+        assertEquals(NORMAL_CAPACITY, snapshot.capacity(), "the big strength lifted the capacity");
+        assertEquals(BigStrength.POINTS, StrengthService.getSettledPoints(player), "the points are not all settled");
+        assertEquals(0, snapshot.overloadPoints(snapshot.settledPoints()), "32 points under 56 overloaded");
 
         long essence = ApertureEssenceService.getSpendable(player);
         int hunger = hunger(gu);
@@ -82,37 +92,55 @@ public final class BigStrengthGameTests {
         assertFalse(BigStrength.isActive(player), "the big strength was not ended");
         StrengthSnapshot after = StrengthService.snapshot(player);
         assertEquals(0, after.totalPoints(), "the points outlived the big strength");
-        assertEquals(NORMAL_CAPACITY, after.capacity(), "the capacity outlived the big strength");
+        assertEquals(NORMAL_CAPACITY, after.capacity(), "the capacity moved with the big strength");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aBodyAtItsCapacityBringsHalfThePointsToBear(GameTestHelper helper) {
+    public static void aBodyPastItsCapacityStillTakesThePointsInFull(GameTestHelper helper) {
         ServerPlayer player = player(helper);
         assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 6), "the jun was refused");
         assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 2), "the ten jin was refused");
-        assertEquals(NORMAL_CAPACITY, StrengthService.getUsablePoints(player), "200 jin do not fill the capacity");
+        assertEquals(JIN, StrengthService.getSettledPoints(player), "200 jin were cut to the capacity");
 
         click(helper, player, hold(player, ModItems.BIG_STRENGTH_GU_2.get(), GU_HUNGER));
+        assertTrue(BigStrength.isActive(player), "the amplifier was held to the admission");
         StrengthSnapshot snapshot = StrengthService.snapshot(player);
         assertEquals(JIN + BigStrength.POINTS, snapshot.totalPoints(), "the points were not added to the jin");
-        assertEquals(NORMAL_CAPACITY + 16, StrengthService.getUsablePoints(player), "half the points are not usable");
-        assertEquals(0, snapshot.overloadPoints(), "the human path paid a body overload");
+        assertEquals(JIN, snapshot.permanentPoints(), "the big strength counted as permanent");
+        assertEquals(NORMAL_CAPACITY, snapshot.capacity(), "the big strength lifted the capacity");
+        assertEquals(JIN + BigStrength.POINTS, StrengthService.getSettledPoints(player), "the points were cut");
+        assertEquals(JIN + BigStrength.POINTS - NORMAL_CAPACITY, snapshot.overloadPoints(snapshot.settledPoints()),
+                "the points past the capacity do not all overload");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void onABeastBodyThePointsNeverOverload(GameTestHelper helper) {
+    public static void onABeastBodyThePointsPastTheCapacityRecoil(GameTestHelper helper) {
         ServerPlayer player = player(helper);
         assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
+        float max = player.getMaxHealth();
+        player.setHealth(max);
+        strike(helper, player, new BlockPos(2, 1, 2));
+        assertEquals(max, player.getHealth(), DELTA);
 
         click(helper, player, hold(player, ModItems.BIG_STRENGTH_GU_2.get(), GU_HUNGER));
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         StrengthSnapshot snapshot = StrengthService.snapshot(player);
         assertEquals(BEAR_POINTS + BigStrength.POINTS, snapshot.totalPoints(), "the points were not added to the bear");
-        assertEquals(NORMAL_CAPACITY + 16, snapshot.capacity(), "the capacity did not gain half the points");
-        assertEquals(BEAR_POINTS + BigStrength.POINTS, StrengthService.getUsablePoints(player),
-                "72 points do not fit a 72 capacity");
-        assertEquals(0, snapshot.overloadPoints(), "the big strength overloaded the beast body");
+        assertEquals(NORMAL_CAPACITY, snapshot.capacity(), "the big strength lifted the capacity");
+        assertEquals(BEAR_POINTS + BigStrength.POINTS, StrengthService.getSettledPoints(player),
+                "72 points were cut to the 56 capacity");
+        assertEquals(16, snapshot.overloadPoints(snapshot.settledPoints()), "72 over 56 is not 16 over");
+
+        strike(helper, player, new BlockPos(6, 1, 2));
+        assertEquals(max - 16.0F / NORMAL_CAPACITY * max * BodyOverload.RECOIL_RATIO, player.getHealth(), DELTA);
+
+        PathEffectService.removeType(player, ModPathEffectTypes.BIG_STRENGTH);
+        player.setHealth(max);
+        strike(helper, player, new BlockPos(2, 1, 6));
+        assertEquals(max, player.getHealth(), DELTA);
+        ComboRound.clear(player);
         helper.succeed();
     }
 
@@ -127,6 +155,12 @@ public final class BigStrengthGameTests {
         assertEquals((long) (30 + 10) * Ticks.SECOND, effect.getTicksLeft(player.level().getGameTime()),
                 "the green bull did not add its 10 seconds");
         helper.succeed();
+    }
+
+    private static void strike(GameTestHelper helper, ServerPlayer player, BlockPos at) {
+        ComboRound.beginStrike(player, false);
+        Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, at);
+        assertTrue(pig.hurt(player.damageSources().playerAttack(player), 1.0F), "the punch did no damage");
     }
 
     private static ServerPlayer player(GameTestHelper helper) {

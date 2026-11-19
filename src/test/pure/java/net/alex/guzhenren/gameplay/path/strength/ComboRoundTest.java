@@ -41,16 +41,18 @@ class ComboRoundTest {
     }
 
     @Test
-    @DisplayName("hardship draws min(streak, families); otherwise a landed roll draws one, else none")
+    @DisplayName("a missed roll draws nothing, hardship or not; a landed one draws one family, or min(streak, "
+            + "families) under hardship")
     void theDrawCount() {
-        assertEquals(1, ComboRound.getDrawCount(true, false, 1, 3));
-        assertEquals(2, ComboRound.getDrawCount(true, false, 2, 3));
-        assertEquals(3, ComboRound.getDrawCount(true, false, 5, 3));
+        assertEquals(0, ComboRound.getDrawCount(false, false, 4, 3), "a missed roll drew");
+        assertEquals(0, ComboRound.getDrawCount(true, false, 4, 3), "hardship drew on a missed roll");
+        assertEquals(1, ComboRound.getDrawCount(false, true, 4, 3), "a landed roll without hardship did not draw one");
+        assertEquals(1, ComboRound.getDrawCount(true, true, 1, 3));
         assertEquals(2, ComboRound.getDrawCount(true, true, 2, 3));
-        assertEquals(1, ComboRound.getDrawCount(false, true, 4, 3));
-        assertEquals(0, ComboRound.getDrawCount(false, false, 4, 3));
+        assertEquals(3, ComboRound.getDrawCount(true, true, 3, 3));
+        assertEquals(3, ComboRound.getDrawCount(true, true, 5, 3), "the draw passed the families held");
         assertEquals(0, ComboRound.getDrawCount(false, true, 1, 0));
-        assertEquals(0, ComboRound.getDrawCount(true, false, 3, 0));
+        assertEquals(0, ComboRound.getDrawCount(true, true, 3, 0));
     }
 
     @Test
@@ -88,52 +90,47 @@ class ComboRoundTest {
     }
 
     @Test
-    @DisplayName("a rolled release triples the family's permanent points under the capacity; a plain draw adds none")
-    void aRolledRelease() {
-        PathStrengthData bear = new PathStrengthData(Set.of(BeastStrength.BEAR), Map.of());
-        List<BeastStrengthFamily> drawn = List.of(BeastStrengthFamily.BEAR);
-        int extra = ComboRound.getReleasedExtra(56, 40, drawn, bear, false, BeastStrengthFamily.BEAR);
-        assertEquals(StrengthService.getReleasedExtra(56, 40, 40), extra);
-        assertEquals(56 - 40, extra, "the release passed the capacity");
-        assertEquals(0, ComboRound.getReleasedExtra(56, 40, drawn, bear, false, null), "a shown family added");
-    }
-
-    @Test
-    @DisplayName("the fully released families: every drawn one under All-Out, else the rolled one while still drawn")
-    void theFullyReleasedFamilies() {
-        List<BeastStrengthFamily> drawn = List.of(BeastStrengthFamily.TIGER, BeastStrengthFamily.HORSE);
-        assertEquals(drawn, ComboRound.getFullyReleased(drawn, true, null));
-        assertEquals(List.of(BeastStrengthFamily.HORSE),
-                ComboRound.getFullyReleased(drawn, false, BeastStrengthFamily.HORSE));
-        assertEquals(List.of(), ComboRound.getFullyReleased(drawn, false, null), "a plain draw released");
-        assertEquals(List.of(), ComboRound.getFullyReleased(List.of(BeastStrengthFamily.TIGER), false,
-                BeastStrengthFamily.HORSE), "a family that left the draw stayed released");
-    }
-
-    @Test
-    @DisplayName("All-Out releases every drawn family as one sum, a landed roll only the first")
-    void allOutReleasesEveryDrawnFamily() {
+    @DisplayName("every drawn family counts its permanent points once more, so a released family settles twice")
+    void everyDrawnFamilyIsReleased() {
         PathStrengthData data = new PathStrengthData(Set.of(BeastStrength.TIGER, BeastStrength.BEAR), Map.of());
         List<BeastStrengthFamily> both = List.of(BeastStrengthFamily.TIGER, BeastStrengthFamily.BEAR);
-        assertEquals(2 * 104, ComboRound.getReleasedExtra(400, 104, both, data, true, null));
-        assertEquals(2 * 64, ComboRound.getReleasedExtra(400, 104, both, data, false, BeastStrengthFamily.TIGER));
-        assertEquals(224 - 104, ComboRound.getReleasedExtra(224, 104, both, data, true, null),
-                "the release passed the capacity");
-        assertEquals(0, ComboRound.getReleasedExtra(400, 104, both, data, false, null));
+        assertEquals(40, ComboRound.getReleasedPoints(List.of(BeastStrengthFamily.BEAR), data));
+        assertEquals(64, ComboRound.getReleasedPoints(List.of(BeastStrengthFamily.TIGER), data));
+        assertEquals(104, ComboRound.getReleasedPoints(both, data), "a drawn family was left out of the release");
+        assertEquals(0, ComboRound.getReleasedPoints(List.of(), data), "a missed roll released");
+
+        assertEquals(104 + 40, StrengthService.getSettledPoints(104, 40, 1.0D), "the bear did not double");
+        assertEquals(2 * 104, StrengthService.getSettledPoints(104, 104, 1.0D), "both families did not double");
+        assertEquals(2, StrengthService.FULL_RELEASE_FACTOR);
     }
 
     @Test
-    @DisplayName("a same-family timed beast is never tripled")
-    void aTimedBeastIsNeverTripled() {
+    @DisplayName("the two boars release as one family, and a same-family timed beast is never doubled")
+    void onlyPermanentPointsAreReleased() {
+        PathStrengthData boars = new PathStrengthData(
+                Set.of(BeastStrength.WHITE_BOAR, BeastStrength.BLACK_BOAR), Map.of());
+        assertEquals(48, ComboRound.getReleasedPoints(List.of(BeastStrengthFamily.BOAR), boars));
+
         PathStrengthData boar = new PathStrengthData(Set.of(BeastStrength.WHITE_BOAR), Map.of());
-        assertEquals(2 * 24, ComboRound.getReleasedExtra(400, 24 + 24, List.of(BeastStrengthFamily.BOAR), boar,
-                false, BeastStrengthFamily.BOAR));
+        int released = ComboRound.getReleasedPoints(List.of(BeastStrengthFamily.BOAR), boar);
+        assertEquals(24, released, "a timed boar beside the permanent one joined the release");
+        assertEquals(2 * 24 + 24, StrengthService.getSettledPoints(24 + 24, released, 1.0D));
     }
 
     @Test
-    @DisplayName("a family no longer held releases nothing")
-    void aFamilyNoLongerHeldReleasesNothing() {
-        assertEquals(0, ComboRound.getReleasedExtra(400, 40, List.of(BeastStrengthFamily.BEAR),
-                PathStrengthData.DEFAULT, true, BeastStrengthFamily.BEAR));
+    @DisplayName("human strength and a family no longer held release nothing")
+    void whatIsNotAPermanentBeastReleasesNothing() {
+        PathStrengthData human = new PathStrengthData(Set.of(), Map.of(HumanStrength.JUN, 2));
+        assertEquals(List.of(), ComboRound.getAvailableFamilies(human), "human strength offered a family");
+        assertEquals(0, ComboRound.getReleasedPoints(List.of(BeastStrengthFamily.BEAR), human));
+        assertEquals(0, ComboRound.getReleasedPoints(List.of(BeastStrengthFamily.BEAR), PathStrengthData.DEFAULT));
+    }
+
+    @Test
+    @DisplayName("the release is multiplied by the whole-punch factor with the rest of the fist")
+    void theReleaseTakesTheWholePunchFactor() {
+        assertEquals(96, StrengthService.getSettledPoints(40, 40, 1.2D), "a second-tier hardship bear release");
+        assertEquals(48, StrengthService.getSettledPoints(40, 0, 1.2D));
+        assertEquals(240, StrengthService.getSettledPoints(40, 40, 3.0D), "a full charge on a released bear");
     }
 }

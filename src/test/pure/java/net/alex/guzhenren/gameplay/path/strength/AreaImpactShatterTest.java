@@ -44,7 +44,8 @@ class AreaImpactShatterTest {
         List<BlockPos> cells = AreaImpactShatter.getConeCells(EYES, EAST, 4.0D);
         assertFalse(cells.isEmpty());
         for (BlockPos pos : cells) {
-            assertTrue(AreaImpact.isInCone(EYES, EAST, 4.0D, pos.getCenter()), pos + " lies outside the cone");
+            assertTrue(AreaImpact.isInCone(EYES, EAST, 4.0D, AreaImpact.HALF_ANGLE_DEGREES, pos.getCenter()),
+                    pos + " lies outside the 45 degree cone");
         }
         for (int i = 1; i < cells.size(); i++) {
             assertTrue(cells.get(i - 1).getCenter().distanceToSqr(EYES) <= cells.get(i).getCenter().distanceToSqr(EYES),

@@ -18,15 +18,15 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 本模组改写玩家原版 {@code ATTACK_DAMAGE} 属性的唯一服务入口。
  * <ul>
- *   <li>总攻击力加成 = 空手可发挥力量点[Strength Points]（{@link StrengthService#getUsablePoints}，兽力[Beast Strength]
- *       与人力共用承受力）× 每点攻击加成 + 僵尸档位固定加成；力量点加成仅在主手完全为空（{@link #isFistHand}，手持 Epic
+ *   <li>总攻击力加成 = 空手结算力量点[Strength Points]（{@link StrengthService#getSettledPoints}，全额发挥、不按承受力
+ *       截断）× 每点攻击加成 + 僵尸档位固定加成；力量点加成仅在主手完全为空（{@link #isFistHand}，手持 Epic
  *       Fight 拳套也视为非空手）时生效，{@link #getFistBonus} 则忽略手持物返回空手加成供 B 面板展示。</li>
  *   <li>由 {@link AttackDamageEvents} 在状态或主手变更时即时刷新，并由每秒心跳兜底。</li>
  *   <li>{@link #getFistDamage} 按原版属性修饰符运算顺序重算指定力量点数下的空手攻击力（保留其他模组的乘算加成，
- *       供蓄力蛊[Store Strength Gu]突破承受力的蓄力一拳使用）；{@link #getBareFistDamage} 额外剔除主手物品自带的攻击力
- *       修饰符（供不看手持物的终点破坏打击[Crash Strike]使用）。</li>
+ *       供蓄力蛊[Store Strength Gu]的蓄力一拳与力气蛊[Strength Qi Gu]远程拳使用）；{@link #getBareFistDamage} 额外剔
+ *       除主手物品自带的攻击力修饰符（供不看手持物的终点破坏打击[Crash Strike]使用）。</li>
  *   <li>⚠ 必须通过 {@link TransientModifiers} 挂载临时属性修饰符；本模组任何药水效果均不得自带
- *       {@code addAttributeModifier} 直接改攻击力，所有限时力量增益一律转为力量点走承受力结算。</li>
+ *       {@code addAttributeModifier} 直接改攻击力，所有限时力量增益一律转为力量点走力道结算。</li>
  *   <li>⚠ 僵尸攻击力加成直接读取 {@link BodyData#zombieTier}（指令直接赋予的永久僵尸等级为 {@code -1} 时无加成），不读
  *       药水效果。</li>
  * </ul>
@@ -55,7 +55,7 @@ public final class AttackDamageService {
     }
 
     private static double getFistStrengthBonus(@NotNull Player player) {
-        return StrengthService.getUsablePoints(player) * PathStrengthData.ATTACK_PER_POINT;
+        return StrengthService.getSettledPoints(player) * PathStrengthData.ATTACK_PER_POINT;
     }
 
     public static double getFistDamage(@NotNull Player player, int points) {

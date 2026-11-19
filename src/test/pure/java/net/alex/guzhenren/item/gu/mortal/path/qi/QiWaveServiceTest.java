@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class QiWaveServiceTest {
@@ -31,11 +32,14 @@ class QiWaveServiceTest {
     }
 
     @Test
-    @DisplayName("the burst hits the locked target in full and everything else at half")
-    void theBurstSplitsItsDamage() {
-        assertEquals(10.0F, QiBurst.getDamage(10.0F, true), 1.0E-6F);
-        assertEquals(5.0F, QiBurst.getDamage(10.0F, false), 1.0E-6F);
+    @DisplayName("a ranged punch is worth half the fist; its burst reaches 3 blocks and spills over 8 targets at most")
+    void theRangedPunchIsPinned() {
+        assertEquals(0.5F, QiWaveService.RANGED_RATIO);
         assertEquals(3.0D, QiBurst.RADIUS, 1.0E-9D);
+        assertEquals(8, QiBurst.MAX_TARGETS);
+        assertEquals(3.0D, QiBurst.Spec.QI_WAVE.radius(), 1.0E-9D);
+        assertFalse(QiBurst.Spec.QI_WAVE.areaImpact(), "the plain burst opens the area impact");
+        assertNull(QiBurst.Spec.QI_WAVE.shot(), "the plain burst carries an overload shot");
     }
 
     @Test

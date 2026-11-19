@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
@@ -40,11 +39,13 @@ import org.jetbrains.annotations.NotNull;
  *       迟余量的截止时限 {@link #getDeadline} 时判定停下（{@link #hasStopped}）。若累计位移超出预期路程加
  *       {@link #LOST_MARGIN}（发生传送）、死亡、登出或切换维度，则作废本次登记。</li>
  *   <li>终点打击球心位于停点身体中心沿冲撞方向前伸 {@link #AHEAD} 格处，半径取 {@link CrashSources#getStrikeRange}，视
- *       线遮挡从玩家身体中心起算（防止貼墙停下时球心嵌入墙内导致全被遮挡），按由近到远最多命中 {@link #MAX_TARGETS} 个
- *       目标。</li>
- *   <li>伤害 = 剥离主手武器修饰后的空手攻击力（{@link AttackDamageService#getBareFistDamage}）× {@link #getDamageRatio}
- *       （{@code guzhenren:crash_strike} 战斗伤害，受护甲减免，沿冲撞方向施加 {@link #KNOCKBACK} 击退）；不结算连招轮
- *       （不抽兽种、不出虚影），命中至少一个目标时结算一次 {@link BodyOverload#recoil} 肉体过载。</li>
+ *       线遮挡从玩家身体中心起算（防止貼墙停下时球心嵌入墙内导致全被遮挡），按溢出结算（{@link AreaImpact#spill}）：
+ *       最近的目标吃整击，剩余由近到远最多命中 {@link #MAX_TARGETS} 个目标。</li>
+ *   <li>伤害 = 停下时结算力量点[Strength Points]（{@link StrengthSnapshot#settledPoints}，吃苦力倍率，不含解放）对应的
+ *       剥离主手武器修饰后的空手攻击力（{@link AttackDamageService#getBareFistDamage}）× {@link #getDamageRatio} 出手
+ *       系数（{@code guzhenren:crash_strike} 战斗伤害，受护甲减免，沿冲撞方向施加 {@link #KNOCKBACK} 击退）；不结算连
+ *       招轮（不抽兽种、不出虚影），命中至少一个目标时按该结算力量点结算一次 {@link BodyOverload#recoil} 过载反噬。打
+ *       击半径、崩裂与冲撞距离读起手时的总力量点（{@link CrashSources}），不吃倍率。</li>
  *   <li>终点打击后以停点为中心执行圆盘地形崩裂（{@link #getEndCells}，半径为打击半径一半，从脚底平层到头顶上一格，保留
  *       脚下所踩地面，至多破 {@link #MAX_BLOCKS} 块），并发布 {@link CrashStruckEvent} 触发冲击环粒子（挥空同样崩裂并发
  *       事件）。</li>
@@ -176,10 +177,11 @@ public final class CrashStrike {
         double height = getStandingHeight(player);
         Vec3 body = player.position().add(0.0D, height / 2.0D, 0.0D);
         double range = sources.getStrikeRange();
-        float damage = (float) (AttackDamageService.getBareFistDamage(player, sources.points())
-                * sources.getDamageRatio());
+        StrengthSnapshot snapshot = StrengthService.snapshot(player);
+        int points = snapshot.settledPoints();
+        float damage = (float) (AttackDamageService.getBareFistDamage(player, points) * sources.getDamageRatio());
         List<LivingEntity> landed = hit(player, body, body.add(direction.scale(AHEAD)), range, direction, damage);
-        if (!landed.isEmpty()) BodyOverload.recoil(player);
+        if (!landed.isEmpty()) BodyOverload.recoil(player, points, snapshot.capacity());
 
         float hardness = sources.getMaxHardness();
         if (hardness >= 0.0F) {
@@ -216,17 +218,11 @@ public final class CrashStrike {
                         && AreaImpact.isInSight(player, body, target));
         targets.sort(Comparator.comparingDouble(target -> target.getBoundingBox().getCenter().distanceToSqr(center)));
 
-        DamageSource source = ModDamageTypes.source(player, player, ModDamageTypes.CRASH_STRIKE);
-        List<LivingEntity> landed = new ArrayList<>();
-        for (LivingEntity target : targets) {
-            if (landed.size() >= MAX_TARGETS) break;
-            if (!target.hurt(source, damage)) continue;
-
-            target.knockback(KNOCKBACK, -direction.x, -direction.z);
-            target.hurtMarked = true;
-            landed.add(target);
-        }
-        return landed;
+        return AreaImpact.spill(targets, damage, MAX_TARGETS,
+                ModDamageTypes.source(player, player, ModDamageTypes.CRASH_STRIKE), target -> {
+                    target.knockback(KNOCKBACK, -direction.x, -direction.z);
+                    target.hurtMarked = true;
+                });
     }
     //endregion
 

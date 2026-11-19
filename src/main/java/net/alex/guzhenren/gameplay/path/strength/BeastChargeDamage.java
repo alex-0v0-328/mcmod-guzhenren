@@ -4,14 +4,12 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 兽力冲击（虚影扑击）的伤害计算纯函数：按各兽种自身的永久兽力[Beast Strength]点数结算，而非按玩家拳击面板结算。
+ * 兽力冲击（虚影扑击）的伤害分摊纯函数：一拳的远程总伤害按各出形兽种在结算里的份额分给各道兽力冲击。
  * <ul>
- *   <li>单只兽影基础点数 = 该兽种永久力量点[Strength Points] × 解放倍数（未全面解放或仅随机补出形体时倍数为
- *       {@code 1}），再乘以 {@link #ATTACK_PER_POINT} 转为伤害。</li>
- *   <li>力气蛊[Strength Qi Gu]远程气波：全面解放兽种乘以 {@link StrengthService#FULL_RELEASE_FACTOR}，所有出形兽影的总
- *       点数封顶于当前承受力（含全力以赴）并按比例分摊（{@link #getDamages}）。</li>
- *   <li>蓄力一拳[Charged Punch]：解放兽种乘以 {@code StoreStrength.CHARGED_RELEASE_FACTOR}，不设承受力上限（传入
- *       {@link #UNCAPPED}），超承受力的冲击反噬按该拳自身总点数结算。</li>
+ *   <li>份额（{@link #getWeights}）= 该兽种永久兽力[Beast Strength]点数 × 来源倍率（本击全面解放的兽种为
+ *       {@link StrengthService#FULL_RELEASE_FACTOR}，随机补出形体的兽种为 {@code 1}）。</li>
+ *   <li>{@link #split} 把总伤害按份额比例分摊，各道之和等于总伤害；只有一道时它带全部伤害，份额全为 {@code 0} 时平
+ *       分。</li>
  * </ul>
  */
 
@@ -19,33 +17,25 @@ public final class BeastChargeDamage {
 
     private BeastChargeDamage() {}
 
-    public static final double ATTACK_PER_POINT = 0.25D;
-    public static final int UNCAPPED = -1;
-
-    public static float @NotNull [] getDamages(@NotNull PathStrengthData data,
-                                               @NotNull List<BeastStrengthFamily> families,
-                                               @NotNull List<BeastStrengthFamily> released, int releaseFactor,
-                                               int cap) {
-        int[] points = new int[families.size()];
-        for (int i = 0; i < points.length; i++) {
+    public static int @NotNull [] getWeights(@NotNull PathStrengthData data,
+                                             @NotNull List<BeastStrengthFamily> families,
+                                             @NotNull List<BeastStrengthFamily> released) {
+        int[] weights = new int[families.size()];
+        for (int i = 0; i < weights.length; i++) {
             BeastStrengthFamily family = families.get(i);
-            points[i] = getPoints(data.getBeastPoints(family), released.contains(family) ? releaseFactor : 1);
+            weights[i] = Math.max(0, data.getBeastPoints(family))
+                    * (released.contains(family) ? StrengthService.FULL_RELEASE_FACTOR : 1);
         }
-        return getDamages(points, cap);
+        return weights;
     }
 
-    public static int getPoints(int familyPoints, int factor) {
-        return (int) Math.min(Integer.MAX_VALUE, (long) Math.max(0, familyPoints) * Math.max(0, factor));
-    }
+    public static float @NotNull [] split(float total, int @NotNull [] weights) {
+        long sum = 0L;
+        for (int weight : weights) sum += Math.max(0, weight);
 
-    public static float @NotNull [] getDamages(int @NotNull [] points, int cap) {
-        long total = 0L;
-        for (int point : points) total += Math.max(0, point);
-        double share = cap >= 0 && total > cap ? (double) cap / total : 1.0D;
-
-        float[] damages = new float[points.length];
-        for (int i = 0; i < points.length; i++) {
-            damages[i] = (float) (Math.max(0, points[i]) * share * ATTACK_PER_POINT);
+        float[] damages = new float[weights.length];
+        for (int i = 0; i < weights.length; i++) {
+            damages[i] = sum > 0L ? (float) ((double) total * Math.max(0, weights[i]) / sum) : total / weights.length;
         }
         return damages;
     }

@@ -86,7 +86,9 @@ public final class TimedEffectGameTests {
         assertEquals(45L * Ticks.SECOND, ox.getDuration());
         assertEquals(BruteForceLonghornBeetleGuEffect.POINTS, StrengthService.getStrengthPoints(player));
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        assertEquals(StrengthService.getUsablePoints(player) * PathStrengthData.ATTACK_PER_POINT,
+        assertEquals(BruteForceLonghornBeetleGuEffect.POINTS, StrengthService.getSettledPoints(player),
+                "the timed ox was not settled in full");
+        assertEquals(BruteForceLonghornBeetleGuEffect.POINTS * PathStrengthData.ATTACK_PER_POINT,
                 AttackDamageService.getBonus(player));
         helper.succeed();
     }

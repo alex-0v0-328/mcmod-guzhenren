@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * 大力蛊[Big Strength Gu]算术：承受加成为点数一半、向下取整；增幅非兽力，超承受只截断不过载；活玩家见
+ * 大力蛊[Big Strength Gu]算术：增幅只给点数，不带承受力、非兽力；超出承受力的部分全额发挥并计入过载；活玩家见
  * {@code BigStrengthGameTests}。
  */
 
@@ -18,36 +18,34 @@ class BigStrengthTest {
     private static final ResourceLocation SOURCE = ResourceLocation.fromNamespaceAndPath("guzhenren", "test");
 
     @Test
-    @DisplayName("the capacity bonus is half the points, rounded down")
-    void capacityBonusIsHalf() {
-        assertEquals(16, BigStrength.getCapacityBonus(BigStrength.POINTS));
-        assertEquals(16, BigStrength.getCapacityBonus(33));
-        assertEquals(0, BigStrength.getCapacityBonus(1));
-        assertEquals(0, BigStrength.getCapacityBonus(-8), "negative points lent capacity");
-    }
-
-    @Test
-    @DisplayName("the amplifier lends its points and half as capacity, with no beast family")
+    @DisplayName("the amplifier lends its points and nothing else: no capacity, no punch factor, no beast family")
     void amplifierShape() {
         StrengthAmplifier amplifier = BigStrength.getAmplifier(SOURCE, BigStrength.POINTS);
-        assertEquals(new StrengthAmplifier(SOURCE, null, 32, 16), amplifier);
+        assertEquals(32, BigStrength.POINTS);
+        assertEquals(new StrengthAmplifier(SOURCE, null, 32, 0, 0), amplifier);
         assertFalse(amplifier.isBeast(), "the big strength counts as a timed beast strength");
         assertNull(BigStrength.getAmplifier(SOURCE, 0), "no points, yet an amplifier");
+        assertNull(BigStrength.getAmplifier(SOURCE, -8), "negative points, yet an amplifier");
     }
 
     @Test
-    @DisplayName("a body at its capacity still brings half the points to bear, and none of it overloads")
-    void halfIsUsableAtFullCapacity() {
-        StrengthSnapshot snapshot = StrengthSnapshot.of(56, 200, 0,
-                List.of(BigStrength.getAmplifier(SOURCE, BigStrength.POINTS)), StrengthService.NO_ALL_OUT);
-        assertEquals(232, snapshot.totalPoints());
-        assertEquals(72, snapshot.capacity());
-        assertEquals(72, StrengthService.getUsablePoints(snapshot.capacity(), snapshot.totalPoints()));
-        assertEquals(0, snapshot.overloadPoints(), "the big strength paid a body overload");
+    @DisplayName("the points past the capacity land in full and all of them overload")
+    void pointsPastTheCapacityOverload() {
+        List<StrengthAmplifier> big = List.of(BigStrength.getAmplifier(SOURCE, BigStrength.POINTS));
+        StrengthSnapshot bare = StrengthSnapshot.of(56, 0, big, StrengthService.NO_ALL_OUT);
+        assertEquals(56, bare.capacity(), "the big strength lifted the capacity");
+        assertEquals(32, bare.settledPoints());
+        assertEquals(0, bare.overloadPoints(bare.settledPoints()), "32 points under 56 overloaded");
 
-        StrengthSnapshot beast = StrengthSnapshot.of(56, 56, 56,
-                List.of(BigStrength.getAmplifier(SOURCE, BigStrength.POINTS)), StrengthService.NO_ALL_OUT);
-        assertEquals(72, StrengthService.getUsablePoints(beast.capacity(), beast.totalPoints()));
-        assertEquals(0, beast.overloadPoints(), "the big strength overloaded a beast body");
+        StrengthSnapshot beast = StrengthSnapshot.of(56, 40, big, StrengthService.NO_ALL_OUT);
+        assertEquals(72, beast.totalPoints());
+        assertEquals(56, beast.capacity());
+        assertEquals(72, beast.settledPoints(), "the points past the capacity were cut");
+        assertEquals(16, beast.overloadPoints(beast.settledPoints()));
+        assertEquals(112, beast.settle(40, 1.0D), "the big strength was doubled beside the released bear");
+
+        StrengthSnapshot human = StrengthSnapshot.of(56, 200, big, StrengthService.NO_ALL_OUT);
+        assertEquals(232, human.settledPoints());
+        assertEquals(176, human.overloadPoints(human.settledPoints()));
     }
 }

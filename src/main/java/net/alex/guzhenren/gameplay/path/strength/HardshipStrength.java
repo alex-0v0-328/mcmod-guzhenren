@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 苦力状态：苦力蛊[Hardship Strength Gu]开启期间按当前已损生命比例动态提升肉身承受力，
- * 并使兽力虚影流[Beast Strength Phantom]每轮可抽取多个兽种。
+ * 苦力状态：苦力蛊[Hardship Strength Gu]开启期间按当前已损生命比例提供整拳倍率，并使兽力虚影流[Beast Strength Phantom]
+ * 掷中时可抽取多个兽种、人力钧力流[Human Jun Strength]的范围冲击[Area Impact]必定触发且范围更大。
  * <ul>
- *   <li>作为永久流派效果由苦力蛊自动催动（{@code AutoUse}）开关；仅对已入人力钧力流或兽力虚影流的玩家提供承受力加成（按
- *       常态承受力的百分比向下取整，不直接增加力量点[Strength Points]）。</li>
+ *   <li>作为带到期时刻的流派效果由苦力蛊自动催动（{@code AutoUse}）开关；仅对已入人力钧力流或兽力虚影流（含生效中的限
+ *       时兽力）的玩家提供整拳倍率（{@link StrengthAmplifier#punch}，不加力量点[Strength Points]、不加承受力）。</li>
  *   <li>伤势分五档（{@link #getTier}）：当前生命低于最大生命的 75%（{@link #START_BELOW}）起算，高于 60% 为 1 档，每再
- *       低 15% 升一档，不高于 15% 为 5 档。</li>
- *   <li>⚠ 档位分界统一用乘法 {@code health > maxHealth * floor} 比较而非除法，恰好落在分界点时归入较低档；
+ *       低 15% 升一档，不高于 15% 为 5 档；五档整拳倍率依次 +10% / 20% / 30% / 40% / 50%。</li>
+ *   <li>⚠ 档位分界统一用乘法 {@code health > maxHealth * floor} 比较而非除法，恰好落在分界点时归入伤势更重的一档；
  *       {@link #HEALED_SHARE} 留有 {@code 1e-4} 浮点容差，确保生命恢复至 75% 时稳定判定为痊愈。</li>
  * </ul>
  */
@@ -33,18 +33,18 @@ public final class HardshipStrength {
 
     private enum Tier {
 
-        ONE(0.60F, 5),
-        TWO(0.45F, 10),
-        THREE(0.30F, 25),
-        FOUR(0.15F, 50),
-        FIVE(0.0F, 100);
+        ONE(0.60F, 10),
+        TWO(0.45F, 20),
+        THREE(0.30F, 30),
+        FOUR(0.15F, 40),
+        FIVE(0.0F, 50);
 
         private final float floor;
-        private final int capacityPercent;
+        private final int punchPercent;
 
-        Tier(float floor, int capacityPercent) {
+        Tier(float floor, int punchPercent) {
             this.floor = floor;
-            this.capacityPercent = capacityPercent;
+            this.punchPercent = punchPercent;
         }
 
         private int getLevel() { return ordinal() + 1; }
@@ -67,15 +67,12 @@ public final class HardshipStrength {
         return TIERS;
     }
 
-    public static int getCapacityBonus(int normalCapacity, int tier) {
-        if (tier <= 0) return 0;
-        return (int) ((long) Math.max(0, normalCapacity) * Tier.of(tier).capacityPercent / 100L);
-    }
+    public static int getPunchPercent(int tier) { return tier <= 0 ? 0 : Tier.of(tier).punchPercent; }
 
     public static @Nullable StrengthAmplifier getAmplifier(@NotNull ResourceLocation source, boolean branchHeld,
-                                                           int normalCapacity, int tier) {
-        int bonus = branchHeld ? getCapacityBonus(normalCapacity, tier) : 0;
-        return bonus > 0 ? new StrengthAmplifier(source, null, 0, bonus) : null;
+                                                           int tier) {
+        int percent = branchHeld ? getPunchPercent(tier) : 0;
+        return percent > 0 ? StrengthAmplifier.punch(source, percent) : null;
     }
 
     public record State() implements StrengthAmplifierProvider {
@@ -88,7 +85,7 @@ public final class HardshipStrength {
         public @Nullable StrengthAmplifier getAmplifier(@NotNull Player player, int permanentPoints,
                                                         int normalCapacity) {
             return HardshipStrength.getAmplifier(ModPathEffectTypes.HARDSHIP_STRENGTH.getId(),
-                    PathStrengthService.getHeldBranch(player) != StrengthPathBranch.NORMAL, normalCapacity,
+                    PathStrengthService.getHeldBranch(player) != StrengthPathBranch.NORMAL,
                     getTier(player.getHealth(), player.getMaxHealth()));
         }
     }

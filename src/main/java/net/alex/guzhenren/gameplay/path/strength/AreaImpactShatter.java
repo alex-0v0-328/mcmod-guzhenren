@@ -97,7 +97,9 @@ public final class AreaImpactShatter {
         List<BlockPos> cells = new ArrayList<>();
         for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(origin.subtract(radius, radius, radius)),
                 BlockPos.containing(origin.add(radius, radius, radius)))) {
-            if (AreaImpact.isInCone(origin, unit, radius, pos.getCenter())) cells.add(pos.immutable());
+            if (AreaImpact.isInCone(origin, unit, radius, AreaImpact.HALF_ANGLE_DEGREES, pos.getCenter())) {
+                cells.add(pos.immutable());
+            }
         }
         return byDistance(cells, origin);
     }

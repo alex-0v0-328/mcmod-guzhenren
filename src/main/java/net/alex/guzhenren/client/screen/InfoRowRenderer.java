@@ -198,8 +198,8 @@ final class InfoRowRenderer {
     private static MutableComponent formatName(String key) { return Component.translatable(key); }
 
     private static Component formatCapacity(InfoModel.CapacityRow row) {
-        MutableComponent text = Component.translatable("guzhenren.screen.capacity", row.usable(), row.total(),
-                row.capacity(), row.normalCapacity());
+        MutableComponent text = Component.translatable("guzhenren.screen.capacity", row.total(), row.capacity(),
+                row.normalCapacity());
         if (row.overload() <= 0) return text;
         return text.append(Component.translatable("guzhenren.screen.capacity.body_overload", row.overload()));
     }
