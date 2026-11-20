@@ -92,19 +92,17 @@ class WikiConsistencyTest {
     void glossaryRowsMatchTheLangFiles() throws IOException {
         Path lang = Path.of(System.getProperty("gzr.projectDir"), "src/generated/resources/assets/guzhenren/lang");
         JsonObject chinese = JsonParser.parseString(Files.readString(lang.resolve("zh_cn.json"))).getAsJsonObject();
-        JsonObject english = JsonParser.parseString(Files.readString(lang.resolve("en_us.json"))).getAsJsonObject();
         String text = Files.readString(wiki.resolve(GLOSSARY_PAGE));
         int manual = text.indexOf("\n## 设定词\n");
         assertTrue(manual >= 0, GLOSSARY_PAGE + " has no 设定词 section");
-        Matcher row = Pattern.compile("(?m)^\\| (.+?) \\| (.+?) \\| `([^`]+)` \\|$").matcher(text.substring(0, manual));
+        Matcher row = Pattern.compile("(?m)^\\| (.+?) \\| `([^`]+)` \\|$").matcher(text.substring(0, manual));
         Set<String> keys = new TreeSet<>();
         while (row.find()) {
-            String key = row.group(3);
+            String key = row.group(2);
             assertTrue(keys.add(key), () -> GLOSSARY_PAGE + " lists " + key + " twice");
             if (key.startsWith("dimension.guworld.")) continue;
             assertTrue(chinese.has(key), () -> GLOSSARY_PAGE + " lists a key the lang files lack: " + key);
             assertEquals(chinese.get(key).getAsString(), row.group(1), key);
-            assertEquals(english.get(key).getAsString(), row.group(2), key);
         }
         assertFalse(keys.isEmpty(), GLOSSARY_PAGE + " has no rows");
         Set<String> groups = new TreeSet<>();

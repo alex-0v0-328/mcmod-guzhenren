@@ -42,15 +42,14 @@ class ItemRegistrarTest {
     void recordsTheChain() {
         ItemRegistrar registrar = ItemRegistrar.of(new UnboundItems());
         DeferredHolder<CreativeModeTab, CreativeModeTab> tab = createTab("gu_material");
-        DeferredItem<Item> plain = registrar.item("plain", () -> null).lang("Plain", "素").register();
+        DeferredItem<Item> plain = registrar.item("plain", () -> null).lang("素").register();
         DeferredItem<Item> full = registrar.item("full", () -> null)
-                .lang("Full", "满", "滿").model(ItemModel.BLOCK).tag(FEED, HIDDEN).tag(FEED).tab(tab).register();
+                .lang("满", "滿").model(ItemModel.BLOCK).tag(FEED, HIDDEN).tag(FEED).tab(tab).register();
 
         assertEquals(List.of(plain.getId(), full.getId()),
                 registrar.getEntries().stream().map(entry -> entry.item().getId()).toList());
         ItemRegistrar.Entry entry = registrar.getEntry(full.getId());
         assertSame(full, entry.item());
-        assertEquals("Full", entry.english());
         assertEquals("满", entry.simplified());
         assertEquals("滿", entry.traditional());
         assertEquals(ItemModel.BLOCK, entry.model());
@@ -62,7 +61,7 @@ class ItemRegistrarTest {
     @DisplayName("an unadorned chain is a flat model in no tag and no tab, its Traditional name converted")
     void defaultsStayOut() {
         ItemRegistrar registrar = ItemRegistrar.of(new UnboundItems());
-        DeferredItem<Item> plain = registrar.item("plain", () -> null).lang("Plain", "素").register();
+        DeferredItem<Item> plain = registrar.item("plain", () -> null).lang("素").register();
 
         ItemRegistrar.Entry entry = registrar.getEntry(plain.getId());
         assertEquals(ItemModel.FLAT, entry.model());
@@ -91,9 +90,9 @@ class ItemRegistrarTest {
         ItemRegistrar registrar = ItemRegistrar.of(new UnboundItems());
 
         IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
-                () -> registrar.item("blank", () -> null).lang(" ", "空"));
+                () -> registrar.item("blank", () -> null).lang(" "));
         assertTrue(refused.getMessage().contains("blank"), refused.getMessage());
-        assertThrows(IllegalArgumentException.class, () -> registrar.item("blank", () -> null).lang("Blank", "空", ""));
+        assertThrows(IllegalArgumentException.class, () -> registrar.item("blank", () -> null).lang("空", ""));
     }
 
     @Test
@@ -109,11 +108,11 @@ class ItemRegistrarTest {
     @DisplayName("a repeated id fails in the DeferredRegister and leaves the first entry as it was")
     void keepsTheFirstOfARepeatedId() {
         ItemRegistrar registrar = ItemRegistrar.of(new UnboundItems());
-        DeferredItem<Item> first = registrar.item("twice", () -> null).lang("First", "一").register();
+        DeferredItem<Item> first = registrar.item("twice", () -> null).lang("一").register();
 
         assertThrows(IllegalArgumentException.class,
-                () -> registrar.item("twice", () -> null).lang("Second", "二").register());
-        assertEquals("First", registrar.getEntry(first.getId()).english());
+                () -> registrar.item("twice", () -> null).lang("二").register());
+        assertEquals("一", registrar.getEntry(first.getId()).simplified());
         assertEquals(1, registrar.getEntries().size());
     }
 

@@ -11,7 +11,7 @@ assets/guzhenren/font/booklet_<script>.json over textures/font/booklet_<script>.
 booklet_margin_<script> take the Han glyphs of Chronicle.java's literals (book titles, numerals, 第, 节, 终) from the
 8px BDF into 8x8 cells for the 9-pixel margin strips. Every sheet has 16 cells a row and ascent 7, so a glyph's cell
 top sits on the y it is drawn at; each font holds both scripts' glyphs, and the screen picks hant under zh_tw and
-hans everywhere else. The SIL OFL texts of each release and the fonts it merges go to licenses/fusion-pixel-font/
+zh_hk, hans everywhere else. The SIL OFL texts of each release and the fonts it merges go to licenses/fusion-pixel-font/
 and licenses/fusion-pixel-font-8px/. BookletFontTest fails when a booklet uses a glyph the shipped fonts lack; this
 script is the fix.
 """

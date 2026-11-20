@@ -343,18 +343,18 @@ class CheckTests(unittest.TestCase):
 
     def test_smoke_commands_partner_guard_hashes_junit_log_and_lock(self):
         root = self.root
-        lang = root / 'src/generated/resources/assets/guzhenren/lang/en_us.json'
+        lang = root / 'src/generated/resources/assets/guzhenren/lang/zh_cn.json'
         lang.parent.mkdir(parents=True)
-        lang.write_text(json.dumps({'entity.guzhenren.tiger': 'Tiger', 'entity.guzhenren.bear': 'Bear',
-                                    'entity.guzhenren.bear.hint': 'x', 'item.guzhenren.gu': 'Gu'}), encoding='utf-8')
+        lang.write_text(json.dumps({'entity.guzhenren.tiger': '老虎', 'entity.guzhenren.bear': '熊',
+                                    'entity.guzhenren.bear.hint': 'x', 'item.guzhenren.gu': '蛊'}), encoding='utf-8')
         gu_world = root / 'guworld'
         world = gu_world / 'src/generated/resources'
         features = world / 'data/guworld/worldgen/configured_feature'
         features.mkdir(parents=True)
         (features / 'spirit_spring.json').write_text('{}', encoding='utf-8')
         (world / 'assets/guworld/lang').mkdir(parents=True)
-        (world / 'assets/guworld/lang/en_us.json').write_text(
-            json.dumps({'dimension.guworld.treasure_yellow_heaven': 'TYH'}), encoding='utf-8')
+        (world / 'assets/guworld/lang/zh_cn.json').write_text(
+            json.dumps({'dimension.guworld.treasure_yellow_heaven': '宝黄天'}), encoding='utf-8')
         (world / 'data/guworld/dimension').mkdir(parents=True)
         (world / 'data/guworld/dimension/treasure_yellow_heaven.json').write_text('{}', encoding='utf-8')
         own = root / 'src/generated/resources'

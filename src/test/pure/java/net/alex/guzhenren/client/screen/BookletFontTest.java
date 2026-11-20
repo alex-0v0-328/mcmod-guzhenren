@@ -26,13 +26,13 @@ class BookletFontTest {
     private static final String RERUN = "; rerun python3 -B tools/booklet_font.py";
 
     @Test
-    @DisplayName("the Simplified font holds every glyph the booklets show outside zh_tw")
+    @DisplayName("the Simplified font holds every glyph the booklets show outside zh_tw and zh_hk")
     void simplifiedFontCoversTheBooklets() throws IOException {
         assertCovers("booklet_hans", false);
     }
 
     @Test
-    @DisplayName("the Traditional font holds every glyph the booklets show under zh_tw")
+    @DisplayName("the Traditional font holds every glyph the booklets show under zh_tw and zh_hk")
     void traditionalFontCoversTheBooklets() throws IOException {
         assertCovers("booklet_hant", true);
     }

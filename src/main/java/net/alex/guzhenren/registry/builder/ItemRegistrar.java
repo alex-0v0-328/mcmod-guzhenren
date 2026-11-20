@@ -15,8 +15,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 每物品一条声明链的集中登记器，在注册点一并声明 ID、工厂、中英文名称、模型形状、标签与创造栏并供 datagen provider 与创
- * 造栏遍历读回。
+ * 每物品一条声明链的集中登记器，在注册点一并声明 ID、工厂、中文名称、模型形状、标签与创造栏并供 datagen provider 与创造
+ * 栏遍历读回。
  * <ul>
  *   <li>仿照 Registrate 模式自建：{@link #item} 与 {@link #typedItem} 创建 {@link ItemBuilder}，由
  *       {@link ItemBuilder#register} 将工厂注册到包装的 {@code DeferredRegister.Items} 并按注册顺序写入 {@link Entry}
@@ -57,7 +57,6 @@ public final class ItemRegistrar {
 
     void add(Entry entry) { entries.put(entry.item().getId(), entry); }
 
-    public record Entry(DeferredItem<? extends Item> item, String english, String simplified,
-                        @Nullable String traditional, ItemModel model, List<TagKey<Item>> tags,
-                        @Nullable ResourceKey<CreativeModeTab> tab) {}
+    public record Entry(DeferredItem<? extends Item> item, String simplified, @Nullable String traditional,
+                        ItemModel model, List<TagKey<Item>> tags, @Nullable ResourceKey<CreativeModeTab> tab) {}
 }

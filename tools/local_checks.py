@@ -407,7 +407,7 @@ def generated_sources(root, gu_world=None):
 
 def mod_ids(namespace, resources):
     """Registry ids of a mod's entity types, read from its generated lang keys."""
-    path = resources / 'assets' / namespace / 'lang' / 'en_us.json'
+    path = resources / 'assets' / namespace / 'lang' / 'zh_cn.json'
     if not path.exists():
         return []
     lang = json.loads(path.read_text(encoding='utf-8'))
@@ -624,8 +624,8 @@ def multiplayer_commands(player):
     """Through RCON, each with the reply it must carry (None: any): data that syncs to the joined client, and a
     round trip through the Treasure Yellow Heaven, every dimension change re-sending that data and the commands."""
     return [(f'gzr awaken {player}', None),
-            (f'guworld enter guworld:treasure_yellow_heaven {player}', 'Sent'),
-            (f'guworld exit {player}', 'Returned'),
+            (f'guworld enter guworld:treasure_yellow_heaven {player}', '送入'),
+            (f'guworld exit {player}', '送出'),
             ('list', player)]
 
 

@@ -23,9 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 三份生成语言文件的契约，从类路径直读：各语言键集相同；值不得空，三个 {@code none} 枚举显示键除外（Rank.NONE、
- * Stage.NONE、ExtremePhysique.NONE 不作名称渲染，空值集须跨语言对称）；中文方括号 {@code [...]} 内无空白；zh_tw 须逐键
- * 等于 zh_cn 经 {@code TraditionalGlyphs.convert} 的结果，改字形表未跑 {@code runData} 即在此失败，不发过期文件；
+ * 四份生成语言文件的契约，从类路径直读：游戏内文本只有中文，en_us 须与 zh_cn 逐字相同（原版只回退到 en_us，非中文客
+ * 户端由此显示简体），zh_hk 须与 zh_tw 逐字相同；值不得空，三个 {@code none} 枚举显示键除外（Rank.NONE、Stage.NONE、
+ * ExtremePhysique.NONE 不作名称渲染）；中文方括号 {@code [...]} 内无空白；zh_tw 须逐键等于 zh_cn 经
+ * {@code TraditionalGlyphs.convert} 的结果，改字形表未跑 {@code runData} 即在此失败，不发过期文件；
  * {@link #HAND_WRITTEN_TRADITIONAL} 的键自有繁体措辞（换词非换字），只须异于 zh_cn。
  *
  * @author Alex
@@ -44,17 +45,21 @@ class LangContractTest {
             "guzhenren.command.travel.missing_dimension");
 
     @Test
-    @DisplayName("en_us, zh_cn and zh_tw carry exactly the same key set")
+    @DisplayName("en_us repeats zh_cn and zh_hk repeats zh_tw, entry for entry")
+    void fallbackAndHongKongFilesAreCopies() {
+        assertEquals(load("zh_cn"), load("en_us"), "en_us must carry the Simplified text -- rerun runData");
+        assertEquals(load("zh_tw"), load("zh_hk"), "zh_hk must carry the Traditional text -- rerun runData");
+    }
+
+    @Test
+    @DisplayName("zh_cn and zh_tw carry exactly the same key set")
     void languagesShareKeySets() {
-        JsonObject en = load("en_us");
-        for (String language : List.of("zh_cn", "zh_tw")) {
-            JsonObject zh = load(language);
-            List<String> onlyInEn = keysMissingFrom(en, zh);
-            List<String> onlyInZh = keysMissingFrom(zh, en);
-            assertTrue(onlyInEn.isEmpty() && onlyInZh.isEmpty(),
-                    () -> "key sets differ -- only in en_us: " + onlyInEn + ", only in " + language + ": " + onlyInZh);
-            assertEquals(en.keySet(), zh.keySet());
-        }
+        JsonObject simplified = load("zh_cn");
+        JsonObject traditional = load("zh_tw");
+        List<String> onlySimplified = keysMissingFrom(simplified, traditional);
+        List<String> onlyTraditional = keysMissingFrom(traditional, simplified);
+        assertTrue(onlySimplified.isEmpty() && onlyTraditional.isEmpty(),
+                () -> "key sets differ -- only in zh_cn: " + onlySimplified + ", only in zh_tw: " + onlyTraditional);
     }
 
     @Test
@@ -96,9 +101,9 @@ class LangContractTest {
     }
 
     @Test
-    @DisplayName("only the none enum keys may be blank, and identically in both languages")
+    @DisplayName("only the none enum keys may be blank, and identically in both scripts")
     void onlyNoneKeysAreBlank() {
-        for (String language : List.of("en_us", "zh_cn", "zh_tw")) {
+        for (String language : List.of("zh_cn", "zh_tw")) {
             JsonObject lang = load(language);
             Set<String> blanks = new TreeSet<>();
             for (Map.Entry<String, JsonElement> entry : lang.entrySet()) {

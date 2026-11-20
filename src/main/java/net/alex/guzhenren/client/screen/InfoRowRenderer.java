@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #getBlock} 将整页或单段空窍行量算为 {@link RowBlock}：右侧值列紧接在最宽「缩进 + 标签」之后一列起步，
  *       并排次条道痕紧接在最宽首条之后起步，读数格取最宽列宽，各列之间增加 {@code VALUE_GAP}（16 px）；列宽仅由当前
  *       行集合决定，使右侧值紧贴标签列而不浪费横向空间。</li>
- *   <li>在窄栏条件下（如英文界面或 GUI 6 缩放下仅 122 px 宽的空窍文字栏），{@link #getValueLeft} 先向左压缩值列直
+ *   <li>在窄栏条件下（如 GUI 6 缩放下仅 122 px 宽的空窍文字栏），{@link #getValueLeft} 先向左压缩值列直
  *       至贴近标签后 {@code VALUE_MIN_GAP}（绝不压盖标签），仍溢出时由 {@link #clip} 截断为「...」并由面板在悬停时显
  *       示完整文本。</li>
  *   <li>{@link #draw} 对 sealed 行条目执行无 {@code default} 分支的 {@code switch} 穷举匹配，确保新增行类型若漏写渲染

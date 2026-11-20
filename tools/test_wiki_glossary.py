@@ -14,27 +14,22 @@ SECTIONS = (
     ('世界', 'guworld', ('dimension.guworld.',)),
 )
 LANGS = {
-    'guzhenren': (
-        {'guzhenren.enum.aperture.rank.two': '二转', 'guzhenren.enum.aperture.rank.one': '一转',
-         'guzhenren.enum.aperture.rank.none': '', 'guzhenren.display.aperture_1': '第一空窍',
-         'guzhenren.display.aperture_10': '不收', 'guzhenren.enum.aperture.rank.line': '%s转',
-         'guzhenren.enum.aperture.rank.one.description': '刚开窍的蛊师。'},
-        {'guzhenren.enum.aperture.rank.two': 'Rank II', 'guzhenren.enum.aperture.rank.one': 'Rank I',
-         'guzhenren.enum.aperture.rank.none': '', 'guzhenren.display.aperture_1': 'First Aperture',
-         'guzhenren.display.aperture_10': 'Left out', 'guzhenren.enum.aperture.rank.line': 'Rank %s',
-         'guzhenren.enum.aperture.rank.one.description': 'A Gu Master whose aperture just opened.'}),
-    'guworld': ({'dimension.guworld.southern_border': '南疆'}, {'dimension.guworld.southern_border': 'Southern Border'}),
+    'guzhenren': {
+        'guzhenren.enum.aperture.rank.two': '二转', 'guzhenren.enum.aperture.rank.one': '一转',
+        'guzhenren.enum.aperture.rank.none': '', 'guzhenren.display.aperture_1': '第一空窍',
+        'guzhenren.display.aperture_10': '不收', 'guzhenren.enum.aperture.rank.line': '%s转',
+        'guzhenren.enum.aperture.rank.one.description': '刚开窍的蛊师。'},
+    'guworld': {'dimension.guworld.southern_border': '南疆'},
 }
 
 
 def write_langs(base):
     roots = {}
-    for mod, (zh, en) in LANGS.items():
+    for mod, zh in LANGS.items():
         root = base / mod
         folder = root / glossary.LANG_DIR.format(mod=mod)
         folder.mkdir(parents=True)
         (folder / 'zh_cn.json').write_text(json.dumps(zh, ensure_ascii=False), encoding='utf-8')
-        (folder / 'en_us.json').write_text(json.dumps(en), encoding='utf-8')
         roots[mod] = root
     return roots
 
@@ -63,10 +58,10 @@ class WikiGlossaryTest(unittest.TestCase):
         text = self.page.read_text(encoding='utf-8')
         rows = [line for line in text.splitlines() if line.startswith('| ') and '`' in line]
         self.assertEqual([
-            '| 一转 | Rank I | `guzhenren.enum.aperture.rank.one` |',
-            '| 二转 | Rank II | `guzhenren.enum.aperture.rank.two` |',
-            '| 第一空窍 | First Aperture | `guzhenren.display.aperture_1` |',
-            '| 南疆 | Southern Border | `dimension.guworld.southern_border` |'], rows)
+            '| 一转 | `guzhenren.enum.aperture.rank.one` |',
+            '| 二转 | `guzhenren.enum.aperture.rank.two` |',
+            '| 第一空窍 | `guzhenren.display.aperture_1` |',
+            '| 南疆 | `dimension.guworld.southern_border` |'], rows)
         self.assertLess(text.index('## 修炼'), text.index('## 世界'))
         self.assertTrue(text.startswith('## 修炼\n'))
         self.assertTrue(text.endswith(glossary.MANUAL_STUB))
@@ -86,11 +81,11 @@ class WikiGlossaryTest(unittest.TestCase):
         self.assertEqual(1, code)
         self.assertIn('out of date', err)
         run(['--write'], self.roots, self.wiki)
-        self.page.write_text(self.page.read_text(encoding='utf-8').replace('Rank II', 'Second Rank'), encoding='utf-8')
+        self.page.write_text(self.page.read_text(encoding='utf-8').replace('二转', '第二转'), encoding='utf-8')
         code, _, err = run([], self.roots, self.wiki)
         self.assertEqual(1, code)
-        self.assertIn('-| 二转 | Second Rank |', err)
-        self.assertIn('+| 二转 | Rank II |', err)
+        self.assertIn('-| 第二转 | `guzhenren.enum.aperture.rank.two` |', err)
+        self.assertIn('+| 二转 | `guzhenren.enum.aperture.rank.two` |', err)
 
     def test_a_selector_without_keys_or_a_key_selected_twice_fails(self):
         with mock.patch.object(glossary, 'SECTIONS', (('修炼', 'guzhenren', ('guzhenren.missing.',)),)):

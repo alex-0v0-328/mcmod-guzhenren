@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>将全部流派与「无」排成网格并在面板内居中显示；点击格子即为打开时所选空窍发送
  *       {@link SetSecondaryPathPayload}，点击弹窗外部、按 Esc 或按 B 键则不作选择直接关闭。</li>
- *   <li>整块弹窗走单个 {@link GuiBatch}：最先绘制弹窗精灵图，再逐格绘制悬停填色与流派名称（英文较长的
- *       {@code Transformation Path} 会伸入下方格区域，并由下格的悬停填色遮盖）。</li>
+ *   <li>整块弹窗走单个 {@link GuiBatch}：最先绘制弹窗精灵图，再逐格绘制悬停填色与流派名称（过长的名称
+ *       会伸入下方格区域，并由下格的悬停填色遮盖）。</li>
  * </ul>
  */
 

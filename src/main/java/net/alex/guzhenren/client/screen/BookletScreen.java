@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.SpriteBatch;
@@ -31,9 +32,9 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>{@code book_spread} 精灵图居中且不做缩放，在自动 GUI 缩放下总能留出 320×240 区域，恰好完整展示而无需滚
  *       动；文字依据 {@link BookletLayout} 排版，使用无阴影的版框墨色 {@code #2f2925}。</li>
- *   <li>界面打开时确定字体与文本变体：{@code zh_tw} 语言环境使用繁体文本与 {@code booklet_hant} 字体，其余语言统一使用
- *       简体文本与 {@code booklet_hans} 字体；两套位图字体均由 {@code tools/booklet_font.py} 按 1 字形像素对应 1 GUI
- *       像素切出。</li>
+ *   <li>界面打开时确定字体与文本变体：{@code zh_tw}、{@code zh_hk} 语言环境使用繁体文本与 {@code booklet_hant} 字体，
+ *       其余语言统一使用简体文本与 {@code booklet_hans} 字体；两套位图字体均由 {@code tools/booklet_font.py} 按 1 字形
+ *       像素对应 1 GUI 像素切出。</li>
  *   <li>带有插图的书册会先用文字区底色 {@code #e0d0a5} 遮盖左半页界栏，再按原版格子三倍尺寸居中绘制插图物品。</li>
  *   <li>蛊方图册（{@link #openRecipe}）右半页排该蛊方的书文（数据包蛊方没有书文则留空），左半页按 {@link GuRecipe} 画
  *       5×5 缺角网格：每组材料画在组内首格并标数量，可放该材料的其余格浅色打底；网格下方是产物图标和名字，悬停出物
@@ -56,7 +57,7 @@ public final class BookletScreen extends Screen {
     private static final ResourceLocation HANT = Guzhenren.id("booklet_hant");
     private static final ResourceLocation MARGIN_HANS = Guzhenren.id("booklet_margin_hans");
     private static final ResourceLocation MARGIN_HANT = Guzhenren.id("booklet_margin_hant");
-    private static final String TRADITIONAL = "zh_tw";
+    private static final Set<String> TRADITIONAL = Set.of("zh_tw", "zh_hk");
     private static final int INK = 0xFF2F2925;
     private static final int PAPER = 0xFFE0D0A5;
     private static final int VERMILION = 0xFFC23B22;
@@ -98,7 +99,7 @@ public final class BookletScreen extends Screen {
 
     public static void open(BookletItem item) {
         Minecraft minecraft = Minecraft.getInstance();
-        boolean traditional = TRADITIONAL.equals(minecraft.getLanguageManager().getSelected());
+        boolean traditional = TRADITIONAL.contains(minecraft.getLanguageManager().getSelected());
         BookletScreen screen = switch (item.getText()) {
             case Booklet booklet -> new BookletScreen(item.getDescription(),
                     List.of(BookletLayout.lay(booklet, traditional)),
@@ -115,7 +116,7 @@ public final class BookletScreen extends Screen {
         if (recipe == null) return;
 
         Minecraft minecraft = Minecraft.getInstance();
-        boolean traditional = TRADITIONAL.equals(minecraft.getLanguageManager().getSelected());
+        boolean traditional = TRADITIONAL.contains(minecraft.getLanguageManager().getSelected());
         BookletLayout.Spread spread = Booklet.forRecipe(id).map(booklet -> BookletLayout.lay(booklet, traditional))
                 .orElse(new BookletLayout.Spread(List.of(), null));
         ItemStack result = RecipeGhosts.getResult(recipe);

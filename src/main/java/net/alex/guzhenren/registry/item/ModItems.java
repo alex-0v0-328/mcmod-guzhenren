@@ -109,8 +109,8 @@ import org.jetbrains.annotations.Nullable;
  *       道 {@value #STRENGTH_ROUND_ESSENCE} × 10^(r-1) 或炼体 {@value #TEMPERING_ROUND_ESSENCE} × 10^(r-1)（每
  *       {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1) 计 1 饱食），一二转按 1 轮、三转起按 3 轮外加同等缓冲计算；月刃蛊
  *       的 {@value #MOON_BLADE_COOLDOWN_TICKS} 刻间隔为自身连发节奏而非冷却遮罩。</li>
- *   <li>注册链与命名：每件物品通过 {@link ItemRegistrar} 链依次绑定工厂、英文与简体中文名称、模型、标签与可选创造栏（注
- *       册顺序即创造栏展示顺序）；{@link #findGuWith} 用于由流派效果反查可产生对应肉身状态的蛊。</li>
+ *   <li>注册链与命名：每件物品通过 {@link ItemRegistrar} 链依次绑定工厂、简体中文名称、模型、标签与可选创造栏（注册顺序
+ *       即创造栏展示顺序）；{@link #findGuWith} 用于由流派效果反查可产生对应肉身状态的蛊。</li>
  *   <li>⚠ 蛊虫区段必须严格按 {@link GuPath} 顺序组织（一道一区、道内按分支或蛊族划分），蛊材、书册与图标收尾；物品 ID
  *       须与 Java 常量名及贴图文件名一致，蛊虫默认带转数后缀（{@code _1} 至 {@code _5}，唯寿蛊[Lifespan Gu]、
  *       希望蛊[Hope Gu]、舍利蛊[Relics Gu]不带后缀），蛊材用裸 ID 以跨转通用。</li>
@@ -194,31 +194,31 @@ public final class ModItems {
     //region Heaven Path [天道]
     public static final DeferredItem<Item> LIFESPAN_GU = REGISTRAR.item("lifespan_gu",
             () -> createLifespanGu(1, 9))
-            .lang("Lifespan Gu", "寿蛊").register();
+            .lang("寿蛊").register();
     public static final DeferredItem<Item> TENS_LIFESPAN_GU = REGISTRAR.item("tens_lifespan_gu",
             () -> createLifespanGu(10, 19))
-            .lang("Ten-Year Lifespan Gu", "十年寿蛊").register();
+            .lang("十年寿蛊").register();
     public static final DeferredItem<Item> HUNDREDS_LIFESPAN_GU = REGISTRAR.item("hundreds_lifespan_gu",
             () -> createLifespanGu(100, 199))
-            .lang("Hundred-Year Lifespan Gu", "百年寿蛊").register();
+            .lang("百年寿蛊").register();
     public static final DeferredItem<Item> THOUSANDS_LIFESPAN_GU = REGISTRAR.item("thousands_lifespan_gu",
             () -> createLifespanGu(1000, 1999))
-            .lang("Thousand-Year Lifespan Gu", "千年寿蛊").register();
+            .lang("千年寿蛊").register();
     public static final DeferredItem<Item> COPPER_RELICS_GU = REGISTRAR.item("copper_relics_gu",
             () -> createRelicsGu(Rank.ONE))
-            .lang("Green Copper Relics Gu", "青铜舍利蛊").register();
+            .lang("青铜舍利蛊").register();
     public static final DeferredItem<Item> STEEL_RELICS_GU = REGISTRAR.item("steel_relics_gu",
             () -> createRelicsGu(Rank.TWO))
-            .lang("Red Steel Relics Gu", "赤铁舍利蛊").register();
+            .lang("赤铁舍利蛊").register();
     public static final DeferredItem<Item> SILVER_RELICS_GU = REGISTRAR.item("silver_relics_gu",
             () -> createRelicsGu(Rank.THREE))
-            .lang("White Silver Relics Gu", "白银舍利蛊").register();
+            .lang("白银舍利蛊").register();
     public static final DeferredItem<Item> GOLD_RELICS_GU = REGISTRAR.item("gold_relics_gu",
             () -> createRelicsGu(Rank.FOUR))
-            .lang("Yellow Gold Relics Gu", "黄金舍利蛊").register();
+            .lang("黄金舍利蛊").register();
     public static final DeferredItem<Item> CRYSTAL_RELICS_GU = REGISTRAR.item("crystal_relics_gu",
             () -> createRelicsGu(Rank.FIVE))
-            .lang("Purple Crystal Relics Gu", "紫晶舍利蛊").register();
+            .lang("紫晶舍利蛊").register();
 
     private static OneShotGuItem createLifespanGu(int minYears, int maxYears) {
         return new OneShotGuItem(GuProperties.of(Rank.ONE, GuPath.HEAVEN),
@@ -235,16 +235,16 @@ public final class ModItems {
     //region Rule Path [律道]
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_2 = REGISTRAR.item("amplify_effect_gu_2",
             () -> createAmplifyEffectGu(Rank.TWO))
-            .lang("Amplify Effect Gu II", "二转功倍蛊").register();
+            .lang("二转功倍蛊").register();
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_3 = REGISTRAR.item("amplify_effect_gu_3",
             () -> createAmplifyEffectGu(Rank.THREE))
-            .lang("Amplify Effect Gu III", "三转功倍蛊").register();
+            .lang("三转功倍蛊").register();
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_4 = REGISTRAR.item("amplify_effect_gu_4",
             () -> createAmplifyEffectGu(Rank.FOUR))
-            .lang("Amplify Effect Gu IV", "四转功倍蛊").register();
+            .lang("四转功倍蛊").register();
     public static final DeferredItem<Item> AMPLIFY_EFFECT_GU_5 = REGISTRAR.item("amplify_effect_gu_5",
             () -> createAmplifyEffectGu(Rank.FIVE))
-            .lang("Amplify Effect Gu V", "五转功倍蛊").register();
+            .lang("五转功倍蛊").register();
 
     private static AmplifyEffectGuItem createAmplifyEffectGu(Rank rank) {
         return new AmplifyEffectGuItem(createRankedProperties(rank, GuPath.RULE)
@@ -259,19 +259,19 @@ public final class ModItems {
     //region Space Path [空道]
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_1 = REGISTRAR.item("primeval_elder_gu_1",
             () -> createPrimevalElderGu(Rank.ONE, 1_000L))
-            .lang("Primeval Elder Gu I", "一转元老蛊").register();
+            .lang("一转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_2 = REGISTRAR.item("primeval_elder_gu_2",
             () -> createPrimevalElderGu(Rank.TWO, 10_000L))
-            .lang("Primeval Elder Gu II", "二转元老蛊").register();
+            .lang("二转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_3 = REGISTRAR.item("primeval_elder_gu_3",
             () -> createPrimevalElderGu(Rank.THREE, 100_000L))
-            .lang("Primeval Elder Gu III", "三转元老蛊").register();
+            .lang("三转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_4 = REGISTRAR.item("primeval_elder_gu_4",
             () -> createPrimevalElderGu(Rank.FOUR, 1_000_000L))
-            .lang("Primeval Elder Gu IV", "四转元老蛊").register();
+            .lang("四转元老蛊").register();
     public static final DeferredItem<Item> PRIMEVAL_ELDER_GU_5 = REGISTRAR.item("primeval_elder_gu_5",
             () -> createPrimevalElderGu(Rank.FIVE, 100_000_000L))
-            .lang("Primeval Elder Gu V", "五转元老蛊").register();
+            .lang("五转元老蛊").register();
 
     private static PrimevalElderGuItem createPrimevalElderGu(Rank rank, long capacity) {
         return new PrimevalElderGuItem(capacity, GuProperties.of(rank, GuPath.SPACE)
@@ -284,19 +284,19 @@ public final class ModItems {
     //region Time Path [宙道]
     public static final DeferredItem<Item> SECOND_WATCH_GU_4 = REGISTRAR.item("second_watch_gu_4",
             () -> createWatchGu(Rank.FOUR, ModEffects.SECOND_WATCH_GU))
-            .lang("Second Watch Gu IV", "四转两更蛊").register();
+            .lang("四转两更蛊").register();
     public static final DeferredItem<Item> THIRD_WATCH_GU_5 = REGISTRAR.item("third_watch_gu_5",
             () -> createWatchGu(Rank.FIVE, ModEffects.THIRD_WATCH_GU))
-            .lang("Third Watch Gu V", "五转三更蛊").register();
+            .lang("五转三更蛊").register();
     public static final DeferredItem<Item> MAN_AS_BEFORE_GU_5 = REGISTRAR.item("man_as_before_gu_5",
             () -> new ManAsBeforeGuItem(createAsBeforeProperties().type(GuType.HEALING)))
-            .lang("Man As Before Gu V", "五转人如故").register();
+            .lang("五转人如故").register();
     public static final DeferredItem<Item> MOUNTAIN_AS_BEFORE_GU_5 = REGISTRAR.item("mountain_as_before_gu_5",
             () -> new TerrainAsBeforeGuItem(ChunkKind.LAND, createAsBeforeProperties()))
-            .lang("Mountain As Before Gu V", "五转山如故").register();
+            .lang("五转山如故").register();
     public static final DeferredItem<Item> RIVER_AS_BEFORE_GU_5 = REGISTRAR.item("river_as_before_gu_5",
             () -> new TerrainAsBeforeGuItem(ChunkKind.WATER, createAsBeforeProperties()))
-            .lang("River As Before Gu V", "五转江如故").register();
+            .lang("五转江如故").register();
 
     private static ConsumedGuItem createWatchGu(Rank rank, Holder<MobEffect> form) {
         return new ConsumedGuItem(GuProperties.of(rank, GuPath.TIME)
@@ -322,22 +322,22 @@ public final class ModItems {
     public static final DeferredItem<Item> HOPE_GU = REGISTRAR.item("hope_gu",
             () -> new HopeGuItem(GuProperties.of(Rank.ONE, GuPath.HUMAN)
                     .type(GuType.CULTIVATION)))
-            .lang("Hope Gu", "希望蛊").register();
+            .lang("希望蛊").register();
     public static final DeferredItem<Item> SECOND_APERTURE_GU_1 = REGISTRAR.item("second_aperture_gu_1",
             () -> createSecondApertureGu(Rank.ONE))
-            .lang("Second Aperture Gu I", "一转第二空窍蛊").register();
+            .lang("一转第二空窍蛊").register();
     public static final DeferredItem<Item> SECOND_APERTURE_GU_2 = REGISTRAR.item("second_aperture_gu_2",
             () -> createSecondApertureGu(Rank.TWO))
-            .lang("Second Aperture Gu II", "二转第二空窍蛊").register();
+            .lang("二转第二空窍蛊").register();
     public static final DeferredItem<Item> SECOND_APERTURE_GU_3 = REGISTRAR.item("second_aperture_gu_3",
             () -> createSecondApertureGu(Rank.THREE))
-            .lang("Second Aperture Gu III", "三转第二空窍蛊").register();
+            .lang("三转第二空窍蛊").register();
     public static final DeferredItem<Item> SECOND_APERTURE_GU_4 = REGISTRAR.item("second_aperture_gu_4",
             () -> createSecondApertureGu(Rank.FOUR))
-            .lang("Second Aperture Gu IV", "四转第二空窍蛊").register();
+            .lang("四转第二空窍蛊").register();
     public static final DeferredItem<Item> SECOND_APERTURE_GU_5 = REGISTRAR.item("second_aperture_gu_5",
             () -> createSecondApertureGu(Rank.FIVE))
-            .lang("Second Aperture Gu V", "五转第二空窍蛊").register();
+            .lang("五转第二空窍蛊").register();
 
     private static OneShotGuItem createSecondApertureGu(Rank rank) {
         return new OneShotGuItem(GuProperties.of(rank, GuPath.HUMAN)
@@ -350,51 +350,51 @@ public final class ModItems {
     public static final DeferredItem<Item> BRONZE_SKIN_GU_1 = REGISTRAR.item("bronze_skin_gu_1",
             () -> createTemperingGu(Rank.ONE, ModItemTags.BRONZE_SKIN_FEED,
                     new SkinBehavior(Skin.BRONZE_SKIN_1, 0)))
-            .lang("Bronze Skin Gu I", "一转铜皮蛊").register();
+            .lang("一转铜皮蛊").register();
     public static final DeferredItem<Item> BRONZE_SKIN_GU_2 = REGISTRAR.item("bronze_skin_gu_2",
             () -> createTemperingGu(Rank.TWO, ModItemTags.BRONZE_SKIN_FEED,
                     new SkinBehavior(Skin.BRONZE_SKIN_2, 0)))
-            .lang("Bronze Skin Gu II", "二转铜皮蛊").register();
+            .lang("二转铜皮蛊").register();
     public static final DeferredItem<Item> BRONZE_SKIN_GU_3 = REGISTRAR.item("bronze_skin_gu_3",
             () -> createTemperingGu(Rank.THREE, ModItemTags.BRONZE_SKIN_FEED,
                     new SkinBehavior(Skin.BRONZE_SKIN_3, 0)))
-            .lang("Bronze Skin Gu III", "三转铜皮蛊").register();
+            .lang("三转铜皮蛊").register();
     public static final DeferredItem<Item> BRONZE_SKIN_GU_4 = REGISTRAR.item("bronze_skin_gu_4",
             () -> createTemperingGu(Rank.FOUR, ModItemTags.BRONZE_SKIN_FEED,
                     new SkinBehavior(Skin.BRONZE_SKIN_4, 0)))
-            .lang("Bronze Skin Gu IV", "四转铜皮蛊").register();
+            .lang("四转铜皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_1 = REGISTRAR.item("iron_skin_gu_1",
             () -> createTemperingGu(Rank.ONE, ModItemTags.IRON_SKIN_FEED,
                     new SkinBehavior(Skin.IRON_SKIN_1, 0)))
-            .lang("Iron Skin Gu I", "一转铁皮蛊").register();
+            .lang("一转铁皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_2 = REGISTRAR.item("iron_skin_gu_2",
             () -> createTemperingGu(Rank.TWO, ModItemTags.IRON_SKIN_FEED,
                     new SkinBehavior(Skin.IRON_SKIN_2, 0)))
-            .lang("Iron Skin Gu II", "二转铁皮蛊").register();
+            .lang("二转铁皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_3 = REGISTRAR.item("iron_skin_gu_3",
             () -> createTemperingGu(Rank.THREE, ModItemTags.IRON_SKIN_FEED,
                     new SkinBehavior(Skin.IRON_SKIN_3, 0)))
-            .lang("Iron Skin Gu III", "三转铁皮蛊").register();
+            .lang("三转铁皮蛊").register();
     public static final DeferredItem<Item> IRON_SKIN_GU_4 = REGISTRAR.item("iron_skin_gu_4",
             () -> createTemperingGu(Rank.FOUR, ModItemTags.IRON_SKIN_FEED,
                     new SkinBehavior(Skin.IRON_SKIN_4, 0)))
-            .lang("Iron Skin Gu IV", "四转铁皮蛊").register();
+            .lang("四转铁皮蛊").register();
     public static final DeferredItem<Item> STEEL_TENDON_GU_3 = REGISTRAR.item("steel_tendon_gu_3",
             () -> createTemperingGu(Rank.THREE, ModItemTags.STEEL_TENDON_FEED,
                     new TendonBehavior(Tendon.STEEL_TENDON_3)))
-            .lang("Steel Tendon Gu III", "三转钢筋蛊").register();
+            .lang("三转钢筋蛊").register();
     public static final DeferredItem<Item> STEEL_TENDON_GU_4 = REGISTRAR.item("steel_tendon_gu_4",
             () -> createTemperingGu(Rank.FOUR, ModItemTags.STEEL_TENDON_FEED,
                     new TendonBehavior(Tendon.STEEL_TENDON_4)))
-            .lang("Steel Tendon Gu IV", "四转钢筋蛊").register();
+            .lang("四转钢筋蛊").register();
     public static final DeferredItem<Item> IRON_BONE_GU_3 = REGISTRAR.item("iron_bone_gu_3",
             () -> createTemperingGu(Rank.THREE, ModItemTags.IRON_BONE_FEED,
                     new BoneBehavior(Bone.IRON_BONE_3)))
-            .lang("Iron Bone Gu III", "三转铁骨蛊").register();
+            .lang("三转铁骨蛊").register();
     public static final DeferredItem<Item> IRON_BONE_GU_4 = REGISTRAR.item("iron_bone_gu_4",
             () -> createTemperingGu(Rank.FOUR, ModItemTags.IRON_BONE_FEED,
                     new BoneBehavior(Bone.IRON_BONE_4)))
-            .lang("Iron Bone Gu IV", "四转铁骨蛊").register();
+            .lang("四转铁骨蛊").register();
 
     private static TendedGuItem createTemperingGu(Rank rank, TagKey<Item> feed, GuBehavior tempering) {
         return new TendedGuItem(createChannelProperties(rank, GuPath.METAL, TEMPERING_ROUND_ESSENCE)
@@ -412,25 +412,25 @@ public final class ModItems {
                     .type(GuType.HEALING)
                     .effect(EffectCarrier.BODY),
                     new VitalityLeafBehavior()))
-            .lang("Vitality Leaf Gu I", "一转生机叶蛊").register();
+            .lang("一转生机叶蛊").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_LOTUS_GU_3 = REGISTRAR.item(
             "heavenly_essence_treasure_lotus_gu_3",
             () -> createTreasureLotusGu(Rank.THREE, 1, 100))
-            .lang("Heavenly Essence Treasure Lotus Gu III", "三转天元宝莲").register();
+            .lang("三转天元宝莲").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU_4 = REGISTRAR.item(
             "heavenly_essence_treasure_monarch_lotus_gu_4",
             () -> createTreasureLotusGu(Rank.FOUR, 10, 1_000))
-            .lang("Heavenly Essence Treasure Monarch Lotus Gu IV", "四转天元宝君莲").register();
+            .lang("四转天元宝君莲").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU_5 = REGISTRAR.item(
             "heavenly_essence_treasure_king_lotus_gu_5",
             () -> createTreasureLotusGu(Rank.FIVE, 100, 10_000))
-            .lang("Heavenly Essence Treasure King Lotus Gu V", "五转天元宝王莲").register();
+            .lang("五转天元宝王莲").register();
     public static final DeferredItem<Item> NINE_LEAF_VITALITY_GRASS_3 = REGISTRAR.item("nine_leaf_vitality_grass_3",
             () -> new NineLeafVitalityGrassItem(3 * Ticks.MINUTE, 80, GuProperties.of(Rank.THREE, GuPath.WOOD)
                     .type(GuType.HEALING)
                     .refine(refineEssence(Rank.THREE))
                     .costPerUse(0)))
-            .lang("Nine Leaf Vitality Grass III", "三转九叶生机草").model(ItemModel.LEAF_STAGES).register();
+            .lang("三转九叶生机草").model(ItemModel.LEAF_STAGES).register();
 
     private static TreasureLotusGuItem createTreasureLotusGu(Rank rank, int stonesPerSecond, int stonesPerHealth) {
         return new TreasureLotusGuItem(stonesPerSecond, stonesPerHealth, GuProperties.of(rank, GuPath.WOOD)
@@ -451,26 +451,26 @@ public final class ModItems {
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new ShieldBehavior(ShieldType.HEAVENLY_MUGWORT, 180.0F, 30 * Ticks.SECOND),
                     new RecastBehavior()))
-            .lang("Heavenly Mugwort Gu III", "三转天蓬蛊").register();
+            .lang("三转天蓬蛊").register();
     //endregion
 
     //region Earth Path [土道]
     public static final DeferredItem<Item> JADE_SKIN_GU_1 = REGISTRAR.item("jade_skin_gu_1",
             () -> createJadeSkinGu(Rank.ONE, ModItemTags.JADE_SKIN_FEED, Skin.JADE_SKIN, 60 * Ticks.SECOND))
-            .lang("Jade Skin Gu I", "一转玉皮蛊").register();
+            .lang("一转玉皮蛊").register();
     public static final DeferredItem<Item> WHITE_JADE_GU_2 = REGISTRAR.item("white_jade_gu_2",
             () -> createJadeSkinGu(Rank.TWO, ModItemTags.WHITE_JADE_FEED, Skin.WHITE_JADE_SKIN,
                     90 * Ticks.SECOND))
-            .lang("White Jade Gu II", "二转白玉蛊").register();
+            .lang("二转白玉蛊").register();
     public static final DeferredItem<Item> STONE_APERTURE_GU_3 = REGISTRAR.item("stone_aperture_gu_3",
             () -> createStoneApertureGu(Rank.THREE))
-            .lang("Stone Aperture Gu III", "三转石窍蛊").register();
+            .lang("三转石窍蛊").register();
     public static final DeferredItem<Item> STONE_APERTURE_GU_4 = REGISTRAR.item("stone_aperture_gu_4",
             () -> createStoneApertureGu(Rank.FOUR))
-            .lang("Stone Aperture Gu IV", "四转石窍蛊").register();
+            .lang("四转石窍蛊").register();
     public static final DeferredItem<Item> STONE_APERTURE_GU_5 = REGISTRAR.item("stone_aperture_gu_5",
             () -> createStoneApertureGu(Rank.FIVE))
-            .lang("Stone Aperture Gu V", "五转石窍蛊").register();
+            .lang("五转石窍蛊").register();
 
     private static TendedGuItem createJadeSkinGu(Rank rank, TagKey<Item> feed, Skin skin, int durationTicks) {
         return new TendedGuItem(createRankedProperties(rank, GuPath.EARTH)
@@ -504,7 +504,7 @@ public final class ModItems {
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new TimedBuffBehavior(ModEffects.STRENGTH_QI_GU, StrengthQiGuEffect.DURATION_TICKS),
                     new RecastBehavior()))
-            .lang("Strength Qi Gu III", "三转力气蛊").register();
+            .lang("三转力气蛊").register();
     //endregion
 
     //region Light Path [光道]
@@ -513,18 +513,18 @@ public final class ModItems {
                     .refine(refineEssence(Rank.ONE))
                     .costPerUse(infrequentUseEssence(Rank.ONE))
                     .feed(ModItemTags.LITTLE_LIGHT_FEED, 1)))
-            .lang("Little Light Gu I", "一转小光蛊").register();
+            .lang("一转小光蛊").register();
     //endregion
 
     //region Moon Path [月道]
     public static final DeferredItem<Item> MOONLIGHT_GU_1 = REGISTRAR.item("moonlight_gu_1",
             () -> createMoonBladeGu(Rank.ONE, GuPath.MOON, ModItemTags.MOONLIGHT_FEED,
                     MoonBladeEntity.Variant.MOON, MOONLIGHT_DAMAGE))
-            .lang("Moonlight Gu I", "一转月光蛊").register();
+            .lang("一转月光蛊").register();
     public static final DeferredItem<Item> MOONGLOW_GU_2 = REGISTRAR.item("moonglow_gu_2",
             () -> createMoonBladeGu(Rank.TWO, GuPath.MOON, ModItemTags.MOONLIGHT_FEED,
                     MoonBladeEntity.Variant.MOON, 3 * MOONLIGHT_DAMAGE))
-            .lang("Moonglow Gu II", "二转月芒蛊").register();
+            .lang("二转月芒蛊").register();
 
     private static TendedGuItem createMoonBladeGu(Rank rank, GuPath path, TagKey<Item> feed,
                                                   MoonBladeEntity.Variant variant, float damage) {
@@ -542,35 +542,35 @@ public final class ModItems {
     //region Beast Strength Phantom Branch [兽力虚影流]
     public static final DeferredItem<Item> WHITE_BOAR_GU_1 = REGISTRAR.item("white_boar_gu_1",
             () -> createBeastStrengthGu(Rank.ONE, ModItemTags.BOAR_FEED, BeastStrength.WHITE_BOAR))
-            .lang("White Boar Gu I", "一转白豕蛊").register();
+            .lang("一转白豕蛊").register();
     public static final DeferredItem<Item> BLACK_BOAR_GU_1 = REGISTRAR.item("black_boar_gu_1",
             () -> createBeastStrengthGu(Rank.ONE, ModItemTags.BOAR_FEED, BeastStrength.BLACK_BOAR))
-            .lang("Black Boar Gu I", "一转黑豕蛊").register();
+            .lang("一转黑豕蛊").register();
     public static final DeferredItem<Item> BEAR_STRENGTH_GU_1 = REGISTRAR.item("bear_strength_gu_1",
             () -> createBeastStrengthGu(Rank.ONE, ModItemTags.BEAR_FEED, BeastStrength.BEAR))
-            .lang("Bear Strength Gu I", "一转熊力蛊").register();
+            .lang("一转熊力蛊").register();
     public static final DeferredItem<Item> TIGER_STRENGTH_GU_2 = REGISTRAR.item("tiger_strength_gu_2",
             () -> createBeastStrengthGu(Rank.TWO, ModItemTags.TIGER_FEED, BeastStrength.TIGER))
-            .lang("Tiger Strength Gu II", "二转虎力蛊").register();
+            .lang("二转虎力蛊").register();
     public static final DeferredItem<Item> STONE_TURTLE_STRENGTH_GU_3 = REGISTRAR.item("stone_turtle_strength_gu_3",
             () -> createBeastStrengthGu(Rank.THREE, ModItemTags.TURTLE_FEED, BeastStrength.STONE_TURTLE))
-            .lang("Stone Turtle Strength Gu III", "三转石龟负力蛊").register();
+            .lang("三转石龟负力蛊").register();
     public static final DeferredItem<Item> GALLOPING_HORSE_STRENGTH_GU_3 = REGISTRAR.item(
             "galloping_horse_strength_gu_3",
             () -> createBeastStrengthGu(Rank.THREE, ModItemTags.HORSE_FEED, BeastStrength.GALLOPING_HORSE))
-            .lang("Galloping Horse Strength Gu III", "三转驰马骏力蛊").register();
+            .lang("三转驰马骏力蛊").register();
     public static final DeferredItem<Item> GREEN_BULL_LABOR_GU_3 = REGISTRAR.item("green_bull_labor_gu_3",
             () -> createBeastStrengthGu(Rank.THREE, ModItemTags.OX_FEED, BeastStrength.GREEN_BULL))
-            .lang("Green Bull Labor Gu III", "三转青牛劳力蛊").register();
+            .lang("三转青牛劳力蛊").register();
     public static final DeferredItem<Item> BROWN_BEAR_INNATE_STRENGTH_GU_3 = REGISTRAR.item(
             "brown_bear_innate_strength_gu_3",
             () -> createBeastStrengthGu(Rank.THREE, ModItemTags.BEAR_FEED, BeastStrength.BROWN_BEAR))
-            .lang("Brown Bear Innate Strength Gu III", "三转棕熊本力蛊").register();
+            .lang("三转棕熊本力蛊").register();
     public static final DeferredItem<Item> FLOWER_BOAR_GU_1 = REGISTRAR.item("flower_boar_gu_1",
             () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BOAR_FEED, FlowerBoarGuEffect.POINTS),
                     new TimedBuffBehavior(ModEffects.FLOWER_BOAR_GU, FlowerBoarGuEffect.DURATION_TICKS),
                     new RecastBehavior()))
-            .lang("Flower Boar Gu I", "一转花豕蛊").register();
+            .lang("一转花豕蛊").register();
     public static final DeferredItem<Item> BRUTE_FORCE_LONGHORN_BEETLE_GU_1 = REGISTRAR.item(
             "brute_force_longhorn_beetle_gu_1",
             () -> new TendedGuItem(createBeastBuffProperties(ModItemTags.BEEF_FEED,
@@ -578,7 +578,7 @@ public final class ModItems {
                     new TimedBuffBehavior(ModEffects.BRUTE_FORCE_LONGHORN_BEETLE_GU,
                             BruteForceLonghornBeetleGuEffect.DURATION_TICKS),
                     new RecastBehavior()))
-            .lang("Brute Force Longhorn Beetle Gu I", "一转蛮力天牛蛊").register();
+            .lang("一转蛮力天牛蛊").register();
 
     private static TendedGuItem createBeastStrengthGu(Rank rank, TagKey<Item> feed, BeastStrength beast) {
         return new TendedGuItem(createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
@@ -605,19 +605,19 @@ public final class ModItems {
     //region Human Jun Strength Branch [人力钧力流]
     public static final DeferredItem<Item> JIN_STRENGTH_GU_1 = REGISTRAR.item("jin_strength_gu_1",
             () -> createHumanStrengthGu(Rank.ONE, ModItemTags.IRON_FEED, HumanStrength.JIN))
-            .lang("Jin Strength Gu I", "一转斤力蛊").register();
+            .lang("一转斤力蛊").register();
     public static final DeferredItem<Item> TENS_JIN_STRENGTH_GU_2 = REGISTRAR.item("tens_jin_strength_gu_2",
             () -> createHumanStrengthGu(Rank.TWO, ModItemTags.IRON_FEED, HumanStrength.TEN_JIN))
-            .lang("Ten Jin Strength Gu II", "二转十斤力蛊").register();
+            .lang("二转十斤力蛊").register();
     public static final DeferredItem<Item> JUN_STRENGTH_GU_3 = REGISTRAR.item("jun_strength_gu_3",
             () -> createHumanStrengthGu(Rank.THREE, ModItemTags.IRON_FEED_SMELTED, HumanStrength.JUN))
-            .lang("Jun Strength Gu III", "三转钧力蛊").register();
+            .lang("三转钧力蛊").register();
     public static final DeferredItem<Item> TENS_JUN_STRENGTH_GU_4 = REGISTRAR.item("tens_jun_strength_gu_4",
             () -> createHumanStrengthGu(Rank.FOUR, ModItemTags.IRON_FEED_SMELTED, HumanStrength.TEN_JUN))
-            .lang("Ten Jun Strength Gu IV", "四转十钧力蛊").register();
+            .lang("四转十钧力蛊").register();
     public static final DeferredItem<Item> HUNDREDS_JUN_STRENGTH_GU_5 = REGISTRAR.item("hundreds_jun_strength_gu_5",
             () -> createHumanStrengthGu(Rank.FIVE, ModItemTags.IRON_FEED_SMELTED, HumanStrength.HUNDRED_JUN))
-            .lang("Hundred Jun Strength Gu V", "五转百钧之力蛊").register();
+            .lang("五转百钧之力蛊").register();
 
     private static TendedGuItem createHumanStrengthGu(Rank rank, TagKey<Item> feed, HumanStrength kind) {
         return new TendedGuItem(createChannelProperties(rank, GuPath.STRENGTH, STRENGTH_ROUND_ESSENCE)
@@ -634,28 +634,28 @@ public final class ModItems {
     public static final DeferredItem<Item> HORIZONTAL_CRASH_GU_3 = REGISTRAR.item("horizontal_crash_gu_3",
             () -> createCrashGu(Rank.THREE,
                     new TimedBuffBehavior(ModEffects.HORIZONTAL_CRASH_GU, 30 * Ticks.SECOND)))
-            .lang("Horizontal Crash Gu III", "三转横冲蛊").register();
+            .lang("三转横冲蛊").register();
     public static final DeferredItem<Item> VERTICAL_CRASH_GU_3 = REGISTRAR.item("vertical_crash_gu_3",
             () -> createCrashGu(Rank.THREE,
                     new TimedBuffBehavior(ModEffects.VERTICAL_CRASH_GU, 30 * Ticks.SECOND)))
-            .lang("Vertical Crash Gu III", "三转直撞蛊").register();
+            .lang("三转直撞蛊").register();
     public static final DeferredItem<Item> CHARGING_CRASH_GU_4 = REGISTRAR.item("charging_crash_gu_4",
             () -> createCrashGu(Rank.FOUR,
                     new TimedBuffBehavior(ModEffects.CHARGING_CRASH_GU, 30 * Ticks.SECOND, 3)))
-            .lang("Charging Crash Gu IV", "四转横冲直撞蛊").register();
+            .lang("四转横冲直撞蛊").register();
     public static final DeferredItem<Item> CHARGING_CRASH_GU_5 = REGISTRAR.item("charging_crash_gu_5",
             () -> createCrashGu(Rank.FIVE,
                     new TimedBuffBehavior(ModEffects.CHARGING_CRASH_GU, 60 * Ticks.SECOND, 4)))
-            .lang("Charging Crash Gu V", "五转横冲直撞蛊").register();
+            .lang("五转横冲直撞蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_2 = REGISTRAR.item("self_reliance_gu_2",
             () -> createSelfRelianceGu(Rank.TWO, 1, 0.03F, 15))
-            .lang("Self Reliance Gu II", "二转自力更生蛊").register();
+            .lang("二转自力更生蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_3 = REGISTRAR.item("self_reliance_gu_3",
             () -> createSelfRelianceGu(Rank.THREE, 2, 0.04F, 20))
-            .lang("Self Reliance Gu III", "三转自力更生蛊").register();
+            .lang("三转自力更生蛊").register();
     public static final DeferredItem<Item> SELF_RELIANCE_GU_4 = REGISTRAR.item("self_reliance_gu_4",
             () -> createSelfRelianceGu(Rank.FOUR, 3, 0.05F, 25))
-            .lang("Self Reliance Gu IV", "四转自力更生蛊").register();
+            .lang("四转自力更生蛊").register();
     public static final DeferredItem<Item> HARDSHIP_STRENGTH_GU_4 = REGISTRAR.item("hardship_strength_gu_4",
             () -> new TendedGuItem(createRankedProperties(Rank.FOUR, GuPath.STRENGTH)
                     .type(GuType.AMPLIFICATION)
@@ -665,22 +665,22 @@ public final class ModItems {
                     .feed(ModItemTags.POTATO_FEED, 1)
                     .cooldown(30 * Ticks.SECOND, Ticks.SECOND),
                     new HardshipBehavior()))
-            .lang("Hardship Strength Gu IV", "四转苦力蛊").register();
+            .lang("四转苦力蛊").register();
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_3 = REGISTRAR.item("all_out_effort_gu_3",
             () -> createAllOutEffortGu(Rank.THREE, 80, 60))
-            .lang("All-Out Effort Gu III", "三转全力以赴蛊").register();
+            .lang("三转全力以赴蛊").register();
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_4 = REGISTRAR.item("all_out_effort_gu_4",
             () -> createAllOutEffortGu(Rank.FOUR, 100, 90))
-            .lang("All-Out Effort Gu IV", "四转全力以赴蛊").register();
+            .lang("四转全力以赴蛊").register();
     public static final DeferredItem<Item> ALL_OUT_EFFORT_GU_5 = REGISTRAR.item("all_out_effort_gu_5",
             () -> createAllOutEffortGu(Rank.FIVE, 120, 120))
-            .lang("All-Out Effort Gu V", "五转全力以赴蛊").register();
+            .lang("五转全力以赴蛊").register();
     public static final DeferredItem<Item> STORE_STRENGTH_GU_3 = REGISTRAR.item("store_strength_gu_3",
             () -> createStoreStrengthGu(Rank.THREE, ModEffects.STORE_STRENGTH_GU))
-            .lang("Store Strength Gu III", "三转蓄力蛊").register();
+            .lang("三转蓄力蛊").register();
     public static final DeferredItem<Item> HABITUAL_STRENGTH_GU_4 = REGISTRAR.item("habitual_strength_gu_4",
             () -> createStoreStrengthGu(Rank.FOUR, ModEffects.HABITUAL_STRENGTH_GU))
-            .lang("Habitual Strength Gu IV", "四转惯力蛊").register();
+            .lang("四转惯力蛊").register();
     public static final DeferredItem<Item> BIG_STRENGTH_GU_2 = REGISTRAR.item("big_strength_gu_2",
             () -> new TendedGuItem(createRankedProperties(Rank.TWO, GuPath.STRENGTH)
                     .type(GuType.AMPLIFICATION)
@@ -690,7 +690,7 @@ public final class ModItems {
                     .feed(ModItemTags.IRON_FEED, 1)
                     .cooldown(30 * Ticks.SECOND),
                     new BigStrengthBehavior(30)))
-            .lang("Big Strength Gu II", "二转大力蛊").register();
+            .lang("二转大力蛊").register();
 
     private static TendedGuItem createStoreStrengthGu(Rank rank, Holder<MobEffect> effect) {
         return new TendedGuItem(createRankedProperties(rank, GuPath.STRENGTH)
@@ -742,22 +742,22 @@ public final class ModItems {
     //region Wisdom Path [智道]
     public static final DeferredItem<Item> CASUAL_GU_1 = REGISTRAR.item("casual_gu_1",
             () -> createCasualGu(Rank.ONE, 8))
-            .lang("Casual Gu I", "一转随意蛊").register();
+            .lang("一转随意蛊").register();
     public static final DeferredItem<Item> CASUAL_GU_2 = REGISTRAR.item("casual_gu_2",
             () -> createCasualGu(Rank.TWO, 10))
-            .lang("Casual Gu II", "二转随意蛊").register();
+            .lang("二转随意蛊").register();
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_2 = REGISTRAR.item("malicious_thought_gu_2",
             () -> createMaliciousThoughtGu(Rank.TWO, 10, 64L))
-            .lang("Malicious Thought Gu II", "二转恶念蛊").register();
+            .lang("二转恶念蛊").register();
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_3 = REGISTRAR.item("malicious_thought_gu_3",
             () -> createMaliciousThoughtGu(Rank.THREE, 12, 640L))
-            .lang("Malicious Thought Gu III", "三转恶念蛊").register();
+            .lang("三转恶念蛊").register();
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_4 = REGISTRAR.item("malicious_thought_gu_4",
             () -> createMaliciousThoughtGu(Rank.FOUR, 14, 6_400L))
-            .lang("Malicious Thought Gu IV", "四转恶念蛊").register();
+            .lang("四转恶念蛊").register();
     public static final DeferredItem<Item> MALICIOUS_THOUGHT_GU_5 = REGISTRAR.item("malicious_thought_gu_5",
             () -> createMaliciousThoughtGu(Rank.FIVE, 16, 64_000L))
-            .lang("Malicious Thought Gu V", "五转恶念蛊").register();
+            .lang("五转恶念蛊").register();
 
     private static ConsumedGuItem createCasualGu(Rank rank, int hungerBar) {
         return new ConsumedGuItem(GuProperties.of(rank, GuPath.WISDOM)
@@ -793,7 +793,7 @@ public final class ModItems {
     public static final DeferredItem<Item> BLOOD_MOON_GU_3 = REGISTRAR.item("blood_moon_gu_3",
             () -> createMoonBladeGu(Rank.THREE, GuPath.BLOOD, ModItemTags.BLOOD_MOON_FEED,
                     MoonBladeEntity.Variant.BLOOD, 9 * MOONLIGHT_DAMAGE))
-            .lang("Blood Moon Gu III", "三转血月蛊").register();
+            .lang("三转血月蛊").register();
     //endregion
 
     //region Soul Path [魂道]
@@ -801,23 +801,23 @@ public final class ModItems {
             () -> new OneShotGuItem(GuProperties.of(Rank.ONE, GuPath.SOUL)
                     .type(GuType.CULTIVATION),
                     new SoulCapBehavior(10)))
-            .lang("Guts Gu I", "一转胆识蛊").register();
+            .lang("一转胆识蛊").register();
     //endregion
 
     //region Food Path [食道]
     public static final DeferredItem<Item> LIQUOR_WORM_1 = REGISTRAR.item("liquor_worm_1",
             () -> createLiquorWorm(Rank.ONE, 8, 3, 1))
-            .lang("Liquor Worm I", "一转酒虫").register();
+            .lang("一转酒虫").register();
     public static final DeferredItem<Item> FOUR_FLAVORS_LIQUOR_WORM_2 = REGISTRAR.item("four_flavors_liquor_worm_2",
             () -> createLiquorWorm(Rank.TWO, 16, 6, 2))
-            .lang("Four Flavors Liquor Worm II", "二转四味酒虫").register();
+            .lang("二转四味酒虫").register();
     public static final DeferredItem<Item> SEVEN_FRAGRANCES_LIQUOR_WORM_3 = REGISTRAR.item(
             "seven_fragrances_liquor_worm_3",
             () -> createLiquorWorm(Rank.THREE, 32, 12, 4))
-            .lang("Seven Fragrances Liquor Worm III", "三转七香酒虫").register();
+            .lang("三转七香酒虫").register();
     public static final DeferredItem<Item> NINE_EYES_LIQUOR_WORM_4 = REGISTRAR.item("nine_eyes_liquor_worm_4",
             () -> createLiquorWorm(Rank.FOUR, 64, 24, 8))
-            .lang("Nine Eyes Liquor Worm IV", "四转九眼酒虫").register();
+            .lang("四转九眼酒虫").register();
 
     private static TendedGuItem createLiquorWorm(Rank rank, int hungerBar, int hungerPerUse, int hungerPerDay) {
         return new TendedGuItem(GuProperties.of(rank, GuPath.FOOD)
@@ -836,31 +836,31 @@ public final class ModItems {
     //region Transformation Path [变化道]
     public static final DeferredItem<Item> ROAMING_ZOMBIE_GU_2 = REGISTRAR.item("roaming_zombie_gu_2",
             () -> createZombieGu(Rank.TWO, 16, 6, 2, 2 * Ticks.MINUTE))
-            .lang("Roaming Zombie Gu II", "二转游僵蛊").register();
+            .lang("二转游僵蛊").register();
     public static final DeferredItem<Item> HAIRY_ZOMBIE_GU_3 = REGISTRAR.item("hairy_zombie_gu_3",
             () -> createZombieGu(Rank.THREE, 32, 12, 4, 4 * Ticks.MINUTE))
-            .lang("Hairy Zombie Gu III", "三转毛僵蛊").register();
+            .lang("三转毛僵蛊").register();
     public static final DeferredItem<Item> HOPPING_ZOMBIE_GU_4 = REGISTRAR.item("hopping_zombie_gu_4",
             () -> createZombieGu(Rank.FOUR, 64, 24, 8, 6 * Ticks.MINUTE))
-            .lang("Hopping Zombie Gu IV", "四转跳僵蛊").register();
+            .lang("四转跳僵蛊").register();
     public static final DeferredItem<Item> HEAVENLY_DEMON_ZOMBIE_GU_5 = REGISTRAR.item("heavenly_demon_zombie_gu_5",
             ModItems::createFifthRankZombieGu)
-            .lang("Heavenly Demon Zombie Gu V", "五转天魔尸蛊").register();
+            .lang("五转天魔尸蛊").register();
     public static final DeferredItem<Item> NIGHTMARE_ZOMBIE_GU_5 = REGISTRAR.item("nightmare_zombie_gu_5",
             ModItems::createFifthRankZombieGu)
-            .lang("Nightmare Zombie Gu V", "五转梦魇尸蛊").register();
+            .lang("五转梦魇尸蛊").register();
     public static final DeferredItem<Item> ASURA_ZOMBIE_GU_5 = REGISTRAR.item("asura_zombie_gu_5",
             ModItems::createFifthRankZombieGu)
-            .lang("Asura Zombie Gu V", "五转修罗尸蛊").register();
+            .lang("五转修罗尸蛊").register();
     public static final DeferredItem<Item> EARTH_CHIEF_ZOMBIE_GU_5 = REGISTRAR.item("earth_chief_zombie_gu_5",
             ModItems::createFifthRankZombieGu)
-            .lang("Earth Chief Zombie Gu V", "五转地魁尸蛊").register();
+            .lang("五转地魁尸蛊").register();
     public static final DeferredItem<Item> PLAGUE_ZOMBIE_GU_5 = REGISTRAR.item("plague_zombie_gu_5",
             ModItems::createFifthRankZombieGu)
-            .lang("Plague Zombie Gu V", "五转病瘟尸蛊").register();
+            .lang("五转病瘟尸蛊").register();
     public static final DeferredItem<Item> BLOOD_WIGHT_GU_5 = REGISTRAR.item("blood_wight_gu_5",
             ModItems::createFifthRankZombieGu)
-            .lang("Blood Wight Gu V", "五转血鬼尸蛊").register();
+            .lang("五转血鬼尸蛊").register();
 
     private static TendedGuItem createZombieGu(Rank rank, int hungerBar, int hungerPerUse, int hungerPerDay,
                                                int tempZombieTicks) {
@@ -885,107 +885,107 @@ public final class ModItems {
     public static final DeferredItem<Item> KM_MORTAL_LITTLE_LIGHT_AMPLIFY = REGISTRAR.item(
             "km_mortal_little_light_amplify",
             () -> new KillingMoveBookItem(new Item.Properties(), KillingMove.LITTLE_LIGHT_AMPLIFY))
-            .lang("Mortal Killing Move: Little Light Amplification", "凡道杀招：小光蛊增幅").register();
+            .lang("凡道杀招：小光蛊增幅").register();
     //endregion
 
     //region Gu materials [蛊材]
     public static final DeferredItem<Item> PRIMEVAL_STONE = REGISTRAR.item("primeval_stone",
             () -> new PrimevalStoneItem(new Item.Properties(), PRIMEVAL_STONE_ESSENCE))
-            .lang("Primeval Stone", "元石").register();
+            .lang("元石").register();
     public static final DeferredItem<Item> LIQUOR = REGISTRAR.item("liquor",
             () -> new LiquorItem(new Item.Properties()))
-            .lang("Liquor", "酒").tag(ModItemTags.LIQUOR_FEED).register();
+            .lang("酒").tag(ModItemTags.LIQUOR_FEED).register();
     public static final DeferredItem<Item> SOUR_LIQUOR = REGISTRAR.item("sour_liquor",
             () -> new LiquorItem(new Item.Properties()))
-            .lang("Sour Liquor", "酸酒").tag(ModItemTags.LIQUOR_FEED).register();
+            .lang("酸酒").tag(ModItemTags.LIQUOR_FEED).register();
     public static final DeferredItem<Item> SWEET_LIQUOR = REGISTRAR.item("sweet_liquor",
             () -> new LiquorItem(new Item.Properties()))
-            .lang("Sweet Liquor", "甜酒").tag(ModItemTags.LIQUOR_FEED).register();
+            .lang("甜酒").tag(ModItemTags.LIQUOR_FEED).register();
     public static final DeferredItem<Item> BITTER_LIQUOR = REGISTRAR.item("bitter_liquor",
             () -> new LiquorItem(new Item.Properties()))
-            .lang("Bitter Liquor", "苦酒").tag(ModItemTags.LIQUOR_FEED).register();
+            .lang("苦酒").tag(ModItemTags.LIQUOR_FEED).register();
     public static final DeferredItem<Item> SPICY_LIQUOR = REGISTRAR.item("spicy_liquor",
             () -> new LiquorItem(new Item.Properties()))
-            .lang("Spicy Liquor", "辣酒").tag(ModItemTags.LIQUOR_FEED).register();
+            .lang("辣酒").tag(ModItemTags.LIQUOR_FEED).register();
     public static final DeferredItem<Item> SPIRIT_SPRING = REGISTRAR.item("spirit_spring",
             () -> new BlockItem(ModBlocks.SPIRIT_SPRING.get(), new Item.Properties()))
-            .lang("Spirit Spring", "元泉").model(ItemModel.FLUID).tab(ModCreativeTabs.GU_MATERIAL).register();
+            .lang("元泉").model(ItemModel.FLUID).tab(ModCreativeTabs.GU_MATERIAL).register();
     public static final DeferredItem<Item> PURE_WATER_BUCKET = REGISTRAR.item("pure_water_bucket",
             () -> new BucketItem(ModFluids.PURE_WATER.get(),
                     new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)))
-            .lang("Pure Water Bucket", "纯水桶").tab(ModCreativeTabs.GU_MATERIAL).register();
+            .lang("纯水桶").tab(ModCreativeTabs.GU_MATERIAL).register();
     //endregion
 
     //region Herb materials [草木蛊材]
     public static final DeferredItem<Item> INTIMATE_GRASS_BUNDLE = REGISTRAR.item("intimate_grass_bundle",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD))
-            .lang("Intimate Grass Bundle", "知心草束").register();
+            .lang("知心草束").register();
     public static final DeferredItem<Item> INTIMATE_GRASS_SEEDS = REGISTRAR.item("intimate_grass_seeds",
             () -> new ItemNameBlockItem(ModBlocks.INTIMATE_GRASS_CROP.get(), new Item.Properties()))
-            .lang("Intimate Grass Seeds", "知心草种子").tag(Tags.Items.SEEDS).tab(ModCreativeTabs.GU_MATERIAL)
+            .lang("知心草种子").tag(Tags.Items.SEEDS).tab(ModCreativeTabs.GU_MATERIAL)
             .register();
     public static final DeferredItem<Item> MOON_ORCHID_PETALS = REGISTRAR.item("moon_orchid_petals",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.WOOD))
-            .lang("Moon Orchid Petals", "月兰花瓣").register();
+            .lang("月兰花瓣").register();
     //endregion
 
     //region Earth materials [土道蛊材]
     public static final DeferredItem<Item> ROTTEN_FROZEN_MUD = REGISTRAR.item("rotten_frozen_mud",
             () -> new RottenFrozenMudItem(new Item.Properties()))
-            .lang("Rotten Frozen Mud", "腐泥冻土").register();
+            .lang("腐泥冻土").register();
     public static final DeferredItem<Item> JADE = REGISTRAR.item("jade",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
-            .lang("Jade", "玉").tag(ModItemTags.JADE_SKIN_FEED, ModItemTags.WHITE_JADE_FEED).register();
+            .lang("玉").tag(ModItemTags.JADE_SKIN_FEED, ModItemTags.WHITE_JADE_FEED).register();
     public static final DeferredItem<Item> ROUGH_JADE = REGISTRAR.item("rough_jade",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
-            .lang("Rough Jade", "玉原石").register();
+            .lang("玉原石").register();
     public static final DeferredItem<Item> JADEITE = REGISTRAR.item("jadeite",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
-            .lang("Jadeite", "翡翠").tag(ModItemTags.JADE_SKIN_FEED, ModItemTags.WHITE_JADE_FEED).register();
+            .lang("翡翠").tag(ModItemTags.JADE_SKIN_FEED, ModItemTags.WHITE_JADE_FEED).register();
     public static final DeferredItem<Item> ROUGH_JADEITE = REGISTRAR.item("rough_jadeite",
             () -> new GuMaterialItem(new Item.Properties(), Rank.ONE, GuPath.EARTH))
-            .lang("Rough Jadeite", "翡翠原石").register();
+            .lang("翡翠原石").register();
     //endregion
 
     //region Blood materials [血道蛊材]
     public static final DeferredItem<Item> BLOOD_BOTTLE = REGISTRAR.item("blood_bottle",
             () -> new GuMaterialItem(new Item.Properties().craftRemainder(Items.GLASS_BOTTLE).stacksTo(16),
                     Rank.ONE, GuPath.BLOOD))
-            .lang("Blood Bottle", "血瓶").register();
+            .lang("血瓶").register();
     //endregion
 
     //region Metal [金属]
     public static final DeferredItem<Item> STEEL_INGOT = REGISTRAR.item("steel_ingot",
             () -> new Item(new Item.Properties()))
-            .lang("Steel Ingot", "钢锭").tag(ModItemTags.INGOTS_STEEL).tab(ModCreativeTabs.GU_MATERIAL).register();
+            .lang("钢锭").tag(ModItemTags.INGOTS_STEEL).tab(ModCreativeTabs.GU_MATERIAL).register();
     public static final DeferredItem<Item> STEEL_BLOCK = REGISTRAR.item("steel_block",
             () -> new BlockItem(ModBlocks.STEEL_BLOCK.get(), new Item.Properties()))
-            .lang("Steel Block", "钢块").model(ItemModel.BLOCK).tag(ModItemTags.STORAGE_BLOCKS_STEEL)
+            .lang("钢块").model(ItemModel.BLOCK).tag(ModItemTags.STORAGE_BLOCKS_STEEL)
             .tab(ModCreativeTabs.GU_MATERIAL).register();
     //endregion
 
     //region Farmland [耕地]
     public static final DeferredItem<Item> BLACK_SOIL_FARMLAND = REGISTRAR.item("black_soil_farmland",
             () -> new BlockItem(ModBlocks.BLACK_SOIL_FARMLAND.get(), new Item.Properties()))
-            .lang("Black Soil Farmland", "黑土耕地").model(ItemModel.BLOCK).tab(ModCreativeTabs.GU_MATERIAL)
+            .lang("黑土耕地").model(ItemModel.BLOCK).tab(ModCreativeTabs.GU_MATERIAL)
             .register();
     //endregion
 
     //region Human Aperture [人窍]
     public static final DeferredItem<Item> HUMAN_APERTURE_1 =
-            registerHumanAperture("human_aperture_1", Rank.ONE, "Human Aperture I", "一转人窍");
+            registerHumanAperture("human_aperture_1", Rank.ONE, "一转人窍");
     public static final DeferredItem<Item> HUMAN_APERTURE_2 =
-            registerHumanAperture("human_aperture_2", Rank.TWO, "Human Aperture II", "二转人窍");
+            registerHumanAperture("human_aperture_2", Rank.TWO, "二转人窍");
     public static final DeferredItem<Item> HUMAN_APERTURE_3 =
-            registerHumanAperture("human_aperture_3", Rank.THREE, "Human Aperture III", "三转人窍");
+            registerHumanAperture("human_aperture_3", Rank.THREE, "三转人窍");
     public static final DeferredItem<Item> HUMAN_APERTURE_4 =
-            registerHumanAperture("human_aperture_4", Rank.FOUR, "Human Aperture IV", "四转人窍");
+            registerHumanAperture("human_aperture_4", Rank.FOUR, "四转人窍");
     public static final DeferredItem<Item> HUMAN_APERTURE_5 =
-            registerHumanAperture("human_aperture_5", Rank.FIVE, "Human Aperture V", "五转人窍");
+            registerHumanAperture("human_aperture_5", Rank.FIVE, "五转人窍");
 
-    private static DeferredItem<Item> registerHumanAperture(String id, Rank rank, String english, String simplified) {
+    private static DeferredItem<Item> registerHumanAperture(String id, Rank rank, String simplified) {
         return REGISTRAR.item(id, () -> new GuMaterialItem(new Item.Properties().stacksTo(64), rank, GuPath.HUMAN))
-                .lang(english, simplified).register();
+                .lang(simplified).register();
     }
 
     public static @Nullable Item getHumanAperture(Rank rank) {
@@ -1003,16 +1003,16 @@ public final class ModItems {
     //region Booklets [书册]
     public static final DeferredItem<Item> GU_ATLAS_HOPE = REGISTRAR.item("gu_atlas_hope",
             () -> new BookletItem(new Item.Properties(), Booklet.GU_ATLAS_HOPE))
-            .lang("Gu Atlas: Hope", "蛊虫图说：希望").register();
+            .lang("蛊虫图说：希望").register();
     public static final List<DeferredItem<Item>> RENZU_ZHUAN = registerChronicle(Chronicle.Book.RENZU_ZHUAN);
     public static final DeferredItem<Item> GU_RECIPE = REGISTRAR.item("gu_recipe",
             () -> new GuRecipeItem(new Item.Properties()))
-            .lang("Gu Recipe", "蛊方").register();
+            .lang("蛊方").register();
 
     private static List<DeferredItem<Item>> registerChronicle(Chronicle.Book book) {
         return Chronicle.sections(book).stream().map(section -> REGISTRAR.item(book.id() + "_" + section.section(),
                         () -> new BookletItem(new Item.Properties(), section))
-                .lang(book.english() + " • Section " + section.section(), section.itemName(false))
+                .lang(section.itemName(false))
                 .model(ItemModel.SERIES).register()).toList();
     }
     //endregion
@@ -1020,7 +1020,7 @@ public final class ModItems {
     //region Advancement Icon [进度图标]
     public static final DeferredItem<AdvancementIconItem> ADVANCEMENT_ICON = REGISTRAR.typedItem("advancement_icon",
             () -> new AdvancementIconItem(new Item.Properties().stacksTo(1)))
-            .lang("Advancement Icon", "进度图标").model(ItemModel.NUMERALS).tag(Tags.Items.HIDDEN_FROM_RECIPE_VIEWERS)
+            .lang("进度图标").model(ItemModel.NUMERALS).tag(Tags.Items.HIDDEN_FROM_RECIPE_VIEWERS)
             .register();
     //endregion
 

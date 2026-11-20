@@ -139,27 +139,23 @@ public record Chronicle(Book book, int section) implements BookletText {
     }
 
     public enum Book {
-        RENZU_ZHUAN("renzu_zhuan", 38, "人祖传", "人祖傳", "Legend of the Human Ancestor");
+        RENZU_ZHUAN("renzu_zhuan", 38, "人祖传", "人祖傳");
 
         private final String id;
         private final int sections;
         private final String simplified;
         private final String traditional;
-        private final String english;
 
-        Book(String id, int sections, String simplified, String traditional, String english) {
+        Book(String id, int sections, String simplified, String traditional) {
             this.id = id;
             this.sections = sections;
             this.simplified = simplified;
             this.traditional = traditional;
-            this.english = english;
         }
 
         public String id() { return id; }
 
         public int sections() { return sections; }
-
-        public String english() { return english; }
 
         public String title(boolean traditional) { return traditional ? this.traditional : simplified; }
 

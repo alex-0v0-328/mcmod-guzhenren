@@ -1,9 +1,10 @@
-"""Chinese-English glossary page of the wiki, generated from both mods' zh_cn and en_us lang files.
+"""Glossary page of the wiki, generated from both mods' zh_cn lang files: the Chinese term beside its lang key.
 
-Writes or checks <wiki>/中英对照表.md: one `中文 | English | key` table per section of SECTIONS, in that order, with no
-opening text: the page starts at its first heading.
-A selector is a lang key (taken alone) or a key ending in `.` (every key under it); entries with a blank side, a
-`%` placeholder or a key ending in `.description` are sentences or templates, not terms, and are left out. Inside
+The mods ship Chinese text only, so the key is where a term's English name lives.
+Writes or checks <wiki>/中英对照表.md: one `中文 | key` table per section of SECTIONS, in that order, with no opening
+text: the page starts at its first heading.
+A selector is a lang key (taken alone) or a key ending in `.` (every key under it); blank entries, entries with a
+`%` placeholder and keys ending in `.description` are sentences or templates, not terms, and are left out. Inside
 one selector the keys follow ORDER when their last segment is listed there, then key order.
 
 Everything from the `## 设定词` heading on is hand-written and kept as it is; the script owns the text above it.
@@ -76,10 +77,10 @@ RANK = {word: index for index, word in enumerate(ORDER)}
 
 def load_lang(root, mod):
     folder = Path(root) / LANG_DIR.format(mod=mod)
-    return tuple(json.loads((folder / f'{name}.json').read_text(encoding='utf-8')) for name in ('zh_cn', 'en_us'))
+    return json.loads((folder / 'zh_cn.json').read_text(encoding='utf-8'))
 
 
-def select(selector, zh, en):
+def select(selector, zh):
     keys = [k for k in zh if k.startswith(selector)] if selector.endswith('.') else [k for k in zh if k == selector]
     if not keys:
         raise SystemExit(f'wiki_glossary: selector {selector} matches no lang key')
@@ -88,9 +89,9 @@ def select(selector, zh, en):
     for key in keys:
         if key.endswith(SENTENCE_SUFFIX):
             continue
-        chinese, english = zh[key].strip(), en.get(key, '').strip()
-        if chinese and english and '%' not in chinese and '%' not in english:
-            rows.append((chinese, english, key))
+        chinese = zh[key].strip()
+        if chinese and '%' not in chinese:
+            rows.append((chinese, key))
     return rows
 
 
@@ -99,14 +100,14 @@ def render(langs):
     lines = []
     seen = set()
     for title, mod, selectors in SECTIONS:
-        zh, en = langs[mod]
-        lines += [f'## {title}', '', '| 中文 | English | key |', '|---|---|---|']
+        zh = langs[mod]
+        lines += [f'## {title}', '', '| 中文 | key |', '|---|---|']
         for selector in selectors:
-            for chinese, english, key in select(selector, zh, en):
+            for chinese, key in select(selector, zh):
                 if (mod, key) in seen:
                     raise SystemExit(f'wiki_glossary: {key} is selected twice')
                 seen.add((mod, key))
-                lines.append(f'| {chinese} | {english} | `{key}` |')
+                lines.append(f'| {chinese} | `{key}` |')
         lines.append('')
     return '\n'.join(lines) + '\n'
 

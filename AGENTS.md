@@ -3,7 +3,7 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 ## Overview
 
 - 项目：Minecraft Mod 开发；游戏版本 1.21.1，加载器 NeoForge，模组版本 1.0.0（一至五转）。
-- 语言：回复与 wiki 用简体中文（zh-CN）；代码、commit、Skills 用美式英语；注释、规则用简体中文。
+- 语言：回复与 wiki 用简体中文（zh-CN）；代码、commit、Skills 用美式英语；注释、规则用简体中文。游戏内文本只有简繁中文，只手写简体，英文名只在翻译键、注册 ID、类名里。
 - 分支：三个仓库均用 main，禁止自行切换分支。
 - 工具：GitHub MCP（只查询）、JetBrains MCP、Context7 MCP（只认 NeoForge 1.21.1、GeckoLib 4）。
 
