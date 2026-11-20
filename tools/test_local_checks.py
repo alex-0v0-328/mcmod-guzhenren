@@ -444,32 +444,37 @@ class CheckTests(unittest.TestCase):
             assert lock_path.read_text(encoding='utf-8') == str(os.getpid())
         assert len(said) == 1 and 'waiting for the Gradle lock' in said[0], said
 
-    def test_tools_stage_reads_the_unittest_summary(self):
-        class Scripted(FakeProcess):
-            script, returncode, environments = [], 0, []
-
-            def __init__(self, command, cwd, log, env=None):
-                super().__init__(command, cwd, log, outcomes=self.script)
-                self.proc.returncode = self.returncode
-                Scripted.environments.append(env)
-
+    def test_tools_stage_runs_the_tests_in_parallel_processes(self):
+        tools = self.root / 'tools'
+        tools.mkdir()
+        # An export sits elsewhere: the tests must still find this workstation's Temp, partner, wiki and models.
+        (tools / 'test_scratch.py').write_text(
+            'import os, unittest\n'
+            'class T(unittest.TestCase):\n'
+            f'    def test_pinned(self): self.assertEqual(os.environ["GZR_TEMP"], {str(env.TEMP_ROOT)!r})\n'
+            '    def test_alone(self): self.assertNotIn("shared", globals()); globals()["shared"] = 1\n'
+            '    def test_alone_too(self): self.assertNotIn("shared", globals()); globals()["shared"] = 1\n'
+            '    @unittest.skip("skipped")\n'
+            '    def test_skipped(self): pass\n', encoding='utf-8')
         log = env.Log('tools', self.root)
         ctx = check.Context(self.root, log)
-        Scripted.script = [('until', 'Ran 132 tests in 9.090s'), ('until', 'OK (skipped=1)'), ('exit', None)]
-        with patch.object(env, 'Process', Scripted):
+        # A slow module runs one process per test, so the two globals() tests cannot see each other.
+        with patch.object(check, 'SLOW_TOOL_MODULES', ('test_scratch',)):
             passed = check.stage_tools(ctx)
-        assert (passed.status, passed.detail) == ('PASS', '132 tool tests passed'), passed
-        # An export sits elsewhere: the tests must still find this workstation's Temp, partner, wiki and models.
-        assert Scripted.environments[0]['GZR_TEMP'] == str(env.TEMP_ROOT), Scripted.environments
-        assert set(Scripted.environments[0]) == {'GZR_TEMP', 'GZR_GU_WORLD', 'GZR_WIKI', 'GZR_MODELS'}
-        Scripted.script = [('until', 'FAIL: test_project_table (test_commit_push.PlanTests.test_project_table)'),
-                           ('until', 'Ran 132 tests in 9.090s'), ('until', 'FAILED (failures=1)'), ('exit', None)]
-        Scripted.returncode = 1
-        with patch.object(env, 'Process', Scripted):
-            failed = check.stage_tools(ctx)
+        assert (passed.status, passed.detail) == ('PASS', '4 tool tests passed'), passed
+        assert check.tool_shards(['a.T.x', 'test_commit_push.T.y', 'a.T.z', 'test_commit_push.T.w']) == \
+            [['test_commit_push.T.y'], ['test_commit_push.T.w'], ['a.T.x', 'a.T.z']]
+        (tools / 'test_scratch.py').write_text(
+            'import unittest\nclass T(unittest.TestCase):\n    def test_red(self): self.fail("red")\n'
+            '    def test_green(self): pass\n    def test_error(self): raise OSError\n', encoding='utf-8')
+        failed = check.stage_tools(ctx)
+        assert (failed.status, failed.detail) == ('FAIL', '2 of 3 tool tests failed'), failed
+        assert failed.notes == ['test_scratch.T.test_error', 'test_scratch.T.test_red'], failed.notes
+        (tools / 'test_broken.py').write_text('import not_a_module\n', encoding='utf-8')
+        broken = check.stage_tools(ctx)
         log.close()
-        assert failed.status == 'FAIL' and failed.detail == '1 of 132 tool tests failed', failed
-        assert failed.notes == ['test_commit_push.PlanTests.test_project_table'], failed.notes
+        assert (broken.status, broken.detail) == ('FAIL', 'tool test discovery failed'), broken
+        assert any('test_broken' in note for note in broken.notes), broken.notes
         assert check.select(['tools'], False) == ['tools']
         expect_exit(check.select, ['tools'], False, env.PROJECTS['guworld'])
 

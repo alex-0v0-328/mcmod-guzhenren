@@ -20,7 +20,9 @@ import secrets
 import socket
 import struct
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -39,7 +41,6 @@ CRASH = re.compile(r'---- Minecraft Crash Report ----|#@!@# Game crashed!|Except
                    r'|Exception in thread "(Render thread|Server thread|main)"')
 SERVER_DONE = re.compile(r'Done \((\d+[.,]\d+)s\)! For help')
 SERVER_SAVED = re.compile(r'All dimensions are saved')
-RCON_READY = re.compile(r'RCON running on')
 JOINED = re.compile(r'\]: (\S+) joined the game')
 LOST = re.compile(r'\]: (\S+) lost connection: (.*)')
 GAMETEST_PASSED = re.compile(r'All (\d+) required tests passed')
@@ -146,40 +147,92 @@ def went_wrong(collector, limit=6):
 
 # ----- tools: the unit tests of these tools ----------------------------------------------------------
 
-UNITTEST_RAN = re.compile(r'^Ran (\d+) tests? in ')
-UNITTEST_FAILED = re.compile(r'^(?:FAIL|ERROR): (\S+) \(([^)]*)\)')
+TOOL_WORKERS = 8
+# Modules whose every test takes seconds of Git round trips: one process per test, started first. Every other
+# module runs in one process, since a Python start costs about as much as its tests.
+SLOW_TOOL_MODULES = ('test_commit_push',)
+LIST_TOOL_TESTS = '\n'.join((
+    'import unittest',
+    'def flat(suite):',
+    '    for test in suite:',
+    '        yield from flat(test) if isinstance(test, unittest.TestSuite) else [test]',
+    "for test in flat(unittest.defaultTestLoader.discover('tools', 'test_*.py')):",
+    '    print(test.id())'))
+
+
+# `unittest -v` names a red test as `test_x (module.Class.test_x) ... FAIL` (or ERROR).
+UNITTEST_RED = re.compile(r'^\S+ \((\S+)\)\s.*\.\.\. (?:FAIL|ERROR)$')
+
+
+class Lines(list):
+    """A Process log that keeps one child's output, so parallel children land in the stage log one block each."""
+
+    def write(self, line=''):
+        self.append(line.rstrip('\r\n'))
+
+
+def run_lines(ctx, command, environment, deadline):
+    """(output lines, exit code or None on timeout) of one child in ctx.root."""
+    lines = Lines()
+    with env.Process(command, ctx.root, lines, env=environment) as process:
+        code = process.wait(timeout=max(0.0, deadline - time.monotonic()))
+    return lines, code
+
+
+def tool_shards(tests):
+    """The test ids split into processes: each test of SLOW_TOOL_MODULES alone and first, every other module whole."""
+    slow, modules = [], {}
+    for test in tests:
+        module = test.split('.', 1)[0]
+        if module in SLOW_TOOL_MODULES:
+            slow.append([test])
+        else:
+            modules.setdefault(module, []).append(test)
+    return slow + list(modules.values())
 
 
 def stage_tools(ctx):
-    """`python -m unittest discover -s tools` in ctx.root. An export of the repository sits elsewhere, so the
-    paths project_runtime derives from its own location are pinned to this workstation's."""
+    """The tool tests in ctx.root, TOOL_WORKERS processes at once (tool_shards): in one process test_commit_push's
+    Git round trips alone take half a minute. An export of the repository sits elsewhere, so the paths
+    project_runtime derives from its own location are pinned to this workstation's."""
     started = time.monotonic()
-    command = [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_*.py']
+    deadline = started + 900
     pinned = {'GZR_TEMP': str(env.TEMP_ROOT), 'GZR_GU_WORLD': str(env.GU_WORLD_ROOT), 'GZR_WIKI': str(env.WIKI_ROOT),
               'GZR_MODELS': str(env.MODELS_ROOT)}
-    ctx.log.write(f'$ {" ".join(command)}   (in {ctx.root})')
-    collector = Collector(UNITTEST_RAN, UNITTEST_FAILED)
-    with env.Process(command, ctx.root, ctx.log, env=pinned) as process:
-        deadline = started + 900
-        while True:
-            outcome, line = process.watch(until=lambda _: True, timeout=max(0, deadline - time.monotonic()))
-            if outcome != 'until':
-                break
-            collector(line)
-        code = process.proc.returncode if outcome == 'exit' else None
-        if code is None:
-            process.kill_tree()
+    ctx.log.write(f'$ unittest discover -s tools, {TOOL_WORKERS} processes at once   (in {ctx.root})')
+    tests, code = run_lines(ctx, [sys.executable, '-B', '-c', LIST_TOOL_TESTS], pinned, deadline)
+    # A module that fails to import is discovered as a unittest.loader._FailedTest.
+    broken = [test for test in tests if test.startswith('unittest.')]
+    if code != 0 or not tests or broken:
+        ctx.log.write('\n'.join(tests))
+        return Result('FAIL', time.monotonic() - started, 'tool test discovery failed', (broken or tests)[-8:])
+    pinned['PYTHONPATH'] = str(ctx.root / 'tools')
+    failed, guard = [], threading.Lock()
+
+    def run(shard):
+        began = time.monotonic()
+        lines, exit_code = run_lines(ctx, [sys.executable, '-B', '-m', 'unittest', '-v', *shard], pinned, deadline)
+        took = f'{time.monotonic() - began:5.1f}s'
+        name = shard[0] if len(shard) == 1 else f'{shard[0].split(".", 1)[0]} ({len(shard)} tests)'
+        red = {match.group(1) for line in lines if (match := UNITTEST_RED.match(line))}
+        with guard:
+            if exit_code == 0:
+                ctx.log.write(f'ok       {took}  {name}')
+                return
+            failed.extend(sorted(red) if red else [name])
+            ctx.log.write(f'{"FAILED" if exit_code is not None else "TIMEOUT":<8} {took}  {name}')
+            for line in lines:
+                ctx.log.write(f'    {line}')
+
+    pool = ThreadPoolExecutor(TOOL_WORKERS)
+    try:
+        list(pool.map(run, tool_shards(tests)))
+    finally:
+        pool.shutdown(cancel_futures=True)
     seconds = time.monotonic() - started
-    ran = matches(collector, UNITTEST_RAN)
-    failed = [match.group(2) if match.group(2).endswith(match.group(1)) else f'{match.group(2)}.{match.group(1)}'
-              for match in matches(collector, UNITTEST_FAILED)]
-    count = ran[-1].group(1) if ran else '0'
-    if code == 0 and ran:
-        return Result('PASS', seconds, f'{count} tool tests passed')
-    if code is None:
-        return Result('FAIL', seconds, 'timed out')
-    return Result('FAIL', seconds, f'{len(failed)} of {count} tool tests failed' if failed else f'unittest exit {code}',
-                  failed[:15] or collector.tail[-8:])
+    if not failed:
+        return Result('PASS', seconds, f'{len(tests)} tool tests passed')
+    return Result('FAIL', seconds, f'{len(failed)} of {len(tests)} tool tests failed', sorted(failed)[:15])
 
 
 # ----- build: compile, jar, pureTest JUnit ------------------------------------------------------
@@ -678,7 +731,7 @@ def join_server(ctx, server, game_dir, client_dir, port, rcon_port, password, st
     return Result('PASS', seconds, summary + stopped_note(held_open) + tail)
 
 STAGES = {
-    'tools': ('python -m unittest discover -s tools: the unit tests of these tools', stage_tools),
+    'tools': ('tools/test_*.py: the unit tests of these tools, one process per test, in parallel', stage_tools),
     'build': ('gradlew build: compile, jar, pureTest JUnit (wiki gate when the wiki exists)', stage_build),
     'gametest': ('gradlew runGameTestServer: every @GameTest on a dedicated server, both mods loaded (wiki gate as in build)', stage_gametest),
     'data': ('gradlew runData: providers must reproduce src/generated exactly (the CI drift check)', stage_data),

@@ -16,16 +16,7 @@ import local_checks as check
 import project_runtime as env
 
 
-SCRATCH = env.TEMP_ROOT / 'test_project_runtime'
 IDLE_JAVA = 'public class Idle { public static void main(String[] a) throws Exception { Thread.sleep(60_000); } }\n'
-
-
-def tearDownModule():
-    # Each test cleans its own folder; the shared parent goes once it is empty.
-    try:
-        SCRATCH.rmdir()
-    except OSError:
-        pass
 
 
 def end(process):
@@ -37,8 +28,8 @@ def end(process):
 class WindowsToolTests(unittest.TestCase):
 
     def setUp(self):
-        SCRATCH.mkdir(parents=True, exist_ok=True)
-        self.scratch = tempfile.TemporaryDirectory(dir=SCRATCH)
+        env.TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+        self.scratch = tempfile.TemporaryDirectory(dir=env.TEMP_ROOT, prefix='test_project_runtime-')
         self.root = Path(self.scratch.name)
         # Registered first, so it runs last: Windows cannot delete a held lock file or a running process's folder.
         self.addCleanup(self.scratch.cleanup)
