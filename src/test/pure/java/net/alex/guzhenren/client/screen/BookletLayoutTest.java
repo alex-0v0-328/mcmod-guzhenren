@@ -3,12 +3,17 @@ package net.alex.guzhenren.client.screen;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.imageio.ImageIO;
 import net.alex.guzhenren.item.Booklet.Paragraph;
 import net.alex.guzhenren.item.Booklet.Role;
 import net.alex.guzhenren.item.Booklet;
+import net.alex.guzhenren.item.Chronicle;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static net.alex.guzhenren.client.screen.BookletLayout.AREA_HEIGHT;
@@ -193,6 +198,113 @@ class BookletLayoutTest {
                         assertTrue(cell.x() >= RIGHT_X, booklet + " sets " + cell + " on the figure page")));
             }
         }
+    }
+
+    @Test
+    @DisplayName("a chronicle opens on its heading, then its title two rows low, then the text on a fresh column")
+    void chronicleOpensOnHeadingAndTitle() {
+        List<BookletLayout.Spread> spreads = BookletLayout.layChronicle(section(1), false);
+        List<List<BookletLayout.Cell>> columns = columns(spreads.getFirst());
+        assertEquals("人祖传第一节", glyphs(columns.get(0)));
+        assertEquals(getRowY(0), columns.get(0).getFirst().y());
+        assertEquals("困境和希望", glyphs(columns.get(1)));
+        assertEquals(getRowY(2), columns.get(1).getFirst().y());
+        assertEquals("传说这个世界刚刚形成的时", glyphs(columns.get(2)));
+        assertEquals(getRowY(0), columns.get(2).getFirst().y());
+    }
+
+    @Test
+    @DisplayName("a long title wraps two rows low; the text ends, skips a column and closes on the colophon")
+    void titleWrapsAndColophonCloses() {
+        List<BookletLayout.Spread> spreads = BookletLayout.layChronicle(section(11), false);
+        List<List<BookletLayout.Cell>> opening = columns(spreads.getFirst());
+        assertEquals("石人你阻挡了我成功的", glyphs(opening.get(1)));
+        assertEquals("路", glyphs(opening.get(2)));
+        assertEquals(getRowY(2), opening.get(2).getFirst().y());
+        List<Integer> filled = new ArrayList<>();
+        List<List<BookletLayout.Cell>> all = new ArrayList<>();
+        for (int leaf = 0; leaf < spreads.size(); leaf++) {
+            for (List<BookletLayout.Cell> column : columns(spreads.get(leaf))) {
+                all.add(column);
+                filled.add(getColumnIndex(leaf, column.getFirst().x()));
+            }
+        }
+        assertEquals("人祖传第十一节终", glyphs(all.getLast()));
+        assertEquals(getRowY(0), all.getLast().getFirst().y());
+        assertEquals(2, filled.getLast() - filled.get(filled.size() - 2), "one blank column before the colophon");
+        for (int at = 1; at < filled.size() - 1; at++) assertEquals(filled.get(at - 1) + 1, filled.get(at));
+    }
+
+    @Test
+    @DisplayName("every chronicle section lays out in both scripts without a closing bracket opening a column "
+            + "or an opening bracket ending one")
+    void chroniclesKeepBracketsOffColumnEdges() {
+        for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.RENZU_ZHUAN)) {
+            for (boolean traditional : new boolean[] { false, true }) {
+                List<BookletLayout.Spread> spreads = assertDoesNotThrow(
+                        () -> BookletLayout.layChronicle(chronicle, traditional), chronicle.toString());
+                for (BookletLayout.Spread spread : spreads) {
+                    assertNull(spread.plate());
+                    for (List<BookletLayout.Cell> column : columns(spread)) {
+                        assertTrue(!"﹂﹄".contains(column.getFirst().glyph()), chronicle + " opens " + column);
+                        assertTrue(!"﹁﹃".contains(column.getLast().glyph()), chronicle + " ends " + column);
+                        assertTrue(column.size() <= ROWS, chronicle + " overfills " + column);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a chronicle spread prints the title above the fishtail and the section and leaf number below, "
+            + "on both margins")
+    void marginsCarryTitleSectionAndLeaf() {
+        List<BookletLayout.Spread> spreads = BookletLayout.layChronicle(section(38), true);
+        BookletLayout.Spread third = spreads.get(2);
+        Map<Integer, String> sides = new TreeMap<>();
+        for (BookletLayout.Cell cell : third.margin()) sides.merge(cell.x(), cell.glyph(), String::concat);
+        assertEquals(Map.of(BookletLayout.LEFT_MARGIN_X, "人祖傳第三十八節三", BookletLayout.RIGHT_MARGIN_X,
+                "人祖傳第三十八節三"), sides);
+        for (BookletLayout.Spread spread : spreads) {
+            for (BookletLayout.Cell cell : spread.margin()) {
+                boolean above = cell.y() + BookletLayout.MARGIN_PITCH <= BookletLayout.FISHTAIL_TOP;
+                boolean below = cell.y() >= BookletLayout.FISHTAIL_BOTTOM;
+                assertTrue(cell.y() >= BookletLayout.MARGIN_TOP && (above || below)
+                        && cell.y() + BookletLayout.MARGIN_PITCH <= BookletLayout.MARGIN_BOTTOM, cell.toString());
+            }
+        }
+        assertEquals(List.of("人", "祖", "傳"), third.margin().subList(0, 3).stream().map(BookletLayout.Cell::glyph)
+                .toList());
+    }
+
+    @Test
+    @DisplayName("a stop draws a 3-pixel ring and a pause a 2-pixel dot at the foot right of their glyph's cell")
+    void marksSitAtTheFootRight() {
+        assertEquals(new BookletLayout.Dot(109, 210, 3, true), BookletLayout.dot(100, 200, Chronicle.Mark.STOP));
+        assertEquals(new BookletLayout.Dot(110, 211, 2, false), BookletLayout.dot(100, 200, Chronicle.Mark.PAUSE));
+        BookletLayout.Spread first = BookletLayout.layChronicle(section(1), false).getFirst();
+        assertTrue(first.dots().stream().anyMatch(BookletLayout.Dot::stop));
+        assertTrue(first.dots().stream().anyMatch(dot -> !dot.stop()));
+    }
+
+    private static Chronicle section(int number) { return new Chronicle(Chronicle.Book.RENZU_ZHUAN, number); }
+
+    private static int getColumnIndex(int leaf, int glyphX) {
+        for (int column = 0; column < 2 * COLUMNS; column++) {
+            if (getColumnX(column) + GLYPH_X == glyphX) return leaf * 2 * COLUMNS + column;
+        }
+        throw new AssertionError("no column at x " + glyphX);
+    }
+
+    private static List<List<BookletLayout.Cell>> columns(BookletLayout.Spread spread) {
+        Map<Integer, List<BookletLayout.Cell>> byX = new TreeMap<>(Comparator.reverseOrder());
+        for (BookletLayout.Cell cell : spread.text()) byX.computeIfAbsent(cell.x(), x -> new ArrayList<>()).add(cell);
+        byX.values().forEach(column -> column.sort(Comparator.comparingInt(BookletLayout.Cell::y)));
+        return List.copyOf(byX.values());
+    }
+
+    private static String glyphs(List<BookletLayout.Cell> cells) {
+        return String.join("", cells.stream().map(BookletLayout.Cell::glyph).toList());
     }
 
     private static List<BookletLayout.Cell> lay(Paragraph... paragraphs) {

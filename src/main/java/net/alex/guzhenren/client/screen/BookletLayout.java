@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.screen;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.item.Booklet;
+import net.alex.guzhenren.item.Chronicle;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -21,7 +22,14 @@ import org.jetbrains.annotations.Nullable;
  *       前一字一起顺移至下一列，使原列少排一行。</li>
  *   <li>带有插图或属于蛊方（左半页画蛊方网格）时仅在右半页排版文字；左半页在文字区内居中绘制插图物品的
  *       {@value #ICON} 像素图标，图注在其下方相隔 {@value #CAPTION_GAP} 像素处竖排一列。</li>
- *   <li>⚠ 书册版式不支持翻页：文字超出半页（有插图时）或超出整个跨页（无插图时）会直接拒绝排版并点名报错对应段
+ *   <li>古籍（{@link #layChronicle}）跨页连排、右开翻页：首列顶格卷端题，节题自次列起低 {@value #HEADING_SINK} 格，
+ *       正文另起一列连排不分段；正文后空一列，顶格卷末题。除列首避开收尾括号外，列尾也不留开头括号
+ *       （{@link Chronicle#OPENINGS}），遇之移到下一列。</li>
+ *   <li>古籍的圈点（{@link Dot}，坐标为左上角）不占格，画在字格右下角，与字形墨迹略有重叠：句圈为 3×3 空心圈，读点
+ *       为 2×2 实点。</li>
+ *   <li>古籍每个跨页的两侧书口（底图外侧 9 像素宽的版心条）用 8 像素书口字体竖写：单鱼尾上书名，鱼尾下节次，下端汉
+ *       字叶码；每个跨页一个叶码，两侧相同。</li>
+ *   <li>⚠ 单页书册不支持翻页：文字超出半页（有插图时）或超出整个跨页（无插图时）会直接拒绝排版并点名报错对应段
  *       落。</li>
  * </ul>
  */
@@ -46,6 +54,17 @@ final class BookletLayout {
     static final int ICON = 48;
     static final int CAPTION_GAP = 12;
     static final String NO_COLUMN_START = "︐︑︒︓︔︕︖︙︶︸︺︼︾﹀﹂﹄﹈";
+    static final int HEADING_SINK = 2;
+    static final int STOP_SIZE = 3;
+    static final int PAUSE_SIZE = 2;
+    static final int MARGIN_PITCH = 8;
+    static final int LEFT_MARGIN_X = 6;
+    static final int RIGHT_MARGIN_X = 259;
+    static final int MARGIN_TOP = 24;
+    static final int FISHTAIL_TOP = 56;
+    static final int FISHTAIL_BOTTOM = 64;
+    static final int MARGIN_BOTTOM = 174;
+    static final int MARGIN_GAP = 4;
     private static final String BLANK = "　";
 
     private BookletLayout() {}
@@ -54,6 +73,91 @@ final class BookletLayout {
         Plate plate = booklet.getFigure().map(figure -> plate(figure.caption(traditional))).orElse(null);
         boolean halfPage = plate != null || booklet.getRecipe().isPresent();
         return new Spread(layText(booklet.getParagraphs(), halfPage ? COLUMNS : 2 * COLUMNS, traditional), plate);
+    }
+
+    static List<Spread> layChronicle(Chronicle chronicle, boolean traditional) {
+        List<List<Placed>> columns = new ArrayList<>();
+        flow(tokens(chronicle.heading(traditional)), 0, columns);
+        List<String> lines = chronicle.lines(traditional);
+        flow(Chronicle.convert(lines.getFirst()), HEADING_SINK, columns);
+        flow(Chronicle.read(lines), 0, columns);
+        columns.add(List.of());
+        flow(tokens(chronicle.colophon(traditional)), 0, columns);
+
+        int spreads = (columns.size() + 2 * COLUMNS - 1) / (2 * COLUMNS);
+        List<Spread> laid = new ArrayList<>();
+        for (int leaf = 0; leaf < spreads; leaf++) {
+            List<Cell> text = new ArrayList<>();
+            List<Dot> dots = new ArrayList<>();
+            for (int column = 0; column < 2 * COLUMNS; column++) {
+                int at = leaf * 2 * COLUMNS + column;
+                if (at >= columns.size()) break;
+                int x = getColumnX(column) + GLYPH_X;
+                for (Placed placed : columns.get(at)) {
+                    int y = getRowY(placed.row());
+                    text.add(new Cell(placed.token().glyph(), x, y));
+                    if (placed.token().mark() != Chronicle.Mark.NONE) dots.add(dot(x, y, placed.token().mark()));
+                }
+            }
+            laid.add(new Spread(List.copyOf(text), null, List.copyOf(dots), margin(chronicle, traditional, leaf + 1)));
+        }
+        return List.copyOf(laid);
+    }
+
+    private static void flow(List<Chronicle.Token> tokens, int sink, List<List<Placed>> columns) {
+        int rows = ROWS - sink;
+        for (int start = 0; start < tokens.size(); ) {
+            int end = Math.min(start + rows, tokens.size());
+            while (end < tokens.size() && end > start && closes(tokens.get(end).glyph())) end--;
+            while (end < tokens.size() && end > start + 1 && Chronicle.OPENINGS.contains(tokens.get(end - 1).glyph())) {
+                end--;
+            }
+            if (end == start) throw new IllegalArgumentException(tokens + " holds a column of punctuation");
+            List<Placed> column = new ArrayList<>();
+            for (int at = start; at < end; at++) column.add(new Placed(tokens.get(at), sink + at - start));
+            columns.add(List.copyOf(column));
+            start = end;
+        }
+    }
+
+    static Dot dot(int x, int y, Chronicle.Mark mark) {
+        return mark == Chronicle.Mark.STOP
+                ? new Dot(x + 9, y + 10, STOP_SIZE, true)
+                : new Dot(x + 10, y + 11, PAUSE_SIZE, false);
+    }
+
+    static List<Cell> margin(Chronicle chronicle, boolean traditional, int leaf) {
+        List<String> title = split(chronicle.book().title(traditional));
+        List<String> section = split(chronicle.margin(traditional));
+        List<String> number = split(Chronicle.numeral(leaf));
+        int titleTop = MARGIN_TOP + (FISHTAIL_TOP - MARGIN_TOP - title.size() * MARGIN_PITCH) / 2;
+        int sectionTop = FISHTAIL_BOTTOM + MARGIN_GAP;
+        int numberTop = MARGIN_BOTTOM - MARGIN_GAP - number.size() * MARGIN_PITCH;
+        if (title.size() * MARGIN_PITCH > FISHTAIL_TOP - MARGIN_TOP) {
+            throw new IllegalArgumentException(chronicle + " overflows the margin above the fishtail");
+        }
+        if (sectionTop + section.size() * MARGIN_PITCH + MARGIN_GAP > numberTop) {
+            throw new IllegalArgumentException(chronicle + " overflows the margin at leaf " + leaf);
+        }
+        List<Cell> cells = new ArrayList<>();
+        for (int x : new int[] { RIGHT_MARGIN_X, LEFT_MARGIN_X }) {
+            stack(title, x, titleTop, cells);
+            stack(section, x, sectionTop, cells);
+            stack(number, x, numberTop, cells);
+        }
+        return List.copyOf(cells);
+    }
+
+    private static void stack(List<String> glyphs, int x, int top, List<Cell> cells) {
+        for (int at = 0; at < glyphs.size(); at++) cells.add(new Cell(glyphs.get(at), x, top + at * MARGIN_PITCH));
+    }
+
+    private static List<Chronicle.Token> tokens(String text) {
+        return split(text).stream().map(glyph -> new Chronicle.Token(glyph, Chronicle.Mark.NONE)).toList();
+    }
+
+    private static boolean closes(String glyph) {
+        return NO_COLUMN_START.contains(glyph) || Chronicle.CLOSINGS.contains(glyph);
     }
 
     static List<Cell> layText(List<Booklet.Paragraph> paragraphs, int columns, boolean traditional) {
@@ -116,5 +220,12 @@ final class BookletLayout {
 
     record Plate(int iconX, int iconY, List<Cell> caption) {}
 
-    record Spread(List<Cell> text, @Nullable Plate plate) {}
+    record Dot(int x, int y, int size, boolean stop) {}
+
+    private record Placed(Chronicle.Token token, int row) {}
+
+    record Spread(List<Cell> text, @Nullable Plate plate, List<Dot> dots, List<Cell> margin) {
+
+        Spread(List<Cell> text, @Nullable Plate plate) { this(text, plate, List.of(), List.of()); }
+    }
 }

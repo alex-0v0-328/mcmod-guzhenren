@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 
-public enum Booklet {
+public enum Booklet implements BookletText {
 
     GU_ATLAS_HOPE(new Figure("hope_gu", Rank.ONE, GuPath.HUMAN, "希望蛊", "希望蠱"),
             new Paragraph(Role.ATTRIBUTE, "一转　人道　蛊虫", "一轉　人道　蠱蟲"),

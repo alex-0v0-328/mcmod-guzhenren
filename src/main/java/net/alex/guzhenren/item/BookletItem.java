@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 书册物品：主手或副手右键打开对应的 {@link Booklet} 阅读界面。
+ * 书册物品：主手或副手右键打开对应书文（{@link BookletText}）的阅读界面。
  * <ul>
  *   <li>纯阅读物品：最大堆叠为 1，使用时既不消耗也不修改双端状态；直接继承 {@link Item}（原版 {@code BookItem} 代表可附
  *       魔的空白书，语义不符）。</li>
@@ -27,16 +27,16 @@ import org.jetbrains.annotations.NotNull;
 public final class BookletItem extends Item {
 
     private static Consumer<BookletItem> reader = item -> {};
-    private final Booklet booklet;
+    private final BookletText text;
 
-    public BookletItem(Properties properties, Booklet booklet) {
+    public BookletItem(Properties properties, BookletText text) {
         super(properties.stacksTo(1));
-        this.booklet = booklet;
+        this.text = text;
     }
 
     public static void readOnClient(Consumer<BookletItem> reader) { BookletItem.reader = reader; }
 
-    public Booklet getBooklet() { return booklet; }
+    public BookletText getText() { return text; }
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,

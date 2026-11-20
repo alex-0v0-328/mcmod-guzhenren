@@ -4,6 +4,7 @@ import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.item.Booklet;
 import net.alex.guzhenren.item.BookletItem;
+import net.alex.guzhenren.item.Chronicle;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.item.ModCreativeTabs;
@@ -52,11 +53,32 @@ public final class BookletGameTests {
     @GameTest(template = "empty9x9x9")
     public static void guAtlasHopeIsOneBookletOfItsText(GameTestHelper helper) {
         Item item = ModItems.GU_ATLAS_HOPE.get();
-        assertTrue(item instanceof BookletItem booklet && booklet.getBooklet() == Booklet.GU_ATLAS_HOPE,
+        assertTrue(item instanceof BookletItem booklet && booklet.getText() == Booklet.GU_ATLAS_HOPE,
                 "Gu Atlas: Hope carries another text");
         assertFalse(item instanceof GuItem, "a booklet took on Gu properties");
         assertEquals(1, new ItemStack(item).getMaxStackSize());
         assertSame(ModItems.HOPE_GU.get(), Booklet.GU_ATLAS_HOPE.getFigure().orElseThrow().getItem());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void renzuZhuanShelvesItsSectionsInOrder(GameTestHelper helper) {
+        List<Chronicle> sections = Chronicle.sections(Chronicle.Book.RENZU_ZHUAN);
+        assertEquals(sections.size(), ModItems.RENZU_ZHUAN.size());
+        List<Item> shelf = getShown(helper, ModCreativeTabs.BOOKLET.get());
+        for (int at = 0; at < sections.size(); at++) {
+            Item item = ModItems.RENZU_ZHUAN.get(at).get();
+            assertEquals(Guzhenren.id("renzu_zhuan_" + (at + 1)), ModItems.RENZU_ZHUAN.get(at).getId());
+            assertTrue(item instanceof BookletItem booklet && sections.get(at).equals(booklet.getText()),
+                    item + " carries another text");
+            assertEquals(1, new ItemStack(item).getMaxStackSize());
+            assertEquals(shelf.indexOf(ModItems.GU_ATLAS_HOPE.get()) + 1 + at, shelf.indexOf(item),
+                    item + " is out of order on the booklet tab");
+        }
+        for (boolean traditional : new boolean[] { false, true }) {
+            assertEquals("困境和希望", sections.getFirst().title(traditional), "the mod loader hides the section texts");
+            assertTrue(sections.getLast().read(traditional).size() > 1000, "the last section reads short");
+        }
         helper.succeed();
     }
 

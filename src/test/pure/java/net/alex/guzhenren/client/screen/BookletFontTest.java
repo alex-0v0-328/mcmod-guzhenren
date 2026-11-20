@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import net.alex.guzhenren.item.Booklet;
+import net.alex.guzhenren.item.Chronicle;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,18 +37,38 @@ class BookletFontTest {
         assertCovers("booklet_hant", true);
     }
 
-    private static void assertCovers(String font, boolean traditional) throws IOException {
+    @Test
+    @DisplayName("the 8-pixel margin fonts hold every glyph the chronicles print in their margins")
+    void marginFontsCoverTheChronicles() throws IOException {
+        for (boolean traditional : new boolean[] { false, true }) {
+            Set<Integer> shipped = readShipped(traditional ? "booklet_margin_hant" : "booklet_margin_hans", 8);
+            Set<String> missing = new TreeSet<>();
+            for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.RENZU_ZHUAN)) {
+                for (BookletLayout.Spread spread : BookletLayout.layChronicle(chronicle, traditional)) {
+                    spread.margin().stream().map(BookletLayout.Cell::glyph)
+                            .filter(glyph -> !shipped.contains(glyph.codePointAt(0))).forEach(missing::add);
+                }
+            }
+            assertTrue(missing.isEmpty(), "margin font lacks " + String.join("", missing) + RERUN);
+        }
+    }
+
+    private static Set<Integer> readShipped(String font, int cell) throws IOException {
         JsonObject provider = readFont(font);
         assertEquals("bitmap", provider.get("type").getAsString());
-        assertEquals(12, provider.get("height").getAsInt(), "one glyph pixel to one GUI pixel" + RERUN);
+        assertEquals(cell, provider.get("height").getAsInt(), "one glyph pixel to one GUI pixel" + RERUN);
         assertEquals(7, provider.get("ascent").getAsInt(), "a cell's top sits on the y it is drawn at" + RERUN);
         List<String> rows = new ArrayList<>();
         provider.getAsJsonArray("chars").forEach(row -> rows.add(row.getAsString()));
         BufferedImage sheet = readSheet(font);
-        assertEquals(rows.getFirst().codePointCount(0, rows.getFirst().length()) * 12, sheet.getWidth(), font + RERUN);
-        assertEquals(rows.size() * 12, sheet.getHeight(), font + RERUN);
+        assertEquals(rows.getFirst().codePointCount(0, rows.getFirst().length()) * cell, sheet.getWidth(),
+                font + RERUN);
+        assertEquals(rows.size() * cell, sheet.getHeight(), font + RERUN);
+        return rows.stream().flatMapToInt(String::codePoints).boxed().collect(Collectors.toSet());
+    }
 
-        Set<Integer> shipped = rows.stream().flatMapToInt(String::codePoints).boxed().collect(Collectors.toSet());
+    private static void assertCovers(String font, boolean traditional) throws IOException {
+        Set<Integer> shipped = readShipped(font, 12);
         Set<String> missing = new TreeSet<>();
         for (Booklet booklet : Booklet.values()) {
             List<String> texts = new ArrayList<>();
@@ -55,6 +76,12 @@ class BookletFontTest {
             booklet.getFigure().ifPresent(figure -> texts.add(figure.caption(traditional)));
             texts.forEach(text -> text.codePoints().filter(glyph -> !Character.isWhitespace(glyph))
                     .filter(glyph -> !shipped.contains(glyph)).forEach(glyph -> missing.add(Character.toString(glyph))));
+        }
+        for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.RENZU_ZHUAN)) {
+            for (BookletLayout.Spread spread : BookletLayout.layChronicle(chronicle, traditional)) {
+                spread.text().stream().map(BookletLayout.Cell::glyph)
+                        .filter(glyph -> !shipped.contains(glyph.codePointAt(0))).forEach(missing::add);
+            }
         }
         assertTrue(missing.isEmpty(), font + " lacks " + String.join("", missing) + RERUN);
     }

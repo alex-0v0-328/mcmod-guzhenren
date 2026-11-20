@@ -1,0 +1,14 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "guzhenren:font/booklet_margin_hant.png",
+      "height": 8,
+      "ascent": 7,
+      "chars": [
+        "一七三九二五人传傳八六十四祖第節",
+        "終终节\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      ]
+    }
+  ]
+}

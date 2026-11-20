@@ -25,7 +25,8 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
  *   <li>九叶生机草[Nine Leaf Vitality Grass]（{@link ItemModel#LEAF_STAGES}）默认使用 {@code _full} 贴图，并按采摘属性
  *       {@link NineLeafVitalityGrassItem#PICKED} 覆盖切换为 {@code _half} 与 {@code _empty}；进度数字图标
  *       （{@link ItemModel#NUMERALS}，{@link #registerNumeralItem}）以 {@code _0} 为底，按转数与阶段升序写入
- *       {@code custom_model_data} 覆盖项（原版按最后一个达到阈值的覆盖项生效）。</li>
+ *       {@code custom_model_data} 覆盖项（原版按最后一个达到阈值的覆盖项生效）；成套物品（{@link ItemModel#SERIES}）
+ *       共用去掉末尾序号的贴图。</li>
  *   <li>⚠ {@link #registerModels} 会校验 {@link ModItems#ITEMS} 中的每个注册项是否均经过 {@link ItemRegistrar} 登记，且
  *       模型构造器通过 {@link ExistingFileHelper} 强制校验贴图文件存在，确保漏登记或缺失 PNG 在 {@code runData} 阶段直
  *       接报错。</li>
@@ -62,6 +63,8 @@ public class ModItemModelProvider extends ItemModelProvider {
             case FLUID -> getBuilder(name).parent(GENERATED).texture("layer0", modLoc("block/" + name + "_still"));
             case LEAF_STAGES -> registerLeafStagedItem(name);
             case NUMERALS -> registerNumeralItem(name);
+            case SERIES -> getBuilder(name).parent(GENERATED)
+                    .texture("layer0", modLoc("item/" + name.replaceFirst("_\\d+$", "")));
         };
     }
 

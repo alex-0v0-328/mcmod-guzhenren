@@ -75,7 +75,7 @@ class BookletFontTest(unittest.TestCase):
 
     def test_sheet_lays_cells_sixteen_a_row_with_padded_chars(self):
         chars = ["一"] * 16 + ["︐"]
-        outputs = fonts.cut(chars, self.root / "font.bdf", "hans")
+        outputs = fonts.cut(chars, self.root / "font.bdf", "booklet_hans")
         font = json.loads(outputs[fonts.RESOURCES / "assets/guzhenren/font/booklet_hans.json"])
         provider = font["providers"][0]
         self.assertEqual(("bitmap", "guzhenren:font/booklet_hans.png", 12, 7),
@@ -86,9 +86,23 @@ class BookletFontTest(unittest.TestCase):
         self.assertIn((15 * 12 + 10, 1), ink)
         self.assertEqual({(8, 14), (9, 14), (8, 15), (9, 15)}, {(x, y) for x, y in ink if y >= 12})
 
+    def test_chronicle_texts_give_their_han_glyphs_only(self):
+        texts = self.root / "booklets" / "book" / "zh_hans"
+        texts.mkdir(parents=True)
+        (texts / "01.txt").write_text("节题\n人道：“一，二。”\n", encoding="utf-8")
+        (texts / "notes.md").write_text("不算", encoding="utf-8")
+        self.assertEqual(sorted("节题人道一二"), fonts.collect_texts(self.root / "booklets"))
+
+    def test_a_smaller_cell_refuses_a_glyph_that_spills(self):
+        outputs = fonts.cut(["︐"], self.root / "font.bdf", "booklet_margin_hans", 10)
+        font = json.loads(outputs[fonts.RESOURCES / "assets/guzhenren/font/booklet_margin_hans.json"])
+        self.assertEqual(10, font["providers"][0]["height"])
+        with self.assertRaisesRegex(ValueError, "spills out of its 8x8 cell"):
+            fonts.cut(["一"], self.root / "font.bdf", "booklet_margin_hans", 8)
+
     def test_a_glyph_missing_from_the_bdf_names_itself(self):
         with self.assertRaisesRegex(ValueError, "lacks 二"):
-            fonts.cut(["一", "二"], self.root / "font.bdf", "hans")
+            fonts.cut(["一", "二"], self.root / "font.bdf", "booklet_hans")
 
     def test_license_text_drops_trailing_whitespace_only(self):
         self.assertEqual(b"a\n  b\n\nc", fonts.license_text(b"a \n  b\t\n \nc  "))
@@ -99,7 +113,8 @@ class BookletFontTest(unittest.TestCase):
         outputs = {Path("same.txt"): b"a", Path("other.txt"): b"b", Path("missing.txt"): b"c"}
         self.assertEqual([Path("other.txt"), Path("missing.txt")], fonts.stale(self.root, outputs))
 
-    @unittest.skipUnless(fonts.FONT_ROOT.is_dir(), "the Fusion Pixel release is not on this machine")
+    @unittest.skipUnless(fonts.FONT_ROOT.is_dir() and fonts.MARGIN_ROOT.is_dir(),
+                         "the Fusion Pixel releases are not on this machine")
     def test_shipped_fonts_match_a_fresh_cut(self):
         outputs = fonts.build(fonts.env.REPOSITORY_ROOT, fonts.FONT_ROOT)
         self.assertEqual([], fonts.stale(fonts.env.REPOSITORY_ROOT, outputs),

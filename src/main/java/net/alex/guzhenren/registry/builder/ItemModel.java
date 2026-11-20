@@ -10,7 +10,9 @@ package net.alex.guzhenren.registry.builder;
  *   <li>{@link #LEAF_STAGES} 为九叶生机草[Nine Leaf Vitality Grass]按 {@code picked} 属性在 {@code _full}、
  *       {@code _half} 与 {@code _empty} 间切换；{@link #NUMERALS} 为进度数字图标按 {@code custom_model_data} 在
  *       {@code _0} 起各转阶编号模型间切换。</li>
+ *   <li>{@link #SERIES} 为成套物品（如分节古籍 {@code renzu_zhuan_<n>}）共用去掉末尾 {@code _<序号>} 的同一张贴
+ *       图。</li>
  * </ul>
  */
 
-public enum ItemModel { FLAT, BLOCK, FLUID, LEAF_STAGES, NUMERALS }
+public enum ItemModel { FLAT, BLOCK, FLUID, LEAF_STAGES, NUMERALS, SERIES }

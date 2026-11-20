@@ -1,6 +1,7 @@
 package net.alex.guzhenren.registry.item;
 
 import com.google.common.math.IntMath;
+import java.util.List;
 import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
@@ -27,6 +28,7 @@ import net.alex.guzhenren.gameplay.rewind.ChunkKind;
 import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.Booklet;
 import net.alex.guzhenren.item.BookletItem;
+import net.alex.guzhenren.item.Chronicle;
 import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.GuType;
@@ -1002,9 +1004,17 @@ public final class ModItems {
     public static final DeferredItem<Item> GU_ATLAS_HOPE = REGISTRAR.item("gu_atlas_hope",
             () -> new BookletItem(new Item.Properties(), Booklet.GU_ATLAS_HOPE))
             .lang("Gu Atlas: Hope", "蛊虫图说：希望").register();
+    public static final List<DeferredItem<Item>> RENZU_ZHUAN = registerChronicle(Chronicle.Book.RENZU_ZHUAN);
     public static final DeferredItem<Item> GU_RECIPE = REGISTRAR.item("gu_recipe",
             () -> new GuRecipeItem(new Item.Properties()))
             .lang("Gu Recipe", "蛊方").register();
+
+    private static List<DeferredItem<Item>> registerChronicle(Chronicle.Book book) {
+        return Chronicle.sections(book).stream().map(section -> REGISTRAR.item(book.id() + "_" + section.section(),
+                        () -> new BookletItem(new Item.Properties(), section))
+                .lang(book.english() + " • Section " + section.section(), section.itemName(false))
+                .model(ItemModel.SERIES).register()).toList();
+    }
     //endregion
 
     //region Advancement Icon [进度图标]

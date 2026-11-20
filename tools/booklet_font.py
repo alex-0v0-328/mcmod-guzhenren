@@ -1,15 +1,19 @@
-"""Bitmap fonts for the booklets [书册], cut from the Fusion Pixel 12px monospaced BDF fonts.
+"""Bitmap fonts for the booklets [书册], cut from the Fusion Pixel 12px and 8px monospaced BDF fonts.
 
-    python -B tools/booklet_font.py            cut every glyph Booklet.java uses into both fonts, copy the licenses
+    python -B tools/booklet_font.py            cut every glyph the booklets use into the fonts, copy the licenses
     python -B tools/booklet_font.py --check    fail when the shipped fonts or licenses differ from a fresh cut
 
-Collects every non-ASCII, non-space code point from the string literals of Booklet.java and cuts each one from the
-zh_hans and the zh_hant BDF into a 12x12 cell, one glyph pixel to one GUI pixel, white ink on transparency. Each
-script becomes a bitmap font: assets/guzhenren/font/booklet_<script>.json over textures/font/booklet_<script>.png,
-16 cells a row, height 12 and ascent 7, so a glyph's cell top sits on the y it is drawn at. Both fonts hold the
-whole set; the screen picks hant under zh_tw and hans everywhere else. The SIL OFL texts of the font and the three
-fonts it merges go to licenses/fusion-pixel-font/. BookletFontTest fails when a booklet uses a glyph the shipped
-fonts lack; this script is the fix.
+The text fonts take every non-ASCII, non-space code point from the string literals of Booklet.java and
+Chronicle.java, plus every Han glyph of the chronicle texts under assets/guzhenren/booklets/ (their modern
+punctuation never shows: Chronicle turns it into brackets and red marks). Each glyph is cut from the zh_hans and the
+zh_hant 12px BDF into a 12x12 cell, one glyph pixel to one GUI pixel, white ink on transparency, giving
+assets/guzhenren/font/booklet_<script>.json over textures/font/booklet_<script>.png. The margin fonts
+booklet_margin_<script> take the Han glyphs of Chronicle.java's literals (book titles, numerals, 第, 节, 终) from the
+8px BDF into 8x8 cells for the 9-pixel margin strips. Every sheet has 16 cells a row and ascent 7, so a glyph's cell
+top sits on the y it is drawn at; each font holds both scripts' glyphs, and the screen picks hant under zh_tw and
+hans everywhere else. The SIL OFL texts of each release and the fonts it merges go to licenses/fusion-pixel-font/
+and licenses/fusion-pixel-font-8px/. BookletFontTest fails when a booklet uses a glyph the shipped fonts lack; this
+script is the fix.
 """
 from __future__ import annotations
 
@@ -26,11 +30,17 @@ import project_runtime as env
 
 
 FONT_ROOT = env.REPOSITORY_ROOT.parent / "assets" / "fonts" / "fusion-pixel-font-2026.10.25"
+MARGIN_ROOT = env.REPOSITORY_ROOT.parent / "assets" / "fonts" / "fusion-pixel-font-8px-2026.10.25"
 BOOKLET_SOURCE = Path("src/main/java/net/alex/guzhenren/item/Booklet.java")
+CHRONICLE_SOURCE = Path("src/main/java/net/alex/guzhenren/item/Chronicle.java")
 RESOURCES = Path("src/main/resources")
+CHRONICLE_TEXTS = RESOURCES / "assets/guzhenren/booklets"
 SCRIPTS = ("hans", "hant")
 LICENSES = ("OFL.txt", "LICENSES/ark-pixel/OFL.txt", "LICENSES/cubic-11/OFL.txt", "LICENSES/galmuri/LICENSE.txt")
+MARGIN_LICENSES = ("OFL.txt", "LICENSES/boutique-bitmap-7x7/OFL.txt", "LICENSES/galmuri/LICENSE.txt",
+                   "LICENSES/misaki/misaki.txt", "LICENSES/miseki-bitmap/LICENSE.txt")
 CELL = 12
+MARGIN_CELL = 8
 PER_ROW = 16
 ASCENT = 7
 LITERAL = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
@@ -57,6 +67,15 @@ def collect(java: str) -> list[str]:
     code = LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", java))
     glyphs = {char for literal in LITERAL.findall(code) for char in literal if ord(char) > 0x7F and not char.isspace()}
     return sorted(glyphs)
+
+
+def is_han(char: str) -> bool:
+    return "\u3400" <= char <= "\u9fff" or "\uf900" <= char <= "\ufaff" or char >= "\U00020000"
+
+
+def collect_texts(root: Path) -> list[str]:
+    return sorted({char for path in sorted(root.rglob("*.txt")) for char in path.read_text(encoding="utf-8")
+                   if is_han(char)})
 
 
 def load_bdf(path: Path, wanted: set[str]) -> tuple[int, dict[str, Glyph]]:
@@ -100,7 +119,7 @@ def encode_png(width: int, height: int, ink: set[tuple[int, int]]) -> bytes:
             + chunk(b"IEND", b""))
 
 
-def cut(chars: list[str], bdf: Path, script: str) -> dict[Path, bytes]:
+def cut(chars: list[str], bdf: Path, name: str, cell: int = CELL) -> dict[Path, bytes]:
     ascent, glyphs = load_bdf(bdf, set(chars))
     missing = [char for char in chars if char not in glyphs]
     if missing:
@@ -110,28 +129,33 @@ def cut(chars: list[str], bdf: Path, script: str) -> dict[Path, bytes]:
     for row, line in enumerate(rows):
         for column, char in enumerate(line):
             for x, y in glyphs[char].pixels(ascent):
-                if not (0 <= x < CELL and 0 <= y < CELL):
-                    raise ValueError(f"{char} spills out of its {CELL}x{CELL} cell in {bdf.name}")
-                ink.add((column * CELL + x, row * CELL + y))
-    name = f"booklet_{script}"
-    provider = {"type": "bitmap", "file": f"guzhenren:font/{name}.png", "height": CELL, "ascent": ASCENT,
+                if not (0 <= x < cell and 0 <= y < cell):
+                    raise ValueError(f"{char} spills out of its {cell}x{cell} cell in {bdf.name}")
+                ink.add((column * cell + x, row * cell + y))
+    provider = {"type": "bitmap", "file": f"guzhenren:font/{name}.png", "height": cell, "ascent": ASCENT,
                 "chars": ["".join(line).ljust(PER_ROW, "\u0000") for line in rows]}
     font = json.dumps({"providers": [provider]}, ensure_ascii=False, indent=2) + "\n"
     return {RESOURCES / "assets/guzhenren/font" / f"{name}.json": font.encode("utf-8"),
             RESOURCES / "assets/guzhenren/textures/font" / f"{name}.png":
-                encode_png(PER_ROW * CELL, len(rows) * CELL, ink)}
+                encode_png(PER_ROW * cell, len(rows) * cell, ink)}
 
 
-def build(repository: Path, source: Path) -> dict[Path, bytes]:
-    chars = collect((repository / BOOKLET_SOURCE).read_text(encoding="utf-8"))
-    if not chars:
-        raise ValueError(f"{BOOKLET_SOURCE} holds no glyphs")
+def build(repository: Path, source: Path, margin_source: Path = MARGIN_ROOT) -> dict[Path, bytes]:
+    chronicle = collect((repository / CHRONICLE_SOURCE).read_text(encoding="utf-8"))
+    chars = sorted({*collect((repository / BOOKLET_SOURCE).read_text(encoding="utf-8")), *chronicle,
+                    *collect_texts(repository / CHRONICLE_TEXTS)})
+    margin = [char for char in chronicle if is_han(char)]
+    if not margin:
+        raise ValueError(f"{CHRONICLE_SOURCE} holds no Han glyphs")
     outputs: dict[Path, bytes] = {}
     for script in SCRIPTS:
-        outputs.update(cut(chars, source / f"fusion-pixel-12px-monospaced-zh_{script}.bdf", script))
-    for license_file in LICENSES:
-        outputs[RESOURCES / "licenses/fusion-pixel-font" / license_file] = license_text(
-            (source / license_file).read_bytes())
+        outputs.update(cut(chars, source / f"fusion-pixel-12px-monospaced-zh_{script}.bdf", f"booklet_{script}"))
+        outputs.update(cut(margin, margin_source / f"fusion-pixel-8px-monospaced-zh_{script}.bdf",
+                           f"booklet_margin_{script}", MARGIN_CELL))
+    for folder, root, files in (("fusion-pixel-font", source, LICENSES),
+                                ("fusion-pixel-font-8px", margin_source, MARGIN_LICENSES)):
+        for license_file in files:
+            outputs[RESOURCES / "licenses" / folder / license_file] = license_text((root / license_file).read_bytes())
     return outputs
 
 
@@ -148,10 +172,12 @@ def stale(repository: Path, outputs: dict[Path, bytes]) -> list[Path]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true", help="report stale outputs instead of writing them")
-    parser.add_argument("--source", type=Path, default=FONT_ROOT, help="the Fusion Pixel release folder")
+    parser.add_argument("--source", type=Path, default=FONT_ROOT, help="the Fusion Pixel 12px release folder")
+    parser.add_argument("--margin-source", type=Path, default=MARGIN_ROOT,
+                        help="the Fusion Pixel 8px release folder")
     parser.add_argument("--repository", type=Path, default=env.REPOSITORY_ROOT, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
-    outputs = build(args.repository, args.source)
+    outputs = build(args.repository, args.source, args.margin_source)
     changed = stale(args.repository, outputs)
     if args.check:
         for path in changed:

@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +9,18 @@ import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.item.Booklet;
 import net.alex.guzhenren.item.BookletItem;
+import net.alex.guzhenren.item.Chronicle;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.PageButton;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +38,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>蛊方图册（{@link #openRecipe}）右半页排该蛊方的书文（数据包蛊方没有书文则留空），左半页按 {@link GuRecipe} 画
  *       5×5 缺角网格：每组材料画在组内首格并标数量，可放该材料的其余格浅色打底；网格下方是产物图标和名字，悬停出物
  *       品提示。</li>
+ *   <li>古籍（{@link Chronicle}）有多个跨页，右开：左侧箭头、← 键、PageDown、滚轮向下翻到下一页，右侧箭头、→ 键、
+ *       PageUp、滚轮向上翻回；每次打开从首页读。书口字用 8 像素的 {@code booklet_margin_*} 字体，圈点以朱色
+ *       {@code #c23b22} 直接填像素。</li>
+ *   <li>翻页都播翻书声（按钮自身不播，免得点击时响两次）。</li>
+ *   <li>⚠ 多页时方向键与 PageUp、PageDown 一律在此吞掉、先于原版焦点导航，到首末页也不放行，否则焦点会落到翻页按钮
+ *       上，回车即误翻。</li>
  *   <li>{@link #open} 在客户端初始化时注册回调给 {@link BookletItem} 使用；交互行为沿用原版书本（Esc 关闭、单人暂
  *       停、旁白播报书名）。</li>
  * </ul>
@@ -43,9 +54,14 @@ public final class BookletScreen extends Screen {
     private static final ResourceLocation SPREAD = Guzhenren.id("book_spread");
     private static final ResourceLocation HANS = Guzhenren.id("booklet_hans");
     private static final ResourceLocation HANT = Guzhenren.id("booklet_hant");
+    private static final ResourceLocation MARGIN_HANS = Guzhenren.id("booklet_margin_hans");
+    private static final ResourceLocation MARGIN_HANT = Guzhenren.id("booklet_margin_hant");
     private static final String TRADITIONAL = "zh_tw";
     private static final int INK = 0xFF2F2925;
     private static final int PAPER = 0xFFE0D0A5;
+    private static final int VERMILION = 0xFFC23B22;
+    private static final int TURN_WIDTH = 23;
+    private static final int TURN_LIFT = 20;
     private static final float ICON_SCALE = BookletLayout.ICON / 16.0F;
     private static final int GRID_PITCH = 20;
     private static final int GRID_CELL = 18;
@@ -55,34 +71,43 @@ public final class BookletScreen extends Screen {
     private static final int RESULT_Y = GRID_Y + GuRecipe.GRID_ROWS * GRID_PITCH + 10;
     private static final int CELL_RULE = 0x802F2925;
     private static final int GROUP_TINT = 0x262F2925;
-    private final List<Glyph> glyphs = new ArrayList<>();
-    private final @Nullable BookletLayout.Plate plate;
+    private final List<Page> pages = new ArrayList<>();
     private final ItemStack icon;
     private final @Nullable GuRecipe recipe;
+    private int page;
     private int leftPos;
     private int topPos;
+    private @Nullable PageButton next;
+    private @Nullable PageButton previous;
 
-    private BookletScreen(Component title, BookletLayout.Spread spread, ItemStack icon, ResourceLocation font,
+    private BookletScreen(Component title, List<BookletLayout.Spread> spreads, ItemStack icon, boolean traditional,
                           @Nullable GuRecipe recipe) {
         super(title);
-        this.plate = spread.plate();
         this.icon = icon;
         this.recipe = recipe;
-        List<BookletLayout.Cell> cells = new ArrayList<>(spread.text());
-        if (plate != null) cells.addAll(plate.caption());
-        for (BookletLayout.Cell cell : cells) {
-            glyphs.add(new Glyph(Component.literal(cell.glyph()).withStyle(style -> style.withFont(font))
-                    .getVisualOrderText(), cell.x(), cell.y()));
+        ResourceLocation font = traditional ? HANT : HANS;
+        ResourceLocation marginFont = traditional ? MARGIN_HANT : MARGIN_HANS;
+        for (BookletLayout.Spread spread : spreads) {
+            List<BookletLayout.Cell> cells = new ArrayList<>(spread.text());
+            if (spread.plate() != null) cells.addAll(spread.plate().caption());
+            List<Glyph> glyphs = new ArrayList<>(glyphs(cells, font));
+            glyphs.addAll(glyphs(spread.margin(), marginFont));
+            pages.add(new Page(List.copyOf(glyphs), spread.dots(), spread.plate()));
         }
     }
 
     public static void open(BookletItem item) {
         Minecraft minecraft = Minecraft.getInstance();
         boolean traditional = TRADITIONAL.equals(minecraft.getLanguageManager().getSelected());
-        Booklet booklet = item.getBooklet();
-        ItemStack icon = booklet.getFigure().map(figure -> new ItemStack(figure.getItem())).orElse(ItemStack.EMPTY);
-        minecraft.setScreen(new BookletScreen(item.getDescription(), BookletLayout.lay(booklet, traditional), icon,
-                traditional ? HANT : HANS, null));
+        BookletScreen screen = switch (item.getText()) {
+            case Booklet booklet -> new BookletScreen(item.getDescription(),
+                    List.of(BookletLayout.lay(booklet, traditional)),
+                    booklet.getFigure().map(figure -> new ItemStack(figure.getItem())).orElse(ItemStack.EMPTY),
+                    traditional, null);
+            case Chronicle chronicle -> new BookletScreen(item.getDescription(),
+                    BookletLayout.layChronicle(chronicle, traditional), ItemStack.EMPTY, traditional, null);
+        };
+        minecraft.setScreen(screen);
     }
 
     public static void openRecipe(ResourceLocation id) {
@@ -94,21 +119,74 @@ public final class BookletScreen extends Screen {
         BookletLayout.Spread spread = Booklet.forRecipe(id).map(booklet -> BookletLayout.lay(booklet, traditional))
                 .orElse(new BookletLayout.Spread(List.of(), null));
         ItemStack result = RecipeGhosts.getResult(recipe);
-        minecraft.setScreen(new BookletScreen(result.getHoverName(), spread, ItemStack.EMPTY,
-                traditional ? HANT : HANS, recipe));
+        minecraft.setScreen(new BookletScreen(result.getHoverName(), List.of(spread), ItemStack.EMPTY, traditional,
+                recipe));
+    }
+
+    private static List<Glyph> glyphs(List<BookletLayout.Cell> cells, ResourceLocation font) {
+        return cells.stream().map(cell -> new Glyph(Component.literal(cell.glyph())
+                .withStyle(style -> style.withFont(font)).getVisualOrderText(), cell.x(), cell.y())).toList();
     }
 
     @Override
     protected void init() {
         leftPos = (width - BookletLayout.WIDTH) / 2;
         topPos = (height - BookletLayout.HEIGHT) / 2;
+        if (pages.size() < 2) return;
+        int y = topPos + BookletLayout.HEIGHT - TURN_LIFT;
+        next = addRenderableWidget(new PageButton(leftPos - TURN_WIDTH - 1, y, false, button -> turn(1), false));
+        previous = addRenderableWidget(new PageButton(leftPos + BookletLayout.WIDTH + 1, y, true,
+                button -> turn(-1), false));
+        updateButtons();
     }
+
+    //region page turning [翻页]
+    private boolean turn(int step) {
+        int target = Math.clamp(page + step, 0, pages.size() - 1);
+        if (target == page) return false;
+        page = target;
+        updateButtons();
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+        return true;
+    }
+
+    private void updateButtons() {
+        if (next != null) next.visible = page + 1 < pages.size();
+        if (previous != null) previous.visible = page > 0;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (pages.size() > 1) {
+            switch (keyCode) {
+                case InputConstants.KEY_LEFT, InputConstants.KEY_PAGEDOWN -> {
+                    turn(1);
+                    return true;
+                }
+                case InputConstants.KEY_RIGHT, InputConstants.KEY_PAGEUP -> {
+                    turn(-1);
+                    return true;
+                }
+                default -> { }
+            }
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY != 0.0) return turn(scrollY < 0.0 ? 1 : -1);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+    //endregion
 
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         SpriteBatch.draw(graphics, sprites ->
                 sprites.blit(SPREAD, leftPos, topPos, BookletLayout.WIDTH, BookletLayout.HEIGHT));
+        Page shown = pages.get(page);
+        BookletLayout.Plate plate = shown.plate();
         if (plate != null) {
             int x = leftPos + BookletLayout.LEFT_X;
             int y = topPos + BookletLayout.TOP;
@@ -122,10 +200,26 @@ public final class BookletScreen extends Screen {
         }
         if (recipe != null) renderRecipe(graphics, recipe, mouseX, mouseY);
         GuiBatch.draw(graphics, () -> {
-            for (Glyph glyph : glyphs) {
+            for (Glyph glyph : shown.glyphs()) {
                 graphics.drawString(font, glyph.text(), leftPos + glyph.x(), topPos + glyph.y(), INK, false);
             }
         });
+        for (BookletLayout.Dot dot : shown.dots()) renderDot(graphics, dot);
+        for (var widget : renderables) widget.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderDot(GuiGraphics graphics, BookletLayout.Dot dot) {
+        int x = leftPos + dot.x();
+        int y = topPos + dot.y();
+        int size = dot.size();
+        if (!dot.stop()) {
+            graphics.fill(x, y, x + size, y + size, VERMILION);
+            return;
+        }
+        graphics.fill(x, y, x + size, y + 1, VERMILION);
+        graphics.fill(x, y + size - 1, x + size, y + size, VERMILION);
+        graphics.fill(x, y + 1, x + 1, y + size - 1, VERMILION);
+        graphics.fill(x + size - 1, y + 1, x + size, y + size - 1, VERMILION);
     }
 
     //region the recipe grid on the left half-page [左半页蛊方网格]
@@ -192,4 +286,6 @@ public final class BookletScreen extends Screen {
     //endregion
 
     private record Glyph(FormattedCharSequence text, int x, int y) {}
+
+    private record Page(List<Glyph> glyphs, List<BookletLayout.Dot> dots, @Nullable BookletLayout.Plate plate) {}
 }

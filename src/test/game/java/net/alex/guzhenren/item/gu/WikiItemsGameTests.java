@@ -507,7 +507,7 @@ public final class WikiItemsGameTests {
                 group(Table.MATERIAL, "元泉", "spirit_spring"),
                 group(Table.MATERIAL, "纯水", "pure_water_bucket"),
                 group(Table.MATERIAL, "杀招", "km_mortal_little_light_amplify"),
-                group(Table.MATERIAL, "书册", "gu_atlas_hope"),
+                group(Table.MATERIAL, "书册", "gu_atlas_hope " + ladder("renzu_zhuan_", 1, 38)),
                 group(Table.MATERIAL, "蛊方", "gu_recipe"),
                 group(Table.MATERIAL, "进度图标", "advancement_icon"));
     }
