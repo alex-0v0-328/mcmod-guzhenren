@@ -10,8 +10,8 @@ import net.minecraft.util.Mth;
 /**
  * 空窍资质[Aptitude]枚举：由空窍基础真元百分比（{@link Aperture#baseEssence}）实时推导，不单独落盘。
  * <ul>
- *   <li>封闭词汇枚举，兄弟模组不得新增；统一定义各档百分比区间、抽取权重、真元自然回复倍率与 Epic Fight 耐力加成百分
- *       比；{@link #NONE} 不可直接设置，{@link #shift} 夹取在 {@link #TEN_EXTREMES} 至 {@link #FOURTH} 之间。</li>
+ *   <li>封闭词汇枚举，兄弟模组不得新增；统一定义各档百分比区间、抽取权重与真元自然回复倍率；{@link #NONE} 不可直接设
+ *       置，{@link #shift} 夹取在 {@link #TEN_EXTREMES} 至 {@link #FOURTH} 之间。</li>
  *   <li>{@link #formatPercent} 将基础真元数值格式化为中文「几成几」（如 85 为「八成五」），供 HUD 与开窍[Awakening]播报
  *       共用。</li>
  *   <li>⚠ 枚举常量按从高到低声明，因此提升资质 {@code shift(+1)} 对应 {@code ordinal - 1}，切勿按声明顺序反向推算；
@@ -21,13 +21,13 @@ import net.minecraft.util.Mth;
 
 public enum Talent implements NamedEnum {
 
-    TEN_EXTREMES(100, 100, 10, 20, 50),
-    FIRST(80, 99, 20, 8, 20),
-    SECOND(60, 79, 30, 4, 20),
-    THIRD(40, 59, 30, 2, 10),
-    FOURTH(20, 39, 10, 1, 10),
+    TEN_EXTREMES(100, 100, 10, 20),
+    FIRST(80, 99, 20, 8),
+    SECOND(60, 79, 30, 4),
+    THIRD(40, 59, 30, 2),
+    FOURTH(20, 39, 10, 1),
 
-    NONE(0, 0, 0, 0, 0);
+    NONE(0, 0, 0, 0);
 
     public static final Talent HIGHEST = TEN_EXTREMES;
     public static final Talent LOWEST = FOURTH;
@@ -35,14 +35,12 @@ public enum Talent implements NamedEnum {
     private final int maxPercent;
     private final int weight;
     private final int regenRate;
-    private final int staminaMaxPercent;
 
-    Talent(int minPercent, int maxPercent, int weight, int regenRate, int staminaMaxPercent) {
+    Talent(int minPercent, int maxPercent, int weight, int regenRate) {
         this.minPercent = minPercent;
         this.maxPercent = maxPercent;
         this.weight = weight;
         this.regenRate = regenRate;
-        this.staminaMaxPercent = staminaMaxPercent;
     }
 
     public int getMinPercent() { return minPercent; }
@@ -52,8 +50,6 @@ public enum Talent implements NamedEnum {
     public int getWeight() { return weight; }
 
     public int getRegenRate() { return regenRate; }
-
-    public int getStaminaMaxPercent() { return staminaMaxPercent; }
 
     public Talent shift(int delta) {
         return values()[Mth.clamp(ordinal() - delta, HIGHEST.ordinal(), LOWEST.ordinal())];

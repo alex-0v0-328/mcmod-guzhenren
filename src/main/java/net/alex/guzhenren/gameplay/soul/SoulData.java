@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>运行时仅由 {@link SoulService} 写入；紧凑构造器将 {@code maxSoul} 钳至 {@code >= 0}、{@code currentSoul} 钳
  *       至 {@code [0, maxSoul]}。</li>
- *   <li>⚠ 上限直接落盘存储而非从其他系统推导：魂魄独立于肉身与修为（对比 Epic Fight 耐力由战斗系统决定上
- *       限）。</li>
+ *   <li>⚠ 上限直接落盘存储而非从其他系统推导：魂魄独立于肉身与修为。</li>
  *   <li>⚠ {@link #withRevived()} 将当前魂魄置为 {@link #REVIVED_SOUL}（1）而非 0，且上限为 0 时恢复至
  *       {@link #DEFAULT_MAX_SOUL}，防止玩家重生后立即再次触发魂飞魄散致死。</li>
  * </ul>

@@ -56,7 +56,6 @@ class WikiConsistencyTest {
                     : List.of((long) talent.getMinPercent(), (long) talent.getMaxPercent()));
             row.expect("出现权重", List.of((long) talent.getWeight()));
             row.expect("自然回复倍率", List.of((long) talent.getRegenRate()));
-            row.expect("Epic Fight 耐力上限", List.of((long) talent.getStaminaMaxPercent()));
         }
         WikiTable mindPage = page(MIND_PAGE);
         String[] brillianceNames = { "普通", "尚可", "不俗", "卓越", "旷世" };

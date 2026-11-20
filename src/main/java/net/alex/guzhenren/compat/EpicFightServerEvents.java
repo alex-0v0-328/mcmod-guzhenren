@@ -2,7 +2,6 @@ package net.alex.guzhenren.compat;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.projectile.ProjectileThrownEvent;
-import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.body.ShieldRaisedEvent;
 import net.alex.guzhenren.gameplay.flight.SecondStageCrashEvent;
 import net.alex.guzhenren.gameplay.path.strength.BeastPhantomEvents;
@@ -11,7 +10,6 @@ import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrengthChargeEvent;
 import net.alex.guzhenren.gameplay.plunge.PlungeLandedEvent;
 import net.alex.guzhenren.item.gu.GuUsedEvent;
-import net.alex.guzhenren.lifecycle.PlayerRefreshedEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -31,9 +29,7 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 /**
  * Epic Fight 联动的服务端事件监听入口。
  * <ul>
- *   <li>服务端启动时调用 {@link EpicFightRuleSeed#seed} 初始化技能保留规则；空窍变更（{@link ApertureChangedEvent}）或
- *       玩家派生属性重建（{@link PlayerRefreshedEvent}）时调用 {@link EpicFightIntegration#refresh} 刷新耐力上限修饰
- *       符。</li>
+ *   <li>服务端启动时调用 {@link EpicFightRuleSeed#seed} 初始化技能保留规则。</li>
  *   <li>{@link #onCharge} 在服务端主动丢弃蓄力蛊[Store Strength Gu]原地蓄力（非可移动蓄力）时播放收臂取消动画；
  *       {@link #onPlayerTick} 每刻驱动 {@link EpicFightIntegration#tickMeditation}，随温养[Nourish]、开窍[Awakening]仪
  *       式与真元灌注的起止广播入座和起身动画。</li>
@@ -60,16 +56,6 @@ public final class EpicFightServerEvents {
 
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) { EpicFightRuleSeed.seed(event.getServer()); }
-
-    @SubscribeEvent
-    public static void onApertureChanged(ApertureChangedEvent event) {
-        EpicFightIntegration.refresh(event.getPlayer());
-    }
-
-    @SubscribeEvent
-    public static void onPlayerRefreshed(PlayerRefreshedEvent event) {
-        EpicFightIntegration.refresh(event.getPlayer());
-    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onStrikeDamage(LivingIncomingDamageEvent event) {

@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  *       {@code ModEvents.canGrief} 检查后交给 {@link AperturePressureExplosionTask#start} 分 tick 推进（若禁止破坏地
  *       形，伤害与自爆致死照常生效）。</li>
  *   <li>⚠ 压力变更通过 {@code setState} 直接写入 {@link PlayerData}，绕过 {@link ApertureService} 的 {@code store}，
- *       避免每次涨压都触发最大生命值与 Epic Fight 耐力刷新。</li>
+ *       避免每次涨压都触发最大生命值刷新。</li>
  *   <li>⚠ 压力字段位于 {@link Aperture} 且温养、冲刷窍壁均需泄压，故本服务留在 {@code gameplay.aperture} 包内，仅单向调
  *       用 {@code pressure} 子包的 {@link AperturePressureExplosionTask#start}，避免父子包循环依赖。</li>
  * </ul>

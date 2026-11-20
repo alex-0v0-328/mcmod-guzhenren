@@ -1,6 +1,5 @@
 package net.alex.guzhenren.lifecycle;
 
-import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
@@ -31,9 +30,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>NeoForge 克隆体默认继承 {@link PlayerData} 全部附件，因此由本类唯一裁定死亡代价：非 {@code keepInventory} 死亡
  *       时在尸体处掉落各空窍对应转数的人窍[Human Aperture]（{@link #dropHumanApertures}）并执行 {@link #resetAll} 全量
  *       重置，{@code keepInventory} 死亡仅清空维度返回点与当前激活杀招[Killing Move]。</li>
- *   <li>上线、克隆与重置时统一刷新 {@link ApertureService}、{@link BodyService} 等领域同步与派生属性，并经
- *       {@link #refreshDamage} 发出 {@link PlayerRefreshedEvent}；仅出生与全量重置允许在此直写整份状态记录，运行时增量
- *       更新一律归各自领域服务。</li>
+ *   <li>上线、克隆与重置时统一刷新 {@link ApertureService}、{@link BodyService} 等领域同步与派生属性；仅出生与全量重
+ *       置允许在此直写整份状态记录，运行时增量更新一律归各自领域服务。</li>
  *   <li>本命蛊损毁由 {@link VitalLossService} 单独结算；{@code vital_gu_lost} 与爆炸波及他人的
  *       {@code ten_extreme_disaster} 属于一次性普通伤害致死，不留致死状态，重生时无需额外撤销。</li>
  *   <li>⚠ {@code onClone}、{@code onBirth} 与 {@code resetAll} 是全模组唯一接收 {@code Player} 而非
@@ -133,9 +131,7 @@ public final class PlayerDataService {
         KnockbackResistanceService.refresh(player);
     }
 
-    /** 重算攻击伤害，再通知监听者派生属性已定。 */
     private static void refreshDamage(ServerPlayer player) {
         AttackDamageService.refresh(player);
-        ModEvents.post(new PlayerRefreshedEvent(player));
     }
 }

@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * 玩家空窍数据（{@link ApertureData}）的唯一运行时写入入口：管理开窍[Awakening]、第二空窍、转数、阶段、资质与流派。
  * <ul>
  *   <li>除 {@link AperturePressureService} 直接写压力外，其余变更均经 {@code store} 落盘并发布
- *       {@link ApertureChangedEvent}（触发最大生命值修饰符与 Epic Fight 耐力刷新）。</li>
+ *       {@link ApertureChangedEvent}（触发最大生命值修饰符刷新）。</li>
  *   <li>{@link #getStatus(Player, int)} 是推导 {@link ApertureStatus} 的唯一入口：死灵体质
  *       （{@code BodyService.isUndead}，含僵尸与临时僵尸化）或已石化的空窍返回 {@code DEAD}，其余返回
  *       {@code NORMAL}。</li>

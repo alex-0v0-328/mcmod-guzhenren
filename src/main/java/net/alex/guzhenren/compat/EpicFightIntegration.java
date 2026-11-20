@@ -7,11 +7,8 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.entity.gu.WildGuEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
-import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
-import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
-import net.alex.guzhenren.gameplay.body.ExtremePhysique;
 import net.alex.guzhenren.gameplay.path.strength.AreaDamage;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.ComboRound;
@@ -24,14 +21,11 @@ import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.particle.RingConeEmitter;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import yesman.epicfight.api.animation.AnimationManager;
@@ -62,7 +56,6 @@ import yesman.epicfight.api.event.types.player.SkillConsumeEvent;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.Armatures;
-import yesman.epicfight.registry.entries.EpicFightAttributes;
 import yesman.epicfight.registry.entries.EpicFightSkills;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -71,11 +64,10 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 /**
- * Epic Fight 双端动画注册与服务端战斗、耐力、冲撞及动作同步桥接。
+ * Epic Fight 双端动画注册与服务端战斗、冲撞及动作同步桥接。
  * <ul>
- *   <li>⚠ 耐力系统的当前值、自然回复、HUD 与常规消耗完全由 Epic Fight 管理；本模组仅按玩家资质[Aptitude]或十绝体缩放耐
- *       力上限（{@link #refresh}）并免除不死之躯（{@link BodyService#isUndead}）的技能耐力消耗
- *       （{@link #onSkillConsume}），不另建耐力附件或疾跑跳跃扣费逻辑。</li>
+ *   <li>⚠ 耐力系统的当前值、自然回复、HUD 与常规消耗完全由 Epic Fight 管理；本模组不改耐力上限，仅免除不死之躯
+ *       （{@link BodyService#isUndead}）的技能耐力消耗（{@link #onSkillConsume}），不另建耐力附件或疾跑跳跃扣费逻辑。</li>
  *   <li>目标过滤：{@link #onSetTarget} 阻止锁定野生蛊（{@link WildGuEntity}）。</li>
  *   <li>连招轮[Combo Round]挂点，只认 Epic Fight 战斗模式下的空手拳击（类别为 {@code FIST} 且
  *       {@link AttackDamageService#isFistHand} 成立的连击、冲刺攻击或空中攻击，排除拳套、副手镜像挥击与武器固有技能）：
@@ -124,9 +116,6 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 public final class EpicFightIntegration {
 
-    private static final ResourceLocation STAMINA_MODIFIER = Guzhenren.id("epic_fight_stamina");
-    private static final AttributeModifier.Operation STAMINA_OPERATION =
-            AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashForward;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashBackward;
     private static AnimationManager.AnimationAccessor<DodgeAnimation> dashLeft;
@@ -355,25 +344,6 @@ public final class EpicFightIntegration {
     }
 
     public static double getDashScale(Player player) { return CrashSources.of(player).getScale(); }
-
-    public static void refresh(ServerPlayer player) {
-        AttributeInstance instance = player.getAttribute(EpicFightAttributes.MAX_STAMINA);
-        if (instance == null) return;
-
-        double bonus = getStaminaMaxPercent(player) / 100.0D;
-        if (TransientModifiers.hasModifier(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION)) return;
-
-        TransientModifiers.swap(instance, STAMINA_MODIFIER, bonus, STAMINA_OPERATION);
-        ServerPlayerPatch patch = EpicFightCapabilities.getServerPlayerPatch(player);
-        if (patch != null) patch.clampMaxAttributes();
-    }
-
-    private static int getStaminaMaxPercent(ServerPlayer player) {
-        ExtremePhysique physique = BodyService.getExtremePhysique(player);
-        return physique == ExtremePhysique.NONE
-                ? ApertureService.getTalent(player).getStaminaMaxPercent()
-                : physique.getStaminaMaxPercent();
-    }
 
     private static void onSkillConsume(SkillConsumeEvent event) {
         if (event.getResourceType() != Skill.Resource.STAMINA) return;

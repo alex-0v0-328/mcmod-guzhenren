@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@code ADD_VALUE}（三参数 {@link #swap}）：供
  *       {@link net.alex.guzhenren.gameplay.path.strength.AttackDamageService}、{@link MaxHealthService} 与
  *       {@link KnockbackResistanceService} 使用。</li>
- *   <li>{@code ADD_MULTIPLIED_BASE}：供 Epic Fight 耐力上限（{@code compat.EpicFightIntegration}）使用。</li>
  *   <li>{@code ADD_MULTIPLIED_TOTAL}：供兽力[Beast Strength]疾跑速度
  *       （{@link net.alex.guzhenren.gameplay.path.strength.SprintSpeedService}）与坠击重力缩放
  *       （{@link #setGravityFactor}）使用。</li>
