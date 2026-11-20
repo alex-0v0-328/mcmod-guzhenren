@@ -69,12 +69,6 @@ class InputTests(unittest.TestCase):
         self.assertEqual(gw.key_lparam(0x3D, False, up=True), 0xC03D0001)
         self.assertEqual(gw.key_lparam(0x48, True, up=False), 0x01480001)
 
-    def test_mouse_words(self):
-        self.assertEqual(gw.point_lparam(10, 20), 20 << 16 | 10)
-        self.assertEqual(gw.point_lparam(-1, 5), 5 << 16 | 0xFFFF)
-        self.assertEqual(gw.wheel_wparam(1), 120 << 16)
-        self.assertEqual(gw.wheel_wparam(-1), 0xFF88 << 16)
-
 
 class TrackingTests(unittest.TestCase):
     def test_position_replies(self):

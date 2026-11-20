@@ -1,4 +1,4 @@
-"""Screenshots of the game window alone and key/mouse input aimed at that window alone: evidence for in-game checks.
+"""Screenshots of the game window alone and key input aimed at that window alone: evidence for in-game checks.
 
     python -B tools/game_window.py shot [--pid PID] [--out PNG]      a client of this checkout that already runs
     python -B tools/game_window.py keys [--pid PID] F3 F3+B ...      press keys (chords with +) in that window
@@ -10,7 +10,7 @@
 Capture is PrintWindow with PW_RENDERFULLCONTENT on the window handle: the window's own pixels from the compositor,
 whatever covers it, never the screen. A minimised window has no pixels, and a frame that comes back one flat colour
 is retried, then refused. Input is PostMessage to that handle (WM_KEYDOWN/UP carrying the scan code GLFW maps keys
-from, WM_CHAR, mouse messages in client pixels); there is no SendInput or SetForegroundWindow, so focus and every
+from, WM_CHAR); there is no SendInput or SetForegroundWindow, so focus and every
 other window stay as they are. GLFW reads modifier state from the real keyboard, so a posted Shift reaches
 key-state checks (glfwGetKey) but not the callback's modifier bits.
 
@@ -105,8 +105,6 @@ VK = {'ESCAPE': 0x1B, 'ESC': 0x1B, 'ENTER': 0x0D, 'RETURN': 0x0D, 'SPACE': 0x20,
 EXTENDED = {'LEFT': 0x25, 'UP': 0x26, 'RIGHT': 0x27, 'DOWN': 0x28, 'INSERT': 0x2D, 'DELETE': 0x2E, 'HOME': 0x24,
             'END': 0x23, 'PAGEUP': 0x21, 'PAGEDOWN': 0x22}
 WM_KEYDOWN, WM_KEYUP, WM_CHAR = 0x0100, 0x0101, 0x0102
-WM_MOUSEMOVE, WM_MOUSEWHEEL = 0x0200, 0x020A
-BUTTONS = {'left': (0x0201, 0x0202, 0x0001), 'right': (0x0204, 0x0205, 0x0002), 'middle': (0x0207, 0x0208, 0x0010)}
 
 
 def parse_key(name):
@@ -133,15 +131,6 @@ def key_lparam(scan, extended, up):
     """WM_KEYDOWN/UP lParam: repeat count 1, the scan code GLFW maps the key from, and for a release the
     previous-state and transition bits."""
     return 1 | (scan & 0xFF) << 16 | (1 << 24 if extended else 0) | ((0b11 << 30) if up else 0)
-
-
-def point_lparam(x, y):
-    return (int(y) & 0xFFFF) << 16 | (int(x) & 0xFFFF)
-
-
-def wheel_wparam(notches):
-    """WM_MOUSEWHEEL wParam: the signed delta (120 a notch, positive away from the user) in the high word."""
-    return (int(notches * 120) & 0xFFFF) << 16
 
 
 def parse_pos(reply):
@@ -349,19 +338,6 @@ def type_text(hwnd, text):
     units = text.encode('utf-16-le')
     for index in range(0, len(units), 2):
         post(hwnd, WM_CHAR, int.from_bytes(units[index:index + 2], 'little'), 1)
-
-
-def click(hwnd, x, y, button='left'):
-    """Moves the game's cursor to client pixel (x, y) and clicks there; the real cursor does not move."""
-    down, up, flag = BUTTONS[button]
-    post(hwnd, WM_MOUSEMOVE, 0, point_lparam(x, y))
-    post(hwnd, down, flag, point_lparam(x, y))
-    time.sleep(0.05)
-    post(hwnd, up, 0, point_lparam(x, y))
-
-
-def scroll(hwnd, notches):
-    post(hwnd, WM_MOUSEWHEEL, wheel_wparam(notches), 0)
 
 
 # ----- title: the client stage, shot once the title screen has settled ---------------------------------------
