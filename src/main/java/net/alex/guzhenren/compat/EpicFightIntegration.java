@@ -12,7 +12,7 @@ import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.attribute.TransientModifiers;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ExtremePhysique;
-import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.gameplay.path.strength.AreaDamage;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.CrashBreach;
@@ -81,13 +81,12 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       {@link AttackDamageService#isFistHand} 成立的连击、冲刺攻击或空中攻击，排除拳套、副手镜像挥击与武器固有技能）：
  *       {@link #onStartAction} 在出招起播时按 {@link #isFinisher} 判定收尾招（自动攻击动作表最后一段连击，或冲刺、空中
  *       攻击；不在动作表里的连击动作按一下一轮算），调 {@link ComboRound#beginStrike} 并通知
- *       {@link QiWaveService#onStrike} 配对远程拳；{@link #onModifyComboCounter} 在连段计数从非零被清零时调
- *       {@link ComboRound#abandon}，若清零正是刚起播的冲刺或空中收尾招引起则只断苦力连击、保留这一招（Epic Fight 的清零与
- *       起播事件先后不定）；{@link #onAttackPhaseEnd} 在
- *       收尾招最后一段判定结束时调 {@link ComboRound#complete}，若正常结束、未改由远程拳出手且本轮掷中
- *       （{@link ComboRound#rollsImpact}），先放范围冲击（{@link AreaImpact#release}，跳过本段已判定过的实体，按溢
- *       出结算）与冲击环
- *       （{@link RingConeEmitter#areaImpactRing}）及命中音效。</li>
+ *       {@link QiWaveService#onStrike} 配对远程攻击；{@link #onModifyComboCounter} 在连段计数从非零被清零时调
+ *       {@link ComboRound#abandon}，若清零正是刚起播的冲刺或空中收尾招引起则忽略、保留这一招（Epic Fight 的清零与起播
+ *       事件先后不定）；{@link #onAttackPhaseEnd} 在收尾招最后一段判定结束时调 {@link ComboRound#complete}，若正常结
+ *       束、未改由远程攻击出手且人力钧力流本轮暴击（{@link ComboRound#rollsArea}，挥空也掷），先放范围伤害
+ *       （{@link AreaDamage#release}，跳过本段已判定过的实体，按溢出结算）与冲击环
+ *       （{@link RingConeEmitter#areaDamageRing}）及命中音效；兽力虚影流收尾招不放锥形。</li>
  *   <li>⚠ 收尾招的每一记命中都按「最后一下」算：Epic Fight 空手的三个收尾动作各只有一段判定，若日后收尾动作带多段判定，
  *       前几段命中也会被当成收尾。</li>
  *   <li>冲撞冲刺（{@link #dash}）：客户端上报模型朝向 {@code yRot} 与水平键盘轴 {@code vertical}/{@code horizontal}，由
@@ -397,7 +396,7 @@ public final class EpicFightIntegration {
         if (!(event.getEntityPatch() instanceof ServerPlayerPatch patch)) return;
         ServerPlayer player = patch.getOriginal();
         if (!(event.getAnimation().get() instanceof AttackAnimation attack) || !isFistStrike(patch, attack)) {
-            if (finishers.remove(player) != null) ComboRound.complete(player, true);
+            if (finishers.remove(player) != null) ComboRound.complete(player);
             return;
         }
 
@@ -411,11 +410,8 @@ public final class EpicFightIntegration {
     private static void onModifyComboCounter(ModifyComboCounter event) {
         if (event.getPrevValue() <= 0 || event.getNextValue() != 0) return;
         ServerPlayer player = event.getPlayerPatch().getOriginal();
-        if (event.getAnimation() != null && finishers.get(player) == event.getAnimation().get()) {
-            ComboRound.breakStreak(player);
-        } else {
-            ComboRound.abandon(player);
-        }
+        if (event.getAnimation() != null && finishers.get(player) == event.getAnimation().get()) return;
+        ComboRound.abandon(player);
     }
 
     private static void onAttackPhaseEnd(AttackPhaseEndEvent event) {
@@ -426,18 +422,18 @@ public final class EpicFightIntegration {
 
         finishers.remove(player);
         if (!event.isAnimationTerminated() && isFistStrike(patch, animation) && !ComboRound.isRanged(player)
-                && ComboRound.rollsImpact(player)) {
-            releaseImpact(patch, event.getPhase());
+                && ComboRound.rollsArea(player)) {
+            releaseArea(patch, event.getPhase());
         }
-        ComboRound.complete(player, event.isAnimationTerminated());
+        ComboRound.complete(player);
     }
 
-    private static void releaseImpact(ServerPlayerPatch patch, AttackAnimation.Phase phase) {
+    private static void releaseArea(ServerPlayerPatch patch, AttackAnimation.Phase phase) {
         ServerPlayer player = patch.getOriginal();
         Vec3 look = player.getLookAngle();
-        RingConeEmitter.areaImpactRing(player, look,
-                AreaImpact.getRange(AreaImpact.getPoints(player), AreaImpact.isWidened(player)));
-        List<LivingEntity> landed = AreaImpact.release(player, look, patch.getCurrentlyAttackTriedEntities());
+        RingConeEmitter.areaDamageRing(player, look,
+                AreaDamage.getRange(AreaDamage.getPoints(player), AreaDamage.getWidenTier(player)));
+        List<LivingEntity> landed = AreaDamage.release(player, look, patch.getCurrentlyAttackTriedEntities());
         SoundEvent sound = phase.getProperty(AttackPhaseProperty.HIT_SOUND)
                 .orElseGet(() -> patch.getWeaponHitSound(phase.effectiveHand(patch)));
         if (sound == null) return;

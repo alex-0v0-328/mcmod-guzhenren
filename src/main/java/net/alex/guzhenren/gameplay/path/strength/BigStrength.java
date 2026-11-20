@@ -16,8 +16,8 @@ import org.jetbrains.annotations.Nullable;
  * 大力状态：大力蛊[Big Strength Gu]生效期间提供的增幅力量点[Strength Points]。
  * <ul>
  *   <li>作为限时流派效果挂载，力量点数取自该效果上的力道道痕[Path Marks]点，登记为一个增幅来源
- *       （{@link StrengthAmplifier#points}）：不带承受力，超出当前承受力的部分全额发挥并结算过载反噬。</li>
- *   <li>属于非兽力增幅：不限制力道流派分支，不过准入，不出兽影，也不计入全面解放。</li>
+ *       （{@link StrengthAmplifier#points}）：不带承受力，超出承受力的部分全额发挥并结算过载反噬。</li>
+ *   <li>属于非兽力增幅：不限制力道流派分支，不过准入，不出兽影，也不计入暴击。</li>
  * </ul>
  */
 
@@ -43,7 +43,7 @@ public final class BigStrength {
 
         @Override
         public @Nullable StrengthAmplifier getAmplifier(@NotNull Player player, int permanentPoints,
-                                                        int normalCapacity) {
+                                                        int capacity) {
             PathEffect<State> effect = PathEffectService.find(player, ModPathEffectTypes.BIG_STRENGTH);
             if (effect == null) return null;
             return BigStrength.getAmplifier(effect.source(),

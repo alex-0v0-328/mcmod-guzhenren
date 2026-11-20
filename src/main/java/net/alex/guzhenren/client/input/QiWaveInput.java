@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
 /**
- * 力气蛊[Strength Qi Gu]远程拳的客户端输入处理器。
+ * 力气蛊[Strength Qi Gu]远程攻击的客户端输入处理器。
  * <ul>
  *   <li>当力气蛊增益在身且主手为空时，新按下攻击键若检测到 Epic Fight 锁定目标超出近战触及距离（
  *       {@link QiWaveService#isPastReach}），即向该目标发送 {@link QiWavePayload}（不设最远距离上限）；服务端全量重

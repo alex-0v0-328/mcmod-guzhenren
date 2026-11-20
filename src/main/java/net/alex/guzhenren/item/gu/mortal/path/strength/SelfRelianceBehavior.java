@@ -5,10 +5,12 @@ import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.PathEffectType;
 import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.SelfRelianceHeal;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.registry.effect.ModPathEffectTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,8 +22,10 @@ import org.jetbrains.annotations.NotNull;
  *       时长加成）的流派效果 {@code ModPathEffectTypes.SELF_RELIANCE}（载荷记录蛊虫档位），窗口期内只要生命值低于 75%
  *       即持续脉冲回血至 75%。</li>
  *   <li>窗口期内由 {@link AutoUse#tick} 每 {@link #PULSE_TICKS} tick 调用一次 {@link #pulse}，每次回复
- *       {@code pulseHeal * curve * maxHealth} 并截断至 75% 生命上限；衰减曲线 {@link #getCurve} 在生命值不高于
- *       {@link #FULL_PULSE_BELOW}（40%）时取满值 1，从 40% 到 75% 线性衰减至 {@link #FLOOR}（0.25）。</li>
+ *       {@code pulseHeal * curve * strength * maxHealth} 并截断至 75% 生命上限；衰减曲线 {@link #getCurve} 在生命值不高
+ *       于 {@link #FULL_PULSE_BELOW}（40%）时取满值 1，从 40% 到 75% 线性衰减至 {@link #FLOOR}（0.25）。</li>
+ *   <li>力量系数 {@link #getStrengthFactor} = {@code clamp(0.5 + 总力量点 ÷ 200, 0.5, 1.5)}，总力量点含增幅
+ *       （{@link StrengthService#getStrengthPoints}），每跳现取：0 点减半，100 点持平，200 点及以上 1.5 倍。</li>
  *   <li>生命值达到 75% 及以上时脉冲空转，但状态窗口照常计时；若单次治疗被外部事件取消则当次不回血，不会提前终止窗口或重
  *       新扣费；玩家濒死时由 {@link AutoUse#tick} 先行移除状态，不再触发回血。</li>
  * </ul>
@@ -32,6 +36,9 @@ public record SelfRelianceBehavior(int grade, float pulseHeal, int durationSecon
     public static final int PULSE_TICKS = 5;
     public static final float FULL_PULSE_BELOW = 0.40F;
     public static final float FLOOR = 0.25F;
+    public static final float MIN_STRENGTH_FACTOR = 0.5F;
+    public static final float MAX_STRENGTH_FACTOR = 1.5F;
+    public static final float POINTS_PER_FACTOR = 200.0F;
 
     @Override
     public @NotNull PathEffectType<?> getStateType() { return ModPathEffectTypes.SELF_RELIANCE; }
@@ -71,9 +78,16 @@ public record SelfRelianceBehavior(int grade, float pulseHeal, int durationSecon
         return 1.0F - fall * (1.0F - FLOOR);
     }
 
+    public static float getStrengthFactor(int totalPoints) {
+        return Mth.clamp(MIN_STRENGTH_FACTOR + totalPoints / POINTS_PER_FACTOR, MIN_STRENGTH_FACTOR,
+                MAX_STRENGTH_FACTOR);
+    }
+
     private void mend(ServerPlayer player) {
         float max = player.getMaxHealth();
         float health = player.getHealth();
-        player.heal(Math.min(pulseHeal * getCurve(health, max) * max, max * HardshipStrength.START_BELOW - health));
+        float strength = getStrengthFactor(StrengthService.getStrengthPoints(player));
+        player.heal(Math.min(pulseHeal * getCurve(health, max) * strength * max,
+                max * HardshipStrength.START_BELOW - health));
     }
 }

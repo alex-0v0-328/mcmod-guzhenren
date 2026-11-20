@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
  * 本模组全部数据包伤害类型的 {@link ResourceKey} 定义与 {@link DamageSource} 构建入口（对应 JSON 由 datagen provider 生
  * 成）。
  * <ul>
- *   <li>常规战斗与反冲伤害中，月刃、气波为可被护甲减免的弹射物伤害，流血如同中毒无视护甲；范围冲击、蓄力一拳与终点破坏
- *       打击可被护甲减免且无原版击退（由 {@code AreaImpact}、{@code ChargedPunch} 与 {@code CrashStrike} 自行施加击
+ *   <li>常规战斗与反冲伤害中，月刃、气波为可被护甲减免的弹射物伤害，流血如同中毒无视护甲；范围伤害、蓄力一拳与终点破坏
+ *       打击可被护甲减免且无原版击退（由 {@code AreaDamage}、{@code ChargedPunch} 与 {@code CrashStrike} 自行施加击
  *       退），其中气波与蓄力一拳额外绕过受伤无敌帧；过载反噬[Body Overload]则是出手对自身施加的穿甲、无击退、无攻击
  *       者且不致死反冲伤害。</li>
  *   <li>⚠ 6 种天灾与死劫型伤害均配置相同的 6 个绕过标签（5 个 {@code BYPASSES_*} 加 {@code NO_KNOCKBACK}）；其中寿元耗
@@ -34,7 +34,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> VITAL_GU_LOST = key("vital_gu_lost");
     public static final ResourceKey<DamageType> MOON_BLADE = key("moon_blade");
     public static final ResourceKey<DamageType> BLEEDING = key("bleeding");
-    public static final ResourceKey<DamageType> AREA_IMPACT = key("area_impact");
+    public static final ResourceKey<DamageType> AREA_DAMAGE = key("area_damage");
     public static final ResourceKey<DamageType> QI_WAVE = key("qi_wave");
     public static final ResourceKey<DamageType> BODY_OVERLOAD = key("body_overload");
     public static final ResourceKey<DamageType> CHARGED_PUNCH = key("charged_punch");

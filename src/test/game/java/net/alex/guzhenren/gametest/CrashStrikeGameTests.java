@@ -3,7 +3,7 @@ package net.alex.guzhenren.gametest;
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
-import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.gameplay.path.strength.AreaDamage;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.ComboRound;
@@ -40,11 +40,11 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 终点破坏打击[Crash Strike]：五转活玩家（最大生命 100，满血）在场景西缘朝东。
  * <ul>
- *   <li>两猪 48 点（承受力 56 内，无过载反噬）：空手拳击 7，出手系数 0.75 打 5.25，开全力以赴 1.0 打 7；收尾招中也不抽
+ *   <li>两猪 48 点（承受力 56 内，无过载反噬）：空手拳击 7，打击倍率 0.75 打 5.25，开全力以赴也不变；收尾招中也不抽
  *       虚影，20 tick 内再打落空。</li>
  *   <li>溢出结算：两猪加虎 112 点，打击 11.25，最近的猪吃整击，下一只吃剩余 1.25；打中结算一次过载反噬（超出 56 点，
  *       扣最大生命的 50%），挥空与冷却内再打不扣。</li>
- *   <li>苦力：生命 40% 时整拳 +30%，结算 62 点，打击 6.5625 并按 62 点结算过载反噬；冲撞距离、破坏硬度与打击半径仍读总
+ *   <li>苦力：生命 40% 时伤害倍率 +30%，结算 62 点，打击 6.5625 并按 62 点结算过载反噬；冲撞距离、破坏硬度与打击半径仍读总
  *       力量点 48，不随苦力变化。</li>
  *   <li>手持钻石剑（仿装备刷新挂上其攻击修饰）时打击仍按空手。</li>
  *   <li>冲撞流程：无力量（半径 3 格、打 0.5）从西缘冲 4 格，移动那 tick 与其后第一个静止 tick 不打，连续第二个静止 tick
@@ -85,20 +85,23 @@ public final class CrashStrikeGameTests {
     private static final double DELTA = 1.0E-3D;
 
     @GameTest(template = "empty9x9x9")
-    public static void theStrikeHitsAtTheFullRatioWithoutDrawingAPhantomAndCoolsDown(GameTestHelper helper) {
+    public static void allOutEffortLeavesTheStrikeAloneAndDrawsNoPhantom(GameTestHelper helper) {
         ServerPlayer player = boars(helper, "gzr-crash-strike-round");
+        CrashSources plain = CrashSources.of(player);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, ALL_OUT_TICKS, RANK_FIVE_TIER));
+        assertEquals(plain, CrashSources.of(player), "All-Out Effort moved the crash sources");
         Pig pig = idlePig(helper, NEAR);
+        float blow = blow(BOAR_POINTS, TWO_BOARS_RATIO);
 
         ComboRound.beginStrike(player, true);
         List<LivingEntity> landed = CrashStrike.strike(player, EAST, CrashSources.of(player));
         assertTrue(landed.contains(pig), "the strike missed the pig ahead");
-        assertEquals(pig.getMaxHealth() - 7.0D, pig.getHealth(), DELTA);
+        assertEquals(pig.getMaxHealth() - blow, pig.getHealth(), DELTA);
         assertTrue(pig.getDeltaMovement().x > 0.0D, () -> "the strike shoved " + pig.getDeltaMovement());
         assertTrue(ComboRound.getFamilies(player).isEmpty(), "the strike drew a phantom at All-Out Effort's 100%");
 
         assertTrue(CrashStrike.strike(player, EAST, CrashSources.of(player)).isEmpty(), "the cooldown let it strike");
-        assertEquals(pig.getMaxHealth() - 7.0D, pig.getHealth(), DELTA);
+        assertEquals(pig.getMaxHealth() - blow, pig.getHealth(), DELTA);
         assertEquals(player.getMaxHealth(), player.getHealth(), DELTA);
         helper.succeed();
     }
@@ -146,7 +149,7 @@ public final class CrashStrikeGameTests {
         assertEquals(before, sources);
         assertEquals(before.getTravel(), sources.getTravel(), DELTA);
         assertEquals(before.getMaxHardness(), sources.getMaxHardness(), DELTA);
-        assertEquals(AreaImpact.getRange(BOAR_POINTS), sources.getStrikeRange(), DELTA);
+        assertEquals(AreaDamage.getRange(BOAR_POINTS), sources.getStrikeRange(), DELTA);
 
         Pig pig = idlePig(helper, NEAR);
         float health = player.getHealth();

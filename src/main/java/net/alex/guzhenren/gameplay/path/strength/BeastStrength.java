@@ -14,7 +14,7 @@ import net.minecraft.util.StringRepresentable;
  *   <li>同一兽种默认只能持有一种兽力（{@link #replaces}，如棕熊本力替换一熊之力而不叠加，{@link #isCoveredBy} 拦截不高
  *       于当前点数的同兽种蛊）；唯一例外为标有 {@link Form#PAIRED} 的白豕与黑豕，可并存组成「两猪之力」；
  *       {@link Form#INNATE} 则按本名显示。</li>
- *   <li>被动特性字段涵盖：承受力加成、疾跑速度倍率、非全力以赴下的兽影掷骰概率加成、横冲冲刺距离与动画播放速度加成
+ *   <li>被动特性字段涵盖：承受力加成、疾跑速度倍率、非全力以赴下的暴击率加成、横冲冲刺距离与动画播放速度加成
  *       （{@link CrashDash}）、肉身护盾倍率（{@link BeastTraitEvents}）以及力道限时状态初始时长加成。</li>
  *   <li>「两猪之力」（{@link PathStrengthData#hasTwoBoars}）属于双猪并存的组合特性，不在单个枚举常量上设字段，由
  *       {@link CrashSources} 统一读取并加成冲撞距离、破块硬度与终点打击伤害。</li>

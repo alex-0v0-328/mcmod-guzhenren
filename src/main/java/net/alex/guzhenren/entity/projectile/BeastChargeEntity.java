@@ -34,7 +34,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 兽力冲击弹射物：力气蛊[Strength Qi Gu]兽力虚影流派的远程拳，驱动本轮显形的兽类虚影沿弧线冲向锁定目标。
+ * 兽力冲击弹射物：力气蛊[Strength Qi Gu]兽力虚影流派的远程攻击，驱动本轮显形的兽类虚影沿弧线冲向锁定目标。
  * <ul>
  *   <li>沿 {@link BeastChargeArc} 生成的 {@link MoonBladeArc} 飞行（同拳多道冲击在上半圆散开），每 tick 重读目标中心，
  *       速度为 {@link #SPEED} 格/tick，飞行上限 {@link #MAX_FLIGHT_TICKS} tick，不受重力与空气阻力影响，且忽略非锁定目
@@ -46,7 +46,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *       {@link net.alex.guzhenren.client.renderer.BeastPhantomRenderer} 驱动四肢摆动），并在前 {@link #FADE_IN_TICKS}
  *       tick 内淡入；偏航角与俯仰角始终朝向弧线下一帧位置，呈现先扬起再俯冲刺向目标的轨迹。</li>
  *   <li>命中与爆开结算由服务端权威执行，参数由 {@link #shoot} 注入；客户端根据同步的目标 ID、控制点偏移与飞行 tick 重建
- *       同一条弧线用于渲染，实体不写入存档；爆开规格 {@link QiBurst.Spec} 由出手方按每一拳新建（力气蛊远程拳与蓄力
+ *       同一条弧线用于渲染，实体不写入存档；爆开规格 {@link QiBurst.Spec} 由出手方按每一拳新建（力气蛊远程攻击与蓄力
  *       蛊[Store Strength Gu]的蓄力一拳各自传入）。</li>
  * </ul>
  */

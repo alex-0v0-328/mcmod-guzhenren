@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class AreaImpactShatterTest {
+class AreaDamageShatterTest {
 
     private static final Vec3 EYES = new Vec3(0.5D, 65.62D, 0.5D);
     private static final Vec3 FEET = new Vec3(0.5D, 64.0D, 0.5D);
@@ -19,32 +19,32 @@ class AreaImpactShatterTest {
     @Test
     @DisplayName("no shatter under 100 points, then soil, stone and hardness-3 blocks at 100, 200 and 400")
     void hardnessFollowsThePoints() {
-        assertEquals(AreaImpactShatter.NONE, AreaImpactShatter.getMaxHardness(99));
-        assertEquals(0.6F, AreaImpactShatter.getMaxHardness(100));
-        assertEquals(0.6F, AreaImpactShatter.getMaxHardness(199));
-        assertEquals(1.5F, AreaImpactShatter.getMaxHardness(200));
-        assertEquals(3.0F, AreaImpactShatter.getMaxHardness(400));
-        assertEquals(3.0F, AreaImpactShatter.getMaxHardness(10_000));
+        assertEquals(AreaDamageShatter.NONE, AreaDamageShatter.getMaxHardness(99));
+        assertEquals(0.6F, AreaDamageShatter.getMaxHardness(100));
+        assertEquals(0.6F, AreaDamageShatter.getMaxHardness(199));
+        assertEquals(1.5F, AreaDamageShatter.getMaxHardness(200));
+        assertEquals(3.0F, AreaDamageShatter.getMaxHardness(400));
+        assertEquals(3.0F, AreaDamageShatter.getMaxHardness(10_000));
     }
 
     @Test
     @DisplayName("a block breaks up to the cap, never with a block entity or when unbreakable")
     void breakableUpToTheCap() {
-        assertTrue(AreaImpactShatter.canBreak(0.0F, false, 0.6F));
-        assertTrue(AreaImpactShatter.canBreak(0.6F, false, 0.6F));
-        assertFalse(AreaImpactShatter.canBreak(1.5F, false, 0.6F));
-        assertFalse(AreaImpactShatter.canBreak(2.5F, true, 3.0F));
-        assertFalse(AreaImpactShatter.canBreak(-1.0F, false, 3.0F));
-        assertFalse(AreaImpactShatter.canBreak(0.0F, false, AreaImpactShatter.NONE));
+        assertTrue(AreaDamageShatter.canBreak(0.0F, false, 0.6F));
+        assertTrue(AreaDamageShatter.canBreak(0.6F, false, 0.6F));
+        assertFalse(AreaDamageShatter.canBreak(1.5F, false, 0.6F));
+        assertFalse(AreaDamageShatter.canBreak(2.5F, true, 3.0F));
+        assertFalse(AreaDamageShatter.canBreak(-1.0F, false, 3.0F));
+        assertFalse(AreaDamageShatter.canBreak(0.0F, false, AreaDamageShatter.NONE));
     }
 
     @Test
     @DisplayName("cone cells sit inside the cone, nearest first, nothing behind the eyes")
     void coneCellsAreInsideAndNearestFirst() {
-        List<BlockPos> cells = AreaImpactShatter.getConeCells(EYES, EAST, 4.0D);
+        List<BlockPos> cells = AreaDamageShatter.getConeCells(EYES, EAST, 4.0D);
         assertFalse(cells.isEmpty());
         for (BlockPos pos : cells) {
-            assertTrue(AreaImpact.isInCone(EYES, EAST, 4.0D, AreaImpact.HALF_ANGLE_DEGREES, pos.getCenter()),
+            assertTrue(AreaDamage.isInCone(EYES, EAST, 4.0D, AreaDamage.getHalfAngle(0), pos.getCenter()),
                     pos + " lies outside the 45 degree cone");
         }
         for (int i = 1; i < cells.size(); i++) {
@@ -54,13 +54,13 @@ class AreaImpactShatterTest {
         assertTrue(cells.contains(new BlockPos(3, 65, 0)), "the cell straight ahead is missing");
         assertFalse(cells.contains(new BlockPos(5, 65, 0)), "a cell past the radius slipped in");
         assertFalse(cells.contains(new BlockPos(-1, 65, 0)), "a cell behind the eyes slipped in");
-        assertTrue(AreaImpactShatter.getConeCells(EYES, Vec3.ZERO, 4.0D).isEmpty());
+        assertTrue(AreaDamageShatter.getConeCells(EYES, Vec3.ZERO, 4.0D).isEmpty());
     }
 
     @Test
     @DisplayName("fan cells run from the feet layer to a block over the head, never the ground or the own column")
     void fanCellsSpanTheBodyAndSpareTheGround() {
-        List<BlockPos> cells = AreaImpactShatter.getFanCells(FEET, HEIGHT, EAST, 3.0D, 45.0D, EYES);
+        List<BlockPos> cells = AreaDamageShatter.getFanCells(FEET, HEIGHT, EAST, 3.0D, 45.0D, EYES);
         assertTrue(cells.contains(new BlockPos(2, 64, 0)), "the feet layer ahead is missing");
         assertTrue(cells.contains(new BlockPos(2, 66, 0)), "the layer over the head is missing");
         assertFalse(cells.contains(new BlockPos(2, 63, 0)), "the ground under the feet slipped in");
@@ -76,7 +76,7 @@ class AreaImpactShatterTest {
     @DisplayName("standing on a slab the fan still starts at the layer above the slab")
     void onASlabTheFanSparesTheSlabLayer() {
         Vec3 feet = new Vec3(0.5D, 63.5D, 0.5D);
-        List<BlockPos> cells = AreaImpactShatter.getFanCells(feet, HEIGHT, EAST, 3.0D, 45.0D, EYES);
+        List<BlockPos> cells = AreaDamageShatter.getFanCells(feet, HEIGHT, EAST, 3.0D, 45.0D, EYES);
         assertFalse(cells.contains(new BlockPos(2, 63, 0)), "the slab layer slipped in");
         assertTrue(cells.contains(new BlockPos(2, 64, 0)));
         assertTrue(cells.contains(new BlockPos(2, 66, 0)));

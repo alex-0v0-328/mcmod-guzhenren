@@ -17,12 +17,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 全力以赴蛊[All-Out Effort Gu]行为：自身不提供独立基础力量，而是在限时内强化玩家已持有的力道流派分支。
+ * 全力以赴蛊[All-Out Effort Gu]行为：自身不提供力量点或承受力，只在限时内抬高已入力道流派分支玩家的暴击率[Crit
+ * Chance]。
  * <ul>
- *   <li>共三至五转三档：使人力钧力流派或兽力虚影流派的当前承受力按常态承受力额外提升 50%/100%/200%（与其他承受力加
- *       成并列，见 {@code StrengthService.getAllOutCapacityBonus}），且不计入肉身负载。</li>
- *   <li>对兽力虚影流派，将连招轮收尾的掷骰概率由 5% 提升至 80%/90%/100%（{@code ComboRound.getChance}），蓄力一拳的
- *       掷骰概率提升至 100%（{@code StoreStrength.getChance}）；每次出几种兽影由苦力蛊决定。</li>
+ *   <li>共三至五转三档：人力钧力流派与兽力虚影流派共用的暴击率由平时 5%（另加兽力加成）提升至 80% / 90% / 100%，此时不
+ *       再加兽力加成（{@code StrengthCrit.getChance}，经 {@code StrengthService.getAllOutTier} 读档位）；连招轮收尾与蓄
+ *       力一拳都读它，蓄力一拳蓄满本就必暴击。每次出几种兽影由苦力蛊决定。</li>
  *   <li>未入任何力道分支（既无永久兽力或人力，也无生效中的限时兽力）的玩家在蓄力起手前即被拒绝
  *       （{@code all_out_needs_branch}）；效果持续期间再次催动亦拒绝。</li>
  *   <li>生效时按蛊虫档位挂载标记效果供力量服务与连招轮读取，并调用 {@link AttackDamageService#refresh} 重算攻击力，保

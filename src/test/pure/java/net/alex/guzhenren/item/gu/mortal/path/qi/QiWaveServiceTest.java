@@ -32,18 +32,18 @@ class QiWaveServiceTest {
     }
 
     @Test
-    @DisplayName("a ranged punch is worth half the fist; its burst reaches 3 blocks and spills over 8 targets at most")
-    void theRangedPunchIsPinned() {
-        assertEquals(0.5F, QiWaveService.RANGED_RATIO);
+    @DisplayName("a ranged attack is worth half the fist; its burst reaches 3 blocks and spills over 8 targets at most")
+    void theRangedAttackIsPinned() {
+        assertEquals(0.5F, QiWaveService.RANGED_FACTOR);
         assertEquals(3.0D, QiBurst.RADIUS, 1.0E-9D);
         assertEquals(8, QiBurst.MAX_TARGETS);
         assertEquals(3.0D, QiBurst.Spec.QI_WAVE.radius(), 1.0E-9D);
-        assertFalse(QiBurst.Spec.QI_WAVE.areaImpact(), "the plain burst opens the area impact");
+        assertFalse(QiBurst.Spec.QI_WAVE.areaDamage(), "the plain burst opens the area damage");
         assertNull(QiBurst.Spec.QI_WAVE.shot(), "the plain burst carries an overload shot");
     }
 
     @Test
-    @DisplayName("a beast holder charges with every family the round drew, else one held; anyone else throws an orb")
+    @DisplayName("a beast holder charges with every family the crit drew, else one held; anyone else throws an orb")
     void theChargeFamilies() {
         RandomSource random = RandomSource.create(0L);
         List<BeastStrengthFamily> held = List.of(BeastStrengthFamily.BOAR, BeastStrengthFamily.BEAR);
@@ -70,6 +70,6 @@ class QiWaveServiceTest {
                 List.of(BeastStrengthFamily.OX), List.of(BeastStrengthFamily.OX), random), "an ox alone did not charge");
         assertEquals(List.of(BeastStrengthFamily.TURTLE), QiWaveService.getChargeFamilies(true,
                 List.of(BeastStrengthFamily.TURTLE), List.of(BeastStrengthFamily.TURTLE, BeastStrengthFamily.HORSE),
-                random), "a released turtle did not charge itself");
+                random), "a crit turtle did not charge itself");
     }
 }

@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 /**
- * {@link LivingEntity} 上 {@link LastHurtView} 的受保护字段 {@code lastHurt} 访问器，作为读取最近一次受伤基准值的唯一接
+ * {@link LivingEntity} 上 {@link LastHurtView} 的受保护字段 {@code lastHurt} 访问器，作为读写最近一次受伤基准值的唯一接
  * 缝。
  * <ul>
  *   <li>⚠ 不使用事件或 API：{@code lastHurt} 为受保护字段且 NeoForge 事件未暴露该原始字段（{@code DamageContainer} 仅包
@@ -21,4 +21,8 @@ public interface LivingEntityAccessor extends LastHurtView {
     @Override
     @Accessor("lastHurt")
     float guzhenren$getLastHurt();
+
+    @Override
+    @Accessor("lastHurt")
+    void guzhenren$setLastHurt(float lastHurt);
 }

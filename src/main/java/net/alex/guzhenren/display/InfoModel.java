@@ -40,6 +40,7 @@ import net.alex.guzhenren.gameplay.path.strength.BeastStrengthFamily;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthCrit;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
@@ -154,13 +155,13 @@ public final class InfoModel {
 
     public record TimeRateUpRow(int rate) implements Entry {}
 
-    /**
-     * 总力量点[Strength Points]（永久与增幅合计，不含倍率），旁列当前承受力、常态承受力基准以及平时结算力量点超出当前
-     * 承受力的点数（不超出时为 0）。
-     */
-    public record CapacityRow(int total, int capacity, int normalCapacity, int overload) implements Entry {}
+    /** 总力量点[Strength Points]（永久与增幅合计，不含倍率），旁列承受力以及平时结算力量点超出承受力的点数（不超出时为 0）。 */
+    public record CapacityRow(int total, int capacity, int overload) implements Entry {}
 
     public record AttackRow(double bonus) implements Entry {}
+
+    /** 当前暴击率[Crit Chance]（0–1），只在持有兽力虚影流或人力钧力流时出现。 */
+    public record CritRow(float chance) implements Entry {}
 
     public record WisdomPathAchieveHeader() implements Entry {}
 
@@ -234,11 +235,14 @@ public final class InfoModel {
         StrengthSnapshot settlement = StrengthService.snapshot(player);
         if (settlement.totalPoints() > 0) {
             rows.add(new Row(0, new CapacityRow(settlement.totalPoints(), settlement.capacity(),
-                    settlement.normalCapacity(), settlement.overloadPoints(settlement.settledPoints()))));
+                    settlement.overloadPoints(settlement.settledPoints()))));
         }
         double attackBonus = AttackDamageService.getFistBonus(player);
         if (shouldShowAttackRow(strength.isEmpty(), attackBonus)) {
             rows.add(new Row(0, new AttackRow(attackBonus)));
+        }
+        if (PathStrengthService.getHeldBranch(player) != StrengthPathBranch.NORMAL) {
+            rows.add(new Row(0, new CritRow(StrengthCrit.getChance(player))));
         }
         return rows;
     }

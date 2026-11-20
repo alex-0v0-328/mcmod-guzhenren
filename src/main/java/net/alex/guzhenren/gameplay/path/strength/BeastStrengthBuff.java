@@ -6,8 +6,8 @@ package net.alex.guzhenren.gameplay.path.strength;
  * <ul>
  *   <li>B 面板据此将效果带倒计时归在力道「兽力」行下展示，不重复列入流派增益列表。</li>
  *   <li>力量点数取自对应流派效果上的力道道痕[Path Marks]点，经 {@link PathStrengthService#getBeastBuffs} 转为不带承受力
- *       加成的 {@link StrengthAmplifier}（超出当前承受力的部分全额发挥并由 {@link BodyOverload} 结算过载反噬，不过准
- *       入、不出兽影、不被解放）。</li>
+ *       加成的 {@link StrengthAmplifier}（超出承受力的部分全额发挥并由 {@link BodyOverload} 结算过载反噬，不过准
+ *       入、不出兽影、不参与暴击）。</li>
  * </ul>
  */
 

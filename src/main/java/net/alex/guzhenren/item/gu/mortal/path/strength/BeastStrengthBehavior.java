@@ -19,9 +19,8 @@ import org.jetbrains.annotations.Nullable;
  * 永久兽力授予行为：灌注[Channel]完成后为玩家永久赋予注册指定的 {@link BeastStrength}。
  * <ul>
  *   <li>{@link #checkEffect} 依次拦截三类情形：已持有人力钧力流派（{@link MarkInterference}）；同兽种已持有相同或更高档
- *       位的永久兽力（{@link PathStrengthData#getCovering}，拒绝提示中附上该兽种当前读数）；玩家常态肉身承受力不足以容
- *       纳本兽力与其余保留兽力之和（{@link StrengthService#canAdmit}，不含限时增益与全力以赴蛊[All-Out Effort Gu]的临时
- *       抬升）。</li>
+ *       位的永久兽力（{@link PathStrengthData#getCovering}，拒绝提示中附上该兽种当前读数）；玩家肉身承受力不足以容纳本
+ *       兽力与其余保留兽力之和（{@link StrengthService#canAdmit}，不含限时增益）。</li>
  *   <li>⚠ 各兽力的兽种归属与力量点数全部声明在 {@link BeastStrength} 枚举中，新增兽力蛊时无需修改本
  *       类；{@link #applyEffect} 直接委托 {@link PathStrengthService#grant} 写入并自动替换同兽种低档兽力。</li>
  * </ul>

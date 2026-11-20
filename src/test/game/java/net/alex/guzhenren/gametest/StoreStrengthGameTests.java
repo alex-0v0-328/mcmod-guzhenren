@@ -17,6 +17,7 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
+import net.alex.guzhenren.gameplay.path.strength.StrengthCrit;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.gameplay.path.strength.StrengthSnapshot;
 import net.alex.guzhenren.gameplay.path.timed.TimedBuff;
@@ -65,16 +66,16 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  * <ul>
  *   <li>未入力道分支则拒绝不扣费，有永久兽力、人力或生效中的限时兽力即可催动与起蓄；手持剑或 Epic Fight 拳套、增益消失
  *       则拒绝并丢弃蓄力。</li>
- *   <li>进度不足四分之一松手取消，不出拳不扣费；四分之一起出拳，倍率自 1.5 线性升到蓄满的 3，全力以赴蛊[All-Out Effort
- *       Gu]缩短蓄力后同比例。</li>
+ *   <li>进度不足四分之一松手取消，不出拳不扣费；四分之一起出拳，倍率自 1.5 线性升到蓄满的 3；蓄满固定 80 tick，全力以赴
+ *       蛊[All-Out Effort Gu]不缩短。</li>
  *   <li>人力钧力流蓄满（200 斤）结算 600 点，朝锁定目标打水平扇形并按溢出结算：锁定目标吃整拳，剩余减去其挨打前生命后
  *       由近到远传下去，扇形外无伤；打中结算一次过载反噬，挥空不扣。</li>
- *   <li>兽力虚影流单独掷骰：掷中全面解放全部永久兽种并显形（与苦力、连击数无关），没掷中只吃蓄力与苦力倍率；全力以赴
- *       必中；限时兽力不解放。</li>
- *   <li>苦力蛊[Hardship Strength Gu]下人力钧力流射程乘 1.5、扇形扩到 270°，崩裂范围不变；崩裂档位随结算力量点：100 点
- *       起破软块、200 点起破石头、400 点起破深板岩。</li>
- *   <li>力气蛊[Strength Qi Gu]增益中目标在触及距离外：伤害乘 0.5，人力流放一个追踪气波，兽力流按兽种份额各放一发兽力冲
- *       击（没掷中时一发带全部）；过载反噬等爆开首次造成伤害时才结算；追踪气波超时就地爆开。</li>
+ *   <li>暴击：蓄满必定暴击，未蓄满按暴击率掷（全力以赴五转 100% 则必中）；兽力暴击抽 min(1 + 苦力档位, 兽种数) 种并显
+ *       形，没暴击只吃蓄力与苦力倍率；限时兽力不暴击。</li>
+ *   <li>苦力蛊[Hardship Strength Gu]下人力钧力流射程乘 1 + 0.4 × 档位（封顶 16 格）、半角 45° + 5.5° × 档位，崩裂范围
+ *       不变；崩裂档位随结算力量点：100 点起破软块、200 点起破石头、400 点起破深板岩。</li>
+ *   <li>力气蛊[Strength Qi Gu]增益中目标在触及距离外：伤害乘远程系数 0.5，人力流放一个追踪气波，兽力流按兽种份额各放一
+ *       发兽力冲击（没暴击时一发带全部）；过载反噬等爆开首次造成伤害时才结算；追踪气波超时就地爆开。</li>
  *   <li>惯力蛊[Habitual Strength Gu]增益下起蓄带可移动标记，蓄力期间疾跑被清掉；取消、出拳、丢弃都撤；出拳结果与蓄力蛊相同。</li>
  *   <li>出拳者站石头地面朝南（yaw 0），已过出生无敌，反噬可生效；身后目标 id 不保留，挥击沿视线；目标为无意识村民，
  *       默认 {@link #TARGET_HEALTH} 生命；蓄力用 {@link GameTestPlayers#serverTicks} 推进。</li>
@@ -91,7 +92,8 @@ public final class StoreStrengthGameTests {
     private static final BlockPos IN_FAN = new BlockPos(6, 1, 5);
     private static final BlockPos FAN_FAR = new BlockPos(3, 1, 7);
     private static final BlockPos SIDE = new BlockPos(8, 1, 2);
-    private static final BlockPos BACK_QUARTER = new BlockPos(7, 1, 0);
+    private static final BlockPos FLANK = new BlockPos(8, 1, 4);
+    private static final BlockPos FLANK_BLOCK = new BlockPos(1, 1, 4);
     private static final BlockPos BEHIND = new BlockPos(4, 1, 0);
     private static final BlockPos PAST_REACH = new BlockPos(4, 1, 7);
     private static final BlockPos EDGE = new BlockPos(4, 1, 8);
@@ -102,7 +104,6 @@ public final class StoreStrengthGameTests {
     private static final BlockPos FAN_LEFT = new BlockPos(3, 1, 4);
     private static final BlockPos FAN_RIGHT = new BlockPos(5, 1, 4);
     private static final BlockPos FAN_GROUND = new BlockPos(4, 0, 4);
-    private static final BlockPos SIDE_BLOCK = new BlockPos(2, 1, 2);
     private static final int BAG_SLOT = 9;
     private static final int HUNGER = 98;
     private static final int GU_HUNGER = 50;
@@ -116,7 +117,7 @@ public final class StoreStrengthGameTests {
     private static final int SOME_POINTS = 480;
     private static final int RANK_FIVE = 56;
     private static final int RANK_FIVE_TIER = 4;
-    private static final int ALL_OUT_TICKS = 40;
+    private static final int HALF_TICKS = 40;
     private static final int LEAST_TICKS = 20;
     private static final int EFFECT_TICKS = 600;
     private static final int NO_TARGET = -1;
@@ -124,6 +125,9 @@ public final class StoreStrengthGameTests {
     private static final double SHOVE_SQR = 1.0E-6D;
     private static final float TARGET_HEALTH = 1000.0F;
     private static final float LOW_HEALTH = 10.0F;
+    private static final float TIER_ONE_HEALTH = 0.7F;
+    private static final float TIER_TWO_HEALTH = 0.5F;
+    private static final float TIER_FIVE_HEALTH = 0.1F;
     private static final double DELTA = 1.0E-3D;
 
     private StoreStrengthGameTests() {}
@@ -154,7 +158,7 @@ public final class StoreStrengthGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aTimedBeastIsBranchEnoughToChargeAndIsNeverReleased(GameTestHelper helper) {
+    public static void aTimedBeastIsBranchEnoughToChargeAndNeverCrits(GameTestHelper helper) {
         ServerPlayer player = player(helper, NEAR_STAND);
         ItemStack gu = hold(player, ModItems.STORE_STRENGTH_GU_3.get(), GU_HUNGER);
         TendedGuItem item = (TendedGuItem) gu.getItem();
@@ -172,7 +176,7 @@ public final class StoreStrengthGameTests {
         float expected = fist(player, total * 3);
         assertTrue(ChargedPunch.release(player, locked.getId()), "the full charge did not strike");
         assertEquals(expected, TARGET_HEALTH - locked.getHealth(), DELTA);
-        assertTrue(BeastPhantomEntity.findOwned(player).isEmpty(), "a timed beast was released");
+        assertTrue(BeastPhantomEntity.findOwned(player).isEmpty(), "a timed beast showed a phantom");
         helper.succeed();
     }
 
@@ -202,11 +206,8 @@ public final class StoreStrengthGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theFactorGrowsFromAQuarterToFullAndAllOutEffortKeepsTheShares(GameTestHelper helper) {
-        assertEquals(StoreStrength.CHARGE_TICKS, StoreStrength.getChargeTicks(StrengthService.NO_ALL_OUT));
-        assertEquals(56, StoreStrength.getChargeTicks(StrengthService.ALL_OUT_LOWEST_TIER));
-        assertEquals(48, StoreStrength.getChargeTicks(StrengthService.ALL_OUT_LOWEST_TIER + 1));
-        assertEquals(ALL_OUT_TICKS, StoreStrength.getChargeTicks(StrengthService.ALL_OUT_LOWEST_TIER + 2));
+    public static void theFactorGrowsFromAQuarterToFullAndAllOutEffortNeverShortensIt(GameTestHelper helper) {
+        assertEquals(80, StoreStrength.CHARGE_TICKS);
 
         ServerPlayer player = human(helper, NEAR_STAND);
         assertFactor(player, LEAST_TICKS / 2, 0.0F);
@@ -218,11 +219,10 @@ public final class StoreStrengthGameTests {
 
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
         assertEquals(RANK_FIVE_TIER, StrengthService.getAllOutTier(player), "the rank five tier is not read");
-        assertFactor(player, ALL_OUT_TICKS / 8, 0.0F);
-        assertFactor(player, ALL_OUT_TICKS / 4, 1.5F);
-        assertFactor(player, ALL_OUT_TICKS / 2, 2.0F);
-        assertFactor(player, 3 * ALL_OUT_TICKS / 4, 2.5F);
-        assertFactor(player, ALL_OUT_TICKS, 3.0F);
+        assertFactor(player, LEAST_TICKS / 2, 0.0F);
+        assertFactor(player, LEAST_TICKS, 1.5F);
+        assertFactor(player, HALF_TICKS, 2.0F);
+        assertFactor(player, StoreStrength.CHARGE_TICKS, 3.0F);
         helper.succeed();
     }
 
@@ -305,7 +305,7 @@ public final class StoreStrengthGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aLandedRollReleasesTheBearAndAMissedRollOnlyCharges(GameTestHelper helper) {
+    public static void aCritDoublesTheBearAndAMissOnlyCharges(GameTestHelper helper) {
         ServerPlayer player = player(helper, NEAR_STAND);
         assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
         useGu(helper, player);
@@ -327,13 +327,12 @@ public final class StoreStrengthGameTests {
         assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null,
                 "the bear phantom did not show");
         assertOverload(player, health, 2 * BEAR_POINTS * 3, RANK_FIVE);
-        assertEquals(0, ComboRound.getStreak(player), "the charged punch counted as a round");
         assertFalse(ComboRound.isFinishing(player), "the charged punch opened a finisher");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aLandedRollReleasesEveryFamilyWithOrWithoutHardship(GameTestHelper helper) {
+    public static void aCritDrawsOneMoreFamilyForEachHardshipTier(GameTestHelper helper) {
         ServerPlayer player = player(helper, NEAR_STAND);
         for (BeastStrength beast : List.of(BeastStrength.BEAR, BeastStrength.TIGER, BeastStrength.STONE_TURTLE)) {
             assertTrue(PathStrengthService.grant(player, beast), "the " + beast + " was refused");
@@ -343,52 +342,89 @@ public final class StoreStrengthGameTests {
         int held = BEAR_POINTS + TIGER_POINTS + TURTLE_POINTS;
 
         ChargedPunch.strike(player, locked, StoreStrength.MAX_FACTOR, true);
-        assertEquals(fist(player, 2 * held * 3), TARGET_HEALTH - locked.getHealth(), DELTA);
-        assertEquals(3, BeastPhantomEntity.findOwned(player).size(), "a family held back from the release");
+        int crit = phantomPoints(player);
+        assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "a crit off Hardship drew other than one family");
+        assertEquals(fist(player, (held + crit) * 3), TARGET_HEALTH - locked.getHealth(), DELTA);
 
         inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
-        player.setHealth(player.getMaxHealth() * 0.5F);
+        player.setHealth(player.getMaxHealth() * TIER_ONE_HEALTH);
         AutoUse.tryStart(player);
         assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
-        ComboRound.beginStrike(player, true);
-        ComboRound.complete(player, false);
-        assertEquals(1, ComboRound.getStreak(player), "the finished round did not count");
+        assertEquals(1, HardshipStrength.getTier(player), "70% health is not tier one");
 
         locked.setHealth(TARGET_HEALTH);
         ChargedPunch.strike(player, locked, StoreStrength.MAX_FACTOR, true);
-        assertEquals(fist(player, 2 * held * 120 * 3 / 100), TARGET_HEALTH - locked.getHealth(), DELTA);
-        assertEquals(3, BeastPhantomEntity.findOwned(player).size(), "hardship held a family back");
-        assertEquals(1, ComboRound.getStreak(player), "the charged punch moved the streak");
+        crit = phantomPoints(player);
+        assertEquals(2, BeastPhantomEntity.findOwned(player).size(), "a tier one crit drew other than two families");
+        assertEquals(fist(player, (held + crit) * 110 * 3 / 100), TARGET_HEALTH - locked.getHealth(), DELTA);
 
         locked.setHealth(TARGET_HEALTH);
-        player.setHealth(player.getMaxHealth() * 0.5F);
+        player.setHealth(player.getMaxHealth() * TIER_TWO_HEALTH);
+        ChargedPunch.strike(player, locked, StoreStrength.MAX_FACTOR, true);
+        assertEquals(3, BeastPhantomEntity.findOwned(player).size(), "a tier two crit held a family back");
+        assertEquals(fist(player, 2 * held * 120 * 3 / 100), TARGET_HEALTH - locked.getHealth(), DELTA);
+
+        locked.setHealth(TARGET_HEALTH);
+        player.setHealth(player.getMaxHealth() * TIER_TWO_HEALTH);
         ChargedPunch.strike(player, locked, StoreStrength.MAX_FACTOR, false);
         assertEquals(fist(player, held * 120 * 3 / 100), TARGET_HEALTH - locked.getHealth(), DELTA);
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void underAllOutEffortTheChargedPunchAlwaysReleases(GameTestHelper helper) {
+    public static void aFullChargeAlwaysCritsAndAllOutEffortLiftsNoCapacity(GameTestHelper helper) {
         ServerPlayer player = player(helper, NEAR_STAND);
         assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
         useGu(helper, player);
-        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        assertEquals(0.05D, StrengthCrit.getChance(player), DELTA);
         Villager locked = villager(helper, LOCKED);
 
         fillCharge(player);
         player.setHealth(player.getMaxHealth());
         float health = player.getHealth();
-        int capacity = 3 * RANK_FIVE;
         int points = 2 * BEAR_POINTS * 3;
-        assertEquals(capacity, StrengthService.getCapacity(player), "rank five All-Out did not triple the capacity");
         assertTrue(ChargedPunch.release(player, locked.getId()), "the full charge did not strike");
-
         assertEquals(fist(player, points), TARGET_HEALTH - locked.getHealth(), DELTA);
         assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null,
-                "the bear phantom did not show");
-        float recoil = (points - capacity) / (float) capacity * player.getMaxHealth() * 0.5F;
-        assertEquals(health - recoil, player.getHealth(), DELTA);
-        assertOverload(player, health, points, capacity);
+                "a full charge at 5% did not crit");
+        assertOverload(player, health, points, RANK_FIVE);
+
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        locked.setHealth(TARGET_HEALTH);
+        fillCharge(player);
+        player.setHealth(player.getMaxHealth());
+        health = player.getHealth();
+        assertEquals(RANK_FIVE, StrengthService.getCapacity(player), "All-Out Effort lifted the capacity");
+        assertTrue(ChargedPunch.release(player, locked.getId()), "the full charge did not strike");
+        assertEquals(fist(player, points), TARGET_HEALTH - locked.getHealth(), DELTA);
+        assertOverload(player, health, points, RANK_FIVE);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aShortChargeRollsTheCritChance(GameTestHelper helper) {
+        ServerPlayer player = player(helper, NEAR_STAND);
+        assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
+        useGu(helper, player);
+        Villager locked = villager(helper, LOCKED);
+
+        assertTrue(StoreStrength.start(player), "the charge did not start");
+        GameTestPlayers.serverTicks(player, HALF_TICKS);
+        AreaDamageGameTests.nextRoll(player.getRandom(), StrengthCrit.getChance(player), false);
+        assertTrue(ChargedPunch.release(player, locked.getId()), "half a charge did not strike");
+        assertEquals(fist(player, BEAR_POINTS * 2), TARGET_HEALTH - locked.getHealth(), DELTA);
+        assertTrue(BeastPhantomEntity.findOwned(player).isEmpty(), "a missed roll on half a charge crit");
+
+        player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        assertEquals(1.0D, StrengthCrit.getChance(player), DELTA);
+        locked.setHealth(TARGET_HEALTH);
+        player.setHealth(player.getMaxHealth());
+        assertTrue(StoreStrength.start(player), "the second charge did not start");
+        GameTestPlayers.serverTicks(player, HALF_TICKS);
+        assertTrue(ChargedPunch.release(player, locked.getId()), "half a charge did not strike");
+        assertEquals(fist(player, 2 * BEAR_POINTS * 2), TARGET_HEALTH - locked.getHealth(), DELTA);
+        assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null,
+                "half a charge at 100% did not crit");
         helper.succeed();
     }
 
@@ -450,36 +486,55 @@ public final class StoreStrengthGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void hardshipWidensTheHumanFanToTheBackQuartersButNotItsShatter(GameTestHelper helper) {
+    public static void hardshipWidensTheHumanFanByItsTierButNotItsShatter(GameTestHelper helper) {
         ServerPlayer player = human(helper, NEAR_STAND);
         Villager locked = villager(helper, LOCKED, LOW_HEALTH);
-        Villager quarter = villager(helper, BACK_QUARTER, LOW_HEALTH);
+        Villager inFan = villager(helper, IN_FAN, LOW_HEALTH);
+        Villager flank = villager(helper, FLANK);
         Villager side = villager(helper, SIDE);
         Villager behind = villager(helper, BEHIND);
         helper.setBlock(FAN_RIGHT, Blocks.STONE);
-        helper.setBlock(SIDE_BLOCK, Blocks.STONE);
+        helper.setBlock(FLANK_BLOCK, Blocks.STONE);
         inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
 
         fillCharge(player);
-        player.setHealth(player.getMaxHealth() * 0.7F);
+        player.setHealth(player.getMaxHealth() * TIER_ONE_HEALTH);
         AutoUse.tryStart(player);
         assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
-        float expected = fist(player, JIN * 110 * 3 / 100);
+        player.setHealth(player.getMaxHealth() * TIER_FIVE_HEALTH);
+        assertEquals(5, HardshipStrength.getTier(player), "10% health is not tier five");
+        float expected = fist(player, JIN * 150 * 3 / 100);
 
         assertTrue(ChargedPunch.release(player, locked.getId()), "the full charge did not strike");
 
         assertTrue(locked.isDeadOrDying(), "the locked target outlived the fist");
-        assertTrue(quarter.isDeadOrDying(), "the widened fan missed the back quarter");
-        assertEquals(expected - 2.0F * LOW_HEALTH, TARGET_HEALTH - side.getHealth(), DELTA);
+        assertTrue(inFan.isDeadOrDying(), "the fan target outlived the spill");
+        assertEquals(expected - 2.0F * LOW_HEALTH, TARGET_HEALTH - flank.getHealth(), DELTA);
+        assertEquals(TARGET_HEALTH, side.getHealth(), DELTA);
         assertEquals(TARGET_HEALTH, behind.getHealth(), DELTA);
         assertBlock(helper, FAN_RIGHT, Blocks.AIR);
-        assertBlock(helper, SIDE_BLOCK, Blocks.STONE);
+        assertBlock(helper, FLANK_BLOCK, Blocks.STONE);
         assertEquals(2.0D, player.getHealth(), DELTA);
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void hardshipLengthensTheHumanReachByHalf(GameTestHelper helper) {
+    public static void withoutHardshipTheHumanFanKeepsFortyFiveDegrees(GameTestHelper helper) {
+        ServerPlayer player = human(helper, NEAR_STAND);
+        Villager locked = villager(helper, LOCKED, LOW_HEALTH);
+        Villager inFan = villager(helper, IN_FAN, LOW_HEALTH);
+        Villager flank = villager(helper, FLANK);
+
+        fillCharge(player);
+        assertTrue(ChargedPunch.release(player, locked.getId()), "the full charge did not strike");
+
+        assertTrue(inFan.isDeadOrDying(), "the fan target outlived the spill");
+        assertEquals(TARGET_HEALTH, flank.getHealth(), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void hardshipLengthensTheHumanReachByItsTier(GameTestHelper helper) {
         ServerPlayer player = fewJin(helper, FAR_STAND);
         Villager far = villager(helper, EDGE);
 
@@ -492,9 +547,10 @@ public final class StoreStrengthGameTests {
 
         inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
         fillCharge(player);
-        player.setHealth(player.getMaxHealth() * 0.7F);
+        player.setHealth(player.getMaxHealth() * TIER_ONE_HEALTH);
         AutoUse.tryStart(player);
         assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
+        assertEquals(1, HardshipStrength.getTier(player), "70% health is not tier one");
         float expected = fist(player, FEW_JIN * 110 * 3 / 100);
         assertTrue(ChargedPunch.release(player, NO_TARGET), "the widened charge did not swing");
         assertEquals(expected, TARGET_HEALTH - far.getHealth(), DELTA);
@@ -632,7 +688,7 @@ public final class StoreStrengthGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void withTheQiBuffABeastThrowsItsReleasedFamiliesByTheirShares(GameTestHelper helper) {
+    public static void withTheQiBuffABeastThrowsItsCritFamiliesByTheirShares(GameTestHelper helper) {
         ServerPlayer player = player(helper, FAR_STAND);
         assertTrue(PathStrengthService.grant(player, BeastStrength.TIGER), "the tiger was refused");
         assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
@@ -651,9 +707,23 @@ public final class StoreStrengthGameTests {
         one.getFirst().discard();
 
         ChargedPunch.strike(player, far, StoreStrength.MAX_FACTOR, true);
+        List<BeastChargeEntity> lone = charges(player);
+        assertEquals(1, lone.size(), "a crit off Hardship did not throw its one family");
+        int crit = phantomPoints(player);
+        assertEquals(fist(player, (held + crit) * 3) * 0.5F, lone.getFirst().getDamage(), DELTA);
+        assertEquals(BeastPhantomEntity.findOwned(player).getFirst().getFamily(), lone.getFirst().getFamily(),
+                "the charge is not the crit family");
+        lone.getFirst().discard();
+
+        inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
+        player.setHealth(player.getMaxHealth() * TIER_ONE_HEALTH);
+        AutoUse.tryStart(player);
+        assertTrue(HardshipStrength.isActive(player), "Hardship Strength did not start");
+        health = player.getHealth();
+        ChargedPunch.strike(player, far, StoreStrength.MAX_FACTOR, true);
         List<BeastChargeEntity> charges = charges(player);
-        assertEquals(2, charges.size(), "the released families did not each throw a Beast Charge");
-        float total = fist(player, 2 * held * 3) * 0.5F;
+        assertEquals(2, charges.size(), "the tier one crit families did not each throw a Beast Charge");
+        float total = fist(player, 2 * held * 110 * 3 / 100) * 0.5F;
         for (BeastChargeEntity charge : charges) {
             int share = charge.getFamily() == BeastStrengthFamily.TIGER ? TIGER_POINTS : BEAR_POINTS;
             assertEquals(total * share / held, charge.getDamage(), DELTA);
@@ -663,7 +733,7 @@ public final class StoreStrengthGameTests {
         assertEquals(TARGET_HEALTH, far.getHealth(), DELTA);
         assertEquals(TARGET_HEALTH, close.getHealth(), DELTA);
         assertEquals(health, player.getHealth(), DELTA);
-        assertEquals(2, BeastPhantomEntity.findOwned(player).size(), "a released family showed no phantom");
+        assertEquals(2, BeastPhantomEntity.findOwned(player).size(), "a crit family showed no phantom");
         helper.succeed();
     }
 
@@ -710,6 +780,15 @@ public final class StoreStrengthGameTests {
 
     private static float fist(ServerPlayer player, int points) {
         return (float) AttackDamageService.getFistDamage(player, points);
+    }
+
+    private static int phantomPoints(ServerPlayer player) {
+        PathStrengthData data = PathStrengthService.get(player);
+        int points = 0;
+        for (BeastPhantomEntity phantom : BeastPhantomEntity.findOwned(player)) {
+            points += data.getBeastPoints(phantom.getFamily());
+        }
+        return points;
     }
 
     private static void assertFactor(ServerPlayer player, int ticks, float factor) {

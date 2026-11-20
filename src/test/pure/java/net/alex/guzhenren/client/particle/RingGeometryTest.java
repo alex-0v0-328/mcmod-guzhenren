@@ -136,10 +136,10 @@ class RingGeometryTest {
     }
 
     @Test
-    @DisplayName("an area impact ring reaches the cone's end the tick its bloom ends")
-    void areaImpactRingStopsAsItsBloomEnds() {
-        assertEquals(RingParticle.FRAME_COUNT - 1, RingConeEmitter.AREA_IMPACT_TRAVEL_TICKS);
-        assertEquals(4.0D, RingConeEmitter.getAreaImpactRingSpeed(5.0D) * RingConeEmitter.AREA_IMPACT_TRAVEL_TICKS,
+    @DisplayName("an area damage ring reaches the cone's end the tick its bloom ends")
+    void areaDamageRingStopsAsItsBloomEnds() {
+        assertEquals(RingParticle.FRAME_COUNT - 1, RingConeEmitter.AREA_DAMAGE_TRAVEL_TICKS);
+        assertEquals(4.0D, RingConeEmitter.getAreaDamageRingSpeed(5.0D) * RingConeEmitter.AREA_DAMAGE_TRAVEL_TICKS,
                 EPS);
     }
 

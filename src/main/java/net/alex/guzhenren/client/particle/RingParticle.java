@@ -31,15 +31,15 @@ import org.joml.Vector3f;
  *   <li>使用 Alex 手绘的 {@link #FRAME_COUNT} 帧贴图并按 sprite 列表逐帧播放，每次投射一枚在生成点由小到大绽放（L2 环贴
  *       图测试锁定帧数与数据生成的 sprite 列表）；环面垂直于生成速度方向（{@link #spawnDirection}），并在侧对镜头时
  *       自动偏转至少 {@link RingGeometry#MIN_OPENING_DEGREES}。</li>
- *   <li>{@code RingConeEmitter} 沿冲刺路径释放 {@code shockwave_ring} 拖尾，并在每次范围冲击时从锥尖释放一枚
- *       {@code area_impact_ring}；{@code SecondStageRingEmitter} 在每次进入二段飞行[Second-Stage Flight]时释放一枚
+ *   <li>{@code RingConeEmitter} 沿冲刺路径释放 {@code shockwave_ring} 拖尾，并在每次范围伤害时从锥尖释放一枚
+ *       {@code area_damage_ring}；{@code SecondStageRingEmitter} 在每次进入二段飞行[Second-Stage Flight]时释放一枚
  *       {@code sonic_boom_ring}（音爆环），并在维持高速巡航时在身前形成 {@code barrier_ring}（音障环）。</li>
  *   <li>各帧世界尺寸由画布宽与对应类型最大跨度算出（{@link RingGeometry#scaleForWidth(int, float)}）：冲刺拖尾采用
  *       {@link RingGeometry#LARGEST_RING_SPAN}，音爆环采用更粗像素的 {@link #SONIC_BOOM_SPAN}；每 tick 向下一帧插值
  *       （{@link #nextQuadSize}），使绽放过程平滑不跳格。</li>
  *   <li>新增环类型时只需在 {@code ModParticles} 注册并在数据生成 provider 列出帧图，再映射至
  *       {@link #createDashTrail(SpriteSet)}、{@link #createSonicBoom(SpriteSet)}、
- *       {@link #createBarrierRing(SpriteSet)} 或 {@link #createAreaImpactRing(SpriteSet)} 工厂之一。</li>
+ *       {@link #createBarrierRing(SpriteSet)} 或 {@link #createAreaDamageRing(SpriteSet)} 工厂之一。</li>
  *   <li>冲刺拖尾环（{@link #dashTrailRing}）在冲刺者本人第一人称视角下跳过渲染，仅面向第三人称与旁观者展示；
  *       {@link #noteLocalDash(int)} 开启 {@link #DASH_SELF_HIDE_TICKS} 隐藏窗口（连发总时长加一环含停留的寿命），
  *       {@code ownDashHiddenNow} 同时校验窗口上下界以防切换世界重置客户端 {@code tickCount}。</li>
@@ -48,9 +48,9 @@ import org.joml.Vector3f;
  *   <li>音障环采用 {@link Exit#SPREAD}：到达最大帧后的 {@link #SPREAD_LINGER_TICKS} tick 内（从绽放到消失共半秒）继续
  *       扩大至该帧的 {@link #SPREAD_GROWTH} 倍，前 {@link #SPREAD_FADE_START} 进度保持全亮、其后淡出，呈现留在空中的气
  *       浪消散效果。</li>
- *   <li>范围冲击环采用 {@link Exit#SWEEP}：仅在绽放期的前 {@link RingConeEmitter#AREA_IMPACT_TRAVEL_TICKS} tick 内随速
- *       度移动并扩张至 {@link #AREA_IMPACT_SPAN}，恰好停在冲击锥末端，随后原地每 tick 增长一帧步长（
- *       {@link RingGeometry#getSweepSize}）并在 {@link #AREA_IMPACT_LINGER_TICKS} 加 1 tick 内淡出；其余类型环则终生漂
+ *   <li>范围伤害环采用 {@link Exit#SWEEP}：仅在绽放期的前 {@link RingConeEmitter#AREA_DAMAGE_TRAVEL_TICKS} tick 内随速
+ *       度移动并扩张至 {@link #AREA_DAMAGE_SPAN}，恰好停在冲击锥末端，随后原地每 tick 增长一帧步长（
+ *       {@link RingGeometry#getSweepSize}）并在 {@link #AREA_DAMAGE_LINGER_TICKS} 加 1 tick 内淡出；其余类型环则终生漂
  *       移。</li>
  *   <li>淡出与扩散均结合 partial tick 读取退场进度（{@link RingGeometry#getExitProgress}），保证帧间平滑过渡。</li>
  *   <li>⚠ {@link #tick()} 读取自增后的 {@code age}，使末帧恰好应用一次且绝不越界，若两侧混用 off-by-one 索引会直接崩
@@ -93,8 +93,8 @@ public final class RingParticle extends TextureSheetParticle {
     static final int SPREAD_LINGER_TICKS = 9;
     static final float SPREAD_GROWTH = 4.0F;
     static final float SPREAD_FADE_START = 0.5F;
-    static final float AREA_IMPACT_SPAN = 3.5F;
-    static final int AREA_IMPACT_LINGER_TICKS = 4;
+    static final float AREA_DAMAGE_SPAN = 3.5F;
+    static final int AREA_DAMAGE_LINGER_TICKS = 4;
     private static final int DASH_SELF_HIDE_TICKS = 20;
     private static final int DRIFTS_FOR_LIFE = Integer.MAX_VALUE;
     private static int localDashHiddenUntilTick = Integer.MIN_VALUE;
@@ -143,9 +143,9 @@ public final class RingParticle extends TextureSheetParticle {
                 DRIFTS_FOR_LIFE);
     }
 
-    public static ParticleProvider<SimpleParticleType> createAreaImpactRing(SpriteSet sprites) {
-        return create(sprites, false, AREA_IMPACT_SPAN, Exit.SWEEP, AREA_IMPACT_LINGER_TICKS,
-                RingConeEmitter.AREA_IMPACT_TRAVEL_TICKS);
+    public static ParticleProvider<SimpleParticleType> createAreaDamageRing(SpriteSet sprites) {
+        return create(sprites, false, AREA_DAMAGE_SPAN, Exit.SWEEP, AREA_DAMAGE_LINGER_TICKS,
+                RingConeEmitter.AREA_DAMAGE_TRAVEL_TICKS);
     }
 
     private static ParticleProvider<SimpleParticleType> create(SpriteSet sprites, boolean dashTrailRing,

@@ -13,6 +13,7 @@ import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthCrit;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
@@ -43,13 +44,13 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 活玩家连招轮[Combo Round]收尾招的兽力[Beast Strength]虚影、全面解放与空手命中的过载反噬（轮的边界归
+ * 活玩家连招轮[Combo Round]收尾招的兽力[Beast Strength]暴击（兽力虚影）与空手命中的过载反噬（轮的边界归
  * {@code ComboRoundGameTests}）。
  * <ul>
- *   <li>无永久兽力（仅花豕蛊[Flower Boar Gu]亦然）不抽；掷中现一虚影，其兽种永久点数再计一份（×2，不按承受力截断）；没
- *       掷中不抽，同一收尾不补掷。</li>
- *   <li>五转全力以赴每次收尾现一个，中途结束只撤承受力、解放照旧；棕熊本力掷中单熊掷不中的骰（10% 对 5%）。</li>
- *   <li>收尾招命中：解放增量（点数 × 0.125）补进本击护甲前伤害，并记下溢出量；每次出手打中结算一次过载反噬（超出 ÷ 承受
+ *   <li>无永久兽力（仅花豕蛊[Flower Boar Gu]亦然）不抽；暴击现一虚影，其兽种永久点数再计一份（×2，不按承受力截断）；没
+ *       暴击不抽，同一收尾不补掷。</li>
+ *   <li>五转全力以赴每次收尾都暴击，不抬承受力，中途结束暴击照旧；棕熊本力掷中单熊掷不中的骰（10% 对 5%）。</li>
+ *   <li>收尾招命中：暴击增量（点数 × 0.125）补进本击护甲前伤害，并记下溢出量；每次出手打中结算一次过载反噬（超出 ÷ 承受
  *       力 × 最大生命 × 50%，停在 2 血），同一招的后续命中、持剑与没打中都不扣，新出招再扣。</li>
  *   <li>虚影占槽：前两个在主人前方右、左，其余在身后扇形自最低排起，与朝向无关；同兽种再现原地续期，异兽种替换，寿命到
  *       或随主人消失。</li>
@@ -100,15 +101,15 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aLandedRollShowsOnePhantomAndAFullRelease(GameTestHelper helper) {
+    public static void aCritShowsOnePhantomAndDoublesItsFamily(GameTestHelper helper) {
         ServerPlayer player = rankFive(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
 
         assertEquals(BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT, finish(player, LAND), DELTA);
-        assertEquals(BEAR_POINTS, ComboRound.getReleasedPoints(player));
-        assertEquals(2 * BEAR_POINTS, StrengthService.getSettledPoints(player), "the released bear did not double");
+        assertEquals(BEAR_POINTS, ComboRound.getCritPoints(player));
+        assertEquals(2 * BEAR_POINTS, StrengthService.getSettledPoints(player), "the crit bear did not double");
         assertTrue(StrengthService.getSettledPoints(player) > StrengthService.getCapacity(player),
-                "the release was cut at the capacity");
+                "the crit was cut at the capacity");
         assertEquals(RANK_FIVE, StrengthService.getCapacity(player), "the rank five capacity moved");
         List<BeastPhantomEntity> phantoms = BeastPhantomEntity.findOwned(player);
         assertEquals(1, phantoms.size(), "a landed roll did not show one phantom");
@@ -117,7 +118,7 @@ public final class BeastPhantomGameTests {
 
         ServerPlayer missed = mortal(helper);
         PathStrengthService.grant(missed, BeastStrength.TIGER);
-        assertEquals(0.0D, finish(missed, ComboRound.CHANCE), DELTA);
+        assertEquals(0.0D, finish(missed, StrengthCrit.BASE_CHANCE), DELTA);
         assertTrue(ComboRound.isFinishing(missed), "a missed roll ended the finisher");
         assertTrue(ComboRound.getFamilies(missed).isEmpty(), "a missed roll drew a family");
         assertTrue(BeastPhantomEntity.findOwned(missed).isEmpty(), "a missed roll showed a phantom");
@@ -151,40 +152,39 @@ public final class BeastPhantomGameTests {
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            assertTrue(finish(player, MISS) > 0.0F, "the first finisher released nothing");
+            assertTrue(finish(player, MISS) > 0.0F, "the first finisher did not crit");
             assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null, "no first phantom");
-            ComboRound.complete(player, false);
-            assertTrue(finish(player, MISS) > 0.0F, "the next finisher released nothing");
+            ComboRound.complete(player);
+            assertTrue(finish(player, MISS) > 0.0F, "the next finisher did not crit");
             assertTrue(BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR) != null, "no second phantom");
             helper.succeed();
         });
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theEndOfAllOutEffortKeepsTheReleaseAndDropsOnlyItsCapacity(GameTestHelper helper) {
+    public static void allOutEffortLiftsNoCapacityAndItsEndKeepsTheCrit(GameTestHelper helper) {
         ServerPlayer player = rankFive(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
             assertEquals(BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT, finish(player, MISS), DELTA);
-            assertEquals(3 * RANK_FIVE, StrengthService.getCapacity(player), "rank five All-Out did not triple");
-            assertEquals(0, StrengthService.getOverloadPoints(StrengthService.getSettledPoints(player),
-                    StrengthService.getCapacity(player)), "the lifted capacity did not hold the released bear");
-
-            player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
-            assertEquals(BEAR_POINTS, ComboRound.getReleasedPoints(player), "the release left with the effect");
-            assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player));
-            assertEquals(2 * BEAR_POINTS, StrengthService.getSettledPoints(player), "the points left with the effect");
+            assertEquals(RANK_FIVE, StrengthService.getCapacity(player), "All-Out Effort lifted the capacity");
             assertEquals(2 * BEAR_POINTS - RANK_FIVE, StrengthService.getOverloadPoints(
                     StrengthService.getSettledPoints(player), StrengthService.getCapacity(player)),
-                    "the lift outlived the effect");
+                    "All-Out Effort carried the crit bear");
+
+            player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
+            assertEquals(BEAR_POINTS, ComboRound.getCritPoints(player), "the crit left with the effect");
+            assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player));
+            assertEquals(2 * BEAR_POINTS, StrengthService.getSettledPoints(player), "the points left with the effect");
+            assertEquals(RANK_FIVE, StrengthService.getCapacity(player), "the capacity moved with the effect");
             helper.succeed();
         });
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theFinishersReleaseJoinsTheBlowThatDrewItAndMarksItsSpill(GameTestHelper helper) {
+    public static void theFinishersCritJoinsTheBlowThatDrewItAndMarksItsSpill(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
@@ -214,7 +214,7 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aBlowThatKillsLeavesItsSpillForTheAreaImpact(GameTestHelper helper) {
+    public static void aBlowThatKillsLeavesItsSpill(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
@@ -223,10 +223,10 @@ public final class BeastPhantomGameTests {
         helper.runAfterDelay(SETTLE_TICKS, () -> {
             Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 2));
             float health = pig.getHealth();
-            assertTrue(health < BLOW + gain, "the pig outlives the released blow");
+            assertTrue(health < BLOW + gain, "the pig outlives the crit blow");
             ComboRound.beginStrike(player, true);
             hit(player, pig);
-            assertTrue(pig.isDeadOrDying(), "the released blow did not kill the pig");
+            assertTrue(pig.isDeadOrDying(), "the crit blow did not kill the pig");
             assertEquals(BLOW + gain - health, ComboRound.getSpill(player, BLOW), DELTA);
             helper.succeed();
         });
@@ -260,7 +260,7 @@ public final class BeastPhantomGameTests {
         hit(player, finished);
         hit(player, finished);
         assertEquals(health - 2.0F * recoil, player.getHealth(), DELTA);
-        ComboRound.complete(player, false);
+        ComboRound.complete(player);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
         ComboRound.beginStrike(player, false);
@@ -270,25 +270,30 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theOverloadCountsTheReleaseOfTheBlowThatDrewIt(GameTestHelper helper) {
+    public static void theOverloadCountsTheCritOfTheBlowThatDrewIt(GameTestHelper helper) {
         ServerPlayer player = GameTestGu.awakened(vulnerable(helper), Rank.FIVE);
         PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
+        PathStrengthService.grant(player, BeastStrength.STONE_TURTLE);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            int capacity = 3 * RANK_FIVE;
-            assertEquals(capacity, StrengthService.getCapacity(player), "rank five All-Out did not triple");
+            int capacity = RANK_FIVE + 128;
+            int total = BROWN_BEAR_POINTS + TURTLE_POINTS;
+            assertEquals(capacity, StrengthService.getCapacity(player), "the capacity is not the turtle's 184");
+            player.setHealth(player.getMaxHealth());
             float health = player.getHealth();
-            float recoil = (2 * BROWN_BEAR_POINTS - capacity) / (float) capacity * player.getMaxHealth() * 0.5F;
 
             ComboRound.beginStrike(player, false);
             hit(player, villager(helper, new BlockPos(2, 1, 2)));
             assertEquals(health, player.getHealth(), DELTA);
-            assertTrue(player.getLastDamageSource() == null, "96 points under a capacity of 168 paid an overload");
+            assertTrue(player.getLastDamageSource() == null, "144 points under a capacity of 184 paid an overload");
 
             ComboRound.beginStrike(player, true);
             hit(player, villager(helper, new BlockPos(2, 1, 4)));
-            assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player));
+            assertEquals(1, ComboRound.getFamilies(player).size(), "the sure crit did not draw one family");
+            int settled = total + ComboRound.getCritPoints(player);
+            assertEquals(settled, StrengthService.getSettledPoints(player));
+            float recoil = (settled - capacity) / (float) capacity * player.getMaxHealth() * 0.5F;
             assertEquals(health - recoil, player.getHealth(), DELTA);
             hit(player, villager(helper, new BlockPos(6, 1, 6)));
             assertEquals(health - recoil, player.getHealth(), DELTA);
@@ -383,7 +388,7 @@ public final class BeastPhantomGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aTurtleReleaseCountsAndShowsItsPhantom(GameTestHelper helper) {
+    public static void aTurtleCritCountsAndShowsItsPhantom(GameTestHelper helper) {
         ServerPlayer player = rankFive(helper);
         PathStrengthService.grant(player, BeastStrength.STONE_TURTLE);
 
@@ -424,11 +429,11 @@ public final class BeastPhantomGameTests {
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
             finish(player, MISS);
-            ComboRound.complete(player, false);
+            ComboRound.complete(player);
             BeastPhantomEntity bear = BeastPhantomEntity.findOwned(player, BeastStrengthFamily.BEAR);
             assertTrue(bear != null, "no bear shown");
             helper.runAfterDelay(BeastPhantomEntity.getShownTicks() - 2, () -> {
-                assertTrue(finish(player, MISS) > 0.0F, "the next finisher released nothing");
+                assertTrue(finish(player, MISS) > 0.0F, "the next finisher did not crit");
                 assertTrue(bear.isAlive(), "the bear went between two finishers");
                 assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "the next finisher respawned the bear");
                 helper.succeed();
@@ -491,7 +496,7 @@ public final class BeastPhantomGameTests {
 
     private static void hit(ServerPlayer player, LivingEntity target) {
         target.invulnerableTime = 0;
-        assertTrue(target.hurt(player.damageSources().playerAttack(player), BLOW), "the punch did no damage");
+        assertTrue(Punches.land(player, target, BLOW), "the punch did no damage");
     }
 
     private static Villager villager(GameTestHelper helper, BlockPos at) {

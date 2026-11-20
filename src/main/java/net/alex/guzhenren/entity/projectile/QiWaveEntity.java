@@ -1,6 +1,6 @@
 package net.alex.guzhenren.entity.projectile;
 
-import net.alex.guzhenren.gameplay.path.strength.AreaImpact;
+import net.alex.guzhenren.gameplay.path.strength.AreaDamage;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -27,13 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 气波弹射物（方位攻击球）：力气蛊[Strength Qi Gu]人力与钧力流派的远程拳，兽力虚影流派在未持有永久兽力时也回退发射本弹
+ * 气波弹射物（方位攻击球）：力气蛊[Strength Qi Gu]人力与钧力流派的远程攻击，兽力虚影流派在未持有永久兽力时也回退发射本弹
  * 射物。
  * <ul>
  *   <li>{@link #shoot} 发射直线气波：不受重力与阻力影响，以 {@link #SPEED} 格/tick 飞向发射瞬间目标中心所在的固定点（不
  *       追踪移动），到达该点或途中触碰可伤害生物时触发 {@link QiBurst#burst} 爆开，撞上方块则直接熄灭、不触发爆开；锁定
  *       目标只要处于爆开半径内即承受全额伤害。</li>
- *   <li>伤害、瞄准点、直线朝向（爆开时作为范围冲击环的轴向）与锁定目标仅在服务端维护；实体无几何模型，客户端沿生成包初
+ *   <li>伤害、瞄准点、直线朝向（爆开时作为范围伤害环的轴向）与锁定目标仅在服务端维护；实体无几何模型，客户端沿生成包初
  *       速度直飞并每 tick 生成一团云粒子，服务端爆开时发送 {@link #BURST_PUFFS} 团烟雾、撞方块熄灭时发送
  *       {@link #SNUFF_PUFFS} 团烟雾；不写入存档。</li>
  *   <li>蓄力蛊[Store Strength Gu]的蓄力一拳调用 {@link #track} 发射追踪气波：两端每 tick 根据同步目标 ID 转向目标当前中
@@ -156,7 +156,7 @@ public final class QiWaveEntity extends Projectile {
     @Override
     protected boolean canHitEntity(@NotNull Entity entity) {
         if (!super.canHitEntity(entity) || !(entity instanceof LivingEntity living)) return false;
-        return !(getOwner() instanceof ServerPlayer owner) || AreaImpact.canHit(owner, living);
+        return !(getOwner() instanceof ServerPlayer owner) || AreaDamage.canHit(owner, living);
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  * 肉身皮肤品阶枚举：涵盖原生皮、力道防御蛊赋予的限时玉皮/白玉皮，以及一至四转铜皮蛊、铁皮蛊永久改造的铜皮与铁皮。
  * <ul>
  *   <li>在 {@link BodyData} 中占一槽（同一时刻仅有一层皮肤），统一定义皮肤系别、转数、每次可抵挡伤害的固定减免点数
- *       （{@link #reduce}）与肉身承受力加成（力量点[Strength Points]，由 {@code StrengthService.getNormalCapacity} 计
+ *       （{@link #reduce}）与肉身承受力加成（力量点[Strength Points]，由 {@code StrengthService.getCapacity} 计
  *       入）。</li>
  *   <li>玉皮系属于限时皮肤（{@link #isTimed}，持续时间由物品定义，到期由心跳脱下），不提供承受力加成（以免承受力在两次
  *       心跳之间残留最多 1 秒）；铜皮系与铁皮系为永久改造，死亡重生后保留。</li>

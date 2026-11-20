@@ -30,13 +30,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地形崩裂[Shatter]服务：负责范围冲击[Area Impact]拳击、蓄力一拳[Charged Punch]近战与终点破坏打击[Crash Strike]的前方方
+ * 地形崩裂[Shatter]服务：负责范围伤害[Area Damage]拳击、蓄力一拳[Charged Punch]近战与终点破坏打击[Crash Strike]的前方方
  * 块破坏。
  * <ul>
  *   <li>本击力量点[Strength Points]达到 {@link #SOFT_POINTS} 时方可破块，可破坏方块硬度上限按力量点分三档
- *       （{@link #getMaxHardness}；终点破坏打击叠入两猪之力与全力以赴档位后直接调 {@link #shatterWith}）；带方块实体、
+ *       （{@link #getMaxHardness}；终点破坏打击叠入两猪之力后直接调 {@link #shatterWith}）；带方块实体、
  *       流体或不可破坏的方块一律跳过。</li>
- *   <li>崩裂半径取对应打击半径的一半：范围冲击取视线同轴锥（{@link #getConeCells}）；蓄力一拳取从脚底平层到头顶上一格的
+ *   <li>崩裂半径取对应打击半径的一半：范围伤害取视线同轴锥（{@link #getConeCells}）；蓄力一拳取从脚底平层到头顶上一格的
  *       水平扇形（{@link #getFanCells}，不挖脚下地面）；终点破坏打击取同高度圆柱圆盘（{@link #getDiscCells}，冲撞起点坑
  *       额外向下多挖一层地面）。所有候选格按距起点由近到远排序。</li>
  *   <li>{@link #shatter} 依序遍历候选格并返回实际破坏块数：先查 {@link ModEvents#canGrief}，再查视线遮挡
@@ -54,9 +54,9 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 
-public final class AreaImpactShatter {
+public final class AreaDamageShatter {
 
-    private AreaImpactShatter() {}
+    private AreaDamageShatter() {}
 
     public static final int SOFT_POINTS = 100;
     public static final float SOFT_HARDNESS = 0.6F;
@@ -97,7 +97,7 @@ public final class AreaImpactShatter {
         List<BlockPos> cells = new ArrayList<>();
         for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(origin.subtract(radius, radius, radius)),
                 BlockPos.containing(origin.add(radius, radius, radius)))) {
-            if (AreaImpact.isInCone(origin, unit, radius, AreaImpact.HALF_ANGLE_DEGREES, pos.getCenter())) {
+            if (AreaDamage.isInCone(origin, unit, radius, AreaDamage.HALF_ANGLE_DEGREES, pos.getCenter())) {
                 cells.add(pos.immutable());
             }
         }

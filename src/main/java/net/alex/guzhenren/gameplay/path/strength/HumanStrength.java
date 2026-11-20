@@ -10,7 +10,7 @@ import net.minecraft.util.StringRepresentable;
  *   <li>⚠ 1 斤人力严格等于 1 点力量点[Strength Points]（对应 {@link PathStrengthData#ATTACK_PER_POINT} 空手攻击力），
  *       保证人力与兽力[Beast Strength]共用同一套准入、承受力与攻击力结算；结算力量点唯一由 {@link StrengthService}
  *       得出。</li>
- *   <li>人力没有解放，来源倍率恒为 1；高档人力一层的点数超过凡人常态承受力时过不了准入（百钧之力留给蛊仙阶段）。</li>
+ *   <li>人力暴击不加点数（只放范围伤害）；高档人力一层的点数超过凡人承受力时过不了准入（百钧之力留给蛊仙阶段）。</li>
  * </ul>
  */
 

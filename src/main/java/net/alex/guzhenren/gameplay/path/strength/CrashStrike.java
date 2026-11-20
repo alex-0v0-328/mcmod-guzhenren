@@ -39,13 +39,14 @@ import org.jetbrains.annotations.NotNull;
  *       迟余量的截止时限 {@link #getDeadline} 时判定停下（{@link #hasStopped}）。若累计位移超出预期路程加
  *       {@link #LOST_MARGIN}（发生传送）、死亡、登出或切换维度，则作废本次登记。</li>
  *   <li>终点打击球心位于停点身体中心沿冲撞方向前伸 {@link #AHEAD} 格处，半径取 {@link CrashSources#getStrikeRange}，视
- *       线遮挡从玩家身体中心起算（防止貼墙停下时球心嵌入墙内导致全被遮挡），按溢出结算（{@link AreaImpact#spill}）：
+ *       线遮挡从玩家身体中心起算（防止貼墙停下时球心嵌入墙内导致全被遮挡），按溢出结算（{@link AreaDamage#spill}）：
  *       最近的目标吃整击，剩余由近到远最多命中 {@link #MAX_TARGETS} 个目标。</li>
- *   <li>伤害 = 停下时结算力量点[Strength Points]（{@link StrengthSnapshot#settledPoints}，吃苦力倍率，不含解放）对应的
- *       剥离主手武器修饰后的空手攻击力（{@link AttackDamageService#getBareFistDamage}）× {@link #getDamageRatio} 出手
- *       系数（{@code guzhenren:crash_strike} 战斗伤害，受护甲减免，沿冲撞方向施加 {@link #KNOCKBACK} 击退）；不结算连
- *       招轮（不抽兽种、不出虚影），命中至少一个目标时按该结算力量点结算一次 {@link BodyOverload#recoil} 过载反噬。打
- *       击半径、崩裂与冲撞距离读起手时的总力量点（{@link CrashSources}），不吃倍率。</li>
+ *   <li>伤害 = 停下时结算力量点[Strength Points]（{@link StrengthSnapshot#settledPoints}，吃苦力伤害倍率，不含暴击）对
+ *       应的剥离主手武器修饰后的空手攻击力（{@link AttackDamageService#getBareFistDamage}）× {@link #getDamageRatio}
+ *       打击系数（基础 {@link #BASE_RATIO}，两猪之力加 {@link #TWO_BOARS_RATIO}；{@code guzhenren:crash_strike} 战斗伤
+ *       害，受护甲减免，沿冲撞方向施加 {@link #KNOCKBACK} 击退）；不结算连招轮（不掷暴击、不出虚影），命中至少一个目标
+ *       时按该结算力量点结算一次 {@link BodyOverload#recoil} 过载反噬。打击半径、崩裂与冲撞距离读起手时的总力量点
+ *       （{@link CrashSources}），不吃倍率。</li>
  *   <li>终点打击后以停点为中心执行圆盘地形崩裂（{@link #getEndCells}，半径为打击半径一半，从脚底平层到头顶上一格，保留
  *       脚下所踩地面，至多破 {@link #MAX_BLOCKS} 块），并发布 {@link CrashStruckEvent} 触发冲击环粒子（挥空同样崩裂并发
  *       事件）。</li>
@@ -79,7 +80,6 @@ public final class CrashStrike {
     public static final int COOLDOWN_TICKS = 20;
     public static final float BASE_RATIO = 0.5F;
     public static final float TWO_BOARS_RATIO = 0.25F;
-    public static final float ALL_OUT_RATIO = 0.25F;
     private static final float SOUND_VOLUME = 1.0F;
     private static final float SOUND_PITCH = 0.7F;
 
@@ -122,8 +122,8 @@ public final class CrashStrike {
     private enum Outcome { MOVING, STOPPED, LOST }
 
     //region Rules [规则]
-    public static float getDamageRatio(boolean twoBoars, boolean allOut) {
-        return BASE_RATIO + (twoBoars ? TWO_BOARS_RATIO : 0.0F) + (allOut ? ALL_OUT_RATIO : 0.0F);
+    public static float getDamageRatio(boolean twoBoars) {
+        return BASE_RATIO + (twoBoars ? TWO_BOARS_RATIO : 0.0F);
     }
 
     public static boolean hasStopped(double travelled, int slowTicks, int ticks, int deadline) {
@@ -141,13 +141,13 @@ public final class CrashStrike {
     }
 
     public static @NotNull List<BlockPos> getEndCells(@NotNull Vec3 feet, double height, double radius) {
-        return AreaImpactShatter.getDiscCells(feet, height, radius, 0, feet.add(0.0D, height / 2.0D, 0.0D));
+        return AreaDamageShatter.getDiscCells(feet, height, radius, 0, feet.add(0.0D, height / 2.0D, 0.0D));
     }
 
     public static @NotNull List<BlockPos> getPitCells(@NotNull Vec3 start, double height, double radius,
                                                       @NotNull AABB standing) {
         int floor = Mth.floor(start.y + 0.5D) - PIT_FLOOR_LAYERS;
-        List<BlockPos> cells = new ArrayList<>(AreaImpactShatter.getDiscCells(start, height, radius,
+        List<BlockPos> cells = new ArrayList<>(AreaDamageShatter.getDiscCells(start, height, radius,
                 PIT_FLOOR_LAYERS, start.add(0.0D, height / 2.0D, 0.0D)));
         cells.removeIf(pos -> pos.getY() <= floor && isUnder(pos, standing));
         return cells;
@@ -185,7 +185,7 @@ public final class CrashStrike {
 
         float hardness = sources.getMaxHardness();
         if (hardness >= 0.0F) {
-            AreaImpactShatter.shatterWith(player, body, getEndCells(player.position(), height, range / 2.0D),
+            AreaDamageShatter.shatterWith(player, body, getEndCells(player.position(), height, range / 2.0D),
                     hardness, MAX_BLOCKS);
         }
         ServerLevel level = player.serverLevel();
@@ -200,7 +200,7 @@ public final class CrashStrike {
         if (hardness < 0.0F) return 0;
 
         double height = getStandingHeight(player);
-        return AreaImpactShatter.shatterWith(player, start.add(0.0D, height / 2.0D, 0.0D),
+        return AreaDamageShatter.shatterWith(player, start.add(0.0D, height / 2.0D, 0.0D),
                 getPitCells(start, height, sources.getStrikeRange() / 2.0D, player.getBoundingBox()), hardness,
                 MAX_BLOCKS);
     }
@@ -213,12 +213,12 @@ public final class CrashStrike {
                                           float damage) {
         List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class,
                 new AABB(center, center).inflate(range),
-                target -> AreaImpact.canHit(player, target)
+                target -> AreaDamage.canHit(player, target)
                         && target.getBoundingBox().getCenter().distanceToSqr(center) <= range * range
-                        && AreaImpact.isInSight(player, body, target));
+                        && AreaDamage.isInSight(player, body, target));
         targets.sort(Comparator.comparingDouble(target -> target.getBoundingBox().getCenter().distanceToSqr(center)));
 
-        return AreaImpact.spill(targets, damage, MAX_TARGETS,
+        return AreaDamage.spill(targets, damage, MAX_TARGETS,
                 ModDamageTypes.source(player, player, ModDamageTypes.CRASH_STRIKE), target -> {
                     target.knockback(KNOCKBACK, -direction.x, -direction.z);
                     target.hurtMarked = true;

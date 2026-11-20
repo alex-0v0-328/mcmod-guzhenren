@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>分支持有判定优先级（{@link #getHeldBranch}）：优先认兽力虚影流，其次人力钧力流，均无则为
  *       {@link StrengthPathBranch#NORMAL}。</li>
  *   <li>⚠ 永久兽力与人力的准入检查在蛊虫行为侧（{@code BeastStrengthBehavior}、{@code HumanStrengthBehavior}）执行而非
- *       本服务内，以便管理员指令可赋予超出常态承受力的永久力量（超出部分全额发挥并结算过载反噬）。</li>
+ *       本服务内，以便管理员指令可赋予超出承受力的永久力量（超出部分全额发挥并结算过载反噬）。</li>
  *   <li>⚠ 下调人力层数时通过 {@code dropLayer} 按整层扣除该档人力自带的道痕点，保留其他途径（如增幅蛊）追加的道
  *       痕。</li>
  * </ul>

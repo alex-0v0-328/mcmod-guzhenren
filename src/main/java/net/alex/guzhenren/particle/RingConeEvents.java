@@ -10,7 +10,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * {@link RingConeEmitter} 的服务端事件桥接器：在玩家刻末尾推进冲刺环爆发轨迹，在玩家登出或切换维度时清理状态，并在收到
- * {@link CrashStruckEvent} 时发射范围冲击环。
+ * {@link CrashStruckEvent} 时发射范围伤害环。
  */
 
 @EventBusSubscriber(modid = Guzhenren.MOD_ID)
@@ -25,7 +25,7 @@ public final class RingConeEvents {
 
     @SubscribeEvent
     public static void onCrashStruck(CrashStruckEvent event) {
-        RingConeEmitter.areaImpactRing(event.getPlayer().serverLevel(), event.getOrigin(), event.getDirection(),
+        RingConeEmitter.areaDamageRing(event.getPlayer().serverLevel(), event.getOrigin(), event.getDirection(),
                 event.getRange());
     }
 

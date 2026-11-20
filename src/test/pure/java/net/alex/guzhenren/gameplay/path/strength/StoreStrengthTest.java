@@ -19,12 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StoreStrengthTest {
 
-    private static final int RANK_THREE_ALL_OUT = StrengthService.ALL_OUT_LOWEST_TIER;
     private static final Vec3 FEET = Vec3.ZERO;
     private static final Vec3 NORTH = new Vec3(0.0D, 0.0D, -1.0D);
     private static final double HEIGHT = 1.8D;
     private static final double RANGE = 6.0D;
     private static final double WIDE_RANGE = 9.0D;
+    private static final double DELTA = 1.0E-9D;
     private static final String CLIPS = "assets/guzhenren/animmodels/animations/biped/skill/";
     private static final int ROOT_Y = 7;
 
@@ -32,19 +32,18 @@ class StoreStrengthTest {
         return new AABB(x - 0.3D, y, z - 0.3D, x + 0.3D, y + 1.8D, z + 0.3D);
     }
 
-    private static float fill(int ticks, int allOutTier) {
+    private static float fill(int ticks) {
         float progress = 0.0F;
-        for (int tick = 0; tick < ticks; tick++) progress = StoreStrength.fill(progress, allOutTier);
+        for (int tick = 0; tick < ticks; tick++) progress = StoreStrength.fill(progress);
         return progress;
     }
 
     @Test
-    @DisplayName("a charge fills in four seconds, or 70/60/50% of it under rank three/four/five All-Out Effort")
-    void theChargeTimeFollowsAllOutEffort() {
-        assertEquals(80, StoreStrength.getChargeTicks(StrengthService.NO_ALL_OUT));
-        assertEquals(56, StoreStrength.getChargeTicks(RANK_THREE_ALL_OUT));
-        assertEquals(48, StoreStrength.getChargeTicks(RANK_THREE_ALL_OUT + 1));
-        assertEquals(40, StoreStrength.getChargeTicks(RANK_THREE_ALL_OUT + 2));
+    @DisplayName("a charge always fills in four seconds, one 80th a tick")
+    void theChargeTimeIsFixed() {
+        assertEquals(80, StoreStrength.CHARGE_TICKS);
+        assertEquals(1.0F / 80.0F, StoreStrength.getStep(), 1.0E-9F);
+        assertEquals(1.0F / 80.0F, StoreStrength.fill(0.0F), 1.0E-9F);
     }
 
     @Test
@@ -52,24 +51,22 @@ class StoreStrengthTest {
     void aChargeIsFullWithinTheSlack() {
         float progress = 0.0F;
         for (int tick = 0; tick < StoreStrength.CHARGE_TICKS - StoreStrength.RELEASE_SLACK_TICKS - 1; tick++) {
-            progress = StoreStrength.fill(progress, StrengthService.NO_ALL_OUT);
+            progress = StoreStrength.fill(progress);
         }
-        assertFalse(StoreStrength.isFull(progress, StrengthService.NO_ALL_OUT));
-        progress = StoreStrength.fill(progress, StrengthService.NO_ALL_OUT);
-        assertTrue(StoreStrength.isFull(progress, StrengthService.NO_ALL_OUT));
-        for (int tick = 0; tick < 10; tick++) progress = StoreStrength.fill(progress, StrengthService.NO_ALL_OUT);
+        assertFalse(StoreStrength.isFull(progress));
+        progress = StoreStrength.fill(progress);
+        assertTrue(StoreStrength.isFull(progress));
+        for (int tick = 0; tick < 10; tick++) progress = StoreStrength.fill(progress);
         assertEquals(1.0F, progress);
     }
 
     @Test
     @DisplayName("a charge let go under a quarter is cancelled; from a quarter on it strikes")
     void aChargeStrikesFromAQuarter() {
-        assertFalse(StoreStrength.isReady(fill(10, StrengthService.NO_ALL_OUT), StrengthService.NO_ALL_OUT),
-                "half a second of the four struck");
-        assertEquals(0.0F, StoreStrength.getFactor(fill(10, StrengthService.NO_ALL_OUT), StrengthService.NO_ALL_OUT));
-        assertTrue(StoreStrength.isReady(fill(20, StrengthService.NO_ALL_OUT), StrengthService.NO_ALL_OUT),
-                "one second of the four did not strike");
-        assertTrue(StoreStrength.isReady(1.0F, StrengthService.NO_ALL_OUT));
+        assertFalse(StoreStrength.isReady(fill(10)), "half a second of the four struck");
+        assertEquals(0.0F, StoreStrength.getReleaseFactor(fill(10)));
+        assertTrue(StoreStrength.isReady(fill(20)), "one second of the four did not strike");
+        assertTrue(StoreStrength.isReady(1.0F));
         assertEquals(0.25F, StoreStrength.MIN_PROGRESS);
     }
 
@@ -77,10 +74,9 @@ class StoreStrengthTest {
     @DisplayName("the quarter counts as reached two ticks early, at the least factor")
     void aChargeIsReadyWithinTheSlack() {
         int ready = StoreStrength.CHARGE_TICKS / 4 - StoreStrength.RELEASE_SLACK_TICKS;
-        assertFalse(StoreStrength.isReady(fill(ready - 1, StrengthService.NO_ALL_OUT), StrengthService.NO_ALL_OUT));
-        assertTrue(StoreStrength.isReady(fill(ready, StrengthService.NO_ALL_OUT), StrengthService.NO_ALL_OUT));
-        assertEquals(1.5F, StoreStrength.getFactor(fill(ready, StrengthService.NO_ALL_OUT),
-                StrengthService.NO_ALL_OUT), 1.0E-6F);
+        assertFalse(StoreStrength.isReady(fill(ready - 1)));
+        assertTrue(StoreStrength.isReady(fill(ready)));
+        assertEquals(1.5F, StoreStrength.getReleaseFactor(fill(ready)), 1.0E-6F);
     }
 
     @Test
@@ -93,11 +89,10 @@ class StoreStrengthTest {
         assertEquals(3.0F, StoreStrength.getFactor(4.0F), 1.0E-6F, "a factor past the full charge");
         assertEquals(3.0F, StoreStrength.MAX_FACTOR);
 
-        int none = StrengthService.NO_ALL_OUT;
-        assertEquals(1.5F, StoreStrength.getFactor(fill(20, none), none), 1.0E-4F);
-        assertEquals(2.0F, StoreStrength.getFactor(fill(40, none), none), 1.0E-4F);
-        assertEquals(2.5F, StoreStrength.getFactor(fill(60, none), none), 1.0E-4F);
-        assertEquals(3.0F, StoreStrength.getFactor(fill(80, none), none));
+        assertEquals(1.5F, StoreStrength.getReleaseFactor(fill(20)), 1.0E-4F);
+        assertEquals(2.0F, StoreStrength.getReleaseFactor(fill(40)), 1.0E-4F);
+        assertEquals(2.5F, StoreStrength.getReleaseFactor(fill(60)), 1.0E-4F);
+        assertEquals(3.0F, StoreStrength.getReleaseFactor(fill(80)));
     }
 
     @Test
@@ -115,63 +110,56 @@ class StoreStrengthTest {
     @Test
     @DisplayName("a charge filled tick by tick settles the points its share of the charge time gives, never one less")
     void aTickedChargeSettlesItsExactShare() {
-        int none = StrengthService.NO_ALL_OUT;
-        double half = StoreStrength.getExactFactor(StoreStrength.getFactor(fill(40, none), none));
+        double half = StoreStrength.getExactFactor(StoreStrength.getReleaseFactor(fill(40)));
         assertEquals(2.0D, half);
         assertEquals(200, StrengthService.getSettledPoints(100, 0, half), "half a charge lost a point to the drift");
 
-        for (int tier : new int[] { none, RANK_THREE_ALL_OUT, RANK_THREE_ALL_OUT + 1, RANK_THREE_ALL_OUT + 2 }) {
-            int total = StoreStrength.getChargeTicks(tier);
-            for (int ticks = total / 4; ticks < total - StoreStrength.RELEASE_SLACK_TICKS; ticks++) {
-                double factor = StoreStrength.getExactFactor(StoreStrength.getFactor(fill(ticks, tier), tier));
-                assertEquals(100 + 200 * ticks / total, StrengthService.getSettledPoints(100, 0, factor),
-                        ticks + " of " + total + " ticks");
-            }
+        int total = StoreStrength.CHARGE_TICKS;
+        for (int ticks = total / 4; ticks < total - StoreStrength.RELEASE_SLACK_TICKS; ticks++) {
+            double factor = StoreStrength.getExactFactor(StoreStrength.getReleaseFactor(fill(ticks)));
+            assertEquals(100 + 200 * ticks / total, StrengthService.getSettledPoints(100, 0, factor),
+                    ticks + " of " + total + " ticks");
         }
     }
 
     @Test
-    @DisplayName("All-Out Effort shortens the quarter and every step of the factor by the same share")
-    void allOutEffortKeepsTheSameShares() {
-        int rankFive = RANK_THREE_ALL_OUT + 2;
-        assertFalse(StoreStrength.isReady(fill(5, rankFive), rankFive), "an eighth of the short charge struck");
-        assertEquals(1.5F, StoreStrength.getFactor(fill(10, rankFive), rankFive), 1.0E-4F);
-        assertEquals(2.0F, StoreStrength.getFactor(fill(20, rankFive), rankFive), 1.0E-4F);
-        assertEquals(3.0F, StoreStrength.getFactor(fill(40, rankFive), rankFive));
-        assertEquals(1.5F, StoreStrength.getFactor(fill(14, RANK_THREE_ALL_OUT), RANK_THREE_ALL_OUT), 1.0E-4F);
-        assertEquals(2.0F, StoreStrength.getFactor(fill(28, RANK_THREE_ALL_OUT), RANK_THREE_ALL_OUT), 1.0E-4F);
-        assertEquals(3.0F, StoreStrength.getFactor(fill(56, RANK_THREE_ALL_OUT), RANK_THREE_ALL_OUT));
+    @DisplayName("a full charge always crits; any shorter one rolls the crit chance")
+    void aFullChargeAlwaysCrits() {
+        assertEquals(1.0F, StoreStrength.getCritChance(true, 0.05F), 1.0E-6F);
+        assertEquals(1.0F, StoreStrength.getCritChance(true, 0.0F), 1.0E-6F, "a full charge of no branch missed");
+        assertEquals(0.05F, StoreStrength.getCritChance(false, 0.05F), 1.0E-6F);
+        assertEquals(0.10F, StoreStrength.getCritChance(false, 0.10F), 1.0E-6F, "the brown bear's chance was lost");
+        assertEquals(0.80F, StoreStrength.getCritChance(false, 0.80F), 1.0E-6F, "All-Out Effort's chance was lost");
+        assertEquals(0.0F, StoreStrength.getCritChance(false, 0.0F), 1.0E-6F);
     }
 
     @Test
-    @DisplayName("the charged punch rolls its own release: 70%, 75% with the brown bear, always under All-Out Effort")
-    void theChance() {
-        float brownBear = BeastStrength.BROWN_BEAR.getChanceBonus();
-        assertEquals(0.70F, StoreStrength.getChance(false, 0.0F), 1.0E-6F);
-        assertEquals(0.75F, StoreStrength.getChance(false, brownBear), 1.0E-6F);
-        assertEquals(1.0F, StoreStrength.getChance(true, 0.0F));
-        assertEquals(1.0F, StoreStrength.getChance(true, brownBear), "All-Out Effort passed a sure roll");
-    }
-
-    @Test
-    @DisplayName("the range grows with the root of the points from 4 blocks up to 16; widened it is half again, "
-            + "up to 24")
+    @DisplayName("the range grows with the root of the points from 4 blocks; Hardship multiplies it by the tier "
+            + "factor; never past 16")
     void rangeGrowsWithTheRootOfThePoints() {
-        assertEquals(4.0D, StoreStrength.getRange(0, false), 1.0E-9D);
-        assertEquals(10.0D, StoreStrength.getRange(400, false), 1.0E-9D);
-        assertEquals(15.0D, StoreStrength.getRange(400, true), 1.0E-9D);
-        assertEquals(16.0D, StoreStrength.getRange(10_000, false), 1.0E-9D);
-        assertEquals(19.5D, StoreStrength.getRange(900, true), 1.0E-9D, "the widened range stopped at 16");
-        assertEquals(24.0D, StoreStrength.getRange(10_000, true), 1.0E-9D);
-        assertEquals(5.0D, StoreStrength.getBurstRadius(400, false), 1.0E-9D);
-        assertEquals(12.0D, StoreStrength.getBurstRadius(10_000, true), 1.0E-9D);
+        assertEquals(4.0D, StoreStrength.getRange(0, 0), DELTA);
+        assertEquals(10.0D, StoreStrength.getRange(400, 0), DELTA);
+        assertEquals(16.0D, StoreStrength.getRange(10_000, 0), DELTA);
+        assertEquals(5.6D, StoreStrength.getRange(0, 1), DELTA);
+        assertEquals(14.0D, StoreStrength.getRange(400, 1), DELTA);
+        assertEquals(12.0D, StoreStrength.getRange(0, 5), DELTA);
+        assertEquals(16.0D, StoreStrength.getRange(400, 2), DELTA, "10 x 1.8 passed 16");
+        assertEquals(16.0D, StoreStrength.getRange(10_000, 5), DELTA, "the widened range passed 16");
     }
 
     @Test
-    @DisplayName("a six-block fan reaches 45 degrees either side, a widened nine-block one 135, 270 in all")
+    @DisplayName("the burst radius is half the charge range, widened by the same tier")
+    void theBurstRadiusIsHalfTheRange() {
+        assertEquals(5.0D, StoreStrength.getBurstRadius(400, 0), DELTA);
+        assertEquals(7.0D, StoreStrength.getBurstRadius(400, 1), DELTA);
+        assertEquals(8.0D, StoreStrength.getBurstRadius(10_000, 5), DELTA);
+    }
+
+    @Test
+    @DisplayName("a six-block fan reaches 45 degrees either side, a tier five nine-block one 72.5, 145 in all")
     void theFanWidensUnderHardship() {
         double range = RANGE;
-        double half = AreaImpact.getHalfAngle(false);
+        double half = AreaDamage.getHalfAngle(0);
         assertEquals(45.0D, half);
         assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(0.0D, 0.0D, -5.0D)));
         assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(0.0D, 0.0D, -7.0D)));
@@ -179,15 +167,16 @@ class StoreStrengthTest {
         assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(3.0D, 0.0D, 0.0D)));
 
         double wide = WIDE_RANGE;
-        double wideHalf = AreaImpact.getHalfAngle(true);
-        assertEquals(135.0D, wideHalf);
-        assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(3.0D, 0.0D, 0.0D)));
+        double wideHalf = AreaDamage.getHalfAngle(5);
+        assertEquals(72.5D, wideHalf, DELTA);
         assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(0.0D, 0.0D, -8.5D)));
-        assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(3.0D, 0.0D, 2.0D)),
-                "124 degrees off the axis");
-        assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(-3.0D, 0.0D, 2.0D)));
-        assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(2.0D, 0.0D, 3.0D)),
-                "146 degrees off the axis");
+        assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(4.0D, 0.0D, -2.0D)),
+                "63 degrees off the axis");
+        assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(-4.0D, 0.0D, -2.0D)));
+        assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(4.0D, 0.0D, -2.0D)),
+                "the tier 0 fan took 63 degrees");
+        assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(3.0D, 0.0D, 0.0D)),
+                "90 degrees off the axis");
         assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, wide, wideHalf, mobAt(0.0D, 0.0D, 3.0D)));
     }
 
@@ -195,7 +184,7 @@ class StoreStrengthTest {
     @DisplayName("the fan spans from a block under the feet to two over the head")
     void theFanHasAHeightBand() {
         double range = RANGE;
-        double half = AreaImpact.getHalfAngle(false);
+        double half = AreaDamage.getHalfAngle(0);
         assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(0.0D, -2.5D, -3.0D)));
         assertFalse(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(0.0D, -3.0D, -3.0D)));
         assertTrue(StoreStrength.isInFan(FEET, HEIGHT, NORTH, range, half, mobAt(0.0D, 3.8D, -3.0D)));
@@ -211,13 +200,6 @@ class StoreStrengthTest {
         assertEquals(Vec3.ZERO, StoreStrength.getLevelAxis(new Vec3(0.0D, 1.0D, 0.0D)));
     }
 
-    @Test
-    @DisplayName("a tier past the table keeps the last entry, and one below rank three charges the full four seconds")
-    void theChargeTableEndsAtFiftyPercent() {
-        assertEquals(40, StoreStrength.getChargeTicks(RANK_THREE_ALL_OUT + 9));
-        assertEquals(80, StoreStrength.getChargeTicks(RANK_THREE_ALL_OUT - 1));
-    }
-
     private static AABB boxAround(Vec3 center, double halfWidth, double bottom, double top) {
         return new AABB(center.x - halfWidth, bottom, center.z - halfWidth, center.x + halfWidth, top,
                 center.z + halfWidth);
@@ -227,7 +209,7 @@ class StoreStrengthTest {
     @DisplayName("a mob whose box just touches the reach or the height band is in the fan, a hair past is out")
     void theFanEdgesAreInclusive() {
         double range = RANGE;
-        double half = AreaImpact.getHalfAngle(false);
+        double half = AreaDamage.getHalfAngle(0);
         double height = 2.0D;
         assertTrue(StoreStrength.isInFan(FEET, height, NORTH, range, half,
                 boxAround(new Vec3(0.0D, 0.0D, -6.5D), 0.5D, 0.0D, 1.0D)), "centre at range plus half the width");
@@ -247,7 +229,7 @@ class StoreStrengthTest {
     @DisplayName("a mob standing on the caster is in the fan whichever way the caster looks")
     void aMobOnTheCasterIsAlwaysIn() {
         double range = RANGE;
-        double half = AreaImpact.getHalfAngle(false);
+        double half = AreaDamage.getHalfAngle(0);
         AABB onTop = boxAround(new Vec3(7.0D, 0.0D, -3.0D), 0.3D, 0.0D, 1.8D);
         Vec3 feet = new Vec3(7.0D, 0.0D, -3.0D);
         assertTrue(StoreStrength.isInFan(feet, HEIGHT, NORTH, range, half, onTop));
@@ -258,7 +240,7 @@ class StoreStrengthTest {
     @DisplayName("the half angle is inclusive and measured from the caster's feet, wherever they stand")
     void theFanAngleIsMeasuredFromTheFeet() {
         double range = RANGE;
-        double half = AreaImpact.getHalfAngle(false);
+        double half = AreaDamage.getHalfAngle(0);
         Vec3 feet = new Vec3(10.0D, 64.0D, -20.0D);
         assertTrue(StoreStrength.isInFan(feet, HEIGHT, NORTH, range, half, mobAt(13.0D, 64.0D, -23.0D)),
                 "exactly 45 degrees right of north");
@@ -272,7 +254,7 @@ class StoreStrengthTest {
     @DisplayName("the fan follows any level axis, not only the compass ones")
     void theFanFollowsADiagonalAxis() {
         double range = RANGE;
-        double half = AreaImpact.getHalfAngle(false);
+        double half = AreaDamage.getHalfAngle(0);
         Vec3 axis = new Vec3(0.6D, 0.0D, -0.8D);
         Vec3 feet = new Vec3(-4.0D, 10.0D, 5.0D);
         assertTrue(StoreStrength.isInFan(feet, HEIGHT, axis, range, half, mobAt(-2.2D, 10.0D, 2.6D)), "dead ahead");

@@ -13,7 +13,7 @@ import net.minecraft.world.effect.MobEffectCategory;
  *       （蓄力蛊[Store Strength Gu]）与 {@code HABITUAL_STRENGTH_GU}（惯力蛊[Habitual Strength Gu]）均为限时标记，效果
  *       等级对应蛊虫档位且生效期间拒绝重复催动；其中蓄力蛊由双端分别在 {@code StoreStrength.canCharge} 与
  *       {@code StoreStrengthInput} 中读取，惯力蛊额外允许蓄力期间移动（{@code StoreStrength.isMobile}），全力以赴蛊由
- *       {@code StrengthService.getAllOutTier} 读取档位以决定承受力加成与触发概率。</li>
+ *       {@code StrengthService.getAllOutTier} 读取档位以决定暴击率（{@code StrengthCrit.getChance}）。</li>
  *   <li>{@code BIG_STRENGTH_GU}（大力蛊[Big Strength Gu]）与 {@code LIQUOR_WORM}（酒虫[Liquor Worm]）仅投影对应流派效果
  *       （{@code BIG_STRENGTH} 与 {@code LIQUOR_DISTILLING}）的图标和计时，真值仍由流派效果持有，其中酒虫效果结束后由
  *       {@code closeDistilling} 按 1:2 比例退还真元。</li>

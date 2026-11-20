@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  *       {@link #MAX_BEND_RATIO}，并额外向上抬升该偏移量的 {@link #LIFT_RATIO} 倍。</li>
  *   <li>{@link #flightTicks(double, float)} 按飞行速度折算弦长并保底 {@link #MIN_FLIGHT_TICKS} tick；第 {@code n} tick
  *       的轨迹点由 {@link #pointAt}（{@code t = n / flightTicks}）给出，对 {@code t} 的一阶导数 {@link #tangentAt} 则在
- *       兽力冲击爆开时作为范围冲击环的朝向轴。</li>
+ *       兽力冲击爆开时作为范围伤害环的朝向轴。</li>
  *   <li>{@link #bankDegrees} 计算月刃渲染时的转弯侧倾角（正值使左缘下压，对应左弯），达到最大弯度时倾角为
  *       {@link #MAX_BANK_DEGREES}，其余按比例缩放；{@link #isAimable} 供服务端校验客户端上报的目标是否处于射程与视野前
  *       方。</li>

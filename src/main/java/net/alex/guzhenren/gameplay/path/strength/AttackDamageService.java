@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *       Fight 拳套也视为非空手）时生效，{@link #getFistBonus} 则忽略手持物返回空手加成供 B 面板展示。</li>
  *   <li>由 {@link AttackDamageEvents} 在状态或主手变更时即时刷新，并由每秒心跳兜底。</li>
  *   <li>{@link #getFistDamage} 按原版属性修饰符运算顺序重算指定力量点数下的空手攻击力（保留其他模组的乘算加成，
- *       供蓄力蛊[Store Strength Gu]的蓄力一拳与力气蛊[Strength Qi Gu]远程拳使用）；{@link #getBareFistDamage} 额外剔
+ *       供蓄力蛊[Store Strength Gu]的蓄力一拳与力气蛊[Strength Qi Gu]远程攻击使用）；{@link #getBareFistDamage} 额外剔
  *       除主手物品自带的攻击力修饰符（供不看手持物的终点破坏打击[Crash Strike]使用）。</li>
  *   <li>⚠ 必须通过 {@link TransientModifiers} 挂载临时属性修饰符；本模组任何药水效果均不得自带
  *       {@code addAttributeModifier} 直接改攻击力，所有限时力量增益一律转为力量点走力道结算。</li>

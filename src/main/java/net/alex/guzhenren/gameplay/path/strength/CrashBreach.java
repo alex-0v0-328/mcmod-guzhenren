@@ -26,9 +26,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>冲撞位移由 Epic Fight 在所属客户端驱动，前 2 tick 即走完大半路程；因此服务端必须在起冲当 tick、下发动画包之前调
  *       用 {@link #clear} 一次性破除沿途可破方块，并通过同一连接立即补发 {@link ClientboundBlockUpdatePacket}，防止客户
  *       端撞上服务端已破的方块。</li>
- *   <li>可破坏硬度上限 {@link #getMaxHardness}：在力量点三档（{@link AreaImpactShatter#getMaxHardness}）基础上，全力以
- *       赴提升一档，两猪之力直接保底顶档（{@link AreaImpactShatter#HARD_HARDNESS}）；未入档
- *       （{@link AreaImpactShatter#NONE}）时不破块。</li>
+ *   <li>可破坏硬度上限 {@link #getMaxHardness}：取力量点三档（{@link AreaDamageShatter#getMaxHardness}），两猪之力直接
+ *       保底顶档（{@link AreaDamageShatter#HARD_HARDNESS}）；未入档（{@link AreaDamageShatter#NONE}）时不破块。</li>
  *   <li>扫描长度严格等于 {@link CrashSources#getTravel}（不加前伸余量，以免在停点前方多挖出空洞通道，Alex 定）：仅破坏
  *       碰撞箱与扫掠盒实际相交的方块，脚下地面、所踩下半砖以及无碰撞体积方块（草、花、火把、液体等）保持不动；地面起冲
  *       时扫掠盒底面抬高一个步高（{@code maxUpStep}，不超过半身高），允许直接迈上前方台阶或土径边沿。</li>
@@ -36,9 +35,9 @@ import org.jetbrains.annotations.NotNull;
  *       {@code BlockEvent.BreakEvent}；生存模式按空手战利品表掉落（不校验工具等级，矿石同样掉落），创造模式不掉落；遇到
  *       首个未加载区块、超硬度或无权限破坏的方块立即停止清路，玩家冲撞也随之停在该方块前。</li>
  *   <li>⚠ 为避免 32 格冲撞（最多约 136 块）逐块广播原版破坏音效与粒子造成噪音，不调用 {@code Level.destroyBlock}，改为
- *       每 {@link AreaImpactShatter#PARTICLE_EVERY} 块发一组碎屑、整次清路仅在首块位置播一次破坏音，并手动补齐掉落、流
+ *       每 {@link AreaDamageShatter#PARTICLE_EVERY} 块发一组碎屑、整次清路仅在首块位置播一次破坏音，并手动补齐掉落、流
  *       体回填与 {@code BLOCK_DESTROY} 游戏事件；创造模式破双格方块上半时同样调用
- *       {@link AreaImpactShatter#clearLowerHalf} 抑制下半掉落。</li>
+ *       {@link AreaDamageShatter#clearLowerHalf} 抑制下半掉落。</li>
  *   <li>⚠ 扫掠盒水平宽度必须取 {@link #DASH_WIDTH}（{@code 0.8}，与 Epic Fight 闪避动作期间放宽的碰撞箱一致），若按原版
  *       {@code 0.6} 宽度扫描会漏掉擦边方块并把客户端冲撞卡停。</li>
  * </ul>
@@ -54,16 +53,9 @@ public final class CrashBreach {
     private static final double MIN_LENGTH_SQR = 1.0E-6D;
 
     //region Hardness [硬度]
-    public static float getMaxHardness(int points, boolean twoBoars, boolean allOut) {
-        float hardness = AreaImpactShatter.getMaxHardness(points);
-        if (allOut) hardness = raise(hardness);
-        return twoBoars ? Math.max(hardness, AreaImpactShatter.HARD_HARDNESS) : hardness;
-    }
-
-    private static float raise(float hardness) {
-        if (hardness < AreaImpactShatter.SOFT_HARDNESS) return AreaImpactShatter.SOFT_HARDNESS;
-        if (hardness < AreaImpactShatter.STONE_HARDNESS) return AreaImpactShatter.STONE_HARDNESS;
-        return AreaImpactShatter.HARD_HARDNESS;
+    public static float getMaxHardness(int points, boolean twoBoars) {
+        float hardness = AreaDamageShatter.getMaxHardness(points);
+        return twoBoars ? Math.max(hardness, AreaDamageShatter.HARD_HARDNESS) : hardness;
     }
     //endregion
 
@@ -104,7 +96,7 @@ public final class CrashBreach {
                         SectionPos.blockToSectionCoord(pos.getZ()))) break sweep;
                 BlockState state = level.getBlockState(pos);
                 if (!meets(level, pos, state, box)) continue;
-                if (!AreaImpactShatter.canBreak(state.getDestroySpeed(level, pos), state.hasBlockEntity(), maxHardness)
+                if (!AreaDamageShatter.canBreak(state.getDestroySpeed(level, pos), state.hasBlockEntity(), maxHardness)
                         || !mayBreak(player, level, pos, state)) break sweep;
 
                 if (broken.isEmpty()) sound = state.getSoundType(level, pos, player);
@@ -112,7 +104,7 @@ public final class CrashBreach {
                 broken.add(pos);
             }
         }
-        if (!broken.isEmpty()) AreaImpactShatter.playBreak(level, broken.getFirst(), sound);
+        if (!broken.isEmpty()) AreaDamageShatter.playBreak(level, broken.getFirst(), sound);
         for (BlockPos pos : broken) player.connection.send(new ClientboundBlockUpdatePacket(level, pos));
         return broken.size();
     }
@@ -138,8 +130,8 @@ public final class CrashBreach {
 
     private static boolean breakQuietly(ServerPlayer player, ServerLevel level, BlockPos pos, BlockState state,
                                         int index) {
-        if (index % AreaImpactShatter.PARTICLE_EVERY == 0) AreaImpactShatter.showDebris(level, pos, state);
-        if (player.isCreative()) AreaImpactShatter.clearLowerHalf(level, pos, state);
+        if (index % AreaDamageShatter.PARTICLE_EVERY == 0) AreaDamageShatter.showDebris(level, pos, state);
+        if (player.isCreative()) AreaDamageShatter.clearLowerHalf(level, pos, state);
         else Block.dropResources(state, level, pos, null, player, ItemStack.EMPTY);
         if (!level.setBlock(pos, level.getFluidState(pos).createLegacyBlock(), Block.UPDATE_ALL)) return false;
 

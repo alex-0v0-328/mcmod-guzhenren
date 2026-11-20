@@ -5,6 +5,8 @@ import net.alex.guzhenren.entity.projectile.ProjectileThrownEvent;
 import net.alex.guzhenren.gameplay.aperture.ApertureChangedEvent;
 import net.alex.guzhenren.gameplay.body.ShieldRaisedEvent;
 import net.alex.guzhenren.gameplay.flight.SecondStageCrashEvent;
+import net.alex.guzhenren.gameplay.path.strength.BeastPhantomEvents;
+import net.alex.guzhenren.gameplay.path.strength.ComboRound;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrengthChargeEvent;
 import net.alex.guzhenren.gameplay.plunge.PlungeLandedEvent;
@@ -14,14 +16,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPCreateTerrainFracture;
 import yesman.epicfight.registry.entries.EpicFightItems;
+import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 
 /**
  * Epic Fight 联动的服务端事件监听入口。
@@ -38,6 +43,10 @@ import yesman.epicfight.registry.entries.EpicFightItems;
  *   <li>{@link #onPlungeLanded} 在重度坠击落地时向追踪该区块的客户端发送 {@link SPCreateTerrainFracture} 渲染环形地裂纹
  *       （仅发包渲染并保留碎屑粒子、关闭地裂音效且不调用会造成额外冲击波伤害的 {@code circleSlamFracture}，必须在弹坑挖
  *       掘前发送以免落点地面方块被挖空），随后播放落地蹲姿动画（{@link EpicFightIntegration#landPlunge}）。</li>
+ *   <li>{@link #onStrikeDamage} 在最高优先级把 Epic Fight 出招伤害标为出拳（{@link ComboRound#markPunch}），供
+ *       {@link BeastPhantomEvents} 的暴击与过载门槛识别：玩家出招的伤害来源由 {@code PlayerPatch#getDamageSource} 经
+ *       {@code EpicFightDamageSources#playerAttack} 构建，类型是原版 {@code minecraft:player_attack}，与二段飞行冲撞同
+ *       类型，只能靠 {@link EpicFightDamageSource} 上挂着的出招动画区分。</li>
  *   <li>{@link #onLivingDrops} 过滤非玩家生物死亡掉落中的 Epic Fight 技能书（箱子战利品已由全局战利品修改器
  *       {@code guzhenren:no_skill_books} 过滤，但生物掉落由 Epic Fight 自身的全局修改器按哈希顺序注入，需在掉落事件中兜
  *       底清除）。</li>
@@ -60,6 +69,14 @@ public final class EpicFightServerEvents {
     @SubscribeEvent
     public static void onPlayerRefreshed(PlayerRefreshedEvent event) {
         EpicFightIntegration.refresh(event.getPlayer());
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onStrikeDamage(LivingIncomingDamageEvent event) {
+        if (event.getSource() instanceof EpicFightDamageSource source && source.getAnimation() != null
+                && source.getDirectEntity() instanceof ServerPlayer player) {
+            ComboRound.markPunch(player);
+        }
     }
 
     @SubscribeEvent

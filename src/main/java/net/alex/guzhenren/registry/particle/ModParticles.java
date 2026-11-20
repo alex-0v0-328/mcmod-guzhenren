@@ -17,7 +17,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *   <li>{@link #SONIC_BOOM_RING}：音爆环，进入二段飞行[Second-Stage Flight]或高速撞面时生成，绽开至约 4 格并在停留期淡
  *       出。</li>
  *   <li>{@link #BARRIER_RING}：音障环，高速飞行期间在前方不断成形，淡出阶段扩大至最大帧尺寸的四倍。</li>
- *   <li>{@link #AREA_IMPACT_RING}：范围冲击环，每次触发范围冲击生成一枚，自锥尖行进至锥底后如音障环般扩散淡出。</li>
+ *   <li>{@link #AREA_DAMAGE_RING}：范围伤害环，每次触发范围伤害生成一枚，自锥尖行进至锥底后如音障环般扩散淡出。</li>
  * </ul>
  */
 
@@ -33,8 +33,8 @@ public final class ModParticles {
             "sonic_boom_ring", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> BARRIER_RING = PARTICLE_TYPES.register(
             "barrier_ring", () -> new SimpleParticleType(false));
-    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> AREA_IMPACT_RING = PARTICLE_TYPES.register(
-            "area_impact_ring", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> AREA_DAMAGE_RING = PARTICLE_TYPES.register(
+            "area_damage_ring", () -> new SimpleParticleType(false));
 
     public static void register(IEventBus modEventBus) { PARTICLE_TYPES.register(modEventBus); }
 }

@@ -27,38 +27,39 @@ class CrashGuDashTest {
     @DisplayName("a dash with no source stays 4.5x the Epic Fight dodge vector (whole family, one tier)")
     void dashCoordScaleIsPinned() {
         assertEquals(4.5D, CrashDash.COORD_SCALE);
-        assertEquals(4.5D, CrashDash.getScale(CrashDash.getMultiple(0, false, 0.0D, false)));
+        assertEquals(4.5D, CrashDash.getScale(CrashDash.getMultiple(0, false, 0.0D)));
     }
 
     @Test
-    @DisplayName("points, the two boars, the horse and All-Out Effort each add to the multiple, nothing doubles")
-    void theFourSourcesAddUp() {
-        assertEquals(2.0D, CrashDash.getMultiple(100, false, 0.0D, false), DELTA, "root 100 points over 10 is +1");
-        assertEquals(1.5D, CrashDash.getMultiple(0, true, 0.0D, false), DELTA);
-        assertEquals(2.0D, CrashDash.getMultiple(0, false, 1.0D, false), DELTA);
-        assertEquals(2.0D, CrashDash.getMultiple(0, false, 0.0D, true), DELTA);
-        assertEquals(3.0D, CrashDash.getMultiple(0, false, 1.0D, true), DELTA, "All-Out Effort doubled the horse");
-        assertEquals(1.0D, CrashDash.getMultiple(-4, false, -1.0D, false), DELTA, "a negative source shortened it");
+    @DisplayName("points, the two boars and the horse each add to the multiple, nothing doubles")
+    void theThreeSourcesAddUp() {
+        assertEquals(2.0D, CrashDash.getMultiple(100, false, 0.0D), DELTA, "root 100 points over 10 is +1");
+        assertEquals(1.5D, CrashDash.getMultiple(0, true, 0.0D), DELTA);
+        assertEquals(2.0D, CrashDash.getMultiple(0, false, 1.0D), DELTA);
+        assertEquals(3.5D, CrashDash.getMultiple(100, true, 1.0D), DELTA, "a source doubled another");
+        assertEquals(1.0D, CrashDash.getMultiple(-4, false, -1.0D), DELTA, "a negative source shortened it");
     }
 
     @Test
     @DisplayName("the path stops at 32 blocks however many sources stack")
     void thePathStopsAtThirtyTwoBlocks() {
-        assertEquals(32.0D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(400, true, 1.0D, true))),
+        assertEquals(32.0D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(10_000, true, 1.0D))),
                 TRAVEL_DELTA);
-        assertEquals(27.11D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(96, true, 1.0D, true))),
-                1.0E-2D, "the boars, the horse and All-Out Effort at 96 points left the plan's 27.1 blocks");
-        assertEquals(10.58D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(56, false, 0.0D, false))),
+        assertEquals(27.24D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(400, true, 1.0D))),
+                1.0E-2D, "the boars and the horse at 400 points left 27.2 blocks");
+        assertEquals(21.06D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(96, true, 1.0D))),
+                1.0E-2D, "the boars and the horse at 96 points left 21.1 blocks");
+        assertEquals(10.58D, CrashDash.getTravel(CrashDash.getScale(CrashDash.getMultiple(56, false, 0.0D))),
                 1.0E-2D, "a rank five body of 200 jin left the plan's 10.6 blocks");
     }
 
     @Test
-    @DisplayName("the horse and All-Out Effort each play the clip half again as fast: 7, 5 and 4 ticks")
-    void theHorseAndAllOutSpeedTheClip() {
-        assertEquals(1.0D, CrashDash.getPlaySpeed(0.0D, false), DELTA);
-        assertEquals(1.5D, CrashDash.getPlaySpeed(0.5D, false), DELTA);
-        assertEquals(1.5D, CrashDash.getPlaySpeed(0.0D, true), DELTA);
-        assertEquals(2.0D, CrashDash.getPlaySpeed(0.5D, true), DELTA);
+    @DisplayName("the horse plays the clip half again as fast: 7, 5 and 4 ticks")
+    void theHorseSpeedsTheClip() {
+        assertEquals(1.0D, CrashDash.getPlaySpeed(0.0D), DELTA);
+        assertEquals(1.5D, CrashDash.getPlaySpeed(0.5D), DELTA);
+        assertEquals(2.0D, CrashDash.getPlaySpeed(1.0D), DELTA);
+        assertEquals(1.0D, CrashDash.getPlaySpeed(-0.5D), DELTA, "a negative bonus slowed the clip");
         assertEquals(7, CrashDash.getClipTicks(1.0D));
         assertEquals(5, CrashDash.getClipTicks(1.5D));
         assertEquals(4, CrashDash.getClipTicks(2.0D));

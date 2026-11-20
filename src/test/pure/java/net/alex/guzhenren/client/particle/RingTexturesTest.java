@@ -57,10 +57,10 @@ class RingTexturesTest {
     }
 
     @Test
-    @DisplayName("the area impact ring lists the sprites smallest-to-largest, five frames")
-    void areaImpactRingPlaysSmallToLarge() throws IOException {
+    @DisplayName("the area damage ring lists the sprites smallest-to-largest, five frames")
+    void areaDamageRingPlaysSmallToLarge() throws IOException {
         assertEquals(List.of("guzhenren:ring_3x3", "guzhenren:ring_8x8", "guzhenren:ring_13x13",
-                "guzhenren:ring_18x18", "guzhenren:ring_23x23"), spriteList("area_impact_ring"));
+                "guzhenren:ring_18x18", "guzhenren:ring_23x23"), spriteList("area_damage_ring"));
     }
 
     private static List<String> spriteList(String particle) throws IOException {

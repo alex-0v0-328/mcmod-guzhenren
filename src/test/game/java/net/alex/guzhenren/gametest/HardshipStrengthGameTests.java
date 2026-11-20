@@ -48,13 +48,14 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 活玩家苦力蛊[Hardship Strength Gu]的自动状态。
  * <ul>
- *   <li>身体已入力道分支（永久人力、永久兽力或生效中的限时兽力）时生命低于 75% 自启并付一次费，无则不启，常态承受力
- *       高低不拦；窗口 30 秒（青牛劳力加 10 秒），回血不止；{@code isActive} 随之开关；手动催动被拒、不计费。</li>
- *   <li>各档位边界结算读其整拳倍率（+10% 到 +50%），人力与兽力[Beast Strength]虚影身体相同；不给力量点
+ *   <li>身体已入力道分支（永久人力、永久兽力或生效中的限时兽力）时生命低于 75% 自启并付一次费，无则不启，承受力高低
+ *       不拦；窗口 30 秒（青牛劳力加 10 秒），回血不止；{@code isActive} 随之开关；手动催动被拒、不计费。</li>
+ *   <li>各档位边界结算读其伤害倍率（+10% 到 +50%），人力与兽力[Beast Strength]虚影身体相同；不给力量点
  *       [Strength Points]、不加承受力，失去分支即无倍率；放大后超出承受力的部分按过载反噬扣血。</li>
- *   <li>运行中受伤或回血跨档，攻击属性不等每秒心跳即按新档位的整拳倍率更新：受伤当即，回血至 tick 末（检查等
+ *   <li>{@code getTier(Player)}：状态未开、未入分支或生命 ≥ 75% 为 0，否则为伤势档位 1–5。</li>
+ *   <li>运行中受伤或回血跨档，攻击属性不等每秒心跳即按新档位的伤害倍率更新：受伤当即，回血至 tick 末（检查等
  *       2 tick，模拟玩家不 tick、没有心跳）；回到 75% 以上倍率归 1。</li>
- *   <li>人力身体持两层钧（60 点），兽力身体持熊（40 点），均五转（常态承受 56）。</li>
+ *   <li>人力身体持两层钧（60 点），兽力身体持熊（40 点），均五转（承受力 56）。</li>
  * </ul>
  */
 
@@ -68,7 +69,8 @@ public final class HardshipStrengthGameTests {
     private static final int USE_HUNGER = 3;
     private static final long ESSENCE = 20_480L;
     private static final float[] BOUNDS = { 0.749F, 0.60F, 0.45F, 0.30F, 0.15F, 0.149F };
-    private static final int[] PUNCH_PERCENT = { 10, 20, 30, 40, 50, 50 };
+    private static final int[] DAMAGE_PERCENT = { 10, 20, 30, 40, 50, 50 };
+    private static final int[] TIERS = { 1, 2, 3, 4, 5, 5 };
     private static final int EFFECT_TICKS = 600;
     private static final int SETTLE_TICKS = 2;
     private static final double DELTA = 0.001D;
@@ -161,16 +163,16 @@ public final class HardshipStrengthGameTests {
         AutoUse.tryStart(player);
         assertTrue(HardshipStrength.isActive(player), "a timed boar holds the beast branch, yet it did not start");
         StrengthAmplifier amplifier = assertNotNull(amplifier(player), () -> "no amplifier on a timed beast body");
-        assertEquals(20, amplifier.punchPercent(), "50% health is not tier two");
+        assertEquals(20, amplifier.damagePercent(), "50% health is not tier two");
         assertEquals(24, StrengthService.getStrengthPoints(player));
         assertEquals(28, StrengthService.getSettledPoints(player), "24 x 1.2 = 28.8");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aSmallNormalCapacityDoesNotKeepItFromStarting(GameTestHelper helper) {
+    public static void aSmallCapacityDoesNotKeepItFromStarting(GameTestHelper helper) {
         ServerPlayer mortal = GameTestPlayers.survival(helper, "gzr-hardship-mortal-gametest").onGround();
-        assertEquals(16, StrengthService.getNormalCapacity(mortal));
+        assertEquals(16, StrengthService.getCapacity(mortal));
         assertFalse(new HardshipBehavior().canStart(mortal), "a body with no branch may start");
         assertTrue(PathStrengthService.setHumanStrength(mortal, HumanStrength.JIN, 1), "the jin was refused");
         assertTrue(new HardshipBehavior().canStart(mortal), "a 16 capacity kept a branch from starting");
@@ -216,25 +218,25 @@ public final class HardshipStrengthGameTests {
     public static void aHumanBodyHitsHarderByTierAndGainsNoCapacity(GameTestHelper helper) {
         ServerPlayer player = human(helper);
         start(player);
-        int normal = StrengthService.getNormalCapacity(player);
+        int capacity = StrengthService.getCapacity(player);
         int permanent = StrengthService.getPermanentPoints(player);
-        assertEquals(56, normal, "a bare rank five body does not carry 56");
+        assertEquals(56, capacity, "a bare rank five body does not carry 56");
         assertEquals(60, permanent, "the body does not hold 60 points of jun");
 
         for (int bound = 0; bound < BOUNDS.length; bound++) {
             player.setHealth(player.getMaxHealth() * BOUNDS[bound]);
             String at = "at " + BOUNDS[bound];
             StrengthAmplifier amplifier = assertNotNull(amplifier(player), () -> "no amplifier " + at);
-            int settled = permanent * (100 + PUNCH_PERCENT[bound]) / 100;
+            int settled = permanent * (100 + DAMAGE_PERCENT[bound]) / 100;
             assertTrue(amplifier.family() == null, "the amplifier has a family " + at);
             assertEquals(0, amplifier.points(), "it lent points " + at);
-            assertEquals(0, amplifier.capacityBonus(), "it lent capacity " + at);
-            assertEquals(PUNCH_PERCENT[bound], amplifier.punchPercent(), at);
+            assertEquals(DAMAGE_PERCENT[bound], amplifier.damagePercent(), at);
+            assertEquals(TIERS[bound], HardshipStrength.getTier(player), "the tier " + at);
             assertEquals(permanent, StrengthService.getStrengthPoints(player), at);
-            assertEquals(normal, StrengthService.getCapacity(player), at);
+            assertEquals(capacity, StrengthService.getCapacity(player), at);
             assertEquals(settled, StrengthService.getSettledPoints(player), at);
             StrengthSnapshot snapshot = StrengthService.snapshot(player);
-            assertEquals(settled - normal, snapshot.overloadPoints(snapshot.settledPoints()), at);
+            assertEquals(settled - capacity, snapshot.overloadPoints(snapshot.settledPoints()), at);
         }
         helper.succeed();
     }
@@ -244,7 +246,7 @@ public final class HardshipStrengthGameTests {
         ServerPlayer player = awakened(helper);
         assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
         start(player);
-        int normal = StrengthService.getNormalCapacity(player);
+        int capacity = StrengthService.getCapacity(player);
         int[] settled = { 44, 48, 52, 56, 60, 60 };
 
         for (int bound = 0; bound < BOUNDS.length; bound++) {
@@ -252,19 +254,19 @@ public final class HardshipStrengthGameTests {
             String at = "at " + BOUNDS[bound];
             StrengthAmplifier amplifier = assertNotNull(amplifier(player), () -> "no amplifier " + at);
             assertEquals(0, amplifier.points(), "it lent points " + at);
-            assertEquals(0, amplifier.capacityBonus(), "it lent capacity " + at);
-            assertEquals(PUNCH_PERCENT[bound], amplifier.punchPercent(), at);
+            assertEquals(DAMAGE_PERCENT[bound], amplifier.damagePercent(), at);
+            assertEquals(TIERS[bound], HardshipStrength.getTier(player), "the tier " + at);
             assertEquals(40, StrengthService.getStrengthPoints(player), at);
-            assertEquals(normal, StrengthService.getCapacity(player), at);
+            assertEquals(capacity, StrengthService.getCapacity(player), at);
             assertEquals(settled[bound], StrengthService.getSettledPoints(player), at);
             StrengthSnapshot snapshot = StrengthService.snapshot(player);
-            assertEquals(Math.max(0, settled[bound] - normal), snapshot.overloadPoints(snapshot.settledPoints()), at);
+            assertEquals(Math.max(0, settled[bound] - capacity), snapshot.overloadPoints(snapshot.settledPoints()), at);
         }
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theTierJoinsTheReleaseAndTheChargeInOneSettlement(GameTestHelper helper) {
+    public static void theTierJoinsTheCritAndTheChargeInOneSettlement(GameTestHelper helper) {
         ServerPlayer player = awakened(helper);
         for (BeastStrength beast : List.of(BeastStrength.BEAR, BeastStrength.TIGER, BeastStrength.WHITE_BOAR,
                 BeastStrength.BLACK_BOAR)) {
@@ -275,7 +277,7 @@ public final class HardshipStrengthGameTests {
 
         StrengthSnapshot snapshot = StrengthService.snapshot(player);
         assertEquals(152, snapshot.totalPoints());
-        assertEquals(1.3D, snapshot.punchFactor(), DELTA);
+        assertEquals(1.3D, snapshot.damageFactor(), DELTA);
         assertEquals(197, StrengthService.getSettledPoints(player), "152 x 1.3 = 197.6");
         assertEquals(842, snapshot.settle(BeastStrength.TIGER.getPoints(), 3.0D), "(40 + 64 x 2 + 48) x 1.3 x 3");
         helper.succeed();
@@ -286,13 +288,31 @@ public final class HardshipStrengthGameTests {
         ServerPlayer player = human(helper);
         start(player);
         player.setHealth(player.getMaxHealth() * 0.2F);
-        assertEquals(40, assertNotNull(amplifier(player), () -> "no amplifier at tier four").punchPercent());
+        assertEquals(40, assertNotNull(amplifier(player), () -> "no amplifier at tier four").damagePercent());
 
         assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 0), "the jun stayed");
         assertSame(StrengthPathBranch.NORMAL, PathStrengthService.getHeldBranch(player));
         assertTrue(HardshipStrength.isActive(player), "the window closed before its recheck");
         assertTrue(amplifier(player) == null, "a body with no branch still hit harder");
-        assertEquals(1.0D, StrengthService.snapshot(player).punchFactor(), DELTA);
+        assertEquals(0, HardshipStrength.getTier(player), "a body with no branch kept its tier");
+        assertEquals(1.0D, StrengthService.snapshot(player).damageFactor(), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theTierIsZeroOffTheStateOrAtThreeQuarters(GameTestHelper helper) {
+        ServerPlayer player = human(helper);
+        float max = player.getMaxHealth();
+        player.setHealth(max * 0.2F);
+        assertEquals(0, HardshipStrength.getTier(player), "a body with the state off had a tier");
+
+        start(player);
+        player.setHealth(max * 0.2F);
+        assertEquals(4, HardshipStrength.getTier(player), "20% health under the state is not tier four");
+        player.setHealth(max * 0.75F);
+        assertEquals(0, HardshipStrength.getTier(player), "75% health had a tier");
+        player.setHealth(max);
+        assertEquals(0, HardshipStrength.getTier(player), "full health had a tier");
         helper.succeed();
     }
 
@@ -395,7 +415,7 @@ public final class HardshipStrengthGameTests {
     private static void strike(GameTestHelper helper, ServerPlayer player, BlockPos at) {
         ComboRound.beginStrike(player, false);
         Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, at);
-        assertTrue(pig.hurt(player.damageSources().playerAttack(player), 1.0F), "the punch did no damage");
+        assertTrue(Punches.land(player, pig, 1.0F), "the punch did no damage");
     }
 
     private static void start(ServerPlayer player) {

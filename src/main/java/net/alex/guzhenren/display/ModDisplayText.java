@@ -166,6 +166,8 @@ public final class ModDisplayText {
 
     public static String formatAttackBonus(double bonus) { return "+" + bonus; }
 
+    public static String formatCritChance(float chance) { return "+" + Math.round(chance * 100.0F) + "%"; }
+
     public static MutableComponent formatTimeRateUp(int rate) {
         return Component.translatable("guzhenren.display.time_rate_up", rate);
     }

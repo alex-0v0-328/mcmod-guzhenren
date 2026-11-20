@@ -13,6 +13,7 @@ import net.alex.guzhenren.gameplay.path.strength.HardshipStrength;
 import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
+import net.alex.guzhenren.gameplay.path.strength.StrengthCrit;
 import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.gu.mortal.behavior.TimedEffects;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem.Amplification;
@@ -48,10 +49,13 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 活玩家的连招轮[Combo Round]：一轮一套连招，只在收尾招结算。
  * <ul>
- *   <li>前几段的拳不抽兽种；收尾招打中掷一次骰，同一招打多个目标不重掷；采矿模式的原版拳与持剑不开轮。</li>
- *   <li>没掷中不抽、不出虚影（开苦力亦然）；掷中不开苦力抽 1 种，开苦力抽 min(连击数, 兽种数) 种，被打断即回到 1 种；抽中
- *       的每种永久点数再计一份，{@code strike} 返回解放增量 × 0.125（含苦力整拳倍率）。</li>
- *   <li>限时兽力不抽、人力无解放；收尾结束撤掉解放点数与攻击属性，解放兽种的移速借用到虚影显示期满。</li>
+ *   <li>暴击率：兽力、人力共用平时 5%、棕熊本力 +5%；全力以赴三 / 四 / 五转 80% / 90% / 100%，不加兽力加成；未入两流
+ *       为 0，力气蛊不加。</li>
+ *   <li>前几段的拳不掷骰；收尾招一轮只掷一次暴击骰，掷定后 {@code rollsCrit}、{@code strike} 都复用；同一招打多个目标不
+ *       重掷；采矿模式的原版拳与持剑不开轮。人力流暴击才算范围伤害（{@code rollsArea}），兽力流暴击只抽兽种。</li>
+ *   <li>没暴击不抽、不出虚影（开苦力亦然）；兽力暴击抽 min(1 + 苦力档位, 兽种数) 种，不开苦力或 0 档抽 1 种；抽中的每种
+ *       永久点数再计一份，{@code strike} 返回暴击增量 × 0.125（含苦力伤害倍率）。</li>
+ *   <li>限时兽力不抽、人力无兽种暴击；收尾结束撤掉暴击点数与攻击属性，暴击兽种的移速借用到虚影显示期满。</li>
  *   <li>收尾招首次命中记下溢出量（本击伤害 − 目标挨打前生命），未命中时为整拳伤害；过载反噬每次出手放行一次，新出招或
  *       10 tick 后重新放行。</li>
  *   <li>Epic Fight 钩子：战斗模式下第三段连击、冲刺拳、空中拳起招即收尾，最后一段结束或连段清零即离开收尾，采矿模式不
@@ -78,7 +82,8 @@ public final class ComboRoundGameTests {
     private static final int BEAR_POINTS = 40;
     private static final int HORSE_POINTS = 48;
     private static final int THREE_BEASTS = 40 + 64 + 48;
-    private static final int HARDSHIP_PERCENT = 120;
+    private static final int RANK_THREE_TIER = 2;
+    private static final int RANK_FOUR_TIER = 3;
     private static final double DELTA = 1.0E-4D;
 
     @GameTest(template = "empty9x9x9")
@@ -143,19 +148,19 @@ public final class ComboRoundGameTests {
 
         ComboRound.beginStrike(player, true);
         assertEquals(HORSE_POINTS * PathStrengthData.ATTACK_PER_POINT, ComboRound.strike(player, LAND), DELTA);
-        assertEquals(HORSE_POINTS, ComboRound.getReleasedPoints(player), "the release is not the horse's own points");
-        assertEquals(2 * HORSE_POINTS, StrengthService.getSettledPoints(player), "the released horse did not double");
+        assertEquals(HORSE_POINTS, ComboRound.getCritPoints(player), "the crit is not the horse's own points");
+        assertEquals(2 * HORSE_POINTS, StrengthService.getSettledPoints(player), "the crit horse did not double");
         assertEquals(attack + HORSE_POINTS * PathStrengthData.ATTACK_PER_POINT,
                 player.getAttributeValue(Attributes.ATTACK_DAMAGE), DELTA);
-        ComboRound.complete(player, false);
-        assertEquals(0, ComboRound.getReleasedPoints(player), "the release outlived its finisher");
+        ComboRound.complete(player);
+        assertEquals(0, ComboRound.getCritPoints(player), "the crit outlived its finisher");
         assertEquals(HORSE_POINTS, StrengthService.getSettledPoints(player), "the points outlived the finisher");
         assertEquals(attack, player.getAttributeValue(Attributes.ATTACK_DAMAGE), DELTA);
-        assertEquals(List.of(BeastStrengthFamily.HORSE), ComboRound.getFullyReleased(player),
+        assertEquals(List.of(BeastStrengthFamily.HORSE), ComboRound.getCritFamilies(player),
                 "the horse's move left with the finisher");
 
         helper.runAfterDelay(ComboRound.SHOWN_TICKS + 1, () -> {
-            assertTrue(ComboRound.getFullyReleased(player).isEmpty(), "the horse's move outlived its phantom");
+            assertTrue(ComboRound.getCritFamilies(player).isEmpty(), "the horse's move outlived its phantom");
             helper.succeed();
         });
     }
@@ -171,20 +176,18 @@ public final class ComboRoundGameTests {
             ComboRound.beginStrike(player, true);
             assertEquals(0.0D, ComboRound.strike(player, MISS), 0.0D);
             assertTrue(ComboRound.getFamilies(player).isEmpty(), "a missed roll drew a family");
-            assertTrue(ComboRound.getFullyReleased(player).isEmpty(), "a missed roll released a family");
-            assertEquals(0, ComboRound.getReleasedPoints(player), "a missed roll released points");
+            assertTrue(ComboRound.getCritFamilies(player).isEmpty(), "a missed roll crit a family");
+            assertEquals(0, ComboRound.getCritPoints(player), "a missed roll added crit points");
             assertTrue(BeastPhantomEntity.findOwned(player).isEmpty(), "a missed roll showed a phantom");
             assertEquals(0.0D, ComboRound.strike(player, LAND), 0.0D);
             assertTrue(ComboRound.getFamilies(player).isEmpty(), "the same finisher rolled again");
         }
         assertEquals(settled, StrengthService.getSettledPoints(hard), "a missed roll changed the settlement");
-        ComboRound.complete(hard, false);
-        assertEquals(1, ComboRound.getStreak(hard), "a finished round without a draw did not count");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aLandedRollDrawsOneFamilyWithoutHardshipWhateverTheStreak(GameTestHelper helper) {
+    public static void aCritDrawsOneFamilyWithoutHardshipEveryRound(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         PathStrengthService.grant(player, BeastStrength.BEAR);
         PathStrengthService.grant(player, BeastStrength.TIGER);
@@ -199,58 +202,123 @@ public final class ComboRoundGameTests {
             assertEquals(released * PathStrengthData.ATTACK_PER_POINT, gain, DELTA);
             assertEquals(THREE_BEASTS + released, StrengthService.getSettledPoints(player));
             assertEquals(1, BeastPhantomEntity.findOwned(player).size(), "one draw did not show one phantom");
-            ComboRound.complete(player, false);
-            assertEquals(0, ComboRound.getStreak(player), "a round without hardship kept a streak");
+            ComboRound.complete(player);
         }
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void hardshipDrawsOneMoreForEachFinishedRoundAndACutRoundStartsOver(GameTestHelper helper) {
+    public static void underHardshipACritDrawsOneMoreFamilyForEachTier(GameTestHelper helper) {
         ServerPlayer player = threeBeastsUnderHardship(helper);
-        int plain = THREE_BEASTS * HARDSHIP_PERCENT / 100;
-        assertEquals(plain, StrengthService.getSettledPoints(player), "the second hardship tier is not on the fist");
+        float max = player.getMaxHealth();
+        float[] health = { 0.8F, 0.7F, 0.5F, 0.35F };
+        int[] tiers = { 0, 1, 2, 3 };
+        int[] percents = { 100, 110, 120, 130 };
 
-        for (int round = 1; round <= 4; round++) {
+        for (int index = 0; index < health.length; index++) {
+            player.setHealth(max * health[index]);
+            String at = "at " + health[index];
+            assertEquals(tiers[index], HardshipStrength.getTier(player), "the Hardship tier " + at);
+            int plain = THREE_BEASTS * percents[index] / 100;
+            assertEquals(plain, StrengthService.getSettledPoints(player), "the damage factor " + at);
+
             ComboRound.beginStrike(player, true);
             float gain = ComboRound.strike(player, LAND);
             List<BeastStrengthFamily> drawn = ComboRound.getFamilies(player);
-            assertEquals(Math.min(round, 3), drawn.size(), "round " + round + " drew the wrong count");
-            int released = ComboRound.getReleasedPoints(drawn, PathStrengthService.get(player));
-            int settled = (THREE_BEASTS + released) * HARDSHIP_PERCENT / 100;
-            assertEquals(released, ComboRound.getReleasedPoints(player), "a drawn family was not released");
-            assertEquals(settled, StrengthService.getSettledPoints(player), "round " + round + " settled wrong");
+            assertEquals(Math.min(1 + tiers[index], 3), drawn.size(), "the draw count " + at);
+            int crit = StrengthCrit.getCritPoints(drawn, PathStrengthService.get(player));
+            int settled = (THREE_BEASTS + crit) * percents[index] / 100;
+            assertEquals(crit, ComboRound.getCritPoints(player), "a drawn family was not counted " + at);
+            assertEquals(settled, StrengthService.getSettledPoints(player), "the settlement " + at);
             assertEquals((settled - plain) * PathStrengthData.ATTACK_PER_POINT, gain, DELTA);
-            assertEquals(drawn, ComboRound.getFullyReleased(player), "a drawn family lent no move");
-            assertEquals(drawn.size(), BeastPhantomEntity.findOwned(player).size(), "a drawn family showed no phantom");
-            ComboRound.complete(player, false);
+            assertEquals(drawn, ComboRound.getCritFamilies(player), "a drawn family lent no move " + at);
+            assertEquals(drawn.size(), BeastPhantomEntity.findOwned(player).size(), "a family showed no phantom " + at);
+            ComboRound.complete(player);
         }
-        assertEquals(THREE_BEASTS, ComboRound.getReleasedPoints(ComboRound.getAvailableFamilies(
+        assertEquals(THREE_BEASTS, StrengthCrit.getCritPoints(StrengthCrit.getAvailableFamilies(
                 PathStrengthService.get(player)), PathStrengthService.get(player)), "three families do not sum to 152");
-
-        ComboRound.beginStrike(player, true);
-        ComboRound.beginStrike(player, false);
-        assertEquals(0, ComboRound.getStreak(player), "a finisher cut by a new strike kept the streak");
-        ComboRound.beginStrike(player, true);
-        ComboRound.strike(player, LAND);
-        assertEquals(1, ComboRound.getFamilies(player).size(), "the round after a cut did not draw one");
-        ComboRound.complete(player, false);
-        ComboRound.abandon(player);
-        assertEquals(0, ComboRound.getStreak(player), "an abandoned combo kept the streak");
-        ComboRound.beginStrike(player, true);
-        ComboRound.complete(player, true);
-        assertEquals(0, ComboRound.getStreak(player), "a finisher cut before it landed counted as finished");
-        ComboRound.beginStrike(player, true);
-        ComboRound.strike(player, MISS);
-        ComboRound.complete(player, true);
-        assertEquals(1, ComboRound.getStreak(player), "a finisher cut after it landed did not count");
-        ComboRound.breakStreak(player);
-        assertEquals(0, ComboRound.getStreak(player), "a broken streak stayed");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void onlyPermanentBeastsAreDrawnAndHumanStrengthReleasesNothing(GameTestHelper helper) {
+    public static void aRoundRollsItsCritOnceAndKeepsIt(GameTestHelper helper) {
+        ServerPlayer player = mortal(helper);
+        PathStrengthService.grant(player, BeastStrength.BEAR);
+
+        ComboRound.beginStrike(player, false);
+        assertFalse(ComboRound.rollsCrit(player, LAND), "an opening punch rolled a crit");
+        ComboRound.beginStrike(player, true);
+        assertTrue(ComboRound.rollsCrit(player, LAND), "a 0 roll missed a 5% crit");
+        assertTrue(ComboRound.rollsCrit(player, MISS), "the round rolled a second time");
+        assertTrue(ComboRound.rollsCrit(player), "the round's crit was not kept");
+        assertEquals(BEAR_POINTS * PathStrengthData.ATTACK_PER_POINT, ComboRound.strike(player, MISS), DELTA);
+        assertEquals(List.of(BeastStrengthFamily.BEAR), ComboRound.getFamilies(player),
+                "the strike did not reuse the landed roll");
+        ComboRound.complete(player);
+
+        ComboRound.beginStrike(player, true);
+        assertFalse(ComboRound.rollsCrit(player, MISS), "a 99% roll landed a 5% crit");
+        assertFalse(ComboRound.rollsCrit(player, LAND), "the missed round rolled again");
+        assertEquals(0.0D, ComboRound.strike(player, LAND), 0.0D);
+        assertTrue(ComboRound.getFamilies(player).isEmpty(), "the strike did not reuse the missed roll");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void onlyAHumanCritCountsAsAnAreaDamage(GameTestHelper helper) {
+        ServerPlayer human = mortal(helper);
+        assertTrue(PathStrengthService.setHumanStrength(human, HumanStrength.JIN, 1), "the jin was refused");
+        ServerPlayer beast = mortal(helper);
+        PathStrengthService.grant(beast, BeastStrength.BEAR);
+        ServerPlayer bare = mortal(helper);
+
+        ComboRound.beginStrike(human, true);
+        assertTrue(ComboRound.rollsCrit(human, LAND), "the human branch missed a 0 roll");
+        assertTrue(ComboRound.rollsArea(human), "a human crit is no area damage");
+        ComboRound.beginStrike(human, true);
+        assertFalse(ComboRound.rollsCrit(human, MISS), "the human branch landed a 99% roll");
+        assertFalse(ComboRound.rollsArea(human), "a human miss counted as an area damage");
+
+        ComboRound.beginStrike(beast, true);
+        assertTrue(ComboRound.rollsCrit(beast, LAND), "the beast branch missed a 0 roll");
+        assertFalse(ComboRound.rollsArea(beast), "a beast crit counted as an area damage");
+
+        ComboRound.beginStrike(bare, true);
+        assertFalse(ComboRound.rollsCrit(bare, LAND), "a body with no branch landed a crit");
+        assertFalse(ComboRound.rollsArea(bare), "a body with no branch rolled an area damage");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theCritChanceIsSharedAndAllOutEffortSetsIt(GameTestHelper helper) {
+        ServerPlayer bare = mortal(helper);
+        ServerPlayer human = mortal(helper);
+        assertTrue(PathStrengthService.setHumanStrength(human, HumanStrength.JIN, 1), "the jin was refused");
+        ServerPlayer bear = mortal(helper);
+        PathStrengthService.grant(bear, BeastStrength.BEAR);
+        ServerPlayer brownBear = mortal(helper);
+        PathStrengthService.grant(brownBear, BeastStrength.BROWN_BEAR);
+
+        assertEquals(0.0D, StrengthCrit.getChance(bare), DELTA);
+        assertEquals(0.05D, StrengthCrit.getChance(human), DELTA);
+        assertEquals(0.05D, StrengthCrit.getChance(bear), DELTA);
+        assertEquals(0.10D, StrengthCrit.getChance(brownBear), DELTA);
+
+        human.addEffect(ModEffects.instance(ModEffects.STRENGTH_QI_GU, EFFECT_TICKS, 0));
+        assertEquals(0.05D, StrengthCrit.getChance(human), DELTA);
+        bare.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        assertEquals(0.0D, StrengthCrit.getChance(bare), DELTA);
+        bear.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FOUR_TIER));
+        assertEquals(0.90D, StrengthCrit.getChance(bear), DELTA);
+        human.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
+        assertEquals(1.0D, StrengthCrit.getChance(human), DELTA);
+        brownBear.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_THREE_TIER));
+        assertEquals(0.80D, StrengthCrit.getChance(brownBear), DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void onlyPermanentBeastsAreDrawnAndHumanStrengthCritsNoFamily(GameTestHelper helper) {
         ServerPlayer beast = mortal(helper);
         PathStrengthService.grant(beast, BeastStrength.BEAR);
         TimedEffects.grantBuff(beast, (TendedGuItem) ModItems.FLOWER_BOAR_GU_1.get(), ModEffects.FLOWER_BOAR_GU, 0,
@@ -270,13 +338,13 @@ public final class ComboRoundGameTests {
                         "the timed boar was drawn");
                 assertEquals(total + BEAR_POINTS, StrengthService.getSettledPoints(beast),
                         "the timed boar was doubled");
-                ComboRound.complete(beast, false);
+                ComboRound.complete(beast);
             }
 
             ComboRound.beginStrike(human, true);
             assertEquals(0.0D, ComboRound.strike(human, LAND), 0.0D);
             assertTrue(ComboRound.getFamilies(human).isEmpty(), "human strength drew a family");
-            assertEquals(0, ComboRound.getReleasedPoints(human), "human strength was released");
+            assertEquals(0, ComboRound.getCritPoints(human), "human strength added crit points");
             assertEquals(2 * HumanStrength.JUN.getJin(), StrengthService.getSettledPoints(human));
             assertTrue(BeastPhantomEntity.findOwned(human).isEmpty(), "human strength showed a phantom");
             helper.succeed();
@@ -286,25 +354,26 @@ public final class ComboRoundGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theFirstLandedHitMarksTheSpillAndAMissLeavesTheWholeFist(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
+        Pig target = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(4, 2, 4));
         assertEquals(10.0D, ComboRound.getSpill(player, 10.0F), 0.0D);
-        ComboRound.markLanded(player, 10.0F, 4.0F);
+        ComboRound.markLanded(player, target, 10.0F, 4.0F);
         assertEquals(10.0D, ComboRound.getSpill(player, 10.0F), 0.0D);
 
         ComboRound.beginStrike(player, false);
-        ComboRound.markLanded(player, 10.0F, 4.0F);
+        ComboRound.markLanded(player, target, 10.0F, 4.0F);
         assertEquals(10.0D, ComboRound.getSpill(player, 10.0F), 0.0D);
 
         ComboRound.beginStrike(player, true);
         assertEquals(10.0D, ComboRound.getSpill(player, 10.0F), 0.0D);
-        ComboRound.markLanded(player, 10.0F, 4.0F);
+        ComboRound.markLanded(player, target, 10.0F, 4.0F);
         assertEquals(6.0D, ComboRound.getSpill(player, 10.0F), 0.0D);
-        ComboRound.markLanded(player, 10.0F, 1.0F);
+        ComboRound.markLanded(player, target, 10.0F, 1.0F);
         assertEquals(6.0D, ComboRound.getSpill(player, 99.0F), 0.0D);
-        ComboRound.complete(player, false);
+        ComboRound.complete(player);
         assertEquals(10.0D, ComboRound.getSpill(player, 10.0F), 0.0D);
 
         ComboRound.beginStrike(player, true);
-        ComboRound.markLanded(player, 3.0F, 20.0F);
+        ComboRound.markLanded(player, target, 3.0F, 20.0F);
         assertEquals(-17.0D, ComboRound.getSpill(player, 3.0F), 0.0D);
         ComboRound.beginStrike(player, true);
         assertEquals(3.0D, ComboRound.getSpill(player, 3.0F), 0.0D);
@@ -399,6 +468,6 @@ public final class ComboRoundGameTests {
 
     private static void punch(GameTestHelper helper, ServerPlayer player, BlockPos at) {
         Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, at);
-        assertTrue(pig.hurt(player.damageSources().playerAttack(player), 1.0F), "the punch did no damage");
+        assertTrue(Punches.land(player, pig, 1.0F), "the punch did no damage");
     }
 }

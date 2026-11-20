@@ -11,8 +11,10 @@ import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
+import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.gameplay.path.strength.SelfRelianceHeal;
+import net.alex.guzhenren.gameplay.path.strength.StrengthService;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.mortal.path.strength.AutoUse;
 import net.alex.guzhenren.item.gu.mortal.path.strength.SelfRelianceBehavior;
@@ -46,6 +48,8 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>生命低于上限 75% 自行启动，只付一次催动代价；背包与空窍[Aperture]各一只算一份，存储的那只照样扣费并写回；
  *       两种转数只高转计入并付费。</li>
  *   <li>回复脉冲向 75% 递减，末跳停在 75%，窗口继续（按转 15/20/25 秒，青牛兽力再加 10 秒）。</li>
+ *   <li>每跳再乘力量倍率 clamp(0.5 + 总力量点 ÷ 200, 0.5, 1.5)：无力量 0.5（二转首跳 25% → 26.5%），100 点 1.0（→ 28%），
+ *       200 点 1.5（→ 29.5%）。</li>
  *   <li>失去最后一只或死亡即停，放回后重启再付费；效果冷却隔开两次启动；回复被取消时暂停；手动催动被拒且不扣费。</li>
  * </ul>
  */
@@ -141,10 +145,10 @@ public final class SelfRelianceGameTests {
         AutoUse.tryStart(player);
 
         pulse(player, 1);
-        assertEquals(max * 0.28F, player.getHealth(), HEALTH_DELTA);
+        assertEquals(max * 0.265F, player.getHealth(), HEALTH_DELTA);
         player.setHealth(max * 0.575F);
         pulse(player, 2);
-        assertEquals(max * 0.59375F, player.getHealth(), HEALTH_DELTA);
+        assertEquals(max * 0.584375F, player.getHealth(), HEALTH_DELTA);
 
         pulseUntilHealed(player);
         assertEquals(max * 0.75F, player.getHealth(), HEALTH_DELTA);
@@ -250,7 +254,35 @@ public final class SelfRelianceGameTests {
         assertTrue(heal(player) != null, "a cancelled heal ended the round");
 
         pulse(player, 3);
+        assertEquals(max * 0.265F, player.getHealth(), HEALTH_DELTA);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void thePulseScalesWithTheTotalStrengthPoints(GameTestHelper helper) {
+        ServerPlayer player = awakened(helper);
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 3), "the jun was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 1), "the ten jin was refused");
+        assertEquals(100, StrengthService.getStrengthPoints(player));
+        inSlot(player, BAG_SLOT, ModItems.SELF_RELIANCE_GU_2.get(), 26);
+        float max = player.getMaxHealth();
+        player.setHealth(max * 0.25F);
+        AutoUse.tryStart(player);
+
+        pulse(player, 1);
         assertEquals(max * 0.28F, player.getHealth(), HEALTH_DELTA);
+
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 6), "the jun was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 2), "the ten jin was refused");
+        assertEquals(200, StrengthService.getStrengthPoints(player));
+        player.setHealth(max * 0.25F);
+        pulse(player, 2);
+        assertEquals(max * 0.295F, player.getHealth(), HEALTH_DELTA);
+
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JUN, 1), "the ten jun was refused");
+        player.setHealth(max * 0.25F);
+        pulse(player, 3);
+        assertEquals(max * 0.295F, player.getHealth(), HEALTH_DELTA);
         helper.succeed();
     }
 

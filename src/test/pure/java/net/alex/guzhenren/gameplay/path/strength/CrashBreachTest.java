@@ -35,18 +35,18 @@ class CrashBreachTest {
     }
 
     @Test
-    @DisplayName("points pick the shatter tier, All-Out Effort lifts it one step, the two boars reach the top")
-    void theHardnessFollowsPointsAllOutAndTheBoars() {
-        assertEquals(AreaImpactShatter.NONE, CrashBreach.getMaxHardness(56, false, false), "56 points broke a block");
-        assertEquals(0.6F, CrashBreach.getMaxHardness(100, false, false));
-        assertEquals(0.6F, CrashBreach.getMaxHardness(40, false, true), "All-Out Effort left no tier below 100");
-        assertEquals(1.5F, CrashBreach.getMaxHardness(168, false, true));
-        assertEquals(3.0F, CrashBreach.getMaxHardness(200, false, true));
-        assertEquals(3.0F, CrashBreach.getMaxHardness(400, false, true), "All-Out Effort went past the top tier");
-        assertEquals(3.0F, CrashBreach.getMaxHardness(0, true, false));
-        assertEquals(3.0F, CrashBreach.getMaxHardness(48, true, true));
-        assertTrue(AreaImpactShatter.canBreak(1.5F, false, CrashBreach.getMaxHardness(0, true, false)));
-        assertFalse(AreaImpactShatter.canBreak(4.5F, false, CrashBreach.getMaxHardness(0, true, true)),
+    @DisplayName("points pick the shatter tier and the two boars reach the top")
+    void theHardnessFollowsPointsAndTheBoars() {
+        assertEquals(AreaDamageShatter.NONE, CrashBreach.getMaxHardness(56, false), "56 points broke a block");
+        assertEquals(AreaDamageShatter.NONE, CrashBreach.getMaxHardness(40, false), "40 points broke a block");
+        assertEquals(0.6F, CrashBreach.getMaxHardness(100, false));
+        assertEquals(0.6F, CrashBreach.getMaxHardness(168, false));
+        assertEquals(1.5F, CrashBreach.getMaxHardness(200, false));
+        assertEquals(3.0F, CrashBreach.getMaxHardness(400, false));
+        assertEquals(3.0F, CrashBreach.getMaxHardness(0, true));
+        assertEquals(3.0F, CrashBreach.getMaxHardness(48, true));
+        assertTrue(AreaDamageShatter.canBreak(1.5F, false, CrashBreach.getMaxHardness(0, true)));
+        assertFalse(AreaDamageShatter.canBreak(4.5F, false, CrashBreach.getMaxHardness(0, true)),
                 "the boars broke cobbled deepslate's 3.5 or more");
     }
 }

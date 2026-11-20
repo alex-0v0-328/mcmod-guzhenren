@@ -356,9 +356,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.screen.label.time_rate_up",          "Time Rate Up", "自身时间加速");
         add("guzhenren.screen.label.body_capacity",         "Strength Points", "力量点");
         add("guzhenren.screen.label.attack",                "Base Attack", "基础攻击力");
+        add("guzhenren.screen.label.crit_chance",           "Crit Chance", "暴击率");
         add("guzhenren.screen.label.aperture_pressure",     "Aperture Pressure", "空窍压力");
-        add("guzhenren.screen.capacity",                    "%s, capacity %s (%s at rest)",
-                "%s，承受力 %s（常态 %s）");
+        add("guzhenren.screen.capacity",                    "%s, capacity %s", "%s，承受力 %s");
         add("guzhenren.screen.capacity.body_overload",      ", %s over", "，超出 %s");
         add("guzhenren.menu.aperture_load",                 "Load %s / %s", "空窍负担 %s / %s");
         add("guzhenren.screen.label.brilliance",            "Brilliance", "才情");
@@ -480,9 +480,9 @@ public class ModLanguageProvider extends LanguageProvider {
                 "amount than Jade Skin.",
                 "皮肤暂时化为白玉皮，每次受到的伤害减少固定数值，比玉皮减得更多。");
         addEffect(ModEffects.STRENGTH_QI_GU, "Strength Qi Gu Effect", "力气蛊效果",
-                "Unarmed punches at a locked target beyond 3 blocks launch a ranged strike that bursts across " +
-                "3 blocks on impact.",
-                "锁定目标在 3 格外时，空手出拳会发出远程攻击，落点爆开 3 格。");
+                "Unarmed punches at a locked target beyond 3 blocks become ranged attacks at half damage that " +
+                "burst across 3 blocks, or across the Area Damage radius on a Human Jun crit.",
+                "锁定目标在 3 格外时，空手出拳化作远程攻击，伤害减半，落点爆开 3 格，人力钧力流暴击时按范围伤害半径爆开。");
         addEffect(ModEffects.FLOWER_BOAR_GU, "Flower Boar Gu Effect", "花豕蛊效果",
                 "Temporarily grants the Beast Strength of a boar, increasing attack damage.",
                 "临时获得一猪之力（兽力），攻击提高。");
@@ -491,38 +491,39 @@ public class ModLanguageProvider extends LanguageProvider {
                 "Temporarily grants the Beast Strength of an ox, increasing attack damage.",
                 "临时获得一牛之力（兽力），攻击提高。");
         addEffect(ModEffects.HORIZONTAL_CRASH_GU, "Horizontal Crash Gu Effect", "横冲蛊效果",
-                "Allows dashing left and right. With enough strength, dashes break blocks and strike the area " +
+                "Allows dashing left and right. With enough strength, dashes break blocks and deal Area Damage " +
                 "ahead upon stopping.",
-                "可向左右冲刺；力量足够时冲刺会撞碎沿路方块，停下时对前方造成范围打击。");
+                "可向左右冲刺；力量足够时冲刺会撞碎沿路方块，停下时对前方造成范围伤害。");
         addEffect(ModEffects.VERTICAL_CRASH_GU, "Vertical Crash Gu Effect", "直撞蛊效果",
-                "Allows dashing forward and backward. With enough strength, dashes break blocks and strike the " +
-                "area ahead upon stopping.",
-                "可向前后冲刺；力量足够时冲刺会撞碎沿路方块，停下时对前方造成范围打击。");
+                "Allows dashing forward and backward. With enough strength, dashes break blocks and deal Area " +
+                "Damage ahead upon stopping.",
+                "可向前后冲刺；力量足够时冲刺会撞碎沿路方块，停下时对前方造成范围伤害。");
         addEffect(ModEffects.CHARGING_CRASH_GU, "Charging Crash Gu Effect", "横冲直撞蛊效果",
-                "Allows dashing in four directions. With enough strength, dashes break blocks and strike the " +
-                "area ahead upon stopping.",
-                "可向前后左右四个方向冲刺；力量足够时撞碎沿路方块，停下时对前方造成范围打击。");
+                "Allows dashing in four directions. With enough strength, dashes break blocks and deal Area " +
+                "Damage ahead upon stopping.",
+                "可向前后左右四个方向冲刺；力量足够时撞碎沿路方块，停下时对前方造成范围伤害。");
         addEffect(ModEffects.SELF_RELIANCE_GU, "Self Reliance Gu Effect", "自力更生蛊效果",
                 "Automatically and rapidly heals by a percentage of max health when below 75% health, stopping " +
-                "at 75%.",
-                "生命低于 75% 时自动按最大生命百分比快速回血，回到 75% 即停。");
+                "at 75%; more strength points heal faster (0.5x to 1.5x).",
+                "生命低于 75% 时自动按最大生命百分比快速回血，回到 75% 即停；力量点越高回血越快（0.5 到 1.5 倍）。");
         addEffect(ModEffects.HARDSHIP_STRENGTH_GU, "Hardship Strength Gu Effect", "苦力蛊效果",
-                "Activates below 75% health. Lower health hits harder (+10% to +50%); Beast Phantom combos draw " +
-                "more phantoms, and Human Jun finishers always release a wider Area Impact.",
-                "生命低于 75% 时自动生效：伤势越重出拳越重（+10% 到 +50%）；兽力虚影连击越久兽影越多，" +
-                "人力钧力收尾必出更大的范围冲击。");
+                "Activates below 75% health. The worse your wounds, the higher your damage multiplier (+10% to " +
+                "+50%); Beast Phantom crits draw more beasts and Human Jun crits deal wider Area Damage.",
+                "生命低于 75% 时自动生效：伤势越重，伤害倍率越高（+10% 到 +50%），兽力虚影流暴击抽出的兽力虚影越多，" +
+                "人力钧力流暴击的范围伤害越大。");
         addEffect(ModEffects.ALL_OUT_EFFORT_GU, "All-Out Effort Gu Effect", "全力以赴蛊效果",
-                "Boosts capacity, Beast Phantom, and Area Impact rates. Dashes go faster, farther, and hit " +
-                "harder; charges faster.",
-                "承受力、兽影与范围冲击概率提高；横冲类冲刺更快更远更强，蓄力蛊蓄满更快。");
+                "Raises crit chance to 80% / 90% / 100% (Rank III / IV / V) for the Beast Phantom or Human Jun " +
+                "branch.",
+                "兽力虚影流、人力钧力流的暴击率升至 80% / 90% / 100%（三 / 四 / 五转）。");
         addEffect(ModEffects.STORE_STRENGTH_GU, "Store Strength Gu Effect", "蓄力蛊效果",
-                "Hold attack on a locked target for at least 1 s to charge a fan-shaped punch, up to 3x when " +
-                "full. Strength beyond capacity recoils, never lethally.",
-                "锁定目标后按住攻击键蓄力至少 1 秒，松手打出扇形重拳，蓄满 3 倍；超出承受力会反噬扣血但不致死。");
+                "Hold attack on a locked target for at least 1 s to charge a fan-shaped punch; a full 4 s charge " +
+                "deals 3x and always crits. Strength beyond capacity recoils, never lethally.",
+                "锁定目标后按住攻击键蓄力至少 1 秒，松手打出扇形重拳，蓄满 4 秒伤害倍率 3 倍且必定暴击；" +
+                "超出承受力会反噬扣血但不致死。");
         addEffect(ModEffects.HABITUAL_STRENGTH_GU, "Habitual Strength Gu Effect", "惯力蛊效果",
                 "Like Store Strength Gu, but you can move while charging: hold attack on a locked target to " +
-                "charge a fan-shaped punch.",
-                "同蓄力蛊：锁定目标按住攻击键蓄力，松手打出扇形重拳；蓄力时可以移动。");
+                "charge a fan-shaped punch that always crits when full.",
+                "同蓄力蛊：锁定目标按住攻击键蓄力，松手打出扇形重拳，蓄满必定暴击；蓄力时可以移动。");
         addEffect(ModEffects.BIG_STRENGTH_GU, "Big Strength Gu Effect", "大力蛊效果",
                 "Grants 32 strength points for any Strength branch. Points beyond capacity still land and " +
                 "recoil on you.",
@@ -621,10 +622,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.bleeding",                    "%1$s bled to death", "%1$s 流血而亡");
         add("death.attack.guzhenren.bleeding.player",
                 "%1$s bled to death while fighting %2$s", "%1$s 在与 %2$s 战斗时流血而亡");
-        add("death.attack.guzhenren.area_impact",
-                "%1$s was struck down by %2$s's Area Impact", "%1$s 被 %2$s 的范围冲击打死了");
-        add("death.attack.guzhenren.area_impact.item",
-                "%1$s was struck down by %2$s's Area Impact using %3$s", "%1$s 被 %2$s 用 %3$s 的范围冲击打死了");
+        add("death.attack.guzhenren.area_damage",
+                "%1$s was struck down by %2$s's Area Damage", "%1$s 被 %2$s 的范围伤害打死了");
+        add("death.attack.guzhenren.area_damage.item",
+                "%1$s was struck down by %2$s's Area Damage using %3$s", "%1$s 被 %2$s 用 %3$s 的范围伤害打死了");
         add("death.attack.guzhenren.qi_wave",
                 "%1$s was struck down by %2$s's Qi Wave", "%1$s 被 %2$s 的气波打死了");
         add("death.attack.guzhenren.qi_wave.item",

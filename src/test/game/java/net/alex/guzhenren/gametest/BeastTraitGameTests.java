@@ -42,12 +42,12 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 五转活玩家的兽力[Beast Strength]特性。
  * <ul>
- *   <li>冲撞来源相加：五转无力量倍率 4.5；驰马 48 点为 4.5 ×（2 + √48 / 10），再开全力以赴加 1（不翻倍）；驰马播放速度
- *       1.5，加全力以赴 2.0。</li>
+ *   <li>冲撞来源相加：五转无力量倍率 4.5；驰马 48 点为 4.5 ×（2 + √48 / 10），开全力以赴不变；驰马播放速度 1.5，开全力以赴
+ *       不变。</li>
  *   <li>青牛劳力：横冲系增益各加 10 秒（30 → 40；五转横冲直撞 60 → 70），力气蛊[Strength Qi Gu]不加；石龟负力：护盾 180
  *       → 270，时长不变。</li>
  *   <li>两猪之力清冲撞路径：挡身的石、土碎落，地面与草留；黑曜石截停，其后石头留；箱子亦截停；冒险模式不破坏；站土径时
- *       前方高一级的地面留。熊 40 点开全力以赴只升到软档：土碎，石头截停。</li>
+ *       前方高一级的地面留。熊 40 点开全力以赴仍不到软档：一块不碎。</li>
  *   <li>玩家在场景北缘石地朝南（yaw 0）；冲撞本身在所属客户端经 Epic Fight 运行，此处不测：
  *       {@link EpicFightIntegration#getDashScale} 为倍率、{@link CrashBreach#clear} 为路径（硬度取
  *       {@link CrashSources#getMaxHardness}），按冲撞方式调用。</li>
@@ -81,7 +81,7 @@ public final class BeastTraitGameTests {
     private BeastTraitGameTests() {}
 
     @GameTest(template = "empty9x9x9")
-    public static void theHorsePointsAndAllOutAddToTheDash(GameTestHelper helper) {
+    public static void theHorsePointsAddToTheDashAndAllOutEffortDoesNot(GameTestHelper helper) {
         ServerPlayer player = player(helper);
         assertEquals(4.5D, EpicFightIntegration.getDashScale(player), DELTA);
         assertEquals(1.0D, CrashSources.of(player).getPlaySpeed(), DELTA);
@@ -92,10 +92,8 @@ public final class BeastTraitGameTests {
         assertEquals(1.5D, CrashSources.of(player).getPlaySpeed(), DELTA);
 
         allOut(player);
-        assertEquals(horse + 4.5D, EpicFightIntegration.getDashScale(player), DELTA);
-        assertEquals(2.0D, CrashSources.of(player).getPlaySpeed(), DELTA);
-        player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
         assertEquals(horse, EpicFightIntegration.getDashScale(player), DELTA);
+        assertEquals(1.5D, CrashSources.of(player).getPlaySpeed(), DELTA);
         helper.succeed();
     }
 
@@ -201,7 +199,7 @@ public final class BeastTraitGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void allOutWithoutTheBoarsBreaksOnlySoftBlocks(GameTestHelper helper) {
+    public static void allOutWithoutTheBoarsBreaksNothing(GameTestHelper helper) {
         ServerPlayer player = player(helper);
         player.setOnGround(true);
         grant(player, BeastStrength.BEAR);
@@ -212,9 +210,9 @@ public final class BeastTraitGameTests {
         assertEquals(0, clear(player), "40 points without All-Out Effort broke the path");
 
         allOut(player);
-        assertEquals(2, clear(player), "All-Out Effort on 40 points broke other than the two dirt blocks");
-        assertBlock(helper, FIRST, Blocks.AIR);
-        assertBlock(helper, FIRST_HEAD, Blocks.AIR);
+        assertEquals(0, clear(player), "All-Out Effort on 40 points broke the path");
+        assertBlock(helper, FIRST, Blocks.DIRT);
+        assertBlock(helper, FIRST_HEAD, Blocks.DIRT);
         assertBlock(helper, OBSTACLE, Blocks.STONE);
         assertBlock(helper, GRASS, Blocks.DIRT);
         helper.succeed();

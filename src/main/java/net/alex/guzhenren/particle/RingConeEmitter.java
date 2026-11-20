@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 服务端激波环与范围冲击环的发射器（对应客户端粒子渲染见 {@link net.alex.guzhenren.client.particle.RingParticle}），所
+ * 服务端激波环与范围伤害环的发射器（对应客户端粒子渲染见 {@link net.alex.guzhenren.client.particle.RingParticle}），所
  * 有环均在无伤害、无碰撞箱的前提下提供纯视觉反馈。
  * <ul>
  *   <li>本包所有视觉环统一通过 {@link #sendRing} 以数量 0、速度倍率 1.0 发送，使粒子系统直接将速度向量解读为朝向法线
@@ -24,8 +24,8 @@ import net.minecraft.world.phys.Vec3;
  *   <li>玩家同一时间至多存在一个活动 {@link DashBurst}（新触发在持续期间直接跳过，防止窗口期内重复发包重放整条轨迹）；
  *       当环数耗尽、达到 {@link #DASH_MAX_TICKS} 上限、或连续 {@link #DASH_IDLE_LIMIT} 刻水平速度平方低于
  *       {@link #DASH_IDLE_SPEED_SQR} 时自动结束。</li>
- *   <li>范围冲击（{@link #areaImpactRing}）从锥体原点前方 {@link #AREA_IMPACT_RING_START} 格沿攻击轴线发射一枚
- *       {@code area_impact_ring}，令其在 {@link #AREA_IMPACT_TRAVEL_TICKS} 刻（恰好等于五帧绽开动画的末帧年龄）抵达锥底
+ *   <li>范围伤害（{@link #areaDamageRing}）从锥体原点前方 {@link #AREA_DAMAGE_RING_START} 格沿攻击轴线发射一枚
+ *       {@code area_damage_ring}，令其在 {@link #AREA_DAMAGE_TRAVEL_TICKS} 刻（恰好等于五帧绽开动画的末帧年龄）抵达锥底
  *       并停下扩散淡出。</li>
  *   <li>玩家登出或切换维度时通过 {@link #forget} 立即丢弃进行中的爆发状态（防止跨维度连线铺环），常规逐刻推进由
  *       {@link RingConeEvents} 在玩家刻末尾调用 {@link #tick} 触发。</li>
@@ -41,8 +41,8 @@ public final class RingConeEmitter {
     private static final double DASH_IDLE_SPEED_SQR = 0.0025D;
     private static final double DASH_RING_HEIGHT = 1.0D;
     private static final double RING_NORMAL_DRIFT = 0.03D;
-    public static final int AREA_IMPACT_TRAVEL_TICKS = 4;
-    private static final double AREA_IMPACT_RING_START = 1.0D;
+    public static final int AREA_DAMAGE_TRAVEL_TICKS = 4;
+    private static final double AREA_DAMAGE_RING_START = 1.0D;
 
     private static final Map<UUID, Burst> DASH_BURSTS = new HashMap<>();
 
@@ -55,22 +55,22 @@ public final class RingConeEmitter {
                 DASH_MAX_TICKS, player.position(), 0.0D, DASH_MAX_RINGS, 0));
     }
 
-    public static void areaImpactRing(ServerPlayer player, Vec3 axis, double reach) {
-        areaImpactRing(player.serverLevel(), player.getEyePosition(), axis, reach);
+    public static void areaDamageRing(ServerPlayer player, Vec3 axis, double reach) {
+        areaDamageRing(player.serverLevel(), player.getEyePosition(), axis, reach);
     }
 
-    public static void areaImpactRing(ServerLevel level, Vec3 origin, Vec3 axis, double reach) {
+    public static void areaDamageRing(ServerLevel level, Vec3 origin, Vec3 axis, double reach) {
         if (axis.lengthSqr() < MIN_DIRECTION_LENGTH_SQR) return;
         Vec3 direction = axis.normalize();
-        Vec3 ring = origin.add(direction.scale(AREA_IMPACT_RING_START));
-        Vec3 velocity = direction.scale(getAreaImpactRingSpeed(reach));
-        level.sendParticles(ModParticles.AREA_IMPACT_RING.get(), ring.x, ring.y, ring.z, 0,
+        Vec3 ring = origin.add(direction.scale(AREA_DAMAGE_RING_START));
+        Vec3 velocity = direction.scale(getAreaDamageRingSpeed(reach));
+        level.sendParticles(ModParticles.AREA_DAMAGE_RING.get(), ring.x, ring.y, ring.z, 0,
                 velocity.x, velocity.y, velocity.z, 1.0D);
     }
 
-    /** 范围冲击环从出生处到距原点 {@code reach} 格所需的速度，格/tick。 */
-    public static double getAreaImpactRingSpeed(double reach) {
-        return (reach - AREA_IMPACT_RING_START) / AREA_IMPACT_TRAVEL_TICKS;
+    /** 范围伤害环从出生处到距原点 {@code reach} 格所需的速度，格/tick。 */
+    public static double getAreaDamageRingSpeed(double reach) {
+        return (reach - AREA_DAMAGE_RING_START) / AREA_DAMAGE_TRAVEL_TICKS;
     }
 
     public static void tick(ServerPlayer player) {

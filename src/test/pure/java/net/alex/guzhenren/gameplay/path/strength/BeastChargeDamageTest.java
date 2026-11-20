@@ -33,9 +33,9 @@ class BeastChargeDamageTest {
     }
 
     @Test
-    @DisplayName("a fully released family weighs twice its points, the others once")
-    void aReleasedFamilyWeighsTwice() {
-        assertEquals(2, StrengthService.FULL_RELEASE_FACTOR);
+    @DisplayName("a crit family weighs twice its points, the others once")
+    void aCritFamilyWeighsTwice() {
+        assertEquals(2, StrengthCrit.CRIT_FACTOR);
         assertArrayEquals(new int[] { 80, 24 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR_THEN_BOAR, BEAR));
         assertArrayEquals(new int[] { 40, 48 }, BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR_THEN_BOAR,
                 List.of(BeastStrengthFamily.BOAR)));
@@ -55,7 +55,7 @@ class BeastChargeDamageTest {
     }
 
     @Test
-    @DisplayName("a lone charge carries the whole punch, released or not")
+    @DisplayName("a lone charge carries the whole punch, crit or not")
     void aLoneChargeCarriesTheWholePunch() {
         assertArrayEquals(new float[] { 4.5F }, BeastChargeDamage.split(4.5F,
                 BeastChargeDamage.getWeights(BEAR_AND_BOAR, BEAR, List.of())), DELTA);

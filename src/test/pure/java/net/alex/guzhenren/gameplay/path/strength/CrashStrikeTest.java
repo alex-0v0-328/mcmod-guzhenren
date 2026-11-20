@@ -19,12 +19,10 @@ class CrashStrikeTest {
     private static final AABB AWAY = new AABB(20.2D, 64.0D, 0.2D, 20.8D, 65.8D, 0.8D);
 
     @Test
-    @DisplayName("the strike starts at half the bare fist; the two boars and All-Out Effort add a quarter each")
-    void theBoarsAndAllOutRaiseTheStrike() {
-        assertEquals(0.5F, CrashStrike.getDamageRatio(false, false));
-        assertEquals(0.75F, CrashStrike.getDamageRatio(true, false));
-        assertEquals(0.75F, CrashStrike.getDamageRatio(false, true));
-        assertEquals(1.0F, CrashStrike.getDamageRatio(true, true));
+    @DisplayName("the strike starts at half the bare fist and the two boars add a quarter")
+    void theBoarsRaiseTheStrike() {
+        assertEquals(0.5F, CrashStrike.getDamageRatio(false));
+        assertEquals(0.75F, CrashStrike.getDamageRatio(true));
     }
 
     @Test
@@ -48,36 +46,37 @@ class CrashStrikeTest {
     }
 
     @Test
-    @DisplayName("the plan's examples: the beast branch reaches 27.1 blocks, the human branch 19.9")
-    void theSourcesMatchThePlan() {
-        CrashSources beasts = new CrashSources(96, true, 1.0D, 0.5D, true);
-        assertEquals(27.11D, beasts.getTravel(), DELTA);
-        assertEquals(2.0D, beasts.getPlaySpeed(), DELTA);
+    @DisplayName("the sources read only the total points, the two boars and the horse: 21.1 and 13.9 blocks")
+    void theSourcesReadOnlyPointsBoarsAndHorse() {
+        CrashSources beasts = new CrashSources(96, true, 1.0D, 0.5D);
+        assertEquals(21.06D, beasts.getTravel(), DELTA);
+        assertEquals(1.5D, beasts.getPlaySpeed(), DELTA);
         assertEquals(3.0F, beasts.getMaxHardness());
         assertEquals(6.92D, beasts.getStrikeRange(), DELTA);
-        assertEquals(1.0F, beasts.getDamageRatio());
+        assertEquals(0.75F, beasts.getDamageRatio());
 
-        CrashSources human = new CrashSources(168, false, 0.0D, 0.0D, true);
-        assertEquals(19.95D, human.getTravel(), DELTA);
-        assertEquals(1.5D, human.getPlaySpeed(), DELTA);
-        assertEquals(1.5F, human.getMaxHardness());
+        CrashSources human = new CrashSources(168, false, 0.0D, 0.0D);
+        assertEquals(13.90D, human.getTravel(), DELTA);
+        assertEquals(1.0D, human.getPlaySpeed(), DELTA);
+        assertEquals(0.6F, human.getMaxHardness());
         assertEquals(8.18D, human.getStrikeRange(), DELTA);
-        assertEquals(0.75F, human.getDamageRatio());
+        assertEquals(0.5F, human.getDamageRatio());
 
-        CrashSources bare = new CrashSources(0, false, 0.0D, 0.0D, false);
+        CrashSources bare = new CrashSources(0, false, 0.0D, 0.0D);
         assertEquals(6.05D, bare.getTravel(), DELTA);
-        assertEquals(AreaImpactShatter.NONE, bare.getMaxHardness());
+        assertEquals(AreaDamageShatter.NONE, bare.getMaxHardness());
         assertEquals(3.0D, bare.getStrikeRange(), DELTA);
     }
 
     @Test
-    @DisplayName("the strike radius is the unwidened area impact range of the dash's points")
+    @DisplayName("the strike radius is the unwidened area damage range of the dash's points")
     void theStrikeRadiusIsNeverWidened() {
         for (int points : new int[] { 0, 48, 112, 400, 10_000 }) {
-            CrashSources sources = new CrashSources(points, false, 0.0D, 0.0D, false);
-            assertEquals(AreaImpact.getRange(points, false), sources.getStrikeRange(), 1.0E-9D);
+            CrashSources sources = new CrashSources(points, false, 0.0D, 0.0D);
+            assertEquals(AreaDamage.getRange(points), sources.getStrikeRange(), 1.0E-9D);
+            assertEquals(AreaDamage.getRange(points, 0), sources.getStrikeRange(), 1.0E-9D);
         }
-        assertEquals(12.0D, new CrashSources(10_000, true, 1.0D, 0.5D, true).getStrikeRange(), 1.0E-9D);
+        assertEquals(12.0D, new CrashSources(10_000, true, 1.0D, 0.5D).getStrikeRange(), 1.0E-9D);
     }
 
     @Test
