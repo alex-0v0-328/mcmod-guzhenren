@@ -13,11 +13,9 @@ import net.alex.guzhenren.datagen.fluid.ModFluidTagsProvider;
 import net.alex.guzhenren.datagen.item.ModItemModelProvider;
 import net.alex.guzhenren.datagen.item.ModItemTagsProvider;
 import net.alex.guzhenren.datagen.lang.ModLanguageProvider;
+import net.alex.guzhenren.datagen.loot.BeastLootProvider;
 import net.alex.guzhenren.datagen.loot.ModBlockLootProvider;
 import net.alex.guzhenren.datagen.loot.ModLootModifierProvider;
-import net.alex.guzhenren.datagen.loot.CattleLootProvider;
-import net.alex.guzhenren.datagen.loot.ElephantLootProvider;
-import net.alex.guzhenren.datagen.loot.WildBoarLootProvider;
 import net.alex.guzhenren.datagen.particle.ModParticleDescriptionProvider;
 import net.alex.guzhenren.datagen.recipe.ModRecipeProvider;
 import net.alex.guzhenren.datagen.world.ModBiomeTagsProvider;
@@ -93,9 +91,7 @@ public final class DataGenerators {
         generator.addProvider(event.includeServer(), new ModRecipeProvider(packOutput, lookupProvider));
 
         generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Set.of(), List.of(
-                new LootTableProvider.SubProviderEntry(WildBoarLootProvider::new, LootContextParamSets.ENTITY),
-                new LootTableProvider.SubProviderEntry(CattleLootProvider::new, LootContextParamSets.ENTITY),
-                new LootTableProvider.SubProviderEntry(ElephantLootProvider::new, LootContextParamSets.ENTITY),
+                new LootTableProvider.SubProviderEntry(BeastLootProvider::new, LootContextParamSets.ENTITY),
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK),
                 new LootTableProvider.SubProviderEntry(registries -> new ModLootModifierProvider.Subtables(),
                         LootContextParamSets.BLOCK)),
