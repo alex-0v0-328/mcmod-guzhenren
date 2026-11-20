@@ -74,7 +74,6 @@ class ChronicleTextTest {
         Chronicle eleventh = new Chronicle(Chronicle.Book.RENZU_ZHUAN, 11);
         assertEquals("人祖传第十一节", eleventh.heading(false));
         assertEquals("人祖傳第十一節終", eleventh.colophon(true));
-        assertEquals("第十一节", eleventh.numbered(false));
         assertEquals("「人祖传」第十一节", eleventh.itemName(false));
         assertEquals("「人祖傳」第三十八節", new Chronicle(Chronicle.Book.RENZU_ZHUAN, 38).itemName(true));
         assertEquals("石人，你阻挡了我成功的路", eleventh.title(false));

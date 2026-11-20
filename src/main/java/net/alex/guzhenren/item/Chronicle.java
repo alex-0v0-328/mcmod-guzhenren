@@ -53,16 +53,14 @@ public record Chronicle(Book book, int section) implements BookletText {
     }
 
     public String heading(boolean traditional) {
-        return book.title(traditional) + ORDINAL + numeral(section) + book.unit(traditional);
+        return book.title(traditional) + numbered(traditional);
     }
 
     public String colophon(boolean traditional) { return heading(traditional) + (traditional ? "終" : "终"); }
 
-    public String numbered(boolean traditional) {
-        return ORDINAL + numeral(section) + book.unit(traditional);
-    }
-
     public String itemName(boolean traditional) { return "「" + book.title(traditional) + "」" + numbered(traditional); }
+
+    private String numbered(boolean traditional) { return ORDINAL + numeral(section) + book.unit(traditional); }
 
     public List<String> lines(boolean traditional) {
         String path = "/assets/guzhenren/booklets/" + book.id() + "/" + (traditional ? "zh_hant" : "zh_hans") + "/"
