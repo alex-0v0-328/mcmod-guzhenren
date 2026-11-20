@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
@@ -27,7 +28,7 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
  *       {@link #onShieldBlock} 在最低优先级读最终格挡量，经 {@link ComboRound#markBlocked} 从溢出里扣掉。命中时目标仍在受
  *       击无敌帧内（且伤害不绕过冷却）则不算。</li>
  *   <li>过载反噬在伤害实际落到目标身上之后（{@link LivingDamageEvent.Post}，被盾牌完全挡下或被无敌帧吞掉的拳不
- *       算）结算：每次出手（采矿模式原版拳与连招前几段同样）经 {@link ComboRound#settleOverload} 去重后结算一次，读
+ *       算；只打掉伤害吸收、没伤到生命的拳照算，见 {@link #hasLanded}）结算：每次出手（采矿模式原版拳与连招前几段同样）经 {@link ComboRound#settleOverload} 去重后结算一次，读
  *       数含本击的暴击；这一招已发出远程攻击时与弹射物爆开共用同一份记账。</li>
  * </ul>
  */
@@ -74,9 +75,13 @@ public final class BeastPhantomEvents {
     public static void onDamaged(LivingDamageEvent.Post event) {
         DamageSource source = event.getSource();
         if (!(source.getDirectEntity() instanceof ServerPlayer player) || event.getEntity() == player) return;
-        if (!isPunch(source, player) || event.getNewDamage() <= 0.0F) return;
+        if (!isPunch(source, player) || !hasLanded(event)) return;
 
         ComboRound.settleOverload(player);
+    }
+
+    private static boolean hasLanded(LivingDamageEvent.Post event) {
+        return event.getNewDamage() > 0.0F || event.getReduction(DamageContainer.Reduction.ABSORPTION) > 0.0F;
     }
 
     public static boolean isPunch(DamageSource source, ServerPlayer player) {

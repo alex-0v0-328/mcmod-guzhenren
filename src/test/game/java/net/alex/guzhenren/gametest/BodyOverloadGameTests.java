@@ -32,13 +32,13 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 过载反噬[Body Overload]的四条遗留回归（待办见 wiki《维护说明#待办与计划》）。
+ * 过载反噬[Body Overload]结算边界的四条回归。
  * <ul>
  *   <li>① 收尾招打中举盾目标：溢出量按扣除格挡后的护甲前伤害算，完全挡下记 0，不再记整拳。</li>
  *   <li>② 只有出拳伤害结算过载反噬：荆棘反伤与二段飞行冲撞（以 {@code player_attack} 撞人）都不扣血，随后的真出拳照扣
  *       （排除反噬对该玩家整体失效的假通过）。</li>
  *   <li>③ 反噬扣血前后同时复原受击无敌帧与 {@code lastHurt}：先吃 5 点伤害，反噬后无敌帧内再吃 6 点只掉差额 1 点。</li>
- *   <li>④ 被伤害吸收完全吃掉的拳：规则文字为「只在造成伤害时结算」，故断言不扣；若实现相反，交 Alex 裁定，不改断言。</li>
+ *   <li>④ 被伤害吸收完全吃掉的拳：没伤到生命也算打中，照扣过载反噬（Alex 定）。</li>
  *   <li>凡人持熊 40 点（承受力 16，超出 24）：反噬为最大生命的 75%；五转人力 60 点（承受力 56，超出 4）用于 ③。</li>
  * </ul>
  */
@@ -175,7 +175,7 @@ public final class BodyOverloadGameTests {
 
     //region ④ Absorption [伤害吸收]
     @GameTest(template = "empty9x9x9")
-    public static void aPunchTheAbsorptionSwallowsPaysNoOverload(GameTestHelper helper) {
+    public static void aPunchTheAbsorptionSwallowsStillPaysTheOverload(GameTestHelper helper) {
         ServerPlayer player = bear(helper, "gzr-overload-legacy-absorption");
         float max = player.getMaxHealth();
         Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 2));
@@ -189,7 +189,7 @@ public final class BodyOverloadGameTests {
 
         assertEquals(health, pig.getHealth(), DELTA);
         assertEquals(absorption - 1.0F, pig.getAbsorptionAmount(), DELTA);
-        assertEquals(max, player.getHealth(), DELTA);
+        assertEquals(max - recoil(max, 24, 16), player.getHealth(), DELTA);
         ComboRound.clear(player);
         helper.succeed();
     }
