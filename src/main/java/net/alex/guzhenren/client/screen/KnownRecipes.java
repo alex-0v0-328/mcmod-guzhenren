@@ -117,7 +117,7 @@ public final class KnownRecipes {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null) return;
         boolean operator = minecraft.options.operatorItemsTab().get() && minecraft.player.canUseGameMasterBlocks();
-        ModCreativeTabs.BOOKLET.get().buildContents(new CreativeModeTab.ItemDisplayParameters(
+        ModCreativeTabs.KM_MORTAL.get().buildContents(new CreativeModeTab.ItemDisplayParameters(
                 minecraft.level.enabledFeatures(), operator, minecraft.level.registryAccess()));
     }
 

@@ -374,10 +374,10 @@ public class ModLanguageProvider extends LanguageProvider {
 
         add("itemGroup.guzhenren.mortal_gu",                         "Mortal Gu", "凡蛊");
         add("itemGroup.guzhenren.gu_material",                       "Gu Material", "蛊材");
-        add("itemGroup.guzhenren.strength_mortal_gu",                "Strength Mortal Gu", "力道凡蛊");
-        add("itemGroup.guzhenren.wood_mortal_gu",                    "Wood Mortal Gu", "木道凡蛊");
-        add("itemGroup.guzhenren.km_mortal",                         "Mortal Killing Moves", "凡道杀招");
-        add("itemGroup.guzhenren.booklet",                           "Booklets", "书册");
+        add("itemGroup.guzhenren.strength_mortal_gu",                "Strength Gu", "力道蛊虫");
+        add("itemGroup.guzhenren.wood_mortal_gu",                    "Wood Gu", "木道蛊虫");
+        add("itemGroup.guzhenren.km_mortal",                         "Killing Moves & Gu Recipes", "杀招&蛊方");
+        add("itemGroup.guzhenren.booklet",                           "Atlases", "图册");
 
         add("guzhenren.item.failed.awakened",                        "You have already awakened", "你已开窍");
         add("guzhenren.item.failed.awakening",                       "Awakening in progress", "开窍中");

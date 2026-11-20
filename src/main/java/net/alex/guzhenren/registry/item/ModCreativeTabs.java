@@ -27,8 +27,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * 本模组创造模式物品栏注册表，按物品类型、所属流派或在 {@link ItemRegistrar} 中显式声明的 {@code tab} 规则分配物品。
  * <ul>
- *   <li>栏位顺序依次为凡蛊（排除独立建栏的力道与木道凡蛊）、蛊材、力道凡蛊、木道凡蛊、凡道杀招[Killing Move]书及书
- *       册（蛊方按客户端配方表每张列一本）；通过注册链 {@code tab} 参数声明的物品（如元泉[Spirit Spring]
+ *   <li>栏位顺序依次为蛊材、凡蛊（排除独立建栏的力道与木道凡蛊）、力道蛊虫、木道蛊虫、杀招[Killing Move]书与蛊方
+ *       （蛊方按客户端配方表每张列一本）、图册；蛊材排在 {@code OTHER_MOD_TABS} 列出的整合包模组页签之后，使第二页上排为
+ *       四个外部页签加蛊材、下排为本模组其余五页；未安装的模组 ID 被 NeoForge 排序忽略。</li>
+ *   <li>通过注册链 {@code tab} 参数声明的物品（如元泉[Spirit Spring]
  *       {@code BlockItem}、纯水桶、钢锭、钢块、知心草种子与黑土耕地）直接归入指定栏位并覆盖按类默认规则。</li>
  *   <li>⚠ 既不符合任意栏位谓词又未显式指定 {@code tab} 的物品会静默跳过而不进入任何创造栏（进度图标物品即有意如
  *       此）。</li>
@@ -44,12 +46,16 @@ public final class ModCreativeTabs {
 
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Guzhenren.MOD_ID);
-    private static final ResourceLocation EPIC_FIGHT_ITEMS =
-            ResourceLocation.fromNamespaceAndPath("epicfight", "items");
+    private static final ResourceLocation[] OTHER_MOD_TABS = {
+            ResourceLocation.fromNamespaceAndPath("epicfight", "items"),
+            ResourceLocation.fromNamespaceAndPath("farmersdelight", "farmersdelight"),
+            ResourceLocation.fromNamespaceAndPath("ftblibrary", "ftb_library"),
+            ResourceLocation.fromNamespaceAndPath("ldlib2", "ldlib2_dev_tab")
+    };
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MORTAL_GU = register("mortal_gu",
             () -> ModItems.HOPE_GU.get(), Guzhenren.id("gu_material"), ModCreativeTabs::belongsInMortalGu);
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GU_MATERIAL = register("gu_material",
-            () -> ModItems.PRIMEVAL_STONE.get(), EPIC_FIGHT_ITEMS, ModCreativeTabs::belongsInGuMaterial);
+            () -> ModItems.PRIMEVAL_STONE.get(), OTHER_MOD_TABS, ModCreativeTabs::belongsInGuMaterial);
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> STRENGTH_MORTAL_GU = register(
             "strength_mortal_gu", () -> ModItems.FLOWER_BOAR_GU_1.get(), Guzhenren.id("mortal_gu"),
             item -> belongsInPathTab(item, STRENGTH));
@@ -58,13 +64,17 @@ public final class ModCreativeTabs {
             item -> belongsInPathTab(item, WOOD));
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KM_MORTAL = register(
             "km_mortal", () -> ModItems.KM_MORTAL_LITTLE_LIGHT_AMPLIFY.get(), Guzhenren.id("wood_mortal_gu"),
-            KillingMoveBookItem.class::isInstance);
+            item -> item instanceof KillingMoveBookItem || item instanceof GuRecipeItem);
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> BOOKLET = register(
-            "booklet", () -> ModItems.GU_ATLAS_HOPE.get(), Guzhenren.id("km_mortal"),
-            item -> item instanceof BookletItem || item instanceof GuRecipeItem);
+            "booklet", () -> ModItems.GU_ATLAS_HOPE.get(), Guzhenren.id("km_mortal"), BookletItem.class::isInstance);
 
     private static DeferredHolder<CreativeModeTab, CreativeModeTab> register(
             String id, Supplier<? extends Item> icon, ResourceLocation before, Predicate<Item> accepted) {
+        return register(id, icon, new ResourceLocation[] { before }, accepted);
+    }
+
+    private static DeferredHolder<CreativeModeTab, CreativeModeTab> register(
+            String id, Supplier<? extends Item> icon, ResourceLocation[] before, Predicate<Item> accepted) {
         ResourceKey<CreativeModeTab> tab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Guzhenren.id(id));
         return CREATIVE_MODE_TABS.register(id, () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.guzhenren." + id))
