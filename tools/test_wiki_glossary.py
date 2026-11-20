@@ -17,10 +17,12 @@ LANGS = {
     'guzhenren': (
         {'guzhenren.enum.aperture.rank.two': '二转', 'guzhenren.enum.aperture.rank.one': '一转',
          'guzhenren.enum.aperture.rank.none': '', 'guzhenren.display.aperture_1': '第一空窍',
-         'guzhenren.display.aperture_10': '不收', 'guzhenren.enum.aperture.rank.line': '%s转'},
+         'guzhenren.display.aperture_10': '不收', 'guzhenren.enum.aperture.rank.line': '%s转',
+         'guzhenren.enum.aperture.rank.one.description': '刚开窍的蛊师。'},
         {'guzhenren.enum.aperture.rank.two': 'Rank II', 'guzhenren.enum.aperture.rank.one': 'Rank I',
          'guzhenren.enum.aperture.rank.none': '', 'guzhenren.display.aperture_1': 'First Aperture',
-         'guzhenren.display.aperture_10': 'Left out', 'guzhenren.enum.aperture.rank.line': 'Rank %s'}),
+         'guzhenren.display.aperture_10': 'Left out', 'guzhenren.enum.aperture.rank.line': 'Rank %s',
+         'guzhenren.enum.aperture.rank.one.description': 'A Gu Master whose aperture just opened.'}),
     'guworld': ({'dimension.guworld.southern_border': '南疆'}, {'dimension.guworld.southern_border': 'Southern Border'}),
 }
 
@@ -56,7 +58,7 @@ class WikiGlossaryTest(unittest.TestCase):
         self.wiki.mkdir()
         self.page = self.wiki / glossary.PAGE
 
-    def test_write_orders_terms_and_leaves_out_blanks_and_templates(self):
+    def test_write_orders_terms_and_leaves_out_blanks_templates_and_descriptions(self):
         self.assertEqual(0, run(['--write'], self.roots, self.wiki)[0])
         text = self.page.read_text(encoding='utf-8')
         rows = [line for line in text.splitlines() if line.startswith('| ') and '`' in line]

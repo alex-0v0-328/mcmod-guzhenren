@@ -2,9 +2,9 @@
 
 Writes or checks <wiki>/中英对照表.md: one `中文 | English | key` table per section of SECTIONS, in that order, with no
 opening text: the page starts at its first heading.
-A selector is a lang key (taken alone) or a key ending in `.` (every key under it); entries with a blank side or
-a `%` placeholder are sentences or templates, not terms, and are left out. Inside one selector the keys follow
-ORDER when their last segment is listed there, then key order.
+A selector is a lang key (taken alone) or a key ending in `.` (every key under it); entries with a blank side, a
+`%` placeholder or a key ending in `.description` are sentences or templates, not terms, and are left out. Inside
+one selector the keys follow ORDER when their last segment is listed there, then key order.
 
 Everything from the `## 设定词` heading on is hand-written and kept as it is; the script owns the text above it.
 
@@ -23,6 +23,7 @@ import project_runtime as env
 PAGE = '中英对照表.md'
 MANUAL_HEADING = '## 设定词'
 LANG_DIR = 'src/generated/resources/assets/{mod}/lang'
+SENTENCE_SUFFIX = '.description'
 MANUAL_STUB = (f'{MANUAL_HEADING}\n\n语言文件里没有的设定词写在这里，脚本不改本节。'
                '炼蛊的两张设定词表见 [[炼蛊与蛊方]]。\n')
 
@@ -85,6 +86,8 @@ def select(selector, zh, en):
     keys.sort(key=lambda k: (RANK.get(k.rsplit('.', 1)[-1], len(ORDER)), k))
     rows = []
     for key in keys:
+        if key.endswith(SENTENCE_SUFFIX):
+            continue
         chinese, english = zh[key].strip(), en.get(key, '').strip()
         if chinese and english and '%' not in chinese and '%' not in english:
             rows.append((chinese, english, key))
