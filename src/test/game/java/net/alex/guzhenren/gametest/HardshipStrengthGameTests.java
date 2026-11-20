@@ -55,7 +55,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>{@code getTier(Player)}：状态未开、未入分支或生命 ≥ 75% 为 0，否则为伤势档位 1–5。</li>
  *   <li>运行中受伤或回血跨档，攻击属性不等每秒心跳即按新档位的伤害倍率更新：受伤当即，回血至 tick 末（检查等
  *       2 tick，模拟玩家不 tick、没有心跳）；回到 75% 以上倍率归 1。</li>
- *   <li>人力身体持两层钧（60 点），兽力身体持熊（40 点），均五转（承受力 56）。</li>
+ *   <li>人力身体持两层钧（60 点），兽力身体持熊（40 点），均五转（承受力 72）。</li>
  * </ul>
  */
 
@@ -172,10 +172,10 @@ public final class HardshipStrengthGameTests {
     @GameTest(template = "empty9x9x9")
     public static void aSmallCapacityDoesNotKeepItFromStarting(GameTestHelper helper) {
         ServerPlayer mortal = GameTestPlayers.survival(helper, "gzr-hardship-mortal-gametest").onGround();
-        assertEquals(16, StrengthService.getCapacity(mortal));
+        assertEquals(12, StrengthService.getCapacity(mortal));
         assertFalse(new HardshipBehavior().canStart(mortal), "a body with no branch may start");
         assertTrue(PathStrengthService.setHumanStrength(mortal, HumanStrength.JIN, 1), "the jin was refused");
-        assertTrue(new HardshipBehavior().canStart(mortal), "a 16 capacity kept a branch from starting");
+        assertTrue(new HardshipBehavior().canStart(mortal), "a 12 capacity kept a branch from starting");
         helper.succeed();
     }
 
@@ -220,7 +220,7 @@ public final class HardshipStrengthGameTests {
         start(player);
         int capacity = StrengthService.getCapacity(player);
         int permanent = StrengthService.getPermanentPoints(player);
-        assertEquals(56, capacity, "a bare rank five body does not carry 56");
+        assertEquals(72, capacity, "a bare rank five body does not carry 72");
         assertEquals(60, permanent, "the body does not hold 60 points of jun");
 
         for (int bound = 0; bound < BOUNDS.length; bound++) {
@@ -236,7 +236,7 @@ public final class HardshipStrengthGameTests {
             assertEquals(capacity, StrengthService.getCapacity(player), at);
             assertEquals(settled, StrengthService.getSettledPoints(player), at);
             StrengthSnapshot snapshot = StrengthService.snapshot(player);
-            assertEquals(settled - capacity, snapshot.overloadPoints(snapshot.settledPoints()), at);
+            assertEquals(Math.max(0, settled - capacity), snapshot.overloadPoints(snapshot.settledPoints()), at);
         }
         helper.succeed();
     }
@@ -319,21 +319,22 @@ public final class HardshipStrengthGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theHarderPunchPastTheCapacityRecoils(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-hardship-recoil-gametest");
-        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 5), "the ten jin was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 6), "the ten jin was refused");
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JIN, 3), "the jin were refused");
         float max = player.getMaxHealth();
         player.setHealth(max);
         strike(helper, player, new BlockPos(2, 1, 2));
         assertEquals(max, player.getHealth(), DELTA);
 
         start(player);
-        assertEquals(55, StrengthService.getSettledPoints(player), "50 x 1.1");
+        assertEquals(69, StrengthService.getSettledPoints(player), "63 x 1.1");
         strike(helper, player, new BlockPos(6, 1, 2));
         assertEquals(max * 0.7F, player.getHealth(), DELTA);
 
         player.setHealth(max * 0.5F);
-        assertEquals(60, StrengthService.getSettledPoints(player), "50 x 1.2");
+        assertEquals(75, StrengthService.getSettledPoints(player), "63 x 1.2");
         strike(helper, player, new BlockPos(2, 1, 6));
-        assertEquals(max * 0.5F - 4.0F / 56.0F * max * BodyOverload.RECOIL_RATIO, player.getHealth(), DELTA);
+        assertEquals(max * 0.5F - 3.0F / 72.0F * max * BodyOverload.RECOIL_RATIO, player.getHealth(), DELTA);
         ComboRound.clear(player);
         helper.succeed();
     }

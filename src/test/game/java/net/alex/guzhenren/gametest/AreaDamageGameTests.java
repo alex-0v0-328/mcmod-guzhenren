@@ -52,7 +52,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *       不出。</li>
  *   <li>溢出结算：目标由近及远吃剩余伤害，每命中一个扣掉其挨打前生命（不看护甲），扣完或满 8 个为止，免疫者不占名额
  *       也不扣剩余；没有主目标时最近者吃整拳，收尾招打中主目标后只剩 {@link ComboRound#getSpill}。</li>
- *   <li>过载反噬：五转满血（承受力 56）持同样 88 点，锥形打中时结算一次（{@link #recoil}），这一招近战已结算过则不重
+ *   <li>过载反噬：五转满血（承受力 72）持同样 88 点，锥形打中时结算一次（{@link #recoil}），这一招近战已结算过则不重
  *       复，锥形没打中则不扣。</li>
  *   <li>放大：五转人力 1 斤在场景中央朝东，空手拳伤 {@link #LIGHT_PUNCH}，锥长 3.4 格；苦力 5 档（生命 10%）时半径
  *       ×3（10.2 格）、半角 72.5°，57° 侧前方的猪被扫到，正侧方与身后不扫；兽力流与未开苦力不放大。</li>
@@ -82,7 +82,7 @@ public final class AreaDamageGameTests {
     private static final float LAND = 0.0F;
     private static final float MISS = 0.99F;
     private static final int STRONG_POINTS = 88;
-    private static final int CAPACITY = 56;
+    private static final int CAPACITY = 72;
     private static final float PUNCH = 12.0F;
     private static final float LIGHT_PUNCH = 1.125F;
     private static final float PIG_HEALTH = 10.0F;

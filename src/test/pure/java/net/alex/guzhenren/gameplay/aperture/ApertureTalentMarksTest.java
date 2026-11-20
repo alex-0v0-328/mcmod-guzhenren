@@ -11,8 +11,8 @@ class ApertureTalentMarksTest {
 
     @Test
     void extremePhysiqueMarksSplitAcrossTalentPaths() {
-        assertEquals(1_000L, ApertureService.getTalentMarksPerPath(ExtremePhysique.VERDANT_GREAT_SUN));
-        assertEquals(500L, ApertureService.getTalentMarksPerPath(ExtremePhysique.NORTHERN_DARK_ICE_SOUL));
+        assertEquals(1_200L, ApertureService.getTalentMarksPerPath(ExtremePhysique.VERDANT_GREAT_SUN));
+        assertEquals(600L, ApertureService.getTalentMarksPerPath(ExtremePhysique.NORTHERN_DARK_ICE_SOUL));
     }
 
     @Test

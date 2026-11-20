@@ -166,12 +166,12 @@ public final class PathEffectGameTests {
         PathEffect<ExtremePhysique> talent = PathEffectService.find(player, ModPathEffectTypes.EXTREME_PHYSIQUE);
         assertNotNull(talent, () -> "the physique granted no talent effect");
         assertSame(EffectCarrier.APERTURE, talent.carrier());
-        assertEquals(PathMarks.ofMarks(500L), PathService.getMarks(player, GuPath.ICE_SNOW));
-        assertEquals(PathMarks.ofMarks(500L), PathService.getMarks(player, GuPath.SOUL));
+        assertEquals(PathMarks.ofMarks(600L), PathService.getMarks(player, GuPath.ICE_SNOW));
+        assertEquals(PathMarks.ofMarks(600L), PathService.getMarks(player, GuPath.SOUL));
 
         BodyService.setExtremePhysique(player, ExtremePhysique.VERDANT_GREAT_SUN);
         assertTrue(PathService.getMarks(player, GuPath.ICE_SNOW).isEmpty(), "the old physique kept its marks");
-        assertEquals(PathMarks.ofMarks(1_000L), PathService.getMarks(player, GuPath.SPACE));
+        assertEquals(PathMarks.ofMarks(1_200L), PathService.getMarks(player, GuPath.SPACE));
 
         BodyService.setExtremePhysique(player, ExtremePhysique.NONE);
         assertTrue(PathEffectService.getEffects(player).isEmpty(), "a cleared physique kept its talent");
@@ -188,7 +188,7 @@ public final class PathEffectGameTests {
         PlayerDataService.onJoin(player);
 
         assertEquals(PathMarks.ofMarks(10L), PathService.getMarks(player, GuPath.ENSLAVEMENT));
-        assertEquals(PathMarks.ofMarks(1_000L), PathService.getMarks(player, GuPath.SPACE));
+        assertEquals(PathMarks.ofMarks(1_200L), PathService.getMarks(player, GuPath.SPACE));
         assertSame(GuAttainment.ORDINARY, PathService.getAttainment(player, GuPath.ENSLAVEMENT));
         helper.succeed();
     }
@@ -222,7 +222,7 @@ public final class PathEffectGameTests {
         List<InfoModel.Entry> rows = InfoModel.buildPathRows(player).stream().map(InfoModel.Row::entry).toList();
 
         assertEquals(List.of(new InfoModel.PathsHeader(false),
-                new InfoModel.PathRow(GuPath.SPACE, GuAttainment.NONE, PathMarks.ofMarks(1_000L)),
+                new InfoModel.PathRow(GuPath.SPACE, GuAttainment.NONE, PathMarks.ofMarks(1_200L)),
                 new InfoModel.PathRow(GuPath.ENSLAVEMENT, GuAttainment.ORDINARY, new PathMarks(12L, 5L)),
                 new InfoModel.EffectsHeader(false),
                 new InfoModel.EffectCategoryHeader(PathEffectCategory.BENEFICIAL),

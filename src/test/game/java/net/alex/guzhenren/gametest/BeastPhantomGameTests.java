@@ -69,7 +69,7 @@ public final class BeastPhantomGameTests {
     private static final float MISS = 0.99F;
     private static final int EFFECT_TICKS = 600;
     private static final int SETTLE_TICKS = 2;
-    private static final int RANK_FIVE = 56;
+    private static final int RANK_FIVE = 72;
     private static final int RANK_FIVE_TIER = 4;
     private static final float TURNED_YAW = 90.0F;
     private static final int BEAR_POINTS = 40;
@@ -237,10 +237,10 @@ public final class BeastPhantomGameTests {
         ServerPlayer player = vulnerable(helper);
         assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.TEN_JIN, 2), "the jin were refused");
         int capacity = StrengthService.getCapacity(player);
-        assertEquals(StrengthService.MORTAL_CAPACITY, capacity, "the mortal capacity moved");
+        assertEquals(12, capacity, "the mortal capacity moved");
         float recoil = (2 * HumanStrength.TEN_JIN.getJin() - capacity) / (float) capacity * player.getMaxHealth()
                 * 0.5F;
-        assertEquals(2.5D, recoil, DELTA);
+        assertEquals(20.0D / 3.0D, recoil, DELTA);
         float health = player.getHealth();
 
         ComboRound.beginStrike(player, false);
@@ -271,22 +271,22 @@ public final class BeastPhantomGameTests {
 
     @GameTest(template = "empty9x9x9")
     public static void theOverloadCountsTheCritOfTheBlowThatDrewIt(GameTestHelper helper) {
-        ServerPlayer player = GameTestGu.awakened(vulnerable(helper), Rank.FIVE);
+        ServerPlayer player = GameTestGu.awakened(vulnerable(helper), Rank.FOUR);
         PathStrengthService.grant(player, BeastStrength.BROWN_BEAR);
         PathStrengthService.grant(player, BeastStrength.STONE_TURTLE);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            int capacity = RANK_FIVE + 128;
+            int capacity = 60 + 128;
             int total = BROWN_BEAR_POINTS + TURTLE_POINTS;
-            assertEquals(capacity, StrengthService.getCapacity(player), "the capacity is not the turtle's 184");
+            assertEquals(capacity, StrengthService.getCapacity(player), "the capacity is not the turtle's 188");
             player.setHealth(player.getMaxHealth());
             float health = player.getHealth();
 
             ComboRound.beginStrike(player, false);
             hit(player, villager(helper, new BlockPos(2, 1, 2)));
             assertEquals(health, player.getHealth(), DELTA);
-            assertTrue(player.getLastDamageSource() == null, "144 points under a capacity of 184 paid an overload");
+            assertTrue(player.getLastDamageSource() == null, "144 points under a capacity of 188 paid an overload");
 
             ComboRound.beginStrike(player, true);
             hit(player, villager(helper, new BlockPos(2, 1, 4)));

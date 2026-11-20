@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  *       摘除十绝体再重掷基础真元，防止重掷结果被 {@code enforce} 强制拉回满值。</li>
  *   <li>⚠ 肉身十绝体变更时，{@link ApertureEvents} 调 {@link #onExtremePhysiqueChanged} 对齐第一空窍基础真元（有体质设
  *       为满值，无则降为满值减一并清空压力），并经 {@code reconcileTalentPaths} 更新 {@link #TALENT_SOURCE} 的永久
- *       {@code EXTREME_PHYSIQUE} 空窍流派效果（将 1000 条道痕[Path Marks]均分至该体质各天赋流派，登录缺失或体质不符时由
+ *       {@code EXTREME_PHYSIQUE} 空窍流派效果（将 1200 条道痕[Path Marks]均分至该体质各天赋流派，登录缺失或体质不符时由
  *       {@link #syncTalentEffect} 补齐；此为现有两处跨领域授予之一，满三处时抽出协调器）。</li>
  *   <li>⚠ {@link #awaken} 不校验玩家是否已开窍（由调用方把关，仅在空窍槽已满时忽略）：{@code baseEssence <= 0}（
  *       希望蛊[Hope Gu]未预掷）时重掷资质以免开出零基础空窍；开出十绝天资时按 {@code tenExtreme} 赋予十绝体（
@@ -52,7 +52,7 @@ public final class ApertureService {
 
     private ApertureService() {}
 
-    public static final long TALENT_MARK_TOTAL = 1000L;
+    public static final long TALENT_MARK_TOTAL = 1200L;
     public static final ResourceLocation TALENT_SOURCE = Guzhenren.id("innate/extreme_physique");
 
     static long getTalentMarksPerPath(ExtremePhysique physique) {

@@ -6,6 +6,7 @@ import net.alex.guzhenren.entity.beast.BeastPhantomEntity;
 import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
@@ -115,7 +116,7 @@ public final class StoreStrengthGameTests {
     private static final int TIGER_POINTS = 64;
     private static final int TURTLE_POINTS = 48;
     private static final int SOME_POINTS = 480;
-    private static final int RANK_FIVE = 56;
+    private static final int RANK_FIVE = 72;
     private static final int RANK_FIVE_TIER = 4;
     private static final int HALF_TICKS = 40;
     private static final int LEAST_TICKS = 20;
@@ -279,10 +280,12 @@ public final class StoreStrengthGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theOverloadIsPaidOnceForTheWholeFanAndNotOnAMiss(GameTestHelper helper) {
         ServerPlayer player = fewJin(helper, NEAR_STAND);
+        ApertureService.setRank(player, Rank.THREE);
         int points = FEW_JIN * 3;
-        assertEquals(RANK_FIVE, StrengthService.getCapacity(player), "the rank five capacity moved");
-        assertEquals(0, StrengthService.getOverloadPoints(StrengthService.getSettledPoints(player), RANK_FIVE),
-                "20 jin overload a rank five body before the charge");
+        int capacity = 48;
+        assertEquals(capacity, StrengthService.getCapacity(player), "the rank three capacity moved");
+        assertEquals(0, StrengthService.getOverloadPoints(StrengthService.getSettledPoints(player), capacity),
+                "20 jin overload a rank three body before the charge");
 
         fillCharge(player);
         float health = player.getHealth();
@@ -298,9 +301,9 @@ public final class StoreStrengthGameTests {
         assertTrue(ChargedPunch.release(player, locked.getId()), "the full charge did not strike");
         assertTrue(locked.isDeadOrDying(), "the locked target outlived the fist");
         assertEquals(expected - LOW_HEALTH / 2.0F, TARGET_HEALTH - inFan.getHealth(), DELTA);
-        float recoil = (points - RANK_FIVE) / (float) RANK_FIVE * player.getMaxHealth() * 0.5F;
+        float recoil = (points - capacity) / (float) capacity * player.getMaxHealth() * 0.5F;
         assertEquals(health - recoil, player.getHealth(), DELTA);
-        assertOverload(player, health, points, RANK_FIVE);
+        assertOverload(player, health, points, capacity);
         helper.succeed();
     }
 

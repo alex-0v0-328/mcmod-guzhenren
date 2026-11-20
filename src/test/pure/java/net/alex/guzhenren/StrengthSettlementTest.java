@@ -34,37 +34,37 @@ class StrengthSettlementTest {
     private static final float DELTA = 0.001F;
 
     @Test
-    @DisplayName("the base capacity is 16 for a mortal and 24 to 56 for ranks one to five")
+    @DisplayName("the base capacity is 12 for a mortal and 24 to 72 for ranks one to five")
     void baseCapacityByRank() {
-        assertEquals(16, StrengthService.getBaseCapacity(Rank.NONE, ExtremePhysique.NONE));
+        assertEquals(12, StrengthService.getBaseCapacity(Rank.NONE, ExtremePhysique.NONE));
         assertEquals(24, StrengthService.getBaseCapacity(Rank.ONE, ExtremePhysique.NONE));
-        assertEquals(32, StrengthService.getBaseCapacity(Rank.TWO, ExtremePhysique.NONE));
-        assertEquals(40, StrengthService.getBaseCapacity(Rank.THREE, ExtremePhysique.NONE));
-        assertEquals(48, StrengthService.getBaseCapacity(Rank.FOUR, ExtremePhysique.NONE));
-        assertEquals(56, StrengthService.getBaseCapacity(Rank.FIVE, ExtremePhysique.NONE));
+        assertEquals(36, StrengthService.getBaseCapacity(Rank.TWO, ExtremePhysique.NONE));
+        assertEquals(48, StrengthService.getBaseCapacity(Rank.THREE, ExtremePhysique.NONE));
+        assertEquals(60, StrengthService.getBaseCapacity(Rank.FOUR, ExtremePhysique.NONE));
+        assertEquals(72, StrengthService.getBaseCapacity(Rank.FIVE, ExtremePhysique.NONE));
     }
 
     @Test
-    @DisplayName("ranks past five are cut to the fifth rank's 56 -- the mod stops at rank five")
-    void ranksPastFiveAreCutToFifty() {
+    @DisplayName("ranks past five are cut to the fifth rank's 72 -- the mod stops at rank five")
+    void ranksPastFiveAreCutToRankFive() {
         for (Rank rank : new Rank[] { Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE }) {
-            assertEquals(56, StrengthService.getBaseCapacity(rank, ExtremePhysique.NONE), rank.name());
-            assertEquals(224, StrengthService.getBaseCapacity(rank, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL),
+            assertEquals(72, StrengthService.getBaseCapacity(rank, ExtremePhysique.NONE), rank.name());
+            assertEquals(252, StrengthService.getBaseCapacity(rank, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL),
                     rank.name());
         }
     }
 
     @Test
-    @DisplayName("a ten-extreme body doubles the base, the Great Strength True Martial body quadruples it")
-    void physiqueMultipliesTheBase() {
-        assertEquals(32, StrengthService.getBaseCapacity(Rank.NONE, ExtremePhysique.VERDANT_GREAT_SUN));
-        assertEquals(80, StrengthService.getBaseCapacity(Rank.THREE, ExtremePhysique.CAREFREE_WISDOM_HEART));
-        assertEquals(64, StrengthService.getBaseCapacity(Rank.NONE, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL));
-        assertEquals(224, StrengthService.getBaseCapacity(Rank.FIVE, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL));
+    @DisplayName("a ten-extreme body starts at 36 and gains 24 a rank, the Great Strength True Martial body 72 and 36")
+    void physiqueSetsTheBaseAndItsGrowth() {
+        assertEquals(36, StrengthService.getBaseCapacity(Rank.NONE, ExtremePhysique.VERDANT_GREAT_SUN));
+        assertEquals(108, StrengthService.getBaseCapacity(Rank.THREE, ExtremePhysique.CAREFREE_WISDOM_HEART));
+        assertEquals(72, StrengthService.getBaseCapacity(Rank.NONE, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL));
+        assertEquals(252, StrengthService.getBaseCapacity(Rank.FIVE, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL));
     }
 
     @Test
-    @DisplayName("tempering adds its own points, outside the physique multiplier")
+    @DisplayName("tempering adds its own points, outside the physique base")
     void temperingAddsFlatPoints() {
         assertEquals(4, Skin.BRONZE_SKIN_1.getCapacityBonus());
         assertEquals(32, Skin.BRONZE_SKIN_4.getCapacityBonus());
@@ -159,12 +159,12 @@ class StrengthSettlementTest {
         assertTrue(StrengthService.canAdmit(24, 23, HumanStrength.JIN.getJin()), "the last point was refused");
         assertFalse(StrengthService.canAdmit(24, 24, HumanStrength.JIN.getJin()), "a full rank one admitted a jin");
         assertFalse(StrengthService.canAdmit(24, 20, HumanStrength.TEN_JIN.getJin()), "30 passed rank one's 24");
-        assertFalse(StrengthService.canAdmit(56, 0, HumanStrength.TEN_JUN.getJin()), "rank five bare took ten jun");
+        assertFalse(StrengthService.canAdmit(72, 0, HumanStrength.TEN_JUN.getJin()), "rank five bare took ten jun");
 
         int largest = StrengthService.getBaseCapacity(Rank.FIVE, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL)
                 + Skin.IRON_SKIN_4.getCapacityBonus() + Tendon.STEEL_TENDON_4.getCapacityBonus()
                 + Bone.IRON_BONE_4.getCapacityBonus();
-        assertEquals(844, largest);
+        assertEquals(872, largest);
         assertEquals(3000, HumanStrength.HUNDRED_JUN.getJin());
         assertTrue(StrengthService.canAdmit(largest, 0, HumanStrength.TEN_JUN.getJin()));
         assertFalse(StrengthService.canAdmit(largest, 0, HumanStrength.HUNDRED_JUN.getJin()),

@@ -61,7 +61,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>上报（{@link QiWaveService#request}）与起招（{@link QiWaveService#onStrike}）在
  *       {@link QiWaveService#JOIN_TICKS} 内配对才出一发，哪方先到都行，各自落单或隔太久不出；
  *       {@link QiWaveService#fire} 不出手：无增益、手持物品、目标在触及距离内、在身后、是本人；方块挡路则气波熄灭。</li>
- *   <li>总伤害 = 按出手时结算力量点重算的空手拳伤 × 远程系数 0.5（{@link #shot}）：无力量 0.5，人力 70 斤 4.875，五转熊
+ *   <li>总伤害 = 按出手时结算力量点重算的空手拳伤 × 远程系数 0.5（{@link #shot}）：无力量 0.5，人力 70 斤 4.875，四转熊
  *       3.0，收尾暴击的熊（结算 80 点）5.5。人力与无可显形兽种者掷一枚气波带全部；永久兽力按兽种份额（点数 × 来源倍率）
  *       分给各道兽力冲击，没抽中时随机一只带全部；前几段不结算连招轮；冲击随弧线抬升，末段指向目标中心。</li>
  *   <li>爆开按溢出结算：锁定目标排首位吃整发，其余由近及远吃剩余（扣掉挨打者挨打前生命），至多
@@ -70,7 +70,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *       人力流暴击取范围伤害半径（含苦力放大），否则 3 格；兽力流恒为 3 格。仍是同一次气波溢出结算，不另放锥形：爆点
  *       后方 4 格的村民（碰撞箱距爆点 3.7 格）吃剩余。人力 1 斤半径 3.4 格不够，苦力 1 档 ×1.4 到 4.76 格够；苦力下没暴击
  *       仍是 3 格。</li>
- *   <li>过载反噬（{@link #recoil}）：五转承受力 56、最大生命 100（出拳者满血），同一拳的几道弹射物共用一份记账，
+ *   <li>过载反噬（{@link #recoil}）：四转承受力 60、最大生命 80（出拳者满血；五转 72 装得下人力 70 斤，验不出反噬），同一拳的几道弹射物共用一份记账，
  *       首次造成伤害时扣一次，没打中不扣。</li>
  *   <li>远程攻击与同一招的近战命中共用那一份记账：谁先造成伤害谁结算，另一方不再扣；{@link ComboRound#SHOT_TICKS} 后或
  *       新出招后，近战命中恢复按当前读数单独结算。</li>
@@ -102,7 +102,7 @@ public final class QiWaveGameTests {
     private static final int FLIGHT_TICKS = 12;
     private static final int BAG_SLOT = 9;
     private static final int HUNGER = 98;
-    private static final int CAPACITY = 56;
+    private static final int CAPACITY = 60;
     private static final int HUMAN_POINTS = 70;
     private static final int BEAR_POINTS = 40;
     private static final int BOAR_POINTS = 24;
@@ -825,7 +825,7 @@ public final class QiWaveGameTests {
 
     private static ServerPlayer buffed(GameTestHelper helper, Vec3 stand) {
         ServerPlayer player = GameTestGu.awakened(GameTestPlayers.survival(helper, "gzr-qi-wave-gametest")
-                .pastSpawnInvulnerability().at(stand), Rank.FIVE);
+                .pastSpawnInvulnerability().at(stand), Rank.FOUR);
         assertEquals(CAPACITY, StrengthService.getCapacity(player));
         player.setHealth(player.getMaxHealth());
         ItemStack gu = hold(player, InteractionHand.MAIN_HAND, ModItems.STRENGTH_QI_GU_3.get(), 50);

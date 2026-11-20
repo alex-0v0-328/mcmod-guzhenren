@@ -115,14 +115,13 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void capacityFollowsRankAndPhysique(GameTestHelper helper) {
         ServerPlayer mortal = mortal(helper);
-        assertEquals(StrengthService.MORTAL_CAPACITY, StrengthService.getCapacity(mortal), "mortal capacity");
-        assertEquals(16, StrengthService.getCapacity(mortal), "mortal capacity is not 16");
+        assertEquals(12, StrengthService.getCapacity(mortal), "mortal capacity is not 12");
 
         ServerPlayer player = awakenedMortal(helper);
         Rank[] ranks = { Rank.ONE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE };
         for (int index = 0; index < ranks.length; index++) {
             ApertureService.setRank(player, ranks[index]);
-            int expected = 16 + 8 * (index + 1);
+            int expected = 12 + 12 * (index + 1);
             assertEquals(expected, StrengthService.getBaseCapacity(ranks[index], ExtremePhysique.NONE),
                     "base capacity at " + ranks[index]);
             assertEquals(expected, StrengthService.getCapacity(player), "capacity at " + ranks[index]);
@@ -130,18 +129,18 @@ public final class StrengthSettlementGameTests {
 
         ApertureService.setRank(player, Rank.TWO);
         BodyService.setExtremePhysique(player, ExtremePhysique.VERDANT_GREAT_SUN);
-        assertEquals(32 * 2, StrengthService.getCapacity(player), "a ten-extreme body did not double the capacity");
+        assertEquals(36 + 24 * 2, StrengthService.getCapacity(player), "a ten-extreme body missed its base");
         BodyService.setExtremePhysique(player, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL);
-        assertEquals(32 * 4, StrengthService.getCapacity(player), "the true martial body did not quadruple it");
+        assertEquals(72 + 36 * 2, StrengthService.getCapacity(player), "the true martial body missed its base");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void temperingAddsToCapacityOutsideThePhysiqueMultiplier(GameTestHelper helper) {
+    public static void temperingAddsToCapacityOutsideThePhysiqueBase(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
         ApertureService.setRank(player, Rank.TWO);
         BodyService.setExtremePhysique(player, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL);
-        int base = 32 * 4;
+        int base = 72 + 36 * 2;
         assertEquals(base, StrengthService.getCapacity(player));
 
         BodyService.temperTendon(player, Tendon.STEEL_TENDON_3);
@@ -161,21 +160,21 @@ public final class StrengthSettlementGameTests {
         ServerPlayer player = mortal(helper);
         double base = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
         PathStrengthService.grant(player, BeastStrength.BEAR);
-        assertEquals(16, StrengthService.getCapacity(player));
+        assertEquals(12, StrengthService.getCapacity(player));
         assertEquals(40, StrengthService.getSettledPoints(player), "a mortal's bear was cut to the capacity");
-        assertEquals(24, overload(player));
+        assertEquals(28, overload(player));
         assertEquals(base + 40 * PathStrengthData.ATTACK_PER_POINT, player.getAttributeValue(Attributes.ATTACK_DAMAGE),
                 DELTA);
 
         BodyService.wearSkin(player, Skin.IRON_SKIN_4, 0);
-        assertEquals(16 + 108, StrengthService.getCapacity(player), "the worn skin did not move the capacity");
+        assertEquals(12 + 108, StrengthService.getCapacity(player), "the worn skin did not move the capacity");
         assertEquals(0, overload(player), "the worn skin did not carry the bear");
         assertEquals(base + 40 * PathStrengthData.ATTACK_PER_POINT, player.getAttributeValue(Attributes.ATTACK_DAMAGE),
                 DELTA);
 
         BodyService.shedSkin(player);
-        assertEquals(16, StrengthService.getCapacity(player), "the shed skin kept its capacity");
-        assertEquals(24, overload(player));
+        assertEquals(12, StrengthService.getCapacity(player), "the shed skin kept its capacity");
+        assertEquals(28, overload(player));
         assertEquals(base + 40 * PathStrengthData.ATTACK_PER_POINT, player.getAttributeValue(Attributes.ATTACK_DAMAGE),
                 DELTA);
         helper.succeed();
@@ -189,21 +188,21 @@ public final class StrengthSettlementGameTests {
 
         assertEquals(40, StrengthService.getStrengthPoints(player));
         assertEquals(40, StrengthService.getSettledPoints(player), "the capacity cut the settled points");
-        assertEquals(24, overload(player));
+        assertEquals(28, overload(player));
         assertEquals(0.05D, StrengthCrit.getChance(player), DELTA);
         assertEquals(base + 5.0D, player.getAttributeValue(Attributes.ATTACK_DAMAGE), DELTA);
 
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            assertEquals(16, StrengthService.getCapacity(player), "All-Out Effort lifted the capacity");
+            assertEquals(12, StrengthService.getCapacity(player), "All-Out Effort lifted the capacity");
             assertEquals(40, StrengthService.getSettledPoints(player), "All-Out Effort moved the settled points");
-            assertEquals(24, overload(player), "All-Out Effort carried the bear");
+            assertEquals(28, overload(player), "All-Out Effort carried the bear");
             assertEquals(1.0D, StrengthCrit.getChance(player), DELTA);
             assertEquals(base + 5.0D, player.getAttributeValue(Attributes.ATTACK_DAMAGE), DELTA);
 
             player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
             helper.runAfterDelay(SETTLE_TICKS, () -> {
-                assertEquals(16, StrengthService.getCapacity(player));
+                assertEquals(12, StrengthService.getCapacity(player));
                 assertEquals(0.05D, StrengthCrit.getChance(player), DELTA);
                 assertEquals(base + 5.0D, player.getAttributeValue(Attributes.ATTACK_DAMAGE), DELTA);
                 helper.succeed();
@@ -223,11 +222,11 @@ public final class StrengthSettlementGameTests {
         bare.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
         helper.runAfterDelay(SETTLE_TICKS, () -> {
             assertEquals(0.80D, StrengthCrit.getChance(player), DELTA);
-            assertEquals(16, StrengthService.getCapacity(player), "All-Out Effort lifted the capacity");
+            assertEquals(12, StrengthService.getCapacity(player), "All-Out Effort lifted the capacity");
             assertEquals(104, StrengthService.getSettledPoints(player), "the points past the capacity were cut");
-            assertEquals(88, overload(player));
+            assertEquals(92, overload(player));
             assertEquals(0.0D, StrengthCrit.getChance(bare), DELTA);
-            assertEquals(16, StrengthService.getCapacity(bare), "a body without a branch was lifted");
+            assertEquals(12, StrengthService.getCapacity(bare), "a body without a branch was lifted");
             helper.succeed();
         });
     }
@@ -267,19 +266,19 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void aHitUnderAllOutEffortRecoilsPastTheSameCapacity(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-strength-gametest");
-        PathStrengthService.grant(player, BeastStrength.BEAR);
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS, RANK_FIVE_TIER));
         float max = player.getMaxHealth();
-        float recoil = 24.0F / 16.0F * max * BodyOverload.RECOIL_RATIO;
+        float recoil = 12.0F / 12.0F * max * BodyOverload.RECOIL_RATIO;
         player.setHealth(max);
 
-        assertEquals(16, StrengthService.getCapacity(player));
+        assertEquals(12, StrengthService.getCapacity(player));
         strike(helper, player, new BlockPos(4, 1, 2));
         assertEquals(max - recoil, player.getHealth(), DELTA);
 
         player.setHealth(max);
         player.removeEffect(ModEffects.ALL_OUT_EFFORT_GU);
-        assertEquals(16, StrengthService.getCapacity(player));
+        assertEquals(12, StrengthService.getCapacity(player));
         strike(helper, player, new BlockPos(4, 1, 6));
         assertEquals(max - recoil, player.getHealth(), DELTA);
         ComboRound.clear(player);
@@ -395,7 +394,7 @@ public final class StrengthSettlementGameTests {
         BodyService.wearSkin(player, Skin.IRON_SKIN_4, 0);
         BodyService.temperTendon(player, Tendon.STEEL_TENDON_4);
         BodyService.temperBone(player, Bone.IRON_BONE_4);
-        assertEquals(844, StrengthService.getCapacity(player), "the largest mortal body is not 844");
+        assertEquals(872, StrengthService.getCapacity(player), "the largest mortal body is not 872");
         assertNull(check(player, ModItems.TENS_JUN_STRENGTH_GU_4.get(), HumanStrengthBehavior.class));
         assertHumanCapacity(check(player, ModItems.HUNDREDS_JUN_STRENGTH_GU_5.get(), HumanStrengthBehavior.class));
         assertFalse(StrengthService.canAdmit(player, HumanStrength.HUNDRED_JUN), "a mortal admitted a hundred jun");
@@ -403,7 +402,7 @@ public final class StrengthSettlementGameTests {
         assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.HUNDRED_JUN, 1),
                 "a command was held to the admission");
         assertEquals(3000, StrengthService.getSettledPoints(player));
-        assertEquals(3000 - 844, overload(player));
+        assertEquals(3000 - 872, overload(player));
         helper.succeed();
     }
 
@@ -472,11 +471,11 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theStoneTurtleNeedsRoomForItselfThenCarriesTheRest(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
-        ApertureService.setRank(player, Rank.THREE);
-        assertFalse(StrengthService.canAdmit(player, BeastStrength.STONE_TURTLE), "rank three bare admitted the turtle");
+        ApertureService.setRank(player, Rank.TWO);
+        assertFalse(StrengthService.canAdmit(player, BeastStrength.STONE_TURTLE), "rank two bare admitted the turtle");
 
-        ApertureService.setRank(player, Rank.FOUR);
-        assertTrue(StrengthService.canAdmit(player, BeastStrength.STONE_TURTLE), "rank four bare refused the turtle");
+        ApertureService.setRank(player, Rank.THREE);
+        assertTrue(StrengthService.canAdmit(player, BeastStrength.STONE_TURTLE), "rank three bare refused the turtle");
         PathStrengthService.grant(player, BeastStrength.STONE_TURTLE);
         assertEquals(48 + 128, StrengthService.getCapacity(player), "the turtle carried no capacity");
         assertEquals(48, StrengthService.getSettledPoints(player));
@@ -549,11 +548,11 @@ public final class StrengthSettlementGameTests {
         double base = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
         BodyService.wearSkin(player, Skin.WHITE_JADE_SKIN, EFFECT_TICKS);
-        assertEquals(16, StrengthService.getCapacity(player), "a timed skin moved the capacity");
+        assertEquals(12, StrengthService.getCapacity(player), "a timed skin moved the capacity");
         assertEquals(base, player.getAttributeValue(Attributes.ATTACK_DAMAGE), DELTA);
 
         BodyService.shedSkin(player);
-        assertEquals(16, StrengthService.getCapacity(player));
+        assertEquals(12, StrengthService.getCapacity(player));
         helper.succeed();
     }
 
@@ -572,18 +571,18 @@ public final class StrengthSettlementGameTests {
     public static void eachStrikePaysTheBodyOverloadOnceDownToOneHeart(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-overload-gametest");
         ApertureService.awaken(player, 80);
-        ApertureService.setRank(player, Rank.FIVE);
+        ApertureService.setRank(player, Rank.FOUR);
         PathStrengthService.grant(player, BeastStrength.BEAR);
         TimedEffects.grantBuff(player, (TendedGuItem) ModItems.FLOWER_BOAR_GU_1.get(), ModEffects.FLOWER_BOAR_GU, 0,
                 EFFECT_TICKS, Amplification.NONE);
 
         helper.runAfterDelay(SETTLE_TICKS, () -> {
-            assertEquals(56, StrengthService.getCapacity(player), "the boar moved the capacity");
+            assertEquals(60, StrengthService.getCapacity(player), "the boar moved the capacity");
             assertEquals(64, StrengthService.getSettledPoints(player), "the overload was not brought to bear");
-            assertEquals(8, overload(player));
+            assertEquals(4, overload(player));
 
             float max = player.getMaxHealth();
-            float recoil = 8.0F / 56.0F * max * BodyOverload.RECOIL_RATIO;
+            float recoil = 4.0F / 60.0F * max * BodyOverload.RECOIL_RATIO;
             player.setHealth(max);
             ComboRound.beginStrike(player, false);
             player.swing(InteractionHand.MAIN_HAND);
@@ -628,9 +627,9 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void aPunchWithNoNewStrikePaysAgainOnceTheGateRunsOut(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-overload-gate-gametest");
-        PathStrengthService.grant(player, BeastStrength.BEAR);
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         float max = player.getMaxHealth();
-        float recoil = 24.0F / 16.0F * max * BodyOverload.RECOIL_RATIO;
+        float recoil = 12.0F / 12.0F * max * BodyOverload.RECOIL_RATIO;
         player.setHealth(max);
 
         punch(helper, player, new BlockPos(2, 1, 2));
@@ -650,7 +649,7 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void aPunchAShieldStopsPaysNothingAndLeavesTheStrikeItsRecoil(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-overload-shield-gametest");
-        PathStrengthService.grant(player, BeastStrength.BEAR);
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         Pig guard = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(4, 1, 2));
         guard.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
         face(guard, player);
@@ -660,7 +659,7 @@ public final class StrengthSettlementGameTests {
             face(guard, player);
             assertTrue(guard.isBlocking(), "the shield is not raised");
             float max = player.getMaxHealth();
-            float recoil = 24.0F / 16.0F * max * BodyOverload.RECOIL_RATIO;
+            float recoil = 12.0F / 12.0F * max * BodyOverload.RECOIL_RATIO;
             float guarded = guard.getHealth();
             player.setHealth(max);
 
@@ -690,14 +689,14 @@ public final class StrengthSettlementGameTests {
     public static void aRecoilSmallerThanTheIronSkinsCutStillLandsInFull(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-overload-skin-gametest");
         ApertureService.awaken(player, 80);
-        ApertureService.setRank(player, Rank.FIVE);
+        ApertureService.setRank(player, Rank.FOUR);
         BodyService.wearSkin(player, Skin.IRON_SKIN_4, 0);
         assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 6), "the jun was refused");
-        assertEquals(164, StrengthService.getCapacity(player));
-        assertEquals(16, overload(player));
+        assertEquals(168, StrengthService.getCapacity(player));
+        assertEquals(12, overload(player));
 
         float max = player.getMaxHealth();
-        float recoil = 16.0F / 164.0F * max * BodyOverload.RECOIL_RATIO;
+        float recoil = 12.0F / 168.0F * max * BodyOverload.RECOIL_RATIO;
         assertEquals(6, Skin.IRON_SKIN_4.getDamageReduction());
         assertTrue(recoil < Skin.IRON_SKIN_4.getDamageReduction(), "the recoil is no smaller than the skin's cut");
         player.setHealth(max);
@@ -718,10 +717,10 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theRecoilTakesHealthAndLeavesTheBodyShieldAlone(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-overload-shield-layer-gametest");
-        PathStrengthService.grant(player, BeastStrength.BEAR);
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         ShieldService.raise(player, ShieldType.HEAVENLY_MUGWORT, 16.0F, EFFECT_TICKS);
         float max = player.getMaxHealth();
-        float recoil = 24.0F / 16.0F * max * BodyOverload.RECOIL_RATIO;
+        float recoil = 12.0F / 12.0F * max * BodyOverload.RECOIL_RATIO;
         player.setHealth(max);
         player.hurt(player.damageSources().generic(), 5.0F);
         assertEquals(max, player.getHealth(), DELTA);
@@ -739,14 +738,14 @@ public final class StrengthSettlementGameTests {
     @GameTest(template = "empty9x9x9")
     public static void resistanceAndProtectionDoNotLessenTheRecoil(GameTestHelper helper) {
         ServerPlayer player = fighter(helper, "gzr-overload-resistance-gametest");
-        PathStrengthService.grant(player, BeastStrength.BEAR);
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, EFFECT_TICKS, 4));
         ItemStack chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
         chestplate.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(Enchantments.PROTECTION), 4);
         player.setItemSlot(EquipmentSlot.CHEST, chestplate);
         float max = player.getMaxHealth();
-        float recoil = 24.0F / 16.0F * max * BodyOverload.RECOIL_RATIO;
+        float recoil = 12.0F / 12.0F * max * BodyOverload.RECOIL_RATIO;
         player.setHealth(max);
         player.hurt(player.damageSources().magic(), 5.0F);
         assertEquals(max, player.getHealth(), DELTA);
@@ -784,7 +783,7 @@ public final class StrengthSettlementGameTests {
         assertEquals(shed - 16.0F / 24.0F * shed * BodyOverload.RECOIL_RATIO, player.getHealth(), DELTA);
 
         BodyService.setExtremePhysique(player, ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL);
-        assertEquals(96, StrengthService.getCapacity(player));
+        assertEquals(108, StrengthService.getCapacity(player));
         float martial = player.getMaxHealth();
         player.setHealth(martial);
         strike(helper, player, new BlockPos(2, 1, 6));
@@ -816,16 +815,16 @@ public final class StrengthSettlementGameTests {
                 "a body with no strength lists a strength row");
 
         ServerPlayer player = awakenedMortal(helper);
-        ApertureService.setRank(player, Rank.FIVE);
+        ApertureService.setRank(player, Rank.FOUR);
         PathStrengthService.grant(player, BeastStrength.BEAR);
-        assertTrue(bodyRows(player).contains(new InfoModel.CapacityRow(40, 56, 0)), () -> "" + bodyRows(player));
+        assertTrue(bodyRows(player).contains(new InfoModel.CapacityRow(40, 60, 0)), () -> "" + bodyRows(player));
 
         TimedEffects.grantBuff(player, (TendedGuItem) ModItems.FLOWER_BOAR_GU_1.get(), ModEffects.FLOWER_BOAR_GU, 0,
                 EFFECT_TICKS, Amplification.NONE);
-        assertTrue(bodyRows(player).contains(new InfoModel.CapacityRow(64, 56, 8)), () -> "" + bodyRows(player));
+        assertTrue(bodyRows(player).contains(new InfoModel.CapacityRow(64, 60, 4)), () -> "" + bodyRows(player));
 
         player.addEffect(ModEffects.instance(ModEffects.ALL_OUT_EFFORT_GU, EFFECT_TICKS));
-        assertTrue(bodyRows(player).contains(new InfoModel.CapacityRow(64, 56, 8)),
+        assertTrue(bodyRows(player).contains(new InfoModel.CapacityRow(64, 60, 4)),
                 () -> "All-Out Effort moved the strength row: " + bodyRows(player));
         helper.succeed();
     }

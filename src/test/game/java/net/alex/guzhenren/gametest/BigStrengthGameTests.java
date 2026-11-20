@@ -3,6 +3,7 @@ package net.alex.guzhenren.gametest;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.PathEffect;
 import net.alex.guzhenren.gameplay.path.PathEffectService;
@@ -42,9 +43,9 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 大力蛊[Big Strength Gu]测试。
  * <ul>
- *   <li>五转裸身（承受力 56）：无力量者也可催动，总点数 +32，承受力不变；增幅不过准入，人力 200 斤与熊 40 之上照
+ *   <li>五转裸身（承受力 72）：无力量者也可催动，总点数 +32，承受力不变；增幅不过准入，人力 200 斤与熊 40 之上照
  *       样催动，点数全额发挥。</li>
- *   <li>熊 40 + 大力 32 超出承受力 16 点，空手命中按过载反噬扣血。</li>
+ *   <li>四转身体（承受力 60）持熊 40 + 大力 32 超出 12 点，空手命中按过载反噬扣血。</li>
  *   <li>状态在身再催动被拒不扣费；状态结束点数同撤；持青牛时时长 30 → 40 秒。</li>
  * </ul>
  */
@@ -55,7 +56,7 @@ public final class BigStrengthGameTests {
 
     private static final Vec3 STAND = new Vec3(4.5, 1.0, 4.5);
     private static final int GU_HUNGER = 50;
-    private static final int CAPACITY = 56;
+    private static final int CAPACITY = 72;
     private static final int JIN = 200;
     private static final int BEAR_POINTS = 40;
     private static final double DELTA = 0.001D;
@@ -67,7 +68,7 @@ public final class BigStrengthGameTests {
         ServerPlayer player = player(helper);
         ItemStack gu = hold(player, ModItems.BIG_STRENGTH_GU_2.get(), GU_HUNGER);
         TendedGuItem item = (TendedGuItem) gu.getItem();
-        assertEquals(CAPACITY, StrengthService.snapshot(player).capacity(), "the bare capacity is not 56");
+        assertEquals(CAPACITY, StrengthService.snapshot(player).capacity(), "the bare capacity is not 72");
 
         click(helper, player, gu);
         assertTrue(BigStrength.isActive(player), "the Gu laid no big strength");
@@ -77,7 +78,7 @@ public final class BigStrengthGameTests {
         assertEquals(0, snapshot.permanentPoints(), "the big strength counted as permanent");
         assertEquals(CAPACITY, snapshot.capacity(), "the big strength lifted the capacity");
         assertEquals(BigStrength.POINTS, StrengthService.getSettledPoints(player), "the points are not all settled");
-        assertEquals(0, snapshot.overloadPoints(snapshot.settledPoints()), "32 points under 56 overloaded");
+        assertEquals(0, snapshot.overloadPoints(snapshot.settledPoints()), "32 points under 72 overloaded");
 
         long essence = ApertureEssenceService.getSpendable(player);
         int hunger = hunger(gu);
@@ -118,6 +119,8 @@ public final class BigStrengthGameTests {
     @GameTest(template = "empty9x9x9")
     public static void onABeastBodyThePointsPastTheCapacityRecoil(GameTestHelper helper) {
         ServerPlayer player = player(helper);
+        ApertureService.setRank(player, Rank.FOUR);
+        int capacity = 60;
         assertTrue(PathStrengthService.grant(player, BeastStrength.BEAR), "the bear was refused");
         float max = player.getMaxHealth();
         player.setHealth(max);
@@ -128,13 +131,13 @@ public final class BigStrengthGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         StrengthSnapshot snapshot = StrengthService.snapshot(player);
         assertEquals(BEAR_POINTS + BigStrength.POINTS, snapshot.totalPoints(), "the points were not added to the bear");
-        assertEquals(CAPACITY, snapshot.capacity(), "the big strength lifted the capacity");
+        assertEquals(capacity, snapshot.capacity(), "the big strength lifted the capacity");
         assertEquals(BEAR_POINTS + BigStrength.POINTS, StrengthService.getSettledPoints(player),
-                "72 points were cut to the 56 capacity");
-        assertEquals(16, snapshot.overloadPoints(snapshot.settledPoints()), "72 over 56 is not 16 over");
+                "72 points were cut to the 60 capacity");
+        assertEquals(12, snapshot.overloadPoints(snapshot.settledPoints()), "72 over 60 is not 12 over");
 
         strike(helper, player, new BlockPos(6, 1, 2));
-        assertEquals(max - 16.0F / CAPACITY * max * BodyOverload.RECOIL_RATIO, player.getHealth(), DELTA);
+        assertEquals(max - 12.0F / capacity * max * BodyOverload.RECOIL_RATIO, player.getHealth(), DELTA);
 
         PathEffectService.removeType(player, ModPathEffectTypes.BIG_STRENGTH);
         player.setHealth(max);

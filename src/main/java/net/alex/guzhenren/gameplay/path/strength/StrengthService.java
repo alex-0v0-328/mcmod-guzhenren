@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>纯只读静态服务：{@link #getPermanentPoints} 从永久兽力[Beast Strength]与人力流派效果的道痕[Path Marks]点换算永
  *       久力量点，{@link #getAmplifiers} 采集限时兽力与各 {@link StrengthAmplifierProvider} 增幅；{@link #snapshot} 一次
  *       性采集并返回 {@link StrengthSnapshot}。</li>
- *   <li>承受力 {@link #getCapacity} = 基础承受力 {@link #getBaseCapacity}（{@code 16 + 8 * 转数序号}，乘以十绝体承受力
- *       倍率）+ 皮、筋、骨炼体加成 + 永久兽力承受力加成（如石龟之力，固定加算、不乘十绝体倍率）；增幅与全力以赴蛊
+ *   <li>承受力 {@link #getCapacity} = 基础承受力 {@link #getBaseCapacity}（体质的未开窍起点 + 每转增量 × 转数序号，
+ *       数值见 {@link ExtremePhysique}）+ 皮、筋、骨炼体加成 + 永久兽力承受力加成（如石龟之力，固定加算）；增幅与全力以赴蛊
  *       [All-Out Effort Gu]都不加承受力。</li>
  *   <li>结算力量点 {@link #getSettledPoints} = {@code floor((总力量点 + 暴击兽种点数) × Π 伤害倍率)}：暴击兽种点数由
  *       {@link ComboRound#getCritPoints} 提供（仅服务端玩家、仅收尾招进行中），伤害倍率为蓄力与苦力。点数全额发挥、不按
@@ -42,15 +42,13 @@ public final class StrengthService {
 
     private StrengthService() {}
 
-    public static final int MORTAL_CAPACITY = 16;
-    public static final int CAPACITY_PER_RANK = 8;
     public static final int NO_ALL_OUT = -1;
     public static final int ALL_OUT_LOWEST_TIER = Rank.THREE.ordinal() - Rank.ONE.ordinal();
     private static final double FLOOR_SLACK = 1.0E-6D;
 
     public static int getBaseCapacity(@NotNull Rank rank, @NotNull ExtremePhysique physique) {
         int rankIndex = Math.min(rank.ordinal(), Rank.HIGHEST.ordinal());
-        return (MORTAL_CAPACITY + CAPACITY_PER_RANK * rankIndex) * physique.getCapacityMultiplier();
+        return physique.getUnawakenedCapacity() + physique.getCapacityPerRank() * rankIndex;
     }
 
     public static int getCapacity(@NotNull Player player) {

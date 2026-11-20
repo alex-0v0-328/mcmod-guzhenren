@@ -165,11 +165,11 @@ class PathEffectTest {
     void physiqueTalentEffect() {
         PathEffect<ExtremePhysique> single = ApertureService.getTalentEffect(ExtremePhysique.VERDANT_GREAT_SUN);
         assertSame(EffectCarrier.APERTURE, single.carrier());
-        assertEquals(PathMarks.ofMarks(1_000L), single.getTotal());
+        assertEquals(PathMarks.ofMarks(1_200L), single.getTotal());
         assertEquals(1, single.paths().size());
 
         PathEffect<ExtremePhysique> dual = ApertureService.getTalentEffect(ExtremePhysique.NORTHERN_DARK_ICE_SOUL);
-        assertEquals(Map.of(GuPath.ICE_SNOW, PathMarks.ofMarks(500L), GuPath.SOUL, PathMarks.ofMarks(500L)),
+        assertEquals(Map.of(GuPath.ICE_SNOW, PathMarks.ofMarks(600L), GuPath.SOUL, PathMarks.ofMarks(600L)),
                 dual.paths());
         assertSame(ExtremePhysique.NORTHERN_DARK_ICE_SOUL, dual.payload());
         assertTrue(ApertureService.getTalentEffect(ExtremePhysique.NONE).isEmpty());

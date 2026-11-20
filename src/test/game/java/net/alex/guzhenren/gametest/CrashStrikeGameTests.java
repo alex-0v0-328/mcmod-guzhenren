@@ -2,6 +2,7 @@ package net.alex.guzhenren.gametest;
 
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.strength.AreaDamage;
 import net.alex.guzhenren.gameplay.path.strength.AttackDamageService;
@@ -40,11 +41,11 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 终点破坏打击[Crash Strike]：五转活玩家（最大生命 100，满血）在场景西缘朝东。
  * <ul>
- *   <li>两猪 48 点（承受力 56 内，无过载反噬）：空手拳击 7，打击倍率 0.75 打 5.25，开全力以赴也不变；收尾招中也不抽
+ *   <li>两猪 48 点（承受力 72 内，无过载反噬）：空手拳击 7，打击倍率 0.75 打 5.25，开全力以赴也不变；收尾招中也不抽
  *       虚影，20 tick 内再打落空。</li>
- *   <li>溢出结算：两猪加虎 112 点，打击 11.25，最近的猪吃整击，下一只吃剩余 1.25；打中结算一次过载反噬（超出 56 点，
- *       扣最大生命的 50%），挥空与冷却内再打不扣。</li>
- *   <li>苦力：生命 40% 时伤害倍率 +30%，结算 62 点，打击 6.5625 并按 62 点结算过载反噬；冲撞距离、破坏硬度与打击半径仍读总
+ *   <li>溢出结算：两猪加虎 112 点，打击 11.25，最近的猪吃整击，下一只吃剩余 1.25；打中结算一次过载反噬（超出 40 点，
+ *       扣最大生命的 27.8%），挥空与冷却内再打不扣。</li>
+ *   <li>苦力：生命 40% 时伤害倍率 +30%，结算 62 点，打击 6.5625；改用四转身体（承受力 60）验按 62 点结算过载反噬；冲撞距离、破坏硬度与打击半径仍读总
  *       力量点 48，不随苦力变化。</li>
  *   <li>手持钻石剑（仿装备刷新挂上其攻击修饰）时打击仍按空手。</li>
  *   <li>冲撞流程：无力量（半径 3 格、打 0.5）从西缘冲 4 格，移动那 tick 与其后第一个静止 tick 不打，连续第二个静止 tick
@@ -75,7 +76,7 @@ public final class CrashStrikeGameTests {
     private static final int BOAR_POINTS = 48;
     private static final int HEAVY_POINTS = 112;
     private static final int HARDSHIP_POINTS = 62;
-    private static final int CAPACITY = 56;
+    private static final int CAPACITY = 72;
     private static final float TWO_BOARS_RATIO = 0.75F;
     private static final float PIG_HEALTH = 10.0F;
     private static final int BAG_SLOT = 9;
@@ -137,6 +138,7 @@ public final class CrashStrikeGameTests {
     @GameTest(template = "empty9x9x9")
     public static void hardshipRaisesTheStrikeAndLeavesTheDashAlone(GameTestHelper helper) {
         ServerPlayer player = boars(helper, "gzr-crash-strike-hardship");
+        ApertureService.setRank(player, Rank.FOUR);
         CrashSources before = CrashSources.of(player);
         inSlot(player, BAG_SLOT, ModItems.HARDSHIP_STRENGTH_GU_4.get(), HUNGER);
         player.setHealth(player.getMaxHealth() * 0.4F);
@@ -155,7 +157,7 @@ public final class CrashStrikeGameTests {
         float health = player.getHealth();
         assertEquals(List.of(pig), CrashStrike.strike(player, EAST, before));
         assertEquals(PIG_HEALTH - blow(HARDSHIP_POINTS, TWO_BOARS_RATIO), pig.getHealth(), DELTA);
-        assertEquals(health - recoil(player, HARDSHIP_POINTS), player.getHealth(), DELTA);
+        assertEquals(health - (HARDSHIP_POINTS - 60) / 60.0F * player.getMaxHealth() * 0.5F, player.getHealth(), DELTA);
         helper.succeed();
     }
 

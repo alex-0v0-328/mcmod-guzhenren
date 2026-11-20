@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ {@link #BY_ID} 映射必须在全部类型常量之前声明（类初始化时按字段顺序注册），且每个注册 ID 即存档键名，任何改名
  *       都会导致旧存档中的对应流派效果全部丢失。</li>
  *   <li>先天与炼体永久增益：{@link #RACE_TALENT}（变异种族赋予对应流派 10 条整道痕[Path Marks]）、
- *       {@link #EXTREME_PHYSIQUE}（十绝体质向各天赋流派分摊 1000 条整道痕）、{@link #BODY_SKIN} / {@link #BODY_TENDON}
+ *       {@link #EXTREME_PHYSIQUE}（十绝体质向各天赋流派分摊 1200 条整道痕）、{@link #BODY_SKIN} / {@link #BODY_TENDON}
  *       / {@link #BODY_BONE}（炼体皮筋骨互斥增益，新等级直接覆盖旧等级）与 {@link #STONE_APERTURE}（空窍石化永久增益，
  *       锁定态存于 {@code Aperture}）。</li>
  *   <li>力道与限时肉身效果：{@link #BEAST_STRENGTH}（每兽族一项永久兽力[Beast Strength]）、{@link #HUMAN_STRENGTH}（每

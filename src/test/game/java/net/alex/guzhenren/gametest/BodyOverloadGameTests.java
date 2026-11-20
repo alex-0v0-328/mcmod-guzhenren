@@ -39,7 +39,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *       （排除反噬对该玩家整体失效的假通过）。</li>
  *   <li>③ 反噬扣血前后同时复原受击无敌帧与 {@code lastHurt}：先吃 5 点伤害，反噬后无敌帧内再吃 6 点只掉差额 1 点。</li>
  *   <li>④ 被伤害吸收完全吃掉的拳：没伤到生命也算打中，照扣过载反噬（Alex 定）。</li>
- *   <li>凡人持熊 40 点（承受力 16，超出 24）：反噬为最大生命的 75%；五转人力 60 点（承受力 56，超出 4）用于 ③。</li>
+ *   <li>凡人持白豕 24 点（承受力 12，超出 12）：反噬为最大生命的 50%；五转人力 90 点（承受力 72，超出 18）用于 ③。</li>
  * </ul>
  */
 
@@ -63,7 +63,7 @@ public final class BodyOverloadGameTests {
     //region ① Shield [举盾]
     @GameTest(template = "empty9x9x9")
     public static void aFinisherAShieldStopsLeavesNoSpill(GameTestHelper helper) {
-        ServerPlayer player = bear(helper, "gzr-overload-legacy-shield");
+        ServerPlayer player = boar(helper, "gzr-overload-legacy-shield");
         Pig guard = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(4, 1, 2));
         guard.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
         face(guard, player);
@@ -88,7 +88,7 @@ public final class BodyOverloadGameTests {
     //region ② Source [伤害来源]
     @GameTest(template = "empty9x9x9")
     public static void thornsPayNoOverloadButTheNextPunchDoes(GameTestHelper helper) {
-        ServerPlayer player = bear(helper, "gzr-overload-legacy-thorns");
+        ServerPlayer player = boar(helper, "gzr-overload-legacy-thorns");
         float max = player.getMaxHealth();
         Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 2));
 
@@ -99,7 +99,7 @@ public final class BodyOverloadGameTests {
         ComboRound.beginStrike(player, false);
         Pig punched = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(6, 1, 2));
         assertTrue(Punches.land(player, punched, 1.0F), "the punch did no damage");
-        assertEquals(max - recoil(max, 24, 16), player.getHealth(), DELTA);
+        assertEquals(max - recoil(max, 12, 12), player.getHealth(), DELTA);
         ComboRound.clear(player);
         helper.succeed();
     }
@@ -111,9 +111,9 @@ public final class BodyOverloadGameTests {
                 .pastSpawnInvulnerability().at(WEST);
         player.setYRot(-90.0F);
         player.setXRot(0.0F);
-        PathStrengthService.grant(player, BeastStrength.BEAR);
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         assertTrue(StrengthService.getSettledPoints(player) > StrengthService.getCapacity(player),
-                "the bear does not pass the mortal capacity");
+                "the boar does not pass the mortal capacity");
         float max = player.getMaxHealth();
         player.setHealth(max);
         Pig pig = helper.spawn(EntityType.PIG, RAMMED);
@@ -135,7 +135,7 @@ public final class BodyOverloadGameTests {
         ComboRound.beginStrike(player, false);
         Pig punched = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 7));
         assertTrue(Punches.land(player, punched, 1.0F), "the punch did no damage");
-        assertEquals(max - recoil(max, 24, 16), player.getHealth(), DELTA);
+        assertEquals(max - recoil(max, 12, 12), player.getHealth(), DELTA);
         ComboRound.clear(player);
         player.discard();
         helper.succeed();
@@ -147,10 +147,10 @@ public final class BodyOverloadGameTests {
     public static void theRecoilRestoresTheHurtFramesAndTheLastHurt(GameTestHelper helper) {
         ServerPlayer player = GameTestGu.awakened(GameTestPlayers.survival(helper, "gzr-overload-legacy-last-hurt")
                 .pastSpawnInvulnerability().onGround(), Rank.FIVE);
-        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 2), "the jun was refused");
-        assertEquals(56, StrengthService.getCapacity(player));
+        assertTrue(PathStrengthService.setHumanStrength(player, HumanStrength.JUN, 3), "the jun was refused");
+        assertEquals(72, StrengthService.getCapacity(player));
         float max = player.getMaxHealth();
-        float recoil = recoil(max, 4, 56);
+        float recoil = recoil(max, 18, 72);
         assertTrue(Math.abs(recoil - FIRST_HIT) > 0.5F, "the recoil equals the first hit; the test proves nothing");
         player.setHealth(max);
 
@@ -176,7 +176,7 @@ public final class BodyOverloadGameTests {
     //region ④ Absorption [伤害吸收]
     @GameTest(template = "empty9x9x9")
     public static void aPunchTheAbsorptionSwallowsStillPaysTheOverload(GameTestHelper helper) {
-        ServerPlayer player = bear(helper, "gzr-overload-legacy-absorption");
+        ServerPlayer player = boar(helper, "gzr-overload-legacy-absorption");
         float max = player.getMaxHealth();
         Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 2));
         pig.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, ABSORPTION_TICKS, ABSORPTION_LEVEL));
@@ -189,7 +189,7 @@ public final class BodyOverloadGameTests {
 
         assertEquals(health, pig.getHealth(), DELTA);
         assertEquals(absorption - 1.0F, pig.getAbsorptionAmount(), DELTA);
-        assertEquals(max - recoil(max, 24, 16), player.getHealth(), DELTA);
+        assertEquals(max - recoil(max, 12, 12), player.getHealth(), DELTA);
         ComboRound.clear(player);
         helper.succeed();
     }
@@ -199,11 +199,11 @@ public final class BodyOverloadGameTests {
         return (float) overload / capacity * maxHealth * BodyOverload.RECOIL_RATIO;
     }
 
-    private static ServerPlayer bear(GameTestHelper helper, String name) {
+    private static ServerPlayer boar(GameTestHelper helper, String name) {
         ServerPlayer player = GameTestPlayers.survival(helper, name).pastSpawnInvulnerability().onGround();
-        PathStrengthService.grant(player, BeastStrength.BEAR);
-        assertEquals(16, StrengthService.getCapacity(player));
-        assertEquals(40, StrengthService.getSettledPoints(player));
+        PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
+        assertEquals(12, StrengthService.getCapacity(player));
+        assertEquals(24, StrengthService.getSettledPoints(player));
         player.setHealth(player.getMaxHealth());
         return player;
     }
