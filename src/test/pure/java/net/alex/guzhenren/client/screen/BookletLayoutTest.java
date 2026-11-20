@@ -201,7 +201,8 @@ class BookletLayoutTest {
     }
 
     @Test
-    @DisplayName("a chronicle opens on its heading, then its title two rows low, then the text on a fresh column")
+    @DisplayName("a chronicle opens on its heading, then its title two rows low, then the text on a fresh column "
+            + "indented two rows")
     void chronicleOpensOnHeadingAndTitle() {
         List<BookletLayout.Spread> spreads = BookletLayout.layChronicle(section(1), false);
         List<List<BookletLayout.Cell>> columns = columns(spreads.getFirst());
@@ -209,8 +210,9 @@ class BookletLayoutTest {
         assertEquals(getRowY(0), columns.get(0).getFirst().y());
         assertEquals("困境和希望", glyphs(columns.get(1)));
         assertEquals(getRowY(2), columns.get(1).getFirst().y());
-        assertEquals("传说这个世界刚刚形成的时", glyphs(columns.get(2)));
-        assertEquals(getRowY(0), columns.get(2).getFirst().y());
+        assertEquals("传说︐这个世界刚刚形", glyphs(columns.get(2)));
+        assertEquals(getRowY(BookletLayout.INDENT), columns.get(2).getFirst().y());
+        assertEquals(getRowY(0), columns.get(3).getFirst().y());
     }
 
     @Test
@@ -218,8 +220,8 @@ class BookletLayoutTest {
     void titleWrapsAndColophonCloses() {
         List<BookletLayout.Spread> spreads = BookletLayout.layChronicle(section(11), false);
         List<List<BookletLayout.Cell>> opening = columns(spreads.getFirst());
-        assertEquals("石人你阻挡了我成功的", glyphs(opening.get(1)));
-        assertEquals("路", glyphs(opening.get(2)));
+        assertEquals("石人︐你阻挡了我成功", glyphs(opening.get(1)));
+        assertEquals("的路", glyphs(opening.get(2)));
         assertEquals(getRowY(2), opening.get(2).getFirst().y());
         List<Integer> filled = new ArrayList<>();
         List<List<BookletLayout.Cell>> all = new ArrayList<>();
@@ -236,17 +238,22 @@ class BookletLayoutTest {
     }
 
     @Test
-    @DisplayName("every chronicle section lays out in both scripts without a closing bracket opening a column "
-            + "or an opening bracket ending one")
+    @DisplayName("every chronicle section lays out in both scripts without a closing mark opening a column, an "
+            + "opening bracket ending one or a dash split across two")
     void chroniclesKeepBracketsOffColumnEdges() {
         for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.RENZU_ZHUAN)) {
             for (boolean traditional : new boolean[] { false, true }) {
                 List<BookletLayout.Spread> spreads = assertDoesNotThrow(
                         () -> BookletLayout.layChronicle(chronicle, traditional), chronicle.toString());
+                String last = "";
                 for (BookletLayout.Spread spread : spreads) {
                     assertNull(spread.plate());
                     for (List<BookletLayout.Cell> column : columns(spread)) {
-                        assertTrue(!"﹂﹄".contains(column.getFirst().glyph()), chronicle + " opens " + column);
+                        String first = column.getFirst().glyph();
+                        assertTrue(column.getFirst().y() != getRowY(0) || !BookletLayout.NO_COLUMN_START.contains(first),
+                                chronicle + " opens " + column);
+                        assertTrue(!"︱".equals(last) || !"︱".equals(first), chronicle + " splits a dash at " + column);
+                        last = column.getLast().glyph();
                         assertTrue(!"﹁﹃".contains(column.getLast().glyph()), chronicle + " ends " + column);
                         assertTrue(column.size() <= ROWS, chronicle + " overfills " + column);
                     }
@@ -256,35 +263,16 @@ class BookletLayoutTest {
     }
 
     @Test
-    @DisplayName("a chronicle spread prints the title above the fishtail and the section and leaf number below, "
-            + "on both margins")
-    void marginsCarryTitleSectionAndLeaf() {
-        List<BookletLayout.Spread> spreads = BookletLayout.layChronicle(section(38), true);
-        BookletLayout.Spread third = spreads.get(2);
-        Map<Integer, String> sides = new TreeMap<>();
-        for (BookletLayout.Cell cell : third.margin()) sides.merge(cell.x(), cell.glyph(), String::concat);
-        assertEquals(Map.of(BookletLayout.LEFT_MARGIN_X, "人祖傳第三十八節三", BookletLayout.RIGHT_MARGIN_X,
-                "人祖傳第三十八節三"), sides);
-        for (BookletLayout.Spread spread : spreads) {
-            for (BookletLayout.Cell cell : spread.margin()) {
-                boolean above = cell.y() + BookletLayout.MARGIN_PITCH <= BookletLayout.FISHTAIL_TOP;
-                boolean below = cell.y() >= BookletLayout.FISHTAIL_BOTTOM;
-                assertTrue(cell.y() >= BookletLayout.MARGIN_TOP && (above || below)
-                        && cell.y() + BookletLayout.MARGIN_PITCH <= BookletLayout.MARGIN_BOTTOM, cell.toString());
+    @DisplayName("each chronicle paragraph starts a fresh column two rows low and runs on from the top")
+    void paragraphsStartIndentedColumns() {
+        Chronicle first = section(1);
+        int indented = 0;
+        for (BookletLayout.Spread spread : BookletLayout.layChronicle(first, false)) {
+            for (List<BookletLayout.Cell> column : columns(spread)) {
+                if (column.getFirst().y() == getRowY(BookletLayout.INDENT)) indented++;
             }
         }
-        assertEquals(List.of("人", "祖", "傳"), third.margin().subList(0, 3).stream().map(BookletLayout.Cell::glyph)
-                .toList());
-    }
-
-    @Test
-    @DisplayName("a stop draws a 3-pixel ring and a pause a 2-pixel dot at the foot right of their glyph's cell")
-    void marksSitAtTheFootRight() {
-        assertEquals(new BookletLayout.Dot(109, 210, 3, true), BookletLayout.dot(100, 200, Chronicle.Mark.STOP));
-        assertEquals(new BookletLayout.Dot(110, 211, 2, false), BookletLayout.dot(100, 200, Chronicle.Mark.PAUSE));
-        BookletLayout.Spread first = BookletLayout.layChronicle(section(1), false).getFirst();
-        assertTrue(first.dots().stream().anyMatch(BookletLayout.Dot::stop));
-        assertTrue(first.dots().stream().anyMatch(dot -> !dot.stop()));
+        assertEquals(1 + first.read(false).size(), indented, "the title column plus one per paragraph");
     }
 
     private static Chronicle section(int number) { return new Chronicle(Chronicle.Book.RENZU_ZHUAN, number); }

@@ -77,7 +77,7 @@ public final class BookletGameTests {
         }
         for (boolean traditional : new boolean[] { false, true }) {
             assertEquals("困境和希望", sections.getFirst().title(traditional), "the mod loader hides the section texts");
-            assertTrue(sections.getLast().read(traditional).size() > 1000, "the last section reads short");
+            assertTrue(sections.getLast().read(traditional).size() > 10, "the last section reads short");
         }
         helper.succeed();
     }

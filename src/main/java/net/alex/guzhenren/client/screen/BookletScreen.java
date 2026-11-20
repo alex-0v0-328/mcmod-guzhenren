@@ -40,8 +40,7 @@ import org.jetbrains.annotations.Nullable;
  *       5×5 缺角网格：每组材料画在组内首格并标数量，可放该材料的其余格浅色打底；网格下方是产物图标和名字，悬停出物
  *       品提示。</li>
  *   <li>古籍（{@link Chronicle}）有多个跨页，右开：左侧箭头、← 键、PageDown、滚轮向下翻到下一页，右侧箭头、→ 键、
- *       PageUp、滚轮向上翻回；每次打开从首页读。书口字用 8 像素的 {@code booklet_margin_*} 字体，圈点以朱色
- *       {@code #c23b22} 直接填像素。</li>
+ *       PageUp、滚轮向上翻回；每次打开从首页读。</li>
  *   <li>翻页都播翻书声（按钮自身不播，免得点击时响两次）。</li>
  *   <li>⚠ 多页时方向键与 PageUp、PageDown 一律在此吞掉、先于原版焦点导航，到首末页也不放行，否则焦点会落到翻页按钮
  *       上，回车即误翻。</li>
@@ -55,12 +54,9 @@ public final class BookletScreen extends Screen {
     private static final ResourceLocation SPREAD = Guzhenren.id("book_spread");
     private static final ResourceLocation HANS = Guzhenren.id("booklet_hans");
     private static final ResourceLocation HANT = Guzhenren.id("booklet_hant");
-    private static final ResourceLocation MARGIN_HANS = Guzhenren.id("booklet_margin_hans");
-    private static final ResourceLocation MARGIN_HANT = Guzhenren.id("booklet_margin_hant");
     private static final Set<String> TRADITIONAL = Set.of("zh_tw", "zh_hk");
     private static final int INK = 0xFF2F2925;
     private static final int PAPER = 0xFFE0D0A5;
-    private static final int VERMILION = 0xFFC23B22;
     private static final int TURN_WIDTH = 23;
     private static final int TURN_LIFT = 20;
     private static final float ICON_SCALE = BookletLayout.ICON / 16.0F;
@@ -87,13 +83,10 @@ public final class BookletScreen extends Screen {
         this.icon = icon;
         this.recipe = recipe;
         ResourceLocation font = traditional ? HANT : HANS;
-        ResourceLocation marginFont = traditional ? MARGIN_HANT : MARGIN_HANS;
         for (BookletLayout.Spread spread : spreads) {
             List<BookletLayout.Cell> cells = new ArrayList<>(spread.text());
             if (spread.plate() != null) cells.addAll(spread.plate().caption());
-            List<Glyph> glyphs = new ArrayList<>(glyphs(cells, font));
-            glyphs.addAll(glyphs(spread.margin(), marginFont));
-            pages.add(new Page(List.copyOf(glyphs), spread.dots(), spread.plate()));
+            pages.add(new Page(glyphs(cells, font), spread.plate()));
         }
     }
 
@@ -205,22 +198,7 @@ public final class BookletScreen extends Screen {
                 graphics.drawString(font, glyph.text(), leftPos + glyph.x(), topPos + glyph.y(), INK, false);
             }
         });
-        for (BookletLayout.Dot dot : shown.dots()) renderDot(graphics, dot);
         for (var widget : renderables) widget.render(graphics, mouseX, mouseY, partialTick);
-    }
-
-    private void renderDot(GuiGraphics graphics, BookletLayout.Dot dot) {
-        int x = leftPos + dot.x();
-        int y = topPos + dot.y();
-        int size = dot.size();
-        if (!dot.stop()) {
-            graphics.fill(x, y, x + size, y + size, VERMILION);
-            return;
-        }
-        graphics.fill(x, y, x + size, y + 1, VERMILION);
-        graphics.fill(x, y + size - 1, x + size, y + size, VERMILION);
-        graphics.fill(x, y + 1, x + 1, y + size - 1, VERMILION);
-        graphics.fill(x + size - 1, y + 1, x + size, y + size - 1, VERMILION);
     }
 
     //region the recipe grid on the left half-page [左半页蛊方网格]
@@ -288,5 +266,5 @@ public final class BookletScreen extends Screen {
 
     private record Glyph(FormattedCharSequence text, int x, int y) {}
 
-    private record Page(List<Glyph> glyphs, List<BookletLayout.Dot> dots, @Nullable BookletLayout.Plate plate) {}
+    private record Page(List<Glyph> glyphs, @Nullable BookletLayout.Plate plate) {}
 }
