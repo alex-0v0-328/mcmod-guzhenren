@@ -7,6 +7,7 @@ import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.place.PlaceTitle;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
@@ -75,6 +76,10 @@ public final class SoulsunderMountain implements SecretRealm {
     public static final int GUTS_STONE_CAP = 128;
     public static final int GROW_ATTEMPTS = 8;
     public static final String MSG_GUTS_GU_DISSOLVED = "guzhenren.item.gu.dissolved_outside_soulsunder";
+    public static final String NAME_KEY = "guzhenren.place.soulsunder_mountain";
+    /** 荡魂山石贴图的主色。 */
+    public static final int TITLE_COLOR = 0xF8ACC4;
+    private static final PlaceTitle TITLE = new PlaceTitle(KIND_KEY, NAME_KEY, TITLE_COLOR);
 
     private SoulsunderMountain() {}
 
@@ -92,6 +97,9 @@ public final class SoulsunderMountain implements SecretRealm {
 
     @Override
     public @NotNull GuPath path() { return GuPath.SOUL; }
+
+    @Override
+    public @NotNull PlaceTitle title() { return TITLE; }
 
     //region Hooks [钩子]
     @Override

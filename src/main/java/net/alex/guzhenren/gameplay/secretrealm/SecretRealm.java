@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.secretrealm;
 
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.place.PlaceTitle;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,12 +21,16 @@ import org.jetbrains.annotations.NotNull;
  *       其它维度）；{@link #tickArea} 每秒一次且范围外扩 {@link SecretRealms#PLAYER_MARGIN} 格内有玩家；{@link #onDeath}
  *       范围内生物死亡（不死图腾救下的不算）。</li>
  *   <li>{@link #rank}、{@link #path} 是秘境的转数与流派属性，只作记载，不参与任何结算。</li>
+ *   <li>{@link #title} 是玩家进入范围时弹出的地名标题，类别统一用 {@link #KIND_KEY}「天地秘境」；进入判定与冷却由
+ *       {@link SecretRealms} 交给 {@code PlaceTitles}。</li>
  *   <li>⚠ 结构集须为同心环放置（{@code concentric_rings}），取第一个环位置；不存在或不是同心环时整个秘境静默关闭。</li>
  *   <li>⚠ 钩子只在服务端主线程调用；实现保持无状态，世界状态存 {@link net.alex.guzhenren.core.ModSavedData}。</li>
  * </ul>
  */
 
 public interface SecretRealm {
+
+    String KIND_KEY = "guzhenren.place.kind.secret_realm";
 
     @NotNull ResourceKey<Level> dimension();
 
@@ -36,6 +41,8 @@ public interface SecretRealm {
     @NotNull Rank rank();
 
     @NotNull GuPath path();
+
+    @NotNull PlaceTitle title();
 
     default void tickPlayer(@NotNull ServerPlayer player, @NotNull RealmSite site) {}
 

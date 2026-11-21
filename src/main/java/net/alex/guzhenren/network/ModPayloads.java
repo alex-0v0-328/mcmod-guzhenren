@@ -14,6 +14,7 @@ import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
+import net.alex.guzhenren.network.payload.PlaceTitlePayload;
 import net.alex.guzhenren.network.payload.PlungePayload;
 import net.alex.guzhenren.network.payload.PrimevalElderPayload;
 import net.alex.guzhenren.network.payload.QiWavePayload;
@@ -50,7 +51,7 @@ public final class ModPayloads {
 
     private ModPayloads() {}
 
-    private static final String VERSION = "1";
+    private static final String VERSION = "2";
     private static final Map<Class<?>, Consumer<?>> CLIENT_HANDLERS = new HashMap<>();
 
     @SubscribeEvent
@@ -86,6 +87,7 @@ public final class ModPayloads {
         toClient(registrar, ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC);
         toClient(registrar, KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC);
         toClient(registrar, StoreStrengthNoticePayload.TYPE, StoreStrengthNoticePayload.STREAM_CODEC);
+        toClient(registrar, PlaceTitlePayload.TYPE, PlaceTitlePayload.STREAM_CODEC);
     }
 
     /** 登记客户端如何处理 {@code noticeClass} 类通知；只在客户端初始化时调用。 */

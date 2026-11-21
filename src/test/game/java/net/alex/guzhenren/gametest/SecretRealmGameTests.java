@@ -1,11 +1,16 @@
 package net.alex.guzhenren.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.gameplay.place.PlaceTitle;
+import net.alex.guzhenren.gameplay.place.PlaceTitleEvent;
+import net.alex.guzhenren.gameplay.place.PlaceTitles;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
@@ -19,6 +24,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -44,6 +50,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.GameTestApertures.mortal;
@@ -403,6 +411,27 @@ public final class SecretRealmGameTests {
         helper.assertValueEqual(SoulsunderMountain.INSTANCE.path(), GuPath.SOUL, "path");
         helper.succeed();
     }
+
+    @GameTest(template = "empty9x9x9")
+    public static void placeTitlesShowOnEntryAndWaitAMinuteAfterLeaving(GameTestHelper helper) {
+        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-place-title-mock").at(CENTER);
+        PlaceTitle title = SoulsunderMountain.INSTANCE.title();
+        ResourceLocation place = Guzhenren.id("gametest_place");
+        ResourceLocation other = Guzhenren.id("gametest_other_place");
+        player.tickCount = 1000;
+        helper.assertFalse(PlaceTitles.update(player, place, false, title), "outside shows nothing");
+        helper.assertTrue(PlaceTitles.update(player, place, true, title), "the first entry shows the title");
+        player.tickCount += Heartbeat.HEARTBEAT_TICKS;
+        helper.assertFalse(PlaceTitles.update(player, place, true, title), "staying inside shows it once");
+        helper.assertTrue(PlaceTitles.update(player, other, true, title), "another place keeps its own cooldown");
+        player.tickCount += PlaceTitles.COOLDOWN_TICKS;
+        helper.assertFalse(PlaceTitles.update(player, place, true, title), "re-entering within a minute shows nothing");
+        player.tickCount += PlaceTitles.COOLDOWN_TICKS + 1;
+        helper.assertTrue(PlaceTitles.update(player, place, true, title), "re-entering after a minute shows it again");
+        helper.assertValueEqual(title, new PlaceTitle("guzhenren.place.kind.secret_realm",
+                "guzhenren.place.soulsunder_mountain", 0xF8ACC4), "Soulsunder Mountain title");
+        helper.succeed();
+    }
     //endregion
 
     //region Pinned site [钉住山心]
@@ -445,6 +474,33 @@ public final class SecretRealmGameTests {
                     "outside the heartbeat dissolves the Gu");
             helper.succeed();
         } finally {
+            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
+    public static void theHeartbeatShowsTheRealmTitleOnceOnEntry(GameTestHelper helper) {
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        List<PlaceTitle> shown = new ArrayList<>();
+        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-realm-title-mock").at(new Vec3(8.5D, 1.0D, 8.5D));
+        Consumer<PlaceTitleEvent> listener = event -> {
+            if (event.getPlayer() == player) shown.add(event.getTitle());
+        };
+        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, PlaceTitleEvent.class, listener);
+        try {
+            player.tickCount = Heartbeat.HEARTBEAT_TICKS;
+            Heartbeat.beat(player);
+            helper.assertTrue(shown.isEmpty(), "outside the mountain no title shows");
+            GameTestPlayers.place(player, helper, CENTER);
+            player.tickCount += Heartbeat.HEARTBEAT_TICKS;
+            Heartbeat.beat(player);
+            helper.assertValueEqual(shown, List.of(SoulsunderMountain.INSTANCE.title()), "entering shows the title");
+            player.tickCount += Heartbeat.HEARTBEAT_TICKS;
+            Heartbeat.beat(player);
+            helper.assertValueEqual(shown.size(), 1, "staying inside shows no second title");
+            helper.succeed();
+        } finally {
+            NeoForge.EVENT_BUS.unregister(listener);
             SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
         }
     }

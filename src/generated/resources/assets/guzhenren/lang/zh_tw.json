@@ -544,6 +544,8 @@
   "guzhenren.path_effect.vitality_leaf": "生機葉",
   "guzhenren.path_effect.watch_rate": "更蠱 ×%s層",
   "guzhenren.path_effect.zombie": "殭屍",
+  "guzhenren.place.kind.secret_realm": "天地秘境",
+  "guzhenren.place.soulsunder_mountain": "蕩魂山",
   "guzhenren.screen.button.storage": "空竅存儲",
   "guzhenren.screen.capacity": "%s，承受力 %s",
   "guzhenren.screen.capacity.body_overload": "，超出 %s",

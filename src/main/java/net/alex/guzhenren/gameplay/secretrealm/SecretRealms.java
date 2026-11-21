@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.place.PlaceTitles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
@@ -31,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
  *       析可能阻塞等待原版异步算环（世界加载时已开始算）。之后每次查询只是一次映射查找加一次平方距离比较。</li>
  *   <li>⚠ 性能：{@link #tickAreas} 每秒一次，只有范围外扩 {@link #PLAYER_MARGIN} 格内有玩家才调 {@code tickArea}，否则不
  *       查实体；玩家钩子挂在 {@code Heartbeat}，不另起逐刻循环；范围内外各调一个钩子，秘境未解出时两个都不调。</li>
+ *   <li>{@link #tickPlayer} 同时把玩家在不在范围内报给 {@link PlaceTitles}（地点 ID 用结构集 ID），进入时弹秘境的地名标
+ *       题。</li>
  *   <li>{@link #pin} 只供 GameTest 固定或清除范围；钉住的范围不随生成状态重算，测试结束须传 {@code null} 清除。</li>
  * </ul>
  */
@@ -115,7 +118,9 @@ public final class SecretRealms {
             RealmSite site = siteOf(player.server, realm);
             if (site == null) continue;
 
-            if (player.level().dimension() == realm.dimension() && site.contains(player)) realm.tickPlayer(player, site);
+            boolean inside = player.level().dimension() == realm.dimension() && site.contains(player);
+            PlaceTitles.update(player, realm.structureSet().location(), inside, realm.title());
+            if (inside) realm.tickPlayer(player, site);
             else realm.tickPlayerAway(player, site);
         }
     }

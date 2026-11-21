@@ -11,6 +11,7 @@ import net.alex.guzhenren.client.hud.KillingMoveTooltipHud;
 import net.alex.guzhenren.client.hud.ShieldGlowHud;
 import net.alex.guzhenren.client.hud.ShieldHud;
 import net.alex.guzhenren.client.hud.NourishHud;
+import net.alex.guzhenren.client.hud.PlaceTitleHud;
 import net.alex.guzhenren.client.hud.PlayerStatsHud;
 import net.alex.guzhenren.client.hud.SonicBoomHud;
 import net.alex.guzhenren.client.input.DashInput;
@@ -29,11 +30,13 @@ import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
+import net.alex.guzhenren.compat.TravelersTitlesIntegration;
 import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.gu.mortal.path.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
+import net.alex.guzhenren.network.payload.PlaceTitlePayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
 import net.alex.guzhenren.refinement.GuRecipeItem;
@@ -74,11 +77,12 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>九叶生机草[Nine Leaf Vitality Grass]的物品模型属性依据客户端世界游戏时间推算当前叶数。</li>
  *   <li>客户端初始化时向 {@code ModPayloads} 注册 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
- *       {@code KillingMoveTooltipPayload} 与 {@code StoreStrengthNoticePayload} 的处理器，使 {@code ModPayloads} 本身
+ *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 与 {@code PlaceTitlePayload} 的处理器，使 {@code ModPayloads} 本身
  *       不直接依赖客户端类；书册阅读器（{@link BookletScreen}）同理注册给 {@code BookletItem}。</li>
  *   <li>温养[Nourish]运镜显示期间（{@link CultivationCamera#isShowing}）仅保留 {@link #CINEMATIC_LAYERS} 白名单图层：
  *       上下黑边、温养条、扇形选择器、长按滑条、调试覆盖层、Tab 列表、字幕、动作栏提示与存档提示，聊天栏仅在打开聊天
  *       界面时绘制。</li>
+ *   <li>地名标题显示期间取消 Traveler's Titles 的图层，两者不同时出字（排队见 {@link PlaceTitleHud}）。</li>
  * </ul>
  */
 
@@ -98,6 +102,7 @@ public final class ClientEvents {
     private static final ResourceLocation HOLD_SLIDER = Guzhenren.id("hold_slider");
     private static final ResourceLocation AWAKENING = Guzhenren.id("awakening");
     private static final ResourceLocation CINEMATIC = Guzhenren.id("cinematic");
+    private static final ResourceLocation PLACE_TITLE = Guzhenren.id("place_title");
     private static final Set<ResourceLocation> CINEMATIC_LAYERS = Set.of(CINEMATIC, NOURISH, RADIAL_MENU, HOLD_SLIDER,
             VanillaGuiLayers.DEBUG_OVERLAY, VanillaGuiLayers.TAB_LIST, VanillaGuiLayers.SUBTITLE_OVERLAY,
             VanillaGuiLayers.OVERLAY_MESSAGE, VanillaGuiLayers.SAVING_INDICATOR);
@@ -115,11 +120,16 @@ public final class ClientEvents {
         event.registerAbove(VanillaGuiLayers.AIR_LEVEL, SHIELD, (g, delta) -> ShieldHud.INSTANCE.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, RADIAL_MENU, (g, delta) -> RadialMenu.render(g));
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, HOLD_SLIDER, (g, delta) -> HoldSlider.render(g));
+        event.registerAbove(VanillaGuiLayers.TITLE, PLACE_TITLE, PlaceTitleHud.INSTANCE::render);
         event.registerAboveAll(AWAKENING, AwakeningHud.INSTANCE::render);
     }
 
     @SubscribeEvent
     public static void onRenderGuiLayer(RenderGuiLayerEvent.Pre event) {
+        if (PlaceTitleHud.INSTANCE.isShowing() && event.getName().equals(TravelersTitlesIntegration.LAYER)) {
+            event.setCanceled(true);
+            return;
+        }
         if (!CultivationCamera.isShowing() || CINEMATIC_LAYERS.contains(event.getName())) return;
         boolean chatting = Minecraft.getInstance().screen instanceof ChatScreen;
         if (chatting && event.getName().equals(VanillaGuiLayers.CHAT)) return;
@@ -139,6 +149,7 @@ public final class ClientEvents {
             ModPayloads.handleOnClient(ImpactShakePayload.class, ImpactShakes::onPayload);
             ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
             ModPayloads.handleOnClient(StoreStrengthNoticePayload.class, StoreStrengthInput::onNotice);
+            ModPayloads.handleOnClient(PlaceTitlePayload.class, PlaceTitleHud.INSTANCE::show);
             BookletItem.readOnClient(BookletScreen::open);
             GuRecipeItem.readOnClient(BookletScreen::openRecipe);
             GuRecipeItem.lookUpOnClient(KnownRecipes::find, KnownRecipes::getIds);
