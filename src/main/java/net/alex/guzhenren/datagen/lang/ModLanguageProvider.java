@@ -364,8 +364,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("itemGroup.guzhenren.gu_material",                       "蛊材");
         add("itemGroup.guzhenren.strength_mortal_gu",                "力道蛊虫");
         add("itemGroup.guzhenren.wood_mortal_gu",                    "木道蛊虫");
-        add("itemGroup.guzhenren.km_mortal",                         "杀招&蛊方");
-        add("itemGroup.guzhenren.booklet",                           "图册");
+        add("itemGroup.guzhenren.books",                             "蛊方、杀招与图册");
 
         add("guzhenren.item.failed.awakened",                        "你已开窍");
         add("guzhenren.item.failed.awakening",                       "开窍中");

@@ -7,6 +7,8 @@ import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.Chronicle;
 import net.alex.guzhenren.item.GuItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
+import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
+import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.item.ModCreativeTabs;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.gametest.framework.GameTest;
@@ -65,7 +67,7 @@ public final class BookletGameTests {
     public static void renzuZhuanShelvesItsSectionsInOrder(GameTestHelper helper) {
         List<Chronicle> sections = Chronicle.sections(Chronicle.Book.RENZU_ZHUAN);
         assertEquals(sections.size(), ModItems.RENZU_ZHUAN.size());
-        List<Item> shelf = getShown(helper, ModCreativeTabs.BOOKLET.get());
+        List<Item> shelf = getShown(helper, ModCreativeTabs.BOOKS.get());
         for (int at = 0; at < sections.size(); at++) {
             Item item = ModItems.RENZU_ZHUAN.get(at).get();
             assertEquals(Guzhenren.id("renzu_zhuan_" + (at + 1)), ModItems.RENZU_ZHUAN.get(at).getId());
@@ -73,7 +75,7 @@ public final class BookletGameTests {
                     item + " carries another text");
             assertEquals(1, new ItemStack(item).getMaxStackSize());
             assertEquals(shelf.indexOf(ModItems.GU_ATLAS_HOPE.get()) + 1 + at, shelf.indexOf(item),
-                    item + " is out of order on the booklet tab");
+                    item + " is out of order on the book tab");
         }
         for (boolean traditional : new boolean[] { false, true }) {
             assertEquals("困境和希望", sections.getFirst().title(traditional), "the mod loader hides the section texts");
@@ -97,16 +99,24 @@ public final class BookletGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void bookletsFillTheirOwnTabAlone(GameTestHelper helper) {
+    public static void bookTabListsRecipesThenMovesThenBooklets(GameTestHelper helper) {
         Item booklet = ModItems.GU_ATLAS_HOPE.get();
-        CreativeModeTab tab = ModCreativeTabs.BOOKLET.get();
-        assertSame(booklet, tab.getIconItem().getItem());
+        CreativeModeTab tab = ModCreativeTabs.BOOKS.get();
+        assertSame(ModItems.GU_RECIPE.get(), tab.getIconItem().getItem());
         List<Item> shelf = getShown(helper, tab);
-        assertTrue(shelf.contains(booklet), "Gu Atlas: Hope missing from the booklet tab");
-        assertTrue(shelf.stream().allMatch(BookletItem.class::isInstance), "the booklet tab shows a non-booklet");
+        assertTrue(shelf.contains(booklet), "Gu Atlas: Hope missing from the book tab");
+        assertTrue(shelf.contains(ModItems.KM_MORTAL_LITTLE_LIGHT_AMPLIFY.get()), "no killing move on the book tab");
+        List<Class<?>> rounds = List.of(GuRecipeItem.class, KillingMoveBookItem.class, BookletItem.class);
+        int last = 0;
+        for (Item item : shelf) {
+            int round = -1;
+            for (int at = 0; at < rounds.size(); at++) if (rounds.get(at).isInstance(item)) round = at;
+            assertTrue(round >= 0, "the book tab shows " + item + ", no book");
+            assertTrue(round >= last, item + " comes before an earlier kind of book");
+            last = round;
+        }
         for (CreativeModeTab other : List.of(ModCreativeTabs.MORTAL_GU.get(), ModCreativeTabs.GU_MATERIAL.get(),
-                ModCreativeTabs.STRENGTH_MORTAL_GU.get(), ModCreativeTabs.WOOD_MORTAL_GU.get(),
-                ModCreativeTabs.KM_MORTAL.get())) {
+                ModCreativeTabs.STRENGTH_MORTAL_GU.get(), ModCreativeTabs.WOOD_MORTAL_GU.get())) {
             assertFalse(getShown(helper, other).contains(booklet), "the booklet shows in " + other.getDisplayName());
         }
         helper.succeed();
