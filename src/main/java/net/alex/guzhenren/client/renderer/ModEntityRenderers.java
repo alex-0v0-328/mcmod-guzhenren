@@ -9,6 +9,8 @@ import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.BoarGuEntity;
 import net.alex.guzhenren.entity.gu.CrashGuEntity;
+import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -53,7 +55,8 @@ public final class ModEntityRenderers {
             new DefaultedEntityGeoModel<>(Guzhenren.id("buffalo"), false);
     private static final GeoModel<ElephantEntity> ELEPHANT_MODEL =
             new DefaultedEntityGeoModel<>(Guzhenren.id("elephant"), false);
-    private static final HumanSoulGeoModel HUMAN_SOUL_MODEL = new HumanSoulGeoModel();
+    private static final HumanSoulGeoModel<SoulTraderEntity> SOUL_TRADER_MODEL = new HumanSoulGeoModel<>();
+    private static final HumanSoulGeoModel<EarthSpiritEntity> EARTH_SPIRIT_MODEL = new HumanSoulGeoModel<>();
 
     private static final ResourceLocation WHITE_BOAR_GU = getTexture("white_boar_gu");
     private static final ResourceLocation BLACK_BOAR_GU = getTexture("black_boar_gu");
@@ -118,7 +121,9 @@ public final class ModEntityRenderers {
                 context -> createElephantRenderer(context, WHITE_ELEPHANT));
         event.registerEntityRenderer(ModEntityTypes.BEAST_PHANTOM.get(), BeastPhantomRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(),
-                context -> new SoulTraderGeoRenderer(context, HUMAN_SOUL_MODEL, SoulTraderGeoRenderer.BLUE_TEXTURE));
+                context -> new HumanSoulGeoRenderer<>(context, SOUL_TRADER_MODEL, HumanSoulGeoRenderer.BLUE_TEXTURE));
+        event.registerEntityRenderer(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get(),
+                context -> new HumanSoulGeoRenderer<>(context, EARTH_SPIRIT_MODEL, HumanSoulGeoRenderer.PINK_TEXTURE));
         event.registerEntityRenderer(ModEntityTypes.MOON_BLADE.get(), MoonBladeRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.QI_WAVE.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.BEAST_CHARGE.get(), BeastPhantomRenderer::new);

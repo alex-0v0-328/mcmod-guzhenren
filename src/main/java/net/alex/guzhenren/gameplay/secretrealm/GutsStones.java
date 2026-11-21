@@ -69,6 +69,8 @@ public final class GutsStones extends ModSavedData {
         setDirty();
     }
 
+    public long @NotNull [] positions() { return cells.keySet().toLongArray(); }
+
     public @Nullable BlockPos pickStackable(@NotNull RandomSource random) {
         LongArrayList open = new LongArrayList();
         for (Long2IntMap.Entry cell : cells.long2IntEntrySet()) {

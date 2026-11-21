@@ -1,8 +1,9 @@
 package net.alex.guzhenren.client.renderer;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Mob;
+import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
@@ -10,7 +11,7 @@ import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
 /**
- * 所有魂体交易者[Soul Trader]共用的 {@code human_soul} GeckoLib 模型，独立于所穿贴图颜色。
+ * 人魂实体（魂体交易者[Soul Trader]、地灵[Earth Spirit]）共用的 {@code human_soul} GeckoLib 模型，独立于所穿贴图颜色。
  * <ul>
  *   <li>⚠ 视线转动以叠加方式写入头部骨骼而非直接覆盖：GeckoLib 默认头部转向（启用头部骨骼的
  *       {@code DefaultedEntityGeoModel}）会直接覆盖旋转角，从而抹掉手势动画在该骨骼上打关键帧的点头与摇头；由于魂
@@ -18,7 +19,7 @@ import software.bernie.geckolib.model.data.EntityModelData;
  * </ul>
  */
 
-public final class HumanSoulGeoModel extends DefaultedEntityGeoModel<SoulTraderEntity> {
+public final class HumanSoulGeoModel<T extends Mob & GeoEntity> extends DefaultedEntityGeoModel<T> {
 
     private static final String HEAD = "head";
 
@@ -27,8 +28,8 @@ public final class HumanSoulGeoModel extends DefaultedEntityGeoModel<SoulTraderE
     }
 
     @Override
-    public void setCustomAnimations(SoulTraderEntity animatable, long instanceId,
-                                    AnimationState<SoulTraderEntity> animationState) {
+    public void setCustomAnimations(T animatable, long instanceId,
+                                    AnimationState<T> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
         GeoBone head = this.getAnimationProcessor().getBone(HEAD);
         EntityModelData data = animationState.getData(DataTickets.ENTITY_MODEL_DATA);

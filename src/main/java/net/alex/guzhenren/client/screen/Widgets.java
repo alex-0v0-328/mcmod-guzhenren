@@ -19,12 +19,13 @@ import net.minecraft.resources.ResourceLocation;
  *   <li>按钮将图形绘制与文本绘制拆分为 {@link #drawButton} 与 {@link #drawButtonLabel} 两步（返回键同理），使调用方
  *       界面的批处理能够先画完所有精灵图再统一写字；常规按钮标签默认水平居中并略下移 1 像素，特殊布局按钮可自行绘制
  *       标签。</li>
+ *   <li>{@link #isOver} 与 {@link #drawButtonLabel} 公开给 {@code client.screen} 子包（地灵面板）复用。</li>
  *   <li>物品格精灵图四周比所框 16 像素槽位各宽 1 像素；面板边框宽度固定为 {@link #FRAME} 像素，面板或弹窗内所有内容
  *       均须避让边框；弹窗精灵图右下缘外带 2 像素阴影，尺寸比其所框住的逻辑弹窗区域多出该阴影宽度。</li>
  * </ul>
  */
 
-final class Widgets {
+public final class Widgets {
 
     private Widgets() {}
 
@@ -76,7 +77,7 @@ final class Widgets {
         return !live ? BUTTON_DISABLED : hover ? BUTTON_HIGHLIGHTED : BUTTON;
     }
 
-    static void drawButtonLabel(GuiGraphics graphics, Font font, Component label, int x, int y, int width, int height,
+    public static void drawButtonLabel(GuiGraphics graphics, Font font, Component label, int x, int y, int width, int height,
                                 boolean live) {
         drawCentered(graphics, font, label, x, y, width, height, live ? ModPalette.TEXT : ModPalette.TEXT_DEAD);
     }
@@ -114,7 +115,7 @@ final class Widgets {
         return true;
     }
 
-    static boolean isOver(double mouseX, double mouseY, int x, int y, int width, int height) {
+    public static boolean isOver(double mouseX, double mouseY, int x, int y, int width, int height) {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 

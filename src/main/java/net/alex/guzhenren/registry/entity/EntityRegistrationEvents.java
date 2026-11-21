@@ -11,6 +11,7 @@ import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.TortoiseSpecies;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.FlyingGuEntity;
+import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -67,6 +68,8 @@ public final class EntityRegistrationEvents {
         event.put(ModEntityTypes.ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(ModEntityTypes.WHITE_ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(), SoulTraderEntity.createAttributes().build());
+        event.put(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get(),
+                EarthSpiritEntity.createAttributes().build());
     }
 
     private static EntityType<BearEntity> createBearType(BearSpecies species) {

@@ -6,6 +6,7 @@ import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.attribute.KnockbackResistanceService;
 import net.alex.guzhenren.gameplay.attribute.MaxHealthService;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.body.BodyData;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.data.PlayerData;
@@ -123,6 +124,7 @@ public final class PlayerDataService {
         if (player instanceof ServerPlayer server) {
             refreshBody(server);
             refreshDamage(server);
+            BlissfulLands.onReset(server);
         }
     }
 

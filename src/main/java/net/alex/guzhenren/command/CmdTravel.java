@@ -26,9 +26,9 @@ import net.minecraft.world.level.Level;
 /**
  * {@code /guworld enter <dimension> [targets]} 与 {@code /guworld exit [targets]} 子命令：进出本模组登记的锚定维度。
  * <ul>
- *   <li>权限规则：{@code enter} 仅限管理员使用；处于宝黄天[Treasure Yellow Heaven]内的任何玩家均可对自己执行无参
- *       {@code exit} 离开（因维度守卫禁止其他离开方式），而带目标参数的 {@code exit <targets>} 或从四域等其他锚定维度退
- *       出仍仅限管理员；原版跨维度传送（{@code ServerPlayer#changeDimension}）会自动重发权限与命令树，确保 {@code exit}
+ *   <li>权限规则：{@code enter} 仅限管理员使用；处于 {@link ModDimensions#allowsSelfExit} 维度（宝黄天[Treasure Yellow
+ *       Heaven]、狐仙福地[Fox Immortal Blissful Land]）内的任何玩家均可对自己执行无参 {@code exit} 离开（宝黄天的守卫禁
+ *       止其他离开方式，福地没有门户），而带目标参数的 {@code exit <targets>} 或从四域退出仍仅限管理员；原版跨维度传送（{@code ServerPlayer#changeDimension}）会自动重发权限与命令树，确保 {@code exit}
  *       可见性实时更新。</li>
  *   <li>{@code enter} 仅接受 {@link ModDimensions#ANCHORED_DIMENSIONS} 中登记的锚定维度，由
  *       {@link DimensionTravelService} 记录进入前的返回锚点；若目标维度已登记但服务端未加载对应世界（如未安装 Gu
@@ -54,16 +54,16 @@ public final class CmdTravel {
 
     public static ArgumentBuilder<CommandSourceStack, ?> exitNode(Predicate<CommandSourceStack> admin) {
         return Commands.literal("exit")
-                .requires(source -> admin.test(source) || isInsideHeaven(source))
+                .requires(source -> admin.test(source) || canExitSelf(source))
                 .executes(CmdTravel::exit)
                 .then(Commands.argument(ModCommandSupport.ARG_TARGETS, EntityArgument.players())
                         .requires(admin)
                         .executes(CmdTravel::exit));
     }
 
-    public static boolean isInsideHeaven(CommandSourceStack source) {
+    public static boolean canExitSelf(CommandSourceStack source) {
         return source.getEntity() instanceof ServerPlayer player
-                && DimensionTravelService.isInside(player, ModDimensions.TREASURE_YELLOW_HEAVEN);
+                && ModDimensions.allowsSelfExit(player.level().dimension());
     }
 
     private static CompletableFuture<Suggestions> suggestAnchoredDimensions(SuggestionsBuilder builder) {

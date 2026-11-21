@@ -4,6 +4,8 @@ import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
+import net.alex.guzhenren.gameplay.blissful.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.PanelAction;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>覆盖两个容器菜单、辅修流派设置、三种修炼动作、冲刺、二段飞行开关、坠击、功倍蛊[Amplify Effect Gu]轮盘选取、
  *       元老蛊[Primeval Elder Gu]存取、力气蛊[Strength Qi Gu]气波、蓄力蛊[Store Strength Gu]蓄力以及刃类蛊催动（可携带
- *       杀招并回传提示）。</li>
+ *       杀招并回传提示），以及地灵经营面板的全部操作（转交 {@code EarthSpiritPanel#handle} 复判主人与参数）。</li>
  *   <li>除二段飞行开关与坠击（由 {@code PlungeService#canStart} 自行判定）外，玩家位于宝黄天[Treasure Yellow Heaven]时
  *       一律通过 {@link #isOutsideTyh} 拒绝其余操作。</li>
  *   <li>所有意图载荷均来自面板按钮、移动输入或按住手势且不附带玩家数据，任何状态变更一律由服务端经同步附件或通知下
@@ -171,5 +173,10 @@ public final class ClientIntents {
         player.openMenu(new SimpleMenuProvider(
                 (id, inventory, p) -> new ApertureStorageMenu(id, inventory, aperture, 0),
                 Component.translatable(STORAGE_TITLE)), buffer -> buffer.writeVarInt(aperture));
+    }
+
+    public static void earthSpirit(@NotNull ServerPlayer player, @NotNull PanelAction action, int value,
+                                   @NotNull String text) {
+        EarthSpiritPanel.handle(player, action, value, text);
     }
 }

@@ -7,11 +7,13 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.place.PlaceTitles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
@@ -34,7 +36,8 @@ import org.jetbrains.annotations.Nullable;
  *       查实体；玩家钩子挂在 {@code Heartbeat}，不另起逐刻循环；范围内外各调一个钩子，秘境未解出时两个都不调。</li>
  *   <li>{@link #tickPlayer} 同时把玩家在不在范围内报给 {@link PlaceTitles}（地点 ID 用结构集 ID），进入时弹秘境的地名标
  *       题。</li>
- *   <li>{@link #pin} 只供 GameTest 固定或清除范围；钉住的范围不随生成状态重算，测试结束须传 {@code null} 清除。</li>
+ *   <li>{@link #pin} 只供 GameTest 把范围钉在给定维度（通常是测试所在的主世界），{@link #pinAbsent} 钉成「没有这处秘
+ *       境」；钉住的范围不随生成状态重算，{@link #dimensionOf} 随之返回钉住的维度，测试结束须调 {@link #unpin}。</li>
  * </ul>
  */
 
@@ -45,23 +48,29 @@ public final class SecretRealms {
     public static final int PLAYER_MARGIN = 32;
     public static final List<SecretRealm> ALL = List.of(SoulsunderMountain.INSTANCE);
     private static final Map<SecretRealm, Resolved> SITES = new HashMap<>();
+    private static final Map<SecretRealm, Pin> PINS = new HashMap<>();
 
-    private record Resolved(@Nullable ChunkGeneratorStructureState state, @Nullable RealmSite site, boolean settled,
+    private record Resolved(@NotNull ChunkGeneratorStructureState state, @Nullable RealmSite site, boolean settled,
                             int checkedAt) {
 
-        static Resolved settled(@Nullable ChunkGeneratorStructureState state, @Nullable RealmSite site) {
+        static Resolved settled(@NotNull ChunkGeneratorStructureState state, @Nullable RealmSite site) {
             return new Resolved(state, site, true, 0);
         }
     }
 
+    private record Pin(@Nullable ResourceKey<Level> dimension, @Nullable RealmSite site) {}
+
     //region Lookup [定位]
     public static @Nullable RealmSite siteOf(@NotNull MinecraftServer server, @NotNull SecretRealm realm) {
+        Pin pin = PINS.get(realm);
+        if (pin != null) return pin.site();
+
         ServerLevel level = server.getLevel(realm.dimension());
         if (level == null) return null;
 
         ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
         Resolved resolved = SITES.get(realm);
-        boolean current = resolved != null && (resolved.state() == null || resolved.state() == state);
+        boolean current = resolved != null && resolved.state() == state;
         if (current && resolved.settled()) return resolved.site();
         if (current && server.getTickCount() - resolved.checkedAt() < Ticks.SECOND) return null;
 
@@ -70,22 +79,30 @@ public final class SecretRealms {
         return resolved.settled() ? resolved.site() : null;
     }
 
+    public static @NotNull ResourceKey<Level> dimensionOf(@NotNull SecretRealm realm) {
+        Pin pin = PINS.get(realm);
+        return pin != null && pin.dimension() != null ? pin.dimension() : realm.dimension();
+    }
+
     public static @Nullable RealmSite siteAround(@NotNull ServerLevel level, @NotNull SecretRealm realm,
                                                  double x, double z) {
-        if (level.dimension() != realm.dimension()) return null;
+        if (level.dimension() != dimensionOf(realm)) return null;
         RealmSite site = siteOf(level.getServer(), realm);
         return site != null && site.contains(x, z) ? site : null;
     }
 
-    public static void pin(@NotNull SecretRealm realm, @Nullable RealmSite site) {
-        if (site == null) {
-            SITES.remove(realm);
-        } else {
-            SITES.put(realm, Resolved.settled(null, site));
-        }
+    public static void pin(@NotNull SecretRealm realm, @NotNull ServerLevel level, @NotNull RealmSite site) {
+        PINS.put(realm, new Pin(level.dimension(), site));
     }
 
-    public static void clear() { SITES.clear(); }
+    public static void pinAbsent(@NotNull SecretRealm realm) { PINS.put(realm, new Pin(null, null)); }
+
+    public static void unpin(@NotNull SecretRealm realm) { PINS.remove(realm); }
+
+    public static void clear() {
+        SITES.clear();
+        PINS.clear();
+    }
 
     private static Resolved resolve(MinecraftServer server, ServerLevel level, SecretRealm realm,
                                     ChunkGeneratorStructureState state) {
@@ -118,7 +135,7 @@ public final class SecretRealms {
             RealmSite site = siteOf(player.server, realm);
             if (site == null) continue;
 
-            boolean inside = player.level().dimension() == realm.dimension() && site.contains(player);
+            boolean inside = player.level().dimension() == dimensionOf(realm) && site.contains(player);
             PlaceTitles.update(player, realm.structureSet().location(), inside, realm.title());
             if (inside) realm.tickPlayer(player, site);
             else realm.tickPlayerAway(player, site);
@@ -132,7 +149,7 @@ public final class SecretRealms {
             RealmSite site = siteOf(server, realm);
             if (site == null) continue;
 
-            ServerLevel level = server.getLevel(realm.dimension());
+            ServerLevel level = server.getLevel(dimensionOf(realm));
             if (level != null && hasPlayerNear(level, site)) realm.tickArea(level, site);
         }
     }

@@ -1,0 +1,139 @@
+package net.alex.guzhenren.client.screen.blissful;
+
+import java.util.List;
+import net.alex.guzhenren.client.SpriteBatch;
+import net.alex.guzhenren.client.screen.Widgets;
+import net.alex.guzhenren.gameplay.blissful.PanelAction;
+import net.alex.guzhenren.gameplay.blissful.PanelSnapshot;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+
+/**
+ * 「种植」页：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），标准田数与「开垦」，底部托管开关与「收割并补
+ * 种」。
+ * <ul>
+ *   <li>「开垦」一行是美术稿之后加的（稿子先于开垦功能），列表因此比稿子少一行，一屏 {@value #VISIBLE} 行。</li>
+ *   <li>开垦冷却中或田区已满时按钮失效；冷却中文字换成剩余秒数。</li>
+ * </ul>
+ */
+
+final class FarmPage extends PanelPage {
+
+    private static final String UI = EarthSpiritScreen.UI;
+    private static final int LIST_Y = 31;
+    private static final int ROW_H = 20;
+    private static final int VISIBLE = 6;
+    private static final int LIST_H = VISIBLE * ROW_H + 2;
+    private static final int RECLAIM_Y = 157;
+    private static final int BUTTON_X = 98;
+    private static final int BUTTON_W = 70;
+    private static final int BUTTON_H = 20;
+    private static final int SWITCH_Y = 197;
+    private static final int HARVEST_Y = 192;
+    private static final int RATIO_X = 136;
+    private static final int RATIO_W = 26;
+    private int offset;
+
+    FarmPage(EarthSpiritScreen screen) { super(screen); }
+
+    @Override
+    Component name() { return Component.translatable(UI + "tab.farming"); }
+
+    private List<PanelSnapshot.Crop> crops() { return snapshot().crops(); }
+
+    private boolean canReclaim() {
+        PanelSnapshot snapshot = snapshot();
+        return snapshot.reclaimCooldown() == 0 && snapshot.fields() < snapshot.fieldCapacity();
+    }
+
+    @Override
+    void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+        sprites.blit(PanelKit.WELL, x + 8, y + LIST_Y, 160, LIST_H);
+        List<PanelSnapshot.Crop> crops = crops();
+        offset = PanelKit.clampScroll(offset, VISIBLE, crops.size());
+        boolean scrolling = crops.size() > VISIBLE;
+        int rowW = scrolling ? 150 : 158;
+        for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
+            PanelSnapshot.Crop crop = crops.get(offset + i);
+            int top = y + LIST_Y + 1 + i * ROW_H;
+            PanelKit.row(sprites, x + 9, top, rowW, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, rowW, ROW_H));
+            int total = crop.mature() + crop.growing();
+            int filled = total == 0 ? 0 : (RATIO_W - 2) * crop.mature() / total;
+            sprites.blit(PanelKit.BAR_BACKGROUND, x + RATIO_X - (scrolling ? 8 : 0), top + 7, RATIO_W, 6);
+            sprites.blit(PanelKit.BAR_FILL, x + RATIO_X - (scrolling ? 8 : 0) + 1, top + 8, filled, 4,
+                    PanelKit.ACCENT);
+        }
+        if (scrolling) {
+            PanelKit.scrollbar(sprites, x + 160, y + LIST_Y + 1, LIST_H - 2, offset, VISIBLE, crops.size(),
+                    Widgets.isOver(mouseX, mouseY, x + 160, y + LIST_Y + 1, 6, LIST_H - 2));
+        }
+        PanelKit.button(sprites, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H, canReclaim(), mouseX, mouseY);
+        PanelKit.toggle(sprites, x + 8, y + SWITCH_Y, snapshot().farmHosting(), true, mouseX, mouseY);
+        PanelKit.button(sprites, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
+    }
+
+    @Override
+    void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+        PanelSnapshot snapshot = snapshot();
+        graphics.drawString(font(), Component.translatable(UI + "crop"), x + 12, y + 21, PanelKit.LEGEND, false);
+        PanelKit.right(graphics, font(), Component.translatable(UI + "mature"), x + 100, y + 21, PanelKit.LEGEND);
+        PanelKit.right(graphics, font(), Component.translatable(UI + "growing"), x + 130, y + 21, PanelKit.LEGEND);
+        List<PanelSnapshot.Crop> crops = crops();
+        int shift = crops.size() > VISIBLE ? 8 : 0;
+        for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
+            PanelSnapshot.Crop crop = crops.get(offset + i);
+            int top = y + LIST_Y + 1 + i * ROW_H;
+            Block block = BuiltInRegistries.BLOCK.get(crop.block());
+            graphics.drawString(font(), block.getName(), x + 30, top + 6, PanelKit.TEXT, false);
+            PanelKit.right(graphics, font(), Integer.toString(crop.mature()), x + 100 - shift, top + 6, PanelKit.TEXT);
+            PanelKit.right(graphics, font(), Integer.toString(crop.growing()), x + 130 - shift, top + 6,
+                    PanelKit.LEGEND);
+        }
+        graphics.drawString(font(), Component.translatable(UI + "fields", snapshot.fields(), snapshot.fieldCapacity()),
+                x + 8, y + RECLAIM_Y + 6, PanelKit.LEGEND, false);
+        Component reclaim = snapshot.reclaimCooldown() > 0
+                ? Component.translatable(UI + "cooldown", snapshot.reclaimCooldown())
+                : Component.translatable(UI + "reclaim");
+        PanelKit.label(graphics, font(), reclaim, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H, canReclaim());
+        graphics.drawString(font(), Component.translatable(UI + "auto_harvest"), x + 30, y + SWITCH_Y + 1,
+                PanelKit.TEXT, false);
+        PanelKit.label(graphics, font(), Component.translatable(UI + "harvest"), x + BUTTON_X, y + HARVEST_Y,
+                BUTTON_W, BUTTON_H, true);
+    }
+
+    @Override
+    void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+        List<PanelSnapshot.Crop> crops = crops();
+        for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
+            Block block = BuiltInRegistries.BLOCK.get(crops.get(offset + i).block());
+            graphics.renderItem(new ItemStack(block.asItem()), x + 11, y + LIST_Y + 1 + i * ROW_H + 2);
+        }
+    }
+
+    @Override
+    boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
+        if (Widgets.isOver(mouseX, mouseY, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H)) {
+            if (canReclaim()) screen.send(PanelAction.RECLAIM, 0, "");
+            return true;
+        }
+        if (Widgets.isOver(mouseX, mouseY, x + 8, y + SWITCH_Y, PanelKit.SWITCH_W, PanelKit.SWITCH_H)) {
+            screen.send(PanelAction.FARM_HOSTING, snapshot().farmHosting() ? 0 : 1, "");
+            return true;
+        }
+        if (Widgets.isOver(mouseX, mouseY, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H)) {
+            screen.send(PanelAction.HARVEST, 0, "");
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+        if (!Widgets.isOver(mouseX, mouseY, x + 8, y + LIST_Y, 160, LIST_H)) return false;
+        offset = PanelKit.clampScroll(offset - (int) Math.signum(delta), VISIBLE, crops().size());
+        return true;
+    }
+}

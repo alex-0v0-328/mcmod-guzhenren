@@ -437,7 +437,7 @@ public final class SecretRealmGameTests {
     //region Pinned site [钉住山心]
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void gutsGuOnlyWorksInsideAndTheHeartbeatDrainsSoul(GameTestHelper helper) {
-        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        pinSite(helper);
         try {
             GameTestPlayers.ground(helper);
             ServerPlayer player = GameTestGu.awakened(
@@ -474,13 +474,13 @@ public final class SecretRealmGameTests {
                     "outside the heartbeat dissolves the Gu");
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void theHeartbeatShowsTheRealmTitleOnceOnEntry(GameTestHelper helper) {
-        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        pinSite(helper);
         List<PlaceTitle> shown = new ArrayList<>();
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-realm-title-mock").at(new Vec3(8.5D, 1.0D, 8.5D));
         Consumer<PlaceTitleEvent> listener = event -> {
@@ -501,14 +501,14 @@ public final class SecretRealmGameTests {
             helper.succeed();
         } finally {
             NeoForge.EVENT_BUS.unregister(listener);
-            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH, skyAccess = true)
     public static void deathsInsideLeaveAGutsStoneAndOutsideNone(GameTestHelper helper) {
         layStonePad(helper);
-        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        pinSite(helper);
         try {
             GutsStones stones = GutsStones.get(helper.getLevel());
             int before = stones.total();
@@ -520,13 +520,13 @@ public final class SecretRealmGameTests {
             helper.assertValueEqual(stones.total(), before + 1, "a zombie dying inside leaves one stone");
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void theHeartbeatRefreshesAnOpenStoreAfterDissolving(GameTestHelper helper) {
-        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        pinSite(helper);
         try {
             ServerPlayer player = GameTestGu.awakened(
                     GameTestPlayers.survival(helper, "gzr-guts-menu-mock").at(new Vec3(8.5D, 1.0D, 8.5D)), Rank.ONE);
@@ -543,13 +543,13 @@ public final class SecretRealmGameTests {
             player.containerMenu = player.inventoryMenu;
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void droppedGutsGuVanishOutsideTheMountain(GameTestHelper helper) {
-        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        pinSite(helper);
         try {
             ItemEntity inside = dropGuts(helper, CENTER);
             ItemEntity outside = dropGuts(helper, new Vec3(8.5D, 1.0D, 8.5D));
@@ -557,14 +557,21 @@ public final class SecretRealmGameTests {
             helper.assertTrue(outside.isRemoved(), "a Guts Gu dropped outside vanishes on its next check");
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void withoutAMountainGutsGuIsRefusedButNeverDissolves(GameTestHelper helper) {
-        helper.assertTrue(SecretRealms.siteOf(helper.getLevel().getServer(), SoulsunderMountain.INSTANCE) == null,
-                "the flat test world has no soulsunder mountain ring");
+        SecretRealms.pinAbsent(SoulsunderMountain.INSTANCE);
+        try {
+            withoutAMountain(helper);
+        } finally {
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
+        }
+    }
+
+    private static void withoutAMountain(GameTestHelper helper) {
         ServerPlayer player = GameTestGu.awakened(GameTestPlayers.survival(helper, "gzr-guts-free-mock").at(CENTER),
                 Rank.ONE);
         long max = SoulService.get(player).maxSoul();
@@ -581,6 +588,11 @@ public final class SecretRealmGameTests {
         helper.succeed();
     }
     //endregion
+
+    private static void pinSite(GameTestHelper helper) {
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, helper.getLevel(),
+                new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+    }
 
     private static int collectDrops(ServerLevel level, BlockPos pos) {
         int drops = 0;

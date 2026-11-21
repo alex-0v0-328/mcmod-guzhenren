@@ -4,6 +4,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureEssenceService;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.AperturePressureService;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.body.ShieldService;
 import net.alex.guzhenren.gameplay.body.SkinService;
@@ -65,7 +66,8 @@ import net.minecraft.server.level.ServerPlayer;
  *   <li>{@code MindService.regenStep}：必须在第 (8) 步之后执行，以反映僵尸每 5 秒产生一次念头的规则。</li>
  *   <li>{@code AutoUse.tryStart}：必须在第 (13) 步之后执行，使自动催动能够使用本秒刚回复的真元。</li>
  *   <li>{@code SecretRealms.tickPlayer}：天地秘境[Secret Realm]范围内外的每秒钩子（荡魂山内每 10 秒扣一次当前魂魄，山
- *       外清除胆识蛊）；必须在第 (18) 步之前，使快照含本拍扣魂，且在第 (20) 步之前，使扣到 0 当拍按魂魄衰竭处死；之后若开着空窍存储界面再刷新一次，免得旧视图把刚清掉的胆识蛊写回。</li>
+ *       外清除胆识蛊）；必须在第 (18) 步之前，使快照含本拍扣魂，且在第 (20) 步之前，使扣到 0 当拍按魂魄衰竭处死；之后若开着空窍存储界面再刷新一次，免得旧视图把刚清掉的胆识蛊写回。紧接着
+ *       {@code BlissfulLands.tickPlayer} 判定福地[Blissful Land]认主（同属本步，不另编号）。</li>
  *   <li>{@code AsBeforeGuItem.remember}：必须在第 (8)、(12)、(15)、(17) 步之后记录本秒已结算的身体快照（含临时僵尸、寿
  *       元耗尽与念头状态），且必须在第 (20) 步前完成，以便按原样保留濒死瞬间状态。</li>
  *   <li>{@code AperturePressureService.tick}：内部自控每分钟推进与爆炸倒计时，满压后交由第 (20) 步结算。</li>
@@ -103,6 +105,7 @@ public final class Heartbeat {
         MindService.regenStep(player, beat);
         AutoUse.tryStart(player);
         SecretRealms.tickPlayer(player);
+        BlissfulLands.tickPlayer(player);
         if (player.containerMenu instanceof ApertureStorageMenu menu) menu.refresh();
         AsBeforeGuItem.remember(player);
         AperturePressureService.tick(player);

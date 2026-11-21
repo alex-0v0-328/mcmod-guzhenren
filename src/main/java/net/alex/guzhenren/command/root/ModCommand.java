@@ -25,8 +25,8 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /gzr} 通过 Brigadier {@code redirect} 指向 {@code /guzhenren} 根节点，重定向后的参数全部解析在子上下文中
  *       （参见 {@link net.alex.guzhenren.command.ModEnumArgument}）。</li>
  *   <li>维度进出命令挂载在独立的 {@code /guworld} 根节点下（{@link CmdTravel}）：{@code enter} 要求权限等级 2；处
- *       于宝黄天[Treasure Yellow Heaven]内的任何玩家均可对自己执行无参 {@code exit} 离开，在其余维度或指定他人为目标时
- *       仍要求权限等级 2。</li>
+ *       于宝黄天[Treasure Yellow Heaven]或狐仙福地[Fox Immortal Blissful Land]内的任何玩家均可对自己执行无参
+ *       {@code exit} 离开，在四域或指定他人为目标时仍要求权限等级 2。</li>
  * </ul>
  */
 
@@ -59,7 +59,7 @@ public final class ModCommand {
                 .redirect(root));
 
         dispatcher.register(Commands.literal("guworld")
-                .requires(source -> isAdmin(source) || CmdTravel.isInsideHeaven(source))
+                .requires(source -> isAdmin(source) || CmdTravel.canExitSelf(source))
                 .then(CmdTravel.enterNode().requires(ModCommand::isAdmin))
                 .then(CmdTravel.exitNode(ModCommand::isAdmin)));
     }

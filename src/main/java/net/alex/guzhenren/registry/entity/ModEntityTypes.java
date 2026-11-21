@@ -18,6 +18,8 @@ import net.alex.guzhenren.entity.gu.HopeGuEntity;
 import net.alex.guzhenren.entity.projectile.BeastChargeEntity;
 import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
 import net.alex.guzhenren.entity.projectile.QiWaveEntity;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTrader;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -36,7 +38,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *   <li>自然生成与战斗实体包括希望蛊（自带实体光点散发）、3 种豕蛊、4 种犀牛甲虫蛊变体，以及野猪、4 种熊、2 种虎、2 种
  *       龟、3 种牛与 2 种象等野兽（徒手右键即可捕获野生蛊且不以开窍[Awakening]为门槛，野猪不可捕获）；月刃、气
  *       波与兽力[Beast Strength]冲撞为投射物，兽力虚影（{@link BeastPhantomEntity}）仅作视觉展示而不持久化存档；每个
- *       {@link SoulTrader} 对应一个免疫火焰的杂项实体，无自然生成规则，仅支持 {@code /summon} 召唤。</li>
+ *       {@link SoulTrader} 对应一个免疫火焰的杂项实体，无自然生成规则，仅支持 {@code /summon} 召唤；每个福地一个地灵
+ *       （{@code earth_spirit_<福地 id>}，同魂商尺寸），由福地在行宫生成，不自然生成。</li>
  *   <li>⚠ 每个活体生物实体均须在 {@code assets/ftblibrary/textures/faces/guzhenren/} 下提供一份 {@code <实体 id>.json}
  *       或 {@code .png} 作为 FTB Chunks 小地图头像（两者并存时 FTB Library 仅读取 JSON，故只保留一份；缺失会导致开发环
  *       境打印 ERROR 且小地图退化为通用圆点，{@code MISC} 杂项实体未配置则不绘制）。</li>
@@ -141,6 +144,11 @@ public final class ModEntityTypes {
             registerSoulTrader(SoulTrader.TEST_TRADE_GU_IMMORTAL);
     //endregion
 
+    //region Earth spirits [地灵]
+    public static final DeferredHolder<EntityType<?>, EntityType<EarthSpiritEntity>>
+            EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND = registerEarthSpirit(BlissfulLand.FOX_IMMORTAL);
+    //endregion
+
     //region Projectiles [投射物]
     public static final DeferredHolder<EntityType<?>, EntityType<MoonBladeEntity>> MOON_BLADE =
             ENTITY_TYPES.register("moon_blade", () -> EntityType.Builder.of(MoonBladeEntity::new,
@@ -202,6 +210,17 @@ public final class ModEntityTypes {
                 .fireImmune()
                 .clientTrackingRange(TRACKING_CHUNKS)
                 .build(trader.getId()));
+    }
+
+    private static DeferredHolder<EntityType<?>, EntityType<EarthSpiritEntity>> registerEarthSpirit(
+            BlissfulLand land) {
+        String id = "earth_spirit_" + land.id();
+        return ENTITY_TYPES.register(id, () -> EntityType.Builder
+                .<EarthSpiritEntity>of((type, level) -> new EarthSpiritEntity(type, level, land), MobCategory.MISC)
+                .sized(SOUL_TRADER_WIDTH, SOUL_TRADER_HEIGHT)
+                .fireImmune()
+                .clientTrackingRange(TRACKING_CHUNKS)
+                .build(id));
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<BoarGuEntity>> registerBoarGu(

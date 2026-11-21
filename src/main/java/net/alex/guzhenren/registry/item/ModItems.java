@@ -25,6 +25,7 @@ import net.alex.guzhenren.gameplay.path.strength.HumanStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthData;
 import net.alex.guzhenren.gameplay.path.strength.StrengthPathBranch;
 import net.alex.guzhenren.gameplay.rewind.ChunkKind;
+import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.Booklet;
 import net.alex.guzhenren.item.BookletItem;
@@ -800,7 +801,7 @@ public final class ModItems {
     public static final DeferredItem<Item> GUTS_GU_1 = REGISTRAR.item("guts_gu_1",
             () -> new OneShotGuItem(GuProperties.of(Rank.ONE, GuPath.SOUL)
                     .type(GuType.CULTIVATION),
-                    new SoulCapBehavior(10)))
+                    new SoulCapBehavior(SoulsunderMountain.GUTS_GU_SOUL_BONUS)))
             .lang("一转胆识蛊").register();
     //endregion
 

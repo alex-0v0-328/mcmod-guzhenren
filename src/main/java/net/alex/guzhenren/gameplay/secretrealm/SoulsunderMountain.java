@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.secretrealm;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.Rank;
@@ -13,6 +14,7 @@ import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.alex.guzhenren.registry.item.ModItems;
+import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.registries.Registries;
@@ -35,12 +37,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 荡魂山[Soulsunder Mountain]：主世界中州唯一的半透明山，由 Gu World 结构集 {@code guworld:soulsunder_mountain} 定位；
- * 九转魂道秘境（{@link #rank}、{@link #path}）。
+ * 荡魂山[Soulsunder Mountain]：狐仙福地[Fox Immortal Blissful Land]中心唯一的半透明山，由 Gu World 结构集
+ * {@code guworld:soulsunder_mountain} 定位；九转魂道秘境（{@link #rank}、{@link #path}）。
  * <ul>
  *   <li>范围为山心水平 {@value #RADIUS} 格圆柱。玩家每 10 秒（{@code tickCount} 为 {@value #SOUL_DRAIN_INTERVAL_TICKS}
- *       刻整倍的心跳）扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由
- *       {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
+ *       刻整倍的心跳）扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由 {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；
+ *       扣之前发 {@link SoulsunderShakeEvent}，被取消就不扣。其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
  *       {@link ModDamageTypes#SOULSUNDER}（穿甲、无击退），不刻更新的区块里的生物不扣。创造、旁观模式与
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 免疫。</li>
  *   <li>范围内生命上限不低于 {@value #MIN_MAX_HEALTH} 的生物死亡后，{@link #leaveGutsStone} 经 {@link #growGutsStone} 在山心
@@ -75,6 +77,7 @@ public final class SoulsunderMountain implements SecretRealm {
     public static final int GUTS_STONE_RADIUS = 80;
     public static final int GUTS_STONE_CAP = 128;
     public static final int GROW_ATTEMPTS = 8;
+    public static final int GUTS_GU_SOUL_BONUS = 10;
     public static final String MSG_GUTS_GU_DISSOLVED = "guzhenren.item.gu.dissolved_outside_soulsunder";
     public static final String NAME_KEY = "guzhenren.place.soulsunder_mountain";
     /** 荡魂山石贴图的主色。 */
@@ -84,7 +87,7 @@ public final class SoulsunderMountain implements SecretRealm {
     private SoulsunderMountain() {}
 
     @Override
-    public @NotNull ResourceKey<Level> dimension() { return Level.OVERWORLD; }
+    public @NotNull ResourceKey<Level> dimension() { return ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND; }
 
     @Override
     public @NotNull ResourceKey<StructureSet> structureSet() { return STRUCTURE_SET; }
@@ -143,7 +146,7 @@ public final class SoulsunderMountain implements SecretRealm {
 
     public static boolean dissolvesAt(@NotNull ServerLevel level, @NotNull Entity entity) {
         RealmSite site = SecretRealms.siteOf(level.getServer(), INSTANCE);
-        return site != null && (level.dimension() != INSTANCE.dimension() || !site.contains(entity));
+        return site != null && (level.dimension() != SecretRealms.dimensionOf(INSTANCE) || !site.contains(entity));
     }
 
     public static int dissolveGutsGu(@NotNull ServerPlayer player) {
@@ -189,6 +192,9 @@ public final class SoulsunderMountain implements SecretRealm {
     //region Effects [效果]
     public static void drainSoul(@NotNull ServerPlayer player) {
         if (player.isCreative() || player.isSpectator()) return;
+        SoulsunderShakeEvent shake = new SoulsunderShakeEvent(player);
+        ModEvents.post(shake);
+        if (shake.isCanceled()) return;
         SoulService.addCurrent(player, -SOUL_DRAIN);
     }
 
@@ -248,7 +254,7 @@ public final class SoulsunderMountain implements SecretRealm {
         return pos;
     }
 
-    private static @Nullable BlockPos findGrowSpot(ServerLevel level, int x, int z) {
+    public static @Nullable BlockPos findGrowSpot(@NotNull ServerLevel level, int x, int z) {
         if (!level.hasChunk(x >> 4, z >> 4)) return null;
 
         BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);

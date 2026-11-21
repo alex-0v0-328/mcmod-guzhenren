@@ -3,24 +3,26 @@ package net.alex.guzhenren.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Mob;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
 /**
- * 魂体交易者[Soul Trader]渲染器：以半透明形态渲染 {@code human_soul} 模型。
+ * 人魂渲染器：以半透明形态渲染 {@code human_soul} 模型，魂体交易者[Soul Trader]与地灵[Earth Spirit]共用，每个实体类型
+ * 只换贴图（蓝色交易魂、粉色地灵）。
  * <ul>
  *   <li>每个实例注入各自固定的颜色贴图并共用同一张眼部发光遮罩；隐身交易者回退至 GeckoLib 自带的隐身与发光分支；关
  *       闭地面阴影、受击或死亡染红及原版死亡倾倒，改由 {@code animation.disappear} 淡出。</li>
@@ -35,27 +37,28 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
  * </ul>
  */
 
-public final class SoulTraderGeoRenderer extends GeoEntityRenderer<SoulTraderEntity> {
+public final class HumanSoulGeoRenderer<T extends Mob & GeoEntity> extends GeoEntityRenderer<T> {
 
     public static final ResourceLocation BLUE_TEXTURE = Guzhenren.id("textures/entity/human_soul_blue.png");
+    public static final ResourceLocation PINK_TEXTURE = Guzhenren.id("textures/entity/human_soul_pink.png");
     public static final ResourceLocation GLOW_MASK = Guzhenren.id("textures/entity/human_soul_glowmask.png");
     private static final float EYE_LIFT = 0.08F;
     private static final float EYE_HEIGHT = 28.5F / 16.0F;
     private final ResourceLocation texture;
 
-    public SoulTraderGeoRenderer(EntityRendererProvider.Context context, GeoModel<SoulTraderEntity> model,
+    public HumanSoulGeoRenderer(EntityRendererProvider.Context context, GeoModel<T> model,
                                  ResourceLocation texture) {
         super(context, model);
         this.shadowRadius = 0.0F;
         this.texture = texture;
-        this.addRenderLayer(new EyeGlowLayer(this));
+        this.addRenderLayer(new EyeGlowLayer<>(this));
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull SoulTraderEntity entity) { return this.texture; }
+    public @NotNull ResourceLocation getTextureLocation(@NotNull T entity) { return this.texture; }
 
     @Override
-    public @Nullable RenderType getRenderType(SoulTraderEntity animatable, ResourceLocation texture,
+    public @Nullable RenderType getRenderType(T animatable, ResourceLocation texture,
                                               @Nullable MultiBufferSource bufferSource, float partialTick) {
         if (animatable.isInvisible()) return super.getRenderType(animatable, texture, bufferSource, partialTick);
 
@@ -63,19 +66,19 @@ public final class SoulTraderGeoRenderer extends GeoEntityRenderer<SoulTraderEnt
     }
 
     @Override
-    public int getPackedOverlay(SoulTraderEntity animatable, float u, float partialTick) {
+    public int getPackedOverlay(T animatable, float u, float partialTick) {
         return OverlayTexture.NO_OVERLAY;
     }
 
     @Override
-    protected float getDeathMaxRotation(@NotNull SoulTraderEntity entity) { return 0.0F; }
+    protected float getDeathMaxRotation(@NotNull T entity) { return 0.0F; }
 
-    private static final class EyeGlowLayer extends GeoRenderLayer<SoulTraderEntity> {
+    private static final class EyeGlowLayer<T extends Mob & GeoEntity> extends GeoRenderLayer<T> {
 
-        EyeGlowLayer(SoulTraderGeoRenderer renderer) { super(renderer); }
+        EyeGlowLayer(HumanSoulGeoRenderer<T> renderer) { super(renderer); }
 
         @Override
-        public void render(PoseStack poseStack, SoulTraderEntity animatable, BakedGeoModel bakedModel,
+        public void render(PoseStack poseStack, T animatable, BakedGeoModel bakedModel,
                            @Nullable RenderType renderType, MultiBufferSource bufferSource,
                            @Nullable VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
             if (animatable.isInvisible()) return;

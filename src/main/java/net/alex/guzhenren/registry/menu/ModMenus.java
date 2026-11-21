@@ -1,6 +1,7 @@
 package net.alex.guzhenren.registry.menu;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.blissful.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.trade.SoulTradeMenu;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
@@ -33,6 +34,9 @@ public final class ModMenus {
                     FeatureFlags.DEFAULT_FLAGS));
     public static final DeferredHolder<MenuType<?>, MenuType<SoulTradeMenu>> SOUL_TRADE_MENU =
             MENUS.register("soul_trade_menu", () -> IMenuTypeExtension.create(SoulTradeMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<EarthSpiritMenu>> EARTH_SPIRIT_MENU =
+            MENUS.register("earth_spirit_menu", () -> IMenuTypeExtension.create(EarthSpiritMenu::new));
 
     public static void register(IEventBus modEventBus) {
         MENUS.register(modEventBus);

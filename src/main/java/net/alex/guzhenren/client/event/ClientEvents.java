@@ -28,12 +28,14 @@ import net.alex.guzhenren.client.screen.KnownRecipes;
 import net.alex.guzhenren.client.screen.PlayerInfoScreen;
 import net.alex.guzhenren.client.screen.RefinementScreen;
 import net.alex.guzhenren.client.screen.SoulTradeScreen;
+import net.alex.guzhenren.client.screen.blissful.EarthSpiritScreen;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.compat.TravelersTitlesIntegration;
 import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.gu.mortal.path.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
+import net.alex.guzhenren.network.payload.EarthSpiritPanelPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
 import net.alex.guzhenren.network.payload.PlaceTitlePayload;
@@ -150,6 +152,7 @@ public final class ClientEvents {
             ModPayloads.handleOnClient(KillingMoveTooltipPayload.class, KillingMoveTooltipHud.INSTANCE::show);
             ModPayloads.handleOnClient(StoreStrengthNoticePayload.class, StoreStrengthInput::onNotice);
             ModPayloads.handleOnClient(PlaceTitlePayload.class, PlaceTitleHud.INSTANCE::show);
+            ModPayloads.handleOnClient(EarthSpiritPanelPayload.class, EarthSpiritScreen::onPanel);
             BookletItem.readOnClient(BookletScreen::open);
             GuRecipeItem.readOnClient(BookletScreen::openRecipe);
             GuRecipeItem.lookUpOnClient(KnownRecipes::find, KnownRecipes::getIds);
@@ -176,6 +179,7 @@ public final class ClientEvents {
         event.register(ModMenus.APERTURE_STORAGE_MENU.get(), ApertureStorageScreen::new);
         event.register(ModMenus.REFINEMENT_MENU.get(), RefinementScreen::new);
         event.register(ModMenus.SOUL_TRADE_MENU.get(), SoulTradeScreen::new);
+        event.register(ModMenus.EARTH_SPIRIT_MENU.get(), EarthSpiritScreen::new);
     }
 
     @SubscribeEvent

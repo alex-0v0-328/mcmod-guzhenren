@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.alex.guzhenren.network.payload.DashPayload;
+import net.alex.guzhenren.network.payload.EarthSpiritActionPayload;
+import net.alex.guzhenren.network.payload.EarthSpiritPanelPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
@@ -51,7 +53,7 @@ public final class ModPayloads {
 
     private ModPayloads() {}
 
-    private static final String VERSION = "2";
+    private static final String VERSION = "3";
     private static final Map<Class<?>, Consumer<?>> CLIENT_HANDLERS = new HashMap<>();
 
     @SubscribeEvent
@@ -83,11 +85,14 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.storeStrength(player, intent.action(), intent.target()));
         toServer(registrar, PrimevalElderPayload.TYPE, PrimevalElderPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.primevalElder(player, intent.action(), intent.stacks()));
+        toServer(registrar, EarthSpiritActionPayload.TYPE, EarthSpiritActionPayload.STREAM_CODEC,
+                (intent, player) -> ClientIntents.earthSpirit(player, intent.action(), intent.value(), intent.text()));
         toClient(registrar, SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC);
         toClient(registrar, ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC);
         toClient(registrar, KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC);
         toClient(registrar, StoreStrengthNoticePayload.TYPE, StoreStrengthNoticePayload.STREAM_CODEC);
         toClient(registrar, PlaceTitlePayload.TYPE, PlaceTitlePayload.STREAM_CODEC);
+        toClient(registrar, EarthSpiritPanelPayload.TYPE, EarthSpiritPanelPayload.STREAM_CODEC);
     }
 
     /** 登记客户端如何处理 {@code noticeClass} 类通知；只在客户端初始化时调用。 */

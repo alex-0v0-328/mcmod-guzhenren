@@ -19,11 +19,14 @@ import net.minecraft.world.phys.Vec3;
  *   <li>{@link AnchoredDimension} 描述 {@code /guworld enter} 的合法目标（进入后应通过 {@code /guworld exit} 沿记录点返
  *       回）：{@link #spawn} 为固定目标坐标，{@link #rank} 标明转数（6–7 为福地、8–9 为洞天，凡间记 0），
  *       {@link #timeRate} 为相对主世界的时间流速倍率（乘入 {@code TimeFlow#getRate}，暂均为 1.0）。</li>
+ *   <li>{@link #allowsSelfExit}：站在宝黄天或狐仙福地里的玩家可以不要权限，对自己用不带参数的 {@code /guworld exit} 离
+ *       开（宝黄天的守卫不给别的出路；福地没有门户，Alex 定与宝黄天一致）；四域仍要权限 2。</li>
  *   <li>{@link Arrival#FLIGHT} 降落在固定坐标并授予区域飞行权限，{@link Arrival#SURFACE} 则忽略坐标 y 值、降落在该柱面
  *       最高的阻挡移动或含流体方块顶面且不授予飞行。</li>
  *   <li>{@link #ANCHORED_DIMENSIONS} 作为安全白名单：宝黄天[Treasure Yellow Heaven]为以飞行进入的八转洞天，凡间四地区
- *       （南疆、西漠、东海、北原）则步行进入并落于原点上方地表（东海若原点无岛则落于海面）；后续新增福地与洞天统一在此
- *       登记。</li>
+ *       （南疆、西漠、东海、北原）则步行进入并落于原点上方地表（东海若原点无岛则落于海面）；六转狐仙福地[Fox Immortal
+ *       Blissful Land]步行进入，落在山心正南 160 格的草原地表（原点那一列是荡魂山巅）；后续新增福地与洞天统一在此登
+ *       记。</li>
  * </ul>
  */
 
@@ -37,6 +40,9 @@ public final class ModDimensions {
     public static final ResourceKey<Level> WESTERN_DESERT = createGuWorldLevel("western_desert");
     public static final ResourceKey<Level> EASTERN_SEA = createGuWorldLevel("eastern_sea");
     public static final ResourceKey<Level> NORTHERN_PLAINS = createGuWorldLevel("northern_plains");
+    public static final ResourceKey<Level> FOX_IMMORTAL_BLISSFUL_LAND =
+            createGuWorldLevel("fox_immortal_blissful_land");
+    public static final Vec3 FOX_IMMORTAL_BLISSFUL_LAND_SPAWN = new Vec3(8.5, 0.0, 168.5);
     private static final Vec3 REGION_ORIGIN = new Vec3(0.5, 0.0, 0.5);
 
     public enum Arrival { FLIGHT, SURFACE }
@@ -49,10 +55,16 @@ public final class ModDimensions {
             SOUTHERN_BORDER, new AnchoredDimension(SOUTHERN_BORDER, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
             WESTERN_DESERT, new AnchoredDimension(WESTERN_DESERT, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
             EASTERN_SEA, new AnchoredDimension(EASTERN_SEA, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
-            NORTHERN_PLAINS, new AnchoredDimension(NORTHERN_PLAINS, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0));
+            NORTHERN_PLAINS, new AnchoredDimension(NORTHERN_PLAINS, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
+            FOX_IMMORTAL_BLISSFUL_LAND, new AnchoredDimension(FOX_IMMORTAL_BLISSFUL_LAND,
+                    FOX_IMMORTAL_BLISSFUL_LAND_SPAWN, Arrival.SURFACE, 6, 1.0));
 
     private static ResourceKey<Level> createGuWorldLevel(String path) {
         return ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", path));
+    }
+
+    public static boolean allowsSelfExit(ResourceKey<Level> level) {
+        return level == TREASURE_YELLOW_HEAVEN || level == FOX_IMMORTAL_BLISSFUL_LAND;
     }
 
     public static boolean isFlightGranted(ResourceKey<Level> level) {
