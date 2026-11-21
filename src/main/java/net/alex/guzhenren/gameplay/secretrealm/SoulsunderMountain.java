@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.secretrealm;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
@@ -36,7 +37,8 @@ import org.jetbrains.annotations.Nullable;
  * 荡魂山[Soulsunder Mountain]：主世界中州唯一的半透明山，由 Gu World 结构集 {@code guworld:soulsunder_mountain} 定位；
  * 九转魂道秘境（{@link #rank}、{@link #path}）。
  * <ul>
- *   <li>范围为山心水平 {@value #RADIUS} 格圆柱。玩家每秒扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由
+ *   <li>范围为山心水平 {@value #RADIUS} 格圆柱。玩家每 10 秒（{@code tickCount} 为 {@value #SOUL_DRAIN_INTERVAL_TICKS}
+ *       刻整倍的心跳）扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由
  *       {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
  *       {@link ModDamageTypes#SOULSUNDER}（穿甲、无击退），不刻更新的区块里的生物不扣。创造、旁观模式与
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 免疫。</li>
@@ -65,7 +67,8 @@ public final class SoulsunderMountain implements SecretRealm {
     public static final ResourceKey<StructureSet> STRUCTURE_SET = ResourceKey.create(Registries.STRUCTURE_SET,
             ResourceLocation.fromNamespaceAndPath("guworld", "soulsunder_mountain"));
     public static final int RADIUS = 96;
-    public static final long SOUL_DRAIN = 5L;
+    public static final long SOUL_DRAIN = 1L;
+    public static final int SOUL_DRAIN_INTERVAL_TICKS = 10 * Ticks.SECOND;
     public static final float MOB_DAMAGE = 2.0F;
     public static final float MIN_MAX_HEALTH = 20.0F;
     public static final int GUTS_STONE_RADIUS = 80;
@@ -92,7 +95,9 @@ public final class SoulsunderMountain implements SecretRealm {
 
     //region Hooks [钩子]
     @Override
-    public void tickPlayer(@NotNull ServerPlayer player, @NotNull RealmSite site) { drainSoul(player); }
+    public void tickPlayer(@NotNull ServerPlayer player, @NotNull RealmSite site) {
+        if (player.tickCount % SOUL_DRAIN_INTERVAL_TICKS == 0) drainSoul(player);
+    }
 
     @Override
     public void tickPlayerAway(@NotNull ServerPlayer player, @NotNull RealmSite site) { dissolveGutsGu(player); }

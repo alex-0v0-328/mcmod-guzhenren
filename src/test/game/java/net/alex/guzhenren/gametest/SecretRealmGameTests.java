@@ -313,15 +313,14 @@ public final class SecretRealmGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void playersLoseFiveSoulASecondUntilCollapseAndCreativeNone(GameTestHelper helper) {
+    public static void playersLoseOneSoulPerDrainUntilCollapseAndCreativeNone(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
-        SoulService.setCurrent(player, 7L);
+        SoulService.setCurrent(player, 1L);
         SoulsunderMountain.drainSoul(player);
-        helper.assertValueEqual(SoulService.get(player).currentSoul(), 7L - SoulsunderMountain.SOUL_DRAIN,
-                "one second drains five");
+        helper.assertValueEqual(SoulService.get(player).currentSoul(), 0L, "one drain takes the last soul");
+        helper.assertTrue(SoulService.get(player).isCollapsed(), "a drained soul collapses");
         SoulsunderMountain.drainSoul(player);
         helper.assertValueEqual(SoulService.get(player).currentSoul(), 0L, "the drain stops at zero");
-        helper.assertTrue(SoulService.get(player).isCollapsed(), "a drained soul collapses");
 
         boolean[] creative = {true};
         ServerPlayer builder = GameTestPlayers.survival(helper, "gzr-soulsunder-creative").creative(() -> creative[0])
@@ -428,11 +427,16 @@ public final class SecretRealmGameTests {
             helper.assertValueEqual(SoulService.get(player).maxSoul(), max + 10L, "inside the cap rises by ten");
 
             long current = SoulService.get(player).currentSoul();
-            player.tickCount = Heartbeat.HEARTBEAT_TICKS * 10;
+            player.tickCount = SoulsunderMountain.SOUL_DRAIN_INTERVAL_TICKS;
             Heartbeat.beat(player);
             helper.assertValueEqual(SoulService.get(player).currentSoul(), current - SoulsunderMountain.SOUL_DRAIN,
-                    "the heartbeat drains five soul inside the mountain");
+                    "a heartbeat on the ten-second mark drains soul inside the mountain");
             helper.assertValueEqual(guts.getCount(), 1, "inside the heartbeat keeps the Gu");
+
+            player.tickCount += Heartbeat.HEARTBEAT_TICKS;
+            Heartbeat.beat(player);
+            helper.assertValueEqual(SoulService.get(player).currentSoul(), current - SoulsunderMountain.SOUL_DRAIN,
+                    "a heartbeat between ten-second marks drains nothing");
 
             GameTestPlayers.place(player, helper, new Vec3(8.5D, 1.0D, 8.5D));
             player.tickCount += Heartbeat.HEARTBEAT_TICKS;
