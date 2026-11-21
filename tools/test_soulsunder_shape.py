@@ -1,4 +1,4 @@
-"""The Soulsunder Mountain shape tool: span file, placeholder, grounding, schematics, reshaping and the shipped file."""
+"""The Soulsunder Mountain shape tool: span file, placeholder, grounding, schematics, reshaping, palace, shipped."""
 from __future__ import annotations
 
 import gzip
@@ -370,6 +370,72 @@ class ShippedFileTest(unittest.TestCase):
             for y0, y1 in column:
                 grid.columns[index][y0:y1 + 1] = b"\x01" * (y1 - y0 + 1)
         self.assertEqual(shape.keep_grounded(grid), 0)
+
+
+class PalaceTest(unittest.TestCase):
+
+    @staticmethod
+    def block(height: int) -> "shape.Grid":
+        """Every column inside the disc solid up to height."""
+        grid = shape.Grid.empty()
+        for z in range(shape.WIDTH):
+            for x in range(shape.WIDTH):
+                if shape.in_disc(x, z):
+                    grid.column(x, z)[:height] = b"\x01" * height
+        return grid
+
+    def test_trail_rises_at_most_one_block_between_neighbours(self):
+        cells = shape.trail_cells()
+        for index, height in cells.items():
+            x, z = index % shape.WIDTH, index // shape.WIDTH
+            for neighbour in (index + 1, index + shape.WIDTH):
+                if neighbour in cells:
+                    self.assertLessEqual(abs(cells[neighbour] - height), 1, f"step at ({x}, {z})")
+        self.assertEqual(cells[(shape.CENTRE + shape.SUMMIT[2]) * shape.WIDTH + shape.CENTRE + shape.SUMMIT[0]],
+                         shape.SUMMIT[1])
+
+    def test_cave_opens_round_the_anchor_under_a_thick_roof(self):
+        air = shape.palace_air()
+        top = max(y for _, y, _ in air)
+        grid = self.block(top + shape.ROOF + 1)
+        notes = shape.cut_palace(grid)
+        self.assertEqual(notes["roof"], shape.ROOF)
+        x, y, z = shape.ANCHOR
+        column = grid.column(shape.CENTRE + x, shape.CENTRE + z)
+        self.assertEqual(column[y - 1], 1)
+        self.assertEqual(bytes(column[y:y + 3]), bytes(3))
+        self.assertEqual(shape.keep_grounded(grid), 0, "the cave leaves stone floating")
+
+    def test_cave_is_eroded_beyond_its_footprint(self):
+        air = shape.palace_air()
+        xs = [x for x, _, _ in air]
+        ys = [y for _, y, _ in air]
+        self.assertLess(min(xs), shape.PALACE_X[0])
+        self.assertGreater(max(ys), shape.PALACE_FLOOR + shape.PALACE_HEIGHT)
+        self.assertEqual(min(ys), shape.PALACE_FLOOR)
+        self.assertEqual(air, shape.palace_air(), "the cave is not fixed by its constants")
+
+    def test_thin_roof_is_refused(self):
+        top = max(y for _, y, _ in shape.palace_air())
+        grid = self.block(top + shape.ROOF)
+        with self.assertRaises(shape.ShapeError):
+            shape.cut_palace(grid)
+
+    def test_walk_climbs_one_block_steps_only(self):
+        grid = shape.Grid.empty()
+        for step in range(4):
+            grid.column(shape.CENTRE + step, shape.CENTRE)[:step + 1] = b"\x01" * (step + 1)
+        self.assertIn((shape.CENTRE + 3, shape.CENTRE, 4), shape.walk(grid))
+        grid.column(shape.CENTRE + 3, shape.CENTRE)[:6] = b"\x01" * 6
+        self.assertNotIn((shape.CENTRE + 3, shape.CENTRE, 6), shape.walk(grid))
+
+    def test_shipped_shape_keeps_its_palace(self):
+        if not shape.DEFAULT_OUT.exists():
+            self.skipTest(f"{shape.DEFAULT_OUT} is not checked out")
+        data = shape.DEFAULT_OUT.read_bytes()
+        grid = shape.grid_from_spans(shape.decode(data)[3])
+        shape.palace(grid)
+        self.assertEqual(shape.encode(shape.grid_spans(grid)), data, "palace is not idempotent on the shipped file")
 
 
 if __name__ == "__main__":

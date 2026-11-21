@@ -3,6 +3,7 @@
     python -B tools/soulsunder_shape.py placeholder [--seed N] [--style S]   a procedural body plus crystal spikes
     python -B tools/soulsunder_shape.py convert REF.schem [--seed N]         a Sponge .schem or legacy .schematic
     python -B tools/soulsunder_shape.py info [SPANS]                         volume, heights and spans of a shape file
+    python -B tools/soulsunder_shape.py palace [SPANS]                       cut the trail and the palace hall
 
 Every command writes Gu World's data/guworld/secret_realm/soulsunder_mountain.spans unless --out names another file,
 and --preview PNG draws the top view (height as grey) beside the side view (silhouette seen from the south).
@@ -30,6 +31,24 @@ stated; the schematic stays out of both repositories), made at the default seed 
 The bottom 72 layers are the reference's flat ground and dunes. Alex found the stretched reference too sharp and its
 crystals too big and asked for a fuller mountain that keeps most of its height: hence the lifted flanks, the rounded
 summit and five thin flank crystals.
+
+palace reads a shape file (the shipped one by default) and writes it back with the Soulsunder Palace [荡魂行宫] and
+the mountain trail cut in; it changes only fixed cells, so running it again gives the same bytes. In this order:
+    trail    a path TRAIL_WIDTH * 2 blocks wide along the TRAIL waypoints, from the north-west foot round to the
+             palace mouth on the south flank and on up to the summit; every trail column becomes solid up to the
+             trail height and open above, and the height rises 0.45 blocks per block of waypoint line, so vanilla
+             walking climbs it (the converted mountain's own steps are 2-12 blocks, too high to jump)
+    hall     an eroded cave round the PALACE_X x PALACE_Z footprint, floor at PALACE_FLOOR: a rounded room whose
+             ceiling domes up to PALACE_DOME blocks, its walls pushed in and out by up to ERODE_AMPLITUDE blocks
+             of domain-warped noise, STALACTITES drips and STALAGMITES stumps; under at least ROOF blocks
+    tunnel   a winding tube from the hall's south wall to TUNNEL_END, its middle swinging up to TUNNEL_MEANDER
+             blocks; a 3 x 3 walking core always stays open, and the mouth row is the plain TUNNEL_X x TUNNEL_HEIGHT
+Only the air joined to the anchor stays, and stone left floating inside the cave becomes air. Alex chose the heavy
+erosion of three previews and a bare cave: no walls, floor or furnishing of other blocks. The trail waypoints were
+fitted once to the shipped mountain's contours (from the mouth at height 40 up and down, then thinned to one point
+per 5 blocks). The command fails rather than leave fewer than ROOF solid blocks over the hall, or leave the summit or
+the anchor out of a walk that starts on the open ground at the shape's edge (GROUND, one block over the base), climbs
+STEP_UP and drops STEP_DOWN.
 
 The file (format 1, big-endian): magic "GZSQ", u8 version, u16 width (x), u16 depth (z), u16 height (y); then one
 record per column, z-major (index z * width + x): u8 span count and that many (u8 y0, u8 y1) pairs, both inclusive,
@@ -690,6 +709,292 @@ def convert(schematic: Schematic, seed: int, spikes: int, keep_aspect: bool = Fa
 
 
 # endregion
+# region Palace and trail
+
+
+PALACE_FLOOR = 40
+PALACE_X = (-9, 5)
+PALACE_Z = (-13, 7)
+PALACE_HEIGHT = 8
+PALACE_DOME = 5
+TUNNEL_X = (-3, -1)
+TUNNEL_HEIGHT = 4
+TUNNEL_END = 24
+TUNNEL_MEANDER = 2.07
+TUNNEL_ROUGHNESS = 1.97
+ERODE_AMPLITUDE = 4.2
+ERODE_SCALE = 5.0
+ERODE_WARP = 4.5
+ERODE_SEED = 13
+STALACTITES = 18
+STALAGMITES = 5
+ROOF = 3
+ANCHOR = (-2, PALACE_FLOOR, -3)
+SUMMIT = (4, 118, -2)
+TRAIL_WIDTH = 1.5
+TRAIL_SAMPLE = 0.1
+STEP_UP = 1
+STEP_DOWN = 3
+# The base layer replaces the grass, so the ground round the mountain stands one block over it.
+GROUND = 1
+# (dx, dz, height) from the centre column; height is the standing y above the mountain's base.
+TRAIL = ((-72, -30, 1.0), (-56, -23, 1.0), (-54, -18, 2.8), (-50, -14, 5.2), (-46, -11, 7.7), (-43, -7, 10.1),
+         (-45, -2, 12.4), (-47, 3, 14.8), (-45, 8, 17.1), (-41, 11, 19.3), (-37, 15, 21.6), (-34, 18, 23.9),
+         (-29, 20, 26.2), (-24, 19, 28.5), (-19, 19, 30.9), (-14, 21, 33.1), (-10, 23, 35.4), (-5, 25, 37.7),
+         (0, 24, 40.0), (4, 21, 42.3), (8, 19, 44.6), (13, 20, 46.8), (18, 20, 49.1), (21, 16, 51.4), (22, 11, 53.7),
+         (23, 6, 56.0), (23, 1, 58.2), (27, -3, 60.5), (24, -8, 62.9), (20, -10, 65.2), (15, -12, 67.4),
+         (10, -13, 69.7), (7, -16, 72.0), (1, -16, 74.2), (-3, -15, 76.5), (-7, -11, 78.8), (-11, -9, 81.0),
+         (-13, -4, 83.3), (-12, 1, 85.6), (-9, 5, 87.8), (-4, 7, 90.1), (1, 8, 92.3), (6, 9, 94.6), (10, 8, 96.9),
+         (15, 6, 99.1), (15, 1, 101.4), (14, -4, 103.7), (10, -6, 106.0), (5, -8, 108.2), (0, -9, 110.5),
+         (-4, -6, 112.7), (-5, -2, 115.0), (-3, 2, 117.0), (4, -2, 118.0))
+
+
+def grid_from_spans(spans: list[list[tuple[int, int]]]) -> Grid:
+    grid = Grid.empty()
+    for index, column in enumerate(spans):
+        for y0, y1 in column:
+            grid.columns[index][y0:y1 + 1] = b"\x01" * (y1 - y0 + 1)
+    return grid
+
+
+def trail_cells(waypoints=TRAIL) -> dict[int, int]:
+    """Column index -> standing height for every column within TRAIL_WIDTH of the waypoint line."""
+    best: dict[int, tuple[float, float]] = {}
+    for (x0, z0, h0), (x1, z1, h1) in zip(waypoints, waypoints[1:]):
+        length = math.hypot(x1 - x0, z1 - z0)
+        steps = max(1, math.ceil(length / TRAIL_SAMPLE))
+        for i in range(steps + 1):
+            t = i / steps
+            px, pz, ph = x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, h0 + (h1 - h0) * t
+            for dz in range(math.floor(pz - TRAIL_WIDTH), math.ceil(pz + TRAIL_WIDTH) + 1):
+                for dx in range(math.floor(px - TRAIL_WIDTH), math.ceil(px + TRAIL_WIDTH) + 1):
+                    distance = math.hypot(dx - px, dz - pz)
+                    if distance > TRAIL_WIDTH:
+                        continue
+                    index = (CENTRE + dz) * WIDTH + CENTRE + dx
+                    if index not in best or distance < best[index][0]:
+                        best[index] = (distance, ph)
+    return {index: math.floor(height + 0.5) for index, (_, height) in best.items()}
+
+
+def cut_trail(grid: Grid, cells: dict[int, int]) -> tuple[int, int]:
+    """Every trail column solid below its height and open above; returns (blocks cut, blocks filled)."""
+    cut = filled = 0
+    for index, height in cells.items():
+        column = grid.columns[index]
+        filled += column[:height].count(0)
+        cut += column[height:].count(1)
+        column[:height] = b"\x01" * height
+        column[height:] = bytes(HEIGHT - height)
+    return cut, filled
+
+
+def lattice3(x: int, y: int, z: int, seed: int) -> float:
+    """A hashed lattice value in [-1, 1]."""
+    n = (x * 374761393 + y * 668265263 + z * 2147483647 + seed * 144665) & 0xFFFFFFFF
+    n = ((n ^ (n >> 13)) * 1274126177) & 0xFFFFFFFF
+    return ((n ^ (n >> 16)) & 0xFFFF) / 32767.5 - 1.0
+
+
+def noise3(x: float, y: float, z: float, seed: int) -> float:
+    x0, y0, z0 = math.floor(x), math.floor(y), math.floor(z)
+    sx, sy, sz = ((t - f) * (t - f) * (3 - 2 * (t - f)) for t, f in ((x, x0), (y, y0), (z, z0)))
+
+    def lerp(a: float, b: float, t: float) -> float:
+        return a + (b - a) * t
+
+    c = [[[lattice3(x0 + i, y0 + j, z0 + k, seed) for k in (0, 1)] for j in (0, 1)] for i in (0, 1)]
+    return lerp(lerp(lerp(c[0][0][0], c[0][0][1], sz), lerp(c[0][1][0], c[0][1][1], sz), sy),
+                lerp(lerp(c[1][0][0], c[1][0][1], sz), lerp(c[1][1][0], c[1][1][1], sz), sy), sx)
+
+
+def fractal3(x: float, y: float, z: float, seed: int, octaves: int) -> float:
+    total, amplitude, frequency, norm = 0.0, 1.0, 1.0, 0.0
+    for octave in range(octaves):
+        total += amplitude * noise3(x * frequency, y * frequency, z * frequency, seed + octave * 31)
+        norm += amplitude
+        amplitude *= 0.5
+        frequency *= 2.0
+    return total / norm
+
+
+def erosion(x: float, y: float, z: float) -> float:
+    """Domain-warped fractal noise: the warp turns a wobble into scalloped, water-worn walls."""
+    warp = ERODE_WARP * fractal3(x / 7, y / 7, z / 7, ERODE_SEED + 1, 2)
+    shift = ERODE_WARP * fractal3(x / 7, y / 7, z / 7, ERODE_SEED + 2, 2)
+    return fractal3((x + warp) / ERODE_SCALE, y / ERODE_SCALE, (z + shift) / ERODE_SCALE, ERODE_SEED, 3)
+
+
+def palace_air() -> set[tuple[int, int, int]]:
+    """The eroded hall and tunnel as (dx, y, dz) air cells, fixed by the constants alone."""
+    centre_x, centre_z = (PALACE_X[0] + PALACE_X[1]) / 2, (PALACE_Z[0] + PALACE_Z[1]) / 2
+    half_x, half_z = (PALACE_X[1] - PALACE_X[0] + 1) / 2, (PALACE_Z[1] - PALACE_Z[0] + 1) / 2
+    pad = math.ceil(ERODE_AMPLITUDE) + 2
+    air = set()
+    for dz in range(PALACE_Z[0] - pad, PALACE_Z[1] + pad + 1):
+        for dx in range(PALACE_X[0] - pad, PALACE_X[1] + pad + 1):
+            r = (abs((dx - centre_x) / half_x) ** 3 + abs((dz - centre_z) / half_z) ** 3) ** (1 / 3)
+            ceiling = PALACE_FLOOR + PALACE_HEIGHT - 1 + PALACE_DOME * max(0.0, 1 - r * r)
+            floor = PALACE_FLOOR + (1 if fractal3(dx / 3.5, 0, dz / 3.5, ERODE_SEED + 99, 2) > 0.5 else 0)
+            wall = (r - 1) * min(half_x, half_z)
+            for y in range(floor, PALACE_FLOOR + PALACE_HEIGHT + PALACE_DOME + pad + 1):
+                n = ERODE_AMPLITUDE * erosion(dx, y, dz)
+                if wall + n < 0 and y <= ceiling + 0.9 * n:
+                    air.add((dx, y, dz))
+    rng = random.Random(ERODE_SEED)
+    columns: dict[tuple[int, int], list[int]] = {}
+    for dx, y, dz in air:
+        columns.setdefault((dx, dz), []).append(y)
+    spots = sorted(columns)
+    anchor_x, anchor_y, anchor_z = ANCHOR
+    for _ in range(STALACTITES):
+        dx, dz = spots[rng.randrange(len(spots))]
+        top = max(columns[(dx, dz)])
+        for y in range(top - rng.randint(1, 4) + 1, top + 1):
+            if y > PALACE_FLOOR + 3:
+                air.discard((dx, y, dz))
+    for _ in range(STALAGMITES):
+        dx, dz = spots[rng.randrange(len(spots))]
+        if TUNNEL_X[0] <= dx <= TUNNEL_X[1] or abs(dx - anchor_x) + abs(dz - anchor_z) < 3:
+            continue
+        for y in range(PALACE_FLOOR, PALACE_FLOOR + rng.randint(1, 3)):
+            air.discard((dx, y, dz))
+    for y in range(anchor_y, anchor_y + 3):
+        air.add((anchor_x, y, anchor_z))
+    middle = (TUNNEL_X[0] + TUNNEL_X[1]) / 2
+    first, last = PALACE_Z[1] + 1, TUNNEL_END - 1
+    for dz in range(first, last + 1):
+        envelope = math.sin(math.pi * (dz - first) / (last - first))
+        shift = round(envelope * TUNNEL_MEANDER * fractal3(dz / 6, 0, 0, ERODE_SEED + 5, 2) * 2)
+        for dx in range(TUNNEL_X[0] - 4, TUNNEL_X[1] + 5):
+            for y in range(PALACE_FLOOR, PALACE_FLOOR + TUNNEL_HEIGHT + 3):
+                across = (dx - middle - shift) / 1.7
+                up = (y - PALACE_FLOOR - 1.5) / 2.5
+                core = abs(dx - middle - shift) <= 1 and y < PALACE_FLOOR + 3
+                if core or across * across + up * up + TUNNEL_ROUGHNESS * envelope * erosion(dx, y, dz) < 1.0:
+                    air.add((dx, y, dz))
+    for dx in range(TUNNEL_X[0], TUNNEL_X[1] + 1):
+        for y in range(PALACE_FLOOR, PALACE_FLOOR + TUNNEL_HEIGHT):
+            air.add((dx, y, last))
+    return tidy_cave(air)
+
+
+def tidy_cave(air: set[tuple[int, int, int]]) -> set[tuple[int, int, int]]:
+    """Only the air joined to the anchor stays; stone floating inside the cave becomes air."""
+    joined = {ANCHOR}
+    queue = deque(joined)
+    steps = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+    while queue:
+        x, y, z = queue.popleft()
+        for sx, sy, sz in steps:
+            cell = (x + sx, y + sy, z + sz)
+            if cell in air and cell not in joined:
+                joined.add(cell)
+                queue.append(cell)
+    low = [min(cell[i] for cell in joined) - 1 for i in range(3)]
+    high = [max(cell[i] for cell in joined) + 1 for i in range(3)]
+    box = [(x, y, z) for x in range(low[0], high[0] + 1) for y in range(low[1], high[1] + 1)
+           for z in range(low[2], high[2] + 1)]
+    held = {cell for cell in box if cell not in joined and any(cell[i] in (low[i], high[i]) for i in range(3))}
+    queue = deque(held)
+    while queue:
+        x, y, z = queue.popleft()
+        for sx, sy, sz in steps:
+            cell = (x + sx, y + sy, z + sz)
+            if all(low[i] <= cell[i] <= high[i] for i in range(3)) and cell not in joined and cell not in held:
+                held.add(cell)
+                queue.append(cell)
+    return joined | {cell for cell in box if cell not in held}
+
+
+def cut_palace(grid: Grid) -> dict:
+    """The eroded hall and its tunnel; returns where they ended up."""
+    air = palace_air()
+    reach = {(dx, dz) for dx, _, dz in air}
+    for dx in range(PALACE_X[0] - 1, PALACE_X[1] + 2):
+        for dz in range(PALACE_Z[0] - 1, TUNNEL_END + 1):
+            reach.add((dx, dz))
+    for dx, dz in reach:
+        column = grid.column(CENTRE + dx, CENTRE + dz)
+        top = column.rfind(1)
+        column[:top + 1] = b"\x01" * (top + 1)
+    for dx, y, dz in air:
+        grid.column(CENTRE + dx, CENTRE + dz)[y] = 0
+    ceilings: dict[tuple[int, int], int] = {}
+    for dx, y, dz in air:
+        if dz <= PALACE_Z[1] + 2:
+            ceilings[(dx, dz)] = max(y, ceilings.get((dx, dz), y))
+    roof = HEIGHT
+    for (dx, dz), y in ceilings.items():
+        above = grid.column(CENTRE + dx, CENTRE + dz)[y + 1:]
+        roof = min(roof, len(above) if above.find(0) < 0 else above.find(0))
+    if roof < ROOF:
+        raise ShapeError(f"the hall roof is {roof} solid blocks thick, under {ROOF}")
+    xs, ys, zs = ([cell[i] for cell in air] for i in range(3))
+    return {"hall": f"x {min(xs)}..{max(xs)}, y {min(ys)}..{max(ys)}, z {min(zs)}..{max(zs)}, {len(air)} air",
+            "roof": roof, "tunnel_mouth": TUNNEL_END, "anchor": ANCHOR}
+
+
+def standing(column: bytes) -> list[int]:
+    """Heights a player can stand at in a column: on top of each span with two free blocks above, or on the ground."""
+    spots = [GROUND] if not any(column[:GROUND + 2]) else []
+    for y0, y1 in column_spans(column):
+        y = y1 + 1
+        if (y + 1 < HEIGHT and not column[y] and not column[y + 1] or y + 1 >= HEIGHT) and y not in spots:
+            spots.append(y)
+    return spots
+
+
+def walk(grid: Grid) -> set[tuple[int, int, int]]:
+    """Every (x, z, y) reachable on foot from the open ground at the shape's edge: up STEP_UP, down STEP_DOWN.
+
+    Stepping down walks off at the old height first, so the target column must be open from its spot to two blocks
+    over the old height."""
+    spots = [standing(column) for column in grid.columns]
+    seen = set()
+    queue = deque()
+    for index, column in enumerate(grid.columns):
+        x, z = index % WIDTH, index // WIDTH
+        if (x in (0, WIDTH - 1) or z in (0, WIDTH - 1)) and not column.count(1):
+            seen.add((x, z, GROUND))
+            queue.append((x, z, GROUND))
+    while queue:
+        x, z, y = queue.popleft()
+        origin = grid.column(x, z)
+        for nx, nz in ((x - 1, z), (x + 1, z), (x, z - 1), (x, z + 1)):
+            if not (0 <= nx < WIDTH and 0 <= nz < WIDTH):
+                continue
+            for ny in spots[nz * WIDTH + nx]:
+                if not -STEP_DOWN <= ny - y <= STEP_UP or (nx, nz, ny) in seen:
+                    continue
+                if ny > y and y + 2 < HEIGHT and origin[y + 2]:
+                    continue
+                if ny <= y and any(grid.column(nx, nz)[ny:min(y + 2, HEIGHT)]):
+                    continue
+                seen.add((nx, nz, ny))
+                queue.append((nx, nz, ny))
+    return seen
+
+
+def palace(grid: Grid) -> dict:
+    cells = trail_cells()
+    cut, filled = cut_trail(grid, cells)
+    notes = cut_palace(grid)
+    dropped = keep_grounded(grid)
+    reached = walk(grid)
+    summit_x, summit_y, summit_z = SUMMIT
+    if (CENTRE + summit_x, CENTRE + summit_z, summit_y) not in reached:
+        raise ShapeError(f"no walk reaches the summit {SUMMIT}")
+    anchor_x, anchor_y, anchor_z = ANCHOR
+    if (CENTRE + anchor_x, CENTRE + anchor_z, anchor_y) not in reached:
+        raise ShapeError(f"no walk reaches the palace anchor {ANCHOR}")
+    if max(column.rfind(1) for column in grid.columns) + 1 != summit_y:
+        raise ShapeError(f"the summit is no longer {summit_y} high")
+    return {"trail_columns": len(cells), "trail_cut": cut, "trail_filled": filled, **notes,
+            "summit": SUMMIT, "dropped": dropped}
+
+
+# endregion
 # region Output
 
 
@@ -787,6 +1092,10 @@ def main(argv: list[str]) -> int:
     info = commands.add_parser("info")
     info.add_argument("spans", type=Path, nargs="?", default=DEFAULT_OUT)
     info.add_argument("--preview", type=Path)
+    carve = commands.add_parser("palace")
+    carve.add_argument("spans", type=Path, nargs="?", default=DEFAULT_OUT)
+    carve.add_argument("--out", type=Path, help="the file to write (default: back into SPANS)")
+    carve.add_argument("--preview", type=Path)
     arguments = parser.parse_args(argv)
     try:
         if arguments.command == "info":
@@ -794,6 +1103,11 @@ def main(argv: list[str]) -> int:
             if arguments.preview:
                 arguments.preview.write_bytes(preview(spans))
             report({"file": str(arguments.spans), "size": f"{width} x {height} x {depth}", **describe(spans)})
+            return 0
+        if arguments.command == "palace":
+            grid = grid_from_spans(decode(arguments.spans.read_bytes())[3])
+            notes = palace(grid)
+            report({**notes, **write(grid, arguments.out or arguments.spans, arguments.preview)})
             return 0
         if arguments.command == "placeholder":
             grid, notes = placeholder(arguments.seed, arguments.style, arguments.spikes)
