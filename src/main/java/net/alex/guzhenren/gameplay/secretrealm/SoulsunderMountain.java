@@ -33,13 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 荡魂山[Soulquake Mountain]：主世界中州唯一的半透明山，由 Gu World 结构集 {@code guworld:soulquake_mountain} 定位；
+ * 荡魂山[Soulsunder Mountain]：主世界中州唯一的半透明山，由 Gu World 结构集 {@code guworld:soulsunder_mountain} 定位；
  * 九转魂道秘境（{@link #rank}、{@link #path}）。
  * <ul>
  *   <li>范围为山心水平 {@value #RADIUS} 格圆柱。玩家每秒扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由
  *       {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
- *       {@link ModDamageTypes#SOULQUAKE}（穿甲、无击退），不刻更新的区块里的生物不扣。创造、旁观模式与
- *       {@link ModEntityTypeTags#SOULQUAKE_IMMUNE} 免疫。</li>
+ *       {@link ModDamageTypes#SOULSUNDER}（穿甲、无击退），不刻更新的区块里的生物不扣。创造、旁观模式与
+ *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 免疫。</li>
  *   <li>范围内生命上限不低于 {@value #MIN_MAX_HEALTH} 的生物死亡后，{@link #leaveGutsStone} 经 {@link #growGutsStone} 在山心
  *       {@value #GUTS_STONE_RADIUS} 格（不超过范围半径）内随机挑至多 {@value #GROW_ATTEMPTS} 列：须已加载、顶层运动阻挡方块为荡魂山石且其上
  *       可替换，才放一块胆石并记入 {@link GutsStones}；全数落空就不长。先有一半概率改为叠到随机一个已登记、未满
@@ -59,11 +59,11 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 
-public final class SoulquakeMountain implements SecretRealm {
+public final class SoulsunderMountain implements SecretRealm {
 
-    public static final SoulquakeMountain INSTANCE = new SoulquakeMountain();
+    public static final SoulsunderMountain INSTANCE = new SoulsunderMountain();
     public static final ResourceKey<StructureSet> STRUCTURE_SET = ResourceKey.create(Registries.STRUCTURE_SET,
-            ResourceLocation.fromNamespaceAndPath("guworld", "soulquake_mountain"));
+            ResourceLocation.fromNamespaceAndPath("guworld", "soulsunder_mountain"));
     public static final int RADIUS = 96;
     public static final long SOUL_DRAIN = 5L;
     public static final float MOB_DAMAGE = 2.0F;
@@ -71,9 +71,9 @@ public final class SoulquakeMountain implements SecretRealm {
     public static final int GUTS_STONE_RADIUS = 80;
     public static final int GUTS_STONE_CAP = 128;
     public static final int GROW_ATTEMPTS = 8;
-    public static final String MSG_GUTS_GU_DISSOLVED = "guzhenren.item.gu.dissolved_outside_soulquake";
+    public static final String MSG_GUTS_GU_DISSOLVED = "guzhenren.item.gu.dissolved_outside_soulsunder";
 
-    private SoulquakeMountain() {}
+    private SoulsunderMountain() {}
 
     @Override
     public @NotNull ResourceKey<Level> dimension() { return Level.OVERWORLD; }
@@ -136,7 +136,7 @@ public final class SoulquakeMountain implements SecretRealm {
     public static int dissolveGutsGu(@NotNull ServerPlayer player) {
         if (player.isCreative() || player.isSpectator()) return 0;
 
-        int dissolved = player.getInventory().clearOrCountMatchingItems(SoulquakeMountain::isGutsGu, -1,
+        int dissolved = player.getInventory().clearOrCountMatchingItems(SoulsunderMountain::isGutsGu, -1,
                 player.inventoryMenu.getCraftSlots());
         if (dissolved > 0) {
             player.containerMenu.broadcastChanges();
@@ -182,13 +182,13 @@ public final class SoulquakeMountain implements SecretRealm {
     public static void damageMobs(@NotNull ServerLevel level, @NotNull RealmSite site) {
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, site.box(level),
                 entity -> isShaken(level, entity) && site.contains(entity))) {
-            entity.hurt(ModDamageTypes.source(entity, ModDamageTypes.SOULQUAKE), MOB_DAMAGE);
+            entity.hurt(ModDamageTypes.source(entity, ModDamageTypes.SOULSUNDER), MOB_DAMAGE);
         }
     }
 
     private static boolean isShaken(ServerLevel level, LivingEntity entity) {
         return !(entity instanceof Player) && entity.isAlive() && level.isPositionEntityTicking(entity.blockPosition())
-                && !entity.getType().is(ModEntityTypeTags.SOULQUAKE_IMMUNE);
+                && !entity.getType().is(ModEntityTypeTags.SOULSUNDER_IMMUNE);
     }
 
     public static @Nullable BlockPos growGutsStone(@NotNull ServerLevel level, @NotNull GutsStones stones,
@@ -240,7 +240,7 @@ public final class SoulquakeMountain implements SecretRealm {
 
         BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);
         if (pos.getY() >= level.getMaxBuildHeight()) return null;
-        if (!level.getBlockState(pos.below()).is(ModBlocks.SOULQUAKE_STONE.get())) return null;
+        if (!level.getBlockState(pos.below()).is(ModBlocks.SOULSUNDER_STONE.get())) return null;
         return level.getBlockState(pos).canBeReplaced() ? pos : null;
     }
     //endregion

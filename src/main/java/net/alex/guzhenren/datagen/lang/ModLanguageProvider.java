@@ -357,7 +357,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addBlock(ModBlocks.NINE_LEAF_VITALITY_GRASS_3,               "三转九叶生机草");
         addBlock(ModBlocks.INTIMATE_GRASS,                           "知心草");
         addBlock(ModBlocks.INTIMATE_GRASS_CROP,                      "知心草作物");
-        addBlock(ModBlocks.SOULQUAKE_STONE,                          "荡魂山石");
+        addBlock(ModBlocks.SOULSUNDER_STONE,                          "荡魂山石");
         addBlock(ModBlocks.GUTS_STONE,                               "胆石");
 
         add("itemGroup.guzhenren.mortal_gu",                         "凡蛊");
@@ -400,7 +400,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.failed.as_before_no_record",             "无过去记录");
         add(Refusal.WRONG_TARGET,                                    "作用目标错误");
         add("guzhenren.item.failed.as_before_no_grief",              "本世界关闭了地形改动 - mobGriefing");
-        add("guzhenren.item.failed.outside_soulquake",               "须在荡魂山中催动");
+        add("guzhenren.item.failed.outside_soulsunder",               "须在荡魂山中催动");
         add("guzhenren.item.gu.invested",                            "已投入 %s/%s");
         add("guzhenren.item.gu.refine_progress",                     "炼化 %s/%s");
         add("guzhenren.item.gu.refine_cost",                         "炼化 %s");
@@ -432,7 +432,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.starved",                             "%s饿死");
         add("guzhenren.item.gu.forced_dead",                         "%s强行催动而亡");
         add("guzhenren.item.gu.refine_dead",                         "%s炼制中死亡");
-        add("guzhenren.item.gu.dissolved_outside_soulquake",         "胆识蛊离开荡魂山，消散了");
+        add("guzhenren.item.gu.dissolved_outside_soulsunder",         "胆识蛊离开荡魂山，消散了");
         add("guzhenren.item.gu.health",                              "生命 %s / %s");
         add("guzhenren.item.gu.vital_lost",                          "本命蛊%s死亡");
     }
@@ -561,8 +561,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.guzhenren.charged_punch.item",          "%1$s 被 %2$s 用 %3$s 的蓄力一拳打死了");
         add("death.attack.guzhenren.crash_strike",               "%1$s 被 %2$s 撞死了");
         add("death.attack.guzhenren.crash_strike.item",           "%1$s 被 %2$s 用 %3$s 撞死了");
-        add("death.attack.guzhenren.soulquake",                   "%1$s 在荡魂山魂飞魄散");
-        add("death.attack.guzhenren.soulquake.player",            "%1$s 在荡魂山与 %2$s 战斗时魂飞魄散");
+        add("death.attack.guzhenren.soulsunder",                   "%1$s 在荡魂山魂飞魄散");
+        add("death.attack.guzhenren.soulsunder.player",            "%1$s 在荡魂山与 %2$s 战斗时魂飞魄散");
     }
     //endregion
 

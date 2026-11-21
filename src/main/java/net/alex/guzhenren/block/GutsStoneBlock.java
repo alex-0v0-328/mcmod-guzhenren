@@ -17,7 +17,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 胆石[Guts Stone]：荡魂山[Soulquake Mountain]上生灵死后长出的非整格小石块，一格叠 1–3 块（{@link GutsStones#STONES}），
+ * 胆石[Guts Stone]：荡魂山[Soulsunder Mountain]上生灵死后长出的非整格小石块，一格叠 1–3 块（{@link GutsStones#STONES}），
  * 摆成三角形。
  * <ul>
  *   <li>{@link #SHAPES} 对齐模型 {@code guzhenren:block/guts_stone}、{@code _2}、{@code _3} 的方块盒，碰撞箱与选择框随块

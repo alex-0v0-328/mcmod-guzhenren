@@ -53,11 +53,11 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
     @SuppressWarnings("unchecked")
     protected void addTags(HolderLookup.@NotNull Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.STEEL_BLOCK.get(), ModBlocks.GUTS_STONE.get());
-        tag(BlockTags.WITHER_IMMUNE).add(ModBlocks.SOULQUAKE_STONE.get());
-        tag(BlockTags.DRAGON_IMMUNE).add(ModBlocks.SOULQUAKE_STONE.get());
-        tag(BlockTags.FEATURES_CANNOT_REPLACE).add(ModBlocks.SOULQUAKE_STONE.get());
-        tag(BlockTags.SNOW_LAYER_CANNOT_SURVIVE_ON).add(ModBlocks.SOULQUAKE_STONE.get());
-        tag(ModBlockTags.MORTAL_AS_BEFORE_IMMUNE).add(ModBlocks.SOULQUAKE_STONE.get(), ModBlocks.GUTS_STONE.get());
+        tag(BlockTags.WITHER_IMMUNE).add(ModBlocks.SOULSUNDER_STONE.get());
+        tag(BlockTags.DRAGON_IMMUNE).add(ModBlocks.SOULSUNDER_STONE.get());
+        tag(BlockTags.FEATURES_CANNOT_REPLACE).add(ModBlocks.SOULSUNDER_STONE.get());
+        tag(BlockTags.SNOW_LAYER_CANNOT_SURVIVE_ON).add(ModBlocks.SOULSUNDER_STONE.get());
+        tag(ModBlockTags.MORTAL_AS_BEFORE_IMMUNE).add(ModBlocks.SOULSUNDER_STONE.get(), ModBlocks.GUTS_STONE.get());
         tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.STEEL_BLOCK.get());
         tag(BlockTags.BEACON_BASE_BLOCKS).add(ModBlocks.STEEL_BLOCK.get());
         tag(STORAGE_BLOCKS_STEEL).add(ModBlocks.STEEL_BLOCK.get());

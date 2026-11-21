@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "guzhenren:block/soulsunder_stone"
+      },
+      {
+        "model": "guzhenren:block/soulsunder_stone_1"
+      },
+      {
+        "model": "guzhenren:block/soulsunder_stone_2"
+      }
+    ]
+  }
+}

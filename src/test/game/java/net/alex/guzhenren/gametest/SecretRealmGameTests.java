@@ -9,7 +9,7 @@ import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
-import net.alex.guzhenren.gameplay.secretrealm.SoulquakeMountain;
+import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.lifecycle.Heartbeat;
 import net.alex.guzhenren.registry.block.ModBlocks;
@@ -51,7 +51,7 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER;
 import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
- * 天地秘境[Secret Realm]·荡魂山[Soulquake Mountain]：山石不可破坏，胆石叠放、逐块敲碎、掉落、上限与流体，死亡长石，
+ * 天地秘境[Secret Realm]·荡魂山[Soulsunder Mountain]：山石不可破坏，胆石叠放、逐块敲碎、掉落、上限与流体，死亡长石，
  * 扣魂扣血与 128 格玩家门槛，胆识蛊[Guts Gu]催动门槛、出山消散与不进收纳容器。
  * 效果方法接受显式小半径范围，不影响并排测试；需钉住全局山心的门槛与心跳用例单独成批，结束即清除。长胆石用例开
  * {@code skyAccess}，否则测试区的屏障天花板会成为高度图顶层。
@@ -71,10 +71,10 @@ public final class SecretRealmGameTests {
 
     private SecretRealmGameTests() {}
 
-    //region Soulquake stone [荡魂山石]
+    //region Soulsunder stone [荡魂山石]
     @GameTest(template = "empty9x9x9")
-    public static void soulquakeStoneIsUnbreakableAndHasNoItem(GameTestHelper helper) {
-        helper.setBlock(CENTER_POS, ModBlocks.SOULQUAKE_STONE.get());
+    public static void soulsunderStoneIsUnbreakableAndHasNoItem(GameTestHelper helper) {
+        helper.setBlock(CENTER_POS, ModBlocks.SOULSUNDER_STONE.get());
         ServerLevel level = helper.getLevel();
         BlockPos pos = helper.absolutePos(CENTER_POS);
         BlockState state = level.getBlockState(pos);
@@ -95,7 +95,7 @@ public final class SecretRealmGameTests {
 
         level.explode(null, pos.getX() + 1.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 2.0F,
                 Level.ExplosionInteraction.TNT);
-        helper.assertBlockPresent(ModBlocks.SOULQUAKE_STONE.get(), CENTER_POS);
+        helper.assertBlockPresent(ModBlocks.SOULSUNDER_STONE.get(), CENTER_POS);
         helper.succeed();
     }
     //endregion
@@ -144,11 +144,11 @@ public final class SecretRealmGameTests {
     public static void gutsStoneGrowsOnTopOfTheMountainStone(GameTestHelper helper) {
         layStonePad(helper);
         GutsStones stones = new GutsStones();
-        BlockPos grown = SoulquakeMountain.growGutsStone(helper.getLevel(), stones, helper.absolutePos(CENTER_POS),
+        BlockPos grown = SoulsunderMountain.growGutsStone(helper.getLevel(), stones, helper.absolutePos(CENTER_POS),
                 TEST_RADIUS, helper.getLevel().getRandom());
         helper.assertTrue(grown != null, "a guts stone grows on a full pad");
         helper.assertTrue(helper.getLevel().getBlockState(grown).is(ModBlocks.GUTS_STONE.get()), "it is a guts stone");
-        helper.assertTrue(helper.getLevel().getBlockState(grown.below()).is(ModBlocks.SOULQUAKE_STONE.get()),
+        helper.assertTrue(helper.getLevel().getBlockState(grown.below()).is(ModBlocks.SOULSUNDER_STONE.get()),
                 "it sits on the mountain stone");
         helper.assertTrue(stones.contains(grown) && stones.size() == 1 && stones.total() == 1,
                 "its position is recorded as one stone");
@@ -159,14 +159,14 @@ public final class SecretRealmGameTests {
     public static void gutsStonesStopAtTheCap(GameTestHelper helper) {
         layStonePad(helper);
         GutsStones stones = new GutsStones();
-        for (int i = 0; i < SoulquakeMountain.GUTS_STONE_CAP / 2; i++) {
+        for (int i = 0; i < SoulsunderMountain.GUTS_STONE_CAP / 2; i++) {
             stones.set(new BlockPos(100_000 + i, 0, 100_000), 2);
         }
-        helper.assertValueEqual(stones.total(), SoulquakeMountain.GUTS_STONE_CAP, "half as many cells hold the cap");
-        BlockPos grown = SoulquakeMountain.growGutsStone(helper.getLevel(), stones, helper.absolutePos(CENTER_POS),
+        helper.assertValueEqual(stones.total(), SoulsunderMountain.GUTS_STONE_CAP, "half as many cells hold the cap");
+        BlockPos grown = SoulsunderMountain.growGutsStone(helper.getLevel(), stones, helper.absolutePos(CENTER_POS),
                 TEST_RADIUS, helper.getLevel().getRandom());
-        helper.assertTrue(grown == null, "nothing grows at " + SoulquakeMountain.GUTS_STONE_CAP + " stones");
-        helper.assertTrue(SoulquakeMountain.stackGutsStone(helper.getLevel(), stones, helper.getLevel().getRandom())
+        helper.assertTrue(grown == null, "nothing grows at " + SoulsunderMountain.GUTS_STONE_CAP + " stones");
+        helper.assertTrue(SoulsunderMountain.stackGutsStone(helper.getLevel(), stones, helper.getLevel().getRandom())
                 == null, "nothing stacks at the cap either");
         for (int x = -TEST_RADIUS; x <= TEST_RADIUS; x++) {
             for (int z = -TEST_RADIUS; z <= TEST_RADIUS; z++) {
@@ -174,7 +174,7 @@ public final class SecretRealmGameTests {
             }
         }
         stones.remove(new BlockPos(100_000, 0, 100_000));
-        helper.assertTrue(SoulquakeMountain.growGutsStone(helper.getLevel(), stones, helper.absolutePos(CENTER_POS),
+        helper.assertTrue(SoulsunderMountain.growGutsStone(helper.getLevel(), stones, helper.absolutePos(CENTER_POS),
                 TEST_RADIUS, helper.getLevel().getRandom()) != null, "one free slot lets one grow again");
         helper.succeed();
     }
@@ -184,21 +184,21 @@ public final class SecretRealmGameTests {
         layStonePad(helper);
         ServerLevel level = helper.getLevel();
         GutsStones stones = new GutsStones();
-        BlockPos pos = SoulquakeMountain.growGutsStone(level, stones, helper.absolutePos(CENTER_POS), TEST_RADIUS,
+        BlockPos pos = SoulsunderMountain.growGutsStone(level, stones, helper.absolutePos(CENTER_POS), TEST_RADIUS,
                 level.getRandom());
         helper.assertTrue(pos != null, "a first stone grows");
         double single = shapeArea(level, pos);
 
-        helper.assertValueEqual(SoulquakeMountain.stackGutsStone(level, stones, level.getRandom()), pos,
+        helper.assertValueEqual(SoulsunderMountain.stackGutsStone(level, stones, level.getRandom()), pos,
                 "the only open cell takes the second stone");
         helper.assertValueEqual(level.getBlockState(pos).getValue(GutsStones.STONES), 2, "two stones");
         double pair = shapeArea(level, pos);
-        helper.assertValueEqual(SoulquakeMountain.stackGutsStone(level, stones, level.getRandom()), pos, "and a third");
+        helper.assertValueEqual(SoulsunderMountain.stackGutsStone(level, stones, level.getRandom()), pos, "and a third");
         helper.assertValueEqual(level.getBlockState(pos).getValue(GutsStones.STONES), 3, "three stones");
         helper.assertTrue(stones.count(pos) == 3 && stones.total() == 3 && stones.size() == 1,
                 "the record keeps one cell of three stones");
         helper.assertTrue(single < pair && pair < shapeArea(level, pos), "the outline grows with each stone");
-        helper.assertTrue(SoulquakeMountain.stackGutsStone(level, stones, level.getRandom()) == null,
+        helper.assertTrue(SoulsunderMountain.stackGutsStone(level, stones, level.getRandom()) == null,
                 "a full cell takes no fourth stone");
         helper.succeed();
     }
@@ -242,7 +242,7 @@ public final class SecretRealmGameTests {
         for (int death = 0; death < DEATHS; death++) {
             int cells = stones.size();
             int total = stones.total();
-            BlockPos left = SoulquakeMountain.leaveGutsStone(level, stones, helper.absolutePos(CENTER_POS),
+            BlockPos left = SoulsunderMountain.leaveGutsStone(level, stones, helper.absolutePos(CENTER_POS),
                     TEST_RADIUS, random);
             if (left == null) continue;
             helper.assertValueEqual(stones.total(), total + 1, "each death adds one stone");
@@ -268,7 +268,7 @@ public final class SecretRealmGameTests {
         layStonePad(helper);
         ServerLevel level = helper.getLevel();
         GutsStones stones = GutsStones.get(level);
-        BlockPos grown = SoulquakeMountain.growGutsStone(level, stones, helper.absolutePos(CENTER_POS), TEST_RADIUS,
+        BlockPos grown = SoulsunderMountain.growGutsStone(level, stones, helper.absolutePos(CENTER_POS), TEST_RADIUS,
                 level.getRandom());
         helper.assertTrue(grown != null && stones.contains(grown), "the grown stone is recorded in the level data");
         level.destroyBlock(grown, true);
@@ -280,9 +280,9 @@ public final class SecretRealmGameTests {
     public static void onlyMobsWithTwentyMaxHealthLeaveAGutsStone(GameTestHelper helper) {
         Zombie zombie = helper.spawn(EntityType.ZOMBIE, CENTER_POS);
         Chicken chicken = helper.spawn(EntityType.CHICKEN, CENTER_POS);
-        helper.assertTrue(SoulquakeMountain.leavesGutsStone(zombie), "a zombie (20 health) leaves one");
-        helper.assertTrue(SoulquakeMountain.leavesGutsStone(mortal(helper)), "a player (20 health) leaves one");
-        helper.assertFalse(SoulquakeMountain.leavesGutsStone(chicken), "a chicken (4 health) leaves none");
+        helper.assertTrue(SoulsunderMountain.leavesGutsStone(zombie), "a zombie (20 health) leaves one");
+        helper.assertTrue(SoulsunderMountain.leavesGutsStone(mortal(helper)), "a player (20 health) leaves one");
+        helper.assertFalse(SoulsunderMountain.leavesGutsStone(chicken), "a chicken (4 health) leaves none");
         helper.succeed();
     }
     //endregion
@@ -296,15 +296,15 @@ public final class SecretRealmGameTests {
         zombie.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.NETHERITE_HELMET));
         ArmorStand stand = helper.spawn(EntityType.ARMOR_STAND, CENTER_POS);
         Pig outside = helper.spawn(EntityType.PIG, CENTER_POS.offset(TEST_RADIUS, 0, TEST_RADIUS));
-        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-soulquake-mock").at(CENTER);
+        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-soulsunder-mock").at(CENTER);
         float zombieHealth = zombie.getHealth();
         float standHealth = stand.getHealth();
         float pigHealth = outside.getHealth();
         float playerHealth = player.getHealth();
 
-        SoulquakeMountain.damageMobs(helper.getLevel(), new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        SoulsunderMountain.damageMobs(helper.getLevel(), new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
 
-        helper.assertValueEqual(zombie.getHealth(), zombieHealth - SoulquakeMountain.MOB_DAMAGE,
+        helper.assertValueEqual(zombie.getHealth(), zombieHealth - SoulsunderMountain.MOB_DAMAGE,
                 "an armoured zombie loses the full damage");
         helper.assertValueEqual(stand.getHealth(), standHealth, "armour stands are immune");
         helper.assertValueEqual(outside.getHealth(), pigHealth, "a pig past the circle but inside the box is spared");
@@ -316,18 +316,18 @@ public final class SecretRealmGameTests {
     public static void playersLoseFiveSoulASecondUntilCollapseAndCreativeNone(GameTestHelper helper) {
         ServerPlayer player = mortal(helper);
         SoulService.setCurrent(player, 7L);
-        SoulquakeMountain.drainSoul(player);
-        helper.assertValueEqual(SoulService.get(player).currentSoul(), 7L - SoulquakeMountain.SOUL_DRAIN,
+        SoulsunderMountain.drainSoul(player);
+        helper.assertValueEqual(SoulService.get(player).currentSoul(), 7L - SoulsunderMountain.SOUL_DRAIN,
                 "one second drains five");
-        SoulquakeMountain.drainSoul(player);
+        SoulsunderMountain.drainSoul(player);
         helper.assertValueEqual(SoulService.get(player).currentSoul(), 0L, "the drain stops at zero");
         helper.assertTrue(SoulService.get(player).isCollapsed(), "a drained soul collapses");
 
         boolean[] creative = {true};
-        ServerPlayer builder = GameTestPlayers.survival(helper, "gzr-soulquake-creative").creative(() -> creative[0])
+        ServerPlayer builder = GameTestPlayers.survival(helper, "gzr-soulsunder-creative").creative(() -> creative[0])
                 .build();
         long full = SoulService.get(builder).currentSoul();
-        SoulquakeMountain.drainSoul(builder);
+        SoulsunderMountain.drainSoul(builder);
         helper.assertValueEqual(SoulService.get(builder).currentSoul(), full, "creative players are immune");
         helper.succeed();
     }
@@ -349,7 +349,7 @@ public final class SecretRealmGameTests {
         player.containerMenu = menu;
         menu.setCarried(new ItemStack(ModItems.GUTS_GU_1.get()));
 
-        helper.assertValueEqual(SoulquakeMountain.dissolveGutsGu(player), 5, "all five Guts Gu dissolve");
+        helper.assertValueEqual(SoulsunderMountain.dissolveGutsGu(player), 5, "all five Guts Gu dissolve");
         helper.assertTrue(menu.getCarried().isEmpty(), "the cursor is cleared");
         helper.assertTrue(player.inventoryMenu.getCraftSlots().getItem(0).isEmpty(), "the crafting grid is cleared");
         player.containerMenu = player.inventoryMenu;
@@ -361,7 +361,7 @@ public final class SecretRealmGameTests {
                 "none left in the aperture store");
         helper.assertTrue(stored.stream().anyMatch(stack -> stack.is(ModItems.WHITE_BOAR_GU_1.get())),
                 "other stored Gu stay");
-        helper.assertValueEqual(SoulquakeMountain.dissolveGutsGu(player), 0, "a second pass finds nothing");
+        helper.assertValueEqual(SoulsunderMountain.dissolveGutsGu(player), 0, "a second pass finds nothing");
         helper.succeed();
     }
 
@@ -371,9 +371,9 @@ public final class SecretRealmGameTests {
         ServerPlayer builder = GameTestPlayers.survival(helper, "gzr-guts-creative-mock").creative(() -> creative[0])
                 .build();
         builder.getInventory().setItem(0, new ItemStack(ModItems.GUTS_GU_1.get()));
-        helper.assertValueEqual(SoulquakeMountain.dissolveGutsGu(builder), 0, "creative players keep it");
+        helper.assertValueEqual(SoulsunderMountain.dissolveGutsGu(builder), 0, "creative players keep it");
         creative[0] = false;
-        helper.assertValueEqual(SoulquakeMountain.dissolveGutsGu(builder), 1, "back in survival it dissolves");
+        helper.assertValueEqual(SoulsunderMountain.dissolveGutsGu(builder), 1, "back in survival it dissolves");
 
         helper.assertFalse(ModItems.GUTS_GU_1.get().canFitInsideContainerItems(),
                 "a Guts Gu cannot go into a bundle or shulker box");
@@ -383,10 +383,10 @@ public final class SecretRealmGameTests {
 
     @GameTest(template = "empty9x9x9")
     public static void areaTicksWaitForAPlayerWithinOneHundredTwentyEightBlocks(GameTestHelper helper) {
-        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-soulquake-gate-mock").at(CENTER);
+        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-soulsunder-gate-mock").at(CENTER);
         Vec3 home = player.position();
-        RealmSite site = new RealmSite(BlockPos.containing(home).offset(FAR_SITE, 0, 0), SoulquakeMountain.RADIUS);
-        int gate = SoulquakeMountain.RADIUS + SecretRealms.PLAYER_MARGIN;
+        RealmSite site = new RealmSite(BlockPos.containing(home).offset(FAR_SITE, 0, 0), SoulsunderMountain.RADIUS);
+        int gate = SoulsunderMountain.RADIUS + SecretRealms.PLAYER_MARGIN;
         try {
             player.moveTo(site.center().getX() + 0.5D + gate, home.y, site.center().getZ() + 0.5D);
             helper.assertTrue(SecretRealms.hasPlayerNear(helper.getLevel(), site), "a player at 128 wakes the area");
@@ -399,9 +399,9 @@ public final class SecretRealmGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void soulquakeMountainIsANineRankSoulPathRealm(GameTestHelper helper) {
-        helper.assertValueEqual(SoulquakeMountain.INSTANCE.rank(), Rank.NINE, "rank");
-        helper.assertValueEqual(SoulquakeMountain.INSTANCE.path(), GuPath.SOUL, "path");
+    public static void soulsunderMountainIsANineRankSoulPathRealm(GameTestHelper helper) {
+        helper.assertValueEqual(SoulsunderMountain.INSTANCE.rank(), Rank.NINE, "rank");
+        helper.assertValueEqual(SoulsunderMountain.INSTANCE.path(), GuPath.SOUL, "path");
         helper.succeed();
     }
     //endregion
@@ -409,7 +409,7 @@ public final class SecretRealmGameTests {
     //region Pinned site [钉住山心]
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void gutsGuOnlyWorksInsideAndTheHeartbeatDrainsSoul(GameTestHelper helper) {
-        SecretRealms.pin(SoulquakeMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
         try {
             GameTestPlayers.ground(helper);
             ServerPlayer player = GameTestGu.awakened(
@@ -430,7 +430,7 @@ public final class SecretRealmGameTests {
             long current = SoulService.get(player).currentSoul();
             player.tickCount = Heartbeat.HEARTBEAT_TICKS * 10;
             Heartbeat.beat(player);
-            helper.assertValueEqual(SoulService.get(player).currentSoul(), current - SoulquakeMountain.SOUL_DRAIN,
+            helper.assertValueEqual(SoulService.get(player).currentSoul(), current - SoulsunderMountain.SOUL_DRAIN,
                     "the heartbeat drains five soul inside the mountain");
             helper.assertValueEqual(guts.getCount(), 1, "inside the heartbeat keeps the Gu");
 
@@ -441,14 +441,14 @@ public final class SecretRealmGameTests {
                     "outside the heartbeat dissolves the Gu");
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulquakeMountain.INSTANCE, null);
+            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH, skyAccess = true)
     public static void deathsInsideLeaveAGutsStoneAndOutsideNone(GameTestHelper helper) {
         layStonePad(helper);
-        SecretRealms.pin(SoulquakeMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
         try {
             GutsStones stones = GutsStones.get(helper.getLevel());
             int before = stones.total();
@@ -460,13 +460,13 @@ public final class SecretRealmGameTests {
             helper.assertValueEqual(stones.total(), before + 1, "a zombie dying inside leaves one stone");
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulquakeMountain.INSTANCE, null);
+            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void theHeartbeatRefreshesAnOpenStoreAfterDissolving(GameTestHelper helper) {
-        SecretRealms.pin(SoulquakeMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
         try {
             ServerPlayer player = GameTestGu.awakened(
                     GameTestPlayers.survival(helper, "gzr-guts-menu-mock").at(new Vec3(8.5D, 1.0D, 8.5D)), Rank.ONE);
@@ -483,13 +483,13 @@ public final class SecretRealmGameTests {
             player.containerMenu = player.inventoryMenu;
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulquakeMountain.INSTANCE, null);
+            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void droppedGutsGuVanishOutsideTheMountain(GameTestHelper helper) {
-        SecretRealms.pin(SoulquakeMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, new RealmSite(helper.absolutePos(CENTER_POS), TEST_RADIUS));
         try {
             ItemEntity inside = dropGuts(helper, CENTER);
             ItemEntity outside = dropGuts(helper, new Vec3(8.5D, 1.0D, 8.5D));
@@ -497,14 +497,14 @@ public final class SecretRealmGameTests {
             helper.assertTrue(outside.isRemoved(), "a Guts Gu dropped outside vanishes on its next check");
             helper.succeed();
         } finally {
-            SecretRealms.pin(SoulquakeMountain.INSTANCE, null);
+            SecretRealms.pin(SoulsunderMountain.INSTANCE, null);
         }
     }
 
     @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
     public static void withoutAMountainGutsGuIsRefusedButNeverDissolves(GameTestHelper helper) {
-        helper.assertTrue(SecretRealms.siteOf(helper.getLevel().getServer(), SoulquakeMountain.INSTANCE) == null,
-                "the flat test world has no soulquake mountain ring");
+        helper.assertTrue(SecretRealms.siteOf(helper.getLevel().getServer(), SoulsunderMountain.INSTANCE) == null,
+                "the flat test world has no soulsunder mountain ring");
         ServerPlayer player = GameTestGu.awakened(GameTestPlayers.survival(helper, "gzr-guts-free-mock").at(CENTER),
                 Rank.ONE);
         long max = SoulService.get(player).maxSoul();
@@ -558,7 +558,7 @@ public final class SecretRealmGameTests {
     private static void layStonePad(GameTestHelper helper) {
         for (int x = -TEST_RADIUS; x <= TEST_RADIUS; x++) {
             for (int z = -TEST_RADIUS; z <= TEST_RADIUS; z++) {
-                helper.setBlock(CENTER_POS.offset(x, 0, z), ModBlocks.SOULQUAKE_STONE.get());
+                helper.setBlock(CENTER_POS.offset(x, 0, z), ModBlocks.SOULSUNDER_STONE.get());
             }
         }
     }

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>流血与过载反噬加入穿透护甲标签；过载反噬另加无视效果与无视附魔标签，使抗性、保护附魔、皮肤固定减伤与肉身护盾
  *       （{@code SkinService.canTurn}）都不抵它，按公式实扣；范围伤害、蓄力一拳、冲撞打击与过载反噬均加入无击退标签（前三者由技能自身控制
  *       击退位移，过载反噬为无来源坐标的体内反冲，若不加无击退标签会被 1.21 原版朝随机水平方向击退）。</li>
- *   <li>荡魂[Soulquake]加入穿透护甲与无击退标签（同为无来源坐标的每秒伤害）。</li>
+ *   <li>荡魂[Soulsunder]加入穿透护甲与无击退标签（同为无来源坐标的每秒伤害）。</li>
  * </ul>
  */
 
@@ -56,11 +56,11 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE);
         tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.QI_WAVE, ModDamageTypes.CHARGED_PUNCH);
         tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD,
-                ModDamageTypes.SOULQUAKE);
+                ModDamageTypes.SOULSUNDER);
         tag(DamageTypeTags.BYPASSES_EFFECTS).add(ModDamageTypes.BODY_OVERLOAD);
         tag(DamageTypeTags.BYPASSES_ENCHANTMENTS).add(ModDamageTypes.BODY_OVERLOAD);
         tag(DamageTypeTags.NO_KNOCKBACK).add(ModDamageTypes.AREA_DAMAGE, ModDamageTypes.CHARGED_PUNCH,
-                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.CRASH_STRIKE, ModDamageTypes.SOULQUAKE);
+                ModDamageTypes.BODY_OVERLOAD, ModDamageTypes.CRASH_STRIKE, ModDamageTypes.SOULSUNDER);
     }
 
     private void tagUnstoppable(TagKey<DamageType> tag) {

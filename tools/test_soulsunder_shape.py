@@ -1,4 +1,4 @@
-"""The Soulquake Mountain shape tool: the span file, the placeholder, grounding, schematic reading and the shipped file."""
+"""The Soulsunder Mountain shape tool: the span file, the placeholder, grounding, schematic reading and the shipped file."""
 from __future__ import annotations
 
 import gzip
@@ -6,7 +6,7 @@ import struct
 import math
 import unittest
 
-import soulquake_shape as shape
+import soulsunder_shape as shape
 
 
 def nbt(value, kind: int | None = None) -> tuple[int, bytes]:

@@ -16,11 +16,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 单维度内由荡魂山[Soulquake Mountain]长出、尚未敲碎的胆石[Guts Stone]格子与每格块数，持久化于该维度的
+ * 单维度内由荡魂山[Soulsunder Mountain]长出、尚未敲碎的胆石[Guts Stone]格子与每格块数，持久化于该维度的
  * {@code guzhenren_guts_stones.dat}。
  * <ul>
  *   <li>每格记坐标（{@link BlockPos#asLong}）与块数 1–{@value #MAX_STONES}，{@link #total} 为全部块数之和，
- *       {@link SoulquakeMountain#GUTS_STONE_CAP} 按它算；胆石方块块数变化或被换掉时由 {@code GutsStoneBlock#onRemove} 调
+ *       {@link SoulsunderMountain#GUTS_STONE_CAP} 按它算；胆石方块块数变化或被换掉时由 {@code GutsStoneBlock#onRemove} 调
  *       {@link #set} 或 {@link #remove}。</li>
  *   <li>{@link #STONES} 是胆石方块的块数属性；定义在这里而非方块类，因为长胆石要写它，而 gameplay 包不能反向依赖
  *       block 包。</li>

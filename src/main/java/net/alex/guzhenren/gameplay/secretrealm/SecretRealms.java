@@ -40,7 +40,7 @@ public final class SecretRealms {
     private SecretRealms() {}
 
     public static final int PLAYER_MARGIN = 32;
-    public static final List<SecretRealm> ALL = List.of(SoulquakeMountain.INSTANCE);
+    public static final List<SecretRealm> ALL = List.of(SoulsunderMountain.INSTANCE);
     private static final Map<SecretRealm, Resolved> SITES = new HashMap<>();
 
     private record Resolved(@Nullable ChunkGeneratorStructureState state, @Nullable RealmSite site, boolean settled,

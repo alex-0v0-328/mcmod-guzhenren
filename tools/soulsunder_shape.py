@@ -1,10 +1,10 @@
-"""The Soulquake Mountain [荡魂山] shape: a reference schematic or a procedural placeholder, turned into column spans.
+"""The Soulsunder Mountain [荡魂山] shape: a reference schematic or a procedural placeholder, turned into column spans.
 
-    python -B tools/soulquake_shape.py placeholder [--seed N] [--style S]   a procedural body plus crystal spikes
-    python -B tools/soulquake_shape.py convert REF.schem [--seed N]         a Sponge .schem or legacy .schematic
-    python -B tools/soulquake_shape.py info [SPANS]                         volume, heights and spans of a shape file
+    python -B tools/soulsunder_shape.py placeholder [--seed N] [--style S]   a procedural body plus crystal spikes
+    python -B tools/soulsunder_shape.py convert REF.schem [--seed N]         a Sponge .schem or legacy .schematic
+    python -B tools/soulsunder_shape.py info [SPANS]                         volume, heights and spans of a shape file
 
-Every command writes Gu World's data/guworld/secret_realm/soulquake_mountain.spans unless --out names another file,
+Every command writes Gu World's data/guworld/secret_realm/soulsunder_mountain.spans unless --out names another file,
 and --preview PNG draws the top view (height as grey) beside the side view (silhouette seen from the south).
 
 placeholder --style picks the body: cone (default), needle, dome, twin or mesa; --spikes overrides its count.
@@ -21,7 +21,7 @@ stated; the schematic stays out of both repositories), made with convert desert-
 The file (format 1, big-endian): magic "GZSQ", u8 version, u16 width (x), u16 depth (z), u16 height (y); then one
 record per column, z-major (index z * width + x): u8 span count and that many (u8 y0, u8 y1) pairs, both inclusive,
 ascending and at least one empty block apart. y counts from the mountain's base; column (80, 80) is the centre block.
-Gu World's SoulquakeShape reads it once; its pure test holds the same invariants.
+Gu World's SoulsunderShape reads it once; its pure test holds the same invariants.
 """
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ RADIUS = 80.0
 MAGIC = b"GZSQ"
 VERSION = 1
 DEFAULT_SEED = 20261120
-DEFAULT_OUT = env.GU_WORLD_ROOT / "src/main/resources/data/guworld/secret_realm/soulquake_mountain.spans"
+DEFAULT_OUT = env.GU_WORLD_ROOT / "src/main/resources/data/guworld/secret_realm/soulsunder_mountain.spans"
 PEAK = 104
 FOOT_OUTLIER = 4
 FOOT_HOLE = 16
@@ -126,7 +126,7 @@ def encode(spans: list[list[tuple[int, int]]]) -> bytes:
 
 def decode(data: bytes) -> tuple[int, int, int, list[list[tuple[int, int]]]]:
     if data[:4] != MAGIC:
-        raise ShapeError("not a soulquake shape file")
+        raise ShapeError("not a soulsunder shape file")
     version, width, depth, height = struct.unpack_from(">BHHH", data, 4)
     if version != VERSION:
         raise ShapeError(f"format {version}, this tool reads {VERSION}")
@@ -711,7 +711,7 @@ def main(argv: list[str]) -> int:
         report({"seed": arguments.seed, **notes, **write(grid, arguments.out, arguments.preview)})
         return 0
     except (OSError, ShapeError, KeyError) as error:
-        print(f"soulquake_shape: {error}", file=sys.stderr)
+        print(f"soulsunder_shape: {error}", file=sys.stderr)
         return 1
 
 

@@ -70,7 +70,7 @@ public final class ChunkRewindGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void mortalRewindLeavesTheSoulquakeMountainAndItsSupportsStanding(GameTestHelper helper) {
+    public static void mortalRewindLeavesTheSoulsunderMountainAndItsSupportsStanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         LevelChunk chunk = farChunk(helper, 5);
         BlockPos mountain = surface(chunk, 3, 3);
@@ -81,11 +81,11 @@ public final class ChunkRewindGameTests {
         try {
             level.setBlock(mountain, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
             level.setBlock(mountain.above(), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
-            level.setBlock(mountain.above(2), ModBlocks.SOULQUAKE_STONE.get().defaultBlockState(),
+            level.setBlock(mountain.above(2), ModBlocks.SOULSUNDER_STONE.get().defaultBlockState(),
                     Block.UPDATE_CLIENTS);
             level.setBlock(mountain.above(3), ModBlocks.GUTS_STONE.get().defaultBlockState(), Block.UPDATE_CLIENTS);
             level.setBlock(gap, Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
-            level.setBlock(gap.above(2), ModBlocks.SOULQUAKE_STONE.get().defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(gap.above(2), ModBlocks.SOULSUNDER_STONE.get().defaultBlockState(), Block.UPDATE_CLIENTS);
             level.setBlock(loose, Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
             ProtoChunk origin = copyOf(level, chunk);
             for (BlockPos pos : placed) origin.setBlockState(pos, Blocks.AIR.defaultBlockState(), false);
@@ -94,10 +94,10 @@ public final class ChunkRewindGameTests {
 
             assertEquals(2, changed, "only the stone under the gap and the loose stone go");
             assertEquals(ModBlocks.GUTS_STONE.get(), level.getBlockState(mountain.above(3)).getBlock());
-            assertEquals(ModBlocks.SOULQUAKE_STONE.get(), level.getBlockState(mountain.above(2)).getBlock());
+            assertEquals(ModBlocks.SOULSUNDER_STONE.get(), level.getBlockState(mountain.above(2)).getBlock());
             assertEquals(Blocks.STONE, level.getBlockState(mountain.above()).getBlock());
             assertEquals(Blocks.DIRT, level.getBlockState(mountain).getBlock());
-            assertEquals(ModBlocks.SOULQUAKE_STONE.get(), level.getBlockState(gap.above(2)).getBlock());
+            assertEquals(ModBlocks.SOULSUNDER_STONE.get(), level.getBlockState(gap.above(2)).getBlock());
             assertTrue(level.getBlockState(gap).isAir(), "an air gap ends the support");
             assertTrue(level.getBlockState(loose).isAir(), "stone away from the mountain is restored");
         } finally {
