@@ -1,4 +1,4 @@
-"""The Soulsunder Mountain shape tool: the span file, the placeholder, grounding, schematic reading and the shipped file."""
+"""The Soulsunder Mountain shape tool: span file, placeholder, grounding, schematics, reshaping and the shipped file."""
 from __future__ import annotations
 
 import gzip
@@ -213,6 +213,147 @@ class NaturalFootTest(unittest.TestCase):
             self.assertLessEqual(len(shape.column_spans(column)), 1)
         reach = shape.foot_reach(shape.column_heights(grid))
         self.assertAlmostEqual(reach[1], 42.4, delta=1.5)
+
+
+def cone_heights() -> list[int]:
+    """A gentle cone, 109 blocks at the centre and about 1.7 blocks lower per block outward, gone at 64 blocks."""
+    heights = []
+    for z in range(shape.WIDTH):
+        for x in range(shape.WIDTH):
+            distance = math.hypot(x + 0.5 - shape.CENTRE, z + 0.5 - shape.CENTRE)
+            heights.append(max(0, round(110 * (1 - distance / 64))))
+    return heights
+
+
+def height_grid(heights: list[int]) -> shape.Grid:
+    grid = shape.Grid.empty()
+    for column, height in zip(grid.columns, heights):
+        column[0:height] = b"\x01" * height
+    return grid
+
+
+class ReshapeTest(unittest.TestCase):
+
+    def assert_height_map(self, grid: shape.Grid):
+        for index, column in enumerate(grid.columns):
+            spans = shape.column_spans(column)
+            self.assertLessEqual(len(spans), 1)
+            if spans:
+                self.assertEqual(spans[0][0], 0)
+                self.assertTrue(shape.in_disc(index % shape.WIDTH, index // shape.WIDTH))
+
+    def test_peak_scales_the_highest_column_to_n(self):
+        before = cone_heights()
+        for peak in (80, 20):
+            with self.subTest(peak=peak):
+                grid = height_grid(before)
+                shape.reshape(grid, peak=peak)
+                after = shape.column_heights(grid)
+                self.assertEqual(max(after), peak)
+                self.assertEqual([h > 0 for h in after], [h > 0 for h in before])  # low foot columns keep one block
+                self.assert_height_map(grid)
+
+    def test_blunt_keeps_the_knee_and_stays_under_the_cap(self):
+        before = cone_heights()
+        grid = height_grid(before)
+        shape.reshape(grid, blunt=(70, 96))
+        after = shape.column_heights(grid)
+        for old, new in zip(before, after):
+            if old <= 70:
+                self.assertEqual(new, old)
+            else:
+                self.assertGreater(new, 70)
+        self.assertEqual(max(after), round(70 + 26 * (1 - math.exp(-(max(before) - 70) / 26))))
+        self.assertLessEqual(max(after), 96)
+        self.assert_height_map(grid)
+
+    def test_lift_raises_the_flanks_and_keeps_the_foot_and_the_summit(self):
+        before = cone_heights()
+        top, lift = max(before), 16
+        grid = height_grid(before)
+        notes = shape.reshape(grid, lift=lift)
+        after = shape.column_heights(grid)
+        self.assertEqual(max(after), top)
+        self.assertEqual([h > 0 for h in after], [h > 0 for h in before])
+        self.assertTrue(all(0 <= new - old <= lift for old, new in zip(before, after)))
+        self.assertEqual({new - old for old, new in zip(before, after) if old in (top // 2, top // 2 + 1)}, {lift})
+        self.assertGreater(notes["lifted_columns"], 0)
+        self.assert_height_map(grid)
+
+    def test_lift_steepens_a_step_by_at_most_one_plus_four_lift_over_the_top(self):
+        before = cone_heights()
+        top, lift = max(before), 16
+        grid = height_grid(before)
+        shape.reshape(grid, lift=lift)
+        after = shape.column_heights(grid)
+        factor = 1 + 4 * lift / top
+        width = shape.WIDTH
+        for index in range(width * width):
+            x, z = index % width, index // width
+            for other in ((index + 1) if x + 1 < width else None, (index + width) if z + 1 < width else None):
+                if other is not None:
+                    old, new = abs(before[index] - before[other]), abs(after[index] - after[other])
+                    self.assertLessEqual(new, factor * old + 1)  # + 1 for the two roundings
+
+    def test_lift_must_stay_under_a_quarter_of_the_top(self):
+        before = cone_heights()
+        with self.assertRaises(shape.ShapeError):
+            shape.reshape(height_grid(before), lift=max(before) / 4)
+
+    def test_reshaping_needs_the_natural_foot(self):
+        schematic = shape.Schematic(1, 1, 1, bytearray([1]))
+        for option in ({"peak": 100}, {"lift": 16.0}, {"blunt": (80, 112)}):
+            with self.subTest(option=option):
+                with self.assertRaises(shape.ShapeError):
+                    shape.convert(schematic, seed=1, spikes=0, **option)
+
+
+def cone_schematic() -> shape.Schematic:
+    """A 41-cell cone, 40 cells high and 20 in radius; converted with keep_aspect a cell is 3.2 blocks, so the foot
+    ends about 66 blocks out, clear of the disc edge."""
+    size = 41
+    solid = bytearray(size ** 3)
+    for y in range(size):
+        for z in range(size):
+            for x in range(size):
+                solid[(y * size + z) * size + x] = y < 40 * (1 - math.hypot(x - 20, z - 20) / 20)
+    return shape.Schematic(size, size, size, solid)
+
+
+class ConvertSpikeTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        schematic = cone_schematic()
+        options = {"keep_aspect": True, "tidy_foot": True, "peak": 96, "spike_radius": (2.0, 3.0),
+                   "spike_length": (12.0, 20.0)}
+        cls.summit, cls.summit_notes = shape.convert(schematic, seed=5, spikes=5, **options)
+        cls.flank, cls.flank_notes = shape.convert(schematic, seed=5, spikes=5, summit_spike=False, **options)
+
+    def test_flank_spikes_keep_to_the_given_ranges(self):
+        spikes = self.flank_notes["spikes"]
+        self.assertEqual(len(spikes), 5)
+        for spike in spikes:
+            self.assertGreaterEqual(spike["radius"], 2.0)
+            self.assertLessEqual(spike["radius"], 3.0)
+            self.assertGreaterEqual(spike["length"], 12.0)
+            self.assertLessEqual(spike["length"], 20.0)
+
+    def test_no_summit_spike_means_nothing_reaches_the_top_layer(self):
+        room = shape.HEIGHT - shape.SUMMIT_ROOM
+        summit_top = self.summit_notes["reshape"]["max_height_after"] - 1
+        self.assertEqual(len(self.summit_notes["spikes"]), 5)  # the summit crystal takes one of the five
+        self.assertEqual(self.summit_notes["spikes"][0]["surface"], summit_top)
+        self.assertGreater(shape.describe(shape.grid_spans(self.summit))["max_height"], room)
+        self.assertTrue(all(spike["surface"] < summit_top for spike in self.flank_notes["spikes"]))
+        self.assertLessEqual(shape.describe(shape.grid_spans(self.flank))["max_height"], room)
+
+    def test_reshaped_mountains_have_nothing_floating(self):
+        for grid in (self.summit, self.flank):
+            facts = shape.describe(shape.grid_spans(grid))
+            self.assertEqual(facts["grounded_columns"], facts["columns"])
+            self.assertEqual(facts["outside_disc"], 0)
+            self.assertEqual(shape.keep_grounded(grid), 0)
 
 
 class ShippedFileTest(unittest.TestCase):

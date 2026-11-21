@@ -14,9 +14,22 @@ to the 80-block disc around the centre, with --natural-foot tidies the reference
 then adds the seeded spikes as placeholder does. Both commands drop every run
 of blocks that no face path joins to the bottom layer, so the mountain has no floating pieces.
 
+convert can reshape the tidied column heights before the spikes; these need --natural-foot and run in this order:
+    --peak N           scales every height so the highest column is N (a column that had blocks keeps at least one)
+    --lift L           raises the flanks: h + L * 4 * (h / H) * (1 - h / H), rounded, with H the highest column, so the
+                       foot and the summit stay and mid-height rises by L; L under H / 4 keeps every slope rising
+    --blunt KNEE CAP   eases every height h above KNEE towards CAP:
+                       KNEE + (CAP - KNEE) * (1 - e^(-(h - KNEE) / (CAP - KNEE))), rounded
+--spike-radius LO HI and --spike-length LO HI set the flank crystals' ranges (3.5-7 and 28-48 by default), and
+--no-summit-spike leaves the summit crystal out: no draw for it, and every --spikes is a flank crystal.
+
 The shipped shape is Desert Mountain by SPHYRN1DAE (planetminecraft.com/project/desert-mountain-4144359, no licence
-stated; the schematic stays out of both repositories), made with convert desert-mountain-1529385474.schematic
---trim-bottom 72 --natural-foot at the default seed: the bottom 72 layers are the reference's flat ground and dunes.
+stated; the schematic stays out of both repositories), made at the default seed with
+    convert desert-mountain-1529385474.schematic --trim-bottom 72 --natural-foot --lift 16 --blunt 104 124
+            --no-summit-spike --spikes 5 --spike-radius 2.0 3.0 --spike-length 12 20
+The bottom 72 layers are the reference's flat ground and dunes. Alex found the stretched reference too sharp and its
+crystals too big and asked for a fuller mountain that keeps most of its height: hence the lifted flanks, the rounded
+summit and five thin flank crystals.
 
 The file (format 1, big-endian): magic "GZSQ", u8 version, u16 width (x), u16 depth (z), u16 height (y); then one
 record per column, z-major (index z * width + x): u8 span count and that many (u8 y0, u8 y1) pairs, both inclusive,
@@ -52,6 +65,8 @@ PEAK = 104
 FOOT_OUTLIER = 4
 FOOT_HOLE = 16
 SUMMIT_ROOM = 16
+SPIKE_RADIUS = (3.5, 7.0)
+SPIKE_LENGTH = (28.0, 48.0)
 DEFAULT_IGNORED = ("minecraft:air", "minecraft:cave_air", "minecraft:void_air", "minecraft:structure_void",
                    "minecraft:barrier", "minecraft:light", "minecraft:water", "minecraft:lava", "minecraft:*_leaves",
                    "minecraft:short_grass", "minecraft:tall_grass", "minecraft:grass", "minecraft:fern",
@@ -315,15 +330,17 @@ def add_spike(grid: Grid, base: tuple[float, float, float], axis: tuple[float, f
     return placed
 
 
-def add_spikes(grid: Grid, rng: random.Random, count: int) -> list[dict]:
+def add_spikes(grid: Grid, rng: random.Random, count: int, radius_range: tuple[float, float] = SPIKE_RADIUS,
+               length_range: tuple[float, float] = SPIKE_LENGTH, summit_spike: bool = True) -> list[dict]:
     """count crystals: one upright on the summit reaching the top layer (none when the summit is already within
-    SUMMIT_ROOM of it), the rest rooted on the surface between 12% and 58% of the radius, evenly spread round the
-    centre with jitter, each leaning 8-28 degrees outward; every base sits one radius under the surface."""
+    SUMMIT_ROOM of it or summit_spike is off), the rest rooted on the surface between 12% and 58% of the radius,
+    evenly spread round the centre with jitter, each leaning 8-28 degrees outward, their radius and length drawn from
+    radius_range and length_range; every base sits one radius under the surface."""
     spikes = []
     summit = max(range(WIDTH * WIDTH), key=lambda index: (grid.columns[index].rfind(1), -abs(index % WIDTH - CENTRE)))
     x, z = summit % WIDTH, summit // WIDTH
     top = grid.top(x, z)
-    if 0 <= top < HEIGHT - SUMMIT_ROOM:
+    if summit_spike and 0 <= top < HEIGHT - SUMMIT_ROOM:
         # The summit crystal stands near upright on the highest column and ends on the top layer.
         radius = rng.uniform(5.0, 7.5)
         tilt, heading = math.radians(rng.uniform(0, 6)), rng.uniform(0, 2 * math.pi)
@@ -346,8 +363,8 @@ def add_spikes(grid: Grid, rng: random.Random, count: int) -> list[dict]:
         tilt = math.radians(rng.uniform(8, 28))
         heading = theta + rng.uniform(-0.4, 0.4)
         axis = (math.sin(tilt) * math.cos(heading), math.cos(tilt), math.sin(tilt) * math.sin(heading))
-        radius = rng.uniform(3.5, 7.0)
-        length = rng.uniform(28, 48)
+        radius = rng.uniform(*radius_range)
+        length = rng.uniform(*length_range)
         base = (x + 0.5, top + 0.5 - radius, z + 0.5)
         placed = add_spike(grid, base, axis, length, radius, rng.uniform(0, math.pi / 3))
         spikes.append({"x": x, "z": z, "surface": top, "length": round(length, 1), "radius": round(radius, 1),
@@ -568,8 +585,71 @@ def foot_reach(heights: list[int], sectors: int = 72) -> tuple[float, float]:
     return min(reach), max(reach)
 
 
+def peak_heights(heights: list[int], peak: int) -> list[int]:
+    """Every height scaled so the highest is peak; a column that had blocks keeps at least one."""
+    top = max(heights)
+    if top == 0:
+        return list(heights)
+    return [max(1, round(height * peak / top)) if height else 0 for height in heights]
+
+
+def lift_heights(heights: list[int], lift: float) -> list[int]:
+    """Every height h raised by lift * 4 * (h / H) * (1 - h / H), rounded, H the highest: nothing at the foot or the
+    summit, lift at mid-height. Below H / 4 the curve keeps rising, so no slope turns over and a step between two
+    columns grows by at most 1 + 4 * lift / H times."""
+    top = max(heights)
+    if not 0 <= lift < top / 4:
+        raise ShapeError(f"--lift needs 0 <= L < {top / 4} (a quarter of the highest column), got {lift}")
+    return [round(height + lift * 4 * (height / top) * (1 - height / top)) if height else 0 for height in heights]
+
+
+def blunt_heights(heights: list[int], knee: int, cap: int) -> list[int]:
+    """Heights above knee eased towards cap, rounded; knee and below stay."""
+    room = cap - knee
+    return [round(knee + room * (1 - math.exp(-(height - knee) / room))) if height > knee else height
+            for height in heights]
+
+
+def check_reshape(tidy_foot: bool, peak: int | None, lift: float | None, blunt: tuple[int, int] | None,
+                  spike_radius: tuple[float, float], spike_length: tuple[float, float]) -> None:
+    if (peak is not None or lift is not None or blunt is not None) and not tidy_foot:
+        raise ShapeError("--peak, --lift and --blunt reshape a height map and need --natural-foot")
+    if peak is not None and not 1 <= peak <= HEIGHT:
+        raise ShapeError(f"--peak must lie in 1..{HEIGHT}, got {peak}")
+    if lift is not None and lift < 0:
+        raise ShapeError(f"--lift must not be negative, got {lift}")
+    if blunt is not None and not 0 <= blunt[0] < blunt[1] <= HEIGHT:
+        raise ShapeError(f"--blunt needs 0 <= KNEE < CAP <= {HEIGHT}, got {blunt[0]} {blunt[1]}")
+    for name, (low, high) in (("--spike-radius", spike_radius), ("--spike-length", spike_length)):
+        if not 0 < low <= high:
+            raise ShapeError(f"{name} needs 0 < LO <= HI, got {low} {high}")
+
+
+def reshape(grid: Grid, peak: int | None = None, lift: float | None = None,
+            blunt: tuple[int, int] | None = None) -> dict:
+    """Peak, then lift, then blunt the column heights of a height map (every column solid from y 0 to its top)."""
+    heights = column_heights(grid)
+    before = (max(heights), sum(1 for height in heights if height))
+    if peak is not None:
+        heights = peak_heights(heights, peak)
+    raised = 0
+    if lift is not None:
+        lifted = lift_heights(heights, lift)
+        raised = sum(1 for old, new in zip(heights, lifted) if new > old)
+        heights = lifted
+    if blunt is not None:
+        heights = blunt_heights(heights, *blunt)
+    for column, height in zip(grid.columns, heights):
+        column[:] = b"\x01" * height + bytes(HEIGHT - height)
+    return {"max_height_before": before[0], "max_height_after": max(heights), "columns_before": before[1],
+            "columns_after": sum(1 for height in heights if height), "lifted_columns": raised}
+
+
 def convert(schematic: Schematic, seed: int, spikes: int, keep_aspect: bool = False,
-            trim_bottom: int = 0, tidy_foot: bool = False) -> tuple[Grid, dict]:
+            trim_bottom: int = 0, tidy_foot: bool = False, peak: int | None = None, lift: float | None = None,
+            blunt: tuple[int, int] | None = None, spike_radius: tuple[float, float] = SPIKE_RADIUS,
+            spike_length: tuple[float, float] = SPIKE_LENGTH, summit_spike: bool = True) -> tuple[Grid, dict]:
+    check_reshape(tidy_foot, peak, lift, blunt, spike_radius, spike_length)
     xs, ys, zs = [], [], []
     for y in range(trim_bottom, schematic.height):
         for z in range(schematic.length):
@@ -599,10 +679,13 @@ def convert(schematic: Schematic, seed: int, spikes: int, keep_aspect: bool = Fa
                 column[y] = schematic.at(source_x, source_y, source_z)
     clipped = clip_disc(grid)
     foot = natural_foot(grid) if tidy_foot else {}
-    added = add_spikes(grid, random.Random(seed), spikes)
+    shaped = {}
+    if peak is not None or lift is not None or blunt is not None:
+        shaped = {"reshape": reshape(grid, peak, lift, blunt)}
+    added = add_spikes(grid, random.Random(seed), spikes, tuple(spike_radius), tuple(spike_length), summit_spike)
     cleared = keep_grounded(grid)
     return grid, {"reference": {"width": schematic.width, "height": schematic.height, "length": schematic.length,
-                                "solid_box": spans}, "scaled_to": size, "disc_clipped": clipped, **foot,
+                                "solid_box": spans}, "scaled_to": size, "disc_clipped": clipped, **foot, **shaped,
                   "spikes": added, "floating_cleared": cleared}
 
 
@@ -686,6 +769,18 @@ def main(argv: list[str]) -> int:
             command.add_argument("--natural-foot", action="store_true",
                                  help="tidy the reference's foot: no fragments, no small gaps, solid columns")
             command.add_argument("--ignore", nargs="*", default=[], help="more block names or globs that are air")
+            command.add_argument("--peak", type=int, metavar="N",
+                                 help="scale the heights so the highest column is N (needs --natural-foot)")
+            command.add_argument("--lift", type=float, metavar="L",
+                                 help="raise the flanks by up to L blocks at mid-height (needs --natural-foot)")
+            command.add_argument("--blunt", type=int, nargs=2, metavar=("KNEE", "CAP"),
+                                 help="ease the heights above KNEE towards CAP (needs --natural-foot)")
+            command.add_argument("--spike-radius", type=float, nargs=2, metavar=("LO", "HI"), default=SPIKE_RADIUS,
+                                 help="flank crystal radius range")
+            command.add_argument("--spike-length", type=float, nargs=2, metavar=("LO", "HI"), default=SPIKE_LENGTH,
+                                 help="flank crystal length range")
+            command.add_argument("--no-summit-spike", action="store_true",
+                                 help="no summit crystal; every --spikes is a flank one")
         command.add_argument("--seed", type=int, default=DEFAULT_SEED)
         command.add_argument("--out", type=Path, default=DEFAULT_OUT)
         command.add_argument("--preview", type=Path)
@@ -707,7 +802,9 @@ def main(argv: list[str]) -> int:
                                               for name in arguments.ignore)
             schematic = read_schematic(arguments.reference.read_bytes(), ignored)
             grid, notes = convert(schematic, arguments.seed, arguments.spikes, arguments.keep_aspect,
-                                  arguments.trim_bottom, arguments.natural_foot)
+                                  arguments.trim_bottom, arguments.natural_foot, arguments.peak, arguments.lift,
+                                  arguments.blunt and tuple(arguments.blunt), tuple(arguments.spike_radius),
+                                  tuple(arguments.spike_length), not arguments.no_summit_spike)
         report({"seed": arguments.seed, **notes, **write(grid, arguments.out, arguments.preview)})
         return 0
     except (OSError, ShapeError, KeyError) as error:
