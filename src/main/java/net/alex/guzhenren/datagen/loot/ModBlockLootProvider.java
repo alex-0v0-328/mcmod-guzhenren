@@ -1,6 +1,7 @@
 package net.alex.guzhenren.datagen.loot;
 
 import java.util.Set;
+import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.advancements.critereon.BlockPredicate;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.storage.loot.predicates.AnyOfCondition;
 import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.predicates.MatchTool;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +43,8 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>{@link #getKnownBlocks} 遍历本模组注册的全部方块（流体方块无战利品表），确保新增有形方块漏写战利品表时在
  *       {@code runData} 阶段直接报错；三转九叶生机草[Nine Leaf Vitality Grass]直接掉落满叶状态的野生蛊物品，黑土耕地掉
- *       落泥土，钢块掉落自身。</li>
+ *       落泥土，钢块掉落自身；胆石[Guts Stone]每块一个池，不论工具各自 50% 掉一只一转胆识蛊（第 k 个池只在块数不少于 k
+ *       时掷，爆炸另按原版存活概率逐块判定）；玩家逐块敲碎时方块按 1 块的状态掷表。</li>
  *   <li>野生知心草与知心草作物均掉落知心草束与知心草种子（种子数量应用原版小麦的时运二项分布加成与爆炸衰减）；
  *       {@link #hasHoe} 提供锄头工具匹配条件供 {@link ModLootModifierProvider} 复用。</li>
  *   <li>⚠ 野生知心草作为双层植物（{@link DoublePlantBlock}），在一半被破坏时另一半会因失去支撑紧接着破坏并各自结算一次
@@ -56,6 +59,7 @@ public final class ModBlockLootProvider extends BlockLootSubProvider {
     private static final int WILD_SEED_ROLLS = 3;
     private static final int CROP_SEED_ROLLS = 1;
     private static final float SEED_ROLL_CHANCE = 0.5714286F;
+    private static final float GUTS_GU_CHANCE = 0.5F;
 
     public ModBlockLootProvider(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
@@ -77,7 +81,30 @@ public final class ModBlockLootProvider extends BlockLootSubProvider {
         add(ModBlocks.INTIMATE_GRASS_CROP.get(), this::createIntimateGrassCropDrops);
         dropOther(ModBlocks.BLACK_SOIL_FARMLAND.get(), Blocks.DIRT);
         dropSelf(ModBlocks.STEEL_BLOCK.get());
+        add(ModBlocks.GUTS_STONE.get(), this::createGutsStoneDrops);
     }
+
+    //region Guts stone [胆石]
+    private LootTable.Builder createGutsStoneDrops(Block block) {
+        LootTable.Builder table = LootTable.lootTable();
+        for (int stone = 1; stone <= GutsStones.MAX_STONES; stone++) {
+            LootPool.Builder pool = LootPool.lootPool().add(LootItem.lootTableItem(ModItems.GUTS_GU_1.get())
+                    .when(LootItemRandomChanceCondition.randomChance(GUTS_GU_CHANCE)));
+            if (stone > 1) pool.when(hasAtLeastStones(block, stone));
+            table.withPool(applyExplosionCondition(block, pool));
+        }
+        return table;
+    }
+
+    private static LootItemCondition.Builder hasAtLeastStones(Block block, int least) {
+        AnyOfCondition.Builder any = AnyOfCondition.anyOf();
+        for (int stones = least; stones <= GutsStones.MAX_STONES; stones++) {
+            any.or(LootItemBlockStatePropertyCondition.hasBlockStateProperties(block).setProperties(
+                    StatePropertiesPredicate.Builder.properties().hasProperty(GutsStones.STONES, stones)));
+        }
+        return any;
+    }
+    //endregion
 
     //region Intimate grass [知心草]
     private LootTable.Builder createWildIntimateGrassDrops(Block block) {

@@ -4,6 +4,7 @@ import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.rewind.ChunkOriginGenerator;
 import net.alex.guzhenren.gameplay.rewind.ChunkRewindService;
+import net.alex.guzhenren.registry.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -28,9 +29,9 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertNotNull;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 山如故[Mountain As Before Gu]、江如故[River As Before Gu]背后的裸地：恢复只写异于原貌的方块并清除放置的箱子；装饰过滤
- * 留岩石重着色，去树、植物、雪、冰、湖、矿石；按种子重生成的区块复原改动地表。恢复改写整区块会抹掉相邻测试，故都在远离
- * 测试网格的区块上跑（{@link #farChunk}：测试以东 {@code slot} × 4096 格），测试期间强制加载、结束释放。
+ * 山如故[Mountain As Before Gu]、江如故[River As Before Gu]背后的裸地：恢复只写异于原貌的方块并清除放置的箱子，荡魂山
+ * 石、胆石连同下方连续支撑原样保留；装饰过滤留岩石重着色，去树、植物、雪、冰、湖、矿石；按种子重生成的区块复原改动地表。
+ * 恢复改写整区块会抹掉相邻测试，故都在远离测试网格的区块上跑（{@link #farChunk}：测试以东 {@code slot} × 4096 格），测试期间强制加载、结束释放。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -63,6 +64,46 @@ public final class ChunkRewindGameTests {
             assertEquals(Blocks.STONE, level.getBlockState(stonePos).getBlock());
         } finally {
             level.setBlock(stonePos, Blocks.AIR.defaultBlockState(), ChunkRewindService.RESTORE_FLAGS);
+            release(helper, chunk.getPos());
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void mortalRewindLeavesTheSoulquakeMountainAndItsSupportsStanding(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        LevelChunk chunk = farChunk(helper, 5);
+        BlockPos mountain = surface(chunk, 3, 3);
+        BlockPos gap = surface(chunk, 9, 9);
+        BlockPos loose = surface(chunk, 6, 6);
+        List<BlockPos> placed = List.of(mountain, mountain.above(), mountain.above(2), mountain.above(3), gap,
+                gap.above(2), loose);
+        try {
+            level.setBlock(mountain, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(mountain.above(), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(mountain.above(2), ModBlocks.SOULQUAKE_STONE.get().defaultBlockState(),
+                    Block.UPDATE_CLIENTS);
+            level.setBlock(mountain.above(3), ModBlocks.GUTS_STONE.get().defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(gap, Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(gap.above(2), ModBlocks.SOULQUAKE_STONE.get().defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(loose, Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+            ProtoChunk origin = copyOf(level, chunk);
+            for (BlockPos pos : placed) origin.setBlockState(pos, Blocks.AIR.defaultBlockState(), false);
+
+            int changed = ChunkRewindService.restore(level, chunk, origin);
+
+            assertEquals(2, changed, "only the stone under the gap and the loose stone go");
+            assertEquals(ModBlocks.GUTS_STONE.get(), level.getBlockState(mountain.above(3)).getBlock());
+            assertEquals(ModBlocks.SOULQUAKE_STONE.get(), level.getBlockState(mountain.above(2)).getBlock());
+            assertEquals(Blocks.STONE, level.getBlockState(mountain.above()).getBlock());
+            assertEquals(Blocks.DIRT, level.getBlockState(mountain).getBlock());
+            assertEquals(ModBlocks.SOULQUAKE_STONE.get(), level.getBlockState(gap.above(2)).getBlock());
+            assertTrue(level.getBlockState(gap).isAir(), "an air gap ends the support");
+            assertTrue(level.getBlockState(loose).isAir(), "stone away from the mountain is restored");
+        } finally {
+            for (BlockPos pos : placed) {
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), ChunkRewindService.RESTORE_FLAGS);
+            }
             release(helper, chunk.getPos());
         }
         helper.succeed();

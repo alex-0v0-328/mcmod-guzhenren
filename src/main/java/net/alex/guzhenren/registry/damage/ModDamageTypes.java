@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
  *       打击可被护甲减免且无原版击退（由 {@code AreaDamage}、{@code ChargedPunch} 与 {@code CrashStrike} 自行施加击
  *       退），其中气波与蓄力一拳额外绕过受伤无敌帧；过载反噬[Body Overload]则是出手对自身施加的穿甲、无击退、无攻击
  *       者且不致死反冲伤害。</li>
+ *   <li>荡魂[Soulquake]是荡魂山[Soulquake Mountain]每秒对山中非玩家生物施加的无来源伤害：穿甲、无击退。</li>
  *   <li>⚠ 6 种天灾与死劫型伤害均配置相同的 6 个绕过标签（5 个 {@code BYPASSES_*} 加 {@code NO_KNOCKBACK}）；其中寿元耗
  *       尽、魂魄衰竭、脑海炸裂与空窍压力爆炸额外携带 {@code BYPASSES_INVULNERABILITY} 使其无视不死图腾，空窍压力爆炸与
  *       十绝天灾额外携带 {@code IS_EXPLOSION}。</li>
@@ -39,6 +40,7 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> BODY_OVERLOAD = key("body_overload");
     public static final ResourceKey<DamageType> CHARGED_PUNCH = key("charged_punch");
     public static final ResourceKey<DamageType> CRASH_STRIKE = key("crash_strike");
+    public static final ResourceKey<DamageType> SOULQUAKE = key("soulquake");
 
     public static DamageSource source(Entity entity, ResourceKey<DamageType> type) {
         return new DamageSource(entity.level().registryAccess()

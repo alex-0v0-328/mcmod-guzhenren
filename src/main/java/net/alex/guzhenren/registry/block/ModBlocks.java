@@ -2,7 +2,9 @@ package net.alex.guzhenren.registry.block;
 
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.block.BlackSoilFarmlandBlock;
+import net.alex.guzhenren.block.GutsStoneBlock;
 import net.alex.guzhenren.block.IntimateGrassCropBlock;
+import net.alex.guzhenren.block.SoulquakeStoneBlock;
 import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.world.effect.MobEffects;
@@ -35,6 +37,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *       种植（{@link IntimateGrassCropBlock}）。</li>
  *   <li>{@link #BLACK_SOIL_FARMLAND} 与 {@link #STEEL_BLOCK}：黑土耕地（{@link BlackSoilFarmlandBlock}）沿用原版耕地属
  *       性并由腐泥冻土右键转化（挖毁掉落泥土，{@code BlockItem} 仅进创造栏）；钢块则沿用铁块属性与 9 个钢锭互合。</li>
+ *   <li>{@link #SOULQUAKE_STONE} 与 {@link #GUTS_STONE}（荡魂山石与胆石[Guts Stone]）：前者硬度 -1、爆炸抗性同基岩、禁止
+ *       刷怪、活塞推不动、无战利品表，后者为非整格小石块、敲碎经战利品表掉胆识蛊，{@code forceSolidOn} 使流体冲不走、
+ *       只能敲；二者都无 {@code BlockItem}，由
+ *       {@code gameplay.secretrealm} 与 Gu World 放置。</li>
  * </ul>
  */
 
@@ -79,6 +85,27 @@ public final class ModBlocks {
 
     public static final DeferredBlock<Block> STEEL_BLOCK = BLOCKS.register("steel_block",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)));
+
+    public static final DeferredBlock<SoulquakeStoneBlock> SOULQUAKE_STONE = BLOCKS.register("soulquake_stone",
+            () -> new SoulquakeStoneBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PINK)
+                    .strength(-1.0F, 3600000.0F)
+                    .noLootTable()
+                    .noOcclusion()
+                    .isValidSpawn(Blocks::never)
+                    .isRedstoneConductor((state, level, pos) -> false)
+                    .isSuffocating((state, level, pos) -> false)
+                    .isViewBlocking((state, level, pos) -> false)
+                    .pushReaction(PushReaction.BLOCK)
+                    .sound(SoundType.AMETHYST)));
+    public static final DeferredBlock<GutsStoneBlock> GUTS_STONE = BLOCKS.register("guts_stone",
+            () -> new GutsStoneBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.TERRACOTTA_YELLOW)
+                    .strength(1.0F)
+                    .noOcclusion()
+                    .forceSolidOn()
+                    .pushReaction(PushReaction.DESTROY)
+                    .sound(SoundType.STONE)));
 
     public static void register(IEventBus modEventBus) { BLOCKS.register(modEventBus); }
 }

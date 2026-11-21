@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "stones=1": {
+      "model": "guzhenren:block/guts_stone"
+    },
+    "stones=2": {
+      "model": "guzhenren:block/guts_stone_2"
+    },
+    "stones=3": {
+      "model": "guzhenren:block/guts_stone_3"
+    }
+  }
+}

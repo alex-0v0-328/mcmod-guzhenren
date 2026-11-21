@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  *       留到最后阶段统一补发邻居更新，防止沙砾、流体或火把悬空。</li>
  *   <li>清坑阶段跳过不可破坏方块（基岩、屏障、传送门框架等），避免炸穿世界底板；坑底铺设与环带覆雪（北冥冰魄体铺冰与雪
  *       环、炎煌雷泽体铺岩浆块与熔岩、万金妙华体散布金矿与金块）按 {@link CraterShape} 规则执行。</li>
- *   <li>⚠ 坑底铺设（{@code tickFloor}）只检查目标格已加载且非空气，不检查原方块硬度。</li>
+ *   <li>坑底铺设（{@code tickFloor}）同清坑一样跳过不可破坏方块（基岩、荡魂山石等），只改写已加载、非空气的格子。</li>
  *   <li>{@link #save} 与 {@link #load} 将四个阶段及游标持久化到 {@link AperturePressureExplosions}：当前球壳仅依赖中
  *       心、半径、种子与建筑高度，重载时直接按 {@code shellDistance} 重建；而边缘列表 {@code rim} 无法从已成空气的世界
  *       状态逆推，必须完整序列化落盘。</li>
@@ -176,7 +176,8 @@ public final class AperturePressureExplosionTask {
             int floorY = CraterShape.getColumnFloorY(y, localRadius, horizontalSquared);
             if (level.isOutsideBuildHeight(floorY) || !hasChunkAt(blockX, blockZ)) continue;
             BlockPos floorPos = new BlockPos(blockX, floorY, blockZ);
-            if (level.getBlockState(floorPos).isAir()) continue;
+            BlockState floor = level.getBlockState(floorPos);
+            if (floor.isAir() || floor.getDestroySpeed(level, floorPos) < 0.0F) continue;
             Block block = getFloorBlockAt(blockX, floorY, blockZ);
             if (block == null) continue;
             level.setBlock(floorPos, block.defaultBlockState(), Block.UPDATE_CLIENTS);

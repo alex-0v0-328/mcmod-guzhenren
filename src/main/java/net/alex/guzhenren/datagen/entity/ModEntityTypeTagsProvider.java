@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * 本模组实体类型标签数据生成器：{@link ModEntityTypeTags#PREDATOR_PREY} 收录供捕食野兽主动猎杀的原版家畜与小动物，
- * {@link ModEntityTypeTags#WILD_GU} 收录全部可捕捉的野生蛊实体。
+ * {@link ModEntityTypeTags#WILD_GU} 收录全部可捕捉的野生蛊实体，{@link ModEntityTypeTags#SOULQUAKE_IMMUNE} 收录盔甲架。
  */
 
 public class ModEntityTypeTagsProvider extends EntityTypeTagsProvider {
@@ -42,5 +42,6 @@ public class ModEntityTypeTagsProvider extends EntityTypeTagsProvider {
                 ModEntityTypes.VERTICAL_CRASH_GU_ENTITY.get(),
                 ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(),
                 ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get());
+        tag(ModEntityTypeTags.SOULQUAKE_IMMUNE).add(EntityType.ARMOR_STAND);
     }
 }

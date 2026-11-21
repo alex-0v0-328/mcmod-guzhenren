@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "guzhenren:block/soulquake_stone"
+      },
+      {
+        "model": "guzhenren:block/soulquake_stone_1"
+      },
+      {
+        "model": "guzhenren:block/soulquake_stone_2"
+      }
+    ]
+  }
+}

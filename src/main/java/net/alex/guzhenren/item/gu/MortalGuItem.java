@@ -25,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
@@ -138,6 +139,23 @@ public abstract class MortalGuItem extends GuItem {
 
     protected final void applyModules(ServerPlayer player, ItemStack stack) {
         for (GuBehavior behavior : behaviors) behavior.applyEffect(this, player, stack);
+    }
+
+    @Override
+    public boolean canFitInsideContainerItems() {
+        for (GuBehavior behavior : behaviors) {
+            if (!behavior.canFitInsideContainerItems(this)) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onEntityItemUpdate(@NotNull ItemStack stack, @NotNull ItemEntity entity) {
+        for (GuBehavior behavior : behaviors) {
+            behavior.tickDropped(this, entity);
+            if (entity.isRemoved()) return true;
+        }
+        return false;
     }
     //endregion
 

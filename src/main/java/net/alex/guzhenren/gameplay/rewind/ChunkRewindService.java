@@ -1,9 +1,11 @@
 package net.alex.guzhenren.gameplay.rewind;
 
 import java.util.ArrayDeque;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Deque;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.registry.block.ModBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.MinecraftServer;
@@ -13,8 +15,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 区块地形回溯还原服务：将山如故[Mountain As Before Gu]与江如故[River As Before Gu]作用范围内的地面恢复为初始裸地形。
@@ -25,6 +29,9 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #restore} 逐格比对当前区块与裸地形区块，仅对状态不同的位置以 {@link #RESTORE_FLAGS}（同步客户端、抑制方
  *       块掉落且不触发邻居形状更新）写入原貌方块：非裸地形的树木、建筑与玩家放置方块均消失（容器按原版移除方块实体逻辑
  *       洒出内部物品），而生物实体、掉落物与生物群系保持不变。</li>
+ *   <li>{@link ModBlockTags#MORTAL_AS_BEFORE_IMMUNE} 内的方块（荡魂山石、胆石）及其正下方连续的不可替换方块（补石、地
+ *       基）原样保留：原貌跳过结构起点不含荡魂山，凡蛊还原会把山抹掉或让山悬空。</li>
+ *   <li>⚠ 性能：只有某个区段可能含豁免方块时，{@link #restore} 才自上而下逐列扫一遍整区块算出保留位；其余区块不额外扫。</li>
  *   <li>⚠ 写入时抑制邻居更新，因此方阵边界被截断的树木外侧半边会保留枝叶，填平坑洞旁的水流也会保持静止直至下次受扰
  *       动。</li>
  *   <li>⚠ 待还原队列与计数器（{@code generating}、{@code epoch}）为全服共享的内存静态状态：停服时 {@link #clear} 清空剩
@@ -93,23 +100,55 @@ public final class ChunkRewindService {
 
         int changed = 0;
         int count = Math.min(chunk.getSectionsCount(), origin.getSectionsCount());
+        BitSet kept = findKept(chunk);
         for (int index = 0; index < count; index++) {
-            changed += restoreSection(level, chunk, index, origin.getSection(index).getStates());
+            changed += restoreSection(level, chunk, index, origin.getSection(index).getStates(), kept);
         }
         return changed;
     }
 
+    private static @Nullable BitSet findKept(LevelChunk chunk) {
+        boolean any = false;
+        for (LevelChunkSection section : chunk.getSections()) {
+            if (!section.hasOnlyAir() && section.maybeHas(state -> state.is(ModBlockTags.MORTAL_AS_BEFORE_IMMUNE))) {
+                any = true;
+                break;
+            }
+        }
+        if (!any) return null;
+
+        int minY = chunk.getMinBuildHeight();
+        BitSet kept = new BitSet(chunk.getHeight() << 8);
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int z = 0; z < SectionPos.SECTION_SIZE; z++) {
+            for (int x = 0; x < SectionPos.SECTION_SIZE; x++) {
+                boolean holding = false;
+                for (int y = chunk.getMaxBuildHeight() - 1; y >= minY; y--) {
+                    BlockState state = chunk.getBlockState(cursor.set(x, y, z));
+                    if (state.is(ModBlockTags.MORTAL_AS_BEFORE_IMMUNE)) holding = true;
+                    else if (holding && state.canBeReplaced()) holding = false;
+                    if (holding) kept.set(keptIndex(x, y - minY, z));
+                }
+            }
+        }
+        return kept;
+    }
+
+    private static int keptIndex(int x, int height, int z) { return height << 8 | z << 4 | x; }
+
     private static int restoreSection(ServerLevel level, LevelChunk chunk, int index,
-                                      PalettedContainer<BlockState> was) {
+                                      PalettedContainer<BlockState> was, @Nullable BitSet kept) {
         int changed = 0;
         ChunkPos pos = chunk.getPos();
         int minY = SectionPos.sectionToBlockCoord(chunk.getSectionYFromSectionIndex(index));
+        int height = minY - chunk.getMinBuildHeight();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int y = 0; y < SectionPos.SECTION_SIZE; y++) {
             for (int z = 0; z < SectionPos.SECTION_SIZE; z++) {
                 for (int x = 0; x < SectionPos.SECTION_SIZE; x++) {
                     BlockState before = was.get(x, y, z);
                     if (before == chunk.getSection(index).getBlockState(x, y, z)) continue;
+                    if (kept != null && kept.get(keptIndex(x, height + y, z))) continue;
 
                     cursor.set(pos.getMinBlockX() + x, minY + y, pos.getMinBlockZ() + z);
                     if (level.setBlock(cursor, before, RESTORE_FLAGS)) changed++;

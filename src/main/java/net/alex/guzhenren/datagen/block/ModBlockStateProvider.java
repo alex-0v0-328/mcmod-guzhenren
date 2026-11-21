@@ -1,6 +1,7 @@
 package net.alex.guzhenren.datagen.block;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
@@ -26,10 +27,14 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
  *   <li>知心草作物按 {@code age}（0–7）生成 8 个原版井字形 {@code block/crop} 模型（共用
  *       {@code intimate_grass_stage0..7} 贴图）；黑土耕地对齐原版耕地生成干、湿两个继承自
  *       {@code block/template_farmland} 的模型，仅在 {@code moisture} 满值时切换为湿润顶面。</li>
+ *   <li>荡魂山石生成 {@code soulquake_stone}、{@code _1}、{@code _2} 三个半透明 {@code cube_all} 模型并等权随机，大面积
+ *       平铺不显重复；胆石按块数 1–3 引用手写模型 {@code guzhenren:block/guts_stone}、{@code _2}、{@code _3}。</li>
  * </ul>
  */
 
 public class ModBlockStateProvider extends BlockStateProvider {
+
+    private static final int SOULQUAKE_STONE_VARIANTS = 3;
 
     public ModBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, Guzhenren.MOD_ID, existingFileHelper);
@@ -45,7 +50,32 @@ public class ModBlockStateProvider extends BlockStateProvider {
         registerCropBlock(ModBlocks.INTIMATE_GRASS_CROP.get(), "intimate_grass");
         registerFarmlandBlock(ModBlocks.BLACK_SOIL_FARMLAND.get());
         simpleBlock(ModBlocks.STEEL_BLOCK.get());
+        registerSoulquakeStone(ModBlocks.SOULQUAKE_STONE.get());
+        registerGutsStone(ModBlocks.GUTS_STONE.get());
     }
+
+    //region Guts stone [胆石]
+    private void registerGutsStone(Block block) {
+        getVariantBuilder(block).forAllStates(state -> {
+            int stones = state.getValue(GutsStones.STONES);
+            String model = stones == 1 ? "block/guts_stone" : "block/guts_stone_" + stones;
+            return ConfiguredModel.builder().modelFile(models().getExistingFile(modLoc(model))).build();
+        });
+    }
+    //endregion
+
+    //region Soulquake stone [荡魂山石]
+    private void registerSoulquakeStone(Block block) {
+        String name = BuiltInRegistries.BLOCK.getKey(block).getPath();
+        ConfiguredModel.Builder<?> variants = ConfiguredModel.builder();
+        for (int variant = 0; variant < SOULQUAKE_STONE_VARIANTS; variant++) {
+            String model = variant == 0 ? name : name + "_" + variant;
+            if (variant > 0) variants = variants.nextModel();
+            variants.modelFile(models().cubeAll(model, modLoc("block/" + model)).renderType("translucent"));
+        }
+        getVariantBuilder(block).partialState().setModels(variants.build());
+    }
+    //endregion
 
     private void registerFluidBlock(Block block, ResourceLocation particle) {
         simpleBlock(block, models().getBuilder(BuiltInRegistries.BLOCK.getKey(block).getPath())
