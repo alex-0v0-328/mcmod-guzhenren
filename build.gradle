@@ -182,6 +182,10 @@ dependencies {
     compileOnly files('run/mods/photon-neoforge-1.21.1-2.2.11-all.jar', 'run/mods/ldlib2-neoforge-1.21.1-2.2.46.a-all.jar')
     localRuntime files('run/mods/photon-neoforge-1.21.1-2.2.11-all.jar', 'run/mods/ldlib2-neoforge-1.21.1-2.2.46.a-all.jar')
 
+    // Only for its @IPNIgnore annotation: the blissful land panel hides InventoryProfilesNext's buttons off the storage
+    // page. A missing annotation class is ignored at runtime, so the mod needs no IPN to run.
+    compileOnly files('run/mods/InventoryProfilesNext-neoforge-1.21.1-2.2.5.jar')
+
     localRuntime fileTree(dir: guWorldLibs, include: 'guworld-*.jar', exclude: '*-sources.jar')
 }
 

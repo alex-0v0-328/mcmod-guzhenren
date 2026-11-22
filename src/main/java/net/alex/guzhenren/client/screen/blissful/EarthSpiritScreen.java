@@ -21,6 +21,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.anti_ad.mc.ipn.api.IPNIgnore;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,15 +32,19 @@ import org.jetbrains.annotations.NotNull;
  *   <li>绘制顺序：一个 {@code GuiBatch} 里先一个 {@link SpriteBatch} 画全部精灵图，再填充、再文字；物品图标与头像在批
  *       外；弹窗与操作提示在 {@code super.render} 之后，盖在背包格与光标物品之上。</li>
  *   <li>数字键 1–6 切页；鼠标停在背包格上时数字键仍归原版（与快捷栏交换）。</li>
- *   <li>背包格只在库藏页显示（{@link EarthSpiritMenu#setInventoryShown}）；免震荡白名单的名字输入框只在荡魂山页显示，聚
+ *   <li>背包格只在库藏页显示（{@link EarthSpiritMenu#setInventoryShown}）；荡魂山白名单的名字输入框只在荡魂山页显示，聚
  *       焦时吞掉除 Esc 外的按键，免得按 E 关掉面板。</li>
+ *   <li>库藏页是 {@link Storage}，其余五页是 {@link Pages}，跨这条线切页就换一个界面实例（同一个菜单，页码、输入框内容与
+ *       提示带过去，各页滚动位置重置）：整理类模组按界面类挂件，InventoryProfilesNext 只认 {@link IPNIgnore}，所以只有库
+ *       藏页出现它的整理按钮与快捷栏箭头。客户端 {@code removed} 不动菜单，服务端菜单不受换界面影响。</li>
+ *   <li>左侧标签列算面板内（{@link #hasClickedOutside}）：手上拿着库藏物品点标签，松手时原版会把它当点在面板外扔出去。</li>
  *   <li>数据只来自菜单里的 {@link PanelSnapshot}：开面板时随缓冲带来，之后每秒与每次操作后由
  *       {@link EarthSpiritPanelPayload} 替换（{@link #onPanel}）。操作结果提示在面板上方显示 {@value #NOTICE_MILLIS} 毫
  *       秒。</li>
  * </ul>
  */
 
-public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpiritMenu> {
+public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpiritMenu> {
 
     static final String UI = "guzhenren.blissful_land.ui.";
     private static final int TAB_SPAN = 55;
@@ -54,16 +59,20 @@ public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpirit
     private static final String[] TAB_ICONS = {"icon_overview", "icon_mountain", "icon_husbandry", "icon_farming",
             "icon_territory", "icon_storage"};
     private final Map<Tab, PanelPage> pages = new EnumMap<>(Tab.class);
-    private Tab tab = Tab.OVERVIEW;
+    private final Inventory inventory;
+    private Tab tab;
     private EditBox nameField;
+    private String keptName = "";
     private Component notice = Component.empty();
     private long noticeUntil;
     private PanelSnapshot seen;
 
     enum Tab { OVERVIEW, MOUNTAIN, HUSBANDRY, FARMING, TERRITORY, STORAGE }
 
-    public EarthSpiritScreen(EarthSpiritMenu menu, Inventory inventory, Component title) {
+    private EarthSpiritScreen(EarthSpiritMenu menu, Inventory inventory, Component title, Tab tab) {
         super(menu, inventory, title);
+        this.inventory = inventory;
+        this.tab = tab;
         this.imageWidth = 176;
         this.imageHeight = 222;
         this.pages.put(Tab.OVERVIEW, new OverviewPage(this));
@@ -73,6 +82,10 @@ public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpirit
         this.pages.put(Tab.TERRITORY, new TerritoryPage(this));
         this.pages.put(Tab.STORAGE, new StoragePage(this));
         this.seen = menu.getSnapshot();
+    }
+
+    public static @NotNull EarthSpiritScreen open(EarthSpiritMenu menu, Inventory inventory, Component title) {
+        return new Pages(menu, inventory, title, Tab.OVERVIEW);
     }
 
     public static void onPanel(EarthSpiritPanelPayload payload) {
@@ -86,7 +99,7 @@ public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpirit
     protected void init() {
         super.init();
         this.leftPos = (this.width - this.imageWidth + TAB_SPAN) / 2;
-        String kept = this.nameField == null ? "" : this.nameField.getValue();
+        String kept = this.nameField == null ? this.keptName : this.nameField.getValue();
         this.nameField = new EditBox(this.font, this.leftPos + 12, this.topPos + 90, 120, 10,
                 Component.translatable(UI + "name_hint"));
         this.nameField.setBordered(false);
@@ -95,15 +108,29 @@ public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpirit
         this.nameField.setHint(Component.translatable(UI + "name_hint").withColor(PanelKit.DEAD));
         this.nameField.setValue(kept);
         this.addRenderableWidget(this.nameField);
-        show(this.tab);
+        this.menu.setInventoryShown(this instanceof Storage);
+        applyTab();
     }
 
     private void show(Tab next) {
         pages.get(this.tab).closeOverlay();
+        if ((next == Tab.STORAGE) != (this instanceof Storage)) {
+            EarthSpiritScreen other = next == Tab.STORAGE ? new Storage(this.menu, this.inventory, this.title, next)
+                    : new Pages(this.menu, this.inventory, this.title, next);
+            other.keptName = this.nameField.getValue();
+            other.notice = this.notice;
+            other.noticeUntil = this.noticeUntil;
+            other.seen = this.seen;
+            Minecraft.getInstance().setScreen(other);
+            return;
+        }
         this.tab = next;
-        this.menu.setInventoryShown(next == Tab.STORAGE);
-        this.nameField.setVisible(next == Tab.MOUNTAIN);
-        if (next != Tab.MOUNTAIN) this.nameField.setFocused(false);
+        applyTab();
+    }
+
+    private void applyTab() {
+        this.nameField.setVisible(this.tab == Tab.MOUNTAIN);
+        if (this.tab != Tab.MOUNTAIN) this.nameField.setFocused(false);
     }
 
     Font font() { return this.font; }
@@ -168,6 +195,12 @@ public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpirit
     private boolean isOverTab(Tab each, double mouseX, double mouseY) {
         int top = this.topPos + TAB_TOP + each.ordinal() * TAB_PITCH;
         return Widgets.isOver(mouseX, mouseY, this.leftPos + TAB_SELECTED_X, top, -TAB_SELECTED_X, TAB_H);
+    }
+
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
+        return super.hasClickedOutside(mouseX, mouseY, left, top, button) && !Widgets.isOver(mouseX, mouseY,
+                left + TAB_SELECTED_X, top + TAB_TOP, -TAB_SELECTED_X, Tab.values().length * TAB_PITCH);
     }
 
     @Override
@@ -254,4 +287,19 @@ public final class EarthSpiritScreen extends AbstractContainerScreen<EarthSpirit
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
     //endregion
+
+    /** 库藏以外的五页：背包格隐藏，InventoryProfilesNext 不挂件。 */
+    @IPNIgnore
+    public static final class Pages extends EarthSpiritScreen {
+        private Pages(EarthSpiritMenu menu, Inventory inventory, Component title, Tab tab) {
+            super(menu, inventory, title, tab);
+        }
+    }
+
+    /** 库藏页：背包格可见，存取靠它们，整理类模组照常挂件。 */
+    public static final class Storage extends EarthSpiritScreen {
+        private Storage(EarthSpiritMenu menu, Inventory inventory, Component title, Tab tab) {
+            super(menu, inventory, title, tab);
+        }
+    }
 }
