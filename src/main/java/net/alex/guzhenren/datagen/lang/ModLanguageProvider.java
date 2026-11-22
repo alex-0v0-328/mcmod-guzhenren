@@ -453,7 +453,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.no_mountain",              "荡魂山尚未成形");
         add("guzhenren.blissful_land.panel.moved",                    "挪 %s 只生物上山");
         add("guzhenren.blissful_land.panel.outside_mountain",         "须在荡魂山中催动");
-        add("guzhenren.blissful_land.panel.driven",                   "碎 %s 块，得 %s 蛊，魂魄上限 +%s");
         add("guzhenren.blissful_land.panel.bred",                     "%s 只发情，用去饲料 %s 份");
         add("guzhenren.blissful_land.panel.slaughtered",              "宰杀 %s 头");
         add("guzhenren.blissful_land.panel.harvested",                "收割并补种 %s 株");
@@ -482,7 +481,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.move_mobs",                   "挪生物上山");
         add("guzhenren.blissful_land.ui.cooldown",                    "冷却 %s 秒");
         add("guzhenren.blissful_land.ui.drive_guts_gu",               "胆识蛊催动");
-        add("guzhenren.blissful_land.ui.exempt",                      "免震荡白名单");
+        add("guzhenren.blissful_land.ui.exempt",                      "荡魂山白名单");
         add("guzhenren.blissful_land.ui.add",                         "添加");
         add("guzhenren.blissful_land.ui.exempt_note",                 "白名单内的玩家不受震荡影响");
         add("guzhenren.blissful_land.ui.name_hint",                   "输入玩家名");

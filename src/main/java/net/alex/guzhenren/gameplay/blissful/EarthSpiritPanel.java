@@ -201,9 +201,7 @@ public final class EarthSpiritPanel {
         RealmSite site = SecretRealms.siteOf(level.getServer(), data.land().realm());
         if (site == null) return notice("no_mountain");
 
-        MountainWork.Drive drive = MountainWork.driveGutsGu(level, site, player);
-        if (drive == null) return notice("outside_mountain");
-        return notice("driven", drive.stones(), drive.gu(), drive.gu() * SoulsunderMountain.GUTS_GU_SOUL_BONUS);
+        return MountainWork.driveGutsGu(level, site, player) == null ? notice("outside_mountain") : Component.empty();
     }
 
     private static Component reclaim(ServerPlayer player, ServerLevel level, BlissfulLandData data) {

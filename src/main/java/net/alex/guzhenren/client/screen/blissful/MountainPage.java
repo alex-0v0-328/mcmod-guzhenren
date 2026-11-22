@@ -9,7 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
- * 「荡魂山」页：胆石进度、「挪生物上山」「胆识蛊催动」、免震荡白名单（按名字添加、逐行移出）。
+ * 「荡魂山」页：胆石进度、「挪生物上山」「胆识蛊催动」、荡魂山白名单（按名字添加、逐行移出）。
  * <ul>
  *   <li>挪生物冷却中按钮失效，文字换成剩余秒数。</li>
  *   <li>名字输入框是 {@link EarthSpiritScreen} 持有的 {@code EditBox}，本页只画它的底图并在「添加」时读走内容。</li>
