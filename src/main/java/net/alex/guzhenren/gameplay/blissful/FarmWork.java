@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地灵面板「种植」页：开垦标准田、按作物清点、收割并补种，以及田区强加载。
  * <ul>
- *   <li>标准田 = 9×9 耕地、正中一格水源（原版耕地湿润半径 4，全田都湿）；只开在福地田区（{@link BlissfulLand#farmMin}
+ *   <li>标准田 = 9×9 耕地、正中一格水源（原版耕地湿润半径 4，全田都湿）；只开在福地田区（{@link BlissfulLand#farmMin()}
  *       起{@code farmChunks} 见方的区块），田区按 {@value #PITCH} 格一格划成网格、四周留 {@value #MARGIN} 格，田与田之
  *       间空 1 格过道；{@link #nextSlot} 按自北向南、自西向东取第一个能开垦的空格（{@link #isArable}）。</li>
  *   <li>能开垦：先同步加载田所在区块；9×9 每一列从地表往下找真实地面（跳过树叶、原木、可替换方块），任一列先碰到流体
@@ -43,7 +43,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>作物只认 {@link #CROPS}（小麦、胡萝卜、马铃薯、甜菜根），种子也只认这四种对应的物品，其余作物种不进标准田；只在
  *       标准田里清点与收割。地狱疣要灵魂沙田，本阶段不做。</li>
  *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，从中扣 1 份种子补种（掉落里没有就从库藏扣，库藏也没有就留空），
- *       其余进库藏。</li>
+ *       其余进库藏。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕好）种这块田现有最多的作物，田里一株没有就取库藏
+ *       第一种种子，从库藏扣到没有为止；没种子时开出的空田、种不满的田就这样后来种满。收割与补空格合计受 {@code limit}
+ *       限制。</li>
  *   <li>⚠ 强加载用 NeoForge {@link #TICKETS} 的带刻工单：原版 {@code /forceload} 的区块附近没有玩家时不随机刻，作物不
  *       长。工单以田心为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时 {@link #retain} 重挂。读档时校
  *       验回调把无主福地（或已不是福地的维度）的工单全部丢掉，补上没装 Gu World 期间失主漏撤的工单。</li>
@@ -219,39 +221,88 @@ public final class FarmWork {
     }
 
     public static int harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int limit) {
-        int harvested = 0;
-        for (BlockPos pos : cropCells(level, data)) {
-            if (harvested >= limit) break;
-            BlockState state = level.getBlockState(pos);
-            if (!isCrop(state) || !isMature(state)) continue;
+        int handled = 0;
+        for (long field : data.fields()) {
+            BlockPos center = BlockPos.of(field);
+            if (!level.isLoaded(center)) continue;
+            List<BlockPos> cells = cellsOf(center);
+            for (BlockPos pos : cells) {
+                if (handled >= limit) return handled;
+                BlockState state = level.getBlockState(pos);
+                if (!isCrop(state) || !isMature(state)) continue;
 
-            Item seed = state.getBlock().asItem();
-            boolean replanted = false;
-            for (ItemStack drop : Block.getDrops(state, level, pos, null)) {
-                if (!replanted && drop.is(seed)) {
-                    drop.shrink(1);
-                    replanted = true;
-                }
-                if (!drop.isEmpty()) data.storage().insert(drop);
+                reap(level, data, pos, state);
+                handled++;
             }
-            if (!replanted) replanted = data.storage().consume(stack -> stack.is(seed), 1) == 1;
-            BlockState next = replanted ? state.getBlock().defaultBlockState() : Blocks.AIR.defaultBlockState();
-            level.setBlock(pos, next, Block.UPDATE_ALL);
-            harvested++;
+            handled += sow(level, data, cells, limit - handled);
         }
-        return harvested;
+        return handled;
+    }
+
+    private static void reap(ServerLevel level, BlissfulLandData data, BlockPos pos, BlockState state) {
+        Item seed = state.getBlock().asItem();
+        boolean replanted = false;
+        for (ItemStack drop : Block.getDrops(state, level, pos, null)) {
+            if (!replanted && drop.is(seed)) {
+                drop.shrink(1);
+                replanted = true;
+            }
+            if (!drop.isEmpty()) data.storage().insert(drop);
+        }
+        if (!replanted) replanted = data.storage().consume(stack -> stack.is(seed), 1) == 1;
+        BlockState next = replanted ? state.getBlock().defaultBlockState() : Blocks.AIR.defaultBlockState();
+        level.setBlock(pos, next, Block.UPDATE_ALL);
+    }
+
+    private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells, int limit) {
+        Block crop = cropOf(level, cells);
+        if (crop == null) {
+            ItemStack seed = data.storage().first(FarmWork::isSeed);
+            if (seed.isEmpty()) return 0;
+            crop = ((BlockItem) seed.getItem()).getBlock();
+        }
+        Item seed = crop.asItem();
+        int sown = 0;
+        for (BlockPos pos : cells) {
+            if (sown >= limit) break;
+            BlockState ground = level.getBlockState(pos.below());
+            if (!level.getBlockState(pos).isAir() || !ground.is(Blocks.FARMLAND) && !ground.is(Blocks.DIRT)) continue;
+            if (data.storage().consume(stack -> stack.is(seed), 1) == 0) break;
+
+            if (ground.is(Blocks.DIRT)) {
+                level.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState()
+                        .setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE), Block.UPDATE_ALL);
+            }
+            level.setBlock(pos, crop.defaultBlockState(), Block.UPDATE_ALL);
+            sown++;
+        }
+        return sown;
+    }
+
+    private static @Nullable Block cropOf(ServerLevel level, List<BlockPos> cells) {
+        Map<Block, Integer> counts = new LinkedHashMap<>();
+        for (BlockPos pos : cells) {
+            BlockState state = level.getBlockState(pos);
+            if (isCrop(state)) counts.merge(state.getBlock(), 1, Integer::sum);
+        }
+        return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
     }
 
     private static List<BlockPos> cropCells(ServerLevel level, BlissfulLandData data) {
         List<BlockPos> cells = new ArrayList<>();
-        int half = SIZE / 2;
         for (long field : data.fields()) {
             BlockPos center = BlockPos.of(field);
-            if (!level.isLoaded(center)) continue;
-            for (int dx = -half; dx <= half; dx++) {
-                for (int dz = -half; dz <= half; dz++) {
-                    if (dx != 0 || dz != 0) cells.add(center.offset(dx, 1, dz));
-                }
+            if (level.isLoaded(center)) cells.addAll(cellsOf(center));
+        }
+        return cells;
+    }
+
+    private static List<BlockPos> cellsOf(BlockPos center) {
+        List<BlockPos> cells = new ArrayList<>(SIZE * SIZE - 1);
+        int half = SIZE / 2;
+        for (int dx = -half; dx <= half; dx++) {
+            for (int dz = -half; dz <= half; dz++) {
+                if (dx != 0 || dz != 0) cells.add(center.offset(dx, 1, dz));
             }
         }
         return cells;

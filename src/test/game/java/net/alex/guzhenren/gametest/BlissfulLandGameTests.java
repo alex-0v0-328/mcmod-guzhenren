@@ -58,7 +58,7 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER;
 import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
- * 福地[Blissful Land]：登顶认主、死亡（看「死亡不掉落」）与重置失主、免震荡白名单、驱逐外人，以及面板各页的服务端操作——
+ * 福地[Blissful Land]：登顶认主、死亡（看「死亡不掉落」）与重置失主、荡魂山白名单、驱逐外人，以及面板各页的服务端操作——
  * 挪生物上山、胆识蛊催动、喂养繁殖、宰杀收取、养殖托管、开垦标准田、收割补种、割弃疆域、库藏存取。
  * 操作都喂测试区里的实体、小范围山心或自建的福地存档，不碰真福地维度；改全局存档与游戏规则的失主用例单独成批。
  */
@@ -344,6 +344,39 @@ public final class BlissfulLandGameTests {
                     "every cell is replanted");
             helper.assertTrue(data.storage().count(stack -> stack.is(Items.WHEAT)) >= 80L,
                     "the wheat goes to storage");
+            helper.succeed();
+        } finally {
+            FarmWork.release(level, data);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void aFieldLaidWithoutSeedsIsSownLater(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-sow-mock").at(new Vec3(4.5D, 3.0D, 4.5D));
+        try {
+            BlockPos center = FarmWork.reclaim(level, data, helper.absolutePos(CENTER_POS), owner);
+            helper.assertTrue(center != null, "the field is laid with an empty storage");
+            helper.assertTrue(FarmWork.census(level, data).isEmpty(), "nothing is sown without seeds");
+
+            data.storage().insert(new ItemStack(Items.CARROT, 30));
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE), 30, "thirty carrots sow thirty");
+            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 30),
+                    "the empty field takes the first seed in storage");
+
+            data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
+            data.storage().insert(new ItemStack(Items.CARROT, 100));
+            level.setBlock(center.offset(1, 0, 1), Blocks.DIRT.defaultBlockState(), 2);
+            helper.assertValueEqual(FarmWork.harvest(level, data, 20), 20, "the limit holds while sowing");
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE), 30, "the rest is sown");
+            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 80),
+                    "the field fills up with its own crop, trampled farmland included");
+            helper.assertTrue(level.getBlockState(center.offset(1, 0, 1)).is(Blocks.FARMLAND),
+                    "trampled farmland is tilled again");
+            helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 100L,
+                    "seeds of another crop are left alone");
             helper.succeed();
         } finally {
             FarmWork.release(level, data);
