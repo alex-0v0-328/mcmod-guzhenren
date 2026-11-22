@@ -25,7 +25,6 @@ import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import net.alex.guzhenren.network.payload.StoreStrengthNoticePayload;
 import net.alex.guzhenren.network.payload.StoreStrengthPayload;
 import net.alex.guzhenren.network.payload.ToggleSecondStagePayload;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -53,7 +52,7 @@ public final class ModPayloads {
 
     private ModPayloads() {}
 
-    private static final String VERSION = "3";
+    private static final String VERSION = "4";
     private static final Map<Class<?>, Consumer<?>> CLIENT_HANDLERS = new HashMap<>();
 
     @SubscribeEvent
@@ -86,7 +85,7 @@ public final class ModPayloads {
         toServer(registrar, PrimevalElderPayload.TYPE, PrimevalElderPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.primevalElder(player, intent.action(), intent.stacks()));
         toServer(registrar, EarthSpiritActionPayload.TYPE, EarthSpiritActionPayload.STREAM_CODEC,
-                (intent, player) -> ClientIntents.earthSpirit(player, intent.action(), intent.value(), intent.text()));
+                (intent, player) -> ClientIntents.earthSpirit(player, intent.action()));
         toClient(registrar, SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC);
         toClient(registrar, ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC);
         toClient(registrar, KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC);
@@ -108,7 +107,7 @@ public final class ModPayloads {
 
     private static <T extends CustomPacketPayload> void toServer(PayloadRegistrar registrar,
                                                                  CustomPacketPayload.Type<T> type,
-                                                                 StreamCodec<FriendlyByteBuf, T> codec,
+                                                                 StreamCodec<? super RegistryFriendlyByteBuf, T> codec,
                                                                  BiConsumer<T, ServerPlayer> handle) {
         registrar.playToServer(type, codec, (intent, context) -> {
             if (context.player() instanceof ServerPlayer player) handle.accept(intent, player);

@@ -2,9 +2,8 @@ package net.alex.guzhenren.client.screen.blissful;
 
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
-import net.alex.guzhenren.gameplay.blissful.PanelAction;
-import net.alex.guzhenren.gameplay.blissful.PanelSnapshot;
-import net.alex.guzhenren.gameplay.blissful.Territory;
+import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.territory.TerritoryModule;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
@@ -24,6 +23,7 @@ import net.minecraft.network.chat.Component;
 final class TerritoryPage extends PanelPage {
 
     private static final String UI = EarthSpiritScreen.UI;
+    private static final String TIP = EarthSpiritScreen.TIP;
     private static final int MAP = 96;
     private static final int MAP_X = 9;
     private static final int MAP_Y = 21;
@@ -66,11 +66,7 @@ final class TerritoryPage extends PanelPage {
     @Override
     Component name() { return Component.translatable(UI + "tab.territory"); }
 
-    private Territory territory() {
-        PanelSnapshot snapshot = snapshot();
-        return new Territory(snapshot.half(), snapshot.core(), snapshot.north(), snapshot.east(), snapshot.south(),
-                snapshot.west());
-    }
+    private Territory territory() { return section(TerritoryModule.Section.EMPTY).territory(); }
 
     private int clampedWidth() {
         int max = territory().maxCede(side);
@@ -207,6 +203,22 @@ final class TerritoryPage extends PanelPage {
     }
 
     @Override
+    void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+        for (Territory.Side each : Territory.Side.values()) {
+            int[] at = ARROWS[each.ordinal()];
+            if (tip(graphics, x + at[0], y + at[1], ARROW, ARROW, mouseX, mouseY,
+                    Component.translatable(TIP + "side"))) {
+                return;
+            }
+        }
+        if (tip(graphics, x + MINUS_X, y + WIDTH_Y, PLUS_X + PanelKit.SQUARE - MINUS_X, PanelKit.SQUARE, mouseX, mouseY,
+                Component.translatable(TIP + "strip_width", SHIFT_STEP))) {
+            return;
+        }
+        tip(graphics, x + CEDE_X, y + CEDE_Y, CEDE_W, CEDE_H, mouseX, mouseY, Component.translatable(TIP + "cede"));
+    }
+
+    @Override
     boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         for (Territory.Side each : Territory.Side.values()) {
             int[] at = ARROWS[each.ordinal()];
@@ -268,7 +280,7 @@ final class TerritoryPage extends PanelPage {
     @Override
     void overlayClick(int x, int y, double mouseX, double mouseY) {
         if (Widgets.isOver(mouseX, mouseY, x + CONFIRM_X, y + POPUP_BUTTON_Y, POPUP_BUTTON_W, POPUP_BUTTON_H)) {
-            if (canCede()) screen.send(PanelAction.CEDE, clampedWidth(), side.name());
+            if (canCede()) send(new TerritoryModule.Cede(side, clampedWidth()));
             confirming = false;
         } else if (Widgets.isOver(mouseX, mouseY, x + CANCEL_X, y + POPUP_BUTTON_Y, POPUP_BUTTON_W, POPUP_BUTTON_H)) {
             confirming = false;

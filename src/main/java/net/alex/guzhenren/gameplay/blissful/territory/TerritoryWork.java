@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.territory;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;

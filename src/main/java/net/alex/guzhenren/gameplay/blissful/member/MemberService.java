@@ -1,11 +1,16 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.member;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
+import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.registry.block.ModBlocks;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -19,18 +24,19 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>认主：无主时，第一个站上山巅的非旁观玩家成为主人（{@link #isOnSummit}：离山心水平
  *       {@value BlissfulLand#SUMMIT_RADIUS} 格内、脚下方块正是最高一层的荡魂山石）；白名单重置为只有主人，田区工单重
- *       挂。
+ *       挂；全服广播「【福地易主】玩家名」（标签金色、名字白色），认主者本人也只收这一条（Alex 定）。
  *   </li>
  *   <li>失主（{@link #lose}）：清主人与白名单、关两种托管、撤田区工单；库藏、疆域、标准田、每种保持数留给下一任。何时失
  *       主由 {@link BlissfulLands} 判定（死亡且不开「死亡不掉落」、角色重置）。</li>
- *   <li>白名单与免震荡、「驱逐外人」共用一份；主人可以把自己移出（面板是否允许由界面决定）。</li>
+ *   <li>白名单与免震荡、「驱逐外人」共用一份；主人可以把自己移出（面板是否允许由界面决定）。按名字只加在线玩家：原版
+ *       玩家档案缓存查不到名字时会在主线程联网（离线服则凭空造一个 UUID），所以不用它找离线玩家。</li>
  *   <li>驱逐 = 走锚定旅行的 {@code exit}，回各自进福地前的返回点；主人不可被驱逐。</li>
  * </ul>
  */
 
-public final class BlissfulLandService {
+public final class MemberService {
 
-    private BlissfulLandService() {}
+    private MemberService() {}
 
     public static final String MSG_CLAIMED = "guzhenren.blissful_land.claimed";
     public static final String MSG_LOST = "guzhenren.blissful_land.lost";
@@ -60,7 +66,12 @@ public final class BlissfulLandService {
         data.clearWhitelist();
         data.addWhitelist(player.getUUID(), name);
         if (level != null) FarmWork.retain(level, data);
-        player.sendSystemMessage(Component.translatable(MSG_CLAIMED, Component.translatable(data.land().nameKey())));
+        player.server.getPlayerList().broadcastSystemMessage(claimedMessage(player), false);
+    }
+
+    public static @NotNull Component claimedMessage(@NotNull ServerPlayer player) {
+        return Component.translatable(MSG_CLAIMED, Component.literal(player.getGameProfile().getName())
+                .withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GOLD);
     }
 
     public static void lose(@NotNull MinecraftServer server, @Nullable ServerLevel level,
@@ -70,8 +81,8 @@ public final class BlissfulLandService {
 
         data.setOwner(null, "");
         data.clearWhitelist();
-        data.clearHerdHosting();
-        data.setFarmHosting(false);
+        data.herd().clearHosting();
+        data.farm().setHosting(false);
         if (level != null) FarmWork.release(level, data);
         ServerPlayer former = server.getPlayerList().getPlayer(owner);
         if (former != null) {
@@ -83,11 +94,15 @@ public final class BlissfulLandService {
     //region Whitelist [白名单]
     public static boolean addWhitelist(@NotNull MinecraftServer server, @NotNull BlissfulLandData data,
                                        @NotNull String name) {
-        ServerPlayer player = server.getPlayerList().getPlayerByName(name);
-        if (player == null) return false;
-
-        data.addWhitelist(player.getUUID(), player.getGameProfile().getName());
-        return true;
+        for (ServerLevel level : server.getAllLevels()) {
+            for (ServerPlayer player : level.players()) {
+                if (player.getGameProfile().getName().equalsIgnoreCase(name)) {
+                    data.addWhitelist(player.getUUID(), player.getGameProfile().getName());
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static boolean setWhitelisted(@NotNull MinecraftServer server, @NotNull BlissfulLandData data,

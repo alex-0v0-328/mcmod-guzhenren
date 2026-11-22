@@ -1,8 +1,10 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.mountain;
 
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
@@ -65,7 +67,7 @@ public final class MountainWork {
 
     //region Move [挪生物上山]
     public static long moveCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, data.moveReadyAt() - level.getGameTime());
+        return Math.max(0L, data.mountain().moveReadyAt() - level.getGameTime());
     }
 
     public static int moveMobsUp(@NotNull ServerLevel level, @NotNull RealmSite site, @NotNull BlissfulLandData data,
@@ -89,7 +91,7 @@ public final class MountainWork {
             mob.setDeltaMovement(Vec3.ZERO);
             moved++;
         }
-        data.setMoveReadyAt(level.getGameTime() + MOVE_COOLDOWN_TICKS);
+        data.mountain().setMoveReadyAt(level.getGameTime() + MOVE_COOLDOWN_TICKS);
         return moved;
     }
 

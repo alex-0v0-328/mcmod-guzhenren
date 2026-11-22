@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.blissful;
 
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.DamageTypeTags;

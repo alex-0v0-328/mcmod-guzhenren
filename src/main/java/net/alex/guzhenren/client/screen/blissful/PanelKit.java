@@ -35,6 +35,7 @@ final class PanelKit {
     static final int LEGEND = ModPalette.LEGEND_TEXT;
     static final int DEAD = ModPalette.TEXT_DEAD;
     static final int WARN = ModPalette.SHORT;
+    static final int HOVER = 0x30F8ACC4;
     static final ResourceLocation PANEL = sprite("panel");
     static final ResourceLocation POPUP = sprite("popup");
     static final ResourceLocation WELL = sprite("well");

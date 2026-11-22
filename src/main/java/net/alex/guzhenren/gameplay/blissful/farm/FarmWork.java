@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.farm;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -8,6 +8,9 @@ import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,14 +40,15 @@ import org.jetbrains.annotations.Nullable;
  *       （水、岩浆）就算湿地不开；田的清整范围里有方块实体（箱子等）也不开，免得抹掉玩家的东西。湿地和有方块实体的田位
  *       跳过，取下一个空格。</li>
  *   <li>{@link #reclaim}：以田心的真实地面为耕地层，把 9×9 整平（上方清空至地表、至多 {@value #CLEAR_HEIGHT} 格，树一并
- *       清掉；下方向下补土至多 {@value #FILL_DEPTH} 格），再从库藏取第一种作物种子种满 80 格（不够就种够的）；之后冷却
+ *       清掉；下方向下补土至多 {@value #FILL_DEPTH} 格），再按主人选的开垦作物（{@link FarmState#crop()}，自动 = 库藏第一种
+ *       种子）从库藏扣种子种满 80 格（不够就种够的，没有就开空田，留给之后的收割补种）；之后冷却
  *       {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过 {@link ModEvents#canGrief}。⚠ 清整不掉落，田位上玩家搭的普通方
  *       块会被抹掉。</li>
  *   <li>作物只认 {@link #CROPS}（小麦、胡萝卜、马铃薯、甜菜根），种子也只认这四种对应的物品，其余作物种不进标准田；只在
  *       标准田里清点与收割。地狱疣要灵魂沙田，本阶段不做。</li>
  *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，从中扣 1 份种子补种（掉落里没有就从库藏扣，库藏也没有就留空），
- *       其余进库藏。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕好）种这块田现有最多的作物，田里一株没有就取库藏
- *       第一种种子，从库藏扣到没有为止；没种子时开出的空田、种不满的田就这样后来种满。收割与补空格合计受 {@code limit}
+ *       其余进库藏。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕好）种这块田现有最多的作物，田里一株没有就取开垦
+ *       作物（自动 = 库藏第一种种子），从库藏扣到没有为止；没种子时开出的空田、种不满的田就这样后来种满。收割与补空格合计受 {@code limit}
  *       限制。</li>
  *   <li>⚠ 强加载用 NeoForge {@link #TICKETS} 的带刻工单：原版 {@code /forceload} 的区块附近没有玩家时不随机刻，作物不
  *       长。工单以田心为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时 {@link #retain} 重挂。读档时校
@@ -68,6 +72,11 @@ public final class FarmWork {
     private static final int NO_GROUND = Integer.MIN_VALUE;
 
     public record Count(int mature, int growing) {}
+
+    public record Harvest(int reaped, int sown) {
+
+        public int total() { return reaped + sown; }
+    }
 
     //region Slots [田区网格]
     public static int slotsPerSide(@NotNull BlissfulLand land) { return (land.farmChunks() * 16 - 2 * MARGIN) / PITCH; }
@@ -133,14 +142,14 @@ public final class FarmWork {
     }
 
     private static boolean occupied(BlissfulLandData data, int x, int z) {
-        for (long field : data.fields()) {
+        for (long field : data.farm().fields()) {
             if (BlockPos.getX(field) == x && BlockPos.getZ(field) == z) return true;
         }
         return false;
     }
 
     public static long reclaimCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, data.reclaimReadyAt() - level.getGameTime());
+        return Math.max(0L, data.farm().reclaimReadyAt() - level.getGameTime());
     }
     //endregion
 
@@ -157,7 +166,7 @@ public final class FarmWork {
             for (int dz = -half; dz <= half; dz++) level(level, center.offset(dx, 0, dz), dx == 0 && dz == 0);
         }
 
-        ItemStack seed = data.storage().first(FarmWork::isSeed);
+        ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
         if (!seed.isEmpty()) {
             Predicate<ItemStack> same = stack -> ItemStack.isSameItemSameComponents(stack, seed);
             int planted = data.storage().consume(same, SIZE * SIZE - 1);
@@ -170,8 +179,8 @@ public final class FarmWork {
                 }
             }
         }
-        data.addField(center);
-        data.setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
+        data.farm().addField(center);
+        data.farm().setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
         retain(level, data);
         return center;
     }
@@ -198,6 +207,12 @@ public final class FarmWork {
     public static boolean isSeed(@NotNull ItemStack stack) {
         return stack.getItem() instanceof BlockItem item && CROPS.contains(item.getBlock());
     }
+
+    public static @NotNull Predicate<ItemStack> seedFilter(int crop) {
+        if (crop == FarmState.AUTO_CROP) return FarmWork::isSeed;
+        Item seed = CROPS.get(crop).asItem();
+        return stack -> stack.is(seed);
+    }
     //endregion
 
     //region Crops [作物]
@@ -220,23 +235,24 @@ public final class FarmWork {
         return census;
     }
 
-    public static int harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int limit) {
-        int handled = 0;
-        for (long field : data.fields()) {
+    public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int limit) {
+        int reaped = 0;
+        int sown = 0;
+        for (long field : data.farm().fields()) {
             BlockPos center = BlockPos.of(field);
             if (!level.isLoaded(center)) continue;
             List<BlockPos> cells = cellsOf(center);
             for (BlockPos pos : cells) {
-                if (handled >= limit) return handled;
+                if (reaped + sown >= limit) return new Harvest(reaped, sown);
                 BlockState state = level.getBlockState(pos);
                 if (!isCrop(state) || !isMature(state)) continue;
 
                 reap(level, data, pos, state);
-                handled++;
+                reaped++;
             }
-            handled += sow(level, data, cells, limit - handled);
+            sown += sow(level, data, cells, limit - reaped - sown);
         }
-        return handled;
+        return new Harvest(reaped, sown);
     }
 
     private static void reap(ServerLevel level, BlissfulLandData data, BlockPos pos, BlockState state) {
@@ -257,7 +273,7 @@ public final class FarmWork {
     private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells, int limit) {
         Block crop = cropOf(level, cells);
         if (crop == null) {
-            ItemStack seed = data.storage().first(FarmWork::isSeed);
+            ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
             if (seed.isEmpty()) return 0;
             crop = ((BlockItem) seed.getItem()).getBlock();
         }
@@ -290,7 +306,7 @@ public final class FarmWork {
 
     private static List<BlockPos> cropCells(ServerLevel level, BlissfulLandData data) {
         List<BlockPos> cells = new ArrayList<>();
-        for (long field : data.fields()) {
+        for (long field : data.farm().fields()) {
             BlockPos center = BlockPos.of(field);
             if (level.isLoaded(center)) cells.addAll(cellsOf(center));
         }
@@ -325,7 +341,7 @@ public final class FarmWork {
     }
 
     private static void setForced(ServerLevel level, BlissfulLandData data, boolean add) {
-        for (long field : data.fields()) {
+        for (long field : data.farm().fields()) {
             BlockPos center = BlockPos.of(field);
             for (ChunkPos chunk : chunksOf(center)) TICKETS.forceChunk(level, center, chunk.x, chunk.z, add, true);
         }

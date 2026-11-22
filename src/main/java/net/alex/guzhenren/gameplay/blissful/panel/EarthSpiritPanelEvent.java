@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.panel;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.Event;

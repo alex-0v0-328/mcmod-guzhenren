@@ -1,7 +1,7 @@
 package net.alex.guzhenren.registry.menu;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritMenu;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.trade.SoulTradeMenu;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.vault.ApertureStorageMenu;

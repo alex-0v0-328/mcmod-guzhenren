@@ -8,18 +8,21 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandService;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
-import net.alex.guzhenren.gameplay.blissful.BlissfulStorage;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritMenu;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritPanel;
-import net.alex.guzhenren.gameplay.blissful.FarmWork;
-import net.alex.guzhenren.gameplay.blissful.HerdWork;
-import net.alex.guzhenren.gameplay.blissful.MountainWork;
-import net.alex.guzhenren.gameplay.blissful.PanelAction;
-import net.alex.guzhenren.gameplay.blissful.Territory;
-import net.alex.guzhenren.gameplay.blissful.TerritoryWork;
+import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
+import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
+import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
+import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
+import net.alex.guzhenren.gameplay.blissful.member.MemberService;
+import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.panel.Page;
+import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
+import net.alex.guzhenren.gameplay.blissful.storage.StorageModule;
+import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
@@ -29,11 +32,14 @@ import net.alex.guzhenren.lifecycle.PlayerDataService;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.alex.guzhenren.registry.item.ModItems;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -86,15 +92,24 @@ public final class BlissfulLandGameTests {
                 .at(new Vec3(4.5D, 2.0D, 4.5D));
         ServerPlayer second = GameTestPlayers.survival(helper, "gzr-land-second-mock").at(new Vec3(4.5D, 2.0D, 4.5D));
 
-        helper.assertFalse(BlissfulLandService.tryClaim(helper.getLevel(), data, site, summitY, below),
+        helper.assertFalse(MemberService.tryClaim(helper.getLevel(), data, site, summitY, below),
                 "standing on the ground below the summit claims nothing");
-        helper.assertTrue(BlissfulLandService.tryClaim(helper.getLevel(), data, site, summitY, first),
+        helper.assertTrue(MemberService.tryClaim(helper.getLevel(), data, site, summitY, first),
                 "the first player on the top soulsunder stone claims the land");
         helper.assertTrue(data.isOwner(first.getUUID()), "the first player owns it");
         helper.assertTrue(data.isWhitelisted(first.getUUID()), "the owner starts on the whitelist");
-        helper.assertFalse(GameTestPlayers.messages(inbox, BlissfulLandService.MSG_CLAIMED).isEmpty(),
-                "the owner is told");
-        helper.assertFalse(BlissfulLandService.tryClaim(helper.getLevel(), data, site, summitY, second),
+        helper.assertTrue(GameTestPlayers.messages(inbox, MemberService.MSG_CLAIMED).isEmpty(),
+                "the owner gets no message of their own besides the broadcast");
+        Component told = MemberService.claimedMessage(first);
+        helper.assertTrue(told.getContents() instanceof TranslatableContents contents
+                        && contents.getKey().equals(MemberService.MSG_CLAIMED)
+                        && contents.getArgs().length == 1 && contents.getArgs()[0] instanceof Component name
+                        && name.getString().equals("gzr-land-first-mock")
+                        && name.getStyle().getColor() == TextColor.fromLegacyFormat(ChatFormatting.WHITE),
+                "the broadcast names the new owner in white");
+        helper.assertTrue(told.getStyle().getColor() == TextColor.fromLegacyFormat(ChatFormatting.GOLD),
+                "the broadcast tag is gold");
+        helper.assertFalse(MemberService.tryClaim(helper.getLevel(), data, site, summitY, second),
                 "a claimed land cannot be claimed again");
         helper.assertTrue(data.isOwner(first.getUUID()), "the first owner stays");
         helper.succeed();
@@ -107,9 +122,9 @@ public final class BlissfulLandGameTests {
         BlissfulLandData data = BlissfulLandData.get(helper.getLevel().getServer(), BlissfulLand.FOX_IMMORTAL);
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-death-mock").onGround();
         try {
-            BlissfulLandService.claim(null, data, owner);
+            MemberService.claim(null, data, owner);
             data.storage().insert(new ItemStack(Items.WHEAT, 5));
-            data.setHosted(HerdWork.typeId(owner), true);
+            data.herd().setHosted(HerdWork.typeId(owner), true);
 
             keep.set(true, helper.getLevel().getServer());
             BlissfulLands.onDeath(owner);
@@ -119,13 +134,13 @@ public final class BlissfulLandGameTests {
             BlissfulLands.onDeath(owner);
             helper.assertFalse(data.hasOwner(), "with keepInventory off, dying loses the land");
             helper.assertTrue(data.whitelist().isEmpty(), "losing clears the whitelist");
-            helper.assertFalse(data.herdHosting(), "losing stops hosting");
+            helper.assertFalse(data.herd().hosting(), "losing stops hosting");
             helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT)), 5L,
                     "the storage stays for the next owner");
             helper.succeed();
         } finally {
             keep.set(before, helper.getLevel().getServer());
-            BlissfulLandService.lose(helper.getLevel().getServer(), null, data);
+            MemberService.lose(helper.getLevel().getServer(), null, data);
             data.storage().consume(stack -> true, Integer.MAX_VALUE);
         }
     }
@@ -135,12 +150,12 @@ public final class BlissfulLandGameTests {
         BlissfulLandData data = BlissfulLandData.get(helper.getLevel().getServer(), BlissfulLand.FOX_IMMORTAL);
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-reset-mock").onGround();
         try {
-            BlissfulLandService.claim(null, data, owner);
+            MemberService.claim(null, data, owner);
             PlayerDataService.resetAll(owner);
             helper.assertFalse(data.hasOwner(), "a character reset loses the land");
             helper.succeed();
         } finally {
-            BlissfulLandService.lose(helper.getLevel().getServer(), null, data);
+            MemberService.lose(helper.getLevel().getServer(), null, data);
         }
     }
 
@@ -151,22 +166,22 @@ public final class BlissfulLandGameTests {
         ServerPlayer guest = GameTestPlayers.survival(helper, "gzr-land-guest-mock").at(new Vec3(2.5D, 1.0D, 2.5D));
         ServerPlayer stranger = GameTestPlayers.survival(helper, "gzr-land-stranger-mock")
                 .at(new Vec3(6.5D, 1.0D, 6.5D));
-        BlissfulLandService.claim(null, data, owner);
-        helper.assertTrue(BlissfulLandService.isExempt(data, owner), "the owner is exempt by default");
-        helper.assertTrue(BlissfulLandService.setWhitelisted(helper.getLevel().getServer(), data, guest.getUUID(),
+        MemberService.claim(null, data, owner);
+        helper.assertTrue(MemberService.isExempt(data, owner), "the owner is exempt by default");
+        helper.assertTrue(MemberService.setWhitelisted(helper.getLevel().getServer(), data, guest.getUUID(),
                 true), "an online guest can be listed");
-        helper.assertTrue(BlissfulLandService.isExempt(data, guest), "a listed guest is exempt");
-        helper.assertFalse(BlissfulLandService.isExempt(data, stranger), "a stranger is not");
+        helper.assertTrue(MemberService.isExempt(data, guest), "a listed guest is exempt");
+        helper.assertFalse(MemberService.isExempt(data, stranger), "a stranger is not");
         data.removeWhitelist(owner.getUUID());
-        helper.assertFalse(BlissfulLandService.isExempt(data, owner), "the owner can take themself off the list");
+        helper.assertFalse(MemberService.isExempt(data, owner), "the owner can take themself off the list");
 
         Vec3 guestAt = guest.position();
         Vec3 strangerAt = stranger.position();
-        int expelled = BlissfulLandService.expelOutsiders(List.of(owner, guest, stranger), data);
+        int expelled = MemberService.expelOutsiders(List.of(owner, guest, stranger), data);
         helper.assertValueEqual(expelled, 1, "only the stranger is expelled");
         helper.assertTrue(guest.position().equals(guestAt), "a listed guest stays");
         helper.assertFalse(stranger.position().equals(strangerAt), "the stranger is sent back");
-        helper.assertFalse(BlissfulLandService.expel(helper.getLevel(), data, owner.getUUID()),
+        helper.assertFalse(MemberService.expel(helper.getLevel(), data, owner.getUUID()),
                 "the owner cannot be expelled");
         helper.succeed();
     }
@@ -294,11 +309,12 @@ public final class BlissfulLandGameTests {
         List<Entity> herd = new ArrayList<>();
         for (int i = 0; i < 2; i++) herd.add(helper.spawn(EntityType.COW, new BlockPos(1 + i, 1, 4)));
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        data.setKeep(HerdWork.typeId(herd.getFirst()), 3);
-        data.setHosted(HerdWork.typeId(herd.getFirst()), true);
+        data.herd().setKeep(HerdWork.typeId(herd.getFirst()), 3);
+        data.herd().setHosted(HerdWork.typeId(herd.getFirst()), true);
         data.storage().insert(new ItemStack(Items.WHEAT, 10));
 
-        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, BlissfulLands.HOSTING_LIMIT);
+        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, BlissfulLands.HOSTING_LIMIT)
+                .total();
         helper.assertValueEqual(handled, 2, "one cow short: one pair is fed");
         helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT)), 8L, "two wheat are eaten");
         helper.succeed();
@@ -328,7 +344,7 @@ public final class BlissfulLandGameTests {
             helper.assertTrue(level.getBlockState(center.offset(-4, 1, 4)).is(Blocks.WHEAT), "a corner is sown");
             helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 20L,
                     "eighty seeds are planted");
-            helper.assertValueEqual(data.fields().size(), 1, "the field is recorded");
+            helper.assertValueEqual(data.farm().fields().size(), 1, "the field is recorded");
             helper.assertTrue(FarmWork.reclaimCooldown(level, data) > 0, "reclaiming starts the cooldown");
 
             BlockState ripe = ((CropBlock) Blocks.WHEAT).getStateForAge(((CropBlock) Blocks.WHEAT).getMaxAge());
@@ -339,7 +355,8 @@ public final class BlissfulLandGameTests {
             }
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT), new FarmWork.Count(80, 0),
                     "eighty ripe wheat are counted");
-            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE), 80, "all eighty are cut");
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).reaped(), 80,
+                    "all eighty are cut");
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT), new FarmWork.Count(0, 80),
                     "every cell is replanted");
             helper.assertTrue(data.storage().count(stack -> stack.is(Items.WHEAT)) >= 80L,
@@ -362,21 +379,52 @@ public final class BlissfulLandGameTests {
             helper.assertTrue(FarmWork.census(level, data).isEmpty(), "nothing is sown without seeds");
 
             data.storage().insert(new ItemStack(Items.CARROT, 30));
-            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE), 30, "thirty carrots sow thirty");
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).sown(), 30,
+                    "thirty carrots sow thirty");
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 30),
                     "the empty field takes the first seed in storage");
 
             data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
             data.storage().insert(new ItemStack(Items.CARROT, 100));
             level.setBlock(center.offset(1, 0, 1), Blocks.DIRT.defaultBlockState(), 2);
-            helper.assertValueEqual(FarmWork.harvest(level, data, 20), 20, "the limit holds while sowing");
-            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE), 30, "the rest is sown");
+            helper.assertValueEqual(FarmWork.harvest(level, data, 20).total(), 20, "the limit holds while sowing");
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).sown(), 30, "the rest is sown");
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 80),
                     "the field fills up with its own crop, trampled farmland included");
             helper.assertTrue(level.getBlockState(center.offset(1, 0, 1)).is(Blocks.FARMLAND),
                     "trampled farmland is tilled again");
             helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 100L,
                     "seeds of another crop are left alone");
+            helper.succeed();
+        } finally {
+            FarmWork.release(level, data);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void reclaimingSowsTheChosenCropAndHostingReportsTheRound(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
+        data.storage().insert(new ItemStack(Items.CARROT, 100));
+        data.farm().setCrop(FarmWork.CROPS.indexOf(Blocks.CARROTS));
+        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-crop-mock").at(new Vec3(4.5D, 3.0D, 4.5D));
+        try {
+            BlockPos center = FarmWork.reclaim(level, data, helper.absolutePos(CENTER_POS), owner);
+            helper.assertTrue(center != null, "the field is laid");
+            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 80),
+                    "the chosen carrots are sown, not the first seed in storage");
+            helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 100L,
+                    "the wheat seeds stay");
+
+            BlockState ripe = ((CropBlock) Blocks.CARROTS).getStateForAge(((CropBlock) Blocks.CARROTS).getMaxAge());
+            for (int dx = -4; dx <= 0; dx++) level.setBlock(center.offset(dx, 1, -4), ripe, 2);
+            data.farm().setHosting(true);
+            helper.assertValueEqual(FarmModule.INSTANCE.host(level, data, null, BlissfulLands.HOSTING_LIMIT), 5,
+                    "hosting cuts the five ripe carrots");
+            helper.assertValueEqual(data.farm().lastReaped(), 5, "the round is reported");
+            helper.assertValueEqual(data.farm().lastSown(), 0, "nothing was bare");
             helper.succeed();
         } finally {
             FarmWork.release(level, data);
@@ -390,7 +438,7 @@ public final class BlissfulLandGameTests {
         helper.assertValueEqual(FarmWork.capacity(land), 36, "a four-chunk zone holds six by six fields");
         BlockPos first = FarmWork.freeSlots(land, data).getFirst();
         helper.assertValueEqual(first, new BlockPos(-32 + 2 + 4, 0, 176 + 2 + 4), "the first slot is the north-west");
-        data.addField(first.atY(64));
+        data.farm().addField(first.atY(64));
         helper.assertValueEqual(FarmWork.freeSlots(land, data).getFirst(), new BlockPos(-32 + 12 + 4, 0, 176 + 2 + 4),
                 "the next slot is one field and an aisle east");
         helper.succeed();
@@ -438,26 +486,25 @@ public final class BlissfulLandGameTests {
                 .at(new Vec3(3.5D, 1.0D, 3.5D));
         EarthSpiritEntity spirit = spawnSpirit(helper);
         ResourceLocation cowId = BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.COW);
-        String cow = cowId.toString();
         try {
-            BlissfulLandService.claim(null, data, owner);
+            MemberService.claim(null, data, owner);
             stranger.containerMenu = openPanel(level, data, stranger, spirit);
-            EarthSpiritPanel.handle(stranger, PanelAction.HERD_KEEP, 5, cow);
-            helper.assertValueEqual(data.keep(cowId), 0, "a stranger's forged panel is refused");
-            EarthSpiritPanel.handle(owner, PanelAction.HERD_KEEP, 5, cow);
-            helper.assertValueEqual(data.keep(cowId), 0, "without the panel open nothing happens");
+            EarthSpiritPanel.handle(stranger, new HerdModule.SetKeep(cowId, 5));
+            helper.assertValueEqual(data.herd().keep(cowId), 0, "a stranger's forged panel is refused");
+            EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 5));
+            helper.assertValueEqual(data.herd().keep(cowId), 0, "without the panel open nothing happens");
             owner.containerMenu = openPanel(level, data, owner, spirit);
-            EarthSpiritPanel.handle(owner, PanelAction.HERD_KEEP, 5, cow);
-            helper.assertValueEqual(data.keep(cowId), 5, "the owner with the panel open is obeyed");
+            EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 5));
+            helper.assertValueEqual(data.herd().keep(cowId), 5, "the owner with the panel open is obeyed");
             spirit.discard();
-            EarthSpiritPanel.handle(owner, PanelAction.HERD_KEEP, 7, cow);
-            helper.assertValueEqual(data.keep(cowId), 5, "a panel whose spirit is gone is stale");
+            EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 7));
+            helper.assertValueEqual(data.herd().keep(cowId), 5, "a panel whose spirit is gone is stale");
             helper.succeed();
         } finally {
             owner.containerMenu = owner.inventoryMenu;
             stranger.containerMenu = stranger.inventoryMenu;
-            data.setKeep(cowId, 0);
-            BlissfulLandService.lose(level.getServer(), null, data);
+            data.herd().setKeep(cowId, 0);
+            MemberService.lose(level.getServer(), null, data);
         }
     }
 
@@ -469,16 +516,16 @@ public final class BlissfulLandGameTests {
         EarthSpiritEntity spirit = spawnSpirit(helper);
         BlissfulStorage storage = data.storage();
         try {
-            BlissfulLandService.claim(null, data, owner);
+            MemberService.claim(null, data, owner);
             EarthSpiritMenu menu = openPanel(level, data, owner, spirit);
             owner.containerMenu = menu;
             storage.insert(new ItemStack(Items.WHEAT, 100));
             storage.insert(new ItemStack(Items.CARROT, 5));
 
-            EarthSpiritPanel.handle(owner, PanelAction.TAKE_STACK, 0, "minecraft:wheat");
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:wheat", false));
             helper.assertValueEqual(menu.getCarried().getCount(), 64, "one take puts a stack on the cursor");
             helper.assertValueEqual(wheat(storage) + menu.getCarried().getCount(), 100L, "taking keeps the total");
-            EarthSpiritPanel.handle(owner, PanelAction.DEPOSIT_CARRIED, 0, "");
+            EarthSpiritPanel.handle(owner, new StorageModule.DepositCarried());
             helper.assertTrue(menu.getCarried().isEmpty(), "depositing empties the cursor");
             helper.assertValueEqual(wheat(storage), 100L, "depositing keeps the total");
 
@@ -487,11 +534,11 @@ public final class BlissfulLandGameTests {
             helper.assertTrue(owner.getInventory().getItem(0).isEmpty(), "shift-clicking a hotbar slot stores it");
             helper.assertValueEqual(wheat(storage), 110L, "storing keeps the total");
 
-            EarthSpiritPanel.handle(owner, PanelAction.TAKE_STACK, 0, "minecraft:carrot");
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:carrot", false));
             helper.assertTrue(menu.getCarried().is(Items.CARROT), "a stale index still takes the named item");
             menu.setCarried(ItemStack.EMPTY);
 
-            EarthSpiritPanel.handle(owner, PanelAction.TAKE_ALL, 0, "minecraft:wheat");
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:wheat", true));
             helper.assertValueEqual(wheat(storage), 0L, "taking all empties the entry");
             helper.assertValueEqual(owner.getInventory().countItem(Items.WHEAT), 110, "all of it is in the bag");
 
@@ -501,14 +548,14 @@ public final class BlissfulLandGameTests {
             }
             storage.insert(new ItemStack(Items.WHEAT, 30));
             owner.getAbilities().instabuild = true;
-            EarthSpiritPanel.handle(owner, PanelAction.TAKE_ALL, 0, "minecraft:wheat");
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:wheat", true));
             helper.assertValueEqual(wheat(storage), 30L, "a full creative bag takes nothing and loses nothing");
             helper.succeed();
         } finally {
             owner.getAbilities().instabuild = false;
             owner.containerMenu = owner.inventoryMenu;
             storage.consume(stack -> true, Integer.MAX_VALUE);
-            BlissfulLandService.lose(level.getServer(), null, data);
+            MemberService.lose(level.getServer(), null, data);
         }
     }
 
@@ -521,7 +568,7 @@ public final class BlissfulLandGameTests {
     private static EarthSpiritMenu openPanel(ServerLevel level, BlissfulLandData data, ServerPlayer player,
                                              EarthSpiritEntity spirit) {
         return new EarthSpiritMenu(1, player.getInventory(), spirit,
-                EarthSpiritPanel.snapshot(level, data, Component.empty()));
+                EarthSpiritPanel.snapshot(level, data, Page.OVERVIEW, Component.empty()));
     }
     //endregion
 

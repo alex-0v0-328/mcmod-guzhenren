@@ -1,6 +1,9 @@
 package net.alex.guzhenren.gameplay.blissful;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderShakeEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,5 +60,9 @@ public final class BlissfulLandEvents {
     public static void onRegisterTickets(RegisterTicketControllersEvent event) { event.register(FarmWork.TICKETS); }
 
     @SubscribeEvent
-    public static void onServerStopped(ServerStoppedEvent event) { TerritoryWork.clear(); }
+    public static void onServerStopped(ServerStoppedEvent event) {
+        TerritoryWork.clear();
+        LandCensus.clear();
+        EarthSpiritPanel.clear();
+    }
 }

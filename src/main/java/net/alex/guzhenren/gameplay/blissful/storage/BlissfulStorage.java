@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.storage;
 
 import com.google.common.math.LongMath;
 import java.util.ArrayList;

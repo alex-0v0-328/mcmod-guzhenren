@@ -4,8 +4,8 @@ import net.alex.guzhenren.compat.EpicFightIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritPanel;
-import net.alex.guzhenren.gameplay.blissful.PanelAction;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.GuPath;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
@@ -175,8 +175,7 @@ public final class ClientIntents {
                 Component.translatable(STORAGE_TITLE)), buffer -> buffer.writeVarInt(aperture));
     }
 
-    public static void earthSpirit(@NotNull ServerPlayer player, @NotNull PanelAction action, int value,
-                                   @NotNull String text) {
-        EarthSpiritPanel.handle(player, action, value, text);
+    public static void earthSpirit(@NotNull ServerPlayer player, @NotNull PanelAction action) {
+        EarthSpiritPanel.handle(player, action);
     }
 }

@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.territory;
 
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;

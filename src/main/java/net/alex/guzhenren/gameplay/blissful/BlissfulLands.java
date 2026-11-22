@@ -3,6 +3,10 @@ package net.alex.guzhenren.gameplay.blissful;
 import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.blissful.member.MemberService;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
@@ -30,8 +34,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>失主：{@link #onDeath} 在任何维度死亡时（「死亡不掉落」开着就不算），{@link #onReset} 在角色重置时（非保留死亡
  *       的克隆也会走重置，重复失主无副作用）。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
- *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时跑托管，种植先、养殖
- *       后，合计至多 {@value #HOSTING_LIMIT} 个对象；每秒给开着面板的主人刷新快照。</li>
+ *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
+ *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，合计至多 {@value #HOSTING_LIMIT} 个对象；每秒给开着面板的主人刷
+ *       新快照（只算他正在看的页）。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
  * </ul>
  */
@@ -67,7 +72,7 @@ public final class BlissfulLands {
 
         BlissfulLandData data = BlissfulLandData.get(player.server, land);
         RealmSite site = SecretRealms.siteOf(player.server, land.realm());
-        if (site != null) BlissfulLandService.tryClaim(player.serverLevel(), data, site, land.summitY(), player);
+        if (site != null) MemberService.tryClaim(player.serverLevel(), data, site, land.summitY(), player);
     }
 
     public static void onDeath(@NotNull ServerPlayer player) {
@@ -81,13 +86,13 @@ public final class BlissfulLands {
         for (BlissfulLand land : BlissfulLand.ALL) {
             BlissfulLandData data = BlissfulLandData.get(player.server, land);
             if (!data.isOwner(player.getUUID())) continue;
-            BlissfulLandService.lose(player.server, level(player.server, land), data);
+            MemberService.lose(player.server, level(player.server, land), data);
         }
     }
 
     public static boolean isExempt(@NotNull ServerPlayer player) {
         BlissfulLand land = landOf(player.level());
-        return land != null && BlissfulLandService.isExempt(BlissfulLandData.get(player.server, land), player);
+        return land != null && MemberService.isExempt(BlissfulLandData.get(player.server, land), player);
     }
     //endregion
 
@@ -113,13 +118,19 @@ public final class BlissfulLands {
 
     public static int host(@NotNull MinecraftServer server, @NotNull ServerLevel level,
                            @NotNull BlissfulLandData data) {
-        int used = data.farmHosting() ? FarmWork.harvest(level, data, HOSTING_LIMIT) : 0;
-        if (data.herdHosting() && used < HOSTING_LIMIT) {
-            UUID owner = data.owner();
-            ServerPlayer online = owner == null ? null : server.getPlayerList().getPlayer(owner);
-            used += HerdWork.host(level, data, online, HOSTING_LIMIT - used);
+        UUID owner = data.owner();
+        ServerPlayer online = owner == null ? null : server.getPlayerList().getPlayer(owner);
+        int used = 0;
+        for (LandModule<?> module : LandModules.HOSTED) {
+            if (used >= HOSTING_LIMIT) break;
+            used += module.host(level, data, online, HOSTING_LIMIT - used);
         }
+        LandCensus.invalidate(level);
         return used;
+    }
+
+    public static int secondsToHosting(@NotNull MinecraftServer server) {
+        return EarthSpiritPanel.seconds(HOSTING_TICKS - server.getTickCount() % HOSTING_TICKS);
     }
 
     public static void keepSpirit(@NotNull ServerLevel level, @NotNull BlissfulLand land,

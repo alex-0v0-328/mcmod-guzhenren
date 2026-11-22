@@ -1,0 +1,75 @@
+package net.alex.guzhenren.gameplay.blissful.territory;
+
+import io.netty.buffer.ByteBuf;
+import java.util.List;
+import java.util.Locale;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.LandModule;
+import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.panel.Page;
+import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
+import net.alex.guzhenren.gameplay.blissful.panel.PanelContext;
+import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * 「疆域」页模块：下发现疆域，客户端用同一份 {@link Territory} 规则画略图、算割弃预告；「割弃」由服务端复判。
+ */
+
+public final class TerritoryModule implements LandModule<TerritoryModule.Section> {
+
+    public static final TerritoryModule INSTANCE = new TerritoryModule();
+    private static final StreamCodec<ByteBuf, Territory.Side> SIDE_CODEC =
+            ByteBufCodecs.idMapper(index -> Territory.Side.values()[index], Territory.Side::ordinal);
+
+    private TerritoryModule() {}
+
+    public record Section(@NotNull Territory territory) implements PanelSection {
+
+        public static final Section EMPTY = new Section(Territory.whole(1, 1));
+        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, section -> section.territory.half(),
+                ByteBufCodecs.VAR_INT, section -> section.territory.core(),
+                ByteBufCodecs.VAR_INT, section -> section.territory.north(),
+                ByteBufCodecs.VAR_INT, section -> section.territory.east(),
+                ByteBufCodecs.VAR_INT, section -> section.territory.south(),
+                ByteBufCodecs.VAR_INT, section -> section.territory.west(),
+                (half, core, north, east, south, west) -> new Section(new Territory(half, core, north, east, south,
+                        west)));
+
+        @Override
+        public @NotNull Page page() { return Page.TERRITORY; }
+    }
+
+    public record Cede(@NotNull Territory.Side side, int width) implements PanelAction {
+
+        public static final PanelAction.Type<Cede> TYPE = new PanelAction.Type<>(Cede.class,
+                StreamCodec.composite(SIDE_CODEC, Cede::side, ByteBufCodecs.VAR_INT, Cede::width, Cede::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            BlissfulLandData data = context.data();
+            if (!TerritoryWork.cede(context.level(), data, side, width)) return EarthSpiritPanel.notice("cede_refused");
+            Component sideName = Component.translatable("guzhenren.blissful_land.side."
+                    + side.name().toLowerCase(Locale.ROOT));
+            return EarthSpiritPanel.notice("ceded", sideName, width, data.territory().acres());
+        }
+    }
+
+    @Override
+    public @NotNull Page page() { return Page.TERRITORY; }
+
+    @Override
+    public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }
+
+    @Override
+    public @NotNull List<PanelAction.Type<?>> actions() { return List.of(Cede.TYPE); }
+
+    @Override
+    public @NotNull Section section(@NotNull PanelContext context) { return new Section(context.data().territory()); }
+}

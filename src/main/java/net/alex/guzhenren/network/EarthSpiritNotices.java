@@ -1,7 +1,7 @@
 package net.alex.guzhenren.network;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritPanelEvent;
+import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanelEvent;
 import net.alex.guzhenren.network.payload.EarthSpiritPanelPayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
