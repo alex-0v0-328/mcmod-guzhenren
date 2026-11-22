@@ -394,10 +394,12 @@ class PalaceTest(unittest.TestCase):
         self.assertEqual(cells[(shape.CENTRE + shape.SUMMIT[2]) * shape.WIDTH + shape.CENTRE + shape.SUMMIT[0]],
                          shape.SUMMIT[1])
 
+    @staticmethod
+    def roofed_top() -> int:
+        return max(y for _, y, z in shape.palace_air() if z <= shape.ROOFED_Z)
+
     def test_cave_opens_round_the_anchor_under_a_thick_roof(self):
-        air = shape.palace_air()
-        top = max(y for _, y, _ in air)
-        grid = self.block(top + shape.ROOF + 1)
+        grid = self.block(self.roofed_top() + shape.ROOF + 1)
         notes = shape.cut_palace(grid)
         self.assertEqual(notes["roof"], shape.ROOF)
         x, y, z = shape.ANCHOR
@@ -416,10 +418,35 @@ class PalaceTest(unittest.TestCase):
         self.assertEqual(air, shape.palace_air(), "the cave is not fixed by its constants")
 
     def test_thin_roof_is_refused(self):
-        top = max(y for _, y, _ in shape.palace_air())
-        grid = self.block(top + shape.ROOF)
+        grid = self.block(self.roofed_top() + shape.ROOF)
         with self.assertRaises(shape.ShapeError):
             shape.cut_palace(grid)
+
+    def test_mouth_widens_and_rises_towards_the_flank(self):
+        air = shape.mouth_air()
+
+        def width(dz):
+            xs = [x for x, _, z in air if z == dz]
+            return max(xs) - min(xs) + 1
+
+        def height(dz):
+            return max(y for _, y, z in air if z == dz) - shape.PALACE_FLOOR + 1
+
+        self.assertLess(width(shape.MOUTH_START), width(shape.MOUTH_END))
+        self.assertLess(height(shape.MOUTH_START), height(shape.MOUTH_END))
+        self.assertGreaterEqual(width(shape.MOUTH_END), 2 * shape.MOUTH_HALF_WIDTH[1] - 2)
+
+    def test_mouth_keeps_the_trail_tread(self):
+        grid = self.block(self.roofed_top() + shape.ROOF + 1)
+        dx, dz = round(shape.MOUTH_X), shape.ROOFED_Z + 4
+        index = (shape.CENTRE + dz) * shape.WIDTH + shape.CENTRE + dx
+        tread = shape.PALACE_FLOOR + 3
+        shape.cut_palace(grid, {index: tread})
+        column = grid.column(shape.CENTRE + dx, shape.CENTRE + dz)
+        self.assertEqual(bytes(column[shape.PALACE_FLOOR:tread]), b"" * 3, "the tread is sunk")
+        self.assertEqual(column[tread], 0, "the mouth is closed over the tread")
+        beside = grid.column(shape.CENTRE + dx + 1, shape.CENTRE + dz)
+        self.assertEqual(beside[shape.PALACE_FLOOR], 0, "the mouth floor is not open beside the trail")
 
     def test_walk_climbs_one_block_steps_only(self):
         grid = shape.Grid.empty()

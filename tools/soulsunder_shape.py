@@ -41,10 +41,12 @@ the mountain trail cut in; it changes only fixed cells, so running it again give
     hall     an eroded cave round the PALACE_X x PALACE_Z footprint, floor at PALACE_FLOOR: a rounded room whose
              ceiling domes up to PALACE_DOME blocks, its walls pushed in and out by up to ERODE_AMPLITUDE blocks
              of domain-warped noise, STALACTITES drips and STALAGMITES stumps; under at least ROOF blocks
-    tunnel   a winding tube from the hall's south wall to TUNNEL_END, its middle swinging up to TUNNEL_MEANDER
-             blocks; a 3 x 3 walking core always stays open, and the mouth row is the plain TUNNEL_X x TUNNEL_HEIGHT
+    mouth    a funnel from inside the hall's south wall (MOUTH_START) out through the flank to MOUTH_END on the
+             MOUTH_X line, widening and rising along MOUTH_HALF_WIDTH and MOUTH_HEIGHT under an arched roof; trail
+             columns in it keep their tread (MOUTH_TREAD)
 Only the air joined to the anchor stays, and stone left floating inside the cave becomes air. Alex chose the heavy
-erosion of three previews and a bare cave: no walls, floor or furnishing of other blocks. The trail waypoints were
+erosion of three previews and a bare cave: no walls, floor or furnishing of other blocks; then, of three open-mouth
+previews, the widening funnel over the first winding tube. The trail waypoints were
 fitted once to the shipped mountain's contours (from the mouth at height 40 up and down, then thinned to one point
 per 5 blocks). The command fails rather than leave fewer than ROOF solid blocks over the hall, or leave the summit or
 the anchor out of a walk that starts on the open ground at the shape's edge (GROUND, one block over the base), climbs
@@ -717,11 +719,14 @@ PALACE_X = (-9, 5)
 PALACE_Z = (-13, 7)
 PALACE_HEIGHT = 8
 PALACE_DOME = 5
-TUNNEL_X = (-3, -1)
-TUNNEL_HEIGHT = 4
-TUNNEL_END = 24
-TUNNEL_MEANDER = 2.07
-TUNNEL_ROUGHNESS = 1.97
+MOUTH_X = -2.0
+MOUTH_START = PALACE_Z[1] - 2
+MOUTH_END = 34
+MOUTH_HALF_WIDTH = (4.5, 12.5)
+MOUTH_HEIGHT = (7.0, 16.0)
+MOUTH_ROUGHNESS = 0.25
+MOUTH_WALL = 0.45
+MOUTH_TREAD = PALACE_FLOOR + 16
 ERODE_AMPLITUDE = 4.2
 ERODE_SCALE = 5.0
 ERODE_WARP = 4.5
@@ -729,6 +734,8 @@ ERODE_SEED = 13
 STALACTITES = 18
 STALAGMITES = 5
 ROOF = 3
+# ROOF is held over the cave north of this row; further south the mouth opens through the flank.
+ROOFED_Z = PALACE_Z[1] + 2
 ANCHOR = (-2, PALACE_FLOOR, -3)
 SUMMIT = (4, 118, -2)
 TRAIL_WIDTH = 1.5
@@ -826,7 +833,7 @@ def erosion(x: float, y: float, z: float) -> float:
 
 
 def palace_air() -> set[tuple[int, int, int]]:
-    """The eroded hall and tunnel as (dx, y, dz) air cells, fixed by the constants alone."""
+    """The eroded hall and its open mouth as (dx, y, dz) air cells, fixed by the constants alone."""
     centre_x, centre_z = (PALACE_X[0] + PALACE_X[1]) / 2, (PALACE_Z[0] + PALACE_Z[1]) / 2
     half_x, half_z = (PALACE_X[1] - PALACE_X[0] + 1) / 2, (PALACE_Z[1] - PALACE_Z[0] + 1) / 2
     pad = math.ceil(ERODE_AMPLITUDE) + 2
@@ -855,28 +862,34 @@ def palace_air() -> set[tuple[int, int, int]]:
                 air.discard((dx, y, dz))
     for _ in range(STALAGMITES):
         dx, dz = spots[rng.randrange(len(spots))]
-        if TUNNEL_X[0] <= dx <= TUNNEL_X[1] or abs(dx - anchor_x) + abs(dz - anchor_z) < 3:
+        if abs(dx - MOUTH_X) <= 1 or abs(dx - anchor_x) + abs(dz - anchor_z) < 3:
             continue
         for y in range(PALACE_FLOOR, PALACE_FLOOR + rng.randint(1, 3)):
             air.discard((dx, y, dz))
     for y in range(anchor_y, anchor_y + 3):
         air.add((anchor_x, y, anchor_z))
-    middle = (TUNNEL_X[0] + TUNNEL_X[1]) / 2
-    first, last = PALACE_Z[1] + 1, TUNNEL_END - 1
-    for dz in range(first, last + 1):
-        envelope = math.sin(math.pi * (dz - first) / (last - first))
-        shift = round(envelope * TUNNEL_MEANDER * fractal3(dz / 6, 0, 0, ERODE_SEED + 5, 2) * 2)
-        for dx in range(TUNNEL_X[0] - 4, TUNNEL_X[1] + 5):
-            for y in range(PALACE_FLOOR, PALACE_FLOOR + TUNNEL_HEIGHT + 3):
-                across = (dx - middle - shift) / 1.7
-                up = (y - PALACE_FLOOR - 1.5) / 2.5
-                core = abs(dx - middle - shift) <= 1 and y < PALACE_FLOOR + 3
-                if core or across * across + up * up + TUNNEL_ROUGHNESS * envelope * erosion(dx, y, dz) < 1.0:
+    return tidy_cave(air | mouth_air())
+
+
+def mouth_air() -> set[tuple[int, int, int]]:
+    """The funnel from inside the hall's south wall out past the flank, widening and rising as it goes.
+
+    Its half-width and height grow linearly from the first to the second value of MOUTH_HALF_WIDTH and MOUTH_HEIGHT;
+    the walls stand straight up to MOUTH_WALL of the height, then the roof follows the ellipse across^2 + up^2 = 1,
+    and MOUTH_ROUGHNESS of the erosion noise roughens both."""
+    air = set()
+    for dz in range(MOUTH_START, MOUTH_END + 1):
+        t = (dz - MOUTH_START) / (MOUTH_END - MOUTH_START)
+        half = MOUTH_HALF_WIDTH[0] + (MOUTH_HALF_WIDTH[1] - MOUTH_HALF_WIDTH[0]) * t
+        height = MOUTH_HEIGHT[0] + (MOUTH_HEIGHT[1] - MOUTH_HEIGHT[0]) * t
+        for dx in range(math.floor(MOUTH_X - half - 4), math.ceil(MOUTH_X + half + 5)):
+            for y in range(PALACE_FLOOR, PALACE_FLOOR + math.ceil(height) + 4):
+                across = (dx - MOUTH_X) / half
+                up = (y - PALACE_FLOOR + 0.5) / height
+                roof = up * up if up > MOUTH_WALL else 0.0
+                if across * across + roof + MOUTH_ROUGHNESS * erosion(dx, y, dz) < 1.0:
                     air.add((dx, y, dz))
-    for dx in range(TUNNEL_X[0], TUNNEL_X[1] + 1):
-        for y in range(PALACE_FLOOR, PALACE_FLOOR + TUNNEL_HEIGHT):
-            air.add((dx, y, last))
-    return tidy_cave(air)
+    return air
 
 
 def tidy_cave(air: set[tuple[int, int, int]]) -> set[tuple[int, int, int]]:
@@ -907,22 +920,29 @@ def tidy_cave(air: set[tuple[int, int, int]]) -> set[tuple[int, int, int]]:
     return joined | {cell for cell in box if cell not in held}
 
 
-def cut_palace(grid: Grid) -> dict:
-    """The eroded hall and its tunnel; returns where they ended up."""
+def cut_palace(grid: Grid, trail: dict[int, int] | None = None) -> dict:
+    """The eroded hall and its open mouth; returns where they ended up.
+
+    A trail column whose tread is at most MOUTH_TREAD keeps it: the mouth opens above the path instead of sinking
+    it to the hall floor, which would leave steps the walk cannot climb."""
     air = palace_air()
     reach = {(dx, dz) for dx, _, dz in air}
     for dx in range(PALACE_X[0] - 1, PALACE_X[1] + 2):
-        for dz in range(PALACE_Z[0] - 1, TUNNEL_END + 1):
+        for dz in range(PALACE_Z[0] - 1, MOUTH_END + 1):
             reach.add((dx, dz))
     for dx, dz in reach:
         column = grid.column(CENTRE + dx, CENTRE + dz)
         top = column.rfind(1)
         column[:top + 1] = b"\x01" * (top + 1)
+    trail = trail or {}
     for dx, y, dz in air:
+        tread = trail.get((CENTRE + dz) * WIDTH + CENTRE + dx, 0)
+        if tread <= MOUTH_TREAD and y < tread:
+            continue
         grid.column(CENTRE + dx, CENTRE + dz)[y] = 0
     ceilings: dict[tuple[int, int], int] = {}
     for dx, y, dz in air:
-        if dz <= PALACE_Z[1] + 2:
+        if dz <= ROOFED_Z:
             ceilings[(dx, dz)] = max(y, ceilings.get((dx, dz), y))
     roof = HEIGHT
     for (dx, dz), y in ceilings.items():
@@ -932,7 +952,14 @@ def cut_palace(grid: Grid) -> dict:
         raise ShapeError(f"the hall roof is {roof} solid blocks thick, under {ROOF}")
     xs, ys, zs = ([cell[i] for cell in air] for i in range(3))
     return {"hall": f"x {min(xs)}..{max(xs)}, y {min(ys)}..{max(ys)}, z {min(zs)}..{max(zs)}, {len(air)} air",
-            "roof": roof, "tunnel_mouth": TUNNEL_END, "anchor": ANCHOR}
+            "roof": roof, "mouth": mouth_size(air), "anchor": ANCHOR}
+
+
+def mouth_size(air: set[tuple[int, int, int]]) -> str:
+    """Width and height of the cave air where it breaks out of the flank (z 20 and south)."""
+    cells = [cell for cell in air if cell[2] >= 20]
+    width = max(cell[0] for cell in cells) - min(cell[0] for cell in cells) + 1
+    return f"{width} wide x {max(cell[1] for cell in cells) - PALACE_FLOOR + 1} high"
 
 
 def standing(column: bytes) -> list[int]:
@@ -979,7 +1006,7 @@ def walk(grid: Grid) -> set[tuple[int, int, int]]:
 def palace(grid: Grid) -> dict:
     cells = trail_cells()
     cut, filled = cut_trail(grid, cells)
-    notes = cut_palace(grid)
+    notes = cut_palace(grid, cells)
     dropped = keep_grounded(grid)
     reached = walk(grid)
     summit_x, summit_y, summit_z = SUMMIT
