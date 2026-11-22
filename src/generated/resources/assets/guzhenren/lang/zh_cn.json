@@ -115,7 +115,7 @@
   "entity.guzhenren.white_tiger": "白虎",
   "entity.guzhenren.wild_boar": "野猪",
   "entity.guzhenren.yellow_ox": "黄牛",
-  "guzhenren.blissful_land.claimed": "【福地易主】%s",
+  "guzhenren.blissful_land.claimed": "【福地易主】%s · %s",
   "guzhenren.blissful_land.expelled": "你被请出了%s",
   "guzhenren.blissful_land.fox_immortal_blissful_land": "狐仙福地",
   "guzhenren.blissful_land.lost": "你失去了%s",

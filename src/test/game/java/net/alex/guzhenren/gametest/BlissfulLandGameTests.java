@@ -100,13 +100,17 @@ public final class BlissfulLandGameTests {
         helper.assertTrue(data.isWhitelisted(first.getUUID()), "the owner starts on the whitelist");
         helper.assertTrue(GameTestPlayers.messages(inbox, MemberService.MSG_CLAIMED).isEmpty(),
                 "the owner gets no message of their own besides the broadcast");
-        Component told = MemberService.claimedMessage(first);
+        Component told = MemberService.claimedMessage(data, first);
+        TextColor white = TextColor.fromLegacyFormat(ChatFormatting.WHITE);
         helper.assertTrue(told.getContents() instanceof TranslatableContents contents
-                        && contents.getKey().equals(MemberService.MSG_CLAIMED)
-                        && contents.getArgs().length == 1 && contents.getArgs()[0] instanceof Component name
-                        && name.getString().equals("gzr-land-first-mock")
-                        && name.getStyle().getColor() == TextColor.fromLegacyFormat(ChatFormatting.WHITE),
-                "the broadcast names the new owner in white");
+                        && contents.getKey().equals(MemberService.MSG_CLAIMED) && contents.getArgs().length == 2
+                        && contents.getArgs()[0] instanceof Component land
+                        && land.getContents() instanceof TranslatableContents landKey
+                        && landKey.getKey().equals(BlissfulLand.FOX_IMMORTAL.nameKey())
+                        && land.getStyle().getColor() == white
+                        && contents.getArgs()[1] instanceof Component name
+                        && name.getString().equals("gzr-land-first-mock") && name.getStyle().getColor() == white,
+                "the broadcast names the land and the new owner in white");
         helper.assertTrue(told.getStyle().getColor() == TextColor.fromLegacyFormat(ChatFormatting.GOLD),
                 "the broadcast tag is gold");
         helper.assertFalse(MemberService.tryClaim(helper.getLevel(), data, site, summitY, second),

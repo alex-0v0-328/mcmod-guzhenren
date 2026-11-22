@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>认主：无主时，第一个站上山巅的非旁观玩家成为主人（{@link #isOnSummit}：离山心水平
  *       {@value BlissfulLand#SUMMIT_RADIUS} 格内、脚下方块正是最高一层的荡魂山石）；白名单重置为只有主人，田区工单重
- *       挂；全服广播「【福地易主】玩家名」（标签金色、名字白色），认主者本人也只收这一条（Alex 定）。
+ *       挂；全服广播「【福地易主】福地名 · 玩家名」（标签金色，福地名与玩家名白色），认主者本人也只收这一条（Alex 定）。
  *   </li>
  *   <li>失主（{@link #lose}）：清主人与白名单、关两种托管、撤田区工单；库藏、疆域、标准田、每种保持数留给下一任。何时失
  *       主由 {@link BlissfulLands} 判定（死亡且不开「死亡不掉落」、角色重置）。</li>
@@ -66,12 +66,14 @@ public final class MemberService {
         data.clearWhitelist();
         data.addWhitelist(player.getUUID(), name);
         if (level != null) FarmWork.retain(level, data);
-        player.server.getPlayerList().broadcastSystemMessage(claimedMessage(player), false);
+        player.server.getPlayerList().broadcastSystemMessage(claimedMessage(data, player), false);
     }
 
-    public static @NotNull Component claimedMessage(@NotNull ServerPlayer player) {
-        return Component.translatable(MSG_CLAIMED, Component.literal(player.getGameProfile().getName())
-                .withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GOLD);
+    public static @NotNull Component claimedMessage(@NotNull BlissfulLandData data, @NotNull ServerPlayer player) {
+        return Component.translatable(MSG_CLAIMED,
+                Component.translatable(data.land().nameKey()).withStyle(ChatFormatting.WHITE),
+                Component.literal(player.getGameProfile().getName()).withStyle(ChatFormatting.WHITE))
+                .withStyle(ChatFormatting.GOLD);
     }
 
     public static void lose(@NotNull MinecraftServer server, @Nullable ServerLevel level,

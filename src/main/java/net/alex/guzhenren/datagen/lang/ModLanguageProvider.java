@@ -435,7 +435,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.place.kind.secret_realm",                      "天地秘境");
         add("guzhenren.place.soulsunder_mountain",                    "荡魂山");
         add("guzhenren.blissful_land.fox_immortal_blissful_land",     "狐仙福地");
-        add("guzhenren.blissful_land.claimed",                        "【福地易主】%s");
+        add("guzhenren.blissful_land.claimed",                        "【福地易主】%s · %s");
         add("guzhenren.blissful_land.lost",                           "你失去了%s");
         add("guzhenren.blissful_land.expelled",                       "你被请出了%s");
         add("guzhenren.blissful_land.spirit.unowned",                 "此地无主。登上荡魂山巅者为主：山心 %s 格内、站在最高一层荡魂山石上。");
