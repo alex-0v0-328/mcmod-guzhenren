@@ -56,6 +56,7 @@ repo/
 /AGENTS.override.md
 /opencode.jsonc
 /.opencode/
+/.agents/
 .env.local
 reference/
 rules/
