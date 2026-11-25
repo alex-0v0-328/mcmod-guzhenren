@@ -63,11 +63,12 @@ GZR 规则正文：读 `AGENTS.md` 的工具（Codex、opencode 等）直接读�
 
 ## Conventions
 
-- 遵循现有代码、术语、`.editorconfig`；注释只解释不明显原因，禁止批量格式化或全项目 IDEA 清理。蛊数值以 `ModItems` 的 `GuSpec` 为准，角色数值以枚举和服务为准。
+- 遵循现有代码、术语、`.editorconfig`；注释只解释不明显原因，禁止批量格式化或全项目 IDEA 清理。蛊数值以 `ModItems` 的 `GuProperties` 为准，角色数值以枚举和服务为准。
 - 临时文件放临时目录的 `<项目>/<本任务唯一目录>/`，验证后只清理自己的文件；构建产物、Gradle 缓存位置不变。新脚本先说明用途；临时脚本放任务目录，长期脚本放 `tools/`，补用途、测试、地图入口。
 - 载体分工见《维护说明#写作与来源》：开发向写是什么与为什么，类级 Javadoc 写怎么做与小心什么，玩家向记版本快照，测试不在 wiki 列清单；规则与 Skills 存代理指令；文档只写当前决定、理由、约束、待办，历史留给 Git。
-- 待办：《维护说明#待办与计划》；客户端验收：《玩家资料维护#当前悬着项》；待定设计：对应页面待定部分。Markdown 沿用表格、标题、引用规范，用 `tools/doc_conventions.py` 检查；Obsidian 不另设与页面名相同的 H1。
-- 规则只改本文件，`CLAUDE.md` 只放 Claude Code 专属段。本机文件不进 Git：`.env.local`、`.mcp.json`、`.claude/settings.local.json`、`CLAUDE.local.md`、`AGENTS.override.md`。改常驻技能或 `.claude/hooks/session_start.py` 后，用 `python -B tools/deploy_harness.py` 部署，`tools/test_deploy_harness.py` 检查副本。
+- 待办：《维护说明#待办与计划》；客户端验收：《玩家资料维护#当前悬着项》；待定设计：对应页面待定部分。Markdown 沿用表格、标题、引用、排版与长文本密度规范，用 `tools/doc_conventions.py` 检查；Obsidian 不另设与页面名相同的 H1。
+- 规则只改本文件，`CLAUDE.md` 只放 Claude Code 专属段。本机文件不进 Git：`.env.local`、`.mcp.json`、`.claude/settings.local.json`、`CLAUDE.local.md`、`AGENTS.override.md`。
+- 改常驻技能或 `.claude/hooks/session_start.py` 后，用 `python -B tools/deploy_harness.py` 部署，并用 `tools/test_deploy_harness.py` 检查副本。
 - memory 只存 Alex 偏好、跨会话进行中状态与外部指针；设计事实进 wiki 后 memory 只留指针。
 
 ## Codex 与 opencode

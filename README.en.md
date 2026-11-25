@@ -23,7 +23,7 @@ This project consists of two companion mods that must be installed together:
 
 | Mod | Repository | Scope |
 |---|---|---|
-| Guzhenren | `mcmod-guzhenren` (this repo) | Cultivation systems (Aperture, Primeval Essence, Soul, Body, Paths), Gu worms and refinement, entities, UI, dimension travel, and guards |
+| Guzhenren | `mcmod-guzhenren` (this repo) | Cultivation systems (Aperture, Primeval Essence, Soul, Body, Paths),<br>Gu worms and refinement, entities, UI, dimension travel, and guards |
 | [Gu World](https://github.com/alex-0v0-328/mcmod-guworld) | `mcmod-guworld` | All dimensions, terrain generation, waterways, biomes, and natural structures |
 
 Installing only one of the two mods leaves world generation or core mechanics incomplete. Both mods must also run on the same NeoForge version baseline.

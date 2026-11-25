@@ -1,6 +1,12 @@
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
+
+_TOOLS_DIR = str(Path(__file__).resolve().parent)
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
 
 import doc_conventions as docs
 import project_runtime as env
@@ -175,6 +181,76 @@ class ProseTests(unittest.TestCase):
         vault = docs.Vault(self.root)
         assert docs.link_problems(self.root / '开发向/蛊虫.md', vault) == []
         assert docs.link_problems(self.root / '玩家向/1.0.0/蛊虫.md', vault) == []
+
+    def test_length(self):
+        assert docs.visible_text('  [[长路径/页面#标题|别名]] 和 [[target]] 与 [标签](https://example.com/very/long/url)  ') == \
+               '别名 和 target 与 标签'
+        assert docs.visible_text('[[页面\\|带竖线]]') == '带竖线'
+
+        long_cn = '中' * 151  # display_width = 302 > 300
+        exact_cn = '中' * 150  # display_width = 300
+        put(self.root, 'len.md',
+            '---\n'
+            f'note: {"a" * 350}\n'
+            '---\n'
+            f'# {"标题" * 160}\n\n'
+            f'> {"引用" * 160}\n\n'
+            f'| {"表格" * 20} | col |\n'
+            '|---|---|\n'
+            f'| {"内容" * 20} | x |\n\n'
+            '```txt\n'
+            f'{"code " * 80}\n'
+            '```\n\n'
+            f'{exact_cn}\n'
+            f'[[很长很长的页面名称/子目录#某个很长的标题|短]] and [link](https://example.com/{"x" * 350})\n'
+            f'{long_cn}\n'
+            f'abc{"字" * 5}\n')
+
+        problems = docs.length_problems(self.root / 'len.md')
+        assert rules(problems) == [
+            'length: prose line display width 302 > 300; split into shorter paragraphs, sub-bullets or a table'
+        ], problems
+        assert ':18: length:' in problems[0], problems[0]
+
+        custom = docs.length_problems(self.root / 'len.md', max_width=12)
+        assert rules(custom) == [
+            'length: prose line display width 300 > 12; split into shorter paragraphs, sub-bullets or a table',
+            'length: prose line display width 302 > 12; split into shorter paragraphs, sub-bullets or a table',
+            'length: prose line display width 13 > 12; split into shorter paragraphs, sub-bullets or a table',
+        ], custom
+        assert len(docs.length_problems(self.root / 'len.md', max_width=10)) == 4
+        with mock.patch('builtins.print') as printed:
+            assert docs.main(['length', '--max', '400', str(self.root / 'len.md')]) == 0
+            assert docs.main(['length', '--max', '12', str(self.root / 'len.md')]) == 1
+        assert printed.call_count == 3
+
+    def test_length_table_cells(self):
+        exact_cell = '表' * 50   # display_width = 100
+        long_cell = '表' * 51    # display_width = 102 > 100
+        wrapped_cell = f'{"甲" * 40}<br>{"乙" * 40}<br/>{"丙" * 30}'
+        put(self.root, 'cells.md',
+            f'| 名称 | 说明 |\n'
+            f'|{"-" * 200}|---|\n'
+            f'| {exact_cell} | [[很长很长的页面/子目录#某个很长的标题\\|短]] |\n'
+            f'| {wrapped_cell} | [标签](https://example.com/{"x" * 200}) |\n'
+            f'| {long_cell} | ok |\n')
+
+        problems = docs.length_problems(self.root / 'cells.md')
+        assert rules(problems) == [
+            'length: table cell line display width 102 > 100; wrap with <br> or split into shorter items'
+        ], problems
+        assert ':5: length:' in problems[0], problems[0]
+        assert docs.typography_problems(self.root / 'cells.md') == []
+
+        put(self.root, 'alias.md', '| [[很长很长的页面/子目录#标题\\|超出]] | x |\n')
+        assert rules(docs.length_problems(self.root / 'alias.md', max_cell_width=2)) == [
+            'length: table cell line display width 4 > 2; wrap with <br> or split into shorter items'
+        ]
+
+        with mock.patch('builtins.print') as printed:
+            assert docs.main(['length', '--max-cell', '102', str(self.root / 'cells.md')]) == 0
+            assert docs.main(['length', '--max-cell', '100', str(self.root / 'cells.md')]) == 1
+        assert printed.call_count == 1
 
     def test_default_targets(self):
         assert all(path.suffix == '.md' and '.obsidian' not in path.parts for path in docs.wiki_pages())

@@ -55,12 +55,13 @@ def witness_stem(source_model: Path) -> str:
     return source_model.stem.removeprefix("geckolib-").replace("-", "_")
 
 
-def model_spec(folder: str, model_id: str, texture_map: dict[str, str], *, project: str | None = None,
-               witness: str | None = None, geometry_witness: bool = False, **counts: int) -> ModelSpec:
-    """A model in `<authority>/<folder>/<project>.bbmodel`, the project named after its folder unless given;
+def model_spec(folder: str, model_id: str, texture_map: dict[str, str], *, category: str = "entity",
+               project: str | None = None, witness: str | None = None, geometry_witness: bool = False,
+               **counts: int) -> ModelSpec:
+    """A model in `<authority>/<category>/<folder>/<project>.bbmodel`, the project named after its folder unless given;
     witness names the authority's own exports when they do not follow witness_stem; geometry_witness when the
     folder also keeps the authority's own geometry export, `<stem>.geo.json` beside the animation one."""
-    source = env.MODELS_ROOT / folder / f"{project or folder}.bbmodel"
+    source = env.MODELS_ROOT / category / folder / f"{project or folder}.bbmodel"
     stem = witness or witness_stem(source)
     geometry = source.parent / f"{stem}.geo.json" if geometry_witness else None
     return ModelSpec(source, model_id, texture_map, witness_geometry=geometry, witness_name=witness, **counts)

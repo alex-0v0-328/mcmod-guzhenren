@@ -1,4 +1,4 @@
-"""Documentation conventions: padded tables, wiki links, typography, headings, carriers.
+"""Documentation conventions: padded tables, wiki links, typography, headings, carriers, length.
 
     python -B tools/doc_conventions.py tables FILE...         report padded tables whose columns no longer line up
     python -B tools/doc_conventions.py tables FILE... --fix   re-pad them in place
@@ -6,6 +6,7 @@
     python -B tools/doc_conventions.py typography [FILE...]   the wiki's Chinese typography
     python -B tools/doc_conventions.py headings [FILE...]     no numbered heading, no H1 repeating the file name, no §
     python -B tools/doc_conventions.py carriers [FILE...]     no fact on the wrong carrier (wiki《维护说明#写作与来源》)
+    python -B tools/doc_conventions.py length [FILE...]       no prose line (default 300) or table cell (160) past the width limit
 
 Tables. A padded table is one whose separator row has a run of more than three dashes. Every column is
 padded to its widest cell, measured in display width (East Asian wide and fullwidth characters count 2,
@@ -15,18 +16,20 @@ The separator spans the width plus two dashes, keeping the table's own style and
 tables (|---|---:|) are left as they are. A pipe inside a code span or escaped as \\| does not split a cell.
 Exit code 1 in report mode means at least one table is out of line.
 
-Prose checks. links, typography and headings read each file's prose: the leading YAML frontmatter and fenced code
-are skipped, and code spans, wiki links, Markdown link targets and URLs are masked, so only the writer's own text is
-judged; each problem prints as path:line and the exit code is 1 when any is found. Without FILE, links reads every
-wiki page and rules doc (rules_docs: the rules files, skills and subagent definitions of every project), typography
-every wiki page, headings every wiki page, rules doc and README. links resolves a wiki page's [[page#heading|alias]]
-(embeds and same-page [[#heading]] too; block references only to their page) against the vault's page names,
-attachment names and headings, and a rules doc's 《page#heading》 likewise. typography holds the wiki's writing rules
-(wiki《维护说明#写作与来源》): a space between Chinese and Latin letters or digits, full-width punctuation next to
-Chinese, 约 instead of a bare ~, and – in number ranges; version strings and dates are no ranges. carriers reads every
-wiki page, code spans included, for facts the carrier table puts elsewhere: a test class named outside the two
-maintenance pages (TEST_PAGES; a page lists the behavior no test covers instead), a dated 「Alex 定」 (history is Git's),
-and a Java name in a code span on a 玩家向 page.
+Prose checks. links, typography, headings, carriers and length read each file's prose: the leading YAML frontmatter
+and fenced code are skipped, and code spans, wiki links, Markdown link targets and URLs are masked, so only the
+writer's own text is judged; each problem prints as path:line and the exit code is 1 when any is found. Without FILE,
+links reads every wiki page and rules doc (rules_docs: the rules files, skills and subagent definitions of every
+project), typography and carriers every wiki page, headings and length every wiki page, rules doc and README. links
+resolves a wiki page's [[page#heading|alias]] (embeds and same-page [[#heading]] too; block references only to their
+page) against the vault's page names, attachment names and headings, and a rules doc's 《page#heading》 likewise.
+typography holds the wiki's writing rules (wiki《维护说明#写作与来源》): a space between Chinese and Latin letters or
+digits, full-width punctuation next to Chinese, 约 instead of a bare ~, and – in number ranges; version strings and
+dates are no ranges. carriers reads every wiki page, code spans included, for facts the carrier table puts elsewhere:
+a test class named outside the two maintenance pages (TEST_PAGES; a page lists the behavior no test covers instead),
+a dated 「Alex 定」 (history is Git's), and a Java name in a code span on a 玩家向 page. length skips headings and
+blockquotes, checks each table cell (skipping separator rows) against --max-cell and other prose lines against
+--max, folding wiki links and Markdown links to their visible text.
 """
 import argparse
 import re
@@ -153,7 +156,8 @@ CJK = '㐀-䶿一-鿿'
 MASK = '\x00'
 FENCE = re.compile(r'\s*(`{3,}|~{3,})')
 WIKI_LINK = re.compile(r'!?\[\[((?:[^\]\\]|\\.)+?)\]\]')
-MASKED = [re.compile(r'(`+).+?\1'), WIKI_LINK, re.compile(r'\]\([^)]*\)'), re.compile(r'<?https?://[^\s>)]+>?')]
+CELL_BREAK = re.compile(r'<br\s*/?>', re.IGNORECASE)
+MASKED = [re.compile(r'(`+).+?\1'), WIKI_LINK, re.compile(r'\]\([^)]*\)'), re.compile(r'<?https?://[^\s>)]+>?'), CELL_BREAK]
 
 
 def prose(text):
@@ -347,12 +351,52 @@ def carrier_problems(path, root=None):
     return found
 
 
+# ----- length ------------------------------------------------------------------------------------
+
+MAX_PROSE_WIDTH = 300
+MAX_CELL_WIDTH = 100
+MARKDOWN_LINK = re.compile(r'\[([^\]]+)\]\([^)]*\)')
+
+
+def visible_text(line):
+    """The line with wiki links and Markdown links folded to their visible label."""
+    line = WIKI_LINK.sub(lambda match: match.group(1).replace('\\|', '|').split('|', 1)[-1], line)
+    return MARKDOWN_LINK.sub(r'\1', line).strip()
+
+
+def length_problems(path, max_width=MAX_PROSE_WIDTH, max_cell_width=MAX_CELL_WIDTH):
+    found = []
+    for number, line in prose(Path(path).read_text(encoding='utf-8')):
+        stripped = line.lstrip()
+        if not stripped or stripped[0] in ('#', '>'):
+            continue
+        if stripped[0] == '|':
+            cells = split_cells(line)
+            if is_separator(cells):
+                continue
+            for cell in cells:
+                for segment in CELL_BREAK.split(cell):
+                    width = display_width(visible_text(segment))
+                    if width > max_cell_width:
+                        found.append(
+                            f'{display(path)}:{number}: length: table cell line display width {width} > '
+                            f'{max_cell_width}; wrap with <br> or split into shorter items')
+            continue
+        width = display_width(visible_text(line))
+        if width > max_width:
+            found.append(f'{display(path)}:{number}: length: prose line display width {width} > {max_width}; '
+                         f'split into shorter paragraphs, sub-bullets or a table')
+    return found
+
+
 def main_prose(args):
     vault = Vault()
     checks = {'links': (lambda path: link_problems(path, vault), lambda: wiki_pages() + rules_docs()),
               'typography': (typography_problems, wiki_pages),
               'headings': (heading_problems, lambda: wiki_pages() + rules_docs() + readmes()),
-              'carriers': (carrier_problems, wiki_pages)}
+              'carriers': (carrier_problems, wiki_pages),
+              'length': (lambda path: length_problems(path, args.max, args.max_cell),
+                         lambda: wiki_pages() + rules_docs() + readmes())}
     check, defaults = checks[args.command]
     problems = [problem for path in (args.files or defaults()) for problem in check(path)]
     for problem in problems:
@@ -383,8 +427,15 @@ def main(argv=None):
     for name, summary in [('links', 'check that wiki links and the rules docs\' wiki references resolve'),
                           ('typography', 'check the wiki\'s Chinese typography'),
                           ('headings', 'check for numbered headings, H1s repeating the file name and §'),
-                          ('carriers', 'check for test classes, dated calls and Java names on the wrong wiki page')]:
-        commands.add_parser(name, help=summary).add_argument('files', nargs='*')
+                          ('carriers', 'check for test classes, dated calls and Java names on the wrong wiki page'),
+                          ('length', 'check that prose lines and table cells stay within the maximum display width')]:
+        sub = commands.add_parser(name, help=summary)
+        sub.add_argument('files', nargs='*')
+        if name == 'length':
+            sub.add_argument('--max', type=int, default=MAX_PROSE_WIDTH,
+                             help=f'maximum display width per prose line (default {MAX_PROSE_WIDTH})')
+            sub.add_argument('--max-cell', type=int, default=MAX_CELL_WIDTH,
+                             help=f'maximum display width per table cell (default {MAX_CELL_WIDTH})')
     args = parser.parse_args(argv)
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(encoding='utf-8')
