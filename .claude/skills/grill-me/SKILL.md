@@ -7,24 +7,20 @@ metadata:
   source: "mattpocock/skills@7739eae, skills/productivity/grilling and grill-me, merged and adapted"
 ---
 
-# Grill Me Skill
+> **Trigger**: Only when Alex types `/grill-me` or says `"grill me"` (never self-initiated).
+> **Language**: Questions and recommendations in `zh-CN`.
+> **Done**: Frontier is empty (every branch visited, nothing silently assumed) → list settled decisions → wait for Alex to say `「开始」` before acting.
 
-Interview Alex until you share one understanding of the subject. Questions and recommendations are in zh-CN.
+## Rules
 
-## Design tree
+| Dimension | DO | DON'T |
+| --- | --- | --- |
+| Design tree | Map subject as a decision tree; compute the frontier<br>(all open decisions whose prerequisites are settled) each round | Ask a question whose answer depends on another still-open question this round |
+| Rounds | Ask the whole frontier in one round (overrides `i-have-adhd` 5-item list cap)<br>Word every question so `"是"` accepts your recommendation<br>Recompute frontier after answers; reopen branches if an answer invalidates an earlier one | Split settled-prerequisite questions across unnecessary turns |
+| Facts vs decisions | Verify facts yourself (code, wiki, logs, tools); for wide search dispatch subagent<br>per `alex-constitution` (offer model first) while asking independent frontier questions now | Ask Alex for verifiable facts; answer your own decision question |
+| Delivery | Put round in closing message after `mcp__ccd_turn__wrap_up` with ask `"按推荐全部接受？"`<br>and buttons `「全部接受」` / `「逐条回复」`<br>Without `wrap_up` (Codex/opencode/CLI): send round as full reply (`"全部接受"` works same) | Act before Alex confirms `「开始」` |
 
-Map the subject as a design tree: every decision branches into the decisions that hang off it. The frontier is every open decision whose prerequisites are settled, the questions you can ask now without guessing at answers you have not heard.
-
-## Rounds
-
-1. Ask the whole frontier in one round, however many questions it holds; the `i-have-adhd` list cap does not apply here.
-2. A question whose answer depends on another question still open this round waits for a later round.
-3. Word each question so "是" accepts your recommendation.
-4. After Alex answers, recompute the frontier from scratch and ask the next round. If he says an answer changes an earlier one, reopen that branch.
-
-## Format
-
-The round goes in the closing message, after `mcp__ccd_turn__wrap_up`; the box's ask is "按推荐全部接受？" with the buttons 「全部接受」 and 「逐条回复」. Each question:
+## Question Format
 
 ```
 ❓ **Q1 · <标题>**：<问题正文，可含 A/B/C 选项>
@@ -34,13 +30,4 @@ The round goes in the closing message, after `mcp__ccd_turn__wrap_up`; the box's
 ---
 ```
 
-Alex answers by number ("1 是，3 选 B，5 不，因为…"); 「全部接受」 accepts every recommendation in the round. Without `wrap_up` (Codex, opencode, the CLI) the round is the whole reply, and "全部接受" typed back works the same.
-
-## Facts and decisions
-
-- Facts are yours, never Alex's: read the code, wiki, logs and tools yourself. For a wide search, dispatch a subagent per `alex-constitution` (offer the model first); the questions that depend on it wait for it, the rest of the frontier is asked now.
-- Decisions are Alex's: put each one to him and wait. Never answer your own decision question.
-
-## Done
-
-The session ends when the frontier is empty: every branch visited, nothing silently assumed. Then show the settled decisions as one short list and wait for Alex to say 「开始」 before acting on any of it.
+Alex replies by number (e.g., `"1 是，3 选 B，5 不，因为…"`) or clicks `「全部接受」`.
