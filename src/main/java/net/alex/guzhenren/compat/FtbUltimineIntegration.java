@@ -17,10 +17,10 @@ import net.minecraft.world.InteractionHand;
  *   <li>作为可选联动，仅当主类检测到 {@value #MOD_ID} 已加载时才调用 {@link #initialize}。</li>
  *   <li>全程使用反射与动态代理（{@link Proxy}）挂载处理器，不引入编译期依赖（因 FTB 连锁强依赖 FTB Library 与
  *       Architectury，若放入 {@code run/mods} 会影响配套仓库运行）；仅反射调用公开 API {@value #EVENT}、
- *       {@value #DISPATCHER}、{@value #HANDLER} 与 {@value #SHAPE}，返回实际转换方块数（返回 {@code 0} 表示不接
- *       管）。</li>
- *   <li>⚠ 右键处理器按注册先后顺序以「先到先得」方式拦截事件，因此 {@code neoforge.mods.toml} 必须声明本模组在 FTB 连锁
- *       之前加载，确保本处理器排在其内置的右键收割处理器之前（否则选区内只要包含成熟作物就会被收割逻辑截断）。</li>
+ *       {@value #DISPATCHER}、{@value #HANDLER} 与 {@value #SHAPE}，返回实际转换方块数（返回 {@code 0} 表示不接管）。
+ *       </li>
+ *   <li>⚠ 右键处理器按注册先后顺序以「先到先得」方式拦截事件，因此 {@code neoforge.mods.toml} 必须声明本模组在 FTB 连
+ *       锁之前加载，确保本处理器排在其内置的右键收割处理器之前（否则选区内只要包含成熟作物就会被收割逻辑截断）。</li>
  *   <li>⚠ 若未来 FTB 连锁更改公开 API 签名，{@link #initialize} 会捕获反射与运行时异常并仅输出一条警告日志，降级为普通
  *       单格右键而不影响模组启动。</li>
  * </ul>

@@ -11,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
  * 数，由 {@link ComboRound}、蓄力一拳[Charged Punch]与力气蛊[Strength Qi Gu]远程攻击共同读取。
  * <ul>
  *   <li>暴击率 {@link #getChance}：平时 {@link #BASE_CHANCE} 加永久兽力的掷骰加成（棕熊本力，
- *       {@link PathStrengthData#getBeastChanceBonus}）；全力以赴蛊[All-Out Effort Gu]运行于三 / 四 / 五转时为
- *       80% / 90% / 100%，不再加兽力加成；未入两流（{@link StrengthPathBranch#NORMAL}）为 {@code 0}。</li>
- *   <li>兽力流暴击从持有的永久兽种（{@link #getAvailableFamilies}，仅有限时兽力时为空）中不放回抽取
- *       {@link #getCount} = {@code min(1 + 苦力伤势档位, 兽种数)} 种（{@link #pickFamilies}），每个抽中兽种的永久点数在结
- *       算力量点里再计一份（{@link #getCritPoints}，合计为 {@link #CRIT_FACTOR} 份）。人力流暴击不加点数，只放范围伤害。</li>
+ *       {@link PathStrengthData#getBeastChanceBonus}）；全力以赴蛊[All-Out Effort Gu]运行于三 / 四 / 五转时为 80% / 90%
+ *       / 100%，不再加兽力加成；未入两流（{@link StrengthPathBranch#NORMAL}）为 {@code 0}。</li>
+ *   <li>兽力流暴击从持有的永久兽种（{@link #getAvailableFamilies}，仅有限时兽力时为空）中不放回抽取 {@link #getCount} =
+ *       {@code min(1 + 苦力伤势档位, 兽种数)} 种（{@link #pickFamilies}），每个抽中兽种的永久点数在结算力量点里再计一份
+ *       （{@link #getCritPoints}，合计为 {@link #CRIT_FACTOR} 份）。人力流暴击不加点数，只放范围伤害。</li>
  *   <li>⚠ 纯静态、无状态：一轮只掷一次的约束由 {@link ComboRound} 保证，蓄满必暴击由
  *       {@link StoreStrength#getCritChance} 叠加。</li>
  * </ul>

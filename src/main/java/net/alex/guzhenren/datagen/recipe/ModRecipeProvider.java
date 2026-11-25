@@ -37,8 +37,8 @@ import org.jetbrains.annotations.Nullable;
  *       意标有该字符的槽位中，最终输出至 {@code data/guzhenren/recipe/refinement/}。</li>
  *   <li>蛊材烧炼与存储块合成直接输出至 {@code data/guzhenren/recipe/}：原玉与原翠同时注册熔炉与高炉配方，而铁锭炼制钢锭
  *       仅注册高炉配方（{@link #addBlasting}），并配套生成钢锭与钢块的双向合成配方。</li>
- *   <li>⚠ {@link #read} 会在数据生成期严格校验 5×5 图样尺寸、四角切空以及字符与配料表的一一对应关系，任何格式错误都会直
- *       接抛错中断生成。</li>
+ *   <li>⚠ {@link #read} 会在数据生成期严格校验 5×5 图样尺寸、四角切空以及字符与配料表的一一对应关系，任何格式错误都会
+ *       直接抛错中断生成。</li>
  * </ul>
  */
 

@@ -17,15 +17,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 胆石[Guts Stone]：荡魂山[Soulsunder Mountain]上生灵死后长出的非整格小石块，一格叠 1–3 块（{@link GutsStones#STONES}），
- * 摆成三角形。
+ * 胆石[Guts Stone]：荡魂山[Soulsunder Mountain]上生灵死后长出的非整格小石块，一格叠 1–3 块
+ * （{@link GutsStones#STONES}），摆成三角形。
  * <ul>
- *   <li>{@link #SHAPES} 对齐模型 {@code guzhenren:block/guts_stone}、{@code _2}、{@code _3} 的方块盒，碰撞箱与选择框随块
- *       数变；模型改尺寸时同步改它。</li>
- *   <li>玩家每次敲只碎 1 块（{@link #onDestroyedByPlayer}）：多于 1 块时块数减 1，并按 1 块的状态掷一次战利品表（50%
- *       一只一转胆识蛊[Guts Gu]）；爆炸等整格移除按块数掷，每块各自 50%。</li>
- *   <li>⚠ {@link #onRemove} 在块数变化时把新块数写回本维度 {@link GutsStones}，换成别的方块时删去该格，128 块上限才会腾
- *       出名额；只更新已登记的格子，不跟踪 {@code /setblock} 放下的胆石。</li>
+ *   <li>{@link #SHAPES} 对齐模型 {@code guzhenren:block/guts_stone}、{@code _2}、{@code _3} 的方块盒，碰撞箱与选择框随
+ *       块数变；模型改尺寸时同步改它。</li>
+ *   <li>玩家每次敲只碎 1 块（{@link #onDestroyedByPlayer}）：多于 1 块时块数减 1，并按 1 块的状态掷一次战利品表（50% 一
+ *       只一转胆识蛊[Guts Gu]）；爆炸等整格移除按块数掷，每块各自 50%。</li>
+ *   <li>⚠ {@link #onRemove} 在块数变化时把新块数写回本维度 {@link GutsStones}，换成别的方块时删去该格，128 块上限才会
+ *       腾出名额；只更新已登记的格子，不跟踪 {@code /setblock} 放下的胆石。</li>
  * </ul>
  */
 

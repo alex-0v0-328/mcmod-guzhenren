@@ -56,10 +56,6 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>冷却中可再催、用后消失是效果行，页面只在成立时写，由 {@link #effectFlag} 读；{@link #typeCell}
  *       按序列中文类型名，全同只写一个，无则写“无”；{@link #pathCell} 为道名去掉末尾“道”。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

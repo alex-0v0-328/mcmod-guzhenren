@@ -13,14 +13,14 @@ import java.util.Locale;
 /**
  * 古籍书册（{@link BookletItem}）的书文：一部古籍分节成册，每册一节，书文按节存为资源文本而不写进代码。
  * <ul>
- *   <li>书文位于 {@code assets/guzhenren/booklets/<书>/zh_hans|zh_hant/<两位节号>.txt}：首行节题，其后每行一段，保
- *       留原文横排标点；排版时才经 {@link #read} 换成竖排标点，换法只动代码。</li>
- *   <li>换算参照台湾竖排书：每个标点占一格，「。，、；：！？…—」换成对应竖排字形（「……」「——」各占两格）；「“”（）」→
- *       「﹁﹂」，「‘’《》」→「﹃﹄」（Alex 定统一用直角括号）；段首空格删去，空段删去，每段单独成段。</li>
+ *   <li>书文位于 {@code assets/guzhenren/booklets/<书>/zh_hans|zh_hant/<两位节号>.txt}：首行节题，其后每行一段，保留原
+ *       文横排标点；排版时才经 {@link #read} 换成竖排标点，换法只动代码。</li>
+ *   <li>换算参照台湾竖排书：每个标点占一格，「。，、；：！？…—」换成对应竖排字形（「……」「——」各占两格）；「“”
+ *       （）」→「﹁﹂」，「‘’《》」→「﹃﹄」（Alex 定统一用直角括号）；段首空格删去，空段删去，每段单独成段。</li>
  *   <li>卷端题「人祖传第一节」（{@link #heading}）、卷末题「人祖传第一节终」与物品名「「人祖传」第一节」都由
  *       {@link #numeral}（1 至 99 的汉字数字）拼出；节题即书文首行。</li>
- *   <li>简繁文本由 OpenCC {@code s2tw} 一次性转换后入库，每行码点数必须相等（{@code ChronicleTextTest}），以保证两
- *       套版式一致。</li>
+ *   <li>简繁文本由 OpenCC {@code s2tw} 一次性转换后入库，每行码点数必须相等（{@code ChronicleTextTest}），以保证两套版
+ *       式一致。</li>
  *   <li>⚠ 书文或本类字面量新增字形后须重跑 {@code tools/booklet_font.py}，否则 {@code BookletFontTest} 失败。</li>
  * </ul>
  */

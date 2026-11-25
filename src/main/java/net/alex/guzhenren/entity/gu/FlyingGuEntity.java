@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  *       时用于初始锁定与持续保持，玩家切入旁观模式或离开当前维度时自动放弃。</li>
  *   <li>⚠ {@link #isNoGravity()} 恒返回 {@code true}：{@link FlyingMoveControl} 仅在寻路移动期间关闭重力，而悬停目标会
  *       停止寻路导航，若不常驻无重力会导致悬停时下坠。</li>
- *   <li>⚠ {@link #checkFallDamage} 必须置空：所有下降位移均由 AI 主动驱动（悬停、降落、逃跑锥），不能因累计下落距离摔死
- *       只有 1 点生命的野生蛊（与原版蜜蜂、蝙蝠一致）。</li>
+ *   <li>⚠ {@link #checkFallDamage} 必须置空：所有下降位移均由 AI 主动驱动（悬停、降落、逃跑锥），不能因累计下落距离摔
+ *       死只有 1 点生命的野生蛊（与原版蜜蜂、蝙蝠一致）。</li>
  * </ul>
  */
 

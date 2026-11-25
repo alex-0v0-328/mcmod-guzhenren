@@ -17,14 +17,14 @@ import net.minecraft.world.item.ItemStack;
  *       入。</li>
  *   <li>⚠ 序列化使用 {@link ItemStack#OPTIONAL_CODEC} 并仅裁剪列表尾部的连续空栈：中间的空栈代表玩家留出的真实空槽位，
  *       若过滤中间空栈会导致重登后槽位前移错位。</li>
- *   <li>⚠ {@link #with} 在下标未达上限时会自动补空列表扩容（与不扩容的 {@link ApertureData#with} 相反），允许存储槽在空
- *       窍正式写入前就绪。</li>
+ *   <li>⚠ {@link #with} 在下标未达上限时会自动补空列表扩容（与不扩容的 {@link ApertureData#with} 相反），允许存储槽在
+ *       空窍正式写入前就绪。</li>
  *   <li>⚠ {@link #getView} 直接返回内部持有的 {@link ItemStack} 列表视图（不拷贝），仅供只读遍历，修改栈前必须先拷贝；
  *       外部传入的列表在构造时深拷贝，而各 {@code with*} 与 {@link #shiftRight} 通过私有包装类 {@code OwnedStacks} 复用
  *       未改动的内部栈，每次单格写入只拷贝新栈一次。</li>
  *   <li>{@link #shiftRight} 在孤立第二空窍前插入第一空窍时将存蛊列表与本命蛊槽整体后移一位，并经 {@link StoredGu} 将原
- *       本命蛊的绑定空窍种类改为 {@link ApertureData#SECOND}（否则会按默认值 {@code PRIMARY} 误归给新插入的第一空
- *       窍）。</li>
+ *       本命蛊的绑定空窍种类改为 {@link ApertureData#SECOND}（否则会按默认值 {@code PRIMARY} 误归给新插入的第一空窍）。
+ *       </li>
  *   <li>{@link #tokens} 按空窍种类（{@code PRIMARY} / {@code SECOND}）记录现任本命蛊令牌，使被替换或复制出的旧本命蛊栈
  *       即便残留组件也不再被认作现任（{@code VitalGuState.isCurrentVital}）。</li>
  * </ul>

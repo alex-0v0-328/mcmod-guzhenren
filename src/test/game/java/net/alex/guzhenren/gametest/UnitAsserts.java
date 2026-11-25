@@ -10,10 +10,6 @@ import net.minecraft.gametest.framework.GameTestAssertException;
  * 无场景取值检查用的 JUnit 式断言。供 GameTest 检查需模组已加载的注册对象、物品堆、编解码器；失败抛
  * {@link GameTestAssertException}，只败本测试，{@link AssertionError} 会逃出运行器使服务端崩溃；{@link #assertAll} 同
  * JUnit 一次报全部失败。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 public final class UnitAsserts {

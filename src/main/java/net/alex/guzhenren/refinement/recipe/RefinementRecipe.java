@@ -32,11 +32,12 @@ import org.jetbrains.annotations.NotNull;
  * {@link GuRecipe} 接入原版 {@link RecipeManager} 的适配器记录，包含原版 {@link Recipe} 封装、JSON/网络编解码
  * {@link Serializer} 与排序配方查询。
  * <ul>
- *   <li>⚠ 仅本类接触原版配方 API，底层 {@link GuRecipe}、{@link GuIngredient} 与 {@link GuRecipeInput} 均不反向依赖原版
- *       配方接口。</li>
- *   <li>⚠ {@link #getKnown} 与 {@link #getSorted} 必须按配方 ID 确定性排序：原版 {@link RecipeManager} 不保证返回顺序稳
- *       定，客户端与服务端选定配方的索引一致性全赖此排序保证；索引覆盖服务器全部蛊方，玩家学没学会由
+ *   <li>⚠ 仅本类接触原版配方 API，底层 {@link GuRecipe}、{@link GuIngredient} 与 {@link GuRecipeInput} 均不反向依赖原
+ *       版配方接口。</li>
+ *   <li>⚠ {@link #getKnown} 与 {@link #getSorted} 必须按配方 ID 确定性排序：原版 {@link RecipeManager} 不保证返回顺序
+ *       稳定，客户端与服务端选定配方的索引一致性全赖此排序保证；索引覆盖服务器全部蛊方，玩家学没学会由
  *       {@code GuRecipeKnowledge} 另判。</li>
+ *   <li>{@link Serializer} 中仅含单格的槽位组在 JSON 中保持裸整数，使固定槽位配方文件格式向后兼容。</li>
  * </ul>
  */
 
@@ -95,7 +96,6 @@ public record RefinementRecipe(GuRecipe gu) implements Recipe<RecipeInput> {
                         .forGetter(GuIngredient::count)
         ).apply(i, GuIngredient::new));
 
-        // a one-cell group stays a bare number, so a fixed-cell recipe file reads the same as before groups
         private static final Codec<List<Integer>> CELLS = Codec.either(Codec.INT, Codec.INT.listOf()).xmap(
                 either -> either.map(List::of, Function.identity()),
                 cells -> cells.size() == 1 ? Either.left(cells.getFirst()) : Either.right(cells));

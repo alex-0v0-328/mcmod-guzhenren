@@ -17,10 +17,10 @@ import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
  * <ul>
  *   <li>死亡克隆处理（{@link #onClone}）以 {@code EventPriority.LOW} 在 NeoForge 复制完继承附件后执行，确保清空型重置不
  *       被覆盖；是否保留物品栏取自 {@link MinecraftServer} 游戏规则而非维度实例。</li>
- *   <li>⚠ {@link #onRespawn} 必须跳过末地返回传送门触发的重生事件（{@code isEndConquered}），防止跨维返回错误触发死亡恢
- *       复逻辑。</li>
- *   <li>⚠ {@link #onWakeUp} 必须同时校验 {@code wakeImmediately}、{@code updateLevel} 与 {@code isSleepingLongEnough}，
- *       确保仅在完整睡醒那一刻触发一次回复。</li>
+ *   <li>⚠ {@link #onRespawn} 必须跳过末地返回传送门触发的重生事件（{@code isEndConquered}），防止跨维返回错误触发死亡
+ *       恢复逻辑。</li>
+ *   <li>⚠ {@link #onWakeUp} 必须同时校验 {@code wakeImmediately}、{@code updateLevel} 与
+ *       {@code isSleepingLongEnough}，确保仅在完整睡醒那一刻触发一次回复。</li>
  * </ul>
  */
 

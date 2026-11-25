@@ -30,10 +30,10 @@ import org.jetbrains.annotations.Nullable;
  *   <li>环位还须经 {@code StructureManager#checkStructurePresence} 确认那个区块真有结构起点才算数：已生成且没有、或尚未
  *       生成但群系不容许（环位落在不生成山的群系）都定为关闭；尚未生成又可能生成时视为暂未开启，每秒至多重查一次，确认
  *       后才缓存。</li>
- *   <li>⚠ 性能：解出的范围按秘境缓存，以所在维度的 {@link ChunkGeneratorStructureState} 实例为键，换存档自动重算；首次解
- *       析可能阻塞等待原版异步算环（世界加载时已开始算）。之后每次查询只是一次映射查找加一次平方距离比较。</li>
- *   <li>⚠ 性能：{@link #tickAreas} 每秒一次，只有范围外扩 {@link #PLAYER_MARGIN} 格内有玩家才调 {@code tickArea}，否则不
- *       查实体；玩家钩子挂在 {@code Heartbeat}，不另起逐刻循环；范围内外各调一个钩子，秘境未解出时两个都不调。</li>
+ *   <li>⚠ 性能：解出的范围按秘境缓存，以所在维度的 {@link ChunkGeneratorStructureState} 实例为键，换存档自动重算；首次
+ *       解析可能阻塞等待原版异步算环（世界加载时已开始算）。之后每次查询只是一次映射查找加一次平方距离比较。</li>
+ *   <li>⚠ 性能：{@link #tickAreas} 每秒一次，只有范围外扩 {@link #PLAYER_MARGIN} 格内有玩家才调 {@code tickArea}，否则
+ *       不查实体；玩家钩子挂在 {@code Heartbeat}，不另起逐刻循环；范围内外各调一个钩子，秘境未解出时两个都不调。</li>
  *   <li>{@link #tickPlayer} 同时把玩家在不在范围内报给 {@link PlaceTitles}（地点 ID 用结构集 ID），进入时弹秘境的地名标
  *       题。</li>
  *   <li>{@link #pin} 只供 GameTest 把范围钉在给定维度（通常是测试所在的主世界），{@link #pinAbsent} 钉成「没有这处秘

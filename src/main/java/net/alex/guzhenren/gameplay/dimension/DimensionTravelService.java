@@ -31,8 +31,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #getArrival}：{@code FLIGHT} 模式直接落在配置出生点并授予、开启飞行；{@code SURFACE} 模式先强制加载目标
  *       列区块（因未加载区块的 {@code Level.getHeight} 会读成世界最低高度，首次进入未生成位置会在服务端线程同步生成该区
  *       块），再落在地表最高阻挡格上方并撤销锚定维度飞行授权。</li>
- *   <li>⚠ 锚定维度内的飞行通过 {@link FlightAbility} 临时属性修饰符授予（不落盘），切勿直接改写随玩家存档且与游戏模式共
- *       用的 {@code Abilities.mayfly}，以免异常离开时在生存模式永久残留飞行权限。</li>
+ *   <li>⚠ 锚定维度内的飞行通过 {@link FlightAbility} 临时属性修饰符授予（不落盘），切勿直接改写随玩家存档且与游戏模式
+ *       共用的 {@code Abilities.mayfly}，以免异常离开时在生存模式永久残留飞行权限。</li>
  *   <li>{@link #ensureFlight} 每 tick 补齐维度飞行授权（不强制进入飞行姿态）；{@link #revokeFlight} 在玩家离开所有授予
  *       飞行的锚定维度后每 tick 调用（无论经指令退出、原版 {@code /tp} 还是其他模组传送），撤销授权并在无其他飞行来源时
  *       关闭飞行。</li>

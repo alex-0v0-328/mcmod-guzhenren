@@ -17,9 +17,11 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>节奏按真实时间：淡入 {@value #FADE_IN_MS} ms、停留 {@value #HOLD_MS} ms、淡出 {@value #FADE_OUT_MS} ms；新标题
  *       直接顶替正在显示或排队的。</li>
- *   <li>和 Traveler's Titles 排队：收到时它正显示群系或维度标题，就等它放完再开始，至多等 {@value #MAX_WAIT_MS} ms；本标
- *       题显示期间它新出的标题不画（{@link #isShowing}，由 {@code ClientEvents} 取消它的图层），避免两行字叠在一起。</li>
- *   <li>两行都逐字加空格拉开；类别 {@value #KIND_SCALE} 倍、灰白，地名 {@value #NAME_SCALE} 倍、取载荷颜色，都带阴影。</li>
+ *   <li>和 Traveler's Titles 排队：收到时它正显示群系或维度标题，就等它放完再开始，至多等 {@value #MAX_WAIT_MS} ms；本
+ *       标题显示期间它新出的标题不画（{@link #isShowing}，由 {@code ClientEvents} 取消它的图层），避免两行字叠在一起。
+ *       </li>
+ *   <li>两行都逐字加空格拉开；类别 {@value #KIND_SCALE} 倍、灰白，地名 {@value #NAME_SCALE} 倍、取载荷颜色，都带阴影。
+ *       </li>
  *   <li>位置在屏幕中心以上 {@value #NAME_TOP} 至 {@value #KIND_TOP} 像素（GUI 坐标），高过 Traveler's Titles 默认位置
  *       （中心以上 33 像素起、约 19 像素高）。</li>
  *   <li>⚠ 字体在透明度低于 4/255 时会按不透明绘制，所以透明度过低直接不画。</li>

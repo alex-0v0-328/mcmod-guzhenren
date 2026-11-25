@@ -36,9 +36,9 @@ import org.jetbrains.annotations.Nullable;
  *       {@code null}）：阅读杀招书（{@link KillingMoveBookItem}）调用 {@link #learn}（已学会时返回 {@code false}）将杀
  *       招 ID 写入 {@code KillingMoveData}，未开启死亡不掉落时随死亡清空；{@link #listUsable} 按总表顺序返回由指定主蛊
  *       主导、玩家已习得且随身或空窍存储中备有辅蛊的杀招列表。</li>
- *   <li>网络包只传杀招 ID 而不传槽位，服务端按「快捷栏 → 主背包 → 副手（跳过主手槽）→ 各空窍存储（跳过本命槽）」顺序检
- *       索辅蛊；位于空窍存储中的辅蛊在副本上扣费后通过 {@code ApertureStorageService.setSlot} 写回（耗尽则写空）；由于
- *       客户端无法直接读取服务端空窍存储，存储辅蛊的可用性由 {@link KillingMoveEvents} 调 {@link #refreshStoreBacked}
+ *   <li>网络包只传杀招 ID 而不传槽位，服务端按「快捷栏 → 主背包 → 副手（跳过主手槽）→ 各空窍存储（跳过本命槽）」顺序
+ *       检索辅蛊；位于空窍存储中的辅蛊在副本上扣费后通过 {@code ApertureStorageService.setSlot} 写回（耗尽则写空）；由
+ *       于客户端无法直接读取服务端空窍存储，存储辅蛊的可用性由 {@link KillingMoveEvents} 调 {@link #refreshStoreBacked}
  *       同步至 {@code KillingMoveData}。</li>
  *   <li>杀招为开关式状态而非单次触发：{@link #toggle} 切换开关（{@code KillingMoveData.active} 仅同步、不存档，死亡清
  *       空）；开启时从辅蛊扣除 {@link KillingMove#getStartHunger} 点饱食[Hunger]（不耗真元），饱食不足则拒绝启动，无可
@@ -46,12 +46,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>开启杀招后轻点（{@link #PLAIN}）其主蛊即触发杀招施放：主蛊经 {@code tryUseInPlace} 照常校验并扣费，同时由辅蛊额
  *       外支付 {@link KillingMove#getPartnerEssence} 点真元（不扣饱食）；若空窍真元加上随身元石[Primeval Stone]不足以同
  *       时支付主辅两份真元（{@code PrimevalStoneSupply.canAfford}），则以真元不足提示拒绝且保持杀招开启；若施放时已找不
- *       到已炼化辅蛊，则拒绝施放、自动关闭杀招并提示；未开启杀招或主手非当前杀招主蛊（如血月蛊）时则按普通月刃催
- *       动。</li>
- *   <li>⚠ 辅蛊真元必须在主蛊确认生效的瞬间扣费：{@link #driveAimed} 在调用主蛊 {@code tryUseInPlace} 外层设置线程上下文
- *       {@code driving}，月刃行为调用 {@link #getDamageFactor} 时才真正扣除辅蛊真元并返回伤害倍率；首次查询即消费该上下
- *       文，此后、驱动外或其他蛊虫查询恒返回 {@code 1.0F}；若主蛊因冷却或门槛被拒则不会调用 {@link #getDamageFactor}，
- *       辅蛊分文不付。</li>
+ *       到已炼化辅蛊，则拒绝施放、自动关闭杀招并提示；未开启杀招或主手非当前杀招主蛊（如血月蛊）时则按普通月刃催动。
+ *       </li>
+ *   <li>⚠ 辅蛊真元必须在主蛊确认生效的瞬间扣费：{@link #driveAimed} 在调用主蛊 {@code tryUseInPlace} 外层设置线程上下
+ *       文 {@code driving}，月刃行为调用 {@link #getDamageFactor} 时才真正扣除辅蛊真元并返回伤害倍率；首次查询即消费该
+ *       上下文，此后、驱动外或其他蛊虫查询恒返回 {@code 1.0F}；若主蛊因冷却或门槛被拒则不会调用
+ *       {@link #getDamageFactor}，辅蛊分文不付。</li>
  *   <li>客户端可随包上报准星锁定目标的实体 ID（无目标传 {@link #NO_TARGET}；客户端寻标距离为直线月刃全程
  *       {@link #AIM_RANGE}）；{@link #drive} 先经 {@link #resolveTarget} 复验目标（存活、非射手本人、位于视野前方且在放
  *       宽了一两 tick 移动余量的 {@link #AIM_CHECK_RANGE} 内），复验通过才写入瞄准上下文 {@code aiming}，供月刃发射时通

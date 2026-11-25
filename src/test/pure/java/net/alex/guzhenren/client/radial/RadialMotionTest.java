@@ -9,10 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * {@link RadialMotion} 测试：展开 0.6 到 1 带过冲；扇区按错开间隔依次出现；选中停留后膨胀淡出，取消收缩淡出；悬停权重缓
  * 动无过冲；ARGB 辅助方法逐通道混合、淡出。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class RadialMotionTest {

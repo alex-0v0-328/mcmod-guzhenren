@@ -42,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
  *       本服务内，以便管理员指令可赋予超出承受力的永久力量（超出部分全额发挥并结算过载反噬）。</li>
  *   <li>⚠ 下调人力层数时通过 {@code dropLayer} 按整层扣除该档人力自带的道痕点，保留其他途径（如增幅蛊）追加的道
  *       痕。</li>
+ *   <li>⚠ {@link #getBeastBuff} 直接通过 {@code BuiltInRegistries.MOB_EFFECT.getOptional} 解析限时兽力增益而不经
+ *       {@code TimedBuff.getHolder}，防止存档中已失效的药水效果在蛊虫准入判断时抛异常。</li>
  * </ul>
  */
 
@@ -174,7 +176,6 @@ public final class PathStrengthService {
     }
 
     private static @Nullable BeastStrengthBuff getBeastBuff(PathEffect<?> effect) {
-        // Looked up without TimedBuff.getHolder: a saved buff whose effect is gone must not throw at a Gu gate.
         return effect.payload() instanceof TimedBuff buff && BuiltInRegistries.MOB_EFFECT.getOptional(buff.effect())
                 .orElse(null) instanceof BeastStrengthBuff beast ? beast : null;
     }

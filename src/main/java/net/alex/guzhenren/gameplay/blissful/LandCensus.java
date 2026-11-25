@@ -17,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
  * 福地动物与作物清点的同刻缓存：同一游戏刻里总览、养殖、种植页与托管轮共用一次扫描。
  * <ul>
  *   <li>按维度存，记清点时的游戏刻；作物清点另记是哪份存档算的（GameTest 会拿自建存档配主世界）。</li>
- *   <li>⚠ 宰杀会从清点表里删动物：面板操作后（{@code EarthSpiritPanel#handle}）与托管轮后（{@link BlissfulLands#host}）
- *       必须 {@link #invalidate}；停服 {@link #clear}。</li>
+ *   <li>⚠ 宰杀会从清点表里删动物：面板操作后（{@code EarthSpiritPanel#handle}）与托管轮后
+ *       （{@link BlissfulLands#host}）必须 {@link #invalidate}；停服 {@link #clear}。</li>
  * </ul>
  */
 

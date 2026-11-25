@@ -38,7 +38,7 @@ class RaceTalentTest {
     }
 
     @Test
-    @DisplayName("☠ AT the ceiling the round trip LOSES one grade -- shift clamps, so the grant is a no-op")
+    @DisplayName("⚠ AT the ceiling the round trip LOSES one grade -- shift clamps, so the grant is a no-op")
     void ceilingLosesOneGrade() {
         GuAttainment top = GuAttainment.SUPREME_GRANDMASTER;
         assertSame(top, top.shift(Race.TALENT_SHIFT));

@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
  *   <li>⚠ 截止时刻 {@link ModDataComponents#LITTLE_LIGHT_BRIGHT_UNTIL} 仅在开关切换时写入一次，绝不在每 tick 递减写回
  *       （每次修改组件都会触发该背包槽位全量网络同步）；由于仅随身背包物品栈会执行 {@link #inventoryTick}，放入箱子或丢
  *       在地上的已点亮小光蛊在超时后一旦被玩家重新拾回身上即刻熄灭。</li>
- *   <li>⚠ 饱食不足时点亮遵循强行催动[Forced Use]（{@code GuForcedUse}）规则：首次按下发出警告，5 秒内再次按下同一只蛊则
- *       强行点亮整轮，待熄灭时（无论自然到期或主动关灯）蛊虫力竭死亡；{@link ModDataComponents#LITTLE_LIGHT_FORCED} 标
- *       记该轮强行点亮，与点亮组件同写同删；主动熄灭不设任何门槛；本命小光蛊在饱食不足时直接拒绝点亮；创造模式下既不警
- *       告也不致死。</li>
+ *   <li>⚠ 饱食不足时点亮遵循强行催动[Forced Use]（{@code GuForcedUse}）规则：首次按下发出警告，5 秒内再次按下同一只蛊
+ *       则强行点亮整轮，待熄灭时（无论自然到期或主动关灯）蛊虫力竭死亡；{@link ModDataComponents#LITTLE_LIGHT_FORCED}
+ *       标记该轮强行点亮，与点亮组件同写同删；主动熄灭不设任何门槛；本命小光蛊在饱食不足时直接拒绝点亮；创造模式下既不
+ *       警告也不致死。</li>
  * </ul>
  */
 

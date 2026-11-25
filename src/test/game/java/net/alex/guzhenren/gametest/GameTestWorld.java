@@ -47,10 +47,6 @@ import org.jetbrains.annotations.NotNull;
  *   <li>⚠ AI 生物的游荡（每 2 tick 有 1/60 机会）、随机环顾等 {@code MOVE} 目标随时抢走一 tick 导航；靠导航测速或测
  *       路径前经 {@link #goals} 移除它们。{@code disableControlFlag} 每 5 tick 被 {@code Mob} 复位，无效。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 final class GameTestWorld {

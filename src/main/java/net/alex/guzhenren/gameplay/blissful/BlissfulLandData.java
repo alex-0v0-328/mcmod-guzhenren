@@ -24,7 +24,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>本类只管福地共用的部分：主人、白名单、疆域、当前地灵 UUID；各经营模块的状态各占一段（{@link #storage}、
  *       {@link #herd}、{@link #farm}、{@link #mountain}），存档里也各是一个子标签。</li>
  *   <li>主人与白名单：{@link #owner} 为空即无主；白名单记 UUID 与名字（名字只供离线显示），同一份名单既免荡魂山震荡，也
- *       免「驱逐外人」。失主由 {@code MemberService#lose} 清白名单、关托管，库藏、疆域、标准田、每种保持数留给下一任。</li>
+ *       免「驱逐外人」。失主由 {@code MemberService#lose} 清白名单、关托管，库藏、疆域、标准田、每种保持数留给下一任。
+ *       </li>
  *   <li>⚠ 所有改动走 setter 或 {@link #changed}，各模块状态经构造时传入的回调置脏；集合只读暴露。</li>
  * </ul>
  */

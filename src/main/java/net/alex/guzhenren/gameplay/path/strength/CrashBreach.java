@@ -38,8 +38,8 @@ import org.jetbrains.annotations.NotNull;
  *       每 {@link AreaDamageShatter#PARTICLE_EVERY} 块发一组碎屑、整次清路仅在首块位置播一次破坏音，并手动补齐掉落、流
  *       体回填与 {@code BLOCK_DESTROY} 游戏事件；创造模式破双格方块上半时同样调用
  *       {@link AreaDamageShatter#clearLowerHalf} 抑制下半掉落。</li>
- *   <li>⚠ 扫掠盒水平宽度必须取 {@link #DASH_WIDTH}（{@code 0.8}，与 Epic Fight 闪避动作期间放宽的碰撞箱一致），若按原版
- *       {@code 0.6} 宽度扫描会漏掉擦边方块并把客户端冲撞卡停。</li>
+ *   <li>⚠ 扫掠盒水平宽度必须取 {@link #DASH_WIDTH}（{@code 0.8}，与 Epic Fight 闪避动作期间放宽的碰撞箱一致），若按原
+ *       版 {@code 0.6} 宽度扫描会漏掉擦边方块并把客户端冲撞卡停。</li>
  * </ul>
  */
 

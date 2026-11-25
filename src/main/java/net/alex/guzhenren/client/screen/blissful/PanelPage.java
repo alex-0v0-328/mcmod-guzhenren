@@ -14,7 +14,8 @@ import net.minecraft.network.chat.Component;
  * <ul>
  *   <li>{@link #sprites} 在 {@link EarthSpiritScreen} 的同一个 {@link SpriteBatch} 里画；{@link #fills}、{@link #texts}
  *       在同一个 {@code GuiBatch} 里，先填充后文字；物品图标不能进批处理，单独在 {@link #items} 画。</li>
- *   <li>数据经 {@link #section} 取本页最近一份快照段；切到还没收到过的页时先拿模块给的空段，下一刻服务端回传后就有。</li>
+ *   <li>数据经 {@link #section} 取本页最近一份快照段；切到还没收到过的页时先拿模块给的空段，下一刻服务端回传后就有。
+ *       </li>
  *   <li>操作只经 {@link #send} 发意图，不在客户端改快照；服务端算好的新快照随后下发。</li>
  *   <li>按钮的说明走 {@link #tip}：鼠标停在区域上就画一段自动换行的悬停提示。</li>
  *   <li>{@link #overlay} 与 {@link #overlayClick} 供带弹窗的页面（疆域页的二次确认）盖在一切之上并独占点击。</li>

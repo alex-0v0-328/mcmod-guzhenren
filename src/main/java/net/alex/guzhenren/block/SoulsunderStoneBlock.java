@@ -14,7 +14,8 @@ import org.jetbrains.annotations.NotNull;
  *       {@link net.alex.guzhenren.registry.block.ModBlocks#SOULSUNDER_STONE} 注册处设定（不可破坏、爆炸抗性同基岩、禁止
  *       刷怪、活塞推不动、无战利品表、无物品形态）。</li>
  *   <li>⚠ 性能：{@link #getLightBlock} 恒为 15 且不发光、不随机刻、无方块实体，山体内部不做光照传播；
- *       {@code noOcclusion} 只为让山后方块透出来。半透明靠模型的 {@code render_type: translucent}，不在客户端代码注册。</li>
+ *       {@code noOcclusion} 只为让山后方块透出来。半透明靠模型的 {@code render_type: translucent}，不在客户端代码注册。
+ *       </li>
  *   <li>⚠ 凋灵、末影龙、地物替换的豁免靠方块标签（{@code ModBlockTagsProvider}），本类不覆写破坏判定。</li>
  * </ul>
  */

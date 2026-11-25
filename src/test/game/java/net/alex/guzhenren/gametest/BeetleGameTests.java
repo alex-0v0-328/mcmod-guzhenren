@@ -52,10 +52,6 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
  *       {@code checkFallDamage}）对 1 血小蛊造成 {@code ceil(distance - 3)} 伤害；{@code noAi} 跳过 {@code travel}，故
  *       直调其所用、内含 {@code checkFallDamage} 的 {@code Entity#move}。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

@@ -30,8 +30,8 @@ import net.minecraft.util.StringRepresentable;
  *       {@code long} 数值的 {@code set|add|sub} 节点（{@code sub} 使用饱和取反）；{@link #buildEnumCounter} 构建带枚举
  *       前缀的数值计数器（读取 {@link Number} 以兼容 {@code int} 精确收窄，{@code sub} 直接取反，并在操作返回
  *       {@code false} 时按指定拒绝键反馈）。</li>
- *   <li>⚠ 任何改变 Brigadier 节点 {@code requires()} 判定结果的操作完成后，必须调用 {@link #refreshCommands} 向目标客户
- *       端重新下发命令树，否则客户端补全仍会保留旧命令树。</li>
+ *   <li>⚠ 任何改变 Brigadier 节点 {@code requires()} 判定结果的操作完成后，必须调用 {@link #refreshCommands} 向目标客
+ *       户端重新下发命令树，否则客户端补全仍会保留旧命令树。</li>
  * </ul>
  */
 

@@ -14,13 +14,14 @@ import org.jetbrains.annotations.Nullable;
  * 苦力状态：苦力蛊[Hardship Strength Gu]开启期间按伤势档位放大伤害倍率，并决定兽力虚影流[Beast Strength Phantom]暴击抽
  * 几种兽、人力钧力流[Human Jun Strength]范围伤害[Area Damage]放大几档。
  * <ul>
- *   <li>作为带到期时刻的流派效果由苦力蛊自动催动（{@code AutoUse}）开关；仅对已入人力钧力流或兽力虚影流（含生效中的限
- *       时兽力）的玩家提供伤害倍率（{@link StrengthAmplifier#damage}，不加力量点[Strength Points]、不加承受力）。</li>
+ *   <li>作为带到期时刻的流派效果由苦力蛊自动催动（{@code AutoUse}）开关；仅对已入人力钧力流或兽力虚影流（含生效中的限时
+ *       兽力）的玩家提供伤害倍率（{@link StrengthAmplifier#damage}，不加力量点[Strength Points]、不加承受力）。</li>
  *   <li>伤势分五档（{@link #getTier}）：当前生命低于最大生命的 75%（{@link #START_BELOW}）起算，高于 60% 为 1 档，每再
  *       低 15% 升一档，不高于 15% 为 5 档；五档伤害倍率依次 +10% / 20% / 30% / 40% / 50%（{@link #getDamagePercent}）。
  *       </li>
  *   <li>{@link #getTier(Player)} 是其他规则读档位的唯一入口：苦力未开或未入两流时为 {@code 0}；兽力暴击据此抽
- *       {@code 1 + 档位} 种（{@link StrengthCrit#getCount}），人力流范围据此放大（{@link AreaDamage#getWidenTier}）。</li>
+ *       {@code 1 + 档位} 种（{@link StrengthCrit#getCount}），人力流范围据此放大（{@link AreaDamage#getWidenTier}）。
+ *       </li>
  *   <li>⚠ 档位分界统一用乘法 {@code health > maxHealth * floor} 比较而非除法，恰好落在分界点时归入伤势更重的一档；
  *       {@link #HEALED_SHARE} 留有 {@code 1e-4} 浮点容差，确保生命恢复至 75% 时稳定判定为痊愈。</li>
  * </ul>

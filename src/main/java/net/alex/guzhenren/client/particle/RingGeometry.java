@@ -14,7 +14,7 @@ import org.joml.Vector3f;
  *       止叉乘退化（纯竖直法线退化回水平面，与 {@link #getGround} 一致），长度短于 {@link #MIN_DIRECTION_LENGTH} 视为
  *       无方向。</li>
  *   <li>{@link #scaleForWidth} 依据 {@link #LARGEST_CANVAS}（最大环画布宽）与 {@link #LARGEST_RING_SPAN}（对应世界跨
- *       度，单位：格，总表 TODO 验收直径上限约 2.2 格）换算单帧 {@code quadSize} 半跨度倍数；不同跨度的环可另行传入
+ *       度，单位：格，默认直径上限约 2.2 格）换算单帧 {@code quadSize} 半跨度倍数；不同跨度的环可另行传入
  *       {@code largestSpan}。</li>
  *   <li>退场计算从末帧完全绽放到彻底消失：{@link #getExitProgress} 在 {@code lastFrameAge}（含 partial tick）处为 0，
  *       经过 {@code lingerTicks + 1} tick 后达到 1；扩散环按进度追加额外缩放，横扫环每 tick 再增长一个帧步长（

@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>存于 {@link BodyData#race} 的封闭词汇表；角色出生默认为 {@code HUMAN}，异人种族仅能通过转化获得而不会随机掷出
  *       （玩家仅能转化为龙人 {@link #DRAGONMEN}，其余十种仅供 NPC 使用）；注意 {@link #HUMAN} 指种族，而非人道
  *       （{@link GuPath#HUMAN}）。</li>
- *   <li>⚠ 种族允许切换，因此天赋的两项加成必须支持对称撤销：道痕[Path Marks]加成（{@link #TALENT_MARKS}）以永久流派效果
- *       挂载而非直接写入裸道痕池，流派造诣则通过相对平移（{@link #TALENT_SHIFT}）增减而非直接覆写。</li>
+ *   <li>⚠ 种族允许切换，因此天赋的两项加成必须支持对称撤销：道痕[Path Marks]加成（{@link #TALENT_MARKS}）以永久流派效
+ *       果挂载而非直接写入裸道痕池，流派造诣则通过相对平移（{@link #TALENT_SHIFT}）增减而非直接覆写。</li>
  * </ul>
  */
 

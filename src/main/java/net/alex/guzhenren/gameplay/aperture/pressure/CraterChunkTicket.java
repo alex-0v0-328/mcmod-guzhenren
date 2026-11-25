@@ -15,8 +15,8 @@ import net.minecraft.world.level.ChunkPos;
  *       担。</li>
  *   <li>⚠ {@link #isLoaded} 首次调用时挂票，并通过 {@code getChunkNow != null}（而非仅看票等级的 {@code hasChunk}）确
  *       认区块真正加载完毕，全部就绪后锁存结果。</li>
- *   <li>⚠ 票键取爆炸随机种子（{@code key}），使相邻两场爆炸重叠的区块各自持票，先挖完的一方释放票时不会卸载另一方仍在挖
- *       的区块；区块票不落盘，重启恢复后在首个 tick 重新挂票查询。</li>
+ *   <li>⚠ 票键取爆炸随机种子（{@code key}），使相邻两场爆炸重叠的区块各自持票，先挖完的一方释放票时不会卸载另一方仍在
+ *       挖的区块；区块票不落盘，重启恢复后在首个 tick 重新挂票查询。</li>
  * </ul>
  */
 

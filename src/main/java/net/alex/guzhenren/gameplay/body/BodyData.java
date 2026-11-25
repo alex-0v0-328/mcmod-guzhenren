@@ -18,8 +18,8 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>运行时仅由 {@link BodyService} 写入；具体十绝体枚举存于此处，空窍仅存储代表十绝天资的满值基础真元。</li>
  *   <li>⚠ 15 个组件使用手写 {@link #encode} 与 {@link #decode} 同步，两者的字段读写顺序必须严格一致。</li>
- *   <li>⚠ 所有时间戳锚点未启用时统一填 {@link #UNTRACKED}（{@code -1}），切勿用 {@code 0}（{@code 0} 是新世界合法游戏时
- *       间）。</li>
+ *   <li>⚠ 所有时间戳锚点未启用时统一填 {@link #UNTRACKED}（{@code -1}），切勿用 {@code 0}（{@code 0} 是新世界合法游戏
+ *       时间）。</li>
  *   <li>⚠ 外部调用方一律以「年」为单位传参，细分的「份」（{@code parts}，每年 {@link #PARTS_PER_YEAR} 份）仅在本类与
  *       {@link BodyService} 内部换算。</li>
  *   <li>僵尸（{@link Physique#ZOMBIE}）与临时僵尸化（{@link Physique#TEMP_ZOMBIE}）互斥，十绝体可与任一并存；紧凑构造器

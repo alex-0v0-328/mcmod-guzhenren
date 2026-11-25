@@ -11,8 +11,8 @@ import net.minecraft.util.StringRepresentable;
  * <ul>
  *   <li>封闭词汇枚举；角色出生时（{@code onBirth}）按权重随机抽取一次，与空窍资质无关；{@link #shift} 夹取在
  *       {@link #LOWEST} 至 {@link #HIGHEST} 之间。</li>
- *   <li>⚠ 刻意不设 {@code NONE} 常量：凡人同样拥有脑海并自然产念，最低档 {@link #ORDINARY}（每秒 1 念）是合法的初始值而
- *       非「未设置」占位。</li>
+ *   <li>⚠ 刻意不设 {@code NONE} 常量：凡人同样拥有脑海并自然产念，最低档 {@link #ORDINARY}（每秒 1 念）是合法的初始值
+ *       而非「未设置」占位。</li>
  * </ul>
  */
 

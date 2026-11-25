@@ -19,10 +19,6 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
  * GameTest 为玩家投递的 Epic Fight 事件，每种一名：建事件，仿 Epic Fight 对活玩家投到全局事件钩子，再读回监听器结果；
  * {@link #targetCanceled} 读是否取消目标，{@link #skillCost} 读步法技能剩余消耗；{@link #actionStarted} 投递动作起播，
  * {@link #attackPhaseEnded} 投递攻击首阶段结束，{@link #comboReset} 投递连段计数超时清零，{@link #comboCutBy} 投递被某动作清零，均不读回（监听器作用于世界）。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 final class GameTestEpicFight {

@@ -35,8 +35,8 @@ import org.jetbrains.annotations.Nullable;
  *       的克隆也会走重置，重复失主无副作用）。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
- *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，合计至多 {@value #HOSTING_LIMIT} 个对象；每秒给开着面板的主人刷
- *       新快照（只算他正在看的页）。</li>
+ *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，合计至多 {@value #HOSTING_LIMIT} 个对象；每秒给开着面板的主人
+ *       刷新快照（只算他正在看的页）。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
  * </ul>
  */

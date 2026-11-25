@@ -11,10 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * {@link RingGeometry} 测试：平铺与垂直四边形、镜头倾斜、画布宽度缩放；{@link #FACE_ON} 为远处正对方向，镜头沿环法线
  * 看，永不倾斜；{@link #quadNormal} 由角点算法线 {@code (c1-c0) x (c2-c1)} 再归一化，符号无关。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class RingGeometryTest {

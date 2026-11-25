@@ -45,26 +45,26 @@ import org.jetbrains.annotations.Nullable;
  *       （{@link AttackDamageService#getFistDamage(net.minecraft.world.entity.player.Player, int)}）。</li>
  *   <li>暴击[Crit]单独掷一次，不进连招轮：蓄满必暴击，未蓄满按 {@link StrengthCrit#getChance} 掷
  *       （{@link StoreStrength#getCritChance}）。兽力虚影流派暴击时从持有的永久兽种中抽 {@link StrengthCrit#getCount}
- *       种（{@code 1 + 苦力档位}），其永久点数再计一份，虚影并入连招轮[Combo Round]收尾仍在显示的身旁虚影一同显形；人
- *       力钧力流派暴击不另加效果（扇形溢出本来就始终有）。{@link #strike(ServerPlayer, LivingEntity, float, boolean)}
- *       接收掷定的结果，供测试直接调用。</li>
+ *       种（{@code 1 + 苦力档位}），其永久点数再计一份，虚影并入连招轮[Combo Round]收尾仍在显示的身旁虚影一同显形；人力
+ *       钧力流派暴击不另加效果（扇形溢出本来就始终有）。{@link #strike(ServerPlayer, LivingEntity, float, boolean)} 接
+ *       收掷定的结果，供测试直接调用。</li>
  *   <li>{@link #getTarget} 复验客户端上报的目标实体 ID（须存活、可被命中、位于视野前方且距眼部不超过
  *       {@link #MAX_TARGET_DISTANCE} 格），防止伪造包将拳劲转向身后或超远目标；注意 {@link #MAX_TARGET_DISTANCE} 高于
  *       Epic Fight 默认锁定距离。</li>
  *   <li>当玩家带有力气蛊[Strength Qi Gu]效果、复验目标位于原版近战触及距离外且视线无遮挡、可被弹射物命中时，走远程攻击
  *       （{@link #shoot}），总伤害为拳伤 × {@link QiWaveService#RANGED_FACTOR}：每个可显形的暴击兽种沿弧线发射一道
  *       {@link BeastChargeEntity}，总伤害按兽种份额分摊（{@link BeastChargeDamage}）；暴击兽种均不可显形或没暴击时按
- *       {@link QiWaveService#getChargeFamilies} 从持有兽种中随机一种带全部伤害发射；人力钧力流派或无可显形兽种时改为
- *       发射一枚携带全部伤害的追踪气波（{@link QiWaveEntity#track}）。落点按 {@link StoreStrength#getBurstRadius} 爆开并
+ *       {@link QiWaveService#getChargeFamilies} 从持有兽种中随机一种带全部伤害发射；人力钧力流派或无可显形兽种时改为发
+ *       射一枚携带全部伤害的追踪气波（{@link QiWaveEntity#track}）。落点按 {@link StoreStrength#getBurstRadius} 爆开并
  *       按溢出结算，不破坏方块。</li>
  *   <li>不满足远程条件时走近战扇形挥拳（{@link #swing}）：水平轴朝向复验通过的锁定目标（无目标则取视线水平投影），射程
  *       由结算力量点与苦力档位决定（{@link StoreStrength#getRange}，人力流按 {@link AreaDamage#getWidenTier} 放大、封顶
- *       16 格，半角 {@link AreaDamage#getHalfAngle}），对扇形内视线可见的可命中目标按溢出结算（{@link AreaDamage#spill}：
- *       锁定目标排首位吃整拳，剩余由近到远至多 {@link #MAX_TARGETS} 个），各沿脚下连线击退 {@link #KNOCKBACK}；随后在未
- *       放大的半数射程内崩裂地形方块（{@link AreaDamageShatter}），并始终沿扇形中轴发射一道直达射程末端的冲击环
- *       （{@link RingConeEmitter#areaDamageRing}，挥空同样播放）。</li>
- *   <li>过载反噬[Body Overload]只在打中时结算一次：近战扇形命中后直接结算，远程交给 {@link BodyOverload.Shot} 在首次
- *       造成伤害的爆开时结算；挥空不扣。</li>
+ *       16 格，半角 {@link AreaDamage#getHalfAngle}），对扇形内视线可见的可命中目标按溢出结算
+ *       （{@link AreaDamage#spill}：锁定目标排首位吃整拳，剩余由近到远至多 {@link #MAX_TARGETS} 个），各沿脚下连线击退
+ *       {@link #KNOCKBACK}；随后在未放大的半数射程内崩裂地形方块（{@link AreaDamageShatter}），并始终沿扇形中轴发射一道
+ *       直达射程末端的冲击环（{@link RingConeEmitter#areaDamageRing}，挥空同样播放）。</li>
+ *   <li>过载反噬[Body Overload]只在打中时结算一次：近战扇形命中后直接结算，远程交给 {@link BodyOverload.Shot} 在首次造
+ *       成伤害的爆开时结算；挥空不扣。</li>
  * </ul>
  */
 

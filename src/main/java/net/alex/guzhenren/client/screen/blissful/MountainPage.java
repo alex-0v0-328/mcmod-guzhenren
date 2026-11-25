@@ -16,8 +16,8 @@ import net.minecraft.network.chat.Component;
  * 「荡魂山」页：胆石进度、「挪生物上山」「胆识蛊催动」、荡魂山白名单（按名字添加、逐行移出）。
  * <ul>
  *   <li>挪生物冷却中按钮失效，文字换成剩余秒数。</li>
- *   <li>名字输入框是 {@link EarthSpiritScreen} 持有的 {@code EditBox}（灰字补全在线玩家名、Tab 补全），本页只画它的底图并
- *       在「添加」时读走内容。</li>
+ *   <li>名字输入框是 {@link EarthSpiritScreen} 持有的 {@code EditBox}（灰字补全在线玩家名、Tab 补全），本页只画它的底图
+ *       并在「添加」时读走内容。</li>
  *   <li>主人那一行也能移出（主人可以选择承受震荡）。列表一屏 {@value #VISIBLE} 行，滚轮翻。</li>
  * </ul>
  */

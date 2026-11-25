@@ -29,13 +29,13 @@ import org.jetbrains.annotations.Nullable;
  *       {@link PathEffectService}。</li>
  *   <li>{@code marks <path> set|add|sub <marks> [points set|add|sub <points>]} 先写该流派的肉身裸道痕条数、再可选写点
  *       数，{@code marks <path> points set|add|sub <points>} 则单独写点数；条与点互不自动换算。</li>
- *   <li>{@code effect remove <type>} 移除指定类型的全部流派效果及其附带道痕，{@code effect clear} 清空全部流派效
- *       果。</li>
+ *   <li>{@code effect remove <type>} 移除指定类型的全部流派效果及其附带道痕，{@code effect clear} 清空全部流派效果。
+ *       </li>
  *   <li>⚠ 本命令仅允许直接修改肉身裸道痕，不提供手动挂载流派效果的入口：效果道痕必须由设置种族、体质或肉身品级等来源命
  *       令自动挂载并随来源一同撤销，若手动绕过来源注入效果将导致该效果永远无法被正常卸载。</li>
- *   <li>⚠ 子分支字面量 {@code marks}、{@code attainment}、{@code effect} 必须置于流派参数之前：因为 {@link GuPath} 枚举
- *       本身包含 {@code strength}，若将流派参数直接挂在 {@code path} 下与 {@code strength} 字面量子命令并列，会导致力道
- *       枚举值被字面量节点遮蔽而无法输入。</li>
+ *   <li>⚠ 子分支字面量 {@code marks}、{@code attainment}、{@code effect} 必须置于流派参数之前：因为 {@link GuPath} 枚
+ *       举本身包含 {@code strength}，若将流派参数直接挂在 {@code path} 下与 {@code strength} 字面量子命令并列，会导致力
+ *       道枚举值被字面量节点遮蔽而无法输入。</li>
  * </ul>
  */
 

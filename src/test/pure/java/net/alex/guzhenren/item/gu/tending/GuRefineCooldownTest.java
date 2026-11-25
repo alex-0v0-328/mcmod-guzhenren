@@ -6,10 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * {@link GuRefineCooldown#longest}：取物品等待、炼化后保护期、效果冷却的最大值；效果冷却可由
  * {@code canUseDuringEffectCooldown} 免除。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class GuRefineCooldownTest {

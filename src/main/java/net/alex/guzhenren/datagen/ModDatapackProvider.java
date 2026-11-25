@@ -31,8 +31,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
  *       器；维度与元泉[Spirit Spring]世界生成则归属配套模组 Gu World。</li>
  *   <li>下游伤害类型与生物群系标签生成器必须使用本实例的 {@link #getRegistryProvider()}，才能解析本次运行生成的注册表条
  *       目。</li>
- *   <li>⚠ {@link DatapackBuiltinEntriesProvider} 的任务名称固定，单次数据生成只能注册一个实例；新增数据包注册表必须并入
- *       {@link #BUILDER}。</li>
+ *   <li>⚠ {@link DatapackBuiltinEntriesProvider} 的任务名称固定，单次数据生成只能注册一个实例；新增数据包注册表必须并
+ *       入 {@link #BUILDER}。</li>
  * </ul>
  */
 

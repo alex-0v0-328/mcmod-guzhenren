@@ -11,10 +11,10 @@ import org.jetbrains.annotations.Nullable;
  * 人如故[Man As Before Gu]身体快照的采样间隔与环形队列算术纯函数。
  * <ul>
  *   <li>每隔 {@link #INTERVAL_TICKS}（半个游戏日，12,000 tick）采样一次，环形队列保留最近 {@link #RING_SIZE}（3）份快照
- *       以覆盖整个游戏日；{@link #pick} 选取距今至少 {@link #MIN_AGE_TICKS}（1 个游戏日）中最新的一份快照（还原点落在
- *       1–1.5 游戏日前）；计时采用世界真实 {@code gameTime}，睡眠跳夜不加速，也不受宙道自身时间倍率缩放。</li>
- *   <li>⚠ 快照时间戳未记录时统一用 {@link #NEVER}（{@code -1}）表示（{@code 0} 是新世界合法时刻）；当世界时间倒退导致已
- *       有快照时间戳超前于当前时间时，{@link #add} 会自动丢弃这些「未来」快照。</li>
+ *       以覆盖整个游戏日；{@link #pick} 选取距今至少 {@link #MIN_AGE_TICKS}（1 个游戏日）中最新的一份快照（还原点落在 1
+ *       –1.5 游戏日前）；计时采用世界真实 {@code gameTime}，睡眠跳夜不加速，也不受宙道自身时间倍率缩放。</li>
+ *   <li>⚠ 快照时间戳未记录时统一用 {@link #NEVER}（{@code -1}）表示（{@code 0} 是新世界合法时刻）；当世界时间倒退导致
+ *       已有快照时间戳超前于当前时间时，{@link #add} 会自动丢弃这些「未来」快照。</li>
  * </ul>
  */
 

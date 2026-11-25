@@ -67,20 +67,21 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  * Epic Fight 双端动画注册与服务端战斗、冲撞及动作同步桥接。
  * <ul>
  *   <li>⚠ 耐力系统的当前值、自然回复、HUD 与常规消耗完全由 Epic Fight 管理；本模组不改耐力上限，仅免除不死之躯
- *       （{@link BodyService#isUndead}）的技能耐力消耗（{@link #onSkillConsume}），不另建耐力附件或疾跑跳跃扣费逻辑。</li>
+ *       （{@link BodyService#isUndead}）的技能耐力消耗（{@link #onSkillConsume}），不另建耐力附件或疾跑跳跃扣费逻辑。
+ *       </li>
  *   <li>目标过滤：{@link #onSetTarget} 阻止锁定野生蛊（{@link WildGuEntity}）。</li>
  *   <li>连招轮[Combo Round]挂点，只认 Epic Fight 战斗模式下的空手拳击（类别为 {@code FIST} 且
  *       {@link AttackDamageService#isFistHand} 成立的连击、冲刺攻击或空中攻击，排除拳套、副手镜像挥击与武器固有技能）：
  *       {@link #onStartAction} 在出招起播时按 {@link #isFinisher} 判定收尾招（自动攻击动作表最后一段连击，或冲刺、空中
  *       攻击；不在动作表里的连击动作按一下一轮算），调 {@link ComboRound#beginStrike} 并通知
  *       {@link QiWaveService#onStrike} 配对远程攻击；{@link #onModifyComboCounter} 在连段计数从非零被清零时调
- *       {@link ComboRound#abandon}，若清零正是刚起播的冲刺或空中收尾招引起则忽略、保留这一招（Epic Fight 的清零与起播
- *       事件先后不定）；{@link #onAttackPhaseEnd} 在收尾招最后一段判定结束时调 {@link ComboRound#complete}，若正常结
- *       束、未改由远程攻击出手且人力钧力流本轮暴击（{@link ComboRound#rollsArea}，挥空也掷），先放范围伤害
+ *       {@link ComboRound#abandon}，若清零正是刚起播的冲刺或空中收尾招引起则忽略、保留这一招（Epic Fight 的清零与起播事
+ *       件先后不定）；{@link #onAttackPhaseEnd} 在收尾招最后一段判定结束时调 {@link ComboRound#complete}，若正常结束、
+ *       未改由远程攻击出手且人力钧力流本轮暴击（{@link ComboRound#rollsArea}，挥空也掷），先放范围伤害
  *       （{@link AreaDamage#release}，跳过本段已判定过的实体，按溢出结算）与冲击环
  *       （{@link RingConeEmitter#areaDamageRing}）及命中音效；兽力虚影流收尾招不放锥形。</li>
- *   <li>⚠ 收尾招的每一记命中都按「最后一下」算：Epic Fight 空手的三个收尾动作各只有一段判定，若日后收尾动作带多段判定，
- *       前几段命中也会被当成收尾。</li>
+ *   <li>⚠ 收尾招的每一记命中都按「最后一下」算：Epic Fight 空手的三个收尾动作各只有一段判定，若日后收尾动作带多段判
+ *       定，前几段命中也会被当成收尾。</li>
  *   <li>冲撞冲刺（{@link #dash}）：客户端上报模型朝向 {@code yRot} 与水平键盘轴 {@code vertical}/{@code horizontal}，由
  *       {@link #getDashClip} 选择前撞、背撞、左肩撞或右肩撞动画，并通过 {@link #getRingYawOffset} 还原实际水平冲刺方向
  *       （仅含后退的输入翻转 180°）；若玩家具备破障硬度上限，服务端在播放动画前先调用 {@link CrashBreach#clear} 沿路清
@@ -89,23 +90,23 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
  *       端同时读取已同步的力量数据（{@link CrashSources#of}），将坐标位移缩放 {@link #getDashScale}，并通过
  *       {@code PLAY_SPEED_MODIFIER} 将播放速度乘以 {@link CrashSources#getPlaySpeed} 后经 {@link CrashDash#limitSpeed}
  *       限制单 tick 最大位移。</li>
- *   <li>⚠ {@link DashAnimation} 必须关闭 {@code MOVE_ON_LINK}（防止过渡帧额外追加位移）、{@code AFFECT_SPEED}（防止疾跑
- *       或药水倍乘冲刺距离）并开启 {@code STOP_MOVEMENT} 与 {@code REMOVE_DELTA_MOVEMENT}（清除起跳或疾跑残留惯性），且
- *       在构建过渡链接阶段（{@code prevElapsedTime != elapsedTime}）原样返回基准速度以确保动画从第 0 秒起播，从而保证实
- *       际冲刺距离严格等于 {@link CrashSources#getTravel} 并与服务端清障通道对齐。</li>
+ *   <li>⚠ {@link DashAnimation} 必须关闭 {@code MOVE_ON_LINK}（防止过渡帧额外追加位移）、{@code AFFECT_SPEED}（防止疾
+ *       跑或药水倍乘冲刺距离）并开启 {@code STOP_MOVEMENT} 与 {@code REMOVE_DELTA_MOVEMENT}（清除起跳或疾跑残留惯性），
+ *       且在构建过渡链接阶段（{@code prevElapsedTime != elapsedTime}）原样返回基准速度以确保动画从第 0 秒起播，从而保证
+ *       实际冲刺距离严格等于 {@link CrashSources#getTravel} 并与服务端清障通道对齐。</li>
  *   <li>全身动作动画：蓄力蛊[Store Strength Gu]原地蓄力调用 {@link #holdCharge}（锁定移动转向并禁止连击与技能）、出拳调
  *       用 {@link #strikeCharge}、中断调用 {@link #cancelCharge}；二段飞行[Second-Stage Flight]循环
  *       （{@link #getSecondStageFlightLoop}）固定头部旋转，撞墙时由服务端调用 {@link #crashFlight} 播放反弹主帧动画并短
  *       暂冻结常态动作切换；坠击下落循环（{@link #getPlungeFall}）在落差达标落地时由服务端调用 {@link #landPlunge} 播放
  *       落地主帧动画，在前 {@link #PLUNGE_LAND_LOCK} 秒内锁定移动与攻击。</li>
  *   <li>上半身叠加动画：护盾展开（{@link #raiseShield}）、投射物挥臂（{@link #throwProjectile}，上一个挥臂片段还没播完
- *       就按横扫、左直拳、右直拳续接，播完则从横扫重来，窗口取片段自身时长）与凡蛊通用伸手催动（{@link #useGu}）均配置在
- *       {@code HIGH} 叠加层与 {@code chest_arms} 遮罩下，仅通过 {@code playAnimationInClientSide} 下发给可见客户端而不
- *       进入服务端单轨动画器，以免打断正在执行的全身动作。</li>
+ *       就按横扫、左直拳、右直拳续接，播完则从横扫重来，窗口取片段自身时长）与凡蛊通用伸手催动（{@link #useGu}）均配置
+ *       在 {@code HIGH} 叠加层与 {@code chest_arms} 遮罩下，仅通过 {@code playAnimationInClientSide} 下发给可见客户端而
+ *       不进入服务端单轨动画器，以免打断正在执行的全身动作。</li>
  *   <li>{@link #playsReach} 负责过滤通用伸手动画：同一游戏刻已播放护盾或投掷专属动画（记录在 {@link #ownClips}）、处于
  *       打坐状态（{@link #isMeditating}）或由自动催动触发（{@link AutoUse#isStarting}）时均跳过通用伸手。</li>
- *   <li>打坐、可移动蓄力与炼化循环：{@link #isMeditating} 在温养[Nourish]空窍、开窍[Awakening]仪式定身或
- *       灌注类蛊[Channeled Gu]注入真元时为真，由服务端每刻调用 {@link #tickMeditation} 检测状态翻转并广播入座
+ *   <li>打坐、可移动蓄力与炼化循环：{@link #isMeditating} 在温养[Nourish]空窍、开窍[Awakening]仪式定身或灌注类蛊
+ *       [Channeled Gu]注入真元时为真，由服务端每刻调用 {@link #tickMeditation} 检测状态翻转并广播入座
  *       （{@code meditate_sit}）与起身（{@code meditate_stand}）主帧动画；惯力蛊[Habitual Strength Gu]可移动蓄力
  *       （{@link #getChargeHoldMove}，期间由 {@link #onComboAttack} 拦截普通连击）与野生蛊炼化持握
  *       （{@link #getRefineLoop}）则由客户端直接映射为上半身合成层循环。</li>

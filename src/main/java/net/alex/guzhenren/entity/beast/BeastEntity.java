@@ -27,9 +27,9 @@ import software.bernie.geckolib.animation.RawAnimation;
  *       退、重击推进（含命中帧与位移物理）及动画名、是否主动索敌、白天环境动作的相对权重。</li>
  *   <li>渲染剔除框按子类额外加高加宽，防止人立拍击与甩尾被视锥裁剪，且仅在碰撞箱实例变化时重算；{@link #canSwipe} 封装
  *       挥击的公共前提（触及距离内、冷却完毕且视线可见）。</li>
- *   <li>⚠ {@link HuntGoal} 无条件注册，因为 {@code registerGoals} 在 {@code Mob} 构造器内、子类字段（如熊的种类）赋值前
- *       运行，是否主动索敌改在每 tick 的 {@link #isActiveHunter} 中判定；环境姿势下进入交战时直接切入战斗，不播放起身过
- *       渡。</li>
+ *   <li>⚠ {@link HuntGoal} 无条件注册，因为 {@code registerGoals} 在 {@code Mob} 构造器内、子类字段（如熊的种类）赋值
+ *       前运行，是否主动索敌改在每 tick 的 {@link #isActiveHunter} 中判定；环境姿势下进入交战时直接切入战斗，不播放起身
+ *       过渡。</li>
  *   <li>首次锁定目标时以吼叫宣告，但不打断进行中的动作；{@link Action#isCombat} 涵盖攻击、吼叫、受击与死亡四类不可被受
  *       击或发现猎物打断的姿势，由于受击姿势长于原版 10 tick 无敌帧，受击中不重置姿势以免被连续命中锁死在硬直；受击方向
  *       按攻击者相对朝向选择：攻击者在左侧时头部偏右，播放 {@code hurt_right}，反之播放 {@code hurt_left}。</li>

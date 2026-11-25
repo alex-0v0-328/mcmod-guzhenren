@@ -44,10 +44,6 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
  *       {@link #exitFallbackRevokesFlight}：无返回记录的退出不留飞行授权；{@link #tickOutsideTyhRevokesFlight}：
  *       经其他途径离开（原版 {@code /tp}、其他模组）下一 tick 收回。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

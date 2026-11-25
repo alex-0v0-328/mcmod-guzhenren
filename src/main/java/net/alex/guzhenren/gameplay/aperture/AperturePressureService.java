@@ -22,16 +22,16 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>仅身怀十绝体且下标为 {@link ApertureData#PRIMARY} 的空窍会产生压力，其余情况调用均为空操作。</li>
  *   <li>{@link #tick} 每分钟（按 {@code tickCount}）增加 {@code PRESSURE_PER_MINUTE}，到达
- *       {@link Aperture#PRESSURE_COUNTDOWN_START} 时写入 {@code gameTime + COUNTDOWN_TICKS} 截止时刻；到期后置为满压（
- *       {@link #isFull}），由心跳致死检查调 {@link #detonate}。分钟步进与倒计时均按世界真实 tick 计，不受
+ *       {@link Aperture#PRESSURE_COUNTDOWN_START} 时写入 {@code gameTime + COUNTDOWN_TICKS} 截止时刻；到期后置为满压
+ *       （{@link #isFull}），由心跳致死检查调 {@link #detonate}。分钟步进与倒计时均按世界真实 tick 计，不受
  *       {@code TimeFlow} 自身时间倍率影响。</li>
  *   <li>{@link #detonate} 在当前 tick 立即结算范围内实体灾难伤害与玩家自身致死，地形挖坑则在通过
  *       {@code ModEvents.canGrief} 检查后交给 {@link AperturePressureExplosionTask#start} 分 tick 推进（若禁止破坏地
  *       形，伤害与自爆致死照常生效）。</li>
- *   <li>⚠ 压力变更通过 {@code setState} 直接写入 {@link PlayerData}，绕过 {@link ApertureService} 的 {@code store}，
- *       避免每次涨压都触发最大生命值刷新。</li>
- *   <li>⚠ 压力字段位于 {@link Aperture} 且温养、冲刷窍壁均需泄压，故本服务留在 {@code gameplay.aperture} 包内，仅单向调
- *       用 {@code pressure} 子包的 {@link AperturePressureExplosionTask#start}，避免父子包循环依赖。</li>
+ *   <li>⚠ 压力变更通过 {@code setState} 直接写入 {@link PlayerData}，绕过 {@link ApertureService} 的 {@code store}，避
+ *       免每次涨压都触发最大生命值刷新。</li>
+ *   <li>⚠ 压力字段位于 {@link Aperture} 且温养、冲刷窍壁均需泄压，故本服务留在 {@code gameplay.aperture} 包内，仅单向
+ *       调用 {@code pressure} 子包的 {@link AperturePressureExplosionTask#start}，避免父子包循环依赖。</li>
  * </ul>
  */
 

@@ -31,7 +31,7 @@ import net.minecraft.world.item.ItemStack;
  *       单步灌注的封顶值。</li>
  *   <li>{@link #isShortOfUse} 判断当前饱食是否低于本次催动所需（含增幅倍数），作为触发强行催动[Forced Use]（
  *       {@link GuForcedUse}）的判据；{@link #isSpendForced} 负责实际扣量并返回是否属于强行扣减；搭档扣量（
- *       {@link #isSpendForcedAsPartner}）沿用空条即力竭的判定规则。</li>
+ *       {@link #isSpendForcedAsPartner}）所支援的催动已通过主蛊自检且无独立警告，因此仅在空条时判定为强行扣减。</li>
  *   <li>⚠ 「饥饿」特指下次跨日扣量时将饿死的状态：判定阈值为每日扣量（{@code perDay}）而非单顿食量；只有
  *       {@code HungerBar} 会产生饥饿状态，提示警告由 {@code TendedGuItem.feedAndWarn} 负责。</li>
  *   <li>本文件有意超过 300 行：密封接口与其三个 {@code record} 实现共用背包扫描与单位换算辅助逻辑，并排维护可读性最
@@ -100,7 +100,6 @@ public sealed interface GuHunger {
         @Override
         public boolean isHungry(ItemStack stack) { return getHunger(stack) <= perDay; }
 
-        // Every meal mends first, then fills the bar, and only a bar with room eats.
         @Override
         public void feed(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
             if (getHunger(stack) >= max) return;
@@ -146,8 +145,6 @@ public sealed interface GuHunger {
             return forced;
         }
 
-        // A partner backs a use that already passed its own gate, with no warning of its own, so only an empty bar
-        // forces it.
         @Override
         public boolean isSpendForcedAsPartner(ItemStack stack) {
             boolean forced = getHunger(stack) <= 0;

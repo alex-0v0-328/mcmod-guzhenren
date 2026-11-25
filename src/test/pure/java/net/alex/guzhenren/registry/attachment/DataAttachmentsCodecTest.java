@@ -28,10 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * DataStreamCodecTest 未覆盖的记录附件流编解码往返：编码钉住实例，经独立重建编解码器逐字段解码再编码，断言整记录相等、
  * 缓冲区读空；空窍存储与附件默认值见 {@code DataAttachmentsCodecGameTests}（物品堆需注册表）。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class DataAttachmentsCodecTest {

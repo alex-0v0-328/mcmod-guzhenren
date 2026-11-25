@@ -20,8 +20,8 @@ import software.bernie.geckolib.animation.RawAnimation;
  *   <li>子类提供伤害数值、冷却列表（{@link #createCooldowns} 固定按「先冲撞、后掀击」顺序排列）、音效、基础属性与动画前
  *       缀；子类专属攻击（如大象的踩踏、鼻扫）经 {@link #tickSpeciesAttack} 推进时序，并可通过覆写
  *       {@link #getTossReach} 放宽掀击触及距离。</li>
- *   <li>⚠ 子类专属攻击枚举项（{@link Action#ATTACK_STOMP}、{@link Action#ATTACK_TRUNK}）必须追加在 {@link Action#DEATH}
- *       之后，以保证基础动作的网络同步序号稳定。</li>
+ *   <li>⚠ 子类专属攻击枚举项（{@link Action#ATTACK_STOMP}、{@link Action#ATTACK_TRUNK}）必须追加在
+ *       {@link Action#DEATH} 之后，以保证基础动作的网络同步序号稳定。</li>
  *   <li>冲撞在蓄力阶段始终朝向目标，蓄力结束瞬间才锁定冲刺方向；冲刺途中按每步实际位移路径执行扫掠检测（而非对角粗筛矩
  *       形），撞墙、前方失去地面或命中目标即刻终止；随机游荡走完后按概率进入吃草姿势，由 {@link StandStillGoal} 锁住移
  *       动，满 {@link #GRAZE_ACTION_TICKS} 或出现攻击目标时结束。</li>

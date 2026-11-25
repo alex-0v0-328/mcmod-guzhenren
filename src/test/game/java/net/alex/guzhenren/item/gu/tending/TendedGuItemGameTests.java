@@ -15,10 +15,6 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 真实 {@link ItemCooldowns} 的炼化后冷却：挡满结算窗口，不缩短更长冷却；需绑定注册表；窗口常量、时间戳算术见
  * {@code TendedGuItemTest}。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

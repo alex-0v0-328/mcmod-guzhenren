@@ -23,10 +23,6 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  * ModItems 注册的物品类别（测试运行时解析）：蛊 {@code MortalGuItem}、蛊材 {@code GuMaterialItem}、流体物品
  * （元泉[Spirit Spring]方块物品、纯水桶）、进度图标、杀招[Killing Move]书、书册、钢锭、钢块、知心草种子、黑土耕地；
  * 不钉总数：内容常增删，{@code WikiItemsGameTests} 已对到文档分组。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

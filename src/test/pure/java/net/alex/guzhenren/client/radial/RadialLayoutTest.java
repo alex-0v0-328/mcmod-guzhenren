@@ -6,10 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * {@link RadialLayout} 测试：扇区 0 朝上，其余在 GUI 坐标（y 向下）顺时针；边界居两中心正中；死区；单条目铺满整环。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class RadialLayoutTest {

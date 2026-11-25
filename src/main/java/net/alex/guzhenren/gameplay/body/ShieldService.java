@@ -28,7 +28,7 @@ import java.util.List;
  *   <li>{@link #guard} 在皮肤固定减伤之后、原版冰冻/头盔系数、无敌帧、护甲与抗性结算之前承接伤害，按由新到旧顺序扣减各
  *       层护盾；击穿所有层后将剩余伤害放行给原版后续结算。</li>
  *   <li>无敌帧窗口（{@link ShieldWindow}）内仅扣减超出该帧窗口已承受最大伤害的差额，使岩浆等每 tick 伤害在单次无敌帧内
- *       只扣一次护盾。</li>
+ *       只扣一次护盾；窗口到期刻在无敌帧结束后多留 1 tick，以便先于玩家 tick 的实体能对齐同一无敌帧。</li>
  *   <li>全额挡下伤害时取消事件并模拟原版盾牌格挡表现：不闪红、不播受伤音，照常开启受击无敌帧；带空间来源的攻击播放格挡
  *       音效并按 {@link #ATTACKER_KNOCKBACK} 击退近战攻击者，非霸体护盾自身承受 {@link #DEFENDER_KNOCKBACK} 击退（环境
  *       持续伤害静默吸收）。</li>
@@ -89,7 +89,6 @@ public final class ShieldService {
         Spent spent = up ? spend(player, due) : Spent.NONE;
         float rest = due - spent.taken();
         int frames = framed ? player.invulnerableTime : container.getPostAttackInvulnerabilityTicks();
-        // One tick past the frames: an entity ticking before the player meets them one tick later than one after.
         data.setShieldWindow(new ShieldWindow(Math.max(prior, hit), now + frames - FRAMES_OPEN_ABOVE + 1));
         if (rest > 0.0F) {
             container.setNewDamage(framed ? lastHurt + rest : rest);

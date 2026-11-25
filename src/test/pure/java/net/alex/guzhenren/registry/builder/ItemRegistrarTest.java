@@ -25,10 +25,6 @@ import org.junit.jupiter.api.Test;
 /**
  * {@link ItemRegistrar} 链的记录与拒绝：不启动，{@link UnboundItems} 的 holder 不查注册表，链可在物品注册表缺席时注册进
  * 真实 {@code DeferredRegister}；工厂从不调用；provider 是否逐字节写出原手写条目由 {@code runData} 证明。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class ItemRegistrarTest {

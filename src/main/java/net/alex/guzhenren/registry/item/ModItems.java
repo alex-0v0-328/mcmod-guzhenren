@@ -103,18 +103,19 @@ import org.jetbrains.annotations.Nullable;
  * 源。
  * <ul>
  *   <li>数值真值规则：各物品注册链的 {@link GuProperties} 或阶梯族辅助方法即为唯一权威数值（其他处副本若不一致以此为
- *       准，故本类有意超过 300 行）；真元消耗仅随转数 r 缩放，炼化固定为 {@value #REFINE_ESSENCE} × 8^(r-1)，连发月刃催
- *       动为 {@value #FREQUENT_USE_ESSENCE} × 8^(r-1)，其余付真元蛊为 {@value #INFREQUENT_USE_ESSENCE} × 8^(r-1)。</li>
+ *       准，故本类有意超过 300 行）；真元消耗仅随转数 r 缩放，炼化固定为 {@value #REFINE_ESSENCE} × 8^(r-1)，连发月刃
+ *       催动为 {@value #FREQUENT_USE_ESSENCE} × 8^(r-1)，其余付真元蛊为 {@value #INFREQUENT_USE_ESSENCE} × 8^(r-1)。
+ *       </li>
  *   <li>饱食上限规则：{@link #createRankedProperties} 按次付费，上限为 2^(rank+1) 次 × {@value #HUNGER_PER_USE} 加上 2
  *       天缓冲（每天 {@value #HUNGER_PER_DAY}）；{@link #createChannelProperties} 用于灌注类蛊[Channeled Gu]，每轮耗力
  *       道 {@value #STRENGTH_ROUND_ESSENCE} × 10^(r-1) 或炼体 {@value #TEMPERING_ROUND_ESSENCE} × 10^(r-1)（每
- *       {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1) 计 1 饱食），一二转按 1 轮、三转起按 3 轮外加同等缓冲计算；月刃蛊
- *       的 {@value #MOON_BLADE_COOLDOWN_TICKS} 刻间隔为自身连发节奏而非冷却遮罩。</li>
+ *       {@value #ROUND_ESSENCE_PER_HUNGER} × 10^(r-1) 计 1 饱食），一二转按 1 轮、三转起按 3 轮外加同等缓冲计算；月刃
+ *       蛊的 {@value #MOON_BLADE_COOLDOWN_TICKS} 刻间隔为自身连发节奏而非冷却遮罩。</li>
  *   <li>注册链与命名：每件物品通过 {@link ItemRegistrar} 链依次绑定工厂、简体中文名称、模型、标签与可选创造栏（注册顺序
  *       即创造栏展示顺序）；{@link #findGuWith} 用于由流派效果反查可产生对应肉身状态的蛊。</li>
  *   <li>⚠ 蛊虫区段必须严格按 {@link GuPath} 顺序组织（一道一区、道内按分支或蛊族划分），蛊材、书册与图标收尾；物品 ID
- *       须与 Java 常量名及贴图文件名一致，蛊虫默认带转数后缀（{@code _1} 至 {@code _5}，唯寿蛊[Lifespan Gu]、
- *       希望蛊[Hope Gu]、舍利蛊[Relics Gu]不带后缀），蛊材用裸 ID 以跨转通用。</li>
+ *       须与 Java 常量名及贴图文件名一致，蛊虫默认带转数后缀（{@code _1} 至 {@code _5}，唯寿蛊[Lifespan Gu]、希望蛊
+ *       [Hope Gu]、舍利蛊[Relics Gu]不带后缀），蛊材用裸 ID 以跨转通用。</li>
  *   <li>特殊物品映射：{@link #SPIRIT_SPRING} 为元泉[Spirit Spring]的 {@code BlockItem}（与方块共用翻译键并平铺流体静止
  *       贴图）；{@link #INTIMATE_GRASS_SEEDS} 为 {@link ItemNameBlockItem}（名字归物品，作物方块另有独立键）；
  *       {@link #BLACK_SOIL_FARMLAND} 仅进创造栏，生存通过腐泥冻土（{@link RottenFrozenMudItem}）右键转化；

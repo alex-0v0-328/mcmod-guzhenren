@@ -48,8 +48,10 @@ import org.jetbrains.annotations.Nullable;
  *       {@code Util.backgroundExecutor()} 异步执行（地形四步并行，地物装饰逐块串行）。</li>
  *   <li>私有 {@code ScratchHolder} 对任意请求状态直接返回内存中的临时区块而不触发区块调度；生成的裸区块仅含方块状态，不
  *       含光照、实体、计划刻或方块实体。</li>
- *   <li>⚠ 底层世界生成管线（{@code GenerationChunkHolder}、{@code ChunkStep}、{@code WorldGenContext}）仅封装在本类内；
- *       生成结果反映当前种子与当前世界生成器配置，若存档中途更换过地形模组则会还原出新生成器的地形。</li>
+ *   <li>⚠ 底层世界生成管线（{@code GenerationChunkHolder}、{@code ChunkStep}、{@code WorldGenContext}）仅封装在本类
+ *       内；生成结果反映当前种子与当前世界生成器配置，若存档中途更换过地形模组则会还原出新生成器的地形。</li>
+ *   <li>⚠ {@code layOut} 为 {@code WorldGenContext} 的主线程邮箱传入 {@code null}，因直至 {@code FEATURES} 的步骤均不
+ *       向该邮箱投递任务。</li>
  * </ul>
  */
 
@@ -96,7 +98,6 @@ public final class ChunkOriginGenerator {
                 scratch.put(ChunkPos.asLong(x, z), chunk);
             }
         }
-        // No step up to FEATURES posts to the main-thread mailbox.
         //noinspection DataFlowIssue
         WorldGenContext context = new WorldGenContext(level, level.getChunkSource().getGenerator(),
                 level.getStructureManager(), level.getChunkSource().getLightEngine(), null);

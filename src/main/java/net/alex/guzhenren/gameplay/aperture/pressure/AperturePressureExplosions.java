@@ -17,10 +17,10 @@ import org.jetbrains.annotations.NotNull;
  *   <li>存档文件所在维度即爆炸所属维度；每场爆炸的具体阶段与游标由 {@link AperturePressureExplosionTask} 读写。</li>
  *   <li>{@link SavedData.Factory} 构造时不带维度上下文，反序列化先暂存原始列表，在首次调用 {@link #get} 时才绑定
  *       {@link ServerLevel} 并还原任务，因此重启后首个服务端 tick 即可无缝续挖。</li>
- *   <li>⚠ 不设全局静态列表，所有任务随维度 {@link SavedData} 生命周期存亡，单人切换存档不会残留过期维度引用；停服保存晚
- *       于 {@code ServerStoppingEvent}，进行中的任务会自动落盘。</li>
- *   <li>⚠ 存档体积随边缘列表（{@code rim}）增长：最大半径 112 时至多约 55 万个边缘坐标（压缩前约 4.4 MB），仅在挖掘未完
- *       成期间写入磁盘。</li>
+ *   <li>⚠ 不设全局静态列表，所有任务随维度 {@link SavedData} 生命周期存亡，单人切换存档不会残留过期维度引用；停服保存
+ *       晚于 {@code ServerStoppingEvent}，进行中的任务会自动落盘。</li>
+ *   <li>⚠ 存档体积随边缘列表（{@code rim}）增长：最大半径 112 时至多约 55 万个边缘坐标（压缩前约 4.4 MB），仅在挖掘未
+ *       完成期间写入磁盘。</li>
  *   <li>{@link #tickAll} 让所有维度的活动爆炸共享每 tick {@link #TICK_BUDGET_NANOS}（10 ms）时间预算，每处理
  *       {@link #CLOCK_CHECK_INTERVAL} 个位置读一次纳秒时钟；按维度遍历顺序与任务启动先后依次推进。传入 {@code 0} 预算时
  *       在首次查钟前仍会推进 {@code CLOCK_CHECK_INTERVAL - 1} 个位置，供 GameTest 定量步进。</li>

@@ -10,8 +10,8 @@ import net.minecraft.util.StringRepresentable;
  *   <li>封闭词汇枚举，其他模组不得扩展常量，因此按流派分键的映射一律使用 {@code EnumMap<GuPath, ...>}。</li>
  *   <li>⚠ 切勿仅凭英文单词猜测流派对应关系：宇道[Space Path]（{@link #SPACE}）与宙道[Time Path]（{@link #TIME}）同时存
  *       在，混淆两者不会触发编译报错，只会静默指向错误的流派。</li>
- *   <li>⚠ 代码命名中 {@code refine} 指炼化蛊虫（认主），{@code refinement} 指炼蛊（合成升转）；{@link #REFINEMENT} 已占
- *       用「炼道」语义，其他包避免单独以裸 {@code Refinement} 命名类。</li>
+ *   <li>⚠ 代码命名中 {@code refine} 指炼化蛊虫（认主），{@code refinement} 指炼蛊（合成升转）；{@link #REFINEMENT} 已
+ *       占用「炼道」语义，其他包避免单独以裸 {@code Refinement} 命名类。</li>
  * </ul>
  */
 

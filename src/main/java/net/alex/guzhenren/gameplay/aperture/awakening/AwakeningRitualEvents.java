@@ -10,13 +10,13 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * 开窍[Awakening]仪式事件转发入口：服务端玩家每 tick 末尾推进 {@link AwakeningRitualService#tick}，死亡、切换维度、登
- * 出或重登时调 {@link AwakeningRitualService#finish} 立即结清未完仪式。
+ * 开窍[Awakening]仪式事件转发入口：服务端玩家每 tick 末尾推进 {@link AwakeningRitualService#tick}，死亡、切换维度、登出
+ * 或重登时调 {@link AwakeningRitualService#finish} 立即结清未完仪式。
  * <ul>
- *   <li>⚠ 死亡事件先于玩家克隆触发：未开启死亡不掉落（{@code keepInventory}）时，仪式中死亡会先补完开窍，再在克隆时按已
- *       开窍玩家的统一规则重置。</li>
- *   <li>⚠ {@link #onDeath} 必须使用 {@link EventPriority#LOWEST} 最后执行，确保被不死图腾或其他模组取消的死亡不会误中断
- *       正在进行的仪式。</li>
+ *   <li>⚠ 死亡事件先于玩家克隆触发：未开启死亡不掉落（{@code keepInventory}）时，仪式中死亡会先补完开窍，再在克隆时按
+ *       已开窍玩家的统一规则重置。</li>
+ *   <li>⚠ {@link #onDeath} 必须使用 {@link EventPriority#LOWEST} 最后执行，确保被不死图腾或其他模组取消的死亡不会误中
+ *       断正在进行的仪式。</li>
  * </ul>
  */
 
@@ -30,7 +30,6 @@ public final class AwakeningRitualEvents {
         if (event.getEntity() instanceof ServerPlayer player) AwakeningRitualService.tick(player);
     }
 
-    // Last, so a handler that cancels the death (a revive) leaves the ritual running.
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) AwakeningRitualService.finish(player);

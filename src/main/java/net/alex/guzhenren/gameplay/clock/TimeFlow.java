@@ -17,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>维度时间倍率取自玩家所在维度的 {@link ModDimensions.AnchoredDimension#timeRate()}（可小于 {@code 1}）。</li>
  *   <li>⚠ 业务调用处只允许按语义选用以下三个换算方法之一，切勿自行读取倍率手写乘除（仅界面 {@code InfoModel} 可直接读
  *       {@link #getSelfRate} 展示）：</li>
- *   <li>⚠ {@link #shortenWait}：缩短蓄力、冷却或仪式等等待时长，结果下限锁为 {@code 1} tick，防止高倍率下除成 {@code 0}
- *       变成瞬发。</li>
+ *   <li>⚠ {@link #shortenWait}：缩短蓄力、冷却或仪式等等待时长，结果下限锁为 {@code 1} tick，防止高倍率下除成
+ *       {@code 0} 变成瞬发。</li>
  *   <li>⚠ {@link #scale(Player, long)}：放大每秒心跳的产出与消耗（真元、念头、寿元），因此自身时间加速时寿元流逝同步加
  *       快。</li>
  *   <li>{@link #getSteps}：计算温养[Nourish]、炼蛊等进度与扣费耦合的系统在本拍应执行的整步数，避免对进度和费用分别取整
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>非整数倍率对整数的缩放（{@link #scale(double, long, RandomSource)} 与 {@link #getSteps(double, RandomSource)}）
  *       按小数部分作概率进位以保持数学期望精确，整数倍率不消耗随机数；{@link #scale(double, double)} 保留浮点数供调用方
  *       自行累积余数（如真元回复的 {@code essenceCarry}）。</li>
- *   <li>每秒心跳通过 {@link Beat} 在拍初采样一次倍率；纯算术重载方法直接接收 {@code rate}，供无世界环境的单元测试调
- *       用。</li>
+ *   <li>每秒心跳通过 {@link Beat} 在拍初采样一次倍率；纯算术重载方法直接接收 {@code rate}，供无世界环境的单元测试调用。
+ *       </li>
  * </ul>
  */
 

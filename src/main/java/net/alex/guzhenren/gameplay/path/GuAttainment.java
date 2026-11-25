@@ -10,8 +10,8 @@ import net.minecraft.util.StringRepresentable;
  * <ul>
  *   <li>每条流派在 {@link PathEntry} 中记录一档造诣；{@link #shift} 自动夹取在枚举首尾之间，外部调用方无需直接操作
  *       {@code ordinal()}。</li>
- *   <li>⚠ 各档造诣提供的炼蛊成功率加成（{@link #getRefinementBonus}）唯一定义在本枚举中，切勿在外部业务代码中重复维护数
- *       值表。</li>
+ *   <li>⚠ 各档造诣提供的炼蛊成功率加成（{@link #getRefinementBonus}）唯一定义在本枚举中，切勿在外部业务代码中重复维护
+ *       数值表。</li>
  * </ul>
  */
 

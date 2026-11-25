@@ -41,26 +41,25 @@ import org.jetbrains.annotations.Nullable;
  * {@code guworld:soulsunder_mountain} 定位；九转魂道秘境（{@link #rank}、{@link #path}）。
  * <ul>
  *   <li>范围为山心水平 {@value #RADIUS} 格圆柱。玩家每 10 秒（{@code tickCount} 为 {@value #SOUL_DRAIN_INTERVAL_TICKS}
- *       刻整倍的心跳）扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由 {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；
- *       扣之前发 {@link SoulsunderShakeEvent}，被取消就不扣。其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
+ *       刻整倍的心跳）扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由 {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；扣
+ *       之前发 {@link SoulsunderShakeEvent}，被取消就不扣。其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
  *       {@link ModDamageTypes#SOULSUNDER}（穿甲、无击退），不刻更新的区块里的生物不扣。创造、旁观模式与
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 免疫。</li>
- *   <li>范围内生命上限不低于 {@value #MIN_MAX_HEALTH} 的生物死亡后，{@link #leaveGutsStone} 经 {@link #growGutsStone} 在山心
- *       {@value #GUTS_STONE_RADIUS} 格（不超过范围半径）内随机挑至多 {@value #GROW_ATTEMPTS} 列：须已加载、顶层运动阻挡方块为荡魂山石且其上
- *       可替换，才放一块胆石并记入 {@link GutsStones}；全数落空就不长。先有一半概率改为叠到随机一个已登记、未满
- *       {@value GutsStones#MAX_STONES} 块的格子上（{@link #stackGutsStone}），格子未加载或已不是胆石就退回找新位置。同维
- *       度胆石满 {@value #GUTS_STONE_CAP} 块（按块数算）不再长。</li>
+ *   <li>范围内生命上限不低于 {@value #MIN_MAX_HEALTH} 的生物死亡后，{@link #leaveGutsStone} 经 {@link #growGutsStone}
+ *       在山心 {@value #GUTS_STONE_RADIUS} 格（不超过范围半径）内随机挑至多 {@value #GROW_ATTEMPTS} 列：须已加载、顶层
+ *       运动阻挡方块为荡魂山石且其上可替换，才放一块胆石并记入 {@link GutsStones}；全数落空就不长。先有一半概率改为叠到
+ *       随机一个已登记、未满 {@value GutsStones#MAX_STONES} 块的格子上（{@link #stackGutsStone}），格子未加载或已不是胆
+ *       石就退回找新位置。同维度胆石满 {@value #GUTS_STONE_CAP} 块（按块数算）不再长。</li>
  *   <li>一转胆识蛊[Guts Gu]只在范围内能催动（未生成荡魂山时哪里都不能）。山已解出时，玩家每秒在范围外（含身处其它维度）
- *       就由 {@link #dissolveGutsGu} 清掉背包、光标、2×2 合成格与空窍存储（含本命槽）里的全部胆识蛊并提示一次（创造、旁观
- *       模式不清）；掉在范围外的胆识蛊
- *       由物品自身每秒检查 {@link #dissolvesAt} 后消失。箱子、漏斗等容器不管，收纳袋、潜影盒装不进。判定统一走
- *       {@link #isGutsGu}。</li>
+ *       就由 {@link #dissolveGutsGu} 清掉背包、光标、2×2 合成格与空窍存储（含本命槽）里的全部胆识蛊并提示一次（创造、
+ *       旁观模式不清）；掉在范围外的胆识蛊由物品自身每秒检查 {@link #dissolvesAt} 后消失。箱子、漏斗等容器不管，收纳
+ *       袋、潜影盒装不进。判定统一走 {@link #isGutsGu}。</li>
  *   <li>⚠ 性能：区域伤害每秒一次，只在 {@link SecretRealms} 判定附近有玩家后查实体；长胆石每次死亡至多
  *       {@value #GROW_ATTEMPTS} 次高度图查询，不扫描山体、不加载区块。</li>
- *   <li>{@link #damageMobs} 与 {@link #growGutsStone} 接受显式范围，GameTest 用小半径调用，避免波及并排运行的其它测
- *       试。</li>
- *   <li>⚠ 胆石方块以 {@code Block} 静态类型取用，不调 {@code GutsStoneBlock} 的方法：后者删坐标要回调 {@link GutsStones}，
- *       反向调用会构成 {@code ArchitectureTest} 禁止的 block↔gameplay 包循环。</li>
+ *   <li>{@link #damageMobs} 与 {@link #growGutsStone} 接受显式范围，GameTest 用小半径调用，避免波及并排运行的其它测试。
+ *       </li>
+ *   <li>⚠ 胆石方块以 {@code Block} 静态类型取用，不调 {@code GutsStoneBlock} 的方法：后者删坐标要回调
+ *       {@link GutsStones}，反向调用会构成 {@code ArchitectureTest} 禁止的 block↔gameplay 包循环。</li>
  * </ul>
  */
 

@@ -39,16 +39,16 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *       {@link #FORWARD_OFFSET} 格，首只居右、次只居左，横向各距 {@link #SIDE_OFFSET} 格；后层位于主人身后，共
  *       {@link #FAN_ROWS} 排成对槽位（{@link Slot#getRow} 为自扇形顶点数起的排号 1～4），构成自顶点向下张开的扇形，越往
  *       下越靠外越低，底排离地 {@link #FAN_BASE_HEIGHT} 格，且无扇形槽正对地面槽正后方，便于第三人称看清整把扇形。</li>
- *   <li>{@link #show} 按单次收尾抽中的兽种列表更新：已在场的同兽种留在原槽续接（重置寿命而不重新生成），新抽中的兽种按声明
- *       序填入首个空槽（先地面两槽，再扇形底排至顶点），未抽中的在场虚影立即移除；不可显形的兽种
+ *   <li>{@link #show} 按单次收尾抽中的兽种列表更新：已在场的同兽种留在原槽续接（重置寿命而不重新生成），新抽中的兽种按
+ *       声明序填入首个空槽（先地面两槽，再扇形底排至顶点），未抽中的在场虚影立即移除；不可显形的兽种
  *       （{@code BeastStrengthFamily#canManifest}）直接跳过、不占槽位；续接时递增同步计数器 {@code RENEWALS}，客户端据
  *       此重置出生 tick。</li>
  *   <li>出现与消失仅改渲染变换（{@link #getDrift}、{@link #getScale}、{@link #getFade}、{@link #getGlow}），实体坐标始
  *       终留在槽位：出现历时 {@link #APPEAR_TICKS}，每个槽位按声明序顺延 1 tick（出场动画同步推迟），自槽位后方
  *       {@link #APPEAR_BACK} 格滑入并淡入，缩放由 {@link #APPEAR_SCALE} 升至 {@link #APPEAR_OVERSHOOT} 再回落到 1；最后
  *       {@link #VANISH_TICKS} 收向主人脚部上方 {@link #BODY_HEIGHT} 处，缩至 {@link #VANISH_SCALE} 并淡出，发光强度升至
- *       {@link #GLOW_PEAK} 倍；续接不重播出现动画，若在收拢途中续接则用 {@link #VANISH_RETURN_TICKS} 平滑退回槽
- *       位。</li>
+ *       {@link #GLOW_PEAK} 倍；续接不重播出现动画，若在收拢途中续接则用 {@link #VANISH_RETURN_TICKS} 平滑退回槽位。
+ *       </li>
  *   <li>纯视觉实体：无物理碰撞、不可被选中或攻击、不拦截弹射物、不存档；用命令直接召唤因无主人会在首 tick 自毁；两端每
  *       tick 按主人实时位置摆放，客户端忽略服务端位置插值；超时或主人跨维度、死亡、下线时立即移除。</li>
  *   <li>本类有意超过 300 行：槽位几何与出现/消失曲线共用同一组同步字段与 tick 状态，另有约 30 行纯视觉实体的原版方法覆

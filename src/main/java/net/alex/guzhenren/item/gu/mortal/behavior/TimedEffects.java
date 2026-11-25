@@ -51,10 +51,10 @@ import org.jetbrains.annotations.Nullable;
  *       数上限）；更高等级的同种增益（如高转冲撞蛊）会直接替换旧效果及其道痕点数；若当次催动由功倍蛊[Amplify Effect Gu]
  *       增幅，{@link #markAmplified} 会将功倍蛊的律道点数补齐到被增幅效果上（重复增幅只补差额、不叠加超出单份功倍蛊点
  *       数）。</li>
- *   <li>⚠ {@code grant*} 系列方法仅写入 {@link PathEffectService}，将效果立即投影为原版药水图标等表现由调用方负
- *       责。</li>
- *   <li>⚠ 当限时皮或天蓬护盾效果因非替换原因（{@code Reason.REPLACED} 以外）结束时，{@link #onEnded} 仅在玩家当前皮肤或
- *       护盾仍归属该效果时才执行清除，避免触发事件死循环或误清已切换的新状态。</li>
+ *   <li>⚠ {@code grant*} 系列方法仅写入 {@link PathEffectService}，将效果立即投影为原版药水图标等表现由调用方负责。
+ *       </li>
+ *   <li>⚠ 当限时皮或天蓬护盾效果因非替换原因（{@code Reason.REPLACED} 以外）结束时，{@link #onEnded} 仅在玩家当前皮肤
+ *       或护盾仍归属该效果时才执行清除，避免触发事件死循环或误清已切换的新状态。</li>
  * </ul>
  */
 

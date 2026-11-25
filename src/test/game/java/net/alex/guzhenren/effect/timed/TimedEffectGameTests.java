@@ -11,10 +11,6 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertEquals;
 /**
  * 需构造 {@code MobEffect}（要求效果注册表已绑定）的限时蛊效果：恶念蛊[Malicious Thought Gu]脉冲次数；常量见
  * {@code MaliciousThoughtGuEffectTest}。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

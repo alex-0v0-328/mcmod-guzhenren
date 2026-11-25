@@ -7,10 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * {@link GuChanneling} 定量算术，倍率 1 与 2：真元池节奏每步取池 1/9 至 1/2，一周期付 8/9；蛊节奏每步一轮的 1/8；下限、
  * 轮上限、饱食[Hunger]上限；创造模式真元池。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class GuChannelingTest {

@@ -27,10 +27,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  *   <li>NPC 有意浮在地面上方 2 格，脚下无地也须定住，同宝黄天虚空；模拟玩家无重力放在旁边。</li>
  *   <li>交易直接调 {@code clickMenuButton}，即原版菜单按钮包的入口；模拟玩家读不到动作栏，改读背包。</li>
  * </ul>
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

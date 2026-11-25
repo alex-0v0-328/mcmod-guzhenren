@@ -37,10 +37,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *       种植（{@link IntimateGrassCropBlock}）。</li>
  *   <li>{@link #BLACK_SOIL_FARMLAND} 与 {@link #STEEL_BLOCK}：黑土耕地（{@link BlackSoilFarmlandBlock}）沿用原版耕地属
  *       性并由腐泥冻土右键转化（挖毁掉落泥土，{@code BlockItem} 仅进创造栏）；钢块则沿用铁块属性与 9 个钢锭互合。</li>
- *   <li>{@link #SOULSUNDER_STONE} 与 {@link #GUTS_STONE}（荡魂山石与胆石[Guts Stone]）：前者硬度 -1、爆炸抗性同基岩、禁止
- *       刷怪、活塞推不动、无战利品表，后者为非整格小石块、敲碎经战利品表掉胆识蛊，{@code forceSolidOn} 使流体冲不走、
- *       只能敲；二者都无 {@code BlockItem}，由
- *       {@code gameplay.secretrealm} 与 Gu World 放置。</li>
+ *   <li>{@link #SOULSUNDER_STONE} 与 {@link #GUTS_STONE}（荡魂山石与胆石[Guts Stone]）：前者硬度 -1、爆炸抗性同基岩、禁
+ *       止刷怪、活塞推不动、无战利品表，后者为非整格小石块、敲碎经战利品表掉胆识蛊，{@code forceSolidOn} 使流体冲不走、
+ *       只能敲；二者都无 {@code BlockItem}，由 {@code gameplay.secretrealm} 与 Gu World 放置。</li>
  * </ul>
  */
 

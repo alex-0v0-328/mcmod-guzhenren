@@ -21,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
  * 力道综合结算服务：计算肉身承受力、总力量点[Strength Points]、结算力量点与永久力量的准入。
  * <ul>
  *   <li>纯只读静态服务：{@link #getPermanentPoints} 从永久兽力[Beast Strength]与人力流派效果的道痕[Path Marks]点换算永
- *       久力量点，{@link #getAmplifiers} 采集限时兽力与各 {@link StrengthAmplifierProvider} 增幅；{@link #snapshot} 一次
- *       性采集并返回 {@link StrengthSnapshot}。</li>
- *   <li>承受力 {@link #getCapacity} = 基础承受力 {@link #getBaseCapacity}（体质的未开窍起点 + 每转增量 × 转数序号，
- *       数值见 {@link ExtremePhysique}）+ 皮、筋、骨炼体加成 + 永久兽力承受力加成（如石龟之力，固定加算）；增幅与全力以赴蛊
- *       [All-Out Effort Gu]都不加承受力。</li>
+ *       久力量点，{@link #getAmplifiers} 采集限时兽力与各 {@link StrengthAmplifierProvider} 增幅；{@link #snapshot} 一
+ *       次性采集并返回 {@link StrengthSnapshot}。</li>
+ *   <li>承受力 {@link #getCapacity} = 基础承受力 {@link #getBaseCapacity}（体质的未开窍起点 + 每转增量 × 转数序号，数
+ *       值见 {@link ExtremePhysique}）+ 皮、筋、骨炼体加成 + 永久兽力承受力加成（如石龟之力，固定加算）；增幅与全力以赴
+ *       蛊[All-Out Effort Gu]都不加承受力。</li>
  *   <li>结算力量点 {@link #getSettledPoints} = {@code floor((总力量点 + 暴击兽种点数) × Π 伤害倍率)}：暴击兽种点数由
  *       {@link ComboRound#getCritPoints} 提供（仅服务端玩家、仅收尾招进行中），伤害倍率为蓄力与苦力。点数全额发挥、不按
  *       承受力截断，超出承受力的部分 {@link #getOverloadPoints} 由 {@link BodyOverload} 结算过载反噬。</li>
@@ -33,8 +33,8 @@ import org.jetbrains.annotations.NotNull;
  *       （{@link StrengthAmplifier#damagePercent}），换打法的在出手处乘远程系数（不进过载）。</li>
  *   <li>准入 {@link #canAdmit}：永久兽力与永久人力共用，已有永久点数（扣除被替换的旧兽力）加新增点数不得超过承受力；增
  *       幅与指令不过准入。</li>
- *   <li>⚠ 接收基本类型的重载方法供无 {@link Player} 环境的单元测试直接调用；暴击点数只在服务端读 {@link ComboRound}，客户
- *       端读数恒不含暴击。</li>
+ *   <li>⚠ 接收基本类型的重载方法供无 {@link Player} 环境的单元测试直接调用；暴击点数只在服务端读 {@link ComboRound}，
+ *       客户端读数恒不含暴击。</li>
  * </ul>
  */
 

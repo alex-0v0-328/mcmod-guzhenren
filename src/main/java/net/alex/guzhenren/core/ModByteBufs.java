@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 可空枚举（{@link #writeNullableEnum} / {@link #readNullableEnum}）以 {@code 0} 表示 {@code null}、非空值写入
  *       {@code ordinal + 1}：因为业务枚举（如 {@code GuPath}）不设占位的 {@code NONE} 常量，「未选择」状态完全靠该编码
  *       表达。</li>
- *   <li>⚠ {@link #byOrdinal} 遇到越界序号时统一抛出 {@link DecoderException} 而非数组越界异常，确保收到伪造的客户端意图
- *       包时能由网络层按协议格式错误安全断开连接并记录原因。</li>
+ *   <li>⚠ {@link #byOrdinal} 遇到越界序号时统一抛出 {@link DecoderException} 而非数组越界异常，确保收到伪造的客户端意
+ *       图包时能由网络层按协议格式错误安全断开连接并记录原因。</li>
  * </ul>
  */
 

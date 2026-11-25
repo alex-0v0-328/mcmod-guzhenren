@@ -13,10 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * 衰老与寿元计费：一段世界时间在普通、加速宙道时间倍率下折合的年龄、寿元份数；{@link #RATES} 为可达倍率：不戴、
  * 两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]、同戴；{@link #lived} 与其他花费同一入口。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class AgingDisplayTest {
@@ -36,7 +32,7 @@ class AgingDisplayTest {
     }
 
     @Test
-    @DisplayName("☠ a hastened clock spends life FASTER -- the rate multiplies, it never divides")
+    @DisplayName("⚠ a hastened clock spends life FASTER -- the rate multiplies, it never divides")
     void hasteSpendsLifeFaster() {
         long ordinary = lived(BEAT, 1);
         assertEquals(120L, ordinary);

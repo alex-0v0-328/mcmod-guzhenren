@@ -13,10 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * {@link TimeFlow} 算术：普通时钟恒等；加速倍率缩短催动阶梯；{@code scale}、{@code getSteps} 随倍率变；分数倍率取整后期
  * 望精确；{@link #RATES} 为两更蛊[Second Watch Gu]、三更蛊[Third Watch Gu]效果可组合的全部倍率。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class TimeFlowTest {

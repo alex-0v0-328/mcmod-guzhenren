@@ -13,8 +13,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * 自定义原版进度触发器注册表（包含 {@link HopeGuUsedTrigger} 与 {@link RankReachedTrigger}），向
  * {@code BuiltInRegistries.TRIGGER_TYPES} 注册模组条件触发器。
  * <ul>
- *   <li>⚠ 必须统一经由 {@link #TRIGGERS} 注册：直接调用原版 {@code CriteriaTriggers.register(String, ...)} 会将裸路径名
- *       归入 {@code minecraft:} 命名空间，而进度 JSON 依赖本模组命名空间下的注册 ID 分派条件。</li>
+ *   <li>⚠ 必须统一经由 {@link #TRIGGERS} 注册：直接调用原版 {@code CriteriaTriggers.register(String, ...)} 会将裸路径
+ *       名归入 {@code minecraft:} 命名空间，而进度 JSON 依赖本模组命名空间下的注册 ID 分派条件。</li>
  * </ul>
  */
 

@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
  *   <li>封闭词表枚举（如 {@code GuPath}、{@code Rank}、{@code Stage}、{@code Talent} 等）仅需实现
  *       {@link #getTranslationPrefix}：序列化名默认取枚举常量的小写名（{@link #getSerializedName}），翻译键自动拼接为前
  *       缀加序列化名（{@link #getTranslationKey}）。</li>
- *   <li>数据生成阶段的语言表 Provider 与运行时 UI 均直接接收本接口而非裸字符串，避免同一枚举的翻译键在多处硬编码失
- *       步。</li>
- *   <li>⚠ 各枚举的 {@code CODEC} 直接将 {@link #getSerializedName} 写入玩家存档，因此严禁随意重命名已发布的枚举常量；小
- *       写转换固定使用 {@link Locale#ROOT}，避免受操作系统语言环境影响。</li>
+ *   <li>数据生成阶段的语言表 Provider 与运行时 UI 均直接接收本接口而非裸字符串，避免同一枚举的翻译键在多处硬编码失步。
+ *       </li>
+ *   <li>⚠ 各枚举的 {@code CODEC} 直接将 {@link #getSerializedName} 写入玩家存档，因此严禁随意重命名已发布的枚举常量；
+ *       小写转换固定使用 {@link Locale#ROOT}，避免受操作系统语言环境影响。</li>
  * </ul>
  */
 

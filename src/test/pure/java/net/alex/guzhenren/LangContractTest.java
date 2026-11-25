@@ -28,10 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * ExtremePhysique.NONE 不作名称渲染）；中文方括号 {@code [...]} 内无空白；zh_tw 须逐键等于 zh_cn 经
  * {@code TraditionalGlyphs.convert} 的结果，改字形表未跑 {@code runData} 即在此失败，不发过期文件；
  * {@link #HAND_WRITTEN_TRADITIONAL} 的键自有繁体措辞（换词非换字），只须异于 zh_cn。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class LangContractTest {

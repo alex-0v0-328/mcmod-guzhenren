@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
  *       告。</li>
  *   <li>⚠ 内部执行顺序固定为「进食、扣量、再进食、警告」，交换任意两步都会改变饥荒临界状态下的存活结果。</li>
  *   <li>扣量前先执行一次进食，可救下此前因背包无食而处于饥饿边缘的蛊虫（存放在空窍中的蛊无法催动，扣量前别无喂食途
- *       径）；两次进食均从背包取食且仅在跨日心跳（{@code days > 0}）触发，且每次都优先修复伤势，若食物全数耗于修伤而饱
- *       食仍低于阈值则仍会发出饥饿警告。</li>
+ *       径）；两次进食均从背包取食，且扣量后仅在跨日心跳（{@code days > 0}）警告以防每秒心跳重复提示；每次进食都优先
+ *       修复伤势，若食物全数耗于修伤而饱食仍低于阈值则仍会发出饥饿警告。</li>
  * </ul>
  */
 
@@ -40,7 +40,6 @@ public final class GuUpkeep {
         if (days > 0L) gu.feed(player, stack);
         if (gu.hunger.tickStarvation(player, stack, days)) return true;
 
-        // Runs every heartbeat while the bar drains only on a rollover: warning on any other beat would repeat it.
         if (days > 0L) gu.feedAndWarn(player, stack);
         return false;
     }

@@ -20,16 +20,16 @@ import org.jetbrains.annotations.Nullable;
  * 流派效果（{@link PathEffect}）的类型定义：声明注册 ID、{@code payload} 编解码器、增益/减益分类
  * （{@link PathEffectCategory}）、槽位独占规则、状态栏投影图标与显示名称。
  * <ul>
- *   <li>所有类型统一在 {@code registry.effect.ModPathEffectTypes} 中注册，构成存档与网络同步按 ID 分派的封闭类型
- *       表。</li>
+ *   <li>所有类型统一在 {@code registry.effect.ModPathEffectTypes} 中注册，构成存档与网络同步按 ID 分派的封闭类型表。
+ *       </li>
  *   <li>{@code payload} 承载该类型特有的附加状态（无附加状态时用 {@code Unit} 搭配 {@code MapCodec.unit}），其
  *       {@link MapCodec} 内联在流派效果的序列化对象中。</li>
  *   <li>独占类型（{@link #isExclusive} 为 {@code true}）在每名玩家身上最多存在一个实例，挂载新实例时不论来源直接替换旧
  *       实例；非独占类型按 {@code (type, source)} 共用槽位，仅替换同来源的旧实例。</li>
  *   <li>{@link #getIcon} 或动态投影器（{@link #project} 返回 {@link Projection}）指定效果在身时向原版状态栏投影的药水图
  *       标与等级（{@code null} 表示不投影）；投影仅供 HUD 展示，业务规则只读 {@link PathEffect}。</li>
- *   <li>⚠ {@link #getEffectCodec} 采用延迟初始化：因为类型常量在 {@code ModPathEffectTypes} 类加载期构造，分派 Codec 也
- *       在同一类中初始化。</li>
+ *   <li>⚠ {@link #getEffectCodec} 采用延迟初始化：因为类型常量在 {@code ModPathEffectTypes} 类加载期构造，分派 Codec
+ *       也在同一类中初始化。</li>
  * </ul>
  */
 

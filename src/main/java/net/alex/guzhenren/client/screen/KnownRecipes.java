@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
  *       该开销。</li>
  *   <li>当客户端 {@link RecipeManager} 实例更换时自动重建，并在收到 {@link RecipesUpdatedEvent}（数据包重载更新配方而
  *       不更换管理器实例）或玩家登出时失效丢弃；已学会子集另按同步来的 {@link GuRecipeKnowledgeData} 实例重算。</li>
+ *   <li>⚠ 原版创造栏标签缓存仅在显示参数变化时重建，配方重载后不会自动刷新，因此 {@link #onRecipesUpdated} 需通过
+ *       {@link #rebuildRecipeShelf} 显式重建蛊方书架页签。</li>
  *   <li>{@link #get} 是全量表，下标与服务端菜单的选中索引一致；{@link #getLearned} 只列已学会的，选择器用它显示，再经
  *       {@link Learned#toGlobal} 换回全量下标发包。</li>
  *   <li>同时给蛊方物品（{@link GuRecipeItem}）供名称与创造栏用的客户端查表，并在已学会的蛊方提示里加绿字「已学
@@ -112,7 +114,6 @@ public final class KnownRecipes {
         rebuildRecipeShelf();
     }
 
-    // the vanilla tab cache only rebuilds when its parameters change, never on a recipe reload
     private static void rebuildRecipeShelf() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null) return;

@@ -79,11 +79,12 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>九叶生机草[Nine Leaf Vitality Grass]的物品模型属性依据客户端世界游戏时间推算当前叶数。</li>
  *   <li>客户端初始化时向 {@code ModPayloads} 注册 {@code SkinFlashPayload}、{@code ImpactShakePayload}、
- *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 与 {@code PlaceTitlePayload} 的处理器，使 {@code ModPayloads} 本身
- *       不直接依赖客户端类；书册阅读器（{@link BookletScreen}）同理注册给 {@code BookletItem}。</li>
- *   <li>温养[Nourish]运镜显示期间（{@link CultivationCamera#isShowing}）仅保留 {@link #CINEMATIC_LAYERS} 白名单图层：
- *       上下黑边、温养条、扇形选择器、长按滑条、调试覆盖层、Tab 列表、字幕、动作栏提示与存档提示，聊天栏仅在打开聊天
- *       界面时绘制。</li>
+ *       {@code KillingMoveTooltipPayload}、{@code StoreStrengthNoticePayload} 与 {@code PlaceTitlePayload} 的处理器，使
+ *       {@code ModPayloads} 本身不直接依赖客户端类；书册阅读器（{@link BookletScreen}）同理注册给 {@code BookletItem}。
+ *       </li>
+ *   <li>温养[Nourish]运镜显示期间（{@link CultivationCamera#isShowing}）仅保留 {@link #CINEMATIC_LAYERS} 白名单图层：上
+ *       下黑边、温养条、扇形选择器、长按滑条、调试覆盖层、Tab 列表、字幕、动作栏提示与存档提示，聊天栏仅在打开聊天界面
+ *       时绘制。</li>
  *   <li>地名标题显示期间取消 Traveler's Titles 的图层，两者不同时出字（排队见 {@link PlaceTitleHud}）。</li>
  * </ul>
  */

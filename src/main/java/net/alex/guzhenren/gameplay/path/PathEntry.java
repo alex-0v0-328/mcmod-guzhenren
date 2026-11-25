@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
  * （{@link PathMarks}）。
  * <ul>
  *   <li>裸道痕仅存于肉体且本身不产生具体效果；造诣与裸道痕在同一对象内联存档。</li>
- *   <li>⚠ 此处仅保存不随效果附着的裸道痕；流派效果附带的道痕存于 {@link PathEffectData}，查询玩家某流派的总道痕必须调用
- *       {@link PathService#getMarks} 将两部分相加。</li>
+ *   <li>⚠ 此处仅保存不随效果附着的裸道痕；流派效果附带的道痕存于 {@link PathEffectData}，查询玩家某流派的总道痕必须调
+ *       用 {@link PathService#getMarks} 将两部分相加。</li>
  * </ul>
  */
 

@@ -27,10 +27,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  *       开回记录起点。</li>
  * </ul>
  *
- * @author Alex
- * @version 1.0.0
  * @see net.alex.guzhenren.gameplay.dimension.DimensionTravelService
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

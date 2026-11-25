@@ -28,8 +28,8 @@ import net.minecraft.world.level.Level;
  * <ul>
  *   <li>权限规则：{@code enter} 仅限管理员使用；处于 {@link ModDimensions#allowsSelfExit} 维度（宝黄天[Treasure Yellow
  *       Heaven]、狐仙福地[Fox Immortal Blissful Land]）内的任何玩家均可对自己执行无参 {@code exit} 离开（宝黄天的守卫禁
- *       止其他离开方式，福地没有门户），而带目标参数的 {@code exit <targets>} 或从四域退出仍仅限管理员；原版跨维度传送（{@code ServerPlayer#changeDimension}）会自动重发权限与命令树，确保 {@code exit}
- *       可见性实时更新。</li>
+ *       止其他离开方式，福地没有门户），而带目标参数的 {@code exit <targets>} 或从四域退出仍仅限管理员；原版跨维度传送
+ *       （{@code ServerPlayer#changeDimension}）会自动重发权限与命令树，确保 {@code exit} 可见性实时更新。</li>
  *   <li>{@code enter} 仅接受 {@link ModDimensions#ANCHORED_DIMENSIONS} 中登记的锚定维度，由
  *       {@link DimensionTravelService} 记录进入前的返回锚点；若目标维度已登记但服务端未加载对应世界（如未安装 Gu
  *       World），则返回专属缺失维度提示。</li>

@@ -10,8 +10,8 @@ import net.minecraft.util.StringRepresentable;
  * <ul>
  *   <li>各池默认容量（{@code 50000 / 12 / 8}）与超限致死比例（{@link #BURST_NUMERATOR} / {@link #BURST_DENOMINATOR}）唯
  *       一定义在此。</li>
- *   <li>⚠ 只有 {@link #isBurstable} 为 {@code true} 的池允许写入超出 {@code max} 的缓冲值并在超限时触发脑海炸裂致死，调
- *       用方一律查询该方法而非硬编码枚举常量。</li>
+ *   <li>⚠ 只有 {@link #isBurstable} 为 {@code true} 的池允许写入超出 {@code max} 的缓冲值并在超限时触发脑海炸裂致死，
+ *       调用方一律查询该方法而非硬编码枚举常量。</li>
  * </ul>
  */
 

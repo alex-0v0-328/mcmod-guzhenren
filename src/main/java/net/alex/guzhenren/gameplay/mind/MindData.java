@@ -19,8 +19,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #isOverflowing} 仅检查允许超限爆裂的池（{@link MindPoolType#isBurstable}），不可超限的池不会触发脑海炸
  *       裂。</li>
  *   <li>⚠ 才情与三池保存在同一附件中，切勿拆成独立附件以免重置或同步时产生漂移。</li>
- *   <li>⚠ 当特殊念头标签份额总和超过当前念头总量（{@code current(THOUGHTS)}）时，紧凑构造器会将各标签份额按比例缩减至不
- *       超过当前总念；因此业务层下调当前念头时应同步扣减标签份额，避免被构造器按比例静默截断。</li>
+ *   <li>⚠ 当特殊念头标签份额总和超过当前念头总量（{@code current(THOUGHTS)}）时，紧凑构造器会将各标签份额按比例缩减至
+ *       不超过当前总念；因此业务层下调当前念头时应同步扣减标签份额，避免被构造器按比例静默截断。</li>
  * </ul>
  */
 

@@ -26,10 +26,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * 出宝黄天后掉在脚下。GameTest 世界无真实宝黄天：直接调 {@link TreasureYellowHeavenGuard#stowOrStash}，传入
  * {@code CommonHooks.onPlayerTossEvent} 会交给事件的实体，即捕获掉落时丢出、从未加入维度的实体；GameTest
  * 维度在宝黄天外，在此调 {@link TreasureYellowHeavenGuard#tick} 等同经任意途径离开后到达。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

@@ -8,10 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * 简转繁字形表：类能加载即表合法（初始化器拒落单、重复记号及同登记为映射与不变的字形）；用例钉住匹配顺序、非汉字原样通
  * 过、无法安置字形被拒。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class TraditionalGlyphsTest {

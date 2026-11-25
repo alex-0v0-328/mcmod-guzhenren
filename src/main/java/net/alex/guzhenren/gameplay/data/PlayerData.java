@@ -33,10 +33,10 @@ import org.jetbrains.annotations.Nullable;
  *       个纯内存状态：真元回复余数（{@link #getEssenceCarry}）与二段飞行油门（{@link #getSecondStageThrottle}）由双端各
  *       自维护，护盾无敌帧窗口（{@link #getShieldWindow}）仅在服务端使用。</li>
  *   <li>变更即自动同步的附件共 13 个：其中 8 个通过 {@code OWNER_ONLY} 仅同步给玩家本人，而二段飞行标记、坠击起点高度、
- *       移动蓄力标记、温养[Nourish]状态与开窍[Awakening]仪式 5 个附件同步给所有追踪该玩家的客户端以驱动外观与动
- *       作。</li>
- *   <li>⚠ 5 个状态以「附件是否存在（{@code hasData}）」编码：二段飞行标记与移动蓄力标记存在即开启，坠击起点高度仅在坠击
- *       期间非 {@code null}（三者重登或死亡即清除）；开窍仪式仅在仪式期间非 {@code null}；登出结转生命值通过
+ *       移动蓄力标记、温养[Nourish]状态与开窍[Awakening]仪式 5 个附件同步给所有追踪该玩家的客户端以驱动外观与动作。
+ *       </li>
+ *   <li>⚠ 5 个状态以「附件是否存在（{@code hasData}）」编码：二段飞行标记与移动蓄力标记存在即开启，坠击起点高度仅在坠
+ *       击期间非 {@code null}（三者重登或死亡即清除）；开窍仪式仅在仪式期间非 {@code null}；登出结转生命值通过
  *       {@link #takeHealthCarry} 取出时一并移除附件。</li>
  * </ul>
  */

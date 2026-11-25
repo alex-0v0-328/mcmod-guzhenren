@@ -20,12 +20,12 @@ import org.jetbrains.annotations.Nullable;
  * {@code guzhenren_guts_stones.dat}。
  * <ul>
  *   <li>每格记坐标（{@link BlockPos#asLong}）与块数 1–{@value #MAX_STONES}，{@link #total} 为全部块数之和，
- *       {@link SoulsunderMountain#GUTS_STONE_CAP} 按它算；胆石方块块数变化或被换掉时由 {@code GutsStoneBlock#onRemove} 调
- *       {@link #set} 或 {@link #remove}。</li>
- *   <li>{@link #STONES} 是胆石方块的块数属性；定义在这里而非方块类，因为长胆石要写它，而 gameplay 包不能反向依赖
- *       block 包。</li>
- *   <li>⚠ 性能：至多 128 格，存为一个 {@link LongArrayTag} 加一个 {@link ByteArrayTag}；{@link #pickStackable} 遍历全部格
- *       子，只在生物死亡长胆石时调用。</li>
+ *       {@link SoulsunderMountain#GUTS_STONE_CAP} 按它算；胆石方块块数变化或被换掉时由 {@code GutsStoneBlock#onRemove}
+ *       调 {@link #set} 或 {@link #remove}。</li>
+ *   <li>{@link #STONES} 是胆石方块的块数属性；定义在这里而非方块类，因为长胆石要写它，而 gameplay 包不能反向依赖 block
+ *       包。</li>
+ *   <li>⚠ 性能：至多 128 格，存为一个 {@link LongArrayTag} 加一个 {@link ByteArrayTag}；{@link #pickStackable} 遍历全
+ *       部格子，只在生物死亡长胆石时调用。</li>
  * </ul>
  */
 

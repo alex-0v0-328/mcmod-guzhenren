@@ -16,10 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * 仅服务端的维度返回附件的 NBT 编解码往返。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class DimensionReturnDataTest {

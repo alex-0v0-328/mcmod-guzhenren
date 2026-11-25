@@ -31,15 +31,15 @@ import org.jetbrains.annotations.NotNull;
  *   <li>NeoForge 克隆体默认继承 {@link PlayerData} 全部附件，因此由本类唯一裁定死亡代价：非 {@code keepInventory} 死亡
  *       时在尸体处掉落各空窍对应转数的人窍[Human Aperture]（{@link #dropHumanApertures}）并执行 {@link #resetAll} 全量
  *       重置，{@code keepInventory} 死亡仅清空维度返回点与当前激活杀招[Killing Move]。</li>
- *   <li>上线、克隆与重置时统一刷新 {@link ApertureService}、{@link BodyService} 等领域同步与派生属性；仅出生与全量重
- *       置允许在此直写整份状态记录，运行时增量更新一律归各自领域服务。</li>
+ *   <li>上线、克隆与重置时统一刷新 {@link ApertureService}、{@link BodyService} 等领域同步与派生属性；仅出生与全量重置
+ *       允许在此直写整份状态记录，运行时增量更新一律归各自领域服务。</li>
  *   <li>本命蛊损毁由 {@link VitalLossService} 单独结算；{@code vital_gu_lost} 与爆炸波及他人的
  *       {@code ten_extreme_disaster} 属于一次性普通伤害致死，不留致死状态，重生时无需额外撤销。</li>
  *   <li>⚠ {@code onClone}、{@code onBirth} 与 {@code resetAll} 是全模组唯一接收 {@code Player} 而非
  *       {@code ServerPlayer} 写入数据的例外（因 {@code PlayerEvent.Clone} 新实体尚未完全转为服务端类型），领域服务不得
  *       放宽此参数约束。</li>
- *   <li>⚠ {@code BORN} 标记必须随死亡克隆继承，否则玩家重生或重登后会重新随机生成资质[Aptitude]；新增任何致死状态时必须
- *       在 {@link #onRespawn} 中补充重置分支，且重置后应落至不触发心跳致死判定的安全值（如魂魄为 1、脑海为 0）。</li>
+ *   <li>⚠ {@code BORN} 标记必须随死亡克隆继承，否则玩家重生或重登后会重新随机生成资质[Aptitude]；新增任何致死状态时必
+ *       须在 {@link #onRespawn} 中补充重置分支，且重置后应落至不触发心跳致死判定的安全值（如魂魄为 1、脑海为 0）。</li>
  * </ul>
  */
 

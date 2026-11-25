@@ -28,8 +28,8 @@ import org.jetbrains.annotations.Nullable;
  *       {@code payload}，{@link #remove} 按条件摘除（发布 {@link Reason#REMOVED}），{@link #sync} 在同类型效果已带相同
  *       {@code payload} 时保持不动、否则挂载或摘除；所有被移除或心跳到期的效果均在落盘后发布
  *       {@link PathEffectEndedEvent}。</li>
- *   <li>⚠ 不含任何道痕[Path Marks]的效果无法挂载，若 {@link #update} 将道痕扣空则按 {@link Reason#REMOVED} 摘除；流派效
- *       果的具体业务作用由各机制通过 {@link #find} 查询实现，本服务不直接执行效果逻辑，也不从道痕反推力量点。</li>
+ *   <li>⚠ 不含任何道痕[Path Marks]的效果无法挂载，若 {@link #update} 将道痕扣空则按 {@link Reason#REMOVED} 摘除；流派
+ *       效果的具体业务作用由各机制通过 {@link #find} 查询实现，本服务不直接执行效果逻辑，也不从道痕反推力量点。</li>
  *   <li>{@link #tick} 在每次心跳中清理已到期的限时效果并重新投影原版状态栏图标（每次写入时也会立即重投影）：永久效果投
  *       影为无限时长，{@code /effect clear} 最多只能让状态栏图标消失至多 1 秒，无法清除底层的流派效果。</li>
  *   <li>多个流派效果投影到同一个原版药水图标时，取最长剩余时间与最高等级；若玩家身上已有等级相同且剩余时长不短于目标的

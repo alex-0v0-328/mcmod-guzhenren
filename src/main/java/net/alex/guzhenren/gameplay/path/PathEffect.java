@@ -16,8 +16,8 @@ import org.jetbrains.annotations.Nullable;
  *       {@code guzhenren:strength/<名称>}）。</li>
  *   <li>{@code paths} 按流派记录该效果携带的道痕[Path Marks]条数与点数（支持跨多条流派，例如增幅蛊会在被增幅效果上追加
  *       律道道痕点）。</li>
- *   <li>⚠ 流派效果的存在性与其携带的道痕严格绑定：紧凑构造器自动剔除零道痕的流派，{@link PathEffectData} 自动丢弃无任何
- *       道痕的效果；不存在脱离效果扣减部分道痕的操作，道痕归零即代表效果被移除。</li>
+ *   <li>⚠ 流派效果的存在性与其携带的道痕严格绑定：紧凑构造器自动剔除零道痕的流派，{@link PathEffectData} 自动丢弃无任
+ *       何道痕的效果；不存在脱离效果扣减部分道痕的操作，道痕归零即代表效果被移除。</li>
  *   <li>具体机制只读效果类型、{@code payload} 与叠层数（{@code layers}）；延长持续时间（{@link #withEndTick}）不增加道
  *       痕，增减层数（{@link #addLayer} / {@link #dropLayer}）同步增减单层道痕，同槽替换则连同道痕整体覆盖。</li>
  * </ul>

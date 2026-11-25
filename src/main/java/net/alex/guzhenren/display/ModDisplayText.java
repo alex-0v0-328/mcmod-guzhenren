@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
  *       或 {@code PathEffect.PERMANENT} 格式化为倒计时或永久标记。</li>
  *   <li>{@link #formatMarks} 并列格式化道痕[Path Marks]的整数条数与散点数（使用千位分隔符且互不进位换算），为 0 的分量
  *       会省略，全 0 行由调用方隐藏。</li>
- *   <li>⚠ {@link #formatLifespan(double, double)} 保留 2 位小数而非 1 位：在正常流速下，0.01 年对应现实约 12 秒，是玩家
- *       能肉眼察觉寿元流动的最粗显示步长（0.1 年会导致显示静止约 2 分钟）。</li>
+ *   <li>⚠ {@link #formatLifespan(double, double)} 保留 2 位小数而非 1 位：在正常流速下，0.01 年对应现实约 12 秒，是玩
+ *       家能肉眼察觉寿元流动的最粗显示步长（0.1 年会导致显示静止约 2 分钟）。</li>
  * </ul>
  */
 

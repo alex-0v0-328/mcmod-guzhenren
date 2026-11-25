@@ -27,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 气波弹射物（方位攻击球）：力气蛊[Strength Qi Gu]人力与钧力流派的远程攻击，兽力虚影流派在未持有永久兽力时也回退发射本弹
- * 射物。
+ * 气波弹射物（方位攻击球）：力气蛊[Strength Qi Gu]人力与钧力流派的远程攻击，兽力虚影流派在未持有永久兽力时也回退发射本
+ * 弹射物。
  * <ul>
  *   <li>{@link #shoot} 发射直线气波：不受重力与阻力影响，以 {@link #SPEED} 格/tick 飞向发射瞬间目标中心所在的固定点（不
  *       追踪移动），到达该点或途中触碰可伤害生物时触发 {@link QiBurst#burst} 爆开，撞上方块则直接熄灭、不触发爆开；锁定

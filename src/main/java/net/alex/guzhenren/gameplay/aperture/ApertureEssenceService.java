@@ -23,11 +23,11 @@ import org.jetbrains.annotations.Nullable;
  *       期间普通池会被清空）。</li>
  *   <li>⚠ {@link #consume} 在每个空窍内先按 1:2（{@link #DISTILLED_RATE}，向上取整）扣精炼真元再扣普通真元，每个被扣空
  *       窍只写一次；{@link #consumeDeferred} 同样级联扣费，但跳过写入下标 {@code index} 的空窍并返回扣费后的新实例（不
- *       够付时返回 {@code null}），供调用方合并进同一次落盘；{@link #cascadeTake} 是供单元测试校验级联逻辑的纯函
- *       数。</li>
- *   <li>⚠ 单个空窍是否处于精炼态（自然回复进哪个池、能否再次精炼、退还给谁）以 {@link Aperture#distilling} 为准，而精炼
- *       何时结束以酒虫流派效果为准：{@link #closeDistilling} 在心跳中发现效果已结束但仍有空窍带标记时，将剩余精炼真元按
- *       1:2 退回普通池并清除标记（精炼真元已耗尽时同样清除标记）。</li>
+ *       够付时返回 {@code null}），供调用方合并进同一次落盘；{@link #cascadeTake} 是供单元测试校验级联逻辑的纯函数。
+ *       </li>
+ *   <li>⚠ 单个空窍是否处于精炼态（自然回复进哪个池、能否再次精炼、退还给谁）以 {@link Aperture#distilling} 为准，而精
+ *       炼何时结束以酒虫流派效果为准：{@link #closeDistilling} 在心跳中发现效果已结束但仍有空窍带标记时，将剩余精炼真元
+ *       按 1:2 退回普通池并清除标记（精炼真元已耗尽时同样清除标记）。</li>
  * </ul>
  */
 

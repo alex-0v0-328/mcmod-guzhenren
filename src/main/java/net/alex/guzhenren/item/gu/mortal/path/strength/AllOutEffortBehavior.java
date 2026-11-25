@@ -25,11 +25,11 @@ import org.jetbrains.annotations.Nullable;
  *       力一拳都读它，蓄力一拳蓄满本就必暴击。每次出几种兽影由苦力蛊决定。</li>
  *   <li>未入任何力道分支（既无永久兽力或人力，也无生效中的限时兽力）的玩家在蓄力起手前即被拒绝
  *       （{@code all_out_needs_branch}）；效果持续期间再次催动亦拒绝。</li>
- *   <li>生效时按蛊虫档位挂载标记效果供力量服务与连招轮读取，并调用 {@link AttackDamageService#refresh} 重算攻击力，保
- *       证攻击力始终由单一公式派生；功倍蛊[Amplify Effect Gu]先倍增基础时长，之后再加上玩家所持永久兽力的时长加成
+ *   <li>生效时按蛊虫档位挂载标记效果供力量服务与连招轮读取，并调用 {@link AttackDamageService#refresh} 重算攻击力，保证
+ *       攻击力始终由单一公式派生；功倍蛊[Amplify Effect Gu]先倍增基础时长，之后再加上玩家所持永久兽力的时长加成
  *       （{@link PathStrengthService#getDurationBonus}，如青牛加 10 秒）。</li>
- *   <li>⚠ 该药水效果仅作状态标记，绝不直接挂载原版 {@code AttributeModifier}，以免与 {@link AttackDamageService} 产生双
- *       重属性来源。</li>
+ *   <li>⚠ 该药水效果仅作状态标记，绝不直接挂载原版 {@code AttributeModifier}，以免与 {@link AttackDamageService} 产生
+ *       双重属性来源。</li>
  * </ul>
  */
 

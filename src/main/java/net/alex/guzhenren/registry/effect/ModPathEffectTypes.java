@@ -44,18 +44,18 @@ import org.jetbrains.annotations.Nullable;
  *   <li>采用本模组封闭静态列表而非 NeoForge 注册表：由本类静态常量统一驱动存档与网络编解码器，不开放给外部模组扩展；家
  *       族共用的工厂 {@link #registerNamed}、{@link #registerUnit} 与 {@link #registerTimedBuff} 分别生成单枚举载荷、无
  *       载荷单位与限时增益形状，所有载荷类型均保留在本包或所属领域。</li>
- *   <li>⚠ {@link #BY_ID} 映射必须在全部类型常量之前声明（类初始化时按字段顺序注册），且每个注册 ID 即存档键名，任何改名
- *       都会导致旧存档中的对应流派效果全部丢失。</li>
+ *   <li>⚠ {@link #BY_ID} 映射必须在全部类型常量之前声明（类初始化时按字段顺序注册），且每个注册 ID 即存档键名，任何改
+ *       名都会导致旧存档中的对应流派效果全部丢失。</li>
  *   <li>先天与炼体永久增益：{@link #RACE_TALENT}（变异种族赋予对应流派 10 条整道痕[Path Marks]）、
  *       {@link #EXTREME_PHYSIQUE}（十绝体质向各天赋流派分摊 1200 条整道痕）、{@link #BODY_SKIN} / {@link #BODY_TENDON}
  *       / {@link #BODY_BONE}（炼体皮筋骨互斥增益，新等级直接覆盖旧等级）与 {@link #STONE_APERTURE}（空窍石化永久增益，
  *       锁定态存于 {@code Aperture}）。</li>
  *   <li>力道与限时肉身效果：{@link #BEAST_STRENGTH}（每兽族一项永久兽力[Beast Strength]）、{@link #HUMAN_STRENGTH}（每
- *       单位一项永久人力，按层累加）、{@link #BUFF}（各类限时增益投影，承载兽力、冲撞与全
- *       力以赴蛊[All-Out Effort Gu]）、{@link #SELF_RELIANCE} / {@link #HARDSHIP_STRENGTH} / {@link #BIG_STRENGTH}（对
- *       应互斥力道状态）、{@link #TIMED_SKIN} / {@link #MUGWORT_SHIELD} / {@link #VITALITY_LEAF}（限时皮盾与治疗）、
- *       {@link #WATCH_RATE}（更蛊时间倍率，每催动叠一层）、{@link #ZOMBIE}（临时僵尸减益，永久尸化时消散）与
- *       {@link #LIQUOR_DISTILLING}（酒虫[Liquor Worm]精炼 1 日增益）。</li>
+ *       单位一项永久人力，按层累加）、{@link #BUFF}（各类限时增益投影，承载兽力、冲撞与全力以赴蛊[All-Out Effort
+ *       Gu]）、{@link #SELF_RELIANCE} / {@link #HARDSHIP_STRENGTH} / {@link #BIG_STRENGTH}（对应互斥力道状态）、
+ *       {@link #TIMED_SKIN} / {@link #MUGWORT_SHIELD} / {@link #VITALITY_LEAF}（限时皮盾与治疗）、{@link #WATCH_RATE}
+ *       （更蛊时间倍率，每催动叠一层）、{@link #ZOMBIE}（临时僵尸减益，永久尸化时消散）与 {@link #LIQUOR_DISTILLING}
+ *       （酒虫[Liquor Worm]精炼 1 日增益）。</li>
  *   <li>脑海限时状态：{@link #CASUAL_THOUGHT}（随意念增益）与 {@link #MALICIOUS_THOUGHT}（恶念减益），载荷结构同
  *       {@link #BUFF}。</li>
  * </ul>

@@ -27,8 +27,8 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
  *   <li>知心草作物按 {@code age}（0–7）生成 8 个原版井字形 {@code block/crop} 模型（共用
  *       {@code intimate_grass_stage0..7} 贴图）；黑土耕地对齐原版耕地生成干、湿两个继承自
  *       {@code block/template_farmland} 的模型，仅在 {@code moisture} 满值时切换为湿润顶面。</li>
- *   <li>荡魂山石生成 {@code soulsunder_stone}、{@code _1}、{@code _2} 三个半透明 {@code cube_all} 模型并等权随机，大面积
- *       平铺不显重复；胆石按块数 1–3 引用手写模型 {@code guzhenren:block/guts_stone}、{@code _2}、{@code _3}。</li>
+ *   <li>荡魂山石生成 {@code soulsunder_stone}、{@code _1}、{@code _2} 三个半透明 {@code cube_all} 模型并等权随机，大面
+ *       积平铺不显重复；胆石按块数 1–3 引用手写模型 {@code guzhenren:block/guts_stone}、{@code _2}、{@code _3}。</li>
  * </ul>
  */
 

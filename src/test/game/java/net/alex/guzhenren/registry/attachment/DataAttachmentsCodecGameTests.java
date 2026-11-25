@@ -23,10 +23,6 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 需物品注册表的附件编解码往返：空窍存储经 NBT {@code CODEC} 在普通 {@code NbtOps} 往返（只序列化不同步，无流编解码
  * 器）；各附件默认值经自身编解码器往返；其余记录流往返见 {@code DataAttachmentsCodecTest}。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

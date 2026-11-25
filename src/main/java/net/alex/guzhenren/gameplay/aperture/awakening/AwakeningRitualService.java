@@ -33,9 +33,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #isInDanger} 为右键起手前的安全门槛：近 5 秒内受过非自身生物攻击，或水平 {@link #DANGER_REACH} 格、垂直
  *       {@link #DANGER_HEIGHT} 格内存在妨碍入睡的怪物时拒绝开窍（范围、判定与创造模式豁免均对齐
  *       {@code ServerPlayer.startSleepInBed}）。</li>
- *   <li>⚠ {@link ApertureService#awaken} 本身不拦截已开窍玩家，由本服务在起手与落盘时把关：若仪式中途被管理员命令提前开
- *       窍，仪式不再覆盖该空窍（希望蛊已消耗），揭晓播报按当前实际资质读取，而客户端牌匾仍按仪式预掷值绘制；角色重置会
- *       直接清除仪式附件而不触发开窍。</li>
+ *   <li>⚠ {@link ApertureService#awaken} 本身不拦截已开窍玩家，由本服务在起手与落盘时把关：若仪式中途被管理员命令提前
+ *       开窍，仪式不再覆盖该空窍（希望蛊已消耗），揭晓播报按当前实际资质读取，而客户端牌匾仍按仪式预掷值绘制；角色重置
+ *       会直接清除仪式附件而不触发开窍。</li>
  * </ul>
  */
 

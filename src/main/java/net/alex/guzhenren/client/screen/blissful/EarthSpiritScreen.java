@@ -31,23 +31,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵[Earth Spirit]经营面板：粉色面板加左侧外挂的分页标签（一个 {@link Page} 一个），各页由 {@link PanelPage} 子类绘制与
- * 响应。
+ * 地灵[Earth Spirit]经营面板：粉色面板加左侧外挂分页标签（一个 {@link Page} 一个），各页由 {@link PanelPage} 子类绘制。
  * <ul>
  *   <li>布局按面板美术规格：主面板 176×222，标签在面板左侧外挂（未选中先画、被面板压住右端；选中后画、盖住面板左框），
  *       整体231×222 居中，所以 {@code leftPos} 右移 {@value #TAB_SPAN} 的一半。</li>
  *   <li>绘制顺序：一个 {@code GuiBatch} 里先一个 {@link SpriteBatch} 画全部精灵图，再填充、再文字；物品图标与头像在批
  *       外；弹窗与操作提示在 {@code super.render} 之后，盖在背包格与光标物品之上。</li>
- *   <li>数字键切页；鼠标停在背包格上时数字键仍归原版（与快捷栏交换）。切页时发 {@link PanelActions.View}：服务端只算正在
- *       看的页，也记下这一页，下次开面板直接停在这里。</li>
+ *   <li>数字键切页；鼠标停在背包格上时数字键仍归原版（与快捷栏交换）。切页时发 {@link PanelActions.View}：服务端只
+ *       算正在看的页，也记下这一页，下次开面板直接停在这里。</li>
  *   <li>库藏页是 {@link Storage}，其余页是 {@link Pages}，跨这条线切页就换一个界面实例（同一个菜单，页码、两个输入框内
- *       容与提示带过去，各页滚动位置重置）：整理类模组按界面类挂件，InventoryProfilesNext 只认 {@link IPNIgnore}，所以只
- *       有库藏页出现它的整理按钮与快捷栏箭头。客户端 {@code removed} 不动菜单，服务端菜单不受换界面影响。</li>
+ *       容与提示带过去，各页滚动位置重置）：整理类模组按界面类挂件，InventoryProfilesNext 只认 {@link IPNIgnore}，所
+ *       以只有库藏页出现它的整理按钮与快捷栏箭头。客户端 {@code removed} 不动菜单，服务端菜单不受换界面影响。</li>
  *   <li>两个输入框：荡魂山页的白名单名字（灰字提示匹配的在线玩家名，Tab 补全，回车添加）、库藏页的搜索；聚焦时吞掉除
  *       Esc 外的按键，免得按 E 关掉面板。</li>
- *   <li>左侧标签列算面板内（{@link #hasClickedOutside}）：手上拿着库藏物品点标签，松手时原版会把它当点在面板外扔出去。</li>
+ *   <li>左侧标签列算面板内（{@link #hasClickedOutside}）：手上拿着库藏物品点标签，松手时原版会把它当点在面板外扔出
+ *       去。</li>
  *   <li>数据只来自菜单里按页缓存的快照段：开面板时随缓冲带来，之后每秒与每次操作后由 {@link EarthSpiritPanelPayload}
  *       替换（{@link #onPanel}）。操作结果提示在面板上方显示 {@value #NOTICE_MILLIS} 毫秒。</li>
+ *   <li>本文件有意超过 300 行：六页切换容器、两处输入框与共享外框/标签/悬停绘制共用同一界面生命周期，集中在一处维护
+ *       更清晰。</li>
  * </ul>
  */
 

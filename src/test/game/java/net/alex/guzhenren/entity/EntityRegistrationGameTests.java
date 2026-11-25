@@ -35,10 +35,6 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 模组生物注册钉子：id、类别、尺寸、基础属性、野生蛊生成位置；冲撞蛊[Crash Gu]悬停判定（其类需注册表绑定才能加载）。打
  * 包资源契约见 {@code EntityResourcesTest}。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)

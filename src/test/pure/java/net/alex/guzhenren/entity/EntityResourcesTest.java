@@ -39,10 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * 各 GeckoLib 生物的打包资源契约，每实体一嵌套组；各组读同一 jar 布局，故共用辅助方法；注册与甲虫悬停选择需加载模组，见
  * {@code EntityRegistrationGameTests}。
- *
- * @author Alex
- * @version 1.0.0
- * @since 1.0.0
  */
 
 class EntityResourcesTest {

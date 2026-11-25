@@ -34,16 +34,16 @@ import org.jetbrains.annotations.Nullable;
  * 地灵面板「荡魂山」页的两个操作，以及养殖、挪生物共用的「地灵可支使的生物」判定。
  * <ul>
  *   <li>{@link #isManaged}：活着的非玩家 {@link Mob}，排除地灵、已驯服（有主人 UUID）、已命名、拴着绳和
- *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 的；只看已加载区块里的实体
- *       （{@code ServerLevel#getAllEntities}）。</li>
+ *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 的；只看已加载区块里的实体（{@code ServerLevel#getAllEntities}）。
+ *       </li>
  *   <li>{@link #moveMobsUp}：把山范围外的可支使生物至多 {@value #MOVE_LIMIT} 只传到山心 {@code GUTS_STONE_RADIUS} 格
  *       内、顶层为荡魂山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却
  *       {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查 {@link #moveCooldown}。</li>
  *   <li>{@link #driveGutsGu}：主人须在山范围内；敲碎山范围内、已加载区块里登记的全部胆石，每块按胆石方块自己的战利品表
  *       各掷一次（同手敲的 50%），掷出的胆识蛊[Guts Gu]不成物品，直接给主人魂魄上限各加
  *       {@value SoulsunderMountain#GUTS_GU_SOUL_BONUS}。登记了但已不是胆石的格子顺手删去。</li>
- *   <li>催动有意不走胆识蛊物品的 {@code OneShotGuItem#checkUse}（真元门槛 {@code checkEssenceGate}）：认主即可一键催动，没
- *       开窍的主人也能拿到魂魄上限（Alex 定）。</li>
+ *   <li>催动有意不走胆识蛊物品的 {@code OneShotGuItem#checkUse}（真元门槛 {@code checkEssenceGate}）：认主即可一键催
+ *       动，没开窍的主人也能拿到魂魄上限（Alex 定）。</li>
  *   <li>两个操作都接受显式范围，挪生物另可传入候选实体；GameTest 用小范围与测试区内的实体调用，不碰别的测试。</li>
  * </ul>
  */

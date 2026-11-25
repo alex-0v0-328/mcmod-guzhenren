@@ -48,17 +48,17 @@ import org.jetbrains.annotations.Nullable;
  *       蛊返回 0）；{@link #canBeAmplified} 判断是否可被功倍蛊[Amplify Effect Gu]增幅；{@link #getEffectSource} 固定以
  *       本蛊的物品注册 ID 作为其施加的全部流派效果来源；{@link #formatType} 将用途分类格式化为顶层名或「父类型 · 子类
  *       型」（如 {@code 防御 · 反击}）。</li>
- *   <li>⚠ 单只凡蛊至多只能挂载一个声明了 {@link GuBehavior#canBeAmplified} 的行为（每个可增幅行为都会在生效时向功倍蛊扣
- *       费一次，若超过一个由构造器直接抛出异常拦截）；{@link #checkModules} 按注册顺序返回首个拒绝原
- *       因，{@link #applyModules} 依次执行全部行为，外部通过 {@link #getBehavior} 检索行为实例。</li>
- *   <li>⚠ 每只凡蛊均固定覆写 {@link #hasUse} 返回 {@code true} 以响应右键（野生蛊至少需响应炼化，若不响应会让玩家误以为
- *       按键失灵）。</li>
+ *   <li>⚠ 单只凡蛊至多只能挂载一个声明了 {@link GuBehavior#canBeAmplified} 的行为（每个可增幅行为都会在生效时向功倍蛊
+ *       扣费一次，若超过一个由构造器直接抛出异常拦截）；{@link #checkModules} 按注册顺序返回首个拒绝原因，
+ *       {@link #applyModules} 依次执行全部行为，外部通过 {@link #getBehavior} 检索行为实例。</li>
+ *   <li>⚠ 每只凡蛊均固定覆写 {@link #hasUse} 返回 {@code true} 以响应右键（野生蛊至少需响应炼化，若不响应会让玩家误以
+ *       为按键失灵）。</li>
  *   <li>⚠ 真元门槛 {@link #checkEssenceGate} 通过 {@link PrimevalStoneSupply#canAfford} 将随身元石[Primeval Stone]折算
  *       入可用真元，双端判定一致，实际扣费统一走 {@link PrimevalStoneSupply#pay}。</li>
  *   <li>⚠ 凡蛊本身不单独校验 {@code isAwakened}，而是由真元门槛自然拦截（未开窍者真元上限为 0 且不计随身元石）：炼化消
- *       耗为 0 的一次性消耗蛊按设计允许未开窍凡人直接使用（如生机叶蛊[Vitality Leaf Gu]、寿蛊[Lifespan Gu]、
- *       胆识蛊[Guts Gu]、第二空窍蛊[Second Aperture Gu]），舍利蛊[Relics Gu]由 {@link #checkStageUpGate} 拦截，唯独希望
- *       蛊显式拒绝已开窍玩家。</li>
+ *       耗为 0 的一次性消耗蛊按设计允许未开窍凡人直接使用（如生机叶蛊[Vitality Leaf Gu]、寿蛊[Lifespan Gu]、胆识蛊[Guts
+ *       Gu]、第二空窍蛊[Second Aperture Gu]），舍利蛊[Relics Gu]由 {@link #checkStageUpGate} 拦截，唯独希望蛊显式拒绝已
+ *       开窍玩家。</li>
  *   <li>所有成功催动均以 {@link #spend} 收尾：设置冷却、扣减物品栈后在事件总线发布 {@link GuUsedEvent}，作为监听凡蛊催
  *       动的唯一公共接缝；催动蓄力时长按持有者与蛊虫的转数差分为三档（{@link #useChargeByGap}），与小阶段无关。</li>
  *   <li>⚠ 本命蛊绑定状态存于物品栈组件并仅通过 {@link VitalGuState} 读写，本类负责渲染本命前缀名称、附魔光效并拦截丢

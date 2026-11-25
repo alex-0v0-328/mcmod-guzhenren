@@ -29,23 +29,23 @@ import org.jetbrains.annotations.NotNull;
  *   <li>分页与负载：存储支持多页切换并在末页后保留一个空页（{@link #countPages}），本命蛊槽固定在 {@code imageWidth} 外
  *       侧不随翻页变化；Shift 快捷移动沿用原版合并逻辑并逐格通过 {@link GuSlot#getMaxStackSize} 校验总量上限
  *       {@code ApertureStorageService.MAX_LOAD}（每只蛊至少计 1 负载）。</li>
- *   <li>⚠ 负载校验依赖服务端同步的 {@code DATA_LOAD} 数据槽：客户端不持有完整空窍存储副本，槽位上限严禁在客户端依据附件
- *       自行推算。</li>
+ *   <li>⚠ 负载校验依赖服务端同步的 {@code DATA_LOAD} 数据槽：客户端不持有完整空窍存储副本，槽位上限严禁在客户端依据附
+ *       件自行推算。</li>
  *   <li>实时保存机制：通过容器监听器即时写回而不覆写 {@code slotsChanged}（因 {@link AbstractContainerMenu} 未实现
  *       {@code ContainerListener}，覆写不会被调用），加载页期间通过 {@code loading} 标志屏蔽自身 {@code setItem} 引发的
  *       误存。</li>
- *   <li>⚠ 必须按每次槽位改动即时保存而非按点击保存：Shift 点击或拖动会连续写入多个槽位，若不即时刷新 {@link #getLoad()}
- *       会导致单次操作塞超总负载并丢弃被拒物品。</li>
- *   <li>⚠ 心跳在完成养护遍历后必须调用 {@link #refresh}：养护每秒可能治疗、补食或移入新蛊，若不及时刷新视图，开启的菜单
- *       后续写回过期快照会撤销养护成果甚至复活已饿死的蛊。</li>
+ *   <li>⚠ 必须按每次槽位改动即时保存而非按点击保存：Shift 点击或拖动会连续写入多个槽位，若不即时刷新
+ *       {@link #getLoad()} 会导致单次操作塞超总负载并丢弃被拒物品。</li>
+ *   <li>⚠ 心跳在完成养护遍历后必须调用 {@link #refresh}：养护每秒可能治疗、补食或移入新蛊，若不及时刷新视图，开启的菜
+ *       单后续写回过期快照会撤销养护成果甚至复活已饿死的蛊。</li>
  *   <li>⚠ 指令在直接修改存储前必须先调用 {@link #closeFor}：否则在下次心跳刷新前，玩家点击或关闭菜单会把过期窗口写回并
  *       覆盖 {@code /gzr reset} 或 {@code /gzr awaken} 的结果。</li>
  *   <li>本命蛊绑定与替换：每个空窍仅允许绑定一只本命蛊，放入槽位即打上堆叠令牌并由
  *       {@link ApertureStorageService#setVital} 同步空窍主修流派；更换新本命蛊时，{@link #releaseFormer} 会同步清除已被
  *       原版移至光标或背包的旧本命蛊拷贝标记。</li>
- *   <li>⚠ {@link VitalSlot#mayPlace} 必须按交换后的净负载放行（无论鼠标点击还是数字键切换）：若在 {@code save()} 中才被
- *       {@code setVital} 拒绝并重载槽位，将无法收回原版已搬到光标或快捷栏的拷贝，进而造成旧本命蛊被复制而新蛊丢
- *       失。</li>
+ *   <li>⚠ {@link VitalSlot#mayPlace} 必须按交换后的净负载放行（无论鼠标点击还是数字键切换）：若在 {@code save()} 中才
+ *       被 {@code setVital} 拒绝并重载槽位，将无法收回原版已搬到光标或快捷栏的拷贝，进而造成旧本命蛊被复制而新蛊丢失。
+ *       </li>
  * </ul>
  */
 

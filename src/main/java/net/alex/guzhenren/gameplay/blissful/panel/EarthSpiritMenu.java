@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
  *       （{@link #page}），快照只算这一页。</li>
  *   <li>客户端实例从开面板的缓冲读首份 {@link PanelSnapshot}，之后由下行通知 {@link #setSnapshot} 替换；各页的
  *       {@link PanelSection} 按页缓存，切到没收到过的页时 {@link #section} 为空。</li>
- *   <li>背包格只在库藏页显示：客户端界面调 {@link #setInventoryShown}，隐藏的格子 {@code isActive} 为假，既不画也点不中；
- *       服务端实例恒为真。</li>
+ *   <li>背包格只在库藏页显示：客户端界面调 {@link #setInventoryShown}，隐藏的格子 {@code isActive} 为假，既不画也点不
+ *       中；服务端实例恒为真。</li>
  *   <li>Shift 点背包格 = 整组存入库藏（胆识蛊[Guts Gu]不收，原样留下）；只在服务端写库藏。</li>
  *   <li>背包坐标同原版大箱子（{@value #INVENTORY_X}, {@value #INVENTORY_Y}）、快捷栏 y {@value #HOTBAR_Y}，与面板美术规
  *       格一致。</li>

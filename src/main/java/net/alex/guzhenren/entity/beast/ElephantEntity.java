@@ -18,9 +18,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 大象与白象实体：继承 {@link ChargerEntity}，两者共用本类、仅贴图不同（沿用虎的先例）。
  * <ul>
- *   <li>{@code elephant} 模型以半尺寸建模并放大两倍渲染，外观尺寸约 3.1 × 3.75 × 4.7 格，碰撞箱为 {@code 2.5 x 3.7}；仅
- *       在受击后反击，距离目标超过 {@value #CLOSE_REACH} 格时照常冲撞，{@value #CLOSE_REACH} 格内依次选用首个冷却完毕的
- *       踩踏、牙挑或鼻扫。</li>
+ *   <li>{@code elephant} 模型以半尺寸建模并放大两倍渲染，外观尺寸约 3.1 × 3.75 × 4.7 格，碰撞箱为 {@code 2.5 x 3.7}；
+ *       仅在受击后反击，距离目标超过 {@value #CLOSE_REACH} 格时照常冲撞，{@value #CLOSE_REACH} 格内依次选用首个冷却完毕
+ *       的踩踏、牙挑或鼻扫。</li>
  *   <li>踩踏冷却 {@value #STOMP_COOLDOWN_TICKS} tick，于第 {@value #STOMP_HIT_TICK} tick 震击 {@value #STOMP_RADIUS} 格
  *       内除同类大象外的全部可攻击目标（象群内部不误伤）；牙挑冷却 {@value #TOSS_COOLDOWN_TICKS} tick；鼻扫冷却
  *       {@value #TRUNK_COOLDOWN_TICKS} tick，于第 {@value #TRUNK_HIT_TICK} tick 命中单体并造成水平击退。</li>

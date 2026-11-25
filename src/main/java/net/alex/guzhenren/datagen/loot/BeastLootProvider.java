@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>每份掉落一个池、掷一次，抢夺每级加 0–1；肉类被火烧死时变熟，皮革不受影响。</li>
  * </ul>
  */
+
 public final class BeastLootProvider extends EntityLootSubProvider {
 
     private static final List<Supplier<? extends EntityType<?>>> BEASTS = List.of(ModEntityTypes.WILD_BOAR,

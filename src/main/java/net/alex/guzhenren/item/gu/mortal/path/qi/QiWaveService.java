@@ -39,23 +39,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 力气蛊[Strength Qi Gu]（{@link StrengthQiGuEffect}）远程攻击的服务端发射服务；力气蛊只管远程攻击，不再自带范围伤害
- * 概率。
+ * 力气蛊[Strength Qi Gu]（{@link StrengthQiGuEffect}）远程攻击的服务端发射服务；力气蛊只管远程攻击，不再自带范围伤害概
+ * 率。
  * <ul>
- *   <li>处于力气蛊增益期间，Epic Fight 战斗模式下空手出拳且锁定目标在原版近战触及距离外时，这一拳化作远程攻击（客户端
- *       仅上报目标实体 ID，服务端全量复验，射程仅受原版 128 格视线限制）；{@link #isPastReach} 是双端共用的唯一射程分
- *       界，触及距离内留给近战，同一拳不会近战与远程双重命中。</li>
+ *   <li>处于力气蛊增益期间，Epic Fight 战斗模式下空手出拳且锁定目标在原版近战触及距离外时，这一拳化作远程攻击（客户端仅
+ *       上报目标实体 ID，服务端全量复验，射程仅受原版 128 格视线限制）；{@link #isPastReach} 是双端共用的唯一射程分界，
+ *       触及距离内留给近战，同一拳不会近战与远程双重命中。</li>
  *   <li>一拳一发、没有间隔：客户端按下攻击键的上报（{@link #request}）与服务端 Epic Fight 真正起招（{@link #onStrike}）
- *       在 {@link #JOIN_TICKS} 内配对才发射，先到的一方等待另一方；Epic Fight 拒绝出招（动作中、采矿模式等）时上报作废，
- *       连按不会多发。</li>
+ *       在 {@link #JOIN_TICKS} 内配对才发射，先到的一方等待另一方；Epic Fight 拒绝出招（动作中、采矿模式等）时上报作
+ *       废，连按不会多发。</li>
  *   <li>远程攻击的总伤害 = 当次空手拳伤（按出手时的结算力量点[Strength Points]重算，收尾招含暴击）×
  *       {@link #RANGED_FACTOR} 远程系数，不随原版攻击蓄力条缩放；远程系数不影响过载反噬，结算力量点与承受力在出手时记入
- *       {@link BodyOverload.Shot} 并登记到本招（{@link ComboRound#markShot}），弹射物爆开或同一招的近战命中首次造成
- *       伤害时结算一次。</li>
+ *       {@link BodyOverload.Shot} 并登记到本招（{@link ComboRound#markShot}），弹射物爆开或同一招的近战命中首次造成伤害
+ *       时结算一次。</li>
  *   <li>只有连招轮[Combo Round]的收尾招结算本轮暴击[Crit]（{@link ComboRound#strike}），并通知
- *       {@link ComboRound#markRanged} 不再放近战锥形：人力钧力流暴击（{@link ComboRound#rollsArea}）时爆开半径取范围伤害
- *       [Area Damage]半径（{@link AreaDamage#getRange(int, int)}，含苦力放大），否则为 {@link QiBurst#RADIUS}；兽力虚影
- *       流恒为 {@link QiBurst#RADIUS}，按本招暴击抽中的兽种各发一道 {@link BeastChargeEntity}，总伤害按兽种份额分摊
+ *       {@link ComboRound#markRanged} 不再放近战锥形：人力钧力流暴击（{@link ComboRound#rollsArea}）时爆开半径取范围伤
+ *       害[Area Damage]半径（{@link AreaDamage#getRange(int, int)}，含苦力放大），否则为 {@link QiBurst#RADIUS}；兽力虚
+ *       影流恒为 {@link QiBurst#RADIUS}，按本招暴击抽中的兽种各发一道 {@link BeastChargeEntity}，总伤害按兽种份额分摊
  *       （{@link BeastChargeDamage}）。前几段或本招没抽中时从已持有的可显形永久兽力中随机一种带全部伤害发射。不可显形的
  *       兽种（{@code BeastStrengthFamily#canManifest}）不发射冲击。</li>
  *   <li>其他流派或未持有可显形永久兽力的玩家改为发射一枚带全部伤害的 {@link QiWaveEntity}。</li>
