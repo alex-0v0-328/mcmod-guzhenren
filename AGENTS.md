@@ -33,7 +33,7 @@
 
 | 阶段 | 必做动作 | 交付 / 验收标准 |
 | --- | --- | --- |
-| 开工 | 查 `git status`、`git diff`；新机器首会话先完成《维护说明#待办与计划》新机器项 | 明确当前 WIP 与环境状态 |
+| 开工 | 查 `git status`、`git diff`；新机器首会话先完成《维护说明#工具与运行环境》的新机器初始化 | 明确当前 WIP 与环境状态 |
 | 方案 | 非小改动先做第一性原理分析、环境审查、实施路径确认；按 `alex-constitution` 仅问未明项 | 目标、边界、约束与阶段计划已对齐 |
 | 实现与生成 | 新增蛊/实体/机制先读 `new-content` 与对应 Wiki；改 datagen provider 后先跑 `data` 再跑 `gametest` | 符《维护说明#代码规范》与 `.editorconfig`；`src/generated` 已同步 |
 | 检查与锁 | 跑 `python -B tools/local_checks.py` 受影响阶段（`--list` 列阶段，GUWORLD 加 `--project guworld`）<br>手动 Gradle 经 `python -B tools/project_runtime.py gradlew.bat <任务>`<br>持 `../../Temps/guzhenren/gradle.lock` | 自动化检查与 IDEA 同步通过；不删锁；读报后只清己方日志与临时文件<br>视觉与手感交 Alex 验收；通过后仅因新改动/失败/未决项补查 |
