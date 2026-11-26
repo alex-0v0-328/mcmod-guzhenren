@@ -87,7 +87,7 @@ public final class KillingMoveGameTests {
         ItemStack light = inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
 
         assertEquals(1, blades(helper));
         assertEquals(essence - BLADE_ESSENCE, ApertureEssenceService.getSpendable(player));
@@ -143,12 +143,12 @@ public final class KillingMoveGameTests {
 
         assertTrue(KillingMoveService.listUsable(player, ModItems.MOONLIGHT_GU_1.get()).isEmpty(),
                 "an unlearned move was listed");
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         assertEquals(0, blades(helper));
         assertEquals(essence, ApertureEssenceService.getSpendable(player));
         assertEquals(12, hunger(light));
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
         assertEquals(1, blades(helper));
         assertEquals(12, hunger(light));
         helper.succeed();
@@ -176,13 +176,13 @@ public final class KillingMoveGameTests {
         ItemStack light = inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         assertTrue(KillingMoveService.isActive(player, KillingMove.LITTLE_LIGHT_AMPLIFY), "the pick did not switch on");
         assertEquals(0, blades(helper));
         assertEquals(essence, ApertureEssenceService.getSpendable(player), "the start took essence");
         assertEquals(12 - START_HUNGER, hunger(light));
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
         float afterwards = KillingMoveService.getDamageFactor(player, (MortalGuItem) moonlight.getItem());
 
         assertEquals(1, blades(helper));
@@ -228,7 +228,7 @@ public final class KillingMoveGameTests {
         ServerPlayer player = awakened(helper, null);
         ItemStack moonlight = hold(player, ModItems.MOONLIGHT_GU_1.get(), 12);
         ItemStack light = inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         long left = BLADE_ESSENCE + PARTNER_ESSENCE - 1L;
         ApertureEssenceService.consume(player, ApertureEssenceService.getSpendable(player) - left);
 
@@ -254,12 +254,12 @@ public final class KillingMoveGameTests {
         assertTrue(KillingMoveService.listUsable(player, ModItems.MOONLIGHT_GU_1.get()).isEmpty(),
                 "a move with only a wild partner was listed");
         for (String wrong : new String[] {MOVE, "km_mortal_unknown", "moonlight_gu_1"}) {
-            ClientIntents.killingMove(player, wrong);
+            ClientIntents.killingMove(player, wrong, KillingMoveService.NO_TARGET);
         }
         assertNull(KillingMoveService.getActive(player));
         ItemStack light = inSlot(player, 20, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
         player.getCooldowns().addCooldown(light.getItem(), 20);
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
 
         assertTrue(KillingMoveService.isActive(player, KillingMove.LITTLE_LIGHT_AMPLIFY),
                 "a refined partner on the vanilla cooldown kept the move from switching on");
@@ -279,8 +279,8 @@ public final class KillingMoveGameTests {
 
         assertEquals(List.of(KillingMove.LITTLE_LIGHT_AMPLIFY),
                 KillingMoveService.listUsable(player, ModItems.MOONLIGHT_GU_1.get()));
-        ClientIntents.killingMove(player, MOVE);
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
 
         assertEquals(1, blades(helper));
         assertEquals(12 - START_HUNGER, hunger(light));
@@ -297,8 +297,8 @@ public final class KillingMoveGameTests {
 
         assertEquals(List.of(KillingMove.LITTLE_LIGHT_AMPLIFY),
                 KillingMoveService.listUsable(player, ModItems.MOONLIGHT_GU_1.get()));
-        ClientIntents.killingMove(player, MOVE);
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
 
         assertEquals(1, blades(helper));
         assertEquals(12 - START_HUNGER, hunger(light));
@@ -319,10 +319,10 @@ public final class KillingMoveGameTests {
         KillingMoveService.refreshStoreBacked(player);
         assertEquals(List.of(KillingMove.LITTLE_LIGHT_AMPLIFY),
                 KillingMoveService.listUsable(player, ModItems.MOONLIGHT_GU_1.get()));
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         assertEquals(12 - START_HUNGER, hunger(ApertureStorageService.getItems(player, ApertureData.PRIMARY).get(1)),
                 "the start hunger was not written back to the store");
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
 
         assertEquals(1, blades(helper));
         assertEquals(essence - BLADE_ESSENCE - PARTNER_ESSENCE, ApertureEssenceService.getSpendable(player));
@@ -337,14 +337,14 @@ public final class KillingMoveGameTests {
         ItemStack light = inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), START_HUNGER - 1);
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
 
         assertNull(KillingMoveService.getActive(player));
         assertEquals(START_HUNGER - 1, hunger(light));
         assertEquals(0, blades(helper));
         assertEquals(essence, ApertureEssenceService.getSpendable(player));
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
         assertEquals(1, blades(helper));
         assertEquals(essence - BLADE_ESSENCE, ApertureEssenceService.getSpendable(player), "a plain tap billed more");
         helper.succeed();
@@ -357,8 +357,8 @@ public final class KillingMoveGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.MOONLIGHT_GU_1.get()));
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
 
         assertEquals(0, blades(helper));
         assertEquals(essence, ApertureEssenceService.getSpendable(player));
@@ -375,11 +375,11 @@ public final class KillingMoveGameTests {
         assertNotNull(KillingMoveService.asBladeGu(bloodMoon), () -> "a refined Blood Moon Gu is not a blade Gu");
         assertTrue(KillingMoveService.listUsable(player, bloodMoon.getItem()).isEmpty(),
                 "a Blood Moon Gu listed a killing move");
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         assertEquals(0, blades(helper));
         assertEquals(48, hunger(bloodMoon));
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
         assertEquals(1, blades(helper));
         assertEquals(12, hunger(light));
         helper.succeed();
@@ -408,11 +408,11 @@ public final class KillingMoveGameTests {
         ServerPlayer player = awakened(helper, null);
         ItemStack moonlight = hold(player, ModItems.MOONLIGHT_GU_1.get(), 12);
         inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         player.getInventory().setItem(PARTNER_SLOT, ItemStack.EMPTY);
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
 
         assertEquals(0, blades(helper));
         assertEquals(essence, ApertureEssenceService.getSpendable(player));
@@ -428,13 +428,13 @@ public final class KillingMoveGameTests {
         ItemStack light = inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, MOVE);
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
 
         assertNull(KillingMoveService.getActive(player));
         assertEquals(12 - START_HUNGER, hunger(light), "switching off changed the partner's hunger");
         assertEquals(essence, ApertureEssenceService.getSpendable(player));
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
         assertEquals(1, blades(helper));
         assertEquals(essence - BLADE_ESSENCE, ApertureEssenceService.getSpendable(player), "a plain tap billed more");
         helper.succeed();
@@ -445,11 +445,11 @@ public final class KillingMoveGameTests {
         ServerPlayer player = awakened(helper, null);
         hold(player, ModItems.MOONLIGHT_GU_1.get(), 12);
         ItemStack light = inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
-        ClientIntents.killingMove(player, MOVE);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
         hold(player, ModItems.BLOOD_MOON_GU_3.get(), 48);
         long essence = ApertureEssenceService.getSpendable(player);
 
-        ClientIntents.killingMove(player, KillingMoveService.PLAIN);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
 
         assertEquals(1, blades(helper));
         assertEquals(essence - BLOOD_MOON_ESSENCE, ApertureEssenceService.getSpendable(player),

@@ -7,6 +7,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
+import net.alex.guzhenren.gameplay.dimension.TreasureYellowHeavenGuard;
 import net.alex.guzhenren.item.gu.killingmove.KillingMove;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
@@ -42,7 +43,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
  *       弹出轮盘后为每个可用杀招展示一个扇区（{@link KillingMoveService#listUsable}：已学且背包或空窍存储中存在已炼
  *       化配合蛊），显示招式名称（开启中标为「停止」加招名）及配合蛊图标，选中即切换开关状态，松开在内圈或禁用扇区则
  *       不发包；无可用杀招时不弹出也不发包；主蛊处于原版冷却时扇区禁用（服务端同步拦截）；野生月刃蛊保留原版点击以按
- *       住炼化；松开使用键或切换主手使蛊离手都会结束按住，仅前者发送请求。</li>
+ *       住炼化；松开使用键或切换主手使蛊离手都会结束按住，仅前者发送请求。按住过程追踪快捷栏位与物品类型而非物品栈
+ *       实例（服务端每秒的饱食心跳会重新同步物品栈）；旁观者与身处宝黄天[Treasure Yellow Heaven]时把点击交还原版，与服
+ *       务端一样拒绝。</li>
  *   <li>发包时附带锁定目标 ID（{@link #aimedTarget}）：优先取 {@link EpicFightClientIntegration#getLockOnTarget}，否则
  *       选取准星下 {@link KillingMoveService#AIM_RANGE} 格内的活体（碰撞箱放宽 {@link #AIM_SLACK} 并遇方块截断），
  *       均无目标则发 {@link KillingMoveService#NO_TARGET}；服务端会在月刃转向追踪前再次校验。</li>
@@ -101,14 +104,13 @@ public final class KillingMoveInput {
         if (RadialMenu.isHolding() || HoldSlider.isHolding()) return;
 
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return;
-        ItemStack stack = player.getMainHandItem();
-        TendedGuItem gu = KillingMoveService.asBladeGu(stack);
+        if (player == null || player.isSpectator() || TreasureYellowHeavenGuard.isInside(player)) return;
+        TendedGuItem gu = KillingMoveService.asBladeGu(player.getMainHandItem());
         if (gu == null) return;
 
         event.setCanceled(true);
         event.setSwingHand(false);
-        RadialMenu.hold(new Hold(player, stack, gu));
+        RadialMenu.hold(new Hold(player, player.getInventory().selected, gu));
     }
 
     @SubscribeEvent
@@ -131,20 +133,20 @@ public final class KillingMoveInput {
     private static final class Hold implements RadialMenu.Owner {
 
         private final LocalPlayer player;
-        private final ItemStack stack;
+        private final int slot;
         private final TendedGuItem gu;
         private final KillingMoveGesture gesture;
 
-        private Hold(LocalPlayer player, ItemStack stack, TendedGuItem gu) {
+        private Hold(LocalPlayer player, int slot, TendedGuItem gu) {
             this.player = player;
-            this.stack = stack;
+            this.slot = slot;
             this.gu = gu;
             this.gesture = new KillingMoveGesture(this::send);
         }
 
         @Override
         public boolean isHeld() {
-            return Minecraft.getInstance().options.keyUse.isDown() && player.getMainHandItem() == stack;
+            return Minecraft.getInstance().options.keyUse.isDown() && isInHand();
         }
 
         @Override
@@ -173,8 +175,11 @@ public final class KillingMoveInput {
         public void releaseUnopened() { gesture.releaseUnopened(); }
 
         private void send(String move) {
-            if (player.getMainHandItem() != stack) return;
-            PacketDistributor.sendToServer(new KillingMovePayload(move, aimedTarget(player)));
+            if (isInHand()) PacketDistributor.sendToServer(new KillingMovePayload(move, aimedTarget(player)));
+        }
+
+        private boolean isInHand() {
+            return player.getInventory().selected == slot && player.getMainHandItem().is(gu);
         }
     }
 }

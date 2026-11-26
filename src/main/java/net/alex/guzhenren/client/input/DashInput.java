@@ -2,6 +2,9 @@ package net.alex.guzhenren.client.input;
 
 import net.alex.guzhenren.client.camera.CombatCameraRig;
 import net.alex.guzhenren.client.particle.RingParticle;
+import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
+import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
+import net.alex.guzhenren.gameplay.dimension.TreasureYellowHeavenGuard;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -20,6 +23,8 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
  *       {@link ClientIntents#canDash} 预判身上横冲系效果是否允许冲撞（服务端按同一规则重查），发起冲撞时让 Epic
  *       Fight 切入战斗模式、将镜头前向偏航对齐方向并发送 {@link DashPayload}，同时由 {@link CombatCameraRig#kick} 放宽
  *       视野。</li>
+ *   <li>服务端会拒绝的情形（旁观者、身处宝黄天[Treasure Yellow Heaven]、温养中、开窍仪式定身中）客户端同样不发起
+ *       （{@link #canStart}），免得先放宽视野、藏起冲刺环再被服务端静默拒绝。</li>
  *   <li>{@link #shouldStartDash} 仅在刚按下 Alt 或按住 Alt 期间刚按下方向键的按下沿触发，避免长按每 tick 重复冲撞；
  *       登出时调用 {@link #reset} 清空已记录的按键状态，防止进入下个世界时把仍按住的按键误判为新的按下沿。</li>
  * </ul>
@@ -51,7 +56,7 @@ public final class DashInput {
         boolean pressed = up && !STATE.previousUp || down && !STATE.previousDown
                 || left && !STATE.previousLeft || right && !STATE.previousRight;
         boolean alt = Screen.hasAltDown();
-        if (minecraft.screen == null && shouldStartDash(alt, STATE.previousAlt, pressed)) {
+        if (minecraft.screen == null && shouldStartDash(alt, STATE.previousAlt, pressed) && canStart(player)) {
             int vertical = up == down ? 0 : up ? 1 : -1;
             int horizontal = left == right ? 0 : left ? 1 : -1;
             if (ClientIntents.canDash(vertical, horizontal,
@@ -74,6 +79,11 @@ public final class DashInput {
         STATE.previousLeft = false;
         STATE.previousRight = false;
         STATE.previousAlt = false;
+    }
+
+    private static boolean canStart(LocalPlayer player) {
+        return !player.isSpectator() && !TreasureYellowHeavenGuard.isInside(player)
+                && !ApertureNourishService.isCultivating(player) && !AwakeningRitualService.holdsStill(player);
     }
 
     public static boolean shouldStartDash(boolean alt, boolean previousAlt, boolean directionPressed) {

@@ -39,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
  *       元老蛊[Primeval Elder Gu]存取、力气蛊[Strength Qi Gu]气波、蓄力蛊[Store Strength Gu]蓄力以及刃类蛊催动（可携带
  *       杀招并回传提示），以及地灵经营面板的全部操作（转交 {@code EarthSpiritPanel#handle} 复判主人与参数）。</li>
  *   <li>除二段飞行开关与坠击（由 {@code PlungeService#canStart} 自行判定）外，玩家位于宝黄天[Treasure Yellow Heaven]时
- *       一律通过 {@link #isOutsideTyh} 拒绝其余操作。</li>
+ *       一律通过 {@link #isOutsideTyh} 拒绝其余操作；修炼、出招与催动另经 {@link #canAct} 拒绝旁观者与已死亡的玩家
+ *       （原版物品使用对旁观者无效，载荷路径须自行补上）。各种「取消」不设门槛，免得玩家被带进宝黄天后停不下来。</li>
  *   <li>所有意图载荷均来自面板按钮、移动输入或按住手势且不附带玩家数据，任何状态变更一律由服务端经同步附件或通知下
  *       发。</li>
  *   <li>⚠ 客户端置灰按钮不构成安全边界：所有伪造或过期网络包均落入本类方法，每项前置门槛必须在服务端与客户端界面同步校
@@ -58,6 +59,10 @@ public final class ClientIntents {
         return !player.level().dimension().equals(ModDimensions.TREASURE_YELLOW_HEAVEN);
     }
 
+    private static boolean canAct(@NotNull ServerPlayer player) {
+        return isOutsideTyh(player) && !player.isSpectator() && player.isAlive();
+    }
+
     private static boolean hasAperture(@NotNull ServerPlayer player, int index) {
         return index >= 0 && index < ApertureService.get(player).count();
     }
@@ -70,19 +75,20 @@ public final class ClientIntents {
     }
 
     public static void nourishAperture(@NotNull ServerPlayer player, @NotNull NourishAction action, int aperture) {
-        if (!isOutsideTyh(player) || !hasAperture(player, aperture)) return;
         switch (action) {
-            case START -> ApertureNourishService.start(player, aperture);
+            case START -> {
+                if (canAct(player) && hasAperture(player, aperture)) ApertureNourishService.start(player, aperture);
+            }
             case CANCEL -> ApertureNourishService.cancel(player);
         }
     }
 
     public static void impactApertureWall(@NotNull ServerPlayer player) {
-        if (isOutsideTyh(player)) ApertureNourishService.impactWall(player);
+        if (canAct(player)) ApertureNourishService.impactWall(player);
     }
 
     public static void dash(@NotNull ServerPlayer player, int vertical, int horizontal, float yRot) {
-        if (!isOutsideTyh(player)) return;
+        if (!canAct(player)) return;
         if (vertical < -1 || vertical > 1 || horizontal < -1 || horizontal > 1 || !Float.isFinite(yRot)) return;
         if (!canDash(vertical, horizontal,
                 player.hasEffect(ModEffects.HORIZONTAL_CRASH_GU),
@@ -97,13 +103,13 @@ public final class ClientIntents {
     public static void plunge(@NotNull ServerPlayer player) { PlungeService.start(player); }
 
     public static void amplifyDrive(@NotNull ServerPlayer player, int slot) {
-        if (isOutsideTyh(player)) AmplifyEffectGuItem.driveFromHotbar(player, slot);
+        if (canAct(player)) AmplifyEffectGuItem.driveFromHotbar(player, slot);
     }
 
     /** 主手元老蛊[Primeval Elder Gu]的轻点（即催动，存入）或滑条选取 {@code stacks} 组。 */
     public static void primevalElder(@NotNull ServerPlayer player, @NotNull ElderAction action, int stacks) {
         ItemStack stack = player.getMainHandItem();
-        if (!isOutsideTyh(player) || player.isSpectator()) return;
+        if (!canAct(player)) return;
         if (!(stack.getItem() instanceof PrimevalElderGuItem elder)) return;
         if (!elder.isRefined(stack)) return;
         switch (action) {
@@ -112,13 +118,9 @@ public final class ClientIntents {
         }
     }
 
-    public static void killingMove(@NotNull ServerPlayer player, @NotNull String move) {
-        killingMove(player, move, KillingMoveService.NO_TARGET);
-    }
-
     /** 朝客户端的锁定目标催动主手的刃类蛊；无目标传 {@code NO_TARGET}。 */
     public static void killingMove(@NotNull ServerPlayer player, @NotNull String move, int target) {
-        if (!isOutsideTyh(player)) return;
+        if (!canAct(player)) return;
 
         KillingMoveService.Cast cast = KillingMoveService.drive(player, move, target);
         if (cast != null) PacketDistributor.sendToPlayer(player, KillingMoveTooltipPayload.of(cast));
@@ -126,13 +128,13 @@ public final class ClientIntents {
 
     /** 力气蛊[Strength Qi Gu]的出拳，化作气波打向客户端选定的目标。 */
     public static void qiWave(@NotNull ServerPlayer player, int target) {
-        if (isOutsideTyh(player)) QiWaveService.request(player, target);
+        if (canAct(player)) QiWaveService.request(player, target);
     }
 
     public static void storeStrength(@NotNull ServerPlayer player, @NotNull ChargeAction action, int target) {
         switch (action) {
             case START -> {
-                if (isOutsideTyh(player) && StoreStrength.start(player)) {
+                if (canAct(player) && StoreStrength.start(player)) {
                     if (!StoreStrength.isMobile(player)) EpicFightIntegration.holdCharge(player);
                 } else {
                     StoreStrengthNotices.send(player, StoreStrengthChargeEvent.Change.DROPPED);
@@ -146,7 +148,7 @@ public final class ClientIntents {
             }
             case RELEASE -> {
                 boolean posed = StoreStrength.isCharging(player) && !StoreStrength.isMobile(player);
-                if (isOutsideTyh(player) && ChargedPunch.release(player, target)) {
+                if (canAct(player) && ChargedPunch.release(player, target)) {
                     EpicFightIntegration.strikeCharge(player);
                 } else {
                     StoreStrength.cancel(player);
