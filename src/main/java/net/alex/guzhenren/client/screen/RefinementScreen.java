@@ -157,7 +157,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
             return menu.isInWindow()
                     ? Component.translatable(WINDOW_KEY, shown, menu.getStages(), seconds,
                     menu.getStonesIn(), menu.getStonesNeeded())
-                    : Component.translatable(GAP_KEY, shown, menu.getStages());
+                    : Component.translatable(GAP_KEY);
         }
         GuRecipe recipe = getSelectedRecipe();
         if (recipe == null) return LEGEND;

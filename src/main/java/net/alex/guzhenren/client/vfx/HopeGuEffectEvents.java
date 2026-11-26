@@ -21,7 +21,9 @@ import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 /**
@@ -33,6 +35,9 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
  *       [Aptitude]牌匾每展开一档在上下边缘各释放一粒火星，每碎裂一行在左右两半中心各释放一粒火星。</li>
  *   <li>牌匾火星在本人第一人称下直接交由 {@link AwakeningHud} 绘制在屏幕牌匾上；其他视角则在头顶世界牌匾对应像素位置
  *       生成世界粒子（观察者不可见该牌匾时跳过）。</li>
+ *   <li>⚠ 光效表的值（Photon 跟随执行器）强引用实体，弱键因此失效：实体离开客户端世界（被捕获、击杀、区块卸载）时
+ *       {@link #onEntityLeave} 摘掉条目，登出时 {@link #onLoggingOut} 清空两张表，否则整个旧 {@code ClientLevel} 随之
+ *       常驻内存。</li>
  *   <li>⚠ 特效推进跟随玩家刻运行，并为每名玩家记录上次处理的仪式 tick：在 {@code /tick freeze} 下玩家仍继续运行或
  *       对时包回退游戏时间时，同一仪式 tick 保证只触发一次。</li>
  * </ul>
@@ -52,6 +57,17 @@ public final class HopeGuEffectEvents {
         if (hope.isFading()) return;
         GLOWS.put(hope, new Glow(HopeGuParticles.follow(HopeGuParticles.core(), hope, true),
                 HopeGuParticles.follow(HopeGuParticles.trail(), hope, false)));
+    }
+
+    @SubscribeEvent
+    public static void onEntityLeave(EntityLeaveLevelEvent event) {
+        if (event.getLevel().isClientSide() && event.getEntity() instanceof HopeGuEntity hope) GLOWS.remove(hope);
+    }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        GLOWS.clear();
+        RITUAL_TICKS.clear();
     }
 
     @SubscribeEvent

@@ -16,6 +16,7 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -40,9 +41,11 @@ import org.joml.Vector3f;
  *   <li>新增环类型时只需在 {@code ModParticles} 注册并在数据生成 provider 列出帧图，再映射至
  *       {@link #createDashTrail(SpriteSet)}、{@link #createSonicBoom(SpriteSet)}、
  *       {@link #createBarrierRing(SpriteSet)} 或 {@link #createAreaDamageRing(SpriteSet)} 工厂之一。</li>
- *   <li>冲刺拖尾环（{@link #dashTrailRing}）在冲刺者本人第一人称视角下跳过渲染，仅面向第三人称与旁观者展示；
+ *   <li>冲刺拖尾环在冲刺者本人第一人称视角下跳过渲染，仅面向第三人称与旁观者展示；
  *       {@link #noteLocalDash(int)} 开启 {@link #DASH_SELF_HIDE_TICKS} 隐藏窗口（连发总时长加一环含停留的寿命），
- *       {@code ownDashHiddenNow} 同时校验窗口上下界以防切换世界重置客户端 {@code tickCount}。</li>
+ *       {@code isOwnDashHiddenNow} 同时校验窗口上下界以防切换世界重置客户端 {@code tickCount}。</li>
+ *   <li>⚠ 环由服务端广播、不带冲刺者，客户端只能按生成点认领：离本地玩家 {@link #OWN_DASH_RADIUS} 格内生成的冲刺环
+ *       才算自己的（{@link #ownDash}），别人的环照常显示；同一窗口里贴身冲刺的他人仍会被一起藏掉。</li>
  *   <li>⚠ {@link #RING_LINGER_TICKS} 让环在末帧停留片刻后再消失，否则肉眼难以看清完整绽放；离场方式由 {@link Exit}
  *       决定：冲刺环 {@link Exit#HOLD} 保持全亮，音爆环 {@link Exit#FADE} 在停留期渐隐。</li>
  *   <li>音障环采用 {@link Exit#SPREAD}：到达最大帧后的 {@link #SPREAD_LINGER_TICKS} tick 内（从绽放到消失共半秒）继续
@@ -96,10 +99,11 @@ public final class RingParticle extends TextureSheetParticle {
     static final float AREA_DAMAGE_SPAN = 3.5F;
     static final int AREA_DAMAGE_LINGER_TICKS = 4;
     private static final int DASH_SELF_HIDE_TICKS = 20;
+    private static final double OWN_DASH_RADIUS = 8.0D;
     private static final int DRIFTS_FOR_LIFE = Integer.MAX_VALUE;
     private static int localDashHiddenUntilTick = Integer.MIN_VALUE;
     private final SpriteSet sprites;
-    private final boolean dashTrailRing;
+    private final boolean ownDash;
     private final float largestSpan;
     private final Exit exit;
     private final int travelTicks;
@@ -113,7 +117,7 @@ public final class RingParticle extends TextureSheetParticle {
                          int travelTicks) {
         super(level, x, y, z);
         this.sprites = sprites;
-        this.dashTrailRing = dashTrailRing;
+        this.ownDash = dashTrailRing && isNearLocalPlayer(x, y, z);
         this.largestSpan = largestSpan;
         this.exit = exit;
         this.travelTicks = travelTicks;
@@ -200,7 +204,7 @@ public final class RingParticle extends TextureSheetParticle {
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-        if (this.dashTrailRing && isOwnDashHiddenNow()) return;
+        if (this.ownDash && isOwnDashHiddenNow()) return;
         float alpha = this.exit == Exit.HOLD ? this.alpha : RingGeometry.getFadeAlpha(getExitProgress(partialTick),
                 this.exit == Exit.SPREAD ? SPREAD_FADE_START : 0.0F);
         float size = this.getQuadSize(partialTick);
@@ -226,6 +230,11 @@ public final class RingParticle extends TextureSheetParticle {
         emitVertex(buffer, alpha, b, bu, bv);
         emitVertex(buffer, alpha, c, cu, cv);
         emitVertex(buffer, alpha, delta, du, dv);
+    }
+
+    private static boolean isNearLocalPlayer(double x, double y, double z) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player != null && player.distanceToSqr(x, y, z) <= OWN_DASH_RADIUS * OWN_DASH_RADIUS;
     }
 
     private static boolean isOwnDashHiddenNow() {

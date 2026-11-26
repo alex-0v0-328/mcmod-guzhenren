@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.hud;
 
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.compat.TravelersTitlesIntegration;
 import net.alex.guzhenren.network.payload.PlaceTitlePayload;
 import net.minecraft.Util;
@@ -9,6 +10,10 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.util.Mth;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,9 +30,11 @@ import org.jetbrains.annotations.Nullable;
  *   <li>位置在屏幕中心以上 {@value #NAME_TOP} 至 {@value #KIND_TOP} 像素（GUI 坐标），高过 Traveler's Titles 默认位置
  *       （中心以上 33 像素起、约 19 像素高）。</li>
  *   <li>⚠ 字体在透明度低于 4/255 时会按不透明绘制，所以透明度过低直接不画。</li>
+ *   <li>登出时（{@link #onLoggingOut}）清空正在显示与排队的标题，免得旧世界的地名在下一个世界或服务器弹出。</li>
  * </ul>
  */
 
+@EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)
 public final class PlaceTitleHud {
 
     public static final PlaceTitleHud INSTANCE = new PlaceTitleHud();
@@ -56,6 +63,12 @@ public final class PlaceTitleHud {
     }
 
     public boolean isShowing() { return shown != null; }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        INSTANCE.waiting = null;
+        INSTANCE.shown = null;
+    }
 
     public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker deltaTracker) {
         if (waiting != null && (Util.getMillis() - waitingSince >= MAX_WAIT_MS
