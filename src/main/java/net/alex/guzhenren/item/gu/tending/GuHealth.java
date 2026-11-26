@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu.tending;
 
 import net.alex.guzhenren.item.gu.stack.GuCondition;
 import net.alex.guzhenren.item.gu.stack.GuCondition.Stage;
+import net.alex.guzhenren.item.gu.stack.VitalGuState;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -11,10 +12,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 持续照顾型蛊[Tended Gu]的伤势规则：正常、受伤、濒死三态存于 {@link GuCondition} 组件（缺省即正常），不设生命点数。
  * <ul>
- *   <li>受伤 9 次、濒死 3 次，无时间期限；{@link #wearUse} 每次催动扣 1，受伤用尽转濒死，濒死用尽伤重而亡（创造模式不
- *       死）；无饱食条的蛊不计（{@code TendedGuItem.wearUse} 把守）。</li>
+ *   <li>受伤 9 次、濒死 3 次，无时间期限；{@link #wearUse} 每次催动扣 1，受伤用尽转濒死，濒死用尽伤重而亡（创造模式与
+ *       本命蛊[Vital Gu]不因伤死，炼废同理）；无饱食条的蛊不计（{@code TendedGuItem.wearUse} 把守）。</li>
  *   <li>来源只有炼蛊失败（{@link #rollRefineFailure}）与指令（{@link #set}）；进新档次数取满，炼化保留伤势。</li>
- *   <li>恢复接口 {@link #recover} 升一档；目前只有本命蛊[Vital Gu]借玩家回血（{@link #mend}）调用。</li>
+ *   <li>恢复接口 {@link #recover} 升一档；目前只有本命蛊借玩家回血（{@link #mend}）调用。</li>
  * </ul>
  */
 
@@ -83,7 +84,7 @@ public final class GuHealth {
             worsen(holder, stack);
             return false;
         }
-        if (holder.getAbilities().instabuild) {
+        if (holder.getAbilities().instabuild || VitalGuState.isVital(stack)) {
             stack.set(ModDataComponents.GU_CONDITION, condition.withUsesLeft(0));
             return false;
         }
@@ -91,7 +92,7 @@ public final class GuHealth {
         return true;
     }
 
-    /** 炼蛊失败按当前档掷一次：正常 20% 受伤、受伤 50% 濒死、濒死 80% 炼废；炼废时为 true（调用方清格）。 */
+    /** 炼蛊失败按当前档掷一次：正常 20% 受伤、受伤 50% 濒死、濒死 80% 炼废（本命蛊不炼废）；炼废时为 true（调用方清格）。 */
     public static boolean rollRefineFailure(ServerPlayer holder, ItemStack stack, RandomSource random) {
         Stage stage = getStage(stack);
         float chance = switch (stage) {
@@ -105,6 +106,8 @@ public final class GuHealth {
             worsen(holder, stack);
             return false;
         }
+        if (VitalGuState.isVital(stack)) return false;
+
         TendedGuItem.ruin(holder, stack);
         return true;
     }

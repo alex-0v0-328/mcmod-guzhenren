@@ -36,7 +36,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertFalse;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * 蛊虫伤势三态：受伤 9 次转濒死、濒死 3 次伤重而亡；计次走真实催动与后援；创造不死；无饱食条不计；炼蛊失败按档掷骰；
+ * 蛊虫伤势三态：受伤 9 次转濒死、濒死 3 次伤重而亡；计次走真实催动与后援；创造与本命蛊不因伤死；无饱食条不计；炼蛊失败按档掷骰；
  * 本命蛊借玩家回血升档并扣 1/5 最大生命。掷骰用定值随机数。
  */
 
@@ -98,6 +98,24 @@ public final class GuConditionGameTests {
         for (int i = 0; i < 4; i++) assertFalse(TendedGuAccess.wearUse(gu, player, boar), "creative use " + i);
         assertEquals(Stage.DYING, GuHealth.getStage(boar));
         assertEquals(0, usesLeft(boar), "creative uses were not worn");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aVitalGuNeverDiesOfItsWounds(GameTestHelper helper) {
+        List<Component> inbox = new ArrayList<>();
+        ServerPlayer player = holder(helper, inbox, Rank.ONE);
+        ItemStack vital = hold(player, ModItems.FLOWER_BOAR_GU_1.get(), 14);
+        VitalGuState.bind(vital, player, ApertureData.PRIMARY);
+        GuHealth.set(vital, Stage.DYING);
+        TendedGuItem gu = (TendedGuItem) vital.getItem();
+
+        for (int i = 0; i < 4; i++) assertFalse(TendedGuAccess.wearUse(gu, player, vital), "vital use " + i);
+        assertEquals(0, usesLeft(vital), "vital dying uses were not worn");
+        assertFalse(GuHealth.rollRefineFailure(player, vital, fixed(0.0F)), "a failed refinement ruined a vital Gu");
+        assertEquals(Stage.DYING, GuHealth.getStage(vital), "a vital Gu left the dying stage");
+        assertTrue(messages(inbox, WOUND_DEAD_KEY).isEmpty() && messages(inbox, REFINE_DEAD_KEY).isEmpty(),
+                "a vital Gu died of its wounds");
         helper.succeed();
     }
 
