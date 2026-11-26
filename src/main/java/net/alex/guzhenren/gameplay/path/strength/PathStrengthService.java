@@ -139,7 +139,8 @@ public final class PathStrengthService {
     }
 
     public static boolean addHumanStrength(@NotNull ServerPlayer player, @NotNull HumanStrength kind, int delta) {
-        return setHumanStrength(player, kind, getHumanStrength(player, kind) + delta);
+        long target = (long) getHumanStrength(player, kind) + delta;
+        return setHumanStrength(player, kind, (int) Math.clamp(target, 0L, kind.getMaxLayers()));
     }
 
     private static <P extends NamedEnum> PathEffect<P> createEffect(PathEffectType<P> type, P payload, int points) {

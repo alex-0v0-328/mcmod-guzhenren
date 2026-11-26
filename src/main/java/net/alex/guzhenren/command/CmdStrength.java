@@ -1,5 +1,6 @@
 package net.alex.guzhenren.command;
 
+import com.google.common.primitives.Ints;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
@@ -52,8 +53,10 @@ public final class CmdStrength {
     private static ArgumentBuilder<CommandSourceStack, ?> buildHumanStrength() {
         return Commands.literal("human").then(ModCommandSupport.buildEnumCounter(ARG_KIND, HumanStrength.values(),
                 IntegerArgumentType.integer(),
-                (player, kind, amount) -> PathStrengthService.setHumanStrength(player, kind, (int) amount),
-                (player, kind, amount) -> PathStrengthService.addHumanStrength(player, kind, (int) amount),
+                (player, kind, amount) ->
+                        PathStrengthService.setHumanStrength(player, kind, Ints.saturatedCast(amount)),
+                (player, kind, amount) ->
+                        PathStrengthService.addHumanStrength(player, kind, Ints.saturatedCast(amount)),
                 FAILED_MARK_INTERFERENCE));
     }
 }

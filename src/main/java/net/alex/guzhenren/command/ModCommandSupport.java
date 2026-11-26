@@ -28,7 +28,7 @@ import net.minecraft.util.StringRepresentable;
  *       为成功与拒绝两组（{@link Outcome}）并交由 {@link ModCommandFeedback} 汇总输出。</li>
  *   <li>提供三类通用节点构建器：{@link #buildEnumSetNode} 构建枚举 {@code set} 节点；{@link #buildCounter} 构建
  *       {@code long} 数值的 {@code set|add|sub} 节点（{@code sub} 使用饱和取反）；{@link #buildEnumCounter} 构建带枚举
- *       前缀的数值计数器（读取 {@link Number} 以兼容 {@code int} 精确收窄，{@code sub} 直接取反，并在操作返回
+ *       前缀的数值计数器（读取 {@link Number} 以兼容 {@code int} 精确收窄，{@code sub} 同样饱和取反，并在操作返回
  *       {@code false} 时按指定拒绝键反馈）。</li>
  *   <li>⚠ 任何改变 Brigadier 节点 {@code requires()} 判定结果的操作完成后，必须调用 {@link #refreshCommands} 向目标客
  *       户端重新下发命令树，否则客户端补全仍会保留旧命令树。</li>
@@ -82,7 +82,8 @@ public final class ModCommandSupport {
                 .then(buildEnumCountNode("set", argument, values, amountType, set, refusedKey))
                 .then(buildEnumCountNode("add", argument, values, amountType, add, refusedKey))
                 .then(buildEnumCountNode("sub", argument, values, amountType,
-                        (player, value, amount) -> add.apply(player, value, -amount), refusedKey));
+                        (player, value, amount) -> add.apply(player, value, LongMath.saturatedSubtract(0L, amount)),
+                        refusedKey));
     }
 
     private static <E extends Enum<E> & StringRepresentable> ArgumentBuilder<CommandSourceStack, ?> buildEnumCountNode(

@@ -52,6 +52,7 @@ public final class CmdBody {
     private static final String ARG_RANK = "rank";
     private static final String ARG_PART = "part";
     private static final String ARG_INJURY = "injury";
+    private static final int MAX_SKIN_SECONDS = Integer.MAX_VALUE / Ticks.SECOND;
     private static final String NATIVE = "native";
     private static final Physique[] PHYSIQUES = Arrays.stream(Physique.values())
             .filter(physique -> physique != Physique.EXTREME).toArray(Physique[]::new);
@@ -152,7 +153,8 @@ public final class CmdBody {
 
     private static ArgumentBuilder<CommandSourceStack, ?> buildTimedSkin(Skin skin) {
         ArgumentBuilder<CommandSourceStack, ?> node = Commands.literal(skin.getSerializedName())
-                .then(ModCommandSupport.withTargets(Commands.argument(ARG_SECONDS, IntegerArgumentType.integer(0)),
+                .then(ModCommandSupport.withTargets(Commands.argument(ARG_SECONDS,
+                        IntegerArgumentType.integer(0, MAX_SKIN_SECONDS)),
                         context -> ModCommandSupport.apply(context, player -> wearSkin(player, skin,
                                 IntegerArgumentType.getInteger(context, ARG_SECONDS) * Ticks.SECOND))));
         return ModCommandSupport.withTargets(node, context -> ModCommandSupport.apply(context,
