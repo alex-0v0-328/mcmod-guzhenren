@@ -26,7 +26,8 @@ import org.jetbrains.annotations.Nullable;
  *       友、宠物、野生蛊与盔甲架都算）且爆点至眼部无方块遮挡（{@link AreaDamage#isInSight}，Alex 定，隔墙不受伤）的生物
  *       按溢出结算
  *       （{@link AreaDamage#spill}）：锁定目标排首位吃整发伤害，剩余由近及远至多 {@link #MAX_TARGETS} 个；锁定目标不在
- *       范围内时由最近的目标吃起。爆开本身不结算连招轮、也不触发身旁兽力虚影。</li>
+ *       范围内时由最近的目标吃起。射手自己无论远近都排在最后（Alex 定）：只吃打完别人后剩下的溢出，不替敌人挡伤害，
+ *       名额已满时不挨打。爆开本身不结算连招轮、也不触发身旁兽力虚影。</li>
  *   <li>当 {@link Spec#areaDamage()} 为真（人力钧力流收尾招暴击[Crit]，发射方在连招轮收尾时一次掷定）时，发射方已把
  *       {@link Spec#radius()} 扩到范围伤害[Area Damage]半径，爆开另沿弹射物末段飞行朝向 {@code heading} 发射冲击环，并
  *       把锁定目标以外的命中目标从爆点向外击退；不破坏方块。</li>
@@ -61,7 +62,7 @@ public final class QiBurst {
                 victim -> victim.getBoundingBox().distanceToSqr(at) <= radius * radius
                         && ProjectileHits.canHit(victim) && AreaDamage.isInSight(projectile, at, victim)));
         targets.sort(Comparator.comparingDouble((LivingEntity victim) -> victim == locked ? -1.0D
-                : victim.getBoundingBox().distanceToSqr(at)));
+                : victim == owner ? Double.MAX_VALUE : victim.getBoundingBox().distanceToSqr(at)));
 
         boolean area = spec.areaDamage() && owner.level() == projectile.level();
         List<LivingEntity> hit = AreaDamage.spill(targets, damage, MAX_TARGETS, source, victim -> {

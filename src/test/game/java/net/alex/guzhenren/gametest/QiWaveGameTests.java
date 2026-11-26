@@ -105,6 +105,7 @@ public final class QiWaveGameTests {
     private static final BlockPos BURST_OPEN = new BlockPos(3, 1, 4);
     private static final BlockPos BURST_WALL = new BlockPos(5, 1, 4);
     private static final BlockPos BURST_HIDDEN = new BlockPos(6, 1, 4);
+    private static final BlockPos NEXT_TO_STAND = new BlockPos(5, 1, 1);
     private static final float BURST_DAMAGE = 10.0F;
     private static final double ARMOR = 20.0D;
     private static final int FLIGHT_TICKS = 12;
@@ -747,6 +748,30 @@ public final class QiWaveGameTests {
             assertTrue(armoredVillager < BURST_DAMAGE, "the armor reduced nothing");
             assertEquals(armoredVillager * ProjectileHits.SELF_HIT_FACTOR,
                     player.getMaxHealth() - player.getHealth(), DELTA);
+        });
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theCasterTakesOnlyWhatSpillsPastEveryoneElse(GameTestHelper helper) {
+        ServerPlayer player = buffed(helper, STAND);
+        Villager weak = target(helper, NEXT_TO_STAND);
+        weak.setHealth(4.0F);
+        QiWaveEntity orb = orbOf(helper, player);
+        Vec3 onPlayer = player.getBoundingBox().getCenter();
+
+        GameTestPlayers.withPvp(helper, true, () -> {
+            assertEquals(List.of(weak, player), QiBurst.burst(player, orb, onPlayer, BURST_HEADING, null,
+                    BURST_DAMAGE, QiBurst.Spec.QI_WAVE), "the caster stood ahead of the villager");
+            assertEquals(0.0D, weak.getHealth(), DELTA);
+            assertEquals((BURST_DAMAGE - 4.0F) * ProjectileHits.SELF_HIT_FACTOR,
+                    player.getMaxHealth() - player.getHealth(), DELTA);
+
+            player.setHealth(player.getMaxHealth());
+            Villager sturdy = target(helper, NEXT_TO_STAND);
+            assertEquals(List.of(sturdy), QiBurst.burst(player, orb, onPlayer, BURST_HEADING, null, BURST_DAMAGE,
+                    QiBurst.Spec.QI_WAVE), "the caster took a share the villager could absorb");
+            assertEquals(player.getMaxHealth(), player.getHealth(), DELTA);
         });
         helper.succeed();
     }
