@@ -310,7 +310,7 @@ public class TendedGuItem extends MortalGuItem {
 
     protected final boolean trySpendAndApply(ServerPlayer player, ItemStack stack) {
         PrimevalStoneSupply.pay(player, guProperties.getEssencePerRound());
-        boolean drivenOnAnEmptyBar = hunger.isSpendForced(stack, getHungerCostMultiplier(player, stack));
+        boolean drivenOnAnEmptyBar = hunger.spendUse(stack, getHungerCostMultiplier(player, stack));
         applyEffectWithCooldown(player, stack);
         if (!drivenOnAnEmptyBar || player.getAbilities().instabuild || defersForcedDeath(player, stack)) return false;
 
@@ -327,7 +327,7 @@ public class TendedGuItem extends MortalGuItem {
         if (!PrimevalStoneSupply.pay(player, guProperties.getEssencePerRound())) return false;
 
         feed(player, stack);
-        if (hunger.isSpendForcedAsPartner(stack) && !player.getAbilities().instabuild) {
+        if (hunger.spendAsPartner(stack) && !player.getAbilities().instabuild) {
             exhaust(player, stack);
             stack.shrink(1);
             return true;

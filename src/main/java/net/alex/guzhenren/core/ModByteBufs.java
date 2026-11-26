@@ -2,8 +2,8 @@ package net.alex.guzhenren.core;
 
 import io.netty.handler.codec.DecoderException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -16,8 +16,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 面向枚举及以枚举为元素的映射、集合的网络字节流编解码工具。
  * <ul>
- *   <li>枚举按 {@link Enum#ordinal()} 读写 VarInt，集合与映射先写 VarInt 元素数量再逐项序列化；{@link #enumCodec} 与
- *       {@link #nullableEnumCodec} 提供对应的 {@link StreamCodec} 包装，供网络 Payload 组合使用。</li>
+ *   <li>枚举按 {@link Enum#ordinal()} 读写 VarInt，集合与映射先写 VarInt 元素数量再逐项序列化，读回为可变的
+ *       {@code EnumMap} 与 {@code EnumSet}；{@link #enumCodec} 与 {@link #nullableEnumCodec} 提供对应的
+ *       {@link StreamCodec} 包装，供网络 Payload 组合使用。</li>
  *   <li>⚠ 可空枚举（{@link #writeNullableEnum} / {@link #readNullableEnum}）以 {@code 0} 表示 {@code null}、非空值写入
  *       {@code ordinal + 1}：因为业务枚举（如 {@code GuPath}）不设占位的 {@code NONE} 常量，「未选择」状态完全靠该编码
  *       表达。</li>
@@ -66,24 +67,24 @@ public final class ModByteBufs {
     }
 
     public static <K extends Enum<K>, V> Map<K, V> readEnumMap(
-            @NotNull FriendlyByteBuf buf, Class<K> key, Function<FriendlyByteBuf, V> value) {
+            @NotNull FriendlyByteBuf buf, Class<K> keyType, Function<FriendlyByteBuf, V> value) {
         int size = buf.readVarInt();
-        Map<K, V> map = new HashMap<>();
+        Map<K, V> map = new EnumMap<>(keyType);
         for (int i = 0; i < size; i++) {
-            K k = readEnum(buf, key);
-            map.put(k, value.apply(buf));
+            K key = readEnum(buf, keyType);
+            map.put(key, value.apply(buf));
         }
         return map;
     }
 
     public static <E extends Enum<E>> void writeEnumSet(@NotNull FriendlyByteBuf buf, Collection<E> set) {
         buf.writeVarInt(set.size());
-        for (E e : set) writeEnum(buf, e);
+        for (E value : set) writeEnum(buf, value);
     }
 
     public static <E extends Enum<E>> Set<E> readEnumSet(@NotNull FriendlyByteBuf buf, Class<E> type) {
         int size = buf.readVarInt();
-        Set<E> set = new HashSet<>();
+        Set<E> set = EnumSet.noneOf(type);
         for (int i = 0; i < size; i++) set.add(readEnum(buf, type));
         return set;
     }

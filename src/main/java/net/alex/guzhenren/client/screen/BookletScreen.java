@@ -62,6 +62,8 @@ public final class BookletScreen extends Screen {
     private static final float ICON_SCALE = BookletLayout.ICON / 16.0F;
     private static final int GRID_PITCH = 20;
     private static final int GRID_CELL = 18;
+    private static final int ITEM_SIZE = 16;
+    private static final int NAME_GAP = 4;
     private static final int GRID_X =
             BookletLayout.LEFT_X + (BookletLayout.AREA_WIDTH - GuRecipe.GRID_COLS * GRID_PITCH) / 2;
     private static final int GRID_Y = BookletLayout.TOP + 8;
@@ -90,9 +92,13 @@ public final class BookletScreen extends Screen {
         }
     }
 
+    private static boolean isTraditional(Minecraft minecraft) {
+        return TRADITIONAL.contains(minecraft.getLanguageManager().getSelected());
+    }
+
     public static void open(BookletItem item) {
         Minecraft minecraft = Minecraft.getInstance();
-        boolean traditional = TRADITIONAL.contains(minecraft.getLanguageManager().getSelected());
+        boolean traditional = isTraditional(minecraft);
         BookletScreen screen = switch (item.getText()) {
             case Booklet booklet -> new BookletScreen(item.getDescription(),
                     List.of(BookletLayout.lay(booklet, traditional)),
@@ -109,7 +115,7 @@ public final class BookletScreen extends Screen {
         if (recipe == null) return;
 
         Minecraft minecraft = Minecraft.getInstance();
-        boolean traditional = TRADITIONAL.contains(minecraft.getLanguageManager().getSelected());
+        boolean traditional = isTraditional(minecraft);
         BookletLayout.Spread spread = Booklet.forRecipe(id).map(booklet -> BookletLayout.lay(booklet, traditional))
                 .orElse(new BookletLayout.Spread(List.of(), null));
         ItemStack result = RecipeGhosts.getResult(recipe);
@@ -227,7 +233,7 @@ public final class BookletScreen extends Screen {
                 } else {
                     graphics.fill(cellX + 1, cellY + 1, cellX + GRID_CELL - 1, cellY + GRID_CELL - 1, GROUP_TINT);
                 }
-                if (isOver(mouseX, mouseY, cellX, cellY, GRID_CELL, GRID_CELL)) hovered = stack;
+                if (Widgets.isOver(mouseX, mouseY, cellX, cellY, GRID_CELL, GRID_CELL)) hovered = stack;
             }
         }
 
@@ -235,12 +241,13 @@ public final class BookletScreen extends Screen {
         int room = BookletLayout.AREA_WIDTH - 2 - 16 - 4;
         FormattedCharSequence name = Language.getInstance().getVisualOrder(
                 font.substrByWidth(result.getHoverName(), room));
-        int width = 16 + 4 + font.width(name);
+        int width = ITEM_SIZE + NAME_GAP + font.width(name);
         int resultX = x + (BookletLayout.AREA_WIDTH - width) / 2;
         int resultY = topPos + RESULT_Y;
         graphics.renderItem(result, resultX, resultY);
-        graphics.drawString(font, name, resultX + 20, resultY + (16 - font.lineHeight) / 2 + 1, INK, false);
-        if (isOver(mouseX, mouseY, resultX, resultY, 16, 16)) hovered = result;
+        graphics.drawString(font, name, resultX + ITEM_SIZE + NAME_GAP, resultY + (ITEM_SIZE - font.lineHeight) / 2 + 1,
+                INK, false);
+        if (Widgets.isOver(mouseX, mouseY, resultX, resultY, ITEM_SIZE, ITEM_SIZE)) hovered = result;
 
         if (!hovered.isEmpty()) graphics.renderTooltip(font, hovered, mouseX, mouseY);
     }
@@ -259,9 +266,6 @@ public final class BookletScreen extends Screen {
                 : (slot - GuRecipe.RING_SIZE) / GuRecipe.CORE_COLS + 1;
     }
 
-    private static boolean isOver(int mouseX, int mouseY, int x, int y, int w, int h) {
-        return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
-    }
     //endregion
 
     private record Glyph(FormattedCharSequence text, int x, int y) {}

@@ -216,6 +216,7 @@ public final class ApertureService {
     }
 
     public static boolean set(@NotNull ServerPlayer player, int index, @NotNull Aperture aperture) {
+        if (index < 0 || index >= get(player).count()) return false;
         if (index == get(player).getFirstIndex() && aperture.baseEssence() == Aperture.MAX_BASE
                 && !BodyService.isExtreme(player)) return false;
         store(player, get(player).with(index, enforce(player, index, aperture)));

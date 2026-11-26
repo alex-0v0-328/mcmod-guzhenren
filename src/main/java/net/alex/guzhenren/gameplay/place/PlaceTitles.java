@@ -3,10 +3,10 @@ package net.alex.guzhenren.gameplay.place;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,7 +30,7 @@ public final class PlaceTitles {
     private static final Map<ServerPlayer, Map<ResourceLocation, Integer>> LAST_INSIDE = new WeakHashMap<>();
 
     public static void show(@NotNull ServerPlayer player, @NotNull PlaceTitle title) {
-        NeoForge.EVENT_BUS.post(new PlaceTitleEvent(player, title));
+        ModEvents.post(new PlaceTitleEvent(player, title));
     }
 
     /** 报告玩家此刻是否在 {@code place} 内；返回这次是否弹出了标题。 */

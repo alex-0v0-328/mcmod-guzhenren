@@ -31,8 +31,6 @@ public final class FarmState {
 
     public @NotNull LongList fields() { return LongList.of(fields.toLongArray()); }
 
-    public boolean hasField(@NotNull BlockPos center) { return fields.contains(center.asLong()); }
-
     public void addField(@NotNull BlockPos center) {
         fields.add(center.asLong());
         changed.run();

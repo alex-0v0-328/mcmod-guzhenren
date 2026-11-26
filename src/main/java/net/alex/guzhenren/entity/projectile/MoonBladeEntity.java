@@ -1,6 +1,7 @@
 package net.alex.guzhenren.entity.projectile;
 
 import java.util.function.Predicate;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -27,7 +28,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,7 +102,7 @@ public final class MoonBladeEntity extends Projectile {
         owner.level().addFreshEntity(blade);
         owner.level().playSound(null, owner.getX(), owner.getY(), owner.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 SoundSource.PLAYERS, 0.8F, variant.bleeds() ? 0.8F : 1.4F);
-        NeoForge.EVENT_BUS.post(new ProjectileThrownEvent(owner));
+        ModEvents.post(new ProjectileThrownEvent(owner));
     }
 
     private void lockOn(LivingEntity target, ServerPlayer owner) {

@@ -66,8 +66,6 @@ public final class StrengthService {
         return Math.max(ALL_OUT_LOWEST_TIER, effect.getAmplifier());
     }
 
-    public static boolean isAllOut(@NotNull Player player) { return getAllOutTier(player) != NO_ALL_OUT; }
-
     public static int getPermanentPoints(@NotNull Player player) {
         long markPoints = 0L;
         for (PathEffect<?> effect : PathEffectService.getEffects(player)) {

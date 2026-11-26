@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.registry.effect.ModEffects;
@@ -13,7 +14,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
@@ -145,7 +145,7 @@ public final class StoreStrength {
         return true;
     }
 
-    public static void cancel(@NotNull Player player) {
+    public static void cancel(@NotNull ServerPlayer player) {
         CHARGES.remove(player.getUUID());
         PlayerData.get(player).setMobileCharge(false);
     }
@@ -159,7 +159,7 @@ public final class StoreStrength {
 
     private static void drop(@NotNull ServerPlayer player) {
         if (CHARGES.remove(player.getUUID()) != null) {
-            NeoForge.EVENT_BUS.post(new StoreStrengthChargeEvent(player, StoreStrengthChargeEvent.Change.DROPPED));
+            ModEvents.post(new StoreStrengthChargeEvent(player, StoreStrengthChargeEvent.Change.DROPPED));
             PlayerData.get(player).setMobileCharge(false);
         }
     }
@@ -180,7 +180,7 @@ public final class StoreStrength {
         float filled = fill(progress);
         CHARGES.put(player.getUUID(), filled);
         if (!isFull(progress) && isFull(filled)) {
-            NeoForge.EVENT_BUS.post(new StoreStrengthChargeEvent(player, StoreStrengthChargeEvent.Change.FULL));
+            ModEvents.post(new StoreStrengthChargeEvent(player, StoreStrengthChargeEvent.Change.FULL));
         }
     }
 
@@ -190,7 +190,9 @@ public final class StoreStrength {
     }
 
     @SubscribeEvent
-    public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) { cancel(event.getEntity()); }
+    public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) cancel(player);
+    }
 
     @SubscribeEvent
     public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
