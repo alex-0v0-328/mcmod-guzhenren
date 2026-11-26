@@ -15,9 +15,9 @@ import net.minecraft.commands.Commands;
  * </ul>
  */
 
-public final class CmdMindPool {
+public final class MindPoolCommand {
 
-    private CmdMindPool() {}
+    private MindPoolCommand() {}
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         LiteralArgumentBuilder<CommandSourceStack> wisdom = Commands.literal("wisdom");

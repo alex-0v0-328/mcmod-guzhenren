@@ -38,9 +38,9 @@ import net.minecraft.world.level.Level;
  * </ul>
  */
 
-public final class CmdTravel {
+public final class TravelCommand {
 
-    private CmdTravel() {}
+    private TravelCommand() {}
 
     private static final String ARG_DIMENSION = "dimension";
 
@@ -49,16 +49,16 @@ public final class CmdTravel {
                 .then(ModCommandSupport.withTargets(
                         Commands.argument(ARG_DIMENSION, ResourceLocationArgument.id())
                                 .suggests((context, builder) -> suggestAnchoredDimensions(builder)),
-                        CmdTravel::enter));
+                        TravelCommand::enter));
     }
 
     public static ArgumentBuilder<CommandSourceStack, ?> exitNode(Predicate<CommandSourceStack> admin) {
         return Commands.literal("exit")
                 .requires(source -> admin.test(source) || canExitSelf(source))
-                .executes(CmdTravel::exit)
+                .executes(TravelCommand::exit)
                 .then(Commands.argument(ModCommandSupport.ARG_TARGETS, EntityArgument.players())
                         .requires(admin)
-                        .executes(CmdTravel::exit));
+                        .executes(TravelCommand::exit));
     }
 
     public static boolean canExitSelf(CommandSourceStack source) {

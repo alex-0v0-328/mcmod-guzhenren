@@ -13,13 +13,13 @@ import net.minecraft.server.level.ServerPlayer;
  * 需开窍的子命令。
  */
 
-public final class CmdReset {
+public final class ResetCommand {
 
-    private CmdReset() {}
+    private ResetCommand() {}
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return ModCommandSupport.withTargets(Commands.literal("reset"),
-                context -> ModCommandSupport.apply(context, CmdReset::reset));
+                context -> ModCommandSupport.apply(context, ResetCommand::reset));
     }
 
     private static void reset(ServerPlayer player) {

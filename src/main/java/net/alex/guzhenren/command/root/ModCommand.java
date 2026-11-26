@@ -3,15 +3,15 @@ package net.alex.guzhenren.command.root;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.command.CmdAperture;
-import net.alex.guzhenren.command.CmdAwaken;
-import net.alex.guzhenren.command.CmdBody;
-import net.alex.guzhenren.command.CmdGu;
-import net.alex.guzhenren.command.CmdMind;
-import net.alex.guzhenren.command.CmdPath;
-import net.alex.guzhenren.command.CmdReset;
-import net.alex.guzhenren.command.CmdSoul;
-import net.alex.guzhenren.command.CmdTravel;
+import net.alex.guzhenren.command.ApertureCommand;
+import net.alex.guzhenren.command.AwakenCommand;
+import net.alex.guzhenren.command.BodyCommand;
+import net.alex.guzhenren.command.GuCommand;
+import net.alex.guzhenren.command.MindCommand;
+import net.alex.guzhenren.command.PathCommand;
+import net.alex.guzhenren.command.ResetCommand;
+import net.alex.guzhenren.command.SoulCommand;
+import net.alex.guzhenren.command.TravelCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -25,7 +25,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *       统一通过客户端 B 面板查看，不设命令行查询打印分支。</li>
  *   <li>{@code /gzr} 通过 Brigadier {@code redirect} 指向 {@code /guzhenren} 根节点，重定向后的参数全部解析在子上下文中
  *       （参见 {@link net.alex.guzhenren.command.ModEnumArgument}）。</li>
- *   <li>维度进出命令挂载在独立的 {@code /guworld} 根节点下（{@link CmdTravel}）：{@code enter} 要求权限等级 2；处
+ *   <li>维度进出命令挂载在独立的 {@code /guworld} 根节点下（{@link TravelCommand}）：{@code enter} 要求权限等级 2；处
  *       于宝黄天[Treasure Yellow Heaven]或狐仙福地[Fox Immortal Blissful Land]内的任何玩家均可对自己执行无参
  *       {@code exit} 离开，在四域或指定他人为目标时仍要求权限等级 2。</li>
  * </ul>
@@ -47,23 +47,23 @@ public final class ModCommand {
         LiteralCommandNode<CommandSourceStack> root = dispatcher.register(
                 Commands.literal("guzhenren")
                         .requires(source -> source.hasPermission(PERMISSION_LEVEL))
-                        .then(CmdAwaken.buildNode())
-                        .then(CmdReset.buildNode())
-                        .then(CmdAperture.buildNode())
-                        .then(CmdBody.buildNode())
-                        .then(CmdSoul.buildNode())
-                        .then(CmdPath.buildNode())
-                        .then(CmdMind.buildNode())
-                        .then(CmdGu.buildNode()));
+                        .then(AwakenCommand.buildNode())
+                        .then(ResetCommand.buildNode())
+                        .then(ApertureCommand.buildNode())
+                        .then(BodyCommand.buildNode())
+                        .then(SoulCommand.buildNode())
+                        .then(PathCommand.buildNode())
+                        .then(MindCommand.buildNode())
+                        .then(GuCommand.buildNode()));
 
         dispatcher.register(Commands.literal("gzr")
                 .requires(source -> source.hasPermission(PERMISSION_LEVEL))
                 .redirect(root));
 
         dispatcher.register(Commands.literal("guworld")
-                .requires(source -> isAdmin(source) || CmdTravel.canExitSelf(source))
-                .then(CmdTravel.enterNode().requires(ModCommand::isAdmin))
-                .then(CmdTravel.exitNode(ModCommand::isAdmin)));
+                .requires(source -> isAdmin(source) || TravelCommand.canExitSelf(source))
+                .then(TravelCommand.enterNode().requires(ModCommand::isAdmin))
+                .then(TravelCommand.exitNode(ModCommand::isAdmin)));
     }
 
     private static boolean isAdmin(CommandSourceStack source) {

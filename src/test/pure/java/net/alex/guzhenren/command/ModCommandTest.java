@@ -48,7 +48,7 @@ class ModCommandTest {
 
     @Test
     void marksWriteWholeMarksThenPointsOnTheBody() {
-        var path = CmdPath.buildNode().build().getChild("marks").getChild("path");
+        var path = PathCommand.buildNode().build().getChild("marks").getChild("path");
         assertEquals(List.of("set", "add", "sub", "points"), getChildNames(path));
         var marks = path.getChild("set").getChild("value");
         assertNotNull(marks.getCommand());
@@ -63,7 +63,7 @@ class ModCommandTest {
 
     @Test
     void effectsCanOnlyBeTakenOff() {
-        var effect = CmdPath.buildNode().build().getChild("effect");
+        var effect = PathCommand.buildNode().build().getChild("effect");
         assertEquals(List.of("remove", "clear"), getChildNames(effect));
         assertNotNull(effect.getChild("remove").getChild("type").getChild("targets"));
         assertNotNull(effect.getChild("clear").getCommand());
@@ -133,7 +133,7 @@ class ModCommandTest {
 
     @Test
     void rankAndStageShareOneCommandWithAnOptionalSelector() {
-        CommandNode<CommandSourceStack> aperture = CmdAperture.buildNode().build();
+        CommandNode<CommandSourceStack> aperture = ApertureCommand.buildNode().build();
         var rank = aperture.getChild("rank");
         assertEquals(List.of("set", "up", "down"), getChildNames(rank));
         assertEquals(List.of("rank:one", "rank:two", "rank:three", "rank:four", "rank:five"),
@@ -161,41 +161,41 @@ class ModCommandTest {
 
     @Test
     void talentSetsGradesAndConcreteTenExtremes() {
-        var set = CmdAperture.buildNode().build().getChild("talent").getChild("set");
+        var set = ApertureCommand.buildNode().build().getChild("talent").getChild("set");
         for (String grade : new String[]{"first", "second", "third", "fourth"}) {
             assertNotNull(set.getChild(grade).getChild("targets"));
         }
         for (ExtremePhysique physique : ExtremePhysique.getSettable()) {
-            assertNotNull(set.getChild(CmdAperture.TEN_EXTREME + physique.getSerializedName()).getChild("targets"));
+            assertNotNull(set.getChild(ApertureCommand.TEN_EXTREME + physique.getSerializedName()).getChild("targets"));
         }
         assertNull(set.getChild("ten_extremes"));
-        assertNull(set.getChild(CmdAperture.TEN_EXTREME + "none"));
+        assertNull(set.getChild(ApertureCommand.TEN_EXTREME + "none"));
         assertEquals(4 + ExtremePhysique.getSettable().length, set.getChildren().size());
     }
 
     @Test
     void essenceKeepsCurrentBaseAndRefill() {
-        var essence = CmdAperture.buildNode().build().getChild("essence");
+        var essence = ApertureCommand.buildNode().build().getChild("essence");
         assertEquals(3, essence.getChildren().size());
         assertNull(essence.getChild("distilled"));
         assertNotNull(essence.getChild("current").getChild("sub").getChild("value").getChild("second"));
         assertNotNull(essence.getChild("base").getChild("set").getChild("value").getChild("first"));
         assertNotNull(essence.getChild("refill").getChild("targets"));
         assertNotNull(essence.getChild("refill").getChild("second").getChild("targets"));
-        assertEquals(Aperture.MAX_BASE - 1, CmdAperture.MAX_COMMAND_BASE);
+        assertEquals(Aperture.MAX_BASE - 1, ApertureCommand.MAX_COMMAND_BASE);
     }
 
     @Test
     void selectorIsReadFromTheParsedPath() {
-        assertEquals("second", CmdAperture.getSelector(
+        assertEquals("second", ApertureCommand.getSelector(
                 parsedContext("rank", "up", "stage", "set", "stage:middle", "second")));
-        assertEquals("first", CmdAperture.getSelector(parsedContext("rank", "set", "rank:two", "first")));
-        assertNull(CmdAperture.getSelector(parsedContext("stage", "set", "stage:peak")));
+        assertEquals("first", ApertureCommand.getSelector(parsedContext("rank", "set", "rank:two", "first")));
+        assertNull(ApertureCommand.getSelector(parsedContext("stage", "set", "stage:peak")));
     }
 
     private static CommandContext<CommandSourceStack> parsedContext(String... words) {
         CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
-        CommandNode<CommandSourceStack> node = CmdAperture.buildNode().build();
+        CommandNode<CommandSourceStack> node = ApertureCommand.buildNode().build();
         dispatcher.getRoot().addChild(node);
         CommandContextBuilder<CommandSourceStack> context = new CommandContextBuilder<>(
                 dispatcher, null, dispatcher.getRoot(), 0).withNode(node, StringRange.between(0, 8));

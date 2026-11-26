@@ -44,9 +44,9 @@ import net.minecraft.world.item.Item;
  * </ul>
  */
 
-public final class CmdBody {
+public final class BodyCommand {
 
-    private CmdBody() {}
+    private BodyCommand() {}
 
     private static final String ARG_SECONDS = "seconds";
     private static final String ARG_RANK = "rank";
@@ -66,11 +66,11 @@ public final class CmdBody {
                         buildRanked("steel_tendon", getTempered(Tendon.values()), BodyService::temperTendon)))
                 .then(buildPart("bone", Bone.NATIVE, BodyService::temperBone,
                         buildRanked("iron_bone", getTempered(Bone.values()), BodyService::temperBone)))
-                .then(buildPart("skin", Skin.NATIVE, CmdBody::wearPermanentSkin,
+                .then(buildPart("skin", Skin.NATIVE, BodyCommand::wearPermanentSkin,
                         buildTimedSkin(Skin.JADE_SKIN),
                         buildTimedSkin(Skin.WHITE_JADE_SKIN),
-                        buildRanked("bronze_skin", getFamily(Skin.Family.BRONZE), CmdBody::wearPermanentSkin),
-                        buildRanked("iron_skin", getFamily(Skin.Family.IRON), CmdBody::wearPermanentSkin)))
+                        buildRanked("bronze_skin", getFamily(Skin.Family.BRONZE), BodyCommand::wearPermanentSkin),
+                        buildRanked("iron_skin", getFamily(Skin.Family.IRON), BodyCommand::wearPermanentSkin)))
                 .then(buildInjury())
                 .then(buildAppendage())
                 .then(ModCommandSupport.buildCounter("lifespan", BodyService::setLifespan, BodyService::addLifespan))

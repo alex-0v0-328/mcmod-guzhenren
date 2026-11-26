@@ -17,14 +17,14 @@ import net.minecraft.server.level.ServerPlayer;
  * </ul>
  */
 
-public final class CmdAwaken {
+public final class AwakenCommand {
 
-    private CmdAwaken() {}
+    private AwakenCommand() {}
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return ModCommandSupport.withTargets(Commands.literal("awaken"),
                 context -> ModCommandSupport.applyIf(context, AwakenedGate.AWAKENED.negate(),
-                        ModCommandSupport.FAILED_AWAKENED, CmdAwaken::awaken));
+                        ModCommandSupport.FAILED_AWAKENED, AwakenCommand::awaken));
     }
 
     private static void awaken(ServerPlayer player) {

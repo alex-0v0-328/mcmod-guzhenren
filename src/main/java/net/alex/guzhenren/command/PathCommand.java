@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code /gzr path} 子命令：修改各流派造诣与肉身裸道痕[Path Marks]、移除流派效果，并挂载力道子命令
- * （{@link CmdStrength}）。
+ * （{@link StrengthCommand}）。
  * <ul>
  *   <li>流派参数通过 {@link ModEnumArgument} 解析，数据修改分别委托给 {@link PathService} 与
  *       {@link PathEffectService}。</li>
@@ -39,9 +39,9 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 
-public final class CmdPath {
+public final class PathCommand {
 
-    private CmdPath() {}
+    private PathCommand() {}
 
     private static final String ARG_PATH = "path";
     private static final String ARG_TYPE = "type";
@@ -52,7 +52,7 @@ public final class CmdPath {
                 .then(buildMarks())
                 .then(buildAttainment())
                 .then(buildEffect())
-                .then(CmdStrength.buildNode());
+                .then(StrengthCommand.buildNode());
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> buildMarks() {
@@ -90,7 +90,7 @@ public final class CmdPath {
                         Commands.argument(ARG_TYPE, ResourceLocationArgument.id()).suggests((context, builder) ->
                                 SharedSuggestionProvider.suggestResource(
                                         ModPathEffectTypes.getAll().stream().map(PathEffectType::getId), builder)),
-                        CmdPath::removeType)))
+                        PathCommand::removeType)))
                 .then(ModCommandSupport.withTargets(Commands.literal("clear"),
                         context -> ModCommandSupport.apply(context,
                                 player -> PathEffectService.remove(player, effect -> true))));

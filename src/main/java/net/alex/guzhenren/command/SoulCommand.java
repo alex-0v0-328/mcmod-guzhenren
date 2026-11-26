@@ -10,9 +10,9 @@ import net.minecraft.commands.Commands;
  * 人同样具有魂魄，因此不设开窍门禁。
  */
 
-public final class CmdSoul {
+public final class SoulCommand {
 
-    private CmdSoul() {}
+    private SoulCommand() {}
 
     public static ArgumentBuilder<CommandSourceStack, ?> buildNode() {
         return Commands.literal("soul")

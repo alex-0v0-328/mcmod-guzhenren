@@ -19,9 +19,9 @@ import net.minecraft.commands.Commands;
  * </ul>
  */
 
-public final class CmdStrength {
+public final class StrengthCommand {
 
-    private CmdStrength() {}
+    private StrengthCommand() {}
 
     private static final String ARG_KIND = "kind";
     private static final String FAILED_MARK_INTERFERENCE = "guzhenren.command.failed.mark_interference";

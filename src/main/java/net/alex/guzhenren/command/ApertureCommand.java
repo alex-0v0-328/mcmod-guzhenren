@@ -48,9 +48,9 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 
-public final class CmdAperture {
+public final class ApertureCommand {
 
-    private CmdAperture() {}
+    private ApertureCommand() {}
 
     private static final String RANK = "rank";
     private static final String STAGE = "stage";
