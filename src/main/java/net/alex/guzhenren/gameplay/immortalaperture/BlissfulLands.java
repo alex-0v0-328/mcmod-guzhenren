@@ -8,10 +8,17 @@ import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuState;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMarkSource;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapViewerGate;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
@@ -49,7 +56,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
  *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒推进一步标准田规划队列
- *       （{@link FieldPlans}），并给开着面板的主人刷新快照（只算他正在看的页）。</li>
+ *       （{@link FieldPlans}），并给开着面板的主人刷新快照（只算他正在看的页）；每刻最后驱动地图管线（{@link LandMaps#tick}，
+ *       订阅门与标记来源由本类传入，地图视口载荷也经 {@link #mapView} 转进去）。</li>
  *   <li>{@link #storageHere}：人在自己当主人的福地里时给出那块福地的库藏，蛊粮直供（{@code GuHunger}）用它；别处、
  *       非主人都是空。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
@@ -63,6 +71,8 @@ public final class BlissfulLands {
     public static final int SPIRIT_CHECK_TICKS = 10 * Ticks.SECOND;
     public static final int HOSTING_TICKS = 60 * Ticks.SECOND;
     public static final int SPIRIT_SEARCH = 16;
+    public static final MapViewerGate MAP_VIEWER_GATE = EarthSpiritPanel::mapViewerLand;
+    public static final List<MapMarkSource> MAP_MARK_SOURCES = List.of(HerdWork::mapMarks, GuWork::mapMarks);
 
     //region Ownership [认主与失主]
     public static void tickPlayer(@NotNull ServerPlayer player) {
@@ -134,7 +144,7 @@ public final class BlissfulLands {
             BlissfulLandData data = BlissfulLandData.get(server, land);
             if (tick % SPIRIT_CHECK_TICKS == 0) keepSpirit(level, land, data);
             if (tick % HOSTING_TICKS == 0 && data.hasOwner()) host(server, level, data);
-            if (tick % Ticks.SECOND == 0) FieldPlans.tick(level, data);
+            if (tick % Ticks.SECOND == 0) FieldPlans.tick(level, data, () -> MapModule.plot(level, data));
         }
         if (tick % Ticks.SECOND == 0) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -142,6 +152,11 @@ public final class BlissfulLands {
                 EarthSpiritPanel.refresh(player, Component.empty());
             }
         }
+        LandMaps.tick(server, MAP_VIEWER_GATE, MAP_MARK_SOURCES);
+    }
+
+    public static void mapView(@NotNull ServerPlayer player, @NotNull MapView view) {
+        LandMaps.view(player, view, MAP_VIEWER_GATE);
     }
 
     public static int host(@NotNull MinecraftServer server, @NotNull ServerLevel level,

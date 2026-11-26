@@ -1,10 +1,10 @@
 package net.alex.guzhenren.gameplay.immortalaperture.farm;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapModule;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
+import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -32,10 +32,9 @@ public final class FieldPlans {
 
     public record Step(boolean reclaimed, @NotNull Component notice) {}
 
-    public static @NotNull Siting.Reason plan(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int chunkX,
-                                              int chunkZ) {
-        Siting.Reason reason = Siting.field(MapModule.plot(level, data), MapModule.tiles(level, data.territory()),
-                chunkX, chunkZ);
+    public static @NotNull Siting.Reason plan(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                              @NotNull Siting.Plot plot, int chunkX, int chunkZ) {
+        Siting.Reason reason = Siting.field(plot, Siting.loadedTiles(level, data.territory()), chunkX, chunkZ);
         if (reason == Siting.Reason.OK) FarmState.of(data).addPlan(ChunkPos.asLong(chunkX, chunkZ));
         return reason;
     }
@@ -44,35 +43,37 @@ public final class FieldPlans {
         return FarmState.of(data).removePlan(ChunkPos.asLong(chunkX, chunkZ));
     }
 
-    public static void tick(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
+    public static void tick(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                            @NotNull Supplier<Siting.Plot> plot) {
         if (FarmState.of(data).plans().isEmpty() || FarmWork.reclaimCooldown(level, data) > 0 || data.owner() == null) {
             return;
         }
         ServerPlayer owner = level.getServer().getPlayerList().getPlayer(data.owner());
         if (owner == null) return;
 
-        Step step = step(level, data, owner, chunk -> FieldPlot.of(chunk.x, chunk.z, 0));
+        Step step = step(level, data, owner, chunk -> FieldPlot.of(chunk.x, chunk.z, 0), plot);
         if (step == null) return;
         if (owner.containerMenu instanceof EarthSpiritMenu) EarthSpiritPanel.refresh(owner, step.notice());
         else if (!step.reclaimed()) owner.sendSystemMessage(step.notice());
     }
 
     public static @Nullable Step step(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
-                                           @NotNull ServerPlayer owner, @NotNull Function<ChunkPos, FieldPlot> layout) {
+                                           @NotNull ServerPlayer owner, @NotNull Function<ChunkPos, FieldPlot> layout,
+                                           @NotNull Supplier<Siting.Plot> plot) {
         if (FarmState.of(data).plans().isEmpty()) return null;
         ChunkPos chunk = new ChunkPos(FarmState.of(data).plans().getLong(0));
         FarmState.of(data).removePlan(chunk.toLong());
-        FieldPlot plot = layout.apply(chunk);
-        Siting.Reason reason = Siting.place(MapModule.plot(level, data), chunk.x, chunk.z, 1);
+        FieldPlot field = layout.apply(chunk);
+        Siting.Reason reason = Siting.place(plot.get(), chunk.x, chunk.z, 1);
         if (reason == Siting.Reason.OK) {
-            reason = Siting.columns(MapModule.tiles(level, data.territory()), plot.minX(), plot.minZ(), plot.maxX(),
-                    plot.maxZ(), Siting.FIELD_SLOPE, false, true);
+            reason = Siting.columns(Siting.loadedTiles(level, data.territory()), field.minX(), field.minZ(),
+                    field.maxX(), field.maxZ(), Siting.FIELD_SLOPE, false, true);
         }
         if (reason != Siting.Reason.OK) {
             return new Step(false, EarthSpiritPanel.notice("plan_cancelled", chunk.x, chunk.z,
                     Component.translatable(reason.key())));
         }
-        if (FarmWork.reclaim(level, data, plot, owner) == null) {
+        if (FarmWork.reclaim(level, data, field, owner) == null) {
             return new Step(false, EarthSpiritPanel.notice("plan_cancelled", chunk.x, chunk.z,
                     EarthSpiritPanel.notice("grief_denied")));
         }

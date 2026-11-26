@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.Catchable;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMark;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMarkSource;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
@@ -13,6 +15,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
@@ -36,6 +39,13 @@ public final class GuWork {
     public static final LandCensus.Census<Map<ResourceLocation, List<Mob>>> CENSUS =
             LandCensus.Census.ofLevel(level -> census(level.getAllEntities()));
     public static final int LIMIT = 16;
+
+    public static void mapMarks(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                @NotNull MapMarkSource.Sink sink) {
+        for (List<Mob> swarm : LandCensus.take(level, CENSUS).values()) {
+            for (Mob gu : swarm) sink.add(gu, MapMark.WILD_GU);
+        }
+    }
 
     public static @NotNull ResourceLocation typeId(@NotNull Entity entity) {
         return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());

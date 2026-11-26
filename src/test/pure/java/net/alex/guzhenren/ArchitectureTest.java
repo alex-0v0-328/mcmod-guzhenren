@@ -28,13 +28,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 /**
  * 主代码架构规则：分层向下（{@link #LAYERS_ABOVE}，字节码看不见的内联常量由 {@code SourceLayersTest} 按 import 补查）；
  * 仅客户端专用代码引用客户端代码，仅 mixin 引用 mixin；共用蛊物品基类低于凡蛊；空窍[Aperture]
- * 压力爆炸坑低于空窍其余部分，仙窍[Immortal Aperture]状态层低于仙窍其余部分；顶层包无环，不计注册枢纽（{@code registry}
+ * 压力爆炸坑低于空窍其余部分，仙窍[Immortal Aperture]自下而上为状态、地图管线、占地规则，各层只依赖更低的层；顶层包无环，不计注册枢纽（{@code registry}
  * 与根包类）；二级包亦无环，另不计记录门面
  * {@code gameplay.data}；本命蛊[Vital Gu]绑定唯一读写入口。
  */
@@ -118,6 +119,23 @@ class ArchitectureTest {
                             .and(not(resideInAPackage(ROOT + "gameplay.immortalaperture.state.."))))
             .because("features, the map pipeline, the panel and the assembly sit on the land's state; the state "
                     + "tells them through events");
+    @ArchTest
+    static final ArchRule immortalApertureMapPipelineStaysOnTheState = noClasses()
+            .that().resideInAPackage(ROOT + "gameplay.immortalaperture.mappipeline..").should().dependOnClassesThat(
+                    resideInAPackage(ROOT + "gameplay.immortalaperture..")
+                            .and(not(resideInAnyPackage(ROOT + "gameplay.immortalaperture.mappipeline..",
+                                    ROOT + "gameplay.immortalaperture.state.."))))
+            .because("the map pipeline scans, caches and sends terrain for whoever the gate lets in; who may view "
+                    + "and which creatures show come in from the assembly");
+    @ArchTest
+    static final ArchRule immortalAperturePlotStaysOnThePipelineAndState = noClasses()
+            .that().resideInAPackage(ROOT + "gameplay.immortalaperture.plot..").should().dependOnClassesThat(
+                    resideInAPackage(ROOT + "gameplay.immortalaperture..")
+                            .and(not(resideInAnyPackage(ROOT + "gameplay.immortalaperture.plot..",
+                                    ROOT + "gameplay.immortalaperture.mappipeline..",
+                                    ROOT + "gameplay.immortalaperture.state.."))))
+            .because("the siting rules are shared by the client map and the server checks, so they read only map "
+                    + "tiles and the territory");
     @ArchTest
     static final ArchRule topLevelPackagesFormNoCycle = slices().matching(ROOT + "(*)..")
             .should().beFreeOfCycles()

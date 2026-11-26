@@ -1,9 +1,10 @@
-package net.alex.guzhenren.gameplay.immortalaperture.mappipeline;
+package net.alex.guzhenren.gameplay.immortalaperture.plot;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.DisplayName;

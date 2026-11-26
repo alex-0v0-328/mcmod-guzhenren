@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 地灵经营面板的服务端路由：打开、算快照、复判后执行 {@link PanelAction}、刷新。各页的数据与操作在各自模块里。
@@ -67,6 +68,15 @@ public final class EarthSpiritPanel {
     }
 
     public static void clear() { LAST_PAGE.clear(); }
+
+    public static @Nullable BlissfulLand mapViewerLand(@NotNull ServerPlayer player) {
+        if (!(player.containerMenu instanceof EarthSpiritMenu menu) || menu.getSpirit() == null
+                || !menu.stillValid(player)) {
+            return null;
+        }
+        BlissfulLand land = menu.getSpirit().getLand();
+        return BlissfulLandData.get(player.server, land).isOwner(player.getUUID()) ? land : null;
+    }
 
     public static void refresh(@NotNull ServerPlayer player, @NotNull Component notice) {
         if (!(player.containerMenu instanceof EarthSpiritMenu menu) || menu.getSpirit() == null) return;

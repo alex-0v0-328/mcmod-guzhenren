@@ -1,12 +1,15 @@
 package net.alex.guzhenren.gametest;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
+import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
@@ -228,24 +231,25 @@ public final class BlissfulFarmGameTests {
         ChunkPos second = new ChunkPos(first.x + 1, first.z);
         FarmState.of(data).addPlan(first.toLong());
         FarmState.of(data).addPlan(second.toLong());
+        Supplier<Siting.Plot> taken = () -> MapModule.plot(level, data);
         try {
-            FieldPlans.Step reclaimed = FieldPlans.step(level, data, owner, chunk -> plot);
+            FieldPlans.Step reclaimed = FieldPlans.step(level, data, owner, chunk -> plot, taken);
             helper.assertTrue(reclaimed != null && reclaimed.reclaimed(), "the head of the queue is reclaimed");
             helper.assertValueEqual(FarmState.of(data).fields().size(), 1, "the field is recorded");
             helper.assertValueEqual(FarmState.of(data).plans().size(), 1, "the queue moves on");
 
-            FieldPlans.Step cancelled = FieldPlans.step(level, data, owner, chunk -> plot);
+            FieldPlans.Step cancelled = FieldPlans.step(level, data, owner, chunk -> plot, taken);
             helper.assertTrue(cancelled != null && !cancelled.reclaimed(),
                     "the next plan lands on water holes and is cancelled");
             helper.assertTrue(FarmState.of(data).plans().isEmpty(), "a cancelled plan leaves the queue");
             helper.assertValueEqual(FarmState.of(data).fields().size(), 1, "no second field is laid");
-            helper.assertTrue(FieldPlans.step(level, data, owner, chunk -> plot) == null,
+            helper.assertTrue(FieldPlans.step(level, data, owner, chunk -> plot, taken) == null,
                     "an empty queue does nothing");
 
             data.setOwner(UUID.randomUUID(), "gzr-farm-away");
             FarmState.of(data).setReclaimReadyAt(0L);
             FarmState.of(data).addPlan(second.toLong());
-            FieldPlans.tick(level, data);
+            FieldPlans.tick(level, data, taken);
             helper.assertValueEqual(FarmState.of(data).plans().size(), 1, "the queue waits while the owner is away");
             helper.succeed();
         } finally {

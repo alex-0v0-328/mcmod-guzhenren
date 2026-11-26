@@ -8,11 +8,12 @@ import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
+import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
@@ -112,7 +113,8 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            Siting.Reason reason = FieldPlans.plan(context.level(), context.data(), chunkX, chunkZ);
+            Siting.Reason reason = FieldPlans.plan(context.level(), context.data(),
+                    MapModule.plot(context.level(), context.data()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) {
                 return EarthSpiritPanel.notice("siting_refused", Component.translatable(reason.key()));
             }

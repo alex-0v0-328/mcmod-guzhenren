@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
+import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.alex.guzhenren.network.payload.ApertureNourishPayload;
 import net.alex.guzhenren.network.payload.DashPayload;
@@ -91,7 +91,7 @@ public final class ModPayloads {
         toServer(registrar, EarthSpiritActionPayload.TYPE, EarthSpiritActionPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.earthSpirit(player, intent.action()));
         toServer(registrar, EarthSpiritMapViewPayload.TYPE, EarthSpiritMapViewPayload.STREAM_CODEC,
-                (intent, player) -> LandMaps.view(player, intent.view()));
+                (intent, player) -> BlissfulLands.mapView(player, intent.view()));
         toClient(registrar, SkinFlashPayload.TYPE, SkinFlashPayload.STREAM_CODEC);
         toClient(registrar, ImpactShakePayload.TYPE, ImpactShakePayload.STREAM_CODEC);
         toClient(registrar, KillingMoveTooltipPayload.TYPE, KillingMoveTooltipPayload.STREAM_CODEC);

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapModule;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
+import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
 
@@ -24,7 +24,7 @@ final class MapToolLand implements MapTools.Land {
     private final MapPage page;
     private MapModule.Section seen = MapModule.Section.EMPTY;
     private List<MapPlots.Plot> plots = List.of();
-    private Siting.Plot siting = Siting.Plot.of(MapModule.Section.EMPTY);
+    private Siting.Plot siting = MapModule.Section.EMPTY.siting();
 
     MapToolLand(MapPage page) { this.page = page; }
 
@@ -33,7 +33,7 @@ final class MapToolLand implements MapTools.Land {
         if (section != seen) {
             seen = section;
             plots = plots(section);
-            siting = Siting.Plot.of(section);
+            siting = section.siting();
         }
         return section;
     }

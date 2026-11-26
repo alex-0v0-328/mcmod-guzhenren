@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMark;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMarkSource;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
@@ -47,6 +49,14 @@ public final class HerdWork {
     public static final LandCensus.Census<Map<ResourceLocation, List<Animal>>> CENSUS =
             LandCensus.Census.ofLevel(HerdWork::census);
     public static final int LIMIT = 64;
+
+    public static void mapMarks(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                @NotNull MapMarkSource.Sink sink) {
+        Predicate<Entity> penned = PastureWork.penner(data);
+        for (List<Animal> herd : LandCensus.take(level, CENSUS).values()) {
+            for (Animal animal : herd) sink.add(animal, penned.test(animal) ? MapMark.PENNED : MapMark.LOOSE);
+        }
+    }
 
     public record Breed(int animals, int food) {}
 

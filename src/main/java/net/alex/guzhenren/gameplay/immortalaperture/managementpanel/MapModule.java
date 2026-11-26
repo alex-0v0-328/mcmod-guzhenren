@@ -1,7 +1,6 @@
-package net.alex.guzhenren.gameplay.immortalaperture.mappipeline;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
@@ -12,10 +11,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
+import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
@@ -30,7 +26,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,9 +33,8 @@ import org.jetbrains.annotations.NotNull;
  * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmModule}、{@code HerdModule}。
  * <ul>
  *   <li>秘境未解出时山心、行宫、入口都是 {@link BlockPos#ZERO}、秘境半径 0（{@link Siting} 视作不查秘境）。</li>
- *   <li>{@link #plot} 与客户端的 {@link Siting.Plot#of(Section)} 取同一组占地：田、规划、牧场 4 区块。</li>
- *   <li>{@link #tiles}：服务端复判用，同步加载所需区块（只会是疆域内、客户端看过的区块）并用 {@link MapScanner#tile}
- *       现扫，同一次复判内缓存。</li>
+ *   <li>{@link #plot}（服务端复判）与 {@link Section#siting}（客户端预判）取同一组占地：田、规划、牧场 4 区块；服务端
+ *       地形读 {@link Siting#loadedTiles}。</li>
  * </ul>
  */
 
@@ -113,6 +107,15 @@ public final class MapModule implements LandModule<MapModule.Section> {
                     pastureCap, reclaimSeconds, gatherSeconds);
         }
 
+        public @NotNull Siting.Plot siting() {
+            List<Long> taken = new ArrayList<>();
+            for (Field field : fields) taken.add(ChunkPos.asLong(field.chunkX(), field.chunkZ()));
+            for (ChunkPos plan : planned) taken.add(plan.toLong());
+            List<Long> corners = new ArrayList<>();
+            for (Pen pen : pastures) corners.add(ChunkPos.asLong(pen.chunkX(), pen.chunkZ()));
+            return Siting.Plot.of(territory, mountain.getX(), mountain.getZ(), realmRadius, taken, corners);
+        }
+
         @Override
         public @NotNull LandModule<?> module() { return INSTANCE; }
     }
@@ -163,14 +166,6 @@ public final class MapModule implements LandModule<MapModule.Section> {
         for (ChunkPos corner : HerdState.of(data).pastures()) corners.add(corner.toLong());
         return Siting.Plot.of(data.territory(), realm == null ? 0 : realm.center().getX(),
                 realm == null ? 0 : realm.center().getZ(), realm == null ? 0 : realm.radius(), fields, corners);
-    }
-
-    public static @NotNull Siting.Tiles tiles(@NotNull ServerLevel level, @NotNull Territory territory) {
-        Long2ObjectOpenHashMap<MapTile> cache = new Long2ObjectOpenHashMap<>();
-        return (chunkX, chunkZ) -> cache.computeIfAbsent(ChunkPos.asLong(chunkX, chunkZ), key -> {
-            LevelChunk chunk = level.getChunk(chunkX, chunkZ);
-            return MapScanner.tile(territory, chunk);
-        });
     }
     //endregion
 }

@@ -10,12 +10,12 @@ import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapModule;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
+import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
@@ -138,7 +138,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
         public @NotNull Component perform(@NotNull ActionContext context) {
             ServerLevel level = context.level();
             BlissfulLandData data = context.data();
-            Siting.Reason reason = Siting.pasture(MapModule.plot(level, data), MapModule.tiles(level,
+            Siting.Reason reason = Siting.pasture(MapModule.plot(level, data), Siting.loadedTiles(level,
                     data.territory()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) return refused(reason);
 
@@ -164,7 +164,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
             ChunkPos old = HerdState.of(data).pasture(index);
             if (old == null) return EarthSpiritPanel.notice("no_pasture");
             Siting.Reason reason = Siting.pasture(MapModule.plot(level, data).without(old.x, old.z),
-                    MapModule.tiles(level, data.territory()), chunkX, chunkZ);
+                    Siting.loadedTiles(level, data.territory()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) return refused(reason);
 
             PastureWork.Pasture from = PastureWork.Pasture.at(old.x, old.z);

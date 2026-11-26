@@ -1,10 +1,14 @@
-package net.alex.guzhenren.gameplay.immortalaperture.mappipeline;
+package net.alex.guzhenren.gameplay.immortalaperture.plot;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.Collection;
 import java.util.Locale;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapScanner;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,8 +17,9 @@ import org.jetbrains.annotations.Nullable;
  * 福地标准田与牧场的选址规则[Siting]：服务端复判与客户端地图预判共用这一份，按 {@link Reason} 的顺序逐条查，第一条不过
  * 就返回它。
  * <ul>
- *   <li>地形只经 {@link Tiles} 读 {@link MapTile}：客户端传地图仓库，服务端同步加载目标区块后用 {@link MapScanner#tile}
- *       现扫，两端同一份数据同一份规则。所需区块任一取不到就是 {@link Reason#FOG}（服务端总取得到）。</li>
+ *   <li>地形只经 {@link Tiles} 读 {@link MapTile}：客户端传地图仓库，服务端用 {@link #loadedTiles}（同步加载目标区块后
+ *       用 {@link MapScanner#tile} 现扫，同一次复判内缓存），两端同一份数据同一份规则。所需区块任一取不到就是
+ *       {@link Reason#FOG}（服务端总取得到）。</li>
  *   <li>标准田 = 一个区块（{@link #field}）：256 列地面高差 ≤ {@value #FIELD_SLOPE}，任一列有流体或方块实体即否。</li>
  *   <li>牧场 = 西北角区块起 {@value #PEN_CHUNKS}×{@value #PEN_CHUNKS} 区块（{@link #pasture}）：栅栏圈在占地
  *       {@link #penMin} 到 {@link #penMax}（30×30）周界；占地地面高差 ≤ {@value #PASTURE_SLOPE}，周界列不许有流体。
@@ -61,20 +66,6 @@ public final class Siting {
                     pastureCorners.size());
         }
 
-        public static @NotNull Plot of(@NotNull MapModule.Section section) {
-            LongSet fields = new LongOpenHashSet();
-            for (MapModule.Section.Field field : section.fields()) {
-                fields.add(ChunkPos.asLong(field.chunkX(), field.chunkZ()));
-            }
-            for (ChunkPos planned : section.planned()) fields.add(planned.toLong());
-            LongSet corners = new LongOpenHashSet();
-            for (MapModule.Section.Pen pen : section.pastures()) {
-                corners.add(ChunkPos.asLong(pen.chunkX(), pen.chunkZ()));
-            }
-            return of(section.territory(), section.mountain().getX(), section.mountain().getZ(), section.realmRadius(),
-                    fields, corners);
-        }
-
         public @NotNull Plot without(int chunkX, int chunkZ) {
             LongSet rest = new LongOpenHashSet(taken);
             addPen(rest, chunkX, chunkZ, false);
@@ -90,6 +81,12 @@ public final class Siting {
                 }
             }
         }
+    }
+
+    public static @NotNull Tiles loadedTiles(@NotNull ServerLevel level, @NotNull Territory territory) {
+        Long2ObjectOpenHashMap<MapTile> cache = new Long2ObjectOpenHashMap<>();
+        return (chunkX, chunkZ) -> cache.computeIfAbsent(ChunkPos.asLong(chunkX, chunkZ),
+                key -> MapScanner.tile(territory, level.getChunk(chunkX, chunkZ)));
     }
 
     //region Rules [规则]
