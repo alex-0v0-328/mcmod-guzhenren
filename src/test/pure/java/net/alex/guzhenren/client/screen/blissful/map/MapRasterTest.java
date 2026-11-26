@@ -36,9 +36,10 @@ class MapRasterTest {
                 20 * cell, 20 * cell);
         int row = 5 * cell;
         int boundary = 10 * cell;
-        int lit = MapPalette.top(MapTerrain.GRASS);
-        assertEquals(MapPalette.darken(lit, 0.40F), result.pixels()[row * result.width() + boundary]);
-        assertEquals(MapPalette.darken(lit, 0.40F), result.pixels()[row * result.width() + boundary + 1]);
+        int lit = MapPalette.top(MapTerrain.GRASS, projection.columnX(0, -5), projection.columnZ(0, -5));
+        assertEquals(MapPalette.darken(lit, MapContours.MAJOR_SHADE), result.pixels()[row * result.width() + boundary]);
+        assertEquals(MapPalette.darken(lit, MapContours.MAJOR_SHADE),
+                result.pixels()[row * result.width() + boundary + 1]);
         assertEquals(lit, result.pixels()[row * result.width() + boundary + 2]);
         assertEquals(1, result.labels().size());
         assertEquals(80, result.labels().getFirst().level());
@@ -82,14 +83,52 @@ class MapRasterTest {
     }
 
     @Test
-    @DisplayName("isometric raster paints known columns with their palette colour away from the fog")
+    @DisplayName("a flat field paints only its top colour and grain away from the fog, with some grain showing")
     void isoPaintsPalette() {
         MapTestTiles tiles = new MapTestTiles().fill(-3, -3, 2, 2, (x, z) -> 64, (x, z) -> MapTerrain.SOULSUNDER_STONE);
         MapProjection projection = MapProjection.of(2, 1, false);
         int x = (int) projection.screenX(0.5, 65, 0.5);
         int y = (int) projection.screenY(0.5, 65, 0.5);
-        MapRaster.Result result = MapRaster.draw(projection, tiles.grid(-3, -3, 2, 2), 65, x - 32, y - 16, 64, 32);
-        assertTrue(Arrays.stream(result.pixels()).allMatch(pixel -> pixel == 0xFFF8ACC4));
+        MapRaster.Result result = MapRaster.draw(projection, tiles.grid(-3, -3, 2, 2), 65, x - 64, y - 32, 128, 64);
+        int lit = MapPalette.top(MapTerrain.SOULSUNDER_STONE);
+        int grain = MapPalette.darken(lit, MapPalette.GRAIN);
+        assertTrue(Arrays.stream(result.pixels()).allMatch(pixel -> pixel == lit || pixel == grain));
+        assertTrue(Arrays.stream(result.pixels()).anyMatch(pixel -> pixel == grain));
         assertFalse(result.labels().iterator().hasNext());
+    }
+
+    @Test
+    @DisplayName("a 10-block grass cliff gets a lit rim, one block of grass side, then earth strata")
+    void rimAndStrata() {
+        MapTestTiles tiles = new MapTestTiles().fill(-2, -2, 1, 1, (x, z) -> x == 0 && z == 0 ? 80 : 70,
+                (x, z) -> MapTerrain.GRASS);
+        MapProjection projection = MapProjection.of(1, 0, false);
+        int cell = projection.cell();
+        int anchorX = projection.anchorX(0, 0);
+        int anchorY = projection.anchorY(0, 0, 81);
+        int originX = anchorX - 16;
+        int originY = anchorY - 8;
+        MapRaster.Result result = MapRaster.draw(projection, tiles.grid(-2, -2, 1, 1), 71, originX, originY, 32, 64);
+        int width = result.width();
+        int sideX = anchorX - 1 - originX;
+        assertEquals(MapPalette.rim(MapTerrain.GRASS), result.pixels()[(anchorY + cell - 1 - originY) * width + sideX]);
+        assertEquals(MapPalette.left(MapTerrain.GRASS), result.pixels()[(anchorY + cell + 1 - originY) * width + sideX]);
+        assertEquals(MapPalette.strata(MapTerrain.GRASS, MapProjection.Face.LEFT),
+                result.pixels()[(anchorY + cell * 4 - originY) * width + sideX]);
+    }
+
+    @Test
+    @DisplayName("water darkens by distance to the nearest dry column, fog is not shore")
+    void shoreSteps() {
+        MapTestTiles tiles = new MapTestTiles().fill(-2, -2, 1, 1, (x, z) -> 62,
+                (x, z) -> x == 0 ? MapTerrain.SAND : MapTerrain.WATER);
+        MapGrid grid = tiles.grid(-2, -2, 1, 1);
+        assertEquals(1, MapRaster.shoreDistance(grid, 1, 5));
+        assertEquals(2, MapRaster.shoreDistance(grid, -2, 5));
+        assertEquals(3, MapRaster.shoreDistance(grid, 3, -7));
+        assertEquals(MapPalette.SHORE_STEPS, MapRaster.shoreDistance(grid, 9, 0));
+        assertEquals(MapPalette.SHORE_STEPS, MapRaster.shoreDistance(grid, 31, 0));
+        assertEquals(MapPalette.water(1), MapPalette.water(0));
+        assertEquals(MapPalette.water(MapPalette.SHORE_STEPS), MapPalette.water(99));
     }
 }

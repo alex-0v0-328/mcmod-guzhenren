@@ -24,9 +24,9 @@ final class MapLegend {
     static final int HEIGHT = 84;
     private static final int MARGIN = 6;
     private static final int BACK = 0xD0201A1E;
-    private static final int GAUGE_BACK = 0xFF2E2840;
-    private static final int TICK = 0xFF737A8E;
-    private static final int MAJOR_TICK = 0xFFC5D3EA;
+    private static final int GAUGE_BACK = MapPalette.FOG;
+    private static final int TICK = 0xFF888785;
+    private static final int MAJOR_TICK = 0xFFC3C8CF;
     private static final int GAUGE_Y = 72;
     private static final int GAUGE_H = 6;
     private static final String UI = EarthSpiritScreen.UI + "map.";

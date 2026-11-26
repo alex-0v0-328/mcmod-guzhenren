@@ -1,5 +1,7 @@
 package net.alex.guzhenren.client.screen.blissful.map;
 
+import java.util.HashSet;
+import java.util.Set;
 import net.alex.guzhenren.gameplay.blissful.map.MapTerrain;
 import net.alex.guzhenren.gameplay.blissful.map.MapTile;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +23,7 @@ class MapPickTest {
     }
 
     @Test
-    @DisplayName("every isometric pixel picks the column whose colour was painted there, in all turns and zooms")
+    @DisplayName("every isometric pixel picks the column and face whose colours were painted there, in all turns and zooms")
     void pickMatchesRasterIso() {
         MapTestTiles tiles = rugged();
         MapGrid grid = tiles.grid(-4, -4, 3, 3);
@@ -39,12 +41,29 @@ class MapPickTest {
                         assertNotNull(hit);
                         assertTrue(hit.known());
                         assertTrue(Math.abs(hit.x()) < 40 && Math.abs(hit.z()) < 40);
-                        assertEquals(MapPalette.colour(hit.terrain(), hit.face()), result.pixels()[py * width + px],
+                        assertTrue(paints(hit).contains(result.pixels()[py * width + px]),
                                 "zoom " + zoom + " rotation " + rotation + " pixel " + px + "," + py);
                     }
                 }
             }
         }
+    }
+
+    private static Set<Integer> paints(MapPick.Hit hit) {
+        MapTerrain terrain = hit.terrain();
+        Set<Integer> colours = new HashSet<>();
+        if (hit.face() == MapProjection.Face.TOP) {
+            colours.add(MapPalette.top(terrain, hit.x(), hit.z()));
+            colours.add(MapPalette.rim(terrain));
+            if (terrain == MapTerrain.WATER) {
+                for (int shore = 1; shore <= MapPalette.SHORE_STEPS; shore++) colours.add(MapPalette.water(shore));
+                colours.add(MapPalette.GLINT);
+            }
+        } else {
+            colours.add(MapPalette.colour(terrain, hit.face()));
+            colours.add(MapPalette.strata(terrain, hit.face()));
+        }
+        return colours;
     }
 
     @Test

@@ -23,8 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 final class MapScene {
 
-    private static final int BACKDROP = 0xFF151320;
-
     private MapScene() {}
 
     /** 一帧要叠加的东西：{@code highlighted} 是悬停或卡片选中的占地，{@code target} 是工具目标。 */
@@ -35,7 +33,7 @@ final class MapScene {
                      double guiScale, Layers layers) {
         long time = Minecraft.getInstance().level == null ? 6000L : Minecraft.getInstance().level.getDayTime();
         MapTint tint = MapTint.at(time);
-        graphics.fill(0, top, width, height, tint.apply(BACKDROP));
+        graphics.fill(0, top, width, height, tint.apply(MapPalette.BACKDROP));
         graphics.flush();
         surface.draw(graphics, camera, 0, top, guiScale, tint);
         MapOverlay.draw(graphics, camera, 0, top, guiScale, overlay -> {

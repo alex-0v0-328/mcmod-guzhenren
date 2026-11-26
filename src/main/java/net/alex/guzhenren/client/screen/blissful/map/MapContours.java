@@ -8,8 +8,8 @@ import net.alex.guzhenren.gameplay.blissful.map.MapTerrain;
 import net.alex.guzhenren.gameplay.blissful.map.MapTile;
 
 /**
- * 俯视等高线视角的光栅：每列填一格顶面色（按左上两邻的地面高差做三阶明暗），再沿列边画等高线，并挑出加粗线的数字
- * 标注位置。
+ * 俯视等高线视角的光栅：每列填一格顶面色（按左上两邻的地面高差做三阶明暗，迎光面带 {@link MapPalette} 颗粒，水面按
+ * 离岸距离取深浅），再沿列边画等高线，并挑出加粗线的数字标注位置。
  * <ul>
  *   <li>等高线按真实地面高 {@code ground}：相邻两列跨过 {@value #MINOR_STEP} 的倍数就在较高一列贴边画 1 像素暗线；跨过
  *       {@value #MAJOR_STEP} 的倍数画 2 像素加粗线，一次跨多条时取最高的加粗级，否则取最高的细级
@@ -24,8 +24,8 @@ final class MapContours {
     static final int MINOR_STEP = 8;
     static final int MAJOR_STEP = 40;
     static final int NONE = Integer.MIN_VALUE;
-    private static final float MINOR_SHADE = 0.62F;
-    private static final float MAJOR_SHADE = 0.40F;
+    static final float MINOR_SHADE = 0.70F;
+    static final float MAJOR_SHADE = 0.48F;
     private static final int MAX_LABELS = 64;
 
     private MapContours() {}
@@ -87,14 +87,17 @@ final class MapContours {
 
     private static int shade(MapProjection projection, MapGrid grid, MapTile tile, int index, int u, int v) {
         MapTerrain terrain = MapColumns.terrain(tile, index);
-        if (terrain == MapTerrain.WATER || terrain == MapTerrain.LAVA) return MapPalette.top(terrain);
+        int x = projection.columnX(u, v);
+        int z = projection.columnZ(u, v);
+        if (terrain == MapTerrain.WATER) return MapPalette.water(MapRaster.shoreDistance(grid, x, z));
+        if (terrain == MapTerrain.LAVA) return MapPalette.top(terrain);
         int ground = tile.ground()[index];
         int delta = 0;
         int west = ground(projection, grid, u - 1, v);
         int north = ground(projection, grid, u, v - 1);
         if (west != NONE) delta += ground - west;
         if (north != NONE) delta += ground - north;
-        if (delta >= 0) return MapPalette.top(terrain);
+        if (delta >= 0) return MapPalette.top(terrain, x, z);
         return delta >= -2 ? MapPalette.left(terrain) : MapPalette.right(terrain);
     }
 
