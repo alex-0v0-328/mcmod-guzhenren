@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #useDurationTicks} 恒为 0，催动后施加 {@link #REFINE_DONE_COOLDOWN_TICKS}（2 秒）冷却；{@link #checkUse}
  *       先按 {@link #getRefineCost} 校验真元门槛，通过后再依次校验行为列表；{@link #performUse} 一次性扣除炼化真元、执
  *       行全部行为并消耗 1 只蛊虫（希望蛊[Hope Gu]因需启动持续开窍[Awakening]仪式而直接继承 {@link MortalGuItem}，不走
- *       本类）。</li>
+ *       本类）。原地催动（功倍驱动）的 {@link #checkInPlaceUse} 同样先校验真元门槛，但创造模式放行。</li>
  * </ul>
  */
 
@@ -29,6 +29,12 @@ public class OneShotGuItem extends MortalGuItem {
     @Override
     protected final @Nullable Refusal checkUse(Player player, ItemStack stack) {
         Refusal cost = checkEssenceGate(player, getRefineCost(), Refusal.ESSENCE);
+        return cost != null ? cost : checkOwnUse(player, stack);
+    }
+
+    @Override
+    protected final @Nullable Refusal checkInPlaceUse(Player player, ItemStack stack) {
+        Refusal cost = checkInPlaceEssenceGate(player, getRefineCost());
         return cost != null ? cost : checkOwnUse(player, stack);
     }
 

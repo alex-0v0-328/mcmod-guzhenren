@@ -52,7 +52,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>本命蛊[Vital Gu]只拒绝而绝不强行催动，创造模式不警告也不死亡，{@link #tryAutoUse} 则静默跳过饱食不足的催
  *       动。</li>
  *   <li>{@link #billAsPartner} 是后援蛊（功倍蛊[Amplify Effect Gu]与杀招[Killing Move]搭档）的唯一扣费入口：扣除真元
- *       并在前后自动进食；若扣量后饱食归零同样触发力竭死亡，且延后至所支援的催动结算之后。</li>
+ *       并在前后自动进食；若扣量后饱食归零同样触发力竭死亡，且延后至所支援的催动结算之后。创造模式付不起真元也照常后援
+ *       （{@code PrimevalStoneSupply.payOrCreative}），原地催动的真元门槛（{@code checkInPlaceUse}）同样对创造模式放行。</li>
  *   <li>⚠ 所有真元支出均经 {@code PrimevalStoneSupply.pay} 结算，每步灌注先补足至至少
  *       {@code GuChanneling.ESSENCE_FLOOR} （{@code topUpFor}）再做定量；灌注步会先进食以抬高饱食折算上限，炼化支持分期
  *       投入真元换取长期持有。</li>
@@ -324,7 +325,7 @@ public class TendedGuItem extends MortalGuItem {
 
     /** 为他蛊效果付一次后援催动，自身无效果；真元[Essence]池与元石[Primeval Stone]都不足才为 false。 */
     public final boolean billAsPartner(ServerPlayer player, ItemStack stack) {
-        if (!PrimevalStoneSupply.pay(player, guProperties.getEssencePerRound())) return false;
+        if (!PrimevalStoneSupply.payOrCreative(player, guProperties.getEssencePerRound())) return false;
 
         feed(player, stack);
         if (hunger.spendAsPartner(stack) && !player.getAbilities().instabuild) {
@@ -368,7 +369,7 @@ public class TendedGuItem extends MortalGuItem {
 
     @Override
     protected @Nullable Refusal checkInPlaceUse(Player player, ItemStack stack) {
-        Refusal poor = checkEssenceGate(player, useThreshold(stack), Refusal.ESSENCE);
+        Refusal poor = checkInPlaceEssenceGate(player, useThreshold(stack));
         return poor != null ? poor : checkCooldownThenOwnUse(player, stack);
     }
 

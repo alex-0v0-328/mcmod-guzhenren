@@ -34,7 +34,8 @@ import org.jetbrains.annotations.Nullable;
  *       门槛抢先拦截）；副手令 {@link #hasOffhandUse} 返回 {@code false}，保证主手蛊被拒时保留其自身的拒绝提示。</li>
  *   <li>⚠ 握于副手时，若主手蛊不支持增幅、功倍蛊自身尚未炼化、或主手蛊扣费后剩余真元与随身元石[Primeval Stone]不足以支
  *       付功倍蛊消耗，功倍蛊保持静默不扣费，主手蛊照常以原倍率生效；而通过主手轮盘驱动（{@link #driveFromHotbar}）时会
- *       先用 {@code PrimevalStoneSupply.canAfford} 校验两只蛊的真元总和，不足则直接拒绝。</li>
+ *       先用 {@code PrimevalStoneSupply.canAffordOrCreative} 校验两只蛊的真元总和，不足则直接拒绝；创造模式不受此限，付
+ *       不起时仍增幅且不扣真元。</li>
  *   <li>饱食条为空时同样触发强行催动[Forced Use]：本次增幅效果照常生效，随后功倍蛊力竭死亡并从手中消失。</li>
  *   <li>唯一可变静态字段 {@code driving} 为服务端单次 {@link #driveFromHotbar} 调用栈内的线程上下文，由
  *       {@code try/finally} 严格包裹，不跨调用或跨玩家留存。</li>
@@ -83,7 +84,7 @@ public final class AmplifyEffectGuItem extends TendedGuItem {
         if (!(stack.getItem() instanceof AmplifyEffectGuItem amplifier) || !amplifier.canAmplify(stack, target)) return;
 
         MortalGuItem driven = (MortalGuItem) target.getItem();
-        if (!PrimevalStoneSupply.canAfford(player, amplifier.getUseEssence() + driven.getUseEssence())) {
+        if (!PrimevalStoneSupply.canAffordOrCreative(player, amplifier.getUseEssence() + driven.getUseEssence())) {
             ActionBar.refuse(player, Refusal.ESSENCE);
             return;
         }

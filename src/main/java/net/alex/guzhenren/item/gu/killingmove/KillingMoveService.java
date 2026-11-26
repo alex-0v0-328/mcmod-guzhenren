@@ -45,7 +45,8 @@ import org.jetbrains.annotations.Nullable;
  *       用辅蛊则静默忽略（客户端轮盘不列出）；关闭杀招不消耗资源。</li>
  *   <li>开启杀招后轻点（{@link #PLAIN}）其主蛊即触发杀招施放：主蛊经 {@code tryUseInPlace} 照常校验并扣费，同时由辅蛊额
  *       外支付 {@link KillingMove#getPartnerEssence} 点真元（不扣饱食）；若空窍真元加上随身元石[Primeval Stone]不足以同
- *       时支付主辅两份真元（{@code PrimevalStoneSupply.canAfford}），则以真元不足提示拒绝且保持杀招开启；若施放时已找不
+ *       时支付主辅两份真元（{@code PrimevalStoneSupply.canAffordOrCreative}，创造模式恒放行且付不起时不扣真元），则以真元
+ *       不足提示拒绝且保持杀招开启；若施放时已找不
  *       到已炼化辅蛊，则拒绝施放、自动关闭杀招并提示；未开启杀招或主手非当前杀招主蛊（如血月蛊）时则按普通月刃催动。
  *       </li>
  *   <li>⚠ 辅蛊真元必须在主蛊确认生效的瞬间扣费：{@link #driveAimed} 在调用主蛊 {@code tryUseInPlace} 外层设置线程上下
@@ -202,7 +203,7 @@ public final class KillingMoveService {
             ActionBar.refuse(player, FAILED_PARTNER_MISSING, partnerName(active));
             return null;
         }
-        if (!PrimevalStoneSupply.canAfford(player, main.getUseEssence() + active.getPartnerEssence())) {
+        if (!PrimevalStoneSupply.canAffordOrCreative(player, main.getUseEssence() + active.getPartnerEssence())) {
             ActionBar.refuse(player, Refusal.ESSENCE);
             return null;
         }
@@ -257,7 +258,7 @@ public final class KillingMoveService {
         if (current == null || current.asked || current.player != player || current.main != gu) return 1.0F;
 
         current.asked = true;
-        if (!PrimevalStoneSupply.pay(player, current.move.getPartnerEssence())) return 1.0F;
+        if (!PrimevalStoneSupply.payOrCreative(player, current.move.getPartnerEssence())) return 1.0F;
 
         current.billed = Used.of(current.partner.stack(), current.partner.stack());
         return current.move.getDamageFactor();

@@ -50,6 +50,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>日切扣量后背包平滑石每块补 1 点，伤者先回血。</li>
  *   <li>轮盘（{@code ClientIntents.amplifyDrive}）：主手增幅蛊不经蓄力催动快捷栏蛊；一次性蛊从其格扣；池不足用随身元石
  *       [Primeval Stone]；高于转数、真元与元石不够付两蛊、手无增幅蛊或选当前格均不落地。</li>
+ *   <li>创造模式不受真元门槛限制：空池照样增幅（持续型与一次性蛊）、真元仍为 0；同样的零真元生存玩家不落地。</li>
  * </ul>
  */
 
@@ -243,6 +244,53 @@ public final class AmplifyEffectGuGameTests {
         assertFalse(player.hasEffect(ModEffects.ALL_OUT_EFFORT_GU), "driven without essence for both");
         assertEquals(16, hunger(high));
         assertEquals(1_000L, ApertureEssenceService.getSpendable(player));
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aSurvivalRadialPickOnAnEmptyPoolLandsNothing(GameTestHelper helper) {
+        ServerPlayer player = awakened(helper, null);
+        ItemStack amplifier = hold(player, InteractionHand.MAIN_HAND, ModItems.AMPLIFY_EFFECT_GU_3.get(), 16);
+        ItemStack boar = inSlot(player, 2, ModItems.FLOWER_BOAR_GU_1.get(), 12);
+        ApertureEssenceService.consume(player, ApertureEssenceService.getSpendable(player));
+
+        ClientIntents.amplifyDrive(player, 2);
+
+        assertFalse(player.hasEffect(ModEffects.FLOWER_BOAR_GU), "driven without any essence");
+        assertEquals(16, hunger(amplifier));
+        assertEquals(12, hunger(boar));
+        assertEquals(0L, ApertureEssenceService.getSpendable(player));
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aCreativeRadialPickOnAnEmptyPoolStillAmplifiesAndTakesNone(GameTestHelper helper) {
+        ServerPlayer player = awakened(helper, null);
+        player.getAbilities().instabuild = true;
+        hold(player, InteractionHand.MAIN_HAND, ModItems.AMPLIFY_EFFECT_GU_3.get(), 16);
+        inSlot(player, 2, ModItems.FLOWER_BOAR_GU_1.get(), 12);
+        ApertureEssenceService.consume(player, ApertureEssenceService.getSpendable(player));
+
+        ClientIntents.amplifyDrive(player, 2);
+
+        assertEquals(FlowerBoarGuEffect.DURATION_TICKS * 3, duration(player, ModEffects.FLOWER_BOAR_GU));
+        assertEquals(0L, ApertureEssenceService.getSpendable(player), "a creative drive took essence");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aCreativeRadialPickSpendsAOneShotGuWithNoEssence(GameTestHelper helper) {
+        ServerPlayer player = awakened(helper, null);
+        player.getAbilities().instabuild = true;
+        hold(player, InteractionHand.MAIN_HAND, ModItems.AMPLIFY_EFFECT_GU_2.get(), 16);
+        ItemStack leaf = new ItemStack(ModItems.VITALITY_LEAF_GU_1.get());
+        player.getInventory().setItem(4, leaf);
+        ApertureEssenceService.consume(player, ApertureEssenceService.getSpendable(player));
+
+        ClientIntents.amplifyDrive(player, 4);
+
+        assertEquals(VitalityLeafGuEffect.DURATION_TICKS * 2, duration(player, ModEffects.VITALITY_LEAF_GU));
+        assertEquals(0L, ApertureEssenceService.getSpendable(player), "a creative drive took essence");
         helper.succeed();
     }
 

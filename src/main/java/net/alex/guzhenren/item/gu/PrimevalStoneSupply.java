@@ -29,6 +29,9 @@ import net.minecraft.world.item.ItemStack;
  *   <li>⚠ 创造模式下自动抽取元石恒返回 0（{@link #draw}），真元池不足的部分直接免除（唯有手动向供给槽或温养钱袋放入元
  *       石时才扣减物品）；依赖真元池余额决定步长的炼化与灌注逻辑改读 {@link #getPoolAfterTopUp}（模拟计入随身元石补给后
  *       的真元池），使创造模式持有元石时的步长节奏与生存模式保持一致。</li>
+ *   <li>⚠ 杀招[Killing Move]与功倍[Amplify Effect]驱动不受真元门槛限制于创造模式：其校验与后援扣费改走
+ *       {@link #canAffordOrCreative} 与 {@link #payOrCreative}——创造模式付不起时不拒绝、不扣池（{@link #pay} 付不起本就分
+ *       文不扣），付得起则照常扣；其余真元支出（灌注、炼化、普通催动）仍用 {@link #canAfford} 与 {@link #pay}。</li>
  *   <li>⚠ 切勿自行复制补给线逻辑或在超池支付时先把元石全部倒入真元池（真元池会静默截断超出上限的部分）：
  *       {@link #trySpend} 对超出当前真元池余额的单笔开销会先扣空真元池，再直接燃烧刚好够补齐差额的整数块元石，并将单块
  *       元石折算后多出的零头退回真元池。</li>
@@ -87,6 +90,16 @@ public final class PrimevalStoneSupply {
         if (cost <= 0L) return true;
         topUp(player);
         return trySpend(player, cost);
+    }
+    //endregion
+
+    //region creative [创造模式免门槛]
+    public static boolean canAffordOrCreative(Player player, long cost) {
+        return player.getAbilities().instabuild || canAfford(player, cost);
+    }
+
+    public static boolean payOrCreative(ServerPlayer player, long cost) {
+        return pay(player, cost) || player.getAbilities().instabuild;
     }
     //endregion
 

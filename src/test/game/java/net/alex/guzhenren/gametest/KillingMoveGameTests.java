@@ -55,6 +55,8 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>开招时轻点射双倍伤害月刃，配合蛊计 20 真元、不扣饱食；月刃伤害读自被击中铁傀儡（100 血，无甲）。</li>
  *   <li>拒绝：真元不够付两蛊（不计费、招仍开）；配合蛊不在（提示并关招）；配合蛊低于启动饱食（不开）；未知招、蛊不领的
  *       招、野生配合或主蛊（开不了）。</li>
+ *   <li>创造模式不受真元门槛限制：真元为 0 仍射出双倍月刃、真元不变、招仍开；池里只剩 5 点（不够付）也照射、池不动；同
+ *       样的零真元生存玩家被拒、不计费。</li>
  *   <li>死亡关招、仍保留学会；功倍蛊[Amplify Effect Gu]计费仍使饱食见底、从主手驱动的增幅蛊力竭。</li>
  *   <li>轮盘列表（{@code KillingMoveService.listUsable}）只列已学会且带配合蛊或服务端标为存储支撑的招。</li>
  *   <li>杀招提示：仅落地的施展回应 {@code Cast}，写明招与两蛊（主蛊在前），取施展刚结束时状态；开关招、普通催动、真元不
@@ -241,6 +243,47 @@ public final class KillingMoveGameTests {
         assertFalse(player.getCooldowns().isOnCooldown(moonlight.getItem()), "a refused cast took a cooldown");
         assertTrue(KillingMoveService.isActive(player, KillingMove.LITTLE_LIGHT_AMPLIFY), "a refused cast switched off");
         helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aSurvivalCastOnAnEmptyPoolRefusesAndBillsNothing(GameTestHelper helper) {
+        ServerPlayer player = awakened(helper, null);
+        hold(player, ModItems.MOONLIGHT_GU_1.get(), 12);
+        inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
+        ApertureEssenceService.consume(player, ApertureEssenceService.getSpendable(player));
+
+        assertNull(KillingMoveService.drive(player, KillingMoveService.PLAIN));
+
+        assertEquals(0, blades(helper));
+        assertEquals(0L, ApertureEssenceService.getSpendable(player));
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aCreativeCastNeedsNoEssenceAndTakesNone(GameTestHelper helper) {
+        ServerPlayer player = awakened(helper, null);
+        player.getAbilities().instabuild = true;
+        IronGolem golem = target(helper);
+        ItemStack moonlight = hold(player, ModItems.MOONLIGHT_GU_1.get(), 12);
+        inSlot(player, PARTNER_SLOT, ModItems.LITTLE_LIGHT_GU_1.get(), 12);
+        ClientIntents.killingMove(player, MOVE, KillingMoveService.NO_TARGET);
+        ApertureEssenceService.consume(player, ApertureEssenceService.getSpendable(player));
+
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
+
+        assertEquals(1, blades(helper));
+        assertEquals(0L, ApertureEssenceService.getSpendable(player), "a creative cast took essence");
+        assertTrue(KillingMoveService.isActive(player, KillingMove.LITTLE_LIGHT_AMPLIFY), "the cast switched off");
+
+        hold(player, moonlight.getItem(), 12);
+        player.getCooldowns().removeCooldown(moonlight.getItem());
+        ApertureEssenceService.add(player, 5L);
+        ClientIntents.killingMove(player, KillingMoveService.PLAIN, KillingMoveService.NO_TARGET);
+
+        assertEquals(2, blades(helper));
+        assertEquals(5L, ApertureEssenceService.getSpendable(player), "a cast short of the cost took the pool");
+        helper.succeedWhen(() -> assertEquals(100.0D - 12.0D, golem.getHealth()));
     }
 
     @GameTest(template = "empty9x9x9")

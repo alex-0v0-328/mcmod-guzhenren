@@ -54,7 +54,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ 每只凡蛊均固定覆写 {@link #hasUse} 返回 {@code true} 以响应右键（野生蛊至少需响应炼化，若不响应会让玩家误以
  *       为按键失灵）。</li>
  *   <li>⚠ 真元门槛 {@link #checkEssenceGate} 通过 {@link PrimevalStoneSupply#canAfford} 将随身元石[Primeval Stone]折算
- *       入可用真元，双端判定一致，实际扣费统一走 {@link PrimevalStoneSupply#pay}。</li>
+ *       入可用真元，双端判定一致，实际扣费统一走 {@link PrimevalStoneSupply#pay}；原地催动（杀招[Killing Move]与功倍
+ *       [Amplify Effect]驱动）改走 {@link #checkInPlaceEssenceGate}，创造模式不受此门槛限制。</li>
  *   <li>⚠ 凡蛊本身不单独校验 {@code isAwakened}，而是由真元门槛自然拦截（未开窍者真元上限为 0 且不计随身元石）：炼化消
  *       耗为 0 的一次性消耗蛊按设计允许未开窍凡人直接使用（如生机叶蛊[Vitality Leaf Gu]、寿蛊[Lifespan Gu]、胆识蛊[Guts
  *       Gu]、第二空窍蛊[Second Aperture Gu]），舍利蛊[Relics Gu]由 {@link #checkStageUpGate} 拦截，唯独希望蛊显式拒绝已
@@ -163,6 +164,10 @@ public abstract class MortalGuItem extends GuItem {
     protected final @Nullable Refusal checkEssenceGate(Player player, long required, String key) {
         if (required <= 0) return null;
         return PrimevalStoneSupply.canAfford(player, required) ? null : new Refusal(key);
+    }
+
+    protected final @Nullable Refusal checkInPlaceEssenceGate(Player player, long required) {
+        return player.getAbilities().instabuild ? null : checkEssenceGate(player, required, Refusal.ESSENCE);
     }
 
     public final @Nullable Refusal checkStageUpGate(Aperture aperture) {
