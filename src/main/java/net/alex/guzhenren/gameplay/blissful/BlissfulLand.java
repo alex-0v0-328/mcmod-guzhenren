@@ -1,6 +1,7 @@
 package net.alex.guzhenren.gameplay.blissful;
 
 import java.util.List;
+import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
 import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealm;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
@@ -19,18 +20,20 @@ import org.jetbrains.annotations.NotNull;
  *   <li>⚠ {@link #summitY}、{@link #palace} 是会话间契约：与 Gu World 荡魂山迁入后的山体一致（山巅最高一层荡魂山石
  *       y 181、行宫锚点站立点 (6, 104, 5)），Gu World 改山形时两边同改。山巅判定的水平中心取秘境山心，不另存。</li>
  *   <li>疆域边长 {@code 2 * half} 区块，中心 {@code 2 * core} 见方不可割弃（{@link Territory}）；田区是从
- *       {@link #farmMin} 起 {@code farmChunks} 见方的区块，标准田只开在这里（{@link FarmWork}）。</li>
+ *       {@link #farmMin} 起 {@code farmChunks} 见方的区块，标准田只开在这里（{@link FarmWork}）；牧场是从
+ *       {@link #pastureMin} 起 {@code pastureChunks} 见方的区块（{@link PastureWork}）。两块都在中心不可割弃的范围里。
+ *       </li>
  * </ul>
  */
 
 public record BlissfulLand(@NotNull String id, @NotNull ResourceKey<Level> dimension, @NotNull SecretRealm realm,
                            int summitY, @NotNull BlockPos palace, int half, int core, @NotNull ChunkPos farmMin,
-                           int farmChunks) {
+                           int farmChunks, @NotNull ChunkPos pastureMin, int pastureChunks) {
 
     public static final int SUMMIT_RADIUS = 8;
     public static final BlissfulLand FOX_IMMORTAL = new BlissfulLand("fox_immortal_blissful_land",
             ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND, SoulsunderMountain.INSTANCE, 181, new BlockPos(6, 104, 5),
-            612, 32, new ChunkPos(-2, 11), 4);
+            612, 32, new ChunkPos(-2, 11), 4, new ChunkPos(2, 11), 4);
     public static final List<BlissfulLand> ALL = List.of(FOX_IMMORTAL);
 
     public @NotNull String nameKey() { return "guzhenren.blissful_land." + id; }

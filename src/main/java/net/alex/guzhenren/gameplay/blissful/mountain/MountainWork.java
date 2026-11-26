@@ -5,6 +5,7 @@ import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
@@ -35,7 +36,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #isManaged}：活着的非玩家 {@link Mob}，排除地灵、已驯服（有主人 UUID）、已命名、拴着绳和
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 的；只看已加载区块里的实体（{@code ServerLevel#getAllEntities}）。
  *       </li>
- *   <li>{@link #moveMobsUp}：把山范围外的可支使生物至多 {@value #MOVE_LIMIT} 只传到山心 {@code GUTS_STONE_RADIUS} 格
+ *   <li>{@link #moveMobsUp}：把山范围外、牧场外（{@link PastureWork}）的可支使生物至多 {@value #MOVE_LIMIT} 只传到山心
+ *       {@code GUTS_STONE_RADIUS} 格
  *       内、顶层为荡魂山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却
  *       {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查 {@link #moveCooldown}。</li>
  *   <li>{@link #driveGutsGu}：主人须在山范围内；敲碎山范围内、已加载区块里登记的全部胆石，每块按胆石方块自己的战利品表
@@ -77,9 +79,10 @@ public final class MountainWork {
     public static int moveMobsUp(@NotNull ServerLevel level, @NotNull RealmSite site, @NotNull BlissfulLandData data,
                                  @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
         List<Mob> movers = new ArrayList<>();
+        PastureWork.Pasture pasture = PastureWork.Pasture.of(data.land());
         for (Entity entity : candidates) {
             if (movers.size() >= MOVE_LIMIT) break;
-            if (isManaged(entity) && !site.contains(entity)) movers.add((Mob) entity);
+            if (isManaged(entity) && !site.contains(entity) && !pasture.contains(entity)) movers.add((Mob) entity);
         }
         int radius = Math.min(SoulsunderMountain.GUTS_STONE_RADIUS, site.radius());
         int moved = 0;

@@ -13,9 +13,10 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 福地养殖的经营状态：按种类的托管开关、每种保持数、上一轮托管的结果。
+ * 福地养殖的经营状态：按种类的托管开关、每种保持数、上一轮托管的结果，以及牧场圈没圈过、收拢冷却到哪一刻。
  * <ul>
  *   <li>保持数与托管开关分开存：关掉托管不丢保持数，一键宰杀也照保持数算；保持数 0 = 不管，不存。</li>
+ *   <li>圈地标记失主也不清：栅栏还在，下一任认主时照样挂牧场强加载（{@link PastureWork#retain}）。</li>
  *   <li>任何改动经构造时传入的回调通知所属存档置脏。</li>
  * </ul>
  */
@@ -27,8 +28,25 @@ public final class HerdState {
     private final Map<ResourceLocation, Integer> keep = new LinkedHashMap<>();
     private int lastSlaughtered;
     private int lastBred;
+    private boolean enclosed;
+    private long gatherReadyAt;
 
     public HerdState(@NotNull Runnable changed) { this.changed = changed; }
+
+    public boolean enclosed() { return enclosed; }
+
+    public void setEnclosed() {
+        if (enclosed) return;
+        enclosed = true;
+        changed.run();
+    }
+
+    public long gatherReadyAt() { return gatherReadyAt; }
+
+    public void setGatherReadyAt(long gameTime) {
+        gatherReadyAt = gameTime;
+        changed.run();
+    }
 
     public boolean hosting() { return !hosted.isEmpty(); }
 
@@ -76,6 +94,8 @@ public final class HerdState {
         tag.put("keep", counts);
         tag.putInt("last_slaughtered", lastSlaughtered);
         tag.putInt("last_bred", lastBred);
+        tag.putBoolean("enclosed", enclosed);
+        tag.putLong("gather_ready_at", gatherReadyAt);
         return tag;
     }
 
@@ -91,5 +111,7 @@ public final class HerdState {
         }
         lastSlaughtered = tag.getInt("last_slaughtered");
         lastBred = tag.getInt("last_bred");
+        enclosed = tag.getBoolean("enclosed");
+        gatherReadyAt = tag.getLong("gather_ready_at");
     }
 }

@@ -462,7 +462,7 @@ public final class BlissfulLandGameTests {
         ChunkPos at = pig.chunkPosition();
         int half = Math.max(Math.abs(at.x), Math.abs(at.z)) + 4;
         BlissfulLand land = new BlissfulLand("gametest_land", level.dimension(), SoulsunderMountain.INSTANCE, 0,
-                BlockPos.ZERO, half, 0, new ChunkPos(0, 0), 1);
+                BlockPos.ZERO, half, 0, new ChunkPos(0, 0), 1, new ChunkPos(0, 0), 1);
         BlissfulLandData data = BlissfulLandData.create(land);
         Territory.Side side = at.x >= 0 ? Territory.Side.EAST : Territory.Side.WEST;
         int width = at.x >= 0 ? half - at.x : at.x + half + 1;

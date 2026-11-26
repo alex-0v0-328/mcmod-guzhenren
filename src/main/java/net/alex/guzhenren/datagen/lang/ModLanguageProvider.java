@@ -473,6 +473,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.outside_mountain",         "须在荡魂山中催动");
         add("guzhenren.blissful_land.panel.bred",                     "%s 只发情，用去饲料 %s 份");
         add("guzhenren.blissful_land.panel.slaughtered",              "宰杀 %s 头");
+        add("guzhenren.blissful_land.panel.enclosed",                 "牧场围好，放下 %s 格栅栏");
+        add("guzhenren.blissful_land.panel.enclosed_blocked",         "牧场围好，放下 %s 格栅栏，%s 格被挡住");
+        add("guzhenren.blissful_land.panel.gathered",                 "收拢 %s 头进牧场");
         add("guzhenren.blissful_land.panel.harvested",                "收割 %s 株，补种 %s 格");
         add("guzhenren.blissful_land.panel.farm_full",                "田区已满");
         add("guzhenren.blissful_land.panel.farm_no_dry",              "田区里没有能开垦的干地");
@@ -510,7 +513,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.count",                       "数量");
         add("guzhenren.blissful_land.ui.hosting",                     "托管");
         add("guzhenren.blissful_land.ui.keep",                        "保持");
-        add("guzhenren.blissful_land.ui.herd_note",                   "托管：自动繁殖或宰杀到保持数");
+        add("guzhenren.blissful_land.ui.herd_note",                   "托管：栏内自动繁殖或宰杀到保持数");
+        add("guzhenren.blissful_land.ui.pen",                         "栏内 %s · 栏外 %s");
+        add("guzhenren.blissful_land.ui.enclose",                     "圈地");
+        add("guzhenren.blissful_land.ui.gather",                      "收拢");
         add("guzhenren.blissful_land.ui.herd_status",                 "托管 · 下轮 %s 秒 · 上轮宰 %s 喂养 %s");
         add("guzhenren.blissful_land.ui.breed",                       "喂养繁殖");
         add("guzhenren.blissful_land.ui.slaughter",                   "宰杀收取");
@@ -547,7 +553,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.whitelist",                  "白名单内的人免荡魂山震荡，也不会被「驱逐外人」");
         add("guzhenren.blissful_land.tip.expel",                      "把此人送回他进福地前的位置");
         add("guzhenren.blissful_land.tip.expel_outsiders",            "把不在白名单的人都送回各自进福地前的位置（现在 %s 人）");
-        add("guzhenren.blissful_land.tip.move_mobs",                  "把山外可支使的生物至多 %s 个传上山，冷却 %s 秒；在山上震死会长出胆石");
+        add("guzhenren.blissful_land.tip.move_mobs",                  "把山外、牧场外可支使的生物至多 %s 个传上山，冷却 %s 秒；在山上震死会长出胆石");
         add("guzhenren.blissful_land.tip.drive_guts_gu",              "敲碎全山已加载的胆石（%s 块），每块一半机会出蛊，每只加魂魄上限 %s；须在山中");
         add("guzhenren.blissful_land.tip.add_whitelist",              "按名字加入荡魂山白名单，须是在线玩家；输入时灰字提示在线玩家名，按 Tab 补全");
         add("guzhenren.blissful_land.tip.remove_whitelist",           "移出荡魂山白名单");
@@ -557,6 +563,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.herd_hosting",               "托管每 %s 秒一轮，宰杀与繁殖合计至多 %s 头");
         add("guzhenren.blissful_land.tip.herd_switch",                "托管这种动物：少了喂养繁殖，多了宰到保持数");
         add("guzhenren.blissful_land.tip.keep",                       "保持数减一或加一，按住 Shift 一次 %s");
+        add("guzhenren.blissful_land.tip.pen",                        "牧场在 x %s～%s、z %s～%s：栏内、栏外各有几头动物；喂养、宰杀与托管只管栏内的");
+        add("guzhenren.blissful_land.tip.enclose",                    "沿牧场边界放一圈橡木栅栏，北边正中一扇门；已有的不动，再按只补缺的");
+        add("guzhenren.blissful_land.tip.gather",                     "把福地里栏外的动物传进牧场，一次至多 %s 头，冷却 %s 秒");
+        add("guzhenren.blissful_land.tip.gather_wait",                "还要等 %s 秒");
         add("guzhenren.blissful_land.tip.feed",                       "库藏里的饲料：%s 份");
         add("guzhenren.blissful_land.tip.feed_unknown",               "眼下一只都没有，不知道吃什么");
         add("guzhenren.blissful_land.tip.crop_pick",                  "开垦用的作物，点击切换；自动 = 库藏里第一种种子");

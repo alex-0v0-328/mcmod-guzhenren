@@ -28,9 +28,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 「养殖」页模块：每种动物一行（数量、托管开关、保持数、库藏饲料），喂养繁殖、宰杀收取，以及养殖托管。
+ * 「养殖」页模块：每种动物一行（数量、托管开关、保持数、库藏饲料），牧场一行（栏内栏外、「圈地」「收拢」），喂养繁殖、
+ * 宰杀收取，以及养殖托管。
  * <ul>
- *   <li>行 = 清点到的种类，加上设过保持数或开着托管、眼下一只没有的种类；按实体 ID 排序。</li>
+ *   <li>行、喂养、宰杀与托管只算牧场栏内的动物（{@link PastureWork#penned}）；栏外的只在牧场行里计数。</li>
+ *   <li>行 = 栏内清点到的种类，加上设过保持数或开着托管、眼下一只没有的种类；按实体 ID 排序。</li>
  *   <li>库藏饲料按该种第一只动物的 {@code isFood} 数库藏，一只没有的种类不知道吃什么，记 {@value #UNKNOWN_FEED}。</li>
  *   <li>{@link Section#slaughterPreview()} 是现在点「宰杀收取」会宰几头，规则同 {@link HerdWork#slaughter}。</li>
  *   <li>规则都在 {@link HerdWork}；托管每轮宰杀加繁殖至多 {@value #HOSTING_ANIMALS} 只，结果记进 {@link HerdState}，页
@@ -57,12 +59,23 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
                 Row::new);
     }
 
-    public record Section(@NotNull List<Row> rows, int slaughterPreview, int hostingIn, int lastSlaughtered,
-                          int lastBred) implements PanelSection {
+    public record Pen(int inside, int outside, int gatherIn) {
 
-        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, 0);
+        public static final Pen EMPTY = new Pen(0, 0, 0);
+        public static final StreamCodec<RegistryFriendlyByteBuf, Pen> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, Pen::inside,
+                ByteBufCodecs.VAR_INT, Pen::outside,
+                ByteBufCodecs.VAR_INT, Pen::gatherIn,
+                Pen::new);
+    }
+
+    public record Section(@NotNull List<Row> rows, @NotNull Pen pen, int slaughterPreview, int hostingIn,
+                          int lastSlaughtered, int lastBred) implements PanelSection {
+
+        public static final Section EMPTY = new Section(List.of(), Pen.EMPTY, 0, 0, 0, 0);
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC = StreamCodec.composite(
                 Row.STREAM_CODEC.apply(ByteBufCodecs.list()), Section::rows,
+                Pen.STREAM_CODEC, Section::pen,
                 ByteBufCodecs.VAR_INT, Section::slaughterPreview,
                 ByteBufCodecs.VAR_INT, Section::hostingIn,
                 ByteBufCodecs.VAR_INT, Section::lastSlaughtered,
@@ -83,7 +96,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            HerdWork.Breed bred = HerdWork.breed(LandCensus.herds(context.level()), context.data().storage(),
+            HerdWork.Breed bred = HerdWork.breed(penned(context.level(), context.data()), context.data().storage(),
                     HerdWork.LIMIT, null);
             return EarthSpiritPanel.notice("bred", bred.animals(), bred.food());
         }
@@ -98,8 +111,42 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
         public @NotNull Component perform(@NotNull ActionContext context) {
             BlissfulLandData data = context.data();
             return EarthSpiritPanel.notice("slaughtered", HerdWork.slaughter(context.level(),
-                    LandCensus.herds(context.level()), data.herd().keep(), data.storage(), context.player(),
+                    penned(context.level(), data), data.herd().keep(), data.storage(), context.player(),
                     HerdWork.LIMIT));
+        }
+    }
+
+    public record Enclose() implements PanelAction {
+
+        public static final PanelAction.Type<Enclose> TYPE = new PanelAction.Type<>(Enclose.class,
+                StreamCodec.unit(new Enclose()));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            BlissfulLandData data = context.data();
+            PastureWork.Enclosed done = PastureWork.enclose(context.level(), data,
+                    PastureWork.Pasture.of(data.land()), context.player());
+            if (done == null) return EarthSpiritPanel.notice("grief_denied");
+            return done.blocked() > 0 ? EarthSpiritPanel.notice("enclosed_blocked", done.placed(), done.blocked())
+                    : EarthSpiritPanel.notice("enclosed", done.placed());
+        }
+    }
+
+    public record Gather() implements PanelAction {
+
+        public static final PanelAction.Type<Gather> TYPE = new PanelAction.Type<>(Gather.class,
+                StreamCodec.unit(new Gather()));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            ServerLevel level = context.level();
+            BlissfulLandData data = context.data();
+            long cooldown = PastureWork.gatherCooldown(level, data);
+            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", EarthSpiritPanel.seconds(cooldown));
+
+            int moved = PastureWork.gather(level, data, PastureWork.Pasture.of(data.land()), level.getRandom(),
+                    level.getAllEntities());
+            return EarthSpiritPanel.notice("gathered", moved);
         }
     }
 
@@ -138,7 +185,11 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Breed.TYPE, Slaughter.TYPE, SetHosting.TYPE, SetKeep.TYPE);
+        return List.of(Breed.TYPE, Slaughter.TYPE, SetHosting.TYPE, SetKeep.TYPE, Enclose.TYPE, Gather.TYPE);
+    }
+
+    private static Map<ResourceLocation, List<Animal>> penned(ServerLevel level, BlissfulLandData data) {
+        return PastureWork.penned(LandCensus.herds(level), PastureWork.Pasture.of(data.land()));
     }
 
     @Override
@@ -146,7 +197,10 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
         ServerLevel level = context.level();
         BlissfulLandData data = context.data();
         HerdState state = data.herd();
-        Map<ResourceLocation, List<Animal>> herds = LandCensus.herds(level);
+        Map<ResourceLocation, List<Animal>> herds = penned(level, data);
+        int inside = PastureWork.count(herds);
+        Pen pen = new Pen(inside, PastureWork.count(LandCensus.herds(level)) - inside,
+                EarthSpiritPanel.seconds(PastureWork.gatherCooldown(level, data)));
         Map<ResourceLocation, List<Animal>> sorted = new TreeMap<>(Comparator.comparing(ResourceLocation::toString));
         sorted.putAll(herds);
         state.keep().keySet().forEach(type -> sorted.putIfAbsent(type, List.of()));
@@ -156,7 +210,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
             long feed = animals.isEmpty() ? UNKNOWN_FEED : data.storage().count(animals.getFirst()::isFood);
             rows.add(new Row(type, animals.size(), state.keep(type), state.isHosted(type), feed));
         });
-        return new Section(rows, HerdWork.slaughterCount(herds, state.keep(), HerdWork.LIMIT),
+        return new Section(rows, pen, HerdWork.slaughterCount(herds, state.keep(), HerdWork.LIMIT),
                 BlissfulLands.secondsToHosting(level.getServer()), state.lastSlaughtered(), state.lastBred());
     }
 
@@ -164,7 +218,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
     public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         if (!data.herd().hosting()) return 0;
 
-        HerdWork.Hosted hosted = HerdWork.host(level, LandCensus.herds(level), data, owner, HOSTING_ANIMALS);
+        HerdWork.Hosted hosted = HerdWork.host(level, penned(level, data), data, owner, HOSTING_ANIMALS);
         data.herd().setLastRound(hosted.slaughtered(), hosted.bred());
         return hosted.total();
     }

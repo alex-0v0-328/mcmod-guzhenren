@@ -83,6 +83,7 @@ public final class BlissfulPanelGameTests {
                 new OverviewModule.SetWhitelisted(someone, true), new MountainModule.MoveMobs(),
                 new MountainModule.DriveGutsGu(), new MountainModule.AddWhitelist("Steve"), new HerdModule.Breed(),
                 new HerdModule.Slaughter(), new HerdModule.SetHosting(cow, true), new HerdModule.SetKeep(cow, 7),
+                new HerdModule.Enclose(), new HerdModule.Gather(),
                 new FarmModule.Reclaim(), new FarmModule.Harvest(), new FarmModule.SetHosting(true),
                 new FarmModule.SetCrop(2), new TerritoryModule.Cede(Territory.Side.EAST, 3),
                 new StorageModule.Take(4L, true), new StorageModule.DepositCarried(),

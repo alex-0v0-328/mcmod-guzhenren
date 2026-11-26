@@ -7,6 +7,7 @@ import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
+import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.registry.block.ModBlocks;
@@ -65,7 +66,10 @@ public final class MemberService {
         data.setOwner(player.getUUID(), name);
         data.clearWhitelist();
         data.addWhitelist(player.getUUID(), name);
-        if (level != null) FarmWork.retain(level, data);
+        if (level != null) {
+            FarmWork.retain(level, data);
+            PastureWork.retain(level, data);
+        }
         player.server.getPlayerList().broadcastSystemMessage(claimedMessage(data, player), false);
     }
 
@@ -85,7 +89,10 @@ public final class MemberService {
         data.clearWhitelist();
         data.herd().clearHosting();
         data.farm().setHosting(false);
-        if (level != null) FarmWork.release(level, data);
+        if (level != null) {
+            FarmWork.release(level, data);
+            PastureWork.release(level, data);
+        }
         ServerPlayer former = server.getPlayerList().getPlayer(owner);
         if (former != null) {
             former.sendSystemMessage(Component.translatable(MSG_LOST, Component.translatable(data.land().nameKey())));
