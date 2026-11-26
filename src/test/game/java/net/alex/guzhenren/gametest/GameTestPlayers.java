@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link Mock#creative}、{@link Mock#spectator} 每次重读，可事后换模式；{@link Mock#inbox} 收系统消息，否则丢弃；
  *       {@link Mock#unconnected} 无连接、不入世界。</li>
  *   <li>{@link Mock#pastSpawnInvulnerability} 跳过登录 60 tick 无敌，因无网络连接在等待攻击时驱动 tick。</li>
+ *   <li>{@link #withPvp} 在一次同步调用内开关服务器 PvP（GameTest 服务器默认关，玩家互伤与友伤测试须先开）。</li>
  *   <li>⚠ 套件并排运行，模拟玩家会渗入相邻结构，6 格内野生蛊会逃；目标时序断言先疑此抖动，或避开该目标。</li>
  * </ul>
  */
@@ -74,6 +76,18 @@ final class GameTestPlayers {
             player.tickCount++;
             player.tick();
             player.doTick();
+        }
+    }
+
+    /** 在 PvP 为 {@code allowed} 的服务器上同步跑 {@code body}，事后还原；GameTest 服务器默认关 PvP，玩家互伤须先开。 */
+    static void withPvp(GameTestHelper helper, boolean allowed, Runnable body) {
+        MinecraftServer server = helper.getLevel().getServer();
+        boolean before = server.isPvpAllowed();
+        server.setPvpAllowed(allowed);
+        try {
+            body.run();
+        } finally {
+            server.setPvpAllowed(before);
         }
     }
 

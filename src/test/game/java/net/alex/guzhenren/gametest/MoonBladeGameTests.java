@@ -5,11 +5,13 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.effect.BleedingEffect;
 import net.alex.guzhenren.entity.projectile.MoonBladeEntity;
+import net.alex.guzhenren.entity.projectile.ProjectileHits;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveService;
 import net.alex.guzhenren.item.gu.mortal.path.moon.MoonBladeBehavior;
 import net.alex.guzhenren.registry.damage.ModDamageTypes;
 import net.alex.guzhenren.registry.effect.ModEffects;
+import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -19,6 +21,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -43,6 +47,8 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>带目标的 {@code MoonBladeEntity.shoot} 弯向视线外 2 格静止目标，也中视线上目标，追横移目标，被中间墙挡下；
  *       无目标月刃直飞越过，不锁定、不倾斜。</li>
  *   <li>服务端校验客户端目标（{@code KillingMoveService.resolveTarget}）：收前方活体；拒身后、本人、无实体 id。</li>
+ *   <li>命中规则（{@link ProjectileHits}，气波共用）：月刃打射手自己的宠物；两道月刃相继打碎盔甲架；穿过旁观者打到身后的
+ *       目标；射手不被选作锁定目标，刚发射离手时也不挨打；伤到射手自己的伤害减半、伤到别人的不减半。</li>
  *   <li>目标为射手南方 3 格的无意识村民；射手朝南（yaw 0），经真实 {@link MoonBladeBehavior} 发射；月刃每 tick 飞 1.5
  *       格，数 tick 内命中，检查前先等 {@link #FLIGHT_TICKS}；不覆盖杀招[Killing Move]系数。</li>
  * </ul>
@@ -233,6 +239,83 @@ public final class MoonBladeGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty9x9x9")
+    public static void aBladeHitsThePlayersOwnPet(GameTestHelper helper) {
+        ServerPlayer player = shooter(helper);
+        Wolf wolf = helper.spawnWithNoFreeWill(EntityType.WOLF, TARGET);
+        wolf.tame(player);
+        float before = wolf.getHealth();
+
+        MoonBladeEntity.shoot(player, MoonBladeEntity.Variant.MOON, 6.0F);
+
+        helper.runAfterDelay(FLIGHT_TICKS, () -> {
+            assertEquals(6.0, before - wolf.getHealth(), 0.0001);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void twoBladesBreakAnArmorStand(GameTestHelper helper) {
+        ServerPlayer player = shooter(helper);
+        ArmorStand stand = helper.spawn(EntityType.ARMOR_STAND, TARGET);
+
+        MoonBladeEntity.shoot(player, MoonBladeEntity.Variant.MOON, 6.0F);
+        MoonBladeEntity.shoot(player, MoonBladeEntity.Variant.MOON, 6.0F);
+
+        helper.runAfterDelay(FLIGHT_TICKS, () -> {
+            assertTrue(stand.isRemoved(), "the blades did not hurt the armor stand");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aBladeFliesThroughASpectatorAndHitsWhatIsBehind(GameTestHelper helper) {
+        ServerPlayer player = shooter(helper);
+        ServerPlayer watcher = GameTestPlayers.survival(helper, "gzr-moon-blade-spectator").spectator(() -> true)
+                .pastSpawnInvulnerability().at(new Vec3(4.5, 1.0, 5.5));
+        Villager villager = target(helper);
+
+        MoonBladeEntity.shoot(player, MoonBladeEntity.Variant.MOON, 6.0F);
+
+        helper.runAfterDelay(FLIGHT_TICKS, () -> {
+            assertEquals(6.0, TARGET_HEALTH - villager.getHealth(), 0.0001);
+            assertEquals(watcher.getMaxHealth(), watcher.getHealth(), 0.0);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aBladeNeverLocksOntoItsCasterNorHitsThemOnLeaving(GameTestHelper helper) {
+        ServerPlayer player = vulnerable(helper, STAND);
+
+        MoonBladeEntity.shoot(player, MoonBladeEntity.Variant.MOON, 6.0F, player);
+        MoonBladeEntity blade = blades(helper, player).getFirst();
+        assertFalse(blade.isLocked(), "the blade locked onto its caster");
+
+        helper.runAfterDelay(FLIGHT_TICKS, () -> {
+            assertEquals(player.getMaxHealth(), player.getHealth(), 0.0);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void aBladeHitOnTheCasterTakesHalfAndOnAnyoneElseTakesAll(GameTestHelper helper) {
+        ServerPlayer player = vulnerable(helper, STAND);
+        ServerPlayer other = vulnerable(helper, new Vec3(1.5, 1.0, 1.5));
+        MoonBladeEntity blade = new MoonBladeEntity(ModEntityTypes.MOON_BLADE.get(), helper.getLevel());
+        blade.setOwner(player);
+        DamageSource source = ModDamageTypes.source(blade, player, ModDamageTypes.MOON_BLADE);
+
+        GameTestPlayers.withPvp(helper, true, () -> {
+            assertTrue(player.hurt(source, 10.0F), "the blade did not hurt its caster");
+            assertTrue(other.hurt(source, 10.0F), "the blade did not hurt another player");
+        });
+
+        assertEquals(10.0F * ProjectileHits.SELF_HIT_FACTOR, player.getMaxHealth() - player.getHealth(), 0.0001);
+        assertEquals(10.0F, other.getMaxHealth() - other.getHealth(), 0.0001);
+        helper.succeed();
+    }
+
     private static void lockedShotLands(GameTestHelper helper, Villager villager) {
         ServerPlayer player = shooter(helper);
         MoonBladeEntity.shoot(player, MoonBladeEntity.Variant.MOON, 6.0F, villager);
@@ -302,5 +385,9 @@ public final class MoonBladeGameTests {
 
     private static ServerPlayer shooter(GameTestHelper helper, Vec3 stand) {
         return GameTestPlayers.survival(helper, "gzr-moon-blade-mock").at(stand);
+    }
+
+    private static ServerPlayer vulnerable(GameTestHelper helper, Vec3 stand) {
+        return GameTestPlayers.survival(helper, "gzr-moon-blade-mock").pastSpawnInvulnerability().at(stand);
     }
 }

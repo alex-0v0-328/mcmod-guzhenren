@@ -44,7 +44,9 @@ import org.joml.Vector3f;
  *       {@link #getBankDegrees} 给出，向左为正、直飞为 0）：{@link #followArc} 每 tick 重读目标当前中心并更新速度向量，
  *       飞行 tick 上限为 {@link #MAX_ARC_FLIGHT_TICKS}（{@code KillingMoveService} 锁定距离不超过 26 格即 18 tick，处于
  *       上限内），存活寿命额外延长 {@link #ARC_GRACE_TICKS} tick（{@link #getLifetimeTicks}）以确保末 tick 命中在销毁前
- *       生效；若目标中途死亡、移除或卸载，则清除锁定并沿当前速度直飞。</li>
+ *       生效；若目标中途死亡、移除或卸载，则清除锁定并沿当前速度直飞；射手自己不会被选作锁定目标。</li>
+ *   <li>命中规则见 {@link ProjectileHits}：旁观者不中，队友、自家宠物、野生蛊、盔甲架都中，射手自己离手后也中（只吃一
+ *       半）；刚发射时不打自己仍靠原版 {@code Projectile#canHitEntity} 的离手判定。</li>
  *   <li>命中与伤害结算由服务端权威执行，客户端按同步数据重建同一飞行轨迹仅供渲染；因仅存活约 1 秒，实体不写入存档、区块
  *       卸载即丢弃；每次发射均在游戏事件总线发布 {@link ProjectileThrownEvent} 供射手播放投掷动作。</li>
  * </ul>
@@ -98,7 +100,7 @@ public final class MoonBladeEntity extends Projectile {
         blade.damage = damage;
         blade.setPos(owner.getX(), owner.getEyeY() - SPAWN_DROP - blade.getBbHeight() / 2.0F, owner.getZ());
         blade.shootFromRotation(owner, owner.getXRot(), owner.getYRot(), 0.0F, SPEED, 0.0F);
-        if (target != null && blade.canHitEntity(target)) blade.lockOn(target, owner);
+        if (target != null && target != owner && blade.canHitEntity(target)) blade.lockOn(target, owner);
         owner.level().addFreshEntity(blade);
         owner.level().playSound(null, owner.getX(), owner.getY(), owner.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 SoundSource.PLAYERS, 0.8F, variant.bleeds() ? 0.8F : 1.4F);
@@ -193,6 +195,11 @@ public final class MoonBladeEntity extends Projectile {
     private boolean arrives(LivingEntity target, Vec3 motion) {
         return tickCount >= entityData.get(ARC_TICKS)
                 || getBoundingBox().move(motion).intersects(target.getBoundingBox());
+    }
+
+    @Override
+    protected boolean canHitEntity(@NotNull Entity entity) {
+        return super.canHitEntity(entity) && ProjectileHits.canHit(entity);
     }
 
     @Override

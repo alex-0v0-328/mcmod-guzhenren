@@ -23,7 +23,9 @@ import org.jetbrains.annotations.Nullable;
  *       {@link DamageTypeTags#BYPASSES_INVULNERABILITY} 以穿透不死图腾（心跳检查已提前跳过创造与旁观模式玩家，而十绝天
  *       灾与本命蛊死亡不加该标签以免误伤创造模式玩家或无敌实体）。</li>
  *   <li>空窍压力爆炸与十绝天灾加入爆炸标签；月刃与气波加入弹射物标签，且气波与蓄力一拳加入绕过受击无敌帧标签
- *       （{@link DamageTypeTags#BYPASSES_COOLDOWN}），使单拳触发的多道兽力气波能全额结算伤害。</li>
+ *       （{@link DamageTypeTags#BYPASSES_COOLDOWN}），使单拳触发的多道兽力气波能全额结算伤害；月刃、气波与蓄力一拳另加入
+ *       {@link DamageTypeTags#CAN_BREAK_ARMOR_STAND}，否则原版 {@code ArmorStand#hurt} 对这些伤害一律返回 {@code false}，
+ *       命中规则放行的盔甲架（{@code ProjectileHits}）实际不会受伤。</li>
  *   <li>流血与过载反噬加入穿透护甲标签；过载反噬另加无视效果与无视附魔标签，使抗性、保护附魔、皮肤固定减伤与肉身护盾
  *       （{@code SkinService.canTurn}）都不抵它，按公式实扣；范围伤害、蓄力一拳、冲撞打击与过载反噬均加入无击退标签（前
  *       三者由技能自身控制击退位移，过载反噬为无来源坐标的体内反冲，若不加无击退标签会被 1.21 原版朝随机水平方向击
@@ -56,6 +58,8 @@ public class ModDamageTypeTagsProvider extends TagsProvider<DamageType> {
                 ModDamageTypes.TEN_EXTREME_DISASTER);
         tag(DamageTypeTags.IS_PROJECTILE).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE);
         tag(DamageTypeTags.BYPASSES_COOLDOWN).add(ModDamageTypes.QI_WAVE, ModDamageTypes.CHARGED_PUNCH);
+        tag(DamageTypeTags.CAN_BREAK_ARMOR_STAND).add(ModDamageTypes.MOON_BLADE, ModDamageTypes.QI_WAVE,
+                ModDamageTypes.CHARGED_PUNCH);
         tag(DamageTypeTags.BYPASSES_ARMOR).add(ModDamageTypes.BLEEDING, ModDamageTypes.BODY_OVERLOAD,
                 ModDamageTypes.SOULSUNDER);
         tag(DamageTypeTags.BYPASSES_EFFECTS).add(ModDamageTypes.BODY_OVERLOAD);

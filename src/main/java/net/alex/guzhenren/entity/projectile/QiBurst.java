@@ -22,8 +22,9 @@ import org.jetbrains.annotations.Nullable;
  * 力气蛊[Strength Qi Gu]与蓄力蛊[Store Strength Gu]远程攻击共用的范围爆开结算工具，供 {@link BeastChargeEntity} 与
  * {@link QiWaveEntity} 调用。
  * <ul>
- *   <li>对碰撞箱距爆点不超过 {@link Spec#radius()}、经 {@link AreaDamage#canHit} 放行（排除主人、盟友、宠物、野生蛊与盔
- *       甲架）且爆点至眼部无方块遮挡（{@link AreaDamage#isInSight}，Alex 定，隔墙不受伤）的生物按溢出结算
+ *   <li>对碰撞箱距爆点不超过 {@link Spec#radius()}、经 {@link ProjectileHits#canHit} 放行（只排除旁观者，射手自己、盟
+ *       友、宠物、野生蛊与盔甲架都算）且爆点至眼部无方块遮挡（{@link AreaDamage#isInSight}，Alex 定，隔墙不受伤）的生物
+ *       按溢出结算
  *       （{@link AreaDamage#spill}）：锁定目标排首位吃整发伤害，剩余由近及远至多 {@link #MAX_TARGETS} 个；锁定目标不在
  *       范围内时由最近的目标吃起。爆开本身不结算连招轮、也不触发身旁兽力虚影。</li>
  *   <li>当 {@link Spec#areaDamage()} 为真（人力钧力流收尾招暴击[Crit]，发射方在连招轮收尾时一次掷定）时，发射方已把
@@ -58,7 +59,7 @@ public final class QiBurst {
         List<LivingEntity> targets = new ArrayList<>(projectile.level().getEntitiesOfClass(LivingEntity.class,
                 new AABB(at, at).inflate(radius),
                 victim -> victim.getBoundingBox().distanceToSqr(at) <= radius * radius
-                        && AreaDamage.canHit(owner, victim) && AreaDamage.isInSight(projectile, at, victim)));
+                        && ProjectileHits.canHit(victim) && AreaDamage.isInSight(projectile, at, victim)));
         targets.sort(Comparator.comparingDouble((LivingEntity victim) -> victim == locked ? -1.0D
                 : victim.getBoundingBox().distanceToSqr(at)));
 
