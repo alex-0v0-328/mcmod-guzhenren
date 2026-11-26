@@ -42,6 +42,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -132,6 +133,28 @@ public final class BlissfulPanelGameTests {
             owner.containerMenu = owner.inventoryMenu;
             MemberService.lose(level.getServer(), null, data);
         }
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void hiddenBagSlotsMoveOffScreenAndBack(GameTestHelper helper) {
+        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-slots-mock").onGround();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        EarthSpiritMenu menu = new EarthSpiritMenu(1, owner.getInventory(), null,
+                EarthSpiritPanel.snapshot(helper.getLevel(), data, Page.OVERVIEW, Component.empty()));
+        Slot home = menu.slots.get(27);
+
+        menu.setInventoryShown(false);
+        helper.assertTrue(menu.slots.stream().allMatch(slot -> slot.x == EarthSpiritMenu.HIDDEN_XY
+                && slot.y == EarthSpiritMenu.HIDDEN_XY && !slot.isActive()), "hidden bag slots sit off screen");
+        Slot hidden = menu.slots.get(27);
+        helper.assertValueEqual(hidden.index, 27, "a hidden slot keeps its menu index");
+        helper.assertTrue(hidden.container == owner.getInventory() && hidden.getContainerSlot() == 0,
+                "a hidden slot still points at the first hotbar slot");
+
+        menu.setInventoryShown(true);
+        helper.assertTrue(menu.slots.get(27) == home && home.isActive(), "showing puts the slot back at home");
+        helper.assertValueEqual(home.y, EarthSpiritMenu.HOTBAR_Y, "the hotbar row is back at its height");
+        helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
