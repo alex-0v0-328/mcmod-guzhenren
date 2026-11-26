@@ -148,6 +148,23 @@ public final class SecretRealmGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty9x9x9")
+    public static void pickedColumnsStayInsideTheRadius(GameTestHelper helper) {
+        BlockPos center = new BlockPos(3, 70, -5);
+        RandomSource random = RandomSource.create(12_345L);
+        for (int radius = 1; radius <= 6; radius++) {
+            for (int draw = 0; draw < 2_000; draw++) {
+                BlockPos column = SoulsunderMountain.pickColumn(center, radius, random);
+                if (column == null) continue;
+                int dx = column.getX() - center.getX();
+                int dz = column.getZ() - center.getZ();
+                helper.assertTrue(dx * dx + dz * dz <= radius * radius,
+                        "radius " + radius + " picked (" + dx + ", " + dz + ") outside the disk");
+            }
+        }
+        helper.succeed();
+    }
+
     @GameTest(template = "empty9x9x9", skyAccess = true)
     public static void gutsStoneGrowsOnTopOfTheMountainStone(GameTestHelper helper) {
         layStonePad(helper);

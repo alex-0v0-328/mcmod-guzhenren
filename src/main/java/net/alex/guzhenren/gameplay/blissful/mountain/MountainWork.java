@@ -14,7 +14,6 @@ import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Leashable;
@@ -97,11 +96,9 @@ public final class MountainWork {
 
     private static @Nullable BlockPos findSpot(ServerLevel level, BlockPos center, int radius, RandomSource random) {
         for (int attempt = 0; attempt < MOVE_ATTEMPTS; attempt++) {
-            double angle = random.nextDouble() * Mth.TWO_PI;
-            double distance = Math.sqrt(random.nextDouble()) * radius;
-            int x = center.getX() + Mth.floor(Math.cos(angle) * distance + 0.5D);
-            int z = center.getZ() + Mth.floor(Math.sin(angle) * distance + 0.5D);
-            BlockPos spot = SoulsunderMountain.findGrowSpot(level, x, z);
+            BlockPos column = SoulsunderMountain.pickColumn(center, radius, random);
+            if (column == null) continue;
+            BlockPos spot = SoulsunderMountain.findGrowSpot(level, column.getX(), column.getZ());
             if (spot != null && level.getBlockState(spot.above()).canBeReplaced()) return spot;
         }
         return null;

@@ -46,8 +46,9 @@ import org.jetbrains.annotations.Nullable;
  *       {@link ModDamageTypes#SOULSUNDER}（穿甲、无击退），不刻更新的区块里的生物不扣。创造、旁观模式与
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 免疫。</li>
  *   <li>范围内生命上限不低于 {@value #MIN_MAX_HEALTH} 的生物死亡后，{@link #leaveGutsStone} 经 {@link #growGutsStone}
- *       在山心 {@value #GUTS_STONE_RADIUS} 格（不超过范围半径）内随机挑至多 {@value #GROW_ATTEMPTS} 列：须已加载、顶层
- *       运动阻挡方块为荡魂山石且其上可替换，才放一块胆石并记入 {@link GutsStones}；全数落空就不长。先有一半概率改为叠到
+ *       在山心 {@value #GUTS_STONE_RADIUS} 格（不超过范围半径）内随机挑至多 {@value #GROW_ATTEMPTS} 列
+ *       （{@link #pickColumn} 在圆盘里均匀取点，取整到方块后越出半径的作废：斜向取整会多出一格）：须已加载、顶层运动阻
+ *       挡方块为荡魂山石且其上可替换，才放一块胆石并记入 {@link GutsStones}；全数落空就不长。先有一半概率改为叠到
  *       随机一个已登记、未满 {@value GutsStones#MAX_STONES} 块的格子上（{@link #stackGutsStone}），格子未加载或已不是胆
  *       石就退回找新位置。同维度胆石满 {@value #GUTS_STONE_CAP} 块（按块数算）不再长。</li>
  *   <li>一转胆识蛊[Guts Gu]只在范围内能催动（未生成荡魂山时哪里都不能）。山已解出时，玩家每秒在范围外（含身处其它维度）
@@ -215,11 +216,8 @@ public final class SoulsunderMountain implements SecretRealm {
         if (stones.total() >= GUTS_STONE_CAP) return null;
 
         for (int attempt = 0; attempt < GROW_ATTEMPTS; attempt++) {
-            double angle = random.nextDouble() * Mth.TWO_PI;
-            double distance = Math.sqrt(random.nextDouble()) * radius;
-            int x = center.getX() + Mth.floor(Math.cos(angle) * distance + 0.5D);
-            int z = center.getZ() + Mth.floor(Math.sin(angle) * distance + 0.5D);
-            BlockPos pos = findGrowSpot(level, x, z);
+            BlockPos column = pickColumn(center, radius, random);
+            BlockPos pos = column == null ? null : findGrowSpot(level, column.getX(), column.getZ());
             if (pos == null) continue;
 
             Block guts = ModBlocks.GUTS_STONE.get();
@@ -228,6 +226,14 @@ public final class SoulsunderMountain implements SecretRealm {
             return pos;
         }
         return null;
+    }
+
+    public static @Nullable BlockPos pickColumn(@NotNull BlockPos center, int radius, @NotNull RandomSource random) {
+        double angle = random.nextDouble() * Mth.TWO_PI;
+        double distance = Math.sqrt(random.nextDouble()) * radius;
+        int dx = Mth.floor(Math.cos(angle) * distance + 0.5D);
+        int dz = Mth.floor(Math.sin(angle) * distance + 0.5D);
+        return dx * dx + dz * dz <= radius * radius ? center.offset(dx, 0, dz) : null;
     }
 
     public static @Nullable BlockPos stackGutsStone(@NotNull ServerLevel level, @NotNull GutsStones stones,
