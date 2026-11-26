@@ -42,8 +42,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>目标碰撞箱中心须落在锥体内（{@link #isInCone}），且从起点到目标眼部无方块碰撞遮挡（{@link #isInSight}）；伤害为
  *       {@code guzhenren:area_damage} 普通战斗伤害（受护甲减免，带 {@code NO_KNOCKBACK} 标签以避免叠加原版击退），实际
  *       造成伤害后沿锥轴施加 {@link #KNOCKBACK} 击退。</li>
- *   <li>排除目标规则与二段飞行[Second-Stage Flight]冲撞一致（自身、同队盟友、己方宠物、野生蛊、盔甲架），并额外排除同乘
- *       载具的实体。</li>
+ *   <li>{@link #canHit} 排除自身、同队盟友、同乘载具者、己方宠物、野生蛊与盔甲架；二段飞行[Second-Stage Flight]冲撞共用
+ *       这一条规则。</li>
  * </ul>
  */
 

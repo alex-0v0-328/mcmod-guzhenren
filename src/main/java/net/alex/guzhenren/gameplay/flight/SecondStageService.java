@@ -9,17 +9,17 @@ import java.util.UUID;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.impact.ImpactCrater;
-import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
+import net.alex.guzhenren.gameplay.path.strength.AreaDamage;
+import net.alex.guzhenren.gameplay.path.strength.CrashBreach;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,9 +39,10 @@ import org.jetbrains.annotations.NotNull;
  *       持普通飞行。</li>
  *   <li>二段飞行激活期间，{@link #travel} 接管原版飞行移动（{@code PlayerMixin}，由当前控制移动的一端执行，并屏蔽跳跃与
  *       潜行升降）：在服务端移动前，若速度达到音障（{@link SecondStageCruise#BARRIER_SPEED}），先执行 {@code ram} 撞飞
- *       路径上的非盟友/非野生蛊活体生物（按同一目标 {@link SecondStageCruise#RAM_COOLDOWN_TICKS} 冷却，仅在实际造成玩家
- *       攻击伤害时按击退抗性推开，飞行者自身不减速），并在 {@code ModEvents.canGrief} 允许时执行 {@code shatter} 提前撞
- *       碎前方 {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} tick 内的脆弱方块。</li>
+ *       路径上 {@code AreaDamage.canHit} 认可的活体生物（按同一目标 {@link SecondStageCruise#RAM_COOLDOWN_TICKS} 冷却，
+ *       仅在实际造成玩家攻击伤害时按击退抗性推开，飞行者自身不减速），并执行 {@code shatter} 提前撞碎前方
+ *       {@link SecondStageCruise#BREAK_LOOKAHEAD_TICKS} tick 内的脆弱方块，逐格过 {@code CrashBreach.mayBreak}（地形门
+ *       禁、领地与破坏事件）。</li>
  *   <li>移动后若发生非纯脆弱方块碰撞（{@code !isFragileOnly}），服务端按三维速度损失结算原版鞘翅撞墙伤害；当速度损失达
  *       到音障阈值时判定为撞毁：清零油门与速度、在当前端发布 {@link SecondStageCrashEvent}，服务端退出二段飞行并在身体
  *       前方 {@code CRASH_AHEAD} 格处调 {@link ImpactCrater#blast} 炸坑。</li>
@@ -138,10 +139,12 @@ public final class SecondStageService {
 
     private static void shatter(ServerPlayer player, Vec3 velocity) {
         if (velocity.length() < SecondStageCruise.BARRIER_SPEED || !ModEvents.canGrief(player.level(), player)) return;
+        ServerLevel level = player.serverLevel();
         AABB swept = player.getBoundingBox().expandTowards(velocity.scale(SecondStageCruise.BREAK_LOOKAHEAD_TICKS));
         for (BlockPos pos : blocksIn(swept)) {
-            if (isFragile(player.level(), pos, player.level().getBlockState(pos))) {
-                player.level().destroyBlock(pos, true, player);
+            BlockState state = level.getBlockState(pos);
+            if (isFragile(level, pos, state) && CrashBreach.mayBreak(player, level, pos, state)) {
+                level.destroyBlock(pos, true, player);
             }
         }
     }
@@ -201,7 +204,7 @@ public final class SecondStageService {
 
         AABB swept = player.getBoundingBox().expandTowards(velocity);
         for (LivingEntity target : player.level().getEntitiesOfClass(LivingEntity.class, swept,
-                target -> canRam(player, target))) {
+                target -> AreaDamage.canHit(player, target))) {
             if (rammed.containsKey(target.getId())) continue;
             rammed.put(target.getId(), now);
             if (!target.hurt(player.damageSources().playerAttack(player), SecondStageCruise.getRamDamage(speed))) {
@@ -215,12 +218,5 @@ public final class SecondStageService {
             player.level().playSound(null, target.getX(), target.getY(), target.getZ(),
                     SoundEvents.PLAYER_ATTACK_KNOCKBACK, SoundSource.PLAYERS, RAM_VOLUME, 1.0F);
         }
-    }
-
-    private static boolean canRam(ServerPlayer player, LivingEntity target) {
-        return target != player && target.isAlive() && !target.isSpectator() && target.isPickable()
-                && !player.isAlliedTo(target) && !target.isAlliedTo(player)
-                && !(target instanceof OwnableEntity owned && player.equals(owned.getOwner()))
-                && !target.getType().is(ModEntityTypeTags.WILD_GU) && !(target instanceof ArmorStand);
     }
 }
