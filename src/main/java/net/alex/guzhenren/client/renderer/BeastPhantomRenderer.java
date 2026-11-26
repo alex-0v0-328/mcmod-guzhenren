@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Function;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.entity.beast.BeastPhantomVisual;
@@ -35,7 +37,8 @@ import software.bernie.geckolib.util.Color;
  *   <li>沿用所属野兽族的模型与动画：猪族用野猪，熊与虎用各自模型，龟族用陆龟，牛族用水牛；不可显形的族（
  *       {@code BeastStrengthFamily.canManifest}）直接跳过渲染。</li>
  *   <li>先全亮绘制半透明的 {@code <model>_phantom} 贴图，再叠绘 {@code <model>_phantom_glowmask} 作为自发光层（身体
- *       以自身颜色微光，不透明眼部最亮）；贴图选定在 {@link #getTextureLocation} 完成，不混用野兽原版贴图。</li>
+ *       以自身颜色微光，不透明眼部最亮）；贴图选定在 {@link #getTextureLocation} 完成，不混用野兽原版贴图。各族的模型、
+ *       贴图、遮罩与动画路径在类加载时建好（{@code RESOURCES}），每帧只查表。</li>
  *   <li>马族没有 GeckoLib 模型，由 {@link #render} 委托原版马模型（{@link HorsePhantomModel}）按相同双层管线绘制
  *       （偏航、俯仰与淡出一致），实现主人身旁扬蹄或兽力冲击奔跑。</li>
  *   <li>主人身旁召唤虚影与兽力冲击均统一读取 {@link BeastPhantomVisual}：按 {@link BeastPhantomVisual#getFade} 淡
@@ -63,6 +66,12 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
             RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER, texture, true));
     private static final Function<ResourceLocation, RenderType> GLOW = Util.memoize(texture -> create("glow",
             RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER, texture, false));
+    private static final Map<BeastStrengthFamily, Resources> RESOURCES = Util.make(
+            new EnumMap<>(BeastStrengthFamily.class), map -> {
+                for (BeastStrengthFamily family : BeastStrengthFamily.values()) {
+                    map.put(family, Resources.of(getModelName(family)));
+                }
+            });
 
     private final HorsePhantomModel horse;
 
@@ -156,11 +165,11 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
         poseStack.translate(0.0F, -1.501F, 0.0F);
 
         float fade = entity.getFade(partialTick);
-        String model = getModelName(BeastStrengthFamily.HORSE);
-        RenderType body = BODY.apply(Guzhenren.id("textures/entity/" + model + "_phantom.png"));
+        Resources horseResources = RESOURCES.get(BeastStrengthFamily.HORSE);
+        RenderType body = BODY.apply(horseResources.texture());
         horse.render(poseStack, bufferSource.getBuffer(body), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                 Color.ofARGB(fade, 1.0F, 1.0F, 1.0F).argbInt());
-        RenderType glow = GLOW.apply(Guzhenren.id("textures/entity/" + model + "_phantom_glowmask.png"));
+        RenderType glow = GLOW.apply(horseResources.glowmask());
         horse.render(poseStack, bufferSource.getBuffer(glow), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                 getGlowColor(entity, partialTick));
         poseStack.popPose();
@@ -169,7 +178,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull T animatable) {
-        return Guzhenren.id("textures/entity/" + getModelName(animatable.getFamily()) + "_phantom.png");
+        return RESOURCES.get(animatable.getFamily()).texture();
     }
 
     @Override
@@ -197,21 +206,32 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
         };
     }
 
+    private record Resources(ResourceLocation model, ResourceLocation texture, ResourceLocation glowmask,
+                             ResourceLocation animation) {
+
+        static Resources of(String name) {
+            return new Resources(Guzhenren.id("geo/entity/" + name + ".geo.json"),
+                    Guzhenren.id("textures/entity/" + name + "_phantom.png"),
+                    Guzhenren.id("textures/entity/" + name + "_phantom_glowmask.png"),
+                    Guzhenren.id("animations/entity/" + name + ".animation.json"));
+        }
+    }
+
     private static final class PhantomModel<T extends Entity & GeoEntity & BeastPhantomVisual> extends GeoModel<T> {
 
         @Override
         public ResourceLocation getModelResource(T animatable) {
-            return Guzhenren.id("geo/entity/" + getModelName(animatable.getFamily()) + ".geo.json");
+            return RESOURCES.get(animatable.getFamily()).model();
         }
 
         @Override
         public ResourceLocation getTextureResource(T animatable) {
-            return Guzhenren.id("textures/entity/" + getModelName(animatable.getFamily()) + "_phantom.png");
+            return RESOURCES.get(animatable.getFamily()).texture();
         }
 
         @Override
         public ResourceLocation getAnimationResource(T animatable) {
-            return Guzhenren.id("animations/entity/" + getModelName(animatable.getFamily()) + ".animation.json");
+            return RESOURCES.get(animatable.getFamily()).animation();
         }
     }
 
@@ -224,9 +244,7 @@ public final class BeastPhantomRenderer<T extends Entity & GeoEntity & BeastPhan
         public void render(PoseStack poseStack, T animatable, BakedGeoModel bakedModel, @Nullable RenderType renderType,
                            MultiBufferSource bufferSource, @Nullable VertexConsumer buffer, float partialTick,
                            int packedLight, int packedOverlay) {
-            ResourceLocation mask = Guzhenren.id("textures/entity/" + getModelName(animatable.getFamily())
-                    + "_phantom_glowmask.png");
-            RenderType glow = GLOW.apply(mask);
+            RenderType glow = GLOW.apply(RESOURCES.get(animatable.getFamily()).glowmask());
             this.getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, glow,
                     bufferSource.getBuffer(glow), partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
                     getGlowColor(animatable, partialTick));

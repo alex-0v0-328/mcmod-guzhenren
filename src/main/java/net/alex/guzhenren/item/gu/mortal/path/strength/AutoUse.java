@@ -127,12 +127,14 @@ public final class AutoUse {
     }
 
     private static List<PathEffect<?>> findRunning(Player player) {
-        List<PathEffect<?>> running = new ArrayList<>();
+        List<PathEffect<?>> running = null;
         for (PathEffectType<?> state : STATES) {
             PathEffect<?> effect = PathEffectService.find(player, state);
-            if (effect != null) running.add(effect);
+            if (effect == null) continue;
+            if (running == null) running = new ArrayList<>(STATES.size());
+            running.add(effect);
         }
-        return running;
+        return running == null ? List.of() : running;
     }
 
     private static boolean holds(List<Held> held, ResourceLocation source) {
