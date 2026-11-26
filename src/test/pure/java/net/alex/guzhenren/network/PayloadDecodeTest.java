@@ -3,9 +3,9 @@ package net.alex.guzhenren.network;
 import io.netty.handler.codec.DecoderException;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.network.payload.ApertureNourishAction;
+import net.alex.guzhenren.network.payload.ApertureNourishPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
-import net.alex.guzhenren.network.payload.NourishAction;
-import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.SetSecondaryPathPayload;
 import net.alex.guzhenren.network.payload.SkinFlashPayload;
 import org.junit.jupiter.api.DisplayName;
@@ -35,14 +35,14 @@ class PayloadDecodeTest {
     @DisplayName("a forged nourish action ordinal fails to decode")
     void forgedNourishAction() {
         withBuffer(buffer -> {
-            buffer.writeVarInt(NourishAction.values().length);
+            buffer.writeVarInt(ApertureNourishAction.values().length);
             buffer.writeVarInt(0);
-            assertThrows(DecoderException.class, () -> NourishAperturePayload.STREAM_CODEC.decode(buffer));
+            assertThrows(DecoderException.class, () -> ApertureNourishPayload.STREAM_CODEC.decode(buffer));
             buffer.clear();
 
-            NourishAperturePayload valid = new NourishAperturePayload(NourishAction.CANCEL, 0);
-            NourishAperturePayload.STREAM_CODEC.encode(buffer, valid);
-            assertEquals(valid, NourishAperturePayload.STREAM_CODEC.decode(buffer));
+            ApertureNourishPayload valid = new ApertureNourishPayload(ApertureNourishAction.CANCEL, 0);
+            ApertureNourishPayload.STREAM_CODEC.encode(buffer, valid);
+            assertEquals(valid, ApertureNourishPayload.STREAM_CODEC.decode(buffer));
         });
     }
 

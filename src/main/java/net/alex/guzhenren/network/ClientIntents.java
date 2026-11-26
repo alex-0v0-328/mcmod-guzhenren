@@ -16,10 +16,10 @@ import net.alex.guzhenren.item.gu.mortal.path.qi.QiWaveService;
 import net.alex.guzhenren.item.gu.mortal.path.rule.AmplifyEffectGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.strength.ChargedPunch;
-import net.alex.guzhenren.network.payload.ChargeAction;
-import net.alex.guzhenren.network.payload.ElderAction;
+import net.alex.guzhenren.network.payload.ApertureNourishAction;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
-import net.alex.guzhenren.network.payload.NourishAction;
+import net.alex.guzhenren.network.payload.PrimevalElderAction;
+import net.alex.guzhenren.network.payload.StoreStrengthAction;
 import net.alex.guzhenren.refinement.RefinementMenu;
 import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.world.ModDimensions;
@@ -74,7 +74,8 @@ public final class ClientIntents {
                 && (vertical == 0 || verticalCrash || chargingCrash);
     }
 
-    public static void nourishAperture(@NotNull ServerPlayer player, @NotNull NourishAction action, int aperture) {
+    public static void nourishAperture(@NotNull ServerPlayer player, @NotNull ApertureNourishAction action,
+            int aperture) {
         switch (action) {
             case START -> {
                 if (canAct(player) && hasAperture(player, aperture)) ApertureNourishService.start(player, aperture);
@@ -107,7 +108,7 @@ public final class ClientIntents {
     }
 
     /** 主手元老蛊[Primeval Elder Gu]的轻点（即催动，存入）或滑条选取 {@code stacks} 组。 */
-    public static void primevalElder(@NotNull ServerPlayer player, @NotNull ElderAction action, int stacks) {
+    public static void primevalElder(@NotNull ServerPlayer player, @NotNull PrimevalElderAction action, int stacks) {
         ItemStack stack = player.getMainHandItem();
         if (!canAct(player)) return;
         if (!(stack.getItem() instanceof PrimevalElderGuItem elder)) return;
@@ -131,7 +132,7 @@ public final class ClientIntents {
         if (canAct(player)) QiWaveService.request(player, target);
     }
 
-    public static void storeStrength(@NotNull ServerPlayer player, @NotNull ChargeAction action, int target) {
+    public static void storeStrength(@NotNull ServerPlayer player, @NotNull StoreStrengthAction action, int target) {
         switch (action) {
             case START -> {
                 if (canAct(player) && StoreStrength.start(player)) {

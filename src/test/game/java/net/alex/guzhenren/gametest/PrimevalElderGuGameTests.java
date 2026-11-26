@@ -9,7 +9,7 @@ import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.network.ClientIntents;
-import net.alex.guzhenren.network.payload.ElderAction;
+import net.alex.guzhenren.network.payload.PrimevalElderAction;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
@@ -49,7 +49,7 @@ public final class PrimevalElderGuGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, elder);
         player.getInventory().setItem(BAG_SLOT, stones(100));
 
-        ClientIntents.primevalElder(player, ElderAction.DEPOSIT, 0);
+        ClientIntents.primevalElder(player, PrimevalElderAction.DEPOSIT, 0);
         assertEquals(100L, PrimevalElderGuItem.getStored(elder), "a tap deposits every carried stone");
         assertEquals(0, player.getInventory().countItem(ModItems.PRIMEVAL_STONE.get()));
 
@@ -70,13 +70,13 @@ public final class PrimevalElderGuGameTests {
         ItemStack elder = elder(0);
         player.setItemInHand(InteractionHand.MAIN_HAND, elder);
 
-        ClientIntents.primevalElder(player, ElderAction.DEPOSIT, 0);
+        ClientIntents.primevalElder(player, PrimevalElderAction.DEPOSIT, 0);
         assertEquals(1_000L, PrimevalElderGuItem.getStored(elder), "an empty-handed creative tap fills the store");
 
         player.getCooldowns().removeCooldown(elder.getItem());
         ((PrimevalElderGuItem) elder.getItem()).drawStones(elder, 900);
         player.getInventory().setItem(BAG_SLOT, stones(30));
-        ClientIntents.primevalElder(player, ElderAction.DEPOSIT, 0);
+        ClientIntents.primevalElder(player, PrimevalElderAction.DEPOSIT, 0);
         assertEquals(1_000L, PrimevalElderGuItem.getStored(elder), "carried stones change nothing, it still fills");
         assertEquals(30, player.getInventory().countItem(ModItems.PRIMEVAL_STONE.get()), "and takes none of them");
         helper.succeed();
@@ -89,7 +89,7 @@ public final class PrimevalElderGuGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, elder);
 
         assertEquals(8, PrimevalElderGuItem.getWithdrawableStacks(player, elder), "500 stones are 8 stacks");
-        ClientIntents.primevalElder(player, ElderAction.WITHDRAW, 3);
+        ClientIntents.primevalElder(player, PrimevalElderAction.WITHDRAW, 3);
         assertEquals(308L, PrimevalElderGuItem.getStored(elder), "three stacks of 64 came out");
         assertEquals(192, player.getInventory().countItem(ModItems.PRIMEVAL_STONE.get()));
         assertTrue(player.getOffhandItem().isEmpty(), "nothing goes to the offhand");
@@ -108,14 +108,14 @@ public final class PrimevalElderGuGameTests {
 
         assertEquals(152, PrimevalElderGuItem.getBagRoom(player), "two empty slots and 24 on the partial stack");
         assertEquals(3, PrimevalElderGuItem.getWithdrawableStacks(player, elder), "152 stones round up to 3");
-        ClientIntents.primevalElder(player, ElderAction.WITHDRAW, 10);
+        ClientIntents.primevalElder(player, PrimevalElderAction.WITHDRAW, 10);
         assertEquals(348L, PrimevalElderGuItem.getStored(elder), "only what fits came out");
         assertEquals(192, player.getInventory().countItem(ModItems.PRIMEVAL_STONE.get()), "all of it in the bag");
         assertEquals(64, player.getInventory().getItem(BAG_SLOT).getCount(), "the partial stack filled first");
         assertEquals(0, PrimevalElderGuItem.getBagRoom(player), "the bag is now full");
 
         player.getCooldowns().removeCooldown(elder.getItem());
-        ClientIntents.primevalElder(player, ElderAction.WITHDRAW, 1);
+        ClientIntents.primevalElder(player, PrimevalElderAction.WITHDRAW, 1);
         assertEquals(348L, PrimevalElderGuItem.getStored(elder), "a full bag takes nothing");
         assertEquals(0, PrimevalElderGuItem.getWithdrawableStacks(player, elder));
         helper.succeed();
@@ -130,7 +130,7 @@ public final class PrimevalElderGuGameTests {
         renamed.set(DataComponents.CUSTOM_NAME, Component.literal("keepsake"));
         player.getInventory().setItem(BAG_SLOT, renamed);
 
-        ClientIntents.primevalElder(player, ElderAction.WITHDRAW, 1);
+        ClientIntents.primevalElder(player, PrimevalElderAction.WITHDRAW, 1);
         assertEquals(10, player.getInventory().getItem(BAG_SLOT).getCount(), "the renamed stack took none");
         assertEquals(74, player.getInventory().countItem(ModItems.PRIMEVAL_STONE.get()), "a fresh stack of 64");
         helper.succeed();
@@ -142,7 +142,7 @@ public final class PrimevalElderGuGameTests {
         ItemStack elder = elder(100);
         player.setItemInHand(InteractionHand.MAIN_HAND, elder);
 
-        ClientIntents.primevalElder(player, ElderAction.WITHDRAW, 1);
+        ClientIntents.primevalElder(player, PrimevalElderAction.WITHDRAW, 1);
         assertEquals(100L, PrimevalElderGuItem.getStored(elder), "a spectator withdraws nothing");
         helper.succeed();
     }
@@ -156,8 +156,8 @@ public final class PrimevalElderGuGameTests {
 
         InteractionResult result = elder.use(helper.getLevel(), player, InteractionHand.OFF_HAND).getResult();
         assertEquals(InteractionResult.PASS, result, "an offhand click passes");
-        ClientIntents.primevalElder(player, ElderAction.DEPOSIT, 0);
-        ClientIntents.primevalElder(player, ElderAction.WITHDRAW, 1);
+        ClientIntents.primevalElder(player, PrimevalElderAction.DEPOSIT, 0);
+        ClientIntents.primevalElder(player, PrimevalElderAction.WITHDRAW, 1);
         assertEquals(500L, PrimevalElderGuItem.getStored(elder), "neither intent reaches an offhand one");
         assertEquals(100, player.getInventory().countItem(ModItems.PRIMEVAL_STONE.get()));
         helper.succeed();

@@ -14,11 +14,11 @@ import org.jetbrains.annotations.NotNull;
  * {@link net.alex.guzhenren.network.ClientIntents#primevalElder} 重新校验。
  */
 
-public record PrimevalElderPayload(ElderAction action, int stacks) implements CustomPacketPayload {
+public record PrimevalElderPayload(PrimevalElderAction action, int stacks) implements CustomPacketPayload {
 
     public static final Type<PrimevalElderPayload> TYPE = new Type<>(Guzhenren.id("primeval_elder"));
     public static final StreamCodec<FriendlyByteBuf, PrimevalElderPayload> STREAM_CODEC = StreamCodec.composite(
-            ModByteBufs.enumCodec(ElderAction.class), PrimevalElderPayload::action,
+            ModByteBufs.enumCodec(PrimevalElderAction.class), PrimevalElderPayload::action,
             ByteBufCodecs.VAR_INT, PrimevalElderPayload::stacks,
             PrimevalElderPayload::new);
 

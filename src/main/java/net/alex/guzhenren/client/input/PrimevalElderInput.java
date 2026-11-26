@@ -7,7 +7,7 @@ import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.gameplay.dimension.TreasureYellowHeavenGuard;
 import net.alex.guzhenren.item.GuItem.Refusal;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
-import net.alex.guzhenren.network.payload.ElderAction;
+import net.alex.guzhenren.network.payload.PrimevalElderAction;
 import net.alex.guzhenren.network.payload.PrimevalElderPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -94,7 +94,7 @@ public final class PrimevalElderInput {
         }
 
         @Override
-        public void pick(int value) { send(ElderAction.WITHDRAW, value); }
+        public void pick(int value) { send(PrimevalElderAction.WITHDRAW, value); }
 
         @Override
         public void empty() {
@@ -102,7 +102,7 @@ public final class PrimevalElderInput {
         }
 
         @Override
-        public void releaseUnopened() { send(ElderAction.DEPOSIT, 0); }
+        public void releaseUnopened() { send(PrimevalElderAction.DEPOSIT, 0); }
 
         private ItemStack stack() { return player.getMainHandItem(); }
 
@@ -113,7 +113,7 @@ public final class PrimevalElderInput {
             return Math.min((long) stacks * PrimevalElderGuItem.STACK, reachable);
         }
 
-        private void send(ElderAction action, int stacks) {
+        private void send(PrimevalElderAction action, int stacks) {
             if (isInHand()) PacketDistributor.sendToServer(new PrimevalElderPayload(action, stacks));
         }
     }

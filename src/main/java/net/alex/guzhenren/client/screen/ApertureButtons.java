@@ -7,9 +7,9 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.ApertureService;
+import net.alex.guzhenren.network.payload.ApertureNourishAction;
+import net.alex.guzhenren.network.payload.ApertureNourishPayload;
 import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
-import net.alex.guzhenren.network.payload.NourishAction;
-import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -121,11 +121,11 @@ final class ApertureButtons {
             case IMPACT -> PacketDistributor.sendToServer(ImpactApertureWallPayload.INSTANCE);
             case NOURISH -> {
                 if (isRunning(player, button.aperture())) {
-                    PacketDistributor.sendToServer(new NourishAperturePayload(
-                            NourishAction.CANCEL, ApertureNourishService.getTargetIndex(player)));
+                    PacketDistributor.sendToServer(new ApertureNourishPayload(
+                            ApertureNourishAction.CANCEL, ApertureNourishService.getTargetIndex(player)));
                 } else if (ApertureNourishService.canNourish(player, button.aperture())) {
-                    PacketDistributor.sendToServer(new NourishAperturePayload(
-                            NourishAction.START, button.aperture()));
+                    PacketDistributor.sendToServer(new ApertureNourishPayload(
+                            ApertureNourishAction.START, button.aperture()));
                     return true;
                 }
             }

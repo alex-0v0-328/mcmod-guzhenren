@@ -5,4 +5,4 @@ package net.alex.guzhenren.network.payload;
  * （{@link #RELEASE}），与 {@link StoreStrengthPayload} 同包以避免载荷包反向依赖上层 {@code network} 包。
  */
 
-public enum ChargeAction { START, CANCEL, RELEASE }
+public enum StoreStrengthAction { START, CANCEL, RELEASE }

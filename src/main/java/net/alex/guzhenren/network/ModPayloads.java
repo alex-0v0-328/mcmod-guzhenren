@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
+import net.alex.guzhenren.network.payload.ApertureNourishPayload;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.EarthSpiritActionPayload;
 import net.alex.guzhenren.network.payload.EarthSpiritMapMarksPayload;
@@ -17,7 +18,6 @@ import net.alex.guzhenren.network.payload.ImpactApertureWallPayload;
 import net.alex.guzhenren.network.payload.ImpactShakePayload;
 import net.alex.guzhenren.network.payload.KillingMovePayload;
 import net.alex.guzhenren.network.payload.KillingMoveTooltipPayload;
-import net.alex.guzhenren.network.payload.NourishAperturePayload;
 import net.alex.guzhenren.network.payload.OpenApertureStoragePayload;
 import net.alex.guzhenren.network.payload.OpenRefinementPayload;
 import net.alex.guzhenren.network.payload.PlaceTitlePayload;
@@ -68,7 +68,7 @@ public final class ModPayloads {
                 (intent, player) -> ClientIntents.setSecondaryPath(player, intent.aperture(), intent.path()));
         toServer(registrar, OpenRefinementPayload.TYPE, OpenRefinementPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.openRefinement(player));
-        toServer(registrar, NourishAperturePayload.TYPE, NourishAperturePayload.STREAM_CODEC,
+        toServer(registrar, ApertureNourishPayload.TYPE, ApertureNourishPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.nourishAperture(player, intent.action(), intent.aperture()));
         toServer(registrar, ImpactApertureWallPayload.TYPE, ImpactApertureWallPayload.STREAM_CODEC,
                 (intent, player) -> ClientIntents.impactApertureWall(player));

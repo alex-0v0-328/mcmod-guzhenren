@@ -5,4 +5,4 @@ package net.alex.guzhenren.network.payload;
  * （{@link #WITHDRAW}），与 {@link PrimevalElderPayload} 同包以避免载荷包反向依赖上层 {@code network} 包。
  */
 
-public enum ElderAction { DEPOSIT, WITHDRAW }
+public enum PrimevalElderAction { DEPOSIT, WITHDRAW }
