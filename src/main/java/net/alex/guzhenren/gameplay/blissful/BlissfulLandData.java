@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.core.ModSavedData;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmState;
+import net.alex.guzhenren.gameplay.blissful.gu.GuState;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdState;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainState;
 import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * 存档也不丢，GameTest 也能直接构造）。
  * <ul>
  *   <li>本类只管福地共用的部分：主人、白名单、疆域、当前地灵 UUID；各经营模块的状态各占一段（{@link #storage}、
- *       {@link #herd}、{@link #farm}、{@link #mountain}），存档里也各是一个子标签。</li>
+ *       {@link #herd}、{@link #farm}、{@link #mountain}、{@link #gu}），存档里也各是一个子标签。</li>
  *   <li>主人与白名单：{@link #owner} 为空即无主；白名单记 UUID 与名字（名字只供离线显示），同一份名单既免荡魂山震荡，也
  *       免「驱逐外人」。失主由 {@code MemberService#lose} 清白名单、关托管，库藏、疆域、标准田、每种保持数留给下一任。
  *       </li>
@@ -38,6 +39,7 @@ public final class BlissfulLandData extends ModSavedData {
     private final Map<UUID, String> whitelist = new LinkedHashMap<>();
     private final BlissfulStorage storage = new BlissfulStorage(this::changed);
     private final HerdState herd = new HerdState(this::changed);
+    private final GuState gu = new GuState(this::changed);
     private final FarmState farm = new FarmState(this::changed);
     private final MountainState mountain = new MountainState(this::changed);
     private Territory territory;
@@ -62,6 +64,8 @@ public final class BlissfulLandData extends ModSavedData {
     public @NotNull BlissfulStorage storage() { return storage; }
 
     public @NotNull HerdState herd() { return herd; }
+
+    public @NotNull GuState gu() { return gu; }
 
     public @NotNull FarmState farm() { return farm; }
 
@@ -134,6 +138,7 @@ public final class BlissfulLandData extends ModSavedData {
         tag.put("whitelist", names);
         storage.save(tag, "storage", stacks);
         tag.put("herd", herd.save());
+        tag.put("gu", gu.save());
         tag.put("farm", farm.save());
         tag.put("mountain", mountain.save());
         CompoundTag bounds = new CompoundTag();
@@ -154,6 +159,7 @@ public final class BlissfulLandData extends ModSavedData {
         }
         data.storage.load(tag, "storage", stacks);
         data.herd.load(tag.getCompound("herd"));
+        data.gu.load(tag.getCompound("gu"));
         data.farm.load(tag.getCompound("farm"));
         data.mountain.load(tag.getCompound("mountain"));
         data.territory = Territory.load(tag.getCompound("territory"), land.half(), land.core());

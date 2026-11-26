@@ -37,9 +37,9 @@ import org.jetbrains.annotations.Nullable;
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 的；只看已加载区块里的实体（{@code ServerLevel#getAllEntities}）。
  *       </li>
  *   <li>{@link #moveMobsUp}：把山范围外、牧场外（{@link PastureWork}）的可支使生物至多 {@value #MOVE_LIMIT} 只传到山心
- *       {@code GUTS_STONE_RADIUS} 格
- *       内、顶层为荡魂山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却
- *       {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查 {@link #moveCooldown}。</li>
+ *       {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须
+ *       已加载），之后冷却 {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查 {@link #moveCooldown}。野生蛊不挪：生命只有 1，
+ *       上山即被震死，也不长胆石。</li>
  *   <li>{@link #driveGutsGu}：主人须在山范围内；敲碎山范围内、已加载区块里登记的全部胆石，每块按胆石方块自己的战利品表
  *       各掷一次（同手敲的 50%），掷出的胆识蛊[Guts Gu]不成物品，直接给主人魂魄上限各加
  *       {@value SoulsunderMountain#GUTS_GU_SOUL_BONUS}。登记了但已不是胆石的格子顺手删去。</li>
@@ -82,7 +82,8 @@ public final class MountainWork {
         PastureWork.Pasture pasture = PastureWork.Pasture.of(data.land());
         for (Entity entity : candidates) {
             if (movers.size() >= MOVE_LIMIT) break;
-            if (isManaged(entity) && !site.contains(entity) && !pasture.contains(entity)) movers.add((Mob) entity);
+            if (entity.getType().is(ModEntityTypeTags.WILD_GU) || !isManaged(entity) || site.contains(entity)) continue;
+            if (!pasture.contains(entity)) movers.add((Mob) entity);
         }
         int radius = Math.min(SoulsunderMountain.GUTS_STONE_RADIUS, site.radius());
         int moved = 0;

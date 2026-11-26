@@ -16,6 +16,7 @@ import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
+import net.alex.guzhenren.gameplay.blissful.gu.GuModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
 import net.alex.guzhenren.gameplay.blissful.member.MemberService;
@@ -83,7 +84,8 @@ public final class BlissfulPanelGameTests {
                 new OverviewModule.SetWhitelisted(someone, true), new MountainModule.MoveMobs(),
                 new MountainModule.DriveGutsGu(), new MountainModule.AddWhitelist("Steve"), new HerdModule.Breed(),
                 new HerdModule.Slaughter(), new HerdModule.SetHosting(cow, true), new HerdModule.SetKeep(cow, 7),
-                new HerdModule.Enclose(), new HerdModule.Gather(),
+                new HerdModule.Enclose(), new HerdModule.Gather(), new GuModule.Capture(),
+                new GuModule.SetHosting(cow, true), new GuModule.SetKeep(cow, 2),
                 new FarmModule.Reclaim(), new FarmModule.Harvest(), new FarmModule.SetHosting(true),
                 new FarmModule.SetCrop(2), new TerritoryModule.Cede(Territory.Side.EAST, 3),
                 new StorageModule.Take(4L, true), new StorageModule.DepositCarried(),

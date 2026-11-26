@@ -50,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
  *       去。</li>
  *   <li>数据只来自菜单里按页缓存的快照段：开面板时随缓冲带来，之后每秒与每次操作后由 {@link EarthSpiritPanelPayload}
  *       替换（{@link #onPanel}）。操作结果提示在面板上方显示 {@value #NOTICE_MILLIS} 毫秒。</li>
- *   <li>本文件有意超过 300 行：六页切换容器、两处输入框与共享外框/标签/悬停绘制共用同一界面生命周期，集中在一处维护
+ *   <li>本文件有意超过 300 行：七页切换容器、两处输入框与共享外框/标签/悬停绘制共用同一界面生命周期，集中在一处维护
  *       更清晰。</li>
  * </ul>
  */
@@ -69,7 +69,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     private static final int RULE_Y = 15;
     private static final int NOTICE_MILLIS = 4000;
     private static final String[] TAB_ICONS = {"icon_overview", "icon_mountain", "icon_husbandry", "icon_farming",
-            "icon_territory", "icon_storage"};
+            "icon_territory", "icon_storage", "icon_gu"};
     private final Map<Page, PanelPage> pages = new EnumMap<>(Page.class);
     private final StoragePage storage;
     private final Inventory inventory;
@@ -96,6 +96,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
         this.pages.put(Page.TERRITORY, new TerritoryPage(this));
         this.storage = new StoragePage(this);
         this.pages.put(Page.STORAGE, this.storage);
+        this.pages.put(Page.GU, new GuPage(this));
         this.seen = menu.getSnapshot();
     }
 

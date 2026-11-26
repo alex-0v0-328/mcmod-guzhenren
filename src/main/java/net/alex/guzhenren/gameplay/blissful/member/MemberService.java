@@ -88,6 +88,7 @@ public final class MemberService {
         data.setOwner(null, "");
         data.clearWhitelist();
         data.herd().clearHosting();
+        data.gu().clearHosting();
         data.farm().setHosting(false);
         if (level != null) {
             FarmWork.release(level, data);

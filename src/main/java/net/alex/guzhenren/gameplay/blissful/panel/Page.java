@@ -19,7 +19,8 @@ public enum Page {
     HUSBANDRY,
     FARMING,
     TERRITORY,
-    STORAGE;
+    STORAGE,
+    GU;
 
     public static final StreamCodec<ByteBuf, Page> STREAM_CODEC = ByteBufCodecs.idMapper(index -> values()[index],
             Page::ordinal);

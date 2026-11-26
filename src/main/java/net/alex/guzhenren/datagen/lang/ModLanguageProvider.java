@@ -476,6 +476,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.enclosed",                 "牧场围好，放下 %s 格栅栏");
         add("guzhenren.blissful_land.panel.enclosed_blocked",         "牧场围好，放下 %s 格栅栏，%s 格被挡住");
         add("guzhenren.blissful_land.panel.gathered",                 "收拢 %s 头进牧场");
+        add("guzhenren.blissful_land.panel.captured",                 "捕获 %s 只蛊入库");
         add("guzhenren.blissful_land.panel.harvested",                "收割 %s 株，补种 %s 格");
         add("guzhenren.blissful_land.panel.farm_full",                "田区已满");
         add("guzhenren.blissful_land.panel.farm_no_dry",              "田区里没有能开垦的干地");
@@ -492,6 +493,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.tab.farming",                 "种植");
         add("guzhenren.blissful_land.ui.tab.territory",               "疆域");
         add("guzhenren.blissful_land.ui.tab.storage",                 "库藏");
+        add("guzhenren.blissful_land.ui.tab.gu",                      "蛊虫");
         add("guzhenren.blissful_land.ui.acres",                       "亩数");
         add("guzhenren.blissful_land.ui.guts_stones",                 "胆石");
         add("guzhenren.blissful_land.ui.animals",                     "动物");
@@ -517,6 +519,11 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.pen",                         "栏内 %s · 栏外 %s");
         add("guzhenren.blissful_land.ui.enclose",                     "圈地");
         add("guzhenren.blissful_land.ui.gather",                      "收拢");
+        add("guzhenren.blissful_land.ui.gu",                          "蛊虫");
+        add("guzhenren.blissful_land.ui.gu_note",                     "托管：多出保持数的捕获入库");
+        add("guzhenren.blissful_land.ui.gu_status",                   "托管 · 下轮 %s 秒 · 上轮捕获 %s");
+        add("guzhenren.blissful_land.ui.gu_empty",                    "福地里眼下没有野生蛊");
+        add("guzhenren.blissful_land.ui.capture",                     "捕获入库");
         add("guzhenren.blissful_land.ui.herd_status",                 "托管 · 下轮 %s 秒 · 上轮宰 %s 喂养 %s");
         add("guzhenren.blissful_land.ui.breed",                       "喂养繁殖");
         add("guzhenren.blissful_land.ui.slaughter",                   "宰杀收取");
@@ -567,6 +574,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.enclose",                    "沿牧场边界放一圈橡木栅栏，北边正中一扇门；已有的不动，再按只补缺的");
         add("guzhenren.blissful_land.tip.gather",                     "把福地里栏外的动物传进牧场，一次至多 %s 头，冷却 %s 秒");
         add("guzhenren.blissful_land.tip.gather_wait",                "还要等 %s 秒");
+        add("guzhenren.blissful_land.tip.capture",                    "每种捕到只剩保持数，保持数为 0 的不捕；捕到的未炼化蛊进库藏。现在会捕 %s 只蛊");
+        add("guzhenren.blissful_land.tip.gu_switch",                  "托管这种蛊：多出保持数的捕获入库");
+        add("guzhenren.blissful_land.tip.gu_hosting",                 "托管每 %s 秒一轮，至多捕获 %s 只蛊");
         add("guzhenren.blissful_land.tip.feed",                       "库藏里的饲料：%s 份");
         add("guzhenren.blissful_land.tip.feed_unknown",               "眼下一只都没有，不知道吃什么");
         add("guzhenren.blissful_land.tip.crop_pick",                  "开垦用的作物，点击切换；自动 = 库藏里第一种种子");

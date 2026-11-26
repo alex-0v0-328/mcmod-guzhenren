@@ -1,6 +1,7 @@
 package net.alex.guzhenren.entity.gu;
 
 import java.util.function.Supplier;
+import net.alex.guzhenren.core.Catchable;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -13,7 +14,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 野生蛊实体抽象基类：玩家右键交互即可将其捕获为未炼化的蛊虫物品。
+ * 野生蛊实体抽象基类：玩家右键交互即可将其捕获为未炼化的蛊虫物品（{@link #caughtStack}，福地「蛊虫」页捕获入库也用它）。
  * <ul>
  *   <li>⚠ 右键捕捉严禁设置开窍[Awakening]门槛：野生希望蛊[Hope Gu]本身就是玩家开窍的唯一钥匙，若限制开窍后才能捕捉会导
  *       致开窍流程死锁。</li>
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * </ul>
  */
 
-public abstract class WildGuEntity extends PathfinderMob {
+public abstract class WildGuEntity extends PathfinderMob implements Catchable {
 
     private final Supplier<Item> caughtGu;
 
@@ -30,14 +31,15 @@ public abstract class WildGuEntity extends PathfinderMob {
         this.caughtGu = caughtGu;
     }
 
-    private Item getCaughtGu() { return caughtGu.get(); }
+    @Override
+    public @NotNull ItemStack caughtStack() { return new ItemStack(caughtGu.get()); }
 
     //region catching [捕捉]
     @Override
     protected @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         if (!(player instanceof ServerPlayer server)) return InteractionResult.SUCCESS;
 
-        server.getInventory().placeItemBackInInventory(new ItemStack(getCaughtGu()));
+        server.getInventory().placeItemBackInInventory(caughtStack());
         discard();
         return InteractionResult.CONSUME;
     }
