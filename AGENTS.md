@@ -22,7 +22,7 @@
 | --- | --- | --- |
 | 开发范围 | 仅做凡人蛊师一至五转；宝黄天外观、四域地形原型、狐仙福地按 Wiki 范围处理 | 自行扩展升仙、仙蛊或六至九转 |
 | 双仓耦合 | GUWORLD 在 GUZHENREN 后加载，跨仓仅用 ID（`ModDimensions`/`GuzhenrenBlocks`）<br>共用 ID 改名同任务双仓齐改；GUWORLD 先构主模组再跑 `runData`（`-PguzhenrenDir` 可覆写） | 引入双仓相互编译依赖；在 GUWORLD 用 `net.alex.guzhenren` 命名空间 |
-| 文件与安全 | 写前重读，保留 Alex 与他会话 WIP；删前核查；无 Git 的 `.env.local` 与临时证据删入回收站<br>文件名与 public 类名大小写一致（仅改大小写用 `git mv`） | 全仓清理、批量格式化、全项目 IDEA 清理<br>改动存档、测试证据、`run/mods` 或只读资产源 |
+| 文件与安全 | 写前重读，保留 Alex 与他会话 WIP；删前核查；无 Git 的 `.env.local` 与临时证据删入回收站<br>改动致旧存档不可用（ID 改名、世界生成变更等）时，推送后直接把 `run/saves` 受影响存档删入回收站<br>文件名与 public 类名大小写一致（仅改大小写用 `git mv`） | 全仓清理、批量格式化、全项目 IDEA 清理<br>迁移或兼容旧存档；改动其余存档、测试证据、`run/mods` 或只读资产源 |
 | 数值与规模 | 蛊数值以 `ModItems` `GuProperties` 为准，角色数值以枚举与服务为准<br>克制方块/实体/粒子规模，报告具体数值（格、秒） | 凭印象编造数值；仅用模糊词描述规模 |
 | 排障与测试 | 先查源码、日志并复现再改；能写回归先写回归；无法复现时报告证据与不确定项 | 让 Alex 重复已报现象；为通过擅改红色快照断言（归 Alex 裁定） |
 | 规则与部署 | 规则只改本文件（`CLAUDE.md` 只放专属段）；改常驻技能或 `.claude/hooks/session_start.py` 后<br>跑 `python -B tools/deploy_harness.py` 并验 `tools/test_deploy_harness.py` | 提交本机文件（`.env.local`、`.mcp.json`、`.claude/settings.local.json`、<br>`CLAUDE.local.md`、`AGENTS.override.md`） |
