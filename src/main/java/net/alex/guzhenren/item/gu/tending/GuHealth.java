@@ -1,56 +1,128 @@
 package net.alex.guzhenren.item.gu.tending;
 
-import net.alex.guzhenren.item.gu.GuProperties;
-import net.alex.guzhenren.item.gu.stack.RefinedGuState;
-import net.alex.guzhenren.item.gu.stack.VitalGuState;
+import net.alex.guzhenren.item.gu.stack.GuCondition;
+import net.alex.guzhenren.item.gu.stack.GuCondition.Stage;
+import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * 持续照顾型蛊[Tended Gu]的生命值规格：{@link RefinedGuState} 中存储已受伤害而非当前生命，未动过的野生蛊默认视为满血。
+ * 持续照顾型蛊[Tended Gu]的伤势规则：正常、受伤、濒死三态存于 {@link GuCondition} 组件（缺省即正常），不设生命点数。
  * <ul>
- *   <li>最大生命值由 {@link GuProperties#buildHealth} 按 {@code 4 × 转数 + 4}（即 8 至 24）生成，不复用玩家的
- *       {@code Rank.getMaxHealth}；生命归零时触发损毁（{@code TendedGuItem.ruin}），但本命蛊[Vital Gu]例外，0 生命仍保
- *       留在本命槽中。</li>
- *   <li>食物按饱食[Hunger]点数等比折算修复伤势，固定 1 点生命等于 1 点饱食（{@code unitsPerHunger}）；{@link #mendFrom}
- *       仅消耗整件食物且不会超出当前伤势上限。</li>
- *   <li>⚠ 除 {@code RecoverBar.settleHealth} 直接缩减已钳制的伤势外，所有生命写入均须经过宿主 {@code store} 对
- *       {@code damageTaken} 做范围钳制；饱食条则由 {@code GuHunger.storeBar} 自行钳制。</li>
+ *   <li>受伤 9 次、濒死 3 次，无时间期限；{@link #wearUse} 每次催动扣 1，受伤用尽转濒死，濒死用尽伤重而亡（创造模式不
+ *       死）；无饱食条的蛊不计（{@code TendedGuItem.wearUse} 把守）。</li>
+ *   <li>来源只有炼蛊失败（{@link #rollRefineFailure}）与指令（{@link #set}）；进新档次数取满，炼化保留伤势。</li>
+ *   <li>恢复接口 {@link #recover} 升一档；目前只有本命蛊[Vital Gu]借玩家回血（{@link #mend}）调用。</li>
  * </ul>
  */
 
-public record GuHealth(int max, int unitsPerHunger) {
+public final class GuHealth {
 
-    public int get(ItemStack stack) { return max - TendedGuItem.getState(stack).damageTaken(); }
+    public static final float REFINE_INJURE_CHANCE = 0.2F;
+    public static final float REFINE_WORSEN_CHANCE = 0.5F;
+    public static final float REFINE_KILL_CHANCE = 0.8F;
+    private static final String MSG_INJURED = "guzhenren.item.gu.injured";
+    private static final String MSG_DYING = "guzhenren.item.gu.dying";
+    private static final String MSG_MENDED = "guzhenren.item.gu.mended";
 
-    void set(TendedGuItem gu, ItemStack stack, int value) {
-        gu.store(stack, TendedGuItem.getState(stack).withDamageTaken(max - value));
+    private GuHealth() {}
+
+    //region reading [读取]
+    public static @Nullable GuCondition get(ItemStack stack) { return stack.get(ModDataComponents.GU_CONDITION); }
+
+    public static Stage getStage(ItemStack stack) {
+        GuCondition condition = get(stack);
+        return condition == null ? Stage.NORMAL : condition.stage();
+    }
+    //endregion
+
+    //region writing [写入]
+    /** 设为 {@code stage} 并取满次数，保留回血进度；正常即移除组件。 */
+    public static void set(ItemStack stack, Stage stage) {
+        GuCondition condition = get(stack);
+        setFresh(stack, stage, condition == null ? 0.0F : condition.mended());
     }
 
-    boolean takeDamage(TendedGuItem gu, ServerPlayer holder, ItemStack stack, int amount) {
-        if (amount <= 0) return false;
+    /** 升一档（濒死→受伤取满次数，受伤→正常）；本已正常为 false。 */
+    public static boolean recover(ItemStack stack) {
+        GuCondition condition = get(stack);
+        if (condition == null) return false;
 
-        RefinedGuState s = TendedGuItem.getState(stack);
-        int taken = Math.min(max, s.damageTaken() + amount);
-        gu.store(stack, s.withDamageTaken(taken));
-        if (taken < max || VitalGuState.isVital(stack)) return false;
+        setFresh(stack, condition.stage().better(), condition.mended());
+        return true;
+    }
 
+    private static void setFresh(ItemStack stack, Stage stage, float mended) {
+        if (stage == Stage.NORMAL) {
+            stack.remove(ModDataComponents.GU_CONDITION);
+            return;
+        }
+        stack.set(ModDataComponents.GU_CONDITION, GuCondition.fresh(stage, mended));
+    }
+
+    private static void worsen(ServerPlayer holder, ItemStack stack) {
+        Stage next = getStage(stack).worse();
+        set(stack, next);
+        TendedGuItem.announce(holder, stack, next == Stage.DYING ? MSG_DYING : MSG_INJURED);
+    }
+    //endregion
+
+    //region uses, failures and mending [计次、炼败与回血]
+    /** 一次催动后扣 1 次；伤重而亡时为 true（已公告，调用方移除物品栈）。 */
+    static boolean wearUse(ServerPlayer holder, ItemStack stack) {
+        GuCondition condition = get(stack);
+        if (condition == null) return false;
+
+        if (condition.usesLeft() > 1) {
+            stack.set(ModDataComponents.GU_CONDITION, condition.withUsesLeft(condition.usesLeft() - 1));
+            return false;
+        }
+        if (condition.stage() != Stage.DYING) {
+            worsen(holder, stack);
+            return false;
+        }
+        if (holder.getAbilities().instabuild) {
+            stack.set(ModDataComponents.GU_CONDITION, condition.withUsesLeft(0));
+            return false;
+        }
+        TendedGuItem.dieOfWounds(holder, stack);
+        return true;
+    }
+
+    /** 炼蛊失败按当前档掷一次：正常 20% 受伤、受伤 50% 濒死、濒死 80% 炼废；炼废时为 true（调用方清格）。 */
+    public static boolean rollRefineFailure(ServerPlayer holder, ItemStack stack, RandomSource random) {
+        Stage stage = getStage(stack);
+        float chance = switch (stage) {
+            case NORMAL -> REFINE_INJURE_CHANCE;
+            case INJURED -> REFINE_WORSEN_CHANCE;
+            case DYING -> REFINE_KILL_CHANCE;
+        };
+        if (random.nextFloat() >= chance) return false;
+
+        if (stage != Stage.DYING) {
+            worsen(holder, stack);
+            return false;
+        }
         TendedGuItem.ruin(holder, stack);
         return true;
     }
 
-    void heal(TendedGuItem gu, ItemStack stack, int amount) {
-        RefinedGuState s = TendedGuItem.getState(stack);
-        if (amount <= 0 || !s.refined()) return;
+    /** 本命蛊借主人实际回上的 {@code healed} 点生命累计，满 {@code full} 点升一档并留下余数；升档时为 true。 */
+    public static boolean mend(ServerPlayer owner, ItemStack stack, float healed, float full) {
+        GuCondition condition = get(stack);
+        if (condition == null || healed <= 0.0F || full <= 0.0F) return false;
 
-        gu.store(stack, s.withDamageTaken(Math.max(0, s.damageTaken() - amount)));
+        float mended = condition.mended() + healed;
+        if (mended < full) {
+            stack.set(ModDataComponents.GU_CONDITION, condition.withMended(mended));
+            return false;
+        }
+        stack.set(ModDataComponents.GU_CONDITION, condition.withMended(mended - full));
+        recover(stack);
+        TendedGuItem.announce(owner, stack, MSG_MENDED);
+        return true;
     }
-
-    void mendFrom(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) {
-        int units = gu.feedUnits(food);
-        int hurt = TendedGuItem.getState(stack).damageTaken();
-        if (units <= 0 || hurt <= 0) return;
-
-        heal(gu, stack, GuMeal.eat(player, food, hurt, unitsPerHunger, units));
-    }
+    //endregion
 }

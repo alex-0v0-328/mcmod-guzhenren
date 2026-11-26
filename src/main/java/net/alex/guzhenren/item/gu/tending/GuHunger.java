@@ -19,9 +19,8 @@ import net.minecraft.world.item.ItemStack;
  *       复满条而不按日扣减；{@link NoClock} 表示永不饥饿（如元老蛊[Primeval Elder Gu]、
  *       天元宝莲[Heavenly Essence Treasure Lotus Gu]、九叶生机草[Nine Leaf Vitality Grass]、更蛊[Watch Gu]与
  *       石窍蛊[Stone Aperture Gu]）。</li>
- *   <li>⚠ {@link #feed} 是唯一的自动进食入口：扫描玩家背包全部槽位（含副手），每份食物先通过 {@link GuHealth} 修复伤势
- *       再补充饱食条，且仅在 {@code HungerBar} 存在空缺时触发；满条状态下不会为修伤而进食，伤势留待下次扣量后顺带修复，
- *       具体调用时机由 {@code TendedGuItem} 决定。</li>
+ *   <li>⚠ {@link #feed} 是唯一的自动进食入口：扫描玩家背包全部槽位（含副手）补充饱食条，仅在 {@code HungerBar} 存在空缺
+ *       时触发；食物只补饱食、不治伤势（伤势归 {@link GuHealth}），具体调用时机由 {@code TendedGuItem} 决定。</li>
  *   <li>蛊粮直供：背包吃完仍有空缺、且人在自己当主人的福地里时（{@code BlissfulLands#storageHere}；只在福地里、先背
  *       包，Alex 定），{@link HungerBar#feedFrom} 再从那块福地的库藏一次取一组，照背包规则吃，剩下的放回库藏；
  *       {@link #carriesFood} 在服务端同样算上库藏。</li>
@@ -30,8 +29,6 @@ import net.minecraft.world.item.ItemStack;
  *       （避免随身满条每秒反复写入），日时钟每次心跳也会同步结算随身回复条，最多滞后 1 秒。</li>
  *   <li>⚠ 满条状态下的时间戳按设计会逐渐过期：从满条状态扣减点数时必须立即调用 {@link RecoverBar#restart}（如
  *       {@code AsBeforeGuItem.performOwnUse}），否则下次结算会把旧时间差重新补回。</li>
- *   <li>{@link RecoverBar} 同时按世界时钟以每 {@code ticksPerPoint} 1 点的速率修复伤势，依赖 {@code HEALED_AT} 组件记录
- *       起点：受伤时才写入，伤愈即清除，无伤时不写组件。</li>
  *   <li>灌注[Channel]类蛊按轮内进度逐点扣减饱食而非直接消耗真元，每轮对应 {@code perRound} 点饱
  *       食；{@link #getEssenceAboveHungerFloor} 将 {@link #CHANNEL_HUNGER_FLOOR} 之上的饱食点数按轮折算回真元上限，作为
  *       单步灌注的封顶值。</li>
@@ -116,7 +113,6 @@ public sealed interface GuHunger {
                 ItemStack food = inventory.getItem(slot);
                 if (gu.feedUnits(food) <= 0) continue;
 
-                gu.health.mendFrom(gu, player, stack, food);
                 eat(gu, player, stack, food);
             }
             BlissfulStorage storage = BlissfulLands.storageHere(player);
@@ -130,7 +126,6 @@ public sealed interface GuHunger {
 
                 ItemStack food = storage.extract(index, Integer.MAX_VALUE);
                 int before = food.getCount();
-                gu.health.mendFrom(gu, player, stack, food);
                 eat(gu, player, stack, food);
                 boolean ate = food.getCount() < before;
                 if (!food.isEmpty()) storage.insert(food);
@@ -238,29 +233,6 @@ public sealed interface GuHunger {
             stack.set(ModDataComponents.RECOVERED_AT, now);
         }
 
-        public void settleHealth(ItemStack stack, long now) {
-            RefinedGuState s = TendedGuItem.getState(stack);
-            Long stamp = stack.get(ModDataComponents.HEALED_AT);
-            if (s.damageTaken() <= 0) {
-                if (stamp != null) stack.remove(ModDataComponents.HEALED_AT);
-                return;
-            }
-            if (stamp == null || now < stamp) {
-                stack.set(ModDataComponents.HEALED_AT, now);
-                return;
-            }
-            long grown = (now - stamp) / ticksPerPoint;
-            if (grown <= 0L) return;
-
-            int left = (int) Math.max(0L, s.damageTaken() - grown);
-            stack.set(ModDataComponents.REFINED_GU_STATE, s.withDamageTaken(left));
-            if (left == 0) {
-                stack.remove(ModDataComponents.HEALED_AT);
-            } else {
-                stack.set(ModDataComponents.HEALED_AT, stamp + grown * ticksPerPoint);
-            }
-        }
-
         @Override
         public void bind(ServerPlayer player, ItemStack stack) {
             setPoints(stack, max);
@@ -269,9 +241,7 @@ public sealed interface GuHunger {
 
         @Override
         public boolean tickStarvation(ServerPlayer player, ItemStack stack, long days) {
-            long now = player.level().getGameTime();
-            settle(stack, now);
-            settleHealth(stack, now);
+            settle(stack, player.level().getGameTime());
             return false;
         }
 

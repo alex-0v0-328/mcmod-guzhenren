@@ -13,7 +13,8 @@ import net.minecraft.world.item.ItemStack;
  * 持续照顾型蛊[Tended Gu]的灌注[Channel]定额计算器：负责计算单轮灌注或炼化野生蛊时每步允许注入的真元上限。
  * <ul>
  *   <li>宿主 {@link TendedGuItem} 负责交互钩子、进食与实际扣费，本类仅计算单步注入量并推进已投入计数，保证不超出单轮上
- *       限；灌注步会以饱食[Hunger]下限之上的可用点数作为封顶，因此宿主必须先执行进食再调用本类定量。</li>
+ *       限；灌注步会以饱食[Hunger]下限之上的可用点数作为封顶，因此宿主必须先执行进食再调用本类定量；满一轮后为伤势计
+ *       次，伤重而亡即停手扣栈，宿主 {@code pour} 后先判空。</li>
  *   <li>⚠ 炼化与灌注均每 {@link #STEP_TICKS}（2 tick）推进一次。当持有者转数高于蛊虫时按蛊虫节奏定速：灌注每步至多注入
  *       一轮的 1/{@link #STEPS_PER_ROUND}，每 {@link #ROUND_TICKS}（8 步，16 tick = 0.8 秒）完成一轮并经
  *       {@link TimeFlow} 缩放且不看饱食；炼化每步至多可注入整池真元。其余情况按真元池比例定速：8 步为一个周期，每步依次
@@ -112,6 +113,11 @@ final class GuChanneling {
         if (pouredAfter >= essencePerRound) {
             gu.applyEffectWithCooldown(player, stack);
             gu.store(stack, TendedGuItem.getState(stack).withInvested(0));
+            if (gu.wearUse(player, stack)) {
+                player.stopUsingItem();
+                stack.shrink(1);
+                return;
+            }
             if (gu.checkEffect(player, stack) != null) player.stopUsingItem();
         }
     }

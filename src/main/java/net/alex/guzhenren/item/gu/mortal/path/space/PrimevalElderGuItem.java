@@ -18,8 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 元老蛊[Primeval Elder Gu]物品：随身存储元石[Primeval Stone]的持续照顾型蛊[Tended Gu]，并直接从库存元石中扣除自身伤势
- * 养护消耗。
+ * 元老蛊[Primeval Elder Gu]物品：随身存储元石[Primeval Stone]的持续照顾型蛊[Tended Gu]。
  * <ul>
  *   <li>炼化后主手右键单击即免费将背包内全部元石存入蛊中（无蓄力条）；取出元石不走常规催动：客户端长按滑条
  *       （{@code PrimevalElderInput}）选定组数后，服务端 {@link #tryWithdraw} 免费取出至多 {@code stacks} 组（每组 64
@@ -30,8 +29,8 @@ import org.jetbrains.annotations.Nullable;
  *       间。</li>
  *   <li>元石存量记录在独立组件 {@link ModDataComponents#STORED_STONES} 中，不放入 {@code RefinedGuState}；无论放在背包
  *       何处，已炼化的元老蛊均作为 {@code PrimevalStoneSupply} 的第二顺位自动补给源（排在散装元石之后）。</li>
- *   <li>⚠ 元老蛊不声明饱食时钟、不进食，按设计绝不会饿死（仅炼化失败会毁掉它，切勿为其补加饱食条）；日常心跳仅在自身受
- *       损时从库存元石中扣除相应数量修复生命值（{@link #payOwnUpkeep}）。</li>
+ *   <li>⚠ 元老蛊不声明饱食时钟、不进食，按设计绝不会饿死（仅炼化失败会毁掉它，切勿为其补加饱食条）；伤势同普通蛊，无
+ *       恢复手段，库存元石不再用来修伤。</li>
  * </ul>
  */
 
@@ -177,12 +176,7 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
     //endregion
 
-    //region upkeep [养护]
-    @Override
-    protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {
-        if (isRefined(stack)) heal(stack, drawStones(stack, getState(stack).damageTaken()));
-    }
-
+    //region the stock [库存]
     public int drawStones(ItemStack stack, int wanted) {
         int taken = (int) Math.min(getStored(stack), Math.max(wanted, 0L));
         if (taken > 0) setStored(stack, getStored(stack) - taken);

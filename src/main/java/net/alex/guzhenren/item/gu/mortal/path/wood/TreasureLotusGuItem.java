@@ -8,7 +8,6 @@ import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -23,10 +22,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>无饱食时钟：无需喂食、也不会饿死；野生状态下仍可长按炼化，炼化后右键催动固定返回
  *       {@code FAIL}（{@link #keepsRefusedClick} 为 {@code false}，不挥手且放行副手）。</li>
  *   <li>在每秒一次的 {@link #payOwnUpkeep} 被动心跳中，为持有者回复 5% 最大真元并产出 {@code stonesPerSecond} 块元石：
- *       若宝莲自身受损则先将产出的元石存入修复储备，每满 {@code stonesPerHealth} 块修复 1 点生命值；未受损时依次尝试存
- *       入随身及空窍存储中的元老蛊[Primeval Elder Gu]、主背包、快捷栏与副手，仍放不下时向地面掉落。</li>
- *   <li>⚠ 修复储备独立存于 {@link ModDataComponents#HEAL_BANK} 组件而非通用的 {@code RefinedGuState}，一旦伤势痊愈即刻
- *       移除该组件。</li>
+ *       依次尝试存入随身及空窍存储中的元老蛊[Primeval Elder Gu]、主背包、快捷栏与副手，仍放不下时向地面掉落；受伤照常产
+ *       出，不修伤。</li>
  * </ul>
  */
 
@@ -34,12 +31,10 @@ public class TreasureLotusGuItem extends TendedGuItem {
 
     private static final int ESSENCE_REGEN_PERCENT = 5;
     private final int stonesPerSecond;
-    private final int stonesPerHealth;
 
-    public TreasureLotusGuItem(int stonesPerSecond, int stonesPerHealth, GuProperties guProperties) {
+    public TreasureLotusGuItem(int stonesPerSecond, GuProperties guProperties) {
         super(guProperties);
         this.stonesPerSecond = stonesPerSecond;
-        this.stonesPerHealth = stonesPerHealth;
     }
 
     @Override
@@ -57,39 +52,7 @@ public class TreasureLotusGuItem extends TendedGuItem {
     @Override
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {
         ApertureEssenceService.add(player, ApertureEssenceService.getMaxEssence(player) * ESSENCE_REGEN_PERCENT / 100);
-        mintStones(player, stack);
-    }
-
-    private void mintStones(ServerPlayer player, ItemStack stack) {
-        int hurt = getState(stack).damageTaken();
-        if (hurt > 0) {
-            repairFromBank(stack, hurt);
-            return;
-        }
-        clearHealBank(stack);
         giveStones(player, stonesPerSecond);
-    }
-
-    private void repairFromBank(ItemStack stack, int hurt) {
-        int bank = getBank(stack) + stonesPerSecond;
-        int healed = Math.min(hurt, bank / stonesPerHealth);
-        if (healed > 0) {
-            heal(stack, healed);
-            bank %= stonesPerHealth;
-        }
-        if (getState(stack).damageTaken() > 0) {
-            stack.set(ModDataComponents.HEAL_BANK, bank);
-        } else {
-            clearHealBank(stack);
-        }
-    }
-
-    private int getBank(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.HEAL_BANK, 0);
-    }
-
-    private void clearHealBank(ItemStack stack) {
-        stack.remove(ModDataComponents.HEAL_BANK);
     }
 
     private void giveStones(ServerPlayer player, int amount) {

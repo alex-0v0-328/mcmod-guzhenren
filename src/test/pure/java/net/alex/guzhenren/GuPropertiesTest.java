@@ -101,18 +101,12 @@ class GuPropertiesTest {
     }
 
     @Test
-    @DisplayName("a food worth more than one point must divide the bar, a use, a day and the health")
+    @DisplayName("a food worth more than one point must divide the bar, a use and a day")
     void aBigFoodMustDivideTheBar() {
         assertThrows(IllegalStateException.class, () -> allOutShape(5).validate("all_out_effort_gu_3"));
         assertDoesNotThrow(() -> allOutShape(4).validate("all_out_effort_gu_3"));
         assertThrows(IllegalStateException.class,
                 () -> allOutShape(4).hungerPerUse(18).validate("uneven_use"));
-        assertThrows(IllegalStateException.class,
-                () -> GuProperties.of(Rank.TWO, GuPath.STRENGTH).refine(8_000).costPerUse(160)
-                        .hungerBar(48, 1).hungerPerUse(16).hungerPerDay(8)
-                        .feed(TagKey.create(Registries.ITEM,
-                                ResourceLocation.fromNamespaceAndPath("guzhenren", "test_feed")), 8)
-                        .validate("uneven_health"));
     }
 
     @Test

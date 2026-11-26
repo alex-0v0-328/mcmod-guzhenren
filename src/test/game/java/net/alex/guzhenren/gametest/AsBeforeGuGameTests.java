@@ -124,29 +124,6 @@ public final class AsBeforeGuGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void healthMendsOnePointPerThirdOfADay(GameTestHelper helper) {
-        ServerPlayer player = holder(helper);
-        ItemStack gu = refined(player, ModItems.MOUNTAIN_AS_BEFORE_GU_5);
-        long now = helper.getLevel().getGameTime();
-        GuHunger.RecoverBar bar = bar(gu);
-        TendedGuItem item = (TendedGuItem) gu.getItem();
-        assertEquals(24, item.getMaxHealth(), "as before health");
-        gu.set(ModDataComponents.REFINED_GU_STATE,
-                TendedGuItem.getState(gu).withDamageTaken(item.getMaxHealth()));
-
-        bar.settleHealth(gu, now);
-        assertEquals(0, item.getHealth(gu), "the first hurt settle only starts the clock");
-        bar.settleHealth(gu, now + PACE - 1L);
-        assertEquals(0, item.getHealth(gu), "no point before a third of a day");
-        bar.settleHealth(gu, now + PACE + 5L);
-        assertEquals(1, item.getHealth(gu), "a third of a day mends one point");
-        bar.settleHealth(gu, now + 72L * PACE);
-        assertEquals(24, item.getHealth(gu), "eight days mend it whole");
-        assertEquals(null, gu.get(ModDataComponents.HEALED_AT), "a whole Gu keeps no stamp");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty9x9x9")
     public static void riverGuRefusesOnLand(GameTestHelper helper) {
         ServerPlayer player = holder(helper);
         ItemStack gu = refined(player, ModItems.RIVER_AS_BEFORE_GU_5);
@@ -204,7 +181,7 @@ public final class AsBeforeGuGameTests {
         ItemStack stack = new ItemStack(item.get());
         AsBeforeGuItem gu = (AsBeforeGuItem) stack.getItem();
         stack.set(ModDataComponents.REFINED_GU_STATE,
-                new RefinedGuState(true, gu.getRefineCost(), 0, bar(stack).max(), 0));
+                new RefinedGuState(true, gu.getRefineCost(), 0, bar(stack).max()));
         stack.set(ModDataComponents.RECOVERED_AT, player.level().getGameTime());
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         return stack;

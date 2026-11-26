@@ -37,7 +37,7 @@ final class GameTestGu {
         assertTrue(item instanceof TendedGuItem, item + " is no tended Gu");
         ItemStack stack = new ItemStack(item);
         stack.set(ModDataComponents.REFINED_GU_STATE,
-                new RefinedGuState(true, ((TendedGuItem) item).getRefineCost(), 0, hunger, 0));
+                new RefinedGuState(true, ((TendedGuItem) item).getRefineCost(), 0, hunger));
         return stack;
     }
 

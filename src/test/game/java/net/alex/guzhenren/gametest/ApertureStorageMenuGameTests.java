@@ -36,6 +36,7 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.serverTicks;
 public final class ApertureStorageMenuGameTests {
     private static final int WORM_FULL = 8;
     private static final int FIFTH_RANK_FULL = 8;
+    private static final long ELDER_STONES = 10L;
 
     private ApertureStorageMenuGameTests() {}
 
@@ -166,28 +167,28 @@ public final class ApertureStorageMenuGameTests {
 
     @GameTest(template = "empty9x9x9")
     public static void storageCloseKeepsHeartbeatUpkeep(GameTestHelper helper) {
-        ServerPlayer player = hurtElderPlayer(helper);
+        ServerPlayer player = mintingLotusPlayer(helper);
         ApertureStorageMenu menu = openStorage(player);
 
         serverTicks(player, Ticks.SECOND);
-        helper.assertValueEqual(storedElderDamage(player), 0, "heartbeat did not mend the stored elder");
+        helper.assertTrue(storedElderStones(player) > ELDER_STONES, "heartbeat did not mint into the stored elder");
         menu.removed(player);
 
-        helper.assertValueEqual(storedElderDamage(player), 0, "closing the menu undid the heartbeat upkeep");
+        helper.assertTrue(storedElderStones(player) > ELDER_STONES, "closing the menu undid the heartbeat upkeep");
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
     public static void storageClickKeepsHeartbeatUpkeep(GameTestHelper helper) {
-        ServerPlayer player = hurtElderPlayer(helper);
+        ServerPlayer player = mintingLotusPlayer(helper);
         ApertureStorageMenu menu = openStorage(player);
 
         serverTicks(player, Ticks.SECOND);
         menu.setCarried(new ItemStack(ModItems.SECOND_APERTURE_GU_1.get()));
-        menu.clicked(1, 0, ClickType.PICKUP, player);
+        menu.clicked(2, 0, ClickType.PICKUP, player);
 
-        helper.assertValueEqual(storedElderDamage(player), 0, "a slot click undid the heartbeat upkeep");
-        helper.assertTrue(ApertureStorageService.getItems(player, ApertureData.PRIMARY).get(1)
+        helper.assertTrue(storedElderStones(player) > ELDER_STONES, "a slot click undid the heartbeat upkeep");
+        helper.assertTrue(ApertureStorageService.getItems(player, ApertureData.PRIMARY).get(2)
                 .is(ModItems.SECOND_APERTURE_GU_1.get()), "the click after the heartbeat was not stored");
         helper.succeed();
     }
@@ -206,26 +207,6 @@ public final class ApertureStorageMenuGameTests {
         helper.assertValueEqual(TendedGuItem.getState(after.get(0)).hunger(), WORM_FULL, "the worm's feeding was lost");
         helper.assertTrue(PrimevalElderGuItem.getStored(after.get(2)) > 0L,
                 "stones the lotus minted into the stored elder were written over");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void storedLotusStonesSurviveAnElderThatHealedFirst(GameTestHelper helper) {
-        ServerPlayer player = wormPlayer(helper);
-        ItemStack elder = new ItemStack(ModItems.PRIMEVAL_ELDER_GU_1.get());
-        elder.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3, 2));
-        ((PrimevalElderGuItem) elder.getItem()).storeStones(elder, 10);
-        List<ItemStack> stored = new ArrayList<>(ApertureStorageService.getItems(player, ApertureData.PRIMARY));
-        stored.add(elder);
-        stored.add(GameTestGu.refined(ModItems.HEAVENLY_ESSENCE_TREASURE_LOTUS_GU_3.get(), 3));
-        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY, stored));
-
-        ApertureStorageTick.tickStored(player, 0L);
-
-        ItemStack after = ApertureStorageService.getItems(player, ApertureData.PRIMARY).get(1);
-        helper.assertTrue(TendedGuItem.getState(after).damageTaken() == 0, "the elder's own upkeep did not heal it");
-        helper.assertTrue(PrimevalElderGuItem.getStored(after) > 8L,
-                "stones the lotus minted after the elder's own write were written over");
         helper.succeed();
     }
 
@@ -262,25 +243,25 @@ public final class ApertureStorageMenuGameTests {
     private static ServerPlayer wormPlayer(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
         ItemStack worm = new ItemStack(ModItems.LIQUOR_WORM_1.get());
-        worm.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 4, 0));
+        worm.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 4));
         PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY, List.of(worm)));
         player.getInventory().setItem(9, new ItemStack(ModItems.LIQUOR.get(), 16));
         return player;
     }
 
-    // A stored Elder Gu mends from its own stones on every heartbeat, day rollover or not: a write the menu must keep.
-    private static ServerPlayer hurtElderPlayer(GameTestHelper helper) {
+    // A stored lotus mints into the stored Elder Gu every heartbeat, day rollover or not: a write the menu must keep.
+    private static ServerPlayer mintingLotusPlayer(GameTestHelper helper) {
         ServerPlayer player = awakenedMortal(helper);
-        ItemStack elder = new ItemStack(ModItems.PRIMEVAL_ELDER_GU_1.get());
-        elder.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3, 2));
-        ((PrimevalElderGuItem) elder.getItem()).storeStones(elder, 10);
-        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY, List.of(elder)));
+        ItemStack elder = GameTestGu.refined(ModItems.PRIMEVAL_ELDER_GU_1.get(), 3);
+        ((PrimevalElderGuItem) elder.getItem()).storeStones(elder, (int) ELDER_STONES);
+        ItemStack lotus = GameTestGu.refined(ModItems.HEAVENLY_ESSENCE_TREASURE_LOTUS_GU_3.get(), 3);
+        PlayerData.get(player).setApertureStorage(ApertureStorage.DEFAULT.with(ApertureData.PRIMARY,
+                List.of(elder, lotus)));
         return player;
     }
 
-    private static int storedElderDamage(ServerPlayer player) {
-        return TendedGuItem.getState(ApertureStorageService.getItems(player, ApertureData.PRIMARY).getFirst())
-                .damageTaken();
+    private static long storedElderStones(ServerPlayer player) {
+        return PrimevalElderGuItem.getStored(ApertureStorageService.getItems(player, ApertureData.PRIMARY).getFirst());
     }
 
     private static List<ItemStack> fifthRank(int count) {

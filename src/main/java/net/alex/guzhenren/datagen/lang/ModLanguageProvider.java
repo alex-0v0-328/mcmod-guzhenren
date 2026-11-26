@@ -252,6 +252,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.command.failed.mark_interference",         "%s：力道道痕互斥");
         add("guzhenren.command.failed.aperture_index",            "%s 无此空窍");
         add("guzhenren.command.failed.base_extreme",              "%s 未开窍或为十绝体");
+        add("guzhenren.command.failed.no_tended_gu",              "%s 主手不是需照顾蛊");
 
         add("guzhenren.command.travel.entered",                   "已将 %s 送入%s");
         add("guzhenren.command.travel.exited",                    "已将 %s 送出锚定维度");
@@ -448,6 +449,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.starved",                             "%s饿死");
         add("guzhenren.item.gu.forced_dead",                         "%s强行催动而亡");
         add("guzhenren.item.gu.refine_dead",                         "%s炼制中死亡");
+        add("guzhenren.item.gu.wound_dead",                          "%s伤重而亡");
+        add("guzhenren.item.gu.injured",                             "%s受伤了");
+        add("guzhenren.item.gu.dying",                               "%s伤势恶化，濒死");
+        add("guzhenren.item.gu.mended",                              "%s借你的气血，伤势好转");
         add("guzhenren.item.gu.dissolved_outside_soulsunder",         "胆识蛊离开荡魂山，消散了");
         add("guzhenren.place.kind.secret_realm",                      "天地秘境");
         add("guzhenren.place.soulsunder_mountain",                    "荡魂山");
@@ -662,7 +667,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.map_tool_pasture",           "点地图圈一个 2×2 区块的牧场；右键或 Esc 退出");
         add("guzhenren.blissful_land.tip.map_tool_remove",            "点田、规划田或牧场即拆除");
         add("guzhenren.blissful_land.tip.map_tool_move",              "先点要迁移的牧场，再点新的位置");
-        add("guzhenren.item.gu.health",                              "生命 %s / %s");
+        add("guzhenren.item.gu.condition.injured",                   "受伤：剩 %s 次");
+        add("guzhenren.item.gu.condition.dying",                     "濒死：剩 %s 次");
         add("guzhenren.item.gu.vital_lost",                          "本命蛊%s死亡");
     }
     //endregion

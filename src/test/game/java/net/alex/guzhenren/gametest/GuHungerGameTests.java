@@ -25,7 +25,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.GameTestPlayers.messages;
 
 /**
- * 持续照顾型蛊[Tended Gu]的饱食[Hunger]日钟，及各饱食条与生命池背后的转数公式。
+ * 持续照顾型蛊[Tended Gu]的饱食[Hunger]日钟，及各饱食条背后的转数公式。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -42,7 +42,7 @@ public final class GuHungerGameTests {
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-gametest-mock").inbox(inbox).unconnected()
                 .build();
         ItemStack gu = new ItemStack(ModItems.WHITE_BOAR_GU_1.get());
-        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3, 0));
+        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3));
         player.getInventory().setItem(0, gu);
 
         GuUpkeep.tickCarried(player, 0L);
@@ -72,7 +72,7 @@ public final class GuHungerGameTests {
     public static void hungryGuEatFromTheLandStorageAfterTheBag(GameTestHelper helper) {
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-gametest-larder-mock").unconnected().build();
         ItemStack gu = new ItemStack(ModItems.WHITE_BOAR_GU_1.get());
-        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3, 0));
+        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3));
         player.getInventory().setItem(0, gu);
         TendedGuItem item = (TendedGuItem) gu.getItem();
         GuHunger.HungerBar bar = (GuHunger.HungerBar) item.getGuProperties().buildHunger();
@@ -92,7 +92,7 @@ public final class GuHungerGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void rankedGuFollowTheHungerAndHealthFormula(GameTestHelper helper) {
+    public static void rankedGuFollowTheHungerFormula(GameTestHelper helper) {
         List<Supplier<Item>> ranked = List.of(ModItems.FLOWER_BOAR_GU_1, ModItems.BRUTE_FORCE_LONGHORN_BEETLE_GU_1,
                 ModItems.HORIZONTAL_CRASH_GU_3, ModItems.VERTICAL_CRASH_GU_3, ModItems.CHARGING_CRASH_GU_4,
                 ModItems.CHARGING_CRASH_GU_5, ModItems.SELF_RELIANCE_GU_2, ModItems.SELF_RELIANCE_GU_3,
@@ -102,7 +102,6 @@ public final class GuHungerGameTests {
                 ModItems.AMPLIFY_EFFECT_GU_3, ModItems.AMPLIFY_EFFECT_GU_4, ModItems.AMPLIFY_EFFECT_GU_5,
                 ModItems.MOONLIGHT_GU_1, ModItems.MOONGLOW_GU_2, ModItems.BLOOD_MOON_GU_3, ModItems.LITTLE_LIGHT_GU_1);
         int[] bars = {0, 14, 26, 50, 98, 194};
-        int[] healths = {0, 8, 12, 16, 20, 24};
         for (Supplier<Item> entry : ranked) {
             TendedGuItem gu = (TendedGuItem) entry.get();
             int rank = gu.getGuProperties().getRank().ordinal();
@@ -112,7 +111,6 @@ public final class GuHungerGameTests {
             helper.assertValueEqual(bar.perDay(), 1, gu + " day");
             helper.assertValueEqual(bar.unitsPerHunger(), 1, gu + " food rate");
             helper.assertValueEqual(gu.getGuProperties().getFeedUnits(), 1, gu + " food");
-            helper.assertValueEqual(gu.getMaxHealth(), healths[rank], gu + " health");
         }
         helper.succeed();
     }
@@ -123,11 +121,9 @@ public final class GuHungerGameTests {
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-gametest-mock").inbox(inbox).unconnected()
                 .build();
         ItemStack gu = new ItemStack(ModItems.SELF_RELIANCE_GU_4.get());
-        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3, 0));
+        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3));
         player.getInventory().setItem(0, gu);
 
-        helper.assertValueEqual(((TendedGuItem) gu.getItem()).getMaxHealth(), 20,
-                "scaled Gu health");
         GuUpkeep.tickCarried(player, 1L);
         helper.assertValueEqual(TendedGuItem.getState(gu).hunger(), 2, "hunger after one day");
         helper.assertTrue(messages(inbox, HUNGRY_KEY).isEmpty(), "hungry broadcast above one day's share");

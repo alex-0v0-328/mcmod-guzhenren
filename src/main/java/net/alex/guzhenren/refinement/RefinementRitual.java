@@ -13,6 +13,7 @@ import net.alex.guzhenren.gameplay.soul.SoulService;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.stack.VitalGuState;
+import net.alex.guzhenren.item.gu.tending.GuHealth;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
@@ -31,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>补给槽在投石窗口内优先供应当前窗口所需元石，余量及窗口外阶段则用于为真元池补能；若燃料
  *       为元老蛊[Primeval Elder Gu]且中途耗尽，立即将其退回玩家背包或原地掉落。</li>
  *   <li>魂魄消耗优先扣除当前魂魄，不足部分按 10:1 折算扣除魂魄上限（魂魄归零即触发致死）；正式结算前不消耗网格内材料，
- *       成功时扣清已认领输入并交付产物，失败则令每格材料损失一半（向上取整）、每只持续照顾型蛊受损四分之一最大生命
- *       值。</li>
+ *       成功时扣清已认领输入并交付产物，失败则令每格材料损失一半（向上取整）、每只持续照顾型蛊按当前伤势掷骰恶化一档
+ *       （{@link GuHealth#rollRefineFailure}）。</li>
  *   <li>唯一凡蛊产物支持本命蛊继承：若配方仅产出一只凡蛊且消耗了己方本命蛊，通过 {@link ApertureService#inheritVital}
  *       按被吃本命蛊所绑空窍种类择一继承（同时吃两只时槽位靠前且空窍仍存在者胜出，另一空窍清空主修流派），并在产物放入
  *       输出格时即完成令牌绑定与存储登记。</li>
@@ -41,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
 
 final class RefinementRitual {
 
-    private static final int FAILURE_HEALTH_DIVISOR = 4;
     private static final int FULL_SUCCESS = 100;
     private static final int CURRENT_PER_MAX_SOUL = 10;
     private static final String LOST_STONES = "guzhenren.menu.refinement.lost_stones";
@@ -226,10 +226,8 @@ final class RefinementRitual {
         ItemStack stack = input.getItem(slot);
         if (stack.isEmpty()) return;
 
-        if (stack.getItem() instanceof TendedGuItem gu) {
-            if (gu.takeDamage(server, stack, gu.getMaxHealth() / FAILURE_HEALTH_DIVISOR)) {
-                input.setItem(slot, ItemStack.EMPTY);
-            }
+        if (stack.getItem() instanceof TendedGuItem) {
+            if (GuHealth.rollRefineFailure(server, stack, server.getRandom())) input.setItem(slot, ItemStack.EMPTY);
             return;
         }
         if (stack.getItem() instanceof MortalGuItem) return;

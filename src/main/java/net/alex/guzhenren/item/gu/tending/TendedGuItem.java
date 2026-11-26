@@ -11,6 +11,7 @@ import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
+import net.alex.guzhenren.item.gu.stack.GuCondition;
 import net.alex.guzhenren.item.gu.stack.GuCooldowns;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.item.gu.stack.VitalGuState;
@@ -35,9 +36,9 @@ import org.jetbrains.annotations.Nullable;
  *       一设定，不交由注册处决定）。</li>
  *   <li>行为模块 {@link GuBehavior} 响应 {@code checkEffect}、{@code applyEffect} 与各类放宽限制，具备独立生命周期的特
  *       殊蛊通过子类覆写扩展。</li>
- *   <li>本类负责蓄力阶梯、灌注[Channel]与催动扣费；饱食[Hunger]与进食归 {@link GuHunger}，生命归 {@link GuHealth}，长
- *       冷却时间戳归 {@link GuCooldowns}，跨日维持归 {@link GuUpkeep}，灌注定额归 {@link GuChanneling}，长冷却门控归
- *       {@link GuRefineCooldown}。</li>
+ *   <li>本类负责蓄力阶梯、灌注[Channel]与催动扣费；饱食[Hunger]与进食归 {@link GuHunger}，伤势归 {@link GuHealth}（计
+ *       次经 {@link #wearUse}，挂在催动、后援、灌注满一轮与小光蛊灯灭），长冷却时间戳归 {@link GuCooldowns}，跨日维持归
+ *       {@link GuUpkeep}，灌注定额归 {@link GuChanneling}，长冷却门控归 {@link GuRefineCooldown}。</li>
  *   <li>⚠ 已炼化的蛊仅通过 {@link #feed} 自动取食（规则见 {@link GuHunger}）：仅在催动前与每次扣减饱食后触发；扣减来
  *       源包括主动催动（{@link #drive}）、后援搭档扣费（{@link #billAsPartner}）、灌注每步、跨日心跳（
  *       {@link GuUpkeep}，涵盖随身与空窍内蛊虫且扣前也会进食）以及小光蛊[Little Light Gu]开启，其余场景均不进食。</li>
@@ -60,8 +61,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #isRefining} 与 {@link #isChanneling} 读取实体正在使用的物品栈，使服务端与可见范围内的客户端都能判断玩家
  *       是否正在按住炼化或灌注，供 Epic Fight 桥接切换对应动作姿态。</li>
  *   <li>⚠ {@link #canBeVital} 负责拦截催动即消失的一次性蛊成为本命蛊，防止玩家首次点击即失去本命蛊并受反噬。</li>
- *   <li>{@code announceDeath} 是全部死因（{@link #starve}、{@link #exhaust}、{@link #ruin}）的唯一汇流点，也是
- *       {@link VitalGuLostEvent} 的唯一发布方；新增死因必须经由此处统一收口。</li>
+ *   <li>{@code announceDeath} 是全部死因（{@link #starve}、{@link #exhaust}、{@link #ruin}、{@link #dieOfWounds}）的唯
+ *       一汇流点，也是 {@link VitalGuLostEvent} 的唯一发布方；新增死因必须经由此处统一收口。</li>
  *   <li>本文件有意超过 300 行：除上述规则外余下为原版 {@code Item} 覆写与行为钩子；灌注本身即本类的 {@code onUseTick}，
  *       直接驱动进食、付费与效果，而 {@code GuChanneling} 仅做纯数值定量且不持有物品逻辑。</li>
  * </ul>
@@ -72,7 +73,8 @@ public class TendedGuItem extends MortalGuItem {
     private static final String TOOLTIP_REFINE = "guzhenren.item.gu.refine_progress";
     private static final String TOOLTIP_INVESTED = "guzhenren.item.gu.invested";
     private static final String TOOLTIP_HUNGER = "guzhenren.item.gu.hunger_progress";
-    private static final String TOOLTIP_HEALTH = "guzhenren.item.gu.health";
+    private static final String TOOLTIP_INJURED = "guzhenren.item.gu.condition.injured";
+    private static final String TOOLTIP_DYING = "guzhenren.item.gu.condition.dying";
     private static final String CAPTION_CHANNELING = "guzhenren.hud.using";
     private static final String FAILED_FORCED_USE_WARNING = "guzhenren.item.failed.forced_use_warning";
     private static final String FAILED_VITAL_NO_FORCED_USE = "guzhenren.item.failed.vital_no_forced_use";
@@ -80,16 +82,15 @@ public class TendedGuItem extends MortalGuItem {
     private static final String MSG_STARVED = "guzhenren.item.gu.starved";
     private static final String MSG_FORCED_DEAD = "guzhenren.item.gu.forced_dead";
     private static final String MSG_REFINE_DEAD = "guzhenren.item.gu.refine_dead";
+    private static final String MSG_WOUND_DEAD = "guzhenren.item.gu.wound_dead";
     protected static final int WARNED = -1;
     protected final GuHunger hunger;
-    protected final GuHealth health;
     private final GuChanneling channeling;
     private final GuRefineCooldown refineCooldown;
 
     public TendedGuItem(GuProperties guProperties, GuBehavior... behaviors) {
         super(new Properties(), guProperties, behaviors);
         this.hunger = guProperties.buildHunger();
-        this.health = guProperties.buildHealth();
         this.channeling = new GuChanneling(guProperties, hunger);
         this.refineCooldown = new GuRefineCooldown(guProperties);
     }
@@ -113,8 +114,7 @@ public class TendedGuItem extends MortalGuItem {
         stack.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(state.refined(),
                 Math.min(state.refineProgress(), getRefineCost()),
                 Math.min(state.investedEssence(), guProperties.getEssencePerRound()),
-                state.hunger(),
-                Mth.clamp(state.damageTaken(), 0, getMaxHealth())));
+                state.hunger()));
     }
 
     public boolean isRefined(ItemStack stack) { return getState(stack).refined(); }
@@ -124,18 +124,11 @@ public class TendedGuItem extends MortalGuItem {
     }
     //endregion
 
-    //region Gu health [蛊虫生命值]
-    public int getMaxHealth() { return health.max(); }
-
-    public int getHealth(ItemStack stack) { return health.get(stack); }
-
-    public void setHealth(ItemStack stack, int value) { health.set(this, stack, value); }
-
-    public boolean takeDamage(ServerPlayer holder, ItemStack stack, int amount) {
-        return health.takeDamage(this, holder, stack, amount);
+    //region Gu wounds [蛊虫伤势]
+    /** 一次催动结算后为伤势计次（无饱食条的蛊不计）；伤重而亡时为 true，调用方移除物品栈。 */
+    protected final boolean wearUse(ServerPlayer player, ItemStack stack) {
+        return !(hunger instanceof GuHunger.NoClock) && GuHealth.wearUse(player, stack);
     }
-
-    protected void heal(ItemStack stack, int amount) { health.heal(this, stack, amount); }
     //endregion
 
     //region refining [炼化]
@@ -152,7 +145,7 @@ public class TendedGuItem extends MortalGuItem {
     }
 
     public void refineAtBirth(ServerPlayer player, ItemStack stack) {
-        store(stack, new RefinedGuState(true, getRefineCost(), 0, 0, getState(stack).damageTaken()));
+        store(stack, new RefinedGuState(true, getRefineCost(), 0, 0));
         hunger.bind(player, stack);
         stack.set(ModDataComponents.REFINED_AT,
                 GuCooldowns.createCooldownStamp(player, POST_REFINE_COOLDOWN_TICKS));
@@ -184,7 +177,7 @@ public class TendedGuItem extends MortalGuItem {
             return;
         }
         channeling.pour(this, player, stack, take);
-        feed(player, stack);
+        if (!stack.isEmpty()) feed(player, stack);
     }
 
     private void refineTick(ServerPlayer player, ItemStack stack, int elapsed) {
@@ -283,7 +276,7 @@ public class TendedGuItem extends MortalGuItem {
     protected int drive(ServerPlayer player, ItemStack stack) {
         feed(player, stack);
         if (stopsShortUse(player, stack)) return WARNED;
-        if (trySpendAndApply(player, stack)) return 1;
+        if (trySpendAndApply(player, stack) || wearUse(player, stack)) return 1;
         feedAndWarn(player, stack);
         return 0;
     }
@@ -330,6 +323,10 @@ public class TendedGuItem extends MortalGuItem {
         feed(player, stack);
         if (hunger.spendAsPartner(stack) && !player.getAbilities().instabuild) {
             exhaust(player, stack);
+            stack.shrink(1);
+            return true;
+        }
+        if (wearUse(player, stack)) {
             stack.shrink(1);
             return true;
         }
@@ -422,10 +419,12 @@ public class TendedGuItem extends MortalGuItem {
     public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        if (getState(stack).damageTaken() <= 0) return;
+        GuCondition condition = GuHealth.get(stack);
+        if (condition == null) return;
 
-        tooltip.add(Component.translatable(TOOLTIP_HEALTH, getHealth(stack), getMaxHealth())
-                .withStyle(ChatFormatting.GRAY));
+        boolean dying = condition.stage() == GuCondition.Stage.DYING;
+        tooltip.add(Component.translatable(dying ? TOOLTIP_DYING : TOOLTIP_INJURED, condition.usesLeft())
+                .withStyle(dying ? ChatFormatting.DARK_RED : ChatFormatting.RED));
     }
 
     @Override
@@ -470,8 +469,8 @@ public class TendedGuItem extends MortalGuItem {
     protected void payOwnUpkeep(ServerPlayer player, ItemStack stack) {}
     //endregion
 
-    //region the three deaths [三种死亡]
-    private static void announce(ServerPlayer player, ItemStack stack, String key) {
+    //region the four deaths [四种死亡]
+    static void announce(ServerPlayer player, ItemStack stack, String key) {
         player.sendSystemMessage(Component.translatable(key, stack.getHoverName()));
     }
 
@@ -488,5 +487,9 @@ public class TendedGuItem extends MortalGuItem {
     public static void exhaust(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_FORCED_DEAD); }
 
     public static void ruin(ServerPlayer holder, ItemStack stack) { announceDeath(holder, stack, MSG_REFINE_DEAD); }
+
+    public static void dieOfWounds(ServerPlayer holder, ItemStack stack) {
+        announceDeath(holder, stack, MSG_WOUND_DEAD);
+    }
     //endregion
 }

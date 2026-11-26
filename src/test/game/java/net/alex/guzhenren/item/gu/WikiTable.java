@@ -15,7 +15,7 @@ import java.util.stream.LongStream;
  * <ul>
  *   <li>蛊表（首列“蛊虫”）一格可含多字段：以蛊字段名加 {@code ：} 开头的 {@code <br>} 行成为该字段，列留其余行；
  *       冒号后为空的字段行收下其后各行，直到下一标签。</li>
- *   <li>“流派”列即去掉末尾“道”的道[Path]字段，同转置属性表；“生命值”即“生命上限”，“CD”即“冷却”；斜杠列（如“真元
+ *   <li>“流派”列即去掉末尾“道”的道[Path]字段，同转置属性表；“CD”即“冷却”；斜杠列（如“真元
  *       炼化/使用”）按 {@code " / "} 把值拆进所列字段，整格单个 N/A 时全为 N/A。</li>
  *   <li>无“转”列时，以转数开头的名称（如“一转玉皮蛊”）同时给出两字段；无“类型”列时由点明类型的标题（“防御类”至“无类
  *       型”）给出，因玩家表按类型分组，类型列只会重复标题；无“类”后缀的标题把类型留给该节事实行。</li>
@@ -28,10 +28,10 @@ final class WikiTable {
 
     private static final java.util.Set<String> GU_FIELDS = java.util.Set.of(
             "蛊虫", "转", "道", "类型", "饱食类别", "炼化真元", "使用真元", "真元 / 轮", "每次扣", "一轮耗饱食",
-            "每天扣", "饱食上限", "保质上限", "点数上限", "生命上限", "食物", "单食回", "修复", "回点", "回生命",
+            "每天扣", "饱食上限", "保质上限", "点数上限", "食物", "单食回", "回点",
             "冷却", "冷却中再催", "扣饱食时机", "堆叠", "用后", "拒绝");
 
-    private static final Map<String, String> GU_COLUMNS = Map.of("流派", "道", "生命值", "生命上限", "CD", "冷却");
+    private static final Map<String, String> GU_COLUMNS = Map.of("流派", "道", "CD", "冷却");
 
     private static final Map<String, List<String>> GU_SLASH_COLUMNS = Map.of(
             "真元<br>炼化/使用", List.of("炼化真元", "使用真元"),

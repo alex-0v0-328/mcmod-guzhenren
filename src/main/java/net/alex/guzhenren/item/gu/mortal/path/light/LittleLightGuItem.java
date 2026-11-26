@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>⚠ 饱食不足时点亮遵循强行催动[Forced Use]（{@code GuForcedUse}）规则：首次按下发出警告，5 秒内再次按下同一只蛊
  *       则强行点亮整轮，待熄灭时（无论自然到期或主动关灯）蛊虫力竭死亡；{@link ModDataComponents#LITTLE_LIGHT_FORCED}
  *       标记该轮强行点亮，与点亮组件同写同删；主动熄灭不设任何门槛；本命小光蛊在饱食不足时直接拒绝点亮；创造模式下既不
- *       警告也不致死。</li>
+ *       警告也不致死；非强行的一轮在灯灭时为伤势计 1 次。</li>
  * </ul>
  */
 
@@ -78,15 +78,17 @@ public final class LittleLightGuItem extends TendedGuItem {
     @Override
     protected long useThreshold(ItemStack stack) { return 0L; }
 
-    private static void turnOff(ServerPlayer player, ItemStack stack) {
+    private void turnOff(ServerPlayer player, ItemStack stack) {
         boolean forced = stack.has(ModDataComponents.LITTLE_LIGHT_FORCED);
         stack.remove(ModDataComponents.LITTLE_LIGHT_BRIGHT);
         stack.remove(ModDataComponents.LITTLE_LIGHT_BRIGHT_UNTIL);
         stack.remove(ModDataComponents.LITTLE_LIGHT_FORCED);
-        if (!forced || player.getAbilities().instabuild) return;
-
-        exhaust(player, stack);
-        stack.shrink(1);
+        if (forced && !player.getAbilities().instabuild) {
+            exhaust(player, stack);
+            stack.shrink(1);
+            return;
+        }
+        if (wearUse(player, stack)) stack.shrink(1);
     }
     //endregion
 

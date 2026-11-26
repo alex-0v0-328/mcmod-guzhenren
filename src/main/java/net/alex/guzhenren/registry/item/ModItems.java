@@ -419,15 +419,15 @@ public final class ModItems {
             .lang("一转生机叶蛊").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_LOTUS_GU_3 = REGISTRAR.item(
             "heavenly_essence_treasure_lotus_gu_3",
-            () -> createTreasureLotusGu(Rank.THREE, 1, 100))
+            () -> createTreasureLotusGu(Rank.THREE, 1))
             .lang("三转天元宝莲").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_MONARCH_LOTUS_GU_4 = REGISTRAR.item(
             "heavenly_essence_treasure_monarch_lotus_gu_4",
-            () -> createTreasureLotusGu(Rank.FOUR, 10, 1_000))
+            () -> createTreasureLotusGu(Rank.FOUR, 10))
             .lang("四转天元宝君莲").register();
     public static final DeferredItem<Item> HEAVENLY_ESSENCE_TREASURE_KING_LOTUS_GU_5 = REGISTRAR.item(
             "heavenly_essence_treasure_king_lotus_gu_5",
-            () -> createTreasureLotusGu(Rank.FIVE, 100, 10_000))
+            () -> createTreasureLotusGu(Rank.FIVE, 100))
             .lang("五转天元宝王莲").register();
     public static final DeferredItem<Item> NINE_LEAF_VITALITY_GRASS_3 = REGISTRAR.item("nine_leaf_vitality_grass_3",
             () -> new NineLeafVitalityGrassItem(3 * Ticks.MINUTE, 80, GuProperties.of(Rank.THREE, GuPath.WOOD)
@@ -436,8 +436,8 @@ public final class ModItems {
                     .costPerUse(0)))
             .lang("三转九叶生机草").model(ItemModel.LEAF_STAGES).register();
 
-    private static TreasureLotusGuItem createTreasureLotusGu(Rank rank, int stonesPerSecond, int stonesPerHealth) {
-        return new TreasureLotusGuItem(stonesPerSecond, stonesPerHealth, GuProperties.of(rank, GuPath.WOOD)
+    private static TreasureLotusGuItem createTreasureLotusGu(Rank rank, int stonesPerSecond) {
+        return new TreasureLotusGuItem(stonesPerSecond, GuProperties.of(rank, GuPath.WOOD)
                 .type(GuType.CULTIVATION)
                 .refine(refineEssence(rank))
                 .costPerUse(0));

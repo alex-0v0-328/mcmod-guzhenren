@@ -1,5 +1,6 @@
 package net.alex.guzhenren.item.gu.tending;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -12,4 +13,8 @@ public final class TendedGuAccess {
     public static long useThreshold(TendedGuItem gu, ItemStack stack) { return gu.useThreshold(stack); }
 
     public static boolean canUseDuringEffectCooldown(TendedGuItem gu) { return gu.canUseDuringEffectCooldown(); }
+
+    public static boolean wearUse(TendedGuItem gu, ServerPlayer player, ItemStack stack) {
+        return gu.wearUse(player, stack);
+    }
 }

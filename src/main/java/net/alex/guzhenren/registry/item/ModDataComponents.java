@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import java.util.UUID;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.item.gu.stack.GuCondition;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.item.gu.mortal.path.wood.LeafGrowth;
 import net.minecraft.core.UUIDUtil;
@@ -20,9 +21,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * 挂载在单个物品堆上的持久同步 {@link DataComponentType} 注册表。
  * <ul>
- *   <li>全体持续照顾型蛊[Tended Gu]共用的核心状态归 {@link RefinedGuState} 管理，本类其余组件仅覆盖本命蛊绑定
- *       （{@code VITAL_*}，仅经 {@code VitalGuState} 读写）、饱食时钟与单蛊专属字段（例如小光蛊的动态光源标记
- *       {@code LITTLE_LIGHT_BRIGHT} 与强行催动[Forced Use]轮次标记 {@code LITTLE_LIGHT_FORCED}）。</li>
+ *   <li>全体持续照顾型蛊[Tended Gu]共用的核心状态归 {@link RefinedGuState} 管理，伤势归 {@link GuCondition}（缺省即正
+ *       常）；本类其余组件仅覆盖本命蛊绑定（{@code VITAL_*}，仅经 {@code VitalGuState} 读写）、饱食时钟与单蛊专属字段
+ *       （例如小光蛊的动态光源标记 {@code LITTLE_LIGHT_BRIGHT} 与强行催动[Forced Use]轮次标记
+ *       {@code LITTLE_LIGHT_FORCED}）。</li>
  *   <li>⚠ 时间戳组件的 {@code 0L} 值代表合法的游戏零刻：判断组件是否已写入必须检查 {@code null} 而禁止判 {@code 0}，否
  *       则新创建的世界会被误判为刚刚催动过。</li>
  * </ul>
@@ -40,6 +42,8 @@ public final class ModDataComponents {
                     StreamCodec.of(RefinedGuState::encode, RefinedGuState::decode));
     public static final Supplier<DataComponentType<Long>> REFINED_AT = registerLong("refined_at");
     public static final Supplier<DataComponentType<Long>> USED_AT = registerLong("used_at");
+    public static final Supplier<DataComponentType<GuCondition>> GU_CONDITION =
+            register("gu_condition", GuCondition.CODEC, StreamCodec.of(GuCondition::encode, GuCondition::decode));
     //endregion
 
     //region Vital Gu [本命蛊]
@@ -51,13 +55,11 @@ public final class ModDataComponents {
 
     //region Hunger clock [饱食时钟]
     public static final Supplier<DataComponentType<Long>> RECOVERED_AT = registerLong("recovered_at");
-    public static final Supplier<DataComponentType<Long>> HEALED_AT = registerLong("healed_at");
     //endregion
 
     //region One Gu's own [单只蛊专用]
     public static final Supplier<DataComponentType<Integer>> AWAKEN_BASE = registerInt("awaken_base");
     public static final Supplier<DataComponentType<Long>> STORED_STONES = registerLong("stored_stones");
-    public static final Supplier<DataComponentType<Integer>> HEAL_BANK = registerInt("heal_bank");
     public static final Supplier<DataComponentType<LeafGrowth>> LEAF_GROWTH =
             register("leaf_growth", LeafGrowth.CODEC, StreamCodec.of(LeafGrowth::encode, LeafGrowth::decode));
     public static final Supplier<DataComponentType<Boolean>> LITTLE_LIGHT_BRIGHT =

@@ -13,6 +13,7 @@ import net.alex.guzhenren.entity.beast.CattleEntity;
 import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.item.gu.mortal.path.strength.HostedBeastGu;
+import net.alex.guzhenren.item.gu.tending.GuHealth;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -42,7 +43,7 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.ground;
 import static net.alex.guzhenren.gametest.GameTestWorld.firstHit;
 
 /**
- * 野兽寄宿蛊[Hosted Gu]测试：出生掷骰、生命翻倍与存档、伤害 ×1.5、玩家击杀才掉半血到满血的野生蛊。
+ * 野兽寄宿蛊[Hosted Gu]测试：出生掷骰、生命翻倍与存档、伤害 ×1.5、玩家击杀才掉无伤的野生蛊。
  * <ul>
  *   <li>掷骰用定种子随机数，不依赖世界随机；出生接线经 {@link EventHooks#finalizeMobSpawn} 掷 {@value #SPAWNS} 只野猪，
  *       全未寄宿的概率约 10⁻⁹。</li>
@@ -155,7 +156,7 @@ public final class HostedGuGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void hostedBoarDropsWoundedGuOnlyToPlayerKills(GameTestHelper helper) {
+    public static void hostedBoarDropsSoundGuOnlyToPlayerKills(GameTestHelper helper) {
         ground(helper);
         ServerPlayer player = player(helper, 4.5D, 2.5D);
         DamageSource byPlayer = helper.getLevel().damageSources().playerAttack(player);
@@ -167,8 +168,7 @@ public final class HostedGuGameTests {
         for (ItemStack stack : playerKills) {
             helper.assertTrue(boarGu.contains(stack.getItem()), "hosted boar dropped " + stack.getItem());
             TendedGuItem gu = (TendedGuItem) stack.getItem();
-            int health = gu.getHealth(stack);
-            helper.assertTrue(health >= 4 && health <= 8, "dropped boar Gu health outside 4-8: " + health);
+            helper.assertTrue(GuHealth.get(stack) == null, "dropped boar Gu was wounded");
             helper.assertTrue(!gu.isRefined(stack), "dropped boar Gu was refined");
         }
         helper.assertTrue(killBoars(helper, true, byWorld).isEmpty(), "a non-player kill dropped a Gu");

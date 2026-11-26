@@ -12,10 +12,11 @@ import net.alex.guzhenren.gameplay.path.strength.BeastStrength;
 import net.alex.guzhenren.gameplay.path.strength.PathStrengthService;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.mortal.path.space.PrimevalElderGuItem;
+import net.alex.guzhenren.item.gu.stack.GuCondition;
+import net.alex.guzhenren.item.gu.tending.GuHealth;
 import net.alex.guzhenren.item.gu.tending.GuUpkeep;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.alex.guzhenren.vault.ApertureStorageTick;
 import net.minecraft.gametest.framework.GameTest;
@@ -41,7 +42,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  * 活玩家持续照顾型蛊[Tended Gu]的两种自动补给。
  * <ul>
  *   <li>补食：饱食[Hunger]有空位时催动前从背包吃，每次扣量（催动、灌注[Channel]一步、日钟；随身或在空窍[Aperture]里）后
- *       也吃；总吃满、先回血，满条不为回血吃；日钟扣前也吃，故其后背包得食的饿蛊能活过日切。</li>
+ *       也吃；总吃满，食物不治伤；日钟扣前也吃，故其后背包得食的饿蛊能活过日切。</li>
  *   <li>元石[Primeval Stone]：付费时真元[Essence]池低于一半补到 80%，余缺也烧元石；门槛计随身元石；散装先于元老蛊
  *       [Primeval Elder Gu]存量；元老蛊任意格可付，存储中的最后付；炼化逐步烧；无空窍时无用；创造模式不耗。</li>
  *   <li>花豕蛊[Flower Boar Gu]为普通催动（一转，40 真元，条 14，每次 3，猪排每块 1）；白豕蛊[White Boar Gu]为灌注（每轮
@@ -74,22 +75,20 @@ public final class GuSupplyGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aFullBarNeverEatsJustToMendButMendsFirstAfterADrop(GameTestHelper helper) {
+    public static void anInjuredGuEatsOnlyToRefillItsBar(GameTestHelper helper) {
         ServerPlayer player = holder(helper, Rank.ONE);
         ItemStack boar = hold(player, ModItems.FLOWER_BOAR_GU_1.get(), 14);
-        hurt(boar, 2);
+        GuHealth.set(boar, GuCondition.Stage.INJURED);
         ItemStack pork = bag(player, BAG_SLOT, Items.PORKCHOP, 10);
 
         GuUpkeep.tickCarried(player, 0L);
-
-        assertEquals(2, TendedGuItem.getState(boar).damageTaken(), "a full bar ate to mend");
-        assertEquals(10, pork.getCount());
+        assertEquals(10, pork.getCount(), "a full bar ate for its wound");
 
         charge(helper, player, boar);
 
-        assertEquals(0, TendedGuItem.getState(boar).damageTaken(), "the meal after the use did not mend");
         assertEquals(14, hunger(boar));
-        assertEquals(5, pork.getCount(), "2 to mend, then 3 to fill");
+        assertEquals(7, pork.getCount(), "only the 3 the use drained were eaten");
+        assertEquals(GuCondition.Stage.INJURED, GuHealth.getStage(boar), "food changed the wound");
         helper.succeed();
     }
 
@@ -337,9 +336,5 @@ public final class GuSupplyGameTests {
         ItemStack stack = new ItemStack(item, count);
         player.getInventory().setItem(slot, stack);
         return stack;
-    }
-
-    private static void hurt(ItemStack stack, int damage) {
-        stack.set(ModDataComponents.REFINED_GU_STATE, TendedGuItem.getState(stack).withDamageTaken(damage));
     }
 }

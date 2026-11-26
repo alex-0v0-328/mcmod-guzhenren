@@ -44,13 +44,13 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 /**
  * 玩家 wiki 设定库物品表与已启动物品注册的对照测试。
  * <ul>
- *   <li>每个注册物品恰属一个已记录分组；每只蛊的转数、道[Path]、类型、真元[Essence]消耗、饱食、生命上限、修复单位，
+ *   <li>每个注册物品恰属一个已记录分组；每只蛊的转数、道[Path]、类型、真元[Essence]消耗、饱食、进食单位，
  *       及冷却与效果时长；仅当 GameTest 服务端收到 {@code -PwikiDir} 时校验，否则直接通过；{@link #run} 把解析器的
  *       {@link AssertionError} 转为 GameTest 失败。</li>
  *   <li>蛊系列由相邻分转表与共享字段组成，先拼接再校验；{@link Table#fits} 按字段把系列归入饱食类别，
  *       因页面只靠数值体现类别；覆盖检查拒绝缺失或重复的蛊/转条目；汇总计数与技术时钟另有页面；
  *       单份食物回复量与回复时钟是全页规则，所有蛊同值。</li>
- *   <li>单元格按页面原文比较：{@link #perFood} 为一份食物回复的饱食点与生命点（两者相同），整数，否则
+ *   <li>单元格按页面原文比较：{@link #perFood} 为一份食物回复的饱食点，整数，否则
  *       {@code units/per}；{@link #lines} 按 {@code <br>} 拆行，去掉行首的 {@code 标签：}；{@link #cooldownCell} 为
  *       N/A，否则取效果与物品冷却较长者。</li>
  *   <li>冷却中可再催、用后消失是效果行，页面只在成立时写，由 {@link #effectFlag} 读；{@link #typeCell}
@@ -190,7 +190,6 @@ public final class WikiItemsGameTests {
                     row.location() + " does not fit " + table);
             row.expect("炼化真元", values(items, MortalGuItem::getRefineCost));
             row.expect("使用真元", values(items, WikiItemsGameTests::useEssence));
-            row.expect("生命上限", values(items, g -> ((TendedGuItem) g).getMaxHealth()));
             if (table.headers.contains("食物")) items.forEach(g -> foodPoints.add(perFood(g)));
             switch (table) {
                 case CHANNEL -> {
@@ -229,8 +228,6 @@ public final class WikiItemsGameTests {
                     assertEquals(1, clock.size(), row.location() + " recover clocks differ " + clock);
                     WikiTable.Row rule = page.row("饱食类别", table.title);
                     assertTrue(rule.cell("日常变化").contains(clock.getFirst()), rule.location() + " recover clock");
-                    assertTrue(rule.cell("不够一次或耗尽").contains("生命也" + clock.getFirst()),
-                            rule.location() + " heal clock");
                 }
                 case NO_CLOCK -> assertEquals(collapse(items.stream()
                                 .map(g -> g instanceof ConsumedGuItem ? "消失" : "保留").toList()),
@@ -238,8 +235,6 @@ public final class WikiItemsGameTests {
                 default -> throw new AssertionError("Unchecked table " + table);
             }
         }
-        page.expectMatch("生命上限都是 \\*\\*4 × 转数 \\+ 4\\*\\*：一至五转 (\\d+) / (\\d+) / (\\d+) / (\\d+) / (\\d+)",
-                List.of(8L, 12L, 16L, 20L, 24L));
         List<String> food = collapse(foodPoints);
         assertTrue(food.size() == 1 && food.getFirst().matches("\\d+"), ITEMS_PAGE + " per food is not fixed " + food);
         page.expectMatch("每份食物固定回 \\*\\*(\\d+)\\*\\* 点", List.of(Long.parseLong(food.getFirst())));
@@ -514,16 +509,16 @@ public final class WikiItemsGameTests {
     private enum Table {
         ONE_SHOT(null, "蛊", "转", "道", "类型", "效果"),
         CHANNEL(null, "蛊", "转", "道", "炼化真元", "使用真元", "每次扣", "每天扣", "饱食上限", "食物",
-                "生命上限", "一轮结果"),
+                "一轮结果"),
         HIGH("高频档", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "每次扣", "每天扣", "饱食上限", "食物",
-                "生命上限", "冷却", "冷却中再催", "效果"),
+                "冷却", "冷却中再催", "效果"),
         LOW("低频档", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "每次扣", "每天扣", "饱食上限", "食物",
-                "生命上限", "冷却", "冷却中再催", "效果"),
-        SHELF("保质期型", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "饱食上限", "每天扣", "食物", "生命上限",
+                "冷却", "冷却中再催", "效果"),
+        SHELF("保质期型", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "饱食上限", "每天扣", "食物",
                 "冷却", "用后", "效果"),
-        RECOVER("回复条", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "每次扣", "饱食上限", "生命上限",
+        RECOVER("回复条", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "每次扣", "饱食上限",
                 "冷却", "效果"),
-        NO_CLOCK("无饱食条", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "生命上限", "冷却", "用后", "效果"),
+        NO_CLOCK("无饱食条", "蛊虫", "转", "道", "类型", "炼化真元", "使用真元", "冷却", "用后", "效果"),
         MATERIAL(null, "分组", "数量", "内容");
 
         private final String title;

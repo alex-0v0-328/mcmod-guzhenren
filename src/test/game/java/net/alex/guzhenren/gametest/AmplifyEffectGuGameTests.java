@@ -16,7 +16,6 @@ import net.alex.guzhenren.item.gu.tending.GuUpkeep;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.network.ClientIntents;
 import net.alex.guzhenren.registry.effect.ModEffects;
-import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -47,7 +46,7 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  * <ul>
  *   <li>副手：主手蛊效果时长乘本蛊转数，自付真元[Essence]与一次饱食[Hunger]；高于本转或不请求增幅的蛊不增幅、不计费；饱
  *       食见底仍落地后死；自身催动被拒，副手点击放行。</li>
- *   <li>日切扣量后背包平滑石每块补 1 点，伤者先回血。</li>
+ *   <li>日切扣量后背包平滑石每块补 1 点。</li>
  *   <li>轮盘（{@code ClientIntents.amplifyDrive}）：主手增幅蛊不经蓄力催动快捷栏蛊；一次性蛊从其格扣；池不足用随身元石
  *       [Primeval Stone]；高于转数、真元与元石不够付两蛊、手无增幅蛊或选当前格均不落地。</li>
  *   <li>创造模式不受真元门槛限制：空池照样增幅（持续型与一次性蛊）、真元仍为 0；同样的零真元生存玩家不落地。</li>
@@ -172,22 +171,6 @@ public final class AmplifyEffectGuGameTests {
         GuUpkeep.tickCarried(player, 1L);
 
         assertEquals(20 - DAY_HUNGER + 3, hunger(amplifier));
-        assertTrue(stone.isEmpty(), "smooth stone left uneaten");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void aHurtCarriedOneMendsBeforeItFeeds(GameTestHelper helper) {
-        ServerPlayer player = awakened(helper, null);
-        ItemStack amplifier = hold(player, InteractionHand.MAIN_HAND, ModItems.AMPLIFY_EFFECT_GU_3.get(), 20);
-        amplifier.set(ModDataComponents.REFINED_GU_STATE, TendedGuItem.getState(amplifier).withDamageTaken(2));
-        ItemStack stone = new ItemStack(Items.SMOOTH_STONE, 3);
-        player.getInventory().setItem(9, stone);
-
-        GuUpkeep.tickCarried(player, 1L);
-
-        assertEquals(0, TendedGuItem.getState(amplifier).damageTaken(), "the wound was not mended first");
-        assertEquals(20 - DAY_HUNGER + 1, hunger(amplifier));
         assertTrue(stone.isEmpty(), "smooth stone left uneaten");
         helper.succeed();
     }

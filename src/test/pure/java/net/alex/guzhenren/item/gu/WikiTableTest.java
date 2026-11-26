@@ -406,10 +406,10 @@ class WikiTableTest {
 
             **类型**：防御
 
-            | 蛊虫 | 流派 | 真元<br>炼化/使用 | 饱食度<br>上限/每次/每天 | 生命值 | 食物 | CD | 条件 |
-            |---|---|---|---|---|---|---|---|
-            | 一转玉皮蛊 | 土道 | 800 / 12 | 14 / 3 / 1 | 8 | 玉<br>翡翠 | 30 秒 | 条件：<br>未开窍<br>拒绝：<br>皮肤非原生<br>在宝黄天 |
-            | 二转元老蛊 | 宇道 | 1,600 / 0 | 9 / 2 / N/A | 12<br>修复：不能修复 | N/A | N/A | 拒绝：<br>满了<br>条件：<br>空手 |
+            | 蛊虫 | 流派 | 真元<br>炼化/使用 | 饱食度<br>上限/每次/每天 | 食物 | CD | 条件 |
+            |---|---|---|---|---|---|---|
+            | 一转玉皮蛊 | 土道 | 800 / 12 | 14 / 3 / 1 | 玉<br>翡翠 | 30 秒 | 条件：<br>未开窍<br>拒绝：<br>皮肤非原生<br>在宝黄天 |
+            | 二转元老蛊 | 宇道 | 1,600 / 0 | 9 / 2 / N/A | N/A | N/A | 拒绝：<br>满了<br>条件：<br>空手 |
             """;
 
     @Test
@@ -424,7 +424,6 @@ class WikiTableTest {
         first.expect("饱食上限", List.of(14L));
         first.expect("每次扣", List.of(3L));
         first.expect("每天扣", List.of(1L));
-        first.expect("生命上限", List.of(8L));
         assertEquals("玉<br>翡翠", first.cell("食物"));
         assertEquals("30 秒", first.cell("冷却"));
         assertEquals("皮肤非原生<br>在宝黄天", first.cell("拒绝"));
@@ -435,8 +434,6 @@ class WikiTableTest {
         assertEquals("N/A", last.cell("每天扣"));
         assertEquals("满了", last.cell("拒绝"));
         assertEquals("条件：<br>空手", last.cell("条件"));
-        last.expect("生命上限", List.of(12L));
-        assertEquals("不能修复", last.cell("修复"));
     }
 
     @Test

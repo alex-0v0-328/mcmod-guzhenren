@@ -8,7 +8,6 @@ import net.alex.guzhenren.entity.beast.TigerEntity;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModItems;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -29,8 +28,7 @@ import org.jetbrains.annotations.Nullable;
  *       四种熊寄宿熊力蛊[Bear Strength Gu]，野猪等概率寄宿白豕蛊[White Boar Gu]或黑豕蛊[Black Boar Gu]，其余野兽不寄
  *       宿。</li>
  *   <li>寄宿野兽死亡前 5 秒内受过玩家攻击（原版 {@code isRecentlyHit}）且世界开启 {@code doMobLoot} 时，按
- *       {@link #DROP_CHANCE} 概率掉落未炼化的野生寄宿蛊，其初始生命值在半血（向上取整）至满血之间均匀随机
- *       （{@link TendedGuItem#setHealth}）。</li>
+ *       {@link #DROP_CHANCE} 概率掉落未炼化的野生寄宿蛊，一律无伤（正常）。</li>
  *   <li>⚠ 本类必须放在物品层而非实体层：物品包已单向依赖实体包，若实体包反向引用具体蛊虫注册项会导致包依赖成环并破坏
  *       {@code ArchitectureTest}。</li>
  * </ul>
@@ -60,9 +58,7 @@ public final class HostedBeastGu {
         RandomSource random = beast.getRandom();
         if (!beast.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)
                 || random.nextFloat() >= DROP_CHANCE) return;
-        ItemStack stack = new ItemStack(gu);
-        gu.setHealth(stack, rollHealth(gu.getMaxHealth(), random));
-        ItemEntity drop = new ItemEntity(beast.level(), beast.getX(), beast.getY(), beast.getZ(), stack);
+        ItemEntity drop = new ItemEntity(beast.level(), beast.getX(), beast.getY(), beast.getZ(), new ItemStack(gu));
         drop.setDefaultPickUpDelay();
         event.getDrops().add(drop);
     }
@@ -72,12 +68,6 @@ public final class HostedBeastGu {
         if (pool.isEmpty() || random.nextDouble() >= HOST_CHANCE) return null;
         return pool.get(random.nextInt(pool.size()));
     }
-
-    public static int rollHealth(int max, RandomSource random) {
-        return Mth.randomBetweenInclusive(random, getMinDropHealth(max), max);
-    }
-
-    public static int getMinDropHealth(int max) { return (max + 1) / 2; }
 
     private static List<Item> getPool(ActionEntity<?> beast) {
         if (beast instanceof TigerEntity) return List.of(ModItems.TIGER_STRENGTH_GU_2.get());

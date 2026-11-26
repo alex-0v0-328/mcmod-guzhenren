@@ -8,12 +8,13 @@ import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 
 /**
- * 玩家生命周期事件（登录、登出、克隆、重生、睡眠唤醒与本命蛊损毁）的统一转发入口，除门控外全部业务交由
- * {@link PlayerDataService} 与 {@link VitalLossService} 处理。
+ * 玩家生命周期事件（登录、登出、克隆、重生、睡眠唤醒、本命蛊损毁与回血养本命蛊）的统一转发入口，除门控外全部业务交由
+ * {@link PlayerDataService}、{@link VitalLossService} 与 {@link VitalMendService} 处理。
  * <ul>
  *   <li>死亡克隆处理（{@link #onClone}）以 {@code EventPriority.LOW} 在 NeoForge 复制完继承附件后执行，确保清空型重置不
  *       被覆盖；是否保留物品栏取自 {@link MinecraftServer} 游戏规则而非维度实例。</li>
@@ -68,4 +69,9 @@ public final class PlayerDataEvents {
 
     @SubscribeEvent
     public static void onVitalGuLost(VitalGuLostEvent event) { VitalLossService.onVitalGuLost(event); }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onHealed(LivingHealEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) VitalMendService.onHealed(player, event.getAmount());
+    }
 }

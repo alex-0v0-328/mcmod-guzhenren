@@ -6,6 +6,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.command.CmdAperture;
 import net.alex.guzhenren.command.CmdAwaken;
 import net.alex.guzhenren.command.CmdBody;
+import net.alex.guzhenren.command.CmdGu;
 import net.alex.guzhenren.command.CmdMind;
 import net.alex.guzhenren.command.CmdPath;
 import net.alex.guzhenren.command.CmdReset;
@@ -20,8 +21,8 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 /**
  * 模组指令树根入口：注册 {@code /guzhenren}（及重定向别名 {@code /gzr}）与维度传送指令 {@code /guworld}。
  * <ul>
- *   <li>{@code /guzhenren} 要求权限等级 2，下设 7 个修改玩家附件数据的子命令分支；玩家状态统一通过客户端 B 面板查看，不
- *       设命令行查询打印分支。</li>
+ *   <li>{@code /guzhenren} 要求权限等级 2，下设 8 个子命令分支（7 个修改玩家附件数据，{@code gu} 修改主手蛊）；玩家状态
+ *       统一通过客户端 B 面板查看，不设命令行查询打印分支。</li>
  *   <li>{@code /gzr} 通过 Brigadier {@code redirect} 指向 {@code /guzhenren} 根节点，重定向后的参数全部解析在子上下文中
  *       （参见 {@link net.alex.guzhenren.command.ModEnumArgument}）。</li>
  *   <li>维度进出命令挂载在独立的 {@code /guworld} 根节点下（{@link CmdTravel}）：{@code enter} 要求权限等级 2；处
@@ -52,7 +53,8 @@ public final class ModCommand {
                         .then(CmdBody.buildNode())
                         .then(CmdSoul.buildNode())
                         .then(CmdPath.buildNode())
-                        .then(CmdMind.buildNode()));
+                        .then(CmdMind.buildNode())
+                        .then(CmdGu.buildNode()));
 
         dispatcher.register(Commands.literal("gzr")
                 .requires(source -> source.hasPermission(PERMISSION_LEVEL))
