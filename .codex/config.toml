@@ -23,3 +23,4 @@ bearer_token_env_var = "CONTEXT7_API_KEY"
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp/"
 bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"
+http_headers = { "X-MCP-Readonly" = "true" }
