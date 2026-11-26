@@ -3,7 +3,7 @@ package net.alex.guzhenren.mixin;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.alex.guzhenren.client.camera.CombatCameraRig;
 import net.alex.guzhenren.client.cinematic.CultivationCamera;
-import net.alex.guzhenren.client.screen.blissful.map.MapPage;
+import net.alex.guzhenren.client.screen.immortalaperture.map.MapPage;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;

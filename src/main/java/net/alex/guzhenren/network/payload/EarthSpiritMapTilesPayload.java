@@ -2,8 +2,8 @@ package net.alex.guzhenren.network.payload;
 
 import java.util.List;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.map.LandMaps;
-import net.alex.guzhenren.gameplay.blissful.map.MapTile;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

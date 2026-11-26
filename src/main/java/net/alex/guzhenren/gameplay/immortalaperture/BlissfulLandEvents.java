@@ -1,0 +1,73 @@
+package net.alex.guzhenren.gameplay.immortalaperture;
+
+import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryWork;
+import net.alex.guzhenren.gameplay.secretrealm.SoulsunderShakeEvent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
+/**
+ * 福地[Blissful Land]的事件入口，只做转交：服务端刻、玩家刻、玩家死亡、区块加载、荡魂山震荡、田区工单登记、停服清理。
+ * <ul>
+ *   <li>⚠ 死亡监听取最低优先级且不收已取消事件：别的模组取消死亡、不死图腾救下都不算死，不失主。</li>
+ *   <li>玩家每秒的认主判定不走这里，挂在 {@code Heartbeat}。</li>
+ * </ul>
+ */
+
+@EventBusSubscriber(modid = Guzhenren.MOD_ID)
+public final class BlissfulLandEvents {
+
+    private BlissfulLandEvents() {}
+
+    @SubscribeEvent
+    public static void onServerTick(ServerTickEvent.Post event) { BlissfulLands.tickServer(event.getServer()); }
+
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity() instanceof ServerPlayer player) BlissfulLands.tickPlayerFast(player);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) BlissfulLands.onDeath(player);
+    }
+
+    @SubscribeEvent
+    public static void onChunkLoad(ChunkEvent.Load event) {
+        if (event.getLevel() instanceof ServerLevel level && event.getChunk() instanceof LevelChunk chunk) {
+            BlissfulLands.onChunkLoad(level, chunk);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onShake(SoulsunderShakeEvent event) {
+        if (BlissfulLands.isExempt(event.getPlayer())) event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterTickets(RegisterTicketControllersEvent event) {
+        event.register(FarmWork.TICKETS);
+        event.register(PastureWork.TICKETS);
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        TerritoryWork.clear();
+        LandCensus.clear();
+        EarthSpiritPanel.clear();
+    }
+}

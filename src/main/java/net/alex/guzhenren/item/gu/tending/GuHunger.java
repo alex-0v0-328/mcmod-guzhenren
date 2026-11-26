@@ -1,8 +1,8 @@
 package net.alex.guzhenren.item.gu.tending;
 
 import java.util.List;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
-import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
+import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.registry.item.ModDataComponents;

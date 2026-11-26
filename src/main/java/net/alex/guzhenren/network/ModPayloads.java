@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.map.LandMaps;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.network.payload.AmplifyDrivePayload;
 import net.alex.guzhenren.network.payload.DashPayload;
 import net.alex.guzhenren.network.payload.EarthSpiritActionPayload;

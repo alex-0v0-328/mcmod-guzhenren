@@ -3,11 +3,11 @@ package net.alex.guzhenren.gametest;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
-import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
-import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
+import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -200,7 +200,7 @@ public final class BlissfulPastureGameTests {
 
         helper.assertTrue(PastureWork.Pasture.at(cow.chunkPosition().x, cow.chunkPosition().z).contains(cow),
                 "a pasture's account is its whole two by two chunks");
-        int moved = MountainWork.moveMobsUp(level, site, data, level.getRandom(), List.of(cow));
+        int moved = SoulsunderMountainWork.moveMobsUp(level, site, data, level.getRandom(), List.of(cow));
         helper.assertValueEqual(moved, 0, "a cow in the pasture is not moved up the mountain");
         helper.succeed();
     }

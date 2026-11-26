@@ -1,8 +1,8 @@
 package net.alex.guzhenren.network.payload;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
-import net.alex.guzhenren.gameplay.blissful.panel.PanelActions;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelActions;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

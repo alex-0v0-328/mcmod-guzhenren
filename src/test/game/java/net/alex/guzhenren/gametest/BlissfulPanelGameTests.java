@@ -12,33 +12,33 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.LandModule;
-import net.alex.guzhenren.gameplay.blissful.LandModules;
-import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
-import net.alex.guzhenren.gameplay.blissful.gu.GuModule;
-import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
-import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
-import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.land.EarthSpiritEntity;
-import net.alex.guzhenren.gameplay.blissful.land.Members;
-import net.alex.guzhenren.gameplay.blissful.land.Territory;
-import net.alex.guzhenren.gameplay.blissful.member.OverviewModule;
-import net.alex.guzhenren.gameplay.blissful.mountain.MountainModule;
-import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
-import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
-import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
-import net.alex.guzhenren.gameplay.blissful.panel.Page;
-import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
-import net.alex.guzhenren.gameplay.blissful.panel.PanelActions;
-import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
-import net.alex.guzhenren.gameplay.blissful.panel.PanelSnapshot;
-import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
-import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser.Sort;
-import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser;
-import net.alex.guzhenren.gameplay.blissful.storage.StorageModule;
-import net.alex.guzhenren.gameplay.blissful.storage.StorageWork;
-import net.alex.guzhenren.gameplay.blissful.territory.TerritoryModule;
+import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
+import net.alex.guzhenren.gameplay.immortalaperture.LandModules;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuModule;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelActions;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSnapshot;
+import net.alex.guzhenren.gameplay.immortalaperture.member.OverviewModule;
+import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.MountainModule;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
+import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser.Sort;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageModule;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageWork;
+import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryModule;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -147,7 +147,7 @@ public final class BlissfulPanelGameTests {
         EarthSpiritEntity spirit = helper.spawn(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get(),
                 CENTER_POS.offset(1, 0, 1));
         try {
-            Members.claim(null, data, owner);
+            LandMembership.claim(null, data, owner);
             EarthSpiritMenu menu = new EarthSpiritMenu(1, owner.getInventory(), spirit,
                     EarthSpiritPanel.snapshot(level, data, owner.getUUID(), EarthSpiritPanel.lastPage(owner),
                             Component.empty()));
@@ -165,7 +165,7 @@ public final class BlissfulPanelGameTests {
             EarthSpiritPanel.remember(owner, Page.MAP);
             StorageBrowser.forget(owner.getUUID());
             owner.containerMenu = owner.inventoryMenu;
-            Members.lose(level.getServer(), null, data);
+            LandMembership.lose(level.getServer(), null, data);
         }
     }
 
@@ -330,10 +330,10 @@ public final class BlissfulPanelGameTests {
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         ServerPlayer guest = GameTestPlayers.survival(helper, "gzr-land-name-mock").onGround();
 
-        helper.assertTrue(Members.addWhitelist(helper.getLevel().getServer(), data, "gzr-land-name-mock"),
+        helper.assertTrue(LandMembership.addWhitelist(helper.getLevel().getServer(), data, "gzr-land-name-mock"),
                 "an online name is listed");
         helper.assertTrue(data.isWhitelisted(guest.getUUID()), "by that player's UUID");
-        helper.assertFalse(Members.addWhitelist(helper.getLevel().getServer(), data, "gzrNeverSeenMock"),
+        helper.assertFalse(LandMembership.addWhitelist(helper.getLevel().getServer(), data, "gzrNeverSeenMock"),
                 "a name nobody online carries is refused, with no lookup");
         helper.succeed();
     }

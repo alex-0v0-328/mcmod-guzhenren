@@ -1,7 +1,7 @@
 package net.alex.guzhenren.network.payload;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.map.MapView;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

@@ -1,8 +1,8 @@
 package net.alex.guzhenren.network;
 
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.map.MapMarksEvent;
-import net.alex.guzhenren.gameplay.blissful.map.MapTilesEvent;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMarksEvent;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTilesEvent;
 import net.alex.guzhenren.network.payload.EarthSpiritMapMarksPayload;
 import net.alex.guzhenren.network.payload.EarthSpiritMapTilesPayload;
 import net.neoforged.bus.api.SubscribeEvent;

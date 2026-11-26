@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.gu.GuWork;
-import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
+import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
@@ -96,7 +96,7 @@ public final class BlissfulGuGameTests {
         List<Entity> candidates = new ArrayList<>(swarm);
         candidates.add(pig);
 
-        int moved = MountainWork.moveMobsUp(helper.getLevel(), site, data, helper.getLevel().getRandom(), candidates);
+        int moved = SoulsunderMountainWork.moveMobsUp(helper.getLevel(), site, data, helper.getLevel().getRandom(), candidates);
         helper.assertValueEqual(moved, 1, "only the pig is moved up the mountain");
         helper.assertTrue(site.contains(pig), "the pig stands on the mountain");
         helper.assertTrue(swarm.stream().noneMatch(site::contains), "no wild gu is moved up to die");
