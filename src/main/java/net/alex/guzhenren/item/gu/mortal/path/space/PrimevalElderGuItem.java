@@ -37,9 +37,9 @@ import org.jetbrains.annotations.Nullable;
 public class PrimevalElderGuItem extends TendedGuItem {
 
     public static final int STACK = 64;
-    private static final String FAILED_EMPTY = "guzhenren.item.failed.elder_gu_empty";
-    private static final String FAILED_FULL = "guzhenren.item.failed.elder_gu_full";
-    private static final String FAILED_NO_STONES = "guzhenren.item.failed.elder_gu_no_stones";
+    private static final String FAILED_EMPTY = "guzhenren.item.failed.primeval_elder_gu_empty";
+    private static final String FAILED_FULL = "guzhenren.item.failed.primeval_elder_gu_full";
+    private static final String FAILED_NO_STONES = "guzhenren.item.failed.primeval_elder_gu_no_stones";
     private static final String TOOLTIP_STORED = "guzhenren.item.gu.stored_stones";
     private final long capacity;
 

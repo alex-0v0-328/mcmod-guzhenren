@@ -205,10 +205,12 @@ public final class ModDisplayText {
 
     private static Component formatStrengthNumber(int count) {
         if (count < 100) return formatBelowHundred(count, false);
-        Component h = Component.translatable("guzhenren.display.strength.num_hundreds." + (count / 100));
+        Component h = Component.translatable("guzhenren.display.strength.number_hundreds." + (count / 100));
         int rest = count % 100;
         if (rest == 0) return h;
-        String join = rest < 10 ? "guzhenren.display.strength.num_join_zero" : "guzhenren.display.strength.num_join";
+        String join = rest < 10
+                ? "guzhenren.display.strength.number_join_zero"
+                : "guzhenren.display.strength.number_join";
         return Component.translatable(join, h, formatBelowHundred(rest, true));
     }
 
@@ -216,10 +218,10 @@ public final class ModDisplayText {
         int tens = count / 10;
         int units = count % 10;
         Component t = tens == 0 ? null : Component.translatable(led && tens == 1
-                ? "guzhenren.display.strength.num_tens_led.1"
-                : "guzhenren.display.strength.num_tens." + tens);
-        Component u = units > 0 ? Component.translatable("guzhenren.display.strength.num_units." + units) : null;
-        if (t != null && u != null) return Component.translatable("guzhenren.display.strength.num_join", t, u);
+                ? "guzhenren.display.strength.number_tens_led.1"
+                : "guzhenren.display.strength.number_tens." + tens);
+        Component u = units > 0 ? Component.translatable("guzhenren.display.strength.number_units." + units) : null;
+        if (t != null && u != null) return Component.translatable("guzhenren.display.strength.number_join", t, u);
         return t != null ? t : u;
     }
 }

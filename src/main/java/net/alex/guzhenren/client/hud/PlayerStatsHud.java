@@ -125,7 +125,7 @@ public final class PlayerStatsHud {
 
     private static Component formatPressure(Aperture aperture, long seconds) {
         return seconds != NO_COUNTDOWN
-                ? Component.translatable("guzhenren.hud.aperture_pressure_cd", aperture.pressure(),
+                ? Component.translatable("guzhenren.hud.aperture_pressure_cooldown", aperture.pressure(),
                 ModDisplayText.formatClock(seconds))
                 : Component.translatable("guzhenren.hud.aperture_pressure", aperture.pressure());
     }

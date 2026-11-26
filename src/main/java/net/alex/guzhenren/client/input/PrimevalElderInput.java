@@ -42,9 +42,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 @EventBusSubscriber(modid = Guzhenren.MOD_ID, value = Dist.CLIENT)
 public final class PrimevalElderInput {
 
-    private static final String FAILED_EMPTY = "guzhenren.item.failed.elder_gu_empty";
-    private static final String LABEL_STACKS = "guzhenren.hud.elder_gu.withdraw";
-    private static final String DETAIL = "guzhenren.hud.elder_gu.detail";
+    private static final String FAILED_EMPTY = "guzhenren.item.failed.primeval_elder_gu_empty";
+    private static final String LABEL_STACKS = "guzhenren.hud.primeval_elder_gu.withdraw";
+    private static final String DETAIL = "guzhenren.hud.primeval_elder_gu.detail";
 
     private static boolean refiningPress;
 
