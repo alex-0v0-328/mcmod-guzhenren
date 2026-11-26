@@ -454,7 +454,7 @@ public final class BlissfulLandGameTests {
     private static long wheat(BlissfulStorage storage) { return storage.count(stack -> stack.is(Items.WHEAT)); }
 
     private static EarthSpiritEntity spawnSpirit(GameTestHelper helper) {
-        return helper.spawn(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get(), CENTER_POS.offset(1, 0, 1));
+        return helper.spawn(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get(), CENTER_POS.offset(1, 0, 1));
     }
 
     private static EarthSpiritMenu openPanel(ServerLevel level, BlissfulLandData data, ServerPlayer player,

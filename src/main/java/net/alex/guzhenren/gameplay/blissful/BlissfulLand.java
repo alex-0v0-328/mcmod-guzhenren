@@ -18,18 +18,22 @@ import org.jetbrains.annotations.NotNull;
  *       {@link LandSite}）。</li>
  *   <li>疆域边长 {@code 2 * half} 区块，中心 {@code 2 * core} 见方不可割弃（{@link Territory}）；标准田与牧场在疆域里
  *       自由选址，不另划区（{@code map.Siting}）。</li>
+ *   <li>英文名福地在前：{@code name} 只存福地自己的名字，完整 ID 由 {@link #id()} 加 {@code blissful_land_} 前缀（实体、
+ *       存档数据都用它），翻译键 {@link #nameKey()} 放在 {@code guzhenren.blissful_land.} 下。</li>
  * </ul>
  */
 
-public record BlissfulLand(@NotNull String id, @NotNull ResourceKey<Level> dimension, @NotNull SecretRealm realm,
+public record BlissfulLand(@NotNull String name, @NotNull ResourceKey<Level> dimension, @NotNull SecretRealm realm,
                            int half, int core) {
 
     public static final int SUMMIT_RADIUS = 8;
-    public static final BlissfulLand FOX_IMMORTAL = new BlissfulLand("fox_immortal_blissful_land",
-            ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND, SoulsunderMountain.INSTANCE, 612, 32);
+    public static final BlissfulLand FOX_IMMORTAL = new BlissfulLand("fox_immortal",
+            ModDimensions.BLISSFUL_LAND_FOX_IMMORTAL, SoulsunderMountain.INSTANCE, 612, 32);
     public static final List<BlissfulLand> ALL = List.of(FOX_IMMORTAL);
 
-    public @NotNull String nameKey() { return "guzhenren.blissful_land." + id; }
+    public @NotNull String id() { return "blissful_land_" + name; }
+
+    public @NotNull String nameKey() { return "guzhenren.blissful_land." + name; }
 
     public @NotNull Territory wholeTerritory() { return Territory.whole(half, core); }
 }

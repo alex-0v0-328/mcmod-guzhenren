@@ -90,7 +90,7 @@ public final class SoulsunderMountain implements SecretRealm {
     private SoulsunderMountain() {}
 
     @Override
-    public @NotNull ResourceKey<Level> dimension() { return ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND; }
+    public @NotNull ResourceKey<Level> dimension() { return ModDimensions.BLISSFUL_LAND_FOX_IMMORTAL; }
 
     @Override
     public @NotNull ResourceKey<StructureSet> structureSet() { return STRUCTURE_SET; }

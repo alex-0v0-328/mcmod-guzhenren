@@ -58,28 +58,28 @@ class ModDimensionsTest {
         assertEquals("guworld:western_desert", ModDimensions.WESTERN_DESERT.location().toString());
         assertEquals("guworld:eastern_sea", ModDimensions.EASTERN_SEA.location().toString());
         assertEquals("guworld:northern_plains", ModDimensions.NORTHERN_PLAINS.location().toString());
-        assertEquals("guworld:fox_immortal_blissful_land",
-                ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND.location().toString());
+        assertEquals("guworld:blissful_land_fox_immortal",
+                ModDimensions.BLISSFUL_LAND_FOX_IMMORTAL.location().toString());
     }
 
     @Test
     @DisplayName("the Fox Immortal Blissful Land lands on foot 160 blocks south of the mountain centre, rank 6")
-    void anchoredDimensionsPinTheFoxImmortalBlissfulLand() {
+    void anchoredDimensionsPinTheBlissfulLandFoxImmortal() {
         ModDimensions.AnchoredDimension entry =
-                ModDimensions.ANCHORED_DIMENSIONS.get(ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND);
+                ModDimensions.ANCHORED_DIMENSIONS.get(ModDimensions.BLISSFUL_LAND_FOX_IMMORTAL);
         assertNotNull(entry);
         assertEquals(0.5, entry.spawn().x);
         assertEquals(160.5, entry.spawn().z);
         assertEquals(ModDimensions.Arrival.REALM, entry.arrival());
         assertEquals(6, entry.rank());
-        assertFalse(ModDimensions.isFlightGranted(ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND));
+        assertFalse(ModDimensions.isFlightGranted(ModDimensions.BLISSFUL_LAND_FOX_IMMORTAL));
     }
 
     @Test
     @DisplayName("anyone inside Treasure Yellow Heaven or the Fox land may exit by themself; the regions stay admin-only")
     void selfExitDimensions() {
         assertTrue(ModDimensions.allowsSelfExit(ModDimensions.TREASURE_YELLOW_HEAVEN));
-        assertTrue(ModDimensions.allowsSelfExit(ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND));
+        assertTrue(ModDimensions.allowsSelfExit(ModDimensions.BLISSFUL_LAND_FOX_IMMORTAL));
         assertFalse(ModDimensions.allowsSelfExit(ModDimensions.SOUTHERN_BORDER));
         assertFalse(ModDimensions.allowsSelfExit(Level.OVERWORLD));
     }

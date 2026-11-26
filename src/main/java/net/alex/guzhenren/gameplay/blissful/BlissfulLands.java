@@ -67,7 +67,7 @@ public final class BlissfulLands {
     }
 
     public static @NotNull EntityType<EarthSpiritEntity> spiritType(@NotNull BlissfulLand land) {
-        return ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get();
+        return ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get();
     }
 
     //region Ownership [认主与失主]

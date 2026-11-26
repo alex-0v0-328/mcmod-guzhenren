@@ -144,7 +144,7 @@ public final class BlissfulPanelGameTests {
         ServerLevel level = helper.getLevel();
         BlissfulLandData data = BlissfulLandData.get(level.getServer(), BlissfulLand.FOX_IMMORTAL);
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-page-mock").onGround();
-        EarthSpiritEntity spirit = helper.spawn(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get(),
+        EarthSpiritEntity spirit = helper.spawn(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get(),
                 CENTER_POS.offset(1, 0, 1));
         try {
             MemberService.claim(null, data, owner);

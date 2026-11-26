@@ -451,7 +451,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.dissolved_outside_soulsunder",         "胆识蛊离开荡魂山，消散了");
         add("guzhenren.place.kind.secret_realm",                      "天地秘境");
         add("guzhenren.place.soulsunder_mountain",                    "荡魂山");
-        add("guzhenren.blissful_land.fox_immortal_blissful_land",     "狐仙福地");
+        add("guzhenren.blissful_land.fox_immortal",                   "狐仙福地");
         add("guzhenren.blissful_land.claimed",                        "【福地易主】%s · %s");
         add("guzhenren.blissful_land.lost",                           "你失去了%s");
         add("guzhenren.blissful_land.expelled",                       "你被请出了%s");
@@ -746,7 +746,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("entity.guzhenren.charging_crash_gu_4_entity", "四转横冲直撞蛊");
         add("entity.guzhenren.charging_crash_gu_5_entity", "五转横冲直撞蛊");
         add("entity.guzhenren.test_trade_gu_immortal",     "测试交易蛊仙");
-        add("entity.guzhenren.earth_spirit_fox_immortal_blissful_land", "狐仙福地地灵");
+        add("entity.guzhenren.earth_spirit_blissful_land_fox_immortal", "狐仙福地地灵");
         add("entity.guzhenren.moon_blade",                 "月刃");
         add("entity.guzhenren.qi_wave",                    "气波");
         add("entity.guzhenren.beast_charge",               "兽力冲击");

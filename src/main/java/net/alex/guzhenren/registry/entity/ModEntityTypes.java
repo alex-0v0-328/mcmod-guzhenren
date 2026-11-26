@@ -146,7 +146,7 @@ public final class ModEntityTypes {
 
     //region Earth spirits [地灵]
     public static final DeferredHolder<EntityType<?>, EntityType<EarthSpiritEntity>>
-            EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND = registerEarthSpirit(BlissfulLand.FOX_IMMORTAL);
+            EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL = registerEarthSpirit(BlissfulLand.FOX_IMMORTAL);
     //endregion
 
     //region Projectiles [投射物]

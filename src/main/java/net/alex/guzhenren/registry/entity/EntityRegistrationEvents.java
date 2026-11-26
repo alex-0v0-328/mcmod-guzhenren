@@ -68,7 +68,7 @@ public final class EntityRegistrationEvents {
         event.put(ModEntityTypes.ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(ModEntityTypes.WHITE_ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(), StationaryNpc.createAttributes().build());
-        event.put(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get(),
+        event.put(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get(),
                 StationaryNpc.createAttributes().build());
     }
 

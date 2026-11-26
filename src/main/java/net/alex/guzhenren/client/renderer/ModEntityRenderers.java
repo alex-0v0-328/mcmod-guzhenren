@@ -122,7 +122,7 @@ public final class ModEntityRenderers {
         event.registerEntityRenderer(ModEntityTypes.BEAST_PHANTOM.get(), BeastPhantomRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.TEST_TRADE_GU_IMMORTAL.get(),
                 context -> new HumanSoulGeoRenderer<>(context, SOUL_TRADER_MODEL, HumanSoulGeoRenderer.BLUE_TEXTURE));
-        event.registerEntityRenderer(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get(),
+        event.registerEntityRenderer(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get(),
                 context -> new HumanSoulGeoRenderer<>(context, EARTH_SPIRIT_MODEL, HumanSoulGeoRenderer.PINK_TEXTURE));
         event.registerEntityRenderer(ModEntityTypes.MOON_BLADE.get(), MoonBladeRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.QI_WAVE.get(), NoopRenderer::new);

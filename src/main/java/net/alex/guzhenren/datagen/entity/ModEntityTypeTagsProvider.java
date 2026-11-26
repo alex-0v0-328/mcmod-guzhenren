@@ -44,6 +44,6 @@ public class ModEntityTypeTagsProvider extends EntityTypeTagsProvider {
                 ModEntityTypes.CHARGING_CRASH_GU_4_ENTITY.get(),
                 ModEntityTypes.CHARGING_CRASH_GU_5_ENTITY.get());
         tag(ModEntityTypeTags.SOULSUNDER_IMMUNE).add(EntityType.ARMOR_STAND)
-                .add(ModEntityTypes.EARTH_SPIRIT_FOX_IMMORTAL_BLISSFUL_LAND.get());
+                .add(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get());
     }
 }

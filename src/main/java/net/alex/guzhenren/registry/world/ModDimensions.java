@@ -42,9 +42,9 @@ public final class ModDimensions {
     public static final ResourceKey<Level> WESTERN_DESERT = createGuWorldLevel("western_desert");
     public static final ResourceKey<Level> EASTERN_SEA = createGuWorldLevel("eastern_sea");
     public static final ResourceKey<Level> NORTHERN_PLAINS = createGuWorldLevel("northern_plains");
-    public static final ResourceKey<Level> FOX_IMMORTAL_BLISSFUL_LAND =
-            createGuWorldLevel("fox_immortal_blissful_land");
-    public static final Vec3 FOX_IMMORTAL_BLISSFUL_LAND_SPAWN = new Vec3(0.5, 0.0, 160.5);
+    public static final ResourceKey<Level> BLISSFUL_LAND_FOX_IMMORTAL =
+            createGuWorldLevel("blissful_land_fox_immortal");
+    public static final Vec3 BLISSFUL_LAND_FOX_IMMORTAL_SPAWN = new Vec3(0.5, 0.0, 160.5);
     private static final Vec3 REGION_ORIGIN = new Vec3(0.5, 0.0, 0.5);
 
     public enum Arrival { FLIGHT, SURFACE, REALM }
@@ -58,15 +58,15 @@ public final class ModDimensions {
             WESTERN_DESERT, new AnchoredDimension(WESTERN_DESERT, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
             EASTERN_SEA, new AnchoredDimension(EASTERN_SEA, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
             NORTHERN_PLAINS, new AnchoredDimension(NORTHERN_PLAINS, REGION_ORIGIN, Arrival.SURFACE, 0, 1.0),
-            FOX_IMMORTAL_BLISSFUL_LAND, new AnchoredDimension(FOX_IMMORTAL_BLISSFUL_LAND,
-                    FOX_IMMORTAL_BLISSFUL_LAND_SPAWN, Arrival.REALM, 6, 1.0));
+            BLISSFUL_LAND_FOX_IMMORTAL, new AnchoredDimension(BLISSFUL_LAND_FOX_IMMORTAL,
+                    BLISSFUL_LAND_FOX_IMMORTAL_SPAWN, Arrival.REALM, 6, 1.0));
 
     private static ResourceKey<Level> createGuWorldLevel(String path) {
         return ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("guworld", path));
     }
 
     public static boolean allowsSelfExit(ResourceKey<Level> level) {
-        return level == TREASURE_YELLOW_HEAVEN || level == FOX_IMMORTAL_BLISSFUL_LAND;
+        return level == TREASURE_YELLOW_HEAVEN || level == BLISSFUL_LAND_FOX_IMMORTAL;
     }
 
     public static boolean isFlightGranted(ResourceKey<Level> level) {
