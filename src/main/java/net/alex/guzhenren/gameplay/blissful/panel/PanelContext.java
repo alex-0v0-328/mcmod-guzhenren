@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.blissful.panel;
 
 import java.util.UUID;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
 import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 

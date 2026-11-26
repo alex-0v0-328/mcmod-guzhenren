@@ -12,16 +12,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
 import net.alex.guzhenren.gameplay.blissful.LandModules;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
 import net.alex.guzhenren.gameplay.blissful.gu.GuModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
-import net.alex.guzhenren.gameplay.blissful.member.MemberService;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.land.Members;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.member.OverviewModule;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainModule;
 import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
@@ -33,11 +34,10 @@ import net.alex.guzhenren.gameplay.blissful.panel.PanelActions;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSnapshot;
 import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
-import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser;
 import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser.Sort;
+import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser;
 import net.alex.guzhenren.gameplay.blissful.storage.StorageModule;
 import net.alex.guzhenren.gameplay.blissful.storage.StorageWork;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.alex.guzhenren.gameplay.blissful.territory.TerritoryModule;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.core.component.DataComponents;
@@ -147,7 +147,7 @@ public final class BlissfulPanelGameTests {
         EarthSpiritEntity spirit = helper.spawn(ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get(),
                 CENTER_POS.offset(1, 0, 1));
         try {
-            MemberService.claim(null, data, owner);
+            Members.claim(null, data, owner);
             EarthSpiritMenu menu = new EarthSpiritMenu(1, owner.getInventory(), spirit,
                     EarthSpiritPanel.snapshot(level, data, owner.getUUID(), EarthSpiritPanel.lastPage(owner),
                             Component.empty()));
@@ -165,7 +165,7 @@ public final class BlissfulPanelGameTests {
             EarthSpiritPanel.remember(owner, Page.MAP);
             StorageBrowser.forget(owner.getUUID());
             owner.containerMenu = owner.inventoryMenu;
-            MemberService.lose(level.getServer(), null, data);
+            Members.lose(level.getServer(), null, data);
         }
     }
 
@@ -330,10 +330,10 @@ public final class BlissfulPanelGameTests {
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         ServerPlayer guest = GameTestPlayers.survival(helper, "gzr-land-name-mock").onGround();
 
-        helper.assertTrue(MemberService.addWhitelist(helper.getLevel().getServer(), data, "gzr-land-name-mock"),
+        helper.assertTrue(Members.addWhitelist(helper.getLevel().getServer(), data, "gzr-land-name-mock"),
                 "an online name is listed");
         helper.assertTrue(data.isWhitelisted(guest.getUUID()), "by that player's UUID");
-        helper.assertFalse(MemberService.addWhitelist(helper.getLevel().getServer(), data, "gzrNeverSeenMock"),
+        helper.assertFalse(Members.addWhitelist(helper.getLevel().getServer(), data, "gzrNeverSeenMock"),
                 "a name nobody online carries is refused, with no lookup");
         helper.succeed();
     }

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;

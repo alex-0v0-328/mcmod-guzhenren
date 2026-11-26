@@ -2,8 +2,8 @@ package net.alex.guzhenren.client.screen.blissful.map;
 
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.blissful.PanelKit;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.map.MapView;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.minecraft.client.gui.GuiGraphics;
 import org.jetbrains.annotations.Nullable;
 

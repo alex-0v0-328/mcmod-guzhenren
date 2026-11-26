@@ -1,6 +1,6 @@
 package net.alex.guzhenren.gameplay.blissful.panel;
 
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;

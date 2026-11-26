@@ -5,20 +5,19 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
-import net.alex.guzhenren.gameplay.blissful.LandCensus;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
-import net.alex.guzhenren.gameplay.blissful.LandSite;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
 import net.alex.guzhenren.gameplay.blissful.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
-import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.LandCensus;
+import net.alex.guzhenren.gameplay.blissful.land.LandSite;
+import net.alex.guzhenren.gameplay.blissful.land.Lands;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelContext;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.alex.guzhenren.gameplay.blissful.territory.TerritoryModule;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
@@ -128,7 +127,7 @@ public final class MapModule implements LandModule<MapModule.Section> {
     public @NotNull Section section(@NotNull PanelContext context) {
         ServerLevel level = context.level();
         BlissfulLandData data = context.data();
-        LandSite site = BlissfulLands.siteOf(level.getServer(), data.land());
+        LandSite site = Lands.siteOf(level.getServer(), data.land());
         RealmSite realm = SecretRealms.siteOf(level.getServer(), data.land().realm());
         List<Section.Field> fields = new ArrayList<>();
         for (FieldPlot field : data.farm().fields()) {

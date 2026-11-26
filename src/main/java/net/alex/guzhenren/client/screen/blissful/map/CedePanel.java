@@ -4,7 +4,7 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.blissful.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.blissful.PanelKit;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.territory.TerritoryModule;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

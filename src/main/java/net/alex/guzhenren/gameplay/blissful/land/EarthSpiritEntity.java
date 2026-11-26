@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful;
+package net.alex.guzhenren.gameplay.blissful.land;
 
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.npc.StationaryNpc;
@@ -22,7 +22,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *   <li>每个福地一个实体类型（ID = {@code earth_spirit_} + 福地 ID），构造时绑定所属 {@link BlissfulLand}；右键交给
  *       {@link EarthSpiritPanel#open}：主人打开面板，别人只看到认主条件或主人名字。</li>
  *   <li>原地不动、只受绕过无敌的伤害，见 {@link StationaryNpc}；不做手势。荡魂山震荡靠实体标签
- *       {@code guzhenren:soulsunder_immune} 豁免。丢失由 {@link BlissfulLands} 在行宫区块加载时补生成，本类不自己复活。
+ *       {@code guzhenren:soulsunder_immune} 豁免。丢失由 {@code BlissfulLands} 在行宫区块加载时补生成，本类不自己复活。
  *       </li>
  *   <li>GeckoLib 共用 {@code human_soul} 模型与动画：平时循环 {@code animation.idle}，死亡保持
  *       {@code animation.disappear} {@value #DISAPPEAR_TICKS} 刻后移除。</li>

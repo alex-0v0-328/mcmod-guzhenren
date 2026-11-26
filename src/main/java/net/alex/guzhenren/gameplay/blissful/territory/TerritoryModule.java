@@ -2,8 +2,9 @@ package net.alex.guzhenren.gameplay.blissful.territory;
 
 import java.util.List;
 import java.util.Locale;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;

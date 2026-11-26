@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.blissful;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
 import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
+import net.alex.guzhenren.gameplay.blissful.land.LandCensus;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderShakeEvent;

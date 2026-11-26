@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful.territory;
+package net.alex.guzhenren.gameplay.blissful.land;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;

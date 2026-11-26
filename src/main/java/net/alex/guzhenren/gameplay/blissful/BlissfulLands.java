@@ -4,7 +4,13 @@ import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.farm.FieldPlans;
-import net.alex.guzhenren.gameplay.blissful.member.MemberService;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.land.LandCensus;
+import net.alex.guzhenren.gameplay.blissful.land.LandSite;
+import net.alex.guzhenren.gameplay.blissful.land.Lands;
+import net.alex.guzhenren.gameplay.blissful.land.Members;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
@@ -12,17 +18,14 @@ import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
-import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
@@ -31,9 +34,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 福地[Blissful Land]的调度入口：认主与失主时机、地灵补生成、托管轮、割弃区块清空、虚空拉回、免震荡判定。
  * <ul>
- *   <li>⚠ 福地维度不存在（没装 Gu World）时 {@link #level} 为空，以下全部不做；存档照存，装回后恢复。</li>
- *   <li>落位：{@link #siteOf} 由秘境山心推出山巅、行宫与入口（{@link LandSite}）；秘境未解出时为空，认主与地灵补生都
- *       不做。</li>
+ *   <li>⚠ 福地维度不存在（没装 Gu World）时 {@link Lands#level} 为空，以下全部不做；秘境未解出时
+ *       {@link Lands#siteOf} 为空，认主与地灵补生都不做。</li>
  *   <li>认主：{@link #tickPlayer} 挂在 {@code Heartbeat}（每秒），玩家在福地维度、福地无主且秘境山心已解出时判定。</li>
  *   <li>失主：{@link #onDeath} 在任何维度死亡时（「死亡不掉落」开着就不算），{@link #onReset} 在角色重置时（非保留死亡
  *       的克隆也会走重置，重复失主无副作用）。</li>
@@ -55,30 +57,15 @@ public final class BlissfulLands {
     public static final int HOSTING_TICKS = 60 * Ticks.SECOND;
     public static final int SPIRIT_SEARCH = 16;
 
-    public static @Nullable ServerLevel level(@NotNull MinecraftServer server, @NotNull BlissfulLand land) {
-        return server.getLevel(land.dimension());
-    }
-
-    public static @Nullable BlissfulLand landOf(@NotNull Level level) {
-        for (BlissfulLand land : BlissfulLand.ALL) {
-            if (land.dimension() == level.dimension()) return land;
-        }
-        return null;
-    }
-
-    public static @NotNull EntityType<EarthSpiritEntity> spiritType(@NotNull BlissfulLand land) {
-        return ModEntityTypes.EARTH_SPIRIT_BLISSFUL_LAND_FOX_IMMORTAL.get();
-    }
-
     //region Ownership [认主与失主]
     public static void tickPlayer(@NotNull ServerPlayer player) {
-        BlissfulLand land = landOf(player.level());
+        BlissfulLand land = Lands.landOf(player.level());
         if (land == null) return;
 
         BlissfulLandData data = BlissfulLandData.get(player.server, land);
         RealmSite realm = SecretRealms.siteOf(player.server, land.realm());
         if (realm != null) {
-            MemberService.tryClaim(player.serverLevel(), data, realm, siteOf(realm, land).summitY(), player);
+            Members.tryClaim(player.serverLevel(), data, realm, Lands.siteOf(realm, land).summitY(), player);
         }
     }
 
@@ -93,21 +80,12 @@ public final class BlissfulLands {
         for (BlissfulLand land : BlissfulLand.ALL) {
             BlissfulLandData data = BlissfulLandData.get(player.server, land);
             if (!data.isOwner(player.getUUID())) continue;
-            MemberService.lose(player.server, level(player.server, land), data);
+            Members.lose(player.server, Lands.level(player.server, land), data);
         }
     }
 
-    public static @Nullable LandSite siteOf(@NotNull MinecraftServer server, @NotNull BlissfulLand land) {
-        RealmSite realm = SecretRealms.siteOf(server, land.realm());
-        return realm == null ? null : siteOf(realm, land);
-    }
-
-    private static LandSite siteOf(RealmSite realm, BlissfulLand land) {
-        return LandSite.of(realm, land.realm().summitRise());
-    }
-
     public static @Nullable BlissfulStorage storageHere(@NotNull ServerPlayer player) {
-        BlissfulLand land = landOf(player.level());
+        BlissfulLand land = Lands.landOf(player.level());
         if (land == null) return null;
 
         BlissfulLandData data = BlissfulLandData.get(player.server, land);
@@ -115,8 +93,8 @@ public final class BlissfulLands {
     }
 
     public static boolean isExempt(@NotNull ServerPlayer player) {
-        BlissfulLand land = landOf(player.level());
-        return land != null && MemberService.isExempt(BlissfulLandData.get(player.server, land), player);
+        BlissfulLand land = Lands.landOf(player.level());
+        return land != null && Members.isExempt(BlissfulLandData.get(player.server, land), player);
     }
     //endregion
 
@@ -124,7 +102,7 @@ public final class BlissfulLands {
     public static void tickServer(@NotNull MinecraftServer server) {
         int tick = server.getTickCount();
         for (BlissfulLand land : BlissfulLand.ALL) {
-            ServerLevel level = level(server, land);
+            ServerLevel level = Lands.level(server, land);
             if (level == null) continue;
 
             TerritoryWork.tick(level);
@@ -157,7 +135,7 @@ public final class BlissfulLands {
 
     public static void keepSpirit(@NotNull ServerLevel level, @NotNull BlissfulLand land,
                                   @NotNull BlissfulLandData data) {
-        LandSite site = siteOf(level.getServer(), land);
+        LandSite site = Lands.siteOf(level.getServer(), land);
         if (site == null) return;
         BlockPos palace = site.palace();
         if (!level.isLoaded(palace) || !level.areEntitiesLoaded(ChunkPos.asLong(palace))) return;
@@ -171,7 +149,7 @@ public final class BlissfulLands {
             for (int i = 1; i < found.size(); i++) found.get(i).discard();
             return;
         }
-        EarthSpiritEntity spirit = spiritType(land).create(level);
+        EarthSpiritEntity spirit = land.spirit().get().create(level);
         if (spirit == null) return;
         spirit.moveTo(palace.getX() + 0.5D, palace.getY(), palace.getZ() + 0.5D, 0.0F, 0.0F);
         level.addFreshEntity(spirit);
@@ -179,13 +157,13 @@ public final class BlissfulLands {
     }
 
     public static void onChunkLoad(@NotNull ServerLevel level, @NotNull LevelChunk chunk) {
-        BlissfulLand land = landOf(level);
+        BlissfulLand land = Lands.landOf(level);
         if (land == null) return;
         TerritoryWork.onChunkLoad(level, BlissfulLandData.get(level.getServer(), land).territory(), chunk);
     }
 
     public static void tickPlayerFast(@NotNull ServerPlayer player) {
-        if (landOf(player.level()) == null || player.getY() >= player.level().getMinBuildHeight()) return;
+        if (Lands.landOf(player.level()) == null || player.getY() >= player.level().getMinBuildHeight()) return;
 
         ModDimensions.AnchoredDimension anchor = ModDimensions.ANCHORED_DIMENSIONS.get(player.level().dimension());
         if (anchor == null) return;

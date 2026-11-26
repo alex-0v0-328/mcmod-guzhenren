@@ -3,9 +3,9 @@ package net.alex.guzhenren.gameplay.blissful.mountain;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
-import net.alex.guzhenren.gameplay.blissful.member.MemberService;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.Members;
 import net.alex.guzhenren.gameplay.blissful.member.Person;
 import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
@@ -97,7 +97,7 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
         public @NotNull Component perform(@NotNull ActionContext context) {
             String name = this.name.strip();
             if (name.isEmpty()) return Component.empty();
-            return MemberService.addWhitelist(context.player().server, context.data(), name)
+            return Members.addWhitelist(context.player().server, context.data(), name)
                     ? EarthSpiritPanel.notice("whitelist_added", name)
                     : EarthSpiritPanel.notice("player_not_found", name);
         }

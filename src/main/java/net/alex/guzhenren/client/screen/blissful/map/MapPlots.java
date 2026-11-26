@@ -1,7 +1,7 @@
 package net.alex.guzhenren.client.screen.blissful.map;
 
 import java.util.List;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import org.jetbrains.annotations.Nullable;
 
 /**

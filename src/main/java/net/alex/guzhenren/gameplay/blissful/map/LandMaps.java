@@ -10,10 +10,10 @@ import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.land.Lands;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -119,7 +119,7 @@ public final class LandMaps {
             byLand.computeIfAbsent(viewer.land, land -> new ArrayList<>()).add(viewer);
         }
         for (Map.Entry<BlissfulLand, List<MapViewer>> entry : byLand.entrySet()) {
-            ServerLevel level = BlissfulLands.level(server, entry.getKey());
+            ServerLevel level = Lands.level(server, entry.getKey());
             if (level != null) tickLand(server, level, entry.getKey(), entry.getValue(), now);
         }
     }
@@ -164,7 +164,7 @@ public final class LandMaps {
                 || !(event.getChunk() instanceof LevelChunk chunk)) {
             return;
         }
-        BlissfulLand land = BlissfulLands.landOf(level);
+        BlissfulLand land = Lands.landOf(level);
         LandMap map = land == null ? null : MAPS.get(land);
         if (map == null) return;
 

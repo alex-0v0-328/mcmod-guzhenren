@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.blissful.map;
 
 import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;

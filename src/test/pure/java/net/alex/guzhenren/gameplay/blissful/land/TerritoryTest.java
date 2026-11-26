@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.blissful.territory;
+package net.alex.guzhenren.gameplay.blissful.land;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

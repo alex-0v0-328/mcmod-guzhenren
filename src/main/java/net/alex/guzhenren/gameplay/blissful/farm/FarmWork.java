@@ -7,9 +7,9 @@ import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.Lands;
 import net.alex.guzhenren.gameplay.blissful.map.MapScanner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -303,7 +303,7 @@ public final class FarmWork {
     }
 
     private static void validateTickets(ServerLevel level, TicketHelper tickets) {
-        BlissfulLand land = BlissfulLands.landOf(level);
+        BlissfulLand land = Lands.landOf(level);
         if (land != null && BlissfulLandData.get(level.getServer(), land).hasOwner()) return;
         for (BlockPos owner : List.copyOf(tickets.getBlockTickets().keySet())) tickets.removeAllTickets(owner);
     }

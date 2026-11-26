@@ -6,21 +6,21 @@ import java.util.Map;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.blissful.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
-import net.alex.guzhenren.gameplay.blissful.member.MemberService;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.land.Members;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;
 import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.blissful.storage.StorageModule;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
@@ -90,18 +90,18 @@ public final class BlissfulLandGameTests {
                 .at(new Vec3(4.5D, 2.0D, 4.5D));
         ServerPlayer second = GameTestPlayers.survival(helper, "gzr-land-second-mock").at(new Vec3(4.5D, 2.0D, 4.5D));
 
-        helper.assertFalse(MemberService.tryClaim(helper.getLevel(), data, site, summitY, below),
+        helper.assertFalse(Members.tryClaim(helper.getLevel(), data, site, summitY, below),
                 "standing on the ground below the summit claims nothing");
-        helper.assertTrue(MemberService.tryClaim(helper.getLevel(), data, site, summitY, first),
+        helper.assertTrue(Members.tryClaim(helper.getLevel(), data, site, summitY, first),
                 "the first player on the top soulsunder stone claims the land");
         helper.assertTrue(data.isOwner(first.getUUID()), "the first player owns it");
         helper.assertTrue(data.isWhitelisted(first.getUUID()), "the owner starts on the whitelist");
-        helper.assertTrue(GameTestPlayers.messages(inbox, MemberService.MSG_CLAIMED).isEmpty(),
+        helper.assertTrue(GameTestPlayers.messages(inbox, Members.MSG_CLAIMED).isEmpty(),
                 "the owner gets no message of their own besides the broadcast");
-        Component told = MemberService.claimedMessage(data, first);
+        Component told = Members.claimedMessage(data, first);
         TextColor white = TextColor.fromLegacyFormat(ChatFormatting.WHITE);
         helper.assertTrue(told.getContents() instanceof TranslatableContents contents
-                        && contents.getKey().equals(MemberService.MSG_CLAIMED) && contents.getArgs().length == 2
+                        && contents.getKey().equals(Members.MSG_CLAIMED) && contents.getArgs().length == 2
                         && contents.getArgs()[0] instanceof Component land
                         && land.getContents() instanceof TranslatableContents landKey
                         && landKey.getKey().equals(BlissfulLand.FOX_IMMORTAL.nameKey())
@@ -111,7 +111,7 @@ public final class BlissfulLandGameTests {
                 "the broadcast names the land and the new owner in white");
         helper.assertTrue(told.getStyle().getColor() == TextColor.fromLegacyFormat(ChatFormatting.GOLD),
                 "the broadcast tag is gold");
-        helper.assertFalse(MemberService.tryClaim(helper.getLevel(), data, site, summitY, second),
+        helper.assertFalse(Members.tryClaim(helper.getLevel(), data, site, summitY, second),
                 "a claimed land cannot be claimed again");
         helper.assertTrue(data.isOwner(first.getUUID()), "the first owner stays");
         helper.succeed();
@@ -124,7 +124,7 @@ public final class BlissfulLandGameTests {
         BlissfulLandData data = BlissfulLandData.get(helper.getLevel().getServer(), BlissfulLand.FOX_IMMORTAL);
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-death-mock").onGround();
         try {
-            MemberService.claim(null, data, owner);
+            Members.claim(null, data, owner);
             data.storage().insert(new ItemStack(Items.WHEAT, 5));
             data.herd().setHosted(HerdWork.typeId(owner), true);
 
@@ -142,7 +142,7 @@ public final class BlissfulLandGameTests {
             helper.succeed();
         } finally {
             keep.set(before, helper.getLevel().getServer());
-            MemberService.lose(helper.getLevel().getServer(), null, data);
+            Members.lose(helper.getLevel().getServer(), null, data);
             data.storage().consume(stack -> true, Integer.MAX_VALUE);
         }
     }
@@ -152,12 +152,12 @@ public final class BlissfulLandGameTests {
         BlissfulLandData data = BlissfulLandData.get(helper.getLevel().getServer(), BlissfulLand.FOX_IMMORTAL);
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-reset-mock").onGround();
         try {
-            MemberService.claim(null, data, owner);
+            Members.claim(null, data, owner);
             PlayerDataService.resetAll(owner);
             helper.assertFalse(data.hasOwner(), "a character reset loses the land");
             helper.succeed();
         } finally {
-            MemberService.lose(helper.getLevel().getServer(), null, data);
+            Members.lose(helper.getLevel().getServer(), null, data);
         }
     }
 
@@ -168,22 +168,22 @@ public final class BlissfulLandGameTests {
         ServerPlayer guest = GameTestPlayers.survival(helper, "gzr-land-guest-mock").at(new Vec3(2.5D, 1.0D, 2.5D));
         ServerPlayer stranger = GameTestPlayers.survival(helper, "gzr-land-stranger-mock")
                 .at(new Vec3(6.5D, 1.0D, 6.5D));
-        MemberService.claim(null, data, owner);
-        helper.assertTrue(MemberService.isExempt(data, owner), "the owner is exempt by default");
-        helper.assertTrue(MemberService.setWhitelisted(helper.getLevel().getServer(), data, guest.getUUID(),
+        Members.claim(null, data, owner);
+        helper.assertTrue(Members.isExempt(data, owner), "the owner is exempt by default");
+        helper.assertTrue(Members.setWhitelisted(helper.getLevel().getServer(), data, guest.getUUID(),
                 true), "an online guest can be listed");
-        helper.assertTrue(MemberService.isExempt(data, guest), "a listed guest is exempt");
-        helper.assertFalse(MemberService.isExempt(data, stranger), "a stranger is not");
+        helper.assertTrue(Members.isExempt(data, guest), "a listed guest is exempt");
+        helper.assertFalse(Members.isExempt(data, stranger), "a stranger is not");
         data.removeWhitelist(owner.getUUID());
-        helper.assertFalse(MemberService.isExempt(data, owner), "the owner can take themself off the list");
+        helper.assertFalse(Members.isExempt(data, owner), "the owner can take themself off the list");
 
         Vec3 guestAt = guest.position();
         Vec3 strangerAt = stranger.position();
-        int expelled = MemberService.expelOutsiders(List.of(owner, guest, stranger), data);
+        int expelled = Members.expelOutsiders(List.of(owner, guest, stranger), data);
         helper.assertValueEqual(expelled, 1, "only the stranger is expelled");
         helper.assertTrue(guest.position().equals(guestAt), "a listed guest stays");
         helper.assertFalse(stranger.position().equals(strangerAt), "the stranger is sent back");
-        helper.assertFalse(MemberService.expel(helper.getLevel(), data, owner.getUUID()),
+        helper.assertFalse(Members.expel(helper.getLevel(), data, owner.getUUID()),
                 "the owner cannot be expelled");
         helper.succeed();
     }
@@ -333,7 +333,7 @@ public final class BlissfulLandGameTests {
         ChunkPos at = pig.chunkPosition();
         int half = Math.max(Math.abs(at.x), Math.abs(at.z)) + 4;
         BlissfulLand land = new BlissfulLand("gametest_land", level.dimension(), SoulsunderMountain.INSTANCE, half,
-                0);
+                0, BlissfulLand.FOX_IMMORTAL.entry(), BlissfulLand.FOX_IMMORTAL.spirit());
         BlissfulLandData data = BlissfulLandData.create(land);
         Territory.Side side = at.x >= 0 ? Territory.Side.EAST : Territory.Side.WEST;
         int width = at.x >= 0 ? half - at.x : at.x + half + 1;
@@ -375,7 +375,7 @@ public final class BlissfulLandGameTests {
         EarthSpiritEntity spirit = spawnSpirit(helper);
         ResourceLocation cowId = BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.COW);
         try {
-            MemberService.claim(null, data, owner);
+            Members.claim(null, data, owner);
             stranger.containerMenu = openPanel(level, data, stranger, spirit);
             EarthSpiritPanel.handle(stranger, new HerdModule.SetKeep(cowId, 5));
             helper.assertValueEqual(data.herd().keep(cowId), 0, "a stranger's forged panel is refused");
@@ -392,7 +392,7 @@ public final class BlissfulLandGameTests {
             owner.containerMenu = owner.inventoryMenu;
             stranger.containerMenu = stranger.inventoryMenu;
             data.herd().setKeep(cowId, 0);
-            MemberService.lose(level.getServer(), null, data);
+            Members.lose(level.getServer(), null, data);
         }
     }
 
@@ -404,7 +404,7 @@ public final class BlissfulLandGameTests {
         EarthSpiritEntity spirit = spawnSpirit(helper);
         BlissfulStorage storage = data.storage();
         try {
-            MemberService.claim(null, data, owner);
+            Members.claim(null, data, owner);
             EarthSpiritMenu menu = openPanel(level, data, owner, spirit);
             owner.containerMenu = menu;
             storage.insert(new ItemStack(Items.WHEAT, 100));
@@ -447,7 +447,7 @@ public final class BlissfulLandGameTests {
             owner.getAbilities().instabuild = false;
             owner.containerMenu = owner.inventoryMenu;
             storage.consume(stack -> true, Integer.MAX_VALUE);
-            MemberService.lose(level.getServer(), null, data);
+            Members.lose(level.getServer(), null, data);
         }
     }
 

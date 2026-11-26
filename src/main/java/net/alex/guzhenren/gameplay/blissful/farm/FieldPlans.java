@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.blissful.farm;
 
 import java.util.function.Function;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.map.MapModule;
 import net.alex.guzhenren.gameplay.blissful.map.Siting;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;

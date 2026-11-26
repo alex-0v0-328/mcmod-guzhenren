@@ -2,12 +2,12 @@ package net.alex.guzhenren.gametest;
 
 import java.util.UUID;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
 import net.alex.guzhenren.gameplay.blissful.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.blissful.farm.FieldPlot;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -221,7 +221,8 @@ public final class BlissfulFarmGameTests {
         ChunkPos first = plot.chunk();
         int half = Math.max(Math.abs(first.x), Math.abs(first.z)) + 4;
         BlissfulLandData data = BlissfulLandData.create(new BlissfulLand("gametest_land", level.dimension(),
-                SoulsunderMountain.INSTANCE, half, 0));
+                SoulsunderMountain.INSTANCE, half, 0, BlissfulLand.FOX_IMMORTAL.entry(),
+                BlissfulLand.FOX_IMMORTAL.spirit()));
         ChunkPos second = new ChunkPos(first.x + 1, first.z);
         data.farm().addPlan(first.toLong());
         data.farm().addPlan(second.toLong());

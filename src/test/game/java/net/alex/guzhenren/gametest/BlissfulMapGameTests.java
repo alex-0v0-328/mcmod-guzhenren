@@ -1,10 +1,10 @@
 package net.alex.guzhenren.gametest;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.alex.guzhenren.gameplay.blissful.map.MapScanner;
 import net.alex.guzhenren.gameplay.blissful.map.MapTerrain;
 import net.alex.guzhenren.gameplay.blissful.map.MapTile;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;

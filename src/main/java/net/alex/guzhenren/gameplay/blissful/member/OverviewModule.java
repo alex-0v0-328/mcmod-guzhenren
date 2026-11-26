@@ -3,10 +3,11 @@ package net.alex.guzhenren.gameplay.blissful.member;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
-import net.alex.guzhenren.gameplay.blissful.LandCensus;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.land.LandCensus;
+import net.alex.guzhenren.gameplay.blissful.land.Members;
 import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * 「总览」页模块：亩数、胆石、动物、作物四个数，在场玩家（白名单开关、驱逐），「驱逐外人」。
  * <ul>
  *   <li>动物、作物取 {@link LandCensus} 的同刻清点；作物数 = 成熟 + 未熟。</li>
- *   <li>白名单与荡魂山页是同一份；规则在 {@link MemberService}。</li>
+ *   <li>白名单与荡魂山页是同一份；规则在 {@link Members}。</li>
  * </ul>
  */
 
@@ -63,7 +64,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            return MemberService.expel(context.level(), context.data(), target)
+            return Members.expel(context.level(), context.data(), target)
                     ? EarthSpiritPanel.notice("expelled") : EarthSpiritPanel.notice("expel_failed");
         }
     }
@@ -76,7 +77,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             return EarthSpiritPanel.notice("expelled_outsiders",
-                    MemberService.expelOutsiders(context.level(), context.data()));
+                    Members.expelOutsiders(context.level(), context.data()));
         }
     }
 
@@ -88,7 +89,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            return MemberService.setWhitelisted(context.player().server, context.data(), target, listed)
+            return Members.setWhitelisted(context.player().server, context.data(), target, listed)
                     ? Component.empty() : EarthSpiritPanel.notice("player_offline");
         }
     }

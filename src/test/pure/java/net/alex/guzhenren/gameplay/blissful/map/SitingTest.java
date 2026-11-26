@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.alex.guzhenren.gameplay.blissful.territory.Territory;
+import net.alex.guzhenren.gameplay.blissful.land.Territory;
 import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

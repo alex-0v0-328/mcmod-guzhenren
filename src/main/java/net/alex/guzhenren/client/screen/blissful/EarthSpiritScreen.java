@@ -9,7 +9,7 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.blissful.map.MapPage;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainModule;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;

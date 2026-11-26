@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.land.BlissfulLand;
 import org.jetbrains.annotations.NotNull;
 
 /**

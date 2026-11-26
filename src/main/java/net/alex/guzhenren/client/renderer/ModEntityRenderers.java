@@ -9,7 +9,7 @@ import net.alex.guzhenren.entity.beast.TortoiseEntity;
 import net.alex.guzhenren.entity.beast.WildBoarEntity;
 import net.alex.guzhenren.entity.gu.BoarGuEntity;
 import net.alex.guzhenren.entity.gu.CrashGuEntity;
-import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.land.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.trade.SoulTraderEntity;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
