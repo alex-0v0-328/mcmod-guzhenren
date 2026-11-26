@@ -1,6 +1,5 @@
 package net.alex.guzhenren.gameplay.rewind;
 
-import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** 服务端停止时不得残留的静态恢复状态：排队区块持其世界引用；运行中的生成计数会让下个服务端仍大于零。 */
+/** 停服不得残留的静态恢复状态：运行中的生成计数会让下个服务端仍大于零（批次清空见 ChunkRestoreQueueGameTests）。 */
 
 class ChunkRewindServiceTest {
 
@@ -18,11 +17,9 @@ class ChunkRewindServiceTest {
     @Test
     @DisplayName("clearing on a server stop empties the queue and the generating count")
     void clearEmptiesTheQueueAndTheCount() {
-        ChunkRewindService.enqueue(null, new ChunkPos(0, 0), null);
-        ChunkRewindService.enqueue(null, new ChunkPos(1, 0), null);
         ChunkRewindService.beginGeneration();
-        assertEquals(2, ChunkRewindService.getQueued());
-        assertEquals(1, ChunkRewindService.getGenerating());
+        ChunkRewindService.beginGeneration();
+        assertEquals(2, ChunkRewindService.getGenerating());
 
         ChunkRewindService.clear();
 

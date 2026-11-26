@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>裸地形指仅保留基础地形与地层，不含树木、植被、湖泊、冰雪、矿脉与结构；两只蛊共用本类，按目标 {@link ChunkKind}
  *       区分：山如故仅作用于陆地区块，江如故仅作用于水域区块，玩家脚下所在中心区块属于另一类型时直接拒绝。</li>
  *   <li>催动生效时收集以玩家所在区块为中心 5×5 范围内已加载的同类型区块，交由 {@link ChunkRewindService#rewindAround}
- *       按世界种子重新生成并每服务端 tick 恢复一个区块（范围内的异类邻块静默跳过）；若 {@link ModEvents#canGrief} 禁止
- *       破坏地形（如关闭 {@code mobGriefing}），则在扣费前拒绝。</li>
+ *       按世界种子重新生成，再自中心区块一圈圈向外逐区段恢复，至多 8 秒（范围内的异类邻块静默跳过）；若
+ *       {@link ModEvents#canGrief} 禁止破坏地形（如关闭 {@code mobGriefing}），则在扣费前拒绝。</li>
  * </ul>
  */
 

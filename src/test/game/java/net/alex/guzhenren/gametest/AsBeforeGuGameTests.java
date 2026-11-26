@@ -175,7 +175,7 @@ public final class AsBeforeGuGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 400)
+    @GameTest(template = "empty9x9x9", timeoutTicks = 600)
     public static void mountainGuPutsTheLandBackAsGenerated(GameTestHelper helper) {
         ServerPlayer player = holder(helper);
         ItemStack gu = refined(player, ModItems.MOUNTAIN_AS_BEFORE_GU_5);

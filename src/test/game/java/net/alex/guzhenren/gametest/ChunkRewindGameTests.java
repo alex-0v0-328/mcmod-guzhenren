@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -32,6 +33,8 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  * 山如故[Mountain As Before Gu]、江如故[River As Before Gu]背后的裸地：恢复只写异于原貌的方块并清除放置的箱子，荡魂山
  * 石、胆石连同下方连续支撑原样保留；装饰过滤留岩石重着色，去树、植物、雪、冰、湖、矿石；按种子重生成的区块复原改动地表。
  * 恢复改写整区块会抹掉相邻测试，故都在远离测试网格的区块上跑（{@link #farChunk}：测试以东 {@code slot} × 4096 格），测试期间强制加载、结束释放。
+ * 原貌副本（{@link #copyOf}）逐格复制：原版 {@code PalettedContainer#copy} 与原区块共用调色板扩容回调，向副本写新方块
+ * 会扩容到原区块。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -136,7 +139,7 @@ public final class ChunkRewindGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 400)
+    @GameTest(template = "empty9x9x9", timeoutTicks = 600)
     public static void rewindPutsTheGeneratedSurfaceBack(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         LevelChunk chunk = farChunk(helper, 2);
@@ -156,7 +159,7 @@ public final class ChunkRewindGameTests {
         });
     }
 
-    @GameTest(template = "empty9x9x9", timeoutTicks = 400)
+    @GameTest(template = "empty9x9x9", timeoutTicks = 600)
     public static void rewindReachesTheCornerOfTheFiveByFiveSquare(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         LevelChunk center = farChunk(helper, 4);
@@ -201,14 +204,29 @@ public final class ChunkRewindGameTests {
         return chunk.getPos().getBlockAt(x, y + 1, z);
     }
 
-    private static ProtoChunk copyOf(ServerLevel level, LevelChunk chunk) {
+    static ProtoChunk copyOf(ServerLevel level, LevelChunk chunk) {
         ProtoChunk origin = new ProtoChunk(chunk.getPos(), UpgradeData.EMPTY, level,
                 level.registryAccess().registryOrThrow(Registries.BIOME), null);
         for (int index = 0; index < chunk.getSectionsCount(); index++) {
             LevelChunkSection live = chunk.getSection(index);
-            origin.getSections()[index] = new LevelChunkSection(live.getStates().copy(), live.getBiomes());
+            origin.getSections()[index] = new LevelChunkSection(ownedCopy(live.getStates()), live.getBiomes());
         }
         return origin;
+    }
+
+    private static PalettedContainer<BlockState> ownedCopy(PalettedContainer<BlockState> states) {
+        BlockState air = Blocks.AIR.defaultBlockState();
+        PalettedContainer<BlockState> copy = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, air,
+                PalettedContainer.Strategy.SECTION_STATES);
+        for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    BlockState state = states.get(x, y, z);
+                    if (state != air) copy.getAndSetUnchecked(x, y, z, state);
+                }
+            }
+        }
+        return copy;
     }
     //endregion
 }
