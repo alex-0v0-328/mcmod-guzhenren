@@ -554,14 +554,14 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.breed",                      "每种成年动物凑对喂养，每头用 1 份库藏饲料，一次至多 %s 头");
         add("guzhenren.blissful_land.tip.breed_hungry",               "每种成年动物凑对喂养，每头用 1 份库藏饲料，一次至多 %s 头。缺饲料：%s");
         add("guzhenren.blissful_land.tip.slaughter",                  "每种宰到只剩保持数，保持数为 0 的不宰；产物进库藏，经验给你。现在会宰 %s 头");
-        add("guzhenren.blissful_land.tip.herd_hosting",               "托管每 %s 秒一轮，种植与养殖合计至多 %s 个对象，种植先");
+        add("guzhenren.blissful_land.tip.herd_hosting",               "托管每 %s 秒一轮，宰杀与繁殖合计至多 %s 头");
         add("guzhenren.blissful_land.tip.herd_switch",                "托管这种动物：少了喂养繁殖，多了宰到保持数");
         add("guzhenren.blissful_land.tip.keep",                       "保持数减一或加一，按住 Shift 一次 %s");
         add("guzhenren.blissful_land.tip.feed",                       "库藏里的饲料：%s 份");
         add("guzhenren.blissful_land.tip.feed_unknown",               "眼下一只都没有，不知道吃什么");
         add("guzhenren.blissful_land.tip.crop_pick",                  "开垦用的作物，点击切换；自动 = 库藏里第一种种子");
         add("guzhenren.blissful_land.tip.reclaim",                    "在田区开一块 9×9 标准田种所选作物；没种子就开空田，之后自动补种；冷却 %s 秒");
-        add("guzhenren.blissful_land.tip.farm_hosting",               "托管：每 %s 秒自动收割补种；种植与养殖合计至多 %s 个对象，种植先");
+        add("guzhenren.blissful_land.tip.farm_hosting",               "托管：每 %s 秒自动收割补种，每轮至多 %s 块田");
         add("guzhenren.blissful_land.tip.harvest",                    "收割全部成熟作物并补种，空的耕地也补上；种子从库藏扣");
         add("guzhenren.blissful_land.tip.side",                       "选择割弃哪一侧");
         add("guzhenren.blissful_land.tip.strip_width",                "条带宽度减一或加一，按住 Shift 一次 %s");

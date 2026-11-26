@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>加一种经营玩法 = 新子包里写一个实现、在 {@link LandModules#ALL} 末尾登记、{@link Page} 末尾加一页，再写客户端
  *       页面；面板路由、快照、操作编码都不用改。</li>
  *   <li>{@link #section} 只在有人开着本页时每秒算一次，可以扫描实体与方块；清点优先走 {@link LandCensus}。</li>
- *   <li>{@link #host} 在托管轮里按 {@link LandModules#HOSTED} 的顺序调用，{@code budget} 是本轮剩余的对象预算，返回本模
- *       块用掉的数量；本模块的经营状态自己存在 {@link BlissfulLandData} 里对应的那一段。</li>
+ *   <li>{@link #host} 在托管轮里按 {@link LandModules#HOSTED} 的顺序调用；每个模块用自己的预算（种植按田、养殖按只），
+ *       互不挤占，返回本模块本轮处理的对象数；本模块的经营状态自己存在 {@link BlissfulLandData} 里对应的那一段。</li>
  * </ul>
  */
 
@@ -33,8 +33,7 @@ public interface LandModule<S extends PanelSection> {
 
     @NotNull List<PanelAction.Type<?>> actions();
 
-    default int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner,
-                     int budget) {
+    default int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         return 0;
     }
 }

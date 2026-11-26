@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  *       的克隆也会走重置，重复失主无副作用）。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
- *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，合计至多 {@value #HOSTING_LIMIT} 个对象；每秒给开着面板的主人
+ *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒给开着面板的主人
  *       刷新快照（只算他正在看的页）。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
  * </ul>
@@ -47,7 +47,6 @@ public final class BlissfulLands {
 
     public static final int SPIRIT_CHECK_TICKS = 10 * Ticks.SECOND;
     public static final int HOSTING_TICKS = 60 * Ticks.SECOND;
-    public static final int HOSTING_LIMIT = 64;
     public static final int SPIRIT_SEARCH = 16;
 
     public static @Nullable ServerLevel level(@NotNull MinecraftServer server, @NotNull BlissfulLand land) {
@@ -120,13 +119,10 @@ public final class BlissfulLands {
                            @NotNull BlissfulLandData data) {
         UUID owner = data.owner();
         ServerPlayer online = owner == null ? null : server.getPlayerList().getPlayer(owner);
-        int used = 0;
-        for (LandModule<?> module : LandModules.HOSTED) {
-            if (used >= HOSTING_LIMIT) break;
-            used += module.host(level, data, online, HOSTING_LIMIT - used);
-        }
+        int handled = 0;
+        for (LandModule<?> module : LandModules.HOSTED) handled += module.host(level, data, online);
         LandCensus.invalidate(level);
-        return used;
+        return handled;
     }
 
     public static int secondsToHosting(@NotNull MinecraftServer server) {

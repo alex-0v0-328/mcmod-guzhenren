@@ -150,7 +150,7 @@ final class FarmPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + SWITCH_Y, PanelKit.SWITCH_W, PanelKit.SWITCH_H, mouseX, mouseY,
-                Component.translatable(TIP + "farm_hosting", hostingSeconds, BlissfulLands.HOSTING_LIMIT))) {
+                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmModule.HOSTING_FIELDS))) {
             return;
         }
         tip(graphics, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,

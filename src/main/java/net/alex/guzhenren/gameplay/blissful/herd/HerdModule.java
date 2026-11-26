@@ -33,13 +33,15 @@ import org.jetbrains.annotations.Nullable;
  *   <li>行 = 清点到的种类，加上设过保持数或开着托管、眼下一只没有的种类；按实体 ID 排序。</li>
  *   <li>库藏饲料按该种第一只动物的 {@code isFood} 数库藏，一只没有的种类不知道吃什么，记 {@value #UNKNOWN_FEED}。</li>
  *   <li>{@link Section#slaughterPreview()} 是现在点「宰杀收取」会宰几头，规则同 {@link HerdWork#slaughter}。</li>
- *   <li>规则都在 {@link HerdWork}；托管轮结果记进 {@link HerdState}，页面显示下一轮倒计时与上一轮结果。</li>
+ *   <li>规则都在 {@link HerdWork}；托管每轮宰杀加繁殖至多 {@value #HOSTING_ANIMALS} 只，结果记进 {@link HerdState}，页
+ *       面显示下一轮倒计时与上一轮结果。</li>
  * </ul>
  */
 
 public final class HerdModule implements LandModule<HerdModule.Section> {
 
     public static final HerdModule INSTANCE = new HerdModule();
+    public static final int HOSTING_ANIMALS = 32;
     public static final long UNKNOWN_FEED = -1L;
 
     private HerdModule() {}
@@ -159,11 +161,10 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
     }
 
     @Override
-    public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner,
-                    int budget) {
+    public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         if (!data.herd().hosting()) return 0;
 
-        HerdWork.Hosted hosted = HerdWork.host(level, LandCensus.herds(level), data, owner, budget);
+        HerdWork.Hosted hosted = HerdWork.host(level, LandCensus.herds(level), data, owner, HOSTING_ANIMALS);
         data.herd().setLastRound(hosted.slaughtered(), hosted.bred());
         return hosted.total();
     }

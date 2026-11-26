@@ -317,7 +317,7 @@ public final class BlissfulLandGameTests {
         data.herd().setHosted(HerdWork.typeId(herd.getFirst()), true);
         data.storage().insert(new ItemStack(Items.WHEAT, 10));
 
-        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, BlissfulLands.HOSTING_LIMIT)
+        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, HerdModule.HOSTING_ANIMALS)
                 .total();
         helper.assertValueEqual(handled, 2, "one cow short: one pair is fed");
         helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT)), 8L, "two wheat are eaten");
@@ -391,8 +391,11 @@ public final class BlissfulLandGameTests {
             data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
             data.storage().insert(new ItemStack(Items.CARROT, 100));
             level.setBlock(center.offset(1, 0, 1), Blocks.DIRT.defaultBlockState(), 2);
-            helper.assertValueEqual(FarmWork.harvest(level, data, 20).total(), 20, "the limit holds while sowing");
-            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).sown(), 30, "the rest is sown");
+            helper.assertValueEqual(FarmWork.harvest(level, data, 0), new FarmWork.Harvest(0, 0, 0),
+                    "no field in the budget, nothing is sown");
+            helper.assertValueEqual(FarmWork.harvest(level, data, 1), new FarmWork.Harvest(0, 50, 1),
+                    "one field in the budget is filled whole");
+            helper.assertValueEqual(FarmWork.harvest(level, data, 1).fields(), 0, "a full field takes no budget");
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 80),
                     "the field fills up with its own crop, trampled farmland included");
             helper.assertTrue(level.getBlockState(center.offset(1, 0, 1)).is(Blocks.FARMLAND),
@@ -425,8 +428,8 @@ public final class BlissfulLandGameTests {
             BlockState ripe = ((CropBlock) Blocks.CARROTS).getStateForAge(((CropBlock) Blocks.CARROTS).getMaxAge());
             for (int dx = -4; dx <= 0; dx++) level.setBlock(center.offset(dx, 1, -4), ripe, 2);
             data.farm().setHosting(true);
-            helper.assertValueEqual(FarmModule.INSTANCE.host(level, data, null, BlissfulLands.HOSTING_LIMIT), 5,
-                    "hosting cuts the five ripe carrots");
+            helper.assertValueEqual(FarmModule.INSTANCE.host(level, data, null), 1,
+                    "hosting works the one field with ripe carrots");
             helper.assertValueEqual(data.farm().lastReaped(), 5, "the round is reported");
             helper.assertValueEqual(data.farm().lastSown(), 0, "nothing was bare");
             helper.succeed();

@@ -32,13 +32,15 @@ import org.jetbrains.annotations.Nullable;
  *   <li>开垦作物按 {@link FarmWork#CROPS} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
  *       出空田并提示之后会自动补种。</li>
  *   <li>{@link Section#seeds()} 与 {@link FarmWork#CROPS} 同序，是库藏里各作物种子的数量。</li>
- *   <li>规则都在 {@link FarmWork}；托管轮结果记进 {@link FarmState}，页面显示下一轮倒计时与上一轮结果。</li>
+ *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value #HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
+ *       轮倒计时与上一轮结果。</li>
  * </ul>
  */
 
 public final class FarmModule implements LandModule<FarmModule.Section> {
 
     public static final FarmModule INSTANCE = new FarmModule();
+    public static final int HOSTING_FIELDS = 8;
 
     private FarmModule() {}
 
@@ -189,12 +191,11 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
     }
 
     @Override
-    public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner,
-                    int budget) {
+    public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         if (!data.farm().hosting()) return 0;
 
-        FarmWork.Harvest done = FarmWork.harvest(level, data, budget);
+        FarmWork.Harvest done = FarmWork.harvest(level, data, HOSTING_FIELDS);
         data.farm().setLastRound(done.reaped(), done.sown());
-        return done.total();
+        return done.fields();
     }
 }

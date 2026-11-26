@@ -49,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
  *       标准田里清点与收割。地狱疣要灵魂沙田，本阶段不做。</li>
  *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，从中扣 1 份种子补种（掉落里没有就从库藏扣，库藏也没有就留空），其
  *       余进库藏。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕好）种这块田现有最多的作物，田里一株没有就取开垦作
- *       物（自动 = 库藏第一种种子），从库藏扣到没有为止；没种子时开出的空田、种不满的田就这样后来种满。收割与补空格合计
- *       受 {@code limit} 限制。</li>
+ *       物（自动 = 库藏第一种种子），从库藏扣到没有为止；没种子时开出的空田、种不满的田就这样后来种满。一次至多处理
+ *       {@code fieldLimit} 块田，有收割或补种的田才算一块，整块田一次做完。</li>
  *   <li>⚠ 强加载用 NeoForge {@link #TICKETS} 的带刻工单：原版 {@code /forceload} 的区块附近没有玩家时不随机刻，作物不
  *       长。工单以田心为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时 {@link #retain} 重挂。读档时校
  *       验回调把无主福地（或已不是福地的维度）的工单全部丢掉，补上没装 Gu World 期间失主漏撤的工单。</li>
@@ -76,10 +76,7 @@ public final class FarmWork {
 
     public record Count(int mature, int growing) {}
 
-    public record Harvest(int reaped, int sown) {
-
-        public int total() { return reaped + sown; }
-    }
+    public record Harvest(int reaped, int sown, int fields) {}
 
     //region Slots [田区网格]
     public static int slotsPerSide(@NotNull BlissfulLand land) { return (land.farmChunks() * 16 - 2 * MARGIN) / PITCH; }
@@ -238,24 +235,27 @@ public final class FarmWork {
         return census;
     }
 
-    public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int limit) {
+    public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int fieldLimit) {
         int reaped = 0;
         int sown = 0;
+        int fields = 0;
         for (long field : data.farm().fields()) {
+            if (fields >= fieldLimit) break;
             BlockPos center = BlockPos.of(field);
             if (!level.isLoaded(center)) continue;
             List<BlockPos> cells = cellsOf(center);
+            int before = reaped + sown;
             for (BlockPos pos : cells) {
-                if (reaped + sown >= limit) return new Harvest(reaped, sown);
                 BlockState state = level.getBlockState(pos);
                 if (!isCrop(state) || !isMature(state)) continue;
 
                 reap(level, data, pos, state);
                 reaped++;
             }
-            sown += sow(level, data, cells, limit - reaped - sown);
+            sown += sow(level, data, cells);
+            if (reaped + sown > before) fields++;
         }
-        return new Harvest(reaped, sown);
+        return new Harvest(reaped, sown, fields);
     }
 
     private static void reap(ServerLevel level, BlissfulLandData data, BlockPos pos, BlockState state) {
@@ -273,7 +273,7 @@ public final class FarmWork {
         level.setBlock(pos, next, Block.UPDATE_ALL);
     }
 
-    private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells, int limit) {
+    private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells) {
         Block crop = cropOf(level, cells);
         if (crop == null) {
             ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
@@ -283,7 +283,6 @@ public final class FarmWork {
         Item seed = crop.asItem();
         int sown = 0;
         for (BlockPos pos : cells) {
-            if (sown >= limit) break;
             BlockState ground = level.getBlockState(pos.below());
             if (!level.getBlockState(pos).isAir() || !ground.is(Blocks.FARMLAND) && !ground.is(Blocks.DIRT)) continue;
             if (data.storage().consume(stack -> stack.is(seed), 1) == 0) break;

@@ -13,8 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 福地经营模块登记表：{@link #ALL} 与 {@link Page} 一一对应、顺序相同（类加载时校验）。
  * <ul>
- *   <li>{@link #HOSTED} 是托管轮的调用顺序：种植先、养殖后，共用 {@link BlissfulLands#HOSTING_LIMIT}；各模块分开预算待
- *       Alex 定。</li>
+ *   <li>{@link #HOSTED} 是托管轮的调用顺序：种植先、养殖后；预算各模块自管，顺序不影响谁能干活。</li>
  * </ul>
  */
 

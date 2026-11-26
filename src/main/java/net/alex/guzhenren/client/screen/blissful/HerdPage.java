@@ -140,7 +140,7 @@ final class HerdPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + STATUS_Y - 2, 160, 12, mouseX, mouseY, Component.translatable(TIP + "herd_hosting",
-                BlissfulLands.HOSTING_TICKS / Ticks.SECOND, BlissfulLands.HOSTING_LIMIT))) {
+                BlissfulLands.HOSTING_TICKS / Ticks.SECOND, HerdModule.HOSTING_ANIMALS))) {
             return;
         }
         List<HerdModule.Row> rows = data.rows();
