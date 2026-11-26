@@ -22,6 +22,7 @@ import net.alex.guzhenren.client.radial.RadialMenu;
 import net.alex.guzhenren.client.renderer.ModEntityRenderers;
 import net.alex.guzhenren.client.renderer.SkinFlashLayer;
 import net.alex.guzhenren.client.renderer.SkinFlashes;
+import net.alex.guzhenren.client.renderer.armor.SchoolUniformArmorRenderer;
 import net.alex.guzhenren.client.screen.ApertureStorageScreen;
 import net.alex.guzhenren.client.screen.BookletScreen;
 import net.alex.guzhenren.client.screen.KnownRecipes;
@@ -33,6 +34,8 @@ import net.alex.guzhenren.client.slider.HoldSlider;
 import net.alex.guzhenren.compat.EpicFightClientIntegration;
 import net.alex.guzhenren.compat.TravelersTitlesIntegration;
 import net.alex.guzhenren.item.BookletItem;
+import net.alex.guzhenren.item.armor.SchoolUniformItem;
+import net.alex.guzhenren.item.armor.UniformColor;
 import net.alex.guzhenren.item.gu.mortal.path.wood.NineLeafVitalityGrassItem;
 import net.alex.guzhenren.network.ModPayloads;
 import net.alex.guzhenren.network.payload.EarthSpiritPanelPayload;
@@ -49,6 +52,7 @@ import net.alex.guzhenren.registry.particle.ModParticles;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -57,7 +61,9 @@ import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -66,13 +72,19 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.renderer.GeoArmorRenderer;
 
 /**
  * 本模组客户端总注册入口：统一注册 HUD 图层、按键绑定、菜单界面与实体渲染器。
@@ -157,6 +169,17 @@ public final class ClientEvents {
             BookletItem.readOnClient(BookletScreen::open);
             GuRecipeItem.readOnClient(BookletScreen::openRecipe);
             GuRecipeItem.lookUpOnClient(KnownRecipes::find, KnownRecipes::getIds);
+            SchoolUniformItem.renderOnClient(() -> new GeoRenderProvider() {
+                private @Nullable GeoArmorRenderer<?> renderer;
+
+                @Override
+                public <T extends LivingEntity> @NotNull HumanoidModel<?> getGeoArmorRenderer(
+                        @Nullable T livingEntity, ItemStack itemStack, @Nullable EquipmentSlot equipmentSlot,
+                        @Nullable HumanoidModel<T> original) {
+                    if (this.renderer == null) this.renderer = new SchoolUniformArmorRenderer();
+                    return this.renderer;
+                }
+            });
             EpicFightClientIntegration.initialize();
         });
     }
@@ -168,6 +191,28 @@ public final class ClientEvents {
         return Minecraft.getInstance().level != null
                 ? grass.getPickedStage(stack, Minecraft.getInstance().level.getGameTime())
                 : 0.0F;
+    }
+
+    @SubscribeEvent
+    public static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            @Override
+            public int getArmorLayerTintColor(@NotNull ItemStack stack, @NotNull LivingEntity entity,
+                                              ArmorMaterial.@NotNull Layer layer, int layerIdx, int fallbackColor) {
+                if (!layer.dyeable()) return 0xFFFFFFFF;
+                if (stack.getItem() instanceof SchoolUniformItem uniform && uniform.isDyeable()) {
+                    return UniformColor.argb(UniformColor.getColor(stack));
+                }
+                return 0;
+            }
+        }, ModItems.SCHOOL_UNIFORM_CHESTPLATE.get(), ModItems.SCHOOL_UNIFORM_LEGGINGS.get(),
+                ModItems.SCHOOL_UNIFORM_BOOTS.get());
+    }
+
+    @SubscribeEvent
+    public static void onRegisterItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register((stack, tintIndex) -> tintIndex == 0 ? UniformColor.argb(UniformColor.getColor(stack)) : -1,
+                ModItems.SCHOOL_UNIFORM_CHESTPLATE.get(), ModItems.SCHOOL_UNIFORM_LEGGINGS.get());
     }
 
     @SubscribeEvent

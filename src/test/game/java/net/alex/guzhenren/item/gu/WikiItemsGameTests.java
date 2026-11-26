@@ -139,7 +139,7 @@ public final class WikiItemsGameTests {
         total.row("注册", "全部物品").expect("数量", List.of((long) registered.size()));
         total.row("注册", "蛊虫").expect("数量", List.of(gu));
         total.row("注册", "蛊材").expect("数量", List.of(material));
-        total.row("注册", "其他（钢锭、钢块、知心草种子、黑土耕地、元泉流体方块、纯水桶、杀招书、书册、蛊方、进度图标）")
+        total.row("注册", "其他（钢锭、钢块、知心草种子、黑土耕地、元泉流体方块、纯水桶、杀招书、书册、蛊方、进度图标、服饰）")
                 .expect("数量", List.of(registered.size() - gu - material));
         List<MortalGuItem> items = guItems();
         long tended = items.stream().filter(TendedGuItem.class::isInstance).count();
@@ -505,7 +505,9 @@ public final class WikiItemsGameTests {
                 group(Table.MATERIAL, "杀招", "km_mortal_little_light_amplify"),
                 group(Table.MATERIAL, "书册", "gu_atlas_hope " + ladder("renzu_zhuan_", 1, 38)),
                 group(Table.MATERIAL, "蛊方", "gu_recipe"),
-                group(Table.MATERIAL, "进度图标", "advancement_icon"));
+                group(Table.MATERIAL, "进度图标", "advancement_icon"),
+                group(Table.MATERIAL, "服饰",
+                        "school_uniform_chestplate school_uniform_leggings school_uniform_boots"));
     }
 
     /** 一张 wiki 表：即时型下的标题词（没有则为 {@code null}）及其确切列名。 */

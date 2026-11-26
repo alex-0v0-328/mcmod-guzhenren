@@ -6,6 +6,7 @@ import net.alex.guzhenren.compat.FtbUltimineIntegration;
 import net.alex.guzhenren.gameplay.aperture.ApertureNourishService;
 import net.alex.guzhenren.gameplay.aperture.StonePurse;
 import net.alex.guzhenren.gameplay.aperture.storage.ApertureStorageService;
+import net.alex.guzhenren.item.armor.UniformColor;
 import net.alex.guzhenren.item.gu.PrimevalStoneSupply;
 import net.alex.guzhenren.item.gu.stack.StoredGuItems;
 import net.alex.guzhenren.registry.advancement.ModCriteriaTriggers;
@@ -15,6 +16,7 @@ import net.alex.guzhenren.registry.effect.ModEffects;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.alex.guzhenren.registry.fluid.ModFluidTypes;
 import net.alex.guzhenren.registry.fluid.ModFluids;
+import net.alex.guzhenren.registry.item.ModArmorMaterials;
 import net.alex.guzhenren.registry.item.ModCreativeTabs;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
@@ -22,10 +24,15 @@ import net.alex.guzhenren.registry.loot.ModLootModifiers;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.alex.guzhenren.registry.particle.ModParticles;
 import net.alex.guzhenren.registry.recipe.ModRecipes;
+import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.slf4j.Logger;
 
 /**
@@ -59,6 +66,7 @@ public class Guzhenren {
         ModFluids.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModEntityTypes.register(modEventBus);
+        ModArmorMaterials.register(modEventBus);
         ModItems.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         ModMenus.register(modEventBus);
@@ -69,8 +77,25 @@ public class Guzhenren {
         ApertureNourishService.setStonePurse(new StonePurse(
                 PrimevalStoneSupply::canAfford, PrimevalStoneSupply::topUp, PrimevalStoneSupply::trySpend));
         ApertureStorageService.setStoredGu(new StoredGuItems());
+        modEventBus.addListener(Guzhenren::onCommonSetup);
         modEventBus.addListener(EpicFightIntegration::onAnimationRegistry);
         EpicFightIntegration.initialize();
         if (ModList.get().isLoaded(FtbUltimineIntegration.MOD_ID)) FtbUltimineIntegration.initialize();
+    }
+
+    private static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            CauldronInteraction washUniform = (state, level, pos, player, hand, stack) -> {
+                if (UniformColor.isDefault(stack)) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                if (!level.isClientSide) {
+                    UniformColor.setColor(stack, UniformColor.DEFAULT);
+                    player.awardStat(Stats.CLEAN_ARMOR);
+                    LayeredCauldronBlock.lowerFillLevel(state, level, pos);
+                }
+                return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            };
+            CauldronInteraction.WATER.map().put(ModItems.SCHOOL_UNIFORM_CHESTPLATE.get(), washUniform);
+            CauldronInteraction.WATER.map().put(ModItems.SCHOOL_UNIFORM_LEGGINGS.get(), washUniform);
+        });
     }
 }

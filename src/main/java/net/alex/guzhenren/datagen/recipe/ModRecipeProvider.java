@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.item.armor.SchoolUniformDyeRecipe;
 import net.alex.guzhenren.refinement.recipe.GuIngredient;
 import net.alex.guzhenren.refinement.recipe.GuRecipe;
 import net.alex.guzhenren.refinement.recipe.RefinementRecipe;
@@ -20,6 +21,7 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -108,6 +110,8 @@ public class ModRecipeProvider extends RecipeProvider {
 
         addBlasting(output, Items.IRON_INGOT, ModItems.STEEL_INGOT, 0.1F);
         addStorage(output, ModItems.STEEL_INGOT, ModItems.STEEL_BLOCK);
+
+        SpecialRecipeBuilder.special(SchoolUniformDyeRecipe::new).save(output, Guzhenren.id("school_uniform_dye"));
     }
 
     //region Cooking [烧炼]

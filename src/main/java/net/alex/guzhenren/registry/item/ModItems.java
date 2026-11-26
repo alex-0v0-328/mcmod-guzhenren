@@ -30,6 +30,7 @@ import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.Booklet;
 import net.alex.guzhenren.item.BookletItem;
 import net.alex.guzhenren.item.Chronicle;
+import net.alex.guzhenren.item.armor.SchoolUniformItem;
 import net.alex.guzhenren.item.gu.GuBehavior;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.GuType;
@@ -86,6 +87,7 @@ import net.alex.guzhenren.registry.fluid.ModFluids;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -1024,6 +1026,28 @@ public final class ModItems {
             () -> new AdvancementIconItem(new Item.Properties().stacksTo(1)))
             .lang("进度图标").model(ItemModel.NUMERALS).tag(Tags.Items.HIDDEN_FROM_RECIPE_VIEWERS)
             .register();
+    //endregion
+
+    //region Clothing [服饰]
+    public static final DeferredItem<SchoolUniformItem> SCHOOL_UNIFORM_CHESTPLATE = registerSchoolUniform(
+            "school_uniform_chestplate", ArmorItem.Type.CHESTPLATE, "学堂制服上衣", true);
+    public static final DeferredItem<SchoolUniformItem> SCHOOL_UNIFORM_LEGGINGS = registerSchoolUniform(
+            "school_uniform_leggings", ArmorItem.Type.LEGGINGS, "学堂制服下装", true);
+    public static final DeferredItem<SchoolUniformItem> SCHOOL_UNIFORM_BOOTS = registerSchoolUniform(
+            "school_uniform_boots", ArmorItem.Type.BOOTS, "学堂布鞋", false);
+
+    private static DeferredItem<SchoolUniformItem> registerSchoolUniform(
+            String id, ArmorItem.Type type, String simplified, boolean dyeable) {
+        var builder = REGISTRAR.typedItem(id, () -> new SchoolUniformItem(
+                        ModArmorMaterials.SCHOOL_UNIFORM, type,
+                        new Item.Properties().durability(
+                                type.getDurability(ModArmorMaterials.SCHOOL_UNIFORM_DURABILITY_MULTIPLIER)),
+                        dyeable))
+                .lang(simplified)
+                .tab(ModCreativeTabs.GU_MATERIAL);
+        if (dyeable) builder.model(ItemModel.LAYERED);
+        return builder.register();
+    }
     //endregion
 
     public static void register(IEventBus modEventBus) {

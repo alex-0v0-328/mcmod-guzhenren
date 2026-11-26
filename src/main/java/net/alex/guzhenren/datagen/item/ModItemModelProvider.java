@@ -59,6 +59,9 @@ public class ModItemModelProvider extends ItemModelProvider {
     private ItemModelBuilder registerModel(Item item, String name, ItemModel model) {
         return switch (model) {
             case FLAT -> basicItem(item);
+            case LAYERED -> getBuilder(name).parent(GENERATED)
+                    .texture("layer0", modLoc("item/" + name))
+                    .texture("layer1", modLoc("item/" + name + "_overlay"));
             case BLOCK -> getBuilder(name).parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name)));
             case FLUID -> getBuilder(name).parent(GENERATED).texture("layer0", modLoc("block/" + name + "_still"));
             case LEAF_STAGES -> registerLeafStagedItem(name);

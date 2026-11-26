@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -70,6 +71,11 @@ public final class ModDataComponents {
     //region Gu recipe [蛊方]
     public static final Supplier<DataComponentType<ResourceLocation>> RECIPE_ID =
             register("recipe_id", ResourceLocation.CODEC, ResourceLocation.STREAM_CODEC);
+    //endregion
+
+    //region Clothing [服饰]
+    public static final Supplier<DataComponentType<DyeColor>> UNIFORM_COLOR =
+            register("uniform_color", DyeColor.CODEC, DyeColor.STREAM_CODEC);
     //endregion
 
     public static void register(IEventBus modEventBus) {

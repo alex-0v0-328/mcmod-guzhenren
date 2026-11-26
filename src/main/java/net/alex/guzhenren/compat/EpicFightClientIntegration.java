@@ -9,6 +9,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
 import net.alex.guzhenren.gameplay.plunge.PlungeService;
+import net.alex.guzhenren.item.armor.SchoolUniformItem;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -26,6 +27,7 @@ import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.client.event.EpicFightClientEventHooks;
 import yesman.epicfight.api.client.event.types.entity.ModifyPlayerLivingMotionEvent;
+import yesman.epicfight.api.client.event.types.render.AnimatedArmorTextureEvent;
 import yesman.epicfight.api.client.event.types.render.PrepareModelEvent;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.animation.InitAnimatorEvent;
@@ -71,6 +73,8 @@ public final class EpicFightClientIntegration {
                 EpicFightClientIntegration::onCompositeMotion, Guzhenren.MOD_ID);
         EpicFightClientEventHooks.Render.PREPARE_MODEL_TO_RENDER.registerEvent(
                 EpicFightClientIntegration::onPrepareModel, Guzhenren.MOD_ID);
+        EpicFightClientEventHooks.Render.ANIMATED_ARMOR_TEXTURE.registerEvent(
+                EpicFightClientIntegration::onAnimatedArmorTexture, Guzhenren.MOD_ID, -1000);
         EpicFightEventHooks.Animation.INIT_ANIMATOR.registerEvent(
                 EpicFightClientIntegration::onInitAnimator, Guzhenren.MOD_ID);
     }
@@ -148,6 +152,12 @@ public final class EpicFightClientIntegration {
         float amount = Mth.lerp(partialTick, lean[0], lean[1]);
         if (amount <= 0.0F) return;
         event.getPoseStack().mulPose(Axis.XP.rotationDegrees(-amount * player.getViewXRot(partialTick)));
+    }
+
+    private static void onAnimatedArmorTexture(AnimatedArmorTextureEvent event) {
+        if (event.getItemStack().getItem() instanceof SchoolUniformItem) {
+            event.setResultLocation(null);
+        }
     }
 
     private static boolean isLeaning(Player player) {

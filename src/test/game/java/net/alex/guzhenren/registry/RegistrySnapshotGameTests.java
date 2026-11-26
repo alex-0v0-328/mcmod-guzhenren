@@ -4,6 +4,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.block.SpiritSpringBlock;
 import net.alex.guzhenren.item.AdvancementIconItem;
 import net.alex.guzhenren.item.BookletItem;
+import net.alex.guzhenren.item.armor.SchoolUniformItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
@@ -40,7 +41,7 @@ public final class RegistrySnapshotGameTests {
                             && blockItem.getBlock() instanceof SpiritSpringBlock
                             || item instanceof BucketItem || item instanceof AdvancementIconItem
                             || item instanceof KillingMoveBookItem || item instanceof BookletItem
-                            || item instanceof GuRecipeItem
+                            || item instanceof GuRecipeItem || item instanceof SchoolUniformItem
                             || item == ModItems.STEEL_INGOT.get() || item == ModItems.STEEL_BLOCK.get()
                             || item == ModItems.INTIMATE_GRASS_SEEDS.get()
                             || item == ModItems.BLACK_SOIL_FARMLAND.get(),

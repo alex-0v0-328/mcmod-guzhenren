@@ -15,4 +15,4 @@ package net.alex.guzhenren.registry.builder;
  * </ul>
  */
 
-public enum ItemModel { FLAT, BLOCK, FLUID, LEAF_STAGES, NUMERALS, SERIES }
+public enum ItemModel { FLAT, LAYERED, BLOCK, FLUID, LEAF_STAGES, NUMERALS, SERIES }

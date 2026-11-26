@@ -1,10 +1,12 @@
 package net.alex.guzhenren.registry.recipe;
 
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.item.armor.SchoolUniformDyeRecipe;
 import net.alex.guzhenren.refinement.recipe.RefinementRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -26,6 +28,9 @@ public final class ModRecipes {
             RECIPE_TYPES.register("refinement", RecipeType::simple);
     public static final DeferredHolder<RecipeSerializer<?>, RefinementRecipe.Serializer> REFINEMENT_SERIALIZER =
             RECIPE_SERIALIZERS.register("refinement", id -> new RefinementRecipe.Serializer());
+    public static final DeferredHolder<RecipeSerializer<?>, SimpleCraftingRecipeSerializer<SchoolUniformDyeRecipe>>
+            SCHOOL_UNIFORM_DYE_SERIALIZER = RECIPE_SERIALIZERS.register("school_uniform_dye",
+            () -> new SimpleCraftingRecipeSerializer<>(SchoolUniformDyeRecipe::new));
 
     public static void register(IEventBus modEventBus) {
         RECIPE_TYPES.register(modEventBus);
