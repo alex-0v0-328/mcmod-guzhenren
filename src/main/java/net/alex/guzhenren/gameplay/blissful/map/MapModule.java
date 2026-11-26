@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.LandCensus;
@@ -80,7 +81,7 @@ public final class MapModule implements LandModule<MapModule.Section> {
                 StreamCodec.of(Section::encode, Section::decode);
 
         private static void encode(RegistryFriendlyByteBuf buffer, Section section) {
-            TerritoryModule.Section.STREAM_CODEC.encode(buffer, new TerritoryModule.Section(section.territory));
+            Territory.STREAM_CODEC.encode(buffer, section.territory);
             for (BlockPos pos : new BlockPos[] {section.mountain, section.palace, section.entry}) {
                 BlockPos.STREAM_CODEC.encode(buffer, pos);
             }
@@ -94,7 +95,7 @@ public final class MapModule implements LandModule<MapModule.Section> {
         }
 
         private static Section decode(RegistryFriendlyByteBuf buffer) {
-            Territory territory = TerritoryModule.Section.STREAM_CODEC.decode(buffer).territory();
+            Territory territory = Territory.STREAM_CODEC.decode(buffer);
             BlockPos mountain = BlockPos.STREAM_CODEC.decode(buffer);
             BlockPos palace = BlockPos.STREAM_CODEC.decode(buffer);
             BlockPos entry = BlockPos.STREAM_CODEC.decode(buffer);
@@ -145,8 +146,8 @@ public final class MapModule implements LandModule<MapModule.Section> {
         return new Section(data.territory(), site == null ? BlockPos.ZERO : site.center(),
                 realm == null ? 0 : realm.radius(), site == null ? BlockPos.ZERO : site.palace(),
                 site == null ? BlockPos.ZERO : site.entry(), fields, planned, pastures, Siting.FIELD_CAP,
-                Siting.PASTURE_CAP, EarthSpiritPanel.seconds(FarmWork.reclaimCooldown(level, data)),
-                EarthSpiritPanel.seconds(PastureWork.gatherCooldown(level, data)));
+                Siting.PASTURE_CAP, Ticks.ceilSeconds(FarmWork.reclaimCooldown(level, data)),
+                Ticks.ceilSeconds(PastureWork.gatherCooldown(level, data)));
     }
 
     //region Siting [服务端复判]

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
@@ -105,7 +104,5 @@ public final class EarthSpiritPanel {
     public static @NotNull Component notice(@NotNull String key, Object... args) {
         return Component.translatable(NOTICE + key, args);
     }
-
-    public static int seconds(long ticks) { return (int) ((ticks + Ticks.SECOND - 1) / Ticks.SECOND); }
     //endregion
 }

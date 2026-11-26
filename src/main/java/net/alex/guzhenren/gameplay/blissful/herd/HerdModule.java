@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.LandCensus;
@@ -211,7 +212,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
             ChunkPos corner = data.herd().pasture(index);
             if (corner == null) return EarthSpiritPanel.notice("no_pasture");
             long cooldown = PastureWork.gatherCooldown(level, data);
-            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", EarthSpiritPanel.seconds(cooldown));
+            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", Ticks.ceilSeconds(cooldown));
 
             int moved = PastureWork.gather(level, data, PastureWork.Pasture.at(corner.x, corner.z), level.getRandom(),
                     level.getAllEntities());

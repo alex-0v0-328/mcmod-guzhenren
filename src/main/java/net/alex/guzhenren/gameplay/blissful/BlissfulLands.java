@@ -152,7 +152,7 @@ public final class BlissfulLands {
     }
 
     public static int secondsToHosting(@NotNull MinecraftServer server) {
-        return EarthSpiritPanel.seconds(HOSTING_TICKS - server.getTickCount() % HOSTING_TICKS);
+        return Ticks.ceilSeconds(HOSTING_TICKS - server.getTickCount() % HOSTING_TICKS);
     }
 
     public static void keepSpirit(@NotNull ServerLevel level, @NotNull BlissfulLand land,

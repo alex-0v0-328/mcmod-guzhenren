@@ -1,6 +1,9 @@
 package net.alex.guzhenren.gameplay.blissful.map;
 
+import io.netty.buffer.ByteBuf;
 import java.util.Arrays;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
  *       {@link #distanceSq} 按半区块计（中心可能落在区块边上），{@link #blockDistanceSq} 按方块计。</li>
  *   <li>{@link #keeps}：视口四周外扩 {@value #KEEP_MARGIN} 区块的范围；换视口时客户端丢掉范围外的地图片、服务端同时
  *       忘掉「已发过」的记录，两端按同一个视口裁，下次回来照常重发。</li>
+ *   <li>{@link #STREAM_CODEC}：两角四个 varint，不校验（服务端收到后按 {@link #isEmpty}、{@link #isValid} 判）。</li>
  * </ul>
  */
 
@@ -21,6 +25,12 @@ public record MapView(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ
     public static final int MAX_SIDE = 64;
     public static final int KEEP_MARGIN = 32;
     public static final MapView NONE = new MapView(0, 0, -1, -1);
+    public static final StreamCodec<ByteBuf, MapView> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, MapView::minChunkX,
+            ByteBufCodecs.VAR_INT, MapView::minChunkZ,
+            ByteBufCodecs.VAR_INT, MapView::maxChunkX,
+            ByteBufCodecs.VAR_INT, MapView::maxChunkZ,
+            MapView::new);
 
     public boolean isEmpty() { return minChunkX > maxChunkX || minChunkZ > maxChunkZ; }
 

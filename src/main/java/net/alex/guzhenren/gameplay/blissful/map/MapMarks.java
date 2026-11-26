@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.blissful.LandCensus;
@@ -42,7 +41,7 @@ public final class MapMarks {
                                                  @NotNull MapView view) {
         List<Candidate> found = new ArrayList<>();
         for (ServerPlayer player : level.players()) add(found, view, player, MapMark.PLAYER, player.getUUID());
-        Predicate<Entity> penned = penned(data.land(), data);
+        Predicate<Entity> penned = penned(data);
         for (List<Animal> herd : LandCensus.herds(level).values()) {
             for (Animal animal : herd) {
                 add(found, view, animal, penned.test(animal) ? MapMark.PENNED : MapMark.LOOSE, null);
@@ -61,7 +60,7 @@ public final class MapMarks {
         return marks;
     }
 
-    public static @NotNull Predicate<Entity> penned(@NotNull BlissfulLand land, @NotNull BlissfulLandData data) {
+    public static @NotNull Predicate<Entity> penned(@NotNull BlissfulLandData data) {
         return PastureWork.penner(data);
     }
 

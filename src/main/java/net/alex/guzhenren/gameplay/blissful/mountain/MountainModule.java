@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.blissful.mountain;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
 import net.alex.guzhenren.gameplay.blissful.member.MemberService;
@@ -65,7 +66,7 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
             ServerLevel level = context.level();
             BlissfulLandData data = context.data();
             long cooldown = MountainWork.moveCooldown(level, data);
-            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", EarthSpiritPanel.seconds(cooldown));
+            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", Ticks.ceilSeconds(cooldown));
 
             RealmSite site = SecretRealms.siteOf(level.getServer(), data.land().realm());
             if (site == null) return EarthSpiritPanel.notice("no_mountain");
@@ -120,6 +121,6 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
         List<Person> whitelist = new ArrayList<>();
         data.whitelist().forEach((id, name) -> whitelist.add(new Person(id, name, true, data.isOwner(id))));
         return new Section(GutsStones.get(context.level()).total(), SoulsunderMountain.GUTS_STONE_CAP,
-                EarthSpiritPanel.seconds(MountainWork.moveCooldown(context.level(), data)), whitelist);
+                Ticks.ceilSeconds(MountainWork.moveCooldown(context.level(), data)), whitelist);
     }
 }

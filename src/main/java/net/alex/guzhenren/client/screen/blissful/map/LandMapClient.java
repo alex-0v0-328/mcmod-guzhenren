@@ -111,7 +111,7 @@ public final class LandMapClient {
     }
 
     private static EarthSpiritMapViewPayload payload(MapView view) {
-        return new EarthSpiritMapViewPayload(view.minChunkX(), view.minChunkZ(), view.maxChunkX(), view.maxChunkZ());
+        return new EarthSpiritMapViewPayload(view);
     }
     //endregion
 

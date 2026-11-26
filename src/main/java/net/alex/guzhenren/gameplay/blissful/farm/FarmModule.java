@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.blissful.farm;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.LandCensus;
@@ -208,7 +209,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         List<Long> seeds = new ArrayList<>();
         for (int i = 0; i < FarmWork.CROPS.size(); i++) seeds.add(data.storage().count(FarmWork.seedFilter(i)));
         return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
-                EarthSpiritPanel.seconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
+                Ticks.ceilSeconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
                 BlissfulLands.secondsToHosting(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
                 seeds);
     }

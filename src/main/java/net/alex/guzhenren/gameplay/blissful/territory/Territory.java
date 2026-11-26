@@ -1,6 +1,9 @@
 package net.alex.guzhenren.gameplay.blissful.territory;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,14 +14,29 @@ import org.jetbrains.annotations.NotNull;
  *   <li>中心 {@code 2 * core} 见方的区块不可割弃：{@link #maxCede} 给出某侧还能割多少，宽度不设别的上限。</li>
  *   <li>{@link #isCeded} 只对原正方形内、现疆域外的区块为真；原正方形外本就是虚空，由生成器负责，不算割弃。</li>
  *   <li>一区块 = 4 亩，{@link #acres} 用 long 避免溢出。</li>
+ *   <li>{@link #STREAM_CODEC}：六个 varint（{@code half}、{@code core}、北东南西割弃宽度），面板各段共用；
+ *       {@link Side#STREAM_CODEC} 按序号编码。</li>
  * </ul>
  */
 
 public record Territory(int half, int core, int north, int east, int south, int west) {
 
     public static final int ACRES_PER_CHUNK = 4;
+    public static final StreamCodec<ByteBuf, Territory> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, Territory::half,
+            ByteBufCodecs.VAR_INT, Territory::core,
+            ByteBufCodecs.VAR_INT, Territory::north,
+            ByteBufCodecs.VAR_INT, Territory::east,
+            ByteBufCodecs.VAR_INT, Territory::south,
+            ByteBufCodecs.VAR_INT, Territory::west,
+            Territory::new);
 
-    public enum Side { NORTH, EAST, SOUTH, WEST }
+    public enum Side {
+        NORTH, EAST, SOUTH, WEST;
+
+        public static final StreamCodec<ByteBuf, Side> STREAM_CODEC = ByteBufCodecs.idMapper(
+                index -> values()[index], Side::ordinal);
+    }
 
     public static @NotNull Territory whole(int half, int core) { return new Territory(half, core, 0, 0, 0, 0); }
 

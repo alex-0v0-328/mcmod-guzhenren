@@ -1,6 +1,5 @@
 package net.alex.guzhenren.gameplay.blissful.territory;
 
-import io.netty.buffer.ByteBuf;
 import java.util.List;
 import java.util.Locale;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
@@ -24,23 +23,14 @@ import org.jetbrains.annotations.NotNull;
 public final class TerritoryModule implements LandModule<TerritoryModule.Section> {
 
     public static final TerritoryModule INSTANCE = new TerritoryModule();
-    private static final StreamCodec<ByteBuf, Territory.Side> SIDE_CODEC =
-            ByteBufCodecs.idMapper(index -> Territory.Side.values()[index], Territory.Side::ordinal);
 
     private TerritoryModule() {}
 
     public record Section(@NotNull Territory territory) implements PanelSection {
 
         public static final Section EMPTY = new Section(Territory.whole(1, 1));
-        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_INT, section -> section.territory.half(),
-                ByteBufCodecs.VAR_INT, section -> section.territory.core(),
-                ByteBufCodecs.VAR_INT, section -> section.territory.north(),
-                ByteBufCodecs.VAR_INT, section -> section.territory.east(),
-                ByteBufCodecs.VAR_INT, section -> section.territory.south(),
-                ByteBufCodecs.VAR_INT, section -> section.territory.west(),
-                (half, core, north, east, south, west) -> new Section(new Territory(half, core, north, east, south,
-                        west)));
+        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
+                Territory.STREAM_CODEC.map(Section::new, Section::territory).cast();
 
         @Override
         public @NotNull LandModule<?> module() { return INSTANCE; }
@@ -49,7 +39,8 @@ public final class TerritoryModule implements LandModule<TerritoryModule.Section
     public record Cede(@NotNull Territory.Side side, int width) implements PanelAction {
 
         public static final PanelAction.Type<Cede> TYPE = new PanelAction.Type<>(Cede.class,
-                StreamCodec.composite(SIDE_CODEC, Cede::side, ByteBufCodecs.VAR_INT, Cede::width, Cede::new));
+                StreamCodec.composite(Territory.Side.STREAM_CODEC, Cede::side, ByteBufCodecs.VAR_INT, Cede::width,
+                        Cede::new));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
