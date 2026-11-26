@@ -1,5 +1,8 @@
 package net.alex.guzhenren;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
@@ -10,8 +13,18 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.SliceAssignment;
 import com.tngtech.archunit.library.dependencies.SliceIdentifier;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -26,10 +39,10 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 class ArchitectureTest {
 
     private static final String ROOT = "net.alex.guzhenren.";
-    // Client-only classes outside the client package; the mixins are the "client" list of guzhenren.mixins.json.
-    private static final Set<String> CLIENT_CLASSES = Set.of(ROOT + "GuzhenrenClient",
-            ROOT + "compat.EpicFightClientIntegration", ROOT + "mixin.CameraAccessor", ROOT + "mixin.GameRendererMixin",
-            ROOT + "mixin.LocalPlayerMixin", ROOT + "mixin.MouseHandlerMixin");
+    // Client-only classes outside the client package; the mixins come from the "client" list of guzhenren.mixins.json.
+    private static final Set<String> CLIENT_CLASSES = Stream.concat(
+            Stream.of(ROOT + "GuzhenrenClient", ROOT + "compat.EpicFightClientIntegration"),
+            readClientMixins().stream()).collect(Collectors.toUnmodifiableSet());
     private static final DescribedPredicate<JavaClass> CLIENT_ONLY = resideInAPackage(ROOT + "client..")
             .or(DescribedPredicate.describe("are listed client classes",
                     c -> CLIENT_CLASSES.contains(c.getName().split("\\$")[0])))
@@ -127,6 +140,19 @@ class ArchitectureTest {
         @Override
         public boolean includes(Location location) {
             return location.contains("/classes/java/main/");
+        }
+    }
+
+    private static List<String> readClientMixins() {
+        try (InputStream input = Objects.requireNonNull(ArchitectureTest.class.getResourceAsStream(
+                "/guzhenren.mixins.json"), "guzhenren.mixins.json is missing");
+             Reader reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
+            JsonObject config = JsonParser.parseReader(reader).getAsJsonObject();
+            String mixinPackage = config.get("package").getAsString();
+            return config.getAsJsonArray("client").asList().stream().map(JsonElement::getAsString)
+                    .map(name -> mixinPackage + "." + name).toList();
+        } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
         }
     }
 }

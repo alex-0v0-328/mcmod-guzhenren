@@ -1,9 +1,13 @@
 package net.alex.guzhenren;
 
 import io.netty.handler.codec.DecoderException;
+import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import net.alex.guzhenren.core.ModByteBufs;
 import net.alex.guzhenren.gameplay.aperture.Aperture;
+import net.alex.guzhenren.gameplay.aperture.ApertureData;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.aperture.Stage;
 import net.alex.guzhenren.gameplay.body.Anatomy;
@@ -19,7 +23,11 @@ import net.alex.guzhenren.gameplay.body.Physique;
 import net.alex.guzhenren.gameplay.body.Race;
 import net.alex.guzhenren.gameplay.body.Skin;
 import net.alex.guzhenren.gameplay.body.Tendon;
+import net.alex.guzhenren.gameplay.mind.GuRecipeKnowledgeData;
+import net.alex.guzhenren.gameplay.mind.KillingMoveData;
 import net.alex.guzhenren.gameplay.path.GuPath;
+import net.alex.guzhenren.item.gu.mortal.path.wood.LeafGrowth;
+import net.minecraft.network.FriendlyByteBuf;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static net.alex.guzhenren.TestBuffers.withBuffer;
@@ -140,6 +148,29 @@ class DataStreamCodecTest {
             ModByteBufs.writeEnum(buffer, expected.flesh());
             Anatomy.encode(buffer, anatomy);
             assertEquals(expected, BodyData.decode(buffer));
+            assertEquals(0, buffer.readableBytes());
+        });
+    }
+
+    @Test
+    @DisplayName("ApertureData, KillingMoveData, GuRecipeKnowledgeData and LeafGrowth stream codecs roundtrip")
+    void smallRecordsRoundTrip() {
+        Aperture first = new Aperture(Rank.TWO, Stage.MIDDLE, 61, 900L, GuPath.STRENGTH, GuPath.WOOD, 12L, 30,
+                4_000L, 55, false, false, false);
+        Aperture second = Aperture.createSecond(Rank.ONE);
+        assertRoundTrip(new ApertureData(List.of(first, second)), ApertureData::encode, ApertureData::decode);
+        assertRoundTrip(new KillingMoveData(List.of("little_light", "moon_curtain"), List.of("moon_curtain"),
+                "little_light"), KillingMoveData::encode, KillingMoveData::decode);
+        assertRoundTrip(new GuRecipeKnowledgeData(List.of("guzhenren:moonlight_gu_1", "guzhenren:hope_gu_1")),
+                GuRecipeKnowledgeData::encode, GuRecipeKnowledgeData::decode);
+        assertRoundTrip(new LeafGrowth(4, 12_345L), LeafGrowth::encode, LeafGrowth::decode);
+    }
+
+    private static <T> void assertRoundTrip(T expected, BiConsumer<FriendlyByteBuf, T> encode,
+                                            Function<FriendlyByteBuf, T> decode) {
+        withBuffer(buffer -> {
+            encode.accept(buffer, expected);
+            assertEquals(expected, decode.apply(buffer));
             assertEquals(0, buffer.readableBytes());
         });
     }
