@@ -9,6 +9,7 @@ import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.blissful.LandCensus;
+import net.alex.guzhenren.gameplay.blissful.LandModule;
 import net.alex.guzhenren.gameplay.blissful.LandModules;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -19,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 地灵经营面板的服务端路由：打开、算快照、复判后执行 {@link PanelAction}、刷新。各页的数据与操作在各自模块里。
  * <ul>
- *   <li>{@link #open}：主人打开面板，停在他上次看的页（{@link #remember}，只记在内存里，停服清空）；无主时别人只收到认
- *       主条件，有主时只收到主人名字。</li>
+ *   <li>{@link #open}：主人打开面板，停在他上次看的页（{@link #remember}，只记在内存里，停服清空），先让各模块
+ *       {@code opened} 重置按人记的页面状态；无主时别人只收到认主条件，有主时只收到主人名字。</li>
  *   <li>{@link #handle} 先复判：玩家开着的是地灵面板、面板仍有效（地灵活着、距离、仍是主人），再执行操作；操作后清掉
  *       本刻的清点缓存，结果写进下一份快照的提示，立即下发一次。</li>
  *   <li>{@link #snapshot} 只算一页：由每秒刷新（{@code BlissfulLands}）与操作后刷新调用。</li>
@@ -47,8 +48,9 @@ public final class EarthSpiritPanel {
             player.sendSystemMessage(Component.translatable(MSG_OWNED, data.ownerName()));
             return;
         }
-        Page page = lastPage(player);
-        PanelSnapshot snapshot = snapshot((ServerLevel) spirit.level(), data, page, Component.empty());
+        for (LandModule<?> module : LandModules.ALL) module.opened(player.getUUID());
+        PanelSnapshot snapshot = snapshot((ServerLevel) spirit.level(), data, player.getUUID(), lastPage(player),
+                Component.empty());
         player.openMenu(new SimpleMenuProvider((id, inventory, who) -> new EarthSpiritMenu(id, inventory, spirit,
                         snapshot), spirit.getDisplayName()),
                 buffer -> PanelSnapshot.STREAM_CODEC.encode(buffer, snapshot));
@@ -69,13 +71,14 @@ public final class EarthSpiritPanel {
 
         EarthSpiritEntity spirit = menu.getSpirit();
         BlissfulLandData data = BlissfulLandData.get(player.server, spirit.getLand());
-        ModEvents.post(new EarthSpiritPanelEvent(player, snapshot((ServerLevel) spirit.level(), data, menu.page(),
-                notice)));
+        ModEvents.post(new EarthSpiritPanelEvent(player, snapshot((ServerLevel) spirit.level(), data, player.getUUID(),
+                menu.page(), notice)));
     }
 
     public static @NotNull PanelSnapshot snapshot(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
-                                                  @NotNull Page page, @NotNull Component notice) {
-        PanelSection section = LandModules.of(page).section(new PanelContext(level, data));
+                                                  @NotNull UUID viewer, @NotNull Page page,
+                                                  @NotNull Component notice) {
+        PanelSection section = LandModules.of(page).section(new PanelContext(level, data, viewer));
         return new PanelSnapshot(data.land().nameKey(), notice, section);
     }
     //endregion

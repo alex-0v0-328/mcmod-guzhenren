@@ -17,7 +17,10 @@ import org.jetbrains.annotations.NotNull;
  * 福地库藏：地灵收来的产物与主人存入的物品，按「物品 + 组件」归并成条目，每条数量为 long，不设上限。
  * <ul>
  *   <li>条目键是数量为 1 的 {@link ItemStack} 副本，归并用 {@link ItemStack#isSameItemSameComponents}；条目按首次入库顺
- *       序排列，数量归零即删，面板用下标取物，下标只在同一份快照内有效。</li>
+ *       序排列，数量归零即删。</li>
+ *   <li>每条有本次开服内唯一的流水号（{@link Entry#serial}，不存档，读档时重排）：面板取物带流水号，快照过时、下标挪
+ *       动也拿不错；条目删掉后再入库的同种物品换新号，旧号取不到东西。</li>
+ *   <li>{@link #revision} 每次改动加一，面板浏览据此缓存筛选排序结果。</li>
  *   <li>胆识蛊[Guts Gu]不入库（{@link #accepts}），否则可借库藏把它带出荡魂山。</li>
  *   <li>任何改动经构造时传入的回调通知所属存档置脏。</li>
  *   <li>⚠ 性能：查找是线性的；条目数等于物品种类数，福地产物只有几十种。</li>
@@ -28,18 +31,24 @@ public final class BlissfulStorage {
 
     private final List<Entry> entries = new ArrayList<>();
     private final Runnable changed;
+    private long nextSerial;
+    private long revision;
 
     public BlissfulStorage(@NotNull Runnable changed) { this.changed = changed; }
 
     public static final class Entry {
 
+        private final long serial;
         private final ItemStack key;
         private long count;
 
-        private Entry(ItemStack key, long count) {
+        private Entry(long serial, ItemStack key, long count) {
+            this.serial = serial;
             this.key = key;
             this.count = count;
         }
+
+        public long serial() { return serial; }
 
         public @NotNull ItemStack key() { return key; }
 
@@ -47,6 +56,20 @@ public final class BlissfulStorage {
     }
 
     public @NotNull List<Entry> entries() { return Collections.unmodifiableList(entries); }
+
+    public long revision() { return revision; }
+
+    public int indexOf(long serial) {
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).serial == serial) return i;
+        }
+        return -1;
+    }
+
+    private void touch() {
+        revision++;
+        changed.run();
+    }
 
     public static boolean accepts(@NotNull ItemStack stack) {
         return !stack.isEmpty() && !SoulsunderMountain.isGutsGu(stack);
@@ -58,12 +81,12 @@ public final class BlissfulStorage {
         for (Entry entry : entries) {
             if (ItemStack.isSameItemSameComponents(entry.key, stack)) {
                 entry.count = LongMath.saturatedAdd(entry.count, stack.getCount());
-                changed.run();
+                touch();
                 return true;
             }
         }
-        entries.add(new Entry(stack.copyWithCount(1), stack.getCount()));
-        changed.run();
+        entries.add(new Entry(nextSerial++, stack.copyWithCount(1), stack.getCount()));
+        touch();
         return true;
     }
 
@@ -96,7 +119,7 @@ public final class BlissfulStorage {
             if (entry.count == 0) entries.remove(i);
             else i++;
         }
-        if (taken > 0) changed.run();
+        if (taken > 0) touch();
         return taken;
     }
 
@@ -107,7 +130,7 @@ public final class BlissfulStorage {
         int count = (int) Math.min(Math.min(entry.count, max), entry.key.getMaxStackSize());
         entry.count -= count;
         if (entry.count == 0) entries.remove(index);
-        changed.run();
+        touch();
         return entry.key.copyWithCount(count);
     }
 
@@ -124,11 +147,12 @@ public final class BlissfulStorage {
 
     public void load(@NotNull CompoundTag tag, @NotNull String key, @NotNull StackIo stacks) {
         entries.clear();
+        revision++;
         for (Tag element : tag.getList(key, Tag.TAG_COMPOUND)) {
             CompoundTag item = (CompoundTag) element;
             ItemStack stack = stacks.load(item.getCompound("item"));
             long count = item.getLong("count");
-            if (!stack.isEmpty() && count > 0) entries.add(new Entry(stack.copyWithCount(1), count));
+            if (!stack.isEmpty() && count > 0) entries.add(new Entry(nextSerial++, stack.copyWithCount(1), count));
         }
     }
 }

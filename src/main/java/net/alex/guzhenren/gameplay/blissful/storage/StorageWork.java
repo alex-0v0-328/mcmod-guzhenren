@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 库藏页的存取：取一组到光标或进背包、取满背包、存光标物品、把背包里库藏已有的同类一键存入。
  * <ul>
- *   <li>⚠ 库藏下标来自客户端快照，可能已过时：取物同时带物品 ID，下标处不是这种物品就改取第一条同 ID 的条目，没有就不
- *       取。取进背包前先算背包还放得下多少（{@code room}），只取这么多：创造模式背包满时 {@code Inventory#add} 会把数量
- *       吞成 0 并报成功。</li>
+ *   <li>⚠ 取物按条目流水号找（{@link BlissfulStorage#indexOf(long)}），快照过时、下标挪动都拿不错；条目已取空删掉就
+ *       不取。取进背包前先算背包还放得下多少（{@code room}），只取这么多：创造模式背包满时 {@code Inventory#add} 会把数
+ *       量吞成 0 并报成功。</li>
  *   <li>{@link #depositMatching} 只动背包主格（不含快捷栏），免得把手上的工具存进去；只存库藏里已有的「物品 + 组件」。
  *   </li>
  * </ul>
@@ -28,8 +28,8 @@ public final class StorageWork {
     }
 
     public static void take(@NotNull ServerPlayer player, @NotNull EarthSpiritMenu menu,
-                            @NotNull BlissfulStorage storage, int index, @NotNull String itemId, boolean all) {
-        int at = resolve(storage, index, itemId);
+                            @NotNull BlissfulStorage storage, long serial, boolean all) {
+        int at = storage.indexOf(serial);
         if (at < 0) return;
 
         ItemStack key = storage.entries().get(at).key().copy();
@@ -69,15 +69,6 @@ public final class StorageWork {
             }
         }
         return moved;
-    }
-
-    private static int resolve(BlissfulStorage storage, int index, String itemId) {
-        List<BlissfulStorage.Entry> entries = storage.entries();
-        if (index >= 0 && index < entries.size() && idOf(entries.get(index).key()).equals(itemId)) return index;
-        for (int i = 0; i < entries.size(); i++) {
-            if (idOf(entries.get(i).key()).equals(itemId)) return i;
-        }
-        return -1;
     }
 
     private static int room(Inventory inventory, ItemStack key) {

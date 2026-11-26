@@ -571,6 +571,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.deposit_matching",           "把背包里（不含快捷栏）库藏已有的同类物品全部存入");
         add("guzhenren.blissful_land.ui.inventory",                   "物品栏");
         add("guzhenren.blissful_land.ui.stored",                      "库藏 %s");
+        add("guzhenren.blissful_land.ui.trimmed",                     "内容过多，悬停与图标不全");
         add("guzhenren.item.gu.health",                              "生命 %s / %s");
         add("guzhenren.item.gu.vital_lost",                          "本命蛊%s死亡");
     }

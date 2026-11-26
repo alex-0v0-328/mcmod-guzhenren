@@ -13,6 +13,7 @@ import net.alex.guzhenren.gameplay.blissful.panel.Page;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelActions;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSnapshot;
+import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser;
 import net.alex.guzhenren.network.payload.EarthSpiritActionPayload;
 import net.alex.guzhenren.network.payload.EarthSpiritPanelPayload;
 import net.minecraft.Util;
@@ -42,8 +43,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>库藏页是 {@link Storage}，其余页是 {@link Pages}，跨这条线切页就换一个界面实例（同一个菜单，页码、两个输入框内
  *       容与提示带过去，各页滚动位置重置）：整理类模组按界面类挂件，InventoryProfilesNext 只认 {@link IPNIgnore}，所
  *       以只有库藏页出现它的整理按钮与快捷栏箭头。客户端 {@code removed} 不动菜单，服务端菜单不受换界面影响。</li>
- *   <li>两个输入框：荡魂山页的白名单名字（灰字提示匹配的在线玩家名，Tab 补全，回车添加）、库藏页的搜索；聚焦时吞掉除
- *       Esc 外的按键，免得按 E 关掉面板。</li>
+ *   <li>两个输入框：荡魂山页的白名单名字（灰字提示匹配的在线玩家名，Tab 补全，回车添加）、库藏页的搜索（内容一变就
+ *       经 {@link StoragePage} 发给服务端，筛选在服务端做；换界面实例时先填值后挂监听，不重发）；聚焦时吞掉除 Esc 外的
+ *       按键，免得按 E 关掉面板。</li>
  *   <li>左侧标签列算面板内（{@link #hasClickedOutside}）：手上拿着库藏物品点标签，松手时原版会把它当点在面板外扔出
  *       去。</li>
  *   <li>数据只来自菜单里按页缓存的快照段：开面板时随缓冲带来，之后每秒与每次操作后由 {@link EarthSpiritPanelPayload}
@@ -66,10 +68,10 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     private static final int TAB_PITCH = 24;
     private static final int RULE_Y = 15;
     private static final int NOTICE_MILLIS = 4000;
-    private static final int SEARCH_LENGTH = 32;
     private static final String[] TAB_ICONS = {"icon_overview", "icon_mountain", "icon_husbandry", "icon_farming",
             "icon_territory", "icon_storage"};
     private final Map<Page, PanelPage> pages = new EnumMap<>(Page.class);
+    private final StoragePage storage;
     private final Inventory inventory;
     private Page page;
     private EditBox nameField;
@@ -92,7 +94,8 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
         this.pages.put(Page.HUSBANDRY, new HerdPage(this));
         this.pages.put(Page.FARMING, new FarmPage(this));
         this.pages.put(Page.TERRITORY, new TerritoryPage(this));
-        this.pages.put(Page.STORAGE, new StoragePage(this));
+        this.storage = new StoragePage(this);
+        this.pages.put(Page.STORAGE, this.storage);
         this.seen = menu.getSnapshot();
     }
 
@@ -118,7 +121,8 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
         this.nameField.setResponder(this::suggestName);
         String query = this.searchField == null ? this.keptQuery : this.searchField.getValue();
         this.searchField = field(this.leftPos + StoragePage.SEARCH_X + 3, this.topPos + StoragePage.SEARCH_Y + 3,
-                StoragePage.SEARCH_W - 6, SEARCH_LENGTH, "search_hint", query);
+                StoragePage.SEARCH_W - 6, StorageBrowser.TEXT_LENGTH, "search_hint", query);
+        this.searchField.setResponder(text -> this.storage.searchChanged());
         this.addRenderableWidget(this.nameField);
         this.addRenderableWidget(this.searchField);
         this.menu.setInventoryShown(this instanceof Storage);
@@ -170,7 +174,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
 
     boolean isSearchFocused() { return this.searchField.isFocused(); }
 
-    String searchQuery() { return this.searchField.getValue().strip().toLowerCase(Locale.ROOT); }
+    String searchQuery() { return StorageBrowser.normalize(this.searchField.getValue()); }
 
     String takeNameField() {
         String value = this.nameField.getValue();

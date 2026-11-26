@@ -1,7 +1,7 @@
 package net.alex.guzhenren.gameplay.blissful.storage;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
 import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
@@ -9,55 +9,85 @@ import net.alex.guzhenren.gameplay.blissful.panel.Page;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelContext;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
+import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser.Sort;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「库藏」页模块：下发全部库藏条目（顺序即入库顺序，下标是取物参数）；取物、存入的规则在 {@link StorageWork}。
+ * 「库藏」页模块：只下发主人当前查询下的一页条目（搜索、排序、分页在 {@link StorageBrowser}）；取物、存入的规则在
+ * {@link StorageWork}。
  * <ul>
- *   <li>搜索与排序只在客户端做，取物仍带条目在本份快照里的原下标与物品 ID。</li>
+ *   <li>{@link Browse} 一次带齐查询参数（输入、排序、页码、本地名提示表），服务端整份替换这位主人的查询。</li>
+ *   <li>取物带条目流水号（{@link Stored#serial}），不带下标：快照过时也拿不错物品。</li>
+ *   <li>段里的总种数、匹配数、页码与排序供客户端画右上角计数、翻页与排序按钮。</li>
  * </ul>
  */
 
 public final class StorageModule implements LandModule<StorageModule.Section> {
 
     public static final StorageModule INSTANCE = new StorageModule();
-    public static final int ITEM_ID_LENGTH = 256;
 
     private StorageModule() {}
 
-    public record Stored(@NotNull ItemStack key, long count) {
+    public record Stored(long serial, @NotNull ItemStack key, long count, boolean trimmed) {
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Stored> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_LONG, Stored::serial,
                 ItemStack.STREAM_CODEC, Stored::key,
                 ByteBufCodecs.VAR_LONG, Stored::count,
+                ByteBufCodecs.BOOL, Stored::trimmed,
                 Stored::new);
     }
 
-    public record Section(@NotNull List<Stored> entries) implements PanelSection {
+    public record Section(@NotNull List<Stored> entries, int total, int matched, int pageIndex, @NotNull Sort sort)
+            implements PanelSection {
 
-        public static final Section EMPTY = new Section(List.of());
-        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
-                Stored.STREAM_CODEC.apply(ByteBufCodecs.list()).map(Section::new, Section::entries);
+        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, Sort.ORDER);
+        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC = StreamCodec.composite(
+                Stored.STREAM_CODEC.apply(ByteBufCodecs.list(StorageBrowser.PAGE_SIZE)), Section::entries,
+                ByteBufCodecs.VAR_INT, Section::total,
+                ByteBufCodecs.VAR_INT, Section::matched,
+                ByteBufCodecs.VAR_INT, Section::pageIndex,
+                Sort.STREAM_CODEC, Section::sort,
+                Section::new);
+
+        public int pages() { return StorageBrowser.pages(matched); }
 
         @Override
         public @NotNull Page page() { return Page.STORAGE; }
     }
 
     //region Actions [操作]
-    public record Take(int index, @NotNull String itemId, boolean all) implements PanelAction {
+    public record Take(long serial, boolean all) implements PanelAction {
 
         public static final PanelAction.Type<Take> TYPE = new PanelAction.Type<>(Take.class,
-                StreamCodec.composite(ByteBufCodecs.VAR_INT, Take::index, ByteBufCodecs.stringUtf8(ITEM_ID_LENGTH),
-                        Take::itemId, ByteBufCodecs.BOOL, Take::all, Take::new));
+                StreamCodec.composite(ByteBufCodecs.VAR_LONG, Take::serial, ByteBufCodecs.BOOL, Take::all, Take::new));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            StorageWork.take(context.player(), context.menu(), context.data().storage(), index, itemId, all);
+            StorageWork.take(context.player(), context.menu(), context.data().storage(), serial, all);
+            return Component.empty();
+        }
+    }
+
+    public record Browse(@NotNull String text, @NotNull Sort sort, int pageIndex, @NotNull List<Item> hints)
+            implements PanelAction {
+
+        public static final PanelAction.Type<Browse> TYPE = new PanelAction.Type<>(Browse.class,
+                StreamCodec.composite(ByteBufCodecs.stringUtf8(StorageBrowser.TEXT_LENGTH), Browse::text,
+                        Sort.STREAM_CODEC, Browse::sort, ByteBufCodecs.VAR_INT, Browse::pageIndex,
+                        ByteBufCodecs.registry(Registries.ITEM).apply(ByteBufCodecs.list(StorageBrowser.HINT_LIMIT)),
+                        Browse::hints, Browse::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            StorageBrowser.browse(context.player().getUUID(), text, sort, pageIndex, hints);
             return Component.empty();
         }
     }
@@ -95,15 +125,14 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Take.TYPE, DepositCarried.TYPE, DepositMatching.TYPE);
+        return List.of(Take.TYPE, DepositCarried.TYPE, DepositMatching.TYPE, Browse.TYPE);
     }
 
     @Override
+    public void opened(@NotNull UUID viewer) { StorageBrowser.reset(viewer); }
+
+    @Override
     public @NotNull Section section(@NotNull PanelContext context) {
-        List<Stored> entries = new ArrayList<>();
-        for (BlissfulStorage.Entry entry : context.data().storage().entries()) {
-            entries.add(new Stored(entry.key().copy(), entry.count()));
-        }
-        return new Section(entries);
+        return StorageBrowser.page(context.viewer(), context.data().storage(), context.level().registryAccess());
     }
 }

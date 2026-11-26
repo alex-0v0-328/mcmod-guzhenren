@@ -529,7 +529,9 @@ public final class BlissfulLandGameTests {
             storage.insert(new ItemStack(Items.WHEAT, 100));
             storage.insert(new ItemStack(Items.CARROT, 5));
 
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:wheat", false));
+            long wheatSerial = storage.entries().get(0).serial();
+            long carrotSerial = storage.entries().get(1).serial();
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(wheatSerial, false));
             helper.assertValueEqual(menu.getCarried().getCount(), 64, "one take puts a stack on the cursor");
             helper.assertValueEqual(wheat(storage) + menu.getCarried().getCount(), 100L, "taking keeps the total");
             EarthSpiritPanel.handle(owner, new StorageModule.DepositCarried());
@@ -541,11 +543,11 @@ public final class BlissfulLandGameTests {
             helper.assertTrue(owner.getInventory().getItem(0).isEmpty(), "shift-clicking a hotbar slot stores it");
             helper.assertValueEqual(wheat(storage), 110L, "storing keeps the total");
 
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:carrot", false));
-            helper.assertTrue(menu.getCarried().is(Items.CARROT), "a stale index still takes the named item");
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(carrotSerial, false));
+            helper.assertTrue(menu.getCarried().is(Items.CARROT), "a serial takes its own entry");
             menu.setCarried(ItemStack.EMPTY);
 
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:wheat", true));
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(wheatSerial, true));
             helper.assertValueEqual(wheat(storage), 0L, "taking all empties the entry");
             helper.assertValueEqual(owner.getInventory().countItem(Items.WHEAT), 110, "all of it is in the bag");
 
@@ -555,7 +557,9 @@ public final class BlissfulLandGameTests {
             }
             storage.insert(new ItemStack(Items.WHEAT, 30));
             owner.getAbilities().instabuild = true;
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(0, "minecraft:wheat", true));
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(wheatSerial, true));
+            helper.assertValueEqual(wheat(storage), 30L, "an emptied entry's serial takes nothing");
+            EarthSpiritPanel.handle(owner, new StorageModule.Take(storage.entries().get(0).serial(), true));
             helper.assertValueEqual(wheat(storage), 30L, "a full creative bag takes nothing and loses nothing");
             helper.succeed();
         } finally {
@@ -575,7 +579,7 @@ public final class BlissfulLandGameTests {
     private static EarthSpiritMenu openPanel(ServerLevel level, BlissfulLandData data, ServerPlayer player,
                                              EarthSpiritEntity spirit) {
         return new EarthSpiritMenu(1, player.getInventory(), spirit,
-                EarthSpiritPanel.snapshot(level, data, Page.OVERVIEW, Component.empty()));
+                EarthSpiritPanel.snapshot(level, data, player.getUUID(), Page.OVERVIEW, Component.empty()));
     }
     //endregion
 

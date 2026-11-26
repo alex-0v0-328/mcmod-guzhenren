@@ -1,30 +1,34 @@
 package net.alex.guzhenren.client.screen.blissful;
 
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
+import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser;
 import net.alex.guzhenren.gameplay.blissful.storage.StorageModule;
-import net.alex.guzhenren.gameplay.blissful.storage.StorageWork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * 「库藏」页：库藏条目铺成 9×{@value #ROWS} 的格子，滚轮按行翻；格子下面一行是搜索框、排序、「存同类」；再下面是玩家背
- * 包与快捷栏（菜单里的真格子）。
+ * 「库藏」页：服务端下发的当前一页条目铺成 9×{@value #ROWS} 的格子，滚轮翻页；格子下面一行是搜索框、排序、「存同类」；
+ * 再下面是玩家背包与快捷栏（菜单里的真格子）。
  * <ul>
- *   <li>库藏不设上限，一个格子是一种物品，右下角画总数（过万缩写成 k / m），悬停提示补完整数量。</li>
+ *   <li>库藏不设上限，一个格子是一种物品，右下角画总数（过万缩写成 k / m），悬停提示补完整数量；物品数据过大只下发了
+ *       种类的格子，悬停多一行说明。</li>
  *   <li>左键取一组到光标（光标有东西就进背包），Shift 左键取满背包；光标拿着东西点库藏格 = 整组存入。背包格 Shift 点也
- *       是整组存入，由菜单的 {@code quickMoveStack} 在服务端做。「存同类」把背包主格里库藏已有的同类一次存入。</li>
- *   <li>搜索按物品名或 ID 包含输入（不分大小写）；排序在入库顺序、数量（多的在前）、名称（按中文排序规则）之间循环，排
- *       序方式在本次游戏里记着。筛选排序只改显示顺序，取物仍带条目的原下标与物品 ID。</li>
- *   <li>右上角写种类数：筛选时写「显示数 / 总数」，超过一屏时补当前行位置。</li>
+ *       是整组存入，由菜单的 {@code quickMoveStack} 在服务端做。「存同类」把背包主格里库藏已有的同类一次存入。取物带条
+ *       目流水号。</li>
+ *   <li>搜索、排序、翻页都在服务端（{@link StorageBrowser}）：输入一变、点排序、滚轮翻页就发一次 {@link
+ *       StorageModule.Browse}，带上按本地物品名算好的提示表（专用服务器认不出中文名）。翻页与排序先记成「待回」值，
+ *       服务端回了同样的页码或排序才清掉，连续滚动与连点不丢步。</li>
+ *   <li>右上角写种类数：筛选时写「匹配数 / 总数」，超过一页时补「当前页 / 页数」。</li>
  * </ul>
  */
 
@@ -45,41 +49,48 @@ final class StoragePage extends PanelPage {
     private static final int DEPOSIT_X = 136;
     private static final int DEPOSIT_W = 32;
     private static final String[] SORT_KEYS = {"sort_order", "sort_count", "sort_name"};
-    private static int sort;
-    private int row;
+    private int pendingPage = -1;
+    private @Nullable StorageBrowser.Sort pendingSort;
 
     StoragePage(EarthSpiritScreen screen) { super(screen); }
 
     @Override
     Component name() { return Component.translatable(UI + "tab.storage"); }
 
-    private List<StorageModule.Stored> stored() { return section(StorageModule.Section.EMPTY).entries(); }
-
-    private List<Integer> view() {
-        List<StorageModule.Stored> stored = stored();
-        String query = screen.searchQuery();
-        List<Integer> view = new ArrayList<>();
-        for (int i = 0; i < stored.size(); i++) {
-            if (query.isEmpty() || matches(stored.get(i), query)) view.add(i);
-        }
-        if (sort == 1) view.sort(Comparator.comparingLong(i -> -stored.get(i).count()));
-        if (sort == 2) {
-            Collator collator = Collator.getInstance(Locale.CHINA);
-            view.sort(Comparator.comparing(i -> stored.get(i).key().getHoverName().getString(), collator));
-        }
-        return view;
+    private StorageModule.Section section() {
+        StorageModule.Section section = section(StorageModule.Section.EMPTY);
+        if (section.pageIndex() == pendingPage) pendingPage = -1;
+        if (section.sort() == pendingSort) pendingSort = null;
+        return section;
     }
 
-    private static boolean matches(StorageModule.Stored entry, String query) {
-        return entry.key().getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)
-                || StorageWork.idOf(entry.key()).contains(query);
+    private StorageBrowser.Sort sort() { return pendingSort != null ? pendingSort : section().sort(); }
+
+    private int pageIndex() { return pendingPage >= 0 ? pendingPage : section().pageIndex(); }
+
+    void searchChanged() { browse(sort(), 0); }
+
+    private void browse(StorageBrowser.Sort sort, int pageIndex) {
+        pendingSort = sort;
+        pendingPage = pageIndex;
+        String text = screen.searchQuery();
+        send(new StorageModule.Browse(text, sort, pageIndex, hints(text)));
     }
 
-    private static int totalRows(int size) { return (size + COLS - 1) / COLS; }
+    private static List<Item> hints(String text) {
+        List<Item> hints = new ArrayList<>();
+        if (text.isEmpty()) return hints;
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item.getDescription().getString().toLowerCase(Locale.ROOT).contains(text)) {
+                hints.add(item);
+                if (hints.size() == StorageBrowser.HINT_LIMIT) break;
+            }
+        }
+        return hints;
+    }
 
     @Override
     void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
-        row = PanelKit.clampScroll(row, ROWS, totalRows(view().size()));
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
                 sprites.blit(PanelKit.SLOT, x + GRID_X + c * PITCH - 1, y + GRID_Y + r * PITCH - 1, 18, 18);
@@ -103,15 +114,15 @@ final class StoragePage extends PanelPage {
 
     @Override
     void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        int shown = view().size();
-        int total = stored().size();
-        Component count = shown < total ? Component.translatable(UI + "kinds_filtered", shown, total)
-                : Component.translatable(UI + "kinds", total);
-        Component kinds = totalRows(shown) > ROWS
-                ? Component.translatable(UI + "kinds_paged", count, row + 1, totalRows(shown) - ROWS + 1) : count;
+        StorageModule.Section section = section();
+        Component count = section.matched() < section.total()
+                ? Component.translatable(UI + "kinds_filtered", section.matched(), section.total())
+                : Component.translatable(UI + "kinds", section.total());
+        Component kinds = section.pages() > 1
+                ? Component.translatable(UI + "kinds_paged", count, section.pageIndex() + 1, section.pages()) : count;
         PanelKit.right(graphics, font(), kinds, x + 168, y + 6, PanelKit.LEGEND);
-        PanelKit.label(graphics, font(), Component.translatable(UI + SORT_KEYS[sort]), x + SORT_X, y + SEARCH_Y, SORT_W,
-                PanelKit.SQUARE, true);
+        PanelKit.label(graphics, font(), Component.translatable(UI + SORT_KEYS[sort().ordinal()]), x + SORT_X,
+                y + SEARCH_Y, SORT_W, PanelKit.SQUARE, true);
         PanelKit.label(graphics, font(), Component.translatable(UI + "deposit_matching"), x + DEPOSIT_X, y + SEARCH_Y,
                 DEPOSIT_W, PanelKit.SQUARE, true);
         graphics.drawString(font(), Component.translatable(UI + "inventory"), x + 8, y + 128, PanelKit.TEXT, false);
@@ -119,12 +130,9 @@ final class StoragePage extends PanelPage {
 
     @Override
     void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        List<StorageModule.Stored> stored = stored();
-        List<Integer> view = view();
-        for (int i = 0; i < ROWS * COLS; i++) {
-            int index = row * COLS + i;
-            if (index >= view.size()) break;
-            StorageModule.Stored entry = stored.get(view.get(index));
+        List<StorageModule.Stored> entries = section().entries();
+        for (int i = 0; i < Math.min(entries.size(), ROWS * COLS); i++) {
+            StorageModule.Stored entry = entries.get(i);
             int left = x + GRID_X + (i % COLS) * PITCH;
             int top = y + GRID_Y + (i / COLS) * PITCH;
             graphics.renderItem(entry.key(), left, top);
@@ -146,28 +154,28 @@ final class StoragePage extends PanelPage {
                 Component.translatable(TIP + "deposit_matching"))) {
             return;
         }
-        int index = indexAt(x, y, mouseX, mouseY);
-        if (index < 0 || !screen.getMenu().getCarried().isEmpty()) return;
+        StorageModule.Stored entry = entryAt(x, y, mouseX, mouseY);
+        if (entry == null || !screen.getMenu().getCarried().isEmpty()) return;
 
-        StorageModule.Stored entry = stored().get(index);
         List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(Minecraft.getInstance(), entry.key()));
         lines.add(Component.translatable(UI + "stored", entry.count()).withColor(PanelKit.LEGEND));
+        if (entry.trimmed()) lines.add(Component.translatable(UI + "trimmed").withColor(PanelKit.LEGEND));
         graphics.renderComponentTooltip(font(), lines, mouseX, mouseY);
     }
 
-    private int indexAt(int x, int y, double mouseX, double mouseY) {
-        if (!Widgets.isOver(mouseX, mouseY, x + GRID_X, y + GRID_Y, COLS * PITCH, ROWS * PITCH)) return -1;
+    private @Nullable StorageModule.Stored entryAt(int x, int y, double mouseX, double mouseY) {
+        if (!Widgets.isOver(mouseX, mouseY, x + GRID_X, y + GRID_Y, COLS * PITCH, ROWS * PITCH)) return null;
         int c = (int) (mouseX - x - GRID_X) / PITCH;
         int r = (int) (mouseY - y - GRID_Y) / PITCH;
-        int index = (row + r) * COLS + c;
-        List<Integer> view = view();
-        return index < view.size() ? view.get(index) : -1;
+        List<StorageModule.Stored> entries = section().entries();
+        int index = r * COLS + c;
+        return index < entries.size() ? entries.get(index) : null;
     }
 
     @Override
     boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (Widgets.isOver(mouseX, mouseY, x + SORT_X, y + SEARCH_Y, SORT_W, PanelKit.SQUARE)) {
-            sort = (sort + 1) % SORT_KEYS.length;
+            browse(sort().next(), 0);
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelKit.SQUARE)) {
@@ -179,17 +187,16 @@ final class StoragePage extends PanelPage {
             send(new StorageModule.DepositCarried());
             return true;
         }
-        int index = indexAt(x, y, mouseX, mouseY);
-        if (index >= 0 && button == 0) {
-            send(new StorageModule.Take(index, StorageWork.idOf(stored().get(index).key()), shift));
-        }
+        StorageModule.Stored entry = entryAt(x, y, mouseX, mouseY);
+        if (entry != null && button == 0) send(new StorageModule.Take(entry.serial(), shift));
         return true;
     }
 
     @Override
     boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, x + GRID_X, y + GRID_Y, COLS * PITCH, ROWS * PITCH)) return false;
-        row = PanelKit.clampScroll(row - (int) Math.signum(delta), ROWS, totalRows(view().size()));
+        int next = Math.clamp(pageIndex() - (int) Math.signum(delta), 0, section().pages() - 1);
+        if (next != pageIndex()) browse(sort(), next);
         return true;
     }
 }
