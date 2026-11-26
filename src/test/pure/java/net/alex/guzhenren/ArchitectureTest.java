@@ -21,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +32,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 /**
- * 主代码架构规则：分层向下；仅客户端专用代码引用客户端代码，仅 mixin 引用 mixin；共用蛊物品基类低于凡蛊；空窍[Aperture]
+ * 主代码架构规则：分层向下（{@link #LAYERS_ABOVE}，字节码看不见的内联常量由 {@code SourceLayersTest} 按 import 补查）；
+ * 仅客户端专用代码引用客户端代码，仅 mixin 引用 mixin；共用蛊物品基类低于凡蛊；空窍[Aperture]
  * 压力爆炸坑低于空窍其余部分；顶层包无环，不计注册枢纽（{@code registry} 与根包类）；二级包亦无环，另不计记录门面
  * {@code gameplay.data}；本命蛊[Vital Gu]绑定唯一读写入口。
  */
@@ -39,6 +41,11 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 class ArchitectureTest {
 
     private static final String ROOT = "net.alex.guzhenren.";
+    // Each layer and the top-level packages above it, shared with SourceLayersTest.
+    static final Map<String, List<String>> LAYERS_ABOVE = Map.of(
+            "gameplay", List.of("item", "command", "lifecycle", "refinement", "vault", "network"),
+            "item", List.of("command", "vault"),
+            "lifecycle", List.of("compat"));
     // Client-only classes outside the client package; the mixins come from the "client" list of guzhenren.mixins.json.
     private static final Set<String> CLIENT_CLASSES = Stream.concat(
             Stream.of(ROOT + "GuzhenrenClient", ROOT + "compat.EpicFightClientIntegration"),
@@ -78,12 +85,9 @@ class ArchitectureTest {
                     && access.getTarget().getName().startsWith("VITAL_"));
 
     @ArchTest
-    static final ArchRule gameplayStaysBelowTheLayersAboveIt = noClasses().that().resideInAPackage(ROOT + "gameplay..")
-            .should().dependOnClassesThat().resideInAnyPackage(ROOT + "item..", ROOT + "command..",
-                    ROOT + "lifecycle..", ROOT + "refinement..", ROOT + "vault..", ROOT + "network..");
+    static final ArchRule gameplayStaysBelowTheLayersAboveIt = staysBelow("gameplay");
     @ArchTest
-    static final ArchRule itemStaysBelowCommandsAndTheVault = noClasses().that().resideInAPackage(ROOT + "item..")
-            .should().dependOnClassesThat().resideInAnyPackage(ROOT + "command..", ROOT + "vault..");
+    static final ArchRule itemStaysBelowCommandsAndTheVault = staysBelow("item");
     @ArchTest
     static final ArchRule sharedItemsStayBelowMortalGu = noClasses()
             .that().haveFullyQualifiedName(ROOT + "item.GuItem").or().resideInAPackage(ROOT + "item.material..")
@@ -95,8 +99,7 @@ class ArchitectureTest {
             .should().accessFieldWhere(VITAL_COMPONENT)
             .because("the Vital Gu binding is read and written only through VitalGuState");
     @ArchTest
-    static final ArchRule lifecycleStaysBelowIntegrations = noClasses().that().resideInAPackage(ROOT + "lifecycle..")
-            .should().dependOnClassesThat().resideInAPackage(ROOT + "compat..");
+    static final ArchRule lifecycleStaysBelowIntegrations = staysBelow("lifecycle");
     @ArchTest
     static final ArchRule recipesStayBelowTheRestOfRefinement = noClasses()
             .that().resideInAPackage(ROOT + "refinement.recipe..").should().dependOnClassesThat(
@@ -133,6 +136,12 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule onlyMixinsReachMixins = noClasses().that().resideOutsideOfPackage(ROOT + "mixin..")
             .should().dependOnClassesThat().resideInAPackage(ROOT + "mixin..");
+
+    private static ArchRule staysBelow(String layer) {
+        return noClasses().that().resideInAPackage(ROOT + layer + "..").should().dependOnClassesThat()
+                .resideInAnyPackage(LAYERS_ABOVE.get(layer).stream().map(above -> ROOT + above + "..")
+                        .toArray(String[]::new));
+    }
 
     /** 只导入主输出：pureTest 类路径还带同包的 gametest 与 pureTest 类。 */
     static final class MainOutputOnly implements ImportOption {

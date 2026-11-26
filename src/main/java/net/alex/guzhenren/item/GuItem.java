@@ -2,6 +2,7 @@ package net.alex.guzhenren.item;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.core.Refusals;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.display.ModDisplayText;
 import net.alex.guzhenren.gameplay.aperture.Rank;
@@ -38,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #tryUseInPlace} 不经手、不蓄力原地催动（轮盘选取、元老蛊[Primeval Elder Gu] 轻点）：原版冷却静默挡下，
  *       {@code checkInPlaceUse} 在动作栏拒绝，{@code performInPlaceUse} 生效，返回是否生效。</li>
  *   <li>拒绝只为境界不符、无法使用、效果未结束、自动生效、蛊虫饥饿、目标错误、背包已满、真元[Essence] 不足、
- *       尚未开窍[Awakening] 时，处处用 {@link Refusal} 同名共用键（Alex 定）；指引操作或给数值才用蛊自己的键。</li>
+ *       尚未开窍[Awakening] 时，处处用 {@link Refusals} 的共用键（Alex 定；{@link Refusal} 转引同名常量供物品层写）；
+ *       指引操作或给数值才用蛊自己的键。</li>
  * </ul>
  */
 
@@ -66,15 +68,15 @@ public abstract class GuItem extends Item {
     public int getTier() { return rank.ordinal() - Rank.ONE.ordinal(); }
 
     public record Refusal(String key, Object... args) {
-        public static final String RANK_MISMATCH = "guzhenren.item.failed.rank_mismatch";
-        public static final String CANNOT_USE = "guzhenren.item.failed.cannot_use";
-        public static final String EFFECT_ACTIVE = "guzhenren.item.failed.effect_active";
-        public static final String AUTO_EFFECT = "guzhenren.item.failed.auto_effect";
-        public static final String GU_HUNGRY = "guzhenren.item.failed.gu_hungry";
-        public static final String WRONG_TARGET = "guzhenren.item.failed.wrong_target";
-        public static final String BAG_FULL = "guzhenren.item.failed.bag_full";
-        public static final String ESSENCE = "guzhenren.item.failed.essence";
-        public static final String UNAWAKENED = "guzhenren.item.failed.unawakened";
+        public static final String RANK_MISMATCH = Refusals.RANK_MISMATCH;
+        public static final String CANNOT_USE = Refusals.CANNOT_USE;
+        public static final String EFFECT_ACTIVE = Refusals.EFFECT_ACTIVE;
+        public static final String AUTO_EFFECT = Refusals.AUTO_EFFECT;
+        public static final String GU_HUNGRY = Refusals.GU_HUNGRY;
+        public static final String WRONG_TARGET = Refusals.WRONG_TARGET;
+        public static final String BAG_FULL = Refusals.BAG_FULL;
+        public static final String ESSENCE = Refusals.ESSENCE;
+        public static final String UNAWAKENED = Refusals.UNAWAKENED;
     }
 
     //region the hooks a leaf fills [叶类钩子]

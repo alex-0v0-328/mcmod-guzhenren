@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.MenuSlots;
-import net.alex.guzhenren.item.GuItem.Refusal;
+import net.alex.guzhenren.core.Refusals;
 import net.alex.guzhenren.registry.menu.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -84,7 +84,7 @@ public class SoulTradeMenu extends AbstractContainerMenu {
                 this.offers.get(id).settle(server.getInventory(), this.collectReturning(server));
         switch (outcome) {
             case SHORT -> ActionBar.refuse(server, SHORT);
-            case NO_ROOM -> ActionBar.refuse(server, Refusal.BAG_FULL);
+            case NO_ROOM -> ActionBar.refuse(server, Refusals.BAG_FULL);
             case DONE -> {}
         }
         this.trader.reactToTrade(outcome == SoulTradeOffer.Outcome.DONE);

@@ -2,12 +2,12 @@ package net.alex.guzhenren.gameplay.aperture;
 
 import net.alex.guzhenren.core.ActionBar;
 import net.alex.guzhenren.core.ModEvents;
+import net.alex.guzhenren.core.Refusals;
 import net.alex.guzhenren.gameplay.aperture.awakening.AwakeningRitualService;
 import net.alex.guzhenren.gameplay.body.BodyService;
 import net.alex.guzhenren.gameplay.clock.Beat;
 import net.alex.guzhenren.gameplay.clock.TimeFlow;
 import net.alex.guzhenren.gameplay.data.PlayerData;
-import net.alex.guzhenren.item.GuItem.Refusal;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -165,7 +165,7 @@ public final class ApertureNourishService {
         ApertureNourishData starving = data.isStarving() ? data : data.withStarvedSinceTick(now);
         if (starving.hasStarvedOut(now)) {
             store(player, starving.stopped());
-            ActionBar.refuse(player, Refusal.ESSENCE);
+            ActionBar.refuse(player, Refusals.ESSENCE);
             return;
         }
         store(player, starving);
@@ -237,7 +237,7 @@ public final class ApertureNourishService {
         Aperture aperture = ApertureService.getAperture(player);
         long cost = getImpactCost(player);
         if (!player.getAbilities().instabuild && !stones.spend().test(player, cost)) {
-            ActionBar.refuse(player, Refusal.ESSENCE);
+            ActionBar.refuse(player, Refusals.ESSENCE);
             return;
         }
 
