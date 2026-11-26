@@ -11,6 +11,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
+import net.alex.guzhenren.gameplay.blissful.map.MapScanner;
 import net.alex.guzhenren.gameplay.blissful.map.Siting;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
 import net.minecraft.core.BlockPos;
@@ -43,15 +44,16 @@ import org.jetbrains.annotations.Nullable;
  *       只看实体坐标，不看栅栏。</li>
  *   <li>养殖的清点、托管、一键喂养与宰杀只看栏内（{@link #penned}）；总览页的动物数照旧数全福地。「挪生物上山」与活物
  *       标记用 {@link #penner}。</li>
- *   <li>{@link #enclose}：周界每列从真实地面（找地面时栅栏与栅栏门不算）上一格起叠橡木栅栏，叠到顶端比 8 邻列真实地面
- *       都高至少 1 格（邻列是流体按流体表面算）；北边正中一格的最底层放朝北的栅栏门。已是栅栏或门的格子跳过，可替换方
- *       块、树叶、原木换掉，其余方块（多半是玩家的）不动、该列就此计为挡住，流体列也计为挡住。放完再按四邻重算形状，栅栏
- *       才连得上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
+ *   <li>{@link #enclose}：周界每列从真实地面（{@link MapScanner#isPassable} 不算地面，花草、栅栏都跳过）上一格起叠橡木
+ *       栅栏，叠到顶端比 8 邻列真实地面都高至少 1 格（邻列是流体按流体表面算）；北边正中一格的最底层放朝北的栅栏门。已
+ *       是栅栏或门的格子跳过，可替换方块、树叶、原木、植物（{@link MapScanner#isPlant}）换掉，栅栏顶上连着的植物（甘蔗
+ *       上段）清掉，其余方块（多半是玩家的）不动、该列就此计为挡住，流体列也计为挡住。放完再按四邻重算形状，栅栏才连得
+ *       上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
  *   <li>{@link #unfence}：周界每列地面以上连着的栅栏与栅栏门全部拆掉（玩家放的也拆），不掉落。</li>
  *   <li>{@link #relocate}：把候选里落在旧栏内、不在新栏内的可支使动物全部传进新栏（不限头数），{@link #gather}：栏外可
  *       支使动物至多 {@value #GATHER_LIMIT} 头传进栏、冷却 {@value #GATHER_COOLDOWN_TICKS} 刻；落点都在离栅栏至少
- *       {@value #MARGIN} 格的随机地面（每头至多试 {@value #SPOT_ATTEMPTS} 次，须已加载）。野生蛊不是 {@link Animal}，
- *       不会被收。</li>
+ *       {@value #MARGIN} 格的随机地面（每头至多试 {@value #SPOT_ATTEMPTS} 次，须已加载，落点与上一格可替换或是植物）。
+ *       野生蛊不是 {@link Animal}，不会被收。</li>
  *   <li>⚠ 强加载用 NeoForge 带刻工单 {@link #TICKETS}（原版强加载的区块附近没人时不随机刻），以各牧场中心为主人、各管
  *       自己的 4 区块：圈地时挂，拆除与迁移时撤旧挂新，失主时 {@link #release}，认主时 {@link #retain}；读档校验把无主
  *       福地的工单全部丢掉。</li>
@@ -186,26 +188,34 @@ public final class PastureWork {
                 }
             }
             boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ();
-            for (int y = ground + 1; y <= top; y++) {
-                BlockPos pos = new BlockPos(column.getX(), y, column.getZ());
-                BlockState at = level.getBlockState(pos);
-                if (at.is(BlockTags.FENCES) || at.is(BlockTags.FENCE_GATES)) continue;
-                if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS)) {
-                    blocked++;
-                    break;
-                }
-                BlockState state = isGate && y == ground + 1
-                        ? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.NORTH)
-                        : Blocks.OAK_FENCE.defaultBlockState();
-                level.setBlock(pos, state, Block.UPDATE_ALL);
-                placed.add(pos);
-            }
+            if (!stack(level, column, ground, top, isGate, placed)) blocked++;
         }
         for (BlockPos pos : placed) {
             BlockState joined = Block.updateFromNeighbourShapes(level.getBlockState(pos), level, pos);
             level.setBlock(pos, joined, Block.UPDATE_ALL);
         }
         return new Enclosed(placed.size(), blocked);
+    }
+
+    private static boolean stack(ServerLevel level, BlockPos column, int ground, int top, boolean isGate,
+                                 List<BlockPos> placed) {
+        for (int y = ground + 1; y <= top; y++) {
+            BlockPos pos = column.atY(y);
+            BlockState at = level.getBlockState(pos);
+            if (isFence(at)) continue;
+            if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS) && !MapScanner.isPlant(at)) {
+                return false;
+            }
+            BlockState state = isGate && y == ground + 1
+                    ? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.NORTH)
+                    : Blocks.OAK_FENCE.defaultBlockState();
+            level.setBlock(pos, state, Block.UPDATE_ALL);
+            placed.add(pos);
+        }
+        for (BlockPos pos = column.atY(top + 1); MapScanner.isPlant(level.getBlockState(pos)); pos = pos.above()) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+        }
+        return true;
     }
 
     public static @Nullable Integer unfence(@NotNull ServerLevel level, @NotNull Pasture pasture,
@@ -236,11 +246,7 @@ public final class PastureWork {
         for (; pos.getY() > level.getMinBuildHeight(); pos.move(0, -1, 0)) {
             BlockState state = level.getBlockState(pos);
             if (!state.getFluidState().isEmpty()) return fluidSurface ? pos.getY() : NO_GROUND;
-            if (state.isAir() || state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) || state.canBeReplaced()
-                    || isFence(state)) {
-                continue;
-            }
-            return pos.getY();
+            if (!MapScanner.isPassable(state)) return pos.getY();
         }
         return NO_GROUND;
     }
@@ -302,12 +308,12 @@ public final class PastureWork {
             int ground = groundY(level, x, z, false);
             if (ground == NO_GROUND) continue;
             BlockPos spot = new BlockPos(x, ground + 1, z);
-            if (level.getBlockState(spot).canBeReplaced() && level.getBlockState(spot.above()).canBeReplaced()) {
-                return spot;
-            }
+            if (isRoom(level.getBlockState(spot)) && isRoom(level.getBlockState(spot.above()))) return spot;
         }
         return null;
     }
+
+    private static boolean isRoom(BlockState state) { return state.canBeReplaced() || MapScanner.isPlant(state); }
     //endregion
 
     //region Tickets [强加载]

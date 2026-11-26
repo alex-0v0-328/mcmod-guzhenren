@@ -32,7 +32,7 @@ public final class Siting {
     public static final int FIELD_CAP = 64;
     public static final int PASTURE_CAP = 8;
     public static final int FIELD_SLOPE = 3;
-    public static final int PASTURE_SLOPE = 6;
+    public static final int PASTURE_SLOPE = 8;
     public static final int PEN_CHUNKS = 2;
     public static final int PEN_SIDE = 30;
 

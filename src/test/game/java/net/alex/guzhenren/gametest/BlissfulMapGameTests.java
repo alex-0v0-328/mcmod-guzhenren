@@ -10,6 +10,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -19,7 +20,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地地图[Land Map]的区块扫描：地面高与表面高跟真实方块一致（树叶、栅栏跳过，作物算地面）、流体列与方块实体列的
+ * 福地地图[Land Map]的区块扫描：地面高与表面高跟真实方块一致（树叶、栅栏、作物、花、甘蔗跳过）、流体列与方块实体列的
  * 标志、地貌归类，以及已割弃区块给整片虚空。只扫测试区所在的主世界区块，不碰福地维度。
  */
 
@@ -44,6 +45,12 @@ public final class BlissfulMapGameTests {
         helper.setBlock(new BlockPos(6, 1, 2), Blocks.FARMLAND);
         helper.setBlock(new BlockPos(6, 2, 2), ((CropBlock) Blocks.WHEAT).getStateForAge(CropBlock.MAX_AGE));
         helper.setBlock(new BlockPos(2, 1, 6), Blocks.SAND);
+        ServerLevel world = helper.getLevel();
+        int quiet = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+        world.setBlock(helper.absolutePos(new BlockPos(5, 1, 5)), Blocks.POPPY.defaultBlockState(), quiet);
+        for (int y = 1; y <= 3; y++) {
+            world.setBlock(helper.absolutePos(new BlockPos(7, y, 7)), Blocks.SUGAR_CANE.defaultBlockState(), quiet);
+        }
 
         BlockPos leafy = helper.absolutePos(new BlockPos(1, 1, 1));
         MapTile tile = tileAt(helper, new BlockPos(1, 1, 1));
@@ -65,8 +72,15 @@ public final class BlissfulMapGameTests {
         tile = tileAt(helper, new BlockPos(6, 2, 2));
         helper.assertValueEqual(tile.terrainAt(crop.getX(), crop.getZ()), MapTerrain.CROP_MATURE,
                 "ripe wheat reads as a mature crop");
-        helper.assertValueEqual(tile.groundAt(crop.getX(), crop.getZ()), crop.getY(),
-                "a crop is not replaceable, so it is the ground, as in FarmWork");
+        helper.assertValueEqual(tile.groundAt(crop.getX(), crop.getZ()), crop.getY() - 1,
+                "a crop is a plant, so the farmland under it is the ground");
+
+        for (BlockPos relative : new BlockPos[] {new BlockPos(5, 1, 5), new BlockPos(7, 1, 7)}) {
+            BlockPos plant = helper.absolutePos(relative);
+            tile = tileAt(helper, relative);
+            helper.assertValueEqual(tile.groundAt(plant.getX(), plant.getZ()), plant.getY() - 1,
+                    "a flower or a sugar cane stands on the ground, it is not the ground");
+        }
 
         BlockPos sand = helper.absolutePos(new BlockPos(2, 1, 6));
         tile = tileAt(helper, new BlockPos(2, 1, 6));

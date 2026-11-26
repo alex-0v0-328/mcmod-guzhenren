@@ -4,6 +4,8 @@ import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
 import net.alex.guzhenren.gameplay.blissful.territory.Territory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -14,8 +16,11 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>{@link #tile}：不在疆域里（已割弃或原正方形外）的给整片 {@link MapTerrain#VOID}，不扫。</li>
  *   <li>{@code surface} = {@code WORLD_SURFACE} 高度图的最高非空气方块，{@code terrain} 取它的地貌；{@code ground} 从
- *       它往下跳过空气、树叶、原木、可替换方块、栅栏与栅栏门，语义同 {@code FarmWork#groundY} 与
- *       {@code PastureWork#groundY}；先碰到流体（含含水方块）就记这一格的 y 并置 {@link MapTile#FLAG_FLUID}。</li>
+ *       它往下跳过 {@link #isPassable}（空气、树叶、原木、可替换方块、植物、栅栏与栅栏门），{@code FarmWork} 与
+ *       {@code PastureWork} 找地面共用这一条；先碰到流体（含含水方块）就记这一格的 y 并置
+ *       {@link MapTile#FLAG_FLUID}。</li>
+ *   <li>植物（{@link #isPlant}）= 原版 {@link BushBlock}（花、草丛、树苗、作物、蘑菇、浆果丛、睡莲等）与甘蔗：不算地
+ *       面，圈地时被栅栏替换；仙人掌、竹子有碰撞箱，仍算地面。</li>
  *   <li>整列是空气（虚空）的列：两个高度都记最低建造高度减 1，地貌 {@link MapTerrain#VOID}。</li>
  *   <li>方块实体按 {@code ChunkAccess#getBlockEntitiesPos}（含待创建的）标 {@link MapTile#FLAG_BLOCK_ENTITY}，只认
  *       该列 {@code ground} 下 {@value #BLOCK_ENTITY_BELOW} 格到上 {@value #BLOCK_ENTITY_ABOVE} 格（两端含）之内的：
@@ -86,8 +91,12 @@ public final class MapScanner {
         return new MapTile(chunk.getPos().x, chunk.getPos().z, ground, surface, terrain, flags);
     }
 
-    private static boolean isPassable(BlockState state) {
+    public static boolean isPassable(@NotNull BlockState state) {
         return state.isAir() || state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) || state.canBeReplaced()
-                || state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES);
+                || isPlant(state) || state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES);
+    }
+
+    public static boolean isPlant(@NotNull BlockState state) {
+        return state.getBlock() instanceof BushBlock || state.is(Blocks.SUGAR_CANE);
     }
 }

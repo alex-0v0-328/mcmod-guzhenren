@@ -122,12 +122,14 @@ class SitingTest {
     }
 
     @Test
-    @DisplayName("more than three blocks of rise spoils a field, more than six a pasture")
+    @DisplayName("more than three blocks of rise spoils a field, more than eight a pasture")
     void slope() {
         World world = new World().flat(0, 0, 1, 1, 70).column(15, 15, 74, 0);
         assertEquals(Siting.Reason.SLOPE, Siting.field(empty(), world, 0, 0));
         assertEquals(Siting.Reason.OK, Siting.pasture(empty(), world, 0, 0));
-        world.column(20, 20, 77, 0);
+        world.column(20, 20, 78, 0);
+        assertEquals(Siting.Reason.OK, Siting.pasture(empty(), world, 0, 0), "eight blocks of rise is allowed");
+        world.column(20, 20, 79, 0);
         assertEquals(Siting.Reason.SLOPE, Siting.pasture(empty(), world, 0, 0));
         world.column(20, 20, 70, 0).column(0, 0, 90, 0);
         assertEquals(Siting.Reason.OK, Siting.pasture(empty(), world, 0, 0), "the margin outside the fence is free");

@@ -1,6 +1,5 @@
 package net.alex.guzhenren.gameplay.blissful.farm;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +10,10 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
+import net.alex.guzhenren.gameplay.blissful.map.MapScanner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -33,12 +32,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地灵面板的标准田：开垦、拆田、按作物清点、收割并补种，以及田的强加载。选址与规划队列在 {@link FieldPlans}。
  * <ul>
- *   <li>{@link #reclaim}：先同步加载田所在区块；每列从地表往下找真实地面（跳过树叶、原木、可替换方块），任一列先碰到流
- *       体就不开（选址已查过，这里只防开垦前地形变了）；以全部列地面的中位数为耕地层，把整块田整平（上方清空至地表、至
- *       多 {@value #CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多 {@value #FILL_DEPTH} 格），按 {@link FieldPlot} 铺土
- *       径、水与耕地，再按主人选的开垦作物（{@link FarmState#crop()}，自动 = 库藏第一种种子）从库藏扣种子种满耕地（不够
- *       就种够的，没有就开空田，留给之后的收割补种）；之后冷却 {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过
- *       {@link ModEvents#canGrief}。</li>
+ *   <li>{@link #reclaim}：先同步加载田所在区块；每列从地表往下找真实地面（跳过 {@link MapScanner#isPassable}），任一列先
+ *       碰到流体就不开（选址已查过，这里只防开垦前地形变了）；以 {@link FieldPlot#layer}（列数最多的地面层）为耕地层，
+ *       把整块田整平（上方清空至地表、至多 {@value #CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多
+ *       {@value #FILL_DEPTH} 格），按 {@link FieldPlot} 铺土径、水与耕地，再按主人选的开垦作物（{@link FarmState#crop()}，
+ *       自动 = 库藏第一种种子）从库藏扣种子种满耕地（不够就种够的，没有就开空田，留给之后的收割补种）；之后冷却
+ *       {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过 {@link ModEvents#canGrief}。</li>
  *   <li>⚠ {@link #reclaim} 清整不掉落任何方块，田上玩家搭的普通方块会被直接抹掉；有方块实体的区块选址时已拒。</li>
  *   <li>{@link #remove}：作物（熟不熟都算）按方块战利品表全收进库藏，耕地层的耕地、水、土径换回泥土，撤这块田的强加载。
  *       </li>
@@ -90,8 +89,7 @@ public final class FarmWork {
                 grounds[index++] = ground;
             }
         }
-        Arrays.sort(grounds);
-        FieldPlot field = plot.atY(grounds[grounds.length / 2]);
+        FieldPlot field = plot.atY(FieldPlot.layer(grounds));
         for (int x = field.minX(); x <= field.maxX(); x++) {
             for (int z = field.minZ(); z <= field.maxZ(); z++) {
                 level(level, new BlockPos(x, field.y(), z), field.cell(x, z));
@@ -119,10 +117,7 @@ public final class FarmWork {
         for (; pos.getY() > level.getMinBuildHeight(); pos.move(0, -1, 0)) {
             BlockState state = level.getBlockState(pos);
             if (!state.getFluidState().isEmpty()) return NO_GROUND;
-            if (state.isAir() || state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) || state.canBeReplaced()) {
-                continue;
-            }
-            return pos.getY();
+            if (!MapScanner.isPassable(state)) return pos.getY();
         }
         return NO_GROUND;
     }

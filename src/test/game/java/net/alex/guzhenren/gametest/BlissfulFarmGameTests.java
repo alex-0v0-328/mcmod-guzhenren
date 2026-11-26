@@ -26,9 +26,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地标准田：开垦铺土径、水与耕地并按开垦作物播种，收割补种与托管，拆田收作物换回泥土，规划队列按序开垦、不合格取消、
- * 主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；自建存档，规划用例另建疆域罩住测
- * 试区的福地。
+ * 福地标准田：开垦取列数最多的地面层（花不算地面）、铺土径、水与耕地并按开垦作物播种，收割补种与托管，拆田收作物换回泥
+ * 土，规划队列按序开垦、不合格取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
+ * 自建存档，规划用例另建疆域罩住测试区的福地。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -77,7 +77,7 @@ public final class BlissfulFarmGameTests {
             helper.assertFalse(FarmWork.isSeed(new ItemStack(Items.TORCHFLOWER_SEEDS)), "other crop seeds are refused");
             field = FarmWork.reclaim(level, data, plot, owner);
             helper.assertTrue(field != null, "the field is laid");
-            helper.assertValueEqual(field.y(), plot.y(), "the layer is the median ground");
+            helper.assertValueEqual(field.y(), plot.y(), "the layer is the commonest ground");
             helper.assertTrue(level.getBlockState(at(field, 0, 0, 0)).is(Blocks.DIRT_PATH), "the rim is a path");
             helper.assertTrue(level.getBlockState(at(field, 2, 0, 6)).is(Blocks.WATER), "a quarter line is water");
             helper.assertTrue(level.getBlockState(at(field, 1, 0, 1)).is(Blocks.FARMLAND), "the inside is farmland");
@@ -94,6 +94,34 @@ public final class BlissfulFarmGameTests {
                     "all are cut");
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT),
                     new FarmWork.Count(0, FARMLAND_CELLS), "every cell is replanted");
+            helper.succeed();
+        } finally {
+            if (field != null) FarmWork.setForced(level, field, false);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void reclaimingLevelsToTheCommonestGroundAndSkipsPlants(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        int quiet = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+        for (int z = 0; z < WHOLE; z++) {
+            level.setBlock(helper.absolutePos(new BlockPos(0, 1, z)), Blocks.POPPY.defaultBlockState(), quiet);
+            for (int x = 4; x < WHOLE; x++) helper.setBlock(new BlockPos(x, 1, z), Blocks.DIRT);
+            for (int x = 6; x < WHOLE; x++) helper.setBlock(new BlockPos(x, 2, z), Blocks.DIRT);
+        }
+        FieldPlot plot = plot(helper, 0, WHOLE - 1);
+        FieldPlot field = FarmWork.reclaim(level, data, plot, owner(helper, "gzr-farm-layer-mock"));
+        try {
+            helper.assertTrue(field != null, "the field is laid");
+            helper.assertValueEqual(field.y(), plot.y(),
+                    "36 columns on the floor beat 27 two up and 18 one up, flowers not counted as ground");
+            helper.assertTrue(level.getBlockState(at(field, 0, 0, 3)).is(Blocks.DIRT_PATH), "the path is on the floor");
+            helper.assertTrue(level.getBlockState(at(field, 0, 1, 3)).isAir(), "the flower is cleared");
+            helper.assertTrue(level.getBlockState(at(field, 7, 0, 7)).is(Blocks.FARMLAND), "the high side is cut down");
+            helper.assertTrue(level.getBlockState(at(field, 7, 1, 7)).isAir()
+                    && level.getBlockState(at(field, 7, 2, 7)).isAir(), "nothing is left above the cut");
             helper.succeed();
         } finally {
             if (field != null) FarmWork.setForced(level, field, false);

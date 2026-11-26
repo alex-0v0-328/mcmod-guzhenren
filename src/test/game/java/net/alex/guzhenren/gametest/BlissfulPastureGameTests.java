@@ -20,16 +20,19 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地牧场：圈地按邻列地面叠栅栏、门在北边正中、挡住的格子留着、再圈只补缺；拆栅栏连玩家放的一并拆；迁移把旧栏动物全
- * 带进新栏；收拢把栏外可支使的动物传进栏并开冷却；养殖清点只算栏内；挪生物上山跳过栏内。牧场都取测试区里的小方格，不碰
- * 别的测试。
+ * 福地牧场：圈地按邻列地面叠栅栏、门在北边正中、挡住的格子留着、再圈只补缺、花草树苗甘蔗被栅栏替换而不垫高；拆栅栏连玩
+ * 家放的一并拆；迁移把旧栏动物全带进新栏；收拢把栏外可支使的动物传进栏并开冷却；养殖清点只算栏内；挪生物上山跳过栏内。
+ * 牧场都取测试区里的小方格，不碰别的测试。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -79,6 +82,40 @@ public final class BlissfulPastureGameTests {
         level.setBlockAndUpdate(pool, Blocks.AIR.defaultBlockState());
         helper.assertValueEqual(PastureWork.enclose(level, pasture, owner), new PastureWork.Enclosed(1, 0),
                 "enclosing again fills only the gap");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void enclosingReplacesPlantsInsteadOfStandingOnThem(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-plants-mock").onGround();
+        PastureWork.Pasture pasture = pasture(helper, 1, 7);
+        int fenceY = helper.absolutePos(BlockPos.ZERO).getY() + 1;
+        int quiet = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+        BlockPos flower = new BlockPos(pasture.maxX(), fenceY, pasture.minZ() + 2);
+        BlockPos sapling = new BlockPos(pasture.minX(), fenceY, pasture.maxZ() - 2);
+        BlockPos rose = new BlockPos(pasture.minX() + 2, fenceY, pasture.maxZ());
+        BlockPos cane = new BlockPos(pasture.maxX() - 2, fenceY, pasture.maxZ());
+        BlockPos outside = new BlockPos(pasture.maxX() + 1, fenceY, pasture.minZ() + 4);
+        level.setBlock(flower, Blocks.POPPY.defaultBlockState(), quiet);
+        level.setBlock(sapling, Blocks.OAK_SAPLING.defaultBlockState(), quiet);
+        level.setBlock(rose, Blocks.ROSE_BUSH.defaultBlockState(), quiet);
+        level.setBlock(rose.above(), Blocks.ROSE_BUSH.defaultBlockState()
+                .setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER), quiet);
+        for (int dy = 0; dy < 3; dy++) level.setBlock(cane.above(dy), Blocks.SUGAR_CANE.defaultBlockState(), quiet);
+        level.setBlock(outside, Blocks.DANDELION.defaultBlockState(), quiet);
+
+        PastureWork.Enclosed done = PastureWork.enclose(level, pasture, owner);
+        helper.assertTrue(done != null, "the owner may enclose");
+        helper.assertValueEqual(done.blocked(), 0, "no plant blocks the line");
+        for (BlockPos pos : List.of(flower, sapling, rose, cane)) {
+            helper.assertTrue(level.getBlockState(pos).is(Blocks.OAK_FENCE), "the fence replaces the plant at " + pos);
+            helper.assertTrue(level.getBlockState(pos.above()).isAir(), "one fence on flat ground at " + pos);
+        }
+        helper.assertTrue(level.getBlockState(cane.above(2)).isAir(), "the cane above the fence is cleared too");
+        BlockPos byOutside = new BlockPos(pasture.maxX(), fenceY, pasture.minZ() + 4);
+        helper.assertTrue(level.getBlockState(byOutside.above()).isAir(), "a flower beside the line does not raise it");
         helper.succeed();
     }
 
