@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 
-public record ZombieBehavior(int tempZombieTicks) implements GuBehavior {
+public record ZombieBehavior(int temporaryZombieTicks) implements GuBehavior {
 
 
     public static int getRung(MortalGuItem gu) { return gu.getRank().ordinal() - Rank.TWO.ordinal(); }
@@ -38,6 +38,6 @@ public record ZombieBehavior(int tempZombieTicks) implements GuBehavior {
             BodyService.turnZombie(player, getRung(gu));
             return;
         }
-        BodyService.enterTempZombie(player, getRung(gu), tempZombieTicks);
+        BodyService.enterTemporaryZombie(player, getRung(gu), temporaryZombieTicks);
     }
 }

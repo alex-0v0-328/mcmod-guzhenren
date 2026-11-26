@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class KillingMoveGestureTest {
 
-    private static final String MOVE = "km_mortal_little_light_amplify";
+    private static final String MOVE = "killing_move_mortal_little_light_amplify";
 
     @Test
     @DisplayName("a tap sends the plain blade")

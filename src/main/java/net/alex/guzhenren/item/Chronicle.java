@@ -110,7 +110,7 @@ public record Chronicle(Book book, int section) implements BookletText {
     }
 
     public enum Book {
-        RENZU_ZHUAN("renzu_zhuan", 38, "人祖传", "人祖傳");
+        HUMAN_ANCESTOR_LEGEND("human_ancestor_legend", 38, "人祖传", "人祖傳");
 
         private final String id;
         private final int sections;

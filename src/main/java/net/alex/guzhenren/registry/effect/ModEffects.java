@@ -121,8 +121,8 @@ public final class ModEffects {
     //endregion
 
     //region Transformation Path [变化道]
-    public static final DeferredHolder<MobEffect, MarkerEffect> TEMP_ZOMBIE = MOB_EFFECTS.register(
-            "temp_zombie", () -> new MarkerEffect(MobEffectCategory.NEUTRAL, EFFECT_COLOR));
+    public static final DeferredHolder<MobEffect, MarkerEffect> TEMPORARY_ZOMBIE = MOB_EFFECTS.register(
+            "temporary_zombie", () -> new MarkerEffect(MobEffectCategory.NEUTRAL, EFFECT_COLOR));
     //endregion
 
     public static MobEffectInstance instance(@NotNull Holder<MobEffect> effect, int duration) {

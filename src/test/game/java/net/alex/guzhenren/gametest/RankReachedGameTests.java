@@ -52,7 +52,7 @@ public final class RankReachedGameTests {
     public static void conditionsCompareRankFirst(GameTestHelper helper) {
         RankReachedTrigger.Instance peak = new RankReachedTrigger.Instance(Optional.empty(), Rank.THREE, Stage.PEAK);
         helper.assertTrue(peak.matches(Rank.THREE, Stage.PEAK), "the peak itself failed");
-        helper.assertTrue(peak.matches(Rank.FOUR, Stage.INIT), "a higher rank failed at its first stage");
+        helper.assertTrue(peak.matches(Rank.FOUR, Stage.INITIAL), "a higher rank failed at its first stage");
         helper.assertTrue(!peak.matches(Rank.THREE, Stage.UPPER), "one stage short passed");
         helper.assertTrue(!peak.matches(Rank.TWO, Stage.PEAK), "a lower rank passed at its peak");
         helper.succeed();

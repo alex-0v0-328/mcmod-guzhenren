@@ -104,7 +104,7 @@ class DataStreamCodecTest {
     void bodyRoundTrip() {
         Anatomy anatomy = Anatomy.DEFAULT.withInjury(BodyPart.TORSO, Injury.MODERATE)
                 .withInjury(Organ.MOUTH, Injury.SEVERE).withAppendage(Appendage.HORNS, true);
-        BodyData expected = new BodyData(Set.of(Physique.TEMP_ZOMBIE, Physique.EXTREME),
+        BodyData expected = new BodyData(Set.of(Physique.TEMPORARY_ZOMBIE, Physique.EXTREME),
                 ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL, Race.DRAGONMEN, 123L, 456L, 789L, 654L, 4, 987L,
                 Skin.JADE_SKIN, 1_234L, Tendon.STEEL_TENDON_4, Bone.IRON_BONE_3, Flesh.NATIVE, anatomy);
         withBuffer(buffer -> {
@@ -115,7 +115,7 @@ class DataStreamCodecTest {
             assertEquals(expected.ageParts(), buffer.readVarLong());
             assertEquals(expected.lifespanParts(), buffer.readVarLong());
             assertEquals(expected.lastDayIndex(), buffer.readVarLong());
-            assertEquals(expected.tempZombieEndTick(), buffer.readVarLong());
+            assertEquals(expected.temporaryZombieEndTick(), buffer.readVarLong());
             assertEquals(expected.zombieTier(), buffer.readVarInt());
             assertEquals(expected.lastBilledTick(), buffer.readVarLong());
             assertEquals(expected.skin(), ModByteBufs.readEnum(buffer, Skin.class));
@@ -138,7 +138,7 @@ class DataStreamCodecTest {
             buffer.writeVarLong(expected.ageParts());
             buffer.writeVarLong(expected.lifespanParts());
             buffer.writeVarLong(expected.lastDayIndex());
-            buffer.writeVarLong(expected.tempZombieEndTick());
+            buffer.writeVarLong(expected.temporaryZombieEndTick());
             buffer.writeVarInt(expected.zombieTier());
             buffer.writeVarLong(expected.lastBilledTick());
             ModByteBufs.writeEnum(buffer, expected.skin());

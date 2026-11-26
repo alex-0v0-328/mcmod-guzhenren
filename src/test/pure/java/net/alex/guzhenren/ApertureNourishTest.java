@@ -98,11 +98,11 @@ class ApertureNourishTest {
         Aperture fresh = Aperture.createSecond(Rank.THREE);
         assertFalse(fresh.petrified());
         assertEquals(0, fresh.nourishProgress());
-        assertEquals(0, new Aperture(Rank.ONE, Stage.INIT, 80, 0L, null, null, 0L, 0, 0L,
+        assertEquals(0, new Aperture(Rank.ONE, Stage.INITIAL, 80, 0L, null, null, 0L, 0, 0L,
                 -5, false, false, false).nourishProgress());
-        assertEquals(ApertureNourishData.FULL, new Aperture(Rank.ONE, Stage.INIT, 80, 0L, null, null,
+        assertEquals(ApertureNourishData.FULL, new Aperture(Rank.ONE, Stage.INITIAL, 80, 0L, null, null,
                 0L, 0, 0L, 500, true, false, false).nourishProgress());
-        assertTrue(new Aperture(Rank.ONE, Stage.INIT, 80, 0L, null, null,
+        assertTrue(new Aperture(Rank.ONE, Stage.INITIAL, 80, 0L, null, null,
                 0L, 0, 0L, 0, true, false, false).petrified());
     }
 

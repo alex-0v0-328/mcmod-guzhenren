@@ -48,7 +48,7 @@ SECTIONS = (
         'guzhenren.enum.strength.human_strength.')),
     ('蛊', 'guzhenren', (
         'guzhenren.display.gu', 'guzhenren.display.gu_material', 'guzhenren.menu.vital',
-        'guzhenren.enum.gu.gu_type.', 'guzhenren.killing_move.km_mortal_little_light_amplify')),
+        'guzhenren.enum.gu.gu_type.', 'guzhenren.killing_move.killing_move_mortal_little_light_amplify')),
     ('蛊虫与蛊材', 'guzhenren', ('item.guzhenren.', 'block.guzhenren.')),
     ('效果', 'guzhenren', ('effect.guzhenren.', 'guzhenren.path_effect.')),
     ('界面', 'guzhenren', (

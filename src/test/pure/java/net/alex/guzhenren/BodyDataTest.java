@@ -35,16 +35,16 @@ class BodyDataTest {
     @Test
     @DisplayName("physiques accumulate while zombie forms remain mutually exclusive")
     void physiquesAccumulateWithExclusiveZombieForms() {
-        BodyData body = new BodyData(EnumSet.of(Physique.ZOMBIE, Physique.TEMP_ZOMBIE, Physique.EXTREME),
+        BodyData body = new BodyData(EnumSet.of(Physique.ZOMBIE, Physique.TEMPORARY_ZOMBIE, Physique.EXTREME),
                 ExtremePhysique.VERDANT_GREAT_SUN, Race.HUMAN, 1L, 2L, 3L, 5L, 6, 7L, Skin.NATIVE, 8L, Tendon.NATIVE,
                 Bone.NATIVE, Flesh.NATIVE, Anatomy.DEFAULT);
 
         assertTrue(body.hasPhysique(Physique.ZOMBIE));
-        assertFalse(body.hasPhysique(Physique.TEMP_ZOMBIE));
+        assertFalse(body.hasPhysique(Physique.TEMPORARY_ZOMBIE));
         assertTrue(body.hasPhysique(Physique.EXTREME));
         assertEquals(ExtremePhysique.VERDANT_GREAT_SUN, body.extremePhysique());
         assertEquals(6, body.zombieTier());
-        assertEquals(5L, body.tempZombieEndTick());
+        assertEquals(5L, body.temporaryZombieEndTick());
     }
 
     @Test
@@ -59,10 +59,10 @@ class BodyDataTest {
         BodyData revived = body.withRevived();
 
         assertFalse(revived.hasPhysique(Physique.ZOMBIE));
-        assertFalse(revived.hasPhysique(Physique.TEMP_ZOMBIE));
+        assertFalse(revived.hasPhysique(Physique.TEMPORARY_ZOMBIE));
         assertTrue(revived.hasPhysique(Physique.EXTREME));
         assertEquals(ExtremePhysique.GREAT_STRENGTH_TRUE_MARTIAL, revived.extremePhysique());
-        assertEquals(BodyData.UNTRACKED, revived.tempZombieEndTick());
+        assertEquals(BodyData.UNTRACKED, revived.temporaryZombieEndTick());
         assertEquals(BodyData.NO_ZOMBIE_TIER, revived.zombieTier());
         assertEquals(Skin.NATIVE, revived.skin());
         assertEquals(BodyData.UNTRACKED, revived.skinEndTick());

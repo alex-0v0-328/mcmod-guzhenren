@@ -28,8 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 public enum KillingMove {
 
-    LITTLE_LIGHT_AMPLIFY("km_mortal_little_light_amplify", List.of(ModItems.MOONLIGHT_GU_1, ModItems.MOONGLOW_GU_2),
-            ModItems.LITTLE_LIGHT_GU_1, 2.0F, 20);
+    LITTLE_LIGHT_AMPLIFY("killing_move_mortal_little_light_amplify",
+            List.of(ModItems.MOONLIGHT_GU_1, ModItems.MOONGLOW_GU_2), ModItems.LITTLE_LIGHT_GU_1, 2.0F, 20);
 
     private final String id;
     private final List<ItemLike> mains;

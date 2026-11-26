@@ -39,6 +39,6 @@ public final class EffectIcons {
         register.accept(GradedEffectIcon.createItem("charging_crash_gu", 4, 5), ModEffects.CHARGING_CRASH_GU);
         register.accept(new ItemEffectIcon("second_watch_gu_4"), ModEffects.SECOND_WATCH_GU);
         register.accept(new ItemEffectIcon("third_watch_gu_5"), ModEffects.THIRD_WATCH_GU);
-        register.accept(new NoEffectIcon(), ModEffects.TEMP_ZOMBIE);
+        register.accept(new NoEffectIcon(), ModEffects.TEMPORARY_ZOMBIE);
     }
 }

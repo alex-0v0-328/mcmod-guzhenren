@@ -95,6 +95,6 @@ final class ApertureFigure {
         Rank rank = aperture.rank();
         if (rank == Rank.NONE || rank.compareTo(Rank.FIVE) > 0 || aperture.stage() == Stage.NONE) return -1;
 
-        return (rank.ordinal() - Rank.ONE.ordinal()) * STAGES + aperture.stage().ordinal() - Stage.INIT.ordinal();
+        return (rank.ordinal() - Rank.ONE.ordinal()) * STAGES + aperture.stage().ordinal() - Stage.INITIAL.ordinal();
     }
 }

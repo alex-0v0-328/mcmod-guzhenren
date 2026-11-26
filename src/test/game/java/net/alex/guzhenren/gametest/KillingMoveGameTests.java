@@ -296,7 +296,7 @@ public final class KillingMoveGameTests {
 
         assertTrue(KillingMoveService.listUsable(player, ModItems.MOONLIGHT_GU_1.get()).isEmpty(),
                 "a move with only a wild partner was listed");
-        for (String wrong : new String[] {MOVE, "km_mortal_unknown", "moonlight_gu_1"}) {
+        for (String wrong : new String[] {MOVE, "killing_move_mortal_unknown", "moonlight_gu_1"}) {
             ClientIntents.killingMove(player, wrong, KillingMoveService.NO_TARGET);
         }
         assertNull(KillingMoveService.getActive(player));

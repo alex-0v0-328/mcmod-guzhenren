@@ -241,7 +241,7 @@ class BookletLayoutTest {
     @DisplayName("every chronicle section lays out in both scripts without a closing mark opening a column, an "
             + "opening bracket ending one or a dash split across two")
     void chroniclesKeepBracketsOffColumnEdges() {
-        for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.RENZU_ZHUAN)) {
+        for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.HUMAN_ANCESTOR_LEGEND)) {
             for (boolean traditional : new boolean[] { false, true }) {
                 List<BookletLayout.Spread> spreads = assertDoesNotThrow(
                         () -> BookletLayout.layChronicle(chronicle, traditional), chronicle.toString());
@@ -275,7 +275,7 @@ class BookletLayoutTest {
         assertEquals(1 + first.read(false).size(), indented, "the title column plus one per paragraph");
     }
 
-    private static Chronicle section(int number) { return new Chronicle(Chronicle.Book.RENZU_ZHUAN, number); }
+    private static Chronicle section(int number) { return new Chronicle(Chronicle.Book.HUMAN_ANCESTOR_LEGEND, number); }
 
     private static int getColumnIndex(int leaf, int glyphX) {
         for (int column = 0; column < 2 * COLUMNS; column++) {

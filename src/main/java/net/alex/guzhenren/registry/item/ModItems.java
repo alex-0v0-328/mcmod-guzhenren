@@ -867,7 +867,7 @@ public final class ModItems {
             .lang("五转血鬼尸蛊").register();
 
     private static TendedGuItem createZombieGu(Rank rank, int hungerBar, int hungerPerUse, int hungerPerDay,
-                                               int tempZombieTicks) {
+                                               int temporaryZombieTicks) {
         return new TendedGuItem(GuProperties.of(rank, GuPath.TRANSFORMATION)
                 .effect(EffectCarrier.BODY)
                 .refine(refineEssence(rank))
@@ -877,7 +877,7 @@ public final class ModItems {
                 .hungerPerDay(hungerPerDay)
                 .feed(ModItemTags.ZOMBIE_FEED, 1)
                 .cooldown(Ticks.SECOND),
-                new ZombieBehavior(tempZombieTicks));
+                new ZombieBehavior(temporaryZombieTicks));
     }
 
     private static TendedGuItem createFifthRankZombieGu() {
@@ -887,7 +887,7 @@ public final class ModItems {
 
     //region Killing move books [杀招书]
     public static final DeferredItem<Item> KM_MORTAL_LITTLE_LIGHT_AMPLIFY = REGISTRAR.item(
-            "km_mortal_little_light_amplify",
+            "killing_move_mortal_little_light_amplify",
             () -> new KillingMoveBookItem(new Item.Properties(), KillingMove.LITTLE_LIGHT_AMPLIFY))
             .lang("凡道杀招：小光蛊增幅").register();
     //endregion
@@ -1008,7 +1008,8 @@ public final class ModItems {
     public static final DeferredItem<Item> GU_ATLAS_HOPE = REGISTRAR.item("gu_atlas_hope",
             () -> new BookletItem(new Item.Properties(), Booklet.GU_ATLAS_HOPE))
             .lang("蛊虫图说：希望").register();
-    public static final List<DeferredItem<Item>> RENZU_ZHUAN = registerChronicle(Chronicle.Book.RENZU_ZHUAN);
+    public static final List<DeferredItem<Item>> HUMAN_ANCESTOR_LEGEND =
+            registerChronicle(Chronicle.Book.HUMAN_ANCESTOR_LEGEND);
     public static final DeferredItem<Item> GU_RECIPE = REGISTRAR.item("gu_recipe",
             () -> new GuRecipeItem(new Item.Properties()))
             .lang("蛊方").register();

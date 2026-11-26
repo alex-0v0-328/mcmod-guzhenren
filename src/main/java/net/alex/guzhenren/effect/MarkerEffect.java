@@ -7,8 +7,9 @@ import net.minecraft.world.effect.MobEffectCategory;
  * 用于把外部持久状态投影为原版图标的空壳 {@link MobEffect}，自身不存储业务状态也不执行逐刻逻辑（限时效果仅借用其图标与
  * 倒计时，由 {@link net.alex.guzhenren.registry.effect.ModEffects} 为每个标记单独注册）。
  * <ul>
- *   <li>{@code TEMP_ZOMBIE}（临时僵尸化）投影 {@code BodyData} 形态，由 {@code UndeadService.tickTempZombie} 每秒按真值
- *       重施或摘除，避免牛奶、{@code /effect clear} 或死亡使玩家卡在旧形态。</li>
+ *   <li>{@code TEMPORARY_ZOMBIE}（临时僵尸化）投影 {@code BodyData} 形态，由
+ *       {@code UndeadService.tickTemporaryZombie} 每秒按真值重施或摘除，
+ *       避免牛奶、{@code /effect clear} 或死亡使玩家卡在旧形态。</li>
  *   <li>{@code ALL_OUT_EFFORT_GU}（全力以赴蛊[All-Out Effort Gu]）、{@code STORE_STRENGTH_GU} （蓄力蛊[Store Strength
  *       Gu]）与 {@code HABITUAL_STRENGTH_GU}（惯力蛊[Habitual Strength Gu]）均为限时标记，效果等级对应蛊虫档位且生效期
  *       间拒绝重复催动；其中蓄力蛊由双端分别在 {@code StoreStrength.canCharge} 与 {@code StoreStrengthInput} 中读取，惯

@@ -111,13 +111,13 @@ public record Aperture(
     public static Aperture createOpened() { return createOpenedAt(Talent.randomPercent(Talent.randomTalent())); }
 
     public static Aperture createOpenedAt(int baseEssence) {
-        long max = computeMaxEssence(Rank.ONE, Stage.INIT, baseEssence);
-        return new Aperture(Rank.ONE, Stage.INIT, baseEssence, max, null, null, 0L, 0, 0L, 0, false, false, false);
+        long max = computeMaxEssence(Rank.ONE, Stage.INITIAL, baseEssence);
+        return new Aperture(Rank.ONE, Stage.INITIAL, baseEssence, max, null, null, 0L, 0, 0L, 0, false, false, false);
     }
 
     public static Aperture createSecond(Rank rank) {
-        long max = computeMaxEssence(rank, Stage.INIT, SECOND_BASE);
-        return new Aperture(rank, Stage.INIT, SECOND_BASE, max, null, null, 0L, 0, 0L, 0, false, false, true);
+        long max = computeMaxEssence(rank, Stage.INITIAL, SECOND_BASE);
+        return new Aperture(rank, Stage.INITIAL, SECOND_BASE, max, null, null, 0L, 0, 0L, 0, false, false, true);
     }
 
     public static long computeMaxEssence(Rank rank, Stage stage, int base) {

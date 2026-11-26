@@ -51,8 +51,8 @@ import net.minecraft.server.level.ServerPlayer;
  *       本拍读取到最新效果状态。</li>
  *   <li>{@code ApertureEssenceService.closeDistilling}：必须在第 (13) 步之前完成，使酒虫精炼的 1:2 真元退还先于自动回复
  *       选池。</li>
- *   <li>{@code UndeadService.tickTempZombie}：可能终止临时僵尸形态；第 (10)、(11) 至 (15) 步均依赖本步确定后的形态。
- *       </li>
+ *   <li>{@code UndeadService.tickTemporaryZombie}：可能终止临时僵尸形态；第 (10)、(11) 至 (15) 步均依赖本步确定后
+ *       的形态。</li>
  *   <li>{@code SkinService.tickSkin} 与 {@code ShieldService.tickShield}：褪去到期的玉皮与护盾层并将当前穿戴投射为效果
  *       图标，与第 (8) 步同属形态投射（后续无心跳步骤读取皮盾，受击时再实时读取）。</li>
  *   <li>{@code UndeadService.pinHunger}：必须在第 (8) 步之后执行，否则刚结束僵尸形态的玩家仍会被锁定饱食[Hunger] 值。
@@ -95,7 +95,7 @@ public final class Heartbeat {
 
         PathEffectService.tick(player);
         ApertureEssenceService.closeDistilling(player);
-        UndeadService.tickTempZombie(player);
+        UndeadService.tickTemporaryZombie(player);
         SkinService.tickSkin(player);
         ShieldService.tickShield(player);
         UndeadService.pinHunger(player);

@@ -173,7 +173,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.path_effect.vitality_leaf",           "生机叶");
         add("guzhenren.path_effect.watch_rate",              "更蛊 ×%s层");
         add("guzhenren.path_effect.zombie",                  "僵尸");
-        add("guzhenren.path_effect.temp_zombie",             "临时僵尸化");
+        add("guzhenren.path_effect.temporary_zombie",        "临时僵尸化");
         add("guzhenren.path_effect.liquor_distilling",       "精炼真元");
         add("guzhenren.path_effect.stone_aperture",          "石化空窍");
         add("guzhenren.display.time_rate_up",                "%s倍");
@@ -412,7 +412,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.item.gu.amplifies",                           "副手：本转及以下部分蛊效果 ×%s");
         add("guzhenren.item.gu.little_light_bright",                 "强光中");
         add("guzhenren.item.gu.killing_move_hint",                   "长按右键选杀招");
-        add("guzhenren.killing_move.km_mortal_little_light_amplify", "小光蛊增幅");
+        add("guzhenren.killing_move.killing_move_mortal_little_light_amplify", "小光蛊增幅");
         add("guzhenren.item.killing_move.learned",                   "习得杀招：%s");
         add("guzhenren.item.failed.killing_move_known",              "已习得杀招：%s");
         add("guzhenren.item.killing_move.mains",                     "主蛊：%s");
@@ -721,7 +721,7 @@ public class ModLanguageProvider extends LanguageProvider {
                 "每秒受到 1 点无视盔甲的伤害；是本模组唯一可通过喝牛奶解除的效果。");
         addEffect(ModEffects.LIQUOR_WORM, "酒虫效果",
                 "一个游戏日内回复的真元转为精炼真元，1 点精炼真元抵 2 点普通真元。");
-        addEffect(ModEffects.TEMP_ZOMBIE, "临时僵尸化效果",
+        addEffect(ModEffects.TEMPORARY_ZOMBIE, "临时僵尸化效果",
                 "暂时化为僵尸，攻击提高；期间或结束后 5 分钟内再催动僵尸蛊会永久变成僵尸。");
     }
     //endregion
@@ -963,11 +963,11 @@ public class ModLanguageProvider extends LanguageProvider {
     }
 
     private void addStage() {
-        add(Stage.NONE,   "");
-        add(Stage.INIT,   "初阶");
-        add(Stage.MIDDLE, "中阶");
-        add(Stage.UPPER,  "高阶");
-        add(Stage.PEAK,   "巅峰");
+        add(Stage.NONE,    "");
+        add(Stage.INITIAL, "初阶");
+        add(Stage.MIDDLE,  "中阶");
+        add(Stage.UPPER,   "高阶");
+        add(Stage.PEAK,    "巅峰");
     }
 
     private void addApertureStatus() {
@@ -985,9 +985,9 @@ public class ModLanguageProvider extends LanguageProvider {
     }
 
     private void addPhysique() {
-        add(Physique.ZOMBIE,      "僵尸");
-        add(Physique.TEMP_ZOMBIE, "临时僵尸化");
-        add(Physique.EXTREME,     "十绝体");
+        add(Physique.ZOMBIE,           "僵尸");
+        add(Physique.TEMPORARY_ZOMBIE, "临时僵尸化");
+        add(Physique.EXTREME,          "十绝体");
     }
 
     private void addRace() {

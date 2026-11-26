@@ -30,7 +30,8 @@ class SecondApertureTest {
     }
 
     private static Aperture pool(long current, long distilled) {
-        return new Aperture(Rank.THREE, Stage.INIT, 80, current, null, null, distilled, 0, 0L, 0, false, false, false);
+        return new Aperture(Rank.THREE, Stage.INITIAL, 80, current, null, null, distilled, 0, 0L, 0, false, false,
+                false);
     }
 
     @Test
@@ -38,7 +39,7 @@ class SecondApertureTest {
     void secondOpenedShape() {
         Aperture opened = Aperture.createSecond(Rank.THREE);
         assertEquals(Rank.THREE, opened.rank());
-        assertEquals(Stage.INIT, opened.stage());
+        assertEquals(Stage.INITIAL, opened.stage());
         assertEquals(Aperture.SECOND_BASE, opened.baseEssence());
         assertSame(Talent.FIRST, opened.getTalent());
         assertEquals(opened.getMaxEssence(), opened.currentEssence());

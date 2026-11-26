@@ -8,13 +8,13 @@
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_1_init",
+      "model": "guzhenren:item/advancement_icon_1_initial",
       "predicate": {
         "minecraft:custom_model_data": 11.0
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_1_mid",
+      "model": "guzhenren:item/advancement_icon_1_middle",
       "predicate": {
         "minecraft:custom_model_data": 12.0
       }
@@ -38,13 +38,13 @@
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_2_init",
+      "model": "guzhenren:item/advancement_icon_2_initial",
       "predicate": {
         "minecraft:custom_model_data": 21.0
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_2_mid",
+      "model": "guzhenren:item/advancement_icon_2_middle",
       "predicate": {
         "minecraft:custom_model_data": 22.0
       }
@@ -68,13 +68,13 @@
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_3_init",
+      "model": "guzhenren:item/advancement_icon_3_initial",
       "predicate": {
         "minecraft:custom_model_data": 31.0
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_3_mid",
+      "model": "guzhenren:item/advancement_icon_3_middle",
       "predicate": {
         "minecraft:custom_model_data": 32.0
       }
@@ -98,13 +98,13 @@
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_4_init",
+      "model": "guzhenren:item/advancement_icon_4_initial",
       "predicate": {
         "minecraft:custom_model_data": 41.0
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_4_mid",
+      "model": "guzhenren:item/advancement_icon_4_middle",
       "predicate": {
         "minecraft:custom_model_data": 42.0
       }
@@ -128,13 +128,13 @@
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_5_init",
+      "model": "guzhenren:item/advancement_icon_5_initial",
       "predicate": {
         "minecraft:custom_model_data": 51.0
       }
     },
     {
-      "model": "guzhenren:item/advancement_icon_5_mid",
+      "model": "guzhenren:item/advancement_icon_5_middle",
       "predicate": {
         "minecraft:custom_model_data": 52.0
       }

@@ -64,13 +64,14 @@ public final class BookletGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void renzuZhuanShelvesItsSectionsInOrder(GameTestHelper helper) {
-        List<Chronicle> sections = Chronicle.sections(Chronicle.Book.RENZU_ZHUAN);
-        assertEquals(sections.size(), ModItems.RENZU_ZHUAN.size());
+    public static void humanAncestorLegendShelvesItsSectionsInOrder(GameTestHelper helper) {
+        List<Chronicle> sections = Chronicle.sections(Chronicle.Book.HUMAN_ANCESTOR_LEGEND);
+        assertEquals(sections.size(), ModItems.HUMAN_ANCESTOR_LEGEND.size());
         List<Item> shelf = getShown(helper, ModCreativeTabs.BOOKS.get());
         for (int at = 0; at < sections.size(); at++) {
-            Item item = ModItems.RENZU_ZHUAN.get(at).get();
-            assertEquals(Guzhenren.id("renzu_zhuan_" + (at + 1)), ModItems.RENZU_ZHUAN.get(at).getId());
+            Item item = ModItems.HUMAN_ANCESTOR_LEGEND.get(at).get();
+            assertEquals(Guzhenren.id("human_ancestor_legend_" + (at + 1)),
+                    ModItems.HUMAN_ANCESTOR_LEGEND.get(at).getId());
             assertTrue(item instanceof BookletItem booklet && sections.get(at).equals(booklet.getText()),
                     item + " carries another text");
             assertEquals(1, new ItemStack(item).getMaxStackSize());

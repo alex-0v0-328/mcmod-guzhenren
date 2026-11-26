@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
  *       {@link #dissipate} 将效果结束 tick 改为当前时刻并立刻触发到期（按自然到期结束而非移除，从而在 {@link #onEnded}
  *       中保留僵尸形态，此后登录或命令均不再补挂效果）；反之若临时僵尸效果被显式移除
  *       （{@code Reason.REMOVED}），{@link #onEnded} 会一并清除僵尸体质，而自然到期则交由
- *       {@code UndeadService.tickTempZombie} 恢复肉身；石化空窍不随流派效果结束而解封，下次空窍写入时会重新补齐效
+ *       {@code UndeadService.tickTemporaryZombie} 恢复肉身；石化空窍不随流派效果结束而解封，下次空窍写入时会重新补齐效
  *       果。</li>
  * </ul>
  */
@@ -83,18 +83,18 @@ public final class StateEffects {
             if (current != null) dissipate(player, current);
             return;
         }
-        if (!BodyService.isTempZombie(player)) {
+        if (!BodyService.isTemporaryZombie(player)) {
             if (current != null) PathEffectService.removeType(player, ModPathEffectTypes.ZOMBIE);
             return;
         }
-        if (BodyService.hasTempZombieRunOut(player)) return;
+        if (BodyService.hasTemporaryZombieRunOut(player)) return;
 
         int rung = Math.max(0, BodyService.get(player).zombieTier());
         MortalGuItem gu = ModItems.findGu(MortalGuItem.class,
                 item -> item.getBehavior(ZombieBehavior.class) != null && ZombieBehavior.getRung(item) == rung);
         if (gu == null) return;
 
-        long endTick = player.level().getGameTime() + BodyService.getTempZombieTicksLeft(player);
+        long endTick = player.level().getGameTime() + BodyService.getTemporaryZombieTicksLeft(player);
         ResourceLocation source = gu.getEffectSource();
         if (current != null && current.source().equals(source)) {
             if (current.endTick() != endTick) {
@@ -155,6 +155,6 @@ public final class StateEffects {
         }
         ServerPlayer player = event.getPlayer();
         BodyService.removePhysique(player, Physique.ZOMBIE);
-        BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
+        BodyService.removePhysique(player, Physique.TEMPORARY_ZOMBIE);
     }
 }

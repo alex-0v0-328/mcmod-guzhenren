@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public record PlayerSnapshot(long takenAt, float health, int foodLevel, float saturation, int airSupply,
                              int fireTicks, List<MobEffectInstance> effects, long soul,
                              Map<MindPoolType, Long> thoughts, Map<ThoughtTag, Long> taggedThoughts,
-                             long tempZombieTicksLeft) {
+                             long temporaryZombieTicksLeft) {
 
     public static final Codec<PlayerSnapshot> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.LONG.fieldOf("taken_at").forGetter(PlayerSnapshot::takenAt),
@@ -47,7 +47,8 @@ public record PlayerSnapshot(long takenAt, float health, int foodLevel, float sa
                     .forGetter(PlayerSnapshot::thoughts),
             Codec.unboundedMap(ThoughtTag.CODEC, Codec.LONG).optionalFieldOf("tagged_thoughts", Map.of())
                     .forGetter(PlayerSnapshot::taggedThoughts),
-            Codec.LONG.optionalFieldOf("temp_zombie_ticks_left", 0L).forGetter(PlayerSnapshot::tempZombieTicksLeft)
+            Codec.LONG.optionalFieldOf("temporary_zombie_ticks_left", 0L)
+                    .forGetter(PlayerSnapshot::temporaryZombieTicksLeft)
     ).apply(instance, PlayerSnapshot::new));
 
     public PlayerSnapshot {
@@ -61,10 +62,10 @@ public record PlayerSnapshot(long takenAt, float health, int foodLevel, float sa
         Map<MindPoolType, Long> thoughts = new EnumMap<>(MindPoolType.class);
         mind.pools().forEach((type, pool) -> thoughts.put(type, pool.current()));
         BodyData body = BodyService.get(player);
-        long tempZombieLeft = body.isTempZombie() ? Math.max(0L, body.getTempZombieTicksLeft(now)) : 0L;
+        long temporaryZombieLeft = body.isTemporaryZombie() ? Math.max(0L, body.getTemporaryZombieTicksLeft(now)) : 0L;
         List<MobEffectInstance> effects = player.getActiveEffects().stream().map(MobEffectInstance::new).toList();
         return new PlayerSnapshot(now, player.getHealth(), player.getFoodData().getFoodLevel(),
                 player.getFoodData().getSaturationLevel(), player.getAirSupply(), player.getRemainingFireTicks(),
-                effects, SoulService.get(player).currentSoul(), thoughts, mind.taggedThoughts(), tempZombieLeft);
+                effects, SoulService.get(player).currentSoul(), thoughts, mind.taggedThoughts(), temporaryZombieLeft);
     }
 }

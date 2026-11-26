@@ -40,14 +40,14 @@ public final class ModEffectsGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void tempZombieUsesWhiteParticles(GameTestHelper helper) {
-        assertEquals(0xFFFFFF, ModEffects.TEMP_ZOMBIE.get().getColor());
+    public static void temporaryZombieUsesWhiteParticles(GameTestHelper helper) {
+        assertEquals(0xFFFFFF, ModEffects.TEMPORARY_ZOMBIE.get().getColor());
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
     public static void singleArgBuildsParticlesOffIconOn(GameTestHelper helper) {
-        MobEffectInstance i = ModEffects.instance(ModEffects.TEMP_ZOMBIE, 100);
+        MobEffectInstance i = ModEffects.instance(ModEffects.TEMPORARY_ZOMBIE, 100);
         assertFalse(i.isAmbient());
         assertFalse(i.isVisible());
         assertTrue(i.showIcon());
@@ -58,7 +58,7 @@ public final class ModEffectsGameTests {
 
     @GameTest(template = "empty9x9x9")
     public static void amplifiedBuildKeepsParticlesOffIconOn(GameTestHelper helper) {
-        MobEffectInstance i = ModEffects.instance(ModEffects.TEMP_ZOMBIE, 40, 2);
+        MobEffectInstance i = ModEffects.instance(ModEffects.TEMPORARY_ZOMBIE, 40, 2);
         assertFalse(i.isVisible());
         assertTrue(i.showIcon());
         assertEquals(2, i.getAmplifier());

@@ -60,7 +60,7 @@ class BookletFontTest {
             texts.forEach(text -> text.codePoints().filter(glyph -> !Character.isWhitespace(glyph))
                     .filter(glyph -> !shipped.contains(glyph)).forEach(glyph -> missing.add(Character.toString(glyph))));
         }
-        for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.RENZU_ZHUAN)) {
+        for (Chronicle chronicle : Chronicle.sections(Chronicle.Book.HUMAN_ANCESTOR_LEGEND)) {
             for (BookletLayout.Spread spread : BookletLayout.layChronicle(chronicle, traditional)) {
                 spread.text().stream().map(BookletLayout.Cell::glyph)
                         .filter(glyph -> !shipped.contains(glyph.codePointAt(0))).forEach(missing::add);

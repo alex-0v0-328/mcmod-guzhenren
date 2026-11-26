@@ -142,7 +142,7 @@ class ModCommandTest {
                 rank.getChild("set").getChild("rank:five"), rank.getChild("up"), rank.getChild("down"))) {
             var stage = rankWord.getChild("stage");
             assertEquals(List.of("set", "up", "down"), getChildNames(stage));
-            assertEquals(List.of("stage:init", "stage:middle", "stage:upper", "stage:peak"),
+            assertEquals(List.of("stage:initial", "stage:middle", "stage:upper", "stage:peak"),
                     getChildNames(stage.getChild("set")));
             for (var leaf : List.of(stage.getChild("set").getChild("stage:middle"), stage.getChild("up"),
                     stage.getChild("down"))) {

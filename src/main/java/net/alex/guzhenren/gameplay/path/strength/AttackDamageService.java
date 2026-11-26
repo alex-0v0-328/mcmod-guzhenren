@@ -101,7 +101,7 @@ public final class AttackDamageService {
 
     private static double getZombieBonus(@NotNull Player player) {
         BodyData body = BodyService.get(player);
-        if (!body.isZombieOrTempZombie() || body.zombieTier() < 0) return 0.0D;
+        if (!body.isZombieOrTemporaryZombie() || body.zombieTier() < 0) return 0.0D;
 
         return ZOMBIE_ATTACK_BASE * (1 << body.zombieTier());
     }

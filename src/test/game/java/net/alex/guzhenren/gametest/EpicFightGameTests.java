@@ -81,7 +81,7 @@ public final class EpicFightGameTests {
         helper.assertTrue(patch != null, "Epic Fight player patch missing");
         helper.assertValueEqual(skillCost(patch, Skill.Resource.STAMINA), 5.0F,
                 "living stamina cost changed");
-        BodyService.addPhysique(player, Physique.TEMP_ZOMBIE);
+        BodyService.addPhysique(player, Physique.TEMPORARY_ZOMBIE);
         helper.assertValueEqual(skillCost(patch, Skill.Resource.STAMINA), 0.0F,
                 "temp zombie still pays stamina");
         BodyService.addPhysique(player, Physique.ZOMBIE);

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "guzhenren:item/killing_move_mortal_little_light_amplify"
+  }
+}

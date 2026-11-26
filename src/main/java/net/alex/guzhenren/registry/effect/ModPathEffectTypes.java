@@ -130,7 +130,7 @@ public final class ModPathEffectTypes {
     public static final PathEffectType<Unit> ZOMBIE = register(new PathEffectType<>(Guzhenren.id("zombie"),
             MapCodec.unit(Unit.INSTANCE), StreamCodec.unit(Unit.INSTANCE), PathEffectCategory.HARMFUL, true, null,
             effect -> Component.translatable(effect.isPermanent() ? "guzhenren.path_effect.zombie"
-                    : "guzhenren.path_effect.temp_zombie")));
+                    : "guzhenren.path_effect.temporary_zombie")));
     //endregion
 
     //region Food Path [食道]

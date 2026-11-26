@@ -47,6 +47,6 @@ public final class PlayerRewindService {
 
         SoulService.setCurrent(player, snapshot.soul());
         MindService.restoreThoughts(player, snapshot.thoughts(), snapshot.taggedThoughts());
-        BodyService.restoreTempZombie(player, snapshot.tempZombieTicksLeft());
+        BodyService.restoreTemporaryZombie(player, snapshot.temporaryZombieTicksLeft());
     }
 }

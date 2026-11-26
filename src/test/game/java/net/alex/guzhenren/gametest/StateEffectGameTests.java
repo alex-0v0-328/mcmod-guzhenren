@@ -60,11 +60,11 @@ public final class StateEffectGameTests {
     private StateEffectGameTests() {}
 
     @GameTest(template = "empty9x9x9")
-    public static void aTempZombieCarriesATimedEffectAndTurningZombieDissipatesIt(GameTestHelper helper) {
+    public static void aTemporaryZombieCarriesATimedEffectAndTurningZombieDissipatesIt(GameTestHelper helper) {
         ServerPlayer player = survival(helper);
         long now = player.level().getGameTime();
 
-        BodyService.enterTempZombie(player, 1, 1_200);
+        BodyService.enterTemporaryZombie(player, 1, 1_200);
         PathEffect<Unit> half = PathEffectService.find(player, ModPathEffectTypes.ZOMBIE);
         assertNotNull(half, () -> "a temp zombie laid no effect");
         assertSame(EffectCarrier.BODY, half.carrier());
@@ -86,10 +86,10 @@ public final class StateEffectGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void aTempZombieRunningOutOrRecoveringTakesTheEffectWithIt(GameTestHelper helper) {
+    public static void aTemporaryZombieRunningOutOrRecoveringTakesTheEffectWithIt(GameTestHelper helper) {
         ServerPlayer player = survival(helper);
-        BodyService.enterTempZombie(player, 0, 1);
-        BodyService.removePhysique(player, Physique.TEMP_ZOMBIE);
+        BodyService.enterTemporaryZombie(player, 0, 1);
+        BodyService.removePhysique(player, Physique.TEMPORARY_ZOMBIE);
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
         assertTrue(PathService.getMarks(player, GuPath.TRANSFORMATION).isEmpty(), "recovery kept the points");
 
@@ -99,16 +99,16 @@ public final class StateEffectGameTests {
         assertFalse(BodyService.isZombie(player), "recovery kept the form");
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
 
-        BodyService.enterTempZombie(player, 0, 0);
+        BodyService.enterTemporaryZombie(player, 0, 0);
         player.tickCount = Heartbeat.HEARTBEAT_TICKS;
         Heartbeat.beat(player);
-        assertFalse(BodyService.isTempZombie(player), "a run-out temp zombie stayed");
+        assertFalse(BodyService.isTemporaryZombie(player), "a run-out temp zombie stayed");
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void theBodyCommandLaysTheEffectForATempZombieOnly(GameTestHelper helper) {
+    public static void theBodyCommandLaysTheEffectForATemporaryZombieOnly(GameTestHelper helper) {
         ServerPlayer player = survival(helper);
 
         command(player, "gzr body physique add zombie");
@@ -117,34 +117,34 @@ public final class StateEffectGameTests {
         command(player, "gzr body physique remove zombie");
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
 
-        command(player, "gzr body physique add temp_zombie");
+        command(player, "gzr body physique add temporary_zombie");
         assertNotNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE), () -> "the command laid no half effect");
-        command(player, "gzr body physique remove temp_zombie");
+        command(player, "gzr body physique remove temporary_zombie");
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
         assertTrue(PathEffectService.getEffects(player).isEmpty());
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void milkCostsTheTempZombieNothingAndCuttingItsPointsEndsTheForm(GameTestHelper helper) {
+    public static void milkCostsTheTemporaryZombieNothingAndCuttingItsPointsEndsTheForm(GameTestHelper helper) {
         ServerPlayer player = survival(helper);
-        BodyService.enterTempZombie(player, 0, 1_200);
+        BodyService.enterTemporaryZombie(player, 0, 1_200);
         player.removeAllEffects();
         assertNotNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE), () -> "milk took the zombie effect");
-        assertTrue(BodyService.isTempZombie(player));
+        assertTrue(BodyService.isTemporaryZombie(player));
 
         PathEffectService.removeType(player, ModPathEffectTypes.ZOMBIE);
-        assertFalse(BodyService.isTempZombie(player), "a removed effect left the form");
+        assertFalse(BodyService.isTemporaryZombie(player), "a removed effect left the form");
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
         helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void loginLaysTheEffectOfATempZombieSavedWithoutOne(GameTestHelper helper) {
+    public static void loginLaysTheEffectOfATemporaryZombieSavedWithoutOne(GameTestHelper helper) {
         ServerPlayer player = survival(helper);
         long now = player.level().getGameTime();
-        PlayerData.get(player).setBody(BodyService.get(player).with(Physique.TEMP_ZOMBIE)
-                .withTempZombieEndTick(now + 1_200L).withZombieTier(3));
+        PlayerData.get(player).setBody(BodyService.get(player).with(Physique.TEMPORARY_ZOMBIE)
+                .withTemporaryZombieEndTick(now + 1_200L).withZombieTier(3));
         assertNull(PathEffectService.find(player, ModPathEffectTypes.ZOMBIE));
 
         PlayerDataService.onJoin(player);
@@ -312,7 +312,7 @@ public final class StateEffectGameTests {
     @GameTest(template = "empty9x9x9")
     public static void aWipingDeathClearsEveryStateEffect(GameTestHelper helper) {
         ServerPlayer player = survival(helper);
-        BodyService.enterTempZombie(player, 0, 1_200);
+        BodyService.enterTemporaryZombie(player, 0, 1_200);
         StateEffects.grantThought(player, (MortalGuItem) ModItems.CASUAL_GU_1.get(),
                 ModPathEffectTypes.CASUAL_THOUGHT, ModEffects.CASUAL_GU, 0, 200L);
         assertEquals(2L, PathEffectService.getEffects(player).size());
@@ -320,7 +320,7 @@ public final class StateEffectGameTests {
         PlayerDataService.resetAll(player);
 
         assertTrue(PathEffectService.getEffects(player).isEmpty(), "a wiping death kept a state effect");
-        assertFalse(BodyService.isTempZombie(player), "a wiping death kept the form");
+        assertFalse(BodyService.isTemporaryZombie(player), "a wiping death kept the form");
         helper.succeed();
     }
 

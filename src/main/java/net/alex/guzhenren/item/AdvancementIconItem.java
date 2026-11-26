@@ -46,8 +46,8 @@ public final class AdvancementIconItem extends Item {
         String numeral = String.valueOf(rank.ordinal());
         return switch (stage) {
             case NONE -> numeral;
-            case INIT -> numeral + "_init";
-            case MIDDLE -> numeral + "_mid";
+            case INITIAL -> numeral + "_initial";
+            case MIDDLE -> numeral + "_middle";
             case UPPER -> numeral + "_upper";
             case PEAK -> numeral + "_peak";
         };
