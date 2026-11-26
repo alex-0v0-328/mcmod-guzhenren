@@ -3,6 +3,7 @@ package net.alex.guzhenren.gameplay.blissful;
 import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.blissful.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.blissful.member.MemberService;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
@@ -31,13 +32,15 @@ import org.jetbrains.annotations.Nullable;
  * 福地[Blissful Land]的调度入口：认主与失主时机、地灵补生成、托管轮、割弃区块清空、虚空拉回、免震荡判定。
  * <ul>
  *   <li>⚠ 福地维度不存在（没装 Gu World）时 {@link #level} 为空，以下全部不做；存档照存，装回后恢复。</li>
+ *   <li>落位：{@link #siteOf} 由秘境山心推出山巅、行宫与入口（{@link LandSite}）；秘境未解出时为空，认主与地灵补生都
+ *       不做。</li>
  *   <li>认主：{@link #tickPlayer} 挂在 {@code Heartbeat}（每秒），玩家在福地维度、福地无主且秘境山心已解出时判定。</li>
  *   <li>失主：{@link #onDeath} 在任何维度死亡时（「死亡不掉落」开着就不算），{@link #onReset} 在角色重置时（非保留死亡
  *       的克隆也会走重置，重复失主无副作用）。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
- *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒给开着面板的主人
- *       刷新快照（只算他正在看的页）。</li>
+ *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒推进一步标准田规划队列
+ *       （{@link FieldPlans}），并给开着面板的主人刷新快照（只算他正在看的页）。</li>
  *   <li>{@link #storageHere}：人在自己当主人的福地里时给出那块福地的库藏，蛊粮直供（{@code GuHunger}）用它；别处、
  *       非主人都是空。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
@@ -73,8 +76,10 @@ public final class BlissfulLands {
         if (land == null) return;
 
         BlissfulLandData data = BlissfulLandData.get(player.server, land);
-        RealmSite site = SecretRealms.siteOf(player.server, land.realm());
-        if (site != null) MemberService.tryClaim(player.serverLevel(), data, site, land.summitY(), player);
+        RealmSite realm = SecretRealms.siteOf(player.server, land.realm());
+        if (realm != null) {
+            MemberService.tryClaim(player.serverLevel(), data, realm, siteOf(realm, land).summitY(), player);
+        }
     }
 
     public static void onDeath(@NotNull ServerPlayer player) {
@@ -90,6 +95,15 @@ public final class BlissfulLands {
             if (!data.isOwner(player.getUUID())) continue;
             MemberService.lose(player.server, level(player.server, land), data);
         }
+    }
+
+    public static @Nullable LandSite siteOf(@NotNull MinecraftServer server, @NotNull BlissfulLand land) {
+        RealmSite realm = SecretRealms.siteOf(server, land.realm());
+        return realm == null ? null : siteOf(realm, land);
+    }
+
+    private static LandSite siteOf(RealmSite realm, BlissfulLand land) {
+        return LandSite.of(realm, land.realm().summitRise());
     }
 
     public static @Nullable BlissfulStorage storageHere(@NotNull ServerPlayer player) {
@@ -117,6 +131,7 @@ public final class BlissfulLands {
             BlissfulLandData data = BlissfulLandData.get(server, land);
             if (tick % SPIRIT_CHECK_TICKS == 0) keepSpirit(level, land, data);
             if (tick % HOSTING_TICKS == 0 && data.hasOwner()) host(server, level, data);
+            if (tick % Ticks.SECOND == 0) FieldPlans.tick(level, data);
         }
         if (tick % Ticks.SECOND == 0) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -142,7 +157,9 @@ public final class BlissfulLands {
 
     public static void keepSpirit(@NotNull ServerLevel level, @NotNull BlissfulLand land,
                                   @NotNull BlissfulLandData data) {
-        BlockPos palace = land.palace();
+        LandSite site = siteOf(level.getServer(), land);
+        if (site == null) return;
+        BlockPos palace = site.palace();
         if (!level.isLoaded(palace) || !level.areEntitiesLoaded(ChunkPos.asLong(palace))) return;
         UUID known = data.spirit();
         if (known != null && level.getEntity(known) instanceof EarthSpiritEntity spirit && spirit.isAlive()) return;

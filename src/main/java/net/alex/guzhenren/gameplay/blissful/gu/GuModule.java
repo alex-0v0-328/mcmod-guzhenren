@@ -73,7 +73,7 @@ public final class GuModule implements LandModule<GuModule.Section> {
         public boolean hosting() { return rows.stream().anyMatch(Row::hosted); }
 
         @Override
-        public @NotNull Page page() { return Page.GU; }
+        public @NotNull LandModule<?> module() { return INSTANCE; }
     }
 
     //region Actions [操作]
@@ -124,7 +124,7 @@ public final class GuModule implements LandModule<GuModule.Section> {
     }
 
     @Override
-    public @NotNull Page page() { return Page.GU; }
+    public @NotNull Page page() { return Page.INFO; }
 
     @Override
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }

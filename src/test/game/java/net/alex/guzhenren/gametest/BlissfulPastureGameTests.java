@@ -9,7 +9,6 @@ import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
 import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
-import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -21,7 +20,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Cow;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,8 +27,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地牧场：圈地放栅栏与门、挡住的格子留着、再按只补缺；收拢把栏外可支使的动物传进栏并开冷却；养殖清点只算栏内；挪生物上山
- * 跳过栏内。牧场都取测试区里的小方格，不碰别的测试。
+ * 福地牧场：圈地按邻列地面叠栅栏、门在北边正中、挡住的格子留着、再圈只补缺；拆栅栏连玩家放的一并拆；迁移把旧栏动物全
+ * 带进新栏；收拢把栏外可支使的动物传进栏并开冷却；养殖清点只算栏内；挪生物上山跳过栏内。牧场都取测试区里的小方格，不碰
+ * 别的测试。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -47,38 +46,85 @@ public final class BlissfulPastureGameTests {
     }
 
     @GameTest(template = "empty9x9x9", skyAccess = true)
-    public static void enclosingLaysAJoinedFenceWithAGateAndOnlyFillsGaps(GameTestHelper helper) {
+    public static void enclosingStacksFencesOverTheHighestNeighbourAndOnlyFillsGaps(GameTestHelper helper) {
         GameTestPlayers.ground(helper);
         ServerLevel level = helper.getLevel();
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-enclose-mock").onGround();
-        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         PastureWork.Pasture pasture = pasture(helper, 1, 7);
         int fenceY = helper.absolutePos(BlockPos.ZERO).getY() + 1;
         BlockPos pool = new BlockPos(pasture.maxX(), fenceY, pasture.maxZ() - 2);
         BlockPos wall = new BlockPos(pasture.minX(), fenceY, pasture.maxZ() - 2);
+        BlockPos mound = new BlockPos(pasture.minX() - 1, fenceY, pasture.minZ() + 3);
         level.setBlockAndUpdate(pool, Blocks.WATER.defaultBlockState());
         level.setBlockAndUpdate(wall, Blocks.STONE_BRICKS.defaultBlockState());
-        try {
-            PastureWork.Enclosed first = PastureWork.enclose(level, data, pasture, owner);
-            helper.assertTrue(first != null, "the owner may enclose");
-            helper.assertValueEqual(first, new PastureWork.Enclosed(23, 1),
-                    "a seven by seven ring is 24 cells, the water one blocked");
-            helper.assertTrue(level.getBlockState(wall).is(Blocks.STONE_BRICKS), "a player's block is kept");
-            helper.assertTrue(level.getBlockState(wall.above()).is(Blocks.OAK_FENCE), "the fence sits on top of it");
-            helper.assertTrue(level.getBlockState(pasture.gate().atY(fenceY)).is(BlockTags.FENCE_GATES),
-                    "the north middle is a gate");
-            BlockState corner = level.getBlockState(new BlockPos(pasture.minX(), fenceY, pasture.minZ()));
-            helper.assertTrue(corner.is(Blocks.OAK_FENCE) && corner.getValue(FenceBlock.EAST)
-                    && corner.getValue(FenceBlock.SOUTH), "the north-west corner joins both of its sides");
-            helper.assertTrue(data.herd().enclosed(), "the pasture counts as enclosed");
+        level.setBlockAndUpdate(mound, Blocks.STONE.defaultBlockState());
+        PastureWork.Enclosed first = PastureWork.enclose(level, pasture, owner);
+        helper.assertTrue(first != null, "the owner may enclose");
+        helper.assertValueEqual(first.blocked(), 1, "only the water column is blocked");
+        helper.assertTrue(level.getBlockState(wall).is(Blocks.STONE_BRICKS), "a player's block is kept");
+        helper.assertTrue(level.getBlockState(wall.above()).is(Blocks.OAK_FENCE), "the fence sits on top of it");
+        BlockPos byMound = new BlockPos(pasture.minX(), fenceY, pasture.minZ() + 3);
+        helper.assertTrue(level.getBlockState(byMound).is(Blocks.OAK_FENCE)
+                && level.getBlockState(byMound.above()).is(Blocks.OAK_FENCE),
+                "beside a raised neighbour it stacks two");
+        BlockPos flat = new BlockPos(pasture.maxX(), fenceY, pasture.minZ() + 1);
+        helper.assertTrue(level.getBlockState(flat).is(Blocks.OAK_FENCE) && level.getBlockState(flat.above()).isAir(),
+                "on flat ground one fence is enough");
+        helper.assertTrue(level.getBlockState(pasture.gate().atY(fenceY)).is(BlockTags.FENCE_GATES),
+                "the north middle is a gate");
+        BlockState corner = level.getBlockState(new BlockPos(pasture.minX(), fenceY, pasture.minZ()));
+        helper.assertTrue(corner.is(Blocks.OAK_FENCE) && corner.getValue(FenceBlock.EAST)
+                && corner.getValue(FenceBlock.SOUTH), "the north-west corner joins both of its sides");
 
-            level.setBlockAndUpdate(pool, Blocks.AIR.defaultBlockState());
-            helper.assertValueEqual(PastureWork.enclose(level, data, pasture, owner), new PastureWork.Enclosed(1, 0),
-                    "enclosing again fills only the gap");
-            helper.succeed();
-        } finally {
-            PastureWork.forceChunks(level, pasture, false);
+        level.setBlockAndUpdate(pool, Blocks.AIR.defaultBlockState());
+        helper.assertValueEqual(PastureWork.enclose(level, pasture, owner), new PastureWork.Enclosed(1, 0),
+                "enclosing again fills only the gap");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void unfencingTakesDownEveryFenceOnTheLine(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-unfence-mock").onGround();
+        PastureWork.Pasture pasture = pasture(helper, 1, 7);
+        int fenceY = helper.absolutePos(BlockPos.ZERO).getY() + 1;
+        PastureWork.Enclosed done = PastureWork.enclose(level, pasture, owner);
+        helper.assertTrue(done != null, "the pasture is enclosed");
+        BlockPos extra = new BlockPos(pasture.maxX(), fenceY + 1, pasture.minZ() + 1);
+        level.setBlockAndUpdate(extra, Blocks.SPRUCE_FENCE.defaultBlockState());
+
+        helper.assertValueEqual(PastureWork.unfence(level, pasture, owner), done.placed() + 1,
+                "the player's fence on the line goes too");
+        for (int x = pasture.minX(); x <= pasture.maxX(); x++) {
+            for (int z = pasture.minZ(); z <= pasture.maxZ(); z++) {
+                for (int y = fenceY; y <= fenceY + 1; y++) {
+                    BlockState state = level.getBlockState(new BlockPos(x, y, z));
+                    helper.assertFalse(state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES),
+                            "no fence is left");
+                }
+            }
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void relocatingCarriesEveryPennedAnimalIntoTheNewPen(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        PastureWork.Pasture from = pasture(helper, 0, 1);
+        PastureWork.Pasture to = pasture(helper, 3, 8);
+        Cow penned = helper.spawn(EntityType.COW, new BlockPos(0, 1, 0));
+        Cow named = helper.spawn(EntityType.COW, new BlockPos(1, 1, 0));
+        named.setCustomName(Component.literal("Named"));
+        Cow settled = helper.spawn(EntityType.COW, new BlockPos(6, 1, 6));
+        helper.assertTrue(from.contains(penned) && !to.contains(penned), "the cow starts in the old pen only");
+
+        int moved = PastureWork.relocate(level, from, to, level.getRandom(), List.of(penned, named, settled));
+        helper.assertValueEqual(moved, 1, "only the unnamed cow of the old pen moves");
+        helper.assertTrue(to.contains(penned), "it now stands in the new pen");
+        helper.assertTrue(from.contains(named), "a named cow stays put");
+        helper.succeed();
     }
 
     @GameTest(template = "empty9x9x9", skyAccess = true)
@@ -101,7 +147,7 @@ public final class BlissfulPastureGameTests {
                 "gathering starts the sixty-second cooldown");
 
         Map<ResourceLocation, List<Animal>> herds = PastureWork.penned(HerdWork.census(List.of(loose, named, penned)),
-                pasture);
+                List.of(pasture));
         helper.assertValueEqual(PastureWork.count(herds), 2, "the census keeps only the penned cows");
         helper.succeed();
     }
@@ -111,12 +157,12 @@ public final class BlissfulPastureGameTests {
         GameTestPlayers.ground(helper);
         ServerLevel level = helper.getLevel();
         Cow cow = helper.spawn(EntityType.COW, new BlockPos(4, 1, 4));
-        ChunkPos at = cow.chunkPosition();
-        BlissfulLand land = new BlissfulLand("gametest_land", level.dimension(), SoulsunderMountain.INSTANCE, 0,
-                BlockPos.ZERO, 64, 0, new ChunkPos(0, 0), 1, at, 1);
-        BlissfulLandData data = BlissfulLandData.create(land);
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        data.herd().addPasture(cow.chunkPosition());
         RealmSite site = new RealmSite(helper.absolutePos(new BlockPos(4, 1, 4)).offset(64, 0, 64), 2);
 
+        helper.assertTrue(PastureWork.Pasture.at(cow.chunkPosition().x, cow.chunkPosition().z).contains(cow),
+                "a pasture's account is its whole two by two chunks");
         int moved = MountainWork.moveMobsUp(level, site, data, level.getRandom(), List.of(cow));
         helper.assertValueEqual(moved, 0, "a cow in the pasture is not moved up the mountain");
         helper.succeed();

@@ -1,6 +1,8 @@
 package net.alex.guzhenren.gameplay.blissful.panel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.alex.guzhenren.core.ModEvents;
@@ -20,11 +22,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 地灵经营面板的服务端路由：打开、算快照、复判后执行 {@link PanelAction}、刷新。各页的数据与操作在各自模块里。
  * <ul>
- *   <li>{@link #open}：主人打开面板，停在他上次看的页（{@link #remember}，只记在内存里，停服清空），先让各模块
+ *   <li>{@link #open}：主人打开面板，停在他上次看的页（{@link #remember}，只记在内存里，停服清空；没记过即地图页），先让各模块
  *       {@code opened} 重置按人记的页面状态；无主时别人只收到认主条件，有主时只收到主人名字。</li>
  *   <li>{@link #handle} 先复判：玩家开着的是地灵面板、面板仍有效（地灵活着、距离、仍是主人），再执行操作；操作后清掉
  *       本刻的清点缓存，结果写进下一份快照的提示，立即下发一次。</li>
- *   <li>{@link #snapshot} 只算一页：由每秒刷新（{@code BlissfulLands}）与操作后刷新调用。</li>
+ *   <li>{@link #snapshot} 只算一页：该页每个模块各一段（{@link LandModules#on}）；由每秒刷新（{@code BlissfulLands}）与
+ *       操作后刷新调用。</li>
  * </ul>
  */
 
@@ -61,7 +64,7 @@ public final class EarthSpiritPanel {
     }
 
     public static @NotNull Page lastPage(@NotNull ServerPlayer player) {
-        return LAST_PAGE.getOrDefault(player.getUUID(), Page.OVERVIEW);
+        return LAST_PAGE.getOrDefault(player.getUUID(), Page.MAP);
     }
 
     public static void clear() { LAST_PAGE.clear(); }
@@ -78,8 +81,10 @@ public final class EarthSpiritPanel {
     public static @NotNull PanelSnapshot snapshot(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
                                                   @NotNull UUID viewer, @NotNull Page page,
                                                   @NotNull Component notice) {
-        PanelSection section = LandModules.of(page).section(new PanelContext(level, data, viewer));
-        return new PanelSnapshot(data.land().nameKey(), notice, section);
+        PanelContext context = new PanelContext(level, data, viewer);
+        List<PanelSection> sections = new ArrayList<>();
+        for (LandModule<?> module : LandModules.on(page)) sections.add(module.section(context));
+        return new PanelSnapshot(data.land().nameKey(), notice, page, sections);
     }
     //endregion
 

@@ -37,9 +37,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 荡魂山[Soulsunder Mountain]：狐仙福地[Fox Immortal Blissful Land]中心唯一的半透明山，由 Gu World 结构集
- * {@code guworld:soulsunder_mountain} 定位；九转魂道秘境（{@link #rank}、{@link #path}）。
+ * 荡魂山[Soulsunder Mountain]：狐仙福地[Fox Immortal Blissful Land]唯一的半透明山，由 Gu World 结构集
+ * {@code guworld:soulsunder_mountain} 定位（原点 ±512 格内自动挑缓地落位）；九转魂道秘境（{@link #rank}、
+ * {@link #path}）。
  * <ul>
+ *   <li>山巅最高一层荡魂山石比山底高 {@value #SUMMIT_RISE} 格（Gu World 山形最高列跨度顶）。</li>
  *   <li>范围为山心水平 {@value #RADIUS} 格圆柱。玩家每 10 秒（{@code tickCount} 为 {@value #SOUL_DRAIN_INTERVAL_TICKS}
  *       刻整倍的心跳）扣 {@value #SOUL_DRAIN} 点当前魂魄，扣到 0 由 {@code Heartbeat} 末步的致死检查按魂魄衰竭处死；扣
  *       之前发 {@link SoulsunderShakeEvent}，被取消就不扣。其它活着的生物每秒受 {@value #MOB_DAMAGE} 点
@@ -70,6 +72,7 @@ public final class SoulsunderMountain implements SecretRealm {
     public static final ResourceKey<StructureSet> STRUCTURE_SET = ResourceKey.create(Registries.STRUCTURE_SET,
             ResourceLocation.fromNamespaceAndPath("guworld", "soulsunder_mountain"));
     public static final int RADIUS = 96;
+    public static final int SUMMIT_RISE = 117;
     public static final long SOUL_DRAIN = 1L;
     public static final int SOUL_DRAIN_INTERVAL_TICKS = 10 * Ticks.SECOND;
     public static final float MOB_DAMAGE = 2.0F;
@@ -94,6 +97,9 @@ public final class SoulsunderMountain implements SecretRealm {
 
     @Override
     public int radius() { return RADIUS; }
+
+    @Override
+    public int summitRise() { return SUMMIT_RISE; }
 
     @Override
     public @NotNull Rank rank() { return Rank.NINE; }

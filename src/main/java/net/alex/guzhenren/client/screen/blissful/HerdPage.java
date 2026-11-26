@@ -5,25 +5,20 @@ import java.util.stream.Collectors;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
-import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 
 /**
- * 「养殖」页：每种动物一行（刷怪蛋图标、名字、数量、托管开关、保持数 −/+），牧场一行（栏内栏外、「圈地」「收拢」），底部
- * 托管状态与「喂养繁殖」「宰杀收取」。
+ * 「养殖」小节：每种动物一行（刷怪蛋图标、名字、数量、托管开关、保持数 −/+），牧场一行（牧场数、栏内、栏外），底部托管
+ * 状态与「喂养繁殖」「宰杀收取」。放置、迁移、拆除牧场与「收拢」在地图页。
  * <ul>
- *   <li>行与两个一键操作只算牧场栏内的动物；牧场行悬停显示牧场坐标（按所在维度找福地）。「收拢」在栏外没有动物或冷却
- *       中时失效。</li>
+ *   <li>行与两个一键操作只算各牧场栏内的动物。</li>
  *   <li>托管按种类开关；关着时 −/+ 失效、保持数画失效色，但保持数照存，一键宰杀也照它算。</li>
  *   <li>−/+ 每次改 1，按住 Shift 改 {@value #SHIFT_STEP}；保持数不小于 0。</li>
  *   <li>悬停一行看库藏里这种动物的饲料；饲料不够喂一对（少于 2 份）且至少有两只时名字画警示色。</li>
@@ -46,10 +41,7 @@ final class HerdPage extends PanelPage {
     private static final int MINUS_X = 114;
     private static final int PLUS_X = 144;
     private static final int PEN_Y = 157;
-    private static final int PEN_BUTTON_W = 30;
-    private static final int PEN_BUTTON_H = 16;
-    private static final int ENCLOSE_X = 108;
-    private static final int GATHER_X = 138;
+    private static final int PEN_H = 16;
     private static final int STATUS_Y = 178;
     private static final int BUTTON_Y = 192;
     private static final int BUTTON_W = 78;
@@ -63,9 +55,9 @@ final class HerdPage extends PanelPage {
     HerdPage(EarthSpiritScreen screen) { super(screen); }
 
     @Override
-    Component name() { return Component.translatable(UI + "tab.husbandry"); }
+    protected Component name() { return Component.translatable(UI + "tab.husbandry"); }
 
-    private HerdModule.Section data() { return section(HerdModule.Section.EMPTY); }
+    private HerdModule.Section data() { return section(HerdModule.INSTANCE, HerdModule.Section.EMPTY); }
 
     private List<HerdModule.Row> rows() { return data().rows(); }
 
@@ -73,17 +65,12 @@ final class HerdPage extends PanelPage {
         return row.feed() != HerdModule.UNKNOWN_FEED && row.feed() < 2 && row.count() >= 2;
     }
 
-    private boolean canGather() {
-        HerdModule.Pen pen = data().pen();
-        return pen.outside() > 0 && pen.gatherIn() == 0;
-    }
-
     private static Component nameOf(HerdModule.Row row) {
         return BuiltInRegistries.ENTITY_TYPE.get(row.type()).getDescription();
     }
 
     @Override
-    void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+    protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         sprites.blit(PanelKit.WELL, x + 8, y + LIST_Y, 160, LIST_H);
         List<HerdModule.Row> rows = rows();
         offset = PanelKit.clampScroll(offset, VISIBLE, rows.size());
@@ -99,15 +86,13 @@ final class HerdPage extends PanelPage {
         }
         boolean over = Widgets.isOver(mouseX, mouseY, x + 160, y + 32, 6, LIST_H - 2);
         PanelKit.scrollbar(sprites, x + 160, y + 32, LIST_H - 2, offset, VISIBLE, rows.size(), over);
-        PanelKit.button(sprites, x + ENCLOSE_X, y + PEN_Y, PEN_BUTTON_W, PEN_BUTTON_H, true, mouseX, mouseY);
-        PanelKit.button(sprites, x + GATHER_X, y + PEN_Y, PEN_BUTTON_W, PEN_BUTTON_H, canGather(), mouseX, mouseY);
         PanelKit.button(sprites, x + BREED_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
         PanelKit.button(sprites, x + SLAUGHTER_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, data().slaughterPreview() > 0,
                 mouseX, mouseY);
     }
 
     @Override
-    void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         HerdModule.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "animal"), x + 12, y + 21, PanelKit.LEGEND, false);
         PanelKit.right(graphics, font(), Component.translatable(UI + "count"), x + 84, y + 21, PanelKit.LEGEND);
@@ -128,12 +113,8 @@ final class HerdPage extends PanelPage {
             PanelKit.centered(graphics, font(), Component.literal(Integer.toString(row.keep())), x + 128, x + 143,
                     top + 6, row.hosted() ? PanelKit.TEXT : PanelKit.DEAD);
         }
-        graphics.drawString(font(), Component.translatable(UI + "pen", data.pen().inside(), data.pen().outside()),
-                x + 8, y + PEN_Y + 4, PanelKit.LEGEND, false);
-        PanelKit.label(graphics, font(), Component.translatable(UI + "enclose"), x + ENCLOSE_X, y + PEN_Y,
-                PEN_BUTTON_W, PEN_BUTTON_H, true);
-        PanelKit.label(graphics, font(), Component.translatable(UI + "gather"), x + GATHER_X, y + PEN_Y,
-                PEN_BUTTON_W, PEN_BUTTON_H, canGather());
+        graphics.drawString(font(), Component.translatable(UI + "pen", data.pen().pastures(), data.pen().inside(),
+                data.pen().outside()), x + 8, y + PEN_Y + 4, PanelKit.LEGEND, false);
         Component status = data.hosting()
                 ? Component.translatable(UI + "herd_status", data.hostingIn(), data.lastSlaughtered(), data.lastBred())
                 : Component.translatable(UI + "herd_note");
@@ -145,7 +126,7 @@ final class HerdPage extends PanelPage {
     }
 
     @Override
-    void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         List<HerdModule.Row> rows = rows();
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
             SpawnEggItem egg = SpawnEggItem.byId(BuiltInRegistries.ENTITY_TYPE.get(rows.get(offset + i).type()));
@@ -154,7 +135,7 @@ final class HerdPage extends PanelPage {
     }
 
     @Override
-    void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         HerdModule.Section data = data();
         String hungry = data.rows().stream().filter(HerdPage::shortOfFeed).map(row -> nameOf(row).getString())
                 .collect(Collectors.joining("、"));
@@ -165,23 +146,8 @@ final class HerdPage extends PanelPage {
                 Component.translatable(TIP + "slaughter", data.slaughterPreview()))) {
             return;
         }
-        if (tip(graphics, x + ENCLOSE_X, y + PEN_Y, PEN_BUTTON_W, PEN_BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "enclose"))) {
+        if (tip(graphics, x + 8, y + PEN_Y, 160, PEN_H, mouseX, mouseY, Component.translatable(TIP + "pen"))) {
             return;
-        }
-        int wait = data.pen().gatherIn();
-        Component gather = wait > 0 ? Component.translatable(TIP + "gather_wait", wait)
-                : Component.translatable(TIP + "gather", PastureWork.GATHER_LIMIT,
-                        PastureWork.GATHER_COOLDOWN_TICKS / Ticks.SECOND);
-        if (tip(graphics, x + GATHER_X, y + PEN_Y, PEN_BUTTON_W, PEN_BUTTON_H, mouseX, mouseY, gather)) return;
-        ClientLevel level = Minecraft.getInstance().level;
-        BlissfulLand land = level == null ? null : BlissfulLands.landOf(level);
-        if (land != null) {
-            PastureWork.Pasture pasture = PastureWork.Pasture.of(land);
-            if (tip(graphics, x + 8, y + PEN_Y, ENCLOSE_X - 10, PEN_BUTTON_H, mouseX, mouseY, Component.translatable(
-                    TIP + "pen", pasture.minX(), pasture.maxX(), pasture.minZ(), pasture.maxZ()))) {
-                return;
-            }
         }
         if (tip(graphics, x + 8, y + STATUS_Y - 2, 160, 12, mouseX, mouseY, Component.translatable(TIP + "herd_hosting",
                 BlissfulLands.HOSTING_TICKS / Ticks.SECOND, HerdModule.HOSTING_ANIMALS))) {
@@ -206,21 +172,13 @@ final class HerdPage extends PanelPage {
     }
 
     @Override
-    boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
+    protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (Widgets.isOver(mouseX, mouseY, x + BREED_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
             send(new HerdModule.Breed());
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + SLAUGHTER_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
             if (data().slaughterPreview() > 0) send(new HerdModule.Slaughter());
-            return true;
-        }
-        if (Widgets.isOver(mouseX, mouseY, x + ENCLOSE_X, y + PEN_Y, PEN_BUTTON_W, PEN_BUTTON_H)) {
-            send(new HerdModule.Enclose());
-            return true;
-        }
-        if (Widgets.isOver(mouseX, mouseY, x + GATHER_X, y + PEN_Y, PEN_BUTTON_W, PEN_BUTTON_H)) {
-            if (canGather()) send(new HerdModule.Gather());
             return true;
         }
         List<HerdModule.Row> rows = rows();
@@ -246,7 +204,7 @@ final class HerdPage extends PanelPage {
     }
 
     @Override
-    boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+    protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, x + 8, y + LIST_Y, 160, LIST_H)) return false;
         offset = PanelKit.clampScroll(offset - (int) Math.signum(delta), VISIBLE, rows().size());
         return true;

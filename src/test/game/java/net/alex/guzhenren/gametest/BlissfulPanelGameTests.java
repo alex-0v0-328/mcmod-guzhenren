@@ -15,6 +15,8 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.blissful.LandModule;
+import net.alex.guzhenren.gameplay.blissful.LandModules;
 import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
 import net.alex.guzhenren.gameplay.blissful.gu.GuModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
@@ -28,6 +30,7 @@ import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelActions;
+import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSnapshot;
 import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.blissful.storage.StorageBrowser;
@@ -57,9 +60,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
- * 福地经营面板的模块化外壳：每种操作与每页快照段的线上编解码往返、面板只算正在看的页并记住它、库藏「存同类」、库藏服
- * 务端分页（5,000 种条目下开面板附加数据不超 NeoForge 的 32,600 字节，翻页、搜索、排序、按流水号取物、查询参数解码校
- * 验）、按名字只加在线玩家、宰杀预估与实际宰杀一致。
+ * 福地经营面板的模块化外壳：每种操作与每页多段快照的线上编解码往返（每页恰好是归到该页的模块各一段）、面板默认停在地图
+ * 页、只算正在看的页并记住它、库藏「存同类」、库藏服务端分页（5,000 种条目下开面板附加数据不超 NeoForge 的 32,600 字节，
+ * 翻页、搜索、排序、按流水号取物、查询参数解码校验）、按名字只加在线玩家、宰杀预估与实际宰杀一致。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -79,14 +82,16 @@ public final class BlissfulPanelGameTests {
         ServerLevel level = helper.getLevel();
         UUID someone = UUID.randomUUID();
         ResourceLocation cow = BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.COW);
-        List<PanelAction> samples = List.of(new PanelActions.View(Page.FARMING),
+        List<PanelAction> samples = List.of(new PanelActions.View(Page.INFO),
                 new OverviewModule.Expel(someone), new OverviewModule.ExpelOutsiders(),
                 new OverviewModule.SetWhitelisted(someone, true), new MountainModule.MoveMobs(),
                 new MountainModule.DriveGutsGu(), new MountainModule.AddWhitelist("Steve"), new HerdModule.Breed(),
                 new HerdModule.Slaughter(), new HerdModule.SetHosting(cow, true), new HerdModule.SetKeep(cow, 7),
-                new HerdModule.Enclose(), new HerdModule.Gather(), new GuModule.Capture(),
+                new HerdModule.PlacePasture(3, -4), new HerdModule.MovePasture(1, -2, 5),
+                new HerdModule.RemovePasture(2), new HerdModule.Gather(0), new GuModule.Capture(),
                 new GuModule.SetHosting(cow, true), new GuModule.SetKeep(cow, 2),
-                new FarmModule.Reclaim(), new FarmModule.Harvest(), new FarmModule.SetHosting(true),
+                new FarmModule.Plan(7, -9), new FarmModule.Unplan(7, -9), new FarmModule.Remove(-1, 2),
+                new FarmModule.Harvest(), new FarmModule.SetHosting(true),
                 new FarmModule.SetCrop(2), new TerritoryModule.Cede(Territory.Side.EAST, 3),
                 new StorageModule.Take(4L, true), new StorageModule.DepositCarried(),
                 new StorageModule.DepositMatching(), new StorageModule.Browse("小麦", Sort.NAME, 2,
@@ -106,15 +111,24 @@ public final class BlissfulPanelGameTests {
         data.storage().insert(new ItemStack(Items.WHEAT, 70));
         data.addWhitelist(someone, "Steve");
         data.herd().setKeep(cow, 3);
+        List<LandModule<?>> placed = new ArrayList<>();
         for (Page page : Page.values()) {
             PanelSnapshot snapshot = EarthSpiritPanel.snapshot(level, data, someone, page, Component.literal("done"));
-            helper.assertValueEqual(snapshot.section().page(), page, "a snapshot carries the asked page");
+            helper.assertValueEqual(snapshot.page(), page, "a snapshot carries the asked page");
+            List<LandModule<?>> modules = snapshot.sections().stream().<LandModule<?>>map(PanelSection::module)
+                    .toList();
+            helper.assertValueEqual(modules, LandModules.on(page), page + " carries one section per module on it");
+            helper.assertTrue(modules.stream().allMatch(module -> module.page() == page), page + " sections belong");
+            placed.addAll(modules);
             byte[] first = encode(level, snapshot);
             RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(first),
                     level.registryAccess());
             PanelSnapshot decoded = PanelSnapshot.STREAM_CODEC.decode(buffer);
             helper.assertTrue(Arrays.equals(first, encode(level, decoded)), page + " section round trip");
         }
+        helper.assertValueEqual(placed.size(), LandModules.ALL.size(), "every module sits on exactly one page");
+        helper.assertValueEqual(LandModules.on(Page.INFO), List.of(OverviewModule.INSTANCE, HerdModule.INSTANCE,
+                FarmModule.INSTANCE, GuModule.INSTANCE, TerritoryModule.INSTANCE), "the info sections in tab order");
         StorageBrowser.forget(someone);
         helper.succeed();
     }
@@ -135,17 +149,20 @@ public final class BlissfulPanelGameTests {
         try {
             MemberService.claim(null, data, owner);
             EarthSpiritMenu menu = new EarthSpiritMenu(1, owner.getInventory(), spirit,
-                    EarthSpiritPanel.snapshot(level, data, owner.getUUID(), Page.OVERVIEW, Component.empty()));
+                    EarthSpiritPanel.snapshot(level, data, owner.getUUID(), EarthSpiritPanel.lastPage(owner),
+                            Component.empty()));
             owner.containerMenu = menu;
-            helper.assertValueEqual(menu.page(), Page.OVERVIEW, "the panel opens on the overview");
+            helper.assertValueEqual(menu.page(), Page.MAP, "the panel opens on the map");
             EarthSpiritPanel.handle(owner, new PanelActions.View(Page.STORAGE));
             helper.assertValueEqual(menu.page(), Page.STORAGE, "viewing a page switches what the server computes");
             helper.assertValueEqual(EarthSpiritPanel.lastPage(owner), Page.STORAGE, "the page is remembered");
-            helper.assertTrue(EarthSpiritPanel.snapshot(level, data, owner.getUUID(), menu.page(), Component.empty())
-                    .section() instanceof StorageModule.Section, "only the storage section is computed");
+            List<PanelSection> computed = EarthSpiritPanel.snapshot(level, data, owner.getUUID(), menu.page(),
+                    Component.empty()).sections();
+            helper.assertTrue(computed.size() == 1 && computed.getFirst() instanceof StorageModule.Section,
+                    "only the storage section is computed");
             helper.succeed();
         } finally {
-            EarthSpiritPanel.remember(owner, Page.OVERVIEW);
+            EarthSpiritPanel.remember(owner, Page.MAP);
             StorageBrowser.forget(owner.getUUID());
             owner.containerMenu = owner.inventoryMenu;
             MemberService.lose(level.getServer(), null, data);
@@ -157,7 +174,7 @@ public final class BlissfulPanelGameTests {
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-slots-mock").onGround();
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         EarthSpiritMenu menu = new EarthSpiritMenu(1, owner.getInventory(), null,
-                EarthSpiritPanel.snapshot(helper.getLevel(), data, owner.getUUID(), Page.OVERVIEW, Component.empty()));
+                EarthSpiritPanel.snapshot(helper.getLevel(), data, owner.getUUID(), Page.INFO, Component.empty()));
         Slot home = menu.slots.get(27);
 
         menu.setInventoryShown(false);
@@ -202,7 +219,7 @@ public final class BlissfulPanelGameTests {
         for (int i = 0; i < KINDS; i++) storage.insert(named(i, i < page ? NEAR_CAP : i < 2 * page ? OVER_CAP : 0));
         storage.insert(new ItemStack(Items.WHEAT, 100));
         EarthSpiritMenu menu = new EarthSpiritMenu(1, owner.getInventory(), null,
-                EarthSpiritPanel.snapshot(level, data, viewer, Page.OVERVIEW, Component.empty()));
+                EarthSpiritPanel.snapshot(level, data, viewer, Page.INFO, Component.empty()));
         ActionContext context = new ActionContext(owner, menu, level, data);
         try {
             StorageModule.INSTANCE.opened(viewer);
@@ -290,7 +307,7 @@ public final class BlissfulPanelGameTests {
 
     private static StorageModule.Section storageSection(ServerLevel level, BlissfulLandData data, UUID viewer) {
         return (StorageModule.Section) EarthSpiritPanel.snapshot(level, data, viewer, Page.STORAGE, Component.empty())
-                .section();
+                .sections().getFirst();
     }
 
     private static boolean refuses(ServerLevel level, Consumer<RegistryFriendlyByteBuf> body) {

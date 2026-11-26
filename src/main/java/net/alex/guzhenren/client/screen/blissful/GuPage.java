@@ -14,10 +14,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * 「蛊虫」页：福地里每种野生蛊一行（捕获后的蛊虫物品图标、名字、数量、托管开关、保持数 −/+），底部托管状态与「捕获
+ * 「蛊虫」小节：福地里每种野生蛊一行（捕获后的蛊虫物品图标、名字、数量、托管开关、保持数 −/+），底部托管状态与「捕获
  * 入库」。
  * <ul>
- *   <li>同「养殖」页：托管按种类开关，关着时 −/+ 失效但保持数照存；−/+ 每次改 1，按住 Shift 改 {@value #SHIFT_STEP}。</li>
+ *   <li>同「养殖」小节：托管按种类开关，关着时 −/+ 失效但保持数照存；−/+ 每次改 1，按住 Shift 改 {@value #SHIFT_STEP}。</li>
  *   <li>福地暂不自然刷野生蛊，列表多半是空的，空时在列表里写一行说明。</li>
  *   <li>「捕获入库」悬停显示现在会捕几只，一只都不会捕时按钮失效。一屏 {@value #VISIBLE} 行，滚轮翻，右侧滚动条。</li>
  * </ul>
@@ -48,9 +48,9 @@ final class GuPage extends PanelPage {
     GuPage(EarthSpiritScreen screen) { super(screen); }
 
     @Override
-    Component name() { return Component.translatable(UI + "tab.gu"); }
+    protected Component name() { return Component.translatable(UI + "tab.gu"); }
 
-    private GuModule.Section data() { return section(GuModule.Section.EMPTY); }
+    private GuModule.Section data() { return section(GuModule.INSTANCE, GuModule.Section.EMPTY); }
 
     private List<GuModule.Row> rows() { return data().rows(); }
 
@@ -59,7 +59,7 @@ final class GuPage extends PanelPage {
     }
 
     @Override
-    void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+    protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         sprites.blit(PanelKit.WELL, x + 8, y + LIST_Y, 160, LIST_H);
         List<GuModule.Row> rows = rows();
         offset = PanelKit.clampScroll(offset, VISIBLE, rows.size());
@@ -80,7 +80,7 @@ final class GuPage extends PanelPage {
     }
 
     @Override
-    void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         GuModule.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "gu"), x + 12, y + 21, PanelKit.LEGEND, false);
         PanelKit.right(graphics, font(), Component.translatable(UI + "count"), x + 84, y + 21, PanelKit.LEGEND);
@@ -113,7 +113,7 @@ final class GuPage extends PanelPage {
     }
 
     @Override
-    void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         List<GuModule.Row> rows = rows();
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
             Item item = BuiltInRegistries.ITEM.get(rows.get(offset + i).item());
@@ -122,7 +122,7 @@ final class GuPage extends PanelPage {
     }
 
     @Override
-    void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         GuModule.Section data = data();
         if (tip(graphics, x + BUTTON_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "capture", data.capturePreview()))) {
@@ -147,7 +147,7 @@ final class GuPage extends PanelPage {
     }
 
     @Override
-    boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
+    protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (Widgets.isOver(mouseX, mouseY, x + BUTTON_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
             if (data().capturePreview() > 0) send(new GuModule.Capture());
             return true;
@@ -175,7 +175,7 @@ final class GuPage extends PanelPage {
     }
 
     @Override
-    boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+    protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, x + 8, y + LIST_Y, 160, LIST_H)) return false;
         offset = PanelKit.clampScroll(offset - (int) Math.signum(delta), VISIBLE, rows().size());
         return true;

@@ -5,22 +5,22 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * 地灵经营面板的分页：顺序即左侧标签顺序与数字键 1–N，每页由一个
- * {@link net.alex.guzhenren.gameplay.blissful.LandModule} 负责
- * （{@link net.alex.guzhenren.gameplay.blissful.LandModules#of}）。
+ * 地灵经营面板的分页：顺序即分页标签顺序与数字键 1–N；每页由若干
+ * {@link net.alex.guzhenren.gameplay.blissful.LandModule} 各出一段
+ * （{@link net.alex.guzhenren.gameplay.blissful.LandModules#on}）。
  * <ul>
- *   <li>新增一页 = 末尾追加一项、写它的模块与客户端页面，并递增 {@code ModPayloads.VERSION}（按序号编码）。</li>
+ *   <li>{@link #MAP} 是主页（全屏地图），{@link #REALM} 的标签写福地秘境的地名，{@link #INFO} 里按小节放总览与各经营模块。
+ *       </li>
+ *   <li>新增一页 = 末尾追加一项、给模块的 {@code page()} 指过来、写客户端页面，并递增 {@code ModPayloads.VERSION}（按序号
+ *       编码）。</li>
  * </ul>
  */
 
 public enum Page {
-    OVERVIEW,
-    MOUNTAIN,
-    HUSBANDRY,
-    FARMING,
-    TERRITORY,
+    MAP,
     STORAGE,
-    GU;
+    REALM,
+    INFO;
 
     public static final StreamCodec<ByteBuf, Page> STREAM_CODEC = ByteBufCodecs.idMapper(index -> values()[index],
             Page::ordinal);

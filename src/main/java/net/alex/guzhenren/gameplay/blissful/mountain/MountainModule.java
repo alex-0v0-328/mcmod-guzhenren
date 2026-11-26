@@ -51,7 +51,7 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
                 Section::new);
 
         @Override
-        public @NotNull Page page() { return Page.MOUNTAIN; }
+        public @NotNull LandModule<?> module() { return INSTANCE; }
     }
 
     //region Actions [操作]
@@ -104,7 +104,7 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
     //endregion
 
     @Override
-    public @NotNull Page page() { return Page.MOUNTAIN; }
+    public @NotNull Page page() { return Page.REALM; }
 
     @Override
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }

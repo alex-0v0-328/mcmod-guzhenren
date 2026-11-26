@@ -63,14 +63,14 @@ class ModDimensionsTest {
     }
 
     @Test
-    @DisplayName("the Fox Immortal Blissful Land lands on foot 160 blocks south of the summit column, rank 6")
+    @DisplayName("the Fox Immortal Blissful Land lands on foot 160 blocks south of the mountain centre, rank 6")
     void anchoredDimensionsPinTheFoxImmortalBlissfulLand() {
         ModDimensions.AnchoredDimension entry =
                 ModDimensions.ANCHORED_DIMENSIONS.get(ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND);
         assertNotNull(entry);
-        assertEquals(8.5, entry.spawn().x);
-        assertEquals(168.5, entry.spawn().z);
-        assertEquals(ModDimensions.Arrival.SURFACE, entry.arrival());
+        assertEquals(0.5, entry.spawn().x);
+        assertEquals(160.5, entry.spawn().z);
+        assertEquals(ModDimensions.Arrival.REALM, entry.arrival());
         assertEquals(6, entry.rank());
         assertFalse(ModDimensions.isFlightGranted(ModDimensions.FOX_IMMORTAL_BLISSFUL_LAND));
     }

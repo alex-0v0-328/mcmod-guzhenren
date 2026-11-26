@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
+import net.alex.guzhenren.gameplay.blissful.farm.FieldPlot;
+import net.alex.guzhenren.gameplay.blissful.herd.PastureWork;
+import net.alex.guzhenren.gameplay.blissful.map.Siting;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -23,11 +27,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 地灵面板「疆域」页：永久割弃一侧条带，并把割弃区块清成虚空。
  * <ul>
- *   <li>{@link #cede} 只改疆域记录（{@link Territory#cede}），再把条带内的玩家送回各自返回点、非玩家实体直接移除（不掉
+ *   <li>{@link #cede} 先作废条带内的标准田（撤强加载）、规划与牧场（任一区块落在条带里即作废，撤强加载；地形随后清成
+ *       虚空，不还原），再改疆域记录（{@link Territory#cede}），把条带内的玩家送回各自返回点、非玩家实体直接移除（不掉
  *       落），并把条带里已加载的区块排队清空；没加载的区块等加载时由 {@link #onChunkLoad} 排队。Gu World 生成器不改，所
  *       以割弃区块每次生成或读回都要再清一次，已全空的跳过。</li>
  *   <li>{@link #tick} 每刻至多换 {@value #BLOCKS_PER_TICK} 个方块：逐格把非空气方块换成空气，标志同如故类还原（同步客户
@@ -59,17 +65,21 @@ public final class TerritoryWork {
         private int cursor;
     }
 
-    public static boolean cede(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
-                               @NotNull Territory.Side side, int width) {
+    public record Voided(int fields, int plans, int pastures) {}
+
+    public static @Nullable Voided cede(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                        @NotNull Territory.Side side, int width) {
         return cede(level, data, side, width, level.getAllEntities());
     }
 
-    public static boolean cede(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
-                               @NotNull Territory.Side side, int width, @NotNull Iterable<? extends Entity> entities) {
+    public static @Nullable Voided cede(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                        @NotNull Territory.Side side, int width,
+                                        @NotNull Iterable<? extends Entity> entities) {
         Territory before = data.territory();
-        if (!before.canCede(side, width)) return false;
+        if (!before.canCede(side, width)) return null;
 
         Territory after = before.cede(side, width);
+        Voided voided = voidHoldings(level, data, after);
         data.setTerritory(after);
         List<Entity> inside = new ArrayList<>();
         for (Entity entity : entities) {
@@ -85,7 +95,35 @@ public final class TerritoryWork {
                 }
             }
         }
-        return true;
+        return voided;
+    }
+
+    private static Voided voidHoldings(ServerLevel level, BlissfulLandData data, Territory after) {
+        int fields = 0;
+        for (FieldPlot field : data.farm().fields()) {
+            if (!after.isCeded(field.chunk().x, field.chunk().z)) continue;
+            FarmWork.setForced(level, field, false);
+            data.farm().removeField(field);
+            fields++;
+        }
+        int plans = 0;
+        for (long plan : data.farm().plans()) {
+            if (after.isCeded(ChunkPos.getX(plan), ChunkPos.getZ(plan)) && data.farm().removePlan(plan)) plans++;
+        }
+        int pastures = 0;
+        List<ChunkPos> corners = data.herd().pastures();
+        for (int i = corners.size() - 1; i >= 0; i--) {
+            ChunkPos corner = corners.get(i);
+            boolean ceded = false;
+            for (int dx = 0; dx < Siting.PEN_CHUNKS; dx++) {
+                for (int dz = 0; dz < Siting.PEN_CHUNKS; dz++) ceded |= after.isCeded(corner.x + dx, corner.z + dz);
+            }
+            if (!ceded) continue;
+            PastureWork.forceChunks(level, PastureWork.Pasture.at(corner.x, corner.z), false);
+            data.herd().removePasture(i);
+            pastures++;
+        }
+        return new Voided(fields, plans, pastures);
     }
 
     public static void onChunkLoad(@NotNull ServerLevel level, @NotNull Territory territory,

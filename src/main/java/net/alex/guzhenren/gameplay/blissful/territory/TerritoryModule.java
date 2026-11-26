@@ -43,7 +43,7 @@ public final class TerritoryModule implements LandModule<TerritoryModule.Section
                         west)));
 
         @Override
-        public @NotNull Page page() { return Page.TERRITORY; }
+        public @NotNull LandModule<?> module() { return INSTANCE; }
     }
 
     public record Cede(@NotNull Territory.Side side, int width) implements PanelAction {
@@ -54,15 +54,20 @@ public final class TerritoryModule implements LandModule<TerritoryModule.Section
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             BlissfulLandData data = context.data();
-            if (!TerritoryWork.cede(context.level(), data, side, width)) return EarthSpiritPanel.notice("cede_refused");
+            TerritoryWork.Voided voided = TerritoryWork.cede(context.level(), data, side, width);
+            if (voided == null) return EarthSpiritPanel.notice("cede_refused");
             Component sideName = Component.translatable("guzhenren.blissful_land.side."
                     + side.name().toLowerCase(Locale.ROOT));
-            return EarthSpiritPanel.notice("ceded", sideName, width, data.territory().acres());
+            if (voided.fields() + voided.plans() + voided.pastures() == 0) {
+                return EarthSpiritPanel.notice("ceded", sideName, width, data.territory().acres());
+            }
+            return EarthSpiritPanel.notice("ceded_voided", sideName, width, data.territory().acres(), voided.fields(),
+                    voided.plans(), voided.pastures());
         }
     }
 
     @Override
-    public @NotNull Page page() { return Page.TERRITORY; }
+    public @NotNull Page page() { return Page.INFO; }
 
     @Override
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }

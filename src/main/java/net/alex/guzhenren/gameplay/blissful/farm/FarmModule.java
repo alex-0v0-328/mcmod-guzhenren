@@ -7,13 +7,13 @@ import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.LandCensus;
 import net.alex.guzhenren.gameplay.blissful.LandModule;
+import net.alex.guzhenren.gameplay.blissful.map.Siting;
 import net.alex.guzhenren.gameplay.blissful.panel.ActionContext;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.blissful.panel.Page;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelAction;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelContext;
 import net.alex.guzhenren.gameplay.blissful.panel.PanelSection;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -27,10 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 「种植」页模块：按作物计成熟 / 未熟、标准田数与「开垦」、开垦作物与库藏种子数、托管开关、「收割并补种」。
+ * 「种植」小节模块：按作物计成熟 / 未熟、标准田与规划数、开垦作物与库藏种子数、托管开关、「收割并补种」；地图上的
+ * 规划、取消规划与拆田也登记在这里。
  * <ul>
  *   <li>开垦作物按 {@link FarmWork#CROPS} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
- *       出空田并提示之后会自动补种。</li>
+ *       出空田之后自动补种。</li>
+ *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link Remove} 经
+ *       {@link FarmWork#remove}。</li>
  *   <li>{@link Section#seeds()} 与 {@link FarmWork#CROPS} 同序，是库藏里各作物种子的数量。</li>
  *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value #HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
  *       轮倒计时与上一轮结果。</li>
@@ -53,19 +56,20 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
                 Crop::new);
     }
 
-    public record Section(@NotNull List<Crop> rows, int fields, int capacity, int reclaimCooldown, boolean hosting,
+    public record Section(@NotNull List<Crop> rows, int fields, int planned, int capacity, int reclaimCooldown,
+                          boolean hosting,
                           int hostingIn, int lastReaped, int lastSown, int crop, @NotNull List<Long> seeds)
             implements PanelSection {
 
-        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, false, 0, 0, 0, FarmState.AUTO_CROP,
+        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, 0, false, 0, 0, 0, FarmState.AUTO_CROP,
                 List.of());
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
                 StreamCodec.of(Section::encode, Section::decode);
 
         private static void encode(RegistryFriendlyByteBuf buffer, Section section) {
             Crop.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.rows);
-            for (int value : new int[] {section.fields, section.capacity, section.reclaimCooldown, section.hostingIn,
-                    section.lastReaped, section.lastSown, section.crop}) {
+            for (int value : new int[] {section.fields, section.planned, section.capacity, section.reclaimCooldown,
+                    section.hostingIn, section.lastReaped, section.lastSown, section.crop}) {
                 buffer.writeVarInt(value);
             }
             buffer.writeBoolean(section.hosting);
@@ -75,6 +79,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         private static Section decode(RegistryFriendlyByteBuf buffer) {
             List<Crop> rows = Crop.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
             int fields = buffer.readVarInt();
+            int planned = buffer.readVarInt();
             int capacity = buffer.readVarInt();
             int reclaimCooldown = buffer.readVarInt();
             int hostingIn = buffer.readVarInt();
@@ -83,11 +88,9 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
             int crop = buffer.readVarInt();
             boolean hosting = buffer.readBoolean();
             List<Long> seeds = ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).decode(buffer);
-            return new Section(rows, fields, capacity, reclaimCooldown, hosting, hostingIn, lastReaped, lastSown, crop,
-                    seeds);
+            return new Section(rows, fields, planned, capacity, reclaimCooldown, hosting, hostingIn, lastReaped,
+                    lastSown, crop, seeds);
         }
-
-        public boolean canReclaim() { return reclaimCooldown == 0 && fields < capacity; }
 
         public long seedsOf(int crop) {
             if (crop != FarmState.AUTO_CROP) return crop < seeds.size() ? seeds.get(crop) : 0L;
@@ -95,32 +98,52 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         }
 
         @Override
-        public @NotNull Page page() { return Page.FARMING; }
+        public @NotNull LandModule<?> module() { return INSTANCE; }
     }
 
     //region Actions [操作]
-    public record Reclaim() implements PanelAction {
+    public record Plan(int chunkX, int chunkZ) implements PanelAction {
 
-        public static final PanelAction.Type<Reclaim> TYPE = new PanelAction.Type<>(Reclaim.class,
-                StreamCodec.unit(new Reclaim()));
+        public static final PanelAction.Type<Plan> TYPE = new PanelAction.Type<>(Plan.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, Plan::chunkX, ByteBufCodecs.VAR_INT, Plan::chunkZ,
+                        Plan::new));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            ServerLevel level = context.level();
-            BlissfulLandData data = context.data();
-            long cooldown = FarmWork.reclaimCooldown(level, data);
-            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", EarthSpiritPanel.seconds(cooldown));
+            Siting.Reason reason = FieldPlans.plan(context.level(), context.data(), chunkX, chunkZ);
+            if (reason != Siting.Reason.OK) {
+                return EarthSpiritPanel.notice("siting_refused", Component.translatable(reason.key()));
+            }
+            return EarthSpiritPanel.notice("planned", chunkX, chunkZ, context.data().farm().plans().size());
+        }
+    }
 
-            if (data.farm().fields().size() >= FarmWork.capacity(data.land())) {
-                return EarthSpiritPanel.notice("farm_full");
-            }
-            BlockPos slot = FarmWork.nextSlot(level, data.land(), data);
-            if (slot == null) return EarthSpiritPanel.notice("farm_no_dry");
-            boolean seeded = !data.storage().first(FarmWork.seedFilter(data.farm().crop())).isEmpty();
-            if (FarmWork.reclaim(level, data, slot, context.player()) == null) {
-                return EarthSpiritPanel.notice("grief_denied");
-            }
-            return EarthSpiritPanel.notice(seeded ? "reclaimed" : "reclaimed_bare", data.farm().fields().size());
+    public record Unplan(int chunkX, int chunkZ) implements PanelAction {
+
+        public static final PanelAction.Type<Unplan> TYPE = new PanelAction.Type<>(Unplan.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, Unplan::chunkX, ByteBufCodecs.VAR_INT, Unplan::chunkZ,
+                        Unplan::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            return FieldPlans.unplan(context.data(), chunkX, chunkZ)
+                    ? EarthSpiritPanel.notice("unplanned", chunkX, chunkZ) : EarthSpiritPanel.notice("no_plan");
+        }
+    }
+
+    public record Remove(int chunkX, int chunkZ) implements PanelAction {
+
+        public static final PanelAction.Type<Remove> TYPE = new PanelAction.Type<>(Remove.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, Remove::chunkX, ByteBufCodecs.VAR_INT, Remove::chunkZ,
+                        Remove::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            FieldPlot field = context.data().farm().fieldAt(chunkX, chunkZ);
+            if (field == null) return EarthSpiritPanel.notice("no_field");
+            Integer reaped = FarmWork.remove(context.level(), context.data(), field, context.player());
+            if (reaped == null) return EarthSpiritPanel.notice("grief_denied");
+            return EarthSpiritPanel.notice("field_removed", chunkX, chunkZ, reaped);
         }
     }
 
@@ -162,14 +185,14 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
     //endregion
 
     @Override
-    public @NotNull Page page() { return Page.FARMING; }
+    public @NotNull Page page() { return Page.INFO; }
 
     @Override
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Reclaim.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE);
+        return List.of(Plan.TYPE, Unplan.TYPE, Remove.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE);
     }
 
     @Override
@@ -184,7 +207,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         }
         List<Long> seeds = new ArrayList<>();
         for (int i = 0; i < FarmWork.CROPS.size(); i++) seeds.add(data.storage().count(FarmWork.seedFilter(i)));
-        return new Section(rows, state.fields().size(), FarmWork.capacity(data.land()),
+        return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
                 EarthSpiritPanel.seconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
                 BlissfulLands.secondsToHosting(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
                 seeds);

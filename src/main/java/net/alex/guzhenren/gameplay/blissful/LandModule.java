@@ -14,11 +14,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 福地的一个经营模块，即地灵面板一页的服务端：本页显示数据、本页操作、可选的托管一步。
+ * 福地的一个经营模块，即地灵面板某一页里一段的服务端：这段显示数据、这段的操作、可选的托管一步。
  * <ul>
- *   <li>加一种经营玩法 = 新子包里写一个实现、在 {@link LandModules#ALL} 末尾登记、{@link Page} 末尾加一页，再写客户端
- *       页面；面板路由、快照、操作编码都不用改。</li>
- *   <li>{@link #section} 只在有人开着本页时每秒算一次，可以扫描实体与方块；清点优先走 {@link LandCensus}。</li>
+ *   <li>{@link #page} 是这段落在哪一页；同页多个模块按 {@link LandModules#ALL} 的顺序各出一段。加一种经营玩法 = 新子包
+ *       里写一个实现、在 {@link LandModules#ALL} 末尾登记、指定所在的 {@link Page}，再写客户端绘制；面板路由、快照、操作
+ *       编码都不用改。</li>
+ *   <li>{@link #section} 只在有人开着所在页时每秒算一次，可以扫描实体与方块；清点优先走 {@link LandCensus}。段记录的
+ *       {@code module()} 返回本模块的 {@code INSTANCE}。</li>
  *   <li>{@link #opened}：主人每次打开面板时调用，按人记着的页面状态在这里回到初始（库藏清搜索与页码）。</li>
  *   <li>{@link #host} 在托管轮里按 {@link LandModules#HOSTED} 的顺序调用；每个模块用自己的预算（种植按田、养殖按只），
  *       互不挤占，返回本模块本轮处理的对象数；本模块的经营状态自己存在 {@link BlissfulLandData} 里对应的那一段。</li>

@@ -60,7 +60,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
         public int pages() { return StorageBrowser.pages(matched); }
 
         @Override
-        public @NotNull Page page() { return Page.STORAGE; }
+        public @NotNull LandModule<?> module() { return INSTANCE; }
     }
 
     //region Actions [操作]

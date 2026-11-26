@@ -23,8 +23,10 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #rank}、{@link #path} 是秘境的转数与流派属性，只作记载，不参与任何结算。</li>
  *   <li>{@link #title} 是玩家进入范围时弹出的地名标题，类别统一用 {@link #KIND_KEY}「天地秘境」；进入判定与冷却由
  *       {@link SecretRealms} 交给 {@code PlaceTitles}。</li>
- *   <li>⚠ 结构集须为同心环放置（{@code concentric_rings}），取第一个环位置；不存在或不是同心环时整个秘境静默关闭。
- *       </li>
+ *   <li>{@link #summitRise} 是山巅最高一层比山底高的格数：{@link SecretRealms} 用结构片边界框最高顶（山巅）减它得山底，
+ *       记进 {@link RealmSite#center} 的 y。</li>
+ *   <li>⚠ 结构集的放置器在维度原点 ±{@link SecretRealms#SCAN_CHUNKS} 区块内只能有一个命中区块（取首个）；结构集不存
+ *       在、扫不到或该区块没有有效起点时整个秘境静默关闭。</li>
  *   <li>⚠ 钩子只在服务端主线程调用；实现保持无状态，世界状态存 {@link net.alex.guzhenren.core.ModSavedData}。</li>
  * </ul>
  */
@@ -38,6 +40,8 @@ public interface SecretRealm {
     @NotNull ResourceKey<StructureSet> structureSet();
 
     int radius();
+
+    int summitRise();
 
     @NotNull Rank rank();
 

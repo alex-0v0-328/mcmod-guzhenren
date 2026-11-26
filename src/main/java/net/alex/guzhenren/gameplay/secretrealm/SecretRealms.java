@@ -14,24 +14,28 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
-import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
-import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * 天地秘境[Secret Realm]的定位与调度：解出每处秘境的 {@link RealmSite}，按秒分发玩家、区域与死亡钩子。
  * <ul>
- *   <li>山心 = 结构集同心环第一个区块的中心方块 {@code (cx * 16 + 8, cz * 16 + 8)}（与 Gu World 结构片约定），取自
- *       {@link ChunkGeneratorStructureState#getRingPositionsFor}；结构集未注册、不是同心环或环为空（未装 Gu World）时
- *       {@link #siteOf} 恒为 {@code null}，所有钩子不触发。</li>
- *   <li>环位还须经 {@code StructureManager#checkStructurePresence} 确认那个区块真有结构起点才算数：已生成且没有、或尚未
- *       生成但群系不容许（环位落在不生成山的群系）都定为关闭；尚未生成又可能生成时视为暂未开启，每秒至多重查一次，确认
- *       后才缓存。</li>
+ *   <li>山心 = 结构集放置器在维度原点 ±{@link #SCAN_CHUNKS} 区块内首个 {@link StructurePlacement#isStructureChunk} 命中
+ *       区块的中心方块 {@code (cx * 16 + 8, cz * 16 + 8)}（与 Gu World 结构约定；Gu World 的 {@code guworld:gentle_site}
+ *       在原点 ±32 区块内挑缓地，只按 ID 耦合）。结构集未注册或扫不到（未装 Gu World）时 {@link #siteOf} 恒为
+ *       {@code null}，所有钩子不触发。</li>
+ *   <li>山底：把命中区块同步生成到 {@code STRUCTURE_STARTS}，取结构起点各结构片边界框的最高顶（山巅最高一层荡魂山石）
+ *       减 {@link SecretRealm#summitRise}，记进山心的 y；该区块没有有效起点（群系不容许等）定为关闭。⚠ 不取起点自身的
+ *       边界框：地形适配不为 {@code none} 时原版把它四面外扩 12 格。</li>
  *   <li>⚠ 性能：解出的范围按秘境缓存，以所在维度的 {@link ChunkGeneratorStructureState} 实例为键，换存档自动重算；首次
- *       解析可能阻塞等待原版异步算环（世界加载时已开始算）。之后每次查询只是一次映射查找加一次平方距离比较。</li>
+ *       解析扫 67×67 次放置判定（Gu World 挑址在建维度时已异步开算，未算完则等它）并在主线程生成一个区块的结构起点。之
+ *       后每次查询只是一次映射查找加一次平方距离比较。</li>
  *   <li>⚠ 性能：{@link #tickAreas} 每秒一次，只有范围外扩 {@link #PLAYER_MARGIN} 格内有玩家才调 {@code tickArea}，否则
  *       不查实体；玩家钩子挂在 {@code Heartbeat}，不另起逐刻循环；范围内外各调一个钩子，秘境未解出时两个都不调。</li>
  *   <li>{@link #tickPlayer} 同时把玩家在不在范围内报给 {@link PlaceTitles}（地点 ID 用结构集 ID），进入时弹秘境的地名标
@@ -46,17 +50,12 @@ public final class SecretRealms {
     private SecretRealms() {}
 
     public static final int PLAYER_MARGIN = 32;
+    public static final int SCAN_CHUNKS = 33;
     public static final List<SecretRealm> ALL = List.of(SoulsunderMountain.INSTANCE);
     private static final Map<SecretRealm, Resolved> SITES = new HashMap<>();
     private static final Map<SecretRealm, Pin> PINS = new HashMap<>();
 
-    private record Resolved(@NotNull ChunkGeneratorStructureState state, @Nullable RealmSite site, boolean settled,
-                            int checkedAt) {
-
-        static Resolved settled(@NotNull ChunkGeneratorStructureState state, @Nullable RealmSite site) {
-            return new Resolved(state, site, true, 0);
-        }
-    }
+    private record Resolved(@NotNull ChunkGeneratorStructureState state, @Nullable RealmSite site) {}
 
     private record Pin(@Nullable ResourceKey<Level> dimension, @Nullable RealmSite site) {}
 
@@ -70,13 +69,11 @@ public final class SecretRealms {
 
         ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
         Resolved resolved = SITES.get(realm);
-        boolean current = resolved != null && resolved.state() == state;
-        if (current && resolved.settled()) return resolved.site();
-        if (current && server.getTickCount() - resolved.checkedAt() < Ticks.SECOND) return null;
+        if (resolved != null && resolved.state() == state) return resolved.site();
 
-        resolved = resolve(server, level, realm, state);
+        resolved = new Resolved(state, resolve(server, level, realm, state));
         SITES.put(realm, resolved);
-        return resolved.settled() ? resolved.site() : null;
+        return resolved.site();
     }
 
     public static @NotNull ResourceKey<Level> dimensionOf(@NotNull SecretRealm realm) {
@@ -104,28 +101,36 @@ public final class SecretRealms {
         PINS.clear();
     }
 
-    private static Resolved resolve(MinecraftServer server, ServerLevel level, SecretRealm realm,
-                                    ChunkGeneratorStructureState state) {
+    private static @Nullable RealmSite resolve(MinecraftServer server, ServerLevel level, SecretRealm realm,
+                                               ChunkGeneratorStructureState state) {
         StructureSet set = server.registryAccess().registryOrThrow(Registries.STRUCTURE_SET)
                 .get(realm.structureSet());
-        if (set == null || !(set.placement() instanceof ConcentricRingsStructurePlacement rings)) {
-            return Resolved.settled(state, null);
-        }
+        if (set == null) return null;
 
-        List<ChunkPos> ring = state.getRingPositionsFor(rings);
-        if (ring == null || ring.isEmpty()) return Resolved.settled(state, null);
+        ChunkPos chunk = findChunk(state, set.placement());
+        if (chunk == null) return null;
 
-        ChunkPos chunk = ring.getFirst();
-        RealmSite site = new RealmSite(new BlockPos(chunk.getMiddleBlockX(), 0, chunk.getMiddleBlockZ()),
-                realm.radius());
-        boolean unknown = false;
+        ChunkAccess access = level.getChunk(chunk.x, chunk.z, ChunkStatus.STRUCTURE_STARTS);
         for (StructureSet.StructureSelectionEntry entry : set.structures()) {
-            StructureCheckResult start = level.structureManager()
-                    .checkStructurePresence(chunk, entry.structure().value(), rings, false);
-            if (start == StructureCheckResult.START_PRESENT) return Resolved.settled(state, site);
-            if (start == StructureCheckResult.CHUNK_LOAD_NEEDED) unknown = true;
+            StructureStart start = access.getStartForStructure(entry.structure().value());
+            if (start == null || !start.isValid()) continue;
+
+            int summit = start.getPieces().stream().mapToInt(piece -> piece.getBoundingBox().maxY()).max()
+                    .orElse(start.getBoundingBox().maxY());
+            int floor = summit - realm.summitRise();
+            return new RealmSite(new BlockPos(chunk.getMiddleBlockX(), floor, chunk.getMiddleBlockZ()), realm.radius());
         }
-        return unknown ? new Resolved(state, null, false, server.getTickCount()) : Resolved.settled(state, null);
+        return null;
+    }
+
+    public static @Nullable ChunkPos findChunk(@NotNull ChunkGeneratorStructureState state,
+                                               @NotNull StructurePlacement placement) {
+        for (int z = -SCAN_CHUNKS; z <= SCAN_CHUNKS; z++) {
+            for (int x = -SCAN_CHUNKS; x <= SCAN_CHUNKS; x++) {
+                if (placement.isStructureChunk(state, x, z)) return new ChunkPos(x, z);
+            }
+        }
+        return null;
     }
     //endregion
 

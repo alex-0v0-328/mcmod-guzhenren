@@ -2,6 +2,7 @@ package net.alex.guzhenren.gametest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.ApertureData;
@@ -22,6 +23,7 @@ import net.alex.guzhenren.registry.item.ModItems;
 import net.alex.guzhenren.vault.ApertureStorageMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -39,9 +41,13 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacementType;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
@@ -62,7 +68,8 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
  * 天地秘境[Secret Realm]·荡魂山[Soulsunder Mountain]：山石不可破坏，胆石叠放、逐块敲碎、掉落、上限与流体，死亡长石，
  * 扣魂扣血与 128 格玩家门槛，胆识蛊[Guts Gu]催动门槛、出山消散与不进收纳容器。
  * 效果方法接受显式小半径范围，不影响并排测试；需钉住全局山心的门槛与心跳用例单独成批，结束即清除。长胆石用例开
- * {@code skyAccess}，否则测试区的屏障天花板会成为高度图顶层。
+ * {@code skyAccess}，否则测试区的屏障天花板会成为高度图顶层。山心定位（{@link SecretRealms#findChunk}）用只在一个区块
+ * 命中的假放置器：扫描范围内命中即取，范围外不算。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -650,5 +657,31 @@ public final class SecretRealmGameTests {
                 helper.setBlock(CENTER_POS.offset(x, 0, z), ModBlocks.SOULSUNDER_STONE.get());
             }
         }
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void findChunkTakesThePlacementHitWithinReach(GameTestHelper helper) {
+        ChunkGeneratorStructureState state = helper.getLevel().getChunkSource().getGeneratorState();
+        int reach = SecretRealms.SCAN_CHUNKS;
+        helper.assertValueEqual(SecretRealms.findChunk(state, hitOnly(5, -reach)), new ChunkPos(5, -reach),
+                "the hit at the rim of the scan");
+        helper.assertTrue(SecretRealms.findChunk(state, hitOnly(reach + 1, 0)) == null,
+                "a hit beyond the scan still counts");
+        helper.succeed();
+    }
+
+    @SuppressWarnings("deprecation")
+    private static StructurePlacement hitOnly(int chunkX, int chunkZ) {
+        return new StructurePlacement(Vec3i.ZERO, StructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, 0,
+                Optional.empty()) {
+
+            @Override
+            protected boolean isPlacementChunk(ChunkGeneratorStructureState state, int x, int z) {
+                return x == chunkX && z == chunkZ;
+            }
+
+            @Override
+            public StructurePlacementType<?> type() { return StructurePlacementType.RANDOM_SPREAD; }
+        };
     }
 }

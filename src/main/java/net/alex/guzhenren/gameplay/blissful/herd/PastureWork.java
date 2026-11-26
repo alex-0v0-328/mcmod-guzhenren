@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
+import net.alex.guzhenren.gameplay.blissful.map.Siting;
 import net.alex.guzhenren.gameplay.blissful.mountain.MountainWork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,6 +28,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.world.chunk.TicketController;
 import net.neoforged.neoforge.common.world.chunk.TicketHelper;
@@ -33,24 +36,28 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵面板「养殖」页的牧场：栏内栏外、「圈地」放栅栏、「收拢」把栏外动物传进栏，以及牧场强加载。
+ * 福地牧场：栏内栏外、圈地叠栅栏、拆栅栏、迁移与「收拢」把动物传进栏，以及牧场强加载。
  * <ul>
- *   <li>牧场 = {@link BlissfulLand#pastureMin()} 起 {@code pastureChunks} 见方的区块（{@link Pasture#of}）。在不在栏内只
- *       看实体坐标落没落在这块方格里，不看栅栏；栅栏只管把动物关在里面。</li>
- *   <li>养殖的清点、托管、一键喂养与宰杀只看栏内（{@link #penned}）；总览页的动物数照旧数全福地。「挪生物上山」跳过栏内
- *       的动物（{@link MountainWork#moveMobsUp}）。</li>
- *   <li>{@link #enclose}：沿方格最外一圈，每列真实地面（找地面时栅栏与栅栏门不算，否则再按会在栅栏上叠一层）上一格放
- *       橡木栅栏，北边正中一格（{@link Pasture#gate}）放朝北的栅栏
- *       门；已是栅栏或栅栏门的格子跳过，可替换方块、树叶、原木直接换掉，其余方块（多半是玩家的）不动、计为挡住，流体列也
- *       计为挡住。全部放完再按四邻重算一遍形状，栅栏才连得上。改地形先过 {@link ModEvents#canGrief}；再按一次只补缺的。
- *       </li>
- *   <li>{@link #gather}：候选里栏外的可支使动物（同养殖清点：原版 {@link Animal} 且 {@link MountainWork#isManaged}），至
- *       多 {@value #GATHER_LIMIT} 头，传到栏内离栅栏至少 {@value #MARGIN} 格的随机地面（每头至多试
- *       {@value #SPOT_ATTEMPTS} 次，须已加载），之后冷却 {@value #GATHER_COOLDOWN_TICKS} 刻。野生蛊不是 {@link Animal}，
+ *   <li>{@link Pasture} 是栅栏圈的方格；栏内 = 方格外扩 1 格（{@link Pasture#contains}），福地牧场
+ *       （{@link Pasture#at}，栅栏圈在 2×2 区块的 30×30 占地周界）外扩后正好是这 4 个区块，牧场的账按区块算。在不在栏内
+ *       只看实体坐标，不看栅栏。</li>
+ *   <li>养殖的清点、托管、一键喂养与宰杀只看栏内（{@link #penned}）；总览页的动物数照旧数全福地。「挪生物上山」与活物
+ *       标记用 {@link #penner}。</li>
+ *   <li>{@link #enclose}：周界每列从真实地面（找地面时栅栏与栅栏门不算）上一格起叠橡木栅栏，叠到顶端比 8 邻列真实地面
+ *       都高至少 1 格（邻列是流体按流体表面算）；北边正中一格的最底层放朝北的栅栏门。已是栅栏或门的格子跳过，可替换方
+ *       块、树叶、原木换掉，其余方块（多半是玩家的）不动、该列就此计为挡住，流体列也计为挡住。放完再按四邻重算形状，栅栏
+ *       才连得上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
+ *   <li>{@link #unfence}：周界每列地面以上连着的栅栏与栅栏门全部拆掉（玩家放的也拆），不掉落。</li>
+ *   <li>{@link #relocate}：把候选里落在旧栏内、不在新栏内的可支使动物全部传进新栏（不限头数），{@link #gather}：栏外可
+ *       支使动物至多 {@value #GATHER_LIMIT} 头传进栏、冷却 {@value #GATHER_COOLDOWN_TICKS} 刻；落点都在离栅栏至少
+ *       {@value #MARGIN} 格的随机地面（每头至多试 {@value #SPOT_ATTEMPTS} 次，须已加载）。野生蛊不是 {@link Animal}，
  *       不会被收。</li>
- *   <li>⚠ 强加载同田区，用 NeoForge 带刻工单 {@link #TICKETS}（原版强加载的区块附近没人时不随机刻）：第一次圈地才挂，失主时
- *       {@link #release} 撤掉，认主时 {@link #retain} 重挂（圈过地才挂）；读档校验把无主福地的工单全部丢掉。</li>
- *   <li>{@link #enclose}、{@link #gather} 接受显式的 {@link Pasture}；GameTest 用测试区里的小方格调用，不碰别的测试。</li>
+ *   <li>⚠ 强加载用 NeoForge 带刻工单 {@link #TICKETS}（原版强加载的区块附近没人时不随机刻），以各牧场中心为主人、各管
+ *       自己的 4 区块：圈地时挂，拆除与迁移时撤旧挂新，失主时 {@link #release}，认主时 {@link #retain}；读档校验把无主
+ *       福地的工单全部丢掉。</li>
+ *   <li>各操作接受显式的 {@link Pasture}；GameTest 用测试区里的小方格调用，不碰别的测试。</li>
+ *   <li>本文件有意超过 300 行：栏内判定、圈地与拆栅栏、迁移与收拢的落点、强加载工单都按同一个 {@link Pasture} 方格算，
+ *       集中维护便于对照几何边界。</li>
  * </ul>
  */
 
@@ -68,17 +75,16 @@ public final class PastureWork {
 
     public record Pasture(int minX, int minZ, int maxX, int maxZ) {
 
-        public static @NotNull Pasture of(@NotNull BlissfulLand land) {
-            int side = land.pastureChunks() * 16;
-            int x = land.pastureMin().getMinBlockX();
-            int z = land.pastureMin().getMinBlockZ();
-            return new Pasture(x, z, x + side - 1, z + side - 1);
+        public static @NotNull Pasture at(int chunkX, int chunkZ) {
+            return new Pasture(Siting.penMin(chunkX), Siting.penMin(chunkZ), Siting.penMax(chunkX),
+                    Siting.penMax(chunkZ));
         }
 
-        public boolean contains(@NotNull Entity entity) {
-            return entity.getX() >= minX && entity.getX() < maxX + 1 && entity.getZ() >= minZ
-                    && entity.getZ() < maxZ + 1;
+        public boolean contains(double x, double z) {
+            return x >= minX - 1 && x < maxX + 2 && z >= minZ - 1 && z < maxZ + 2;
         }
+
+        public boolean contains(@NotNull Entity entity) { return contains(entity.getX(), entity.getZ()); }
 
         public int width() { return maxX - minX + 1; }
 
@@ -88,10 +94,15 @@ public final class PastureWork {
 
         public @NotNull BlockPos center() { return new BlockPos((minX + maxX) / 2, 0, (minZ + maxZ) / 2); }
 
+        public @NotNull AABB box(@NotNull ServerLevel level) {
+            return new AABB(minX - 1, level.getMinBuildHeight(), minZ - 1, maxX + 2, level.getMaxBuildHeight(),
+                    maxZ + 2);
+        }
+
         public @NotNull List<ChunkPos> chunks() {
             List<ChunkPos> chunks = new ArrayList<>();
-            for (int x = minX >> 4; x <= maxX >> 4; x++) {
-                for (int z = minZ >> 4; z <= maxZ >> 4; z++) chunks.add(new ChunkPos(x, z));
+            for (int x = (minX - 1) >> 4; x <= (maxX + 1) >> 4; x++) {
+                for (int z = (minZ - 1) >> 4; z <= (maxZ + 1) >> 4; z++) chunks.add(new ChunkPos(x, z));
             }
             return chunks;
         }
@@ -113,13 +124,31 @@ public final class PastureWork {
     public record Enclosed(int placed, int blocked) {}
 
     //region Pen [栏内栏外]
+    public static @NotNull List<Pasture> pastures(@NotNull BlissfulLandData data) {
+        List<Pasture> pastures = new ArrayList<>();
+        for (ChunkPos corner : data.herd().pastures()) pastures.add(Pasture.at(corner.x, corner.z));
+        return pastures;
+    }
+
+    public static @NotNull Predicate<Entity> penner(@NotNull BlissfulLandData data) {
+        List<Pasture> pastures = pastures(data);
+        return entity -> isPenned(pastures, entity);
+    }
+
+    public static boolean isPenned(@NotNull List<Pasture> pastures, @NotNull Entity entity) {
+        for (Pasture pasture : pastures) {
+            if (pasture.contains(entity)) return true;
+        }
+        return false;
+    }
+
     public static @NotNull Map<ResourceLocation, List<Animal>> penned(
-            @NotNull Map<ResourceLocation, List<Animal>> herds, @NotNull Pasture pasture) {
+            @NotNull Map<ResourceLocation, List<Animal>> herds, @NotNull List<Pasture> pastures) {
         Map<ResourceLocation, List<Animal>> penned = new LinkedHashMap<>();
         herds.forEach((type, animals) -> {
             List<Animal> inside = new ArrayList<>();
             for (Animal animal : animals) {
-                if (pasture.contains(animal)) inside.add(animal);
+                if (isPenned(pastures, animal)) inside.add(animal);
             }
             if (!inside.isEmpty()) penned.put(type, inside);
         });
@@ -133,9 +162,9 @@ public final class PastureWork {
     }
     //endregion
 
-    //region Enclose [圈地]
-    public static @Nullable Enclosed enclose(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
-                                             @NotNull Pasture pasture, @NotNull ServerPlayer owner) {
+    //region Fence [圈地与拆栅栏]
+    public static @Nullable Enclosed enclose(@NotNull ServerLevel level, @NotNull Pasture pasture,
+                                             @NotNull ServerPlayer owner) {
         if (!ModEvents.canGrief(level, owner)) return null;
 
         for (ChunkPos chunk : pasture.chunks()) level.getChunk(chunk.x, chunk.z);
@@ -143,42 +172,72 @@ public final class PastureWork {
         List<BlockPos> placed = new ArrayList<>();
         int blocked = 0;
         for (BlockPos column : pasture.ring()) {
-            int ground = groundY(level, column.getX(), column.getZ());
+            int ground = groundY(level, column.getX(), column.getZ(), false);
             if (ground == NO_GROUND) {
                 blocked++;
                 continue;
             }
-            BlockPos pos = new BlockPos(column.getX(), ground + 1, column.getZ());
-            BlockState at = level.getBlockState(pos);
-            if (at.is(BlockTags.FENCES) || at.is(BlockTags.FENCE_GATES)) continue;
-            if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS)) {
-                blocked++;
-                continue;
+            int top = ground + 1;
+            for (Direction direction : Direction.Plane.HORIZONTAL) {
+                for (int side : new int[] {0, 1}) {
+                    Direction across = side == 0 ? direction : direction.getClockWise();
+                    BlockPos next = column.relative(direction).relative(across, side);
+                    top = Math.max(top, groundY(level, next.getX(), next.getZ(), true) + 1);
+                }
             }
             boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ();
-            BlockState state = isGate
-                    ? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.NORTH)
-                    : Blocks.OAK_FENCE.defaultBlockState();
-            level.setBlock(pos, state, Block.UPDATE_ALL);
-            placed.add(pos);
+            for (int y = ground + 1; y <= top; y++) {
+                BlockPos pos = new BlockPos(column.getX(), y, column.getZ());
+                BlockState at = level.getBlockState(pos);
+                if (at.is(BlockTags.FENCES) || at.is(BlockTags.FENCE_GATES)) continue;
+                if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS)) {
+                    blocked++;
+                    break;
+                }
+                BlockState state = isGate && y == ground + 1
+                        ? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.NORTH)
+                        : Blocks.OAK_FENCE.defaultBlockState();
+                level.setBlock(pos, state, Block.UPDATE_ALL);
+                placed.add(pos);
+            }
         }
         for (BlockPos pos : placed) {
             BlockState joined = Block.updateFromNeighbourShapes(level.getBlockState(pos), level, pos);
             level.setBlock(pos, joined, Block.UPDATE_ALL);
         }
-        data.herd().setEnclosed();
-        forceChunks(level, pasture, true);
         return new Enclosed(placed.size(), blocked);
     }
 
-    private static int groundY(ServerLevel level, int x, int z) {
+    public static @Nullable Integer unfence(@NotNull ServerLevel level, @NotNull Pasture pasture,
+                                            @NotNull ServerPlayer owner) {
+        if (!ModEvents.canGrief(level, owner)) return null;
+
+        for (ChunkPos chunk : pasture.chunks()) level.getChunk(chunk.x, chunk.z);
+        int removed = 0;
+        for (BlockPos column : pasture.ring()) {
+            int ground = groundY(level, column.getX(), column.getZ(), false);
+            if (ground == NO_GROUND) continue;
+            for (BlockPos pos = column.atY(ground + 1); isFence(level.getBlockState(pos)); pos = pos.above()) {
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    private static boolean isFence(BlockState state) {
+        return state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES);
+    }
+
+    private static int groundY(ServerLevel level, int x, int z, boolean fluidSurface) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.WORLD_SURFACE, x,
                 z) - 1, z);
         for (; pos.getY() > level.getMinBuildHeight(); pos.move(0, -1, 0)) {
             BlockState state = level.getBlockState(pos);
-            if (!state.getFluidState().isEmpty()) return NO_GROUND;
+            if (!state.getFluidState().isEmpty()) return fluidSurface ? pos.getY() : NO_GROUND;
             if (state.isAir() || state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) || state.canBeReplaced()
-                    || state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES)) {
+                    || isFence(state)) {
                 continue;
             }
             return pos.getY();
@@ -187,20 +246,40 @@ public final class PastureWork {
     }
     //endregion
 
-    //region Gather [收拢]
+    //region Move [迁移与收拢]
+    public static int relocate(@NotNull ServerLevel level, @NotNull Pasture from, @NotNull Pasture to,
+                               @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
+        List<Animal> movers = new ArrayList<>();
+        for (Entity entity : candidates) {
+            if (entity instanceof Animal animal && MountainWork.isManaged(animal) && from.contains(animal)
+                    && !to.contains(animal)) {
+                movers.add(animal);
+            }
+        }
+        return teleport(level, to, random, movers);
+    }
+
     public static long gatherCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
         return Math.max(0L, data.herd().gatherReadyAt() - level.getGameTime());
     }
 
     public static int gather(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @NotNull Pasture pasture,
                              @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
+        List<Pasture> pastures = pastures(data);
         List<Animal> movers = new ArrayList<>();
         for (Entity entity : candidates) {
             if (movers.size() >= GATHER_LIMIT) break;
-            if (entity instanceof Animal animal && MountainWork.isManaged(animal) && !pasture.contains(animal)) {
+            if (entity instanceof Animal animal && MountainWork.isManaged(animal) && !pasture.contains(animal)
+                    && !isPenned(pastures, animal)) {
                 movers.add(animal);
             }
         }
+        int moved = teleport(level, pasture, random, movers);
+        data.herd().setGatherReadyAt(level.getGameTime() + GATHER_COOLDOWN_TICKS);
+        return moved;
+    }
+
+    private static int teleport(ServerLevel level, Pasture pasture, RandomSource random, List<Animal> movers) {
         int moved = 0;
         for (Animal animal : movers) {
             BlockPos spot = findSpot(level, pasture, random);
@@ -209,7 +288,6 @@ public final class PastureWork {
             animal.setDeltaMovement(Vec3.ZERO);
             moved++;
         }
-        data.herd().setGatherReadyAt(level.getGameTime() + GATHER_COOLDOWN_TICKS);
         return moved;
     }
 
@@ -221,7 +299,7 @@ public final class PastureWork {
             int x = pasture.minX() + MARGIN + random.nextInt(spanX);
             int z = pasture.minZ() + MARGIN + random.nextInt(spanZ);
             if (!level.hasChunkAt(new BlockPos(x, 0, z))) continue;
-            int ground = groundY(level, x, z);
+            int ground = groundY(level, x, z, false);
             if (ground == NO_GROUND) continue;
             BlockPos spot = new BlockPos(x, ground + 1, z);
             if (level.getBlockState(spot).canBeReplaced() && level.getBlockState(spot.above()).canBeReplaced()) {
@@ -234,11 +312,11 @@ public final class PastureWork {
 
     //region Tickets [强加载]
     public static void retain(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        if (data.herd().enclosed()) forceChunks(level, Pasture.of(data.land()), true);
+        for (Pasture pasture : pastures(data)) forceChunks(level, pasture, true);
     }
 
     public static void release(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        forceChunks(level, Pasture.of(data.land()), false);
+        for (Pasture pasture : pastures(data)) forceChunks(level, pasture, false);
     }
 
     public static void forceChunks(@NotNull ServerLevel level, @NotNull Pasture pasture, boolean add) {

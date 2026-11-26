@@ -10,8 +10,7 @@ import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
-import net.alex.guzhenren.gameplay.blissful.farm.FarmModule;
-import net.alex.guzhenren.gameplay.blissful.farm.FarmWork;
+import net.alex.guzhenren.gameplay.blissful.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdModule;
 import net.alex.guzhenren.gameplay.blissful.herd.HerdWork;
 import net.alex.guzhenren.gameplay.blissful.member.MemberService;
@@ -53,7 +52,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
@@ -65,7 +63,7 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
 
 /**
  * 福地[Blissful Land]：登顶认主、死亡（看「死亡不掉落」）与重置失主、荡魂山白名单、驱逐外人，以及面板各页的服务端操作——
- * 挪生物上山、胆识蛊催动、喂养繁殖、宰杀收取、养殖托管、开垦标准田、收割补种、割弃疆域、库藏存取。
+ * 挪生物上山、胆识蛊催动、喂养繁殖、宰杀收取、养殖托管、割弃疆域（连同作废田牧）、库藏存取。
  * 操作都喂测试区里的实体、小范围山心或自建的福地存档，不碰真福地维度；改全局存档与游戏规则的失主用例单独成批。
  */
 
@@ -325,133 +323,6 @@ public final class BlissfulLandGameTests {
     }
     //endregion
 
-    //region Farm [种植]
-    @GameTest(template = "empty9x9x9", skyAccess = true)
-    public static void reclaimingLaysAWateredFieldAndHarvestReplants(GameTestHelper helper) {
-        GameTestPlayers.ground(helper);
-        ServerLevel level = helper.getLevel();
-        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
-        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-farm-mock").at(new Vec3(4.5D, 3.0D, 4.5D));
-        try {
-            BlockPos slot = helper.absolutePos(CENTER_POS);
-            helper.setBlock(new BlockPos(0, 0, 0), Blocks.WATER);
-            helper.assertFalse(FarmWork.isArable(level, slot), "a pool inside the nine by nine makes it wet land");
-            helper.assertTrue(FarmWork.reclaim(level, data, slot, owner) == null, "wet land is not reclaimed");
-            helper.setBlock(new BlockPos(0, 0, 0), Blocks.STONE);
-            helper.assertFalse(FarmWork.isSeed(new ItemStack(Items.TORCHFLOWER_SEEDS)), "other crop seeds are refused");
-            helper.assertTrue(FarmWork.isSeed(new ItemStack(Items.WHEAT_SEEDS)), "wheat seeds are taken");
-            BlockPos center = FarmWork.reclaim(level, data, slot, owner);
-            helper.assertTrue(center != null, "the field is laid");
-            helper.assertTrue(level.getBlockState(center).is(Blocks.WATER), "the middle is a water hole");
-            helper.assertTrue(level.getBlockState(center.offset(4, 0, -4)).is(Blocks.FARMLAND), "a corner is farmland");
-            helper.assertTrue(level.getBlockState(center.offset(-4, 1, 4)).is(Blocks.WHEAT), "a corner is sown");
-            helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 20L,
-                    "eighty seeds are planted");
-            helper.assertValueEqual(data.farm().fields().size(), 1, "the field is recorded");
-            helper.assertTrue(FarmWork.reclaimCooldown(level, data) > 0, "reclaiming starts the cooldown");
-
-            BlockState ripe = ((CropBlock) Blocks.WHEAT).getStateForAge(((CropBlock) Blocks.WHEAT).getMaxAge());
-            for (int dx = -4; dx <= 4; dx++) {
-                for (int dz = -4; dz <= 4; dz++) {
-                    if (dx != 0 || dz != 0) level.setBlock(center.offset(dx, 1, dz), ripe, 2);
-                }
-            }
-            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT), new FarmWork.Count(80, 0),
-                    "eighty ripe wheat are counted");
-            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).reaped(), 80,
-                    "all eighty are cut");
-            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT), new FarmWork.Count(0, 80),
-                    "every cell is replanted");
-            helper.assertTrue(data.storage().count(stack -> stack.is(Items.WHEAT)) >= 80L,
-                    "the wheat goes to storage");
-            helper.succeed();
-        } finally {
-            FarmWork.release(level, data);
-        }
-    }
-
-    @GameTest(template = "empty9x9x9", skyAccess = true)
-    public static void aFieldLaidWithoutSeedsIsSownLater(GameTestHelper helper) {
-        GameTestPlayers.ground(helper);
-        ServerLevel level = helper.getLevel();
-        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-sow-mock").at(new Vec3(4.5D, 3.0D, 4.5D));
-        try {
-            BlockPos center = FarmWork.reclaim(level, data, helper.absolutePos(CENTER_POS), owner);
-            helper.assertTrue(center != null, "the field is laid with an empty storage");
-            helper.assertTrue(FarmWork.census(level, data).isEmpty(), "nothing is sown without seeds");
-
-            data.storage().insert(new ItemStack(Items.CARROT, 30));
-            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).sown(), 30,
-                    "thirty carrots sow thirty");
-            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 30),
-                    "the empty field takes the first seed in storage");
-
-            data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
-            data.storage().insert(new ItemStack(Items.CARROT, 100));
-            level.setBlock(center.offset(1, 0, 1), Blocks.DIRT.defaultBlockState(), 2);
-            helper.assertValueEqual(FarmWork.harvest(level, data, 0), new FarmWork.Harvest(0, 0, 0),
-                    "no field in the budget, nothing is sown");
-            helper.assertValueEqual(FarmWork.harvest(level, data, 1), new FarmWork.Harvest(0, 50, 1),
-                    "one field in the budget is filled whole");
-            helper.assertValueEqual(FarmWork.harvest(level, data, 1).fields(), 0, "a full field takes no budget");
-            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 80),
-                    "the field fills up with its own crop, trampled farmland included");
-            helper.assertTrue(level.getBlockState(center.offset(1, 0, 1)).is(Blocks.FARMLAND),
-                    "trampled farmland is tilled again");
-            helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 100L,
-                    "seeds of another crop are left alone");
-            helper.succeed();
-        } finally {
-            FarmWork.release(level, data);
-        }
-    }
-
-    @GameTest(template = "empty9x9x9", skyAccess = true)
-    public static void reclaimingSowsTheChosenCropAndHostingReportsTheRound(GameTestHelper helper) {
-        GameTestPlayers.ground(helper);
-        ServerLevel level = helper.getLevel();
-        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        data.storage().insert(new ItemStack(Items.WHEAT_SEEDS, 100));
-        data.storage().insert(new ItemStack(Items.CARROT, 100));
-        data.farm().setCrop(FarmWork.CROPS.indexOf(Blocks.CARROTS));
-        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-crop-mock").at(new Vec3(4.5D, 3.0D, 4.5D));
-        try {
-            BlockPos center = FarmWork.reclaim(level, data, helper.absolutePos(CENTER_POS), owner);
-            helper.assertTrue(center != null, "the field is laid");
-            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.CARROTS), new FarmWork.Count(0, 80),
-                    "the chosen carrots are sown, not the first seed in storage");
-            helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT_SEEDS)), 100L,
-                    "the wheat seeds stay");
-
-            BlockState ripe = ((CropBlock) Blocks.CARROTS).getStateForAge(((CropBlock) Blocks.CARROTS).getMaxAge());
-            for (int dx = -4; dx <= 0; dx++) level.setBlock(center.offset(dx, 1, -4), ripe, 2);
-            data.farm().setHosting(true);
-            helper.assertValueEqual(FarmModule.INSTANCE.host(level, data, null), 1,
-                    "hosting works the one field with ripe carrots");
-            helper.assertValueEqual(data.farm().lastReaped(), 5, "the round is reported");
-            helper.assertValueEqual(data.farm().lastSown(), 0, "nothing was bare");
-            helper.succeed();
-        } finally {
-            FarmWork.release(level, data);
-        }
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void theFarmZoneHoldsThirtySixFieldsInRows(GameTestHelper helper) {
-        BlissfulLand land = BlissfulLand.FOX_IMMORTAL;
-        BlissfulLandData data = BlissfulLandData.create(land);
-        helper.assertValueEqual(FarmWork.capacity(land), 36, "a four-chunk zone holds six by six fields");
-        BlockPos first = FarmWork.freeSlots(land, data).getFirst();
-        helper.assertValueEqual(first, new BlockPos(-32 + 2 + 4, 0, 176 + 2 + 4), "the first slot is the north-west");
-        data.farm().addField(first.atY(64));
-        helper.assertValueEqual(FarmWork.freeSlots(land, data).getFirst(), new BlockPos(-32 + 12 + 4, 0, 176 + 2 + 4),
-                "the next slot is one field and an aisle east");
-        helper.succeed();
-    }
-    //endregion
-
     //region Territory [疆域]
     @GameTest(template = "empty9x9x9")
     public static void cedingRemovesMobsAndSendsPlayersHome(GameTestHelper helper) {
@@ -461,16 +332,26 @@ public final class BlissfulLandGameTests {
         ServerPlayer player = GameTestPlayers.survival(helper, "gzr-land-cede-mock").onGround();
         ChunkPos at = pig.chunkPosition();
         int half = Math.max(Math.abs(at.x), Math.abs(at.z)) + 4;
-        BlissfulLand land = new BlissfulLand("gametest_land", level.dimension(), SoulsunderMountain.INSTANCE, 0,
-                BlockPos.ZERO, half, 0, new ChunkPos(0, 0), 1, new ChunkPos(0, 0), 1);
+        BlissfulLand land = new BlissfulLand("gametest_land", level.dimension(), SoulsunderMountain.INSTANCE, half,
+                0);
         BlissfulLandData data = BlissfulLandData.create(land);
         Territory.Side side = at.x >= 0 ? Territory.Side.EAST : Territory.Side.WEST;
         int width = at.x >= 0 ? half - at.x : at.x + half + 1;
+        int kept = at.x >= 0 ? at.x - 1 : at.x + 1;
+        int keptPen = at.x >= 0 ? at.x - 2 : at.x + 1;
+        data.farm().addField(FieldPlot.of(at.x, at.z, 64));
+        data.farm().addField(FieldPlot.of(kept, at.z, 64));
+        data.farm().addPlan(ChunkPos.asLong(at.x, at.z - 1));
+        data.herd().addPasture(new ChunkPos(at.x, at.z + 1));
+        data.herd().addPasture(new ChunkPos(keptPen, at.z + 1));
         Vec3 playerAt = player.position();
         try {
-            helper.assertFalse(TerritoryWork.cede(level, data, side, half + 1, List.of()), "the core cannot go");
-            helper.assertTrue(TerritoryWork.cede(level, data, side, width, List.of(pig, player)),
-                    "a strip reaching the test area can go");
+            helper.assertTrue(TerritoryWork.cede(level, data, side, half + 1, List.of()) == null, "the core cannot go");
+            helper.assertValueEqual(TerritoryWork.cede(level, data, side, width, List.of(pig, player)),
+                    new TerritoryWork.Voided(1, 1, 1), "the strip takes its field, plan and pasture with it");
+            helper.assertValueEqual(data.farm().fields().size(), 1, "the field outside the strip stays");
+            helper.assertValueEqual(data.herd().pastures(), List.of(new ChunkPos(keptPen, at.z + 1)),
+                    "the pasture outside the strip stays");
             helper.assertTrue(data.territory().isCeded(at.x, at.z), "the strip holding the test area is ceded");
             helper.assertTrue(pig.isRemoved(), "a mob in the strip is removed");
             helper.assertFalse(player.position().equals(playerAt), "a player in the strip is sent home");
@@ -579,7 +460,7 @@ public final class BlissfulLandGameTests {
     private static EarthSpiritMenu openPanel(ServerLevel level, BlissfulLandData data, ServerPlayer player,
                                              EarthSpiritEntity spirit) {
         return new EarthSpiritMenu(1, player.getInventory(), spirit,
-                EarthSpiritPanel.snapshot(level, data, player.getUUID(), Page.OVERVIEW, Component.empty()));
+                EarthSpiritPanel.snapshot(level, data, player.getUUID(), Page.INFO, Component.empty()));
     }
     //endregion
 

@@ -26,55 +26,56 @@ import net.minecraft.resources.ResourceLocation;
  * </ul>
  */
 
-final class PanelKit {
+public final class PanelKit {
 
     private PanelKit() {}
 
-    static final int ACCENT = 0xFFF8ACC4;
-    static final int TEXT = ModPalette.TEXT;
-    static final int LEGEND = ModPalette.LEGEND_TEXT;
-    static final int DEAD = ModPalette.TEXT_DEAD;
-    static final int WARN = ModPalette.SHORT;
-    static final int HOVER = 0x30F8ACC4;
-    static final ResourceLocation PANEL = sprite("panel");
-    static final ResourceLocation POPUP = sprite("popup");
-    static final ResourceLocation WELL = sprite("well");
-    static final ResourceLocation ROW = sprite("row");
-    static final ResourceLocation ROW_HIGHLIGHTED = sprite("row_highlighted");
-    static final ResourceLocation TEXT_FIELD = sprite("text_field");
-    static final ResourceLocation TEXT_FIELD_FOCUSED = sprite("text_field_focused");
-    static final ResourceLocation SCROLLER = sprite("scroller");
-    static final ResourceLocation SCROLLER_HIGHLIGHTED = sprite("scroller_highlighted");
-    static final ResourceLocation SCROLLER_TRACK = Guzhenren.id("scroller_background");
-    static final ResourceLocation SLOT = Guzhenren.id("slot");
-    static final ResourceLocation BAR_BACKGROUND = Guzhenren.id("bar_background");
-    static final ResourceLocation BAR_FILL = Guzhenren.id("bar_fill");
-    static final int SWITCH_W = 18;
-    static final int SWITCH_H = 10;
-    static final int SQUARE = 14;
+    public static final int ACCENT = 0xFFF8ACC4;
+    public static final int TEXT = ModPalette.TEXT;
+    public static final int LEGEND = ModPalette.LEGEND_TEXT;
+    public static final int DEAD = ModPalette.TEXT_DEAD;
+    public static final int WARN = ModPalette.SHORT;
+    public static final int HOVER = 0x30F8ACC4;
+    public static final ResourceLocation PANEL = sprite("panel");
+    public static final ResourceLocation POPUP = sprite("popup");
+    public static final ResourceLocation WELL = sprite("well");
+    public static final ResourceLocation ROW = sprite("row");
+    public static final ResourceLocation ROW_HIGHLIGHTED = sprite("row_highlighted");
+    public static final ResourceLocation TEXT_FIELD = sprite("text_field");
+    public static final ResourceLocation TEXT_FIELD_FOCUSED = sprite("text_field_focused");
+    public static final ResourceLocation SCROLLER = sprite("scroller");
+    public static final ResourceLocation SCROLLER_HIGHLIGHTED = sprite("scroller_highlighted");
+    public static final ResourceLocation SCROLLER_TRACK = Guzhenren.id("scroller_background");
+    public static final ResourceLocation SLOT = Guzhenren.id("slot");
+    public static final ResourceLocation BAR_BACKGROUND = Guzhenren.id("bar_background");
+    public static final ResourceLocation BAR_FILL = Guzhenren.id("bar_fill");
+    public static final int SWITCH_W = 18;
+    public static final int SWITCH_H = 10;
+    public static final int SQUARE = 14;
 
-    static ResourceLocation sprite(String name) { return Guzhenren.id("blissful_land/" + name); }
+    public static ResourceLocation sprite(String name) { return Guzhenren.id("blissful_land/" + name); }
 
     //region Buttons [按钮]
-    static void button(SpriteBatch sprites, int x, int y, int width, int height, boolean live, boolean hover,
-                       boolean pressed, boolean danger) {
+    public static void button(SpriteBatch sprites, int x, int y, int width, int height, boolean live, boolean hover,
+                              boolean pressed, boolean danger) {
         String name = !live ? "button_disabled" : (danger ? "button_danger" : "button")
                 + (pressed ? "_pressed" : hover ? "_highlighted" : "");
         sprites.blit(sprite(name), x, y, width, height);
     }
 
-    static void button(SpriteBatch sprites, int x, int y, int width, int height, boolean live, double mouseX,
-                       double mouseY) {
+    public static void button(SpriteBatch sprites, int x, int y, int width, int height, boolean live, double mouseX,
+                              double mouseY) {
         boolean hover = live && Widgets.isOver(mouseX, mouseY, x, y, width, height);
         button(sprites, x, y, width, height, live, hover, false, false);
     }
 
-    static void label(GuiGraphics graphics, Font font, Component text, int x, int y, int width, int height,
-                      boolean live) {
+    public static void label(GuiGraphics graphics, Font font, Component text, int x, int y, int width, int height,
+                             boolean live) {
         Widgets.drawButtonLabel(graphics, font, text, x, y, width, height, live);
     }
 
-    static void toggle(SpriteBatch sprites, int x, int y, boolean on, boolean live, double mouseX, double mouseY) {
+    public static void toggle(SpriteBatch sprites, int x, int y, boolean on, boolean live, double mouseX,
+                              double mouseY) {
         boolean hover = live && Widgets.isOver(mouseX, mouseY, x, y, SWITCH_W, SWITCH_H);
         String state = !live ? "_disabled" : hover ? "_highlighted" : "";
         sprites.blit(sprite((on ? "switch_on" : "switch_off") + state), x, y, SWITCH_W, SWITCH_H);
@@ -82,37 +83,38 @@ final class PanelKit {
     //endregion
 
     //region Rows and text [行与文字]
-    static void row(SpriteBatch sprites, int x, int y, int width, int height, boolean hover) {
+    public static void row(SpriteBatch sprites, int x, int y, int width, int height, boolean hover) {
         sprites.blit(hover ? ROW_HIGHLIGHTED : ROW, x, y, width, height);
     }
 
-    static void right(GuiGraphics graphics, Font font, Component text, int rightX, int y, int colour) {
+    public static void right(GuiGraphics graphics, Font font, Component text, int rightX, int y, int colour) {
         graphics.drawString(font, text, rightX - font.width(text), y, colour, false);
     }
 
-    static void right(GuiGraphics graphics, Font font, String text, int rightX, int y, int colour) {
+    public static void right(GuiGraphics graphics, Font font, String text, int rightX, int y, int colour) {
         graphics.drawString(font, text, rightX - font.width(text), y, colour, false);
     }
 
-    static void centered(GuiGraphics graphics, Font font, Component text, int left, int right, int y, int colour) {
+    public static void centered(GuiGraphics graphics, Font font, Component text, int left, int right, int y,
+                                int colour) {
         graphics.drawString(font, text, left + (right - left - font.width(text)) / 2, y, colour, false);
     }
 
-    static void head(GuiGraphics graphics, UUID player, int x, int y) {
+    public static void head(GuiGraphics graphics, UUID player, int x, int y) {
         Minecraft minecraft = Minecraft.getInstance();
         PlayerInfo info = minecraft.getConnection() == null ? null : minecraft.getConnection().getPlayerInfo(player);
         PlayerFaceRenderer.draw(graphics, info != null ? info.getSkin() : DefaultPlayerSkin.get(player), x, y, 8);
     }
 
-    static String count(long value) {
+    public static String count(long value) {
         if (value < 10_000L) return Long.toString(value);
         if (value < 1_000_000L) return value / 1_000L + "k";
         return value / 1_000_000L + "m";
     }
     //endregion
 
-    static void scrollbar(SpriteBatch sprites, int x, int y, int height, int offset, int visible, int total,
-                          boolean hover) {
+    public static void scrollbar(SpriteBatch sprites, int x, int y, int height, int offset, int visible, int total,
+                                 boolean hover) {
         sprites.blit(SCROLLER_TRACK, x, y, 6, height);
         if (total <= visible) return;
         int thumb = Math.max(8, height * visible / total);
@@ -120,7 +122,7 @@ final class PanelKit {
         sprites.blit(hover ? SCROLLER_HIGHLIGHTED : SCROLLER, x, top, 6, thumb);
     }
 
-    static int clampScroll(int offset, int visible, int total) {
+    public static int clampScroll(int offset, int visible, int total) {
         return Math.max(0, Math.min(offset, total - visible));
     }
 }

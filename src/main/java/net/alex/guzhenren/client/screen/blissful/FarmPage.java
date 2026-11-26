@@ -15,13 +15,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 /**
- * 「种植」页：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），开垦作物与库藏种子数，标准田数与「开垦」，底部托
- * 管状态、托管开关与「收割并补种」。
+ * 「种植」小节：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），开垦作物与库藏种子数，标准田与规划数、下一块开
+ * 垦倒计时，底部托管状态、托管开关与「收割并补种」。选址、规划与拆田在地图页。
  * <ul>
  *   <li>作物只有 {@link FarmWork#CROPS} 四种，列表一屏 {@value #VISIBLE} 行够用；省下的一行放开垦作物。</li>
  *   <li>开垦作物按钮循环切换：自动 → 小麦 → 胡萝卜 → 马铃薯 → 甜菜根 → 自动；右边写库藏里这种的种子数（自动 = 四种
  *       合计）。</li>
- *   <li>开垦冷却中或田区已满时按钮失效；冷却中文字换成剩余秒数。没种子照样能开，开出空田，之后有种子自动补种。</li>
+ *   <li>田数行写「标准田 N / 上限 · 规划 M」；有规划时右边写开垦倒计时（冷却已过写「即将开垦」）。</li>
  *   <li>托管开着时状态行写下一轮倒计时与上一轮收了几株、补了几格。</li>
  * </ul>
  */
@@ -51,9 +51,9 @@ final class FarmPage extends PanelPage {
     FarmPage(EarthSpiritScreen screen) { super(screen); }
 
     @Override
-    Component name() { return Component.translatable(UI + "tab.farming"); }
+    protected Component name() { return Component.translatable(UI + "tab.farming"); }
 
-    private FarmModule.Section data() { return section(FarmModule.Section.EMPTY); }
+    private FarmModule.Section data() { return section(FarmModule.INSTANCE, FarmModule.Section.EMPTY); }
 
     private List<FarmModule.Crop> crops() { return data().rows(); }
 
@@ -63,7 +63,7 @@ final class FarmPage extends PanelPage {
     }
 
     @Override
-    void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+    protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         FarmModule.Section data = data();
         sprites.blit(PanelKit.WELL, x + 8, y + LIST_Y, 160, LIST_H);
         List<FarmModule.Crop> crops = data.rows();
@@ -85,13 +85,12 @@ final class FarmPage extends PanelPage {
                     Widgets.isOver(mouseX, mouseY, x + 160, y + LIST_Y + 1, 6, LIST_H - 2));
         }
         PanelKit.button(sprites, x + CROP_X, y + CROP_Y, CROP_W, PanelKit.SQUARE, true, mouseX, mouseY);
-        PanelKit.button(sprites, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H, data.canReclaim(), mouseX, mouseY);
         PanelKit.toggle(sprites, x + 8, y + SWITCH_Y, data.hosting(), true, mouseX, mouseY);
         PanelKit.button(sprites, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
     }
 
     @Override
-    void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         FarmModule.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "crop"), x + 12, y + 21, PanelKit.LEGEND, false);
         PanelKit.right(graphics, font(), Component.translatable(UI + "mature"), x + 100, y + 21, PanelKit.LEGEND);
@@ -113,12 +112,14 @@ final class FarmPage extends PanelPage {
         long seeds = data.seedsOf(data.crop());
         PanelKit.right(graphics, font(), Component.translatable(UI + "seeds", PanelKit.count(seeds)), x + 167,
                 y + CROP_Y + 3, seeds > 0 ? PanelKit.TEXT : PanelKit.WARN);
-        graphics.drawString(font(), Component.translatable(UI + "fields", data.fields(), data.capacity()),
-                x + 8, y + RECLAIM_Y + 6, PanelKit.LEGEND, false);
-        Component reclaim = data.reclaimCooldown() > 0
-                ? Component.translatable(UI + "cooldown", data.reclaimCooldown())
-                : Component.translatable(UI + "reclaim");
-        PanelKit.label(graphics, font(), reclaim, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H, data.canReclaim());
+        graphics.drawString(font(), Component.translatable(UI + "fields", data.fields(), data.capacity(),
+                data.planned()), x + 8, y + RECLAIM_Y + 6, PanelKit.LEGEND, false);
+        if (data.planned() > 0) {
+            Component next = data.reclaimCooldown() > 0
+                    ? Component.translatable(UI + "reclaim_in", data.reclaimCooldown())
+                    : Component.translatable(UI + "reclaim_soon");
+            PanelKit.right(graphics, font(), next, x + 167, y + RECLAIM_Y + 6, PanelKit.TEXT);
+        }
         if (data.hosting()) {
             graphics.drawString(font(), Component.translatable(UI + "farm_status", data.hostingIn(),
                     data.lastReaped(), data.lastSown()), x + 8, y + STATUS_Y, PanelKit.LEGEND, false);
@@ -130,7 +131,7 @@ final class FarmPage extends PanelPage {
     }
 
     @Override
-    void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         List<FarmModule.Crop> crops = crops();
         for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
             Block block = BuiltInRegistries.BLOCK.get(crops.get(offset + i).block());
@@ -139,14 +140,14 @@ final class FarmPage extends PanelPage {
     }
 
     @Override
-    void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         int hostingSeconds = BlissfulLands.HOSTING_TICKS / Ticks.SECOND;
         if (tip(graphics, x + CROP_X, y + CROP_Y, CROP_W, PanelKit.SQUARE, mouseX, mouseY,
                 Component.translatable(TIP + "crop_pick"))) {
             return;
         }
-        if (tip(graphics, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "reclaim", FarmWork.RECLAIM_COOLDOWN_TICKS / Ticks.SECOND))) {
+        if (tip(graphics, x + 8, y + RECLAIM_Y, 160, BUTTON_H, mouseX, mouseY,
+                Component.translatable(TIP + "fields", FarmWork.RECLAIM_COOLDOWN_TICKS / Ticks.SECOND))) {
             return;
         }
         if (tip(graphics, x + 8, y + SWITCH_Y, PanelKit.SWITCH_W, PanelKit.SWITCH_H, mouseX, mouseY,
@@ -158,15 +159,11 @@ final class FarmPage extends PanelPage {
     }
 
     @Override
-    boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
+    protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         FarmModule.Section data = data();
         if (Widgets.isOver(mouseX, mouseY, x + CROP_X, y + CROP_Y, CROP_W, PanelKit.SQUARE)) {
             int next = data.crop() + 1 >= FarmWork.CROPS.size() ? FarmState.AUTO_CROP : data.crop() + 1;
             send(new FarmModule.SetCrop(next));
-            return true;
-        }
-        if (Widgets.isOver(mouseX, mouseY, x + BUTTON_X, y + RECLAIM_Y, BUTTON_W, BUTTON_H)) {
-            if (data.canReclaim()) send(new FarmModule.Reclaim());
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + 8, y + SWITCH_Y, PanelKit.SWITCH_W, PanelKit.SWITCH_H)) {
@@ -181,7 +178,7 @@ final class FarmPage extends PanelPage {
     }
 
     @Override
-    boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+    protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, x + 8, y + LIST_Y, 160, LIST_H)) return false;
         offset = PanelKit.clampScroll(offset - (int) Math.signum(delta), VISIBLE, crops().size());
         return true;

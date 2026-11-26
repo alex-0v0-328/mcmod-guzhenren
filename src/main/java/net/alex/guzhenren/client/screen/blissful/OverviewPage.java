@@ -10,11 +10,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
- * 「总览」页：亩数、胆石、动物、作物四张数据卡（点卡片打开对应页），在场玩家每人一行（白名单开关、「驱逐」），底部
- * 「驱逐外人」。
+ * 信息页「总览」小节：亩数、胆石、动物、作物四张数据卡（点卡片跳到地图页、秘境页或养殖、种植小节），在场玩家每人一行
+ * （白名单开关、「驱逐」），底部「驱逐外人」。
  * <ul>
  *   <li>主人那一行不画「驱逐」，改写「主人」；白名单开关照常可点（主人可以选择承受震荡）。</li>
- *   <li>白名单与「荡魂山」页的荡魂山白名单是同一份。</li>
+ *   <li>白名单与秘境页的荡魂山白名单是同一份。</li>
  *   <li>列表一屏 {@value #VISIBLE} 行，滚轮翻。</li>
  * </ul>
  */
@@ -26,8 +26,10 @@ final class OverviewPage extends PanelPage {
     private static final int[][] CARDS = {{8, 19}, {89, 19}, {8, 49}, {89, 49}};
     private static final String[] CARD_ICONS = {"icon_territory", "icon_mountain", "icon_husbandry", "icon_farming"};
     private static final String[] CARD_LABELS = {"acres", "guts_stones", "animals", "crops"};
-    private static final Page[] CARD_PAGES = {Page.TERRITORY, Page.MOUNTAIN, Page.HUSBANDRY, Page.FARMING};
-    private static final String[] CARD_TABS = {"territory", "mountain", "husbandry", "farming"};
+    private static final int MAP_CARD = -2;
+    private static final int REALM_CARD = -1;
+    private static final int[] CARD_PARTS = {MAP_CARD, REALM_CARD, InfoPage.HERD, InfoPage.FARM};
+    private static final String[] CARD_TABS = {"map", "", "husbandry", "farming"};
     private static final int CARD_W = 79;
     private static final int CARD_H = 28;
     private static final int LIST_Y = 94;
@@ -45,14 +47,19 @@ final class OverviewPage extends PanelPage {
     OverviewPage(EarthSpiritScreen screen) { super(screen); }
 
     @Override
-    Component name() { return Component.translatable(UI + "tab.overview"); }
+    protected Component name() { return Component.translatable(UI + "tab.overview"); }
 
-    private OverviewModule.Section data() { return section(OverviewModule.Section.EMPTY); }
+    private OverviewModule.Section data() { return section(OverviewModule.INSTANCE, OverviewModule.Section.EMPTY); }
 
     private List<Person> players() { return data().players(); }
 
+    private Component cardTarget(int card) {
+        return CARD_PARTS[card] == REALM_CARD ? screen.realmName()
+                : Component.translatable(UI + "tab." + CARD_TABS[card]);
+    }
+
     @Override
-    void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+    protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         for (int i = 0; i < CARDS.length; i++) {
             sprites.blit(PanelKit.WELL, x + CARDS[i][0], y + CARDS[i][1], CARD_W, CARD_H);
             sprites.blit(PanelKit.sprite(CARD_ICONS[i]), x + CARDS[i][0] + 5, y + CARDS[i][1] + 6, 16, 16);
@@ -72,7 +79,7 @@ final class OverviewPage extends PanelPage {
     }
 
     @Override
-    void fills(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void fills(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         for (int[] card : CARDS) {
             if (Widgets.isOver(mouseX, mouseY, x + card[0], y + card[1], CARD_W, CARD_H)) {
                 graphics.fill(x + card[0] + 1, y + card[1] + 1, x + card[0] + CARD_W - 1, y + card[1] + CARD_H - 1,
@@ -82,7 +89,7 @@ final class OverviewPage extends PanelPage {
     }
 
     @Override
-    void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         OverviewModule.Section data = data();
         String[] values = {Long.toString(data.acres()), data.gutsStones() + " / " + data.gutsCap(),
                 Integer.toString(data.animals()), Integer.toString(data.crops())};
@@ -117,7 +124,7 @@ final class OverviewPage extends PanelPage {
     }
 
     @Override
-    void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         List<Person> players = players();
         for (int i = 0; i < VISIBLE && offset + i < players.size(); i++) {
             PanelKit.head(graphics, players.get(offset + i).id(), x + 13, y + LIST_Y + 1 + i * ROW_H + 4);
@@ -125,10 +132,10 @@ final class OverviewPage extends PanelPage {
     }
 
     @Override
-    void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         for (int i = 0; i < CARDS.length; i++) {
             if (tip(graphics, x + CARDS[i][0], y + CARDS[i][1], CARD_W, CARD_H, mouseX, mouseY,
-                    Component.translatable(TIP + "open_page", Component.translatable(UI + "tab." + CARD_TABS[i])))) {
+                    Component.translatable(TIP + "open_page", cardTarget(i)))) {
                 return;
             }
         }
@@ -152,10 +159,16 @@ final class OverviewPage extends PanelPage {
     }
 
     @Override
-    boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
+    protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         for (int i = 0; i < CARDS.length; i++) {
             if (Widgets.isOver(mouseX, mouseY, x + CARDS[i][0], y + CARDS[i][1], CARD_W, CARD_H)) {
-                screen.openPage(CARD_PAGES[i]);
+                if (CARD_PARTS[i] == REALM_CARD) {
+                    screen.openPage(Page.REALM);
+                } else if (CARD_PARTS[i] == MAP_CARD) {
+                    screen.openPage(Page.MAP);
+                } else {
+                    screen.openInfo(CARD_PARTS[i]);
+                }
                 return true;
             }
         }
@@ -180,7 +193,7 @@ final class OverviewPage extends PanelPage {
     }
 
     @Override
-    boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+    protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, x + 8, y + LIST_Y, 160, 82)) return false;
         offset = PanelKit.clampScroll(offset - (int) Math.signum(delta), VISIBLE, players().size());
         return true;

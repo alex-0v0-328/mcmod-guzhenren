@@ -55,10 +55,10 @@ final class StoragePage extends PanelPage {
     StoragePage(EarthSpiritScreen screen) { super(screen); }
 
     @Override
-    Component name() { return Component.translatable(UI + "tab.storage"); }
+    protected Component name() { return Component.translatable(UI + "tab.storage"); }
 
     private StorageModule.Section section() {
-        StorageModule.Section section = section(StorageModule.Section.EMPTY);
+        StorageModule.Section section = section(StorageModule.INSTANCE, StorageModule.Section.EMPTY);
         if (section.pageIndex() == pendingPage) pendingPage = -1;
         if (section.sort() == pendingSort) pendingSort = null;
         return section;
@@ -90,7 +90,7 @@ final class StoragePage extends PanelPage {
     }
 
     @Override
-    void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+    protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
                 sprites.blit(PanelKit.SLOT, x + GRID_X + c * PITCH - 1, y + GRID_Y + r * PITCH - 1, 18, 18);
@@ -113,7 +113,7 @@ final class StoragePage extends PanelPage {
     }
 
     @Override
-    void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         StorageModule.Section section = section();
         Component count = section.matched() < section.total()
                 ? Component.translatable(UI + "kinds_filtered", section.matched(), section.total())
@@ -129,7 +129,7 @@ final class StoragePage extends PanelPage {
     }
 
     @Override
-    void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         List<StorageModule.Stored> entries = section().entries();
         for (int i = 0; i < Math.min(entries.size(), ROWS * COLS); i++) {
             StorageModule.Stored entry = entries.get(i);
@@ -141,7 +141,7 @@ final class StoragePage extends PanelPage {
     }
 
     @Override
-    void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+    protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         if (tip(graphics, x + SEARCH_X, y + SEARCH_Y, SEARCH_W, PanelKit.SQUARE, mouseX, mouseY,
                 Component.translatable(TIP + "search"))) {
             return;
@@ -173,7 +173,7 @@ final class StoragePage extends PanelPage {
     }
 
     @Override
-    boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
+    protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (Widgets.isOver(mouseX, mouseY, x + SORT_X, y + SEARCH_Y, SORT_W, PanelKit.SQUARE)) {
             browse(sort().next(), 0);
             return true;
@@ -193,7 +193,7 @@ final class StoragePage extends PanelPage {
     }
 
     @Override
-    boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+    protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, x + GRID_X, y + GRID_Y, COLS * PITCH, ROWS * PITCH)) return false;
         int next = Math.clamp(pageIndex() - (int) Math.signum(delta), 0, section().pages() - 1);
         if (next != pageIndex()) browse(sort(), next);

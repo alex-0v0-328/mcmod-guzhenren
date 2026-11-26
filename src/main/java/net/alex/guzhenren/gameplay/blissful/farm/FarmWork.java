@@ -1,6 +1,6 @@
 package net.alex.guzhenren.gameplay.blissful.farm;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,31 +31,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵面板「种植」页：开垦标准田、按作物清点、收割并补种，以及田区强加载。
+ * 地灵面板的标准田：开垦、拆田、按作物清点、收割并补种，以及田的强加载。选址与规划队列在 {@link FieldPlans}。
  * <ul>
- *   <li>标准田 = 9×9 耕地、正中一格水源（原版耕地湿润半径 4，全田都湿）；只开在福地田区
- *       （{@link BlissfulLand#farmMin()} 起{@code farmChunks} 见方的区块），田区按 {@value #PITCH} 格一格划成网格、四周
- *       留 {@value #MARGIN} 格，田与田之间空 1 格过道；{@link #nextSlot} 按自北向南、自西向东取第一个能开垦的空格
- *       （{@link #isArable}）。</li>
- *   <li>能开垦：先同步加载田所在区块；9×9 每一列从地表往下找真实地面（跳过树叶、原木、可替换方块），任一列先碰到流体
- *       （水、岩浆）就算湿地不开；田的清整范围里有方块实体（箱子等）也不开，免得抹掉玩家的东西。湿地和有方块实体的田位
- *       跳过，取下一个空格。</li>
- *   <li>{@link #reclaim}：以田心的真实地面为耕地层，把 9×9 整平（上方清空至地表、至多 {@value #CLEAR_HEIGHT} 格，树一
- *       并清掉；下方向下补土至多 {@value #FILL_DEPTH} 格），再按主人选的开垦作物（{@link FarmState#crop()}，自动 = 库藏
- *       第一种种子）从库藏扣种子种满 80 格（不够就种够的，没有就开空田，留给之后的收割补种）；之后冷却
- *       {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过 {@link ModEvents#canGrief}。</li>
- *   <li>⚠ {@link #reclaim} 清整不掉落任何方块，田位上玩家搭的普通方块会被直接抹掉。</li>
- *   <li>作物只认 {@link #CROPS}（小麦、胡萝卜、马铃薯、甜菜根），种子也只认这四种对应的物品，其余作物种不进标准田；只在
- *       标准田里清点与收割。地狱疣要灵魂沙田，本阶段不做。</li>
+ *   <li>{@link #reclaim}：先同步加载田所在区块；每列从地表往下找真实地面（跳过树叶、原木、可替换方块），任一列先碰到流
+ *       体就不开（选址已查过，这里只防开垦前地形变了）；以全部列地面的中位数为耕地层，把整块田整平（上方清空至地表、至
+ *       多 {@value #CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多 {@value #FILL_DEPTH} 格），按 {@link FieldPlot} 铺土
+ *       径、水与耕地，再按主人选的开垦作物（{@link FarmState#crop()}，自动 = 库藏第一种种子）从库藏扣种子种满耕地（不够
+ *       就种够的，没有就开空田，留给之后的收割补种）；之后冷却 {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过
+ *       {@link ModEvents#canGrief}。</li>
+ *   <li>⚠ {@link #reclaim} 清整不掉落任何方块，田上玩家搭的普通方块会被直接抹掉；有方块实体的区块选址时已拒。</li>
+ *   <li>{@link #remove}：作物（熟不熟都算）按方块战利品表全收进库藏，耕地层的耕地、水、土径换回泥土，撤这块田的强加载。
+ *       </li>
+ *   <li>作物只认 {@link #CROPS}（小麦、胡萝卜、马铃薯、甜菜根），种子也只认这四种对应的物品；只在标准田里清点与收割。地
+ *       狱疣要灵魂沙田，本阶段不做。</li>
  *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，从中扣 1 份种子补种（掉落里没有就从库藏扣，库藏也没有就留空），其
  *       余进库藏。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕好）种这块田现有最多的作物，田里一株没有就取开垦作
- *       物（自动 = 库藏第一种种子），从库藏扣到没有为止；没种子时开出的空田、种不满的田就这样后来种满。一次至多处理
- *       {@code fieldLimit} 块田，有收割或补种的田才算一块，整块田一次做完。</li>
+ *       物，从库藏扣到没有为止。一次至多处理 {@code fieldLimit} 块田，有收割或补种的田才算一块，整块田一次做完。</li>
  *   <li>⚠ 强加载用 NeoForge {@link #TICKETS} 的带刻工单：原版 {@code /forceload} 的区块附近没有玩家时不随机刻，作物不
- *       长。工单以田心为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时 {@link #retain} 重挂。读档时校
- *       验回调把无主福地（或已不是福地的维度）的工单全部丢掉，补上没装 Gu World 期间失主漏撤的工单。</li>
- *   <li>本文件有意超过 300 行：田区网格定位、整平开垦、作物收割补种与强加载工单围绕同一标准田布局展开，集中维护便于对照
- *       几何边界。</li>
+ *       长。工单以 {@link FieldPlot#center} 为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时
+ *       {@link #retain} 重挂。读档时校验回调把无主福地（或已不是福地的维度）的工单全部丢掉。</li>
+ *   <li>本文件有意超过 300 行：开垦整平、拆田、收割补种与强加载工单都围绕同一块 {@link FieldPlot} 的布局，集中维护便于
+ *       对照几何。</li>
  * </ul>
  */
 
@@ -65,9 +61,6 @@ public final class FarmWork {
 
     public static final TicketController TICKETS = new TicketController(Guzhenren.id("blissful_land_fields"),
             FarmWork::validateTickets);
-    public static final int SIZE = 9;
-    public static final int PITCH = SIZE + 1;
-    public static final int MARGIN = 2;
     public static final int FILL_DEPTH = 8;
     public static final int CLEAR_HEIGHT = 32;
     public static final int RECLAIM_COOLDOWN_TICKS = 60 * Ticks.SECOND;
@@ -78,53 +71,46 @@ public final class FarmWork {
 
     public record Harvest(int reaped, int sown, int fields) {}
 
-    //region Slots [田区网格]
-    public static int slotsPerSide(@NotNull BlissfulLand land) { return (land.farmChunks() * 16 - 2 * MARGIN) / PITCH; }
-
-    public static int capacity(@NotNull BlissfulLand land) { return slotsPerSide(land) * slotsPerSide(land); }
-
-    public static @NotNull List<BlockPos> freeSlots(@NotNull BlissfulLand land, @NotNull BlissfulLandData data) {
-        int side = slotsPerSide(land);
-        List<BlockPos> free = new ArrayList<>();
-        for (int row = 0; row < side; row++) {
-            for (int column = 0; column < side; column++) {
-                int x = land.farmMin().getMinBlockX() + MARGIN + column * PITCH + SIZE / 2;
-                int z = land.farmMin().getMinBlockZ() + MARGIN + row * PITCH + SIZE / 2;
-                if (!occupied(data, x, z)) free.add(new BlockPos(x, 0, z));
-            }
-        }
-        return free;
+    public static long reclaimCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
+        return Math.max(0L, data.farm().reclaimReadyAt() - level.getGameTime());
     }
 
-    public static @Nullable BlockPos nextSlot(@NotNull ServerLevel level, @NotNull BlissfulLand land,
-                                              @NotNull BlissfulLandData data) {
-        for (BlockPos slot : freeSlots(land, data)) {
-            if (isArable(level, slot)) return slot;
+    //region Reclaim [开垦与拆田]
+    public static @Nullable FieldPlot reclaim(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                              @NotNull FieldPlot plot, @NotNull ServerPlayer owner) {
+        if (!ModEvents.canGrief(level, owner)) return null;
+
+        for (ChunkPos chunk : plot.chunks()) level.getChunk(chunk.x, chunk.z);
+        int[] grounds = new int[plot.size() * plot.size()];
+        int index = 0;
+        for (int x = plot.minX(); x <= plot.maxX(); x++) {
+            for (int z = plot.minZ(); z <= plot.maxZ(); z++) {
+                int ground = groundY(level, x, z);
+                if (ground == NO_GROUND) return null;
+                grounds[index++] = ground;
+            }
         }
-        return null;
+        Arrays.sort(grounds);
+        FieldPlot field = plot.atY(grounds[grounds.length / 2]);
+        for (int x = field.minX(); x <= field.maxX(); x++) {
+            for (int z = field.minZ(); z <= field.maxZ(); z++) {
+                level(level, new BlockPos(x, field.y(), z), field.cell(x, z));
+            }
+        }
+        sowAll(level, data, field.cells());
+        data.farm().addField(field);
+        data.farm().setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
+        setForced(level, field, true);
+        return field;
     }
 
-    public static boolean isArable(@NotNull ServerLevel level, @NotNull BlockPos slot) {
-        int half = SIZE / 2;
-        for (ChunkPos chunk : chunksOf(slot)) level.getChunk(chunk.x, chunk.z);
-        int ground = groundY(level, slot.getX(), slot.getZ());
-        if (ground == NO_GROUND) return false;
-        for (int dx = -half; dx <= half; dx++) {
-            for (int dz = -half; dz <= half; dz++) {
-                if (groundY(level, slot.getX() + dx, slot.getZ() + dz) == NO_GROUND) return false;
-            }
-        }
-        BlockPos min = new BlockPos(slot.getX() - half, ground - FILL_DEPTH, slot.getZ() - half);
-        BlockPos max = new BlockPos(slot.getX() + half, ground + CLEAR_HEIGHT, slot.getZ() + half);
-        for (ChunkPos chunk : chunksOf(slot)) {
-            for (BlockPos entity : level.getChunk(chunk.x, chunk.z).getBlockEntities().keySet()) {
-                if (entity.getX() >= min.getX() && entity.getX() <= max.getX() && entity.getZ() >= min.getZ()
-                        && entity.getZ() <= max.getZ() && entity.getY() >= min.getY() && entity.getY() <= max.getY()) {
-                    return false;
-                }
-            }
-        }
-        return true;
+    private static void sowAll(ServerLevel level, BlissfulLandData data, List<BlockPos> cells) {
+        ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
+        if (seed.isEmpty()) return;
+        Predicate<ItemStack> same = stack -> ItemStack.isSameItemSameComponents(stack, seed);
+        int planted = data.storage().consume(same, cells.size());
+        BlockState crop = ((BlockItem) seed.getItem()).getBlock().defaultBlockState();
+        for (int i = 0; i < planted; i++) level.setBlock(cells.get(i), crop, Block.UPDATE_ALL);
     }
 
     private static int groundY(ServerLevel level, int x, int z) {
@@ -141,51 +127,7 @@ public final class FarmWork {
         return NO_GROUND;
     }
 
-    private static boolean occupied(BlissfulLandData data, int x, int z) {
-        for (long field : data.farm().fields()) {
-            if (BlockPos.getX(field) == x && BlockPos.getZ(field) == z) return true;
-        }
-        return false;
-    }
-
-    public static long reclaimCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, data.farm().reclaimReadyAt() - level.getGameTime());
-    }
-    //endregion
-
-    //region Reclaim [开垦]
-    public static @Nullable BlockPos reclaim(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
-                                             @NotNull BlockPos slot, @NotNull ServerPlayer owner) {
-        if (!ModEvents.canGrief(level, owner)) return null;
-
-        int half = SIZE / 2;
-        if (!isArable(level, slot)) return null;
-        int y = groundY(level, slot.getX(), slot.getZ());
-        BlockPos center = new BlockPos(slot.getX(), y, slot.getZ());
-        for (int dx = -half; dx <= half; dx++) {
-            for (int dz = -half; dz <= half; dz++) level(level, center.offset(dx, 0, dz), dx == 0 && dz == 0);
-        }
-
-        ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
-        if (!seed.isEmpty()) {
-            Predicate<ItemStack> same = stack -> ItemStack.isSameItemSameComponents(stack, seed);
-            int planted = data.storage().consume(same, SIZE * SIZE - 1);
-            BlockState crop = ((BlockItem) seed.getItem()).getBlock().defaultBlockState();
-            for (int dx = -half; dx <= half && planted > 0; dx++) {
-                for (int dz = -half; dz <= half && planted > 0; dz++) {
-                    if (dx == 0 && dz == 0) continue;
-                    level.setBlock(center.offset(dx, 1, dz), crop, Block.UPDATE_ALL);
-                    planted--;
-                }
-            }
-        }
-        data.farm().addField(center);
-        data.farm().setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
-        retain(level, data);
-        return center;
-    }
-
-    private static void level(ServerLevel level, BlockPos ground, boolean water) {
+    private static void level(ServerLevel level, BlockPos ground, FieldPlot.Cell cell) {
         int top = Math.min(level.getHeight(Heightmap.Types.WORLD_SURFACE, ground.getX(), ground.getZ()),
                 ground.getY() + CLEAR_HEIGHT);
         for (int y = top; y > ground.getY(); y--) {
@@ -195,13 +137,42 @@ public final class FarmWork {
         }
         for (int depth = 1; depth <= FILL_DEPTH; depth++) {
             BlockPos pos = ground.below(depth);
-            BlockState below = level.getBlockState(pos);
-            if (!below.canBeReplaced()) break;
+            if (!level.getBlockState(pos).canBeReplaced()) break;
             level.setBlock(pos, Blocks.DIRT.defaultBlockState(), Block.UPDATE_ALL);
         }
-        BlockState surface = water ? Blocks.WATER.defaultBlockState()
-                : Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE);
+        BlockState surface = switch (cell) {
+            case PATH -> Blocks.DIRT_PATH.defaultBlockState();
+            case WATER -> Blocks.WATER.defaultBlockState();
+            case FARMLAND -> Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE);
+        };
         level.setBlock(ground, surface, Block.UPDATE_ALL);
+    }
+
+    public static @Nullable Integer remove(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                           @NotNull FieldPlot field, @NotNull ServerPlayer owner) {
+        if (!ModEvents.canGrief(level, owner)) return null;
+
+        for (ChunkPos chunk : field.chunks()) level.getChunk(chunk.x, chunk.z);
+        int reaped = 0;
+        for (BlockPos pos : field.cells()) {
+            BlockState state = level.getBlockState(pos);
+            if (!isCrop(state)) continue;
+            for (ItemStack drop : Block.getDrops(state, level, pos, null)) data.storage().insert(drop);
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            reaped++;
+        }
+        for (int x = field.minX(); x <= field.maxX(); x++) {
+            for (int z = field.minZ(); z <= field.maxZ(); z++) {
+                BlockPos pos = new BlockPos(x, field.y(), z);
+                BlockState state = level.getBlockState(pos);
+                if (state.is(Blocks.FARMLAND) || state.is(Blocks.WATER) || state.is(Blocks.DIRT_PATH)) {
+                    level.setBlock(pos, Blocks.DIRT.defaultBlockState(), Block.UPDATE_ALL);
+                }
+            }
+        }
+        setForced(level, field, false);
+        data.farm().removeField(field);
+        return reaped;
     }
 
     public static boolean isSeed(@NotNull ItemStack stack) {
@@ -224,26 +195,41 @@ public final class FarmWork {
 
     public static @NotNull Map<Block, Count> census(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
         Map<Block, int[]> counts = new LinkedHashMap<>();
-        for (BlockPos pos : cropCells(level, data)) {
-            BlockState state = level.getBlockState(pos);
-            if (!isCrop(state)) continue;
-            int[] count = counts.computeIfAbsent(state.getBlock(), block -> new int[2]);
-            count[isMature(state) ? 0 : 1]++;
+        for (FieldPlot field : data.farm().fields()) {
+            if (!level.isLoaded(field.center())) continue;
+            for (BlockPos pos : field.cells()) {
+                BlockState state = level.getBlockState(pos);
+                if (!isCrop(state)) continue;
+                int[] count = counts.computeIfAbsent(state.getBlock(), block -> new int[2]);
+                count[isMature(state) ? 0 : 1]++;
+            }
         }
         Map<Block, Count> census = new LinkedHashMap<>();
         counts.forEach((block, count) -> census.put(block, new Count(count[0], count[1])));
         return census;
     }
 
+    public static @NotNull Count count(@NotNull ServerLevel level, @NotNull FieldPlot field) {
+        if (!level.isLoaded(field.center())) return new Count(0, 0);
+        int mature = 0;
+        int growing = 0;
+        for (BlockPos pos : field.cells()) {
+            BlockState state = level.getBlockState(pos);
+            if (!isCrop(state)) continue;
+            if (isMature(state)) mature++;
+            else growing++;
+        }
+        return new Count(mature, growing);
+    }
+
     public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int fieldLimit) {
         int reaped = 0;
         int sown = 0;
         int fields = 0;
-        for (long field : data.farm().fields()) {
+        for (FieldPlot field : data.farm().fields()) {
             if (fields >= fieldLimit) break;
-            BlockPos center = BlockPos.of(field);
-            if (!level.isLoaded(center)) continue;
-            List<BlockPos> cells = cellsOf(center);
+            if (!level.isLoaded(field.center())) continue;
+            List<BlockPos> cells = field.cells();
             int before = reaped + sown;
             for (BlockPos pos : cells) {
                 BlockState state = level.getBlockState(pos);
@@ -305,60 +291,26 @@ public final class FarmWork {
         }
         return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
     }
-
-    private static List<BlockPos> cropCells(ServerLevel level, BlissfulLandData data) {
-        List<BlockPos> cells = new ArrayList<>();
-        for (long field : data.farm().fields()) {
-            BlockPos center = BlockPos.of(field);
-            if (level.isLoaded(center)) cells.addAll(cellsOf(center));
-        }
-        return cells;
-    }
-
-    private static List<BlockPos> cellsOf(BlockPos center) {
-        List<BlockPos> cells = new ArrayList<>(SIZE * SIZE - 1);
-        int half = SIZE / 2;
-        for (int dx = -half; dx <= half; dx++) {
-            for (int dz = -half; dz <= half; dz++) {
-                if (dx != 0 || dz != 0) cells.add(center.offset(dx, 1, dz));
-            }
-        }
-        return cells;
-    }
     //endregion
 
     //region Tickets [强加载]
     public static void retain(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        setForced(level, data, true);
+        for (FieldPlot field : data.farm().fields()) setForced(level, field, true);
     }
 
     public static void release(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        setForced(level, data, false);
+        for (FieldPlot field : data.farm().fields()) setForced(level, field, false);
+    }
+
+    public static void setForced(@NotNull ServerLevel level, @NotNull FieldPlot field, boolean add) {
+        BlockPos owner = field.center();
+        for (ChunkPos chunk : field.chunks()) TICKETS.forceChunk(level, owner, chunk.x, chunk.z, add, true);
     }
 
     private static void validateTickets(ServerLevel level, TicketHelper tickets) {
         BlissfulLand land = BlissfulLands.landOf(level);
         if (land != null && BlissfulLandData.get(level.getServer(), land).hasOwner()) return;
         for (BlockPos owner : List.copyOf(tickets.getBlockTickets().keySet())) tickets.removeAllTickets(owner);
-    }
-
-    private static void setForced(ServerLevel level, BlissfulLandData data, boolean add) {
-        for (long field : data.farm().fields()) {
-            BlockPos center = BlockPos.of(field);
-            for (ChunkPos chunk : chunksOf(center)) TICKETS.forceChunk(level, center, chunk.x, chunk.z, add, true);
-        }
-    }
-
-    private static List<ChunkPos> chunksOf(BlockPos center) {
-        int half = SIZE / 2;
-        List<ChunkPos> chunks = new ArrayList<>(4);
-        for (int x : new int[] {center.getX() - half, center.getX() + half}) {
-            for (int z : new int[] {center.getZ() - half, center.getZ() + half}) {
-                ChunkPos chunk = new ChunkPos(x >> 4, z >> 4);
-                if (!chunks.contains(chunk)) chunks.add(chunk);
-            }
-        }
-        return chunks;
     }
     //endregion
 }

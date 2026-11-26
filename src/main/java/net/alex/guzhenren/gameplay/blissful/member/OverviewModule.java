@@ -52,7 +52,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
                 Section::new);
 
         @Override
-        public @NotNull Page page() { return Page.OVERVIEW; }
+        public @NotNull LandModule<?> module() { return INSTANCE; }
     }
 
     //region Actions [操作]
@@ -95,7 +95,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
     //endregion
 
     @Override
-    public @NotNull Page page() { return Page.OVERVIEW; }
+    public @NotNull Page page() { return Page.INFO; }
 
     @Override
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }

@@ -11,10 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 全部面板操作的类型表与线上编解码：先是面板自己的 {@link View}，再按分页顺序接各模块的 {@code actions()}。
+ * 全部面板操作的类型表与线上编解码：先是面板自己的 {@link View}，再按 {@code LandModules.ALL} 的顺序接各模块的
+ * {@code actions()}。
  * <ul>
  *   <li>编码写类型序号再写该类型的参数；序号越界即解码失败（客户端伪造的包被断开）。</li>
- *   <li>{@link View}：客户端切页时发，服务端记下这位主人正在看的页，之后的快照只算这一页。</li>
+ *   <li>{@link View}：客户端切页时发（信息页内切小节不发），服务端记下这位主人正在看的页，之后的快照只算这一页的各段。
+ *       </li>
  * </ul>
  */
 

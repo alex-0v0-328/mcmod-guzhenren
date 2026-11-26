@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.blissful.mountain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
 import net.alex.guzhenren.gameplay.blissful.EarthSpiritEntity;
@@ -36,10 +37,10 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #isManaged}：活着的非玩家 {@link Mob}，排除地灵、已驯服（有主人 UUID）、已命名、拴着绳和
  *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 的；只看已加载区块里的实体（{@code ServerLevel#getAllEntities}）。
  *       </li>
- *   <li>{@link #moveMobsUp}：把山范围外、牧场外（{@link PastureWork}）的可支使生物至多 {@value #MOVE_LIMIT} 只传到山心
- *       {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须
- *       已加载），之后冷却 {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查 {@link #moveCooldown}。野生蛊不挪：生命只有 1，
- *       上山即被震死，也不长胆石。</li>
+ *   <li>{@link #moveMobsUp}：把山范围外、各牧场栏外（{@link PastureWork#penner}）的可支使生物至多
+ *       {@value #MOVE_LIMIT} 只传到山心 {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂山石的列上（选点同长胆石，每只至多试
+ *       {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却 {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查
+ *       {@link #moveCooldown}。野生蛊不挪：生命只有 1，上山即被震死，也不长胆石。</li>
  *   <li>{@link #driveGutsGu}：主人须在山范围内；敲碎山范围内、已加载区块里登记的全部胆石，每块按胆石方块自己的战利品表
  *       各掷一次（同手敲的 50%），掷出的胆识蛊[Guts Gu]不成物品，直接给主人魂魄上限各加
  *       {@value SoulsunderMountain#GUTS_GU_SOUL_BONUS}。登记了但已不是胆石的格子顺手删去。</li>
@@ -79,11 +80,11 @@ public final class MountainWork {
     public static int moveMobsUp(@NotNull ServerLevel level, @NotNull RealmSite site, @NotNull BlissfulLandData data,
                                  @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
         List<Mob> movers = new ArrayList<>();
-        PastureWork.Pasture pasture = PastureWork.Pasture.of(data.land());
+        Predicate<Entity> penned = PastureWork.penner(data);
         for (Entity entity : candidates) {
             if (movers.size() >= MOVE_LIMIT) break;
             if (entity.getType().is(ModEntityTypeTags.WILD_GU) || !isManaged(entity) || site.contains(entity)) continue;
-            if (!pasture.contains(entity)) movers.add((Mob) entity);
+            if (!penned.test(entity)) movers.add((Mob) entity);
         }
         int radius = Math.min(SoulsunderMountain.GUTS_STONE_RADIUS, site.radius());
         int moved = 0;

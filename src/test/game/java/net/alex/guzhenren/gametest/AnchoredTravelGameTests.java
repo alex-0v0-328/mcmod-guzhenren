@@ -4,6 +4,9 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.data.PlayerData;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.flight.FlightAbility;
+import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
+import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
+import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.alex.guzhenren.registry.world.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -23,6 +26,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  *       度。</li>
  *   <li>{@link #surfaceArrivalStandsOnTopOfTheColumn} 在测试维度读落点，场景方块即列顶；须开天空，否则屏障顶成每列之
  *       顶。</li>
+ *   <li>{@link #realmArrivalOffsetsFromTheCentreAndDodgesWater}：秘境钉在测试维度，{@code REALM} 落点 = 山心 + 偏移；
+ *       该列顶是水时改落最近的干列（同距先北）。与 {@code SecretRealmGameTests} 的钉住测试同批，免得互相改钉。</li>
  *   <li>{@link #surfaceEnterLandsWithoutFlightAndExitReturns} 真进下界：当场生成该列区块，落其顶，撤带入的飞行授权，离
  *       开回记录起点。</li>
  * </ul>
@@ -35,6 +40,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 public final class AnchoredTravelGameTests {
 
     private static final BlockPos TOP = new BlockPos(4, 3, 4);
+    private static final String PINNED_BATCH = "secret_realm_pinned";
+    private static final BlockPos REALM_CENTRE = new BlockPos(1, 1, 1);
+    private static final BlockPos WET = new BlockPos(4, 1, 4);
 
     private AnchoredTravelGameTests() {}
 
@@ -56,6 +64,36 @@ public final class AnchoredTravelGameTests {
         helper.assertValueEqual(DimensionTravelService.getArrival(helper.getLevel(), flight), spawn,
                 "a flight arrival is the spawn itself");
         helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9", batch = PINNED_BATCH)
+    public static void realmArrivalOffsetsFromTheCentreAndDodgesWater(GameTestHelper helper) {
+        GameTestWorld.openSky(helper);
+        SecretRealms.pin(SoulsunderMountain.INSTANCE, helper.getLevel(),
+                new RealmSite(helper.absolutePos(REALM_CENTRE), 2));
+        try {
+            helper.setBlock(WET, Blocks.STONE);
+            helper.setBlock(WET.above(), Blocks.WATER);
+            BlockPos dry = helper.absolutePos(WET.west());
+            var straight = new ModDimensions.AnchoredDimension(helper.getLevel().dimension(),
+                    new Vec3(2.5D, 0.0D, 3.5D), ModDimensions.Arrival.REALM, 6, 1.0D);
+            var wet = new ModDimensions.AnchoredDimension(helper.getLevel().dimension(),
+                    new Vec3(3.5D, 0.0D, 3.5D), ModDimensions.Arrival.REALM, 6, 1.0D);
+
+            Vec3 landed = DimensionTravelService.getArrival(helper.getLevel(), straight);
+            Vec3 dodged = DimensionTravelService.getArrival(helper.getLevel(), wet);
+
+            helper.assertValueEqual(landed.x, dry.getX() + 0.5D, "a dry column keeps the offset x");
+            helper.assertValueEqual(landed.z, dry.getZ() + 0.5D, "a dry column keeps the offset z");
+            BlockPos north = helper.absolutePos(WET.north());
+            helper.assertValueEqual(dodged.x, north.getX() + 0.5D, "a wet column moves to the nearest dry x");
+            helper.assertValueEqual(dodged.z, north.getZ() + 0.5D, "a wet column moves to the nearest dry z");
+            helper.assertTrue(helper.getLevel().getFluidState(BlockPos.containing(dodged).below()).isEmpty(),
+                    "the dodged arrival still stands on a fluid");
+            helper.succeed();
+        } finally {
+            SecretRealms.unpin(SoulsunderMountain.INSTANCE);
+        }
     }
 
     @GameTest(template = "empty9x9x9")
