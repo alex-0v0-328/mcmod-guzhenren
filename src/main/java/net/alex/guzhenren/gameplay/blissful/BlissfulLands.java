@@ -6,6 +6,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.blissful.member.MemberService;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.blissful.panel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.blissful.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
@@ -37,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
  *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒给开着面板的主人
  *       刷新快照（只算他正在看的页）。</li>
+ *   <li>{@link #storageHere}：人在自己当主人的福地里时给出那块福地的库藏，蛊粮直供（{@code GuHunger}）用它；别处、
+ *       非主人都是空。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
  * </ul>
  */
@@ -87,6 +90,14 @@ public final class BlissfulLands {
             if (!data.isOwner(player.getUUID())) continue;
             MemberService.lose(player.server, level(player.server, land), data);
         }
+    }
+
+    public static @Nullable BlissfulStorage storageHere(@NotNull ServerPlayer player) {
+        BlissfulLand land = landOf(player.level());
+        if (land == null) return null;
+
+        BlissfulLandData data = BlissfulLandData.get(player.server, land);
+        return data.isOwner(player.getUUID()) ? data.storage() : null;
     }
 
     public static boolean isExempt(@NotNull ServerPlayer player) {

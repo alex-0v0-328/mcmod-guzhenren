@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLand;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLandData;
+import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.item.gu.tending.GuHunger;
 import net.alex.guzhenren.item.gu.tending.GuUpkeep;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
 import net.alex.guzhenren.registry.item.ModItems;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -61,6 +65,29 @@ public final class GuHungerGameTests {
         helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "starved Gu was removed from the inventory");
         helper.assertValueEqual(TendedGuItem.getState(gu).hunger(), 0, "hunger after starving");
         helper.assertValueEqual(messages(inbox, STARVED_KEY).size(), 1, "starved broadcast count");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void hungryGuEatFromTheLandStorageAfterTheBag(GameTestHelper helper) {
+        ServerPlayer player = GameTestPlayers.survival(helper, "gzr-gametest-larder-mock").unconnected().build();
+        ItemStack gu = new ItemStack(ModItems.WHITE_BOAR_GU_1.get());
+        gu.set(ModDataComponents.REFINED_GU_STATE, new RefinedGuState(true, 0, 0, 3, 0));
+        player.getInventory().setItem(0, gu);
+        TendedGuItem item = (TendedGuItem) gu.getItem();
+        GuHunger.HungerBar bar = (GuHunger.HungerBar) item.getGuProperties().buildHunger();
+        Item food = BuiltInRegistries.ITEM.stream()
+                .filter(each -> item.getGuProperties().feedUnits(new ItemStack(each)) > 0).findFirst().orElseThrow();
+        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        storage.insert(new ItemStack(food, 200));
+
+        bar.feed(item, player, gu);
+        helper.assertValueEqual(TendedGuItem.getState(gu).hunger(), 3,
+                "outside the owner's land the storage is not touched");
+        bar.feedFrom(item, player, gu, storage);
+        helper.assertValueEqual(TendedGuItem.getState(gu).hunger(), bar.max(), "storage food fills the bar");
+        long left = storage.count(stack -> stack.is(food));
+        helper.assertTrue(left < 200 && left > 0, "only what the gu ate leaves storage, the rest goes back");
         helper.succeed();
     }
 

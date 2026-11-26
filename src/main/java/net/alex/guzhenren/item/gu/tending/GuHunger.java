@@ -1,5 +1,8 @@
 package net.alex.guzhenren.item.gu.tending;
 
+import java.util.List;
+import net.alex.guzhenren.gameplay.blissful.BlissfulLands;
+import net.alex.guzhenren.gameplay.blissful.storage.BlissfulStorage;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.stack.RefinedGuState;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -19,6 +22,9 @@ import net.minecraft.world.item.ItemStack;
  *   <li>⚠ {@link #feed} 是唯一的自动进食入口：扫描玩家背包全部槽位（含副手），每份食物先通过 {@link GuHealth} 修复伤势
  *       再补充饱食条，且仅在 {@code HungerBar} 存在空缺时触发；满条状态下不会为修伤而进食，伤势留待下次扣量后顺带修复，
  *       具体调用时机由 {@code TendedGuItem} 决定。</li>
+ *   <li>蛊粮直供：背包吃完仍有空缺、且人在自己当主人的福地里时（{@code BlissfulLands#storageHere}；只在福地里、先背
+ *       包，Alex 定），{@link HungerBar#feedFrom} 再从那块福地的库藏一次取一组，照背包规则吃，剩下的放回库藏；
+ *       {@link #carriesFood} 在服务端同样算上库藏。</li>
  *   <li>⚠ {@link RecoverBar} 参照 {@code LeafGrowth} 基于 {@code RECOVERED_AT} 时间戳惰性结
  *       算：{@link RecoverBar#getPoints} 仅做推算而不落盘，{@link RecoverBar#settle} 仅在真正长出至少 1 点时才写回组件
  *       （避免随身满条每秒反复写入），日时钟每次心跳也会同步结算随身回复条，最多滞后 1 秒。</li>
@@ -69,7 +75,8 @@ public sealed interface GuHunger {
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             if (gu.feedUnits(inventory.getItem(slot)) > 0) return true;
         }
-        return false;
+        BlissfulStorage storage = player instanceof ServerPlayer server ? BlissfulLands.storageHere(server) : null;
+        return storage != null && !storage.first(food -> gu.feedUnits(food) > 0).isEmpty();
     }
     //endregion
 
@@ -112,6 +119,31 @@ public sealed interface GuHunger {
                 gu.health.mendFrom(gu, player, stack, food);
                 eat(gu, player, stack, food);
             }
+            BlissfulStorage storage = BlissfulLands.storageHere(player);
+            if (storage != null) feedFrom(gu, player, stack, storage);
+        }
+
+        public void feedFrom(TendedGuItem gu, ServerPlayer player, ItemStack stack, BlissfulStorage storage) {
+            while (getHunger(stack) < max) {
+                int index = foodIndex(gu, storage);
+                if (index < 0) return;
+
+                ItemStack food = storage.extract(index, Integer.MAX_VALUE);
+                int before = food.getCount();
+                gu.health.mendFrom(gu, player, stack, food);
+                eat(gu, player, stack, food);
+                boolean ate = food.getCount() < before;
+                if (!food.isEmpty()) storage.insert(food);
+                if (!ate) return;
+            }
+        }
+
+        private static int foodIndex(TendedGuItem gu, BlissfulStorage storage) {
+            List<BlissfulStorage.Entry> entries = storage.entries();
+            for (int i = 0; i < entries.size(); i++) {
+                if (gu.feedUnits(entries.get(i).key()) > 0) return i;
+            }
+            return -1;
         }
 
         private void eat(TendedGuItem gu, ServerPlayer player, ItemStack stack, ItemStack food) {
