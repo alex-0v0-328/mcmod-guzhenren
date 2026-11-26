@@ -7,8 +7,10 @@ import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
@@ -125,8 +127,8 @@ public final class BlissfulLandGameTests {
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-death-mock").onGround();
         try {
             LandMembership.claim(null, data, owner);
-            data.storage().insert(new ItemStack(Items.WHEAT, 5));
-            data.herd().setHosted(HerdWork.typeId(owner), true);
+            BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT, 5));
+            HerdState.of(data).setHosted(HerdWork.typeId(owner), true);
 
             keep.set(true, helper.getLevel().getServer());
             BlissfulLands.onDeath(owner);
@@ -136,14 +138,14 @@ public final class BlissfulLandGameTests {
             BlissfulLands.onDeath(owner);
             helper.assertFalse(data.hasOwner(), "with keepInventory off, dying loses the land");
             helper.assertTrue(data.whitelist().isEmpty(), "losing clears the whitelist");
-            helper.assertFalse(data.herd().hosting(), "losing stops hosting");
-            helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT)), 5L,
+            helper.assertFalse(HerdState.of(data).hosting(), "losing stops hosting");
+            helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT)), 5L,
                     "the storage stays for the next owner");
             helper.succeed();
         } finally {
             keep.set(before, helper.getLevel().getServer());
             LandMembership.lose(helper.getLevel().getServer(), null, data);
-            data.storage().consume(stack -> true, Integer.MAX_VALUE);
+            BlissfulStorage.of(data).consume(stack -> true, Integer.MAX_VALUE);
         }
     }
 
@@ -270,7 +272,7 @@ public final class BlissfulLandGameTests {
         GameTestPlayers.ground(helper);
         List<Entity> cows = new ArrayList<>();
         for (int i = 0; i < 5; i++) cows.add(helper.spawn(EntityType.COW, new BlockPos(1 + i, 1, 4)));
-        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         storage.insert(new ItemStack(Items.WHEAT, 3));
 
         HerdWork.Breed bred = HerdWork.breed(HerdWork.census(cows), storage, HerdWork.LIMIT, null);
@@ -291,7 +293,7 @@ public final class BlissfulLandGameTests {
         herd.add(calf);
         for (int i = 0; i < 3; i++) herd.add(helper.spawn(EntityType.PIG, new BlockPos(1 + i, 1, 6)));
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-slaughter-mock").onGround();
-        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         ResourceLocation cow = HerdWork.typeId(calf);
 
         Map<ResourceLocation, List<Animal>> herds = HerdWork.census(herd);
@@ -311,14 +313,15 @@ public final class BlissfulLandGameTests {
         List<Entity> herd = new ArrayList<>();
         for (int i = 0; i < 2; i++) herd.add(helper.spawn(EntityType.COW, new BlockPos(1 + i, 1, 4)));
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        data.herd().setKeep(HerdWork.typeId(herd.getFirst()), 3);
-        data.herd().setHosted(HerdWork.typeId(herd.getFirst()), true);
-        data.storage().insert(new ItemStack(Items.WHEAT, 10));
+        HerdState.of(data).setKeep(HerdWork.typeId(herd.getFirst()), 3);
+        HerdState.of(data).setHosted(HerdWork.typeId(herd.getFirst()), true);
+        BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT, 10));
 
         int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, HerdModule.HOSTING_ANIMALS)
                 .total();
         helper.assertValueEqual(handled, 2, "one cow short: one pair is fed");
-        helper.assertValueEqual(data.storage().count(stack -> stack.is(Items.WHEAT)), 8L, "two wheat are eaten");
+        helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT)), 8L,
+                "two wheat are eaten");
         helper.succeed();
     }
     //endregion
@@ -339,18 +342,18 @@ public final class BlissfulLandGameTests {
         int width = at.x >= 0 ? half - at.x : at.x + half + 1;
         int kept = at.x >= 0 ? at.x - 1 : at.x + 1;
         int keptPen = at.x >= 0 ? at.x - 2 : at.x + 1;
-        data.farm().addField(FieldPlot.of(at.x, at.z, 64));
-        data.farm().addField(FieldPlot.of(kept, at.z, 64));
-        data.farm().addPlan(ChunkPos.asLong(at.x, at.z - 1));
-        data.herd().addPasture(new ChunkPos(at.x, at.z + 1));
-        data.herd().addPasture(new ChunkPos(keptPen, at.z + 1));
+        FarmState.of(data).addField(FieldPlot.of(at.x, at.z, 64));
+        FarmState.of(data).addField(FieldPlot.of(kept, at.z, 64));
+        FarmState.of(data).addPlan(ChunkPos.asLong(at.x, at.z - 1));
+        HerdState.of(data).addPasture(new ChunkPos(at.x, at.z + 1));
+        HerdState.of(data).addPasture(new ChunkPos(keptPen, at.z + 1));
         Vec3 playerAt = player.position();
         try {
             helper.assertTrue(TerritoryWork.cede(level, data, side, half + 1, List.of()) == null, "the core cannot go");
             helper.assertValueEqual(TerritoryWork.cede(level, data, side, width, List.of(pig, player)),
                     new TerritoryWork.Voided(1, 1, 1), "the strip takes its field, plan and pasture with it");
-            helper.assertValueEqual(data.farm().fields().size(), 1, "the field outside the strip stays");
-            helper.assertValueEqual(data.herd().pastures(), List.of(new ChunkPos(keptPen, at.z + 1)),
+            helper.assertValueEqual(FarmState.of(data).fields().size(), 1, "the field outside the strip stays");
+            helper.assertValueEqual(HerdState.of(data).pastures(), List.of(new ChunkPos(keptPen, at.z + 1)),
                     "the pasture outside the strip stays");
             helper.assertTrue(data.territory().isCeded(at.x, at.z), "the strip holding the test area is ceded");
             helper.assertTrue(pig.isRemoved(), "a mob in the strip is removed");
@@ -378,20 +381,20 @@ public final class BlissfulLandGameTests {
             LandMembership.claim(null, data, owner);
             stranger.containerMenu = openPanel(level, data, stranger, spirit);
             EarthSpiritPanel.handle(stranger, new HerdModule.SetKeep(cowId, 5));
-            helper.assertValueEqual(data.herd().keep(cowId), 0, "a stranger's forged panel is refused");
+            helper.assertValueEqual(HerdState.of(data).keep(cowId), 0, "a stranger's forged panel is refused");
             EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 5));
-            helper.assertValueEqual(data.herd().keep(cowId), 0, "without the panel open nothing happens");
+            helper.assertValueEqual(HerdState.of(data).keep(cowId), 0, "without the panel open nothing happens");
             owner.containerMenu = openPanel(level, data, owner, spirit);
             EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 5));
-            helper.assertValueEqual(data.herd().keep(cowId), 5, "the owner with the panel open is obeyed");
+            helper.assertValueEqual(HerdState.of(data).keep(cowId), 5, "the owner with the panel open is obeyed");
             spirit.discard();
             EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 7));
-            helper.assertValueEqual(data.herd().keep(cowId), 5, "a panel whose spirit is gone is stale");
+            helper.assertValueEqual(HerdState.of(data).keep(cowId), 5, "a panel whose spirit is gone is stale");
             helper.succeed();
         } finally {
             owner.containerMenu = owner.inventoryMenu;
             stranger.containerMenu = stranger.inventoryMenu;
-            data.herd().setKeep(cowId, 0);
+            HerdState.of(data).setKeep(cowId, 0);
             LandMembership.lose(level.getServer(), null, data);
         }
     }
@@ -402,7 +405,7 @@ public final class BlissfulLandGameTests {
         BlissfulLandData data = BlissfulLandData.get(level.getServer(), BlissfulLand.FOX_IMMORTAL);
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-storage-mock").onGround();
         EarthSpiritEntity spirit = spawnSpirit(helper);
-        BlissfulStorage storage = data.storage();
+        BlissfulStorage storage = BlissfulStorage.of(data);
         try {
             LandMembership.claim(null, data, owner);
             EarthSpiritMenu menu = openPanel(level, data, owner, spirit);
@@ -467,7 +470,7 @@ public final class BlissfulLandGameTests {
     //region Storage [库藏]
     @GameTest(template = "empty9x9x9")
     public static void storageMergesWithoutALimitAndRefusesGutsGu(GameTestHelper helper) {
-        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         for (int i = 0; i < 100; i++) storage.insert(new ItemStack(Items.WHEAT, 64));
         helper.assertValueEqual(storage.entries().size(), 1, "one kind is one entry");
         helper.assertValueEqual(storage.count(stack -> stack.is(Items.WHEAT)), 6400L, "no limit on the count");

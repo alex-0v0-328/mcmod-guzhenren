@@ -112,7 +112,7 @@ public class EarthSpiritMenu extends AbstractContainerMenu {
         if (!BlissfulStorage.accepts(stack)) return ItemStack.EMPTY;
 
         BlissfulLandData data = BlissfulLandData.get(server.server, this.spirit.getLand());
-        if (data.isOwner(server.getUUID()) && data.storage().insert(stack)) slot.set(ItemStack.EMPTY);
+        if (data.isOwner(server.getUUID()) && BlissfulStorage.of(data).insert(stack)) slot.set(ItemStack.EMPTY);
         return ItemStack.EMPTY;
     }
 

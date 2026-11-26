@@ -8,12 +8,11 @@ import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapScanner;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
-import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -44,9 +43,9 @@ import org.jetbrains.annotations.Nullable;
  *       只看实体坐标，不看栅栏。</li>
  *   <li>养殖的清点、托管、一键喂养与宰杀只看栏内（{@link #penned}）；总览页的动物数照旧数全福地。「挪生物上山」与活物
  *       标记用 {@link #penner}。</li>
- *   <li>{@link #enclose}：周界每列从真实地面（{@link MapScanner#isPassable} 不算地面，花草、栅栏都跳过）上一格起叠橡木
+ *   <li>{@link #enclose}：周界每列从真实地面（{@link LandRules#isPassable} 不算地面，花草、栅栏都跳过）上一格起叠橡木
  *       栅栏，叠到顶端比 8 邻列真实地面都高至少 1 格（邻列是流体按流体表面算）；北边正中一格的最底层放朝北的栅栏门。已
- *       是栅栏或门的格子跳过，可替换方块、树叶、原木、植物（{@link MapScanner#isPlant}）换掉，栅栏顶上连着的植物（甘蔗
+ *       是栅栏或门的格子跳过，可替换方块、树叶、原木、植物（{@link LandRules#isPlant}）换掉，栅栏顶上连着的植物（甘蔗
  *       上段）清掉，其余方块（多半是玩家的）不动、该列就此计为挡住，流体列也计为挡住。放完再按四邻重算形状，栅栏才连得
  *       上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
  *   <li>{@link #unfence}：周界每列地面以上连着的栅栏与栅栏门全部拆掉（玩家放的也拆），不掉落。</li>
@@ -128,7 +127,7 @@ public final class PastureWork {
     //region Pen [栏内栏外]
     public static @NotNull List<Pasture> pastures(@NotNull BlissfulLandData data) {
         List<Pasture> pastures = new ArrayList<>();
-        for (ChunkPos corner : data.herd().pastures()) pastures.add(Pasture.at(corner.x, corner.z));
+        for (ChunkPos corner : HerdState.of(data).pastures()) pastures.add(Pasture.at(corner.x, corner.z));
         return pastures;
     }
 
@@ -203,7 +202,7 @@ public final class PastureWork {
             BlockPos pos = column.atY(y);
             BlockState at = level.getBlockState(pos);
             if (isFence(at)) continue;
-            if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS) && !MapScanner.isPlant(at)) {
+            if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS) && !LandRules.isPlant(at)) {
                 return false;
             }
             BlockState state = isGate && y == ground + 1
@@ -212,7 +211,7 @@ public final class PastureWork {
             level.setBlock(pos, state, Block.UPDATE_ALL);
             placed.add(pos);
         }
-        for (BlockPos pos = column.atY(top + 1); MapScanner.isPlant(level.getBlockState(pos)); pos = pos.above()) {
+        for (BlockPos pos = column.atY(top + 1); LandRules.isPlant(level.getBlockState(pos)); pos = pos.above()) {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
         }
         return true;
@@ -246,7 +245,7 @@ public final class PastureWork {
         for (; pos.getY() > level.getMinBuildHeight(); pos.move(0, -1, 0)) {
             BlockState state = level.getBlockState(pos);
             if (!state.getFluidState().isEmpty()) return fluidSurface ? pos.getY() : NO_GROUND;
-            if (!MapScanner.isPassable(state)) return pos.getY();
+            if (!LandRules.isPassable(state)) return pos.getY();
         }
         return NO_GROUND;
     }
@@ -257,7 +256,7 @@ public final class PastureWork {
                                @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
         List<Animal> movers = new ArrayList<>();
         for (Entity entity : candidates) {
-            if (entity instanceof Animal animal && SoulsunderMountainWork.isManaged(animal) && from.contains(animal)
+            if (entity instanceof Animal animal && LandRules.isManaged(animal) && from.contains(animal)
                     && !to.contains(animal)) {
                 movers.add(animal);
             }
@@ -266,7 +265,7 @@ public final class PastureWork {
     }
 
     public static long gatherCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, data.herd().gatherReadyAt() - level.getGameTime());
+        return Math.max(0L, HerdState.of(data).gatherReadyAt() - level.getGameTime());
     }
 
     public static int gather(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @NotNull Pasture pasture,
@@ -275,13 +274,13 @@ public final class PastureWork {
         List<Animal> movers = new ArrayList<>();
         for (Entity entity : candidates) {
             if (movers.size() >= GATHER_LIMIT) break;
-            if (entity instanceof Animal animal && SoulsunderMountainWork.isManaged(animal) && !pasture.contains(animal)
+            if (entity instanceof Animal animal && LandRules.isManaged(animal) && !pasture.contains(animal)
                     && !isPenned(pastures, animal)) {
                 movers.add(animal);
             }
         }
         int moved = teleport(level, pasture, random, movers);
-        data.herd().setGatherReadyAt(level.getGameTime() + GATHER_COOLDOWN_TICKS);
+        HerdState.of(data).setGatherReadyAt(level.getGameTime() + GATHER_COOLDOWN_TICKS);
         return moved;
     }
 
@@ -313,7 +312,7 @@ public final class PastureWork {
         return null;
     }
 
-    private static boolean isRoom(BlockState state) { return state.canBeReplaced() || MapScanner.isPlant(state); }
+    private static boolean isRoom(BlockState state) { return state.canBeReplaced() || LandRules.isPlant(state); }
     //endregion
 
     //region Tickets [强加载]

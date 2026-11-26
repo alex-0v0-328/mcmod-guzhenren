@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
@@ -42,12 +44,12 @@ public final class MapMarks {
         List<Candidate> found = new ArrayList<>();
         for (ServerPlayer player : level.players()) add(found, view, player, MapMark.PLAYER, player.getUUID());
         Predicate<Entity> penned = penned(data);
-        for (List<Animal> herd : LandCensus.herds(level).values()) {
+        for (List<Animal> herd : LandCensus.take(level, HerdWork.CENSUS).values()) {
             for (Animal animal : herd) {
                 add(found, view, animal, penned.test(animal) ? MapMark.PENNED : MapMark.LOOSE, null);
             }
         }
-        for (List<Mob> swarm : LandCensus.gus(level).values()) {
+        for (List<Mob> swarm : LandCensus.take(level, GuWork.CENSUS).values()) {
             for (Mob gu : swarm) add(found, view, gu, MapMark.WILD_GU, null);
         }
         UUID spirit = data.spirit();

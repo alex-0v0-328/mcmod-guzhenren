@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuState;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
 import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
@@ -56,9 +58,9 @@ public final class BlissfulGuGameTests {
         helper.assertValueEqual(GuWork.captureCount(census, Map.of(hope, 1), GuWork.LIMIT), 2,
                 "the preview matches the capture");
 
-        int caught = GuWork.capture(census, Map.of(hope, 1), data.storage(), GuWork.LIMIT);
+        int caught = GuWork.capture(census, Map.of(hope, 1), BlissfulStorage.of(data), GuWork.LIMIT);
         helper.assertValueEqual(caught, 2, "three hope gu down to one");
-        helper.assertValueEqual(data.storage().count(stack -> stack.is(ModItems.HOPE_GU.get())), 2L,
+        helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(ModItems.HOPE_GU.get())), 2L,
                 "the caught gu go to storage as items");
         helper.assertTrue(swarm.get(0).isRemoved() && swarm.get(1).isRemoved() && !swarm.get(2).isRemoved(),
                 "the caught gu leave the world");
@@ -72,13 +74,13 @@ public final class BlissfulGuGameTests {
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         ResourceLocation hope = GuWork.typeId(swarm.getFirst());
         ResourceLocation boar = GuWork.typeId(swarm.get(4));
-        data.gu().setKeep(hope, 1);
-        data.gu().setKeep(boar, 1);
-        data.gu().setHosted(boar, true);
+        GuState.of(data).setKeep(hope, 1);
+        GuState.of(data).setKeep(boar, 1);
+        GuState.of(data).setHosted(boar, true);
 
         helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuWork.LIMIT), 0,
                 "the hosted boar is already at its kept number, the hope gu are not hosted");
-        data.gu().setHosted(hope, true);
+        GuState.of(data).setHosted(hope, true);
         helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuWork.LIMIT), 2,
                 "hosting the hope gu captures the two extra");
         helper.succeed();
@@ -96,7 +98,8 @@ public final class BlissfulGuGameTests {
         List<Entity> candidates = new ArrayList<>(swarm);
         candidates.add(pig);
 
-        int moved = SoulsunderMountainWork.moveMobsUp(helper.getLevel(), site, data, helper.getLevel().getRandom(), candidates);
+        int moved = SoulsunderMountainWork.moveMobsUp(helper.getLevel(), site, data, helper.getLevel().getRandom(),
+                candidates);
         helper.assertValueEqual(moved, 1, "only the pig is moved up the mountain");
         helper.assertTrue(site.contains(pig), "the pig stands on the mountain");
         helper.assertTrue(swarm.stream().noneMatch(site::contains), "no wild gu is moved up to die");

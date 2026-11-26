@@ -4,7 +4,12 @@ import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuState;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
@@ -13,6 +18,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
 import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandOwnerChangeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandSite;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryWork;
@@ -38,7 +44,8 @@ import org.jetbrains.annotations.Nullable;
  *       {@link BlissfulLandLookup#siteOf} 为空，认主与地灵补生都不做。</li>
  *   <li>认主：{@link #tickPlayer} 挂在 {@code Heartbeat}（每秒），玩家在福地维度、福地无主且秘境山心已解出时判定。</li>
  *   <li>失主：{@link #onDeath} 在任何维度死亡时（「死亡不掉落」开着就不算），{@link #onReset} 在角色重置时（非保留死亡
- *       的克隆也会走重置，重复失主无副作用）。</li>
+ *       的克隆也会走重置，重复失主无副作用）。易主后 {@link #onOwnerChanged} 替各功能收尾：认主重挂田与牧场的强加载，
+ *       失主关三种托管、撤强加载。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
  *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒推进一步标准田规划队列
@@ -65,7 +72,8 @@ public final class BlissfulLands {
         BlissfulLandData data = BlissfulLandData.get(player.server, land);
         RealmSite realm = SecretRealms.siteOf(player.server, land.realm());
         if (realm != null) {
-            LandMembership.tryClaim(player.serverLevel(), data, realm, BlissfulLandLookup.siteOf(realm, land).summitY(), player);
+            LandMembership.tryClaim(player.serverLevel(), data, realm, BlissfulLandLookup.siteOf(realm, land).summitY(),
+                    player);
         }
     }
 
@@ -75,6 +83,23 @@ public final class BlissfulLands {
     }
 
     public static void onReset(@NotNull ServerPlayer player) { loseAll(player); }
+
+    public static void onOwnerChanged(@NotNull LandOwnerChangeEvent event) {
+        ServerLevel level = event.getLevel();
+        BlissfulLandData data = event.getData();
+        if (event.isClaimed()) {
+            if (level == null) return;
+            FarmWork.retain(level, data);
+            PastureWork.retain(level, data);
+            return;
+        }
+        HerdState.of(data).clearHosting();
+        GuState.of(data).clearHosting();
+        FarmState.of(data).setHosting(false);
+        if (level == null) return;
+        FarmWork.release(level, data);
+        PastureWork.release(level, data);
+    }
 
     private static void loseAll(ServerPlayer player) {
         for (BlissfulLand land : BlissfulLand.ALL) {
@@ -89,7 +114,7 @@ public final class BlissfulLands {
         if (land == null) return null;
 
         BlissfulLandData data = BlissfulLandData.get(player.server, land);
-        return data.isOwner(player.getUUID()) ? data.storage() : null;
+        return data.isOwner(player.getUUID()) ? BlissfulStorage.of(data) : null;
     }
 
     public static boolean isExempt(@NotNull ServerPlayer player) {
@@ -163,7 +188,10 @@ public final class BlissfulLands {
     }
 
     public static void tickPlayerFast(@NotNull ServerPlayer player) {
-        if (BlissfulLandLookup.landOf(player.level()) == null || player.getY() >= player.level().getMinBuildHeight()) return;
+        if (BlissfulLandLookup.landOf(player.level()) == null
+                || player.getY() >= player.level().getMinBuildHeight()) {
+            return;
+        }
 
         ModDimensions.AnchoredDimension anchor = ModDimensions.ANCHORED_DIMENSIONS.get(player.level().dimension());
         if (anchor == null) return;

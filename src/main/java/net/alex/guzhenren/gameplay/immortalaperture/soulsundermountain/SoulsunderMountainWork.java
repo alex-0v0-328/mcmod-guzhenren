@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
-import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
@@ -18,9 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Leashable;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -32,14 +30,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵面板「荡魂山」页的两个操作，以及养殖、挪生物共用的「地灵可支使的生物」判定。
+ * 地灵面板「荡魂山」页的两个操作。
  * <ul>
- *   <li>{@link #isManaged}：活着的非玩家 {@link Mob}，排除地灵、已驯服（有主人 UUID）、已命名、拴着绳和
- *       {@link ModEntityTypeTags#SOULSUNDER_IMMUNE} 的；只看已加载区块里的实体（{@code ServerLevel#getAllEntities}）。
- *       </li>
- *   <li>{@link #moveMobsUp}：把山范围外、各牧场栏外（{@link PastureWork#penner}）的可支使生物至多
- *       {@value #MOVE_LIMIT} 只传到山心 {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂山石的列上（选点同长胆石，每只至多试
- *       {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却 {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查
+ *   <li>{@link #moveMobsUp}：把山范围外、各牧场栏外（{@link PastureWork#penner}）、已加载区块里的可支使生物（
+ *       {@link LandRules#isManaged}）至多 {@value #MOVE_LIMIT} 只传到山心 {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂
+ *       山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却
+ *       {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查
  *       {@link #moveCooldown}。野生蛊不挪：生命只有 1，上山即被震死，也不长胆石。</li>
  *   <li>{@link #driveGutsGu}：主人须在山范围内；敲碎山范围内、已加载区块里登记的全部胆石，每块按胆石方块自己的战利品表
  *       各掷一次（同手敲的 50%），掷出的胆识蛊[Guts Gu]不成物品，直接给主人魂魄上限各加
@@ -60,16 +56,9 @@ public final class SoulsunderMountainWork {
 
     public record Drive(int stones, int gu) {}
 
-    public static boolean isManaged(@NotNull Entity entity) {
-        if (!(entity instanceof Mob mob) || !mob.isAlive() || entity instanceof EarthSpiritEntity) return false;
-        if (mob instanceof OwnableEntity ownable && ownable.getOwnerUUID() != null) return false;
-        if (mob.hasCustomName() || mob instanceof Leashable leashable && leashable.isLeashed()) return false;
-        return !mob.getType().is(ModEntityTypeTags.SOULSUNDER_IMMUNE);
-    }
-
     //region Move [挪生物上山]
     public static long moveCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, data.mountain().moveReadyAt() - level.getGameTime());
+        return Math.max(0L, SoulsunderMountainState.of(data).moveReadyAt() - level.getGameTime());
     }
 
     public static int moveMobsUp(@NotNull ServerLevel level, @NotNull RealmSite site, @NotNull BlissfulLandData data,
@@ -83,7 +72,10 @@ public final class SoulsunderMountainWork {
         Predicate<Entity> penned = PastureWork.penner(data);
         for (Entity entity : candidates) {
             if (movers.size() >= MOVE_LIMIT) break;
-            if (entity.getType().is(ModEntityTypeTags.WILD_GU) || !isManaged(entity) || site.contains(entity)) continue;
+            if (entity.getType().is(ModEntityTypeTags.WILD_GU) || !LandRules.isManaged(entity)
+                    || site.contains(entity)) {
+                continue;
+            }
             if (!penned.test(entity)) movers.add((Mob) entity);
         }
         int radius = Math.min(SoulsunderMountain.GUTS_STONE_RADIUS, site.radius());
@@ -95,7 +87,7 @@ public final class SoulsunderMountainWork {
             mob.setDeltaMovement(Vec3.ZERO);
             moved++;
         }
-        data.mountain().setMoveReadyAt(level.getGameTime() + MOVE_COOLDOWN_TICKS);
+        SoulsunderMountainState.of(data).setMoveReadyAt(level.getGameTime() + MOVE_COOLDOWN_TICKS);
         return moved;
     }
 

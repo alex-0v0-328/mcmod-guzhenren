@@ -4,7 +4,9 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritUseEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandOwnerChangeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderShakeEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -21,7 +23,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * 福地[Blissful Land]的事件入口，只做转交：服务端刻、玩家刻、玩家死亡、区块加载、荡魂山震荡、田区工单登记、停服清理。
+ * 福地[Blissful Land]的事件入口，只做转交：服务端刻、玩家刻、玩家死亡、区块加载、荡魂山震荡、地灵右键、易主、田区工单登记、
+ * 停服清理。
  * <ul>
  *   <li>⚠ 死亡监听取最低优先级且不收已取消事件：别的模组取消死亡、不死图腾救下都不算死，不失主。</li>
  *   <li>玩家每秒的认主判定不走这里，挂在 {@code Heartbeat}。</li>
@@ -52,6 +55,14 @@ public final class BlissfulLandEvents {
             BlissfulLands.onChunkLoad(level, chunk);
         }
     }
+
+    @SubscribeEvent
+    public static void onSpiritUse(EarthSpiritUseEvent event) {
+        EarthSpiritPanel.open(event.getPlayer(), event.getSpirit());
+    }
+
+    @SubscribeEvent
+    public static void onOwnerChanged(LandOwnerChangeEvent event) { BlissfulLands.onOwnerChanged(event); }
 
     @SubscribeEvent
     public static void onShake(SoulsunderShakeEvent event) {

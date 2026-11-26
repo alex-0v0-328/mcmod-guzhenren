@@ -15,6 +15,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -115,7 +116,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
             if (reason != Siting.Reason.OK) {
                 return EarthSpiritPanel.notice("siting_refused", Component.translatable(reason.key()));
             }
-            return EarthSpiritPanel.notice("planned", chunkX, chunkZ, context.data().farm().plans().size());
+            return EarthSpiritPanel.notice("planned", chunkX, chunkZ, FarmState.of(context.data()).plans().size());
         }
     }
 
@@ -140,7 +141,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            FieldPlot field = context.data().farm().fieldAt(chunkX, chunkZ);
+            FieldPlot field = FarmState.of(context.data()).fieldAt(chunkX, chunkZ);
             if (field == null) return EarthSpiritPanel.notice("no_field");
             Integer reaped = FarmWork.remove(context.level(), context.data(), field, context.player());
             if (reaped == null) return EarthSpiritPanel.notice("grief_denied");
@@ -167,7 +168,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            context.data().farm().setHosting(on);
+            FarmState.of(context.data()).setHosting(on);
             return Component.empty();
         }
     }
@@ -179,7 +180,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            context.data().farm().setCrop(crop);
+            FarmState.of(context.data()).setCrop(crop);
             return Component.empty();
         }
     }
@@ -200,14 +201,15 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
     public @NotNull Section section(@NotNull PanelContext context) {
         ServerLevel level = context.level();
         BlissfulLandData data = context.data();
-        FarmState state = data.farm();
+        FarmState state = FarmState.of(data);
         List<Crop> rows = new ArrayList<>();
-        for (Map.Entry<Block, FarmWork.Count> crop : LandCensus.crops(level, data).entrySet()) {
+        for (Map.Entry<Block, FarmWork.Count> crop : LandCensus.take(level, data, FarmWork.CENSUS).entrySet()) {
             rows.add(new Crop(BuiltInRegistries.BLOCK.getKey(crop.getKey()), crop.getValue().mature(),
                     crop.getValue().growing()));
         }
         List<Long> seeds = new ArrayList<>();
-        for (int i = 0; i < FarmWork.CROPS.size(); i++) seeds.add(data.storage().count(FarmWork.seedFilter(i)));
+        BlissfulStorage storage = BlissfulStorage.of(data);
+        for (int i = 0; i < FarmWork.CROPS.size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
         return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
                 Ticks.ceilSeconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
                 BlissfulLands.secondsToHosting(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
@@ -216,10 +218,10 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
 
     @Override
     public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!data.farm().hosting()) return 0;
+        if (!FarmState.of(data).hosting()) return 0;
 
         FarmWork.Harvest done = FarmWork.harvest(level, data, HOSTING_FIELDS);
-        data.farm().setLastRound(done.reaped(), done.sown());
+        FarmState.of(data).setLastRound(done.reaped(), done.sown());
         return done.fields();
     }
 }

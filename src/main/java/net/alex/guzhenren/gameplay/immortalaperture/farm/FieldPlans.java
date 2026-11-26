@@ -36,16 +36,18 @@ public final class FieldPlans {
                                               int chunkZ) {
         Siting.Reason reason = Siting.field(MapModule.plot(level, data), MapModule.tiles(level, data.territory()),
                 chunkX, chunkZ);
-        if (reason == Siting.Reason.OK) data.farm().addPlan(ChunkPos.asLong(chunkX, chunkZ));
+        if (reason == Siting.Reason.OK) FarmState.of(data).addPlan(ChunkPos.asLong(chunkX, chunkZ));
         return reason;
     }
 
     public static boolean unplan(@NotNull BlissfulLandData data, int chunkX, int chunkZ) {
-        return data.farm().removePlan(ChunkPos.asLong(chunkX, chunkZ));
+        return FarmState.of(data).removePlan(ChunkPos.asLong(chunkX, chunkZ));
     }
 
     public static void tick(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        if (data.farm().plans().isEmpty() || FarmWork.reclaimCooldown(level, data) > 0 || data.owner() == null) return;
+        if (FarmState.of(data).plans().isEmpty() || FarmWork.reclaimCooldown(level, data) > 0 || data.owner() == null) {
+            return;
+        }
         ServerPlayer owner = level.getServer().getPlayerList().getPlayer(data.owner());
         if (owner == null) return;
 
@@ -57,9 +59,9 @@ public final class FieldPlans {
 
     public static @Nullable Step step(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
                                            @NotNull ServerPlayer owner, @NotNull Function<ChunkPos, FieldPlot> layout) {
-        if (data.farm().plans().isEmpty()) return null;
-        ChunkPos chunk = new ChunkPos(data.farm().plans().getLong(0));
-        data.farm().removePlan(chunk.toLong());
+        if (FarmState.of(data).plans().isEmpty()) return null;
+        ChunkPos chunk = new ChunkPos(FarmState.of(data).plans().getLong(0));
+        FarmState.of(data).removePlan(chunk.toLong());
         FieldPlot plot = layout.apply(chunk);
         Siting.Reason reason = Siting.place(MapModule.plot(level, data), chunk.x, chunk.z, 1);
         if (reason == Siting.Reason.OK) {
@@ -74,6 +76,7 @@ public final class FieldPlans {
             return new Step(false, EarthSpiritPanel.notice("plan_cancelled", chunk.x, chunk.z,
                     EarthSpiritPanel.notice("grief_denied")));
         }
-        return new Step(true, EarthSpiritPanel.notice("reclaimed", chunk.x, chunk.z, data.farm().fields().size()));
+        return new Step(true, EarthSpiritPanel.notice("reclaimed", chunk.x, chunk.z,
+                FarmState.of(data).fields().size()));
     }
 }

@@ -3,9 +3,8 @@ package net.alex.guzhenren.gameplay.immortalaperture.state;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
-import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.registry.block.ModBlocks;
 import net.minecraft.ChatFormatting;
@@ -21,11 +20,11 @@ import org.jetbrains.annotations.Nullable;
  * 福地[Blissful Land]的认主、失主、白名单与驱逐。
  * <ul>
  *   <li>认主：无主时，第一个站上山巅的非旁观玩家成为主人（{@link #isOnSummit}：离山心水平
- *       {@value BlissfulLand#SUMMIT_RADIUS} 格内、脚下方块正是最高一层的荡魂山石）；白名单重置为只有主人，田区工单重
- *       挂；全服广播「【福地易主】福地名 · 玩家名」（标签金色，福地名与玩家名白色），认主者本人也只收这一条（Alex
- *       定）。</li>
- *   <li>失主（{@link #lose}）：清主人与白名单、关两种托管、撤田区工单；库藏、疆域、标准田、每种保持数留给下一任。何时失
- *       主由 {@code BlissfulLands} 判定（死亡且不开「死亡不掉落」、角色重置）。</li>
+ *       {@value BlissfulLand#SUMMIT_RADIUS} 格内、脚下方块正是最高一层的荡魂山石）；白名单重置为只有主人，发
+ *       {@link LandOwnerChangeEvent}（各功能重挂强加载）；全服广播「【福地易主】福地名 · 玩家名」（标签金色，福地名与
+ *       玩家名白色），认主者本人也只收这一条（Alex 定）。</li>
+ *   <li>失主（{@link #lose}）：清主人与白名单，发 {@link LandOwnerChangeEvent}（各功能关托管、撤强加载）；库藏、疆域、
+ *       标准田、每种保持数留给下一任。何时失主由 {@code BlissfulLands} 判定（死亡且不开「死亡不掉落」、角色重置）。</li>
  *   <li>白名单与免震荡、「驱逐外人」共用一份；主人可以把自己移出（面板是否允许由界面决定）。按名字只加在线玩家：原版玩
  *       家档案缓存查不到名字时会在主线程联网（离线服则凭空造一个 UUID），所以不用它找离线玩家。</li>
  *   <li>驱逐 = 走锚定旅行的 {@code exit}，回各自进福地前的返回点；主人不可被驱逐。</li>
@@ -63,10 +62,7 @@ public final class LandMembership {
         data.setOwner(player.getUUID(), name);
         data.clearWhitelist();
         data.addWhitelist(player.getUUID(), name);
-        if (level != null) {
-            FarmWork.retain(level, data);
-            PastureWork.retain(level, data);
-        }
+        ModEvents.post(new LandOwnerChangeEvent(level, data, true));
         player.server.getPlayerList().broadcastSystemMessage(claimedMessage(data, player), false);
     }
 
@@ -84,13 +80,7 @@ public final class LandMembership {
 
         data.setOwner(null, "");
         data.clearWhitelist();
-        data.herd().clearHosting();
-        data.gu().clearHosting();
-        data.farm().setHosting(false);
-        if (level != null) {
-            FarmWork.release(level, data);
-            PastureWork.release(level, data);
-        }
+        ModEvents.post(new LandOwnerChangeEvent(level, data, false));
         ServerPlayer former = server.getPlayerList().getPlayer(owner);
         if (former != null) {
             former.sendSystemMessage(Component.translatable(MSG_LOST, Component.translatable(data.land().nameKey())));

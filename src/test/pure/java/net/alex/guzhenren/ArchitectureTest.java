@@ -34,7 +34,8 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 /**
  * 主代码架构规则：分层向下（{@link #LAYERS_ABOVE}，字节码看不见的内联常量由 {@code SourceLayersTest} 按 import 补查）；
  * 仅客户端专用代码引用客户端代码，仅 mixin 引用 mixin；共用蛊物品基类低于凡蛊；空窍[Aperture]
- * 压力爆炸坑低于空窍其余部分；顶层包无环，不计注册枢纽（{@code registry} 与根包类）；二级包亦无环，另不计记录门面
+ * 压力爆炸坑低于空窍其余部分，仙窍[Immortal Aperture]状态层低于仙窍其余部分；顶层包无环，不计注册枢纽（{@code registry}
+ * 与根包类）；二级包亦无环，另不计记录门面
  * {@code gameplay.data}；本命蛊[Vital Gu]绑定唯一读写入口。
  */
 @AnalyzeClasses(packages = "net.alex.guzhenren", importOptions = ArchitectureTest.MainOutputOnly.class)
@@ -110,6 +111,13 @@ class ArchitectureTest {
                     resideInAPackage(ROOT + "gameplay.aperture..")
                             .and(not(resideInAPackage(ROOT + "gameplay.aperture.pressure.."))))
             .because("the aperture calls down into the crater runtime; a call back up would close a cycle");
+    @ArchTest
+    static final ArchRule immortalApertureStateStaysBelowTheRestOfTheAperture = noClasses()
+            .that().resideInAPackage(ROOT + "gameplay.immortalaperture.state..").should().dependOnClassesThat(
+                    resideInAPackage(ROOT + "gameplay.immortalaperture..")
+                            .and(not(resideInAPackage(ROOT + "gameplay.immortalaperture.state.."))))
+            .because("features, the map pipeline, the panel and the assembly sit on the land's state; the state "
+                    + "tells them through events");
     @ArchTest
     static final ArchRule topLevelPackagesFormNoCycle = slices().matching(ROOT + "(*)..")
             .should().beFreeOfCycles()

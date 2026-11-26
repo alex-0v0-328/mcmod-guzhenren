@@ -6,8 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.Catchable;
-import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * 地灵面板「蛊虫」页：按种类清点福地里的野生蛊，多出保持数的「捕获入库」，以及托管。
  * <ul>
  *   <li>野生蛊 = 已加载区块里 {@link ModEntityTypeTags#WILD_GU} 的 {@link Mob}，能被捕获（{@link Catchable}），且是
- *       {@link SoulsunderMountainWork#isManaged} 认可的（已命名、拴绳的不算）；按实体类型 ID 分种类。</li>
+ *       {@link LandRules#isManaged} 认可的（已命名、拴绳的不算）；按实体类型 ID 分种类。</li>
  *   <li>{@link #capture}：每种捕到只剩保持数，保持数 0 的种类不捕；捕到的是 {@link Catchable#caughtStack} 给的未炼化
  *       蛊虫物品（同右键捕获），直接进库藏，实体移除。一次至多 {@code limit} 只。</li>
  *   <li>野生蛊不繁殖，福地暂不自然刷野生蛊（Alex 定），少了不补：托管 {@link #host} 只捕多出来的。</li>
@@ -32,6 +33,8 @@ public final class GuWork {
 
     private GuWork() {}
 
+    public static final LandCensus.Census<Map<ResourceLocation, List<Mob>>> CENSUS =
+            LandCensus.Census.ofLevel(level -> census(level.getAllEntities()));
     public static final int LIMIT = 16;
 
     public static @NotNull ResourceLocation typeId(@NotNull Entity entity) {
@@ -42,7 +45,7 @@ public final class GuWork {
         Map<ResourceLocation, List<Mob>> swarms = new LinkedHashMap<>();
         for (Entity entity : entities) {
             if (entity instanceof Mob gu && gu instanceof Catchable && gu.getType().is(ModEntityTypeTags.WILD_GU)
-                    && SoulsunderMountainWork.isManaged(gu)) {
+                    && LandRules.isManaged(gu)) {
                 swarms.computeIfAbsent(typeId(gu), type -> new ArrayList<>()).add(gu);
             }
         }
@@ -86,9 +89,9 @@ public final class GuWork {
     public static int host(@NotNull Map<ResourceLocation, List<Mob>> swarms,
                            @NotNull BlissfulLandData data, int limit) {
         Map<ResourceLocation, Integer> keep = new LinkedHashMap<>();
-        data.gu().keep().forEach((type, floor) -> {
-            if (data.gu().isHosted(type)) keep.put(type, floor);
+        GuState.of(data).keep().forEach((type, floor) -> {
+            if (GuState.of(data).isHosted(type)) keep.put(type, floor);
         });
-        return capture(swarms, keep, data.storage(), limit);
+        return capture(swarms, keep, BlissfulStorage.of(data), limit);
     }
 }

@@ -20,5 +20,6 @@ public record WhitelistEntry(@NotNull UUID id, @NotNull String name, boolean whi
             ByteBufCodecs.BOOL, WhitelistEntry::whitelisted,
             ByteBufCodecs.BOOL, WhitelistEntry::owner,
             WhitelistEntry::new);
-    public static final StreamCodec<ByteBuf, List<WhitelistEntry>> LIST_CODEC = STREAM_CODEC.apply(ByteBufCodecs.list());
+    public static final StreamCodec<ByteBuf, List<WhitelistEntry>> LIST_CODEC =
+            STREAM_CODEC.apply(ByteBufCodecs.list());
 }

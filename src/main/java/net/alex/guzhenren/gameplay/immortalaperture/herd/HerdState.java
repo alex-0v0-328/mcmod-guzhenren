@@ -7,6 +7,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.alex.guzhenren.core.ModSavedData.StackIo;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandSavePart;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongArrayTag;
@@ -23,11 +26,13 @@ import org.jetbrains.annotations.Nullable;
  *   <li>保持数与托管开关分开存：关掉托管不丢保持数，一键宰杀也照保持数算；保持数 0 = 不管，不存。</li>
  *   <li>牧场按下标排列（面板操作按下标指牧场）；失主也不清：栅栏还在，下一任认主时照样挂牧场强加载
  *       （{@link PastureWork#retain}）。上限在选址时查（{@code Siting#PASTURE_CAP}）。</li>
- *   <li>任何改动经构造时传入的回调通知所属存档置脏。</li>
+ *   <li>本类是存档段 {@link #PART}（子项 {@code herd}），任何改动经回调通知所属存档置脏。</li>
  * </ul>
  */
 
-public final class HerdState {
+public final class HerdState implements LandSavePart.State {
+
+    public static final LandSavePart<HerdState> PART = new LandSavePart<>("herd", HerdState::new);
 
     private final Runnable changed;
     private final Set<ResourceLocation> hosted = new LinkedHashSet<>();
@@ -38,6 +43,8 @@ public final class HerdState {
     private long gatherReadyAt;
 
     public HerdState(@NotNull Runnable changed) { this.changed = changed; }
+
+    public static @NotNull HerdState of(@NotNull BlissfulLandData data) { return data.part(PART); }
 
     //region Pastures [牧场]
     public @NotNull List<ChunkPos> pastures() { return List.copyOf(pastures); }
@@ -105,7 +112,8 @@ public final class HerdState {
         changed.run();
     }
 
-    public @NotNull CompoundTag save() {
+    @Override
+    public void save(@NotNull CompoundTag parent, @NotNull String key, @NotNull StackIo stacks) {
         CompoundTag tag = new CompoundTag();
         ListTag list = new ListTag();
         for (ResourceLocation type : hosted) list.add(StringTag.valueOf(type.toString()));
@@ -117,10 +125,12 @@ public final class HerdState {
         tag.putInt("last_bred", lastBred);
         tag.put("pastures", new LongArrayTag(pastures.stream().mapToLong(ChunkPos::toLong).toArray()));
         tag.putLong("gather_ready_at", gatherReadyAt);
-        return tag;
+        parent.put(key, tag);
     }
 
-    public void load(@NotNull CompoundTag tag) {
+    @Override
+    public void load(@NotNull CompoundTag parent, @NotNull String name, @NotNull StackIo stacks) {
+        CompoundTag tag = parent.getCompound(name);
         for (Tag element : tag.getList("hosted", Tag.TAG_STRING)) {
             ResourceLocation type = ResourceLocation.tryParse(element.getAsString());
             if (type != null) hosted.add(type);

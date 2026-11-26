@@ -15,6 +15,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -85,8 +86,8 @@ public final class GuModule implements LandModule<GuModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             BlissfulLandData data = context.data();
-            return EarthSpiritPanel.notice("captured", GuWork.capture(LandCensus.gus(context.level()),
-                    data.gu().keep(), data.storage(), GuWork.LIMIT));
+            return EarthSpiritPanel.notice("captured", GuWork.capture(LandCensus.take(context.level(), GuWork.CENSUS),
+                    GuState.of(data).keep(), BlissfulStorage.of(data), GuWork.LIMIT));
         }
     }
 
@@ -98,7 +99,7 @@ public final class GuModule implements LandModule<GuModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            if (isWildGu(type)) context.data().gu().setHosted(type, on);
+            if (isWildGu(type)) GuState.of(context.data()).setHosted(type, on);
             return Component.empty();
         }
     }
@@ -111,7 +112,7 @@ public final class GuModule implements LandModule<GuModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            if (isWildGu(type)) context.data().gu().setKeep(type, keep);
+            if (isWildGu(type)) GuState.of(context.data()).setKeep(type, keep);
             return Component.empty();
         }
     }
@@ -137,8 +138,8 @@ public final class GuModule implements LandModule<GuModule.Section> {
     @Override
     public @NotNull Section section(@NotNull PanelContext context) {
         ServerLevel level = context.level();
-        GuState state = context.data().gu();
-        Map<ResourceLocation, List<Mob>> swarms = LandCensus.gus(level);
+        GuState state = GuState.of(context.data());
+        Map<ResourceLocation, List<Mob>> swarms = LandCensus.take(level, GuWork.CENSUS);
         Map<ResourceLocation, List<Mob>> sorted = new TreeMap<>(
                 Comparator.comparing(ResourceLocation::toString));
         sorted.putAll(swarms);
@@ -157,10 +158,10 @@ public final class GuModule implements LandModule<GuModule.Section> {
 
     @Override
     public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!data.gu().hosting()) return 0;
+        if (!GuState.of(data).hosting()) return 0;
 
-        int captured = GuWork.host(LandCensus.gus(level), data, HOSTING_GU);
-        data.gu().setLastCaptured(captured);
+        int captured = GuWork.host(LandCensus.take(level, GuWork.CENSUS), data, HOSTING_GU);
+        GuState.of(data).setLastCaptured(captured);
         return captured;
     }
 }

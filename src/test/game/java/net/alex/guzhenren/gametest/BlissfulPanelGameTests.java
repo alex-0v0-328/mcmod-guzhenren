@@ -17,6 +17,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.LandModules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuModule;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
@@ -108,9 +109,9 @@ public final class BlissfulPanelGameTests {
         }
 
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        data.storage().insert(new ItemStack(Items.WHEAT, 70));
+        BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT, 70));
         data.addWhitelist(someone, "Steve");
-        data.herd().setKeep(cow, 3);
+        HerdState.of(data).setKeep(cow, 3);
         List<LandModule<?>> placed = new ArrayList<>();
         for (Page page : Page.values()) {
             PanelSnapshot snapshot = EarthSpiritPanel.snapshot(level, data, someone, page, Component.literal("done"));
@@ -194,7 +195,7 @@ public final class BlissfulPanelGameTests {
     @GameTest(template = "empty9x9x9")
     public static void depositingMatchesStoresOnlyKnownKindsOutsideTheHotbar(GameTestHelper helper) {
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-deposit-mock").onGround();
-        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         storage.insert(new ItemStack(Items.WHEAT, 1));
         owner.getInventory().setItem(0, new ItemStack(Items.WHEAT, 5));
         owner.getInventory().setItem(9, new ItemStack(Items.WHEAT, 7));
@@ -214,7 +215,7 @@ public final class BlissfulPanelGameTests {
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-browse-mock").onGround();
         UUID viewer = owner.getUUID();
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        BlissfulStorage storage = data.storage();
+        BlissfulStorage storage = BlissfulStorage.of(data);
         int page = StorageBrowser.PAGE_SIZE;
         for (int i = 0; i < KINDS; i++) storage.insert(named(i, i < page ? NEAR_CAP : i < 2 * page ? OVER_CAP : 0));
         storage.insert(new ItemStack(Items.WHEAT, 100));
@@ -346,7 +347,7 @@ public final class BlissfulPanelGameTests {
         Cow calf = helper.spawn(EntityType.COW, CENTER_POS.offset(0, 0, 2));
         calf.setBaby(true);
         herd.add(calf);
-        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         Map<ResourceLocation, Integer> keep = Map.of(HerdWork.typeId(calf), 2);
 
         int preview = HerdWork.slaughterCount(HerdWork.census(herd), keep, HerdWork.LIMIT);

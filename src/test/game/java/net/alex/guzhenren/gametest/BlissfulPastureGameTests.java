@@ -3,6 +3,7 @@ package net.alex.guzhenren.gametest;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
@@ -195,7 +196,7 @@ public final class BlissfulPastureGameTests {
         ServerLevel level = helper.getLevel();
         Cow cow = helper.spawn(EntityType.COW, new BlockPos(4, 1, 4));
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        data.herd().addPasture(cow.chunkPosition());
+        HerdState.of(data).addPasture(cow.chunkPosition());
         RealmSite site = new RealmSite(helper.absolutePos(new BlockPos(4, 1, 4)).offset(64, 0, 64), 2);
 
         helper.assertTrue(PastureWork.Pasture.at(cow.chunkPosition().x, cow.chunkPosition().z).contains(cow),

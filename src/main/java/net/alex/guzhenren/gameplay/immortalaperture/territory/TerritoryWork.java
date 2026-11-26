@@ -8,8 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
@@ -101,18 +103,18 @@ public final class TerritoryWork {
 
     private static Voided voidHoldings(ServerLevel level, BlissfulLandData data, Territory after) {
         int fields = 0;
-        for (FieldPlot field : data.farm().fields()) {
+        for (FieldPlot field : FarmState.of(data).fields()) {
             if (!after.isCeded(field.chunk().x, field.chunk().z)) continue;
             FarmWork.setForced(level, field, false);
-            data.farm().removeField(field);
+            FarmState.of(data).removeField(field);
             fields++;
         }
         int plans = 0;
-        for (long plan : data.farm().plans()) {
-            if (after.isCeded(ChunkPos.getX(plan), ChunkPos.getZ(plan)) && data.farm().removePlan(plan)) plans++;
+        for (long plan : FarmState.of(data).plans()) {
+            if (after.isCeded(ChunkPos.getX(plan), ChunkPos.getZ(plan)) && FarmState.of(data).removePlan(plan)) plans++;
         }
         int pastures = 0;
-        List<ChunkPos> corners = data.herd().pastures();
+        List<ChunkPos> corners = HerdState.of(data).pastures();
         for (int i = corners.size() - 1; i >= 0; i--) {
             ChunkPos corner = corners.get(i);
             boolean ceded = false;
@@ -121,7 +123,7 @@ public final class TerritoryWork {
             }
             if (!ceded) continue;
             PastureWork.forceChunks(level, PastureWork.Pasture.at(corner.x, corner.z), false);
-            data.herd().removePasture(i);
+            HerdState.of(data).removePasture(i);
             pastures++;
         }
         return new Voided(fields, plans, pastures);

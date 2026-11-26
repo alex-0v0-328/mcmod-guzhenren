@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
@@ -111,9 +112,11 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
         ServerLevel level = context.level();
         BlissfulLandData data = context.data();
         int animals = 0;
-        for (var herd : LandCensus.herds(level).values()) animals += herd.size();
+        for (var herd : LandCensus.take(level, HerdWork.CENSUS).values()) animals += herd.size();
         int crops = 0;
-        for (FarmWork.Count count : LandCensus.crops(level, data).values()) crops += count.mature() + count.growing();
+        for (FarmWork.Count count : LandCensus.take(level, data, FarmWork.CENSUS).values()) {
+            crops += count.mature() + count.growing();
+        }
         return new Section(data.territory().acres(), GutsStones.get(level).total(), SoulsunderMountain.GUTS_STONE_CAP,
                 animals, crops, present(level, data));
     }
@@ -122,7 +125,8 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
         List<WhitelistEntry> players = new ArrayList<>();
         for (ServerPlayer player : level.players()) {
             UUID id = player.getUUID();
-            players.add(new WhitelistEntry(id, player.getGameProfile().getName(), data.isWhitelisted(id), data.isOwner(id)));
+            players.add(new WhitelistEntry(id, player.getGameProfile().getName(), data.isWhitelisted(id),
+                    data.isOwner(id)));
         }
         return players;
     }

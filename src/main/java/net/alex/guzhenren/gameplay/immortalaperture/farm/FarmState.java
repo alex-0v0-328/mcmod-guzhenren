@@ -4,6 +4,9 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.core.ModSavedData.StackIo;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandSavePart;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.LongArrayTag;
@@ -16,12 +19,13 @@ import org.jetbrains.annotations.Nullable;
  *   <li>标准田记 {@link FieldPlot}，顺序即开垦顺序；规划队列记区块坐标（{@code ChunkPos#toLong}），先进先出，田加规划
  *       合计受 {@code Siting#FIELD_CAP} 限制（在 {@link FieldPlans} 查）。</li>
  *   <li>开垦作物是 {@link FarmWork#CROPS} 的下标，{@value #AUTO_CROP} = 自动（库藏里第一种种子）。</li>
- *   <li>冷却按游戏刻记「何时可再用」，读档后仍有效；任何改动经构造时传入的回调通知所属存档置脏。</li>
+ *   <li>冷却按游戏刻记「何时可再用」，读档后仍有效；本类是存档段 {@link #PART}（子项 {@code farm}），任何改动经回调置脏。</li>
  * </ul>
  */
 
-public final class FarmState {
+public final class FarmState implements LandSavePart.State {
 
+    public static final LandSavePart<FarmState> PART = new LandSavePart<>("farm", FarmState::new);
     public static final int AUTO_CROP = -1;
     private final Runnable changed;
     private final List<FieldPlot> fields = new ArrayList<>();
@@ -33,6 +37,8 @@ public final class FarmState {
     private int lastSown;
 
     public FarmState(@NotNull Runnable changed) { this.changed = changed; }
+
+    public static @NotNull FarmState of(@NotNull BlissfulLandData data) { return data.part(PART); }
 
     //region Fields [田与规划]
     public @NotNull List<FieldPlot> fields() { return List.copyOf(fields); }
@@ -103,7 +109,8 @@ public final class FarmState {
         changed.run();
     }
 
-    public @NotNull CompoundTag save() {
+    @Override
+    public void save(@NotNull CompoundTag parent, @NotNull String key, @NotNull StackIo stacks) {
         CompoundTag tag = new CompoundTag();
         tag.put("fields", new LongArrayTag(fields.stream().mapToLong(FieldPlot::origin).toArray()));
         tag.put("field_sizes", new IntArrayTag(fields.stream().mapToInt(FieldPlot::size).toArray()));
@@ -113,10 +120,12 @@ public final class FarmState {
         tag.putInt("crop", crop);
         tag.putInt("last_reaped", lastReaped);
         tag.putInt("last_sown", lastSown);
-        return tag;
+        parent.put(key, tag);
     }
 
-    public void load(@NotNull CompoundTag tag) {
+    @Override
+    public void load(@NotNull CompoundTag parent, @NotNull String key, @NotNull StackIo stacks) {
+        CompoundTag tag = parent.getCompound(key);
         long[] origins = tag.getLongArray("fields");
         int[] sizes = tag.getIntArray("field_sizes");
         for (int i = 0; i < origins.length && i < sizes.length; i++) fields.add(FieldPlot.load(origins[i], sizes[i]));

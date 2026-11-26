@@ -78,7 +78,7 @@ public final class GuHungerGameTests {
         GuHunger.HungerBar bar = (GuHunger.HungerBar) item.getGuProperties().buildHunger();
         Item food = BuiltInRegistries.ITEM.stream()
                 .filter(each -> item.getGuProperties().feedUnits(new ItemStack(each)) > 0).findFirst().orElseThrow();
-        BlissfulStorage storage = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL).storage();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         storage.insert(new ItemStack(food, 200));
 
         bar.feed(item, player, gu);

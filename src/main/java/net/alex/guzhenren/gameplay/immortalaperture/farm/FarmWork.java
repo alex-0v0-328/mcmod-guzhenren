@@ -7,10 +7,12 @@ import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapScanner;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,10 +34,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地灵面板的标准田：开垦、拆田、按作物清点、收割并补种，以及田的强加载。选址与规划队列在 {@link FieldPlans}。
  * <ul>
- *   <li>{@link #reclaim}：先同步加载田所在区块；每列从地表往下找真实地面（跳过 {@link MapScanner#isPassable}），任一列先
+ *   <li>{@link #reclaim}：先同步加载田所在区块；每列从地表往下找真实地面（跳过 {@link LandRules#isPassable}），任一列先
  *       碰到流体就不开（选址已查过，这里只防开垦前地形变了）；以 {@link FieldPlot#layer}（列数最多的地面层）为耕地层，
- *       把整块田整平（上方清空至地表、至多 {@value #CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多
- *       {@value #FILL_DEPTH} 格），按 {@link FieldPlot} 铺土径、水与耕地，再按主人选的开垦作物（{@link FarmState#crop()}，
+ *       把整块田整平（上方清空至地表、至多 {@value LandRules#CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多
+ *       {@value LandRules#FILL_DEPTH} 格），按 {@link FieldPlot} 铺土径、水与耕地，再按主人选的开垦作物（{@link FarmState#crop()}，
  *       自动 = 库藏第一种种子）从库藏扣种子种满耕地（不够就种够的，没有就开空田，留给之后的收割补种）；之后冷却
  *       {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过 {@link ModEvents#canGrief}。</li>
  *   <li>⚠ {@link #reclaim} 清整不掉落任何方块，田上玩家搭的普通方块会被直接抹掉；有方块实体的区块选址时已拒。</li>
@@ -58,10 +60,9 @@ public final class FarmWork {
 
     private FarmWork() {}
 
+    public static final LandCensus.Census<Map<Block, Count>> CENSUS = LandCensus.Census.ofLand(FarmWork::census);
     public static final TicketController TICKETS = new TicketController(Guzhenren.id("blissful_land_fields"),
             FarmWork::validateTickets);
-    public static final int FILL_DEPTH = 8;
-    public static final int CLEAR_HEIGHT = 32;
     public static final int RECLAIM_COOLDOWN_TICKS = 60 * Ticks.SECOND;
     public static final List<Block> CROPS = List.of(Blocks.WHEAT, Blocks.CARROTS, Blocks.POTATOES, Blocks.BEETROOTS);
     private static final int NO_GROUND = Integer.MIN_VALUE;
@@ -71,7 +72,7 @@ public final class FarmWork {
     public record Harvest(int reaped, int sown, int fields) {}
 
     public static long reclaimCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, data.farm().reclaimReadyAt() - level.getGameTime());
+        return Math.max(0L, FarmState.of(data).reclaimReadyAt() - level.getGameTime());
     }
 
     //region Reclaim [开垦与拆田]
@@ -96,17 +97,17 @@ public final class FarmWork {
             }
         }
         sowAll(level, data, field.cells());
-        data.farm().addField(field);
-        data.farm().setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
+        FarmState.of(data).addField(field);
+        FarmState.of(data).setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
         setForced(level, field, true);
         return field;
     }
 
     private static void sowAll(ServerLevel level, BlissfulLandData data, List<BlockPos> cells) {
-        ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
+        ItemStack seed = BlissfulStorage.of(data).first(seedFilter(FarmState.of(data).crop()));
         if (seed.isEmpty()) return;
         Predicate<ItemStack> same = stack -> ItemStack.isSameItemSameComponents(stack, seed);
-        int planted = data.storage().consume(same, cells.size());
+        int planted = BlissfulStorage.of(data).consume(same, cells.size());
         BlockState crop = ((BlockItem) seed.getItem()).getBlock().defaultBlockState();
         for (int i = 0; i < planted; i++) level.setBlock(cells.get(i), crop, Block.UPDATE_ALL);
     }
@@ -117,20 +118,20 @@ public final class FarmWork {
         for (; pos.getY() > level.getMinBuildHeight(); pos.move(0, -1, 0)) {
             BlockState state = level.getBlockState(pos);
             if (!state.getFluidState().isEmpty()) return NO_GROUND;
-            if (!MapScanner.isPassable(state)) return pos.getY();
+            if (!LandRules.isPassable(state)) return pos.getY();
         }
         return NO_GROUND;
     }
 
     private static void level(ServerLevel level, BlockPos ground, FieldPlot.Cell cell) {
         int top = Math.min(level.getHeight(Heightmap.Types.WORLD_SURFACE, ground.getX(), ground.getZ()),
-                ground.getY() + CLEAR_HEIGHT);
+                ground.getY() + LandRules.CLEAR_HEIGHT);
         for (int y = top; y > ground.getY(); y--) {
             BlockPos pos = new BlockPos(ground.getX(), y, ground.getZ());
             if (level.getBlockState(pos).isAir()) continue;
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         }
-        for (int depth = 1; depth <= FILL_DEPTH; depth++) {
+        for (int depth = 1; depth <= LandRules.FILL_DEPTH; depth++) {
             BlockPos pos = ground.below(depth);
             if (!level.getBlockState(pos).canBeReplaced()) break;
             level.setBlock(pos, Blocks.DIRT.defaultBlockState(), Block.UPDATE_ALL);
@@ -152,7 +153,7 @@ public final class FarmWork {
         for (BlockPos pos : field.cells()) {
             BlockState state = level.getBlockState(pos);
             if (!isCrop(state)) continue;
-            for (ItemStack drop : Block.getDrops(state, level, pos, null)) data.storage().insert(drop);
+            for (ItemStack drop : Block.getDrops(state, level, pos, null)) BlissfulStorage.of(data).insert(drop);
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
             reaped++;
         }
@@ -166,7 +167,7 @@ public final class FarmWork {
             }
         }
         setForced(level, field, false);
-        data.farm().removeField(field);
+        FarmState.of(data).removeField(field);
         return reaped;
     }
 
@@ -190,7 +191,7 @@ public final class FarmWork {
 
     public static @NotNull Map<Block, Count> census(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
         Map<Block, int[]> counts = new LinkedHashMap<>();
-        for (FieldPlot field : data.farm().fields()) {
+        for (FieldPlot field : FarmState.of(data).fields()) {
             if (!level.isLoaded(field.center())) continue;
             for (BlockPos pos : field.cells()) {
                 BlockState state = level.getBlockState(pos);
@@ -221,7 +222,7 @@ public final class FarmWork {
         int reaped = 0;
         int sown = 0;
         int fields = 0;
-        for (FieldPlot field : data.farm().fields()) {
+        for (FieldPlot field : FarmState.of(data).fields()) {
             if (fields >= fieldLimit) break;
             if (!level.isLoaded(field.center())) continue;
             List<BlockPos> cells = field.cells();
@@ -247,9 +248,9 @@ public final class FarmWork {
                 drop.shrink(1);
                 replanted = true;
             }
-            if (!drop.isEmpty()) data.storage().insert(drop);
+            if (!drop.isEmpty()) BlissfulStorage.of(data).insert(drop);
         }
-        if (!replanted) replanted = data.storage().consume(stack -> stack.is(seed), 1) == 1;
+        if (!replanted) replanted = BlissfulStorage.of(data).consume(stack -> stack.is(seed), 1) == 1;
         BlockState next = replanted ? state.getBlock().defaultBlockState() : Blocks.AIR.defaultBlockState();
         level.setBlock(pos, next, Block.UPDATE_ALL);
     }
@@ -257,7 +258,7 @@ public final class FarmWork {
     private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells) {
         Block crop = cropOf(level, cells);
         if (crop == null) {
-            ItemStack seed = data.storage().first(seedFilter(data.farm().crop()));
+            ItemStack seed = BlissfulStorage.of(data).first(seedFilter(FarmState.of(data).crop()));
             if (seed.isEmpty()) return 0;
             crop = ((BlockItem) seed.getItem()).getBlock();
         }
@@ -266,7 +267,7 @@ public final class FarmWork {
         for (BlockPos pos : cells) {
             BlockState ground = level.getBlockState(pos.below());
             if (!level.getBlockState(pos).isAir() || !ground.is(Blocks.FARMLAND) && !ground.is(Blocks.DIRT)) continue;
-            if (data.storage().consume(stack -> stack.is(seed), 1) == 0) break;
+            if (BlissfulStorage.of(data).consume(stack -> stack.is(seed), 1) == 0) break;
 
             if (ground.is(Blocks.DIRT)) {
                 level.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState()
@@ -290,11 +291,11 @@ public final class FarmWork {
 
     //region Tickets [强加载]
     public static void retain(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        for (FieldPlot field : data.farm().fields()) setForced(level, field, true);
+        for (FieldPlot field : FarmState.of(data).fields()) setForced(level, field, true);
     }
 
     public static void release(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        for (FieldPlot field : data.farm().fields()) setForced(level, field, false);
+        for (FieldPlot field : FarmState.of(data).fields()) setForced(level, field, false);
     }
 
     public static void setForced(@NotNull ServerLevel level, @NotNull FieldPlot field, boolean add) {

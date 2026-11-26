@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
@@ -130,16 +133,17 @@ public final class MapModule implements LandModule<MapModule.Section> {
         LandSite site = BlissfulLandLookup.siteOf(level.getServer(), data.land());
         RealmSite realm = SecretRealms.siteOf(level.getServer(), data.land().realm());
         List<Section.Field> fields = new ArrayList<>();
-        for (FieldPlot field : data.farm().fields()) {
+        for (FieldPlot field : FarmState.of(data).fields()) {
             FarmWork.Count count = FarmWork.count(level, field);
             fields.add(new Section.Field(field.chunk().x, field.chunk().z, count.mature(), count.growing()));
         }
         List<ChunkPos> planned = new ArrayList<>();
-        for (long plan : data.farm().plans()) planned.add(new ChunkPos(plan));
+        for (long plan : FarmState.of(data).plans()) planned.add(new ChunkPos(plan));
         List<Section.Pen> pastures = new ArrayList<>();
-        for (ChunkPos corner : data.herd().pastures()) {
+        for (ChunkPos corner : HerdState.of(data).pastures()) {
             PastureWork.Pasture pasture = PastureWork.Pasture.at(corner.x, corner.z);
-            int penned = PastureWork.count(PastureWork.penned(LandCensus.herds(level), List.of(pasture)));
+            int penned = PastureWork.count(PastureWork.penned(LandCensus.take(level, HerdWork.CENSUS),
+                    List.of(pasture)));
             pastures.add(new Section.Pen(corner.x, corner.z, penned));
         }
         return new Section(data.territory(), site == null ? BlockPos.ZERO : site.center(),
@@ -153,10 +157,10 @@ public final class MapModule implements LandModule<MapModule.Section> {
     public static @NotNull Siting.Plot plot(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
         RealmSite realm = SecretRealms.siteOf(level.getServer(), data.land().realm());
         List<Long> fields = new ArrayList<>();
-        for (FieldPlot field : data.farm().fields()) fields.add(field.chunk().toLong());
-        for (long plan : data.farm().plans()) fields.add(plan);
+        for (FieldPlot field : FarmState.of(data).fields()) fields.add(field.chunk().toLong());
+        for (long plan : FarmState.of(data).plans()) fields.add(plan);
         List<Long> corners = new ArrayList<>();
-        for (ChunkPos corner : data.herd().pastures()) corners.add(corner.toLong());
+        for (ChunkPos corner : HerdState.of(data).pastures()) corners.add(corner.toLong());
         return Siting.Plot.of(data.territory(), realm == null ? 0 : realm.center().getX(),
                 realm == null ? 0 : realm.center().getZ(), realm == null ? 0 : realm.radius(), fields, corners);
     }

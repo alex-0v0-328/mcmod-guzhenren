@@ -6,8 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地灵面板「养殖」页：按种类清点、喂养繁殖、宰杀收取，以及托管的「每种保持 N 只」。
  * <ul>
- *   <li>动物 = 已加载区块里的原版 {@link Animal}，且是 {@link SoulsunderMountainWork#isManaged} 认可的；按实体类型 ID 分种类，幼
+ *   <li>动物 = 已加载区块里的原版 {@link Animal}，且是 {@link LandRules#isManaged} 认可的；按实体类型 ID 分种类，幼
  *       崽计入数量但不宰、不喂。</li>
  *   <li>{@link #breed}：每种取尚未发情、能发情的成年动物，凑成对；每只扣 1 份该种能吃的饲料（库藏里第一种
  *       {@code Animal#isFood} 为真的物品，不够就少喂），{@code setInLove} 后由原版繁殖 AI 自己配对。</li>
@@ -43,6 +44,8 @@ public final class HerdWork {
 
     private HerdWork() {}
 
+    public static final LandCensus.Census<Map<ResourceLocation, List<Animal>>> CENSUS =
+            LandCensus.Census.ofLevel(HerdWork::census);
     public static final int LIMIT = 64;
 
     public record Breed(int animals, int food) {}
@@ -63,7 +66,7 @@ public final class HerdWork {
     public static @NotNull Map<ResourceLocation, List<Animal>> census(@NotNull Iterable<? extends Entity> entities) {
         Map<ResourceLocation, List<Animal>> herds = new LinkedHashMap<>();
         for (Entity entity : entities) {
-            if (entity instanceof Animal animal && SoulsunderMountainWork.isManaged(animal)) {
+            if (entity instanceof Animal animal && LandRules.isManaged(animal)) {
                 herds.computeIfAbsent(typeId(animal), type -> new ArrayList<>()).add(animal);
             }
         }
@@ -153,16 +156,16 @@ public final class HerdWork {
     public static @NotNull Hosted host(@NotNull ServerLevel level, @NotNull Map<ResourceLocation, List<Animal>> herds,
                                        @NotNull BlissfulLandData data, @Nullable ServerPlayer owner, int limit) {
         Map<ResourceLocation, Integer> keep = new LinkedHashMap<>();
-        data.herd().keep().forEach((type, floor) -> {
-            if (data.herd().isHosted(type)) keep.put(type, floor);
+        HerdState.of(data).keep().forEach((type, floor) -> {
+            if (HerdState.of(data).isHosted(type)) keep.put(type, floor);
         });
-        int killed = slaughter(level, herds, keep, data.storage(), owner, limit);
+        int killed = slaughter(level, herds, keep, BlissfulStorage.of(data), owner, limit);
         Map<ResourceLocation, Integer> wanted = new LinkedHashMap<>();
         keep.forEach((type, floor) -> {
             int missing = floor - herds.getOrDefault(type, List.of()).size();
             if (missing > 0) wanted.put(type, missing);
         });
-        return new Hosted(killed, breed(herds, data.storage(), limit - killed, wanted).animals());
+        return new Hosted(killed, breed(herds, BlissfulStorage.of(data), limit - killed, wanted).animals());
     }
     //endregion
 }

@@ -71,7 +71,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            StorageWork.take(context.player(), context.menu(), context.data().storage(), serial, all);
+            StorageWork.take(context.player(), context.menu(), BlissfulStorage.of(context.data()), serial, all);
             return Component.empty();
         }
     }
@@ -99,7 +99,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            StorageWork.depositCarried(context.menu(), context.data().storage());
+            StorageWork.depositCarried(context.menu(), BlissfulStorage.of(context.data()));
             return Component.empty();
         }
     }
@@ -111,7 +111,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            int moved = StorageWork.depositMatching(context.player(), context.data().storage());
+            int moved = StorageWork.depositMatching(context.player(), BlissfulStorage.of(context.data()));
             return moved > 0 ? EarthSpiritPanel.notice("deposited", moved) : EarthSpiritPanel.notice("nothing_matches");
         }
     }
@@ -133,6 +133,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
 
     @Override
     public @NotNull Section section(@NotNull PanelContext context) {
-        return StorageBrowser.page(context.viewer(), context.data().storage(), context.level().registryAccess());
+        return StorageBrowser.page(context.viewer(), BlissfulStorage.of(context.data()),
+                context.level().registryAccess());
     }
 }

@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import net.alex.guzhenren.core.ModSavedData.StackIo;
+import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandSavePart;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -22,12 +24,12 @@ import org.jetbrains.annotations.NotNull;
  *       动也拿不错；条目删掉后再入库的同种物品换新号，旧号取不到东西。</li>
  *   <li>{@link #revision} 每次改动加一，面板浏览据此缓存筛选排序结果。</li>
  *   <li>胆识蛊[Guts Gu]不入库（{@link #accepts}），否则可借库藏把它带出荡魂山。</li>
- *   <li>任何改动经构造时传入的回调通知所属存档置脏。</li>
+ *   <li>本类是存档段 {@link #PART}（子项 {@code storage}），任何改动经回调通知所属存档置脏。</li>
  *   <li>⚠ 性能：查找是线性的；条目数等于物品种类数，福地产物只有几十种。</li>
  * </ul>
  */
 
-public final class BlissfulStorage {
+public final class BlissfulStorage implements LandSavePart.State {
 
     private final List<Entry> entries = new ArrayList<>();
     private final Runnable changed;
@@ -36,6 +38,9 @@ public final class BlissfulStorage {
 
     public BlissfulStorage(@NotNull Runnable changed) { this.changed = changed; }
 
+    public static @NotNull BlissfulStorage of(@NotNull BlissfulLandData data) { return data.part(PART); }
+
+    public static final LandSavePart<BlissfulStorage> PART = new LandSavePart<>("storage", BlissfulStorage::new);
     public static final class Entry {
 
         private final long serial;
@@ -134,6 +139,7 @@ public final class BlissfulStorage {
         return entry.key.copyWithCount(count);
     }
 
+    @Override
     public void save(@NotNull CompoundTag tag, @NotNull String key, @NotNull StackIo stacks) {
         ListTag list = new ListTag();
         for (Entry entry : entries) {
@@ -145,6 +151,7 @@ public final class BlissfulStorage {
         tag.put(key, list);
     }
 
+    @Override
     public void load(@NotNull CompoundTag tag, @NotNull String key, @NotNull StackIo stacks) {
         entries.clear();
         revision++;

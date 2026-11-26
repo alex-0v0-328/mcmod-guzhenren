@@ -70,7 +70,8 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
 
             RealmSite site = SecretRealms.siteOf(level.getServer(), data.land().realm());
             if (site == null) return EarthSpiritPanel.notice("no_mountain");
-            return EarthSpiritPanel.notice("moved", SoulsunderMountainWork.moveMobsUp(level, site, data, level.getRandom()));
+            return EarthSpiritPanel.notice("moved",
+                    SoulsunderMountainWork.moveMobsUp(level, site, data, level.getRandom()));
         }
     }
 
