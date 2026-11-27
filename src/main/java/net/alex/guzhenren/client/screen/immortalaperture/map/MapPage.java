@@ -29,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
  *   <li>操作：左键或右键拖动平移；滚轮以光标为锚缩放；R 顺时针转、Shift+R 逆时针转；V 切地形 / 等高线；= 与 -
  *       缩放。按下与松开相距不到 {@value #CLICK_SLOP} 像素算点击：拿着工具即执行工具，否则点占地开卡片；拿着工具时右键
  *       或 Esc 退出工具，Esc 也关卡片。</li>
- *   <li>本页显示时 {@link #hidesWorld} 为真，{@code GameRendererMixin} 整帧跳过世界渲染；启动参数
- *       {@code -D}{@value #KEEP_WORLD_PROPERTY}{@code =true} 退回照常渲染，供光影或性能模组冲突时排查。</li>
  *   <li>相机对准山心（参照平面 = 山底）；秘境还没解出山心时对准玩家脚下；「山心」按钮同。</li>
  *   <li>⚠ 绘制都在 {@link #fills}（贴图与头像是立即绘制，见 {@link MapScene}），按钮与卡片精灵在同一步另起
  *       {@link SpriteBatch}。</li>
@@ -39,12 +37,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class MapPage extends PanelPage {
 
-    public static final String KEEP_WORLD_PROPERTY = "guzhenren.mapKeepsWorld";
-    private static final boolean KEEPS_WORLD = Boolean.getBoolean(KEEP_WORLD_PROPERTY);
     private static final int TOP = EarthSpiritScreen.BAR_H + 1;
     private static final int NO_BUTTON = -1;
     private static final int CLICK_SLOP = 3;
-    private static volatile boolean showing;
     private final MapCamera camera = new MapCamera(0.0, 64.0, 0.0);
     private final MapSurface surface = new MapSurface();
     private final MapControls controls = new MapControls();
@@ -63,9 +58,6 @@ public class MapPage extends PanelPage {
 
     public MapPage(EarthSpiritScreen screen) { super(screen); }
 
-    public static boolean hidesWorld() {
-        return !KEEPS_WORLD && showing && Minecraft.getInstance().screen instanceof EarthSpiritScreen;
-    }
 
     @Override
     protected Component name() { return Component.translatable(EarthSpiritScreen.UI + "tab.map"); }
@@ -94,7 +86,6 @@ public class MapPage extends PanelPage {
 
     @Override
     protected void hidden() {
-        showing = false;
         dragging = NO_BUTTON;
         cede.closeAll();
         tools.cancel();
@@ -104,7 +95,6 @@ public class MapPage extends PanelPage {
 
     @Override
     protected void closed() {
-        showing = false;
         LandMapClient.clear();
         surface.close();
     }
@@ -130,7 +120,6 @@ public class MapPage extends PanelPage {
     //region Drawing [绘制]
     @Override
     protected void fills(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        showing = true;
         sync();
         hover = pick(mouseX, mouseY);
         List<MapPlots.Plot> plots = land.plots();

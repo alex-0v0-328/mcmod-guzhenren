@@ -8,6 +8,7 @@ import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.map.MapPage;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPalette;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
@@ -38,10 +39,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地灵[Earth Spirit]经营面板：四个 {@link Page}（地图、库藏、秘境、信息），各页由 {@link PanelPage} 子类绘制。
  * <ul>
- *   <li>地图页全屏：面板即整个窗口，最上 {@value #BAR_H} 像素是顶栏（左写「福地名 · 时辰」，右侧并排四个分页标签），不画
- *       背后的半透明遮罩。其余三页按面板美术规格：主面板 176×222，标签在面板左侧外挂（未选中先画、被面板压住右端；选中
- *       后画、盖住面板左框），整体 231×222 居中，所以 {@code leftPos} 右移 {@value #TAB_SPAN} 的一半。全屏与否随页切换
- *       时重新布局。</li>
+ *   <li>面板开着时整帧不渲染世界（{@link #hidesWorld}，{@code GameRendererMixin} 跳过；启动参数
+ *       {@code -D}{@value #KEEP_WORLD_PROPERTY}{@code =true} 退回照常渲染，供光影或性能模组冲突时排查）。地图页全屏：面板
+ *       即整个窗口，最上 {@value #BAR_H} 像素是顶栏（左写「福地名 · 时辰」，右侧并排四个分页标签）。其余三页画在不透明底
+ *       （{@code MapPalette.BACKDROP}）上，按面板美术规格：主面板 176×222，标签在面板左侧外挂（未选中先画、被面板压住
+ *       右端；选中后画、盖住面板左框），整体 231×222 居中，所以 {@code leftPos} 右移 {@value #TAB_SPAN} 的一半。全屏与否随
+ *       页切换时重新布局。</li>
  *   <li>秘境页的标签与页名写福地秘境的地名（{@link #realmName}）；信息页内部再分小节（{@link InfoPage}）。</li>
  *   <li>绘制顺序：一个 {@code GuiBatch} 里先一个 {@link SpriteBatch} 画全部精灵图，再填充、再文字；物品图标与头像在批
  *       外；地图页的顶栏另起一批画在页面之上；弹窗与操作提示在 {@code super.render} 之后，盖在背包格与光标物品之上。</li>
@@ -66,6 +69,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
 
     public static final String UI = "guzhenren.blissful_land.ui.";
     public static final String TIP = "guzhenren.blissful_land.tip.";
+    public static final String KEEP_WORLD_PROPERTY = "guzhenren.mapKeepsWorld";
     public static final int BAR_H = 24;
     private static final int PANEL_W = 176;
     private static final int PANEL_H = 222;
@@ -80,6 +84,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     private static final int BAR_FILL = 0xE0201A1E;
     private static final int RULE_Y = 15;
     private static final int NOTICE_MILLIS = 4000;
+    private static final boolean KEEPS_WORLD = Boolean.getBoolean(KEEP_WORLD_PROPERTY);
     private static final int HOURS = 12;
     private static final String[] TAB_ICONS = {"icon_territory", "icon_storage", "icon_mountain", "icon_overview"};
     private final Inventory inventory;
@@ -127,6 +132,10 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
 
     //region Layout [布局]
     private boolean isFullscreen() { return this.page == Page.MAP; }
+
+    public static boolean hidesWorld() {
+        return !KEEPS_WORLD && Minecraft.getInstance().screen instanceof EarthSpiritScreen;
+    }
 
     @Override
     protected void init() {
@@ -270,6 +279,9 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     @Override
     public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (isFullscreen()) {
+            renderBg(graphics, partialTick, mouseX, mouseY);
+        } else if (hidesWorld()) {
+            graphics.fill(0, 0, this.width, this.height, MapPalette.BACKDROP);
             renderBg(graphics, partialTick, mouseX, mouseY);
         } else {
             super.renderBackground(graphics, mouseX, mouseY, partialTick);
