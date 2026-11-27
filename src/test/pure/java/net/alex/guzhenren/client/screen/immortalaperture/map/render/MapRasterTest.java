@@ -1,6 +1,9 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map.render;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTerrain;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 import org.junit.jupiter.api.DisplayName;
@@ -115,6 +118,37 @@ class MapRasterTest {
         assertEquals(MapPalette.left(MapTerrain.GRASS), result.pixels()[(anchorY + cell + 1 - originY) * width + sideX]);
         assertEquals(MapPalette.strata(MapTerrain.GRASS, MapProjection.Face.LEFT),
                 result.pixels()[(anchorY + cell * 4 - originY) * width + sideX]);
+    }
+
+    @Test
+    @DisplayName("a floating stone draws only its own block, the air under it shows the grass behind, not a pillar")
+    void floatingBlockLeavesTheAirEmpty() {
+        MapTestTiles tiles = new MapTestTiles().fill(-3, -3, 2, 2, (x, z) -> 64, (x, z) -> MapTerrain.GRASS)
+                .floating(0, 0, 80, 80, MapTerrain.STONE);
+        MapProjection projection = MapProjection.of(1, 0, false);
+        int cell = projection.cell();
+        int anchorX = projection.anchorX(0, 0);
+        int stoneY = projection.anchorY(0, 0, 81);
+        int groundY = projection.anchorY(0, 0, 65);
+        int originX = anchorX - 16;
+        int originY = stoneY - 4;
+        MapRaster.Result result = MapRaster.draw(projection, tiles.grid(-3, -3, 2, 2), 65, originX, originY, 32,
+                groundY + 8 - originY);
+        int width = result.width();
+        int grass = MapPalette.top(MapTerrain.GRASS);
+        Set<Integer> lawn = Set.of(grass, MapPalette.darken(grass, MapPalette.GRAIN));
+        Set<Integer> stoneSides = new HashSet<>(List.of(MapPalette.left(MapTerrain.STONE),
+                MapPalette.right(MapTerrain.STONE)));
+        assertEquals(MapPalette.left(MapTerrain.STONE),
+                result.pixels()[(stoneY + cell + 1 - originY) * width + anchorX - 1 - originX]);
+        for (int row = stoneY + 2 * cell - originY; row < result.height(); row++) {
+            for (int column = 0; column < width; column++) {
+                assertFalse(stoneSides.contains(result.pixels()[row * width + column]),
+                        "no stone face below the floating block at " + column + "," + row);
+            }
+        }
+        assertTrue(lawn.contains(result.pixels()[(stoneY + cell * 8 - originY) * width + anchorX - 1 - originX]));
+        assertTrue(lawn.contains(result.pixels()[(groundY + 1 - originY) * width + anchorX - originX]));
     }
 
     @Test

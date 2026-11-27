@@ -24,9 +24,17 @@ class MapPickTest {
         for (int x = -30; x < 30; x += 5) {
             for (int z = -30; z < 30; z += 4) {
                 int ground = tiles.tile(x >> 4, z >> 4).groundAt(x, z);
-                if (MapColumns.raised(tiles.tile(x >> 4, z >> 4).terrainAt(x, z))) continue;
+                MapTerrain here = tiles.tile(x >> 4, z >> 4).terrainAt(x, z);
+                if (here == MapTerrain.FOLIAGE || here == MapTerrain.FENCE) continue;
                 int hash = Math.floorMod(MapTestTiles.hash(x * 3, z), 3);
                 tiles.tree(x, z, ground + 2 + hash, ground + 4 + hash, hash == 0);
+            }
+        }
+        for (int x = -29; x < 30; x += 6) {
+            for (int z = -29; z < 30; z += 5) {
+                int ground = tiles.tile(x >> 4, z >> 4).groundAt(x, z);
+                int lift = Math.floorMod(MapTestTiles.hash(z, x * 7), 3);
+                tiles.floating(x, z, ground + 9 + lift, ground + 10 + 2 * lift, MapTerrain.STONE);
             }
         }
         return tiles;
@@ -143,6 +151,27 @@ class MapPickTest {
         assertEquals(3, under.x());
         assertEquals(MapTerrain.GRASS, under.terrain());
         assertEquals(64, under.top());
+    }
+
+    @Test
+    @DisplayName("a pixel in the air under a floating block picks the grass behind it, not the block's column")
+    void gapUnderFloatingBlock() {
+        MapTestTiles tiles = new MapTestTiles().fill(-2, -2, 1, 1, (x, z) -> 64, (x, z) -> MapTerrain.GRASS)
+                .floating(0, 0, 80, 80, MapTerrain.STONE);
+        MapProjection projection = MapProjection.of(1, 0, false);
+        int cell = projection.cell();
+        int anchorX = projection.anchorX(0, 0);
+        int stoneY = projection.anchorY(0, 0, 81);
+        MapPick.Hit stone = MapPick.pick(projection, tiles, 65, anchorX - 1, stoneY + cell + 1);
+        assertNotNull(stone);
+        assertEquals(MapTerrain.STONE, stone.terrain());
+        assertEquals(MapProjection.Face.LEFT, stone.face());
+        MapPick.Hit gap = MapPick.pick(projection, tiles, 65, anchorX - 1, stoneY + cell * 8);
+        assertNotNull(gap);
+        assertEquals(MapTerrain.GRASS, gap.terrain());
+        assertEquals(64, gap.top());
+        assertEquals(MapProjection.Face.TOP, gap.face());
+        assertFalse(gap.x() == 0 && gap.z() == 0);
     }
 
     @Test

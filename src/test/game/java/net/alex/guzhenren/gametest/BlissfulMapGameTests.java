@@ -22,8 +22,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地地图[Land Map]的区块扫描：地面高与表面高跟真实方块一致（树叶、栅栏、作物、花、甘蔗、火把、地毯、雪层跳过，台阶
- * 仍算地面）、悬空树冠、树干与贴地灌木、流体列与方块实体列的标志、地貌归类，以及已割弃区块给整片虚空。只扫测试区所在的主世界区块，不碰福地维度。
+ * 福地地图[Land Map]的区块扫描：地面高跟真实方块一致（树叶、栅栏、作物、花、甘蔗、火把、地毯、雪层跳过，台阶仍算地面），
+ * 每列的段只记真实方块（悬空方块、悬空树冠下的空气不成段，树干、灌木、栅栏各成一段，薄件压平给下面那段上色），流体列与
+ * 方块实体列的标志、地貌归类，以及已割弃区块给整片虚空。只扫测试区所在的主世界区块，不碰福地维度。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -34,6 +35,17 @@ public final class BlissfulMapGameTests {
 
     private static MapTile tileAt(GameTestHelper helper, BlockPos relative) {
         return MapScanner.scan(helper.getLevel().getChunkAt(helper.absolutePos(relative)));
+    }
+
+    private static int index(BlockPos absolute) { return MapTile.index(absolute.getX(), absolute.getZ()); }
+
+    private static void assertRun(GameTestHelper helper, MapTile tile, BlockPos absolute, int k, int top,
+                                  MapTerrain terrain, String what) {
+        int index = index(absolute);
+        helper.assertTrue(tile.runs(index) > k, what + ": run " + k + " exists");
+        int run = tile.run(index, k);
+        helper.assertValueEqual(tile.runTop(run), top, what + ": run " + k + " top");
+        helper.assertValueEqual(tile.runTerrain(run), terrain, what + ": run " + k + " terrain");
     }
 
     @GameTest(template = "empty9x9x9", skyAccess = true)
@@ -58,22 +70,20 @@ public final class BlissfulMapGameTests {
         MapTile tile = tileAt(helper, new BlockPos(1, 1, 1));
         helper.assertValueEqual(tile.groundAt(leafy.getX(), leafy.getZ()), leafy.getY(),
                 "the ground is the grass under the floating leaves");
-        helper.assertValueEqual(tile.surfaceAt(leafy.getX(), leafy.getZ()), leafy.getY() + 2,
-                "the surface is the leaves");
-        helper.assertValueEqual(tile.terrainAt(leafy.getX(), leafy.getZ()), MapTerrain.FOLIAGE,
-                "the surface reads as foliage");
+        assertRun(helper, tile, leafy, 0, leafy.getY() + 2, MapTerrain.FOLIAGE, "the leaves are a run of their own");
+        helper.assertValueEqual(tile.runBottom(tile.run(index(leafy), 0)), leafy.getY() + 2, "one leaf high");
+        assertRun(helper, tile, leafy, 1, leafy.getY(), MapTerrain.GRASS, "the grass under the gap");
 
         BlockPos fence = helper.absolutePos(new BlockPos(3, 0, 3));
         tile = tileAt(helper, new BlockPos(3, 0, 3));
         helper.assertValueEqual(tile.groundAt(fence.getX(), fence.getZ()), fence.getY(),
                 "a two-high fence is skipped down to the stone floor");
-        helper.assertValueEqual(tile.surfaceAt(fence.getX(), fence.getZ()), fence.getY() + 2, "the fence top");
-        helper.assertValueEqual(tile.terrainAt(fence.getX(), fence.getZ()), MapTerrain.FENCE, "fences have a class");
+        assertRun(helper, tile, fence, 0, fence.getY() + 2, MapTerrain.FENCE, "the fence stands as its own run");
+        assertRun(helper, tile, fence, 1, fence.getY(), MapTerrain.STONE, "the floor under the fence");
 
         BlockPos crop = helper.absolutePos(new BlockPos(6, 2, 2));
         tile = tileAt(helper, new BlockPos(6, 2, 2));
-        helper.assertValueEqual(tile.terrainAt(crop.getX(), crop.getZ()), MapTerrain.FARMLAND,
-                "ripe wheat reads as the field it grows in");
+        assertRun(helper, tile, crop, 0, crop.getY() - 1, MapTerrain.FARMLAND, "ripe wheat lies flat on its field");
         helper.assertValueEqual(tile.groundAt(crop.getX(), crop.getZ()), crop.getY() - 1,
                 "a crop is a plant, so the farmland under it is the ground");
 
@@ -82,11 +92,12 @@ public final class BlissfulMapGameTests {
             tile = tileAt(helper, relative);
             helper.assertValueEqual(tile.groundAt(plant.getX(), plant.getZ()), plant.getY() - 1,
                     "a flower or a sugar cane stands on the ground, it is not the ground");
+            assertRun(helper, tile, plant, 0, plant.getY() - 1, MapTerrain.STONE, "a flower or a cane lies flat");
         }
 
         BlockPos sand = helper.absolutePos(new BlockPos(2, 1, 6));
         tile = tileAt(helper, new BlockPos(2, 1, 6));
-        helper.assertValueEqual(tile.terrainAt(sand.getX(), sand.getZ()), MapTerrain.SAND, "sand reads as sand");
+        assertRun(helper, tile, sand, 0, sand.getY(), MapTerrain.SAND, "sand reads as sand");
         helper.assertValueEqual(tile.groundAt(sand.getX(), sand.getZ()), sand.getY(), "sand is the ground");
 
         ServerLevel level = helper.getLevel();
@@ -95,8 +106,9 @@ public final class BlissfulMapGameTests {
         for (int x = chunk.getPos().getMinBlockX(); x <= chunk.getPos().getMaxBlockX(); x++) {
             for (int z = chunk.getPos().getMinBlockZ(); z <= chunk.getPos().getMaxBlockZ(); z++) {
                 int height = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
-                helper.assertValueEqual(whole.surfaceAt(x, z), height,
-                        "every surface matches the world height map at " + x + ", " + z);
+                int index = MapTile.index(x, z);
+                helper.assertTrue(whole.runs(index) == 0 || whole.runTop(whole.run(index, 0)) <= height,
+                        "no run rises over the world height map at " + x + ", " + z);
             }
         }
         helper.succeed();
@@ -122,19 +134,23 @@ public final class BlissfulMapGameTests {
         int x = floating.getX();
         int z = floating.getZ();
         helper.assertValueEqual(tile.groundAt(x, z), floating.getY(), "the grass under the canopy is the ground");
-        helper.assertValueEqual(tile.lowAt(x, z), floating.getY() + 3, "the canopy floats from its lowest leaf");
-        helper.assertValueEqual(tile.underAt(x, z), MapTerrain.GRASS, "the ground under the canopy reads as grass");
-        helper.assertFalse(tile.hasFlag(x, z, MapTile.FLAG_TRUNK), "air under a canopy is no trunk");
+        assertRun(helper, tile, floating, 0, floating.getY() + 4, MapTerrain.FOLIAGE, "the canopy");
+        helper.assertValueEqual(tile.runBottom(tile.run(index(floating), 0)), floating.getY() + 3,
+                "the canopy floats from its lowest leaf");
+        assertRun(helper, tile, floating, 1, floating.getY(), MapTerrain.GRASS, "the grass under the canopy");
 
         BlockPos tree = helper.absolutePos(new BlockPos(4, 0, 4));
         tile = tileAt(helper, new BlockPos(4, 0, 4));
         helper.assertValueEqual(tile.groundAt(tree.getX(), tree.getZ()), tree.getY(), "logs are skipped to the floor");
-        helper.assertValueEqual(tile.lowAt(tree.getX(), tree.getZ()), tree.getY() + 4, "the canopy sits on the trunk");
-        helper.assertTrue(tile.hasFlag(tree.getX(), tree.getZ(), MapTile.FLAG_TRUNK), "three logs make a trunk");
+        assertRun(helper, tile, tree, 0, tree.getY() + 4, MapTerrain.FOLIAGE, "the canopy sits on the trunk");
+        assertRun(helper, tile, tree, 1, tree.getY() + 3, MapTerrain.WOOD, "three logs make a trunk");
+        helper.assertValueEqual(tile.runBottom(tile.run(index(tree), 1)), tree.getY() + 1, "the trunk stands on");
+        assertRun(helper, tile, tree, 2, tree.getY(), MapTerrain.STONE, "the floor under the tree");
 
         BlockPos bush = helper.absolutePos(new BlockPos(7, 0, 1));
         tile = tileAt(helper, new BlockPos(7, 0, 1));
-        helper.assertValueEqual(tile.lowAt(bush.getX(), bush.getZ()), bush.getY() + 1, "a bush rests on the floor");
+        assertRun(helper, tile, bush, 0, bush.getY() + 1, MapTerrain.FOLIAGE, "a bush rests on the floor");
+        assertRun(helper, tile, bush, 1, bush.getY(), MapTerrain.STONE, "the floor under the bush");
 
         BlockPos[] thin = { new BlockPos(1, 0, 7), new BlockPos(3, 0, 7), new BlockPos(5, 0, 7) };
         MapTerrain[] reads = { MapTerrain.STONE, MapTerrain.STONE, MapTerrain.SNOW };
@@ -143,12 +159,39 @@ public final class BlissfulMapGameTests {
             tile = tileAt(helper, thin[i]);
             helper.assertValueEqual(tile.groundAt(at.getX(), at.getZ()), at.getY(),
                     "a torch, a carpet or a snow layer is not the ground");
-            helper.assertValueEqual(tile.terrainAt(at.getX(), at.getZ()), reads[i],
-                    "a torch and a carpet take the floor colour, a snow layer stays snow");
+            assertRun(helper, tile, at, 0, at.getY(), reads[i],
+                    "a torch and a carpet take the floor colour, a snow layer turns it snow");
         }
         BlockPos slab = helper.absolutePos(new BlockPos(7, 1, 7));
         tile = tileAt(helper, new BlockPos(7, 1, 7));
         helper.assertValueEqual(tile.groundAt(slab.getX(), slab.getZ()), slab.getY(), "a slab is still ground");
+        helper.assertValueEqual(tile.runTop(tile.run(index(slab), 0)), slab.getY(), "the slab tops its run");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void floatingBlocksLeaveTheAirUnderThemEmpty(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        helper.setBlock(new BlockPos(4, 6, 4), Blocks.STONE);
+        for (int y = 1; y <= 4; y++) helper.setBlock(new BlockPos(6, y, 6), Blocks.COBBLESTONE);
+        helper.setBlock(new BlockPos(6, 2, 6), Blocks.AIR);
+
+        BlockPos floating = helper.absolutePos(new BlockPos(4, 6, 4));
+        MapTile tile = tileAt(helper, new BlockPos(4, 6, 4));
+        int index = index(floating);
+        helper.assertTrue(tile.runs(index) >= 2, "the floating stone and the floor");
+        assertRun(helper, tile, floating, 0, floating.getY(), MapTerrain.STONE, "the floating stone");
+        helper.assertValueEqual(tile.runBottom(tile.run(index, 0)), floating.getY(), "one block, no pillar under it");
+        assertRun(helper, tile, floating, 1, floating.getY() - 6, MapTerrain.STONE, "the floor five blocks below");
+        helper.assertValueEqual(tile.groundAt(floating.getX(), floating.getZ()), floating.getY(),
+                "a floating stone is the ground for siting, as on the land itself");
+
+        BlockPos pillar = helper.absolutePos(new BlockPos(6, 0, 6));
+        tile = tileAt(helper, new BlockPos(6, 0, 6));
+        index = index(pillar);
+        assertRun(helper, tile, pillar, 0, pillar.getY() + 4, MapTerrain.STONE, "the pillar head");
+        helper.assertValueEqual(tile.runBottom(tile.run(index, 0)), pillar.getY() + 3, "two blocks over the hole");
+        assertRun(helper, tile, pillar, 1, pillar.getY() + 1, MapTerrain.STONE, "the pillar foot under the hole");
         helper.succeed();
     }
 
@@ -164,7 +207,8 @@ public final class BlissfulMapGameTests {
         MapTile tile = tileAt(helper, new BlockPos(4, 1, 4));
         helper.assertTrue(tile.hasFlag(water.getX(), water.getZ(), MapTile.FLAG_FLUID), "the water column is flagged");
         helper.assertValueEqual(tile.groundAt(water.getX(), water.getZ()), water.getY(), "ground is the water top");
-        helper.assertValueEqual(tile.terrainAt(water.getX(), water.getZ()), MapTerrain.WATER, "water reads as water");
+        assertRun(helper, tile, water, 0, water.getY(), MapTerrain.WATER, "water reads as water");
+        assertRun(helper, tile, water, 1, water.getY() - 1, MapTerrain.STONE, "the bed under the water");
 
         BlockPos chest = helper.absolutePos(new BlockPos(7, 1, 7));
         tile = tileAt(helper, new BlockPos(7, 1, 7));

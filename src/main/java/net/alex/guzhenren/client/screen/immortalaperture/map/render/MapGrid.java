@@ -11,8 +11,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>⚠ {@link #capture} 只拷引用（渲染线程上不到 1 毫秒）；高度范围与迷雾掩码在第一次读 {@link #minPlane}、
  *       {@link #maxPlane}、{@link #fade} 时才算，应由光栅线程触发；同一快照不要跨线程同时读。</li>
  *   <li>矩形每边至多 {@value #MAX_SIDE} 区块，多出的从高端截掉；矩形外一律当迷雾。</li>
- *   <li>{@link #minPlane}/{@link #maxPlane}：快照内非虚空列顶面平面的范围，光栅据此裁扫描行；没有任何陆地列时
- *       {@link #hasLand} 为假、两者都是 {@code 0}。</li>
+ *   <li>{@link #minPlane}/{@link #maxPlane}：快照内非虚空列最高一段顶面平面的范围（高度刻度用）；{@link #floorPlane}：
+ *       各段画到的最低平面（实底段的底、往下实心段的顶面），光栅据此裁扫描行；没有任何陆地列时 {@link #hasLand} 为假、
+ *       三者都是 {@code 0}。</li>
  *   <li>{@link #fade}：迷雾渐隐系数（0 = 贴着迷雾，1 = 离迷雾 ≥ {@value #FADE_BLOCKS} 格），按本区块八个邻区块里没
  *       下发的那几个算列中心到它们的最近距离；虚空区块算已知，不渐隐。</li>
  * </ul>
@@ -38,6 +39,7 @@ public final class MapGrid implements TileSource {
     private byte @Nullable [] fogMasks;
     private int minPlane;
     private int maxPlane;
+    private int floorPlane;
     private boolean land;
 
     private MapGrid(int minChunkX, int minChunkZ, int width, int depth, MapTile[] tiles) {
@@ -53,6 +55,7 @@ public final class MapGrid implements TileSource {
         byte[] masks = new byte[tiles.length];
         int low = Integer.MAX_VALUE;
         int high = Integer.MIN_VALUE;
+        int floor = Integer.MAX_VALUE;
         for (int i = 0; i < tiles.length; i++) {
             MapTile tile = tiles[i];
             if (tile == null) continue;
@@ -62,11 +65,16 @@ public final class MapGrid implements TileSource {
                 int plane = MapColumns.top(tile, index) + 1;
                 low = Math.min(low, plane);
                 high = Math.max(high, plane);
+                for (int k = 0; k < tile.runs(index); k++) {
+                    int run = tile.run(index, k);
+                    floor = Math.min(floor, tile.isOpen(run) ? tile.runTop(run) + 1 : tile.runBottom(run));
+                }
             }
         }
         land = low <= high;
         minPlane = land ? low : 0;
         maxPlane = land ? high : 0;
+        floorPlane = land ? floor : 0;
         fogMasks = masks;
         return masks;
     }
@@ -100,6 +108,11 @@ public final class MapGrid implements TileSource {
     public int maxPlane() {
         indexed();
         return maxPlane;
+    }
+
+    public int floorPlane() {
+        indexed();
+        return floorPlane;
     }
 
     public boolean hasLand() {

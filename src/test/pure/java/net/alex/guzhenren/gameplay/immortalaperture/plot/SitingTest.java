@@ -1,9 +1,9 @@
 package net.alex.guzhenren.gameplay.immortalaperture.plot;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTerrain;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.minecraft.world.level.ChunkPos;
@@ -22,10 +22,11 @@ class SitingTest {
         World flat(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ, int ground) {
             for (int x = minChunkX; x <= maxChunkX; x++) {
                 for (int z = minChunkZ; z <= maxChunkZ; z++) {
-                    short[] heights = new short[MapTile.COLUMNS];
-                    Arrays.fill(heights, (short) ground);
-                    tiles.put(ChunkPos.asLong(x, z), new MapTile(x, z, heights, heights.clone(),
-                            new byte[MapTile.COLUMNS], new byte[MapTile.COLUMNS]));
+                    MapTile.Builder builder = new MapTile.Builder();
+                    for (int i = 0; i < MapTile.COLUMNS; i++) {
+                        builder.ground(i, ground).run(i, ground, MapTile.OPEN, MapTerrain.GRASS);
+                    }
+                    tiles.put(ChunkPos.asLong(x, z), builder.build(x, z));
                 }
             }
             return this;

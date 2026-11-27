@@ -12,23 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MapTileTest {
 
-    private static MapTile sample(int chunkX, int chunkZ) {
-        short[] ground = new short[MapTile.COLUMNS];
-        short[] surface = new short[MapTile.COLUMNS];
-        byte[] terrain = new byte[MapTile.COLUMNS];
-        byte[] flags = new byte[MapTile.COLUMNS];
+    private static MapTile sample(int chunkX, int chunkZ, int bump) {
+        MapTile.Builder builder = new MapTile.Builder();
         for (int i = 0; i < MapTile.COLUMNS; i++) {
-            ground[i] = (short) (-64 + i);
-            surface[i] = (short) (ground[i] + i % 7);
-            terrain[i] = MapTerrain.values()[2 + i % (MapTerrain.values().length - 2)].id();
-            flags[i] = (byte) (i % 8);
+            int ground = -64 + i;
+            builder.ground(i, ground).flag(i, i % 4);
+            for (int k = i % 4; k > 0; k--) {
+                builder.run(i, ground + 10 * k + bump, ground + 10 * k - 2, MapTerrain.values()[2 + (i + k) % 20]);
+            }
+            if (i % 5 != 0) builder.run(i, ground, i % 3 == 0 ? ground - 30 : MapTile.OPEN, MapTerrain.STONE);
         }
-        MapTile resting = new MapTile(chunkX, chunkZ, ground, surface, terrain, flags);
-        short[] low = resting.low().clone();
-        for (int i = 0; i < MapTile.COLUMNS; i += 3) low[i] = (short) (ground[i] + 1 + i % 5);
-        byte[] under = resting.under().clone();
-        under[7] = MapTerrain.WATER.id();
-        return new MapTile(chunkX, chunkZ, ground, surface, terrain, flags, low, under);
+        return builder.build(chunkX, chunkZ);
     }
 
     private static MapTile roundTrip(MapTile tile) {
@@ -44,42 +38,37 @@ class MapTileTest {
     }
 
     @Test
-    @DisplayName("a full tile survives the codec column for column, negative chunks and heights included")
+    @DisplayName("a full tile survives the codec run for run, negative chunks, heights and open bottoms included")
     void fullTileRoundTrip() {
-        MapTile tile = sample(-37, 1204);
+        MapTile tile = sample(-37, 1204, 0);
         MapTile decoded = roundTrip(tile);
         assertTrue(tile.sameAs(decoded));
         assertEquals(tile.hash(), decoded.hash());
         assertEquals(-64, decoded.groundAt(0, 0));
-        assertEquals(MapTerrain.byId(tile.terrain()[MapTile.index(5, 9)]), decoded.terrainAt(5, 9));
-        assertEquals(tile.lowAt(9, 0), decoded.lowAt(9, 0));
-        assertEquals(MapTerrain.WATER, decoded.underAt(7, 0));
-        assertTrue(decoded.hasFlag(7, 0, MapTile.FLAG_TRUNK));
+        int index = MapTile.index(7, 0);
+        assertEquals(4, decoded.runs(index));
+        assertEquals(-57 + 30, decoded.runTop(decoded.run(index, 0)));
+        assertTrue(decoded.isOpen(decoded.run(index, 3)));
+        assertFalse(decoded.isOpen(decoded.run(MapTile.index(3, 0), 3)));
+        assertEquals(-61 - 30, decoded.runBottom(decoded.run(MapTile.index(3, 0), 3)));
+        assertEquals(MapTerrain.STONE, decoded.runTerrain(decoded.run(index, 3)));
     }
 
     @Test
-    @DisplayName("the six-array tile has no floating canopy: low rests on the ground, under is the surface terrain")
-    void restingDefaults() {
-        MapTile tile = new MapTile(0, 0, new short[MapTile.COLUMNS], new short[MapTile.COLUMNS],
-                new byte[MapTile.COLUMNS], new byte[MapTile.COLUMNS]);
-        assertEquals(1, tile.lowAt(4, 4));
-        assertEquals(MapTerrain.UNKNOWN, tile.underAt(4, 4));
-    }
-
-    @Test
-    @DisplayName("a void tile is sent as a marker byte and comes back all void")
+    @DisplayName("a column without runs is void, a tile without runs is sent as a marker byte and comes back all void")
     void emptyTileRoundTrip() {
         MapTile tile = MapTile.empty(612, -612);
+        assertEquals(MapTerrain.VOID, tile.terrainAt(4, 4));
         ByteBuf buffer = Unpooled.buffer();
         try {
             MapTile.STREAM_CODEC.encode(buffer, tile);
-            assertTrue(buffer.readableBytes() <= 11, "two varints and a marker byte at most, not 2.3 KB");
+            assertTrue(buffer.readableBytes() <= 11, "two varints and a marker byte at most, not kilobytes");
         } finally {
             buffer.release();
         }
         MapTile decoded = roundTrip(tile);
         assertTrue(decoded.isEmpty());
-        assertEquals(MapTerrain.VOID, decoded.terrainAt(15, 15));
+        assertEquals(0, decoded.runs(MapTile.index(15, 15)));
         assertEquals(612, decoded.chunkX());
         assertEquals(-612, decoded.chunkZ());
     }
@@ -95,11 +84,10 @@ class MapTileTest {
     }
 
     @Test
-    @DisplayName("the content hash moves when one column changes and the flags read back per bit")
+    @DisplayName("the content hash moves when one run changes and the flags read back per bit")
     void hashAndFlags() {
-        MapTile tile = sample(1, 2);
-        MapTile changed = sample(1, 2);
-        changed.surface()[17]++;
+        MapTile tile = sample(1, 2, 0);
+        MapTile changed = sample(1, 2, 1);
         assertNotEquals(tile.hash(), changed.hash());
         assertFalse(tile.sameAs(changed));
         assertTrue(tile.hasFlag(1, 0, MapTile.FLAG_FLUID));
@@ -108,9 +96,27 @@ class MapTileTest {
     }
 
     @Test
-    @DisplayName("a tile must have exactly 256 columns in every array")
-    void columnCountIsChecked() {
-        assertThrows(IllegalArgumentException.class, () -> new MapTile(0, 0, new short[255],
-                new short[MapTile.COLUMNS], new byte[MapTile.COLUMNS], new byte[MapTile.COLUMNS]));
+    @DisplayName("a column holds at most 16 runs, in the builder and on the wire")
+    void runCountIsCapped() {
+        MapTile.Builder builder = new MapTile.Builder();
+        for (int k = 0; k < MapTile.MAX_RUNS; k++) builder.run(0, 100 - 2 * k, 100 - 2 * k, MapTerrain.STONE);
+        assertThrows(IllegalStateException.class, () -> builder.run(0, 60, 60, MapTerrain.STONE));
+        ByteBuf buffer = Unpooled.buffer();
+        try {
+            MapTile.STREAM_CODEC.encode(buffer, builder.build(0, 0));
+            buffer.setByte(2 + 1 + 2 + 1, MapTile.MAX_RUNS + 1);
+            assertThrows(IllegalArgumentException.class, () -> MapTile.STREAM_CODEC.decode(buffer));
+        } finally {
+            buffer.release();
+        }
+    }
+
+    @Test
+    @DisplayName("a tile must have exactly 256 columns and run arrays that match its offsets")
+    void shapeIsChecked() {
+        assertThrows(IllegalArgumentException.class, () -> new MapTile(0, 0, new short[255], new byte[256],
+                new short[257], new short[0], new short[0], new byte[0]));
+        assertThrows(IllegalArgumentException.class, () -> new MapTile(0, 0, new short[256], new byte[256],
+                new short[257], new short[1], new short[1], new byte[1]));
     }
 }
