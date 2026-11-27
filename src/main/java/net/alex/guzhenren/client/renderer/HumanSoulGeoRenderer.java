@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
+import net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -28,6 +29,9 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
  *       闭地面阴影、受击或死亡染红及原版死亡倾倒，改由 {@code animation.disappear} 淡出。</li>
  *   <li>身体采用开启背面剔除的半透明类型（{@code entityTranslucentCull}）：因模型 26 个面朝向相反且彼此相贴，若不剔
  *       除背面不仅会闪烁还会透出远侧剪影。</li>
+ *   <li>⚠ 两种身体与眼部发光经 {@link #registerBuffers} 登记为固定缓冲：共享缓冲一换类型就当场画出，比半透明地形
+ *       （荡魂山石、水、染色玻璃）早，身体写进的深度会把身后的山壁剔掉，透过半透明身体直接看见山后；固定缓冲在非
+ *       「极佳」画质下等半透明地形画完才统一画出（身体在前、眼睛在后，按登记顺序），「极佳」画质本就分目标合成。</li>
  *   <li>⚠ {@link EyeGlowLayer} 使用 {@code RenderType.eyes} 与发光遮罩重绘模型，并必须沿视线朝镜头推近
  *       {@code EYE_LIFT} 格：因为半透明身体会写入深度缓冲，若不前移，内层头部的眼睛在深度测试中会输给前方仅半像素之
  *       差的外层帽壳。</li>
@@ -52,6 +56,12 @@ public final class HumanSoulGeoRenderer<T extends Mob & GeoEntity> extends GeoEn
         this.shadowRadius = 0.0F;
         this.texture = texture;
         this.addRenderLayer(new EyeGlowLayer<>(this));
+    }
+
+    public static void registerBuffers(RegisterRenderBuffersEvent event) {
+        event.registerRenderBuffer(RenderType.entityTranslucentCull(BLUE_TEXTURE));
+        event.registerRenderBuffer(RenderType.entityTranslucentCull(PINK_TEXTURE));
+        event.registerRenderBuffer(RenderType.eyes(GLOW_MASK));
     }
 
     @Override
