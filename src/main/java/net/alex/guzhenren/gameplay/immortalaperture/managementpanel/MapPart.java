@@ -10,16 +10,19 @@ import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
+import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandSite;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
@@ -28,7 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * 「地图」页面板段：下发地图页叠加层需要的经营数据（疆域、山心与秘境半径、行宫、入口、田、规划、牧场、选址上限与冷却）；
- * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmPart}、{@code HerdPart}。
+ * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmPart}、{@code HerdPart}；本段只有「探明」
+ * （{@link RevealChunk}，拿着选址工具点迷雾，交 {@link LandMaps#reveal} 限流后生成并加载）。
  * <ul>
  *   <li>秘境未解出时山心、行宫、入口都是 {@link BlockPos#ZERO}、秘境半径 0（{@link Siting} 视作不查秘境）。</li>
  *   <li>{@link #plot}（服务端复判）与 {@link Section#siting}（客户端预判）取同一组占地：田、规划、牧场 4 区块；服务端
@@ -41,6 +45,19 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
     public static final MapPart INSTANCE = new MapPart();
 
     private MapPart() {}
+
+    public record RevealChunk(int chunkX, int chunkZ, int side) implements PanelAction {
+
+        public static final PanelAction.Type<RevealChunk> TYPE = new PanelAction.Type<>(RevealChunk.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, RevealChunk::chunkX, ByteBufCodecs.VAR_INT,
+                        RevealChunk::chunkZ, ByteBufCodecs.VAR_INT, RevealChunk::side, RevealChunk::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            return LandMaps.reveal(context.player(), chunkX, chunkZ, side, EarthSpiritPanel::mapViewerLand)
+                    ? Component.empty() : LandNoticeEvent.text("reveal_busy");
+        }
+    }
 
     public record Section(@NotNull Territory territory, @NotNull BlockPos mountain, int realmRadius,
                           @NotNull BlockPos palace, @NotNull BlockPos entry, @NotNull List<Field> fields,
@@ -125,7 +142,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }
 
     @Override
-    public @NotNull List<PanelAction.Type<?>> actions() { return List.of(); }
+    public @NotNull List<PanelAction.Type<?>> actions() { return List.of(RevealChunk.TYPE); }
 
     @Override
     public @NotNull Section section(@NotNull PanelContext context) {

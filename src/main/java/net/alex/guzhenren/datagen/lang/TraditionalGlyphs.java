@@ -37,7 +37,8 @@ public final class TraditionalGlyphs {
             + " 来來 称稱 页頁 现現 驯馴 绳繩 凑湊 从從 验驗 给給 换換 弹彈 筛篩 顺順"
             + " 浅淺 烟煙 稳穩 绛絳 绯緋 绿綠 苍蒼 蓝藍 颜顏"
             + " 拢攏 挡擋 栅柵 门門"
-            + " 迁遷 规規 废廢 队隊 濒瀕 顾顧";
+            + " 迁遷 规規 废廢 队隊 濒瀕 顾顧"
+            + " 雾霧";
     private static final String PHRASES = "一只一隻 耗尽耗盡 将尽將盡 战斗戰鬥 冲刷沖刷 横冲橫衝 轮回輪迴 回复回復 准大準大 "
             + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦 周围周圍 随后隨後 范围範圍 冲击衝擊 用尽用盡 放回放回 "
             + "躯干軀幹 冲刺衝刺 发出發出 游戏遊戲 获得獲得 分钟分鐘 低于低於 回到回到 回血回血 前后前後 时间后時間後 目标后目標後 "
@@ -45,7 +46,7 @@ public final class TraditionalGlyphs {
             + " 只发情隻發情 只生物隻生物 标准標準 并补並補 福地里福地裡 托管託管 喂养餵養 干地乾地 田区里田區裡"
             + " 之后之後 包里包裡 藏里藏裡 每只每隻 发情發情 只剩只剩 送回送回 什么什麼 恢复恢復"
             + " 制服制服 松烟松煙 几头幾頭 只管只管 只补只補 只蛊隻蠱 捕获捕獲 丑时丑時"
-            + " 规划規劃";
+            + " 规划規劃 雾里霧裡";
     private static final String UNCHANGED = "一丁七三上下不世丙中丸主乃之乙九也了二互五亡交人仙以任位何作你使俗信修倍值停"
             + "偷催元先光入全八六共具再冥冰凡出刃初利到刷力功加包化北十千升半卓卸厚及取受口"
             + "古可名君味命品四因圈土在地基境墨壁外多大天太央失奴如妙子存宇宗宙定害家容小尚展山峰已"
@@ -64,7 +65,8 @@ public final class TraditionalGlyphs {
             + "堂布枯沉淡深炭玄秋稻米粗素艾茶荷藕衣褐褪赭陶靛鞋麻黛"
             + "好橡牧捕"
             + "寅卯辰巳午申酉戌亥"
-            + "拆";
+            + "拆"
+            + "探明稍迷";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

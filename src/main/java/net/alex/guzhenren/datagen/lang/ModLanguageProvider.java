@@ -473,6 +473,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.player_not_found",         "找不到在线玩家 %s");
         add("guzhenren.blissful_land.panel.player_offline",           "此人已不在线");
         add("guzhenren.blissful_land.panel.cooldown",                 "还要等 %s 秒");
+        add("guzhenren.blissful_land.panel.reveal_busy",              "探明太快，稍等再点");
         add("guzhenren.blissful_land.panel.no_mountain",              "荡魂山尚未成形");
         add("guzhenren.blissful_land.panel.moved",                    "挪 %s 只生物上山");
         add("guzhenren.blissful_land.panel.outside_mountain",         "须在荡魂山中催动");
@@ -500,7 +501,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.siting.out_of_bounds",           "不在疆域内");
         add("guzhenren.blissful_land.siting.realm",                   "在荡魂山秘境范围内");
         add("guzhenren.blissful_land.siting.overlap",                 "已有田、规划或牧场");
-        add("guzhenren.blissful_land.siting.fog",                     "地图上还没有");
+        add("guzhenren.blissful_land.siting.fog",                     "还在迷雾里，左键探明");
         add("guzhenren.blissful_land.siting.fluid",                   "有水流");
         add("guzhenren.blissful_land.siting.block_entity",            "有储物等方块");
         add("guzhenren.blissful_land.siting.slope",                   "地面高低不一");

@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * 地图页的选址工具条：开垦（1 区块一片田）、牧场（2×2 区块）、拆除、迁移；按住哪个工具，光标下就预览那块占地，合格
- * 描绿、不合格描红并在提示里写原因，左键执行，右键或 Esc 退出工具。
+ * 描绿、不合格描红并在提示里写原因，左键执行（目标还在迷雾里就改为探明，Alex 定），右键或 Esc 退出工具。
  * <ul>
  *   <li>占地数据、预判与发操作都经 {@link Land}（由 {@link MapToolLand} 用 {@code MapPart.Section} 与 {@code Siting}
  *       实现），本类只管工具状态、目标换算、绘制与命中。</li>
@@ -38,10 +38,10 @@ final class MapTools {
 
     enum Tool { FARM, PASTURE, REMOVE, MOVE }
 
-    /** 预判结果：不合格时 {@code reason} 写给玩家看。 */
-    record Verdict(boolean fit, Component reason) {
+    /** 预判结果：不合格时 {@code reason} 写给玩家看；{@code fog} 为真即目标还在迷雾里，左键改为探明。 */
+    record Verdict(boolean fit, Component reason, boolean fog) {
 
-        static final Verdict FIT = new Verdict(true, Component.empty());
+        static final Verdict FIT = new Verdict(true, Component.empty(), false);
     }
 
     /** 光标下的工具目标：以 {@code size}×{@code size} 区块计，{@code plot} 是被点中的已有占地（拆除、迁移第一步）。 */
@@ -75,6 +75,8 @@ final class MapTools {
         void removePasture(int index);
 
         void gather(int index);
+
+        void reveal(int chunkX, int chunkZ, int side);
     }
 
     private @Nullable Tool tool;
@@ -138,9 +140,11 @@ final class MapTools {
         switch (tool) {
             case FARM -> {
                 if (target.verdict().fit()) land.plan(target.chunkX(), target.chunkZ());
+                else if (target.verdict().fog()) land.reveal(target.chunkX(), target.chunkZ(), target.size());
             }
             case PASTURE -> {
                 if (target.verdict().fit()) land.placePasture(target.chunkX(), target.chunkZ());
+                else if (target.verdict().fog()) land.reveal(target.chunkX(), target.chunkZ(), target.size());
             }
             case REMOVE -> {
                 if (plot != null) remove(land, plot);
@@ -151,6 +155,8 @@ final class MapTools {
                 } else if (moving != NONE && target.verdict().fit()) {
                     land.movePasture(moving, target.chunkX(), target.chunkZ());
                     cancel();
+                } else if (moving != NONE && target.verdict().fog()) {
+                    land.reveal(target.chunkX(), target.chunkZ(), target.size());
                 }
             }
         }

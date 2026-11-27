@@ -11,7 +11,7 @@ import net.minecraft.world.level.ChunkPos;
 
 /**
  * 地图页的经营数据来源：把 {@code MapPart.Section} 的田、规划田、牧场换成 {@link MapPlots.Plot}，预判走
- * {@link Siting}（地形读 {@link LandMapClient#tile}，没下发的区块即迷雾、不许选址），操作发 {@code FarmPart} 与
+ * {@link Siting}（地形读 {@link LandMapClient#tile}，没下发的区块即迷雾、不许选址，左键改为探明），操作发 {@code FarmPart} 与
  * {@code HerdPart} 的意图，服务端全部复判。
  * <ul>
  *   <li>快照段每秒或每次操作后整份替换；按引用比对，换了才重建占地表与 {@link Siting.Plot}。</li>
@@ -58,7 +58,7 @@ final class MapToolLand implements MapTools.Land {
 
     private static MapTools.Verdict verdict(Siting.Reason reason) {
         return reason == Siting.Reason.OK ? MapTools.Verdict.FIT
-                : new MapTools.Verdict(false, Component.translatable(reason.key()));
+                : new MapTools.Verdict(false, Component.translatable(reason.key()), reason == Siting.Reason.FOG);
     }
 
     @Override
@@ -112,6 +112,11 @@ final class MapToolLand implements MapTools.Land {
 
     @Override
     public void removePasture(int index) { page.sendAction(new HerdPart.RemovePasture(index)); }
+
+    @Override
+    public void reveal(int chunkX, int chunkZ, int side) {
+        page.sendAction(new MapPart.RevealChunk(chunkX, chunkZ, side));
+    }
 
     @Override
     public void gather(int index) { page.sendAction(new HerdPart.Gather(index)); }

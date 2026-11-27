@@ -21,6 +21,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritP
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.FarmPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.GuPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.HerdPart;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.OverviewPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
@@ -84,7 +85,7 @@ public final class BlissfulPanelGameTests {
         ServerLevel level = helper.getLevel();
         UUID someone = UUID.randomUUID();
         ResourceLocation cow = BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.COW);
-        List<PanelAction> samples = List.of(new PanelActions.View(Page.INFO),
+        List<PanelAction> samples = List.of(new PanelActions.View(Page.INFO), new MapPart.RevealChunk(5, -6, 2),
                 new OverviewPart.Expel(someone), new OverviewPart.ExpelOutsiders(),
                 new OverviewPart.SetWhitelisted(someone, true), new SecretRealmPart.MoveMobs(),
                 new SecretRealmPart.DriveGutsGu(), new SecretRealmPart.AddWhitelist("Steve"), new HerdPart.Breed(),

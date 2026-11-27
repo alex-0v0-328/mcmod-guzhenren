@@ -18,6 +18,17 @@ class ViewLimiterTest {
     }
 
     @Test
+    @DisplayName("a reveal counts its chunks: one pasture fills a second, a field after it waits")
+    void revealsCountChunks() {
+        ViewLimiter limiter = new ViewLimiter();
+        assertTrue(limiter.tryAccept(0, 4), "a 2 by 2 pasture takes the whole second");
+        assertFalse(limiter.tryAccept(5, 1), "a field in the same second waits");
+        assertTrue(limiter.tryAccept(20, 1));
+        assertTrue(limiter.tryAccept(21, 3));
+        assertFalse(limiter.tryAccept(22, 1));
+    }
+
+    @Test
     @DisplayName("a quiet spell resets the window, and dropped requests do not use it up")
     void quietResets() {
         ViewLimiter limiter = new ViewLimiter();

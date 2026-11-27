@@ -13,6 +13,7 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
+import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +34,8 @@ import org.jetbrains.annotations.NotNull;
  *       空视口（{@code min > max}）即退订，非空但越界（每边 &gt; {@value MapView#MAX_SIDE} 区块）整包忽略。不看面板
  *       停在哪页：客户端离开地图页时自己发空视口退订。</li>
  *   <li>换视口限流：每人每秒至多接受 {@value ViewLimiter#LIMIT} 个非空视口（{@link ViewLimiter}），超出的整包忽略；
- *       退订不限。限流记录按人存到下线或停服。</li>
+ *       退订不限。{@link #reveal}（探明，经面板操作转来，一次至多 {@value #REVEAL_SIDE}×{@value #REVEAL_SIDE} 区块）另有
+ *       一份同样的限流，按区块计。限流记录按人存到下线或停服。</li>
  *   <li>订阅即排扫视口内还没发过的区块；之后每 {@value #RESCAN_TICKS} 刻把视口内已加载的区块重排一遍，地图片哈希
  *       没变的不发；区块加载事件里，有订阅覆盖的插队扫描。扫描与探索的预算见 {@link LandMap}。</li>
  *   <li>下发：每人每刻至多 {@value #PACKETS_PER_TICK} 包、每包至多 {@value #TILES_PER_PACKET} 片，近的先发；
@@ -56,7 +58,9 @@ public final class LandMaps {
     public static final int PACKETS_PER_TICK = 2;
     private static final Map<UUID, MapViewer> VIEWERS = new LinkedHashMap<>();
     private static final Map<BlissfulLand, LandMap> MAPS = new HashMap<>();
+    public static final int REVEAL_SIDE = 2;
     private static final Map<UUID, ViewLimiter> LIMITERS = new HashMap<>();
+    private static final Map<UUID, ViewLimiter> REVEAL_LIMITERS = new HashMap<>();
 
     //region Subscribe [订阅]
     public static void view(@NotNull ServerPlayer player, @NotNull MapView view, @NotNull MapViewerGate gate) {
@@ -85,6 +89,24 @@ public final class LandMaps {
     }
 
     public static boolean isViewing(@NotNull UUID player) { return VIEWERS.containsKey(player); }
+
+    public static boolean reveal(@NotNull ServerPlayer player, int chunkX, int chunkZ, int side,
+                                 @NotNull MapViewerGate gate) {
+        BlissfulLand land = gate.viewing(player);
+        ServerLevel level = land == null ? null : BlissfulLandLookup.level(player.server, land);
+        if (level == null || side < 1 || side > REVEAL_SIDE || !REVEAL_LIMITERS.computeIfAbsent(player.getUUID(),
+                key -> new ViewLimiter()).tryAccept(player.server.getTickCount(), side * side)) {
+            return false;
+        }
+        Territory territory = BlissfulLandData.get(player.server, land).territory();
+        LandMap map = MAPS.computeIfAbsent(land, key -> new LandMap());
+        for (int dx = 0; dx < side; dx++) {
+            for (int dz = 0; dz < side; dz++) {
+                map.reveal(level, territory, ChunkPos.asLong(chunkX + dx, chunkZ + dz), player.server.getTickCount());
+            }
+        }
+        return true;
+    }
 
     public static void forget(@NotNull UUID player) { VIEWERS.remove(player); }
     //endregion
@@ -144,15 +166,13 @@ public final class LandMaps {
     //region Events [事件]
     @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event) {
-        if (VIEWERS.isEmpty() || !(event.getLevel() instanceof ServerLevel level)
-                || !(event.getChunk() instanceof LevelChunk chunk)) {
-            return;
-        }
+        if (!(event.getLevel() instanceof ServerLevel level) || !(event.getChunk() instanceof LevelChunk chunk)) return;
         BlissfulLand land = BlissfulLandLookup.landOf(level);
         LandMap map = land == null ? null : MAPS.get(land);
         if (map == null) return;
 
         long pos = chunk.getPos().toLong();
+        map.markGenerated(pos);
         for (MapViewer viewer : VIEWERS.values()) {
             if (viewer.land == land && viewer.wants(pos)) {
                 map.onLoaded(pos);
@@ -165,6 +185,7 @@ public final class LandMaps {
     public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         forget(event.getEntity().getUUID());
         LIMITERS.remove(event.getEntity().getUUID());
+        REVEAL_LIMITERS.remove(event.getEntity().getUUID());
     }
 
     @SubscribeEvent
@@ -172,6 +193,7 @@ public final class LandMaps {
         VIEWERS.clear();
         MAPS.clear();
         LIMITERS.clear();
+        REVEAL_LIMITERS.clear();
     }
     //endregion
 }
