@@ -33,7 +33,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
@@ -52,10 +51,12 @@ import org.jetbrains.annotations.Nullable;
  *   <li>养殖的清点、托管、一键喂养与宰杀只看栏内（{@link #penned}）；总览页的动物数照旧数全福地。「挪生物上山」与活物
  *       标记用 {@link #penner}。</li>
  *   <li>{@link #enclose}：周界每列从真实地面（{@link LandRules#isPassable} 不算地面，花草、栅栏都跳过）上一格起叠橡木
- *       栅栏，叠到顶端比 8 邻列真实地面都高至少 1 格（邻列是流体按流体表面算）；北边正中一格的最底层放朝北的栅栏门。已
- *       是栅栏或门的格子跳过，可替换方块、树叶、原木、植物（{@link LandRules#isPlant}）换掉，栅栏顶上连着的植物（甘蔗
+ *       栅栏，叠到顶端比 8 邻列真实地面都高至少 1 格（邻列是流体按流体表面算）；不放门（Alex 定：门开着动物就走出去）。
+ *       已是栅栏或门的格子跳过，可替换方块、树叶、原木、植物（{@link LandRules#isPlant}）换掉，栅栏顶上连着的植物（甘蔗
  *       上段）清掉，其余方块（多半是玩家的）不动、该列就此计为挡住，流体列也计为挡住。放完再按四邻重算形状，栅栏才连得
  *       上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
+ *   <li>⚠ 已知缺口（Alex 定保持现状）：周界格上碰撞箱不到整格的玩家方块（火把、告示牌、地毯等）照旧不动，栅栏叠在上面，
+ *       猪、鸡、兔与幼崽能从底下钻出；悬空方块下的空当也不补；流体列跳过，但选址已拒绝周界有流体。</li>
  *   <li>{@link #unfence}：周界每列地面以上连着的栅栏与栅栏门全部拆掉（玩家放的也拆），不掉落。</li>
  *   <li>{@link #relocate}：把候选里落在旧栏内、不在新栏内的可支使动物全部传进新栏（不限头数），{@link #gather}：栏外可
  *       支使动物至多 {@value HerdRules#GATHER_LIMIT} 头传进栏、不设冷却；落点都在离栅栏至少
@@ -108,8 +109,6 @@ public final class PastureWork {
         public int width() { return maxX - minX + 1; }
 
         public int depth() { return maxZ - minZ + 1; }
-
-        public @NotNull BlockPos gate() { return new BlockPos((minX + maxX) / 2, 0, minZ); }
 
         public @NotNull BlockPos center() { return new BlockPos((minX + maxX) / 2, 0, (minZ + maxZ) / 2); }
 
@@ -187,7 +186,6 @@ public final class PastureWork {
         if (!ModEvents.canGrief(level, owner)) return null;
 
         for (ChunkPos chunk : pasture.chunks()) level.getChunk(chunk.x, chunk.z);
-        BlockPos gate = pasture.gate();
         List<BlockPos> placed = new ArrayList<>();
         int blocked = 0;
         for (BlockPos column : pasture.ring()) {
@@ -204,8 +202,7 @@ public final class PastureWork {
                     top = Math.max(top, groundY(level, next.getX(), next.getZ(), true) + 1);
                 }
             }
-            boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ();
-            if (!stack(level, column, ground, top, isGate, placed)) blocked++;
+            if (!stack(level, column, ground, top, placed)) blocked++;
         }
         for (BlockPos pos : placed) {
             BlockState joined = Block.updateFromNeighbourShapes(level.getBlockState(pos), level, pos);
@@ -215,8 +212,7 @@ public final class PastureWork {
         return new Enclosed(placed.size(), blocked);
     }
 
-    private static boolean stack(ServerLevel level, BlockPos column, int ground, int top, boolean isGate,
-                                 List<BlockPos> placed) {
+    private static boolean stack(ServerLevel level, BlockPos column, int ground, int top, List<BlockPos> placed) {
         for (int y = ground + 1; y <= top; y++) {
             BlockPos pos = column.atY(y);
             BlockState at = level.getBlockState(pos);
@@ -224,10 +220,7 @@ public final class PastureWork {
             if (!at.canBeReplaced() && !at.is(BlockTags.LEAVES) && !at.is(BlockTags.LOGS) && !LandRules.isPlant(at)) {
                 return false;
             }
-            BlockState state = isGate && y == ground + 1
-                    ? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.NORTH)
-                    : Blocks.OAK_FENCE.defaultBlockState();
-            level.setBlock(pos, state, Block.UPDATE_ALL);
+            level.setBlock(pos, Blocks.OAK_FENCE.defaultBlockState(), Block.UPDATE_ALL);
             placed.add(pos);
         }
         for (BlockPos pos = column.atY(top + 1); LandRules.isPlant(level.getBlockState(pos)); pos = pos.above()) {

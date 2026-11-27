@@ -31,7 +31,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地牧场：圈地按邻列地面叠栅栏、门在北边正中、挡住的格子留着、再圈只补缺、花草树苗甘蔗被栅栏替换而不垫高；拆栅栏连玩
+ * 福地牧场：圈地按邻列地面叠栅栏、不放门、挡住的格子留着、再圈只补缺、花草树苗甘蔗被栅栏替换而不垫高；拆栅栏连玩
  * 家放的一并拆；迁移把旧栏动物全带进新栏；收拢把栏外可支使的动物传进栏、不设冷却；养殖清点只算栏内；挪生物上山跳过栏内。
  * 牧场都取测试区里的小方格，不碰别的测试。
  */
@@ -74,8 +74,8 @@ public final class BlissfulPastureGameTests {
         BlockPos flat = new BlockPos(pasture.maxX(), fenceY, pasture.minZ() + 1);
         helper.assertTrue(level.getBlockState(flat).is(Blocks.OAK_FENCE) && level.getBlockState(flat.above()).isAir(),
                 "on flat ground one fence is enough");
-        helper.assertTrue(level.getBlockState(pasture.gate().atY(fenceY)).is(BlockTags.FENCE_GATES),
-                "the north middle is a gate");
+        BlockPos northMiddle = new BlockPos((pasture.minX() + pasture.maxX()) / 2, fenceY, pasture.minZ());
+        helper.assertTrue(level.getBlockState(northMiddle).is(Blocks.OAK_FENCE), "no gate: the north middle is a fence");
         BlockState corner = level.getBlockState(new BlockPos(pasture.minX(), fenceY, pasture.minZ()));
         helper.assertTrue(corner.is(Blocks.OAK_FENCE) && corner.getValue(FenceBlock.EAST)
                 && corner.getValue(FenceBlock.SOUTH), "the north-west corner joins both of its sides");
