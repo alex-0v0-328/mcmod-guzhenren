@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.phys.Vec3;
@@ -23,8 +24,8 @@ import static net.alex.guzhenren.gametest.GameTestPlayers.ground;
 
 /**
  * 龟测试：温顺性情、进食与受伤姿态、石龟击退抗性、共用死亡周期、行走速度越过渲染器行走阈值（取水平速率的一半，即
- * GeckoLib 判定量沿轴行走时的最坏值）。夜间睡眠附在 {@code BearGameTests.beastNightSleepChainTransitions} 里测，因
- * GameTest 世界 {@code dayTime} 共享全局。
+ * GeckoLib 判定量沿轴行走时的最坏值；去掉移动类目标只按测试寻路走，免得落地前起步的随机游荡判走完后进食定住）。夜间
+ * 睡眠附在 {@code BearGameTests.beastNightSleepChainTransitions} 里测，因 GameTest 世界 {@code dayTime} 共享全局。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -177,6 +178,9 @@ public final class TortoiseGameTests {
         ground(helper);
         TortoiseEntity land = spawn(helper, new BlockPos(1, 1, 2));
         TortoiseEntity stone = helper.spawn(ModEntityTypes.STONE_TORTOISE.get(), new BlockPos(1, 1, 6));
+        for (TortoiseEntity tortoise : List.of(land, stone)) {
+            GameTestWorld.goals(tortoise).removeAllGoals(goal -> goal.getFlags().contains(Goal.Flag.MOVE));
+        }
         double[] fastest = new double[2];
         helper.onEachTick(() -> {
             walkEast(helper, land, 2);
