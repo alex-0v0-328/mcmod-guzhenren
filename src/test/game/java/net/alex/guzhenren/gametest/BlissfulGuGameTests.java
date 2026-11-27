@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuRules;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuState;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
 import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
@@ -55,10 +56,10 @@ public final class BlissfulGuGameTests {
         ResourceLocation hope = GuWork.typeId(swarm.getFirst());
         Map<ResourceLocation, List<Mob>> census = GuWork.census(swarm);
         helper.assertValueEqual(census.get(hope).size(), 3, "a named gu is not counted");
-        helper.assertValueEqual(GuWork.captureCount(census, Map.of(hope, 1), GuWork.LIMIT), 2,
+        helper.assertValueEqual(GuWork.captureCount(census, Map.of(hope, 1), GuRules.LIMIT), 2,
                 "the preview matches the capture");
 
-        int caught = GuWork.capture(census, Map.of(hope, 1), BlissfulStorage.of(data), GuWork.LIMIT);
+        int caught = GuWork.capture(census, Map.of(hope, 1), BlissfulStorage.of(data), GuRules.LIMIT);
         helper.assertValueEqual(caught, 2, "three hope gu down to one");
         helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(ModItems.HOPE_GU.get())), 2L,
                 "the caught gu go to storage as items");
@@ -78,10 +79,10 @@ public final class BlissfulGuGameTests {
         GuState.of(data).setKeep(boar, 1);
         GuState.of(data).setHosted(boar, true);
 
-        helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuWork.LIMIT), 0,
+        helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuRules.LIMIT), 0,
                 "the hosted boar is already at its kept number, the hope gu are not hosted");
         GuState.of(data).setHosted(hope, true);
-        helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuWork.LIMIT), 2,
+        helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuRules.LIMIT), 2,
                 "hosting the hope gu captures the two extra");
         helper.succeed();
     }

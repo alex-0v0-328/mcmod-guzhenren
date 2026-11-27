@@ -4,9 +4,9 @@ import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
-import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.FarmPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.Block;
  * 「种植」小节：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），开垦作物与库藏种子数，标准田与规划数、下一块开
  * 垦倒计时，底部托管状态、托管开关与「收割并补种」。选址、规划与拆田在地图页。
  * <ul>
- *   <li>作物只有 {@link FarmWork#CROPS} 四种，列表一屏 {@value #VISIBLE} 行够用；省下的一行放开垦作物。</li>
+ *   <li>作物只有 {@link FarmRules#CROPS} 四种，列表一屏 {@value #VISIBLE} 行够用；省下的一行放开垦作物。</li>
  *   <li>开垦作物按钮循环切换：自动 → 小麦 → 胡萝卜 → 马铃薯 → 甜菜根 → 自动；右边写库藏里这种的种子数（自动 = 四种
  *       合计）。</li>
  *   <li>田数行写「标准田 N / 上限 · 规划 M」；有规划时右边写开垦倒计时（冷却已过写「即将开垦」）。</li>
@@ -53,25 +53,25 @@ final class FarmPage extends PanelPage {
     @Override
     protected Component name() { return Component.translatable(UI + "tab.farming"); }
 
-    private FarmModule.Section data() { return section(FarmModule.INSTANCE, FarmModule.Section.EMPTY); }
+    private FarmPart.Section data() { return section(FarmPart.INSTANCE, FarmPart.Section.EMPTY); }
 
-    private List<FarmModule.Crop> crops() { return data().rows(); }
+    private List<FarmPart.Crop> crops() { return data().rows(); }
 
     private static Component cropName(int crop) {
         return crop == FarmState.AUTO_CROP ? Component.translatable(UI + "crop_auto")
-                : FarmWork.CROPS.get(crop).getName();
+                : FarmRules.CROPS.get(crop).getName();
     }
 
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
-        FarmModule.Section data = data();
+        FarmPart.Section data = data();
         sprites.blit(PanelDrawing.WELL, x + 8, y + LIST_Y, 160, LIST_H);
-        List<FarmModule.Crop> crops = data.rows();
+        List<FarmPart.Crop> crops = data.rows();
         offset = PanelDrawing.clampScroll(offset, VISIBLE, crops.size());
         boolean scrolling = crops.size() > VISIBLE;
         int rowW = scrolling ? 150 : 158;
         for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
-            FarmModule.Crop crop = crops.get(offset + i);
+            FarmPart.Crop crop = crops.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             PanelDrawing.row(sprites, x + 9, top, rowW, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, rowW, ROW_H));
             int total = crop.mature() + crop.growing();
@@ -91,16 +91,16 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        FarmModule.Section data = data();
+        FarmPart.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "crop"), x + 12, y + 21, PanelDrawing.LEGEND, false);
         PanelDrawing.right(graphics, font(), Component.translatable(UI + "mature"), x + 100, y + 21,
                 PanelDrawing.LEGEND);
         PanelDrawing.right(graphics, font(), Component.translatable(UI + "growing"), x + 130, y + 21,
                 PanelDrawing.LEGEND);
-        List<FarmModule.Crop> crops = data.rows();
+        List<FarmPart.Crop> crops = data.rows();
         int shift = crops.size() > VISIBLE ? 8 : 0;
         for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
-            FarmModule.Crop crop = crops.get(offset + i);
+            FarmPart.Crop crop = crops.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             Block block = BuiltInRegistries.BLOCK.get(crop.block());
             graphics.drawString(font(), block.getName(), x + 30, top + 6, PanelDrawing.TEXT, false);
@@ -136,7 +136,7 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        List<FarmModule.Crop> crops = crops();
+        List<FarmPart.Crop> crops = crops();
         for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
             Block block = BuiltInRegistries.BLOCK.get(crops.get(offset + i).block());
             graphics.renderItem(new ItemStack(block.asItem()), x + 11, y + LIST_Y + 1 + i * ROW_H + 2);
@@ -151,11 +151,11 @@ final class FarmPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + RECLAIM_Y, 160, BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "fields", FarmWork.RECLAIM_COOLDOWN_TICKS / Ticks.SECOND))) {
+                Component.translatable(TIP + "fields", FarmRules.RECLAIM_COOLDOWN_TICKS / Ticks.SECOND))) {
             return;
         }
         if (tip(graphics, x + 8, y + SWITCH_Y, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
-                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmWork.HOSTING_FIELDS))) {
+                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmRules.HOSTING_FIELDS))) {
             return;
         }
         tip(graphics, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
@@ -164,18 +164,18 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
-        FarmModule.Section data = data();
+        FarmPart.Section data = data();
         if (Widgets.isOver(mouseX, mouseY, x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE)) {
-            int next = data.crop() + 1 >= FarmWork.CROPS.size() ? FarmState.AUTO_CROP : data.crop() + 1;
-            send(new FarmModule.SetCrop(next));
+            int next = data.crop() + 1 >= FarmRules.CROPS.size() ? FarmState.AUTO_CROP : data.crop() + 1;
+            send(new FarmPart.SetCrop(next));
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + 8, y + SWITCH_Y, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
-            send(new FarmModule.SetHosting(!data.hosting()));
+            send(new FarmPart.SetHosting(!data.hosting()));
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H)) {
-            send(new FarmModule.Harvest());
+            send(new FarmPart.Harvest());
             return true;
         }
         return false;

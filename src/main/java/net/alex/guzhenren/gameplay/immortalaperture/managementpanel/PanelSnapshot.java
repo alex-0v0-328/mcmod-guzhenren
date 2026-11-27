@@ -3,8 +3,6 @@ package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 import io.netty.handler.codec.DecoderException;
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModules;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -12,12 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 地灵经营面板的一次下发：页眉（福地名、上一次操作的提示）、当前页，再加这一页各模块的 {@link PanelSection}（多段）。
+ * 地灵经营面板的一次下发：页眉（福地名、上一次操作的提示）、当前页，再加这一页各面板段的 {@link PanelSection}（多段）。
  * <ul>
- *   <li>服务端只算主人正在看的那一页（{@link EarthSpiritMenu#page}）的各段；客户端按模块缓存各段最近一份，切页时先显示
+ *   <li>服务端只算主人正在看的那一页（{@link EarthSpiritMenu#page}）的各段；客户端按面板段缓存各段最近一份，切页时先显示
  *       缓存。</li>
  *   <li>{@link #notice} 空组件 = 无提示。</li>
- *   <li>编码：页眉、页序号、段数，每段先写模块在 {@link LandModules#ALL} 的下标，再交给该模块的 {@code sectionCodec}；
+ *   <li>编码：页眉、页序号、段数，每段先写面板段在 {@link PanelSectionSources#ALL} 的下标，再交给该面板段的 {@code sectionCodec}；
  *       下标越界或段数超过 {@value #MAX_SECTIONS} 即解码失败。</li>
  * </ul>
  */
@@ -37,36 +35,36 @@ public record PanelSnapshot(@NotNull String landNameKey, @NotNull Component noti
         buffer.writeUtf(snapshot.landNameKey);
         ComponentSerialization.TRUSTED_STREAM_CODEC.encode(buffer, snapshot.notice);
         Page.STREAM_CODEC.encode(buffer, snapshot.page);
-        writeSections(buffer, snapshot.sections, LandModules.ALL);
+        writeSections(buffer, snapshot.sections, PanelSectionSources.ALL);
     }
 
     private static PanelSnapshot decode(RegistryFriendlyByteBuf buffer) {
         String landNameKey = buffer.readUtf();
         Component notice = ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buffer);
         Page page = Page.STREAM_CODEC.decode(buffer);
-        return new PanelSnapshot(landNameKey, notice, page, readSections(buffer, LandModules.ALL));
+        return new PanelSnapshot(landNameKey, notice, page, readSections(buffer, PanelSectionSources.ALL));
     }
 
     //region Sections [多段]
     public static void writeSections(@NotNull RegistryFriendlyByteBuf buffer, @NotNull List<PanelSection> sections,
-                                     @NotNull List<? extends LandModule<?>> modules) {
+                                     @NotNull List<? extends PanelSectionSource<?>> modules) {
         buffer.writeVarInt(sections.size());
         for (PanelSection section : sections) {
-            int index = modules.indexOf(section.module());
+            int index = modules.indexOf(section.source());
             if (index < 0) throw new IllegalArgumentException("unregistered panel section " + section.getClass());
             buffer.writeVarInt(index);
-            writeSection(buffer, section.module(), section);
+            writeSection(buffer, section.source(), section);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <S extends PanelSection> void writeSection(RegistryFriendlyByteBuf buffer, LandModule<S> module,
-                                                              PanelSection section) {
+    private static <S extends PanelSection> void writeSection(RegistryFriendlyByteBuf buffer,
+                                                              PanelSectionSource<S> module, PanelSection section) {
         module.sectionCodec().encode(buffer, (S) section);
     }
 
     public static @NotNull List<PanelSection> readSections(@NotNull RegistryFriendlyByteBuf buffer,
-                                                          @NotNull List<? extends LandModule<?>> modules) {
+                                                          @NotNull List<? extends PanelSectionSource<?>> modules) {
         int count = buffer.readVarInt();
         if (count < 0 || count > MAX_SECTIONS) throw new DecoderException("bad panel section count " + count);
         List<PanelSection> sections = new ArrayList<>(count);

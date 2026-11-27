@@ -48,13 +48,11 @@ public final class HerdWork {
 
     public static final LandCensus.Census<Map<ResourceLocation, List<Animal>>> CENSUS =
             LandCensus.Census.ofLevel(HerdWork::census);
-    public static final int LIMIT = 64;
-    public static final int HOSTING_ANIMALS = 32;
 
     public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         if (!HerdState.of(data).hosting()) return 0;
 
-        Hosted hosted = host(level, penned(level, data), data, owner, HOSTING_ANIMALS);
+        Hosted hosted = host(level, penned(level, data), data, owner, HerdRules.HOSTING_ANIMALS);
         HerdState.of(data).setLastRound(hosted.slaughtered(), hosted.bred());
         return hosted.total();
     }

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
@@ -50,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  *       上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
  *   <li>{@link #unfence}：周界每列地面以上连着的栅栏与栅栏门全部拆掉（玩家放的也拆），不掉落。</li>
  *   <li>{@link #relocate}：把候选里落在旧栏内、不在新栏内的可支使动物全部传进新栏（不限头数），{@link #gather}：栏外可
- *       支使动物至多 {@value #GATHER_LIMIT} 头传进栏、冷却 {@value #GATHER_COOLDOWN_TICKS} 刻；落点都在离栅栏至少
+ *       支使动物至多 {@value HerdRules#GATHER_LIMIT} 头传进栏、冷却 {@value HerdRules#GATHER_COOLDOWN_TICKS} 刻；落点都在离栅栏至少
  *       {@value #MARGIN} 格的随机地面（每头至多试 {@value #SPOT_ATTEMPTS} 次，须已加载，落点与上一格可替换或是植物）。
  *       野生蛊不是 {@link Animal}，不会被收。</li>
  *   <li>⚠ 强加载用 NeoForge 带刻工单 {@link #TICKETS}（原版强加载的区块附近没人时不随机刻），以各牧场中心为主人、各管
@@ -68,8 +67,6 @@ public final class PastureWork {
 
     public static final TicketController TICKETS = new TicketController(Guzhenren.id("blissful_land_pasture"),
             PastureWork::validateTickets);
-    public static final int GATHER_LIMIT = 16;
-    public static final int GATHER_COOLDOWN_TICKS = 60 * Ticks.SECOND;
     public static final int MARGIN = 2;
     private static final int SPOT_ATTEMPTS = 8;
     private static final int NO_GROUND = Integer.MIN_VALUE;
@@ -273,14 +270,14 @@ public final class PastureWork {
         List<Pasture> pastures = pastures(data);
         List<Animal> movers = new ArrayList<>();
         for (Entity entity : candidates) {
-            if (movers.size() >= GATHER_LIMIT) break;
+            if (movers.size() >= HerdRules.GATHER_LIMIT) break;
             if (entity instanceof Animal animal && LandRules.isManaged(animal) && !pasture.contains(animal)
                     && !isPenned(pastures, animal)) {
                 movers.add(animal);
             }
         }
         int moved = teleport(level, pasture, random, movers);
-        HerdState.of(data).setGatherReadyAt(level.getGameTime() + GATHER_COOLDOWN_TICKS);
+        HerdState.of(data).setGatherReadyAt(level.getGameTime() + HerdRules.GATHER_COOLDOWN_TICKS);
         return moved;
     }
 

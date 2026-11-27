@@ -9,12 +9,15 @@ import net.alex.guzhenren.gameplay.aperture.Rank;
 import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.HerdPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.StoragePart;
+import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainRules;
 import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
@@ -22,7 +25,6 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
-import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageModule;
 import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
@@ -229,7 +231,7 @@ public final class BlissfulLandGameTests {
                 .is(ModBlocks.SOULSUNDER_STONE.get()), "the pig stands on soulsunder stone");
         helper.assertFalse(site.contains(named), "the named pig stays put");
         helper.assertValueEqual(SoulsunderMountainWork.moveCooldown(helper.getLevel(), data),
-                (long) SoulsunderMountainWork.MOVE_COOLDOWN_TICKS, "moving starts the sixty-second cooldown");
+                (long) SoulsunderMountainRules.MOVE_COOLDOWN_TICKS, "moving starts the sixty-second cooldown");
         helper.succeed();
     }
 
@@ -275,7 +277,7 @@ public final class BlissfulLandGameTests {
         BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
         storage.insert(new ItemStack(Items.WHEAT, 3));
 
-        HerdWork.Breed bred = HerdWork.breed(HerdWork.census(cows), storage, HerdWork.LIMIT, null);
+        HerdWork.Breed bred = HerdWork.breed(HerdWork.census(cows), storage, HerdRules.LIMIT, null);
         helper.assertValueEqual(bred.animals(), 2, "three wheat feeds only one pair");
         helper.assertValueEqual(storage.count(stack -> stack.is(Items.WHEAT)), 1L, "one wheat is left");
         long inLove = cows.stream().filter(cow -> ((Animal) cow).isInLove()).count();
@@ -297,7 +299,7 @@ public final class BlissfulLandGameTests {
         ResourceLocation cow = HerdWork.typeId(calf);
 
         Map<ResourceLocation, List<Animal>> herds = HerdWork.census(herd);
-        int killed = HerdWork.slaughter(helper.getLevel(), herds, Map.of(cow, 2), storage, owner, HerdWork.LIMIT);
+        int killed = HerdWork.slaughter(helper.getLevel(), herds, Map.of(cow, 2), storage, owner, HerdRules.LIMIT);
         helper.assertValueEqual(killed, 3, "five cows down to two: three adults go, the calf stays");
         helper.assertFalse(calf.isRemoved(), "a calf is never slaughtered");
         helper.assertTrue(herd.stream().filter(entity -> entity instanceof Pig).noneMatch(Entity::isRemoved),
@@ -317,7 +319,7 @@ public final class BlissfulLandGameTests {
         HerdState.of(data).setHosted(HerdWork.typeId(herd.getFirst()), true);
         BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT, 10));
 
-        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, HerdWork.HOSTING_ANIMALS)
+        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, HerdRules.HOSTING_ANIMALS)
                 .total();
         helper.assertValueEqual(handled, 2, "one cow short: one pair is fed");
         helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT)), 8L,
@@ -380,15 +382,15 @@ public final class BlissfulLandGameTests {
         try {
             LandMembership.claim(null, data, owner);
             stranger.containerMenu = openPanel(level, data, stranger, spirit);
-            EarthSpiritPanel.handle(stranger, new HerdModule.SetKeep(cowId, 5));
+            EarthSpiritPanel.handle(stranger, new HerdPart.SetKeep(cowId, 5));
             helper.assertValueEqual(HerdState.of(data).keep(cowId), 0, "a stranger's forged panel is refused");
-            EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 5));
+            EarthSpiritPanel.handle(owner, new HerdPart.SetKeep(cowId, 5));
             helper.assertValueEqual(HerdState.of(data).keep(cowId), 0, "without the panel open nothing happens");
             owner.containerMenu = openPanel(level, data, owner, spirit);
-            EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 5));
+            EarthSpiritPanel.handle(owner, new HerdPart.SetKeep(cowId, 5));
             helper.assertValueEqual(HerdState.of(data).keep(cowId), 5, "the owner with the panel open is obeyed");
             spirit.discard();
-            EarthSpiritPanel.handle(owner, new HerdModule.SetKeep(cowId, 7));
+            EarthSpiritPanel.handle(owner, new HerdPart.SetKeep(cowId, 7));
             helper.assertValueEqual(HerdState.of(data).keep(cowId), 5, "a panel whose spirit is gone is stale");
             helper.succeed();
         } finally {
@@ -415,10 +417,10 @@ public final class BlissfulLandGameTests {
 
             long wheatSerial = storage.entries().get(0).serial();
             long carrotSerial = storage.entries().get(1).serial();
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(wheatSerial, false));
+            EarthSpiritPanel.handle(owner, new StoragePart.Take(wheatSerial, false));
             helper.assertValueEqual(menu.getCarried().getCount(), 64, "one take puts a stack on the cursor");
             helper.assertValueEqual(wheat(storage) + menu.getCarried().getCount(), 100L, "taking keeps the total");
-            EarthSpiritPanel.handle(owner, new StorageModule.DepositCarried());
+            EarthSpiritPanel.handle(owner, new StoragePart.DepositCarried());
             helper.assertTrue(menu.getCarried().isEmpty(), "depositing empties the cursor");
             helper.assertValueEqual(wheat(storage), 100L, "depositing keeps the total");
 
@@ -427,11 +429,11 @@ public final class BlissfulLandGameTests {
             helper.assertTrue(owner.getInventory().getItem(0).isEmpty(), "shift-clicking a hotbar slot stores it");
             helper.assertValueEqual(wheat(storage), 110L, "storing keeps the total");
 
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(carrotSerial, false));
+            EarthSpiritPanel.handle(owner, new StoragePart.Take(carrotSerial, false));
             helper.assertTrue(menu.getCarried().is(Items.CARROT), "a serial takes its own entry");
             menu.setCarried(ItemStack.EMPTY);
 
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(wheatSerial, true));
+            EarthSpiritPanel.handle(owner, new StoragePart.Take(wheatSerial, true));
             helper.assertValueEqual(wheat(storage), 0L, "taking all empties the entry");
             helper.assertValueEqual(owner.getInventory().countItem(Items.WHEAT), 110, "all of it is in the bag");
 
@@ -441,9 +443,9 @@ public final class BlissfulLandGameTests {
             }
             storage.insert(new ItemStack(Items.WHEAT, 30));
             owner.getAbilities().instabuild = true;
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(wheatSerial, true));
+            EarthSpiritPanel.handle(owner, new StoragePart.Take(wheatSerial, true));
             helper.assertValueEqual(wheat(storage), 30L, "an emptied entry's serial takes nothing");
-            EarthSpiritPanel.handle(owner, new StorageModule.Take(storage.entries().get(0).serial(), true));
+            EarthSpiritPanel.handle(owner, new StoragePart.Take(storage.entries().get(0).serial(), true));
             helper.assertValueEqual(wheat(storage), 30L, "a full creative bag takes nothing and loses nothing");
             helper.succeed();
         } finally {

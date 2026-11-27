@@ -14,7 +14,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelActions;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSnapshot;
-import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.MountainModule;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.SecretRealmPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser;
 import net.alex.guzhenren.network.payload.EarthSpiritActionPayload;
@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  *       {@link StoragePage} 发给服务端，筛选在服务端做；换界面实例时先填值后挂监听，不重发）；聚焦时吞掉除 Esc 外的按键，
  *       免得按 E 关掉面板。</li>
  *   <li>分页标签算面板内（{@link #hasClickedOutside}）：手上拿着库藏物品点标签，松手时原版会把它当点在面板外扔出去。</li>
- *   <li>数据只来自菜单里按模块缓存的快照段：开面板时随缓冲带来，之后每秒与每次操作后由 {@link EarthSpiritPanelPayload}
+ *   <li>数据只来自菜单里按面板段缓存的快照段：开面板时随缓冲带来，之后每秒与每次操作后由 {@link EarthSpiritPanelPayload}
  *       替换（{@link #onPanel}）。操作结果提示在面板上方（地图页在顶栏下方）显示 {@value #NOTICE_MILLIS} 毫秒。</li>
  *   <li>本文件有意超过 300 行：四页切换与全屏布局、两处输入框与共享外框/标签/顶栏/输入转发共用同一界面生命周期，集中
  *       在一处维护更清晰。</li>
@@ -135,7 +135,8 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
         super.init();
         if (!isFullscreen()) this.leftPos = (this.width - this.imageWidth + TAB_SPAN) / 2;
         String name = this.nameField == null ? this.keptName : this.nameField.getValue();
-        this.nameField = field(this.leftPos + 12, this.topPos + 90, 120, MountainModule.NAME_LENGTH, "name_hint", name);
+        this.nameField = field(this.leftPos + 12, this.topPos + 90, 120, SecretRealmPart.NAME_LENGTH, "name_hint",
+                name);
         this.nameField.setResponder(this::suggestName);
         String query = this.searchField == null ? this.keptQuery : this.searchField.getValue();
         this.searchField = field(this.leftPos + StoragePage.SEARCH_X + 3, this.topPos + StoragePage.SEARCH_Y + 3,
@@ -261,7 +262,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
 
     void addTypedName() {
         String name = takeNameField().strip();
-        if (!name.isEmpty()) send(new MountainModule.AddWhitelist(name));
+        if (!name.isEmpty()) send(new SecretRealmPart.AddWhitelist(name));
     }
     //endregion
 

@@ -3,15 +3,13 @@ package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 import io.netty.handler.codec.DecoderException;
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModules;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 全部面板操作的类型表与线上编解码：先是面板自己的 {@link View}，再按 {@code LandModules.ALL} 的顺序接各模块的
+ * 全部面板操作的类型表与线上编解码：先是面板自己的 {@link View}，再按 {@code PanelSectionSources.ALL} 的顺序接各面板段的
  * {@code actions()}。
  * <ul>
  *   <li>编码写类型序号再写该类型的参数；序号越界即解码失败（客户端伪造的包被断开）。</li>
@@ -44,7 +42,7 @@ public final class PanelActions {
     private static List<PanelAction.Type<?>> collect() {
         List<PanelAction.Type<?>> types = new ArrayList<>();
         types.add(View.TYPE);
-        for (LandModule<?> module : LandModules.ALL) types.addAll(module.actions());
+        for (PanelSectionSource<?> module : PanelSectionSources.ALL) types.addAll(module.actions());
         return List.copyOf(types);
     }
 

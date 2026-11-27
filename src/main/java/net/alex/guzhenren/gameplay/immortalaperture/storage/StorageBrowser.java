@@ -98,20 +98,32 @@ public final class StorageBrowser {
     //endregion
 
     //region Page [当前页]
-    public static @NotNull StorageModule.Section page(@NotNull UUID viewer, @NotNull BlissfulStorage storage,
+    public record Stored(long serial, @NotNull ItemStack key, long count, boolean trimmed) {
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Stored> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_LONG, Stored::serial,
+                ItemStack.STREAM_CODEC, Stored::key,
+                ByteBufCodecs.VAR_LONG, Stored::count,
+                ByteBufCodecs.BOOL, Stored::trimmed,
+                Stored::new);
+    }
+
+    public record Listing(@NotNull List<Stored> entries, int total, int matched, int pageIndex, @NotNull Sort sort) {}
+
+    public static @NotNull Listing page(@NotNull UUID viewer, @NotNull BlissfulStorage storage,
                                                       @NotNull RegistryAccess access) {
         View view = VIEWS.computeIfAbsent(viewer, id -> new View());
         List<BlissfulStorage.Entry> matched = matched(view, storage);
         int page = Math.min(view.page, pages(matched.size()) - 1);
         view.page = page;
-        List<StorageModule.Stored> entries = new ArrayList<>();
+        List<Stored> entries = new ArrayList<>();
         for (int i = page * PAGE_SIZE; i < Math.min(matched.size(), (page + 1) * PAGE_SIZE); i++) {
             BlissfulStorage.Entry entry = matched.get(i);
             boolean trimmed = !fits(entry.key(), access);
             ItemStack shown = trimmed ? new ItemStack(entry.key().getItem()) : entry.key().copy();
-            entries.add(new StorageModule.Stored(entry.serial(), shown, entry.count(), trimmed));
+            entries.add(new Stored(entry.serial(), shown, entry.count(), trimmed));
         }
-        return new StorageModule.Section(entries, storage.entries().size(), matched.size(), page, view.sort);
+        return new Listing(entries, storage.entries().size(), matched.size(), page, view.sort);
     }
 
     public static int pages(int matched) { return Math.max(1, (matched + PAGE_SIZE - 1) / PAGE_SIZE); }

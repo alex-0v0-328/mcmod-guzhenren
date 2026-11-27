@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>标准田记 {@link FieldPlot}，顺序即开垦顺序；规划队列记区块坐标（{@code ChunkPos#toLong}），先进先出，田加规划
  *       合计受 {@code Siting#FIELD_CAP} 限制（在 {@link FieldPlans} 查）。</li>
- *   <li>开垦作物是 {@link FarmWork#CROPS} 的下标，{@value #AUTO_CROP} = 自动（库藏里第一种种子）。</li>
+ *   <li>开垦作物是 {@link FarmRules#CROPS} 的下标，{@value #AUTO_CROP} = 自动（库藏里第一种种子）。</li>
  *   <li>冷却按游戏刻记「何时可再用」，读档后仍有效；本类是存档段 {@link #PART}（子项 {@code farm}），任何改动经回调置脏。</li>
  * </ul>
  */
@@ -93,7 +93,7 @@ public final class FarmState implements LandSavePart.State {
     public int crop() { return crop; }
 
     public void setCrop(int crop) {
-        int clamped = crop < 0 || crop >= FarmWork.CROPS.size() ? AUTO_CROP : crop;
+        int clamped = crop < 0 || crop >= FarmRules.CROPS.size() ? AUTO_CROP : crop;
         if (this.crop == clamped) return;
         this.crop = clamped;
         changed.run();
@@ -133,7 +133,7 @@ public final class FarmState implements LandSavePart.State {
         reclaimReadyAt = tag.getLong("reclaim_ready_at");
         hosting = tag.getBoolean("hosting");
         crop = tag.contains("crop") ? tag.getInt("crop") : AUTO_CROP;
-        if (crop < AUTO_CROP || crop >= FarmWork.CROPS.size()) crop = AUTO_CROP;
+        if (crop < AUTO_CROP || crop >= FarmRules.CROPS.size()) crop = AUTO_CROP;
         lastReaped = tag.getInt("last_reaped");
         lastSown = tag.getInt("last_sown");
     }

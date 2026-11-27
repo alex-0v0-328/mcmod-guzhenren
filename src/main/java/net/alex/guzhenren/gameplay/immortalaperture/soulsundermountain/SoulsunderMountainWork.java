@@ -3,7 +3,6 @@ package net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
@@ -33,9 +32,10 @@ import org.jetbrains.annotations.Nullable;
  * 地灵面板「荡魂山」页的两个操作。
  * <ul>
  *   <li>{@link #moveMobsUp}：把山范围外、各牧场栏外（{@link PastureWork#penner}）、已加载区块里的可支使生物（
- *       {@link LandRules#isManaged}）至多 {@value #MOVE_LIMIT} 只传到山心 {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂
- *       山石的列上（选点同长胆石，每只至多试 {@value #MOVE_ATTEMPTS} 次，须已加载），之后冷却
- *       {@value #MOVE_COOLDOWN_TICKS} 刻；调用方先查
+ *       {@link LandRules#isManaged}）至多 {@value SoulsunderMountainRules#MOVE_LIMIT} 只传到山心
+ *       {@code GUTS_STONE_RADIUS} 格内、顶层为荡魂山石的列上（选点同长胆石，每只至多试
+ *       {@value SoulsunderMountainRules#MOVE_ATTEMPTS} 次，须已加载），之后冷却
+ *       {@value SoulsunderMountainRules#MOVE_COOLDOWN_TICKS} 刻；调用方先查
  *       {@link #moveCooldown}。野生蛊不挪：生命只有 1，上山即被震死，也不长胆石。</li>
  *   <li>{@link #driveGutsGu}：主人须在山范围内；敲碎山范围内、已加载区块里登记的全部胆石，每块按胆石方块自己的战利品表
  *       各掷一次（同手敲的 50%），掷出的胆识蛊[Guts Gu]不成物品，直接给主人魂魄上限各加
@@ -50,9 +50,6 @@ public final class SoulsunderMountainWork {
 
     private SoulsunderMountainWork() {}
 
-    public static final int MOVE_LIMIT = 64;
-    public static final int MOVE_ATTEMPTS = 16;
-    public static final int MOVE_COOLDOWN_TICKS = 60 * Ticks.SECOND;
 
     public record Drive(int stones, int gu) {}
 
@@ -71,7 +68,7 @@ public final class SoulsunderMountainWork {
         List<Mob> movers = new ArrayList<>();
         Predicate<Entity> penned = PastureWork.penner(data);
         for (Entity entity : candidates) {
-            if (movers.size() >= MOVE_LIMIT) break;
+            if (movers.size() >= SoulsunderMountainRules.MOVE_LIMIT) break;
             if (entity.getType().is(ModEntityTypeTags.WILD_GU) || !LandRules.isManaged(entity)
                     || site.contains(entity)) {
                 continue;
@@ -87,12 +84,13 @@ public final class SoulsunderMountainWork {
             mob.setDeltaMovement(Vec3.ZERO);
             moved++;
         }
-        SoulsunderMountainState.of(data).setMoveReadyAt(level.getGameTime() + MOVE_COOLDOWN_TICKS);
+        SoulsunderMountainState.of(data)
+                .setMoveReadyAt(level.getGameTime() + SoulsunderMountainRules.MOVE_COOLDOWN_TICKS);
         return moved;
     }
 
     private static @Nullable BlockPos findSpot(ServerLevel level, BlockPos center, int radius, RandomSource random) {
-        for (int attempt = 0; attempt < MOVE_ATTEMPTS; attempt++) {
+        for (int attempt = 0; attempt < SoulsunderMountainRules.MOVE_ATTEMPTS; attempt++) {
             BlockPos column = SoulsunderMountain.pickColumn(center, radius, random);
             if (column == null) continue;
             BlockPos spot = SoulsunderMountain.findGrowSpot(level, column.getX(), column.getZ());

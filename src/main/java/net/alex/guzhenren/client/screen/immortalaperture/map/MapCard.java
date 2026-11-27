@@ -7,7 +7,7 @@ import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
  * 牧场：收拢、迁移、拆除）。
  * <ul>
  *   <li>卡片不压暗地图、不独占输入，点卡片外任意处即关；每帧按占地列表重找一次，快照里没了就自动关。</li>
- *   <li>「收拢」冷却中置灰，悬停写剩余秒数；可用时写每次上限 {@link PastureWork#GATHER_LIMIT} 头与冷却。</li>
+ *   <li>「收拢」冷却中置灰，悬停写剩余秒数；可用时写每次上限 {@link HerdRules#GATHER_LIMIT} 头与冷却。</li>
  *   <li>卡片贴光标右下，越出地图区时翻到左边或上边。</li>
  * </ul>
  */
@@ -99,8 +99,8 @@ final class MapCard {
         if (gather < 0) return false;
         Component text = land.gatherSeconds() > 0
                 ? Component.translatable(EarthSpiritScreen.TIP + "gather_wait", land.gatherSeconds())
-                : Component.translatable(EarthSpiritScreen.TIP + GATHER, PastureWork.GATHER_LIMIT,
-                        PastureWork.GATHER_COOLDOWN_TICKS / Ticks.SECOND);
+                : Component.translatable(EarthSpiritScreen.TIP + GATHER, HerdRules.GATHER_LIMIT,
+                        HerdRules.GATHER_COOLDOWN_TICKS / Ticks.SECOND);
         return page.tipAt(graphics, buttonLeft(gather), buttonTop(), BUTTON_W, MapControls.HEIGHT, mouseX, mouseY,
                 text);
     }

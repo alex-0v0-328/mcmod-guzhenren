@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
@@ -17,7 +16,6 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandSite;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
-import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryModule;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
 import net.minecraft.core.BlockPos;
@@ -29,8 +27,8 @@ import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「地图」页模块：下发地图页叠加层需要的经营数据（疆域、山心与秘境半径、行宫、入口、田、规划、牧场、选址上限与冷却）；
- * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmModule}、{@code HerdModule}。
+ * 「地图」页面板段：下发地图页叠加层需要的经营数据（疆域、山心与秘境半径、行宫、入口、田、规划、牧场、选址上限与冷却）；
+ * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmPart}、{@code HerdPart}。
  * <ul>
  *   <li>秘境未解出时山心、行宫、入口都是 {@link BlockPos#ZERO}、秘境半径 0（{@link Siting} 视作不查秘境）。</li>
  *   <li>{@link #plot}（服务端复判）与 {@link Section#siting}（客户端预判）取同一组占地：田、规划、牧场 4 区块；服务端
@@ -38,11 +36,11 @@ import org.jetbrains.annotations.NotNull;
  * </ul>
  */
 
-public final class MapModule implements LandModule<MapModule.Section> {
+public final class MapPart implements PanelSectionSource<MapPart.Section> {
 
-    public static final MapModule INSTANCE = new MapModule();
+    public static final MapPart INSTANCE = new MapPart();
 
-    private MapModule() {}
+    private MapPart() {}
 
     public record Section(@NotNull Territory territory, @NotNull BlockPos mountain, int realmRadius,
                           @NotNull BlockPos palace, @NotNull BlockPos entry, @NotNull List<Field> fields,
@@ -68,7 +66,7 @@ public final class MapModule implements LandModule<MapModule.Section> {
                     Pen::new);
         }
 
-        public static final Section EMPTY = new Section(TerritoryModule.Section.EMPTY.territory(), BlockPos.ZERO, 0,
+        public static final Section EMPTY = new Section(TerritoryPart.Section.EMPTY.territory(), BlockPos.ZERO, 0,
                 BlockPos.ZERO, BlockPos.ZERO, List.of(), List.of(), List.of(), Siting.FIELD_CAP, Siting.PASTURE_CAP,
                 0, 0);
         private static final StreamCodec<ByteBuf, List<ChunkPos>> CHUNKS =
@@ -117,7 +115,7 @@ public final class MapModule implements LandModule<MapModule.Section> {
         }
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     @Override

@@ -5,7 +5,7 @@ import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelPage;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
 import net.minecraft.client.Minecraft;
@@ -68,7 +68,7 @@ public class MapPage extends PanelPage {
     protected Component name() { return Component.translatable(EarthSpiritScreen.UI + "tab.map"); }
 
     //region Shared with parts [供部件用]
-    MapModule.Section data() { return section(MapModule.INSTANCE, MapModule.Section.EMPTY); }
+    MapPart.Section data() { return section(MapPart.INSTANCE, MapPart.Section.EMPTY); }
 
     MapTools.Land land() { return land; }
 

@@ -35,7 +35,8 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 /**
  * 主代码架构规则：分层向下（{@link #LAYERS_ABOVE}，字节码看不见的内联常量由 {@code SourceLayersTest} 按 import 补查）；
  * 仅客户端专用代码引用客户端代码，仅 mixin 引用 mixin；共用蛊物品基类低于凡蛊；空窍[Aperture]
- * 压力爆炸坑低于空窍其余部分，仙窍[Immortal Aperture]自下而上为状态、地图管线、占地规则，各层只依赖更低的层；顶层包无环，不计注册枢纽（{@code registry}
+ * 压力爆炸坑低于空窍其余部分，仙窍[Immortal Aperture]自下而上为状态、地图管线、占地规则、功能、管理面板、组装（根包），
+ * 各层只依赖更低的层、子包无环，客户端不读服务端运行类；顶层包无环，不计注册枢纽（{@code registry}
  * 与根包类）；二级包亦无环，另不计记录门面
  * {@code gameplay.data}；本命蛊[Vital Gu]绑定唯一读写入口。
  */
@@ -80,6 +81,16 @@ class ArchitectureTest {
         @Override
         public String getDescription() { return "second-level packages, gameplay.path.strength apart"; }
     };
+    // The aperture's feature packages; the server runtime its screens must not read (imports: SourceLayersTest).
+    static final String[] IMMORTAL_APERTURE_FEATURES = Stream.of("farm", "herd", "gu", "storage", "territory",
+            "soulsundermountain").map(feature -> ROOT + "gameplay.immortalaperture." + feature + "..")
+            .toArray(String[]::new);
+    private static final DescribedPredicate<JavaClass> IMMORTAL_APERTURE_SERVER_RUNTIME = DescribedPredicate.describe(
+            "are the aperture's server workers, map pipeline entry, land save or assembly",
+            c -> c.getPackageName().startsWith(ROOT + "gameplay.immortalaperture")
+                    && (c.getSimpleName().endsWith("Work") || c.getSimpleName().equals("LandMaps")
+                    || c.getSimpleName().equals("BlissfulLandData")
+                    || c.getPackageName().equals(ROOT + "gameplay.immortalaperture")));
     private static final String VITAL_GU_STATE = ROOT + "item.gu.stack.VitalGuState";
     private static final String DATA_COMPONENTS = ROOT + "registry.item.ModDataComponents";
     private static final DescribedPredicate<JavaFieldAccess> VITAL_COMPONENT = DescribedPredicate.describe(
@@ -136,6 +147,26 @@ class ArchitectureTest {
                                     ROOT + "gameplay.immortalaperture.state.."))))
             .because("the siting rules are shared by the client map and the server checks, so they read only map "
                     + "tiles and the territory");
+    @ArchTest
+    static final ArchRule immortalAperturePackagesFormNoCycle = slices()
+            .matching(ROOT + "gameplay.immortalaperture.(*)..").should().beFreeOfCycles()
+            .because("the aperture's layers only call down; a call back up would close a cycle");
+    @ArchTest
+    static final ArchRule immortalApertureFeaturesStayBelowThePanel = noClasses()
+            .that().resideInAnyPackage(IMMORTAL_APERTURE_FEATURES).should().dependOnClassesThat(
+                    resideInAPackage(ROOT + "gameplay.immortalaperture.managementpanel..")
+                            .or(resideInAPackage(ROOT + "gameplay.immortalaperture")))
+            .because("the panel reads and drives the features; the assembly wires them, so neither is below them");
+    @ArchTest
+    static final ArchRule immortalAperturePanelStaysBelowTheAssembly = noClasses()
+            .that().resideInAPackage(ROOT + "gameplay.immortalaperture.managementpanel..")
+            .should().dependOnClassesThat().resideInAPackage(ROOT + "gameplay.immortalaperture")
+            .because("the assembly opens the panel and routes events into it");
+    @ArchTest
+    static final ArchRule immortalApertureScreensReadNoServerRuntime = noClasses()
+            .that().resideInAPackage(ROOT + "client.screen.immortalaperture..").should().dependOnClassesThat(
+                    IMMORTAL_APERTURE_SERVER_RUNTIME)
+            .because("the screens read the panel protocol and the shared rules, never the server workers");
     @ArchTest
     static final ArchRule topLevelPackagesFormNoCycle = slices().matching(ROOT + "(*)..")
             .should().beFreeOfCycles()

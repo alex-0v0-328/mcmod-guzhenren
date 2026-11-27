@@ -6,8 +6,8 @@ import java.util.Locale;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.StoragePart;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser;
-import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageModule;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  *       是整组存入，由菜单的 {@code quickMoveStack} 在服务端做。「存同类」把背包主格里库藏已有的同类一次存入。取物带条
  *       目流水号。</li>
  *   <li>搜索、排序、翻页都在服务端（{@link StorageBrowser}）：输入一变、点排序、滚轮翻页就发一次 {@link
- *       StorageModule.Browse}，带上按本地物品名算好的提示表（专用服务器认不出中文名）。翻页与排序先记成「待回」值，
+ *       StoragePart.Browse}，带上按本地物品名算好的提示表（专用服务器认不出中文名）。翻页与排序先记成「待回」值，
  *       服务端回了同样的页码或排序才清掉，连续滚动与连点不丢步。</li>
  *   <li>右上角写种类数：筛选时写「匹配数 / 总数」，超过一页时补「当前页 / 页数」。</li>
  * </ul>
@@ -57,8 +57,8 @@ final class StoragePage extends PanelPage {
     @Override
     protected Component name() { return Component.translatable(UI + "tab.storage"); }
 
-    private StorageModule.Section section() {
-        StorageModule.Section section = section(StorageModule.INSTANCE, StorageModule.Section.EMPTY);
+    private StoragePart.Section section() {
+        StoragePart.Section section = section(StoragePart.INSTANCE, StoragePart.Section.EMPTY);
         if (section.pageIndex() == pendingPage) pendingPage = -1;
         if (section.sort() == pendingSort) pendingSort = null;
         return section;
@@ -74,7 +74,7 @@ final class StoragePage extends PanelPage {
         pendingSort = sort;
         pendingPage = pageIndex;
         String text = screen.searchQuery();
-        send(new StorageModule.Browse(text, sort, pageIndex, hints(text)));
+        send(new StoragePart.Browse(text, sort, pageIndex, hints(text)));
     }
 
     private static List<Item> hints(String text) {
@@ -114,7 +114,7 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        StorageModule.Section section = section();
+        StoragePart.Section section = section();
         Component count = section.matched() < section.total()
                 ? Component.translatable(UI + "kinds_filtered", section.matched(), section.total())
                 : Component.translatable(UI + "kinds", section.total());
@@ -130,9 +130,9 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        List<StorageModule.Stored> entries = section().entries();
+        List<StorageBrowser.Stored> entries = section().entries();
         for (int i = 0; i < Math.min(entries.size(), ROWS * COLS); i++) {
-            StorageModule.Stored entry = entries.get(i);
+            StorageBrowser.Stored entry = entries.get(i);
             int left = x + GRID_X + (i % COLS) * PITCH;
             int top = y + GRID_Y + (i / COLS) * PITCH;
             graphics.renderItem(entry.key(), left, top);
@@ -154,7 +154,7 @@ final class StoragePage extends PanelPage {
                 Component.translatable(TIP + "deposit_matching"))) {
             return;
         }
-        StorageModule.Stored entry = entryAt(x, y, mouseX, mouseY);
+        StorageBrowser.Stored entry = entryAt(x, y, mouseX, mouseY);
         if (entry == null || !screen.getMenu().getCarried().isEmpty()) return;
 
         List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(Minecraft.getInstance(), entry.key()));
@@ -163,11 +163,11 @@ final class StoragePage extends PanelPage {
         graphics.renderComponentTooltip(font(), lines, mouseX, mouseY);
     }
 
-    private @Nullable StorageModule.Stored entryAt(int x, int y, double mouseX, double mouseY) {
+    private @Nullable StorageBrowser.Stored entryAt(int x, int y, double mouseX, double mouseY) {
         if (!Widgets.isOver(mouseX, mouseY, x + GRID_X, y + GRID_Y, COLS * PITCH, ROWS * PITCH)) return null;
         int c = (int) (mouseX - x - GRID_X) / PITCH;
         int r = (int) (mouseY - y - GRID_Y) / PITCH;
-        List<StorageModule.Stored> entries = section().entries();
+        List<StorageBrowser.Stored> entries = section().entries();
         int index = r * COLS + c;
         return index < entries.size() ? entries.get(index) : null;
     }
@@ -179,16 +179,16 @@ final class StoragePage extends PanelPage {
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.SQUARE)) {
-            send(new StorageModule.DepositMatching());
+            send(new StoragePart.DepositMatching());
             return true;
         }
         if (!Widgets.isOver(mouseX, mouseY, x + GRID_X, y + GRID_Y, COLS * PITCH, ROWS * PITCH)) return false;
         if (!screen.getMenu().getCarried().isEmpty()) {
-            send(new StorageModule.DepositCarried());
+            send(new StoragePart.DepositCarried());
             return true;
         }
-        StorageModule.Stored entry = entryAt(x, y, mouseX, mouseY);
-        if (entry != null && button == 0) send(new StorageModule.Take(entry.serial(), shift));
+        StorageBrowser.Stored entry = entryAt(x, y, mouseX, mouseY);
+        if (entry != null && button == 0) send(new StoragePart.Take(entry.serial(), shift));
         return true;
     }
 

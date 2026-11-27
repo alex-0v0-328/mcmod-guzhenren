@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.immortalaperture.herd;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -6,13 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
@@ -31,7 +28,7 @@ import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「养殖」小节模块：每种动物一行（数量、托管开关、保持数、库藏饲料），牧场一行（牧场数、栏内栏外），喂养繁殖、宰杀收
+ * 「养殖」小节面板段：每种动物一行（数量、托管开关、保持数、库藏饲料），牧场一行（牧场数、栏内栏外），喂养繁殖、宰杀收
  * 取，以及养殖托管；地图上的牧场操作（放置、迁移、拆除、收拢）也登记在这里。
  * <ul>
  *   <li>行、喂养、宰杀与托管只算各牧场栏内的动物（{@link PastureWork#penned}）；栏外的只在牧场行里计数。</li>
@@ -41,19 +38,19 @@ import org.jetbrains.annotations.NotNull;
  *   <li>行 = 栏内清点到的种类，加上设过保持数或开着托管、眼下一只没有的种类；按实体 ID 排序。</li>
  *   <li>库藏饲料按该种第一只动物的 {@code isFood} 数库藏，一只没有的种类不知道吃什么，记 {@value #UNKNOWN_FEED}。</li>
  *   <li>{@link Section#slaughterPreview()} 是现在点「宰杀收取」会宰几头，规则同 {@link HerdWork#slaughter}。</li>
- *   <li>规则都在 {@link HerdWork}；托管每轮宰杀加繁殖至多 {@value HerdWork#HOSTING_ANIMALS} 只，结果记进 {@link HerdState}，页
+ *   <li>规则都在 {@link HerdWork}；托管每轮宰杀加繁殖至多 {@value HerdRules#HOSTING_ANIMALS} 只，结果记进 {@link HerdState}，页
  *       面显示下一轮倒计时与上一轮结果。</li>
- *   <li>本文件有意略超 300 行：牧场四个操作要与养殖行同处一个模块登记（面板按模块编码操作），拆出去反而多一层转发。
+ *   <li>本文件有意略超 300 行：牧场四个操作要与养殖行同处一个面板段登记（面板按面板段编码操作），拆出去反而多一层转发。
  *       </li>
  * </ul>
  */
 
-public final class HerdModule implements LandModule<HerdModule.Section> {
+public final class HerdPart implements PanelSectionSource<HerdPart.Section> {
 
-    public static final HerdModule INSTANCE = new HerdModule();
+    public static final HerdPart INSTANCE = new HerdPart();
     public static final long UNKNOWN_FEED = -1L;
 
-    private HerdModule() {}
+    private HerdPart() {}
 
     public record Row(@NotNull ResourceLocation type, int count, int keep, boolean hosted, long feed) {
 
@@ -92,7 +89,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
         public boolean hosting() { return rows.stream().anyMatch(Row::hosted); }
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     //region Actions [操作]
@@ -105,7 +102,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
         public @NotNull Component perform(@NotNull ActionContext context) {
             HerdWork.Breed bred = HerdWork.breed(HerdWork.penned(context.level(), context.data()),
                     BlissfulStorage.of(context.data()),
-                    HerdWork.LIMIT, null);
+                    HerdRules.LIMIT, null);
             return LandNoticeEvent.text("bred", bred.animals(), bred.food());
         }
     }
@@ -121,7 +118,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
             return LandNoticeEvent.text("slaughtered", HerdWork.slaughter(context.level(),
                     HerdWork.penned(context.level(), data), HerdState.of(data).keep(), BlissfulStorage.of(data),
                     context.player(),
-                    HerdWork.LIMIT));
+                    HerdRules.LIMIT));
         }
     }
 
@@ -135,7 +132,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
         public @NotNull Component perform(@NotNull ActionContext context) {
             ServerLevel level = context.level();
             BlissfulLandData data = context.data();
-            Siting.Reason reason = Siting.pasture(MapModule.plot(level, data), Siting.loadedTiles(level,
+            Siting.Reason reason = Siting.pasture(MapPart.plot(level, data), Siting.loadedTiles(level,
                     data.territory()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) return refused(reason);
 
@@ -160,7 +157,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
             BlissfulLandData data = context.data();
             ChunkPos old = HerdState.of(data).pasture(index);
             if (old == null) return LandNoticeEvent.text("no_pasture");
-            Siting.Reason reason = Siting.pasture(MapModule.plot(level, data).without(old.x, old.z),
+            Siting.Reason reason = Siting.pasture(MapPart.plot(level, data).without(old.x, old.z),
                     Siting.loadedTiles(level, data.territory()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) return refused(reason);
 
@@ -286,7 +283,7 @@ public final class HerdModule implements LandModule<HerdModule.Section> {
             long feed = animals.isEmpty() ? UNKNOWN_FEED : BlissfulStorage.of(data).count(animals.getFirst()::isFood);
             rows.add(new Row(type, animals.size(), state.keep(type), state.isHosted(type), feed));
         });
-        return new Section(rows, pen, HerdWork.slaughterCount(herds, state.keep(), HerdWork.LIMIT),
+        return new Section(rows, pen, HerdWork.slaughterCount(herds, state.keep(), HerdRules.LIMIT),
                 LandHostingJob.secondsUntilNext(level.getServer()), state.lastSlaughtered(), state.lastBred());
     }
 }

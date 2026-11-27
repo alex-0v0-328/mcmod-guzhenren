@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
@@ -39,11 +38,11 @@ import org.jetbrains.annotations.Nullable;
  *       把整块田整平（上方清空至地表、至多 {@value LandRules#CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多
  *       {@value LandRules#FILL_DEPTH} 格），按 {@link FieldPlot} 铺土径、水与耕地，再按主人选的开垦作物（{@link FarmState#crop()}，
  *       自动 = 库藏第一种种子）从库藏扣种子种满耕地（不够就种够的，没有就开空田，留给之后的收割补种）；之后冷却
- *       {@value #RECLAIM_COOLDOWN_TICKS} 刻。改地形先过 {@link ModEvents#canGrief}。</li>
+ *       {@value FarmRules#RECLAIM_COOLDOWN_TICKS} 刻。改地形先过 {@link ModEvents#canGrief}。</li>
  *   <li>⚠ {@link #reclaim} 清整不掉落任何方块，田上玩家搭的普通方块会被直接抹掉；有方块实体的区块选址时已拒。</li>
  *   <li>{@link #remove}：作物（熟不熟都算）按方块战利品表全收进库藏，耕地层的耕地、水、土径换回泥土，撤这块田的强加载。
  *       </li>
- *   <li>作物只认 {@link #CROPS}（小麦、胡萝卜、马铃薯、甜菜根），种子也只认这四种对应的物品；只在标准田里清点与收割。地
+ *   <li>作物只认 {@link FarmRules#CROPS}（小麦、胡萝卜、马铃薯、甜菜根），种子也只认这四种对应的物品；只在标准田里清点与收割。地
  *       狱疣要灵魂沙田，本阶段不做。</li>
  *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，从中扣 1 份种子补种（掉落里没有就从库藏扣，库藏也没有就留空），其
  *       余进库藏。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕好）种这块田现有最多的作物，田里一株没有就取开垦作
@@ -63,9 +62,6 @@ public final class FarmWork {
     public static final LandCensus.Census<Map<Block, Count>> CENSUS = LandCensus.Census.ofLand(FarmWork::census);
     public static final TicketController TICKETS = new TicketController(Guzhenren.id("blissful_land_fields"),
             FarmWork::validateTickets);
-    public static final int RECLAIM_COOLDOWN_TICKS = 60 * Ticks.SECOND;
-    public static final int HOSTING_FIELDS = 8;
-    public static final List<Block> CROPS = List.of(Blocks.WHEAT, Blocks.CARROTS, Blocks.POTATOES, Blocks.BEETROOTS);
     private static final int NO_GROUND = Integer.MIN_VALUE;
 
     public record Count(int mature, int growing) {}
@@ -99,7 +95,7 @@ public final class FarmWork {
         }
         sowAll(level, data, field.cells());
         FarmState.of(data).addField(field);
-        FarmState.of(data).setReclaimReadyAt(level.getGameTime() + RECLAIM_COOLDOWN_TICKS);
+        FarmState.of(data).setReclaimReadyAt(level.getGameTime() + FarmRules.RECLAIM_COOLDOWN_TICKS);
         setForced(level, field, true);
         return field;
     }
@@ -173,18 +169,18 @@ public final class FarmWork {
     }
 
     public static boolean isSeed(@NotNull ItemStack stack) {
-        return stack.getItem() instanceof BlockItem item && CROPS.contains(item.getBlock());
+        return stack.getItem() instanceof BlockItem item && FarmRules.CROPS.contains(item.getBlock());
     }
 
     public static @NotNull Predicate<ItemStack> seedFilter(int crop) {
         if (crop == FarmState.AUTO_CROP) return FarmWork::isSeed;
-        Item seed = CROPS.get(crop).asItem();
+        Item seed = FarmRules.CROPS.get(crop).asItem();
         return stack -> stack.is(seed);
     }
     //endregion
 
     //region Crops [作物]
-    public static boolean isCrop(@NotNull BlockState state) { return CROPS.contains(state.getBlock()); }
+    public static boolean isCrop(@NotNull BlockState state) { return FarmRules.CROPS.contains(state.getBlock()); }
 
     public static boolean isMature(@NotNull BlockState state) {
         return state.getBlock() instanceof CropBlock crop && crop.isMaxAge(state);
@@ -294,7 +290,7 @@ public final class FarmWork {
     public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         if (!FarmState.of(data).hosting()) return 0;
 
-        Harvest done = harvest(level, data, HOSTING_FIELDS);
+        Harvest done = harvest(level, data, FarmRules.HOSTING_FIELDS);
         FarmState.of(data).setLastRound(done.reaped(), done.sown());
         return done.fields();
     }

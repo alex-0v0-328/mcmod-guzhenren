@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import java.util.List;
 import java.util.function.Consumer;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -17,19 +16,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PanelSnapshotSectionsTest {
 
-    private record Count(@NotNull Module owner, int value) implements PanelSection {
+    private record Count(@NotNull Source owner, int value) implements PanelSection {
 
         @Override
-        public @NotNull LandModule<?> module() { return owner; }
+        public @NotNull PanelSectionSource<?> source() { return owner; }
     }
 
-    private static final class Module implements LandModule<Count> {
+    private static final class Source implements PanelSectionSource<Count> {
 
         private final Page page;
         private final StreamCodec<RegistryFriendlyByteBuf, Count> codec = ByteBufCodecs.VAR_INT
                 .<RegistryFriendlyByteBuf>cast().map(value -> new Count(this, value), Count::value);
 
-        private Module(Page page) { this.page = page; }
+        private Source(Page page) { this.page = page; }
 
         @Override
         public @NotNull Page page() { return page; }
@@ -44,10 +43,10 @@ class PanelSnapshotSectionsTest {
         public @NotNull List<PanelAction.Type<?>> actions() { return List.of(); }
     }
 
-    private static final Module MAP = new Module(Page.MAP);
-    private static final Module OVERVIEW = new Module(Page.INFO);
-    private static final Module HERD = new Module(Page.INFO);
-    private static final List<Module> MODULES = List.of(MAP, OVERVIEW, HERD);
+    private static final Source MAP = new Source(Page.MAP);
+    private static final Source OVERVIEW = new Source(Page.INFO);
+    private static final Source HERD = new Source(Page.INFO);
+    private static final List<Source> MODULES = List.of(MAP, OVERVIEW, HERD);
 
     private static void withBuffer(Consumer<RegistryFriendlyByteBuf> body) {
         RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.EMPTY);
@@ -110,6 +109,6 @@ class PanelSnapshotSectionsTest {
     @DisplayName("a section whose module is not registered cannot be encoded")
     void unregisteredSectionIsRejected() {
         withBuffer(buffer -> assertThrows(IllegalArgumentException.class, () -> PanelSnapshot.writeSections(buffer,
-                List.of(new Count(new Module(Page.STORAGE), 1)), MODULES)));
+                List.of(new Count(new Source(Page.STORAGE), 1)), MODULES)));
     }
 }

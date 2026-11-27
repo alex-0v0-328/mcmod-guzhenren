@@ -1,16 +1,11 @@
-package net.alex.guzhenren.gameplay.immortalaperture.territory;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import java.util.List;
 import java.util.Locale;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
+import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryWork;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -18,14 +13,14 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「疆域」页模块：下发现疆域，客户端用同一份 {@link Territory} 规则画略图、算割弃预告；「割弃」由服务端复判。
+ * 「疆域」页面板段：下发现疆域，客户端用同一份 {@link Territory} 规则画略图、算割弃预告；「割弃」由服务端复判。
  */
 
-public final class TerritoryModule implements LandModule<TerritoryModule.Section> {
+public final class TerritoryPart implements PanelSectionSource<TerritoryPart.Section> {
 
-    public static final TerritoryModule INSTANCE = new TerritoryModule();
+    public static final TerritoryPart INSTANCE = new TerritoryPart();
 
-    private TerritoryModule() {}
+    private TerritoryPart() {}
 
     public record Section(@NotNull Territory territory) implements PanelSection {
 
@@ -34,7 +29,7 @@ public final class TerritoryModule implements LandModule<TerritoryModule.Section
                 Territory.STREAM_CODEC.map(Section::new, Section::territory).cast();
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     public record Cede(@NotNull Territory.Side side, int width) implements PanelAction {

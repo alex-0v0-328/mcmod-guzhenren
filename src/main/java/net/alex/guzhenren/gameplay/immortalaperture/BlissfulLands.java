@@ -14,7 +14,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMarkSource;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
@@ -145,7 +145,7 @@ public final class BlissfulLands {
             BlissfulLandData data = BlissfulLandData.get(server, land);
             if (tick % SPIRIT_CHECK_TICKS == 0) keepSpirit(level, land, data);
             if (tick % LandHostingJob.INTERVAL_TICKS == 0 && data.hasOwner()) host(server, level, data);
-            if (tick % Ticks.SECOND == 0) FieldPlans.tick(level, data, () -> MapModule.plot(level, data));
+            if (tick % Ticks.SECOND == 0) FieldPlans.tick(level, data, () -> MapPart.plot(level, data));
         }
         if (tick % Ticks.SECOND == 0) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {

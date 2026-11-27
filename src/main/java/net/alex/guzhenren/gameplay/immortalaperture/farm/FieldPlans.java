@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 标准田的规划队列：主人在地图上点选区块入队，地灵按队列每 {@value FarmWork#RECLAIM_COOLDOWN_TICKS} 刻开垦 1 块。
+ * 标准田的规划队列：主人在地图上点选区块入队，地灵按队列每 {@value FarmRules#RECLAIM_COOLDOWN_TICKS} 刻开垦 1 块。
  * <ul>
- *   <li>{@link #plan}：按 {@link Siting#field} 复判（服务端经 {@link MapModule#tiles} 同步加载目标区块现扫地图片），
+ *   <li>{@link #plan}：按 {@link Siting#field} 复判（服务端经 {@link Siting#loadedTiles} 同步加载目标区块现扫地图片），
  *       过了才入队；{@link #unplan} 直接出队。</li>
  *   <li>{@link #tick} 由 {@code BlissfulLands} 每秒调用：队列非空、冷却已过、主人在线时取队首，用真实方块再按同一规则
  *       复判（排除它自己这一格规划），过了就 {@link FarmWork#reclaim}，否则取消这一格并提示主人；主人不在线整条队列原

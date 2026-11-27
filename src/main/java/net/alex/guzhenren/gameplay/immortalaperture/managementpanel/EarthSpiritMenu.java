@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.MenuSlots;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  *       {@value EarthSpiritEntity#USE_RANGE} 格内、仍是主人，失主、走远或换维度即关。服务端还记着主人正在看的页
  *       （{@link #page}），快照只算这一页的各段。</li>
  *   <li>客户端实例从开面板的缓冲读首份 {@link PanelSnapshot}，之后由下行通知 {@link #setSnapshot} 替换；各段
- *       {@link PanelSection} 按模块缓存，切到没收到过的页时 {@link #section} 为空。</li>
+ *       {@link PanelSection} 按面板段缓存，切到没收到过的页时 {@link #section} 为空。</li>
  *   <li>背包格只在库藏页显示：客户端界面调 {@link #setInventoryShown}，隐藏的格子 {@code isActive} 为假，既不画也点不
  *       中；服务端实例恒为真。⚠ 隐藏时还要把格子换成坐标在屏幕外（{@value #HIDDEN_XY}）的副本（同原版创造模式物品栏换
  *       格的做法）：InventoryProfilesNext 按格子坐标画快捷栏箭头，不看 {@code isActive}，也不认界面类上的
@@ -47,7 +46,7 @@ public class EarthSpiritMenu extends AbstractContainerMenu {
     public static final int HIDDEN_XY = -10000;
     private final @Nullable EarthSpiritEntity spirit;
     private final List<Slot> homes = new ArrayList<>();
-    private final Map<LandModule<?>, PanelSection> sections = new HashMap<>();
+    private final Map<PanelSectionSource<?>, PanelSection> sections = new HashMap<>();
     private PanelSnapshot snapshot;
     private Page page;
     private boolean inventoryShown = true;
@@ -91,11 +90,11 @@ public class EarthSpiritMenu extends AbstractContainerMenu {
 
     public void setSnapshot(@NotNull PanelSnapshot snapshot) {
         this.snapshot = snapshot;
-        for (PanelSection section : snapshot.sections()) this.sections.put(section.module(), section);
+        for (PanelSection section : snapshot.sections()) this.sections.put(section.source(), section);
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends PanelSection> @Nullable S section(@NotNull LandModule<S> module) {
+    public <S extends PanelSection> @Nullable S section(@NotNull PanelSectionSource<S> module) {
         return (S) this.sections.get(module);
     }
 

@@ -4,15 +4,15 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.TerritoryPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
-import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryModule;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
  * 地图页的割弃弹窗：左边是全疆域远景略图（{@link TerritorySketch}），右边选侧、条带宽度与「割弃」，再弹一层二次确认
- * 才发 {@link TerritoryModule.Cede}。
+ * 才发 {@link TerritoryPart.Cede}。
  * <ul>
  *   <li>疆域远大于地图一次能看的 64×64 区块，所以割弃在远景略图上做；点略图把地图视口移到那里。</li>
  *   <li>宽度在 1 到该侧还能割的最大值之间，−/+ 每次 1、按住 Shift 每次 {@value #SHIFT_STEP}；该侧已到中心 64×64 区块时
@@ -236,7 +236,7 @@ final class CedePanel {
         int boxTop = top + (HEIGHT - CONFIRM_H) / 2;
         int buttonTop = boxTop + CONFIRM_H - 24;
         if (Widgets.isOver(mouseX, mouseY, boxLeft + CONFIRM_W - 80, buttonTop, 70, BUTTON_H)) {
-            if (canCede()) page.sendAction(new TerritoryModule.Cede(side, clampedWidth()));
+            if (canCede()) page.sendAction(new TerritoryPart.Cede(side, clampedWidth()));
             closeAll();
         } else if (Widgets.isOver(mouseX, mouseY, boxLeft + 10, buttonTop, 70, BUTTON_H)) {
             confirming = false;

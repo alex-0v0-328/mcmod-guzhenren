@@ -3,11 +3,12 @@ package net.alex.guzhenren.gametest;
 import java.util.UUID;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
@@ -171,7 +172,7 @@ public final class BlissfulFarmGameTests {
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT_SEEDS, 100));
         BlissfulStorage.of(data).insert(new ItemStack(Items.CARROT, 100));
-        FarmState.of(data).setCrop(FarmWork.CROPS.indexOf(Blocks.CARROTS));
+        FarmState.of(data).setCrop(FarmRules.CROPS.indexOf(Blocks.CARROTS));
         FieldPlot field = FarmWork.reclaim(level, data, plot(helper, 0, WHOLE - 1),
                 owner(helper, "gzr-farm-crop-mock"));
         try {
@@ -230,7 +231,7 @@ public final class BlissfulFarmGameTests {
         ChunkPos second = new ChunkPos(first.x + 1, first.z);
         FarmState.of(data).addPlan(first.toLong());
         FarmState.of(data).addPlan(second.toLong());
-        Supplier<Siting.Plot> taken = () -> MapModule.plot(level, data);
+        Supplier<Siting.Plot> taken = () -> MapPart.plot(level, data);
         try {
             FieldPlans.Step reclaimed = FieldPlans.step(level, data, owner, chunk -> plot, taken);
             helper.assertTrue(reclaimed != null && reclaimed.reclaimed(), "the head of the queue is reclaimed");

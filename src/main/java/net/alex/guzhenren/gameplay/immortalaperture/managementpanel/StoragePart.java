@@ -1,26 +1,22 @@
-package net.alex.guzhenren.gameplay.immortalaperture.storage;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import java.util.List;
 import java.util.UUID;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser.Sort;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageWork;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「库藏」页模块：只下发主人当前查询下的一页条目（搜索、排序、分页在 {@link StorageBrowser}）；取物、存入的规则在
+ * 「库藏」页面板段：只下发主人当前查询下的一页条目（搜索、排序、分页在 {@link StorageBrowser}）；取物、存入的规则在
  * {@link StorageWork}。
  * <ul>
  *   <li>{@link Browse} 一次带齐查询参数（输入、排序、页码、本地名提示表），服务端整份替换这位主人的查询。</li>
@@ -29,28 +25,19 @@ import org.jetbrains.annotations.NotNull;
  * </ul>
  */
 
-public final class StorageModule implements LandModule<StorageModule.Section> {
+public final class StoragePart implements PanelSectionSource<StoragePart.Section> {
 
-    public static final StorageModule INSTANCE = new StorageModule();
+    public static final StoragePart INSTANCE = new StoragePart();
 
-    private StorageModule() {}
+    private StoragePart() {}
 
-    public record Stored(long serial, @NotNull ItemStack key, long count, boolean trimmed) {
-
-        public static final StreamCodec<RegistryFriendlyByteBuf, Stored> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_LONG, Stored::serial,
-                ItemStack.STREAM_CODEC, Stored::key,
-                ByteBufCodecs.VAR_LONG, Stored::count,
-                ByteBufCodecs.BOOL, Stored::trimmed,
-                Stored::new);
-    }
-
-    public record Section(@NotNull List<Stored> entries, int total, int matched, int pageIndex, @NotNull Sort sort)
-            implements PanelSection {
+    public record Section(@NotNull List<StorageBrowser.Stored> entries, int total, int matched, int pageIndex,
+                          @NotNull Sort sort) implements PanelSection {
 
         public static final Section EMPTY = new Section(List.of(), 0, 0, 0, Sort.ORDER);
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC = StreamCodec.composite(
-                Stored.STREAM_CODEC.apply(ByteBufCodecs.list(StorageBrowser.PAGE_SIZE)), Section::entries,
+                StorageBrowser.Stored.STREAM_CODEC.apply(ByteBufCodecs.list(StorageBrowser.PAGE_SIZE)),
+                Section::entries,
                 ByteBufCodecs.VAR_INT, Section::total,
                 ByteBufCodecs.VAR_INT, Section::matched,
                 ByteBufCodecs.VAR_INT, Section::pageIndex,
@@ -60,7 +47,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
         public int pages() { return StorageBrowser.pages(matched); }
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     //region Actions [操作]
@@ -133,7 +120,8 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
 
     @Override
     public @NotNull Section section(@NotNull PanelContext context) {
-        return StorageBrowser.page(context.viewer(), BlissfulStorage.of(context.data()),
+        StorageBrowser.Listing listing = StorageBrowser.page(context.viewer(), BlissfulStorage.of(context.data()),
                 context.level().registryAccess());
+        return new Section(listing.entries(), listing.total(), listing.matched(), listing.pageIndex(), listing.sort());
     }
 }

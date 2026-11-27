@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.HerdPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -57,25 +57,25 @@ final class HerdPage extends PanelPage {
     @Override
     protected Component name() { return Component.translatable(UI + "tab.husbandry"); }
 
-    private HerdModule.Section data() { return section(HerdModule.INSTANCE, HerdModule.Section.EMPTY); }
+    private HerdPart.Section data() { return section(HerdPart.INSTANCE, HerdPart.Section.EMPTY); }
 
-    private List<HerdModule.Row> rows() { return data().rows(); }
+    private List<HerdPart.Row> rows() { return data().rows(); }
 
-    private static boolean shortOfFeed(HerdModule.Row row) {
-        return row.feed() != HerdModule.UNKNOWN_FEED && row.feed() < 2 && row.count() >= 2;
+    private static boolean shortOfFeed(HerdPart.Row row) {
+        return row.feed() != HerdPart.UNKNOWN_FEED && row.feed() < 2 && row.count() >= 2;
     }
 
-    private static Component nameOf(HerdModule.Row row) {
+    private static Component nameOf(HerdPart.Row row) {
         return BuiltInRegistries.ENTITY_TYPE.get(row.type()).getDescription();
     }
 
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         sprites.blit(PanelDrawing.WELL, x + 8, y + LIST_Y, 160, LIST_H);
-        List<HerdModule.Row> rows = rows();
+        List<HerdPart.Row> rows = rows();
         offset = PanelDrawing.clampScroll(offset, VISIBLE, rows.size());
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
-            HerdModule.Row row = rows.get(offset + i);
+            HerdPart.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             PanelDrawing.row(sprites, x + 9, top, ROW_W, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, ROW_W,
                     ROW_H));
@@ -94,15 +94,15 @@ final class HerdPage extends PanelPage {
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        HerdModule.Section data = data();
+        HerdPart.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "animal"), x + 12, y + 21, PanelDrawing.LEGEND, false);
         PanelDrawing.right(graphics, font(), Component.translatable(UI + "count"), x + 84, y + 21, PanelDrawing.LEGEND);
         graphics.drawString(font(), Component.translatable(UI + "hosting"), x + 92, y + 21, PanelDrawing.LEGEND, false);
         PanelDrawing.centered(graphics, font(), Component.translatable(UI + "keep"), x + 114, x + 157, y + 21,
                 PanelDrawing.LEGEND);
-        List<HerdModule.Row> rows = data.rows();
+        List<HerdPart.Row> rows = data.rows();
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
-            HerdModule.Row row = rows.get(offset + i);
+            HerdPart.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             graphics.drawString(font(), nameOf(row), x + 30, top + 6,
                     shortOfFeed(row) ? PanelDrawing.WARN : PanelDrawing.TEXT,
@@ -129,7 +129,7 @@ final class HerdPage extends PanelPage {
 
     @Override
     protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        List<HerdModule.Row> rows = rows();
+        List<HerdPart.Row> rows = rows();
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
             SpawnEggItem egg = SpawnEggItem.byId(BuiltInRegistries.ENTITY_TYPE.get(rows.get(offset + i).type()));
             if (egg != null) graphics.renderItem(new ItemStack(egg), x + 11, y + LIST_Y + 1 + i * ROW_H + 2);
@@ -138,11 +138,11 @@ final class HerdPage extends PanelPage {
 
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        HerdModule.Section data = data();
+        HerdPart.Section data = data();
         String hungry = data.rows().stream().filter(HerdPage::shortOfFeed).map(row -> nameOf(row).getString())
                 .collect(Collectors.joining("、"));
-        Component breed = hungry.isEmpty() ? Component.translatable(TIP + "breed", HerdWork.LIMIT)
-                : Component.translatable(TIP + "breed_hungry", HerdWork.LIMIT, hungry);
+        Component breed = hungry.isEmpty() ? Component.translatable(TIP + "breed", HerdRules.LIMIT)
+                : Component.translatable(TIP + "breed_hungry", HerdRules.LIMIT, hungry);
         if (tip(graphics, x + BREED_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, mouseX, mouseY, breed)) return;
         if (tip(graphics, x + SLAUGHTER_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "slaughter", data.slaughterPreview()))) {
@@ -152,12 +152,12 @@ final class HerdPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + STATUS_Y - 2, 160, 12, mouseX, mouseY, Component.translatable(TIP + "herd_hosting",
-                LandHostingJob.INTERVAL_TICKS / Ticks.SECOND, HerdWork.HOSTING_ANIMALS))) {
+                LandHostingJob.INTERVAL_TICKS / Ticks.SECOND, HerdRules.HOSTING_ANIMALS))) {
             return;
         }
-        List<HerdModule.Row> rows = data.rows();
+        List<HerdPart.Row> rows = data.rows();
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
-            HerdModule.Row row = rows.get(offset + i);
+            HerdPart.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             if (tip(graphics, x + SWITCH_X, top + 5, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
                     Component.translatable(TIP + "herd_switch"))) {
@@ -167,7 +167,7 @@ final class HerdPage extends PanelPage {
                     mouseX, mouseY, Component.translatable(TIP + "keep", SHIFT_STEP))) {
                 return;
             }
-            Component feed = row.feed() == HerdModule.UNKNOWN_FEED ? Component.translatable(TIP + "feed_unknown")
+            Component feed = row.feed() == HerdPart.UNKNOWN_FEED ? Component.translatable(TIP + "feed_unknown")
                     : Component.translatable(TIP + "feed", row.feed());
             if (tip(graphics, x + 9, top, SWITCH_X - 9, ROW_H, mouseX, mouseY, feed)) return;
         }
@@ -176,29 +176,29 @@ final class HerdPage extends PanelPage {
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (Widgets.isOver(mouseX, mouseY, x + BREED_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
-            send(new HerdModule.Breed());
+            send(new HerdPart.Breed());
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + SLAUGHTER_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
-            if (data().slaughterPreview() > 0) send(new HerdModule.Slaughter());
+            if (data().slaughterPreview() > 0) send(new HerdPart.Slaughter());
             return true;
         }
-        List<HerdModule.Row> rows = rows();
+        List<HerdPart.Row> rows = rows();
         int step = shift ? SHIFT_STEP : 1;
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
-            HerdModule.Row row = rows.get(offset + i);
+            HerdPart.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             if (Widgets.isOver(mouseX, mouseY, x + SWITCH_X, top + 5, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
-                send(new HerdModule.SetHosting(row.type(), !row.hosted()));
+                send(new HerdPart.SetHosting(row.type(), !row.hosted()));
                 return true;
             }
             if (!row.hosted()) continue;
             if (Widgets.isOver(mouseX, mouseY, x + MINUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE)) {
-                send(new HerdModule.SetKeep(row.type(), Math.max(0, row.keep() - step)));
+                send(new HerdPart.SetKeep(row.type(), Math.max(0, row.keep() - step)));
                 return true;
             }
             if (Widgets.isOver(mouseX, mouseY, x + PLUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE)) {
-                send(new HerdModule.SetKeep(row.type(), row.keep() + step));
+                send(new HerdPart.SetKeep(row.type(), row.keep() + step));
                 return true;
             }
         }

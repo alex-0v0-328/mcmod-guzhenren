@@ -3,6 +3,7 @@ package net.alex.guzhenren.gametest;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
@@ -181,7 +182,7 @@ public final class BlissfulPastureGameTests {
         helper.assertValueEqual(moved, 1, "only the unnamed loose cow is gathered");
         helper.assertTrue(pasture.contains(loose), "the loose cow now stands in the pasture");
         helper.assertFalse(pasture.contains(named), "a named cow stays put");
-        helper.assertValueEqual(PastureWork.gatherCooldown(level, data), (long) PastureWork.GATHER_COOLDOWN_TICKS,
+        helper.assertValueEqual(PastureWork.gatherCooldown(level, data), (long) HerdRules.GATHER_COOLDOWN_TICKS,
                 "gathering starts the sixty-second cooldown");
 
         Map<ResourceLocation, List<Animal>> herds = PastureWork.penned(HerdWork.census(List.of(loose, named, penned)),

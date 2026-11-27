@@ -40,13 +40,11 @@ public final class GuWork {
 
     public static final LandCensus.Census<Map<ResourceLocation, List<Mob>>> CENSUS =
             LandCensus.Census.ofLevel(level -> census(level.getAllEntities()));
-    public static final int LIMIT = 16;
-    public static final int HOSTING_GU = 16;
 
     public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
         if (!GuState.of(data).hosting()) return 0;
 
-        int captured = host(LandCensus.take(level, CENSUS), data, HOSTING_GU);
+        int captured = host(LandCensus.take(level, CENSUS), data, GuRules.HOSTING_GU);
         GuState.of(data).setLastCaptured(captured);
         return captured;
     }

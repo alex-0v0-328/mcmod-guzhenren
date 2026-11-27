@@ -1,15 +1,9 @@
-package net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import java.util.ArrayList;
 import java.util.List;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
-import net.alex.guzhenren.gameplay.immortalaperture.member.WhitelistEntry;
+import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
@@ -25,20 +19,20 @@ import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「荡魂山」页模块：胆石进度、「挪生物上山」「胆识蛊催动」、荡魂山白名单（按名字添加；移出走总览页的
- * {@link net.alex.guzhenren.gameplay.immortalaperture.member.OverviewModule.SetWhitelisted}）。
+ * 「荡魂山」页面板段：胆石进度、「挪生物上山」「胆识蛊催动」、荡魂山白名单（按名字添加；移出走总览页的
+ * {@link net.alex.guzhenren.gameplay.immortalaperture.managementpanel.OverviewPart.SetWhitelisted}）。
  * <ul>
  *   <li>两个山上操作的规则在 {@link SoulsunderMountainWork}；秘境山心还没解出（Gu World 未装或山未生成）时提示「尚未成形」。</li>
  *   <li>催动成功不报统计（Alex 定），失败才提示。</li>
  * </ul>
  */
 
-public final class MountainModule implements LandModule<MountainModule.Section> {
+public final class SecretRealmPart implements PanelSectionSource<SecretRealmPart.Section> {
 
-    public static final MountainModule INSTANCE = new MountainModule();
+    public static final SecretRealmPart INSTANCE = new SecretRealmPart();
     public static final int NAME_LENGTH = 16;
 
-    private MountainModule() {}
+    private SecretRealmPart() {}
 
     public record Section(int gutsStones, int gutsCap, int moveCooldown, @NotNull List<WhitelistEntry> whitelist)
             implements PanelSection {
@@ -52,7 +46,7 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
                 Section::new);
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     //region Actions [操作]

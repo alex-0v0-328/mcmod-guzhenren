@@ -3,9 +3,9 @@ package net.alex.guzhenren.client.screen.immortalaperture;
 import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.OverviewPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.member.OverviewModule;
-import net.alex.guzhenren.gameplay.immortalaperture.member.WhitelistEntry;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.WhitelistEntry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
@@ -49,7 +49,7 @@ final class OverviewPage extends PanelPage {
     @Override
     protected Component name() { return Component.translatable(UI + "tab.overview"); }
 
-    private OverviewModule.Section data() { return section(OverviewModule.INSTANCE, OverviewModule.Section.EMPTY); }
+    private OverviewPart.Section data() { return section(OverviewPart.INSTANCE, OverviewPart.Section.EMPTY); }
 
     private List<WhitelistEntry> players() { return data().players(); }
 
@@ -90,7 +90,7 @@ final class OverviewPage extends PanelPage {
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        OverviewModule.Section data = data();
+        OverviewPart.Section data = data();
         String[] values = {Long.toString(data.acres()), data.gutsStones() + " / " + data.gutsCap(),
                 Integer.toString(data.animals()), Integer.toString(data.crops())};
         for (int i = 0; i < CARDS.length; i++) {
@@ -173,7 +173,7 @@ final class OverviewPage extends PanelPage {
             }
         }
         if (Widgets.isOver(mouseX, mouseY, x + OUTSIDERS_X, y + OUTSIDERS_Y, OUTSIDERS_W, OUTSIDERS_H)) {
-            send(new OverviewModule.ExpelOutsiders());
+            send(new OverviewPart.ExpelOutsiders());
             return true;
         }
         List<WhitelistEntry> players = players();
@@ -181,11 +181,11 @@ final class OverviewPage extends PanelPage {
             WhitelistEntry person = players.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
             if (Widgets.isOver(mouseX, mouseY, x + SWITCH_X, top + 3, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
-                send(new OverviewModule.SetWhitelisted(person.id(), !person.whitelisted()));
+                send(new OverviewPart.SetWhitelisted(person.id(), !person.whitelisted()));
                 return true;
             }
             if (!person.owner() && Widgets.isOver(mouseX, mouseY, x + EXPEL_X, top + 1, EXPEL_W, PanelDrawing.SQUARE)) {
-                send(new OverviewModule.Expel(person.id()));
+                send(new OverviewPart.Expel(person.id()));
                 return true;
             }
         }

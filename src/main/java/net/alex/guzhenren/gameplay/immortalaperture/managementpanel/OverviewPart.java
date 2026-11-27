@@ -1,16 +1,10 @@
-package net.alex.guzhenren.gameplay.immortalaperture.member;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
@@ -27,18 +21,18 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「总览」页模块：亩数、胆石、动物、作物四个数，在场玩家（白名单开关、驱逐），「驱逐外人」。
+ * 「总览」页面板段：亩数、胆石、动物、作物四个数，在场玩家（白名单开关、驱逐），「驱逐外人」。
  * <ul>
  *   <li>动物、作物取 {@link LandCensus} 的同刻清点；作物数 = 成熟 + 未熟。</li>
  *   <li>白名单与荡魂山页是同一份；规则在 {@link LandMembership}。</li>
  * </ul>
  */
 
-public final class OverviewModule implements LandModule<OverviewModule.Section> {
+public final class OverviewPart implements PanelSectionSource<OverviewPart.Section> {
 
-    public static final OverviewModule INSTANCE = new OverviewModule();
+    public static final OverviewPart INSTANCE = new OverviewPart();
 
-    private OverviewModule() {}
+    private OverviewPart() {}
 
     public record Section(long acres, int gutsStones, int gutsCap, int animals, int crops,
                           @NotNull List<WhitelistEntry> players) implements PanelSection {
@@ -54,7 +48,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
                 Section::new);
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     //region Actions [操作]

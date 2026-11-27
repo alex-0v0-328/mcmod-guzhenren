@@ -1,4 +1,4 @@
-package net.alex.guzhenren.gameplay.immortalaperture.member;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import io.netty.buffer.ByteBuf;
 import java.util.List;

@@ -4,10 +4,10 @@ import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.member.OverviewModule;
-import net.alex.guzhenren.gameplay.immortalaperture.member.WhitelistEntry;
-import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.MountainModule;
-import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.OverviewPart;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.SecretRealmPart;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.WhitelistEntry;
+import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainRules;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -47,13 +47,13 @@ final class SecretRealmPage extends PanelPage {
     @Override
     protected Component name() { return screen.realmName(); }
 
-    private MountainModule.Section data() { return section(MountainModule.INSTANCE, MountainModule.Section.EMPTY); }
+    private SecretRealmPart.Section data() { return section(SecretRealmPart.INSTANCE, SecretRealmPart.Section.EMPTY); }
 
     private List<WhitelistEntry> listed() { return data().whitelist(); }
 
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
-        MountainModule.Section data = data();
+        SecretRealmPart.Section data = data();
         int filled = data.gutsCap() <= 0 ? 0 : (BAR_W - 2) * Math.min(data.gutsStones(), data.gutsCap())
                 / data.gutsCap();
         sprites.blit(PanelDrawing.BAR_BACKGROUND, x + 8, y + 31, BAR_W, 8);
@@ -77,7 +77,7 @@ final class SecretRealmPage extends PanelPage {
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        MountainModule.Section data = data();
+        SecretRealmPart.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "guts_stones"), x + 8, y + 21, PanelDrawing.LEGEND,
                 false);
         PanelDrawing.right(graphics, font(), data.gutsStones() + " / " + data.gutsCap(), x + 167, y + 21,
@@ -120,8 +120,8 @@ final class SecretRealmPage extends PanelPage {
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         if (tip(graphics, x + MOVE_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "move_mobs", SoulsunderMountainWork.MOVE_LIMIT,
-                        SoulsunderMountainWork.MOVE_COOLDOWN_TICKS / Ticks.SECOND))) {
+                Component.translatable(TIP + "move_mobs", SoulsunderMountainRules.MOVE_LIMIT,
+                        SoulsunderMountainRules.MOVE_COOLDOWN_TICKS / Ticks.SECOND))) {
             return;
         }
         if (tip(graphics, x + DRIVE_X, y + BUTTON_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
@@ -146,11 +146,11 @@ final class SecretRealmPage extends PanelPage {
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (Widgets.isOver(mouseX, mouseY, x + MOVE_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
-            if (data().moveCooldown() == 0) send(new MountainModule.MoveMobs());
+            if (data().moveCooldown() == 0) send(new SecretRealmPart.MoveMobs());
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + DRIVE_X, y + BUTTON_Y, BUTTON_W, BUTTON_H)) {
-            send(new MountainModule.DriveGutsGu());
+            send(new SecretRealmPart.DriveGutsGu());
             return true;
         }
         if (Widgets.isOver(mouseX, mouseY, x + ADD_X, y + FIELD_Y, ADD_W, PanelDrawing.SQUARE)) {
@@ -161,7 +161,7 @@ final class SecretRealmPage extends PanelPage {
         for (int i = 0; i < VISIBLE && offset + i < listed.size(); i++) {
             int top = y + LIST_Y + 1 + i * ROW_H;
             if (Widgets.isOver(mouseX, mouseY, x + REMOVE_X, top + 1, PanelDrawing.SQUARE, PanelDrawing.SQUARE)) {
-                send(new OverviewModule.SetWhitelisted(listed.get(offset + i).id(), false));
+                send(new OverviewPart.SetWhitelisted(listed.get(offset + i).id(), false));
                 return true;
             }
         }

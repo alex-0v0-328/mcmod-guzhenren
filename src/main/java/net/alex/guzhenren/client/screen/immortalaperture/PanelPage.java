@@ -2,10 +2,10 @@ package net.alex.guzhenren.client.screen.immortalaperture;
 
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSectionSource;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -17,7 +17,7 @@ import net.minecraft.network.chat.Component;
  *   <li>{@link #sprites} 在 {@link EarthSpiritScreen} 的同一个 {@link SpriteBatch} 里画；{@link #fills}、{@link #texts}
  *       在同一个 {@code GuiBatch} 里，先填充后文字；物品图标不能进批处理，单独在 {@link #items} 画。地图页的顶栏在这五步
  *       之后另画，盖在页面之上。</li>
- *   <li>数据经 {@link #section} 取所属模块最近一份快照段；切到还没收到过的页时先拿模块给的空段，下一刻服务端回传后就有。
+ *   <li>数据经 {@link #section} 取所属面板段最近一份快照段；切到还没收到过的页时先拿面板段给的空段，下一刻服务端回传后就有。
  *       </li>
  *   <li>操作只经 {@link #send} 发意图，不在客户端改快照；服务端算好的新快照随后下发。</li>
  *   <li>按钮的说明走 {@link #tip}：鼠标停在区域上就画一段自动换行的悬停提示。</li>
@@ -40,7 +40,7 @@ public abstract class PanelPage {
 
     protected abstract Component name();
 
-    protected <S extends PanelSection> S section(LandModule<S> module, S empty) {
+    protected <S extends PanelSection> S section(PanelSectionSource<S> module, S empty) {
         S section = menu().section(module);
         return section == null ? empty : section;
     }

@@ -1,16 +1,14 @@
-package net.alex.guzhenren.gameplay.immortalaperture.farm;
+package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
@@ -28,24 +26,24 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「种植」小节模块：按作物计成熟 / 未熟、标准田与规划数、开垦作物与库藏种子数、托管开关、「收割并补种」；地图上的
+ * 「种植」小节面板段：按作物计成熟 / 未熟、标准田与规划数、开垦作物与库藏种子数、托管开关、「收割并补种」；地图上的
  * 规划、取消规划与拆田也登记在这里。
  * <ul>
- *   <li>开垦作物按 {@link FarmWork#CROPS} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
+ *   <li>开垦作物按 {@link FarmRules#CROPS} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
  *       出空田之后自动补种。</li>
  *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link Remove} 经
  *       {@link FarmWork#remove}。</li>
- *   <li>{@link Section#seeds()} 与 {@link FarmWork#CROPS} 同序，是库藏里各作物种子的数量。</li>
- *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmWork#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
+ *   <li>{@link Section#seeds()} 与 {@link FarmRules#CROPS} 同序，是库藏里各作物种子的数量。</li>
+ *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmRules#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
  *       轮倒计时与上一轮结果。</li>
  * </ul>
  */
 
-public final class FarmModule implements LandModule<FarmModule.Section> {
+public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
 
-    public static final FarmModule INSTANCE = new FarmModule();
+    public static final FarmPart INSTANCE = new FarmPart();
 
-    private FarmModule() {}
+    private FarmPart() {}
 
     public record Crop(@NotNull ResourceLocation block, int mature, int growing) {
 
@@ -98,7 +96,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         }
 
         @Override
-        public @NotNull LandModule<?> module() { return INSTANCE; }
+        public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
     }
 
     //region Actions [操作]
@@ -111,7 +109,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             Siting.Reason reason = FieldPlans.plan(context.level(), context.data(),
-                    MapModule.plot(context.level(), context.data()), chunkX, chunkZ);
+                    MapPart.plot(context.level(), context.data()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) {
                 return LandNoticeEvent.text("siting_refused", Component.translatable(reason.key()));
             }
@@ -208,7 +206,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         }
         List<Long> seeds = new ArrayList<>();
         BlissfulStorage storage = BlissfulStorage.of(data);
-        for (int i = 0; i < FarmWork.CROPS.size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
+        for (int i = 0; i < FarmRules.CROPS.size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
         return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
                 Ticks.ceilSeconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
                 LandHostingJob.secondsUntilNext(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
