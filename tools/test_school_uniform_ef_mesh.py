@@ -10,22 +10,24 @@ import school_uniform_ef_mesh as mesh
 
 # Blockbench pixels (x, y up, -z front) of each exported cube: left limbs on -x, as the project has them.
 CUBES = {
-    'body_tunic': (-4.7, 4.7, 11.3, 24.7, -2.7, 2.7),
-    'body_belt': (-4.8, 4.8, 13.45, 15.05, -2.8, 2.8),
-    'body_hem_front': (-4.7, 4.7, 7.3, 12.7, -3.2, -0.2),
-    'body_hem_back': (-4.7, 4.7, 7.3, 12.7, 0.2, 3.2),
+    'body_tunic': (-4.55, 4.55, 11.45, 24.55, -2.55, 2.55),
+    'body_belt': (-4.65, 4.65, 13.6, 15.9, -2.65, 2.65),
+    'body_hem_front': (-4.6, 4.6, 7.4, 12.6, -3.1, 0.1),
+    'body_hem_back': (-4.61, 4.61, 7.39, 12.61, -0.11, 3.11),
     'left_sleeve_front': (-9.6, -4.4, 16.4, 24.6, -2.6, 1.6),
     'left_sleeve_back': (-9.7, -4.3, 15.3, 24.7, -1.2, 3.2),
-    'left_inner_sleeve': (-9.3, -4.7, 12.7, 24.3, -2.3, 2.3),
+    'left_inner_sleeve': (-8.35, -3.65, 16.65, 24.35, -2.35, 2.35),
+    'left_sleeve_bandage': (-8.3, -3.7, 12.7, 17.3, -2.3, 2.3),
     'right_sleeve_front': (4.4, 9.6, 16.4, 24.6, -2.6, 1.6),
     'right_sleeve_back': (4.3, 9.7, 15.3, 24.7, -1.2, 3.2),
-    'right_inner_sleeve': (4.7, 9.3, 12.7, 24.3, -2.3, 2.3),
-    'left_leg_pants': (-4.5, 0.5, 5.5, 12.5, -2.5, 2.5),
+    'right_inner_sleeve': (3.65, 8.35, 16.65, 24.35, -2.35, 2.35),
+    'right_sleeve_bandage': (3.7, 8.3, 12.7, 17.3, -2.3, 2.3),
+    'left_leg_pants': (-4.4, 0.4, 5.6, 12.4, -2.4, 2.4),
     'left_leg_puttee': (-4.3, 0.3, 0.7, 6.3, -2.3, 2.3),
-    'right_leg_pants': (-0.5, 4.5, 5.5, 12.5, -2.5, 2.5),
+    'right_leg_pants': (-0.4, 4.4, 5.6, 12.4, -2.4, 2.4),
     'right_leg_puttee': (-0.3, 4.3, 0.7, 6.3, -2.3, 2.3),
-    'left_boot_shoe': (-4.4, 0.4, -0.4, 2.4, -2.4, 2.4),
-    'right_boot_shoe': (-0.4, 4.4, -0.4, 2.4, -2.4, 2.4),
+    'left_boot_shoe': (-4.35, 0.35, -0.35, 2.35, -2.35, 2.35),
+    'right_boot_shoe': (-0.35, 4.35, -0.35, 2.35, -2.35, 2.35),
 }
 
 

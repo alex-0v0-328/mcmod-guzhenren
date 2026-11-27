@@ -34,7 +34,7 @@ JOINT_INDEX = {name: i for i, name in enumerate(JOINTS)}
 DEFAULT_OUT = os.path.join('src', 'main', 'resources', 'assets', 'guzhenren', 'animmodels', 'armor')
 
 # Pixels, Epic Fight space (z up).
-BODY_BOTTOM, BODY_TOP = 11.3, 24.7  # body_tunic's edges with its 0.7 inflate
+BODY_BOTTOM, BODY_TOP = 11.45, 24.55  # body_tunic's edges with its 0.55 inflate
 JACKET_ROWS = [(0 / 6, 1.0), (1 / 6, 0.75), (2 / 6, 0.75), (3 / 6, 0.5), (4 / 6, 0.26), (5 / 6, 0.23), (6 / 6, 0.0)]
 HEM_FULL_Z = 10.0
 HEM_ROWS = [10.5, 9.75, 9.0, 8.0]
@@ -45,8 +45,8 @@ KNEE = (6.03, 6.0, 5.98)
 SLOTS = {
     'school_uniform_chestplate': {
         'torso': ['body_tunic', 'body_belt', 'body_hem_front', 'body_hem_back'],
-        'leftArm': ['left_sleeve_front', 'left_sleeve_back', 'left_inner_sleeve'],
-        'rightArm': ['right_sleeve_front', 'right_sleeve_back', 'right_inner_sleeve'],
+        'leftArm': ['left_sleeve_front', 'left_sleeve_back', 'left_inner_sleeve', 'left_sleeve_bandage'],
+        'rightArm': ['right_sleeve_front', 'right_sleeve_back', 'right_inner_sleeve', 'right_sleeve_bandage'],
     },
     'school_uniform_leggings': {
         'noGroups': ['left_leg_pants', 'left_leg_puttee', 'right_leg_pants', 'right_leg_puttee'],
