@@ -70,8 +70,8 @@ public final class BlissfulMapGameTests {
 
         BlockPos crop = helper.absolutePos(new BlockPos(6, 2, 2));
         tile = tileAt(helper, new BlockPos(6, 2, 2));
-        helper.assertValueEqual(tile.terrainAt(crop.getX(), crop.getZ()), MapTerrain.CROP_MATURE,
-                "ripe wheat reads as a mature crop");
+        helper.assertValueEqual(tile.terrainAt(crop.getX(), crop.getZ()), MapTerrain.FARMLAND,
+                "ripe wheat reads as the field it grows in");
         helper.assertValueEqual(tile.groundAt(crop.getX(), crop.getZ()), crop.getY() - 1,
                 "a crop is a plant, so the farmland under it is the ground");
 

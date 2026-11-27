@@ -16,10 +16,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 福地地图[Land Map]的地貌号：地图片每列表面方块归到一类，客户端按类上色；序号即线上字节，只许在末尾追加。
  * <ul>
- *   <li>{@link #UNKNOWN} 只作客户端缺省值（迷雾），服务端从不发；{@link #VOID} 是已割弃或疆域外的整片。</li>
- *   <li>{@link #of} 先按方块与标签判：流体、荡魂山石与胆石、耕地（含黑土耕地）、作物（原版 {@link CropBlock} 按
- *       {@code isMaxAge} 分熟与未熟，其余 {@code #crops} 一律算未熟）、栅栏与栅栏门与墙、树叶、木头、土径、花、冰、
- *       雪、沙、沙砾、泥、草与草丛、泥土、石；都不中再用 {@link #ofMapColor} 按原版地图色归类，仍不中为
+ *   <li>{@link #UNKNOWN} 只作客户端缺省值（迷雾），服务端从不发；{@link #VOID} 是已割弃或疆域外的整片；
+ *       {@link #CROP_GROWING}、{@link #CROP_MATURE}、{@link #FLOWER} 也不再发，只为保住后面各类的序号。</li>
+ *   <li>{@link #of} 先按方块与标签判：流体、荡魂山石与胆石、耕地（含黑土耕地）与作物（原版 {@link CropBlock} 与
+ *       {@code #crops} 都并进耕地，田只画一种，熟度看卡片，Alex 定）、栅栏与栅栏门与墙、树叶、木头、土径、花（并进草，
+ *       Alex 定）、冰、雪、沙、沙砾、泥、草与草丛、泥土、石；都不中再用 {@link #ofMapColor} 按原版地图色归类，仍不中为
  *       {@link #OTHER}。</li>
  *   <li>⚠ 判定顺序有意义：树叶在花前（开花杜鹃树叶也在 {@code #flowers}），花在草丛前（花同在
  *       {@code #replaceable_by_trees}）。</li>
@@ -45,13 +46,12 @@ public enum MapTerrain {
         if (state.is(ModBlocks.SOULSUNDER_STONE)) return SOULSUNDER_STONE;
         if (state.is(ModBlocks.GUTS_STONE)) return GUTS_STONE;
         if (state.getBlock() instanceof FarmBlock) return FARMLAND;
-        if (state.getBlock() instanceof CropBlock crop) return crop.isMaxAge(state) ? CROP_MATURE : CROP_GROWING;
-        if (state.is(BlockTags.CROPS)) return CROP_GROWING;
+        if (state.getBlock() instanceof CropBlock || state.is(BlockTags.CROPS)) return FARMLAND;
         if (state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES) || state.is(BlockTags.WALLS)) return FENCE;
         if (state.is(BlockTags.LEAVES)) return FOLIAGE;
         if (state.is(BlockTags.LOGS) || state.is(BlockTags.PLANKS)) return WOOD;
         if (state.is(Blocks.DIRT_PATH)) return PATH;
-        if (state.is(BlockTags.FLOWERS)) return FLOWER;
+        if (state.is(BlockTags.FLOWERS)) return GRASS;
         if (state.is(BlockTags.ICE)) return ICE;
         if (state.is(BlockTags.SNOW)) return SNOW;
         if (state.is(BlockTags.SAND)) return SAND;
