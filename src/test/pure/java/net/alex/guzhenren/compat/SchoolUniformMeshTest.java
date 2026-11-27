@@ -12,13 +12,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * 学堂制服[School Uniform]的 Epic Fight 蒙皮网格：EF 按物品 id 读 {@code animmodels/armor/<id>.json}，缺失时退回自动转换
  * （衣身只挂 Torso、下摆被大腿穿过）。坐标为 EF Blender 系（单位为格，Z 向上，−X 为左）。
+ * 袖子在 EF 网格与 GeckoLib geo 中各有配 4 像素宽、3 像素宽皮肤手臂的两份：内袖与腕绷带贴手臂，外袖外偏 1 像素
+ * （geo 左臂在 +X，EF 左臂在 −X）。
  */
 
 class SchoolUniformMeshTest {
@@ -29,6 +33,8 @@ class SchoolUniformMeshTest {
             List.of("school_uniform_chestplate", "school_uniform_leggings", "school_uniform_boots");
     private static final double PIXEL = 1.0D / 16.0D;
     private static final double HEM_FULL_Z = 10.0D * PIXEL;
+    private static final String GEO = "assets/guzhenren/geo/armor/school_uniform.geo.json";
+    private static final double HUG = 0.4D;
 
     @Test
     @DisplayName("each uniform piece ships a mesh whose vertices sum to one weight over at most three biped joints")
@@ -95,6 +101,56 @@ class SchoolUniformMeshTest {
             }
         }
         assertTrue(hem > 0, "the hem hangs below 10 px");
+    }
+
+    @Test
+    @DisplayName("each skin arm width gets its own sleeves: inner sleeve and bandage on the arm, outer sleeves a pixel out")
+    void eachArmWidthGetsItsOwnSleeves() throws IOException {
+        Map<String, JsonObject> bones = new HashMap<>();
+        read(GEO).getAsJsonArray("minecraft:geometry").get(0).getAsJsonObject().getAsJsonArray("bones")
+                .forEach(bone -> bones.put(bone.getAsJsonObject().get("name").getAsString(), bone.getAsJsonObject()));
+        Map<String, double[]> arms = Map.of("left_arm_wide", new double[] {4, 8, 1}, "left_arm_slim", new double[] {4, 7, 1},
+                "right_arm_wide", new double[] {-8, -4, -1}, "right_arm_slim", new double[] {-7, -4, -1});
+        for (var arm : arms.entrySet()) {
+            JsonObject bone = bones.get(arm.getKey());
+            assertNotNull(bone, arm.getKey() + " ships");
+            double[] skin = arm.getValue();
+            assertEquals(4, bone.getAsJsonArray("cubes").size(), arm.getKey());
+            for (var element : bone.getAsJsonArray("cubes")) {
+                JsonObject cube = element.getAsJsonObject();
+                double x0 = cube.getAsJsonArray("origin").get(0).getAsDouble();
+                double width = cube.getAsJsonArray("size").get(0).getAsDouble();
+                double inflate = cube.get("inflate").getAsDouble();
+                boolean inner = cube.getAsJsonArray("size").get(2).getAsDouble() == 4.0D;
+                assertEquals(skin[1] - skin[0], width, 1.0E-6D, arm.getKey() + " sleeve as wide as the arm");
+                assertEquals(skin[0] + (inner ? 0.0D : skin[2]), x0, 1.0E-6D,
+                        arm.getKey() + (inner ? " inner layer on the arm" : " outer sleeve a pixel out"));
+                if (inner) assertTrue(inflate <= HUG, arm.getKey() + " inner layer stands " + inflate + " px off");
+            }
+        }
+        JsonObject chest = read(MESHES + "school_uniform_chestplate.json").getAsJsonObject("vertices");
+        for (String side : List.of("left", "right")) {
+            double[] wide = xRange(chest, side + "Arm");
+            double[] slim = xRange(chest, side + "ArmSlim");
+            boolean left = side.equals("left");
+            assertEquals(wide[left ? 0 : 1] + (left ? 1.0D : -1.0D), slim[left ? 0 : 1], 1.0E-3D,
+                    side + " slim sleeves end a pixel further in on the outer side");
+            assertEquals(wide[left ? 1 : 0], slim[left ? 1 : 0], 1.0E-3D, side + " sleeves share the inner edge");
+        }
+    }
+
+    private static double[] xRange(JsonObject vertices, String part) {
+        JsonObject parts = vertices.getAsJsonObject("parts");
+        assertTrue(parts.has(part), part + " ships");
+        JsonArray positions = vertices.getAsJsonObject("positions").getAsJsonArray("array");
+        JsonArray corners = parts.getAsJsonObject(part).getAsJsonArray("array");
+        double min = Double.MAX_VALUE, max = -Double.MAX_VALUE;
+        for (int i = 0; i < corners.size(); i += 3) {
+            double x = positions.get(corners.get(i).getAsInt() * 3).getAsDouble() / PIXEL;
+            min = Math.min(min, x);
+            max = Math.max(max, x);
+        }
+        return new double[] {min, max};
     }
 
     private record Vertex(int index, double x, double z, List<Integer> joints, List<Double> weights) {}

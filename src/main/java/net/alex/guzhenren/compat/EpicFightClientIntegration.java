@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import java.util.List;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.flight.SecondStageService;
 import net.alex.guzhenren.gameplay.path.strength.StoreStrength;
@@ -14,7 +15,9 @@ import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
@@ -29,12 +32,14 @@ import yesman.epicfight.api.client.event.EpicFightClientEventHooks;
 import yesman.epicfight.api.client.event.types.entity.ModifyPlayerLivingMotionEvent;
 import yesman.epicfight.api.client.event.types.render.AnimatedArmorTextureEvent;
 import yesman.epicfight.api.client.event.types.render.PrepareModelEvent;
+import yesman.epicfight.api.client.model.SkinnedMesh;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.animation.InitAnimatorEvent;
+import yesman.epicfight.client.renderer.patched.layer.WearableItemLayer;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClientPlayerPatch;
 
 /**
- * Epic Fight 联动的客户端动画、模型姿态与锁定目标桥接。
+ * Epic Fight 联动的客户端动画、模型姿态、护甲网格部件与锁定目标桥接。
  * <ul>
  *   <li>{@link #initialize} 在客户端初始化时向 Epic Fight 注册动画初始化、基础层动作、合成层动作与模型渲染前准备四个事
  *       件钩子；{@link #onInitAnimator} 在玩家动画器创建时将 {@link EpicFightLivingMotions} 的 5 个自定义常态动作绑定到
@@ -53,6 +58,9 @@ import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClie
  *       {@link EpicFightLivingMotions#CHARGE_HOLD_MOVE}，优先级高于在 {@code MIDDLE} 叠加层播放的野生蛊炼化持握动作
  *       {@link EpicFightLivingMotions#REFINE_LOOP}（{@link TendedGuItem#isRefining}）；当基础层播放攻击或落地等主帧动画
  *       时合成层自动让位。</li>
+ *   <li>学堂制服[School Uniform]护甲贴图事件（{@link #onAnimatedArmorTexture}）：EF 每件护甲共用一份网格，绘制前在此按
+ *       穿戴者皮肤只留上衣网格中匹配的袖子部件（标准手臂 {@code leftArm} / {@code rightArm}，纤细手臂
+ *       {@code *ArmSlim}），第一人称已隐藏的手臂保持隐藏。</li>
  *   <li>{@link #getLockOnTarget} 读取 {@link EpicFightCameraAPI} 当前镜头锁定且存活的实体（未锁定时返回
  *       {@code null}），供月刃等投射物制导使用。</li>
  * </ul>
@@ -155,8 +163,18 @@ public final class EpicFightClientIntegration {
     }
 
     private static void onAnimatedArmorTexture(AnimatedArmorTextureEvent event) {
-        if (event.getItemStack().getItem() instanceof SchoolUniformItem) {
-            event.setResultLocation(null);
+        if (!(event.getItemStack().getItem() instanceof SchoolUniformItem item)) return;
+        event.setResultLocation(null);
+        if (event.getEquipmentSlot() != EquipmentSlot.CHEST) return;
+        SkinnedMesh mesh = WearableItemLayer.getCachedModel(item);
+        if (mesh == null) return;
+        boolean slim = event.getLivingEntity() instanceof AbstractClientPlayer player
+                && player.getSkin().model() == PlayerSkin.Model.SLIM;
+        for (String arm : List.of("leftArm", "rightArm")) {
+            if (!mesh.hasPart(arm) || !mesh.hasPart(arm + "Slim")) continue;
+            boolean shown = !mesh.getPart(arm).isHidden();
+            mesh.getPart(arm).setHidden(!shown || slim);
+            mesh.getPart(arm + "Slim").setHidden(!shown || !slim);
         }
     }
 

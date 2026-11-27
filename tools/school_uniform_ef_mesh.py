@@ -20,6 +20,9 @@ Weights depend on the position alone, so overlapping layers bend alike and never
     sleeves                as the skin's arms: Arm above 18.03 px, the 18.0 ring Elbow behind, Hand below 17.98
     trousers, puttees      as the skin's legs: Thigh above 6.03 px, the 6.0 ring Knee in front, Leg below 5.98
     shoes                  Leg
+
+Each sleeve comes twice, as part <side>Arm for 4 px skin arms and <side>ArmSlim for 3 px ones; the mod hides the
+one that does not match the wearer's skin before Epic Fight draws the mesh.
 """
 from __future__ import annotations
 
@@ -46,7 +49,11 @@ SLOTS = {
     'school_uniform_chestplate': {
         'torso': ['body_tunic', 'body_belt', 'body_hem_front', 'body_hem_back'],
         'leftArm': ['left_sleeve_front', 'left_sleeve_back', 'left_inner_sleeve', 'left_sleeve_bandage'],
+        'leftArmSlim': ['left_sleeve_front_slim', 'left_sleeve_back_slim', 'left_inner_sleeve_slim',
+                        'left_sleeve_bandage_slim'],
         'rightArm': ['right_sleeve_front', 'right_sleeve_back', 'right_inner_sleeve', 'right_sleeve_bandage'],
+        'rightArmSlim': ['right_sleeve_front_slim', 'right_sleeve_back_slim', 'right_inner_sleeve_slim',
+                         'right_sleeve_bandage_slim'],
     },
     'school_uniform_leggings': {
         'noGroups': ['left_leg_pants', 'left_leg_puttee', 'right_leg_pants', 'right_leg_puttee'],
