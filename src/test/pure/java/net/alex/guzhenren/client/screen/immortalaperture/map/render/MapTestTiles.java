@@ -56,6 +56,18 @@ final class MapTestTiles implements TileSource {
         return new MapTile(chunkX, chunkZ, grounds, surfaces, terrains, flags);
     }
 
+    /** 在已有地图片里种一棵树：{@code (x, z)} 列的树冠从 {@code low} 到 {@code top}，{@code trunk} 为真时下面立树干。 */
+    MapTestTiles tree(int x, int z, int low, int top, boolean trunk) {
+        MapTile tile = tile(x >> 4, z >> 4);
+        int index = MapTile.index(x, z);
+        tile.under()[index] = tile.terrain()[index];
+        tile.terrain()[index] = MapTerrain.FOLIAGE.id();
+        tile.surface()[index] = (short) top;
+        tile.low()[index] = (short) low;
+        if (trunk) tile.flags()[index] |= MapTile.FLAG_TRUNK;
+        return this;
+    }
+
     MapGrid grid(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
         return MapGrid.capture(this, new MapView(minChunkX, minChunkZ, maxChunkX, maxChunkZ));
     }

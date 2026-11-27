@@ -14,14 +14,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.SnowLayerBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地地图[Land Map]的区块扫描：地面高与表面高跟真实方块一致（树叶、栅栏、作物、花、甘蔗跳过）、流体列与方块实体列的
- * 标志、地貌归类，以及已割弃区块给整片虚空。只扫测试区所在的主世界区块，不碰福地维度。
+ * 福地地图[Land Map]的区块扫描：地面高与表面高跟真实方块一致（树叶、栅栏、作物、花、甘蔗、火把、地毯、雪层跳过，台阶
+ * 仍算地面）、悬空树冠、树干与贴地灌木、流体列与方块实体列的标志、地貌归类，以及已割弃区块给整片虚空。只扫测试区所在的主世界区块，不碰福地维度。
  */
 
 @GameTestHolder(Guzhenren.MOD_ID)
@@ -97,6 +99,56 @@ public final class BlissfulMapGameTests {
                         "every surface matches the world height map at " + x + ", " + z);
             }
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void canopiesFloatOverTheirGroundAndThinBlocksLieFlat(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        BlockState leaves = Blocks.OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true);
+        helper.setBlock(new BlockPos(1, 1, 1), Blocks.GRASS_BLOCK);
+        helper.setBlock(new BlockPos(1, 4, 1), leaves);
+        helper.setBlock(new BlockPos(1, 5, 1), leaves);
+        for (int y = 1; y <= 3; y++) helper.setBlock(new BlockPos(4, y, 4), Blocks.OAK_LOG);
+        helper.setBlock(new BlockPos(4, 4, 4), leaves);
+        helper.setBlock(new BlockPos(7, 1, 1), leaves);
+        helper.setBlock(new BlockPos(1, 1, 7), Blocks.TORCH);
+        helper.setBlock(new BlockPos(3, 1, 7), Blocks.RED_CARPET);
+        helper.setBlock(new BlockPos(5, 1, 7), Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 4));
+        helper.setBlock(new BlockPos(7, 1, 7), Blocks.OAK_SLAB);
+
+        BlockPos floating = helper.absolutePos(new BlockPos(1, 1, 1));
+        MapTile tile = tileAt(helper, new BlockPos(1, 1, 1));
+        int x = floating.getX();
+        int z = floating.getZ();
+        helper.assertValueEqual(tile.groundAt(x, z), floating.getY(), "the grass under the canopy is the ground");
+        helper.assertValueEqual(tile.lowAt(x, z), floating.getY() + 3, "the canopy floats from its lowest leaf");
+        helper.assertValueEqual(tile.underAt(x, z), MapTerrain.GRASS, "the ground under the canopy reads as grass");
+        helper.assertFalse(tile.hasFlag(x, z, MapTile.FLAG_TRUNK), "air under a canopy is no trunk");
+
+        BlockPos tree = helper.absolutePos(new BlockPos(4, 0, 4));
+        tile = tileAt(helper, new BlockPos(4, 0, 4));
+        helper.assertValueEqual(tile.groundAt(tree.getX(), tree.getZ()), tree.getY(), "logs are skipped to the floor");
+        helper.assertValueEqual(tile.lowAt(tree.getX(), tree.getZ()), tree.getY() + 4, "the canopy sits on the trunk");
+        helper.assertTrue(tile.hasFlag(tree.getX(), tree.getZ(), MapTile.FLAG_TRUNK), "three logs make a trunk");
+
+        BlockPos bush = helper.absolutePos(new BlockPos(7, 0, 1));
+        tile = tileAt(helper, new BlockPos(7, 0, 1));
+        helper.assertValueEqual(tile.lowAt(bush.getX(), bush.getZ()), bush.getY() + 1, "a bush rests on the floor");
+
+        BlockPos[] thin = { new BlockPos(1, 0, 7), new BlockPos(3, 0, 7), new BlockPos(5, 0, 7) };
+        MapTerrain[] reads = { MapTerrain.STONE, MapTerrain.STONE, MapTerrain.SNOW };
+        for (int i = 0; i < thin.length; i++) {
+            BlockPos at = helper.absolutePos(thin[i]);
+            tile = tileAt(helper, thin[i]);
+            helper.assertValueEqual(tile.groundAt(at.getX(), at.getZ()), at.getY(),
+                    "a torch, a carpet or a snow layer is not the ground");
+            helper.assertValueEqual(tile.terrainAt(at.getX(), at.getZ()), reads[i],
+                    "a torch and a carpet take the floor colour, a snow layer stays snow");
+        }
+        BlockPos slab = helper.absolutePos(new BlockPos(7, 1, 7));
+        tile = tileAt(helper, new BlockPos(7, 1, 7));
+        helper.assertValueEqual(tile.groundAt(slab.getX(), slab.getZ()), slab.getY(), "a slab is still ground");
         helper.succeed();
     }
 

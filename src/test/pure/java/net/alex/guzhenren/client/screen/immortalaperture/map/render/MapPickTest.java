@@ -18,8 +18,18 @@ class MapPickTest {
             MapTerrain.FOLIAGE, MapTerrain.SOULSUNDER_STONE, MapTerrain.WATER, MapTerrain.FENCE };
 
     private static MapTestTiles rugged() {
-        return new MapTestTiles().fill(-4, -4, 3, 3, (x, z) -> 64 + Math.floorMod(MapTestTiles.hash(x, z), 9),
+        MapTestTiles tiles = new MapTestTiles().fill(-4, -4, 3, 3,
+                (x, z) -> 64 + Math.floorMod(MapTestTiles.hash(x, z), 9),
                 (x, z) -> LAND[Math.floorMod(MapTestTiles.hash(z, x), LAND.length)]);
+        for (int x = -30; x < 30; x += 5) {
+            for (int z = -30; z < 30; z += 4) {
+                int ground = tiles.tile(x >> 4, z >> 4).groundAt(x, z);
+                if (MapColumns.raised(tiles.tile(x >> 4, z >> 4).terrainAt(x, z))) continue;
+                int hash = Math.floorMod(MapTestTiles.hash(x * 3, z), 3);
+                tiles.tree(x, z, ground + 2 + hash, ground + 4 + hash, hash == 0);
+            }
+        }
+        return tiles;
     }
 
     @Test
@@ -106,6 +116,33 @@ class MapPickTest {
         MapPick.Hit right = MapPick.pick(projection, tiles, 65, anchorX + 1, anchorY + projection.cell() * 5);
         assertNotNull(right);
         assertEquals(MapProjection.Face.RIGHT, right.face());
+    }
+
+    @Test
+    @DisplayName("a floating canopy picks the canopy, the trunk below it and the ground under the gap apart")
+    void floatingCanopy() {
+        MapTestTiles tiles = new MapTestTiles().fill(-1, -1, 0, 0, (x, z) -> 64, (x, z) -> MapTerrain.GRASS)
+                .tree(0, 0, 70, 72, true).tree(3, 0, 68, 69, false);
+        MapProjection projection = MapProjection.of(2, 0, false);
+        int cell = projection.cell();
+        int anchorX = projection.anchorX(0, 0);
+        MapPick.Hit canopy = MapPick.pick(projection, tiles, 65, anchorX, projection.anchorY(0, 0, 73) + 1);
+        assertNotNull(canopy);
+        assertEquals(MapTerrain.FOLIAGE, canopy.terrain());
+        assertEquals(72, canopy.top());
+        assertEquals(64, canopy.ground());
+        MapPick.Hit trunk = MapPick.pick(projection, tiles, 65, anchorX - 1, projection.anchorY(0, 0, 70) + cell * 3);
+        assertNotNull(trunk);
+        assertEquals(MapTerrain.WOOD, trunk.terrain());
+        assertEquals(69, trunk.top());
+        int u = projection.columnU(3, 0);
+        int v = projection.columnV(3, 0);
+        MapPick.Hit under = MapPick.pick(projection, tiles, 65, projection.anchorX(u, v),
+                projection.anchorY(u, v, 65) + 1);
+        assertNotNull(under);
+        assertEquals(3, under.x());
+        assertEquals(MapTerrain.GRASS, under.terrain());
+        assertEquals(64, under.top());
     }
 
     @Test

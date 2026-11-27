@@ -8,8 +8,10 @@ import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
  * 地图光栅[Map Raster]：把 {@link MapGrid} 快照画成一块 ARGB 像素（纯函数，不碰渲染，后台线程跑）；俯视视角交给
  * {@link MapContours}。
  * <ul>
- *   <li>等距：画家算法按 U + V 由远及近逐列画，同一斜行互不重叠；每列画顶面菱形，再按 {@link MapColumns#depth} 只画朝左
- *       （+V）、朝右（+U）露出的那段崖面；像素归属与 {@link MapProjection#face} 完全一致，拾取据此反查。</li>
+ *   <li>等距：画家算法按 U + V 由远及近逐列画，同一斜行互不重叠；每列按 {@link MapColumns} 的分段自下而上画（底座、树干、
+ *       树冠），每段画顶面菱形，再只画朝左（+V）、朝右（+U）露出的那段崖面：底座按 {@link MapColumns#depth} 量到邻列实心
+ *       平面，悬空段量到本段底与邻列实心平面中较高者（{@link #exposed}）；像素归属与 {@link MapProjection#face} 完全一致，
+ *       拾取据此反查。</li>
  *   <li>迷雾：没下发的区块画成迷雾平面（参照平面、按区块棋盘两色），已知列靠近迷雾 {@value MapGrid#FADE_BLOCKS} 格内用
  *       4×4 有序抖动按 {@link MapGrid#fade} 渐隐成迷雾色；抖动按全局像素取，平移不闪。</li>
  *   <li>虚空（已割弃、疆域外）透明不画，邻列朝它垂 {@value MapColumns#VOID_SKIRT} 格裙边；地图片缺失只会多出迷雾，
@@ -25,6 +27,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 public final class MapRaster {
 
     private static final int[] BAYER = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
+    static final int NO_BOTTOM = Integer.MIN_VALUE;
 
     private MapRaster() {}
 
@@ -64,24 +67,47 @@ public final class MapRaster {
     private static void drawColumn(Canvas canvas, MapProjection projection, MapGrid grid, int fogPlane, int u, int v) {
         int x = projection.columnX(u, v);
         int z = projection.columnZ(u, v);
+        int anchorX = projection.anchorX(u, v);
+        int cell = projection.cell();
+        if (anchorX + cell <= canvas.originX || anchorX - cell >= canvas.originX + canvas.width) return;
+
         MapTile tile = grid.tile(x >> 4, z >> 4);
-        Look look;
+        int left = neighbour(projection, grid, fogPlane, u, v + 1);
+        int right = neighbour(projection, grid, fogPlane, u + 1, v);
         if (tile == null) {
-            look = Look.fog(x, z, fogPlane);
-        } else {
-            int index = MapTile.index(x, z);
-            if (MapColumns.isVoid(tile, index)) return;
-            look = Look.of(grid, tile, index, x, z);
+            drawPrism(canvas, projection, Look.fog(x, z, fogPlane), u, v, NO_BOTTOM, left, right);
+            return;
         }
+        int index = MapTile.index(x, z);
+        if (MapColumns.isVoid(tile, index)) return;
+        float fade = grid.fade(x >> 4, z >> 4, x & 15, z & 15);
+        if (!MapColumns.floats(tile, index)) {
+            Look look = Look.of(grid, MapColumns.terrain(tile, index), MapColumns.top(tile, index) + 1, x, z, fade);
+            drawPrism(canvas, projection, look, u, v, NO_BOTTOM, left, right);
+            return;
+        }
+        int ground = tile.ground()[index];
+        int low = tile.low()[index];
+        MapTerrain base = MapColumns.base(tile, index);
+        if (base != MapTerrain.VOID) {
+            drawPrism(canvas, projection, Look.of(grid, base, ground + 1, x, z, fade), u, v, NO_BOTTOM, left, right);
+        }
+        if (MapColumns.trunk(tile, index)) {
+            drawPrism(canvas, projection, Look.of(grid, MapTerrain.WOOD, low, x, z, fade), u, v, ground + 1, left,
+                    right);
+        }
+        Look canopy = Look.of(grid, MapColumns.terrain(tile, index), tile.surface()[index] + 1, x, z, fade);
+        drawPrism(canvas, projection, canopy, u, v, low, left, right);
+    }
+
+    private static void drawPrism(Canvas canvas, MapProjection projection, Look look, int u, int v, int bottom,
+                                  int leftNeighbour, int rightNeighbour) {
         int cell = projection.cell();
         int anchorX = projection.anchorX(u, v);
         int anchorY = projection.anchorY(u, v, look.plane());
-        if (anchorY >= canvas.originY + canvas.height || anchorX + cell <= canvas.originX
-                || anchorX - cell >= canvas.originX + canvas.width) {
-            return;
-        }
-        int leftDepth = MapColumns.depth(look.plane(), neighbour(projection, grid, fogPlane, u, v + 1));
-        int rightDepth = MapColumns.depth(look.plane(), neighbour(projection, grid, fogPlane, u + 1, v));
+        if (anchorY >= canvas.originY + canvas.height) return;
+        int leftDepth = exposed(look.plane(), bottom, leftNeighbour);
+        int rightDepth = exposed(look.plane(), bottom, rightNeighbour);
         if (anchorY + cell + cell * Math.max(leftDepth, rightDepth) <= canvas.originY) return;
 
         drawTop(canvas, projection, look, anchorX, anchorY, leftDepth, rightDepth);
@@ -95,6 +121,12 @@ public final class MapRaster {
             side(canvas, anchorX + column, start, rightDepth * cell, cap, look.right(), look.strataRight(),
                     look.fade());
         }
+    }
+
+    static int exposed(int plane, int bottom, int neighbourPlane) {
+        if (bottom == NO_BOTTOM) return MapColumns.depth(plane, neighbourPlane);
+        if (neighbourPlane == MapColumns.VOID) return plane - bottom;
+        return Math.max(0, plane - Math.max(bottom, neighbourPlane));
     }
 
     private static void drawTop(Canvas canvas, MapProjection projection, Look look, int anchorX, int anchorY,
@@ -135,7 +167,7 @@ public final class MapRaster {
     }
 
     private static int neighbour(MapProjection projection, MapGrid grid, int fogPlane, int u, int v) {
-        return MapColumns.plane(grid, projection.columnX(u, v), projection.columnZ(u, v), fogPlane);
+        return MapColumns.solidPlane(grid, projection.columnX(u, v), projection.columnZ(u, v), fogPlane);
     }
 
     private record Look(int plane, int top, int left, int right, int rim, boolean glint, int cap, int strataLeft,
@@ -147,8 +179,7 @@ public final class MapRaster {
                     1.0F);
         }
 
-        static Look of(MapGrid grid, MapTile tile, int index, int x, int z) {
-            MapTerrain terrain = MapColumns.terrain(tile, index);
+        static Look of(MapGrid grid, MapTerrain terrain, int plane, int x, int z, float fade) {
             int top = MapPalette.top(terrain, x, z);
             boolean glint = false;
             if (terrain == MapTerrain.WATER) {
@@ -156,10 +187,9 @@ public final class MapRaster {
                 top = MapPalette.water(shore);
                 glint = shore >= MapPalette.SHORE_STEPS && MapPalette.glint(x, z);
             }
-            return new Look(MapColumns.top(tile, index) + 1, top, MapPalette.left(terrain), MapPalette.right(terrain),
-                    MapPalette.rim(terrain), glint, MapPalette.cap(terrain),
-                    MapPalette.strata(terrain, MapProjection.Face.LEFT),
-                    MapPalette.strata(terrain, MapProjection.Face.RIGHT), grid.fade(x >> 4, z >> 4, x & 15, z & 15));
+            return new Look(plane, top, MapPalette.left(terrain), MapPalette.right(terrain), MapPalette.rim(terrain),
+                    glint, MapPalette.cap(terrain), MapPalette.strata(terrain, MapProjection.Face.LEFT),
+                    MapPalette.strata(terrain, MapProjection.Face.RIGHT), fade);
         }
     }
     //endregion
@@ -181,7 +211,7 @@ public final class MapRaster {
         MapTile tile = tiles.tile(x >> 4, z >> 4);
         if (tile == null) return false;
         int index = MapTile.index(x, z);
-        return !MapColumns.isVoid(tile, index) && MapColumns.terrain(tile, index) != MapTerrain.WATER;
+        return !MapColumns.isVoid(tile, index) && MapColumns.base(tile, index) != MapTerrain.WATER;
     }
     //endregion
 

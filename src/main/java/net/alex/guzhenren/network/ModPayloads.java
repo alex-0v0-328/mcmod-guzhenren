@@ -56,7 +56,7 @@ public final class ModPayloads {
 
     private ModPayloads() {}
 
-    private static final String VERSION = "9";
+    private static final String VERSION = "10";
     private static final Map<Class<?>, Consumer<?>> CLIENT_HANDLERS = new HashMap<>();
 
     @SubscribeEvent

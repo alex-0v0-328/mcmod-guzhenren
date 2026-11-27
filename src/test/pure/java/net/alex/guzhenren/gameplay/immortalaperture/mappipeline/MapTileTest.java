@@ -21,9 +21,14 @@ class MapTileTest {
             ground[i] = (short) (-64 + i);
             surface[i] = (short) (ground[i] + i % 7);
             terrain[i] = MapTerrain.values()[2 + i % (MapTerrain.values().length - 2)].id();
-            flags[i] = (byte) (i % 4);
+            flags[i] = (byte) (i % 8);
         }
-        return new MapTile(chunkX, chunkZ, ground, surface, terrain, flags);
+        MapTile resting = new MapTile(chunkX, chunkZ, ground, surface, terrain, flags);
+        short[] low = resting.low().clone();
+        for (int i = 0; i < MapTile.COLUMNS; i += 3) low[i] = (short) (ground[i] + 1 + i % 5);
+        byte[] under = resting.under().clone();
+        under[7] = MapTerrain.WATER.id();
+        return new MapTile(chunkX, chunkZ, ground, surface, terrain, flags, low, under);
     }
 
     private static MapTile roundTrip(MapTile tile) {
@@ -47,6 +52,18 @@ class MapTileTest {
         assertEquals(tile.hash(), decoded.hash());
         assertEquals(-64, decoded.groundAt(0, 0));
         assertEquals(MapTerrain.byId(tile.terrain()[MapTile.index(5, 9)]), decoded.terrainAt(5, 9));
+        assertEquals(tile.lowAt(9, 0), decoded.lowAt(9, 0));
+        assertEquals(MapTerrain.WATER, decoded.underAt(7, 0));
+        assertTrue(decoded.hasFlag(7, 0, MapTile.FLAG_TRUNK));
+    }
+
+    @Test
+    @DisplayName("the six-array tile has no floating canopy: low rests on the ground, under is the surface terrain")
+    void restingDefaults() {
+        MapTile tile = new MapTile(0, 0, new short[MapTile.COLUMNS], new short[MapTile.COLUMNS],
+                new byte[MapTile.COLUMNS], new byte[MapTile.COLUMNS]);
+        assertEquals(1, tile.lowAt(4, 4));
+        assertEquals(MapTerrain.UNKNOWN, tile.underAt(4, 4));
     }
 
     @Test
@@ -56,7 +73,7 @@ class MapTileTest {
         ByteBuf buffer = Unpooled.buffer();
         try {
             MapTile.STREAM_CODEC.encode(buffer, tile);
-            assertTrue(buffer.readableBytes() <= 11, "two varints and a marker byte at most, not 1.5 KB");
+            assertTrue(buffer.readableBytes() <= 11, "two varints and a marker byte at most, not 2.3 KB");
         } finally {
             buffer.release();
         }

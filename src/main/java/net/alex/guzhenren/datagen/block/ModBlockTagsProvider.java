@@ -34,6 +34,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>荡魂山石同基岩加入凋灵免疫、末影龙免疫与地物不可替换三个标签，否则凋灵会啃穿山体、树等地物会覆盖山表；胆石加入
  *       镐挖掘（只加速，不要求工具）。两者都进 {@link ModBlockTags#MORTAL_AS_BEFORE_IMMUNE}：荡魂山只有仙蛊能还原，凡蛊
  *       山如故、江如故跳过它们。</li>
+ *   <li>{@link ModBlockTags#NOT_GROUND}：福地地图与选址找真实地面时，没有碰撞箱的方块本就跳过，这里补上碰撞箱很小的薄件
+ *       （地毯、雪层、灯笼、蜡烛、花盆、头颅、锁链、梯子、末地烛、避雷针、中继器、比较器、海泡菜、紫水晶芽簇、滴水石锥、
+ *       海龟蛋），整合包可再扩充。</li>
  * </ul>
  */
 
@@ -63,6 +66,15 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
         tag(STORAGE_BLOCKS_STEEL).add(ModBlocks.STEEL_BLOCK.get());
         tag(Tags.Blocks.STORAGE_BLOCKS).addTag(STORAGE_BLOCKS_STEEL);
         tag(BlockTags.CROPS).add(ModBlocks.INTIMATE_GRASS_CROP.get());
+        tag(ModBlockTags.NOT_GROUND).add(Blocks.MOSS_CARPET, Blocks.SNOW, Blocks.LANTERN, Blocks.SOUL_LANTERN,
+                Blocks.CHAIN, Blocks.LADDER, Blocks.END_ROD, Blocks.LIGHTNING_ROD, Blocks.REPEATER, Blocks.COMPARATOR,
+                Blocks.SEA_PICKLE, Blocks.SMALL_AMETHYST_BUD, Blocks.MEDIUM_AMETHYST_BUD, Blocks.LARGE_AMETHYST_BUD,
+                Blocks.AMETHYST_CLUSTER, Blocks.POINTED_DRIPSTONE, Blocks.TURTLE_EGG, Blocks.SKELETON_SKULL,
+                Blocks.SKELETON_WALL_SKULL, Blocks.WITHER_SKELETON_SKULL, Blocks.WITHER_SKELETON_WALL_SKULL,
+                Blocks.ZOMBIE_HEAD, Blocks.ZOMBIE_WALL_HEAD, Blocks.PLAYER_HEAD, Blocks.PLAYER_WALL_HEAD,
+                Blocks.CREEPER_HEAD, Blocks.CREEPER_WALL_HEAD, Blocks.DRAGON_HEAD, Blocks.DRAGON_WALL_HEAD,
+                Blocks.PIGLIN_HEAD, Blocks.PIGLIN_WALL_HEAD)
+                .addTags(BlockTags.WOOL_CARPETS, BlockTags.CANDLES, BlockTags.CANDLE_CAKES, BlockTags.FLOWER_POTS);
         tag(BlockTags.MAINTAINS_FARMLAND).add(ModBlocks.INTIMATE_GRASS_CROP.get());
         tag(UNAFFECTED_BY_RICH_SOIL).add(ModBlocks.INTIMATE_GRASS_CROP.get());
         tag(BlockTags.MINEABLE_WITH_SHOVEL).add(ModBlocks.BLACK_SOIL_FARMLAND.get());
