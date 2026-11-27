@@ -83,8 +83,9 @@ import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
  *   <li>远程攻击与同一招的近战命中共用那一份记账：谁先造成伤害谁结算，另一方不再扣；{@link ComboRound#SHOT_TICKS} 后或
  *       新出招后，近战命中恢复按当前读数单独结算。</li>
  *   <li>锁定目标被同一拳先到的兽力冲击打死后，其余冲击在目标最后的中心爆开，由最近的目标吃整发。</li>
- *   <li>冲击弧线在出拳者随机源上掷出；{@link #steadyArc} 给该随机源设种，使后续 {@link #ARC_DRAWS} 次取值都低于
- *       {@link #LOW_DRAW}，无论哪几次掷弧线：弯曲至多 0.24、峰值后移，冲击在 {@link #FLIGHT_TICKS} 内落到目标。</li>
+ *   <li>冲击弧线在出拳者随机源上掷出；{@link #steadyArc} 给该随机源设种，使后续 {@link #ARC_DRAWS} 次取值都落在
+ *       {@link #LIFT_DRAW}～{@link #LOW_DRAW}，无论哪几次掷弧线：弯曲至多 0.24、峰值后移，单发冲击弯向离水平至少 9°
+ *       （起飞抬头），冲击在 {@link #FLIGHT_TICKS} 内落到目标。</li>
  *   <li>出拳者在北缘朝南（yaw 0）；目标为 {@link #TARGET_HEALTH} 生命的无意识村民。</li>
  * </ul>
  */
@@ -121,6 +122,7 @@ public final class QiWaveGameTests {
     private static final float LAND = 0.0F;
     private static final float MISS = 0.99F;
     private static final int ARC_DRAWS = 8;
+    private static final float LIFT_DRAW = 0.05F;
     private static final float LOW_DRAW = 0.3F;
     private static final float TARGET_HEALTH = 200.0F;
     private static final double DELTA = 1.0E-4D;
@@ -336,6 +338,7 @@ public final class QiWaveGameTests {
         PathStrengthService.grant(player, BeastStrength.WHITE_BOAR);
         Villager villager = target(helper, AHEAD);
 
+        steadyArc(player.getRandom());
         BeastChargeEntity charge = assertInstance(shoot(player, villager), BeastChargeEntity.class);
         assertTrue(charge.getXRot() < 0.0F, "the charge did not rear on the arc's lift: pitch " + charge.getXRot());
         Vec3[] last = new Vec3[3];
@@ -968,9 +971,12 @@ public final class QiWaveGameTests {
     private static void steadyArc(RandomSource random) {
         for (long seed = 0L; ; seed++) {
             random.setSeed(seed);
-            boolean low = true;
-            for (int i = 0; i < ARC_DRAWS && low; i++) low = random.nextFloat() < LOW_DRAW;
-            if (low) {
+            boolean steady = true;
+            for (int i = 0; i < ARC_DRAWS && steady; i++) {
+                float draw = random.nextFloat();
+                steady = draw >= LIFT_DRAW && draw < LOW_DRAW;
+            }
+            if (steady) {
                 random.setSeed(seed);
                 return;
             }
