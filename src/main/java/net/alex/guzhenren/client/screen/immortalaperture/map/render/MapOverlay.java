@@ -27,6 +27,7 @@ public final class MapOverlay {
     public static final int FIT = 0xFF66E07A;
     public static final int UNFIT = 0xFFFF5468;
     public static final int SELECTED = 0xFFFFFFFF;
+    public static final int CHOSEN = 0xFFE4B750;
     public static final int PLANNED = 0xFFFFE080;
     public static final int SHADOW = 0xC0101018;
     public static final int LABEL_BACK = 0xA0101018;

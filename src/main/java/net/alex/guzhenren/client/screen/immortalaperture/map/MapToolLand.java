@@ -14,7 +14,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地图页的经营数据来源：把 {@code MapPart.Section} 的田、规划田、牧场换成 {@link MapPlots.Plot}，预判走
  * {@link Siting}（地形读 {@link LandMapClient#tile}，没下发的区块即迷雾、不许选址，左键改为探明），操作发 {@code FarmPart} 与
- * {@code HerdPart} 的意图，服务端全部复判；卡片读的田、牧场设置按下标取快照段里的原记录。
+ * {@code HerdPart} 的意图，服务端全部复判；选区卡与操作栏读的田、牧场设置按下标取快照段里的原记录，选中田的操作带区块
+ * 列表（至多 {@code FarmPart.LIMIT} 个）。
  * <ul>
  *   <li>快照段每秒或每次操作后整份替换；按引用比对，换了才重建占地表与 {@link Siting.Plot}。</li>
  *   <li>迁移预判用 {@link Siting.Plot#without} 排除原牧场的 4 个区块。</li>
@@ -91,7 +92,13 @@ final class MapToolLand implements MapTools.Land {
     public long mud() { return section().mud(); }
 
     @Override
+    public long boneMeal() { return section().boneMeal(); }
+
+    @Override
     public long seeds(int crop) { return section().seedsOf(crop); }
+
+    @Override
+    public int newCrop() { return section().newCrop(); }
 
     @Override
     public List<ResourceLocation> animals() { return section().animals(); }
@@ -122,10 +129,29 @@ final class MapToolLand implements MapTools.Land {
     }
 
     @Override
-    public void unplan(int chunkX, int chunkZ) { page.sendAction(new FarmPart.Unplan(chunkX, chunkZ)); }
+    public void setNewCrop(int crop) { page.sendAction(new FarmPart.SetCrop(crop)); }
 
     @Override
-    public void remove(int chunkX, int chunkZ) { page.sendAction(new FarmPart.Remove(chunkX, chunkZ)); }
+    public void sow(List<Long> chunks, int crop) { page.sendAction(new FarmPart.Sow(limit(chunks), crop)); }
+
+    @Override
+    public void retype(List<Long> chunks, int kind) { page.sendAction(new FarmPart.Retype(limit(chunks), kind)); }
+
+    @Override
+    public void ripen(List<Long> chunks) { page.sendAction(new FarmPart.Ripen(limit(chunks))); }
+
+    @Override
+    public void harvest(List<Long> chunks) { page.sendAction(new FarmPart.HarvestFields(limit(chunks))); }
+
+    @Override
+    public void harvestAll() { page.sendAction(new FarmPart.Harvest()); }
+
+    @Override
+    public void clear(List<Long> chunks) { page.sendAction(new FarmPart.Clear(limit(chunks))); }
+
+    private static List<Long> limit(List<Long> chunks) {
+        return chunks.size() <= FarmPart.LIMIT ? List.copyOf(chunks) : List.copyOf(chunks.subList(0, FarmPart.LIMIT));
+    }
 
     @Override
     public void placePasture(int chunkX, int chunkZ) { page.sendAction(new HerdPart.PlacePasture(chunkX, chunkZ)); }
@@ -151,19 +177,6 @@ final class MapToolLand implements MapTools.Land {
 
     @Override
     public void gather(int index) { page.sendAction(new HerdPart.Gather(index)); }
-
-    @Override
-    public void setFieldCrop(int chunkX, int chunkZ, int crop) {
-        page.sendAction(new FarmPart.SetFieldCrop(chunkX, chunkZ, crop));
-    }
-
-    @Override
-    public void setAllCrops(int crop) { page.sendAction(new FarmPart.SetAllCrops(crop)); }
-
-    @Override
-    public void setFieldKind(int chunkX, int chunkZ, int kind) {
-        page.sendAction(new FarmPart.SetFieldKind(chunkX, chunkZ, kind));
-    }
 
     @Override
     public void setAutoGather(int index, boolean on) { page.sendAction(new HerdPart.SetAutoGather(index, on)); }

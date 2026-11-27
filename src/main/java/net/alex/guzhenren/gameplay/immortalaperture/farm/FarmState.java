@@ -125,16 +125,6 @@ public final class FarmState implements LandSavePart.State {
 
     public void setTopUpCursor(int cursor) { topUpCursor = cursor; }
 
-    public void setAllCrops(int crop) {
-        int clamped = clampCrop(crop);
-        boolean any = false;
-        for (FieldPlot field : fields) {
-            Integer before = fieldCrops.put(field, clamped);
-            any |= before == null || before != clamped;
-        }
-        if (any) changed.run();
-    }
-
     public int lastReaped() { return lastReaped; }
 
     public int lastSown() { return lastSown; }

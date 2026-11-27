@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gametest;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
@@ -36,7 +37,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * 福地标准田：开垦取列数最多的地面层（花不算地面）、铺土径、水与耕地并按新田作物播种（坡里切出、光照还没重算的格子也
- * 种得住），收割补种与托管，开面板补种与生长进度、套用到全部田，单田改作物熟一株换一株，蛊植田扣腐泥冻土换黑土、被踩补回、改回不退，拆田收作物换回泥土，规划队列按序开垦、不合格取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
+ * 种得住），收割补种与托管，开面板补种与生长进度，选中田种植补满、骨粉每株 1 份催熟（不够催到用完）、只收所选，
+ * 单田改作物熟一株换一株，蛊植田扣腐泥冻土换黑土、被踩补回、改回不退，拆田收作物换回泥土，规划队列按序开垦、不合格
+ * 取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
  * 自建存档，规划用例另建疆域罩住测试区的福地。
  */
 
@@ -195,7 +198,7 @@ public final class BlissfulFarmGameTests {
     }
 
     @GameTest(template = "empty9x9x9", skyAccess = true)
-    public static void anOpenPanelTopsUpBareCellsAndCopiesTheCropToEveryField(GameTestHelper helper) {
+    public static void anOpenPanelTopsUpBareCells(GameTestHelper helper) {
         GameTestPlayers.ground(helper);
         ServerLevel level = helper.getLevel();
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
@@ -209,14 +212,51 @@ public final class BlissfulFarmGameTests {
             BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT_SEEDS, 100));
             helper.assertValueEqual(FarmWork.topUp(level, data), FARMLAND_CELLS - 20, "the rest fills in one go");
             helper.assertValueEqual(FarmWork.topUp(level, data), 0, "a full field is left alone");
-            helper.assertValueEqual(FarmWork.look(level, field), new FarmWork.Look(0, FARMLAND_CELLS, 0),
-                    "fresh wheat is all growing at age zero");
+            helper.assertValueEqual(FarmWork.look(level, field),
+                    new FarmWork.Look(0, FARMLAND_CELLS, 0, FarmRules.crops().indexOf(Blocks.WHEAT)),
+                    "fresh wheat is all growing at age zero, wheat the main crop");
 
             ripen(level, field, Blocks.WHEAT);
             helper.assertValueEqual(FarmWork.look(level, field).growth(), 100, "ripe wheat is fully grown");
-            int carrots = FarmRules.crops().indexOf(Blocks.CARROTS);
-            FarmState.of(data).setAllCrops(carrots);
-            helper.assertValueEqual(FarmState.of(data).crop(field), carrots, "every field now sows carrots");
+            helper.succeed();
+        } finally {
+            if (field != null) FarmWork.setForced(level, field, false);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void selectedFieldsAreSownRipenedWithBoneMealAndHarvested(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        FieldPlot field = FarmWork.reclaim(level, data, plot(helper, 0, WHOLE - 1),
+                owner(helper, "gzr-farm-select-mock"));
+        try {
+            helper.assertTrue(field != null, "the field is laid bare");
+            List<FieldPlot> chosen = List.of(field);
+            BlissfulStorage.of(data).insert(new ItemStack(Items.CARROT, 100));
+            FarmState.of(data).setCrop(field, FarmRules.crops().indexOf(Blocks.CARROTS));
+            helper.assertValueEqual(FarmWork.sow(level, data, chosen), FARMLAND_CELLS,
+                    "sowing the selection fills every bare cell at once");
+            helper.assertValueEqual(FarmWork.ripen(level, data, chosen), new FarmWork.Ripen(0, FARMLAND_CELLS),
+                    "no bone meal ripens nothing");
+
+            BlissfulStorage.of(data).insert(new ItemStack(Items.BONE_MEAL, 10));
+            helper.assertValueEqual(FarmWork.ripen(level, data, chosen), new FarmWork.Ripen(10, FARMLAND_CELLS),
+                    "ten bone meal ripen ten plants");
+            helper.assertValueEqual(FarmWork.count(level, field), new FarmWork.Count(10, FARMLAND_CELLS - 10),
+                    "one bone meal grows one plant to full age");
+            BlissfulStorage.of(data).insert(new ItemStack(Items.BONE_MEAL, 64));
+            helper.assertValueEqual(FarmWork.ripen(level, data, chosen),
+                    new FarmWork.Ripen(FARMLAND_CELLS - 10, FARMLAND_CELLS - 10), "the rest ripen");
+            helper.assertValueEqual(BlissfulStorage.of(data).count(FarmWork::isBoneMeal), 74L - FARMLAND_CELLS,
+                    "ripe plants cost nothing");
+            helper.assertValueEqual(FarmWork.harvest(level, data, chosen, Integer.MAX_VALUE).reaped(),
+                    FARMLAND_CELLS, "the selection is cut");
+            helper.assertValueEqual(FarmWork.count(level, field), new FarmWork.Count(0, FARMLAND_CELLS),
+                    "and replanted");
+            helper.assertValueEqual(FarmWork.harvest(level, data, List.of(), Integer.MAX_VALUE).reaped(), 0,
+                    "an empty selection cuts nothing");
             helper.succeed();
         } finally {
             if (field != null) FarmWork.setForced(level, field, false);

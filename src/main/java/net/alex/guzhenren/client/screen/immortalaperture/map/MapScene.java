@@ -19,8 +19,8 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地图页的地图层绘制：底色 → 地形贴图 → 规划田轮廓、悬停或选中的占地、工具目标与开垦拖框 → 活物点 → 田与牧场的悬浮
- * 图标 → 玩家头像，地形与活物点按维度时间乘 {@link MapTint}（轮廓、图标与头像不乘，夜里也看得清）。
+ * 地图页的地图层绘制：底色 → 地形贴图 → 规划田轮廓、选区（金）、悬停的占地（白）、框选矩形、工具目标与开垦拖框 → 活物点
+ * → 田与牧场的悬浮图标 → 玩家头像，地形与活物点按维度时间乘 {@link MapTint}（轮廓、图标与头像不乘，夜里也看得清）。
  * <ul>
  *   <li>⚠ 贴图与头像是立即绘制，排队中的填充必须先 {@code flush}，否则会盖到后画的东西上；所以底色后、头像前各
  *       flush 一次。</li>
@@ -45,9 +45,13 @@ final class MapScene {
 
     private MapScene() {}
 
-    /** 一帧要叠加的东西：{@code highlighted} 是悬停或卡片选中的占地，{@code target} 是工具目标，{@code area} 是开垦拖框。 */
-    record Layers(List<MapPlots.Plot> plots, MapPlots.@Nullable Plot highlighted, MapTools.@Nullable Target target,
-                  int targetColour, List<MapTools.Target> area, MapPick.@Nullable Hit hover) {}
+    /**
+     * 一帧要叠加的东西：{@code chosen} 是选区里的占地，{@code hovered} 是光标下未选中的占地，{@code box} 是框选矩形（区块，
+     * 西北角与东南角），{@code target} 是工具目标，{@code area} 是开垦拖框。
+     */
+    record Layers(List<MapPlots.Plot> plots, List<MapPlots.Plot> chosen, MapPlots.@Nullable Plot hovered,
+                  int @Nullable [] box, MapTools.@Nullable Target target, int targetColour, List<MapTools.Target> area,
+                  MapPick.@Nullable Hit hover) {}
 
     static void draw(GuiGraphics graphics, MapCamera camera, MapSurface surface, int top, int width, int height,
                      double guiScale, Layers layers) {
@@ -60,7 +64,14 @@ final class MapScene {
             for (MapPlots.Plot plot : layers.plots()) {
                 if (plot.kind() == MapPlots.Kind.PLANNED) outline(overlay, camera, plot, MapOverlay.PLANNED);
             }
-            if (layers.highlighted() != null) outline(overlay, camera, layers.highlighted(), MapOverlay.SELECTED);
+            for (MapPlots.Plot plot : layers.chosen()) outline(overlay, camera, plot, MapOverlay.CHOSEN);
+            if (layers.hovered() != null) outline(overlay, camera, layers.hovered(), MapOverlay.SELECTED);
+            int[] box = layers.box();
+            if (box != null) {
+                int size = Math.max(box[2] - box[0], box[3] - box[1]) + 1;
+                overlay.outline(box[0] * 16, box[1] * 16, box[2] * 16 + 15, box[3] * 16 + 15,
+                        centreGround(camera, box[0], box[1], size), MapOverlay.CHOSEN);
+            }
             for (MapTools.Target each : layers.area()) {
                 MapTools.outline(overlay, each.chunkX(), each.chunkZ(), 1, centreGround(camera, each.chunkX(),
                         each.chunkZ(), 1), each.verdict().fit() ? MapOverlay.FIT : MapOverlay.UNFIT);
@@ -69,7 +80,7 @@ final class MapScene {
             if (target != null) {
                 MapTools.outline(overlay, target.chunkX(), target.chunkZ(), target.size(),
                         centreGround(camera, target.chunkX(), target.chunkZ(), target.size()), layers.targetColour());
-            } else if (layers.highlighted() == null && layers.area().isEmpty() && layers.hover() != null) {
+            } else if (layers.hovered() == null && box == null && layers.area().isEmpty() && layers.hover() != null) {
                 overlay.select(layers.hover().x(), layers.hover().z(), layers.hover().top());
             }
             for (MapMark mark : LandMapClient.marks()) {

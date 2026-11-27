@@ -88,8 +88,8 @@ final class HerdPage extends PanelPage {
                     shortOfFeed(row) ? PanelDrawing.WARN : PanelDrawing.TEXT, row.count(), row.keep(), row.hosted());
         }
         if (data.hosting()) {
-            Component status = Component.translatable(UI + "herd_status", data.hostingIn(), data.lastSlaughtered(),
-                    data.lastBred());
+            Component status = Component.translatable(UI + "hosting_status", data.hostingIn(),
+                    Component.translatable(UI + "herd_round", data.lastSlaughtered(), data.lastBred()));
             graphics.drawString(font(), status, list.insetX(), list.statusY(), PanelDrawing.LEGEND, false);
         }
         PanelDrawing.label(graphics, font(), Component.translatable(UI + "breed"), list.buttonX(BREED), list.buttonY(),
@@ -129,8 +129,8 @@ final class HerdPage extends PanelPage {
                 mouseY, Component.translatable(TIP + "pen"))) {
             return;
         }
-        Component hosting = Component.translatable(TIP + "herd_hosting", LandHostingJob.INTERVAL_TICKS / Ticks.SECOND,
-                HerdRules.HOSTING_ANIMALS);
+        Component hosting = Component.translatable(TIP + "hosting", LandHostingJob.INTERVAL_TICKS / Ticks.SECOND,
+                Component.translatable(TIP + "herd_hosting", HerdRules.HOSTING_ANIMALS));
         if (tip(graphics, list.insetX(), list.statusY() - 2, list.insetW(), 12, mouseX, mouseY, hosting)) return;
         if (tip(graphics, list.switchX(rows.size()), list.y() + 17, PanelDrawing.SWITCH_W + 8, 12, mouseX, mouseY,
                 Component.translatable(UI + "herd_note"))) {

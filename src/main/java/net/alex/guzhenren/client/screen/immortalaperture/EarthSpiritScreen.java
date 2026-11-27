@@ -219,6 +219,12 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     //region Page access [页面访问]
     void openPage(Page next) { show(next); }
 
+    /** 信息页「种植」点作物行：跳到地图页并选中种这种作物（{@code FarmRules.crops()} 下标）的田。 */
+    void openMapSelecting(int crop) {
+        ((MapPage) this.pages.get(Page.MAP)).selectCrop(crop);
+        show(Page.MAP);
+    }
+
     void openInfo(int part) {
         ((InfoPage) this.pages.get(Page.INFO)).open(part);
         show(Page.INFO);

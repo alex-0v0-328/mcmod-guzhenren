@@ -5,8 +5,8 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
-import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.FarmPart;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,12 +16,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 /**
- * 「种植」小节：一张卡，标题右侧写「标准田 N / 上限 · 规划 M」（有规划时补「开垦中」，每秒 1 块，不设冷却）；凹槽里每种
- * 作物一行（图标、名字、成熟数、未熟数、金色成熟比例条），卡底一行新田作物与库藏种子数，一行自动收割补种开关与「收割并
- * 补种」，托管开着时再一行状态（下一轮倒计时与上一轮收了几株、补了几格）。选址、规划、拆田与单田的作物、田型在地图页。
+ * 「种植」小节（统筹卡，Alex 定：操作都在地图页）：一张卡，标题右侧写「标准田 N / 上限 · 规划 M」（有规划时补「开垦中 · 约
+ * M 秒」，每秒 1 块）；凹槽里每种作物一行（图标、名字、成熟数、未熟数、金色成熟比例条），点一行跳到地图页并选中种这种作物的
+ * 田；卡底一行库藏「种子 · 骨粉 · 腐泥冻土」，一行自动收割补种开关与「去地图」，托管开着时再一行状态（下一轮倒计时与上一轮
+ * 收了几株、补了几格）。
  * <ul>
- *   <li>新田作物按钮循环切换：自动 → 小麦 → 胡萝卜 → 马铃薯 → 甜菜根 → 知心草 → 自动；右边写库藏里这种的种子数（自动 =
- *       五种合计），没有种子时警示色。</li>
  *   <li>卡宽至多 {@value #MAX_W}；行数随窗口高（{@value #MIN_ROWS} 到 {@value #MAX_ROWS} 行），多了滚轮翻、右侧滚动条。
  *       </li>
  * </ul>
@@ -36,10 +35,8 @@ final class FarmPage extends PanelPage {
     private static final int MAX_ROWS = 8;
     private static final int ROW_H = 20;
     private static final int INSET_Y = 30;
-    private static final int FOOT_H = 6 + 22 + 24 + 10 + PanelDrawing.PAD;
-    private static final int CROP_W = 60;
-    private static final int HARVEST_W = 72;
-    private static final int HARVEST_H = 18;
+    private static final int FOOT_H = 6 + 14 + 22 + 10 + PanelDrawing.PAD;
+    private static final int MAP_W = 60;
     private static final int RATIO_W = 40;
     private int x;
     private int y;
@@ -55,11 +52,6 @@ final class FarmPage extends PanelPage {
     private FarmPart.Section data() { return section(FarmPart.INSTANCE, FarmPart.Section.EMPTY); }
 
     private List<FarmPart.Crop> crops() { return data().rows(); }
-
-    private static Component cropName(int crop) {
-        return crop == FarmState.AUTO_CROP ? Component.translatable(UI + "crop_auto")
-                : FarmRules.crops().get(crop).getName();
-    }
 
     @Override
     protected void resized(int width, int height) {
@@ -90,23 +82,36 @@ final class FarmPage extends PanelPage {
 
     private int matureRight() { return growingRight() - 34; }
 
-    private int pickY() { return insetY() + insetH() + 6; }
+    private int stockY() { return insetY() + insetH() + 6; }
 
-    private int pickX() { return insetX() + font().width(Component.translatable(UI + "crop_pick")) + 6; }
+    private int hostY() { return stockY() + 14; }
 
-    private int hostY() { return pickY() + 22; }
-
-    private int harvestX() { return x + w - PanelDrawing.PAD - HARVEST_W; }
+    private int mapX() { return x + w - PanelDrawing.PAD - MAP_W; }
 
     private int statusY() { return hostY() + 24; }
 
     private int cardH() { return INSET_Y + insetH() + FOOT_H; }
+
+    private int rowAt(double mouseX, double mouseY) {
+        List<FarmPart.Crop> crops = crops();
+        for (int i = 0; i < rows && offset + i < crops.size(); i++) {
+            if (Widgets.isOver(mouseX, mouseY, rowX(), rowTop(i), rowW(), ROW_H)) return offset + i;
+        }
+        return -1;
+    }
     //endregion
 
     private Component fields() {
         FarmPart.Section data = data();
         MutableComponent fields = Component.translatable(UI + "fields", data.fields(), data.capacity(), data.planned());
-        return data.planned() > 0 ? fields.append(" · ").append(Component.translatable(UI + "reclaiming")) : fields;
+        return data.planned() > 0
+                ? fields.append(" · ").append(Component.translatable(UI + "reclaiming", data.planned())) : fields;
+    }
+
+    private Component stocks() {
+        FarmPart.Section data = data();
+        return Component.translatable(UI + "farm_stock", PanelDrawing.count(data.seeds()),
+                PanelDrawing.count(data.boneMeal()), PanelDrawing.count(data.mud()));
     }
 
     @Override
@@ -131,9 +136,8 @@ final class FarmPage extends PanelPage {
             PanelDrawing.scrollbar(sprites, barX, insetY() + 1, insetH() - 2, offset, rows, crops.size(),
                     Widgets.isOver(mouseX, mouseY, barX, insetY() + 1, 6, insetH() - 2));
         }
-        PanelDrawing.button(sprites, pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
         PanelDrawing.toggle(sprites, insetX(), hostY() + 4, data.hosting(), true, mouseX, mouseY);
-        PanelDrawing.button(sprites, harvestX(), hostY(), HARVEST_W, HARVEST_H, true, mouseX, mouseY);
+        PanelDrawing.button(sprites, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
     }
 
     @Override
@@ -158,20 +162,15 @@ final class FarmPage extends PanelPage {
             PanelDrawing.right(graphics, font(), Integer.toString(crop.growing()), growingRight(), top + 6,
                     PanelDrawing.LEGEND);
         }
-        graphics.drawString(font(), Component.translatable(UI + "crop_pick"), insetX(), pickY() + 4,
-                PanelDrawing.LEGEND, false);
-        PanelDrawing.label(graphics, font(), cropName(data.crop()), pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H,
-                true);
-        long seeds = data.seedsOf(data.crop());
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "seeds", PanelDrawing.count(seeds)),
-                this.x + w - PanelDrawing.PAD, pickY() + 4, seeds > 0 ? PanelDrawing.TEXT : PanelDrawing.WARN);
+        graphics.drawString(font(), stocks(), insetX(), stockY() + 2, PanelDrawing.LEGEND, false);
         graphics.drawString(font(), Component.translatable(UI + "auto_harvest"), insetX() + PanelDrawing.SWITCH_W + 6,
                 hostY() + 5, PanelDrawing.TEXT, false);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "harvest"), harvestX(), hostY(), HARVEST_W,
-                HARVEST_H, true);
+        PanelDrawing.label(graphics, font(), Component.translatable(UI + "to_map"), mapX(), hostY(), MAP_W,
+                PanelDrawing.BUTTON_H, true);
         if (data.hosting()) {
-            graphics.drawString(font(), Component.translatable(UI + "farm_status", data.hostingIn(),
-                    data.lastReaped(), data.lastSown()), insetX(), statusY(), PanelDrawing.LEGEND, false);
+            Component round = Component.translatable(UI + "farm_round", data.lastReaped(), data.lastSown());
+            graphics.drawString(font(), Component.translatable(UI + "hosting_status", data.hostingIn(), round),
+                    insetX(), statusY(), PanelDrawing.LEGEND, false);
         }
     }
 
@@ -187,37 +186,41 @@ final class FarmPage extends PanelPage {
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         int hostingSeconds = LandHostingJob.INTERVAL_TICKS / Ticks.SECOND;
-        if (tip(graphics, pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "crop_pick"))) {
-            return;
-        }
         int fieldsW = font().width(fields());
         if (tip(graphics, this.x + w - PanelDrawing.PAD - fieldsW, this.y, fieldsW, PanelDrawing.TITLE_H, mouseX,
                 mouseY, Component.translatable(TIP + "fields"))) {
             return;
         }
         if (tip(graphics, insetX(), hostY() + 4, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
-                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmRules.HOSTING_FIELDS))) {
+                Component.translatable(TIP + "hosting", hostingSeconds,
+                        Component.translatable(TIP + "farm_hosting", FarmRules.HOSTING_FIELDS)))) {
             return;
         }
-        tip(graphics, harvestX(), hostY(), HARVEST_W, HARVEST_H, mouseX, mouseY,
-                Component.translatable(TIP + "harvest"));
+        if (tip(graphics, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+                Component.translatable(TIP + "to_map"))) {
+            return;
+        }
+        int row = rowAt(mouseX, mouseY);
+        if (row >= 0) {
+            graphics.renderTooltip(font(), font().split(Component.translatable(TIP + "crop_row",
+                    BuiltInRegistries.BLOCK.get(crops().get(row).block()).getName()), 200), mouseX, mouseY);
+        }
     }
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         FarmPart.Section data = data();
-        if (Widgets.isOver(mouseX, mouseY, pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H)) {
-            int next = data.crop() + 1 >= FarmRules.crops().size() ? FarmState.AUTO_CROP : data.crop() + 1;
-            send(new FarmPart.SetCrop(next));
-            return true;
-        }
         if (Widgets.isOver(mouseX, mouseY, insetX(), hostY() + 4, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
             send(new FarmPart.SetHosting(!data.hosting()));
             return true;
         }
-        if (Widgets.isOver(mouseX, mouseY, harvestX(), hostY(), HARVEST_W, HARVEST_H)) {
-            send(new FarmPart.Harvest());
+        if (Widgets.isOver(mouseX, mouseY, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H)) {
+            screen.openPage(Page.MAP);
+            return true;
+        }
+        int row = rowAt(mouseX, mouseY);
+        if (row >= 0) {
+            screen.openMapSelecting(FarmRules.crops().indexOf(BuiltInRegistries.BLOCK.get(crops().get(row).block())));
             return true;
         }
         return false;

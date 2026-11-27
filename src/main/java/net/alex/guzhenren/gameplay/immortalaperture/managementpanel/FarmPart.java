@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
+import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,16 +28,18 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「种植」小节面板段：按作物计成熟 / 未熟、标准田与规划数、新田作物与库藏种子数、托管开关、「收割并补种」；地图上的
- * 规划、取消规划、拆田与田卡片的作物、田型也登记在这里。
+ * 「种植」小节面板段（信息页统筹卡）：按作物计成熟 / 未熟、标准田与规划数、库藏种子合计 / 骨粉 / 腐泥冻土、托管开关与上一轮
+ * 结果；地图上的规划、新田作物、一键收获与选中田
+ * 的操作也登记在这里。
  * <ul>
- *   <li>新田作物按 {@link FarmRules#crops()} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
- *       出空田之后自动补种。</li>
- *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link PlanMany} 是开垦工具拖框，客户端只交
- *       它预判合格的区块（至多 {@value Siting#FIELD_CAP} 个），服务端逐块复判，不合格的跳过并报第一条原因；{@link Remove}
- *       经 {@link FarmWork#remove}；{@link SetFieldCrop} 只改账，{@link SetAllCrops}（田卡片「套用到全部田」）把所有田的
- *       作物改成同一种，{@link SetFieldKind} 经 {@link FarmWork#retype}。</li>
- *   <li>{@link Section#seeds()} 与 {@link FarmRules#crops()} 同序，是库藏里各作物种子的数量。</li>
+ *   <li>新田作物（{@link SetCrop}，地图开垦工具上选）是 {@link FarmRules#crops()} 下标，{@link FarmState#AUTO_CROP} = 自动；
+ *       库藏没有所选种子也照开，开出空田之后自动补种。</li>
+ *   <li>{@link Plan} 经 {@link FieldPlans}（选址复判与队列）；{@link PlanMany} 是开垦工具拖框，客户端只交它预判合格的区块，
+ *       服务端逐块复判，不合格的跳过并报第一条原因。</li>
+ *   <li>选中田的操作都带区块列表（至多 {@value #LIMIT} 个，服务端按账重找，不是田的跳过）：{@link Sow} 改作物并立刻补满
+ *       空格（{@link FarmWork#sow}，不铲现有株），{@link Retype} 改土质（改蛊植田先按所选普通田合计扣腐泥冻土，不够一块都
+ *       不改），{@link Ripen} 骨粉催熟（{@link FarmWork#ripen}），{@link HarvestFields} 只收所选，{@link Clear} 拆田并取消
+ *       所选规划；{@link Harvest} 是地图左上「一键收获」，收全部田。</li>
  *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmRules#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
  *       轮倒计时与上一轮结果。</li>
  * </ul>
@@ -58,22 +61,21 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
     }
 
     public record Section(@NotNull List<Crop> rows, int fields, int planned, int capacity, boolean hosting,
-                          int hostingIn, int lastReaped, int lastSown, int crop, @NotNull List<Long> seeds)
+                          int hostingIn, int lastReaped, int lastSown, long seeds, long boneMeal, long mud)
             implements PanelSection {
 
-        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, false, 0, 0, 0, FarmState.AUTO_CROP,
-                List.of());
+        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, false, 0, 0, 0, 0L, 0L, 0L);
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
                 StreamCodec.of(Section::encode, Section::decode);
 
         private static void encode(RegistryFriendlyByteBuf buffer, Section section) {
             Crop.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.rows);
             for (int value : new int[] {section.fields, section.planned, section.capacity, section.hostingIn,
-                    section.lastReaped, section.lastSown, section.crop}) {
+                    section.lastReaped, section.lastSown}) {
                 buffer.writeVarInt(value);
             }
             buffer.writeBoolean(section.hosting);
-            ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).encode(buffer, section.seeds);
+            for (long value : new long[] {section.seeds, section.boneMeal, section.mud}) buffer.writeVarLong(value);
         }
 
         private static Section decode(RegistryFriendlyByteBuf buffer) {
@@ -84,16 +86,12 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
             int hostingIn = buffer.readVarInt();
             int lastReaped = buffer.readVarInt();
             int lastSown = buffer.readVarInt();
-            int crop = buffer.readVarInt();
             boolean hosting = buffer.readBoolean();
-            List<Long> seeds = ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).decode(buffer);
-            return new Section(rows, fields, planned, capacity, hosting, hostingIn, lastReaped, lastSown, crop,
-                    seeds);
-        }
-
-        public long seedsOf(int crop) {
-            if (crop != FarmState.AUTO_CROP) return crop < seeds.size() ? seeds.get(crop) : 0L;
-            return seeds.stream().mapToLong(Long::longValue).sum();
+            long seeds = buffer.readVarLong();
+            long boneMeal = buffer.readVarLong();
+            long mud = buffer.readVarLong();
+            return new Section(rows, fields, planned, capacity, hosting, hostingIn, lastReaped, lastSown, seeds,
+                    boneMeal, mud);
         }
 
         @Override
@@ -101,6 +99,11 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
     }
 
     //region Actions [操作]
+    /** 地图上选中的田（含规划田）：区块坐标（{@code ChunkPos#toLong}），至多 {@value #LIMIT} 个，服务端按账重找。 */
+    public static final int LIMIT = Siting.FIELD_CAP;
+    private static final StreamCodec<ByteBuf, List<Long>> CHUNKS = ByteBufCodecs.VAR_LONG.apply(
+            ByteBufCodecs.list(LIMIT));
+
     public record Plan(int chunkX, int chunkZ) implements PanelAction {
 
         public static final PanelAction.Type<Plan> TYPE = new PanelAction.Type<>(Plan.class,
@@ -114,15 +117,14 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
             if (reason != Siting.Reason.OK) {
                 return LandNoticeEvent.text("siting_refused", Component.translatable(reason.key()));
             }
-            return LandNoticeEvent.text("planned", chunkX, chunkZ, FarmState.of(context.data()).plans().size());
+            return LandNoticeEvent.text("planned_many", 1, FarmState.of(context.data()).plans().size());
         }
     }
 
     public record PlanMany(@NotNull List<Long> chunks) implements PanelAction {
 
-        public static final int LIMIT = Siting.FIELD_CAP;
         public static final PanelAction.Type<PlanMany> TYPE = new PanelAction.Type<>(PlanMany.class,
-                ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list(LIMIT)).map(PlanMany::new, PlanMany::chunks));
+                CHUNKS.map(PlanMany::new, PlanMany::chunks));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
@@ -139,35 +141,6 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
             }
             return LandNoticeEvent.text("planned_some", planned, chunks.size() - planned,
                     Component.translatable(first.key()));
-        }
-    }
-
-    public record Unplan(int chunkX, int chunkZ) implements PanelAction {
-
-        public static final PanelAction.Type<Unplan> TYPE = new PanelAction.Type<>(Unplan.class,
-                StreamCodec.composite(ByteBufCodecs.VAR_INT, Unplan::chunkX, ByteBufCodecs.VAR_INT, Unplan::chunkZ,
-                        Unplan::new));
-
-        @Override
-        public @NotNull Component perform(@NotNull ActionContext context) {
-            return FieldPlans.unplan(context.data(), chunkX, chunkZ)
-                    ? LandNoticeEvent.text("unplanned", chunkX, chunkZ) : LandNoticeEvent.text("no_plan");
-        }
-    }
-
-    public record Remove(int chunkX, int chunkZ) implements PanelAction {
-
-        public static final PanelAction.Type<Remove> TYPE = new PanelAction.Type<>(Remove.class,
-                StreamCodec.composite(ByteBufCodecs.VAR_INT, Remove::chunkX, ByteBufCodecs.VAR_INT, Remove::chunkZ,
-                        Remove::new));
-
-        @Override
-        public @NotNull Component perform(@NotNull ActionContext context) {
-            FieldPlot field = FarmState.of(context.data()).fieldAt(chunkX, chunkZ);
-            if (field == null) return LandNoticeEvent.text("no_field");
-            Integer reaped = FarmWork.remove(context.level(), context.data(), field, context.player());
-            if (reaped == null) return LandNoticeEvent.text("grief_denied");
-            return LandNoticeEvent.text("field_removed", chunkX, chunkZ, reaped);
         }
     }
 
@@ -195,57 +168,120 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
     }
 
-    public record SetFieldCrop(int chunkX, int chunkZ, int crop) implements PanelAction {
+    private static List<FieldPlot> fields(BlissfulLandData data, List<Long> chunks) {
+        FarmState state = FarmState.of(data);
+        List<FieldPlot> fields = new ArrayList<>();
+        for (long chunk : chunks) {
+            FieldPlot field = state.fieldAt(ChunkPos.getX(chunk), ChunkPos.getZ(chunk));
+            if (field != null && !fields.contains(field)) fields.add(field);
+        }
+        return fields;
+    }
 
-        public static final PanelAction.Type<SetFieldCrop> TYPE = new PanelAction.Type<>(SetFieldCrop.class,
-                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetFieldCrop::chunkX, ByteBufCodecs.VAR_INT,
-                        SetFieldCrop::chunkZ, ByteBufCodecs.VAR_INT, SetFieldCrop::crop, SetFieldCrop::new));
+    private static Component cropName(int crop) {
+        int clamped = FarmState.clampCrop(crop);
+        return clamped == FarmState.AUTO_CROP ? Component.translatable("guzhenren.blissful_land.ui.crop_auto")
+                : FarmRules.crops().get(clamped).getName();
+    }
+
+    public record HarvestFields(@NotNull List<Long> chunks) implements PanelAction {
+
+        public static final PanelAction.Type<HarvestFields> TYPE = new PanelAction.Type<>(HarvestFields.class,
+                CHUNKS.map(HarvestFields::new, HarvestFields::chunks));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            FarmState state = FarmState.of(context.data());
-            FieldPlot field = state.fieldAt(chunkX, chunkZ);
-            if (field == null) return LandNoticeEvent.text("no_field");
-            state.setCrop(field, crop);
-            return Component.empty();
+            List<FieldPlot> fields = fields(context.data(), chunks);
+            if (fields.isEmpty()) return LandNoticeEvent.text("no_field");
+            FarmWork.Harvest done = FarmWork.harvest(context.level(), context.data(), fields, Integer.MAX_VALUE);
+            return LandNoticeEvent.text("harvested", done.reaped(), done.sown());
         }
     }
 
-    public record SetAllCrops(int crop) implements PanelAction {
+    public record Sow(@NotNull List<Long> chunks, int crop) implements PanelAction {
 
-        public static final PanelAction.Type<SetAllCrops> TYPE = new PanelAction.Type<>(SetAllCrops.class,
-                ByteBufCodecs.VAR_INT.map(SetAllCrops::new, SetAllCrops::crop));
+        public static final PanelAction.Type<Sow> TYPE = new PanelAction.Type<>(Sow.class,
+                StreamCodec.composite(CHUNKS, Sow::chunks, ByteBufCodecs.VAR_INT, Sow::crop, Sow::new));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
+            List<FieldPlot> fields = fields(context.data(), chunks);
+            if (fields.isEmpty()) return LandNoticeEvent.text("no_field");
             FarmState state = FarmState.of(context.data());
-            state.setAllCrops(crop);
-            int clamped = FarmState.clampCrop(crop);
-            Component name = clamped == FarmState.AUTO_CROP ? LandNoticeEvent.text("crop_auto")
-                    : FarmRules.crops().get(clamped).getName();
-            return LandNoticeEvent.text("all_crops_set", state.fields().size(), name);
+            for (FieldPlot field : fields) state.setCrop(field, crop);
+            int sown = FarmWork.sow(context.level(), context.data(), fields);
+            return LandNoticeEvent.text("sown", fields.size(), cropName(crop), sown);
         }
     }
 
-    public record SetFieldKind(int chunkX, int chunkZ, int kind) implements PanelAction {
+    public record Ripen(@NotNull List<Long> chunks) implements PanelAction {
 
-        public static final PanelAction.Type<SetFieldKind> TYPE = new PanelAction.Type<>(SetFieldKind.class,
-                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetFieldKind::chunkX, ByteBufCodecs.VAR_INT,
-                        SetFieldKind::chunkZ, ByteBufCodecs.VAR_INT, SetFieldKind::kind, SetFieldKind::new));
+        public static final PanelAction.Type<Ripen> TYPE = new PanelAction.Type<>(Ripen.class,
+                CHUNKS.map(Ripen::new, Ripen::chunks));
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            FieldPlot field = FarmState.of(context.data()).fieldAt(chunkX, chunkZ);
-            if (field == null) return LandNoticeEvent.text("no_field");
+            List<FieldPlot> fields = fields(context.data(), chunks);
+            if (fields.isEmpty()) return LandNoticeEvent.text("no_field");
+            FarmWork.Ripen done = FarmWork.ripen(context.level(), context.data(), fields);
+            if (done.unripe() == 0) return LandNoticeEvent.text("nothing_to_ripen");
+            if (done.ripened() < done.unripe()) {
+                return LandNoticeEvent.text("ripened_short", done.ripened(), done.unripe() - done.ripened());
+            }
+            return LandNoticeEvent.text("ripened", done.ripened());
+        }
+    }
+
+    public record Retype(@NotNull List<Long> chunks, int kind) implements PanelAction {
+
+        public static final PanelAction.Type<Retype> TYPE = new PanelAction.Type<>(Retype.class,
+                StreamCodec.composite(CHUNKS, Retype::chunks, ByteBufCodecs.VAR_INT, Retype::kind, Retype::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
             FieldKind target = FieldKind.byId(kind);
-            if (FarmState.of(context.data()).kind(field) == target) return Component.empty();
-            return switch (FarmWork.retype(context.level(), context.data(), field, target, context.player())) {
-                case CHANGED -> LandNoticeEvent.text(target == FieldKind.GU_PLANT ? "field_gu_plant" : "field_plain",
-                        chunkX, chunkZ, field.farmland());
-                case SHORT -> LandNoticeEvent.text("mud_short", field.farmland(),
-                        BlissfulStorage.of(context.data()).count(FarmWork::isMud));
-                case DENIED -> LandNoticeEvent.text("grief_denied");
-            };
+            FarmState state = FarmState.of(context.data());
+            List<FieldPlot> fields = fields(context.data(), chunks);
+            fields.removeIf(field -> state.kind(field) == target);
+            if (fields.isEmpty()) return LandNoticeEvent.text("no_field");
+            long cost = target == FieldKind.GU_PLANT ? fields.stream().mapToLong(FieldPlot::farmland).sum() : 0L;
+            long mud = BlissfulStorage.of(context.data()).count(FarmWork::isMud);
+            if (mud < cost) return LandNoticeEvent.text("mud_short", cost, mud);
+            for (FieldPlot field : fields) {
+                if (FarmWork.retype(context.level(), context.data(), field, target, context.player())
+                        == FarmWork.Retype.DENIED) {
+                    return LandNoticeEvent.text("grief_denied");
+                }
+            }
+            return target == FieldKind.GU_PLANT ? LandNoticeEvent.text("retyped_gu_plant", fields.size(), cost)
+                    : LandNoticeEvent.text("retyped_plain", fields.size());
+        }
+    }
+
+    public record Clear(@NotNull List<Long> chunks) implements PanelAction {
+
+        public static final PanelAction.Type<Clear> TYPE = new PanelAction.Type<>(Clear.class,
+                CHUNKS.map(Clear::new, Clear::chunks));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            int plans = 0;
+            for (long chunk : chunks) {
+                if (FieldPlans.unplan(context.data(), ChunkPos.getX(chunk), ChunkPos.getZ(chunk))) plans++;
+            }
+            int removed = 0;
+            int reaped = 0;
+            for (FieldPlot field : fields(context.data(), chunks)) {
+                Integer done = FarmWork.remove(context.level(), context.data(), field, context.player());
+                if (done == null) return LandNoticeEvent.text("grief_denied");
+                removed++;
+                reaped += done;
+            }
+            if (removed == 0 && plans == 0) return LandNoticeEvent.text("no_field");
+            if (plans == 0) return LandNoticeEvent.text("fields_removed", removed, reaped);
+            if (removed == 0) return LandNoticeEvent.text("plans_cancelled", plans);
+            return LandNoticeEvent.text("fields_removed", removed, reaped).copy().append("；")
+                    .append(LandNoticeEvent.text("plans_cancelled", plans));
         }
     }
 
@@ -270,8 +306,8 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Plan.TYPE, Unplan.TYPE, Remove.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE,
-                SetFieldCrop.TYPE, SetFieldKind.TYPE, PlanMany.TYPE, SetAllCrops.TYPE);
+        return List.of(Plan.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE, PlanMany.TYPE, HarvestFields.TYPE,
+                Sow.TYPE, Ripen.TYPE, Retype.TYPE, Clear.TYPE);
     }
 
     @Override
@@ -284,11 +320,9 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
             rows.add(new Crop(BuiltInRegistries.BLOCK.getKey(crop.getKey()), crop.getValue().mature(),
                     crop.getValue().growing()));
         }
-        List<Long> seeds = new ArrayList<>();
         BlissfulStorage storage = BlissfulStorage.of(data);
-        for (int i = 0; i < FarmRules.crops().size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
         return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP, state.hosting(),
-                LandHostingJob.secondsUntilNext(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
-                seeds);
+                LandHostingJob.secondsUntilNext(level.getServer()), state.lastReaped(), state.lastSown(),
+                storage.count(FarmWork::isSeed), storage.count(FarmWork::isBoneMeal), storage.count(FarmWork::isMud));
     }
 }

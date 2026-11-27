@@ -9,6 +9,7 @@ import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.minecraft.client.gui.Font;
@@ -19,9 +20,10 @@ import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地图页底部正中的工具栏（{@code overlay} 底）：开垦（1 区块一片田）、牧场（2×2 区块）、拆除、迁移四枚 {@value #BUTTON} 方键，
- * 键下写名字，竖线隔开的危险键「割弃」；按住哪个工具，光标下就预览那块占地，合格描绿、不合格描红并在提示里写原因，左键
- * 执行（目标还在迷雾里就改为探明，Alex 定），右键或 Esc 退出工具。
+ * 地图页底部正中的工具栏（{@code overlay} 底）：选择、开垦（1 区块一片田）、牧场（2×2 区块）、迁移四枚 {@value #BUTTON} 方键，
+ * 键下写名字，竖线隔开的危险键「割弃」；默认是选择模式（不拿工具，见 {@link MapSelection}），按住哪个工具，光标下就预览那块
+ * 占地，合格描绿、不合格描红并在提示里写原因，左键执行（目标还在迷雾里就改为探明，Alex 定），右键或 Esc 退回选择。拆除
+ * 在选中田后的操作栏 {@link MapActionBar} 与牧场的选区卡上（Alex 定）。
  * <ul>
  *   <li>占地数据、预判与发操作都经 {@link Land}（由 {@link MapToolLand} 用 {@code MapPart.Section} 与 {@code Siting}
  *       实现），本类只管工具状态、目标换算、绘制与命中。</li>
@@ -40,7 +42,9 @@ final class MapTools {
     private static final int PITCH = BUTTON + 4;
     private static final int SIDE = 8;
     private static final int SPLIT = 12;
-    private static final int BOX_W = SIDE + 4 * BUTTON + 3 * 4 + SPLIT + BUTTON + 5;
+    private static final int SLOTS = 4;
+    private static final int BOX_W = SIDE + SLOTS * BUTTON + (SLOTS - 1) * 4 + SPLIT + BUTTON + 5;
+    private static final int PICKER_PAD = 6;
     private static final int BOX_H = 44;
     private static final int BOTTOM = 7;
     private static final int RULE = 0xFF4A4045;
@@ -49,7 +53,7 @@ final class MapTools {
     private static final int NONE = -1;
     static final int AREA_SIDE = 8;
 
-    enum Tool { FARM, PASTURE, REMOVE, MOVE }
+    enum Tool { FARM, PASTURE, MOVE }
 
     /** 预判结果：不合格时 {@code reason} 写给玩家看；{@code fog} 为真即目标还在迷雾里，左键改为探明。 */
     record Verdict(boolean fit, Component reason, boolean fog) {
@@ -75,7 +79,11 @@ final class MapTools {
 
         long mud();
 
+        long boneMeal();
+
         long seeds(int crop);
+
+        int newCrop();
 
         List<ResourceLocation> animals();
 
@@ -87,9 +95,19 @@ final class MapTools {
 
         void planMany(List<Long> chunks);
 
-        void unplan(int chunkX, int chunkZ);
+        void setNewCrop(int crop);
 
-        void remove(int chunkX, int chunkZ);
+        void sow(List<Long> chunks, int crop);
+
+        void retype(List<Long> chunks, int kind);
+
+        void ripen(List<Long> chunks);
+
+        void harvest(List<Long> chunks);
+
+        void harvestAll();
+
+        void clear(List<Long> chunks);
 
         void placePasture(int chunkX, int chunkZ);
 
@@ -98,12 +116,6 @@ final class MapTools {
         void removePasture(int index);
 
         void gather(int index);
-
-        void setFieldCrop(int chunkX, int chunkZ, int crop);
-
-        void setAllCrops(int crop);
-
-        void setFieldKind(int chunkX, int chunkZ, int kind);
 
         void setAutoGather(int index, boolean on);
 
@@ -120,6 +132,9 @@ final class MapTools {
     private int moving = NONE;
     private int boxX;
     private int boxY;
+    private int pickerX;
+    private int pickerY;
+    private int pickerW;
 
     void layout(int width, int height) {
         boxX = (width - BOX_W) / 2;
@@ -137,7 +152,9 @@ final class MapTools {
         moving = NONE;
     }
 
-    private int left(Tool each) { return boxX + SIDE + each.ordinal() * PITCH; }
+    private int left(int slot) { return boxX + SIDE + slot * PITCH; }
+
+    private int left(Tool each) { return left(each.ordinal() + 1); }
 
     private int cedeX() { return boxX + BOX_W - 5 - BUTTON; }
 
@@ -153,6 +170,23 @@ final class MapTools {
     boolean isOverCede(double mouseX, double mouseY) {
         return Widgets.isOver(mouseX, mouseY, cedeX(), buttonY(), BUTTON, BUTTON);
     }
+
+    boolean isOverSelect(double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, left(0), buttonY(), BUTTON, BUTTON);
+    }
+
+    /** 开垦工具上方的新田作物条：光标在条上（含空白处）。 */
+    boolean isOverPicker(double mouseX, double mouseY) {
+        return tool == Tool.FARM && Widgets.isOver(mouseX, mouseY, pickerX, pickerY, pickerW, CropKeys.SIZE + 6);
+    }
+
+    /** 新田作物条上光标下的作物，不在键上时 {@link CropKeys#NONE}。 */
+    int pickerCrop(double mouseX, double mouseY) {
+        if (tool != Tool.FARM) return CropKeys.NONE;
+        return CropKeys.at(pickerKeysX(), pickerY + 3, mouseX, mouseY);
+    }
+
+    private int pickerKeysX() { return pickerX + pickerW - PICKER_PAD - CropKeys.width(); }
 
     void press(Tool each) {
         moving = NONE;
@@ -173,8 +207,6 @@ final class MapTools {
         return switch (tool) {
             case FARM -> new Target(chunkX, chunkZ, 1, land.farm(chunkX, chunkZ), null);
             case PASTURE -> pasture(land, hover, NONE);
-            case REMOVE -> plot == null ? null : new Target(plot.chunkX(), plot.chunkZ(), plot.size(),
-                    Verdict.FIT, plot);
             case MOVE -> moving != NONE ? pasture(land, hover, moving)
                     : plot == null || plot.kind() != MapPlots.Kind.PASTURE ? null
                     : new Target(plot.chunkX(), plot.chunkZ(), 2, Verdict.FIT, plot);
@@ -198,9 +230,6 @@ final class MapTools {
             case PASTURE -> {
                 if (target.verdict().fit()) land.placePasture(target.chunkX(), target.chunkZ());
                 else if (target.verdict().fog()) land.reveal(target.chunkX(), target.chunkZ(), target.size());
-            }
-            case REMOVE -> {
-                if (plot != null) remove(land, plot);
             }
             case MOVE -> {
                 if (moving == NONE && plot != null) {
@@ -247,14 +276,6 @@ final class MapTools {
         land.planMany(chunks);
     }
 
-    static void remove(Land land, MapPlots.Plot plot) {
-        switch (plot.kind()) {
-            case FIELD -> land.remove(plot.chunkX(), plot.chunkZ());
-            case PLANNED -> land.unplan(plot.chunkX(), plot.chunkZ());
-            case PASTURE -> land.removePasture(plot.index());
-        }
-    }
-
     static void outline(MapOverlay overlay, int chunkX, int chunkZ, int size, int y, int colour) {
         if (size == Siting.PEN_CHUNKS) {
             overlay.outline(Siting.penMin(chunkX), Siting.penMin(chunkZ), Siting.penMax(chunkX), Siting.penMax(chunkZ),
@@ -265,7 +286,6 @@ final class MapTools {
     }
 
     int colour(Target target) {
-        if (tool == Tool.REMOVE) return MapOverlay.UNFIT;
         if (tool == Tool.MOVE && moving == NONE) return MapOverlay.SELECTED;
         return target.verdict().fit() ? MapOverlay.FIT : MapOverlay.UNFIT;
     }
@@ -274,6 +294,9 @@ final class MapTools {
     //region Drawing [绘制]
     void sprites(SpriteBatch sprites, double mouseX, double mouseY) {
         sprites.blit(PanelDrawing.OVERLAY, boxX, boxY, BOX_W, BOX_H);
+        PanelDrawing.button(sprites, left(0), buttonY(), BUTTON, BUTTON,
+                tool == null ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN, true, mouseX, mouseY);
+        icon(sprites, "tool_select", left(0), tool == null);
         for (Tool each : Tool.values()) {
             PanelDrawing.Look look = each == tool ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
             PanelDrawing.button(sprites, left(each), buttonY(), BUTTON, BUTTON, look, true, mouseX, mouseY);
@@ -296,6 +319,8 @@ final class MapTools {
 
     void texts(GuiGraphics graphics, Font font) {
         int labelY = buttonY() + BUTTON + 3;
+        PanelDrawing.centered(graphics, font, Component.translatable(UI + "tool.select"), left(0) - 2,
+                left(0) + BUTTON + 2, labelY, tool == null ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
         for (Tool each : Tool.values()) {
             PanelDrawing.centered(graphics, font, Component.translatable(UI + "tool." + key(each)), left(each) - 2,
                     left(each) + BUTTON + 2, labelY, each == tool ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
@@ -310,9 +335,9 @@ final class MapTools {
         if (active == null) return;
         Component name = Component.translatable(UI + "tool." + key(active));
         Component left = Component.translatable(UI + "key.left");
-        Component action = Component.translatable(UI + "hint." + hintKey(active));
+        Component action = Component.translatable(UI + hintKey(active));
         Component right = Component.translatable(UI + "key.right");
-        Component cancel = Component.translatable(UI + "hint.cancel");
+        Component cancel = Component.translatable(EarthSpiritScreen.UI + "cancel");
         int width = 6 + font.width(name) + 6 + PanelDrawing.keycapWidth(font, left) + 3 + font.width(action) + 6
                 + PanelDrawing.keycapWidth(font, right) + 3 + font.width(cancel) + 6;
         int x = boxX + (BOX_W - width) / 2;
@@ -325,15 +350,49 @@ final class MapTools {
         MapHud.keyPhrase(sprites, graphics, font, right, cancel, x, y);
     }
 
+    /** 开垦工具的新田作物条（{@code chip} 底，左写「新田作物」，右边一排 {@link CropKeys}），在操作提示上方。 */
+    void pickerSprites(SpriteBatch sprites, Font font, Land land, double mouseX, double mouseY) {
+        if (tool != Tool.FARM) return;
+        Component label = Component.translatable(UI + "new_crop");
+        pickerW = PICKER_PAD + font.width(label) + PICKER_PAD + CropKeys.width() + PICKER_PAD;
+        pickerX = boxX + (BOX_W - pickerW) / 2;
+        pickerY = boxY - 5 - 16 - 4 - (CropKeys.SIZE + 6);
+        sprites.blit(PanelDrawing.CHIP, pickerX, pickerY, pickerW, CropKeys.SIZE + 6);
+        CropKeys.sprites(sprites, pickerKeysX(), pickerY + 3, land.newCrop(), true, mouseX, mouseY);
+    }
+
+    void pickerTexts(GuiGraphics graphics, Font font, Land land) {
+        if (tool != Tool.FARM) return;
+        graphics.drawString(font, Component.translatable(UI + "new_crop"), pickerX + PICKER_PAD,
+                pickerY + (CropKeys.SIZE + 6 - 8) / 2, PanelDrawing.LEGEND, false);
+        CropKeys.texts(graphics, font, pickerKeysX(), pickerY + 3, land.newCrop(), true, land::seeds);
+    }
+
+    boolean pickerTip(MapPage page, GuiGraphics graphics, Land land, int mouseX, int mouseY) {
+        int crop = pickerCrop(mouseX, mouseY);
+        if (crop == CropKeys.NONE) return false;
+        Component text = crop == FarmState.AUTO_CROP ? Component.translatable(TIP + "new_crop_auto")
+                : Component.translatable(TIP + "new_crop", CropKeys.name(crop), land.seeds(crop));
+        return page.tipAt(graphics, CropKeys.left(pickerKeysX(), crop), pickerY + 3, CropKeys.SIZE, CropKeys.SIZE,
+                mouseX, mouseY, text);
+    }
+
     private String hintKey(Tool each) {
-        if (each != Tool.MOVE) return key(each);
-        return moving == NONE ? "move_pick" : "move_place";
+        return switch (each) {
+            case FARM -> "tool.farm";
+            case PASTURE -> "hint.pasture";
+            case MOVE -> moving == NONE ? "hint.move_pick" : "hint.move_place";
+        };
     }
 
     boolean tip(MapPage page, GuiGraphics graphics, int mouseX, int mouseY) {
         if (isOverCede(mouseX, mouseY)) {
             return page.tipAt(graphics, cedeX(), buttonY(), BUTTON, BUTTON, mouseX, mouseY,
                     Component.translatable(EarthSpiritScreen.TIP + "map_cede"));
+        }
+        if (isOverSelect(mouseX, mouseY)) {
+            return page.tipAt(graphics, left(0), buttonY(), BUTTON, BUTTON, mouseX, mouseY,
+                    Component.translatable(TIP + "select"));
         }
         Tool each = at(mouseX, mouseY);
         if (each == null) return false;

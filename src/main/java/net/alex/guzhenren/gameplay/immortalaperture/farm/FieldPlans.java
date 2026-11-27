@@ -68,14 +68,11 @@ public final class FieldPlans {
                     field.maxX(), field.maxZ(), Siting.FIELD_SLOPE, false, true);
         }
         if (reason != Siting.Reason.OK) {
-            return new Step(false, LandNoticeEvent.text("plan_cancelled", chunk.x, chunk.z,
-                    Component.translatable(reason.key())));
+            return new Step(false, LandNoticeEvent.text("plan_cancelled", Component.translatable(reason.key())));
         }
         if (FarmWork.reclaim(level, data, field, owner) == null) {
-            return new Step(false, LandNoticeEvent.text("plan_cancelled", chunk.x, chunk.z,
-                    LandNoticeEvent.text("grief_denied")));
+            return new Step(false, LandNoticeEvent.text("plan_cancelled", LandNoticeEvent.text("grief_denied")));
         }
-        return new Step(true, LandNoticeEvent.text("reclaimed", chunk.x, chunk.z,
-                FarmState.of(data).fields().size()));
+        return new Step(true, LandNoticeEvent.text("reclaimed", FarmState.of(data).fields().size()));
     }
 }

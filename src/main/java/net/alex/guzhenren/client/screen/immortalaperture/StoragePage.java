@@ -54,7 +54,7 @@ final class StoragePage extends PanelPage {
     private static final int SORT_W = 28;
     private static final int DEPOSIT_X = 133;
     private static final int DEPOSIT_W = 34;
-    private static final String[] SORT_KEYS = {"sort_order", "sort_count", "sort_name"};
+    private static final String[] SORT_KEYS = {"sort_order", "count", "sort_name"};
     private int pendingPage = -1;
     private @Nullable StorageBrowser.Sort pendingSort;
 

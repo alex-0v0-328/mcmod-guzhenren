@@ -68,7 +68,7 @@ final class GuPage extends PanelPage {
         List<GuPart.Row> rows = data.rows();
         PanelDrawing.title(graphics, font(), name(), Component.translatable(UI + "kinds", rows.size()), list.x(),
                 list.y(), list.w());
-        list.header(graphics, font(), Component.translatable(UI + "gu"), rows.size());
+        list.header(graphics, font(), Component.translatable(UI + "tab.gu"), rows.size());
         if (rows.isEmpty()) {
             PanelDrawing.centered(graphics, font(), Component.translatable(UI + "gu_empty"), list.insetX(),
                     list.insetX() + list.insetW(), list.insetY() + list.insetH() / 2 - 4, PanelDrawing.DEAD);
@@ -79,7 +79,8 @@ final class GuPage extends PanelPage {
                     row.hosted());
         }
         if (data.hosting()) {
-            graphics.drawString(font(), Component.translatable(UI + "gu_status", data.hostingIn(), data.lastCaptured()),
+            Component round = Component.translatable(UI + "gu_round", data.lastCaptured());
+            graphics.drawString(font(), Component.translatable(UI + "hosting_status", data.hostingIn(), round),
                     list.insetX(), list.statusY(), PanelDrawing.LEGEND, false);
         }
         PanelDrawing.label(graphics, font(), Component.translatable(UI + "capture"), list.buttonX(CAPTURE),
@@ -103,8 +104,8 @@ final class GuPage extends PanelPage {
                 Component.translatable(TIP + "capture", data.capturePreview()))) {
             return;
         }
-        Component hosting = Component.translatable(TIP + "gu_hosting", LandHostingJob.INTERVAL_TICKS / Ticks.SECOND,
-                GuRules.HOSTING_GU);
+        Component hosting = Component.translatable(TIP + "hosting", LandHostingJob.INTERVAL_TICKS / Ticks.SECOND,
+                Component.translatable(TIP + "gu_hosting", GuRules.HOSTING_GU));
         if (tip(graphics, list.insetX(), list.statusY() - 2, list.insetW(), 12, mouseX, mouseY, hosting)) return;
         if (tip(graphics, list.switchX(rows.size()), list.y() + 17, PanelDrawing.SWITCH_W + 8, 12, mouseX, mouseY,
                 Component.translatable(UI + "gu_note"))) {

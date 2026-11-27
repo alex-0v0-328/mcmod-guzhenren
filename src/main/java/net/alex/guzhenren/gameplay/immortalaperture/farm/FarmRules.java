@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 福地种植的共用规则：两端都读（服务端开垦、托管，客户端种植页、田卡片与提示）。
+ * 福地种植的共用规则：两端都读（服务端开垦、托管，客户端种植页、地图选区卡与操作栏、提示）。
  * <ul>
  *   <li>{@link #crops()} 含模组方块，首次调用（注册完成后）才建表，类加载早于注册也不出错。</li>
  * </ul>

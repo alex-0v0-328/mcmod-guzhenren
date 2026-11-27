@@ -1,5 +1,6 @@
 package net.alex.guzhenren.gameplay.immortalaperture.farm;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -55,8 +57,11 @@ import org.jetbrains.annotations.Nullable;
  *       的先重新耕成原版耕地）种这块田的作物（自动 = 田里现有最多的，一株没有取库藏第一种种子），从库藏扣到没有为止；蛊植
  *       田最后把原版耕地逐格掺回黑土，每格扣 1 个腐泥冻土，扣完为止。一次至多处理 {@code fieldLimit} 块田，有收割、补种或
  *       掺土的田才算一块，整块田一次做完。</li>
+ *   <li>{@link #sow}：地图上选中田「种植」，按各田的作物像收割后那样补满空格（同 {@link #topUp}，但一次补完所选各块）；
+ *       {@link #ripen}：选中田「催熟」，每株未熟作物从库藏扣 1 份骨粉直接长到满龄（Alex 定，不走原版随机），骨粉不够
+ *       就按田序催熟到用完为止；{@link #harvest} 另有只收所选田的重载。</li>
  *   <li>{@link #topUp}：主人开着面板时每秒调一次，按田序轮流找下一块有空格可补（或可掺土）的田，像收割后那样补满这一块；
- *       轮到哪块记在 {@link FarmState#topUpCursor}（不存档）。{@link #look} 给田卡片的熟 / 未熟株数与生长进度
+ *       轮到哪块记在 {@link FarmState#topUpCursor}（不存档）。{@link #look} 给地图选区卡的熟 / 未熟株数与生长进度
  *       （全田作物龄之和 ÷ 满龄之和）。</li>
  *   <li>⚠ 强加载用 NeoForge {@link #TICKETS} 的带刻工单：原版 {@code /forceload} 的区块附近没有玩家时不随机刻，作物不
  *       长。工单以 {@link FieldPlot#center} 为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时
@@ -77,9 +82,12 @@ public final class FarmWork {
 
     public record Count(int mature, int growing) {}
 
-    public record Look(int mature, int growing, int growth) {}
+    /** 地图选区卡用：熟 / 未熟株数、生长进度（%）、田里株数最多的作物（{@link FarmRules#crops()} 下标，一株没有为自动）。 */
+    public record Look(int mature, int growing, int growth, int main) {}
 
     public record Harvest(int reaped, int sown, int fields) {}
+
+    public record Ripen(int ripened, int unripe) {}
 
     public enum Retype { CHANGED, SHORT, DENIED }
 
@@ -194,6 +202,8 @@ public final class FarmWork {
 
     public static boolean isMud(@NotNull ItemStack stack) { return stack.is(ModItems.ROTTEN_FROZEN_MUD.get()); }
 
+    public static boolean isBoneMeal(@NotNull ItemStack stack) { return stack.is(Items.BONE_MEAL); }
+
     private static boolean isSoil(BlockState state) {
         return state.is(Blocks.FARMLAND) || state.is(ModBlocks.BLACK_SOIL_FARMLAND.get());
     }
@@ -266,30 +276,41 @@ public final class FarmWork {
     }
 
     public static @NotNull Look look(@NotNull ServerLevel level, @NotNull FieldPlot field) {
-        if (!level.isLoaded(field.center())) return new Look(0, 0, 0);
+        if (!level.isLoaded(field.center())) return new Look(0, 0, 0, FarmState.AUTO_CROP);
         int mature = 0;
         int growing = 0;
         long age = 0L;
         long full = 0L;
+        int[] kinds = new int[FarmRules.crops().size()];
         for (BlockPos pos : field.cells()) {
             BlockState state = level.getBlockState(pos);
             if (!isCrop(state)) continue;
             if (isMature(state)) mature++;
             else growing++;
+            kinds[FarmRules.crops().indexOf(state.getBlock())]++;
             if (state.getBlock() instanceof CropBlock crop) {
                 age += crop.getAge(state);
                 full += crop.getMaxAge();
             }
         }
-        return new Look(mature, growing, full == 0L ? 0 : (int) (age * 100L / full));
+        int main = FarmState.AUTO_CROP;
+        for (int crop = 0; crop < kinds.length; crop++) {
+            if (kinds[crop] > 0 && (main == FarmState.AUTO_CROP || kinds[crop] > kinds[main])) main = crop;
+        }
+        return new Look(mature, growing, full == 0L ? 0 : (int) (age * 100L / full), main);
     }
 
     public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int fieldLimit) {
+        return harvest(level, data, FarmState.of(data).fields(), fieldLimit);
+    }
+
+    public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                           @NotNull List<FieldPlot> picked, int fieldLimit) {
         FarmState farm = FarmState.of(data);
         int reaped = 0;
         int sown = 0;
         int fields = 0;
-        for (FieldPlot field : farm.fields()) {
+        for (FieldPlot field : picked) {
             if (fields >= fieldLimit) break;
             if (!level.isLoaded(field.center())) continue;
             List<BlockPos> cells = field.cells();
@@ -307,6 +328,34 @@ public final class FarmWork {
             if (reaped + sown > before || filled < 0) fields++;
         }
         return new Harvest(reaped, sown, fields);
+    }
+
+    public static int sow(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                          @NotNull List<FieldPlot> picked) {
+        int sown = 0;
+        for (FieldPlot field : picked) {
+            if (level.isLoaded(field.center())) sown += Math.max(0, fill(level, data, field));
+        }
+        return sown;
+    }
+
+    public static @NotNull Ripen ripen(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                                       @NotNull List<FieldPlot> picked) {
+        List<BlockPos> unripe = new ArrayList<>();
+        for (FieldPlot field : picked) {
+            if (!level.isLoaded(field.center())) continue;
+            for (BlockPos pos : field.cells()) {
+                BlockState state = level.getBlockState(pos);
+                if (isCrop(state) && !isMature(state)) unripe.add(pos);
+            }
+        }
+        int paid = unripe.isEmpty() ? 0 : BlissfulStorage.of(data).consume(FarmWork::isBoneMeal, unripe.size());
+        for (int i = 0; i < paid; i++) {
+            BlockPos pos = unripe.get(i);
+            CropBlock crop = (CropBlock) level.getBlockState(pos).getBlock();
+            level.setBlock(pos, crop.getStateForAge(crop.getMaxAge()), Block.UPDATE_CLIENTS);
+        }
+        return new Ripen(paid, unripe.size());
     }
 
     public static int topUp(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
