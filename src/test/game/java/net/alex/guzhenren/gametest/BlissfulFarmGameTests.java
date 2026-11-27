@@ -6,6 +6,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldKind;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
@@ -14,6 +15,8 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
+import net.alex.guzhenren.registry.block.ModBlocks;
+import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -31,8 +34,8 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地标准田：开垦取列数最多的地面层（花不算地面）、铺土径、水与耕地并按开垦作物播种，收割补种与托管，拆田收作物换回泥
- * 土，规划队列按序开垦、不合格取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
+ * 福地标准田：开垦取列数最多的地面层（花不算地面）、铺土径、水与耕地并按新田作物播种，收割补种与托管，单田改作物熟一株
+ * 换一株，蛊植田扣腐泥冻土换黑土、被踩补回、改回不退，拆田收作物换回泥土，规划队列按序开垦、不合格取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
  * 自建存档，规划用例另建疆域罩住测试区的福地。
  */
 
@@ -90,7 +93,6 @@ public final class BlissfulFarmGameTests {
             helper.assertValueEqual(field.cells().size(), FARMLAND_CELLS, "seven by seven less four water holes");
             helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT_SEEDS)),
                     100L - FARMLAND_CELLS, "one seed per farmland cell");
-            helper.assertTrue(FarmWork.reclaimCooldown(level, data) > 0, "reclaiming starts the cooldown");
 
             ripen(level, field, Blocks.WHEAT);
             helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT),
@@ -172,7 +174,7 @@ public final class BlissfulFarmGameTests {
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT_SEEDS, 100));
         BlissfulStorage.of(data).insert(new ItemStack(Items.CARROT, 100));
-        FarmState.of(data).setCrop(FarmRules.CROPS.indexOf(Blocks.CARROTS));
+        FarmState.of(data).setCrop(FarmRules.crops().indexOf(Blocks.CARROTS));
         FieldPlot field = FarmWork.reclaim(level, data, plot(helper, 0, WHOLE - 1),
                 owner(helper, "gzr-farm-crop-mock"));
         try {
@@ -181,6 +183,8 @@ public final class BlissfulFarmGameTests {
                     new FarmWork.Count(0, FARMLAND_CELLS), "the chosen carrots are sown, not the first seed");
             helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT_SEEDS)), 100L,
                     "the wheat seeds stay");
+            helper.assertValueEqual(FarmState.of(data).crop(field), FarmRules.crops().indexOf(Blocks.CARROTS),
+                    "the new field keeps the new-field crop as its own");
 
             BlockState ripe = ((CropBlock) Blocks.CARROTS).getStateForAge(((CropBlock) Blocks.CARROTS).getMaxAge());
             for (int localX = 1; localX <= 5; localX++) level.setBlock(at(field, localX, 1, 1), ripe, 2);
@@ -189,6 +193,91 @@ public final class BlissfulFarmGameTests {
                     "hosting works the one field with ripe carrots");
             helper.assertValueEqual(FarmState.of(data).lastReaped(), 5, "the round is reported");
             helper.assertValueEqual(FarmState.of(data).lastSown(), 0, "nothing was bare");
+            helper.succeed();
+        } finally {
+            if (field != null) FarmWork.setForced(level, field, false);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void aFieldOfItsOwnCropSwapsRipePlantsOneByOne(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT_SEEDS, FARMLAND_CELLS));
+        FieldPlot field = FarmWork.reclaim(level, data, plot(helper, 0, WHOLE - 1),
+                owner(helper, "gzr-farm-own-crop-mock"));
+        try {
+            helper.assertTrue(field != null, "the field is laid with wheat");
+            Block grass = ModBlocks.INTIMATE_GRASS_CROP.get();
+            FarmState.of(data).setCrop(field, FarmRules.crops().indexOf(grass));
+            BlissfulStorage.of(data).insert(new ItemStack(ModItems.INTIMATE_GRASS_SEEDS.get(), 100));
+            BlockState ripe = ((CropBlock) Blocks.WHEAT).getStateForAge(((CropBlock) Blocks.WHEAT).getMaxAge());
+            for (int localX = 1; localX <= 5; localX++) level.setBlock(at(field, localX, 1, 1), ripe, 2);
+
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).reaped(), 5,
+                    "only the ripe wheat is cut");
+            helper.assertValueEqual(FarmWork.census(level, data).get(grass), new FarmWork.Count(0, 5),
+                    "each cut plant is replaced by the field's own crop");
+            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT),
+                    new FarmWork.Count(0, FARMLAND_CELLS - 5), "growing wheat is left standing");
+            helper.assertTrue(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT_SEEDS)) >= 5,
+                    "the wheat seeds of the cut plants go to storage");
+            helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(
+                    ModItems.INTIMATE_GRASS_SEEDS.get())), 95L, "the grass seeds come from storage");
+            helper.succeed();
+        } finally {
+            if (field != null) FarmWork.setForced(level, field, false);
+        }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void aGuPlantFieldCostsMudAndKeepsItsBlackSoil(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        ServerLevel level = helper.getLevel();
+        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+        BlissfulStorage storage = BlissfulStorage.of(data);
+        storage.insert(new ItemStack(Items.WHEAT_SEEDS, FARMLAND_CELLS + 10));
+        ServerPlayer owner = owner(helper, "gzr-farm-gu-plant-mock");
+        FieldPlot field = FarmWork.reclaim(level, data, plot(helper, 0, WHOLE - 1), owner);
+        Block blackSoil = ModBlocks.BLACK_SOIL_FARMLAND.get();
+        try {
+            helper.assertTrue(field != null, "the field is laid");
+            helper.assertValueEqual(field.farmland(), FARMLAND_CELLS, "the cost is one mud per farmland cell");
+            storage.insert(new ItemStack(ModItems.ROTTEN_FROZEN_MUD.get(), FARMLAND_CELLS - 1));
+            helper.assertValueEqual(FarmWork.retype(level, data, field, FieldKind.GU_PLANT, owner),
+                    FarmWork.Retype.SHORT, "one mud short refuses");
+            helper.assertValueEqual(storage.count(FarmWork::isMud), (long) FARMLAND_CELLS - 1, "nothing is taken");
+            helper.assertValueEqual(FarmState.of(data).kind(field), FieldKind.PLAIN, "the field stays plain");
+
+            storage.insert(new ItemStack(ModItems.ROTTEN_FROZEN_MUD.get(), 1));
+            helper.assertValueEqual(FarmWork.retype(level, data, field, FieldKind.GU_PLANT, owner),
+                    FarmWork.Retype.CHANGED, "enough mud turns it");
+            helper.assertValueEqual(storage.count(FarmWork::isMud), 0L, "all the mud is taken at once");
+            helper.assertValueEqual(FarmState.of(data).kind(field), FieldKind.GU_PLANT, "the field is a gu plant field");
+            for (BlockPos cell : field.cells()) {
+                helper.assertTrue(level.getBlockState(cell.below()).is(blackSoil), "every farmland is black soil");
+            }
+            helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT),
+                    new FarmWork.Count(0, FARMLAND_CELLS), "the crops stay on the new soil");
+
+            BlockPos trampled = field.cells().getLast();
+            level.setBlock(trampled, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(trampled.below(), Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).sown(), 1,
+                    "the trampled cell is sown again");
+            helper.assertTrue(level.getBlockState(trampled.below()).is(Blocks.FARMLAND),
+                    "without mud it is tilled as plain farmland");
+            storage.insert(new ItemStack(ModItems.ROTTEN_FROZEN_MUD.get(), 3));
+            helper.assertValueEqual(FarmWork.harvest(level, data, Integer.MAX_VALUE).fields(), 1,
+                    "mixing the soil back counts as work on the field");
+            helper.assertTrue(level.getBlockState(trampled.below()).is(blackSoil), "one mud mixes it back");
+            helper.assertValueEqual(storage.count(FarmWork::isMud), 2L, "only one mud is spent");
+
+            helper.assertValueEqual(FarmWork.retype(level, data, field, FieldKind.PLAIN, owner),
+                    FarmWork.Retype.CHANGED, "turning back needs nothing");
+            helper.assertTrue(level.getBlockState(trampled.below()).is(Blocks.FARMLAND), "black soil turns plain");
+            helper.assertValueEqual(storage.count(FarmWork::isMud), 2L, "no mud is refunded");
             helper.succeed();
         } finally {
             if (field != null) FarmWork.setForced(level, field, false);
@@ -247,7 +336,6 @@ public final class BlissfulFarmGameTests {
                     "an empty queue does nothing");
 
             data.setOwner(UUID.randomUUID(), "gzr-farm-away");
-            FarmState.of(data).setReclaimReadyAt(0L);
             FarmState.of(data).addPlan(second.toLong());
             FieldPlans.tick(level, data, taken);
             helper.assertValueEqual(FarmState.of(data).plans().size(), 1, "the queue waits while the owner is away");

@@ -14,13 +14,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 标准田的规划队列：主人在地图上点选区块入队，地灵按队列每 {@value FarmRules#RECLAIM_COOLDOWN_TICKS} 刻开垦 1 块。
+ * 标准田的规划队列：主人在地图上点选区块入队，地灵按队列每秒开垦 1 块（不设冷却）。
  * <ul>
  *   <li>{@link #plan}：按 {@link Siting#field} 复判（服务端经 {@link Siting#loadedTiles} 同步加载目标区块现扫地图片），
  *       过了才入队；{@link #unplan} 直接出队。</li>
- *   <li>{@link #tick} 由 {@code BlissfulLands} 每秒调用：队列非空、冷却已过、主人在线时取队首，用真实方块再按同一规则
- *       复判（排除它自己这一格规划），过了就 {@link FarmWork#reclaim}，否则取消这一格并提示主人；主人不在线整条队列原
- *       样保留。队首不等冷却：冷却只在开垦后才开始算。</li>
+ *   <li>{@link #tick} 由 {@code BlissfulLands} 每秒调用：队列非空、主人在线时取队首，用真实方块再按同一规则复判（排除
+ *       它自己这一格规划），过了就 {@link FarmWork#reclaim}，否则取消这一格并提示主人；主人不在线整条队列原样保留。一次
+ *       只开 1 块：整平一个区块是这里最重的活，按秒摊开防卡服。</li>
  *   <li>提示发 {@link LandNoticeEvent}：主人开着地灵面板就走面板顶部提示；没开面板时只有取消才发聊天消息，开垦成功不
  *       打扰。</li>
  *   <li>{@link #step} 接受「区块 → 田」的布局函数；GameTest 把它换成测试区里的小田，规则不变。</li>
@@ -46,9 +46,7 @@ public final class FieldPlans {
 
     public static void tick(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
                             @NotNull Supplier<Siting.Plot> plot) {
-        if (FarmState.of(data).plans().isEmpty() || FarmWork.reclaimCooldown(level, data) > 0 || data.owner() == null) {
-            return;
-        }
+        if (FarmState.of(data).plans().isEmpty() || data.owner() == null) return;
         ServerPlayer owner = level.getServer().getPlayerList().getPlayer(data.owner());
         if (owner == null) return;
 

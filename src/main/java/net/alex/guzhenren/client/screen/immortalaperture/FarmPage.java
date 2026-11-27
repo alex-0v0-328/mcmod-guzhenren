@@ -15,13 +15,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 /**
- * 「种植」小节：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），开垦作物与库藏种子数，标准田与规划数、下一块开
- * 垦倒计时，底部托管状态、托管开关与「收割并补种」。选址、规划与拆田在地图页。
+ * 「种植」小节：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），新田作物与库藏种子数，标准田与规划数，底部托
+ * 管状态、托管开关与「收割并补种」。选址、规划、拆田与单田的作物、田型在地图页。
  * <ul>
- *   <li>作物只有 {@link FarmRules#CROPS} 四种，列表一屏 {@value #VISIBLE} 行够用；省下的一行放开垦作物。</li>
- *   <li>开垦作物按钮循环切换：自动 → 小麦 → 胡萝卜 → 马铃薯 → 甜菜根 → 自动；右边写库藏里这种的种子数（自动 = 四种
- *       合计）。</li>
- *   <li>田数行写「标准田 N / 上限 · 规划 M」；有规划时右边写开垦倒计时（冷却已过写「即将开垦」）。</li>
+ *   <li>作物只有 {@link FarmRules#crops()} 五种，列表一屏 {@value #VISIBLE} 行够用；省下的一行放新田作物。</li>
+ *   <li>新田作物按钮循环切换：自动 → 小麦 → 胡萝卜 → 马铃薯 → 甜菜根 → 知心草 → 自动；右边写库藏里这种的种子数（自动 =
+ *       五种合计）。</li>
+ *   <li>田数行写「标准田 N / 上限 · 规划 M」；有规划时右边写「开垦中」（每秒 1 块，不设冷却）。</li>
  *   <li>托管开着时状态行写下一轮倒计时与上一轮收了几株、补了几格。</li>
  * </ul>
  */
@@ -59,7 +59,7 @@ final class FarmPage extends PanelPage {
 
     private static Component cropName(int crop) {
         return crop == FarmState.AUTO_CROP ? Component.translatable(UI + "crop_auto")
-                : FarmRules.CROPS.get(crop).getName();
+                : FarmRules.crops().get(crop).getName();
     }
 
     @Override
@@ -119,10 +119,8 @@ final class FarmPage extends PanelPage {
         graphics.drawString(font(), Component.translatable(UI + "fields", data.fields(), data.capacity(),
                 data.planned()), x + 8, y + RECLAIM_Y + 6, PanelDrawing.LEGEND, false);
         if (data.planned() > 0) {
-            Component next = data.reclaimCooldown() > 0
-                    ? Component.translatable(UI + "reclaim_in", data.reclaimCooldown())
-                    : Component.translatable(UI + "reclaim_soon");
-            PanelDrawing.right(graphics, font(), next, x + 167, y + RECLAIM_Y + 6, PanelDrawing.TEXT);
+            PanelDrawing.right(graphics, font(), Component.translatable(UI + "reclaiming"), x + 167, y + RECLAIM_Y + 6,
+                    PanelDrawing.TEXT);
         }
         if (data.hosting()) {
             graphics.drawString(font(), Component.translatable(UI + "farm_status", data.hostingIn(),
@@ -151,7 +149,7 @@ final class FarmPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + RECLAIM_Y, 160, BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "fields", FarmRules.RECLAIM_COOLDOWN_TICKS / Ticks.SECOND))) {
+                Component.translatable(TIP + "fields"))) {
             return;
         }
         if (tip(graphics, x + 8, y + SWITCH_Y, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
@@ -166,7 +164,7 @@ final class FarmPage extends PanelPage {
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         FarmPart.Section data = data();
         if (Widgets.isOver(mouseX, mouseY, x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE)) {
-            int next = data.crop() + 1 >= FarmRules.CROPS.size() ? FarmState.AUTO_CROP : data.crop() + 1;
+            int next = data.crop() + 1 >= FarmRules.crops().size() ? FarmState.AUTO_CROP : data.crop() + 1;
             send(new FarmPart.SetCrop(next));
             return true;
         }

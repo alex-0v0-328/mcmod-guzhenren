@@ -5,10 +5,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.GatherWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureSettings;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
@@ -29,19 +30,20 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * 「养殖」小节面板段：每种动物一行（数量、托管开关、保持数、库藏饲料），牧场一行（牧场数、栏内栏外），喂养繁殖、宰杀收
- * 取，以及养殖托管；地图上的牧场操作（放置、迁移、拆除、收拢）也登记在这里。
+ * 取，以及养殖托管；地图上的牧场操作（放置、迁移、拆除、收拢）与牧场卡片的设置（自动收拢、收拢种类）也登记在这里。
  * <ul>
  *   <li>行、喂养、宰杀与托管只算各牧场栏内的动物（{@link PastureWork#penned}）；栏外的只在牧场行里计数。</li>
  *   <li>{@link PlacePasture}、{@link MovePasture} 先按 {@link Siting#pasture} 复判（迁移排除自己原来的 4 区块），再圈地
  *       并挂强加载；迁移先拆旧栅栏、撤旧强加载，再把旧栏 4 区块里的可支使动物全部传进新栏；{@link RemovePasture} 只拆栅
- *       栏、撤强加载，动物留原地；{@link Gather} 收拢进指定牧场。</li>
+ *       栏、撤强加载，动物留原地；{@link Gather} 经 {@link GatherWork} 收拢进指定牧场（只收这个牧场勾选的种类，不设冷却）。
+ *       牧场设置（{@link PastureSettings}）按西北角记：放置清掉同址旧设置，迁移随牧场搬走，拆除删掉。</li>
  *   <li>行 = 栏内清点到的种类，加上设过保持数或开着托管、眼下一只没有的种类；按实体 ID 排序。</li>
  *   <li>库藏饲料按该种第一只动物的 {@code isFood} 数库藏，一只没有的种类不知道吃什么，记 {@value #UNKNOWN_FEED}。</li>
  *   <li>{@link Section#slaughterPreview()} 是现在点「宰杀收取」会宰几头，规则同 {@link HerdWork#slaughter}。</li>
  *   <li>规则都在 {@link HerdWork}；托管每轮宰杀加繁殖至多 {@value HerdRules#HOSTING_ANIMALS} 只，结果记进 {@link HerdState}，页
  *       面显示下一轮倒计时与上一轮结果。</li>
- *   <li>本文件有意略超 300 行：牧场四个操作要与养殖行同处一个面板段登记（面板按面板段编码操作），拆出去反而多一层转发。
- *       </li>
+ *   <li>本文件有意略超 300 行：牧场四个操作与两项设置要与养殖行同处一个面板段登记（面板按面板段编码操作），拆出去反而多
+ *       一层转发。</li>
  * </ul>
  */
 
@@ -140,6 +142,7 @@ public final class HerdPart implements PanelSectionSource<HerdPart.Section> {
             PastureWork.Enclosed done = PastureWork.enclose(level, pasture, context.player());
             if (done == null) return LandNoticeEvent.text("grief_denied");
             HerdState.of(data).addPasture(new ChunkPos(chunkX, chunkZ));
+            PastureSettings.of(data).forget(new ChunkPos(chunkX, chunkZ));
             PastureWork.forceChunks(level, pasture, true);
             return enclosed(done);
         }
@@ -169,6 +172,7 @@ public final class HerdPart implements PanelSectionSource<HerdPart.Section> {
             PastureWork.Enclosed done = PastureWork.enclose(level, to, context.player());
             if (done == null) return LandNoticeEvent.text("grief_denied");
             HerdState.of(data).setPasture(index, new ChunkPos(chunkX, chunkZ));
+            PastureSettings.of(data).move(old, new ChunkPos(chunkX, chunkZ));
             PastureWork.forceChunks(level, to, true);
             int moved = PastureWork.relocate(level, from, to, level.getRandom(),
                     level.getEntitiesOfClass(Animal.class, from.box(level)));
@@ -193,6 +197,7 @@ public final class HerdPart implements PanelSectionSource<HerdPart.Section> {
             if (removed == null) return LandNoticeEvent.text("grief_denied");
             PastureWork.forceChunks(level, pasture, false);
             HerdState.of(data).removePasture(index);
+            PastureSettings.of(data).forget(corner);
             return LandNoticeEvent.text("pasture_removed", removed);
         }
     }
@@ -208,12 +213,40 @@ public final class HerdPart implements PanelSectionSource<HerdPart.Section> {
             BlissfulLandData data = context.data();
             ChunkPos corner = HerdState.of(data).pasture(index);
             if (corner == null) return LandNoticeEvent.text("no_pasture");
-            long cooldown = PastureWork.gatherCooldown(level, data);
-            if (cooldown > 0) return LandNoticeEvent.text("cooldown", Ticks.ceilSeconds(cooldown));
-
-            int moved = PastureWork.gather(level, data, PastureWork.Pasture.at(corner.x, corner.z), level.getRandom(),
-                    level.getAllEntities());
+            int moved = GatherWork.gather(level, data, corner, level.getRandom(), level.getAllEntities());
             return LandNoticeEvent.text("gathered", moved);
+        }
+    }
+
+    public record SetAutoGather(int index, boolean on) implements PanelAction {
+
+        public static final PanelAction.Type<SetAutoGather> TYPE = new PanelAction.Type<>(SetAutoGather.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetAutoGather::index, ByteBufCodecs.BOOL,
+                        SetAutoGather::on, SetAutoGather::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            ChunkPos corner = HerdState.of(context.data()).pasture(index);
+            if (corner == null) return LandNoticeEvent.text("no_pasture");
+            PastureSettings.of(context.data()).setAutoGather(corner, on);
+            return Component.empty();
+        }
+    }
+
+    public record SetGatherType(int index, @NotNull ResourceLocation type, boolean on) implements PanelAction {
+
+        public static final PanelAction.Type<SetGatherType> TYPE = new PanelAction.Type<>(SetGatherType.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetGatherType::index, ResourceLocation.STREAM_CODEC,
+                        SetGatherType::type, ByteBufCodecs.BOOL, SetGatherType::on, SetGatherType::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            ChunkPos corner = HerdState.of(context.data()).pasture(index);
+            if (corner == null) return LandNoticeEvent.text("no_pasture");
+            if (BuiltInRegistries.ENTITY_TYPE.containsKey(type)) {
+                PastureSettings.of(context.data()).setGathers(corner, type, on);
+            }
+            return Component.empty();
         }
     }
 
@@ -262,7 +295,7 @@ public final class HerdPart implements PanelSectionSource<HerdPart.Section> {
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
         return List.of(Breed.TYPE, Slaughter.TYPE, SetHosting.TYPE, SetKeep.TYPE, PlacePasture.TYPE, MovePasture.TYPE,
-                RemovePasture.TYPE, Gather.TYPE);
+                RemovePasture.TYPE, Gather.TYPE, SetAutoGather.TYPE, SetGatherType.TYPE);
     }
 
     @Override

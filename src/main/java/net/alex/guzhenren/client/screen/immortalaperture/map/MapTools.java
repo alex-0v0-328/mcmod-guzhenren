@@ -8,10 +8,12 @@ import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
+import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -56,7 +58,13 @@ final class MapTools {
 
         int pastureCap();
 
-        int gatherSeconds();
+        MapPart.Section.@Nullable Field field(int index);
+
+        MapPart.Section.@Nullable Pen pen(int index);
+
+        long mud();
+
+        List<ResourceLocation> animals();
 
         Verdict farm(int chunkX, int chunkZ);
 
@@ -75,6 +83,14 @@ final class MapTools {
         void removePasture(int index);
 
         void gather(int index);
+
+        void setFieldCrop(int chunkX, int chunkZ, int crop);
+
+        void setFieldKind(int chunkX, int chunkZ, int kind);
+
+        void setAutoGather(int index, boolean on);
+
+        void setGatherType(int index, ResourceLocation type, boolean on);
 
         void reveal(int chunkX, int chunkZ, int side);
     }

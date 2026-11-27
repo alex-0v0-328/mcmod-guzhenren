@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 福地养殖的经营状态：按种类的托管开关、每种保持数、上一轮托管的结果，以及各牧场的西北角区块、收拢冷却到哪一刻。
+ * 福地养殖的经营状态：按种类的托管开关、每种保持数、上一轮托管的结果，以及各牧场的西北角区块。
  * <ul>
  *   <li>保持数与托管开关分开存：关掉托管不丢保持数，一键宰杀也照保持数算；保持数 0 = 不管，不存。</li>
  *   <li>牧场按下标排列（面板操作按下标指牧场）；失主也不清：栅栏还在，下一任认主时照样挂牧场强加载
@@ -40,7 +40,6 @@ public final class HerdState implements LandSavePart.State {
     private int lastSlaughtered;
     private int lastBred;
     private final List<ChunkPos> pastures = new ArrayList<>();
-    private long gatherReadyAt;
 
     public HerdState(@NotNull Runnable changed) { this.changed = changed; }
 
@@ -68,13 +67,6 @@ public final class HerdState implements LandSavePart.State {
         changed.run();
     }
     //endregion
-
-    public long gatherReadyAt() { return gatherReadyAt; }
-
-    public void setGatherReadyAt(long gameTime) {
-        gatherReadyAt = gameTime;
-        changed.run();
-    }
 
     public boolean hosting() { return !hosted.isEmpty(); }
 
@@ -124,7 +116,6 @@ public final class HerdState implements LandSavePart.State {
         tag.putInt("last_slaughtered", lastSlaughtered);
         tag.putInt("last_bred", lastBred);
         tag.put("pastures", new LongArrayTag(pastures.stream().mapToLong(ChunkPos::toLong).toArray()));
-        tag.putLong("gather_ready_at", gatherReadyAt);
         parent.put(key, tag);
     }
 
@@ -143,6 +134,5 @@ public final class HerdState implements LandSavePart.State {
         lastSlaughtered = tag.getInt("last_slaughtered");
         lastBred = tag.getInt("last_bred");
         for (long corner : tag.getLongArray("pastures")) pastures.add(new ChunkPos(corner));
-        gatherReadyAt = tag.getLong("gather_ready_at");
     }
 }

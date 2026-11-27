@@ -7,12 +7,14 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.HerdPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 地图页的经营数据来源：把 {@code MapPart.Section} 的田、规划田、牧场换成 {@link MapPlots.Plot}，预判走
  * {@link Siting}（地形读 {@link LandMapClient#tile}，没下发的区块即迷雾、不许选址，左键改为探明），操作发 {@code FarmPart} 与
- * {@code HerdPart} 的意图，服务端全部复判。
+ * {@code HerdPart} 的意图，服务端全部复判；卡片读的田、牧场设置按下标取快照段里的原记录。
  * <ul>
  *   <li>快照段每秒或每次操作后整份替换；按引用比对，换了才重建占地表与 {@link Siting.Plot}。</li>
  *   <li>迁移预判用 {@link Siting.Plot#without} 排除原牧场的 4 个区块。</li>
@@ -74,7 +76,22 @@ final class MapToolLand implements MapTools.Land {
     public int pastureCap() { return section().pastureCap(); }
 
     @Override
-    public int gatherSeconds() { return section().gatherSeconds(); }
+    public MapPart.Section.@Nullable Field field(int index) {
+        List<MapPart.Section.Field> fields = section().fields();
+        return index >= 0 && index < fields.size() ? fields.get(index) : null;
+    }
+
+    @Override
+    public MapPart.Section.@Nullable Pen pen(int index) {
+        List<MapPart.Section.Pen> pens = section().pastures();
+        return index >= 0 && index < pens.size() ? pens.get(index) : null;
+    }
+
+    @Override
+    public long mud() { return section().mud(); }
+
+    @Override
+    public List<ResourceLocation> animals() { return section().animals(); }
 
     @Override
     public MapTools.Verdict farm(int chunkX, int chunkZ) {
@@ -120,4 +137,22 @@ final class MapToolLand implements MapTools.Land {
 
     @Override
     public void gather(int index) { page.sendAction(new HerdPart.Gather(index)); }
+
+    @Override
+    public void setFieldCrop(int chunkX, int chunkZ, int crop) {
+        page.sendAction(new FarmPart.SetFieldCrop(chunkX, chunkZ, crop));
+    }
+
+    @Override
+    public void setFieldKind(int chunkX, int chunkZ, int kind) {
+        page.sendAction(new FarmPart.SetFieldKind(chunkX, chunkZ, kind));
+    }
+
+    @Override
+    public void setAutoGather(int index, boolean on) { page.sendAction(new HerdPart.SetAutoGather(index, on)); }
+
+    @Override
+    public void setGatherType(int index, ResourceLocation type, boolean on) {
+        page.sendAction(new HerdPart.SetGatherType(index, type, on));
+    }
 }

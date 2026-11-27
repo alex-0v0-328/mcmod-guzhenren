@@ -3,7 +3,6 @@ package net.alex.guzhenren.gametest;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
@@ -33,7 +32,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * 福地牧场：圈地按邻列地面叠栅栏、门在北边正中、挡住的格子留着、再圈只补缺、花草树苗甘蔗被栅栏替换而不垫高；拆栅栏连玩
- * 家放的一并拆；迁移把旧栏动物全带进新栏；收拢把栏外可支使的动物传进栏并开冷却；养殖清点只算栏内；挪生物上山跳过栏内。
+ * 家放的一并拆；迁移把旧栏动物全带进新栏；收拢把栏外可支使的动物传进栏、不设冷却；养殖清点只算栏内；挪生物上山跳过栏内。
  * 牧场都取测试区里的小方格，不碰别的测试。
  */
 
@@ -167,7 +166,7 @@ public final class BlissfulPastureGameTests {
     }
 
     @GameTest(template = "empty9x9x9", skyAccess = true)
-    public static void gatheringPensLooseAnimalsAndStartsTheCooldown(GameTestHelper helper) {
+    public static void gatheringPensLooseAnimalsWithoutACooldown(GameTestHelper helper) {
         GameTestPlayers.ground(helper);
         ServerLevel level = helper.getLevel();
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
@@ -182,12 +181,13 @@ public final class BlissfulPastureGameTests {
         helper.assertValueEqual(moved, 1, "only the unnamed loose cow is gathered");
         helper.assertTrue(pasture.contains(loose), "the loose cow now stands in the pasture");
         helper.assertFalse(pasture.contains(named), "a named cow stays put");
-        helper.assertValueEqual(PastureWork.gatherCooldown(level, data), (long) HerdRules.GATHER_COOLDOWN_TICKS,
-                "gathering starts the sixty-second cooldown");
 
         Map<ResourceLocation, List<Animal>> herds = PastureWork.penned(HerdWork.census(List.of(loose, named, penned)),
                 List.of(pasture));
         helper.assertValueEqual(PastureWork.count(herds), 2, "the census keeps only the penned cows");
+        named.setCustomName(null);
+        helper.assertValueEqual(PastureWork.gather(level, data, pasture, level.getRandom(), List.of(named)), 1,
+                "a second gather right away is not held back");
         helper.succeed();
     }
 

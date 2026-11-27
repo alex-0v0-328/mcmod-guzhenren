@@ -12,8 +12,8 @@ import org.jetbrains.annotations.NotNull;
  * （{@link #of}，边长 {@value #CHUNK}）。
  * <ul>
  *   <li>最外一圈是土径；本地坐标 {@code size / 4} 与 {@code size - 1 - size / 4} 两两相交的 4 格是水（边长 16 即
- *       (4,4)(11,4)(4,11)(11,11)），原版耕地湿润半径 4，内圈全湿；其余是耕地，作物种在耕地层上一格（{@link #cells}）。
- *       </li>
+ *       (4,4)(11,4)(4,11)(11,11)），原版耕地湿润半径 4，内圈全湿；其余是耕地（{@link #farmland} 格），作物种在耕地层上一格
+ *       （{@link #cells}）。</li>
  *   <li>耕地层 {@link #layer}：各列地面里列数最多的那一层（选址已限高差 ≤ 3，至多 4 层可选）；并列取离中位数近的，
  *       再并列取低的。</li>
  *   <li>强加载工单以 {@link #center} 为主人，各田互不影响；{@link #chunk} 是西北角所在区块，田在福地里就以它记账。</li>
@@ -71,6 +71,8 @@ public record FieldPlot(int minX, int y, int minZ, int size) {
     }
 
     private boolean isWaterLine(int local) { return local == size / 4 || local == size - 1 - size / 4; }
+
+    public int farmland() { return (size - 2) * (size - 2) - 4; }
 
     public @NotNull List<BlockPos> cells() {
         List<BlockPos> cells = new ArrayList<>();

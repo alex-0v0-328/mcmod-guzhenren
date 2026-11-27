@@ -3,10 +3,10 @@ package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldKind;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
@@ -26,14 +26,14 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「种植」小节面板段：按作物计成熟 / 未熟、标准田与规划数、开垦作物与库藏种子数、托管开关、「收割并补种」；地图上的
- * 规划、取消规划与拆田也登记在这里。
+ * 「种植」小节面板段：按作物计成熟 / 未熟、标准田与规划数、新田作物与库藏种子数、托管开关、「收割并补种」；地图上的
+ * 规划、取消规划、拆田与田卡片的作物、田型也登记在这里。
  * <ul>
- *   <li>开垦作物按 {@link FarmRules#CROPS} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
+ *   <li>新田作物按 {@link FarmRules#crops()} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
  *       出空田之后自动补种。</li>
  *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link Remove} 经
- *       {@link FarmWork#remove}。</li>
- *   <li>{@link Section#seeds()} 与 {@link FarmRules#CROPS} 同序，是库藏里各作物种子的数量。</li>
+ *       {@link FarmWork#remove}；{@link SetFieldCrop} 只改账，{@link SetFieldKind} 经 {@link FarmWork#retype}。</li>
+ *   <li>{@link Section#seeds()} 与 {@link FarmRules#crops()} 同序，是库藏里各作物种子的数量。</li>
  *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmRules#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
  *       轮倒计时与上一轮结果。</li>
  * </ul>
@@ -54,20 +54,19 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
                 Crop::new);
     }
 
-    public record Section(@NotNull List<Crop> rows, int fields, int planned, int capacity, int reclaimCooldown,
-                          boolean hosting,
+    public record Section(@NotNull List<Crop> rows, int fields, int planned, int capacity, boolean hosting,
                           int hostingIn, int lastReaped, int lastSown, int crop, @NotNull List<Long> seeds)
             implements PanelSection {
 
-        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, 0, false, 0, 0, 0, FarmState.AUTO_CROP,
+        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, false, 0, 0, 0, FarmState.AUTO_CROP,
                 List.of());
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
                 StreamCodec.of(Section::encode, Section::decode);
 
         private static void encode(RegistryFriendlyByteBuf buffer, Section section) {
             Crop.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.rows);
-            for (int value : new int[] {section.fields, section.planned, section.capacity, section.reclaimCooldown,
-                    section.hostingIn, section.lastReaped, section.lastSown, section.crop}) {
+            for (int value : new int[] {section.fields, section.planned, section.capacity, section.hostingIn,
+                    section.lastReaped, section.lastSown, section.crop}) {
                 buffer.writeVarInt(value);
             }
             buffer.writeBoolean(section.hosting);
@@ -79,15 +78,14 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
             int fields = buffer.readVarInt();
             int planned = buffer.readVarInt();
             int capacity = buffer.readVarInt();
-            int reclaimCooldown = buffer.readVarInt();
             int hostingIn = buffer.readVarInt();
             int lastReaped = buffer.readVarInt();
             int lastSown = buffer.readVarInt();
             int crop = buffer.readVarInt();
             boolean hosting = buffer.readBoolean();
             List<Long> seeds = ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).decode(buffer);
-            return new Section(rows, fields, planned, capacity, reclaimCooldown, hosting, hostingIn, lastReaped,
-                    lastSown, crop, seeds);
+            return new Section(rows, fields, planned, capacity, hosting, hostingIn, lastReaped, lastSown, crop,
+                    seeds);
         }
 
         public long seedsOf(int crop) {
@@ -170,6 +168,44 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
     }
 
+    public record SetFieldCrop(int chunkX, int chunkZ, int crop) implements PanelAction {
+
+        public static final PanelAction.Type<SetFieldCrop> TYPE = new PanelAction.Type<>(SetFieldCrop.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetFieldCrop::chunkX, ByteBufCodecs.VAR_INT,
+                        SetFieldCrop::chunkZ, ByteBufCodecs.VAR_INT, SetFieldCrop::crop, SetFieldCrop::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            FarmState state = FarmState.of(context.data());
+            FieldPlot field = state.fieldAt(chunkX, chunkZ);
+            if (field == null) return LandNoticeEvent.text("no_field");
+            state.setCrop(field, crop);
+            return Component.empty();
+        }
+    }
+
+    public record SetFieldKind(int chunkX, int chunkZ, int kind) implements PanelAction {
+
+        public static final PanelAction.Type<SetFieldKind> TYPE = new PanelAction.Type<>(SetFieldKind.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, SetFieldKind::chunkX, ByteBufCodecs.VAR_INT,
+                        SetFieldKind::chunkZ, ByteBufCodecs.VAR_INT, SetFieldKind::kind, SetFieldKind::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            FieldPlot field = FarmState.of(context.data()).fieldAt(chunkX, chunkZ);
+            if (field == null) return LandNoticeEvent.text("no_field");
+            FieldKind target = FieldKind.byId(kind);
+            if (FarmState.of(context.data()).kind(field) == target) return Component.empty();
+            return switch (FarmWork.retype(context.level(), context.data(), field, target, context.player())) {
+                case CHANGED -> LandNoticeEvent.text(target == FieldKind.GU_PLANT ? "field_gu_plant" : "field_plain",
+                        chunkX, chunkZ, field.farmland());
+                case SHORT -> LandNoticeEvent.text("mud_short", field.farmland(),
+                        BlissfulStorage.of(context.data()).count(FarmWork::isMud));
+                case DENIED -> LandNoticeEvent.text("grief_denied");
+            };
+        }
+    }
+
     public record SetCrop(int crop) implements PanelAction {
 
         public static final PanelAction.Type<SetCrop> TYPE = new PanelAction.Type<>(SetCrop.class,
@@ -191,7 +227,8 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Plan.TYPE, Unplan.TYPE, Remove.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE);
+        return List.of(Plan.TYPE, Unplan.TYPE, Remove.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE,
+                SetFieldCrop.TYPE, SetFieldKind.TYPE);
     }
 
     @Override
@@ -206,9 +243,8 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
         List<Long> seeds = new ArrayList<>();
         BlissfulStorage storage = BlissfulStorage.of(data);
-        for (int i = 0; i < FarmRules.CROPS.size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
-        return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
-                Ticks.ceilSeconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
+        for (int i = 0; i < FarmRules.crops().size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
+        return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP, state.hosting(),
                 LandHostingJob.secondsUntilNext(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
                 seeds);
     }

@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
  *       上。改地形先过 {@link ModEvents#canGrief}；再圈一次只补缺的。</li>
  *   <li>{@link #unfence}：周界每列地面以上连着的栅栏与栅栏门全部拆掉（玩家放的也拆），不掉落。</li>
  *   <li>{@link #relocate}：把候选里落在旧栏内、不在新栏内的可支使动物全部传进新栏（不限头数），{@link #gather}：栏外可
- *       支使动物至多 {@value HerdRules#GATHER_LIMIT} 头传进栏、冷却 {@value HerdRules#GATHER_COOLDOWN_TICKS} 刻；落点都在离栅栏至少
+ *       支使动物至多 {@value HerdRules#GATHER_LIMIT} 头传进栏、不设冷却；落点都在离栅栏至少
  *       {@value #MARGIN} 格的随机地面（每头至多试 {@value #SPOT_ATTEMPTS} 次，须已加载，落点与上一格可替换或是植物）。
  *       野生蛊不是 {@link Animal}，不会被收；捕食者（{@link #isPredator}）两者都不带。</li>
  *   <li>⚠ 栏内不自然刷新（Alex 定）：{@link #blocksSpawn} 只拦 {@link MobSpawnType#NATURAL}，由 {@code BlissfulLandEvents}
@@ -283,10 +283,6 @@ public final class PastureWork {
         return teleport(level, to, random, movers);
     }
 
-    public static long gatherCooldown(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
-        return Math.max(0L, HerdState.of(data).gatherReadyAt() - level.getGameTime());
-    }
-
     public static int gather(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @NotNull Pasture pasture,
                              @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
         List<Pasture> pastures = pastures(data);
@@ -298,9 +294,7 @@ public final class PastureWork {
                 movers.add(animal);
             }
         }
-        int moved = teleport(level, pasture, random, movers);
-        HerdState.of(data).setGatherReadyAt(level.getGameTime() + HerdRules.GATHER_COOLDOWN_TICKS);
-        return moved;
+        return teleport(level, pasture, random, movers);
     }
 
     private static int teleport(ServerLevel level, Pasture pasture, RandomSource random, List<Animal> movers) {

@@ -21,4 +21,13 @@ class FieldPlotTest {
         assertEquals(64, FieldPlot.layer(new int[] {64, 64, 65, 66, 66}), "64 and 66 are both one off the median");
         assertEquals(64, FieldPlot.layer(new int[] {64, 64, 65, 67, 67}), "65 is the median, 64 is nearer than 67");
     }
+
+    @Test
+    @DisplayName("the farmland count matches the laid cells: 192 in a chunk, 45 in the test field")
+    void farmland() {
+        FieldPlot chunk = FieldPlot.of(0, 0, 64);
+        assertEquals(192, chunk.farmland(), "fourteen by fourteen less four water holes");
+        assertEquals(chunk.cells().size(), chunk.farmland(), "the count is the sown cells");
+        assertEquals(45, new FieldPlot(0, 64, 0, 9).farmland(), "seven by seven less four water holes");
+    }
 }

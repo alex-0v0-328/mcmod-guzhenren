@@ -66,7 +66,8 @@ public final class TraditionalGlyphs {
             + "好橡牧捕"
             + "寅卯辰巳午申酉戌亥"
             + "拆"
-            + "探明稍迷算舀";
+            + "探明稍迷算舀"
+            + "型";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

@@ -10,8 +10,10 @@ import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuState;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.GatherWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureSettings;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
@@ -59,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
  *       失主关三种托管、撤强加载。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
  *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value LandHostingJob#INTERVAL_TICKS} 刻：有主时按
- *       {@link #HOSTING_JOBS} 的顺序（种植、养殖、蛊虫）跑各功能的托管任务，各用各的预算；每秒推进一步标准田规划队列
+ *       {@link #HOSTING_JOBS} 的顺序（种植、自动收拢、养殖、蛊虫）跑各功能的托管任务，各用各的预算；每秒推进一步标准田规划队列
  *       （{@link FieldPlans}），并给开着面板的主人刷新快照（只算他正在看的页）；每刻最后驱动地图管线（{@link LandMaps#tick}，
  *       订阅门与标记来源由本类传入，地图视口载荷也经 {@link #mapView} 转进去）。</li>
  *   <li>元泉收集（{@link SpringWork}）也是托管任务，排在蛊虫之后，没有开关，有主就跑；区块加载时（{@link #onChunkLoad}）顺带登记
@@ -76,8 +78,8 @@ public final class BlissfulLands {
 
     public static final int SPIRIT_CHECK_TICKS = 10 * Ticks.SECOND;
     public static final int SPIRIT_SEARCH = 16;
-    public static final List<LandHostingJob> HOSTING_JOBS = List.of(FarmWork::host, HerdWork::host, GuWork::host,
-            SpringWork::host);
+    public static final List<LandHostingJob> HOSTING_JOBS = List.of(FarmWork::host, GatherWork::host, HerdWork::host,
+            GuWork::host, SpringWork::host);
     public static final MapViewerGate MAP_VIEWER_GATE = EarthSpiritPanel::mapViewerLand;
     public static final List<MapMarkSource> MAP_MARK_SOURCES = List.of(HerdWork::mapMarks, GuWork::mapMarks);
 
@@ -111,6 +113,7 @@ public final class BlissfulLands {
             return;
         }
         HerdState.of(data).clearHosting();
+        PastureSettings.of(data).clearAutoGather();
         GuState.of(data).clearHosting();
         FarmState.of(data).setHosting(false);
         if (level == null) return;

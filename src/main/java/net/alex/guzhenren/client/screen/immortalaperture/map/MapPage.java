@@ -241,6 +241,10 @@ public class MapPage extends PanelPage {
 
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+        if (card.contains(mouseX, mouseY)) {
+            card.scroll(land, mouseX, mouseY, delta);
+            return true;
+        }
         if (cede.isOpen() || !isOnMap(mouseX, mouseY) || delta == 0.0) return false;
         camera.zoom(delta > 0.0 ? 1 : -1, mouseX / scale(), (mouseY - TOP) / scale());
         return true;
