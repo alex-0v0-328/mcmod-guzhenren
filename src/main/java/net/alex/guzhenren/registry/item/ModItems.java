@@ -74,6 +74,7 @@ import net.alex.guzhenren.item.gu.mortal.path.wood.VitalityLeafBehavior;
 import net.alex.guzhenren.item.gu.tending.ConsumedGuItem;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
+import net.alex.guzhenren.item.material.ImmortalMaterialItem;
 import net.alex.guzhenren.item.material.LiquorItem;
 import net.alex.guzhenren.item.material.PrimevalStoneItem;
 import net.alex.guzhenren.item.material.RottenFrozenMudItem;
@@ -918,6 +919,22 @@ public final class ModItems {
             () -> new BucketItem(ModFluids.PURE_WATER.get(),
                     new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)))
             .lang("纯水桶").tab(ModCreativeTabs.GU_MATERIAL).register();
+    //endregion
+
+    //region Immortal essence [仙元]
+    public static final DeferredItem<Item> GREEN_GRAPE_IMMORTAL_ESSENCE =
+            registerImmortalEssence("green_grape_immortal_essence", Rank.SIX, "青提仙元");
+    public static final DeferredItem<Item> RED_DATE_IMMORTAL_ESSENCE =
+            registerImmortalEssence("red_date_immortal_essence", Rank.SEVEN, "红枣仙元");
+    public static final DeferredItem<Item> WHITE_LYCHEE_IMMORTAL_ESSENCE =
+            registerImmortalEssence("white_lychee_immortal_essence", Rank.EIGHT, "白荔仙元");
+    public static final DeferredItem<Item> YELLOW_APRICOT_IMMORTAL_ESSENCE =
+            registerImmortalEssence("yellow_apricot_immortal_essence", Rank.NINE, "黄杏仙元");
+
+    private static DeferredItem<Item> registerImmortalEssence(String id, Rank rank, String simplified) {
+        return REGISTRAR.item(id, () -> new ImmortalMaterialItem(new Item.Properties(), rank))
+                .lang(simplified).tab(ModCreativeTabs.GU_MATERIAL).register();
+    }
     //endregion
 
     //region Herb materials [草木蛊材]

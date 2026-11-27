@@ -8,6 +8,7 @@ import net.alex.guzhenren.item.armor.SchoolUniformItem;
 import net.alex.guzhenren.item.gu.MortalGuItem;
 import net.alex.guzhenren.item.gu.killingmove.KillingMoveBookItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
+import net.alex.guzhenren.item.material.ImmortalMaterialItem;
 import net.alex.guzhenren.refinement.GuRecipeItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.Holder;
@@ -21,7 +22,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.UnitAsserts.assertTrue;
 
 /**
- * ModItems 注册的物品类别（测试运行时解析）：蛊 {@code MortalGuItem}、蛊材 {@code GuMaterialItem}、流体物品
+ * ModItems 注册的物品类别（测试运行时解析）：蛊 {@code MortalGuItem}、蛊材 {@code GuMaterialItem}、仙材
+ * {@code ImmortalMaterialItem}、流体物品
  * （元泉[Spirit Spring]方块物品、纯水桶）、进度图标、杀招[Killing Move]书、书册、钢锭、钢块、知心草种子、黑土耕地；
  * 不钉总数：内容常增删，{@code WikiItemsGameTests} 已对到文档分组。
  */
@@ -37,6 +39,7 @@ public final class RegistrySnapshotGameTests {
         for (Holder<Item> holder : ModItems.ITEMS.getEntries()) {
             Item item = holder.value();
             assertTrue(item instanceof MortalGuItem || item instanceof GuMaterialItem
+                            || item instanceof ImmortalMaterialItem
                             || item instanceof BlockItem blockItem
                             && blockItem.getBlock() instanceof SpiritSpringBlock
                             || item instanceof BucketItem || item instanceof AdvancementIconItem
