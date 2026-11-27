@@ -2,6 +2,12 @@ package net.alex.guzhenren.client.screen.immortalaperture.map;
 
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapContours;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPalette;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapSurface;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMark;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

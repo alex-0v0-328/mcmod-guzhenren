@@ -1,4 +1,4 @@
-package net.alex.guzhenren.client.screen.immortalaperture.map;
+package net.alex.guzhenren.client.screen.immortalaperture.map.render;
 
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
 

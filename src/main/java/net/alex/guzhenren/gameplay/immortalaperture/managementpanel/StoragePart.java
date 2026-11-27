@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link StorageWork}。
  * <ul>
  *   <li>{@link Browse} 一次带齐查询参数（输入、排序、页码、本地名提示表），服务端整份替换这位主人的查询。</li>
- *   <li>取物带条目流水号（{@link Stored#serial}），不带下标：快照过时也拿不错物品。</li>
+ *   <li>取物带条目流水号（{@link StorageBrowser.Stored#serial}），不带下标：快照过时也拿不错物品。</li>
  *   <li>段里的总种数、匹配数、页码与排序供客户端画右上角计数、翻页与排序按钮。</li>
  * </ul>
  */

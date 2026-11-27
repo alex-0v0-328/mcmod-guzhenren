@@ -4,6 +4,7 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.TerritoryPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.minecraft.client.gui.Font;

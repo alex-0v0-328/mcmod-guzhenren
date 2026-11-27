@@ -6,6 +6,8 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

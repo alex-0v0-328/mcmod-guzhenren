@@ -1,4 +1,4 @@
-package net.alex.guzhenren.client.screen.immortalaperture.map;
+package net.alex.guzhenren.client.screen.immortalaperture.map.render;
 
 /**
  * 地图昼夜色调[Map Tint]：客户端维度时间 → RGB 乘数，贴地图贴图时整张相乘，不烘进像素。

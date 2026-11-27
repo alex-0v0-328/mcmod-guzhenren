@@ -36,7 +36,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
  * 主代码架构规则：分层向下（{@link #LAYERS_ABOVE}，字节码看不见的内联常量由 {@code SourceLayersTest} 按 import 补查）；
  * 仅客户端专用代码引用客户端代码，仅 mixin 引用 mixin；共用蛊物品基类低于凡蛊；空窍[Aperture]
  * 压力爆炸坑低于空窍其余部分，仙窍[Immortal Aperture]自下而上为状态、地图管线、占地规则、功能、管理面板、组装（根包），
- * 各层只依赖更低的层、子包无环，客户端不读服务端运行类；顶层包无环，不计注册枢纽（{@code registry}
+ * 各层只依赖更低的层、子包无环，客户端不读服务端运行类，地图纯渲染不认地图页与面板外壳；顶层包无环，不计注册枢纽（{@code registry}
  * 与根包类）；二级包亦无环，另不计记录门面
  * {@code gameplay.data}；本命蛊[Vital Gu]绑定唯一读写入口。
  */
@@ -167,6 +167,13 @@ class ArchitectureTest {
             .that().resideInAPackage(ROOT + "client.screen.immortalaperture..").should().dependOnClassesThat(
                     IMMORTAL_APERTURE_SERVER_RUNTIME)
             .because("the screens read the panel protocol and the shared rules, never the server workers");
+    @ArchTest
+    static final ArchRule immortalApertureMapRenderStaysPure = noClasses()
+            .that().resideInAPackage(ROOT + "client.screen.immortalaperture.map.render..").should().dependOnClassesThat(
+                    resideInAPackage(ROOT + "client.screen.immortalaperture..")
+                            .and(not(resideInAPackage(ROOT + "client.screen.immortalaperture.map.render.."))))
+            .because("the map art is drawn from tiles and a camera alone, so the page and the panel can change "
+                    + "around it");
     @ArchTest
     static final ArchRule topLevelPackagesFormNoCycle = slices().matching(ROOT + "(*)..")
             .should().beFreeOfCycles()

@@ -1,4 +1,4 @@
-package net.alex.guzhenren.client.screen.immortalaperture.map;
+package net.alex.guzhenren.client.screen.immortalaperture.map.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.UUID;

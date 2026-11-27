@@ -5,6 +5,9 @@ import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelPage;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapSurface;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
@@ -20,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * 工具条 {@link MapTools}、右下图例 {@link MapLegend}、对象卡片 {@link MapCard}、割弃弹窗 {@link CedePanel}。
  * <ul>
  *   <li>每帧：按窗口与 GUI 缩放定视口（1 地图像素 = 2 真实像素）、把视口区块矩形交给
- *       {@link LandMapClient#requestView}、让贴图判是否重画；底色、贴图与标记按维度时间乘 {@link MapTint}。</li>
+ *       {@link LandMapClient#requestView}、让贴图判是否重画；底色、贴图与标记按维度时间乘 {@code MapTint}。</li>
  *   <li>⚠ 离开本页调 {@link LandMapClient#stopView}（服务端不看页，不退订会一直扫和发），关面板调
  *       {@link LandMapClient#clear} 并关掉贴图线程。</li>
  *   <li>操作：左键或右键拖动平移；滚轮以光标为锚缩放；R 顺时针转、Shift+R 逆时针转；V 切地形 / 等高线；= 与 -

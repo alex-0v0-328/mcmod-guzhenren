@@ -1,4 +1,4 @@
-package net.alex.guzhenren.client.screen.immortalaperture.map;
+package net.alex.guzhenren.client.screen.immortalaperture.map.render;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,10 +19,10 @@ import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
  * </ul>
  */
 
-final class MapContours {
+public final class MapContours {
 
-    static final int MINOR_STEP = 8;
-    static final int MAJOR_STEP = 40;
+    public static final int MINOR_STEP = 8;
+    public static final int MAJOR_STEP = 40;
     static final int NONE = Integer.MIN_VALUE;
     static final float MINOR_SHADE = 0.70F;
     static final float MAJOR_SHADE = 0.48F;

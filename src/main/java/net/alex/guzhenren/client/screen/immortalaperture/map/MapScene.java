@@ -1,6 +1,13 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
 import java.util.List;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPalette;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapRaster;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapSurface;
+import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapTint;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMark;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
 import net.minecraft.client.Minecraft;

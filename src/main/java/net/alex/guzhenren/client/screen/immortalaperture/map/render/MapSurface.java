@@ -1,4 +1,4 @@
-package net.alex.guzhenren.client.screen.immortalaperture.map;
+package net.alex.guzhenren.client.screen.immortalaperture.map.render;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
