@@ -46,8 +46,8 @@ import org.jetbrains.annotations.Nullable;
  *       块田的强加载；腐泥冻土不返还。</li>
  *   <li>{@link #retype}：改蛊植田一次从库藏扣 {@link FieldPlot#farmland()} 个腐泥冻土（不够就不改），耕地层的耕地与被踩
  *       的泥土全换黑土耕地；改回普通田黑土换原版耕地、不返还。湿润度与作物都保留。</li>
- *   <li>⚠ 换耕地层带 {@code UPDATE_KNOWN_SHAPE}：否则上方作物重新校验存活，亮度不足 8 的直接掉落（同
- *       {@code RottenFrozenMudItem}）。</li>
+ *   <li>⚠ 换耕地层与往空格播种都带 {@code UPDATE_KNOWN_SHAPE}：否则相邻作物重新校验存活，亮度不足 8 的直接掉落（同
+ *       {@code RottenFrozenMudItem}）；刚整平切出坡体或刚清掉树冠的格子当刻光照还没重算（仍是 0），不带就会种一株弹一株。</li>
  *   <li>作物只认 {@link FarmRules#crops()}（小麦、胡萝卜、马铃薯、甜菜根、知心草），种子也只认对应的物品；只在标准田里清点
  *       与收割。地狱疣要灵魂沙田，本阶段不做。</li>
  *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，补种这块田的作物（自动 = 原作物），从掉落里扣 1 份种子（没有就从库藏
@@ -111,7 +111,11 @@ public final class FarmWork {
         Predicate<ItemStack> same = stack -> ItemStack.isSameItemSameComponents(stack, seed);
         int planted = BlissfulStorage.of(data).consume(same, cells.size());
         BlockState plant = ((BlockItem) seed.getItem()).getBlock().defaultBlockState();
-        for (int i = 0; i < planted; i++) level.setBlock(cells.get(i), plant, Block.UPDATE_ALL);
+        for (int i = 0; i < planted; i++) plant(level, cells.get(i), plant);
+    }
+
+    private static void plant(ServerLevel level, BlockPos cell, BlockState crop) {
+        level.setBlock(cell, crop, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
     }
 
     private static int groundY(ServerLevel level, int x, int z) {
@@ -313,7 +317,7 @@ public final class FarmWork {
                 level.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState()
                         .setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE), Block.UPDATE_ALL);
             }
-            level.setBlock(pos, crop.defaultBlockState(), Block.UPDATE_ALL);
+            plant(level, pos, crop.defaultBlockState());
             sown++;
         }
         return sown;

@@ -22,6 +22,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
@@ -34,8 +35,8 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * 福地标准田：开垦取列数最多的地面层（花不算地面）、铺土径、水与耕地并按新田作物播种，收割补种与托管，单田改作物熟一株
- * 换一株，蛊植田扣腐泥冻土换黑土、被踩补回、改回不退，拆田收作物换回泥土，规划队列按序开垦、不合格取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
+ * 福地标准田：开垦取列数最多的地面层（花不算地面）、铺土径、水与耕地并按新田作物播种（坡里切出、光照还没重算的格子也
+ * 种得住），收割补种与托管，单田改作物熟一株换一株，蛊植田扣腐泥冻土换黑土、被踩补回、改回不退，拆田收作物换回泥土，规划队列按序开垦、不合格取消、主人不在线保留。田都取测试区里的小田（边长 9 或 7，同整区块田的布局），不碰别的测试；
  * 自建存档，规划用例另建疆域罩住测试区的福地。
  */
 
@@ -133,6 +134,32 @@ public final class BlissfulFarmGameTests {
         } finally {
             if (field != null) FarmWork.setForced(level, field, false);
         }
+    }
+
+    @GameTest(template = "empty9x9x9", skyAccess = true)
+    public static void cellsCutOutOfAHillAreSownBeforeTheirLightCatchesUp(GameTestHelper helper) {
+        GameTestPlayers.ground(helper);
+        for (int z = 0; z < WHOLE; z++) {
+            for (int x = 5; x < WHOLE; x++) helper.setBlock(new BlockPos(x, 1, z), Blocks.DIRT);
+        }
+        helper.runAfterDelay(10, () -> {
+            ServerLevel level = helper.getLevel();
+            BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
+            BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT_SEEDS, 100));
+            FieldPlot field = FarmWork.reclaim(level, data, plot(helper, 0, WHOLE - 1),
+                    owner(helper, "gzr-farm-dark-mock"));
+            try {
+                helper.assertTrue(field != null, "the field is laid");
+                helper.assertValueEqual(FarmWork.census(level, data).get(Blocks.WHEAT),
+                        new FarmWork.Count(0, FARMLAND_CELLS), "45 floor columns beat 36 one up; cells still dark from the cut dirt keep their wheat");
+                helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT_SEEDS)),
+                        100L - FARMLAND_CELLS, "one seed per farmland cell");
+                helper.assertEntityNotPresent(EntityType.ITEM);
+                helper.succeed();
+            } finally {
+                if (field != null) FarmWork.setForced(level, field, false);
+            }
+        });
     }
 
     @GameTest(template = "empty9x9x9", skyAccess = true)
