@@ -20,6 +20,8 @@ import software.bernie.geckolib.util.Color;
  *   <li>主渲染通道绘制 {@code school_uniform_layer.png} 并按物品堆的 {@link UniformColor} 乘色；固定细节层
  *       （{@code school_uniform_base.png}：白领缘、素白腰带、滚边、绷带与黑面白底布鞋）通过 {@link BaseDetailLayer}
  *       以纯白 {@code 0xFFFFFFFF} 叠绘其上，不受染色影响并保留附魔光效。</li>
+ *   <li>Epic Fight 下不走本渲染器：EF 读 {@code animmodels/armor/<物品 id>.json} 三份蒙皮网格（几何与 UV 同
+ *       {@code school_uniform.geo.json}，下摆随大腿），改 geo 几何或 UV 须从 Blockbench 工程重新生成。</li>
  * </ul>
  */
 

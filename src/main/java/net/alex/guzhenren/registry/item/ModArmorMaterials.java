@@ -19,7 +19,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <ul>
  *   <li>{@link #SCHOOL_UNIFORM} 对齐原版皮革甲数值（胸 3 / 腿 2 / 鞋 1，附魔值 15，无韧性与击退抗性，羊毛修复）；
  *       声明可染色主布料层与固定细节层两层 {@link ArmorMaterial.Layer}，供 Epic Fight {@code WearableItemLayer}
- *       逐层绘制并与 GeckoLib 双层渲染保持一致。</li>
+ *       在制服蒙皮网格上逐层绘制并与 GeckoLib 双层渲染保持一致。</li>
  * </ul>
  */
 
