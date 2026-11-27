@@ -19,8 +19,8 @@ import org.jetbrains.annotations.NotNull;
  *       地关闭，见 {@link BlissfulLandLookup#level}。</li>
  *   <li>山巅、行宫与入口不存在这里：山心随世界种子挑址，都由 {@link BlissfulLandLookup#siteOf} 相对山心推出（{@link LandSite}）；
  *       {@code entry} 是入口相对山心的偏移，取锚定维度的出生点（旅行落点同用这一个值）。</li>
- *   <li>疆域边长 {@code 2 * half} 区块，中心 {@code 2 * core} 见方不可割弃（{@link Territory}）；标准田与牧场在疆域里
- *       自由选址，不另划区（{@code mappipeline.Siting}）。</li>
+ *   <li>疆域边长 {@code 2 * half} 区块（Gu World 那边的世界边界须同为 {@code half × 32} 格，开服时核对），中心
+ *       {@code 2 * core} 见方不可割弃（{@link Territory}）；标准田与牧场在疆域里自由选址，不另划区（{@code plot.Siting}）。</li>
  *   <li>{@code spirit} 延迟取地灵实体类型：实体注册表按 {@link #ALL} 逐地注册，构造时不能直接取。</li>
  *   <li>英文名福地在前：{@code name} 只存福地自己的名字，完整 ID 由 {@link #id()} 加 {@code blissful_land_} 前缀（实体、
  *       存档数据都用它），翻译键 {@link #nameKey()} 放在 {@code guzhenren.blissful_land.} 下。</li>

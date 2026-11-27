@@ -22,15 +22,17 @@ import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * 福地[Blissful Land]的事件入口，只做转交：服务端刻、玩家刻、玩家死亡、区块加载、荡魂山震荡、地灵右键、易主、福地提示、关面板、
- * 田区工单登记、停服清理。
+ * 田区工单登记、开服核对边界、停服清理。
  * <ul>
- *   <li>⚠ 死亡监听取最低优先级且不收已取消事件：别的模组取消死亡、不死图腾救下都不算死，不失主。</li>
+ *   <li>⚠ 死亡监听取最低优先级且不收已取消事件：别的模组取消死亡、不死图腾救下都不算死，不失主；开服核对边界也取最低
+ *       优先级，因 Gu World 在同一开服事件里才施加福地维度的边界。</li>
  *   <li>玩家每秒的认主判定不走这里，挂在 {@code Heartbeat}。</li>
  * </ul>
  */
@@ -86,6 +88,9 @@ public final class BlissfulLandEvents {
         event.register(FarmWork.TICKETS);
         event.register(PastureWork.TICKETS);
     }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onServerStarted(ServerStartedEvent event) { BlissfulLands.checkBorders(event.getServer()); }
 
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {

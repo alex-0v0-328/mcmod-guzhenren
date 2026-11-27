@@ -2,6 +2,7 @@ package net.alex.guzhenren.gameplay.immortalaperture;
 
 import java.util.List;
 import java.util.UUID;
+import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.dimension.DimensionTravelService;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
@@ -49,7 +50,8 @@ import org.jetbrains.annotations.Nullable;
  * 福地[Blissful Land]的调度入口：认主与失主时机、地灵补生成、托管轮、割弃区块清空、虚空拉回、免震荡判定。
  * <ul>
  *   <li>⚠ 福地维度不存在（没装 Gu World）时 {@link BlissfulLandLookup#level} 为空，以下全部不做；秘境未解出时
- *       {@link BlissfulLandLookup#siteOf} 为空，认主与地灵补生都不做。</li>
+ *       {@link BlissfulLandLookup#siteOf} 为空，认主与地灵补生都不做。{@link #checkBorders} 在开服时核对每块福地维度的
+ *       世界边界是否正好 {@code half × 32} 格（两仓各写一份边长），不一致只记错误日志。</li>
  *   <li>认主：{@link #tickPlayer} 挂在 {@code Heartbeat}（每秒），玩家在福地维度、福地无主且秘境山心已解出时判定。</li>
  *   <li>失主：{@link #onDeath} 在任何维度死亡时（「死亡不掉落」开着就不算），{@link #onReset} 在角色重置时（非保留死亡
  *       的克隆也会走重置，重复失主无副作用）。易主后 {@link #onOwnerChanged} 替各功能收尾：认主重挂田与牧场的强加载，
@@ -154,6 +156,19 @@ public final class BlissfulLands {
             }
         }
         LandMaps.tick(server, MAP_VIEWER_GATE, MAP_MARK_SOURCES);
+    }
+
+    public static void checkBorders(@NotNull MinecraftServer server) {
+        for (BlissfulLand land : BlissfulLand.ALL) {
+            ServerLevel level = BlissfulLandLookup.level(server, land);
+            if (level == null) continue;
+            double expected = land.half() * 2.0D * 16.0D;
+            double size = level.getWorldBorder().getSize();
+            if (Math.abs(size - expected) < 0.5D) continue;
+            Guzhenren.LOGGER.error("Blissful land {} has a {}-block world border but this mod expects {} blocks"
+                    + " ({} chunks a side); the land size in Gu World and in BlissfulLand disagree", land.id(), size,
+                    expected, land.half() * 2);
+        }
     }
 
     public static void mapView(@NotNull ServerPlayer player, @NotNull MapView view) {
