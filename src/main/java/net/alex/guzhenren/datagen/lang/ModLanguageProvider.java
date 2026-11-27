@@ -536,6 +536,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.guts_stones",                 "胆石");
         add("guzhenren.blissful_land.ui.animals",                     "动物");
         add("guzhenren.blissful_land.ui.crops",                       "作物");
+        add("guzhenren.blissful_land.ui.springs",                     "元泉");
+        add("guzhenren.blissful_land.ui.springs_value",               "%s 眼 · 每分钟 %s 颗");
         add("guzhenren.blissful_land.ui.present",                     "在场玩家");
         add("guzhenren.blissful_land.ui.people",                      "%s 人");
         add("guzhenren.blissful_land.ui.whitelist",                   "白名单");
@@ -595,6 +597,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.sort_name",                   "名称");
         add("guzhenren.blissful_land.ui.deposit_matching",            "存同类");
         add("guzhenren.blissful_land.tip.open_page",                  "点击打开「%s」");
+        add("guzhenren.blissful_land.tip.springs",                    "地灵每分钟从每眼元泉收元石 %s 颗入库藏，现登记 %s 眼；泉所在区块生成过才登记，舀掉不算；点击打开「%s」");
         add("guzhenren.blissful_land.tip.whitelist",                  "白名单内的人免荡魂山震荡，也不会被「驱逐外人」");
         add("guzhenren.blissful_land.tip.expel",                      "把此人送回他进福地前的位置");
         add("guzhenren.blissful_land.tip.expel_outsiders",            "把不在白名单的人都送回各自进福地前的位置（现在 %s 人）");

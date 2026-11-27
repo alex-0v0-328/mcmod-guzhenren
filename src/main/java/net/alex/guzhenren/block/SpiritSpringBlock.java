@@ -1,7 +1,8 @@
 package net.alex.guzhenren.block;
 
 import java.util.List;
-import net.alex.guzhenren.core.Ticks;
+import net.alex.guzhenren.gameplay.immortalaperture.spring.SpringRules;
+import net.alex.guzhenren.gameplay.immortalaperture.spring.SpringWork;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -26,13 +27,15 @@ import org.jetbrains.annotations.NotNull;
  *   <li>每次触发时要求 {@link #PRODUCTION_PLAYER_RANGE}（128 格，对齐原版自然刷怪视距）内存在存活玩家，且周围
  *       {@link #NEARBY_STONES_CAP_RADIUS} 半径内的元石掉落物总数未达到上限 {@link #NEARBY_STONES_CAP}，防止在出生点或强
  *       制加载区块中无人时无限堆积掉落物。</li>
+ *   <li>福地有主时福地里的元泉不弹掉落物（{@link SpringWork#collects}）：产出由地灵按登记的泉位结算进库藏，运行时放下的
+ *       源方块在 {@link #onPlace} 登记；节拍与每次颗数取 {@link SpringRules}，与地灵的结算同源。</li>
  * </ul>
  */
 
 public class SpiritSpringBlock extends LiquidBlock {
 
-    public static final int PRODUCTION_INTERVAL_TICKS = 5 * Ticks.SECOND;
-    public static final int STONES_PER_PRODUCTION = 64;
+    public static final int PRODUCTION_INTERVAL_TICKS = SpringRules.PRODUCTION_INTERVAL_TICKS;
+    public static final int STONES_PER_PRODUCTION = SpringRules.STONES_PER_PRODUCTION;
     public static final double NEARBY_STONES_CAP_RADIUS = 4.0;
     public static final int NEARBY_STONES_CAP = STONES_PER_PRODUCTION;
     public static final double PRODUCTION_PLAYER_RANGE = 128.0;
@@ -46,6 +49,7 @@ public class SpiritSpringBlock extends LiquidBlock {
                         @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         scheduleProduction(level, pos);
+        if (level instanceof ServerLevel server) SpringWork.onPlaced(server, pos);
     }
 
     @Override
@@ -60,9 +64,10 @@ public class SpiritSpringBlock extends LiquidBlock {
     public void tick(@NotNull BlockState state, ServerLevel level,
                      @NotNull BlockPos pos, @NotNull RandomSource random) {
         if (!level.getFluidState(pos).isSource()) return;
-        boolean playerNear = level.hasNearbyAlivePlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                PRODUCTION_PLAYER_RANGE);
-        if (playerNear && shouldProduce(true, countNearbyStones(level, pos))) {
+        boolean collected = SpringWork.collects(level);
+        boolean playerNear = !collected && level.hasNearbyAlivePlayer(pos.getX() + 0.5, pos.getY() + 0.5,
+                pos.getZ() + 0.5, PRODUCTION_PLAYER_RANGE);
+        if (shouldProduce(collected, playerNear, playerNear ? countNearbyStones(level, pos) : 0)) {
             produceStones(level, pos, random);
         }
         scheduleProduction(level, pos);
@@ -70,6 +75,10 @@ public class SpiritSpringBlock extends LiquidBlock {
 
     static boolean shouldProduce(boolean playerNear, int nearbyStones) {
         return playerNear && nearbyStones < NEARBY_STONES_CAP;
+    }
+
+    static boolean shouldProduce(boolean collected, boolean playerNear, int nearbyStones) {
+        return !collected && shouldProduce(playerNear, nearbyStones);
     }
 
     void scheduleProduction(Level level, BlockPos pos) {

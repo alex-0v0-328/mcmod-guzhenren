@@ -38,7 +38,7 @@ public final class TraditionalGlyphs {
             + " 浅淺 烟煙 稳穩 绛絳 绯緋 绿綠 苍蒼 蓝藍 颜顏"
             + " 拢攏 挡擋 栅柵 门門"
             + " 迁遷 规規 废廢 队隊 濒瀕 顾顧"
-            + " 雾霧";
+            + " 雾霧 颗顆";
     private static final String PHRASES = "一只一隻 耗尽耗盡 将尽將盡 战斗戰鬥 冲刷沖刷 横冲橫衝 轮回輪迴 回复回復 准大準大 "
             + "准宗準宗 准无準無 喂食餵食 炼制煉製 舍利舍利 游僵遊殭 漏斗漏斗 防御防禦 周围周圍 随后隨後 范围範圍 冲击衝擊 用尽用盡 放回放回 "
             + "躯干軀幹 冲刺衝刺 发出發出 游戏遊戲 获得獲得 分钟分鐘 低于低於 回到回到 回血回血 前后前後 时间后時間後 目标后目標後 "
@@ -66,7 +66,7 @@ public final class TraditionalGlyphs {
             + "好橡牧捕"
             + "寅卯辰巳午申酉戌亥"
             + "拆"
-            + "探明稍迷";
+            + "探明稍迷算舀";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

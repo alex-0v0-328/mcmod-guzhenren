@@ -82,7 +82,7 @@ class ArchitectureTest {
         public String getDescription() { return "second-level packages, gameplay.path.strength apart"; }
     };
     // The aperture's feature packages; the server runtime its screens must not read (imports: SourceLayersTest).
-    static final String[] IMMORTAL_APERTURE_FEATURES = Stream.of("farm", "herd", "gu", "storage", "territory",
+    static final String[] IMMORTAL_APERTURE_FEATURES = Stream.of("farm", "herd", "gu", "spring", "storage", "territory",
             "soulsundermountain").map(feature -> ROOT + "gameplay.immortalaperture." + feature + "..")
             .toArray(String[]::new);
     private static final DescribedPredicate<JavaClass> IMMORTAL_APERTURE_SERVER_RUNTIME = DescribedPredicate.describe(

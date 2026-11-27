@@ -38,6 +38,14 @@ public final class SpiritSpringBlockGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
+    public static void aCollectingLandDropsNoStones(GameTestHelper helper) {
+        assertFalse(SpiritSpringBlock.shouldProduce(true, true, 0));
+        assertTrue(SpiritSpringBlock.shouldProduce(false, true, 0));
+        assertFalse(SpiritSpringBlock.shouldProduce(false, false, 0));
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
     public static void belowCapProduces(GameTestHelper helper) {
         assertTrue(SpiritSpringBlock.shouldProduce(true, SpiritSpringBlock.NEARBY_STONES_CAP - 1));
         helper.succeed();

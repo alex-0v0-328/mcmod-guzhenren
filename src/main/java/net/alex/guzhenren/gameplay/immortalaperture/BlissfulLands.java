@@ -20,6 +20,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMarkSource;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapViewerGate;
+import net.alex.guzhenren.gameplay.immortalaperture.spring.SpringWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
@@ -61,6 +62,8 @@ import org.jetbrains.annotations.Nullable;
  *       {@link #HOSTING_JOBS} 的顺序（种植、养殖、蛊虫）跑各功能的托管任务，各用各的预算；每秒推进一步标准田规划队列
  *       （{@link FieldPlans}），并给开着面板的主人刷新快照（只算他正在看的页）；每刻最后驱动地图管线（{@link LandMaps#tick}，
  *       订阅门与标记来源由本类传入，地图视口载荷也经 {@link #mapView} 转进去）。</li>
+ *   <li>元泉收集（{@link SpringWork}）也是托管任务，排在蛊虫之后，没有开关，有主就跑；区块加载时（{@link #onChunkLoad}）顺带登记
+ *       区块里的元泉泉位。</li>
  *   <li>{@link #storageHere}：人在自己当主人的福地里时给出那块福地的库藏，蛊粮直供（{@code GuHunger}）用它；别处、
  *       非主人都是空。</li>
  *   <li>{@link #tickPlayerFast} 每刻：福地里跌出最低建造高度就拉回入口（割弃侧没有边界墙）。</li>
@@ -73,7 +76,8 @@ public final class BlissfulLands {
 
     public static final int SPIRIT_CHECK_TICKS = 10 * Ticks.SECOND;
     public static final int SPIRIT_SEARCH = 16;
-    public static final List<LandHostingJob> HOSTING_JOBS = List.of(FarmWork::host, HerdWork::host, GuWork::host);
+    public static final List<LandHostingJob> HOSTING_JOBS = List.of(FarmWork::host, HerdWork::host, GuWork::host,
+            SpringWork::host);
     public static final MapViewerGate MAP_VIEWER_GATE = EarthSpiritPanel::mapViewerLand;
     public static final List<MapMarkSource> MAP_MARK_SOURCES = List.of(HerdWork::mapMarks, GuWork::mapMarks);
 
@@ -211,7 +215,9 @@ public final class BlissfulLands {
     public static void onChunkLoad(@NotNull ServerLevel level, @NotNull LevelChunk chunk) {
         BlissfulLand land = BlissfulLandLookup.landOf(level);
         if (land == null) return;
-        TerritoryWork.onChunkLoad(level, BlissfulLandData.get(level.getServer(), land).territory(), chunk);
+        BlissfulLandData data = BlissfulLandData.get(level.getServer(), land);
+        TerritoryWork.onChunkLoad(level, data.territory(), chunk);
+        SpringWork.onChunkLoad(data, chunk);
     }
 
     public static void tickPlayerFast(@NotNull ServerPlayer player) {

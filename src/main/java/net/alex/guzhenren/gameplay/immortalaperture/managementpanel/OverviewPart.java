@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.spring.SpringState;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
@@ -21,9 +22,10 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「总览」页面板段：亩数、胆石、动物、作物四个数，在场玩家（白名单开关、驱逐），「驱逐外人」。
+ * 「总览」页面板段：亩数、胆石、动物、作物、元泉五个数，在场玩家（白名单开关、驱逐），「驱逐外人」。
  * <ul>
  *   <li>动物、作物取 {@link LandCensus} 的同刻清点；作物数 = 成熟 + 未熟。</li>
+ *   <li>元泉数是地灵登记的泉位数（{@link SpringState#count}），每分钟产量由客户端按 {@code SpringRules} 乘出。</li>
  *   <li>白名单与荡魂山页是同一份；规则在 {@link LandMembership}。</li>
  * </ul>
  */
@@ -34,18 +36,32 @@ public final class OverviewPart implements PanelSectionSource<OverviewPart.Secti
 
     private OverviewPart() {}
 
-    public record Section(long acres, int gutsStones, int gutsCap, int animals, int crops,
+    public record Section(long acres, int gutsStones, int gutsCap, int animals, int crops, int springs,
                           @NotNull List<WhitelistEntry> players) implements PanelSection {
 
-        public static final Section EMPTY = new Section(0L, 0, 0, 0, 0, List.of());
-        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_LONG, Section::acres,
-                ByteBufCodecs.VAR_INT, Section::gutsStones,
-                ByteBufCodecs.VAR_INT, Section::gutsCap,
-                ByteBufCodecs.VAR_INT, Section::animals,
-                ByteBufCodecs.VAR_INT, Section::crops,
-                WhitelistEntry.LIST_CODEC, Section::players,
-                Section::new);
+        public static final Section EMPTY = new Section(0L, 0, 0, 0, 0, 0, List.of());
+        public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
+                StreamCodec.of(Section::encode, Section::decode);
+
+        private static void encode(RegistryFriendlyByteBuf buffer, Section section) {
+            buffer.writeVarLong(section.acres);
+            for (int value : new int[] {section.gutsStones, section.gutsCap, section.animals, section.crops,
+                    section.springs}) {
+                buffer.writeVarInt(value);
+            }
+            WhitelistEntry.LIST_CODEC.encode(buffer, section.players);
+        }
+
+        private static Section decode(RegistryFriendlyByteBuf buffer) {
+            long acres = buffer.readVarLong();
+            int gutsStones = buffer.readVarInt();
+            int gutsCap = buffer.readVarInt();
+            int animals = buffer.readVarInt();
+            int crops = buffer.readVarInt();
+            int springs = buffer.readVarInt();
+            return new Section(acres, gutsStones, gutsCap, animals, crops, springs,
+                    WhitelistEntry.LIST_CODEC.decode(buffer));
+        }
 
         @Override
         public @NotNull PanelSectionSource<?> source() { return INSTANCE; }
@@ -112,7 +128,7 @@ public final class OverviewPart implements PanelSectionSource<OverviewPart.Secti
             crops += count.mature() + count.growing();
         }
         return new Section(data.territory().acres(), GutsStones.get(level).total(), SoulsunderMountain.GUTS_STONE_CAP,
-                animals, crops, present(level, data));
+                animals, crops, SpringState.of(data).count(), present(level, data));
     }
 
     private static List<WhitelistEntry> present(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
