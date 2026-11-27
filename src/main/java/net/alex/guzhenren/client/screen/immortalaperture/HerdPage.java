@@ -5,9 +5,9 @@ import java.util.stream.Collectors;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdModule;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -77,12 +77,13 @@ final class HerdPage extends PanelPage {
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
             HerdModule.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
-            PanelDrawing.row(sprites, x + 9, top, ROW_W, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, ROW_W, ROW_H));
+            PanelDrawing.row(sprites, x + 9, top, ROW_W, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, ROW_W,
+                    ROW_H));
             PanelDrawing.toggle(sprites, x + SWITCH_X, top + 5, row.hosted(), true, mouseX, mouseY);
-            PanelDrawing.button(sprites, x + MINUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(), mouseX,
-                    mouseY);
-            PanelDrawing.button(sprites, x + PLUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(), mouseX,
-                    mouseY);
+            PanelDrawing.button(sprites, x + MINUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(),
+                    mouseX, mouseY);
+            PanelDrawing.button(sprites, x + PLUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(),
+                    mouseX, mouseY);
         }
         boolean over = Widgets.isOver(mouseX, mouseY, x + 160, y + 32, 6, LIST_H - 2);
         PanelDrawing.scrollbar(sprites, x + 160, y + 32, LIST_H - 2, offset, VISIBLE, rows.size(), over);
@@ -103,7 +104,8 @@ final class HerdPage extends PanelPage {
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
             HerdModule.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
-            graphics.drawString(font(), nameOf(row), x + 30, top + 6, shortOfFeed(row) ? PanelDrawing.WARN : PanelDrawing.TEXT,
+            graphics.drawString(font(), nameOf(row), x + 30, top + 6,
+                    shortOfFeed(row) ? PanelDrawing.WARN : PanelDrawing.TEXT,
                     false);
             PanelDrawing.right(graphics, font(), Integer.toString(row.count()), x + 84, top + 6, PanelDrawing.TEXT);
             PanelDrawing.label(graphics, font(), MINUS, x + MINUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE,
@@ -150,7 +152,7 @@ final class HerdPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + STATUS_Y - 2, 160, 12, mouseX, mouseY, Component.translatable(TIP + "herd_hosting",
-                BlissfulLands.HOSTING_TICKS / Ticks.SECOND, HerdModule.HOSTING_ANIMALS))) {
+                LandHostingJob.INTERVAL_TICKS / Ticks.SECOND, HerdWork.HOSTING_ANIMALS))) {
             return;
         }
         List<HerdModule.Row> rows = data.rows();
@@ -161,8 +163,8 @@ final class HerdPage extends PanelPage {
                     Component.translatable(TIP + "herd_switch"))) {
                 return;
             }
-            if (tip(graphics, x + MINUS_X, top + 3, PLUS_X + PanelDrawing.SQUARE - MINUS_X, PanelDrawing.SQUARE, mouseX, mouseY,
-                    Component.translatable(TIP + "keep", SHIFT_STEP))) {
+            if (tip(graphics, x + MINUS_X, top + 3, PLUS_X + PanelDrawing.SQUARE - MINUS_X, PanelDrawing.SQUARE,
+                    mouseX, mouseY, Component.translatable(TIP + "keep", SHIFT_STEP))) {
                 return;
             }
             Component feed = row.feed() == HerdModule.UNKNOWN_FEED ? Component.translatable(TIP + "feed_unknown")

@@ -5,7 +5,6 @@ import java.util.List;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
@@ -13,6 +12,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection
 import net.alex.guzhenren.gameplay.immortalaperture.member.WhitelistEntry;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
@@ -66,11 +66,11 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
             ServerLevel level = context.level();
             BlissfulLandData data = context.data();
             long cooldown = SoulsunderMountainWork.moveCooldown(level, data);
-            if (cooldown > 0) return EarthSpiritPanel.notice("cooldown", Ticks.ceilSeconds(cooldown));
+            if (cooldown > 0) return LandNoticeEvent.text("cooldown", Ticks.ceilSeconds(cooldown));
 
             RealmSite site = SecretRealms.siteOf(level.getServer(), data.land().realm());
-            if (site == null) return EarthSpiritPanel.notice("no_mountain");
-            return EarthSpiritPanel.notice("moved",
+            if (site == null) return LandNoticeEvent.text("no_mountain");
+            return LandNoticeEvent.text("moved",
                     SoulsunderMountainWork.moveMobsUp(level, site, data, level.getRandom()));
         }
     }
@@ -83,9 +83,9 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             RealmSite site = SecretRealms.siteOf(context.level().getServer(), context.data().land().realm());
-            if (site == null) return EarthSpiritPanel.notice("no_mountain");
+            if (site == null) return LandNoticeEvent.text("no_mountain");
             return SoulsunderMountainWork.driveGutsGu(context.level(), site, context.player()) == null
-                    ? EarthSpiritPanel.notice("outside_mountain") : Component.empty();
+                    ? LandNoticeEvent.text("outside_mountain") : Component.empty();
         }
     }
 
@@ -99,8 +99,8 @@ public final class MountainModule implements LandModule<MountainModule.Section> 
             String name = this.name.strip();
             if (name.isEmpty()) return Component.empty();
             return LandMembership.addWhitelist(context.player().server, context.data(), name)
-                    ? EarthSpiritPanel.notice("whitelist_added", name)
-                    : EarthSpiritPanel.notice("player_not_found", name);
+                    ? LandNoticeEvent.text("whitelist_added", name)
+                    : LandNoticeEvent.text("player_not_found", name);
         }
     }
     //endregion

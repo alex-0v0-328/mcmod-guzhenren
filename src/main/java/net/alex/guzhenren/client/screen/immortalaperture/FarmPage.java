@@ -4,10 +4,10 @@ import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -93,8 +93,10 @@ final class FarmPage extends PanelPage {
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         FarmModule.Section data = data();
         graphics.drawString(font(), Component.translatable(UI + "crop"), x + 12, y + 21, PanelDrawing.LEGEND, false);
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "mature"), x + 100, y + 21, PanelDrawing.LEGEND);
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "growing"), x + 130, y + 21, PanelDrawing.LEGEND);
+        PanelDrawing.right(graphics, font(), Component.translatable(UI + "mature"), x + 100, y + 21,
+                PanelDrawing.LEGEND);
+        PanelDrawing.right(graphics, font(), Component.translatable(UI + "growing"), x + 130, y + 21,
+                PanelDrawing.LEGEND);
         List<FarmModule.Crop> crops = data.rows();
         int shift = crops.size() > VISIBLE ? 8 : 0;
         for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
@@ -102,13 +104,15 @@ final class FarmPage extends PanelPage {
             int top = y + LIST_Y + 1 + i * ROW_H;
             Block block = BuiltInRegistries.BLOCK.get(crop.block());
             graphics.drawString(font(), block.getName(), x + 30, top + 6, PanelDrawing.TEXT, false);
-            PanelDrawing.right(graphics, font(), Integer.toString(crop.mature()), x + 100 - shift, top + 6, PanelDrawing.TEXT);
+            PanelDrawing.right(graphics, font(), Integer.toString(crop.mature()), x + 100 - shift, top + 6,
+                    PanelDrawing.TEXT);
             PanelDrawing.right(graphics, font(), Integer.toString(crop.growing()), x + 130 - shift, top + 6,
                     PanelDrawing.LEGEND);
         }
-        graphics.drawString(font(), Component.translatable(UI + "crop_pick"), x + 8, y + CROP_Y + 3, PanelDrawing.LEGEND,
-                false);
-        PanelDrawing.label(graphics, font(), cropName(data.crop()), x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE, true);
+        graphics.drawString(font(), Component.translatable(UI + "crop_pick"), x + 8, y + CROP_Y + 3,
+                PanelDrawing.LEGEND, false);
+        PanelDrawing.label(graphics, font(), cropName(data.crop()), x + CROP_X, y + CROP_Y, CROP_W,
+                PanelDrawing.SQUARE, true);
         long seeds = data.seedsOf(data.crop());
         PanelDrawing.right(graphics, font(), Component.translatable(UI + "seeds", PanelDrawing.count(seeds)), x + 167,
                 y + CROP_Y + 3, seeds > 0 ? PanelDrawing.TEXT : PanelDrawing.WARN);
@@ -141,7 +145,7 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        int hostingSeconds = BlissfulLands.HOSTING_TICKS / Ticks.SECOND;
+        int hostingSeconds = LandHostingJob.INTERVAL_TICKS / Ticks.SECOND;
         if (tip(graphics, x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE, mouseX, mouseY,
                 Component.translatable(TIP + "crop_pick"))) {
             return;
@@ -151,7 +155,7 @@ final class FarmPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + SWITCH_Y, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
-                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmModule.HOSTING_FIELDS))) {
+                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmWork.HOSTING_FIELDS))) {
             return;
         }
         tip(graphics, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,

@@ -113,10 +113,13 @@ final class CedePanel {
                 int[] at = ARROWS[each.ordinal()];
                 boolean hover = !confirming && Widgets.isOver(mouseX, mouseY, column + at[0], top + at[1], ARROW,
                         ARROW);
-                PanelDrawing.button(sprites, column + at[0], top + at[1], ARROW, ARROW, true, hover, each == side, false);
+                PanelDrawing.button(sprites, column + at[0], top + at[1], ARROW, ARROW, true, hover, each == side,
+                        false);
             }
-            PanelDrawing.button(sprites, column, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true, mouseX, mouseY);
-            PanelDrawing.button(sprites, column + 44, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true, mouseX, mouseY);
+            PanelDrawing.button(sprites, column, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true, mouseX,
+                    mouseY);
+            PanelDrawing.button(sprites, column + 44, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true,
+                    mouseX, mouseY);
             PanelDrawing.button(sprites, column, top + 142, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
             boolean live = canCede();
             boolean hover = live && Widgets.isOver(mouseX, mouseY, column + 56, top + 142, BUTTON_W, BUTTON_H);
@@ -131,8 +134,8 @@ final class CedePanel {
 
     private void texts(GuiGraphics graphics, Font font, int column) {
         Territory territory = territory();
-        graphics.drawString(font, Component.translatable(UI + "map.cede_title"), left + 10, top + 8, PanelDrawing.ACCENT,
-                false);
+        graphics.drawString(font, Component.translatable(UI + "map.cede_title"), left + 10, top + 8,
+                PanelDrawing.ACCENT, false);
         graphics.drawString(font, Component.translatable(UI + "acres"), column, top + 26, PanelDrawing.LEGEND, false);
         graphics.drawString(font, Long.toString(territory.acres()), column, top + 36, PanelDrawing.TEXT, false);
         graphics.drawString(font, (territory.maxChunkX() - territory.minChunkX() + 1) + "×"
@@ -146,8 +149,8 @@ final class CedePanel {
         }
         graphics.drawString(font, Component.translatable(UI + "strip_width"), column, top + 117, PanelDrawing.LEGEND,
                 false);
-        PanelDrawing.label(graphics, font, Component.literal("-"), column, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE,
-                true);
+        PanelDrawing.label(graphics, font, Component.literal("-"), column, top + 128, PanelDrawing.SQUARE,
+                PanelDrawing.SQUARE, true);
         PanelDrawing.centered(graphics, font, Component.literal(Integer.toString(clampedWidth())), column + 14,
                 column + 44, top + 131, PanelDrawing.TEXT);
         PanelDrawing.label(graphics, font, Component.literal("+"), column + 44, top + 128, PanelDrawing.SQUARE,

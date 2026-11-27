@@ -8,6 +8,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritP
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritUseEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandOwnerChangeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.territory.TerritoryWork;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderShakeEvent;
@@ -26,7 +27,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * 福地[Blissful Land]的事件入口，只做转交：服务端刻、玩家刻、玩家死亡、区块加载、荡魂山震荡、地灵右键、易主、关面板、
+ * 福地[Blissful Land]的事件入口，只做转交：服务端刻、玩家刻、玩家死亡、区块加载、荡魂山震荡、地灵右键、易主、福地提示、关面板、
  * 田区工单登记、停服清理。
  * <ul>
  *   <li>⚠ 死亡监听取最低优先级且不收已取消事件：别的模组取消死亡、不死图腾救下都不算死，不失主。</li>
@@ -68,6 +69,9 @@ public final class BlissfulLandEvents {
     public static void onContainerClose(PlayerContainerEvent.Close event) {
         if (event.getContainer() instanceof EarthSpiritMenu) LandMaps.forget(event.getEntity().getUUID());
     }
+
+    @SubscribeEvent
+    public static void onNotice(LandNoticeEvent event) { EarthSpiritPanel.onNotice(event); }
 
     @SubscribeEvent
     public static void onOwnerChanged(LandOwnerChangeEvent event) { BlissfulLands.onOwnerChanged(event); }

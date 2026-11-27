@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Locale;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -47,13 +47,13 @@ public final class TerritoryModule implements LandModule<TerritoryModule.Section
         public @NotNull Component perform(@NotNull ActionContext context) {
             BlissfulLandData data = context.data();
             TerritoryWork.Voided voided = TerritoryWork.cede(context.level(), data, side, width);
-            if (voided == null) return EarthSpiritPanel.notice("cede_refused");
+            if (voided == null) return LandNoticeEvent.text("cede_refused");
             Component sideName = Component.translatable("guzhenren.blissful_land.side."
                     + side.name().toLowerCase(Locale.ROOT));
             if (voided.fields() + voided.plans() + voided.pastures() == 0) {
-                return EarthSpiritPanel.notice("ceded", sideName, width, data.territory().acres());
+                return LandNoticeEvent.text("ceded", sideName, width, data.territory().acres());
             }
-            return EarthSpiritPanel.notice("ceded_voided", sideName, width, data.territory().acres(), voided.fields(),
+            return LandNoticeEvent.text("ceded_voided", sideName, width, data.territory().acres(), voided.fields(),
                     voided.plans(), voided.pastures());
         }
     }

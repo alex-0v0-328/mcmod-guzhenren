@@ -7,7 +7,6 @@ import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
@@ -15,6 +14,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.secretrealm.GutsStones;
 import net.alex.guzhenren.gameplay.secretrealm.SoulsunderMountain;
 import net.minecraft.core.UUIDUtil;
@@ -66,7 +66,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             return LandMembership.expel(context.level(), context.data(), target)
-                    ? EarthSpiritPanel.notice("expelled") : EarthSpiritPanel.notice("expel_failed");
+                    ? LandNoticeEvent.text("expelled") : LandNoticeEvent.text("expel_failed");
         }
     }
 
@@ -77,7 +77,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
-            return EarthSpiritPanel.notice("expelled_outsiders",
+            return LandNoticeEvent.text("expelled_outsiders",
                     LandMembership.expelOutsiders(context.level(), context.data()));
         }
     }
@@ -91,7 +91,7 @@ public final class OverviewModule implements LandModule<OverviewModule.Section> 
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             return LandMembership.setWhitelisted(context.player().server, context.data(), target, listed)
-                    ? Component.empty() : EarthSpiritPanel.notice("player_offline");
+                    ? Component.empty() : LandNoticeEvent.text("player_offline");
         }
     }
     //endregion

@@ -1,10 +1,10 @@
 package net.alex.guzhenren.gameplay.immortalaperture.storage;
 
 import java.util.List;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ public final class StorageWork {
         return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }
 
-    public static void take(@NotNull ServerPlayer player, @NotNull EarthSpiritMenu menu,
+    public static void take(@NotNull ServerPlayer player, @NotNull AbstractContainerMenu menu,
                             @NotNull BlissfulStorage storage, long serial, boolean all) {
         int at = storage.indexOf(serial);
         if (at < 0) return;
@@ -52,7 +52,7 @@ public final class StorageWork {
         }
     }
 
-    public static void depositCarried(@NotNull EarthSpiritMenu menu, @NotNull BlissfulStorage storage) {
+    public static void depositCarried(@NotNull AbstractContainerMenu menu, @NotNull BlissfulStorage storage) {
         if (storage.insert(menu.getCarried())) menu.setCarried(ItemStack.EMPTY);
     }
 

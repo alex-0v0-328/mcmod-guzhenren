@@ -3,7 +3,6 @@ package net.alex.guzhenren.gametest;
 import java.util.UUID;
 import java.util.function.Supplier;
 import net.alex.guzhenren.Guzhenren;
-import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmModule;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlans;
@@ -185,7 +184,7 @@ public final class BlissfulFarmGameTests {
             BlockState ripe = ((CropBlock) Blocks.CARROTS).getStateForAge(((CropBlock) Blocks.CARROTS).getMaxAge());
             for (int localX = 1; localX <= 5; localX++) level.setBlock(at(field, localX, 1, 1), ripe, 2);
             FarmState.of(data).setHosting(true);
-            helper.assertValueEqual(FarmModule.INSTANCE.host(level, data, null), 1,
+            helper.assertValueEqual(FarmWork.host(level, data, null), 1,
                     "hosting works the one field with ripe carrots");
             helper.assertValueEqual(FarmState.of(data).lastReaped(), 5, "the round is reported");
             helper.assertValueEqual(FarmState.of(data).lastSown(), 0, "nothing was bare");

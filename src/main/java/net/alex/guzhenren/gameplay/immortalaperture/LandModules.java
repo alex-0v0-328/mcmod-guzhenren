@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
  * 顺序）。
  * <ul>
  *   <li>信息页各小节的顺序（总览、养殖、种植、蛊虫、疆域）就是 {@link #ALL} 里这几个模块的顺序。</li>
- *   <li>{@link #HOSTED} 是托管轮的调用顺序：种植、养殖、蛊虫依次；预算各模块自管，顺序不影响谁能干活。</li>
  * </ul>
  */
 
@@ -30,8 +29,6 @@ public final class LandModules {
     public static final List<LandModule<?>> ALL = List.of(MapModule.INSTANCE, StorageModule.INSTANCE,
             MountainModule.INSTANCE, OverviewModule.INSTANCE, HerdModule.INSTANCE, FarmModule.INSTANCE,
             GuModule.INSTANCE, TerritoryModule.INSTANCE);
-    public static final List<LandModule<?>> HOSTED = List.of(FarmModule.INSTANCE, HerdModule.INSTANCE,
-            GuModule.INSTANCE);
     private static final Map<Page, List<LandModule<?>>> BY_PAGE = byPage();
 
     private static Map<Page, List<LandModule<?>>> byPage() {

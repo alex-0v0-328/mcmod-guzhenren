@@ -16,10 +16,12 @@ import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 地灵面板「蛊虫」页：按种类清点福地里的野生蛊，多出保持数的「捕获入库」，以及托管。
@@ -39,6 +41,15 @@ public final class GuWork {
     public static final LandCensus.Census<Map<ResourceLocation, List<Mob>>> CENSUS =
             LandCensus.Census.ofLevel(level -> census(level.getAllEntities()));
     public static final int LIMIT = 16;
+    public static final int HOSTING_GU = 16;
+
+    public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
+        if (!GuState.of(data).hosting()) return 0;
+
+        int captured = host(LandCensus.take(level, CENSUS), data, HOSTING_GU);
+        GuState.of(data).setLastCaptured(captured);
+        return captured;
+    }
 
     public static void mapMarks(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
                                 @NotNull MapMarkSource.Sink sink) {

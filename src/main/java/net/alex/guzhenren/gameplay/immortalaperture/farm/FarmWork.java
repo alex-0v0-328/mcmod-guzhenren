@@ -64,6 +64,7 @@ public final class FarmWork {
     public static final TicketController TICKETS = new TicketController(Guzhenren.id("blissful_land_fields"),
             FarmWork::validateTickets);
     public static final int RECLAIM_COOLDOWN_TICKS = 60 * Ticks.SECOND;
+    public static final int HOSTING_FIELDS = 8;
     public static final List<Block> CROPS = List.of(Blocks.WHEAT, Blocks.CARROTS, Blocks.POTATOES, Blocks.BEETROOTS);
     private static final int NO_GROUND = Integer.MIN_VALUE;
 
@@ -290,6 +291,14 @@ public final class FarmWork {
     //endregion
 
     //region Tickets [强加载]
+    public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
+        if (!FarmState.of(data).hosting()) return 0;
+
+        Harvest done = harvest(level, data, HOSTING_FIELDS);
+        FarmState.of(data).setLastRound(done.reaped(), done.sown());
+        return done.fields();
+    }
+
     public static void retain(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
         for (FieldPlot field : FarmState.of(data).fields()) setForced(level, field, true);
     }

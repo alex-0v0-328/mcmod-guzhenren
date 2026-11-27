@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
@@ -16,6 +14,8 @@ import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,10 +24,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 「种植」小节模块：按作物计成熟 / 未熟、标准田与规划数、开垦作物与库藏种子数、托管开关、「收割并补种」；地图上的
@@ -38,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link Remove} 经
  *       {@link FarmWork#remove}。</li>
  *   <li>{@link Section#seeds()} 与 {@link FarmWork#CROPS} 同序，是库藏里各作物种子的数量。</li>
- *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value #HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
+ *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmWork#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
  *       轮倒计时与上一轮结果。</li>
  * </ul>
  */
@@ -46,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 public final class FarmModule implements LandModule<FarmModule.Section> {
 
     public static final FarmModule INSTANCE = new FarmModule();
-    public static final int HOSTING_FIELDS = 8;
 
     private FarmModule() {}
 
@@ -116,9 +113,9 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
             Siting.Reason reason = FieldPlans.plan(context.level(), context.data(),
                     MapModule.plot(context.level(), context.data()), chunkX, chunkZ);
             if (reason != Siting.Reason.OK) {
-                return EarthSpiritPanel.notice("siting_refused", Component.translatable(reason.key()));
+                return LandNoticeEvent.text("siting_refused", Component.translatable(reason.key()));
             }
-            return EarthSpiritPanel.notice("planned", chunkX, chunkZ, FarmState.of(context.data()).plans().size());
+            return LandNoticeEvent.text("planned", chunkX, chunkZ, FarmState.of(context.data()).plans().size());
         }
     }
 
@@ -131,7 +128,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             return FieldPlans.unplan(context.data(), chunkX, chunkZ)
-                    ? EarthSpiritPanel.notice("unplanned", chunkX, chunkZ) : EarthSpiritPanel.notice("no_plan");
+                    ? LandNoticeEvent.text("unplanned", chunkX, chunkZ) : LandNoticeEvent.text("no_plan");
         }
     }
 
@@ -144,10 +141,10 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             FieldPlot field = FarmState.of(context.data()).fieldAt(chunkX, chunkZ);
-            if (field == null) return EarthSpiritPanel.notice("no_field");
+            if (field == null) return LandNoticeEvent.text("no_field");
             Integer reaped = FarmWork.remove(context.level(), context.data(), field, context.player());
-            if (reaped == null) return EarthSpiritPanel.notice("grief_denied");
-            return EarthSpiritPanel.notice("field_removed", chunkX, chunkZ, reaped);
+            if (reaped == null) return LandNoticeEvent.text("grief_denied");
+            return LandNoticeEvent.text("field_removed", chunkX, chunkZ, reaped);
         }
     }
 
@@ -159,7 +156,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             FarmWork.Harvest done = FarmWork.harvest(context.level(), context.data(), Integer.MAX_VALUE);
-            return EarthSpiritPanel.notice("harvested", done.reaped(), done.sown());
+            return LandNoticeEvent.text("harvested", done.reaped(), done.sown());
         }
     }
 
@@ -214,16 +211,7 @@ public final class FarmModule implements LandModule<FarmModule.Section> {
         for (int i = 0; i < FarmWork.CROPS.size(); i++) seeds.add(storage.count(FarmWork.seedFilter(i)));
         return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
                 Ticks.ceilSeconds(FarmWork.reclaimCooldown(level, data)), state.hosting(),
-                BlissfulLands.secondsToHosting(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
+                LandHostingJob.secondsUntilNext(level.getServer()), state.lastReaped(), state.lastSown(), state.crop(),
                 seeds);
-    }
-
-    @Override
-    public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!FarmState.of(data).hosting()) return 0;
-
-        FarmWork.Harvest done = FarmWork.harvest(level, data, HOSTING_FIELDS);
-        FarmState.of(data).setLastRound(done.reaped(), done.sown());
-        return done.fields();
     }
 }

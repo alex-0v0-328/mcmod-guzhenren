@@ -4,8 +4,9 @@ import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuModule;
+import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -66,12 +67,13 @@ final class GuPage extends PanelPage {
         for (int i = 0; i < VISIBLE && offset + i < rows.size(); i++) {
             GuModule.Row row = rows.get(offset + i);
             int top = y + LIST_Y + 1 + i * ROW_H;
-            PanelDrawing.row(sprites, x + 9, top, ROW_W, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, ROW_W, ROW_H));
+            PanelDrawing.row(sprites, x + 9, top, ROW_W, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, ROW_W,
+                    ROW_H));
             PanelDrawing.toggle(sprites, x + SWITCH_X, top + 5, row.hosted(), true, mouseX, mouseY);
-            PanelDrawing.button(sprites, x + MINUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(), mouseX,
-                    mouseY);
-            PanelDrawing.button(sprites, x + PLUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(), mouseX,
-                    mouseY);
+            PanelDrawing.button(sprites, x + MINUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(),
+                    mouseX, mouseY);
+            PanelDrawing.button(sprites, x + PLUS_X, top + 3, PanelDrawing.SQUARE, PanelDrawing.SQUARE, row.hosted(),
+                    mouseX, mouseY);
         }
         boolean over = Widgets.isOver(mouseX, mouseY, x + 160, y + 32, 6, LIST_H - 2);
         PanelDrawing.scrollbar(sprites, x + 160, y + 32, LIST_H - 2, offset, VISIBLE, rows.size(), over);
@@ -129,7 +131,7 @@ final class GuPage extends PanelPage {
             return;
         }
         if (tip(graphics, x + 8, y + STATUS_Y - 2, 160, 12, mouseX, mouseY, Component.translatable(TIP + "gu_hosting",
-                BlissfulLands.HOSTING_TICKS / Ticks.SECOND, GuModule.HOSTING_GU))) {
+                LandHostingJob.INTERVAL_TICKS / Ticks.SECOND, GuWork.HOSTING_GU))) {
             return;
         }
         List<GuModule.Row> rows = data.rows();
@@ -139,8 +141,8 @@ final class GuPage extends PanelPage {
                     Component.translatable(TIP + "gu_switch"))) {
                 return;
             }
-            if (tip(graphics, x + MINUS_X, top + 3, PLUS_X + PanelDrawing.SQUARE - MINUS_X, PanelDrawing.SQUARE, mouseX, mouseY,
-                    Component.translatable(TIP + "keep", SHIFT_STEP))) {
+            if (tip(graphics, x + MINUS_X, top + 3, PLUS_X + PanelDrawing.SQUARE - MINUS_X, PanelDrawing.SQUARE,
+                    mouseX, mouseY, Component.translatable(TIP + "keep", SHIFT_STEP))) {
                 return;
             }
         }

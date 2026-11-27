@@ -12,6 +12,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,7 +38,6 @@ public final class EarthSpiritPanel {
 
     public static final String MSG_UNOWNED = "guzhenren.blissful_land.spirit.unowned";
     public static final String MSG_OWNED = "guzhenren.blissful_land.spirit.owned";
-    private static final String NOTICE = "guzhenren.blissful_land.panel.";
     private static final Map<UUID, Page> LAST_PAGE = new HashMap<>();
 
     //region Open [打开]
@@ -68,6 +68,12 @@ public final class EarthSpiritPanel {
     }
 
     public static void clear() { LAST_PAGE.clear(); }
+
+    public static void onNotice(@NotNull LandNoticeEvent event) {
+        ServerPlayer player = event.getPlayer();
+        if (player.containerMenu instanceof EarthSpiritMenu) refresh(player, event.getNotice());
+        else if (event.toChat()) player.sendSystemMessage(event.getNotice());
+    }
 
     public static @Nullable BlissfulLand mapViewerLand(@NotNull ServerPlayer player) {
         if (!(player.containerMenu instanceof EarthSpiritMenu menu) || menu.getSpirit() == null
@@ -109,10 +115,6 @@ public final class EarthSpiritPanel {
         Component notice = action.perform(new ActionContext(player, menu, level, data));
         LandCensus.invalidate(level);
         refresh(player, notice);
-    }
-
-    public static @NotNull Component notice(@NotNull String key, Object... args) {
-        return Component.translatable(NOTICE + key, args);
     }
     //endregion
 }

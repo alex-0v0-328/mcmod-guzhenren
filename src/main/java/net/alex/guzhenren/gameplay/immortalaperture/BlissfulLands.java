@@ -24,6 +24,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
 import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandOwnerChangeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandSite;
@@ -54,8 +55,8 @@ import org.jetbrains.annotations.Nullable;
  *       的克隆也会走重置，重复失主无副作用）。易主后 {@link #onOwnerChanged} 替各功能收尾：认主重挂田与牧场的强加载，
  *       失主关三种托管、撤强加载。</li>
  *   <li>{@link #tickServer} 每刻：清 1 个割弃区块；每 {@value #SPIRIT_CHECK_TICKS} 刻：行宫区块与其实体都已加载时，地灵
- *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value #HOSTING_TICKS} 刻：有主时按
- *       {@link LandModules#HOSTED} 的顺序跑各模块的托管，各用各的预算；每秒推进一步标准田规划队列
+ *       不在就先认领附近现有的、没有才补生成（多余的移除）；每 {@value LandHostingJob#INTERVAL_TICKS} 刻：有主时按
+ *       {@link #HOSTING_JOBS} 的顺序（种植、养殖、蛊虫）跑各功能的托管任务，各用各的预算；每秒推进一步标准田规划队列
  *       （{@link FieldPlans}），并给开着面板的主人刷新快照（只算他正在看的页）；每刻最后驱动地图管线（{@link LandMaps#tick}，
  *       订阅门与标记来源由本类传入，地图视口载荷也经 {@link #mapView} 转进去）。</li>
  *   <li>{@link #storageHere}：人在自己当主人的福地里时给出那块福地的库藏，蛊粮直供（{@code GuHunger}）用它；别处、
@@ -69,8 +70,8 @@ public final class BlissfulLands {
     private BlissfulLands() {}
 
     public static final int SPIRIT_CHECK_TICKS = 10 * Ticks.SECOND;
-    public static final int HOSTING_TICKS = 60 * Ticks.SECOND;
     public static final int SPIRIT_SEARCH = 16;
+    public static final List<LandHostingJob> HOSTING_JOBS = List.of(FarmWork::host, HerdWork::host, GuWork::host);
     public static final MapViewerGate MAP_VIEWER_GATE = EarthSpiritPanel::mapViewerLand;
     public static final List<MapMarkSource> MAP_MARK_SOURCES = List.of(HerdWork::mapMarks, GuWork::mapMarks);
 
@@ -143,7 +144,7 @@ public final class BlissfulLands {
             TerritoryWork.tick(level);
             BlissfulLandData data = BlissfulLandData.get(server, land);
             if (tick % SPIRIT_CHECK_TICKS == 0) keepSpirit(level, land, data);
-            if (tick % HOSTING_TICKS == 0 && data.hasOwner()) host(server, level, data);
+            if (tick % LandHostingJob.INTERVAL_TICKS == 0 && data.hasOwner()) host(server, level, data);
             if (tick % Ticks.SECOND == 0) FieldPlans.tick(level, data, () -> MapModule.plot(level, data));
         }
         if (tick % Ticks.SECOND == 0) {
@@ -164,13 +165,9 @@ public final class BlissfulLands {
         UUID owner = data.owner();
         ServerPlayer online = owner == null ? null : server.getPlayerList().getPlayer(owner);
         int handled = 0;
-        for (LandModule<?> module : LandModules.HOSTED) handled += module.host(level, data, online);
+        for (LandHostingJob job : HOSTING_JOBS) handled += job.host(level, data, online);
         LandCensus.invalidate(level);
         return handled;
-    }
-
-    public static int secondsToHosting(@NotNull MinecraftServer server) {
-        return Ticks.ceilSeconds(HOSTING_TICKS - server.getTickCount() % HOSTING_TICKS);
     }
 
     public static void keepSpirit(@NotNull ServerLevel level, @NotNull BlissfulLand land,

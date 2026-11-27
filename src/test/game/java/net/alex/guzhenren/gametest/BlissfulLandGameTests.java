@@ -317,7 +317,7 @@ public final class BlissfulLandGameTests {
         HerdState.of(data).setHosted(HerdWork.typeId(herd.getFirst()), true);
         BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT, 10));
 
-        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, HerdModule.HOSTING_ANIMALS)
+        int handled = HerdWork.host(helper.getLevel(), HerdWork.census(herd), data, null, HerdWork.HOSTING_ANIMALS)
                 .total();
         helper.assertValueEqual(handled, 2, "one cow short: one pair is fed");
         helper.assertValueEqual(BlissfulStorage.of(data).count(stack -> stack.is(Items.WHEAT)), 8L,

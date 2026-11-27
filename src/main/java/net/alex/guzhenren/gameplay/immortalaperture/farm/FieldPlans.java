@@ -2,10 +2,10 @@ package net.alex.guzhenren.gameplay.immortalaperture.farm;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
+import net.alex.guzhenren.core.ModEvents;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,7 +21,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #tick} 由 {@code BlissfulLands} 每秒调用：队列非空、冷却已过、主人在线时取队首，用真实方块再按同一规则
  *       复判（排除它自己这一格规划），过了就 {@link FarmWork#reclaim}，否则取消这一格并提示主人；主人不在线整条队列原
  *       样保留。队首不等冷却：冷却只在开垦后才开始算。</li>
- *   <li>提示：主人开着地灵面板就走面板顶部提示；没开面板时只有取消才发聊天消息，开垦成功不打扰。</li>
+ *   <li>提示发 {@link LandNoticeEvent}：主人开着地灵面板就走面板顶部提示；没开面板时只有取消才发聊天消息，开垦成功不
+ *       打扰。</li>
  *   <li>{@link #step} 接受「区块 → 田」的布局函数；GameTest 把它换成测试区里的小田，规则不变。</li>
  * </ul>
  */
@@ -53,8 +54,7 @@ public final class FieldPlans {
 
         Step step = step(level, data, owner, chunk -> FieldPlot.of(chunk.x, chunk.z, 0), plot);
         if (step == null) return;
-        if (owner.containerMenu instanceof EarthSpiritMenu) EarthSpiritPanel.refresh(owner, step.notice());
-        else if (!step.reclaimed()) owner.sendSystemMessage(step.notice());
+        ModEvents.post(new LandNoticeEvent(owner, step.notice(), !step.reclaimed()));
     }
 
     public static @Nullable Step step(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
@@ -70,14 +70,14 @@ public final class FieldPlans {
                     field.maxX(), field.maxZ(), Siting.FIELD_SLOPE, false, true);
         }
         if (reason != Siting.Reason.OK) {
-            return new Step(false, EarthSpiritPanel.notice("plan_cancelled", chunk.x, chunk.z,
+            return new Step(false, LandNoticeEvent.text("plan_cancelled", chunk.x, chunk.z,
                     Component.translatable(reason.key())));
         }
         if (FarmWork.reclaim(level, data, field, owner) == null) {
-            return new Step(false, EarthSpiritPanel.notice("plan_cancelled", chunk.x, chunk.z,
-                    EarthSpiritPanel.notice("grief_denied")));
+            return new Step(false, LandNoticeEvent.text("plan_cancelled", chunk.x, chunk.z,
+                    LandNoticeEvent.text("grief_denied")));
         }
-        return new Step(true, EarthSpiritPanel.notice("reclaimed", chunk.x, chunk.z,
+        return new Step(true, LandNoticeEvent.text("reclaimed", chunk.x, chunk.z,
                 FarmState.of(data).fields().size()));
     }
 }

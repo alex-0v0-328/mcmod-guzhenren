@@ -350,7 +350,8 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
 
     private void drawTabLabel(GuiGraphics graphics, Page each, int mouseX, int mouseY) {
         boolean selected = each == this.page;
-        int colour = selected ? PanelDrawing.ACCENT : isOverTab(each, mouseX, mouseY) ? PanelDrawing.TEXT : PanelDrawing.LEGEND;
+        int colour = selected ? PanelDrawing.ACCENT
+                : isOverTab(each, mouseX, mouseY) ? PanelDrawing.TEXT : PanelDrawing.LEGEND;
         graphics.drawString(this.font, this.pages.get(each).name(), tabLeft(each) + 24, tabTop(each) + 7, colour,
                 false);
     }
@@ -382,8 +383,8 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
         }
         if (Util.getMillis() < this.noticeUntil) {
             int noticeY = isFullscreen() ? BAR_H + 6 : this.topPos - 12;
-            PanelDrawing.centered(graphics, this.font, this.notice, this.leftPos, this.leftPos + this.imageWidth, noticeY,
-                    PanelDrawing.ACCENT);
+            PanelDrawing.centered(graphics, this.font, this.notice, this.leftPos, this.leftPos + this.imageWidth,
+                    noticeY, PanelDrawing.ACCENT);
         }
         if (current.hasOverlay()) {
             graphics.pose().pushPose();

@@ -123,8 +123,8 @@ final class StoragePage extends PanelPage {
         PanelDrawing.right(graphics, font(), kinds, x + 168, y + 6, PanelDrawing.LEGEND);
         PanelDrawing.label(graphics, font(), Component.translatable(UI + SORT_KEYS[sort().ordinal()]), x + SORT_X,
                 y + SEARCH_Y, SORT_W, PanelDrawing.SQUARE, true);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "deposit_matching"), x + DEPOSIT_X, y + SEARCH_Y,
-                DEPOSIT_W, PanelDrawing.SQUARE, true);
+        PanelDrawing.label(graphics, font(), Component.translatable(UI + "deposit_matching"), x + DEPOSIT_X,
+                y + SEARCH_Y, DEPOSIT_W, PanelDrawing.SQUARE, true);
         graphics.drawString(font(), Component.translatable(UI + "inventory"), x + 8, y + 128, PanelDrawing.TEXT, false);
     }
 

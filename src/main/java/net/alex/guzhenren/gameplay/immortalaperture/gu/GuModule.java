@@ -5,16 +5,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import net.alex.guzhenren.gameplay.immortalaperture.BlissfulLands;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandCensus;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
 import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,11 +24,9 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 「蛊虫」页模块：福地里每种野生蛊一行（捕获后的蛊虫物品图标、数量、托管开关、保持数），「捕获入库」，以及蛊虫托管。
@@ -36,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>行 = 清点到的种类，加上设过保持数或开着托管、眼下一只没有的种类；按实体 ID 排序。一只没有的种类不知道捕到什么物
  *       品，图标记 {@code minecraft:air}，页面不画。</li>
  *   <li>{@link Section#capturePreview()} 是现在点「捕获入库」会捕几只，规则同 {@link GuWork#capture}。</li>
- *   <li>规则都在 {@link GuWork}；托管每轮至多 {@value #HOSTING_GU} 只（单独预算，不占养殖、种植的），结果记进
+ *   <li>规则都在 {@link GuWork}；托管每轮至多 {@value GuWork#HOSTING_GU} 只（单独预算，不占养殖、种植的），结果记进
  *       {@link GuState}，页面显示下一轮倒计时与上一轮捕获数。</li>
  * </ul>
  */
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
 public final class GuModule implements LandModule<GuModule.Section> {
 
     public static final GuModule INSTANCE = new GuModule();
-    public static final int HOSTING_GU = 16;
 
     private GuModule() {}
 
@@ -86,7 +83,7 @@ public final class GuModule implements LandModule<GuModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             BlissfulLandData data = context.data();
-            return EarthSpiritPanel.notice("captured", GuWork.capture(LandCensus.take(context.level(), GuWork.CENSUS),
+            return LandNoticeEvent.text("captured", GuWork.capture(LandCensus.take(context.level(), GuWork.CENSUS),
                     GuState.of(data).keep(), BlissfulStorage.of(data), GuWork.LIMIT));
         }
     }
@@ -153,15 +150,6 @@ public final class GuModule implements LandModule<GuModule.Section> {
             rows.add(new Row(type, item, gus.size(), state.keep(type), state.isHosted(type)));
         });
         return new Section(rows, GuWork.captureCount(swarms, state.keep(), GuWork.LIMIT),
-                BlissfulLands.secondsToHosting(level.getServer()), state.lastCaptured());
-    }
-
-    @Override
-    public int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!GuState.of(data).hosting()) return 0;
-
-        int captured = GuWork.host(LandCensus.take(level, GuWork.CENSUS), data, HOSTING_GU);
-        GuState.of(data).setLastCaptured(captured);
-        return captured;
+                LandHostingJob.secondsUntilNext(level.getServer()), state.lastCaptured());
     }
 }

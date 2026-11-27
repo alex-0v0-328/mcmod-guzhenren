@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.UUID;
 import net.alex.guzhenren.gameplay.immortalaperture.LandModule;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
-import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelSection;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser.Sort;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -112,7 +112,7 @@ public final class StorageModule implements LandModule<StorageModule.Section> {
         @Override
         public @NotNull Component perform(@NotNull ActionContext context) {
             int moved = StorageWork.depositMatching(context.player(), BlissfulStorage.of(context.data()));
-            return moved > 0 ? EarthSpiritPanel.notice("deposited", moved) : EarthSpiritPanel.notice("nothing_matches");
+            return moved > 0 ? LandNoticeEvent.text("deposited", moved) : LandNoticeEvent.text("nothing_matches");
         }
     }
     //endregion

@@ -70,15 +70,18 @@ final class SecretRealmPage extends PanelPage {
         for (int i = 0; i < VISIBLE && offset + i < listed.size(); i++) {
             int top = y + LIST_Y + 1 + i * ROW_H;
             PanelDrawing.row(sprites, x + 9, top, 158, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, 158, ROW_H));
-            PanelDrawing.button(sprites, x + REMOVE_X, top + 1, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true, mouseX, mouseY);
+            PanelDrawing.button(sprites, x + REMOVE_X, top + 1, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true,
+                    mouseX, mouseY);
         }
     }
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         MountainModule.Section data = data();
-        graphics.drawString(font(), Component.translatable(UI + "guts_stones"), x + 8, y + 21, PanelDrawing.LEGEND, false);
-        PanelDrawing.right(graphics, font(), data.gutsStones() + " / " + data.gutsCap(), x + 167, y + 21, PanelDrawing.TEXT);
+        graphics.drawString(font(), Component.translatable(UI + "guts_stones"), x + 8, y + 21, PanelDrawing.LEGEND,
+                false);
+        PanelDrawing.right(graphics, font(), data.gutsStones() + " / " + data.gutsCap(), x + 167, y + 21,
+                PanelDrawing.TEXT);
         boolean moveLive = data.moveCooldown() == 0;
         Component move = moveLive ? Component.translatable(UI + "move_mobs")
                 : Component.translatable(UI + "cooldown", data.moveCooldown());
@@ -99,7 +102,8 @@ final class SecretRealmPage extends PanelPage {
                 PanelDrawing.right(graphics, font(), Component.translatable(UI + "owner"), x + 146, top + 4,
                         PanelDrawing.ACCENT);
             }
-            PanelDrawing.label(graphics, font(), REMOVE, x + REMOVE_X, top + 1, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true);
+            PanelDrawing.label(graphics, font(), REMOVE, x + REMOVE_X, top + 1, PanelDrawing.SQUARE,
+                    PanelDrawing.SQUARE, true);
         }
         graphics.drawString(font(), Component.translatable(UI + "exempt_note"), x + 8, y + 198, PanelDrawing.LEGEND,
                 false);
