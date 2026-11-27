@@ -52,7 +52,7 @@ public final class LandMaps {
 
     private LandMaps() {}
 
-    public static final int RESCAN_TICKS = 5 * Ticks.SECOND;
+    public static final int RESCAN_TICKS = 10 * Ticks.SECOND;
     public static final int MARK_TICKS = Ticks.SECOND;
     public static final int TILES_PER_PACKET = 32;
     public static final int PACKETS_PER_TICK = 2;
