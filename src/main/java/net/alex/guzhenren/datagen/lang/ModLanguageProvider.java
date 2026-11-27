@@ -488,6 +488,14 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.harvested",                "收割 %s 株，补种 %s 格");
         add("guzhenren.blissful_land.panel.grief_denied",             "此地不许改动地形");
         add("guzhenren.blissful_land.panel.reclaimed",                "区块 (%s, %s) 开出标准田，共 %s 块");
+        add("guzhenren.blissful_land.panel.planned_many",             "已规划 %s 块，排队 %s 块");
+        add("guzhenren.blissful_land.panel.planned_some",             "已规划 %s 块，%s 块不可用：%s");
+        add("guzhenren.blissful_land.panel.all_crops_set",            "全部 %s 块田改种%s");
+        add("guzhenren.blissful_land.panel.crop_auto",                "自动");
+        add("guzhenren.blissful_land.panel.teleport_fog",             "迷雾中不能传送，先探明");
+        add("guzhenren.blissful_land.panel.teleport_no_footing",      "附近 %s 格内没有能站的地方");
+        add("guzhenren.blissful_land.panel.teleported",               "已传送到 %s, %s, %s");
+        add("guzhenren.blissful_land.panel.returned",                 "已回到地灵身边");
         add("guzhenren.blissful_land.panel.planned",                  "区块 (%s, %s) 已加入开垦规划，排队 %s 块");
         add("guzhenren.blissful_land.panel.unplanned",                "取消区块 (%s, %s) 的规划");
         add("guzhenren.blissful_land.panel.no_plan",                  "此地没有规划");
@@ -628,7 +636,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.feed",                       "库藏里的饲料：%s 份");
         add("guzhenren.blissful_land.tip.feed_unknown",               "眼下一只都没有，不知道吃什么");
         add("guzhenren.blissful_land.tip.crop_pick",                  "新开的田种什么，点击切换；田开好之后可在地图上点田各自改；自动 = 库藏里第一种种子");
-        add("guzhenren.blissful_land.tip.map_card_crop",              "这块田补种的作物，点击切换；改了现有的株照长，熟一株换一株；自动 = 这块田现有最多的");
+        add("guzhenren.blissful_land.tip.map_card_crop",              "自动：补种这块田现有最多的作物，一株没有时用库藏第一种种子");
+        add("guzhenren.blissful_land.tip.map_card_crop_seed",         "%s：库藏种子 %s。点击改种，现有的株照长，熟一株换一株");
+        add("guzhenren.blissful_land.tip.map_card_apply_all",         "把所有田的补种作物都改成「%s」");
         add("guzhenren.blissful_land.tip.map_card_kind_gu_plant",     "改成蛊植田：一次从库藏扣 %s 个腐泥冻土，耕地全换黑土耕地，作物快 4 倍；改为普通田不退还。点两次确认");
         add("guzhenren.blissful_land.tip.map_card_kind_plain",        "改为普通田：黑土耕地换成普通耕地，腐泥冻土不退还。点两次确认");
         add("guzhenren.blissful_land.tip.map_card_auto_gather",       "开启时托管每 %s 秒替你收拢一次，至多 %s 头");
@@ -653,6 +663,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.map.hint.move_pick",          "选牧场");
         add("guzhenren.blissful_land.ui.map.hint.move_place",         "放到这里");
         add("guzhenren.blissful_land.ui.map.hint.cancel",             "取消");
+        add("guzhenren.blissful_land.ui.map.hint.teleport",           "传送");
+        add("guzhenren.blissful_land.ui.map.teleport.here",           "传送至此 %s, %s, %s");
+        add("guzhenren.blissful_land.ui.map.teleport.back",           "回到地灵身边");
         add("guzhenren.blissful_land.ui.map.hint.pan",                "平移");
         add("guzhenren.blissful_land.ui.map.hint.zoom",               "缩放");
         add("guzhenren.blissful_land.ui.map.readout",                 "x %s  y %s  z %s");
@@ -681,7 +694,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.map.card.field",              "田");
         add("guzhenren.blissful_land.ui.map.card.planned",            "规划田");
         add("guzhenren.blissful_land.ui.map.card.pasture",            "牧场");
-        add("guzhenren.blissful_land.ui.map.card.field_state",        "成熟 %s · 生长 %s");
+        add("guzhenren.blissful_land.ui.map.card.field_state",        "已种 %s/%s · 成熟 %s");
+        add("guzhenren.blissful_land.ui.map.card.growth",             "生长");
+        add("guzhenren.blissful_land.ui.map.card.apply_all",          "套用到全部田");
         add("guzhenren.blissful_land.ui.map.card.planned_state",      "等地灵开垦");
         add("guzhenren.blissful_land.ui.map.card.pasture_state",      "栏内 %s 头");
         add("guzhenren.blissful_land.ui.map.card.remove",             "拆除");
@@ -696,7 +711,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.map.card.auto_gather",        "自动收拢");
         add("guzhenren.blissful_land.ui.map.card.gather_types",       "收拢种类");
         add("guzhenren.blissful_land.ui.map.card.no_animals",         "福地里还没有动物");
-        add("guzhenren.blissful_land.tip.map_tool_farm",              "点一个区块规划一片田，地灵按顺序逐块开垦；右键或 Esc 退出");
+        add("guzhenren.blissful_land.tip.map_tool_farm",              "点一个区块规划一片田，按住拖动可一次框选多块，地灵按顺序逐块开垦；右键或 Esc 退出");
         add("guzhenren.blissful_land.tip.map_tool_pasture",           "点地图圈一个 2×2 区块的牧场；右键或 Esc 退出");
         add("guzhenren.blissful_land.tip.map_tool_remove",            "点田、规划田或牧场即拆除");
         add("guzhenren.blissful_land.tip.map_tool_move",              "先点要迁移的牧场，再点新的位置");

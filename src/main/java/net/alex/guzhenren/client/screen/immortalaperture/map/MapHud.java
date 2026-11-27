@@ -97,8 +97,10 @@ final class MapHud {
     private int keys(@Nullable SpriteBatch sprites, @Nullable GuiGraphics graphics, Font font) {
         int x = keyPhrase(sprites, graphics, font, Component.translatable(UI + "key.wasd"),
                 Component.translatable(UI + "hint.pan"), LEFT + 4, keysY);
-        return keyPhrase(sprites, graphics, font, Component.translatable(UI + "key.wheel"),
+        x = keyPhrase(sprites, graphics, font, Component.translatable(UI + "key.wheel"),
                 Component.translatable(UI + "hint.zoom"), x + 8, keysY);
+        return keyPhrase(sprites, graphics, font, Component.translatable(UI + "key.right"),
+                Component.translatable(UI + "hint.teleport"), x + 8, keysY);
     }
 
     boolean tip(MapPage page, GuiGraphics graphics, MapTools.Land land, int mouseX, int mouseY) {

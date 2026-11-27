@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import net.alex.guzhenren.client.SpriteBatch;
@@ -14,6 +15,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -24,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>占地数据、预判与发操作都经 {@link Land}（由 {@link MapToolLand} 用 {@code MapPart.Section} 与 {@code Siting}
  *       实现），本类只管工具状态、目标换算、绘制与命中。</li>
  *   <li>迁移分两步：先点要迁的牧场，再点新址；预判时忽略这个牧场自己的 4 个区块。</li>
+ *   <li>开垦可拖框（{@link #area}）：按住左键拖出区块矩形，逐块描绿 / 红，松手把合格的一次交上去（{@link #planArea}）；
+ *       拿着开垦工具时左键拖动不再平移地图（WASD 与右键拖动照常）。</li>
  *   <li>田的轮廓描整区块，牧场描栅栏所在的 30×30 周界（{@link Siting#penMin} 到 {@link Siting#penMax}）。</li>
  *   <li>拿着工具时工具栏上方一枚 {@code chip} 用键帽短语写操作（「牧场 [左键] 圈地 [右键] 取消」，Esc 照常可用不写）；
  *       当前工具是选中键、名字金色；选工具只靠点击，数字键仍切页签（Alex 定）。</li>
@@ -43,6 +47,7 @@ final class MapTools {
     private static final String UI = EarthSpiritScreen.UI + "map.";
     private static final String TIP = EarthSpiritScreen.TIP + "map_tool_";
     private static final int NONE = -1;
+    static final int AREA_SIDE = 8;
 
     enum Tool { FARM, PASTURE, REMOVE, MOVE }
 
@@ -70,6 +75,8 @@ final class MapTools {
 
         long mud();
 
+        long seeds(int crop);
+
         List<ResourceLocation> animals();
 
         Verdict farm(int chunkX, int chunkZ);
@@ -77,6 +84,8 @@ final class MapTools {
         Verdict pasture(int chunkX, int chunkZ, int ignoredIndex);
 
         void plan(int chunkX, int chunkZ);
+
+        void planMany(List<Long> chunks);
 
         void unplan(int chunkX, int chunkZ);
 
@@ -92,6 +101,8 @@ final class MapTools {
 
         void setFieldCrop(int chunkX, int chunkZ, int crop);
 
+        void setAllCrops(int crop);
+
         void setFieldKind(int chunkX, int chunkZ, int kind);
 
         void setAutoGather(int index, boolean on);
@@ -99,6 +110,10 @@ final class MapTools {
         void setGatherType(int index, ResourceLocation type, boolean on);
 
         void reveal(int chunkX, int chunkZ, int side);
+
+        void teleport(int x, int z);
+
+        void returnToSpirit();
     }
 
     private @Nullable Tool tool;
@@ -198,6 +213,38 @@ final class MapTools {
                 }
             }
         }
+    }
+
+    /**
+     * 开垦拖框：从按下处到光标处的区块矩形（每边至多 {@value #AREA_SIDE} 区块）逐块预判；按行序数到田的剩余上限为止，
+     * 之后的一律不合格。
+     */
+    List<Target> area(Land land, int fromX, int fromZ, int toX, int toZ) {
+        int minX = Math.max(Math.min(fromX, toX), fromX - AREA_SIDE + 1);
+        int maxX = Math.min(Math.max(fromX, toX), fromX + AREA_SIDE - 1);
+        int minZ = Math.max(Math.min(fromZ, toZ), fromZ - AREA_SIDE + 1);
+        int maxZ = Math.min(Math.max(fromZ, toZ), fromZ + AREA_SIDE - 1);
+        int room = land.fieldCap() - (int) land.plots().stream().filter(plot -> plot.kind() != MapPlots.Kind.PASTURE)
+                .count();
+        List<Target> targets = new ArrayList<>();
+        for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
+            for (int chunkX = minX; chunkX <= maxX; chunkX++) {
+                Verdict verdict = land.farm(chunkX, chunkZ);
+                if (verdict.fit() && room-- <= 0) {
+                    verdict = new Verdict(false, Component.translatable(Siting.Reason.CAP.key()), false);
+                }
+                targets.add(new Target(chunkX, chunkZ, 1, verdict, null));
+            }
+        }
+        return targets;
+    }
+
+    static void planArea(Land land, List<Target> targets) {
+        List<Long> chunks = new ArrayList<>();
+        for (Target target : targets) {
+            if (target.verdict().fit()) chunks.add(ChunkPos.asLong(target.chunkX(), target.chunkZ()));
+        }
+        land.planMany(chunks);
     }
 
     static void remove(Land land, MapPlots.Plot plot) {

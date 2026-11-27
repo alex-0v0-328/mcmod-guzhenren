@@ -11,7 +11,7 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 
 /**
- * 地图叠加层[Map Overlay]：盖在地图贴图上的占地轮廓（合格绿 / 不合格红）、选中框、标记点、玩家头像与等高线数字；坐标走
+ * 地图叠加层[Map Overlay]：盖在地图贴图上的占地轮廓（合格绿 / 不合格红）、选中框、标记点、悬浮图标、玩家头像与等高线数字；坐标走
  * {@link MapProjection}，与贴图逐像素对齐。
  * <ul>
  *   <li>{@link #draw} 把位姿缩放到 1 地图像素 = 2 真实像素、原点移到视口左上角，块内一律用视口地图像素作画；轮廓线
@@ -31,6 +31,8 @@ public final class MapOverlay {
     public static final int SHADOW = 0xC0101018;
     public static final int LABEL_BACK = 0xA0101018;
     private static final int HEAD = 8;
+    private static final int BADGE = 11;
+    private static final int BADGE_BACK = 0xE8141016;
     private final GuiGraphics graphics;
     private final MapCamera camera;
     private final MapProjection projection;
@@ -125,6 +127,42 @@ public final class MapOverlay {
         PlayerInfo info = minecraft.getConnection() == null ? null : minecraft.getConnection().getPlayerInfo(player);
         PlayerFaceRenderer.draw(graphics, info != null ? info.getSkin() : DefaultPlayerSkin.get(player), left, top,
                 HEAD);
+    }
+
+    /**
+     * 悬浮图标：在世界点 ({@code x}, {@code y}, {@code z}) 正上方 {@code lift} 地图像素处画一枚 {@value #BADGE} 见方的徽章
+     * （暗底、{@code border} 色边、下垂一像素尖），{@code glyph} 是 7×7 图样（{@code #} 处涂 {@code ink}）。
+     */
+    public void badge(double x, double y, double z, int lift, int border, String[] glyph, int ink) {
+        int centerX = viewX(x, y, z);
+        int left = centerX - BADGE / 2;
+        int top = viewY(x, y, z) - lift - BADGE;
+        frame(left, top, BADGE, centerX, border);
+        for (int row = 0; row < glyph.length; row++) {
+            for (int column = 0; column < glyph[row].length(); column++) {
+                if (glyph[row].charAt(column) != '#') continue;
+                int px = left + 2 + column;
+                int py = top + 2 + row;
+                graphics.fill(px, py, px + 1, py + 1, ink);
+            }
+        }
+    }
+
+    /** 带数字的悬浮徽章（牧场栏内头数）：宽随文字。 */
+    public void tag(Font font, String text, double x, double y, double z, int lift, int border) {
+        int centerX = viewX(x, y, z);
+        int width = font.width(text) + 4;
+        int left = centerX - width / 2;
+        int top = viewY(x, y, z) - lift - BADGE;
+        frame(left, top, width, centerX, border);
+        graphics.drawString(font, text, left + 2, top + 2, 0xFFFFFFFF, false);
+    }
+
+    private void frame(int left, int top, int width, int centerX, int border) {
+        graphics.fill(left - 1, top - 1, left + width + 1, top + BADGE + 1, SHADOW);
+        graphics.fill(left, top, left + width, top + BADGE, border);
+        graphics.fill(left + 1, top + 1, left + width - 1, top + BADGE - 1, BADGE_BACK);
+        graphics.fill(centerX, top + BADGE, centerX + 1, top + BADGE + 2, border);
     }
 
     /** 在全局地图像素 ({@code globalX}, {@code globalY}) 居中写一段带底衬的文字（等高线数字用）。 */

@@ -22,6 +22,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,8 +32,10 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  *   <li>新田作物按 {@link FarmRules#crops()} 下标循环切换，{@link FarmState#AUTO_CROP} = 自动；库藏没有所选种子也照开，开
  *       出空田之后自动补种。</li>
- *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link Remove} 经
- *       {@link FarmWork#remove}；{@link SetFieldCrop} 只改账，{@link SetFieldKind} 经 {@link FarmWork#retype}。</li>
+ *   <li>{@link Plan}、{@link Unplan} 经 {@link FieldPlans}（选址复判与队列）；{@link PlanMany} 是开垦工具拖框，客户端只交
+ *       它预判合格的区块（至多 {@value Siting#FIELD_CAP} 个），服务端逐块复判，不合格的跳过并报第一条原因；{@link Remove}
+ *       经 {@link FarmWork#remove}；{@link SetFieldCrop} 只改账，{@link SetAllCrops}（田卡片「套用到全部田」）把所有田的
+ *       作物改成同一种，{@link SetFieldKind} 经 {@link FarmWork#retype}。</li>
  *   <li>{@link Section#seeds()} 与 {@link FarmRules#crops()} 同序，是库藏里各作物种子的数量。</li>
  *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmRules#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
  *       轮倒计时与上一轮结果。</li>
@@ -115,6 +118,30 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
     }
 
+    public record PlanMany(@NotNull List<Long> chunks) implements PanelAction {
+
+        public static final int LIMIT = Siting.FIELD_CAP;
+        public static final PanelAction.Type<PlanMany> TYPE = new PanelAction.Type<>(PlanMany.class,
+                ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list(LIMIT)).map(PlanMany::new, PlanMany::chunks));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            int planned = 0;
+            Siting.Reason first = Siting.Reason.OK;
+            for (long chunk : chunks) {
+                Siting.Reason reason = FieldPlans.plan(context.level(), context.data(),
+                        MapPart.plot(context.level(), context.data()), ChunkPos.getX(chunk), ChunkPos.getZ(chunk));
+                if (reason == Siting.Reason.OK) planned++;
+                else if (first == Siting.Reason.OK) first = reason;
+            }
+            if (planned == chunks.size()) {
+                return LandNoticeEvent.text("planned_many", planned, FarmState.of(context.data()).plans().size());
+            }
+            return LandNoticeEvent.text("planned_some", planned, chunks.size() - planned,
+                    Component.translatable(first.key()));
+        }
+    }
+
     public record Unplan(int chunkX, int chunkZ) implements PanelAction {
 
         public static final PanelAction.Type<Unplan> TYPE = new PanelAction.Type<>(Unplan.class,
@@ -184,6 +211,22 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
     }
 
+    public record SetAllCrops(int crop) implements PanelAction {
+
+        public static final PanelAction.Type<SetAllCrops> TYPE = new PanelAction.Type<>(SetAllCrops.class,
+                ByteBufCodecs.VAR_INT.map(SetAllCrops::new, SetAllCrops::crop));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            FarmState state = FarmState.of(context.data());
+            state.setAllCrops(crop);
+            int clamped = FarmState.clampCrop(crop);
+            Component name = clamped == FarmState.AUTO_CROP ? LandNoticeEvent.text("crop_auto")
+                    : FarmRules.crops().get(clamped).getName();
+            return LandNoticeEvent.text("all_crops_set", state.fields().size(), name);
+        }
+    }
+
     public record SetFieldKind(int chunkX, int chunkZ, int kind) implements PanelAction {
 
         public static final PanelAction.Type<SetFieldKind> TYPE = new PanelAction.Type<>(SetFieldKind.class,
@@ -228,7 +271,7 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
         return List.of(Plan.TYPE, Unplan.TYPE, Remove.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE,
-                SetFieldCrop.TYPE, SetFieldKind.TYPE);
+                SetFieldCrop.TYPE, SetFieldKind.TYPE, PlanMany.TYPE, SetAllCrops.TYPE);
     }
 
     @Override

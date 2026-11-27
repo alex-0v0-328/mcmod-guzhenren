@@ -76,6 +76,8 @@ final class LandMap {
 
     void markGenerated(long chunk) { this.generated.put(chunk, GENERATED); }
 
+    boolean isKnown(long chunk) { return this.cache.containsKey(chunk) || this.generated.get(chunk) == GENERATED; }
+
     boolean isIdle() { return this.queue.isEmpty() && this.inFlight.isEmpty(); }
 
     //region Scan [扫描]

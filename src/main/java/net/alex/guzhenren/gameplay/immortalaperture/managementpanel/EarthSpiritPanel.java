@@ -55,6 +55,7 @@ public final class EarthSpiritPanel {
         player.openMenu(new SimpleMenuProvider((id, inventory, who) -> new EarthSpiritMenu(id, inventory, spirit,
                         snapshot), spirit.getDisplayName()),
                 buffer -> PanelSnapshot.STREAM_CODEC.encode(buffer, snapshot));
+        if (player.containerMenu instanceof EarthSpiritMenu menu) menu.setOrigin(player.position());
     }
 
     public static void remember(@NotNull ServerPlayer player, @NotNull Page page) {

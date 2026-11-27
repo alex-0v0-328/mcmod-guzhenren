@@ -91,6 +91,9 @@ final class MapToolLand implements MapTools.Land {
     public long mud() { return section().mud(); }
 
     @Override
+    public long seeds(int crop) { return section().seedsOf(crop); }
+
+    @Override
     public List<ResourceLocation> animals() { return section().animals(); }
 
     @Override
@@ -112,6 +115,11 @@ final class MapToolLand implements MapTools.Land {
 
     @Override
     public void plan(int chunkX, int chunkZ) { page.sendAction(new FarmPart.Plan(chunkX, chunkZ)); }
+
+    @Override
+    public void planMany(List<Long> chunks) {
+        if (!chunks.isEmpty()) page.sendAction(new FarmPart.PlanMany(List.copyOf(chunks)));
+    }
 
     @Override
     public void unplan(int chunkX, int chunkZ) { page.sendAction(new FarmPart.Unplan(chunkX, chunkZ)); }
@@ -136,12 +144,21 @@ final class MapToolLand implements MapTools.Land {
     }
 
     @Override
+    public void teleport(int x, int z) { page.sendAction(new MapPart.Teleport(x, z)); }
+
+    @Override
+    public void returnToSpirit() { page.sendAction(new MapPart.ReturnToSpirit()); }
+
+    @Override
     public void gather(int index) { page.sendAction(new HerdPart.Gather(index)); }
 
     @Override
     public void setFieldCrop(int chunkX, int chunkZ, int crop) {
         page.sendAction(new FarmPart.SetFieldCrop(chunkX, chunkZ, crop));
     }
+
+    @Override
+    public void setAllCrops(int crop) { page.sendAction(new FarmPart.SetAllCrops(crop)); }
 
     @Override
     public void setFieldKind(int chunkX, int chunkZ, int kind) {

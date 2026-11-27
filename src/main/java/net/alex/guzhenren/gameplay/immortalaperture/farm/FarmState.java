@@ -22,7 +22,8 @@ import org.jetbrains.annotations.Nullable;
  *       合计受 {@code Siting#FIELD_CAP} 限制（在 {@link FieldPlans} 查）。</li>
  *   <li>作物都是 {@link FarmRules#crops()} 的下标，{@value #AUTO_CROP} = 自动。新田作物是开垦时给新田的作物，田的作物
  *       随后各改各的；新田一律普通田。</li>
- *   <li>本类是存档段 {@link #PART}（子项 {@code farm}），任何改动经回调置脏。</li>
+ *   <li>本类是存档段 {@link #PART}（子项 {@code farm}），任何改动经回调置脏；开面板补种轮到的田序
+ *       {@link #topUpCursor} 不存档。</li>
  * </ul>
  */
 
@@ -39,6 +40,7 @@ public final class FarmState implements LandSavePart.State {
     private int crop = AUTO_CROP;
     private int lastReaped;
     private int lastSown;
+    private int topUpCursor;
 
     public FarmState(@NotNull Runnable changed) { this.changed = changed; }
 
@@ -117,6 +119,20 @@ public final class FarmState implements LandSavePart.State {
         if (this.crop == clamped) return;
         this.crop = clamped;
         changed.run();
+    }
+
+    public int topUpCursor() { return topUpCursor; }
+
+    public void setTopUpCursor(int cursor) { topUpCursor = cursor; }
+
+    public void setAllCrops(int crop) {
+        int clamped = clampCrop(crop);
+        boolean any = false;
+        for (FieldPlot field : fields) {
+            Integer before = fieldCrops.put(field, clamped);
+            any |= before == null || before != clamped;
+        }
+        if (any) changed.run();
     }
 
     public int lastReaped() { return lastReaped; }

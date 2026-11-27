@@ -55,6 +55,9 @@ import org.jetbrains.annotations.Nullable;
  *       的先重新耕成原版耕地）种这块田的作物（自动 = 田里现有最多的，一株没有取库藏第一种种子），从库藏扣到没有为止；蛊植
  *       田最后把原版耕地逐格掺回黑土，每格扣 1 个腐泥冻土，扣完为止。一次至多处理 {@code fieldLimit} 块田，有收割、补种或
  *       掺土的田才算一块，整块田一次做完。</li>
+ *   <li>{@link #topUp}：主人开着面板时每秒调一次，按田序轮流找下一块有空格可补（或可掺土）的田，像收割后那样补满这一块；
+ *       轮到哪块记在 {@link FarmState#topUpCursor}（不存档）。{@link #look} 给田卡片的熟 / 未熟株数与生长进度
+ *       （全田作物龄之和 ÷ 满龄之和）。</li>
  *   <li>⚠ 强加载用 NeoForge {@link #TICKETS} 的带刻工单：原版 {@code /forceload} 的区块附近没有玩家时不随机刻，作物不
  *       长。工单以 {@link FieldPlot#center} 为主人，NeoForge 跨重启保存；失主时 {@link #release} 撤掉，认主时
  *       {@link #retain} 重挂。读档时校验回调把无主福地（或已不是福地的维度）的工单全部丢掉。</li>
@@ -73,6 +76,8 @@ public final class FarmWork {
     private static final int NO_GROUND = Integer.MIN_VALUE;
 
     public record Count(int mature, int growing) {}
+
+    public record Look(int mature, int growing, int growth) {}
 
     public record Harvest(int reaped, int sown, int fields) {}
 
@@ -260,6 +265,25 @@ public final class FarmWork {
         return new Count(mature, growing);
     }
 
+    public static @NotNull Look look(@NotNull ServerLevel level, @NotNull FieldPlot field) {
+        if (!level.isLoaded(field.center())) return new Look(0, 0, 0);
+        int mature = 0;
+        int growing = 0;
+        long age = 0L;
+        long full = 0L;
+        for (BlockPos pos : field.cells()) {
+            BlockState state = level.getBlockState(pos);
+            if (!isCrop(state)) continue;
+            if (isMature(state)) mature++;
+            else growing++;
+            if (state.getBlock() instanceof CropBlock crop) {
+                age += crop.getAge(state);
+                full += crop.getMaxAge();
+            }
+        }
+        return new Look(mature, growing, full == 0L ? 0 : (int) (age * 100L / full));
+    }
+
     public static @NotNull Harvest harvest(@NotNull ServerLevel level, @NotNull BlissfulLandData data, int fieldLimit) {
         FarmState farm = FarmState.of(data);
         int reaped = 0;
@@ -278,11 +302,37 @@ public final class FarmWork {
                 reap(level, data, pos, state, chosen == null ? state.getBlock() : chosen);
                 reaped++;
             }
-            sown += sow(level, data, cells, chosen);
-            int mixed = farm.kind(field) == FieldKind.GU_PLANT ? mix(level, data, cells) : 0;
-            if (reaped + sown + mixed > before) fields++;
+            int filled = fill(level, data, field);
+            sown += Math.max(0, filled);
+            if (reaped + sown > before || filled < 0) fields++;
         }
         return new Harvest(reaped, sown, fields);
+    }
+
+    public static int topUp(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
+        FarmState farm = FarmState.of(data);
+        List<FieldPlot> fields = farm.fields();
+        if (fields.isEmpty()) return 0;
+        int start = Math.floorMod(farm.topUpCursor(), fields.size());
+        for (int step = 0; step < fields.size(); step++) {
+            int at = (start + step) % fields.size();
+            FieldPlot field = fields.get(at);
+            if (!level.isLoaded(field.center())) continue;
+            int filled = fill(level, data, field);
+            if (filled == 0) continue;
+            farm.setTopUpCursor(at + 1);
+            return Math.max(0, filled);
+        }
+        return 0;
+    }
+
+    private static int fill(ServerLevel level, BlissfulLandData data, FieldPlot field) {
+        FarmState farm = FarmState.of(data);
+        List<BlockPos> cells = field.cells();
+        Block chosen = farm.crop(field) == FarmState.AUTO_CROP ? null : FarmRules.crops().get(farm.crop(field));
+        int sown = sow(level, data, cells, chosen);
+        int mixed = farm.kind(field) == FieldKind.GU_PLANT ? mix(level, data, cells) : 0;
+        return sown > 0 || mixed == 0 ? sown : -1;
     }
 
     private static void reap(ServerLevel level, BlissfulLandData data, BlockPos pos, BlockState state, Block next) {

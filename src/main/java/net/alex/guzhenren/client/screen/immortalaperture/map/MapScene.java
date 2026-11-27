@@ -10,6 +10,7 @@ import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapSurface;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapTint;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapMark;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapTile;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,8 +19,8 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地图页的地图层绘制：底色 → 地形贴图 → 规划田轮廓、悬停或选中的占地、工具目标 → 活物点 → 玩家头像，全部按维度时间乘
- * {@link MapTint}（轮廓与头像除外）。
+ * 地图页的地图层绘制：底色 → 地形贴图 → 规划田轮廓、悬停或选中的占地、工具目标与开垦拖框 → 活物点 → 田与牧场的悬浮
+ * 图标 → 玩家头像，地形与活物点按维度时间乘 {@link MapTint}（轮廓、图标与头像不乘，夜里也看得清）。
  * <ul>
  *   <li>⚠ 贴图与头像是立即绘制，排队中的填充必须先 {@code flush}，否则会盖到后画的东西上；所以底色后、头像前各
  *       flush 一次。</li>
@@ -30,11 +31,23 @@ import org.jetbrains.annotations.Nullable;
 
 final class MapScene {
 
+    private static final int LIFT = 5;
+    private static final int MATURE = 0xFFE4B750;
+    private static final int GROWING = 0xFF7BC86A;
+    private static final int IDLE = 0xFF8C8690;
+    private static final int PEN = 0xFFC9A26B;
+    private static final String[] EAR = { "...#...", "..###..", ".#.#.#.", "..###..", ".#.#.#.", "..###..",
+            "...#..." };
+    private static final String[] SPROUT = { ".......", "##...##", ".##.##.", "...#...", "...#...", "...#...",
+            "..###.." };
+    private static final String[] FURROW = { ".......", "#######", ".......", "#######", ".......", "#######",
+            "......." };
+
     private MapScene() {}
 
-    /** 一帧要叠加的东西：{@code highlighted} 是悬停或卡片选中的占地，{@code target} 是工具目标。 */
+    /** 一帧要叠加的东西：{@code highlighted} 是悬停或卡片选中的占地，{@code target} 是工具目标，{@code area} 是开垦拖框。 */
     record Layers(List<MapPlots.Plot> plots, MapPlots.@Nullable Plot highlighted, MapTools.@Nullable Target target,
-                  int targetColour, MapPick.@Nullable Hit hover) {}
+                  int targetColour, List<MapTools.Target> area, MapPick.@Nullable Hit hover) {}
 
     static void draw(GuiGraphics graphics, MapCamera camera, MapSurface surface, int top, int width, int height,
                      double guiScale, Layers layers) {
@@ -48,23 +61,49 @@ final class MapScene {
                 if (plot.kind() == MapPlots.Kind.PLANNED) outline(overlay, camera, plot, MapOverlay.PLANNED);
             }
             if (layers.highlighted() != null) outline(overlay, camera, layers.highlighted(), MapOverlay.SELECTED);
+            for (MapTools.Target each : layers.area()) {
+                MapTools.outline(overlay, each.chunkX(), each.chunkZ(), 1, centreGround(camera, each.chunkX(),
+                        each.chunkZ(), 1), each.verdict().fit() ? MapOverlay.FIT : MapOverlay.UNFIT);
+            }
             MapTools.Target target = layers.target();
             if (target != null) {
                 MapTools.outline(overlay, target.chunkX(), target.chunkZ(), target.size(),
                         centreGround(camera, target.chunkX(), target.chunkZ(), target.size()), layers.targetColour());
-            } else if (layers.highlighted() == null && layers.hover() != null) {
+            } else if (layers.highlighted() == null && layers.area().isEmpty() && layers.hover() != null) {
                 overlay.select(layers.hover().x(), layers.hover().z(), layers.hover().top());
             }
             for (MapMark mark : LandMapClient.marks()) {
                 if (mark.kind() == MapMark.PLAYER && mark.player().isPresent()) continue;
                 overlay.mark(mark.x() + 0.5, mark.y(), mark.z() + 0.5, tint.apply(MapLegend.colour(mark.kind())));
             }
+            badges(overlay, camera, layers.plots());
             graphics.flush();
             for (MapMark mark : LandMapClient.marks()) {
                 if (mark.kind() != MapMark.PLAYER || mark.player().isEmpty()) continue;
                 overlay.head(mark.player().get(), mark.x() + 0.5, mark.y(), mark.z() + 0.5);
             }
         });
+    }
+
+    /** 每块田、每个牧场中心正上方的悬浮图标：田按 {@link MapPlots.Plot#growth} 三态，牧场写栏内头数；每 2 秒上下浮 1 像素。 */
+    private static void badges(MapOverlay overlay, MapCamera camera, List<MapPlots.Plot> plots) {
+        Font font = Minecraft.getInstance().font;
+        int lift = LIFT + (int) Math.round(Math.sin(Util.getMillis() / 1000.0 * Math.PI));
+        for (MapPlots.Plot plot : plots) {
+            if (plot.kind() == MapPlots.Kind.PLANNED) continue;
+            double x = plot.chunkX() * 16 + plot.size() * 8;
+            double z = plot.chunkZ() * 16 + plot.size() * 8;
+            int y = centreGround(camera, plot.chunkX(), plot.chunkZ(), plot.size()) + 2;
+            if (plot.kind() == MapPlots.Kind.PASTURE) {
+                overlay.tag(font, Integer.toString(plot.penned()), x, y, z, lift, PEN);
+                continue;
+            }
+            switch (plot.growth()) {
+                case MATURE -> overlay.badge(x, y, z, lift, MATURE, EAR, MATURE);
+                case GROWING -> overlay.badge(x, y, z, lift, GROWING, SPROUT, GROWING);
+                case IDLE -> overlay.badge(x, y, z, lift, IDLE, FURROW, IDLE);
+            }
+        }
     }
 
     /** 相机对准山心（参照平面 = 山底）；山心未解出（{@code BlockPos.ZERO}）时对准玩家脚下；都不行返回假。 */

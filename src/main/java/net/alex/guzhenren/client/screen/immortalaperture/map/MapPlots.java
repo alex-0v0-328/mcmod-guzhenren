@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
  * 地图上的经营占地[Plot]：田、规划田各占 1 个区块，牧场占以西北角区块为起点的 2×2 区块；纯函数，供工具条、对象卡片与
  * 割弃确认框共用。
  * <ul>
- *   <li>{@link #at}：某区块上是什么（同一区块至多一样东西，契约 §8）。</li>
+ *   <li>{@link #at}：某区块上是什么（同一区块至多一样东西，契约 §8）；{@link Plot#growth} 给田的悬浮图标定状态。</li>
  *   <li>{@link #pastureCorner}：光标所在方块坐标 → 让 2×2 区块以光标为中心的西北角区块坐标。</li>
  *   <li>{@link #voided}：某侧宽 {@code width} 区块的割弃条带会作废几片田、几片规划、几个牧场（牧场任一区块落进条带
  *       即作废）。</li>
@@ -21,10 +21,18 @@ public final class MapPlots {
 
     public enum Kind { FIELD, PLANNED, PASTURE }
 
+    /** 田的悬浮图标状态：一株没有为空置，成熟株多于未熟为成熟，其余生长中。 */
+    public enum Growth { MATURE, GROWING, IDLE }
+
     /** 一处占地：牧场的 {@code chunkX}/{@code chunkZ} 是西北角区块，{@code index} 是它在牧场列表里的下标。 */
     public record Plot(Kind kind, int chunkX, int chunkZ, int index, int mature, int growing, int penned) {
 
         public int size() { return kind == Kind.PASTURE ? 2 : 1; }
+
+        public Growth growth() {
+            if (mature + growing == 0) return Growth.IDLE;
+            return mature > growing ? Growth.MATURE : Growth.GROWING;
+        }
 
         public boolean covers(int chunkX, int chunkZ) {
             return chunkX >= this.chunkX && chunkX < this.chunkX + size() && chunkZ >= this.chunkZ

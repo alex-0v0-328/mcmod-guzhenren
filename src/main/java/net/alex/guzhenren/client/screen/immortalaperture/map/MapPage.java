@@ -16,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -54,6 +55,7 @@ public class MapPage extends PanelPage {
     private final CedePanel cede = new CedePanel(this);
     private final MapTools tools = new MapTools();
     private final MapCard card = new MapCard();
+    private final MapTeleportMenu teleport = new MapTeleportMenu();
     private final MapToolLand land = new MapToolLand(this);
     private boolean aimed;
     private int dragging = NO_BUTTON;
@@ -62,6 +64,11 @@ public class MapPage extends PanelPage {
     private boolean moved;
     private @Nullable MapPick.Hit hover;
     private MapTools.@Nullable Target target;
+    private boolean areaing;
+    private int areaX;
+    private int areaZ;
+    private long areaEnd = Long.MIN_VALUE;
+    private List<MapTools.Target> area = List.of();
     private long lastFrame;
 
     public MapPage(EarthSpiritScreen screen) { super(screen); }
@@ -97,10 +104,12 @@ public class MapPage extends PanelPage {
     @Override
     protected void hidden() {
         dragging = NO_BUTTON;
+        endArea();
         lastFrame = 0L;
         cede.closeAll();
         tools.cancel();
         card.close();
+        teleport.close();
         LandMapClient.stopView();
     }
 
@@ -137,10 +146,12 @@ public class MapPage extends PanelPage {
         List<MapPlots.Plot> plots = land.plots();
         card.refresh(plots);
         target = tools.target(land, hover);
+        updateArea();
+        if (!area.isEmpty()) target = null;
         MapPlots.Plot highlighted = card.plot() != null ? card.plot() : tools.active() != null || hover == null
                 ? null : MapPlots.at(plots, hover.x() >> 4, hover.z() >> 4);
         MapScene.draw(graphics, camera, surface, TOP, width(), height(), guiScale(), new MapScene.Layers(plots,
-                highlighted, target, target == null ? 0 : tools.colour(target), hover));
+                highlighted, target, target == null ? 0 : tools.colour(target), area, hover));
         SpriteBatch.draw(graphics, sprites -> {
             hud.sprites(sprites, font(), land);
             controls.sprites(sprites, camera, mouseX, mouseY);
@@ -152,7 +163,10 @@ public class MapPage extends PanelPage {
         rail.fills(graphics, surface.lowest(), surface.highest(), hover);
         legend.fills(graphics);
         tools.fills(graphics);
-        SpriteBatch.draw(graphics, sprites -> card.sprites(sprites, land, mouseX, mouseY));
+        SpriteBatch.draw(graphics, sprites -> {
+            card.sprites(sprites, land, mouseX, mouseY);
+            teleport.sprites(sprites, mouseX, mouseY);
+        });
         controls.needle(graphics, camera);
     }
 
@@ -165,6 +179,7 @@ public class MapPage extends PanelPage {
         tools.texts(graphics, font());
         tools.hint(null, graphics, font());
         card.texts(graphics, font(), land);
+        teleport.texts(graphics, font());
         legend.texts(graphics, font(), camera, surface.lowest(), surface.highest(), hover);
     }
 
@@ -187,7 +202,8 @@ public class MapPage extends PanelPage {
     private boolean isOnMap(double mouseX, double mouseY) {
         return mouseY >= EarthSpiritScreen.BAR_H && mouseY < height() && mouseX >= 0 && mouseX < width()
                 && !controls.contains(mouseX, mouseY) && !tools.contains(mouseX, mouseY)
-                && !hud.contains(mouseX, mouseY) && !legend.contains(mouseX, mouseY) && !card.contains(mouseX, mouseY);
+                && !hud.contains(mouseX, mouseY) && !legend.contains(mouseX, mouseY) && !card.contains(mouseX, mouseY)
+                && !teleport.contains(mouseX, mouseY);
     }
     //endregion
 
@@ -195,6 +211,11 @@ public class MapPage extends PanelPage {
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         boolean left = button == InputConstants.MOUSE_BUTTON_LEFT;
+        if (teleport.contains(mouseX, mouseY)) {
+            if (left) teleport.click(land, mouseX, mouseY);
+            return true;
+        }
+        teleport.close();
         if (card.contains(mouseX, mouseY)) {
             if (left) card.click(land, tools, mouseX, mouseY);
             return true;
@@ -227,7 +248,33 @@ public class MapPage extends PanelPage {
         pressX = mouseX;
         pressY = mouseY;
         moved = false;
+        if (left && tools.active() == MapTools.Tool.FARM) {
+            MapPick.Hit start = pick(mouseX, mouseY);
+            areaing = start != null;
+            if (start != null) {
+                areaX = start.x() >> 4;
+                areaZ = start.z() >> 4;
+            }
+        }
         return true;
+    }
+
+    private void updateArea() {
+        if (!areaing || !moved || hover == null) {
+            area = List.of();
+            areaEnd = Long.MIN_VALUE;
+            return;
+        }
+        long end = ChunkPos.asLong(hover.x() >> 4, hover.z() >> 4);
+        if (end == areaEnd && !area.isEmpty()) return;
+        areaEnd = end;
+        area = tools.area(land, areaX, areaZ, hover.x() >> 4, hover.z() >> 4);
+    }
+
+    private void endArea() {
+        areaing = false;
+        area = List.of();
+        areaEnd = Long.MIN_VALUE;
     }
 
     private void press(MapControls.Control control) {
@@ -273,7 +320,7 @@ public class MapPage extends PanelPage {
     protected boolean drag(int x, int y, double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (button != dragging) return false;
         if (Math.abs(mouseX - pressX) >= CLICK_SLOP || Math.abs(mouseY - pressY) >= CLICK_SLOP) moved = true;
-        if (moved) camera.pan(dragX / scale(), dragY / scale());
+        if (moved && !areaing) camera.pan(dragX / scale(), dragY / scale());
         return true;
     }
 
@@ -281,7 +328,13 @@ public class MapPage extends PanelPage {
     protected boolean release(int x, int y, double mouseX, double mouseY, int button) {
         if (button != dragging) return false;
         dragging = NO_BUTTON;
-        if (!moved && button == InputConstants.MOUSE_BUTTON_LEFT) tap((int) mouseX, (int) mouseY);
+        if (areaing && moved) MapTools.planArea(land, area);
+        else if (!moved && button == InputConstants.MOUSE_BUTTON_LEFT) tap((int) mouseX, (int) mouseY);
+        else if (!moved && button == InputConstants.MOUSE_BUTTON_RIGHT && tools.active() == null) {
+            MapPick.Hit hit = pick(mouseX, mouseY);
+            if (hit != null && hit.known()) teleport.open(hit, (int) mouseX, (int) mouseY, width(), height());
+        }
+        endArea();
         return true;
     }
 
@@ -298,7 +351,8 @@ public class MapPage extends PanelPage {
 
     @Override
     protected boolean key(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == InputConstants.KEY_ESCAPE && (tools.active() != null || card.isOpen())) {
+        if (keyCode == InputConstants.KEY_ESCAPE && (tools.active() != null || card.isOpen() || teleport.isOpen())) {
+            teleport.close();
             tools.cancel();
             card.close();
             return true;

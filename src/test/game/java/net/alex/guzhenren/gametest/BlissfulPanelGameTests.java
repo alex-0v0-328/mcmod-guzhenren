@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
@@ -58,6 +59,7 @@ import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static net.alex.guzhenren.gametest.GameTestPlayers.CENTER_POS;
@@ -86,6 +88,9 @@ public final class BlissfulPanelGameTests {
         UUID someone = UUID.randomUUID();
         ResourceLocation cow = BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.COW);
         List<PanelAction> samples = List.of(new PanelActions.View(Page.INFO), new MapPart.RevealChunk(5, -6, 2),
+                new MapPart.Teleport(-120, 340), new MapPart.ReturnToSpirit(),
+                new FarmPart.PlanMany(List.of(ChunkPos.asLong(1, 2), ChunkPos.asLong(-3, 4))),
+                new FarmPart.SetAllCrops(FarmState.AUTO_CROP),
                 new OverviewPart.Expel(someone), new OverviewPart.ExpelOutsiders(),
                 new OverviewPart.SetWhitelisted(someone, true), new SecretRealmPart.MoveMobs(),
                 new SecretRealmPart.DriveGutsGu(), new SecretRealmPart.AddWhitelist("Steve"), new HerdPart.Breed(),

@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
@@ -22,6 +23,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandSite;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
+import net.alex.guzhenren.gameplay.immortalaperture.territory.LandTeleport;
 import net.alex.guzhenren.gameplay.secretrealm.RealmSite;
 import net.alex.guzhenren.gameplay.secretrealm.SecretRealms;
 import net.minecraft.core.BlockPos;
@@ -31,15 +33,20 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「地图」页面板段：下发地图页叠加层与卡片需要的经营数据（疆域、山心与秘境半径、行宫、入口、田与其作物田型、规划、
- * 牧场与其设置、选址上限、库藏腐泥冻土数、可勾选的收拢种类）；
+ * 「地图」页面板段：下发地图页叠加层与卡片需要的经营数据（疆域、山心与秘境半径、行宫、入口、田与其熟 / 未熟株数、生长
+ * 进度、作物田型、规划、牧场与其设置、选址上限、库藏腐泥冻土数与各作物种子数（与 {@link FarmRules#crops()} 同序）、可
+ * 勾选的收拢种类）；
  * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmPart}、{@code HerdPart}；本段只有「探明」
- * （{@link RevealChunk}，拿着选址工具点迷雾，交 {@link LandMaps#reveal} 限流后生成并加载）。
+ * （{@link RevealChunk}，拿着选址工具点迷雾，交 {@link LandMaps#reveal} 限流后生成并加载）与地图右键传送：
+ * {@link Teleport} 只许落在疆域内已探明的区块（{@link LandMaps#isKnown}），落点由 {@link LandTeleport#landing} 找，传送
+ * 后面板置漫游不再按距离关；{@link ReturnToSpirit} 传回开面板时站的位置。
  * <ul>
  *   <li>秘境未解出时山心、行宫、入口都是 {@link BlockPos#ZERO}、秘境半径 0（{@link Siting} 视作不查秘境）。</li>
  *   <li>{@link #plot}（服务端复判）与 {@link Section#siting}（客户端预判）取同一组占地：田、规划、牧场 4 区块；服务端
@@ -68,21 +75,62 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
         }
     }
 
+    public record Teleport(int x, int z) implements PanelAction {
+
+        public static final PanelAction.Type<Teleport> TYPE = new PanelAction.Type<>(Teleport.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, Teleport::x, ByteBufCodecs.VAR_INT, Teleport::z,
+                        Teleport::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            BlissfulLandData data = context.data();
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+            if (!data.territory().contains(chunkX, chunkZ) || !LandMaps.isKnown(data.land(), chunkX, chunkZ)
+                    && context.level().getChunkSource().getChunkNow(chunkX, chunkZ) == null) {
+                return LandNoticeEvent.text("teleport_fog");
+            }
+            Vec3 spot = LandTeleport.landing(context.level(), x, z);
+            if (spot == null) return LandNoticeEvent.text("teleport_no_footing", LandTeleport.SEARCH);
+            context.menu().setRoaming();
+            LandTeleport.go(context.player(), context.level(), spot);
+            return LandNoticeEvent.text("teleported", Mth.floor(spot.x), Mth.floor(spot.y), Mth.floor(spot.z));
+        }
+    }
+
+    public record ReturnToSpirit() implements PanelAction {
+
+        public static final PanelAction.Type<ReturnToSpirit> TYPE = new PanelAction.Type<>(ReturnToSpirit.class,
+                StreamCodec.unit(new ReturnToSpirit()));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            Vec3 origin = context.menu().origin();
+            if (origin == null) return Component.empty();
+            LandTeleport.go(context.player(), context.level(), origin);
+            return LandNoticeEvent.text("returned");
+        }
+    }
+
     public record Section(@NotNull Territory territory, @NotNull BlockPos mountain, int realmRadius,
                           @NotNull BlockPos palace, @NotNull BlockPos entry, @NotNull List<Field> fields,
                           @NotNull List<ChunkPos> planned, @NotNull List<Pen> pastures, int fieldCap, int pastureCap,
-                          long mud, @NotNull List<ResourceLocation> animals) implements PanelSection {
+                          long mud, @NotNull List<ResourceLocation> animals, @NotNull List<Long> seeds)
+            implements PanelSection {
 
-        public record Field(int chunkX, int chunkZ, int mature, int growing, int crop, int kind) {
+        public record Field(int chunkX, int chunkZ, int mature, int growing, int growth, int crop, int kind) {
 
-            public static final StreamCodec<RegistryFriendlyByteBuf, Field> STREAM_CODEC = StreamCodec.composite(
-                    ByteBufCodecs.VAR_INT, Field::chunkX,
-                    ByteBufCodecs.VAR_INT, Field::chunkZ,
-                    ByteBufCodecs.VAR_INT, Field::mature,
-                    ByteBufCodecs.VAR_INT, Field::growing,
-                    ByteBufCodecs.VAR_INT, Field::crop,
-                    ByteBufCodecs.VAR_INT, Field::kind,
-                    Field::new);
+            public static final StreamCodec<RegistryFriendlyByteBuf, Field> STREAM_CODEC = StreamCodec.of(
+                    (buffer, field) -> {
+                        for (int value : new int[] {field.chunkX, field.chunkZ, field.mature, field.growing,
+                                field.growth, field.crop, field.kind}) {
+                            buffer.writeVarInt(value);
+                        }
+                    },
+                    buffer -> new Field(buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(),
+                            buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt()));
+
+            public int planted() { return mature + growing; }
         }
 
         public record Pen(int chunkX, int chunkZ, int penned, boolean autoGather,
@@ -101,7 +149,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
 
         public static final Section EMPTY = new Section(TerritoryPart.Section.EMPTY.territory(), BlockPos.ZERO, 0,
                 BlockPos.ZERO, BlockPos.ZERO, List.of(), List.of(), List.of(), Siting.FIELD_CAP, Siting.PASTURE_CAP,
-                0L, List.of());
+                0L, List.of(), List.of());
         private static final StreamCodec<ByteBuf, List<ChunkPos>> CHUNKS =
                 ByteBufCodecs.VAR_LONG.map(ChunkPos::new, ChunkPos::toLong).apply(ByteBufCodecs.list());
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
@@ -120,6 +168,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             }
             buffer.writeVarLong(section.mud);
             ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.animals);
+            ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).encode(buffer, section.seeds);
         }
 
         private static Section decode(RegistryFriendlyByteBuf buffer) {
@@ -135,9 +184,12 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             int pastureCap = buffer.readVarInt();
             long mud = buffer.readVarLong();
             List<ResourceLocation> animals = ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
+            List<Long> seeds = ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).decode(buffer);
             return new Section(territory, mountain, realmRadius, palace, entry, fields, planned, pastures, fieldCap,
-                    pastureCap, mud, animals);
+                    pastureCap, mud, animals, seeds);
         }
+
+        public long seedsOf(int crop) { return crop >= 0 && crop < seeds.size() ? seeds.get(crop) : 0L; }
 
         public @NotNull Siting.Plot siting() {
             List<Long> taken = new ArrayList<>();
@@ -159,7 +211,9 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, Section> sectionCodec() { return Section.STREAM_CODEC; }
 
     @Override
-    public @NotNull List<PanelAction.Type<?>> actions() { return List.of(RevealChunk.TYPE); }
+    public @NotNull List<PanelAction.Type<?>> actions() {
+        return List.of(RevealChunk.TYPE, Teleport.TYPE, ReturnToSpirit.TYPE);
+    }
 
     @Override
     public @NotNull Section section(@NotNull PanelContext context) {
@@ -170,8 +224,8 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
         FarmState farm = FarmState.of(data);
         List<Section.Field> fields = new ArrayList<>();
         for (FieldPlot field : farm.fields()) {
-            FarmWork.Count count = FarmWork.count(level, field);
-            fields.add(new Section.Field(field.chunk().x, field.chunk().z, count.mature(), count.growing(),
+            FarmWork.Look look = FarmWork.look(level, field);
+            fields.add(new Section.Field(field.chunk().x, field.chunk().z, look.mature(), look.growing(), look.growth(),
                     farm.crop(field), farm.kind(field).ordinal()));
         }
         List<ChunkPos> planned = new ArrayList<>();
@@ -193,7 +247,16 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
         return new Section(data.territory(), site == null ? BlockPos.ZERO : site.center(),
                 realm == null ? 0 : realm.radius(), site == null ? BlockPos.ZERO : site.palace(),
                 site == null ? BlockPos.ZERO : site.entry(), fields, planned, pastures, Siting.FIELD_CAP,
-                Siting.PASTURE_CAP, BlissfulStorage.of(data).count(FarmWork::isMud), List.copyOf(animals));
+                Siting.PASTURE_CAP, BlissfulStorage.of(data).count(FarmWork::isMud), List.copyOf(animals),
+                seeds(data));
+    }
+
+    private static List<Long> seeds(BlissfulLandData data) {
+        List<Long> seeds = new ArrayList<>();
+        for (int crop = 0; crop < FarmRules.crops().size(); crop++) {
+            seeds.add(BlissfulStorage.of(data).count(FarmWork.seedFilter(crop)));
+        }
+        return seeds;
     }
 
     //region Siting [服务端复判]

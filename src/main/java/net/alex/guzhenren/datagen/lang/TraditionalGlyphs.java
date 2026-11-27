@@ -69,7 +69,8 @@ public final class TraditionalGlyphs {
             + "拆"
             + "探明稍迷算舀"
             + "型"
-            + "平牲畜逆";
+            + "平牲畜逆"
+            + "近套拖框";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

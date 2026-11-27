@@ -108,6 +108,12 @@ public final class LandMaps {
         return true;
     }
 
+    /** 这个区块在地图上已不是迷雾（扫过地图片或已知生成过）；传送只许落在这样的区块。 */
+    public static boolean isKnown(@NotNull BlissfulLand land, int chunkX, int chunkZ) {
+        LandMap map = MAPS.get(land);
+        return map != null && map.isKnown(ChunkPos.asLong(chunkX, chunkZ));
+    }
+
     public static void forget(@NotNull UUID player) { VIEWERS.remove(player); }
     //endregion
 
