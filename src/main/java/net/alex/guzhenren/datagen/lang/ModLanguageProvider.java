@@ -482,6 +482,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.enclosed",                 "牧场围好，放下 %s 格栅栏");
         add("guzhenren.blissful_land.panel.enclosed_blocked",         "牧场围好，放下 %s 格栅栏，%s 格被挡住");
         add("guzhenren.blissful_land.panel.gathered",                 "收拢 %s 头进牧场");
+        add("guzhenren.blissful_land.panel.predators_expelled",       "%s 头捕食者已移出牧场");
         add("guzhenren.blissful_land.panel.captured",                 "捕获 %s 只蛊入库");
         add("guzhenren.blissful_land.panel.harvested",                "收割 %s 株，补种 %s 格");
         add("guzhenren.blissful_land.panel.grief_denied",             "此地不许改动地形");

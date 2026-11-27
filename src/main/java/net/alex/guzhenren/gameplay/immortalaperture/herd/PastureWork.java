@@ -1,27 +1,36 @@
 package net.alex.guzhenren.gameplay.immortalaperture.herd;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.core.ModEvents;
+import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandLookup;
+import net.alex.guzhenren.gameplay.immortalaperture.state.LandNoticeEvent;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandRules;
+import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FenceGateBlock;
@@ -51,7 +60,14 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #relocate}：把候选里落在旧栏内、不在新栏内的可支使动物全部传进新栏（不限头数），{@link #gather}：栏外可
  *       支使动物至多 {@value HerdRules#GATHER_LIMIT} 头传进栏、冷却 {@value HerdRules#GATHER_COOLDOWN_TICKS} 刻；落点都在离栅栏至少
  *       {@value #MARGIN} 格的随机地面（每头至多试 {@value #SPOT_ATTEMPTS} 次，须已加载，落点与上一格可替换或是植物）。
- *       野生蛊不是 {@link Animal}，不会被收。</li>
+ *       野生蛊不是 {@link Animal}，不会被收；捕食者（{@link #isPredator}）两者都不带。</li>
+ *   <li>⚠ 栏内不自然刷新（Alex 定）：{@link #blocksSpawn} 只拦 {@link MobSpawnType#NATURAL}，由 {@code BlissfulLandEvents}
+ *       在 {@code MobSpawnEvent.PositionCheck} 判失败；区块生成时的初始动物在选址前已刷完，刷怪蛋、刷怪笼、繁殖、{@code /summon}
+ *       都不拦，也不动已有生物。判定只看 x、z，地下洞穴同算。</li>
+ *   <li>{@link #expel}：把栏内未命名、未驯服的捕食者传到栏外离栅栏 ≥ {@value #MARGIN} 格、不在任何牧场里的地面。圈地
+ *       （{@link #enclose}）成功后 {@link #queueExpulsion} 排队，区块的实体要等强加载挂上后才读进世界，所以
+ *       {@link #tickExpulsions} 每刻看一次，4 个区块的实体都已加载（或等满 {@value #EXPEL_WAIT_SECONDS} 秒）才动手，
+ *       并告知在线的主人；排队只在内存，停服即丢。</li>
  *   <li>⚠ 强加载用 NeoForge 带刻工单 {@link #TICKETS}（原版强加载的区块附近没人时不随机刻），以各牧场中心为主人、各管
  *       自己的 4 区块：圈地时挂，拆除与迁移时撤旧挂新，失主时 {@link #release}，认主时 {@link #retain}；读档校验把无主
  *       福地的工单全部丢掉。</li>
@@ -70,6 +86,11 @@ public final class PastureWork {
     public static final int MARGIN = 2;
     private static final int SPOT_ATTEMPTS = 8;
     private static final int NO_GROUND = Integer.MIN_VALUE;
+    private static final int EXPEL_SPREAD = 5;
+    private static final int EXPEL_WAIT_SECONDS = 30;
+    private static final List<Expulsion> EXPULSIONS = new ArrayList<>();
+
+    private record Expulsion(ResourceKey<Level> dimension, Pasture pasture, long deadline) {}
 
     public record Pasture(int minX, int minZ, int maxX, int maxZ) {
 
@@ -190,6 +211,7 @@ public final class PastureWork {
             BlockState joined = Block.updateFromNeighbourShapes(level.getBlockState(pos), level, pos);
             level.setBlock(pos, joined, Block.UPDATE_ALL);
         }
+        queueExpulsion(level, pasture);
         return new Enclosed(placed.size(), blocked);
     }
 
@@ -253,8 +275,8 @@ public final class PastureWork {
                                @NotNull RandomSource random, @NotNull Iterable<? extends Entity> candidates) {
         List<Animal> movers = new ArrayList<>();
         for (Entity entity : candidates) {
-            if (entity instanceof Animal animal && LandRules.isManaged(animal) && from.contains(animal)
-                    && !to.contains(animal)) {
+            if (entity instanceof Animal animal && LandRules.isManaged(animal) && !isPredator(animal)
+                    && from.contains(animal) && !to.contains(animal)) {
                 movers.add(animal);
             }
         }
@@ -271,8 +293,8 @@ public final class PastureWork {
         List<Animal> movers = new ArrayList<>();
         for (Entity entity : candidates) {
             if (movers.size() >= HerdRules.GATHER_LIMIT) break;
-            if (entity instanceof Animal animal && LandRules.isManaged(animal) && !pasture.contains(animal)
-                    && !isPenned(pastures, animal)) {
+            if (entity instanceof Animal animal && LandRules.isManaged(animal) && !isPredator(animal)
+                    && !pasture.contains(animal) && !isPenned(pastures, animal)) {
                 movers.add(animal);
             }
         }
@@ -286,11 +308,15 @@ public final class PastureWork {
         for (Animal animal : movers) {
             BlockPos spot = findSpot(level, pasture, random);
             if (spot == null) continue;
-            animal.teleportTo(spot.getX() + 0.5D, spot.getY(), spot.getZ() + 0.5D);
-            animal.setDeltaMovement(Vec3.ZERO);
+            stand(animal, spot);
             moved++;
         }
         return moved;
+    }
+
+    private static void stand(Animal animal, BlockPos spot) {
+        animal.teleportTo(spot.getX() + 0.5D, spot.getY(), spot.getZ() + 0.5D);
+        animal.setDeltaMovement(Vec3.ZERO);
     }
 
     private static @Nullable BlockPos findSpot(ServerLevel level, Pasture pasture, RandomSource random) {
@@ -310,6 +336,107 @@ public final class PastureWork {
     }
 
     private static boolean isRoom(BlockState state) { return state.canBeReplaced() || LandRules.isPlant(state); }
+    //endregion
+
+    //region Wild [自然刷新与捕食者]
+    public static boolean isPredator(@NotNull Entity entity) {
+        return entity.getType().is(ModEntityTypeTags.PASTURE_PREDATORS);
+    }
+
+    public static boolean blocksSpawn(@NotNull List<Pasture> pastures, @NotNull MobSpawnType type, double x, double z) {
+        return type == MobSpawnType.NATURAL && isPenned(pastures, x, z);
+    }
+
+    private static boolean isPenned(List<Pasture> pastures, double x, double z) {
+        for (Pasture pasture : pastures) {
+            if (pasture.contains(x, z)) return true;
+        }
+        return false;
+    }
+
+    public static boolean blocksSpawn(@NotNull ServerLevelAccessor level, @NotNull MobSpawnType type, double x,
+                                      double z) {
+        if (type != MobSpawnType.NATURAL) return false;
+        ServerLevel world = level.getLevel();
+        BlissfulLand land = BlissfulLandLookup.landOf(world);
+        return land != null && blocksSpawn(pastures(BlissfulLandData.get(world.getServer(), land)), type, x, z);
+    }
+
+    public static int expel(@NotNull ServerLevel level, @NotNull Pasture pasture, @NotNull List<Pasture> pastures,
+                            @NotNull RandomSource random, int spread) {
+        int moved = 0;
+        for (Animal animal : level.getEntitiesOfClass(Animal.class, pasture.box(level),
+                candidate -> isPredator(candidate) && LandRules.isManaged(candidate) && pasture.contains(candidate))) {
+            BlockPos spot = findOutside(level, pasture, pastures, random, spread);
+            if (spot == null) continue;
+            animal.setTarget(null);
+            animal.getNavigation().stop();
+            stand(animal, spot);
+            moved++;
+        }
+        return moved;
+    }
+
+    public static void queueExpulsion(@NotNull ServerLevel level, @NotNull Pasture pasture) {
+        if (BlissfulLandLookup.landOf(level) == null) return;
+        EXPULSIONS.add(new Expulsion(level.dimension(), pasture, level.getGameTime() + (long) EXPEL_WAIT_SECONDS
+                * Ticks.SECOND));
+    }
+
+    public static void tickExpulsions(@NotNull MinecraftServer server) {
+        if (EXPULSIONS.isEmpty()) return;
+
+        for (Iterator<Expulsion> jobs = EXPULSIONS.iterator(); jobs.hasNext(); ) {
+            Expulsion job = jobs.next();
+            ServerLevel level = server.getLevel(job.dimension());
+            BlissfulLand land = level == null ? null : BlissfulLandLookup.landOf(level);
+            BlissfulLandData data = land == null ? null : BlissfulLandData.get(server, land);
+            if (data == null || !pastures(data).contains(job.pasture())) {
+                jobs.remove();
+                continue;
+            }
+            boolean loaded = job.pasture().chunks().stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong()));
+            if (!loaded && level.getGameTime() < job.deadline()) continue;
+
+            jobs.remove();
+            int moved = expel(level, job.pasture(), pastures(data), level.getRandom(), EXPEL_SPREAD);
+            ServerPlayer owner = data.owner() == null ? null : server.getPlayerList().getPlayer(data.owner());
+            if (moved > 0 && owner != null) {
+                ModEvents.post(new LandNoticeEvent(owner, LandNoticeEvent.text("predators_expelled", moved), true));
+            }
+        }
+    }
+
+    public static void clearExpulsions() { EXPULSIONS.clear(); }
+
+    private static @Nullable BlockPos findOutside(ServerLevel level, Pasture pasture, List<Pasture> pastures,
+                                                  RandomSource random, int spread) {
+        int lowX = pasture.minX() - 1;
+        int highX = pasture.maxX() + 1;
+        int lowZ = pasture.minZ() - 1;
+        int highZ = pasture.maxZ() + 1;
+        for (int attempt = 0; attempt < SPOT_ATTEMPTS * 2; attempt++) {
+            int away = MARGIN + random.nextInt(Math.max(1, spread));
+            int alongX = lowX + random.nextInt(highX - lowX + 1);
+            int alongZ = lowZ + random.nextInt(highZ - lowZ + 1);
+            BlockPos spot = switch (random.nextInt(4)) {
+                case 0 -> new BlockPos(lowX - away, 0, alongZ);
+                case 1 -> new BlockPos(highX + away, 0, alongZ);
+                case 2 -> new BlockPos(alongX, 0, lowZ - away);
+                default -> new BlockPos(alongX, 0, highZ + away);
+            };
+            if (isPenned(pastures, spot.getX() + 0.5D, spot.getZ() + 0.5D)
+                    || !level.getWorldBorder().isWithinBounds(spot)) {
+                continue;
+            }
+            level.getChunk(spot.getX() >> 4, spot.getZ() >> 4);
+            int ground = groundY(level, spot.getX(), spot.getZ(), false);
+            if (ground == NO_GROUND) continue;
+            BlockPos stand = spot.atY(ground + 1);
+            if (isRoom(level.getBlockState(stand)) && isRoom(level.getBlockState(stand.above()))) return stand;
+        }
+        return null;
+    }
     //endregion
 
     //region Tickets [强加载]

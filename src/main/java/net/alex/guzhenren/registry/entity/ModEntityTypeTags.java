@@ -8,7 +8,8 @@ import net.minecraft.world.entity.EntityType;
 /**
  * 本模组实体类型标签键容器：{@link #PREDATOR_PREY} 指定猎食野兽（亚洲黑熊与老虎）主动攻击的原版家畜与小动物（本模组生物
  * 之间互不主动攻击）；{@link #WILD_GU} 归集全部 {@code WildGuEntity} 子类型，供范围打击与飞行冲撞判定豁免而无需在代码上
- * 反向依赖 {@code entity} 包；{@link #SOULSUNDER_IMMUNE} 收录荡魂山[Soulsunder Mountain]不扣血的实体（盔甲架）。
+ * 反向依赖 {@code entity} 包；{@link #SOULSUNDER_IMMUNE} 收录荡魂山[Soulsunder Mountain]不扣血的实体（盔甲架）；
+ * {@link #PASTURE_PREDATORS} 收录福地牧场不留的野生捕食者（狼、狐、猫、豹猫、北极熊），收拢与迁移不带，圈地时移出栏外。
  */
 
 public final class ModEntityTypeTags {
@@ -21,4 +22,6 @@ public final class ModEntityTypeTags {
             Registries.ENTITY_TYPE, Guzhenren.id("wild_gu"));
     public static final TagKey<EntityType<?>> SOULSUNDER_IMMUNE = TagKey.create(
             Registries.ENTITY_TYPE, Guzhenren.id("soulsunder_immune"));
+    public static final TagKey<EntityType<?>> PASTURE_PREDATORS = TagKey.create(
+            Registries.ENTITY_TYPE, Guzhenren.id("pasture_predators"));
 }

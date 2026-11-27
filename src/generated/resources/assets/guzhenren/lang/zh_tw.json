@@ -148,6 +148,7 @@
   "guzhenren.blissful_land.panel.planned": "區塊 (%s, %s) 已加入開墾規劃，排隊 %s 塊",
   "guzhenren.blissful_land.panel.player_not_found": "找不到在線玩家 %s",
   "guzhenren.blissful_land.panel.player_offline": "此人已不在線",
+  "guzhenren.blissful_land.panel.predators_expelled": "%s 頭捕食者已移出牧場",
   "guzhenren.blissful_land.panel.reclaimed": "區塊 (%s, %s) 開出標準田，共 %s 塊",
   "guzhenren.blissful_land.panel.reveal_busy": "探明太快，稍等再點",
   "guzhenren.blissful_land.panel.siting_refused": "此地不可用：%s",
