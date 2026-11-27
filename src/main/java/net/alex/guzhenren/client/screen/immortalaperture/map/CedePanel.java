@@ -109,22 +109,21 @@ final class CedePanel {
         int column = left + 148;
         SpriteBatch.draw(graphics, sprites -> {
             sprites.blit(PanelDrawing.POPUP, left, top, WIDTH, HEIGHT);
-            sprites.blit(PanelDrawing.WELL, left + 9, top + 24, MAP + 2, MAP + 2);
+            sprites.blit(PanelDrawing.INSET, left + 9, top + 24, MAP + 2, MAP + 2);
             for (Territory.Side each : Territory.Side.values()) {
                 int[] at = ARROWS[each.ordinal()];
                 boolean hover = !confirming && Widgets.isOver(mouseX, mouseY, column + at[0], top + at[1], ARROW,
                         ARROW);
-                PanelDrawing.button(sprites, column + at[0], top + at[1], ARROW, ARROW, true, hover, each == side,
-                        false);
+                PanelDrawing.Look look = each == side ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
+                PanelDrawing.button(sprites, column + at[0], top + at[1], ARROW, ARROW, look, true, hover);
             }
-            PanelDrawing.button(sprites, column, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true, mouseX,
-                    mouseY);
-            PanelDrawing.button(sprites, column + 44, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE, true,
-                    mouseX, mouseY);
+            PanelDrawing.button(sprites, column, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H,
+                    PanelDrawing.Look.GHOST, true, mouseX, mouseY);
+            PanelDrawing.button(sprites, column + 44, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H,
+                    PanelDrawing.Look.GHOST, true, mouseX, mouseY);
             PanelDrawing.button(sprites, column, top + 142, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
-            boolean live = canCede();
-            boolean hover = live && Widgets.isOver(mouseX, mouseY, column + 56, top + 142, BUTTON_W, BUTTON_H);
-            PanelDrawing.button(sprites, column + 56, top + 142, BUTTON_W, BUTTON_H, live, hover, false, true);
+            PanelDrawing.button(sprites, column + 56, top + 142, BUTTON_W, BUTTON_H, PanelDrawing.Look.DANGER,
+                    canCede(), mouseX, mouseY);
         });
         graphics.fill(left + 9, top + 19, left + WIDTH - 9, top + 20, PanelDrawing.ACCENT);
         TerritorySketch.draw(graphics, left + 10, top + 25, territory(), canCede() ? side : null, clampedWidth(),
@@ -146,22 +145,22 @@ final class CedePanel {
             Component label = Component.translatable("guzhenren.blissful_land.side." + key(each));
             graphics.drawString(font, label, column + at[0] + (ARROW - font.width(label)) / 2,
                     top + at[1] + (ARROW - font.lineHeight) / 2 + 1 + (each == side ? 1 : 0),
-                    each == side ? PanelDrawing.ACCENT : PanelDrawing.TEXT, false);
+                    each == side ? PanelDrawing.SELECTED_TEXT : PanelDrawing.TEXT, false);
         }
         graphics.drawString(font, Component.translatable(UI + "strip_width"), column, top + 117, PanelDrawing.LEGEND,
                 false);
-        PanelDrawing.label(graphics, font, Component.literal("-"), column, top + 128, PanelDrawing.SQUARE,
-                PanelDrawing.SQUARE, true);
+        PanelDrawing.label(graphics, font, Component.literal("-"), column, top + 128, PanelDrawing.GHOST_H,
+                PanelDrawing.GHOST_H, PanelDrawing.Look.GHOST, true);
         PanelDrawing.centered(graphics, font, Component.literal(Integer.toString(clampedWidth())), column + 14,
                 column + 44, top + 131, PanelDrawing.TEXT);
-        PanelDrawing.label(graphics, font, Component.literal("+"), column + 44, top + 128, PanelDrawing.SQUARE,
-                PanelDrawing.SQUARE, true);
+        PanelDrawing.label(graphics, font, Component.literal("+"), column + 44, top + 128, PanelDrawing.GHOST_H,
+                PanelDrawing.GHOST_H, PanelDrawing.Look.GHOST, true);
         graphics.drawString(font, Component.translatable(UI + "chunk"), column + 62, top + 131, PanelDrawing.LEGEND,
                 false);
         PanelDrawing.label(graphics, font, Component.translatable(UI + "map.close"), column, top + 142, BUTTON_W,
                 BUTTON_H, true);
         PanelDrawing.label(graphics, font, Component.translatable(UI + "cede"), column + 56, top + 142, BUTTON_W,
-                BUTTON_H, canCede());
+                BUTTON_H, PanelDrawing.Look.DANGER, canCede());
         Component preview = canCede()
                 ? Component.translatable(UI + "cede_preview", sideName(), clampedWidth(), pendingAcres())
                 : Component.translatable(UI + "cede_core", sideName());
@@ -179,8 +178,8 @@ final class CedePanel {
             PanelDrawing.button(sprites, boxLeft + 10, boxTop + CONFIRM_H - 24, 70, BUTTON_H, true, mouseX, mouseY);
             boolean hover = Widgets.isOver(mouseX, mouseY, boxLeft + CONFIRM_W - 80, boxTop + CONFIRM_H - 24, 70,
                     BUTTON_H);
-            PanelDrawing.button(sprites, boxLeft + CONFIRM_W - 80, boxTop + CONFIRM_H - 24, 70, BUTTON_H, true, hover,
-                    false, true);
+            PanelDrawing.button(sprites, boxLeft + CONFIRM_W - 80, boxTop + CONFIRM_H - 24, 70, BUTTON_H,
+                    PanelDrawing.Look.DANGER, true, hover);
         });
         graphics.drawString(font, Component.translatable(UI + "confirm_title"), boxLeft + 10, boxTop + 8,
                 PanelDrawing.WARN, false);
@@ -216,10 +215,10 @@ final class CedePanel {
             }
         }
         int step = shift ? SHIFT_STEP : 1;
-        if (Widgets.isOver(mouseX, mouseY, column, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE)) {
+        if (Widgets.isOver(mouseX, mouseY, column, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H)) {
             width = clampedWidth() - step;
             clampedWidth();
-        } else if (Widgets.isOver(mouseX, mouseY, column + 44, top + 128, PanelDrawing.SQUARE, PanelDrawing.SQUARE)) {
+        } else if (Widgets.isOver(mouseX, mouseY, column + 44, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H)) {
             width = clampedWidth() + step;
             clampedWidth();
         } else if (Widgets.isOver(mouseX, mouseY, column, top + 142, BUTTON_W, BUTTON_H)) {
@@ -254,7 +253,7 @@ final class CedePanel {
                 return true;
             }
         }
-        if (page.tipAt(graphics, column, top + 128, 44 + PanelDrawing.SQUARE, PanelDrawing.SQUARE, mouseX, mouseY,
+        if (page.tipAt(graphics, column, top + 128, 44 + PanelDrawing.GHOST_H, PanelDrawing.GHOST_H, mouseX, mouseY,
                 Component.translatable(TIP + "strip_width", SHIFT_STEP))) {
             return true;
         }

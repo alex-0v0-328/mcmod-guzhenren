@@ -8,7 +8,6 @@ import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.map.MapPage;
-import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPalette;
 import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
@@ -30,6 +29,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.anti_ad.mc.ipn.api.IPNIgnore;
@@ -40,14 +40,15 @@ import org.jetbrains.annotations.Nullable;
  * 地灵[Earth Spirit]经营面板：四个 {@link Page}（地图、库藏、秘境、信息），各页由 {@link PanelPage} 子类绘制。
  * <ul>
  *   <li>面板开着时整帧不渲染世界（{@link #hidesWorld}，{@code GameRendererMixin} 跳过；启动参数
- *       {@code -D}{@value #KEEP_WORLD_PROPERTY}{@code =true} 退回照常渲染，供光影或性能模组冲突时排查）。地图页全屏：面板
- *       即整个窗口，最上 {@value #BAR_H} 像素是顶栏（左写「福地名 · 时辰」，右侧并排四个分页标签）。其余三页画在不透明底
- *       （{@code MapPalette.BACKDROP}）上，按面板美术规格：主面板 176×222，标签在面板左侧外挂（未选中先画、被面板压住
- *       右端；选中后画、盖住面板左框），整体 231×222 居中，所以 {@code leftPos} 右移 {@value #TAB_SPAN} 的一半。全屏与否随
- *       页切换时重新布局。</li>
+ *       {@code -D}{@value #KEEP_WORLD_PROPERTY}{@code =true} 退回照常渲染，供光影或性能模组冲突时排查）。四页都全屏（Alex
+ *       定）：最上 {@value #BAR_H} 像素是顶栏（{@code top_bar} 平铺，含金线与投影；左写「福地名 · 时辰」，右侧并排四个页签，
+ *       常态页签只有图标与灰字，悬停与选中才画底板），其余页在 {@link PanelDrawing#BACKDROP} 纯色底上排卡片；地图页整片是
+ *       地图，顶栏投影压在地图上。库藏页的 {@code leftPos}/{@code topPos} 是两张卡片的左上角（背包格按它摆），其余页为 0。
+ *       </li>
  *   <li>秘境页的标签与页名写福地秘境的地名（{@link #realmName}）；信息页内部再分小节（{@link InfoPage}）。</li>
  *   <li>绘制顺序：一个 {@code GuiBatch} 里先一个 {@link SpriteBatch} 画全部精灵图，再填充、再文字；物品图标与头像在批
- *       外；地图页的顶栏另起一批画在页面之上；弹窗与操作提示在 {@code super.render} 之后，盖在背包格与光标物品之上。</li>
+ *       外；顶栏另起一批画在页面之上；弹窗与操作提示（顶栏下居中的 {@code chip}）在 {@code super.render} 之后，盖在背包格与
+ *       光标物品之上。</li>
  *   <li>数字键 1–4 切页；鼠标停在背包格上时数字键仍归原版（与快捷栏交换）。切页时发 {@link PanelActions.View}：服务端只
  *       算正在看的页，也记下这一页，下次开面板直接停在这里。</li>
  *   <li>库藏页是 {@link Storage}，其余页是 {@link Pages}，跨这条线切页就换一个界面实例（同一个菜单与同一批页面对象，页码、
@@ -57,9 +58,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>两个输入框：秘境页的白名单名字（灰字提示匹配的在线玩家名，Tab 补全，回车添加）、库藏页的搜索（内容一变就经
  *       {@link StoragePage} 发给服务端，筛选在服务端做；换界面实例时先填值后挂监听，不重发）；聚焦时吞掉除 Esc 外的按键，
  *       免得按 E 关掉面板。</li>
- *   <li>分页标签算面板内（{@link #hasClickedOutside}）：手上拿着库藏物品点标签，松手时原版会把它当点在面板外扔出去。</li>
+ *   <li>全屏没有「面板外」（{@link #hasClickedOutside} 恒假）：拿着物品点空处不会扔出去。</li>
  *   <li>数据只来自菜单里按面板段缓存的快照段：开面板时随缓冲带来，之后每秒与每次操作后由 {@link EarthSpiritPanelPayload}
- *       替换（{@link #onPanel}）。操作结果提示在面板上方（地图页在顶栏下方）显示 {@value #NOTICE_MILLIS} 毫秒。</li>
+ *       替换（{@link #onPanel}）。操作结果提示在顶栏下方显示 {@value #NOTICE_MILLIS} 毫秒。</li>
  *   <li>本文件有意超过 300 行：四页切换与全屏布局、两处输入框与共享外框/标签/顶栏/输入转发共用同一界面生命周期，集中
  *       在一处维护更清晰。</li>
  * </ul>
@@ -70,23 +71,20 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     public static final String UI = "guzhenren.blissful_land.ui.";
     public static final String TIP = "guzhenren.blissful_land.tip.";
     public static final String KEEP_WORLD_PROPERTY = "guzhenren.mapKeepsWorld";
-    public static final int BAR_H = 24;
-    private static final int PANEL_W = 176;
-    private static final int PANEL_H = 222;
-    private static final int TAB_SPAN = 55;
-    private static final int TAB_X = -53;
-    private static final int TAB_SELECTED_X = -55;
-    private static final int TAB_W = 58;
-    private static final int TAB_H = 22;
-    private static final int TAB_TOP = 6;
-    private static final int TAB_PITCH = 24;
-    private static final int BAR_TAB_PITCH = 60;
-    private static final int BAR_FILL = 0xE0201A1E;
-    private static final int RULE_Y = 15;
+    public static final int BAR_H = 26;
+    private static final int TAB_W = 60;
+    private static final int TAB_H = 21;
+    private static final int TAB_TOP = 2;
+    private static final int TAB_PITCH = 62;
+    private static final int TAB_RIGHT = 5;
+    private static final int NOTICE_Y = BAR_H + 6;
     private static final int NOTICE_MILLIS = 4000;
+    private static final ResourceLocation TOP_BAR = PanelDrawing.sprite("top_bar");
+    private static final ResourceLocation TAB_HIGHLIGHTED = PanelDrawing.sprite("tab_highlighted");
+    private static final ResourceLocation TAB_SELECTED = PanelDrawing.sprite("tab_selected");
     private static final boolean KEEPS_WORLD = Boolean.getBoolean(KEEP_WORLD_PROPERTY);
     private static final int HOURS = 12;
-    private static final String[] TAB_ICONS = {"icon_territory", "icon_storage", "icon_mountain", "icon_overview"};
+    private static final String[] TAB_ICONS = {"icon_map", "icon_storage", "icon_mountain", "icon_info"};
     private final Inventory inventory;
     private final Map<Page, PanelPage> pages = new EnumMap<>(Page.class);
     private Page page;
@@ -131,21 +129,24 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     }
 
     //region Layout [布局]
-    private boolean isFullscreen() { return this.page == Page.MAP; }
-
     public static boolean hidesWorld() {
         return !KEEPS_WORLD && Minecraft.getInstance().screen instanceof EarthSpiritScreen;
     }
 
     @Override
     protected void init() {
-        this.imageWidth = isFullscreen() ? this.width : PANEL_W;
-        this.imageHeight = isFullscreen() ? this.height : PANEL_H;
+        this.imageWidth = this.width;
+        this.imageHeight = this.height;
         super.init();
-        if (!isFullscreen()) this.leftPos = (this.width - this.imageWidth + TAB_SPAN) / 2;
+        if (this instanceof Storage) {
+            this.leftPos = StoragePage.left(this.width);
+            this.topPos = StoragePage.TOP;
+        }
+        SecretRealmPage realm = (SecretRealmPage) this.pages.get(Page.SECRET_REALM);
+        realm.resized(this.width, this.height);
         String name = this.nameField == null ? this.keptName : this.nameField.getValue();
-        this.nameField = field(this.leftPos + 12, this.topPos + 90, 120, SecretRealmPart.NAME_LENGTH, "name_hint",
-                name);
+        this.nameField = field(realm.fieldX() + 4, realm.fieldY() + 3, realm.fieldW() - 8, SecretRealmPart.NAME_LENGTH,
+                "name_hint", name);
         this.nameField.setResponder(this::suggestName);
         String query = this.searchField == null ? this.keptQuery : this.searchField.getValue();
         this.searchField = field(this.leftPos + StoragePage.SEARCH_X + 3, this.topPos + StoragePage.SEARCH_Y + 3,
@@ -188,14 +189,9 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
             Minecraft.getInstance().setScreen(other);
             return;
         }
-        boolean relayout = (next == Page.MAP) != isFullscreen();
         this.page = next;
-        if (relayout) {
-            rebuildWidgets();
-        } else {
-            applyPage();
-            current().resized(this.width, this.height);
-        }
+        applyPage();
+        current().resized(this.width, this.height);
     }
 
     private void applyPage() {
@@ -278,14 +274,8 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     //region Rendering [绘制]
     @Override
     public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        if (isFullscreen()) {
-            renderBg(graphics, partialTick, mouseX, mouseY);
-        } else if (hidesWorld()) {
-            graphics.fill(0, 0, this.width, this.height, MapPalette.BACKDROP);
-            renderBg(graphics, partialTick, mouseX, mouseY);
-        } else {
-            super.renderBackground(graphics, mouseX, mouseY, partialTick);
-        }
+        if (this.page != Page.MAP) graphics.fill(0, 0, this.width, this.height, PanelDrawing.BACKDROP);
+        renderBg(graphics, partialTick, mouseX, mouseY);
     }
 
     @Override
@@ -293,42 +283,25 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
         int x = this.leftPos;
         int y = this.topPos;
         PanelPage current = current();
-        boolean full = isFullscreen();
         GuiBatch.draw(graphics, () -> {
-            SpriteBatch.draw(graphics, sprites -> {
-                if (!full) {
-                    for (Page each : Page.values()) {
-                        if (each != this.page) drawTab(sprites, each, mouseX, mouseY);
-                    }
-                    sprites.blit(PanelDrawing.PANEL, x, y, this.imageWidth, this.imageHeight);
-                    drawTab(sprites, this.page, mouseX, mouseY);
-                }
-                current.sprites(sprites, x, y, mouseX, mouseY);
-            });
-            if (!full) graphics.fill(x + 7, y + RULE_Y, x + 168, y + RULE_Y + 1, PanelDrawing.ACCENT);
+            SpriteBatch.draw(graphics, sprites -> current.sprites(sprites, x, y, mouseX, mouseY));
             current.fills(graphics, x, y, mouseX, mouseY);
-            if (!full && !current.drawsHeading()) {
-                Component heading = landName().append(" · ").append(current.name());
-                graphics.drawString(this.font, heading, x + 8, y + 6, PanelDrawing.ACCENT, false);
-            }
-            if (!full) {
-                for (Page each : Page.values()) drawTabLabel(graphics, each, mouseX, mouseY);
-            }
             current.texts(graphics, x, y, mouseX, mouseY);
         });
         current.items(graphics, x, y, mouseX, mouseY);
-        if (full) drawBar(graphics, mouseX, mouseY);
+        drawBar(graphics, mouseX, mouseY);
     }
 
     private void drawBar(GuiGraphics graphics, int mouseX, int mouseY) {
         GuiBatch.draw(graphics, () -> {
-            graphics.fill(0, 0, this.width, BAR_H, BAR_FILL);
-            graphics.fill(0, BAR_H, this.width, BAR_H + 1, PanelDrawing.ACCENT);
             SpriteBatch.draw(graphics, sprites -> {
+                sprites.blit(TOP_BAR, 0, 0, this.width, BAR_H);
                 for (Page each : Page.values()) drawTab(sprites, each, mouseX, mouseY);
             });
-            Component heading = landName().append(" · ").append(hour());
-            graphics.drawString(this.font, heading, 8, (BAR_H - 8) / 2, PanelDrawing.ACCENT, false);
+            MutableComponent name = landName();
+            graphics.drawString(this.font, name, 8, 8, PanelDrawing.TEXT, false);
+            graphics.drawString(this.font, Component.literal(" · ").append(hour()), 8 + this.font.width(name), 8,
+                    PanelDrawing.LEGEND, false);
             for (Page each : Page.values()) drawTabLabel(graphics, each, mouseX, mouseY);
         });
     }
@@ -342,45 +315,34 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
     }
 
     private int tabLeft(Page each) {
-        if (isFullscreen()) return this.width - (Page.values().length - each.ordinal()) * BAR_TAB_PITCH;
-        return this.leftPos + (each == this.page ? TAB_SELECTED_X : TAB_X);
-    }
-
-    private int tabTop(Page each) {
-        if (isFullscreen()) return 1;
-        return this.topPos + TAB_TOP + each.ordinal() * TAB_PITCH;
+        return this.width - TAB_RIGHT - TAB_W - (Page.values().length - 1 - each.ordinal()) * TAB_PITCH;
     }
 
     private void drawTab(SpriteBatch sprites, Page each, int mouseX, int mouseY) {
         boolean selected = each == this.page;
         int left = tabLeft(each);
-        int top = tabTop(each);
-        boolean hover = !selected && isOverTab(each, mouseX, mouseY);
-        String name = selected ? "tab_selected" : hover ? "tab_highlighted" : "tab";
-        sprites.blit(PanelDrawing.sprite(name), left, top, TAB_W, TAB_H);
-        sprites.blit(PanelDrawing.sprite(TAB_ICONS[each.ordinal()]), left + 5, top + 3, 16, 16);
+        if (selected) {
+            sprites.blit(TAB_SELECTED, left, TAB_TOP, TAB_W, TAB_H);
+        } else if (isOverTab(each, mouseX, mouseY)) {
+            sprites.blit(TAB_HIGHLIGHTED, left, TAB_TOP, TAB_W, TAB_H);
+        }
+        sprites.blit(PanelDrawing.sprite(TAB_ICONS[each.ordinal()]), left + 5, TAB_TOP + 3, 16, 16,
+                selected ? 0xFFFFFFFF : PanelDrawing.DIM_ICON);
     }
 
     private void drawTabLabel(GuiGraphics graphics, Page each, int mouseX, int mouseY) {
         boolean selected = each == this.page;
         int colour = selected ? PanelDrawing.ACCENT
                 : isOverTab(each, mouseX, mouseY) ? PanelDrawing.TEXT : PanelDrawing.LEGEND;
-        graphics.drawString(this.font, this.pages.get(each).name(), tabLeft(each) + 24, tabTop(each) + 7, colour,
-                false);
+        graphics.drawString(this.font, this.pages.get(each).name(), tabLeft(each) + 23, TAB_TOP + 7, colour, false);
     }
 
     private boolean isOverTab(Page each, double mouseX, double mouseY) {
-        if (isFullscreen()) return Widgets.isOver(mouseX, mouseY, tabLeft(each), tabTop(each), TAB_W, TAB_H);
-        int top = this.topPos + TAB_TOP + each.ordinal() * TAB_PITCH;
-        return Widgets.isOver(mouseX, mouseY, this.leftPos + TAB_SELECTED_X, top, -TAB_SELECTED_X, TAB_H);
+        return Widgets.isOver(mouseX, mouseY, tabLeft(each), TAB_TOP, TAB_W, TAB_H);
     }
 
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
-        if (isFullscreen()) return false;
-        return super.hasClickedOutside(mouseX, mouseY, left, top, button) && !Widgets.isOver(mouseX, mouseY,
-                left + TAB_SELECTED_X, top + TAB_TOP, -TAB_SELECTED_X, Page.values().length * TAB_PITCH);
-    }
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) { return false; }
 
     @Override
     protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {}
@@ -394,17 +356,23 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
             current.tooltip(graphics, this.leftPos, this.topPos, mouseX, mouseY);
             this.renderTooltip(graphics, mouseX, mouseY);
         }
-        if (Util.getMillis() < this.noticeUntil) {
-            int noticeY = isFullscreen() ? BAR_H + 6 : this.topPos - 12;
-            PanelDrawing.centered(graphics, this.font, this.notice, this.leftPos, this.leftPos + this.imageWidth,
-                    noticeY, PanelDrawing.ACCENT);
-        }
+        if (Util.getMillis() < this.noticeUntil) drawNotice(graphics);
         if (current.hasOverlay()) {
             graphics.pose().pushPose();
             graphics.pose().translate(0.0F, 0.0F, 400.0F);
             current.overlay(graphics, this.leftPos, this.topPos, mouseX, mouseY);
             graphics.pose().popPose();
         }
+    }
+
+    private void drawNotice(GuiGraphics graphics) {
+        int width = this.font.width(this.notice) + 2 * PanelDrawing.PAD;
+        int left = (this.width - width) / 2;
+        graphics.pose().pushPose();
+        graphics.pose().translate(0.0F, 0.0F, 300.0F);
+        SpriteBatch.draw(graphics, sprites -> sprites.blit(PanelDrawing.CHIP, left, NOTICE_Y, width, 16));
+        graphics.drawString(this.font, this.notice, left + PanelDrawing.PAD, NOTICE_Y + 4, PanelDrawing.TEXT, false);
+        graphics.pose().popPose();
     }
 
     private void trackNotice() {
@@ -433,7 +401,7 @@ public abstract class EarthSpiritScreen extends AbstractContainerScreen<EarthSpi
                 }
             }
         }
-        if ((button == 0 || isFullscreen())
+        if ((button == 0 || this.page == Page.MAP)
                 && current.click(this.leftPos, this.topPos, mouseX, mouseY, button, Screen.hasShiftDown())) {
             return true;
         }

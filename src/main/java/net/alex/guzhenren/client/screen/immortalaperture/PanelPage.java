@@ -11,12 +11,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
- * 地灵经营面板的一页（或信息页里的一个小节）：按「精灵图 → 填充 → 文字 → 物品图标 → 悬停提示」五步绘制，坐标都相对
- * 面板左上角 {@code (x, y)}，鼠标坐标是屏幕坐标；地图页全屏，面板即整个窗口，{@code (x, y)} 恒为 (0, 0)。
+ * 地灵经营面板的一页（或信息页里的一个小节）：按「精灵图 → 填充 → 文字 → 物品图标 → 悬停提示」五步绘制，鼠标坐标是
+ * 屏幕坐标；四页都全屏，{@code (x, y)} 在库藏页是两张卡片的左上角（背包格按它摆），其余页恒为 (0, 0)，排版按
+ * {@link #resized} 给的整窗尺寸算。
  * <ul>
  *   <li>{@link #sprites} 在 {@link EarthSpiritScreen} 的同一个 {@link SpriteBatch} 里画；{@link #fills}、{@link #texts}
- *       在同一个 {@code GuiBatch} 里，先填充后文字；物品图标不能进批处理，单独在 {@link #items} 画。地图页的顶栏在这五步
- *       之后另画，盖在页面之上。</li>
+ *       在同一个 {@code GuiBatch} 里，先填充后文字；物品图标不能进批处理，单独在 {@link #items} 画。顶栏在这五步之后另画，
+ *       盖在页面之上。</li>
  *   <li>数据经 {@link #section} 取所属面板段最近一份快照段；切到还没收到过的页时先拿面板段给的空段，下一刻服务端回传后就有。
  *       </li>
  *   <li>操作只经 {@link #send} 发意图，不在客户端改快照；服务端算好的新快照随后下发。</li>
@@ -72,8 +73,6 @@ public abstract class PanelPage {
     protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {}
 
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {}
-
-    protected boolean drawsHeading() { return false; }
     //endregion
 
     //region Input [输入]

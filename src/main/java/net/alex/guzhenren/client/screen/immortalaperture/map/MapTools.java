@@ -17,23 +17,29 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地图页的选址工具条：开垦（1 区块一片田）、牧场（2×2 区块）、拆除、迁移；按住哪个工具，光标下就预览那块占地，合格
- * 描绿、不合格描红并在提示里写原因，左键执行（目标还在迷雾里就改为探明，Alex 定），右键或 Esc 退出工具。
+ * 地图页底部正中的工具栏（{@code overlay} 底）：开垦（1 区块一片田）、牧场（2×2 区块）、拆除、迁移四枚 {@value #BUTTON} 方键，
+ * 键下写名字，竖线隔开的危险键「割弃」；按住哪个工具，光标下就预览那块占地，合格描绿、不合格描红并在提示里写原因，左键
+ * 执行（目标还在迷雾里就改为探明，Alex 定），右键或 Esc 退出工具。
  * <ul>
  *   <li>占地数据、预判与发操作都经 {@link Land}（由 {@link MapToolLand} 用 {@code MapPart.Section} 与 {@code Siting}
  *       实现），本类只管工具状态、目标换算、绘制与命中。</li>
  *   <li>迁移分两步：先点要迁的牧场，再点新址；预判时忽略这个牧场自己的 4 个区块。</li>
  *   <li>田的轮廓描整区块，牧场描栅栏所在的 30×30 周界（{@link Siting#penMin} 到 {@link Siting#penMax}）。</li>
- *   <li>按钮条在视角按钮条上方一行，右边写田与牧场的已用 / 上限（田含规划中的）。</li>
+ *   <li>拿着工具时工具栏上方一枚 {@code chip} 用键帽短语写操作（「牧场 [左键] 圈地 [右键] 取消」，Esc 照常可用不写）；
+ *       当前工具是选中键、名字金色；选工具只靠点击，数字键仍切页签（Alex 定）。</li>
  * </ul>
  */
 
 final class MapTools {
 
-    private static final int GAP = 2;
-    private static final int BUTTON_W = 30;
-    private static final int ROW_GAP = 4;
-    private static final int MARGIN = 6;
+    private static final int BUTTON = 26;
+    private static final int PITCH = BUTTON + 4;
+    private static final int SIDE = 8;
+    private static final int SPLIT = 12;
+    private static final int BOX_W = SIDE + 4 * BUTTON + 3 * 4 + SPLIT + BUTTON + 5;
+    private static final int BOX_H = 44;
+    private static final int BOTTOM = 7;
+    private static final int RULE = 0xFF4A4045;
     private static final String UI = EarthSpiritScreen.UI + "map.";
     private static final String TIP = EarthSpiritScreen.TIP + "map_tool_";
     private static final int NONE = -1;
@@ -97,9 +103,17 @@ final class MapTools {
 
     private @Nullable Tool tool;
     private int moving = NONE;
-    private int top;
+    private int boxX;
+    private int boxY;
 
-    void layout(int controlsTop) { top = controlsTop - ROW_GAP - MapControls.HEIGHT; }
+    void layout(int width, int height) {
+        boxX = (width - BOX_W) / 2;
+        boxY = height - BOTTOM - BOX_H;
+    }
+
+    boolean contains(double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, boxX, boxY, BOX_W, BOX_H);
+    }
 
     @Nullable Tool active() { return tool; }
 
@@ -108,13 +122,21 @@ final class MapTools {
         moving = NONE;
     }
 
-    private int left(Tool each) { return MARGIN + each.ordinal() * (BUTTON_W + GAP); }
+    private int left(Tool each) { return boxX + SIDE + each.ordinal() * PITCH; }
+
+    private int cedeX() { return boxX + BOX_W - 5 - BUTTON; }
+
+    private int buttonY() { return boxY + 5; }
 
     @Nullable Tool at(double mouseX, double mouseY) {
         for (Tool each : Tool.values()) {
-            if (Widgets.isOver(mouseX, mouseY, left(each), top, BUTTON_W, MapControls.HEIGHT)) return each;
+            if (Widgets.isOver(mouseX, mouseY, left(each), buttonY(), BUTTON, BUTTON)) return each;
         }
         return null;
+    }
+
+    boolean isOverCede(double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, cedeX(), buttonY(), BUTTON, BUTTON);
     }
 
     void press(Tool each) {
@@ -204,32 +226,71 @@ final class MapTools {
 
     //region Drawing [绘制]
     void sprites(SpriteBatch sprites, double mouseX, double mouseY) {
+        sprites.blit(PanelDrawing.OVERLAY, boxX, boxY, BOX_W, BOX_H);
         for (Tool each : Tool.values()) {
-            boolean hover = Widgets.isOver(mouseX, mouseY, left(each), top, BUTTON_W, MapControls.HEIGHT);
-            PanelDrawing.button(sprites, left(each), top, BUTTON_W, MapControls.HEIGHT, true, hover && each != tool,
-                    each == tool, each == Tool.REMOVE);
+            PanelDrawing.Look look = each == tool ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
+            PanelDrawing.button(sprites, left(each), buttonY(), BUTTON, BUTTON, look, true, mouseX, mouseY);
+            icon(sprites, "tool_" + key(each), left(each), each == tool);
         }
+        PanelDrawing.button(sprites, cedeX(), buttonY(), BUTTON, BUTTON, PanelDrawing.Look.DANGER, true, mouseX,
+                mouseY);
+        icon(sprites, "tool_cede", cedeX(), false);
     }
 
-    void texts(GuiGraphics graphics, Font font, Land land) {
+    private void icon(SpriteBatch sprites, String name, int left, boolean selected) {
+        int sunk = selected || PanelDrawing.pressed(left, buttonY(), BUTTON, BUTTON) ? 1 : 0;
+        sprites.blit(PanelDrawing.sprite(name), left + 5, buttonY() + 3 + sunk, 16, 16);
+    }
+
+    void fills(GuiGraphics graphics) {
+        int rule = cedeX() - SPLIT / 2 + 1;
+        graphics.fill(rule, buttonY() + 2, rule + 1, boxY + BOX_H - 6, RULE);
+    }
+
+    void texts(GuiGraphics graphics, Font font) {
+        int labelY = buttonY() + BUTTON + 3;
         for (Tool each : Tool.values()) {
-            PanelDrawing.label(graphics, font, Component.translatable(UI + "tool." + key(each)), left(each), top,
-                    BUTTON_W, MapControls.HEIGHT, true);
+            PanelDrawing.centered(graphics, font, Component.translatable(UI + "tool." + key(each)), left(each) - 2,
+                    left(each) + BUTTON + 2, labelY, each == tool ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
         }
-        int fields = 0;
-        int pastures = 0;
-        for (MapPlots.Plot plot : land.plots()) {
-            if (plot.kind() == MapPlots.Kind.PASTURE) pastures++;
-            else fields++;
-        }
-        graphics.drawString(font, Component.translatable(UI + "counts", fields, land.fieldCap(), pastures,
-                land.pastureCap()), left(Tool.MOVE) + BUTTON_W + 6, top + 4, PanelDrawing.LEGEND, false);
+        PanelDrawing.centered(graphics, font, Component.translatable(EarthSpiritScreen.UI + "cede"), cedeX() - 2,
+                cedeX() + BUTTON + 2, labelY, PanelDrawing.TEXT);
+    }
+
+    /** 拿着工具时工具栏上方的操作提示；画图与写字两步共用这份排版。 */
+    void hint(@Nullable SpriteBatch sprites, @Nullable GuiGraphics graphics, Font font) {
+        Tool active = tool;
+        if (active == null) return;
+        Component name = Component.translatable(UI + "tool." + key(active));
+        Component left = Component.translatable(UI + "key.left");
+        Component action = Component.translatable(UI + "hint." + hintKey(active));
+        Component right = Component.translatable(UI + "key.right");
+        Component cancel = Component.translatable(UI + "hint.cancel");
+        int width = 6 + font.width(name) + 6 + PanelDrawing.keycapWidth(font, left) + 3 + font.width(action) + 6
+                + PanelDrawing.keycapWidth(font, right) + 3 + font.width(cancel) + 6;
+        int x = boxX + (BOX_W - width) / 2;
+        int y = boxY - 5 - 16;
+        if (sprites != null) sprites.blit(PanelDrawing.CHIP, x, y, width, 16);
+        x += 6;
+        if (graphics != null) graphics.drawString(font, name, x, y + 4, PanelDrawing.ACCENT, false);
+        x += font.width(name) + 6;
+        x = MapHud.keyPhrase(sprites, graphics, font, left, action, x, y) + 6;
+        MapHud.keyPhrase(sprites, graphics, font, right, cancel, x, y);
+    }
+
+    private String hintKey(Tool each) {
+        if (each != Tool.MOVE) return key(each);
+        return moving == NONE ? "move_pick" : "move_place";
     }
 
     boolean tip(MapPage page, GuiGraphics graphics, int mouseX, int mouseY) {
+        if (isOverCede(mouseX, mouseY)) {
+            return page.tipAt(graphics, cedeX(), buttonY(), BUTTON, BUTTON, mouseX, mouseY,
+                    Component.translatable(EarthSpiritScreen.TIP + "map_cede"));
+        }
         Tool each = at(mouseX, mouseY);
         if (each == null) return false;
-        return page.tipAt(graphics, left(each), top, BUTTON_W, MapControls.HEIGHT, mouseX, mouseY,
+        return page.tipAt(graphics, left(each), buttonY(), BUTTON, BUTTON, mouseX, mouseY,
                 Component.translatable(TIP + key(each)));
     }
 

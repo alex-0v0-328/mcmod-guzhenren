@@ -5,13 +5,13 @@ import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 /**
- * 「信息」页：面板顶行一排小按钮切换四个小节（总览、养殖、种植、蛊虫），小节正文由各自的 {@link PanelPage} 绘制，
- * 绘制、输入与弹窗都转给当前小节。
+ * 「信息」页：顶栏下一条二级标签（{@code subtab}，常态只有底线，悬停变亮，选中金底线）切换四个小节（总览、养殖、种植、
+ * 蛊虫），小节正文由各自的 {@link PanelPage} 从 {@link #CONTENT_TOP} 起排卡片，绘制、输入与弹窗都转给当前小节。
  * <ul>
  *   <li>四个小节的数据同属信息页，服务端每秒一起算；切小节只在客户端，不发 {@code View}。</li>
- *   <li>顶行按钮占掉原来的页眉位置，本页不画「福地名 · 页名」页眉（{@link #drawsHeading}）。</li>
  *   <li>界面实例在库藏页与其他页间互换时本页对象随之带过去，停在哪个小节保留；重开面板回到总览。</li>
  * </ul>
  */
@@ -22,12 +22,15 @@ final class InfoPage extends PanelPage {
     static final int HERD = 1;
     static final int FARM = 2;
     static final int GU = 3;
+    static final int CONTENT_TOP = EarthSpiritScreen.BAR_H + 29;
     private static final String UI = EarthSpiritScreen.UI;
-    private static final int BUTTON_X = 8;
-    private static final int BUTTON_Y = 3;
-    private static final int BUTTON_W = 30;
-    private static final int BUTTON_H = 12;
-    private static final int BUTTON_PITCH = 32;
+    private static final int SUBTAB_Y = EarthSpiritScreen.BAR_H + 6;
+    private static final int SUBTAB_W = 44;
+    private static final int SUBTAB_H = 16;
+    private static final int SUBTAB_PITCH = 46;
+    private static final ResourceLocation SUBTAB = PanelDrawing.sprite("subtab");
+    private static final ResourceLocation SUBTAB_HIGHLIGHTED = PanelDrawing.sprite("subtab_highlighted");
+    private static final ResourceLocation SUBTAB_SELECTED = PanelDrawing.sprite("subtab_selected");
     private final List<PanelPage> parts;
     private int part = OVERVIEW;
 
@@ -54,23 +57,22 @@ final class InfoPage extends PanelPage {
         for (PanelPage each : this.parts) each.attach(screen);
     }
 
-    private boolean isOverButton(int x, int y, int index, double mouseX, double mouseY) {
-        return Widgets.isOver(mouseX, mouseY, x + BUTTON_X + index * BUTTON_PITCH, y + BUTTON_Y, BUTTON_W, BUTTON_H);
+    private int subtabLeft(int index) { return PanelDrawing.contentX(width()) + index * SUBTAB_PITCH; }
+
+    private boolean isOverSubtab(int index, double mouseX, double mouseY) {
+        return Widgets.isOver(mouseX, mouseY, subtabLeft(index), SUBTAB_Y, SUBTAB_W, SUBTAB_H);
     }
 
     @Override
     protected Component name() { return Component.translatable(UI + "tab.info"); }
 
-    @Override
-    protected boolean drawsHeading() { return true; }
-
     //region Drawing [绘制]
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         for (int i = 0; i < this.parts.size(); i++) {
-            boolean selected = i == this.part;
-            PanelDrawing.button(sprites, x + BUTTON_X + i * BUTTON_PITCH, y + BUTTON_Y, BUTTON_W, BUTTON_H, true,
-                    !selected && isOverButton(x, y, i, mouseX, mouseY), selected, false);
+            ResourceLocation tab = i == this.part ? SUBTAB_SELECTED
+                    : isOverSubtab(i, mouseX, mouseY) ? SUBTAB_HIGHLIGHTED : SUBTAB;
+            sprites.blit(tab, subtabLeft(i), SUBTAB_Y, SUBTAB_W, SUBTAB_H);
         }
         current().sprites(sprites, x, y, mouseX, mouseY);
     }
@@ -83,9 +85,10 @@ final class InfoPage extends PanelPage {
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         for (int i = 0; i < this.parts.size(); i++) {
-            int left = x + BUTTON_X + i * BUTTON_PITCH;
-            PanelDrawing.centered(graphics, font(), this.parts.get(i).name(), left, left + BUTTON_W, y + BUTTON_Y + 2,
-                    i == this.part ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
+            int colour = i == this.part ? PanelDrawing.ACCENT
+                    : isOverSubtab(i, mouseX, mouseY) ? PanelDrawing.TEXT : PanelDrawing.LEGEND;
+            PanelDrawing.centered(graphics, font(), this.parts.get(i).name(), subtabLeft(i), subtabLeft(i) + SUBTAB_W,
+                    SUBTAB_Y + 4, colour);
         }
         current().texts(graphics, x, y, mouseX, mouseY);
     }
@@ -105,7 +108,7 @@ final class InfoPage extends PanelPage {
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         for (int i = 0; i < this.parts.size(); i++) {
-            if (isOverButton(x, y, i, mouseX, mouseY)) {
+            if (isOverSubtab(i, mouseX, mouseY)) {
                 open(i);
                 return true;
             }

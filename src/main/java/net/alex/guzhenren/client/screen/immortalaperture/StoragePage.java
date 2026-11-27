@@ -17,8 +17,8 @@ import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 「库藏」页：服务端下发的当前一页条目铺成 9×{@value #ROWS} 的格子，滚轮翻页；格子下面一行是搜索框、排序、「存同类」；
- * 再下面是玩家背包与快捷栏（菜单里的真格子）。
+ * 「库藏」页：顶栏下居中两张卡片，左「库藏」卡上排搜索框、排序、「存同类」，下铺服务端下发的当前一页条目（9×{@value #ROWS}
+ * 格，滚轮翻页）；右「背包」卡是玩家背包与快捷栏（菜单里的真格子，坐标相对本页左上角）。
  * <ul>
  *   <li>库藏不设上限，一个格子是一种物品，右下角画总数（过万缩写成 k / m），悬停提示补完整数量；物品数据过大只下发了
  *       种类的格子，悬停多一行说明。</li>
@@ -28,31 +28,39 @@ import org.jetbrains.annotations.Nullable;
  *   <li>搜索、排序、翻页都在服务端（{@link StorageBrowser}）：输入一变、点排序、滚轮翻页就发一次 {@link
  *       StoragePart.Browse}，带上按本地物品名算好的提示表（专用服务器认不出中文名）。翻页与排序先记成「待回」值，
  *       服务端回了同样的页码或排序才清掉，连续滚动与连点不丢步。</li>
- *   <li>右上角写种类数：筛选时写「匹配数 / 总数」，超过一页时补「当前页 / 页数」。</li>
+ *   <li>库藏卡标题右侧写种类数：筛选时写「匹配数 / 总数」，超过一页时补「当前页 / 页数」。</li>
  * </ul>
  */
 
 final class StoragePage extends PanelPage {
 
-    static final int SEARCH_X = 8;
-    static final int SEARCH_Y = 111;
+    static final int TOP = EarthSpiritScreen.BAR_H + 7;
+    static final int SEARCH_X = 5;
+    static final int SEARCH_Y = 18;
     static final int SEARCH_W = 96;
     private static final String UI = EarthSpiritScreen.UI;
     private static final String TIP = EarthSpiritScreen.TIP;
-    private static final int GRID_X = 8;
-    private static final int GRID_Y = 18;
+    private static final int CARD_W = 172;
+    private static final int STORE_H = 134;
+    private static final int BAG_X = CARD_W + PanelDrawing.GAP;
+    private static final int BAG_H = EarthSpiritMenu.HOTBAR_Y + 22;
+    private static final int WIDTH = BAG_X + CARD_W;
+    private static final int GRID_X = 6;
+    private static final int GRID_Y = 39;
     private static final int COLS = 9;
     private static final int ROWS = 5;
     private static final int PITCH = EarthSpiritMenu.SLOT;
-    private static final int SORT_X = 106;
+    private static final int SORT_X = 103;
     private static final int SORT_W = 28;
-    private static final int DEPOSIT_X = 136;
-    private static final int DEPOSIT_W = 32;
+    private static final int DEPOSIT_X = 133;
+    private static final int DEPOSIT_W = 34;
     private static final String[] SORT_KEYS = {"sort_order", "sort_count", "sort_name"};
     private int pendingPage = -1;
     private @Nullable StorageBrowser.Sort pendingSort;
 
     StoragePage(EarthSpiritScreen screen) { super(screen); }
+
+    static int left(int screenWidth) { return (screenWidth - WIDTH) / 2; }
 
     @Override
     protected Component name() { return Component.translatable(UI + "tab.storage"); }
@@ -91,15 +99,18 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
+        PanelDrawing.card(sprites, x, y, CARD_W, STORE_H);
+        PanelDrawing.card(sprites, x + BAG_X, y, CARD_W, BAG_H);
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
                 sprites.blit(PanelDrawing.SLOT, x + GRID_X + c * PITCH - 1, y + GRID_Y + r * PITCH - 1, 18, 18);
             }
         }
         sprites.blit(screen.isSearchFocused() ? PanelDrawing.TEXT_FIELD_FOCUSED : PanelDrawing.TEXT_FIELD, x + SEARCH_X,
-                y + SEARCH_Y, SEARCH_W, PanelDrawing.SQUARE);
-        PanelDrawing.button(sprites, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.SQUARE, true, mouseX, mouseY);
-        PanelDrawing.button(sprites, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.SQUARE, true, mouseX, mouseY);
+                y + SEARCH_Y, SEARCH_W, PanelDrawing.BUTTON_H);
+        PanelDrawing.button(sprites, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
+        PanelDrawing.button(sprites, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H, true, mouseX,
+                mouseY);
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < COLS; c++) {
                 sprites.blit(PanelDrawing.SLOT, x + EarthSpiritMenu.INVENTORY_X + c * PITCH - 1,
@@ -120,12 +131,13 @@ final class StoragePage extends PanelPage {
                 : Component.translatable(UI + "kinds", section.total());
         Component kinds = section.pages() > 1
                 ? Component.translatable(UI + "kinds_paged", count, section.pageIndex() + 1, section.pages()) : count;
-        PanelDrawing.right(graphics, font(), kinds, x + 168, y + 6, PanelDrawing.LEGEND);
+        PanelDrawing.title(graphics, font(), name(), kinds, x, y, CARD_W);
         PanelDrawing.label(graphics, font(), Component.translatable(UI + SORT_KEYS[sort().ordinal()]), x + SORT_X,
-                y + SEARCH_Y, SORT_W, PanelDrawing.SQUARE, true);
+                y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H, true);
         PanelDrawing.label(graphics, font(), Component.translatable(UI + "deposit_matching"), x + DEPOSIT_X,
-                y + SEARCH_Y, DEPOSIT_W, PanelDrawing.SQUARE, true);
-        graphics.drawString(font(), Component.translatable(UI + "inventory"), x + 8, y + 128, PanelDrawing.TEXT, false);
+                y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H, true);
+        PanelDrawing.title(graphics, font(), Component.translatable(UI + "inventory"), Component.empty(), x + BAG_X, y,
+                CARD_W);
     }
 
     @Override
@@ -142,15 +154,15 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        if (tip(graphics, x + SEARCH_X, y + SEARCH_Y, SEARCH_W, PanelDrawing.SQUARE, mouseX, mouseY,
+        if (tip(graphics, x + SEARCH_X, y + SEARCH_Y, SEARCH_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "search"))) {
             return;
         }
-        if (tip(graphics, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.SQUARE, mouseX, mouseY,
+        if (tip(graphics, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "sort"))) {
             return;
         }
-        if (tip(graphics, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.SQUARE, mouseX, mouseY,
+        if (tip(graphics, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "deposit_matching"))) {
             return;
         }
@@ -174,11 +186,11 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
-        if (Widgets.isOver(mouseX, mouseY, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.SQUARE)) {
+        if (Widgets.isOver(mouseX, mouseY, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H)) {
             browse(sort().next(), 0);
             return true;
         }
-        if (Widgets.isOver(mouseX, mouseY, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.SQUARE)) {
+        if (Widgets.isOver(mouseX, mouseY, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H)) {
             send(new StoragePart.DepositMatching());
             return true;
         }

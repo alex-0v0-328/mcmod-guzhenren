@@ -38,20 +38,22 @@ final class MapCard {
 
     private static final int WIDTH = 150;
     private static final int PAD = 6;
-    private static final int BUTTON_W = 32;
+    private static final int TEXT_X = 26;
+    private static final int BUTTON_W = 42;
+    private static final int BUTTON_H = 16;
     private static final int BUTTON_GAP = 4;
     private static final int PICK_X = 36;
     private static final int PICK_W = 60;
     private static final int CROP_Y = 30;
-    private static final int KIND_Y = 48;
+    private static final int KIND_Y = 50;
     private static final int AUTO_Y = 32;
     private static final int TYPES_LABEL_Y = 46;
     private static final int TYPES_Y = 56;
     private static final int TYPE_ROW_H = 12;
     private static final int TYPE_ROWS = 4;
     private static final int SHORT_HEIGHT = 52;
-    private static final int FIELD_HEIGHT = 66 + MapControls.HEIGHT + PAD;
-    private static final int PASTURE_HEIGHT = TYPES_Y + TYPE_ROWS * TYPE_ROW_H + 4 + MapControls.HEIGHT + PAD;
+    private static final int FIELD_HEIGHT = KIND_Y + BUTTON_H + 4 + BUTTON_H + PAD;
+    private static final int PASTURE_HEIGHT = TYPES_Y + TYPE_ROWS * TYPE_ROW_H + 4 + BUTTON_H + PAD;
     private static final String UI = EarthSpiritScreen.UI + "map.card.";
     private static final String TIP = EarthSpiritScreen.TIP + "map_card_";
     private static final String GATHER = "gather";
@@ -107,7 +109,7 @@ final class MapCard {
 
     private int buttonLeft(int index) { return left + PAD + index * (BUTTON_W + BUTTON_GAP); }
 
-    private int buttonTop() { return top + height() - PAD - MapControls.HEIGHT; }
+    private int buttonTop() { return top + height() - PAD - BUTTON_H; }
 
     private static int cost() { return FieldPlot.of(0, 0, 0).farmland(); }
 
@@ -133,29 +135,28 @@ final class MapCard {
         MapPlots.Plot shown = plot;
         if (shown == null) return;
         sprites.blit(PanelDrawing.POPUP, left, top, WIDTH, height());
+        sprites.blit(PanelDrawing.sprite(shown.kind() == MapPlots.Kind.PASTURE ? "tool_pasture" : "tool_farm"),
+                left + PAD, top + 5, 16, 16);
         List<String> buttons = buttons();
         for (int i = 0; i < buttons.size(); i++) {
-            boolean hover = Widgets.isOver(mouseX, mouseY, buttonLeft(i), buttonTop(), BUTTON_W, MapControls.HEIGHT);
-            PanelDrawing.button(sprites, buttonLeft(i), buttonTop(), BUTTON_W, MapControls.HEIGHT, true, hover, false,
-                    "remove".equals(buttons.get(i)));
+            PanelDrawing.Look look = "remove".equals(buttons.get(i)) ? PanelDrawing.Look.DANGER
+                    : PanelDrawing.Look.PLAIN;
+            PanelDrawing.button(sprites, buttonLeft(i), buttonTop(), BUTTON_W, BUTTON_H, look, true, mouseX, mouseY);
         }
         if (shown.kind() == MapPlots.Kind.FIELD) {
             MapPart.Section.Field field = land.field(shown.index());
             if (field == null) return;
-            PanelDrawing.button(sprites, left + PICK_X, top + CROP_Y, PICK_W, PanelDrawing.SQUARE, true, mouseX,
-                    mouseY);
-            boolean live = kindLive(field, land);
-            boolean hover = live && Widgets.isOver(mouseX, mouseY, left + PICK_X, top + KIND_Y, PICK_W,
-                    PanelDrawing.SQUARE);
-            PanelDrawing.button(sprites, left + PICK_X, top + KIND_Y, PICK_W, PanelDrawing.SQUARE, live, hover, false,
-                    confirming);
+            PanelDrawing.button(sprites, left + PICK_X, top + CROP_Y, PICK_W, BUTTON_H, true, mouseX, mouseY);
+            PanelDrawing.Look kind = confirming ? PanelDrawing.Look.DANGER : PanelDrawing.Look.PLAIN;
+            PanelDrawing.button(sprites, left + PICK_X, top + KIND_Y, PICK_W, BUTTON_H, kind, kindLive(field, land),
+                    mouseX, mouseY);
         } else if (shown.kind() == MapPlots.Kind.PASTURE) {
             MapPart.Section.Pen pen = land.pen(shown.index());
             if (pen == null) return;
             PanelDrawing.toggle(sprites, left + PAD, top + AUTO_Y, pen.autoGather(), true, mouseX, mouseY);
             List<ResourceLocation> types = land.animals();
             typeOffset = PanelDrawing.clampScroll(typeOffset, TYPE_ROWS, types.size());
-            sprites.blit(PanelDrawing.WELL, left + PAD, top + TYPES_Y, WIDTH - 2 * PAD, TYPE_ROWS * TYPE_ROW_H);
+            sprites.blit(PanelDrawing.INSET, left + PAD, top + TYPES_Y, WIDTH - 2 * PAD, TYPE_ROWS * TYPE_ROW_H);
             for (int i = 0; i < TYPE_ROWS && typeOffset + i < types.size(); i++) {
                 int rowTop = top + TYPES_Y + i * TYPE_ROW_H;
                 PanelDrawing.toggle(sprites, left + PAD + 2, rowTop + 1, pen.gathers(types.get(typeOffset + i)), true,
@@ -172,21 +173,21 @@ final class MapCard {
         MapPlots.Plot shown = plot;
         if (shown == null) return false;
         int gather = buttons().indexOf(GATHER);
-        if (gather >= 0 && page.tipAt(graphics, buttonLeft(gather), buttonTop(), BUTTON_W, MapControls.HEIGHT, mouseX,
+        if (gather >= 0 && page.tipAt(graphics, buttonLeft(gather), buttonTop(), BUTTON_W, BUTTON_H, mouseX,
                 mouseY, Component.translatable(EarthSpiritScreen.TIP + GATHER, HerdRules.GATHER_LIMIT))) {
             return true;
         }
         if (shown.kind() == MapPlots.Kind.FIELD) {
             MapPart.Section.Field field = land.field(shown.index());
             if (field == null) return false;
-            if (page.tipAt(graphics, left + PICK_X, top + CROP_Y, PICK_W, PanelDrawing.SQUARE, mouseX, mouseY,
+            if (page.tipAt(graphics, left + PICK_X, top + CROP_Y, PICK_W, BUTTON_H, mouseX, mouseY,
                     Component.translatable(TIP + "crop"))) {
                 return true;
             }
             Component kindTip = FieldKind.byId(field.kind()) == FieldKind.GU_PLANT
                     ? Component.translatable(TIP + "kind_plain")
                     : Component.translatable(TIP + "kind_gu_plant", cost());
-            return page.tipAt(graphics, left + PICK_X, top + KIND_Y, PICK_W, PanelDrawing.SQUARE, mouseX, mouseY,
+            return page.tipAt(graphics, left + PICK_X, top + KIND_Y, PICK_W, BUTTON_H, mouseX, mouseY,
                     kindTip);
         }
         if (shown.kind() == MapPlots.Kind.PASTURE) {
@@ -201,17 +202,18 @@ final class MapCard {
         MapPlots.Plot shown = plot;
         if (shown == null) return;
         String kind = shown.kind().name().toLowerCase(Locale.ROOT);
-        graphics.drawString(font, Component.translatable(UI + kind), left + PAD, top + 6, PanelDrawing.ACCENT, false);
+        graphics.drawString(font, Component.translatable(UI + kind), left + TEXT_X, top + 5, PanelDrawing.ACCENT,
+                false);
         Component state = switch (shown.kind()) {
             case FIELD -> Component.translatable(UI + "field_state", shown.mature(), shown.growing());
             case PLANNED -> Component.translatable(UI + "planned_state");
             case PASTURE -> Component.translatable(UI + "pasture_state", shown.penned());
         };
-        graphics.drawString(font, state, left + PAD, top + 18, PanelDrawing.TEXT, false);
+        graphics.drawString(font, state, left + TEXT_X, top + 15, PanelDrawing.LEGEND, false);
         List<String> buttons = buttons();
         for (int i = 0; i < buttons.size(); i++) {
-            PanelDrawing.label(graphics, font, label(buttons.get(i)), buttonLeft(i), buttonTop(), BUTTON_W,
-                    MapControls.HEIGHT, true);
+            PanelDrawing.label(graphics, font, label(buttons.get(i)), buttonLeft(i), buttonTop(), BUTTON_W, BUTTON_H,
+                    true);
         }
         if (shown.kind() == MapPlots.Kind.FIELD) fieldTexts(graphics, font, land, shown);
         if (shown.kind() == MapPlots.Kind.PASTURE) pastureTexts(graphics, font, land, shown);
@@ -220,16 +222,16 @@ final class MapCard {
     private void fieldTexts(GuiGraphics graphics, Font font, MapTools.Land land, MapPlots.Plot shown) {
         MapPart.Section.Field field = land.field(shown.index());
         if (field == null) return;
-        graphics.drawString(font, Component.translatable(UI + "crop"), left + PAD, top + CROP_Y + 3,
+        graphics.drawString(font, Component.translatable(UI + "crop"), left + PAD, top + CROP_Y + 4,
                 PanelDrawing.LEGEND, false);
-        PanelDrawing.label(graphics, font, cropName(field.crop()), left + PICK_X, top + CROP_Y, PICK_W,
-                PanelDrawing.SQUARE, true);
-        graphics.drawString(font, Component.translatable(UI + "kind"), left + PAD, top + KIND_Y + 3,
+        PanelDrawing.label(graphics, font, cropName(field.crop()), left + PICK_X, top + CROP_Y, PICK_W, BUTTON_H,
+                true);
+        graphics.drawString(font, Component.translatable(UI + "kind"), left + PAD, top + KIND_Y + 4,
                 PanelDrawing.LEGEND, false);
         FieldKind kind = FieldKind.byId(field.kind());
         Component kindLabel = confirming ? Component.translatable(UI + "confirm")
                 : Component.translatable(UI + "kind_" + kind.name().toLowerCase(Locale.ROOT));
-        PanelDrawing.label(graphics, font, kindLabel, left + PICK_X, top + KIND_Y, PICK_W, PanelDrawing.SQUARE,
+        PanelDrawing.label(graphics, font, kindLabel, left + PICK_X, top + KIND_Y, PICK_W, BUTTON_H,
                 kindLive(field, land));
         if (kind == FieldKind.PLAIN) {
             Component mud = Component.translatable(UI + "mud", PanelDrawing.count(land.mud()), cost());
@@ -266,7 +268,7 @@ final class MapCard {
         if (shown == null || !contains(mouseX, mouseY)) return false;
         List<String> buttons = buttons();
         for (int i = 0; i < buttons.size(); i++) {
-            if (!Widgets.isOver(mouseX, mouseY, buttonLeft(i), buttonTop(), BUTTON_W, MapControls.HEIGHT)) continue;
+            if (!Widgets.isOver(mouseX, mouseY, buttonLeft(i), buttonTop(), BUTTON_W, BUTTON_H)) continue;
             switch (buttons.get(i)) {
                 case GATHER -> land.gather(shown.index());
                 case "move" -> tools.startMove(shown.index());
@@ -286,10 +288,10 @@ final class MapCard {
                             boolean wasConfirming) {
         MapPart.Section.Field field = land.field(shown.index());
         if (field == null) return;
-        if (Widgets.isOver(mouseX, mouseY, left + PICK_X, top + CROP_Y, PICK_W, PanelDrawing.SQUARE)) {
+        if (Widgets.isOver(mouseX, mouseY, left + PICK_X, top + CROP_Y, PICK_W, BUTTON_H)) {
             int next = field.crop() + 1 >= FarmRules.crops().size() ? FarmState.AUTO_CROP : field.crop() + 1;
             land.setFieldCrop(shown.chunkX(), shown.chunkZ(), next);
-        } else if (Widgets.isOver(mouseX, mouseY, left + PICK_X, top + KIND_Y, PICK_W, PanelDrawing.SQUARE)
+        } else if (Widgets.isOver(mouseX, mouseY, left + PICK_X, top + KIND_Y, PICK_W, BUTTON_H)
                 && kindLive(field, land)) {
             if (!wasConfirming) {
                 confirming = true;

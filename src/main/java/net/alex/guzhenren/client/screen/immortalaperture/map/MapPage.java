@@ -11,6 +11,7 @@ import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapSurface;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.MapView;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,31 +19,37 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 「地图」页：全屏，顶栏（{@value EarthSpiritScreen#BAR_H} 像素，由 {@link EarthSpiritScreen} 画）以下整片是地图视口；
- * 地形贴图由 {@link MapSurface} 后台光栅，地图层由 {@link MapScene} 画，左下视角按钮条 {@link MapControls} 与其上的选址
- * 工具条 {@link MapTools}、右下图例 {@link MapLegend}、对象卡片 {@link MapCard}、割弃弹窗 {@link CedePanel}。
+ * 「地图」页：全屏，顶栏（{@value EarthSpiritScreen#BAR_H} 像素，由 {@link EarthSpiritScreen} 画，投影压在地图上）以下整片
+ * 是地图视口；地形贴图由 {@link MapSurface} 后台光栅，地图层由 {@link MapScene} 画；叠在上面的是左上资源条与左下按键提示
+ * {@link MapHud}、右上视角簇 {@link MapControls}、右缘高度刻度 {@link MapHeightRail}、底部正中工具栏 {@link MapTools}（含
+ * 割弃）、右下图例 {@link MapLegend}、对象卡片 {@link MapCard}、割弃弹窗 {@link CedePanel}。
  * <ul>
  *   <li>每帧：按窗口与 GUI 缩放定视口（1 地图像素 = 2 真实像素）、把视口区块矩形交给
  *       {@link LandMapClient#requestView}、让贴图判是否重画；底色、贴图与标记按维度时间乘 {@code MapTint}。</li>
  *   <li>⚠ 离开本页调 {@link LandMapClient#stopView}（服务端不看页，不退订会一直扫和发），关面板调
  *       {@link LandMapClient#clear} 并关掉贴图线程。</li>
- *   <li>操作：左键或右键拖动平移；滚轮以光标为锚缩放；R 顺时针转、Shift+R 逆时针转；V 切地形 / 等高线；= 与 -
- *       缩放。按下与松开相距不到 {@value #CLICK_SLOP} 像素算点击：拿着工具即执行工具，否则点占地开卡片；拿着工具时右键
- *       或 Esc 退出工具，Esc 也关卡片。</li>
- *   <li>相机对准山心（参照平面 = 山底）；秘境还没解出山心时对准玩家脚下；「山心」按钮同。</li>
- *   <li>⚠ 绘制都在 {@link #fills}（贴图与头像是立即绘制，见 {@link MapScene}），按钮与卡片精灵在同一步另起
- *       {@link SpriteBatch}。</li>
+ *   <li>操作（Alex 定）：左键或右键拖动、按住 WASD 平移（每秒 {@value #PAN_SPEED} GUI 像素）；滚轮以光标为锚缩放；Q 逆时针
+ *       转、E 顺时针转（R 备用：顺时针，Shift+R 逆时针）；V 切等高线；H 回山心。本页吃掉这些键，E 不再关面板。按下与松开
+ *       相距不到 {@value #CLICK_SLOP} 像素算点击：拿着工具即执行工具，否则点占地开卡片；拿着工具时右键或 Esc 退出工具，Esc
+ *       也关卡片。</li>
+ *   <li>相机对准山心（参照平面 = 山底）；秘境还没解出山心时对准玩家脚下；「回山心」键同。</li>
+ *   <li>⚠ 绘制都在 {@link #fills}（贴图、头像与罗盘指针是立即绘制，见 {@link MapScene}），叠加部件的精灵在同一步另起
+ *       {@link SpriteBatch}；精灵批开画前先冲掉已排的填充，所以刻度线、图例色块、工具栏竖线排在叠加底之后、卡片之前。</li>
  * </ul>
  */
 
 public class MapPage extends PanelPage {
 
-    private static final int TOP = EarthSpiritScreen.BAR_H + 1;
+    private static final int TOP = EarthSpiritScreen.BAR_H - 1;
     private static final int NO_BUTTON = -1;
     private static final int CLICK_SLOP = 3;
+    private static final int PAN_SPEED = 240;
+    private static final int RAIL_GAP = 8;
     private final MapCamera camera = new MapCamera(0.0, 64.0, 0.0);
     private final MapSurface surface = new MapSurface();
     private final MapControls controls = new MapControls();
+    private final MapHud hud = new MapHud();
+    private final MapHeightRail rail = new MapHeightRail();
     private final MapLegend legend = new MapLegend();
     private final CedePanel cede = new CedePanel(this);
     private final MapTools tools = new MapTools();
@@ -55,6 +62,7 @@ public class MapPage extends PanelPage {
     private boolean moved;
     private @Nullable MapPick.Hit hover;
     private MapTools.@Nullable Target target;
+    private long lastFrame;
 
     public MapPage(EarthSpiritScreen screen) { super(screen); }
 
@@ -78,15 +86,18 @@ public class MapPage extends PanelPage {
     //region Lifecycle [生命周期]
     @Override
     protected void resized(int width, int height) {
-        controls.layout(height);
-        tools.layout(controls.top());
+        controls.layout(width);
+        tools.layout(width, height);
         legend.layout(width, height);
+        hud.layout(height);
+        rail.layout(width, controls.bottom() + RAIL_GAP, legend.top() - RAIL_GAP);
         cede.layout(width, height);
     }
 
     @Override
     protected void hidden() {
         dragging = NO_BUTTON;
+        lastFrame = 0L;
         cede.closeAll();
         tools.cancel();
         card.close();
@@ -120,6 +131,7 @@ public class MapPage extends PanelPage {
     //region Drawing [绘制]
     @Override
     protected void fills(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
+        panByKeys();
         sync();
         hover = pick(mouseX, mouseY);
         List<MapPlots.Plot> plots = land.plots();
@@ -129,19 +141,29 @@ public class MapPage extends PanelPage {
                 ? null : MapPlots.at(plots, hover.x() >> 4, hover.z() >> 4);
         MapScene.draw(graphics, camera, surface, TOP, width(), height(), guiScale(), new MapScene.Layers(plots,
                 highlighted, target, target == null ? 0 : tools.colour(target), hover));
-        legend.fills(graphics, surface.lowest(), surface.highest(), hover);
         SpriteBatch.draw(graphics, sprites -> {
-            controls.sprites(sprites, mouseX, mouseY);
+            hud.sprites(sprites, font(), land);
+            controls.sprites(sprites, camera, mouseX, mouseY);
+            rail.sprites(sprites, font(), surface.lowest(), surface.highest(), hover);
+            legend.sprites(sprites);
             tools.sprites(sprites, mouseX, mouseY);
-            card.sprites(sprites, land, mouseX, mouseY);
+            tools.hint(sprites, null, font());
         });
+        rail.fills(graphics, surface.lowest(), surface.highest(), hover);
+        legend.fills(graphics);
+        tools.fills(graphics);
+        SpriteBatch.draw(graphics, sprites -> card.sprites(sprites, land, mouseX, mouseY));
+        controls.needle(graphics, camera);
     }
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         MapScene.labels(graphics, font(), camera, surface, TOP, guiScale());
-        controls.texts(graphics, font(), camera);
-        tools.texts(graphics, font(), land);
+        hud.texts(graphics, font(), land);
+        controls.texts(graphics, font());
+        rail.texts(graphics, font(), surface.lowest(), surface.highest(), hover);
+        tools.texts(graphics, font());
+        tools.hint(null, graphics, font());
         card.texts(graphics, font(), land);
         legend.texts(graphics, font(), camera, surface.lowest(), surface.highest(), hover);
     }
@@ -149,6 +171,7 @@ public class MapPage extends PanelPage {
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         if (controls.tip(this, graphics, mouseX, mouseY) || tools.tip(this, graphics, mouseX, mouseY)
+                || hud.tip(this, graphics, land, mouseX, mouseY)
                 || card.isOpen() && card.tip(this, graphics, land, mouseX, mouseY)) {
             return;
         }
@@ -162,9 +185,9 @@ public class MapPage extends PanelPage {
     }
 
     private boolean isOnMap(double mouseX, double mouseY) {
-        return mouseY >= TOP && mouseY < height() && mouseX >= 0 && mouseX < width()
-                && controls.at(mouseX, mouseY) == null && tools.at(mouseX, mouseY) == null
-                && !legend.contains(mouseX, mouseY) && !card.contains(mouseX, mouseY);
+        return mouseY >= EarthSpiritScreen.BAR_H && mouseY < height() && mouseX >= 0 && mouseX < width()
+                && !controls.contains(mouseX, mouseY) && !tools.contains(mouseX, mouseY)
+                && !hud.contains(mouseX, mouseY) && !legend.contains(mouseX, mouseY) && !card.contains(mouseX, mouseY);
     }
     //endregion
 
@@ -187,7 +210,14 @@ public class MapPage extends PanelPage {
             if (left) tools.press(tool);
             return true;
         }
-        if (legend.contains(mouseX, mouseY)) return true;
+        if (tools.isOverCede(mouseX, mouseY)) {
+            if (left) cede.open();
+            return true;
+        }
+        if (controls.contains(mouseX, mouseY) || tools.contains(mouseX, mouseY) || hud.contains(mouseX, mouseY)
+                || legend.contains(mouseX, mouseY)) {
+            return true;
+        }
         if (!isOnMap(mouseX, mouseY)) return false;
         if (button == InputConstants.MOUSE_BUTTON_RIGHT && tools.active() != null) {
             tools.cancel();
@@ -201,15 +231,31 @@ public class MapPage extends PanelPage {
     }
 
     private void press(MapControls.Control control) {
-        if (control == MapControls.Control.CEDE) {
-            cede.open();
-        } else if (control == MapControls.Control.HOME) {
-            aimed = false;
-            aim();
-        } else {
-            MapControls.turn(control, camera);
+        switch (control) {
+            case CONTOUR -> camera.setPlan(!camera.plan());
+            case HOME -> {
+                aimed = false;
+                aim();
+            }
+            case COMPASS -> camera.rotate(1);
         }
     }
+
+    private void panByKeys() {
+        long now = Util.getMillis();
+        double seconds = lastFrame == 0L ? 0.0 : Math.min(now - lastFrame, 100L) / 1000.0;
+        lastFrame = now;
+        if (seconds == 0.0 || cede.isOpen()) return;
+
+        long window = Minecraft.getInstance().getWindow().getWindow();
+        int dx = (held(window, InputConstants.KEY_A) ? 1 : 0) - (held(window, InputConstants.KEY_D) ? 1 : 0);
+        int dy = (held(window, InputConstants.KEY_W) ? 1 : 0) - (held(window, InputConstants.KEY_S) ? 1 : 0);
+        if (dx == 0 && dy == 0) return;
+        double step = PAN_SPEED * seconds / scale();
+        camera.pan(dx * step, dy * step);
+    }
+
+    private static boolean held(long window, int key) { return InputConstants.isKeyDown(window, key); }
 
     private void tap(int mouseX, int mouseY) {
         MapPick.Hit hit = pick(mouseX, mouseY);
@@ -257,11 +303,14 @@ public class MapPage extends PanelPage {
             card.close();
             return true;
         }
+        if (cede.isOpen()) return false;
         switch (keyCode) {
+            case InputConstants.KEY_Q -> camera.rotate(-1);
+            case InputConstants.KEY_E -> camera.rotate(1);
             case InputConstants.KEY_R -> camera.rotate(Screen.hasShiftDown() ? -1 : 1);
-            case InputConstants.KEY_V -> camera.setPlan(!camera.plan());
-            case InputConstants.KEY_EQUALS, InputConstants.KEY_ADD -> press(MapControls.Control.ZOOM_IN);
-            case InputConstants.KEY_MINUS -> press(MapControls.Control.ZOOM_OUT);
+            case InputConstants.KEY_V -> press(MapControls.Control.CONTOUR);
+            case InputConstants.KEY_H -> press(MapControls.Control.HOME);
+            case InputConstants.KEY_W, InputConstants.KEY_A, InputConstants.KEY_S, InputConstants.KEY_D -> {}
             default -> {
                 return false;
             }

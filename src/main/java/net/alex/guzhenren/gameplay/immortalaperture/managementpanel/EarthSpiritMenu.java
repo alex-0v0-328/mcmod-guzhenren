@@ -32,17 +32,17 @@ import org.jetbrains.annotations.Nullable;
  *       格的做法）：InventoryProfilesNext 按格子坐标画快捷栏箭头，不看 {@code isActive}，也不认界面类上的
  *       {@code IPNIgnore}。</li>
  *   <li>Shift 点背包格 = 整组存入库藏（胆识蛊[Guts Gu]不收，原样留下）；只在服务端写库藏。</li>
- *   <li>背包坐标同原版大箱子（{@value #INVENTORY_X}, {@value #INVENTORY_Y}）、快捷栏 y {@value #HOTBAR_Y}，与面板美术规
- *       格一致。</li>
+ *   <li>背包坐标（{@value #INVENTORY_X}, {@value #INVENTORY_Y}）、快捷栏 y {@value #HOTBAR_Y} 相对库藏页两张卡片的左上角，
+ *       落在右边「背包」卡里（{@code StoragePage}）。</li>
  * </ul>
  */
 
 public class EarthSpiritMenu extends AbstractContainerMenu {
 
     public static final int SLOT = 18;
-    public static final int INVENTORY_X = 8;
-    public static final int INVENTORY_Y = 140;
-    public static final int HOTBAR_Y = 198;
+    public static final int INVENTORY_X = 188;
+    public static final int INVENTORY_Y = 19;
+    public static final int HOTBAR_Y = 77;
     public static final int HIDDEN_XY = -10000;
     private final @Nullable EarthSpiritEntity spirit;
     private final List<Slot> homes = new ArrayList<>();

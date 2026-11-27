@@ -11,18 +11,19 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 /**
- * 「种植」小节：每种作物一行（图标、名字、成熟数、未熟数、成熟比例条），新田作物与库藏种子数，标准田与规划数，底部托
- * 管状态、托管开关与「收割并补种」。选址、规划、拆田与单田的作物、田型在地图页。
+ * 「种植」小节：一张卡，标题右侧写「标准田 N / 上限 · 规划 M」（有规划时补「开垦中」，每秒 1 块，不设冷却）；凹槽里每种
+ * 作物一行（图标、名字、成熟数、未熟数、金色成熟比例条），卡底一行新田作物与库藏种子数，一行自动收割补种开关与「收割并
+ * 补种」，托管开着时再一行状态（下一轮倒计时与上一轮收了几株、补了几格）。选址、规划、拆田与单田的作物、田型在地图页。
  * <ul>
- *   <li>作物只有 {@link FarmRules#crops()} 五种，列表一屏 {@value #VISIBLE} 行够用；省下的一行放新田作物。</li>
  *   <li>新田作物按钮循环切换：自动 → 小麦 → 胡萝卜 → 马铃薯 → 甜菜根 → 知心草 → 自动；右边写库藏里这种的种子数（自动 =
- *       五种合计）。</li>
- *   <li>田数行写「标准田 N / 上限 · 规划 M」；有规划时右边写「开垦中」（每秒 1 块，不设冷却）。</li>
- *   <li>托管开着时状态行写下一轮倒计时与上一轮收了几株、补了几格。</li>
+ *       五种合计），没有种子时警示色。</li>
+ *   <li>卡宽至多 {@value #MAX_W}；行数随窗口高（{@value #MIN_ROWS} 到 {@value #MAX_ROWS} 行），多了滚轮翻、右侧滚动条。
+ *       </li>
  * </ul>
  */
 
@@ -30,22 +31,20 @@ final class FarmPage extends PanelPage {
 
     private static final String UI = EarthSpiritScreen.UI;
     private static final String TIP = EarthSpiritScreen.TIP;
-    private static final int LIST_Y = 31;
+    private static final int MAX_W = 420;
+    private static final int MIN_ROWS = 3;
+    private static final int MAX_ROWS = 8;
     private static final int ROW_H = 20;
-    private static final int VISIBLE = 5;
-    private static final int LIST_H = VISIBLE * ROW_H + 2;
-    private static final int CROP_Y = 137;
-    private static final int CROP_X = 54;
-    private static final int CROP_W = 46;
-    private static final int RECLAIM_Y = 157;
-    private static final int STATUS_Y = 180;
-    private static final int BUTTON_X = 98;
-    private static final int BUTTON_W = 70;
-    private static final int BUTTON_H = 20;
-    private static final int SWITCH_Y = 197;
-    private static final int HARVEST_Y = 192;
-    private static final int RATIO_X = 136;
-    private static final int RATIO_W = 26;
+    private static final int INSET_Y = 30;
+    private static final int FOOT_H = 6 + 22 + 24 + 10 + PanelDrawing.PAD;
+    private static final int CROP_W = 60;
+    private static final int HARVEST_W = 72;
+    private static final int HARVEST_H = 18;
+    private static final int RATIO_W = 40;
+    private int x;
+    private int y;
+    private int w = MAX_W;
+    private int rows = MIN_ROWS;
     private int offset;
 
     FarmPage(EarthSpiritScreen screen) { super(screen); }
@@ -63,116 +62,161 @@ final class FarmPage extends PanelPage {
     }
 
     @Override
+    protected void resized(int width, int height) {
+        x = PanelDrawing.contentX(width);
+        y = InfoPage.CONTENT_TOP;
+        w = Math.min(PanelDrawing.contentWidth(width), MAX_W);
+        rows = Math.clamp((height - y - INSET_Y - 2 - FOOT_H - PanelDrawing.MARGIN) / ROW_H, MIN_ROWS, MAX_ROWS);
+    }
+
+    //region Geometry [几何]
+    private int insetX() { return x + PanelDrawing.PAD; }
+
+    private int insetY() { return y + INSET_Y; }
+
+    private int insetW() { return w - 2 * PanelDrawing.PAD; }
+
+    private int insetH() { return rows * ROW_H + 2; }
+
+    private int rowX() { return insetX() + 1; }
+
+    private int rowW() { return insetW() - 2 - (crops().size() > rows ? 8 : 0); }
+
+    private int rowTop(int index) { return insetY() + 1 + index * ROW_H; }
+
+    private int ratioX() { return rowX() + rowW() - 4 - RATIO_W; }
+
+    private int growingRight() { return ratioX() - 10; }
+
+    private int matureRight() { return growingRight() - 34; }
+
+    private int pickY() { return insetY() + insetH() + 6; }
+
+    private int pickX() { return insetX() + font().width(Component.translatable(UI + "crop_pick")) + 6; }
+
+    private int hostY() { return pickY() + 22; }
+
+    private int harvestX() { return x + w - PanelDrawing.PAD - HARVEST_W; }
+
+    private int statusY() { return hostY() + 24; }
+
+    private int cardH() { return INSET_Y + insetH() + FOOT_H; }
+    //endregion
+
+    private Component fields() {
+        FarmPart.Section data = data();
+        MutableComponent fields = Component.translatable(UI + "fields", data.fields(), data.capacity(), data.planned());
+        return data.planned() > 0 ? fields.append(" · ").append(Component.translatable(UI + "reclaiming")) : fields;
+    }
+
+    @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         FarmPart.Section data = data();
-        sprites.blit(PanelDrawing.WELL, x + 8, y + LIST_Y, 160, LIST_H);
+        PanelDrawing.card(sprites, this.x, this.y, w, cardH());
+        sprites.blit(PanelDrawing.INSET, insetX(), insetY(), insetW(), insetH());
         List<FarmPart.Crop> crops = data.rows();
-        offset = PanelDrawing.clampScroll(offset, VISIBLE, crops.size());
-        boolean scrolling = crops.size() > VISIBLE;
-        int rowW = scrolling ? 150 : 158;
-        for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
+        offset = PanelDrawing.clampScroll(offset, rows, crops.size());
+        for (int i = 0; i < rows && offset + i < crops.size(); i++) {
             FarmPart.Crop crop = crops.get(offset + i);
-            int top = y + LIST_Y + 1 + i * ROW_H;
-            PanelDrawing.row(sprites, x + 9, top, rowW, ROW_H, Widgets.isOver(mouseX, mouseY, x + 9, top, rowW, ROW_H));
+            int top = rowTop(i);
+            PanelDrawing.row(sprites, rowX(), top, rowW(), ROW_H, Widgets.isOver(mouseX, mouseY, rowX(), top, rowW(),
+                    ROW_H));
             int total = crop.mature() + crop.growing();
             int filled = total == 0 ? 0 : (RATIO_W - 2) * crop.mature() / total;
-            sprites.blit(PanelDrawing.BAR_BACKGROUND, x + RATIO_X - (scrolling ? 8 : 0), top + 7, RATIO_W, 6);
-            sprites.blit(PanelDrawing.BAR_FILL, x + RATIO_X - (scrolling ? 8 : 0) + 1, top + 8, filled, 4,
-                    PanelDrawing.ACCENT);
+            sprites.blit(PanelDrawing.BAR_BACKGROUND, ratioX(), top + 7, RATIO_W, 6);
+            sprites.blit(PanelDrawing.BAR_FILL, ratioX() + 1, top + 8, filled, 4, PanelDrawing.ACCENT);
         }
-        if (scrolling) {
-            PanelDrawing.scrollbar(sprites, x + 160, y + LIST_Y + 1, LIST_H - 2, offset, VISIBLE, crops.size(),
-                    Widgets.isOver(mouseX, mouseY, x + 160, y + LIST_Y + 1, 6, LIST_H - 2));
+        if (crops.size() > rows) {
+            int barX = rowX() + rowW() + 1;
+            PanelDrawing.scrollbar(sprites, barX, insetY() + 1, insetH() - 2, offset, rows, crops.size(),
+                    Widgets.isOver(mouseX, mouseY, barX, insetY() + 1, 6, insetH() - 2));
         }
-        PanelDrawing.button(sprites, x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE, true, mouseX, mouseY);
-        PanelDrawing.toggle(sprites, x + 8, y + SWITCH_Y, data.hosting(), true, mouseX, mouseY);
-        PanelDrawing.button(sprites, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
+        PanelDrawing.button(sprites, pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
+        PanelDrawing.toggle(sprites, insetX(), hostY() + 4, data.hosting(), true, mouseX, mouseY);
+        PanelDrawing.button(sprites, harvestX(), hostY(), HARVEST_W, HARVEST_H, true, mouseX, mouseY);
     }
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         FarmPart.Section data = data();
-        graphics.drawString(font(), Component.translatable(UI + "crop"), x + 12, y + 21, PanelDrawing.LEGEND, false);
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "mature"), x + 100, y + 21,
+        PanelDrawing.title(graphics, font(), name(), fields(), this.x, this.y, w);
+        int header = this.y + 19;
+        graphics.drawString(font(), Component.translatable(UI + "crop"), rowX() + 4, header, PanelDrawing.LEGEND,
+                false);
+        PanelDrawing.right(graphics, font(), Component.translatable(UI + "mature"), matureRight(), header,
                 PanelDrawing.LEGEND);
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "growing"), x + 130, y + 21,
+        PanelDrawing.right(graphics, font(), Component.translatable(UI + "growing"), growingRight(), header,
                 PanelDrawing.LEGEND);
         List<FarmPart.Crop> crops = data.rows();
-        int shift = crops.size() > VISIBLE ? 8 : 0;
-        for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
+        for (int i = 0; i < rows && offset + i < crops.size(); i++) {
             FarmPart.Crop crop = crops.get(offset + i);
-            int top = y + LIST_Y + 1 + i * ROW_H;
+            int top = rowTop(i);
             Block block = BuiltInRegistries.BLOCK.get(crop.block());
-            graphics.drawString(font(), block.getName(), x + 30, top + 6, PanelDrawing.TEXT, false);
-            PanelDrawing.right(graphics, font(), Integer.toString(crop.mature()), x + 100 - shift, top + 6,
+            graphics.drawString(font(), block.getName(), rowX() + 22, top + 6, PanelDrawing.TEXT, false);
+            PanelDrawing.right(graphics, font(), Integer.toString(crop.mature()), matureRight(), top + 6,
                     PanelDrawing.TEXT);
-            PanelDrawing.right(graphics, font(), Integer.toString(crop.growing()), x + 130 - shift, top + 6,
+            PanelDrawing.right(graphics, font(), Integer.toString(crop.growing()), growingRight(), top + 6,
                     PanelDrawing.LEGEND);
         }
-        graphics.drawString(font(), Component.translatable(UI + "crop_pick"), x + 8, y + CROP_Y + 3,
+        graphics.drawString(font(), Component.translatable(UI + "crop_pick"), insetX(), pickY() + 4,
                 PanelDrawing.LEGEND, false);
-        PanelDrawing.label(graphics, font(), cropName(data.crop()), x + CROP_X, y + CROP_Y, CROP_W,
-                PanelDrawing.SQUARE, true);
+        PanelDrawing.label(graphics, font(), cropName(data.crop()), pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H,
+                true);
         long seeds = data.seedsOf(data.crop());
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "seeds", PanelDrawing.count(seeds)), x + 167,
-                y + CROP_Y + 3, seeds > 0 ? PanelDrawing.TEXT : PanelDrawing.WARN);
-        graphics.drawString(font(), Component.translatable(UI + "fields", data.fields(), data.capacity(),
-                data.planned()), x + 8, y + RECLAIM_Y + 6, PanelDrawing.LEGEND, false);
-        if (data.planned() > 0) {
-            PanelDrawing.right(graphics, font(), Component.translatable(UI + "reclaiming"), x + 167, y + RECLAIM_Y + 6,
-                    PanelDrawing.TEXT);
-        }
+        PanelDrawing.right(graphics, font(), Component.translatable(UI + "seeds", PanelDrawing.count(seeds)),
+                this.x + w - PanelDrawing.PAD, pickY() + 4, seeds > 0 ? PanelDrawing.TEXT : PanelDrawing.WARN);
+        graphics.drawString(font(), Component.translatable(UI + "auto_harvest"), insetX() + PanelDrawing.SWITCH_W + 6,
+                hostY() + 5, PanelDrawing.TEXT, false);
+        PanelDrawing.label(graphics, font(), Component.translatable(UI + "harvest"), harvestX(), hostY(), HARVEST_W,
+                HARVEST_H, true);
         if (data.hosting()) {
             graphics.drawString(font(), Component.translatable(UI + "farm_status", data.hostingIn(),
-                    data.lastReaped(), data.lastSown()), x + 8, y + STATUS_Y, PanelDrawing.LEGEND, false);
+                    data.lastReaped(), data.lastSown()), insetX(), statusY(), PanelDrawing.LEGEND, false);
         }
-        graphics.drawString(font(), Component.translatable(UI + "auto_harvest"), x + 30, y + SWITCH_Y + 1,
-                PanelDrawing.TEXT, false);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "harvest"), x + BUTTON_X, y + HARVEST_Y,
-                BUTTON_W, BUTTON_H, true);
     }
 
     @Override
     protected void items(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         List<FarmPart.Crop> crops = crops();
-        for (int i = 0; i < VISIBLE && offset + i < crops.size(); i++) {
+        for (int i = 0; i < rows && offset + i < crops.size(); i++) {
             Block block = BuiltInRegistries.BLOCK.get(crops.get(offset + i).block());
-            graphics.renderItem(new ItemStack(block.asItem()), x + 11, y + LIST_Y + 1 + i * ROW_H + 2);
+            graphics.renderItem(new ItemStack(block.asItem()), rowX() + 2, rowTop(i) + 2);
         }
     }
 
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         int hostingSeconds = LandHostingJob.INTERVAL_TICKS / Ticks.SECOND;
-        if (tip(graphics, x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE, mouseX, mouseY,
+        if (tip(graphics, pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "crop_pick"))) {
             return;
         }
-        if (tip(graphics, x + 8, y + RECLAIM_Y, 160, BUTTON_H, mouseX, mouseY,
-                Component.translatable(TIP + "fields"))) {
+        int fieldsW = font().width(fields());
+        if (tip(graphics, this.x + w - PanelDrawing.PAD - fieldsW, this.y, fieldsW, PanelDrawing.TITLE_H, mouseX,
+                mouseY, Component.translatable(TIP + "fields"))) {
             return;
         }
-        if (tip(graphics, x + 8, y + SWITCH_Y, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
+        if (tip(graphics, insetX(), hostY() + 4, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
                 Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmRules.HOSTING_FIELDS))) {
             return;
         }
-        tip(graphics, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H, mouseX, mouseY,
+        tip(graphics, harvestX(), hostY(), HARVEST_W, HARVEST_H, mouseX, mouseY,
                 Component.translatable(TIP + "harvest"));
     }
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         FarmPart.Section data = data();
-        if (Widgets.isOver(mouseX, mouseY, x + CROP_X, y + CROP_Y, CROP_W, PanelDrawing.SQUARE)) {
+        if (Widgets.isOver(mouseX, mouseY, pickX(), pickY(), CROP_W, PanelDrawing.BUTTON_H)) {
             int next = data.crop() + 1 >= FarmRules.crops().size() ? FarmState.AUTO_CROP : data.crop() + 1;
             send(new FarmPart.SetCrop(next));
             return true;
         }
-        if (Widgets.isOver(mouseX, mouseY, x + 8, y + SWITCH_Y, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
+        if (Widgets.isOver(mouseX, mouseY, insetX(), hostY() + 4, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
             send(new FarmPart.SetHosting(!data.hosting()));
             return true;
         }
-        if (Widgets.isOver(mouseX, mouseY, x + BUTTON_X, y + HARVEST_Y, BUTTON_W, BUTTON_H)) {
+        if (Widgets.isOver(mouseX, mouseY, harvestX(), hostY(), HARVEST_W, HARVEST_H)) {
             send(new FarmPart.Harvest());
             return true;
         }
@@ -181,8 +225,8 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
-        if (!Widgets.isOver(mouseX, mouseY, x + 8, y + LIST_Y, 160, LIST_H)) return false;
-        offset = PanelDrawing.clampScroll(offset - (int) Math.signum(delta), VISIBLE, crops().size());
+        if (!Widgets.isOver(mouseX, mouseY, insetX(), insetY(), insetW(), insetH())) return false;
+        offset = PanelDrawing.clampScroll(offset - (int) Math.signum(delta), rows, crops().size());
         return true;
     }
 }
