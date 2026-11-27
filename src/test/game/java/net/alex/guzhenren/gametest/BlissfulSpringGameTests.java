@@ -64,6 +64,7 @@ public final class BlissfulSpringGameTests {
         BlissfulLandData data = wholeLand();
 
         SpringWork.onChunkLoad(data, level.getChunkAt(first));
+        SpringWork.onChunkLoad(data, level.getChunkAt(second));
         SpringState springs = SpringState.of(data);
         helper.assertTrue(springs.contains(first) && springs.contains(second), "both sources are registered");
         helper.assertValueEqual(springs.count(), 2, "only the two sources, no flowing arm");
