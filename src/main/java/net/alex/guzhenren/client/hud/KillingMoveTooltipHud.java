@@ -16,7 +16,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FastColor;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,11 +24,12 @@ import org.jetbrains.annotations.Nullable;
  * 杀招[Killing Move]施放命中后在屏幕左缘垂直居中显示的提示面板。
  * <ul>
  *   <li>顶部标题为杀招名称；其下每只参与蛊虫占一行（主蛊居首），展示物品图标、转数、流派与名称，并在下方附带耐久条风
- *       格的饱食[Hunger]条（满绿空红）与 {@code x/y} 数值；内容取自施放瞬间的 {@code KillingMoveTooltipPayload} 快
- *       照，施放中力竭耗死的蛊虫标灰且饱食条为空。</li>
+ *       格的饱食[Hunger]条与 {@code x/y} 数值；底为暗炭浮层加墨框，标题金色，蛊虫图标衬底格，饱食条墨框单色、不按满空
+ *       变色（数据色不评价好坏）；内容取自施放瞬间的 {@code KillingMoveTooltipPayload} 快照，施放中力竭耗死的蛊虫标灰
+ *       且饱食条为空。</li>
  *   <li>图层注册在快捷栏之上，通知处理器在客户端初始化时挂载（{@code ClientEvents}）；面板基础宽度为
- *       {@link #MIN_WIDTH} GUI 像素（文本更宽时自适应拓宽），按墙钟时间在 {@link #SLIDE_IN_MS} 内缓出滑入、停留至施
- *       放后 {@link #SHOWN_MS} 并在 {@link #SLIDE_OUT_MS} 内缓入滑出兼淡出（图标仅滑出）；滑出途中再次施放从当前位置原
+ *       {@link #MIN_WIDTH} GUI 像素（文本更宽时自适应拓宽），按墙钟时间在 {@link #SLIDE_IN_MS} 内缓出滑入、停留至施放
+ *       后 {@link #SHOWN_MS} 并在 {@link #SLIDE_OUT_MS} 内缓入滑出兼淡出（图标仅滑出）；滑出途中再次施放从当前位置原
  *       位折回（{@link #getEnterElapsed}），仍在显示中再次施放则直接刷新内容并重置计时而不重新滑入。</li>
  * </ul>
  */
@@ -49,10 +49,11 @@ public final class KillingMoveTooltipHud {
     private static final int ROW_HEIGHT = 22;
     private static final int TEXT_X = 25;
     private static final int BAR_WIDTH = 40;
-    private static final int BACKGROUND = 0xC0101018;
-    private static final int ACCENT = 0xFF9FC5FF;
-    private static final int RULE = 0x30FFFFFF;
-    private static final int SPENT_ICON = 0x90101018;
+    private static final int BACKGROUND = 0xE0120E10;
+    private static final int FRAME = 0xFF0C090A;
+    private static final int CELL = 0xFF2A2123;
+    private static final int HUNGER = 0xFFC9A25A;
+    private static final int SPENT_ICON = 0x90120E10;
     private static final int MIN_TEXT_ALPHA = 4;
     private @Nullable KillingMoveTooltipPayload shown;
     private @Nullable Panel panel;
@@ -114,11 +115,12 @@ public final class KillingMoveTooltipHud {
         int y = (graphics.guiHeight() - height) / 2;
         int alpha = Math.round(getAlpha(now - castAt) * 255.0F);
 
-        graphics.fill(x, y, x + width, y + height, fade(BACKGROUND, alpha));
-        graphics.fill(x, y, x + 2, y + height, fade(ACCENT, alpha));
-        graphics.fill(x + 6, y + HEADER_HEIGHT - 1, x + width - 4, y + HEADER_HEIGHT, fade(RULE, alpha));
+        graphics.fill(x, y, x + width, y + height, fade(FRAME, alpha));
+        graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, fade(BACKGROUND, alpha));
+        graphics.fill(x + 6, y + HEADER_HEIGHT - 1, x + width - 4, y + HEADER_HEIGHT,
+                fade(ModPalette.SURFACE_2, alpha));
         if (alpha >= MIN_TEXT_ALPHA) {
-            graphics.drawString(font, current.title(), x + 6, y + 3, fade(ModPalette.TEXT, alpha), true);
+            graphics.drawString(font, current.title(), x + 6, y + 3, fade(ModPalette.ACCENT, alpha), true);
         }
         for (int i = 0; i < current.rows().size(); i++) {
             drawRow(graphics, font, current.rows().get(i), x, y + HEADER_HEIGHT + 1 + i * ROW_HEIGHT, alpha);
@@ -126,6 +128,8 @@ public final class KillingMoveTooltipHud {
     }
 
     private static void drawRow(GuiGraphics graphics, Font font, Row row, int x, int y, int alpha) {
+        graphics.fill(x + 5, y + 2, x + 23, y + 20, fade(CELL, alpha));
+        graphics.fill(x + 6, y + 3, x + 22, y + 19, fade(ModPalette.SURFACE_0, alpha));
         graphics.renderItem(row.stack(), x + 6, y + 3);
         if (row.spent()) {
             graphics.pose().pushPose();
@@ -139,12 +143,11 @@ public final class KillingMoveTooltipHud {
         graphics.drawString(font, row.line(), x + TEXT_X, y + 2, text, true);
         if (row.counter() == null) return;
 
-        int barY = y + 15;
-        graphics.fill(x + TEXT_X, barY, x + TEXT_X + BAR_WIDTH, barY + 2, fade(0xFF000000, alpha));
-        int filled = Math.round(BAR_WIDTH * row.fraction());
+        int barY = y + 14;
+        graphics.fill(x + TEXT_X, barY, x + TEXT_X + BAR_WIDTH, barY + 4, fade(FRAME, alpha));
+        int filled = Math.round((BAR_WIDTH - 2) * row.fraction());
         if (filled > 0) {
-            graphics.fill(x + TEXT_X, barY, x + TEXT_X + filled, barY + 1,
-                    fade(0xFF000000 | Mth.hsvToRgb(row.fraction() / 3.0F, 1.0F, 1.0F), alpha));
+            graphics.fill(x + TEXT_X + 1, barY + 1, x + TEXT_X + 1 + filled, barY + 3, fade(HUNGER, alpha));
         }
         graphics.drawString(font, row.counter(), x + TEXT_X + BAR_WIDTH + 3, y + 12, text, true);
     }

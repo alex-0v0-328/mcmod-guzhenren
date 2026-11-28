@@ -19,6 +19,7 @@ public final class ModPalette {
     public static final int SURFACE_0 = 0xFF120E10;
     public static final int SURFACE_2 = 0xFF2A2123;
     public static final int SURFACE_3 = 0xFF3A2D2F;
+    public static final int ACCENT_DARK = 0xFF825023;
     public static final int ACCENT = 0xFFE4B750;
     //endregion
 

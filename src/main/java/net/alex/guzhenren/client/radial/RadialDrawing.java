@@ -16,8 +16,10 @@ import org.joml.Matrix4f;
  *   <li>读取 {@link RadialMenu} 提供的实时状态并依次绘制扇区背景、条目图标与中心悬停条目名称；悬停权重驱动扇区外推
  *       {@link #POP}、外缘加宽 {@link #GROW} 与图标放大 {@link #ICON_GROW}，且由于物品图标无法半透明淡出而改为随环不透
  *       明度等比缩放。</li>
- *   <li>扇区填充色由面板底色插值至高亮色，选中扇区再随闪光权重插值至纯白；四边形顶点绕序与 {@code GuiGraphics.fill}
- *       等 GUI 填充保持一致；禁用遮罩覆盖在物品图标之上，呈现与原版物品冷却一致的视觉效果。</li>
+ *   <li>暗炭金样式（Alex 定）：扇区平涂暗炭、内外缘各一圈 1 像素墨线；悬停扇区提亮一档，并随悬停权重在外缘画
+ *       {@link #RIM} 像素金线（金只表焦点）；选中扇区随闪光权重插值至米金；中心悬停名称用金色。</li>
+ *   <li>四边形顶点绕序与 {@code GuiGraphics.fill} 等 GUI 填充保持一致；禁用遮罩覆盖在物品图标之上，呈现与原版物品冷却一
+ *       致的视觉效果。</li>
  * </ul>
  */
 
@@ -28,10 +30,12 @@ final class RadialDrawing {
     private static final float ICON_GROW = 0.25F;
     private static final int ARC_STEPS = 64;
     private static final double GAP = 0.025D;
-    private static final int SECTOR_FILL = 0xBF000000;
-    private static final int HOVER_FILL = 0x99FFD54F;
-    private static final int FLASH_FILL = 0xE6FFFFFF;
-    private static final int DISABLED_SHADE = 0xA0000000;
+    private static final int SECTOR_FILL = 0xE0120E10;
+    private static final int HOVER_FILL = 0xF0524042;
+    private static final int FLASH_FILL = 0xE6FFF1C8;
+    private static final int EDGE = 0xCC0C090A;
+    private static final double RIM = 2.0D;
+    private static final int DISABLED_SHADE = 0xA0120E10;
     private static final float LABEL_RISE = 3.0F;
 
     private RadialDrawing() {}
@@ -59,10 +63,20 @@ final class RadialDrawing {
             double push = POP * weights[i] * size;
             int color = RadialMotion.mix(SECTOR_FILL, HOVER_FILL, weights[i]);
             if (i == flashIndex) color = RadialMotion.mix(color, FLASH_FILL, flash);
-            fillArc(buffer, matrix, centerX + RadialLayout.x(push, angle), centerY + RadialLayout.y(push, angle),
-                    RadialLayout.INNER_RADIUS * size, (RadialLayout.OUTER_RADIUS + GROW * weights[i]) * size,
-                    angle - half, angle + half,
+            double x = centerX + RadialLayout.x(push, angle);
+            double y = centerY + RadialLayout.y(push, angle);
+            double inner = RadialLayout.INNER_RADIUS * size;
+            double outer = (RadialLayout.OUTER_RADIUS + GROW * weights[i]) * size;
+            fillArc(buffer, matrix, x, y, inner, outer, angle - half, angle + half,
                     RadialMotion.fade(color, alpha * appear));
+            fillArc(buffer, matrix, x, y, inner, inner + size, angle - half, angle + half,
+                    RadialMotion.fade(EDGE, alpha * appear));
+            fillArc(buffer, matrix, x, y, outer - size, outer, angle - half, angle + half,
+                    RadialMotion.fade(EDGE, alpha * appear));
+            if (weights[i] > 0.0F) {
+                fillArc(buffer, matrix, x, y, outer - RIM * size, outer, angle - half, angle + half,
+                        RadialMotion.fade(ModPalette.ACCENT, alpha * appear * weights[i]));
+            }
         }
     }
 
@@ -99,7 +113,7 @@ final class RadialDrawing {
         pose.pushPose();
         pose.translate(0.0F, (1.0F - rise) * LABEL_RISE, 0.0F);
         graphics.drawCenteredString(Minecraft.getInstance().font, label, graphics.guiWidth() / 2,
-                graphics.guiHeight() / 2 - 4, opacity << 24 | ModPalette.TEXT & 0xFFFFFF);
+                graphics.guiHeight() / 2 - 4, opacity << 24 | ModPalette.ACCENT & 0xFFFFFF);
         pose.popPose();
     }
 
