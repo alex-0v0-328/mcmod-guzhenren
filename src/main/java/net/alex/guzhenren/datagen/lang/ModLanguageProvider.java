@@ -123,7 +123,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.display.gu_line",                     "%s%s%s");
         add("guzhenren.display.gu",                          "蛊虫");
         add("guzhenren.display.gu_material",                 "蛊材");
-        add("guzhenren.display.immortal_material",           "仙材");
         add("guzhenren.display.aperture_1",                  "第一空窍");
         add("guzhenren.display.aperture_2",                  "第二空窍");
         add("guzhenren.display.physique",                    "[%s]");

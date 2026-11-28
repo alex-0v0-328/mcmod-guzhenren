@@ -29,7 +29,6 @@ import net.alex.guzhenren.item.gu.tending.GuHunger;
 import net.alex.guzhenren.item.gu.tending.TendedGuAccess;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.item.material.GuMaterialItem;
-import net.alex.guzhenren.item.material.ImmortalMaterialItem;
 import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -137,14 +136,11 @@ public final class WikiItemsGameTests {
         }
         long gu = ModItems.ITEMS.getEntries().stream().filter(h -> h.get() instanceof MortalGuItem).count();
         long material = ModItems.ITEMS.getEntries().stream().filter(h -> h.get() instanceof GuMaterialItem).count();
-        long immortal = ModItems.ITEMS.getEntries().stream()
-                .filter(h -> h.get() instanceof ImmortalMaterialItem).count();
         total.row("注册", "全部物品").expect("数量", List.of((long) registered.size()));
         total.row("注册", "蛊虫").expect("数量", List.of(gu));
         total.row("注册", "蛊材").expect("数量", List.of(material));
-        total.row("注册", "仙材").expect("数量", List.of(immortal));
         total.row("注册", "其他（钢锭、钢块、知心草种子、黑土耕地、元泉流体方块、纯水桶、杀招书、书册、蛊方、进度图标、服饰）")
-                .expect("数量", List.of(registered.size() - gu - material - immortal));
+                .expect("数量", List.of(registered.size() - gu - material));
         List<MortalGuItem> items = guItems();
         long tended = items.stream().filter(TendedGuItem.class::isInstance).count();
         long channeled = items.stream().filter(g -> g.guProperties.isChanneled()).count();
@@ -501,8 +497,6 @@ public final class WikiItemsGameTests {
                 group(Table.MATERIAL, "耕地", "black_soil_farmland"),
                 group(Table.MATERIAL, "元泉", "spirit_spring"),
                 group(Table.MATERIAL, "纯水", "pure_water_bucket"),
-                group(Table.MATERIAL, "仙元", "green_grape_immortal_essence red_date_immortal_essence"
-                        + " white_lychee_immortal_essence yellow_apricot_immortal_essence"),
                 group(Table.MATERIAL, "杀招", "killing_move_mortal_little_light_amplify"),
                 group(Table.MATERIAL, "书册", "gu_atlas_hope " + ladder("human_ancestor_legend_", 1, 38)),
                 group(Table.MATERIAL, "蛊方", "gu_recipe"),
