@@ -51,12 +51,6 @@ final class InfoPage extends PanelPage {
 
     private PanelPage current() { return this.parts.get(this.part); }
 
-    @Override
-    void attach(EarthSpiritScreen screen) {
-        super.attach(screen);
-        for (PanelPage each : this.parts) each.attach(screen);
-    }
-
     private int subtabLeft(int index) { return PanelDrawing.contentX(width()) + index * SUBTAB_PITCH; }
 
     private boolean isOverSubtab(int index, double mouseX, double mouseY) {

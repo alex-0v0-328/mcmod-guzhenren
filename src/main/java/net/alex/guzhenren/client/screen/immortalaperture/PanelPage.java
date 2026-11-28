@@ -33,11 +33,9 @@ import net.minecraft.network.chat.Component;
 public abstract class PanelPage {
 
     private static final int TIP_WIDTH = 170;
-    protected EarthSpiritScreen screen;
+    protected final EarthSpiritScreen screen;
 
     protected PanelPage(EarthSpiritScreen screen) { this.screen = screen; }
-
-    void attach(EarthSpiritScreen screen) { this.screen = screen; }
 
     protected abstract Component name();
 
@@ -52,9 +50,9 @@ public abstract class PanelPage {
 
     protected Font font() { return screen.font(); }
 
-    protected int width() { return screen.width; }
+    protected int width() { return screen.width(); }
 
-    protected int height() { return screen.height; }
+    protected int height() { return screen.height(); }
 
     protected boolean tip(GuiGraphics graphics, int left, int top, int width, int height, int mouseX, int mouseY,
                           Component text) {

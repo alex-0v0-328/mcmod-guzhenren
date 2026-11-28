@@ -225,7 +225,7 @@ public final class ClientEvents {
         event.register(ModMenus.APERTURE_STORAGE_MENU.get(), ApertureStorageScreen::new);
         event.register(ModMenus.REFINEMENT_MENU.get(), RefinementScreen::new);
         event.register(ModMenus.SOUL_TRADE_MENU.get(), SoulTradeScreen::new);
-        event.register(ModMenus.EARTH_SPIRIT_MENU.get(), EarthSpiritScreen::open);
+        event.register(ModMenus.EARTH_SPIRIT_MENU.get(), EarthSpiritScreen.factory());
     }
 
     @SubscribeEvent
