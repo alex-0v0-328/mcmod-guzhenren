@@ -15,16 +15,19 @@ import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderHandEvent;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
@@ -37,6 +40,9 @@ import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.animation.InitAnimatorEvent;
 import yesman.epicfight.client.renderer.patched.layer.WearableItemLayer;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClientPlayerPatch;
+import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.config.ClientConfig;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /**
  * Epic Fight 联动的客户端动画、模型姿态、护甲网格部件与锁定目标桥接。
@@ -50,6 +56,9 @@ import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClie
  *   <li>二段飞行俯仰倾斜（{@link #onPrepareModel}）：仿照鞘翅飞行姿态将玩家模型绕 X 轴旋转负俯仰角，倾斜权重在
  *       {@link #onClientTick} 中按 {@link #LEAN_TICKS} 线性渐入渐出并在帧间插值；本地玩家处于第一人称视角时不倾
  *       斜。</li>
+ *   <li>二段飞行第一人称（{@link #onRenderHand}）：EF 动画第一人称模型取全身姿势只画双臂，鞘翅飞行时自行把手臂移出视野，
+ *       二段飞行属创造式飞行不在其列，飞行动作收在身后的肩臂会挡住视野；此处以高于 EF 的优先级取消手部渲染，与鞘翅一致
+ *       不画手臂。仅在 EF 战斗模式且开启动画第一人称模型时生效，其余情况原版手部照常。</li>
  *   <li>打坐状态（{@link EpicFightIntegration#isMeditating}）涵盖温养[Nourish]空窍、开窍[Awakening]仪式定身与
  *       灌注类蛊[Channeled Gu]注入真元：入座与起身过渡动画由服务端下发并短暂接管基础层，入座完成后落入循环，起身完成后
  *       恢复待机。</li>
@@ -114,6 +123,14 @@ public final class EpicFightClientIntegration {
 
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) { LEANS.clear(); }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onRenderHand(RenderHandEvent event) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        LocalPlayerPatch patch = EpicFightCapabilities.getCachedLocalPlayerPatch();
+        if (player == null || patch == null || !patch.isEpicFightMode()) return;
+        if (ClientConfig.enableAnimatedFirstPersonModel && isLeaning(player)) event.setCanceled(true);
+    }
 
     private static void onLivingMotion(ModifyPlayerLivingMotionEvent.BaseLayer event) {
         if (event.inaction() || event.getMotion() == LivingMotions.DEATH) return;
