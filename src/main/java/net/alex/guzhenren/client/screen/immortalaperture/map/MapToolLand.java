@@ -98,9 +98,6 @@ final class MapToolLand implements MapTools.Land {
     public long seeds(int crop) { return section().seedsOf(crop); }
 
     @Override
-    public int newCrop() { return section().newCrop(); }
-
-    @Override
     public List<ResourceLocation> animals() { return section().animals(); }
 
     @Override
@@ -129,9 +126,6 @@ final class MapToolLand implements MapTools.Land {
     }
 
     @Override
-    public void setNewCrop(int crop) { page.sendAction(new FarmPart.SetCrop(crop)); }
-
-    @Override
     public void sow(List<Long> chunks, int crop) { page.sendAction(new FarmPart.Sow(limit(chunks), crop)); }
 
     @Override
@@ -145,6 +139,9 @@ final class MapToolLand implements MapTools.Land {
 
     @Override
     public void harvestAll() { page.sendAction(new FarmPart.Harvest()); }
+
+    @Override
+    public void uproot(List<Long> chunks) { page.sendAction(new FarmPart.Uproot(limit(chunks))); }
 
     @Override
     public void clear(List<Long> chunks) { page.sendAction(new FarmPart.Clear(limit(chunks))); }

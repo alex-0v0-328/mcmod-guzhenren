@@ -20,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>高度标尺已移到右缘竖排（{@link MapHeightRail}，Alex 定），本框高 {@value #HEIGHT}。</li>
  *   <li>标记颜色 {@link #colour} 也供地图上的标记点用；玩家画头像，不进图例。</li>
+ *   <li>底栏（田坞或工具栏）右缘到图例不足 {@value #CLEAR} 时收成右下角一枚「图例」小键（{@value #KEY_W}×{@value #KEY_H}），
+ *       悬停才在底栏提示条上方展开整框（Alex 定，小界面不重叠）。</li>
  * </ul>
  */
 
@@ -28,28 +30,70 @@ final class MapLegend {
     static final int WIDTH = 136;
     static final int HEIGHT = 70;
     private static final int MARGIN = 6;
+    private static final int CLEAR = 8;
+    private static final int KEY_W = 30;
+    private static final int KEY_H = 16;
     private static final String UI = EarthSpiritScreen.UI + "map.";
     private static final String[] MARK_KEYS = { "", "penned", "loose", "wild_gu", "spirit" };
     private static final int[] MARK_COLOURS = { 0xFFFFFFFF, 0xFF66E07A, 0xFFFFB347, 0xFFC58BFF, 0xFFF8ACC4 };
     private int left;
     private int top;
+    private int fullTop;
+    private int keyX;
+    private int keyY;
+    private int lift;
+    private boolean collapsed;
+    private boolean open;
 
     static int colour(byte kind) { return kind >= 0 && kind < MARK_COLOURS.length ? MARK_COLOURS[kind] : 0xFFFFFFFF; }
 
-    void layout(int width, int height) {
+    /** {@code barW} 是最宽的底栏，{@code barTop} 是它连同提示条的顶边（展开时贴在它上方）。 */
+    void layout(int width, int height, int barW, int barTop) {
         left = width - MARGIN - WIDTH;
-        top = height - MARGIN - HEIGHT;
+        fullTop = height - MARGIN - HEIGHT;
+        collapsed = (width + barW) / 2 + CLEAR > left;
+        keyX = width - MARGIN - KEY_W;
+        keyY = height - MARGIN - KEY_H;
+        lift = barTop - 4 - HEIGHT;
+        top = fullTop;
     }
 
-    boolean contains(double mouseX, double mouseY) {
+    private boolean showing() { return !collapsed || open; }
+
+    boolean collapsed() { return collapsed; }
+
+    /** 平时占的 x、y、宽、高：收起时是小键（排版自检用）。 */
+    int[] box() { return collapsed ? new int[] {keyX, keyY, KEY_W, KEY_H} : new int[] {left, fullTop, WIDTH, HEIGHT}; }
+
+    private boolean overKey(double mouseX, double mouseY) {
+        return mouseX >= keyX && mouseX < keyX + KEY_W && mouseY >= keyY && mouseY < keyY + KEY_H;
+    }
+
+    private boolean overBox(double mouseX, double mouseY) {
         return mouseX >= left && mouseX < left + WIDTH && mouseY >= top && mouseY < top + HEIGHT;
     }
 
-    int top() { return top; }
+    boolean contains(double mouseX, double mouseY) {
+        return collapsed ? overKey(mouseX, mouseY) || open && overBox(mouseX, mouseY) : overBox(mouseX, mouseY);
+    }
 
-    void sprites(SpriteBatch sprites) { sprites.blit(PanelDrawing.OVERLAY, left, top, WIDTH, HEIGHT); }
+    /** 高度刻度的下端停在这里上方。 */
+    int top() { return collapsed ? keyY : fullTop; }
+
+    void sprites(SpriteBatch sprites, double mouseX, double mouseY) {
+        if (collapsed) {
+            top = lift;
+            open = overKey(mouseX, mouseY) || open && overBox(mouseX, mouseY);
+            sprites.blit(PanelDrawing.CHIP, keyX, keyY, KEY_W, KEY_H);
+        } else {
+            top = fullTop;
+            open = false;
+        }
+        if (showing()) sprites.blit(PanelDrawing.OVERLAY, left, top, WIDTH, HEIGHT);
+    }
 
     void fills(GuiGraphics graphics) {
+        if (!showing()) return;
         for (int kind = MapMark.PENNED; kind <= MapMark.SPIRIT; kind++) {
             int x = left + 6 + (kind - 1) % 2 * 66;
             int y = top + 44 + (kind - 1) / 2 * 12;
@@ -60,6 +104,11 @@ final class MapLegend {
 
     void texts(GuiGraphics graphics, Font font, MapCamera camera, int lowest, int highest,
                @Nullable MapPick.Hit hover) {
+        if (collapsed) {
+            PanelDrawing.centered(graphics, font, Component.translatable(UI + "legend"), keyX, keyX + KEY_W, keyY + 4,
+                    open ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
+        }
+        if (!showing()) return;
         Component readout = hover == null ? Component.empty() : hover.known()
                 ? Component.translatable(UI + "readout", hover.x(), hover.ground(), hover.z())
                 : Component.translatable(UI + "unknown");

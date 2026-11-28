@@ -35,14 +35,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵面板的标准田：开垦、拆田、改田型、按作物清点、收割并补种，以及田的强加载。选址与规划队列在 {@link FieldPlans}。
+ * 地灵面板的标准田：开垦、拆田、改田型、按作物清点、种植、清除作物、收割并补种，以及田的强加载。选址与规划队列在 {@link FieldPlans}。
  * <ul>
  *   <li>{@link #reclaim}：先同步加载田所在区块；每列从地表往下找真实地面（跳过 {@link LandRules#isPassable}），任一列先
  *       碰到流体就不开（选址已查过，这里只防开垦前地形变了）；以 {@link FieldPlot#layer}（列数最多的地面层）为耕地层，
  *       把整块田整平（上方清空至地表、至多 {@value LandRules#CLEAR_HEIGHT} 格，树一并清掉；下方向下补土至多
- *       {@value LandRules#FILL_DEPTH} 格），按 {@link FieldPlot} 铺土径、水与耕地，记账（作物 = 新田作物，普通田）后按这块田的
- *       作物（自动 = 库藏第一种种子）从库藏扣种子种满耕地（不够就种够的，没有就开空田，留给之后的收割补种）。改地形先过
- *       {@link ModEvents#canGrief}。</li>
+ *       {@value LandRules#FILL_DEPTH} 格），按 {@link FieldPlot} 铺土径、水与耕地，记账（作物未选，普通田），不播种：开垦 → 选作物
+ *       → 种植（Alex 定）。改地形先过 {@link ModEvents#canGrief}。</li>
  *   <li>⚠ {@link #reclaim} 清整不掉落任何方块，田上玩家搭的普通方块会被直接抹掉；有方块实体的区块选址时已拒。</li>
  *   <li>{@link #remove}：作物（熟不熟都算）按方块战利品表全收进库藏，耕地层的耕地（含黑土耕地）、水、土径换回泥土，撤这
  *       块田的强加载；腐泥冻土不返还。</li>
@@ -52,12 +51,14 @@ import org.jetbrains.annotations.Nullable;
  *       {@code RottenFrozenMudItem}）；刚整平切出坡体或刚清掉树冠的格子当刻光照还没重算（仍是 0），不带就会种一株弹一株。</li>
  *   <li>作物只认 {@link FarmRules#crops()}（小麦、胡萝卜、马铃薯、甜菜根、知心草），种子也只认对应的物品；只在标准田里清点
  *       与收割。地狱疣要灵魂沙田，本阶段不做。</li>
- *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，补种这块田的作物（自动 = 原作物），从掉落里扣 1 份种子（没有就从库藏
- *       扣，库藏也没有就留空），其余进库藏；改了作物的田不铲现有株，熟一株换一株。每块田收割后再补空格：空耕地（被踩成泥土
- *       的先重新耕成原版耕地）种这块田的作物（自动 = 田里现有最多的，一株没有取库藏第一种种子），从库藏扣到没有为止；蛊植
+ *   <li>{@link #harvest}：成熟作物按方块战利品表掉落，补种这块田的作物，从掉落里扣 1 份种子（没有就从库藏扣，库藏也没有
+ *       就留空），其余进库藏；未选作物的田只收不种。每块田收割后再补空格：空耕地（被踩成泥土的先重新耕成原版耕地）种这块田
+ *       的作物（未选不种），从库藏扣到没有为止；蛊植
  *       田最后把原版耕地逐格掺回黑土，每格扣 1 个腐泥冻土，扣完为止。一次至多处理 {@code fieldLimit} 块田，有收割、补种或
  *       掺土的田才算一块，整块田一次做完。</li>
  *   <li>{@link #sow}：地图上选中田「种植」，按各田的作物像收割后那样补满空格（同 {@link #topUp}，但一次补完所选各块）；
+ *       田里有别的作物就不能改种（{@link #accepts}），要先 {@link #uproot}「清除作物」：熟不熟都按方块战利品表收进库藏，
+ *       耕地留着，作物重置为未选（不重置的话开面板每秒补种会马上种回原作物）；
  *       {@link #ripen}：选中田「催熟」，每株未熟作物从库藏扣 1 份骨粉直接长到满龄（Alex 定，不走原版随机），骨粉不够
  *       就按田序催熟到用完为止；{@link #harvest} 另有只收所选田的重载。</li>
  *   <li>{@link #topUp}：主人开着面板时每秒调一次，按田序轮流找下一块有空格可补（或可掺土）的田，像收割后那样补满这一块；
@@ -82,7 +83,7 @@ public final class FarmWork {
 
     public record Count(int mature, int growing) {}
 
-    /** 地图选区卡用：熟 / 未熟株数、生长进度（%）、田里株数最多的作物（{@link FarmRules#crops()} 下标，一株没有为自动）。 */
+    /** 地图选区卡用：熟 / 未熟株数、生长进度（%）、田里株数最多的作物（{@link FarmRules#crops()} 下标，一株没有为 {@link FarmState#NO_CROP}）。 */
     public record Look(int mature, int growing, int growth, int main) {}
 
     public record Harvest(int reaped, int sown, int fields) {}
@@ -113,18 +114,8 @@ public final class FarmWork {
             }
         }
         FarmState.of(data).addField(field);
-        sowAll(level, data, field.cells(), FarmState.of(data).crop(field));
         setForced(level, field, true);
         return field;
-    }
-
-    private static void sowAll(ServerLevel level, BlissfulLandData data, List<BlockPos> cells, int crop) {
-        ItemStack seed = BlissfulStorage.of(data).first(seedFilter(crop));
-        if (seed.isEmpty()) return;
-        Predicate<ItemStack> same = stack -> ItemStack.isSameItemSameComponents(stack, seed);
-        int planted = BlissfulStorage.of(data).consume(same, cells.size());
-        BlockState plant = ((BlockItem) seed.getItem()).getBlock().defaultBlockState();
-        for (int i = 0; i < planted; i++) plant(level, cells.get(i), plant);
     }
 
     private static void plant(ServerLevel level, BlockPos cell, BlockState crop) {
@@ -195,7 +186,6 @@ public final class FarmWork {
     }
 
     public static @NotNull Predicate<ItemStack> seedFilter(int crop) {
-        if (crop == FarmState.AUTO_CROP) return FarmWork::isSeed;
         Item seed = FarmRules.crops().get(crop).asItem();
         return stack -> stack.is(seed);
     }
@@ -276,7 +266,7 @@ public final class FarmWork {
     }
 
     public static @NotNull Look look(@NotNull ServerLevel level, @NotNull FieldPlot field) {
-        if (!level.isLoaded(field.center())) return new Look(0, 0, 0, FarmState.AUTO_CROP);
+        if (!level.isLoaded(field.center())) return new Look(0, 0, 0, FarmState.NO_CROP);
         int mature = 0;
         int growing = 0;
         long age = 0L;
@@ -293,9 +283,9 @@ public final class FarmWork {
                 full += crop.getMaxAge();
             }
         }
-        int main = FarmState.AUTO_CROP;
+        int main = FarmState.NO_CROP;
         for (int crop = 0; crop < kinds.length; crop++) {
-            if (kinds[crop] > 0 && (main == FarmState.AUTO_CROP || kinds[crop] > kinds[main])) main = crop;
+            if (kinds[crop] > 0 && (main == FarmState.NO_CROP || kinds[crop] > kinds[main])) main = crop;
         }
         return new Look(mature, growing, full == 0L ? 0 : (int) (age * 100L / full), main);
     }
@@ -314,13 +304,13 @@ public final class FarmWork {
             if (fields >= fieldLimit) break;
             if (!level.isLoaded(field.center())) continue;
             List<BlockPos> cells = field.cells();
-            Block chosen = farm.crop(field) == FarmState.AUTO_CROP ? null : FarmRules.crops().get(farm.crop(field));
+            Block chosen = chosen(farm, field);
             int before = reaped + sown;
             for (BlockPos pos : cells) {
                 BlockState state = level.getBlockState(pos);
                 if (!isCrop(state) || !isMature(state)) continue;
 
-                reap(level, data, pos, state, chosen == null ? state.getBlock() : chosen);
+                reap(level, data, pos, state, chosen);
                 reaped++;
             }
             int filled = fill(level, data, field);
@@ -337,6 +327,35 @@ public final class FarmWork {
             if (level.isLoaded(field.center())) sown += Math.max(0, fill(level, data, field));
         }
         return sown;
+    }
+
+    /** 这块田能不能种 {@code crop}：田里没有别的作物（同种的株照留）。 */
+    public static boolean accepts(@NotNull ServerLevel level, @NotNull FieldPlot field, int crop) {
+        Block wanted = FarmRules.crops().get(crop);
+        for (BlockPos pos : field.cells()) {
+            BlockState state = level.getBlockState(pos);
+            if (isCrop(state) && !state.is(wanted)) return false;
+        }
+        return true;
+    }
+
+    /** 清除所选各田的作物：熟不熟都按方块战利品表收进库藏，耕地留着，作物重置为未选；返回清掉的株数。 */
+    public static int uproot(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
+                             @NotNull List<FieldPlot> picked) {
+        FarmState farm = FarmState.of(data);
+        int cleared = 0;
+        for (FieldPlot field : picked) {
+            if (!level.isLoaded(field.center())) continue;
+            for (BlockPos pos : field.cells()) {
+                BlockState state = level.getBlockState(pos);
+                if (!isCrop(state)) continue;
+                for (ItemStack drop : Block.getDrops(state, level, pos, null)) BlissfulStorage.of(data).insert(drop);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+                cleared++;
+            }
+            farm.setCrop(field, FarmState.NO_CROP);
+        }
+        return cleared;
     }
 
     public static @NotNull Ripen ripen(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
@@ -378,33 +397,36 @@ public final class FarmWork {
     private static int fill(ServerLevel level, BlissfulLandData data, FieldPlot field) {
         FarmState farm = FarmState.of(data);
         List<BlockPos> cells = field.cells();
-        Block chosen = farm.crop(field) == FarmState.AUTO_CROP ? null : FarmRules.crops().get(farm.crop(field));
-        int sown = sow(level, data, cells, chosen);
+        Block chosen = chosen(farm, field);
+        int sown = chosen == null ? 0 : sow(level, data, cells, chosen);
         int mixed = farm.kind(field) == FieldKind.GU_PLANT ? mix(level, data, cells) : 0;
         return sown > 0 || mixed == 0 ? sown : -1;
     }
 
-    private static void reap(ServerLevel level, BlissfulLandData data, BlockPos pos, BlockState state, Block next) {
-        Item seed = next.asItem();
+    private static @Nullable Block chosen(FarmState farm, FieldPlot field) {
+        int crop = farm.crop(field);
+        return crop == FarmState.NO_CROP ? null : FarmRules.crops().get(crop);
+    }
+
+    private static void reap(ServerLevel level, BlissfulLandData data, BlockPos pos, BlockState state,
+                             @Nullable Block next) {
         boolean replanted = false;
         for (ItemStack drop : Block.getDrops(state, level, pos, null)) {
-            if (!replanted && drop.is(seed)) {
+            if (!replanted && next != null && drop.is(next.asItem())) {
                 drop.shrink(1);
                 replanted = true;
             }
             if (!drop.isEmpty()) BlissfulStorage.of(data).insert(drop);
         }
-        if (!replanted) replanted = BlissfulStorage.of(data).consume(stack -> stack.is(seed), 1) == 1;
+        if (next == null) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            return;
+        }
+        if (!replanted) replanted = BlissfulStorage.of(data).consume(stack -> stack.is(next.asItem()), 1) == 1;
         level.setBlock(pos, replanted ? next.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
     }
 
-    private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells, @Nullable Block chosen) {
-        Block crop = chosen != null ? chosen : cropOf(level, cells);
-        if (crop == null) {
-            ItemStack seed = BlissfulStorage.of(data).first(FarmWork::isSeed);
-            if (seed.isEmpty()) return 0;
-            crop = ((BlockItem) seed.getItem()).getBlock();
-        }
+    private static int sow(ServerLevel level, BlissfulLandData data, List<BlockPos> cells, Block crop) {
         Item seed = crop.asItem();
         int sown = 0;
         for (BlockPos pos : cells) {
@@ -434,15 +456,6 @@ public final class FarmWork {
             mixed++;
         }
         return mixed;
-    }
-
-    private static @Nullable Block cropOf(ServerLevel level, List<BlockPos> cells) {
-        Map<Block, Integer> counts = new LinkedHashMap<>();
-        for (BlockPos pos : cells) {
-            BlockState state = level.getBlockState(pos);
-            if (isCrop(state)) counts.merge(state.getBlock(), 1, Integer::sum);
-        }
-        return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
     }
     //endregion
 

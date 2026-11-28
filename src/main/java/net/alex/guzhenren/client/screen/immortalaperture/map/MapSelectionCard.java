@@ -10,23 +10,19 @@ import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
-import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 选区卡：固定在地图左下（按键提示上方），写选区的状态；田的操作在底部操作栏 {@link MapActionBar}，牧场的设置与按钮在卡上。
- * 原先点占地在光标旁弹卡，挡地图且一次只看一块（Alex 定改为固定检视卡）。
+ * 牧场卡：选中一个牧场时固定在地图左下，写栏内状态并放牧场的设置与按钮。田的状态与操作都在底部田坞 {@link MapActionBar}
+ * （Alex 定取消田的选区卡）。原先点占地在光标旁弹卡，挡地图且一次只看一块（Alex 定改为固定检视卡）。
  * <ul>
- *   <li>田（可多选）：标题「已选 N 块田」（含规划田时补「· 规划 M」）；已种 / 耕地格与熟株；按已种株加权的生长进度条；骨粉
- *       「需 未熟株 / 有 库藏」、腐泥冻土「需 普通田 × 192 / 有 库藏」，不够时字标警示色；蛊植田数 / 田数。只选了规划田
- *       时只写「等地灵开垦」。</li>
+ *   <li>卡底贴着 {@link MapPage} 给的底线：底部工具栏挡到卡时让到工具栏提示条上方。</li>
  *   <li>牧场（单选）：栏内头数、自动收拢开关、收拢种类列表（每行一个开关，一屏 {@value #TYPE_ROWS} 行，多了滚轮翻；关掉 =
  *       这个牧场不收这种）、「收拢」「迁移」「拆除」。</li>
  * </ul>
@@ -37,16 +33,8 @@ final class MapSelectionCard {
     private static final int WIDTH = 160;
     private static final int LEFT = 6;
     private static final int PAD = 6;
+    private static final int GAP = 6;
     private static final int TEXT_X = 26;
-    private static final int LINE = 12;
-    private static final int GROWTH_Y = 30;
-    private static final int GROWTH_X = 36;
-    private static final int GROWTH_W = 88;
-    private static final int BONE_Y = GROWTH_Y + LINE;
-    private static final int MUD_Y = BONE_Y + LINE;
-    private static final int KIND_Y = MUD_Y + LINE;
-    private static final int FIELD_HEIGHT = KIND_Y + 9 + PAD;
-    private static final int PLANNED_HEIGHT = 30;
     private static final int BUTTON_W = 46;
     private static final int BUTTON_H = 16;
     private static final int BUTTON_GAP = 4;
@@ -65,17 +53,21 @@ final class MapSelectionCard {
     private int typeOffset;
     private @Nullable Long shownPasture;
 
+    private static final int RIGHT = LEFT + WIDTH;
+
     void layout(int bottom) { this.bottom = bottom; }
 
-    private static int height(MapSelection selection, FieldTotals totals) {
-        if (selection.isEmpty()) return 0;
-        if (!selection.hasFields()) return PASTURE_HEIGHT;
-        return totals.fields() == 0 ? PLANNED_HEIGHT : FIELD_HEIGHT;
+    /** 牧场卡的底线：工具栏挡到卡时让到工具栏提示条上方，否则贴地图底。 */
+    static int bottom(MapTools tools, int height) {
+        return tools.boxLeft() < RIGHT + GAP ? tools.boxTop() - GAP : height - GAP;
     }
 
-    /** 每帧先排版：按选区定卡高与卡顶；换了牧场就把种类列表滚回顶。 */
-    void place(MapSelection selection, FieldTotals totals, MapPlots.@Nullable Plot pasture) {
-        height = height(selection, totals);
+    /** 牧场卡底在 {@code bottom} 时的 x、y、宽、高（排版自检用）。 */
+    static int[] pastureBox(int bottom) { return new int[] {LEFT, bottom - PASTURE_HEIGHT, WIDTH, PASTURE_HEIGHT}; }
+
+    /** 每帧先排版：只有选中牧场才有卡；换了牧场就把种类列表滚回顶。 */
+    void place(MapSelection selection, MapPlots.@Nullable Plot pasture) {
+        height = pasture != null && !selection.hasFields() ? PASTURE_HEIGHT : 0;
         top = bottom - height;
         Long key = pasture == null ? null : ChunkPos.asLong(pasture.chunkX(), pasture.chunkZ());
         if (!Objects.equals(key, shownPasture)) typeOffset = 0;
@@ -95,22 +87,11 @@ final class MapSelectionCard {
     }
 
     //region Drawing [绘制]
-    void sprites(SpriteBatch sprites, MapSelection selection, FieldTotals totals, MapPlots.@Nullable Plot pasture,
-                 MapTools.Land land, double mouseX, double mouseY) {
+    void sprites(SpriteBatch sprites, MapPlots.@Nullable Plot pasture, MapTools.Land land, double mouseX,
+                 double mouseY) {
         if (height == 0) return;
         sprites.blit(PanelDrawing.POPUP, LEFT, top, WIDTH, height);
-        sprites.blit(PanelDrawing.sprite(selection.hasFields() ? "tool_farm" : "tool_pasture"), LEFT + PAD, top + 5,
-                16, 16);
-        if (selection.hasFields()) {
-            if (totals.fields() == 0) return;
-            sprites.blit(PanelDrawing.BAR_BACKGROUND, LEFT + GROWTH_X, top + GROWTH_Y + 1, GROWTH_W, 6);
-            int filled = (GROWTH_W - 2) * Math.clamp(totals.growth(), 0, 100) / 100;
-            if (filled > 0) {
-                sprites.blit(PanelDrawing.BAR_FILL, LEFT + GROWTH_X + 1, top + GROWTH_Y + 2, filled, 4,
-                        PanelDrawing.ACCENT);
-            }
-            return;
-        }
+        sprites.blit(PanelDrawing.sprite("tool_pasture"), LEFT + PAD, top + 5, 16, 16);
         MapPart.Section.Pen pen = pasture == null ? null : land.pen(pasture.index());
         if (pen == null) return;
         for (int i = 0; i < PEN_BUTTONS.length; i++) {
@@ -133,14 +114,8 @@ final class MapSelectionCard {
         }
     }
 
-    void texts(GuiGraphics graphics, Font font, MapSelection selection, FieldTotals totals,
-               MapPlots.@Nullable Plot pasture, MapTools.Land land) {
-        if (height == 0) return;
-        if (selection.hasFields()) {
-            fieldTexts(graphics, font, totals, land);
-            return;
-        }
-        if (pasture == null) return;
+    void texts(GuiGraphics graphics, Font font, MapPlots.@Nullable Plot pasture, MapTools.Land land) {
+        if (height == 0 || pasture == null) return;
         graphics.drawString(font, Component.translatable(EarthSpiritScreen.UI + "map.tool.pasture"), LEFT + TEXT_X,
                 top + 5, PanelDrawing.ACCENT, false);
         graphics.drawString(font, Component.translatable(UI + "pasture_state", pasture.penned()), LEFT + TEXT_X,
@@ -174,40 +149,8 @@ final class MapSelectionCard {
         }
     }
 
-    private void fieldTexts(GuiGraphics graphics, Font font, FieldTotals totals, MapTools.Land land) {
-        Component title = totals.planned() == 0 ? Component.translatable(UI + "fields", totals.fields())
-                : totals.fields() == 0 ? Component.translatable(UI + "plans", totals.planned())
-                : Component.translatable(UI + "fields_plans", totals.fields(), totals.planned());
-        graphics.drawString(font, title, LEFT + TEXT_X, top + 5, PanelDrawing.ACCENT, false);
-        if (totals.fields() == 0) {
-            graphics.drawString(font, Component.translatable(UI + "planned_state"), LEFT + TEXT_X, top + 15,
-                    PanelDrawing.LEGEND, false);
-            return;
-        }
-        graphics.drawString(font, Component.translatable(UI + "field_state", totals.planted(), totals.cells(),
-                totals.mature()), LEFT + TEXT_X, top + 15, PanelDrawing.LEGEND, false);
-        graphics.drawString(font, Component.translatable(UI + "growth"), LEFT + PAD, top + GROWTH_Y,
-                PanelDrawing.LEGEND, false);
-        PanelDrawing.right(graphics, font, Math.clamp(totals.growth(), 0, 100) + "%", LEFT + WIDTH - PAD,
-                top + GROWTH_Y, PanelDrawing.TEXT);
-        cost(graphics, font, Items.BONE_MEAL.getDescription(), BONE_Y, totals.growing(), land.boneMeal());
-        cost(graphics, font, ModItems.ROTTEN_FROZEN_MUD.get().getDescription(), MUD_Y, totals.mudNeed(), land.mud());
-        graphics.drawString(font, Component.translatable(UI + "kind_gu_plant"), LEFT + PAD, top + KIND_Y,
-                PanelDrawing.LEGEND, false);
-        PanelDrawing.right(graphics, font, totals.guPlant() + " / " + totals.fields(), LEFT + WIDTH - PAD,
-                top + KIND_Y, PanelDrawing.TEXT);
-    }
-
-    private void cost(GuiGraphics graphics, Font font, Component label, int y, long need, long have) {
-        graphics.drawString(font, label, LEFT + PAD, top + y, PanelDrawing.LEGEND, false);
-        Component value = Component.translatable(UI + "need_have", PanelDrawing.count(need),
-                PanelDrawing.count(have));
-        PanelDrawing.right(graphics, font, value, LEFT + WIDTH - PAD, top + y,
-                need > have ? PanelDrawing.WARN : PanelDrawing.TEXT);
-    }
-
     boolean tip(MapPage page, GuiGraphics graphics, MapSelection selection, int mouseX, int mouseY) {
-        if (height == 0 || selection.hasFields()) return false;
+        if (height == 0) return false;
         if (page.tipAt(graphics, buttonLeft(0), buttonTop(), BUTTON_W, BUTTON_H, mouseX, mouseY,
                 Component.translatable(EarthSpiritScreen.TIP + "gather", HerdRules.GATHER_LIMIT))) {
             return true;

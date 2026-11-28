@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * 「地图」页：全屏，顶栏（{@value EarthSpiritScreen#BAR_H} 像素，由 {@link EarthSpiritScreen} 画，投影压在地图上）以下整片
- * 是地图视口；地形贴图由 {@link MapSurface} 后台光栅，地图层由 {@link MapScene} 画；叠在上面的是左上资源条与左下按键提示
- * {@link MapHud}（含一键收获）、右上视角簇 {@link MapControls}、右缘高度刻度 {@link MapHeightRail}、底部正中工具栏
- * {@link MapTools}（含割弃；选中田时换成操作栏 {@link MapActionBar}）、右下图例 {@link MapLegend}、左下选区卡
- * {@link MapSelectionCard}、割弃弹窗 {@link CedePanel}。
+ * 是地图视口；地形贴图由 {@link MapSurface} 后台光栅，地图层由 {@link MapScene} 画；叠在上面的是左上资源条
+ * {@link MapHud}、右上视角簇 {@link MapControls}、右缘高度刻度 {@link MapHeightRail}、底部正中工具栏 {@link MapTools}（含统筹组
+ * 与割弃；选中田时换成田坞 {@link MapActionBar}，按键提示条都在底栏上方）、右下图例 {@link MapLegend}（挤时收成小键）、左下
+ * 牧场卡 {@link MapSelectionCard}、割弃弹窗 {@link CedePanel}。
  * <ul>
  *   <li>每帧：按窗口与 GUI 缩放定视口（1 地图像素 = 2 真实像素）、把视口区块矩形交给
  *       {@link LandMapClient#requestView}、让贴图判是否重画；底色、贴图与标记按维度时间乘 {@code MapTint}。</li>
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  *       相距不到 {@value #CLICK_SLOP} 像素算点击：拿着工具即执行工具；拿着工具时右键或 Esc 退回选择模式。</li>
  *   <li>选择模式（不拿工具，Alex 定）：点占地只选它，Shift 点田加减，点空地清空；左键拖动框选矩形里的田与规划田（Shift
  *       拖为加选）；{@value #DOUBLE_CLICK_MILLIS} 毫秒内双击一块田选中所有同作物的田；Ctrl+A 全选田；Esc 依次关传送菜单、
- *       退工具、清选区，都没有才交给面板关闭。</li>
+ *       收选种弹窗、退工具、清选区，都没有才交给面板关闭。</li>
  *   <li>相机对准山心（参照平面 = 山底）；秘境还没解出山心时对准玩家脚下；「回山心」键同。</li>
  *   <li>⚠ 绘制都在 {@link #fills}（贴图、头像与罗盘指针是立即绘制，见 {@link MapScene}），叠加部件的精灵在同一步另起
  *       {@link SpriteBatch}；精灵批开画前先冲掉已排的填充，所以刻度线、图例色块、工具栏竖线排在叠加底之后、卡片之前。</li>
@@ -51,7 +51,6 @@ public class MapPage extends PanelPage {
     private static final int CLICK_SLOP = 3;
     private static final int PAN_SPEED = 240;
     private static final int RAIL_GAP = 8;
-    private static final int CARD_GAP = 6;
     private static final long DOUBLE_CLICK_MILLIS = 300L;
     private final MapCamera camera = new MapCamera(0.0, 64.0, 0.0);
     private final MapSurface surface = new MapSurface();
@@ -97,7 +96,7 @@ public class MapPage extends PanelPage {
     @Override
     protected Component name() { return Component.translatable(EarthSpiritScreen.UI + "tab.map"); }
 
-    /** 信息页点作物行：下一帧选中种这种作物的田（作物设为这种，或设为自动而田里这种最多；一块没有就不动选区）。 */
+    /** 信息页点作物行：下一帧选中种这种作物的田（作物设为这种，或未选而田里这种最多；一块没有就不动选区）。 */
     public void selectCrop(int crop) { pendingCrop = crop; }
 
     //region Shared with parts [供部件用]
@@ -119,9 +118,8 @@ public class MapPage extends PanelPage {
         controls.layout(width);
         tools.layout(width, height);
         actions.layout(width, height);
-        legend.layout(width, height);
-        hud.layout(height);
-        card.layout(hud.keysTop() - CARD_GAP);
+        legend.layout(width, height, actions.boxWidth(), actions.hintTop());
+        card.layout(MapSelectionCard.bottom(tools, height));
         rail.layout(width, controls.bottom() + RAIL_GAP, legend.top() - RAIL_GAP);
         cede.layout(width, height);
     }
@@ -180,7 +178,7 @@ public class MapPage extends PanelPage {
         pasture = selection.pasture(plots);
         if (pasture != null) chosen = List.of(pasture);
         totals = FieldTotals.of(chosen, land);
-        card.place(selection, totals, pasture);
+        card.place(selection, pasture);
         target = tools.target(land, hover);
         updateArea();
         updateBox();
@@ -192,24 +190,23 @@ public class MapPage extends PanelPage {
                 chosen, hovered, box, target, target == null ? 0 : tools.colour(target), area, hover));
         boolean acting = selection.hasFields();
         SpriteBatch.draw(graphics, sprites -> {
-            hud.sprites(sprites, font(), land, mouseX, mouseY);
+            hud.sprites(sprites, font(), land);
             controls.sprites(sprites, camera, mouseX, mouseY);
             rail.sprites(sprites, font(), surface.lowest(), surface.highest(), hover);
-            legend.sprites(sprites);
+            legend.sprites(sprites, mouseX, mouseY);
             if (acting) {
                 actions.sprites(sprites, totals, land, selection, font(), mouseX, mouseY);
             } else {
-                tools.sprites(sprites, mouseX, mouseY);
+                tools.sprites(sprites, font(), land, mouseX, mouseY);
                 tools.hint(sprites, null, font());
-                tools.pickerSprites(sprites, font(), land, mouseX, mouseY);
             }
         });
         rail.fills(graphics, surface.lowest(), surface.highest(), hover);
         legend.fills(graphics);
-        if (acting) actions.fills(graphics);
+        if (acting) actions.fills(graphics, totals);
         else tools.fills(graphics);
         SpriteBatch.draw(graphics, sprites -> {
-            card.sprites(sprites, selection, totals, pasture, land, mouseX, mouseY);
+            card.sprites(sprites, pasture, land, mouseX, mouseY);
             teleport.sprites(sprites, mouseX, mouseY);
         });
         controls.needle(graphics, camera);
@@ -224,11 +221,10 @@ public class MapPage extends PanelPage {
         if (selection.hasFields()) {
             actions.texts(graphics, font(), totals, land);
         } else {
-            tools.texts(graphics, font());
+            tools.texts(graphics, font(), land);
             tools.hint(null, graphics, font());
-            tools.pickerTexts(graphics, font(), land);
         }
-        card.texts(graphics, font(), selection, totals, pasture, land);
+        card.texts(graphics, font(), pasture, land);
         teleport.texts(graphics, font());
         legend.texts(graphics, font(), camera, surface.lowest(), surface.highest(), hover);
     }
@@ -238,8 +234,7 @@ public class MapPage extends PanelPage {
         boolean acting = selection.hasFields();
         if (controls.tip(this, graphics, mouseX, mouseY) || hud.tip(this, graphics, land, mouseX, mouseY)
                 || acting && actions.tip(this, graphics, totals, land, mouseX, mouseY)
-                || !acting && (tools.tip(this, graphics, mouseX, mouseY)
-                        || tools.pickerTip(this, graphics, land, mouseX, mouseY))
+                || !acting && tools.tip(this, graphics, land, mouseX, mouseY)
                 || card.tip(this, graphics, selection, mouseX, mouseY)) {
             return;
         }
@@ -255,7 +250,7 @@ public class MapPage extends PanelPage {
     private boolean isOnMap(double mouseX, double mouseY) {
         return mouseY >= EarthSpiritScreen.BAR_H && mouseY < height() && mouseX >= 0 && mouseX < width()
                 && !controls.contains(mouseX, mouseY) && !bottomBar(mouseX, mouseY)
-                && !tools.isOverPicker(mouseX, mouseY) && !hud.contains(mouseX, mouseY)
+                && !hud.contains(mouseX, mouseY)
                 && !legend.contains(mouseX, mouseY) && !card.contains(mouseX, mouseY)
                 && !teleport.contains(mouseX, mouseY);
     }
@@ -281,10 +276,6 @@ public class MapPage extends PanelPage {
         MapControls.Control control = controls.at(mouseX, mouseY);
         if (control != null) {
             if (left) press(control);
-            return true;
-        }
-        if (hud.isOverHarvest(mouseX, mouseY)) {
-            if (left) hud.clickHarvest(land);
             return true;
         }
         if (selection.hasFields() && actions.contains(mouseX, mouseY)) {
@@ -319,13 +310,8 @@ public class MapPage extends PanelPage {
         return true;
     }
 
-    /** 工具栏与新田作物条上的点击；点中返回真。 */
+    /** 工具栏上的点击；点中返回真。 */
     private boolean clickTools(boolean left, double mouseX, double mouseY) {
-        if (tools.isOverPicker(mouseX, mouseY)) {
-            int crop = tools.pickerCrop(mouseX, mouseY);
-            if (left && crop != CropKeys.NONE && crop != land.newCrop()) land.setNewCrop(crop);
-            return true;
-        }
         if (tools.isOverSelect(mouseX, mouseY)) {
             if (left) tools.cancel();
             return true;
@@ -336,6 +322,10 @@ public class MapPage extends PanelPage {
                 tools.press(tool);
                 selection.clear();
             }
+            return true;
+        }
+        if (tools.isOverHarvest(mouseX, mouseY)) {
+            if (left && MapTools.ripe(land) > 0) land.harvestAll();
             return true;
         }
         if (tools.isOverCede(mouseX, mouseY)) {
@@ -442,7 +432,7 @@ public class MapPage extends PanelPage {
         for (MapPlots.Plot each : land.plots()) {
             MapPart.Section.Field other = each.kind() == MapPlots.Kind.FIELD ? land.field(each.index()) : null;
             boolean grows = other != null
-                    && (other.crop() == crop || other.crop() == FarmState.AUTO_CROP && other.main() == crop);
+                    && (other.crop() == crop || other.crop() == FarmState.NO_CROP && other.main() == crop);
             if (grows) same.add(each);
         }
         if (same.isEmpty()) return;
@@ -488,6 +478,7 @@ public class MapPage extends PanelPage {
 
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
+        if (selection.hasFields() && actions.scroll(mouseX, mouseY, delta)) return true;
         if (card.scroll(land, selection, mouseX, mouseY, delta)) return true;
         if (cede.isOpen() || !isOnMap(mouseX, mouseY) || delta == 0.0) return false;
         camera.zoom(delta > 0.0 ? 1 : -1, mouseX / scale(), (mouseY - TOP) / scale());
@@ -498,6 +489,7 @@ public class MapPage extends PanelPage {
     protected boolean key(int keyCode, int scanCode, int modifiers) {
         if (keyCode == InputConstants.KEY_ESCAPE) {
             if (teleport.isOpen()) teleport.close();
+            else if (actions.picking()) actions.cancel();
             else if (tools.active() != null) tools.cancel();
             else if (!selection.isEmpty()) selection.clear();
             else return false;

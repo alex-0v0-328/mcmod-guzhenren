@@ -16,12 +16,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 福地种植的经营状态：标准田（各带作物与田型）、规划队列、托管开关、新田作物、上一轮托管的结果。
+ * 福地种植的经营状态：标准田（各带作物与田型）、规划队列、托管开关、上一轮托管的结果。
  * <ul>
  *   <li>标准田记 {@link FieldPlot}，顺序即开垦顺序；规划队列记区块坐标（{@code ChunkPos#toLong}），先进先出，田加规划
  *       合计受 {@code Siting#FIELD_CAP} 限制（在 {@link FieldPlans} 查）。</li>
- *   <li>作物都是 {@link FarmRules#crops()} 的下标，{@value #AUTO_CROP} = 自动。新田作物是开垦时给新田的作物，田的作物
- *       随后各改各的；新田一律普通田。</li>
+ *   <li>作物都是 {@link FarmRules#crops()} 的下标，{@value #NO_CROP} = 未选。新田一律未选、普通田，作物由主人在地图上
+ *       选定后种植（Alex 定），清除作物时重置为未选。</li>
  *   <li>本类是存档段 {@link #PART}（子项 {@code farm}），任何改动经回调置脏；开面板补种轮到的田序
  *       {@link #topUpCursor} 不存档。</li>
  * </ul>
@@ -30,14 +30,13 @@ import org.jetbrains.annotations.Nullable;
 public final class FarmState implements LandSavePart.State {
 
     public static final LandSavePart<FarmState> PART = new LandSavePart<>("farm", FarmState::new);
-    public static final int AUTO_CROP = -1;
+    public static final int NO_CROP = -1;
     private final Runnable changed;
     private final List<FieldPlot> fields = new ArrayList<>();
     private final Map<FieldPlot, Integer> fieldCrops = new HashMap<>();
     private final Map<FieldPlot, FieldKind> fieldKinds = new HashMap<>();
     private final LongList plans = new LongArrayList();
     private boolean hosting;
-    private int crop = AUTO_CROP;
     private int lastReaped;
     private int lastSown;
     private int topUpCursor;
@@ -46,14 +45,14 @@ public final class FarmState implements LandSavePart.State {
 
     public static @NotNull FarmState of(@NotNull BlissfulLandData data) { return data.part(PART); }
 
-    public static int clampCrop(int crop) { return crop < 0 || crop >= FarmRules.crops().size() ? AUTO_CROP : crop; }
+    public static int clampCrop(int crop) { return crop < 0 || crop >= FarmRules.crops().size() ? NO_CROP : crop; }
 
     //region Fields [田与规划]
     public @NotNull List<FieldPlot> fields() { return List.copyOf(fields); }
 
     public void addField(@NotNull FieldPlot field) {
         fields.add(field);
-        fieldCrops.put(field, crop);
+        fieldCrops.put(field, NO_CROP);
         changed.run();
     }
 
@@ -71,7 +70,7 @@ public final class FarmState implements LandSavePart.State {
         return null;
     }
 
-    public int crop(@NotNull FieldPlot field) { return fieldCrops.getOrDefault(field, AUTO_CROP); }
+    public int crop(@NotNull FieldPlot field) { return fieldCrops.getOrDefault(field, NO_CROP); }
 
     public void setCrop(@NotNull FieldPlot field, int crop) {
         int clamped = clampCrop(crop);
@@ -112,15 +111,6 @@ public final class FarmState implements LandSavePart.State {
         changed.run();
     }
 
-    public int crop() { return crop; }
-
-    public void setCrop(int crop) {
-        int clamped = clampCrop(crop);
-        if (this.crop == clamped) return;
-        this.crop = clamped;
-        changed.run();
-    }
-
     public int topUpCursor() { return topUpCursor; }
 
     public void setTopUpCursor(int cursor) { topUpCursor = cursor; }
@@ -144,7 +134,6 @@ public final class FarmState implements LandSavePart.State {
         tag.put("field_kinds", new IntArrayTag(fields.stream().mapToInt(field -> kind(field).ordinal()).toArray()));
         tag.put("plans", new LongArrayTag(plans.toLongArray()));
         tag.putBoolean("hosting", hosting);
-        tag.putInt("crop", crop);
         tag.putInt("last_reaped", lastReaped);
         tag.putInt("last_sown", lastSown);
         parent.put(key, tag);
@@ -160,12 +149,11 @@ public final class FarmState implements LandSavePart.State {
         for (int i = 0; i < origins.length && i < sizes.length; i++) {
             FieldPlot field = FieldPlot.load(origins[i], sizes[i]);
             fields.add(field);
-            fieldCrops.put(field, i < crops.length ? clampCrop(crops[i]) : AUTO_CROP);
+            fieldCrops.put(field, i < crops.length ? clampCrop(crops[i]) : NO_CROP);
             if (i < kinds.length) fieldKinds.put(field, FieldKind.byId(kinds[i]));
         }
         for (long plan : tag.getLongArray("plans")) plans.add(plan);
         hosting = tag.getBoolean("hosting");
-        crop = tag.contains("crop") ? clampCrop(tag.getInt("crop")) : AUTO_CROP;
         lastReaped = tag.getInt("last_reaped");
         lastSown = tag.getInt("last_sown");
     }

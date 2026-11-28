@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 「地图」页面板段：下发地图页叠加层与卡片需要的经营数据（疆域、山心与秘境半径、行宫、入口、田与其熟 / 未熟株数、生长
  * 进度、作物田型、规划、牧场与其设置、选址上限、库藏腐泥冻土数、骨粉数与各作物种子数（与 {@link FarmRules#crops()}
- * 同序）、新田作物、可勾选的收拢种类）；
+ * 同序）、可勾选的收拢种类）；
  * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmPart}、{@code HerdPart}；本段只有「探明」
  * （{@link RevealChunk}，拿着选址工具点迷雾，交 {@link LandMaps#reveal} 限流后生成并加载）与地图右键传送：
  * {@link Teleport} 只许落在疆域内已探明的区块（{@link LandMaps#isKnown}），落点由 {@link LandTeleport#landing} 找，传送
@@ -115,7 +115,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
     public record Section(@NotNull Territory territory, @NotNull BlockPos mountain, int realmRadius,
                           @NotNull BlockPos palace, @NotNull BlockPos entry, @NotNull List<Field> fields,
                           @NotNull List<ChunkPos> planned, @NotNull List<Pen> pastures, int fieldCap, int pastureCap,
-                          long mud, long boneMeal, int newCrop, @NotNull List<ResourceLocation> animals,
+                          long mud, long boneMeal, @NotNull List<ResourceLocation> animals,
                           @NotNull List<Long> seeds)
             implements PanelSection {
 
@@ -152,7 +152,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
 
         public static final Section EMPTY = new Section(TerritoryPart.Section.EMPTY.territory(), BlockPos.ZERO, 0,
                 BlockPos.ZERO, BlockPos.ZERO, List.of(), List.of(), List.of(), Siting.FIELD_CAP, Siting.PASTURE_CAP,
-                0L, 0L, FarmState.AUTO_CROP, List.of(), List.of());
+                0L, 0L, List.of(), List.of());
         private static final StreamCodec<ByteBuf, List<ChunkPos>> CHUNKS =
                 ByteBufCodecs.VAR_LONG.map(ChunkPos::new, ChunkPos::toLong).apply(ByteBufCodecs.list());
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
@@ -166,7 +166,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             Field.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.fields);
             CHUNKS.encode(buffer, section.planned);
             Pen.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.pastures);
-            for (int value : new int[] {section.realmRadius, section.fieldCap, section.pastureCap, section.newCrop}) {
+            for (int value : new int[] {section.realmRadius, section.fieldCap, section.pastureCap}) {
                 buffer.writeVarInt(value);
             }
             buffer.writeVarLong(section.mud);
@@ -186,13 +186,12 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             int realmRadius = buffer.readVarInt();
             int fieldCap = buffer.readVarInt();
             int pastureCap = buffer.readVarInt();
-            int newCrop = buffer.readVarInt();
             long mud = buffer.readVarLong();
             long boneMeal = buffer.readVarLong();
             List<ResourceLocation> animals = ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
             List<Long> seeds = ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).decode(buffer);
             return new Section(territory, mountain, realmRadius, palace, entry, fields, planned, pastures, fieldCap,
-                    pastureCap, mud, boneMeal, newCrop, animals, seeds);
+                    pastureCap, mud, boneMeal, animals, seeds);
         }
 
         public long seedsOf(int crop) { return crop >= 0 && crop < seeds.size() ? seeds.get(crop) : 0L; }
@@ -254,7 +253,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
                 realm == null ? 0 : realm.radius(), site == null ? BlockPos.ZERO : site.palace(),
                 site == null ? BlockPos.ZERO : site.entry(), fields, planned, pastures, Siting.FIELD_CAP,
                 Siting.PASTURE_CAP, BlissfulStorage.of(data).count(FarmWork::isMud),
-                BlissfulStorage.of(data).count(FarmWork::isBoneMeal), farm.crop(), List.copyOf(animals), seeds(data));
+                BlissfulStorage.of(data).count(FarmWork::isBoneMeal), List.copyOf(animals), seeds(data));
     }
 
     private static List<Long> seeds(BlissfulLandData data) {

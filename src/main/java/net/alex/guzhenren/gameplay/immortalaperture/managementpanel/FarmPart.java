@@ -29,15 +29,12 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * 「种植」小节面板段（信息页统筹卡）：按作物计成熟 / 未熟、标准田与规划数、库藏种子合计 / 骨粉 / 腐泥冻土、托管开关与上一轮
- * 结果；地图上的规划、新田作物、一键收获与选中田
- * 的操作也登记在这里。
+ * 结果；地图上的规划、一键收获与选中田的操作也登记在这里。
  * <ul>
- *   <li>新田作物（{@link SetCrop}，地图开垦工具上选）是 {@link FarmRules#crops()} 下标，{@link FarmState#AUTO_CROP} = 自动；
- *       库藏没有所选种子也照开，开出空田之后自动补种。</li>
  *   <li>{@link Plan} 经 {@link FieldPlans}（选址复判与队列）；{@link PlanMany} 是开垦工具拖框，客户端只交它预判合格的区块，
  *       服务端逐块复判，不合格的跳过并报第一条原因。</li>
- *   <li>选中田的操作都带区块列表（至多 {@value #LIMIT} 个，服务端按账重找，不是田的跳过）：{@link Sow} 改作物并立刻补满
- *       空格（{@link FarmWork#sow}，不铲现有株），{@link Retype} 改土质（改蛊植田先按所选普通田合计扣腐泥冻土，不够一块都
+ *   <li>选中田的操作都带区块列表（至多 {@value #LIMIT} 个，服务端按账重找，不是田的跳过）：{@link Sow} 种植：给能种的田
+ *       （{@link FarmWork#accepts}，田里没有别的作物）定作物并补满空格，{@link Uproot} 清除作物并重置为未选，{@link Retype} 改土质（改蛊植田先按所选普通田合计扣腐泥冻土，不够一块都
  *       不改），{@link Ripen} 骨粉催熟（{@link FarmWork#ripen}），{@link HarvestFields} 只收所选，{@link Clear} 拆田并取消
  *       所选规划；{@link Harvest} 是地图左上「一键收获」，收全部田。</li>
  *   <li>规则都在 {@link FarmWork}；托管每轮至多 {@value FarmRules#HOSTING_FIELDS} 块田，结果记进 {@link FarmState}，页面显示下一
@@ -178,12 +175,6 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         return fields;
     }
 
-    private static Component cropName(int crop) {
-        int clamped = FarmState.clampCrop(crop);
-        return clamped == FarmState.AUTO_CROP ? Component.translatable("guzhenren.blissful_land.ui.crop_auto")
-                : FarmRules.crops().get(clamped).getName();
-    }
-
     public record HarvestFields(@NotNull List<Long> chunks) implements PanelAction {
 
         public static final PanelAction.Type<HarvestFields> TYPE = new PanelAction.Type<>(HarvestFields.class,
@@ -207,10 +198,27 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         public @NotNull Component perform(@NotNull ActionContext context) {
             List<FieldPlot> fields = fields(context.data(), chunks);
             if (fields.isEmpty()) return LandNoticeEvent.text("no_field");
+            if (FarmState.clampCrop(crop) == FarmState.NO_CROP) return Component.empty();
+            fields.removeIf(field -> !FarmWork.accepts(context.level(), field, crop));
+            if (fields.isEmpty()) return LandNoticeEvent.text("uproot_first");
             FarmState state = FarmState.of(context.data());
             for (FieldPlot field : fields) state.setCrop(field, crop);
             int sown = FarmWork.sow(context.level(), context.data(), fields);
-            return LandNoticeEvent.text("sown", fields.size(), cropName(crop), sown);
+            return LandNoticeEvent.text("sown", fields.size(), FarmRules.crops().get(crop).getName(), sown);
+        }
+    }
+
+    public record Uproot(@NotNull List<Long> chunks) implements PanelAction {
+
+        public static final PanelAction.Type<Uproot> TYPE = new PanelAction.Type<>(Uproot.class,
+                CHUNKS.map(Uproot::new, Uproot::chunks));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            List<FieldPlot> fields = fields(context.data(), chunks);
+            if (fields.isEmpty()) return LandNoticeEvent.text("no_field");
+            int cleared = FarmWork.uproot(context.level(), context.data(), fields);
+            return LandNoticeEvent.text("uprooted", fields.size(), cleared);
         }
     }
 
@@ -285,17 +293,6 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
     }
 
-    public record SetCrop(int crop) implements PanelAction {
-
-        public static final PanelAction.Type<SetCrop> TYPE = new PanelAction.Type<>(SetCrop.class,
-                ByteBufCodecs.VAR_INT.map(SetCrop::new, SetCrop::crop));
-
-        @Override
-        public @NotNull Component perform(@NotNull ActionContext context) {
-            FarmState.of(context.data()).setCrop(crop);
-            return Component.empty();
-        }
-    }
     //endregion
 
     @Override
@@ -306,8 +303,8 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Plan.TYPE, Harvest.TYPE, SetHosting.TYPE, SetCrop.TYPE, PlanMany.TYPE, HarvestFields.TYPE,
-                Sow.TYPE, Ripen.TYPE, Retype.TYPE, Clear.TYPE);
+        return List.of(Plan.TYPE, Harvest.TYPE, SetHosting.TYPE, PlanMany.TYPE, HarvestFields.TYPE,
+                Sow.TYPE, Uproot.TYPE, Ripen.TYPE, Retype.TYPE, Clear.TYPE);
     }
 
     @Override
