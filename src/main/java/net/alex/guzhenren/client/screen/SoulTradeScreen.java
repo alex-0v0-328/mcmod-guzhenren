@@ -25,7 +25,8 @@ import org.jetbrains.annotations.NotNull;
  *   <li>{@link #render} 每帧盘点背包计算各成本的 {@code enough} 与各报价的 {@code affordable} 状态，供背景绘制与标签
  *       文字共享。</li>
  *   <li>图标、数量与按钮标签在 {@code renderLabels} 中绘制，确保手持物品依然盖在其上；整块背景复用单个
- *       {@link GuiBatch}，依次绘制面板与槽位、行悬停叠色以及交易按钮。</li>
+ *       {@link GuiBatch}，依次绘制面板与槽位、标题带与各行凹槽、成本与产物底格以及交易按钮（行高 30 由
+ *       {@link SoulTradeMenu#ROW_H} 定，格子与按钮在行内垂直居中）。</li>
  * </ul>
  */
 
@@ -35,8 +36,8 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     private static final int BOTTOM_MARGIN = 6;
     private static final int ROW_X = 8;
     private static final int ROW_W = 160;
-    private static final int ROW_FILL_H = 20;
-    private static final int ICON_PAD = 2;
+    private static final int ROW_FILL_H = 26;
+    private static final int ICON_PAD = 5;
     private static final int COST_X = 12;
     private static final int COST_STRIDE = 20;
     private static final int ARROW_X = 74;
@@ -47,7 +48,6 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     private static final int COUNT_Z = 200;
     private static final int COUNT_RIGHT = 17;
     private static final int COUNT_TOP = 9;
-    private static final int ROW_FILL = 0x1AFFFFFF;
     private static final String ARROW = "→";
     private static final Component TRADE = Component.translatable("guzhenren.menu.soul_trade.trade");
     private final boolean[] affordable;
@@ -78,15 +78,21 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
                 Widgets.drawCells(sprites, inventoryX, y + SoulTradeMenu.getHotbarY(offers.size()),
                         SoulTradeMenu.INVENTORY_COLS, 1, SoulTradeMenu.SLOT);
             });
+            graphics.fill(x + 1, y + 1, x + this.imageWidth - 1, y + SoulTradeMenu.ROWS_Y - 4, ModPalette.SURFACE_2);
             for (int i = 0; i < offers.size(); i++) {
                 int rowY = y + getRowY(i);
-                graphics.fill(x + ROW_X, rowY, x + ROW_X + ROW_W, rowY + ROW_FILL_H, ROW_FILL);
+                graphics.fill(x + ROW_X, rowY, x + ROW_X + ROW_W, rowY + ROW_FILL_H, ModPalette.SURFACE_0);
             }
             SpriteBatch.draw(graphics, sprites -> {
                 for (int i = 0; i < offers.size(); i++) {
                     boolean hover = this.isInButton(i, mouseX, mouseY);
-                    Widgets.drawButton(sprites, x + BUTTON_X, y + getRowY(i) + ICON_PAD, BUTTON_W, BUTTON_H,
-                            this.affordable[i] || hover, hover);
+                    int iconY = y + getRowY(i) + ICON_PAD;
+                    for (int n = 0; n < offers.get(i).costs().size(); n++) {
+                        Widgets.drawCell(sprites, x + COST_X + n * COST_STRIDE, iconY);
+                    }
+                    Widgets.drawCell(sprites, x + RESULT_X, iconY);
+                    Widgets.drawButton(sprites, x + BUTTON_X, iconY, BUTTON_W, BUTTON_H, this.affordable[i] || hover,
+                            hover);
                 }
             });
         });
@@ -95,9 +101,9 @@ public class SoulTradeScreen extends AbstractContainerScreen<SoulTradeMenu> {
     @Override
     protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY,
-                ModPalette.TREASURE_YELLOW_HEAVEN, false);
+                ModPalette.ACCENT, false);
         graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY,
-                ModPalette.TEXT, false);
+                ModPalette.LEGEND_TEXT, false);
 
         List<SoulTradeOffer> offers = this.menu.getOffers();
         for (int i = 0; i < offers.size(); i++) {

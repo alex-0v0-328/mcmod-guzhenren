@@ -17,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>两档（{@link #wide}）：界面宽不到 {@value #WIDE_MIN_W} 或高不到 {@value #WIDE_MIN_H} 用紧凑档（不写键名），缩放 6 的
  *       2560×1600 即紧凑档；功能栏同档。</li>
  *   <li>键的样子由子类给 {@link Face}：图标或一个字（牧场指定的动物）、样式、能不能点、右上角数字。</li>
- *   <li>画图与写字两步：{@link #sprites} 画底、键与图标，{@link #fills} 画进度条，{@link #texts} 写表头、键上的字与键名。</li>
+ *   <li>画图与写字两步：{@link #barSprites} 画底、键与图标，{@link #barFills} 画进度条，{@link #barTexts} 写表头、键上
+ *       的字与键名。</li>
  * </ul>
  */
 

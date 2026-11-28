@@ -29,9 +29,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * B 面板玩家信息总界面：直接读取客户端同步附件并以六个页签展示玩家全部状态。
  * <ul>
- *   <li>包含空窍、肉身、魂魄、流派、脑海、炼蛊六个页签；选中页签在常态精灵图上叠绘灰度选中边框并染为该页强调色（标
- *       题同色）；面板宽度取屏幕宽度的 0.80，不足 {@code PANEL_MIN_W} 时补齐至最小值（GUI 6 缩放下由 342 补齐至
- *       400）。</li>
+ *   <li>包含空窍、肉身、魂魄、流派、脑海、炼蛊六个页签；页签平铺无框，悬停提亮一档，选中页签左侧一道 2 像素金边（金只
+ *       表状态，标题与分组标题同用金色，Alex 定）；面板宽度取屏幕宽度的 0.80，不足 {@code PANEL_MIN_W} 时补齐至最小
+ *       值（GUI 6 缩放下由 342 补齐至 400）。</li>
  *   <li>肉身页与空窍页采用四栏布局（图 | 文字 | 按钮 | 页签，由 Alex 选定）：左侧图栏留白 {@code FIGURE_MARGIN}
  *       且与文字栏相隔 {@code COLUMN_GAP}，图栏宽度等于图原宽乘以整数倍率（在留足按钮栏与 {@code TEXT_MIN_W} 后取
  *       可用最大值，上下限见 {@link BodyFigure} 与 {@link ApertureFigure}；空窍图保底 2 倍，窄屏下允许两页图栏不
@@ -64,16 +64,14 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_W = 76;
     private static final int TAB_H = 20;
     private static final int TAB_GAP = 4;
-    static final int DIVIDER = 0x33FFFFFF;
-    static final int ROW_HOVER = 0x14FFFFFF;
+    static final int DIVIDER = ModPalette.SURFACE_2;
+    static final int ROW_HOVER = ModPalette.SURFACE_2;
     private static final ResourceLocation TAB = Guzhenren.id("tab");
     private static final ResourceLocation TAB_HIGHLIGHTED = Guzhenren.id("tab_highlighted");
     private static final ResourceLocation TAB_SELECTED = Guzhenren.id("tab_selected");
     private static final ResourceLocation TAB_DISABLED = Guzhenren.id("tab_disabled");
-    private static final ResourceLocation SCROLLER = Guzhenren.id("scroller");
-    private static final ResourceLocation SCROLLER_BACKGROUND = Guzhenren.id("scroller_background");
-    private static final int[] ACCENT = { ModPalette.APERTURE, ModPalette.BODY, ModPalette.SOUL,
-            ModPalette.PATH, ModPalette.MIND, ModPalette.REFINEMENT };
+    private static final ResourceLocation SCROLLER = Guzhenren.id("blissful_land/screen/scroller");
+    private static final ResourceLocation SCROLLER_BACKGROUND = Guzhenren.id("blissful_land/screen/scroller_track");
     private static final Component[] TAB_TITLES = {
             Component.translatable("guzhenren.screen.tab.aperture"),
             Component.translatable("guzhenren.screen.tab.body"),
@@ -126,7 +124,7 @@ public final class PlayerInfoScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
-        int accent = ACCENT[activeTab];
+        int accent = ModPalette.ACCENT;
         LocalPlayer player = Minecraft.getInstance().player;
         Content content = player == null ? Content.EMPTY : getContent(player);
         hoverClick = null;
@@ -195,14 +193,14 @@ public final class PlayerInfoScreen extends Screen {
                 : !active && isInTab(mouseX, mouseY, i) ? TAB_HIGHLIGHTED : TAB;
 
         sprites.blit(tab, x0, y0, TAB_W, TAB_H);
-        if (active) sprites.blit(TAB_SELECTED, x0, y0, TAB_W, TAB_H, ACCENT[i]);
+        if (active) sprites.blit(TAB_SELECTED, x0, y0, TAB_W, TAB_H);
     }
 
     private void drawFrameTexts(GuiGraphics graphics, int accent) {
         graphics.drawString(font, TAB_TITLES[activeTab],
                 leftPos + PAD, topPos + (HEADER_H - font.lineHeight) / 2, accent, false);
         for (int i = 0; i < TAB_TITLES.length; i++) {
-            int color = i == activeTab ? ACCENT[i] : isTabLive(i) ? ModPalette.TEXT : ModPalette.TEXT_DEAD;
+            int color = i == activeTab ? ModPalette.TEXT : isTabLive(i) ? ModPalette.LEGEND_TEXT : ModPalette.TEXT_DEAD;
             Widgets.drawCentered(graphics, font, TAB_TITLES[i], getTabLeft(), getTabTop(i), TAB_W, TAB_H, color);
         }
     }

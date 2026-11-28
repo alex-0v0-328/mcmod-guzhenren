@@ -19,8 +19,8 @@ import org.jetbrains.annotations.Nullable;
  * B 面板信息行渲染器：将 {@link InfoModel} 条目转化为左标签、右可选值的双列文本布局并绘制。
  * <ul>
  *   <li>⚠ 数据模型仅定义行结构与排序而不决定界面文案，面板统一按左标签、右可选值两列排版。</li>
- *   <li>点击辅修流派行可打开 {@link PathPicker}；标题行无右侧值且使用当前页签强调色，其中脑海页签标题为 {@code null}
- *       （页签名称已写明）。</li>
+ *   <li>点击辅修流派行可打开 {@link PathPicker}；标题行无右侧值且用金色（{@code ModPalette.ACCENT}），其中脑海页签
+ *       标题为 {@code null}（页签名称已写明）。</li>
  *   <li>{@link #getRows} 把两条道痕[Path Marks]行合并为一行的 {@code paired} 布局，并将力道读数行转换为
  *       {@code cells} 网格；{@link #getApertureGroups} 将空窍页签的模型按空窍拆组并去除间隔空行，供空窍页上下分段排
  *       版。</li>

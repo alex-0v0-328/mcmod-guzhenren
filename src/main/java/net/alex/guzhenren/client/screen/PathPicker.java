@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>将全部流派与「无」排成网格并在面板内居中显示；点击格子即为打开时所选空窍发送
  *       {@link SetSecondaryPathPayload}，点击弹窗外部、按 Esc 或按 B 键则不作选择直接关闭。</li>
- *   <li>整块弹窗走单个 {@link GuiBatch}：最先绘制弹窗精灵图，再逐格绘制悬停填色与流派名称（过长的名称
- *       会伸入下方格区域，并由下格的悬停填色遮盖）。</li>
+ *   <li>弹窗下层先压暗（{@link Widgets#drawScrim}）；整块弹窗走单个 {@link GuiBatch}：最先绘制弹窗精灵图与标题
+ *       带，再逐格绘制悬停填色与流派名称。</li>
  * </ul>
  */
 
@@ -27,7 +27,7 @@ final class PathPicker {
 
     private static final int COLS = 4;
     private static final int CELL_W = 84;
-    private static final int CELL_H = 14;
+    private static final int CELL_H = 16;
     private static final int PAD = 8;
     private static final Component TITLE = Component.translatable("guzhenren.screen.pick.title");
     private boolean open;
@@ -49,10 +49,10 @@ final class PathPicker {
         int w = getWidth();
         int h = getHeight();
 
+        Widgets.drawScrim(graphics);
         GuiBatch.draw(graphics, () -> {
             SpriteBatch.draw(graphics, sprites -> Widgets.drawPopup(sprites, x0, y0, w, h));
-            Widgets.drawRule(graphics, x0 + PAD, y0 + PlayerInfoScreen.HEADER_H, x0 + w - PAD,
-                    PlayerInfoScreen.DIVIDER);
+            graphics.fill(x0 + 1, y0 + 1, x0 + w - 1, y0 + PlayerInfoScreen.HEADER_H, ModPalette.SURFACE_2);
             graphics.drawString(font, TITLE,
                     x0 + PAD, y0 + (PlayerInfoScreen.HEADER_H - font.lineHeight) / 2, accent, false);
 
@@ -62,7 +62,7 @@ final class PathPicker {
                 if (Widgets.isOver(mouseX, mouseY, cx, cy, CELL_W, CELL_H)) {
                     graphics.fill(cx, cy, cx + CELL_W, cy + CELL_H, PlayerInfoScreen.ROW_HOVER);
                 }
-                graphics.drawString(font, ModDisplayText.formatPath(getPath(i)), cx + 3,
+                graphics.drawString(font, ModDisplayText.formatPath(getPath(i)), cx + 7,
                         cy + (CELL_H - font.lineHeight) / 2, ModPalette.TEXT, false);
             }
         });

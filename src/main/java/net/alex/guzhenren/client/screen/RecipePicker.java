@@ -24,7 +24,8 @@ import net.minecraft.world.item.ItemStack;
  *       {@code BUTTON_RECIPE_BASE} 加上配方序号。</li>
  *   <li>⚠ 绘制时必须沿 Z 轴外移 {@link #Z} 深度，才能正确盖过下方的物品槽位层。</li>
  *   <li>整块弹窗走单个 {@link GuiBatch} 并分四遍提交（弹窗精灵图、填色、自行提交的产物图标、文字），各行之间互不重
- *       叠且每行内部层序不变，保证悬停填色与选中描边不会压盖弹窗边框。</li>
+ *       叠且每行内部层序不变，保证悬停与选中填色（选中左侧 2 像素金边）不会压盖弹窗边框；弹窗下层先压暗
+ *       （{@link Widgets#drawScrim}）。</li>
  * </ul>
  */
 
@@ -37,8 +38,6 @@ final class RecipePicker {
     private static final int ROW_H = 20;
     private static final int MAX_ROWS = 5;
     private static final float Z = 500.0F;
-    private static final int RULE = 0x66FFFFFF;
-    private static final int ROW_HOVER = 0x33FFFFFF;
     private static final String STONE_SEPARATOR = " · ";
     private static final Component TITLE = Component.translatable("guzhenren.menu.refinement.pick.title");
     private static final Component AUTO = Component.translatable("guzhenren.menu.refinement.pick.auto");
@@ -102,11 +101,12 @@ final class RecipePicker {
         int y0 = getTop(panelTop, panelH, visible);
         int hovered = getHoveredRow(x0, y0, visible, mouseX, mouseY);
 
+        Widgets.drawScrim(graphics);
         GuiBatch.draw(graphics, () -> {
             fillFrame(graphics, selected, hovered, x0, y0, visible);
             for (int i = 0; i < visible; i++) drawIcon(graphics, known, scroll + i, x0, getRowY(y0, i));
             graphics.drawString(font, TITLE, x0 + PAD,
-                    y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.REFINEMENT, false);
+                    y0 + (HEADER_H - font.lineHeight) / 2, ModPalette.ACCENT, false);
             for (int i = 0; i < visible; i++) drawText(graphics, font, known, scroll + i, x0, getRowY(y0, i));
         });
         if (hovered >= 1) {
@@ -123,14 +123,18 @@ final class RecipePicker {
 
     private void fillFrame(GuiGraphics graphics, int selected, int hovered, int x0, int y0, int visible) {
         SpriteBatch.draw(graphics, sprites -> Widgets.drawPopup(sprites, x0, y0, W, getHeight(visible)));
-        Widgets.drawRule(graphics, x0 + PAD, y0 + HEADER_H, x0 + W - PAD, RULE);
+        graphics.fill(x0 + 1, y0 + 1, x0 + W - 1, y0 + HEADER_H, ModPalette.SURFACE_2);
         int left = x0 + Widgets.FRAME;
         int width = W - Widgets.FRAME * 2;
         for (int i = 0; i < visible; i++) {
             int row = scroll + i;
             int rowY = getRowY(y0, i);
-            if (row == hovered) graphics.fill(left, rowY, left + width, rowY + ROW_H, ROW_HOVER);
-            if (row - 1 == selected) graphics.renderOutline(left, rowY, width, ROW_H, ModPalette.REFINEMENT);
+            if (row - 1 == selected) {
+                graphics.fill(left, rowY, left + width, rowY + ROW_H, ModPalette.SURFACE_3);
+                graphics.fill(left, rowY, left + 2, rowY + ROW_H, ModPalette.ACCENT);
+            } else if (row == hovered) {
+                graphics.fill(left, rowY, left + width, rowY + ROW_H, ModPalette.SURFACE_2);
+            }
         }
     }
 

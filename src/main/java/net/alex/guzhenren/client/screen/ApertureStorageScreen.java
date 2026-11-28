@@ -63,10 +63,11 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
                 drawSlotGrid(sprites, left, y + ApertureStorageMenu.STORAGE_Y, ApertureStorageMenu.ROWS);
                 drawSlotGrid(sprites, left, y + ApertureStorageMenu.INVENTORY_Y, ApertureStorageMenu.INVENTORY_ROWS);
                 drawSlotGrid(sprites, left, y + ApertureStorageMenu.HOTBAR_Y, 1);
-                Widgets.drawCell(sprites, x + ApertureStorageMenu.VITAL_X, y + ApertureStorageMenu.VITAL_Y);
+                Widgets.drawCell(sprites, Widgets.SLOT_CORE, x + ApertureStorageMenu.VITAL_X,
+                        y + ApertureStorageMenu.VITAL_Y);
             });
             Widgets.drawRule(graphics, x + RULE_INSET, y + HEADER_RULE_Y, sideTabX + SIDE_TAB_W - RULE_INSET,
-                    ModPalette.APERTURE);
+                    ModPalette.SURFACE_2);
             renderVitalLabel(graphics, x, y);
         });
     }
@@ -77,13 +78,14 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
 
     private void renderVitalLabel(GuiGraphics graphics, int x, int y) {
         graphics.drawString(font, VITAL, x + ApertureStorageMenu.VITAL_X + (Widgets.CELL - font.width(VITAL)) / 2,
-                y + titleLabelY, ModPalette.APERTURE, false);
+                y + titleLabelY, ModPalette.LEGEND_TEXT, false);
     }
 
     @Override
     protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.APERTURE, false);
-        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);
+        graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.ACCENT, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.LEGEND_TEXT,
+                false);
     }
 
     @Override
@@ -112,7 +114,7 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
 
             Component load = Component.translatable(LOAD_KEY, menu.getLoad(), ApertureStorageService.MAX_LOAD);
             graphics.drawString(font, load, leftPos + imageWidth - font.width(load), getPagerBottomY() + 1,
-                    ModPalette.APERTURE, false);
+                    ModPalette.LEGEND_TEXT, false);
         });
     }
 

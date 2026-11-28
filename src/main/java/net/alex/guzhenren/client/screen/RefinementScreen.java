@@ -2,7 +2,6 @@ package net.alex.guzhenren.client.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
-import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
@@ -14,7 +13,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,8 +20,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 炼蛊操作界面。
  * <ul>
- *   <li>中央为去四角 5×5 炼蛊网格（内圈较亮、外套金框），配有三态炼制按钮、阶段进度条、元石[Primeval Stone]供给槽与
- *       蛊方选择器。</li>
+ *   <li>中央为去四角 5×5 炼蛊网格（内圈格子亮一档；网格就绪时内圈外描一圈 1 像素金线，金只表状态），配有三态炼制按
+ *       钮、阶段进度条、元石[Primeval Stone]供给槽与蛊方选择器。</li>
  *   <li>⚠ 所有格子坐标均直接读取菜单自身的布局辅助方法，防止绘制格位与真实槽位错位（炼蛊网格与下方玩家背包使用两种不同
  *       格距）。</li>
  *   <li>缺料虚影（{@link RecipeGhosts}）与资源池读数（{@link PoolBars}）在 {@code renderLabels} 中绘制，确保手持物
@@ -57,8 +55,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
     private static final int RECIPE_W = 52;
     private static final int RECIPE_H = 20;
     private static final int LEGEND_Y = 142;
-    private static final ResourceLocation CORE_FRAME = Guzhenren.id("core_frame");
-    private static final int CORE_FRAME_PAD = 7;
+    private static final int CORE_OUTLINE_PAD = 3;
     private static final int BAR_WINDOW = 0xFF81C784;
     private static final int BAR_GAP = 0xFF415A41;
     private static final Component CRAFT = Component.translatable("guzhenren.menu.refinement.craft");
@@ -100,7 +97,8 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
                         RefinementMenu.INVENTORY_COLS, 1, SLOT);
                 drawBar(sprites, x, y);
             });
-            Widgets.drawRule(graphics, x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, ModPalette.REFINEMENT);
+            Widgets.drawRule(graphics, x + MARGIN, y + HEADER_H, x + imageWidth - MARGIN, ModPalette.SURFACE_2);
+            if (menu.isReady()) drawCoreOutline(graphics, x, y);
         });
     }
 
@@ -115,10 +113,14 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
                         y + RefinementMenu.getCoreY(row));
             }
         }
-        sprites.blit(CORE_FRAME, x + RefinementMenu.getCoreX(0) - CORE_FRAME_PAD,
-                y + RefinementMenu.getCoreY(0) - CORE_FRAME_PAD,
-                (GuRecipe.CORE_COLS - 1) * GRID_SLOT + Widgets.CELL + CORE_FRAME_PAD * 2,
-                (GuRecipe.CORE_ROWS - 1) * GRID_SLOT + Widgets.CELL + CORE_FRAME_PAD * 2);
+    }
+
+    private static void drawCoreOutline(GuiGraphics graphics, int x, int y) {
+        int left = x + RefinementMenu.getCoreX(0) - CORE_OUTLINE_PAD;
+        int top = y + RefinementMenu.getCoreY(0) - CORE_OUTLINE_PAD;
+        int width = (GuRecipe.CORE_COLS - 1) * GRID_SLOT + Widgets.CELL + CORE_OUTLINE_PAD * 2;
+        int height = (GuRecipe.CORE_ROWS - 1) * GRID_SLOT + Widgets.CELL + CORE_OUTLINE_PAD * 2;
+        graphics.renderOutline(left, top, width, height, ModPalette.ACCENT);
     }
     //endregion
 
@@ -140,7 +142,7 @@ public class RefinementScreen extends AbstractContainerScreen<RefinementMenu> {
 
     @Override
     protected void renderLabels(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.REFINEMENT, false);
+        graphics.drawString(font, title, titleLabelX, titleLabelY, ModPalette.ACCENT, false);
         graphics.drawString(font, formatStatusLine(), RefinementMenu.INPUT_X, LEGEND_Y,
                 getStatusColor(), false);
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ModPalette.TEXT, false);

@@ -32,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
 public class SoulTradeMenu extends AbstractContainerMenu {
 
     public static final int SLOT = 18;
-    public static final int ROWS_Y = 20;
-    public static final int ROW_H = 22;
+    public static final int ROWS_Y = 24;
+    public static final int ROW_H = 30;
     public static final int INVENTORY_X = 8;
     public static final int INVENTORY_COLS = 9;
     public static final int INVENTORY_ROWS = 3;

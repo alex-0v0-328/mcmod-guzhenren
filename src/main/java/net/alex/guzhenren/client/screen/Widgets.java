@@ -14,8 +14,10 @@ import net.minecraft.resources.ResourceLocation;
  * 客户端界面模块共用的基础绘制部件工具。
  * <ul>
  *   <li>通过 {@link SpriteBatch} 统一绘制面板、弹窗、物品格、三态文字按钮（可用、悬停、失效）、{@code <-} 返回键及进
- *       度条等 GUI 精灵图，同时提供 1 像素标题分隔线填充、按钮命中检测、容器按钮发包以及返回键与 Esc 共用的回退到 B
- *       面板入口。</li>
+ *       度条等 GUI 精灵图，同时提供 1 像素标题分隔线填充、弹窗遮罩、按钮命中检测、容器按钮发包以及返回键与 Esc 共用的
+ *       回退到 B 面板入口。</li>
+ *   <li>按钮与弹窗和地灵面板共用同一套暗炭金精灵图（{@code blissful_land/screen/}，一概念一张图）；面板、物品格与进度
+ *       条轨道是模组根目录的平涂图。</li>
  *   <li>按钮将图形绘制与文本绘制拆分为 {@link #drawButton} 与 {@link #drawButtonLabel} 两步（返回键同理），使调用方
  *       界面的批处理能够先画完所有精灵图再统一写字；常规按钮标签默认水平居中并略下移 1 像素，特殊布局按钮可自行绘制
  *       标签。</li>
@@ -33,14 +35,15 @@ public final class Widgets {
     static final int FRAME = 3;
     static final ResourceLocation SLOT_CORE = Guzhenren.id("slot_core");
     private static final ResourceLocation PANEL = Guzhenren.id("panel");
-    private static final ResourceLocation POPUP = Guzhenren.id("popup");
+    private static final ResourceLocation POPUP = Guzhenren.id("blissful_land/screen/popup");
     private static final ResourceLocation SLOT = Guzhenren.id("slot");
-    private static final ResourceLocation BUTTON = Guzhenren.id("button");
-    private static final ResourceLocation BUTTON_HIGHLIGHTED = Guzhenren.id("button_highlighted");
-    private static final ResourceLocation BUTTON_DISABLED = Guzhenren.id("button_disabled");
+    private static final ResourceLocation BUTTON = Guzhenren.id("blissful_land/screen/button");
+    private static final ResourceLocation BUTTON_HIGHLIGHTED = Guzhenren.id("blissful_land/screen/button_highlighted");
+    private static final ResourceLocation BUTTON_DISABLED = Guzhenren.id("blissful_land/screen/button_disabled");
     private static final ResourceLocation BAR_BACKGROUND = Guzhenren.id("bar_background");
     private static final ResourceLocation BAR_FILL = Guzhenren.id("bar_fill");
     private static final int POPUP_SHADOW = 2;
+    private static final int SCRIM = 0x8C080607;
     private static final int BACK_W = 16;
     private static final int BACK_H = 14;
     private static final Component BACK = Component.literal("<-");
@@ -51,6 +54,11 @@ public final class Widgets {
 
     static void drawPopup(SpriteBatch sprites, int x, int y, int width, int height) {
         sprites.blit(POPUP, x, y, width + POPUP_SHADOW, height + POPUP_SHADOW);
+    }
+
+    /** 弹窗打开时先压暗整屏，视线只落在弹窗上。 */
+    static void drawScrim(GuiGraphics graphics) {
+        graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), SCRIM);
     }
 
     static void drawRule(GuiGraphics graphics, int left, int y, int right, int color) {
