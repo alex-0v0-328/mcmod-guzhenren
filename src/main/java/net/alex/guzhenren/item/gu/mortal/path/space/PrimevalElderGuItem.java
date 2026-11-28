@@ -2,6 +2,7 @@ package net.alex.guzhenren.item.gu.mortal.path.space;
 
 import java.util.List;
 import net.alex.guzhenren.core.ActionBar;
+import net.alex.guzhenren.core.StoneVault;
 import net.alex.guzhenren.item.gu.GuProperties;
 import net.alex.guzhenren.item.gu.tending.TendedGuItem;
 import net.alex.guzhenren.registry.item.ModDataComponents;
@@ -15,6 +16,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -29,12 +31,13 @@ import org.jetbrains.annotations.Nullable;
  *       间。</li>
  *   <li>元石存量记录在独立组件 {@link ModDataComponents#STORED_STONES} 中，不放入 {@code RefinedGuState}；无论放在背包
  *       何处，已炼化的元老蛊均作为 {@code PrimevalStoneSupply} 的第二顺位自动补给源（排在散装元石之后）。</li>
+ *   <li>实现 {@link StoneVault}：福地库藏页「装入」「倒出」经它在库藏与背包里已炼化的元老蛊之间搬元石。</li>
  *   <li>⚠ 元老蛊不声明饱食时钟、不进食，按设计绝不会饿死（仅炼化失败会毁掉它，切勿为其补加饱食条）；伤势同普通蛊，无
  *       恢复手段，库存元石不再用来修伤。</li>
  * </ul>
  */
 
-public class PrimevalElderGuItem extends TendedGuItem {
+public class PrimevalElderGuItem extends TendedGuItem implements StoneVault {
 
     public static final int STACK = 64;
     private static final String FAILED_EMPTY = "guzhenren.item.failed.primeval_elder_gu_empty";
@@ -49,6 +52,15 @@ public class PrimevalElderGuItem extends TendedGuItem {
     }
 
     //region the vault [元石库]
+    @Override
+    public long capacity() { return capacity; }
+
+    @Override
+    public boolean isVaultReady(@NotNull ItemStack stack) { return isRefined(stack); }
+
+    @Override
+    public long stored(@NotNull ItemStack stack) { return getStored(stack); }
+
     public static long getStored(ItemStack stack) {
         return stack.getOrDefault(ModDataComponents.STORED_STONES, 0L);
     }
@@ -177,13 +189,15 @@ public class PrimevalElderGuItem extends TendedGuItem {
     //endregion
 
     //region the stock [库存]
-    public int drawStones(ItemStack stack, int wanted) {
+    @Override
+    public int drawStones(@NotNull ItemStack stack, int wanted) {
         int taken = (int) Math.min(getStored(stack), Math.max(wanted, 0L));
         if (taken > 0) setStored(stack, getStored(stack) - taken);
         return taken;
     }
 
-    public int storeStones(ItemStack stack, int amount) {
+    @Override
+    public int storeStones(@NotNull ItemStack stack, int amount) {
         int room = (int) Math.min(capacity - getStored(stack), Math.max(amount, 0L));
         if (room > 0) setStored(stack, getStored(stack) + room);
         return room;

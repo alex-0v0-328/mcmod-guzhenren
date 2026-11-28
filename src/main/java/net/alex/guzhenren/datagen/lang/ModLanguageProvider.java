@@ -507,6 +507,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.panel.mud_short",                "腐泥冻土不够：要 %s 个，库藏有 %s 个");
         add("guzhenren.blissful_land.panel.no_pasture",               "没有这个牧场");
         add("guzhenren.blissful_land.panel.no_pasture_animal",        "先给这个牧场指定动物");
+        add("guzhenren.blissful_land.panel.no_vault",                 "背包里没有炼化的元老蛊");
+        add("guzhenren.blissful_land.panel.vault_filled",             "装入元老蛊 %s 块元石");
+        add("guzhenren.blissful_land.panel.vault_emptied",            "从元老蛊倒出 %s 块元石入库藏");
         add("guzhenren.blissful_land.panel.field_moved",              "田搬好了：旧田收进库藏 %s 株，新址排进开垦队列");
         add("guzhenren.blissful_land.panel.pasture_moved",            "牧场迁好，%s 头动物随迁，放下 %s 格栅栏");
         add("guzhenren.blissful_land.panel.pasture_removed",          "拆掉牧场，收起 %s 格栅栏");
@@ -592,7 +595,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.confirm_note",                "此操作不可撤销");
         add("guzhenren.blissful_land.ui.cancel",                      "取消");
         add("guzhenren.blissful_land.ui.kinds",                       "%s 种");
-        add("guzhenren.blissful_land.ui.kinds_paged",                 "%s · %s/%s");
         add("guzhenren.blissful_land.ui.kinds_filtered",              "%s / %s 种");
         add("guzhenren.blissful_land.ui.search_hint",                 "搜索");
         add("guzhenren.blissful_land.ui.sort_order",                  "入库");
@@ -627,8 +629,14 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.tip.search",                     "按物品名或 ID 筛选库藏");
         add("guzhenren.blissful_land.tip.sort",                       "排序，点击切换：入库顺序、数量、名称");
         add("guzhenren.blissful_land.tip.deposit_matching",           "把背包里（不含快捷栏）库藏已有的同类物品全部存入");
+        add("guzhenren.blissful_land.tip.vault_fill",                 "装入：从库藏取元石装满背包里这只元老蛊；这次装 %s 块，库藏剩 %s 块");
+        add("guzhenren.blissful_land.tip.vault_empty",                "倒出：把这只元老蛊里的 %s 块元石全倒回库藏");
         add("guzhenren.blissful_land.ui.inventory",                   "背包");
         add("guzhenren.blissful_land.ui.stored",                      "库藏 %s");
+        add("guzhenren.blissful_land.ui.stones",                      "元石");
+        add("guzhenren.blissful_land.ui.vault_fill",                  "装入");
+        add("guzhenren.blissful_land.ui.vault_empty",                 "倒出");
+        add("guzhenren.blissful_land.ui.no_vault",                    "背包里没有炼化的元老蛊");
         add("guzhenren.blissful_land.ui.trimmed",                     "内容过多，悬停与图标不全");
         add("guzhenren.blissful_land.ui.map.key.left",                "左键");
         add("guzhenren.blissful_land.ui.map.key.right",               "右键");

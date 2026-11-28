@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public class EarthSpiritMenu extends AbstractContainerMenu {
 
     public static final int SLOT = 18;
-    public static final int INVENTORY_X = 188;
+    public static final int INVENTORY_X = 266;
     public static final int INVENTORY_Y = 19;
     public static final int HOTBAR_Y = 77;
     private final @Nullable EarthSpiritEntity spirit;

@@ -51,7 +51,8 @@ public final class TraditionalGlyphs {
             + " 之后之後 包里包裡 藏里藏裡 每只每隻 发情發情 只剩只剩 送回送回 什么什麼 恢复恢復"
             + " 制服制服 松烟松煙 几头幾頭 只管只管 只补只補 只蛊隻蠱 捕获捕獲 丑时丑時"
             + " 规划規劃 雾里霧裡 这里這裡 收获收穫"
-            + " 回中心回中心 改回改回 并用並用 只养只養 不喂不餵 饲料喂飼料餵 大于大於 牧场里牧場裡";
+            + " 回中心回中心 改回改回 并用並用 只养只養 不喂不餵 饲料喂飼料餵 大于大於 牧场里牧場裡"
+            + " 这只這隻 蛊里蠱裡 倒回倒回";
     private static final String UNCHANGED = "一丁七三上下不世丙中丸主乃之乙九也了二互五亡交人仙以任位何作你使俗信修倍值停"
             + "偷催元先光入全八六共具再冥冰凡出刃初利到刷力功加包化北十千升半卓卸厚及取受口"
             + "古可名君味命品四因圈土在地基境墨壁外多大天太央失奴如妙子存宇宗宙定害家容小尚展山峰已"
@@ -76,7 +77,7 @@ public final class TraditionalGlyphs {
             + "型"
             + "平牲畜逆"
             + "近套拖框"
-            + "拓俯指址它肥列搬";
+            + "拓俯指址它肥列搬倒";
     private static final Map<String, String> TOKENS = buildTokens();
     private static final int LONGEST = TOKENS.keySet().stream().mapToInt(String::length).max().orElse(1);
 

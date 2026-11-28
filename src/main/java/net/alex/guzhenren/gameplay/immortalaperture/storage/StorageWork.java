@@ -1,9 +1,12 @@
 package net.alex.guzhenren.gameplay.immortalaperture.storage;
 
 import java.util.List;
+import net.alex.guzhenren.core.StoneVault;
+import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
  *       量吞成 0 并报成功。</li>
  *   <li>{@link #depositMatching} 只动背包主格（不含快捷栏），免得把手上的工具存进去；只存库藏里已有的「物品 + 组件」。
  *   </li>
+ *   <li>元石栏（Alex 定）：{@link #vault} 在背包（含快捷栏、副手）里挑一只已炼化的元老蛊（{@link StoneVault}）：没装满
+ *       的里容量最大的，都满了就挑容量最大的；{@link #fillVault} 从库藏取元石装满它（库藏不够就全装），{@link #emptyVault}
+ *       把它的元石全倒回库藏。元石不进背包，不受背包空位限制。</li>
  * </ul>
  */
 
@@ -90,4 +96,43 @@ public final class StorageWork {
         }
         return -1;
     }
+
+    //region Stone vault [元老蛊]
+    public static @NotNull ItemStack vault(@NotNull Player player) {
+        ItemStack best = ItemStack.EMPTY;
+        for (ItemStack stack : player.getInventory().items) best = better(best, stack);
+        for (ItemStack stack : player.getInventory().offhand) best = better(best, stack);
+        return best;
+    }
+
+    private static ItemStack better(ItemStack best, ItemStack stack) {
+        if (!(stack.getItem() instanceof StoneVault kind) || !kind.isVaultReady(stack)) return best;
+        if (best.isEmpty()) return stack;
+        StoneVault held = (StoneVault) best.getItem();
+        boolean heldFull = held.stored(best) >= held.capacity();
+        boolean full = kind.stored(stack) >= kind.capacity();
+        if (heldFull != full) return full ? best : stack;
+        return kind.capacity() > held.capacity() ? stack : best;
+    }
+
+    public static int fillVault(@NotNull Player player, @NotNull BlissfulStorage storage) {
+        ItemStack stack = vault(player);
+        if (!(stack.getItem() instanceof StoneVault kind)) return 0;
+        long room = kind.capacity() - kind.stored(stack);
+        int taken = storage.consume(StorageWork::isStone, (int) Math.min(room, Integer.MAX_VALUE));
+        int kept = kind.storeStones(stack, taken);
+        if (kept < taken) storage.insert(new ItemStack(ModItems.PRIMEVAL_STONE.get(), taken - kept));
+        return kept;
+    }
+
+    public static int emptyVault(@NotNull Player player, @NotNull BlissfulStorage storage) {
+        ItemStack stack = vault(player);
+        if (!(stack.getItem() instanceof StoneVault kind)) return 0;
+        int drawn = kind.drawStones(stack, (int) Math.min(kind.stored(stack), Integer.MAX_VALUE));
+        if (drawn > 0) storage.insert(new ItemStack(ModItems.PRIMEVAL_STONE.get(), drawn));
+        return drawn;
+    }
+
+    public static boolean isStone(@NotNull ItemStack stack) { return stack.is(ModItems.PRIMEVAL_STONE.get()); }
+    //endregion
 }

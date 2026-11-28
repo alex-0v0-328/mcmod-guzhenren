@@ -44,6 +44,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser.Sort;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageWork;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
+import net.alex.guzhenren.registry.item.ModItems;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
@@ -103,7 +104,8 @@ public final class BlissfulPanelGameTests {
                 new FarmPart.Plan(7, -9), new FarmPart.Harvest(),
                 new TerritoryPart.Cede(Territory.Side.EAST, 3),
                 new StoragePart.Take(4L, true), new StoragePart.DepositCarried(),
-                new StoragePart.DepositMatching(), new StoragePart.Browse("小麦", Sort.NAME, 2,
+                new StoragePart.DepositMatching(), new StoragePart.FillVault(), new StoragePart.EmptyVault(),
+                new StoragePart.Browse("小麦", Sort.NAME, 2,
                         List.of(Items.WHEAT, Items.WHEAT_SEEDS)));
         Set<Class<?>> covered = new HashSet<>();
         for (PanelAction sample : samples) covered.add(sample.getClass());
@@ -199,7 +201,7 @@ public final class BlissfulPanelGameTests {
     }
 
     @GameTest(template = "empty9x9x9")
-    public static void storageBrowsingPagesSearchesAndStaysUnderTheOpenLimit(GameTestHelper helper) {
+    public static void storageBrowsingScrollsSearchesAndStaysUnderTheOpenLimit(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-browse-mock").onGround();
         UUID viewer = owner.getUUID();
@@ -217,26 +219,25 @@ public final class BlissfulPanelGameTests {
                     Component.empty())).length;
             helper.assertTrue(open < OPEN_DATA_LIMIT, "the open data is " + open + " bytes");
             StoragePart.Section first = storageSection(level, data, viewer);
-            helper.assertValueEqual(first.entries().size(), page, "one page is one grid");
+            helper.assertValueEqual(first.entries().size(), page, "one window fills a list screen");
             helper.assertValueEqual(first.total(), KINDS + 1, "the total counts every kind");
             helper.assertTrue(first.entries().stream().noneMatch(StorageBrowser.Stored::trimmed),
                     "an item under the byte cap is sent whole");
 
-            new StoragePart.Browse("", Sort.ORDER, 1, List.of()).perform(context);
+            new StoragePart.Browse("", Sort.ORDER, page, List.of()).perform(context);
             int trimmedPage = encode(level, EarthSpiritPanel.snapshot(level, data, viewer, Page.STORAGE,
                     Component.empty())).length;
             StoragePart.Section second = storageSection(level, data, viewer);
-            helper.assertValueEqual(second.pageIndex(), 1, "the second page is shown");
+            helper.assertValueEqual(second.first(), page, "the list scrolled to that row");
             helper.assertValueEqual(second.entries().get(0).serial(), storage.entries().get(page).serial(),
-                    "the second page starts right after the first");
+                    "the window starts at the asked row");
             helper.assertTrue(second.entries().stream().allMatch(stored -> stored.trimmed()
                     && !stored.key().has(DataComponents.CUSTOM_NAME)), "an item over the byte cap is sent bare");
 
             new StoragePart.Browse("", Sort.ORDER, 9999, List.of()).perform(context);
             StoragePart.Section last = storageSection(level, data, viewer);
-            helper.assertValueEqual(last.pageIndex(), last.pages() - 1, "a page past the end is the last page");
-            helper.assertValueEqual(last.entries().size(), KINDS + 1 - (last.pages() - 1) * page,
-                    "the last page holds the remainder");
+            helper.assertValueEqual(last.first(), KINDS, "a row past the end is the last row");
+            helper.assertValueEqual(last.entries().size(), 1, "the last window holds what is left");
 
             new StoragePart.Browse(" 条目4321号 ", Sort.NAME, 0, List.of()).perform(context);
             StoragePart.Section found = storageSection(level, data, viewer);
@@ -244,8 +245,8 @@ public final class BlissfulPanelGameTests {
             long serial = found.entries().get(0).serial();
             new StoragePart.Browse("WHEAT", Sort.ORDER, -3, List.of()).perform(context);
             found = storageSection(level, data, viewer);
-            helper.assertTrue(found.matched() == 1 && found.pageIndex() == 0 && found.entries().get(0).key()
-                    .is(Items.WHEAT), "an ID search ignores case and a negative page is the first");
+            helper.assertTrue(found.matched() == 1 && found.first() == 0 && found.entries().get(0).key()
+                    .is(Items.WHEAT), "an ID search ignores case and a negative row is the first");
             new StoragePart.Browse("麦子", Sort.ORDER, 0, List.of(Items.WHEAT)).perform(context);
             helper.assertValueEqual(storageSection(level, data, viewer).matched(), 1,
                     "a client name hint finds what the server language cannot");
@@ -263,8 +264,8 @@ public final class BlissfulPanelGameTests {
 
             StoragePart.INSTANCE.opened(viewer);
             StoragePart.Section reopened = storageSection(level, data, viewer);
-            helper.assertTrue(reopened.matched() == reopened.total() && reopened.pageIndex() == 0
-                    && reopened.sort() == Sort.COUNT, "reopening clears the search and page and keeps the sort");
+            helper.assertTrue(reopened.matched() == reopened.total() && reopened.first() == 0
+                    && reopened.sort() == Sort.COUNT, "reopening clears the search and row and keeps the sort");
             StorageBrowser.forget(viewer);
             helper.assertValueEqual(storageSection(level, data, viewer).sort(), Sort.ORDER,
                     "logging out forgets the view");
@@ -325,6 +326,25 @@ public final class BlissfulPanelGameTests {
         helper.assertTrue(data.isWhitelisted(guest.getUUID()), "by that player's UUID");
         helper.assertFalse(LandMembership.addWhitelist(helper.getLevel().getServer(), data, "gzrNeverSeenMock"),
                 "a name nobody online carries is refused, with no lookup");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty9x9x9")
+    public static void theStoneBarFillsAndEmptiesTheBiggestRefinedVault(GameTestHelper helper) {
+        ServerPlayer owner = GameTestPlayers.survival(helper, "gzr-land-vault-mock").onGround();
+        BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
+        storage.insert(new ItemStack(ModItems.PRIMEVAL_STONE.get(), 1500));
+        helper.assertTrue(StorageWork.vault(owner).isEmpty(), "no vault in the bag");
+        owner.getInventory().setItem(0, new ItemStack(ModItems.PRIMEVAL_ELDER_GU_2.get()));
+        helper.assertTrue(StorageWork.vault(owner).isEmpty(), "an unrefined vault does not count");
+        GameTestGu.inSlot(owner, 0, ModItems.PRIMEVAL_ELDER_GU_1.get(), 0);
+        ItemStack big = GameTestGu.inSlot(owner, 1, ModItems.PRIMEVAL_ELDER_GU_2.get(), 0);
+        helper.assertTrue(StorageWork.vault(owner) == big, "the bigger refined vault is chosen");
+
+        helper.assertValueEqual(StorageWork.fillVault(owner, storage), 1500, "the bigger vault takes every stone");
+        helper.assertValueEqual(storage.count(StorageWork::isStone), 0L, "the storage gave them all");
+        helper.assertValueEqual(StorageWork.emptyVault(owner, storage), 1500, "emptying pours them all back");
+        helper.assertValueEqual(storage.count(StorageWork::isStone), 1500L, "the storage has them again");
         helper.succeed();
     }
 
