@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen.immortalaperture;
 
 import java.util.List;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
@@ -30,7 +31,6 @@ final class FarmPage extends PanelPage {
 
     private static final String UI = EarthSpiritScreen.UI;
     private static final String TIP = EarthSpiritScreen.TIP;
-    private static final int RATIO = 0xFF86C46E;
     private static final int MIN_ROWS = 3;
     private static final int MAX_ROWS = 8;
     private static final int ROW_H = 20;
@@ -127,7 +127,7 @@ final class FarmPage extends PanelPage {
             int total = crop.mature() + crop.growing();
             int filled = total == 0 ? 0 : (RATIO_W - 2) * crop.mature() / total;
             sprites.blit(PanelDrawing.BAR_BACKGROUND, ratioX(), top + 7, RATIO_W, 6);
-            sprites.blit(PanelDrawing.BAR_FILL, ratioX() + 1, top + 8, filled, 4, RATIO);
+            sprites.blit(PanelDrawing.BAR_FILL, ratioX() + 1, top + 8, filled, 4, ModPalette.PLANT);
         }
         if (crops.size() > rows) {
             int barX = rowX() + rowW() + 1;

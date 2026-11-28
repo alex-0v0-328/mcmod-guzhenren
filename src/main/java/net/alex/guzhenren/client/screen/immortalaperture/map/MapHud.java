@@ -7,14 +7,14 @@ import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * 地图页左上的资源条（{@code chip}）：田已用 / 上限含规划、牧场已用 / 上限、各牧场栏内牲畜合计；以及底栏上方的按键提示条
  * {@link #hintChip}（浏览时写「[WASD] 平移 [滚轮] 缩放 [右键] 传送」，选中田时写选区按键，Alex 定统一放底栏上方）。
  * <ul>
- *   <li>Alex 定：资源条不放「栏外」警报；详细说明走悬停提示。一键收获挪进工具栏的统筹组（{@link MapTools}）。</li>
+ *   <li>Alex 定：资源条只写字（灰标签 + 白读数）、不放图标与「栏外」警报；详细说明走悬停提示。一键收获挪进工
+ *       具栏的统筹组（{@link MapTools}）。</li>
  *   <li>{@link #keyPhrase} 画「键帽 + 灰字」短语，各提示条都用它；画图与写字两步各调一次，传空的那一侧跳过。</li>
  * </ul>
  */
@@ -89,19 +89,21 @@ final class MapHud {
         int x = LEFT;
         for (int i = 0; i < RESOURCES.length; i++) {
             lefts[i] = x;
-            widths[i] = 4 + 9 + 4 + font.width(values[i]) + 5;
+            widths[i] = 5 + font.width(label(i)) + 3 + font.width(values[i]) + 5;
             sprites.blit(PanelDrawing.CHIP, x, TOP, widths[i], CHIP_H);
-            sprites.blit(icon(i), x + 4, TOP + 3, 9, 9);
             x += widths[i] + 4;
         }
     }
 
-    private static ResourceLocation icon(int index) { return PanelDrawing.sprite("res_" + RESOURCES[index]); }
+    private static Component label(int index) { return Component.translatable(UI + "res." + RESOURCES[index]); }
 
     void texts(GuiGraphics graphics, Font font, MapTools.Land land) {
         String[] values = values(land);
         for (int i = 0; i < RESOURCES.length; i++) {
-            graphics.drawString(font, values[i], lefts[i] + 17, TOP + 4, PanelDrawing.TEXT, false);
+            Component label = label(i);
+            graphics.drawString(font, label, lefts[i] + 5, TOP + 4, PanelDrawing.LEGEND, false);
+            graphics.drawString(font, values[i], lefts[i] + 5 + font.width(label) + 3, TOP + 4, PanelDrawing.TEXT,
+                    false);
         }
     }
 

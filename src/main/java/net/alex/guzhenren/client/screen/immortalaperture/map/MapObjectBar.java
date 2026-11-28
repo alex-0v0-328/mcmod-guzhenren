@@ -1,5 +1,6 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
@@ -34,7 +35,6 @@ abstract class MapObjectBar {
     private static final int WIDE_MIN_W = 560;
     private static final int WIDE_MIN_H = 320;
     private static final int TRACK = 0xFF2A2328;
-    private static final int GROW = 0xFF86C46E;
 
     /** 一枚键：{@code icon} 是精灵名（为空就写 {@code text}，两者都空即虚线空键），{@code corner} 是右上角数字（负数不画）。 */
     record Face(@Nullable String icon, @Nullable Component text, PanelDrawing.Look look, boolean live, int corner,
@@ -113,7 +113,7 @@ abstract class MapObjectBar {
         int right = boxX + WIDTH - SIDE;
         graphics.fill(left, boxY + BAR_Y, right, boxY + BAR_Y + 2, TRACK);
         int filled = (right - left) * Math.clamp(percent, 0, 100) / 100;
-        if (filled > 0) graphics.fill(left, boxY + BAR_Y, left + filled, boxY + BAR_Y + 2, GROW);
+        if (filled > 0) graphics.fill(left, boxY + BAR_Y, left + filled, boxY + BAR_Y + 2, ModPalette.PLANT);
     }
 
     protected void barTexts(GuiGraphics graphics, Font font, Component title, Component readout) {

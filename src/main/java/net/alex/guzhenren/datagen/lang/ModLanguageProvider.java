@@ -638,6 +638,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.vault_empty",                 "倒出");
         add("guzhenren.blissful_land.ui.no_vault",                    "背包里没有炼化的元老蛊");
         add("guzhenren.blissful_land.ui.trimmed",                     "内容过多，悬停与图标不全");
+        add("guzhenren.blissful_land.ui.map.res.farm",                "田");
+        add("guzhenren.blissful_land.ui.map.res.pasture",             "牧场");
+        add("guzhenren.blissful_land.ui.map.res.livestock",           "牲畜");
         add("guzhenren.blissful_land.ui.map.key.left",                "左键");
         add("guzhenren.blissful_land.ui.map.key.right",               "右键");
         add("guzhenren.blissful_land.ui.map.key.wheel",               "滚轮");
