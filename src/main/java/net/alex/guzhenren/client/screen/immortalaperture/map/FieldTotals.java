@@ -7,7 +7,7 @@ import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
 
 /**
- * 选中各田的合计，田坞（{@link MapActionBar}）用：田数、规划田数、已种 / 耕地格、熟 / 未熟、按已种株加权的生长进度、普通田与蛊植田数、
+ * 选中各田的合计，田的对象栏（{@link MapFieldBar}）用：田数、规划田数、已种 / 耕地格、熟 / 未熟、按已种株加权的生长进度、普通田与蛊植田数、
  * 共同作物（不一时 {@link CropKeys#MIXED}），以及哪些作物能选（{@link #canPick}）、能种（{@link #canSow}）。
  * <ul>
  *   <li>田里有株就只能选、种它现有的作物（未选的田按株数最多的算），换别的要先清除作物；空田什么都能选。</li>

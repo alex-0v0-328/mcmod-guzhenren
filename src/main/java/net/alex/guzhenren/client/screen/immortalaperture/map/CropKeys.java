@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * 作物键网格：{@link FarmRules#crops()} 各作物的种子图标，右下角写库藏种子数（没有时灰字），每行 {@value #COLUMNS} 个，从
- * 第 {@code row} 行起画 {@code rows} 行；选定的作物用选中样式。田坞的选种弹窗用（{@link MapActionBar}），作物再多也只是多几行。
+ * 第 {@code row} 行起画 {@code rows} 行；选定的作物用选中样式。田的对象栏的作物格用（{@link MapFieldBar}），作物再多也只是多几行。
  * <ul>
  *   <li>键下标即作物下标；{@link #MIXED} 表示所选各田作物不一，{@link #NONE} 表示光标不在键上或还没选定。</li>
  * </ul>

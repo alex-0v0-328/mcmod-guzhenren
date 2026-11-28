@@ -9,5 +9,4 @@ public final class GuRules {
     private GuRules() {}
 
     public static final int LIMIT = 16;
-    public static final int HOSTING_GU = 16;
 }

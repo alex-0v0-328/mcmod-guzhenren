@@ -16,21 +16,19 @@ import net.alex.guzhenren.registry.entity.ModEntityTypeTags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵面板「蛊虫」页：按种类清点福地里的野生蛊，多出保持数的「捕获入库」，以及托管。
+ * 地灵面板「蛊虫」页：按种类清点福地里的野生蛊，多出保持数的「捕获入库」；不自动捕获（Alex 定）。
  * <ul>
  *   <li>野生蛊 = 已加载区块里 {@link ModEntityTypeTags#WILD_GU} 的 {@link Mob}，能被捕获（{@link Catchable}），且是
  *       {@link LandRules#isManaged} 认可的（已命名、拴绳的不算）；按实体类型 ID 分种类。</li>
  *   <li>{@link #capture}：每种捕到只剩保持数，保持数 0 的种类不捕；捕到的是 {@link Catchable#caughtStack} 给的未炼化
  *       蛊虫物品（同右键捕获），直接进库藏，实体移除。一次至多 {@code limit} 只。</li>
- *   <li>野生蛊不繁殖，福地暂不自然刷野生蛊（Alex 定），少了不补：托管 {@link #host} 只捕多出来的。</li>
+ *   <li>野生蛊不繁殖，福地暂不自然刷野生蛊（Alex 定），少了不补。</li>
  * </ul>
  */
 
@@ -40,14 +38,6 @@ public final class GuWork {
 
     public static final LandCensus.Census<Map<ResourceLocation, List<Mob>>> CENSUS =
             LandCensus.Census.ofLevel(level -> census(level.getAllEntities()));
-
-    public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!GuState.of(data).hosting()) return 0;
-
-        int captured = host(LandCensus.take(level, CENSUS), data, GuRules.HOSTING_GU);
-        GuState.of(data).setLastCaptured(captured);
-        return captured;
-    }
 
     public static void mapMarks(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
                                 @NotNull MapMarkSource.Sink sink) {
@@ -103,14 +93,5 @@ public final class GuWork {
             if (floor > 0) count += Math.max(0, swarm.getValue().size() - floor);
         }
         return Math.min(count, limit);
-    }
-
-    public static int host(@NotNull Map<ResourceLocation, List<Mob>> swarms,
-                           @NotNull BlissfulLandData data, int limit) {
-        Map<ResourceLocation, Integer> keep = new LinkedHashMap<>();
-        GuState.of(data).keep().forEach((type, floor) -> {
-            if (GuState.of(data).isHosted(type)) keep.put(type, floor);
-        });
-        return capture(swarms, keep, BlissfulStorage.of(data), limit);
     }
 }

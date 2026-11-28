@@ -1,6 +1,9 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.client.SpriteBatch;
+import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPalette;
@@ -16,11 +19,12 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * 地图页的地图层绘制：底色 → 地形贴图 → 规划田轮廓、选区（金）、悬停的占地（白）、框选矩形、工具目标与开垦拖框 → 活物点
- * → 田与牧场的悬浮图标 → 玩家头像，地形与活物点按维度时间乘 {@link MapTint}（轮廓、图标与头像不乘，夜里也看得清）。
+ * → 田的动作提示与牧场头数、传送落点小旗 → 玩家头像，地形与活物点按维度时间乘 {@link MapTint}（轮廓、图标与头像不乘，夜里也看得清）。
  * <ul>
  *   <li>⚠ 贴图与头像是立即绘制，排队中的填充必须先 {@code flush}，否则会盖到后画的东西上；所以底色后、头像前各
  *       flush 一次。</li>
@@ -32,16 +36,11 @@ import org.jetbrains.annotations.Nullable;
 final class MapScene {
 
     private static final int LIFT = 5;
-    private static final int MATURE = 0xFFE4B750;
-    private static final int GROWING = 0xFF7BC86A;
-    private static final int IDLE = 0xFF8C8690;
+    private static final int BADGE_RIM = 0xFF5C4848;
     private static final int PEN = 0xFFC9A26B;
-    private static final String[] EAR = { "...#...", "..###..", ".#.#.#.", "..###..", ".#.#.#.", "..###..",
-            "...#..." };
-    private static final String[] SPROUT = { ".......", "##...##", ".##.##.", "...#...", "...#...", "...#...",
-            "..###.." };
-    private static final String[] FURROW = { ".......", "#######", ".......", "#######", ".......", "#######",
-            "......." };
+    private static final int FLAG = 0xFFE4B750;
+    private static final ResourceLocation RIPE = PanelDrawing.sprite("act_harvest");
+    private static final ResourceLocation IDLE = PanelDrawing.sprite("act_plant");
 
     private MapScene() {}
 
@@ -51,7 +50,7 @@ final class MapScene {
      */
     record Layers(List<MapPlots.Plot> plots, List<MapPlots.Plot> chosen, MapPlots.@Nullable Plot hovered,
                   int @Nullable [] box, MapTools.@Nullable Target target, int targetColour, List<MapTools.Target> area,
-                  MapPick.@Nullable Hit hover) {}
+                  MapPick.@Nullable Hit hover, MapPick.@Nullable Hit flag) {}
 
     static void draw(GuiGraphics graphics, MapCamera camera, MapSurface surface, int top, int width, int height,
                      double guiScale, Layers layers) {
@@ -87,8 +86,13 @@ final class MapScene {
                 if (mark.kind() == MapMark.PLAYER && mark.player().isPresent()) continue;
                 overlay.mark(mark.x() + 0.5, mark.y(), mark.z() + 0.5, tint.apply(MapLegend.colour(mark.kind())));
             }
-            badges(overlay, camera, layers.plots());
+            List<Icon> icons = badges(overlay, camera, layers.plots());
+            MapPick.Hit flag = layers.flag();
+            if (flag != null) overlay.flag(flag.x(), flag.z(), flag.top(), FLAG);
             graphics.flush();
+            if (!icons.isEmpty()) SpriteBatch.draw(graphics, sprites -> {
+                for (Icon icon : icons) sprites.blit(icon.sprite(), icon.x(), icon.y(), 16, 16);
+            });
             for (MapMark mark : LandMapClient.marks()) {
                 if (mark.kind() != MapMark.PLAYER || mark.player().isEmpty()) continue;
                 overlay.head(mark.player().get(), mark.x() + 0.5, mark.y(), mark.z() + 0.5);
@@ -96,10 +100,16 @@ final class MapScene {
         });
     }
 
-    /** 每块田、每个牧场中心正上方的悬浮图标：田按 {@link MapPlots.Plot#growth} 三态，牧场写栏内头数；每 2 秒上下浮 1 像素。 */
-    private static void badges(MapOverlay overlay, MapCamera camera, List<MapPlots.Plot> plots) {
+    private record Icon(ResourceLocation sprite, int x, int y) {}
+
+    /**
+     * 每块田、每个牧场中心正上方的悬浮图标（Alex 定动作提示）：熟了出镰刀、空着出种子、生长中不标；牧场写栏内头数；每 2 秒
+     * 上下浮 1 像素。田的图标要等填充冲掉后另起精灵批画，这里只画底框并返回位置。
+     */
+    private static List<Icon> badges(MapOverlay overlay, MapCamera camera, List<MapPlots.Plot> plots) {
         Font font = Minecraft.getInstance().font;
         int lift = LIFT + (int) Math.round(Math.sin(Util.getMillis() / 1000.0 * Math.PI));
+        List<Icon> icons = new ArrayList<>();
         for (MapPlots.Plot plot : plots) {
             if (plot.kind() == MapPlots.Kind.PLANNED) continue;
             double x = plot.chunkX() * 16 + plot.size() * 8;
@@ -109,12 +119,16 @@ final class MapScene {
                 overlay.tag(font, Integer.toString(plot.penned()), x, y, z, lift, PEN);
                 continue;
             }
-            switch (plot.growth()) {
-                case MATURE -> overlay.badge(x, y, z, lift, MATURE, EAR, MATURE);
-                case GROWING -> overlay.badge(x, y, z, lift, GROWING, SPROUT, GROWING);
-                case IDLE -> overlay.badge(x, y, z, lift, IDLE, FURROW, IDLE);
-            }
+            ResourceLocation sprite = switch (plot.growth()) {
+                case MATURE -> RIPE;
+                case IDLE -> IDLE;
+                case GROWING -> null;
+            };
+            if (sprite == null) continue;
+            int[] corner = overlay.iconBadge(x, y, z, lift, BADGE_RIM);
+            icons.add(new Icon(sprite, corner[0], corner[1]));
         }
+        return icons;
     }
 
     /** 相机对准山心（参照平面 = 山底）；山心未解出（{@code BlockPos.ZERO}）时对准玩家脚下；都不行返回假。 */

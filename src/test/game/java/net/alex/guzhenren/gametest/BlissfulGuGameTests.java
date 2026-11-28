@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuRules;
-import net.alex.guzhenren.gameplay.immortalaperture.gu.GuState;
 import net.alex.guzhenren.gameplay.immortalaperture.gu.GuWork;
 import net.alex.guzhenren.gameplay.immortalaperture.soulsundermountain.SoulsunderMountainWork;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLand;
@@ -66,24 +65,6 @@ public final class BlissfulGuGameTests {
         helper.assertTrue(swarm.get(0).isRemoved() && swarm.get(1).isRemoved() && !swarm.get(2).isRemoved(),
                 "the caught gu leave the world");
         helper.assertFalse(swarm.get(4).isRemoved(), "a kind kept at zero is left alone");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty9x9x9")
-    public static void hostingCapturesOnlyHostedKinds(GameTestHelper helper) {
-        List<Entity> swarm = spawnGus(helper);
-        BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
-        ResourceLocation hope = GuWork.typeId(swarm.getFirst());
-        ResourceLocation boar = GuWork.typeId(swarm.get(4));
-        GuState.of(data).setKeep(hope, 1);
-        GuState.of(data).setKeep(boar, 1);
-        GuState.of(data).setHosted(boar, true);
-
-        helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuRules.LIMIT), 0,
-                "the hosted boar is already at its kept number, the hope gu are not hosted");
-        GuState.of(data).setHosted(hope, true);
-        helper.assertValueEqual(GuWork.host(GuWork.census(swarm), data, GuRules.LIMIT), 2,
-                "hosting the hope gu captures the two extra");
         helper.succeed();
     }
 

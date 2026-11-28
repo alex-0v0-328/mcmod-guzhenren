@@ -24,23 +24,22 @@ class MapBottomLayoutTest {
     @ParameterizedTest(name = "{0}×{1}")
     @CsvSource({"427, 267", "480, 270", "640, 400", "960, 540"})
     void bottomWidgetsNeverOverlap(int width, int height) {
-        MapActionBar dock = new MapActionBar();
         MapTools tools = new MapTools();
+        MapFieldBar bar = new MapFieldBar(null);
         MapLegend legend = new MapLegend();
-        dock.layout(width, height);
         tools.layout(width, height);
-        legend.layout(width, height, dock.boxWidth(), dock.hintTop());
-        int[] dockBox = dock.box();
+        bar.layout(width, height, tools.top());
+        legend.layout(width, height, Math.max(tools.boxWidth(), MapObjectBar.WIDTH), bar.hintTop());
         int[] toolBox = tools.box();
+        int[] barBox = bar.box();
         int[] legendBox = legend.box();
-        int[] card = MapSelectionCard.pastureBox(MapSelectionCard.bottom(tools, height));
-        for (int[] box : new int[][] {dockBox, toolBox, legendBox, card}) {
+        for (int[] box : new int[][] {toolBox, barBox, legendBox}) {
             assertTrue(inside(box, width, height), "every bottom widget stays on screen");
         }
-        assertFalse(overlap(dockBox, legendBox), "the dock clears the legend");
-        assertFalse(overlap(hint(dockBox, dock.hintTop()), legendBox), "the dock hint clears the legend");
-        assertFalse(overlap(toolBox, legendBox), "the tool bar clears the legend");
-        assertFalse(overlap(toolBox, card), "the tool bar clears the pasture card");
-        assertFalse(overlap(hint(toolBox, tools.boxTop()), card), "the tool hint clears the pasture card");
+        assertFalse(overlap(barBox, toolBox), "the object bar sits above the function bar");
+        assertFalse(overlap(barBox, legendBox), "the object bar clears the legend");
+        assertFalse(overlap(hint(barBox, bar.hintTop()), legendBox), "the object bar hint clears the legend");
+        assertFalse(overlap(toolBox, legendBox), "the function bar clears the legend");
+        assertFalse(overlap(hint(toolBox, tools.boxTop()), legendBox), "the browse hint clears the legend");
     }
 }

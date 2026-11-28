@@ -461,8 +461,6 @@ public final class FarmWork {
 
     //region Tickets [强加载]
     public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!FarmState.of(data).hosting()) return 0;
-
         Harvest done = harvest(level, data, FarmRules.HOSTING_FIELDS);
         FarmState.of(data).setLastRound(done.reaped(), done.sown());
         return done.fields();

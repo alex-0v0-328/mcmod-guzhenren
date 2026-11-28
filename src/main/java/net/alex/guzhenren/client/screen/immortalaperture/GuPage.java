@@ -3,10 +3,7 @@ package net.alex.guzhenren.client.screen.immortalaperture;
 import java.util.List;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
-import net.alex.guzhenren.core.Ticks;
-import net.alex.guzhenren.gameplay.immortalaperture.gu.GuRules;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.GuPart;
-import net.alex.guzhenren.gameplay.immortalaperture.state.LandHostingJob;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -15,11 +12,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * 「蛊虫」小节：一张 {@link KeepList} 卡，福地里每种野生蛊一行（捕获后的蛊虫物品图标、名字、数量、托管开关、保持数
- * −/+），卡底托管状态与「捕获入库」。
+ * 「蛊虫」小节：一张 {@link KeepList} 卡，福地里每种野生蛊一行（捕获后的蛊虫物品图标、名字、数量、保持数 −/+），卡底
+ * 「捕获入库」。蛊虫不自动捕获（Alex 定），只有点「捕获入库」才捕到剩保持数。
  * <ul>
- *   <li>同「养殖」小节：托管按种类开关，关着时 −/+ 失效但保持数照存；−/+ 每次改 1，按住 Shift 改 {@value #SHIFT_STEP}。
- *       托管说明在「托管」表头的悬停提示。</li>
+ *   <li>−/+ 每次改 1，按住 Shift 改 {@value #SHIFT_STEP}；保持数 0 = 这种不捕。</li>
  *   <li>福地暂不自然刷野生蛊，列表多半是空的，空时在凹槽中间写一行失效色的「眼下没有」。</li>
  *   <li>「捕获入库」悬停显示现在会捕几只，一只都不会捕时按钮失效。</li>
  * </ul>
@@ -56,7 +52,7 @@ final class GuPage extends PanelPage {
         offset = PanelDrawing.clampScroll(offset, list.rows(), rows.size());
         list.frame(sprites, rows.size(), offset, mouseX, mouseY);
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
-            list.row(sprites, i, rows.size(), rows.get(offset + i).hosted(), mouseX, mouseY);
+            list.row(sprites, i, rows.size(), true, mouseX, mouseY);
         }
         PanelDrawing.button(sprites, list.buttonX(CAPTURE), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H,
                 data().capturePreview() > 0, mouseX, mouseY);
@@ -68,7 +64,8 @@ final class GuPage extends PanelPage {
         List<GuPart.Row> rows = data.rows();
         PanelDrawing.title(graphics, font(), name(), Component.translatable(UI + "kinds", rows.size()), list.x(),
                 list.y(), list.w());
-        list.header(graphics, font(), Component.translatable(UI + "tab.gu"), rows.size());
+        list.header(graphics, font(), Component.translatable(UI + "tab.gu"), Component.translatable(UI + "keep"),
+                rows.size());
         if (rows.isEmpty()) {
             PanelDrawing.centered(graphics, font(), Component.translatable(UI + "gu_empty"), list.insetX(),
                     list.insetX() + list.insetW(), list.insetY() + list.insetH() / 2 - 4, PanelDrawing.DEAD);
@@ -76,12 +73,7 @@ final class GuPage extends PanelPage {
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             GuPart.Row row = rows.get(offset + i);
             list.rowTexts(graphics, font(), i, rows.size(), nameOf(row), PanelDrawing.TEXT, row.count(), row.keep(),
-                    row.hosted());
-        }
-        if (data.hosting()) {
-            Component round = Component.translatable(UI + "gu_round", data.lastCaptured());
-            graphics.drawString(font(), Component.translatable(UI + "hosting_status", data.hostingIn(), round),
-                    list.insetX(), list.statusY(), PanelDrawing.LEGEND, false);
+                    true);
         }
         PanelDrawing.label(graphics, font(), Component.translatable(UI + "capture"), list.buttonX(CAPTURE),
                 list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H, data.capturePreview() > 0);
@@ -104,19 +96,8 @@ final class GuPage extends PanelPage {
                 Component.translatable(TIP + "capture", data.capturePreview()))) {
             return;
         }
-        Component hosting = Component.translatable(TIP + "hosting", LandHostingJob.INTERVAL_TICKS / Ticks.SECOND,
-                Component.translatable(TIP + "gu_hosting", GuRules.HOSTING_GU));
-        if (tip(graphics, list.insetX(), list.statusY() - 2, list.insetW(), 12, mouseX, mouseY, hosting)) return;
-        if (tip(graphics, list.switchX(rows.size()), list.y() + 17, PanelDrawing.SWITCH_W + 8, 12, mouseX, mouseY,
-                Component.translatable(UI + "gu_note"))) {
-            return;
-        }
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             int top = list.rowTop(i);
-            if (tip(graphics, list.switchX(rows.size()), top + 5, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX,
-                    mouseY, Component.translatable(TIP + "gu_switch"))) {
-                return;
-            }
             int minus = list.minusX(rows.size());
             if (tip(graphics, minus, top + 3, list.plusX(rows.size()) + PanelDrawing.GHOST_H - minus,
                     PanelDrawing.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "keep", SHIFT_STEP))) {
@@ -136,12 +117,6 @@ final class GuPage extends PanelPage {
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             GuPart.Row row = rows.get(offset + i);
             int top = list.rowTop(i);
-            if (Widgets.isOver(mouseX, mouseY, list.switchX(rows.size()), top + 5, PanelDrawing.SWITCH_W,
-                    PanelDrawing.SWITCH_H)) {
-                send(new GuPart.SetHosting(row.type(), !row.hosted()));
-                return true;
-            }
-            if (!row.hosted()) continue;
             if (Widgets.isOver(mouseX, mouseY, list.minusX(rows.size()), top + 3, PanelDrawing.GHOST_H,
                     PanelDrawing.GHOST_H)) {
                 send(new GuPart.SetKeep(row.type(), Math.max(0, row.keep() - step)));

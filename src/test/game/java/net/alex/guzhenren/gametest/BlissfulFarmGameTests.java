@@ -294,9 +294,8 @@ public final class BlissfulFarmGameTests {
 
             BlockState ripe = ((CropBlock) Blocks.CARROTS).getStateForAge(((CropBlock) Blocks.CARROTS).getMaxAge());
             for (int localX = 1; localX <= 5; localX++) level.setBlock(at(field, localX, 1, 1), ripe, 2);
-            FarmState.of(data).setHosting(true);
             helper.assertValueEqual(FarmWork.host(level, data, null), 1,
-                    "hosting works the one field with ripe carrots");
+                    "hosting, always on, works the one field with ripe carrots");
             helper.assertValueEqual(FarmState.of(data).lastReaped(), 5, "the round is reported");
             helper.assertValueEqual(FarmState.of(data).lastSown(), 0, "nothing was bare");
             helper.succeed();

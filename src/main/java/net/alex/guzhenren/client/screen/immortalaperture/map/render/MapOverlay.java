@@ -33,6 +33,7 @@ public final class MapOverlay {
     public static final int LABEL_BACK = 0xA0101018;
     private static final int HEAD = 8;
     private static final int BADGE = 11;
+    private static final int ICON_BADGE = 18;
     private static final int BADGE_BACK = 0xE8141016;
     private final GuiGraphics graphics;
     private final MapCamera camera;
@@ -138,7 +139,7 @@ public final class MapOverlay {
         int centerX = viewX(x, y, z);
         int left = centerX - BADGE / 2;
         int top = viewY(x, y, z) - lift - BADGE;
-        frame(left, top, BADGE, centerX, border);
+        frame(left, top, BADGE, BADGE, centerX, border);
         for (int row = 0; row < glyph.length; row++) {
             for (int column = 0; column < glyph[row].length(); column++) {
                 if (glyph[row].charAt(column) != '#') continue;
@@ -149,21 +150,43 @@ public final class MapOverlay {
         }
     }
 
+    /**
+     * 动作提示徽章（Alex 定：熟了出镰刀、空着出种子）：在世界点正上方 {@code lift} 处画一枚 {@value #ICON_BADGE} 见方的底框，
+     * 返回图标（16×16）左上角；图标由调用方在填充冲掉后另起精灵批画。
+     */
+    public int[] iconBadge(double x, double y, double z, int lift, int border) {
+        int centerX = viewX(x, y, z);
+        int left = centerX - ICON_BADGE / 2;
+        int top = viewY(x, y, z) - lift - ICON_BADGE;
+        frame(left, top, ICON_BADGE, ICON_BADGE, centerX, border);
+        return new int[] {left + 1, top + 1};
+    }
+
+    /** 传送落点的小旗：杆立在世界点上，旗面朝右。 */
+    public void flag(int x, int z, int top, int colour) {
+        int centerX = viewX(x + 0.5, top + 1.0, z + 0.5);
+        int bottom = viewY(x + 0.5, top + 1.0, z + 0.5);
+        graphics.fill(centerX - 1, bottom - 13, centerX + 6, bottom - 8, SHADOW);
+        graphics.fill(centerX, bottom - 12, centerX + 1, bottom, colour);
+        graphics.fill(centerX + 1, bottom - 12, centerX + 5, bottom - 9, colour);
+        select(x, z, top);
+    }
+
     /** 带数字的悬浮徽章（牧场栏内头数）：宽随文字。 */
     public void tag(Font font, String text, double x, double y, double z, int lift, int border) {
         int centerX = viewX(x, y, z);
         int width = font.width(text) + 4;
         int left = centerX - width / 2;
         int top = viewY(x, y, z) - lift - BADGE;
-        frame(left, top, width, centerX, border);
+        frame(left, top, width, BADGE, centerX, border);
         graphics.drawString(font, text, left + 2, top + 2, 0xFFFFFFFF, false);
     }
 
-    private void frame(int left, int top, int width, int centerX, int border) {
-        graphics.fill(left - 1, top - 1, left + width + 1, top + BADGE + 1, SHADOW);
-        graphics.fill(left, top, left + width, top + BADGE, border);
-        graphics.fill(left + 1, top + 1, left + width - 1, top + BADGE - 1, BADGE_BACK);
-        graphics.fill(centerX, top + BADGE, centerX + 1, top + BADGE + 2, border);
+    private void frame(int left, int top, int width, int height, int centerX, int border) {
+        graphics.fill(left - 1, top - 1, left + width + 1, top + height + 1, SHADOW);
+        graphics.fill(left, top, left + width, top + height, border);
+        graphics.fill(left + 1, top + 1, left + width - 1, top + height - 1, BADGE_BACK);
+        graphics.fill(centerX, top + height, centerX + 1, top + height + 2, border);
     }
 
     /** 在全局地图像素 ({@code globalX}, {@code globalY}) 居中写一段带底衬的文字（等高线数字用）。 */

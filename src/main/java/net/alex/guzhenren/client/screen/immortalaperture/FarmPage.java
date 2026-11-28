@@ -17,11 +17,11 @@ import net.minecraft.world.level.block.Block;
 
 /**
  * 「种植」小节（统筹卡，Alex 定：操作都在地图页）：一张卡，标题右侧写「标准田 N / 上限 · 规划 M」（有规划时补「开垦中 · 约
- * M 秒」，每秒 1 块）；凹槽里每种作物一行（图标、名字、成熟数、未熟数、金色成熟比例条），点一行跳到地图页并选中种这种作物的
- * 田；卡底一行库藏「种子 · 骨粉 · 腐泥冻土」，一行自动收割补种开关与「去地图」，托管开着时再一行状态（下一轮倒计时与上一轮
- * 收了几株、补了几格）。
+ * M 秒」，每秒 1 块）；凹槽里每种作物一行（图标、名字、成熟数、未熟数、绿色成熟比例条），点一行跳到地图页并选中种这种作物的
+ * 田；卡底一行库藏「种子 · 骨粉 · 腐泥冻土」，一行托管状态（下一轮倒计时与上一轮收了几株、补了几格）与「去地图」。
  * <ul>
- *   <li>卡宽至多 {@value #MAX_W}；行数随窗口高（{@value #MIN_ROWS} 到 {@value #MAX_ROWS} 行），多了滚轮翻、右侧滚动条。
+ *   <li>成熟即收割、用库藏种子补种一直开着，没有开关（Alex 定）。</li>
+ *   <li>卡宽至多 {@value InfoPage#COLUMN_W}、在单列里居中；行数随窗口高（{@value #MIN_ROWS} 到 {@value #MAX_ROWS} 行），多了滚轮翻、右侧滚动条。
  *       </li>
  * </ul>
  */
@@ -30,17 +30,17 @@ final class FarmPage extends PanelPage {
 
     private static final String UI = EarthSpiritScreen.UI;
     private static final String TIP = EarthSpiritScreen.TIP;
-    private static final int MAX_W = 420;
+    private static final int RATIO = 0xFF86C46E;
     private static final int MIN_ROWS = 3;
     private static final int MAX_ROWS = 8;
     private static final int ROW_H = 20;
     private static final int INSET_Y = 30;
-    private static final int FOOT_H = 6 + 14 + 22 + 10 + PanelDrawing.PAD;
+    private static final int FOOT_H = 6 + 14 + 22 + PanelDrawing.PAD;
     private static final int MAP_W = 60;
     private static final int RATIO_W = 40;
     private int x;
     private int y;
-    private int w = MAX_W;
+    private int w = InfoPage.COLUMN_W;
     private int rows = MIN_ROWS;
     private int offset;
 
@@ -55,9 +55,9 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected void resized(int width, int height) {
-        x = PanelDrawing.contentX(width);
+        x = InfoPage.columnX(width);
         y = InfoPage.CONTENT_TOP;
-        w = Math.min(PanelDrawing.contentWidth(width), MAX_W);
+        w = InfoPage.columnWidth(width);
         rows = Math.clamp((height - y - INSET_Y - 2 - FOOT_H - PanelDrawing.MARGIN) / ROW_H, MIN_ROWS, MAX_ROWS);
     }
 
@@ -87,8 +87,6 @@ final class FarmPage extends PanelPage {
     private int hostY() { return stockY() + 14; }
 
     private int mapX() { return x + w - PanelDrawing.PAD - MAP_W; }
-
-    private int statusY() { return hostY() + 24; }
 
     private int cardH() { return INSET_Y + insetH() + FOOT_H; }
 
@@ -129,14 +127,13 @@ final class FarmPage extends PanelPage {
             int total = crop.mature() + crop.growing();
             int filled = total == 0 ? 0 : (RATIO_W - 2) * crop.mature() / total;
             sprites.blit(PanelDrawing.BAR_BACKGROUND, ratioX(), top + 7, RATIO_W, 6);
-            sprites.blit(PanelDrawing.BAR_FILL, ratioX() + 1, top + 8, filled, 4, PanelDrawing.ACCENT);
+            sprites.blit(PanelDrawing.BAR_FILL, ratioX() + 1, top + 8, filled, 4, RATIO);
         }
         if (crops.size() > rows) {
             int barX = rowX() + rowW() + 1;
             PanelDrawing.scrollbar(sprites, barX, insetY() + 1, insetH() - 2, offset, rows, crops.size(),
                     Widgets.isOver(mouseX, mouseY, barX, insetY() + 1, 6, insetH() - 2));
         }
-        PanelDrawing.toggle(sprites, insetX(), hostY() + 4, data.hosting(), true, mouseX, mouseY);
         PanelDrawing.button(sprites, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
     }
 
@@ -163,15 +160,11 @@ final class FarmPage extends PanelPage {
                     PanelDrawing.LEGEND);
         }
         graphics.drawString(font(), stocks(), insetX(), stockY() + 2, PanelDrawing.LEGEND, false);
-        graphics.drawString(font(), Component.translatable(UI + "auto_harvest"), insetX() + PanelDrawing.SWITCH_W + 6,
-                hostY() + 5, PanelDrawing.TEXT, false);
         PanelDrawing.label(graphics, font(), Component.translatable(UI + "to_map"), mapX(), hostY(), MAP_W,
                 PanelDrawing.BUTTON_H, true);
-        if (data.hosting()) {
-            Component round = Component.translatable(UI + "farm_round", data.lastReaped(), data.lastSown());
-            graphics.drawString(font(), Component.translatable(UI + "hosting_status", data.hostingIn(), round),
-                    insetX(), statusY(), PanelDrawing.LEGEND, false);
-        }
+        Component round = Component.translatable(UI + "farm_round", data.lastReaped(), data.lastSown());
+        graphics.drawString(font(), Component.translatable(UI + "hosting_status", data.hostingIn(), round), insetX(),
+                hostY() + 5, PanelDrawing.LEGEND, false);
     }
 
     @Override
@@ -191,9 +184,8 @@ final class FarmPage extends PanelPage {
                 mouseY, Component.translatable(TIP + "fields"))) {
             return;
         }
-        if (tip(graphics, insetX(), hostY() + 4, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX, mouseY,
-                Component.translatable(TIP + "hosting", hostingSeconds,
-                        Component.translatable(TIP + "farm_hosting", FarmRules.HOSTING_FIELDS)))) {
+        if (tip(graphics, insetX(), hostY() + 3, mapX() - insetX() - 6, 12, mouseX, mouseY,
+                Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmRules.HOSTING_FIELDS))) {
             return;
         }
         if (tip(graphics, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
@@ -209,11 +201,6 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
-        FarmPart.Section data = data();
-        if (Widgets.isOver(mouseX, mouseY, insetX(), hostY() + 4, PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H)) {
-            send(new FarmPart.SetHosting(!data.hosting()));
-            return true;
-        }
         if (Widgets.isOver(mouseX, mouseY, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H)) {
             screen.openPage(Page.MAP);
             return true;

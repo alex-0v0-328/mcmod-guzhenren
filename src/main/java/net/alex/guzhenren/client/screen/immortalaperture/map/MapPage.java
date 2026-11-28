@@ -24,20 +24,20 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 「地图」页：全屏，顶栏（{@value EarthSpiritScreen#BAR_H} 像素，由 {@link EarthSpiritScreen} 画，投影压在地图上）以下整片
  * 是地图视口；地形贴图由 {@link MapSurface} 后台光栅，地图层由 {@link MapScene} 画；叠在上面的是左上资源条
- * {@link MapHud}、右上视角簇 {@link MapControls}、右缘高度刻度 {@link MapHeightRail}、底部正中工具栏 {@link MapTools}（含统筹组
- * 与割弃；选中田时换成田坞 {@link MapActionBar}，按键提示条都在底栏上方）、右下图例 {@link MapLegend}（挤时收成小键）、左下
- * 牧场卡 {@link MapSelectionCard}、割弃弹窗 {@link CedePanel}。
+ * {@link MapHud}、右上罗盘 {@link MapControls}、右缘高度刻度 {@link MapHeightRail}、底部正中功能栏 {@link MapTools}（选中田时
+ * 上方升起田的对象栏 {@link MapFieldBar}，选中牧场时是牧场的 {@link MapPenBar}；按键提示条在最上一条栏的上方）、右下图例
+ * {@link MapLegend}（挤时收成小键）、右键传送菜单 {@link MapTeleportMenu}、割弃弹窗 {@link CedePanel}。
  * <ul>
  *   <li>每帧：按窗口与 GUI 缩放定视口（1 地图像素 = 2 真实像素）、把视口区块矩形交给
  *       {@link LandMapClient#requestView}、让贴图判是否重画；底色、贴图与标记按维度时间乘 {@code MapTint}。</li>
  *   <li>⚠ 离开本页调 {@link LandMapClient#stopView}（服务端不看页，不退订会一直扫和发），关面板调
  *       {@link LandMapClient#clear} 并关掉贴图线程。</li>
  *   <li>操作（Alex 定）：右键或中键拖动、按住 WASD 平移（每秒 {@value #PAN_SPEED} GUI 像素）；滚轮以光标为锚缩放；Q 逆时针
- *       转、E 顺时针转（R 备用：顺时针，Shift+R 逆时针）；V 切等高线；H 回山心。本页吃掉这些键，E 不再关面板。按下与松开
+ *       转、E 顺时针转（R 备用：顺时针，Shift+R 逆时针）；V 切俯视等高线；H 回山心（两者没有按钮，Alex 定）。本页吃掉这些键，E 不再关面板。按下与松开
  *       相距不到 {@value #CLICK_SLOP} 像素算点击：拿着工具即执行工具；拿着工具时右键或 Esc 退回选择模式。</li>
  *   <li>选择模式（不拿工具，Alex 定）：点占地只选它，Shift 点田加减，点空地清空；左键拖动框选矩形里的田与规划田（Shift
  *       拖为加选）；{@value #DOUBLE_CLICK_MILLIS} 毫秒内双击一块田选中所有同作物的田；Ctrl+A 全选田；Esc 依次关传送菜单、
- *       收选种弹窗、退工具、清选区，都没有才交给面板关闭。</li>
+ *       收对象栏弹窗、退工具、清选区，都没有才交给面板关闭；功能栏「全选」同 Ctrl+A。</li>
  *   <li>相机对准山心（参照平面 = 山底）；秘境还没解出山心时对准玩家脚下；「回山心」键同。</li>
  *   <li>⚠ 绘制都在 {@link #fills}（贴图、头像与罗盘指针是立即绘制，见 {@link MapScene}），叠加部件的精灵在同一步另起
  *       {@link SpriteBatch}；精灵批开画前先冲掉已排的填充，所以刻度线、图例色块、工具栏竖线排在叠加底之后、卡片之前。</li>
@@ -61,10 +61,10 @@ public class MapPage extends PanelPage {
     private final CedePanel cede = new CedePanel(this);
     private final MapTools tools = new MapTools();
     private final MapSelection selection = new MapSelection();
-    private final MapSelectionCard card = new MapSelectionCard();
-    private final MapActionBar actions = new MapActionBar();
-    private final MapTeleportMenu teleport = new MapTeleportMenu();
     private final MapToolLand land = new MapToolLand(this);
+    private final MapFieldBar fieldBar = new MapFieldBar(land);
+    private final MapPenBar penBar = new MapPenBar(land);
+    private final MapTeleportMenu teleport = new MapTeleportMenu();
     private boolean aimed;
     private int dragging = NO_BUTTON;
     private double pressX;
@@ -84,6 +84,7 @@ public class MapPage extends PanelPage {
     private FieldTotals totals = FieldTotals.NONE;
     private MapPlots.@Nullable Plot pasture;
     private int pendingCrop = CropKeys.NONE;
+    private int pendingPasture = -1;
     private int areaX;
     private int areaZ;
     private long areaEnd = Long.MIN_VALUE;
@@ -98,6 +99,9 @@ public class MapPage extends PanelPage {
 
     /** 信息页点作物行：下一帧选中种这种作物的田（作物设为这种，或未选而田里这种最多；一块没有就不动选区）。 */
     public void selectCrop(int crop) { pendingCrop = crop; }
+
+    /** 信息页点牧场行：下一帧选中第 {@code index} 个牧场。 */
+    public void selectPasture(int index) { pendingPasture = index; }
 
     //region Shared with parts [供部件用]
     MapPart.Section data() { return section(MapPart.INSTANCE, MapPart.Section.EMPTY); }
@@ -117,9 +121,9 @@ public class MapPage extends PanelPage {
     protected void resized(int width, int height) {
         controls.layout(width);
         tools.layout(width, height);
-        actions.layout(width, height);
-        legend.layout(width, height, actions.boxWidth(), actions.hintTop());
-        card.layout(MapSelectionCard.bottom(tools, height));
+        fieldBar.layout(width, height, tools.top());
+        penBar.layout(width, height, tools.top());
+        legend.layout(width, height, Math.max(tools.boxWidth(), MapObjectBar.WIDTH), fieldBar.hintTop());
         rail.layout(width, controls.bottom() + RAIL_GAP, legend.top() - RAIL_GAP);
         cede.layout(width, height);
     }
@@ -132,7 +136,8 @@ public class MapPage extends PanelPage {
         lastFrame = 0L;
         cede.closeAll();
         tools.cancel();
-        actions.cancel();
+        fieldBar.cancel();
+        penBar.cancel();
         selection.clear();
         teleport.close();
         LandMapClient.stopView();
@@ -173,12 +178,20 @@ public class MapPage extends PanelPage {
             selectCropFields(pendingCrop);
             pendingCrop = CropKeys.NONE;
         }
+        if (pendingPasture >= 0 && !plots.isEmpty()) {
+            for (MapPlots.Plot plot : plots) {
+                if (plot.kind() == MapPlots.Kind.PASTURE && plot.index() == pendingPasture) {
+                    tools.cancel();
+                    selection.only(plot);
+                }
+            }
+            pendingPasture = -1;
+        }
         selection.refresh(plots);
         chosen = selection.plots(plots);
         pasture = selection.pasture(plots);
         if (pasture != null) chosen = List.of(pasture);
         totals = FieldTotals.of(chosen, land);
-        card.place(selection, pasture);
         target = tools.target(land, hover);
         updateArea();
         updateBox();
@@ -187,28 +200,23 @@ public class MapPage extends PanelPage {
                 : MapPlots.at(plots, hover.x() >> 4, hover.z() >> 4);
         MapPlots.Plot hovered = under != null && !selection.has(under) ? under : null;
         MapScene.draw(graphics, camera, surface, TOP, width(), height(), guiScale(), new MapScene.Layers(plots,
-                chosen, hovered, box, target, target == null ? 0 : tools.colour(target), area, hover));
-        boolean acting = selection.hasFields();
+                chosen, hovered, box, target, target == null ? 0 : tools.colour(target), area, hover, teleport.hit()));
+        MapPlots.Plot pen = pasture;
+        boolean fields = selection.hasFields();
         SpriteBatch.draw(graphics, sprites -> {
             hud.sprites(sprites, font(), land);
-            controls.sprites(sprites, camera, mouseX, mouseY);
+            controls.sprites(sprites);
             rail.sprites(sprites, font(), surface.lowest(), surface.highest(), hover);
             legend.sprites(sprites, mouseX, mouseY);
-            if (acting) {
-                actions.sprites(sprites, totals, land, selection, font(), mouseX, mouseY);
-            } else {
-                tools.sprites(sprites, font(), land, mouseX, mouseY);
-                tools.hint(sprites, null, font());
-            }
+            tools.sprites(sprites, font(), mouseX, mouseY, !fields && pen == null);
+            if (fields) fieldBar.sprites(sprites, totals, selection, font(), mouseX, mouseY);
+            else if (pen != null) penBar.sprites(sprites, pen, font(), mouseX, mouseY);
         });
         rail.fills(graphics, surface.lowest(), surface.highest(), hover);
         legend.fills(graphics);
-        if (acting) actions.fills(graphics, totals);
-        else tools.fills(graphics);
-        SpriteBatch.draw(graphics, sprites -> {
-            card.sprites(sprites, pasture, land, mouseX, mouseY);
-            teleport.sprites(sprites, mouseX, mouseY);
-        });
+        tools.fills(graphics);
+        if (fields) fieldBar.fills(graphics, totals);
+        SpriteBatch.draw(graphics, sprites -> teleport.sprites(sprites, mouseX, mouseY));
         controls.needle(graphics, camera);
     }
 
@@ -216,26 +224,22 @@ public class MapPage extends PanelPage {
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         MapScene.labels(graphics, font(), camera, surface, TOP, guiScale());
         hud.texts(graphics, font(), land);
-        controls.texts(graphics, font());
         rail.texts(graphics, font(), surface.lowest(), surface.highest(), hover);
-        if (selection.hasFields()) {
-            actions.texts(graphics, font(), totals, land);
-        } else {
-            tools.texts(graphics, font(), land);
-            tools.hint(null, graphics, font());
-        }
-        card.texts(graphics, font(), pasture, land);
+        boolean fields = selection.hasFields();
+        tools.texts(graphics, font(), !fields && pasture == null);
+        if (fields) fieldBar.texts(graphics, font(), totals);
+        else if (pasture != null) penBar.texts(graphics, font());
         teleport.texts(graphics, font());
         legend.texts(graphics, font(), camera, surface.lowest(), surface.highest(), hover);
     }
 
     @Override
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
-        boolean acting = selection.hasFields();
+        boolean fields = selection.hasFields();
         if (controls.tip(this, graphics, mouseX, mouseY) || hud.tip(this, graphics, land, mouseX, mouseY)
-                || acting && actions.tip(this, graphics, totals, land, mouseX, mouseY)
-                || !acting && tools.tip(this, graphics, land, mouseX, mouseY)
-                || card.tip(this, graphics, selection, mouseX, mouseY)) {
+                || fields && fieldBar.tip(this, graphics, mouseX, mouseY)
+                || !fields && pasture != null && penBar.tip(this, graphics, mouseX, mouseY)
+                || tools.tip(this, graphics, mouseX, mouseY)) {
             return;
         }
         if (target != null && !target.verdict().fit() && !target.verdict().reason().getString().isEmpty()) {
@@ -250,13 +254,14 @@ public class MapPage extends PanelPage {
     private boolean isOnMap(double mouseX, double mouseY) {
         return mouseY >= EarthSpiritScreen.BAR_H && mouseY < height() && mouseX >= 0 && mouseX < width()
                 && !controls.contains(mouseX, mouseY) && !bottomBar(mouseX, mouseY)
-                && !hud.contains(mouseX, mouseY)
-                && !legend.contains(mouseX, mouseY) && !card.contains(mouseX, mouseY)
+                && !hud.contains(mouseX, mouseY) && !legend.contains(mouseX, mouseY)
                 && !teleport.contains(mouseX, mouseY);
     }
 
     private boolean bottomBar(double mouseX, double mouseY) {
-        return selection.hasFields() ? actions.contains(mouseX, mouseY) : tools.contains(mouseX, mouseY);
+        if (tools.contains(mouseX, mouseY)) return true;
+        if (selection.hasFields()) return fieldBar.contains(mouseX, mouseY);
+        return pasture != null && penBar.contains(mouseX, mouseY);
     }
     //endregion
 
@@ -269,21 +274,22 @@ public class MapPage extends PanelPage {
             return true;
         }
         teleport.close();
-        if (card.contains(mouseX, mouseY)) {
-            if (left) card.click(land, tools, selection, pasture, mouseX, mouseY);
+        if (controls.contains(mouseX, mouseY)) {
+            if (left) camera.rotate(1);
             return true;
         }
-        MapControls.Control control = controls.at(mouseX, mouseY);
-        if (control != null) {
-            if (left) press(control);
+        if (selection.hasFields() && fieldBar.contains(mouseX, mouseY)) {
+            if (left) fieldBar.click(selection, totals, mouseX, mouseY);
             return true;
         }
-        if (selection.hasFields() && actions.contains(mouseX, mouseY)) {
-            if (left) actions.click(land, selection, totals, mouseX, mouseY);
+        MapPlots.Plot pen = pasture;
+        if (!selection.hasFields() && pen != null && penBar.contains(mouseX, mouseY)) {
+            if (left) penBar.click(pen, selection::clear, mouseX, mouseY);
             return true;
         }
-        actions.cancel();
-        if (!selection.hasFields() && clickTools(left, mouseX, mouseY)) return true;
+        fieldBar.cancel();
+        penBar.cancel();
+        if (clickTools(left, mouseX, mouseY)) return true;
         if (hud.contains(mouseX, mouseY) || legend.contains(mouseX, mouseY)) return true;
         if (!isOnMap(mouseX, mouseY)) return false;
         if (button == InputConstants.MOUSE_BUTTON_RIGHT && tools.active() != null) {
@@ -310,29 +316,25 @@ public class MapPage extends PanelPage {
         return true;
     }
 
-    /** 工具栏上的点击；点中返回真。 */
+    /** 功能栏上的点击；点中返回真。 */
     private boolean clickTools(boolean left, double mouseX, double mouseY) {
-        if (tools.isOverSelect(mouseX, mouseY)) {
-            if (left) tools.cancel();
-            return true;
+        MapTools.Key key = tools.at(mouseX, mouseY);
+        if (key == null) return tools.contains(mouseX, mouseY);
+        if (!left) return true;
+        switch (key) {
+            case FARM -> pressTool(MapTools.Tool.FARM);
+            case PASTURE -> pressTool(MapTools.Tool.PASTURE);
+            case MOVE -> pressTool(MapTools.Tool.MOVE);
+            case SELECT -> tools.cancel();
+            case SELECT_ALL -> selectAllFields();
+            case CEDE -> cede.open();
         }
-        MapTools.Tool tool = tools.at(mouseX, mouseY);
-        if (tool != null) {
-            if (left) {
-                tools.press(tool);
-                selection.clear();
-            }
-            return true;
-        }
-        if (tools.isOverHarvest(mouseX, mouseY)) {
-            if (left && MapTools.ripe(land) > 0) land.harvestAll();
-            return true;
-        }
-        if (tools.isOverCede(mouseX, mouseY)) {
-            if (left) cede.open();
-            return true;
-        }
-        return tools.contains(mouseX, mouseY);
+        return true;
+    }
+
+    private void pressTool(MapTools.Tool tool) {
+        tools.press(tool);
+        selection.clear();
     }
 
     private void updateArea() {
@@ -368,15 +370,9 @@ public class MapPage extends PanelPage {
         box = null;
     }
 
-    private void press(MapControls.Control control) {
-        switch (control) {
-            case CONTOUR -> camera.setPlan(!camera.plan());
-            case HOME -> {
-                aimed = false;
-                aim();
-            }
-            case COMPASS -> camera.rotate(1);
-        }
+    private void home() {
+        aimed = false;
+        aim();
     }
 
     private void panByKeys() {
@@ -478,8 +474,8 @@ public class MapPage extends PanelPage {
 
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
-        if (selection.hasFields() && actions.scroll(mouseX, mouseY, delta)) return true;
-        if (card.scroll(land, selection, mouseX, mouseY, delta)) return true;
+        if (selection.hasFields() && fieldBar.scroll(mouseX, mouseY, delta)) return true;
+        if (!selection.hasFields() && pasture != null && penBar.scroll(mouseX, mouseY, delta)) return true;
         if (cede.isOpen() || !isOnMap(mouseX, mouseY) || delta == 0.0) return false;
         camera.zoom(delta > 0.0 ? 1 : -1, mouseX / scale(), (mouseY - TOP) / scale());
         return true;
@@ -489,7 +485,8 @@ public class MapPage extends PanelPage {
     protected boolean key(int keyCode, int scanCode, int modifiers) {
         if (keyCode == InputConstants.KEY_ESCAPE) {
             if (teleport.isOpen()) teleport.close();
-            else if (actions.picking()) actions.cancel();
+            else if (fieldBar.picking()) fieldBar.cancel();
+            else if (penBar.picking()) penBar.cancel();
             else if (tools.active() != null) tools.cancel();
             else if (!selection.isEmpty()) selection.clear();
             else return false;
@@ -504,8 +501,8 @@ public class MapPage extends PanelPage {
             case InputConstants.KEY_Q -> camera.rotate(-1);
             case InputConstants.KEY_E -> camera.rotate(1);
             case InputConstants.KEY_R -> camera.rotate(Screen.hasShiftDown() ? -1 : 1);
-            case InputConstants.KEY_V -> press(MapControls.Control.CONTOUR);
-            case InputConstants.KEY_H -> press(MapControls.Control.HOME);
+            case InputConstants.KEY_V -> camera.setPlan(!camera.plan());
+            case InputConstants.KEY_H -> home();
             case InputConstants.KEY_W, InputConstants.KEY_A, InputConstants.KEY_S, InputConstants.KEY_D -> {}
             default -> {
                 return false;

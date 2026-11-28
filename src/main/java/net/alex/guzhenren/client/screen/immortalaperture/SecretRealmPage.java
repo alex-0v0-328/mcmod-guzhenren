@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen.immortalaperture;
 
 import java.util.List;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
@@ -13,8 +14,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
- * 秘境页（页签写秘境地名，即荡魂山）：左卡（标题 = 地名，右侧胆石数）一条金色胆石进度条与「挪生物上山」「胆识蛊催动」；
- * 右「荡魂山白名单」卡（右侧人数）按名字添加、凹槽里逐行移出。
+ * 秘境页（页签写秘境地名，即荡魂山）：上下两张卡排成一列（Alex 定，宽至多 {@value InfoPage#COLUMN_W}、居中）。上卡
+ * （标题 = 地名）一行：「胆石 N / 上限」、{@value #BAR_W} 宽的胆石条（魂魄色）、右侧「挪生物上山」「胆识蛊催动」；下卡
+ * 「荡魂山白名单」（右侧人数）按名字添加、凹槽里逐行移出。
  * <ul>
  *   <li>挪生物冷却中按钮失效，文字换成剩余秒数。</li>
  *   <li>名字输入框是 {@link EarthSpiritScreen} 持有的 {@code EditBox}（灰字补全在线玩家名、Tab 补全），本页只画它的底图、
@@ -29,16 +31,18 @@ final class SecretRealmPage extends PanelPage {
     private static final String UI = EarthSpiritScreen.UI;
     private static final String TIP = EarthSpiritScreen.TIP;
     private static final int TOP = EarthSpiritScreen.BAR_H + 7;
-    private static final int REALM_W = 218;
-    private static final int BUTTON_Y = 38;
+    private static final int BUTTON_Y = 20;
     private static final int BUTTON_H = 18;
+    private static final int BUTTON_W = 102;
+    private static final int BAR_W = 120;
     private static final int REALM_H = BUTTON_Y + BUTTON_H + PanelDrawing.PAD;
     private static final int ADD_W = 40;
     private static final int LIST_Y = 40;
     private static final int REMOVE_W = 30;
     private static final int MIN_ROWS = 3;
     private static final int MAX_ROWS = 10;
-    private PanelDrawing.Columns columns = PanelDrawing.Columns.of(0, TOP, REALM_W, REALM_H);
+    private int columnX;
+    private int columnW = InfoPage.COLUMN_W;
     private int rows = MIN_ROWS;
     private int offset;
 
@@ -53,37 +57,42 @@ final class SecretRealmPage extends PanelPage {
 
     @Override
     protected void resized(int width, int height) {
-        columns = PanelDrawing.Columns.of(width, TOP, REALM_W, REALM_H);
+        columnX = InfoPage.columnX(width);
+        columnW = InfoPage.columnWidth(width);
         int fixed = LIST_Y + 2 + PanelDrawing.PAD + PanelDrawing.MARGIN;
-        rows = Math.clamp((height - columns.rightY() - fixed) / PanelDrawing.ROW_H, MIN_ROWS, MAX_ROWS);
+        rows = Math.clamp((height - exemptY() - fixed) / PanelDrawing.ROW_H, MIN_ROWS, MAX_ROWS);
     }
 
+    private Component gutsValue() {
+        return Component.translatable(UI + "guts_value", data().gutsStones(), data().gutsCap());
+    }
+
+    private int barX() { return columnX + PanelDrawing.PAD + font().width(gutsValue()) + 6; }
+
     //region Geometry [几何]
-    private int realmX() { return columns.leftX(); }
+    private int buttonW() { return BUTTON_W; }
 
-    private int realmW() { return columns.leftW(); }
+    private int driveX() { return columnX + columnW - PanelDrawing.PAD - BUTTON_W; }
 
-    private int buttonW() { return (realmW() - 2 * PanelDrawing.PAD - 6) / 2; }
+    private int moveX() { return driveX() - 4 - BUTTON_W; }
 
-    private int moveX() { return realmX() + PanelDrawing.PAD; }
-
-    private int driveX() { return moveX() + buttonW() + 6; }
+    private int exemptY() { return TOP + REALM_H + PanelDrawing.GAP; }
 
     private int buttonY() { return TOP + BUTTON_Y; }
 
-    int fieldX() { return columns.rightX() + PanelDrawing.PAD; }
+    int fieldX() { return columnX + PanelDrawing.PAD; }
 
-    int fieldY() { return columns.rightY() + 18; }
+    int fieldY() { return exemptY() + 18; }
 
-    int fieldW() { return columns.rightW() - 2 * PanelDrawing.PAD - ADD_W - 4; }
+    int fieldW() { return columnW - 2 * PanelDrawing.PAD - ADD_W - 4; }
 
     private int addX() { return fieldX() + fieldW() + 4; }
 
-    private int listX() { return columns.rightX() + PanelDrawing.PAD; }
+    private int listX() { return columnX + PanelDrawing.PAD; }
 
-    private int listY() { return columns.rightY() + LIST_Y; }
+    private int listY() { return exemptY() + LIST_Y; }
 
-    private int listW() { return columns.rightW() - 2 * PanelDrawing.PAD; }
+    private int listW() { return columnW - 2 * PanelDrawing.PAD; }
 
     private int listH() { return rows * PanelDrawing.ROW_H + 2; }
 
@@ -99,16 +108,15 @@ final class SecretRealmPage extends PanelPage {
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         SecretRealmPart.Section data = data();
-        PanelDrawing.card(sprites, realmX(), TOP, realmW(), REALM_H);
-        int barW = realmW() - 2 * PanelDrawing.PAD;
+        PanelDrawing.card(sprites, columnX, TOP, columnW, REALM_H);
         int filled = data.gutsCap() <= 0 ? 0
-                : (barW - 2) * Math.min(data.gutsStones(), data.gutsCap()) / data.gutsCap();
-        sprites.blit(PanelDrawing.BAR_BACKGROUND, realmX() + PanelDrawing.PAD, TOP + 22, barW, 8);
-        sprites.blit(PanelDrawing.BAR_FILL, realmX() + PanelDrawing.PAD + 1, TOP + 23, filled, 6, PanelDrawing.ACCENT);
+                : (BAR_W - 2) * Math.min(data.gutsStones(), data.gutsCap()) / data.gutsCap();
+        sprites.blit(PanelDrawing.BAR_BACKGROUND, barX(), TOP + 25, BAR_W, 8);
+        sprites.blit(PanelDrawing.BAR_FILL, barX() + 1, TOP + 26, filled, 6, ModPalette.SOUL);
         PanelDrawing.button(sprites, moveX(), buttonY(), buttonW(), BUTTON_H, data.moveCooldown() == 0, mouseX, mouseY);
         PanelDrawing.button(sprites, driveX(), buttonY(), buttonW(), BUTTON_H, true, mouseX, mouseY);
 
-        PanelDrawing.card(sprites, columns.rightX(), columns.rightY(), columns.rightW(), exemptH());
+        PanelDrawing.card(sprites, columnX, exemptY(), columnW, exemptH());
         sprites.blit(screen.isNameFieldFocused() ? PanelDrawing.TEXT_FIELD_FOCUSED : PanelDrawing.TEXT_FIELD, fieldX(),
                 fieldY(), fieldW(), PanelDrawing.BUTTON_H);
         PanelDrawing.button(sprites, addX(), fieldY(), ADD_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
@@ -132,8 +140,8 @@ final class SecretRealmPage extends PanelPage {
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         SecretRealmPart.Section data = data();
-        PanelDrawing.title(graphics, font(), name(), Component.translatable(UI + "guts_value", data.gutsStones(),
-                data.gutsCap()), realmX(), TOP, realmW());
+        PanelDrawing.title(graphics, font(), name(), Component.empty(), columnX, TOP, columnW);
+        graphics.drawString(font(), gutsValue(), columnX + PanelDrawing.PAD, TOP + 25, PanelDrawing.TEXT, false);
         boolean moveLive = data.moveCooldown() == 0;
         Component move = moveLive ? Component.translatable(UI + "move_mobs")
                 : Component.translatable(UI + "cooldown", data.moveCooldown());
@@ -142,8 +150,8 @@ final class SecretRealmPage extends PanelPage {
                 buttonW(), BUTTON_H, true);
 
         PanelDrawing.title(graphics, font(), Component.translatable(UI + "exempt"),
-                Component.translatable(UI + "people", listed().size()), columns.rightX(), columns.rightY(),
-                columns.rightW());
+                Component.translatable(UI + "people", listed().size()), columnX, exemptY(),
+                columnW);
         PanelDrawing.label(graphics, font(), Component.translatable(UI + "add"), addX(), fieldY(), ADD_W,
                 PanelDrawing.BUTTON_H, true);
         List<WhitelistEntry> listed = listed();
@@ -186,7 +194,7 @@ final class SecretRealmPage extends PanelPage {
                 Component.translatable(TIP + "add_whitelist"))) {
             return;
         }
-        if (tip(graphics, columns.rightX(), columns.rightY(), columns.rightW(), PanelDrawing.TITLE_H, mouseX, mouseY,
+        if (tip(graphics, columnX, exemptY(), columnW, PanelDrawing.TITLE_H, mouseX, mouseY,
                 Component.translatable(UI + "exempt_note"))) {
             return;
         }

@@ -2,18 +2,14 @@ package net.alex.guzhenren.gameplay.immortalaperture.managementpanel;
 
 import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmRules;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmState;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FarmWork;
 import net.alex.guzhenren.gameplay.immortalaperture.farm.FieldPlot;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureSettings;
-import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureWork;
 import net.alex.guzhenren.gameplay.immortalaperture.mappipeline.LandMaps;
 import net.alex.guzhenren.gameplay.immortalaperture.plot.Siting;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
@@ -41,18 +37,16 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * 「地图」页面板段：下发地图页叠加层与卡片需要的经营数据（疆域、山心与秘境半径、行宫、入口、田与其熟 / 未熟株数、生长
- * 进度、作物田型、规划、牧场与其设置、选址上限、库藏腐泥冻土数、骨粉数与各作物种子数（与 {@link FarmRules#crops()}
- * 同序）、可勾选的收拢种类）；
+ * 进度、作物田型、规划、牧场（{@link HerdPart#rows}）、选址上限、库藏腐泥冻土数、骨粉数与各作物种子数（与
+ * {@link FarmRules#crops()} 同序）、福地里可支使动物的种类与头数（{@link HerdPart#kinds}））；
  * 地形片与活物标记另走地图载荷，不在这一段。选址操作在 {@code FarmPart}、{@code HerdPart}；本段只有「探明」
  * （{@link RevealChunk}，拿着选址工具点迷雾，交 {@link LandMaps#reveal} 限流后生成并加载）与地图右键传送：
  * {@link Teleport} 只许落在疆域内已探明的区块（{@link LandMaps#isKnown}），落点由 {@link LandTeleport#landing} 找，传送
- * 后面板置漫游不再按距离关；{@link ReturnToSpirit} 传回开面板时站的位置。
+ * 后面板置漫游不再按距离关（「回到地灵身边」已删，Alex 定）。
  * <ul>
  *   <li>秘境未解出时山心、行宫、入口都是 {@link BlockPos#ZERO}、秘境半径 0（{@link Siting} 视作不查秘境）。</li>
  *   <li>{@link #plot}（服务端复判）与 {@link Section#siting}（客户端预判）取同一组占地：田、规划、牧场 4 区块；服务端
  *       地形读 {@link Siting#loadedTiles}。</li>
- *   <li>{@link Section#animals()} = 全福地已加载可支使动物的种类（捕食者除外，收拢本就不带），加上任一牧场设成不收的
- *       种类，按 ID 排序；牧场卡片的收拢种类列表就列这些。</li>
  * </ul>
  */
 
@@ -98,24 +92,10 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
         }
     }
 
-    public record ReturnToSpirit() implements PanelAction {
-
-        public static final PanelAction.Type<ReturnToSpirit> TYPE = new PanelAction.Type<>(ReturnToSpirit.class,
-                StreamCodec.unit(new ReturnToSpirit()));
-
-        @Override
-        public @NotNull Component perform(@NotNull ActionContext context) {
-            Vec3 origin = context.menu().origin();
-            if (origin == null) return Component.empty();
-            LandTeleport.go(context.player(), context.level(), origin);
-            return LandNoticeEvent.text("returned");
-        }
-    }
-
     public record Section(@NotNull Territory territory, @NotNull BlockPos mountain, int realmRadius,
                           @NotNull BlockPos palace, @NotNull BlockPos entry, @NotNull List<Field> fields,
-                          @NotNull List<ChunkPos> planned, @NotNull List<Pen> pastures, int fieldCap, int pastureCap,
-                          long mud, long boneMeal, @NotNull List<ResourceLocation> animals,
+                          @NotNull List<ChunkPos> planned, @NotNull List<HerdPart.Row> pastures, int fieldCap,
+                          int pastureCap, long mud, long boneMeal, @NotNull List<HerdPart.Kind> animals,
                           @NotNull List<Long> seeds)
             implements PanelSection {
 
@@ -136,20 +116,6 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             public int planted() { return mature + growing; }
         }
 
-        public record Pen(int chunkX, int chunkZ, int penned, boolean autoGather,
-                          @NotNull List<ResourceLocation> excluded) {
-
-            public static final StreamCodec<RegistryFriendlyByteBuf, Pen> STREAM_CODEC = StreamCodec.composite(
-                    ByteBufCodecs.VAR_INT, Pen::chunkX,
-                    ByteBufCodecs.VAR_INT, Pen::chunkZ,
-                    ByteBufCodecs.VAR_INT, Pen::penned,
-                    ByteBufCodecs.BOOL, Pen::autoGather,
-                    ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()), Pen::excluded,
-                    Pen::new);
-
-            public boolean gathers(@NotNull ResourceLocation type) { return !excluded.contains(type); }
-        }
-
         public static final Section EMPTY = new Section(TerritoryPart.Section.EMPTY.territory(), BlockPos.ZERO, 0,
                 BlockPos.ZERO, BlockPos.ZERO, List.of(), List.of(), List.of(), Siting.FIELD_CAP, Siting.PASTURE_CAP,
                 0L, 0L, List.of(), List.of());
@@ -165,13 +131,13 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             }
             Field.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.fields);
             CHUNKS.encode(buffer, section.planned);
-            Pen.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.pastures);
+            HerdPart.Row.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.pastures);
             for (int value : new int[] {section.realmRadius, section.fieldCap, section.pastureCap}) {
                 buffer.writeVarInt(value);
             }
             buffer.writeVarLong(section.mud);
             buffer.writeVarLong(section.boneMeal);
-            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.animals);
+            HerdPart.Kind.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, section.animals);
             ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).encode(buffer, section.seeds);
         }
 
@@ -182,13 +148,13 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             BlockPos entry = BlockPos.STREAM_CODEC.decode(buffer);
             List<Field> fields = Field.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
             List<ChunkPos> planned = CHUNKS.decode(buffer);
-            List<Pen> pastures = Pen.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
+            List<HerdPart.Row> pastures = HerdPart.Row.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
             int realmRadius = buffer.readVarInt();
             int fieldCap = buffer.readVarInt();
             int pastureCap = buffer.readVarInt();
             long mud = buffer.readVarLong();
             long boneMeal = buffer.readVarLong();
-            List<ResourceLocation> animals = ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
+            List<HerdPart.Kind> animals = HerdPart.Kind.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
             List<Long> seeds = ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()).decode(buffer);
             return new Section(territory, mountain, realmRadius, palace, entry, fields, planned, pastures, fieldCap,
                     pastureCap, mud, boneMeal, animals, seeds);
@@ -201,7 +167,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
             for (Field field : fields) taken.add(ChunkPos.asLong(field.chunkX(), field.chunkZ()));
             for (ChunkPos plan : planned) taken.add(plan.toLong());
             List<Long> corners = new ArrayList<>();
-            for (Pen pen : pastures) corners.add(ChunkPos.asLong(pen.chunkX(), pen.chunkZ()));
+            for (HerdPart.Row pen : pastures) corners.add(ChunkPos.asLong(pen.chunkX(), pen.chunkZ()));
             return Siting.Plot.of(territory, mountain.getX(), mountain.getZ(), realmRadius, taken, corners);
         }
 
@@ -217,7 +183,7 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(RevealChunk.TYPE, Teleport.TYPE, ReturnToSpirit.TYPE);
+        return List.of(RevealChunk.TYPE, Teleport.TYPE);
     }
 
     @Override
@@ -236,24 +202,11 @@ public final class MapPart implements PanelSectionSource<MapPart.Section> {
         List<ChunkPos> planned = new ArrayList<>();
         for (long plan : farm.plans()) planned.add(new ChunkPos(plan));
         Map<ResourceLocation, List<Animal>> herds = LandCensus.take(level, HerdWork.CENSUS);
-        TreeSet<ResourceLocation> animals = new TreeSet<>(Comparator.comparing(ResourceLocation::toString));
-        herds.forEach((type, herd) -> {
-            if (!herd.isEmpty() && !PastureWork.isPredator(herd.getFirst())) animals.add(type);
-        });
-        PastureSettings settings = PastureSettings.of(data);
-        List<Section.Pen> pastures = new ArrayList<>();
-        for (ChunkPos corner : HerdState.of(data).pastures()) {
-            PastureWork.Pasture pasture = PastureWork.Pasture.at(corner.x, corner.z);
-            int penned = PastureWork.count(PastureWork.penned(herds, List.of(pasture)));
-            List<ResourceLocation> excluded = List.copyOf(settings.excluded(corner));
-            animals.addAll(excluded);
-            pastures.add(new Section.Pen(corner.x, corner.z, penned, settings.autoGather(corner), excluded));
-        }
         return new Section(data.territory(), site == null ? BlockPos.ZERO : site.center(),
                 realm == null ? 0 : realm.radius(), site == null ? BlockPos.ZERO : site.palace(),
-                site == null ? BlockPos.ZERO : site.entry(), fields, planned, pastures, Siting.FIELD_CAP,
+                site == null ? BlockPos.ZERO : site.entry(), fields, planned, HerdPart.rows(herds, data), Siting.FIELD_CAP,
                 Siting.PASTURE_CAP, BlissfulStorage.of(data).count(FarmWork::isMud),
-                BlissfulStorage.of(data).count(FarmWork::isBoneMeal), List.copyOf(animals), seeds(data));
+                BlissfulStorage.of(data).count(FarmWork::isBoneMeal), HerdPart.kinds(herds), seeds(data));
     }
 
     private static List<Long> seeds(BlissfulLandData data) {

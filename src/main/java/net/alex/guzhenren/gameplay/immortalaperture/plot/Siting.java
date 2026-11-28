@@ -72,6 +72,13 @@ public final class Siting {
             return new Plot(territory, mountainX, mountainZ, realmRadius, rest, fields, Math.max(0, pastures - 1));
         }
 
+        /** 不算 ({@code chunkX}, {@code chunkZ}) 这块田（搬迁时预判新址）。 */
+        public @NotNull Plot withoutField(int chunkX, int chunkZ) {
+            LongSet rest = new LongOpenHashSet(taken);
+            rest.remove(ChunkPos.asLong(chunkX, chunkZ));
+            return new Plot(territory, mountainX, mountainZ, realmRadius, rest, Math.max(0, fields - 1), pastures);
+        }
+
         private static void addPen(LongSet set, int chunkX, int chunkZ, boolean add) {
             for (int dx = 0; dx < PEN_CHUNKS; dx++) {
                 for (int dz = 0; dz < PEN_CHUNKS; dz++) {

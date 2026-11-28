@@ -10,7 +10,6 @@ import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.map.MapPage;
-import net.alex.guzhenren.core.Ticks;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.Page;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.PanelAction;
@@ -48,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>面板开着时整帧不渲染世界（{@link #hidesWorld}，{@code GameRendererMixin} 跳过；启动参数
  *       {@code -D}{@value #KEEP_WORLD_PROPERTY}{@code =true} 退回照常渲染，供光影或性能模组冲突时排查）。四页都全屏（Alex
- *       定）：最上 {@value #BAR_H} 像素是顶栏（{@code top_bar} 平铺，含金线与投影；左写「福地名 · 时辰」，右侧并排四个页签，
+ *       定）：最上 {@value #BAR_H} 像素是顶栏（{@code top_bar} 平铺，含金线与投影；左写福地名（Alex 定不显示时辰），右侧并排四个页签，
  *       常态页签只有图标与灰字，悬停与选中才画底板），其余页在 {@link PanelDrawing#BACKDROP} 纯色底上排卡片；地图页整片是
  *       地图，顶栏投影压在地图上。页面原点在库藏页是两张卡片的左上角（即 {@code leftPos}/{@code topPos}，背包格按它摆），
  *       其余页为 0。</li>
@@ -91,7 +90,6 @@ public final class EarthSpiritScreen {
     private static final ResourceLocation TAB_HIGHLIGHTED = PanelDrawing.sprite("tab_highlighted");
     private static final ResourceLocation TAB_SELECTED = PanelDrawing.sprite("tab_selected");
     private static final boolean KEEPS_WORLD = Boolean.getBoolean(KEEP_WORLD_PROPERTY);
-    private static final int HOURS = 12;
     private static final String[] TAB_ICONS = {"icon_map", "icon_storage", "icon_mountain", "icon_info"};
     private final EarthSpiritMenu menu;
     private final Inventory inventory;
@@ -234,6 +232,12 @@ public final class EarthSpiritScreen {
         show(Page.MAP);
     }
 
+    /** 信息页「养殖」点牧场行：跳到地图页并选中第 {@code index} 个牧场。 */
+    void openMapPasture(int index) {
+        ((MapPage) this.pages.get(Page.MAP)).selectPasture(index);
+        show(Page.MAP);
+    }
+
     void openInfo(int part) {
         ((InfoPage) this.pages.get(Page.INFO)).open(part);
         show(Page.INFO);
@@ -307,21 +311,12 @@ public final class EarthSpiritScreen {
                 sprites.blit(TOP_BAR, 0, 0, width(), BAR_H);
                 for (Page each : Page.values()) drawTab(sprites, each, mouseX, mouseY);
             });
-            MutableComponent name = landName();
-            graphics.drawString(font(), name, 8, 8, PanelDrawing.TEXT, false);
-            graphics.drawString(font(), Component.literal(" · ").append(hour()), 8 + font().width(name), 8,
-                    PanelDrawing.LEGEND, false);
+            graphics.drawString(font(), landName(), 8, 8, PanelDrawing.TEXT, false);
             for (Page each : Page.values()) drawTabLabel(graphics, each, mouseX, mouseY);
         });
     }
 
     private MutableComponent landName() { return Component.translatable(this.menu.getSnapshot().landNameKey()); }
-
-    private Component hour() {
-        long time = Minecraft.getInstance().level == null ? 0L : Minecraft.getInstance().level.getDayTime();
-        int clock = (int) ((Math.floorMod(time, Ticks.DAY) / 1000L + 6L) % 24L);
-        return Component.translatable(UI + "hour." + (clock + 1) / 2 % HOURS);
-    }
 
     private int tabLeft(Page each) {
         return width() - TAB_RIGHT - TAB_W - (Page.values().length - 1 - each.ordinal()) * TAB_PITCH;

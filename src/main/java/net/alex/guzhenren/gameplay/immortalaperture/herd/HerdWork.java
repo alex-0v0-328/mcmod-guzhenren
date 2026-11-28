@@ -19,6 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -27,18 +28,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 地灵面板「养殖」页：按种类清点、喂养繁殖、宰杀收取，以及托管的「每种保持 N 只」。
+ * 福地养殖：一个牧场只养指定的一种（Alex 定），按牧场清点、喂养繁殖、宰杀收取与托管（多出下限宰、不足下限喂）。
  * <ul>
  *   <li>动物 = 已加载区块里的原版 {@link Animal}，且是 {@link LandRules#isManaged} 认可的；按实体类型 ID 分种类，幼
- *       崽计入数量但不宰、不喂。</li>
- *   <li>{@link #breed}：每种取尚未发情、能发情的成年动物，凑成对；每只扣 1 份该种能吃的饲料（库藏里第一种
+ *       崽计入数量但不宰、不喂。牧场的畜群（{@link Pen#herd}）= 落在这个牧场里、种类是它指定动物的；没指定动物的牧场
+ *       不喂不宰。</li>
+ *   <li>{@link #breed}：取畜群里尚未发情、能发情的成年动物凑成对；每只扣 1 份该种能吃的饲料（库藏里第一种
  *       {@code Animal#isFood} 为真的物品，不够就少喂），{@code setInLove} 后由原版繁殖 AI 自己配对。</li>
- *   <li>{@link #slaughter}：每种宰到只剩保持数，保持数为 0 的种类不宰；按该动物的战利品表掷产物进库藏，经验按原版死亡经
- *       验直接加给主人（主人为空即作废），然后直接移除（不触发死亡事件，不长胆石）。</li>
- *   <li>托管 {@link #host} 只管托管开着的种类；一键宰杀照所有种类的保持数算；{@link #slaughterCount} 用同一规则预估一
- *       键宰杀会宰几头（不动清点表）。</li>
- *   <li>两个操作共用一份对象预算（每次至多 {@code limit} 只），托管 {@link #host} 先宰后喂；宰掉的动物从清点表里删去，
- *       后面的喂养按删后的只数算缺口（每对只补一只崽）。</li>
+ *   <li>{@link #slaughter}：宰到只剩下限，下限 0 不宰；按该动物的战利品表掷产物进库藏，经验按原版死亡经验直接加给主人
+ *       （主人为空即作废），然后直接移除（不触发死亡事件，不长胆石）。{@link #slaughterCount} 用同一规则预估会宰几头。</li>
+ *   <li>托管 {@link #host}：有主就跑，不设开关（Alex 定）；每个下限大于 0 的牧场先宰后喂（每对只补一只崽，按宰后的头数算
+ *       缺口），所有牧场共用 {@value HerdRules#HOSTING_ANIMALS} 只的预算。</li>
  * </ul>
  */
 
@@ -50,16 +50,35 @@ public final class HerdWork {
             LandCensus.Census.ofLevel(HerdWork::census);
 
     public static int host(@NotNull ServerLevel level, @NotNull BlissfulLandData data, @Nullable ServerPlayer owner) {
-        if (!HerdState.of(data).hosting()) return 0;
-
-        Hosted hosted = host(level, penned(level, data), data, owner, HerdRules.HOSTING_ANIMALS);
-        HerdState.of(data).setLastRound(hosted.slaughtered(), hosted.bred());
+        Hosted hosted = host(level, pens(level, data), data, owner, HerdRules.HOSTING_ANIMALS);
+        if (hosted.total() > 0 || HerdState.of(data).lastSlaughtered() + HerdState.of(data).lastBred() > 0) {
+            HerdState.of(data).setLastRound(hosted.slaughtered(), hosted.bred());
+        }
         return hosted.total();
     }
 
-    public static @NotNull Map<ResourceLocation, List<Animal>> penned(@NotNull ServerLevel level,
-                                                                  @NotNull BlissfulLandData data) {
-        return PastureWork.penned(LandCensus.take(level, CENSUS), PastureWork.pastures(data));
+    /** 一个牧场：下标、西北角、方格、指定动物（未指定为 {@code null}）、下限、畜群与栏内全部动物头数。 */
+    public record Pen(int index, @NotNull ChunkPos corner, PastureWork.@NotNull Pasture pasture,
+                      @Nullable ResourceLocation animal, int floor, @NotNull List<Animal> herd, int penned) {}
+
+    public static @NotNull List<Pen> pens(@NotNull ServerLevel level, @NotNull BlissfulLandData data) {
+        return pens(LandCensus.take(level, CENSUS), data);
+    }
+
+    public static @NotNull List<Pen> pens(@NotNull Map<ResourceLocation, List<Animal>> census,
+                                          @NotNull BlissfulLandData data) {
+        List<Pen> pens = new ArrayList<>();
+        List<ChunkPos> corners = HerdState.of(data).pastures();
+        for (int index = 0; index < corners.size(); index++) {
+            ChunkPos corner = corners.get(index);
+            PastureWork.Pasture pasture = PastureWork.Pasture.at(corner.x, corner.z);
+            ResourceLocation animal = PastureSettings.of(data).animal(corner);
+            Map<ResourceLocation, List<Animal>> inside = PastureWork.penned(census, List.of(pasture));
+            List<Animal> herd = animal == null ? List.of() : new ArrayList<>(inside.getOrDefault(animal, List.of()));
+            pens.add(new Pen(index, corner, pasture, animal, PastureSettings.of(data).floor(corner), herd,
+                    PastureWork.count(inside)));
+        }
+        return pens;
     }
 
     public static void mapMarks(@NotNull ServerLevel level, @NotNull BlissfulLandData data,
@@ -96,68 +115,60 @@ public final class HerdWork {
     }
 
     //region Breed [喂养繁殖]
-    public static @NotNull Breed breed(@NotNull Map<ResourceLocation, List<Animal>> herds,
-                                       @NotNull BlissfulStorage storage, int limit,
-                                       @Nullable Map<ResourceLocation, Integer> wantedPairs) {
-        int animals = 0;
-        int food = 0;
-        for (Map.Entry<ResourceLocation, List<Animal>> herd : herds.entrySet()) {
-            int maxPairs = wantedPairs == null ? Integer.MAX_VALUE : wantedPairs.getOrDefault(herd.getKey(), 0);
-            List<Animal> ready = new ArrayList<>();
-            for (Animal animal : herd.getValue()) {
-                if (animal.getAge() == 0 && animal.canFallInLove()) ready.add(animal);
-            }
-            if (ready.size() < 2 || maxPairs <= 0) continue;
-
-            Animal sample = ready.getFirst();
-            Predicate<ItemStack> feed = sample::isFood;
-            long stocked = storage.count(feed);
-            int pairs = (int) Math.min(Math.min(ready.size() / 2, maxPairs),
-                    Math.min(stocked / 2, (limit - animals) / 2));
-            if (pairs <= 0) continue;
-
-            int eaten = storage.consume(feed, pairs * 2);
-            for (int i = 0; i < eaten; i++) ready.get(i).setInLove(null);
-            animals += eaten;
-            food += eaten;
+    public static @NotNull Breed breed(@NotNull List<Animal> herd, @NotNull BlissfulStorage storage, int limit,
+                                       int maxPairs) {
+        List<Animal> ready = new ArrayList<>();
+        for (Animal animal : herd) {
+            if (animal.getAge() == 0 && animal.canFallInLove()) ready.add(animal);
         }
-        return new Breed(animals, food);
+        if (ready.size() < 2 || maxPairs <= 0 || limit < 2) return new Breed(0, 0);
+
+        Predicate<ItemStack> feed = ready.getFirst()::isFood;
+        int pairs = (int) Math.min(Math.min(ready.size() / 2, maxPairs), Math.min(storage.count(feed) / 2, limit / 2));
+        if (pairs <= 0) return new Breed(0, 0);
+        int eaten = storage.consume(feed, pairs * 2);
+        for (int i = 0; i < eaten; i++) ready.get(i).setInLove(null);
+        return new Breed(eaten, eaten);
+    }
+
+    public static @NotNull Breed breedAll(@NotNull List<Pen> pens, @NotNull BlissfulStorage storage, int limit) {
+        int animals = 0;
+        for (Pen pen : pens) {
+            if (pen.animal() != null) animals += breed(pen.herd(), storage, limit - animals, Integer.MAX_VALUE).animals();
+        }
+        return new Breed(animals, animals);
     }
     //endregion
 
     //region Slaughter [宰杀收取]
-    public static int slaughter(@NotNull ServerLevel level, @NotNull Map<ResourceLocation, List<Animal>> herds,
-                                @NotNull Map<ResourceLocation, Integer> keep, @NotNull BlissfulStorage storage,
-                                @Nullable ServerPlayer owner, int limit) {
+    public static int slaughter(@NotNull ServerLevel level, @NotNull List<Animal> herd, int floor,
+                                @NotNull BlissfulStorage storage, @Nullable ServerPlayer owner, int limit) {
+        if (floor <= 0) return 0;
+        int excess = herd.size() - floor;
         int killed = 0;
-        for (Map.Entry<ResourceLocation, List<Animal>> herd : herds.entrySet()) {
-            int floor = keep.getOrDefault(herd.getKey(), 0);
-            if (floor <= 0) continue;
-
-            int excess = herd.getValue().size() - floor;
-            for (Iterator<Animal> animals = herd.getValue().iterator(); animals.hasNext(); ) {
-                if (excess <= 0 || killed >= limit) break;
-                Animal animal = animals.next();
-                if (animal.isBaby()) continue;
-                harvest(level, animal, storage, owner);
-                animals.remove();
-                excess--;
-                killed++;
-            }
+        for (Iterator<Animal> animals = herd.iterator(); animals.hasNext(); ) {
+            if (excess <= 0 || killed >= limit) break;
+            Animal animal = animals.next();
+            if (animal.isBaby()) continue;
+            harvest(level, animal, storage, owner);
+            animals.remove();
+            excess--;
+            killed++;
         }
         return killed;
     }
 
-    public static int slaughterCount(@NotNull Map<ResourceLocation, List<Animal>> herds,
-                                     @NotNull Map<ResourceLocation, Integer> keep, int limit) {
-        int count = 0;
-        for (Map.Entry<ResourceLocation, List<Animal>> herd : herds.entrySet()) {
-            int floor = keep.getOrDefault(herd.getKey(), 0);
-            if (floor <= 0) continue;
-            int adults = (int) herd.getValue().stream().filter(animal -> !animal.isBaby()).count();
-            count += Math.min(Math.max(0, herd.getValue().size() - floor), adults);
-        }
-        return Math.min(count, limit);
+    public static int slaughterAll(@NotNull ServerLevel level, @NotNull List<Pen> pens,
+                                   @NotNull BlissfulStorage storage, @Nullable ServerPlayer owner, int limit) {
+        int killed = 0;
+        for (Pen pen : pens) killed += slaughter(level, pen.herd(), pen.floor(), storage, owner, limit - killed);
+        return killed;
+    }
+
+    public static int slaughterCount(@NotNull List<Animal> herd, int floor) {
+        if (floor <= 0) return 0;
+        int adults = (int) herd.stream().filter(animal -> !animal.isBaby()).count();
+        return Math.min(Math.max(0, herd.size() - floor), adults);
     }
 
     private static void harvest(ServerLevel level, Animal animal, BlissfulStorage storage,
@@ -175,19 +186,18 @@ public final class HerdWork {
     //endregion
 
     //region Hosting [托管]
-    public static @NotNull Hosted host(@NotNull ServerLevel level, @NotNull Map<ResourceLocation, List<Animal>> herds,
+    public static @NotNull Hosted host(@NotNull ServerLevel level, @NotNull List<Pen> pens,
                                        @NotNull BlissfulLandData data, @Nullable ServerPlayer owner, int limit) {
-        Map<ResourceLocation, Integer> keep = new LinkedHashMap<>();
-        HerdState.of(data).keep().forEach((type, floor) -> {
-            if (HerdState.of(data).isHosted(type)) keep.put(type, floor);
-        });
-        int killed = slaughter(level, herds, keep, BlissfulStorage.of(data), owner, limit);
-        Map<ResourceLocation, Integer> wanted = new LinkedHashMap<>();
-        keep.forEach((type, floor) -> {
-            int missing = floor - herds.getOrDefault(type, List.of()).size();
-            if (missing > 0) wanted.put(type, missing);
-        });
-        return new Hosted(killed, breed(herds, BlissfulStorage.of(data), limit - killed, wanted).animals());
+        BlissfulStorage storage = BlissfulStorage.of(data);
+        int killed = 0;
+        int bred = 0;
+        for (Pen pen : pens) {
+            if (pen.animal() == null || pen.floor() <= 0) continue;
+            killed += slaughter(level, pen.herd(), pen.floor(), storage, owner, limit - killed - bred);
+            int missing = pen.floor() - pen.herd().size();
+            if (missing > 0) bred += breed(pen.herd(), storage, limit - killed - bred, missing).animals();
+        }
+        return new Hosted(killed, bred);
     }
     //endregion
 }

@@ -60,6 +60,7 @@ public final class FieldPlans {
                                            @NotNull Supplier<Siting.Plot> plot) {
         if (FarmState.of(data).plans().isEmpty()) return null;
         ChunkPos chunk = new ChunkPos(FarmState.of(data).plans().getLong(0));
+        int crop = FarmState.of(data).planCrop(chunk.toLong());
         FarmState.of(data).removePlan(chunk.toLong());
         FieldPlot field = layout.apply(chunk);
         Siting.Reason reason = Siting.place(plot.get(), chunk.x, chunk.z, 1);
@@ -73,6 +74,8 @@ public final class FieldPlans {
         if (FarmWork.reclaim(level, data, field, owner) == null) {
             return new Step(false, LandNoticeEvent.text("plan_cancelled", LandNoticeEvent.text("grief_denied")));
         }
+        FieldPlot made = FarmState.of(data).fieldAt(chunk.x, chunk.z);
+        if (made != null) FarmState.of(data).setCrop(made, crop);
         return new Step(true, LandNoticeEvent.text("reclaimed", FarmState.of(data).fields().size()));
     }
 }

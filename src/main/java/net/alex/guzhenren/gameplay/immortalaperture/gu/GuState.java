@@ -2,23 +2,17 @@ package net.alex.guzhenren.gameplay.immortalaperture.gu;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import net.alex.guzhenren.core.ModSavedData.StackIo;
 import net.alex.guzhenren.gameplay.immortalaperture.state.BlissfulLandData;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandSavePart;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 福地「蛊虫」页的经营状态：按种类的托管开关、每种保持数、上一轮托管捕获了几只。
+ * 福地「蛊虫」页的经营状态：每种保持数（「捕获入库」捕到只剩这么多；0 = 不捕，不存）。蛊虫不自动捕获（Alex 定）。
  * <ul>
- *   <li>同养殖：保持数与托管开关分开存，关掉托管不丢保持数，一键捕获也照保持数算；保持数 0 = 不捕，不存。</li>
  *   <li>本类是存档段 {@link #PART}（子项 {@code gu}），任何改动经回调通知所属存档置脏。</li>
  * </ul>
  */
@@ -28,29 +22,11 @@ public final class GuState implements LandSavePart.State {
     public static final LandSavePart<GuState> PART = new LandSavePart<>("gu", GuState::new);
 
     private final Runnable changed;
-    private final Set<ResourceLocation> hosted = new LinkedHashSet<>();
     private final Map<ResourceLocation, Integer> keep = new LinkedHashMap<>();
-    private int lastCaptured;
 
     public GuState(@NotNull Runnable changed) { this.changed = changed; }
 
     public static @NotNull GuState of(@NotNull BlissfulLandData data) { return data.part(PART); }
-
-    public boolean hosting() { return !hosted.isEmpty(); }
-
-    public boolean isHosted(@NotNull ResourceLocation type) { return hosted.contains(type); }
-
-    public @NotNull Set<ResourceLocation> hosted() { return Collections.unmodifiableSet(hosted); }
-
-    public void setHosted(@NotNull ResourceLocation type, boolean on) {
-        if (on ? hosted.add(type) : hosted.remove(type)) changed.run();
-    }
-
-    public void clearHosting() {
-        if (hosted.isEmpty()) return;
-        hosted.clear();
-        changed.run();
-    }
 
     public int keep(@NotNull ResourceLocation type) { return keep.getOrDefault(type, 0); }
 
@@ -62,38 +38,22 @@ public final class GuState implements LandSavePart.State {
         if (before == null ? clamped != 0 : before != clamped) changed.run();
     }
 
-    public int lastCaptured() { return lastCaptured; }
-
-    public void setLastCaptured(int captured) {
-        lastCaptured = captured;
-        changed.run();
-    }
-
     @Override
     public void save(@NotNull CompoundTag parent, @NotNull String key, @NotNull StackIo stacks) {
         CompoundTag tag = new CompoundTag();
-        ListTag list = new ListTag();
-        for (ResourceLocation type : hosted) list.add(StringTag.valueOf(type.toString()));
-        tag.put("hosted", list);
         CompoundTag counts = new CompoundTag();
         keep.forEach((type, count) -> counts.putInt(type.toString(), count));
         tag.put("keep", counts);
-        tag.putInt("last_captured", lastCaptured);
         parent.put(key, tag);
     }
 
     @Override
     public void load(@NotNull CompoundTag parent, @NotNull String name, @NotNull StackIo stacks) {
         CompoundTag tag = parent.getCompound(name);
-        for (Tag element : tag.getList("hosted", Tag.TAG_STRING)) {
-            ResourceLocation type = ResourceLocation.tryParse(element.getAsString());
-            if (type != null) hosted.add(type);
-        }
         CompoundTag counts = tag.getCompound("keep");
         for (String key : counts.getAllKeys()) {
             ResourceLocation type = ResourceLocation.tryParse(key);
             if (type != null && counts.getInt(key) > 0) keep.put(type, counts.getInt(key));
         }
-        lastCaptured = tag.getInt("last_captured");
     }
 }

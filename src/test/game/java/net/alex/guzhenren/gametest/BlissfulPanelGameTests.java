@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -15,6 +15,7 @@ import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdState;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdWork;
+import net.alex.guzhenren.gameplay.immortalaperture.herd.PastureSettings;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.ActionContext;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritPanel;
@@ -39,8 +40,8 @@ import net.alex.guzhenren.gameplay.immortalaperture.state.EarthSpiritEntity;
 import net.alex.guzhenren.gameplay.immortalaperture.state.LandMembership;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.BlissfulStorage;
-import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser.Sort;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser;
+import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageBrowser.Sort;
 import net.alex.guzhenren.gameplay.immortalaperture.storage.StorageWork;
 import net.alex.guzhenren.registry.entity.ModEntityTypes;
 import net.minecraft.core.component.DataComponents;
@@ -52,8 +53,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -86,7 +87,7 @@ public final class BlissfulPanelGameTests {
         UUID someone = UUID.randomUUID();
         ResourceLocation cow = BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.COW);
         List<PanelAction> samples = List.of(new PanelActions.View(Page.INFO), new MapPart.RevealChunk(5, -6, 2),
-                new MapPart.Teleport(-120, 340), new MapPart.ReturnToSpirit(),
+                new MapPart.Teleport(-120, 340), new FarmPart.MoveField(1, 2, -3, 4),
                 new FarmPart.PlanMany(List.of(ChunkPos.asLong(1, 2), ChunkPos.asLong(-3, 4))),
                 new FarmPart.Sow(List.of(ChunkPos.asLong(1, 2)), 2),
                 new FarmPart.Uproot(List.of(ChunkPos.asLong(1, 2))),
@@ -95,12 +96,11 @@ public final class BlissfulPanelGameTests {
                 new OverviewPart.Expel(someone), new OverviewPart.ExpelOutsiders(),
                 new OverviewPart.SetWhitelisted(someone, true), new SecretRealmPart.MoveMobs(),
                 new SecretRealmPart.DriveGutsGu(), new SecretRealmPart.AddWhitelist("Steve"), new HerdPart.Breed(),
-                new HerdPart.Slaughter(), new HerdPart.SetHosting(cow, true), new HerdPart.SetKeep(cow, 7),
+                new HerdPart.Slaughter(), new HerdPart.SlaughterPen(1), new HerdPart.SetFloor(1, 7),
+                new HerdPart.SetAnimal(0, Optional.of(cow)), new HerdPart.SetAnimal(2, Optional.empty()),
                 new HerdPart.PlacePasture(3, -4), new HerdPart.MovePasture(1, -2, 5),
-                new HerdPart.RemovePasture(2), new HerdPart.Gather(0), new HerdPart.SetAutoGather(1, true),
-                new HerdPart.SetGatherType(0, cow, false), new GuPart.Capture(),
-                new GuPart.SetHosting(cow, true), new GuPart.SetKeep(cow, 2),
-                new FarmPart.Plan(7, -9), new FarmPart.Harvest(), new FarmPart.SetHosting(true),
+                new HerdPart.RemovePasture(2), new HerdPart.Gather(0), new GuPart.Capture(), new GuPart.SetKeep(cow, 2),
+                new FarmPart.Plan(7, -9), new FarmPart.Harvest(),
                 new TerritoryPart.Cede(Territory.Side.EAST, 3),
                 new StoragePart.Take(4L, true), new StoragePart.DepositCarried(),
                 new StoragePart.DepositMatching(), new StoragePart.Browse("小麦", Sort.NAME, 2,
@@ -119,7 +119,9 @@ public final class BlissfulPanelGameTests {
         BlissfulLandData data = BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL);
         BlissfulStorage.of(data).insert(new ItemStack(Items.WHEAT, 70));
         data.addWhitelist(someone, "Steve");
-        HerdState.of(data).setKeep(cow, 3);
+        HerdState.of(data).addPasture(new ChunkPos(2, -3));
+        PastureSettings.of(data).setAnimal(new ChunkPos(2, -3), cow);
+        PastureSettings.of(data).setFloor(new ChunkPos(2, -3), 3);
         List<PanelSectionSource<?>> placed = new ArrayList<>();
         for (Page page : Page.values()) {
             PanelSnapshot snapshot = EarthSpiritPanel.snapshot(level, data, someone, page, Component.literal("done"));
@@ -329,16 +331,15 @@ public final class BlissfulPanelGameTests {
     @GameTest(template = "empty9x9x9")
     public static void theSlaughterPreviewMatchesTheSlaughter(GameTestHelper helper) {
         GameTestPlayers.ground(helper);
-        List<Entity> herd = new ArrayList<>();
+        List<Animal> herd = new ArrayList<>();
         for (int i = 0; i < 4; i++) herd.add(helper.spawn(EntityType.COW, CENTER_POS.offset(i - 2, 0, -2)));
         Cow calf = helper.spawn(EntityType.COW, CENTER_POS.offset(0, 0, 2));
         calf.setBaby(true);
         herd.add(calf);
         BlissfulStorage storage = BlissfulStorage.of(BlissfulLandData.create(BlissfulLand.FOX_IMMORTAL));
-        Map<ResourceLocation, Integer> keep = Map.of(HerdWork.typeId(calf), 2);
 
-        int preview = HerdWork.slaughterCount(HerdWork.census(herd), keep, HerdRules.LIMIT);
-        int killed = HerdWork.slaughter(helper.getLevel(), HerdWork.census(herd), keep, storage, null, HerdRules.LIMIT);
+        int preview = HerdWork.slaughterCount(herd, 2);
+        int killed = HerdWork.slaughter(helper.getLevel(), herd, 2, storage, null, HerdRules.LIMIT);
         helper.assertValueEqual(preview, 3, "five cows kept at two: three adults would go");
         helper.assertValueEqual(killed, preview, "the slaughter takes what the preview said");
         helper.succeed();

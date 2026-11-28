@@ -1,6 +1,5 @@
 package net.alex.guzhenren.gameplay.immortalaperture.herd;
 
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.alex.guzhenren.core.ModSavedData.StackIo;
 import net.minecraft.nbt.CompoundTag;
@@ -12,8 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class PastureSettingsTest {
 
@@ -33,63 +31,56 @@ class PastureSettingsTest {
     private final PastureSettings settings = new PastureSettings(dirty::incrementAndGet);
 
     @Test
-    @DisplayName("an untouched pasture gathers every kind and does not gather by itself")
+    @DisplayName("an untouched pasture has no animal and no floor, and a floor needs an animal")
     void defaults() {
-        assertTrue(settings.gathers(HOME, COW));
-        assertFalse(settings.autoGather(HOME));
-        assertEquals(Set.of(), settings.excluded(HOME));
+        assertNull(settings.animal(HOME));
+        settings.setFloor(HOME, 3);
+        assertEquals(0, settings.floor(HOME));
+        assertEquals(0, dirty.get());
     }
 
     @Test
-    @DisplayName("turning a kind off and on again marks dirty only on a change")
-    void kinds() {
-        settings.setGathers(HOME, PIG, false);
-        settings.setGathers(HOME, PIG, false);
-        assertFalse(settings.gathers(HOME, PIG));
-        assertTrue(settings.gathers(HOME, COW), "other kinds still gather");
-        assertTrue(settings.gathers(AWAY, PIG), "other pastures are untouched");
-        settings.setGathers(HOME, PIG, true);
-        assertTrue(settings.gathers(HOME, PIG));
+    @DisplayName("choosing the same animal twice marks dirty once, and a new animal clears the floor")
+    void animal() {
+        settings.setAnimal(HOME, COW);
+        settings.setAnimal(HOME, COW);
+        settings.setFloor(HOME, 4);
+        settings.setFloor(HOME, 4);
+        assertEquals(COW, settings.animal(HOME));
+        assertEquals(4, settings.floor(HOME));
         assertEquals(2, dirty.get());
+        settings.setAnimal(HOME, PIG);
+        assertEquals(0, settings.floor(HOME), "a new animal starts from no floor");
+        assertNull(settings.animal(AWAY), "other pastures are untouched");
     }
 
     @Test
     @DisplayName("moving carries the settings to the new corner and forgetting drops them")
     void moveAndForget() {
-        settings.setAutoGather(HOME, true);
-        settings.setGathers(HOME, COW, false);
+        settings.setAnimal(HOME, COW);
+        settings.setFloor(HOME, 5);
         settings.move(HOME, AWAY);
-        assertTrue(settings.autoGather(AWAY));
-        assertFalse(settings.gathers(AWAY, COW));
-        assertFalse(settings.autoGather(HOME), "the old corner is clear");
-        assertTrue(settings.gathers(HOME, COW));
+        assertEquals(COW, settings.animal(AWAY));
+        assertEquals(5, settings.floor(AWAY));
+        assertNull(settings.animal(HOME), "the old corner is clear");
         settings.forget(AWAY);
-        assertFalse(settings.autoGather(AWAY));
-        assertTrue(settings.gathers(AWAY, COW));
+        assertNull(settings.animal(AWAY));
+        assertEquals(0, settings.floor(AWAY));
     }
 
     @Test
-    @DisplayName("losing the owner stops auto gathering but keeps the kinds")
-    void clear() {
-        settings.setAutoGather(HOME, true);
-        settings.setGathers(HOME, PIG, false);
-        settings.clearAutoGather();
-        assertFalse(settings.autoGather(HOME));
-        assertFalse(settings.gathers(HOME, PIG));
-    }
-
-    @Test
-    @DisplayName("the settings survive a save and load")
+    @DisplayName("a saved pasture loads back with its animal and floor")
     void roundTrip() {
-        settings.setAutoGather(HOME, true);
-        settings.setGathers(AWAY, PIG, false);
-        CompoundTag tag = new CompoundTag();
-        settings.save(tag, "pasture_settings", NO_STACKS);
+        settings.setAnimal(HOME, COW);
+        settings.setFloor(HOME, 6);
+        settings.setAnimal(AWAY, PIG);
+        CompoundTag parent = new CompoundTag();
+        settings.save(parent, "pasture_settings", NO_STACKS);
         PastureSettings loaded = new PastureSettings(() -> {});
-        loaded.load(tag, "pasture_settings", NO_STACKS);
-        assertTrue(loaded.autoGather(HOME));
-        assertFalse(loaded.autoGather(AWAY));
-        assertEquals(Set.of(PIG), loaded.excluded(AWAY));
-        assertEquals(Set.of(), loaded.excluded(HOME));
+        loaded.load(parent, "pasture_settings", NO_STACKS);
+        assertEquals(COW, loaded.animal(HOME));
+        assertEquals(6, loaded.floor(HOME));
+        assertEquals(PIG, loaded.animal(AWAY));
+        assertEquals(0, loaded.floor(AWAY));
     }
 }

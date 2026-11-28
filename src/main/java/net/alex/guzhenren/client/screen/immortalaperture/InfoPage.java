@@ -23,6 +23,7 @@ final class InfoPage extends PanelPage {
     static final int FARM = 2;
     static final int GU = 3;
     static final int CONTENT_TOP = EarthSpiritScreen.BAR_H + 29;
+    static final int COLUMN_W = 420;
     private static final String UI = EarthSpiritScreen.UI;
     private static final int SUBTAB_Y = EarthSpiritScreen.BAR_H + 6;
     private static final int SUBTAB_W = 44;
@@ -51,7 +52,12 @@ final class InfoPage extends PanelPage {
 
     private PanelPage current() { return this.parts.get(this.part); }
 
-    private int subtabLeft(int index) { return PanelDrawing.contentX(width()) + index * SUBTAB_PITCH; }
+    /** 信息页与荡魂山页的单列（Alex 定上下排）：宽至多 {@value #COLUMN_W}、在内容区里居中。 */
+    static int columnWidth(int screenWidth) { return Math.min(PanelDrawing.contentWidth(screenWidth), COLUMN_W); }
+
+    static int columnX(int screenWidth) { return (screenWidth - columnWidth(screenWidth)) / 2; }
+
+    private int subtabLeft(int index) { return columnX(width()) + index * SUBTAB_PITCH; }
 
     private boolean isOverSubtab(int index, double mouseX, double mouseY) {
         return Widgets.isOver(mouseX, mouseY, subtabLeft(index), SUBTAB_Y, SUBTAB_W, SUBTAB_H);

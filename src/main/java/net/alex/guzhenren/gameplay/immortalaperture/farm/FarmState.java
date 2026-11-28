@@ -1,5 +1,7 @@
 package net.alex.guzhenren.gameplay.immortalaperture.farm;
 
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import java.util.ArrayList;
@@ -16,12 +18,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 福地种植的经营状态：标准田（各带作物与田型）、规划队列、托管开关、上一轮托管的结果。
+ * 福地种植的经营状态：标准田（各带作物与田型）、规划队列、上一轮托管的结果（托管有主就跑，没有开关，Alex 定）。
  * <ul>
  *   <li>标准田记 {@link FieldPlot}，顺序即开垦顺序；规划队列记区块坐标（{@code ChunkPos#toLong}），先进先出，田加规划
  *       合计受 {@code Siting#FIELD_CAP} 限制（在 {@link FieldPlans} 查）。</li>
  *   <li>作物都是 {@link FarmRules#crops()} 的下标，{@value #NO_CROP} = 未选。新田一律未选、普通田，作物由主人在地图上
- *       选定后种植（Alex 定），清除作物时重置为未选。</li>
+ *       选定后种植（Alex 定），清除作物时重置为未选。搬迁的田先进规划队列，原来的作物记在规划上
+ *       （{@link #planCrop}），开垦好就沿用。</li>
  *   <li>本类是存档段 {@link #PART}（子项 {@code farm}），任何改动经回调置脏；开面板补种轮到的田序
  *       {@link #topUpCursor} 不存档。</li>
  * </ul>
@@ -36,12 +39,15 @@ public final class FarmState implements LandSavePart.State {
     private final Map<FieldPlot, Integer> fieldCrops = new HashMap<>();
     private final Map<FieldPlot, FieldKind> fieldKinds = new HashMap<>();
     private final LongList plans = new LongArrayList();
-    private boolean hosting;
+    private final Long2IntMap planCrops = new Long2IntOpenHashMap();
     private int lastReaped;
     private int lastSown;
     private int topUpCursor;
 
-    public FarmState(@NotNull Runnable changed) { this.changed = changed; }
+    public FarmState(@NotNull Runnable changed) {
+        this.changed = changed;
+        planCrops.defaultReturnValue(NO_CROP);
+    }
 
     public static @NotNull FarmState of(@NotNull BlissfulLandData data) { return data.part(PART); }
 
@@ -96,20 +102,23 @@ public final class FarmState implements LandSavePart.State {
 
     public boolean removePlan(long chunk) {
         if (!plans.rem(chunk)) return false;
+        planCrops.remove(chunk);
         changed.run();
         return true;
     }
 
-    public int planned() { return fields.size() + plans.size(); }
-    //endregion
+    public int planCrop(long chunk) { return planCrops.get(chunk); }
 
-    public boolean hosting() { return hosting; }
-
-    public void setHosting(boolean on) {
-        if (hosting == on) return;
-        hosting = on;
+    public void setPlanCrop(long chunk, int crop) {
+        int clamped = clampCrop(crop);
+        if (!plans.contains(chunk) || planCrop(chunk) == clamped) return;
+        if (clamped == NO_CROP) planCrops.remove(chunk);
+        else planCrops.put(chunk, clamped);
         changed.run();
     }
+
+    public int planned() { return fields.size() + plans.size(); }
+    //endregion
 
     public int topUpCursor() { return topUpCursor; }
 
@@ -133,7 +142,7 @@ public final class FarmState implements LandSavePart.State {
         tag.put("field_crops", new IntArrayTag(fields.stream().mapToInt(this::crop).toArray()));
         tag.put("field_kinds", new IntArrayTag(fields.stream().mapToInt(field -> kind(field).ordinal()).toArray()));
         tag.put("plans", new LongArrayTag(plans.toLongArray()));
-        tag.putBoolean("hosting", hosting);
+        tag.put("plan_crops", new IntArrayTag(plans.longStream().mapToInt(this::planCrop).toArray()));
         tag.putInt("last_reaped", lastReaped);
         tag.putInt("last_sown", lastSown);
         parent.put(key, tag);
@@ -152,8 +161,13 @@ public final class FarmState implements LandSavePart.State {
             fieldCrops.put(field, i < crops.length ? clampCrop(crops[i]) : NO_CROP);
             if (i < kinds.length) fieldKinds.put(field, FieldKind.byId(kinds[i]));
         }
-        for (long plan : tag.getLongArray("plans")) plans.add(plan);
-        hosting = tag.getBoolean("hosting");
+        long[] planned = tag.getLongArray("plans");
+        int[] planCropIds = tag.getIntArray("plan_crops");
+        for (int i = 0; i < planned.length; i++) {
+            plans.add(planned[i]);
+            int crop = i < planCropIds.length ? clampCrop(planCropIds[i]) : NO_CROP;
+            if (crop != NO_CROP) planCrops.put(planned[i], crop);
+        }
         lastReaped = tag.getInt("last_reaped");
         lastSown = tag.getInt("last_sown");
     }

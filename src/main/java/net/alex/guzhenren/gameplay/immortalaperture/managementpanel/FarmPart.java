@@ -28,8 +28,8 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 「种植」小节面板段（信息页统筹卡）：按作物计成熟 / 未熟、标准田与规划数、库藏种子合计 / 骨粉 / 腐泥冻土、托管开关与上一轮
- * 结果；地图上的规划、一键收获与选中田的操作也登记在这里。
+ * 「种植」小节面板段（信息页统筹卡）：按作物计成熟 / 未熟、标准田与规划数、库藏种子合计 / 骨粉 / 腐泥冻土、上一轮托管
+ * 结果（托管有主就跑，没有开关）；地图上的规划、一键收获与选中田的操作也登记在这里。
  * <ul>
  *   <li>{@link Plan} 经 {@link FieldPlans}（选址复判与队列）；{@link PlanMany} 是开垦工具拖框，客户端只交它预判合格的区块，
  *       服务端逐块复判，不合格的跳过并报第一条原因。</li>
@@ -57,11 +57,11 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
                 Crop::new);
     }
 
-    public record Section(@NotNull List<Crop> rows, int fields, int planned, int capacity, boolean hosting,
-                          int hostingIn, int lastReaped, int lastSown, long seeds, long boneMeal, long mud)
+    public record Section(@NotNull List<Crop> rows, int fields, int planned, int capacity, int hostingIn,
+                          int lastReaped, int lastSown, long seeds, long boneMeal, long mud)
             implements PanelSection {
 
-        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, false, 0, 0, 0, 0L, 0L, 0L);
+        public static final Section EMPTY = new Section(List.of(), 0, 0, 0, 0, 0, 0, 0L, 0L, 0L);
         public static final StreamCodec<RegistryFriendlyByteBuf, Section> STREAM_CODEC =
                 StreamCodec.of(Section::encode, Section::decode);
 
@@ -71,7 +71,6 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
                     section.lastReaped, section.lastSown}) {
                 buffer.writeVarInt(value);
             }
-            buffer.writeBoolean(section.hosting);
             for (long value : new long[] {section.seeds, section.boneMeal, section.mud}) buffer.writeVarLong(value);
         }
 
@@ -83,11 +82,10 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
             int hostingIn = buffer.readVarInt();
             int lastReaped = buffer.readVarInt();
             int lastSown = buffer.readVarInt();
-            boolean hosting = buffer.readBoolean();
             long seeds = buffer.readVarLong();
             long boneMeal = buffer.readVarLong();
             long mud = buffer.readVarLong();
-            return new Section(rows, fields, planned, capacity, hosting, hostingIn, lastReaped, lastSown, seeds,
+            return new Section(rows, fields, planned, capacity, hostingIn, lastReaped, lastSown, seeds,
                     boneMeal, mud);
         }
 
@@ -150,18 +148,6 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         public @NotNull Component perform(@NotNull ActionContext context) {
             FarmWork.Harvest done = FarmWork.harvest(context.level(), context.data(), Integer.MAX_VALUE);
             return LandNoticeEvent.text("harvested", done.reaped(), done.sown());
-        }
-    }
-
-    public record SetHosting(boolean on) implements PanelAction {
-
-        public static final PanelAction.Type<SetHosting> TYPE = new PanelAction.Type<>(SetHosting.class,
-                ByteBufCodecs.BOOL.map(SetHosting::new, SetHosting::on));
-
-        @Override
-        public @NotNull Component perform(@NotNull ActionContext context) {
-            FarmState.of(context.data()).setHosting(on);
-            return Component.empty();
         }
     }
 
@@ -293,6 +279,40 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
         }
     }
 
+    /** 搬迁一块田或规划田（Alex 定）：旧田同「拆除耕地」，新址进规划队列等地灵开垦，作物选择带过去、土质不带。 */
+    public record MoveField(int fromX, int fromZ, int toX, int toZ) implements PanelAction {
+
+        public static final PanelAction.Type<MoveField> TYPE = new PanelAction.Type<>(MoveField.class,
+                StreamCodec.composite(ByteBufCodecs.VAR_INT, MoveField::fromX, ByteBufCodecs.VAR_INT, MoveField::fromZ,
+                        ByteBufCodecs.VAR_INT, MoveField::toX, ByteBufCodecs.VAR_INT, MoveField::toZ,
+                        MoveField::new));
+
+        @Override
+        public @NotNull Component perform(@NotNull ActionContext context) {
+            BlissfulLandData data = context.data();
+            FarmState state = FarmState.of(data);
+            FieldPlot field = state.fieldAt(fromX, fromZ);
+            long from = ChunkPos.asLong(fromX, fromZ);
+            if (field == null && !state.plans().contains(from)) return LandNoticeEvent.text("no_field");
+            int crop = field == null ? state.planCrop(from) : state.crop(field);
+            Siting.Plot plot = MapPart.plot(context.level(), data).withoutField(fromX, fromZ);
+            Siting.Reason reason = Siting.field(plot, Siting.loadedTiles(context.level(), data.territory()), toX, toZ);
+            if (reason != Siting.Reason.OK) {
+                return LandNoticeEvent.text("siting_refused", Component.translatable(reason.key()));
+            }
+            int reaped = 0;
+            if (field == null) {
+                FieldPlans.unplan(data, fromX, fromZ);
+            } else {
+                Integer done = FarmWork.remove(context.level(), data, field, context.player());
+                if (done == null) return LandNoticeEvent.text("grief_denied");
+                reaped = done;
+            }
+            state.addPlan(ChunkPos.asLong(toX, toZ));
+            state.setPlanCrop(ChunkPos.asLong(toX, toZ), crop);
+            return LandNoticeEvent.text("field_moved", reaped);
+        }
+    }
     //endregion
 
     @Override
@@ -303,7 +323,7 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
 
     @Override
     public @NotNull List<PanelAction.Type<?>> actions() {
-        return List.of(Plan.TYPE, Harvest.TYPE, SetHosting.TYPE, PlanMany.TYPE, HarvestFields.TYPE,
+        return List.of(Plan.TYPE, Harvest.TYPE, PlanMany.TYPE, HarvestFields.TYPE, MoveField.TYPE,
                 Sow.TYPE, Uproot.TYPE, Ripen.TYPE, Retype.TYPE, Clear.TYPE);
     }
 
@@ -318,7 +338,7 @@ public final class FarmPart implements PanelSectionSource<FarmPart.Section> {
                     crop.getValue().growing()));
         }
         BlissfulStorage storage = BlissfulStorage.of(data);
-        return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP, state.hosting(),
+        return new Section(rows, state.fields().size(), state.plans().size(), Siting.FIELD_CAP,
                 LandHostingJob.secondsUntilNext(level.getServer()), state.lastReaped(), state.lastSown(),
                 storage.count(FarmWork::isSeed), storage.count(FarmWork::isBoneMeal), storage.count(FarmWork::isMud));
     }

@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen.immortalaperture.map;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.FarmPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.HerdPart;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.MapPart;
@@ -14,11 +15,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 地图页的经营数据来源：把 {@code MapPart.Section} 的田、规划田、牧场换成 {@link MapPlots.Plot}，预判走
  * {@link Siting}（地形读 {@link LandMapClient#tile}，没下发的区块即迷雾、不许选址，左键改为探明），操作发 {@code FarmPart} 与
- * {@code HerdPart} 的意图，服务端全部复判；选区卡与操作栏读的田、牧场设置按下标取快照段里的原记录，选中田的操作带区块
- * 列表（至多 {@code FarmPart.LIMIT} 个）。
+ * {@code HerdPart} 的意图，服务端全部复判；对象栏读的田、牧场行按下标取快照段里的原记录，选中田的操作带区块列表（至多
+ * {@code FarmPart.LIMIT} 个）。
  * <ul>
  *   <li>快照段每秒或每次操作后整份替换；按引用比对，换了才重建占地表与 {@link Siting.Plot}。</li>
- *   <li>迁移预判用 {@link Siting.Plot#without} 排除原牧场的 4 个区块。</li>
+ *   <li>移动预判不算原占地：牧场用 {@link Siting.Plot#without} 排除原 4 个区块，田用 {@link Siting.Plot#withoutField}。</li>
  * </ul>
  */
 
@@ -53,7 +54,7 @@ final class MapToolLand implements MapTools.Land {
             result.add(new MapPlots.Plot(MapPlots.Kind.PLANNED, planned.x, planned.z, i, 0, 0, 0));
         }
         for (int i = 0; i < section.pastures().size(); i++) {
-            MapPart.Section.Pen pen = section.pastures().get(i);
+            HerdPart.Row pen = section.pastures().get(i);
             result.add(new MapPlots.Plot(MapPlots.Kind.PASTURE, pen.chunkX(), pen.chunkZ(), i, 0, 0, pen.penned()));
         }
         return List.copyOf(result);
@@ -83,8 +84,8 @@ final class MapToolLand implements MapTools.Land {
     }
 
     @Override
-    public MapPart.Section.@Nullable Pen pen(int index) {
-        List<MapPart.Section.Pen> pens = section().pastures();
+    public HerdPart.@Nullable Row pen(int index) {
+        List<HerdPart.Row> pens = section().pastures();
         return index >= 0 && index < pens.size() ? pens.get(index) : null;
     }
 
@@ -98,7 +99,7 @@ final class MapToolLand implements MapTools.Land {
     public long seeds(int crop) { return section().seedsOf(crop); }
 
     @Override
-    public List<ResourceLocation> animals() { return section().animals(); }
+    public List<HerdPart.Kind> animals() { return section().animals(); }
 
     @Override
     public MapTools.Verdict farm(int chunkX, int chunkZ) {
@@ -111,10 +112,16 @@ final class MapToolLand implements MapTools.Land {
         MapPart.Section section = section();
         Siting.Plot plot = siting;
         if (ignoredIndex >= 0 && ignoredIndex < section.pastures().size()) {
-            MapPart.Section.Pen pen = section.pastures().get(ignoredIndex);
+            HerdPart.Row pen = section.pastures().get(ignoredIndex);
             plot = siting.without(pen.chunkX(), pen.chunkZ());
         }
         return verdict(Siting.pasture(plot, LandMapClient::tile, chunkX, chunkZ));
+    }
+
+    @Override
+    public MapTools.Verdict moveField(int fromX, int fromZ, int chunkX, int chunkZ) {
+        section();
+        return verdict(Siting.field(siting.withoutField(fromX, fromZ), LandMapClient::tile, chunkX, chunkZ));
     }
 
     @Override
@@ -136,9 +143,6 @@ final class MapToolLand implements MapTools.Land {
 
     @Override
     public void harvest(List<Long> chunks) { page.sendAction(new FarmPart.HarvestFields(limit(chunks))); }
-
-    @Override
-    public void harvestAll() { page.sendAction(new FarmPart.Harvest()); }
 
     @Override
     public void uproot(List<Long> chunks) { page.sendAction(new FarmPart.Uproot(limit(chunks))); }
@@ -169,17 +173,23 @@ final class MapToolLand implements MapTools.Land {
     @Override
     public void teleport(int x, int z) { page.sendAction(new MapPart.Teleport(x, z)); }
 
-    @Override
-    public void returnToSpirit() { page.sendAction(new MapPart.ReturnToSpirit()); }
 
     @Override
     public void gather(int index) { page.sendAction(new HerdPart.Gather(index)); }
 
     @Override
-    public void setAutoGather(int index, boolean on) { page.sendAction(new HerdPart.SetAutoGather(index, on)); }
+    public void sendMoveField(int fromX, int fromZ, int chunkX, int chunkZ) {
+        page.sendAction(new FarmPart.MoveField(fromX, fromZ, chunkX, chunkZ));
+    }
 
     @Override
-    public void setGatherType(int index, ResourceLocation type, boolean on) {
-        page.sendAction(new HerdPart.SetGatherType(index, type, on));
+    public void setAnimal(int index, Optional<ResourceLocation> animal) {
+        page.sendAction(new HerdPart.SetAnimal(index, animal));
     }
+
+    @Override
+    public void setFloor(int index, int floor) { page.sendAction(new HerdPart.SetFloor(index, floor)); }
+
+    @Override
+    public void slaughter(int index) { page.sendAction(new HerdPart.SlaughterPen(index)); }
 }
