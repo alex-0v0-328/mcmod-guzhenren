@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>注册在全部其他 HUD 层之上（{@code ClientEvents}），使闪白能够遮盖整个 HUD；闪白与牌匾自身不维护独立状态，每帧
  *       直接依据同步的仪式进度与整 tick 计算绘制，一旦仪式中断（死亡或换维度）即刻停止渲染。</li>
  *   <li>{@link #getBarBase} 为 {@link ChargeHud} 提供资质条进度（直接读取仪式状态，因希望蛊[Hope Gu]在点击时已消
- *       耗）；是否显示资质条同样按整 tick 判定，确保 {@link ChargeHud#isShowing} 与实际绘制帧一致，不显示时返回
+ *       耗）；是否显示资质条同样按整 tick 判定，确保 {@link ChargeHud#isAtHotbar} 与实际绘制帧一致，不显示时返回
  *       -1。</li>
  *   <li>闪白采用实心菱形格而不做抖动或半透明过渡：格子边长为牌匾缩放的整数倍 {@code k}，凡到屏幕中心格的曼哈顿距离不超
  *       过 {@link AwakeningTimeline#getFlashReach} 的格子均予涂满；常态呈 {@link #FLASH_WHITE}，

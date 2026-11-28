@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/** 钉住 HUD 条贴图与不缩放绘制的 {@link HudBar} 布局：标题、堆叠依条排版，精灵图改尺寸即越界或不满，须变红待裁定。 */
+/** 钉住 HUD 条与状态圆珠贴图和不缩放绘制的布局（{@link HudBar}、{@link OrbDrawing}）：标题、堆叠依条排版，精灵图改尺寸即越界或不满，须变红待裁定。 */
 
 class HudBarTexturesTest {
 
@@ -26,9 +26,11 @@ class HudBarTexturesTest {
     }
 
     @Test
-    @DisplayName("the stat bar's frame is the stat row size, its fill one pixel inside")
-    void statBarMatchesTheLayout() throws IOException {
-        assertBar("stat", PlayerStatsHud.BAR_WIDTH - 2, PlayerStatsHud.BAR_HEIGHT - 2);
+    @DisplayName("the status orb frames are the orb sizes and the wave strip holds eight frames of three layers")
+    void statusOrbsMatchTheLayout() throws IOException {
+        assertSize("orb_main", OrbDrawing.MAIN, OrbDrawing.MAIN);
+        assertSize("orb_sub", OrbDrawing.SUB, OrbDrawing.SUB);
+        assertSize("orb_wave", OrbDrawing.WAVE_W, OrbDrawing.WAVE_H);
     }
 
     @Test

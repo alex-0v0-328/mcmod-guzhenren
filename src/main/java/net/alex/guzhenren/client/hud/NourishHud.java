@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 温养空窍时在快捷栏上方显示的温养进度条。
  * <ul>
- *   <li>注册在原版氧气条图层之上；进度读取 {@link ApertureNourishService#getFraction}，当真元即将耗尽时填充转为红
- *       色。</li>
- *   <li>当蓄力条同时显示时，本条上移一个 {@link #getStackShift} 高度避免重叠；{@link ShieldHud} 同样通过
+ *   <li>注册在原版氧气条图层之上；进度读取 {@link ApertureNourishService#getFraction}，当真元即将耗尽时填充转为红色。
+ *       </li>
+ *   <li>开窍资质条同时显示时，本条上移一个 {@link #getStackShift} 高度避免重叠；{@link ShieldHud} 同样通过
  *       {@link #isShowing} 将护盾条叠放在本条之上。</li>
  *   <li>温养运镜期间（{@link CultivationCamera#isShowing}）其余 HUD 图层隐藏，温养条连同标题改画在下黑边中央（
  *       {@link CinematicHud}）。</li>
@@ -64,7 +64,7 @@ public final class NourishHud extends HotbarHud {
             return CinematicHud.getBottomCenter(minecraft.getWindow().getGuiScaledHeight())
                     - (BAR_HEIGHT - TEXT_GAP - minecraft.font.lineHeight) / 2;
         }
-        return getBarTop(minecraft) - (ChargeHud.isShowing(minecraft, player) ? getStackShift(minecraft) : 0);
+        return getBarTop(minecraft) - (ChargeHud.isAtHotbar(player) ? getStackShift(minecraft) : 0);
     }
 
     private Component getCaption(boolean starving, int progress) {

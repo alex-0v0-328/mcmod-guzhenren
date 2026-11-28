@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.hud;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.alex.guzhenren.client.ApertureSea;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
@@ -23,15 +24,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 左上角玩家状态 HUD：顶部显示境界摘要行，下方依次排列各资源池进度条。
+ * 左上角玩家状态 HUD（Alex 定）：真元主珠（32×32）、压在其右下的魂魄子珠（24×24）与右侧铭牌。
  * <ul>
- *   <li>注册在原版快捷栏图层之上（{@link net.alex.guzhenren.client.event.ClientEvents}）。</li>
- *   <li>由上至下依次为标题行（境界、称号与资质[Aptitude]）、真元条、精炼真元条、魂魄条、间隔空行、寿元与年龄以及压力倒
- *       计时文本；全部措辞取自 {@link ModDisplayText} 以与信息命令保持一致，在 {@code hideGui}、旁观模式或 F3 调试界面
- *       开启时自动隐藏。</li>
- *   <li>展示内容仅取决于空窍、肉身、魂魄附件与压力倒计时整秒数，因此仅在 {@link Key} 变化时重建 {@link Layout}（附件为
- *       不可变记录，每次同步整体替换），静帧下零文字分配；所有进度条（{@link HudBar}）合批走一个 {@link SpriteBatch}，
- *       所有文本合批走一个 {@link GuiBatch}，彼此互不压盖。</li>
+ *   <li>注册在原版快捷栏图层之上（{@link net.alex.guzhenren.client.event.ClientEvents}），在 {@code hideGui}、旁观模
+ *       式或 F3 调试界面开启时隐藏。</li>
+ *   <li>主珠液面 = 当前真元 / 上限，底部深色一层是精炼真元，液色取 {@link ApertureSea} 的境界配色，珠心写百分比；两只
+ *       空窍时主珠竖分两室（左第一、右第二）各画液面；未开窍或六转以上主珠空着、不写数。子珠液面 = 魂魄比例。</li>
+ *   <li>铭牌第一行金色写境界称号，第二行写资质与寿元（凡人只写寿元）；十绝体压力倒计时时在子珠右侧加一行朱砂字。措辞
+ *       取自 {@link ModDisplayText}，与信息命令一致。</li>
+ *   <li>内容只取决于空窍、肉身、魂魄附件与压力倒计时整秒数，仅在 {@link Key} 变化时重建 {@link Layout}，静帧零文字分
+ *       配；液色先用填色画，波面与珠框合批一个 {@link SpriteBatch}，文字合批一个 {@link GuiBatch}。</li>
  * </ul>
  */
 
@@ -41,28 +43,30 @@ public final class PlayerStatsHud {
 
     private PlayerStatsHud() {}
 
-    private static final int LEFT = 8;
-    private static final int TOP = 8;
-    static final int BAR_WIDTH = 130;
-    static final int BAR_HEIGHT = 9;
-    private static final HudBar STAT = HudBar.of("stat", BAR_WIDTH - 2, BAR_HEIGHT - 2);
-    private static final int TEXT_HEIGHT = 9;
-    private static final int ROW_GAP = 2;
-    private static final int GROUP_GAP = 7;
+    private static final int LEFT = 6;
+    private static final int TOP = 6;
+    private static final int SUB_X = LEFT + 20;
+    private static final int SUB_Y = TOP + 22;
+    private static final int PLATE_X = LEFT + OrbDrawing.MAIN + 6;
+    private static final int MAIN_WINDOW = OrbDrawing.MAIN - 2 * OrbDrawing.INSET;
+    private static final int SUB_WINDOW = OrbDrawing.SUB - 2 * OrbDrawing.INSET;
+    private static final int PLATE_DIM = 0xFFD8CCB8;
+    private static final OrbDrawing.Liquid SOUL = new OrbDrawing.Liquid(0xFF6A3A80, ModPalette.SOUL, 0xFFE4B8FF,
+            0xFFF4E0FF);
     private static final long NO_COUNTDOWN = -1L;
     private @Nullable Key cachedKey;
-    private Layout layout = new Layout(List.of(), List.of());
+    private Layout layout = Layout.EMPTY;
 
     public void render(@NotNull GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
         if (player == null || minecraft.options.hideGui) return;
-
         if (player.isSpectator() || minecraft.getDebugOverlay().showDebugScreen()) return;
 
         Font font = minecraft.font;
         Layout current = getLayout(player);
-        SpriteBatch.draw(graphics, sprites -> drawBars(sprites, current));
+        fillLiquids(graphics, current);
+        SpriteBatch.draw(graphics, sprites -> drawSprites(sprites, current));
         GuiBatch.draw(graphics, () -> drawText(graphics, font, current));
     }
 
@@ -85,76 +89,96 @@ public final class PlayerStatsHud {
         return aperture.pressure() == Aperture.PRESSURE_COUNTDOWN_START && aperture.pressureDeadlineTick() > 0L;
     }
 
+    //region Layout [布局]
     private static Layout build(Key key) {
         ApertureData data = key.data();
-        Aperture aperture = data.getPrimary();
-        List<Bar> bars = new ArrayList<>();
-        List<Line> lines = new ArrayList<>();
-
-        int y = TOP;
-        lines.add(new Line(y, ModDisplayText.formatHudHeader(aperture, key.body())));
-        y += TEXT_HEIGHT + ROW_GAP;
-
-        if (data.hasAperture()) y = addEssenceBars(bars, y, data);
-
-        bars.add(createBar(y, key.soul().currentSoul(), key.soul().maxSoul(), ModPalette.SOUL));
-        y += BAR_HEIGHT + GROUP_GAP;
-
-        lines.add(new Line(y,
-                Component.translatable("guzhenren.hud.lifespan", ModDisplayText.formatHudLifespan(key.body()))));
-        y += TEXT_HEIGHT + ROW_GAP;
-
-        if (key.body().isExtreme()) lines.add(new Line(y, formatPressure(aperture, key.seconds())));
-        return new Layout(bars, lines);
-    }
-
-    private static int addEssenceBars(List<Bar> bars, int top, ApertureData data) {
-        int y = top;
-        for (int i = 0; i < data.count(); i++) {
-            Aperture pool = data.get(i);
-            bars.add(createBar(y, pool.currentEssence(), pool.getMaxEssence(), ModPalette.APERTURE));
-            y += BAR_HEIGHT + ROW_GAP;
-
-            if (pool.distilledEssence() > 0L) {
-                bars.add(createBar(y, pool.distilledEssence(), pool.getMaxEssence(), ModPalette.DISTILLED_FILL));
-                y += BAR_HEIGHT + ROW_GAP;
+        Aperture primary = data.getPrimary();
+        List<Chamber> chambers = new ArrayList<>();
+        if (data.hasAperture()) {
+            int count = data.count();
+            for (int i = 0; i < count; i++) {
+                Aperture pool = data.get(i);
+                int[] colors = ApertureSea.getColors(pool);
+                if (colors == null) continue;
+                long max = pool.getMaxEssence();
+                chambers.add(new Chamber(i * MAIN_WINDOW / count, (i + 1) * MAIN_WINDOW / count,
+                        ratio(pool.currentEssence(), max), ratio(pool.distilledEssence(), max),
+                        new OrbDrawing.Liquid(colors[ApertureSea.DEEP], colors[ApertureSea.MID],
+                                colors[ApertureSea.LIGHT], colors[ApertureSea.CREST])));
             }
         }
-        return y;
+        float soul = ratio(key.soul().currentSoul(), key.soul().maxSoul());
+        Component lifespan = Component.translatable("guzhenren.hud.lifespan",
+                ModDisplayText.formatHudLifespan(key.body()));
+        Component detail = data.hasAperture()
+                ? Component.empty().append(ModDisplayText.formatHudAptitude(primary, key.body())).append(" · ")
+                .append(lifespan)
+                : lifespan;
+        Component pressure = key.seconds() == NO_COUNTDOWN ? null
+                : Component.translatable("guzhenren.hud.aperture_pressure_cooldown", primary.pressure(),
+                ModDisplayText.formatClock(key.seconds()));
+        return new Layout(chambers, soul, ModDisplayText.formatRealmTitle(primary), detail, pressure);
     }
 
-    private static Component formatPressure(Aperture aperture, long seconds) {
-        return seconds != NO_COUNTDOWN
-                ? Component.translatable("guzhenren.hud.aperture_pressure_cooldown", aperture.pressure(),
-                ModDisplayText.formatClock(seconds))
-                : Component.translatable("guzhenren.hud.aperture_pressure", aperture.pressure());
+    private static float ratio(long current, long max) {
+        return max <= 0L ? 0.0F : (float) Math.clamp(current / (double) max, 0.0, 1.0);
     }
 
-    private static Bar createBar(int y, long current, long max, int fill) {
-        int track = STAT.width();
-        int filled = max <= 0L ? 0 : Math.clamp(Math.round(track * (current / (double) max)), 0, track);
-        return new Bar(y, filled, fill, ModDisplayText.formatPool(current, max));
+    private static String percent(float fraction) { return Integer.toString(Math.round(fraction * 100.0F)); }
+    //endregion
+
+    //region Drawing [绘制]
+    private static void fillLiquids(GuiGraphics graphics, Layout layout) {
+        int x = LEFT + OrbDrawing.INSET;
+        int y = TOP + OrbDrawing.INSET;
+        for (Chamber chamber : layout.chambers()) {
+            OrbDrawing.fillLiquid(graphics, x, y, MAIN_WINDOW, chamber.from(), chamber.to(), chamber.essence(),
+                    chamber.refined(), chamber.liquid());
+        }
+        if (layout.chambers().size() > 1) {
+            graphics.fill(x + MAIN_WINDOW / 2, y + 1, x + MAIN_WINDOW / 2 + 1, y + MAIN_WINDOW - 1, ModPalette.SURFACE_0);
+        }
+        OrbDrawing.fillLiquid(graphics, SUB_X + OrbDrawing.INSET, SUB_Y + OrbDrawing.INSET, SUB_WINDOW, 0,
+                SUB_WINDOW, layout.soul(), 0.0F, SOUL);
     }
 
-    private static void drawBars(SpriteBatch sprites, Layout layout) {
-        for (Bar bar : layout.bars()) STAT.draw(sprites, LEFT + 1, bar.y() + 1, bar.filled(), bar.fill());
+    private static void drawSprites(SpriteBatch sprites, Layout layout) {
+        for (Chamber chamber : layout.chambers()) {
+            OrbDrawing.drawWave(sprites, LEFT + OrbDrawing.INSET, TOP + OrbDrawing.INSET, MAIN_WINDOW, chamber.from(),
+                    chamber.to(), chamber.essence(), chamber.liquid());
+        }
+        OrbDrawing.drawFrame(sprites, LEFT, TOP, true);
+        OrbDrawing.drawWave(sprites, SUB_X + OrbDrawing.INSET, SUB_Y + OrbDrawing.INSET, SUB_WINDOW, 0, SUB_WINDOW,
+                layout.soul(), SOUL);
+        OrbDrawing.drawFrame(sprites, SUB_X, SUB_Y, false);
     }
 
     private static void drawText(GuiGraphics graphics, Font font, Layout layout) {
-        for (Line line : layout.lines()) {
-            graphics.drawString(font, line.text(), LEFT, line.y(), ModPalette.TEXT, true);
+        int centerY = TOP + (OrbDrawing.MAIN - font.lineHeight) / 2 - 2;
+        for (Chamber chamber : layout.chambers()) {
+            String text = percent(chamber.essence());
+            int centerX = LEFT + OrbDrawing.INSET + (chamber.from() + chamber.to()) / 2;
+            graphics.drawString(font, text, centerX - font.width(text) / 2, centerY, ModPalette.TEXT, true);
         }
-        for (Bar bar : layout.bars()) {
-            graphics.drawString(font, bar.text(), LEFT + (BAR_WIDTH - font.width(bar.text())) / 2, bar.y() + 1,
-                    ModPalette.TEXT, true);
+        graphics.drawString(font, layout.title(), PLATE_X, TOP + 3, ModPalette.ACCENT, true);
+        graphics.drawString(font, layout.detail(), PLATE_X, TOP + 13, PLATE_DIM, true);
+        int soulX = SUB_X + OrbDrawing.SUB + 2;
+        int soulY = SUB_Y + (OrbDrawing.SUB - font.lineHeight) / 2;
+        String soul = percent(layout.soul());
+        graphics.drawString(font, soul, soulX, soulY, ModPalette.TEXT, true);
+        if (layout.pressure() != null) {
+            graphics.drawString(font, layout.pressure(), soulX + font.width(soul) + 6, soulY, ModPalette.SHORT, true);
         }
     }
+    //endregion
 
     private record Key(ApertureData data, BodyData body, SoulData soul, long seconds) {}
 
-    private record Bar(int y, int filled, int fill, String text) {}
+    private record Chamber(int from, int to, float essence, float refined, OrbDrawing.Liquid liquid) {}
 
-    private record Line(int y, Component text) {}
+    private record Layout(List<Chamber> chambers, float soul, Component title, Component detail,
+                          @Nullable Component pressure) {
 
-    private record Layout(List<Bar> bars, List<Line> lines) {}
+        static final Layout EMPTY = new Layout(List.of(), 0.0F, Component.empty(), Component.empty(), null);
+    }
 }
