@@ -688,7 +688,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.map.tool.pasture",            "牧场");
         add("guzhenren.blissful_land.ui.map.tool.move",               "迁移");
         add("guzhenren.blissful_land.ui.map.tool.select",             "选择");
-        add("guzhenren.blissful_land.ui.map.act.plant",               "种植");
         add("guzhenren.blissful_land.ui.map.act.grow",                "种收");
         add("guzhenren.blissful_land.ui.map.act.soil",                "土质");
         add("guzhenren.blissful_land.ui.map.act.harvest",             "收获");
@@ -704,8 +703,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("guzhenren.blissful_land.ui.map.card.fields",             "已选 %s 块田");
         add("guzhenren.blissful_land.ui.map.card.plans",              "已选 %s 块规划田");
         add("guzhenren.blissful_land.ui.map.card.fields_plans",       "已选 %s 块田 · 规划 %s");
-        add("guzhenren.blissful_land.ui.map.card.kind_plain",         "普通田");
-        add("guzhenren.blissful_land.ui.map.card.kind_gu_plant",      "蛊植田");
         add("guzhenren.blissful_land.ui.map.card.confirm",            "确认");
         add("guzhenren.blissful_land.ui.map.card.auto_gather",        "自动收拢");
         add("guzhenren.blissful_land.ui.map.card.gather_types",       "收拢种类");

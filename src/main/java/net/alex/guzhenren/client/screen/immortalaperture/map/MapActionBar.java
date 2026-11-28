@@ -24,8 +24,9 @@ import org.jetbrains.annotations.Nullable;
  *   <li>需 / 有写在悬停提示，不够或无事可做时键失效（拆除不失效）；只选了规划田时只有拆除（= 取消规划）可点。</li>
  *   <li>清除作物、土质与拆除两步：第一次点键变危险色、键上写「确认」，再点才发；选区一变或点别处即撤销。拆除平时不用危险色
  *       （红色只给紧急）。</li>
- *   <li>图标一图一概念：催熟 {@code act_ripen}、收获镰刀 {@code act_harvest}、清除作物铲子 {@code act_uproot}（Alex 定
- *       与镰刀分开）、拆除 {@code tool_remove}；种植、土质写字。</li>
+ *   <li>图标一图一概念（Alex 定稿）：种植 {@code act_plant}（种子 + ↓ 角标，不借开垦的 {@code tool_farm}）、催熟
+ *       {@code act_ripen}、收获镰刀 {@code act_harvest}、普通田 {@code soil_plain} 与蛊植田 {@code soil_gu_plant}（同一块田，
+ *       后者加蛊角标）、清除作物铲子 {@code act_uproot}（与镰刀分开）、拆除 {@code tool_remove}；只有当前作物键写种子图标。</li>
  * </ul>
  */
 
@@ -33,7 +34,7 @@ final class MapActionBar {
 
     private static final int KEY = 20;
     private static final int ICON_W = 22;
-    private static final int TEXT_W = 30;
+    private static final int CROP_W = 30;
     private static final int GAP = 2;
     private static final int SIDE = 6;
     private static final int BOTTOM = 6;
@@ -119,7 +120,7 @@ final class MapActionBar {
 
     private static int width(Key key) {
         return switch (key) {
-            case CROP, PLANT, PLAIN, GU_PLANT -> TEXT_W;
+            case CROP -> CROP_W;
             default -> ICON_W;
         };
     }
@@ -213,20 +214,14 @@ final class MapActionBar {
 
     private static @Nullable String icon(Key key) {
         return switch (key) {
+            case PLANT -> "act_plant";
+            case PLAIN -> "soil_plain";
+            case GU_PLANT -> "soil_gu_plant";
             case RIPEN -> "act_ripen";
             case HARVEST -> "act_harvest";
             case UPROOT -> "act_uproot";
             case CLEAR -> "tool_remove";
             default -> null;
-        };
-    }
-
-    private static Component text(Key key) {
-        return switch (key) {
-            case PLANT -> Component.translatable(UI + "plant");
-            case PLAIN -> Component.translatable(EarthSpiritScreen.UI + "map.card.kind_plain");
-            case GU_PLANT -> Component.translatable(EarthSpiritScreen.UI + "map.card.kind_gu_plant");
-            default -> Component.empty();
         };
     }
     //endregion
@@ -294,8 +289,6 @@ final class MapActionBar {
                         look, true);
             } else if (key == Key.CROP) {
                 cropKey(graphics, font, land, live);
-            } else if (icon(key) == null) {
-                PanelDrawing.label(graphics, font, text(key), left(key), keyY(), width(key), KEY, look, live);
             }
         }
         if (wide) {
@@ -323,11 +316,11 @@ final class MapActionBar {
         int left = left(Key.CROP);
         Component arrow = Component.literal("▾");
         if (picked == CropKeys.NONE) {
-            PanelDrawing.label(graphics, font, arrow, left, keyY(), TEXT_W, KEY, PanelDrawing.Look.GHOST, live);
+            PanelDrawing.label(graphics, font, arrow, left, keyY(), CROP_W, KEY, PanelDrawing.Look.GHOST, live);
             return;
         }
-        CropKeys.seed(graphics, font, picked, left, keyY(), TEXT_W, land.seeds(picked));
-        graphics.drawString(font, arrow, left + TEXT_W - 2 - font.width(arrow), keyY() + 2, PanelDrawing.LEGEND,
+        CropKeys.seed(graphics, font, picked, left, keyY(), CROP_W, land.seeds(picked));
+        graphics.drawString(font, arrow, left + CROP_W - 2 - font.width(arrow), keyY() + 2, PanelDrawing.LEGEND,
                 false);
     }
 
