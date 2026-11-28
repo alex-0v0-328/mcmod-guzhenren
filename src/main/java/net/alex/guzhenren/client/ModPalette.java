@@ -21,6 +21,7 @@ public final class ModPalette {
     public static final int SURFACE_3 = 0xFF3A2D2F;
     public static final int ACCENT_DARK = 0xFF825023;
     public static final int ACCENT = 0xFFE4B750;
+    public static final int ACCENT_TEXT = 0xFFFFF1C8;
     //endregion
 
     //region Data [数据色]

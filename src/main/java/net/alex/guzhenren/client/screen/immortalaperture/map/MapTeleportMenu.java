@@ -3,7 +3,6 @@ package net.alex.guzhenren.client.screen.immortalaperture.map;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -23,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 final class MapTeleportMenu {
 
     private static final int PAD = 4;
-    private static final int ROW_H = PanelDrawing.GHOST_H;
+    private static final int ROW_H = Widgets.GHOST_H;
     private static final int HEIGHT = PAD * 2 + ROW_H;
     private static final String UI = EarthSpiritScreen.UI + "map.teleport.";
     private MapPick.@Nullable Hit hit;
@@ -61,14 +60,14 @@ final class MapTeleportMenu {
 
     void sprites(SpriteBatch sprites, double mouseX, double mouseY) {
         if (hit == null) return;
-        sprites.blit(PanelDrawing.POPUP, left, top, width, HEIGHT);
-        PanelDrawing.button(sprites, left + PAD, rowTop(), width - PAD * 2, ROW_H, PanelDrawing.Look.GHOST, true, mouseX,
+        sprites.blit(Widgets.POPUP, left, top, width, HEIGHT);
+        Widgets.button(sprites, left + PAD, rowTop(), width - PAD * 2, ROW_H, Widgets.Look.GHOST, true, mouseX,
                 mouseY);
     }
 
     void texts(GuiGraphics graphics, Font font) {
         if (hit == null) return;
-        PanelDrawing.label(graphics, font, here(), left + PAD, rowTop(), width - PAD * 2, ROW_H, PanelDrawing.Look.GHOST,
+        Widgets.label(graphics, font, here(), left + PAD, rowTop(), width - PAD * 2, ROW_H, Widgets.Look.GHOST,
                 true);
     }
 

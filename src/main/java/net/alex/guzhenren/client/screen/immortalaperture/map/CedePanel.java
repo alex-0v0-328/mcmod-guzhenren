@@ -1,9 +1,9 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.TerritoryPart;
 import net.alex.guzhenren.gameplay.immortalaperture.state.Territory;
@@ -108,24 +108,24 @@ final class CedePanel {
         graphics.fill(0, 0, screenWidth, screenHeight, DIM);
         int column = left + 148;
         SpriteBatch.draw(graphics, sprites -> {
-            sprites.blit(PanelDrawing.POPUP, left, top, WIDTH, HEIGHT);
-            sprites.blit(PanelDrawing.INSET, left + 9, top + 24, MAP + 2, MAP + 2);
+            sprites.blit(Widgets.POPUP, left, top, WIDTH, HEIGHT);
+            sprites.blit(Widgets.INSET, left + 9, top + 24, MAP + 2, MAP + 2);
             for (Territory.Side each : Territory.Side.values()) {
                 int[] at = ARROWS[each.ordinal()];
                 boolean hover = !confirming && Widgets.isOver(mouseX, mouseY, column + at[0], top + at[1], ARROW,
                         ARROW);
-                PanelDrawing.Look look = each == side ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
-                PanelDrawing.button(sprites, column + at[0], top + at[1], ARROW, ARROW, look, true, hover);
+                Widgets.Look look = each == side ? Widgets.Look.SELECTED : Widgets.Look.PLAIN;
+                Widgets.button(sprites, column + at[0], top + at[1], ARROW, ARROW, look, true, hover);
             }
-            PanelDrawing.button(sprites, column, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H,
-                    PanelDrawing.Look.GHOST, true, mouseX, mouseY);
-            PanelDrawing.button(sprites, column + 44, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H,
-                    PanelDrawing.Look.GHOST, true, mouseX, mouseY);
-            PanelDrawing.button(sprites, column, top + 142, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
-            PanelDrawing.button(sprites, column + 56, top + 142, BUTTON_W, BUTTON_H, PanelDrawing.Look.DANGER,
+            Widgets.button(sprites, column, top + 128, Widgets.GHOST_H, Widgets.GHOST_H,
+                    Widgets.Look.GHOST, true, mouseX, mouseY);
+            Widgets.button(sprites, column + 44, top + 128, Widgets.GHOST_H, Widgets.GHOST_H,
+                    Widgets.Look.GHOST, true, mouseX, mouseY);
+            Widgets.button(sprites, column, top + 142, BUTTON_W, BUTTON_H, true, mouseX, mouseY);
+            Widgets.button(sprites, column + 56, top + 142, BUTTON_W, BUTTON_H, Widgets.Look.DANGER,
                     canCede(), mouseX, mouseY);
         });
-        graphics.fill(left + 9, top + 19, left + WIDTH - 9, top + 20, PanelDrawing.ACCENT);
+        graphics.fill(left + 9, top + 19, left + WIDTH - 9, top + 20, ModPalette.ACCENT);
         TerritorySketch.draw(graphics, left + 10, top + 25, territory(), canCede() ? side : null, clampedWidth(),
                 camera.viewChunks());
         texts(graphics, font, column);
@@ -135,37 +135,37 @@ final class CedePanel {
     private void texts(GuiGraphics graphics, Font font, int column) {
         Territory territory = territory();
         graphics.drawString(font, Component.translatable(UI + "map.cede_title"), left + 10, top + 8,
-                PanelDrawing.ACCENT, false);
-        graphics.drawString(font, Component.translatable(UI + "acres"), column, top + 26, PanelDrawing.LEGEND, false);
-        graphics.drawString(font, Long.toString(territory.acres()), column, top + 36, PanelDrawing.TEXT, false);
+                ModPalette.ACCENT, false);
+        graphics.drawString(font, Component.translatable(UI + "acres"), column, top + 26, ModPalette.LEGEND_TEXT, false);
+        graphics.drawString(font, Long.toString(territory.acres()), column, top + 36, ModPalette.TEXT, false);
         graphics.drawString(font, (territory.maxChunkX() - territory.minChunkX() + 1) + "×"
-                + (territory.maxChunkZ() - territory.minChunkZ() + 1), column, top + 46, PanelDrawing.LEGEND, false);
+                + (territory.maxChunkZ() - territory.minChunkZ() + 1), column, top + 46, ModPalette.LEGEND_TEXT, false);
         for (Territory.Side each : Territory.Side.values()) {
             int[] at = ARROWS[each.ordinal()];
             Component label = Component.translatable("guzhenren.blissful_land.side." + key(each));
             graphics.drawString(font, label, column + at[0] + (ARROW - font.width(label)) / 2,
                     top + at[1] + (ARROW - font.lineHeight) / 2 + 1 + (each == side ? 1 : 0),
-                    each == side ? PanelDrawing.SELECTED_TEXT : PanelDrawing.TEXT, false);
+                    each == side ? ModPalette.ACCENT_TEXT : ModPalette.TEXT, false);
         }
-        graphics.drawString(font, Component.translatable(UI + "strip_width"), column, top + 117, PanelDrawing.LEGEND,
+        graphics.drawString(font, Component.translatable(UI + "strip_width"), column, top + 117, ModPalette.LEGEND_TEXT,
                 false);
-        PanelDrawing.label(graphics, font, Component.literal("-"), column, top + 128, PanelDrawing.GHOST_H,
-                PanelDrawing.GHOST_H, PanelDrawing.Look.GHOST, true);
-        PanelDrawing.centered(graphics, font, Component.literal(Integer.toString(clampedWidth())), column + 14,
-                column + 44, top + 131, PanelDrawing.TEXT);
-        PanelDrawing.label(graphics, font, Component.literal("+"), column + 44, top + 128, PanelDrawing.GHOST_H,
-                PanelDrawing.GHOST_H, PanelDrawing.Look.GHOST, true);
-        graphics.drawString(font, Component.translatable(UI + "chunk"), column + 62, top + 131, PanelDrawing.LEGEND,
+        Widgets.label(graphics, font, Component.literal("-"), column, top + 128, Widgets.GHOST_H,
+                Widgets.GHOST_H, Widgets.Look.GHOST, true);
+        Widgets.centered(graphics, font, Component.literal(Integer.toString(clampedWidth())), column + 14,
+                column + 44, top + 131, ModPalette.TEXT);
+        Widgets.label(graphics, font, Component.literal("+"), column + 44, top + 128, Widgets.GHOST_H,
+                Widgets.GHOST_H, Widgets.Look.GHOST, true);
+        graphics.drawString(font, Component.translatable(UI + "chunk"), column + 62, top + 131, ModPalette.LEGEND_TEXT,
                 false);
-        PanelDrawing.label(graphics, font, Component.translatable(UI + "map.close"), column, top + 142, BUTTON_W,
+        Widgets.label(graphics, font, Component.translatable(UI + "map.close"), column, top + 142, BUTTON_W,
                 BUTTON_H, true);
-        PanelDrawing.label(graphics, font, Component.translatable(UI + "cede"), column + 56, top + 142, BUTTON_W,
-                BUTTON_H, PanelDrawing.Look.DANGER, canCede());
+        Widgets.label(graphics, font, Component.translatable(UI + "cede"), column + 56, top + 142, BUTTON_W,
+                BUTTON_H, Widgets.Look.DANGER, canCede());
         Component preview = canCede()
                 ? Component.translatable(UI + "cede_preview", sideName(), clampedWidth(), pendingAcres())
                 : Component.translatable(UI + "cede_core", sideName());
-        graphics.drawString(font, preview, left + 10, top + 162, PanelDrawing.WARN, false);
-        graphics.drawString(font, Component.translatable(UI + "cede_note"), left + 10, top + 174, PanelDrawing.LEGEND,
+        graphics.drawString(font, preview, left + 10, top + 162, ModPalette.SHORT, false);
+        graphics.drawString(font, Component.translatable(UI + "cede_note"), left + 10, top + 174, ModPalette.LEGEND_TEXT,
                 false);
     }
 
@@ -174,28 +174,28 @@ final class CedePanel {
         int boxTop = top + (HEIGHT - CONFIRM_H) / 2;
         graphics.fill(left, top, left + WIDTH, top + HEIGHT, DIM);
         SpriteBatch.draw(graphics, sprites -> {
-            sprites.blit(PanelDrawing.POPUP, boxLeft, boxTop, CONFIRM_W, CONFIRM_H);
-            PanelDrawing.button(sprites, boxLeft + 10, boxTop + CONFIRM_H - 24, 70, BUTTON_H, true, mouseX, mouseY);
+            sprites.blit(Widgets.POPUP, boxLeft, boxTop, CONFIRM_W, CONFIRM_H);
+            Widgets.button(sprites, boxLeft + 10, boxTop + CONFIRM_H - 24, 70, BUTTON_H, true, mouseX, mouseY);
             boolean hover = Widgets.isOver(mouseX, mouseY, boxLeft + CONFIRM_W - 80, boxTop + CONFIRM_H - 24, 70,
                     BUTTON_H);
-            PanelDrawing.button(sprites, boxLeft + CONFIRM_W - 80, boxTop + CONFIRM_H - 24, 70, BUTTON_H,
-                    PanelDrawing.Look.DANGER, true, hover);
+            Widgets.button(sprites, boxLeft + CONFIRM_W - 80, boxTop + CONFIRM_H - 24, 70, BUTTON_H,
+                    Widgets.Look.DANGER, true, hover);
         });
         graphics.drawString(font, Component.translatable(UI + "confirm_title"), boxLeft + 10, boxTop + 8,
-                PanelDrawing.WARN, false);
+                ModPalette.SHORT, false);
         graphics.fill(boxLeft + 9, boxTop + 18, boxLeft + CONFIRM_W - 9, boxTop + 19, POPUP_RULE);
         graphics.drawString(font, Component.translatable(UI + "confirm_body", sideName(), clampedWidth(),
-                pendingAcres()), boxLeft + 10, boxTop + 24, PanelDrawing.TEXT, false);
+                pendingAcres()), boxLeft + 10, boxTop + 24, ModPalette.TEXT, false);
         MapPlots.Voided voided = MapPlots.voided(page.land().plots(), territory(), side, clampedWidth());
         if (!voided.isEmpty()) {
             graphics.drawString(font, Component.translatable(UI + "map.cede_voids", voided.fields(), voided.planned(),
-                    voided.pastures()), boxLeft + 10, boxTop + 36, PanelDrawing.WARN, false);
+                    voided.pastures()), boxLeft + 10, boxTop + 36, ModPalette.SHORT, false);
         }
         graphics.drawString(font, Component.translatable(UI + "confirm_note"), boxLeft + 10, boxTop + 48,
-                PanelDrawing.LEGEND, false);
-        PanelDrawing.label(graphics, font, Component.translatable(UI + "cancel"), boxLeft + 10, boxTop + CONFIRM_H - 24,
+                ModPalette.LEGEND_TEXT, false);
+        Widgets.label(graphics, font, Component.translatable(UI + "cancel"), boxLeft + 10, boxTop + CONFIRM_H - 24,
                 70, BUTTON_H, true);
-        PanelDrawing.label(graphics, font, Component.translatable(UI + "confirm_title"), boxLeft + CONFIRM_W - 80,
+        Widgets.label(graphics, font, Component.translatable(UI + "confirm_title"), boxLeft + CONFIRM_W - 80,
                 boxTop + CONFIRM_H - 24, 70, BUTTON_H, true);
     }
     //endregion
@@ -215,10 +215,10 @@ final class CedePanel {
             }
         }
         int step = shift ? SHIFT_STEP : 1;
-        if (Widgets.isOver(mouseX, mouseY, column, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H)) {
+        if (Widgets.isOver(mouseX, mouseY, column, top + 128, Widgets.GHOST_H, Widgets.GHOST_H)) {
             width = clampedWidth() - step;
             clampedWidth();
-        } else if (Widgets.isOver(mouseX, mouseY, column + 44, top + 128, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H)) {
+        } else if (Widgets.isOver(mouseX, mouseY, column + 44, top + 128, Widgets.GHOST_H, Widgets.GHOST_H)) {
             width = clampedWidth() + step;
             clampedWidth();
         } else if (Widgets.isOver(mouseX, mouseY, column, top + 142, BUTTON_W, BUTTON_H)) {
@@ -253,7 +253,7 @@ final class CedePanel {
                 return true;
             }
         }
-        if (page.tipAt(graphics, column, top + 128, 44 + PanelDrawing.GHOST_H, PanelDrawing.GHOST_H, mouseX, mouseY,
+        if (page.tipAt(graphics, column, top + 128, 44 + Widgets.GHOST_H, Widgets.GHOST_H, mouseX, mouseY,
                 Component.translatable(TIP + "strip_width", SHIFT_STEP))) {
             return true;
         }

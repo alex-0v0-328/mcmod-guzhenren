@@ -1,7 +1,6 @@
 package net.alex.guzhenren.client.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
@@ -30,7 +29,7 @@ public class ApertureStorageScreen extends AbstractContainerScreen<ApertureStora
     private static final int PAGE_BUTTON_W = 16;
     private static final int PAGE_BUTTON_H = 14;
     private static final int PAGE_LABEL_W = 40;
-    private static final ResourceLocation SIDE_TAB = Guzhenren.id("panel_side_tab");
+    private static final ResourceLocation SIDE_TAB = Widgets.ui("side_card");
     private static final int SIDE_TAB_OVERLAP = 6;
     private static final int SIDE_TAB_W = 40;
     private static final int SIDE_TAB_H = 44;

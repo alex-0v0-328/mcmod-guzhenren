@@ -1,8 +1,8 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -16,7 +16,7 @@ final class MapPopup {
 
     static final int PAD = 5;
     static final int TITLE = 12;
-    static final int ROW_H = PanelDrawing.GHOST_H;
+    static final int ROW_H = Widgets.GHOST_H;
     static final int ROW_GAP = 2;
     private static final int GAP = 4;
     private static final int MARGIN = 6;
@@ -42,11 +42,11 @@ final class MapPopup {
         return new Box(x, above - GAP - height, width, height);
     }
 
-    static void frame(SpriteBatch sprites, Box box) { sprites.blit(PanelDrawing.POPUP, box.x, box.y, box.width, box.height); }
+    static void frame(SpriteBatch sprites, Box box) { sprites.blit(Widgets.POPUP, box.x, box.y, box.width, box.height); }
 
     static void title(GuiGraphics graphics, Font font, Box box, Component title, Component readout) {
-        graphics.drawString(font, title, box.x + PAD, box.y + PAD, PanelDrawing.LEGEND, false);
-        PanelDrawing.right(graphics, font, readout, box.x + box.width - PAD, box.y + PAD, PanelDrawing.DEAD);
+        graphics.drawString(font, title, box.x + PAD, box.y + PAD, ModPalette.LEGEND_TEXT, false);
+        Widgets.right(graphics, font, readout, box.x + box.width - PAD, box.y + PAD, ModPalette.TEXT_DEAD);
     }
 
     static int rowY(Box box, int row) { return box.innerY() + row * (ROW_H + ROW_GAP); }

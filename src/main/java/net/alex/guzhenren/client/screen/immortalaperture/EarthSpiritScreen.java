@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import net.alex.guzhenren.client.GuiBatch;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.map.MapPage;
@@ -48,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>面板开着时整帧不渲染世界（{@link #hidesWorld}，{@code GameRendererMixin} 跳过；启动参数
  *       {@code -D}{@value #KEEP_WORLD_PROPERTY}{@code =true} 退回照常渲染，供光影或性能模组冲突时排查）。四页都全屏（Alex
  *       定）：最上 {@value #BAR_H} 像素是顶栏（{@code top_bar} 平铺，含金线与投影；左写福地名（Alex 定不显示时辰），右侧并排四个页签，
- *       常态页签只有图标与灰字，悬停与选中才画底板），其余页在 {@link PanelDrawing#BACKDROP} 纯色底上排卡片；地图页整片是
+ *       常态页签只有图标与灰字，悬停与选中才画底板），其余页在 {@link ModPalette#SURFACE_0} 纯色底上排卡片；地图页整片是
  *       地图，顶栏投影压在地图上。页面原点在库藏页是两张卡片的左上角（即 {@code leftPos}/{@code topPos}，背包格按它摆），
  *       其余页为 0。</li>
  *   <li>秘境页的标签与页名写福地秘境的地名（{@link #realmName}）；信息页内部再分小节（{@link InfoPage}）。</li>
@@ -86,9 +87,9 @@ public final class EarthSpiritScreen {
     private static final int NOTICE_Y = BAR_H + 6;
     private static final int NOTICE_MILLIS = 4000;
     private static final float CARRIED_Z = 232.0F;
-    private static final ResourceLocation TOP_BAR = PanelDrawing.sprite("top_bar");
-    private static final ResourceLocation TAB_HIGHLIGHTED = PanelDrawing.sprite("tab_highlighted");
-    private static final ResourceLocation TAB_SELECTED = PanelDrawing.sprite("tab_selected");
+    private static final ResourceLocation TOP_BAR = Widgets.ui("top_bar");
+    private static final ResourceLocation TAB_HIGHLIGHTED = Widgets.ui("tab_highlighted");
+    private static final ResourceLocation TAB_SELECTED = Widgets.ui("tab_selected");
     private static final boolean KEEPS_WORLD = Boolean.getBoolean(KEEP_WORLD_PROPERTY);
     private static final String[] TAB_ICONS = {"icon_map", "icon_storage", "icon_mountain", "icon_info"};
     private final EarthSpiritMenu menu;
@@ -168,8 +169,8 @@ public final class EarthSpiritScreen {
         EditBox box = new EditBox(font(), x, y, width, 10, Component.translatable(UI + hint));
         box.setBordered(false);
         box.setMaxLength(length);
-        box.setTextColor(PanelDrawing.TEXT);
-        box.setHint(Component.translatable(UI + hint).withColor(PanelDrawing.DEAD));
+        box.setTextColor(ModPalette.TEXT);
+        box.setHint(Component.translatable(UI + hint).withColor(ModPalette.TEXT_DEAD));
         box.setValue(value);
         return box;
     }
@@ -292,7 +293,7 @@ public final class EarthSpiritScreen {
 
     //region Rendering [绘制]
     private void drawBackground(GuiGraphics graphics, int mouseX, int mouseY) {
-        if (this.page != Page.MAP) graphics.fill(0, 0, width(), height(), PanelDrawing.BACKDROP);
+        if (this.page != Page.MAP) graphics.fill(0, 0, width(), height(), ModPalette.SURFACE_0);
         PanelPage current = current();
         int left = this.x;
         int top = this.y;
@@ -311,7 +312,7 @@ public final class EarthSpiritScreen {
                 sprites.blit(TOP_BAR, 0, 0, width(), BAR_H);
                 for (Page each : Page.values()) drawTab(sprites, each, mouseX, mouseY);
             });
-            graphics.drawString(font(), landName(), 8, 8, PanelDrawing.TEXT, false);
+            graphics.drawString(font(), landName(), 8, 8, ModPalette.TEXT, false);
             for (Page each : Page.values()) drawTabLabel(graphics, each, mouseX, mouseY);
         });
     }
@@ -336,8 +337,8 @@ public final class EarthSpiritScreen {
 
     private void drawTabLabel(GuiGraphics graphics, Page each, int mouseX, int mouseY) {
         boolean selected = each == this.page;
-        int colour = selected ? PanelDrawing.ACCENT
-                : isOverTab(each, mouseX, mouseY) ? PanelDrawing.TEXT : PanelDrawing.LEGEND;
+        int colour = selected ? ModPalette.ACCENT
+                : isOverTab(each, mouseX, mouseY) ? ModPalette.TEXT : ModPalette.LEGEND_TEXT;
         graphics.drawString(font(), this.pages.get(each).name(), tabLeft(each) + 23, TAB_TOP + 7, colour, false);
     }
 
@@ -362,12 +363,12 @@ public final class EarthSpiritScreen {
     }
 
     private void drawNotice(GuiGraphics graphics) {
-        int width = font().width(this.notice) + 2 * PanelDrawing.PAD;
+        int width = font().width(this.notice) + 2 * Widgets.PAD;
         int left = (width() - width) / 2;
         graphics.pose().pushPose();
         graphics.pose().translate(0.0F, 0.0F, 300.0F);
-        SpriteBatch.draw(graphics, sprites -> sprites.blit(PanelDrawing.CHIP, left, NOTICE_Y, width, 16));
-        graphics.drawString(font(), this.notice, left + PanelDrawing.PAD, NOTICE_Y + 4, PanelDrawing.TEXT, false);
+        SpriteBatch.draw(graphics, sprites -> sprites.blit(Widgets.CHIP, left, NOTICE_Y, width, 16));
+        graphics.drawString(font(), this.notice, left + Widgets.PAD, NOTICE_Y + 4, ModPalette.TEXT, false);
         graphics.pose().popPose();
     }
 

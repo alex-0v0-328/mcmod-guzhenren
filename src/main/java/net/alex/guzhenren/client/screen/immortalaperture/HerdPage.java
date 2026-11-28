@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen.immortalaperture;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.core.Ticks;
@@ -66,41 +67,41 @@ final class HerdPage extends PanelPage {
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         List<HerdPart.Row> rows = rows();
-        offset = PanelDrawing.clampScroll(offset, list.rows(), rows.size());
+        offset = Widgets.clampScroll(offset, list.rows(), rows.size());
         list.frame(sprites, rows.size(), offset, mouseX, mouseY);
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             list.row(sprites, i, rows.size(), rows.get(offset + i).animal().isPresent(), mouseX, mouseY);
         }
-        PanelDrawing.button(sprites, list.buttonX(BREED), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H, true,
+        Widgets.button(sprites, list.buttonX(BREED), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H, true,
                 mouseX, mouseY);
-        PanelDrawing.button(sprites, list.buttonX(SLAUGHTER), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H,
-                PanelDrawing.Look.DANGER, data().slaughterPreview() > 0, mouseX, mouseY);
+        Widgets.button(sprites, list.buttonX(SLAUGHTER), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H,
+                Widgets.Look.DANGER, data().slaughterPreview() > 0, mouseX, mouseY);
     }
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         HerdPart.Section data = data();
         List<HerdPart.Row> rows = data.rows();
-        PanelDrawing.title(graphics, font(), name(), pen(), list.x(), list.y(), list.w());
+        Widgets.title(graphics, font(), name(), pen(), list.x(), list.y(), list.w());
         list.header(graphics, font(), Component.translatable(UI + "pasture"), Component.translatable(UI + "floor"),
                 rows.size());
         if (rows.isEmpty()) {
-            PanelDrawing.centered(graphics, font(), Component.translatable(UI + "herd_empty"), list.insetX(),
-                    list.insetX() + list.insetW(), list.insetY() + list.insetH() / 2 - 4, PanelDrawing.DEAD);
+            Widgets.centered(graphics, font(), Component.translatable(UI + "herd_empty"), list.insetX(),
+                    list.insetX() + list.insetW(), list.insetY() + list.insetH() / 2 - 4, ModPalette.TEXT_DEAD);
         }
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             HerdPart.Row row = rows.get(offset + i);
             boolean live = row.animal().isPresent();
-            int colour = !live ? PanelDrawing.DEAD : shortOfFeed(row) ? PanelDrawing.WARN : PanelDrawing.TEXT;
+            int colour = !live ? ModPalette.TEXT_DEAD : shortOfFeed(row) ? ModPalette.SHORT : ModPalette.TEXT;
             list.rowTexts(graphics, font(), i, rows.size(), nameOf(row), colour, row.penned(), row.floor(), live);
         }
         Component status = Component.translatable(UI + "hosting_status", data.hostingIn(),
                 Component.translatable(UI + "herd_round", data.lastSlaughtered(), data.lastBred()));
-        graphics.drawString(font(), status, list.insetX(), list.statusY(), PanelDrawing.LEGEND, false);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "breed"), list.buttonX(BREED), list.buttonY(),
+        graphics.drawString(font(), status, list.insetX(), list.statusY(), ModPalette.LEGEND_TEXT, false);
+        Widgets.label(graphics, font(), Component.translatable(UI + "breed"), list.buttonX(BREED), list.buttonY(),
                 KeepList.BUTTON_W, KeepList.BUTTON_H, true);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "slaughter"), list.buttonX(SLAUGHTER),
-                list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H, PanelDrawing.Look.DANGER,
+        Widgets.label(graphics, font(), Component.translatable(UI + "slaughter"), list.buttonX(SLAUGHTER),
+                list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H, Widgets.Look.DANGER,
                 data.slaughterPreview() > 0);
     }
 
@@ -121,7 +122,7 @@ final class HerdPage extends PanelPage {
             return;
         }
         int penW = font().width(pen());
-        if (tip(graphics, list.x() + list.w() - PanelDrawing.PAD - penW, list.y(), penW, PanelDrawing.TITLE_H, mouseX,
+        if (tip(graphics, list.x() + list.w() - Widgets.PAD - penW, list.y(), penW, Widgets.TITLE_H, mouseX,
                 mouseY, Component.translatable(TIP + "pen"))) {
             return;
         }
@@ -132,8 +133,8 @@ final class HerdPage extends PanelPage {
             HerdPart.Row row = rows.get(offset + i);
             int top = list.rowTop(i);
             int minus = list.minusX(rows.size());
-            if (tip(graphics, minus, top + 3, list.plusX(rows.size()) + PanelDrawing.GHOST_H - minus,
-                    PanelDrawing.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "floor", SHIFT_STEP))) {
+            if (tip(graphics, minus, top + 3, list.plusX(rows.size()) + Widgets.GHOST_H - minus,
+                    Widgets.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "floor", SHIFT_STEP))) {
                 return;
             }
             Component feed = row.feed() == HerdPart.UNKNOWN_FEED ? Component.translatable(TIP + "feed_unknown")
@@ -159,12 +160,12 @@ final class HerdPage extends PanelPage {
             int top = list.rowTop(i);
             int minus = list.minusX(rows.size());
             if (row.animal().isPresent()
-                    && Widgets.isOver(mouseX, mouseY, minus, top + 3, PanelDrawing.GHOST_H, PanelDrawing.GHOST_H)) {
+                    && Widgets.isOver(mouseX, mouseY, minus, top + 3, Widgets.GHOST_H, Widgets.GHOST_H)) {
                 send(new HerdPart.SetFloor(row.index(), Math.max(0, row.floor() - step)));
                 return true;
             }
             if (row.animal().isPresent() && Widgets.isOver(mouseX, mouseY, list.plusX(rows.size()), top + 3,
-                    PanelDrawing.GHOST_H, PanelDrawing.GHOST_H)) {
+                    Widgets.GHOST_H, Widgets.GHOST_H)) {
                 send(new HerdPart.SetFloor(row.index(), row.floor() + step));
                 return true;
             }
@@ -179,7 +180,7 @@ final class HerdPage extends PanelPage {
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!list.isOverList(mouseX, mouseY)) return false;
-        offset = PanelDrawing.clampScroll(offset - (int) Math.signum(delta), list.rows(), rows().size());
+        offset = Widgets.clampScroll(offset - (int) Math.signum(delta), list.rows(), rows().size());
         return true;
     }
 }

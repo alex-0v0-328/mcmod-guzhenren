@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
 import java.util.List;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
@@ -91,7 +92,7 @@ final class MapFieldBar extends MapObjectBar {
     @Override
     protected Face face(int key) {
         boolean on = pop == popOf(key);
-        PanelDrawing.Look look = on ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
+        Widgets.Look look = on ? Widgets.Look.SELECTED : Widgets.Look.PLAIN;
         int corner = key == HARVEST ? totals.mature() : -1;
         return new Face(ICONS[key], null, look, live(key), corner, Component.translatable(UI + KEYS[key]));
     }
@@ -166,23 +167,23 @@ final class MapFieldBar extends MapObjectBar {
                 CropKeys.sprites(sprites, box.innerX(), box.innerY(), pickRow, pickRows(), totals.crop(),
                         totals::canPick, mouseX, mouseY);
                 if (pickScrolls()) {
-                    PanelDrawing.scrollbar(sprites, box.innerX() + CropKeys.width() + 2, box.innerY(),
+                    Widgets.scrollbar(sprites, box.innerX() + CropKeys.width() + 2, box.innerY(),
                             CropKeys.height(pickRows()), pickRow, pickRows(), CropKeys.rows(), false);
                 }
             }
             case FERTILIZE -> {
-                PanelDrawing.button(sprites, slotX(box, 0), box.innerY(), SLOT, SLOT, PanelDrawing.Look.PLAIN,
+                Widgets.button(sprites, slotX(box, 0), box.innerY(), SLOT, SLOT, Widgets.Look.PLAIN,
                         boneLive(), mouseX, mouseY);
-                PanelDrawing.button(sprites, slotX(box, 1), box.innerY(), SLOT, SLOT,
-                        pending == Pending.MUD ? PanelDrawing.Look.DANGER : PanelDrawing.Look.PLAIN, mudLive(), mouseX,
+                Widgets.button(sprites, slotX(box, 1), box.innerY(), SLOT, SLOT,
+                        pending == Pending.MUD ? Widgets.Look.DANGER : Widgets.Look.PLAIN, mudLive(), mouseX,
                         mouseY);
             }
             case CLEAR -> {
                 for (int row = 0; row < 2; row++) {
                     boolean confirming = pending == (row == 0 ? Pending.UPROOT : Pending.REMOVE);
                     boolean live = row == 1 || uprootLive();
-                    PanelDrawing.button(sprites, box.innerX(), MapPopup.rowY(box, row), box.innerWidth(),
-                            MapPopup.ROW_H, confirming ? PanelDrawing.Look.DANGER : PanelDrawing.Look.GHOST, live,
+                    Widgets.button(sprites, box.innerX(), MapPopup.rowY(box, row), box.innerWidth(),
+                            MapPopup.ROW_H, confirming ? Widgets.Look.DANGER : Widgets.Look.GHOST, live,
                             mouseX, mouseY);
                 }
             }
@@ -226,8 +227,8 @@ final class MapFieldBar extends MapObjectBar {
                     boolean confirming = pending == (row == 0 ? Pending.UPROOT : Pending.REMOVE);
                     Component text = confirming ? Component.translatable(CONFIRM).copy().append(" ")
                             .append(clearRow(row)) : clearRow(row);
-                    PanelDrawing.label(graphics, font, text, box.innerX(), MapPopup.rowY(box, row), box.innerWidth(),
-                            MapPopup.ROW_H, confirming ? PanelDrawing.Look.DANGER : PanelDrawing.Look.GHOST,
+                    Widgets.label(graphics, font, text, box.innerX(), MapPopup.rowY(box, row), box.innerWidth(),
+                            MapPopup.ROW_H, confirming ? Widgets.Look.DANGER : Widgets.Look.GHOST,
                             row == 1 || uprootLive());
                 }
             }
@@ -241,7 +242,7 @@ final class MapFieldBar extends MapObjectBar {
         graphics.pose().pushPose();
         graphics.pose().translate(0.0F, 0.0F, 200.0F);
         graphics.drawString(font, text, left + SLOT - 1 - font.width(text), top + SLOT - 9,
-                count > 0 ? PanelDrawing.TEXT : PanelDrawing.DEAD, true);
+                count > 0 ? ModPalette.TEXT : ModPalette.TEXT_DEAD, true);
         graphics.pose().popPose();
     }
 
@@ -312,7 +313,7 @@ final class MapFieldBar extends MapObjectBar {
             pop = pop == wanted ? Pop.NONE : wanted;
             if (pop == Pop.CROPS) {
                 pickRow = totals.crop() < 0 ? 0
-                        : PanelDrawing.clampScroll(totals.crop() / CropKeys.COLUMNS, pickRows(), CropKeys.rows());
+                        : Widgets.clampScroll(totals.crop() / CropKeys.COLUMNS, pickRows(), CropKeys.rows());
             }
             return;
         }
@@ -365,7 +366,7 @@ final class MapFieldBar extends MapObjectBar {
     /** 滚轮在作物格上：翻行；返回真即吃掉。 */
     boolean scroll(double mouseX, double mouseY, double delta) {
         if (pop != Pop.CROPS || !popup().contains(mouseX, mouseY)) return false;
-        pickRow = PanelDrawing.clampScroll(pickRow - (int) Math.signum(delta), pickRows(), CropKeys.rows());
+        pickRow = Widgets.clampScroll(pickRow - (int) Math.signum(delta), pickRows(), CropKeys.rows());
         return true;
     }
     //endregion

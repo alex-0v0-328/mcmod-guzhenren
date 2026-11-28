@@ -3,7 +3,6 @@ package net.alex.guzhenren.client.screen;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
-import net.alex.guzhenren.Guzhenren;
 import net.alex.guzhenren.client.GuiBatch;
 import net.alex.guzhenren.client.ModKeyMappings;
 import net.alex.guzhenren.client.ModPalette;
@@ -66,12 +65,10 @@ public final class PlayerInfoScreen extends Screen {
     private static final int TAB_GAP = 4;
     static final int DIVIDER = ModPalette.SURFACE_2;
     static final int ROW_HOVER = ModPalette.SURFACE_2;
-    private static final ResourceLocation TAB = Guzhenren.id("tab");
-    private static final ResourceLocation TAB_HIGHLIGHTED = Guzhenren.id("tab_highlighted");
-    private static final ResourceLocation TAB_SELECTED = Guzhenren.id("tab_selected");
-    private static final ResourceLocation TAB_DISABLED = Guzhenren.id("tab_disabled");
-    private static final ResourceLocation SCROLLER = Guzhenren.id("blissful_land/screen/scroller");
-    private static final ResourceLocation SCROLLER_BACKGROUND = Guzhenren.id("blissful_land/screen/scroller_track");
+    private static final ResourceLocation TAB = Widgets.ui("side_tab");
+    private static final ResourceLocation TAB_HIGHLIGHTED = Widgets.ui("side_tab_highlighted");
+    private static final ResourceLocation TAB_SELECTED = Widgets.ui("side_tab_selected");
+    private static final ResourceLocation TAB_DISABLED = Widgets.ui("side_tab_disabled");
     private static final Component[] TAB_TITLES = {
             Component.translatable("guzhenren.screen.tab.aperture"),
             Component.translatable("guzhenren.screen.tab.body"),
@@ -401,10 +398,10 @@ public final class PlayerInfoScreen extends Screen {
         int top = getContentTop();
         int track = visible * LINE_H;
 
-        sprites.blit(SCROLLER_BACKGROUND, x0, top, SCROLL_W, track);
+        sprites.blit(Widgets.SCROLLER_TRACK, x0, top, SCROLL_W, track);
         int thumb = Math.max(LINE_H, track * visible / total);
         int offset = (track - thumb) * scrollRow / Math.max(1, total - visible);
-        sprites.blit(SCROLLER, x0, top + offset, SCROLL_W, thumb);
+        sprites.blit(Widgets.SCROLLER, x0, top + offset, SCROLL_W, thumb);
     }
 
     @Override

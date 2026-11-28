@@ -35,7 +35,7 @@ final class FarmPage extends PanelPage {
     private static final int MAX_ROWS = 8;
     private static final int ROW_H = 20;
     private static final int INSET_Y = 30;
-    private static final int FOOT_H = 6 + 14 + 22 + PanelDrawing.PAD;
+    private static final int FOOT_H = 6 + 14 + 22 + Widgets.PAD;
     private static final int MAP_W = 60;
     private static final int RATIO_W = 40;
     private int x;
@@ -62,11 +62,11 @@ final class FarmPage extends PanelPage {
     }
 
     //region Geometry [几何]
-    private int insetX() { return x + PanelDrawing.PAD; }
+    private int insetX() { return x + Widgets.PAD; }
 
     private int insetY() { return y + INSET_Y; }
 
-    private int insetW() { return w - 2 * PanelDrawing.PAD; }
+    private int insetW() { return w - 2 * Widgets.PAD; }
 
     private int insetH() { return rows * ROW_H + 2; }
 
@@ -86,7 +86,7 @@ final class FarmPage extends PanelPage {
 
     private int hostY() { return stockY() + 14; }
 
-    private int mapX() { return x + w - PanelDrawing.PAD - MAP_W; }
+    private int mapX() { return x + w - Widgets.PAD - MAP_W; }
 
     private int cardH() { return INSET_Y + insetH() + FOOT_H; }
 
@@ -115,56 +115,56 @@ final class FarmPage extends PanelPage {
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         FarmPart.Section data = data();
-        PanelDrawing.card(sprites, this.x, this.y, w, cardH());
-        sprites.blit(PanelDrawing.INSET, insetX(), insetY(), insetW(), insetH());
+        Widgets.card(sprites, this.x, this.y, w, cardH());
+        sprites.blit(Widgets.INSET, insetX(), insetY(), insetW(), insetH());
         List<FarmPart.Crop> crops = data.rows();
-        offset = PanelDrawing.clampScroll(offset, rows, crops.size());
+        offset = Widgets.clampScroll(offset, rows, crops.size());
         for (int i = 0; i < rows && offset + i < crops.size(); i++) {
             FarmPart.Crop crop = crops.get(offset + i);
             int top = rowTop(i);
-            PanelDrawing.row(sprites, rowX(), top, rowW(), ROW_H, Widgets.isOver(mouseX, mouseY, rowX(), top, rowW(),
+            Widgets.row(sprites, rowX(), top, rowW(), ROW_H, Widgets.isOver(mouseX, mouseY, rowX(), top, rowW(),
                     ROW_H));
             int total = crop.mature() + crop.growing();
             int filled = total == 0 ? 0 : (RATIO_W - 2) * crop.mature() / total;
-            sprites.blit(PanelDrawing.BAR_BACKGROUND, ratioX(), top + 7, RATIO_W, 6);
-            sprites.blit(PanelDrawing.BAR_FILL, ratioX() + 1, top + 8, filled, 4, ModPalette.PLANT);
+            sprites.blit(Widgets.BAR_BACKGROUND, ratioX(), top + 7, RATIO_W, 6);
+            sprites.blit(Widgets.BAR_FILL, ratioX() + 1, top + 8, filled, 4, ModPalette.PLANT);
         }
         if (crops.size() > rows) {
             int barX = rowX() + rowW() + 1;
-            PanelDrawing.scrollbar(sprites, barX, insetY() + 1, insetH() - 2, offset, rows, crops.size(),
+            Widgets.scrollbar(sprites, barX, insetY() + 1, insetH() - 2, offset, rows, crops.size(),
                     Widgets.isOver(mouseX, mouseY, barX, insetY() + 1, 6, insetH() - 2));
         }
-        PanelDrawing.button(sprites, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
+        Widgets.button(sprites, mapX(), hostY(), MAP_W, Widgets.BUTTON_H, true, mouseX, mouseY);
     }
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         FarmPart.Section data = data();
-        PanelDrawing.title(graphics, font(), name(), fields(), this.x, this.y, w);
+        Widgets.title(graphics, font(), name(), fields(), this.x, this.y, w);
         int header = this.y + 19;
-        graphics.drawString(font(), Component.translatable(UI + "crop"), rowX() + 4, header, PanelDrawing.LEGEND,
+        graphics.drawString(font(), Component.translatable(UI + "crop"), rowX() + 4, header, ModPalette.LEGEND_TEXT,
                 false);
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "mature"), matureRight(), header,
-                PanelDrawing.LEGEND);
-        PanelDrawing.right(graphics, font(), Component.translatable(UI + "growing"), growingRight(), header,
-                PanelDrawing.LEGEND);
+        Widgets.right(graphics, font(), Component.translatable(UI + "mature"), matureRight(), header,
+                ModPalette.LEGEND_TEXT);
+        Widgets.right(graphics, font(), Component.translatable(UI + "growing"), growingRight(), header,
+                ModPalette.LEGEND_TEXT);
         List<FarmPart.Crop> crops = data.rows();
         for (int i = 0; i < rows && offset + i < crops.size(); i++) {
             FarmPart.Crop crop = crops.get(offset + i);
             int top = rowTop(i);
             Block block = BuiltInRegistries.BLOCK.get(crop.block());
-            graphics.drawString(font(), block.getName(), rowX() + 22, top + 6, PanelDrawing.TEXT, false);
-            PanelDrawing.right(graphics, font(), Integer.toString(crop.mature()), matureRight(), top + 6,
-                    PanelDrawing.TEXT);
-            PanelDrawing.right(graphics, font(), Integer.toString(crop.growing()), growingRight(), top + 6,
-                    PanelDrawing.LEGEND);
+            graphics.drawString(font(), block.getName(), rowX() + 22, top + 6, ModPalette.TEXT, false);
+            Widgets.right(graphics, font(), Integer.toString(crop.mature()), matureRight(), top + 6,
+                    ModPalette.TEXT);
+            Widgets.right(graphics, font(), Integer.toString(crop.growing()), growingRight(), top + 6,
+                    ModPalette.LEGEND_TEXT);
         }
-        graphics.drawString(font(), stocks(), insetX(), stockY() + 2, PanelDrawing.LEGEND, false);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "to_map"), mapX(), hostY(), MAP_W,
-                PanelDrawing.BUTTON_H, true);
+        graphics.drawString(font(), stocks(), insetX(), stockY() + 2, ModPalette.LEGEND_TEXT, false);
+        Widgets.label(graphics, font(), Component.translatable(UI + "to_map"), mapX(), hostY(), MAP_W,
+                Widgets.BUTTON_H, true);
         Component round = Component.translatable(UI + "farm_round", data.lastReaped(), data.lastSown());
         graphics.drawString(font(), Component.translatable(UI + "hosting_status", data.hostingIn(), round), insetX(),
-                hostY() + 5, PanelDrawing.LEGEND, false);
+                hostY() + 5, ModPalette.LEGEND_TEXT, false);
     }
 
     @Override
@@ -180,7 +180,7 @@ final class FarmPage extends PanelPage {
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         int hostingSeconds = LandHostingJob.INTERVAL_TICKS / Ticks.SECOND;
         int fieldsW = font().width(fields());
-        if (tip(graphics, this.x + w - PanelDrawing.PAD - fieldsW, this.y, fieldsW, PanelDrawing.TITLE_H, mouseX,
+        if (tip(graphics, this.x + w - Widgets.PAD - fieldsW, this.y, fieldsW, Widgets.TITLE_H, mouseX,
                 mouseY, Component.translatable(TIP + "fields"))) {
             return;
         }
@@ -188,7 +188,7 @@ final class FarmPage extends PanelPage {
                 Component.translatable(TIP + "farm_hosting", hostingSeconds, FarmRules.HOSTING_FIELDS))) {
             return;
         }
-        if (tip(graphics, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+        if (tip(graphics, mapX(), hostY(), MAP_W, Widgets.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "to_map"))) {
             return;
         }
@@ -201,7 +201,7 @@ final class FarmPage extends PanelPage {
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
-        if (Widgets.isOver(mouseX, mouseY, mapX(), hostY(), MAP_W, PanelDrawing.BUTTON_H)) {
+        if (Widgets.isOver(mouseX, mouseY, mapX(), hostY(), MAP_W, Widgets.BUTTON_H)) {
             screen.openPage(Page.MAP);
             return true;
         }
@@ -216,7 +216,7 @@ final class FarmPage extends PanelPage {
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, insetX(), insetY(), insetW(), insetH())) return false;
-        offset = PanelDrawing.clampScroll(offset - (int) Math.signum(delta), rows, crops().size());
+        offset = Widgets.clampScroll(offset - (int) Math.signum(delta), rows, crops().size());
         return true;
     }
 }

@@ -38,7 +38,7 @@ abstract class MapObjectBar {
     private static final int TRACK = 0xFF2A2328;
 
     /** 一枚键：{@code icon} 是精灵名（为空就写 {@code text}，两者都空即虚线空键），{@code corner} 是右上角数字（负数不画）。 */
-    record Face(@Nullable String icon, @Nullable Component text, PanelDrawing.Look look, boolean live, int corner,
+    record Face(@Nullable String icon, @Nullable Component text, Widgets.Look look, boolean live, int corner,
                 Component label) {}
 
     private boolean wide;
@@ -93,15 +93,15 @@ abstract class MapObjectBar {
 
     //region Drawing [绘制]
     protected void barSprites(SpriteBatch sprites, double mouseX, double mouseY) {
-        sprites.blit(PanelDrawing.OVERLAY, boxX, boxY, WIDTH, boxH);
+        sprites.blit(Widgets.OVERLAY, boxX, boxY, WIDTH, boxH);
         for (int key = 0; key < keys(); key++) {
             Face face = face(key);
             boolean empty = face.icon() == null && face.text() == null;
-            PanelDrawing.Look look = empty ? PanelDrawing.Look.GHOST : face.look();
-            PanelDrawing.button(sprites, keyX(key), keyY(), KEY, KEY, look, face.live(), mouseX, mouseY);
+            Widgets.Look look = empty ? Widgets.Look.GHOST : face.look();
+            Widgets.button(sprites, keyX(key), keyY(), KEY, KEY, look, face.live(), mouseX, mouseY);
             if (face.icon() == null) continue;
-            int sunk = !face.live() || look == PanelDrawing.Look.SELECTED
-                    || PanelDrawing.pressed(keyX(key), keyY(), KEY, KEY) ? 1 : 0;
+            int sunk = !face.live() || look == Widgets.Look.SELECTED
+                    || Widgets.pressed(keyX(key), keyY(), KEY, KEY) ? 1 : 0;
             sprites.blit(PanelDrawing.sprite(face.icon()), keyX(key) + 3, keyY() + 3 + sunk, 16, 16,
                     face.live() ? 0xFFFFFFFF : PanelDrawing.DIM_ICON);
         }
@@ -118,18 +118,18 @@ abstract class MapObjectBar {
     }
 
     protected void barTexts(GuiGraphics graphics, Font font, Component title, Component readout) {
-        graphics.drawString(font, title, boxX + SIDE, boxY + TITLE_Y, PanelDrawing.ACCENT, false);
-        PanelDrawing.right(graphics, font, readout, boxX + WIDTH - SIDE, boxY + TITLE_Y, PanelDrawing.LEGEND);
+        graphics.drawString(font, title, boxX + SIDE, boxY + TITLE_Y, ModPalette.ACCENT, false);
+        Widgets.right(graphics, font, readout, boxX + WIDTH - SIDE, boxY + TITLE_Y, ModPalette.LEGEND_TEXT);
         for (int key = 0; key < keys(); key++) {
             Face face = face(key);
             if (face.icon() == null && face.text() != null) {
-                PanelDrawing.label(graphics, font, face.text(), keyX(key), keyY(), KEY, KEY, face.look(), face.live());
+                Widgets.label(graphics, font, face.text(), keyX(key), keyY(), KEY, KEY, face.look(), face.live());
             }
             if (face.corner() >= 0) corner(graphics, font, key, face.corner(), face.live());
             if (wide) {
-                boolean on = face.look() == PanelDrawing.Look.SELECTED;
-                PanelDrawing.centered(graphics, font, face.label(), keyX(key) - 8, keyX(key) + KEY + 8,
-                        keyY() + KEY + 3, on ? PanelDrawing.ACCENT : face.live() ? PanelDrawing.TEXT : PanelDrawing.DEAD);
+                boolean on = face.look() == Widgets.Look.SELECTED;
+                Widgets.centered(graphics, font, face.label(), keyX(key) - 8, keyX(key) + KEY + 8,
+                        keyY() + KEY + 3, on ? ModPalette.ACCENT : face.live() ? ModPalette.TEXT : ModPalette.TEXT_DEAD);
             }
         }
     }
@@ -139,7 +139,7 @@ abstract class MapObjectBar {
         graphics.pose().pushPose();
         graphics.pose().translate(0.0F, 0.0F, 200.0F);
         graphics.drawString(font, text, keyX(key) + KEY - 1 - font.width(text), keyY() + KEY - 9,
-                live && count > 0 ? PanelDrawing.TEXT : PanelDrawing.DEAD, true);
+                live && count > 0 ? ModPalette.TEXT : ModPalette.TEXT_DEAD, true);
         graphics.pose().popPose();
     }
 

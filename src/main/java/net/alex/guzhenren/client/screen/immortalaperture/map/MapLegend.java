@@ -1,8 +1,9 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
+import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapCamera;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapContours;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapOverlay;
@@ -84,12 +85,12 @@ final class MapLegend {
         if (collapsed) {
             top = lift;
             open = overKey(mouseX, mouseY) || open && overBox(mouseX, mouseY);
-            sprites.blit(PanelDrawing.CHIP, keyX, keyY, KEY_W, KEY_H);
+            sprites.blit(Widgets.CHIP, keyX, keyY, KEY_W, KEY_H);
         } else {
             top = fullTop;
             open = false;
         }
-        if (showing()) sprites.blit(PanelDrawing.OVERLAY, left, top, WIDTH, HEIGHT);
+        if (showing()) sprites.blit(Widgets.OVERLAY, left, top, WIDTH, HEIGHT);
     }
 
     void fills(GuiGraphics graphics) {
@@ -105,27 +106,27 @@ final class MapLegend {
     void texts(GuiGraphics graphics, Font font, MapCamera camera, int lowest, int highest,
                @Nullable MapPick.Hit hover) {
         if (collapsed) {
-            PanelDrawing.centered(graphics, font, Component.translatable(UI + "legend"), keyX, keyX + KEY_W, keyY + 4,
-                    open ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
+            Widgets.centered(graphics, font, Component.translatable(UI + "legend"), keyX, keyX + KEY_W, keyY + 4,
+                    open ? ModPalette.ACCENT : ModPalette.TEXT);
         }
         if (!showing()) return;
         Component readout = hover == null ? Component.empty() : hover.known()
                 ? Component.translatable(UI + "readout", hover.x(), hover.ground(), hover.z())
                 : Component.translatable(UI + "unknown");
-        graphics.drawString(font, readout, left + 6, top + 6, PanelDrawing.TEXT, false);
+        graphics.drawString(font, readout, left + 6, top + 6, ModPalette.TEXT, false);
         if (lowest != MapSurface.NO_HEIGHT) {
             graphics.drawString(font, Component.translatable(UI + "height", lowest, highest), left + 6, top + 18,
-                    PanelDrawing.LEGEND, false);
+                    ModPalette.LEGEND_TEXT, false);
         }
         if (camera.plan()) {
             graphics.drawString(font, Component.translatable(UI + "contour", MapContours.MINOR_STEP,
-                    MapContours.MAJOR_STEP), left + 6, top + 30, PanelDrawing.LEGEND, false);
+                    MapContours.MAJOR_STEP), left + 6, top + 30, ModPalette.LEGEND_TEXT, false);
         }
         for (int kind = MapMark.PENNED; kind <= MapMark.SPIRIT; kind++) {
             int x = left + 6 + (kind - 1) % 2 * 66;
             int y = top + 44 + (kind - 1) / 2 * 12;
             graphics.drawString(font, Component.translatable(UI + "mark." + MARK_KEYS[kind]), x + 8, y - 1,
-                    PanelDrawing.LEGEND, false);
+                    ModPalette.LEGEND_TEXT, false);
         }
     }
 }

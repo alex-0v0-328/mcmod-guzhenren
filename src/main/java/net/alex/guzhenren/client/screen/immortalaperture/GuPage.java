@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen.immortalaperture;
 
 import java.util.List;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.GuPart;
@@ -49,12 +50,12 @@ final class GuPage extends PanelPage {
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
         List<GuPart.Row> rows = rows();
-        offset = PanelDrawing.clampScroll(offset, list.rows(), rows.size());
+        offset = Widgets.clampScroll(offset, list.rows(), rows.size());
         list.frame(sprites, rows.size(), offset, mouseX, mouseY);
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             list.row(sprites, i, rows.size(), true, mouseX, mouseY);
         }
-        PanelDrawing.button(sprites, list.buttonX(CAPTURE), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H,
+        Widgets.button(sprites, list.buttonX(CAPTURE), list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H,
                 data().capturePreview() > 0, mouseX, mouseY);
     }
 
@@ -62,20 +63,20 @@ final class GuPage extends PanelPage {
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         GuPart.Section data = data();
         List<GuPart.Row> rows = data.rows();
-        PanelDrawing.title(graphics, font(), name(), Component.translatable(UI + "kinds", rows.size()), list.x(),
+        Widgets.title(graphics, font(), name(), Component.translatable(UI + "kinds", rows.size()), list.x(),
                 list.y(), list.w());
         list.header(graphics, font(), Component.translatable(UI + "tab.gu"), Component.translatable(UI + "keep"),
                 rows.size());
         if (rows.isEmpty()) {
-            PanelDrawing.centered(graphics, font(), Component.translatable(UI + "gu_empty"), list.insetX(),
-                    list.insetX() + list.insetW(), list.insetY() + list.insetH() / 2 - 4, PanelDrawing.DEAD);
+            Widgets.centered(graphics, font(), Component.translatable(UI + "gu_empty"), list.insetX(),
+                    list.insetX() + list.insetW(), list.insetY() + list.insetH() / 2 - 4, ModPalette.TEXT_DEAD);
         }
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             GuPart.Row row = rows.get(offset + i);
-            list.rowTexts(graphics, font(), i, rows.size(), nameOf(row), PanelDrawing.TEXT, row.count(), row.keep(),
+            list.rowTexts(graphics, font(), i, rows.size(), nameOf(row), ModPalette.TEXT, row.count(), row.keep(),
                     true);
         }
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "capture"), list.buttonX(CAPTURE),
+        Widgets.label(graphics, font(), Component.translatable(UI + "capture"), list.buttonX(CAPTURE),
                 list.buttonY(), KeepList.BUTTON_W, KeepList.BUTTON_H, data.capturePreview() > 0);
     }
 
@@ -99,8 +100,8 @@ final class GuPage extends PanelPage {
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             int top = list.rowTop(i);
             int minus = list.minusX(rows.size());
-            if (tip(graphics, minus, top + 3, list.plusX(rows.size()) + PanelDrawing.GHOST_H - minus,
-                    PanelDrawing.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "keep", SHIFT_STEP))) {
+            if (tip(graphics, minus, top + 3, list.plusX(rows.size()) + Widgets.GHOST_H - minus,
+                    Widgets.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "keep", SHIFT_STEP))) {
                 return;
             }
         }
@@ -117,13 +118,13 @@ final class GuPage extends PanelPage {
         for (int i = 0; i < list.rows() && offset + i < rows.size(); i++) {
             GuPart.Row row = rows.get(offset + i);
             int top = list.rowTop(i);
-            if (Widgets.isOver(mouseX, mouseY, list.minusX(rows.size()), top + 3, PanelDrawing.GHOST_H,
-                    PanelDrawing.GHOST_H)) {
+            if (Widgets.isOver(mouseX, mouseY, list.minusX(rows.size()), top + 3, Widgets.GHOST_H,
+                    Widgets.GHOST_H)) {
                 send(new GuPart.SetKeep(row.type(), Math.max(0, row.keep() - step)));
                 return true;
             }
-            if (Widgets.isOver(mouseX, mouseY, list.plusX(rows.size()), top + 3, PanelDrawing.GHOST_H,
-                    PanelDrawing.GHOST_H)) {
+            if (Widgets.isOver(mouseX, mouseY, list.plusX(rows.size()), top + 3, Widgets.GHOST_H,
+                    Widgets.GHOST_H)) {
                 send(new GuPart.SetKeep(row.type(), row.keep() + step));
                 return true;
             }
@@ -134,7 +135,7 @@ final class GuPage extends PanelPage {
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!list.isOverList(mouseX, mouseY)) return false;
-        offset = PanelDrawing.clampScroll(offset - (int) Math.signum(delta), list.rows(), rows().size());
+        offset = Widgets.clampScroll(offset - (int) Math.signum(delta), list.rows(), rows().size());
         return true;
     }
 }

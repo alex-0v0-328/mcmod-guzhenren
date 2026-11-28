@@ -3,6 +3,7 @@ package net.alex.guzhenren.client.screen.immortalaperture;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.EarthSpiritMenu;
@@ -77,7 +78,7 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected void resized(int width, int height) {
-        rows = Math.clamp((height - TOP - LIST_Y - 2 - PanelDrawing.PAD - PanelDrawing.MARGIN) / ROW_H, MIN_ROWS,
+        rows = Math.clamp((height - TOP - LIST_Y - 2 - Widgets.PAD - PanelDrawing.MARGIN) / ROW_H, MIN_ROWS,
                 MAX_ROWS);
     }
 
@@ -114,7 +115,7 @@ final class StoragePage extends PanelPage {
     }
 
     //region Geometry [几何]
-    private int cardH() { return LIST_Y + rows * ROW_H + 2 + PanelDrawing.PAD; }
+    private int cardH() { return LIST_Y + rows * ROW_H + 2 + Widgets.PAD; }
 
     private boolean scrolls() { return section().matched() > rows; }
 
@@ -164,37 +165,37 @@ final class StoragePage extends PanelPage {
 
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
-        PanelDrawing.card(sprites, x, y, LIST_W, cardH());
-        PanelDrawing.card(sprites, x + BAG_X, y, BAG_W, BAG_H);
-        sprites.blit(PanelDrawing.STAT, x + 5, y + STRIP_Y, LIST_W - 10, STRIP_H);
+        Widgets.card(sprites, x, y, LIST_W, cardH());
+        Widgets.card(sprites, x + BAG_X, y, BAG_W, BAG_H);
+        sprites.blit(Widgets.STAT, x + 5, y + STRIP_Y, LIST_W - 10, STRIP_H);
         if (section().vault().isPresent()) {
-            PanelDrawing.button(sprites, fillX(x), keyY(y), VAULT_KEY_W, PanelDrawing.BUTTON_H, fillLive(), mouseX,
+            Widgets.button(sprites, fillX(x), keyY(y), VAULT_KEY_W, Widgets.BUTTON_H, fillLive(), mouseX,
                     mouseY);
-            PanelDrawing.button(sprites, emptyX(x), keyY(y), VAULT_KEY_W, PanelDrawing.BUTTON_H, emptyLive(), mouseX,
+            Widgets.button(sprites, emptyX(x), keyY(y), VAULT_KEY_W, Widgets.BUTTON_H, emptyLive(), mouseX,
                     mouseY);
         }
-        sprites.blit(screen.isSearchFocused() ? PanelDrawing.TEXT_FIELD_FOCUSED : PanelDrawing.TEXT_FIELD, x + SEARCH_X,
-                y + SEARCH_Y, SEARCH_W, PanelDrawing.BUTTON_H);
-        PanelDrawing.button(sprites, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H, true, mouseX, mouseY);
-        PanelDrawing.button(sprites, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H, true, mouseX,
+        sprites.blit(screen.isSearchFocused() ? Widgets.TEXT_FIELD_FOCUSED : Widgets.TEXT_FIELD, x + SEARCH_X,
+                y + SEARCH_Y, SEARCH_W, Widgets.BUTTON_H);
+        Widgets.button(sprites, x + SORT_X, y + SEARCH_Y, SORT_W, Widgets.BUTTON_H, true, mouseX, mouseY);
+        Widgets.button(sprites, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, Widgets.BUTTON_H, true, mouseX,
                 mouseY);
-        sprites.blit(PanelDrawing.INSET, x + 5, y + LIST_Y, LIST_W - 10, rows * ROW_H + 2);
+        sprites.blit(Widgets.INSET, x + 5, y + LIST_Y, LIST_W - 10, rows * ROW_H + 2);
         int hovered = rowAt(x, y, mouseX, mouseY);
         for (int row = 0; row < rows; row++) {
-            if (entry(row) != null && row == hovered) PanelDrawing.row(sprites, x + 6, rowTop(y, row), rowW(), ROW_H, true);
+            if (entry(row) != null && row == hovered) Widgets.row(sprites, x + 6, rowTop(y, row), rowW(), ROW_H, true);
         }
         if (scrolls()) {
-            PanelDrawing.scrollbar(sprites, x + LIST_W - 12, y + LIST_Y + 1, rows * ROW_H, first(), rows,
+            Widgets.scrollbar(sprites, x + LIST_W - 12, y + LIST_Y + 1, rows * ROW_H, first(), rows,
                     section().matched(), false);
         }
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 9; c++) {
-                sprites.blit(PanelDrawing.SLOT, x + EarthSpiritMenu.INVENTORY_X + c * EarthSpiritMenu.SLOT - 1,
+                sprites.blit(Widgets.SLOT, x + EarthSpiritMenu.INVENTORY_X + c * EarthSpiritMenu.SLOT - 1,
                         y + EarthSpiritMenu.INVENTORY_Y + r * EarthSpiritMenu.SLOT - 1, 18, 18);
             }
         }
         for (int c = 0; c < 9; c++) {
-            sprites.blit(PanelDrawing.SLOT, x + EarthSpiritMenu.INVENTORY_X + c * EarthSpiritMenu.SLOT - 1,
+            sprites.blit(Widgets.SLOT, x + EarthSpiritMenu.INVENTORY_X + c * EarthSpiritMenu.SLOT - 1,
                     y + EarthSpiritMenu.HOTBAR_Y - 1, 18, 18);
         }
     }
@@ -213,35 +214,35 @@ final class StoragePage extends PanelPage {
         Component kinds = section.matched() < section.total()
                 ? Component.translatable(UI + "kinds_filtered", section.matched(), section.total())
                 : Component.translatable(UI + "kinds", section.total());
-        PanelDrawing.title(graphics, font(), name(), kinds, x, y, LIST_W);
-        graphics.drawString(font(), Component.translatable(UI + "stones"), x + 26, y + STRIP_Y + 4, PanelDrawing.LEGEND,
+        Widgets.title(graphics, font(), name(), kinds, x, y, LIST_W);
+        graphics.drawString(font(), Component.translatable(UI + "stones"), x + 26, y + STRIP_Y + 4, ModPalette.LEGEND_TEXT,
                 false);
         graphics.drawString(font(), String.format(Locale.ROOT, "%,d", section.stones()), x + 26, y + STRIP_Y + 14,
-                PanelDrawing.TEXT, false);
+                ModPalette.TEXT, false);
         section.vault().ifPresentOrElse(vault -> {
             Component name = BuiltInRegistries.ITEM.get(vault.item()).getDescription();
-            graphics.drawString(font(), name, x + VAULT_X + 20, y + STRIP_Y + 4, PanelDrawing.LEGEND, false);
+            graphics.drawString(font(), name, x + VAULT_X + 20, y + STRIP_Y + 4, ModPalette.LEGEND_TEXT, false);
             graphics.drawString(font(), String.format(Locale.ROOT, "%,d / %,d", vault.stored(), vault.capacity()),
-                    x + VAULT_X + 20, y + STRIP_Y + 14, PanelDrawing.TEXT, false);
-            PanelDrawing.label(graphics, font(), Component.translatable(UI + "vault_fill"), fillX(x), keyY(y),
-                    VAULT_KEY_W, PanelDrawing.BUTTON_H, fillLive());
-            PanelDrawing.label(graphics, font(), Component.translatable(UI + "vault_empty"), emptyX(x), keyY(y),
-                    VAULT_KEY_W, PanelDrawing.BUTTON_H, emptyLive());
+                    x + VAULT_X + 20, y + STRIP_Y + 14, ModPalette.TEXT, false);
+            Widgets.label(graphics, font(), Component.translatable(UI + "vault_fill"), fillX(x), keyY(y),
+                    VAULT_KEY_W, Widgets.BUTTON_H, fillLive());
+            Widgets.label(graphics, font(), Component.translatable(UI + "vault_empty"), emptyX(x), keyY(y),
+                    VAULT_KEY_W, Widgets.BUTTON_H, emptyLive());
         }, () -> graphics.drawString(font(), Component.translatable(UI + "no_vault"), x + VAULT_X, y + STRIP_Y + 9,
-                PanelDrawing.DEAD, false));
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + SORT_KEYS[sort().ordinal()]), x + SORT_X,
-                y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H, true);
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "deposit_matching"), x + DEPOSIT_X,
-                y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H, true);
+                ModPalette.TEXT_DEAD, false));
+        Widgets.label(graphics, font(), Component.translatable(UI + SORT_KEYS[sort().ordinal()]), x + SORT_X,
+                y + SEARCH_Y, SORT_W, Widgets.BUTTON_H, true);
+        Widgets.label(graphics, font(), Component.translatable(UI + "deposit_matching"), x + DEPOSIT_X,
+                y + SEARCH_Y, DEPOSIT_W, Widgets.BUTTON_H, true);
         for (int row = 0; row < rows; row++) {
             StorageBrowser.Stored entry = entry(row);
             if (entry == null) continue;
             int top = rowTop(y, row);
-            graphics.drawString(font(), entry.key().getHoverName(), x + 26, top + 4, PanelDrawing.TEXT, false);
-            PanelDrawing.right(graphics, font(), String.format(Locale.ROOT, "%,d", entry.count()), x + 6 + rowW() - 4,
-                    top + 4, PanelDrawing.TEXT);
+            graphics.drawString(font(), entry.key().getHoverName(), x + 26, top + 4, ModPalette.TEXT, false);
+            Widgets.right(graphics, font(), String.format(Locale.ROOT, "%,d", entry.count()), x + 6 + rowW() - 4,
+                    top + 4, ModPalette.TEXT);
         }
-        PanelDrawing.title(graphics, font(), Component.translatable(UI + "inventory"), Component.empty(), x + BAG_X, y,
+        Widgets.title(graphics, font(), Component.translatable(UI + "inventory"), Component.empty(), x + BAG_X, y,
                 BAG_W);
     }
 
@@ -260,24 +261,24 @@ final class StoragePage extends PanelPage {
     protected void tooltip(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         StoragePart.Section section = section();
         if (section.vault().isPresent()) {
-            if (tip(graphics, fillX(x), keyY(y), VAULT_KEY_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+            if (tip(graphics, fillX(x), keyY(y), VAULT_KEY_W, Widgets.BUTTON_H, mouseX, mouseY,
                     Component.translatable(TIP + "vault_fill", fillAmount(), section.stones() - fillAmount()))) {
                 return;
             }
-            if (tip(graphics, emptyX(x), keyY(y), VAULT_KEY_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+            if (tip(graphics, emptyX(x), keyY(y), VAULT_KEY_W, Widgets.BUTTON_H, mouseX, mouseY,
                     Component.translatable(TIP + "vault_empty", section.vault().get().stored()))) {
                 return;
             }
         }
-        if (tip(graphics, x + SEARCH_X, y + SEARCH_Y, SEARCH_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+        if (tip(graphics, x + SEARCH_X, y + SEARCH_Y, SEARCH_W, Widgets.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "search"))) {
             return;
         }
-        if (tip(graphics, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+        if (tip(graphics, x + SORT_X, y + SEARCH_Y, SORT_W, Widgets.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "sort"))) {
             return;
         }
-        if (tip(graphics, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H, mouseX, mouseY,
+        if (tip(graphics, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, Widgets.BUTTON_H, mouseX, mouseY,
                 Component.translatable(TIP + "deposit_matching"))) {
             return;
         }
@@ -286,28 +287,28 @@ final class StoragePage extends PanelPage {
         if (entry == null || !screen.getMenu().getCarried().isEmpty()) return;
 
         List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(Minecraft.getInstance(), entry.key()));
-        lines.add(Component.translatable(UI + "stored", entry.count()).withColor(PanelDrawing.LEGEND));
-        if (entry.trimmed()) lines.add(Component.translatable(UI + "trimmed").withColor(PanelDrawing.LEGEND));
+        lines.add(Component.translatable(UI + "stored", entry.count()).withColor(ModPalette.LEGEND_TEXT));
+        if (entry.trimmed()) lines.add(Component.translatable(UI + "trimmed").withColor(ModPalette.LEGEND_TEXT));
         graphics.renderComponentTooltip(font(), lines, mouseX, mouseY);
     }
 
     @Override
     protected boolean click(int x, int y, double mouseX, double mouseY, int button, boolean shift) {
         if (section().vault().isPresent()) {
-            if (Widgets.isOver(mouseX, mouseY, fillX(x), keyY(y), VAULT_KEY_W, PanelDrawing.BUTTON_H)) {
+            if (Widgets.isOver(mouseX, mouseY, fillX(x), keyY(y), VAULT_KEY_W, Widgets.BUTTON_H)) {
                 if (fillLive()) send(new StoragePart.FillVault());
                 return true;
             }
-            if (Widgets.isOver(mouseX, mouseY, emptyX(x), keyY(y), VAULT_KEY_W, PanelDrawing.BUTTON_H)) {
+            if (Widgets.isOver(mouseX, mouseY, emptyX(x), keyY(y), VAULT_KEY_W, Widgets.BUTTON_H)) {
                 if (emptyLive()) send(new StoragePart.EmptyVault());
                 return true;
             }
         }
-        if (Widgets.isOver(mouseX, mouseY, x + SORT_X, y + SEARCH_Y, SORT_W, PanelDrawing.BUTTON_H)) {
+        if (Widgets.isOver(mouseX, mouseY, x + SORT_X, y + SEARCH_Y, SORT_W, Widgets.BUTTON_H)) {
             browse(sort().next(), 0);
             return true;
         }
-        if (Widgets.isOver(mouseX, mouseY, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, PanelDrawing.BUTTON_H)) {
+        if (Widgets.isOver(mouseX, mouseY, x + DEPOSIT_X, y + SEARCH_Y, DEPOSIT_W, Widgets.BUTTON_H)) {
             send(new StoragePart.DepositMatching());
             return true;
         }

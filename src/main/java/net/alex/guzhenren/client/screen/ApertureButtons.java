@@ -84,8 +84,8 @@ final class ApertureButtons {
             case STORAGE -> true;
         };
         boolean lit = button.kind() == Kind.NOURISH ? running : hover;
-        sprites.blit(Widgets.getButtonSprite(live, lit), button.x0(), button.top(), button.x1() - button.x0(),
-                PlayerInfoScreen.BTN_H);
+        sprites.blit(Widgets.ui(!live ? "button_disabled" : lit ? "button_highlighted" : "button"), button.x0(),
+                button.top(), button.x1() - button.x0(), PlayerInfoScreen.BTN_H);
     }
 
     static void fillProgress(GuiGraphics graphics, LocalPlayer player, ColumnButton button) {

@@ -1,7 +1,8 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
+import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapPick;
 import net.alex.guzhenren.client.screen.immortalaperture.map.render.MapSurface;
 import net.minecraft.client.gui.Font;
@@ -87,7 +88,7 @@ final class MapHeightRail {
             int length = length(distance);
             int y = y(level, lowest, highest);
             graphics.fill(right - length, y + 1, right, y + 2, SHADOW);
-            graphics.fill(right - length, y, right, y + 1, distance == 0 ? PanelDrawing.TEXT : LINE);
+            graphics.fill(right - length, y, right, y + 1, distance == 0 ? ModPalette.TEXT : LINE);
         }
     }
 
@@ -101,7 +102,7 @@ final class MapHeightRail {
         if (!shown(lowest, highest) || ground == null) return;
 
         int width = font.width(Integer.toString(ground)) + 8;
-        sprites.blit(PanelDrawing.CHIP, right - HOVERED - 3 - width, labelY(lowest, highest, ground), width, CHIP_H);
+        sprites.blit(Widgets.CHIP, right - HOVERED - 3 - width, labelY(lowest, highest, ground), width, CHIP_H);
     }
 
     void texts(GuiGraphics graphics, Font font, int lowest, int highest, @Nullable MapPick.Hit hover) {
@@ -112,8 +113,8 @@ final class MapHeightRail {
         if (ground == null) return;
 
         String text = Integer.toString(ground);
-        PanelDrawing.right(graphics, font, text, right - HOVERED - 7, labelY(lowest, highest, ground) + 4,
-                PanelDrawing.TEXT);
+        Widgets.right(graphics, font, text, right - HOVERED - 7, labelY(lowest, highest, ground) + 4,
+                ModPalette.TEXT);
     }
 
     private void marks(GuiGraphics graphics, Font font, int lowest, int highest, @Nullable MapPick.Hit hover) {

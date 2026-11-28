@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen.immortalaperture.map;
 
 import java.util.function.IntPredicate;
 import java.util.function.IntToLongFunction;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
@@ -63,8 +64,8 @@ final class CropKeys {
         for (int crop = row * COLUMNS; crop < Math.min(count(), (row + rows) * COLUMNS); crop++) {
             int[] corner = corner(x, y, crop, row, rows);
             if (corner == null) continue;
-            PanelDrawing.Look look = crop == selected ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
-            PanelDrawing.button(sprites, corner[0], corner[1], SIZE, SIZE, look, live.test(crop), mouseX, mouseY);
+            Widgets.Look look = crop == selected ? Widgets.Look.SELECTED : Widgets.Look.PLAIN;
+            Widgets.button(sprites, corner[0], corner[1], SIZE, SIZE, look, live.test(crop), mouseX, mouseY);
         }
     }
 
@@ -82,7 +83,7 @@ final class CropKeys {
         graphics.pose().pushPose();
         graphics.pose().translate(0.0F, 0.0F, 200.0F);
         graphics.drawString(font, text, left + width - 1 - font.width(text), top + SIZE - 9,
-                count > 0 ? PanelDrawing.TEXT : PanelDrawing.DEAD, true);
+                count > 0 ? ModPalette.TEXT : ModPalette.TEXT_DEAD, true);
         graphics.pose().popPose();
     }
 }

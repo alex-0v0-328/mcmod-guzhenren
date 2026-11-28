@@ -1,6 +1,7 @@
 package net.alex.guzhenren.client.screen.immortalaperture;
 
 import java.util.List;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.minecraft.client.gui.GuiGraphics;
@@ -29,9 +30,9 @@ final class InfoPage extends PanelPage {
     private static final int SUBTAB_W = 44;
     private static final int SUBTAB_H = 16;
     private static final int SUBTAB_PITCH = 46;
-    private static final ResourceLocation SUBTAB = PanelDrawing.sprite("subtab");
-    private static final ResourceLocation SUBTAB_HIGHLIGHTED = PanelDrawing.sprite("subtab_highlighted");
-    private static final ResourceLocation SUBTAB_SELECTED = PanelDrawing.sprite("subtab_selected");
+    private static final ResourceLocation SUBTAB = Widgets.ui("subtab");
+    private static final ResourceLocation SUBTAB_HIGHLIGHTED = Widgets.ui("subtab_highlighted");
+    private static final ResourceLocation SUBTAB_SELECTED = Widgets.ui("subtab_selected");
     private final List<PanelPage> parts;
     private int part = OVERVIEW;
 
@@ -85,9 +86,9 @@ final class InfoPage extends PanelPage {
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         for (int i = 0; i < this.parts.size(); i++) {
-            int colour = i == this.part ? PanelDrawing.ACCENT
-                    : isOverSubtab(i, mouseX, mouseY) ? PanelDrawing.TEXT : PanelDrawing.LEGEND;
-            PanelDrawing.centered(graphics, font(), this.parts.get(i).name(), subtabLeft(i), subtabLeft(i) + SUBTAB_W,
+            int colour = i == this.part ? ModPalette.ACCENT
+                    : isOverSubtab(i, mouseX, mouseY) ? ModPalette.TEXT : ModPalette.LEGEND_TEXT;
+            Widgets.centered(graphics, font(), this.parts.get(i).name(), subtabLeft(i), subtabLeft(i) + SUBTAB_W,
                     SUBTAB_Y + 4, colour);
         }
         current().texts(graphics, x, y, mouseX, mouseY);

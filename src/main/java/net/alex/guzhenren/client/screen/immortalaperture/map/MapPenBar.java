@@ -3,10 +3,10 @@ package net.alex.guzhenren.client.screen.immortalaperture.map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.alex.guzhenren.gameplay.immortalaperture.herd.HerdRules;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.HerdPart;
 import net.minecraft.client.gui.Font;
@@ -99,8 +99,8 @@ final class MapPenBar extends MapObjectBar {
 
     @Override
     protected Face face(int key) {
-        PanelDrawing.Look look = pop == popOf(key) && pop != Pop.NONE ? PanelDrawing.Look.SELECTED
-                : PanelDrawing.Look.PLAIN;
+        Widgets.Look look = pop == popOf(key) && pop != Pop.NONE ? Widgets.Look.SELECTED
+                : Widgets.Look.PLAIN;
         ResourceLocation animal = animal();
         Component label = Component.translatable(UI + KEYS[key]);
         return switch (key) {
@@ -170,24 +170,24 @@ final class MapPenBar extends MapObjectBar {
                 List<HerdPart.Kind> kinds = kinds();
                 for (int at = 0; at < listRows() && listRow + at < kinds.size(); at++) {
                     boolean current = kinds.get(listRow + at).type().equals(animal());
-                    PanelDrawing.button(sprites, box.innerX(), MapPopup.rowY(box, at), listWidth(box), MapPopup.ROW_H,
-                            current ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.GHOST, true, mouseX, mouseY);
+                    Widgets.button(sprites, box.innerX(), MapPopup.rowY(box, at), listWidth(box), MapPopup.ROW_H,
+                            current ? Widgets.Look.SELECTED : Widgets.Look.GHOST, true, mouseX, mouseY);
                 }
                 if (kinds.size() > LIST_ROWS) {
-                    PanelDrawing.scrollbar(sprites, box.innerX() + box.innerWidth() - 6, box.innerY(),
+                    Widgets.scrollbar(sprites, box.innerX() + box.innerWidth() - 6, box.innerY(),
                             MapPopup.rows(LIST_ROWS), listRow, LIST_ROWS, kinds.size(), false);
                 }
             }
             case SLAUGHTER -> {
                 int y = MapPopup.rowY(box, 0);
-                PanelDrawing.button(sprites, minusX(box), y, STEP, STEP, PanelDrawing.Look.GHOST, floor() > 0, mouseX,
+                Widgets.button(sprites, minusX(box), y, STEP, STEP, Widgets.Look.GHOST, floor() > 0, mouseX,
                         mouseY);
-                PanelDrawing.button(sprites, plusX(box), y, STEP, STEP, PanelDrawing.Look.GHOST, true, mouseX, mouseY);
-                PanelDrawing.button(sprites, slayX(box), MapPopup.rowY(box, 1), slayW(), MapPopup.ROW_H,
-                        PanelDrawing.Look.PLAIN, row != null && row.slaughter() > 0, mouseX, mouseY);
+                Widgets.button(sprites, plusX(box), y, STEP, STEP, Widgets.Look.GHOST, true, mouseX, mouseY);
+                Widgets.button(sprites, slayX(box), MapPopup.rowY(box, 1), slayW(), MapPopup.ROW_H,
+                        Widgets.Look.PLAIN, row != null && row.slaughter() > 0, mouseX, mouseY);
             }
-            case REMOVE -> PanelDrawing.button(sprites, box.innerX(), MapPopup.rowY(box, 0), box.innerWidth(),
-                    MapPopup.ROW_H, PanelDrawing.Look.DANGER, true, mouseX, mouseY);
+            case REMOVE -> Widgets.button(sprites, box.innerX(), MapPopup.rowY(box, 0), box.innerWidth(),
+                    MapPopup.ROW_H, Widgets.Look.DANGER, true, mouseX, mouseY);
             case NONE -> {}
         }
     }
@@ -212,35 +212,35 @@ final class MapPenBar extends MapObjectBar {
                     HerdPart.Kind kind = kinds.get(listRow + at);
                     int y = MapPopup.rowY(box, at) + 3;
                     boolean current = kind.type().equals(animal);
-                    int colour = current ? PanelDrawing.SELECTED_TEXT : kind.count() > 0 ? PanelDrawing.TEXT
-                            : PanelDrawing.DEAD;
+                    int colour = current ? ModPalette.ACCENT_TEXT : kind.count() > 0 ? ModPalette.TEXT
+                            : ModPalette.TEXT_DEAD;
                     graphics.drawString(font, name(kind.type()), box.innerX() + 4, y, colour, false);
-                    PanelDrawing.right(graphics, font, Integer.toString(kind.count()),
-                            box.innerX() + listWidth(box) - 4, y, current ? colour : PanelDrawing.LEGEND);
+                    Widgets.right(graphics, font, Integer.toString(kind.count()),
+                            box.innerX() + listWidth(box) - 4, y, current ? colour : ModPalette.LEGEND_TEXT);
                 }
             }
             case SLAUGHTER -> {
                 MapPopup.title(graphics, font, box, Component.translatable(UI + "slaughter_title",
                         animal == null ? Component.empty() : name(animal)), Component.empty());
                 int y = MapPopup.rowY(box, 0);
-                graphics.drawString(font, Component.translatable(UI + "floor"), box.innerX(), y + 3, PanelDrawing.TEXT,
+                graphics.drawString(font, Component.translatable(UI + "floor"), box.innerX(), y + 3, ModPalette.TEXT,
                         false);
-                PanelDrawing.label(graphics, font, Component.literal("−"), minusX(box), y, STEP, STEP,
-                        PanelDrawing.Look.GHOST, floor() > 0);
-                PanelDrawing.centered(graphics, font, Component.literal(Integer.toString(floor())), minusX(box) + STEP,
-                        plusX(box), y + 3, PanelDrawing.TEXT);
-                PanelDrawing.label(graphics, font, Component.literal("+"), plusX(box), y, STEP, STEP,
-                        PanelDrawing.Look.GHOST, true);
+                Widgets.label(graphics, font, Component.literal("−"), minusX(box), y, STEP, STEP,
+                        Widgets.Look.GHOST, floor() > 0);
+                Widgets.centered(graphics, font, Component.literal(Integer.toString(floor())), minusX(box) + STEP,
+                        plusX(box), y + 3, ModPalette.TEXT);
+                Widgets.label(graphics, font, Component.literal("+"), plusX(box), y, STEP, STEP,
+                        Widgets.Look.GHOST, true);
                 int now = row == null ? 0 : row.slaughter();
                 graphics.drawString(font, Component.translatable(UI + "slaughter_now", now), box.innerX(),
-                        MapPopup.rowY(box, 1) + 3, PanelDrawing.LEGEND, false);
-                PanelDrawing.label(graphics, font, Component.translatable(UI + "slaughter"), slayX(box),
-                        MapPopup.rowY(box, 1), slayW(), MapPopup.ROW_H, PanelDrawing.Look.PLAIN, now > 0);
+                        MapPopup.rowY(box, 1) + 3, ModPalette.LEGEND_TEXT, false);
+                Widgets.label(graphics, font, Component.translatable(UI + "slaughter"), slayX(box),
+                        MapPopup.rowY(box, 1), slayW(), MapPopup.ROW_H, Widgets.Look.PLAIN, now > 0);
             }
             case REMOVE -> {
                 MapPopup.title(graphics, font, box, Component.translatable(UI + "remove"), Component.empty());
-                PanelDrawing.label(graphics, font, Component.translatable(UI + "remove_confirm"), box.innerX(),
-                        MapPopup.rowY(box, 0), box.innerWidth(), MapPopup.ROW_H, PanelDrawing.Look.DANGER, true);
+                Widgets.label(graphics, font, Component.translatable(UI + "remove_confirm"), box.innerX(),
+                        MapPopup.rowY(box, 0), box.innerWidth(), MapPopup.ROW_H, Widgets.Look.DANGER, true);
             }
             case NONE -> {}
         }
@@ -333,7 +333,7 @@ final class MapPenBar extends MapObjectBar {
     /** 滚轮在动物列表上：翻行；返回真即吃掉。 */
     boolean scroll(double mouseX, double mouseY, double delta) {
         if (pop != Pop.ANIMAL || !popup().contains(mouseX, mouseY)) return false;
-        listRow = PanelDrawing.clampScroll(listRow - (int) Math.signum(delta), LIST_ROWS, kinds().size());
+        listRow = Widgets.clampScroll(listRow - (int) Math.signum(delta), LIST_ROWS, kinds().size());
         return true;
     }
     //endregion

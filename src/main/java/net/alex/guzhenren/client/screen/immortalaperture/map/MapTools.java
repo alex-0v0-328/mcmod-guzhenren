@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
@@ -329,12 +330,12 @@ final class MapTools {
     }
 
     void sprites(SpriteBatch sprites, Font font, double mouseX, double mouseY, boolean hint) {
-        sprites.blit(PanelDrawing.OVERLAY, boxX, boxY, boxW, boxH);
+        sprites.blit(Widgets.OVERLAY, boxX, boxY, boxW, boxH);
         for (Key key : Key.values()) {
-            PanelDrawing.Look look = key == Key.CEDE ? PanelDrawing.Look.DANGER
-                    : selected(key) ? PanelDrawing.Look.SELECTED : PanelDrawing.Look.PLAIN;
-            PanelDrawing.button(sprites, left(key), buttonY(), button, button, look, true, mouseX, mouseY);
-            int sunk = selected(key) || PanelDrawing.pressed(left(key), buttonY(), button, button) ? 1 : 0;
+            Widgets.Look look = key == Key.CEDE ? Widgets.Look.DANGER
+                    : selected(key) ? Widgets.Look.SELECTED : Widgets.Look.PLAIN;
+            Widgets.button(sprites, left(key), buttonY(), button, button, look, true, mouseX, mouseY);
+            int sunk = selected(key) || Widgets.pressed(left(key), buttonY(), button, button) ? 1 : 0;
             int inset = (button - 16) / 2;
             sprites.blit(PanelDrawing.sprite(key.icon), left(key) + inset, buttonY() + inset + sunk, 16, 16);
         }
@@ -354,8 +355,8 @@ final class MapTools {
         if (!wide) return;
         int labelY = buttonY() + button + 3;
         for (Key key : Key.values()) {
-            PanelDrawing.centered(graphics, font, Component.translatable(UI + "tool." + key.id()), left(key) - 2,
-                    left(key) + button + 2, labelY, selected(key) ? PanelDrawing.ACCENT : PanelDrawing.TEXT);
+            Widgets.centered(graphics, font, Component.translatable(UI + "tool." + key.id()), left(key) - 2,
+                    left(key) + button + 2, labelY, selected(key) ? ModPalette.ACCENT : ModPalette.TEXT);
         }
     }
 
@@ -371,13 +372,13 @@ final class MapTools {
         Component action = Component.translatable(UI + hintKey(active));
         Component right = Component.translatable(UI + "key.right");
         Component cancel = Component.translatable(EarthSpiritScreen.UI + "cancel");
-        int width = 6 + font.width(name) + 6 + PanelDrawing.keycapWidth(font, left) + 3 + font.width(action) + 6
-                + PanelDrawing.keycapWidth(font, right) + 3 + font.width(cancel) + 6;
+        int width = 6 + font.width(name) + 6 + Widgets.keycapWidth(font, left) + 3 + font.width(action) + 6
+                + Widgets.keycapWidth(font, right) + 3 + font.width(cancel) + 6;
         int x = boxX + (boxW - width) / 2;
         int y = boxTop();
-        if (sprites != null) sprites.blit(PanelDrawing.CHIP, x, y, width, MapHud.CHIP_H);
+        if (sprites != null) sprites.blit(Widgets.CHIP, x, y, width, MapHud.CHIP_H);
         x += 6;
-        if (graphics != null) graphics.drawString(font, name, x, y + 4, PanelDrawing.ACCENT, false);
+        if (graphics != null) graphics.drawString(font, name, x, y + 4, ModPalette.ACCENT, false);
         x += font.width(name) + 6;
         x = MapHud.keyPhrase(sprites, graphics, font, left, action, x, y) + 6;
         MapHud.keyPhrase(sprites, graphics, font, right, cancel, x, y);

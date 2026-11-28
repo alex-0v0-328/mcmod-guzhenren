@@ -1,9 +1,9 @@
 package net.alex.guzhenren.client.screen.immortalaperture.map;
 
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.client.screen.immortalaperture.EarthSpiritScreen;
-import net.alex.guzhenren.client.screen.immortalaperture.PanelDrawing;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -32,11 +32,11 @@ final class MapHud {
 
     static int keyPhrase(@Nullable SpriteBatch sprites, @Nullable GuiGraphics graphics, Font font, Component key,
                          Component action, int x, int y) {
-        int keyW = PanelDrawing.keycapWidth(font, key);
-        if (sprites != null) PanelDrawing.keycap(sprites, x, y + 2, keyW);
+        int keyW = Widgets.keycapWidth(font, key);
+        if (sprites != null) Widgets.keycap(sprites, x, y + 2, keyW);
         if (graphics != null) {
-            PanelDrawing.keycapText(graphics, font, key, x, y + 2, keyW);
-            graphics.drawString(font, action, x + keyW + 3, y + 4, PanelDrawing.LEGEND, false);
+            Widgets.keycapText(graphics, font, key, x, y + 2, keyW);
+            graphics.drawString(font, action, x + keyW + 3, y + 4, ModPalette.LEGEND_TEXT, false);
         }
         return x + keyW + 3 + font.width(action);
     }
@@ -46,11 +46,11 @@ final class MapHud {
                          int centerX, int y) {
         int width = 6;
         for (String[] phrase : phrases) {
-            width += PanelDrawing.keycapWidth(font, key(phrase[0])) + 3 + font.width(hint(phrase[1])) + 8;
+            width += Widgets.keycapWidth(font, key(phrase[0])) + 3 + font.width(hint(phrase[1])) + 8;
         }
         width -= 2;
         int x = centerX - width / 2;
-        if (sprites != null) sprites.blit(PanelDrawing.CHIP, x, y, width, CHIP_H);
+        if (sprites != null) sprites.blit(Widgets.CHIP, x, y, width, CHIP_H);
         x += 6;
         for (String[] phrase : phrases) {
             x = keyPhrase(sprites, graphics, font, key(phrase[0]), hint(phrase[1]), x, y) + 8;
@@ -90,7 +90,7 @@ final class MapHud {
         for (int i = 0; i < RESOURCES.length; i++) {
             lefts[i] = x;
             widths[i] = 5 + font.width(label(i)) + 3 + font.width(values[i]) + 5;
-            sprites.blit(PanelDrawing.CHIP, x, TOP, widths[i], CHIP_H);
+            sprites.blit(Widgets.CHIP, x, TOP, widths[i], CHIP_H);
             x += widths[i] + 4;
         }
     }
@@ -101,8 +101,8 @@ final class MapHud {
         String[] values = values(land);
         for (int i = 0; i < RESOURCES.length; i++) {
             Component label = label(i);
-            graphics.drawString(font, label, lefts[i] + 5, TOP + 4, PanelDrawing.LEGEND, false);
-            graphics.drawString(font, values[i], lefts[i] + 5 + font.width(label) + 3, TOP + 4, PanelDrawing.TEXT,
+            graphics.drawString(font, label, lefts[i] + 5, TOP + 4, ModPalette.LEGEND_TEXT, false);
+            graphics.drawString(font, values[i], lefts[i] + 5 + font.width(label) + 3, TOP + 4, ModPalette.TEXT,
                     false);
         }
     }

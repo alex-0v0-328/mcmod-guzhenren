@@ -2,6 +2,7 @@ package net.alex.guzhenren.client.screen.immortalaperture;
 
 import java.util.List;
 import java.util.Locale;
+import net.alex.guzhenren.client.ModPalette;
 import net.alex.guzhenren.client.SpriteBatch;
 import net.alex.guzhenren.client.screen.Widgets;
 import net.alex.guzhenren.gameplay.immortalaperture.managementpanel.OverviewPart;
@@ -69,7 +70,7 @@ final class OverviewPage extends PanelPage {
     protected void resized(int width, int height) {
         columnX = InfoPage.columnX(width);
         columnW = InfoPage.columnWidth(width);
-        int fixed = TILES_Y + TILE_GAP + OUTSIDERS_H + PanelDrawing.PAD + PanelDrawing.MARGIN;
+        int fixed = TILES_Y + TILE_GAP + OUTSIDERS_H + Widgets.PAD + PanelDrawing.MARGIN;
         rows = Math.clamp((height - peopleY() - fixed + TILE_GAP) / (TILE_H + TILE_GAP), MIN_ROWS, MAX_ROWS);
     }
 
@@ -110,11 +111,11 @@ final class OverviewPage extends PanelPage {
 
     private int expelY(int slot) { return tileY(slot) + 23; }
 
-    private int outsidersX() { return columnX + columnW - PanelDrawing.PAD - OUTSIDERS_W; }
+    private int outsidersX() { return columnX + columnW - Widgets.PAD - OUTSIDERS_W; }
 
     private int outsidersY() { return peopleY() + TILES_Y + tilesH() + TILE_GAP; }
 
-    private int peopleH() { return TILES_Y + tilesH() + TILE_GAP + OUTSIDERS_H + PanelDrawing.PAD; }
+    private int peopleH() { return TILES_Y + tilesH() + TILE_GAP + OUTSIDERS_H + Widgets.PAD; }
 
     /** 第 {@code slot} 张可见小卡对应的人（按行翻过 {@link #offset} 行），没有为 -1。 */
     private int personAt(int slot) {
@@ -143,36 +144,36 @@ final class OverviewPage extends PanelPage {
 
     @Override
     protected void sprites(SpriteBatch sprites, int x, int y, int mouseX, int mouseY) {
-        PanelDrawing.card(sprites, columnX, InfoPage.CONTENT_TOP, columnW, SUMMARY_H);
+        Widgets.card(sprites, columnX, InfoPage.CONTENT_TOP, columnW, SUMMARY_H);
         for (int i = 0; i < STAT_ICONS.length; i++) {
-            PanelDrawing.stat(sprites, PanelDrawing.sprite(STAT_ICONS[i]), statX(i), statY(i), statW(i), STAT_H,
+            Widgets.stat(sprites, PanelDrawing.sprite(STAT_ICONS[i]), statX(i), statY(i), statW(i), STAT_H,
                     isOverStat(i, mouseX, mouseY));
         }
-        PanelDrawing.card(sprites, columnX, peopleY(), columnW, peopleH());
-        offset = PanelDrawing.clampScroll(offset, rows, totalRows());
+        Widgets.card(sprites, columnX, peopleY(), columnW, peopleH());
+        offset = Widgets.clampScroll(offset, rows, totalRows());
         List<WhitelistEntry> players = players();
         for (int slot = 0; personAt(slot) >= 0; slot++) {
             WhitelistEntry person = players.get(personAt(slot));
             sprites.blit(Widgets.isOver(mouseX, mouseY, tileX(slot), tileY(slot), TILE_W, TILE_H)
-                    ? PanelDrawing.STAT_HIGHLIGHTED : PanelDrawing.STAT, tileX(slot), tileY(slot), TILE_W, TILE_H);
-            PanelDrawing.toggle(sprites, switchX(slot), switchY(slot), person.whitelisted(), true, mouseX, mouseY);
+                    ? Widgets.STAT_HIGHLIGHTED : Widgets.STAT, tileX(slot), tileY(slot), TILE_W, TILE_H);
+            Widgets.toggle(sprites, switchX(slot), switchY(slot), person.whitelisted(), true, mouseX, mouseY);
             if (!person.owner()) {
-                PanelDrawing.button(sprites, expelX(slot), expelY(slot), EXPEL_W, PanelDrawing.GHOST_H,
-                        PanelDrawing.Look.GHOST, true, mouseX, mouseY);
+                Widgets.button(sprites, expelX(slot), expelY(slot), EXPEL_W, Widgets.GHOST_H,
+                        Widgets.Look.GHOST, true, mouseX, mouseY);
             }
         }
         if (totalRows() > rows) {
-            int barX = columnX + columnW - PanelDrawing.PAD - 6;
-            PanelDrawing.scrollbar(sprites, barX, peopleY() + TILES_Y, tilesH(), offset, rows, totalRows(), false);
+            int barX = columnX + columnW - Widgets.PAD - 6;
+            Widgets.scrollbar(sprites, barX, peopleY() + TILES_Y, tilesH(), offset, rows, totalRows(), false);
         }
-        PanelDrawing.button(sprites, outsidersX(), outsidersY(), OUTSIDERS_W, OUTSIDERS_H, PanelDrawing.Look.DANGER,
+        Widgets.button(sprites, outsidersX(), outsidersY(), OUTSIDERS_W, OUTSIDERS_H, Widgets.Look.DANGER,
                 true, mouseX, mouseY);
     }
 
     @Override
     protected void texts(GuiGraphics graphics, int x, int y, int mouseX, int mouseY) {
         OverviewPart.Section data = data();
-        PanelDrawing.title(graphics, font(), Component.translatable(UI + "summary"), Component.empty(), columnX,
+        Widgets.title(graphics, font(), Component.translatable(UI + "summary"), Component.empty(), columnX,
                 InfoPage.CONTENT_TOP, columnW);
         String[] values = {
                 Component.translatable(UI + "acres_value", String.format(Locale.ROOT, "%,d", data.acres()))
@@ -183,34 +184,34 @@ final class OverviewPage extends PanelPage {
                 Component.translatable(UI + "springs_value", data.springs(),
                         SpringRules.stonesPerMinute(data.springs())).getString()};
         for (int i = 0; i < values.length; i++) {
-            PanelDrawing.statText(graphics, font(), statLabel(i), values[i], statX(i), statY(i), STAT_H);
+            Widgets.statText(graphics, font(), statLabel(i), values[i], statX(i), statY(i), STAT_H);
         }
 
         List<WhitelistEntry> players = players();
         long outsiders = players.stream().filter(OverviewPage::outsider).count();
-        PanelDrawing.title(graphics, font(), Component.translatable(UI + "present"),
+        Widgets.title(graphics, font(), Component.translatable(UI + "present"),
                 Component.translatable(UI + "present_count", players.size(), outsiders), columnX, peopleY(), columnW);
         Component whitelist = Component.translatable(UI + "whitelist");
         for (int slot = 0; personAt(slot) >= 0; slot++) {
             WhitelistEntry person = players.get(personAt(slot));
-            graphics.drawString(font(), person.name(), tileX(slot) + 20, tileY(slot) + 7, PanelDrawing.TEXT, false);
+            graphics.drawString(font(), person.name(), tileX(slot) + 20, tileY(slot) + 7, ModPalette.TEXT, false);
             int right = tileX(slot) + TILE_W - 6;
             if (person.owner()) {
-                PanelDrawing.right(graphics, font(), Component.translatable(UI + "owner"), right, tileY(slot) + 7,
-                        PanelDrawing.ACCENT);
+                Widgets.right(graphics, font(), Component.translatable(UI + "owner"), right, tileY(slot) + 7,
+                        ModPalette.ACCENT);
             } else if (outsider(person)) {
-                PanelDrawing.right(graphics, font(), Component.translatable(UI + "outsider"), right, tileY(slot) + 7,
-                        PanelDrawing.OUTSIDER);
+                Widgets.right(graphics, font(), Component.translatable(UI + "outsider"), right, tileY(slot) + 7,
+                        ModPalette.SHORT);
             }
-            graphics.drawString(font(), whitelist, switchX(slot) + PanelDrawing.SWITCH_W + 4, switchY(slot) + 1,
-                    PanelDrawing.LEGEND, false);
+            graphics.drawString(font(), whitelist, switchX(slot) + Widgets.SWITCH_W + 4, switchY(slot) + 1,
+                    ModPalette.LEGEND_TEXT, false);
             if (!person.owner()) {
-                PanelDrawing.label(graphics, font(), Component.translatable(UI + "expel"), expelX(slot), expelY(slot),
-                        EXPEL_W, PanelDrawing.GHOST_H, PanelDrawing.Look.GHOST, true);
+                Widgets.label(graphics, font(), Component.translatable(UI + "expel"), expelX(slot), expelY(slot),
+                        EXPEL_W, Widgets.GHOST_H, Widgets.Look.GHOST, true);
             }
         }
-        PanelDrawing.label(graphics, font(), Component.translatable(UI + "expel_outsiders"), outsidersX(),
-                outsidersY(), OUTSIDERS_W, OUTSIDERS_H, PanelDrawing.Look.DANGER, true);
+        Widgets.label(graphics, font(), Component.translatable(UI + "expel_outsiders"), outsidersX(),
+                outsidersY(), OUTSIDERS_W, OUTSIDERS_H, Widgets.Look.DANGER, true);
     }
 
     @Override
@@ -233,12 +234,12 @@ final class OverviewPage extends PanelPage {
         }
         List<WhitelistEntry> players = players();
         for (int slot = 0; personAt(slot) >= 0; slot++) {
-            if (tip(graphics, switchX(slot), switchY(slot), PanelDrawing.SWITCH_W, PanelDrawing.SWITCH_H, mouseX,
+            if (tip(graphics, switchX(slot), switchY(slot), Widgets.SWITCH_W, Widgets.SWITCH_H, mouseX,
                     mouseY, Component.translatable(TIP + "whitelist"))) {
                 return;
             }
             if (!players.get(personAt(slot)).owner() && tip(graphics, expelX(slot), expelY(slot), EXPEL_W,
-                    PanelDrawing.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "expel"))) {
+                    Widgets.GHOST_H, mouseX, mouseY, Component.translatable(TIP + "expel"))) {
                 return;
             }
         }
@@ -263,13 +264,13 @@ final class OverviewPage extends PanelPage {
         List<WhitelistEntry> players = players();
         for (int slot = 0; personAt(slot) >= 0; slot++) {
             WhitelistEntry person = players.get(personAt(slot));
-            if (Widgets.isOver(mouseX, mouseY, switchX(slot), switchY(slot), PanelDrawing.SWITCH_W,
-                    PanelDrawing.SWITCH_H)) {
+            if (Widgets.isOver(mouseX, mouseY, switchX(slot), switchY(slot), Widgets.SWITCH_W,
+                    Widgets.SWITCH_H)) {
                 send(new OverviewPart.SetWhitelisted(person.id(), !person.whitelisted()));
                 return true;
             }
             if (!person.owner() && Widgets.isOver(mouseX, mouseY, expelX(slot), expelY(slot), EXPEL_W,
-                    PanelDrawing.GHOST_H)) {
+                    Widgets.GHOST_H)) {
                 send(new OverviewPart.Expel(person.id()));
                 return true;
             }
@@ -280,7 +281,7 @@ final class OverviewPage extends PanelPage {
     @Override
     protected boolean scroll(int x, int y, double mouseX, double mouseY, double delta) {
         if (!Widgets.isOver(mouseX, mouseY, columnX, peopleY() + TILES_Y, columnW, tilesH())) return false;
-        offset = PanelDrawing.clampScroll(offset - (int) Math.signum(delta), rows, totalRows());
+        offset = Widgets.clampScroll(offset - (int) Math.signum(delta), rows, totalRows());
         return true;
     }
 }
