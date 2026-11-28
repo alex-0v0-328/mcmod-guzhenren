@@ -112,7 +112,7 @@ final class MapHud {
         boolean live = ripe(land) > 0;
         PanelDrawing.button(sprites, harvestX, TOP - 2, harvestW, HARVEST_H, live, mouseX, mouseY);
         int sunk = !live || PanelDrawing.pressed(harvestX, TOP - 2, harvestW, HARVEST_H) ? 1 : 0;
-        sprites.blit(PanelDrawing.sprite("harvest_all"), harvestX + 3, TOP + sunk, 16, 16,
+        sprites.blit(PanelDrawing.sprite("act_harvest"), harvestX + 3, TOP + sunk, 16, 16,
                 live ? 0xFFFFFFFF : PanelDrawing.DIM_ICON);
         keysW = keys(null, null, font) + 6 - LEFT;
         sprites.blit(PanelDrawing.CHIP, LEFT, keysY, keysW, CHIP_H);

@@ -27,7 +27,7 @@ final class OverviewPage extends PanelPage {
 
     private static final String UI = EarthSpiritScreen.UI;
     private static final String TIP = EarthSpiritScreen.TIP;
-    private static final String[] STAT_ICONS = {"icon_map", "icon_mountain", "icon_husbandry", "icon_farming",
+    private static final String[] STAT_ICONS = {"icon_map", "icon_mountain", "icon_husbandry", "tool_farm",
             "icon_storage"};
     private static final int STORAGE_STAT = -3;
     private static final int MAP_STAT = -2;
