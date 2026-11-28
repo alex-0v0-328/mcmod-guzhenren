@@ -104,13 +104,13 @@ class SchoolUniformMeshTest {
     }
 
     @Test
-    @DisplayName("each skin arm width gets its own sleeves: inner sleeve and bandage on the arm, outer sleeves a pixel out")
+    @DisplayName("each skin arm width gets its own sleeves: inner sleeve and bandage on the arm, outer sleeves half a pixel out")
     void eachArmWidthGetsItsOwnSleeves() throws IOException {
         Map<String, JsonObject> bones = new HashMap<>();
         read(GEO).getAsJsonArray("minecraft:geometry").get(0).getAsJsonObject().getAsJsonArray("bones")
                 .forEach(bone -> bones.put(bone.getAsJsonObject().get("name").getAsString(), bone.getAsJsonObject()));
-        Map<String, double[]> arms = Map.of("left_arm_wide", new double[] {4, 8, 1}, "left_arm_slim", new double[] {4, 7, 1},
-                "right_arm_wide", new double[] {-8, -4, -1}, "right_arm_slim", new double[] {-7, -4, -1});
+        Map<String, double[]> arms = Map.of("left_arm_wide", new double[] {4, 8, 0.5}, "left_arm_slim", new double[] {4, 7, 0.5},
+                "right_arm_wide", new double[] {-8, -4, -0.5}, "right_arm_slim", new double[] {-7, -4, -0.5});
         for (var arm : arms.entrySet()) {
             JsonObject bone = bones.get(arm.getKey());
             assertNotNull(bone, arm.getKey() + " ships");
@@ -124,7 +124,7 @@ class SchoolUniformMeshTest {
                 boolean inner = cube.getAsJsonArray("size").get(2).getAsDouble() == 4.0D;
                 assertEquals(skin[1] - skin[0], width, 1.0E-6D, arm.getKey() + " sleeve as wide as the arm");
                 assertEquals(skin[0] + (inner ? 0.0D : skin[2]), x0, 1.0E-6D,
-                        arm.getKey() + (inner ? " inner layer on the arm" : " outer sleeve a pixel out"));
+                        arm.getKey() + (inner ? " inner layer on the arm" : " outer sleeve half a pixel out"));
                 if (inner) assertTrue(inflate <= HUG, arm.getKey() + " inner layer stands " + inflate + " px off");
             }
         }
